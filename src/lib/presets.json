@@ -1,0 +1,167 @@
+[
+  {
+    "id": "tiktok",
+    "name": "TikTok",
+    "resolution": { "width": 1080, "height": 1920 },
+    "aspectRatio": "9:16",
+    "fps": 60,
+    "bitrate": "8-15 Mbps",
+    "format": "mp4",
+    "visualizer": "Radiale Balken",
+    "description": "Vertikales Kurzvideo-Format für Musikclips und Reels"
+  },
+  {
+    "id": "instagram_reel",
+    "name": "Instagram Reel",
+    "resolution": { "width": 1080, "height": 1920 },
+    "aspectRatio": "9:16",
+    "fps": 60,
+    "bitrate": "8-15 Mbps",
+    "format": "mp4",
+    "visualizer": "Gespiegelte Balken",
+    "description": "Optimiert für Reels mit Musik-Visualizer"
+  },
+  {
+    "id": "instagram_post",
+    "name": "Instagram Feed (Quadrat)",
+    "resolution": { "width": 1080, "height": 1080 },
+    "aspectRatio": "1:1",
+    "fps": 30,
+    "bitrate": "5-8 Mbps",
+    "format": "mp4",
+    "visualizer": "Klassische Balken",
+    "description": "Quadratisches Format für Posts oder Cover-Clips"
+  },
+  {
+    "id": "instagram_story",
+    "name": "Instagram Story",
+    "resolution": { "width": 1080, "height": 1920 },
+    "aspectRatio": "9:16",
+    "fps": 60,
+    "bitrate": "8 Mbps",
+    "format": "mp4",
+    "visualizer": "Waveform (zentriert)",
+    "description": "Kurzclip im Hochformat für Stories"
+  },
+  {
+    "id": "youtube_standard",
+    "name": "YouTube (Standard)",
+    "resolution": { "width": 1920, "height": 1080 },
+    "aspectRatio": "16:9",
+    "fps": 60,
+    "bitrate": "15-20 Mbps",
+    "format": "mp4",
+    "visualizer": "Balken (Ultra-Dynamisch)",
+    "description": "Standard-Format für Musikvisualisierungen auf YouTube"
+  },
+  {
+    "id": "youtube_shorts",
+    "name": "YouTube Shorts",
+    "resolution": { "width": 1080, "height": 1920 },
+    "aspectRatio": "9:16",
+    "fps": 60,
+    "bitrate": "10-15 Mbps",
+    "format": "mp4",
+    "visualizer": "Radiale Balken",
+    "description": "Vertikales Format für YouTube Shorts"
+  },
+  {
+    "id": "facebook_feed",
+    "name": "Facebook Feed Video",
+    "resolution": { "width": 1280, "height": 720 },
+    "aspectRatio": "16:9",
+    "fps": 30,
+    "bitrate": "6-8 Mbps",
+    "format": "mp4",
+    "visualizer": "Standard-Balken",
+    "description": "Für geteilte Videos im Facebook-Newsfeed"
+  },
+  {
+    "id": "facebook_story",
+    "name": "Facebook Story",
+    "resolution": { "width": 1080, "height": 1920 },
+    "aspectRatio": "9:16",
+    "fps": 60,
+    "bitrate": "8 Mbps",
+    "format": "mp4",
+    "visualizer": "Soft Waveform",
+    "description": "Hochformat für kurze Facebook-Stories"
+  },
+  {
+    "id": "twitter_post",
+    "name": "Twitter / X Post",
+    "resolution": { "width": 1280, "height": 720 },
+    "aspectRatio": "16:9",
+    "fps": 30,
+    "bitrate": "6-8 Mbps",
+    "format": "mp4",
+    "visualizer": "Waveform Minimal",
+    "description": "Kurze dynamische Musikvideos für X/Twitter"
+  },
+  {
+    "id": "twitch_overlay",
+    "name": "Twitch Intro / Overlay",
+    "resolution": { "width": 1920, "height": 1080 },
+    "aspectRatio": "16:9",
+    "fps": 60,
+    "bitrate": "15 Mbps",
+    "format": "webm",
+    "visualizer": "Matrix-Regen",
+    "description": "Für Stream-Intros oder Hintergrundanimationen"
+  },
+  {
+    "id": "spotify_canvas",
+    "name": "Spotify Canvas Loop",
+    "resolution": { "width": 1080, "height": 1920 },
+    "aspectRatio": "9:16",
+    "fps": 30,
+    "bitrate": "5-8 Mbps",
+    "format": "mp4",
+    "visualizer": "Minimalistische Wellenform",
+    "description": "3–8 Sekunden Visualizer-Schleifen für Spotify Canvas"
+  },
+  {
+    "id": "website_promo",
+    "name": "Website / Portfolio Video",
+    "resolution": { "width": 1920, "height": 1080 },
+    "aspectRatio": "16:9",
+    "fps": 60,
+    "bitrate": "10-15 Mbps",
+    "format": "webm",
+    "visualizer": "Elegant Waveform",
+    "description": "Für eingebettete Präsentationen oder Hintergrundvisuals"
+  },
+  {
+    "id": "square_ad",
+    "name": "Quadratische Anzeige (Ad)",
+    "resolution": { "width": 1080, "height": 1080 },
+    "aspectRatio": "1:1",
+    "fps": 30,
+    "bitrate": "8 Mbps",
+    "format": "mp4",
+    "visualizer": "Waveform Zentriert",
+    "description": "Für Social-Media-Anzeigen mit Musik und Text"
+  },
+  {
+    "id": "vertical_ad",
+    "name": "Vertikale Anzeige (Mobile)",
+    "resolution": { "width": 1080, "height": 1920 },
+    "aspectRatio": "9:16",
+    "fps": 60,
+    "bitrate": "10 Mbps",
+    "format": "mp4",
+    "visualizer": "Balken / Radial Kombi",
+    "description": "Hochformat für mobile Werbung und Stories"
+  },
+  {
+    "id": "4k_video",
+    "name": "4K High-End Video",
+    "resolution": { "width": 3840, "height": 2160 },
+    "aspectRatio": "16:9",
+    "fps": 60,
+    "bitrate": "25-40 Mbps",
+    "format": "mp4",
+    "visualizer": "Dramatic Bars / Vivid Waveform",
+    "description": "Professionelle High-End-Videos für Großbildschirme"
+  }
+]

@@ -1,0 +1,182 @@
+<template>
+  <div class="panel-container">
+    <h4>Steuerung</h4>
+    
+    <div class="control-section">
+      <span class="section-label">Raster</span>
+      <button 
+        class="toggle-btn"
+        :class="{ active: gridStore.isVisible }"
+        @click="gridStore.toggleGrid"
+      >
+        <span class="btn-icon">{{ gridStore.isVisible ? '✓' : '×' }}</span>
+        {{ gridStore.isVisible ? 'An' : 'Aus' }}
+      </button>
+    </div>
+
+    <div class="control-section">
+      <span class="section-label">Arbeitsbereich</span>
+      <div class="preset-buttons">
+        <button
+          class="preset-btn"
+          :class="{ active: workspaceStore.selectedPresetKey === null }"
+          @click="workspaceStore.selectedPresetKey = null"
+        >
+          Frei
+        </button>
+        <button
+          v-for="(preset, key) in workspaceStore.presets"
+          :key="key"
+          class="preset-btn"
+          :class="{ active: workspaceStore.selectedPresetKey === key }"
+          @click="workspaceStore.selectedPresetKey = key"
+          :title="preset.name"
+        >
+          {{ getPresetShortName(preset.name) }}
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { useGridStore } from '../stores/gridStore.js';
+import { useWorkspaceStore } from '../stores/workspaceStore.js';
+
+const gridStore = useGridStore();
+const workspaceStore = useWorkspaceStore();
+
+// Funktion für Kurzbezeichnungen der Presets
+function getPresetShortName(name) {
+  const mapping = {
+    'TikTok (9:16)': 'TikTok',
+    'Instagram Story (9:16)': 'IG Story',
+    'Instagram Post (1:1)': 'IG Post',
+    'Instagram Reel (9:16)': 'IG Reel',
+    'YouTube Short (9:16)': 'YT Short',
+    'YouTube Video (16:9)': 'YT Video',
+    'Facebook Post (1.91:1)': 'FB',
+    'X/Twitter Video (16:9)': 'X/Twitter',
+    'LinkedIn Video (16:9)': 'LinkedIn'
+  };
+  return mapping[name] || name;
+}
+</script>
+
+<style scoped>
+.panel-container {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #333;
+}
+
+h4 {
+  margin: 0 0 12px 0;
+  color: #e0e0e0;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-section {
+  margin-bottom: 12px;
+}
+
+.control-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-label {
+  display: block;
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 6px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.toggle-btn {
+  width: 100%;
+  background-color: #3a3a3a;
+  color: #c0c0c0;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.toggle-btn:hover {
+  background-color: #454545;
+  border-color: #666;
+}
+
+.toggle-btn.active {
+  background-color: #6ea8fe;
+  color: #fff;
+  border-color: #6ea8fe;
+}
+
+.toggle-btn.active:hover {
+  background-color: #5a96e8;
+}
+
+.btn-icon {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.preset-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.preset-btn {
+  background-color: #3a3a3a;
+  color: #c0c0c0;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.preset-btn:hover {
+  background-color: #454545;
+  border-color: #666;
+  transform: translateY(-1px);
+}
+
+.preset-btn.active {
+  background-color: #6ea8fe;
+  color: #fff;
+  border-color: #6ea8fe;
+  font-weight: 600;
+}
+
+.preset-btn.active:hover {
+  background-color: #5a96e8;
+}
+
+/* Responsive Anpassung für kleine Bildschirme */
+@media (max-width: 400px) {
+  .preset-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>

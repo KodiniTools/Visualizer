@@ -1,0 +1,821 @@
+/**
+style.css - Haupt-Stylesheet für den Audio Visualizer Pro
+*/
+
+/* --- THEME DEFINITIONS --- */
+
+:root {
+    /* Define variables for both themes here */
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #eab308;
+}
+
+/* 🎨 Dark Theme (Almost Black) */
+[data-theme='dark'] {
+    --bg: #0a0a0a;
+    --panel: #161616;
+    --text: #f0f0f0;
+    --muted: #888888;
+    --accent: #6ea8fe;
+    --accent-text: #0a0a0a; /* Text on accent background */
+    --btn: #222222;
+    --btn-hover: #333333;
+    --ring: #3e66d3;
+    --border-color: rgb(255 255 255 / 15%);
+    --shadow-color: rgb(0 0 0 / 50%);
+    --gradient-color: rgb(255 255 255 / 3%);
+    --panel-highlight: rgb(255 255 255 / 6%);
+    --progress-bg: rgb(255 255 255 / 15%);
+    --body-gradient: radial-gradient(1200px 600px at 80% -20%, #1b2452 0%, transparent 60%), var(--bg);
+}
+
+/* 💡 Light Theme */
+[data-theme='light'] {
+    --bg: #F0F0F0;         /* quantum-4 */
+    --panel: #FFFFFF;       /* quantum-2 */
+    --text: #1a1a1a;
+    --muted: #555555;
+    --accent: #005cda;
+    --accent-text: #FFFFFF;
+    --btn: #E8E8E8;         /* quantum-1 */
+    --btn-hover: #D4D4D4;    /* quantum-3 */
+    --ring: #3e66d3;
+    --border-color: #C0C0C0; /* quantum-5 */
+    --shadow-color: rgb(0 0 0 / 10%);
+    --gradient-color: rgb(0 0 0 / 2%);
+    --panel-highlight: rgb(0 0 0 / 2%);
+    --progress-bg: rgb(0 0 0 / 10%);
+    --body-gradient: var(--bg);
+}
+
+/* --- BASE STYLES --- */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--text);
+    background: var(--body-gradient);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 15px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 32px auto;
+    padding: 0 16px;
+    padding-top: 60px; /* Add padding to prevent overlap with fixed header icons */
+}
+
+header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.muted {
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+.panel {
+    background: linear-gradient(180deg, var(--gradient-color), transparent);
+    background-color: var(--panel);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(4px);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 10px 30px var(--shadow-color), inset 0 1px 0 var(--panel-highlight);
+    margin-bottom: 16px;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+#controls-panel {
+    position: relative;
+    z-index: 20;
+}
+
+
+label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+}
+
+/* Base styles for form elements */
+select, .btn, .custom-file-upload, input[type="text"], input[type="color"], textarea {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--btn);
+    color: var(--text);
+    padding: 10px 12px;
+    outline: none;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+}
+
+input[type="text"], textarea {
+    background: var(--panel);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 44px;
+    font-family: var(--font-sans);
+}
+
+select, .btn, .custom-file-upload {
+    justify-content: center;
+    align-items: center;
+    display: inline-flex;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.custom-file-upload {
+    cursor: pointer;
+}
+.custom-file-upload:hover {
+     background: var(--btn-hover);
+}
+
+
+select:focus,
+button:focus-visible,
+input:focus,
+textarea:focus,
+.custom-file-upload:focus-within {
+    box-shadow: 0 0 0 3px var(--ring);
+    border-color: var(--accent);
+}
+
+button:disabled, .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.main-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.btn-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.btn-group {
+    /* display: contents; */ /* Makes the wrapper invisible to the grid layout */
+    display: grid;
+}
+
+
+.btn {
+    transition: background 0.2s ease, transform 0.03s ease, border-color 0.2s, color 0.2s;
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    gap: 8px;
+    text-align: center;
+    overflow: hidden; /* Ensure child elements don't overflow */
+}
+
+:where(.btn:hover:not(:disabled)) {
+    background: var(--btn-hover);
+}
+
+:where(.btn:active:not(:disabled)) {
+    transform: translateY(1px);
+}
+
+.btn.primary {
+    background: var(--accent);
+    color: var(--accent-text);
+    border-color: var(--accent);
+}
+
+:where(.btn.primary:hover:not(:disabled)) {
+    filter: brightness(1.1);
+    background: var(--accent); /* Re-declare to override base hover */
+}
+
+.btn.btn-secondary {
+    background: var(--btn-hover);
+}
+
+:where(.btn.btn-secondary:hover:not(:disabled)) {
+    filter: brightness(1.1);
+    background: var(--btn-hover);
+}
+
+.btn .icon,
+.btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.canvas-wrap {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    /* Requirement: Canvas must ALWAYS be black */
+    background: #000 !important;
+    border-radius: 12px;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    margin-top: 32px; /* Added margin-top for more space */
+}
+
+#audio-visualizer {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: default;
+}
+
+.header-icons {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 100;
+    display: flex;
+    justify-content: flex-end; /* Align controls to the right */
+    align-items: center;
+    pointer-events: none;
+}
+
+
+.header-icons > * {
+    pointer-events: auto;
+}
+
+.theme-switcher, .lang-switcher {
+    display: flex;
+    background-color: var(--btn);
+    border-radius: 20px; /* Pill shape */
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 10px var(--shadow-color);
+}
+
+.theme-switcher button, .lang-switcher button {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.theme-switcher button {
+    padding: 10px; /* Let padding define size */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-switcher button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.lang-switcher button {
+    padding: 8px 16px;
+    font-weight: 600;
+    width: auto;
+}
+
+
+.theme-switcher button.active, .lang-switcher button.active {
+    background-color: var(--accent);
+    color: var(--accent-text);
+    cursor: default;
+}
+
+.theme-switcher button:not(.active):hover, .lang-switcher button:not(.active):hover {
+    background-color: var(--btn-hover);
+    color: var(--text);
+}
+
+
+/* Status Boxes */
+.status-box {
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid;
+    margin-bottom: 16px;
+}
+.status-box.ready {
+    background: color-mix(in srgb, var(--yellow) 15%, transparent);
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+.status-box.recording {
+    background: color-mix(in srgb, var(--red) 15%, transparent);
+    border-color: var(--red);
+    color: var(--red);
+}
+.status-box.paused,
+.status-box.processing {
+    background-color: #ffc107;
+    color: #000;
+    font-weight: bold;
+}
+
+.status-box.success {
+    background-color: #28a745;
+    color: #fff;
+    font-weight: bold;
+}
+
+.status-box.error {
+    background-color: #dc3545;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Results & Preview */
+#results-panel { text-align: center; }
+
+#preview {
+    width: 100%;
+    max-width: 640px;
+    border-radius: 12px;
+    margin: 12px auto;
+    display: block;
+    border: 1px solid var(--border-color);
+}
+.preview-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+.divider {
+    border: none;
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 20px 0;
+}
+
+/* Player Controls */
+.player-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 16px;
+}
+.player-controls .btn {
+    padding: 12px;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    flex-shrink: 0;
+}
+.player-controls .btn svg {
+    width: 24px;
+    height: 24px;
+}
+.track-name {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%; /* War 90%, um die ganze Breite zu nutzen */
+}
+
+.progress-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 4px;
+}
+
+.progress-wrapper .timer {
+    font-size: 0.8rem;
+    color: var(--muted);
+    flex-shrink: 0;
+}
+
+.progress-bar-container {
+    height: 6px;
+    background: var(--progress-bg);
+    border-radius: 3px;
+    position: relative;
+    cursor: pointer;
+    flex-grow: 1;
+}
+.progress-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+.playlist-header h4 {
+    /* Verhindert, dass ein langer Titel das Layout bricht */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#clearPlaylistBtn {
+    /* Verhindert, dass der Button schrumpft */
+    flex-shrink: 0;
+}
+
+/* Playlist */
+.playlist-container {
+    max-height: 150px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0;
+    margin-top: 16px;
+}
+.playlist-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.03s ease;
+    background-color: color-mix(in srgb, var(--text) 5%, transparent);
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+.playlist-item > span {
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.playlist-item:hover {
+    background-color: var(--btn-hover);
+}
+.playlist-item.active {
+    background: var(--accent);
+    color: var(--accent-text);
+    font-weight: 600;
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+.playlist-item.active::before {
+    content: '▶';
+    margin-right: 8px;
+    color: var(--accent-text);
+}
+
+/* Other controls (volume, dropdowns etc) */
+.volume-control { display: flex; align-items: center; position: relative; }
+.volume-slider {
+    appearance: none; width: 0; height: 4px; background: var(--progress-bg);
+    outline: none; border-radius: 2px; opacity: 0;
+    transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    cursor: pointer; margin-left: 8px;
+}
+.volume-control:hover .volume-slider { width: 100px; opacity: 1; }
+.volume-slider::-webkit-slider-thumb {
+    appearance: none; width: 16px; height: 16px; background: var(--accent);
+    cursor: pointer; border-radius: 50%; border: 3px solid var(--panel);
+    box-shadow: 0 0 5px var(--shadow-color);
+}
+.volume-slider::-moz-range-thumb {
+    width: 16px; height: 16px; background: var(--accent);
+    cursor: pointer; border-radius: 50%; border: 3px solid var(--panel);
+    box-shadow: 0 0 5px var(--shadow-color);
+}
+.custom-dropdown-container { position: relative; }
+.custom-dropdown {
+    position: absolute; top: calc(100% + 5px); left: 0; width: 100%;
+    background: var(--panel); border: 1px solid var(--border-color);
+    border-radius: 12px; z-index: 1000; max-height: 210px; overflow-y: auto;
+    box-shadow: 0 8px 20px var(--shadow-color); padding: 5px;
+}
+.custom-dropdown-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px; border-radius: 8px; transition: background-color 0.2s ease;
+}
+
+/* NEUE REGEL: Dateinamen im Dropdown kürzen, damit die Buttons sichtbar bleiben */
+.custom-dropdown-item:not(.add-new) > span:first-child {
+    flex-grow: 1;
+    min-width: 0; /* Wichtig für die korrekte Kürzung in einem Flex-Container */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 8px; /* Abstand zwischen dem Text und dem Button */
+}
+
+.custom-dropdown-item:hover:not(.disabled) { background-color: var(--btn-hover); }
+.custom-dropdown-item.active { background-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+.custom-dropdown-item.disabled { opacity: 0.5; cursor: default; }
+.custom-dropdown-item.add-new { font-weight: 600; color: var(--accent); cursor: pointer; }
+
+/* Settings & Text Controls */
+.settings-details { margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px; }
+.settings-details summary {
+    font-weight: 600; cursor: pointer; color: var(--accent); padding: 8px;
+    border-radius: 8px; transition: background-color 0.2s; margin: -8px; margin-bottom: 8px;
+}
+.settings-details summary:hover { background-color: var(--btn); }
+.text-controls-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px; padding-top: 16px;
+}
+.control-group-flex { display: flex; gap: 10px; align-items: flex-end; }
+.toggle-wrapper label:first-child, .color-picker-wrapper label { margin-bottom: 6px; text-align: center; }
+
+/* Toggle Switch Styles */
+.toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--btn); border: 1px solid var(--border-color);
+  transition: .4s; border-radius: 28px;
+}
+.slider:before {
+  position: absolute; content: ""; height: 20px; width: 20px; left: 3px;
+  bottom: 3px; background-color: var(--muted); transition: .4s; border-radius: 50%;
+}
+input:checked + .slider { background-color: var(--accent); }
+input:focus + .slider { box-shadow: 0 0 0 3px var(--ring); }
+input:checked + .slider:before { transform: translateX(22px); background-color: var(--panel); }
+
+/* Color & Range Inputs */
+input[type="color"] {
+    padding: 2px; height: 28px; cursor: pointer;
+    background: var(--btn); border-radius: 8px;
+}
+.color-picker-wrapper input[type="color"] { width: 50px; }
+input[type="range"] {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+    background: var(--progress-bg); outline: none; border-radius: 3px;
+    cursor: pointer; margin-top: 18px; padding: 0;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
+  background: var(--accent); border-radius: 50%; border: 3px solid var(--panel);
+  box-shadow: 0 0 5px var(--shadow-color);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px; background: var(--accent);
+  border-radius: 50%; border: 3px solid var(--panel);
+  box-shadow: 0 0 5px var(--shadow-color);
+}
+/* ERGÄNZUNGEN FÜR style.css - Social Media Workspace Controls */
+
+/* Workspace Controls */
+.workspace-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 16px;
+}
+
+.workspace-info {
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 8px;
+}
+
+.workspace-info p {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--muted);
+}
+
+/* Workspace Select Styling */
+#workspaceSelect {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+#workspaceSelect option {
+    padding: 8px;
+    background: var(--panel);
+    color: var(--text);
+}
+
+/* Enhanced Control Group Flex für Workspace */
+.workspace-controls .control-group-flex {
+    align-items: flex-end;
+    gap: 16px;
+}
+
+.workspace-controls .control-group-flex > div:first-child {
+    flex: 2; /* Dropdown nimmt mehr Platz ein */
+}
+
+/* Workspace Toggle spezifische Anpassungen */
+.workspace-controls .toggle-wrapper {
+    min-width: 120px;
+    text-align: center;
+}
+
+/* Kodini Tools Section */
+.tools-section {
+    margin-top: 32px;
+}
+.tools-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    text-align: center;
+}
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+.tool-card {
+    background: var(--btn);
+    border-radius: 16px;
+    padding: 24px;
+    text-decoration: none;
+    color: var(--text);
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    aspect-ratio: 1 / 1; /* Creates a square */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    align-items: center; /* Center icon horizontally */
+}
+.tool-card:hover {
+    transform: translateY(-5px);
+    border-color: #6BA2F5;
+    box-shadow: 0 8px 25px var(--shadow-color);
+}
+.tool-card-icon {
+    margin-bottom: 16px;
+    color: #6BA2F5;
+}
+
+.tool-card h3 {
+    margin: 0 0 8px 0;
+    color: #6BA2F5; /* Set text color as requested */
+    font-size: 1.2rem;
+}
+.tool-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Responsive Design für Workspace Controls */
+@media (max-width: 768px) {
+    .workspace-controls .control-group-flex {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+    
+    .workspace-controls .control-group-flex > div:first-child {
+        flex: none;
+    }
+    
+    .workspace-controls .toggle-wrapper {
+        min-width: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+#gallery-thumbnails-container {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+#gallery-thumbnails-container h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: var(--text);
+}
+
+#gallery-thumbnails {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 5px 0;
+}
+
+#gallery-thumbnails::-webkit-scrollbar {
+    height: 8px;
+}
+
+#gallery-thumbnails::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+#gallery-thumbnails::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 4px;
+}
+
+.gallery-thumb {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.gallery-thumb:hover {
+    border-color: var(--accent);
+    transform: scale(1.05);
+}
+
+.gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gallery-thumb-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 10px;
+    padding: 4px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Kontextmenü für Thumbnails */
+.thumbnail-context-menu {
+    position: fixed;
+    background: var(--bg-secondary, #1a1a1a);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    min-width: 200px;
+}
+
+.thumbnail-context-menu-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text, #fff);
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.thumbnail-context-menu-item:hover {
+    background: rgba(110, 168, 254, 0.2);
+}
+
+.thumbnail-context-menu-item svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+
+

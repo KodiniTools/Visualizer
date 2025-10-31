@@ -418,12 +418,37 @@ function draw() {
 }
 
 async function createCombinedAudioStream() {
-  if (!recordingDest) {
-    console.error('[App] Recording Destination nicht verfügbar!');
+  // ✅ FIX: AudioContext MUSS existieren und laufen
+  if (!audioContext || !recordingDest) {
+    console.error('[App] AudioContext oder Recording Destination nicht verfügbar!');
     return null;
   }
 
+  // ✅ FIX: Resume AudioContext wenn suspended
+  if (audioContext.state === 'suspended') {
+    console.log('[App] ⏸️ AudioContext ist suspended - resume...');
+    try {
+      await audioContext.resume();
+      console.log('[App] ✅ AudioContext resumed');
+    } catch (error) {
+      console.error('[App] ❌ Fehler beim Resume des AudioContext:', error);
+    }
+  }
+
   console.log('[App] 🎵 Erstelle kombinierten Audio-Stream...');
+  console.log('[App] AudioContext state:', audioContext.state);
+
+  // ✅ CRITICAL FIX: Erstelle NEUE MediaStreamDestination für frische Tracks
+  // Der alte recordingDest.stream hat möglicherweise ended Tracks
+  const freshRecordingDest = audioContext.createMediaStreamDestination();
+
+  // Verbinde Recording-Gain mit der NEUEN Destination
+  recordingGain.disconnect(); // Disconnect von alter Destination
+  recordingGain.connect(freshRecordingDest);
+
+  // Update globale recordingDest Referenz
+  recordingDest = freshRecordingDest;
+
   const stream = recordingDest.stream;
   const tracks = stream.getAudioTracks();
 
@@ -854,12 +879,35 @@ onMounted(async () => {
   watch(() => recorderStore.isRecording, (isRecording) => {
     if (isRecording) {
       console.log('🎬 [App] Recording gestartet');
+
+      // ✅ CRITICAL FIX: Aktiviere Recording-Audio SOFORT beim Recording-Start
+      // Nicht nur wenn Player spielt!
+      enableRecorderAudio();
+      console.log('🔊 [App] Recording-Audio beim Start aktiviert');
+
+      // ✅ FIX: Resume AudioContext wenn suspended
+      if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+          console.log('✅ [App] AudioContext resumed für Recording');
+        }).catch(err => {
+          console.error('❌ [App] Fehler beim Resume:', err);
+        });
+      }
+
       // ✅ FIX: Kurze Verzögerung für sauberen Start
       setTimeout(() => {
         startVisualizerLoop();
       }, 100);
     } else {
       console.log('🛑 [App] Recording gestoppt');
+
+      // ✅ FIX: Deaktiviere Recording-Audio beim Stop
+      // (wird reaktiviert wenn Player spielt)
+      if (!playerStore.isPlaying) {
+        disableRecorderAudio();
+        console.log('🔇 [App] Recording-Audio beim Stop deaktiviert');
+      }
+
       // ✅ FIX: Sofortiger Stop ohne Verzögerung
       stopVisualizerLoop();
     }

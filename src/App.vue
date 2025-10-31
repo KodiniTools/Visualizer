@@ -442,9 +442,28 @@ async function createCombinedAudioStream() {
   // Der alte recordingDest.stream hat möglicherweise ended Tracks
   const freshRecordingDest = audioContext.createMediaStreamDestination();
 
+  // ✅ CRITICAL FIX: Disconnect NUR von alter Destination, NICHT von sourceNode!
+  try {
+    recordingGain.disconnect(recordingDest); // Nur von ALTER Destination disconnecten
+    console.log('[App] 🔌 Disconnected von alter Destination');
+  } catch (error) {
+    // Falls bereits disconnected, ignorieren
+    console.log('[App] 🔌 Recording-Gain war bereits disconnected');
+  }
+
   // Verbinde Recording-Gain mit der NEUEN Destination
-  recordingGain.disconnect(); // Disconnect von alter Destination
   recordingGain.connect(freshRecordingDest);
+  console.log('[App] 🔌 Connected zu neuer Destination');
+
+  // ✅ WICHTIG: Re-connect sourceNode zu recordingGain (falls disconnected)
+  // Dies stellt sicher dass Audio-Daten weiterhin fließen
+  try {
+    sourceNode.connect(recordingGain);
+    console.log('[App] 🔌 sourceNode zu recordingGain reconnected');
+  } catch (error) {
+    // Falls bereits connected, wird ein Fehler geworfen - das ist OK
+    console.log('[App] 🔌 sourceNode war bereits connected');
+  }
 
   // Update globale recordingDest Referenz
   recordingDest = freshRecordingDest;

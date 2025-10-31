@@ -70,7 +70,7 @@ const audioRef = ref(null);
 const canvasRef = ref(null);
 
 // Recording Canvas - wird für den Recorder verwendet
-const recordingCanvas = document.createElement('canvas');
+let recordingCanvas = document.createElement('canvas'); // ✅ FIX 1: let statt const!
 let recordingCanvasStream = null; // ✅ NEU: Globale Referenz zum Canvas-Stream
 
 let audioContext, analyser, sourceNode, outputGain, recordingDest, recordingGain;

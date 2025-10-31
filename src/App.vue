@@ -299,29 +299,29 @@ function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
   }
 }
 
-// Separate Funktion für Recording Canvas mit zuschaltbaren Modulen
+// Separate Funktion für Recording Canvas - rendert IMMER alle Module
 function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
   // Basis: Schwarzer Hintergrund (immer)
   ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-  // ZUSCHALTBAR: Canvas Manager (Bilder, Backgrounds)
-  if (recorderStore.includeImages && canvasManagerInstance.value && !canvasManagerInstance.value.isCanvasEmpty()) {
+  // Canvas Manager (Bilder, Backgrounds)
+  if (canvasManagerInstance.value && !canvasManagerInstance.value.isCanvasEmpty()) {
     canvasManagerInstance.value.drawScene(ctx);
   }
 
-  // ZUSCHALTBAR: Visualizer
-  if (recorderStore.includeVisualizer && drawVisualizerCallback) {
+  // Visualizer
+  if (drawVisualizerCallback) {
     drawVisualizerCallback(ctx, canvasWidth, canvasHeight);
   }
 
-  // ZUSCHALTBAR: Multi Images
-  if (recorderStore.includeImages && multiImageManagerInstance.value) {
+  // Multi Images
+  if (multiImageManagerInstance.value) {
     multiImageManagerInstance.value.drawImages(ctx);
   }
 
-  // ZUSCHALTBAR: Text
-  if (recorderStore.includeText && textManagerInstance) {
+  // Text
+  if (textManagerInstance) {
     textManagerInstance.draw(ctx, canvasWidth, canvasHeight);
   }
 }
@@ -817,23 +817,7 @@ onMounted(async () => {
   // 5. NEU: Recorder initialisieren (Audio-Context ist jetzt bereit!)
   await initializeRecorder();
 
-  // ✨ STEP 3.6: Watches für Rendering-Flags und Dimensionen
-  // Watch für Rendering-Flags - synchronisiere mit Worker
-  watch(() => [
-    recorderStore.includeImages,
-    recorderStore.includeText,
-    recorderStore.includeVisualizer
-  ], ([images, text, visualizer]) => {
-    if (workerManagerInstance.value?.isInitialized) {
-      workerManagerInstance.value.updateRenderingFlags({
-        includeImages: images,
-        includeText: text,
-        includeVisualizer: visualizer
-      });
-      console.log('🎛️ [App] Rendering-Flags an Worker gesendet:', { images, text, visualizer });
-    }
-  }, { immediate: true });
-
+  // ✨ STEP 3.6: Watch für Canvas-Dimensionen
   // Watch für Canvas-Dimensionen - synchronisiere mit Worker
   watch(() => [canvasRef.value?.width, canvasRef.value?.height], ([width, height]) => {
     if (workerManagerInstance.value?.isInitialized && width && height) {
@@ -862,30 +846,6 @@ onMounted(async () => {
       console.log('🛑 [App] Recording gestoppt');
       // ✅ FIX: Sofortiger Stop ohne Verzögerung
       stopVisualizerLoop();
-    }
-  });
-
-  // Watch für Image-Toggle während Recording
-  watch(() => recorderStore.showImages, (newVal, oldVal) => {
-    if (recorderStore.isRecording && newVal !== oldVal) {
-      console.warn('⚠️ [App] Image-Toggle während Aufnahme erkannt - Force-Render wird ausgelöst');
-      
-      nextTick(() => {
-        // Force Canvas-Redraw
-        if (canvasManagerInstance.value) {
-          const canvas = canvasRef.value;
-          if (canvas) {
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // Die normale draw() Loop macht den Rest
-          }
-        }
-        
-        // Ensure Visualizer-Loop läuft weiter
-        if (!isVisualizerActive && recorderStore.isRecording) {
-          startVisualizerLoop();
-        }
-      });
     }
   });
 

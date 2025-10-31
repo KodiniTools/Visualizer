@@ -347,8 +347,7 @@ class Recorder {
         }
 
         const getOptimalFPS = () => {
-            const hasImages = window.recorderStore?.includeImages ?? true;
-            return hasImages ? 66 : 33; // 15 FPS vs 30 FPS
+            return 33; // Fixed 30 FPS
         };
         
         let lastFrameTime = 0;

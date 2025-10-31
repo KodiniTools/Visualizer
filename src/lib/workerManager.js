@@ -130,19 +130,6 @@ class WorkerManager {
   }
 
   /**
-   * Aktualisiert Rendering-Flags (includeImages, includeText, includeVisualizer)
-   */
-  async updateRenderingFlags(flags) {
-    if (!this.isInitialized) {
-      console.warn('[WorkerManager] Worker nicht initialisiert');
-      return false;
-    }
-
-    const response = await this._sendMessage('UPDATE_FLAGS', flags);
-    return response.success;
-  }
-
-  /**
    * Lädt Bild in Worker
    */
   async loadImage(imageId, imageBlob) {

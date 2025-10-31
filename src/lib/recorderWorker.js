@@ -13,12 +13,7 @@ const workerState = {
   width: 0,
   height: 0,
   isRecording: false,
-  
-  // Rendering-Flags (synchron mit recorderStore)
-  includeImages: true,
-  includeText: true,
-  includeVisualizer: true,
-  
+
   // Assets
   images: new Map(), // ImageBitmap Cache
   fonts: new Map(),  // Font Face Daten
@@ -70,23 +65,6 @@ function updateDimensions(width, height) {
   }
   
   console.log('[Worker] 📐 Canvas-Dimensionen aktualisiert:', width, 'x', height);
-  return { success: true };
-}
-
-/**
- * Aktualisiert Rendering-Flags
- */
-function updateRenderingFlags(flags) {
-  workerState.includeImages = flags.includeImages ?? workerState.includeImages;
-  workerState.includeText = flags.includeText ?? workerState.includeText;
-  workerState.includeVisualizer = flags.includeVisualizer ?? workerState.includeVisualizer;
-  
-  console.log('[Worker] 🎛️ Rendering-Flags aktualisiert:', {
-    images: workerState.includeImages,
-    text: workerState.includeText,
-    visualizer: workerState.includeVisualizer
-  });
-  
   return { success: true };
 }
 
@@ -175,12 +153,12 @@ function renderFrame() {
   // Schwarzer Hintergrund (immer)
   ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, width, height);
-  
+
   // TODO: In späteren Schritten:
-  // - Bilder zeichnen (wenn includeImages)
-  // - Visualizer zeichnen (wenn includeVisualizer)
-  // - Text zeichnen (wenn includeText)
-  
+  // - Bilder zeichnen
+  // - Visualizer zeichnen
+  // - Text zeichnen
+
   return { success: true };
 }
 
@@ -201,11 +179,7 @@ self.addEventListener('message', async (event) => {
       case 'UPDATE_DIMENSIONS':
         response = { ...response, ...updateDimensions(data.width, data.height) };
         break;
-        
-      case 'UPDATE_FLAGS':
-        response = { ...response, ...updateRenderingFlags(data) };
-        break;
-        
+
       case 'LOAD_IMAGE':
         response = { ...response, ...await loadImage(data.imageId, data.imageBlob) };
         break;

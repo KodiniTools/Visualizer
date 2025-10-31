@@ -20,13 +20,9 @@ export const useRecorderStore = defineStore('recorder', {
         isPrepared: false,
         isRecording: false,
         isPaused: false,
-        
-        // Zuschaltbare Module während Aufnahme
-        includeImages: true,
-        includeText: true,
-        includeVisualizer: true,
+
         // Audio wird über Gain gesteuert (siehe App.vue)
-        
+
         // Upload Konfiguration
         uploadMode: 'auto', // 'auto' | 'direct' | 'server'
         maxUploadSize: 50 * 1024 * 1024, // 50MB

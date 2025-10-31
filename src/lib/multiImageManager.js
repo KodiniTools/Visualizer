@@ -443,16 +443,16 @@ export class MultiImageManager {
      */
     prepareForRecording(ctx) {
         if (!ctx) return;
-        
+
         console.log('[MultiImageManager] 🧹 Preparing for recording...');
-        
+
         // CRITICAL: Force Canvas-Context reset
         // Dies löscht alle gecachten Image-Referenzen
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
-        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // Clear canvas
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // ✅ FIX: Use ctx.canvas dimensions
         ctx.restore();
-        
+
         // Force garbage collection hint
         if (typeof gc !== 'undefined') {
             try {
@@ -461,21 +461,31 @@ export class MultiImageManager {
                 // Ignore - gc not available
             }
         }
-        
+
         console.log(`[MultiImageManager] ✅ Ready for recording (${this.images.length} images)`);
     }
     
     /**
      * ✅ CRITICAL FIX: Cleanup nach Recording
-     * 
-     * Gibt explizit alle Image-Referenzen frei
+     *
+     * Gibt explizit Canvas-Context Image-Cache frei (nicht die Image-Objekte selbst)
      */
     cleanupAfterRecording() {
         console.log('[MultiImageManager] 🧹 Cleanup after recording...');
-        
+
         // Keine Images löschen - nur Context cleanup
         // Die Bilder bleiben für nächste Aufnahme verfügbar
-        
+
+        // Force garbage collection hint
+        // Dies hilft dem Browser, gecachte decoded Image-Bitmaps freizugeben
+        if (typeof gc !== 'undefined') {
+            try {
+                gc(); // Only works with --expose-gc flag
+            } catch (e) {
+                // Ignore - gc not available
+            }
+        }
+
         console.log('[MultiImageManager] ✅ Cleanup complete');
     }
     

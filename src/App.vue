@@ -846,6 +846,13 @@ onMounted(async () => {
       console.log('🛑 [App] Recording gestoppt');
       // ✅ FIX: Sofortiger Stop ohne Verzögerung
       stopVisualizerLoop();
+
+      // ✅ CRITICAL FIX: Cleanup Canvas nach Recording
+      // Verhindert Memory-Overflow bei 3. Aufnahme mit Bildern
+      if (canvasManagerInstance.value) {
+        canvasManagerInstance.value.cleanupAfterRecording();
+        console.log('✅ [App] Canvas cleanup durchgeführt');
+      }
     }
   });
 

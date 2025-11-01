@@ -708,13 +708,38 @@ onMounted(async () => {
       // ✅ FIX: Sofortiger Stop ohne Verzögerung
       stopVisualizerLoop();
 
-      // 🧪 TEST: Kompletter Canvas-Reset nach Aufnahme
-      // Verhindert Memory-Overflow durch Browser Image-Cache
-      // Löscht ALLE Inhalte (Bilder, Text, Hintergrund)
-      if (canvasManagerInstance.value) {
-        console.log('🗑️ [App] Führe kompletten Canvas-Reset durch...');
-        canvasManagerInstance.value.reset();
-        console.log('✅ [App] Canvas komplett zurückgesetzt - bereit für neue Aufnahme');
+      // 🧪 CRITICAL TEST: Erstelle Recording Canvas komplett NEU
+      // Browser behält interne Caches/States für Canvas - nur Neuerstellen hilft
+      console.log('🔄 [App] Erstelle Recording Canvas neu...');
+
+      // Stoppe und cleanup alter Stream
+      if (recordingCanvasStream) {
+        recordingCanvasStream.getTracks().forEach(track => track.stop());
+        recordingCanvasStream = null;
+      }
+
+      // Erstelle komplett neuen Canvas
+      const canvas = canvasRef.value;
+      recordingCanvas = document.createElement('canvas');
+      recordingCanvas.width = canvas.width;
+      recordingCanvas.height = canvas.height;
+
+      console.log('✅ [App] Frischer Recording Canvas erstellt:', recordingCanvas.width, 'x', recordingCanvas.height);
+
+      // Update Recorder mit neuem Canvas
+      if (recorderStore.recorder) {
+        const updated = recorderStore.recorder.updateCanvas(recordingCanvas);
+        if (updated) {
+          console.log('✅ [App] Recorder mit neuem Canvas aktualisiert');
+        } else {
+          console.warn('⚠️ [App] Recorder konnte nicht aktualisiert werden');
+        }
+      }
+
+      // Lösche Bilder um Memory freizugeben
+      if (canvasManagerInstance.value && canvasManagerInstance.value.multiImageManager) {
+        canvasManagerInstance.value.multiImageManager.clear();
+        console.log('✅ [App] Bilder gelöscht');
       }
     }
   });

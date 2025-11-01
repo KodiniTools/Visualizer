@@ -181,7 +181,7 @@ npm run lint
 - Mobile Browser: Performance-Einschränkungen bei komplexen Visualisierungen
 - CORS: Externe Audio-Quellen benötigen entsprechende Header
 
-## 📝 Lizenz & Autor
+## Autor
 
 **Entwickelt von**: Dinko Ramić  
 **Website**: [kodinitools.com](https://kodinitools.com)  

@@ -529,7 +529,7 @@ async function initializeRecorder() {
   const originalCaptureStream = recordingCanvas.captureStream.bind(recordingCanvas);
   recordingCanvas.captureStream = function(frameRate) {
     console.log(`🎭 [App] captureStream() aufgerufen mit frameRate: ${frameRate}`);
-    
+
     // Cleanup alter Stream falls vorhanden
     if (recordingCanvasStream) {
       recordingCanvasStream.getTracks().forEach(track => {
@@ -539,11 +539,24 @@ async function initializeRecorder() {
       });
       console.log('🧹 [App] Alter Canvas-Stream gestoppt');
     }
-    
+
+    // ✅ CRITICAL FIX: Rendere Canvas BEVOR Stream erstellt wird!
+    // Dies stellt sicher dass der Stream einen gültigen Frame hat
+    const recordingCtx = recordingCanvas.getContext('2d');
+    if (recordingCtx && canvasManagerInstance.value) {
+      renderRecordingScene(
+        recordingCtx,
+        recordingCanvas.width,
+        recordingCanvas.height,
+        null // Kein Visualizer beim Warmup
+      );
+      console.log('✅ [App] Recording Canvas pre-rendered für Stream');
+    }
+
     // IMMER 30 FPS verwenden, egal was übergeben wurde!
     recordingCanvasStream = originalCaptureStream(30);
     console.log('✅ [App] Canvas-Stream mit 30 FPS erstellt (via Monkey Patch)');
-    
+
     return recordingCanvasStream;
   };
   
@@ -602,7 +615,7 @@ async function initializeRecorderWithoutWorker() {
   const originalCaptureStream = recordingCanvas.captureStream.bind(recordingCanvas);
   recordingCanvas.captureStream = function(frameRate) {
     console.log(`🎭 [App] captureStream() aufgerufen mit frameRate: ${frameRate} (Fallback)`);
-    
+
     // Cleanup alter Stream falls vorhanden
     if (recordingCanvasStream) {
       recordingCanvasStream.getTracks().forEach(track => {
@@ -612,11 +625,24 @@ async function initializeRecorderWithoutWorker() {
       });
       console.log('🧹 [App] Alter Canvas-Stream gestoppt (Fallback)');
     }
-    
+
+    // ✅ CRITICAL FIX: Rendere Canvas BEVOR Stream erstellt wird!
+    // Dies stellt sicher dass der Stream einen gültigen Frame hat
+    const recordingCtx = recordingCanvas.getContext('2d');
+    if (recordingCtx && canvasManagerInstance.value) {
+      renderRecordingScene(
+        recordingCtx,
+        recordingCanvas.width,
+        recordingCanvas.height,
+        null // Kein Visualizer beim Warmup
+      );
+      console.log('✅ [App] Recording Canvas pre-rendered für Stream (Fallback)');
+    }
+
     // IMMER 30 FPS verwenden, egal was übergeben wurde!
     recordingCanvasStream = originalCaptureStream(30);
     console.log('✅ [App] Canvas-Stream mit 30 FPS erstellt (Fallback, via Monkey Patch)');
-    
+
     return recordingCanvasStream;
   };
   

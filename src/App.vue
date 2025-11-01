@@ -708,11 +708,13 @@ onMounted(async () => {
       // ✅ FIX: Sofortiger Stop ohne Verzögerung
       stopVisualizerLoop();
 
-      // ✅ CRITICAL FIX: Cleanup Canvas nach Recording
-      // Verhindert Memory-Overflow bei 3. Aufnahme mit Bildern
+      // 🧪 TEST: Kompletter Canvas-Reset nach Aufnahme
+      // Verhindert Memory-Overflow durch Browser Image-Cache
+      // Löscht ALLE Inhalte (Bilder, Text, Hintergrund)
       if (canvasManagerInstance.value) {
-        canvasManagerInstance.value.cleanupAfterRecording();
-        console.log('✅ [App] Canvas cleanup durchgeführt');
+        console.log('🗑️ [App] Führe kompletten Canvas-Reset durch...');
+        canvasManagerInstance.value.reset();
+        console.log('✅ [App] Canvas komplett zurückgesetzt - bereit für neue Aufnahme');
       }
     }
   });

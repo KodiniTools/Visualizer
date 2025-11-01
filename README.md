@@ -190,4 +190,4 @@ Weitere Tools und Anwendungen finden Sie auf [kodinitools.com](https://kodinitoo
 
 ---
 
-© 2025 Dinko Ramić - Kodini Tools
+

@@ -708,8 +708,11 @@ onMounted(async () => {
       // ✅ FIX: Sofortiger Stop ohne Verzögerung
       stopVisualizerLoop();
 
-      // 🧪 CRITICAL TEST: Erstelle Recording Canvas komplett NEU
-      // Browser behält interne Caches/States für Canvas - nur Neuerstellen hilft
+      // ✅ SOLUTION: Erstelle Recording Canvas komplett NEU nach jeder Aufnahme
+      // Grund: Browser behält interne Caches/States für Canvas-Objekte
+      // - Image-Decoder-Caches bleiben hängen
+      // - Stream-Kontexte werden nicht vollständig freigegeben
+      // - Nur komplette Neuerststellung gibt garantiert sauberen Slate
       console.log('🔄 [App] Erstelle Recording Canvas neu...');
 
       // Stoppe und cleanup alter Stream
@@ -736,10 +739,11 @@ onMounted(async () => {
         }
       }
 
-      // Lösche Bilder um Memory freizugeben
+      // Lösche normale Bilder (Text und Hintergrund bleiben erhalten)
+      // Nutzer muss für jede Aufnahme neue Bilder hinzufügen
       if (canvasManagerInstance.value && canvasManagerInstance.value.multiImageManager) {
         canvasManagerInstance.value.multiImageManager.clear();
-        console.log('✅ [App] Bilder gelöscht');
+        console.log('✅ [App] Bilder gelöscht - Text/Hintergrund bleiben erhalten');
       }
     }
   });

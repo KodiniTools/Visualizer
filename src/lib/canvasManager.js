@@ -1093,25 +1093,16 @@ export class CanvasManager {
     prepareForRecording(targetCanvas) {
         if (!this.workspacePreset) return false;
 
-        // ✅ CRITICAL FIX: Force kompletten Canvas-Reset
-        // Trick: Setze Canvas kurz auf 1x1, dann zurück auf Zielgröße
-        // Dies zerstört den kompletten internen Canvas-State (inkl. Bitmap-Cache)
-        targetCanvas.width = 1;
-        targetCanvas.height = 1;
-
-        // Jetzt setze auf echte Größe
+        // Set canvas size
         targetCanvas.width = this.workspacePreset.width;
         targetCanvas.height = this.workspacePreset.height;
 
-        // ✅ CRITICAL FIX: Cleanup Image-Context vor Recording
-        // Verhindert Memory-Overflow bei 3. Aufnahme mit Bildern
+        // Prepare multiImageManager if exists
         if (this.multiImageManager && this.multiImageManager.prepareForRecording) {
             const ctx = targetCanvas.getContext('2d');
             this.multiImageManager.prepareForRecording(ctx);
-            console.log('[CanvasManager] ✅ MultiImageManager prepared for recording');
         }
 
-        console.log('[CanvasManager] ✅ Recording canvas komplett resetted');
         return true;
     }
 

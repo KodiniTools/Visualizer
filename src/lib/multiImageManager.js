@@ -446,35 +446,24 @@ export class MultiImageManager {
 
         console.log('[MultiImageManager] 🧹 Preparing for recording...');
 
-        // ✅ CRITICAL: Aggressive Canvas-Context reset
-        // Löscht alle gecachten Image-Referenzen und Canvas-States
+        // Reset context to clean state
         ctx.save();
-
-        // Reset ALL context properties to defaults
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
-        ctx.globalAlpha = 1.0; // Reset opacity
-        ctx.globalCompositeOperation = 'source-over'; // Reset blend mode
-        ctx.filter = 'none'; // Reset filters
-        ctx.shadowBlur = 0; // Reset shadows
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalAlpha = 1.0;
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.filter = 'none';
+        ctx.shadowBlur = 0;
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
         ctx.shadowColor = 'transparent';
-
-        // Clear canvas completely
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-        // ✅ NEW: Fill with black to ensure clean state
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
         ctx.restore();
 
         // Force garbage collection hint
         if (typeof gc !== 'undefined') {
             try {
-                gc(); // Only works with --expose-gc flag
+                gc();
             } catch (e) {
-                // Ignore - gc not available
+                // Ignore
             }
         }
 
@@ -482,46 +471,24 @@ export class MultiImageManager {
     }
     
     /**
-     * ✅ CRITICAL FIX: Cleanup nach Recording
-     *
-     * Problem: HTMLImageElement werden vom Browser decoded und gecacht
-     * Nach 2 Aufnahmen (2 × 450 Frames × N Bilder = 900+ drawImage-Calls pro Bild)
-     * ist der Browser-Speicher für decoded Bitmaps erschöpft
-     *
-     * Lösung: Force Browser, Image-Decode-Cache freizugeben durch src-Reset
+     * ✅ Cleanup nach Recording
      */
     cleanupAfterRecording() {
         console.log('[MultiImageManager] 🧹 Cleanup after recording...');
 
-        // ✅ CRITICAL: Force Browser, decoded Image-Bitmaps freizugeben
-        // Trick: Setze src temporär auf leeren String, dann wieder zurück
-        // Dies zwingt Browser, den internen Decode-Cache zu leeren
-        this.images.forEach(imgData => {
-            if (imgData.imageObject && imgData.imageObject.src) {
-                const originalSrc = imgData.imageObject.src;
-
-                // Temporär src entfernen (gibt decoded Bitmap frei)
-                imgData.imageObject.src = '';
-
-                // Sofort wieder setzen (re-decode erfolgt on-demand beim nächsten draw)
-                // Da die Data-URL/Blob-URL noch im Speicher ist, ist das schnell
-                imgData.imageObject.src = originalSrc;
-
-                console.log(`[MultiImageManager] 🔄 Image ${imgData.id} Cache geleert`);
-            }
-        });
+        // Keine Images löschen - nur GC-Hint
+        // Die Bilder bleiben für nächste Aufnahme verfügbar
 
         // Force garbage collection hint
-        // Dies hilft dem Browser, gecachte decoded Image-Bitmaps freizugeben
         if (typeof gc !== 'undefined') {
             try {
-                gc(); // Only works with --expose-gc flag
+                gc();
             } catch (e) {
                 // Ignore - gc not available
             }
         }
 
-        console.log(`[MultiImageManager] ✅ Cleanup complete (${this.images.length} images cache cleared)`);
+        console.log(`[MultiImageManager] ✅ Cleanup complete`);
     }
     
     /**

@@ -843,6 +843,24 @@ onMounted(async () => {
   // 5. NEU: Recorder initialisieren (Audio-Context ist jetzt bereit!)
   await initializeRecorder();
 
+  // ✅ CRITICAL FIX: Event Listener für recorder:forceRedraw
+  // Der Warmup in recorder.js ruft onForceRedraw() auf, was dieses Event dispatcht
+  // Wir müssen darauf reagieren und den Recording Canvas rendern!
+  const handleForceRedraw = () => {
+    const recordingCtx = recordingCanvas.getContext('2d');
+    if (recordingCtx && canvasManagerInstance.value) {
+      // Rendere aktuellen Zustand auf Recording Canvas
+      renderRecordingScene(
+        recordingCtx,
+        recordingCanvas.width,
+        recordingCanvas.height,
+        null // Kein Visualizer während Warmup
+      );
+      console.log('🔄 [App] Recording Canvas rendered (forceRedraw)');
+    }
+  };
+  window.addEventListener('recorder:forceRedraw', handleForceRedraw);
+
   // ✨ STEP 3.6: Watch für Canvas-Dimensionen
   // Watch für Canvas-Dimensionen - synchronisiere mit Worker
   watch(() => [canvasRef.value?.width, canvasRef.value?.height], ([width, height]) => {
@@ -888,7 +906,10 @@ onMounted(async () => {
 // ✨ STEP 3.7: Cleanup bei Component Unmount
 onUnmounted(() => {
   console.log('🧹 [App] Component wird unmounted - Cleanup...');
-  
+
+  // Remove recorder:forceRedraw event listener
+  window.removeEventListener('recorder:forceRedraw', handleForceRedraw);
+
   // ✅ OPTION 3: Stoppe Visualizer-Loop
   stopVisualizerLoop();
   

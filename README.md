@@ -1,10 +1,6 @@
 # Audio Visualizer
 
-Ein professioneller Audio-Visualizer für die Erstellung von animierten Musikvideos mit Echtzeit-Visualisierung, Text-Overlays, Bildbearbeitung und Social-Media-Export.
-
-**Autor**: Dinko Ramić  
-**Website**: [kodinitools.com](https://kodinitools.com)  
-**Projekt**: Kodini Tools
+Ein Browser Audio-Visualizer für die Erstellung von animierten Musikvideos mit Echtzeit-Visualisierung, Text-Overlays, Bildbearbeitung und Social-Media-Export.
 
 ## 🎯 Hauptfunktionen
 

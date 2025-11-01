@@ -3,9 +3,8 @@
  * Pinia Store für Recorder-Verwaltung
  * Arbeitet mit der optimierten recorder.js zusammen
  * NUR Player-Audio, KEIN Mikrofon-Recording
- * 
+ *
  * ✅ STABILITY FIX: Rigoroser Reset zwischen Aufnahmen
- * ✅ WORKER INTEGRATION: Worker-Manager Support
  * ✅ CRASH FIX: Toggle-Funktionen komplett entfernt (verursachten Abstürze bei 3+ Aufnahmen)
  */
 import { defineStore } from 'pinia';
@@ -14,8 +13,7 @@ import { Recorder } from '../lib/recorder.js';
 export const useRecorderStore = defineStore('recorder', {
     state: () => ({
         recorder: null,
-        workerManager: null,  // ✨ NEU: Worker-Manager Referenz
-        
+
         // Recorder Status
         isPrepared: false,
         isRecording: false,
@@ -70,17 +68,12 @@ export const useRecorderStore = defineStore('recorder', {
         /**
          * Initialisiert den Recorder mit Canvas und Audio-Stream
          * Player ist nur externe Audioquelle, keine Steuerung
-         * ✨ STEP 5.1: Worker-Manager Support hinzugefügt
          */
-        setRecorderRefs(canvas, audioElement, audioStream, workerManager = null) {
+        setRecorderRefs(canvas, audioElement, audioStream) {
             if (this.recorder) {
                 console.warn('[RecorderStore] Recorder bereits initialisiert');
                 return true;
             }
-
-            // ✨ Speichere Worker-Manager
-            this.workerManager = workerManager;
-            console.log('[RecorderStore] Worker-Manager:', workerManager ? '✅ vorhanden' : '❌ nicht vorhanden');
 
             const uiElements = {
                 statusBox: {
@@ -93,12 +86,6 @@ export const useRecorderStore = defineStore('recorder', {
                 onStateChange: () => this.syncRecorderState(),
                 onForceRedraw: () => {
                     window.dispatchEvent(new CustomEvent('recorder:forceRedraw'));
-                    
-                    // ✨ NEU: Fordere auch Worker-Frame an
-                    if (this.workerManager?.isInitialized) {
-                        this.workerManager.renderFrame();
-                        console.log('[RecorderStore] Worker-Frame angefordert (onForceRedraw)');
-                    }
                 }
             };
 
@@ -108,12 +95,10 @@ export const useRecorderStore = defineStore('recorder', {
                     audioElement,
                     audioStream,
                     uiElements,
-                    callbacks,
-                    workerManager  // ✨ NEU: Übergebe Worker-Manager an Recorder
+                    callbacks
                 );
 
-                console.log('✅ [RecorderStore] Recorder erfolgreich initialisiert', 
-                    workerManager ? '(mit Worker)' : '(ohne Worker)');
+                console.log('✅ [RecorderStore] Recorder erfolgreich initialisiert');
                 
                 // ✅ PERFORMANCE FIX: Exponiere Store global für dynamische FPS
                 window.recorderStore = this;
@@ -239,13 +224,6 @@ export const useRecorderStore = defineStore('recorder', {
 
             if (success && this.isPrepared) {
                 console.log('✅ [RecorderStore] Aufnahme vorbereitet');
-                
-                // ✨ NEU: Informiere Worker über Recording-Start
-                if (this.workerManager?.isInitialized) {
-                    await this.workerManager.startRecording();
-                    console.log('✅ [RecorderStore] Worker über Recording-Start informiert');
-                }
-                
                 return true;
             } else {
                 console.error('❌ [RecorderStore] Aufnahme konnte nicht vorbereitet werden');
@@ -345,12 +323,6 @@ export const useRecorderStore = defineStore('recorder', {
                 this.isRecording = false;
                 this.isPaused = false;
                 this.syncRecorderState(); // Sync mit dem (jetzt inaktiven) Recorder
-
-                // ✨ NEU: Informiere Worker über Recording-Stop
-                if (this.workerManager?.isInitialized) {
-                    await this.workerManager.stopRecording();
-                    console.log('✅ [RecorderStore] Worker über Recording-Stop informiert');
-                }
 
                 if (blob) {
                     this.lastRecording = {

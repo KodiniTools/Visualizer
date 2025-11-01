@@ -18,14 +18,13 @@
  * ✅ Canvas Stream wird mit Timeout bereinigt
  */
 class Recorder {
-    constructor(recordingCanvas, audioElement, audioStream, uiElements, callbacks, workerManager = null) {
+    constructor(recordingCanvas, audioElement, audioStream, uiElements, callbacks) {
         this.recordingCanvas = recordingCanvas;
         this.audioElement = audioElement;
         this.audioStream = audioStream;
         this.ui = uiElements;
         this.onStateChange = callbacks.onStateChange;
         this.onForceRedraw = callbacks.onForceRedraw;
-        this.workerManager = workerManager;
 
         this.mediaRecorder = null;
         this.recordedChunks = [];
@@ -48,10 +47,10 @@ class Recorder {
         
         // ✅ NEW: Track event listeners for cleanup
         this._activeEventListeners = new Map();
-        
+
         // CRITICAL: Validate onForceRedraw callback
-        if (!this.workerManager && !this.onForceRedraw) {
-            console.error('[RECORDER] CRITICAL: onForceRedraw callback is required when not using worker!');
+        if (!this.onForceRedraw) {
+            console.error('[RECORDER] CRITICAL: onForceRedraw callback is required!');
         }
     }
 
@@ -107,10 +106,6 @@ class Recorder {
 
     _validateCanvasContent() {
         try {
-            if (this.workerManager?.isInitialized) {
-                return true;
-            }
-            
             const ctx = this.recordingCanvas.getContext('2d');
             if (!ctx) return false;
 
@@ -390,10 +385,7 @@ class Recorder {
             if (now - lastFrameTime >= interval) {
                 try {
                     // CRITICAL: Canvas must be updated BEFORE requestFrame()
-                    if (this.workerManager?.isInitialized) {
-                        this.workerManager.renderFrame();
-                    } 
-                    else if (this.onForceRedraw) {
+                    if (this.onForceRedraw) {
                         this.onForceRedraw();
                     } else {
                         console.error('[RECORDER] CRITICAL: onForceRedraw callback missing!');
@@ -439,12 +431,7 @@ class Recorder {
         }
 
         // Force Canvas updates
-        if (this.workerManager?.isInitialized) {
-            for (let i = 0; i < 3; i++) {
-                await this.workerManager.renderFrame();
-                await new Promise(resolve => setTimeout(resolve, 50));
-            }
-        } else if (this.onForceRedraw) {
+        if (this.onForceRedraw) {
             for (let i = 0; i < 3; i++) {
                 this.onForceRedraw();
                 await new Promise(resolve => setTimeout(resolve, 50));

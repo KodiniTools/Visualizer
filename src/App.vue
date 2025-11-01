@@ -57,8 +57,7 @@ import { GridManager } from './lib/gridManager.js';
 import { MultiImageManager } from './lib/multiImageManager.js';
 import { KeyboardShortcuts } from './lib/keyboardShortcuts.js';
 
-// ✨ STEP 3.1: Worker-Manager Import hinzugefügt
-import { WorkerManager } from './lib/workerManager.js';
+// Worker-Manager removed - always caused errors and fell back anyway
 
 const playerStore = usePlayerStore();
 const recorderStore = useRecorderStore();
@@ -85,8 +84,7 @@ const multiImageManagerInstance = ref(null);
 const fontManagerInstance = ref(null);
 const keyboardShortcutsInstance = ref(null);
 
-// ✨ STEP 3.2: Worker-Manager Instance hinzugefügt
-const workerManagerInstance = ref(null);
+// Worker-Manager instance removed - not needed
 
 provide('fontManager', fontManagerInstance);
 provide('canvasManager', canvasManagerInstance);
@@ -367,16 +365,7 @@ function draw() {
           targetCtx.restore();
         };
 
-        // ✨ NEU: Sende Visualizer-Daten auch an Worker (wenn Recording)
-        if (recorderStore.isRecording && workerManagerInstance.value?.isInitialized) {
-          workerManagerInstance.value.updateVisualizer({
-            dataArray: Array.from(dataArray),
-            visualizer: visualizerStore.selectedVisualizer,
-            color: visualizerStore.visualizerColor,
-            opacity: visualizerStore.visualizerOpacity,
-            colorOpacity: visualizerStore.colorOpacity
-          });
-        }
+        // Worker removed - no longer needed
       }
     }
 
@@ -408,12 +397,7 @@ function draw() {
       }
     }
 
-    // ⚠️ VORERST DEAKTIVIERT: Worker wird nicht für Recording verwendet
-    // Der Recording Canvas wird im Main Thread gezeichnet (siehe oben)
-    // Worker kann später für andere Features verwendet werden (Filter, Effekte)
-    // if (recorderStore.isRecording && workerManagerInstance.value?.isInitialized) {
-    //   workerManagerInstance.value.renderFrame();
-    // }
+    // Recording Canvas wird im Main Thread gezeichnet (siehe oben)
   }
 }
 
@@ -459,72 +443,13 @@ window.getCanvasStreamForRecorder = function() {
 // ✨ STEP 3.4: Recorder mit Worker initialisieren
 // 🔧 CRITICAL FIX: Worker bekommt EIGENES Canvas, Recording Canvas bleibt im Main Thread!
 async function initializeRecorder() {
-  console.log('🎬 [App] Initialisiere Recorder mit Worker...');
+  console.log('🎬 [App] Initialisiere Recorder...');
 
-  // 1. Prüfe OffscreenCanvas Support
-  let useWorker = false;
-  try {
-    if (typeof OffscreenCanvas !== 'undefined') {
-      // Test ob wir wirklich OffscreenCanvas erstellen können
-      const testCanvas = new OffscreenCanvas(1, 1);
-      testCanvas.getContext('2d'); // Test Context
-      useWorker = true;
-      console.log('✅ [App] OffscreenCanvas unterstützt - verwende Worker');
-    } else {
-      console.warn('⚠️ [App] OffscreenCanvas nicht verfügbar');
-    }
-  } catch (error) {
-    console.warn('⚠️ [App] OffscreenCanvas Test fehlgeschlagen:', error);
-  }
-
-  if (!useWorker) {
-    console.log('📦 [App] Fallback: Initialisiere ohne Worker');
-    await initializeRecorderWithoutWorker();
-    return;
-  }
-
-  // 2. Erstelle Worker-Manager
-  workerManagerInstance.value = new WorkerManager();
-
-  // 3. Initialisiere Worker
-  const workerInitialized = await workerManagerInstance.value.initialize('/src/lib/recorderWorker.js');
-  if (!workerInitialized) {
-    console.error('❌ [App] Worker konnte nicht initialisiert werden - verwende Fallback');
-    workerManagerInstance.value = null;
-    await initializeRecorderWithoutWorker();
-    return;
-  }
-
-  // 4. Setze Recording Canvas Dimensionen (bleibt im Main Thread!)
   const canvas = canvasRef.value;
   recordingCanvas.width = canvas.width;
   recordingCanvas.height = canvas.height;
 
-  // 5. ✅ CRITICAL: Erstelle SEPARATES OffscreenCanvas für Worker
-  // Recording Canvas bleibt im Main Thread für captureStream()!
-  let workerCanvas;
-  try {
-    workerCanvas = new OffscreenCanvas(canvas.width, canvas.height);
-    console.log('✅ [App] Separates Worker-Canvas erstellt:', workerCanvas.width, 'x', workerCanvas.height);
-  } catch (error) {
-    console.error('❌ [App] Fehler beim Erstellen des Worker-Canvas:', error);
-    workerManagerInstance.value = null;
-    await initializeRecorderWithoutWorker();
-    return;
-  }
-
-  // 6. Übertrage das WORKER-Canvas (nicht Recording Canvas!)
-  try {
-    await workerManagerInstance.value.setupCanvas(workerCanvas);
-    console.log('✅ [App] Worker-Canvas erfolgreich übertragen');
-  } catch (error) {
-    console.error('❌ [App] Fehler beim Canvas-Transfer:', error);
-    workerManagerInstance.value = null;
-    await initializeRecorderWithoutWorker();
-    return;
-  }
-
-  // 7. ✅ MONKEY PATCH: Überschreibe captureStream für recordingCanvas
+  // ✅ MONKEY PATCH: Überschreibe captureStream für recordingCanvas
   // Damit recorder.js IMMER 30 FPS bekommt, auch wenn es captureStream(0) aufruft!
   const originalCaptureStream = recordingCanvas.captureStream.bind(recordingCanvas);
   recordingCanvas.captureStream = function(frameRate) {
@@ -559,26 +484,24 @@ async function initializeRecorder() {
 
     return recordingCanvasStream;
   };
-  
+
   // Erstelle initialen Stream
   const canvasStream = recordingCanvas.captureStream(30);
-  console.log('✅ [App] Canvas-Stream vom Recording Canvas geholt (30 FPS)');
+  console.log('✅ [App] Canvas-Stream erstellt (30 FPS)');
 
-  // 8. Hole Audio Element
   const audio = audioRef.value;
   if (!audio) {
     console.error('❌ [App] Audio Element nicht gefunden!');
     return;
   }
 
-  // 9. Erstelle kombinierten Audio-Stream
   const combinedAudioStream = await createCombinedAudioStream();
   if (!combinedAudioStream) {
     console.error('❌ [App] Kombinierter Stream konnte nicht erstellt werden!');
     return;
   }
 
-  // 10. Kombiniere Canvas-Stream mit Audio-Stream
+  // Kombiniere Canvas-Stream mit Audio-Stream
   const videoTracks = canvasStream.getVideoTracks();
   const audioTracks = combinedAudioStream.getAudioTracks();
   const combinedMediaStream = new MediaStream([...videoTracks, ...audioTracks]);
@@ -586,100 +509,16 @@ async function initializeRecorder() {
   console.log('✅ [App] Kombinierter MediaStream erstellt:',
     videoTracks.length, 'Video,', audioTracks.length, 'Audio');
 
-  // 11. Setze Referenzen im RecorderStore
   console.log('🔧 [App] Setze Recorder-Refs im Store...');
-  const success = recorderStore.setRecorderRefs(
-    recordingCanvas,           // Recording Canvas (bleibt im Main Thread!)
-    audio,                     // Audio Element
-    combinedMediaStream,       // Kombinierter Stream
-    workerManagerInstance.value  // Worker-Manager (optional)
-  );
-
-  if (success) {
-    console.log('✅✅✅ [App] Recorder mit Worker erfolgreich initialisiert! ✅✅✅');
-  } else {
-    console.error('❌ [App] Recorder-Initialisierung fehlgeschlagen!');
-  }
-}
-
-// ✨ FALLBACK: Initialisierung ohne Worker (wie vorher)
-async function initializeRecorderWithoutWorker() {
-  console.log('🎬 [App] Initialisiere Recorder OHNE Worker (Fallback)...');
-
-  const canvas = canvasRef.value;
-  recordingCanvas.width = canvas.width;
-  recordingCanvas.height = canvas.height;
-
-  // ✅ MONKEY PATCH: Überschreibe captureStream für recordingCanvas (Fallback)
-  // Damit recorder.js IMMER 30 FPS bekommt, auch wenn es captureStream(0) aufruft!
-  const originalCaptureStream = recordingCanvas.captureStream.bind(recordingCanvas);
-  recordingCanvas.captureStream = function(frameRate) {
-    console.log(`🎭 [App] captureStream() aufgerufen mit frameRate: ${frameRate} (Fallback)`);
-
-    // Cleanup alter Stream falls vorhanden
-    if (recordingCanvasStream) {
-      recordingCanvasStream.getTracks().forEach(track => {
-        if (track.readyState !== 'ended') {
-          track.stop();
-        }
-      });
-      console.log('🧹 [App] Alter Canvas-Stream gestoppt (Fallback)');
-    }
-
-    // ✅ CRITICAL FIX: Rendere Canvas BEVOR Stream erstellt wird!
-    // Dies stellt sicher dass der Stream einen gültigen Frame hat
-    const recordingCtx = recordingCanvas.getContext('2d');
-    if (recordingCtx && canvasManagerInstance.value) {
-      renderRecordingScene(
-        recordingCtx,
-        recordingCanvas.width,
-        recordingCanvas.height,
-        null // Kein Visualizer beim Warmup
-      );
-      console.log('✅ [App] Recording Canvas pre-rendered für Stream (Fallback)');
-    }
-
-    // IMMER 30 FPS verwenden, egal was übergeben wurde!
-    recordingCanvasStream = originalCaptureStream(30);
-    console.log('✅ [App] Canvas-Stream mit 30 FPS erstellt (Fallback, via Monkey Patch)');
-
-    return recordingCanvasStream;
-  };
-  
-  // Erstelle initialen Stream
-  const canvasStream = recordingCanvas.captureStream(30);
-  console.log('✅ [App] Canvas-Stream erstellt (Fallback, 30 FPS)');
-
-  const audio = audioRef.value;
-  if (!audio) {
-    console.error('❌ [App] Audio Element nicht gefunden!');
-    return;
-  }
-
-  const combinedAudioStream = await createCombinedAudioStream();
-  if (!combinedAudioStream) {
-    console.error('❌ [App] Kombinierter Stream konnte nicht erstellt werden!');
-    return;
-  }
-
-  // ✅ CRITICAL: Kombiniere Canvas-Stream mit Audio-Stream
-  const videoTracks = canvasStream.getVideoTracks();
-  const audioTracks = combinedAudioStream.getAudioTracks();
-  const combinedMediaStream = new MediaStream([...videoTracks, ...audioTracks]);
-
-  console.log('✅ [App] Kombinierter MediaStream erstellt (Fallback):',
-    videoTracks.length, 'Video,', audioTracks.length, 'Audio');
-
-  console.log('🔧 [App] Setze Recorder-Refs im Store (ohne Worker)...');
   const success = recorderStore.setRecorderRefs(
     recordingCanvas,
     audio,
-    combinedMediaStream,  // ✅ FIXED: Kombinierter Stream statt nur Audio!
-    null  // Kein Worker-Manager
+    combinedMediaStream,
+    null  // Kein Worker-Manager mehr
   );
 
   if (success) {
-    console.log('✅ [App] Recorder erfolgreich initialisiert (Fallback-Modus)');
+    console.log('✅ [App] Recorder erfolgreich initialisiert');
   } else {
     console.error('❌ [App] Recorder-Initialisierung fehlgeschlagen!');
   }
@@ -843,17 +682,13 @@ onMounted(async () => {
   // 5. NEU: Recorder initialisieren (Audio-Context ist jetzt bereit!)
   await initializeRecorder();
 
-  // ✨ STEP 3.6: Watch für Canvas-Dimensionen
-  // Watch für Canvas-Dimensionen - synchronisiere mit Worker
+  // Watch für Canvas-Dimensionen - aktualisiere Recording Canvas
   watch(() => [canvasRef.value?.width, canvasRef.value?.height], ([width, height]) => {
-    if (workerManagerInstance.value?.isInitialized && width && height) {
-      // Aktualisiere auch Recording Canvas Dimensionen
+    if (width && height) {
+      // Aktualisiere Recording Canvas Dimensionen
       recordingCanvas.width = width;
       recordingCanvas.height = height;
-
-      // Informiere Worker über neue Dimensionen
-      workerManagerInstance.value.updateDimensions(width, height);
-      console.log('📐 [App] Canvas-Dimensionen an Worker gesendet:', width, 'x', height);
+      console.log('📐 [App] Recording Canvas Dimensionen aktualisiert:', width, 'x', height);
     }
   });
 
@@ -911,10 +746,7 @@ onUnmounted(() => {
     cancelAnimationFrame(animationFrameId);
   }
 
-  if (workerManagerInstance.value) {
-    workerManagerInstance.value.terminate();
-    console.log('✅ [App] Worker beendet');
-  }
+  // Worker removed - no cleanup needed
 
   if (audioContext) {
     audioContext.close();

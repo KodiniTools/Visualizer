@@ -878,53 +878,50 @@ html, body {
   border-radius: 12px;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  min-height: 0; /* WICHTIG: Ermöglicht flex-child overflow */
+}
+.left-toolbar, .right-panel {
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .center-column {
   min-width: 0;
+  overflow: hidden;
+}
+
+/* Scrollbar Styling für die Side-Panels */
+.left-toolbar::-webkit-scrollbar,
+.right-panel::-webkit-scrollbar {
+  width: 8px;
+}
+.left-toolbar::-webkit-scrollbar-track,
+.right-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+.left-toolbar::-webkit-scrollbar-thumb,
+.right-panel::-webkit-scrollbar-thumb {
+  background: rgba(110, 168, 254, 0.4);
+  border-radius: 4px;
+}
+.left-toolbar::-webkit-scrollbar-thumb:hover,
+.right-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(110, 168, 254, 0.6);
 }
 </style>
 
-<style>
-/* Globale Styles bleiben unverändert */
-</style>
-
 <style scoped>
-/* HIER IST DIE KORREKTUR: Alle scoped Styles sind jetzt in einem Block. */
+/* Panel Styles */
 .left-toolbar, .right-panel {
   background-color: #1a1a1a;
   border: 1px solid #2a2a2a;
   padding: 12px;
   gap: 12px;
-  overflow-y: auto;
 }
 
-/* Scrollbar Styling für die Panels */
-.left-toolbar::-webkit-scrollbar,
-.right-panel::-webkit-scrollbar {
-  width: 6px;
-}
-
-.left-toolbar::-webkit-scrollbar-track,
-.right-panel::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.left-toolbar::-webkit-scrollbar-thumb,
-.right-panel::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-}
-
-.left-toolbar::-webkit-scrollbar-thumb:hover,
-.right-panel::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-/* ZUSÄTZLICHER PLATZ: Diese Regel fügt unten in der scrollbaren Spalte */
-/* Platz hinzu, damit der Inhalt des Dropdowns nicht abgeschnitten wird. */
+/* ZUSÄTZLICHER PLATZ am Ende für Dropdown-Inhalte */
 .right-panel {
-  padding-bottom: 200px;
+  padding-bottom: 100px;
 }
 
 .canvas-wrapper {

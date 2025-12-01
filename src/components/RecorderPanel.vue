@@ -1,7 +1,17 @@
 <template>
   <div class="recorder-panel">
-    <h3>Recorder</h3>
-    
+    <div class="panel-header">
+      <h3>Recorder</h3>
+      <HelpTooltip
+        title="Video aufnehmen"
+        icon="🎬"
+        text="Nehmen Sie Ihre Visualisierung als Video auf. Workflow: Prepare → Start → Stop. Das Video wird im WebM-Format erstellt."
+        tip="Wählen Sie 'High' Qualität für die meisten Anwendungen."
+        position="left"
+        :large="true"
+      />
+    </div>
+
     <!-- Status Anzeige -->
     <div 
       class="status-indicator" 
@@ -191,6 +201,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRecorderStore } from '../stores/recorderStore.js';
+import HelpTooltip from './HelpTooltip.vue';
 
 const recorderStore = useRecorderStore();
 
@@ -390,6 +401,12 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 h3 {

@@ -28,6 +28,17 @@
 
     <audio ref="audioRef" crossOrigin="anonymous" style="display: none;"></audio>
 
+    <!-- Onboarding & Help System -->
+    <OnboardingWizard
+      ref="onboardingWizardRef"
+      @complete="onTutorialComplete"
+      @skip="onTutorialSkip"
+    />
+    <QuickStartGuide
+      ref="quickStartGuideRef"
+      @show-tutorial="showTutorial"
+    />
+
   </div>
 </template>
 <script setup>
@@ -47,6 +58,8 @@ import ControlsPanel from './components/ControlsPanel.vue';
 import VisualizerPanel from './components/VisualizerPanel.vue';
 import EmptyPanel from './components/EmptyPanel.vue';
 import CanvasControlPanel from './components/CanvasControlPanel.vue';
+import OnboardingWizard from './components/OnboardingWizard.vue';
+import QuickStartGuide from './components/QuickStartGuide.vue';
 import { Visualizers } from './lib/visualizers.js';
 import { TextManager } from './lib/textManager.js';
 import { CUSTOM_FONTS } from './lib/fonts.js';
@@ -83,6 +96,8 @@ const gridManagerInstance = ref(null);
 const multiImageManagerInstance = ref(null);
 const fontManagerInstance = ref(null);
 const keyboardShortcutsInstance = ref(null);
+const onboardingWizardRef = ref(null);
+const quickStartGuideRef = ref(null);
 
 // Worker-Manager instance removed - not needed
 
@@ -90,6 +105,21 @@ provide('fontManager', fontManagerInstance);
 provide('canvasManager', canvasManagerInstance);
 provide('fotoManager', fotoManagerInstance);
 provide('multiImageManager', multiImageManagerInstance);
+
+// Onboarding/Help Funktionen
+function showTutorial() {
+  if (onboardingWizardRef.value) {
+    onboardingWizardRef.value.show();
+  }
+}
+
+function onTutorialComplete() {
+  console.log('✅ Tutorial abgeschlossen');
+}
+
+function onTutorialSkip() {
+  console.log('⏭️ Tutorial übersprungen');
+}
 
 // =============================================================================
 // ✅ OPTION 3: SEPARATE VISUALIZER RENDER-LOOP (verhindert Freeze bei Image-Toggle)

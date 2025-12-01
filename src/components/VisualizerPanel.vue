@@ -1,6 +1,16 @@
 <template>
   <div class="panel-container">
-    <h4>Visualizer</h4>
+    <div class="panel-header">
+      <h4>Visualizer</h4>
+      <HelpTooltip
+        title="Audio Visualizer"
+        icon="🎨"
+        text="Wählen Sie einen von 30+ Visualizer-Effekten. Die Visualisierung reagiert auf die Audiowiedergabe in Echtzeit."
+        tip="Starten Sie die Musik, um die Effekte live zu sehen!"
+        position="left"
+        :large="true"
+      />
+    </div>
 
     <!-- Visualizer Ein/Aus -->
     <div class="control-section">
@@ -78,6 +88,7 @@
 
 <script setup>
 import { useVisualizerStore } from '../stores/visualizerStore.js';
+import HelpTooltip from './HelpTooltip.vue';
 const store = useVisualizerStore();
 </script>
 
@@ -89,8 +100,15 @@ const store = useVisualizerStore();
   border: 1px solid #333;
 }
 
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 h4 {
-  margin: 0 0 12px 0;
+  margin: 0;
   color: #e0e0e0;
   font-weight: 600;
   font-size: 13px;

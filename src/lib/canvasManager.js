@@ -482,40 +482,14 @@ export class CanvasManager {
                 if (this.fotoManager) {
                     this.fotoManager.resetFilters(ctx);
                 }
-                
+
                 ctx.restore();
             }
         }
 
-        // 3. ✅ FIX: BILDER rendern (verhindert Geist-Bug beim Drag)
-        if (this.multiImageManager) {
-            const images = this.multiImageManager.getAllImages();
-            for (let i = 0; i < images.length; i++) {
-                const imgData = images[i];
-                if (imgData && imgData.imageObject) {
-                    ctx.save();
-                    
-                    // Wende Filter an wenn vorhanden
-                    if (this.fotoManager) {
-                        this.fotoManager.applyFilters(ctx, imgData);
-                    }
-                    
-                    const x = imgData.relX * ctx.canvas.width;
-                    const y = imgData.relY * ctx.canvas.height;
-                    const width = imgData.relWidth * ctx.canvas.width;
-                    const height = imgData.relHeight * ctx.canvas.height;
-                    
-                    ctx.drawImage(imgData.imageObject, x, y, width, height);
-                    
-                    // Setze Filter zurück
-                    if (this.fotoManager) {
-                        this.fotoManager.resetFilters(ctx);
-                    }
-                    
-                    ctx.restore();
-                }
-            }
-        }
+        // 3. BILDER werden jetzt NUR im multiImageManager.drawImages() gezeichnet
+        // Das verhindert doppelte Bilder und ermöglicht korrekte Rotation
+        // (multiImageManager.drawImages() wird in App.vue renderScene() aufgerufen)
 
         // 4. ✅ FIX: TEXTE rendern (verhindert Geist-Bug beim Drag)
         if (this.textManager && this.textManager.draw) {

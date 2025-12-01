@@ -1062,6 +1062,7 @@ watch(currentActiveImage, (newImage) => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-bottom: 16px;
 }
 
 .control-group.slider {
@@ -1102,10 +1103,14 @@ watch(currentActiveImage, (newImage) => {
   color: #e0e0e0;
   font-size: 13px;
   cursor: pointer;
+  position: relative;
+  z-index: 1;
 }
 
-.control-group select:hover {
+.control-group select:hover,
+.control-group select:focus {
   border-color: #6ea8fe;
+  z-index: 100;
 }
 
 .foto-panel-container .btn-secondary {

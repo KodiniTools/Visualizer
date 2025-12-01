@@ -4,8 +4,16 @@
     <div class="layout-grid">
 
       <aside class="left-toolbar">
-        <TextManagerPanel />
-        <FotoPanel />
+        <!-- Optionale Inhalte: Text & Bilder -->
+        <WorkflowSection
+          step="+"
+          title="Text & Bilder"
+          subtitle="Optional: Overlays hinzufügen"
+          badge-color="linear-gradient(135deg, #9C27B0 0%, #E91E63 100%)"
+        >
+          <TextManagerPanel />
+          <FotoPanel />
+        </WorkflowSection>
       </aside>
 
       <main class="center-column">
@@ -15,13 +23,38 @@
       </main>
 
       <aside class="right-panel">
-        <CanvasControlPanel />
-        <FileUploadPanel />
-        <PlayerPanel />
-        <RecorderPanel />
-        <ControlsPanel />
-        <VisualizerPanel />
-        <EmptyPanel />
+        <!-- Schritt 1: Inhalt hinzufügen -->
+        <WorkflowSection
+          step="1"
+          title="Audio hinzufügen"
+          subtitle="Musik hochladen & abspielen"
+          badge-color="linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%)"
+        >
+          <FileUploadPanel />
+          <PlayerPanel />
+        </WorkflowSection>
+
+        <!-- Schritt 2: Visualisierung konfigurieren -->
+        <WorkflowSection
+          step="2"
+          title="Visualisierung"
+          subtitle="Effekte & Canvas anpassen"
+          badge-color="linear-gradient(135deg, #FF9800 0%, #F44336 100%)"
+        >
+          <VisualizerPanel />
+          <CanvasControlPanel />
+          <ControlsPanel />
+        </WorkflowSection>
+
+        <!-- Schritt 3: Exportieren -->
+        <WorkflowSection
+          step="3"
+          title="Video erstellen"
+          subtitle="Aufnehmen & exportieren"
+          badge-color="linear-gradient(135deg, #6ea8fe 0%, #5a96e5 100%)"
+        >
+          <RecorderPanel />
+        </WorkflowSection>
       </aside>
 
     </div>
@@ -56,10 +89,10 @@ import FotoPanel from './components/FotoPanel.vue';
 import TextManagerPanel from './components/TextManagerPanel.vue';
 import ControlsPanel from './components/ControlsPanel.vue';
 import VisualizerPanel from './components/VisualizerPanel.vue';
-import EmptyPanel from './components/EmptyPanel.vue';
 import CanvasControlPanel from './components/CanvasControlPanel.vue';
 import OnboardingWizard from './components/OnboardingWizard.vue';
 import QuickStartGuide from './components/QuickStartGuide.vue';
+import WorkflowSection from './components/WorkflowSection.vue';
 import { Visualizers } from './lib/visualizers.js';
 import { TextManager } from './lib/textManager.js';
 import { CUSTOM_FONTS } from './lib/fonts.js';
@@ -859,17 +892,39 @@ html, body {
 <style scoped>
 /* HIER IST DIE KORREKTUR: Alle scoped Styles sind jetzt in einem Block. */
 .left-toolbar, .right-panel {
-  background-color: #1e1e1e;
-  border: 1px solid #333;
-  padding: 16px;
-  gap: 16px;
+  background-color: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  padding: 12px;
+  gap: 12px;
   overflow-y: auto;
+}
+
+/* Scrollbar Styling für die Panels */
+.left-toolbar::-webkit-scrollbar,
+.right-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.left-toolbar::-webkit-scrollbar-track,
+.right-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.left-toolbar::-webkit-scrollbar-thumb,
+.right-panel::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.left-toolbar::-webkit-scrollbar-thumb:hover,
+.right-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* ZUSÄTZLICHER PLATZ: Diese Regel fügt unten in der scrollbaren Spalte */
 /* Platz hinzu, damit der Inhalt des Dropdowns nicht abgeschnitten wird. */
 .right-panel {
-  padding-bottom: 250px;
+  padding-bottom: 200px;
 }
 
 .canvas-wrapper {

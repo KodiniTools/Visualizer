@@ -4,16 +4,8 @@
     <div class="layout-grid">
 
       <aside class="left-toolbar">
-        <!-- Optionale Inhalte: Text & Bilder -->
-        <WorkflowSection
-          step="+"
-          title="Text & Bilder"
-          subtitle="Optional: Overlays hinzufügen"
-          badge-color="linear-gradient(135deg, #9C27B0 0%, #E91E63 100%)"
-        >
-          <TextManagerPanel />
-          <FotoPanel />
-        </WorkflowSection>
+        <TextManagerPanel />
+        <FotoPanel />
       </aside>
 
       <main class="center-column">
@@ -23,38 +15,12 @@
       </main>
 
       <aside class="right-panel">
-        <!-- Schritt 1: Inhalt hinzufügen -->
-        <WorkflowSection
-          step="1"
-          title="Audio hinzufügen"
-          subtitle="Musik hochladen & abspielen"
-          badge-color="linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%)"
-        >
-          <FileUploadPanel />
-          <PlayerPanel />
-        </WorkflowSection>
-
-        <!-- Schritt 2: Visualisierung konfigurieren -->
-        <WorkflowSection
-          step="2"
-          title="Visualisierung"
-          subtitle="Effekte & Canvas anpassen"
-          badge-color="linear-gradient(135deg, #FF9800 0%, #F44336 100%)"
-        >
-          <VisualizerPanel />
-          <CanvasControlPanel />
-          <ControlsPanel />
-        </WorkflowSection>
-
-        <!-- Schritt 3: Exportieren -->
-        <WorkflowSection
-          step="3"
-          title="Video erstellen"
-          subtitle="Aufnehmen & exportieren"
-          badge-color="linear-gradient(135deg, #6ea8fe 0%, #5a96e5 100%)"
-        >
-          <RecorderPanel />
-        </WorkflowSection>
+        <FileUploadPanel />
+        <PlayerPanel />
+        <VisualizerPanel />
+        <ControlsPanel />
+        <CanvasControlPanel />
+        <RecorderPanel />
       </aside>
 
     </div>
@@ -92,7 +58,6 @@ import VisualizerPanel from './components/VisualizerPanel.vue';
 import CanvasControlPanel from './components/CanvasControlPanel.vue';
 import OnboardingWizard from './components/OnboardingWizard.vue';
 import QuickStartGuide from './components/QuickStartGuide.vue';
-import WorkflowSection from './components/WorkflowSection.vue';
 import { Visualizers } from './lib/visualizers.js';
 import { TextManager } from './lib/textManager.js';
 import { CUSTOM_FONTS } from './lib/fonts.js';

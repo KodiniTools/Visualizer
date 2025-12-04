@@ -973,39 +973,119 @@ export const Visualizers = {
     name_en: "Ripple Effect (High-Freq Bursts)",
     init() {
       visualizerState.ripples = [];
+      visualizerState.rippleTime = 0;
     },
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
-      // REPARIERT: Nutze mid-range Frequenzen (10-21%) statt hoher Frequenzen
-      const midStart = Math.floor(bufferLength * 0.10);
-      const midEnd = Math.floor(bufferLength * 0.21);
-      const midEnergy = averageRange(dataArray, midStart, midEnd) / 255;
+      if (!visualizerState.ripples) this.init();
 
       const baseHsl = hexToHsl(color);
-      // Niedrigerer Threshold und höhere Wahrscheinlichkeit für mehr Ripples
-      if (midEnergy > 0.15 && Math.random() < 0.6 * intensity) {
-        visualizerState.ripples.push({
-          x: Math.random() * width, y: Math.random() * height,
-          radius: 0, maxRadius: (30 + midEnergy * 150) * intensity,
-          hue: (baseHsl.h + Math.random() * 60) % 360, alpha: 1,
-          speed: (2 + midEnergy * 3) * intensity
-        });
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
+      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
+      const highEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.7), maxFreqIndex) / 255;
+
+      // Animierter Hintergrund
+      visualizerState.rippleTime = (visualizerState.rippleTime || 0) + 0.02;
+      const time = visualizerState.rippleTime;
+
+      // Dynamischer Gradient-Hintergrund
+      ctx.fillStyle = `rgba(0, 0, 0, ${0.1 + bassEnergy * 0.05})`;
+      ctx.fillRect(0, 0, width, height);
+
+      // Hintergrund-Pulse bei Bass
+      if (bassEnergy > 0.3) {
+        const pulseGradient = ctx.createRadialGradient(
+          width / 2, height / 2, 0,
+          width / 2, height / 2, Math.max(width, height) * 0.6
+        );
+        pulseGradient.addColorStop(0, `hsla(${baseHsl.h}, 80%, 30%, ${bassEnergy * 0.2})`);
+        pulseGradient.addColorStop(0.5, `hsla(${(baseHsl.h + 30) % 360}, 70%, 20%, ${bassEnergy * 0.1})`);
+        pulseGradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = pulseGradient;
+        ctx.fillRect(0, 0, width, height);
       }
+
+      // Mehr Ripples basierend auf verschiedenen Frequenzbereichen
+      const energyTypes = [
+        { energy: bassEnergy, threshold: 0.25, size: 200, speed: 4, hueShift: 0 },
+        { energy: midEnergy, threshold: 0.2, size: 150, speed: 5, hueShift: 30 },
+        { energy: highEnergy, threshold: 0.15, size: 100, speed: 6, hueShift: 60 }
+      ];
+
+      energyTypes.forEach(({ energy, threshold, size, speed, hueShift }) => {
+        if (energy > threshold && Math.random() < 0.5 * intensity && visualizerState.ripples.length < 30) {
+          visualizerState.ripples.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            radius: 0,
+            maxRadius: (size * 0.5 + energy * size) * intensity,
+            hue: (baseHsl.h + hueShift + Math.random() * 40) % 360,
+            alpha: 1,
+            speed: (speed + energy * 4) * intensity,
+            thickness: 3 + energy * 5
+          });
+        }
+      });
+
       withSafeCanvasState(ctx, () => {
+        // Ripples zeichnen
         for (let i = visualizerState.ripples.length - 1; i >= 0; i--) {
           const r = visualizerState.ripples[i];
           r.radius += r.speed;
-          r.alpha = 1 - (r.radius / r.maxRadius);
+          const progress = r.radius / r.maxRadius;
+          r.alpha = 1 - progress;
+
           if (r.alpha <= 0) {
             visualizerState.ripples.splice(i, 1);
             continue;
           }
-          ctx.beginPath();
-          ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
-          ctx.strokeStyle = `hsla(${r.hue}, ${baseHsl.s}%, ${baseHsl.l}%, ${r.alpha})`;
-          ctx.lineWidth = 3 * intensity;
-          ctx.stroke();
+
+          // Mehrere Ringe pro Ripple
+          const rings = 2;
+          for (let ring = 0; ring < rings; ring++) {
+            const ringRadius = r.radius - ring * 20;
+            if (ringRadius > 0) {
+              ctx.beginPath();
+              ctx.arc(r.x, r.y, ringRadius, 0, Math.PI * 2);
+
+              const ringAlpha = r.alpha * (1 - ring * 0.4);
+              const lightness = 50 + (1 - progress) * 30;
+              ctx.strokeStyle = `hsla(${r.hue}, 100%, ${lightness}%, ${ringAlpha})`;
+              ctx.lineWidth = (r.thickness || 4) * (1 - ring * 0.3) * (1 - progress * 0.5);
+
+              // Glow bei neuen Ripples
+              if (progress < 0.3) {
+                ctx.shadowColor = `hsl(${r.hue}, 100%, 60%)`;
+                ctx.shadowBlur = 15 * (1 - progress * 3);
+              }
+              ctx.stroke();
+              ctx.shadowBlur = 0;
+            }
+          }
+
+          // Zentraler Punkt bei neuen Ripples
+          if (progress < 0.2) {
+            ctx.beginPath();
+            ctx.arc(r.x, r.y, 5 * (1 - progress * 5), 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${r.hue}, 100%, 80%, ${1 - progress * 5})`;
+            ctx.fill();
+          }
         }
       });
+
+      // Schwebende Partikel im Hintergrund
+      const numParticles = 20;
+      for (let i = 0; i < numParticles; i++) {
+        const px = (Math.sin(time + i * 0.5) * 0.5 + 0.5) * width;
+        const py = (Math.cos(time * 0.7 + i * 0.3) * 0.5 + 0.5) * height;
+        const size = 2 + Math.sin(time * 2 + i) * 1 + midEnergy * 3;
+
+        ctx.beginPath();
+        ctx.arc(px, py, size, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${(baseHsl.h + i * 10) % 360}, 80%, 60%, ${0.2 + midEnergy * 0.3})`;
+        ctx.fill();
+      }
     }
   },
   networkPlexus: {
@@ -1388,26 +1468,96 @@ export const Visualizers = {
     name_de: "Neon-Gitter",
     name_en: "Neon Grid",
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
-      const horizon = height * 0.4 + (averageRange(dataArray, 0, 10) / 255) * 30 * intensity;
-      const vanishingPointX = width / 2;
-      const numHLines = 15;
       const baseHsl = hexToHsl(color);
+
+      // Nutzbarer Frequenzbereich
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
+      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
+
+      // Dynamischer Horizont
+      const horizon = height * 0.35 + bassEnergy * 50 * intensity;
+      const vanishingPointX = width / 2;
+
+      // Hintergrund-Gradient
+      const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+      bgGradient.addColorStop(0, `hsla(${(baseHsl.h + 180) % 360}, 60%, ${5 + bassEnergy * 5}%, 1)`);
+      bgGradient.addColorStop(0.5, `hsla(${baseHsl.h}, 50%, 3%, 1)`);
+      bgGradient.addColorStop(1, 'black');
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0, 0, width, height);
+
+      const time = Date.now() * 0.001;
+
       withSafeCanvasState(ctx, () => {
+        // Horizontale Linien - scrollend und pulsierend
+        const numHLines = 20;
+        const scrollOffset = (time * 50 * (1 + bassEnergy)) % (height / numHLines);
+
         for (let i = 0; i < numHLines; i++) {
-          const progress = i / numHLines;
+          const baseProgress = i / numHLines;
+          const progress = baseProgress + scrollOffset / height;
+          if (progress > 1) continue;
+
           const y = horizon + progress * progress * (height - horizon);
-          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y);
-          ctx.strokeStyle = `hsla(${baseHsl.h}, ${baseHsl.s}%, ${baseHsl.l}%, ${0.1 + (1 - progress) * 0.5})`;
-          ctx.lineWidth = (1 + (1 - progress) * 3) * intensity;
+
+          // Frequenz für diese Linie
+          const freqIndex = Math.floor(baseProgress * maxFreqIndex);
+          const freq = (dataArray[freqIndex] || 0) / 255;
+
+          // Wellenförmige Verzerrung
+          const wave = Math.sin(time * 3 + i * 0.5) * freq * 20 * intensity;
+
+          ctx.beginPath();
+          ctx.moveTo(0, y + wave);
+          ctx.lineTo(width, y + wave);
+
+          const alpha = 0.3 + (1 - progress) * 0.6 + freq * 0.2;
+          const lightness = 50 + (1 - progress) * 30 + midEnergy * 20;
+          ctx.strokeStyle = `hsla(${baseHsl.h}, 100%, ${lightness}%, ${alpha})`;
+          ctx.lineWidth = (2 + (1 - progress) * 4 + freq * 3) * intensity;
+          ctx.shadowColor = `hsl(${baseHsl.h}, 100%, 60%)`;
+          ctx.shadowBlur = 5 + bassEnergy * 10;
           ctx.stroke();
         }
-        const numVLines = 20;
+
+        ctx.shadowBlur = 0;
+
+        // Vertikale Linien - audio-reaktiv
+        const numVLines = 25;
         for (let i = 0; i <= numVLines; i++) {
           const progress = i / numVLines;
-          ctx.beginPath(); ctx.moveTo(progress * width, height); ctx.lineTo(vanishingPointX, horizon);
-          ctx.strokeStyle = `hsla(${(baseHsl.h + 60) % 360}, ${baseHsl.s}%, ${baseHsl.l}%, ${0.1 + (1 - Math.abs(progress - 0.5)) * 0.4})`;
-          ctx.lineWidth = 2 * intensity;
+          const freqIndex = Math.floor(progress * maxFreqIndex);
+          const freq = (dataArray[freqIndex] || 0) / 255;
+
+          // Startpunkt am unteren Rand mit Variation
+          const startX = progress * width;
+          const startY = height + freq * 20;
+
+          ctx.beginPath();
+          ctx.moveTo(startX, startY);
+          ctx.lineTo(vanishingPointX, horizon - 30 - bassEnergy * 30);
+
+          const centerDistance = Math.abs(progress - 0.5) * 2;
+          const alpha = (1 - centerDistance * 0.6) * (0.3 + freq * 0.5);
+          const hue = (baseHsl.h + 40 + freq * 30) % 360;
+
+          ctx.strokeStyle = `hsla(${hue}, 100%, ${50 + freq * 40}%, ${alpha})`;
+          ctx.lineWidth = (1 + freq * 3) * intensity;
           ctx.stroke();
+        }
+
+        // Zentraler Glow am Horizont bei Bass
+        if (bassEnergy > 0.2) {
+          const glowGradient = ctx.createRadialGradient(
+            vanishingPointX, horizon, 0,
+            vanishingPointX, horizon, 150 + bassEnergy * 100
+          );
+          glowGradient.addColorStop(0, `hsla(${baseHsl.h}, 100%, 70%, ${bassEnergy * 0.4})`);
+          glowGradient.addColorStop(0.5, `hsla(${(baseHsl.h + 30) % 360}, 100%, 50%, ${bassEnergy * 0.2})`);
+          glowGradient.addColorStop(1, 'transparent');
+          ctx.fillStyle = glowGradient;
+          ctx.fillRect(0, 0, width, height);
         }
       });
     }
@@ -1418,19 +1568,82 @@ export const Visualizers = {
     needsTimeData: true,
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
       const centerY = height / 2;
-      const sliceWidth = width / bufferLength;
       const baseHsl = hexToHsl(color);
-      for (let i = 0; i < bufferLength; i++) {
-        const v = (dataArray[i] / 128.0) - 1.0;
-        const x = i * sliceWidth;
-        const y = centerY + v * (height / 3);
-        const amplitude = Math.abs(v);
-        const size = (1 + amplitude * 8) * intensity;
-        const alpha = 0.5 + amplitude * 0.5;
+
+      // Trail-Effekt
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+      ctx.fillRect(0, 0, width, height);
+
+      // Weniger Punkte für bessere Performance, aber mehr Effekt
+      const numPoints = 150;
+      const sliceWidth = width / numPoints;
+      const time = Date.now() * 0.001;
+
+      // Gesamtenergie für Effekte
+      const totalEnergy = averageRange(dataArray, 0, Math.floor(bufferLength * 0.21)) / 255;
+
+      // Mehrere Wellenlinien
+      const numWaves = 3;
+
+      for (let wave = 0; wave < numWaves; wave++) {
+        const waveOffset = (wave - 1) * height * 0.15;
+        const points = [];
+
+        // Punkte sammeln
+        for (let i = 0; i < numPoints; i++) {
+          const dataIndex = Math.floor((i / numPoints) * bufferLength);
+          const v = (dataArray[dataIndex] / 128.0) - 1.0;
+          const x = i * sliceWidth;
+
+          // Größere Amplitude und Basis-Welle
+          const baseWave = Math.sin(x * 0.02 + time * 2 + wave) * 30;
+          const audioWave = v * (height / 2.5);
+          const y = centerY + waveOffset + baseWave + audioWave;
+
+          points.push({ x, y, v: Math.abs(v) });
+        }
+
+        // Gefüllte Welle zeichnen
         ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${(baseHsl.h + v * 30) % 360}, ${baseHsl.s}%, ${baseHsl.l}%, ${alpha})`;
+        ctx.moveTo(0, height);
+        points.forEach((p, i) => {
+          if (i === 0) ctx.lineTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        });
+        ctx.lineTo(width, height);
+        ctx.closePath();
+
+        const hue = (baseHsl.h + wave * 30) % 360;
+        const gradient = ctx.createLinearGradient(0, centerY - height / 3, 0, height);
+        gradient.addColorStop(0, `hsla(${hue}, 100%, 60%, ${0.3 + totalEnergy * 0.2})`);
+        gradient.addColorStop(0.5, `hsla(${hue}, 90%, 40%, ${0.2 + totalEnergy * 0.1})`);
+        gradient.addColorStop(1, `hsla(${hue}, 80%, 20%, 0.1)`);
+        ctx.fillStyle = gradient;
         ctx.fill();
+
+        // Leuchtende Oberkante
+        ctx.beginPath();
+        points.forEach((p, i) => {
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        });
+        ctx.strokeStyle = `hsla(${hue}, 100%, 70%, ${0.6 + totalEnergy * 0.4})`;
+        ctx.lineWidth = (3 + totalEnergy * 4) * intensity;
+        ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+        ctx.shadowBlur = 10 + totalEnergy * 15;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Partikel an Peaks
+        points.forEach((p, i) => {
+          if (p.v > 0.4 && i % 5 === 0) {
+            const size = (4 + p.v * 12) * intensity;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${hue}, 100%, 80%, ${0.5 + p.v * 0.5})`;
+            ctx.fill();
+          }
+        });
       }
     }
   },

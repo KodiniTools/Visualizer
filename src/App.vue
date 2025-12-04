@@ -409,11 +409,18 @@ function draw() {
           visualizerCacheCtx = visualizerCacheCanvas.getContext('2d');
         }
 
-        // Render visualizer ONCE to cache canvas
+        // Render visualizer ONCE to cache canvas (with error handling)
         visualizerCacheCtx.clearRect(0, 0, canvas.width, canvas.height);
         visualizerCacheCtx.save();
         visualizerCacheCtx.globalAlpha = visualizerStore.colorOpacity;
-        visualizer.draw(visualizerCacheCtx, audioDataArray, bufferLength, canvas.width, canvas.height, visualizerStore.visualizerColor, visualizerStore.visualizerOpacity);
+        try {
+          visualizer.draw(visualizerCacheCtx, audioDataArray, bufferLength, canvas.width, canvas.height, visualizerStore.visualizerColor, visualizerStore.visualizerOpacity);
+        } catch (error) {
+          console.error(`Visualizer "${visualizerStore.selectedVisualizer}" Fehler:`, error);
+          // Fallback: Schwarzer Hintergrund statt Crash
+          visualizerCacheCtx.fillStyle = '#000';
+          visualizerCacheCtx.fillRect(0, 0, canvas.width, canvas.height);
+        }
         visualizerCacheCtx.restore();
 
         // ✅ Callback now copies from cache instead of re-rendering
@@ -724,6 +731,13 @@ onMounted(async () => {
             recordingCanvas.height = canvas.height;
 
             console.log(`🎨 Canvas-Größe geändert zu: ${canvas.width}x${canvas.height}`);
+
+            // ✅ Visualizer bei Resize re-initialisieren
+            const visualizer = Visualizers[visualizerStore.selectedVisualizer];
+            if (visualizer?.init) {
+              visualizer.init(canvas.width, canvas.height);
+              console.log(`🎨 Visualizer "${visualizerStore.selectedVisualizer}" re-initialisiert`);
+            }
           }
         } else {
           canvas.width = 1920;
@@ -732,6 +746,13 @@ onMounted(async () => {
           // NEU: Auch Recording Canvas zurücksetzen
           recordingCanvas.width = 1920;
           recordingCanvas.height = 1080;
+
+          // ✅ Visualizer bei Resize re-initialisieren
+          const visualizer = Visualizers[visualizerStore.selectedVisualizer];
+          if (visualizer?.init) {
+            visualizer.init(canvas.width, canvas.height);
+            console.log(`🎨 Visualizer "${visualizerStore.selectedVisualizer}" re-initialisiert`);
+          }
 
           console.log(`🎨 Canvas zurück zu Standard: 1920x1080`);
         }

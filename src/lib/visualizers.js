@@ -693,30 +693,73 @@ export const Visualizers = {
     }
   },
   bloomingMandala: {
-    name_de: "Blühendes Mandala (High-Detail-Petals)",
-    name_en: "Blooming Mandala (High-Detail Petals)",
+    name_de: "Blühendes Mandala",
+    name_en: "Blooming Mandala",
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
       const centerX = width / 2;
       const centerY = height / 2;
-      const numSegments = 16;
+      const numSegments = 24; // Mehr Petalen für volleren Kreis
       const baseHsl = hexToHsl(color);
+      const maxFreqIndex = Math.floor(bufferLength * 0.21); // Nur nutzbaren Bereich
+
       withSafeCanvasState(ctx, () => {
         ctx.translate(centerX, centerY);
+
+        // Gesamtenergie für Basis-Pulsation
+        const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255;
+
         for (let i = 0; i < numSegments; i++) {
-          ctx.rotate((Math.PI * 2) / numSegments);
-          const [s1, e1] = rangeForBar(i, numSegments, bufferLength);
-          const dynamicGain1 = calculateDynamicGain(i, numSegments, { bassGain: 1.0, lowMidGain: 1.4, highMidGain: 1.9, highGain: 2.8, ultraHighGain: 4.5 });
-          const amplitude1 = (averageRange(dataArray, s1, e1) / 255) * dynamicGain1;
-          const petalLength = (50 + amplitude1 * (Math.min(width, height) * 0.35)) * intensity;
-          const petalWidth = (10 + (averageRange(dataArray, 0, bufferLength) / 255) * 80) * intensity;
-          const hue = (baseHsl.h + i * 15) % 360;
+          const angle = (i / numSegments) * Math.PI * 2;
+          ctx.save();
+          ctx.rotate(angle);
+
+          // Frequenz-Mapping auf nutzbaren Bereich
+          const freqIndex = Math.floor((i / numSegments) * maxFreqIndex);
+          const amplitude = (dataArray[freqIndex] / 255) * 1.5 + 0.3; // Mindest-Amplitude
+
+          // Größere, gefüllte Petalen
+          const petalLength = (80 + amplitude * (Math.min(width, height) * 0.35)) * intensity;
+          const petalWidth = (20 + overallEnergy * 60) * intensity;
+          const hue = (baseHsl.h + i * (360 / numSegments)) % 360;
+
+          // Gefüllte Petale
           ctx.beginPath();
           ctx.moveTo(0, 0);
-          ctx.bezierCurveTo(petalWidth, petalLength / 2, -petalWidth, petalLength / 2, 0, petalLength);
-          ctx.strokeStyle = `hsl(${hue}, ${baseHsl.s}%, ${baseHsl.l}%)`;
-          ctx.lineWidth = (1 + amplitude1 * 5) * intensity;
+          ctx.bezierCurveTo(
+            petalWidth, petalLength * 0.4,
+            petalWidth * 0.5, petalLength * 0.8,
+            0, petalLength
+          );
+          ctx.bezierCurveTo(
+            -petalWidth * 0.5, petalLength * 0.8,
+            -petalWidth, petalLength * 0.4,
+            0, 0
+          );
+
+          // Gradient-Füllung
+          const gradient = ctx.createLinearGradient(0, 0, 0, petalLength);
+          gradient.addColorStop(0, `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l}%, 0.9)`);
+          gradient.addColorStop(0.5, `hsla(${hue}, ${baseHsl.s}%, ${Math.min(80, baseHsl.l + 20)}%, 0.7)`);
+          gradient.addColorStop(1, `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l}%, 0.3)`);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+
+          // Leuchtender Rand
+          ctx.strokeStyle = `hsla(${hue}, 100%, 70%, ${0.5 + amplitude * 0.5})`;
+          ctx.lineWidth = (2 + amplitude * 3) * intensity;
           ctx.stroke();
+
+          ctx.restore();
         }
+
+        // Zentrum-Glow
+        const centerGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, 50 * intensity);
+        centerGlow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 80%, ${0.8 + overallEnergy * 0.2})`);
+        centerGlow.addColorStop(1, `hsla(${baseHsl.h}, 100%, 50%, 0)`);
+        ctx.beginPath();
+        ctx.arc(0, 0, 50 * intensity, 0, Math.PI * 2);
+        ctx.fillStyle = centerGlow;
+        ctx.fill();
       });
     }
   },
@@ -1171,36 +1214,58 @@ export const Visualizers = {
       const centerX = width / 2;
       const centerY = height / 2;
       const baseHsl = hexToHsl(color);
+      const maxFreqIndex = Math.floor(bufferLength * 0.21); // Nur nutzbaren Bereich!
+
+      // Gesamtenergie für Basis-Helligkeit
+      const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255;
+
       withSafeCanvasState(ctx, () => {
         for (let i = 0; i < numBeams; i++) {
-          // Audio-Daten über alle Strahlen verteilen (wiederholen wenn nötig)
-          const dataIndex = Math.floor((i / numBeams) * bufferLength) % bufferLength;
-          const sampleSize = Math.max(1, Math.floor(bufferLength / numBeams));
-          const s = dataIndex;
-          const e = Math.min(bufferLength, dataIndex + sampleSize);
-          const amplitude = Math.max(0.15, averageRange(dataArray, s, e) / 255);
-          const dynamicGain = calculateDynamicGain(i, numBeams);
+          // ✅ FIX: Frequenzen auf nutzbaren Bereich mappen (0-21%)
+          const freqIndex = Math.floor((i / numBeams) * maxFreqIndex);
+          const sampleSize = Math.max(1, Math.floor(maxFreqIndex / numBeams));
+          const s = freqIndex;
+          const e = Math.min(maxFreqIndex, freqIndex + sampleSize);
+
+          // ✅ FIX: Höhere Mindest-Amplitude + Boost
+          const rawAmplitude = averageRange(dataArray, s, e) / 255;
+          const amplitude = Math.max(0.4, rawAmplitude * 1.8 + overallEnergy * 0.3);
+
           const angle = (i / numBeams) * Math.PI * 2;
-          const length = amplitude * dynamicGain * Math.min(width, height) * 0.6;
-          const beamWidth = (2 + amplitude * 8) * intensity;
-          const x1 = centerX + Math.cos(angle) * 50;
-          const y1 = centerY + Math.sin(angle) * 50;
-          const x2 = centerX + Math.cos(angle) * (50 + length);
-          const y2 = centerY + Math.sin(angle) * (50 + length);
+          // ✅ FIX: Längere Strahlen
+          const length = (50 + amplitude * Math.min(width, height) * 0.5) * intensity;
+          const beamWidth = (3 + amplitude * 10) * intensity;
+
+          const x1 = centerX + Math.cos(angle) * 30;
+          const y1 = centerY + Math.sin(angle) * 30;
+          const x2 = centerX + Math.cos(angle) * (30 + length);
+          const y2 = centerY + Math.sin(angle) * (30 + length);
+
           const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
-          // Regenbogenfarben über 360 Grad verteilt
-          const hue = (i / numBeams) * 360;
-          gradient.addColorStop(0, `hsla(${hue}, 100%, 60%, ${0.8 + amplitude * 0.2})`);
-          gradient.addColorStop(1, `hsla(${hue}, 100%, 60%, 0)`);
-          ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+          // Regenbogenfarben oder Benutzerfarbe
+          const hue = (baseHsl.h + (i / numBeams) * 180) % 360;
+          gradient.addColorStop(0, `hsla(${hue}, 100%, 70%, ${0.9})`);
+          gradient.addColorStop(0.5, `hsla(${hue}, 100%, 60%, ${0.6 * amplitude})`);
+          gradient.addColorStop(1, `hsla(${hue}, 100%, 50%, 0)`);
+
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
           ctx.strokeStyle = gradient;
           ctx.lineWidth = beamWidth;
           ctx.stroke();
-          if (amplitude > 0.6) {
-            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
-            ctx.strokeStyle = `hsla(${hue}, 100%, 80%, ${amplitude * 0.5})`;
-            ctx.lineWidth = beamWidth * 0.5;
+
+          // Glow bei hoher Amplitude
+          if (amplitude > 0.7) {
+            ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
+            ctx.shadowBlur = 15 * intensity;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = `hsla(${hue}, 100%, 85%, ${amplitude * 0.6})`;
+            ctx.lineWidth = beamWidth * 0.4;
             ctx.stroke();
+            ctx.shadowBlur = 0;
           }
         }
       });
@@ -1532,10 +1597,11 @@ export const Visualizers = {
         scale: 1,
         targetScale: 1,
         pulseCount: 0,
-        lastPulse: 0,
+        lastPulse: Date.now(),
         smoothedBass: 0,
-        bassHistory: [],  // NEU: Beat-History für bessere Erkennung
-        avgBass: 0        // NEU: Durchschnitt für Threshold
+        prevBass: 0,
+        bassHistory: [],
+        avgBass: 0
       };
     },
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
@@ -1545,39 +1611,46 @@ export const Visualizers = {
       const maxFreqIndex = Math.floor(bufferLength * 0.21);
       const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
 
-      // VERBESSERT: Smoothing mit weniger Trägheit
-      state.smoothedBass = state.smoothedBass * 0.7 + bassEnergy * 0.3;
+      // Schnelleres Smoothing für bessere Reaktion
+      state.smoothedBass = state.smoothedBass * 0.5 + bassEnergy * 0.5;
 
-      // NEU: Rolling Average für dynamischen Threshold
+      // Rolling Average für dynamischen Threshold
       state.bassHistory.push(bassEnergy);
-      if (state.bassHistory.length > 30) {
+      if (state.bassHistory.length > 20) {
         state.bassHistory.shift();
       }
       state.avgBass = state.bassHistory.reduce((a, b) => a + b, 0) / state.bassHistory.length;
 
-      // VERBESSERT: Beat-Erkennung mit dynamischem Threshold
       const now = Date.now();
       const timeSinceLastPulse = now - state.lastPulse;
-      const minTimeBetweenBeats = 200; // Mindestens 200ms zwischen Beats
-      const maxTimeBetweenBeats = 2000; // Maximal 2s, dann Force-Beat
+      const minTimeBetweenBeats = 150; // Schnellere Beats erlaubt (400 BPM max)
+      const maxTimeBetweenBeats = 800; // Force-Beat nach 0.8s statt 2s
 
-      // Dynamischer Threshold basierend auf History
-      const dynamicThreshold = Math.max(0.15, state.avgBass * 1.2);
+      // ✅ FIX: Viel sensitivere Beat-Erkennung
+      const dynamicThreshold = Math.max(0.05, state.avgBass * 0.8); // War 0.15 und 1.2
 
-      // Beat-Trigger-Bedingungen (flexibler!)
-      const isStrongBeat = bassEnergy > dynamicThreshold && bassEnergy > state.smoothedBass * 1.15;
+      // Beat wenn: Energie steigt UND über Threshold
+      const isRising = bassEnergy > state.prevBass * 1.05;
+      const isAboveThreshold = bassEnergy > dynamicThreshold;
+      const isStrongBeat = isRising && isAboveThreshold;
       const hasWaitedLongEnough = timeSinceLastPulse > minTimeBetweenBeats;
-      const forceBeat = timeSinceLastPulse > maxTimeBetweenBeats && bassEnergy > 0.1;
+      const forceBeat = timeSinceLastPulse > maxTimeBetweenBeats;
 
       if ((isStrongBeat && hasWaitedLongEnough) || forceBeat) {
-        state.targetScale = 1.25 + bassEnergy * 0.5 * intensity;
+        // ✅ FIX: Stärkere Pulsation
+        state.targetScale = 1.3 + bassEnergy * 0.8 * intensity;
         state.lastPulse = now;
         state.pulseCount++;
       }
 
-      // Scale Animation (schneller zurück zur Ruhe)
-      state.scale = state.scale * 0.88 + state.targetScale * 0.12;
-      state.targetScale = state.targetScale * 0.94 + 1.0 * 0.06;
+      state.prevBass = bassEnergy;
+
+      // ✅ FIX: Kontinuierliche Mikro-Pulsation zur Musik
+      const microPulse = 1 + state.smoothedBass * 0.15 * intensity;
+
+      // Schnellere Animation
+      state.scale = state.scale * 0.85 + state.targetScale * 0.15;
+      state.targetScale = state.targetScale * 0.9 + microPulse * 0.1;
 
       const centerX = width / 2;
       const centerY = height / 2;
@@ -1863,55 +1936,76 @@ export const Visualizers = {
         nextSpawn: 0
       };
 
-      // Start mit einer Zelle in der Mitte
-      visualizerState.cellGrowth.cells.push({
-        x: width / 2,
-        y: height / 2,
-        radius: 5,
-        targetRadius: 20,
-        hue: Math.random() * 360,
-        age: 0,
-        maxAge: 200,
-        generation: 0
-      });
+      const baseHue = Math.random() * 360;
+
+      // ✅ FIX: Start mit 8 Zellen verteilt über den Canvas
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const distance = Math.min(width, height) * 0.2;
+        visualizerState.cellGrowth.cells.push({
+          x: width / 2 + Math.cos(angle) * distance * (0.3 + Math.random() * 0.7),
+          y: height / 2 + Math.sin(angle) * distance * (0.3 + Math.random() * 0.7),
+          radius: 8 + Math.random() * 10,
+          targetRadius: 25 + Math.random() * 20,
+          hue: (baseHue + i * 45 + Math.random() * 20) % 360,
+          age: 0,
+          maxAge: 300 + Math.random() * 200,
+          generation: 0
+        });
+      }
     },
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
       if (!visualizerState.cellGrowth) this.init(width, height);
       const state = visualizerState.cellGrowth;
       const baseHsl = hexToHsl(color);
 
-      // Leichter Fade für Trails
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
-      ctx.fillRect(0, 0, width, height);
-
       // Audio-Energie berechnen
       const maxFreqIndex = Math.floor(bufferLength * 0.21);
       const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255;
       const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
 
-      // Neue Zelle spawnen bei hoher Energie
+      // ✅ FIX: Neue Zellen spawnen - niedrigerer Threshold, mehr Zellen erlaubt
       const now = Date.now();
-      if (overallEnergy > 0.5 && now > state.nextSpawn && state.cells.length < 50) {
-        const parentIdx = Math.floor(Math.random() * Math.min(5, state.cells.length));
-        const parent = state.cells[parentIdx];
+      const spawnThreshold = 0.15; // War 0.5, jetzt viel niedriger
+      const maxCells = 100; // War 50
+      const spawnCooldown = 30; // War 100ms
 
-        if (parent && parent.radius > parent.targetRadius * 0.7) {
+      if (overallEnergy > spawnThreshold && now > state.nextSpawn && state.cells.length < maxCells) {
+        // Spawn von zufälligem Parent oder zufälliger Position
+        const useParent = state.cells.length > 0 && Math.random() > 0.3;
+
+        if (useParent) {
+          const parentIdx = Math.floor(Math.random() * state.cells.length);
+          const parent = state.cells[parentIdx];
+
           const angle = Math.random() * Math.PI * 2;
-          const distance = parent.radius * 1.5;
+          const distance = parent.radius * (1.2 + Math.random());
 
           state.cells.push({
-            x: parent.x + Math.cos(angle) * distance,
-            y: parent.y + Math.sin(angle) * distance,
-            radius: 3,
-            targetRadius: 15 + overallEnergy * 20,
-            hue: (parent.hue + 20 + Math.random() * 40) % 360,
+            x: Math.max(50, Math.min(width - 50, parent.x + Math.cos(angle) * distance)),
+            y: Math.max(50, Math.min(height - 50, parent.y + Math.sin(angle) * distance)),
+            radius: 5,
+            targetRadius: 20 + overallEnergy * 30,
+            hue: (parent.hue + 15 + Math.random() * 30) % 360,
             age: 0,
-            maxAge: 150 + Math.random() * 100,
+            maxAge: 200 + Math.random() * 150,
             generation: parent.generation + 1
           });
-
-          state.nextSpawn = now + 100 / intensity;
+        } else {
+          // Zufällige Position
+          state.cells.push({
+            x: 100 + Math.random() * (width - 200),
+            y: 100 + Math.random() * (height - 200),
+            radius: 5,
+            targetRadius: 25 + overallEnergy * 25,
+            hue: (baseHsl.h + Math.random() * 60) % 360,
+            age: 0,
+            maxAge: 250 + Math.random() * 150,
+            generation: 0
+          });
         }
+
+        state.nextSpawn = now + spawnCooldown / intensity;
       }
 
       // Zellen updaten und zeichnen

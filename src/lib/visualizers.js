@@ -484,34 +484,66 @@ export const Visualizers = {
     }
   },
   radialBars: {
-    name_de: "Radiale Balken (Progressive-Boost)",
-    name_en: "Radial Bars (Progressive Boost)",
+    name_de: "Radiale Balken",
+    name_en: "Radial Bars",
     draw(ctx, dataArray, bufferLength, w, h, color, intensity = 1.0) {
-      const numBars = 128;
+      const numBars = 72; // Weniger Balken, aber alle sichtbar
       const centerX = w / 2;
       const centerY = h / 2;
-      const maxRadius = Math.min(w, h) / 2;
-      const minRadius = maxRadius * 0.15;
+      const maxRadius = Math.min(w, h) / 2 * 0.9;
+      const minRadius = maxRadius * 0.12;
       const baseHsl = hexToHsl(color);
-      if (visualizerState.smoothedRadialBars.length !== numBars) {
+      const maxFreqIndex = Math.floor(bufferLength * 0.21); // ✅ Nur nutzbarer Bereich
+
+      if (!visualizerState.smoothedRadialBars || visualizerState.smoothedRadialBars.length !== numBars) {
         visualizerState.smoothedRadialBars = new Array(numBars).fill(0);
       }
+
+      // Gesamtenergie für Glow-Effekt
+      const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255;
+
       withSafeCanvasState(ctx, () => {
+        // Zentrum-Glow
+        if (overallEnergy > 0.2) {
+          const glowGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, minRadius * 1.5);
+          glowGradient.addColorStop(0, `hsla(${baseHsl.h}, 100%, 70%, ${overallEnergy * 0.5})`);
+          glowGradient.addColorStop(1, `hsla(${baseHsl.h}, 100%, 50%, 0)`);
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, minRadius * 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = glowGradient;
+          ctx.fill();
+        }
+
         for (let i = 0; i < numBars; i++) {
-          const dynamicGain = calculateDynamicGain(i, numBars);
-          const [s, e] = rangeForBar(i, numBars, bufferLength);
-          const amplitude = averageRange(dataArray, s, e) / 255;
-          const targetLength = amplitude * (maxRadius - minRadius) * dynamicGain * intensity;
-          const smoothingFactor = getFrequencyBasedSmoothing(i, numBars, 0.6);
-          visualizerState.smoothedRadialBars[i] = applySmoothValue(visualizerState.smoothedRadialBars[i] || 0, targetLength, smoothingFactor);
-          const angle = (i / numBars) * 2 * Math.PI;
+          // ✅ FIX: Frequenzen auf nutzbaren Bereich mappen
+          const freqIndex = Math.floor((i / numBars) * maxFreqIndex);
+          const sampleSize = Math.max(1, Math.floor(maxFreqIndex / numBars));
+          const amplitude = averageRange(dataArray, freqIndex, Math.min(maxFreqIndex, freqIndex + sampleSize)) / 255;
+
+          // Boost für bessere Sichtbarkeit
+          const boostedAmplitude = Math.max(0.15, amplitude * 1.5);
+          const targetLength = boostedAmplitude * (maxRadius - minRadius) * intensity;
+
+          const smoothingFactor = 0.7 - (i / numBars) * 0.2;
+          visualizerState.smoothedRadialBars[i] = visualizerState.smoothedRadialBars[i] * smoothingFactor + targetLength * (1 - smoothingFactor);
+
+          const barLength = visualizerState.smoothedRadialBars[i];
+          const angle = (i / numBars) * 2 * Math.PI - Math.PI / 2;
+
           const startX = centerX + Math.cos(angle) * minRadius;
           const startY = centerY + Math.sin(angle) * minRadius;
-          const endX = centerX + Math.cos(angle) * (minRadius + visualizerState.smoothedRadialBars[i]);
-          const endY = centerY + Math.sin(angle) * (minRadius + visualizerState.smoothedRadialBars[i]);
-          const hue = (baseHsl.h + (i / numBars) * 180) % 360;
-          ctx.strokeStyle = `hsl(${hue}, ${baseHsl.s}%, ${baseHsl.l}%)`;
-          ctx.lineWidth = (2 + amplitude * 4) * intensity;
+          const endX = centerX + Math.cos(angle) * (minRadius + barLength);
+          const endY = centerY + Math.sin(angle) * (minRadius + barLength);
+
+          // Gradient für jeden Balken
+          const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
+          const hue = (baseHsl.h + (i / numBars) * 120) % 360;
+          gradient.addColorStop(0, `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l}%, 0.9)`);
+          gradient.addColorStop(1, `hsla(${hue}, 100%, 70%, ${0.5 + amplitude * 0.5})`);
+
+          ctx.strokeStyle = gradient;
+          ctx.lineWidth = (3 + amplitude * 5) * intensity;
+          ctx.lineCap = 'round';
           ctx.beginPath();
           ctx.moveTo(startX, startY);
           ctx.lineTo(endX, endY);
@@ -595,32 +627,70 @@ export const Visualizers = {
     }
   },
   circles: {
-    name_de: 'Kreise (High-Freq-Boost)',
-    name_en: 'Circles (High-Freq Boost)',
+    name_de: 'Konzentrische Kreise',
+    name_en: 'Concentric Circles',
     draw(ctx, dataArray, bufferLength, w, h, color, intensity = 1.0) {
-      const maxR = Math.min(w, h) / 2.5;
-      const numCircles = 32;
+      const maxR = Math.min(w, h) / 2 * 0.85;
+      const minR = 20; // Mindestradius
+      const numCircles = 16; // Weniger Kreise, aber alle sichtbar
       const baseHsl = hexToHsl(color);
-      if (visualizerState.smoothedCircles.length !== numCircles) {
-        visualizerState.smoothedCircles = new Array(numCircles).fill(0);
+      const maxFreqIndex = Math.floor(bufferLength * 0.21); // ✅ Nur nutzbarer Bereich
+      const centerX = w / 2;
+      const centerY = h / 2;
+
+      if (!visualizerState.smoothedCircles || visualizerState.smoothedCircles.length !== numCircles) {
+        visualizerState.smoothedCircles = new Array(numCircles).fill(minR);
       }
+
+      // Gesamtenergie für Pulsation
+      const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255;
+
       withSafeCanvasState(ctx, () => {
-        for (let i = 0; i < numCircles; i++) {
-          const [s, e] = rangeForBar(i, numCircles, bufferLength);
-          const dynamicGain = calculateDynamicGain(i, numCircles, { bassGain: 0.8, lowMidGain: 1.2, highMidGain: 1.6, highGain: 2.2, ultraHighGain: 3.5 });
-          const targetRadius = (averageRange(dataArray, s, e) / 255) * maxR * dynamicGain * intensity;
-          const smoothingFactor = getFrequencyBasedSmoothing(i, numCircles, 0.6);
-          visualizerState.smoothedCircles[i] = applySmoothValue(visualizerState.smoothedCircles[i] || 0, targetRadius, smoothingFactor);
-          if (visualizerState.smoothedCircles[i] > 1) {
-            const normalizedPos = i / numCircles;
-            const hue = (baseHsl.h + normalizedPos * 180) % 360;
-            ctx.strokeStyle = `hsl(${hue}, ${baseHsl.s}%, ${baseHsl.l}%)`;
-            ctx.lineWidth = (normalizedPos > 0.7 ? 3 : 2) * intensity;
-            ctx.beginPath();
-            ctx.arc(w / 2, h / 2, visualizerState.smoothedCircles[i], 0, Math.PI * 2);
-            ctx.stroke();
+        // Hintergrund-Glow
+        const bgGlow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxR);
+        bgGlow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 50%, ${overallEnergy * 0.15})`);
+        bgGlow.addColorStop(1, `hsla(${baseHsl.h}, 100%, 50%, 0)`);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, maxR, 0, Math.PI * 2);
+        ctx.fillStyle = bgGlow;
+        ctx.fill();
+
+        // Kreise von außen nach innen zeichnen
+        for (let i = numCircles - 1; i >= 0; i--) {
+          // ✅ FIX: Frequenzen auf nutzbaren Bereich mappen
+          const freqIndex = Math.floor((i / numCircles) * maxFreqIndex);
+          const sampleSize = Math.max(2, Math.floor(maxFreqIndex / numCircles));
+          const amplitude = averageRange(dataArray, freqIndex, Math.min(maxFreqIndex, freqIndex + sampleSize)) / 255;
+
+          // Basis-Radius + Audio-Modulation
+          const baseRadius = minR + (i / numCircles) * (maxR - minR);
+          const audioBoost = amplitude * 50 * intensity;
+          const targetRadius = baseRadius + audioBoost;
+
+          // Smoothing
+          visualizerState.smoothedCircles[i] = visualizerState.smoothedCircles[i] * 0.7 + targetRadius * 0.3;
+          const radius = visualizerState.smoothedCircles[i];
+
+          const normalizedPos = i / numCircles;
+          const hue = (baseHsl.h + normalizedPos * 60) % 360;
+
+          // Dickere Linien, abhängig von Amplitude
+          ctx.lineWidth = (3 + amplitude * 6) * intensity;
+
+          // Glow bei hoher Amplitude
+          if (amplitude > 0.4) {
+            ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+            ctx.shadowBlur = 10 + amplitude * 15;
+          } else {
+            ctx.shadowBlur = 0;
           }
+
+          ctx.strokeStyle = `hsla(${hue}, ${baseHsl.s}%, ${Math.min(80, baseHsl.l + amplitude * 20)}%, ${0.6 + amplitude * 0.4})`;
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+          ctx.stroke();
         }
+        ctx.shadowBlur = 0;
       });
     }
   },
@@ -657,39 +727,87 @@ export const Visualizers = {
     }
   },
   spiralGalaxy: {
-    name_de: "Spiral-Galaxie (Ultra-Sparkle)",
-    name_en: "Spiral Galaxy (Ultra-Sparkle)",
+    name_de: "Spiral-Galaxie",
+    name_en: "Spiral Galaxy",
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
       const centerX = width / 2;
       const centerY = height / 2;
-      const maxRadius = Math.min(width, height) / 2;
+      const maxRadius = Math.min(width, height) / 2 * 0.9;
       const arms = 4;
-      const pointsPerArm = Math.floor(bufferLength / arms);
+      const pointsPerArm = 40; // ✅ FIX: Weniger Punkte, aber alle sichtbar
       const baseHsl = hexToHsl(color);
-      if (visualizerState.smoothedSpiralGalaxy.length !== arms * pointsPerArm) {
-        visualizerState.smoothedSpiralGalaxy = new Array(arms * pointsPerArm).fill(0);
+      const maxFreqIndex = Math.floor(bufferLength * 0.21); // ✅ Nur nutzbarer Bereich
+      const totalPoints = arms * pointsPerArm;
+
+      if (!visualizerState.smoothedSpiralGalaxy || visualizerState.smoothedSpiralGalaxy.length !== totalPoints) {
+        visualizerState.smoothedSpiralGalaxy = new Array(totalPoints).fill(0.3);
       }
-      for (let arm = 0; arm < arms; arm++) {
-        for (let i = 0; i < pointsPerArm; i++) {
-          const globalIndex = arm * pointsPerArm + i;
-          const [s, e] = rangeForBar(globalIndex, bufferLength, bufferLength);
-          const dynamicGain = calculateDynamicGain(globalIndex, arms * pointsPerArm, { bassGain: 0.8, lowMidGain: 1.2, highMidGain: 1.8, highGain: 2.8, ultraHighGain: 4.5 });
-          const targetIntensity = (averageRange(dataArray, s, e) / 255) * dynamicGain * 1.2 * intensity;
-          visualizerState.smoothedSpiralGalaxy[globalIndex] = applySmoothValue(visualizerState.smoothedSpiralGalaxy[globalIndex] || 0, targetIntensity, 0.6);
-          const t = i / pointsPerArm;
-          const currentIntensity = visualizerState.smoothedSpiralGalaxy[globalIndex];
-          const radius = t * maxRadius * (0.2 + currentIntensity * 0.8);
-          const angle = arm * (2 * Math.PI / arms) + t * 5 * Math.PI + Date.now() * 0.0005;
-          const x = centerX + Math.cos(angle) * radius;
-          const y = centerY + Math.sin(angle) * radius;
-          const size = (1 + currentIntensity * (t > 0.6 ? 7 : 3)) * intensity;
-          const hue = (baseHsl.h + t * 90 + arm * 20) % 360;
-          ctx.beginPath();
-          ctx.arc(x, y, size, 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l}%, ${0.5 + currentIntensity * 0.5})`;
-          ctx.fill();
+
+      // Gesamtenergie für Rotation und Glow
+      const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255;
+      const rotationSpeed = 0.0003 + overallEnergy * 0.0005;
+      const time = Date.now() * rotationSpeed;
+
+      withSafeCanvasState(ctx, () => {
+        // Zentrum-Glow
+        const centerGlow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxRadius * 0.3);
+        centerGlow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 80%, ${0.4 + overallEnergy * 0.4})`);
+        centerGlow.addColorStop(0.5, `hsla(${baseHsl.h}, 100%, 60%, ${0.2 + overallEnergy * 0.2})`);
+        centerGlow.addColorStop(1, `hsla(${baseHsl.h}, 100%, 50%, 0)`);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, maxRadius * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = centerGlow;
+        ctx.fill();
+
+        for (let arm = 0; arm < arms; arm++) {
+          for (let i = 0; i < pointsPerArm; i++) {
+            const globalIndex = arm * pointsPerArm + i;
+
+            // ✅ FIX: Frequenzen auf nutzbaren Bereich mappen
+            const freqIndex = Math.floor((i / pointsPerArm) * maxFreqIndex);
+            const sampleSize = Math.max(2, Math.floor(maxFreqIndex / pointsPerArm));
+            const amplitude = averageRange(dataArray, freqIndex, Math.min(maxFreqIndex, freqIndex + sampleSize)) / 255;
+
+            // Boost für Sichtbarkeit
+            const boostedAmplitude = Math.max(0.25, amplitude * 1.5);
+            const targetIntensity = boostedAmplitude * intensity;
+
+            // Smoothing
+            visualizerState.smoothedSpiralGalaxy[globalIndex] =
+              visualizerState.smoothedSpiralGalaxy[globalIndex] * 0.7 + targetIntensity * 0.3;
+            const currentIntensity = visualizerState.smoothedSpiralGalaxy[globalIndex];
+
+            const t = i / pointsPerArm;
+            // ✅ FIX: Mindest-Radius, damit Spirale immer sichtbar
+            const radius = 30 + t * (maxRadius - 30) * (0.5 + currentIntensity * 0.5);
+
+            // Spiralwinkel mit Rotation
+            const spiralTightness = 3; // Weniger eng
+            const angle = arm * (2 * Math.PI / arms) + t * spiralTightness * Math.PI + time;
+
+            const x = centerX + Math.cos(angle) * radius;
+            const y = centerY + Math.sin(angle) * radius;
+
+            // ✅ FIX: Größere Punkte
+            const baseSize = 3 + t * 4; // Größer am Rand
+            const size = (baseSize + currentIntensity * 8) * intensity;
+
+            const hue = (baseHsl.h + t * 60 + arm * 30) % 360;
+
+            // Glow für größere Punkte
+            if (currentIntensity > 0.4) {
+              ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
+              ctx.shadowBlur = 8 + currentIntensity * 12;
+            }
+
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${hue}, ${baseHsl.s}%, ${Math.min(80, baseHsl.l + currentIntensity * 20)}%, ${0.6 + currentIntensity * 0.4})`;
+            ctx.fill();
+          }
         }
-      }
+        ctx.shadowBlur = 0;
+      });
     }
   },
   bloomingMandala: {

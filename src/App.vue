@@ -87,6 +87,7 @@ let audioContext, analyser, sourceNode, outputGain, recordingDest, recordingGain
 let animationFrameId;
 let textManagerInstance = null;
 let lastSelectedVisualizerId = null;
+let audioDataArray = null; // ✅ Wiederverwendbares Array für Audio-Daten (verhindert GC-Overhead)
 
 const canvasManagerInstance = ref(null);
 const fotoManagerInstance = ref(null);
@@ -378,18 +379,21 @@ function draw() {
           lastSelectedVisualizerId = visualizerStore.selectedVisualizer;
         }
         const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
+        // ✅ Performance: Array einmal erstellen und wiederverwenden
+        if (!audioDataArray || audioDataArray.length !== bufferLength) {
+          audioDataArray = new Uint8Array(bufferLength);
+        }
         if (visualizer.needsTimeData) {
-          analyser.getByteTimeDomainData(dataArray);
+          analyser.getByteTimeDomainData(audioDataArray);
         } else {
-          analyser.getByteFrequencyData(dataArray);
+          analyser.getByteFrequencyData(audioDataArray);
         }
 
         drawVisualizerCallback = (targetCtx, width, height) => {
           // Setze globalAlpha für Farbtransparenz
           targetCtx.save();
           targetCtx.globalAlpha = visualizerStore.colorOpacity;
-          visualizer.draw(targetCtx, dataArray, bufferLength, width, height, visualizerStore.visualizerColor, visualizerStore.visualizerOpacity);
+          visualizer.draw(targetCtx, audioDataArray, bufferLength, width, height, visualizerStore.visualizerColor, visualizerStore.visualizerOpacity);
           targetCtx.restore();
         };
 

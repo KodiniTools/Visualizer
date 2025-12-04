@@ -3,7 +3,35 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { Visualizers } from '../lib/visualizers.js';
 
+// ✅ Visualizer-Kategorien für bessere UX
+const VISUALIZER_CATEGORIES = {
+  'Balken & Spektrum': ['bars', 'mirroredBars', 'radialBars', 'vibratingCubes'],
+  'Wellen': ['waveform', 'waveformHorizon', 'texturedWave', 'fluidWaves', 'synthWave'],
+  'Kreise & Kugeln': ['circles', 'pulsingOrbs', 'rippleEffect', 'soundWaves'],
+  'Partikel': ['particleStorm', 'networkPlexus', 'cosmicNebula', 'digitalRain', 'matrixRain'],
+  'Geometrie': ['spiralGalaxy', 'bloomingMandala', 'geometricKaleidoscope', 'hexagonGrid', 'shardMosaic', 'lightBeams', 'neonGrid', 'vortexPortal'],
+  'Organisch': ['heartbeat', 'neuralNetwork', 'cellGrowth', 'fractalTree'],
+  'Kristalle & Netze': ['liquidCrystals', 'electricWeb'],
+  'Blüten': ['frequencyBlossoms', 'centralGlowBlossom'],
+  '3D-Objekte': ['rainbowCube']
+};
+
 export const useVisualizerStore = defineStore('visualizer', () => {
+  // ✅ Kategorisierte Visualizer
+  const categorizedVisualizers = computed(() => {
+    const result = {};
+    for (const [category, ids] of Object.entries(VISUALIZER_CATEGORIES)) {
+      result[category] = ids
+        .filter(id => Visualizers[id]) // Nur existierende
+        .map(id => ({
+          id,
+          name: Visualizers[id].name_de || Visualizers[id].name_en || id
+        }));
+    }
+    return result;
+  });
+
+  // ✅ Flache Liste (für Kompatibilität)
   const availableVisualizers = computed(() =>
     Object.keys(Visualizers).map(key => ({
       id: key,
@@ -47,15 +75,16 @@ export const useVisualizerStore = defineStore('visualizer', () => {
 
   return {
     availableVisualizers,
+    categorizedVisualizers, // ✅ NEU: Kategorisierte Liste
     selectedVisualizer,
     selectVisualizer,
-    visualizerColor, // Exportieren
-    showVisualizer,  // Exportieren
-    visualizerOpacity, // Exportieren
-    colorOpacity,    // Exportieren
-    toggleVisualizer, // Exportieren
-    setColor,        // Exportieren
-    setOpacity,      // Exportieren
-    setColorOpacity, // Exportieren
+    visualizerColor,
+    showVisualizer,
+    visualizerOpacity,
+    colorOpacity,
+    toggleVisualizer,
+    setColor,
+    setOpacity,
+    setColorOpacity,
   };
 });

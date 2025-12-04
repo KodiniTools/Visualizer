@@ -651,19 +651,74 @@ export const Visualizers = {
     name_en: 'Waveform (Frequency-Enhanced)',
     needsTimeData: true,
     draw(ctx, dataArray, bufferLength, w, h, color, intensity = 1.0) {
+      const baseHsl = hexToHsl(color);
+      const centerY = h / 2;
+
+      // Gesamtenergie für Effekte
+      const totalEnergy = averageRange(dataArray, 0, Math.floor(bufferLength * 0.3)) / 255;
+
+      // Trail-Effekt
+      ctx.fillStyle = `rgba(0, 0, 0, ${0.15 + totalEnergy * 0.1})`;
+      ctx.fillRect(0, 0, w, h);
+
+      // Mittellinie
+      ctx.beginPath();
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(w, centerY);
+      ctx.strokeStyle = `hsla(${baseHsl.h}, 50%, 30%, 0.3)`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
       withSafeCanvasState(ctx, () => {
-        ctx.lineWidth = 3 * intensity;
-        ctx.strokeStyle = color;
+        // Gefüllte Welle nach oben
         ctx.beginPath();
+        ctx.moveTo(0, centerY);
         const sliceWidth = w / bufferLength;
-        let x = 0;
+
         for (let i = 0; i < bufferLength; i++) {
-          const v = (dataArray[i] / 128.0);
-          const y = (v * h) / 2;
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-          x += sliceWidth;
+          const v = (dataArray[i] / 128.0) - 1.0;
+          const x = i * sliceWidth;
+          const y = centerY + v * (h / 2.5);
+          ctx.lineTo(x, y);
         }
+        ctx.lineTo(w, centerY);
+        ctx.closePath();
+
+        // Gradient-Fill
+        const gradient = ctx.createLinearGradient(0, 0, 0, h);
+        gradient.addColorStop(0, `hsla(${baseHsl.h}, 100%, 60%, ${0.4 + totalEnergy * 0.3})`);
+        gradient.addColorStop(0.5, `hsla(${baseHsl.h}, 100%, 40%, ${0.2 + totalEnergy * 0.2})`);
+        gradient.addColorStop(1, `hsla(${(baseHsl.h + 40) % 360}, 100%, 60%, ${0.4 + totalEnergy * 0.3})`);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Leuchtende Oberkante
+        ctx.beginPath();
+        ctx.moveTo(0, centerY);
+        for (let i = 0; i < bufferLength; i++) {
+          const v = (dataArray[i] / 128.0) - 1.0;
+          const x = i * sliceWidth;
+          const y = centerY + v * (h / 2.5);
+          ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = `hsla(${baseHsl.h}, 100%, 70%, ${0.7 + totalEnergy * 0.3})`;
+        ctx.lineWidth = (4 + totalEnergy * 6) * intensity;
+        ctx.shadowColor = `hsl(${baseHsl.h}, 100%, 60%)`;
+        ctx.shadowBlur = 15 + totalEnergy * 20;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Gespiegelte Welle (subtiler)
+        ctx.beginPath();
+        ctx.moveTo(0, centerY);
+        for (let i = 0; i < bufferLength; i++) {
+          const v = (dataArray[i] / 128.0) - 1.0;
+          const x = i * sliceWidth;
+          const y = centerY - v * (h / 3); // Gespiegelt und kleiner
+          ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = `hsla(${(baseHsl.h + 30) % 360}, 80%, 60%, ${0.3 + totalEnergy * 0.2})`;
+        ctx.lineWidth = (2 + totalEnergy * 3) * intensity;
         ctx.stroke();
       });
     }
@@ -1345,87 +1400,224 @@ export const Visualizers = {
     name_de: "Frequenz-Blüten (Dynamischer Beat)",
     name_en: "Frequency Blossoms (Dynamic Beat)",
     init(width, height) {
-      visualizerState.singleBlossom = {
-        x: width / 2, y: height / 2, life: 999, maxLife: 80,
-        petals: 16, maxRadius: 300, hue: 280, smoothedEnergy: 0
+      visualizerState.freqBlossom = {
+        rotation: 0,
+        smoothedEnergy: 0,
+        petalLengths: new Array(24).fill(0)
       };
     },
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
-      if (!visualizerState.singleBlossom) this.init(width, height);
-      const b = visualizerState.singleBlossom;
+      if (!visualizerState.freqBlossom) this.init(width, height);
+      const state = visualizerState.freqBlossom;
       const baseHsl = hexToHsl(color);
-      b.x = width / 2; b.y = height / 2;
+      const centerX = width / 2;
+      const centerY = height / 2;
 
-      // OPTIMIERT: Nutze niedrigere Frequenzen (0-21%) für bessere Beat-Erkennung
+      // Nutzbarer Frequenzbereich
       const maxFreqIndex = Math.floor(bufferLength * 0.21);
-      const beatEnergy = averageRange(dataArray, 5, Math.min(40, maxFreqIndex)) / 255;
-      b.smoothedEnergy = (b.smoothedEnergy * 0.92) + (beatEnergy * 0.08); // Schnellere Reaktion
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
+      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
 
-      // GELOCKERT: Niedrigerer Threshold und kürzere Wartezeit
-      if (beatEnergy > b.smoothedEnergy * 1.15 && beatEnergy > 0.05 * intensity && b.life > b.maxLife * 0.15) {
-        b.life = 1;
-        b.maxRadius = (250 + beatEnergy * 400) * intensity;
-        b.petals = 12 + Math.floor(beatEnergy * 12);
-        b.hue = baseHsl.h;
-      }
-      if (b.life <= b.maxLife) {
-        const progress = b.life / b.maxLife;
-        const easeOutProgress = Math.sin(progress * Math.PI);
-        withSafeCanvasState(ctx, () => {
-          ctx.translate(b.x, b.y);
-          for (let p = 0; p < b.petals; p++) {
-            const angle = (p / b.petals) * Math.PI * 2 + progress * Math.PI;
-            const radius = easeOutProgress * b.maxRadius;
-            const x2 = Math.cos(angle) * radius, y2 = Math.sin(angle) * radius;
-            ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(x2 / 2, y2 / 2, x2, y2);
-            ctx.strokeStyle = `hsla(${(b.hue + p * 10) % 360}, ${baseHsl.s}%, ${60 + (1 - progress) * 40}%, ${easeOutProgress})`;
-            ctx.lineWidth = 5 * easeOutProgress * intensity;
-            ctx.stroke();
-          }
-        });
-        b.life++;
-      }
+      // Smoothed Energy für Pulsation
+      state.smoothedEnergy = state.smoothedEnergy * 0.85 + bassEnergy * 0.15;
+
+      // Kontinuierliche Rotation
+      state.rotation += 0.01 + bassEnergy * 0.03;
+
+      // Trail
+      ctx.fillStyle = `rgba(0, 0, 0, ${0.08 + bassEnergy * 0.04})`;
+      ctx.fillRect(0, 0, width, height);
+
+      const numPetals = 24;
+      const baseRadius = Math.min(width, height) * 0.15;
+      const maxRadius = Math.min(width, height) * 0.4;
+
+      withSafeCanvasState(ctx, () => {
+        ctx.translate(centerX, centerY);
+        ctx.rotate(state.rotation);
+
+        // Äußerer Glow
+        const glowRadius = baseRadius + state.smoothedEnergy * maxRadius * 0.5;
+        const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, glowRadius * 1.5);
+        glow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 60%, ${0.3 + bassEnergy * 0.3})`);
+        glow.addColorStop(0.5, `hsla(${(baseHsl.h + 30) % 360}, 100%, 50%, ${0.1 + bassEnergy * 0.2})`);
+        glow.addColorStop(1, 'transparent');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(0, 0, glowRadius * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Blütenblätter - IMMER sichtbar
+        for (let p = 0; p < numPetals; p++) {
+          const freqIndex = Math.floor((p / numPetals) * maxFreqIndex);
+          const amplitude = (dataArray[freqIndex] || 0) / 255;
+
+          // Smooth petal length
+          const targetLength = baseRadius + amplitude * (maxRadius - baseRadius);
+          state.petalLengths[p] = state.petalLengths[p] * 0.7 + targetLength * 0.3;
+
+          const angle = (p / numPetals) * Math.PI * 2;
+          const length = state.petalLengths[p] * intensity;
+
+          // Kurvige Blütenblätter
+          const x1 = Math.cos(angle) * length;
+          const y1 = Math.sin(angle) * length;
+          const cp1x = Math.cos(angle + 0.2) * length * 0.6;
+          const cp1y = Math.sin(angle + 0.2) * length * 0.6;
+          const cp2x = Math.cos(angle - 0.2) * length * 0.6;
+          const cp2y = Math.sin(angle - 0.2) * length * 0.6;
+
+          const hue = (baseHsl.h + p * (360 / numPetals) + midEnergy * 30) % 360;
+
+          // Gefülltes Blütenblatt
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(cp1x, cp1y, x1, y1);
+          ctx.quadraticCurveTo(cp2x, cp2y, 0, 0);
+
+          const petalGradient = ctx.createLinearGradient(0, 0, x1, y1);
+          petalGradient.addColorStop(0, `hsla(${hue}, 100%, 50%, 0.3)`);
+          petalGradient.addColorStop(0.7, `hsla(${hue}, 100%, 60%, ${0.4 + amplitude * 0.4})`);
+          petalGradient.addColorStop(1, `hsla(${hue}, 100%, 80%, ${0.6 + amplitude * 0.4})`);
+          ctx.fillStyle = petalGradient;
+          ctx.fill();
+
+          // Leuchtende Kante
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(cp1x, cp1y, x1, y1);
+          ctx.strokeStyle = `hsla(${hue}, 100%, 75%, ${0.5 + amplitude * 0.5})`;
+          ctx.lineWidth = (2 + amplitude * 4) * intensity;
+          ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+          ctx.shadowBlur = 10 + amplitude * 15;
+          ctx.stroke();
+        }
+
+        ctx.shadowBlur = 0;
+
+        // Zentraler Kern
+        const coreRadius = 15 + state.smoothedEnergy * 25;
+        const coreGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, coreRadius);
+        coreGradient.addColorStop(0, `hsla(${baseHsl.h}, 100%, 95%, 1)`);
+        coreGradient.addColorStop(0.5, `hsla(${baseHsl.h}, 100%, 70%, 0.8)`);
+        coreGradient.addColorStop(1, `hsla(${baseHsl.h}, 100%, 50%, 0)`);
+        ctx.beginPath();
+        ctx.arc(0, 0, coreRadius, 0, Math.PI * 2);
+        ctx.fillStyle = coreGradient;
+        ctx.fill();
+      });
     }
   },
   centralGlowBlossom: {
     name_de: "Zentrale Leuchtblüte (Vibrierend)",
     name_en: "Central Glow Blossom (Vibrating)",
     init(width, height) {
-      visualizerState.blossom = {
-        x: width / 2, y: height / 2, life: 999, maxLife: 70,
-        petals: 32, maxRadius: 350, hue: 300
+      visualizerState.centralBlossom = {
+        rotation: 0,
+        pulse: 0,
+        rayLengths: new Array(32).fill(0)
       };
     },
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
-      if (!visualizerState.blossom) this.init(width, height);
-      const b = visualizerState.blossom;
+      if (!visualizerState.centralBlossom) this.init(width, height);
+      const state = visualizerState.centralBlossom;
       const baseHsl = hexToHsl(color);
-      b.x = width / 2; b.y = height / 2;
-      const midHitValue = averageRange(dataArray, 10, 50) / 255;
-      if (midHitValue > CONSTANTS.BEAT_THRESHOLD && b.life > b.maxLife * 0.5) {
-        b.life = 1;
-        b.maxRadius = (200 + midHitValue * 400) * intensity;
-        b.hue = baseHsl.h;
-      }
-      if (b.life <= b.maxLife) {
-        const progress = b.life / b.maxLife;
-        const easeOutProgress = Math.sin(progress * Math.PI);
-        withSafeCanvasState(ctx, () => {
-          ctx.translate(b.x, b.y);
-          for (let p = 0; p < b.petals; p++) {
-            const freqIndex = Math.floor((p / b.petals) * (bufferLength * 0.75));
-            const freqValue = dataArray[freqIndex] / 255;
-            const dynamicRadius = (easeOutProgress * b.maxRadius) + (freqValue * 100 * easeOutProgress);
-            const angle = (p / b.petals) * Math.PI * 2;
-            const x2 = Math.cos(angle) * dynamicRadius, y2 = Math.sin(angle) * dynamicRadius;
-            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(x2, y2);
-            ctx.strokeStyle = `hsla(${b.hue}, ${baseHsl.s}%, ${60 + freqValue * 40}%, ${easeOutProgress})`;
-            ctx.lineWidth = (2 + freqValue * 4) * intensity;
-            ctx.stroke();
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      // Nutzbarer Frequenzbereich
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
+      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
+      const highEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.7), maxFreqIndex) / 255;
+
+      // Kontinuierliche Animation
+      state.rotation += 0.005 + midEnergy * 0.02;
+      state.pulse += 0.08 + bassEnergy * 0.1;
+
+      // Trail
+      ctx.fillStyle = `rgba(0, 0, 0, ${0.06 + bassEnergy * 0.03})`;
+      ctx.fillRect(0, 0, width, height);
+
+      const numRays = 32;
+      const baseRadius = 50 + Math.sin(state.pulse) * 20;
+      const maxRadius = Math.min(width, height) * 0.45;
+
+      withSafeCanvasState(ctx, () => {
+        ctx.translate(centerX, centerY);
+
+        // Mehrschichtiger Hintergrund-Glow
+        for (let layer = 3; layer >= 0; layer--) {
+          const layerRadius = (baseRadius + bassEnergy * 100) * (1 + layer * 0.5);
+          const layerGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, layerRadius);
+          const hue = (baseHsl.h + layer * 20) % 360;
+          layerGlow.addColorStop(0, `hsla(${hue}, 100%, 60%, ${0.15 - layer * 0.03})`);
+          layerGlow.addColorStop(1, 'transparent');
+          ctx.fillStyle = layerGlow;
+          ctx.beginPath();
+          ctx.arc(0, 0, layerRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.rotate(state.rotation);
+
+        // Strahlen - IMMER sichtbar
+        for (let r = 0; r < numRays; r++) {
+          const freqIndex = Math.floor((r / numRays) * maxFreqIndex);
+          const amplitude = (dataArray[freqIndex] || 0) / 255;
+
+          // Vibrierende Länge
+          const vibration = Math.sin(state.pulse + r * 0.3) * 0.2;
+          const targetLength = baseRadius + (0.3 + amplitude * 0.7 + vibration) * (maxRadius - baseRadius);
+          state.rayLengths[r] = state.rayLengths[r] * 0.75 + targetLength * 0.25;
+
+          const angle = (r / numRays) * Math.PI * 2;
+          const length = state.rayLengths[r] * intensity;
+
+          const x = Math.cos(angle) * length;
+          const y = Math.sin(angle) * length;
+
+          const hue = (baseHsl.h + r * (180 / numRays) + highEnergy * 40) % 360;
+
+          // Strahl mit Glow
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(x, y);
+
+          const rayGradient = ctx.createLinearGradient(0, 0, x, y);
+          rayGradient.addColorStop(0, `hsla(${hue}, 100%, 80%, 0.9)`);
+          rayGradient.addColorStop(0.5, `hsla(${hue}, 100%, 60%, ${0.5 + amplitude * 0.4})`);
+          rayGradient.addColorStop(1, `hsla(${hue}, 100%, 70%, ${0.3 + amplitude * 0.5})`);
+
+          ctx.strokeStyle = rayGradient;
+          ctx.lineWidth = (3 + amplitude * 6) * intensity;
+          ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+          ctx.shadowBlur = 8 + amplitude * 12;
+          ctx.stroke();
+
+          // Endpunkt-Partikel
+          if (amplitude > 0.3) {
+            ctx.beginPath();
+            ctx.arc(x, y, 3 + amplitude * 5, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${hue}, 100%, 85%, ${0.5 + amplitude * 0.5})`;
+            ctx.fill();
           }
-        });
-        b.life++;
-      }
+        }
+
+        ctx.shadowBlur = 0;
+
+        // Pulsierender Kern
+        const coreSize = 20 + bassEnergy * 30 + Math.sin(state.pulse * 2) * 10;
+        const coreGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, coreSize * 2);
+        coreGlow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 100%, 1)`);
+        coreGlow.addColorStop(0.3, `hsla(${baseHsl.h}, 100%, 80%, 0.9)`);
+        coreGlow.addColorStop(0.7, `hsla(${baseHsl.h}, 100%, 60%, 0.4)`);
+        coreGlow.addColorStop(1, 'transparent');
+        ctx.beginPath();
+        ctx.arc(0, 0, coreSize * 2, 0, Math.PI * 2);
+        ctx.fillStyle = coreGlow;
+        ctx.fill();
+      });
     }
   },
   shardMosaic: {
@@ -1684,40 +1876,106 @@ export const Visualizers = {
     name_de: "Digitaler Regen",
     name_en: "Digital Rain",
     init(width, height) {
-      const columns = Math.floor(width / 20);
+      const columns = Math.floor(width / 15); // Mehr Spalten
       visualizerState.digitalRain = {
         columns,
         drops: Array.from({ length: columns }, () => ({
-          y: Math.random() * height,
-          speed: 2 + Math.random() * 8,
-          intensity: 0
+          y: Math.random() * height * 2 - height,
+          speed: 3 + Math.random() * 6,
+          length: 10 + Math.floor(Math.random() * 15), // Variable Länge
+          hueOffset: Math.random() * 30
         }))
       };
     },
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
       if (!visualizerState.digitalRain) this.init(width, height);
       const state = visualizerState.digitalRain;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-      ctx.fillRect(0, 0, width, height);
       const baseHsl = hexToHsl(color);
+
+      // Nutzbarer Frequenzbereich
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
+      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
+
+      // Trail
+      ctx.fillStyle = `rgba(0, 0, 0, ${0.08 + bassEnergy * 0.04})`;
+      ctx.fillRect(0, 0, width, height);
+
       const columnWidth = width / state.columns;
+      const segmentHeight = 12;
+
       for (let i = 0; i < state.columns; i++) {
-        const [s, e] = rangeForBar(i, state.columns, bufferLength);
-        const amplitude = averageRange(dataArray, s, e) / 255;
+        // Frequenz aus nutzbarem Bereich mit Wiederholung
+        const freqPos = (i % Math.floor(state.columns / 3)) / (state.columns / 3);
+        const freqIndex = Math.floor(freqPos * maxFreqIndex);
+        const amplitude = (dataArray[freqIndex] || 0) / 255;
+
         const drop = state.drops[i];
-        drop.intensity = amplitude;
-        drop.speed = (2 + amplitude * 10) * intensity;
-        for (let j = 0; j < 8; j++) {
-          const segmentY = drop.y - j * 25;
-          const alpha = (1 - j / 8) * (0.3 + amplitude * 0.7);
-          if (segmentY > -25 && segmentY < height + 25) {
-            const hue = (baseHsl.h + amplitude * 120) % 360;
-            ctx.fillStyle = `hsla(${hue}, ${baseHsl.s}%, ${50 + amplitude * 40}%, ${alpha})`;
-            ctx.fillRect(i * columnWidth, segmentY, columnWidth - 2, 20);
+
+        // Geschwindigkeit basierend auf Audio
+        const speedMult = 1 + bassEnergy * 2 + amplitude * 3;
+        drop.speed = (4 + amplitude * 8) * intensity;
+
+        // Dynamische Länge basierend auf Amplitude
+        const currentLength = Math.floor(drop.length * (0.5 + amplitude * 1.5));
+
+        const hue = (baseHsl.h + drop.hueOffset + midEnergy * 30) % 360;
+
+        // Segmente zeichnen
+        for (let j = 0; j < currentLength; j++) {
+          const segmentY = drop.y - j * segmentHeight;
+
+          if (segmentY > -segmentHeight && segmentY < height + segmentHeight) {
+            const trailFade = 1 - (j / currentLength);
+            const x = i * columnWidth + 1;
+            const segWidth = columnWidth - 2;
+
+            if (j === 0) {
+              // Leuchtender Kopf
+              const gradient = ctx.createLinearGradient(x, segmentY, x, segmentY + segmentHeight);
+              gradient.addColorStop(0, `hsla(${hue}, 100%, 90%, ${0.95})`);
+              gradient.addColorStop(1, `hsla(${hue}, 100%, 70%, ${0.8})`);
+              ctx.fillStyle = gradient;
+              ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
+              ctx.shadowBlur = 15 + amplitude * 10;
+            } else {
+              // Trail mit Gradient
+              const lightness = 50 + trailFade * 30 + amplitude * 20;
+              const alpha = trailFade * (0.5 + amplitude * 0.5);
+              ctx.fillStyle = `hsla(${hue}, 100%, ${lightness}%, ${alpha})`;
+              ctx.shadowBlur = 0;
+            }
+
+            // Abgerundete Rechtecke
+            const radius = 3;
+            ctx.beginPath();
+            ctx.roundRect(x, segmentY, segWidth, segmentHeight - 2, radius);
+            ctx.fill();
           }
         }
-        drop.y += drop.speed;
-        if (drop.y > height + 100) drop.y = -100;
+
+        ctx.shadowBlur = 0;
+
+        // Bewegung
+        drop.y += drop.speed * speedMult;
+
+        // Reset wenn komplett unten
+        if (drop.y - currentLength * segmentHeight > height) {
+          drop.y = -drop.length * segmentHeight - Math.random() * 100;
+          drop.length = 10 + Math.floor(Math.random() * 15);
+        }
+      }
+
+      // Glitzer-Effekt bei hoher Energie
+      if (midEnergy > 0.4) {
+        for (let g = 0; g < 3; g++) {
+          const gx = Math.random() * width;
+          const gy = Math.random() * height;
+          ctx.beginPath();
+          ctx.arc(gx, gy, 2 + midEnergy * 3, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${baseHsl.h}, 100%, 90%, ${midEnergy * 0.6})`;
+          ctx.fill();
+        }
       }
     }
   },

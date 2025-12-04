@@ -487,45 +487,44 @@ export const Visualizers = {
     name_de: "Radiale Balken",
     name_en: "Radial Bars",
     draw(ctx, dataArray, bufferLength, w, h, color, intensity = 1.0) {
-      const numBars = 72; // Weniger Balken, aber alle sichtbar
+      const numBars = 64; // Voller Kreis
       const centerX = w / 2;
       const centerY = h / 2;
-      const maxRadius = Math.min(w, h) / 2 * 0.9;
-      const minRadius = maxRadius * 0.12;
+      const maxRadius = Math.min(w, h) / 2 * 0.85;
+      const minRadius = 40; // Fester Innenradius
       const baseHsl = hexToHsl(color);
-      const maxFreqIndex = Math.floor(bufferLength * 0.21); // ✅ Nur nutzbarer Bereich
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
 
       if (!visualizerState.smoothedRadialBars || visualizerState.smoothedRadialBars.length !== numBars) {
         visualizerState.smoothedRadialBars = new Array(numBars).fill(0);
       }
 
-      // Gesamtenergie für Glow-Effekt
       const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255;
 
       withSafeCanvasState(ctx, () => {
         // Zentrum-Glow
-        if (overallEnergy > 0.2) {
-          const glowGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, minRadius * 1.5);
-          glowGradient.addColorStop(0, `hsla(${baseHsl.h}, 100%, 70%, ${overallEnergy * 0.5})`);
-          glowGradient.addColorStop(1, `hsla(${baseHsl.h}, 100%, 50%, 0)`);
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, minRadius * 1.5, 0, Math.PI * 2);
-          ctx.fillStyle = glowGradient;
-          ctx.fill();
-        }
+        const glowGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, minRadius * 2);
+        glowGradient.addColorStop(0, `hsla(${baseHsl.h}, 100%, 70%, ${0.3 + overallEnergy * 0.5})`);
+        glowGradient.addColorStop(1, `hsla(${baseHsl.h}, 100%, 50%, 0)`);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, minRadius * 2, 0, Math.PI * 2);
+        ctx.fillStyle = glowGradient;
+        ctx.fill();
 
         for (let i = 0; i < numBars; i++) {
-          // ✅ FIX: Frequenzen auf nutzbaren Bereich mappen
-          const freqIndex = Math.floor((i / numBars) * maxFreqIndex);
-          const sampleSize = Math.max(1, Math.floor(maxFreqIndex / numBars));
-          const amplitude = averageRange(dataArray, freqIndex, Math.min(maxFreqIndex, freqIndex + sampleSize)) / 255;
+          // ✅ ALLE Balken bekommen Daten durch Wiederholung des Frequenzbereichs
+          const freqPos = (i % (numBars / 2)) / (numBars / 2); // 0-1, wiederholt sich
+          const freqIndex = Math.floor(freqPos * maxFreqIndex);
+          const sampleSize = Math.max(2, Math.floor(maxFreqIndex / (numBars / 2)));
+          const rawAmplitude = averageRange(dataArray, freqIndex, Math.min(maxFreqIndex, freqIndex + sampleSize)) / 255;
 
-          // Boost für bessere Sichtbarkeit
-          const boostedAmplitude = Math.max(0.15, amplitude * 1.5);
-          const targetLength = boostedAmplitude * (maxRadius - minRadius) * intensity;
+          // ✅ FIX: IMMER sichtbare Balken - Mindestlänge 30% + Audio
+          const minLength = (maxRadius - minRadius) * 0.3;
+          const audioLength = rawAmplitude * (maxRadius - minRadius) * 0.7 * 1.5;
+          const targetLength = (minLength + audioLength) * intensity;
 
-          const smoothingFactor = 0.7 - (i / numBars) * 0.2;
-          visualizerState.smoothedRadialBars[i] = visualizerState.smoothedRadialBars[i] * smoothingFactor + targetLength * (1 - smoothingFactor);
+          // Schnelleres Smoothing
+          visualizerState.smoothedRadialBars[i] = visualizerState.smoothedRadialBars[i] * 0.6 + targetLength * 0.4;
 
           const barLength = visualizerState.smoothedRadialBars[i];
           const angle = (i / numBars) * 2 * Math.PI - Math.PI / 2;
@@ -535,14 +534,13 @@ export const Visualizers = {
           const endX = centerX + Math.cos(angle) * (minRadius + barLength);
           const endY = centerY + Math.sin(angle) * (minRadius + barLength);
 
-          // Gradient für jeden Balken
           const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
-          const hue = (baseHsl.h + (i / numBars) * 120) % 360;
-          gradient.addColorStop(0, `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l}%, 0.9)`);
-          gradient.addColorStop(1, `hsla(${hue}, 100%, 70%, ${0.5 + amplitude * 0.5})`);
+          const hue = (baseHsl.h + (i / numBars) * 360) % 360; // Voller Regenbogen
+          gradient.addColorStop(0, `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l}%, 1)`);
+          gradient.addColorStop(1, `hsla(${hue}, 100%, 75%, ${0.7 + rawAmplitude * 0.3})`);
 
           ctx.strokeStyle = gradient;
-          ctx.lineWidth = (3 + amplitude * 5) * intensity;
+          ctx.lineWidth = (4 + rawAmplitude * 6) * intensity;
           ctx.lineCap = 'round';
           ctx.beginPath();
           ctx.moveTo(startX, startY);
@@ -695,35 +693,80 @@ export const Visualizers = {
     }
   },
   fluidWaves: {
-    name_de: "Fluid Waves (High-Detail)",
-    name_en: "Fluid Waves (High-Detail)",
+    name_de: "Fließende Wellen",
+    name_en: "Fluid Waves",
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
-      const numWaves = 5;
+      const numWaves = 6;
       const baseHsl = hexToHsl(color);
-      if (visualizerState.smoothedFluidWaves.length !== numWaves) {
-        visualizerState.smoothedFluidWaves = Array.from({ length: numWaves }, () => new Array(100).fill(0));
+      const maxFreqIndex = Math.floor(bufferLength * 0.21); // ✅ Nur nutzbarer Bereich
+      const points = 60;
+      const time = Date.now() * 0.002;
+
+      if (!visualizerState.smoothedFluidWaves || visualizerState.smoothedFluidWaves.length !== numWaves) {
+        visualizerState.smoothedFluidWaves = Array.from({ length: numWaves }, () => new Array(points + 1).fill(0));
       }
-      for (let wave = 0; wave < numWaves; wave++) {
-        const points = 100;
-        const baseY = (wave + 1) * (height / numWaves) - (height / numWaves) / 2;
-        ctx.beginPath();
-        ctx.moveTo(0, height);
-        ctx.lineTo(0, baseY);
-        for (let i = 0; i <= points; i++) {
-          const x = (i / points) * width;
-          const [s, e] = rangeForBar(i, points + 1, bufferLength);
-          const dynamicGain = calculateDynamicGain(i, points + 1, { bassGain: 1.0, lowMidGain: 1.2, highMidGain: 1.5, highGain: 2.0, ultraHighGain: 3.2 });
-          const targetAmplitude = (averageRange(dataArray, s, e) / 255) * (height / numWaves) * 0.5 * dynamicGain;
-          visualizerState.smoothedFluidWaves[wave][i] = applySmoothValue(visualizerState.smoothedFluidWaves[wave][i] || 0, targetAmplitude, 0.7);
-          const y = baseY + Math.sin(x * 0.02 + wave * 1.5 + Date.now() * 0.001) * visualizerState.smoothedFluidWaves[wave][i];
-          ctx.lineTo(x, y);
+
+      // Gesamtenergie für Dynamik
+      const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255;
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
+
+      withSafeCanvasState(ctx, () => {
+        // Wellen von hinten nach vorne zeichnen
+        for (let wave = numWaves - 1; wave >= 0; wave--) {
+          const waveProgress = wave / numWaves;
+          const baseY = height * (0.3 + waveProgress * 0.5); // Wellen verteilt über 30-80% der Höhe
+          const waveHeight = height * 0.25; // Maximale Wellenhöhe
+
+          ctx.beginPath();
+          ctx.moveTo(0, height);
+
+          for (let i = 0; i <= points; i++) {
+            const x = (i / points) * width;
+
+            // ✅ FIX: Frequenzen auf nutzbaren Bereich mappen
+            const freqIndex = Math.floor((i / points) * maxFreqIndex);
+            const rawAmplitude = dataArray[freqIndex] / 255;
+
+            // ✅ FIX: Größere Amplitude + Basis-Bewegung
+            const baseWave = Math.sin(x * 0.008 + time + wave * 1.2) * (20 + overallEnergy * 30);
+            const audioWave = rawAmplitude * waveHeight * 1.5;
+            const targetY = baseY - baseWave - audioWave;
+
+            // Schnelleres Smoothing
+            visualizerState.smoothedFluidWaves[wave][i] =
+              visualizerState.smoothedFluidWaves[wave][i] * 0.6 + targetY * 0.4;
+
+            ctx.lineTo(x, visualizerState.smoothedFluidWaves[wave][i]);
+          }
+
+          ctx.lineTo(width, height);
+          ctx.closePath();
+
+          // ✅ FIX: VIEL hellere Farben mit Gradient
+          const hue = (baseHsl.h + wave * 25) % 360;
+          const gradient = ctx.createLinearGradient(0, baseY - waveHeight, 0, height);
+          gradient.addColorStop(0, `hsla(${hue}, 100%, 70%, ${0.7 + bassEnergy * 0.3})`);
+          gradient.addColorStop(0.5, `hsla(${hue}, ${baseHsl.s}%, ${Math.min(70, baseHsl.l + 20)}%, ${0.5 + overallEnergy * 0.3})`);
+          gradient.addColorStop(1, `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l}%, 0.3)`);
+
+          ctx.fillStyle = gradient;
+          ctx.fill();
+
+          // Leuchtende Oberkante
+          ctx.strokeStyle = `hsla(${hue}, 100%, 80%, ${0.6 + bassEnergy * 0.4})`;
+          ctx.lineWidth = (2 + bassEnergy * 3) * intensity;
+          ctx.beginPath();
+          for (let i = 0; i <= points; i++) {
+            const x = (i / points) * width;
+            if (i === 0) {
+              ctx.moveTo(x, visualizerState.smoothedFluidWaves[wave][i]);
+            } else {
+              ctx.lineTo(x, visualizerState.smoothedFluidWaves[wave][i]);
+            }
+          }
+          ctx.stroke();
         }
-        ctx.lineTo(width, height);
-        ctx.closePath();
-        const hue = (baseHsl.h + wave * 40) % 360;
-        ctx.fillStyle = `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l}%, 0.15)`;
-        ctx.fill();
-      }
+      });
     }
   },
   spiralGalaxy: {
@@ -975,23 +1018,56 @@ export const Visualizers = {
     name_en: "Waveform Horizon",
     needsTimeData: true,
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
-      const numLines = 30;
-      const horizon = height / 2;
+      const numLines = 40; // Mehr Linien für dichteres Bild
+      const horizon = height * 0.4; // Etwas höher für mehr Platz
       const baseHsl = hexToHsl(color);
+
+      // Bass-Energie für globales "Beben"
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(bufferLength * 0.15)) / 255;
+      const midEnergy = averageRange(dataArray, Math.floor(bufferLength * 0.15), Math.floor(bufferLength * 0.4)) / 255;
+
+      // Globaler Shake basierend auf Bass
+      const shakeX = (Math.random() - 0.5) * bassEnergy * 15 * intensity;
+      const shakeY = (Math.random() - 0.5) * bassEnergy * 10 * intensity;
+
       withSafeCanvasState(ctx, () => {
+        ctx.translate(shakeX, shakeY); // Erdbeben-Shake!
+
         for (let i = 0; i < numLines; i++) {
           const progress = i / numLines;
-          const yOffset = horizon + (progress * progress) * (height / 2);
+          const yOffset = horizon + (progress * progress) * (height * 0.6);
           const perspective = 1 - progress;
+
           ctx.beginPath();
           ctx.moveTo(0, yOffset);
-          const sliceWidth = width / bufferLength;
-          for (let j = 0; j < bufferLength; j++) {
-            ctx.lineTo(j * sliceWidth, yOffset + (dataArray[j] - 128) * 0.5 * perspective * (0.3 + progress * 1.8));
+
+          // Weniger Punkte für Performance, aber größere Amplitude
+          const sampleStep = Math.max(1, Math.floor(bufferLength / 200));
+          const sliceWidth = width / (bufferLength / sampleStep);
+
+          for (let j = 0; j < bufferLength; j += sampleStep) {
+            // VIEL größere Amplitude! 3x statt 0.5x + Bass-Boost
+            const amplitude = (dataArray[j] - 128) * 3.0 * perspective;
+            const bassBoost = 1 + bassEnergy * 2; // Extra Boost bei Bass
+            const finalY = yOffset + amplitude * bassBoost * (0.5 + progress * 2) * intensity;
+            ctx.lineTo((j / sampleStep) * sliceWidth, finalY);
           }
-          const hue = (baseHsl.h + progress * 40) % 360;
-          ctx.strokeStyle = `hsl(${hue}, ${baseHsl.s}%, ${20 + perspective * 50}%)`;
-          ctx.lineWidth = (1 + perspective * 2) * intensity;
+
+          // VIEL hellere Farben
+          const hue = (baseHsl.h + progress * 60 + bassEnergy * 30) % 360;
+          const lightness = 50 + perspective * 40 + midEnergy * 10; // 50-100% statt 20-70%
+          ctx.strokeStyle = `hsla(${hue}, ${Math.min(100, baseHsl.s + 20)}%, ${lightness}%, ${0.6 + perspective * 0.4})`;
+          ctx.lineWidth = (2 + perspective * 4) * intensity; // Dickere Linien
+          ctx.stroke();
+        }
+
+        // Leuchtender Horizont-Effekt bei starkem Bass
+        if (bassEnergy > 0.3) {
+          ctx.beginPath();
+          ctx.moveTo(0, horizon);
+          ctx.lineTo(width, horizon);
+          ctx.strokeStyle = `hsla(${baseHsl.h}, 100%, 80%, ${bassEnergy * 0.5})`;
+          ctx.lineWidth = 3 + bassEnergy * 5;
           ctx.stroke();
         }
       });

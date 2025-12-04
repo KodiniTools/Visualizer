@@ -2084,14 +2084,19 @@ export const Visualizers = {
     name_de: "Flüssigkristalle",
     name_en: "Liquid Crystals",
     init(width, height) {
-      visualizerState.liquidCrystals = { crystals: [], numCrystals: 40 };
-      for (let i = 0; i < 40; i++) {
+      visualizerState.liquidCrystals = { crystals: [], numCrystals: 60, time: 0 };
+      for (let i = 0; i < 60; i++) {
         visualizerState.liquidCrystals.crystals.push({
-          x: Math.random() * width, y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 4, // 2x schneller
+          vy: (Math.random() - 0.5) * 4,
           rotation: Math.random() * Math.PI * 2,
-          rotationSpeed: (Math.random() - 0.5) * 0.02,
-          size: 10 + Math.random() * 20, smoothedSize: 10 + Math.random() * 20
+          rotationSpeed: (Math.random() - 0.5) * 0.08, // 4x schnellere Rotation
+          baseSize: 15 + Math.random() * 25,
+          smoothedSize: 15 + Math.random() * 25,
+          hueOffset: Math.random() * 60,
+          pulsePhase: Math.random() * Math.PI * 2
         });
       }
     },
@@ -2099,40 +2104,97 @@ export const Visualizers = {
       if (!visualizerState.liquidCrystals) this.init(width, height);
       const state = visualizerState.liquidCrystals;
       const baseHsl = hexToHsl(color);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+
+      // Nutzbarer Frequenzbereich
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
+      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
+
+      state.time = (state.time || 0) + 0.02;
+
+      // Trail mit dynamischer Stärke
+      ctx.fillStyle = `rgba(0, 0, 0, ${0.08 + bassEnergy * 0.05})`;
       ctx.fillRect(0, 0, width, height);
+
+      // Hintergrund-Glow bei Bass
+      if (bassEnergy > 0.3) {
+        const bgGlow = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, Math.max(width, height) * 0.5);
+        bgGlow.addColorStop(0, `hsla(${baseHsl.h}, 80%, 40%, ${bassEnergy * 0.15})`);
+        bgGlow.addColorStop(1, 'transparent');
+        ctx.fillStyle = bgGlow;
+        ctx.fillRect(0, 0, width, height);
+      }
+
       state.crystals.forEach((crystal, index) => {
-        const [s, e] = rangeForBar(index, state.numCrystals, bufferLength);
-        const amplitude = averageRange(dataArray, s, e) / 255;
+        // Frequenz aus nutzbarem Bereich
+        const freqIndex = Math.floor((index / state.numCrystals) * maxFreqIndex);
+        const amplitude = (dataArray[freqIndex] || 0) / 255;
         const dynamicGain = calculateDynamicGain(index, state.numCrystals);
         const effectiveAmplitude = amplitude * dynamicGain * intensity;
-        crystal.x += crystal.vx * (1 + effectiveAmplitude * 2);
-        crystal.y += crystal.vy * (1 + effectiveAmplitude * 2);
-        crystal.rotation += crystal.rotationSpeed * (1 + effectiveAmplitude);
-        if (crystal.x < 0 || crystal.x > width) crystal.vx *= -1;
-        if (crystal.y < 0 || crystal.y > height) crystal.vy *= -1;
-        const targetSize = crystal.size * (1 + effectiveAmplitude * 1.5);
-        crystal.smoothedSize = applySmoothValue(crystal.smoothedSize, targetSize, 0.3);
+
+        // Schnellere Bewegung mit Audio-Boost
+        const speedMult = 1 + bassEnergy * 3 + effectiveAmplitude * 2;
+        crystal.x += crystal.vx * speedMult;
+        crystal.y += crystal.vy * speedMult;
+        crystal.rotation += crystal.rotationSpeed * (1 + effectiveAmplitude * 3);
+
+        // Bounce mit Chaos
+        if (crystal.x < 0 || crystal.x > width) {
+          crystal.vx *= -1;
+          crystal.vy += (Math.random() - 0.5) * bassEnergy * 2;
+        }
+        if (crystal.y < 0 || crystal.y > height) {
+          crystal.vy *= -1;
+          crystal.vx += (Math.random() - 0.5) * bassEnergy * 2;
+        }
+
+        // Pulsierender Größen-Effekt
+        const pulse = Math.sin(state.time * 3 + crystal.pulsePhase) * 0.2 + 1;
+        const targetSize = crystal.baseSize * pulse * (1 + effectiveAmplitude * 2);
+        crystal.smoothedSize = crystal.smoothedSize * 0.7 + targetSize * 0.3;
+
         withSafeCanvasState(ctx, () => {
           ctx.translate(crystal.x, crystal.y);
           ctx.rotate(crystal.rotation);
+
           const sides = 6;
-          const hue = (baseHsl.h + (index / state.numCrystals) * 180) % 360;
+          const hue = (baseHsl.h + crystal.hueOffset + midEnergy * 40) % 360;
+
+          // Äußerer Glow
           ctx.beginPath();
           for (let i = 0; i < sides; i++) {
             const angle = (i / sides) * Math.PI * 2;
-            const x = Math.cos(angle) * crystal.smoothedSize;
-            const y = Math.sin(angle) * crystal.smoothedSize;
+            const x = Math.cos(angle) * crystal.smoothedSize * 1.3;
+            const y = Math.sin(angle) * crystal.smoothedSize * 1.3;
             if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
           }
           ctx.closePath();
+          ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${0.1 + effectiveAmplitude * 0.2})`;
+          ctx.fill();
+
+          // Haupt-Kristall
+          ctx.beginPath();
+          for (let i = 0; i < sides; i++) {
+            const angle = (i / sides) * Math.PI * 2;
+            const wobble = Math.sin(state.time * 5 + i) * effectiveAmplitude * 5;
+            const x = Math.cos(angle) * (crystal.smoothedSize + wobble);
+            const y = Math.sin(angle) * (crystal.smoothedSize + wobble);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+
           const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, crystal.smoothedSize);
-          gradient.addColorStop(0, `hsla(${hue}, ${baseHsl.s}%, 70%, ${0.7 + effectiveAmplitude * 0.3})`);
-          gradient.addColorStop(1, `hsla(${hue}, ${baseHsl.s}%, 30%, ${0.3 + effectiveAmplitude * 0.5})`);
+          gradient.addColorStop(0, `hsla(${hue}, 100%, 80%, ${0.8 + effectiveAmplitude * 0.2})`);
+          gradient.addColorStop(0.5, `hsla(${hue}, 90%, 60%, ${0.5 + effectiveAmplitude * 0.3})`);
+          gradient.addColorStop(1, `hsla(${hue}, 80%, 40%, ${0.3 + effectiveAmplitude * 0.4})`);
           ctx.fillStyle = gradient;
           ctx.fill();
-          ctx.strokeStyle = `hsl(${hue}, ${baseHsl.s}%, ${80 + effectiveAmplitude * 20}%)`;
-          ctx.lineWidth = (1 + effectiveAmplitude * 2) * intensity;
+
+          // Leuchtende Kante
+          ctx.strokeStyle = `hsla(${hue}, 100%, ${75 + effectiveAmplitude * 25}%, ${0.7 + effectiveAmplitude * 0.3})`;
+          ctx.lineWidth = (2 + effectiveAmplitude * 4) * intensity;
+          ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
+          ctx.shadowBlur = 10 + effectiveAmplitude * 20;
           ctx.stroke();
         });
       });
@@ -2188,12 +2250,17 @@ export const Visualizers = {
     name_de: "Elektrisches Netz",
     name_en: "Electric Web",
     init(width, height) {
-      visualizerState.electricWeb = { nodes: [] };
-      for (let i = 0; i < 30; i++) {
+      visualizerState.electricWeb = { nodes: [], sparks: [], time: 0 };
+      const numNodes = 50; // Mehr Nodes
+      for (let i = 0; i < numNodes; i++) {
         visualizerState.electricWeb.nodes.push({
-          x: Math.random() * width, y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5,
-          charge: 0
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 3, // 6x schneller
+          vy: (Math.random() - 0.5) * 3,
+          charge: 0,
+          baseCharge: 0.2 + Math.random() * 0.3, // Mindest-Ladung
+          hueOffset: Math.random() * 60
         });
       }
     },
@@ -2201,55 +2268,137 @@ export const Visualizers = {
       if (!visualizerState.electricWeb) this.init(width, height);
       const state = visualizerState.electricWeb;
       const baseHsl = hexToHsl(color);
+
+      // Nutzbarer Frequenzbereich
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
+      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
+      const highEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.7), maxFreqIndex) / 255;
+
+      state.time = (state.time || 0) + 0.02;
+
+      // Trail-Effekt
+      ctx.fillStyle = `rgba(0, 0, 0, ${0.12 + bassEnergy * 0.05})`;
+      ctx.fillRect(0, 0, width, height);
+
+      // Hintergrund-Blitz bei starkem Bass
+      if (bassEnergy > 0.5 && Math.random() > 0.7) {
+        ctx.fillStyle = `hsla(${baseHsl.h}, 100%, 90%, ${bassEnergy * 0.1})`;
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      const speedMult = 1 + bassEnergy * 4 + midEnergy * 2;
+
       state.nodes.forEach((node, index) => {
-        const [s, e] = rangeForBar(index, state.nodes.length, bufferLength);
-        const amplitude = averageRange(dataArray, s, e) / 255;
-        node.charge = amplitude * intensity;
-        node.x += node.vx; node.y += node.vy;
-        if (node.x < 0 || node.x > width) node.vx *= -1;
-        if (node.y < 0 || node.y > height) node.vy *= -1;
-        const nodeSize = (2 + node.charge * 8) * intensity;
-        const hue = (baseHsl.h + (index / state.nodes.length) * 120) % 360;
-        ctx.beginPath(); ctx.arc(node.x, node.y, nodeSize, 0, Math.PI * 2);
-        ctx.fillStyle = `hsl(${hue}, ${baseHsl.s}%, ${60 + node.charge * 40}%)`;
-        ctx.fill();
-        if (node.charge > 0.4) {
-          ctx.shadowColor = `hsl(${hue}, ${baseHsl.s}%, 80%)`;
-          ctx.shadowBlur = node.charge * 20 * intensity;
-          ctx.fill();
-          ctx.shadowBlur = 0;
+        // Frequenz aus nutzbarem Bereich mit Wiederholung
+        const freqIndex = Math.floor((index % 25) / 25 * maxFreqIndex);
+        const amplitude = (dataArray[freqIndex] || 0) / 255;
+
+        // Ladung: Basis + Audio
+        node.charge = node.baseCharge + amplitude * 0.7 * intensity;
+
+        // Schnellere Bewegung
+        node.x += node.vx * speedMult;
+        node.y += node.vy * speedMult;
+
+        // Bounce mit elektrischem Chaos
+        if (node.x < 0 || node.x > width) {
+          node.vx *= -1;
+          node.vy += (Math.random() - 0.5) * bassEnergy * 3;
         }
+        if (node.y < 0 || node.y > height) {
+          node.vy *= -1;
+          node.vx += (Math.random() - 0.5) * bassEnergy * 3;
+        }
+
+        // Größerer, leuchtender Node
+        const nodeSize = (4 + node.charge * 15) * intensity;
+        const hue = (baseHsl.h + node.hueOffset + midEnergy * 40) % 360;
+
+        // Äußerer Glow
+        const glowGradient = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, nodeSize * 3);
+        glowGradient.addColorStop(0, `hsla(${hue}, 100%, 70%, ${node.charge * 0.5})`);
+        glowGradient.addColorStop(0.5, `hsla(${hue}, 100%, 50%, ${node.charge * 0.2})`);
+        glowGradient.addColorStop(1, 'transparent');
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, nodeSize * 3, 0, Math.PI * 2);
+        ctx.fillStyle = glowGradient;
+        ctx.fill();
+
+        // Kern
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, nodeSize, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${hue}, 100%, ${70 + node.charge * 30}%, ${0.8 + node.charge * 0.2})`;
+        ctx.fill();
       });
-      const connectionDistance = width / 5;
+
+      // Verbindungen - IMMER sichtbar, stärker bei Audio
+      const connectionDistance = width / 4 + bassEnergy * 50;
       withSafeCanvasState(ctx, () => {
         for (let i = 0; i < state.nodes.length; i++) {
           for (let j = i + 1; j < state.nodes.length; j++) {
-            const dx = state.nodes[i].x - state.nodes[j].x;
-            const dy = state.nodes[i].y - state.nodes[j].y;
+            const dx = state.nodes[j].x - state.nodes[i].x;
+            const dy = state.nodes[j].y - state.nodes[i].y;
             const dist = Math.sqrt(dx * dx + dy * dy);
+
             if (dist < connectionDistance) {
               const combinedCharge = (state.nodes[i].charge + state.nodes[j].charge) / 2;
-              if (combinedCharge > 0.2) {
-                const segments = 8;
-                ctx.beginPath(); ctx.moveTo(state.nodes[i].x, state.nodes[i].y);
-                for (let k = 1; k < segments; k++) {
-                  const t = k / segments;
-                  const x = state.nodes[i].x + dx * t;
-                  const y = state.nodes[i].y + dy * t;
-                  const jitter = (Math.random() - 0.5) * combinedCharge * 20 * intensity;
-                  ctx.lineTo(x + jitter, y + jitter);
-                }
-                ctx.lineTo(state.nodes[j].x, state.nodes[j].y);
-                const hue = (baseHsl.h + (i + j) * 10) % 360;
-                const alpha = (1 - dist / connectionDistance) * combinedCharge;
-                ctx.strokeStyle = `hsla(${hue}, ${baseHsl.s}%, ${70 + combinedCharge * 30}%, ${alpha})`;
-                ctx.lineWidth = (1 + combinedCharge * 3) * intensity;
-                ctx.stroke();
+              const distFactor = 1 - dist / connectionDistance;
+
+              // Immer zeichnen, nicht nur bei hoher Ladung
+              const segments = 12;
+              ctx.beginPath();
+              ctx.moveTo(state.nodes[i].x, state.nodes[i].y);
+
+              for (let k = 1; k < segments; k++) {
+                const t = k / segments;
+                const x = state.nodes[i].x + dx * t;
+                const y = state.nodes[i].y + dy * t;
+                // Stärkeres Zittern
+                const jitter = (Math.random() - 0.5) * combinedCharge * 40 * intensity;
+                ctx.lineTo(x + jitter, y + jitter);
               }
+              ctx.lineTo(state.nodes[j].x, state.nodes[j].y);
+
+              const hue = (baseHsl.h + (i * 3 + j * 2) % 60) % 360;
+              const alpha = distFactor * (0.3 + combinedCharge * 0.7);
+
+              ctx.strokeStyle = `hsla(${hue}, 100%, ${60 + combinedCharge * 40}%, ${alpha})`;
+              ctx.lineWidth = (1 + combinedCharge * 4) * intensity;
+
+              // Glow bei hoher Ladung
+              if (combinedCharge > 0.4) {
+                ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
+                ctx.shadowBlur = combinedCharge * 15;
+              }
+              ctx.stroke();
+              ctx.shadowBlur = 0;
             }
           }
         }
       });
+
+      // Zufällige Blitz-Funken bei hoher Energie
+      if (highEnergy > 0.4 && Math.random() > 0.8) {
+        const sourceNode = state.nodes[Math.floor(Math.random() * state.nodes.length)];
+        const sparkLength = 50 + highEnergy * 100;
+        const sparkAngle = Math.random() * Math.PI * 2;
+
+        ctx.beginPath();
+        ctx.moveTo(sourceNode.x, sourceNode.y);
+        let sx = sourceNode.x, sy = sourceNode.y;
+        for (let i = 0; i < 5; i++) {
+          sx += Math.cos(sparkAngle + (Math.random() - 0.5)) * sparkLength / 5;
+          sy += Math.sin(sparkAngle + (Math.random() - 0.5)) * sparkLength / 5;
+          ctx.lineTo(sx, sy);
+        }
+        ctx.strokeStyle = `hsla(${baseHsl.h}, 100%, 90%, ${highEnergy})`;
+        ctx.lineWidth = 2 * intensity;
+        ctx.shadowColor = `hsl(${baseHsl.h}, 100%, 80%)`;
+        ctx.shadowBlur = 20;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
     }
   },/**
    * ORGANIC/LIVING VISUALIZERS - Erweiterung für visualizers.js

@@ -1012,13 +1012,16 @@ export const Visualizers = {
     name_de: "Netzwerk-Plexus",
     name_en: "Network Plexus",
     init(width, height) {
-      const numParticles = Math.floor(width / 20);
-      visualizerState.networkPlexus = { particles: [] };
+      const numParticles = Math.floor(width / 15); // Mehr Partikel
+      visualizerState.networkPlexus = { particles: [], pulsePhase: 0 };
       for (let i = 0; i < numParticles; i++) {
         visualizerState.networkPlexus.particles.push({
-          x: Math.random() * width, y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 1, vy: (Math.random() - 0.5) * 1,
-          radius: 2 + Math.random() * 2,
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 3, // 3x schnellere Basis
+          vy: (Math.random() - 0.5) * 3,
+          baseRadius: 3 + Math.random() * 4,
+          hueOffset: Math.random() * 40
         });
       }
     },
@@ -1027,29 +1030,81 @@ export const Visualizers = {
         this.init(width, height);
       }
       const state = visualizerState.networkPlexus;
-      const bassAvg = averageRange(dataArray, 0, Math.floor(bufferLength * 0.1)) / 255;
       const baseHsl = hexToHsl(color);
-      state.particles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0 || p.x > width) p.vx *= -1;
-        if (p.y < 0 || p.y > height) p.vy *= -1;
-        p.radius = (2 + bassAvg * 7) * intensity;
+
+      // Nutzbarer Frequenzbereich
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
+      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
+      const highEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.7), maxFreqIndex) / 255;
+
+      // Puls-Phase für Welleneffekt
+      state.pulsePhase += 0.05 + bassEnergy * 0.1;
+
+      // Leichter Trail
+      ctx.fillStyle = `rgba(0, 0, 0, ${0.1 + bassEnergy * 0.05})`;
+      ctx.fillRect(0, 0, width, height);
+
+      // Geschwindigkeits-Multiplikator basierend auf Audio
+      const speedMult = 1 + bassEnergy * 3 + midEnergy * 2;
+
+      state.particles.forEach((p, index) => {
+        // Audio-reaktive Bewegung
+        p.x += p.vx * speedMult * intensity;
+        p.y += p.vy * speedMult * intensity;
+
+        // Bounce mit etwas Chaos
+        if (p.x < 0 || p.x > width) {
+          p.vx *= -1;
+          p.vx += (Math.random() - 0.5) * bassEnergy * 2;
+        }
+        if (p.y < 0 || p.y > height) {
+          p.vy *= -1;
+          p.vy += (Math.random() - 0.5) * bassEnergy * 2;
+        }
+
+        // Pulsierender Radius
+        const pulse = Math.sin(state.pulsePhase + index * 0.1) * 0.3 + 1;
+        const radius = p.baseRadius * pulse * (1 + bassEnergy * 1.5) * intensity;
+
+        // Leuchtende Knoten
+        const hue = (baseHsl.h + p.hueOffset + midEnergy * 30) % 360;
+        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius * 2);
+        gradient.addColorStop(0, `hsla(${hue}, 100%, 80%, ${0.9 + highEnergy * 0.1})`);
+        gradient.addColorStop(0.5, `hsla(${hue}, 90%, 60%, 0.5)`);
+        gradient.addColorStop(1, 'transparent');
+
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = color;
+        ctx.arc(p.x, p.y, radius * 2, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Heller Kern
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius * 0.5, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${hue}, 100%, 90%, 0.9)`;
         ctx.fill();
       });
-      const connectDistance = width / 8;
+
+      // Verbindungslinien - mit Glow bei hoher Energie
+      const connectDistance = width / 6 + bassEnergy * 50;
       withSafeCanvasState(ctx, () => {
+        ctx.lineWidth = (1 + midEnergy * 2) * intensity;
+
         for (let i = 0; i < state.particles.length; i++) {
           for (let j = i + 1; j < state.particles.length; j++) {
-            const dist = Math.hypot(state.particles[i].x - state.particles[j].x, state.particles[i].y - state.particles[j].y);
+            const dx = state.particles[i].x - state.particles[j].x;
+            const dy = state.particles[i].y - state.particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
             if (dist < connectDistance) {
+              const alpha = (1 - dist / connectDistance) * (0.4 + midEnergy * 0.4);
+              const hue = (baseHsl.h + (i + j) * 2) % 360;
+
               ctx.beginPath();
               ctx.moveTo(state.particles[i].x, state.particles[i].y);
               ctx.lineTo(state.particles[j].x, state.particles[j].y);
-              ctx.strokeStyle = `hsla(${baseHsl.h}, ${baseHsl.s}%, ${baseHsl.l}%, ${1 - dist / connectDistance})`;
+              ctx.strokeStyle = `hsla(${hue}, 100%, ${60 + highEnergy * 30}%, ${alpha})`;
               ctx.stroke();
             }
           }
@@ -1122,10 +1177,13 @@ export const Visualizers = {
     name_en: "Particle Storm",
     init(width, height) {
       visualizerState.particleStorm = { particles: [], fov: width * 0.8 };
-      for (let i = 0; i < 200; i++) {
+      for (let i = 0; i < 350; i++) {
         visualizerState.particleStorm.particles.push({
-          x: (Math.random() - 0.5) * width, y: (Math.random() - 0.5) * height,
-          z: Math.random() * 1000
+          x: (Math.random() - 0.5) * width * 1.5,
+          y: (Math.random() - 0.5) * height * 1.5,
+          z: Math.random() * 1500,
+          size: 1 + Math.random() * 3,
+          hueOffset: Math.random() * 60
         });
       }
     },
@@ -1134,24 +1192,70 @@ export const Visualizers = {
       const state = visualizerState.particleStorm;
       const centerX = width / 2;
       const centerY = height / 2;
-      const speed = (5 + (averageRange(dataArray, 0, Math.floor(bufferLength * 0.1)) / 255) * 25) * intensity;
       const baseHsl = hexToHsl(color);
-      const highEnergy = averageRange(dataArray, Math.floor(bufferLength * 0.5), bufferLength) / 255;
-      state.particles.forEach(p => {
+
+      // Nutzbarer Frequenzbereich
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
+      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
+      const highEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.7), maxFreqIndex) / 255;
+
+      // VIEL schnellere Basis-Geschwindigkeit + Audio-Boost
+      const speed = (15 + bassEnergy * 50) * intensity;
+
+      // Leichter Trail-Effekt
+      ctx.fillStyle = `rgba(0, 0, 0, ${0.15 + bassEnergy * 0.1})`;
+      ctx.fillRect(0, 0, width, height);
+
+      // Zentrales Glow bei Bass
+      if (bassEnergy > 0.3) {
+        const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 200);
+        gradient.addColorStop(0, `hsla(${baseHsl.h}, 100%, 60%, ${bassEnergy * 0.3})`);
+        gradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      state.particles.forEach((p, index) => {
+        // Schnellere Z-Bewegung
         p.z -= speed;
+
+        // Seitliche Bewegung basierend auf Frequenz
+        const freqIndex = Math.floor((index / state.particles.length) * maxFreqIndex);
+        const freq = (dataArray[freqIndex] || 0) / 255;
+        p.x += (Math.random() - 0.5) * freq * 5;
+        p.y += (Math.random() - 0.5) * freq * 5;
+
         if (p.z <= 0) {
-          p.x = (Math.random() - 0.5) * width;
-          p.y = (Math.random() - 0.5) * height;
-          p.z = 1000;
+          p.x = (Math.random() - 0.5) * width * 1.5;
+          p.y = (Math.random() - 0.5) * height * 1.5;
+          p.z = 1500;
         }
+
         const scale = state.fov / (state.fov + p.z);
         const screenX = centerX + p.x * scale;
         const screenY = centerY + p.y * scale;
-        const radius = (1 - p.z / 1000) * 5 * intensity;
-        if (screenX > 0 && screenX < width && screenY > 0 && screenY < height) {
+        const depth = 1 - p.z / 1500;
+
+        // Größere Partikel vorne
+        const radius = depth * p.size * 4 * intensity;
+
+        if (screenX > -50 && screenX < width + 50 && screenY > -50 && screenY < height + 50 && radius > 0.5) {
+          // Streak/Trail-Effekt für schnelle Partikel
+          const streakLength = Math.min(speed * depth * 0.5, 30);
+          const hue = (baseHsl.h + p.hueOffset + midEnergy * 40) % 360;
+
+          ctx.beginPath();
+          ctx.moveTo(screenX, screenY);
+          ctx.lineTo(screenX, screenY + streakLength);
+          ctx.strokeStyle = `hsla(${hue}, 100%, ${60 + highEnergy * 30}%, ${depth * 0.7})`;
+          ctx.lineWidth = radius * 0.8;
+          ctx.stroke();
+
+          // Leuchtender Kopf
           ctx.beginPath();
           ctx.arc(screenX, screenY, radius, 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${(baseHsl.h + highEnergy * 60) % 360}, ${baseHsl.s}%, ${50 + highEnergy * 40}%, ${(1 - p.z / 1000) * 0.8})`;
+          ctx.fillStyle = `hsla(${hue}, 100%, ${70 + depth * 25}%, ${depth * 0.9})`;
           ctx.fill();
         }
       });
@@ -2481,8 +2585,8 @@ export const Visualizers = {
         emitters: []
       };
 
-      // Mehrere Schallquellen erstellen
-      const numEmitters = 5;
+      // Weniger Schallquellen für bessere Performance (3 statt 5)
+      const numEmitters = 3;
       for (let i = 0; i < numEmitters; i++) {
         visualizerState.soundWaves.emitters.push({
           x: (width / (numEmitters + 1)) * (i + 1),
@@ -2497,12 +2601,15 @@ export const Visualizers = {
       const state = visualizerState.soundWaves;
       const baseHsl = hexToHsl(color);
 
-      // Leichter Fade
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      // Etwas stärkerer Fade für weniger Überlagerung
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
       ctx.fillRect(0, 0, width, height);
 
       const maxFreqIndex = Math.floor(bufferLength * 0.21);
       const now = Date.now();
+
+      // Maximale Anzahl Wellen begrenzen für Performance
+      const maxWaves = 15;
 
       // Für jeden Emitter Wellen erzeugen
       state.emitters.forEach((emitter, index) => {
@@ -2514,24 +2621,25 @@ export const Visualizers = {
         const dynamicGain = calculateDynamicGain(index, state.emitters.length);
         const energy = amplitude * dynamicGain;
 
-        // Neue Welle bei ausreichender Energie
-        if (energy > 0.2 && now > emitter.nextWave) {
+        // Neue Welle bei ausreichender Energie - längeres Intervall
+        if (energy > 0.25 && now > emitter.nextWave && state.waves.length < maxWaves) {
           state.waves.push({
             x: emitter.x,
             y: emitter.y,
             radius: 0,
-            maxRadius: (100 + energy * 300) * intensity,
-            speed: (2 + energy * 5) * intensity,
+            maxRadius: (80 + energy * 200) * intensity, // Kleinere max Größe
+            speed: (2 + energy * 4) * intensity,
             hue: (baseHsl.h + emitter.hue) % 360,
-            thickness: (2 + energy * 6) * intensity,
-            alpha: 0.8 + energy * 0.2
+            thickness: (2 + energy * 4) * intensity, // Dünnere Linien
+            alpha: 0.7 + energy * 0.2
           });
 
-          emitter.nextWave = now + (300 / (1 + energy * 2));
+          // Längeres Intervall zwischen Wellen
+          emitter.nextWave = now + (400 / (1 + energy));
         }
       });
 
-      // Wellen zeichnen und updaten
+      // Wellen zeichnen und updaten - vereinfacht
       withSafeCanvasState(ctx, () => {
         for (let i = state.waves.length - 1; i >= 0; i--) {
           const wave = state.waves[i];
@@ -2548,72 +2656,31 @@ export const Visualizers = {
           // Fade-out
           const alpha = wave.alpha * (1 - progress);
 
-          // Interferenzmuster (mehrere Ringe)
-          const rings = 3;
-          for (let r = 0; r < rings; r++) {
-            const ringRadius = wave.radius - r * 15;
-            if (ringRadius > 0) {
-              ctx.beginPath();
-              ctx.arc(wave.x, wave.y, ringRadius, 0, Math.PI * 2);
+          // NUR EIN Ring statt 3 - viel bessere Performance
+          ctx.beginPath();
+          ctx.arc(wave.x, wave.y, wave.radius, 0, Math.PI * 2);
+          ctx.strokeStyle = `hsla(${wave.hue}, ${baseHsl.s}%, ${50 + (1 - progress) * 30}%, ${alpha})`;
+          ctx.lineWidth = wave.thickness * (1 - progress * 0.5);
+          ctx.stroke();
 
-              const ringAlpha = alpha * (1 - r / rings);
-              ctx.strokeStyle = `hsla(${wave.hue}, ${baseHsl.s}%, ${baseHsl.l}%, ${ringAlpha})`;
-              ctx.lineWidth = wave.thickness * (1 - r / rings);
-              ctx.stroke();
-
-              // Leuchten bei hoher Amplitude
-              if (wave.thickness > 5) {
-                ctx.shadowColor = `hsl(${wave.hue}, ${baseHsl.s}%, ${baseHsl.l}%)`;
-                ctx.shadowBlur = wave.thickness * 2;
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-              }
-            }
-          }
-
-          // Partikel an der Wellenfront
-          if (progress < 0.8 && wave.thickness > 4) {
-            const particleCount = Math.floor(wave.radius / 20);
-            for (let p = 0; p < particleCount; p++) {
-              const angle = (p / particleCount) * Math.PI * 2;
-              const px = wave.x + Math.cos(angle) * wave.radius;
-              const py = wave.y + Math.sin(angle) * wave.radius;
-
-              ctx.beginPath();
-              ctx.arc(px, py, 2 * intensity, 0, Math.PI * 2);
-              ctx.fillStyle = `hsla(${wave.hue}, 100%, 70%, ${alpha})`;
-              ctx.fill();
-            }
-          }
+          // Kein Shadow-Glow mehr - spart viel Performance
         }
       });
 
-      // Emitter zeichnen
+      // Emitter zeichnen - vereinfacht
       state.emitters.forEach((emitter, index) => {
         const freqPerEmitter = maxFreqIndex / state.emitters.length;
         const s = Math.floor(index * freqPerEmitter);
         const e = Math.max(s + 1, Math.floor((index + 1) * freqPerEmitter));
 
         const amplitude = averageRange(dataArray, s, e) / 255;
-        const radius = (5 + amplitude * 15) * intensity;
-
-        // Emitter-Glow
-        ctx.beginPath();
-        ctx.arc(emitter.x, emitter.y, radius * 2, 0, Math.PI * 2);
-        const glowGradient = ctx.createRadialGradient(
-          emitter.x, emitter.y, 0,
-          emitter.x, emitter.y, radius * 2
-        );
+        const radius = (4 + amplitude * 10) * intensity;
         const hue = (baseHsl.h + emitter.hue) % 360;
-        glowGradient.addColorStop(0, `hsla(${hue}, 100%, 70%, ${amplitude * 0.6})`);
-        glowGradient.addColorStop(1, `hsla(${hue}, 100%, 70%, 0)`);
-        ctx.fillStyle = glowGradient;
-        ctx.fill();
 
-        // Emitter-Kern
+        // Einfacher Emitter ohne Gradient
         ctx.beginPath();
         ctx.arc(emitter.x, emitter.y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = `hsl(${hue}, 100%, ${60 + amplitude * 40}%)`;
+        ctx.fillStyle = `hsla(${hue}, 100%, ${60 + amplitude * 30}%, ${0.7 + amplitude * 0.3})`;
         ctx.fill();
       });
     }

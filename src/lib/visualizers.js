@@ -413,8 +413,10 @@ export const Visualizers = {
       const columns = Math.max(1, Math.floor(width / fontSize));
       visualizerState.matrixRain = {
         fontSize, columns,
-        drops: Array.from({ length: columns }, () => 1),
-        speeds: Array.from({ length: columns }, () => 0.5 + Math.random() * 1.5)
+        drops: Array.from({ length: columns }, () => Math.random() * -50),
+        speeds: Array.from({ length: columns }, () => 0.5 + Math.random() * 1.5),
+        chars: Array.from({ length: columns }, () => Array.from({ length: 30 }, () =>
+          String.fromCharCode(0x30A0 + Math.random() * 96)))
       };
     },
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
@@ -422,33 +424,75 @@ export const Visualizers = {
         this.init(width, height);
       }
       const state = visualizerState.matrixRain;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+
+      // Dunklerer Hintergrund für längere Trails
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
       ctx.fillRect(0, 0, width, height);
-      ctx.font = `${state.fontSize}px monospace`;
+
+      ctx.font = `bold ${state.fontSize}px monospace`;
       const baseHsl = hexToHsl(color);
+
+      // NUR nutzbaren Frequenzbereich verwenden
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+
+      // Globale Bass-Energie für Intensität
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
+
       withSafeCanvasState(ctx, () => {
         for (let i = 0; i < state.columns; i++) {
-          const [s, e] = rangeForBar(i, state.columns, bufferLength);
-          const amplitude = averageRange(dataArray, s, e) / 255; // Changed variable name
-          const text = String.fromCharCode(0x30A0 + Math.random() * 96);
+          // Frequenz-Mapping auf nutzbaren Bereich mit Wiederholung
+          const freqPos = (i % Math.floor(state.columns / 3)) / (state.columns / 3);
+          const freqIndex = Math.floor(freqPos * maxFreqIndex);
+          const amplitude = (dataArray[freqIndex] || 0) / 255;
+
           const x = i * state.fontSize;
           const y = state.drops[i] * state.fontSize;
-          if (Math.floor(state.drops[i]) === 1) {
-            ctx.fillStyle = '#c0ffc0';
-          } else {
-            ctx.fillStyle = `hsla(${baseHsl.h}, ${baseHsl.s}%, ${baseHsl.l}%, ${0.5 + amplitude * 0.5})`;
+
+          // Mehrere Zeichen pro Spalte für Trail-Effekt
+          const trailLength = Math.floor(5 + amplitude * 15);
+          for (let t = 0; t < trailLength; t++) {
+            const trailY = y - t * state.fontSize;
+            if (trailY < 0 || trailY > height) continue;
+
+            const trailFade = 1 - (t / trailLength);
+            const charIndex = (Math.floor(state.drops[i]) + t) % state.chars[i].length;
+            const text = state.chars[i][charIndex];
+
+            if (t === 0) {
+              // Kopf: IMMER hell und sichtbar
+              ctx.fillStyle = `hsla(${baseHsl.h}, 100%, 90%, ${0.9 + bassEnergy * 0.1})`;
+              ctx.shadowColor = `hsl(${baseHsl.h}, 100%, 70%)`;
+              ctx.shadowBlur = 15 + bassEnergy * 10;
+            } else {
+              // Trail: Helligkeit basierend auf Audio
+              const lightness = 40 + amplitude * 40 + trailFade * 20;
+              ctx.fillStyle = `hsla(${baseHsl.h}, ${baseHsl.s}%, ${lightness}%, ${trailFade * (0.6 + amplitude * 0.4)})`;
+              ctx.shadowBlur = 0;
+            }
+
+            ctx.fillText(text, x, trailY);
           }
-          if (amplitude > 0.7 && Math.random() > 0.95) {
+
+          // Glitzer bei hoher Amplitude
+          if (amplitude > 0.5 && Math.random() > 0.9) {
             ctx.fillStyle = '#ffffff';
             ctx.shadowColor = '#ffffff';
-            ctx.shadowBlur = 10 * amplitude;
+            ctx.shadowBlur = 20;
+            ctx.fillText(state.chars[i][0], x, y);
           }
-          ctx.fillText(text, x, y);
+
           ctx.shadowBlur = 0;
-          if (y > height && Math.random() > 0.98 - amplitude * 0.1) {
-            state.drops[i] = 0;
+
+          // Reset wenn unten angekommen
+          if (y > height + trailLength * state.fontSize) {
+            state.drops[i] = Math.random() * -20;
+            // Neue zufällige Zeichen
+            state.chars[i] = Array.from({ length: 30 }, () =>
+              String.fromCharCode(0x30A0 + Math.random() * 96));
           }
-          state.drops[i] += state.speeds[i] * (0.5 + amplitude * 2.5 * intensity);
+
+          // Geschwindigkeit basierend auf Audio
+          state.drops[i] += state.speeds[i] * (0.8 + amplitude * 2 + bassEnergy * 1.5) * intensity;
         }
       });
     }
@@ -1469,49 +1513,106 @@ export const Visualizers = {
     name_de: "Synth-Wave",
     name_en: "Synth Wave",
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
-      const horizon = height * 0.6;
-      const numLines = 20;
+      const horizon = height * 0.55;
+      const numLines = 25;
       const baseHsl = hexToHsl(color);
+
+      // Nutzbarer Frequenzbereich
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
+      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
+
+      // Dramatischer Gradient-Hintergrund
       const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
-      bgGradient.addColorStop(0, `hsl(${(baseHsl.h + 180) % 360}, ${baseHsl.s * 0.3}%, 5%)`);
-      bgGradient.addColorStop(0.6, `hsl(${baseHsl.h}, ${baseHsl.s * 0.2}%, 2%)`);
+      bgGradient.addColorStop(0, `hsl(${(baseHsl.h + 200) % 360}, 80%, ${8 + bassEnergy * 5}%)`);
+      bgGradient.addColorStop(0.4, `hsl(${(baseHsl.h + 280) % 360}, 70%, ${5 + midEnergy * 3}%)`);
+      bgGradient.addColorStop(0.6, `hsl(${baseHsl.h}, 60%, 3%)`);
       bgGradient.addColorStop(1, 'black');
       ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, width, height);
+
       withSafeCanvasState(ctx, () => {
+        // SONNE - pulsiert mit Bass
+        const sunRadius = 60 + bassEnergy * 40;
+        const sunY = horizon - 30;
+        const sunGradient = ctx.createRadialGradient(width / 2, sunY, 0, width / 2, sunY, sunRadius * 1.5);
+        sunGradient.addColorStop(0, `hsla(${(baseHsl.h + 30) % 360}, 100%, 70%, ${0.9 + bassEnergy * 0.1})`);
+        sunGradient.addColorStop(0.3, `hsla(${baseHsl.h}, 100%, 60%, 0.8)`);
+        sunGradient.addColorStop(0.6, `hsla(${(baseHsl.h - 20 + 360) % 360}, 100%, 50%, 0.4)`);
+        sunGradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = sunGradient;
+        ctx.fillRect(0, 0, width, horizon);
+
+        // Horizontale Scanlines durch die Sonne
+        const scanLines = 8;
+        for (let i = 0; i < scanLines; i++) {
+          const scanY = sunY - sunRadius + (i / scanLines) * sunRadius * 2;
+          if (scanY < sunY - sunRadius * 0.3 || scanY > sunY + sunRadius) continue;
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+          ctx.fillRect(width / 2 - sunRadius, scanY, sunRadius * 2, 3 + i * 0.5);
+        }
+
+        // Horizontale Grid-Linien mit VIEL mehr Bewegung
         for (let i = 0; i < numLines; i++) {
           const progress = i / numLines;
           const y = horizon + progress * progress * (height - horizon);
-          const perspectiveScale = 1 - (progress * 0.7);
-          const bassBoost = averageRange(dataArray, 0, Math.floor(bufferLength * 0.1)) / 255;
-          const distortion = Math.sin(Date.now() * 0.001 + progress * 5) * bassBoost * 10 * intensity;
+          const perspectiveScale = 1 - (progress * 0.6);
+
+          // Stärkere Wellenverzerrung
+          const distortion = Math.sin(Date.now() * 0.002 + progress * 8) * bassEnergy * 30 * intensity;
+
           ctx.beginPath();
-          const segments = 50;
+          const segments = 60;
           for (let j = 0; j <= segments; j++) {
             const x = (j / segments) * width;
-            const [s, e] = rangeForBar(j, segments, bufferLength);
-            const amplitude = averageRange(dataArray, s, e) / 255;
-            const waveY = y + distortion + Math.sin(x * 0.01 + Date.now() * 0.002) * amplitude * 20 * perspectiveScale * intensity;
+
+            // Frequenz aus nutzbarem Bereich
+            const freqIndex = Math.floor((j / segments) * maxFreqIndex);
+            const amplitude = (dataArray[freqIndex] || 0) / 255;
+
+            // VIEL größere Amplitude
+            const waveHeight = amplitude * 60 * perspectiveScale * intensity;
+            const wave = Math.sin(x * 0.015 + Date.now() * 0.003) * waveHeight;
+            const waveY = y + distortion + wave;
+
             if (j === 0) ctx.moveTo(x, waveY);
             else ctx.lineTo(x, waveY);
           }
-          const alpha = (1 - progress) * 0.8;
-          const hue = (baseHsl.h + progress * 60) % 360;
-          ctx.strokeStyle = `hsla(${hue}, ${baseHsl.s}%, ${50 + progress * 30}%, ${alpha})`;
-          ctx.lineWidth = 1 + (1 - progress) * 2;
+
+          // Leuchtende Neon-Farben
+          const hue = (baseHsl.h + progress * 80) % 360;
+          const lightness = 55 + (1 - progress) * 35 + midEnergy * 10;
+          ctx.strokeStyle = `hsla(${hue}, 100%, ${lightness}%, ${(1 - progress) * 0.9})`;
+          ctx.lineWidth = (2 + (1 - progress) * 4) * intensity;
+          ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+          ctx.shadowBlur = 10 + bassEnergy * 15;
           ctx.stroke();
         }
-        const numVerticals = 15;
+
+        ctx.shadowBlur = 0;
+
+        // Vertikale Linien - AUDIO-REAKTIV
+        const numVerticals = 20;
         for (let i = 0; i <= numVerticals; i++) {
-          const x = (i / numVerticals) * width;
-          const vanishY = horizon - 50;
+          const xRatio = i / numVerticals;
+          const x = xRatio * width;
+          const vanishY = horizon - 20;
+
+          // Frequenz für diese Linie
+          const freqIndex = Math.floor(xRatio * maxFreqIndex);
+          const amplitude = (dataArray[freqIndex] || 0) / 255;
+
           ctx.beginPath();
           ctx.moveTo(x, height);
           ctx.lineTo(width * 0.5, vanishY);
+
           const centerDistance = Math.abs(x - width * 0.5) / (width * 0.5);
-          const alpha = (1 - centerDistance) * 0.3;
-          ctx.strokeStyle = `hsla(${(baseHsl.h + 40) % 360}, ${baseHsl.s}%, ${baseHsl.l}%, ${alpha})`;
-          ctx.lineWidth = 1 * intensity;
+          // Alpha basierend auf Audio UND Position
+          const alpha = (1 - centerDistance * 0.7) * (0.3 + amplitude * 0.5);
+
+          const hue = (baseHsl.h + 60 + amplitude * 40) % 360;
+          ctx.strokeStyle = `hsla(${hue}, 100%, ${50 + amplitude * 30}%, ${alpha})`;
+          ctx.lineWidth = (1 + amplitude * 2) * intensity;
           ctx.stroke();
         }
       });
@@ -1521,13 +1622,20 @@ export const Visualizers = {
     name_de: "Kosmischer Nebel",
     name_en: "Cosmic Nebula",
     init(width, height) {
-      visualizerState.cosmicNebula = { particles: [] };
-      for (let i = 0; i < 300; i++) {
+      visualizerState.cosmicNebula = { particles: [], time: 0 };
+      for (let i = 0; i < 400; i++) {
+        // Cluster-basierte Verteilung für Nebel-Effekt
+        const clusterX = Math.random() * width;
+        const clusterY = Math.random() * height;
         visualizerState.cosmicNebula.particles.push({
-          x: Math.random() * width, y: Math.random() * height,
-          baseX: Math.random() * width, baseY: Math.random() * height,
-          radius: 1 + Math.random() * 3, hueOffset: Math.random() * 60,
-          speed: 0.2 + Math.random() * 0.5
+          x: clusterX, y: clusterY,
+          baseX: clusterX + (Math.random() - 0.5) * 100,
+          baseY: clusterY + (Math.random() - 0.5) * 100,
+          radius: 2 + Math.random() * 5,
+          hueOffset: Math.random() * 120, // Mehr Farbvariation
+          speed: 0.5 + Math.random() * 2, // Schnellere Basis
+          phase: Math.random() * Math.PI * 2, // Zufällige Phase
+          orbitSize: 30 + Math.random() * 80 // Individuelle Orbit-Größe
         });
       }
     },
@@ -1537,25 +1645,76 @@ export const Visualizers = {
       }
       const state = visualizerState.cosmicNebula;
       const baseHsl = hexToHsl(color);
-      const bassEnergy = averageRange(dataArray, 0, Math.floor(bufferLength * 0.15)) / 255;
-      const midEnergy = averageRange(dataArray, Math.floor(bufferLength * 0.3), Math.floor(bufferLength * 0.6)) / 255;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
+
+      // NUR nutzbaren Frequenzbereich
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+      const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
+      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
+      const highEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.7), maxFreqIndex) / 255;
+
+      // Langsamerer Trail-Fade für schönere Trails
+      ctx.fillStyle = `rgba(0, 0, 0, ${0.02 + bassEnergy * 0.03})`;
       ctx.fillRect(0, 0, width, height);
+
+      // Zentrales Glow bei Bass
+      if (bassEnergy > 0.2) {
+        const centerGlow = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, 300 + bassEnergy * 200);
+        centerGlow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 50%, ${bassEnergy * 0.15})`);
+        centerGlow.addColorStop(0.5, `hsla(${(baseHsl.h + 60) % 360}, 80%, 40%, ${bassEnergy * 0.08})`);
+        centerGlow.addColorStop(1, 'transparent');
+        ctx.fillStyle = centerGlow;
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      // Zeit für Animation - 10x schneller als vorher!
+      const time = Date.now() * 0.001;
+
       state.particles.forEach((p, index) => {
-        const freqIndex = Math.floor((index / state.particles.length) * bufferLength);
+        // Frequenz aus nutzbarem Bereich mit Wiederholung
+        const freqPos = (index % 100) / 100;
+        const freqIndex = Math.floor(freqPos * maxFreqIndex);
         const amplitude = (dataArray[freqIndex] || 0) / 255;
-        const orbitRadius = (50 + bassEnergy * 100) * intensity;
-        const angle = Date.now() * 0.0001 * p.speed + index;
-        p.x = p.baseX + Math.cos(angle) * orbitRadius * amplitude;
-        p.y = p.baseY + Math.sin(angle) * orbitRadius * amplitude;
-        const hue = (baseHsl.h + p.hueOffset + midEnergy * 40) % 360;
-        const particleSize = p.radius * (1 + amplitude * intensity);
-        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, particleSize * 4);
-        gradient.addColorStop(0, `hsla(${hue}, ${baseHsl.s}%, 70%, ${0.8 * amplitude * intensity})`);
-        gradient.addColorStop(0.5, `hsla(${hue}, ${baseHsl.s}%, 50%, ${0.3 * amplitude * intensity})`);
-        gradient.addColorStop(1, `hsla(${hue}, ${baseHsl.s}%, 30%, 0)`);
-        ctx.beginPath(); ctx.arc(p.x, p.y, particleSize * 4, 0, Math.PI * 2); ctx.fillStyle = gradient; ctx.fill();
-        ctx.beginPath(); ctx.arc(p.x, p.y, particleSize, 0, Math.PI * 2); ctx.fillStyle = `hsl(${hue}, ${baseHsl.s}%, ${80 + amplitude * 20}%)`; ctx.fill();
+
+        // IMMER Bewegung + Audio-Boost
+        const baseMovement = 0.3 + amplitude * 0.7; // Mindestens 30% Bewegung
+        const orbitRadius = p.orbitSize * baseMovement * (1 + bassEnergy) * intensity;
+
+        // VIEL schnellere Rotation
+        const angle = time * p.speed + p.phase + index * 0.1;
+
+        // Spiralförmige Bewegung
+        const spiral = Math.sin(time * 0.5 + index * 0.05) * 20 * midEnergy;
+        p.x = p.baseX + Math.cos(angle) * orbitRadius + spiral;
+        p.y = p.baseY + Math.sin(angle) * orbitRadius + Math.cos(angle * 0.7) * spiral;
+
+        // Wrap around screen
+        if (p.x < -50) p.baseX += width + 100;
+        if (p.x > width + 50) p.baseX -= width + 100;
+        if (p.y < -50) p.baseY += height + 100;
+        if (p.y > height + 50) p.baseY -= height + 100;
+
+        // Dynamische Farben
+        const hue = (baseHsl.h + p.hueOffset + midEnergy * 60 + time * 10) % 360;
+        const particleSize = p.radius * (1 + amplitude * 2) * intensity;
+
+        // Leuchtender Gradient - IMMER sichtbar
+        const minAlpha = 0.3; // Mindest-Sichtbarkeit
+        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, particleSize * 5);
+        gradient.addColorStop(0, `hsla(${hue}, 100%, 80%, ${minAlpha + amplitude * 0.6})`);
+        gradient.addColorStop(0.3, `hsla(${hue}, 90%, 60%, ${(minAlpha + amplitude * 0.4) * 0.6})`);
+        gradient.addColorStop(0.7, `hsla(${(hue + 30) % 360}, 80%, 40%, ${(minAlpha + amplitude * 0.2) * 0.3})`);
+        gradient.addColorStop(1, 'transparent');
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, particleSize * 5, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Heller Kern
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, particleSize * 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${hue}, 100%, ${85 + highEnergy * 15}%, ${0.7 + amplitude * 0.3})`;
+        ctx.fill();
       });
     }
   },

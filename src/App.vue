@@ -88,6 +88,10 @@ let animationFrameId;
 let textManagerInstance = null;
 let lastSelectedVisualizerId = null;
 let audioDataArray = null; // ✅ Wiederverwendbares Array für Audio-Daten (verhindert GC-Overhead)
+let lastCanvasWidth = 0; // ✅ FIX: Track canvas dimensions for resize detection
+let lastCanvasHeight = 0;
+let visualizerCacheCanvas = null; // ✅ FIX: Offscreen canvas for visualizer caching
+let visualizerCacheCtx = null;
 
 const canvasManagerInstance = ref(null);
 const fotoManagerInstance = ref(null);
@@ -372,12 +376,19 @@ function draw() {
     if (analyser && shouldDrawVisualizer) {
       const visualizer = Visualizers[visualizerStore.selectedVisualizer];
       if (visualizer) {
-        if (visualizerStore.selectedVisualizer !== lastSelectedVisualizerId) {
+        // ✅ FIX: Check for visualizer change OR canvas resize
+        const visualizerChanged = visualizerStore.selectedVisualizer !== lastSelectedVisualizerId;
+        const canvasResized = canvas.width !== lastCanvasWidth || canvas.height !== lastCanvasHeight;
+
+        if (visualizerChanged || canvasResized) {
           if (typeof visualizer.init === 'function') {
             visualizer.init(canvas.width, canvas.height);
           }
           lastSelectedVisualizerId = visualizerStore.selectedVisualizer;
+          lastCanvasWidth = canvas.width;
+          lastCanvasHeight = canvas.height;
         }
+
         const bufferLength = analyser.frequencyBinCount;
         // ✅ Performance: Array einmal erstellen und wiederverwenden
         if (!audioDataArray || audioDataArray.length !== bufferLength) {
@@ -389,15 +400,31 @@ function draw() {
           analyser.getByteFrequencyData(audioDataArray);
         }
 
-        drawVisualizerCallback = (targetCtx, width, height) => {
-          // Setze globalAlpha für Farbtransparenz
-          targetCtx.save();
-          targetCtx.globalAlpha = visualizerStore.colorOpacity;
-          visualizer.draw(targetCtx, audioDataArray, bufferLength, width, height, visualizerStore.visualizerColor, visualizerStore.visualizerOpacity);
-          targetCtx.restore();
-        };
+        // ✅ FIX: Cache visualizer rendering to offscreen canvas (prevents double rendering)
+        // Initialize or resize cache canvas if needed
+        if (!visualizerCacheCanvas || visualizerCacheCanvas.width !== canvas.width || visualizerCacheCanvas.height !== canvas.height) {
+          visualizerCacheCanvas = document.createElement('canvas');
+          visualizerCacheCanvas.width = canvas.width;
+          visualizerCacheCanvas.height = canvas.height;
+          visualizerCacheCtx = visualizerCacheCanvas.getContext('2d');
+        }
 
-        // Worker removed - no longer needed
+        // Render visualizer ONCE to cache canvas
+        visualizerCacheCtx.clearRect(0, 0, canvas.width, canvas.height);
+        visualizerCacheCtx.save();
+        visualizerCacheCtx.globalAlpha = visualizerStore.colorOpacity;
+        visualizer.draw(visualizerCacheCtx, audioDataArray, bufferLength, canvas.width, canvas.height, visualizerStore.visualizerColor, visualizerStore.visualizerOpacity);
+        visualizerCacheCtx.restore();
+
+        // ✅ Callback now copies from cache instead of re-rendering
+        drawVisualizerCallback = (targetCtx, width, height) => {
+          // If target has same dimensions, copy directly; otherwise scale
+          if (width === canvas.width && height === canvas.height) {
+            targetCtx.drawImage(visualizerCacheCanvas, 0, 0);
+          } else {
+            targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height);
+          }
+        };
       }
     }
 
@@ -410,8 +437,9 @@ function draw() {
       const recordingCtx = recordingCanvas.getContext('2d');
       if (recordingCtx) {
         // Zeichne Recording Scene (mit zuschaltbaren Modulen)
+        // ✅ Uses cached visualizer - no duplicate rendering!
         renderRecordingScene(recordingCtx, recordingCanvas.width, recordingCanvas.height, drawVisualizerCallback);
-        
+
         // ℹ️ HINWEIS: requestFrame() nicht nötig bei captureStream(30)
         // Der Stream captured automatisch 30 FPS vom Canvas
       }

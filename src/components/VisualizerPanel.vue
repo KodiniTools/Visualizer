@@ -15,7 +15,7 @@
     <!-- Visualizer Ein/Aus -->
     <div class="control-section">
       <span class="section-label">Status</span>
-      <button 
+      <button
         class="toggle-btn"
         :class="{ active: store.showVisualizer }"
         @click="store.toggleVisualizer()"
@@ -28,9 +28,9 @@
     <!-- Farbwähler -->
     <div class="control-section">
       <span class="section-label">Farbe</span>
-      <input 
-        type="color" 
-        :value="store.visualizerColor" 
+      <input
+        type="color"
+        :value="store.visualizerColor"
         @input="store.setColor($event.target.value)"
         class="color-picker"
       />
@@ -41,10 +41,10 @@
       <span class="section-label">
         Intensität: {{ Math.round(store.visualizerOpacity * 100) }}%
       </span>
-      <input 
-        type="range" 
-        min="0" 
-        max="1" 
+      <input
+        type="range"
+        min="0"
+        max="1"
         step="0.01"
         :value="store.visualizerOpacity"
         @input="store.setOpacity(parseFloat($event.target.value))"
@@ -57,10 +57,10 @@
       <span class="section-label">
         Farbtransparenz: {{ Math.round(store.colorOpacity * 100) }}%
       </span>
-      <input 
-        type="range" 
-        min="0" 
-        max="1" 
+      <input
+        type="range"
+        min="0"
+        max="1"
         step="0.01"
         :value="store.colorOpacity"
         @input="store.setColorOpacity(parseFloat($event.target.value))"
@@ -68,12 +68,25 @@
       />
     </div>
 
-    <!-- Visualizer-Typ Auswahl -->
+    <!-- Suchfeld -->
     <div class="control-section">
-      <span class="section-label">Visualizer-Typ</span>
-      <div class="visualizer-buttons">
+      <span class="section-label">Suche</span>
+      <input
+        type="text"
+        v-model="searchQuery"
+        placeholder="Visualizer suchen..."
+        class="search-input"
+      />
+    </div>
+
+    <!-- Kategorisierte Visualizer-Auswahl -->
+    <div class="control-section">
+      <span class="section-label">Visualizer-Typ ({{ totalCount }} Effekte)</span>
+
+      <!-- Suchergebnisse -->
+      <div v-if="searchQuery.trim()" class="visualizer-buttons">
         <button
-          v-for="viz in store.availableVisualizers"
+          v-for="viz in filteredVisualizers"
           :key="viz.id"
           class="visualizer-btn"
           :class="{ active: store.selectedVisualizer === viz.id }"
@@ -81,15 +94,91 @@
         >
           {{ viz.name }}
         </button>
+        <div v-if="filteredVisualizers.length === 0" class="no-results">
+          Keine Ergebnisse für "{{ searchQuery }}"
+        </div>
+      </div>
+
+      <!-- Kategorien (wenn keine Suche aktiv) -->
+      <div v-else class="category-list">
+        <details
+          v-for="(visualizers, category) in store.categorizedVisualizers"
+          :key="category"
+          class="category"
+          :open="isCategoryOpen(category)"
+        >
+          <summary class="category-header" @click.prevent="toggleCategory(category)">
+            <span class="category-icon">{{ getCategoryIcon(category) }}</span>
+            <span class="category-name">{{ category }}</span>
+            <span class="category-count">{{ visualizers.length }}</span>
+            <span class="category-arrow">{{ openCategories[category] ? '▼' : '▶' }}</span>
+          </summary>
+          <div class="category-content">
+            <button
+              v-for="viz in visualizers"
+              :key="viz.id"
+              class="visualizer-btn"
+              :class="{ active: store.selectedVisualizer === viz.id }"
+              @click="store.selectVisualizer(viz.id)"
+            >
+              {{ viz.name }}
+            </button>
+          </div>
+        </details>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref, computed } from 'vue';
 import { useVisualizerStore } from '../stores/visualizerStore.js';
 import HelpTooltip from './HelpTooltip.vue';
+
 const store = useVisualizerStore();
+const searchQuery = ref('');
+const openCategories = ref({
+  'Balken & Spektrum': true // Erste Kategorie standardmäßig offen
+});
+
+// Icons für Kategorien
+const categoryIcons = {
+  'Balken & Spektrum': '📊',
+  'Wellen': '🌊',
+  'Kreise & Kugeln': '⭕',
+  'Partikel': '✨',
+  'Geometrie': '🔷',
+  'Organisch': '🌿',
+  'Kristalle & Netze': '💎',
+  'Blüten': '🌸',
+  '3D-Objekte': '🎲'
+};
+
+function getCategoryIcon(category) {
+  return categoryIcons[category] || '🎨';
+}
+
+function isCategoryOpen(category) {
+  return openCategories.value[category] || false;
+}
+
+function toggleCategory(category) {
+  openCategories.value[category] = !openCategories.value[category];
+}
+
+// Gefilterte Visualizer für Suche
+const filteredVisualizers = computed(() => {
+  const query = searchQuery.value.toLowerCase().trim();
+  if (!query) return [];
+
+  return store.availableVisualizers.filter(viz =>
+    viz.name.toLowerCase().includes(query) ||
+    viz.id.toLowerCase().includes(query)
+  );
+});
+
+// Gesamtanzahl der Visualizer
+const totalCount = computed(() => store.availableVisualizers.length);
 </script>
 
 <style scoped>
@@ -290,7 +379,88 @@ h4 {
   transform: scale(1.15);
 }
 
-/* Visualizer Type Buttons */
+/* Search Input */
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #6ea8fe;
+}
+
+.search-input::placeholder {
+  color: #666;
+}
+
+/* Category List */
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.category {
+  border: 1px solid #444;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background-color: #333;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.category-header:hover {
+  background-color: #3a3a3a;
+}
+
+.category-icon {
+  font-size: 14px;
+}
+
+.category-name {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: #e0e0e0;
+}
+
+.category-count {
+  font-size: 10px;
+  color: #888;
+  background-color: #444;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.category-arrow {
+  font-size: 10px;
+  color: #666;
+}
+
+.category-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  background-color: #2a2a2a;
+}
+
+/* Visualizer Buttons */
 .visualizer-buttons {
   display: flex;
   flex-direction: column;
@@ -326,5 +496,13 @@ h4 {
 
 .visualizer-btn.active:hover {
   background-color: #5a96e8;
+}
+
+.no-results {
+  padding: 12px;
+  text-align: center;
+  color: #666;
+  font-size: 12px;
+  font-style: italic;
 }
 </style>

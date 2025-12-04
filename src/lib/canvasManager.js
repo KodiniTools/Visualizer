@@ -34,7 +34,12 @@ export class CanvasManager {
         this.currentAction = null;
         this.dragStartPos = { x: 0, y: 0 };
         this.HANDLE_SIZE = 10;
+        this.HANDLE_HIT_TOLERANCE = 4; // Extra pixels for easier handle targeting
         this.isEditingText = false;
+
+        // Bound handlers for cleanup
+        this._boundWindowMouseUp = null;
+        this._boundWindowMouseMove = null;
         
         this._selectionListeners = [];
         
@@ -186,6 +191,13 @@ export class CanvasManager {
         this.canvas.addEventListener('mousemove', (e) => this.onMouseMove(e));
         this.canvas.addEventListener('mouseup', (e) => this.onMouseUp(e));
         this.canvas.addEventListener('dblclick', (e) => this.onDoubleClick(e));
+
+        // ✅ Reliability: Handle mouse leaving canvas during drag
+        this.canvas.addEventListener('mouseleave', (e) => this.onMouseLeave(e));
+
+        // ✅ Reliability: Create bound handlers for window-level events
+        this._boundWindowMouseUp = (e) => this.onWindowMouseUp(e);
+        this._boundWindowMouseMove = (e) => this.onWindowMouseMove(e);
     }
 
     setEditing(isEditing) {
@@ -352,9 +364,29 @@ export class CanvasManager {
         
         // ✅ CRITICAL: Cleanup canvas pool
         this._cleanupCanvasPool();
-        
+
         this.redrawCallback();
         this.updateUICallback();
+    }
+
+    /**
+     * ✅ Reliability: Cleanup method for component unmount
+     * Removes all event listeners to prevent memory leaks
+     */
+    destroy() {
+        // Remove window-level listeners if active
+        this._stopDragListeners();
+
+        // Clear all state
+        this.activeObject = null;
+        this.hoveredObject = null;
+        this.currentAction = null;
+        this._cachedBounds = null;
+
+        // Cleanup canvas pool
+        this._cleanupCanvasPool();
+
+        console.log('[CanvasManager] ✅ Destroyed and cleaned up');
     }
 
     deleteActiveObject() {
@@ -664,17 +696,25 @@ export class CanvasManager {
                     this.deleteActiveObject();
                     return;
                 }
-                
+
                 const handleKey = this.getHandleAtPos(bounds, x, y);
                 if (handleKey) {
                     this.currentAction = handleKey;
                     this.dragStartPos = { x, y };
+                    // ✅ Reliability: Cache bounds and add window listeners for drag outside canvas
+                    this._cachedBounds = bounds;
+                    this._startDragListeners();
+                    // ✅ Precision: Update cursor for active resize handle
+                    this._updateResizeCursor(handleKey);
                     return;
                 }
-                
+
                 if (this.isPointInRect(x, y, bounds)) {
                     this.currentAction = 'move';
                     this.dragStartPos = { x, y };
+                    // ✅ Reliability: Add window listeners for drag outside canvas
+                    this._startDragListeners();
+                    this.canvas.style.cursor = 'grabbing';
                     return;
                 }
             }
@@ -685,11 +725,32 @@ export class CanvasManager {
             this.setActiveObject(clickedObject);
             this.currentAction = 'move';
             this.dragStartPos = { x, y };
+            // ✅ Reliability: Add window listeners for drag outside canvas
+            this._startDragListeners();
+            this.canvas.style.cursor = 'grabbing';
         } else {
             this.setActiveObject(null);
         }
 
         this.redrawCallback();
+    }
+
+    /**
+     * ✅ Reliability: Start listening to window-level events during drag
+     * This ensures drag continues even when mouse leaves canvas
+     */
+    _startDragListeners() {
+        window.addEventListener('mouseup', this._boundWindowMouseUp);
+        window.addEventListener('mousemove', this._boundWindowMouseMove);
+    }
+
+    /**
+     * ✅ Reliability: Stop listening to window-level events
+     */
+    _stopDragListeners() {
+        window.removeEventListener('mouseup', this._boundWindowMouseUp);
+        window.removeEventListener('mousemove', this._boundWindowMouseMove);
+        this._cachedBounds = null;
     }
 
     onMouseMove(e) {
@@ -701,6 +762,9 @@ export class CanvasManager {
 
             const dx = x - this.dragStartPos.x;
             const dy = y - this.dragStartPos.y;
+
+            // ✅ Performance: Skip tiny movements to reduce redraws
+            if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
 
             if (this.currentAction === 'move') {
                 this.moveObject(this.activeObject, dx, dy);
@@ -717,6 +781,18 @@ export class CanvasManager {
             return;
         }
 
+        // ✅ Precision: Check for handle hover first when object is active
+        if (this.activeObject) {
+            const bounds = this.getObjectBounds(this.activeObject);
+            if (bounds) {
+                const handleKey = this.getHandleAtPos(bounds, x, y);
+                if (handleKey) {
+                    this._updateResizeCursor(handleKey);
+                    return;
+                }
+            }
+        }
+
         const hoveredObj = this.getObjectAtPos(x, y);
         if (hoveredObj !== this.hoveredObject) {
             this.hoveredObject = hoveredObj;
@@ -731,7 +807,83 @@ export class CanvasManager {
     }
 
     onMouseUp(e) {
+        this._endDrag();
+    }
+
+    /**
+     * ✅ Reliability: Handle mouse leaving canvas during drag
+     * Continue tracking via window events, don't cancel the operation
+     */
+    onMouseLeave(e) {
+        // Don't cancel action - window listeners will handle it
+        // Just update visual feedback if not dragging
+        if (!this.currentAction) {
+            this.hoveredObject = null;
+            this.canvas.style.cursor = 'default';
+            this.redrawCallback();
+        }
+    }
+
+    /**
+     * ✅ Reliability: Window-level mouseup ensures drag ends even outside canvas
+     */
+    onWindowMouseUp(e) {
+        this._endDrag();
+    }
+
+    /**
+     * ✅ Reliability: Window-level mousemove allows drag to continue outside canvas
+     */
+    onWindowMouseMove(e) {
+        if (!this.currentAction || !this.activeObject) return;
+
+        const { x, y } = this.getMousePos(e);
+        const dx = x - this.dragStartPos.x;
+        const dy = y - this.dragStartPos.y;
+
+        // ✅ Performance: Skip tiny movements
+        if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+
+        if (this.currentAction === 'move') {
+            this.moveObject(this.activeObject, dx, dy);
+        } else if (this.currentAction.startsWith('resize-')) {
+            if (this.activeObject.type === 'text') {
+                this.resizeText(this.activeObject, dx, dy);
+            } else {
+                this.resizeImage(this.activeObject, dx, dy);
+            }
+        }
+
+        this.dragStartPos = { x, y };
+        this.redrawCallback();
+    }
+
+    /**
+     * ✅ Reliability: Central method to end drag operations cleanly
+     */
+    _endDrag() {
+        if (this.currentAction) {
+            this._stopDragListeners();
+        }
         this.currentAction = null;
+        this.canvas.style.cursor = 'default';
+    }
+
+    /**
+     * ✅ Precision: Update cursor to indicate resize direction
+     */
+    _updateResizeCursor(handleKey) {
+        const cursorMap = {
+            'resize-tl': 'nwse-resize',
+            'resize-br': 'nwse-resize',
+            'resize-tr': 'nesw-resize',
+            'resize-bl': 'nesw-resize',
+            'resize-t': 'ns-resize',
+            'resize-b': 'ns-resize',
+            'resize-l': 'ew-resize',
+            'resize-r': 'ew-resize'
+        };
+        this.canvas.style.cursor = cursorMap[handleKey] || 'pointer';
     }
 
     onDoubleClick(e) {
@@ -1045,12 +1197,41 @@ export class CanvasManager {
         };
     }
 
+    /**
+     * ✅ Precision: Check if point is on a resize handle with tolerance
+     * Corner handles have priority over edge handles for better UX
+     */
     getHandleAtPos(bounds, x, y) {
         const handles = this.getResizeHandles(bounds);
-        for (const key in handles) {
-            if (this.isPointInRect(x, y, handles[key])) return key;
+        const tolerance = this.HANDLE_HIT_TOLERANCE;
+
+        // ✅ Precision: Check corner handles first (higher priority)
+        const cornerHandles = ['resize-tl', 'resize-tr', 'resize-bl', 'resize-br'];
+        for (const key of cornerHandles) {
+            if (this._isPointInHandleWithTolerance(x, y, handles[key], tolerance)) {
+                return key;
+            }
         }
+
+        // ✅ Precision: Then check edge handles
+        const edgeHandles = ['resize-t', 'resize-b', 'resize-l', 'resize-r'];
+        for (const key of edgeHandles) {
+            if (this._isPointInHandleWithTolerance(x, y, handles[key], tolerance)) {
+                return key;
+            }
+        }
+
         return null;
+    }
+
+    /**
+     * ✅ Precision: Point-in-handle check with extra tolerance for easier targeting
+     */
+    _isPointInHandleWithTolerance(x, y, handle, tolerance) {
+        return x >= handle.x - tolerance &&
+               x <= handle.x + handle.width + tolerance &&
+               y >= handle.y - tolerance &&
+               y <= handle.y + handle.height + tolerance;
     }
 
     getDeleteButtonBounds(objectBounds) {

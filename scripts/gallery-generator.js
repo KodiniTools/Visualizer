@@ -123,7 +123,8 @@ function scanCategory(categoryId) {
       return;
     }
 
-    const filePath = `/gallery/${categoryId}/${file}`;
+    // Relativer Pfad (ohne führenden Slash) für Kompatibilität mit Subpfaden
+    const filePath = `gallery/${categoryId}/${file}`;
 
     images.push({
       id: generateId(categoryId, file),

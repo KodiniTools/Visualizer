@@ -174,11 +174,12 @@ export class MultiImageManager {
             const bounds = this.getImageBounds(imgData);
             if (!bounds) return;
             
-            // ✅ FIX: Minimale save/restore - nur wenn Filter/Rotation verwendet werden
-            const needsContext = (imgData.fotoSettings && 
-                (imgData.fotoSettings.rotation !== 0 || 
+            // ✅ FIX: Minimale save/restore - nur wenn Filter/Rotation/Kontur verwendet werden
+            const needsContext = (imgData.fotoSettings &&
+                (imgData.fotoSettings.rotation !== 0 ||
                  imgData.fotoSettings.opacity !== 100 ||
-                 imgData.fotoSettings.shadowBlur > 0));
+                 imgData.fotoSettings.shadowBlur > 0 ||
+                 imgData.fotoSettings.borderWidth > 0));
             
             if (needsContext) {
                 ctx.save();
@@ -208,16 +209,40 @@ export class MultiImageManager {
             // ✅ CRITICAL: Direkt zeichnen ohne zusätzliche Kopien
             try {
                 ctx.drawImage(
-                    imgData.imageObject, 
-                    bounds.x, 
-                    bounds.y, 
-                    bounds.width, 
+                    imgData.imageObject,
+                    bounds.x,
+                    bounds.y,
+                    bounds.width,
                     bounds.height
                 );
             } catch (e) {
                 console.warn('[MultiImageManager] Image render error:', e);
             }
-            
+
+            // ✨ BILDKONTUR zeichnen (nach dem Bild, vor Filter-Reset)
+            const borderWidth = imgData.fotoSettings?.borderWidth || 0;
+            if (borderWidth > 0) {
+                const borderColor = imgData.fotoSettings?.borderColor || '#ffffff';
+
+                // Filter zurücksetzen für saubere Kontur
+                ctx.filter = 'none';
+                ctx.globalAlpha = 1.0;
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+
+                // Kontur zeichnen
+                ctx.strokeStyle = borderColor;
+                ctx.lineWidth = borderWidth;
+                ctx.strokeRect(
+                    bounds.x - borderWidth / 2,
+                    bounds.y - borderWidth / 2,
+                    bounds.width + borderWidth,
+                    bounds.height + borderWidth
+                );
+            }
+
             // ✨ Filter + Schatten zurücksetzen (wenn FotoManager verwendet wurde)
             if (this.fotoManager && imgData.fotoSettings) {
                 this.fotoManager.resetFilters(ctx);

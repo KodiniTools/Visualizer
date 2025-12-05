@@ -1,5 +1,5 @@
 {
-  "_generated": "2025-12-05T12:33:04.851Z",
+  "_generated": "2025-12-05T13:00:04.625Z",
   "_info": "Diese Datei wird automatisch generiert. Führe \"npm run gallery:update\" aus, um sie zu aktualisieren.",
   "categories": [
     {
@@ -101,6 +101,30 @@
         "backgrounds",
         "gradient",
         "sunset"
+      ]
+    },
+    {
+      "id": "ba-sonnenuntergang1",
+      "category": "backgrounds",
+      "name": "Sonnenuntergang1",
+      "name_en": "Sonnenuntergang1",
+      "file": "gallery/backgrounds/sonnenuntergang1.jpg",
+      "thumbnail": "gallery/backgrounds/sonnenuntergang1.jpg",
+      "tags": [
+        "backgrounds",
+        "sonnenuntergang1"
+      ]
+    },
+    {
+      "id": "ba-sonnenuntergang2",
+      "category": "backgrounds",
+      "name": "Sonnenuntergang2",
+      "name_en": "Sonnenuntergang2",
+      "file": "gallery/backgrounds/sonnenuntergang2.jpg",
+      "thumbnail": "gallery/backgrounds/sonnenuntergang2.jpg",
+      "tags": [
+        "backgrounds",
+        "sonnenuntergang2"
       ]
     },
     {

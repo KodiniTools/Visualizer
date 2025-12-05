@@ -768,8 +768,8 @@ const FALLBACK_CATEGORIES = [
 async function loadStockGallery() {
   stockImagesLoading.value = true;
   try {
-    // Versuche verschiedene Pfade
-    const paths = ['/gallery/gallery.json', './gallery/gallery.json', 'gallery/gallery.json'];
+    // Relativer Pfad für Kompatibilität mit Subpfaden (z.B. /visualizer/)
+    const paths = ['gallery/gallery.json', './gallery/gallery.json'];
     let response = null;
     let lastError = null;
 

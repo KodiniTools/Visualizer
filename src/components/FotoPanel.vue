@@ -53,6 +53,17 @@
       <div v-if="stockImagesLoading" class="loading-state">
         <p>Galerie wird geladen...</p>
       </div>
+
+      <!-- Fehleranzeige wenn keine Bilder -->
+      <div v-if="!stockImagesLoading && stockCategories.length === 0" class="error-state">
+        <p>Galerie konnte nicht geladen werden</p>
+        <button @click="loadStockGallery" class="btn-retry">Erneut versuchen</button>
+      </div>
+
+      <!-- Keine Bilder in Kategorie -->
+      <div v-if="!stockImagesLoading && stockCategories.length > 0 && filteredStockImages.length === 0" class="empty-state">
+        <p>Keine Bilder in dieser Kategorie</p>
+      </div>
     </div>
 
     <!-- ✨ Upload-Bereich (immer sichtbar) -->
@@ -746,15 +757,37 @@ function setAsWorkspaceBackground() {
 // ✨ STOCK-GALERIE FUNKTIONEN
 // ═══════════════════════════════════════════════════════════════════
 
+// Fallback-Kategorien falls JSON nicht lädt
+const FALLBACK_CATEGORIES = [
+  { id: 'backgrounds', name: 'Hintergründe', name_en: 'Backgrounds', icon: '🎨', description: 'Farbverläufe und Hintergrundbilder' },
+  { id: 'elements', name: 'Elemente', name_en: 'Elements', icon: '✨', description: 'Grafische Formen und Objekte' },
+  { id: 'patterns', name: 'Muster', name_en: 'Patterns', icon: '🔲', description: 'Wiederholende Muster und Texturen' }
+];
+
 // Stock-Galerie laden
 async function loadStockGallery() {
   stockImagesLoading.value = true;
   try {
-    const response = await fetch('/gallery/gallery.json');
-    if (!response.ok) throw new Error('Galerie konnte nicht geladen werden');
+    // Versuche verschiedene Pfade
+    const paths = ['/gallery/gallery.json', './gallery/gallery.json', 'gallery/gallery.json'];
+    let response = null;
+    let lastError = null;
+
+    for (const path of paths) {
+      try {
+        response = await fetch(path);
+        if (response.ok) break;
+      } catch (e) {
+        lastError = e;
+      }
+    }
+
+    if (!response || !response.ok) {
+      throw new Error(lastError?.message || 'Galerie konnte nicht geladen werden');
+    }
 
     const data = await response.json();
-    stockCategories.value = data.categories || [];
+    stockCategories.value = data.categories || FALLBACK_CATEGORIES;
     stockImages.value = data.images || [];
 
     // Standard-Kategorie auswählen
@@ -765,7 +798,8 @@ async function loadStockGallery() {
     console.log('✅ Stock-Galerie geladen:', stockImages.value.length, 'Bilder');
   } catch (error) {
     console.error('❌ Fehler beim Laden der Stock-Galerie:', error);
-    stockCategories.value = [];
+    // Fallback: Zeige wenigstens die Kategorien
+    stockCategories.value = FALLBACK_CATEGORIES;
     stockImages.value = [];
   } finally {
     stockImagesLoading.value = false;
@@ -982,18 +1016,21 @@ watch(currentActiveImage, (newImage) => {
   gap: 6px;
   padding: 8px 12px;
   border-radius: 6px;
-  border: 1px solid #444;
-  background-color: #1e1e1e;
-  color: #bbb;
+  border: 1px solid #555;
+  background-color: #333;
+  color: #e0e0e0;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .category-tab:hover {
   border-color: #6ea8fe;
-  color: #e0e0e0;
-  background-color: #252525;
+  color: #fff;
+  background-color: #444;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(110, 168, 254, 0.2);
 }
 
 .category-tab.active {
@@ -1001,6 +1038,7 @@ watch(currentActiveImage, (newImage) => {
   border-color: #6ea8fe;
   color: #121212;
   font-weight: 600;
+  box-shadow: 0 4px 12px rgba(110, 168, 254, 0.4);
 }
 
 .category-icon {
@@ -1108,6 +1146,38 @@ watch(currentActiveImage, (newImage) => {
 .loading-state p {
   margin: 0;
   font-size: 13px;
+}
+
+/* Fehleranzeige */
+.error-state {
+  text-align: center;
+  padding: 20px;
+  color: #ff6b6b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.error-state p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.btn-retry {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #6ea8fe;
+  background-color: #2a2a2a;
+  color: #6ea8fe;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-retry:hover {
+  background-color: #6ea8fe;
+  color: #121212;
 }
 
 /* Upload-Bereich Styles */

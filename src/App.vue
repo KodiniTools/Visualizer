@@ -86,10 +86,10 @@ let recordingCanvasStream = null; // ✅ NEU: Globale Referenz zum Canvas-Stream
 let audioContext, analyser, sourceNode, outputGain, recordingDest, recordingGain;
 let animationFrameId;
 let textManagerInstance = null;
-let lastSelectedVisualizerId = null;
+const lastSelectedVisualizerId = ref(null); // ✅ FIX: Reaktiv für Hot-Reload Unterstützung
 let audioDataArray = null; // ✅ Wiederverwendbares Array für Audio-Daten (verhindert GC-Overhead)
-let lastCanvasWidth = 0; // ✅ FIX: Track canvas dimensions for resize detection
-let lastCanvasHeight = 0;
+const lastCanvasWidth = ref(0); // ✅ FIX: Reaktiv für Hot-Reload
+const lastCanvasHeight = ref(0);
 let visualizerCacheCanvas = null; // ✅ FIX: Offscreen canvas for visualizer caching
 let visualizerCacheCtx = null;
 
@@ -376,17 +376,31 @@ function draw() {
     if (analyser && shouldDrawVisualizer) {
       const visualizer = Visualizers[visualizerStore.selectedVisualizer];
       if (visualizer) {
-        // ✅ FIX: Check for visualizer change OR canvas resize
-        const visualizerChanged = visualizerStore.selectedVisualizer !== lastSelectedVisualizerId;
-        const canvasResized = canvas.width !== lastCanvasWidth || canvas.height !== lastCanvasHeight;
+        // ✅ FIX: Check for visualizer change OR canvas resize (mit reaktiven refs)
+        const visualizerChanged = visualizerStore.selectedVisualizer !== lastSelectedVisualizerId.value;
+        const canvasResized = canvas.width !== lastCanvasWidth.value || canvas.height !== lastCanvasHeight.value;
 
         if (visualizerChanged || canvasResized) {
+          // ✅ NEU: Cleanup alter Visualizer-State wenn vorhanden
+          if (lastSelectedVisualizerId.value && Visualizers[lastSelectedVisualizerId.value]) {
+            const oldVisualizer = Visualizers[lastSelectedVisualizerId.value];
+            if (typeof oldVisualizer.cleanup === 'function') {
+              try {
+                oldVisualizer.cleanup();
+                console.log(`🧹 [App] Visualizer "${lastSelectedVisualizerId.value}" bereinigt`);
+              } catch (e) {
+                console.warn(`⚠️ [App] Cleanup-Fehler bei "${lastSelectedVisualizerId.value}":`, e);
+              }
+            }
+          }
+
+          // Initialisiere neuen Visualizer
           if (typeof visualizer.init === 'function') {
             visualizer.init(canvas.width, canvas.height);
           }
-          lastSelectedVisualizerId = visualizerStore.selectedVisualizer;
-          lastCanvasWidth = canvas.width;
-          lastCanvasHeight = canvas.height;
+          lastSelectedVisualizerId.value = visualizerStore.selectedVisualizer;
+          lastCanvasWidth.value = canvas.width;
+          lastCanvasHeight.value = canvas.height;
         }
 
         const bufferLength = analyser.frequencyBinCount;
@@ -415,11 +429,15 @@ function draw() {
         visualizerCacheCtx.globalAlpha = visualizerStore.colorOpacity;
         try {
           visualizer.draw(visualizerCacheCtx, audioDataArray, bufferLength, canvas.width, canvas.height, visualizerStore.visualizerColor, visualizerStore.visualizerOpacity);
+          // ✅ NEU: Markiere Visualizer als funktionierend für Fallback
+          visualizerStore.markVisualizerWorking(visualizerStore.selectedVisualizer);
         } catch (error) {
-          console.error(`Visualizer "${visualizerStore.selectedVisualizer}" Fehler:`, error);
-          // Fallback: Schwarzer Hintergrund statt Crash
+          console.error(`❌ Visualizer "${visualizerStore.selectedVisualizer}" Fehler:`, error);
+          // ✅ VERBESSERT: Fallback zu letztem funktionierenden Visualizer
           visualizerCacheCtx.fillStyle = '#000';
           visualizerCacheCtx.fillRect(0, 0, canvas.width, canvas.height);
+          // Wechsle zum letzten funktionierenden Visualizer
+          visualizerStore.fallbackToLastWorking();
         }
         visualizerCacheCtx.restore();
 

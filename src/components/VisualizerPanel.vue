@@ -1,5 +1,9 @@
 <template>
-  <div class="panel-container">
+  <div class="panel-container" :class="{ 'panel-disabled': !store.showVisualizer }">
+    <!-- Disabled Overlay -->
+    <div v-if="!store.showVisualizer" class="disabled-overlay">
+      <span class="disabled-text">Visualizer deaktiviert</span>
+    </div>
     <div class="panel-header">
       <h4>Visualizer</h4>
       <HelpTooltip
@@ -694,5 +698,47 @@ h4 {
 .scale-slider::-moz-range-thumb:hover {
   background: #388e3c;
   transform: scale(1.15);
+}
+
+/* ✅ NEU: Disabled State Styles */
+.panel-container {
+  position: relative;
+  transition: opacity 0.3s ease;
+}
+
+.panel-disabled {
+  opacity: 0.6;
+}
+
+.panel-disabled .control-section:not(:first-child):not(:nth-child(2)) {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.disabled-overlay {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 0 0 8px 8px;
+  pointer-events: none;
+}
+
+.disabled-text {
+  background: rgba(255, 107, 107, 0.9);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 </style>

@@ -1,0 +1,99 @@
+{
+  "_generated": "2025-12-05T15:26:15.475Z",
+  "_info": "Automatisch generiert für Kategorie \"Muster\". Führe \"npm run gallery:update\" aus, um zu aktualisieren.",
+  "category": {
+    "id": "patterns",
+    "name": "Muster",
+    "name_en": "Patterns",
+    "icon": "🔲",
+    "description": "Wiederholende Muster und Texturen",
+    "description_en": "Repeating patterns and textures"
+  },
+  "count": 6,
+  "images": [
+    {
+      "id": "pa-circles",
+      "name": "Circles",
+      "name_en": "Circles",
+      "file": "gallery/patterns/circles.svg",
+      "thumbnail": "gallery/patterns/circles.svg",
+      "format": "SVG",
+      "size": "567 B",
+      "hasTransparency": false,
+      "tags": [
+        "patterns",
+        "circles"
+      ]
+    },
+    {
+      "id": "pa-dots",
+      "name": "Dots",
+      "name_en": "Dots",
+      "file": "gallery/patterns/dots.svg",
+      "thumbnail": "gallery/patterns/dots.svg",
+      "format": "SVG",
+      "size": "377 B",
+      "hasTransparency": false,
+      "tags": [
+        "patterns",
+        "dots"
+      ]
+    },
+    {
+      "id": "pa-grid",
+      "name": "Grid",
+      "name_en": "Grid",
+      "file": "gallery/patterns/grid.svg",
+      "thumbnail": "gallery/patterns/grid.svg",
+      "format": "SVG",
+      "size": "406 B",
+      "hasTransparency": false,
+      "tags": [
+        "patterns",
+        "grid"
+      ]
+    },
+    {
+      "id": "pa-hexagons",
+      "name": "Hexagons",
+      "name_en": "Hexagons",
+      "file": "gallery/patterns/hexagons.svg",
+      "thumbnail": "gallery/patterns/hexagons.svg",
+      "format": "SVG",
+      "size": "551 B",
+      "hasTransparency": false,
+      "tags": [
+        "patterns",
+        "hexagons"
+      ]
+    },
+    {
+      "id": "pa-stripes",
+      "name": "Stripes",
+      "name_en": "Stripes",
+      "file": "gallery/patterns/stripes.svg",
+      "thumbnail": "gallery/patterns/stripes.svg",
+      "format": "SVG",
+      "size": "426 B",
+      "hasTransparency": false,
+      "tags": [
+        "patterns",
+        "stripes"
+      ]
+    },
+    {
+      "id": "pa-waves",
+      "name": "Waves",
+      "name_en": "Waves",
+      "file": "gallery/patterns/waves.svg",
+      "thumbnail": "gallery/patterns/waves.svg",
+      "format": "SVG",
+      "size": "437 B",
+      "hasTransparency": false,
+      "tags": [
+        "patterns",
+        "waves"
+      ]
+    }
+  ]
+}

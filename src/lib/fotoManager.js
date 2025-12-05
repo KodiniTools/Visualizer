@@ -150,12 +150,17 @@ export class FotoManager {
     applyPreset(imageObject, presetName) {
         if (!this._isImageObject(imageObject)) return;
 
-        // ✨ Aktuelle Bildkontur-Einstellungen speichern
+        // ✨ Stelle sicher, dass fotoSettings existiert
+        this.initializeImageSettings(imageObject);
+
+        // ✨ Aktuelle Bildkontur-Einstellungen speichern (NACH Initialisierung)
         const currentBorderSettings = {
-            borderWidth: imageObject.fotoSettings?.borderWidth || 0,
-            borderColor: imageObject.fotoSettings?.borderColor || '#ffffff',
-            borderOpacity: imageObject.fotoSettings?.borderOpacity ?? 100
+            borderWidth: imageObject.fotoSettings.borderWidth ?? 0,
+            borderColor: imageObject.fotoSettings.borderColor ?? '#ffffff',
+            borderOpacity: imageObject.fotoSettings.borderOpacity ?? 100
         };
+
+        console.log('🎨 Preset anwenden, Kontur beibehalten:', currentBorderSettings);
 
         const presets = {
             'normal': { ...this.defaultSettings },

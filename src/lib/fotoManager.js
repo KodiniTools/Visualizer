@@ -220,7 +220,8 @@ export class FotoManager {
             imageObject.fotoSettings = {
                 ...presets[presetName],
                 ...currentBorderSettings,
-                ...currentFlipSettings
+                ...currentFlipSettings,
+                preset: presetName === 'normal' ? '' : presetName  // Preset-Name speichern
             };
             this.redrawCallback?.();
         }

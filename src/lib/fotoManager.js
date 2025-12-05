@@ -29,6 +29,10 @@ export class FotoManager {
             // ✨ ROTATION
             rotation: 0,             // 0-360° Bildrotation
 
+            // ✨ SPIEGELN (Flip)
+            flipH: false,            // Horizontal spiegeln
+            flipV: false,            // Vertikal spiegeln
+
             // ✨ BILDKONTUR (Border/Outline)
             borderWidth: 0,          // 0-50px Konturbreite
             borderColor: '#ffffff',  // Konturfarbe
@@ -153,14 +157,19 @@ export class FotoManager {
         // ✨ Stelle sicher, dass fotoSettings existiert
         this.initializeImageSettings(imageObject);
 
-        // ✨ Aktuelle Bildkontur-Einstellungen speichern (NACH Initialisierung)
+        // ✨ Aktuelle Bildkontur- und Flip-Einstellungen speichern (NACH Initialisierung)
         const currentBorderSettings = {
             borderWidth: imageObject.fotoSettings.borderWidth ?? 0,
             borderColor: imageObject.fotoSettings.borderColor ?? '#ffffff',
             borderOpacity: imageObject.fotoSettings.borderOpacity ?? 100
         };
 
-        console.log('🎨 Preset anwenden, Kontur beibehalten:', currentBorderSettings);
+        const currentFlipSettings = {
+            flipH: imageObject.fotoSettings.flipH ?? false,
+            flipV: imageObject.fotoSettings.flipV ?? false
+        };
+
+        console.log('🎨 Preset anwenden, Kontur und Flip beibehalten:', currentBorderSettings, currentFlipSettings);
 
         const presets = {
             'normal': { ...this.defaultSettings },
@@ -207,10 +216,11 @@ export class FotoManager {
         };
 
         if (presets[presetName]) {
-            // ✨ Preset anwenden, aber Bildkontur-Einstellungen beibehalten
+            // ✨ Preset anwenden, aber Bildkontur- und Flip-Einstellungen beibehalten
             imageObject.fotoSettings = {
                 ...presets[presetName],
-                ...currentBorderSettings
+                ...currentBorderSettings,
+                ...currentFlipSettings
             };
             this.redrawCallback?.();
         }

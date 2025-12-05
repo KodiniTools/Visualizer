@@ -559,30 +559,30 @@ function onBorderOpacityChange(event) {
 
 function onPresetChange(event) {
   const presetId = event.target.value;
-  updateActiveImageSetting('preset', presetId || null);
-  
-  // Wenn ein Preset ausgewählt wurde, lade die Preset-Werte
-  if (presetId && fotoManagerRef?.value) {
-    const preset = presets.value.find(p => p.id === presetId);
-    if (preset && preset.settings) {
-      // Setze alle Werte aus dem Preset
-      if (preset.settings.brightness !== undefined) {
-        brightnessInputRef.value.value = preset.settings.brightness;
-        brightnessValueRef.value.textContent = preset.settings.brightness + '%';
-        updateActiveImageSetting('brightness', preset.settings.brightness);
-      }
-      if (preset.settings.contrast !== undefined) {
-        contrastInputRef.value.value = preset.settings.contrast;
-        contrastValueRef.value.textContent = preset.settings.contrast + '%';
-        updateActiveImageSetting('contrast', preset.settings.contrast);
-      }
-      if (preset.settings.saturation !== undefined) {
-        saturationInputRef.value.value = preset.settings.saturation;
-        saturationValueRef.value.textContent = preset.settings.saturation + '%';
-        updateActiveImageSetting('saturation', preset.settings.saturation);
-      }
-    }
+
+  if (!currentActiveImage.value) {
+    console.warn('⚠️ Kein aktives Bild für Preset');
+    return;
   }
+
+  const fotoManager = fotoManagerRef?.value;
+  if (!fotoManager) {
+    console.warn('⚠️ FotoManager nicht verfügbar');
+    return;
+  }
+
+  if (presetId === '') {
+    // "Kein Filter" ausgewählt - Reset auf Standardwerte (aber Kontur beibehalten)
+    fotoManager.applyPreset(currentActiveImage.value, 'normal');
+  } else {
+    // Preset anwenden (Kontur wird automatisch beibehalten)
+    fotoManager.applyPreset(currentActiveImage.value, presetId);
+  }
+
+  // UI mit den neuen Werten aktualisieren
+  loadImageSettings(currentActiveImage.value);
+
+  console.log('🎨 Preset angewendet:', presetId || 'normal');
 }
 
 function resetFilters() {

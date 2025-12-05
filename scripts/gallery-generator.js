@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * Gallery Generator Script
+ * Gallery Generator Script (Modular Version)
  *
- * Scannt automatisch die Ordner in public/gallery/ und generiert
- * die gallery.json mit allen gefundenen Bildern.
+ * Scannt automatisch die Ordner in public/gallery/ und generiert:
+ * - Eine category.json in jedem Kategorie-Ordner
+ * - Eine zentrale gallery.json mit Kategorie-Metadaten
  *
  * Unterstützte Formate: PNG, JPG, JPEG, WebP, SVG, GIF
  *
@@ -21,7 +22,7 @@ const __dirname = path.dirname(__filename);
 
 // Konfiguration
 const GALLERY_PATH = path.join(__dirname, '..', 'public', 'gallery');
-const OUTPUT_FILE = path.join(GALLERY_PATH, 'gallery.json');
+const INDEX_FILE = path.join(GALLERY_PATH, 'gallery.json');
 
 // Unterstützte Bildformate
 const SUPPORTED_FORMATS = ['.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif'];
@@ -33,21 +34,24 @@ const CATEGORIES = [
     name: 'Hintergründe',
     name_en: 'Backgrounds',
     icon: '🎨',
-    description: 'Farbverläufe und Hintergrundbilder'
+    description: 'Farbverläufe und Hintergrundbilder',
+    description_en: 'Gradients and background images'
   },
   {
     id: 'elements',
     name: 'Elemente',
     name_en: 'Elements',
     icon: '✨',
-    description: 'Grafische Formen und Objekte'
+    description: 'Grafische Formen und Objekte (inkl. PNG mit Transparenz)',
+    description_en: 'Graphic shapes and objects (incl. transparent PNGs)'
   },
   {
     id: 'patterns',
     name: 'Muster',
     name_en: 'Patterns',
     icon: '🔲',
-    description: 'Wiederholende Muster und Texturen'
+    description: 'Wiederholende Muster und Texturen',
+    description_en: 'Repeating patterns and textures'
   }
 ];
 
@@ -95,21 +99,53 @@ function extractTags(fileName, category) {
     }
   });
 
+  // PNG-Transparenz-Tag hinzufügen
+  const ext = path.extname(fileName).toLowerCase();
+  if (ext === '.png') {
+    tags.push('transparent');
+  }
+
   return tags;
 }
 
 /**
- * Scannt einen Kategorie-Ordner nach Bildern
+ * Ermittelt die Bildgröße (falls möglich)
  */
-function scanCategory(categoryId) {
-  const categoryPath = path.join(GALLERY_PATH, categoryId);
+function getImageInfo(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  const stats = fs.statSync(filePath);
+
+  return {
+    size: stats.size,
+    sizeFormatted: formatFileSize(stats.size),
+    format: ext.replace('.', '').toUpperCase(),
+    hasTransparency: ext === '.png' || ext === '.webp' || ext === '.gif'
+  };
+}
+
+/**
+ * Formatiert Dateigröße
+ */
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+/**
+ * Scannt einen Kategorie-Ordner nach Bildern und erstellt category.json
+ */
+function scanAndSaveCategory(categoryDef) {
+  const categoryPath = path.join(GALLERY_PATH, categoryDef.id);
+  const categoryJsonPath = path.join(categoryPath, 'category.json');
   const images = [];
 
   // Prüfen ob Ordner existiert
   if (!fs.existsSync(categoryPath)) {
-    console.log(`  📁 Erstelle Ordner: ${categoryId}/`);
+    console.log(`  📁 Erstelle Ordner: ${categoryDef.id}/`);
     fs.mkdirSync(categoryPath, { recursive: true });
-    return images;
   }
 
   // Dateien im Ordner lesen
@@ -118,33 +154,64 @@ function scanCategory(categoryId) {
   files.forEach(file => {
     const ext = path.extname(file).toLowerCase();
 
-    // Nur unterstützte Formate
+    // Nur unterstützte Formate (keine JSON-Dateien)
     if (!SUPPORTED_FORMATS.includes(ext)) {
       return;
     }
 
+    const fullPath = path.join(categoryPath, file);
+    const imageInfo = getImageInfo(fullPath);
+
     // Relativer Pfad (ohne führenden Slash) für Kompatibilität mit Subpfaden
-    const filePath = `gallery/${categoryId}/${file}`;
+    const filePath = `gallery/${categoryDef.id}/${file}`;
 
     images.push({
-      id: generateId(categoryId, file),
-      category: categoryId,
+      id: generateId(categoryDef.id, file),
       name: fileNameToDisplayName(file),
       name_en: fileNameToDisplayName(file),
       file: filePath,
       thumbnail: filePath,
-      tags: extractTags(file, categoryId)
+      format: imageInfo.format,
+      size: imageInfo.sizeFormatted,
+      hasTransparency: imageInfo.hasTransparency,
+      tags: extractTags(file, categoryDef.id)
     });
   });
 
-  return images;
+  // Sortiere nach Name
+  images.sort((a, b) => a.name.localeCompare(b.name));
+
+  // Category JSON erstellen
+  const categoryJson = {
+    _generated: new Date().toISOString(),
+    _info: `Automatisch generiert für Kategorie "${categoryDef.name}". Führe "npm run gallery:update" aus, um zu aktualisieren.`,
+    category: {
+      id: categoryDef.id,
+      name: categoryDef.name,
+      name_en: categoryDef.name_en,
+      icon: categoryDef.icon,
+      description: categoryDef.description,
+      description_en: categoryDef.description_en
+    },
+    count: images.length,
+    images: images
+  };
+
+  // JSON-Datei schreiben
+  fs.writeFileSync(categoryJsonPath, JSON.stringify(categoryJson, null, 2), 'utf8');
+
+  return {
+    ...categoryDef,
+    count: images.length,
+    jsonFile: `gallery/${categoryDef.id}/category.json`
+  };
 }
 
 /**
- * Hauptfunktion - Generiert die gallery.json
+ * Hauptfunktion - Generiert alle JSON-Dateien
  */
 function generateGallery() {
-  console.log('\n🖼️  Gallery Generator\n');
+  console.log('\n🖼️  Gallery Generator (Modular)\n');
   console.log('━'.repeat(50));
 
   // Prüfen ob gallery-Ordner existiert
@@ -153,35 +220,51 @@ function generateGallery() {
     fs.mkdirSync(GALLERY_PATH, { recursive: true });
   }
 
-  // Alle Kategorien scannen
-  const allImages = [];
+  // Alle Kategorien scannen und speichern
+  const categoryInfos = [];
+  let totalImages = 0;
 
-  CATEGORIES.forEach(category => {
-    console.log(`\n📂 Scanne ${category.name} (${category.id}/)...`);
-    const images = scanCategory(category.id);
-    allImages.push(...images);
-    console.log(`   ✓ ${images.length} Bilder gefunden`);
+  CATEGORIES.forEach(categoryDef => {
+    console.log(`\n📂 Verarbeite ${categoryDef.name} (${categoryDef.id}/)...`);
 
-    // Gefundene Bilder auflisten
-    images.forEach(img => {
-      console.log(`     • ${img.name}`);
-    });
+    const info = scanAndSaveCategory(categoryDef);
+    categoryInfos.push(info);
+    totalImages += info.count;
+
+    console.log(`   ✓ ${info.count} Bilder gefunden`);
+    console.log(`   📄 category.json erstellt`);
   });
 
-  // Gallery-Objekt erstellen
-  const gallery = {
+  // Haupt-Index erstellen
+  const galleryIndex = {
     _generated: new Date().toISOString(),
-    _info: 'Diese Datei wird automatisch generiert. Führe "npm run gallery:update" aus, um sie zu aktualisieren.',
-    categories: CATEGORIES,
-    images: allImages
+    _version: '2.0',
+    _info: 'Modulare Galerie-Struktur. Jede Kategorie hat eine eigene category.json.',
+    totalImages: totalImages,
+    categories: categoryInfos.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      name_en: cat.name_en,
+      icon: cat.icon,
+      description: cat.description,
+      description_en: cat.description_en,
+      count: cat.count,
+      jsonFile: cat.jsonFile
+    }))
   };
 
-  // JSON-Datei schreiben
-  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(gallery, null, 2), 'utf8');
+  // Index-Datei schreiben
+  fs.writeFileSync(INDEX_FILE, JSON.stringify(galleryIndex, null, 2), 'utf8');
 
   console.log('\n' + '━'.repeat(50));
-  console.log(`\n✅ gallery.json erfolgreich generiert!`);
-  console.log(`   📊 Gesamt: ${allImages.length} Bilder in ${CATEGORIES.length} Kategorien\n`);
+  console.log(`\n✅ Galerie erfolgreich generiert!`);
+  console.log(`   📊 Gesamt: ${totalImages} Bilder in ${CATEGORIES.length} Kategorien`);
+  console.log(`\n   📄 Erstellte Dateien:`);
+  console.log(`      • gallery/gallery.json (Index)`);
+  categoryInfos.forEach(cat => {
+    console.log(`      • gallery/${cat.id}/category.json (${cat.count} Bilder)`);
+  });
+  console.log('');
 }
 
 // Script ausführen

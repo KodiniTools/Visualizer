@@ -1,0 +1,133 @@
+{
+  "_generated": "2025-12-05T15:26:15.469Z",
+  "_info": "Automatisch generiert für Kategorie \"Hintergründe\". Führe \"npm run gallery:update\" aus, um zu aktualisieren.",
+  "category": {
+    "id": "backgrounds",
+    "name": "Hintergründe",
+    "name_en": "Backgrounds",
+    "icon": "🎨",
+    "description": "Farbverläufe und Hintergrundbilder",
+    "description_en": "Gradients and background images"
+  },
+  "count": 8,
+  "images": [
+    {
+      "id": "ba-gradient-forest",
+      "name": "Gradient Forest",
+      "name_en": "Gradient Forest",
+      "file": "gallery/backgrounds/gradient-forest.svg",
+      "thumbnail": "gallery/backgrounds/gradient-forest.svg",
+      "format": "SVG",
+      "size": "398 B",
+      "hasTransparency": false,
+      "tags": [
+        "backgrounds",
+        "gradient",
+        "forest"
+      ]
+    },
+    {
+      "id": "ba-gradient-midnight",
+      "name": "Gradient Midnight",
+      "name_en": "Gradient Midnight",
+      "file": "gallery/backgrounds/gradient-midnight.svg",
+      "thumbnail": "gallery/backgrounds/gradient-midnight.svg",
+      "format": "SVG",
+      "size": "402 B",
+      "hasTransparency": false,
+      "tags": [
+        "backgrounds",
+        "gradient",
+        "midnight"
+      ]
+    },
+    {
+      "id": "ba-gradient-neon",
+      "name": "Gradient Neon",
+      "name_en": "Gradient Neon",
+      "file": "gallery/backgrounds/gradient-neon.svg",
+      "thumbnail": "gallery/backgrounds/gradient-neon.svg",
+      "format": "SVG",
+      "size": "396 B",
+      "hasTransparency": false,
+      "tags": [
+        "backgrounds",
+        "gradient",
+        "neon"
+      ]
+    },
+    {
+      "id": "ba-gradient-ocean",
+      "name": "Gradient Ocean",
+      "name_en": "Gradient Ocean",
+      "file": "gallery/backgrounds/gradient-ocean.svg",
+      "thumbnail": "gallery/backgrounds/gradient-ocean.svg",
+      "format": "SVG",
+      "size": "398 B",
+      "hasTransparency": false,
+      "tags": [
+        "backgrounds",
+        "gradient",
+        "ocean"
+      ]
+    },
+    {
+      "id": "ba-gradient-purple",
+      "name": "Gradient Purple",
+      "name_en": "Gradient Purple",
+      "file": "gallery/backgrounds/gradient-purple.svg",
+      "thumbnail": "gallery/backgrounds/gradient-purple.svg",
+      "format": "SVG",
+      "size": "400 B",
+      "hasTransparency": false,
+      "tags": [
+        "backgrounds",
+        "gradient",
+        "purple"
+      ]
+    },
+    {
+      "id": "ba-gradient-sunset",
+      "name": "Gradient Sunset",
+      "name_en": "Gradient Sunset",
+      "file": "gallery/backgrounds/gradient-sunset.svg",
+      "thumbnail": "gallery/backgrounds/gradient-sunset.svg",
+      "format": "SVG",
+      "size": "398 B",
+      "hasTransparency": false,
+      "tags": [
+        "backgrounds",
+        "gradient",
+        "sunset"
+      ]
+    },
+    {
+      "id": "ba-sonnenuntergang1",
+      "name": "Sonnenuntergang1",
+      "name_en": "Sonnenuntergang1",
+      "file": "gallery/backgrounds/sonnenuntergang1.jpg",
+      "thumbnail": "gallery/backgrounds/sonnenuntergang1.jpg",
+      "format": "JPG",
+      "size": "71.54 KB",
+      "hasTransparency": false,
+      "tags": [
+        "backgrounds",
+        "sonnenuntergang1"
+      ]
+    },
+    {
+      "id": "ba-sonnenuntergang2",
+      "name": "Sonnenuntergang2",
+      "name_en": "Sonnenuntergang2",
+      "file": "gallery/backgrounds/sonnenuntergang2.jpg",
+      "thumbnail": "gallery/backgrounds/sonnenuntergang2.jpg",
+      "format": "JPG",
+      "size": "109.5 KB",
+      "hasTransparency": false,
+      "tags": [
+        "backgrounds",
+        "sonnenuntergang2"
+      ]
+    }
+  ]
+}

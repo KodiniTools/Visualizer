@@ -30,6 +30,7 @@
         >
           <span class="category-icon">{{ category.icon }}</span>
           <span class="category-name">{{ category.name }}</span>
+          <span v-if="category.count" class="category-count">{{ category.count }}</span>
         </button>
       </div>
 
@@ -66,8 +67,8 @@
       </div>
 
       <!-- Ladeanzeige -->
-      <div v-if="stockImagesLoading" class="loading-state">
-        <p>Galerie wird geladen...</p>
+      <div v-if="stockImagesLoading || categoryLoading" class="loading-state">
+        <p>{{ stockImagesLoading ? 'Galerie wird geladen...' : 'Kategorie wird geladen...' }}</p>
       </div>
 
       <!-- Fehleranzeige wenn keine Bilder -->
@@ -77,7 +78,7 @@
       </div>
 
       <!-- Keine Bilder in Kategorie -->
-      <div v-if="!stockImagesLoading && stockCategories.length > 0 && filteredStockImages.length === 0" class="empty-state">
+      <div v-if="!stockImagesLoading && !categoryLoading && stockCategories.length > 0 && filteredStockImages.length === 0" class="empty-state">
         <p>Keine Bilder in dieser Kategorie</p>
       </div>
     </div>
@@ -348,15 +349,17 @@ const fileInputRef = ref(null);
 const imageGallery = ref([]); // Array von Bildern
 const selectedImageIndex = ref(null); // Aktuell ausgewählter Index
 
-// ✨ NEU: Refs für Stock-Galerie
+// ✨ NEU: Refs für Stock-Galerie (Modulare Struktur)
 const stockCategories = ref([]);
-const stockImages = ref([]);
+const stockImages = ref([]); // Bilder der aktuellen Kategorie
 const selectedStockCategory = ref('backgrounds');
+const loadedCategoryData = ref(new Map()); // Cache für geladene Kategorie-Daten
 
 // ✨ NEU: Ref für Bild-Vorschau Overlay
 const previewImage = ref(null); // { src, name, type, data }
 const selectedStockImage = ref(null);
 const stockImagesLoading = ref(true);
+const categoryLoading = ref(false); // Lädt gerade eine Kategorie?
 const loadedStockImages = ref(new Map()); // Cache für geladene Image-Objekte
 
 // Holen die Manager-Instanzen aus App.vue (als reactive refs)
@@ -377,9 +380,9 @@ const selectedImage = computed(() => {
 });
 
 // ✨ NEU: Computed für gefilterte Stock-Bilder nach Kategorie
+// Bei modularer Struktur enthält stockImages bereits nur die aktuelle Kategorie
 const filteredStockImages = computed(() => {
-  if (!selectedStockCategory.value) return stockImages.value;
-  return stockImages.value.filter(img => img.category === selectedStockCategory.value);
+  return stockImages.value;
 });
 
 // ✨ NEU: Filter-Änderungs-Handler
@@ -788,7 +791,7 @@ const FALLBACK_CATEGORIES = [
   { id: 'patterns', name: 'Muster', name_en: 'Patterns', icon: '🔲', description: 'Wiederholende Muster und Texturen' }
 ];
 
-// Stock-Galerie laden
+// Stock-Galerie Index laden (Modulare Struktur v2.0)
 async function loadStockGallery() {
   stockImagesLoading.value = true;
   try {
@@ -811,15 +814,30 @@ async function loadStockGallery() {
     }
 
     const data = await response.json();
-    stockCategories.value = data.categories || FALLBACK_CATEGORIES;
-    stockImages.value = data.images || [];
 
-    // Standard-Kategorie auswählen
-    if (stockCategories.value.length > 0) {
-      selectedStockCategory.value = stockCategories.value[0].id;
+    // Prüfen ob es die neue modulare Struktur ist (v2.0)
+    if (data._version === '2.0' && data.categories) {
+      stockCategories.value = data.categories || FALLBACK_CATEGORIES;
+
+      // Standard-Kategorie auswählen und laden
+      if (stockCategories.value.length > 0) {
+        const firstCategory = stockCategories.value[0].id;
+        selectedStockCategory.value = firstCategory;
+        await loadCategoryImages(firstCategory);
+      }
+
+      console.log('✅ Stock-Galerie Index geladen (v2.0):', data.totalImages, 'Bilder total');
+    } else {
+      // Fallback für alte Struktur (v1.0)
+      stockCategories.value = data.categories || FALLBACK_CATEGORIES;
+      stockImages.value = data.images || [];
+
+      if (stockCategories.value.length > 0) {
+        selectedStockCategory.value = stockCategories.value[0].id;
+      }
+
+      console.log('✅ Stock-Galerie geladen (v1.0):', stockImages.value.length, 'Bilder');
     }
-
-    console.log('✅ Stock-Galerie geladen:', stockImages.value.length, 'Bilder');
   } catch (error) {
     console.error('❌ Fehler beim Laden der Stock-Galerie:', error);
     // Fallback: Zeige wenigstens die Kategorien
@@ -830,10 +848,53 @@ async function loadStockGallery() {
   }
 }
 
-// Kategorie auswählen
-function selectStockCategory(categoryId) {
+// Lädt die Bilder einer Kategorie (aus category.json)
+async function loadCategoryImages(categoryId) {
+  // Prüfen ob bereits im Cache
+  if (loadedCategoryData.value.has(categoryId)) {
+    stockImages.value = loadedCategoryData.value.get(categoryId);
+    console.log(`📁 Kategorie "${categoryId}" aus Cache geladen:`, stockImages.value.length, 'Bilder');
+    return;
+  }
+
+  categoryLoading.value = true;
+  try {
+    const categoryInfo = stockCategories.value.find(c => c.id === categoryId);
+    if (!categoryInfo || !categoryInfo.jsonFile) {
+      console.warn(`⚠️ Keine JSON-Datei für Kategorie "${categoryId}" gefunden`);
+      stockImages.value = [];
+      return;
+    }
+
+    const response = await fetch(categoryInfo.jsonFile);
+    if (!response.ok) {
+      throw new Error(`Kategorie ${categoryId} konnte nicht geladen werden`);
+    }
+
+    const data = await response.json();
+    const images = data.images || [];
+
+    // Im Cache speichern
+    loadedCategoryData.value.set(categoryId, images);
+    stockImages.value = images;
+
+    console.log(`✅ Kategorie "${categoryId}" geladen:`, images.length, 'Bilder');
+  } catch (error) {
+    console.error(`❌ Fehler beim Laden der Kategorie "${categoryId}":`, error);
+    stockImages.value = [];
+  } finally {
+    categoryLoading.value = false;
+  }
+}
+
+// Kategorie auswählen und laden
+async function selectStockCategory(categoryId) {
   selectedStockCategory.value = categoryId;
   selectedStockImage.value = null; // Auswahl zurücksetzen bei Kategorie-Wechsel
+
+  // Kategorie-Bilder laden (nutzt Cache wenn vorhanden)
+  await loadCategoryImages(categoryId);
+
   console.log('📁 Kategorie ausgewählt:', categoryId);
 }
 
@@ -1274,6 +1335,22 @@ watch(currentActiveImage, (newImage) => {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+}
+
+.category-count {
+  font-size: 10px;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ccc;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+}
+
+.category-tab.active .category-count {
+  background-color: rgba(0, 0, 0, 0.2);
+  color: #121212;
 }
 
 /* Stock-Galerie Scroll-Container */

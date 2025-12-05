@@ -1,0 +1,101 @@
+{
+  "_generated": "2025-12-05T15:26:15.473Z",
+  "_info": "Automatisch generiert für Kategorie \"Elemente\". Führe \"npm run gallery:update\" aus, um zu aktualisieren.",
+  "category": {
+    "id": "elements",
+    "name": "Elemente",
+    "name_en": "Elements",
+    "icon": "✨",
+    "description": "Grafische Formen und Objekte (inkl. PNG mit Transparenz)",
+    "description_en": "Graphic shapes and objects (incl. transparent PNGs)"
+  },
+  "count": 6,
+  "images": [
+    {
+      "id": "el-circle-glow",
+      "name": "Circle Glow",
+      "name_en": "Circle Glow",
+      "file": "gallery/elements/circle-glow.svg",
+      "thumbnail": "gallery/elements/circle-glow.svg",
+      "format": "SVG",
+      "size": "499 B",
+      "hasTransparency": false,
+      "tags": [
+        "elements",
+        "circle",
+        "glow"
+      ]
+    },
+    {
+      "id": "el-hexagon",
+      "name": "Hexagon",
+      "name_en": "Hexagon",
+      "file": "gallery/elements/hexagon.svg",
+      "thumbnail": "gallery/elements/hexagon.svg",
+      "format": "SVG",
+      "size": "407 B",
+      "hasTransparency": false,
+      "tags": [
+        "elements",
+        "hexagon"
+      ]
+    },
+    {
+      "id": "el-ring",
+      "name": "Ring",
+      "name_en": "Ring",
+      "file": "gallery/elements/ring.svg",
+      "thumbnail": "gallery/elements/ring.svg",
+      "format": "SVG",
+      "size": "381 B",
+      "hasTransparency": false,
+      "tags": [
+        "elements",
+        "ring"
+      ]
+    },
+    {
+      "id": "el-star-burst",
+      "name": "Star Burst",
+      "name_en": "Star Burst",
+      "file": "gallery/elements/star-burst.svg",
+      "thumbnail": "gallery/elements/star-burst.svg",
+      "format": "SVG",
+      "size": "411 B",
+      "hasTransparency": false,
+      "tags": [
+        "elements",
+        "star",
+        "burst"
+      ]
+    },
+    {
+      "id": "el-triangle",
+      "name": "Triangle",
+      "name_en": "Triangle",
+      "file": "gallery/elements/triangle.svg",
+      "thumbnail": "gallery/elements/triangle.svg",
+      "format": "SVG",
+      "size": "384 B",
+      "hasTransparency": false,
+      "tags": [
+        "elements",
+        "triangle"
+      ]
+    },
+    {
+      "id": "el-wave",
+      "name": "Wave",
+      "name_en": "Wave",
+      "file": "gallery/elements/wave.svg",
+      "thumbnail": "gallery/elements/wave.svg",
+      "format": "SVG",
+      "size": "474 B",
+      "hasTransparency": false,
+      "tags": [
+        "elements",
+        "wave"
+      ]
+    }
+  ]
+}

@@ -424,12 +424,34 @@ function draw() {
         visualizerCacheCtx.restore();
 
         // ✅ Callback now copies from cache instead of re-rendering
-        drawVisualizerCallback = (targetCtx, width, height) => {
-          // If target has same dimensions, copy directly; otherwise scale
-          if (width === canvas.width && height === canvas.height) {
-            targetCtx.drawImage(visualizerCacheCanvas, 0, 0);
+        // ✨ NEU: Mit Position und Skalierung aus dem Store
+        drawVisualizerCallback = (targetCtx, width, height, useTransform = true) => {
+          const scale = visualizerStore.visualizerScale;
+          const posX = visualizerStore.visualizerX;
+          const posY = visualizerStore.visualizerY;
+
+          // Berechne skalierte Größe
+          const scaledWidth = canvas.width * scale;
+          const scaledHeight = canvas.height * scale;
+
+          // Berechne Position (zentriert auf den gewählten Punkt)
+          const destX = width * posX - scaledWidth / 2;
+          const destY = height * posY - scaledHeight / 2;
+
+          if (useTransform && (scale !== 1.0 || posX !== 0.5 || posY !== 0.5)) {
+            // Zeichne den Cache-Canvas an der gewünschten Position und Größe
+            targetCtx.drawImage(
+              visualizerCacheCanvas,
+              0, 0, canvas.width, canvas.height,  // Source: ganzer Cache
+              destX, destY, scaledWidth, scaledHeight  // Dest: skaliert + positioniert
+            );
           } else {
-            targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height);
+            // Standard: 1:1 kopieren wenn keine Transformation
+            if (width === canvas.width && height === canvas.height) {
+              targetCtx.drawImage(visualizerCacheCanvas, 0, 0);
+            } else {
+              targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height);
+            }
           }
         };
       }

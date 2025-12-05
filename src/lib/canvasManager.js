@@ -681,7 +681,18 @@ export class CanvasManager {
     setActiveObject(obj) {
         const previousActive = this.activeObject;
         this.activeObject = obj;
-        
+
+        // Synchronisiere MultiImageManager Auswahl
+        if (this.multiImageManager) {
+            if (obj && obj.type === 'image') {
+                // Wenn ein Bild ausgewählt wird, setze es auch im MultiImageManager
+                this.multiImageManager.setSelectedImage(obj);
+            } else {
+                // Wenn kein Bild ausgewählt wird, lösche die Auswahl im MultiImageManager
+                this.multiImageManager.setSelectedImage(null);
+            }
+        }
+
         if (obj !== previousActive) {
             if (this.onSelectionChange) {
                 this.onSelectionChange(obj);

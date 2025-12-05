@@ -1,5 +1,20 @@
 <template>
   <div class="foto-panel-wrapper">
+    <!-- ✨ Bild-Vorschau Overlay -->
+    <div v-if="previewImage" class="image-preview-overlay" @click="closePreview">
+      <div class="preview-container" @click.stop>
+        <button class="preview-close" @click="closePreview">✕</button>
+        <img :src="previewImage.src" :alt="previewImage.name" class="preview-image">
+        <div class="preview-info">
+          <span class="preview-name">{{ previewImage.name }}</span>
+        </div>
+        <div class="preview-actions">
+          <button @click="addPreviewToCanvas" class="btn-primary">Auf Canvas</button>
+          <button @click="setPreviewAsBackground" class="btn-secondary">Als Hintergrund</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ✨ Stock-Galerie Sektion -->
     <div class="stock-gallery-section">
       <h4>Galerie</h4>
@@ -27,6 +42,7 @@
             class="stock-thumbnail-item"
             :class="{ 'selected': selectedStockImage?.id === img.id }"
             @click="selectStockImage(img)"
+            @dblclick="openStockPreview(img)"
           >
             <img :src="img.thumbnail" :alt="img.name" loading="lazy">
             <div class="stock-thumbnail-info">
@@ -94,12 +110,13 @@
         
         <div class="gallery-scroll">
           <div class="gallery-grid">
-            <div 
-              v-for="(imgData, index) in imageGallery" 
+            <div
+              v-for="(imgData, index) in imageGallery"
               :key="imgData.id"
               class="thumbnail-item"
               :class="{ 'selected': selectedImageIndex === index }"
               @click="selectImage(index)"
+              @dblclick="openUploadedPreview(imgData)"
             >
               <img :src="imgData.img.src" :alt="imgData.name">
               <div class="thumbnail-overlay">
@@ -335,6 +352,9 @@ const selectedImageIndex = ref(null); // Aktuell ausgewählter Index
 const stockCategories = ref([]);
 const stockImages = ref([]);
 const selectedStockCategory = ref('backgrounds');
+
+// ✨ NEU: Ref für Bild-Vorschau Overlay
+const previewImage = ref(null); // { src, name, type, data }
 const selectedStockImage = ref(null);
 const stockImagesLoading = ref(true);
 const loadedStockImages = ref(new Map()); // Cache für geladene Image-Objekte
@@ -903,6 +923,84 @@ async function setStockAsWorkspaceBackground() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// ✨ BILD-VORSCHAU FUNKTIONEN
+// ═══════════════════════════════════════════════════════════════════
+
+// Vorschau für Stock-Bild öffnen (Doppelklick)
+async function openStockPreview(img) {
+  try {
+    const loadedImg = await loadStockImageObject(img);
+    previewImage.value = {
+      src: loadedImg.src,
+      name: img.name,
+      type: 'stock',
+      data: img
+    };
+    console.log('🔍 Vorschau geöffnet:', img.name);
+  } catch (error) {
+    console.error('❌ Fehler beim Laden der Vorschau:', error);
+  }
+}
+
+// Vorschau für hochgeladenes Bild öffnen (Doppelklick)
+function openUploadedPreview(imgData) {
+  previewImage.value = {
+    src: imgData.img.src,
+    name: imgData.name,
+    type: 'uploaded',
+    data: imgData
+  };
+  console.log('🔍 Vorschau geöffnet:', imgData.name);
+}
+
+// Vorschau schließen
+function closePreview() {
+  previewImage.value = null;
+}
+
+// Bild aus Vorschau auf Canvas platzieren
+async function addPreviewToCanvas() {
+  if (!previewImage.value) return;
+
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager) {
+    console.error('❌ MultiImageManager nicht verfügbar');
+    return;
+  }
+
+  if (previewImage.value.type === 'stock') {
+    const img = await loadStockImageObject(previewImage.value.data);
+    multiImageManager.addImage(img);
+  } else {
+    multiImageManager.addImage(previewImage.value.data.img);
+  }
+
+  console.log('✅ Bild aus Vorschau auf Canvas platziert:', previewImage.value.name);
+  closePreview();
+}
+
+// Bild aus Vorschau als Hintergrund setzen
+async function setPreviewAsBackground() {
+  if (!previewImage.value) return;
+
+  const canvasManager = canvasManagerRef?.value;
+  if (!canvasManager) {
+    console.error('❌ CanvasManager nicht verfügbar');
+    return;
+  }
+
+  if (previewImage.value.type === 'stock') {
+    const img = await loadStockImageObject(previewImage.value.data);
+    canvasManager.setBackground(img);
+  } else {
+    canvasManager.setBackground(previewImage.value.data.img);
+  }
+
+  console.log('✅ Bild aus Vorschau als Hintergrund gesetzt:', previewImage.value.name);
+  closePreview();
+}
+
 onMounted(() => {
   // Stock-Galerie laden
   loadStockGallery();
@@ -978,6 +1076,125 @@ watch(currentActiveImage, (newImage) => {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ✨ BILD-VORSCHAU OVERLAY STYLES
+   ═══════════════════════════════════════════════════════════════════ */
+
+.image-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.preview-container {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.preview-close {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-close:hover {
+  background-color: #ff6b6b;
+  border-color: #ff6b6b;
+  transform: scale(1.1);
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 70vh;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  object-fit: contain;
+}
+
+.preview-info {
+  text-align: center;
+}
+
+.preview-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.preview-actions .btn-primary,
+.preview-actions .btn-secondary {
+  padding: 12px 24px;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preview-actions .btn-primary {
+  background: linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%);
+  color: #121212;
+  font-weight: 600;
+  border: none;
+}
+
+.preview-actions .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(110, 168, 254, 0.4);
+}
+
+.preview-actions .btn-secondary {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.preview-actions .btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 /* ═══════════════════════════════════════════════════════════════════

@@ -741,10 +741,10 @@ function addImageToCanvas() {
   console.log('✅ Bild auf Canvas platziert:', selectedImage.value.name);
 }
 
-// UNVERÄNDERT: Bild als Hintergrund setzen
+// Bild als Hintergrund setzen
 function setAsBackground() {
   if (!selectedImage.value) return;
-  
+
   const canvasManager = canvasManagerRef?.value;
   if (!canvasManager) {
     console.error('❌ CanvasManager nicht verfügbar');
@@ -753,9 +753,11 @@ function setAsBackground() {
 
   canvasManager.setBackground(selectedImage.value.img);
   console.log('✅ Bild als Hintergrund gesetzt:', selectedImage.value.name);
+  // Auswahl zurücksetzen
+  selectedImageIndex.value = null;
 }
 
-// ✨ NEU: Bild als Workspace-Hintergrund setzen
+// Bild als Workspace-Hintergrund setzen
 function setAsWorkspaceBackground() {
   if (!selectedImage.value) return;
 
@@ -768,6 +770,8 @@ function setAsWorkspaceBackground() {
   const success = canvasManager.setWorkspaceBackground(selectedImage.value.img);
   if (success) {
     console.log('✅ Bild als Workspace-Hintergrund gesetzt:', selectedImage.value.name);
+    // Auswahl zurücksetzen
+    selectedImageIndex.value = null;
   } else {
     alert('⚠️ Bitte wählen Sie zuerst einen Social Media Workspace aus (z.B. TikTok, Instagram Story, etc.)');
   }
@@ -893,6 +897,8 @@ async function setStockAsBackground() {
     const img = await loadStockImageObject(selectedStockImage.value);
     canvasManager.setBackground(img);
     console.log('✅ Stock-Bild als Hintergrund gesetzt:', selectedStockImage.value.name);
+    // Auswahl zurücksetzen
+    selectedStockImage.value = null;
   } catch (error) {
     console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
     alert('Das Bild konnte nicht geladen werden.');
@@ -914,6 +920,8 @@ async function setStockAsWorkspaceBackground() {
     const success = canvasManager.setWorkspaceBackground(img);
     if (success) {
       console.log('✅ Stock-Bild als Workspace-Hintergrund gesetzt:', selectedStockImage.value.name);
+      // Auswahl zurücksetzen
+      selectedStockImage.value = null;
     } else {
       alert('⚠️ Bitte wählen Sie zuerst einen Social Media Workspace aus (z.B. TikTok, Instagram Story, etc.)');
     }

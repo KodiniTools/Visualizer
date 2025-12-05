@@ -1,4 +1,6 @@
 {
+  "_generated": "2025-12-05T12:09:32.398Z",
+  "_info": "Diese Datei wird automatisch generiert. Führe \"npm run gallery:update\" aus, um sie zu aktualisieren.",
   "categories": [
     {
       "id": "backgrounds",
@@ -24,76 +26,95 @@
   ],
   "images": [
     {
-      "id": "bg-sunset",
+      "id": "ba-gradient-forest",
       "category": "backgrounds",
-      "name": "Sonnenuntergang",
-      "name_en": "Sunset",
-      "file": "/gallery/backgrounds/gradient-sunset.svg",
-      "thumbnail": "/gallery/backgrounds/gradient-sunset.svg",
-      "tags": ["gradient", "warm", "orange", "yellow"]
-    },
-    {
-      "id": "bg-ocean",
-      "category": "backgrounds",
-      "name": "Ozean",
-      "name_en": "Ocean",
-      "file": "/gallery/backgrounds/gradient-ocean.svg",
-      "thumbnail": "/gallery/backgrounds/gradient-ocean.svg",
-      "tags": ["gradient", "cool", "blue", "water"]
-    },
-    {
-      "id": "bg-purple",
-      "category": "backgrounds",
-      "name": "Violett",
-      "name_en": "Purple",
-      "file": "/gallery/backgrounds/gradient-purple.svg",
-      "thumbnail": "/gallery/backgrounds/gradient-purple.svg",
-      "tags": ["gradient", "purple", "violet"]
-    },
-    {
-      "id": "bg-forest",
-      "category": "backgrounds",
-      "name": "Wald",
-      "name_en": "Forest",
+      "name": "Gradient Forest",
+      "name_en": "Gradient Forest",
       "file": "/gallery/backgrounds/gradient-forest.svg",
       "thumbnail": "/gallery/backgrounds/gradient-forest.svg",
-      "tags": ["gradient", "green", "nature"]
+      "tags": [
+        "backgrounds",
+        "gradient",
+        "forest"
+      ]
     },
     {
-      "id": "bg-midnight",
+      "id": "ba-gradient-midnight",
       "category": "backgrounds",
-      "name": "Mitternacht",
-      "name_en": "Midnight",
+      "name": "Gradient Midnight",
+      "name_en": "Gradient Midnight",
       "file": "/gallery/backgrounds/gradient-midnight.svg",
       "thumbnail": "/gallery/backgrounds/gradient-midnight.svg",
-      "tags": ["gradient", "dark", "blue", "night"]
+      "tags": [
+        "backgrounds",
+        "gradient",
+        "midnight"
+      ]
     },
     {
-      "id": "bg-neon",
+      "id": "ba-gradient-neon",
       "category": "backgrounds",
-      "name": "Neon",
-      "name_en": "Neon",
+      "name": "Gradient Neon",
+      "name_en": "Gradient Neon",
       "file": "/gallery/backgrounds/gradient-neon.svg",
       "thumbnail": "/gallery/backgrounds/gradient-neon.svg",
-      "tags": ["gradient", "neon", "vibrant", "pink", "purple", "blue"]
+      "tags": [
+        "backgrounds",
+        "gradient",
+        "neon"
+      ]
+    },
+    {
+      "id": "ba-gradient-ocean",
+      "category": "backgrounds",
+      "name": "Gradient Ocean",
+      "name_en": "Gradient Ocean",
+      "file": "/gallery/backgrounds/gradient-ocean.svg",
+      "thumbnail": "/gallery/backgrounds/gradient-ocean.svg",
+      "tags": [
+        "backgrounds",
+        "gradient",
+        "ocean"
+      ]
+    },
+    {
+      "id": "ba-gradient-purple",
+      "category": "backgrounds",
+      "name": "Gradient Purple",
+      "name_en": "Gradient Purple",
+      "file": "/gallery/backgrounds/gradient-purple.svg",
+      "thumbnail": "/gallery/backgrounds/gradient-purple.svg",
+      "tags": [
+        "backgrounds",
+        "gradient",
+        "purple"
+      ]
+    },
+    {
+      "id": "ba-gradient-sunset",
+      "category": "backgrounds",
+      "name": "Gradient Sunset",
+      "name_en": "Gradient Sunset",
+      "file": "/gallery/backgrounds/gradient-sunset.svg",
+      "thumbnail": "/gallery/backgrounds/gradient-sunset.svg",
+      "tags": [
+        "backgrounds",
+        "gradient",
+        "sunset"
+      ]
     },
     {
       "id": "el-circle-glow",
       "category": "elements",
-      "name": "Leuchtkreis",
-      "name_en": "Glowing Circle",
+      "name": "Circle Glow",
+      "name_en": "Circle Glow",
       "file": "/gallery/elements/circle-glow.svg",
       "thumbnail": "/gallery/elements/circle-glow.svg",
-      "tags": ["circle", "glow", "blue"]
-    },
-    {
-      "id": "el-star",
-      "category": "elements",
-      "name": "Stern",
-      "name_en": "Star",
-      "file": "/gallery/elements/star-burst.svg",
-      "thumbnail": "/gallery/elements/star-burst.svg",
-      "tags": ["star", "gold", "yellow"]
+      "tags": [
+        "elements",
+        "circle",
+        "glow"
+      ]
     },
     {
       "id": "el-hexagon",
@@ -102,16 +123,10 @@
       "name_en": "Hexagon",
       "file": "/gallery/elements/hexagon.svg",
       "thumbnail": "/gallery/elements/hexagon.svg",
-      "tags": ["hexagon", "purple", "pink", "geometric"]
-    },
-    {
-      "id": "el-wave",
-      "category": "elements",
-      "name": "Welle",
-      "name_en": "Wave",
-      "file": "/gallery/elements/wave.svg",
-      "thumbnail": "/gallery/elements/wave.svg",
-      "tags": ["wave", "blue", "water", "flow"]
+      "tags": [
+        "elements",
+        "hexagon"
+      ]
     },
     {
       "id": "el-ring",
@@ -120,70 +135,119 @@
       "name_en": "Ring",
       "file": "/gallery/elements/ring.svg",
       "thumbnail": "/gallery/elements/ring.svg",
-      "tags": ["ring", "circle", "orange", "red"]
+      "tags": [
+        "elements",
+        "ring"
+      ]
+    },
+    {
+      "id": "el-star-burst",
+      "category": "elements",
+      "name": "Star Burst",
+      "name_en": "Star Burst",
+      "file": "/gallery/elements/star-burst.svg",
+      "thumbnail": "/gallery/elements/star-burst.svg",
+      "tags": [
+        "elements",
+        "star",
+        "burst"
+      ]
     },
     {
       "id": "el-triangle",
       "category": "elements",
-      "name": "Dreieck",
+      "name": "Triangle",
       "name_en": "Triangle",
       "file": "/gallery/elements/triangle.svg",
       "thumbnail": "/gallery/elements/triangle.svg",
-      "tags": ["triangle", "green", "geometric"]
+      "tags": [
+        "elements",
+        "triangle"
+      ]
     },
     {
-      "id": "pt-dots",
-      "category": "patterns",
-      "name": "Punkte",
-      "name_en": "Dots",
-      "file": "/gallery/patterns/dots.svg",
-      "thumbnail": "/gallery/patterns/dots.svg",
-      "tags": ["pattern", "dots", "blue", "dark"]
+      "id": "el-wave",
+      "category": "elements",
+      "name": "Wave",
+      "name_en": "Wave",
+      "file": "/gallery/elements/wave.svg",
+      "thumbnail": "/gallery/elements/wave.svg",
+      "tags": [
+        "elements",
+        "wave"
+      ]
     },
     {
-      "id": "pt-stripes",
+      "id": "pa-circles",
       "category": "patterns",
-      "name": "Streifen",
-      "name_en": "Stripes",
-      "file": "/gallery/patterns/stripes.svg",
-      "thumbnail": "/gallery/patterns/stripes.svg",
-      "tags": ["pattern", "stripes", "pink", "diagonal"]
-    },
-    {
-      "id": "pt-grid",
-      "category": "patterns",
-      "name": "Gitter",
-      "name_en": "Grid",
-      "file": "/gallery/patterns/grid.svg",
-      "thumbnail": "/gallery/patterns/grid.svg",
-      "tags": ["pattern", "grid", "blue", "lines"]
-    },
-    {
-      "id": "pt-waves",
-      "category": "patterns",
-      "name": "Wellenlinien",
-      "name_en": "Wave Lines",
-      "file": "/gallery/patterns/waves.svg",
-      "thumbnail": "/gallery/patterns/waves.svg",
-      "tags": ["pattern", "waves", "blue", "lines"]
-    },
-    {
-      "id": "pt-hexagons",
-      "category": "patterns",
-      "name": "Waben",
-      "name_en": "Hexagons",
-      "file": "/gallery/patterns/hexagons.svg",
-      "thumbnail": "/gallery/patterns/hexagons.svg",
-      "tags": ["pattern", "hexagon", "purple", "honeycomb"]
-    },
-    {
-      "id": "pt-circles",
-      "category": "patterns",
-      "name": "Kreise",
+      "name": "Circles",
       "name_en": "Circles",
       "file": "/gallery/patterns/circles.svg",
       "thumbnail": "/gallery/patterns/circles.svg",
-      "tags": ["pattern", "circles", "pink", "purple", "cyan"]
+      "tags": [
+        "patterns",
+        "circles"
+      ]
+    },
+    {
+      "id": "pa-dots",
+      "category": "patterns",
+      "name": "Dots",
+      "name_en": "Dots",
+      "file": "/gallery/patterns/dots.svg",
+      "thumbnail": "/gallery/patterns/dots.svg",
+      "tags": [
+        "patterns",
+        "dots"
+      ]
+    },
+    {
+      "id": "pa-grid",
+      "category": "patterns",
+      "name": "Grid",
+      "name_en": "Grid",
+      "file": "/gallery/patterns/grid.svg",
+      "thumbnail": "/gallery/patterns/grid.svg",
+      "tags": [
+        "patterns",
+        "grid"
+      ]
+    },
+    {
+      "id": "pa-hexagons",
+      "category": "patterns",
+      "name": "Hexagons",
+      "name_en": "Hexagons",
+      "file": "/gallery/patterns/hexagons.svg",
+      "thumbnail": "/gallery/patterns/hexagons.svg",
+      "tags": [
+        "patterns",
+        "hexagons"
+      ]
+    },
+    {
+      "id": "pa-stripes",
+      "category": "patterns",
+      "name": "Stripes",
+      "name_en": "Stripes",
+      "file": "/gallery/patterns/stripes.svg",
+      "thumbnail": "/gallery/patterns/stripes.svg",
+      "tags": [
+        "patterns",
+        "stripes"
+      ]
+    },
+    {
+      "id": "pa-waves",
+      "category": "patterns",
+      "name": "Waves",
+      "name_en": "Waves",
+      "file": "/gallery/patterns/waves.svg",
+      "thumbnail": "/gallery/patterns/waves.svg",
+      "tags": [
+        "patterns",
+        "waves"
+      ]
     }
   ]
 }

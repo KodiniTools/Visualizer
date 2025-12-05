@@ -145,10 +145,18 @@ export class FotoManager {
     /**
      * Wendet einen vordefinierten Filter-Preset an
      * KORRIGIERT: Akzeptiert jetzt auch Hintergrundbilder
+     * ✨ VERBESSERT: Behält Bildkontur-Einstellungen bei
      */
     applyPreset(imageObject, presetName) {
         if (!this._isImageObject(imageObject)) return;
-        
+
+        // ✨ Aktuelle Bildkontur-Einstellungen speichern
+        const currentBorderSettings = {
+            borderWidth: imageObject.fotoSettings?.borderWidth || 0,
+            borderColor: imageObject.fotoSettings?.borderColor || '#ffffff',
+            borderOpacity: imageObject.fotoSettings?.borderOpacity ?? 100
+        };
+
         const presets = {
             'normal': { ...this.defaultSettings },
             'vintage': {
@@ -194,7 +202,11 @@ export class FotoManager {
         };
 
         if (presets[presetName]) {
-            imageObject.fotoSettings = { ...presets[presetName] };
+            // ✨ Preset anwenden, aber Bildkontur-Einstellungen beibehalten
+            imageObject.fotoSettings = {
+                ...presets[presetName],
+                ...currentBorderSettings
+            };
             this.redrawCallback?.();
         }
     }

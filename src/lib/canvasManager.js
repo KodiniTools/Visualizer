@@ -280,22 +280,25 @@ export class CanvasManager {
     setBackground(backgroundObject) {
         if (typeof backgroundObject === 'string') {
             this.background = backgroundObject;
-        } 
+        }
         else if (backgroundObject && typeof backgroundObject === 'object') {
             this.background = {
                 id: Date.now() + '_bg',
                 type: 'background',
                 imageObject: backgroundObject
             };
-            
+
             if (this.fotoManager) {
                 this.fotoManager.initializeImageSettings(this.background);
             }
-        } 
+        }
         else {
             this.background = null;
         }
-        
+
+        // Aktives Objekt zurücksetzen um Verwirrung zu vermeiden
+        this.activeObject = null;
+
         this.redrawCallback();
         this.updateUICallback();
     }
@@ -304,17 +307,20 @@ export class CanvasManager {
         if (!this.workspacePreset) {
             return false;
         }
-        
+
         this.workspaceBackground = {
             id: Date.now() + '_wsbg',
             type: 'workspace-background',
             imageObject: imageObject
         };
-        
+
         if (this.fotoManager) {
             this.fotoManager.initializeImageSettings(this.workspaceBackground);
         }
-        
+
+        // Aktives Objekt zurücksetzen um Verwirrung zu vermeiden
+        this.activeObject = null;
+
         this.redrawCallback();
         this.updateUICallback();
         return true;

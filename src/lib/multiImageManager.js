@@ -214,16 +214,9 @@ export class MultiImageManager {
                 const borderColor = imgData.fotoSettings?.borderColor || '#ffffff';
                 const borderOpacity = (imgData.fotoSettings?.borderOpacity ?? 100) / 100;
 
-                // Filter zurücksetzen für saubere Kontur
-                ctx.filter = 'none';
-                ctx.globalAlpha = 1.0;
-                ctx.shadowColor = 'transparent';
-                ctx.shadowBlur = 0;
-                ctx.shadowOffsetX = 0;
-                ctx.shadowOffsetY = 0;
-
                 // Zeichne Kontur um die sichtbare Form des Bildes (inklusive Bild darüber)
-                this._drawImageOutline(ctx, imgData.imageObject, bounds, borderWidth, borderColor, borderOpacity);
+                // Filter werden in _drawImageOutline auf das Originalbild angewendet
+                this._drawImageOutline(ctx, imgData, bounds, borderWidth, borderColor, borderOpacity);
             } else {
                 // Ohne Kontur: Bild normal zeichnen
                 try {
@@ -527,9 +520,11 @@ export class MultiImageManager {
      * ✨ Zeichnet eine Kontur um die sichtbare Form eines Bildes (unterstützt Transparenz)
      * Verwendet einen Outline-Effekt durch mehrfaches Zeichnen mit Offset
      * HINWEIS: Rotation wird bereits im aufrufenden Context angewendet
+     * @param {Object} imgData - Das Bildobjekt mit imageObject und fotoSettings
      * @param {number} borderOpacity - Deckkraft der Kontur (0-1)
      */
-    _drawImageOutline(ctx, imageObject, bounds, borderWidth, borderColor, borderOpacity = 1) {
+    _drawImageOutline(ctx, imgData, bounds, borderWidth, borderColor, borderOpacity = 1) {
+        const imageObject = imgData.imageObject;
         if (!imageObject || borderWidth <= 0) return;
 
         // Erstelle temporäres Canvas für die Farbmaske
@@ -564,8 +559,13 @@ export class MultiImageManager {
             [-1, -1]   // NW
         ];
 
-        // ✨ Kontur-Transparenz anwenden
+        // ✨ Filter zurücksetzen für saubere Kontur-Zeichnung
+        ctx.filter = 'none';
         ctx.globalAlpha = borderOpacity;
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
 
         // Für dickere Konturen: Mehrere Schichten zeichnen
         const steps = Math.ceil(borderWidth / 2);
@@ -580,10 +580,17 @@ export class MultiImageManager {
             }
         }
 
-        // ✨ Transparenz zurücksetzen für Original-Bild
-        ctx.globalAlpha = 1.0;
+        // ✨ Filter wieder anwenden für das Original-Bild
+        if (this.fotoManager && imgData.fotoSettings) {
+            this.fotoManager.applyFilters(ctx, imgData);
+        }
 
-        // Original-Bild nochmals zeichnen (über der Kontur)
+        // Original-Bild mit Filtern zeichnen (über der Kontur)
         ctx.drawImage(imageObject, bounds.x, bounds.y, bounds.width, bounds.height);
+
+        // ✨ Filter zurücksetzen nach dem Zeichnen
+        if (this.fotoManager && imgData.fotoSettings) {
+            this.fotoManager.resetFilters(ctx);
+        }
     }
 }

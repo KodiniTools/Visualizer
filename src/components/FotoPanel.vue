@@ -1,9 +1,64 @@
 <template>
   <div class="foto-panel-wrapper">
+    <!-- ✨ Stock-Galerie Sektion -->
+    <div class="stock-gallery-section">
+      <h4>Galerie</h4>
+
+      <!-- Kategorie-Tabs -->
+      <div class="category-tabs">
+        <button
+          v-for="category in stockCategories"
+          :key="category.id"
+          class="category-tab"
+          :class="{ 'active': selectedStockCategory === category.id }"
+          @click="selectStockCategory(category.id)"
+        >
+          <span class="category-icon">{{ category.icon }}</span>
+          <span class="category-name">{{ category.name }}</span>
+        </button>
+      </div>
+
+      <!-- Stock-Bilder Grid -->
+      <div class="stock-gallery-scroll">
+        <div class="stock-gallery-grid">
+          <div
+            v-for="img in filteredStockImages"
+            :key="img.id"
+            class="stock-thumbnail-item"
+            :class="{ 'selected': selectedStockImage?.id === img.id }"
+            @click="selectStockImage(img)"
+          >
+            <img :src="img.thumbnail" :alt="img.name" loading="lazy">
+            <div class="stock-thumbnail-info">
+              <span class="stock-thumbnail-name">{{ img.name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stock-Bild Action-Buttons -->
+      <div v-if="selectedStockImage" class="action-buttons stock-actions">
+        <button @click="addStockImageToCanvas" class="btn-primary">
+          Auf Canvas platzieren
+        </button>
+        <button @click="setStockAsBackground" class="btn-secondary">
+          Als Hintergrund
+        </button>
+        <button @click="setStockAsWorkspaceBackground" class="btn-workspace">
+          Als Workspace-Hintergrund
+        </button>
+      </div>
+
+      <!-- Ladeanzeige -->
+      <div v-if="stockImagesLoading" class="loading-state">
+        <p>Galerie wird geladen...</p>
+      </div>
+    </div>
+
     <!-- ✨ Upload-Bereich (immer sichtbar) -->
     <div class="upload-section">
-      <h4>Bilder hinzufügen</h4>
-      
+      <h4>Eigene Bilder</h4>
+
       <div class="upload-area" @click="triggerFileInput">
         <input 
           type="file" 
@@ -265,6 +320,14 @@ const fileInputRef = ref(null);
 const imageGallery = ref([]); // Array von Bildern
 const selectedImageIndex = ref(null); // Aktuell ausgewählter Index
 
+// ✨ NEU: Refs für Stock-Galerie
+const stockCategories = ref([]);
+const stockImages = ref([]);
+const selectedStockCategory = ref('backgrounds');
+const selectedStockImage = ref(null);
+const stockImagesLoading = ref(true);
+const loadedStockImages = ref(new Map()); // Cache für geladene Image-Objekte
+
 // Holen die Manager-Instanzen aus App.vue (als reactive refs)
 const fotoManagerRef = inject('fotoManager');
 const canvasManagerRef = inject('canvasManager');
@@ -280,6 +343,12 @@ const selectedImage = computed(() => {
     return imageGallery.value[selectedImageIndex.value];
   }
   return null;
+});
+
+// ✨ NEU: Computed für gefilterte Stock-Bilder nach Kategorie
+const filteredStockImages = computed(() => {
+  if (!selectedStockCategory.value) return stockImages.value;
+  return stockImages.value.filter(img => img.category === selectedStockCategory.value);
 });
 
 // ✨ NEU: Filter-Änderungs-Handler
@@ -658,7 +727,7 @@ function setAsBackground() {
 // ✨ NEU: Bild als Workspace-Hintergrund setzen
 function setAsWorkspaceBackground() {
   if (!selectedImage.value) return;
-  
+
   const canvasManager = canvasManagerRef?.value;
   if (!canvasManager) {
     console.error('❌ CanvasManager nicht verfügbar');
@@ -673,17 +742,147 @@ function setAsWorkspaceBackground() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// ✨ STOCK-GALERIE FUNKTIONEN
+// ═══════════════════════════════════════════════════════════════════
+
+// Stock-Galerie laden
+async function loadStockGallery() {
+  stockImagesLoading.value = true;
+  try {
+    const response = await fetch('/gallery/gallery.json');
+    if (!response.ok) throw new Error('Galerie konnte nicht geladen werden');
+
+    const data = await response.json();
+    stockCategories.value = data.categories || [];
+    stockImages.value = data.images || [];
+
+    // Standard-Kategorie auswählen
+    if (stockCategories.value.length > 0) {
+      selectedStockCategory.value = stockCategories.value[0].id;
+    }
+
+    console.log('✅ Stock-Galerie geladen:', stockImages.value.length, 'Bilder');
+  } catch (error) {
+    console.error('❌ Fehler beim Laden der Stock-Galerie:', error);
+    stockCategories.value = [];
+    stockImages.value = [];
+  } finally {
+    stockImagesLoading.value = false;
+  }
+}
+
+// Kategorie auswählen
+function selectStockCategory(categoryId) {
+  selectedStockCategory.value = categoryId;
+  selectedStockImage.value = null; // Auswahl zurücksetzen bei Kategorie-Wechsel
+  console.log('📁 Kategorie ausgewählt:', categoryId);
+}
+
+// Stock-Bild auswählen
+function selectStockImage(img) {
+  selectedStockImage.value = img;
+  console.log('📌 Stock-Bild ausgewählt:', img.name);
+}
+
+// Stock-Bild als Image-Objekt laden (mit Caching)
+async function loadStockImageObject(stockImg) {
+  // Prüfen ob bereits im Cache
+  if (loadedStockImages.value.has(stockImg.id)) {
+    return loadedStockImages.value.get(stockImg.id);
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      loadedStockImages.value.set(stockImg.id, img);
+      resolve(img);
+    };
+    img.onerror = () => {
+      reject(new Error(`Bild konnte nicht geladen werden: ${stockImg.file}`));
+    };
+    img.src = stockImg.file;
+  });
+}
+
+// Stock-Bild auf Canvas platzieren
+async function addStockImageToCanvas() {
+  if (!selectedStockImage.value) return;
+
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager) {
+    console.error('❌ MultiImageManager nicht verfügbar');
+    return;
+  }
+
+  try {
+    const img = await loadStockImageObject(selectedStockImage.value);
+    multiImageManager.addImage(img);
+    console.log('✅ Stock-Bild auf Canvas platziert:', selectedStockImage.value.name);
+  } catch (error) {
+    console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
+    alert('Das Bild konnte nicht geladen werden.');
+  }
+}
+
+// Stock-Bild als Hintergrund setzen
+async function setStockAsBackground() {
+  if (!selectedStockImage.value) return;
+
+  const canvasManager = canvasManagerRef?.value;
+  if (!canvasManager) {
+    console.error('❌ CanvasManager nicht verfügbar');
+    return;
+  }
+
+  try {
+    const img = await loadStockImageObject(selectedStockImage.value);
+    canvasManager.setBackground(img);
+    console.log('✅ Stock-Bild als Hintergrund gesetzt:', selectedStockImage.value.name);
+  } catch (error) {
+    console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
+    alert('Das Bild konnte nicht geladen werden.');
+  }
+}
+
+// Stock-Bild als Workspace-Hintergrund setzen
+async function setStockAsWorkspaceBackground() {
+  if (!selectedStockImage.value) return;
+
+  const canvasManager = canvasManagerRef?.value;
+  if (!canvasManager) {
+    console.error('❌ CanvasManager nicht verfügbar');
+    return;
+  }
+
+  try {
+    const img = await loadStockImageObject(selectedStockImage.value);
+    const success = canvasManager.setWorkspaceBackground(img);
+    if (success) {
+      console.log('✅ Stock-Bild als Workspace-Hintergrund gesetzt:', selectedStockImage.value.name);
+    } else {
+      alert('⚠️ Bitte wählen Sie zuerst einen Social Media Workspace aus (z.B. TikTok, Instagram Story, etc.)');
+    }
+  } catch (error) {
+    console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
+    alert('Das Bild konnte nicht geladen werden.');
+  }
+}
+
 onMounted(() => {
+  // Stock-Galerie laden
+  loadStockGallery();
+
   // Warte kurz falls Manager noch nicht initialisiert sind
   const initializePanel = () => {
     const fotoManager = fotoManagerRef?.value;
-    
+
     if (!fotoManager) {
       console.warn('⏳ FotoManager noch nicht verfügbar, versuche erneut...');
       setTimeout(initializePanel, 100);
       return;
     }
-    
+
     // Presets für das Dropdown-Menü laden
     presets.value = fotoManager.getAvailablePresets();
 
@@ -745,6 +944,170 @@ watch(currentActiveImage, (newImage) => {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ✨ STOCK-GALERIE STYLES
+   ═══════════════════════════════════════════════════════════════════ */
+
+.stock-gallery-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #333;
+}
+
+.stock-gallery-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Kategorie-Tabs */
+.category-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.category-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #1e1e1e;
+  color: #bbb;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-tab:hover {
+  border-color: #6ea8fe;
+  color: #e0e0e0;
+  background-color: #252525;
+}
+
+.category-tab.active {
+  background: linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%);
+  border-color: #6ea8fe;
+  color: #121212;
+  font-weight: 600;
+}
+
+.category-icon {
+  font-size: 14px;
+}
+
+.category-name {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Stock-Galerie Scroll-Container */
+.stock-gallery-scroll {
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+.stock-gallery-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.stock-gallery-scroll::-webkit-scrollbar-track {
+  background: #1e1e1e;
+  border-radius: 3px;
+}
+
+.stock-gallery-scroll::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+.stock-gallery-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6ea8fe;
+}
+
+/* Stock-Galerie Grid */
+.stock-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.stock-thumbnail-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  background-color: #1e1e1e;
+}
+
+.stock-thumbnail-item:hover {
+  border-color: #6ea8fe;
+  transform: scale(1.03);
+}
+
+.stock-thumbnail-item.selected {
+  border-color: #6ea8fe;
+  box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.3);
+}
+
+.stock-thumbnail-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.stock-thumbnail-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+  padding: 6px 6px 4px 6px;
+}
+
+.stock-thumbnail-name {
+  font-size: 9px;
+  color: white;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+/* Stock Action-Buttons */
+.stock-actions {
+  margin-top: 8px;
+}
+
+/* Ladeanzeige */
+.loading-state {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+}
+
+.loading-state p {
+  margin: 0;
+  font-size: 13px;
 }
 
 /* Upload-Bereich Styles */

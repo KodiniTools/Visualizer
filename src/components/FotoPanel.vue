@@ -356,6 +356,24 @@
             class="modern-slider border-slider"
           />
         </div>
+
+        <!-- Konturtransparenz -->
+        <div class="modern-control">
+          <label class="modern-label">
+            <span class="label-text">Deckkraft</span>
+            <span class="label-value" ref="borderOpacityValueRef">100%</span>
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+            ref="borderOpacityInputRef"
+            @input="onBorderOpacityChange"
+            class="modern-slider border-opacity-slider"
+          />
+        </div>
       </div>
 
       <button @click="resetFilters" class="btn-secondary modern-reset-btn">
@@ -399,6 +417,8 @@ const borderWidthInputRef = ref(null);
 const borderWidthValueRef = ref(null);
 const borderColorInputRef = ref(null);
 const borderColorTextRef = ref(null);
+const borderOpacityInputRef = ref(null);
+const borderOpacityValueRef = ref(null);
 
 // ✨ NEU: Refs für Galerie-Funktionalität
 const fileInputRef = ref(null);
@@ -531,6 +551,12 @@ function onBorderWidthChange(event) {
   updateActiveImageSetting('borderWidth', value);
 }
 
+function onBorderOpacityChange(event) {
+  const value = parseInt(event.target.value);
+  borderOpacityValueRef.value.textContent = value + '%';
+  updateActiveImageSetting('borderOpacity', value);
+}
+
 function onPresetChange(event) {
   const presetId = event.target.value;
   updateActiveImageSetting('preset', presetId || null);
@@ -590,6 +616,8 @@ function resetFilters() {
   borderColorTextRef.value.value = '#ffffff';
   borderWidthInputRef.value.value = 0;
   borderWidthValueRef.value.textContent = '0px';
+  borderOpacityInputRef.value.value = 100;
+  borderOpacityValueRef.value.textContent = '100%';
 
   presetSelectRef.value.value = '';
   
@@ -619,6 +647,7 @@ function resetFilters() {
     // ✨ Bildkontur zurücksetzen
     currentActiveImage.value.fotoSettings.borderColor = '#ffffff';
     currentActiveImage.value.fotoSettings.borderWidth = 0;
+    currentActiveImage.value.fotoSettings.borderOpacity = 100;
 
     triggerRedraw();
   }
@@ -653,7 +682,8 @@ function updateActiveImageSetting(property, value) {
       rotation: 0,
       // ✨ Bildkontur
       borderColor: '#ffffff',
-      borderWidth: 0
+      borderWidth: 0,
+      borderOpacity: 100
     };
   }
   
@@ -714,6 +744,8 @@ function loadImageSettings(imgData) {
   borderColorTextRef.value.value = s.borderColor || '#ffffff';
   borderWidthInputRef.value.value = s.borderWidth || 0;
   borderWidthValueRef.value.textContent = (s.borderWidth || 0) + 'px';
+  borderOpacityInputRef.value.value = s.borderOpacity ?? 100;
+  borderOpacityValueRef.value.textContent = (s.borderOpacity ?? 100) + '%';
 
   presetSelectRef.value.value = s.preset || '';
 
@@ -2165,6 +2197,17 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .border-slider:hover {
+  box-shadow: 0 3px 12px rgba(255, 255, 255, 0.4);
+  transform: scaleY(1.2);
+}
+
+/* Border Opacity Slider - Transparent zu Weiß Gradient */
+.border-opacity-slider {
+  background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.5) 50%, #ffffff 100%);
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+}
+
+.border-opacity-slider:hover {
   box-shadow: 0 3px 12px rgba(255, 255, 255, 0.4);
   transform: scaleY(1.2);
 }

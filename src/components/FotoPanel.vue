@@ -982,18 +982,21 @@ watch(currentActiveImage, (newImage) => {
   gap: 6px;
   padding: 8px 12px;
   border-radius: 6px;
-  border: 1px solid #444;
-  background-color: #1e1e1e;
-  color: #bbb;
+  border: 1px solid #555;
+  background-color: #333;
+  color: #e0e0e0;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .category-tab:hover {
   border-color: #6ea8fe;
-  color: #e0e0e0;
-  background-color: #252525;
+  color: #fff;
+  background-color: #444;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(110, 168, 254, 0.2);
 }
 
 .category-tab.active {
@@ -1001,6 +1004,7 @@ watch(currentActiveImage, (newImage) => {
   border-color: #6ea8fe;
   color: #121212;
   font-weight: 600;
+  box-shadow: 0 4px 12px rgba(110, 168, 254, 0.4);
 }
 
 .category-icon {

@@ -52,10 +52,29 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   const visualizerY = ref(0.5); // Y-Position (0.0 = oben, 0.5 = Mitte, 1.0 = unten)
   const visualizerScale = ref(1.0); // Skalierung (0.1 = 10%, 1.0 = 100%, 2.0 = 200%)
 
+  // ✅ Letzter funktionierender Visualizer für Fallback
+  const lastWorkingVisualizer = ref('bars');
+
   function selectVisualizer(id) {
     if (Visualizers[id]) {
       selectedVisualizer.value = id;
+    } else {
+      console.warn(`⚠️ [VisualizerStore] Visualizer "${id}" nicht gefunden - Fallback zu "${lastWorkingVisualizer.value}"`);
+      selectedVisualizer.value = lastWorkingVisualizer.value;
     }
+  }
+
+  // ✅ Wird aufgerufen wenn ein Visualizer erfolgreich gezeichnet wurde
+  function markVisualizerWorking(id) {
+    if (Visualizers[id]) {
+      lastWorkingVisualizer.value = id;
+    }
+  }
+
+  // ✅ Fallback bei Fehler
+  function fallbackToLastWorking() {
+    console.warn(`⚠️ [VisualizerStore] Visualizer "${selectedVisualizer.value}" fehlgeschlagen - Fallback zu "${lastWorkingVisualizer.value}"`);
+    selectedVisualizer.value = lastWorkingVisualizer.value;
   }
 
   // NEU: Funktion zum Umschalten der Sichtbarkeit
@@ -119,5 +138,9 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     setVisualizerY,
     setVisualizerScale,
     resetVisualizerTransform,
+    // ✅ NEU: Fehlerbehandlung
+    lastWorkingVisualizer,
+    markVisualizerWorking,
+    fallbackToLastWorking,
   };
 });

@@ -15,7 +15,8 @@
     "lint:oxlint": "oxlint . --fix -D correctness --ignore-path .gitignore",
     "lint:eslint": "eslint . --fix",
     "lint": "run-s lint:*",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "gallery:update": "node scripts/gallery-generator.js"
   },
   "dependencies": {
     "lodash-es": "^4.17.21",

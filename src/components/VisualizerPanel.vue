@@ -68,6 +68,62 @@
       />
     </div>
 
+    <!-- ✨ NEU: Position & Größe -->
+    <div class="control-section position-section">
+      <div class="section-header">
+        <span class="section-label">Position & Größe</span>
+        <button
+          class="reset-btn"
+          @click="store.resetVisualizerTransform()"
+          title="Auf Standard zurücksetzen"
+        >
+          ↺
+        </button>
+      </div>
+
+      <!-- X-Position -->
+      <div class="position-control">
+        <span class="control-label">X: {{ Math.round(store.visualizerX * 100) }}%</span>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          :value="store.visualizerX"
+          @input="store.setVisualizerX(parseFloat($event.target.value))"
+          class="slider position-slider"
+        />
+      </div>
+
+      <!-- Y-Position -->
+      <div class="position-control">
+        <span class="control-label">Y: {{ Math.round(store.visualizerY * 100) }}%</span>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          :value="store.visualizerY"
+          @input="store.setVisualizerY(parseFloat($event.target.value))"
+          class="slider position-slider"
+        />
+      </div>
+
+      <!-- Skalierung -->
+      <div class="position-control">
+        <span class="control-label">Größe: {{ Math.round(store.visualizerScale * 100) }}%</span>
+        <input
+          type="range"
+          min="0.1"
+          max="2"
+          step="0.01"
+          :value="store.visualizerScale"
+          @input="store.setVisualizerScale(parseFloat($event.target.value))"
+          class="slider scale-slider"
+        />
+      </div>
+    </div>
+
     <!-- Suchfeld -->
     <div class="control-section">
       <span class="section-label">Suche</span>
@@ -504,5 +560,139 @@ h4 {
   color: #666;
   font-size: 12px;
   font-style: italic;
+}
+
+/* ✨ NEU: Position & Größe Styles */
+.position-section {
+  background-color: #252525;
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid #3a3a3a;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.section-header .section-label {
+  margin-bottom: 0;
+}
+
+.reset-btn {
+  background-color: #3a3a3a;
+  color: #888;
+  border: 1px solid #555;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reset-btn:hover {
+  background-color: #6ea8fe;
+  color: #fff;
+  border-color: #6ea8fe;
+}
+
+.position-control {
+  margin-bottom: 8px;
+}
+
+.position-control:last-child {
+  margin-bottom: 0;
+}
+
+.control-label {
+  display: block;
+  font-size: 10px;
+  color: #888;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+/* Position Slider */
+.position-slider {
+  background: linear-gradient(to right, #444 0%, #6ea8fe 50%, #444 100%);
+}
+
+.position-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ff9800;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.position-slider::-webkit-slider-thumb:hover {
+  background: #f57c00;
+  transform: scale(1.15);
+}
+
+.position-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ff9800;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.position-slider::-moz-range-thumb:hover {
+  background: #f57c00;
+  transform: scale(1.15);
+}
+
+/* Scale Slider */
+.scale-slider {
+  background: linear-gradient(to right, #333 0%, #4caf50 50%, #8bc34a 100%);
+}
+
+.scale-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #4caf50;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.scale-slider::-webkit-slider-thumb:hover {
+  background: #388e3c;
+  transform: scale(1.15);
+}
+
+.scale-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #4caf50;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.scale-slider::-moz-range-thumb:hover {
+  background: #388e3c;
+  transform: scale(1.15);
 }
 </style>

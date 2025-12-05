@@ -2508,17 +2508,20 @@ export const Visualizers = {
     name_de: "Elektrisches Netz",
     name_en: "Electric Web",
     init(width, height) {
-      visualizerState.electricWeb = { nodes: [], sparks: [], time: 0 };
-      const numNodes = 50; // Mehr Nodes
+      // OPTIMIERT: Weniger Nodes = O(n²) wird viel besser
+      const numNodes = 30;
+      visualizerState.electricWeb = {
+        nodes: [],
+        // Vorberechnete Verbindungs-Distanz²
+        maxDistSq: Math.pow(width / 5, 2)
+      };
       for (let i = 0; i < numNodes; i++) {
         visualizerState.electricWeb.nodes.push({
           x: Math.random() * width,
           y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 3, // 6x schneller
-          vy: (Math.random() - 0.5) * 3,
-          charge: 0,
-          baseCharge: 0.2 + Math.random() * 0.3, // Mindest-Ladung
-          hueOffset: Math.random() * 60
+          vx: (Math.random() - 0.5) * 2.5,
+          vy: (Math.random() - 0.5) * 2.5,
+          charge: 0.3 + Math.random() * 0.3
         });
       }
     },
@@ -2526,136 +2529,116 @@ export const Visualizers = {
       if (!visualizerState.electricWeb) this.init(width, height);
       const state = visualizerState.electricWeb;
       const baseHsl = hexToHsl(color);
+      const nodes = state.nodes;
+      const numNodes = nodes.length;
 
-      // Nutzbarer Frequenzbereich
+      // Frequenzbereich
       const maxFreqIndex = Math.floor(bufferLength * 0.21);
       const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
-      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
-      const highEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.7), maxFreqIndex) / 255;
+      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), maxFreqIndex) / 255;
 
-      state.time = (state.time || 0) + 0.02;
-
-      // Trail-Effekt
-      ctx.fillStyle = `rgba(0, 0, 0, ${0.12 + bassEnergy * 0.05})`;
+      // Trail
+      ctx.fillStyle = `rgba(0, 0, 0, 0.15)`;
       ctx.fillRect(0, 0, width, height);
 
-      // Hintergrund-Blitz bei starkem Bass
-      if (bassEnergy > 0.5 && Math.random() > 0.7) {
-        ctx.fillStyle = `hsla(${baseHsl.h}, 100%, 90%, ${bassEnergy * 0.1})`;
-        ctx.fillRect(0, 0, width, height);
+      // Geschwindigkeit
+      const speedMult = 1 + bassEnergy * 2.5;
+
+      // Verbindungs-Distanz (quadriert für schnelleren Vergleich)
+      const maxDist = width / 5 + bassEnergy * 30;
+      const maxDistSq = maxDist * maxDist;
+
+      // === VERBINDUNGEN ZUERST (weniger State-Änderungen) ===
+      ctx.lineWidth = (1 + midEnergy * 2) * intensity;
+
+      for (let i = 0; i < numNodes; i++) {
+        const nodeA = nodes[i];
+
+        for (let j = i + 1; j < numNodes; j++) {
+          const nodeB = nodes[j];
+          const dx = nodeB.x - nodeA.x;
+          const dy = nodeB.y - nodeA.y;
+
+          // OPTIMIERT: Quadrierte Distanz (kein sqrt nötig)
+          const distSq = dx * dx + dy * dy;
+          if (distSq > maxDistSq) continue;
+
+          const dist = Math.sqrt(distSq);
+          const distFactor = 1 - dist / maxDist;
+          const charge = (nodeA.charge + nodeB.charge) * 0.5;
+
+          // OPTIMIERT: Weniger Segmente (6 statt 12)
+          ctx.beginPath();
+          ctx.moveTo(nodeA.x, nodeA.y);
+
+          const jitterStrength = charge * 25 * intensity;
+          const segX = dx / 6;
+          const segY = dy / 6;
+
+          for (let k = 1; k < 6; k++) {
+            const jx = (Math.random() - 0.5) * jitterStrength;
+            const jy = (Math.random() - 0.5) * jitterStrength;
+            ctx.lineTo(nodeA.x + segX * k + jx, nodeA.y + segY * k + jy);
+          }
+          ctx.lineTo(nodeB.x, nodeB.y);
+
+          // OPTIMIERT: Einfache Farbe ohne Shadow
+          const alpha = distFactor * (0.4 + charge * 0.5);
+          ctx.strokeStyle = `hsla(${baseHsl.h}, 100%, ${55 + charge * 35}%, ${alpha})`;
+          ctx.stroke();
+        }
       }
 
-      const speedMult = 1 + bassEnergy * 4 + midEnergy * 2;
+      // === NODES ZEICHNEN ===
+      for (let i = 0; i < numNodes; i++) {
+        const node = nodes[i];
 
-      state.nodes.forEach((node, index) => {
-        // Frequenz aus nutzbarem Bereich mit Wiederholung
-        const freqIndex = Math.floor((index % 25) / 25 * maxFreqIndex);
+        // Frequenz für diesen Node
+        const freqIndex = Math.floor((i / numNodes) * maxFreqIndex);
         const amplitude = (dataArray[freqIndex] || 0) / 255;
+        node.charge = 0.3 + amplitude * 0.6;
 
-        // Ladung: Basis + Audio
-        node.charge = node.baseCharge + amplitude * 0.7 * intensity;
-
-        // Schnellere Bewegung
+        // Bewegung
         node.x += node.vx * speedMult;
         node.y += node.vy * speedMult;
 
-        // Bounce mit elektrischem Chaos
-        if (node.x < 0 || node.x > width) {
-          node.vx *= -1;
-          node.vy += (Math.random() - 0.5) * bassEnergy * 3;
-        }
-        if (node.y < 0 || node.y > height) {
-          node.vy *= -1;
-          node.vx += (Math.random() - 0.5) * bassEnergy * 3;
-        }
+        // Bounce
+        if (node.x < 0) { node.x = 0; node.vx *= -1; }
+        else if (node.x > width) { node.x = width; node.vx *= -1; }
+        if (node.y < 0) { node.y = 0; node.vy *= -1; }
+        else if (node.y > height) { node.y = height; node.vy *= -1; }
 
-        // Größerer, leuchtender Node
-        const nodeSize = (4 + node.charge * 15) * intensity;
-        const hue = (baseHsl.h + node.hueOffset + midEnergy * 40) % 360;
+        // OPTIMIERT: Einfacher Node ohne Gradient
+        const nodeSize = (3 + node.charge * 8) * intensity;
 
-        // Äußerer Glow
-        const glowGradient = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, nodeSize * 3);
-        glowGradient.addColorStop(0, `hsla(${hue}, 100%, 70%, ${node.charge * 0.5})`);
-        glowGradient.addColorStop(0.5, `hsla(${hue}, 100%, 50%, ${node.charge * 0.2})`);
-        glowGradient.addColorStop(1, 'transparent');
+        // Äußerer Ring (statt teurer Gradient)
         ctx.beginPath();
-        ctx.arc(node.x, node.y, nodeSize * 3, 0, Math.PI * 2);
-        ctx.fillStyle = glowGradient;
+        ctx.arc(node.x, node.y, nodeSize * 1.8, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${baseHsl.h}, 100%, 60%, ${node.charge * 0.25})`;
         ctx.fill();
 
         // Kern
         ctx.beginPath();
         ctx.arc(node.x, node.y, nodeSize, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${hue}, 100%, ${70 + node.charge * 30}%, ${0.8 + node.charge * 0.2})`;
+        ctx.fillStyle = `hsla(${baseHsl.h}, 100%, ${65 + node.charge * 30}%, ${0.8 + node.charge * 0.2})`;
         ctx.fill();
-      });
+      }
 
-      // Verbindungen - IMMER sichtbar, stärker bei Audio
-      const connectionDistance = width / 4 + bassEnergy * 50;
-      withSafeCanvasState(ctx, () => {
-        for (let i = 0; i < state.nodes.length; i++) {
-          for (let j = i + 1; j < state.nodes.length; j++) {
-            const dx = state.nodes[j].x - state.nodes[i].x;
-            const dy = state.nodes[j].y - state.nodes[i].y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-
-            if (dist < connectionDistance) {
-              const combinedCharge = (state.nodes[i].charge + state.nodes[j].charge) / 2;
-              const distFactor = 1 - dist / connectionDistance;
-
-              // Immer zeichnen, nicht nur bei hoher Ladung
-              const segments = 12;
-              ctx.beginPath();
-              ctx.moveTo(state.nodes[i].x, state.nodes[i].y);
-
-              for (let k = 1; k < segments; k++) {
-                const t = k / segments;
-                const x = state.nodes[i].x + dx * t;
-                const y = state.nodes[i].y + dy * t;
-                // Stärkeres Zittern
-                const jitter = (Math.random() - 0.5) * combinedCharge * 40 * intensity;
-                ctx.lineTo(x + jitter, y + jitter);
-              }
-              ctx.lineTo(state.nodes[j].x, state.nodes[j].y);
-
-              const hue = (baseHsl.h + (i * 3 + j * 2) % 60) % 360;
-              const alpha = distFactor * (0.3 + combinedCharge * 0.7);
-
-              ctx.strokeStyle = `hsla(${hue}, 100%, ${60 + combinedCharge * 40}%, ${alpha})`;
-              ctx.lineWidth = (1 + combinedCharge * 4) * intensity;
-
-              // Glow bei hoher Ladung
-              if (combinedCharge > 0.4) {
-                ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
-                ctx.shadowBlur = combinedCharge * 15;
-              }
-              ctx.stroke();
-              ctx.shadowBlur = 0;
-            }
-          }
-        }
-      });
-
-      // Zufällige Blitz-Funken bei hoher Energie
-      if (highEnergy > 0.4 && Math.random() > 0.8) {
-        const sourceNode = state.nodes[Math.floor(Math.random() * state.nodes.length)];
-        const sparkLength = 50 + highEnergy * 100;
-        const sparkAngle = Math.random() * Math.PI * 2;
-
+      // Gelegentlicher Blitz (selten, für Akzent)
+      if (bassEnergy > 0.6 && Math.random() > 0.9) {
+        const src = nodes[Math.floor(Math.random() * numNodes)];
         ctx.beginPath();
-        ctx.moveTo(sourceNode.x, sourceNode.y);
-        let sx = sourceNode.x, sy = sourceNode.y;
-        for (let i = 0; i < 5; i++) {
-          sx += Math.cos(sparkAngle + (Math.random() - 0.5)) * sparkLength / 5;
-          sy += Math.sin(sparkAngle + (Math.random() - 0.5)) * sparkLength / 5;
+        ctx.moveTo(src.x, src.y);
+        let sx = src.x, sy = src.y;
+        const angle = Math.random() * Math.PI * 2;
+        for (let i = 0; i < 4; i++) {
+          sx += Math.cos(angle + (Math.random() - 0.5) * 0.8) * 30;
+          sy += Math.sin(angle + (Math.random() - 0.5) * 0.8) * 30;
           ctx.lineTo(sx, sy);
         }
-        ctx.strokeStyle = `hsla(${baseHsl.h}, 100%, 90%, ${highEnergy})`;
-        ctx.lineWidth = 2 * intensity;
-        ctx.shadowColor = `hsl(${baseHsl.h}, 100%, 80%)`;
-        ctx.shadowBlur = 20;
+        ctx.strokeStyle = `hsla(${baseHsl.h}, 100%, 85%, ${bassEnergy})`;
+        ctx.lineWidth = 2;
         ctx.stroke();
-        ctx.shadowBlur = 0;
       }
     }
   },/**

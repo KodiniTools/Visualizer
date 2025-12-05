@@ -294,17 +294,67 @@
             <span class="label-text">Drehwinkel</span>
             <span class="label-value" ref="rotationValueRef">0°</span>
           </label>
-          <input 
-            type="range" 
-            min="0" 
-            max="100" 
-            value="50" 
-            step="1" 
-            ref="rotationInputRef" 
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value="50"
+            step="1"
+            ref="rotationInputRef"
             @input="onRotationChange"
             class="modern-slider rotation-slider"
           />
           <div class="rotation-hint">← -180° | 0° | +180° →</div>
+        </div>
+      </div>
+
+      <!-- Bildkontur Section -->
+      <div class="modern-section-header" style="margin-top: 20px;">
+        <h4>Bildkontur</h4>
+      </div>
+
+      <div class="modern-controls-group">
+        <!-- Konturfarbe -->
+        <div class="modern-control">
+          <label class="modern-label">
+            <span class="label-text">Farbe</span>
+          </label>
+          <div class="modern-color-picker">
+            <input
+              type="color"
+              ref="borderColorInputRef"
+              @input="onBorderColorChange"
+              value="#ffffff"
+              class="modern-color-input"
+              title="Konturfarbe wählen"
+            />
+            <input
+              type="text"
+              ref="borderColorTextRef"
+              @input="onBorderColorTextChange"
+              value="#ffffff"
+              class="modern-color-text"
+              placeholder="#ffffff"
+            />
+          </div>
+        </div>
+
+        <!-- Konturbreite -->
+        <div class="modern-control">
+          <label class="modern-label">
+            <span class="label-text">Dicke</span>
+            <span class="label-value" ref="borderWidthValueRef">0px</span>
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="50"
+            value="0"
+            step="1"
+            ref="borderWidthInputRef"
+            @input="onBorderWidthChange"
+            class="modern-slider border-slider"
+          />
         </div>
       </div>
 
@@ -343,6 +393,12 @@ const shadowOffsetYInputRef = ref(null);
 const shadowOffsetYValueRef = ref(null);
 const rotationInputRef = ref(null);
 const rotationValueRef = ref(null);
+
+// ✨ NEU: Refs für Bildkontur
+const borderWidthInputRef = ref(null);
+const borderWidthValueRef = ref(null);
+const borderColorInputRef = ref(null);
+const borderColorTextRef = ref(null);
 
 // ✨ NEU: Refs für Galerie-Funktionalität
 const fileInputRef = ref(null);
@@ -456,6 +512,25 @@ function onRotationChange(event) {
   updateActiveImageSetting('rotation', actualRotation);
 }
 
+// ✨ NEU: Bildkontur-Handler
+function onBorderColorChange(event) {
+  const value = event.target.value;
+  borderColorTextRef.value.value = value;
+  updateActiveImageSetting('borderColor', value);
+}
+
+function onBorderColorTextChange(event) {
+  const value = event.target.value;
+  borderColorInputRef.value.value = value;
+  updateActiveImageSetting('borderColor', value);
+}
+
+function onBorderWidthChange(event) {
+  const value = parseInt(event.target.value);
+  borderWidthValueRef.value.textContent = value + 'px';
+  updateActiveImageSetting('borderWidth', value);
+}
+
 function onPresetChange(event) {
   const presetId = event.target.value;
   updateActiveImageSetting('preset', presetId || null);
@@ -509,7 +584,13 @@ function resetFilters() {
   // ✨ Rotation zurücksetzen (Slider auf Mitte = 50 = 0°)
   rotationInputRef.value.value = 50;
   rotationValueRef.value.textContent = '0°';
-  
+
+  // ✨ Bildkontur zurücksetzen
+  borderColorInputRef.value.value = '#ffffff';
+  borderColorTextRef.value.value = '#ffffff';
+  borderWidthInputRef.value.value = 0;
+  borderWidthValueRef.value.textContent = '0px';
+
   presetSelectRef.value.value = '';
   
   if (currentActiveImage.value) {
@@ -534,7 +615,11 @@ function resetFilters() {
     currentActiveImage.value.fotoSettings.shadowOffsetX = 0;
     currentActiveImage.value.fotoSettings.shadowOffsetY = 0;
     currentActiveImage.value.fotoSettings.rotation = 0;
-    
+
+    // ✨ Bildkontur zurücksetzen
+    currentActiveImage.value.fotoSettings.borderColor = '#ffffff';
+    currentActiveImage.value.fotoSettings.borderWidth = 0;
+
     triggerRedraw();
   }
 }
@@ -565,7 +650,10 @@ function updateActiveImageSetting(property, value) {
       shadowBlur: 0,
       shadowOffsetX: 0,
       shadowOffsetY: 0,
-      rotation: 0
+      rotation: 0,
+      // ✨ Bildkontur
+      borderColor: '#ffffff',
+      borderWidth: 0
     };
   }
   
@@ -620,9 +708,15 @@ function loadImageSettings(imgData) {
   const sliderValue = Math.round((rotation / 3.6) + 50);
   rotationInputRef.value.value = sliderValue;
   rotationValueRef.value.textContent = Math.round(rotation) + '°';
-  
+
+  // ✨ Bildkontur laden
+  borderColorInputRef.value.value = s.borderColor || '#ffffff';
+  borderColorTextRef.value.value = s.borderColor || '#ffffff';
+  borderWidthInputRef.value.value = s.borderWidth || 0;
+  borderWidthValueRef.value.textContent = (s.borderWidth || 0) + 'px';
+
   presetSelectRef.value.value = s.preset || '';
-  
+
   console.log('📥 Filter-Einstellungen geladen:', s);
 }
 
@@ -2061,6 +2155,17 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .rotation-slider:hover {
   box-shadow: 0 3px 12px rgba(59, 130, 246, 0.4);
+  transform: scaleY(1.2);
+}
+
+/* Border Slider - Weiß/Blau Gradient */
+.border-slider {
+  background: linear-gradient(90deg, #1a1a2e 0%, #ffffff 50%, #6ea8fe 100%);
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+}
+
+.border-slider:hover {
+  box-shadow: 0 3px 12px rgba(255, 255, 255, 0.4);
   transform: scaleY(1.2);
 }
 

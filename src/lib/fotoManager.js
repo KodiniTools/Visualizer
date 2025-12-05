@@ -27,7 +27,11 @@ export class FotoManager {
             shadowOffsetY: 0,        // -50 bis +50px
             
             // ✨ ROTATION
-            rotation: 0              // 0-360° Bildrotation
+            rotation: 0,             // 0-360° Bildrotation
+
+            // ✨ BILDKONTUR (Border/Outline)
+            borderWidth: 0,          // 0-50px Konturbreite
+            borderColor: '#ffffff'   // Konturfarbe
         };
     }
 
@@ -394,6 +398,29 @@ export class FotoManager {
             });
         }
 
+        // ✨ NEU: Bildkontur-Breite
+        if (controls.borderWidthInput) {
+            controls.borderWidthInput.addEventListener('input', (e) => {
+                const activeImage = this.getActiveImage?.();
+                if (activeImage) {
+                    this.updateSetting(activeImage, 'borderWidth', parseInt(e.target.value));
+                    if (controls.borderWidthValue) {
+                        controls.borderWidthValue.textContent = e.target.value + 'px';
+                    }
+                }
+            });
+        }
+
+        // ✨ NEU: Bildkontur-Farbe
+        if (controls.borderColorInput) {
+            controls.borderColorInput.addEventListener('input', (e) => {
+                const activeImage = this.getActiveImage?.();
+                if (activeImage) {
+                    this.updateSetting(activeImage, 'borderColor', e.target.value);
+                }
+            });
+        }
+
         // Preset-Auswahl
         if (controls.presetSelect) {
             controls.presetSelect.addEventListener('change', (e) => {
@@ -453,9 +480,16 @@ export class FotoManager {
         updateControl(controls.shadowOffsetXInput, controls.shadowOffsetXValue, settings.shadowOffsetX, 'px');
         updateControl(controls.shadowOffsetYInput, controls.shadowOffsetYValue, settings.shadowOffsetY, 'px');
         updateControl(controls.rotationInput, controls.rotationValue, settings.rotation, '°');
-        
+
         if (controls.shadowColorInput) {
             controls.shadowColorInput.value = settings.shadowColor;
+        }
+
+        // ✨ NEU: Bildkontur
+        updateControl(controls.borderWidthInput, controls.borderWidthValue, settings.borderWidth, 'px');
+
+        if (controls.borderColorInput) {
+            controls.borderColorInput.value = settings.borderColor;
         }
     }
 

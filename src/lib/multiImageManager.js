@@ -206,22 +206,11 @@ export class MultiImageManager {
                 ctx.translate(-centerX, -centerY);
             }
             
-            // ✅ CRITICAL: Direkt zeichnen ohne zusätzliche Kopien
-            try {
-                ctx.drawImage(
-                    imgData.imageObject,
-                    bounds.x,
-                    bounds.y,
-                    bounds.width,
-                    bounds.height
-                );
-            } catch (e) {
-                console.warn('[MultiImageManager] Image render error:', e);
-            }
-
-            // ✨ BILDKONTUR zeichnen (nach dem Bild, vor Filter-Reset)
+            // ✨ BILDKONTUR: Prüfen ob Kontur gezeichnet werden soll
             const borderWidth = imgData.fotoSettings?.borderWidth || 0;
+
             if (borderWidth > 0) {
+                // Mit Kontur: _drawImageOutline zeichnet sowohl Kontur als auch Bild
                 const borderColor = imgData.fotoSettings?.borderColor || '#ffffff';
 
                 // Filter zurücksetzen für saubere Kontur
@@ -232,15 +221,21 @@ export class MultiImageManager {
                 ctx.shadowOffsetX = 0;
                 ctx.shadowOffsetY = 0;
 
-                // Kontur zeichnen
-                ctx.strokeStyle = borderColor;
-                ctx.lineWidth = borderWidth;
-                ctx.strokeRect(
-                    bounds.x - borderWidth / 2,
-                    bounds.y - borderWidth / 2,
-                    bounds.width + borderWidth,
-                    bounds.height + borderWidth
-                );
+                // Zeichne Kontur um die sichtbare Form des Bildes (inklusive Bild darüber)
+                this._drawImageOutline(ctx, imgData.imageObject, bounds, borderWidth, borderColor);
+            } else {
+                // Ohne Kontur: Bild normal zeichnen
+                try {
+                    ctx.drawImage(
+                        imgData.imageObject,
+                        bounds.x,
+                        bounds.y,
+                        bounds.width,
+                        bounds.height
+                    );
+                } catch (e) {
+                    console.warn('[MultiImageManager] Image render error:', e);
+                }
             }
 
             // ✨ Filter + Schatten zurücksetzen (wenn FotoManager verwendet wurde)
@@ -525,5 +520,62 @@ export class MultiImageManager {
         this.onImageSelected(null);
         this.redrawCallback();
         this.onImageChanged();
+    }
+
+    /**
+     * ✨ Zeichnet eine Kontur um die sichtbare Form eines Bildes (unterstützt Transparenz)
+     * Verwendet einen Outline-Effekt durch mehrfaches Zeichnen mit Offset
+     * HINWEIS: Rotation wird bereits im aufrufenden Context angewendet
+     */
+    _drawImageOutline(ctx, imageObject, bounds, borderWidth, borderColor) {
+        if (!imageObject || borderWidth <= 0) return;
+
+        // Erstelle temporäres Canvas für die Farbmaske
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = Math.ceil(bounds.width + borderWidth * 2);
+        tempCanvas.height = Math.ceil(bounds.height + borderWidth * 2);
+        const tempCtx = tempCanvas.getContext('2d');
+
+        // Zeichne das Bild auf das temporäre Canvas (zentriert mit Platz für Kontur)
+        tempCtx.drawImage(
+            imageObject,
+            borderWidth,
+            borderWidth,
+            bounds.width,
+            bounds.height
+        );
+
+        // Wende Konturfarbe auf die sichtbaren Pixel an
+        tempCtx.globalCompositeOperation = 'source-in';
+        tempCtx.fillStyle = borderColor;
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+        // 8 Richtungen für gleichmäßige Kontur (N, NE, E, SE, S, SW, W, NW)
+        const directions = [
+            [0, -1],   // N
+            [1, -1],   // NE
+            [1, 0],    // E
+            [1, 1],    // SE
+            [0, 1],    // S
+            [-1, 1],   // SW
+            [-1, 0],   // W
+            [-1, -1]   // NW
+        ];
+
+        // Für dickere Konturen: Mehrere Schichten zeichnen
+        const steps = Math.ceil(borderWidth / 2);
+        for (let step = 1; step <= steps; step++) {
+            const offset = step * 2;
+            for (const [dx, dy] of directions) {
+                ctx.drawImage(
+                    tempCanvas,
+                    bounds.x - borderWidth + (dx * offset),
+                    bounds.y - borderWidth + (dy * offset)
+                );
+            }
+        }
+
+        // Original-Bild nochmals zeichnen (über der Kontur)
+        ctx.drawImage(imageObject, bounds.x, bounds.y, bounds.width, bounds.height);
     }
 }

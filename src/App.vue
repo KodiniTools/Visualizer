@@ -17,10 +17,10 @@
       <aside class="right-panel">
         <FileUploadPanel />
         <PlayerPanel />
+        <RecorderPanel />
         <VisualizerPanel />
         <ControlsPanel />
         <CanvasControlPanel />
-        <RecorderPanel />
       </aside>
 
     </div>

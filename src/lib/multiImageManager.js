@@ -212,6 +212,7 @@ export class MultiImageManager {
             if (borderWidth > 0) {
                 // Mit Kontur: _drawImageOutline zeichnet sowohl Kontur als auch Bild
                 const borderColor = imgData.fotoSettings?.borderColor || '#ffffff';
+                const borderOpacity = (imgData.fotoSettings?.borderOpacity ?? 100) / 100;
 
                 // Filter zurücksetzen für saubere Kontur
                 ctx.filter = 'none';
@@ -222,7 +223,7 @@ export class MultiImageManager {
                 ctx.shadowOffsetY = 0;
 
                 // Zeichne Kontur um die sichtbare Form des Bildes (inklusive Bild darüber)
-                this._drawImageOutline(ctx, imgData.imageObject, bounds, borderWidth, borderColor);
+                this._drawImageOutline(ctx, imgData.imageObject, bounds, borderWidth, borderColor, borderOpacity);
             } else {
                 // Ohne Kontur: Bild normal zeichnen
                 try {
@@ -526,8 +527,9 @@ export class MultiImageManager {
      * ✨ Zeichnet eine Kontur um die sichtbare Form eines Bildes (unterstützt Transparenz)
      * Verwendet einen Outline-Effekt durch mehrfaches Zeichnen mit Offset
      * HINWEIS: Rotation wird bereits im aufrufenden Context angewendet
+     * @param {number} borderOpacity - Deckkraft der Kontur (0-1)
      */
-    _drawImageOutline(ctx, imageObject, bounds, borderWidth, borderColor) {
+    _drawImageOutline(ctx, imageObject, bounds, borderWidth, borderColor, borderOpacity = 1) {
         if (!imageObject || borderWidth <= 0) return;
 
         // Erstelle temporäres Canvas für die Farbmaske
@@ -562,6 +564,9 @@ export class MultiImageManager {
             [-1, -1]   // NW
         ];
 
+        // ✨ Kontur-Transparenz anwenden
+        ctx.globalAlpha = borderOpacity;
+
         // Für dickere Konturen: Mehrere Schichten zeichnen
         const steps = Math.ceil(borderWidth / 2);
         for (let step = 1; step <= steps; step++) {
@@ -574,6 +579,9 @@ export class MultiImageManager {
                 );
             }
         }
+
+        // ✨ Transparenz zurücksetzen für Original-Bild
+        ctx.globalAlpha = 1.0;
 
         // Original-Bild nochmals zeichnen (über der Kontur)
         ctx.drawImage(imageObject, bounds.x, bounds.y, bounds.width, bounds.height);

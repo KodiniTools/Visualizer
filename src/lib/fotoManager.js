@@ -31,7 +31,8 @@ export class FotoManager {
 
             // ✨ BILDKONTUR (Border/Outline)
             borderWidth: 0,          // 0-50px Konturbreite
-            borderColor: '#ffffff'   // Konturfarbe
+            borderColor: '#ffffff',  // Konturfarbe
+            borderOpacity: 100       // 0-100% Konturtransparenz
         };
     }
 
@@ -421,6 +422,19 @@ export class FotoManager {
             });
         }
 
+        // ✨ NEU: Bildkontur-Transparenz
+        if (controls.borderOpacityInput) {
+            controls.borderOpacityInput.addEventListener('input', (e) => {
+                const activeImage = this.getActiveImage?.();
+                if (activeImage) {
+                    this.updateSetting(activeImage, 'borderOpacity', parseInt(e.target.value));
+                    if (controls.borderOpacityValue) {
+                        controls.borderOpacityValue.textContent = e.target.value + '%';
+                    }
+                }
+            });
+        }
+
         // Preset-Auswahl
         if (controls.presetSelect) {
             controls.presetSelect.addEventListener('change', (e) => {
@@ -487,6 +501,7 @@ export class FotoManager {
 
         // ✨ NEU: Bildkontur
         updateControl(controls.borderWidthInput, controls.borderWidthValue, settings.borderWidth, 'px');
+        updateControl(controls.borderOpacityInput, controls.borderOpacityValue, settings.borderOpacity, '%');
 
         if (controls.borderColorInput) {
             controls.borderColorInput.value = settings.borderColor;

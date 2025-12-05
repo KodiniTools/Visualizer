@@ -195,6 +195,12 @@
         <span ref="blurValueRef">0px</span>
       </div>
 
+      <div class="control-group slider">
+        <label>Farbton</label>
+        <input type="range" min="0" max="360" value="0" step="1" ref="hueRotateInputRef" @input="onHueRotateChange">
+        <span ref="hueRotateValueRef">0°</span>
+      </div>
+
       <!-- MODERNE SCHATTEN & ROTATIONS-SEKTION -->
       <div class="modern-divider"></div>
       <div class="modern-section-header">
@@ -306,6 +312,33 @@
           />
           <div class="rotation-hint">← -180° | 0° | +180° →</div>
         </div>
+
+        <!-- Spiegeln (Flip) Buttons -->
+        <div class="modern-control flip-controls">
+          <label class="modern-label">
+            <span class="label-text">Spiegeln</span>
+          </label>
+          <div class="flip-buttons">
+            <button
+              type="button"
+              class="flip-button"
+              :class="{ 'active': flipHRef }"
+              @click="onFlipHorizontal"
+              title="Horizontal spiegeln"
+            >
+              ↔ Horizontal
+            </button>
+            <button
+              type="button"
+              class="flip-button"
+              :class="{ 'active': flipVRef }"
+              @click="onFlipVertical"
+              title="Vertikal spiegeln"
+            >
+              ↕ Vertikal
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Bildkontur Section -->
@@ -399,6 +432,12 @@ const opacityInputRef = ref(null);
 const opacityValueRef = ref(null);
 const blurInputRef = ref(null);
 const blurValueRef = ref(null);
+const hueRotateInputRef = ref(null);
+const hueRotateValueRef = ref(null);
+
+// ✨ NEU: Refs für Spiegeln (Flip)
+const flipHRef = ref(false);
+const flipVRef = ref(false);
 
 // ✨ NEU: Refs für Schatten und Rotation
 const shadowColorInputRef = ref(null);
@@ -490,6 +529,27 @@ function onBlurChange(event) {
   const value = parseInt(event.target.value);
   blurValueRef.value.textContent = value + 'px';
   updateActiveImageSetting('blur', value);
+}
+
+function onHueRotateChange(event) {
+  const value = parseInt(event.target.value);
+  hueRotateValueRef.value.textContent = value + '°';
+  updateActiveImageSetting('hueRotate', value);
+}
+
+// ✨ NEU: Flip-Handler (Horizontal und Vertikal spiegeln)
+function onFlipHorizontal() {
+  if (!currentActiveImage.value) return;
+  const currentValue = currentActiveImage.value.fotoSettings?.flipH || false;
+  flipHRef.value = !currentValue;
+  updateActiveImageSetting('flipH', !currentValue);
+}
+
+function onFlipVertical() {
+  if (!currentActiveImage.value) return;
+  const currentValue = currentActiveImage.value.fotoSettings?.flipV || false;
+  flipVRef.value = !currentValue;
+  updateActiveImageSetting('flipV', !currentValue);
 }
 
 // ✨ NEU: Schatten-Handler
@@ -596,7 +656,11 @@ function resetFilters() {
   opacityValueRef.value.textContent = '100%';
   blurInputRef.value.value = 0;
   blurValueRef.value.textContent = '0px';
-  
+
+  // ✨ Farbton zurücksetzen
+  hueRotateInputRef.value.value = 0;
+  hueRotateValueRef.value.textContent = '0°';
+
   // ✨ Schatten zurücksetzen
   shadowColorInputRef.value.value = '#000000';
   shadowColorTextRef.value.value = '#000000';
@@ -610,6 +674,10 @@ function resetFilters() {
   // ✨ Rotation zurücksetzen (Slider auf Mitte = 50 = 0°)
   rotationInputRef.value.value = 50;
   rotationValueRef.value.textContent = '0°';
+
+  // ✨ Flip zurücksetzen
+  flipHRef.value = false;
+  flipVRef.value = false;
 
   // ✨ Bildkontur zurücksetzen
   borderColorInputRef.value.value = '#ffffff';
@@ -643,6 +711,10 @@ function resetFilters() {
     currentActiveImage.value.fotoSettings.shadowOffsetX = 0;
     currentActiveImage.value.fotoSettings.shadowOffsetY = 0;
     currentActiveImage.value.fotoSettings.rotation = 0;
+
+    // ✨ Flip zurücksetzen
+    currentActiveImage.value.fotoSettings.flipH = false;
+    currentActiveImage.value.fotoSettings.flipV = false;
 
     // ✨ Bildkontur zurücksetzen
     currentActiveImage.value.fotoSettings.borderColor = '#ffffff';
@@ -680,6 +752,9 @@ function updateActiveImageSetting(property, value) {
       shadowOffsetX: 0,
       shadowOffsetY: 0,
       rotation: 0,
+      // ✨ Spiegeln
+      flipH: false,
+      flipV: false,
       // ✨ Bildkontur
       borderColor: '#ffffff',
       borderWidth: 0,
@@ -719,7 +794,11 @@ function loadImageSettings(imgData) {
   
   blurInputRef.value.value = s.blur || 0;
   blurValueRef.value.textContent = (s.blur || 0) + 'px';
-  
+
+  // ✨ Farbton laden
+  hueRotateInputRef.value.value = s.hueRotate || 0;
+  hueRotateValueRef.value.textContent = (s.hueRotate || 0) + '°';
+
   // ✨ Schatten und Rotation laden
   shadowColorInputRef.value.value = s.shadowColor || '#000000';
   shadowColorTextRef.value.value = s.shadowColor || '#000000';
@@ -738,6 +817,10 @@ function loadImageSettings(imgData) {
   const sliderValue = Math.round((rotation / 3.6) + 50);
   rotationInputRef.value.value = sliderValue;
   rotationValueRef.value.textContent = Math.round(rotation) + '°';
+
+  // ✨ Flip laden
+  flipHRef.value = s.flipH || false;
+  flipVRef.value = s.flipV || false;
 
   // ✨ Bildkontur laden
   borderColorInputRef.value.value = s.borderColor || '#ffffff';
@@ -2308,6 +2391,50 @@ input[type="range"]::-moz-range-thumb:hover {
   margin-top: 4px;
   font-family: 'Courier New', monospace;
   letter-spacing: 1px;
+}
+
+/* ✨ FLIP BUTTONS */
+.flip-controls {
+  margin-top: 12px;
+}
+
+.flip-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.flip-button {
+  flex: 1;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  border: 1px solid #555;
+  border-radius: 8px;
+  color: #ccc;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.flip-button:hover {
+  background: linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 100%);
+  border-color: #6ea8fe;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(110, 168, 254, 0.15);
+}
+
+.flip-button.active {
+  background: linear-gradient(135deg, #6ea8fe 0%, #5090e0 100%);
+  border-color: #6ea8fe;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(110, 168, 254, 0.3);
+}
+
+.flip-button.active:hover {
+  background: linear-gradient(135deg, #7eb8ff 0%, #60a0f0 100%);
 }
 
 /* ✨ MODERNER RESET BUTTON */

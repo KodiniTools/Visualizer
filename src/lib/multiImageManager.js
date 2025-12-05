@@ -174,9 +174,11 @@ export class MultiImageManager {
             const bounds = this.getImageBounds(imgData);
             if (!bounds) return;
             
-            // ✅ FIX: Minimale save/restore - nur wenn Filter/Rotation/Kontur verwendet werden
+            // ✅ FIX: Minimale save/restore - nur wenn Filter/Rotation/Flip/Kontur verwendet werden
             const needsContext = (imgData.fotoSettings &&
                 (imgData.fotoSettings.rotation !== 0 ||
+                 imgData.fotoSettings.flipH ||
+                 imgData.fotoSettings.flipV ||
                  imgData.fotoSettings.opacity !== 100 ||
                  imgData.fotoSettings.shadowBlur > 0 ||
                  imgData.fotoSettings.borderWidth > 0));
@@ -199,13 +201,27 @@ export class MultiImageManager {
                 // Berechne Zentrum des Bildes
                 const centerX = bounds.x + bounds.width / 2;
                 const centerY = bounds.y + bounds.height / 2;
-                
+
                 // Verschiebe zum Zentrum, rotiere, verschiebe zurück
                 ctx.translate(centerX, centerY);
                 ctx.rotate((rotation * Math.PI) / 180);
                 ctx.translate(-centerX, -centerY);
             }
-            
+
+            // ✨ FLIP anwenden (Horizontal und/oder Vertikal spiegeln)
+            const flipH = imgData.fotoSettings?.flipH || false;
+            const flipV = imgData.fotoSettings?.flipV || false;
+            if (flipH || flipV) {
+                // Berechne Zentrum des Bildes
+                const centerX = bounds.x + bounds.width / 2;
+                const centerY = bounds.y + bounds.height / 2;
+
+                // Verschiebe zum Zentrum, spiegeln, verschiebe zurück
+                ctx.translate(centerX, centerY);
+                ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+                ctx.translate(-centerX, -centerY);
+            }
+
             // ✨ BILDKONTUR: Prüfen ob Kontur gezeichnet werden soll
             const borderWidth = imgData.fotoSettings?.borderWidth || 0;
 

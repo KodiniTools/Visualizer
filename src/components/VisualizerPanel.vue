@@ -17,7 +17,7 @@
     </div>
 
     <!-- Visualizer Ein/Aus -->
-    <div class="control-section">
+    <div class="control-section status-toggle">
       <span class="section-label">Status</span>
       <button
         class="toggle-btn"
@@ -710,9 +710,18 @@ h4 {
   opacity: 0.6;
 }
 
-.panel-disabled .control-section:not(:first-child):not(:nth-child(2)) {
+/* Alle Steuerungen außer dem Status-Toggle deaktivieren */
+.panel-disabled .control-section:not(.status-toggle) {
   pointer-events: none;
   opacity: 0.4;
+}
+
+/* Status-Toggle immer aktiv und sichtbar halten */
+.panel-disabled .status-toggle {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  position: relative;
+  z-index: 20;
 }
 
 .disabled-overlay {

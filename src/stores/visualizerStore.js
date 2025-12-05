@@ -47,6 +47,11 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   const visualizerOpacity = ref(1.0); // Gesamtintensität (0.0 bis 1.0, Standard: 100%)
   const colorOpacity = ref(1.0); // Farbtransparenz (0.0 bis 1.0, Standard: 100%)
 
+  // ✨ NEU: Position und Größe des Visualizers (frei positionierbar)
+  const visualizerX = ref(0.5); // X-Position (0.0 = links, 0.5 = Mitte, 1.0 = rechts)
+  const visualizerY = ref(0.5); // Y-Position (0.0 = oben, 0.5 = Mitte, 1.0 = unten)
+  const visualizerScale = ref(1.0); // Skalierung (0.1 = 10%, 1.0 = 100%, 2.0 = 200%)
+
   function selectVisualizer(id) {
     if (Visualizers[id]) {
       selectedVisualizer.value = id;
@@ -73,6 +78,26 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     colorOpacity.value = newOpacity;
   }
 
+  // ✨ NEU: Funktionen für Position und Größe
+  function setVisualizerX(newX) {
+    visualizerX.value = Math.max(0, Math.min(1, newX));
+  }
+
+  function setVisualizerY(newY) {
+    visualizerY.value = Math.max(0, Math.min(1, newY));
+  }
+
+  function setVisualizerScale(newScale) {
+    visualizerScale.value = Math.max(0.1, Math.min(2.0, newScale));
+  }
+
+  // ✨ NEU: Reset Position und Größe auf Standard
+  function resetVisualizerTransform() {
+    visualizerX.value = 0.5;
+    visualizerY.value = 0.5;
+    visualizerScale.value = 1.0;
+  }
+
   return {
     availableVisualizers,
     categorizedVisualizers, // ✅ NEU: Kategorisierte Liste
@@ -86,5 +111,13 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     setColor,
     setOpacity,
     setColorOpacity,
+    // ✨ NEU: Position und Größe
+    visualizerX,
+    visualizerY,
+    visualizerScale,
+    setVisualizerX,
+    setVisualizerY,
+    setVisualizerScale,
+    resetVisualizerTransform,
   };
 });

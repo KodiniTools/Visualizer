@@ -131,18 +131,12 @@ export class MultiImageManager {
         if (this.selectedImage && image && this.selectedImage.id === image.id) {
             return; // Bereits ausgewählt
         }
-        
+
         this.selectedImage = image;
-        
-        // Bringe das ausgewählte Bild nach vorne (ans Ende des Arrays)
-        if (image && image.type === 'image') {
-            const index = this.images.findIndex(img => img.id === image.id);
-            if (index !== -1 && index !== this.images.length - 1) {
-                this.images.splice(index, 1);
-                this.images.push(image);
-            }
-        }
-        
+
+        // Ebenenreihenfolge wird NICHT automatisch geändert
+        // Der Benutzer kann explizit die Ebenensteuerung verwenden
+
         this.onImageSelected(image);
         this.redrawCallback();
     }

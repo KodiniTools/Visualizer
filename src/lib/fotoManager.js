@@ -36,7 +36,16 @@ export class FotoManager {
             // ✨ BILDKONTUR (Border/Outline)
             borderWidth: 0,          // 0-50px Konturbreite
             borderColor: '#ffffff',  // Konturfarbe
-            borderOpacity: 100       // 0-100% Konturtransparenz
+            borderOpacity: 100,      // 0-100% Konturtransparenz
+
+            // ✨ AUDIO-REAKTIV (Musik-Synchronisierung)
+            audioReactive: {
+                enabled: false,              // Audio-Reaktivität aktiviert
+                effect: 'hue',               // 'hue', 'brightness', 'saturation', 'scale', 'glow'
+                source: 'bass',              // 'bass', 'mid', 'treble', 'volume'
+                intensity: 80,               // 0-100% Intensität des Effekts
+                smoothing: 50                // 0-100% Glättung (verhindert Flackern)
+            }
         };
     }
 

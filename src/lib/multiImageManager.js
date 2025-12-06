@@ -156,26 +156,100 @@ export class MultiImageManager {
     }
     
     /**
+     * ✨ Berechnet Audio-Reaktive Effekt-Werte basierend auf den aktuellen Audio-Daten
+     */
+    getAudioReactiveValues(audioSettings) {
+        if (!audioSettings || !audioSettings.enabled) {
+            return null;
+        }
+
+        const audioData = window.audioAnalysisData;
+        if (!audioData) return null;
+
+        // Audio-Level basierend auf gewählter Quelle holen
+        const source = audioSettings.source || 'bass';
+        const smoothing = audioSettings.smoothing || 50;
+        let audioLevel = 0;
+
+        // Wähle zwischen geglätteten und rohen Werten basierend auf Smoothing
+        const useSmooth = smoothing > 30;
+
+        switch (source) {
+            case 'bass':
+                audioLevel = useSmooth ? audioData.smoothBass : audioData.bass;
+                break;
+            case 'mid':
+                audioLevel = useSmooth ? audioData.smoothMid : audioData.mid;
+                break;
+            case 'treble':
+                audioLevel = useSmooth ? audioData.smoothTreble : audioData.treble;
+                break;
+            case 'volume':
+                audioLevel = useSmooth ? audioData.smoothVolume : audioData.volume;
+                break;
+        }
+
+        // Normalisiere auf 0-1 und wende Intensität an
+        const intensity = (audioSettings.intensity || 80) / 100;
+        const normalizedLevel = (audioLevel / 255) * intensity;
+
+        // Berechne effektspezifische Werte
+        const effect = audioSettings.effect || 'hue';
+        const result = { effect, level: normalizedLevel };
+
+        switch (effect) {
+            case 'hue':
+                // Hue-Rotation: 0-360 Grad basierend auf Audio-Level
+                result.hueRotate = normalizedLevel * 360;
+                break;
+            case 'brightness':
+                // Helligkeit: 80-150% basierend auf Audio-Level
+                result.brightness = 80 + (normalizedLevel * 70);
+                break;
+            case 'saturation':
+                // Sättigung: 50-200% basierend auf Audio-Level
+                result.saturation = 50 + (normalizedLevel * 150);
+                break;
+            case 'scale':
+                // Skalierung: 1.0-1.3 basierend auf Audio-Level
+                result.scale = 1.0 + (normalizedLevel * 0.3);
+                break;
+            case 'glow':
+                // Glow/Shadow: 0-30px basierend auf Audio-Level
+                result.glowBlur = normalizedLevel * 30;
+                result.glowColor = `rgba(139, 92, 246, ${0.3 + normalizedLevel * 0.7})`;
+                break;
+        }
+
+        return result;
+    }
+
+    /**
      * Zeichnet alle Bilder auf den Canvas
      * ✅ OPTIMIERT: Reduziert Canvas-Context Overhead für Recording
      * ✨ ERWEITERT: Unterstützt jetzt Filter, Schatten und Rotation vom FotoManager
+     * ✨ NEU: Audio-Reaktive Effekte
      */
     drawImages(ctx) {
         if (!ctx || this.images.length === 0) return;
-        
+
         // ✅ OPTIMIZATION: Batch-Rendering mit weniger save/restore calls
         this.images.forEach(imgData => {
             const bounds = this.getImageBounds(imgData);
             if (!bounds) return;
-            
-            // ✅ FIX: Minimale save/restore - nur wenn Filter/Rotation/Flip/Kontur verwendet werden
+
+            // ✨ Audio-Reaktive Werte berechnen
+            const audioReactive = this.getAudioReactiveValues(imgData.fotoSettings?.audioReactive);
+
+            // ✅ FIX: Minimale save/restore - nur wenn Filter/Rotation/Flip/Kontur/AudioReaktiv verwendet werden
             const needsContext = (imgData.fotoSettings &&
                 (imgData.fotoSettings.rotation !== 0 ||
                  imgData.fotoSettings.flipH ||
                  imgData.fotoSettings.flipV ||
                  imgData.fotoSettings.opacity !== 100 ||
                  imgData.fotoSettings.shadowBlur > 0 ||
-                 imgData.fotoSettings.borderWidth > 0));
+                 imgData.fotoSettings.borderWidth > 0 ||
+                 audioReactive !== null));
             
             if (needsContext) {
                 ctx.save();
@@ -188,7 +262,40 @@ export class MultiImageManager {
                 // Fallback: Alte Filter-Methode
                 this.applyFilters(ctx, imgData);
             }
-            
+
+            // ✨ AUDIO-REAKTIV: Zusätzliche Filter basierend auf Audio
+            if (audioReactive) {
+                // Hole aktuelle Filter-String
+                let currentFilter = ctx.filter || 'none';
+                if (currentFilter === 'none') currentFilter = '';
+
+                switch (audioReactive.effect) {
+                    case 'hue':
+                        // Hue-Rotation hinzufügen
+                        currentFilter += ` hue-rotate(${audioReactive.hueRotate}deg)`;
+                        break;
+                    case 'brightness':
+                        // Helligkeit hinzufügen
+                        currentFilter += ` brightness(${audioReactive.brightness}%)`;
+                        break;
+                    case 'saturation':
+                        // Sättigung hinzufügen
+                        currentFilter += ` saturate(${audioReactive.saturation}%)`;
+                        break;
+                    case 'glow':
+                        // Glow als Shadow-Effekt
+                        ctx.shadowColor = audioReactive.glowColor;
+                        ctx.shadowBlur = audioReactive.glowBlur;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 0;
+                        break;
+                }
+
+                if (currentFilter.trim()) {
+                    ctx.filter = currentFilter.trim();
+                }
+            }
+
             // ✨ ROTATION anwenden (wenn vorhanden)
             const rotation = imgData.fotoSettings?.rotation || 0;
             if (rotation !== 0) {
@@ -216,6 +323,22 @@ export class MultiImageManager {
                 ctx.translate(-centerX, -centerY);
             }
 
+            // ✨ AUDIO-REAKTIV: Scale-Effekt (pulsieren)
+            let drawBounds = bounds;
+            if (audioReactive && audioReactive.effect === 'scale') {
+                const scale = audioReactive.scale;
+                const centerX = bounds.x + bounds.width / 2;
+                const centerY = bounds.y + bounds.height / 2;
+                const newWidth = bounds.width * scale;
+                const newHeight = bounds.height * scale;
+                drawBounds = {
+                    x: centerX - newWidth / 2,
+                    y: centerY - newHeight / 2,
+                    width: newWidth,
+                    height: newHeight
+                };
+            }
+
             // ✨ BILDKONTUR: Prüfen ob Kontur gezeichnet werden soll
             const borderWidth = imgData.fotoSettings?.borderWidth || 0;
 
@@ -226,16 +349,16 @@ export class MultiImageManager {
 
                 // Zeichne Kontur um die sichtbare Form des Bildes (inklusive Bild darüber)
                 // Filter werden in _drawImageOutline auf das Originalbild angewendet
-                this._drawImageOutline(ctx, imgData, bounds, borderWidth, borderColor, borderOpacity);
+                this._drawImageOutline(ctx, imgData, drawBounds, borderWidth, borderColor, borderOpacity);
             } else {
                 // Ohne Kontur: Bild normal zeichnen
                 try {
                     ctx.drawImage(
                         imgData.imageObject,
-                        bounds.x,
-                        bounds.y,
-                        bounds.width,
-                        bounds.height
+                        drawBounds.x,
+                        drawBounds.y,
+                        drawBounds.width,
+                        drawBounds.height
                     );
                 } catch (e) {
                     console.warn('[MultiImageManager] Image render error:', e);

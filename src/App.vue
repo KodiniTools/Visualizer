@@ -128,6 +128,79 @@ provide('fotoManager', fotoManagerInstance);
 provide('multiImageManager', multiImageManagerInstance);
 
 // ═══════════════════════════════════════════════════════════════════
+// ✨ AUDIO-ANALYSE FÜR AUDIO-REAKTIVE BILDER
+// ═══════════════════════════════════════════════════════════════════
+
+// Globale Audio-Daten für audio-reaktive Elemente
+window.audioAnalysisData = {
+  bass: 0,      // 0-255: Niedrige Frequenzen (Bass/Kick)
+  mid: 0,       // 0-255: Mittlere Frequenzen (Vocals/Instruments)
+  treble: 0,   // 0-255: Hohe Frequenzen (Hi-Hats/Cymbals)
+  volume: 0,    // 0-255: Gesamtlautstärke
+  // Geglättete Werte (für smoothing)
+  smoothBass: 0,
+  smoothMid: 0,
+  smoothTreble: 0,
+  smoothVolume: 0
+};
+
+/**
+ * Analysiert Audio-Daten und macht sie global verfügbar
+ * Wird in der Render-Loop aufgerufen
+ */
+function updateGlobalAudioData(audioDataArray, bufferLength) {
+  if (!audioDataArray || bufferLength === 0) return;
+
+  // Frequenzbereiche (bei FFT-Size 2048, Sample Rate 44100Hz)
+  // Jeder Bin = ~21.5 Hz
+  const bassEnd = Math.floor(bufferLength * 0.1);       // 0-10% = ca. 0-220 Hz (Bass)
+  const midEnd = Math.floor(bufferLength * 0.4);        // 10-40% = ca. 220-880 Hz (Mitten)
+  // Rest = Höhen
+
+  let bassSum = 0, midSum = 0, trebleSum = 0, totalSum = 0;
+
+  for (let i = 0; i < bufferLength; i++) {
+    const value = audioDataArray[i];
+    totalSum += value;
+
+    if (i < bassEnd) {
+      bassSum += value;
+    } else if (i < midEnd) {
+      midSum += value;
+    } else {
+      trebleSum += value;
+    }
+  }
+
+  // Durchschnittswerte berechnen
+  const bass = bassEnd > 0 ? Math.floor(bassSum / bassEnd) : 0;
+  const mid = (midEnd - bassEnd) > 0 ? Math.floor(midSum / (midEnd - bassEnd)) : 0;
+  const treble = (bufferLength - midEnd) > 0 ? Math.floor(trebleSum / (bufferLength - midEnd)) : 0;
+  const volume = Math.floor(totalSum / bufferLength);
+
+  // Rohe Werte speichern
+  window.audioAnalysisData.bass = bass;
+  window.audioAnalysisData.mid = mid;
+  window.audioAnalysisData.treble = treble;
+  window.audioAnalysisData.volume = volume;
+
+  // Geglättete Werte (exponential smoothing für flüssigere Animation)
+  const smoothFactor = 0.3; // Höher = schneller, Niedriger = glatter
+  window.audioAnalysisData.smoothBass = Math.floor(
+    window.audioAnalysisData.smoothBass * (1 - smoothFactor) + bass * smoothFactor
+  );
+  window.audioAnalysisData.smoothMid = Math.floor(
+    window.audioAnalysisData.smoothMid * (1 - smoothFactor) + mid * smoothFactor
+  );
+  window.audioAnalysisData.smoothTreble = Math.floor(
+    window.audioAnalysisData.smoothTreble * (1 - smoothFactor) + treble * smoothFactor
+  );
+  window.audioAnalysisData.smoothVolume = Math.floor(
+    window.audioAnalysisData.smoothVolume * (1 - smoothFactor) + volume * smoothFactor
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // ✨ CANVAS-BILDER LEISTE (für Auswahl verdeckter Bilder)
 // ═══════════════════════════════════════════════════════════════════
 
@@ -475,6 +548,9 @@ function draw() {
         } else {
           analyser.getByteFrequencyData(audioDataArray);
         }
+
+        // ✨ Audio-Analyse für audio-reaktive Bilder (global verfügbar)
+        updateGlobalAudioData(audioDataArray, bufferLength);
 
         // ✅ FIX: Cache visualizer rendering to offscreen canvas (prevents double rendering)
         // Initialize or resize cache canvas if needed

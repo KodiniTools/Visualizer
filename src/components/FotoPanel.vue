@@ -461,6 +461,106 @@
         </div>
       </div>
 
+      <!-- ✨ AUDIO-REAKTIV SEKTION -->
+      <div class="modern-divider"></div>
+      <div class="modern-section-header">
+        <h4>🎵 Audio-Reaktiv</h4>
+      </div>
+
+      <div class="modern-controls-group audio-reactive-group">
+        <!-- Aktivierung -->
+        <div class="modern-control checkbox-control">
+          <label class="modern-checkbox-label">
+            <input
+              type="checkbox"
+              ref="audioReactiveEnabledRef"
+              @change="onAudioReactiveToggle"
+              class="modern-checkbox"
+            />
+            <span class="checkbox-text">Aktiviert</span>
+          </label>
+        </div>
+
+        <!-- Effekt-Auswahl -->
+        <div class="modern-control">
+          <label class="modern-label">
+            <span class="label-text">Effekt</span>
+          </label>
+          <select
+            ref="audioReactiveEffectRef"
+            @change="onAudioReactiveEffectChange"
+            class="modern-select"
+          >
+            <option value="hue">Farbe (Hue)</option>
+            <option value="brightness">Helligkeit</option>
+            <option value="saturation">Sättigung</option>
+            <option value="scale">Größe (Pulsieren)</option>
+            <option value="glow">Leuchten (Glow)</option>
+          </select>
+        </div>
+
+        <!-- Audio-Quelle -->
+        <div class="modern-control">
+          <label class="modern-label">
+            <span class="label-text">Reagiert auf</span>
+          </label>
+          <select
+            ref="audioReactiveSourceRef"
+            @change="onAudioReactiveSourceChange"
+            class="modern-select"
+          >
+            <option value="bass">Bass (Kick/Sub)</option>
+            <option value="mid">Mitten (Vocals)</option>
+            <option value="treble">Höhen (Hi-Hats)</option>
+            <option value="volume">Lautstärke (Gesamt)</option>
+          </select>
+        </div>
+
+        <!-- Intensität -->
+        <div class="modern-control">
+          <label class="modern-label">
+            <span class="label-text">Intensität</span>
+            <span class="label-value" ref="audioReactiveIntensityValueRef">80%</span>
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value="80"
+            step="5"
+            ref="audioReactiveIntensityRef"
+            @input="onAudioReactiveIntensityChange"
+            class="modern-slider audio-slider"
+          />
+        </div>
+
+        <!-- Glättung -->
+        <div class="modern-control">
+          <label class="modern-label">
+            <span class="label-text">Glättung</span>
+            <span class="label-value" ref="audioReactiveSmoothingValueRef">50%</span>
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value="50"
+            step="5"
+            ref="audioReactiveSmoothingRef"
+            @input="onAudioReactiveSmoothingChange"
+            class="modern-slider audio-slider"
+          />
+        </div>
+
+        <!-- Audio-Level Anzeige -->
+        <div class="audio-level-indicator">
+          <span class="level-label">Audio-Level:</span>
+          <div class="level-bar-container">
+            <div class="level-bar" ref="audioLevelBarRef"></div>
+          </div>
+        </div>
+      </div>
+
       <button @click="resetFilters" class="btn-secondary modern-reset-btn">
         Alle Filter zurücksetzen
       </button>
@@ -510,6 +610,17 @@ const borderColorInputRef = ref(null);
 const borderColorTextRef = ref(null);
 const borderOpacityInputRef = ref(null);
 const borderOpacityValueRef = ref(null);
+
+// ✨ NEU: Refs für Audio-Reaktiv
+const audioReactiveEnabledRef = ref(null);
+const audioReactiveEffectRef = ref(null);
+const audioReactiveSourceRef = ref(null);
+const audioReactiveIntensityRef = ref(null);
+const audioReactiveIntensityValueRef = ref(null);
+const audioReactiveSmoothingRef = ref(null);
+const audioReactiveSmoothingValueRef = ref(null);
+const audioLevelBarRef = ref(null);
+let audioLevelAnimationId = null;
 
 // ✨ NEU: Refs für Galerie-Funktionalität
 const fileInputRef = ref(null);
@@ -773,6 +884,163 @@ function onBorderOpacityChange(event) {
   updateActiveImageSetting('borderOpacity', value);
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// ✨ AUDIO-REAKTIV FUNKTIONEN
+// ═══════════════════════════════════════════════════════════════════
+
+function onAudioReactiveToggle(event) {
+  const enabled = event.target.checked;
+  updateAudioReactiveSetting('enabled', enabled);
+
+  if (enabled) {
+    startAudioLevelIndicator();
+  } else {
+    stopAudioLevelIndicator();
+  }
+}
+
+function onAudioReactiveEffectChange(event) {
+  updateAudioReactiveSetting('effect', event.target.value);
+}
+
+function onAudioReactiveSourceChange(event) {
+  updateAudioReactiveSetting('source', event.target.value);
+}
+
+function onAudioReactiveIntensityChange(event) {
+  const value = parseInt(event.target.value);
+  audioReactiveIntensityValueRef.value.textContent = value + '%';
+  updateAudioReactiveSetting('intensity', value);
+}
+
+function onAudioReactiveSmoothingChange(event) {
+  const value = parseInt(event.target.value);
+  audioReactiveSmoothingValueRef.value.textContent = value + '%';
+  updateAudioReactiveSetting('smoothing', value);
+}
+
+/**
+ * Aktualisiert eine Audio-Reaktiv Einstellung für das aktive Bild
+ */
+function updateAudioReactiveSetting(property, value) {
+  if (!currentActiveImage.value) return;
+
+  const fotoManager = fotoManagerRef?.value;
+  if (!fotoManager) return;
+
+  // Initialisiere audioReactive falls nicht vorhanden
+  if (!currentActiveImage.value.fotoSettings) {
+    fotoManager.initializeImageSettings(currentActiveImage.value);
+  }
+  if (!currentActiveImage.value.fotoSettings.audioReactive) {
+    currentActiveImage.value.fotoSettings.audioReactive = {
+      enabled: false,
+      effect: 'hue',
+      source: 'bass',
+      intensity: 80,
+      smoothing: 50
+    };
+  }
+
+  currentActiveImage.value.fotoSettings.audioReactive[property] = value;
+  console.log('🎵 Audio-Reaktiv:', property, '=', value);
+}
+
+/**
+ * Startet die Audio-Level Anzeige Animation
+ */
+function startAudioLevelIndicator() {
+  if (audioLevelAnimationId) return;
+
+  function updateLevel() {
+    if (!audioLevelBarRef.value) {
+      audioLevelAnimationId = null;
+      return;
+    }
+
+    const audioData = window.audioAnalysisData;
+    if (!audioData) {
+      audioLevelAnimationId = requestAnimationFrame(updateLevel);
+      return;
+    }
+
+    // Hole die aktuelle Audio-Quelle
+    const source = audioReactiveSourceRef.value?.value || 'bass';
+    let level = 0;
+
+    switch (source) {
+      case 'bass': level = audioData.smoothBass; break;
+      case 'mid': level = audioData.smoothMid; break;
+      case 'treble': level = audioData.smoothTreble; break;
+      case 'volume': level = audioData.smoothVolume; break;
+    }
+
+    // Level auf 0-100% normalisieren
+    const percent = Math.min(100, (level / 255) * 100);
+    audioLevelBarRef.value.style.width = percent + '%';
+
+    // Farbe basierend auf Level
+    if (percent > 70) {
+      audioLevelBarRef.value.style.background = 'linear-gradient(90deg, #4ade80, #fbbf24, #ef4444)';
+    } else if (percent > 40) {
+      audioLevelBarRef.value.style.background = 'linear-gradient(90deg, #4ade80, #fbbf24)';
+    } else {
+      audioLevelBarRef.value.style.background = '#4ade80';
+    }
+
+    audioLevelAnimationId = requestAnimationFrame(updateLevel);
+  }
+
+  updateLevel();
+}
+
+/**
+ * Stoppt die Audio-Level Anzeige Animation
+ */
+function stopAudioLevelIndicator() {
+  if (audioLevelAnimationId) {
+    cancelAnimationFrame(audioLevelAnimationId);
+    audioLevelAnimationId = null;
+  }
+  if (audioLevelBarRef.value) {
+    audioLevelBarRef.value.style.width = '0%';
+  }
+}
+
+/**
+ * Lädt Audio-Reaktiv Einstellungen in die UI
+ */
+function loadAudioReactiveSettings(imageData) {
+  if (!imageData?.fotoSettings?.audioReactive) {
+    // Standardwerte setzen
+    if (audioReactiveEnabledRef.value) audioReactiveEnabledRef.value.checked = false;
+    if (audioReactiveEffectRef.value) audioReactiveEffectRef.value.value = 'hue';
+    if (audioReactiveSourceRef.value) audioReactiveSourceRef.value.value = 'bass';
+    if (audioReactiveIntensityRef.value) audioReactiveIntensityRef.value.value = 80;
+    if (audioReactiveIntensityValueRef.value) audioReactiveIntensityValueRef.value.textContent = '80%';
+    if (audioReactiveSmoothingRef.value) audioReactiveSmoothingRef.value.value = 50;
+    if (audioReactiveSmoothingValueRef.value) audioReactiveSmoothingValueRef.value.textContent = '50%';
+    stopAudioLevelIndicator();
+    return;
+  }
+
+  const ar = imageData.fotoSettings.audioReactive;
+
+  if (audioReactiveEnabledRef.value) audioReactiveEnabledRef.value.checked = ar.enabled || false;
+  if (audioReactiveEffectRef.value) audioReactiveEffectRef.value.value = ar.effect || 'hue';
+  if (audioReactiveSourceRef.value) audioReactiveSourceRef.value.value = ar.source || 'bass';
+  if (audioReactiveIntensityRef.value) audioReactiveIntensityRef.value.value = ar.intensity || 80;
+  if (audioReactiveIntensityValueRef.value) audioReactiveIntensityValueRef.value.textContent = (ar.intensity || 80) + '%';
+  if (audioReactiveSmoothingRef.value) audioReactiveSmoothingRef.value.value = ar.smoothing || 50;
+  if (audioReactiveSmoothingValueRef.value) audioReactiveSmoothingValueRef.value.textContent = (ar.smoothing || 50) + '%';
+
+  if (ar.enabled) {
+    startAudioLevelIndicator();
+  } else {
+    stopAudioLevelIndicator();
+  }
+}
+
 function onPresetChange(event) {
   const presetId = event.target.value;
 
@@ -987,6 +1255,9 @@ function loadImageSettings(imgData) {
   borderOpacityValueRef.value.textContent = (s.borderOpacity ?? 100) + '%';
 
   presetSelectRef.value.value = s.preset || '';
+
+  // ✨ Audio-Reaktiv Einstellungen laden
+  loadAudioReactiveSettings(imgData);
 
   console.log('📥 Filter-Einstellungen geladen:', s);
 }
@@ -2449,6 +2720,110 @@ input[type="range"]::-moz-range-thumb:hover {
 .border-opacity-slider:hover {
   box-shadow: 0 3px 12px rgba(255, 255, 255, 0.4);
   transform: scaleY(1.2);
+}
+
+/* ✨ AUDIO-REAKTIV STYLES */
+.audio-reactive-group {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.audio-slider {
+  background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 50%, #f97316 100%);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+.audio-slider:hover {
+  box-shadow: 0 3px 12px rgba(139, 92, 246, 0.5);
+  transform: scaleY(1.2);
+}
+
+.checkbox-control {
+  display: flex;
+  align-items: center;
+}
+
+.modern-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 8px 12px;
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.modern-checkbox-label:hover {
+  background: rgba(139, 92, 246, 0.3);
+}
+
+.modern-checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: #8b5cf6;
+  cursor: pointer;
+}
+
+.checkbox-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #e2e8f0;
+}
+
+.modern-select {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(30, 30, 50, 0.8);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modern-select:hover {
+  border-color: rgba(139, 92, 246, 0.6);
+}
+
+.modern-select:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+.audio-level-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.level-label {
+  font-size: 12px;
+  color: #94a3b8;
+  min-width: 80px;
+}
+
+.level-bar-container {
+  flex: 1;
+  height: 8px;
+  background: rgba(30, 30, 50, 0.8);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.level-bar {
+  height: 100%;
+  width: 0%;
+  background: #4ade80;
+  border-radius: 4px;
+  transition: width 0.05s ease-out;
 }
 
 /* Slider Thumb - Webkit (Chrome, Safari, Edge) */

@@ -151,6 +151,32 @@
       </div>
     </div>
 
+    <!-- ✨ NEU: Bilder auf Canvas Sektion -->
+    <div v-if="canvasImages.length > 0" class="canvas-images-section">
+      <h4>Bilder auf Canvas ({{ canvasImages.length }})</h4>
+
+      <div class="canvas-images-scroll">
+        <div class="canvas-images-grid">
+          <div
+            v-for="(imgData, index) in canvasImages"
+            :key="imgData.id"
+            class="canvas-thumbnail-item"
+            :class="{ 'selected': currentActiveImage?.id === imgData.id }"
+            @click="selectCanvasImage(imgData)"
+            :title="`Ebene ${index + 1} von ${canvasImages.length}`"
+          >
+            <img :src="imgData.imageObject.src" alt="Canvas Bild">
+            <div class="canvas-thumbnail-layer">{{ index + 1 }}</div>
+            <div class="canvas-thumbnail-overlay">
+              <button @click.stop="deleteCanvasImage(imgData)" class="btn-delete-thumb">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="canvas-images-hint">Klicke auf ein Bild, um es auf dem Canvas auszuwählen</p>
+    </div>
+
     <!-- Filter-Bereich (nur sichtbar wenn Bild auf Canvas ausgewählt) -->
     <div class="foto-panel-container" ref="containerRef" style="display: none;">
       <h4>Bild bearbeiten</h4>
@@ -551,6 +577,40 @@ const selectedImage = computed(() => {
 const filteredStockImages = computed(() => {
   return stockImages.value;
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// ✨ CANVAS-BILDER VERWALTUNG
+// ═══════════════════════════════════════════════════════════════════
+
+// Computed: Alle Bilder, die aktuell auf dem Canvas platziert sind
+const canvasImages = computed(() => {
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager) return [];
+  return multiImageManager.getAllImages() || [];
+});
+
+// Canvas-Bild auswählen (über die Thumbnail-Liste)
+function selectCanvasImage(imgData) {
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager || !imgData) return;
+
+  // Setze das Bild als ausgewählt im MultiImageManager
+  multiImageManager.setSelectedImage(imgData);
+
+  // Aktualisiere das aktive Bild für die Filter-UI
+  currentActiveImage.value = imgData;
+
+  console.log('📌 Canvas-Bild ausgewählt:', imgData.id);
+}
+
+// Canvas-Bild löschen
+function deleteCanvasImage(imgData) {
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager || !imgData) return;
+
+  multiImageManager.removeImage(imgData.id);
+  console.log('🗑️ Canvas-Bild gelöscht:', imgData.id);
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // ✨ EBENEN-STEUERUNG (Z-Index)
@@ -2677,5 +2737,125 @@ input[type="range"]::-moz-range-thumb:hover {
 .layer-btn:first-child:hover:not(:disabled),
 .layer-btn:last-child:hover:not(:disabled) {
   background: linear-gradient(135deg, #4a5a6a 0%, #3a4a5a 100%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ✨ CANVAS-BILDER SEKTION STYLES
+   ═══════════════════════════════════════════════════════════════════ */
+
+.canvas-images-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #444;
+  border-left: 3px solid #6ea8fe;
+}
+
+.canvas-images-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6ea8fe;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.canvas-images-scroll {
+  max-height: 150px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+.canvas-images-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.canvas-images-scroll::-webkit-scrollbar-track {
+  background: #1e1e1e;
+  border-radius: 3px;
+}
+
+.canvas-images-scroll::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+.canvas-images-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6ea8fe;
+}
+
+.canvas-images-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.canvas-thumbnail-item {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid #444;
+  transition: all 0.2s ease;
+  background-color: #1e1e1e;
+  flex-shrink: 0;
+}
+
+.canvas-thumbnail-item:hover {
+  border-color: #6ea8fe;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(110, 168, 254, 0.3);
+}
+
+.canvas-thumbnail-item.selected {
+  border-color: #6ea8fe;
+  box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.4), 0 4px 12px rgba(110, 168, 254, 0.3);
+}
+
+.canvas-thumbnail-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.canvas-thumbnail-layer {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  background: rgba(110, 168, 254, 0.9);
+  color: #121212;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 4px;
+  min-width: 16px;
+  text-align: center;
+}
+
+.canvas-thumbnail-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.canvas-thumbnail-item:hover .canvas-thumbnail-overlay {
+  opacity: 1;
+}
+
+.canvas-images-hint {
+  margin: 4px 0 0 0;
+  font-size: 11px;
+  color: #888;
+  font-style: italic;
 }
 </style>

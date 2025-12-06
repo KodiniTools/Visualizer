@@ -693,12 +693,14 @@ watch(() => canvasManager.value?.activeObject, (newObj) => {
 
 // ✨ NEU: Handler für Tastatureingabe zum Öffnen des Texteditors
 function handleOpenTextEditorWithChar(event) {
+  console.log('📝 [TextManagerPanel] Event empfangen:', event.detail);
   const char = event.detail?.char;
   if (!char) return;
 
   // Aktiviere den Eingabemodus für neuen Text
   isAddingNewText.value = true;
   newTextContent.value = char; // Füge das erste Zeichen direkt ein
+  console.log('📝 [TextManagerPanel] Texteditor geöffnet mit:', char);
 
   // Fokussiere das Textarea und setze Cursor ans Ende
   nextTick(() => {
@@ -706,14 +708,21 @@ function handleOpenTextEditorWithChar(event) {
       newTextInput.value.focus();
       // Setze Cursor ans Ende des Textes
       newTextInput.value.selectionStart = newTextInput.value.selectionEnd = char.length;
+      console.log('📝 [TextManagerPanel] Textarea fokussiert');
+    } else {
+      console.warn('📝 [TextManagerPanel] newTextInput ref nicht verfügbar!');
     }
   });
 }
 
 // Setup beim Mounting
 onMounted(() => {
+  // ✨ WICHTIG: Event-Listener für Tastatureingabe IMMER registrieren (unabhängig von canvasManager)
+  window.addEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar);
+  console.log('📝 [TextManagerPanel] Event-Listener registriert');
 
   if (!canvasManager.value) {
+    console.warn('📝 [TextManagerPanel] canvasManager nicht verfügbar');
     return;
   }
 
@@ -721,7 +730,6 @@ onMounted(() => {
   if (canvasManager.value.onSelectionChanged && !eventListenerRegistered) {
     canvasManager.value.onSelectionChanged(handleSelectionChange);
     eventListenerRegistered = true;
-  } else {
   }
 
   // Prüfe ob bereits ein Text ausgewählt ist
@@ -748,9 +756,6 @@ onMounted(() => {
       { immediate: true }
     );
   }
-
-  // ✨ NEU: Event-Listener für Tastatureingabe zum Öffnen des Texteditors
-  window.addEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar);
 });
 
 // Cleanup beim Unmounting

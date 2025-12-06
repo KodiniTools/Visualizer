@@ -194,35 +194,33 @@ function updateGlobalAudioData(audioDataArray, bufferLength) {
       bassCount++;
       if (value > bassPeak) bassPeak = value;
     } else if (i < midEnd) {
-      // Mid-Low + Mid + Mid-High kombiniert für stärkere Mitten
-      // Gewichtung: tiefere Mitten stärker (wo mehr Energie ist)
-      const weight = i < midLowEnd ? 1.5 : (i < midHighEnd ? 1.2 : 1.0);
-      midSum += value * weight;
+      // Mitten (Vocals, Gitarren, Melodien)
+      midSum += value;
       midCount++;
       if (value > midPeak) midPeak = value;
     } else {
-      // Höhen - mit exponentieller Verstärkung (höhere Frequenzen = mehr Boost)
-      const freqBoost = 1.0 + ((i - midEnd) / (usableLength - midEnd)) * 2.0;
-      trebleSum += value * freqBoost;
+      // Höhen (Hi-Hats, Cymbals)
+      trebleSum += value;
       trebleCount++;
       if (value > treblePeak) treblePeak = value;
     }
   }
 
-  // ✨ VERBESSERTE Berechnung mit Peak-Kombination
-  // Bass: Durchschnitt + Peak für Punch
+  // ✨ BALANCIERTE Berechnung - nicht zu stark, nicht zu schwach
+  // Bass: Leichte Verstärkung
   const bassAvg = bassCount > 0 ? (bassSum / bassCount) : 0;
-  const bass = Math.min(255, Math.floor((bassAvg * 0.7 + bassPeak * 0.3) * 1.8));
+  const bass = Math.min(255, Math.floor((bassAvg * 0.7 + bassPeak * 0.3) * 1.3));
 
-  // Mid: Stärkere Verstärkung + Peak für Vocals/Melodien
+  // Mid: Moderate Verstärkung
   const midAvg = midCount > 0 ? (midSum / midCount) : 0;
-  const mid = Math.min(255, Math.floor((midAvg * 0.5 + midPeak * 0.5) * 3.5)); // Deutlich erhöht!
+  const mid = Math.min(255, Math.floor((midAvg * 0.6 + midPeak * 0.4) * 1.8));
 
-  // Treble: Sehr starke Verstärkung + Peak-Fokus für Hi-Hats
+  // Treble: Etwas stärkere Verstärkung (da Höhen natürlich leiser sind)
   const trebleAvg = trebleCount > 0 ? (trebleSum / trebleCount) : 0;
-  const treble = Math.min(255, Math.floor((trebleAvg * 0.4 + treblePeak * 0.6) * 6.0)); // Sehr stark!
+  const treble = Math.min(255, Math.floor((trebleAvg * 0.5 + treblePeak * 0.5) * 2.5));
 
-  const volume = usableLength > 0 ? Math.min(255, Math.floor((totalSum / usableLength) * 2.0)) : 0;
+  // Volume: Gesamtlautstärke - etwas verstärkt für bessere Sichtbarkeit
+  const volume = usableLength > 0 ? Math.min(255, Math.floor((totalSum / usableLength) * 1.5)) : 0;
 
   // Rohe Werte speichern
   window.audioAnalysisData.bass = bass;

@@ -231,6 +231,7 @@ export class KeyboardShortcuts {
       // Ignoriere Leerzeichen (wird für Play/Pause verwendet)
       if (event.key === ' ') return;
 
+      console.log('⌨️ [KeyboardShortcuts] Öffne Texteditor mit Zeichen:', event.key);
       // Dispatch Event zum Öffnen des Texteditors mit dem eingegebenen Zeichen
       window.dispatchEvent(new CustomEvent('openTextEditorWithChar', {
         detail: { char: event.key }

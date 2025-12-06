@@ -19,7 +19,6 @@ Zeile 1
 Zeile 2
 Zeile 3..."
           rows="8"
-          autofocus
         ></textarea>
         <div class="hint-text">
           <strong>Tipp für Browser-Texte:</strong> Nach dem Einfügen drücken Sie Enter, um Zeilenumbrüche hinzuzufügen

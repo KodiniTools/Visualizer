@@ -144,10 +144,16 @@ const canvasImages = computed(() => {
 // Canvas-Bild auswählen (über die horizontale Leiste)
 function selectCanvasImage(imgData) {
   const manager = multiImageManagerInstance.value;
+  const canvasManager = canvasManagerInstance.value;
   if (!manager || !imgData) return;
 
-  // Setze das Bild als ausgewählt
-  manager.setSelectedImage(imgData);
+  // ✅ Setze das Bild in BEIDEN Managern als ausgewählt (wichtig für Synchronisierung)
+  if (canvasManager) {
+    canvasManager.setActiveObject(imgData);
+  } else {
+    // Fallback: nur MultiImageManager
+    manager.setSelectedImage(imgData);
+  }
   selectedCanvasImageId.value = imgData.id;
 
   // Aktualisiere FotoPanel UI (falls vorhanden)
@@ -340,6 +346,13 @@ function onObjectSelected(selectedObject) {
     (selectedObject.type === 'image' ||
       selectedObject.type === 'background' ||
       selectedObject.type === 'workspace-background');
+
+  // ✅ Synchronisiere selectedCanvasImageId mit der Auswahl
+  if (isImageSelected && selectedObject.type === 'image' && selectedObject.id) {
+    selectedCanvasImageId.value = selectedObject.id;
+  } else if (!isImageSelected) {
+    selectedCanvasImageId.value = null;
+  }
 
   if (window.fotoPanelControls.currentActiveImage) {
     window.fotoPanelControls.currentActiveImage.value = isImageSelected ? selectedObject : null;

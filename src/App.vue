@@ -893,18 +893,7 @@ onMounted(async () => {
     });
     canvasManagerInstance.value.setupInteractionHandlers();
 
-    // ✨ NEU: KeyboardShortcuts sofort initialisieren (nicht erst bei Audio-Play!)
-    if (canvasManagerInstance.value && multiImageManagerInstance.value) {
-      keyboardShortcutsInstance.value = new KeyboardShortcuts(
-        { playerStore, recorderStore, gridStore },
-        {
-          canvasManager: canvasManagerInstance.value,
-          multiImageManager: multiImageManagerInstance.value
-        }
-      );
-      keyboardShortcutsInstance.value.enable();
-      console.log('⌨️ Keyboard Shortcuts aktiviert (App-Start)');
-    }
+    // KeyboardShortcuts werden jetzt AUSSERHALB des canvas-Blocks initialisiert
 
     watch(() => gridStore.isVisible, (newValue) => {
       if (gridManagerInstance.value) {
@@ -965,6 +954,26 @@ onMounted(async () => {
         }
       }
     }, { immediate: true });
+  }
+
+  // ✨ WICHTIG: KeyboardShortcuts AUSSERHALB des canvas-Blocks initialisieren
+  // Damit funktionieren sie auch wenn das Canvas noch nicht bereit ist
+  console.log('⌨️ [App] Versuche KeyboardShortcuts zu initialisieren...');
+  console.log('⌨️ [App] canvasManagerInstance.value:', !!canvasManagerInstance.value);
+  console.log('⌨️ [App] multiImageManagerInstance.value:', !!multiImageManagerInstance.value);
+
+  if (canvasManagerInstance.value && multiImageManagerInstance.value) {
+    keyboardShortcutsInstance.value = new KeyboardShortcuts(
+      { playerStore, recorderStore, gridStore },
+      {
+        canvasManager: canvasManagerInstance.value,
+        multiImageManager: multiImageManagerInstance.value
+      }
+    );
+    keyboardShortcutsInstance.value.enable();
+    console.log('⌨️ Keyboard Shortcuts aktiviert (App-Start)');
+  } else {
+    console.error('⌨️ [App] FEHLER: KeyboardShortcuts konnten nicht initialisiert werden!');
   }
 
   // 5. NEU: Recorder initialisieren (Audio-Context ist jetzt bereit!)

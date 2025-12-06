@@ -85,6 +85,28 @@ export class KeyboardShortcuts {
     const alt = event.altKey;
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ✨ TEXT INPUT: Öffne Texteditor bei Buchstabeneingabe
+    // WICHTIG: Muss VOR den Shortcut-Checks kommen!
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    // Shortcut-Buchstaben, die NICHT den Texteditor öffnen sollen
+    const shortcutKeys = ['m', 'r', 'p', 'g', '?', ' '];
+
+    // Wenn ein einzelnes druckbares Zeichen eingegeben wird (ohne Modifier)
+    // und kein Objekt ausgewählt ist UND es kein Shortcut-Buchstabe ist
+    if (!ctrl && !alt && !shift && event.key.length === 1 &&
+        !this.canvasManager?.activeObject && !shortcutKeys.includes(key)) {
+
+      console.log('⌨️ [KeyboardShortcuts] Öffne Texteditor mit Zeichen:', event.key);
+      // Dispatch Event zum Öffnen des Texteditors mit dem eingegebenen Zeichen
+      window.dispatchEvent(new CustomEvent('openTextEditorWithChar', {
+        detail: { char: event.key }
+      }));
+      event.preventDefault();
+      return;
+    }
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 🎵 PLAYER CONTROLS
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -218,25 +240,6 @@ export class KeyboardShortcuts {
     if ((key === 'z' && ctrl && shift) || (key === 'y' && ctrl)) {
       event.preventDefault();
       this.redo();
-      return;
-    }
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // ✨ TEXT INPUT: Öffne Texteditor bei Buchstabeneingabe
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    // Wenn ein einzelnes druckbares Zeichen eingegeben wird (ohne Modifier)
-    // und kein Objekt ausgewählt ist, öffne den Texteditor
-    if (!ctrl && !alt && event.key.length === 1 && !this.canvasManager?.activeObject) {
-      // Ignoriere Leerzeichen (wird für Play/Pause verwendet)
-      if (event.key === ' ') return;
-
-      console.log('⌨️ [KeyboardShortcuts] Öffne Texteditor mit Zeichen:', event.key);
-      // Dispatch Event zum Öffnen des Texteditors mit dem eingegebenen Zeichen
-      window.dispatchEvent(new CustomEvent('openTextEditorWithChar', {
-        detail: { char: event.key }
-      }));
-      event.preventDefault();
       return;
     }
   }

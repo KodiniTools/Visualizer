@@ -298,9 +298,10 @@ class Recorder {
             if (!warmupSuccess) {
                 return false;
             }
-            
-            // Start with 100ms timeslice
-            this.mediaRecorder.start(100);
+
+            // ✅ QUALITÄTSVERBESSERUNG: Kürzere Timeslice (50ms statt 100ms)
+            // Schnellere Chunk-Erzeugung = bessere Synchronisation mit Audio-Reaktiven Effekten
+            this.mediaRecorder.start(50);
             this.isActive = true;
             
             // CRITICAL: Start continuous frame requesting

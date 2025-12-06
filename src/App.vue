@@ -137,11 +137,20 @@ window.audioAnalysisData = {
   mid: 0,       // 0-255: Mittlere Frequenzen (Vocals/Instruments)
   treble: 0,   // 0-255: Hohe Frequenzen (Hi-Hats/Cymbals)
   volume: 0,    // 0-255: Gesamtlautstärke
+  // ✨ NEU: Erweiterte Metriken für dynamischere Visualisierung
+  energy: 0,    // 0-255: Kombinierte Energie (Bass-gewichtet, für Pulseffekte)
+  attack: 0,    // 0-255: Transient-Detection (für Beat-Reaktion)
+  punch: 0,     // 0-255: Bass-Punch (schnelle Bass-Spitzen)
   // Geglättete Werte (für smoothing)
   smoothBass: 0,
   smoothMid: 0,
   smoothTreble: 0,
-  smoothVolume: 0
+  smoothVolume: 0,
+  smoothEnergy: 0,
+  smoothAttack: 0,
+  // Historische Werte für Transient-Detection
+  _prevBass: 0,
+  _prevVolume: 0
 };
 
 /**
@@ -200,9 +209,31 @@ function updateGlobalAudioData(audioDataArray, bufferLength) {
   window.audioAnalysisData.treble = treble;
   window.audioAnalysisData.volume = volume;
 
+  // ✨ NEU: Erweiterte Metriken berechnen
+  // Energy: Kombinierte Energie mit Bass-Gewichtung (für Puls-Effekte)
+  const energy = Math.min(255, Math.floor(bass * 0.5 + mid * 0.3 + treble * 0.2));
+
+  // Attack/Transient Detection: Schnelle Änderungen erkennen
+  const bassDelta = Math.max(0, bass - window.audioAnalysisData._prevBass);
+  const volumeDelta = Math.max(0, volume - window.audioAnalysisData._prevVolume);
+  const attack = Math.min(255, Math.floor((bassDelta * 2.0 + volumeDelta * 1.5)));
+
+  // Punch: Schnelle Bass-Spitzen (für Kick-Drums)
+  const punch = Math.min(255, Math.floor(bassDelta * 3.0));
+
+  // Speichere für nächsten Frame
+  window.audioAnalysisData._prevBass = bass;
+  window.audioAnalysisData._prevVolume = volume;
+
+  // Erweiterte Werte speichern
+  window.audioAnalysisData.energy = energy;
+  window.audioAnalysisData.attack = attack;
+  window.audioAnalysisData.punch = punch;
+
   // Geglättete Werte (exponential smoothing für flüssigere Animation)
   const smoothFactor = 0.4; // Erhöht für schnellere Reaktion
   const trebleSmoothFactor = 0.5; // ✨ Höhen reagieren schneller (für Hi-Hats)
+  const attackSmoothFactor = 0.6; // ✨ Attack reagiert sehr schnell
 
   window.audioAnalysisData.smoothBass = Math.floor(
     window.audioAnalysisData.smoothBass * (1 - smoothFactor) + bass * smoothFactor
@@ -215,6 +246,12 @@ function updateGlobalAudioData(audioDataArray, bufferLength) {
   );
   window.audioAnalysisData.smoothVolume = Math.floor(
     window.audioAnalysisData.smoothVolume * (1 - smoothFactor) + volume * smoothFactor
+  );
+  window.audioAnalysisData.smoothEnergy = Math.floor(
+    window.audioAnalysisData.smoothEnergy * (1 - smoothFactor) + energy * smoothFactor
+  );
+  window.audioAnalysisData.smoothAttack = Math.floor(
+    window.audioAnalysisData.smoothAttack * (1 - attackSmoothFactor) + attack * attackSmoothFactor
   );
 }
 

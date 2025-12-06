@@ -468,7 +468,7 @@
       </div>
 
       <div class="modern-controls-group audio-reactive-group">
-        <!-- Aktivierung -->
+        <!-- Master-Aktivierung -->
         <div class="modern-control checkbox-control">
           <label class="modern-checkbox-label">
             <input
@@ -477,26 +477,8 @@
               @change="onAudioReactiveToggle"
               class="modern-checkbox"
             />
-            <span class="checkbox-text">Aktiviert</span>
+            <span class="checkbox-text">Audio-Reaktiv Aktiviert</span>
           </label>
-        </div>
-
-        <!-- Effekt-Auswahl -->
-        <div class="modern-control">
-          <label class="modern-label">
-            <span class="label-text">Effekt</span>
-          </label>
-          <select
-            ref="audioReactiveEffectRef"
-            @change="onAudioReactiveEffectChange"
-            class="modern-select"
-          >
-            <option value="hue">Farbe (Hue)</option>
-            <option value="brightness">Helligkeit</option>
-            <option value="saturation">Sättigung</option>
-            <option value="scale">Größe (Pulsieren)</option>
-            <option value="glow">Leuchten (Glow)</option>
-          </select>
         </div>
 
         <!-- Audio-Quelle -->
@@ -516,24 +498,6 @@
           </select>
         </div>
 
-        <!-- Intensität -->
-        <div class="modern-control">
-          <label class="modern-label">
-            <span class="label-text">Intensität</span>
-            <span class="label-value" ref="audioReactiveIntensityValueRef">80%</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value="80"
-            step="5"
-            ref="audioReactiveIntensityRef"
-            @input="onAudioReactiveIntensityChange"
-            class="modern-slider audio-slider"
-          />
-        </div>
-
         <!-- Glättung -->
         <div class="modern-control">
           <label class="modern-label">
@@ -550,6 +514,157 @@
             @input="onAudioReactiveSmoothingChange"
             class="modern-slider audio-slider"
           />
+        </div>
+
+        <!-- Effekte-Auswahl (Mehrfachauswahl) -->
+        <div class="modern-control effects-grid">
+          <label class="modern-label">
+            <span class="label-text">Effekte (Mehrfachauswahl)</span>
+          </label>
+
+          <!-- Farbe (Hue) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectHueEnabledRef"
+                @change="(e) => onEffectToggle('hue', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">🎨 Farbe (Hue)</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="80"
+              step="5"
+              ref="effectHueIntensityRef"
+              @input="(e) => onEffectIntensityChange('hue', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectHueValueRef">80%</span>
+          </div>
+
+          <!-- Helligkeit -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectBrightnessEnabledRef"
+                @change="(e) => onEffectToggle('brightness', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">☀️ Helligkeit</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="80"
+              step="5"
+              ref="effectBrightnessIntensityRef"
+              @input="(e) => onEffectIntensityChange('brightness', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectBrightnessValueRef">80%</span>
+          </div>
+
+          <!-- Sättigung -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectSaturationEnabledRef"
+                @change="(e) => onEffectToggle('saturation', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">🌈 Sättigung</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="80"
+              step="5"
+              ref="effectSaturationIntensityRef"
+              @input="(e) => onEffectIntensityChange('saturation', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectSaturationValueRef">80%</span>
+          </div>
+
+          <!-- Größe (Scale) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectScaleEnabledRef"
+                @change="(e) => onEffectToggle('scale', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">📐 Größe (Pulsieren)</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="80"
+              step="5"
+              ref="effectScaleIntensityRef"
+              @input="(e) => onEffectIntensityChange('scale', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectScaleValueRef">80%</span>
+          </div>
+
+          <!-- Leuchten (Glow) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectGlowEnabledRef"
+                @change="(e) => onEffectToggle('glow', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">✨ Leuchten (Glow)</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="80"
+              step="5"
+              ref="effectGlowIntensityRef"
+              @input="(e) => onEffectIntensityChange('glow', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectGlowValueRef">80%</span>
+          </div>
+
+          <!-- Bildkontur (Border) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectBorderEnabledRef"
+                @change="(e) => onEffectToggle('border', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">🖼️ Bildkontur</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="80"
+              step="5"
+              ref="effectBorderIntensityRef"
+              @input="(e) => onEffectIntensityChange('border', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectBorderValueRef">80%</span>
+          </div>
         </div>
 
         <!-- Audio-Level Anzeige -->
@@ -611,16 +726,33 @@ const borderColorTextRef = ref(null);
 const borderOpacityInputRef = ref(null);
 const borderOpacityValueRef = ref(null);
 
-// ✨ NEU: Refs für Audio-Reaktiv
+// ✨ NEU: Refs für Audio-Reaktiv (Master-Einstellungen)
 const audioReactiveEnabledRef = ref(null);
-const audioReactiveEffectRef = ref(null);
 const audioReactiveSourceRef = ref(null);
-const audioReactiveIntensityRef = ref(null);
-const audioReactiveIntensityValueRef = ref(null);
 const audioReactiveSmoothingRef = ref(null);
 const audioReactiveSmoothingValueRef = ref(null);
 const audioLevelBarRef = ref(null);
 let audioLevelAnimationId = null;
+
+// ✨ NEU: Refs für individuelle Effekte
+const effectHueEnabledRef = ref(null);
+const effectHueIntensityRef = ref(null);
+const effectHueValueRef = ref(null);
+const effectBrightnessEnabledRef = ref(null);
+const effectBrightnessIntensityRef = ref(null);
+const effectBrightnessValueRef = ref(null);
+const effectSaturationEnabledRef = ref(null);
+const effectSaturationIntensityRef = ref(null);
+const effectSaturationValueRef = ref(null);
+const effectScaleEnabledRef = ref(null);
+const effectScaleIntensityRef = ref(null);
+const effectScaleValueRef = ref(null);
+const effectGlowEnabledRef = ref(null);
+const effectGlowIntensityRef = ref(null);
+const effectGlowValueRef = ref(null);
+const effectBorderEnabledRef = ref(null);
+const effectBorderIntensityRef = ref(null);
+const effectBorderValueRef = ref(null);
 
 // ✨ NEU: Refs für Galerie-Funktionalität
 const fileInputRef = ref(null);
@@ -885,9 +1017,12 @@ function onBorderOpacityChange(event) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// ✨ AUDIO-REAKTIV FUNKTIONEN
+// ✨ AUDIO-REAKTIV FUNKTIONEN (MEHRFACHAUSWAHL)
 // ═══════════════════════════════════════════════════════════════════
 
+/**
+ * Master-Toggle für Audio-Reaktiv
+ */
 function onAudioReactiveToggle(event) {
   const enabled = event.target.checked;
   updateAudioReactiveSetting('enabled', enabled);
@@ -899,20 +1034,16 @@ function onAudioReactiveToggle(event) {
   }
 }
 
-function onAudioReactiveEffectChange(event) {
-  updateAudioReactiveSetting('effect', event.target.value);
-}
-
+/**
+ * Audio-Quelle ändern (global für alle Effekte)
+ */
 function onAudioReactiveSourceChange(event) {
   updateAudioReactiveSetting('source', event.target.value);
 }
 
-function onAudioReactiveIntensityChange(event) {
-  const value = parseInt(event.target.value);
-  audioReactiveIntensityValueRef.value.textContent = value + '%';
-  updateAudioReactiveSetting('intensity', value);
-}
-
+/**
+ * Glättung ändern (global für alle Effekte)
+ */
 function onAudioReactiveSmoothingChange(event) {
   const value = parseInt(event.target.value);
   audioReactiveSmoothingValueRef.value.textContent = value + '%';
@@ -920,7 +1051,65 @@ function onAudioReactiveSmoothingChange(event) {
 }
 
 /**
- * Aktualisiert eine Audio-Reaktiv Einstellung für das aktive Bild
+ * Effekt ein-/ausschalten
+ */
+function onEffectToggle(effectName, enabled) {
+  if (!currentActiveImage.value) return;
+
+  const fotoManager = fotoManagerRef?.value;
+  if (!fotoManager) return;
+
+  // Initialisiere audioReactive falls nicht vorhanden
+  fotoManager.initializeImageSettings(currentActiveImage.value);
+
+  const audioReactive = currentActiveImage.value.fotoSettings.audioReactive;
+  if (audioReactive.effects && audioReactive.effects[effectName]) {
+    audioReactive.effects[effectName].enabled = enabled;
+    console.log('🎵 Effekt:', effectName, '=', enabled);
+  }
+}
+
+/**
+ * Effekt-Intensität ändern
+ */
+function onEffectIntensityChange(effectName, value) {
+  if (!currentActiveImage.value) return;
+
+  const fotoManager = fotoManagerRef?.value;
+  if (!fotoManager) return;
+
+  // Initialisiere audioReactive falls nicht vorhanden
+  fotoManager.initializeImageSettings(currentActiveImage.value);
+
+  const audioReactive = currentActiveImage.value.fotoSettings.audioReactive;
+  if (audioReactive.effects && audioReactive.effects[effectName]) {
+    audioReactive.effects[effectName].intensity = parseInt(value);
+  }
+
+  // UI Update
+  const valueRef = getEffectValueRef(effectName);
+  if (valueRef && valueRef.value) {
+    valueRef.value.textContent = value + '%';
+  }
+}
+
+/**
+ * Hilfsfunktion: Gibt die Value-Ref für einen Effekt zurück
+ */
+function getEffectValueRef(effectName) {
+  switch (effectName) {
+    case 'hue': return effectHueValueRef;
+    case 'brightness': return effectBrightnessValueRef;
+    case 'saturation': return effectSaturationValueRef;
+    case 'scale': return effectScaleValueRef;
+    case 'glow': return effectGlowValueRef;
+    case 'border': return effectBorderValueRef;
+    default: return null;
+  }
+}
+
+/**
+ * Aktualisiert eine Audio-Reaktiv Master-Einstellung für das aktive Bild
  */
 function updateAudioReactiveSetting(property, value) {
   if (!currentActiveImage.value) return;
@@ -929,18 +1118,7 @@ function updateAudioReactiveSetting(property, value) {
   if (!fotoManager) return;
 
   // Initialisiere audioReactive falls nicht vorhanden
-  if (!currentActiveImage.value.fotoSettings) {
-    fotoManager.initializeImageSettings(currentActiveImage.value);
-  }
-  if (!currentActiveImage.value.fotoSettings.audioReactive) {
-    currentActiveImage.value.fotoSettings.audioReactive = {
-      enabled: false,
-      effect: 'hue',
-      source: 'bass',
-      intensity: 80,
-      smoothing: 50
-    };
-  }
+  fotoManager.initializeImageSettings(currentActiveImage.value);
 
   currentActiveImage.value.fotoSettings.audioReactive[property] = value;
   console.log('🎵 Audio-Reaktiv:', property, '=', value);
@@ -1011,28 +1189,51 @@ function stopAudioLevelIndicator() {
  * Lädt Audio-Reaktiv Einstellungen in die UI
  */
 function loadAudioReactiveSettings(imageData) {
+  // Hilfsfunktion zum Laden eines Effekts
+  const loadEffect = (effectName, checkboxRef, sliderRef, valueRef, defaultIntensity = 80) => {
+    const effectData = imageData?.fotoSettings?.audioReactive?.effects?.[effectName];
+    const enabled = effectData?.enabled || false;
+    const intensity = effectData?.intensity ?? defaultIntensity;
+
+    if (checkboxRef?.value) checkboxRef.value.checked = enabled;
+    if (sliderRef?.value) sliderRef.value.value = intensity;
+    if (valueRef?.value) valueRef.value.textContent = intensity + '%';
+  };
+
   if (!imageData?.fotoSettings?.audioReactive) {
     // Standardwerte setzen
     if (audioReactiveEnabledRef.value) audioReactiveEnabledRef.value.checked = false;
-    if (audioReactiveEffectRef.value) audioReactiveEffectRef.value.value = 'hue';
     if (audioReactiveSourceRef.value) audioReactiveSourceRef.value.value = 'bass';
-    if (audioReactiveIntensityRef.value) audioReactiveIntensityRef.value.value = 80;
-    if (audioReactiveIntensityValueRef.value) audioReactiveIntensityValueRef.value.textContent = '80%';
     if (audioReactiveSmoothingRef.value) audioReactiveSmoothingRef.value.value = 50;
     if (audioReactiveSmoothingValueRef.value) audioReactiveSmoothingValueRef.value.textContent = '50%';
+
+    // Alle Effekte auf Standard
+    loadEffect('hue', effectHueEnabledRef, effectHueIntensityRef, effectHueValueRef);
+    loadEffect('brightness', effectBrightnessEnabledRef, effectBrightnessIntensityRef, effectBrightnessValueRef);
+    loadEffect('saturation', effectSaturationEnabledRef, effectSaturationIntensityRef, effectSaturationValueRef);
+    loadEffect('scale', effectScaleEnabledRef, effectScaleIntensityRef, effectScaleValueRef);
+    loadEffect('glow', effectGlowEnabledRef, effectGlowIntensityRef, effectGlowValueRef);
+    loadEffect('border', effectBorderEnabledRef, effectBorderIntensityRef, effectBorderValueRef);
+
     stopAudioLevelIndicator();
     return;
   }
 
   const ar = imageData.fotoSettings.audioReactive;
 
+  // Master-Einstellungen
   if (audioReactiveEnabledRef.value) audioReactiveEnabledRef.value.checked = ar.enabled || false;
-  if (audioReactiveEffectRef.value) audioReactiveEffectRef.value.value = ar.effect || 'hue';
   if (audioReactiveSourceRef.value) audioReactiveSourceRef.value.value = ar.source || 'bass';
-  if (audioReactiveIntensityRef.value) audioReactiveIntensityRef.value.value = ar.intensity || 80;
-  if (audioReactiveIntensityValueRef.value) audioReactiveIntensityValueRef.value.textContent = (ar.intensity || 80) + '%';
   if (audioReactiveSmoothingRef.value) audioReactiveSmoothingRef.value.value = ar.smoothing || 50;
   if (audioReactiveSmoothingValueRef.value) audioReactiveSmoothingValueRef.value.textContent = (ar.smoothing || 50) + '%';
+
+  // Individuelle Effekte laden
+  loadEffect('hue', effectHueEnabledRef, effectHueIntensityRef, effectHueValueRef);
+  loadEffect('brightness', effectBrightnessEnabledRef, effectBrightnessIntensityRef, effectBrightnessValueRef);
+  loadEffect('saturation', effectSaturationEnabledRef, effectSaturationIntensityRef, effectSaturationValueRef);
+  loadEffect('scale', effectScaleEnabledRef, effectScaleIntensityRef, effectScaleValueRef);
+  loadEffect('glow', effectGlowEnabledRef, effectGlowIntensityRef, effectGlowValueRef);
+  loadEffect('border', effectBorderEnabledRef, effectBorderIntensityRef, effectBorderValueRef);
 
   if (ar.enabled) {
     startAudioLevelIndicator();
@@ -2738,6 +2939,88 @@ input[type="range"]::-moz-range-thumb:hover {
 .audio-slider:hover {
   box-shadow: 0 3px 12px rgba(139, 92, 246, 0.5);
   transform: scaleY(1.2);
+}
+
+/* ✨ EFFEKTE-GRID (Mehrfachauswahl) */
+.effects-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.effect-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(30, 30, 50, 0.6);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.effect-item:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.effect-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.effect-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #8b5cf6;
+  cursor: pointer;
+}
+
+.effect-name {
+  font-size: 13px;
+  color: #e2e8f0;
+  white-space: nowrap;
+}
+
+.effect-slider {
+  width: 80px;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.effect-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.effect-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  border: none;
+}
+
+.effect-value {
+  font-size: 11px;
+  color: #94a3b8;
+  min-width: 35px;
+  text-align: right;
 }
 
 .checkbox-control {

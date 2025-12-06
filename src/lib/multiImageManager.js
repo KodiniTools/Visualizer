@@ -157,6 +157,7 @@ export class MultiImageManager {
     
     /**
      * ✨ Berechnet Audio-Reaktive Effekt-Werte basierend auf den aktuellen Audio-Daten
+     * ✅ NEU: Unterstützt jetzt MEHRERE Effekte gleichzeitig
      */
     getAudioReactiveValues(audioSettings) {
         if (!audioSettings || !audioSettings.enabled) {
@@ -189,39 +190,75 @@ export class MultiImageManager {
                 break;
         }
 
-        // Normalisiere auf 0-1 und wende Intensität an
-        const intensity = (audioSettings.intensity || 80) / 100;
-        const normalizedLevel = (audioLevel / 255) * intensity;
+        // Basis Audio-Level normalisiert auf 0-1
+        const baseLevel = audioLevel / 255;
 
-        // Berechne effektspezifische Werte
-        const effect = audioSettings.effect || 'hue';
-        const result = { effect, level: normalizedLevel };
+        // Ergebnis-Objekt für alle aktivierten Effekte
+        const result = {
+            hasEffects: false,
+            effects: {}
+        };
 
-        switch (effect) {
-            case 'hue':
-                // Hue-Rotation: 0-720 Grad (2x Durchlauf für stärkeren Effekt)
-                result.hueRotate = normalizedLevel * 720;
-                break;
-            case 'brightness':
-                // Helligkeit: 60-180% basierend auf Audio-Level (verstärkt)
-                result.brightness = 60 + (normalizedLevel * 120);
-                break;
-            case 'saturation':
-                // Sättigung: 30-250% basierend auf Audio-Level (verstärkt)
-                result.saturation = 30 + (normalizedLevel * 220);
-                break;
-            case 'scale':
-                // Skalierung: 1.0-1.5 basierend auf Audio-Level (verstärkt)
-                result.scale = 1.0 + (normalizedLevel * 0.5);
-                break;
-            case 'glow':
-                // Glow/Shadow: 0-50px basierend auf Audio-Level (verstärkt)
-                result.glowBlur = normalizedLevel * 50;
-                result.glowColor = `rgba(139, 92, 246, ${0.5 + normalizedLevel * 0.5})`;
-                break;
+        // ✨ NEUE STRUKTUR: Prüfe welche Effekte aktiviert sind
+        const effects = audioSettings.effects;
+        if (!effects) {
+            // Fallback für alte Struktur (einzelner Effekt)
+            const effect = audioSettings.effect || 'hue';
+            const intensity = (audioSettings.intensity || 80) / 100;
+            const normalizedLevel = baseLevel * intensity;
+
+            result.hasEffects = true;
+            result.effects[effect] = this._calculateEffectValue(effect, normalizedLevel);
+            return result;
         }
 
-        return result;
+        // Berechne Werte für jeden aktivierten Effekt
+        for (const [effectName, effectConfig] of Object.entries(effects)) {
+            if (effectConfig && effectConfig.enabled) {
+                const intensity = (effectConfig.intensity || 80) / 100;
+                const normalizedLevel = baseLevel * intensity;
+
+                result.hasEffects = true;
+                result.effects[effectName] = this._calculateEffectValue(effectName, normalizedLevel);
+            }
+        }
+
+        return result.hasEffects ? result : null;
+    }
+
+    /**
+     * ✨ Berechnet den Wert für einen einzelnen Effekt
+     */
+    _calculateEffectValue(effectName, normalizedLevel) {
+        switch (effectName) {
+            case 'hue':
+                // Hue-Rotation: 0-720 Grad (2x Durchlauf für stärkeren Effekt)
+                return { hueRotate: normalizedLevel * 720 };
+            case 'brightness':
+                // Helligkeit: 60-180% basierend auf Audio-Level (verstärkt)
+                return { brightness: 60 + (normalizedLevel * 120) };
+            case 'saturation':
+                // Sättigung: 30-250% basierend auf Audio-Level (verstärkt)
+                return { saturation: 30 + (normalizedLevel * 220) };
+            case 'scale':
+                // Skalierung: 1.0-1.5 basierend auf Audio-Level (verstärkt)
+                return { scale: 1.0 + (normalizedLevel * 0.5) };
+            case 'glow':
+                // Glow/Shadow: 0-50px basierend auf Audio-Level (verstärkt)
+                return {
+                    glowBlur: normalizedLevel * 50,
+                    glowColor: `rgba(139, 92, 246, ${0.5 + normalizedLevel * 0.5})`
+                };
+            case 'border':
+                // Audio-reaktive Bildkontur: Breite und Farbe pulsieren
+                return {
+                    borderWidth: normalizedLevel * 20,  // 0-20px
+                    borderOpacity: 0.5 + (normalizedLevel * 0.5),  // 50-100%
+                    borderGlow: normalizedLevel * 30  // Leuchten um die Kontur
+                };
+            default:
+                return {};
+        }
     }
 
     /**
@@ -252,32 +289,35 @@ export class MultiImageManager {
                 this.applyFilters(ctx, imgData);
             }
 
-            // ✨ AUDIO-REAKTIV: Zusätzliche Filter basierend auf Audio
-            if (audioReactive) {
+            // ✨ AUDIO-REAKTIV: Zusätzliche Filter basierend auf Audio (MEHRERE EFFEKTE)
+            if (audioReactive && audioReactive.hasEffects) {
                 // Hole aktuelle Filter-String
                 let currentFilter = ctx.filter || 'none';
                 if (currentFilter === 'none') currentFilter = '';
 
-                switch (audioReactive.effect) {
-                    case 'hue':
-                        // Hue-Rotation hinzufügen
-                        currentFilter += ` hue-rotate(${audioReactive.hueRotate}deg)`;
-                        break;
-                    case 'brightness':
-                        // Helligkeit hinzufügen
-                        currentFilter += ` brightness(${audioReactive.brightness}%)`;
-                        break;
-                    case 'saturation':
-                        // Sättigung hinzufügen
-                        currentFilter += ` saturate(${audioReactive.saturation}%)`;
-                        break;
-                    case 'glow':
-                        // Glow als Shadow-Effekt
-                        ctx.shadowColor = audioReactive.glowColor;
-                        ctx.shadowBlur = audioReactive.glowBlur;
-                        ctx.shadowOffsetX = 0;
-                        ctx.shadowOffsetY = 0;
-                        break;
+                const effects = audioReactive.effects;
+
+                // Hue-Rotation
+                if (effects.hue) {
+                    currentFilter += ` hue-rotate(${effects.hue.hueRotate}deg)`;
+                }
+
+                // Helligkeit
+                if (effects.brightness) {
+                    currentFilter += ` brightness(${effects.brightness.brightness}%)`;
+                }
+
+                // Sättigung
+                if (effects.saturation) {
+                    currentFilter += ` saturate(${effects.saturation.saturation}%)`;
+                }
+
+                // Glow als Shadow-Effekt
+                if (effects.glow) {
+                    ctx.shadowColor = effects.glow.glowColor;
+                    ctx.shadowBlur = effects.glow.glowBlur;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
                 }
 
                 if (currentFilter.trim()) {
@@ -312,10 +352,10 @@ export class MultiImageManager {
                 ctx.translate(-centerX, -centerY);
             }
 
-            // ✨ AUDIO-REAKTIV: Scale-Effekt (pulsieren)
+            // ✨ AUDIO-REAKTIV: Scale-Effekt (pulsieren) - MEHRERE EFFEKTE
             let drawBounds = bounds;
-            if (audioReactive && audioReactive.effect === 'scale') {
-                const scale = audioReactive.scale;
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.scale) {
+                const scale = audioReactive.effects.scale.scale;
                 const centerX = bounds.x + bounds.width / 2;
                 const centerY = bounds.y + bounds.height / 2;
                 const newWidth = bounds.width * scale;
@@ -329,16 +369,28 @@ export class MultiImageManager {
             }
 
             // ✨ BILDKONTUR: Prüfen ob Kontur gezeichnet werden soll
-            const borderWidth = imgData.fotoSettings?.borderWidth || 0;
+            // Statische Kontur-Einstellungen
+            let borderWidth = imgData.fotoSettings?.borderWidth || 0;
+            let borderColor = imgData.fotoSettings?.borderColor || '#ffffff';
+            let borderOpacity = (imgData.fotoSettings?.borderOpacity ?? 100) / 100;
+            let borderGlow = 0;
+
+            // ✨ AUDIO-REAKTIVE BILDKONTUR: Überschreibt/erweitert statische Werte
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.border) {
+                const audioBorder = audioReactive.effects.border;
+                // Audio-reaktive Breite addieren zur statischen Breite (oder nur Audio wenn keine statische)
+                borderWidth = Math.max(borderWidth, audioBorder.borderWidth);
+                // Audio-reaktive Opazität überschreibt wenn aktiv
+                borderOpacity = Math.max(borderOpacity, audioBorder.borderOpacity);
+                // Leuchten um die Kontur
+                borderGlow = audioBorder.borderGlow;
+            }
 
             if (borderWidth > 0) {
                 // Mit Kontur: _drawImageOutline zeichnet sowohl Kontur als auch Bild
-                const borderColor = imgData.fotoSettings?.borderColor || '#ffffff';
-                const borderOpacity = (imgData.fotoSettings?.borderOpacity ?? 100) / 100;
-
                 // Zeichne Kontur um die sichtbare Form des Bildes (inklusive Bild darüber)
                 // Filter werden in _drawImageOutline auf das Originalbild angewendet
-                this._drawImageOutline(ctx, imgData, drawBounds, borderWidth, borderColor, borderOpacity);
+                this._drawImageOutline(ctx, imgData, drawBounds, borderWidth, borderColor, borderOpacity, borderGlow);
             } else {
                 // Ohne Kontur: Bild normal zeichnen
                 try {
@@ -752,8 +804,9 @@ export class MultiImageManager {
      * HINWEIS: Rotation wird bereits im aufrufenden Context angewendet
      * @param {Object} imgData - Das Bildobjekt mit imageObject und fotoSettings
      * @param {number} borderOpacity - Deckkraft der Kontur (0-1)
+     * @param {number} borderGlow - Audio-reaktives Leuchten um die Kontur (0-50px)
      */
-    _drawImageOutline(ctx, imgData, bounds, borderWidth, borderColor, borderOpacity = 1) {
+    _drawImageOutline(ctx, imgData, bounds, borderWidth, borderColor, borderOpacity = 1, borderGlow = 0) {
         const imageObject = imgData.imageObject;
         if (!imageObject || borderWidth <= 0) return;
 
@@ -792,10 +845,19 @@ export class MultiImageManager {
         // ✨ Filter zurücksetzen für saubere Kontur-Zeichnung
         ctx.filter = 'none';
         ctx.globalAlpha = borderOpacity;
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
+
+        // ✨ AUDIO-REAKTIVER GLOW: Leuchteffekt um die Kontur
+        if (borderGlow > 0) {
+            ctx.shadowColor = borderColor;
+            ctx.shadowBlur = borderGlow;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+        } else {
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+        }
 
         // Für dickere Konturen: Mehrere Schichten zeichnen
         const steps = Math.ceil(borderWidth / 2);
@@ -809,6 +871,10 @@ export class MultiImageManager {
                 );
             }
         }
+
+        // ✨ Glow zurücksetzen vor dem Original-Bild
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
 
         // ✨ Filter wieder anwenden für das Original-Bild
         if (this.fotoManager && imgData.fotoSettings) {

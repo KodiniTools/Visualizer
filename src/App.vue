@@ -504,6 +504,17 @@ function draw() {
 
     let drawVisualizerCallback = null;
 
+    // ✨ Audio-Analyse für audio-reaktive Bilder - IMMER wenn Audio spielt
+    // (unabhängig vom Visualizer-Status)
+    if (analyser && playerStore.isPlaying) {
+      const bufferLength = analyser.frequencyBinCount;
+      if (!audioDataArray || audioDataArray.length !== bufferLength) {
+        audioDataArray = new Uint8Array(bufferLength);
+      }
+      analyser.getByteFrequencyData(audioDataArray);
+      updateGlobalAudioData(audioDataArray, bufferLength);
+    }
+
     // Visualizer zeichnen wenn: Player spielt ODER Recorder läuft
     const shouldDrawVisualizer = visualizerStore.showVisualizer &&
       (playerStore.isPlaying || recorderStore.isRecording);
@@ -548,9 +559,6 @@ function draw() {
         } else {
           analyser.getByteFrequencyData(audioDataArray);
         }
-
-        // ✨ Audio-Analyse für audio-reaktive Bilder (global verfügbar)
-        updateGlobalAudioData(audioDataArray, bufferLength);
 
         // ✅ FIX: Cache visualizer rendering to offscreen canvas (prevents double rendering)
         // Initialize or resize cache canvas if needed

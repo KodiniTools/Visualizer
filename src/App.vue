@@ -151,32 +151,39 @@ window.audioAnalysisData = {
 function updateGlobalAudioData(audioDataArray, bufferLength) {
   if (!audioDataArray || bufferLength === 0) return;
 
+  // ✅ VERBESSERT: Nur die unteren 50% der FFT-Daten sind relevant
+  // (obere 50% sind meist sehr leise/leer)
+  const usableLength = Math.floor(bufferLength * 0.5);
+
   // Frequenzbereiche (bei FFT-Size 2048, Sample Rate 44100Hz)
-  // Jeder Bin = ~21.5 Hz
-  const bassEnd = Math.floor(bufferLength * 0.1);       // 0-10% = ca. 0-220 Hz (Bass)
-  const midEnd = Math.floor(bufferLength * 0.4);        // 10-40% = ca. 220-880 Hz (Mitten)
+  const bassEnd = Math.floor(usableLength * 0.15);      // 0-15% = Sub-Bass + Bass
+  const midEnd = Math.floor(usableLength * 0.5);        // 15-50% = Mitten
   // Rest = Höhen
 
   let bassSum = 0, midSum = 0, trebleSum = 0, totalSum = 0;
+  let bassCount = 0, midCount = 0, trebleCount = 0;
 
-  for (let i = 0; i < bufferLength; i++) {
+  for (let i = 0; i < usableLength; i++) {
     const value = audioDataArray[i];
     totalSum += value;
 
     if (i < bassEnd) {
       bassSum += value;
+      bassCount++;
     } else if (i < midEnd) {
       midSum += value;
+      midCount++;
     } else {
       trebleSum += value;
+      trebleCount++;
     }
   }
 
-  // Durchschnittswerte berechnen
-  const bass = bassEnd > 0 ? Math.floor(bassSum / bassEnd) : 0;
-  const mid = (midEnd - bassEnd) > 0 ? Math.floor(midSum / (midEnd - bassEnd)) : 0;
-  const treble = (bufferLength - midEnd) > 0 ? Math.floor(trebleSum / (bufferLength - midEnd)) : 0;
-  const volume = Math.floor(totalSum / bufferLength);
+  // Durchschnittswerte berechnen mit Verstärkung
+  const bass = bassCount > 0 ? Math.min(255, Math.floor((bassSum / bassCount) * 1.5)) : 0;
+  const mid = midCount > 0 ? Math.min(255, Math.floor((midSum / midCount) * 2.0)) : 0;
+  const treble = trebleCount > 0 ? Math.min(255, Math.floor((trebleSum / trebleCount) * 2.5)) : 0;
+  const volume = usableLength > 0 ? Math.min(255, Math.floor((totalSum / usableLength) * 1.5)) : 0;
 
   // Rohe Werte speichern
   window.audioAnalysisData.bass = bass;
@@ -185,7 +192,7 @@ function updateGlobalAudioData(audioDataArray, bufferLength) {
   window.audioAnalysisData.volume = volume;
 
   // Geglättete Werte (exponential smoothing für flüssigere Animation)
-  const smoothFactor = 0.3; // Höher = schneller, Niedriger = glatter
+  const smoothFactor = 0.4; // Erhöht für schnellere Reaktion
   window.audioAnalysisData.smoothBass = Math.floor(
     window.audioAnalysisData.smoothBass * (1 - smoothFactor) + bass * smoothFactor
   );

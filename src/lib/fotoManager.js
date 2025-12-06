@@ -38,12 +38,19 @@ export class FotoManager {
             borderColor: '#ffffff',  // Konturfarbe
             borderOpacity: 100,      // 0-100% Konturtransparenz
 
-            // ✨ AUDIO-REAKTIV (Musik-Synchronisierung)
+            // ✨ AUDIO-REAKTIV (Musik-Synchronisierung) - MEHRERE EFFEKTE GLEICHZEITIG
             audioReactive: {
                 enabled: false,              // Audio-Reaktivität aktiviert
-                effect: 'hue',               // 'hue', 'brightness', 'saturation', 'scale', 'glow'
+                // Individuelle Effekte mit eigenem Toggle und Intensität
+                effects: {
+                    hue: { enabled: false, intensity: 80 },
+                    brightness: { enabled: false, intensity: 80 },
+                    saturation: { enabled: false, intensity: 80 },
+                    scale: { enabled: false, intensity: 80 },
+                    glow: { enabled: false, intensity: 80 },
+                    border: { enabled: false, intensity: 80 }  // Audio-reaktive Bildkontur
+                },
                 source: 'bass',              // 'bass', 'mid', 'treble', 'volume'
-                intensity: 80,               // 0-100% Intensität des Effekts
                 smoothing: 50                // 0-100% Glättung (verhindert Flackern)
             }
         };
@@ -58,19 +65,87 @@ export class FotoManager {
     }
 
     /**
+     * Erstellt eine tiefe Kopie der audioReactive-Einstellungen
+     */
+    _deepCopyAudioReactive() {
+        const defaultAR = this.defaultSettings.audioReactive;
+        return {
+            enabled: defaultAR.enabled,
+            effects: {
+                hue: { ...defaultAR.effects.hue },
+                brightness: { ...defaultAR.effects.brightness },
+                saturation: { ...defaultAR.effects.saturation },
+                scale: { ...defaultAR.effects.scale },
+                glow: { ...defaultAR.effects.glow },
+                border: { ...defaultAR.effects.border }
+            },
+            source: defaultAR.source,
+            smoothing: defaultAR.smoothing
+        };
+    }
+
+    /**
+     * Migriert alte audioReactive-Struktur (einzelner Effekt) zur neuen (mehrere Effekte)
+     */
+    _migrateAudioReactiveSettings(oldSettings) {
+        if (!oldSettings) return this._deepCopyAudioReactive();
+
+        // Falls bereits neue Struktur vorhanden
+        if (oldSettings.effects) {
+            // Deep copy der existierenden Struktur
+            return {
+                enabled: oldSettings.enabled ?? false,
+                effects: {
+                    hue: { ...(oldSettings.effects.hue || { enabled: false, intensity: 80 }) },
+                    brightness: { ...(oldSettings.effects.brightness || { enabled: false, intensity: 80 }) },
+                    saturation: { ...(oldSettings.effects.saturation || { enabled: false, intensity: 80 }) },
+                    scale: { ...(oldSettings.effects.scale || { enabled: false, intensity: 80 }) },
+                    glow: { ...(oldSettings.effects.glow || { enabled: false, intensity: 80 }) },
+                    border: { ...(oldSettings.effects.border || { enabled: false, intensity: 80 }) }
+                },
+                source: oldSettings.source || 'bass',
+                smoothing: oldSettings.smoothing ?? 50
+            };
+        }
+
+        // Migration von alter Struktur (einzelner Effekt)
+        const newSettings = this._deepCopyAudioReactive();
+        newSettings.enabled = oldSettings.enabled ?? false;
+        newSettings.source = oldSettings.source || 'bass';
+        newSettings.smoothing = oldSettings.smoothing ?? 50;
+
+        // Alten einzelnen Effekt in neuer Struktur aktivieren
+        if (oldSettings.effect && oldSettings.enabled) {
+            const effectName = oldSettings.effect;
+            if (newSettings.effects[effectName]) {
+                newSettings.effects[effectName].enabled = true;
+                newSettings.effects[effectName].intensity = oldSettings.intensity ?? 80;
+            }
+        }
+
+        return newSettings;
+    }
+
+    /**
      * Initialisiert die Bildbearbeitungs-Einstellungen für ein Bild
      * ✅ FIX: Deep copy für audioReactive um geteilte Referenzen zu vermeiden
+     * ✅ NEU: Unterstützt Migration von alter zu neuer Struktur
      */
     initializeImageSettings(imageObject) {
         if (!imageObject.fotoSettings) {
             imageObject.fotoSettings = {
                 ...this.defaultSettings,
                 // Deep copy für audioReactive - jedes Bild bekommt eigene Einstellungen
-                audioReactive: { ...this.defaultSettings.audioReactive }
+                audioReactive: this._deepCopyAudioReactive()
             };
         } else if (!imageObject.fotoSettings.audioReactive) {
             // Falls fotoSettings existiert aber audioReactive fehlt
-            imageObject.fotoSettings.audioReactive = { ...this.defaultSettings.audioReactive };
+            imageObject.fotoSettings.audioReactive = this._deepCopyAudioReactive();
+        } else if (!imageObject.fotoSettings.audioReactive.effects) {
+            // Migration: Alte Struktur zu neuer Struktur
+            imageObject.fotoSettings.audioReactive = this._migrateAudioReactiveSettings(
+                imageObject.fotoSettings.audioReactive
+            );
         }
     }
 
@@ -97,7 +172,7 @@ export class FotoManager {
 
         imageObject.fotoSettings = {
             ...this.defaultSettings,
-            audioReactive: { ...this.defaultSettings.audioReactive }
+            audioReactive: this._deepCopyAudioReactive()
         };
         this.redrawCallback?.();
     }

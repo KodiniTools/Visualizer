@@ -76,32 +76,51 @@ export class CanvasManager {
 
     /**
      * ✅ NEW: Initialisiert Canvas-Pool
+     * ✅ QUALITÄTSVERBESSERUNG: Hohe Bildqualität für Recording
      */
     _initCanvasPool(width, height) {
         if (!this._canvasPool.tempCanvas) {
             this._canvasPool.tempCanvas = document.createElement('canvas');
-            this._canvasPool.tempCtx = this._canvasPool.tempCanvas.getContext('2d', { 
+            this._canvasPool.tempCtx = this._canvasPool.tempCanvas.getContext('2d', {
                 alpha: true,
-                willReadFrequently: false
+                willReadFrequently: false,
+                desynchronized: true  // Bessere Performance für Animation
             });
+            // ✅ Höchste Bildqualität für Recording
+            if (this._canvasPool.tempCtx) {
+                this._canvasPool.tempCtx.imageSmoothingEnabled = true;
+                this._canvasPool.tempCtx.imageSmoothingQuality = 'high';
+            }
         }
-        
+
         if (!this._canvasPool.vizCanvas) {
             this._canvasPool.vizCanvas = document.createElement('canvas');
             this._canvasPool.vizCtx = this._canvasPool.vizCanvas.getContext('2d', {
                 alpha: true,
-                willReadFrequently: false
+                willReadFrequently: false,
+                desynchronized: true
             });
+            // ✅ Höchste Bildqualität für Visualizer
+            if (this._canvasPool.vizCtx) {
+                this._canvasPool.vizCtx.imageSmoothingEnabled = true;
+                this._canvasPool.vizCtx.imageSmoothingQuality = 'high';
+            }
         }
-        
+
         // Resize nur wenn nötig
         if (this._canvasPool.currentWidth !== width || this._canvasPool.currentHeight !== height) {
             this._canvasPool.tempCanvas.width = width;
             this._canvasPool.tempCanvas.height = height;
             this._canvasPool.currentWidth = width;
             this._canvasPool.currentHeight = height;
+
+            // ✅ Nach Resize: Qualität erneut setzen (wird bei Resize zurückgesetzt)
+            if (this._canvasPool.tempCtx) {
+                this._canvasPool.tempCtx.imageSmoothingEnabled = true;
+                this._canvasPool.tempCtx.imageSmoothingQuality = 'high';
+            }
         }
-        
+
         this._canvasPool.initialized = true;
     }
 

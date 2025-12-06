@@ -210,14 +210,16 @@ const selectedQuality = ref(8_000_000);
 const uploadMode = ref('auto');
 const isProcessing = ref(false);
 
-// Quality Presets - ✅ Erweitert für 4K-Unterstützung
+// Quality Presets - ✅ Erweitert für 4K+ und Audio-Reaktiv
 const qualityPresets = [
   { value: 2_000_000, label: 'Low' },
   { value: 5_000_000, label: 'Med' },
   { value: 8_000_000, label: 'High' },
   { value: 15_000_000, label: 'V.High' },
   { value: 25_000_000, label: 'Ultra' },
-  { value: 40_000_000, label: '4K' }
+  { value: 40_000_000, label: '4K' },
+  { value: 60_000_000, label: '4K+' },
+  { value: 80_000_000, label: 'Max' }
 ];
 
 // Computed
@@ -633,10 +635,10 @@ h3 {
   letter-spacing: 0.3px;
 }
 
-/* Quality Buttons - ✅ Angepasst für 6 Presets */
+/* Quality Buttons - ✅ Angepasst für 8 Presets (4K+ Audio-Reaktiv) */
 .quality-buttons {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 4px;
 }
 
@@ -730,11 +732,11 @@ h3 {
   }
 
   .quality-buttons {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 500px) {
   .quality-buttons {
     grid-template-columns: repeat(2, 1fr);
   }

@@ -522,9 +522,9 @@ function draw() {
 
     let drawVisualizerCallback = null;
 
-    // ✨ Audio-Analyse für audio-reaktive Bilder - IMMER wenn Audio spielt
-    // (unabhängig vom Visualizer-Status)
-    if (analyser && playerStore.isPlaying) {
+    // ✨ Audio-Analyse für audio-reaktive Bilder - IMMER wenn Audio spielt ODER Recording läuft
+    // ✅ FIX: Auch während Recording analysieren für audio-reaktive Effekte in Aufnahmen
+    if (analyser && (playerStore.isPlaying || recorderStore.isRecording)) {
       const bufferLength = analyser.frequencyBinCount;
       if (!audioDataArray || audioDataArray.length !== bufferLength) {
         audioDataArray = new Uint8Array(bufferLength);

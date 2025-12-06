@@ -75,15 +75,7 @@ export class KeyboardShortcuts {
    * Haupt-Event-Handler für Keyboard Events
    */
   handleKeyDown(event) {
-    console.log('⌨️ [KeyboardShortcuts] handleKeyDown aufgerufen, key:', event.key);
-
-    if (!this.isEnabled) {
-      console.log('⌨️ [KeyboardShortcuts] IGNORIERT: isEnabled=false');
-      return;
-    }
-
-    if (this.shouldIgnoreShortcut(event)) {
-      console.log('⌨️ [KeyboardShortcuts] IGNORIERT: shouldIgnoreShortcut=true, target:', event.target.tagName);
+    if (!this.isEnabled || this.shouldIgnoreShortcut(event)) {
       return;
     }
 
@@ -105,7 +97,6 @@ export class KeyboardShortcuts {
     if (!ctrl && !alt && !shift && event.key.length === 1 &&
         !this.canvasManager?.activeObject && !shortcutKeys.includes(key)) {
 
-      console.log('⌨️ [KeyboardShortcuts] Öffne Texteditor mit Zeichen:', event.key);
       // Dispatch Event zum Öffnen des Texteditors mit dem eingegebenen Zeichen
       window.dispatchEvent(new CustomEvent('openTextEditorWithChar', {
         detail: { char: event.key }

@@ -369,7 +369,6 @@ const newTextInput = ref(null);
 const editTextInput = ref(null); // ✨ NEU: Referenz für das Editor-Textarea
 const fontSelect = ref(null);
 
-// ✨ DEBUG: Tracking variable
 let eventListenerRegistered = false;
 
 // ✨ Normalisiere Zeilenumbrüche (Windows \r\n, Mac \r, Unix \n → alle zu \n)
@@ -692,46 +691,52 @@ watch(() => canvasManager.value?.activeObject, (newObj) => {
 
 // ✨ NEU: Handler für Tastatureingabe zum Öffnen des Texteditors
 function handleOpenTextEditorWithChar(event) {
-  console.log('📝 [TextManagerPanel] Event empfangen:', event.detail);
   const char = event.detail?.char;
   if (!char) return;
 
-  // Aktiviere den Eingabemodus für neuen Text
-  isAddingNewText.value = true;
-  newTextContent.value = char; // Füge das erste Zeichen direkt ein
-  console.log('📝 [TextManagerPanel] Texteditor geöffnet mit:', char);
-  console.log('📝 [TextManagerPanel] isAddingNewText:', isAddingNewText.value);
+  // ✨ LÖSUNG: Sofort Text zum Canvas hinzufügen und Editor öffnen!
+  if (!canvasManager.value) return;
 
-  // Fokussiere das Textarea und setze Cursor ans Ende
-  // Verwende setTimeout um sicherzustellen, dass Vue das DOM aktualisiert hat
-  nextTick(() => {
-    setTimeout(() => {
-      console.log('📝 [TextManagerPanel] Versuche Textarea zu fokussieren...');
-      console.log('📝 [TextManagerPanel] newTextInput ref:', newTextInput.value);
-      if (newTextInput.value) {
-        // Scrolle das Textarea in den sichtbaren Bereich
-        newTextInput.value.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        newTextInput.value.focus();
-        // Setze Cursor ans Ende des Textes
-        newTextInput.value.selectionStart = newTextInput.value.selectionEnd = char.length;
-        console.log('📝 [TextManagerPanel] Textarea fokussiert!');
-      } else {
-        console.error('📝 [TextManagerPanel] newTextInput ref ist NULL! DOM wurde nicht aktualisiert.');
-      }
-    }, 100);
+  // Erstelle sofort einen neuen Text auf dem Canvas mit dem eingegebenen Zeichen
+  const newTextObj = canvasManager.value.addText(char, {
+    fontSize: 48,
+    fontFamily: 'Arial',
+    color: '#ffffff',
+    opacity: 100,
+    letterSpacing: 0,
+    lineHeightMultiplier: 120,
+    strokeEnabled: false,
+    strokeColor: '#000000',
+    strokeWidth: 2,
+    shadowColor: '#000000',
+    shadowBlur: 5,
+    shadowOffsetX: 2,
+    shadowOffsetY: 2
   });
+
+  // Der Text wird automatisch als activeObject gesetzt (durch addText)
+  // Das triggert handleSelectionChange, was selectedText setzt und den Editor öffnet
+  if (newTextObj) {
+    selectedText.value = newTextObj;
+    isAddingNewText.value = false;
+
+    // Fokussiere das Editor-Textarea, damit der Benutzer weiter tippen kann
+    nextTick(() => {
+      if (editTextInput.value) {
+        editTextInput.value.focus();
+        // Setze Cursor ans Ende des Textes
+        editTextInput.value.selectionStart = editTextInput.value.selectionEnd = char.length;
+      }
+    });
+  }
 }
 
 // Setup beim Mounting
 onMounted(() => {
   // ✨ WICHTIG: Event-Listener für Tastatureingabe IMMER registrieren (unabhängig von canvasManager)
   window.addEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar);
-  console.log('📝 [TextManagerPanel] Event-Listener registriert');
 
-  if (!canvasManager.value) {
-    console.warn('📝 [TextManagerPanel] canvasManager nicht verfügbar');
-    return;
-  }
+  if (!canvasManager.value) return;
 
   // ✨ FIX: Registriere Event-Listener wenn verfügbar
   if (canvasManager.value.onSelectionChanged && !eventListenerRegistered) {

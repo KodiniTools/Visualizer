@@ -59,10 +59,18 @@ export class FotoManager {
 
     /**
      * Initialisiert die Bildbearbeitungs-Einstellungen für ein Bild
+     * ✅ FIX: Deep copy für audioReactive um geteilte Referenzen zu vermeiden
      */
     initializeImageSettings(imageObject) {
         if (!imageObject.fotoSettings) {
-            imageObject.fotoSettings = { ...this.defaultSettings };
+            imageObject.fotoSettings = {
+                ...this.defaultSettings,
+                // Deep copy für audioReactive - jedes Bild bekommt eigene Einstellungen
+                audioReactive: { ...this.defaultSettings.audioReactive }
+            };
+        } else if (!imageObject.fotoSettings.audioReactive) {
+            // Falls fotoSettings existiert aber audioReactive fehlt
+            imageObject.fotoSettings.audioReactive = { ...this.defaultSettings.audioReactive };
         }
     }
 
@@ -82,11 +90,15 @@ export class FotoManager {
     /**
      * Setzt alle Einstellungen eines Bildes zurück
      * KORRIGIERT: Akzeptiert jetzt auch Hintergrundbilder
+     * ✅ FIX: Deep copy für audioReactive
      */
     resetSettings(imageObject) {
         if (!this._isImageObject(imageObject)) return;
-        
-        imageObject.fotoSettings = { ...this.defaultSettings };
+
+        imageObject.fotoSettings = {
+            ...this.defaultSettings,
+            audioReactive: { ...this.defaultSettings.audioReactive }
+        };
         this.redrawCallback?.();
     }
 

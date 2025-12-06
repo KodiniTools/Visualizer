@@ -9,6 +9,24 @@
       </aside>
 
       <main class="center-column">
+        <!-- ✨ Canvas-Bilder Leiste (horizontal scrollbar) -->
+        <div v-if="canvasImages.length > 0" class="canvas-images-bar">
+          <span class="canvas-images-label">Bilder auf Canvas:</span>
+          <div class="canvas-images-scroll">
+            <div
+              v-for="(imgData, index) in canvasImages"
+              :key="imgData.id"
+              class="canvas-thumb"
+              :class="{ 'selected': selectedCanvasImageId === imgData.id }"
+              @click="selectCanvasImage(imgData)"
+              :title="`Ebene ${index + 1} - Klicken zum Auswählen`"
+            >
+              <img :src="imgData.imageObject.src" alt="Canvas Bild">
+              <span class="canvas-thumb-layer">{{ index + 1 }}</span>
+            </div>
+          </div>
+        </div>
+
         <div class="canvas-wrapper">
           <canvas ref="canvasRef"></canvas>
         </div>
@@ -41,7 +59,7 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted, onUnmounted, provide, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, provide, watch, nextTick } from 'vue';
 import { usePlayerStore } from './stores/playerStore.js';
 import { useRecorderStore } from './stores/recorderStore.js';
 import { useTextStore } from './stores/textStore.js';
@@ -108,6 +126,37 @@ provide('fontManager', fontManagerInstance);
 provide('canvasManager', canvasManagerInstance);
 provide('fotoManager', fotoManagerInstance);
 provide('multiImageManager', multiImageManagerInstance);
+
+// ═══════════════════════════════════════════════════════════════════
+// ✨ CANVAS-BILDER LEISTE (für Auswahl verdeckter Bilder)
+// ═══════════════════════════════════════════════════════════════════
+
+// Reaktive Referenz für aktuell ausgewähltes Bild-ID
+const selectedCanvasImageId = ref(null);
+
+// Computed: Alle Bilder auf dem Canvas
+const canvasImages = computed(() => {
+  const manager = multiImageManagerInstance.value;
+  if (!manager) return [];
+  return manager.getAllImages() || [];
+});
+
+// Canvas-Bild auswählen (über die horizontale Leiste)
+function selectCanvasImage(imgData) {
+  const manager = multiImageManagerInstance.value;
+  if (!manager || !imgData) return;
+
+  // Setze das Bild als ausgewählt
+  manager.setSelectedImage(imgData);
+  selectedCanvasImageId.value = imgData.id;
+
+  // Aktualisiere FotoPanel UI (falls vorhanden)
+  if (window.fotoPanelControls?.currentActiveImage) {
+    window.fotoPanelControls.currentActiveImage.value = imgData;
+  }
+
+  console.log('📌 Canvas-Bild ausgewählt:', imgData.id);
+}
 
 // Onboarding/Help Funktionen
 function showTutorial() {
@@ -1000,5 +1049,104 @@ canvas {
   height: auto;
   object-fit: contain;
   background-color: #000;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ✨ CANVAS-BILDER LEISTE (horizontal scrollbar)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.canvas-images-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(180deg, #1a1a1a 0%, #252525 100%);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border: 1px solid #333;
+  border-left: 3px solid #6ea8fe;
+}
+
+.canvas-images-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6ea8fe;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.canvas-images-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+  flex-grow: 1;
+}
+
+/* Horizontale Scrollbar */
+.canvas-images-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.canvas-images-scroll::-webkit-scrollbar-track {
+  background: #1e1e1e;
+  border-radius: 3px;
+}
+
+.canvas-images-scroll::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+.canvas-images-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6ea8fe;
+}
+
+.canvas-thumb {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid #444;
+  transition: all 0.2s ease;
+  background-color: #1e1e1e;
+  flex-shrink: 0;
+}
+
+.canvas-thumb:hover {
+  border-color: #6ea8fe;
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(110, 168, 254, 0.4);
+}
+
+.canvas-thumb.selected {
+  border-color: #6ea8fe;
+  box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.5), 0 4px 12px rgba(110, 168, 254, 0.4);
+}
+
+.canvas-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.canvas-thumb-layer {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  background: rgba(110, 168, 254, 0.95);
+  color: #121212;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  min-width: 14px;
+  text-align: center;
 }
 </style>

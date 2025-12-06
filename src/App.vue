@@ -819,17 +819,7 @@ onMounted(async () => {
       }
       // Audio für Recorder einschalten wenn Player spielt
       enableRecorderAudio();
-      if (canvasManagerInstance.value && multiImageManagerInstance.value) {
-        keyboardShortcutsInstance.value = new KeyboardShortcuts(
-          { playerStore, recorderStore, gridStore },
-          {
-            canvasManager: canvasManagerInstance.value,
-            multiImageManager: multiImageManagerInstance.value
-          }
-        );
-        keyboardShortcutsInstance.value.enable();
-        console.log('⌨️ Keyboard Shortcuts aktiviert');
-      }
+      // ✨ KeyboardShortcuts werden jetzt beim App-Start initialisiert (nicht hier)
     });
     audioRef.value.addEventListener('pause', () => {
       playerStore.isPlaying = false;
@@ -902,6 +892,19 @@ onMounted(async () => {
       multiImageManager: multiImageManagerInstance.value
     });
     canvasManagerInstance.value.setupInteractionHandlers();
+
+    // ✨ NEU: KeyboardShortcuts sofort initialisieren (nicht erst bei Audio-Play!)
+    if (canvasManagerInstance.value && multiImageManagerInstance.value) {
+      keyboardShortcutsInstance.value = new KeyboardShortcuts(
+        { playerStore, recorderStore, gridStore },
+        {
+          canvasManager: canvasManagerInstance.value,
+          multiImageManager: multiImageManagerInstance.value
+        }
+      );
+      keyboardShortcutsInstance.value.enable();
+      console.log('⌨️ Keyboard Shortcuts aktiviert (App-Start)');
+    }
 
     watch(() => gridStore.isVisible, (newValue) => {
       if (gridManagerInstance.value) {

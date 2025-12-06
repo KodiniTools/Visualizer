@@ -199,25 +199,25 @@ export class MultiImageManager {
 
         switch (effect) {
             case 'hue':
-                // Hue-Rotation: 0-360 Grad basierend auf Audio-Level
-                result.hueRotate = normalizedLevel * 360;
+                // Hue-Rotation: 0-720 Grad (2x Durchlauf für stärkeren Effekt)
+                result.hueRotate = normalizedLevel * 720;
                 break;
             case 'brightness':
-                // Helligkeit: 80-150% basierend auf Audio-Level
-                result.brightness = 80 + (normalizedLevel * 70);
+                // Helligkeit: 60-180% basierend auf Audio-Level (verstärkt)
+                result.brightness = 60 + (normalizedLevel * 120);
                 break;
             case 'saturation':
-                // Sättigung: 50-200% basierend auf Audio-Level
-                result.saturation = 50 + (normalizedLevel * 150);
+                // Sättigung: 30-250% basierend auf Audio-Level (verstärkt)
+                result.saturation = 30 + (normalizedLevel * 220);
                 break;
             case 'scale':
-                // Skalierung: 1.0-1.3 basierend auf Audio-Level
-                result.scale = 1.0 + (normalizedLevel * 0.3);
+                // Skalierung: 1.0-1.5 basierend auf Audio-Level (verstärkt)
+                result.scale = 1.0 + (normalizedLevel * 0.5);
                 break;
             case 'glow':
-                // Glow/Shadow: 0-30px basierend auf Audio-Level
-                result.glowBlur = normalizedLevel * 30;
-                result.glowColor = `rgba(139, 92, 246, ${0.3 + normalizedLevel * 0.7})`;
+                // Glow/Shadow: 0-50px basierend auf Audio-Level (verstärkt)
+                result.glowBlur = normalizedLevel * 50;
+                result.glowColor = `rgba(139, 92, 246, ${0.5 + normalizedLevel * 0.5})`;
                 break;
         }
 
@@ -241,20 +241,9 @@ export class MultiImageManager {
             // ✨ Audio-Reaktive Werte berechnen
             const audioReactive = this.getAudioReactiveValues(imgData.fotoSettings?.audioReactive);
 
-            // ✅ FIX: Minimale save/restore - nur wenn Filter/Rotation/Flip/Kontur/AudioReaktiv verwendet werden
-            const needsContext = (imgData.fotoSettings &&
-                (imgData.fotoSettings.rotation !== 0 ||
-                 imgData.fotoSettings.flipH ||
-                 imgData.fotoSettings.flipV ||
-                 imgData.fotoSettings.opacity !== 100 ||
-                 imgData.fotoSettings.shadowBlur > 0 ||
-                 imgData.fotoSettings.borderWidth > 0 ||
-                 audioReactive !== null));
-            
-            if (needsContext) {
-                ctx.save();
-            }
-            
+            // ✅ FIX: IMMER save/restore für jedes Bild um Filter-Leakage zu verhindern
+            ctx.save();
+
             // ✨ Nutze FotoManager für Filter + Schatten (wenn verfügbar)
             if (this.fotoManager && imgData.fotoSettings) {
                 this.fotoManager.applyFilters(ctx, imgData);
@@ -365,18 +354,8 @@ export class MultiImageManager {
                 }
             }
 
-            // ✨ Filter + Schatten zurücksetzen (wenn FotoManager verwendet wurde)
-            if (this.fotoManager && imgData.fotoSettings) {
-                this.fotoManager.resetFilters(ctx);
-            } else if (imgData.settings) {
-                // Reset filters
-                ctx.filter = 'none';
-                ctx.globalAlpha = 1.0;
-            }
-            
-            if (needsContext) {
-                ctx.restore();
-            }
+            // ✅ FIX: ctx.restore() stellt alle Filter/Transformationen wieder her
+            ctx.restore();
         });
     }
     

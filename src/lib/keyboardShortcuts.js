@@ -75,7 +75,15 @@ export class KeyboardShortcuts {
    * Haupt-Event-Handler für Keyboard Events
    */
   handleKeyDown(event) {
-    if (!this.isEnabled || this.shouldIgnoreShortcut(event)) {
+    console.log('⌨️ [KeyboardShortcuts] handleKeyDown aufgerufen, key:', event.key);
+
+    if (!this.isEnabled) {
+      console.log('⌨️ [KeyboardShortcuts] IGNORIERT: isEnabled=false');
+      return;
+    }
+
+    if (this.shouldIgnoreShortcut(event)) {
+      console.log('⌨️ [KeyboardShortcuts] IGNORIERT: shouldIgnoreShortcut=true, target:', event.target.tagName);
       return;
     }
 

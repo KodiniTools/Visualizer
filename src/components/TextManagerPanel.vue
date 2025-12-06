@@ -701,17 +701,25 @@ function handleOpenTextEditorWithChar(event) {
   isAddingNewText.value = true;
   newTextContent.value = char; // Füge das erste Zeichen direkt ein
   console.log('📝 [TextManagerPanel] Texteditor geöffnet mit:', char);
+  console.log('📝 [TextManagerPanel] isAddingNewText:', isAddingNewText.value);
 
   // Fokussiere das Textarea und setze Cursor ans Ende
+  // Verwende setTimeout um sicherzustellen, dass Vue das DOM aktualisiert hat
   nextTick(() => {
-    if (newTextInput.value) {
-      newTextInput.value.focus();
-      // Setze Cursor ans Ende des Textes
-      newTextInput.value.selectionStart = newTextInput.value.selectionEnd = char.length;
-      console.log('📝 [TextManagerPanel] Textarea fokussiert');
-    } else {
-      console.warn('📝 [TextManagerPanel] newTextInput ref nicht verfügbar!');
-    }
+    setTimeout(() => {
+      console.log('📝 [TextManagerPanel] Versuche Textarea zu fokussieren...');
+      console.log('📝 [TextManagerPanel] newTextInput ref:', newTextInput.value);
+      if (newTextInput.value) {
+        // Scrolle das Textarea in den sichtbaren Bereich
+        newTextInput.value.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        newTextInput.value.focus();
+        // Setze Cursor ans Ende des Textes
+        newTextInput.value.selectionStart = newTextInput.value.selectionEnd = char.length;
+        console.log('📝 [TextManagerPanel] Textarea fokussiert!');
+      } else {
+        console.error('📝 [TextManagerPanel] newTextInput ref ist NULL! DOM wurde nicht aktualisiert.');
+      }
+    }, 100);
   });
 }
 

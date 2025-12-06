@@ -532,6 +532,124 @@ export class MultiImageManager {
         this.onImageChanged();
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // ✨ Z-INDEX / EBENEN-STEUERUNG
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Gibt den Index eines Bildes im Array zurück
+     * @returns {number} Index oder -1 wenn nicht gefunden
+     */
+    getImageIndex(image) {
+        if (!image) return -1;
+        return this.images.findIndex(img => img.id === image.id);
+    }
+
+    /**
+     * Gibt die Anzahl der Bilder zurück
+     */
+    getImageCount() {
+        return this.images.length;
+    }
+
+    /**
+     * Bringt ein Bild ganz nach vorne (oberste Ebene)
+     * @param {Object} image - Das Bild-Objekt
+     * @returns {boolean} true wenn erfolgreich
+     */
+    bringToFront(image) {
+        if (!image) image = this.selectedImage;
+        if (!image) return false;
+
+        const index = this.getImageIndex(image);
+        if (index === -1) return false;
+
+        // Bereits ganz vorne?
+        if (index === this.images.length - 1) return false;
+
+        // Entferne und füge am Ende hinzu
+        this.images.splice(index, 1);
+        this.images.push(image);
+
+        console.log('⬆️ Bild nach ganz vorne gebracht:', image.id);
+        this.redrawCallback();
+        this.onImageChanged();
+        return true;
+    }
+
+    /**
+     * Schickt ein Bild ganz nach hinten (unterste Ebene)
+     * @param {Object} image - Das Bild-Objekt
+     * @returns {boolean} true wenn erfolgreich
+     */
+    sendToBack(image) {
+        if (!image) image = this.selectedImage;
+        if (!image) return false;
+
+        const index = this.getImageIndex(image);
+        if (index === -1) return false;
+
+        // Bereits ganz hinten?
+        if (index === 0) return false;
+
+        // Entferne und füge am Anfang hinzu
+        this.images.splice(index, 1);
+        this.images.unshift(image);
+
+        console.log('⬇️ Bild nach ganz hinten geschickt:', image.id);
+        this.redrawCallback();
+        this.onImageChanged();
+        return true;
+    }
+
+    /**
+     * Verschiebt ein Bild eine Ebene nach oben
+     * @param {Object} image - Das Bild-Objekt
+     * @returns {boolean} true wenn erfolgreich
+     */
+    moveUp(image) {
+        if (!image) image = this.selectedImage;
+        if (!image) return false;
+
+        const index = this.getImageIndex(image);
+        if (index === -1) return false;
+
+        // Bereits ganz oben?
+        if (index === this.images.length - 1) return false;
+
+        // Tausche mit dem nächsten Bild
+        [this.images[index], this.images[index + 1]] = [this.images[index + 1], this.images[index]];
+
+        console.log('↑ Bild eine Ebene nach oben:', image.id);
+        this.redrawCallback();
+        this.onImageChanged();
+        return true;
+    }
+
+    /**
+     * Verschiebt ein Bild eine Ebene nach unten
+     * @param {Object} image - Das Bild-Objekt
+     * @returns {boolean} true wenn erfolgreich
+     */
+    moveDown(image) {
+        if (!image) image = this.selectedImage;
+        if (!image) return false;
+
+        const index = this.getImageIndex(image);
+        if (index === -1) return false;
+
+        // Bereits ganz unten?
+        if (index === 0) return false;
+
+        // Tausche mit dem vorherigen Bild
+        [this.images[index], this.images[index - 1]] = [this.images[index - 1], this.images[index]];
+
+        console.log('↓ Bild eine Ebene nach unten:', image.id);
+        this.redrawCallback();
+        this.onImageChanged();
+        return true;
+    }
+
     /**
      * ✨ Zeichnet eine Kontur um die sichtbare Form eines Bildes (unterstützt Transparenz)
      * Verwendet einen Outline-Effekt durch mehrfaches Zeichnen mit Offset

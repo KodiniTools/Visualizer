@@ -155,6 +155,58 @@
     <div class="foto-panel-container" ref="containerRef" style="display: none;">
       <h4>Bild bearbeiten</h4>
 
+      <!-- ✨ NEU: Ebenen-Steuerung -->
+      <div class="layer-controls-section">
+        <div class="modern-section-header">
+          <h4>Ebenen</h4>
+          <span class="layer-info" v-if="currentLayerInfo">{{ currentLayerInfo }}</span>
+        </div>
+        <div class="layer-buttons">
+          <button
+            type="button"
+            class="layer-btn"
+            @click="onBringToFront"
+            :disabled="!canMoveUp"
+            title="Ganz nach vorne (oberste Ebene)"
+          >
+            <span class="layer-icon">⬆⬆</span>
+            <span class="layer-text">Nach vorne</span>
+          </button>
+          <button
+            type="button"
+            class="layer-btn"
+            @click="onMoveUp"
+            :disabled="!canMoveUp"
+            title="Eine Ebene nach oben"
+          >
+            <span class="layer-icon">↑</span>
+            <span class="layer-text">Ebene hoch</span>
+          </button>
+          <button
+            type="button"
+            class="layer-btn"
+            @click="onMoveDown"
+            :disabled="!canMoveDown"
+            title="Eine Ebene nach unten"
+          >
+            <span class="layer-icon">↓</span>
+            <span class="layer-text">Ebene runter</span>
+          </button>
+          <button
+            type="button"
+            class="layer-btn"
+            @click="onSendToBack"
+            :disabled="!canMoveDown"
+            title="Ganz nach hinten (unterste Ebene)"
+          >
+            <span class="layer-icon">⬇⬇</span>
+            <span class="layer-text">Nach hinten</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-divider"></div>
+
       <div class="control-group">
         <label>Filter-Preset</label>
         <select ref="presetSelectRef" @change="onPresetChange">
@@ -499,6 +551,76 @@ const selectedImage = computed(() => {
 const filteredStockImages = computed(() => {
   return stockImages.value;
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// ✨ EBENEN-STEUERUNG (Z-Index)
+// ═══════════════════════════════════════════════════════════════════
+
+// Computed: Kann das Bild nach oben verschoben werden?
+const canMoveUp = computed(() => {
+  if (!currentActiveImage.value) return false;
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager) return false;
+
+  const index = multiImageManager.getImageIndex(currentActiveImage.value);
+  const count = multiImageManager.getImageCount();
+  return index !== -1 && index < count - 1;
+});
+
+// Computed: Kann das Bild nach unten verschoben werden?
+const canMoveDown = computed(() => {
+  if (!currentActiveImage.value) return false;
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager) return false;
+
+  const index = multiImageManager.getImageIndex(currentActiveImage.value);
+  return index > 0;
+});
+
+// Computed: Aktuelle Ebenen-Info (z.B. "Ebene 2 von 5")
+const currentLayerInfo = computed(() => {
+  if (!currentActiveImage.value) return '';
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager) return '';
+
+  const index = multiImageManager.getImageIndex(currentActiveImage.value);
+  const count = multiImageManager.getImageCount();
+  if (index === -1 || count === 0) return '';
+
+  return `${index + 1} / ${count}`;
+});
+
+// Bild ganz nach vorne bringen
+function onBringToFront() {
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager || !currentActiveImage.value) return;
+
+  multiImageManager.bringToFront(currentActiveImage.value);
+}
+
+// Bild ganz nach hinten senden
+function onSendToBack() {
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager || !currentActiveImage.value) return;
+
+  multiImageManager.sendToBack(currentActiveImage.value);
+}
+
+// Bild eine Ebene nach oben
+function onMoveUp() {
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager || !currentActiveImage.value) return;
+
+  multiImageManager.moveUp(currentActiveImage.value);
+}
+
+// Bild eine Ebene nach unten
+function onMoveDown() {
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager || !currentActiveImage.value) return;
+
+  multiImageManager.moveDown(currentActiveImage.value);
+}
 
 // ✨ NEU: Filter-Änderungs-Handler
 function onBrightnessChange(event) {
@@ -2455,5 +2577,105 @@ input[type="range"]::-moz-range-thumb:hover {
   border-color: #6ea8fe;
   box-shadow: 0 4px 12px rgba(110, 168, 254, 0.2);
   transform: translateY(-2px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ✨ EBENEN-STEUERUNG STYLES
+   ═══════════════════════════════════════════════════════════════════ */
+
+.layer-controls-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(42, 42, 42, 0.5);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(110, 168, 254, 0.1);
+  margin-bottom: 8px;
+}
+
+.layer-controls-section .modern-section-header {
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.layer-info {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6ea8fe;
+  font-family: 'Courier New', monospace;
+  background: rgba(110, 168, 254, 0.15);
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(110, 168, 254, 0.3);
+}
+
+.layer-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.layer-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  border: 1px solid #555;
+  border-radius: 10px;
+  color: #ccc;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.layer-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 100%);
+  border-color: #6ea8fe;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(110, 168, 254, 0.2);
+}
+
+.layer-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(110, 168, 254, 0.3);
+}
+
+.layer-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #2a2a2a;
+  border-color: #444;
+}
+
+.layer-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.layer-text {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+}
+
+/* Spezielle Styles für die "Nach vorne/hinten" Buttons */
+.layer-btn:first-child,
+.layer-btn:last-child {
+  background: linear-gradient(135deg, #3d4a5a 0%, #2a3340 100%);
+}
+
+.layer-btn:first-child:hover:not(:disabled),
+.layer-btn:last-child:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4a5a6a 0%, #3a4a5a 100%);
 }
 </style>

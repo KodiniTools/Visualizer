@@ -391,4 +391,21 @@ export class TextManager {
     clear() {
         this.textObjects = [];
     }
+
+    /**
+     * ✨ NEU: Verschiebt ein Text-Objekt an die oberste Ebene (z-index)
+     * Damit ist der Text immer anklickbar und sichtbar
+     */
+    moveToTop(textObj) {
+        if (!textObj) return;
+
+        const index = this.textObjects.findIndex(t => t.id === textObj.id);
+        if (index === -1) return;
+
+        // Entferne das Objekt aus der aktuellen Position
+        this.textObjects.splice(index, 1);
+
+        // Füge es am Ende hinzu (oberste Ebene)
+        this.textObjects.push(textObj);
+    }
 }

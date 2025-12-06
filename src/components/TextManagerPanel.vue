@@ -65,6 +65,7 @@ Zeile 3..."
       <div class="control-group">
         <label>Text:</label>
         <textarea
+          ref="editTextInput"
           v-model="selectedText.content"
           @input="updateText"
           @paste="handlePaste"
@@ -366,6 +367,7 @@ const selectedText = ref(null);
 const isAddingNewText = ref(false);
 const newTextContent = ref('');
 const newTextInput = ref(null);
+const editTextInput = ref(null); // ✨ NEU: Referenz für das Editor-Textarea
 const fontSelect = ref(null);
 
 // ✨ DEBUG: Tracking variable
@@ -560,7 +562,7 @@ function deleteSelectedText() {
 
 // ✨ FIX: Verbesserte Callback-Funktion für Selection-Changes
 function handleSelectionChange(obj) {
-  
+
   if (obj && obj.type === 'text') {
     // Sicherheitsprüfung: Initialisiere fehlende Properties
     if (!obj.letterSpacing && obj.letterSpacing !== 0) {
@@ -583,15 +585,19 @@ function handleSelectionChange(obj) {
         offsetY: 0
       };
     }
-    
+
     selectedText.value = obj;
     isAddingNewText.value = false;
-    
+
     // ✨ FIX: Font-Dropdown befüllen nachdem ein Text ausgewählt wurde
     nextTick(() => {
       populateFontDropdown();
+      // ✨ NEU: Editor-Textarea automatisch fokussieren bei Klick auf Text
+      if (editTextInput.value) {
+        editTextInput.value.focus();
+      }
     });
-    
+
   } else {
     selectedText.value = null;
   }
@@ -685,30 +691,49 @@ watch(() => canvasManager.value?.activeObject, (newObj) => {
   handleSelectionChange(newObj);
 }, { deep: true });
 
+// ✨ NEU: Handler für Tastatureingabe zum Öffnen des Texteditors
+function handleOpenTextEditorWithChar(event) {
+  const char = event.detail?.char;
+  if (!char) return;
+
+  // Aktiviere den Eingabemodus für neuen Text
+  isAddingNewText.value = true;
+  newTextContent.value = char; // Füge das erste Zeichen direkt ein
+
+  // Fokussiere das Textarea und setze Cursor ans Ende
+  nextTick(() => {
+    if (newTextInput.value) {
+      newTextInput.value.focus();
+      // Setze Cursor ans Ende des Textes
+      newTextInput.value.selectionStart = newTextInput.value.selectionEnd = char.length;
+    }
+  });
+}
+
 // Setup beim Mounting
 onMounted(() => {
-  
+
   if (!canvasManager.value) {
     return;
   }
-  
+
   // ✨ FIX: Registriere Event-Listener wenn verfügbar
   if (canvasManager.value.onSelectionChanged && !eventListenerRegistered) {
     canvasManager.value.onSelectionChanged(handleSelectionChange);
     eventListenerRegistered = true;
   } else {
   }
-  
+
   // Prüfe ob bereits ein Text ausgewählt ist
   if (canvasManager.value.activeObject?.type === 'text') {
     handleSelectionChange(canvasManager.value.activeObject);
   }
-  
+
   // Befülle Font-Dropdown nach dem Mounting
   nextTick(() => {
     populateFontDropdown();
   });
-  
+
   // Überwache FontManager und aktualisiere Dropdown wenn Fonts geladen werden
   if (fontManager?.value) {
     watch(
@@ -723,11 +748,16 @@ onMounted(() => {
       { immediate: true }
     );
   }
+
+  // ✨ NEU: Event-Listener für Tastatureingabe zum Öffnen des Texteditors
+  window.addEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar);
 });
 
 // Cleanup beim Unmounting
 onUnmounted(() => {
   eventListenerRegistered = false;
+  // ✨ NEU: Event-Listener entfernen
+  window.removeEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar);
 });
 </script>
 

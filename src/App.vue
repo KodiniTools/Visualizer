@@ -245,7 +245,7 @@ function setupAudioContext() {
   if (audioContext || !audioRef.value) return;
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
   analyser = audioContext.createAnalyser();
-  analyser.fftSize = 1024;
+  analyser.fftSize = 2048; // ✅ Erhöht für detailliertere Visualizer-Qualität
   sourceNode = audioContext.createMediaElementSource(audioRef.value);
   outputGain = audioContext.createGain();
 
@@ -585,16 +585,16 @@ async function initializeRecorder() {
       console.log('✅ [App] Recording Canvas pre-rendered für Stream');
     }
 
-    // IMMER 30 FPS verwenden, egal was übergeben wurde!
-    recordingCanvasStream = originalCaptureStream(30);
-    console.log('✅ [App] Canvas-Stream mit 30 FPS erstellt (via Monkey Patch)');
+    // ✅ QUALITÄTSVERBESSERUNG: 60 FPS für smoothere Videos
+    recordingCanvasStream = originalCaptureStream(60);
+    console.log('✅ [App] Canvas-Stream mit 60 FPS erstellt (via Monkey Patch)');
 
     return recordingCanvasStream;
   };
 
-  // Erstelle initialen Stream
-  const canvasStream = recordingCanvas.captureStream(30);
-  console.log('✅ [App] Canvas-Stream erstellt (30 FPS)');
+  // Erstelle initialen Stream mit 60 FPS für bessere Qualität
+  const canvasStream = recordingCanvas.captureStream(60);
+  console.log('✅ [App] Canvas-Stream erstellt (60 FPS)');
 
   const audio = audioRef.value;
   if (!audio) {

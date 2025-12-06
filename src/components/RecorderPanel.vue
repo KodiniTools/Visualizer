@@ -210,13 +210,14 @@ const selectedQuality = ref(8_000_000);
 const uploadMode = ref('auto');
 const isProcessing = ref(false);
 
-// Quality Presets
+// Quality Presets - ✅ Erweitert für 4K-Unterstützung
 const qualityPresets = [
   { value: 2_000_000, label: 'Low' },
   { value: 5_000_000, label: 'Med' },
   { value: 8_000_000, label: 'High' },
   { value: 15_000_000, label: 'V.High' },
-  { value: 25_000_000, label: 'Ultra' }
+  { value: 25_000_000, label: 'Ultra' },
+  { value: 40_000_000, label: '4K' }
 ];
 
 // Computed
@@ -632,10 +633,10 @@ h3 {
   letter-spacing: 0.3px;
 }
 
-/* Quality Buttons */
+/* Quality Buttons - ✅ Angepasst für 6 Presets */
 .quality-buttons {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 4px;
 }
 

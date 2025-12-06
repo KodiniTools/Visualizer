@@ -342,7 +342,7 @@ class Recorder {
         }
 
         const getOptimalFPS = () => {
-            return 33; // Fixed 30 FPS
+            return 16; // ✅ Erhöht auf ~60 FPS für smoothere Videos
         };
         
         let lastFrameTime = 0;
@@ -430,27 +430,31 @@ class Recorder {
             return false;
         }
 
-        // Force Canvas updates
+        // ✅ QUALITÄTSVERBESSERUNG: Erweiterte Warmup-Phase für bessere erste Frames
+        // Mehr Frames und schnellere Intervalle für 60 FPS Aufnahme
         if (this.onForceRedraw) {
-            for (let i = 0; i < 3; i++) {
+            // Phase 1: Initiale Canvas-Aktualisierungen (5 statt 3)
+            for (let i = 0; i < 5; i++) {
                 this.onForceRedraw();
-                await new Promise(resolve => setTimeout(resolve, 50));
+                await new Promise(resolve => setTimeout(resolve, 33)); // ~30 FPS Warmup
             }
         } else {
             console.error('[RECORDER] CRITICAL: No rendering method available!');
             return false;
         }
 
-        // Force frame requests
+        // Phase 2: Force frame requests für Video-Encoder-Initialisierung
         if (typeof videoTrack.requestFrame === 'function') {
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 5; i++) {
                 videoTrack.requestFrame();
-                await new Promise(resolve => setTimeout(resolve, 50));
+                await new Promise(resolve => setTimeout(resolve, 16)); // ~60 FPS
             }
         }
 
-        await new Promise(resolve => setTimeout(resolve, 150));
-        
+        // Phase 3: Finale Stabilisierung - längere Pause für Encoder-Buffer
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        console.log('[RECORDER] ✅ Warmup-Phase abgeschlossen (5 Frames @ 60 FPS)');
         return true;
     }
 

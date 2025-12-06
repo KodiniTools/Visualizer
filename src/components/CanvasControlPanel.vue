@@ -35,8 +35,8 @@
           <label>
             Hintergrund Deckkraft: {{ Math.round(backgroundOpacity * 100) }}%
           </label>
-          <input 
-            type="range" 
+          <input
+            type="range"
             v-model.number="backgroundOpacity"
             @input="updateFromOpacitySlider"
             min="0"
@@ -44,6 +44,77 @@
             step="0.01"
             class="opacity-slider"
           />
+        </div>
+
+        <!-- ✨ NEU: Audio-Reaktiv für Hintergrundfarbe -->
+        <div class="audio-reactive-section">
+          <h5>🎵 Audio-Reaktiv</h5>
+
+          <div class="control-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                v-model="bgAudioEnabled"
+                @change="updateBgAudioReactive"
+              />
+              <span>Aktiviert</span>
+            </label>
+          </div>
+
+          <div v-if="bgAudioEnabled" class="audio-controls">
+            <div class="control-group">
+              <label>Reagiert auf:</label>
+              <select v-model="bgAudioSource" @change="updateBgAudioReactive" class="audio-select">
+                <option value="bass">Bass (Kick/Sub)</option>
+                <option value="mid">Mitten (Vocals)</option>
+                <option value="treble">Höhen (Hi-Hats)</option>
+                <option value="volume">Lautstärke (Gesamt)</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label>Glättung: {{ bgAudioSmoothing }}%</label>
+              <input
+                type="range"
+                v-model.number="bgAudioSmoothing"
+                @input="updateBgAudioReactive"
+                min="0"
+                max="100"
+                step="5"
+                class="audio-slider"
+              />
+            </div>
+
+            <div class="effects-list">
+              <label class="effect-item">
+                <input type="checkbox" v-model="bgEffectHue" @change="updateBgAudioReactive" />
+                <span>🎨 Farbe (Hue)</span>
+                <input type="range" v-model.number="bgEffectHueIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <span class="effect-value">{{ bgEffectHueIntensity }}%</span>
+              </label>
+
+              <label class="effect-item">
+                <input type="checkbox" v-model="bgEffectBrightness" @change="updateBgAudioReactive" />
+                <span>☀️ Helligkeit</span>
+                <input type="range" v-model.number="bgEffectBrightnessIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <span class="effect-value">{{ bgEffectBrightnessIntensity }}%</span>
+              </label>
+
+              <label class="effect-item">
+                <input type="checkbox" v-model="bgEffectSaturation" @change="updateBgAudioReactive" />
+                <span>🌈 Sättigung</span>
+                <input type="range" v-model.number="bgEffectSaturationIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <span class="effect-value">{{ bgEffectSaturationIntensity }}%</span>
+              </label>
+
+              <label class="effect-item">
+                <input type="checkbox" v-model="bgEffectGlow" @change="updateBgAudioReactive" />
+                <span>✨ Leuchten</span>
+                <input type="range" v-model.number="bgEffectGlowIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <span class="effect-value">{{ bgEffectGlowIntensity }}%</span>
+              </label>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -127,6 +198,19 @@ const isExpanded = ref(true);
 // ✨ Undo-System
 const undoHistory = ref([]);
 const MAX_HISTORY = 10;
+
+// ✨ NEU: Audio-Reaktiv für Hintergrundfarbe
+const bgAudioEnabled = ref(false);
+const bgAudioSource = ref('bass');
+const bgAudioSmoothing = ref(50);
+const bgEffectHue = ref(false);
+const bgEffectHueIntensity = ref(80);
+const bgEffectBrightness = ref(false);
+const bgEffectBrightnessIntensity = ref(80);
+const bgEffectSaturation = ref(false);
+const bgEffectSaturationIntensity = ref(80);
+const bgEffectGlow = ref(false);
+const bgEffectGlowIntensity = ref(80);
 
 // Computed: Kann Undo ausgeführt werden?
 const canUndo = computed(() => undoHistory.value.length > 0);
@@ -219,15 +303,37 @@ function applyBackgroundColor() {
     console.warn('⚠️ CanvasManager nicht verfügbar');
     return;
   }
-  
+
   // Speichere Zustand VOR der Änderung
   saveCanvasState();
-  
+
   // Konvertiere zu RGBA mit aktueller Deckkraft
   const rgbaColor = hexToRGBA(backgroundColor.value, backgroundOpacity.value);
-  
+
   console.log('🎨 Setze Hintergrundfarbe:', rgbaColor);
   canvasManager.value.setBackground(rgbaColor);
+}
+
+// ✨ NEU: Aktualisiere Audio-Reaktiv Einstellungen für Hintergrundfarbe
+function updateBgAudioReactive() {
+  if (!canvasManager.value) return;
+
+  const settings = {
+    enabled: bgAudioEnabled.value,
+    source: bgAudioSource.value,
+    smoothing: bgAudioSmoothing.value,
+    effects: {
+      hue: { enabled: bgEffectHue.value, intensity: bgEffectHueIntensity.value },
+      brightness: { enabled: bgEffectBrightness.value, intensity: bgEffectBrightnessIntensity.value },
+      saturation: { enabled: bgEffectSaturation.value, intensity: bgEffectSaturationIntensity.value },
+      scale: { enabled: false, intensity: 80 },
+      glow: { enabled: bgEffectGlow.value, intensity: bgEffectGlowIntensity.value },
+      border: { enabled: false, intensity: 80 }
+    }
+  };
+
+  canvasManager.value.setBackgroundColorAudioReactive(settings);
+  console.log('🎵 Hintergrund Audio-Reaktiv:', settings);
 }
 
 // ===== UNDO-SYSTEM =====
@@ -694,5 +800,122 @@ h4 {
 
 .confirm-actions button {
   flex: 1;
+}
+
+/* ✨ Audio-Reaktiv Styles */
+.audio-reactive-section {
+  margin-top: 16px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+}
+
+.audio-reactive-section h5 {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #a78bfa;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #8b5cf6;
+}
+
+.audio-controls {
+  margin-top: 12px;
+}
+
+.audio-select {
+  width: 100%;
+  padding: 6px 10px;
+  background: rgba(30, 30, 50, 0.8);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.audio-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.audio-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.effects-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.effect-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(30, 30, 50, 0.6);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.effect-item input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: #8b5cf6;
+}
+
+.effect-slider {
+  width: 60px;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.effect-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.effect-value {
+  font-size: 11px;
+  color: #94a3b8;
+  min-width: 32px;
+  text-align: right;
 }
 </style>

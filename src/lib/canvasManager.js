@@ -29,6 +29,7 @@ export class CanvasManager {
 
         this.background = null;
         this.workspaceBackground = null;
+        this.backgroundColorSettings = null; // ✨ NEU: Audio-Reaktive Einstellungen für Hintergrundfarbe
         this.activeObject = null;
         this.hoveredObject = null;
         this.currentAction = null;
@@ -325,7 +326,138 @@ export class CanvasManager {
         this.updateUICallback();
         return true;
     }
-    
+
+    /**
+     * ✨ NEU: Setzt Audio-Reaktive Einstellungen für Hintergrundfarbe
+     */
+    setBackgroundColorAudioReactive(settings) {
+        this.backgroundColorSettings = settings;
+    }
+
+    /**
+     * ✨ NEU: Gibt Audio-Reaktive Einstellungen für Hintergrundfarbe zurück
+     */
+    getBackgroundColorAudioReactive() {
+        return this.backgroundColorSettings;
+    }
+
+    /**
+     * ✨ NEU: Berechnet Audio-Reaktive Werte für Hintergründe
+     * Verwendet die gleiche Logik wie multiImageManager
+     */
+    _getAudioReactiveValues(audioSettings) {
+        if (!audioSettings || !audioSettings.enabled) {
+            return null;
+        }
+
+        const audioData = window.audioAnalysisData;
+        if (!audioData) return null;
+
+        const source = audioSettings.source || 'bass';
+        const smoothing = audioSettings.smoothing || 50;
+        let audioLevel = 0;
+
+        const useSmooth = smoothing > 30;
+
+        switch (source) {
+            case 'bass':
+                audioLevel = useSmooth ? audioData.smoothBass : audioData.bass;
+                break;
+            case 'mid':
+                audioLevel = useSmooth ? audioData.smoothMid : audioData.mid;
+                break;
+            case 'treble':
+                audioLevel = useSmooth ? audioData.smoothTreble : audioData.treble;
+                break;
+            case 'volume':
+                audioLevel = useSmooth ? audioData.smoothVolume : audioData.volume;
+                break;
+        }
+
+        const baseLevel = audioLevel / 255;
+
+        const result = {
+            hasEffects: false,
+            effects: {}
+        };
+
+        const effects = audioSettings.effects;
+        if (!effects) return null;
+
+        for (const [effectName, effectConfig] of Object.entries(effects)) {
+            if (effectConfig && effectConfig.enabled) {
+                const intensity = (effectConfig.intensity || 80) / 100;
+                const normalizedLevel = baseLevel * intensity;
+
+                result.hasEffects = true;
+                result.effects[effectName] = this._calculateEffectValue(effectName, normalizedLevel);
+            }
+        }
+
+        return result.hasEffects ? result : null;
+    }
+
+    /**
+     * ✨ NEU: Berechnet den Wert für einen einzelnen Effekt
+     */
+    _calculateEffectValue(effectName, normalizedLevel) {
+        switch (effectName) {
+            case 'hue':
+                return { hueRotate: normalizedLevel * 720 };
+            case 'brightness':
+                return { brightness: 60 + (normalizedLevel * 120) };
+            case 'saturation':
+                return { saturation: 30 + (normalizedLevel * 220) };
+            case 'scale':
+                return { scale: 1.0 + (normalizedLevel * 0.5) };
+            case 'glow':
+                return {
+                    glowBlur: normalizedLevel * 50,
+                    glowColor: `rgba(139, 92, 246, ${0.5 + normalizedLevel * 0.5})`
+                };
+            case 'border':
+                return {
+                    borderWidth: normalizedLevel * 20,
+                    borderOpacity: 0.5 + (normalizedLevel * 0.5),
+                    borderGlow: normalizedLevel * 30
+                };
+            default:
+                return {};
+        }
+    }
+
+    /**
+     * ✨ NEU: Wendet Audio-Reaktive Effekte auf Canvas-Filter an
+     */
+    _applyAudioReactiveFilters(ctx, audioReactive) {
+        if (!audioReactive || !audioReactive.hasEffects) return;
+
+        let currentFilter = ctx.filter || 'none';
+        if (currentFilter === 'none') currentFilter = '';
+
+        const effects = audioReactive.effects;
+
+        if (effects.hue) {
+            currentFilter += ` hue-rotate(${effects.hue.hueRotate}deg)`;
+        }
+        if (effects.brightness) {
+            currentFilter += ` brightness(${effects.brightness.brightness}%)`;
+        }
+        if (effects.saturation) {
+            currentFilter += ` saturate(${effects.saturation.saturation}%)`;
+        }
+        if (effects.glow) {
+            ctx.shadowColor = effects.glow.glowColor;
+            ctx.shadowBlur = effects.glow.glowBlur;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+        }
+
+        if (currentFilter.trim()) {
+            ctx.filter = currentFilter.trim();
+        }
+    }
+
     updateActiveObjectProperty(property, value) {
         if (!this.activeObject) return;
 
@@ -474,23 +606,54 @@ export class CanvasManager {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
         // 1. GLOBAL BACKGROUND (Color or Image with Filters)
+        // ✨ NEU: Audio-Reaktive Effekte für Hintergrundfarbe
         if (typeof this.background === 'string') {
+            ctx.save();
+
+            // Audio-Reaktive Effekte auf Hintergrundfarbe anwenden
+            const bgColorAudioReactive = this._getAudioReactiveValues(this.backgroundColorSettings);
+            if (bgColorAudioReactive && bgColorAudioReactive.hasEffects) {
+                this._applyAudioReactiveFilters(ctx, bgColorAudioReactive);
+            }
+
             ctx.fillStyle = this.background;
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+            ctx.restore();
         } else if (this.background && typeof this.background === 'object') {
             ctx.save();
-            
+
+            // Statische Filter vom FotoManager
             if (this.fotoManager && this.background.type === 'background') {
                 this.fotoManager.applyFilters(ctx, this.background);
             }
-            
+
+            // ✨ NEU: Audio-Reaktive Effekte für Hintergrundbild
+            const bgAudioReactive = this._getAudioReactiveValues(this.background.fotoSettings?.audioReactive);
+            if (bgAudioReactive && bgAudioReactive.hasEffects) {
+                this._applyAudioReactiveFilters(ctx, bgAudioReactive);
+            }
+
             const img = this.background.imageObject || this.background;
-            ctx.drawImage(img, 0, 0, ctx.canvas.width, ctx.canvas.height);
-            
+
+            // ✨ Scale-Effekt für Hintergrundbild
+            let drawX = 0, drawY = 0, drawW = ctx.canvas.width, drawH = ctx.canvas.height;
+            if (bgAudioReactive && bgAudioReactive.effects.scale) {
+                const scale = bgAudioReactive.effects.scale.scale;
+                const centerX = ctx.canvas.width / 2;
+                const centerY = ctx.canvas.height / 2;
+                drawW = ctx.canvas.width * scale;
+                drawH = ctx.canvas.height * scale;
+                drawX = centerX - drawW / 2;
+                drawY = centerY - drawH / 2;
+            }
+
+            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
             if (this.fotoManager && this.background.type === 'background') {
                 this.fotoManager.resetFilters(ctx);
             }
-            
+
             ctx.restore();
         } else {
             ctx.fillStyle = '#000000';
@@ -498,25 +661,45 @@ export class CanvasManager {
         }
 
         // 2. WORKSPACE BACKGROUND (Image with Filters on Workspace)
+        // ✨ NEU: Audio-Reaktive Effekte für Workspace-Hintergrund
         if (this.workspaceBackground && this.workspacePreset) {
             const workspaceBounds = this.getWorkspaceBounds();
             if (workspaceBounds) {
                 ctx.save();
-                
+
+                // Statische Filter
                 if (this.fotoManager) {
                     this.fotoManager.applyFilters(ctx, this.workspaceBackground);
                 }
-                
+
+                // ✨ Audio-Reaktive Effekte
+                const wsAudioReactive = this._getAudioReactiveValues(this.workspaceBackground.fotoSettings?.audioReactive);
+                if (wsAudioReactive && wsAudioReactive.hasEffects) {
+                    this._applyAudioReactiveFilters(ctx, wsAudioReactive);
+                }
+
                 const img = this.workspaceBackground.imageObject;
-                
+
+                // ✨ Scale-Effekt für Workspace-Hintergrund
+                let drawBounds = { ...workspaceBounds };
+                if (wsAudioReactive && wsAudioReactive.effects.scale) {
+                    const scale = wsAudioReactive.effects.scale.scale;
+                    const centerX = workspaceBounds.x + workspaceBounds.width / 2;
+                    const centerY = workspaceBounds.y + workspaceBounds.height / 2;
+                    drawBounds.width = workspaceBounds.width * scale;
+                    drawBounds.height = workspaceBounds.height * scale;
+                    drawBounds.x = centerX - drawBounds.width / 2;
+                    drawBounds.y = centerY - drawBounds.height / 2;
+                }
+
                 ctx.drawImage(
-                    img, 
-                    workspaceBounds.x, 
-                    workspaceBounds.y, 
-                    workspaceBounds.width, 
-                    workspaceBounds.height
+                    img,
+                    drawBounds.x,
+                    drawBounds.y,
+                    drawBounds.width,
+                    drawBounds.height
                 );
-                
+
                 if (this.fotoManager) {
                     this.fotoManager.resetFilters(ctx);
                 }

@@ -220,6 +220,24 @@ export class KeyboardShortcuts {
       this.redo();
       return;
     }
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ✨ TEXT INPUT: Öffne Texteditor bei Buchstabeneingabe
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    // Wenn ein einzelnes druckbares Zeichen eingegeben wird (ohne Modifier)
+    // und kein Objekt ausgewählt ist, öffne den Texteditor
+    if (!ctrl && !alt && event.key.length === 1 && !this.canvasManager?.activeObject) {
+      // Ignoriere Leerzeichen (wird für Play/Pause verwendet)
+      if (event.key === ' ') return;
+
+      // Dispatch Event zum Öffnen des Texteditors mit dem eingegebenen Zeichen
+      window.dispatchEvent(new CustomEvent('openTextEditorWithChar', {
+        detail: { char: event.key }
+      }));
+      event.preventDefault();
+      return;
+    }
   }
 
   handleKeyUp(event) {

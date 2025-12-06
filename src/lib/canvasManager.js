@@ -884,6 +884,12 @@ export class CanvasManager {
         const previousActive = this.activeObject;
         this.activeObject = obj;
 
+        // ✨ NEU: Text-Objekte immer an die oberste Ebene verschieben
+        // Damit sind ausgewählte Texte immer sichtbar und anklickbar
+        if (obj && obj.type === 'text' && this.textManager) {
+            this.textManager.moveToTop(obj);
+        }
+
         // Synchronisiere MultiImageManager Auswahl
         if (this.multiImageManager) {
             if (obj && obj.type === 'image') {

@@ -137,90 +137,61 @@ window.audioAnalysisData = {
   mid: 0,       // 0-255: Mittlere Frequenzen (Vocals/Instruments)
   treble: 0,   // 0-255: Hohe Frequenzen (Hi-Hats/Cymbals)
   volume: 0,    // 0-255: Gesamtlautstärke
-  // ✨ NEU: Erweiterte Metriken für dynamischere Visualisierung
-  energy: 0,    // 0-255: Kombinierte Energie (Bass-gewichtet, für Pulseffekte)
-  attack: 0,    // 0-255: Transient-Detection (für Beat-Reaktion)
-  punch: 0,     // 0-255: Bass-Punch (schnelle Bass-Spitzen)
   // Geglättete Werte (für smoothing)
   smoothBass: 0,
   smoothMid: 0,
   smoothTreble: 0,
-  smoothVolume: 0,
-  smoothEnergy: 0,
-  smoothAttack: 0,
-  // Historische Werte für Transient-Detection
-  _prevBass: 0,
-  _prevVolume: 0
+  smoothVolume: 0
 };
 
 /**
  * Analysiert Audio-Daten und macht sie global verfügbar
  * Wird in der Render-Loop aufgerufen
- *
- * ✨ VERBESSERT: Logarithmische Frequenzaufteilung für bessere Mitten/Höhen-Reaktion
  */
 function updateGlobalAudioData(audioDataArray, bufferLength) {
   if (!audioDataArray || bufferLength === 0) return;
 
-  // Bei FFT-Size 2048, Sample Rate 44100Hz:
-  // Jeder Bin = ~21.5 Hz, Nyquist = 22050 Hz
-  // Nutze mehr der FFT für bessere Höhen-Erkennung
-  const usableLength = Math.floor(bufferLength * 0.7); // 70% statt 50%
+  // ✅ VERBESSERT: Nur die unteren 50% der FFT-Daten sind relevant
+  // (obere 50% sind meist sehr leise/leer)
+  const usableLength = Math.floor(bufferLength * 0.5);
 
-  // ✨ VERBESSERTE Frequenzbereiche (logarithmisch angepasst)
-  // Bass: 20-150 Hz (Kick, Sub-Bass) = Bins 0-7 bei 21.5Hz/Bin
-  // Mid-Low: 150-500 Hz (Bass-Guitar, tiefe Vocals)
-  // Mid: 500-2000 Hz (Vocals, Gitarren, Hauptmelodien)
-  // Mid-High: 2000-6000 Hz (Präsenz, Klarheit)
-  // Treble: 6000-15000 Hz (Hi-Hats, Cymbals, Brillanz)
-
-  const bassEnd = Math.floor(bufferLength * 0.02);      // ~0-450 Hz
-  const midLowEnd = Math.floor(bufferLength * 0.05);    // ~450-1100 Hz
-  const midEnd = Math.floor(bufferLength * 0.12);       // ~1100-2600 Hz
-  const midHighEnd = Math.floor(bufferLength * 0.25);   // ~2600-5500 Hz
-  // Rest = Treble (5500+ Hz)
+  // Frequenzbereiche (bei FFT-Size 2048, Sample Rate 44100Hz)
+  const bassEnd = Math.floor(usableLength * 0.15);      // 0-15% = Sub-Bass + Bass
+  const midEnd = Math.floor(usableLength * 0.5);        // 15-50% = Mitten
+  // Rest = Höhen (50-100% von usableLength)
 
   let bassSum = 0, midSum = 0, trebleSum = 0, totalSum = 0;
   let bassCount = 0, midCount = 0, trebleCount = 0;
-  let bassPeak = 0, midPeak = 0, treblePeak = 0;
+  let treblePeak = 0; // ✨ NEU: Peak-Detection für Höhen
 
   for (let i = 0; i < usableLength; i++) {
     const value = audioDataArray[i];
     totalSum += value;
 
     if (i < bassEnd) {
-      // Sub-Bass + Bass
       bassSum += value;
       bassCount++;
-      if (value > bassPeak) bassPeak = value;
     } else if (i < midEnd) {
-      // Mitten (Vocals, Gitarren, Melodien)
       midSum += value;
       midCount++;
-      if (value > midPeak) midPeak = value;
     } else {
-      // Höhen (Hi-Hats, Cymbals)
       trebleSum += value;
       trebleCount++;
+      // ✨ Peak-Detection für Höhen (Hi-Hats, Cymbals haben kurze Spitzen)
       if (value > treblePeak) treblePeak = value;
     }
   }
 
-  // ✨ BALANCIERTE Berechnung - nicht zu stark, nicht zu schwach
-  // Bass: Leichte Verstärkung
-  const bassAvg = bassCount > 0 ? (bassSum / bassCount) : 0;
-  const bass = Math.min(255, Math.floor((bassAvg * 0.7 + bassPeak * 0.3) * 1.3));
+  // Durchschnittswerte berechnen mit Verstärkung
+  const bass = bassCount > 0 ? Math.min(255, Math.floor((bassSum / bassCount) * 1.5)) : 0;
+  const mid = midCount > 0 ? Math.min(255, Math.floor((midSum / midCount) * 2.0)) : 0;
 
-  // Mid: Moderate Verstärkung
-  const midAvg = midCount > 0 ? (midSum / midCount) : 0;
-  const mid = Math.min(255, Math.floor((midAvg * 0.6 + midPeak * 0.4) * 1.8));
-
-  // Treble: Stärkere Verstärkung + Peak-Fokus für Hi-Hats
+  // ✨ VERBESSERT: Treble mit höherer Verstärkung + Peak-Berücksichtigung
+  // Kombiniere Durchschnitt (60%) mit Peak (40%) für bessere Reaktion auf Hi-Hats
   const trebleAvg = trebleCount > 0 ? (trebleSum / trebleCount) : 0;
-  const trebleCombined = (trebleAvg * 0.3) + (treblePeak * 0.7);
-  const treble = Math.min(255, Math.floor(trebleCombined * 6.0));
+  const trebleCombined = (trebleAvg * 0.6) + (treblePeak * 0.4);
+  const treble = Math.min(255, Math.floor(trebleCombined * 4.0)); // Verstärkung von 2.5 auf 4.0 erhöht
 
-  // Volume: Gesamtlautstärke - etwas verstärkt für bessere Sichtbarkeit
   const volume = usableLength > 0 ? Math.min(255, Math.floor((totalSum / usableLength) * 1.5)) : 0;
 
   // Rohe Werte speichern
@@ -229,30 +200,9 @@ function updateGlobalAudioData(audioDataArray, bufferLength) {
   window.audioAnalysisData.treble = treble;
   window.audioAnalysisData.volume = volume;
 
-  // ✨ NEU: Erweiterte Metriken berechnen
-  // Energy: Kombinierte Energie mit Bass-Gewichtung (für Puls-Effekte)
-  const energy = Math.min(255, Math.floor(bass * 0.5 + mid * 0.3 + treble * 0.2));
-
-  // Attack/Transient Detection: Schnelle Änderungen erkennen
-  const bassDelta = Math.max(0, bass - window.audioAnalysisData._prevBass);
-  const volumeDelta = Math.max(0, volume - window.audioAnalysisData._prevVolume);
-  const attack = Math.min(255, Math.floor((bassDelta * 2.0 + volumeDelta * 1.5)));
-
-  // Punch: Schnelle Bass-Spitzen (für Kick-Drums)
-  const punch = Math.min(255, Math.floor(bassDelta * 3.0));
-
-  // Speichere für nächsten Frame
-  window.audioAnalysisData._prevBass = bass;
-  window.audioAnalysisData._prevVolume = volume;
-
-  // Erweiterte Werte speichern
-  window.audioAnalysisData.energy = energy;
-  window.audioAnalysisData.attack = attack;
-  window.audioAnalysisData.punch = punch;
-
-  // Geglättete Werte (einfaches exponential smoothing)
-  const smoothFactor = 0.4;
-  const trebleSmoothFactor = 0.5;
+  // Geglättete Werte (exponential smoothing für flüssigere Animation)
+  const smoothFactor = 0.4; // Erhöht für schnellere Reaktion
+  const trebleSmoothFactor = 0.5; // ✨ Höhen reagieren schneller (für Hi-Hats)
 
   window.audioAnalysisData.smoothBass = Math.floor(
     window.audioAnalysisData.smoothBass * (1 - smoothFactor) + bass * smoothFactor
@@ -265,12 +215,6 @@ function updateGlobalAudioData(audioDataArray, bufferLength) {
   );
   window.audioAnalysisData.smoothVolume = Math.floor(
     window.audioAnalysisData.smoothVolume * (1 - smoothFactor) + volume * smoothFactor
-  );
-  window.audioAnalysisData.smoothEnergy = Math.floor(
-    window.audioAnalysisData.smoothEnergy * (1 - smoothFactor) + energy * smoothFactor
-  );
-  window.audioAnalysisData.smoothAttack = Math.floor(
-    window.audioAnalysisData.smoothAttack * (1 - trebleSmoothFactor) + attack * trebleSmoothFactor
   );
 }
 

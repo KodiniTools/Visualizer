@@ -280,6 +280,18 @@ export class MultiImageManager {
                 // Nur nach oben hüpfen (negative Y-Werte), verstärkt durch Audio
                 const bounceAmount = Math.abs(Math.sin(timeBounce)) * normalizedLevel * 30;
                 return { bounceY: -bounceAmount }; // Negativ = nach oben
+            case 'swing':
+                // Horizontales Pendeln: Sinuswelle für sanftes Hin-und-Her
+                const timeSwing = Date.now() * 0.004; // Langsame Oszillation
+                const swingAmount = Math.sin(timeSwing) * normalizedLevel * 40; // Max ±40px
+                return { swingX: swingAmount };
+            case 'orbit':
+                // Kreisbewegung: X und Y folgen einem Kreis
+                const timeOrbit = Date.now() * 0.003; // Langsame Kreisbewegung
+                const orbitRadius = normalizedLevel * 25; // Max 25px Radius
+                const orbitX = Math.cos(timeOrbit) * orbitRadius;
+                const orbitY = Math.sin(timeOrbit) * orbitRadius;
+                return { orbitX, orbitY };
             default:
                 return {};
         }
@@ -414,6 +426,19 @@ export class MultiImageManager {
             if (audioReactive && audioReactive.hasEffects && audioReactive.effects.bounce) {
                 const bounce = audioReactive.effects.bounce;
                 drawBounds.y += bounce.bounceY || 0;
+            }
+
+            // ✨ AUDIO-REAKTIV: Swing-Effekt (Horizontales Pendeln)
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.swing) {
+                const swing = audioReactive.effects.swing;
+                drawBounds.x += swing.swingX || 0;
+            }
+
+            // ✨ AUDIO-REAKTIV: Orbit-Effekt (Kreisbewegung)
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.orbit) {
+                const orbit = audioReactive.effects.orbit;
+                drawBounds.x += orbit.orbitX || 0;
+                drawBounds.y += orbit.orbitY || 0;
             }
 
             // ✨ BILDKONTUR: Prüfen ob Kontur gezeichnet werden soll

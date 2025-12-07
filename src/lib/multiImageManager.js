@@ -261,9 +261,25 @@ export class MultiImageManager {
                 return { blur: normalizedLevel * 10 };
             case 'rotation':
                 // Leichte Drehung: -15 bis +15 Grad (oszillierend)
-                const time = Date.now() * 0.005;
-                const oscillation = Math.sin(time) * normalizedLevel;
+                const timeRot = Date.now() * 0.005;
+                const oscillation = Math.sin(timeRot) * normalizedLevel;
                 return { rotation: oscillation * 15 };
+            case 'shake':
+                // Erschütterung: Zufällige X/Y-Verschiebung bei hohem Audio-Level
+                // Nur bei signifikantem Audio-Level aktivieren (>20%)
+                if (normalizedLevel > 0.2) {
+                    const shakeIntensity = normalizedLevel * 15; // Max 15px
+                    const shakeX = (Math.random() - 0.5) * 2 * shakeIntensity;
+                    const shakeY = (Math.random() - 0.5) * 2 * shakeIntensity;
+                    return { shakeX, shakeY };
+                }
+                return { shakeX: 0, shakeY: 0 };
+            case 'bounce':
+                // Vertikales Hüpfen: Sinuswelle + Audio-Level
+                const timeBounce = Date.now() * 0.008; // Schnellere Oszillation
+                // Nur nach oben hüpfen (negative Y-Werte), verstärkt durch Audio
+                const bounceAmount = Math.abs(Math.sin(timeBounce)) * normalizedLevel * 30;
+                return { bounceY: -bounceAmount }; // Negativ = nach oben
             default:
                 return {};
         }
@@ -372,7 +388,7 @@ export class MultiImageManager {
             }
 
             // ✨ AUDIO-REAKTIV: Scale-Effekt (pulsieren) - MEHRERE EFFEKTE
-            let drawBounds = bounds;
+            let drawBounds = { ...bounds };
             if (audioReactive && audioReactive.hasEffects && audioReactive.effects.scale) {
                 const scale = audioReactive.effects.scale.scale;
                 const centerX = bounds.x + bounds.width / 2;
@@ -385,6 +401,19 @@ export class MultiImageManager {
                     width: newWidth,
                     height: newHeight
                 };
+            }
+
+            // ✨ AUDIO-REAKTIV: Shake-Effekt (Erschütterung)
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.shake) {
+                const shake = audioReactive.effects.shake;
+                drawBounds.x += shake.shakeX || 0;
+                drawBounds.y += shake.shakeY || 0;
+            }
+
+            // ✨ AUDIO-REAKTIV: Bounce-Effekt (Hüpfen)
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.bounce) {
+                const bounce = audioReactive.effects.bounce;
+                drawBounds.y += bounce.bounceY || 0;
             }
 
             // ✨ BILDKONTUR: Prüfen ob Kontur gezeichnet werden soll

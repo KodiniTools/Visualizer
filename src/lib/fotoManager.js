@@ -48,7 +48,9 @@ export class FotoManager {
                     saturation: { enabled: false, intensity: 80 },
                     scale: { enabled: false, intensity: 80 },
                     glow: { enabled: false, intensity: 80 },
-                    border: { enabled: false, intensity: 80 }  // Audio-reaktive Bildkontur
+                    border: { enabled: false, intensity: 80 },
+                    blur: { enabled: false, intensity: 50 },      // Dynamische Unschärfe
+                    rotation: { enabled: false, intensity: 50 }   // Leichte Drehung
                 },
                 source: 'bass',              // 'bass', 'mid', 'treble', 'volume'
                 smoothing: 50                // 0-100% Glättung (verhindert Flackern)
@@ -77,7 +79,9 @@ export class FotoManager {
                 saturation: { ...defaultAR.effects.saturation },
                 scale: { ...defaultAR.effects.scale },
                 glow: { ...defaultAR.effects.glow },
-                border: { ...defaultAR.effects.border }
+                border: { ...defaultAR.effects.border },
+                blur: { ...defaultAR.effects.blur },
+                rotation: { ...defaultAR.effects.rotation }
             },
             source: defaultAR.source,
             smoothing: defaultAR.smoothing
@@ -101,7 +105,9 @@ export class FotoManager {
                     saturation: { ...(oldSettings.effects.saturation || { enabled: false, intensity: 80 }) },
                     scale: { ...(oldSettings.effects.scale || { enabled: false, intensity: 80 }) },
                     glow: { ...(oldSettings.effects.glow || { enabled: false, intensity: 80 }) },
-                    border: { ...(oldSettings.effects.border || { enabled: false, intensity: 80 }) }
+                    border: { ...(oldSettings.effects.border || { enabled: false, intensity: 80 }) },
+                    blur: { ...(oldSettings.effects.blur || { enabled: false, intensity: 50 }) },
+                    rotation: { ...(oldSettings.effects.rotation || { enabled: false, intensity: 50 }) }
                 },
                 source: oldSettings.source || 'bass',
                 smoothing: oldSettings.smoothing ?? 50

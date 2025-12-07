@@ -36,15 +36,30 @@
 
       <!-- Stock-Bilder Grid -->
       <div class="stock-gallery-scroll">
+        <!-- Auswahl-Steuerung -->
+        <div v-if="filteredStockImages.length > 0" class="selection-controls">
+          <button @click="selectAllStockImages" class="btn-select-all" :disabled="selectedStockCount === filteredStockImages.length">
+            Alle auswählen
+          </button>
+          <button @click="deselectAllStockImages" class="btn-deselect-all" :disabled="selectedStockCount === 0">
+            Auswahl aufheben
+          </button>
+          <span v-if="selectedStockCount > 0" class="selection-count">{{ selectedStockCount }} ausgewählt</span>
+        </div>
+        <p class="multiselect-hint">Tipp: Strg+Klick für Mehrfachauswahl, Shift+Klick für Bereich</p>
         <div class="stock-gallery-grid">
           <div
             v-for="img in filteredStockImages"
             :key="img.id"
             class="stock-thumbnail-item"
-            :class="{ 'selected': selectedStockImage?.id === img.id }"
-            @click="selectStockImage(img)"
+            :class="{ 'selected': selectedStockImages.has(img.id) }"
+            @click="selectStockImage(img, $event)"
             @dblclick="openStockPreview(img)"
           >
+            <!-- Checkbox für Mehrfachauswahl -->
+            <div class="selection-checkbox" :class="{ 'checked': selectedStockImages.has(img.id) }">
+              <span v-if="selectedStockImages.has(img.id)">✓</span>
+            </div>
             <img :src="img.thumbnail" :alt="img.name" loading="lazy">
             <div class="stock-thumbnail-info">
               <span class="stock-thumbnail-name">{{ img.name }}</span>
@@ -54,14 +69,14 @@
       </div>
 
       <!-- Stock-Bild Action-Buttons -->
-      <div v-if="selectedStockImage" class="action-buttons stock-actions">
+      <div v-if="selectedStockCount > 0" class="action-buttons stock-actions">
         <button @click="addStockImageToCanvas" class="btn-primary">
-          Auf Canvas platzieren
+          {{ selectedStockCount > 1 ? `${selectedStockCount} Bilder auf Canvas` : 'Auf Canvas platzieren' }}
         </button>
-        <button @click="setStockAsBackground" class="btn-secondary">
+        <button v-if="selectedStockCount === 1" @click="setStockAsBackground" class="btn-secondary">
           Als Hintergrund
         </button>
-        <button @click="setStockAsWorkspaceBackground" class="btn-workspace">
+        <button v-if="selectedStockCount === 1" @click="setStockAsWorkspaceBackground" class="btn-workspace">
           Als Workspace-Hintergrund
         </button>
       </div>
@@ -108,17 +123,33 @@
           <span class="gallery-title">Galerie ({{ imageGallery.length }})</span>
           <button @click="clearAllImages" class="btn-clear-all">Alle löschen</button>
         </div>
-        
+
+        <!-- Auswahl-Steuerung -->
+        <div class="selection-controls">
+          <button @click="selectAllImages" class="btn-select-all" :disabled="selectedImageCount === imageGallery.length">
+            Alle auswählen
+          </button>
+          <button @click="deselectAllImages" class="btn-deselect-all" :disabled="selectedImageCount === 0">
+            Auswahl aufheben
+          </button>
+          <span v-if="selectedImageCount > 0" class="selection-count">{{ selectedImageCount }} ausgewählt</span>
+        </div>
+        <p class="multiselect-hint">Tipp: Strg+Klick für Mehrfachauswahl, Shift+Klick für Bereich</p>
+
         <div class="gallery-scroll">
           <div class="gallery-grid">
             <div
               v-for="(imgData, index) in imageGallery"
               :key="imgData.id"
               class="thumbnail-item"
-              :class="{ 'selected': selectedImageIndex === index }"
-              @click="selectImage(index)"
+              :class="{ 'selected': selectedImageIndices.has(index) }"
+              @click="selectImage(index, $event)"
               @dblclick="openUploadedPreview(imgData)"
             >
+              <!-- Checkbox für Mehrfachauswahl -->
+              <div class="selection-checkbox" :class="{ 'checked': selectedImageIndices.has(index) }">
+                <span v-if="selectedImageIndices.has(index)">✓</span>
+              </div>
               <img :src="imgData.img.src" :alt="imgData.name">
               <div class="thumbnail-overlay">
                 <button @click.stop="deleteImage(index)" class="btn-delete-thumb">✕</button>
@@ -132,15 +163,15 @@
         </div>
       </div>
 
-      <!-- Action-Buttons (nur sichtbar wenn Bild ausgewählt) -->
-      <div v-if="selectedImage" class="action-buttons">
+      <!-- Action-Buttons (nur sichtbar wenn Bilder ausgewählt) -->
+      <div v-if="selectedImageCount > 0" class="action-buttons">
         <button @click="addImageToCanvas" class="btn-primary">
-          Auf Canvas platzieren
+          {{ selectedImageCount > 1 ? `${selectedImageCount} Bilder auf Canvas` : 'Auf Canvas platzieren' }}
         </button>
-        <button @click="setAsBackground" class="btn-secondary">
+        <button v-if="selectedImageCount === 1" @click="setAsBackground" class="btn-secondary">
           Als Hintergrund
         </button>
-        <button @click="setAsWorkspaceBackground" class="btn-workspace">
+        <button v-if="selectedImageCount === 1" @click="setAsWorkspaceBackground" class="btn-workspace">
           Als Workspace-Hintergrund
         </button>
       </div>
@@ -919,7 +950,9 @@ const effectOrbitValueRef = ref(null);
 // ✨ NEU: Refs für Galerie-Funktionalität
 const fileInputRef = ref(null);
 const imageGallery = ref([]); // Array von Bildern
-const selectedImageIndex = ref(null); // Aktuell ausgewählter Index
+const selectedImageIndex = ref(null); // Aktuell ausgewählter Index (für Abwärtskompatibilität)
+const selectedImageIndices = ref(new Set()); // ✨ NEU: Mehrfachauswahl für hochgeladene Bilder
+const lastSelectedImageIndex = ref(null); // ✨ NEU: Für Shift-Click Range-Selection
 
 // ✨ NEU: Refs für Stock-Galerie (Modulare Struktur)
 const stockCategories = ref([]);
@@ -929,7 +962,9 @@ const loadedCategoryData = ref(new Map()); // Cache für geladene Kategorie-Date
 
 // ✨ NEU: Ref für Bild-Vorschau Overlay
 const previewImage = ref(null); // { src, name, type, data }
-const selectedStockImage = ref(null);
+const selectedStockImage = ref(null); // Für Abwärtskompatibilität
+const selectedStockImages = ref(new Set()); // ✨ NEU: Mehrfachauswahl für Stock-Bilder (nach ID)
+const lastSelectedStockId = ref(null); // ✨ NEU: Für Shift-Click Range-Selection
 const stockImagesLoading = ref(true);
 const categoryLoading = ref(false); // Lädt gerade eine Kategorie?
 const loadedStockImages = ref(new Map()); // Cache für geladene Image-Objekte
@@ -943,13 +978,42 @@ const presets = ref([]);
 // ✨ NEU: Aktuell ausgewähltes Bild auf dem Canvas
 const currentActiveImage = ref(null);
 
-// ✨ NEU: Computed für aktuell ausgewähltes Bild aus Galerie
+// ✨ NEU: Computed für aktuell ausgewähltes Bild aus Galerie (Abwärtskompatibilität)
 const selectedImage = computed(() => {
   if (selectedImageIndex.value !== null && imageGallery.value[selectedImageIndex.value]) {
     return imageGallery.value[selectedImageIndex.value];
   }
   return null;
 });
+
+// ✨ NEU: Computed für alle ausgewählten hochgeladenen Bilder (Mehrfachauswahl)
+const selectedImages = computed(() => {
+  return Array.from(selectedImageIndices.value)
+    .sort((a, b) => a - b)
+    .map(index => imageGallery.value[index])
+    .filter(img => img !== undefined);
+});
+
+// ✨ NEU: Anzahl der ausgewählten hochgeladenen Bilder
+const selectedImageCount = computed(() => selectedImageIndices.value.size);
+
+// ✨ NEU: Computed für alle ausgewählten Stock-Bilder (Mehrfachauswahl)
+const selectedStockImagesList = computed(() => {
+  return stockImages.value.filter(img => selectedStockImages.value.has(img.id));
+});
+
+// ✨ NEU: Anzahl der ausgewählten Stock-Bilder
+const selectedStockCount = computed(() => selectedStockImages.value.size);
+
+// ✨ NEU: Prüfen ob ein Stock-Bild ausgewählt ist
+const isStockImageSelected = (imgId) => {
+  return selectedStockImages.value.has(imgId);
+};
+
+// ✨ NEU: Prüfen ob ein hochgeladenes Bild ausgewählt ist
+const isImageSelected = (index) => {
+  return selectedImageIndices.value.has(index);
+};
 
 // ✨ NEU: Computed für gefilterte Stock-Bilder nach Kategorie
 // Bei modularer Struktur enthält stockImages bereits nur die aktuelle Kategorie
@@ -1680,12 +1744,14 @@ function handleImageUpload(event) {
         };
         
         imageGallery.value.push(imageData);
-        
-        // Automatisch das erste Bild auswählen
+
+        // Automatisch das erste Bild auswählen (wenn Galerie vorher leer war)
         if (imageGallery.value.length === 1) {
           selectedImageIndex.value = 0;
+          selectedImageIndices.value = new Set([0]);
+          lastSelectedImageIndex.value = 0;
         }
-        
+
         console.log('✅ Bild zur Galerie hinzugefügt:', imageData.name, imageData.dimensions);
       };
       img.onerror = () => {
@@ -1709,24 +1775,100 @@ function formatFileSize(bytes) {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
 
-// ✨ NEU: Bild aus Galerie auswählen
-function selectImage(index) {
+// ✨ NEU: Bild aus Galerie auswählen (mit Mehrfachauswahl-Unterstützung)
+function selectImage(index, event = null) {
+  const shiftKey = event?.shiftKey || false;
+  const ctrlKey = event?.ctrlKey || event?.metaKey || false;
+
+  if (shiftKey && lastSelectedImageIndex.value !== null) {
+    // Shift+Click: Range-Selection
+    const start = Math.min(lastSelectedImageIndex.value, index);
+    const end = Math.max(lastSelectedImageIndex.value, index);
+
+    // Wenn Ctrl nicht gehalten, erst alles deselektieren
+    if (!ctrlKey) {
+      selectedImageIndices.value.clear();
+    }
+
+    // Alle in der Range auswählen
+    for (let i = start; i <= end; i++) {
+      selectedImageIndices.value.add(i);
+    }
+    // Set neu erstellen für Reaktivität
+    selectedImageIndices.value = new Set(selectedImageIndices.value);
+    console.log(`📌 ${end - start + 1} Bilder ausgewählt (Range)`);
+  } else if (ctrlKey) {
+    // Ctrl+Click: Toggle einzelnes Bild
+    if (selectedImageIndices.value.has(index)) {
+      selectedImageIndices.value.delete(index);
+    } else {
+      selectedImageIndices.value.add(index);
+    }
+    // Set neu erstellen für Reaktivität
+    selectedImageIndices.value = new Set(selectedImageIndices.value);
+    lastSelectedImageIndex.value = index;
+    console.log('📌 Bild getoggelt:', imageGallery.value[index].name);
+  } else {
+    // Normaler Click: Nur dieses Bild auswählen
+    selectedImageIndices.value = new Set([index]);
+    lastSelectedImageIndex.value = index;
+    console.log('📌 Bild ausgewählt:', imageGallery.value[index].name);
+  }
+
+  // Abwärtskompatibilität: selectedImageIndex auf das zuletzt angeklickte setzen
   selectedImageIndex.value = index;
-  console.log('📌 Bild ausgewählt:', imageGallery.value[index].name);
+}
+
+// ✨ NEU: Alle hochgeladenen Bilder auswählen
+function selectAllImages() {
+  const indices = imageGallery.value.map((_, index) => index);
+  selectedImageIndices.value = new Set(indices);
+  if (indices.length > 0) {
+    selectedImageIndex.value = indices[0];
+    lastSelectedImageIndex.value = indices[0];
+  }
+  console.log(`📌 Alle ${indices.length} Bilder ausgewählt`);
+}
+
+// ✨ NEU: Auswahl aller hochgeladenen Bilder aufheben
+function deselectAllImages() {
+  selectedImageIndices.value = new Set();
+  selectedImageIndex.value = null;
+  lastSelectedImageIndex.value = null;
+  console.log('📌 Bildauswahl aufgehoben');
 }
 
 // ✨ NEU: Einzelnes Bild aus Galerie löschen
 function deleteImage(index) {
   const deletedImage = imageGallery.value[index];
   imageGallery.value.splice(index, 1);
-  
-  // Auswahl anpassen
+
+  // Mehrfachauswahl anpassen: Entferne gelöschten Index, verschiebe höhere Indices
+  const newSelectedIndices = new Set();
+  selectedImageIndices.value.forEach(i => {
+    if (i < index) {
+      newSelectedIndices.add(i);
+    } else if (i > index) {
+      newSelectedIndices.add(i - 1);
+    }
+    // i === index wird übersprungen (gelöscht)
+  });
+  selectedImageIndices.value = newSelectedIndices;
+
+  // Abwärtskompatibilität: selectedImageIndex anpassen
   if (selectedImageIndex.value === index) {
     selectedImageIndex.value = imageGallery.value.length > 0 ? 0 : null;
   } else if (selectedImageIndex.value > index) {
     selectedImageIndex.value--;
   }
-  
+
+  // lastSelectedImageIndex anpassen
+  if (lastSelectedImageIndex.value === index) {
+    lastSelectedImageIndex.value = null;
+  } else if (lastSelectedImageIndex.value > index) {
+    lastSelectedImageIndex.value--;
+  }
+
   console.log('🗑️ Bild gelöscht:', deletedImage.name);
 }
 
@@ -1735,29 +1877,42 @@ function clearAllImages() {
   if (!confirm(`Alle ${imageGallery.value.length} Bilder aus der Galerie löschen?`)) {
     return;
   }
-  
+
   imageGallery.value = [];
   selectedImageIndex.value = null;
+  selectedImageIndices.value = new Set();
+  lastSelectedImageIndex.value = null;
   console.log('🗑️ Galerie geleert');
 }
 
-// GEÄNDERT: Bild auf Canvas platzieren - verwendet jetzt MultiImageManager
+// GEÄNDERT: Bilder auf Canvas platzieren - unterstützt Mehrfachauswahl
 function addImageToCanvas() {
-  if (!selectedImage.value) return;
-  
+  const imagesToAdd = selectedImages.value;
+  if (imagesToAdd.length === 0) return;
+
   const multiImageManager = multiImageManagerRef?.value;
   if (!multiImageManager) {
     console.error('❌ MultiImageManager nicht verfügbar');
     return;
   }
 
-  multiImageManager.addImage(selectedImage.value.img);
-  console.log('✅ Bild auf Canvas platziert:', selectedImage.value.name);
+  // Alle ausgewählten Bilder hinzufügen
+  imagesToAdd.forEach((imgData, i) => {
+    multiImageManager.addImage(imgData.img);
+  });
+
+  console.log(`✅ ${imagesToAdd.length} Bild(er) auf Canvas platziert`);
+
+  // Auswahl zurücksetzen nach dem Hinzufügen
+  deselectAllImages();
 }
 
-// Bild als Hintergrund setzen
+// Bild als Hintergrund setzen (nur bei Einzelauswahl)
 function setAsBackground() {
-  if (!selectedImage.value) return;
+  if (selectedImageCount.value !== 1) return;
+
+  const imgToSet = selectedImages.value[0];
+  if (!imgToSet) return;
 
   const canvasManager = canvasManagerRef?.value;
   if (!canvasManager) {
@@ -1765,15 +1920,18 @@ function setAsBackground() {
     return;
   }
 
-  canvasManager.setBackground(selectedImage.value.img);
-  console.log('✅ Bild als Hintergrund gesetzt:', selectedImage.value.name);
+  canvasManager.setBackground(imgToSet.img);
+  console.log('✅ Bild als Hintergrund gesetzt:', imgToSet.name);
   // Auswahl zurücksetzen
-  selectedImageIndex.value = null;
+  deselectAllImages();
 }
 
-// Bild als Workspace-Hintergrund setzen
+// Bild als Workspace-Hintergrund setzen (nur bei Einzelauswahl)
 function setAsWorkspaceBackground() {
-  if (!selectedImage.value) return;
+  if (selectedImageCount.value !== 1) return;
+
+  const imgToSet = selectedImages.value[0];
+  if (!imgToSet) return;
 
   const canvasManager = canvasManagerRef?.value;
   if (!canvasManager) {
@@ -1781,11 +1939,11 @@ function setAsWorkspaceBackground() {
     return;
   }
 
-  const success = canvasManager.setWorkspaceBackground(selectedImage.value.img);
+  const success = canvasManager.setWorkspaceBackground(imgToSet.img);
   if (success) {
-    console.log('✅ Bild als Workspace-Hintergrund gesetzt:', selectedImage.value.name);
+    console.log('✅ Bild als Workspace-Hintergrund gesetzt:', imgToSet.name);
     // Auswahl zurücksetzen
-    selectedImageIndex.value = null;
+    deselectAllImages();
   } else {
     alert('⚠️ Bitte wählen Sie zuerst einen Social Media Workspace aus (z.B. TikTok, Instagram Story, etc.)');
   }
@@ -1902,6 +2060,8 @@ async function loadCategoryImages(categoryId) {
 async function selectStockCategory(categoryId) {
   selectedStockCategory.value = categoryId;
   selectedStockImage.value = null; // Auswahl zurücksetzen bei Kategorie-Wechsel
+  selectedStockImages.value = new Set(); // Mehrfachauswahl auch zurücksetzen
+  lastSelectedStockId.value = null;
 
   // Kategorie-Bilder laden (nutzt Cache wenn vorhanden)
   await loadCategoryImages(categoryId);
@@ -1909,10 +2069,73 @@ async function selectStockCategory(categoryId) {
   console.log('📁 Kategorie ausgewählt:', categoryId);
 }
 
-// Stock-Bild auswählen
-function selectStockImage(img) {
+// Stock-Bild auswählen (mit Mehrfachauswahl-Unterstützung)
+function selectStockImage(img, event = null) {
+  const shiftKey = event?.shiftKey || false;
+  const ctrlKey = event?.ctrlKey || event?.metaKey || false;
+
+  if (shiftKey && lastSelectedStockId.value !== null) {
+    // Shift+Click: Range-Selection
+    const currentImages = stockImages.value;
+    const lastIndex = currentImages.findIndex(i => i.id === lastSelectedStockId.value);
+    const currentIndex = currentImages.findIndex(i => i.id === img.id);
+
+    if (lastIndex !== -1 && currentIndex !== -1) {
+      const start = Math.min(lastIndex, currentIndex);
+      const end = Math.max(lastIndex, currentIndex);
+
+      // Wenn Ctrl nicht gehalten, erst alles deselektieren
+      if (!ctrlKey) {
+        selectedStockImages.value.clear();
+      }
+
+      // Alle in der Range auswählen
+      for (let i = start; i <= end; i++) {
+        selectedStockImages.value.add(currentImages[i].id);
+      }
+      // Set neu erstellen für Reaktivität
+      selectedStockImages.value = new Set(selectedStockImages.value);
+      console.log(`📌 ${end - start + 1} Stock-Bilder ausgewählt (Range)`);
+    }
+  } else if (ctrlKey) {
+    // Ctrl+Click: Toggle einzelnes Bild
+    if (selectedStockImages.value.has(img.id)) {
+      selectedStockImages.value.delete(img.id);
+    } else {
+      selectedStockImages.value.add(img.id);
+    }
+    // Set neu erstellen für Reaktivität
+    selectedStockImages.value = new Set(selectedStockImages.value);
+    lastSelectedStockId.value = img.id;
+    console.log('📌 Stock-Bild getoggelt:', img.name);
+  } else {
+    // Normaler Click: Nur dieses Bild auswählen
+    selectedStockImages.value = new Set([img.id]);
+    lastSelectedStockId.value = img.id;
+    console.log('📌 Stock-Bild ausgewählt:', img.name);
+  }
+
+  // Abwärtskompatibilität: selectedStockImage auf das angeklickte setzen
   selectedStockImage.value = img;
-  console.log('📌 Stock-Bild ausgewählt:', img.name);
+}
+
+// ✨ NEU: Alle Stock-Bilder in der aktuellen Kategorie auswählen
+function selectAllStockImages() {
+  const allIds = stockImages.value.map(img => img.id);
+  selectedStockImages.value = new Set(allIds);
+  if (stockImages.value.length > 0) {
+    selectedStockImage.value = stockImages.value[0];
+    lastSelectedStockId.value = stockImages.value[0].id;
+  }
+  console.log(`📌 Alle ${allIds.length} Stock-Bilder ausgewählt`);
+}
+
+// ✨ NEU: Auswahl aller Stock-Bilder aufheben
+function deselectAllStockImages() {
+  selectedStockImages.value = new Set();
+  selectedStockImage.value = null;
+  lastSelectedStockId.value = null;
+  console.log('📌 Stock-Bildauswahl aufgehoben');
 }
 
 // Stock-Bild als Image-Objekt laden (mit Caching)
@@ -1935,9 +2158,10 @@ async function loadStockImageObject(stockImg) {
   });
 }
 
-// Stock-Bild auf Canvas platzieren
+// Stock-Bilder auf Canvas platzieren - unterstützt Mehrfachauswahl
 async function addStockImageToCanvas() {
-  if (!selectedStockImage.value) return;
+  const imagesToAdd = selectedStockImagesList.value;
+  if (imagesToAdd.length === 0) return;
 
   const multiImageManager = multiImageManagerRef?.value;
   if (!multiImageManager) {
@@ -1946,18 +2170,28 @@ async function addStockImageToCanvas() {
   }
 
   try {
-    const img = await loadStockImageObject(selectedStockImage.value);
-    multiImageManager.addImage(img);
-    console.log('✅ Stock-Bild auf Canvas platziert:', selectedStockImage.value.name);
+    // Alle ausgewählten Bilder laden und hinzufügen
+    for (const stockImg of imagesToAdd) {
+      const img = await loadStockImageObject(stockImg);
+      multiImageManager.addImage(img);
+    }
+
+    console.log(`✅ ${imagesToAdd.length} Stock-Bild(er) auf Canvas platziert`);
+
+    // Auswahl zurücksetzen nach dem Hinzufügen
+    deselectAllStockImages();
   } catch (error) {
-    console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
-    alert('Das Bild konnte nicht geladen werden.');
+    console.error('❌ Fehler beim Laden der Stock-Bilder:', error);
+    alert('Ein oder mehrere Bilder konnten nicht geladen werden.');
   }
 }
 
-// Stock-Bild als Hintergrund setzen
+// Stock-Bild als Hintergrund setzen (nur bei Einzelauswahl)
 async function setStockAsBackground() {
-  if (!selectedStockImage.value) return;
+  if (selectedStockCount.value !== 1) return;
+
+  const stockImg = selectedStockImagesList.value[0];
+  if (!stockImg) return;
 
   const canvasManager = canvasManagerRef?.value;
   if (!canvasManager) {
@@ -1966,20 +2200,23 @@ async function setStockAsBackground() {
   }
 
   try {
-    const img = await loadStockImageObject(selectedStockImage.value);
+    const img = await loadStockImageObject(stockImg);
     canvasManager.setBackground(img);
-    console.log('✅ Stock-Bild als Hintergrund gesetzt:', selectedStockImage.value.name);
+    console.log('✅ Stock-Bild als Hintergrund gesetzt:', stockImg.name);
     // Auswahl zurücksetzen
-    selectedStockImage.value = null;
+    deselectAllStockImages();
   } catch (error) {
     console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
     alert('Das Bild konnte nicht geladen werden.');
   }
 }
 
-// Stock-Bild als Workspace-Hintergrund setzen
+// Stock-Bild als Workspace-Hintergrund setzen (nur bei Einzelauswahl)
 async function setStockAsWorkspaceBackground() {
-  if (!selectedStockImage.value) return;
+  if (selectedStockCount.value !== 1) return;
+
+  const stockImg = selectedStockImagesList.value[0];
+  if (!stockImg) return;
 
   const canvasManager = canvasManagerRef?.value;
   if (!canvasManager) {
@@ -1988,12 +2225,12 @@ async function setStockAsWorkspaceBackground() {
   }
 
   try {
-    const img = await loadStockImageObject(selectedStockImage.value);
+    const img = await loadStockImageObject(stockImg);
     const success = canvasManager.setWorkspaceBackground(img);
     if (success) {
-      console.log('✅ Stock-Bild als Workspace-Hintergrund gesetzt:', selectedStockImage.value.name);
+      console.log('✅ Stock-Bild als Workspace-Hintergrund gesetzt:', stockImg.name);
       // Auswahl zurücksetzen
-      selectedStockImage.value = null;
+      deselectAllStockImages();
     } else {
       alert('⚠️ Bitte wählen Sie zuerst einen Social Media Workspace aus (z.B. TikTok, Instagram Story, etc.)');
     }
@@ -3543,5 +3780,111 @@ input[type="range"]::-moz-range-thumb:hover {
 .layer-btn:first-child:hover:not(:disabled),
 .layer-btn:last-child:hover:not(:disabled) {
   background: linear-gradient(135deg, #4a5a6a 0%, #3a4a5a 100%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ✨ MEHRFACHAUSWAHL STYLES
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Auswahl-Steuerung Container */
+.selection-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+/* Alle auswählen / Auswahl aufheben Buttons */
+.btn-select-all,
+.btn-deselect-all {
+  padding: 5px 10px;
+  font-size: 11px;
+  border-radius: 4px;
+  border: 1px solid #444;
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: 500;
+}
+
+.btn-select-all:hover:not(:disabled),
+.btn-deselect-all:hover:not(:disabled) {
+  background-color: #3a3a3a;
+  border-color: #6ea8fe;
+  color: #6ea8fe;
+}
+
+.btn-select-all:disabled,
+.btn-deselect-all:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Auswahl-Zähler */
+.selection-count {
+  font-size: 11px;
+  color: #6ea8fe;
+  font-weight: 600;
+  padding: 4px 8px;
+  background-color: rgba(110, 168, 254, 0.15);
+  border-radius: 4px;
+  margin-left: auto;
+}
+
+/* Tipp-Text für Mehrfachauswahl */
+.multiselect-hint {
+  font-size: 10px;
+  color: #888;
+  margin: 0 0 8px 0;
+  font-style: italic;
+}
+
+/* Checkbox für Thumbnails */
+.selection-checkbox {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  color: white;
+  font-weight: bold;
+}
+
+.selection-checkbox.checked {
+  background-color: #6ea8fe;
+  border-color: #6ea8fe;
+  box-shadow: 0 2px 6px rgba(110, 168, 254, 0.4);
+}
+
+.thumbnail-item:hover .selection-checkbox:not(.checked),
+.stock-thumbnail-item:hover .selection-checkbox:not(.checked) {
+  border-color: #6ea8fe;
+  background-color: rgba(110, 168, 254, 0.3);
+}
+
+/* Anpassung für Thumbnails mit Checkbox */
+.thumbnail-item,
+.stock-thumbnail-item {
+  position: relative;
+}
+
+/* Hervorhebung für ausgewählte Bilder */
+.thumbnail-item.selected,
+.stock-thumbnail-item.selected {
+  border-color: #6ea8fe;
+  box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.3), 0 4px 12px rgba(110, 168, 254, 0.2);
 }
 </style>

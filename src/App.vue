@@ -215,9 +215,10 @@ function updateGlobalAudioData(audioDataArray, bufferLength) {
   const midAvg = midCount > 0 ? (midSum / midCount) : 0;
   const mid = Math.min(255, Math.floor((midAvg * 0.6 + midPeak * 0.4) * 1.8));
 
-  // Treble: Etwas stärkere Verstärkung (da Höhen natürlich leiser sind)
+  // Treble: Stärkere Verstärkung + Peak-Fokus für Hi-Hats
   const trebleAvg = trebleCount > 0 ? (trebleSum / trebleCount) : 0;
-  const treble = Math.min(255, Math.floor((trebleAvg * 0.5 + treblePeak * 0.5) * 2.5));
+  const trebleCombined = (trebleAvg * 0.3) + (treblePeak * 0.7);
+  const treble = Math.min(255, Math.floor(trebleCombined * 6.0));
 
   // Volume: Gesamtlautstärke - etwas verstärkt für bessere Sichtbarkeit
   const volume = usableLength > 0 ? Math.min(255, Math.floor((totalSum / usableLength) * 1.5)) : 0;

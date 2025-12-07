@@ -52,7 +52,9 @@ export class FotoManager {
                     blur: { enabled: false, intensity: 50 },      // Dynamische Unschärfe
                     rotation: { enabled: false, intensity: 50 },  // Leichte Drehung
                     shake: { enabled: false, intensity: 50 },     // Erschütterung bei Bass
-                    bounce: { enabled: false, intensity: 50 }     // Vertikales Hüpfen
+                    bounce: { enabled: false, intensity: 50 },    // Vertikales Hüpfen
+                    swing: { enabled: false, intensity: 50 },     // Horizontales Pendeln
+                    orbit: { enabled: false, intensity: 50 }      // Kreisbewegung
                 },
                 source: 'bass',              // 'bass', 'mid', 'treble', 'volume'
                 smoothing: 50                // 0-100% Glättung (verhindert Flackern)
@@ -85,7 +87,9 @@ export class FotoManager {
                 blur: { ...defaultAR.effects.blur },
                 rotation: { ...defaultAR.effects.rotation },
                 shake: { ...defaultAR.effects.shake },
-                bounce: { ...defaultAR.effects.bounce }
+                bounce: { ...defaultAR.effects.bounce },
+                swing: { ...defaultAR.effects.swing },
+                orbit: { ...defaultAR.effects.orbit }
             },
             source: defaultAR.source,
             smoothing: defaultAR.smoothing
@@ -113,7 +117,9 @@ export class FotoManager {
                     blur: { ...(oldSettings.effects.blur || { enabled: false, intensity: 50 }) },
                     rotation: { ...(oldSettings.effects.rotation || { enabled: false, intensity: 50 }) },
                     shake: { ...(oldSettings.effects.shake || { enabled: false, intensity: 50 }) },
-                    bounce: { ...(oldSettings.effects.bounce || { enabled: false, intensity: 50 }) }
+                    bounce: { ...(oldSettings.effects.bounce || { enabled: false, intensity: 50 }) },
+                    swing: { ...(oldSettings.effects.swing || { enabled: false, intensity: 50 }) },
+                    orbit: { ...(oldSettings.effects.orbit || { enabled: false, intensity: 50 }) }
                 },
                 source: oldSettings.source || 'bass',
                 smoothing: oldSettings.smoothing ?? 50

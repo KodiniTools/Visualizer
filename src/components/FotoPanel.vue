@@ -761,6 +761,54 @@
             />
             <span class="effect-value" ref="effectBounceValueRef">50%</span>
           </div>
+
+          <!-- Swing (Horizontales Pendeln) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectSwingEnabledRef"
+                @change="(e) => onEffectToggle('swing', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">↔️ Pendeln</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              step="5"
+              ref="effectSwingIntensityRef"
+              @input="(e) => onEffectIntensityChange('swing', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectSwingValueRef">50%</span>
+          </div>
+
+          <!-- Orbit (Kreisbewegung) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectOrbitEnabledRef"
+                @change="(e) => onEffectToggle('orbit', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">🔵 Kreisbewegung</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              step="5"
+              ref="effectOrbitIntensityRef"
+              @input="(e) => onEffectIntensityChange('orbit', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectOrbitValueRef">50%</span>
+          </div>
         </div>
 
         <!-- Audio-Level Anzeige -->
@@ -861,6 +909,12 @@ const effectShakeValueRef = ref(null);
 const effectBounceEnabledRef = ref(null);
 const effectBounceIntensityRef = ref(null);
 const effectBounceValueRef = ref(null);
+const effectSwingEnabledRef = ref(null);
+const effectSwingIntensityRef = ref(null);
+const effectSwingValueRef = ref(null);
+const effectOrbitEnabledRef = ref(null);
+const effectOrbitIntensityRef = ref(null);
+const effectOrbitValueRef = ref(null);
 
 // ✨ NEU: Refs für Galerie-Funktionalität
 const fileInputRef = ref(null);
@@ -1326,6 +1380,8 @@ function loadAudioReactiveSettings(imageData) {
     loadEffect('rotation', effectRotationEnabledRef, effectRotationIntensityRef, effectRotationValueRef, 50);
     loadEffect('shake', effectShakeEnabledRef, effectShakeIntensityRef, effectShakeValueRef, 50);
     loadEffect('bounce', effectBounceEnabledRef, effectBounceIntensityRef, effectBounceValueRef, 50);
+    loadEffect('swing', effectSwingEnabledRef, effectSwingIntensityRef, effectSwingValueRef, 50);
+    loadEffect('orbit', effectOrbitEnabledRef, effectOrbitIntensityRef, effectOrbitValueRef, 50);
 
     stopAudioLevelIndicator();
     return;
@@ -1350,6 +1406,8 @@ function loadAudioReactiveSettings(imageData) {
   loadEffect('rotation', effectRotationEnabledRef, effectRotationIntensityRef, effectRotationValueRef, 50);
   loadEffect('shake', effectShakeEnabledRef, effectShakeIntensityRef, effectShakeValueRef, 50);
   loadEffect('bounce', effectBounceEnabledRef, effectBounceIntensityRef, effectBounceValueRef, 50);
+  loadEffect('swing', effectSwingEnabledRef, effectSwingIntensityRef, effectSwingValueRef, 50);
+  loadEffect('orbit', effectOrbitEnabledRef, effectOrbitIntensityRef, effectOrbitValueRef, 50);
 
   if (ar.enabled) {
     startAudioLevelIndicator();

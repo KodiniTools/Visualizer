@@ -1202,13 +1202,8 @@ export class CanvasManager {
     }
 
     getObjectAtPos(x, y) {
-        if (this.workspaceBackground && this.workspacePreset) {
-            const workspaceBounds = this.getWorkspaceBounds();
-            if (workspaceBounds && this.isPointInRect(x, y, workspaceBounds)) {
-                return this.workspaceBackground;
-            }
-        }
-
+        // ✅ FIX: Text-Objekte haben HÖCHSTE Priorität - müssen IMMER anklickbar sein
+        // Text wird über allem anderen gerendert und muss zuerst geprüft werden
         if (this.textManager && this.textManager.textObjects) {
             for (let i = this.textManager.textObjects.length - 1; i >= 0; i--) {
                 const textObj = this.textManager.textObjects[i];
@@ -1219,6 +1214,7 @@ export class CanvasManager {
             }
         }
 
+        // Dann Bilder prüfen (über Hintergründen)
         if (this.multiImageManager) {
             const images = this.multiImageManager.getAllImages();
             for (let i = images.length - 1; i >= 0; i--) {
@@ -1230,6 +1226,15 @@ export class CanvasManager {
             }
         }
 
+        // Dann Workspace-Hintergrund prüfen
+        if (this.workspaceBackground && this.workspacePreset) {
+            const workspaceBounds = this.getWorkspaceBounds();
+            if (workspaceBounds && this.isPointInRect(x, y, workspaceBounds)) {
+                return this.workspaceBackground;
+            }
+        }
+
+        // Zuletzt globaler Hintergrund
         if (this.background && typeof this.background === 'object') {
             return this.background;
         }

@@ -113,6 +113,20 @@
                 <input type="range" v-model.number="bgEffectGlowIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
                 <span class="effect-value">{{ bgEffectGlowIntensity }}%</span>
               </label>
+
+              <label class="effect-item">
+                <input type="checkbox" v-model="bgEffectScale" @change="updateBgAudioReactive" />
+                <span>🔍 Zoom-Pulsieren</span>
+                <input type="range" v-model.number="bgEffectScaleIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <span class="effect-value">{{ bgEffectScaleIntensity }}%</span>
+              </label>
+
+              <label class="effect-item">
+                <input type="checkbox" v-model="bgEffectBlur" @change="updateBgAudioReactive" />
+                <span>🌫️ Atmosphären-Blur</span>
+                <input type="range" v-model.number="bgEffectBlurIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <span class="effect-value">{{ bgEffectBlurIntensity }}%</span>
+              </label>
             </div>
           </div>
         </div>
@@ -211,6 +225,10 @@ const bgEffectSaturation = ref(false);
 const bgEffectSaturationIntensity = ref(80);
 const bgEffectGlow = ref(false);
 const bgEffectGlowIntensity = ref(80);
+const bgEffectScale = ref(false);
+const bgEffectScaleIntensity = ref(50);
+const bgEffectBlur = ref(false);
+const bgEffectBlurIntensity = ref(50);
 
 // Computed: Kann Undo ausgeführt werden?
 const canUndo = computed(() => undoHistory.value.length > 0);
@@ -326,8 +344,9 @@ function updateBgAudioReactive() {
       hue: { enabled: bgEffectHue.value, intensity: bgEffectHueIntensity.value },
       brightness: { enabled: bgEffectBrightness.value, intensity: bgEffectBrightnessIntensity.value },
       saturation: { enabled: bgEffectSaturation.value, intensity: bgEffectSaturationIntensity.value },
-      scale: { enabled: false, intensity: 80 },
+      scale: { enabled: bgEffectScale.value, intensity: bgEffectScaleIntensity.value },
       glow: { enabled: bgEffectGlow.value, intensity: bgEffectGlowIntensity.value },
+      blur: { enabled: bgEffectBlur.value, intensity: bgEffectBlurIntensity.value },
       border: { enabled: false, intensity: 80 }
     }
   };

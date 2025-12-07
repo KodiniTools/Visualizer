@@ -440,6 +440,9 @@ export class CanvasManager {
                     borderOpacity: 0.5 + (normalizedLevel * 0.5),
                     borderGlow: normalizedLevel * 30
                 };
+            case 'blur':
+                // Atmosphären-Blur: 0-15px basierend auf Audio-Level
+                return { blur: normalizedLevel * 15 };
             default:
                 return {};
         }
@@ -464,6 +467,9 @@ export class CanvasManager {
         }
         if (effects.saturation) {
             currentFilter += ` saturate(${effects.saturation.saturation}%)`;
+        }
+        if (effects.blur) {
+            currentFilter += ` blur(${effects.blur.blur}px)`;
         }
         if (effects.glow) {
             ctx.shadowColor = effects.glow.glowColor;

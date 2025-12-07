@@ -250,38 +250,27 @@ function updateGlobalAudioData(audioDataArray, bufferLength) {
   window.audioAnalysisData.attack = attack;
   window.audioAnalysisData.punch = punch;
 
-  // ✨ VERBESSERT: Asymmetrisches Smoothing (schneller Anstieg, langsamer Abfall)
-  // Das gibt punchigere Reaktion bei Beats, aber smoothes Ausklingen
-  const applyAsymmetricSmooth = (current, target, attackFactor, releaseFactor) => {
-    const factor = target > current ? attackFactor : releaseFactor;
-    return Math.floor(current * (1 - factor) + target * factor);
-  };
+  // Geglättete Werte (einfaches exponential smoothing)
+  const smoothFactor = 0.4;
+  const trebleSmoothFactor = 0.5;
 
-  // Smoothing-Faktoren: [Attack, Release] - höher = schneller
-  const bassSmoothAttack = 0.6;    // Schneller Anstieg für Punch
-  const bassSmoothRelease = 0.25;  // Langsamer Abfall für Sustain
-  const midSmoothAttack = 0.65;    // Mitten reagieren schnell
-  const midSmoothRelease = 0.3;
-  const trebleSmoothAttack = 0.8;  // Höhen SEHR schnell (Hi-Hats!)
-  const trebleSmoothRelease = 0.4;
-
-  window.audioAnalysisData.smoothBass = applyAsymmetricSmooth(
-    window.audioAnalysisData.smoothBass, bass, bassSmoothAttack, bassSmoothRelease
+  window.audioAnalysisData.smoothBass = Math.floor(
+    window.audioAnalysisData.smoothBass * (1 - smoothFactor) + bass * smoothFactor
   );
-  window.audioAnalysisData.smoothMid = applyAsymmetricSmooth(
-    window.audioAnalysisData.smoothMid, mid, midSmoothAttack, midSmoothRelease
+  window.audioAnalysisData.smoothMid = Math.floor(
+    window.audioAnalysisData.smoothMid * (1 - smoothFactor) + mid * smoothFactor
   );
-  window.audioAnalysisData.smoothTreble = applyAsymmetricSmooth(
-    window.audioAnalysisData.smoothTreble, treble, trebleSmoothAttack, trebleSmoothRelease
+  window.audioAnalysisData.smoothTreble = Math.floor(
+    window.audioAnalysisData.smoothTreble * (1 - trebleSmoothFactor) + treble * trebleSmoothFactor
   );
-  window.audioAnalysisData.smoothVolume = applyAsymmetricSmooth(
-    window.audioAnalysisData.smoothVolume, volume, 0.5, 0.3
+  window.audioAnalysisData.smoothVolume = Math.floor(
+    window.audioAnalysisData.smoothVolume * (1 - smoothFactor) + volume * smoothFactor
   );
-  window.audioAnalysisData.smoothEnergy = applyAsymmetricSmooth(
-    window.audioAnalysisData.smoothEnergy, energy, 0.55, 0.3
+  window.audioAnalysisData.smoothEnergy = Math.floor(
+    window.audioAnalysisData.smoothEnergy * (1 - smoothFactor) + energy * smoothFactor
   );
-  window.audioAnalysisData.smoothAttack = applyAsymmetricSmooth(
-    window.audioAnalysisData.smoothAttack, attack, 0.85, 0.5 // Attack sehr schnell!
+  window.audioAnalysisData.smoothAttack = Math.floor(
+    window.audioAnalysisData.smoothAttack * (1 - trebleSmoothFactor) + attack * trebleSmoothFactor
   );
 }
 

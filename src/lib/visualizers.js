@@ -10,14 +10,14 @@
 // ============================================================================
 
 const CONSTANTS = {
-  // Smoothing factors - ✨ Erhöht für schnellere Reaktion
-  SMOOTHING_BASE: 0.55,        // War 0.5 - schnellere Basis-Reaktion
-  SMOOTHING_MID_MULTIPLIER: 1.3,  // War 1.2 - Mitten reagieren schneller
-  SMOOTHING_HIGH_MULTIPLIER: 1.6, // War 1.5 - Höhen noch reaktiver
+  // Smoothing factors
+  SMOOTHING_BASE: 0.5,
+  SMOOTHING_MID_MULTIPLIER: 1.2,
+  SMOOTHING_HIGH_MULTIPLIER: 1.5,
 
   // Animation
-  FADE_RATE: 0.97,            // War 0.98 - schnelleres Abklingen für mehr Dynamik
-  PARTICLE_FADE: 0.97,        // War 0.98 - Partikel klingen schneller ab
+  FADE_RATE: 0.98,
+  PARTICLE_FADE: 0.98,
 
   // Thresholds
   BASS_THRESHOLD: 0.15,
@@ -25,22 +25,17 @@ const CONSTANTS = {
   HIGH_MID_THRESHOLD: 0.65,
   HIGH_THRESHOLD: 0.85,
 
-  // Gains - ✨ Erhöht für verstärkte visuelle Reaktion
-  BASS_GAIN: 1.2,             // War 1.0 - mehr Bass-Punch
-  LOW_MID_GAIN: 1.6,          // War 1.4 - stärkere Mitten
-  HIGH_MID_GAIN: 2.0,         // War 1.8 - mehr Präsenz
-  HIGH_GAIN: 2.8,             // War 2.5 - Höhen sichtbarer
-  ULTRA_HIGH_GAIN: 4.0,       // War 3.5 - Ultra-Höhen sehr sichtbar
+  // Gains
+  BASS_GAIN: 1.0,
+  LOW_MID_GAIN: 1.4,
+  HIGH_MID_GAIN: 1.8,
+  HIGH_GAIN: 2.5,
+  ULTRA_HIGH_GAIN: 3.5,
 
-  // Visual thresholds - ✨ Angepasst für bessere Sichtbarkeit
-  MIN_VISIBLE_AMPLITUDE: 0.03, // War 0.05 - zeigt mehr Details
-  HIGH_ENERGY_THRESHOLD: 0.25, // War 0.3 - reagiert früher auf Energie
-  BEAT_THRESHOLD: 0.6,         // War 0.65 - sensiblere Beat-Erkennung
-
-  // ✨ NEU: Glow-Effekt Einstellungen
-  GLOW_INTENSITY: 1.2,         // Basis-Intensität für Glow
-  GLOW_BLUR_MIN: 5,            // Minimaler Blur-Radius
-  GLOW_BLUR_MAX: 25,           // Maximaler Blur-Radius bei hoher Energie
+  // Visual thresholds
+  MIN_VISIBLE_AMPLITUDE: 0.05,
+  HIGH_ENERGY_THRESHOLD: 0.3,
+  BEAT_THRESHOLD: 0.65,
 
   // Cache settings
   COLOR_CACHE_MAX_SIZE: 100
@@ -294,76 +289,6 @@ function withSafeCanvasState(ctx, drawFunction) {
 }
 
 // ============================================================================
-// ✨ GLOW & MODERN EFFECTS HELPERS
-// ============================================================================
-
-/**
- * Berechnet dynamischen Glow-Radius basierend auf Audio-Energie
- * @param {number} amplitude - Normalisierte Amplitude (0-1)
- * @param {number} intensity - Intensitätsmultiplikator
- * @returns {number} Blur-Radius für shadowBlur
- */
-function calculateGlowRadius(amplitude, intensity = 1.0) {
-  const energyFactor = Math.pow(amplitude, 0.7); // Nicht-lineare Kurve für natürlicheres Gefühl
-  return CONSTANTS.GLOW_BLUR_MIN +
-         (CONSTANTS.GLOW_BLUR_MAX - CONSTANTS.GLOW_BLUR_MIN) * energyFactor * intensity;
-}
-
-/**
- * Wendet modernen Glow-Effekt auf Canvas-Kontext an
- * @param {CanvasRenderingContext2D} ctx - Canvas context
- * @param {string} color - Basis-Farbe (HEX)
- * @param {number} amplitude - Normalisierte Amplitude (0-1)
- * @param {number} intensity - Intensitätsmultiplikator
- */
-function applyGlow(ctx, color, amplitude, intensity = 1.0) {
-  const hsl = hexToHsl(color);
-  const glowRadius = calculateGlowRadius(amplitude, intensity);
-  // Hellere, gesättigtere Farbe für Glow
-  const glowLightness = Math.min(80, hsl.l + 20 + amplitude * 20);
-  const glowSaturation = Math.min(100, hsl.s + 10);
-  ctx.shadowColor = `hsl(${hsl.h}, ${glowSaturation}%, ${glowLightness}%)`;
-  ctx.shadowBlur = glowRadius;
-}
-
-/**
- * Erstellt pulsierenden Glow basierend auf globalem Audio-Attack
- * @param {CanvasRenderingContext2D} ctx - Canvas context
- * @param {string} color - Basis-Farbe (HEX)
- * @param {number} baseAmplitude - Lokale Amplitude
- */
-function applyPulseGlow(ctx, color, baseAmplitude) {
-  // Nutze globale Attack-Daten für Pulse
-  const audioData = window.audioAnalysisData || { attack: 0, punch: 0 };
-  const attackNorm = (audioData.attack || 0) / 255;
-  const punchNorm = (audioData.punch || 0) / 255;
-  // Kombiniere lokale Amplitude mit globalem Punch für extra Punch-Effekt
-  const combinedIntensity = baseAmplitude * 0.6 + punchNorm * 0.4;
-  applyGlow(ctx, color, combinedIntensity, CONSTANTS.GLOW_INTENSITY + attackNorm * 0.5);
-}
-
-/**
- * Erzeugt Gradient mit Glow-Effekt für Bars
- * @param {CanvasRenderingContext2D} ctx - Canvas context
- * @param {number} x - X-Position
- * @param {number} y - Y-Position
- * @param {number} height - Höhe des Bars
- * @param {Object} hsl - HSL-Farbobjekt
- * @param {number} amplitude - Normalisierte Amplitude (0-1)
- * @returns {CanvasGradient} Gradient für fillStyle
- */
-function createGlowGradient(ctx, x, y, height, hsl, amplitude) {
-  const gradient = ctx.createLinearGradient(x, y + height, x, y);
-  const baseLightness = hsl.l;
-  const glowLightness = Math.min(90, baseLightness + 30 + amplitude * 20);
-  // Unten: normale Farbe, Oben: heller (Glow-Spitze)
-  gradient.addColorStop(0, `hsla(${hsl.h}, ${hsl.s}%, ${baseLightness}%, 0.9)`);
-  gradient.addColorStop(0.7, `hsla(${hsl.h}, ${hsl.s}%, ${baseLightness + 10}%, 1)`);
-  gradient.addColorStop(1, `hsla(${hsl.h}, ${Math.min(100, hsl.s + 15)}%, ${glowLightness}%, 1)`);
-  return gradient;
-}
-
-// ============================================================================
 // VISUALIZERS
 // ============================================================================
 
@@ -405,10 +330,6 @@ export const Visualizers = {
 
       const masterGain = 0.35; // Reduziert für optimale Balkenhöhe
 
-      // ✨ Globale Audio-Daten für Pulse-Glow
-      const audioData = window.audioAnalysisData || { punch: 0, energy: 0 };
-      const globalPunch = (audioData.punch || 0) / 255;
-
       // Zeichne Balken über die gesamte Breite
       for (let i = 0; i < numBars; i++) {
         const dynamicGain = calculateDynamicGain(i, numBars);
@@ -419,35 +340,20 @@ export const Visualizers = {
         const e = Math.max(s + 1, Math.floor((i + 1) * freqPerBar));
 
         const rawValue = averageRange(dataArray, s, e);
-        const normalizedValue = rawValue / 255;
 
-        const targetHeight = normalizedValue * h * dynamicGain * masterGain * intensity;
+        const targetHeight = (rawValue / 255) * h * dynamicGain * masterGain * intensity;
         const smoothingFactor = getFrequencyBasedSmoothing(i, numBars, CONSTANTS.SMOOTHING_BASE);
         visualizerState[stateKey][i] = applySmoothValue(visualizerState[stateKey][i] || 0, targetHeight, smoothingFactor);
 
-        const currentHeight = visualizerState[stateKey][i];
+        // Exakte Positionierung: Start bei 0, Ende bei w
         const x = i * barWidth;
         const hue = (baseHsl.h + (i / numBars) * 120) % 360;
-
-        // ✨ NEU: Glow-Gradient statt flacher Farbe
-        const barHsl = { h: hue, s: baseHsl.s, l: baseHsl.l };
-        const gradient = createGlowGradient(ctx, x, h - currentHeight, currentHeight, barHsl, normalizedValue);
-        ctx.fillStyle = gradient;
-
-        // ✨ NEU: Dynamischer Glow-Effekt basierend auf Amplitude + globalem Punch
-        const glowIntensity = normalizedValue * 0.7 + globalPunch * 0.3;
-        if (glowIntensity > CONSTANTS.MIN_VISIBLE_AMPLITUDE) {
-          ctx.shadowColor = `hsla(${hue}, ${Math.min(100, baseHsl.s + 20)}%, 70%, ${glowIntensity})`;
-          ctx.shadowBlur = calculateGlowRadius(glowIntensity, intensity);
-        } else {
-          ctx.shadowBlur = 0;
-        }
+        ctx.fillStyle = `hsl(${hue}, ${baseHsl.s}%, ${baseHsl.l}%)`;
 
         // Zeichne Balken mit Gap
-        ctx.fillRect(x + gapWidth / 2, h - currentHeight, actualBarWidth, currentHeight);
+        ctx.fillRect(x + gapWidth / 2, h - visualizerState[stateKey][i], actualBarWidth, visualizerState[stateKey][i]);
       }
 
-      ctx.shadowBlur = 0;
       // Stelle Transform wieder her
       ctx.restore();
     }
@@ -603,44 +509,22 @@ export const Visualizers = {
       if (visualizerState.smoothedMirroredBars.length !== numBars) {
         visualizerState.smoothedMirroredBars = new Array(numBars).fill(0);
       }
-
-      // ✨ Globale Audio-Daten für Pulse-Glow
-      const audioData = window.audioAnalysisData || { punch: 0, energy: 0 };
-      const globalPunch = (audioData.punch || 0) / 255;
-      const globalEnergy = (audioData.energy || 0) / 255;
-
       for (let i = 0; i < numBars / 2; i++) {
         const dynamicGain = calculateDynamicGain(i, numBars);
         const [s, e] = rangeForBar(i, numBars, bufferLength);
-        const rawValue = averageRange(dataArray, s, e);
-        const normalizedValue = rawValue / 255;
-        const targetHeight = normalizedValue * (h / 2) * dynamicGain * intensity;
+        const targetHeight = (averageRange(dataArray, s, e) / 255) * (h / 2) * dynamicGain * intensity;
         const smoothingFactor = getFrequencyBasedSmoothing(i, numBars, CONSTANTS.SMOOTHING_BASE);
         visualizerState.smoothedMirroredBars[i] = applySmoothValue(visualizerState.smoothedMirroredBars[i] || 0, targetHeight, smoothingFactor);
         const xLeft = centerX - (i + 1) * barWidth;
         const xRight = centerX + i * barWidth;
         const hue = (baseHsl.h + (i / (numBars / 2)) * 90) % 360;
+        ctx.fillStyle = `hsl(${hue}, ${baseHsl.s}%, ${baseHsl.l}%)`;
         const currentHeight = visualizerState.smoothedMirroredBars[i];
-
-        // ✨ NEU: Dynamischer Glow basierend auf Frequenz und globalem Punch
-        const glowIntensity = normalizedValue * 0.6 + globalPunch * 0.3 + globalEnergy * 0.1;
-        if (glowIntensity > CONSTANTS.MIN_VISIBLE_AMPLITUDE) {
-          ctx.shadowColor = `hsla(${hue}, ${Math.min(100, baseHsl.s + 15)}%, 65%, ${glowIntensity * 0.8})`;
-          ctx.shadowBlur = calculateGlowRadius(glowIntensity, intensity * 0.8);
-        } else {
-          ctx.shadowBlur = 0;
-        }
-
-        // ✨ NEU: Gradient statt flacher Farbe
-        const barHsl = { h: hue, s: baseHsl.s, l: baseHsl.l };
-        ctx.fillStyle = `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l + normalizedValue * 15}%, 0.95)`;
-
         ctx.fillRect(xLeft, centerY - currentHeight, barWidth * 0.9, currentHeight);
         ctx.fillRect(xLeft, centerY, barWidth * 0.9, currentHeight);
         ctx.fillRect(xRight, centerY - currentHeight, barWidth * 0.9, currentHeight);
         ctx.fillRect(xRight, centerY, barWidth * 0.9, currentHeight);
       }
-      ctx.shadowBlur = 0;
     }
   },
   radialBars: {

@@ -393,15 +393,6 @@ export class CanvasManager {
                 break;
         }
 
-        // ✨ Sicherheitsprüfung: audioLevel muss eine gültige Zahl sein
-        if (typeof audioLevel !== 'number' || isNaN(audioLevel)) {
-            audioLevel = 0;
-        }
-
-        // ✨ Audio-Pegel/Gain anwenden (10-300%)
-        const gain = (audioSettings.gain ?? 100) / 100;
-        audioLevel = Math.min(255, audioLevel * gain);
-
         const baseLevel = audioLevel / 255;
 
         const result = {

@@ -46,6 +46,58 @@
           />
         </div>
 
+        <!-- ✨ NEU: Gradient-Einstellungen -->
+        <div class="gradient-section">
+          <h5>🌈 Gradient</h5>
+
+          <div class="control-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                v-model="gradientEnabled"
+                @change="updateGradientSettings"
+              />
+              <span>Gradient aktivieren</span>
+            </label>
+          </div>
+
+          <div v-if="gradientEnabled" class="gradient-controls">
+            <div class="control-group">
+              <label>Zweite Farbe:</label>
+              <div class="color-picker-group">
+                <input
+                  type="color"
+                  v-model="gradientColor2"
+                  @input="updateGradientSettings"
+                  class="color-input"
+                />
+                <span class="color-hex">{{ gradientColor2 }}</span>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label>Typ:</label>
+              <select v-model="gradientType" @change="updateGradientSettings" class="gradient-select">
+                <option value="radial">🔵 Radial (vom Zentrum)</option>
+                <option value="linear">📐 Linear (mit Winkel)</option>
+              </select>
+            </div>
+
+            <div v-if="gradientType === 'linear'" class="control-group">
+              <label>Winkel: {{ gradientAngle }}°</label>
+              <input
+                type="range"
+                v-model.number="gradientAngle"
+                @input="updateGradientSettings"
+                min="0"
+                max="360"
+                step="5"
+                class="angle-slider"
+              />
+            </div>
+          </div>
+        </div>
+
         <!-- ✨ NEU: Audio-Reaktiv für Hintergrundfarbe -->
         <div class="audio-reactive-section">
           <h5>🎵 Audio-Reaktiv</h5>
@@ -113,6 +165,23 @@
                 <input type="range" v-model.number="bgEffectGlowIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
                 <span class="effect-value">{{ bgEffectGlowIntensity }}%</span>
               </label>
+
+              <!-- Gradient-Effekte (nur wenn Gradient aktiviert) -->
+              <template v-if="gradientEnabled">
+                <label class="effect-item">
+                  <input type="checkbox" v-model="bgEffectGradientPulse" @change="updateBgAudioReactive" />
+                  <span>💫 Gradient-Puls</span>
+                  <input type="range" v-model.number="bgEffectGradientPulseIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                  <span class="effect-value">{{ bgEffectGradientPulseIntensity }}%</span>
+                </label>
+
+                <label class="effect-item">
+                  <input type="checkbox" v-model="bgEffectGradientRotation" @change="updateBgAudioReactive" />
+                  <span>🔄 Gradient-Rotation</span>
+                  <input type="range" v-model.number="bgEffectGradientRotationIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                  <span class="effect-value">{{ bgEffectGradientRotationIntensity }}%</span>
+                </label>
+              </template>
             </div>
           </div>
         </div>
@@ -211,6 +280,16 @@ const bgEffectSaturation = ref(false);
 const bgEffectSaturationIntensity = ref(80);
 const bgEffectGlow = ref(false);
 const bgEffectGlowIntensity = ref(80);
+const bgEffectGradientPulse = ref(false);
+const bgEffectGradientPulseIntensity = ref(80);
+const bgEffectGradientRotation = ref(false);
+const bgEffectGradientRotationIntensity = ref(80);
+
+// ✨ NEU: Gradient-Einstellungen
+const gradientEnabled = ref(false);
+const gradientColor2 = ref('#0066ff');
+const gradientType = ref('radial');
+const gradientAngle = ref(45);
 
 // Computed: Kann Undo ausgeführt werden?
 const canUndo = computed(() => undoHistory.value.length > 0);
@@ -326,12 +405,33 @@ function updateBgAudioReactive() {
       hue: { enabled: bgEffectHue.value, intensity: bgEffectHueIntensity.value },
       brightness: { enabled: bgEffectBrightness.value, intensity: bgEffectBrightnessIntensity.value },
       saturation: { enabled: bgEffectSaturation.value, intensity: bgEffectSaturationIntensity.value },
-      glow: { enabled: bgEffectGlow.value, intensity: bgEffectGlowIntensity.value }
+      glow: { enabled: bgEffectGlow.value, intensity: bgEffectGlowIntensity.value },
+      gradientPulse: { enabled: bgEffectGradientPulse.value, intensity: bgEffectGradientPulseIntensity.value },
+      gradientRotation: { enabled: bgEffectGradientRotation.value, intensity: bgEffectGradientRotationIntensity.value }
     }
   };
 
   canvasManager.value.setBackgroundColorAudioReactive(settings);
   console.log('🎵 Hintergrund Audio-Reaktiv:', settings);
+}
+
+// ✨ NEU: Aktualisiere Gradient-Einstellungen
+function updateGradientSettings() {
+  if (!canvasManager.value) return;
+
+  canvasManager.value.setGradientSettings({
+    enabled: gradientEnabled.value,
+    color2: gradientColor2.value,
+    type: gradientType.value,
+    angle: gradientAngle.value
+  });
+
+  console.log('🌈 Gradient:', {
+    enabled: gradientEnabled.value,
+    color2: gradientColor2.value,
+    type: gradientType.value,
+    angle: gradientAngle.value
+  });
 }
 
 // ===== UNDO-SYSTEM =====
@@ -798,6 +898,49 @@ h4 {
 
 .confirm-actions button {
   flex: 1;
+}
+
+/* ✨ Gradient Styles */
+.gradient-section {
+  margin-top: 16px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+}
+
+.gradient-section h5 {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #60a5fa;
+}
+
+.gradient-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.gradient-select {
+  width: 100%;
+  padding: 6px 10px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 12px;
+}
+
+.angle-slider {
+  width: 100%;
+}
+
+.color-hex {
+  font-size: 11px;
+  color: #94a3b8;
+  font-family: monospace;
 }
 
 /* ✨ Audio-Reaktiv Styles */

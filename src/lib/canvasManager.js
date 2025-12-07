@@ -30,6 +30,14 @@ export class CanvasManager {
         this.background = null;
         this.workspaceBackground = null;
         this.backgroundColorSettings = null; // ✨ NEU: Audio-Reaktive Einstellungen für Hintergrundfarbe
+
+        // ✨ NEU: Gradient-Einstellungen für Hintergrund
+        this.gradientSettings = {
+            enabled: false,
+            color2: '#000000',        // Zweite Farbe für Gradient
+            type: 'radial',           // 'linear' oder 'radial'
+            angle: 0                  // Winkel für linearen Gradient (0-360)
+        };
         this.activeObject = null;
         this.hoveredObject = null;
         this.currentAction = null;
@@ -361,6 +369,20 @@ export class CanvasManager {
     }
 
     /**
+     * ✨ NEU: Setzt Gradient-Einstellungen für Hintergrund
+     */
+    setGradientSettings(settings) {
+        this.gradientSettings = { ...this.gradientSettings, ...settings };
+    }
+
+    /**
+     * ✨ NEU: Gibt Gradient-Einstellungen zurück
+     */
+    getGradientSettings() {
+        return this.gradientSettings;
+    }
+
+    /**
      * ✨ NEU: Berechnet Audio-Reaktive Werte für Hintergründe
      * Verwendet die gleiche Logik wie multiImageManager
      */
@@ -443,6 +465,13 @@ export class CanvasManager {
             case 'blur':
                 // Atmosphären-Blur: 0-15px basierend auf Audio-Level
                 return { blur: normalizedLevel * 15 };
+            case 'gradientPulse':
+                // Gradient-Puls: Radialer Gradient pulsiert vom Zentrum
+                return { gradientRadius: 0.3 + (normalizedLevel * 0.7) }; // 30-100% des Canvas
+            case 'gradientRotation':
+                // Gradient-Rotation: Winkel dreht sich mit Audio
+                const time = Date.now() * 0.002;
+                return { gradientAngle: (Math.sin(time) * normalizedLevel * 180) }; // ±180°
             default:
                 return {};
         }
@@ -641,7 +670,50 @@ export class CanvasManager {
                 this._applyAudioReactiveFilters(ctx, bgColorAudioReactive);
             }
 
-            ctx.fillStyle = this.background;
+            // ✨ GRADIENT: Prüfen ob Gradient aktiviert ist
+            if (this.gradientSettings && this.gradientSettings.enabled) {
+                const w = ctx.canvas.width;
+                const h = ctx.canvas.height;
+                const centerX = w / 2;
+                const centerY = h / 2;
+                let gradient;
+
+                // Audio-reaktive Gradient-Werte holen
+                let gradientRadius = 1.0;
+                let gradientAngle = this.gradientSettings.angle || 0;
+
+                if (bgColorAudioReactive && bgColorAudioReactive.hasEffects) {
+                    if (bgColorAudioReactive.effects.gradientPulse) {
+                        gradientRadius = bgColorAudioReactive.effects.gradientPulse.gradientRadius;
+                    }
+                    if (bgColorAudioReactive.effects.gradientRotation) {
+                        gradientAngle += bgColorAudioReactive.effects.gradientRotation.gradientAngle;
+                    }
+                }
+
+                if (this.gradientSettings.type === 'radial') {
+                    // Radialer Gradient vom Zentrum
+                    const maxRadius = Math.max(w, h) * gradientRadius;
+                    gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxRadius);
+                } else {
+                    // Linearer Gradient mit Winkel
+                    const angleRad = (gradientAngle * Math.PI) / 180;
+                    const length = Math.max(w, h);
+                    const dx = Math.cos(angleRad) * length;
+                    const dy = Math.sin(angleRad) * length;
+                    gradient = ctx.createLinearGradient(
+                        centerX - dx / 2, centerY - dy / 2,
+                        centerX + dx / 2, centerY + dy / 2
+                    );
+                }
+
+                gradient.addColorStop(0, this.background);
+                gradient.addColorStop(1, this.gradientSettings.color2);
+                ctx.fillStyle = gradient;
+            } else {
+                ctx.fillStyle = this.background;
+            }
+
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
             ctx.restore();

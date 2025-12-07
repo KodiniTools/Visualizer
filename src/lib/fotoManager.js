@@ -50,7 +50,9 @@ export class FotoManager {
                     glow: { enabled: false, intensity: 80 },
                     border: { enabled: false, intensity: 80 },
                     blur: { enabled: false, intensity: 50 },      // Dynamische Unschärfe
-                    rotation: { enabled: false, intensity: 50 }   // Leichte Drehung
+                    rotation: { enabled: false, intensity: 50 },  // Leichte Drehung
+                    shake: { enabled: false, intensity: 50 },     // Erschütterung bei Bass
+                    bounce: { enabled: false, intensity: 50 }     // Vertikales Hüpfen
                 },
                 source: 'bass',              // 'bass', 'mid', 'treble', 'volume'
                 smoothing: 50                // 0-100% Glättung (verhindert Flackern)
@@ -81,7 +83,9 @@ export class FotoManager {
                 glow: { ...defaultAR.effects.glow },
                 border: { ...defaultAR.effects.border },
                 blur: { ...defaultAR.effects.blur },
-                rotation: { ...defaultAR.effects.rotation }
+                rotation: { ...defaultAR.effects.rotation },
+                shake: { ...defaultAR.effects.shake },
+                bounce: { ...defaultAR.effects.bounce }
             },
             source: defaultAR.source,
             smoothing: defaultAR.smoothing
@@ -107,7 +111,9 @@ export class FotoManager {
                     glow: { ...(oldSettings.effects.glow || { enabled: false, intensity: 80 }) },
                     border: { ...(oldSettings.effects.border || { enabled: false, intensity: 80 }) },
                     blur: { ...(oldSettings.effects.blur || { enabled: false, intensity: 50 }) },
-                    rotation: { ...(oldSettings.effects.rotation || { enabled: false, intensity: 50 }) }
+                    rotation: { ...(oldSettings.effects.rotation || { enabled: false, intensity: 50 }) },
+                    shake: { ...(oldSettings.effects.shake || { enabled: false, intensity: 50 }) },
+                    bounce: { ...(oldSettings.effects.bounce || { enabled: false, intensity: 50 }) }
                 },
                 source: oldSettings.source || 'bass',
                 smoothing: oldSettings.smoothing ?? 50

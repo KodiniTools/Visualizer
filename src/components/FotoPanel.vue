@@ -713,6 +713,54 @@
             />
             <span class="effect-value" ref="effectRotationValueRef">50%</span>
           </div>
+
+          <!-- Shake (Erschütterung) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectShakeEnabledRef"
+                @change="(e) => onEffectToggle('shake', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">🫨 Erschütterung</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              step="5"
+              ref="effectShakeIntensityRef"
+              @input="(e) => onEffectIntensityChange('shake', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectShakeValueRef">50%</span>
+          </div>
+
+          <!-- Bounce (Hüpfen) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectBounceEnabledRef"
+                @change="(e) => onEffectToggle('bounce', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">⬆️ Hüpfen</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              step="5"
+              ref="effectBounceIntensityRef"
+              @input="(e) => onEffectIntensityChange('bounce', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectBounceValueRef">50%</span>
+          </div>
         </div>
 
         <!-- Audio-Level Anzeige -->
@@ -807,6 +855,12 @@ const effectBlurValueRef = ref(null);
 const effectRotationEnabledRef = ref(null);
 const effectRotationIntensityRef = ref(null);
 const effectRotationValueRef = ref(null);
+const effectShakeEnabledRef = ref(null);
+const effectShakeIntensityRef = ref(null);
+const effectShakeValueRef = ref(null);
+const effectBounceEnabledRef = ref(null);
+const effectBounceIntensityRef = ref(null);
+const effectBounceValueRef = ref(null);
 
 // ✨ NEU: Refs für Galerie-Funktionalität
 const fileInputRef = ref(null);
@@ -1270,6 +1324,8 @@ function loadAudioReactiveSettings(imageData) {
     loadEffect('border', effectBorderEnabledRef, effectBorderIntensityRef, effectBorderValueRef);
     loadEffect('blur', effectBlurEnabledRef, effectBlurIntensityRef, effectBlurValueRef, 50);
     loadEffect('rotation', effectRotationEnabledRef, effectRotationIntensityRef, effectRotationValueRef, 50);
+    loadEffect('shake', effectShakeEnabledRef, effectShakeIntensityRef, effectShakeValueRef, 50);
+    loadEffect('bounce', effectBounceEnabledRef, effectBounceIntensityRef, effectBounceValueRef, 50);
 
     stopAudioLevelIndicator();
     return;
@@ -1292,6 +1348,8 @@ function loadAudioReactiveSettings(imageData) {
   loadEffect('border', effectBorderEnabledRef, effectBorderIntensityRef, effectBorderValueRef);
   loadEffect('blur', effectBlurEnabledRef, effectBlurIntensityRef, effectBlurValueRef, 50);
   loadEffect('rotation', effectRotationEnabledRef, effectRotationIntensityRef, effectRotationValueRef, 50);
+  loadEffect('shake', effectShakeEnabledRef, effectShakeIntensityRef, effectShakeValueRef, 50);
+  loadEffect('bounce', effectBounceEnabledRef, effectBounceIntensityRef, effectBounceValueRef, 50);
 
   if (ar.enabled) {
     startAudioLevelIndicator();

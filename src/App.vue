@@ -190,7 +190,7 @@ function updateGlobalAudioData(audioDataArray, bufferLength) {
   // Kombiniere Durchschnitt (60%) mit Peak (40%) für bessere Reaktion auf Hi-Hats
   const trebleAvg = trebleCount > 0 ? (trebleSum / trebleCount) : 0;
   const trebleCombined = (trebleAvg * 0.6) + (treblePeak * 0.4);
-  const treble = Math.min(255, Math.floor(trebleCombined * 4.0)); // Verstärkung von 2.5 auf 4.0 erhöht
+  const treble = Math.min(255, Math.floor(trebleCombined * 8.0)); // Verstärkung auf 8.0 erhöht
 
   const volume = usableLength > 0 ? Math.min(255, Math.floor((totalSum / usableLength) * 1.5)) : 0;
 

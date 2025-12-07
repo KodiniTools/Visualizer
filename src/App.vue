@@ -156,9 +156,9 @@ function updateGlobalAudioData(audioDataArray, bufferLength) {
   const usableLength = Math.floor(bufferLength * 0.5);
 
   // Frequenzbereiche (bei FFT-Size 2048, Sample Rate 44100Hz)
-  const bassEnd = Math.floor(usableLength * 0.15);      // 0-15% = Sub-Bass + Bass
-  const midEnd = Math.floor(usableLength * 0.5);        // 15-50% = Mitten
-  // Rest = Höhen (50-100% von usableLength)
+  const bassEnd = Math.floor(usableLength * 0.15);      // 0-15% = Sub-Bass + Bass (~0-1650 Hz)
+  const midEnd = Math.floor(usableLength * 0.35);       // 15-35% = Mitten (~1650-3850 Hz)
+  // Rest = Höhen (35-100% = ~3850-11000 Hz) - früher starten für mehr Signal
 
   let bassSum = 0, midSum = 0, trebleSum = 0, totalSum = 0;
   let bassCount = 0, midCount = 0, trebleCount = 0;

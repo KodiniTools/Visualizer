@@ -51,6 +51,7 @@ export class FotoManager {
                     border: { enabled: false, intensity: 80 }  // Audio-reaktive Bildkontur
                 },
                 source: 'bass',              // 'bass', 'mid', 'treble', 'volume'
+                gain: 100,                   // 10-300% Audio-Pegel/Verstärkung
                 smoothing: 50                // 0-100% Glättung (verhindert Flackern)
             }
         };
@@ -80,6 +81,7 @@ export class FotoManager {
                 border: { ...defaultAR.effects.border }
             },
             source: defaultAR.source,
+            gain: defaultAR.gain,
             smoothing: defaultAR.smoothing
         };
     }
@@ -104,6 +106,7 @@ export class FotoManager {
                     border: { ...(oldSettings.effects.border || { enabled: false, intensity: 80 }) }
                 },
                 source: oldSettings.source || 'bass',
+                gain: oldSettings.gain ?? 100,
                 smoothing: oldSettings.smoothing ?? 50
             };
         }
@@ -112,6 +115,7 @@ export class FotoManager {
         const newSettings = this._deepCopyAudioReactive();
         newSettings.enabled = oldSettings.enabled ?? false;
         newSettings.source = oldSettings.source || 'bass';
+        newSettings.gain = oldSettings.gain ?? 100;
         newSettings.smoothing = oldSettings.smoothing ?? 50;
 
         // Alten einzelnen Effekt in neuer Struktur aktivieren

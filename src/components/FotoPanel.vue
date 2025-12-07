@@ -498,6 +498,24 @@
           </select>
         </div>
 
+        <!-- Audio-Pegel (Gain/Verstärkung) -->
+        <div class="modern-control">
+          <label class="modern-label">
+            <span class="label-text">Audio-Pegel</span>
+            <span class="label-value" ref="audioReactiveGainValueRef">100%</span>
+          </label>
+          <input
+            type="range"
+            min="10"
+            max="300"
+            value="100"
+            step="10"
+            ref="audioReactiveGainRef"
+            @input="onAudioReactiveGainChange"
+            class="modern-slider audio-slider"
+          />
+        </div>
+
         <!-- Glättung -->
         <div class="modern-control">
           <label class="modern-label">
@@ -729,6 +747,8 @@ const borderOpacityValueRef = ref(null);
 // ✨ NEU: Refs für Audio-Reaktiv (Master-Einstellungen)
 const audioReactiveEnabledRef = ref(null);
 const audioReactiveSourceRef = ref(null);
+const audioReactiveGainRef = ref(null);
+const audioReactiveGainValueRef = ref(null);
 const audioReactiveSmoothingRef = ref(null);
 const audioReactiveSmoothingValueRef = ref(null);
 const audioLevelBarRef = ref(null);
@@ -1042,6 +1062,15 @@ function onAudioReactiveSourceChange(event) {
 }
 
 /**
+ * Audio-Pegel/Gain ändern (Verstärkung der gewählten Quelle)
+ */
+function onAudioReactiveGainChange(event) {
+  const value = parseInt(event.target.value);
+  audioReactiveGainValueRef.value.textContent = value + '%';
+  updateAudioReactiveSetting('gain', value);
+}
+
+/**
  * Glättung ändern (global für alle Effekte)
  */
 function onAudioReactiveSmoothingChange(event) {
@@ -1153,6 +1182,10 @@ function startAudioLevelIndicator() {
       case 'volume': level = audioData.smoothVolume; break;
     }
 
+    // ✨ Gain/Pegel anwenden
+    const gain = parseInt(audioReactiveGainRef.value?.value || 100) / 100;
+    level = Math.min(255, level * gain);
+
     // Level auf 0-100% normalisieren
     const percent = Math.min(100, (level / 255) * 100);
     audioLevelBarRef.value.style.width = percent + '%';
@@ -1204,6 +1237,8 @@ function loadAudioReactiveSettings(imageData) {
     // Standardwerte setzen
     if (audioReactiveEnabledRef.value) audioReactiveEnabledRef.value.checked = false;
     if (audioReactiveSourceRef.value) audioReactiveSourceRef.value.value = 'bass';
+    if (audioReactiveGainRef.value) audioReactiveGainRef.value.value = 100;
+    if (audioReactiveGainValueRef.value) audioReactiveGainValueRef.value.textContent = '100%';
     if (audioReactiveSmoothingRef.value) audioReactiveSmoothingRef.value.value = 50;
     if (audioReactiveSmoothingValueRef.value) audioReactiveSmoothingValueRef.value.textContent = '50%';
 
@@ -1224,6 +1259,8 @@ function loadAudioReactiveSettings(imageData) {
   // Master-Einstellungen
   if (audioReactiveEnabledRef.value) audioReactiveEnabledRef.value.checked = ar.enabled || false;
   if (audioReactiveSourceRef.value) audioReactiveSourceRef.value.value = ar.source || 'bass';
+  if (audioReactiveGainRef.value) audioReactiveGainRef.value.value = ar.gain ?? 100;
+  if (audioReactiveGainValueRef.value) audioReactiveGainValueRef.value.textContent = (ar.gain ?? 100) + '%';
   if (audioReactiveSmoothingRef.value) audioReactiveSmoothingRef.value.value = ar.smoothing || 50;
   if (audioReactiveSmoothingValueRef.value) audioReactiveSmoothingValueRef.value.textContent = (ar.smoothing || 50) + '%';
 

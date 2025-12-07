@@ -190,6 +190,10 @@ export class MultiImageManager {
                 break;
         }
 
+        // ✨ Audio-Pegel/Gain anwenden (10-300%)
+        const gain = (audioSettings.gain ?? 100) / 100;
+        audioLevel = Math.min(255, audioLevel * gain);
+
         // Basis Audio-Level normalisiert auf 0-1
         const baseLevel = audioLevel / 255;
 

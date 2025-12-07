@@ -256,6 +256,14 @@ export class MultiImageManager {
                     borderOpacity: 0.5 + (normalizedLevel * 0.5),  // 50-100%
                     borderGlow: normalizedLevel * 30  // Leuchten um die Kontur
                 };
+            case 'blur':
+                // Dynamische Unschärfe: 0-10px basierend auf Audio-Level
+                return { blur: normalizedLevel * 10 };
+            case 'rotation':
+                // Leichte Drehung: -15 bis +15 Grad (oszillierend)
+                const time = Date.now() * 0.005;
+                const oscillation = Math.sin(time) * normalizedLevel;
+                return { rotation: oscillation * 15 };
             default:
                 return {};
         }
@@ -312,6 +320,11 @@ export class MultiImageManager {
                     currentFilter += ` saturate(${effects.saturation.saturation}%)`;
                 }
 
+                // Blur (Unschärfe)
+                if (effects.blur) {
+                    currentFilter += ` blur(${effects.blur.blur}px)`;
+                }
+
                 // Glow als Shadow-Effekt
                 if (effects.glow) {
                     ctx.shadowColor = effects.glow.glowColor;
@@ -325,16 +338,22 @@ export class MultiImageManager {
                 }
             }
 
-            // ✨ ROTATION anwenden (wenn vorhanden)
-            const rotation = imgData.fotoSettings?.rotation || 0;
-            if (rotation !== 0) {
+            // ✨ ROTATION anwenden (statisch + audio-reaktiv)
+            let totalRotation = imgData.fotoSettings?.rotation || 0;
+
+            // Audio-reaktive Rotation hinzufügen
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.rotation) {
+                totalRotation += audioReactive.effects.rotation.rotation;
+            }
+
+            if (totalRotation !== 0) {
                 // Berechne Zentrum des Bildes
                 const centerX = bounds.x + bounds.width / 2;
                 const centerY = bounds.y + bounds.height / 2;
 
                 // Verschiebe zum Zentrum, rotiere, verschiebe zurück
                 ctx.translate(centerX, centerY);
-                ctx.rotate((rotation * Math.PI) / 180);
+                ctx.rotate((totalRotation * Math.PI) / 180);
                 ctx.translate(-centerX, -centerY);
             }
 

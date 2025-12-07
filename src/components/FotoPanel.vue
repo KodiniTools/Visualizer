@@ -665,6 +665,54 @@
             />
             <span class="effect-value" ref="effectBorderValueRef">80%</span>
           </div>
+
+          <!-- Unschärfe (Blur) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectBlurEnabledRef"
+                @change="(e) => onEffectToggle('blur', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">🌫️ Unschärfe</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              step="5"
+              ref="effectBlurIntensityRef"
+              @input="(e) => onEffectIntensityChange('blur', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectBlurValueRef">50%</span>
+          </div>
+
+          <!-- Rotation -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectRotationEnabledRef"
+                @change="(e) => onEffectToggle('rotation', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">🔄 Rotation</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              step="5"
+              ref="effectRotationIntensityRef"
+              @input="(e) => onEffectIntensityChange('rotation', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectRotationValueRef">50%</span>
+          </div>
         </div>
 
         <!-- Audio-Level Anzeige -->
@@ -753,6 +801,12 @@ const effectGlowValueRef = ref(null);
 const effectBorderEnabledRef = ref(null);
 const effectBorderIntensityRef = ref(null);
 const effectBorderValueRef = ref(null);
+const effectBlurEnabledRef = ref(null);
+const effectBlurIntensityRef = ref(null);
+const effectBlurValueRef = ref(null);
+const effectRotationEnabledRef = ref(null);
+const effectRotationIntensityRef = ref(null);
+const effectRotationValueRef = ref(null);
 
 // ✨ NEU: Refs für Galerie-Funktionalität
 const fileInputRef = ref(null);
@@ -1214,6 +1268,8 @@ function loadAudioReactiveSettings(imageData) {
     loadEffect('scale', effectScaleEnabledRef, effectScaleIntensityRef, effectScaleValueRef);
     loadEffect('glow', effectGlowEnabledRef, effectGlowIntensityRef, effectGlowValueRef);
     loadEffect('border', effectBorderEnabledRef, effectBorderIntensityRef, effectBorderValueRef);
+    loadEffect('blur', effectBlurEnabledRef, effectBlurIntensityRef, effectBlurValueRef, 50);
+    loadEffect('rotation', effectRotationEnabledRef, effectRotationIntensityRef, effectRotationValueRef, 50);
 
     stopAudioLevelIndicator();
     return;
@@ -1234,6 +1290,8 @@ function loadAudioReactiveSettings(imageData) {
   loadEffect('scale', effectScaleEnabledRef, effectScaleIntensityRef, effectScaleValueRef);
   loadEffect('glow', effectGlowEnabledRef, effectGlowIntensityRef, effectGlowValueRef);
   loadEffect('border', effectBorderEnabledRef, effectBorderIntensityRef, effectBorderValueRef);
+  loadEffect('blur', effectBlurEnabledRef, effectBlurIntensityRef, effectBlurValueRef, 50);
+  loadEffect('rotation', effectRotationEnabledRef, effectRotationIntensityRef, effectRotationValueRef, 50);
 
   if (ar.enabled) {
     startAudioLevelIndicator();

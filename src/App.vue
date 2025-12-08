@@ -102,6 +102,7 @@ let recordingCanvas = document.createElement('canvas'); // ✅ FIX 1: let statt 
 let recordingCanvasStream = null; // ✅ NEU: Globale Referenz zum Canvas-Stream
 
 let audioContext, analyser, sourceNode, outputGain, recordingDest, recordingGain;
+let bassFilter, trebleFilter; // EQ-Filter für Bass und Treble
 let animationFrameId;
 let textManagerInstance = null;
 const lastSelectedVisualizerId = ref(null); // ✅ FIX: Reaktiv für Hot-Reload Unterstützung
@@ -395,21 +396,52 @@ function setupAudioContext() {
   sourceNode = audioContext.createMediaElementSource(audioRef.value);
   outputGain = audioContext.createGain();
 
+  // ✨ EQ-Filter für Bass und Treble erstellen
+  bassFilter = audioContext.createBiquadFilter();
+  bassFilter.type = 'lowshelf';
+  bassFilter.frequency.value = 200; // Frequenz für Bass-Bereich
+  bassFilter.gain.value = 0; // Neutral (kein Boost/Cut)
+
+  trebleFilter = audioContext.createBiquadFilter();
+  trebleFilter.type = 'highshelf';
+  trebleFilter.frequency.value = 3000; // Frequenz für Höhen-Bereich
+  trebleFilter.gain.value = 0; // Neutral (kein Boost/Cut)
+
   // Recording Gain für dynamische Audio-Steuerung während Aufnahme
   recordingGain = audioContext.createGain();
   recordingGain.gain.value = 0; // Start: STUMM (Audio wird nur aufgenommen wenn Player aktiv spielt)
 
   recordingDest = audioContext.createMediaStreamDestination();
 
-  sourceNode.connect(outputGain);
+  // Audio-Routing: source -> bass -> treble -> outputGain -> destination
+  sourceNode.connect(bassFilter);
+  bassFilter.connect(trebleFilter);
+  trebleFilter.connect(outputGain);
   outputGain.connect(audioContext.destination);
+
+  // Analyser für Visualisierung (vor EQ für authentische Analyse)
   sourceNode.connect(analyser);
 
-  // Audio-Routing über Recording Gain zu Recording Destination
-  sourceNode.connect(recordingGain);
+  // Audio-Routing über Recording Gain zu Recording Destination (mit EQ)
+  trebleFilter.connect(recordingGain);
   recordingGain.connect(recordingDest);
 
-  console.log('✅ [App] Audio Context mit dynamischem Recording Gain eingerichtet');
+  console.log('✅ [App] Audio Context mit EQ-Filtern und dynamischem Recording Gain eingerichtet');
+}
+
+// ✨ Funktionen zum Setzen von Bass und Treble
+function setBassGain(gain) {
+  if (bassFilter) {
+    bassFilter.gain.value = gain;
+    console.log('🔊 [App] Bass gain:', gain, 'dB');
+  }
+}
+
+function setTrebleGain(gain) {
+  if (trebleFilter) {
+    trebleFilter.gain.value = gain;
+    console.log('🔊 [App] Treble gain:', gain, 'dB');
+  }
 }
 
 // Funktionen für zuschaltbares Audio im Recorder
@@ -839,6 +871,10 @@ onMounted(async () => {
   console.log('🎵 Initialisiere Audio-Context für Recorder...');
   setupAudioContext();
   console.log('✅ Audio-Context bereit - recordingDest verfügbar');
+
+  // ✨ EQ-Funktionen global verfügbar machen für PlayerPanel
+  window.setBassGain = setBassGain;
+  window.setTrebleGain = setTrebleGain;
 
   // 4. Canvas initialisieren
   const canvas = canvasRef.value;

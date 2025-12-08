@@ -67,6 +67,42 @@
           />
         </div>
       </div>
+
+      <!-- EQ Controls: Bass & Treble -->
+      <div class="eq-section">
+        <div class="eq-control">
+          <span class="eq-label">Bass: {{ bass > 0 ? '+' : '' }}{{ bass }} dB</span>
+          <div class="eq-slider-container">
+            <svg class="eq-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+            </svg>
+            <input
+              type="range"
+              min="-12"
+              max="12"
+              v-model="bass"
+              @input="updateBass"
+              class="eq-slider"
+            />
+          </div>
+        </div>
+        <div class="eq-control">
+          <span class="eq-label">Treble: {{ treble > 0 ? '+' : '' }}{{ treble }} dB</span>
+          <div class="eq-slider-container">
+            <svg class="eq-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 3l.01 10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4c2.21 0 4-1.79 4-4V7h4V3H12zm-1.99 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+            </svg>
+            <input
+              type="range"
+              min="-12"
+              max="12"
+              v-model="treble"
+              @input="updateTreble"
+              class="eq-slider"
+            />
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Playlist -->
@@ -108,6 +144,8 @@ import { usePlayerStore } from '../stores/playerStore.js';
 
 const playerStore = usePlayerStore();
 const volume = ref(100);
+const bass = ref(0);
+const treble = ref(0);
 
 const formatTime = (seconds) => {
   if (isNaN(seconds) || seconds === 0) return '0:00';
@@ -120,6 +158,20 @@ const updateVolume = () => {
   if (playerStore.audioRef) {
     playerStore.audioRef.volume = volume.value / 100;
     localStorage.setItem('playerVolume', volume.value);
+  }
+};
+
+const updateBass = () => {
+  if (window.setBassGain) {
+    window.setBassGain(parseFloat(bass.value));
+    localStorage.setItem('playerBass', bass.value);
+  }
+};
+
+const updateTreble = () => {
+  if (window.setTrebleGain) {
+    window.setTrebleGain(parseFloat(treble.value));
+    localStorage.setItem('playerTreble', treble.value);
   }
 };
 
@@ -188,6 +240,19 @@ onMounted(() => {
     updateVolume();
   } else if (playerStore.audioRef) {
     volume.value = Math.round(playerStore.audioRef.volume * 100);
+  }
+
+  // Load saved bass and treble settings
+  const savedBass = localStorage.getItem('playerBass');
+  if (savedBass !== null) {
+    bass.value = parseInt(savedBass);
+    updateBass();
+  }
+
+  const savedTreble = localStorage.getItem('playerTreble');
+  if (savedTreble !== null) {
+    treble.value = parseInt(savedTreble);
+    updateTreble();
   }
 });
 </script>
@@ -424,6 +489,85 @@ h3 {
 }
 
 .volume-slider::-moz-range-thumb:hover {
+  background: #5a98ee;
+  transform: scale(1.15);
+}
+
+/* EQ Section (Bass & Treble) */
+.eq-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.eq-control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eq-label {
+  font-size: 11px;
+  color: #aaa;
+}
+
+.eq-slider-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background-color: #333;
+  border-radius: 6px;
+}
+
+.eq-icon {
+  width: 14px;
+  height: 14px;
+  color: #e0e0e0;
+  flex-shrink: 0;
+}
+
+.eq-slider {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, #555 0%, #888 50%, #6ea8fe 100%);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.eq-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #6ea8fe;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.eq-slider::-webkit-slider-thumb:hover {
+  background: #5a98ee;
+  transform: scale(1.15);
+}
+
+.eq-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #6ea8fe;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.eq-slider::-moz-range-thumb:hover {
   background: #5a98ee;
   transform: scale(1.15);
 }

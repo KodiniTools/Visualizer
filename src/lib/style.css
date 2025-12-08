@@ -64,7 +64,7 @@ body {
     margin: 0;
     font-family: var(--font-sans);
     color: var(--text);
-    background: var(--body-gradient);
+    background: #121212;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-size: 15px;

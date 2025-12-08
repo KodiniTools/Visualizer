@@ -58,9 +58,9 @@ export class TextManager {
             // Rotation
             rotation: options.rotation || 0,
 
-            // ✨ AUDIO-REAKTIVE EFFEKTE
+            // ✨ AUDIO-REAKTIVE EFFEKTE (standardmäßig aktiviert für bessere UX)
             audioReactive: {
-                enabled: options.audioReactiveEnabled || false,
+                enabled: options.audioReactiveEnabled !== undefined ? options.audioReactiveEnabled : true,
                 source: options.audioReactiveSource || 'bass',  // 'bass', 'mid', 'treble', 'volume'
                 smoothing: options.audioReactiveSmoothing || 50,  // 0-100%
                 effects: {

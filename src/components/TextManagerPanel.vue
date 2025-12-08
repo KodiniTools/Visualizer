@@ -760,7 +760,7 @@ function createNewText() {
   const newTextObj = canvasManager.value.addText(normalizedText, {
     fontSize: 48,
     fontFamily: 'Arial',
-    color: '#ffffff',
+    color: '#ff0000',
     opacity: 100,
     letterSpacing: 0,
     lineHeightMultiplier: 120,
@@ -1060,7 +1060,7 @@ function handleOpenTextEditorWithChar(event) {
   const newTextObj = canvasManager.value.addText(char, {
     fontSize: 48,
     fontFamily: 'Arial',
-    color: '#ffffff',
+    color: '#ff0000',
     opacity: 100,
     letterSpacing: 0,
     lineHeightMultiplier: 120,

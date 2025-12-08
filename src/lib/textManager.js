@@ -27,7 +27,7 @@ export class TextManager {
             fontFamily: options.fontFamily || 'Arial',
             fontWeight: options.fontWeight || 'normal',
             fontStyle: options.fontStyle || 'normal',
-            color: options.color || '#ffffff',
+            color: options.color || '#ff0000',
             textAlign: options.textAlign || 'center',
             textBaseline: options.textBaseline || 'middle',
             

@@ -14,7 +14,7 @@ style.css - Haupt-Stylesheet für den Audio Visualizer Pro
 
 /* 🎨 Dark Theme (Almost Black) */
 [data-theme='dark'] {
-    --bg: #0a0a0a;
+    --bg: #121212;
     --panel: #161616;
     --text: #f0f0f0;
     --muted: #888888;

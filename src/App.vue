@@ -1136,6 +1136,10 @@ html, body {
   color: #e0e0e0;
   font-family: sans-serif;
 }
+#app-container {
+  min-height: 100%;
+  background-color: #121212;
+}
 .layout-grid {
   display: grid;
   grid-template-columns: 380px 1fr 380px;

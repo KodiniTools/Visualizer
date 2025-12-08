@@ -529,21 +529,26 @@ const isCanvasEmpty = computed(() => {
   return canvasManager.value.isCanvasEmpty();
 });
 
-// Setze nur den Hintergrund zurück
+// Setze nur den Hintergrund zurück (inkl. Workspace-Hintergrund)
 function resetBackground() {
   if (!canvasManager.value) {
     console.warn('⚠️ CanvasManager nicht verfügbar');
     return;
   }
-  
+
   saveCanvasState();
-  
+
   console.log('🔄 Setze Hintergrund zurück');
   canvasManager.value.setBackground('#000000');
   backgroundColor.value = '#000000';
   backgroundOpacity.value = 1.0;
+
+  // Workspace-Hintergrund auch zurücksetzen
+  canvasManager.value.workspaceBackground = null;
+  canvasManager.value.redrawCallback();
+
   updateColorDisplay();
-  console.log('✅ Hintergrund zurückgesetzt');
+  console.log('✅ Hintergrund zurückgesetzt (inkl. Workspace)');
 }
 
 // Bestätige Canvas-Reset

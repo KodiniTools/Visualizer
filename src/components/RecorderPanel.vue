@@ -151,6 +151,94 @@
         </button>
       </div>
     </div>
+
+    <!-- FFmpeg Server Conversion -->
+    <div class="control-section" v-if="!recorderStore.isRecording">
+      <div class="section-header">
+        <span class="section-label">MP4 Konvertierung</span>
+        <span
+          class="server-status"
+          :class="{ available: serverAvailable, unavailable: serverAvailable === false }"
+          :title="serverAvailable ? 'FFmpeg Server verfügbar' : 'FFmpeg Server nicht erreichbar'"
+        >
+          {{ serverAvailable ? '●' : '○' }}
+        </span>
+      </div>
+
+      <label class="toggle-row">
+        <input
+          type="checkbox"
+          v-model="enableServerConversion"
+          :disabled="!serverAvailable || recorderStore.isRecording"
+        >
+        <span class="toggle-label">Auto-Konvertierung nach Aufnahme</span>
+      </label>
+
+      <div class="quality-buttons conversion-quality" v-if="enableServerConversion && serverAvailable">
+        <button
+          v-for="preset in conversionPresets"
+          :key="preset.value"
+          class="quality-btn"
+          :class="{ active: conversionQuality === preset.value }"
+          @click="conversionQuality = preset.value"
+          :title="preset.desc"
+          :disabled="recorderStore.isRecording"
+        >
+          {{ preset.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Conversion Progress -->
+    <div class="conversion-progress" v-if="isConverting || conversionStatus === 'completed'">
+      <div class="progress-header">
+        <span class="progress-label">
+          {{ conversionStatus === 'uploading' ? 'Uploading...' :
+             conversionStatus === 'converting' ? 'Konvertiere zu MP4...' :
+             conversionStatus === 'completed' ? 'MP4 bereit!' :
+             conversionStatus === 'error' ? 'Fehler!' : '' }}
+        </span>
+        <span class="progress-percent">{{ conversionProgress }}%</span>
+      </div>
+      <div class="progress-bar">
+        <div
+          class="progress-fill"
+          :class="{ completed: conversionStatus === 'completed', error: conversionStatus === 'error' }"
+          :style="{ width: conversionProgress + '%' }"
+        ></div>
+      </div>
+
+      <!-- MP4 Download Button -->
+      <a
+        v-if="convertedVideoUrl && conversionStatus === 'completed'"
+        :href="convertedVideoUrl"
+        :download="convertedFilename"
+        class="mp4-download-btn"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        MP4 Download
+      </a>
+    </div>
+
+    <!-- Manual Convert Button -->
+    <button
+      v-if="recorderStore.lastRecording && !isConverting && serverAvailable && conversionStatus !== 'completed'"
+      class="btn btn-convert"
+      @click="convertLastRecording"
+      :disabled="isProcessing"
+    >
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M23 4v6h-6"/>
+        <path d="M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
+        <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
+      </svg>
+      Zu MP4 konvertieren
+    </button>
   </div>
 
   <!-- Results Modal (Fullscreen Popup) -->
@@ -202,6 +290,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRecorderStore } from '../stores/recorderStore.js';
 import HelpTooltip from './HelpTooltip.vue';
+import { checkServerHealth, convertAndWait, getFileUrl } from '../lib/videoApi.js';
 
 const recorderStore = useRecorderStore();
 
@@ -209,6 +298,16 @@ const recorderStore = useRecorderStore();
 const selectedQuality = ref(8_000_000);
 const uploadMode = ref('auto');
 const isProcessing = ref(false);
+
+// Server Conversion State
+const serverAvailable = ref(null); // null = unknown, true/false
+const enableServerConversion = ref(true); // FFmpeg Konvertierung aktiviert
+const conversionQuality = ref('social'); // FFmpeg Preset
+const isConverting = ref(false);
+const conversionProgress = ref(0);
+const conversionStatus = ref(''); // 'uploading', 'converting', 'completed', 'error'
+const convertedVideoUrl = ref(null);
+const convertedFilename = ref(null);
 
 // Quality Presets - ✅ Erweitert für 4K+ und Audio-Reaktiv
 const qualityPresets = [
@@ -220,6 +319,15 @@ const qualityPresets = [
   { value: 40_000_000, label: '4K' },
   { value: 60_000_000, label: '4K+' },
   { value: 80_000_000, label: 'Max' }
+];
+
+// FFmpeg Conversion Presets
+const conversionPresets = [
+  { value: 'preview', label: 'Preview', desc: 'Schnell, niedrige Qualität' },
+  { value: 'medium', label: 'Medium', desc: 'Gute Balance' },
+  { value: 'social', label: 'Social', desc: 'Optimiert für Social Media' },
+  { value: 'high', label: 'High', desc: 'Hohe Qualität' },
+  { value: 'highest', label: 'Highest', desc: 'Maximale Qualität' }
 ];
 
 // Computed
@@ -335,14 +443,19 @@ function handleResume() {
 
 async function handleStop() {
   if (isProcessing.value) return;
-  
+
   try {
     isProcessing.value = true;
     const blob = await recorderStore.stopRecording();
-    
+
     if (blob) {
       const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
       console.log('✅ [Panel] Recording stopped:', sizeMB, 'MB');
+
+      // Server-Konvertierung starten wenn aktiviert
+      if (enableServerConversion.value && serverAvailable.value) {
+        await startServerConversion(blob);
+      }
     } else {
       console.warn('⚠️ [Panel] Recording stopped but no blob received');
     }
@@ -351,6 +464,57 @@ async function handleStop() {
   } finally {
     isProcessing.value = false;
   }
+}
+
+/**
+ * Startet die Server-seitige FFmpeg Konvertierung
+ */
+async function startServerConversion(blob) {
+  if (!blob || isConverting.value) return;
+
+  console.log('🎬 [Panel] Starte Server-Konvertierung...');
+  isConverting.value = true;
+  conversionProgress.value = 0;
+  conversionStatus.value = 'uploading';
+  convertedVideoUrl.value = null;
+  convertedFilename.value = null;
+
+  try {
+    const result = await convertAndWait(blob, {
+      quality: conversionQuality.value,
+      onProgress: (progress) => {
+        conversionProgress.value = progress;
+      },
+      onStatusChange: (status) => {
+        conversionStatus.value = status;
+        console.log('📊 [Panel] Conversion status:', status);
+      }
+    });
+
+    if (result.success) {
+      convertedVideoUrl.value = result.fileUrl;
+      convertedFilename.value = result.filename;
+      conversionStatus.value = 'completed';
+      console.log('✅ [Panel] Konvertierung abgeschlossen:', result.filename);
+    }
+  } catch (error) {
+    console.error('❌ [Panel] Konvertierung fehlgeschlagen:', error);
+    conversionStatus.value = 'error';
+  } finally {
+    isConverting.value = false;
+  }
+}
+
+/**
+ * Manuelle Konvertierung starten (für bereits aufgenommene Videos)
+ */
+async function convertLastRecording() {
+  if (!recorderStore.lastRecording?.blob) {
+    console.warn('⚠️ [Panel] Keine Aufnahme zum Konvertieren');
+    return;
+  }
+
+  await startServerConversion(recorderStore.lastRecording.blob);
 }
 
 function handleReset() {
@@ -386,8 +550,22 @@ function handleKeydown(e) {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   document.addEventListener('keydown', handleKeydown);
+
+  // Server-Verfügbarkeit prüfen
+  try {
+    const health = await checkServerHealth();
+    serverAvailable.value = health.available;
+    if (health.available) {
+      console.log('✅ [Panel] FFmpeg Backend verfügbar');
+    } else {
+      console.warn('⚠️ [Panel] FFmpeg Backend nicht erreichbar:', health.error);
+    }
+  } catch (error) {
+    serverAvailable.value = false;
+    console.error('❌ [Panel] Server Health Check fehlgeschlagen:', error);
+  }
 });
 
 onUnmounted(() => {
@@ -719,6 +897,147 @@ h3 {
 .upload-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Server Conversion Section */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.server-status {
+  font-size: 12px;
+  transition: color 0.3s ease;
+}
+
+.server-status.available {
+  color: #4CAF50;
+}
+
+.server-status.unavailable {
+  color: #666;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.toggle-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #6ea8fe;
+  cursor: pointer;
+}
+
+.toggle-row input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.toggle-label {
+  font-size: 11px;
+  color: #c0c0c0;
+}
+
+.conversion-quality {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+/* Conversion Progress */
+.conversion-progress {
+  background: rgba(110, 168, 254, 0.1);
+  border: 1px solid rgba(110, 168, 254, 0.3);
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #6ea8fe;
+}
+
+.progress-percent {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6ea8fe;
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6ea8fe, #4FC3F7);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-fill.completed {
+  background: linear-gradient(90deg, #4CAF50, #66BB6A);
+}
+
+.progress-fill.error {
+  background: linear-gradient(90deg, #F44336, #E57373);
+}
+
+.mp4-download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.mp4-download-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.mp4-download-btn:hover {
+  background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+/* Convert Button */
+.btn-convert {
+  background: rgba(156, 39, 176, 0.2);
+  color: #CE93D8;
+  border: 1px solid rgba(156, 39, 176, 0.3);
+  width: 100%;
+}
+
+.btn-convert:hover:not(:disabled) {
+  background: rgba(156, 39, 176, 0.3);
+  transform: translateY(-1px);
 }
 
 /* Responsive */

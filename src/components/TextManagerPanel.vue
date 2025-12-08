@@ -395,6 +395,25 @@ Zeile 3..."
         <details class="advanced-settings">
           <summary>⚙️ Erweiterte Einstellungen</summary>
 
+          <!-- Presets -->
+          <div class="control-group">
+            <label>Presets:</label>
+            <div class="preset-buttons">
+              <button @click="applyAudioPreset('punchy')" class="btn-preset" title="Schnelle, knackige Reaktion">
+                ⚡ Punchy
+              </button>
+              <button @click="applyAudioPreset('smooth')" class="btn-preset" title="Sanfte, fließende Animation">
+                🌊 Smooth
+              </button>
+              <button @click="applyAudioPreset('subtle')" class="btn-preset" title="Dezente, subtile Effekte">
+                🎭 Subtle
+              </button>
+              <button @click="applyAudioPreset('extreme')" class="btn-preset" title="Maximale Reaktion">
+                🔥 Extrem
+              </button>
+            </div>
+          </div>
+
           <!-- Threshold -->
           <div class="control-group">
             <label>Schwellenwert: {{ selectedText.audioReactive.threshold || 0 }}%</label>
@@ -436,6 +455,11 @@ Zeile 3..."
             />
             <div class="hint-text">Wie langsam der Effekt abklingt</div>
           </div>
+
+          <!-- Reset Button -->
+          <button @click="resetAudioSettings" class="btn-reset">
+            🔄 Zurücksetzen
+          </button>
         </details>
 
         <div class="divider"></div>
@@ -962,6 +986,67 @@ function toggleAudioReactive() {
     selectedText.value.audioReactive.enabled = !selectedText.value.audioReactive.enabled;
     updateText();
   }
+}
+
+// ✨ Audio-Presets anwenden
+function applyAudioPreset(presetName) {
+  if (!selectedText.value?.audioReactive) return;
+
+  const presets = {
+    punchy: {
+      threshold: 10,
+      attack: 95,
+      release: 70,
+      smoothing: 20
+    },
+    smooth: {
+      threshold: 5,
+      attack: 50,
+      release: 30,
+      smoothing: 70
+    },
+    subtle: {
+      threshold: 15,
+      attack: 60,
+      release: 40,
+      smoothing: 60
+    },
+    extreme: {
+      threshold: 0,
+      attack: 100,
+      release: 85,
+      smoothing: 10
+    }
+  };
+
+  const preset = presets[presetName];
+  if (preset) {
+    selectedText.value.audioReactive.threshold = preset.threshold;
+    selectedText.value.audioReactive.attack = preset.attack;
+    selectedText.value.audioReactive.release = preset.release;
+    selectedText.value.audioReactive.smoothing = preset.smoothing;
+    updateText();
+    console.log(`🎛️ Audio-Preset "${presetName}" angewendet`);
+  }
+}
+
+// ✨ Audio-Einstellungen zurücksetzen
+function resetAudioSettings() {
+  if (!selectedText.value?.audioReactive) return;
+
+  selectedText.value.audioReactive.threshold = 0;
+  selectedText.value.audioReactive.attack = 90;
+  selectedText.value.audioReactive.release = 50;
+  selectedText.value.audioReactive.smoothing = 50;
+
+  // Auch Opacity-spezifische Einstellungen zurücksetzen
+  if (selectedText.value.audioReactive.effects?.opacity) {
+    selectedText.value.audioReactive.effects.opacity.minimum = 0;
+    selectedText.value.audioReactive.effects.opacity.ease = false;
+  }
+
+  updateText();
+  console.log('🔄 Audio-Einstellungen zurückgesetzt');
 }
 
 // Ausgewählten Text löschen
@@ -1645,6 +1730,56 @@ h4 {
 
 .advanced-settings summary:hover {
   color: #8ec5ff;
+}
+
+.preset-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.btn-preset {
+  flex: 1;
+  min-width: 70px;
+  padding: 6px 8px;
+  font-size: 11px;
+  background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+  border: 1px solid #444;
+  border-radius: 6px;
+  color: #ddd;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-preset:hover {
+  background: linear-gradient(135deg, #3a3a3a 0%, #4a4a4a 100%);
+  border-color: #6ea8fe;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.btn-preset:active {
+  transform: translateY(0);
+}
+
+.btn-reset {
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px 12px;
+  font-size: 12px;
+  background: linear-gradient(135deg, #3a2a2a 0%, #4a3a3a 100%);
+  border: 1px solid #664444;
+  border-radius: 6px;
+  color: #ffaaaa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-reset:hover {
+  background: linear-gradient(135deg, #4a3a3a 0%, #5a4a4a 100%);
+  border-color: #ff6666;
+  color: #fff;
 }
 
 .advanced-settings .control-group {

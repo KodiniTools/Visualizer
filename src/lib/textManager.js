@@ -313,9 +313,11 @@ export class TextManager {
         // ✨ TRANSPARENZ/DECKKRAFT anwenden (0-100% → 0.0-1.0)
         let baseOpacity = (textObj.opacity !== undefined ? textObj.opacity : 100) / 100;
 
-        // Audio-reaktive Opacity überschreiben
+        // Audio-reaktive Opacity moduliert den Basis-Wert (statt ihn zu überschreiben)
         if (audioReactive && audioReactive.hasEffects && audioReactive.effects.opacity) {
-            baseOpacity = audioReactive.effects.opacity.opacity / 100;
+            // audioReactive.effects.opacity.opacity ist 30-100, moduliert den Slider-Wert
+            const audioModulation = audioReactive.effects.opacity.opacity / 100;
+            baseOpacity = baseOpacity * audioModulation;
         }
         ctx.globalAlpha = baseOpacity;
 

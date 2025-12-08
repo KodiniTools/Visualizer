@@ -330,14 +330,327 @@ Zeile 3..."
       <!-- Rotation -->
       <div class="control-group">
         <label>Rotation: {{ selectedText.rotation }}°</label>
-        <input 
-          type="range" 
+        <input
+          type="range"
           v-model.number="selectedText.rotation"
           @input="updateText"
           min="-180"
           max="180"
           class="slider"
         />
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- ✨ AUDIO-REAKTIVE EFFEKTE -->
+      <h4>Audio-Reaktiv</h4>
+
+      <!-- Aktivieren/Deaktivieren -->
+      <div class="control-group">
+        <label>Audio-Reaktive Effekte:</label>
+        <div class="button-group">
+          <button
+            @click="toggleAudioReactive"
+            :class="['btn-small', { active: selectedText.audioReactive?.enabled }]"
+          >
+            {{ selectedText.audioReactive?.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Audio-Einstellungen (nur wenn aktiviert) -->
+      <div v-if="selectedText.audioReactive?.enabled">
+        <!-- Audio-Quelle -->
+        <div class="control-group">
+          <label>Audio-Quelle:</label>
+          <select
+            v-model="selectedText.audioReactive.source"
+            @change="updateText"
+            class="select-input"
+          >
+            <option value="bass">Bass (Kick/Drums)</option>
+            <option value="mid">Mid (Vocals/Melodie)</option>
+            <option value="treble">Treble (Hi-Hats/Höhen)</option>
+            <option value="volume">Volume (Gesamt)</option>
+          </select>
+        </div>
+
+        <!-- Smoothing -->
+        <div class="control-group">
+          <label>Glättung: {{ selectedText.audioReactive.smoothing }}%</label>
+          <input
+            type="range"
+            v-model.number="selectedText.audioReactive.smoothing"
+            @input="updateText"
+            min="0"
+            max="100"
+            class="slider"
+          />
+          <div class="hint-text">
+            Niedrig = schnelle Reaktion, Hoch = sanfte Animation
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h4>Effekte auswählen</h4>
+
+        <!-- Effekt-Liste -->
+        <div class="effects-grid">
+          <!-- Hue (Farbrotation) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.hue.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">🎨</span> Farbrotation
+              </label>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.hue.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.hue.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.hue.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- Brightness (Helligkeit) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.brightness.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">☀️</span> Helligkeit
+              </label>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.brightness.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.brightness.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.brightness.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- Scale (Pulsieren) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.scale.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">📐</span> Pulsieren
+              </label>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.scale.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.scale.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.scale.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- Glow (Leuchten) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.glow.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">✨</span> Leuchten
+              </label>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.glow.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.glow.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.glow.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- Shake (Wackeln) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.shake.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">🫨</span> Wackeln
+              </label>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.shake.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.shake.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.shake.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- Bounce (Hüpfen) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.bounce.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">⬆️</span> Hüpfen
+              </label>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.bounce.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.bounce.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.bounce.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- Swing (Pendeln) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.swing.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">➡️</span> Pendeln
+              </label>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.swing.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.swing.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.swing.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- Opacity (Blinken) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.opacity.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">👁️</span> Blinken
+              </label>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.opacity.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.opacity.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.opacity.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- Letter Spacing (Buchstabenabstand) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.letterSpacing.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">↔️</span> Abstand
+              </label>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.letterSpacing.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.letterSpacing.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.letterSpacing.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- Stroke Width (Kontur) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.strokeWidth.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">🖼️</span> Kontur
+              </label>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.strokeWidth.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.strokeWidth.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.strokeWidth.intensity }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hint-text" style="margin-top: 10px;">
+          Tipp: Aktiviere mehrere Effekte gleichzeitig für komplexe Animationen!
+        </div>
       </div>
 
       <div class="divider"></div>
@@ -550,6 +863,34 @@ function toggleStroke() {
   }
 }
 
+// ✨ Audio-Reaktive Effekte aktivieren/deaktivieren
+function toggleAudioReactive() {
+  if (selectedText.value) {
+    // Initialisiere audioReactive wenn nicht vorhanden
+    if (!selectedText.value.audioReactive) {
+      selectedText.value.audioReactive = {
+        enabled: false,
+        source: 'bass',
+        smoothing: 50,
+        effects: {
+          hue: { enabled: false, intensity: 80 },
+          brightness: { enabled: false, intensity: 80 },
+          scale: { enabled: false, intensity: 80 },
+          glow: { enabled: false, intensity: 80 },
+          shake: { enabled: false, intensity: 80 },
+          bounce: { enabled: false, intensity: 80 },
+          swing: { enabled: false, intensity: 80 },
+          opacity: { enabled: false, intensity: 80 },
+          letterSpacing: { enabled: false, intensity: 80 },
+          strokeWidth: { enabled: false, intensity: 80 }
+        }
+      };
+    }
+    selectedText.value.audioReactive.enabled = !selectedText.value.audioReactive.enabled;
+    updateText();
+  }
+}
+
 // Ausgewählten Text löschen
 function deleteSelectedText() {
   if (canvasManager.value && selectedText.value) {
@@ -581,6 +922,27 @@ function handleSelectionChange(obj) {
         blur: 0,
         offsetX: 0,
         offsetY: 0
+      };
+    }
+
+    // ✨ Initialisiere audioReactive wenn nicht vorhanden (für ältere Text-Objekte)
+    if (!obj.audioReactive) {
+      obj.audioReactive = {
+        enabled: false,
+        source: 'bass',
+        smoothing: 50,
+        effects: {
+          hue: { enabled: false, intensity: 80 },
+          brightness: { enabled: false, intensity: 80 },
+          scale: { enabled: false, intensity: 80 },
+          glow: { enabled: false, intensity: 80 },
+          shake: { enabled: false, intensity: 80 },
+          bounce: { enabled: false, intensity: 80 },
+          swing: { enabled: false, intensity: 80 },
+          opacity: { enabled: false, intensity: 80 },
+          letterSpacing: { enabled: false, intensity: 80 },
+          strokeWidth: { enabled: false, intensity: 80 }
+        }
       };
     }
 
@@ -1095,5 +1457,108 @@ h4 {
   line-height: 1.6;
   margin: 0;
   text-align: center;
+}
+
+/* ===== AUDIO-REAKTIV EFFEKTE GRID ===== */
+.effects-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.effect-item {
+  background-color: #252525;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  padding: 8px 10px;
+  transition: all 0.2s ease;
+}
+
+.effect-item:hover {
+  border-color: #4a4a4a;
+  background-color: #2a2a2a;
+}
+
+.effect-header {
+  display: flex;
+  align-items: center;
+}
+
+.effect-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #e0e0e0;
+  user-select: none;
+}
+
+.effect-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #6ea8fe;
+}
+
+.effect-icon {
+  font-size: 14px;
+  margin-right: 2px;
+}
+
+.effect-intensity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #3a3a3a;
+}
+
+.slider-small {
+  flex: 1;
+  height: 4px;
+  background: linear-gradient(90deg, #2a2a2a 0%, #3a3a3a 100%);
+  border-radius: 10px;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid #333;
+}
+
+.slider-small::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider-small::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(110, 168, 254, 0.4);
+}
+
+.slider-small::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.intensity-value {
+  font-size: 11px;
+  color: #6ea8fe;
+  font-weight: 600;
+  min-width: 35px;
+  text-align: right;
 }
 </style>

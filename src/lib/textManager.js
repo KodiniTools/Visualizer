@@ -54,9 +54,28 @@ export class TextManager {
                 color: options.strokeColor || '#000000',
                 width: options.strokeWidth || 2
             },
-            
+
             // Rotation
-            rotation: options.rotation || 0
+            rotation: options.rotation || 0,
+
+            // ✨ AUDIO-REAKTIVE EFFEKTE
+            audioReactive: {
+                enabled: options.audioReactiveEnabled || false,
+                source: options.audioReactiveSource || 'bass',  // 'bass', 'mid', 'treble', 'volume'
+                smoothing: options.audioReactiveSmoothing || 50,  // 0-100%
+                effects: {
+                    hue: { enabled: false, intensity: 80 },
+                    brightness: { enabled: false, intensity: 80 },
+                    scale: { enabled: false, intensity: 80 },
+                    glow: { enabled: false, intensity: 80 },
+                    shake: { enabled: false, intensity: 80 },
+                    bounce: { enabled: false, intensity: 80 },
+                    swing: { enabled: false, intensity: 80 },
+                    opacity: { enabled: false, intensity: 80 },
+                    letterSpacing: { enabled: false, intensity: 80 },
+                    strokeWidth: { enabled: false, intensity: 80 }
+                }
+            }
         };
         
         this.textObjects.push(newText);
@@ -281,34 +300,102 @@ export class TextManager {
 
     /**
      * Zeichnet einen einzelnen Text (mit Unterstützung für mehrzeilige Texte)
+     * ✨ ERWEITERT: Unterstützt jetzt Audio-Reaktive Effekte
      */
     drawText(ctx, textObj, canvasWidth, canvasHeight) {
         if (!textObj.content) return;
-        
+
         ctx.save();
-        
+
+        // ✨ AUDIO-REAKTIVE WERTE berechnen
+        const audioReactive = this.getAudioReactiveValues(textObj.audioReactive);
+
         // ✨ TRANSPARENZ/DECKKRAFT anwenden (0-100% → 0.0-1.0)
-        ctx.globalAlpha = (textObj.opacity || 100) / 100;
-        
-        const pixelX = textObj.relX * canvasWidth;
-        const pixelY = textObj.relY * canvasHeight;
-        
-        // Rotation anwenden
-        if (textObj.rotation !== 0) {
+        let baseOpacity = (textObj.opacity || 100) / 100;
+
+        // Audio-reaktive Opacity überschreiben
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.opacity) {
+            baseOpacity = audioReactive.effects.opacity.opacity / 100;
+        }
+        ctx.globalAlpha = baseOpacity;
+
+        // Basis-Position berechnen
+        let pixelX = textObj.relX * canvasWidth;
+        let pixelY = textObj.relY * canvasHeight;
+
+        // ✨ AUDIO-REAKTIV: Shake-Effekt (Erschütterung)
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.shake) {
+            const shake = audioReactive.effects.shake;
+            pixelX += shake.shakeX || 0;
+            pixelY += shake.shakeY || 0;
+        }
+
+        // ✨ AUDIO-REAKTIV: Bounce-Effekt (Hüpfen)
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.bounce) {
+            const bounce = audioReactive.effects.bounce;
+            pixelY += bounce.bounceY || 0;
+        }
+
+        // ✨ AUDIO-REAKTIV: Swing-Effekt (Horizontales Pendeln)
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.swing) {
+            const swing = audioReactive.effects.swing;
+            pixelX += swing.swingX || 0;
+        }
+
+        // ✨ AUDIO-REAKTIV: Scale-Effekt (pulsieren)
+        let scale = 1.0;
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.scale) {
+            scale = audioReactive.effects.scale.scale;
+        }
+
+        // Rotation + Scale anwenden
+        const totalRotation = textObj.rotation || 0;
+        if (totalRotation !== 0 || scale !== 1.0) {
             ctx.translate(pixelX, pixelY);
-            ctx.rotate((textObj.rotation * Math.PI) / 180);
+            if (totalRotation !== 0) {
+                ctx.rotate((totalRotation * Math.PI) / 180);
+            }
+            if (scale !== 1.0) {
+                ctx.scale(scale, scale);
+            }
             ctx.translate(-pixelX, -pixelY);
         }
-        
-        this.applyTextStyle(ctx, textObj);
-        
+
+        // ✨ AUDIO-REAKTIV: Filter anwenden (Hue, Brightness)
+        let filterString = '';
+        if (audioReactive && audioReactive.hasEffects) {
+            const effects = audioReactive.effects;
+
+            // Hue-Rotation
+            if (effects.hue) {
+                filterString += `hue-rotate(${effects.hue.hueRotate}deg) `;
+            }
+
+            // Helligkeit
+            if (effects.brightness) {
+                filterString += `brightness(${effects.brightness.brightness}%) `;
+            }
+        }
+        if (filterString) {
+            ctx.filter = filterString.trim();
+        }
+
+        // ✨ AUDIO-REAKTIV: Glow-Effekt (überschreibt statischen Schatten temporär)
+        let useAudioGlow = false;
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.glow) {
+            useAudioGlow = true;
+        }
+
+        // Text-Stil anwenden (mit Audio-Reaktiven Überschreibungen)
+        this.applyTextStyleWithAudio(ctx, textObj, audioReactive, useAudioGlow);
+
         // ✨ Mehrzeilige Texte unterstützen (Zeilenumbrüche mit \n)
         const lines = textObj.content.split('\n');
-        
+
         // ✨ DYNAMISCHER ZEILENABSTAND (lineHeightMultiplier: 100-300%)
         const lineHeightMultiplier = (textObj.lineHeightMultiplier || 120) / 100;
         const lineHeight = textObj.fontSize * lineHeightMultiplier;
-        
+
         // Berechne Start-Y-Position für zentrierte mehrzeilige Texte
         let startY = pixelY;
         if (lines.length > 1) {
@@ -317,25 +404,81 @@ export class TextManager {
                 startY = pixelY - ((lines.length - 1) * lineHeight) / 2;
             }
         }
-        
+
         // Zeichne jede Zeile einzeln
         lines.forEach((line, index) => {
             const yPos = startY + (index * lineHeight);
-            
-            // ✨ KONTUR zeichnen (wenn aktiviert)
-            if (textObj.stroke.enabled) {
+
+            // ✨ KONTUR zeichnen (wenn aktiviert oder audio-reaktiv)
+            const hasStroke = textObj.stroke.enabled ||
+                (audioReactive && audioReactive.hasEffects && audioReactive.effects.strokeWidth);
+            if (hasStroke) {
                 ctx.strokeText(line, pixelX, yPos);
             }
-            
+
             // Text füllen
             ctx.fillText(line, pixelX, yPos);
         });
-        
-        // 🔧 WICHTIG: Schatten explizit zurücksetzen VOR restore()
-        // Verhindert "Schatten-Lecks" auf nachfolgende Canvas-Elemente
+
+        // 🔧 WICHTIG: Schatten und Filter explizit zurücksetzen VOR restore()
         this.resetShadow(ctx);
-        
+        ctx.filter = 'none';
+
         ctx.restore();
+    }
+
+    /**
+     * ✨ NEU: Wendet Text-Stil mit Audio-Reaktiven Überschreibungen an
+     */
+    applyTextStyleWithAudio(ctx, textObj, audioReactive, useAudioGlow) {
+        ctx.font = `${textObj.fontStyle} ${textObj.fontWeight} ${textObj.fontSize}px ${textObj.fontFamily}`;
+        ctx.fillStyle = textObj.color;
+        ctx.textAlign = textObj.textAlign;
+        ctx.textBaseline = textObj.textBaseline;
+
+        // ✨ BUCHSTABENABSTAND (statisch + audio-reaktiv)
+        let letterSpacing = textObj.letterSpacing || 0;
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.letterSpacing) {
+            letterSpacing += audioReactive.effects.letterSpacing.letterSpacing;
+        }
+        ctx.letterSpacing = `${letterSpacing}px`;
+
+        // ✨ SCHATTEN / GLOW
+        if (useAudioGlow && audioReactive.effects.glow) {
+            // Audio-reaktiver Glow überschreibt statischen Schatten
+            const glow = audioReactive.effects.glow;
+            ctx.shadowColor = glow.glowColor;
+            ctx.shadowBlur = glow.glowBlur;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+        } else if (textObj.shadow.blur > 0 || textObj.shadow.offsetX !== 0 || textObj.shadow.offsetY !== 0) {
+            // Statischer Schatten
+            ctx.shadowColor = textObj.shadow.color;
+            ctx.shadowBlur = textObj.shadow.blur;
+            ctx.shadowOffsetX = textObj.shadow.offsetX;
+            ctx.shadowOffsetY = textObj.shadow.offsetY;
+        } else {
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+        }
+
+        // ✨ KONTUR (statisch + audio-reaktiv)
+        let strokeWidth = textObj.stroke.width || 2;
+        let strokeEnabled = textObj.stroke.enabled;
+
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.strokeWidth) {
+            // Audio-reaktive Kontur aktivieren und Breite setzen
+            strokeEnabled = true;
+            strokeWidth = Math.max(strokeWidth, audioReactive.effects.strokeWidth.strokeWidth);
+        }
+
+        if (strokeEnabled) {
+            ctx.strokeStyle = textObj.stroke.color;
+            ctx.lineWidth = strokeWidth;
+            ctx.lineJoin = 'round';
+        }
     }
 
     /**
@@ -390,6 +533,125 @@ export class TextManager {
      */
     clear() {
         this.textObjects = [];
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ✨ AUDIO-REAKTIVE EFFEKTE FÜR TEXT
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * ✨ Berechnet Audio-Reaktive Effekt-Werte basierend auf den aktuellen Audio-Daten
+     * Unterstützt MEHRERE Effekte gleichzeitig
+     */
+    getAudioReactiveValues(audioSettings) {
+        if (!audioSettings || !audioSettings.enabled) {
+            return null;
+        }
+
+        const audioData = window.audioAnalysisData;
+        if (!audioData) return null;
+
+        // Audio-Level basierend auf gewählter Quelle holen
+        const source = audioSettings.source || 'bass';
+        const smoothing = audioSettings.smoothing || 50;
+        let audioLevel = 0;
+
+        // Wähle zwischen geglätteten und rohen Werten basierend auf Smoothing
+        const useSmooth = smoothing > 30;
+
+        switch (source) {
+            case 'bass':
+                audioLevel = useSmooth ? audioData.smoothBass : audioData.bass;
+                break;
+            case 'mid':
+                audioLevel = useSmooth ? audioData.smoothMid : audioData.mid;
+                break;
+            case 'treble':
+                audioLevel = useSmooth ? audioData.smoothTreble : audioData.treble;
+                break;
+            case 'volume':
+                audioLevel = useSmooth ? audioData.smoothVolume : audioData.volume;
+                break;
+        }
+
+        // Basis Audio-Level normalisiert auf 0-1
+        const baseLevel = audioLevel / 255;
+
+        // Ergebnis-Objekt für alle aktivierten Effekte
+        const result = {
+            hasEffects: false,
+            effects: {}
+        };
+
+        // Prüfe welche Effekte aktiviert sind
+        const effects = audioSettings.effects;
+        if (!effects) return null;
+
+        // Berechne Werte für jeden aktivierten Effekt
+        for (const [effectName, effectConfig] of Object.entries(effects)) {
+            if (effectConfig && effectConfig.enabled) {
+                const intensity = (effectConfig.intensity || 80) / 100;
+                const normalizedLevel = baseLevel * intensity;
+
+                result.hasEffects = true;
+                result.effects[effectName] = this._calculateTextEffectValue(effectName, normalizedLevel);
+            }
+        }
+
+        return result.hasEffects ? result : null;
+    }
+
+    /**
+     * ✨ Berechnet den Wert für einen einzelnen Text-Effekt
+     */
+    _calculateTextEffectValue(effectName, normalizedLevel) {
+        switch (effectName) {
+            case 'hue':
+                // Hue-Rotation: 0-720 Grad (2x Durchlauf für stärkeren Effekt)
+                return { hueRotate: normalizedLevel * 720 };
+            case 'brightness':
+                // Helligkeit: 60-180% basierend auf Audio-Level
+                return { brightness: 60 + (normalizedLevel * 120) };
+            case 'scale':
+                // Skalierung: 1.0-1.5 basierend auf Audio-Level
+                return { scale: 1.0 + (normalizedLevel * 0.5) };
+            case 'glow':
+                // Glow/Shadow: 0-50px basierend auf Audio-Level
+                return {
+                    glowBlur: normalizedLevel * 50,
+                    glowColor: `rgba(139, 92, 246, ${0.5 + normalizedLevel * 0.5})`
+                };
+            case 'shake':
+                // Erschütterung: Zufällige X/Y-Verschiebung bei hohem Audio-Level
+                if (normalizedLevel > 0.2) {
+                    const shakeIntensity = normalizedLevel * 15;
+                    const shakeX = (Math.random() - 0.5) * 2 * shakeIntensity;
+                    const shakeY = (Math.random() - 0.5) * 2 * shakeIntensity;
+                    return { shakeX, shakeY };
+                }
+                return { shakeX: 0, shakeY: 0 };
+            case 'bounce':
+                // Vertikales Hüpfen: Sinuswelle + Audio-Level
+                const timeBounce = Date.now() * 0.008;
+                const bounceAmount = Math.abs(Math.sin(timeBounce)) * normalizedLevel * 30;
+                return { bounceY: -bounceAmount };
+            case 'swing':
+                // Horizontales Pendeln: Sinuswelle für sanftes Hin-und-Her
+                const timeSwing = Date.now() * 0.004;
+                const swingAmount = Math.sin(timeSwing) * normalizedLevel * 40;
+                return { swingX: swingAmount };
+            case 'opacity':
+                // Pulsierende Deckkraft: 30-100% basierend auf Audio-Level
+                return { opacity: 30 + (normalizedLevel * 70) };
+            case 'letterSpacing':
+                // Dynamischer Buchstabenabstand: 0-30px basierend auf Audio-Level
+                return { letterSpacing: normalizedLevel * 30 };
+            case 'strokeWidth':
+                // Pulsierende Kontur-Dicke: 0-10px basierend auf Audio-Level
+                return { strokeWidth: normalizedLevel * 10 };
+            default:
+                return {};
+        }
     }
 
     /**

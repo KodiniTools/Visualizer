@@ -215,46 +215,68 @@ async function processConversion(jobId, inputPath, quality) {
   const outputPath = path.join(FILES_DIR, outputFilename);
 
   updateJob(jobId, { status: 'processing', progress: 10 });
+  console.log(`🎬 [Job ${jobId}] Starte Konvertierung: ${inputPath} → ${outputFilename}`);
 
   try {
     await ffmpegService.convertToMP4(inputPath, outputPath, {
       quality,
       onProgress: (time) => {
-        // Progress Update (vereinfacht)
         updateJob(jobId, { progress: 50 });
       }
     });
 
-    // Generiere Thumbnail
-    const thumbnailPath = path.join(FILES_DIR, `thumb_${Date.now()}.jpg`);
-    await ffmpegService.generateThumbnail(outputPath, thumbnailPath);
+    console.log(`✅ [Job ${jobId}] FFmpeg Konvertierung abgeschlossen`);
 
-    // Hole Video-Info
-    const info = await ffmpegService.getVideoInfo(outputPath);
-    const stats = await fs.stat(outputPath);
+    // Thumbnail ist optional - Fehler nicht fatal
+    let thumbnailFilename = null;
+    try {
+      const thumbnailPath = path.join(FILES_DIR, `thumb_${Date.now()}.jpg`);
+      await ffmpegService.generateThumbnail(outputPath, thumbnailPath);
+      thumbnailFilename = path.basename(thumbnailPath);
+      console.log(`✅ [Job ${jobId}] Thumbnail erstellt`);
+    } catch (thumbError) {
+      console.warn(`⚠️ [Job ${jobId}] Thumbnail-Fehler (nicht fatal):`, thumbError.message);
+    }
 
+    // Video-Info ist optional - Fehler nicht fatal
+    let videoInfo = {};
+    try {
+      const info = await ffmpegService.getVideoInfo(outputPath);
+      const stats = await fs.stat(outputPath);
+      videoInfo = {
+        duration: info.format?.duration,
+        size: stats.size,
+        format: 'mp4'
+      };
+    } catch (infoError) {
+      console.warn(`⚠️ [Job ${jobId}] Video-Info Fehler (nicht fatal):`, infoError.message);
+      // Fallback: Nur Dateigröße
+      try {
+        const stats = await fs.stat(outputPath);
+        videoInfo = { size: stats.size, format: 'mp4' };
+      } catch {}
+    }
+
+    // Job als COMPLETED markieren
     updateJob(jobId, {
       status: 'completed',
       progress: 100,
       outputFile: outputFilename,
-      thumbnail: path.basename(thumbnailPath),
-      info: {
-        duration: info.format?.duration,
-        size: stats.size,
-        format: 'mp4'
-      }
+      thumbnail: thumbnailFilename,
+      info: videoInfo
     });
+
+    console.log(`✅ [Job ${jobId}] Abgeschlossen: ${outputFilename}`);
 
     // Cleanup Input
     await fs.unlink(inputPath).catch(() => {});
 
-    console.log(`✅ Job ${jobId} abgeschlossen: ${outputFilename}`);
   } catch (error) {
+    console.error(`❌ [Job ${jobId}] Konvertierung fehlgeschlagen:`, error.message);
     updateJob(jobId, {
       status: 'failed',
       error: error.message
     });
-    console.error(`❌ Job ${jobId} fehlgeschlagen:`, error.message);
 
     // Cleanup
     await fs.unlink(inputPath).catch(() => {});

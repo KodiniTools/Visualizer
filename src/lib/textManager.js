@@ -311,7 +311,7 @@ export class TextManager {
         const audioReactive = this.getAudioReactiveValues(textObj.audioReactive);
 
         // ✨ TRANSPARENZ/DECKKRAFT anwenden (0-100% → 0.0-1.0)
-        let baseOpacity = (textObj.opacity || 100) / 100;
+        let baseOpacity = (textObj.opacity !== undefined ? textObj.opacity : 100) / 100;
 
         // Audio-reaktive Opacity überschreiben
         if (audioReactive && audioReactive.hasEffects && audioReactive.effects.opacity) {

@@ -903,9 +903,6 @@ function deleteSelectedText() {
 function handleSelectionChange(obj) {
 
   if (obj && obj.type === 'text') {
-    // ✨ Prüfe ob es sich um einen NEUEN Text handelt (nicht nur Eigenschaftsänderung)
-    const isNewSelection = !selectedText.value || selectedText.value.id !== obj.id;
-
     // Sicherheitsprüfung: Initialisiere fehlende Properties
     if (!obj.letterSpacing && obj.letterSpacing !== 0) {
       obj.letterSpacing = 0;
@@ -952,13 +949,10 @@ function handleSelectionChange(obj) {
     selectedText.value = obj;
     isAddingNewText.value = false;
 
-    // ✨ FIX: Font-Dropdown befüllen und Fokus NUR bei NEUER Textauswahl setzen
+    // ✨ FIX: Font-Dropdown befüllen - KEIN automatischer Fokus auf Text-Eingabe
+    // Der Benutzer kann selbst nach oben scrollen wenn Textbearbeitung gewünscht
     nextTick(() => {
       populateFontDropdown();
-      // ✨ GEÄNDERT: Fokus nur bei neuer Textauswahl, nicht bei Eigenschaftsänderungen
-      if (isNewSelection && editTextInput.value) {
-        editTextInput.value.focus();
-      }
     });
 
   } else {

@@ -391,6 +391,53 @@ Zeile 3..."
           </div>
         </div>
 
+        <!-- ✨ Erweiterte Audio-Einstellungen -->
+        <details class="advanced-settings">
+          <summary>⚙️ Erweiterte Einstellungen</summary>
+
+          <!-- Threshold -->
+          <div class="control-group">
+            <label>Schwellenwert: {{ selectedText.audioReactive.threshold || 0 }}%</label>
+            <input
+              type="range"
+              v-model.number="selectedText.audioReactive.threshold"
+              @input="updateText"
+              min="0"
+              max="50"
+              class="slider"
+            />
+            <div class="hint-text">Ignoriert leise Audio-Signale</div>
+          </div>
+
+          <!-- Attack -->
+          <div class="control-group">
+            <label>Attack: {{ selectedText.audioReactive.attack || 90 }}%</label>
+            <input
+              type="range"
+              v-model.number="selectedText.audioReactive.attack"
+              @input="updateText"
+              min="10"
+              max="100"
+              class="slider"
+            />
+            <div class="hint-text">Wie schnell der Effekt anspricht</div>
+          </div>
+
+          <!-- Release -->
+          <div class="control-group">
+            <label>Release: {{ selectedText.audioReactive.release || 50 }}%</label>
+            <input
+              type="range"
+              v-model.number="selectedText.audioReactive.release"
+              @input="updateText"
+              min="10"
+              max="100"
+              class="slider"
+            />
+            <div class="hint-text">Wie langsam der Effekt abklingt</div>
+          </div>
+        </details>
+
         <div class="divider"></div>
 
         <h4>Effekte auswählen</h4>
@@ -584,16 +631,39 @@ Zeile 3..."
                 <span class="effect-icon">👁️</span> Blinken
               </label>
             </div>
-            <div v-if="selectedText.audioReactive.effects.opacity.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.opacity.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.opacity.intensity }}%</span>
+            <div v-if="selectedText.audioReactive.effects.opacity.enabled" class="effect-details">
+              <div class="effect-intensity">
+                <span class="effect-label">Intensität:</span>
+                <input
+                  type="range"
+                  v-model.number="selectedText.audioReactive.effects.opacity.intensity"
+                  @input="updateText"
+                  min="10"
+                  max="100"
+                  class="slider-small"
+                />
+                <span class="intensity-value">{{ selectedText.audioReactive.effects.opacity.intensity }}%</span>
+              </div>
+              <div class="effect-intensity">
+                <span class="effect-label">Minimum:</span>
+                <input
+                  type="range"
+                  v-model.number="selectedText.audioReactive.effects.opacity.minimum"
+                  @input="updateText"
+                  min="0"
+                  max="90"
+                  class="slider-small"
+                />
+                <span class="intensity-value">{{ selectedText.audioReactive.effects.opacity.minimum || 0 }}%</span>
+              </div>
+              <label class="effect-checkbox-small">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.opacity.ease"
+                  @change="updateText"
+                />
+                Ease-Kurve
+              </label>
             </div>
           </div>
 
@@ -872,6 +942,9 @@ function toggleAudioReactive() {
         enabled: false,
         source: 'bass',
         smoothing: 50,
+        threshold: 0,
+        attack: 90,
+        release: 50,
         effects: {
           hue: { enabled: false, intensity: 80 },
           brightness: { enabled: false, intensity: 80 },
@@ -880,7 +953,7 @@ function toggleAudioReactive() {
           shake: { enabled: false, intensity: 80 },
           bounce: { enabled: false, intensity: 80 },
           swing: { enabled: false, intensity: 80 },
-          opacity: { enabled: false, intensity: 80 },
+          opacity: { enabled: false, intensity: 80, minimum: 0, ease: false },
           letterSpacing: { enabled: false, intensity: 80 },
           strokeWidth: { enabled: false, intensity: 80 }
         }
@@ -931,6 +1004,9 @@ function handleSelectionChange(obj) {
         enabled: false,
         source: 'bass',
         smoothing: 50,
+        threshold: 0,
+        attack: 90,
+        release: 50,
         effects: {
           hue: { enabled: false, intensity: 80 },
           brightness: { enabled: false, intensity: 80 },
@@ -939,7 +1015,7 @@ function handleSelectionChange(obj) {
           shake: { enabled: false, intensity: 80 },
           bounce: { enabled: false, intensity: 80 },
           swing: { enabled: false, intensity: 80 },
-          opacity: { enabled: false, intensity: 80 },
+          opacity: { enabled: false, intensity: 80, minimum: 0, ease: false },
           letterSpacing: { enabled: false, intensity: 80 },
           strokeWidth: { enabled: false, intensity: 80 }
         }
@@ -1510,6 +1586,78 @@ h4 {
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid #3a3a3a;
+}
+
+.effect-details {
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  border-top: 1px solid #3a3a3a;
+}
+
+.effect-details .effect-intensity {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: none;
+}
+
+.effect-details .effect-intensity:first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.effect-label {
+  font-size: 11px;
+  color: #888;
+  min-width: 65px;
+}
+
+.effect-checkbox-small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.effect-checkbox-small input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.advanced-settings {
+  margin-top: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.advanced-settings summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: #6ea8fe;
+  padding: 4px;
+}
+
+.advanced-settings summary:hover {
+  color: #8ec5ff;
+}
+
+.advanced-settings .control-group {
+  margin-top: 10px;
+}
+
+.advanced-settings .control-group label {
+  font-size: 12px;
+}
+
+.advanced-settings .hint-text {
+  font-size: 10px;
+  margin-top: 2px;
 }
 
 .slider-small {

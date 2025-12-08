@@ -63,6 +63,9 @@ export class TextManager {
                 enabled: options.audioReactiveEnabled !== undefined ? options.audioReactiveEnabled : true,
                 source: options.audioReactiveSource || 'bass',  // 'bass', 'mid', 'treble', 'volume'
                 smoothing: options.audioReactiveSmoothing || 50,  // 0-100%
+                threshold: 0,   // ✨ NEU: Ignoriert leise Signale (0-50%)
+                attack: 90,     // ✨ NEU: Wie schnell der Effekt anspricht (10-100%)
+                release: 50,    // ✨ NEU: Wie langsam der Effekt abklingt (10-100%)
                 effects: {
                     hue: { enabled: false, intensity: 80 },
                     brightness: { enabled: false, intensity: 80 },
@@ -71,7 +74,7 @@ export class TextManager {
                     shake: { enabled: false, intensity: 80 },
                     bounce: { enabled: false, intensity: 80 },
                     swing: { enabled: false, intensity: 80 },
-                    opacity: { enabled: false, intensity: 80 },
+                    opacity: { enabled: false, intensity: 80, minimum: 0, ease: false },
                     letterSpacing: { enabled: false, intensity: 80 },
                     strokeWidth: { enabled: false, intensity: 80 }
                 }
@@ -577,7 +580,34 @@ export class TextManager {
         }
 
         // Basis Audio-Level normalisiert auf 0-1
-        const baseLevel = audioLevel / 255;
+        let baseLevel = audioLevel / 255;
+
+        // ✨ NEU: Threshold anwenden (ignoriert leise Signale)
+        const threshold = (audioSettings.threshold || 0) / 100;
+        if (baseLevel < threshold) {
+            baseLevel = 0;
+        } else {
+            // Skaliere den verbleibenden Bereich auf 0-1
+            baseLevel = (baseLevel - threshold) / (1 - threshold);
+        }
+
+        // ✨ NEU: Attack/Release für smoothere Übergänge
+        const attack = (audioSettings.attack || 90) / 100;
+        const release = (audioSettings.release || 50) / 100;
+
+        // Speichere letzten Level pro audioSettings (einfaches Caching)
+        if (!this._lastAudioLevels) this._lastAudioLevels = new WeakMap();
+        const lastLevel = this._lastAudioLevels.get(audioSettings) || 0;
+
+        let smoothedLevel;
+        if (baseLevel > lastLevel) {
+            // Attack: schneller Anstieg
+            smoothedLevel = lastLevel + (baseLevel - lastLevel) * attack;
+        } else {
+            // Release: langsameres Abklingen
+            smoothedLevel = lastLevel + (baseLevel - lastLevel) * release;
+        }
+        this._lastAudioLevels.set(audioSettings, smoothedLevel);
 
         // Ergebnis-Objekt für alle aktivierten Effekte
         const result = {
@@ -593,10 +623,10 @@ export class TextManager {
         for (const [effectName, effectConfig] of Object.entries(effects)) {
             if (effectConfig && effectConfig.enabled) {
                 const intensity = (effectConfig.intensity || 80) / 100;
-                const normalizedLevel = baseLevel * intensity;
+                const normalizedLevel = smoothedLevel * intensity;
 
                 result.hasEffects = true;
-                result.effects[effectName] = this._calculateTextEffectValue(effectName, normalizedLevel);
+                result.effects[effectName] = this._calculateTextEffectValue(effectName, normalizedLevel, effectConfig);
             }
         }
 
@@ -605,28 +635,38 @@ export class TextManager {
 
     /**
      * ✨ Berechnet den Wert für einen einzelnen Text-Effekt
+     * @param {string} effectName - Name des Effekts
+     * @param {number} normalizedLevel - Audio-Level normalisiert (0-1)
+     * @param {object} effectConfig - Konfiguration des Effekts (enthält minimum, ease, etc.)
      */
-    _calculateTextEffectValue(effectName, normalizedLevel) {
+    _calculateTextEffectValue(effectName, normalizedLevel, effectConfig = {}) {
+        // ✨ NEU: Ease-Kurve anwenden (Ease-Out für natürlichere Animation)
+        let level = normalizedLevel;
+        if (effectConfig.ease) {
+            // Ease-Out Cubic: schneller Start, sanftes Ende
+            level = 1 - Math.pow(1 - normalizedLevel, 3);
+        }
+
         switch (effectName) {
             case 'hue':
                 // Hue-Rotation: 0-720 Grad (2x Durchlauf für stärkeren Effekt)
-                return { hueRotate: normalizedLevel * 720 };
+                return { hueRotate: level * 720 };
             case 'brightness':
                 // Helligkeit: 60-180% basierend auf Audio-Level
-                return { brightness: 60 + (normalizedLevel * 120) };
+                return { brightness: 60 + (level * 120) };
             case 'scale':
                 // Skalierung: 1.0-1.5 basierend auf Audio-Level
-                return { scale: 1.0 + (normalizedLevel * 0.5) };
+                return { scale: 1.0 + (level * 0.5) };
             case 'glow':
                 // Glow/Shadow: 0-50px basierend auf Audio-Level
                 return {
-                    glowBlur: normalizedLevel * 50,
-                    glowColor: `rgba(139, 92, 246, ${0.5 + normalizedLevel * 0.5})`
+                    glowBlur: level * 50,
+                    glowColor: `rgba(139, 92, 246, ${0.5 + level * 0.5})`
                 };
             case 'shake':
                 // Erschütterung: Zufällige X/Y-Verschiebung bei hohem Audio-Level
-                if (normalizedLevel > 0.2) {
-                    const shakeIntensity = normalizedLevel * 15;
+                if (level > 0.2) {
+                    const shakeIntensity = level * 15;
                     const shakeX = (Math.random() - 0.5) * 2 * shakeIntensity;
                     const shakeY = (Math.random() - 0.5) * 2 * shakeIntensity;
                     return { shakeX, shakeY };
@@ -635,22 +675,25 @@ export class TextManager {
             case 'bounce':
                 // Vertikales Hüpfen: Sinuswelle + Audio-Level
                 const timeBounce = Date.now() * 0.008;
-                const bounceAmount = Math.abs(Math.sin(timeBounce)) * normalizedLevel * 30;
+                const bounceAmount = Math.abs(Math.sin(timeBounce)) * level * 30;
                 return { bounceY: -bounceAmount };
             case 'swing':
                 // Horizontales Pendeln: Sinuswelle für sanftes Hin-und-Her
                 const timeSwing = Date.now() * 0.004;
-                const swingAmount = Math.sin(timeSwing) * normalizedLevel * 40;
+                const swingAmount = Math.sin(timeSwing) * level * 40;
                 return { swingX: swingAmount };
             case 'opacity':
-                // Pulsierende Deckkraft: 30-100% basierend auf Audio-Level
-                return { opacity: 30 + (normalizedLevel * 70) };
+                // ✨ NEU: Minimum-Wert für Opacity unterstützen
+                const minimum = effectConfig.minimum || 0;
+                // Opacity geht von minimum bis 100% basierend auf Audio-Level
+                const opacityRange = 100 - minimum;
+                return { opacity: minimum + (level * opacityRange) };
             case 'letterSpacing':
                 // Dynamischer Buchstabenabstand: 0-30px basierend auf Audio-Level
-                return { letterSpacing: normalizedLevel * 30 };
+                return { letterSpacing: level * 30 };
             case 'strokeWidth':
                 // Pulsierende Kontur-Dicke: 0-10px basierend auf Audio-Level
-                return { strokeWidth: normalizedLevel * 10 };
+                return { strokeWidth: level * 10 };
             default:
                 return {};
         }

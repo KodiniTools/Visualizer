@@ -85,8 +85,10 @@ import { FotoManager } from './lib/fotoManager.js';
 import { GridManager } from './lib/gridManager.js';
 import { MultiImageManager } from './lib/multiImageManager.js';
 import { KeyboardShortcuts } from './lib/keyboardShortcuts.js';
+import { workerManager } from './lib/workerManager.js';
 
-// Worker-Manager removed - always caused errors and fell back anyway
+// Worker-Status
+let useAudioWorker = false;
 
 const playerStore = usePlayerStore();
 const recorderStore = useRecorderStore();
@@ -147,23 +149,32 @@ window.audioAnalysisData = {
 
 /**
  * Analysiert Audio-Daten und macht sie global verfügbar
- * Wird in der Render-Loop aufgerufen
+ * Verwendet Worker wenn verfügbar, sonst Fallback im Main Thread
  */
 function updateGlobalAudioData(audioDataArray, bufferLength) {
   if (!audioDataArray || bufferLength === 0) return;
 
-  // ✅ VERBESSERT: Nur die unteren 50% der FFT-Daten sind relevant
-  // (obere 50% sind meist sehr leise/leer)
-  const usableLength = Math.floor(bufferLength * 0.5);
+  // ✨ Worker-Modus: Daten an Worker senden
+  if (useAudioWorker) {
+    workerManager.analyzeAudio(audioDataArray, bufferLength);
+    return;
+  }
 
-  // Frequenzbereiche (bei FFT-Size 2048, Sample Rate 44100Hz)
-  const bassEnd = Math.floor(usableLength * 0.15);      // 0-15% = Sub-Bass + Bass (~0-1650 Hz)
-  const midEnd = Math.floor(usableLength * 0.35);       // 15-35% = Mitten (~1650-3850 Hz)
-  // Rest = Höhen (35-100% = ~3850-11000 Hz) - früher starten für mehr Signal
+  // ✨ Fallback: Main Thread Berechnung
+  updateGlobalAudioDataFallback(audioDataArray, bufferLength);
+}
+
+/**
+ * Fallback Audio-Analyse im Main Thread
+ */
+function updateGlobalAudioDataFallback(audioDataArray, bufferLength) {
+  const usableLength = Math.floor(bufferLength * 0.5);
+  const bassEnd = Math.floor(usableLength * 0.15);
+  const midEnd = Math.floor(usableLength * 0.35);
 
   let bassSum = 0, midSum = 0, trebleSum = 0, totalSum = 0;
   let bassCount = 0, midCount = 0, trebleCount = 0;
-  let treblePeak = 0; // ✨ NEU: Peak-Detection für Höhen
+  let treblePeak = 0;
 
   for (let i = 0; i < usableLength; i++) {
     const value = audioDataArray[i];
@@ -178,45 +189,56 @@ function updateGlobalAudioData(audioDataArray, bufferLength) {
     } else {
       trebleSum += value;
       trebleCount++;
-      // ✨ Peak-Detection für Höhen (Hi-Hats, Cymbals haben kurze Spitzen)
       if (value > treblePeak) treblePeak = value;
     }
   }
 
-  // Durchschnittswerte berechnen mit Verstärkung
   const bass = bassCount > 0 ? Math.min(255, Math.floor((bassSum / bassCount) * 1.5)) : 0;
   const mid = midCount > 0 ? Math.min(255, Math.floor((midSum / midCount) * 2.0)) : 0;
 
-  // ✨ VERBESSERT: Treble mit höherer Verstärkung + Peak-Berücksichtigung
-  // Kombiniere Durchschnitt (60%) mit Peak (40%) für bessere Reaktion auf Hi-Hats
   const trebleAvg = trebleCount > 0 ? (trebleSum / trebleCount) : 0;
   const trebleCombined = (trebleAvg * 0.6) + (treblePeak * 0.4);
-  const treble = Math.min(255, Math.floor(trebleCombined * 8.0)); // Verstärkung auf 8.0 erhöht
+  const treble = Math.min(255, Math.floor(trebleCombined * 8.0));
 
   const volume = usableLength > 0 ? Math.min(255, Math.floor((totalSum / usableLength) * 1.5)) : 0;
 
-  // Rohe Werte speichern
-  window.audioAnalysisData.bass = bass;
-  window.audioAnalysisData.mid = mid;
-  window.audioAnalysisData.treble = treble;
-  window.audioAnalysisData.volume = volume;
+  applyAudioData({ bass, mid, treble, volume });
+}
 
-  // Geglättete Werte (exponential smoothing für flüssigere Animation)
-  const smoothFactor = 0.4; // Erhöht für schnellere Reaktion
-  const trebleSmoothFactor = 0.5; // ✨ Höhen reagieren schneller (für Hi-Hats)
+/**
+ * Wendet Audio-Daten auf globales Objekt an (für Worker-Callback und Fallback)
+ */
+function applyAudioData(data) {
+  // Rohe Werte
+  window.audioAnalysisData.bass = data.bass;
+  window.audioAnalysisData.mid = data.mid;
+  window.audioAnalysisData.treble = data.treble;
+  window.audioAnalysisData.volume = data.volume;
 
-  window.audioAnalysisData.smoothBass = Math.floor(
-    window.audioAnalysisData.smoothBass * (1 - smoothFactor) + bass * smoothFactor
-  );
-  window.audioAnalysisData.smoothMid = Math.floor(
-    window.audioAnalysisData.smoothMid * (1 - smoothFactor) + mid * smoothFactor
-  );
-  window.audioAnalysisData.smoothTreble = Math.floor(
-    window.audioAnalysisData.smoothTreble * (1 - trebleSmoothFactor) + treble * trebleSmoothFactor
-  );
-  window.audioAnalysisData.smoothVolume = Math.floor(
-    window.audioAnalysisData.smoothVolume * (1 - smoothFactor) + volume * smoothFactor
-  );
+  // Geglättete Werte (vom Worker oder berechnet)
+  if (data.smoothBass !== undefined) {
+    window.audioAnalysisData.smoothBass = data.smoothBass;
+    window.audioAnalysisData.smoothMid = data.smoothMid;
+    window.audioAnalysisData.smoothTreble = data.smoothTreble;
+    window.audioAnalysisData.smoothVolume = data.smoothVolume;
+  } else {
+    // Fallback Smoothing
+    const smoothFactor = 0.4;
+    const trebleSmoothFactor = 0.5;
+
+    window.audioAnalysisData.smoothBass = Math.floor(
+      window.audioAnalysisData.smoothBass * (1 - smoothFactor) + data.bass * smoothFactor
+    );
+    window.audioAnalysisData.smoothMid = Math.floor(
+      window.audioAnalysisData.smoothMid * (1 - smoothFactor) + data.mid * smoothFactor
+    );
+    window.audioAnalysisData.smoothTreble = Math.floor(
+      window.audioAnalysisData.smoothTreble * (1 - trebleSmoothFactor) + data.treble * trebleSmoothFactor
+    );
+    window.audioAnalysisData.smoothVolume = Math.floor(
+      window.audioAnalysisData.smoothVolume * (1 - smoothFactor) + data.volume * smoothFactor
+    );
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -830,6 +852,26 @@ async function initializeRecorder() {
 onMounted(async () => {
   console.log('🚀 [App] onMounted - Starte Initialisierung...');
 
+  // 0. Web Workers initialisieren (parallel für schnelleren Start)
+  console.log('⚙️ [App] Initialisiere Web Workers...');
+  try {
+    const workerStatus = await workerManager.initAll();
+    useAudioWorker = workerStatus.audio;
+
+    // Worker-Callback für Audio-Daten setzen
+    if (useAudioWorker) {
+      workerManager.onAudioData(applyAudioData);
+      console.log('✅ [App] Audio Worker aktiviert - Main Thread entlastet');
+    } else {
+      console.log('⚠️ [App] Audio Worker nicht verfügbar - Fallback aktiv');
+    }
+
+    console.log('✅ [App] Worker Status:', workerStatus);
+  } catch (error) {
+    console.warn('⚠️ [App] Worker-Initialisierung fehlgeschlagen:', error);
+    useAudioWorker = false;
+  }
+
   // 1. FontManager initialisieren
   console.log('🎨 Initialisiere FontManager...');
   fontManagerInstance.value = new FontManager();
@@ -1110,7 +1152,9 @@ onUnmounted(() => {
     cancelAnimationFrame(animationFrameId);
   }
 
-  // Worker removed - no cleanup needed
+  // Web Workers beenden
+  workerManager.terminate();
+  console.log('✅ [App] Web Workers beendet');
 
   if (audioContext) {
     audioContext.close();

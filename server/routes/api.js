@@ -239,27 +239,35 @@ async function processConversion(jobId, inputPath, quality) {
       console.warn(`⚠️ [Job ${jobId}] Konnte Video-Dauer nicht ermitteln`);
     }
 
+    // Progress-Tracking mit Throttling
+    let lastProgressTime = 0;
+
     await ffmpegService.convertToMP4(inputPath, outputPath, {
       quality,
       onProgress: (time) => {
+        const currentTime = parseFFmpegTime(time);
+        // Nur alle 2 Sekunden updaten
+        if (currentTime - lastProgressTime < 2) return;
+        lastProgressTime = currentTime;
+
         if (totalDuration > 0) {
-          const currentTime = parseFFmpegTime(time);
-          // Progress von 10-90% für Konvertierung (10% Upload, 10% Finalisierung)
+          // Bekannte Dauer - präziser Progress
           const progressPercent = Math.min(90, Math.round(10 + (currentTime / totalDuration) * 80));
           updateJob(jobId, { progress: progressPercent });
           console.log(`📊 [Job ${jobId}] Progress: ${progressPercent}% (${time})`);
         } else {
-          // Fallback: Inkrementeller Progress
-          const job = jobs.get(jobId);
-          const currentProgress = job?.progress || 10;
-          if (currentProgress < 85) {
-            updateJob(jobId, { progress: currentProgress + 5 });
-          }
+          // Unbekannte Dauer - schätze basierend auf verstrichener Zeit
+          // Annahme: max ~5 Min Video
+          const estimatedProgress = Math.min(85, Math.round(10 + (currentTime / 300) * 75));
+          updateJob(jobId, { progress: estimatedProgress });
+          console.log(`📊 [Job ${jobId}] Progress: ~${estimatedProgress}% (${time})`);
         }
       }
     });
 
-    console.log(`✅ [Job ${jobId}] FFmpeg Konvertierung abgeschlossen`);
+    // FFmpeg Encoding fertig
+    updateJob(jobId, { progress: 92 });
+    console.log(`✅ [Job ${jobId}] FFmpeg Encoding abgeschlossen, finalisiere...`);
 
     // Thumbnail ist optional - Fehler nicht fatal
     let thumbnailFilename = null;

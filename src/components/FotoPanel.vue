@@ -849,6 +849,26 @@
             <div class="level-bar" ref="audioLevelBarRef"></div>
           </div>
         </div>
+
+        <!-- ✨ NEU: Einstellungen Speichern/Anwenden -->
+        <div class="audio-preset-actions">
+          <button
+            @click="saveAudioReactiveSettings"
+            class="btn-preset-action btn-save"
+            :disabled="!currentActiveImage"
+            title="Aktuelle Audio-Reaktiv Einstellungen speichern"
+          >
+            💾 Speichern
+          </button>
+          <button
+            @click="applyAudioReactiveSettings"
+            class="btn-preset-action btn-apply"
+            :disabled="!currentActiveImage || !hasSavedAudioSettings"
+            title="Gespeicherte Einstellungen auf dieses Bild anwenden"
+          >
+            📋 Anwenden
+          </button>
+        </div>
       </div>
 
       <button @click="resetFilters" class="btn-secondary modern-reset-btn">
@@ -946,6 +966,12 @@ const effectSwingValueRef = ref(null);
 const effectOrbitEnabledRef = ref(null);
 const effectOrbitIntensityRef = ref(null);
 const effectOrbitValueRef = ref(null);
+
+// ✨ NEU: Gespeicherte Audio-Reaktiv Einstellungen
+const savedAudioReactiveSettings = ref(null);
+
+// Computed: Prüft ob gespeicherte Einstellungen vorhanden sind
+const hasSavedAudioSettings = computed(() => savedAudioReactiveSettings.value !== null);
 
 // ✨ NEU: Refs für Galerie-Funktionalität
 const fileInputRef = ref(null);
@@ -1330,6 +1356,12 @@ function getEffectValueRef(effectName) {
     case 'scale': return effectScaleValueRef;
     case 'glow': return effectGlowValueRef;
     case 'border': return effectBorderValueRef;
+    case 'blur': return effectBlurValueRef;
+    case 'rotation': return effectRotationValueRef;
+    case 'shake': return effectShakeValueRef;
+    case 'bounce': return effectBounceValueRef;
+    case 'swing': return effectSwingValueRef;
+    case 'orbit': return effectOrbitValueRef;
     default: return null;
   }
 }
@@ -1348,6 +1380,163 @@ function updateAudioReactiveSetting(property, value) {
 
   currentActiveImage.value.fotoSettings.audioReactive[property] = value;
   console.log('🎵 Audio-Reaktiv:', property, '=', value);
+}
+
+/**
+ * ✨ NEU: Speichert die aktuellen Audio-Reaktiv Einstellungen
+ */
+function saveAudioReactiveSettings() {
+  if (!currentActiveImage.value) {
+    console.warn('⚠️ Kein aktives Bild zum Speichern');
+    return;
+  }
+
+  const fotoManager = fotoManagerRef?.value;
+  if (!fotoManager) return;
+
+  // Initialisiere falls nicht vorhanden
+  fotoManager.initializeImageSettings(currentActiveImage.value);
+
+  const audioReactive = currentActiveImage.value.fotoSettings.audioReactive;
+
+  // Deep Copy der Einstellungen
+  savedAudioReactiveSettings.value = JSON.parse(JSON.stringify(audioReactive));
+
+  // In localStorage speichern für Persistenz
+  try {
+    localStorage.setItem('visualizer_audioReactivePreset', JSON.stringify(audioReactive));
+    console.log('💾 Audio-Reaktiv Einstellungen gespeichert:', savedAudioReactiveSettings.value);
+  } catch (e) {
+    console.warn('⚠️ Konnte nicht in localStorage speichern:', e);
+  }
+}
+
+/**
+ * ✨ NEU: Wendet gespeicherte Audio-Reaktiv Einstellungen auf das aktuelle Bild an
+ */
+function applyAudioReactiveSettings() {
+  if (!currentActiveImage.value) {
+    console.warn('⚠️ Kein aktives Bild zum Anwenden');
+    return;
+  }
+
+  if (!savedAudioReactiveSettings.value) {
+    console.warn('⚠️ Keine gespeicherten Einstellungen vorhanden');
+    return;
+  }
+
+  const fotoManager = fotoManagerRef?.value;
+  if (!fotoManager) return;
+
+  // Initialisiere falls nicht vorhanden
+  fotoManager.initializeImageSettings(currentActiveImage.value);
+
+  // Deep Copy der gespeicherten Einstellungen anwenden
+  const settings = JSON.parse(JSON.stringify(savedAudioReactiveSettings.value));
+  currentActiveImage.value.fotoSettings.audioReactive = settings;
+
+  console.log('📋 Audio-Reaktiv Einstellungen angewendet:', settings);
+
+  // UI aktualisieren
+  loadAudioReactiveSettingsToUI();
+}
+
+/**
+ * ✨ NEU: Lädt Audio-Reaktiv Einstellungen in die UI
+ */
+function loadAudioReactiveSettingsToUI() {
+  if (!currentActiveImage.value) return;
+
+  const fotoManager = fotoManagerRef?.value;
+  if (!fotoManager) return;
+
+  fotoManager.initializeImageSettings(currentActiveImage.value);
+  const audioReactive = currentActiveImage.value.fotoSettings.audioReactive;
+
+  // Master-Einstellungen
+  if (audioReactiveEnabledRef.value) {
+    audioReactiveEnabledRef.value.checked = audioReactive.enabled || false;
+    if (audioReactive.enabled) {
+      startAudioLevelIndicator();
+    } else {
+      stopAudioLevelIndicator();
+    }
+  }
+
+  if (audioReactiveSourceRef.value) {
+    audioReactiveSourceRef.value.value = audioReactive.source || 'bass';
+  }
+
+  if (audioReactiveSmoothingRef.value) {
+    const smoothing = audioReactive.smoothing ?? 50;
+    audioReactiveSmoothingRef.value.value = smoothing;
+    if (audioReactiveSmoothingValueRef.value) {
+      audioReactiveSmoothingValueRef.value.textContent = smoothing + '%';
+    }
+  }
+
+  // Alle Effekte laden
+  const effects = audioReactive.effects || {};
+  const effectNames = ['hue', 'brightness', 'saturation', 'scale', 'glow', 'border', 'blur', 'rotation', 'shake', 'bounce', 'swing', 'orbit'];
+
+  effectNames.forEach(effectName => {
+    const effect = effects[effectName] || { enabled: false, intensity: 80 };
+    const enabledRef = getEffectEnabledRef(effectName);
+    const intensityRef = getEffectIntensityRef(effectName);
+    const valueRef = getEffectValueRef(effectName);
+
+    if (enabledRef?.value) {
+      enabledRef.value.checked = effect.enabled || false;
+    }
+    if (intensityRef?.value) {
+      intensityRef.value.value = effect.intensity ?? 80;
+    }
+    if (valueRef?.value) {
+      valueRef.value.textContent = (effect.intensity ?? 80) + '%';
+    }
+  });
+}
+
+/**
+ * ✨ NEU: Hilfsfunktion für Effekt-Enabled-Refs
+ */
+function getEffectEnabledRef(effectName) {
+  switch (effectName) {
+    case 'hue': return effectHueEnabledRef;
+    case 'brightness': return effectBrightnessEnabledRef;
+    case 'saturation': return effectSaturationEnabledRef;
+    case 'scale': return effectScaleEnabledRef;
+    case 'glow': return effectGlowEnabledRef;
+    case 'border': return effectBorderEnabledRef;
+    case 'blur': return effectBlurEnabledRef;
+    case 'rotation': return effectRotationEnabledRef;
+    case 'shake': return effectShakeEnabledRef;
+    case 'bounce': return effectBounceEnabledRef;
+    case 'swing': return effectSwingEnabledRef;
+    case 'orbit': return effectOrbitEnabledRef;
+    default: return null;
+  }
+}
+
+/**
+ * ✨ NEU: Hilfsfunktion für Effekt-Intensity-Refs
+ */
+function getEffectIntensityRef(effectName) {
+  switch (effectName) {
+    case 'hue': return effectHueIntensityRef;
+    case 'brightness': return effectBrightnessIntensityRef;
+    case 'saturation': return effectSaturationIntensityRef;
+    case 'scale': return effectScaleIntensityRef;
+    case 'glow': return effectGlowIntensityRef;
+    case 'border': return effectBorderIntensityRef;
+    case 'blur': return effectBlurIntensityRef;
+    case 'rotation': return effectRotationIntensityRef;
+    case 'shake': return effectShakeIntensityRef;
+    case 'bounce': return effectBounceIntensityRef;
+    case 'swing': return effectSwingIntensityRef;
+    case 'orbit': return effectOrbitIntensityRef;
+    default: return null;
+  }
 }
 
 /**
@@ -2359,10 +2548,21 @@ onMounted(() => {
 
     // Die Controls global verfügbar machen, damit App.vue sie finden kann
     window.fotoPanelControls = controls;
-    
+
+    // ✨ NEU: Gespeicherte Audio-Reaktiv Einstellungen aus localStorage laden
+    try {
+      const savedPreset = localStorage.getItem('visualizer_audioReactivePreset');
+      if (savedPreset) {
+        savedAudioReactiveSettings.value = JSON.parse(savedPreset);
+        console.log('📂 Audio-Reaktiv Preset aus localStorage geladen');
+      }
+    } catch (e) {
+      console.warn('⚠️ Konnte Audio-Reaktiv Preset nicht laden:', e);
+    }
+
     console.log('✅ FotoPanel initialisiert');
   };
-  
+
   initializePanel();
 });
 
@@ -3432,6 +3632,57 @@ input[type="range"]::-moz-range-thumb:hover {
   color: #94a3b8;
   min-width: 35px;
   text-align: right;
+}
+
+/* ✨ AUDIO-PRESET AKTIONEN (Speichern/Anwenden) */
+.audio-preset-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.btn-preset-action {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-preset-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+}
+
+.btn-save:not(:disabled):hover {
+  background: linear-gradient(135deg, #9f7aea 0%, #8b5cf6 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.btn-apply {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  color: white;
+}
+
+.btn-apply:not(:disabled):hover {
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
 }
 
 .checkbox-control {

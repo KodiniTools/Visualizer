@@ -749,6 +749,116 @@ Zeile 3..."
 
       <div class="divider"></div>
 
+      <!-- ✨ TEXT-ANIMATION (Typewriter) -->
+      <h4>Text-Animation</h4>
+
+      <!-- Typewriter aktivieren -->
+      <div class="control-group">
+        <label>Schreibmaschinen-Effekt:</label>
+        <div class="button-group">
+          <button
+            @click="toggleTypewriter"
+            :class="['btn-small', { active: selectedText.animation?.typewriter?.enabled }]"
+          >
+            {{ selectedText.animation?.typewriter?.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+          </button>
+          <button
+            v-if="selectedText.animation?.typewriter?.enabled"
+            @click="restartTypewriter"
+            class="btn-small"
+            title="Animation neu starten"
+          >
+            🔄 Neustart
+          </button>
+        </div>
+      </div>
+
+      <!-- Typewriter-Einstellungen (nur wenn aktiviert) -->
+      <div v-if="selectedText.animation?.typewriter?.enabled" class="typewriter-settings">
+        <!-- Geschwindigkeit -->
+        <div class="control-group">
+          <label>Geschwindigkeit: {{ selectedText.animation.typewriter.speed }}ms/Buchstabe</label>
+          <input
+            type="range"
+            v-model.number="selectedText.animation.typewriter.speed"
+            @input="updateText"
+            min="10"
+            max="200"
+            class="slider"
+          />
+          <div class="hint-text">Niedrig = schneller, Hoch = langsamer</div>
+        </div>
+
+        <!-- Start-Verzögerung -->
+        <div class="control-group">
+          <label>Start-Verzögerung: {{ selectedText.animation.typewriter.startDelay }}ms</label>
+          <input
+            type="range"
+            v-model.number="selectedText.animation.typewriter.startDelay"
+            @input="updateText"
+            min="0"
+            max="3000"
+            step="100"
+            class="slider"
+          />
+        </div>
+
+        <!-- Loop -->
+        <div class="control-group">
+          <label class="effect-checkbox">
+            <input
+              type="checkbox"
+              v-model="selectedText.animation.typewriter.loop"
+              @change="updateText"
+            />
+            Animation wiederholen (Loop)
+          </label>
+        </div>
+
+        <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
+        <div v-if="selectedText.animation.typewriter.loop" class="control-group">
+          <label>Pause zwischen Wiederholungen: {{ selectedText.animation.typewriter.loopDelay }}ms</label>
+          <input
+            type="range"
+            v-model.number="selectedText.animation.typewriter.loopDelay"
+            @input="updateText"
+            min="0"
+            max="5000"
+            step="100"
+            class="slider"
+          />
+        </div>
+
+        <!-- Cursor -->
+        <div class="control-group">
+          <label class="effect-checkbox">
+            <input
+              type="checkbox"
+              v-model="selectedText.animation.typewriter.showCursor"
+              @change="updateText"
+            />
+            Blinkender Cursor anzeigen
+          </label>
+        </div>
+
+        <!-- Cursor-Zeichen (nur wenn Cursor aktiv) -->
+        <div v-if="selectedText.animation.typewriter.showCursor" class="control-group">
+          <label>Cursor-Zeichen:</label>
+          <select
+            v-model="selectedText.animation.typewriter.cursorChar"
+            @change="updateText"
+            class="select-input"
+          >
+            <option value="|">| (Strich)</option>
+            <option value="_">_ (Unterstrich)</option>
+            <option value="▌">▌ (Block)</option>
+            <option value="█">█ (Voller Block)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
       <!-- Löschen Button -->
       <button @click="deleteSelectedText" class="btn-danger full-width">
         Text löschen
@@ -1049,6 +1159,65 @@ function resetAudioSettings() {
   console.log('🔄 Audio-Einstellungen zurückgesetzt');
 }
 
+// ✨ Typewriter-Animation aktivieren/deaktivieren
+function toggleTypewriter() {
+  if (!selectedText.value) return;
+
+  // Initialisiere animation wenn nicht vorhanden
+  if (!selectedText.value.animation) {
+    selectedText.value.animation = {
+      type: 'none',
+      typewriter: {
+        enabled: false,
+        speed: 50,
+        startDelay: 0,
+        loop: false,
+        loopDelay: 1000,
+        showCursor: true,
+        cursorChar: '|'
+      },
+      _state: {
+        startTime: null,
+        isPlaying: false,
+        currentIndex: 0
+      }
+    };
+  }
+
+  // Toggle enabled
+  selectedText.value.animation.typewriter.enabled = !selectedText.value.animation.typewriter.enabled;
+
+  // Animation-Typ setzen
+  selectedText.value.animation.type = selectedText.value.animation.typewriter.enabled ? 'typewriter' : 'none';
+
+  // Bei Aktivierung: Animation-State zurücksetzen für sofortigen Start
+  if (selectedText.value.animation.typewriter.enabled) {
+    selectedText.value.animation._state = {
+      startTime: null,
+      isPlaying: false,
+      currentIndex: 0
+    };
+  }
+
+  updateText();
+  console.log(`⌨️ Typewriter ${selectedText.value.animation.typewriter.enabled ? 'aktiviert' : 'deaktiviert'}`);
+}
+
+// ✨ Typewriter-Animation neu starten
+function restartTypewriter() {
+  if (!selectedText.value?.animation) return;
+
+  // State zurücksetzen
+  selectedText.value.animation._state = {
+    startTime: null,
+    isPlaying: false,
+    currentIndex: 0
+  };
+
+  updateText();
+  console.log('🔄 Typewriter-Animation neu gestartet');
+}
+
 // Ausgewählten Text löschen
 function deleteSelectedText() {
   if (canvasManager.value && selectedText.value) {
@@ -1103,6 +1272,27 @@ function handleSelectionChange(obj) {
           opacity: { enabled: false, intensity: 80, minimum: 0, ease: false },
           letterSpacing: { enabled: false, intensity: 80 },
           strokeWidth: { enabled: false, intensity: 80 }
+        }
+      };
+    }
+
+    // ✨ Initialisiere animation wenn nicht vorhanden (für ältere Text-Objekte)
+    if (!obj.animation) {
+      obj.animation = {
+        type: 'none',
+        typewriter: {
+          enabled: false,
+          speed: 50,
+          startDelay: 0,
+          loop: false,
+          loopDelay: 1000,
+          showCursor: true,
+          cursorChar: '|'
+        },
+        _state: {
+          startTime: null,
+          isPlaying: false,
+          currentIndex: 0
         }
       };
     }
@@ -1840,5 +2030,21 @@ h4 {
   font-weight: 600;
   min-width: 35px;
   text-align: right;
+}
+
+/* ===== TYPEWRITER SETTINGS ===== */
+.typewriter-settings {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.typewriter-settings .control-group {
+  margin-bottom: 10px;
+}
+
+.typewriter-settings .control-group:last-child {
+  margin-bottom: 0;
 }
 </style>

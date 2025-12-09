@@ -240,9 +240,6 @@ export class MultiImageManager {
             case 'saturation':
                 // Sättigung: 30-250% basierend auf Audio-Level (verstärkt)
                 return { saturation: 30 + (normalizedLevel * 220) };
-            case 'scale':
-                // Skalierung: 1.0-1.5 basierend auf Audio-Level (verstärkt)
-                return { scale: 1.0 + (normalizedLevel * 0.5) };
             case 'glow':
                 // Glow/Shadow: 0-50px basierend auf Audio-Level (verstärkt)
                 return {
@@ -399,21 +396,8 @@ export class MultiImageManager {
                 ctx.translate(-centerX, -centerY);
             }
 
-            // ✨ AUDIO-REAKTIV: Scale-Effekt (pulsieren) - MEHRERE EFFEKTE
+            // ✨ AUDIO-REAKTIV: Bewegungseffekte - drawBounds für Position
             let drawBounds = { ...bounds };
-            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.scale) {
-                const scale = audioReactive.effects.scale.scale;
-                const centerX = bounds.x + bounds.width / 2;
-                const centerY = bounds.y + bounds.height / 2;
-                const newWidth = bounds.width * scale;
-                const newHeight = bounds.height * scale;
-                drawBounds = {
-                    x: centerX - newWidth / 2,
-                    y: centerY - newHeight / 2,
-                    width: newWidth,
-                    height: newHeight
-                };
-            }
 
             // ✨ AUDIO-REAKTIV: Shake-Effekt (Erschütterung)
             if (audioReactive && audioReactive.hasEffects && audioReactive.effects.shake) {

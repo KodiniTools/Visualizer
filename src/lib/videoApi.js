@@ -197,10 +197,30 @@ export async function waitForJob(jobId, options = {}) {
  * Generiert die Download-URL für eine verarbeitete Datei
  *
  * @param {string} filename - Der Dateiname
+ * @param {boolean} cleanup - Ob die Datei nach Download gelöscht werden soll
  * @returns {string} Die vollständige Download-URL
  */
-export function getDownloadUrl(filename) {
-  return `${API_BASE}/download/${filename}`;
+export function getDownloadUrl(filename, cleanup = false) {
+  const url = `${API_BASE}/download/${filename}`;
+  return cleanup ? `${url}?cleanup=true` : url;
+}
+
+/**
+ * Löscht eine Datei auf dem Server
+ *
+ * @param {string} filename - Der Dateiname
+ * @returns {Promise<Object>} Ergebnis
+ */
+export async function cleanupFile(filename) {
+  try {
+    const response = await fetch(`${API_BASE}/cleanup/${filename}`, {
+      method: 'POST'
+    });
+    return await response.json();
+  } catch (error) {
+    console.warn('[VideoAPI] Cleanup error:', error);
+    return { success: false, error: error.message };
+  }
 }
 
 /**
@@ -275,5 +295,6 @@ export default {
   waitForJob,
   getDownloadUrl,
   getFileUrl,
+  cleanupFile,
   convertAndWait
 };

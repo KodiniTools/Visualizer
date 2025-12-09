@@ -157,6 +157,10 @@ const ENCODING_PRESETS = {
 export async function convertToMP4(inputPath, outputPath, options = {}) {
   const preset = ENCODING_PRESETS[options.quality] || ENCODING_PRESETS.high;
 
+  // Timeout für FFmpeg: 10 Minuten pro Video, mit Heartbeat-Überwachung
+  const FFMPEG_TIMEOUT = options.timeout || 600000; // 10 Minuten
+  const HEARTBEAT_TIMEOUT = 60000; // 60 Sekunden ohne Output = hängt
+
   return new Promise((resolve, reject) => {
     const args = [
       '-y',                           // Überschreiben ohne Nachfrage
@@ -199,29 +203,93 @@ export async function convertToMP4(inputPath, outputPath, options = {}) {
 
     const proc = spawn(FFMPEG_PATH, args);
     let stderr = '';
+    let lastOutputTime = Date.now();
+    let isFinished = false;
+    let lastTimeMatch = null;
+
+    // Heartbeat-Timer: Überwacht ob FFmpeg noch Ausgabe produziert
+    const heartbeatInterval = setInterval(() => {
+      if (isFinished) {
+        clearInterval(heartbeatInterval);
+        return;
+      }
+
+      const timeSinceLastOutput = Date.now() - lastOutputTime;
+
+      // Während der Finalisierung (faststart) gibt es keine Ausgabe
+      // Das ist normal und kann etwas dauern
+      if (timeSinceLastOutput > HEARTBEAT_TIMEOUT) {
+        // Prüfe ob FFmpeg noch läuft
+        if (proc.killed) {
+          clearInterval(heartbeatInterval);
+          return;
+        }
+
+        console.warn(`⚠️ FFmpeg: Keine Ausgabe seit ${Math.round(timeSinceLastOutput / 1000)}s - prüfe Prozess...`);
+
+        // Nach 2 Minuten ohne Output abbrechen
+        if (timeSinceLastOutput > HEARTBEAT_TIMEOUT * 2) {
+          console.error('❌ FFmpeg: Timeout - keine Aktivität, breche ab');
+          proc.kill('SIGKILL');
+          clearInterval(heartbeatInterval);
+          isFinished = true;
+          reject(new Error('FFmpeg timeout: Prozess hängt (keine Ausgabe)'));
+          return;
+        }
+      }
+    }, 10000); // Alle 10 Sekunden prüfen
+
+    // Globaler Timeout
+    const globalTimeout = setTimeout(() => {
+      if (!isFinished) {
+        console.error('❌ FFmpeg: Globaler Timeout erreicht');
+        proc.kill('SIGKILL');
+        clearInterval(heartbeatInterval);
+        isFinished = true;
+        reject(new Error(`FFmpeg timeout: Maximale Laufzeit (${FFMPEG_TIMEOUT / 1000}s) überschritten`));
+      }
+    }, FFMPEG_TIMEOUT);
 
     proc.stderr.on('data', (data) => {
       stderr += data.toString();
-      // Progress Parsing (optional)
-      const timeMatch = stderr.match(/time=(\d+:\d+:\d+\.\d+)/);
-      if (timeMatch && options.onProgress) {
-        options.onProgress(timeMatch[1]);
+      lastOutputTime = Date.now(); // Heartbeat aktualisieren
+
+      // Progress Parsing
+      const timeMatch = stderr.match(/time=(\d+:\d+:\d+\.\d+)/g);
+      if (timeMatch && timeMatch.length > 0) {
+        const latestTime = timeMatch[timeMatch.length - 1].replace('time=', '');
+        if (latestTime !== lastTimeMatch) {
+          lastTimeMatch = latestTime;
+          if (options.onProgress) {
+            options.onProgress(latestTime);
+          }
+        }
       }
     });
 
     proc.on('close', (code) => {
+      isFinished = true;
+      clearInterval(heartbeatInterval);
+      clearTimeout(globalTimeout);
+
       if (code === 0) {
         resolve({
           success: true,
           output: outputPath,
           preset: options.quality || 'high'
         });
+      } else if (code === null) {
+        // Prozess wurde getötet (timeout)
+        reject(new Error('FFmpeg wurde wegen Timeout beendet'));
       } else {
         reject(new Error(`FFmpeg failed (code ${code}): ${stderr.slice(-500)}`));
       }
     });
 
     proc.on('error', (err) => {
+      isFinished = true;
+      clearInterval(heartbeatInterval);
+      clearTimeout(globalTimeout);
       reject(new Error(`FFmpeg error: ${err.message}`));
     });
   });

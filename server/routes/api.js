@@ -248,9 +248,9 @@ async function processConversion(jobId, inputPath, quality) {
     let encodingComplete = false;
 
     // Timeout für gesamten Konvertierungsprozess basierend auf Videolänge
-    // Basis: 30 Sekunden pro Sekunde Video + 2 Minuten Puffer für faststart
-    const estimatedTimeout = Math.max(300000, (totalDuration * 30 + 120) * 1000);
-    console.log(`⏱️ [Job ${jobId}] Timeout: ${Math.round(estimatedTimeout / 1000)}s`);
+    // Mit 'fast' preset: ca. 2-5 Sekunden pro Sekunde Video + 1 Minute Puffer für faststart
+    const estimatedTimeout = Math.max(120000, (totalDuration * 5 + 60) * 1000);
+    console.log(`⏱️ [Job ${jobId}] Timeout: ${Math.round(estimatedTimeout / 1000)}s (Video: ${totalDuration.toFixed(0)}s)`);
 
     await ffmpegService.convertToMP4(inputPath, outputPath, {
       quality,

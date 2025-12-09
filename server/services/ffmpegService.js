@@ -89,49 +89,50 @@ export async function getVideoInfo(inputPath) {
 
 /**
  * Encoding-Presets für verschiedene Qualitätsstufen
+ * Optimiert für Server mit 4 Kernen - verwendet schnellere presets
  */
 const ENCODING_PRESETS = {
-  // Maximale Qualität (für Archiv)
+  // Maximale Qualität (für Archiv) - aber trotzdem schnell
   highest: {
     videoCodec: 'libx264',
-    videoBitrate: '20M',
-    crf: '18',
-    preset: 'slow',
+    videoBitrate: '8M',
+    crf: '20',
+    preset: 'fast',        // War: 'slow' - viel zu langsam!
     audioCodec: 'aac',
-    audioBitrate: '320k',
+    audioBitrate: '256k',
     audioSampleRate: '48000'
   },
 
   // Hohe Qualität (Standard für Export)
   high: {
     videoCodec: 'libx264',
-    videoBitrate: '10M',
-    crf: '20',
-    preset: 'medium',
+    videoBitrate: '6M',
+    crf: '22',
+    preset: 'fast',        // War: 'medium' - zu langsam für Server
     audioCodec: 'aac',
-    audioBitrate: '256k',
+    audioBitrate: '192k',
     audioSampleRate: '48000'
   },
 
   // Mittlere Qualität (für Web)
   medium: {
     videoCodec: 'libx264',
-    videoBitrate: '5M',
-    crf: '23',
-    preset: 'medium',
+    videoBitrate: '4M',
+    crf: '24',
+    preset: 'veryfast',    // War: 'medium'
     audioCodec: 'aac',
-    audioBitrate: '192k',
+    audioBitrate: '160k',
     audioSampleRate: '44100'
   },
 
   // Social Media optimiert
   social: {
     videoCodec: 'libx264',
-    videoBitrate: '8M',
-    crf: '21',
+    videoBitrate: '5M',
+    crf: '23',
     preset: 'fast',
     audioCodec: 'aac',
-    audioBitrate: '256k',
+    audioBitrate: '192k',
     audioSampleRate: '48000',
     // Zusätzliche Optimierungen für Social Media
     pixelFormat: 'yuv420p',
@@ -162,15 +163,20 @@ export async function convertToMP4(inputPath, outputPath, options = {}) {
   const HEARTBEAT_TIMEOUT = 60000; // 60 Sekunden ohne Output = hängt
 
   return new Promise((resolve, reject) => {
+    // Parse Bitrate für Buffer-Berechnung (z.B. '6M' -> 6)
+    const bitrateNum = parseInt(preset.videoBitrate);
+
     const args = [
       '-y',                           // Überschreiben ohne Nachfrage
+      '-threads', '0',                // Alle CPU-Kerne nutzen (auto-detect)
       '-i', inputPath,                // Input
       '-c:v', preset.videoCodec,      // Video Codec
       '-crf', preset.crf,             // Constant Rate Factor (Qualität)
       '-preset', preset.preset,       // Encoding Speed/Quality Tradeoff
+      '-tune', 'fastdecode',          // Optimiert für schnelles Decoding
       '-b:v', preset.videoBitrate,    // Video Bitrate
-      '-maxrate', preset.videoBitrate,
-      '-bufsize', `${parseInt(preset.videoBitrate) * 2}M`,
+      '-maxrate', `${Math.round(bitrateNum * 1.5)}M`,  // 1.5x für Peaks
+      '-bufsize', `${bitrateNum * 2}M`,               // 2x Bitrate Buffer
       '-c:a', preset.audioCodec,      // Audio Codec
       '-b:a', preset.audioBitrate,    // Audio Bitrate
       '-ar', preset.audioSampleRate,  // Audio Sample Rate

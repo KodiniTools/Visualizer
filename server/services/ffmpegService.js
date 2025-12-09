@@ -89,62 +89,55 @@ export async function getVideoInfo(inputPath) {
 
 /**
  * Encoding-Presets für verschiedene Qualitätsstufen
- * Balance zwischen Qualität und Geschwindigkeit für Server
+ * Verwendet ultrafast+zerolatency für Geschwindigkeit, CRF für Qualität
+ * (gleiche Strategie wie Video Konverter App)
  */
 const ENCODING_PRESETS = {
-  // Maximale Qualität
+  // Maximale Qualität (CRF 18 = sehr gut)
   highest: {
     videoCodec: 'libx264',
-    videoBitrate: '12M',
+    videoBitrate: '10M',
     crf: '18',
-    preset: 'veryfast',    // Kompromiss: gute Qualität, akzeptable Geschwindigkeit
     audioCodec: 'aac',
-    audioBitrate: '256k',
+    audioBitrate: '192k',
     audioSampleRate: '48000'
   },
 
-  // Hohe Qualität (Standard für Export)
+  // Hohe Qualität (CRF 20 = gut)
   high: {
     videoCodec: 'libx264',
     videoBitrate: '8M',
     crf: '20',
-    preset: 'veryfast',    // veryfast statt ultrafast für bessere Qualität
     audioCodec: 'aac',
-    audioBitrate: '192k',
+    audioBitrate: '160k',
     audioSampleRate: '48000'
   },
 
-  // Mittlere Qualität (für Web)
+  // Mittlere Qualität (CRF 23 = Standard)
   medium: {
     videoCodec: 'libx264',
     videoBitrate: '5M',
     crf: '23',
-    preset: 'veryfast',
     audioCodec: 'aac',
-    audioBitrate: '160k',
+    audioBitrate: '128k',
     audioSampleRate: '44100'
   },
 
-  // Social Media optimiert
+  // Social Media (CRF 21, optimiert für Plattformen)
   social: {
     videoCodec: 'libx264',
     videoBitrate: '8M',
     crf: '21',
-    preset: 'veryfast',
     audioCodec: 'aac',
-    audioBitrate: '192k',
-    audioSampleRate: '48000',
-    pixelFormat: 'yuv420p',
-    profile: 'high',
-    level: '4.1'
+    audioBitrate: '160k',
+    audioSampleRate: '48000'
   },
 
-  // Schnelle Vorschau (niedrigere Qualität OK)
+  // Schnelle Vorschau (CRF 28 = niedrig aber schnell)
   preview: {
     videoCodec: 'libx264',
     videoBitrate: '2M',
     crf: '28',
-    preset: 'ultrafast',
     audioCodec: 'aac',
     audioBitrate: '128k',
     audioSampleRate: '44100'
@@ -166,39 +159,36 @@ export async function convertToMP4(inputPath, outputPath, options = {}) {
     const bitrateNum = parseInt(preset.videoBitrate);
 
     const args = [
-      '-y',                           // Überschreiben ohne Nachfrage
-      '-threads', '0',                // Alle CPU-Kerne nutzen (auto-detect)
+      // Input handling (wie in der anderen App)
+      '-fflags', '+genpts',           // Generate presentation timestamps
       '-i', inputPath,                // Input
-      '-c:v', preset.videoCodec,      // Video Codec
-      '-crf', preset.crf,             // Constant Rate Factor (Qualität)
-      '-preset', preset.preset,       // Encoding Speed/Quality Tradeoff
-      // Kein -tune bei ultrafast (nicht kompatibel)
-      '-b:v', preset.videoBitrate,    // Video Bitrate
-      '-maxrate', `${Math.round(bitrateNum * 1.5)}M`,  // 1.5x für Peaks
-      '-bufsize', `${bitrateNum * 2}M`,               // 2x Bitrate Buffer
-      '-c:a', preset.audioCodec,      // Audio Codec
-      '-b:a', preset.audioBitrate,    // Audio Bitrate
-      '-ar', preset.audioSampleRate,  // Audio Sample Rate
-      '-ac', '2',                     // Stereo
+      '-y',                           // Überschreiben ohne Nachfrage
+
+      // Performance: Alle CPU-Kerne nutzen
+      '-threads', '0',
+
+      // Framerate-Fix (verhindert Frame-Duplikation)
+      '-r', '60',                     // Output 60fps (für Visualizer)
+      '-vsync', 'cfr',                // Constant framerate
+
+      // Video Codec mit Speed-Optimierungen (wie in der anderen App)
+      '-c:v', preset.videoCodec,
+      '-preset', 'ultrafast',         // Maximum speed
+      '-tune', 'zerolatency',         // Speed optimization
+      '-crf', preset.crf,             // Qualität
+      '-profile:v', 'baseline',       // Faster than main/high profile
+      '-level', '3.1',
+      '-bf', '0',                     // No B-frames = VIEL schneller
+      '-b:v', preset.videoBitrate,
+
+      // Audio
+      '-c:a', preset.audioCodec,
+      '-b:a', preset.audioBitrate,
+      '-ar', preset.audioSampleRate,
+      '-ac', '2',
     ];
 
-    // Social Media Optimierungen
-    if (preset.pixelFormat) {
-      args.push('-pix_fmt', preset.pixelFormat);
-    }
-    if (preset.profile) {
-      args.push('-profile:v', preset.profile);
-    }
-    if (preset.level) {
-      args.push('-level', preset.level);
-    }
-
-    // Zusätzliche Optionen
-    if (options.fps) {
-      args.push('-r', String(options.fps));
-    }
-
-    // Schneller Start für Web-Playback
+    // Streaming-Optimierung (Web-Playback)
     args.push('-movflags', '+faststart');
 
     // Output

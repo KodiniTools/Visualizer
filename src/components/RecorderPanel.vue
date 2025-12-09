@@ -190,13 +190,13 @@
     </div>
 
     <!-- Conversion Progress -->
-    <div class="conversion-progress" v-if="isConverting || conversionStatus === 'completed'">
+    <div class="conversion-progress" v-if="isConverting || conversionStatus === 'completed' || conversionStatus === 'error'">
       <div class="progress-header">
         <span class="progress-label">
           {{ conversionStatus === 'uploading' ? 'Uploading...' :
              conversionStatus === 'converting' ? 'Konvertiere zu MP4...' :
              conversionStatus === 'completed' ? 'MP4 bereit!' :
-             conversionStatus === 'error' ? 'Fehler!' : '' }}
+             conversionStatus === 'error' ? 'Konvertierung fehlgeschlagen!' : 'Verarbeite...' }}
         </span>
         <span class="progress-percent">{{ conversionProgress }}%</span>
       </div>
@@ -209,19 +209,44 @@
       </div>
 
       <!-- MP4 Download Button -->
-      <a
-        v-if="convertedVideoUrl && conversionStatus === 'completed'"
-        :href="convertedVideoUrl"
-        :download="convertedFilename"
-        class="mp4-download-btn"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        MP4 Download
-      </a>
+      <div v-if="convertedVideoUrl && conversionStatus === 'completed'" class="download-actions">
+        <a
+          :href="convertedVideoUrl"
+          :download="convertedFilename"
+          class="mp4-download-btn"
+          @click="handleDownloadClick"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          MP4 Download
+        </a>
+        <button class="btn btn-close-conversion" @click="dismissConversion(true)" title="Schließen und Server-Datei löschen">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Error Actions -->
+      <div v-if="conversionStatus === 'error'" class="error-actions">
+        <span class="error-message">{{ conversionError || 'Unbekannter Fehler' }}</span>
+        <button class="btn btn-retry" @click="retryConversion">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M23 4v6h-6"/>
+            <path d="M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
+            <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
+          </svg>
+          Erneut versuchen
+        </button>
+        <button class="btn btn-dismiss" @click="dismissConversion">
+          Schließen
+        </button>
+      </div>
     </div>
 
     <!-- Manual Convert Button -->
@@ -290,7 +315,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRecorderStore } from '../stores/recorderStore.js';
 import HelpTooltip from './HelpTooltip.vue';
-import { checkServerHealth, convertAndWait, getFileUrl } from '../lib/videoApi.js';
+import { checkServerHealth, convertAndWait, getFileUrl, getDownloadUrl, cleanupFile } from '../lib/videoApi.js';
 
 const recorderStore = useRecorderStore();
 
@@ -306,6 +331,7 @@ const conversionQuality = ref('social'); // FFmpeg Preset
 const isConverting = ref(false);
 const conversionProgress = ref(0);
 const conversionStatus = ref(''); // 'uploading', 'converting', 'completed', 'error'
+const conversionError = ref(null);
 const convertedVideoUrl = ref(null);
 const convertedFilename = ref(null);
 
@@ -476,6 +502,7 @@ async function startServerConversion(blob) {
   isConverting.value = true;
   conversionProgress.value = 0;
   conversionStatus.value = 'uploading';
+  conversionError.value = null;
   convertedVideoUrl.value = null;
   convertedFilename.value = null;
 
@@ -484,6 +511,7 @@ async function startServerConversion(blob) {
       quality: conversionQuality.value,
       onProgress: (progress) => {
         conversionProgress.value = progress;
+        console.log('📊 [Panel] Progress:', progress + '%');
       },
       onStatusChange: (status) => {
         conversionStatus.value = status;
@@ -495,14 +523,65 @@ async function startServerConversion(blob) {
       convertedVideoUrl.value = result.fileUrl;
       convertedFilename.value = result.filename;
       conversionStatus.value = 'completed';
+      conversionProgress.value = 100;
       console.log('✅ [Panel] Konvertierung abgeschlossen:', result.filename);
     }
   } catch (error) {
     console.error('❌ [Panel] Konvertierung fehlgeschlagen:', error);
     conversionStatus.value = 'error';
+    conversionError.value = error.message || 'Verbindung zum Server fehlgeschlagen';
   } finally {
     isConverting.value = false;
   }
+}
+
+/**
+ * Retry failed conversion
+ */
+function retryConversion() {
+  if (recorderStore.lastRecording?.blob) {
+    startServerConversion(recorderStore.lastRecording.blob);
+  }
+}
+
+/**
+ * Dismiss conversion progress/error
+ * Optionally cleanup server file
+ */
+async function dismissConversion(cleanup = false) {
+  // Cleanup auf Server wenn gewünscht und Datei vorhanden
+  if (cleanup && convertedFilename.value) {
+    try {
+      await cleanupFile(convertedFilename.value);
+      console.log('🧹 [Panel] Server-Datei gelöscht:', convertedFilename.value);
+    } catch (e) {
+      console.warn('⚠️ [Panel] Cleanup fehlgeschlagen:', e);
+    }
+  }
+
+  conversionStatus.value = '';
+  conversionProgress.value = 0;
+  conversionError.value = null;
+  convertedVideoUrl.value = null;
+  convertedFilename.value = null;
+}
+
+/**
+ * Handle MP4 download click - cleanup after delay
+ */
+function handleDownloadClick() {
+  // Nach Download: Warte kurz und lösche Server-Datei
+  setTimeout(async () => {
+    if (convertedFilename.value) {
+      try {
+        await cleanupFile(convertedFilename.value);
+        console.log('🧹 [Panel] Server-Datei nach Download gelöscht');
+        dismissConversion(false); // Reset UI ohne nochmal cleanup
+      } catch (e) {
+        console.warn('⚠️ [Panel] Auto-Cleanup fehlgeschlagen:', e);
+      }
+    }
+  }, 3000); // 3 Sekunden Delay für Download-Start
 }
 
 /**
@@ -1025,6 +1104,76 @@ h3 {
   background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+/* Download Actions Container */
+.download-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.download-actions .mp4-download-btn {
+  flex: 1;
+}
+
+.btn-close-conversion {
+  background: rgba(158, 158, 158, 0.2);
+  color: #9e9e9e;
+  border: 1px solid rgba(158, 158, 158, 0.3);
+  padding: 8px;
+  min-width: auto;
+  flex: none;
+}
+
+.btn-close-conversion:hover:not(:disabled) {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+/* Error Actions */
+.error-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.error-message {
+  font-size: 11px;
+  color: #F44336;
+  text-align: center;
+  padding: 4px 8px;
+  background: rgba(244, 67, 54, 0.1);
+  border-radius: 4px;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.btn-retry {
+  background: rgba(255, 152, 0, 0.2);
+  color: #FF9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  width: 100%;
+}
+
+.btn-retry:hover:not(:disabled) {
+  background: rgba(255, 152, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-dismiss {
+  background: rgba(158, 158, 158, 0.2);
+  color: #9e9e9e;
+  border: 1px solid rgba(158, 158, 158, 0.3);
+  width: 100%;
+  font-size: 10px;
+  padding: 6px 10px;
+}
+
+.btn-dismiss:hover:not(:disabled) {
+  background: rgba(158, 158, 158, 0.3);
 }
 
 /* Convert Button */

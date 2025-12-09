@@ -208,20 +208,54 @@ router.post('/convert', upload.single('video'), async (req, res) => {
 });
 
 /**
+ * Parst FFmpeg Zeit-String zu Sekunden
+ */
+function parseFFmpegTime(timeStr) {
+  if (!timeStr) return 0;
+  const parts = timeStr.split(':');
+  if (parts.length !== 3) return 0;
+  const [hours, minutes, seconds] = parts.map(parseFloat);
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
+/**
  * Asynchrone Konvertierung
  */
 async function processConversion(jobId, inputPath, quality) {
   const outputFilename = `converted_${Date.now()}.mp4`;
   const outputPath = path.join(FILES_DIR, outputFilename);
 
-  updateJob(jobId, { status: 'processing', progress: 10 });
+  updateJob(jobId, { status: 'processing', progress: 5 });
   console.log(`🎬 [Job ${jobId}] Starte Konvertierung: ${inputPath} → ${outputFilename}`);
 
   try {
+    // Hole Video-Dauer für Progress-Berechnung
+    let totalDuration = 0;
+    try {
+      const info = await ffmpegService.getVideoInfo(inputPath);
+      totalDuration = parseFloat(info.format?.duration) || 0;
+      console.log(`📊 [Job ${jobId}] Video-Dauer: ${totalDuration.toFixed(2)}s`);
+    } catch (e) {
+      console.warn(`⚠️ [Job ${jobId}] Konnte Video-Dauer nicht ermitteln`);
+    }
+
     await ffmpegService.convertToMP4(inputPath, outputPath, {
       quality,
       onProgress: (time) => {
-        updateJob(jobId, { progress: 50 });
+        if (totalDuration > 0) {
+          const currentTime = parseFFmpegTime(time);
+          // Progress von 10-90% für Konvertierung (10% Upload, 10% Finalisierung)
+          const progressPercent = Math.min(90, Math.round(10 + (currentTime / totalDuration) * 80));
+          updateJob(jobId, { progress: progressPercent });
+          console.log(`📊 [Job ${jobId}] Progress: ${progressPercent}% (${time})`);
+        } else {
+          // Fallback: Inkrementeller Progress
+          const job = jobs.get(jobId);
+          const currentProgress = job?.progress || 10;
+          if (currentProgress < 85) {
+            updateJob(jobId, { progress: currentProgress + 5 });
+          }
+        }
       }
     });
 
@@ -411,11 +445,13 @@ router.get('/status/:jobId', (req, res) => {
 /**
  * GET /api/download/:filename
  * Verarbeitete Datei herunterladen
+ * Query: ?cleanup=true - Löscht Datei nach Download
  */
 router.get('/download/:filename', async (req, res) => {
   try {
     const filename = path.basename(req.params.filename); // Sicherheit: nur Dateiname
     const filePath = path.join(FILES_DIR, filename);
+    const shouldCleanup = req.query.cleanup === 'true';
 
     // Prüfe ob Datei existiert
     await fs.access(filePath);
@@ -433,9 +469,43 @@ router.get('/download/:filename', async (req, res) => {
     res.setHeader('Content-Type', contentTypes[ext] || 'application/octet-stream');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
+    // Bei cleanup=true: Lösche nach vollständigem Download
+    if (shouldCleanup) {
+      res.on('finish', async () => {
+        try {
+          await fs.unlink(filePath);
+          console.log(`🧹 [Download] Datei nach Download gelöscht: ${filename}`);
+        } catch (e) {
+          console.warn(`⚠️ [Download] Cleanup fehlgeschlagen: ${filename}`);
+        }
+      });
+    }
+
     res.sendFile(filePath);
   } catch (error) {
     res.status(404).json({ error: 'Datei nicht gefunden' });
+  }
+});
+
+/**
+ * POST /api/cleanup/:filename
+ * Manuelles Cleanup einer Datei
+ */
+router.post('/cleanup/:filename', async (req, res) => {
+  try {
+    const filename = path.basename(req.params.filename);
+    const filePath = path.join(FILES_DIR, filename);
+
+    await fs.unlink(filePath);
+    console.log(`🧹 [Cleanup] Datei gelöscht: ${filename}`);
+
+    res.json({ success: true, message: 'Datei gelöscht' });
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      res.json({ success: true, message: 'Datei existiert nicht mehr' });
+    } else {
+      res.status(500).json({ error: error.message });
+    }
   }
 });
 

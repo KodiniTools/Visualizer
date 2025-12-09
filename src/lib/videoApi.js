@@ -132,12 +132,12 @@ export async function getJobStatus(jobId) {
  * @param {Object} options - Optionen
  * @param {function} options.onProgress - Progress Callback (0-100)
  * @param {number} options.pollInterval - Polling-Intervall in ms (default: 1000)
- * @param {number} options.timeout - Timeout in ms (default: 300000 = 5 min)
+ * @param {number} options.timeout - Timeout in ms (default: 600000 = 10 min)
  * @returns {Promise<Object>} Finales Job-Ergebnis
  */
 export async function waitForJob(jobId, options = {}) {
   const pollInterval = options.pollInterval || 1000;
-  const timeout = options.timeout || 300000; // 5 Minuten
+  const timeout = options.timeout || 600000; // 10 Minuten (für längere Videos)
   const onProgress = options.onProgress || (() => {});
 
   const startTime = Date.now();
@@ -270,7 +270,7 @@ export async function convertAndWait(videoBlob, options = {}) {
       onProgress(Math.round(mappedProgress));
     },
     pollInterval: 1000,
-    timeout: 300000
+    timeout: 600000  // 10 Minuten für längere Videos
   });
 
   // 3. Ergebnis aufbereiten

@@ -231,41 +231,62 @@ async function processConversion(jobId, inputPath, quality) {
   try {
     // Hole Video-Dauer für Progress-Berechnung
     let totalDuration = 0;
+    let inputFileSize = 0;
     try {
       const info = await ffmpegService.getVideoInfo(inputPath);
       totalDuration = parseFloat(info.format?.duration) || 0;
-      console.log(`📊 [Job ${jobId}] Video-Dauer: ${totalDuration.toFixed(2)}s`);
+      const stats = await fs.stat(inputPath);
+      inputFileSize = stats.size;
+      console.log(`📊 [Job ${jobId}] Video-Dauer: ${totalDuration.toFixed(2)}s, Größe: ${(inputFileSize / 1024 / 1024).toFixed(1)}MB`);
     } catch (e) {
       console.warn(`⚠️ [Job ${jobId}] Konnte Video-Dauer nicht ermitteln`);
     }
 
     // Progress-Tracking mit Throttling
     let lastProgressTime = 0;
+    let lastProgressUpdate = Date.now();
+    let encodingComplete = false;
+
+    // Timeout für gesamten Konvertierungsprozess basierend auf Videolänge
+    // Basis: 30 Sekunden pro Sekunde Video + 2 Minuten Puffer für faststart
+    const estimatedTimeout = Math.max(300000, (totalDuration * 30 + 120) * 1000);
+    console.log(`⏱️ [Job ${jobId}] Timeout: ${Math.round(estimatedTimeout / 1000)}s`);
 
     await ffmpegService.convertToMP4(inputPath, outputPath, {
       quality,
+      timeout: estimatedTimeout,
       onProgress: (time) => {
         const currentTime = parseFFmpegTime(time);
         // Nur alle 2 Sekunden updaten
         if (currentTime - lastProgressTime < 2) return;
         lastProgressTime = currentTime;
+        lastProgressUpdate = Date.now();
 
         if (totalDuration > 0) {
           // Bekannte Dauer - präziser Progress
-          const progressPercent = Math.min(90, Math.round(10 + (currentTime / totalDuration) * 80));
+          // Encoding geht bis 85%, dann 85-92% für faststart
+          const progressPercent = Math.min(85, Math.round(10 + (currentTime / totalDuration) * 75));
           updateJob(jobId, { progress: progressPercent });
-          console.log(`📊 [Job ${jobId}] Progress: ${progressPercent}% (${time})`);
+
+          // Erkennen wenn Encoding fast fertig (>95% der Dauer)
+          if (currentTime / totalDuration > 0.95) {
+            encodingComplete = true;
+            updateJob(jobId, { progress: 86 });
+            console.log(`📊 [Job ${jobId}] Encoding fast fertig, starte Finalisierung (faststart)...`);
+          } else {
+            console.log(`📊 [Job ${jobId}] Progress: ${progressPercent}% (${time})`);
+          }
         } else {
           // Unbekannte Dauer - schätze basierend auf verstrichener Zeit
           // Annahme: max ~5 Min Video
-          const estimatedProgress = Math.min(85, Math.round(10 + (currentTime / 300) * 75));
+          const estimatedProgress = Math.min(82, Math.round(10 + (currentTime / 300) * 72));
           updateJob(jobId, { progress: estimatedProgress });
           console.log(`📊 [Job ${jobId}] Progress: ~${estimatedProgress}% (${time})`);
         }
       }
     });
 
-    // FFmpeg Encoding fertig
+    // FFmpeg Encoding fertig (inkl. faststart)
     updateJob(jobId, { progress: 92 });
     console.log(`✅ [Job ${jobId}] FFmpeg Encoding abgeschlossen, finalisiere...`);
 
@@ -315,13 +336,23 @@ async function processConversion(jobId, inputPath, quality) {
 
   } catch (error) {
     console.error(`❌ [Job ${jobId}] Konvertierung fehlgeschlagen:`, error.message);
+
+    // Bessere Fehlermeldung für den Benutzer
+    let userFriendlyError = error.message;
+    if (error.message.includes('timeout') || error.message.includes('Timeout')) {
+      userFriendlyError = 'Konvertierung abgebrochen: Das Video ist zu komplex oder der Server ist überlastet. Versuche eine niedrigere Qualitätseinstellung.';
+    } else if (error.message.includes('SIGKILL')) {
+      userFriendlyError = 'Konvertierung wurde wegen Zeitüberschreitung abgebrochen.';
+    }
+
     updateJob(jobId, {
       status: 'failed',
-      error: error.message
+      error: userFriendlyError
     });
 
-    // Cleanup
+    // Cleanup input und ggf. partielles output
     await fs.unlink(inputPath).catch(() => {});
+    await fs.unlink(outputPath).catch(() => {});
   }
 }
 

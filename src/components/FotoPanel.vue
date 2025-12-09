@@ -625,30 +625,6 @@
             <span class="effect-value" ref="effectSaturationValueRef">80%</span>
           </div>
 
-          <!-- Größe (Scale) -->
-          <div class="effect-item">
-            <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectScaleEnabledRef"
-                @change="(e) => onEffectToggle('scale', e.target.checked)"
-                class="effect-checkbox"
-              />
-              <span class="effect-name">📐 Größe (Pulsieren)</span>
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="80"
-              step="5"
-              ref="effectScaleIntensityRef"
-              @input="(e) => onEffectIntensityChange('scale', e.target.value)"
-              class="effect-slider"
-            />
-            <span class="effect-value" ref="effectScaleValueRef">80%</span>
-          </div>
-
           <!-- Leuchten (Glow) -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
@@ -939,9 +915,6 @@ const effectBrightnessValueRef = ref(null);
 const effectSaturationEnabledRef = ref(null);
 const effectSaturationIntensityRef = ref(null);
 const effectSaturationValueRef = ref(null);
-const effectScaleEnabledRef = ref(null);
-const effectScaleIntensityRef = ref(null);
-const effectScaleValueRef = ref(null);
 const effectGlowEnabledRef = ref(null);
 const effectGlowIntensityRef = ref(null);
 const effectGlowValueRef = ref(null);
@@ -1353,7 +1326,6 @@ function getEffectValueRef(effectName) {
     case 'hue': return effectHueValueRef;
     case 'brightness': return effectBrightnessValueRef;
     case 'saturation': return effectSaturationValueRef;
-    case 'scale': return effectScaleValueRef;
     case 'glow': return effectGlowValueRef;
     case 'border': return effectBorderValueRef;
     case 'blur': return effectBlurValueRef;
@@ -1505,7 +1477,6 @@ function getEffectEnabledRef(effectName) {
     case 'hue': return effectHueEnabledRef;
     case 'brightness': return effectBrightnessEnabledRef;
     case 'saturation': return effectSaturationEnabledRef;
-    case 'scale': return effectScaleEnabledRef;
     case 'glow': return effectGlowEnabledRef;
     case 'border': return effectBorderEnabledRef;
     case 'blur': return effectBlurEnabledRef;
@@ -1526,7 +1497,6 @@ function getEffectIntensityRef(effectName) {
     case 'hue': return effectHueIntensityRef;
     case 'brightness': return effectBrightnessIntensityRef;
     case 'saturation': return effectSaturationIntensityRef;
-    case 'scale': return effectScaleIntensityRef;
     case 'glow': return effectGlowIntensityRef;
     case 'border': return effectBorderIntensityRef;
     case 'blur': return effectBlurIntensityRef;
@@ -1626,7 +1596,6 @@ function loadAudioReactiveSettings(imageData) {
     loadEffect('hue', effectHueEnabledRef, effectHueIntensityRef, effectHueValueRef);
     loadEffect('brightness', effectBrightnessEnabledRef, effectBrightnessIntensityRef, effectBrightnessValueRef);
     loadEffect('saturation', effectSaturationEnabledRef, effectSaturationIntensityRef, effectSaturationValueRef);
-    loadEffect('scale', effectScaleEnabledRef, effectScaleIntensityRef, effectScaleValueRef);
     loadEffect('glow', effectGlowEnabledRef, effectGlowIntensityRef, effectGlowValueRef);
     loadEffect('border', effectBorderEnabledRef, effectBorderIntensityRef, effectBorderValueRef);
     loadEffect('blur', effectBlurEnabledRef, effectBlurIntensityRef, effectBlurValueRef, 50);

@@ -46,7 +46,6 @@ export class FotoManager {
                     hue: { enabled: false, intensity: 80 },
                     brightness: { enabled: false, intensity: 80 },
                     saturation: { enabled: false, intensity: 80 },
-                    scale: { enabled: false, intensity: 80 },
                     glow: { enabled: false, intensity: 80 },
                     border: { enabled: false, intensity: 80 },
                     blur: { enabled: false, intensity: 50 },      // Dynamische Unschärfe

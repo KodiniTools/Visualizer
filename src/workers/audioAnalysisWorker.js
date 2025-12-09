@@ -49,16 +49,16 @@ function analyzeAudioData(audioDataArray, bufferLength) {
     }
   }
 
-  // Durchschnittswerte berechnen mit Verstärkung
-  const bass = bassCount > 0 ? Math.min(255, Math.floor((bassSum / bassCount) * 1.5)) : 0;
-  const mid = midCount > 0 ? Math.min(255, Math.floor((midSum / midCount) * 2.0)) : 0;
+  // Durchschnittswerte berechnen mit reduzierter Verstärkung (verhindert Übersteuerung)
+  const bass = bassCount > 0 ? Math.min(255, Math.floor((bassSum / bassCount) * 1.0)) : 0;
+  const mid = midCount > 0 ? Math.min(255, Math.floor((midSum / midCount) * 1.2)) : 0;
 
-  // Treble mit Peak-Berücksichtigung
+  // Treble mit Peak-Berücksichtigung (reduzierte Verstärkung)
   const trebleAvg = trebleCount > 0 ? (trebleSum / trebleCount) : 0;
   const trebleCombined = (trebleAvg * 0.6) + (treblePeak * 0.4);
-  const treble = Math.min(255, Math.floor(trebleCombined * 8.0));
+  const treble = Math.min(255, Math.floor(trebleCombined * 3.0));
 
-  const volume = usableLength > 0 ? Math.min(255, Math.floor((totalSum / usableLength) * 1.5)) : 0;
+  const volume = usableLength > 0 ? Math.min(255, Math.floor((totalSum / usableLength) * 1.0)) : 0;
 
   // Smoothing im Worker
   const smoothFactor = 0.4;

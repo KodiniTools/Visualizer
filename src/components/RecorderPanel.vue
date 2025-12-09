@@ -249,9 +249,9 @@
       </div>
     </div>
 
-    <!-- Manual Convert Button -->
+    <!-- Manual Convert Button - nur wenn Auto-Konvertierung DEAKTIVIERT ist -->
     <button
-      v-if="recorderStore.lastRecording && !isConverting && serverAvailable && conversionStatus !== 'completed'"
+      v-if="recorderStore.lastRecording && !isConverting && serverAvailable && !enableServerConversion && conversionStatus !== 'completed'"
       class="btn btn-convert"
       @click="convertLastRecording"
       :disabled="isProcessing"
@@ -567,21 +567,31 @@ async function dismissConversion(cleanup = false) {
 }
 
 /**
- * Handle MP4 download click - cleanup after delay
+ * Handle MP4 download click - cleanup after delay and hide UI
  */
 function handleDownloadClick() {
+  console.log('📥 [Panel] MP4 Download gestartet');
+
   // Nach Download: Warte kurz und lösche Server-Datei
   setTimeout(async () => {
     if (convertedFilename.value) {
       try {
         await cleanupFile(convertedFilename.value);
         console.log('🧹 [Panel] Server-Datei nach Download gelöscht');
-        dismissConversion(false); // Reset UI ohne nochmal cleanup
       } catch (e) {
         console.warn('⚠️ [Panel] Auto-Cleanup fehlgeschlagen:', e);
       }
     }
-  }, 3000); // 3 Sekunden Delay für Download-Start
+
+    // UI komplett zurücksetzen - Panel verschwindet
+    conversionStatus.value = '';
+    conversionProgress.value = 0;
+    conversionError.value = null;
+    convertedVideoUrl.value = null;
+    convertedFilename.value = null;
+
+    console.log('✅ [Panel] Konvertierung abgeschlossen, UI zurückgesetzt');
+  }, 2000); // 2 Sekunden Delay für Download-Start
 }
 
 /**

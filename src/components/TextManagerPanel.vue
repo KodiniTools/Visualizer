@@ -749,11 +749,10 @@ Zeile 3..."
 
       <div class="divider"></div>
 
-      <!-- ✨ NEU: TEXT-ANIMATIONEN -->
+      <!-- ✨ TEXT-ANIMATIONEN -->
       <template v-if="selectedText.animation">
         <h4>✨ Einblend-Animation</h4>
 
-        <!-- Animation-Typ -->
         <div class="control-group">
           <label>Animation:</label>
           <select
@@ -771,175 +770,124 @@ Zeile 3..."
           </select>
         </div>
 
-      <!-- Animation-Einstellungen (nur wenn Animation aktiv) -->
-      <div v-if="selectedText.animation?.type !== 'none'">
-        <!-- Dauer -->
-        <div class="control-group">
-          <label>Dauer: {{ selectedText.animation.duration }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.duration"
-            @input="updateText"
-            min="200"
-            max="5000"
-            step="100"
-            class="slider"
-          />
-        </div>
+        <div v-if="selectedText.animation.type !== 'none'">
+          <div class="control-group">
+            <label>Dauer: {{ selectedText.animation.duration }}ms</label>
+            <input
+              type="range"
+              v-model.number="selectedText.animation.duration"
+              @input="updateText"
+              min="200"
+              max="5000"
+              step="100"
+              class="slider"
+            />
+          </div>
 
-        <!-- Verzögerung -->
-        <div class="control-group">
-          <label>Verzögerung: {{ selectedText.animation.delay }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.delay"
-            @input="updateText"
-            min="0"
-            max="3000"
-            step="100"
-            class="slider"
-          />
-        </div>
+          <div class="control-group">
+            <label>Verzögerung: {{ selectedText.animation.delay }}ms</label>
+            <input
+              type="range"
+              v-model.number="selectedText.animation.delay"
+              @input="updateText"
+              min="0"
+              max="3000"
+              step="100"
+              class="slider"
+            />
+          </div>
 
-        <!-- Richtung (nur für Slide) -->
-        <div v-if="selectedText.animation.type === 'slide'" class="control-group">
-          <label>Richtung:</label>
-          <div class="button-group">
-            <button
-              @click="setAnimationDirection('left')"
-              :class="['btn-small', { active: selectedText.animation.direction === 'left' }]"
-            >
-              Links
-            </button>
-            <button
-              @click="setAnimationDirection('right')"
-              :class="['btn-small', { active: selectedText.animation.direction === 'right' }]"
-            >
-              Rechts
-            </button>
-            <button
-              @click="setAnimationDirection('top')"
-              :class="['btn-small', { active: selectedText.animation.direction === 'top' }]"
-            >
-              Oben
-            </button>
-            <button
-              @click="setAnimationDirection('bottom')"
-              :class="['btn-small', { active: selectedText.animation.direction === 'bottom' }]"
-            >
-              Unten
-            </button>
+          <div v-if="selectedText.animation.type === 'slide'" class="control-group">
+            <label>Richtung:</label>
+            <div class="button-group">
+              <button
+                @click="setAnimationDirection('left')"
+                :class="['btn-small', { active: selectedText.animation.direction === 'left' }]"
+              >Links</button>
+              <button
+                @click="setAnimationDirection('right')"
+                :class="['btn-small', { active: selectedText.animation.direction === 'right' }]"
+              >Rechts</button>
+              <button
+                @click="setAnimationDirection('top')"
+                :class="['btn-small', { active: selectedText.animation.direction === 'top' }]"
+              >Oben</button>
+              <button
+                @click="setAnimationDirection('bottom')"
+                :class="['btn-small', { active: selectedText.animation.direction === 'bottom' }]"
+              >Unten</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>Beschleunigung:</label>
+            <select v-model="selectedText.animation.easing" @change="updateText" class="select-input">
+              <option value="linear">Linear</option>
+              <option value="easeIn">Beschleunigen</option>
+              <option value="easeOut">Abbremsen</option>
+              <option value="easeInOut">Beides</option>
+              <option value="bounce">Federn</option>
+              <option value="elastic">Elastisch</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label class="effect-checkbox">
+              <input type="checkbox" v-model="selectedText.animation.loop" @change="updateText" />
+              Animation wiederholen (Loop)
+            </label>
+          </div>
+
+          <div class="button-row">
+            <button @click="startTextAnimation" class="btn-primary">Animation starten</button>
+            <button @click="resetTextAnimation" class="btn-secondary">Zurücksetzen</button>
           </div>
         </div>
 
-        <!-- Easing -->
-        <div class="control-group">
-          <label>Beschleunigung:</label>
-          <select
-            v-model="selectedText.animation.easing"
-            @change="updateText"
-            class="select-input"
-          >
-            <option value="linear">Linear</option>
-            <option value="easeIn">Beschleunigen</option>
-            <option value="easeOut">Abbremsen</option>
-            <option value="easeInOut">Beides</option>
-            <option value="bounce">Federn</option>
-            <option value="elastic">Elastisch</option>
-          </select>
-        </div>
-
-        <!-- Loop -->
-        <div class="control-group">
-          <label class="effect-checkbox">
-            <input
-              type="checkbox"
-              v-model="selectedText.animation.loop"
-              @change="updateText"
-            />
-            Animation wiederholen (Loop)
-          </label>
-        </div>
-
-        <!-- Animation starten/stoppen -->
-        <div class="button-row">
-          <button @click="startTextAnimation" class="btn-primary">
-            Animation starten
-          </button>
-          <button @click="resetTextAnimation" class="btn-secondary">
-            Zurücksetzen
-          </button>
-        </div>
-      </div>
+        <div class="divider"></div>
       </template>
 
-      <div class="divider"></div>
-
-      <!-- ✨ NEU: KARAOKE-MODUS -->
+      <!-- 🎤 KARAOKE-MODUS -->
       <template v-if="selectedText.karaoke">
         <h4>🎤 Karaoke-Modus</h4>
 
-        <!-- Aktivieren -->
         <div class="control-group">
           <label class="effect-checkbox">
-            <input
-              type="checkbox"
-              v-model="selectedText.karaoke.enabled"
-              @change="updateText"
-            />
-            <span class="effect-icon">🎤</span> Wort-für-Wort Hervorhebung
+            <input type="checkbox" v-model="selectedText.karaoke.enabled" @change="updateText" />
+            Wort-für-Wort Hervorhebung
           </label>
         </div>
 
-      <!-- Karaoke-Einstellungen -->
-      <div v-if="selectedText.karaoke?.enabled">
-        <!-- Geschwindigkeit -->
-        <div class="control-group">
-          <label>Geschwindigkeit: {{ selectedText.karaoke.wordsPerSecond }} Wörter/Sek</label>
-          <input
-            type="range"
-            v-model.number="selectedText.karaoke.wordsPerSecond"
-            @input="updateText"
-            min="0.5"
-            max="8"
-            step="0.5"
-            class="slider"
-          />
-        </div>
+        <div v-if="selectedText.karaoke.enabled">
+          <div class="control-group">
+            <label>Geschwindigkeit: {{ selectedText.karaoke.wordsPerSecond }} Wörter/Sek</label>
+            <input
+              type="range"
+              v-model.number="selectedText.karaoke.wordsPerSecond"
+              @input="updateText"
+              min="0.5"
+              max="8"
+              step="0.5"
+              class="slider"
+            />
+          </div>
 
-        <!-- Highlight-Farbe -->
-        <div class="control-group">
-          <label>Highlight-Farbe:</label>
-          <div class="color-picker-group">
-            <input
-              type="color"
-              v-model="selectedText.karaoke.highlightColor"
-              @input="updateText"
-              class="color-input"
-            />
-            <input
-              type="text"
-              v-model="selectedText.karaoke.highlightColor"
-              @input="updateText"
-              class="color-text-input"
-              placeholder="#ffff00"
-            />
+          <div class="control-group">
+            <label>Highlight-Farbe:</label>
+            <div class="color-picker-group">
+              <input type="color" v-model="selectedText.karaoke.highlightColor" @input="updateText" class="color-input" />
+              <input type="text" v-model="selectedText.karaoke.highlightColor" @input="updateText" class="color-text-input" placeholder="#ffff00" />
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button @click="startKaraoke" class="btn-primary">Karaoke starten</button>
+            <button @click="stopKaraoke" class="btn-secondary">Stoppen</button>
           </div>
         </div>
 
-        <!-- Karaoke starten/stoppen -->
-        <div class="button-row">
-          <button @click="startKaraoke" class="btn-primary">
-            Karaoke starten
-          </button>
-          <button @click="stopKaraoke" class="btn-secondary">
-            Stoppen
-          </button>
-        </div>
-      </div>
+        <div class="divider"></div>
       </template>
-
-      <div class="divider"></div>
 
       <!-- Löschen Button -->
       <button @click="deleteSelectedText" class="btn-danger full-width">
@@ -1241,74 +1189,58 @@ function resetAudioSettings() {
   console.log('🔄 Audio-Einstellungen zurückgesetzt');
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// ✨ NEU: TEXT-ANIMATIONEN
-// ═══════════════════════════════════════════════════════════════════
-
-// Animation-Typ geändert
+// ✨ NEU: Animation-Funktionen
 function onAnimationChange() {
-  if (selectedText.value?.animation) {
-    // Animation zurücksetzen wenn Typ geändert wird
-    selectedText.value.animation.startTime = null;
+  if (selectedText.value && selectedText.value.animation) {
+    // Reset animation state when type changes
     selectedText.value.animation.isPlaying = false;
     selectedText.value.animation.hasPlayed = false;
+    selectedText.value.animation.startTime = null;
+    updateText();
   }
-  updateText();
 }
 
-// Slide-Richtung setzen
 function setAnimationDirection(direction) {
-  if (selectedText.value?.animation) {
+  if (selectedText.value && selectedText.value.animation) {
     selectedText.value.animation.direction = direction;
     updateText();
   }
 }
 
-// Animation starten
 function startTextAnimation() {
-  if (!selectedText.value?.animation || !canvasManager.value) return;
-
-  const textManager = canvasManager.value.textManager;
-  if (textManager) {
-    textManager.startAnimation(selectedText.value);
-    console.log('🎬 Animation gestartet:', selectedText.value.animation.type);
+  if (selectedText.value && canvasManager.value && canvasManager.value.textManager) {
+    const textManager = canvasManager.value.textManager;
+    if (textManager.startAnimation) {
+      textManager.startAnimation(selectedText.value);
+    }
   }
 }
 
-// Animation zurücksetzen
 function resetTextAnimation() {
-  if (!selectedText.value?.animation || !canvasManager.value) return;
-
-  const textManager = canvasManager.value.textManager;
-  if (textManager) {
-    textManager.resetAnimation(selectedText.value);
-    console.log('🔄 Animation zurückgesetzt');
+  if (selectedText.value && canvasManager.value && canvasManager.value.textManager) {
+    const textManager = canvasManager.value.textManager;
+    if (textManager.resetAnimation) {
+      textManager.resetAnimation(selectedText.value);
+    }
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// ✨ NEU: KARAOKE-MODUS
-// ═══════════════════════════════════════════════════════════════════
-
-// Karaoke starten
+// ✨ NEU: Karaoke-Funktionen
 function startKaraoke() {
-  if (!selectedText.value?.karaoke || !canvasManager.value) return;
-
-  const textManager = canvasManager.value.textManager;
-  if (textManager) {
-    textManager.startKaraoke(selectedText.value);
-    console.log('🎤 Karaoke gestartet');
+  if (selectedText.value && canvasManager.value && canvasManager.value.textManager) {
+    const textManager = canvasManager.value.textManager;
+    if (textManager.startKaraoke) {
+      textManager.startKaraoke(selectedText.value);
+    }
   }
 }
 
-// Karaoke stoppen
 function stopKaraoke() {
-  if (!selectedText.value?.karaoke || !canvasManager.value) return;
-
-  const textManager = canvasManager.value.textManager;
-  if (textManager) {
-    textManager.stopKaraoke(selectedText.value);
-    console.log('🎤 Karaoke gestoppt');
+  if (selectedText.value && canvasManager.value && canvasManager.value.textManager) {
+    const textManager = canvasManager.value.textManager;
+    if (textManager.stopKaraoke) {
+      textManager.stopKaraoke(selectedText.value);
+    }
   }
 }
 

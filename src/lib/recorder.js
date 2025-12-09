@@ -632,11 +632,14 @@ class Recorder {
 
         const combinedStream = new MediaStream([...audioTracks, ...videoTracks]);
 
+        // ⚠️ WICHTIG: VP9 vermeiden - extrem langsam zu decodieren auf Server!
+        // VP8 ist ~3x schneller zu decodieren, H.264 noch schneller
         const preferredMimeTypes = [
-            'video/webm;codecs=vp9,opus',
-            'video/webm;codecs=vp8,opus',
-            'video/mp4;codecs=h264,aac',
+            'video/mp4;codecs=h264,aac',    // Beste Option: H.264 (schnellstes Decoding)
+            'video/mp4;codecs=avc1,mp4a',   // H.264 Alternative
+            'video/webm;codecs=vp8,opus',   // VP8: 3x schneller als VP9
             'video/mp4',
+            'video/webm;codecs=vp9,opus',   // VP9: NUR als Fallback (sehr langsam!)
             'video/webm'
         ];
 

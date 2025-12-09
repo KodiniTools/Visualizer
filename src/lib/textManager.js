@@ -2,8 +2,6 @@
  * TextManager - Verwaltet Text-Objekte auf dem Canvas
  * Unterstützt: Schriftarten, Größen, Farben, Stile und SCHATTEN
  * ✅ FIXED: Präzise Textmarkierung mit Schatten-, Stroke- und letterSpacing-Unterstützung
- * ✨ NEU: Einblend-Animationen (Fade, Typewriter, Bounce, Slide)
- * ✨ NEU: Karaoke-Style Wort-für-Wort Hervorhebung
  */
 export class TextManager {
     constructor(textStore) {
@@ -19,11 +17,11 @@ export class TextManager {
             id: Date.now() + Math.random(),
             type: 'text',
             content: text || 'Neuer Text',
-
+            
             // Position (relativ zum Canvas)
             relX: options.relX || 0.5,
             relY: options.relY || 0.5,
-
+            
             // Schrift-Eigenschaften
             fontSize: options.fontSize || 48,
             fontFamily: options.fontFamily || 'Arial',
@@ -32,16 +30,16 @@ export class TextManager {
             color: options.color || '#ff0000',
             textAlign: options.textAlign || 'center',
             textBaseline: options.textBaseline || 'middle',
-
+            
             // ✨ TRANSPARENZ/DECKKRAFT (0-100%)
             opacity: options.opacity !== undefined ? options.opacity : 100,
-
+            
             // ✨ BUCHSTABENABSTAND (-20 bis +50px)
             letterSpacing: options.letterSpacing || 0,
-
+            
             // ✨ ZEILENABSTAND (100% - 300%)
             lineHeightMultiplier: options.lineHeightMultiplier || 120,
-
+            
             // ✨ SCHATTEN-EIGENSCHAFTEN
             shadow: {
                 color: options.shadowColor || '#000000',
@@ -49,7 +47,7 @@ export class TextManager {
                 offsetX: options.shadowOffsetX || 0,
                 offsetY: options.shadowOffsetY || 0
             },
-
+            
             // ✨ KONTUR/OUTLINE
             stroke: {
                 enabled: options.strokeEnabled || false,
@@ -59,29 +57,6 @@ export class TextManager {
 
             // Rotation
             rotation: options.rotation || 0,
-
-            // ✨ NEU: EINBLEND-ANIMATION
-            animation: {
-                type: options.animationType || 'none',  // 'none', 'fade', 'typewriter', 'bounce', 'slide'
-                duration: options.animationDuration || 1000,  // ms
-                delay: options.animationDelay || 0,  // ms Verzögerung vor Start
-                direction: options.animationDirection || 'left',  // Für slide: 'left', 'right', 'top', 'bottom'
-                startTime: null,  // Wird beim Start gesetzt
-                isPlaying: false,
-                hasPlayed: false,  // Einmal-Animation abgeschlossen
-                loop: options.animationLoop || false,  // Animation wiederholen
-                easing: options.animationEasing || 'easeOut'  // 'linear', 'easeIn', 'easeOut', 'easeInOut', 'bounce'
-            },
-
-            // ✨ NEU: KARAOKE-MODUS
-            karaoke: {
-                enabled: options.karaokeEnabled || false,
-                wordsPerSecond: options.karaokeSpeed || 2,  // Wörter pro Sekunde
-                highlightColor: options.karaokeHighlightColor || '#ffff00',
-                startTime: null,  // Wird beim Start gesetzt
-                currentWordIndex: 0,
-                isPlaying: false
-            },
 
             // ✨ AUDIO-REAKTIVE EFFEKTE (standardmäßig aktiviert für bessere UX)
             audioReactive: {
@@ -104,9 +79,9 @@ export class TextManager {
                 }
             }
         };
-
+        
         this.textObjects.push(newText);
-
+        
         return newText;
     }
 
@@ -328,21 +303,11 @@ export class TextManager {
     /**
      * Zeichnet einen einzelnen Text (mit Unterstützung für mehrzeilige Texte)
      * ✨ ERWEITERT: Unterstützt jetzt Audio-Reaktive Effekte
-     * ✨ NEU: Einblend-Animationen und Karaoke-Modus
      */
     drawText(ctx, textObj, canvasWidth, canvasHeight) {
         if (!textObj.content) return;
 
         ctx.save();
-
-        // ✨ ANIMATIONS-WERTE berechnen
-        const animValues = this.calculateAnimationValues(textObj, canvasWidth, canvasHeight);
-
-        // Überspringe das Zeichnen wenn Opacity 0 ist (Animation noch nicht gestartet)
-        if (animValues.opacity <= 0) {
-            ctx.restore();
-            return;
-        }
 
         // ✨ AUDIO-REAKTIVE WERTE berechnen
         const audioReactive = this.getAudioReactiveValues(textObj.audioReactive);
@@ -352,21 +317,15 @@ export class TextManager {
 
         // Audio-reaktive Opacity moduliert den Basis-Wert (statt ihn zu überschreiben)
         if (audioReactive && audioReactive.hasEffects && audioReactive.effects.opacity) {
+            // audioReactive.effects.opacity.opacity ist 30-100, moduliert den Slider-Wert
             const audioModulation = audioReactive.effects.opacity.opacity / 100;
             baseOpacity = baseOpacity * audioModulation;
         }
-
-        // ✨ Animations-Opacity multiplizieren
-        baseOpacity = baseOpacity * animValues.opacity;
         ctx.globalAlpha = baseOpacity;
 
         // Basis-Position berechnen
         let pixelX = textObj.relX * canvasWidth;
         let pixelY = textObj.relY * canvasHeight;
-
-        // ✨ Animations-Offset hinzufügen
-        pixelX += animValues.offsetX;
-        pixelY += animValues.offsetY;
 
         // ✨ AUDIO-REAKTIV: Shake-Effekt (Erschütterung)
         if (audioReactive && audioReactive.hasEffects && audioReactive.effects.shake) {
@@ -385,13 +344,6 @@ export class TextManager {
         if (audioReactive && audioReactive.hasEffects && audioReactive.effects.swing) {
             const swing = audioReactive.effects.swing;
             pixelX += swing.swingX || 0;
-        }
-
-        // ✨ Animations-Scale anwenden
-        if (animValues.scale !== 1) {
-            ctx.translate(pixelX, pixelY);
-            ctx.scale(animValues.scale, animValues.scale);
-            ctx.translate(-pixelX, -pixelY);
         }
 
         // Rotation anwenden
@@ -430,78 +382,36 @@ export class TextManager {
         // Text-Stil anwenden (mit Audio-Reaktiven Überschreibungen)
         this.applyTextStyleWithAudio(ctx, textObj, audioReactive, useAudioGlow);
 
+        // ✨ Mehrzeilige Texte unterstützen (Zeilenumbrüche mit \n)
+        const lines = textObj.content.split('\n');
+
         // ✨ DYNAMISCHER ZEILENABSTAND (lineHeightMultiplier: 100-300%)
         const lineHeightMultiplier = (textObj.lineHeightMultiplier || 120) / 100;
         const lineHeight = textObj.fontSize * lineHeightMultiplier;
 
-        // ✨ KARAOKE-MODUS: Zeichne mit Wort-für-Wort Hervorhebung
-        if (textObj.karaoke && textObj.karaoke.enabled && textObj.karaoke.isPlaying) {
-            this.drawKaraokeText(ctx, textObj, pixelX, pixelY, lineHeight);
-            this.resetShadow(ctx);
-            ctx.filter = 'none';
-            ctx.restore();
-            return;
-        }
-
-        // ✨ Mehrzeilige Texte unterstützen (Zeilenumbrüche mit \n)
-        const lines = textObj.content.split('\n');
-
         // Berechne Start-Y-Position für zentrierte mehrzeilige Texte
         let startY = pixelY;
         if (lines.length > 1) {
+            // Wenn textBaseline 'middle' ist, verschiebe nach oben um die halbe Gesamthöhe
             if (textObj.textBaseline === 'middle') {
                 startY = pixelY - ((lines.length - 1) * lineHeight) / 2;
             }
         }
 
-        // ✨ TYPEWRITER-ANIMATION: Zeichen-für-Zeichen
-        if (animValues.visibleChars >= 0) {
-            let charCount = 0;
-            let currentLine = '';
+        // Zeichne jede Zeile einzeln
+        lines.forEach((line, index) => {
+            const yPos = startY + (index * lineHeight);
 
-            lines.forEach((line, lineIndex) => {
-                const yPos = startY + (lineIndex * lineHeight);
-                currentLine = '';
+            // ✨ KONTUR zeichnen (wenn aktiviert oder audio-reaktiv)
+            const hasStroke = textObj.stroke.enabled ||
+                (audioReactive && audioReactive.hasEffects && audioReactive.effects.strokeWidth);
+            if (hasStroke) {
+                ctx.strokeText(line, pixelX, yPos);
+            }
 
-                for (let i = 0; i < line.length; i++) {
-                    if (charCount < animValues.visibleChars) {
-                        currentLine += line[i];
-                        charCount++;
-                    } else {
-                        break;
-                    }
-                }
-
-                if (currentLine.length > 0) {
-                    // Kontur zeichnen
-                    const hasStroke = textObj.stroke.enabled ||
-                        (audioReactive && audioReactive.hasEffects && audioReactive.effects.strokeWidth);
-                    if (hasStroke) {
-                        ctx.strokeText(currentLine, pixelX, yPos);
-                    }
-                    // Text füllen
-                    ctx.fillText(currentLine, pixelX, yPos);
-                }
-
-                // Zeile abgeschlossen (Zeilenumbruch zählt als Zeichen)
-                charCount++;
-            });
-        } else {
-            // Normal: Zeichne jede Zeile
-            lines.forEach((line, index) => {
-                const yPos = startY + (index * lineHeight);
-
-                // ✨ KONTUR zeichnen (wenn aktiviert oder audio-reaktiv)
-                const hasStroke = textObj.stroke.enabled ||
-                    (audioReactive && audioReactive.hasEffects && audioReactive.effects.strokeWidth);
-                if (hasStroke) {
-                    ctx.strokeText(line, pixelX, yPos);
-                }
-
-                // Text füllen
-                ctx.fillText(line, pixelX, yPos);
-            });
-        }
+            // Text füllen
+            ctx.fillText(line, pixelX, yPos);
+        });
 
         // 🔧 WICHTIG: Schatten und Filter explizit zurücksetzen VOR restore()
         this.resetShadow(ctx);
@@ -789,323 +699,5 @@ export class TextManager {
 
         // Füge es am Ende hinzu (oberste Ebene)
         this.textObjects.push(textObj);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    // ✨ TEXT-ANIMATIONEN (Einblend-Effekte)
-    // ═══════════════════════════════════════════════════════════════════
-
-    /**
-     * ✨ Startet eine Animation für ein Text-Objekt
-     */
-    startAnimation(textObj) {
-        if (!textObj || !textObj.animation) return;
-
-        textObj.animation.startTime = Date.now();
-        textObj.animation.isPlaying = true;
-        textObj.animation.hasPlayed = false;
-        console.log('🎬 [TextManager] Animation gestartet:', textObj.animation.type);
-    }
-
-    /**
-     * ✨ Stoppt eine Animation
-     */
-    stopAnimation(textObj) {
-        if (!textObj || !textObj.animation) return;
-
-        textObj.animation.isPlaying = false;
-        textObj.animation.startTime = null;
-    }
-
-    /**
-     * ✨ Setzt eine Animation zurück
-     */
-    resetAnimation(textObj) {
-        if (!textObj || !textObj.animation) return;
-
-        textObj.animation.startTime = null;
-        textObj.animation.isPlaying = false;
-        textObj.animation.hasPlayed = false;
-    }
-
-    /**
-     * ✨ Startet alle Animationen (für Recording-Start)
-     */
-    startAllAnimations() {
-        this.textObjects.forEach(textObj => {
-            if (textObj.animation && textObj.animation.type !== 'none') {
-                this.startAnimation(textObj);
-            }
-            if (textObj.karaoke && textObj.karaoke.enabled) {
-                this.startKaraoke(textObj);
-            }
-        });
-    }
-
-    /**
-     * ✨ Stoppt alle Animationen
-     */
-    stopAllAnimations() {
-        this.textObjects.forEach(textObj => {
-            this.stopAnimation(textObj);
-            this.stopKaraoke(textObj);
-        });
-    }
-
-    /**
-     * ✨ Berechnet den Animations-Fortschritt (0-1)
-     */
-    getAnimationProgress(textObj) {
-        if (!textObj || !textObj.animation || !textObj.animation.startTime) {
-            return textObj?.animation?.hasPlayed ? 1 : 0;
-        }
-
-        const now = Date.now();
-        const elapsed = now - textObj.animation.startTime - (textObj.animation.delay || 0);
-
-        if (elapsed < 0) return 0;  // Noch in der Verzögerungsphase
-
-        const progress = Math.min(1, elapsed / textObj.animation.duration);
-
-        // Animation beendet?
-        if (progress >= 1) {
-            if (textObj.animation.loop) {
-                // Loop: Zurücksetzen
-                textObj.animation.startTime = now;
-                return 0;
-            } else {
-                textObj.animation.isPlaying = false;
-                textObj.animation.hasPlayed = true;
-            }
-        }
-
-        return progress;
-    }
-
-    /**
-     * ✨ Easing-Funktionen für flüssige Animationen
-     */
-    applyEasing(progress, easing) {
-        switch (easing) {
-            case 'linear':
-                return progress;
-            case 'easeIn':
-                return progress * progress;
-            case 'easeOut':
-                return 1 - Math.pow(1 - progress, 2);
-            case 'easeInOut':
-                return progress < 0.5
-                    ? 2 * progress * progress
-                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-            case 'bounce':
-                if (progress < 1 / 2.75) {
-                    return 7.5625 * progress * progress;
-                } else if (progress < 2 / 2.75) {
-                    const p = progress - 1.5 / 2.75;
-                    return 7.5625 * p * p + 0.75;
-                } else if (progress < 2.5 / 2.75) {
-                    const p = progress - 2.25 / 2.75;
-                    return 7.5625 * p * p + 0.9375;
-                } else {
-                    const p = progress - 2.625 / 2.75;
-                    return 7.5625 * p * p + 0.984375;
-                }
-            case 'elastic':
-                if (progress === 0 || progress === 1) return progress;
-                return Math.pow(2, -10 * progress) * Math.sin((progress - 0.1) * 5 * Math.PI) + 1;
-            default:
-                return progress;
-        }
-    }
-
-    /**
-     * ✨ Berechnet Animations-Werte basierend auf Typ und Fortschritt
-     */
-    calculateAnimationValues(textObj, canvasWidth, canvasHeight) {
-        const anim = textObj.animation;
-        if (!anim || anim.type === 'none') {
-            return { opacity: 1, offsetX: 0, offsetY: 0, scale: 1, visibleChars: -1 };
-        }
-
-        const rawProgress = this.getAnimationProgress(textObj);
-        const progress = this.applyEasing(rawProgress, anim.easing);
-
-        switch (anim.type) {
-            case 'fade':
-                return {
-                    opacity: progress,
-                    offsetX: 0,
-                    offsetY: 0,
-                    scale: 1,
-                    visibleChars: -1
-                };
-
-            case 'typewriter':
-                const totalChars = textObj.content.replace(/\n/g, '').length;
-                const visibleChars = Math.floor(totalChars * progress);
-                return {
-                    opacity: 1,
-                    offsetX: 0,
-                    offsetY: 0,
-                    scale: 1,
-                    visibleChars: visibleChars
-                };
-
-            case 'bounce':
-                // Einfallen von oben mit Bounce
-                const bounceOffset = (1 - progress) * canvasHeight * 0.5;
-                return {
-                    opacity: Math.min(1, progress * 2),
-                    offsetX: 0,
-                    offsetY: -bounceOffset,
-                    scale: 1,
-                    visibleChars: -1
-                };
-
-            case 'slide':
-                let slideX = 0, slideY = 0;
-                const slideDistance = canvasWidth * 0.3;
-
-                switch (anim.direction) {
-                    case 'left':
-                        slideX = -(1 - progress) * slideDistance;
-                        break;
-                    case 'right':
-                        slideX = (1 - progress) * slideDistance;
-                        break;
-                    case 'top':
-                        slideY = -(1 - progress) * (canvasHeight * 0.3);
-                        break;
-                    case 'bottom':
-                        slideY = (1 - progress) * (canvasHeight * 0.3);
-                        break;
-                }
-                return {
-                    opacity: progress,
-                    offsetX: slideX,
-                    offsetY: slideY,
-                    scale: 1,
-                    visibleChars: -1
-                };
-
-            case 'scale':
-                return {
-                    opacity: 1,
-                    offsetX: 0,
-                    offsetY: 0,
-                    scale: progress,
-                    visibleChars: -1
-                };
-
-            case 'zoom':
-                // Von groß nach normal
-                const zoomScale = 1 + (1 - progress) * 0.5;
-                return {
-                    opacity: progress,
-                    offsetX: 0,
-                    offsetY: 0,
-                    scale: zoomScale,
-                    visibleChars: -1
-                };
-
-            default:
-                return { opacity: 1, offsetX: 0, offsetY: 0, scale: 1, visibleChars: -1 };
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    // ✨ KARAOKE-MODUS
-    // ═══════════════════════════════════════════════════════════════════
-
-    /**
-     * ✨ Startet den Karaoke-Modus für ein Text-Objekt
-     */
-    startKaraoke(textObj) {
-        if (!textObj || !textObj.karaoke) return;
-
-        textObj.karaoke.startTime = Date.now();
-        textObj.karaoke.isPlaying = true;
-        textObj.karaoke.currentWordIndex = 0;
-        console.log('🎤 [TextManager] Karaoke gestartet');
-    }
-
-    /**
-     * ✨ Stoppt den Karaoke-Modus
-     */
-    stopKaraoke(textObj) {
-        if (!textObj || !textObj.karaoke) return;
-
-        textObj.karaoke.isPlaying = false;
-        textObj.karaoke.startTime = null;
-    }
-
-    /**
-     * ✨ Berechnet den aktuellen Wort-Index für Karaoke
-     */
-    getKaraokeWordIndex(textObj) {
-        if (!textObj || !textObj.karaoke || !textObj.karaoke.startTime) {
-            return -1;
-        }
-
-        const elapsed = (Date.now() - textObj.karaoke.startTime) / 1000;  // Sekunden
-        const wordsPerSecond = textObj.karaoke.wordsPerSecond || 2;
-        const words = textObj.content.split(/\s+/);
-        const wordIndex = Math.floor(elapsed * wordsPerSecond);
-
-        return Math.min(wordIndex, words.length - 1);
-    }
-
-    /**
-     * ✨ Zeichnet Text mit Karaoke-Hervorhebung (Wort für Wort)
-     */
-    drawKaraokeText(ctx, textObj, pixelX, pixelY, lineHeight) {
-        if (!textObj.karaoke || !textObj.karaoke.enabled) return false;
-
-        const currentWordIndex = this.getKaraokeWordIndex(textObj);
-        if (currentWordIndex < 0) return false;
-
-        const words = textObj.content.split(/\s+/);
-        const highlightColor = textObj.karaoke.highlightColor || '#ffff00';
-        const normalColor = textObj.color;
-
-        // Berechne die Position für jedes Wort
-        let currentX = pixelX;
-        const spaceWidth = ctx.measureText(' ').width;
-
-        // Bei zentriertem Text: Berechne Gesamtbreite zuerst
-        if (textObj.textAlign === 'center') {
-            const totalWidth = ctx.measureText(textObj.content).width;
-            currentX = pixelX - totalWidth / 2;
-        } else if (textObj.textAlign === 'right') {
-            const totalWidth = ctx.measureText(textObj.content).width;
-            currentX = pixelX - totalWidth;
-        }
-
-        // Zeichne jedes Wort einzeln
-        words.forEach((word, index) => {
-            // Setze Farbe basierend auf Index
-            if (index <= currentWordIndex) {
-                ctx.fillStyle = highlightColor;
-                // Optional: Glow für hervorgehobene Wörter
-                ctx.shadowColor = highlightColor;
-                ctx.shadowBlur = 10;
-            } else {
-                ctx.fillStyle = normalColor;
-                ctx.shadowColor = 'transparent';
-                ctx.shadowBlur = 0;
-            }
-
-            // Zeichne das Wort
-            ctx.fillText(word, currentX, pixelY);
-
-            // Berechne Position für nächstes Wort
-            currentX += ctx.measureText(word).width + spaceWidth;
-        });
-
-        // Schatten zurücksetzen
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-
-        return true;  // Karaoke wurde gezeichnet
     }
 }

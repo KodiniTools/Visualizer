@@ -46,6 +46,7 @@ export class FotoManager {
                     hue: { enabled: false, intensity: 80 },
                     brightness: { enabled: false, intensity: 80 },
                     saturation: { enabled: false, intensity: 80 },
+                    scale: { enabled: false, intensity: 80 },
                     glow: { enabled: false, intensity: 80 },
                     border: { enabled: false, intensity: 80 },
                     blur: { enabled: false, intensity: 50 },      // Dynamische Unschärfe
@@ -80,6 +81,7 @@ export class FotoManager {
                 hue: { ...defaultAR.effects.hue },
                 brightness: { ...defaultAR.effects.brightness },
                 saturation: { ...defaultAR.effects.saturation },
+                scale: { ...defaultAR.effects.scale },
                 glow: { ...defaultAR.effects.glow },
                 border: { ...defaultAR.effects.border },
                 blur: { ...defaultAR.effects.blur },
@@ -109,6 +111,7 @@ export class FotoManager {
                     hue: { ...(oldSettings.effects.hue || { enabled: false, intensity: 80 }) },
                     brightness: { ...(oldSettings.effects.brightness || { enabled: false, intensity: 80 }) },
                     saturation: { ...(oldSettings.effects.saturation || { enabled: false, intensity: 80 }) },
+                    scale: { ...(oldSettings.effects.scale || { enabled: false, intensity: 80 }) },
                     glow: { ...(oldSettings.effects.glow || { enabled: false, intensity: 80 }) },
                     border: { ...(oldSettings.effects.border || { enabled: false, intensity: 80 }) },
                     blur: { ...(oldSettings.effects.blur || { enabled: false, intensity: 50 }) },

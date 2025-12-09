@@ -89,65 +89,65 @@ export async function getVideoInfo(inputPath) {
 
 /**
  * Encoding-Presets für verschiedene Qualitätsstufen
- * Optimiert für Server mit 4 Kernen - verwendet schnellere presets
+ * Optimiert für Server mit begrenzter CPU - verwendet ultrafast/superfast presets
  */
 const ENCODING_PRESETS = {
-  // Maximale Qualität (für Archiv) - aber trotzdem schnell
+  // Maximale Qualität (für Archiv) - trotzdem schnell
   highest: {
     videoCodec: 'libx264',
-    videoBitrate: '8M',
-    crf: '20',
-    preset: 'fast',        // War: 'slow' - viel zu langsam!
+    videoBitrate: '6M',
+    crf: '22',
+    preset: 'superfast',   // War: 'fast' - immer noch zu langsam!
     audioCodec: 'aac',
-    audioBitrate: '256k',
+    audioBitrate: '192k',
     audioSampleRate: '48000'
   },
 
   // Hohe Qualität (Standard für Export)
   high: {
     videoCodec: 'libx264',
-    videoBitrate: '6M',
-    crf: '22',
-    preset: 'fast',        // War: 'medium' - zu langsam für Server
+    videoBitrate: '4M',
+    crf: '24',
+    preset: 'ultrafast',   // War: 'fast' - zu langsam für 4-Kern-Server
     audioCodec: 'aac',
-    audioBitrate: '192k',
+    audioBitrate: '160k',
     audioSampleRate: '48000'
   },
 
   // Mittlere Qualität (für Web)
   medium: {
     videoCodec: 'libx264',
-    videoBitrate: '4M',
-    crf: '24',
-    preset: 'veryfast',    // War: 'medium'
+    videoBitrate: '3M',
+    crf: '26',
+    preset: 'ultrafast',
     audioCodec: 'aac',
-    audioBitrate: '160k',
+    audioBitrate: '128k',
     audioSampleRate: '44100'
   },
 
   // Social Media optimiert
   social: {
     videoCodec: 'libx264',
-    videoBitrate: '5M',
-    crf: '23',
-    preset: 'fast',
+    videoBitrate: '4M',
+    crf: '25',
+    preset: 'ultrafast',
     audioCodec: 'aac',
-    audioBitrate: '192k',
+    audioBitrate: '160k',
     audioSampleRate: '48000',
     // Zusätzliche Optimierungen für Social Media
     pixelFormat: 'yuv420p',
-    profile: 'high',
-    level: '4.2'
+    profile: 'baseline',   // War: 'high' - baseline ist schneller
+    level: '3.1'           // War: '4.2'
   },
 
   // Schnelle Vorschau
   preview: {
     videoCodec: 'libx264',
-    videoBitrate: '2M',
-    crf: '28',
+    videoBitrate: '1M',
+    crf: '30',
     preset: 'ultrafast',
     audioCodec: 'aac',
-    audioBitrate: '128k',
+    audioBitrate: '96k',
     audioSampleRate: '44100'
   }
 };
@@ -173,7 +173,7 @@ export async function convertToMP4(inputPath, outputPath, options = {}) {
       '-c:v', preset.videoCodec,      // Video Codec
       '-crf', preset.crf,             // Constant Rate Factor (Qualität)
       '-preset', preset.preset,       // Encoding Speed/Quality Tradeoff
-      '-tune', 'fastdecode',          // Optimiert für schnelles Decoding
+      // Kein -tune bei ultrafast (nicht kompatibel)
       '-b:v', preset.videoBitrate,    // Video Bitrate
       '-maxrate', `${Math.round(bitrateNum * 1.5)}M`,  // 1.5x für Peaks
       '-bufsize', `${bitrateNum * 2}M`,               // 2x Bitrate Buffer

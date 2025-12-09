@@ -219,6 +219,37 @@ function parseFFmpegTime(timeStr) {
 }
 
 /**
+ * Vollständiges Re-Encoding (für VP8/VP9/andere Codecs)
+ */
+async function doFullEncoding(jobId, inputPath, outputPath, quality, totalDuration) {
+  let lastProgressTime = 0;
+
+  // Timeout basierend auf Videolänge und Codec
+  // VP8: ~2s pro Sekunde Video, VP9: ~5s pro Sekunde Video
+  const estimatedTimeout = Math.max(180000, (totalDuration * 3 + 60) * 1000);
+  console.log(`⏱️ [Job ${jobId}] Encoding-Timeout: ${Math.round(estimatedTimeout / 1000)}s`);
+
+  await ffmpegService.convertToMP4(inputPath, outputPath, {
+    quality,
+    timeout: estimatedTimeout,
+    onProgress: (time) => {
+      const currentTime = parseFFmpegTime(time);
+      if (currentTime - lastProgressTime < 2) return;
+      lastProgressTime = currentTime;
+
+      if (totalDuration > 0) {
+        const progressPercent = Math.min(85, Math.round(10 + (currentTime / totalDuration) * 75));
+        updateJob(jobId, { progress: progressPercent });
+        console.log(`📊 [Job ${jobId}] Progress: ${progressPercent}% (${time})`);
+      } else {
+        const estimatedProgress = Math.min(82, Math.round(10 + (currentTime / 300) * 72));
+        updateJob(jobId, { progress: estimatedProgress });
+      }
+    }
+  });
+}
+
+/**
  * Asynchrone Konvertierung
  */
 async function processConversion(jobId, inputPath, quality) {
@@ -229,66 +260,55 @@ async function processConversion(jobId, inputPath, quality) {
   console.log(`🎬 [Job ${jobId}] Starte Konvertierung: ${inputPath} → ${outputFilename}`);
 
   try {
-    // Hole Video-Dauer für Progress-Berechnung
+    // Hole Video-Info für Codec-Erkennung und Progress-Berechnung
     let totalDuration = 0;
     let inputFileSize = 0;
+    let videoCodec = 'unknown';
+    let audioCodec = 'unknown';
+
     try {
       const info = await ffmpegService.getVideoInfo(inputPath);
       totalDuration = parseFloat(info.format?.duration) || 0;
       const stats = await fs.stat(inputPath);
       inputFileSize = stats.size;
-      console.log(`📊 [Job ${jobId}] Video-Dauer: ${totalDuration.toFixed(2)}s, Größe: ${(inputFileSize / 1024 / 1024).toFixed(1)}MB`);
+
+      // Codec aus Streams extrahieren
+      const videoStream = info.streams?.find(s => s.codec_type === 'video');
+      const audioStream = info.streams?.find(s => s.codec_type === 'audio');
+      videoCodec = videoStream?.codec_name || 'unknown';
+      audioCodec = audioStream?.codec_name || 'unknown';
+
+      console.log(`📊 [Job ${jobId}] Video: ${totalDuration.toFixed(2)}s, ${(inputFileSize / 1024 / 1024).toFixed(1)}MB, Codec: ${videoCodec}/${audioCodec}`);
     } catch (e) {
-      console.warn(`⚠️ [Job ${jobId}] Konnte Video-Dauer nicht ermitteln`);
+      console.warn(`⚠️ [Job ${jobId}] Konnte Video-Info nicht ermitteln`);
     }
 
-    // Progress-Tracking mit Throttling
-    let lastProgressTime = 0;
-    let lastProgressUpdate = Date.now();
-    let encodingComplete = false;
+    // ⚡ SCHNELLER PFAD: Wenn bereits H.264, nur Remux (kein Re-Encoding!)
+    const isH264 = videoCodec === 'h264' || videoCodec === 'avc1';
+    const isAAC = audioCodec === 'aac';
 
-    // Timeout für gesamten Konvertierungsprozess basierend auf Videolänge
-    // Mit 'fast' preset: ca. 2-5 Sekunden pro Sekunde Video + 1 Minute Puffer für faststart
-    const estimatedTimeout = Math.max(120000, (totalDuration * 5 + 60) * 1000);
-    console.log(`⏱️ [Job ${jobId}] Timeout: ${Math.round(estimatedTimeout / 1000)}s (Video: ${totalDuration.toFixed(0)}s)`);
+    if (isH264) {
+      console.log(`⚡ [Job ${jobId}] H.264 erkannt - verwende schnelles Remux statt Re-Encoding!`);
+      updateJob(jobId, { progress: 50 });
 
-    await ffmpegService.convertToMP4(inputPath, outputPath, {
-      quality,
-      timeout: estimatedTimeout,
-      onProgress: (time) => {
-        const currentTime = parseFFmpegTime(time);
-        // Nur alle 2 Sekunden updaten
-        if (currentTime - lastProgressTime < 2) return;
-        lastProgressTime = currentTime;
-        lastProgressUpdate = Date.now();
-
-        if (totalDuration > 0) {
-          // Bekannte Dauer - präziser Progress
-          // Encoding geht bis 85%, dann 85-92% für faststart
-          const progressPercent = Math.min(85, Math.round(10 + (currentTime / totalDuration) * 75));
-          updateJob(jobId, { progress: progressPercent });
-
-          // Erkennen wenn Encoding fast fertig (>95% der Dauer)
-          if (currentTime / totalDuration > 0.95) {
-            encodingComplete = true;
-            updateJob(jobId, { progress: 86 });
-            console.log(`📊 [Job ${jobId}] Encoding fast fertig, starte Finalisierung (faststart)...`);
-          } else {
-            console.log(`📊 [Job ${jobId}] Progress: ${progressPercent}% (${time})`);
-          }
-        } else {
-          // Unbekannte Dauer - schätze basierend auf verstrichener Zeit
-          // Annahme: max ~5 Min Video
-          const estimatedProgress = Math.min(82, Math.round(10 + (currentTime / 300) * 72));
-          updateJob(jobId, { progress: estimatedProgress });
-          console.log(`📊 [Job ${jobId}] Progress: ~${estimatedProgress}% (${time})`);
-        }
+      try {
+        await ffmpegService.remuxToMP4(inputPath, outputPath);
+        updateJob(jobId, { progress: 92 });
+        console.log(`✅ [Job ${jobId}] Remux abgeschlossen (SCHNELL!)`);
+      } catch (remuxError) {
+        console.warn(`⚠️ [Job ${jobId}] Remux fehlgeschlagen, fallback zu Re-Encoding:`, remuxError.message);
+        // Fallback zu normalem Encoding
+        await doFullEncoding(jobId, inputPath, outputPath, quality, totalDuration);
       }
-    });
+    } else {
+      // Normales Encoding für VP8/VP9/andere Codecs
+      console.log(`🔄 [Job ${jobId}] ${videoCodec} erkannt - vollständiges Re-Encoding erforderlich`);
+      await doFullEncoding(jobId, inputPath, outputPath, quality, totalDuration);
+    }
 
-    // FFmpeg Encoding fertig (inkl. faststart)
+    // FFmpeg Encoding/Remux fertig
     updateJob(jobId, { progress: 92 });
-    console.log(`✅ [Job ${jobId}] FFmpeg Encoding abgeschlossen, finalisiere...`);
+    console.log(`✅ [Job ${jobId}] FFmpeg abgeschlossen, finalisiere...`);
 
     // Thumbnail ist optional - Fehler nicht fatal
     let thumbnailFilename = null;

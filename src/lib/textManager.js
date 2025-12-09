@@ -69,6 +69,7 @@ export class TextManager {
                 effects: {
                     hue: { enabled: false, intensity: 80 },
                     brightness: { enabled: false, intensity: 80 },
+                    scale: { enabled: false, intensity: 80 },
                     glow: { enabled: false, intensity: 80 },
                     shake: { enabled: false, intensity: 80 },
                     bounce: { enabled: false, intensity: 80 },
@@ -346,11 +347,22 @@ export class TextManager {
             pixelX += swing.swingX || 0;
         }
 
-        // Rotation anwenden
+        // ✨ AUDIO-REAKTIV: Scale-Effekt (pulsieren)
+        let scale = 1.0;
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.scale) {
+            scale = audioReactive.effects.scale.scale;
+        }
+
+        // Rotation + Scale anwenden
         const totalRotation = textObj.rotation || 0;
-        if (totalRotation !== 0) {
+        if (totalRotation !== 0 || scale !== 1.0) {
             ctx.translate(pixelX, pixelY);
-            ctx.rotate((totalRotation * Math.PI) / 180);
+            if (totalRotation !== 0) {
+                ctx.rotate((totalRotation * Math.PI) / 180);
+            }
+            if (scale !== 1.0) {
+                ctx.scale(scale, scale);
+            }
             ctx.translate(-pixelX, -pixelY);
         }
 
@@ -642,6 +654,9 @@ export class TextManager {
             case 'brightness':
                 // Helligkeit: 60-180% basierend auf Audio-Level
                 return { brightness: 60 + (level * 120) };
+            case 'scale':
+                // Skalierung: 1.0-1.5 basierend auf Audio-Level
+                return { scale: 1.0 + (level * 0.5) };
             case 'glow':
                 // Glow/Shadow: 0-50px basierend auf Audio-Level
                 return {

@@ -78,6 +78,26 @@ export class TextManager {
                     letterSpacing: { enabled: false, intensity: 80 },
                     strokeWidth: { enabled: false, intensity: 80 }
                 }
+            },
+
+            // ✨ TEXT-ANIMATION (Typewriter, etc.)
+            animation: {
+                type: 'none',  // 'none', 'typewriter'
+                typewriter: {
+                    enabled: false,
+                    speed: 50,           // ms pro Buchstabe
+                    startDelay: 0,       // Verzögerung vor Start (ms)
+                    loop: false,         // Animation wiederholen
+                    loopDelay: 1000,     // Pause zwischen Wiederholungen (ms)
+                    showCursor: true,    // Blinkender Cursor
+                    cursorChar: '|'      // Cursor-Zeichen
+                },
+                // Interner State (wird zur Laufzeit gesetzt)
+                _state: {
+                    startTime: null,     // Wann die Animation gestartet wurde
+                    isPlaying: false,    // Läuft die Animation gerade?
+                    currentIndex: 0      // Aktueller Buchstaben-Index
+                }
             }
         };
         
@@ -302,8 +322,102 @@ export class TextManager {
     }
 
     /**
+     * ✨ NEU: Berechnet den sichtbaren Text für Typewriter-Animation
+     * Gibt den anzuzeigenden Text und Cursor-Info zurück
+     */
+    _getTypewriterText(textObj) {
+        const animation = textObj.animation;
+
+        // Wenn keine Animation oder Typewriter nicht aktiviert
+        if (!animation || !animation.typewriter || !animation.typewriter.enabled) {
+            return { text: textObj.content, showCursor: false, isComplete: true };
+        }
+
+        const tw = animation.typewriter;
+        const state = animation._state;
+        const fullText = textObj.content;
+        const now = Date.now();
+
+        // Animation starten wenn noch nicht gestartet
+        if (!state.isPlaying && !state.startTime) {
+            state.startTime = now + (tw.startDelay || 0);
+            state.isPlaying = true;
+            state.currentIndex = 0;
+        }
+
+        // Noch in der Start-Verzögerung?
+        if (now < state.startTime) {
+            return {
+                text: '',
+                showCursor: tw.showCursor,
+                cursorChar: tw.cursorChar || '|',
+                isComplete: false
+            };
+        }
+
+        // Berechne wie viele Buchstaben sichtbar sein sollten
+        const elapsed = now - state.startTime;
+        const speed = tw.speed || 50;
+        const targetIndex = Math.floor(elapsed / speed);
+
+        // Alle Buchstaben angezeigt?
+        if (targetIndex >= fullText.length) {
+            // Animation komplett
+            if (tw.loop) {
+                // Nach loopDelay neu starten
+                const completionTime = state.startTime + (fullText.length * speed);
+                const timeSinceComplete = now - completionTime;
+
+                if (timeSinceComplete >= (tw.loopDelay || 1000)) {
+                    // Neustart
+                    state.startTime = now;
+                    state.currentIndex = 0;
+                    return {
+                        text: '',
+                        showCursor: tw.showCursor,
+                        cursorChar: tw.cursorChar || '|',
+                        isComplete: false
+                    };
+                }
+            }
+
+            // Fertig - zeige vollen Text
+            state.isPlaying = false;
+            return {
+                text: fullText,
+                showCursor: tw.showCursor && tw.loop, // Cursor nur bei Loop weiter anzeigen
+                cursorChar: tw.cursorChar || '|',
+                isComplete: true
+            };
+        }
+
+        // Teiltext anzeigen
+        state.currentIndex = targetIndex;
+        const visibleText = fullText.substring(0, targetIndex + 1);
+
+        return {
+            text: visibleText,
+            showCursor: tw.showCursor,
+            cursorChar: tw.cursorChar || '|',
+            isComplete: false
+        };
+    }
+
+    /**
+     * ✨ NEU: Startet die Typewriter-Animation neu
+     */
+    restartTypewriter(textObj) {
+        if (!textObj || !textObj.animation) return;
+
+        const state = textObj.animation._state;
+        state.startTime = null;
+        state.isPlaying = false;
+        state.currentIndex = 0;
+    }
+
+    /**
      * Zeichnet einen einzelnen Text (mit Unterstützung für mehrzeilige Texte)
-     * ✨ ERWEITERT: Unterstützt jetzt Audio-Reaktive Effekte
+     * ✨ ERWEITERT: Unterstützt jetzt Audio-Reaktive Effekte und Typewriter-Animation
      */
     drawText(ctx, textObj, canvasWidth, canvasHeight) {
         if (!textObj.content) return;
@@ -394,19 +508,26 @@ export class TextManager {
         // Text-Stil anwenden (mit Audio-Reaktiven Überschreibungen)
         this.applyTextStyleWithAudio(ctx, textObj, audioReactive, useAudioGlow);
 
+        // ✨ TYPEWRITER-ANIMATION: Hole den sichtbaren Text
+        const typewriterResult = this._getTypewriterText(textObj);
+        const displayContent = typewriterResult.text;
+
         // ✨ Mehrzeilige Texte unterstützen (Zeilenumbrüche mit \n)
-        const lines = textObj.content.split('\n');
+        const lines = displayContent.split('\n');
 
         // ✨ DYNAMISCHER ZEILENABSTAND (lineHeightMultiplier: 100-300%)
         const lineHeightMultiplier = (textObj.lineHeightMultiplier || 120) / 100;
         const lineHeight = textObj.fontSize * lineHeightMultiplier;
 
+        // Für Positionsberechnung: Verwende Original-Content für konsistente Positionierung
+        const originalLines = textObj.content.split('\n');
+
         // Berechne Start-Y-Position für zentrierte mehrzeilige Texte
         let startY = pixelY;
-        if (lines.length > 1) {
+        if (originalLines.length > 1) {
             // Wenn textBaseline 'middle' ist, verschiebe nach oben um die halbe Gesamthöhe
             if (textObj.textBaseline === 'middle') {
-                startY = pixelY - ((lines.length - 1) * lineHeight) / 2;
+                startY = pixelY - ((originalLines.length - 1) * lineHeight) / 2;
             }
         }
 
@@ -424,6 +545,39 @@ export class TextManager {
             // Text füllen
             ctx.fillText(line, pixelX, yPos);
         });
+
+        // ✨ TYPEWRITER: Cursor zeichnen
+        if (typewriterResult.showCursor && !typewriterResult.isComplete) {
+            const lastLineIndex = lines.length - 1;
+            const lastLine = lines[lastLineIndex] || '';
+            const yPos = startY + (lastLineIndex * lineHeight);
+
+            // Cursor-Position berechnen (nach dem letzten Zeichen)
+            const lastLineWidth = ctx.measureText(lastLine).width;
+            const letterSpacingExtra = (textObj.letterSpacing || 0) * Math.max(0, lastLine.length);
+
+            let cursorX = pixelX;
+            // Position basierend auf textAlign
+            switch (textObj.textAlign) {
+                case 'left':
+                    cursorX = pixelX + lastLineWidth + letterSpacingExtra;
+                    break;
+                case 'right':
+                    cursorX = pixelX;
+                    break;
+                case 'center':
+                default:
+                    cursorX = pixelX + (lastLineWidth + letterSpacingExtra) / 2;
+                    break;
+            }
+
+            // Blinkender Cursor (500ms Intervall)
+            const cursorVisible = Math.floor(Date.now() / 500) % 2 === 0;
+            if (cursorVisible) {
+                const cursorChar = typewriterResult.cursorChar || '|';
+                ctx.fillText(cursorChar, cursorX, yPos);
+            }
+        }
 
         // 🔧 WICHTIG: Schatten und Filter explizit zurücksetzen VOR restore()
         this.resetShadow(ctx);

@@ -30,9 +30,9 @@ app.use(cors({
   credentials: true
 }));
 
-// Body Parser für JSON und große Video-Uploads
-app.use(express.json({ limit: '500mb' }));
-app.use(express.urlencoded({ extended: true, limit: '500mb' }));
+// Body Parser für JSON und große Video-Uploads (1 GB für 4K Videos)
+app.use(express.json({ limit: '1gb' }));
+app.use(express.urlencoded({ extended: true, limit: '1gb' }));
 
 // Request Logging
 app.use((req, res, next) => {

@@ -89,65 +89,64 @@ export async function getVideoInfo(inputPath) {
 
 /**
  * Encoding-Presets für verschiedene Qualitätsstufen
- * Optimiert für Server mit begrenzter CPU - verwendet ultrafast/superfast presets
+ * Balance zwischen Qualität und Geschwindigkeit für Server
  */
 const ENCODING_PRESETS = {
-  // Maximale Qualität (für Archiv) - trotzdem schnell
+  // Maximale Qualität
   highest: {
     videoCodec: 'libx264',
-    videoBitrate: '6M',
-    crf: '22',
-    preset: 'superfast',   // War: 'fast' - immer noch zu langsam!
+    videoBitrate: '12M',
+    crf: '18',
+    preset: 'veryfast',    // Kompromiss: gute Qualität, akzeptable Geschwindigkeit
     audioCodec: 'aac',
-    audioBitrate: '192k',
+    audioBitrate: '256k',
     audioSampleRate: '48000'
   },
 
   // Hohe Qualität (Standard für Export)
   high: {
     videoCodec: 'libx264',
-    videoBitrate: '4M',
-    crf: '24',
-    preset: 'ultrafast',   // War: 'fast' - zu langsam für 4-Kern-Server
+    videoBitrate: '8M',
+    crf: '20',
+    preset: 'veryfast',    // veryfast statt ultrafast für bessere Qualität
     audioCodec: 'aac',
-    audioBitrate: '160k',
+    audioBitrate: '192k',
     audioSampleRate: '48000'
   },
 
   // Mittlere Qualität (für Web)
   medium: {
     videoCodec: 'libx264',
-    videoBitrate: '3M',
-    crf: '26',
-    preset: 'ultrafast',
+    videoBitrate: '5M',
+    crf: '23',
+    preset: 'veryfast',
     audioCodec: 'aac',
-    audioBitrate: '128k',
+    audioBitrate: '160k',
     audioSampleRate: '44100'
   },
 
   // Social Media optimiert
   social: {
     videoCodec: 'libx264',
-    videoBitrate: '4M',
-    crf: '25',
-    preset: 'ultrafast',
+    videoBitrate: '8M',
+    crf: '21',
+    preset: 'veryfast',
     audioCodec: 'aac',
-    audioBitrate: '160k',
+    audioBitrate: '192k',
     audioSampleRate: '48000',
-    // Zusätzliche Optimierungen für Social Media
     pixelFormat: 'yuv420p',
-    profile: 'baseline',   // War: 'high' - baseline ist schneller
-    level: '3.1'           // War: '4.2'
+    profile: 'high',
+    level: '4.1'
   },
 
-  // Schnelle Vorschau
+  // Schnelle Vorschau (niedrigere Qualität OK)
   preview: {
     videoCodec: 'libx264',
-    videoBitrate: '1M',
-    crf: '30',
+    videoBitrate: '2M',
+    crf: '28',
     preset: 'ultrafast',
     audioCodec: 'aac',
-    audioBitrate: '96k',
+    audioBitrate: '128k',
     audioSampleRate: '44100'
   }
 };

@@ -750,25 +750,26 @@ Zeile 3..."
       <div class="divider"></div>
 
       <!-- ✨ NEU: TEXT-ANIMATIONEN -->
-      <h4>Einblend-Animation</h4>
+      <template v-if="selectedText.animation">
+        <h4>✨ Einblend-Animation</h4>
 
-      <!-- Animation-Typ -->
-      <div class="control-group">
-        <label>Animation:</label>
-        <select
-          v-model="selectedText.animation.type"
-          @change="onAnimationChange"
-          class="select-input"
-        >
-          <option value="none">Keine</option>
-          <option value="fade">Einblenden (Fade)</option>
-          <option value="typewriter">Schreibmaschine (Typewriter)</option>
-          <option value="bounce">Einfallen (Bounce)</option>
-          <option value="slide">Hereingleiten (Slide)</option>
-          <option value="scale">Heranzoomen (Scale)</option>
-          <option value="zoom">Herauszoomen (Zoom)</option>
-        </select>
-      </div>
+        <!-- Animation-Typ -->
+        <div class="control-group">
+          <label>Animation:</label>
+          <select
+            v-model="selectedText.animation.type"
+            @change="onAnimationChange"
+            class="select-input"
+          >
+            <option value="none">Keine</option>
+            <option value="fade">Einblenden (Fade)</option>
+            <option value="typewriter">Schreibmaschine (Typewriter)</option>
+            <option value="bounce">Einfallen (Bounce)</option>
+            <option value="slide">Hereingleiten (Slide)</option>
+            <option value="scale">Heranzoomen (Scale)</option>
+            <option value="zoom">Herauszoomen (Zoom)</option>
+          </select>
+        </div>
 
       <!-- Animation-Einstellungen (nur wenn Animation aktiv) -->
       <div v-if="selectedText.animation?.type !== 'none'">
@@ -870,23 +871,25 @@ Zeile 3..."
           </button>
         </div>
       </div>
+      </template>
 
       <div class="divider"></div>
 
       <!-- ✨ NEU: KARAOKE-MODUS -->
-      <h4>Karaoke-Modus</h4>
+      <template v-if="selectedText.karaoke">
+        <h4>🎤 Karaoke-Modus</h4>
 
-      <!-- Aktivieren -->
-      <div class="control-group">
-        <label class="effect-checkbox">
-          <input
-            type="checkbox"
-            v-model="selectedText.karaoke.enabled"
-            @change="updateText"
-          />
-          <span class="effect-icon">🎤</span> Wort-für-Wort Hervorhebung
-        </label>
-      </div>
+        <!-- Aktivieren -->
+        <div class="control-group">
+          <label class="effect-checkbox">
+            <input
+              type="checkbox"
+              v-model="selectedText.karaoke.enabled"
+              @change="updateText"
+            />
+            <span class="effect-icon">🎤</span> Wort-für-Wort Hervorhebung
+          </label>
+        </div>
 
       <!-- Karaoke-Einstellungen -->
       <div v-if="selectedText.karaoke?.enabled">
@@ -934,6 +937,7 @@ Zeile 3..."
           </button>
         </div>
       </div>
+      </template>
 
       <div class="divider"></div>
 

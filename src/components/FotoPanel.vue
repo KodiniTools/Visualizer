@@ -1449,7 +1449,7 @@ function loadAudioReactiveSettingsToUI() {
 
   // Alle Effekte laden
   const effects = audioReactive.effects || {};
-  const effectNames = ['hue', 'brightness', 'saturation', 'scale', 'glow', 'border', 'blur', 'rotation', 'shake', 'bounce', 'swing', 'orbit'];
+  const effectNames = ['hue', 'brightness', 'saturation', 'glow', 'border', 'blur', 'rotation', 'shake', 'bounce', 'swing', 'orbit'];
 
   effectNames.forEach(effectName => {
     const effect = effects[effectName] || { enabled: false, intensity: 80 };
@@ -1621,7 +1621,6 @@ function loadAudioReactiveSettings(imageData) {
   loadEffect('hue', effectHueEnabledRef, effectHueIntensityRef, effectHueValueRef);
   loadEffect('brightness', effectBrightnessEnabledRef, effectBrightnessIntensityRef, effectBrightnessValueRef);
   loadEffect('saturation', effectSaturationEnabledRef, effectSaturationIntensityRef, effectSaturationValueRef);
-  loadEffect('scale', effectScaleEnabledRef, effectScaleIntensityRef, effectScaleValueRef);
   loadEffect('glow', effectGlowEnabledRef, effectGlowIntensityRef, effectGlowValueRef);
   loadEffect('border', effectBorderEnabledRef, effectBorderIntensityRef, effectBorderValueRef);
   loadEffect('blur', effectBlurEnabledRef, effectBlurIntensityRef, effectBlurValueRef, 50);

@@ -373,13 +373,142 @@ Zeile 3..."
         </div>
       </details>
 
+      <!-- ✨ Scale-Einstellungen (klappbar) -->
+      <details class="collapsible-section">
+        <summary class="section-header">
+          <span class="section-icon">🔍</span>
+          <span>Skalierungs-Effekt (Scale)</span>
+          <span v-if="newTextScale.enabled" class="status-badge active">Aktiv</span>
+        </summary>
+        <div class="section-content">
+          <!-- Scale aktivieren -->
+          <div class="control-group">
+            <div class="button-group">
+              <button
+                @click="newTextScale.enabled = !newTextScale.enabled"
+                :class="['btn-small', 'full-width', { active: newTextScale.enabled }]"
+              >
+                {{ newTextScale.enabled ? '✓ Aktiviert' : 'Deaktiviert' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Scale-Einstellungen (nur wenn aktiviert) -->
+          <div v-if="newTextScale.enabled">
+            <!-- Richtung -->
+            <div class="control-group">
+              <label>Richtung:</label>
+              <select
+                v-model="newTextScale.direction"
+                class="select-input"
+              >
+                <option value="in">Reinzoomen (klein → groß)</option>
+                <option value="out">Rauszoomen (groß → klein)</option>
+                <option value="inOut">Rein und Raus</option>
+              </select>
+            </div>
+
+            <!-- Start-Skalierung -->
+            <div class="control-group">
+              <label>Start-Größe: {{ Math.round(newTextScale.startScale * 100) }}%</label>
+              <input
+                type="range"
+                v-model.number="newTextScale.startScale"
+                min="0"
+                max="3"
+                step="0.1"
+                class="slider"
+              />
+              <div class="hint-text">0% = unsichtbar, 100% = normal, 200% = doppelt</div>
+            </div>
+
+            <!-- End-Skalierung -->
+            <div class="control-group">
+              <label>End-Größe: {{ Math.round(newTextScale.endScale * 100) }}%</label>
+              <input
+                type="range"
+                v-model.number="newTextScale.endScale"
+                min="0"
+                max="3"
+                step="0.1"
+                class="slider"
+              />
+            </div>
+
+            <!-- Dauer -->
+            <div class="control-group">
+              <label>Dauer: {{ newTextScale.duration }}ms</label>
+              <input
+                type="range"
+                v-model.number="newTextScale.duration"
+                min="100"
+                max="20000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Start-Verzögerung -->
+            <div class="control-group">
+              <label>Start-Verzögerung: {{ newTextScale.startDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="newTextScale.startDelay"
+                min="0"
+                max="20000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Easing -->
+            <div class="control-group">
+              <label>Animation:</label>
+              <select
+                v-model="newTextScale.easing"
+                class="select-input"
+              >
+                <option value="linear">Linear (gleichmäßig)</option>
+                <option value="ease">Ease (natürlich)</option>
+                <option value="easeIn">Ease In (langsamer Start)</option>
+                <option value="easeOut">Ease Out (langsames Ende)</option>
+              </select>
+            </div>
+
+            <!-- Loop -->
+            <div class="control-group">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="newTextScale.loop"
+                />
+                Animation wiederholen (Loop)
+              </label>
+            </div>
+
+            <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
+            <div v-if="newTextScale.loop" class="control-group">
+              <label>Pause zwischen Wiederholungen: {{ newTextScale.loopDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="newTextScale.loopDelay"
+                min="0"
+                max="20000"
+                step="100"
+                class="slider"
+              />
+            </div>
+          </div>
+        </div>
+      </details>
+
       <div class="button-row">
         <button @click="createNewText" class="btn-primary" :disabled="!newTextContent.trim()">
           Zum Canvas hinzufügen
         </button>
-        <button 
+        <button
           v-if="newTextContent && !newTextContent.includes('\n') && newTextContent.length > 60"
-          @click="autoWrapText" 
+          @click="autoWrapText"
           class="btn-secondary"
           title="Text automatisch in Zeilen umbrechen"
         >
@@ -1133,6 +1262,7 @@ Zeile 3..."
           <span>Text-Animation</span>
           <span v-if="selectedText.animation?.typewriter?.enabled" class="status-badge active">Typewriter</span>
           <span v-if="selectedText.animation?.fade?.enabled" class="status-badge active">Fade</span>
+          <span v-if="selectedText.animation?.scale?.enabled" class="status-badge active">Scale</span>
         </summary>
         <div class="section-content">
           <!-- Typewriter aktivieren -->
@@ -1350,6 +1480,145 @@ Zeile 3..."
               />
             </div>
           </div>
+
+          <!-- Trennlinie -->
+          <hr class="section-divider" style="margin: 12px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);" />
+
+          <!-- Scale aktivieren -->
+          <div class="control-group">
+            <label>Skalierungs-Effekt (Scale):</label>
+            <div class="button-group">
+              <button
+                @click="toggleScale"
+                :class="['btn-small', { active: selectedText.animation?.scale?.enabled }]"
+              >
+                {{ selectedText.animation?.scale?.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+              </button>
+              <button
+                v-if="selectedText.animation?.scale?.enabled"
+                @click="restartScale"
+                class="btn-small"
+                title="Animation neu starten"
+              >
+                🔄 Neustart
+              </button>
+            </div>
+          </div>
+
+          <!-- Scale-Einstellungen (nur wenn aktiviert) -->
+          <div v-if="selectedText.animation?.scale?.enabled" class="scale-settings">
+            <!-- Richtung -->
+            <div class="control-group">
+              <label>Richtung:</label>
+              <select
+                v-model="selectedText.animation.scale.direction"
+                @change="updateText"
+                class="select-input"
+              >
+                <option value="in">Reinzoomen (klein → groß)</option>
+                <option value="out">Rauszoomen (groß → klein)</option>
+                <option value="inOut">Rein und Raus</option>
+              </select>
+            </div>
+
+            <!-- Start-Skalierung -->
+            <div class="control-group">
+              <label>Start-Größe: {{ Math.round(selectedText.animation.scale.startScale * 100) }}%</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.scale.startScale"
+                @input="updateText"
+                min="0"
+                max="3"
+                step="0.1"
+                class="slider"
+              />
+              <div class="hint-text">0% = unsichtbar, 100% = normal</div>
+            </div>
+
+            <!-- End-Skalierung -->
+            <div class="control-group">
+              <label>End-Größe: {{ Math.round(selectedText.animation.scale.endScale * 100) }}%</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.scale.endScale"
+                @input="updateText"
+                min="0"
+                max="3"
+                step="0.1"
+                class="slider"
+              />
+            </div>
+
+            <!-- Dauer -->
+            <div class="control-group">
+              <label>Dauer: {{ selectedText.animation.scale.duration }}ms</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.scale.duration"
+                @input="updateText"
+                min="100"
+                max="20000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Start-Verzögerung -->
+            <div class="control-group">
+              <label>Start-Verzögerung: {{ selectedText.animation.scale.startDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.scale.startDelay"
+                @input="updateText"
+                min="0"
+                max="20000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Easing -->
+            <div class="control-group">
+              <label>Animation:</label>
+              <select
+                v-model="selectedText.animation.scale.easing"
+                @change="updateText"
+                class="select-input"
+              >
+                <option value="linear">Linear (gleichmäßig)</option>
+                <option value="ease">Ease (natürlich)</option>
+                <option value="easeIn">Ease In (langsamer Start)</option>
+                <option value="easeOut">Ease Out (langsames Ende)</option>
+              </select>
+            </div>
+
+            <!-- Loop -->
+            <div class="control-group">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.animation.scale.loop"
+                  @change="updateText"
+                />
+                Animation wiederholen (Loop)
+              </label>
+            </div>
+
+            <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
+            <div v-if="selectedText.animation.scale.loop" class="control-group">
+              <label>Pause zwischen Wiederholungen: {{ selectedText.animation.scale.loopDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.scale.loopDelay"
+                @input="updateText"
+                min="0"
+                max="20000"
+                step="100"
+                class="slider"
+              />
+            </div>
+          </div>
         </div>
       </details>
 
@@ -1403,6 +1672,19 @@ const newTextFade = ref({
   easing: 'ease'
 });
 
+// ✨ Scale-Einstellungen für neuen Text (im Eingabemodus)
+const newTextScale = ref({
+  enabled: false,
+  duration: 1000,
+  startDelay: 0,
+  startScale: 0,
+  endScale: 1,
+  direction: 'in',
+  loop: false,
+  loopDelay: 1000,
+  easing: 'ease'
+});
+
 // ✨ Text-Stil-Einstellungen für neuen Text (im Eingabemodus)
 const newTextStyle = ref({
   fontSize: 48,
@@ -1439,6 +1721,11 @@ function loadSavedSettings() {
       // Fade-Einstellungen laden
       if (settings.fade) {
         newTextFade.value = { ...newTextFade.value, ...settings.fade };
+      }
+
+      // Scale-Einstellungen laden
+      if (settings.scale) {
+        newTextScale.value = { ...newTextScale.value, ...settings.scale };
       }
 
       console.log('✅ Gespeicherte Text-Einstellungen geladen');
@@ -1482,6 +1769,17 @@ function saveCurrentSettings() {
         loop: newTextFade.value.loop,
         loopDelay: newTextFade.value.loopDelay,
         easing: newTextFade.value.easing
+      },
+      scale: {
+        enabled: newTextScale.value.enabled,
+        duration: newTextScale.value.duration,
+        startDelay: newTextScale.value.startDelay,
+        startScale: newTextScale.value.startScale,
+        endScale: newTextScale.value.endScale,
+        direction: newTextScale.value.direction,
+        loop: newTextScale.value.loop,
+        loopDelay: newTextScale.value.loopDelay,
+        easing: newTextScale.value.easing
       }
     };
 
@@ -1742,20 +2040,18 @@ function createNewText() {
     newTextObj.fontStyle = newTextStyle.value.fontStyle;
     newTextObj.textAlign = newTextStyle.value.textAlign;
 
-    // ✨ Animations-Einstellungen übernehmen (Typewriter und/oder Fade)
+    // ✨ Animations-Einstellungen übernehmen (Typewriter, Fade und/oder Scale)
     const hasTypewriter = newTextTypewriter.value.enabled;
     const hasFade = newTextFade.value.enabled;
+    const hasScale = newTextScale.value.enabled;
 
-    if (hasTypewriter || hasFade) {
-      // Bestimme den primären Animations-Typ
-      let animationType = 'none';
-      if (hasTypewriter && hasFade) {
-        animationType = 'typewriter+fade';
-      } else if (hasTypewriter) {
-        animationType = 'typewriter';
-      } else if (hasFade) {
-        animationType = 'fade';
-      }
+    if (hasTypewriter || hasFade || hasScale) {
+      // Bestimme den Animations-Typ (für Logging)
+      const types = [];
+      if (hasTypewriter) types.push('typewriter');
+      if (hasFade) types.push('fade');
+      if (hasScale) types.push('scale');
+      const animationType = types.join('+') || 'none';
 
       newTextObj.animation = {
         type: animationType,
@@ -1777,6 +2073,17 @@ function createNewText() {
           loopDelay: newTextFade.value.loopDelay,
           easing: newTextFade.value.easing
         },
+        scale: {
+          enabled: hasScale,
+          duration: newTextScale.value.duration,
+          startDelay: newTextScale.value.startDelay,
+          startScale: newTextScale.value.startScale,
+          endScale: newTextScale.value.endScale,
+          direction: newTextScale.value.direction,
+          loop: newTextScale.value.loop,
+          loopDelay: newTextScale.value.loopDelay,
+          easing: newTextScale.value.easing
+        },
         _state: {
           startTime: null,
           isPlaying: false,
@@ -1786,6 +2093,7 @@ function createNewText() {
 
       if (hasTypewriter) console.log('⌨️ Text mit Typewriter-Effekt erstellt');
       if (hasFade) console.log('🌫️ Text mit Fade-Effekt erstellt');
+      if (hasScale) console.log('🔍 Text mit Scale-Effekt erstellt');
     }
 
     selectedText.value = newTextObj;
@@ -1824,6 +2132,19 @@ function resetNewTextSettings() {
     enabled: false,
     duration: 1000,
     startDelay: 0,
+    direction: 'in',
+    loop: false,
+    loopDelay: 1000,
+    easing: 'ease'
+  };
+
+  // Scale zurücksetzen
+  newTextScale.value = {
+    enabled: false,
+    duration: 1000,
+    startDelay: 0,
+    startScale: 0,
+    endScale: 1,
     direction: 'in',
     loop: false,
     loopDelay: 1000,
@@ -2035,6 +2356,17 @@ function toggleTypewriter() {
         loopDelay: 1000,
         easing: 'ease'
       },
+      scale: {
+        enabled: false,
+        duration: 1000,
+        startDelay: 0,
+        startScale: 0,
+        endScale: 1,
+        direction: 'in',
+        loop: false,
+        loopDelay: 1000,
+        easing: 'ease'
+      },
       _state: {
         startTime: null,
         isPlaying: false,
@@ -2046,19 +2378,16 @@ function toggleTypewriter() {
   // Toggle enabled
   selectedText.value.animation.typewriter.enabled = !selectedText.value.animation.typewriter.enabled;
 
-  // Animation-Typ aktualisieren (berücksichtigt auch Fade)
+  // Animation-Typ aktualisieren (berücksichtigt Fade und Scale)
   const hasTypewriter = selectedText.value.animation.typewriter.enabled;
   const hasFade = selectedText.value.animation.fade?.enabled;
+  const hasScale = selectedText.value.animation.scale?.enabled;
 
-  if (hasTypewriter && hasFade) {
-    selectedText.value.animation.type = 'typewriter+fade';
-  } else if (hasTypewriter) {
-    selectedText.value.animation.type = 'typewriter';
-  } else if (hasFade) {
-    selectedText.value.animation.type = 'fade';
-  } else {
-    selectedText.value.animation.type = 'none';
-  }
+  const types = [];
+  if (hasTypewriter) types.push('typewriter');
+  if (hasFade) types.push('fade');
+  if (hasScale) types.push('scale');
+  selectedText.value.animation.type = types.join('+') || 'none';
 
   // Bei Aktivierung: Animation-State zurücksetzen für sofortigen Start
   if (selectedText.value.animation.typewriter.enabled) {
@@ -2112,6 +2441,17 @@ function toggleFade() {
         loopDelay: 1000,
         easing: 'ease'
       },
+      scale: {
+        enabled: false,
+        duration: 1000,
+        startDelay: 0,
+        startScale: 0,
+        endScale: 1,
+        direction: 'in',
+        loop: false,
+        loopDelay: 1000,
+        easing: 'ease'
+      },
       _state: {
         startTime: null,
         isPlaying: false,
@@ -2136,19 +2476,16 @@ function toggleFade() {
   // Toggle enabled
   selectedText.value.animation.fade.enabled = !selectedText.value.animation.fade.enabled;
 
-  // Animation-Typ aktualisieren
+  // Animation-Typ aktualisieren (berücksichtigt Scale)
   const hasTypewriter = selectedText.value.animation.typewriter?.enabled;
   const hasFade = selectedText.value.animation.fade.enabled;
+  const hasScale = selectedText.value.animation.scale?.enabled;
 
-  if (hasTypewriter && hasFade) {
-    selectedText.value.animation.type = 'typewriter+fade';
-  } else if (hasTypewriter) {
-    selectedText.value.animation.type = 'typewriter';
-  } else if (hasFade) {
-    selectedText.value.animation.type = 'fade';
-  } else {
-    selectedText.value.animation.type = 'none';
-  }
+  const types = [];
+  if (hasTypewriter) types.push('typewriter');
+  if (hasFade) types.push('fade');
+  if (hasScale) types.push('scale');
+  selectedText.value.animation.type = types.join('+') || 'none';
 
   // Bei Aktivierung: Fade-State zurücksetzen für sofortigen Start
   if (selectedText.value.animation.fade.enabled) {
@@ -2170,6 +2507,100 @@ function restartFade() {
 
   updateText();
   console.log('🔄 Fade-Animation neu gestartet');
+}
+
+// ✨ Scale-Animation aktivieren/deaktivieren
+function toggleScale() {
+  if (!selectedText.value) return;
+
+  // Initialisiere animation wenn nicht vorhanden
+  if (!selectedText.value.animation) {
+    selectedText.value.animation = {
+      type: 'none',
+      typewriter: {
+        enabled: false,
+        speed: 50,
+        startDelay: 0,
+        loop: false,
+        loopDelay: 1000,
+        showCursor: true,
+        cursorChar: '|'
+      },
+      fade: {
+        enabled: false,
+        duration: 1000,
+        startDelay: 0,
+        direction: 'in',
+        loop: false,
+        loopDelay: 1000,
+        easing: 'ease'
+      },
+      scale: {
+        enabled: false,
+        duration: 1000,
+        startDelay: 0,
+        startScale: 0,
+        endScale: 1,
+        direction: 'in',
+        loop: false,
+        loopDelay: 1000,
+        easing: 'ease'
+      },
+      _state: {
+        startTime: null,
+        isPlaying: false,
+        currentIndex: 0
+      }
+    };
+  }
+
+  // Initialisiere scale wenn nicht vorhanden
+  if (!selectedText.value.animation.scale) {
+    selectedText.value.animation.scale = {
+      enabled: false,
+      duration: 1000,
+      startDelay: 0,
+      startScale: 0,
+      endScale: 1,
+      direction: 'in',
+      loop: false,
+      loopDelay: 1000,
+      easing: 'ease'
+    };
+  }
+
+  // Toggle enabled
+  selectedText.value.animation.scale.enabled = !selectedText.value.animation.scale.enabled;
+
+  // Animation-Typ aktualisieren
+  const hasTypewriter = selectedText.value.animation.typewriter?.enabled;
+  const hasFade = selectedText.value.animation.fade?.enabled;
+  const hasScale = selectedText.value.animation.scale.enabled;
+
+  const types = [];
+  if (hasTypewriter) types.push('typewriter');
+  if (hasFade) types.push('fade');
+  if (hasScale) types.push('scale');
+  selectedText.value.animation.type = types.join('+') || 'none';
+
+  // Bei Aktivierung: Scale-State zurücksetzen für sofortigen Start
+  if (selectedText.value.animation.scale.enabled) {
+    selectedText.value.animation._state.scaleStartTime = null;
+  }
+
+  updateText();
+  console.log(`🔍 Scale ${selectedText.value.animation.scale.enabled ? 'aktiviert' : 'deaktiviert'}`);
+}
+
+// ✨ Scale-Animation neu starten
+function restartScale() {
+  if (!selectedText.value?.animation) return;
+
+  // Scale-State zurücksetzen
+  selectedText.value.animation._state.scaleStartTime = null;
+
+  updateText();
+  console.log('🔄 Scale-Animation neu gestartet');
 }
 
 // Ausgewählten Text löschen

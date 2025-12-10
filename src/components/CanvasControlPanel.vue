@@ -121,6 +121,7 @@
                 <option value="mid">Mitten (Vocals)</option>
                 <option value="treble">Höhen (Hi-Hats)</option>
                 <option value="volume">Lautstärke (Gesamt)</option>
+                <option value="dynamic">✨ Dynamisch (Auto-Blend)</option>
               </select>
             </div>
 

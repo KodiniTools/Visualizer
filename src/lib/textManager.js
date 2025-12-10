@@ -747,10 +747,14 @@ export class TextManager {
                 const trebleWeight = treble / totalEnergy;
 
                 // Gewichtete Mischung - die dominante Frequenz trägt am meisten bei
-                audioLevel = (bass * bassWeight) + (mid * midWeight) + (treble * trebleWeight);
+                let rawLevel = (bass * bassWeight) + (mid * midWeight) + (treble * trebleWeight);
 
-                // Leichte Verstärkung da gewichtete Werte tendenziell niedriger sind
-                audioLevel = Math.min(audioLevel * 1.2, 255);
+                // ✨ Soft Compression: Verhindert konstantes Peaking bei lauter Musik (z.B. Techno)
+                // Wurzelkurve erweitert den dynamischen Bereich - leise Teile werden verstärkt,
+                // laute Teile werden komprimiert
+                const normalized = rawLevel / 255;
+                const compressed = Math.pow(normalized, 0.7); // 0.7 = sanfte Kompression
+                audioLevel = compressed * 255 * 0.85; // 0.85 = leichte Dämpfung
                 break;
         }
 

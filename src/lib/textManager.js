@@ -462,6 +462,10 @@ export class TextManager {
         }
 
         const fade = animation.fade;
+        // ✅ DEFENSIVE: _state initialisieren falls nicht vorhanden
+        if (!animation._state) {
+            animation._state = { startTime: null, isPlaying: false, currentIndex: 0 };
+        }
         const state = animation._state;
         const now = Date.now();
 
@@ -585,6 +589,10 @@ export class TextManager {
         }
 
         const scaleAnim = animation.scale;
+        // ✅ DEFENSIVE: _state initialisieren falls nicht vorhanden
+        if (!animation._state) {
+            animation._state = { startTime: null, isPlaying: false, currentIndex: 0 };
+        }
         const state = animation._state;
         const now = Date.now();
 
@@ -713,6 +721,10 @@ export class TextManager {
         }
 
         const slide = animation.slide;
+        // ✅ DEFENSIVE: _state initialisieren falls nicht vorhanden
+        if (!animation._state) {
+            animation._state = { startTime: null, isPlaying: false, currentIndex: 0 };
+        }
         const state = animation._state;
         const now = Date.now();
 
@@ -1102,10 +1114,17 @@ export class TextManager {
 
     /**
      * Alternative draw-Methode (für Kompatibilität mit älterem Code)
+     * ✅ CRITICAL FIX: Error Handling hinzugefügt um Recording nicht zu brechen
      */
     draw(ctx, canvasWidth, canvasHeight) {
         this.textObjects.forEach(textObj => {
-            this.drawText(ctx, textObj, canvasWidth, canvasHeight);
+            try {
+                this.drawText(ctx, textObj, canvasWidth, canvasHeight);
+            } catch (error) {
+                console.error('❌ [TextManager] Fehler beim Zeichnen von Text:', error);
+                // Versuche den Canvas-State wiederherzustellen falls ctx.save() aufgerufen wurde
+                try { ctx.restore(); } catch (e) { /* ignore */ }
+            }
         });
     }
 

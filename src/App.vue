@@ -103,6 +103,43 @@ const canvasRef = ref(null);
 let recordingCanvas = document.createElement('canvas'); // ✅ FIX 1: let statt const!
 let recordingCanvasStream = null; // ✅ NEU: Globale Referenz zum Canvas-Stream
 
+// ✅ NEU: Helper-Funktion um Monkey Patch auf Recording Canvas anzuwenden
+function applyRecordingCanvasMonkeyPatch(canvas) {
+  const originalCaptureStream = canvas.captureStream.bind(canvas);
+  canvas.captureStream = function(frameRate) {
+    console.log(`🎭 [App] captureStream() aufgerufen mit frameRate: ${frameRate}`);
+
+    // Cleanup alter Stream falls vorhanden
+    if (recordingCanvasStream) {
+      recordingCanvasStream.getTracks().forEach(track => {
+        if (track.readyState !== 'ended') {
+          track.stop();
+        }
+      });
+      console.log('🧹 [App] Alter Canvas-Stream gestoppt');
+    }
+
+    // ✅ CRITICAL FIX: Rendere Canvas BEVOR Stream erstellt wird!
+    const recordingCtx = canvas.getContext('2d');
+    if (recordingCtx && canvasManagerInstance.value) {
+      renderRecordingScene(
+        recordingCtx,
+        canvas.width,
+        canvas.height,
+        null // Kein Visualizer beim Warmup
+      );
+      console.log('✅ [App] Recording Canvas pre-rendered für Stream');
+    }
+
+    // ✅ QUALITÄTSVERBESSERUNG: 60 FPS für smoothere Videos
+    recordingCanvasStream = originalCaptureStream(60);
+    console.log('✅ [App] Canvas-Stream mit 60 FPS erstellt (via Monkey Patch)');
+
+    return recordingCanvasStream;
+  };
+  console.log('✅ [App] Monkey Patch auf Recording Canvas angewendet');
+}
+
 let audioContext, analyser, sourceNode, outputGain, recordingDest, recordingGain;
 let bassFilter, trebleFilter; // EQ-Filter für Bass und Treble
 let animationFrameId;
@@ -775,40 +812,8 @@ async function initializeRecorder() {
   recordingCanvas.height = canvas.height;
 
   // ✅ MONKEY PATCH: Überschreibe captureStream für recordingCanvas
-  // Damit recorder.js IMMER 30 FPS bekommt, auch wenn es captureStream(0) aufruft!
-  const originalCaptureStream = recordingCanvas.captureStream.bind(recordingCanvas);
-  recordingCanvas.captureStream = function(frameRate) {
-    console.log(`🎭 [App] captureStream() aufgerufen mit frameRate: ${frameRate}`);
-
-    // Cleanup alter Stream falls vorhanden
-    if (recordingCanvasStream) {
-      recordingCanvasStream.getTracks().forEach(track => {
-        if (track.readyState !== 'ended') {
-          track.stop();
-        }
-      });
-      console.log('🧹 [App] Alter Canvas-Stream gestoppt');
-    }
-
-    // ✅ CRITICAL FIX: Rendere Canvas BEVOR Stream erstellt wird!
-    // Dies stellt sicher dass der Stream einen gültigen Frame hat
-    const recordingCtx = recordingCanvas.getContext('2d');
-    if (recordingCtx && canvasManagerInstance.value) {
-      renderRecordingScene(
-        recordingCtx,
-        recordingCanvas.width,
-        recordingCanvas.height,
-        null // Kein Visualizer beim Warmup
-      );
-      console.log('✅ [App] Recording Canvas pre-rendered für Stream');
-    }
-
-    // ✅ QUALITÄTSVERBESSERUNG: 60 FPS für smoothere Videos
-    recordingCanvasStream = originalCaptureStream(60);
-    console.log('✅ [App] Canvas-Stream mit 60 FPS erstellt (via Monkey Patch)');
-
-    return recordingCanvasStream;
-  };
+  // Damit recorder.js IMMER 60 FPS bekommt, auch wenn es captureStream(0) aufruft!
+  applyRecordingCanvasMonkeyPatch(recordingCanvas);
 
   // Erstelle initialen Stream mit 60 FPS für bessere Qualität
   const canvasStream = recordingCanvas.captureStream(60);
@@ -1103,6 +1108,10 @@ onMounted(async () => {
       recordingCanvas.height = canvas.height;
 
       console.log('✅ [App] Frischer Recording Canvas erstellt:', recordingCanvas.width, 'x', recordingCanvas.height);
+
+      // ✅ CRITICAL FIX: Monkey Patch auf neuen Canvas anwenden!
+      // Ohne dies würde der Recorder captureStream(0) aufrufen und keine Frames bekommen
+      applyRecordingCanvasMonkeyPatch(recordingCanvas);
 
       // Update Recorder mit neuem Canvas
       if (recorderStore.recorder) {

@@ -1015,7 +1015,8 @@ Zeile 3..."
         <div class="hint-text" style="margin-top: 10px;">
           Tipp: Aktiviere mehrere Effekte gleichzeitig für komplexe Animationen!
         </div>
-        </div>
+      </div>
+      </div>
       </details>
 
       <!-- ✨ TEXT-ANIMATION (klappbar) -->

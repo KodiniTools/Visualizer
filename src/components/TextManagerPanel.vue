@@ -38,16 +38,12 @@ Zeile 3..."
         <!-- Schriftart -->
         <div class="control-group">
           <label>Schriftart:</label>
-          <select v-model="newTextStyle.fontFamily" class="select-input">
-            <option value="Arial">Arial</option>
-            <option value="Helvetica">Helvetica</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Courier New">Courier New</option>
-            <option value="Verdana">Verdana</option>
-            <option value="Impact">Impact</option>
-            <option value="Comic Sans MS">Comic Sans MS</option>
-            <option value="Trebuchet MS">Trebuchet MS</option>
+          <select
+            ref="newTextFontSelect"
+            v-model="newTextStyle.fontFamily"
+            class="select-input font-select"
+          >
+            <!-- Wird dynamisch befüllt -->
           </select>
         </div>
 
@@ -1085,6 +1081,7 @@ const newTextContent = ref('');
 const newTextInput = ref(null);
 const editTextInput = ref(null); // ✨ NEU: Referenz für das Editor-Textarea
 const fontSelect = ref(null);
+const newTextFontSelect = ref(null); // ✨ NEU: Referenz für Font-Dropdown im Eingabemodus
 
 // ✨ Typewriter-Einstellungen für neuen Text (im Eingabemodus)
 const newTextTypewriter = ref({
@@ -1163,13 +1160,71 @@ function handlePaste(event) {
 function startAddingText() {
   isAddingNewText.value = true;
   newTextContent.value = '';
-  
+
   nextTick(() => {
     if (newTextInput.value) {
       newTextInput.value.focus();
     }
+    // ✨ Font-Dropdown im Eingabemodus befüllen
+    populateNewTextFontDropdown();
   });
-  
+
+}
+
+// ✨ Befülle das Font-Dropdown im Eingabemodus mit System + Custom Fonts
+function populateNewTextFontDropdown() {
+  if (!newTextFontSelect.value) {
+    return;
+  }
+
+  // Leere das Dropdown
+  newTextFontSelect.value.innerHTML = '';
+
+  // System Fonts
+  const systemFonts = [
+    'Arial',
+    'Helvetica',
+    'Times New Roman',
+    'Georgia',
+    'Courier New',
+    'Verdana',
+    'Impact',
+    'Comic Sans MS',
+    'Trebuchet MS'
+  ];
+
+  // Custom Fonts sammeln
+  const customFonts = fontManager?.value && fontManager.value.isInitialized
+    ? Array.from(fontManager.value.loadedFonts).sort()
+    : [];
+
+  // 1️⃣ System Fonts
+  systemFonts.forEach(fontName => {
+    const option = document.createElement('option');
+    option.value = fontName;
+    option.textContent = fontName;
+    option.style.fontFamily = fontName;
+    newTextFontSelect.value.appendChild(option);
+  });
+
+  // 2️⃣ Custom Fonts (mit Separator, falls vorhanden)
+  if (customFonts.length > 0) {
+    const separator = document.createElement('option');
+    separator.disabled = true;
+    separator.textContent = '── Custom Fonts ──';
+    newTextFontSelect.value.appendChild(separator);
+
+    customFonts.forEach(fontName => {
+      const option = document.createElement('option');
+      option.value = fontName;
+      option.textContent = fontName;
+      option.style.fontFamily = fontName;
+      newTextFontSelect.value.appendChild(option);
+    });
+  }
+
+  // Setze den Wert auf die aktuelle Auswahl
+  newTextFontSelect.value.value = newTextStyle.value.fontFamily;
 }
 
 // Erstelle den Text auf dem Canvas

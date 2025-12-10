@@ -270,6 +270,109 @@ Zeile 3..."
         </div>
       </details>
 
+      <!-- ✨ Fade-Einstellungen (klappbar) -->
+      <details class="collapsible-section">
+        <summary class="section-header">
+          <span class="section-icon">🌫️</span>
+          <span>Einblend-Effekt (Fade)</span>
+          <span v-if="newTextFade.enabled" class="status-badge active">Aktiv</span>
+        </summary>
+        <div class="section-content">
+          <!-- Fade aktivieren -->
+          <div class="control-group">
+            <div class="button-group">
+              <button
+                @click="newTextFade.enabled = !newTextFade.enabled"
+                :class="['btn-small', 'full-width', { active: newTextFade.enabled }]"
+              >
+                {{ newTextFade.enabled ? '✓ Aktiviert' : 'Deaktiviert' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Fade-Einstellungen (nur wenn aktiviert) -->
+          <div v-if="newTextFade.enabled">
+            <!-- Richtung -->
+            <div class="control-group">
+              <label>Richtung:</label>
+              <select
+                v-model="newTextFade.direction"
+                class="select-input"
+              >
+                <option value="in">Einblenden (0% → 100%)</option>
+                <option value="out">Ausblenden (100% → 0%)</option>
+                <option value="inOut">Ein- und Ausblenden</option>
+              </select>
+            </div>
+
+            <!-- Dauer -->
+            <div class="control-group">
+              <label>Dauer: {{ newTextFade.duration }}ms</label>
+              <input
+                type="range"
+                v-model.number="newTextFade.duration"
+                min="100"
+                max="5000"
+                step="100"
+                class="slider"
+              />
+              <div class="hint-text">Wie lange das Ein-/Ausblenden dauert</div>
+            </div>
+
+            <!-- Start-Verzögerung -->
+            <div class="control-group">
+              <label>Start-Verzögerung: {{ newTextFade.startDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="newTextFade.startDelay"
+                min="0"
+                max="5000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Easing -->
+            <div class="control-group">
+              <label>Animation:</label>
+              <select
+                v-model="newTextFade.easing"
+                class="select-input"
+              >
+                <option value="linear">Linear (gleichmäßig)</option>
+                <option value="ease">Ease (natürlich)</option>
+                <option value="easeIn">Ease In (langsamer Start)</option>
+                <option value="easeOut">Ease Out (langsames Ende)</option>
+              </select>
+            </div>
+
+            <!-- Loop -->
+            <div class="control-group">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="newTextFade.loop"
+                />
+                Animation wiederholen (Loop)
+              </label>
+            </div>
+
+            <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
+            <div v-if="newTextFade.loop" class="control-group">
+              <label>Pause zwischen Wiederholungen: {{ newTextFade.loopDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="newTextFade.loopDelay"
+                min="0"
+                max="5000"
+                step="100"
+                class="slider"
+              />
+            </div>
+          </div>
+        </div>
+      </details>
+
       <div class="button-row">
         <button @click="createNewText" class="btn-primary" :disabled="!newTextContent.trim()">
           Zum Canvas hinzufügen
@@ -1029,6 +1132,7 @@ Zeile 3..."
           <span class="section-icon">⌨️</span>
           <span>Text-Animation</span>
           <span v-if="selectedText.animation?.typewriter?.enabled" class="status-badge active">Typewriter</span>
+          <span v-if="selectedText.animation?.fade?.enabled" class="status-badge active">Fade</span>
         </summary>
         <div class="section-content">
           <!-- Typewriter aktivieren -->
@@ -1135,6 +1239,117 @@ Zeile 3..."
               </select>
             </div>
           </div>
+
+          <!-- Trennlinie -->
+          <hr class="section-divider" style="margin: 12px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);" />
+
+          <!-- Fade aktivieren -->
+          <div class="control-group">
+            <label>Einblend-Effekt (Fade):</label>
+            <div class="button-group">
+              <button
+                @click="toggleFade"
+                :class="['btn-small', { active: selectedText.animation?.fade?.enabled }]"
+              >
+                {{ selectedText.animation?.fade?.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+              </button>
+              <button
+                v-if="selectedText.animation?.fade?.enabled"
+                @click="restartFade"
+                class="btn-small"
+                title="Animation neu starten"
+              >
+                🔄 Neustart
+              </button>
+            </div>
+          </div>
+
+          <!-- Fade-Einstellungen (nur wenn aktiviert) -->
+          <div v-if="selectedText.animation?.fade?.enabled" class="fade-settings">
+            <!-- Richtung -->
+            <div class="control-group">
+              <label>Richtung:</label>
+              <select
+                v-model="selectedText.animation.fade.direction"
+                @change="updateText"
+                class="select-input"
+              >
+                <option value="in">Einblenden (0% → 100%)</option>
+                <option value="out">Ausblenden (100% → 0%)</option>
+                <option value="inOut">Ein- und Ausblenden</option>
+              </select>
+            </div>
+
+            <!-- Dauer -->
+            <div class="control-group">
+              <label>Dauer: {{ selectedText.animation.fade.duration }}ms</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.fade.duration"
+                @input="updateText"
+                min="100"
+                max="5000"
+                step="100"
+                class="slider"
+              />
+              <div class="hint-text">Wie lange das Ein-/Ausblenden dauert</div>
+            </div>
+
+            <!-- Start-Verzögerung -->
+            <div class="control-group">
+              <label>Start-Verzögerung: {{ selectedText.animation.fade.startDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.fade.startDelay"
+                @input="updateText"
+                min="0"
+                max="5000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Easing -->
+            <div class="control-group">
+              <label>Animation:</label>
+              <select
+                v-model="selectedText.animation.fade.easing"
+                @change="updateText"
+                class="select-input"
+              >
+                <option value="linear">Linear (gleichmäßig)</option>
+                <option value="ease">Ease (natürlich)</option>
+                <option value="easeIn">Ease In (langsamer Start)</option>
+                <option value="easeOut">Ease Out (langsames Ende)</option>
+              </select>
+            </div>
+
+            <!-- Loop -->
+            <div class="control-group">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.animation.fade.loop"
+                  @change="updateText"
+                />
+                Animation wiederholen (Loop)
+              </label>
+            </div>
+
+            <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
+            <div v-if="selectedText.animation.fade.loop" class="control-group">
+              <label>Pause zwischen Wiederholungen: {{ selectedText.animation.fade.loopDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.fade.loopDelay"
+                @input="updateText"
+                min="0"
+                max="5000"
+                step="100"
+                class="slider"
+              />
+            </div>
+          </div>
         </div>
       </details>
 
@@ -1177,6 +1392,17 @@ const newTextTypewriter = ref({
   cursorChar: '|'
 });
 
+// ✨ Fade-Einstellungen für neuen Text (im Eingabemodus)
+const newTextFade = ref({
+  enabled: false,
+  duration: 1000,
+  startDelay: 0,
+  direction: 'in',
+  loop: false,
+  loopDelay: 1000,
+  easing: 'ease'
+});
+
 // ✨ Text-Stil-Einstellungen für neuen Text (im Eingabemodus)
 const newTextStyle = ref({
   fontSize: 48,
@@ -1208,6 +1434,11 @@ function loadSavedSettings() {
       // Typewriter-Einstellungen laden
       if (settings.typewriter) {
         newTextTypewriter.value = { ...newTextTypewriter.value, ...settings.typewriter };
+      }
+
+      // Fade-Einstellungen laden
+      if (settings.fade) {
+        newTextFade.value = { ...newTextFade.value, ...settings.fade };
       }
 
       console.log('✅ Gespeicherte Text-Einstellungen geladen');
@@ -1242,6 +1473,15 @@ function saveCurrentSettings() {
         loopDelay: newTextTypewriter.value.loopDelay,
         showCursor: newTextTypewriter.value.showCursor,
         cursorChar: newTextTypewriter.value.cursorChar
+      },
+      fade: {
+        enabled: newTextFade.value.enabled,
+        duration: newTextFade.value.duration,
+        startDelay: newTextFade.value.startDelay,
+        direction: newTextFade.value.direction,
+        loop: newTextFade.value.loop,
+        loopDelay: newTextFade.value.loopDelay,
+        easing: newTextFade.value.easing
       }
     };
 
@@ -1502,12 +1742,25 @@ function createNewText() {
     newTextObj.fontStyle = newTextStyle.value.fontStyle;
     newTextObj.textAlign = newTextStyle.value.textAlign;
 
-    // ✨ Typewriter-Einstellungen übernehmen
-    if (newTextTypewriter.value.enabled) {
+    // ✨ Animations-Einstellungen übernehmen (Typewriter und/oder Fade)
+    const hasTypewriter = newTextTypewriter.value.enabled;
+    const hasFade = newTextFade.value.enabled;
+
+    if (hasTypewriter || hasFade) {
+      // Bestimme den primären Animations-Typ
+      let animationType = 'none';
+      if (hasTypewriter && hasFade) {
+        animationType = 'typewriter+fade';
+      } else if (hasTypewriter) {
+        animationType = 'typewriter';
+      } else if (hasFade) {
+        animationType = 'fade';
+      }
+
       newTextObj.animation = {
-        type: 'typewriter',
+        type: animationType,
         typewriter: {
-          enabled: true,
+          enabled: hasTypewriter,
           speed: newTextTypewriter.value.speed,
           startDelay: newTextTypewriter.value.startDelay,
           loop: newTextTypewriter.value.loop,
@@ -1515,13 +1768,24 @@ function createNewText() {
           showCursor: newTextTypewriter.value.showCursor,
           cursorChar: newTextTypewriter.value.cursorChar
         },
+        fade: {
+          enabled: hasFade,
+          duration: newTextFade.value.duration,
+          startDelay: newTextFade.value.startDelay,
+          direction: newTextFade.value.direction,
+          loop: newTextFade.value.loop,
+          loopDelay: newTextFade.value.loopDelay,
+          easing: newTextFade.value.easing
+        },
         _state: {
           startTime: null,
           isPlaying: false,
           currentIndex: 0
         }
       };
-      console.log('⌨️ Text mit Typewriter-Effekt erstellt');
+
+      if (hasTypewriter) console.log('⌨️ Text mit Typewriter-Effekt erstellt');
+      if (hasFade) console.log('🌫️ Text mit Fade-Effekt erstellt');
     }
 
     selectedText.value = newTextObj;
@@ -1553,6 +1817,17 @@ function resetNewTextSettings() {
     loopDelay: 1000,
     showCursor: true,
     cursorChar: '|'
+  };
+
+  // Fade zurücksetzen
+  newTextFade.value = {
+    enabled: false,
+    duration: 1000,
+    startDelay: 0,
+    direction: 'in',
+    loop: false,
+    loopDelay: 1000,
+    easing: 'ease'
   };
 
   // Stil zurücksetzen
@@ -1751,6 +2026,15 @@ function toggleTypewriter() {
         showCursor: true,
         cursorChar: '|'
       },
+      fade: {
+        enabled: false,
+        duration: 1000,
+        startDelay: 0,
+        direction: 'in',
+        loop: false,
+        loopDelay: 1000,
+        easing: 'ease'
+      },
       _state: {
         startTime: null,
         isPlaying: false,
@@ -1762,16 +2046,25 @@ function toggleTypewriter() {
   // Toggle enabled
   selectedText.value.animation.typewriter.enabled = !selectedText.value.animation.typewriter.enabled;
 
-  // Animation-Typ setzen
-  selectedText.value.animation.type = selectedText.value.animation.typewriter.enabled ? 'typewriter' : 'none';
+  // Animation-Typ aktualisieren (berücksichtigt auch Fade)
+  const hasTypewriter = selectedText.value.animation.typewriter.enabled;
+  const hasFade = selectedText.value.animation.fade?.enabled;
+
+  if (hasTypewriter && hasFade) {
+    selectedText.value.animation.type = 'typewriter+fade';
+  } else if (hasTypewriter) {
+    selectedText.value.animation.type = 'typewriter';
+  } else if (hasFade) {
+    selectedText.value.animation.type = 'fade';
+  } else {
+    selectedText.value.animation.type = 'none';
+  }
 
   // Bei Aktivierung: Animation-State zurücksetzen für sofortigen Start
   if (selectedText.value.animation.typewriter.enabled) {
-    selectedText.value.animation._state = {
-      startTime: null,
-      isPlaying: false,
-      currentIndex: 0
-    };
+    selectedText.value.animation._state.startTime = null;
+    selectedText.value.animation._state.isPlaying = false;
+    selectedText.value.animation._state.currentIndex = 0;
   }
 
   updateText();
@@ -1791,6 +2084,92 @@ function restartTypewriter() {
 
   updateText();
   console.log('🔄 Typewriter-Animation neu gestartet');
+}
+
+// ✨ Fade-Animation aktivieren/deaktivieren
+function toggleFade() {
+  if (!selectedText.value) return;
+
+  // Initialisiere animation wenn nicht vorhanden
+  if (!selectedText.value.animation) {
+    selectedText.value.animation = {
+      type: 'none',
+      typewriter: {
+        enabled: false,
+        speed: 50,
+        startDelay: 0,
+        loop: false,
+        loopDelay: 1000,
+        showCursor: true,
+        cursorChar: '|'
+      },
+      fade: {
+        enabled: false,
+        duration: 1000,
+        startDelay: 0,
+        direction: 'in',
+        loop: false,
+        loopDelay: 1000,
+        easing: 'ease'
+      },
+      _state: {
+        startTime: null,
+        isPlaying: false,
+        currentIndex: 0
+      }
+    };
+  }
+
+  // Initialisiere fade wenn nicht vorhanden
+  if (!selectedText.value.animation.fade) {
+    selectedText.value.animation.fade = {
+      enabled: false,
+      duration: 1000,
+      startDelay: 0,
+      direction: 'in',
+      loop: false,
+      loopDelay: 1000,
+      easing: 'ease'
+    };
+  }
+
+  // Toggle enabled
+  selectedText.value.animation.fade.enabled = !selectedText.value.animation.fade.enabled;
+
+  // Animation-Typ aktualisieren
+  const hasTypewriter = selectedText.value.animation.typewriter?.enabled;
+  const hasFade = selectedText.value.animation.fade.enabled;
+
+  if (hasTypewriter && hasFade) {
+    selectedText.value.animation.type = 'typewriter+fade';
+  } else if (hasTypewriter) {
+    selectedText.value.animation.type = 'typewriter';
+  } else if (hasFade) {
+    selectedText.value.animation.type = 'fade';
+  } else {
+    selectedText.value.animation.type = 'none';
+  }
+
+  // Bei Aktivierung: Fade-State zurücksetzen für sofortigen Start
+  if (selectedText.value.animation.fade.enabled) {
+    selectedText.value.animation._state.fadeStartTime = null;
+    selectedText.value.animation._state.fadePhase = null;
+  }
+
+  updateText();
+  console.log(`🌫️ Fade ${selectedText.value.animation.fade.enabled ? 'aktiviert' : 'deaktiviert'}`);
+}
+
+// ✨ Fade-Animation neu starten
+function restartFade() {
+  if (!selectedText.value?.animation) return;
+
+  // Fade-State zurücksetzen
+  selectedText.value.animation._state.fadeStartTime = null;
+  selectedText.value.animation._state.fadePhase = null;
+
+  updateText();
+  console.log('🔄 Fade-Animation neu gestartet');
 }
 
 // Ausgewählten Text löschen

@@ -413,6 +413,29 @@ export class CanvasManager {
             case 'volume':
                 audioLevel = useSmooth ? audioData.smoothVolume : audioData.volume;
                 break;
+            case 'dynamic':
+                // ✨ Dynamischer Modus: Gewichtete Mischung aller Frequenzbänder
+                // basierend auf ihrer aktuellen Energie
+                const bass = useSmooth ? audioData.smoothBass : audioData.bass;
+                const mid = useSmooth ? audioData.smoothMid : audioData.mid;
+                const treble = useSmooth ? audioData.smoothTreble : audioData.treble;
+
+                // Gesamtenergie berechnen (mit Minimum um Division durch 0 zu vermeiden)
+                const totalEnergy = Math.max(bass + mid + treble, 1);
+
+                // Gewichte basierend auf aktueller Energie jedes Bands
+                const bassWeight = bass / totalEnergy;
+                const midWeight = mid / totalEnergy;
+                const trebleWeight = treble / totalEnergy;
+
+                // Gewichtete Mischung - die dominante Frequenz trägt am meisten bei
+                let rawLevel = (bass * bassWeight) + (mid * midWeight) + (treble * trebleWeight);
+
+                // ✨ Soft Compression: Verhindert konstantes Peaking bei lauter Musik (z.B. Techno)
+                const normalized = rawLevel / 255;
+                const compressed = Math.pow(normalized, 0.7); // 0.7 = sanfte Kompression
+                audioLevel = compressed * 255 * 0.85; // 0.85 = leichte Dämpfung
+                break;
         }
 
         const baseLevel = audioLevel / 255;

@@ -56,7 +56,29 @@ Zeile 3..."
             min="12"
             max="200"
             class="slider"
+            :disabled="newTextStyle.autoFit"
           />
+        </div>
+
+        <!-- Auto-Fit -->
+        <div class="control-group">
+          <label class="effect-checkbox">
+            <input
+              type="checkbox"
+              v-model="newTextStyle.autoFit"
+            />
+            📐 Automatisch an Canvas anpassen
+          </label>
+          <div v-if="newTextStyle.autoFit" class="auto-fit-settings">
+            <label>Rand-Abstand: {{ newTextStyle.autoFitPadding }}%</label>
+            <input
+              type="range"
+              v-model.number="newTextStyle.autoFitPadding"
+              min="0"
+              max="30"
+              class="slider"
+            />
+          </div>
         </div>
 
         <!-- Textfarbe -->
@@ -1112,7 +1134,9 @@ const newTextStyle = ref({
   fontWeight: 'normal',
   fontStyle: 'normal',
   textAlign: 'center',
-  opacity: 100
+  opacity: 100,
+  autoFit: false,        // ✨ NEU: Automatische Größenanpassung
+  autoFitPadding: 10     // ✨ NEU: Abstand zum Rand in %
 });
 
 // ✨ LocalStorage Key für gespeicherte Einstellungen
@@ -1155,7 +1179,9 @@ function saveCurrentSettings() {
         fontWeight: newTextStyle.value.fontWeight,
         fontStyle: newTextStyle.value.fontStyle,
         textAlign: newTextStyle.value.textAlign,
-        opacity: newTextStyle.value.opacity
+        opacity: newTextStyle.value.opacity,
+        autoFit: newTextStyle.value.autoFit,
+        autoFitPadding: newTextStyle.value.autoFitPadding
       },
       typewriter: {
         enabled: newTextTypewriter.value.enabled,
@@ -1193,6 +1219,61 @@ function clearSavedSettings() {
 // ✨ Prüft ob gespeicherte Einstellungen existieren
 function hasSavedSettings() {
   return localStorage.getItem(SAVED_SETTINGS_KEY) !== null;
+}
+
+// ✨ Berechnet die optimale Schriftgröße, damit der Text ins Canvas passt
+function calculateAutoFitFontSize(text, fontFamily, fontWeight, fontStyle, paddingPercent = 10) {
+  if (!canvasManager.value || !text) return 48;
+
+  const canvas = canvasManager.value.canvas;
+  if (!canvas) return 48;
+
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
+
+  // Verfügbarer Platz mit Padding
+  const padding = paddingPercent / 100;
+  const availableWidth = canvasWidth * (1 - padding * 2);
+  const availableHeight = canvasHeight * (1 - padding * 2);
+
+  // Temporäres Canvas für Textmessung
+  const tempCanvas = document.createElement('canvas');
+  const ctx = tempCanvas.getContext('2d');
+
+  // Teile Text in Zeilen
+  const lines = text.split('\n');
+  const lineCount = lines.length;
+
+  // Starte mit einer großen Schriftgröße und reduziere
+  let fontSize = 200; // Maximale Startgröße
+  const minFontSize = 12; // Minimale Schriftgröße
+  const lineHeightMultiplier = 1.2; // Standard Zeilenabstand
+
+  while (fontSize > minFontSize) {
+    ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
+
+    // Berechne Gesamthöhe (alle Zeilen)
+    const totalHeight = fontSize * lineHeightMultiplier * lineCount;
+
+    // Finde die breiteste Zeile
+    let maxWidth = 0;
+    lines.forEach(line => {
+      const metrics = ctx.measureText(line);
+      if (metrics.width > maxWidth) {
+        maxWidth = metrics.width;
+      }
+    });
+
+    // Passt der Text?
+    if (maxWidth <= availableWidth && totalHeight <= availableHeight) {
+      break;
+    }
+
+    // Reduziere Schriftgröße
+    fontSize -= 2;
+  }
+
+  return Math.max(fontSize, minFontSize);
 }
 
 let eventListenerRegistered = false;
@@ -1330,9 +1411,22 @@ function createNewText() {
   const normalizedText = normalizeLineBreaks(newTextContent.value);
   const lineCount = normalizedText.split('\n').length;
 
+  // ✨ Auto-Fit: Berechne optimale Schriftgröße wenn aktiviert
+  let fontSize = newTextStyle.value.fontSize;
+  if (newTextStyle.value.autoFit) {
+    fontSize = calculateAutoFitFontSize(
+      normalizedText,
+      newTextStyle.value.fontFamily,
+      newTextStyle.value.fontWeight,
+      newTextStyle.value.fontStyle,
+      newTextStyle.value.autoFitPadding
+    );
+    console.log(`📐 Auto-Fit: Schriftgröße angepasst auf ${fontSize}px`);
+  }
+
   // ✨ Erstelle den Text mit den benutzerdefinierten Stil-Einstellungen
   const newTextObj = canvasManager.value.addText(normalizedText, {
-    fontSize: newTextStyle.value.fontSize,
+    fontSize: fontSize,
     fontFamily: newTextStyle.value.fontFamily,
     color: newTextStyle.value.color,
     fontWeight: newTextStyle.value.fontWeight,
@@ -1418,7 +1512,9 @@ function resetNewTextSettings() {
     fontWeight: 'normal',
     fontStyle: 'normal',
     textAlign: 'center',
-    opacity: 100
+    opacity: 100,
+    autoFit: false,
+    autoFitPadding: 10
   };
 }
 
@@ -2540,5 +2636,31 @@ h4 {
   background: linear-gradient(135deg, #4a4a4a 0%, #5a5a5a 100%);
   border-color: #777;
   color: #fff;
+}
+
+/* ===== AUTO-FIT SETTINGS ===== */
+.auto-fit-settings {
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.auto-fit-settings label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: #999;
+}
+
+/* Disabled slider style */
+.slider:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.slider:disabled::-webkit-slider-thumb {
+  background: #666;
+  cursor: not-allowed;
 }
 </style>

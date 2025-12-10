@@ -80,9 +80,9 @@ export class TextManager {
                 }
             },
 
-            // ✨ TEXT-ANIMATION (Typewriter, etc.)
+            // ✨ TEXT-ANIMATION (Typewriter, Fade, etc.)
             animation: {
-                type: 'none',  // 'none', 'typewriter'
+                type: 'none',  // 'none', 'typewriter', 'fade'
                 typewriter: {
                     enabled: false,
                     speed: 50,           // ms pro Buchstabe
@@ -92,11 +92,21 @@ export class TextManager {
                     showCursor: true,    // Blinkender Cursor
                     cursorChar: '|'      // Cursor-Zeichen
                 },
+                // ✨ NEU: Fade-Einblendung
+                fade: {
+                    enabled: false,
+                    duration: 1000,      // Dauer der Einblendung (ms)
+                    startDelay: 0,       // Verzögerung vor Start (ms)
+                    direction: 'in',     // 'in' = einblenden, 'out' = ausblenden, 'inOut' = ein- und ausblenden
+                    loop: false,         // Animation wiederholen
+                    loopDelay: 1000,     // Pause zwischen Wiederholungen (ms)
+                    easing: 'ease'       // 'linear', 'ease', 'easeIn', 'easeOut'
+                },
                 // Interner State (wird zur Laufzeit gesetzt)
                 _state: {
                     startTime: null,     // Wann die Animation gestartet wurde
                     isPlaying: false,    // Läuft die Animation gerade?
-                    currentIndex: 0      // Aktueller Buchstaben-Index
+                    currentIndex: 0      // Aktueller Buchstaben-Index (für Typewriter)
                 }
             }
         };
@@ -416,6 +426,129 @@ export class TextManager {
     }
 
     /**
+     * ✨ NEU: Berechnet die Opacity für Fade-Animation
+     * Gibt einen Wert zwischen 0 und 1 zurück
+     */
+    _getFadeOpacity(textObj) {
+        const animation = textObj.animation;
+
+        // Wenn keine Animation oder Fade nicht aktiviert
+        if (!animation || !animation.fade || !animation.fade.enabled) {
+            return { opacity: 1, isComplete: true };
+        }
+
+        const fade = animation.fade;
+        const state = animation._state;
+        const now = Date.now();
+
+        // Animation starten wenn noch nicht gestartet
+        if (!state.fadeStartTime) {
+            state.fadeStartTime = now + (fade.startDelay || 0);
+            state.fadePhase = 'waiting'; // 'waiting', 'fadeIn', 'visible', 'fadeOut', 'hidden'
+        }
+
+        // Noch in der Start-Verzögerung?
+        if (now < state.fadeStartTime) {
+            return {
+                opacity: fade.direction === 'out' ? 1 : 0,
+                isComplete: false
+            };
+        }
+
+        const elapsed = now - state.fadeStartTime;
+        const duration = fade.duration || 1000;
+
+        // Easing-Funktion anwenden
+        const applyEasing = (t, easing) => {
+            switch (easing) {
+                case 'linear':
+                    return t;
+                case 'easeIn':
+                    return t * t;
+                case 'easeOut':
+                    return 1 - (1 - t) * (1 - t);
+                case 'ease':
+                default:
+                    // Ease-In-Out
+                    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+            }
+        };
+
+        let opacity = 1;
+        let isComplete = false;
+
+        switch (fade.direction) {
+            case 'in':
+                // Einblenden: 0 → 1
+                if (elapsed >= duration) {
+                    opacity = 1;
+                    isComplete = true;
+                } else {
+                    const progress = elapsed / duration;
+                    opacity = applyEasing(progress, fade.easing);
+                }
+                break;
+
+            case 'out':
+                // Ausblenden: 1 → 0
+                if (elapsed >= duration) {
+                    opacity = 0;
+                    isComplete = true;
+                } else {
+                    const progress = elapsed / duration;
+                    opacity = 1 - applyEasing(progress, fade.easing);
+                }
+                break;
+
+            case 'inOut':
+                // Ein- und Ausblenden: 0 → 1 → 0
+                const totalDuration = duration * 2;
+                if (elapsed >= totalDuration) {
+                    opacity = 0;
+                    isComplete = true;
+                } else if (elapsed < duration) {
+                    // Einblenden
+                    const progress = elapsed / duration;
+                    opacity = applyEasing(progress, fade.easing);
+                } else {
+                    // Ausblenden
+                    const progress = (elapsed - duration) / duration;
+                    opacity = 1 - applyEasing(progress, fade.easing);
+                }
+                break;
+        }
+
+        // Loop-Handling
+        if (isComplete && fade.loop) {
+            const loopDelay = fade.loopDelay || 1000;
+            const completionTime = state.fadeStartTime + (fade.direction === 'inOut' ? duration * 2 : duration);
+            const timeSinceComplete = now - completionTime;
+
+            if (timeSinceComplete >= loopDelay) {
+                // Neustart
+                state.fadeStartTime = now;
+                return {
+                    opacity: fade.direction === 'out' ? 1 : 0,
+                    isComplete: false
+                };
+            }
+        }
+
+        return { opacity, isComplete };
+    }
+
+    /**
+     * ✨ NEU: Startet die Fade-Animation neu
+     */
+    restartFade(textObj) {
+        if (!textObj || !textObj.animation) return;
+
+        const state = textObj.animation._state;
+        state.fadeStartTime = null;
+        state.fadePhase = null;
+    }
+
+    /**
      * Zeichnet einen einzelnen Text (mit Unterstützung für mehrzeilige Texte)
      * ✨ ERWEITERT: Unterstützt jetzt Audio-Reaktive Effekte und Typewriter-Animation
      */
@@ -436,6 +569,11 @@ export class TextManager {
             const audioModulation = audioReactive.effects.opacity.opacity / 100;
             baseOpacity = baseOpacity * audioModulation;
         }
+
+        // ✨ FADE-ANIMATION: Opacity aus Fade-Effekt anwenden
+        const fadeResult = this._getFadeOpacity(textObj);
+        baseOpacity = baseOpacity * fadeResult.opacity;
+
         ctx.globalAlpha = baseOpacity;
 
         // Basis-Position berechnen

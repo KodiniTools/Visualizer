@@ -502,6 +502,136 @@ Zeile 3..."
         </div>
       </details>
 
+      <!-- ✨ Slide-Einstellungen (klappbar) -->
+      <details class="collapsible-section">
+        <summary class="section-header">
+          <span class="section-icon">↔️</span>
+          <span>Hereingleit-Effekt (Slide)</span>
+          <span v-if="newTextSlide.enabled" class="status-badge active">Aktiv</span>
+        </summary>
+        <div class="section-content">
+          <!-- Slide aktivieren -->
+          <div class="control-group">
+            <div class="button-group">
+              <button
+                @click="newTextSlide.enabled = !newTextSlide.enabled"
+                :class="['btn-small', 'full-width', { active: newTextSlide.enabled }]"
+              >
+                {{ newTextSlide.enabled ? '✓ Aktiviert' : 'Deaktiviert' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Slide-Einstellungen (nur wenn aktiviert) -->
+          <div v-if="newTextSlide.enabled">
+            <!-- Richtung (von wo) -->
+            <div class="control-group">
+              <label>Einfahren von:</label>
+              <select
+                v-model="newTextSlide.from"
+                class="select-input"
+              >
+                <option value="left">Links</option>
+                <option value="right">Rechts</option>
+                <option value="top">Oben</option>
+                <option value="bottom">Unten</option>
+              </select>
+            </div>
+
+            <!-- Animation-Richtung -->
+            <div class="control-group">
+              <label>Animation:</label>
+              <select
+                v-model="newTextSlide.direction"
+                class="select-input"
+              >
+                <option value="in">Hereinfahren</option>
+                <option value="out">Herausfahren</option>
+                <option value="inOut">Herein und Heraus</option>
+              </select>
+            </div>
+
+            <!-- Distanz -->
+            <div class="control-group">
+              <label>Distanz: {{ newTextSlide.distance }}%</label>
+              <input
+                type="range"
+                v-model.number="newTextSlide.distance"
+                min="10"
+                max="200"
+                step="10"
+                class="slider"
+              />
+              <div class="hint-text">100% = vom Rand des Canvas</div>
+            </div>
+
+            <!-- Dauer -->
+            <div class="control-group">
+              <label>Dauer: {{ newTextSlide.duration }}ms</label>
+              <input
+                type="range"
+                v-model.number="newTextSlide.duration"
+                min="100"
+                max="20000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Start-Verzögerung -->
+            <div class="control-group">
+              <label>Start-Verzögerung: {{ newTextSlide.startDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="newTextSlide.startDelay"
+                min="0"
+                max="20000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Easing -->
+            <div class="control-group">
+              <label>Bewegung:</label>
+              <select
+                v-model="newTextSlide.easing"
+                class="select-input"
+              >
+                <option value="linear">Linear (gleichmäßig)</option>
+                <option value="ease">Ease (natürlich)</option>
+                <option value="easeIn">Ease In (langsamer Start)</option>
+                <option value="easeOut">Ease Out (langsames Ende)</option>
+              </select>
+            </div>
+
+            <!-- Loop -->
+            <div class="control-group">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="newTextSlide.loop"
+                />
+                Animation wiederholen (Loop)
+              </label>
+            </div>
+
+            <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
+            <div v-if="newTextSlide.loop" class="control-group">
+              <label>Pause zwischen Wiederholungen: {{ newTextSlide.loopDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="newTextSlide.loopDelay"
+                min="0"
+                max="20000"
+                step="100"
+                class="slider"
+              />
+            </div>
+          </div>
+        </div>
+      </details>
+
       <div class="button-row">
         <button @click="createNewText" class="btn-primary" :disabled="!newTextContent.trim()">
           Zum Canvas hinzufügen
@@ -1263,6 +1393,7 @@ Zeile 3..."
           <span v-if="selectedText.animation?.typewriter?.enabled" class="status-badge active">Typewriter</span>
           <span v-if="selectedText.animation?.fade?.enabled" class="status-badge active">Fade</span>
           <span v-if="selectedText.animation?.scale?.enabled" class="status-badge active">Scale</span>
+          <span v-if="selectedText.animation?.slide?.enabled" class="status-badge active">Slide</span>
         </summary>
         <div class="section-content">
           <!-- Typewriter aktivieren -->
@@ -1619,6 +1750,145 @@ Zeile 3..."
               />
             </div>
           </div>
+
+          <!-- Trennlinie -->
+          <hr class="section-divider" style="margin: 12px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);" />
+
+          <!-- Slide aktivieren -->
+          <div class="control-group">
+            <label>Slide-Effekt (Hereingleiten):</label>
+            <div class="button-group">
+              <button
+                @click="toggleSlide"
+                :class="['btn-small', { active: selectedText.animation?.slide?.enabled }]"
+              >
+                {{ selectedText.animation?.slide?.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+              </button>
+              <button
+                v-if="selectedText.animation?.slide?.enabled"
+                @click="restartSlide"
+                class="btn-small"
+                title="Animation neu starten"
+              >
+                🔄 Neustart
+              </button>
+            </div>
+          </div>
+
+          <!-- Slide-Einstellungen (nur wenn aktiviert) -->
+          <div v-if="selectedText.animation?.slide?.enabled" class="slide-settings">
+            <!-- Richtung -->
+            <div class="control-group">
+              <label>Richtung:</label>
+              <select
+                v-model="selectedText.animation.slide.direction"
+                @change="updateText"
+                class="select-input"
+              >
+                <option value="in">Hereinfahren</option>
+                <option value="out">Herausfahren</option>
+                <option value="inOut">Herein und Heraus</option>
+              </select>
+            </div>
+
+            <!-- Von welcher Seite -->
+            <div class="control-group">
+              <label>Von welcher Seite:</label>
+              <select
+                v-model="selectedText.animation.slide.from"
+                @change="updateText"
+                class="select-input"
+              >
+                <option value="left">Links</option>
+                <option value="right">Rechts</option>
+                <option value="top">Oben</option>
+                <option value="bottom">Unten</option>
+              </select>
+            </div>
+
+            <!-- Distanz -->
+            <div class="control-group">
+              <label>Distanz: {{ selectedText.animation.slide.distance }}px</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.slide.distance"
+                @input="updateText"
+                min="10"
+                max="1000"
+                step="10"
+                class="slider"
+              />
+            </div>
+
+            <!-- Dauer -->
+            <div class="control-group">
+              <label>Dauer: {{ selectedText.animation.slide.duration }}ms</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.slide.duration"
+                @input="updateText"
+                min="100"
+                max="20000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Start-Verzögerung -->
+            <div class="control-group">
+              <label>Start-Verzögerung: {{ selectedText.animation.slide.startDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.slide.startDelay"
+                @input="updateText"
+                min="0"
+                max="20000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Easing -->
+            <div class="control-group">
+              <label>Animation:</label>
+              <select
+                v-model="selectedText.animation.slide.easing"
+                @change="updateText"
+                class="select-input"
+              >
+                <option value="linear">Linear (gleichmäßig)</option>
+                <option value="ease">Ease (natürlich)</option>
+                <option value="easeIn">Ease In (langsamer Start)</option>
+                <option value="easeOut">Ease Out (langsames Ende)</option>
+              </select>
+            </div>
+
+            <!-- Loop -->
+            <div class="control-group">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.animation.slide.loop"
+                  @change="updateText"
+                />
+                Animation wiederholen (Loop)
+              </label>
+            </div>
+
+            <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
+            <div v-if="selectedText.animation.slide.loop" class="control-group">
+              <label>Pause zwischen Wiederholungen: {{ selectedText.animation.slide.loopDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.slide.loopDelay"
+                @input="updateText"
+                min="0"
+                max="20000"
+                step="100"
+                class="slider"
+              />
+            </div>
+          </div>
         </div>
       </details>
 
@@ -1685,6 +1955,19 @@ const newTextScale = ref({
   easing: 'ease'
 });
 
+// ✨ Slide-Einstellungen für neuen Text (im Eingabemodus)
+const newTextSlide = ref({
+  enabled: false,
+  duration: 1000,
+  startDelay: 0,
+  from: 'left',
+  distance: 100,
+  direction: 'in',
+  loop: false,
+  loopDelay: 1000,
+  easing: 'ease'
+});
+
 // ✨ Text-Stil-Einstellungen für neuen Text (im Eingabemodus)
 const newTextStyle = ref({
   fontSize: 48,
@@ -1726,6 +2009,11 @@ function loadSavedSettings() {
       // Scale-Einstellungen laden
       if (settings.scale) {
         newTextScale.value = { ...newTextScale.value, ...settings.scale };
+      }
+
+      // Slide-Einstellungen laden
+      if (settings.slide) {
+        newTextSlide.value = { ...newTextSlide.value, ...settings.slide };
       }
 
       console.log('✅ Gespeicherte Text-Einstellungen geladen');
@@ -1780,6 +2068,17 @@ function saveCurrentSettings() {
         loop: newTextScale.value.loop,
         loopDelay: newTextScale.value.loopDelay,
         easing: newTextScale.value.easing
+      },
+      slide: {
+        enabled: newTextSlide.value.enabled,
+        duration: newTextSlide.value.duration,
+        startDelay: newTextSlide.value.startDelay,
+        from: newTextSlide.value.from,
+        distance: newTextSlide.value.distance,
+        direction: newTextSlide.value.direction,
+        loop: newTextSlide.value.loop,
+        loopDelay: newTextSlide.value.loopDelay,
+        easing: newTextSlide.value.easing
       }
     };
 
@@ -2040,17 +2339,19 @@ function createNewText() {
     newTextObj.fontStyle = newTextStyle.value.fontStyle;
     newTextObj.textAlign = newTextStyle.value.textAlign;
 
-    // ✨ Animations-Einstellungen übernehmen (Typewriter, Fade und/oder Scale)
+    // ✨ Animations-Einstellungen übernehmen (Typewriter, Fade, Scale und/oder Slide)
     const hasTypewriter = newTextTypewriter.value.enabled;
     const hasFade = newTextFade.value.enabled;
     const hasScale = newTextScale.value.enabled;
+    const hasSlide = newTextSlide.value.enabled;
 
-    if (hasTypewriter || hasFade || hasScale) {
+    if (hasTypewriter || hasFade || hasScale || hasSlide) {
       // Bestimme den Animations-Typ (für Logging)
       const types = [];
       if (hasTypewriter) types.push('typewriter');
       if (hasFade) types.push('fade');
       if (hasScale) types.push('scale');
+      if (hasSlide) types.push('slide');
       const animationType = types.join('+') || 'none';
 
       newTextObj.animation = {
@@ -2084,6 +2385,17 @@ function createNewText() {
           loopDelay: newTextScale.value.loopDelay,
           easing: newTextScale.value.easing
         },
+        slide: {
+          enabled: hasSlide,
+          duration: newTextSlide.value.duration,
+          startDelay: newTextSlide.value.startDelay,
+          from: newTextSlide.value.from,
+          distance: newTextSlide.value.distance,
+          direction: newTextSlide.value.direction,
+          loop: newTextSlide.value.loop,
+          loopDelay: newTextSlide.value.loopDelay,
+          easing: newTextSlide.value.easing
+        },
         _state: {
           startTime: null,
           isPlaying: false,
@@ -2094,6 +2406,7 @@ function createNewText() {
       if (hasTypewriter) console.log('⌨️ Text mit Typewriter-Effekt erstellt');
       if (hasFade) console.log('🌫️ Text mit Fade-Effekt erstellt');
       if (hasScale) console.log('🔍 Text mit Scale-Effekt erstellt');
+      if (hasSlide) console.log('➡️ Text mit Slide-Effekt erstellt');
     }
 
     selectedText.value = newTextObj;
@@ -2145,6 +2458,19 @@ function resetNewTextSettings() {
     startDelay: 0,
     startScale: 0,
     endScale: 1,
+    direction: 'in',
+    loop: false,
+    loopDelay: 1000,
+    easing: 'ease'
+  };
+
+  // Slide zurücksetzen
+  newTextSlide.value = {
+    enabled: false,
+    duration: 1000,
+    startDelay: 0,
+    from: 'left',
+    distance: 100,
     direction: 'in',
     loop: false,
     loopDelay: 1000,
@@ -2367,6 +2693,17 @@ function toggleTypewriter() {
         loopDelay: 1000,
         easing: 'ease'
       },
+      slide: {
+        enabled: false,
+        duration: 1000,
+        startDelay: 0,
+        from: 'left',
+        distance: 100,
+        direction: 'in',
+        loop: false,
+        loopDelay: 1000,
+        easing: 'ease'
+      },
       _state: {
         startTime: null,
         isPlaying: false,
@@ -2378,15 +2715,17 @@ function toggleTypewriter() {
   // Toggle enabled
   selectedText.value.animation.typewriter.enabled = !selectedText.value.animation.typewriter.enabled;
 
-  // Animation-Typ aktualisieren (berücksichtigt Fade und Scale)
+  // Animation-Typ aktualisieren (berücksichtigt Fade, Scale und Slide)
   const hasTypewriter = selectedText.value.animation.typewriter.enabled;
   const hasFade = selectedText.value.animation.fade?.enabled;
   const hasScale = selectedText.value.animation.scale?.enabled;
+  const hasSlide = selectedText.value.animation.slide?.enabled;
 
   const types = [];
   if (hasTypewriter) types.push('typewriter');
   if (hasFade) types.push('fade');
   if (hasScale) types.push('scale');
+  if (hasSlide) types.push('slide');
   selectedText.value.animation.type = types.join('+') || 'none';
 
   // Bei Aktivierung: Animation-State zurücksetzen für sofortigen Start
@@ -2452,6 +2791,17 @@ function toggleFade() {
         loopDelay: 1000,
         easing: 'ease'
       },
+      slide: {
+        enabled: false,
+        duration: 1000,
+        startDelay: 0,
+        from: 'left',
+        distance: 100,
+        direction: 'in',
+        loop: false,
+        loopDelay: 1000,
+        easing: 'ease'
+      },
       _state: {
         startTime: null,
         isPlaying: false,
@@ -2476,15 +2826,17 @@ function toggleFade() {
   // Toggle enabled
   selectedText.value.animation.fade.enabled = !selectedText.value.animation.fade.enabled;
 
-  // Animation-Typ aktualisieren (berücksichtigt Scale)
+  // Animation-Typ aktualisieren (berücksichtigt Scale und Slide)
   const hasTypewriter = selectedText.value.animation.typewriter?.enabled;
   const hasFade = selectedText.value.animation.fade.enabled;
   const hasScale = selectedText.value.animation.scale?.enabled;
+  const hasSlide = selectedText.value.animation.slide?.enabled;
 
   const types = [];
   if (hasTypewriter) types.push('typewriter');
   if (hasFade) types.push('fade');
   if (hasScale) types.push('scale');
+  if (hasSlide) types.push('slide');
   selectedText.value.animation.type = types.join('+') || 'none';
 
   // Bei Aktivierung: Fade-State zurücksetzen für sofortigen Start
@@ -2546,6 +2898,17 @@ function toggleScale() {
         loopDelay: 1000,
         easing: 'ease'
       },
+      slide: {
+        enabled: false,
+        duration: 1000,
+        startDelay: 0,
+        from: 'left',
+        distance: 100,
+        direction: 'in',
+        loop: false,
+        loopDelay: 1000,
+        easing: 'ease'
+      },
       _state: {
         startTime: null,
         isPlaying: false,
@@ -2576,11 +2939,13 @@ function toggleScale() {
   const hasTypewriter = selectedText.value.animation.typewriter?.enabled;
   const hasFade = selectedText.value.animation.fade?.enabled;
   const hasScale = selectedText.value.animation.scale.enabled;
+  const hasSlide = selectedText.value.animation.slide?.enabled;
 
   const types = [];
   if (hasTypewriter) types.push('typewriter');
   if (hasFade) types.push('fade');
   if (hasScale) types.push('scale');
+  if (hasSlide) types.push('slide');
   selectedText.value.animation.type = types.join('+') || 'none';
 
   // Bei Aktivierung: Scale-State zurücksetzen für sofortigen Start
@@ -2601,6 +2966,113 @@ function restartScale() {
 
   updateText();
   console.log('🔄 Scale-Animation neu gestartet');
+}
+
+// ✨ Slide-Animation aktivieren/deaktivieren
+function toggleSlide() {
+  if (!selectedText.value) return;
+
+  // Initialisiere animation wenn nicht vorhanden
+  if (!selectedText.value.animation) {
+    selectedText.value.animation = {
+      type: 'none',
+      typewriter: {
+        enabled: false,
+        speed: 50,
+        startDelay: 0,
+        loop: false,
+        loopDelay: 1000,
+        showCursor: true,
+        cursorChar: '|'
+      },
+      fade: {
+        enabled: false,
+        duration: 1000,
+        startDelay: 0,
+        direction: 'in',
+        loop: false,
+        loopDelay: 1000,
+        easing: 'ease'
+      },
+      scale: {
+        enabled: false,
+        duration: 1000,
+        startDelay: 0,
+        startScale: 0,
+        endScale: 1,
+        direction: 'in',
+        loop: false,
+        loopDelay: 1000,
+        easing: 'ease'
+      },
+      slide: {
+        enabled: false,
+        duration: 1000,
+        startDelay: 0,
+        from: 'left',
+        distance: 100,
+        direction: 'in',
+        loop: false,
+        loopDelay: 1000,
+        easing: 'ease'
+      },
+      _state: {
+        startTime: null,
+        isPlaying: false,
+        currentIndex: 0
+      }
+    };
+  }
+
+  // Initialisiere slide wenn nicht vorhanden
+  if (!selectedText.value.animation.slide) {
+    selectedText.value.animation.slide = {
+      enabled: false,
+      duration: 1000,
+      startDelay: 0,
+      from: 'left',
+      distance: 100,
+      direction: 'in',
+      loop: false,
+      loopDelay: 1000,
+      easing: 'ease'
+    };
+  }
+
+  // Toggle enabled
+  selectedText.value.animation.slide.enabled = !selectedText.value.animation.slide.enabled;
+
+  // Animation-Typ aktualisieren
+  const hasTypewriter = selectedText.value.animation.typewriter?.enabled;
+  const hasFade = selectedText.value.animation.fade?.enabled;
+  const hasScale = selectedText.value.animation.scale?.enabled;
+  const hasSlide = selectedText.value.animation.slide.enabled;
+
+  const types = [];
+  if (hasTypewriter) types.push('typewriter');
+  if (hasFade) types.push('fade');
+  if (hasScale) types.push('scale');
+  if (hasSlide) types.push('slide');
+  selectedText.value.animation.type = types.join('+') || 'none';
+
+  // Bei Aktivierung: Slide-State zurücksetzen für sofortigen Start
+  if (selectedText.value.animation.slide.enabled) {
+    selectedText.value.animation._state.slideStartTime = null;
+  }
+
+  updateText();
+  console.log(`➡️ Slide ${selectedText.value.animation.slide.enabled ? 'aktiviert' : 'deaktiviert'}`);
+}
+
+// ✨ Slide-Animation neu starten
+function restartSlide() {
+  if (!selectedText.value?.animation) return;
+
+  // Slide-State zurücksetzen
+  selectedText.value.animation._state.slideStartTime = null;
+
+  updateText();
+  console.log('🔄 Slide-Animation neu gestartet');
 }
 
 // Ausgewählten Text löschen

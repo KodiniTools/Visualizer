@@ -114,6 +114,18 @@ export class TextManager {
                     loopDelay: 1000,     // Pause zwischen Wiederholungen (ms)
                     easing: 'ease'       // 'linear', 'ease', 'easeIn', 'easeOut'
                 },
+                // ✨ NEU: Slide-Animation (Hereingleiten)
+                slide: {
+                    enabled: false,
+                    duration: 1000,      // Dauer der Animation (ms)
+                    startDelay: 0,       // Verzögerung vor Start (ms)
+                    from: 'left',        // 'left', 'right', 'top', 'bottom'
+                    distance: 100,       // Distanz in Prozent des Canvas (100 = vom Rand)
+                    direction: 'in',     // 'in' = hereinfahren, 'out' = herausfahren, 'inOut' = rein und raus
+                    loop: false,         // Animation wiederholen
+                    loopDelay: 1000,     // Pause zwischen Wiederholungen (ms)
+                    easing: 'ease'       // 'linear', 'ease', 'easeIn', 'easeOut'
+                },
                 // Interner State (wird zur Laufzeit gesetzt)
                 _state: {
                     startTime: null,     // Wann die Animation gestartet wurde
@@ -689,6 +701,158 @@ export class TextManager {
     }
 
     /**
+     * ✨ NEU: Berechnet den Slide-Offset für Slide-Animation
+     * Gibt X und Y Offset in Pixeln zurück
+     */
+    _getSlideOffset(textObj, canvasWidth, canvasHeight) {
+        const animation = textObj.animation;
+
+        // Wenn keine Animation oder Slide nicht aktiviert
+        if (!animation || !animation.slide || !animation.slide.enabled) {
+            return { offsetX: 0, offsetY: 0, isComplete: true };
+        }
+
+        const slide = animation.slide;
+        const state = animation._state;
+        const now = Date.now();
+
+        // Animation starten wenn noch nicht gestartet
+        if (!state.slideStartTime) {
+            state.slideStartTime = now + (slide.startDelay || 0);
+        }
+
+        // Berechne die maximale Distanz basierend auf der Richtung
+        const distancePercent = slide.distance || 100;
+        let maxOffsetX = 0;
+        let maxOffsetY = 0;
+
+        switch (slide.from) {
+            case 'left':
+                maxOffsetX = -(canvasWidth * distancePercent / 100);
+                break;
+            case 'right':
+                maxOffsetX = canvasWidth * distancePercent / 100;
+                break;
+            case 'top':
+                maxOffsetY = -(canvasHeight * distancePercent / 100);
+                break;
+            case 'bottom':
+                maxOffsetY = canvasHeight * distancePercent / 100;
+                break;
+        }
+
+        // Noch in der Start-Verzögerung?
+        if (now < state.slideStartTime) {
+            if (slide.direction === 'out') {
+                return { offsetX: 0, offsetY: 0, isComplete: false };
+            }
+            return { offsetX: maxOffsetX, offsetY: maxOffsetY, isComplete: false };
+        }
+
+        const elapsed = now - state.slideStartTime;
+        const duration = slide.duration || 1000;
+
+        // Easing-Funktion anwenden
+        const applyEasing = (t, easing) => {
+            switch (easing) {
+                case 'linear':
+                    return t;
+                case 'easeIn':
+                    return t * t;
+                case 'easeOut':
+                    return 1 - (1 - t) * (1 - t);
+                case 'ease':
+                default:
+                    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+            }
+        };
+
+        let offsetX = 0;
+        let offsetY = 0;
+        let isComplete = false;
+
+        switch (slide.direction) {
+            case 'in':
+                // Hereinfahren: von außen → zur Position
+                if (elapsed >= duration) {
+                    offsetX = 0;
+                    offsetY = 0;
+                    isComplete = true;
+                } else {
+                    const progress = elapsed / duration;
+                    const easedProgress = applyEasing(progress, slide.easing);
+                    offsetX = maxOffsetX * (1 - easedProgress);
+                    offsetY = maxOffsetY * (1 - easedProgress);
+                }
+                break;
+
+            case 'out':
+                // Herausfahren: von Position → nach außen
+                if (elapsed >= duration) {
+                    offsetX = maxOffsetX;
+                    offsetY = maxOffsetY;
+                    isComplete = true;
+                } else {
+                    const progress = elapsed / duration;
+                    const easedProgress = applyEasing(progress, slide.easing);
+                    offsetX = maxOffsetX * easedProgress;
+                    offsetY = maxOffsetY * easedProgress;
+                }
+                break;
+
+            case 'inOut':
+                // Rein und Raus: von außen → Position → nach außen
+                const totalDuration = duration * 2;
+                if (elapsed >= totalDuration) {
+                    offsetX = maxOffsetX;
+                    offsetY = maxOffsetY;
+                    isComplete = true;
+                } else if (elapsed < duration) {
+                    // Hereinfahren
+                    const progress = elapsed / duration;
+                    const easedProgress = applyEasing(progress, slide.easing);
+                    offsetX = maxOffsetX * (1 - easedProgress);
+                    offsetY = maxOffsetY * (1 - easedProgress);
+                } else {
+                    // Herausfahren
+                    const progress = (elapsed - duration) / duration;
+                    const easedProgress = applyEasing(progress, slide.easing);
+                    offsetX = maxOffsetX * easedProgress;
+                    offsetY = maxOffsetY * easedProgress;
+                }
+                break;
+        }
+
+        // Loop-Handling
+        if (isComplete && slide.loop) {
+            const loopDelay = slide.loopDelay || 1000;
+            const completionTime = state.slideStartTime + (slide.direction === 'inOut' ? duration * 2 : duration);
+            const timeSinceComplete = now - completionTime;
+
+            if (timeSinceComplete >= loopDelay) {
+                // Neustart
+                state.slideStartTime = now;
+                if (slide.direction === 'out') {
+                    return { offsetX: 0, offsetY: 0, isComplete: false };
+                }
+                return { offsetX: maxOffsetX, offsetY: maxOffsetY, isComplete: false };
+            }
+        }
+
+        return { offsetX, offsetY, isComplete };
+    }
+
+    /**
+     * ✨ NEU: Startet die Slide-Animation neu
+     */
+    restartSlide(textObj) {
+        if (!textObj || !textObj.animation) return;
+
+        const state = textObj.animation._state;
+        state.slideStartTime = null;
+    }
+
+    /**
      * Zeichnet einen einzelnen Text (mit Unterstützung für mehrzeilige Texte)
      * ✨ ERWEITERT: Unterstützt jetzt Audio-Reaktive Effekte und Typewriter-Animation
      */
@@ -719,6 +883,11 @@ export class TextManager {
         // Basis-Position berechnen
         let pixelX = textObj.relX * canvasWidth;
         let pixelY = textObj.relY * canvasHeight;
+
+        // ✨ SLIDE-ANIMATION: Position-Offset aus Slide-Effekt anwenden
+        const slideResult = this._getSlideOffset(textObj, canvasWidth, canvasHeight);
+        pixelX += slideResult.offsetX;
+        pixelY += slideResult.offsetY;
 
         // ✨ AUDIO-REAKTIV: Shake-Effekt (Erschütterung)
         if (audioReactive && audioReactive.hasEffects && audioReactive.effects.shake) {

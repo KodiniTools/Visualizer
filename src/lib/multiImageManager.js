@@ -265,6 +265,9 @@ export class MultiImageManager {
             case 'saturation':
                 // Sättigung: 30-250% basierend auf Audio-Level (verstärkt)
                 return { saturation: 30 + (normalizedLevel * 220) };
+            case 'scale':
+                // Pulsieren/Skalieren: 1.0-1.5x basierend auf Audio-Level
+                return { scale: 1.0 + (normalizedLevel * 0.5) };
             case 'glow':
                 // Glow/Shadow: 0-50px basierend auf Audio-Level (verstärkt)
                 return {
@@ -448,6 +451,20 @@ export class MultiImageManager {
                 const orbit = audioReactive.effects.orbit;
                 drawBounds.x += orbit.orbitX || 0;
                 drawBounds.y += orbit.orbitY || 0;
+            }
+
+            // ✨ AUDIO-REAKTIV: Scale-Effekt (Pulsieren)
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.scale) {
+                const scaleFactor = audioReactive.effects.scale.scale || 1.0;
+                // Skaliere vom Zentrum aus
+                const centerX = drawBounds.x + drawBounds.width / 2;
+                const centerY = drawBounds.y + drawBounds.height / 2;
+                const newWidth = drawBounds.width * scaleFactor;
+                const newHeight = drawBounds.height * scaleFactor;
+                drawBounds.x = centerX - newWidth / 2;
+                drawBounds.y = centerY - newHeight / 2;
+                drawBounds.width = newWidth;
+                drawBounds.height = newHeight;
             }
 
             // ✨ BILDKONTUR: Prüfen ob Kontur gezeichnet werden soll

@@ -31,6 +31,97 @@ Zeile 3..."
         </div>
       </div>
 
+      <!-- ✨ Typewriter-Einstellungen für neuen Text -->
+      <div class="control-group" style="margin-top: 12px;">
+        <label>Schreibmaschinen-Effekt:</label>
+        <div class="button-group">
+          <button
+            @click="newTextTypewriter.enabled = !newTextTypewriter.enabled"
+            :class="['btn-small', { active: newTextTypewriter.enabled }]"
+          >
+            {{ newTextTypewriter.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Typewriter-Einstellungen (nur wenn aktiviert) -->
+      <div v-if="newTextTypewriter.enabled" class="typewriter-settings">
+        <!-- Geschwindigkeit -->
+        <div class="control-group">
+          <label>Geschwindigkeit: {{ newTextTypewriter.speed }}ms/Buchstabe</label>
+          <input
+            type="range"
+            v-model.number="newTextTypewriter.speed"
+            min="10"
+            max="200"
+            class="slider"
+          />
+          <div class="hint-text">Niedrig = schneller, Hoch = langsamer</div>
+        </div>
+
+        <!-- Start-Verzögerung -->
+        <div class="control-group">
+          <label>Start-Verzögerung: {{ newTextTypewriter.startDelay }}ms</label>
+          <input
+            type="range"
+            v-model.number="newTextTypewriter.startDelay"
+            min="0"
+            max="3000"
+            step="100"
+            class="slider"
+          />
+        </div>
+
+        <!-- Loop -->
+        <div class="control-group">
+          <label class="effect-checkbox">
+            <input
+              type="checkbox"
+              v-model="newTextTypewriter.loop"
+            />
+            Animation wiederholen (Loop)
+          </label>
+        </div>
+
+        <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
+        <div v-if="newTextTypewriter.loop" class="control-group">
+          <label>Pause zwischen Wiederholungen: {{ newTextTypewriter.loopDelay }}ms</label>
+          <input
+            type="range"
+            v-model.number="newTextTypewriter.loopDelay"
+            min="0"
+            max="5000"
+            step="100"
+            class="slider"
+          />
+        </div>
+
+        <!-- Cursor -->
+        <div class="control-group">
+          <label class="effect-checkbox">
+            <input
+              type="checkbox"
+              v-model="newTextTypewriter.showCursor"
+            />
+            Blinkender Cursor anzeigen
+          </label>
+        </div>
+
+        <!-- Cursor-Zeichen (nur wenn Cursor aktiv) -->
+        <div v-if="newTextTypewriter.showCursor" class="control-group">
+          <label>Cursor-Zeichen:</label>
+          <select
+            v-model="newTextTypewriter.cursorChar"
+            class="select-input"
+          >
+            <option value="|">| (Strich)</option>
+            <option value="_">_ (Unterstrich)</option>
+            <option value="▌">▌ (Block)</option>
+            <option value="█">█ (Voller Block)</option>
+          </select>
+        </div>
+      </div>
+
       <div class="button-row">
         <button @click="createNewText" class="btn-primary" :disabled="!newTextContent.trim()">
           Zum Canvas hinzufügen
@@ -886,6 +977,17 @@ const newTextInput = ref(null);
 const editTextInput = ref(null); // ✨ NEU: Referenz für das Editor-Textarea
 const fontSelect = ref(null);
 
+// ✨ Typewriter-Einstellungen für neuen Text (im Eingabemodus)
+const newTextTypewriter = ref({
+  enabled: false,
+  speed: 50,
+  startDelay: 0,
+  loop: false,
+  loopDelay: 1000,
+  showCursor: true,
+  cursorChar: '|'
+});
+
 let eventListenerRegistered = false;
 
 // ✨ Normalisiere Zeilenumbrüche (Windows \r\n, Mac \r, Unix \n → alle zu \n)
@@ -955,11 +1057,11 @@ function createNewText() {
   if (!canvasManager.value || !newTextContent.value.trim()) {
     return;
   }
-  
+
   // ✨ Normalisiere Zeilenumbrüche bevor der Text erstellt wird
   const normalizedText = normalizeLineBreaks(newTextContent.value);
   const lineCount = normalizedText.split('\n').length;
-  
+
   // Erstelle den Text mit dem normalisierten Inhalt
   const newTextObj = canvasManager.value.addText(normalizedText, {
     fontSize: 48,
@@ -976,22 +1078,59 @@ function createNewText() {
     shadowOffsetX: 2,
     shadowOffsetY: 2
   });
-  
+
   // ✨ FIX: Setze den neuen Text direkt als selectedText
   if (newTextObj) {
+    // ✨ Typewriter-Einstellungen übernehmen
+    if (newTextTypewriter.value.enabled) {
+      newTextObj.animation = {
+        type: 'typewriter',
+        typewriter: {
+          enabled: true,
+          speed: newTextTypewriter.value.speed,
+          startDelay: newTextTypewriter.value.startDelay,
+          loop: newTextTypewriter.value.loop,
+          loopDelay: newTextTypewriter.value.loopDelay,
+          showCursor: newTextTypewriter.value.showCursor,
+          cursorChar: newTextTypewriter.value.cursorChar
+        },
+        _state: {
+          startTime: null,
+          isPlaying: false,
+          currentIndex: 0
+        }
+      };
+      console.log('⌨️ Text mit Typewriter-Effekt erstellt');
+    }
+
     selectedText.value = newTextObj;
   }
-  
-  // Beende den Eingabemodus
+
+  // Beende den Eingabemodus und setze Typewriter-Einstellungen zurück
   isAddingNewText.value = false;
   newTextContent.value = '';
-  
+  resetNewTextTypewriter();
+
 }
 
 // Abbrechen und Eingabemodus verlassen
 function cancelNewText() {
   isAddingNewText.value = false;
   newTextContent.value = '';
+  resetNewTextTypewriter();
+}
+
+// ✨ Typewriter-Einstellungen für neuen Text zurücksetzen
+function resetNewTextTypewriter() {
+  newTextTypewriter.value = {
+    enabled: false,
+    speed: 50,
+    startDelay: 0,
+    loop: false,
+    loopDelay: 1000,
+    showCursor: true,
+    cursorChar: '|'
+  };
 }
 
 // ✨ Auto-Wrap: Bricht langen Text automatisch in sinnvolle Zeilen um

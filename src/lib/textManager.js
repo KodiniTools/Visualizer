@@ -80,9 +80,9 @@ export class TextManager {
                 }
             },
 
-            // ✨ TEXT-ANIMATION (Typewriter, Fade, etc.)
+            // ✨ TEXT-ANIMATION (Typewriter, Fade, Scale, etc.)
             animation: {
-                type: 'none',  // 'none', 'typewriter', 'fade'
+                type: 'none',  // 'none', 'typewriter', 'fade', 'scale'
                 typewriter: {
                     enabled: false,
                     speed: 50,           // ms pro Buchstabe
@@ -92,12 +92,24 @@ export class TextManager {
                     showCursor: true,    // Blinkender Cursor
                     cursorChar: '|'      // Cursor-Zeichen
                 },
-                // ✨ NEU: Fade-Einblendung
+                // ✨ Fade-Einblendung
                 fade: {
                     enabled: false,
                     duration: 1000,      // Dauer der Einblendung (ms)
                     startDelay: 0,       // Verzögerung vor Start (ms)
                     direction: 'in',     // 'in' = einblenden, 'out' = ausblenden, 'inOut' = ein- und ausblenden
+                    loop: false,         // Animation wiederholen
+                    loopDelay: 1000,     // Pause zwischen Wiederholungen (ms)
+                    easing: 'ease'       // 'linear', 'ease', 'easeIn', 'easeOut'
+                },
+                // ✨ NEU: Scale-Animation (Eingangs-Skalierung)
+                scale: {
+                    enabled: false,
+                    duration: 1000,      // Dauer der Animation (ms)
+                    startDelay: 0,       // Verzögerung vor Start (ms)
+                    startScale: 0,       // Start-Skalierung (0 = unsichtbar, 1 = normal, 2 = doppelt)
+                    endScale: 1,         // End-Skalierung
+                    direction: 'in',     // 'in' = reinzoomen, 'out' = rauszoomen, 'inOut' = rein und raus
                     loop: false,         // Animation wiederholen
                     loopDelay: 1000,     // Pause zwischen Wiederholungen (ms)
                     easing: 'ease'       // 'linear', 'ease', 'easeIn', 'easeOut'
@@ -549,6 +561,134 @@ export class TextManager {
     }
 
     /**
+     * ✨ NEU: Berechnet den Scale-Wert für Scale-Animation
+     * Gibt einen Wert zurück (z.B. 0.5, 1.0, 2.0)
+     */
+    _getScaleValue(textObj) {
+        const animation = textObj.animation;
+
+        // Wenn keine Animation oder Scale nicht aktiviert
+        if (!animation || !animation.scale || !animation.scale.enabled) {
+            return { scale: 1, isComplete: true };
+        }
+
+        const scaleAnim = animation.scale;
+        const state = animation._state;
+        const now = Date.now();
+
+        // Animation starten wenn noch nicht gestartet
+        if (!state.scaleStartTime) {
+            state.scaleStartTime = now + (scaleAnim.startDelay || 0);
+        }
+
+        // Noch in der Start-Verzögerung?
+        if (now < state.scaleStartTime) {
+            const startScale = scaleAnim.direction === 'out' ? scaleAnim.endScale : scaleAnim.startScale;
+            return {
+                scale: startScale,
+                isComplete: false
+            };
+        }
+
+        const elapsed = now - state.scaleStartTime;
+        const duration = scaleAnim.duration || 1000;
+
+        // Easing-Funktion anwenden
+        const applyEasing = (t, easing) => {
+            switch (easing) {
+                case 'linear':
+                    return t;
+                case 'easeIn':
+                    return t * t;
+                case 'easeOut':
+                    return 1 - (1 - t) * (1 - t);
+                case 'ease':
+                default:
+                    // Ease-In-Out
+                    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+            }
+        };
+
+        const startScale = scaleAnim.startScale !== undefined ? scaleAnim.startScale : 0;
+        const endScale = scaleAnim.endScale !== undefined ? scaleAnim.endScale : 1;
+        let scale = endScale;
+        let isComplete = false;
+
+        switch (scaleAnim.direction) {
+            case 'in':
+                // Reinzoomen: startScale → endScale
+                if (elapsed >= duration) {
+                    scale = endScale;
+                    isComplete = true;
+                } else {
+                    const progress = elapsed / duration;
+                    const easedProgress = applyEasing(progress, scaleAnim.easing);
+                    scale = startScale + (endScale - startScale) * easedProgress;
+                }
+                break;
+
+            case 'out':
+                // Rauszoomen: endScale → startScale
+                if (elapsed >= duration) {
+                    scale = startScale;
+                    isComplete = true;
+                } else {
+                    const progress = elapsed / duration;
+                    const easedProgress = applyEasing(progress, scaleAnim.easing);
+                    scale = endScale - (endScale - startScale) * easedProgress;
+                }
+                break;
+
+            case 'inOut':
+                // Rein und Raus: startScale → endScale → startScale
+                const totalDuration = duration * 2;
+                if (elapsed >= totalDuration) {
+                    scale = startScale;
+                    isComplete = true;
+                } else if (elapsed < duration) {
+                    // Reinzoomen
+                    const progress = elapsed / duration;
+                    const easedProgress = applyEasing(progress, scaleAnim.easing);
+                    scale = startScale + (endScale - startScale) * easedProgress;
+                } else {
+                    // Rauszoomen
+                    const progress = (elapsed - duration) / duration;
+                    const easedProgress = applyEasing(progress, scaleAnim.easing);
+                    scale = endScale - (endScale - startScale) * easedProgress;
+                }
+                break;
+        }
+
+        // Loop-Handling
+        if (isComplete && scaleAnim.loop) {
+            const loopDelay = scaleAnim.loopDelay || 1000;
+            const completionTime = state.scaleStartTime + (scaleAnim.direction === 'inOut' ? duration * 2 : duration);
+            const timeSinceComplete = now - completionTime;
+
+            if (timeSinceComplete >= loopDelay) {
+                // Neustart
+                state.scaleStartTime = now;
+                return {
+                    scale: scaleAnim.direction === 'out' ? endScale : startScale,
+                    isComplete: false
+                };
+            }
+        }
+
+        return { scale, isComplete };
+    }
+
+    /**
+     * ✨ NEU: Startet die Scale-Animation neu
+     */
+    restartScale(textObj) {
+        if (!textObj || !textObj.animation) return;
+
+        const state = textObj.animation._state;
+        state.scaleStartTime = null;
+    }
+
+    /**
      * Zeichnet einen einzelnen Text (mit Unterstützung für mehrzeilige Texte)
      * ✨ ERWEITERT: Unterstützt jetzt Audio-Reaktive Effekte und Typewriter-Animation
      */
@@ -604,6 +744,10 @@ export class TextManager {
         if (audioReactive && audioReactive.hasEffects && audioReactive.effects.scale) {
             scale = audioReactive.effects.scale.scale;
         }
+
+        // ✨ SCALE-ANIMATION: Scale aus Animation anwenden
+        const scaleResult = this._getScaleValue(textObj);
+        scale = scale * scaleResult.scale;
 
         // Rotation + Scale anwenden
         const totalRotation = textObj.rotation || 0;

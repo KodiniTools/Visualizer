@@ -31,6 +31,115 @@ Zeile 3..."
         </div>
       </div>
 
+      <!-- ✨ Text-Stil Einstellungen -->
+      <div class="new-text-style-section">
+        <h4>Text-Stil</h4>
+
+        <!-- Schriftart -->
+        <div class="control-group">
+          <label>Schriftart:</label>
+          <select v-model="newTextStyle.fontFamily" class="select-input">
+            <option value="Arial">Arial</option>
+            <option value="Helvetica">Helvetica</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Impact">Impact</option>
+            <option value="Comic Sans MS">Comic Sans MS</option>
+            <option value="Trebuchet MS">Trebuchet MS</option>
+          </select>
+        </div>
+
+        <!-- Schriftgröße -->
+        <div class="control-group">
+          <label>Größe: {{ newTextStyle.fontSize }}px</label>
+          <input
+            type="range"
+            v-model.number="newTextStyle.fontSize"
+            min="12"
+            max="200"
+            class="slider"
+          />
+        </div>
+
+        <!-- Textfarbe -->
+        <div class="control-group">
+          <label>Textfarbe:</label>
+          <div class="color-picker-group">
+            <input
+              type="color"
+              v-model="newTextStyle.color"
+              class="color-input"
+            />
+            <input
+              type="text"
+              v-model="newTextStyle.color"
+              class="color-text-input"
+              placeholder="#ff0000"
+            />
+          </div>
+        </div>
+
+        <!-- Deckkraft -->
+        <div class="control-group">
+          <label>Deckkraft: {{ newTextStyle.opacity }}%</label>
+          <input
+            type="range"
+            v-model.number="newTextStyle.opacity"
+            min="0"
+            max="100"
+            class="slider"
+          />
+        </div>
+
+        <!-- Schriftstil -->
+        <div class="control-group">
+          <label>Stil:</label>
+          <div class="button-group">
+            <button
+              @click="newTextStyle.fontWeight = newTextStyle.fontWeight === 'bold' ? 'normal' : 'bold'"
+              :class="['btn-small', { active: newTextStyle.fontWeight === 'bold' }]"
+            >
+              <strong>B</strong>
+            </button>
+            <button
+              @click="newTextStyle.fontStyle = newTextStyle.fontStyle === 'italic' ? 'normal' : 'italic'"
+              :class="['btn-small', { active: newTextStyle.fontStyle === 'italic' }]"
+            >
+              <em>I</em>
+            </button>
+          </div>
+        </div>
+
+        <!-- Ausrichtung -->
+        <div class="control-group">
+          <label>Ausrichtung:</label>
+          <div class="button-group">
+            <button
+              @click="newTextStyle.textAlign = 'left'"
+              :class="['btn-small', { active: newTextStyle.textAlign === 'left' }]"
+            >
+              Links
+            </button>
+            <button
+              @click="newTextStyle.textAlign = 'center'"
+              :class="['btn-small', { active: newTextStyle.textAlign === 'center' }]"
+            >
+              Mitte
+            </button>
+            <button
+              @click="newTextStyle.textAlign = 'right'"
+              :class="['btn-small', { active: newTextStyle.textAlign === 'right' }]"
+            >
+              Rechts
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
       <!-- ✨ Typewriter-Einstellungen für neuen Text -->
       <div class="control-group" style="margin-top: 12px;">
         <label>Schreibmaschinen-Effekt:</label>
@@ -988,6 +1097,17 @@ const newTextTypewriter = ref({
   cursorChar: '|'
 });
 
+// ✨ Text-Stil-Einstellungen für neuen Text (im Eingabemodus)
+const newTextStyle = ref({
+  fontSize: 48,
+  fontFamily: 'Arial',
+  color: '#ff0000',
+  fontWeight: 'normal',
+  fontStyle: 'normal',
+  textAlign: 'center',
+  opacity: 100
+});
+
 let eventListenerRegistered = false;
 
 // ✨ Normalisiere Zeilenumbrüche (Windows \r\n, Mac \r, Unix \n → alle zu \n)
@@ -1062,25 +1182,33 @@ function createNewText() {
   const normalizedText = normalizeLineBreaks(newTextContent.value);
   const lineCount = normalizedText.split('\n').length;
 
-  // Erstelle den Text mit dem normalisierten Inhalt
+  // ✨ Erstelle den Text mit den benutzerdefinierten Stil-Einstellungen
   const newTextObj = canvasManager.value.addText(normalizedText, {
-    fontSize: 48,
-    fontFamily: 'Arial',
-    color: '#ff0000',
-    opacity: 100,
+    fontSize: newTextStyle.value.fontSize,
+    fontFamily: newTextStyle.value.fontFamily,
+    color: newTextStyle.value.color,
+    fontWeight: newTextStyle.value.fontWeight,
+    fontStyle: newTextStyle.value.fontStyle,
+    textAlign: newTextStyle.value.textAlign,
+    opacity: newTextStyle.value.opacity,
     letterSpacing: 0,
     lineHeightMultiplier: 120,
     strokeEnabled: false,
     strokeColor: '#000000',
     strokeWidth: 2,
     shadowColor: '#000000',
-    shadowBlur: 5,
-    shadowOffsetX: 2,
-    shadowOffsetY: 2
+    shadowBlur: 0,
+    shadowOffsetX: 0,
+    shadowOffsetY: 0
   });
 
   // ✨ FIX: Setze den neuen Text direkt als selectedText
   if (newTextObj) {
+    // ✨ Stil-Einstellungen direkt auf das Objekt setzen (für Eigenschaften die nicht über options gehen)
+    newTextObj.fontWeight = newTextStyle.value.fontWeight;
+    newTextObj.fontStyle = newTextStyle.value.fontStyle;
+    newTextObj.textAlign = newTextStyle.value.textAlign;
+
     // ✨ Typewriter-Einstellungen übernehmen
     if (newTextTypewriter.value.enabled) {
       newTextObj.animation = {
@@ -1104,12 +1232,13 @@ function createNewText() {
     }
 
     selectedText.value = newTextObj;
+    console.log('✅ Text erstellt mit Stil:', newTextStyle.value);
   }
 
-  // Beende den Eingabemodus und setze Typewriter-Einstellungen zurück
+  // Beende den Eingabemodus und setze alle Einstellungen zurück
   isAddingNewText.value = false;
   newTextContent.value = '';
-  resetNewTextTypewriter();
+  resetNewTextSettings();
 
 }
 
@@ -1117,11 +1246,12 @@ function createNewText() {
 function cancelNewText() {
   isAddingNewText.value = false;
   newTextContent.value = '';
-  resetNewTextTypewriter();
+  resetNewTextSettings();
 }
 
-// ✨ Typewriter-Einstellungen für neuen Text zurücksetzen
-function resetNewTextTypewriter() {
+// ✨ Alle Einstellungen für neuen Text zurücksetzen
+function resetNewTextSettings() {
+  // Typewriter zurücksetzen
   newTextTypewriter.value = {
     enabled: false,
     speed: 50,
@@ -1130,6 +1260,17 @@ function resetNewTextTypewriter() {
     loopDelay: 1000,
     showCursor: true,
     cursorChar: '|'
+  };
+
+  // Stil zurücksetzen
+  newTextStyle.value = {
+    fontSize: 48,
+    fontFamily: 'Arial',
+    color: '#ff0000',
+    fontWeight: 'normal',
+    fontStyle: 'normal',
+    textAlign: 'center',
+    opacity: 100
   };
 }
 
@@ -2184,6 +2325,28 @@ h4 {
 }
 
 .typewriter-settings .control-group:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== NEW TEXT STYLE SECTION ===== */
+.new-text-style-section {
+  background: rgba(110, 168, 254, 0.1);
+  border: 1px solid rgba(110, 168, 254, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.new-text-style-section h4 {
+  margin: 0 0 12px 0;
+  color: #6ea8fe;
+}
+
+.new-text-style-section .control-group {
+  margin-bottom: 10px;
+}
+
+.new-text-style-section .control-group:last-child {
   margin-bottom: 0;
 }
 </style>

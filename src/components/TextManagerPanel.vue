@@ -642,7 +642,11 @@ Zeile 3..."
             <option value="mid">Mid (Vocals/Melodie)</option>
             <option value="treble">Treble (Hi-Hats/Höhen)</option>
             <option value="volume">Volume (Gesamt)</option>
+            <option value="dynamic">✨ Dynamisch (Auto-Blend)</option>
           </select>
+          <div v-if="selectedText.audioReactive.source === 'dynamic'" class="hint-text" style="color: #6ea8fe;">
+            Kombiniert automatisch alle Frequenzen basierend auf ihrer aktuellen Energie
+          </div>
         </div>
 
         <!-- Smoothing -->

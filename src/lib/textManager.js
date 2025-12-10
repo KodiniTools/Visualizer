@@ -731,6 +731,27 @@ export class TextManager {
             case 'volume':
                 audioLevel = useSmooth ? audioData.smoothVolume : audioData.volume;
                 break;
+            case 'dynamic':
+                // ✨ Dynamischer Modus: Gewichtete Mischung aller Frequenzbänder
+                // basierend auf ihrer aktuellen Energie
+                const bass = useSmooth ? audioData.smoothBass : audioData.bass;
+                const mid = useSmooth ? audioData.smoothMid : audioData.mid;
+                const treble = useSmooth ? audioData.smoothTreble : audioData.treble;
+
+                // Gesamtenergie berechnen (mit Minimum um Division durch 0 zu vermeiden)
+                const totalEnergy = Math.max(bass + mid + treble, 1);
+
+                // Gewichte basierend auf aktueller Energie jedes Bands
+                const bassWeight = bass / totalEnergy;
+                const midWeight = mid / totalEnergy;
+                const trebleWeight = treble / totalEnergy;
+
+                // Gewichtete Mischung - die dominante Frequenz trägt am meisten bei
+                audioLevel = (bass * bassWeight) + (mid * midWeight) + (treble * trebleWeight);
+
+                // Leichte Verstärkung da gewichtete Werte tendenziell niedriger sind
+                audioLevel = Math.min(audioLevel * 1.2, 255);
+                break;
         }
 
         // Basis Audio-Level normalisiert auf 0-1

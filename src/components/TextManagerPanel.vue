@@ -31,233 +31,244 @@ Zeile 3..."
         </div>
       </div>
 
-      <!-- ✨ Text-Stil Einstellungen -->
-      <div class="new-text-style-section">
-        <h4>Text-Stil</h4>
+      <!-- ✨ Text-Stil Einstellungen (klappbar) -->
+      <details class="collapsible-section" open>
+        <summary class="section-header">
+          <span class="section-icon">🎨</span>
+          <span>Text-Stil</span>
+        </summary>
+        <div class="section-content">
+          <!-- Schriftart -->
+          <div class="control-group">
+            <label>Schriftart:</label>
+            <select
+              ref="newTextFontSelect"
+              v-model="newTextStyle.fontFamily"
+              class="select-input font-select"
+            >
+              <!-- Wird dynamisch befüllt -->
+            </select>
+          </div>
 
-        <!-- Schriftart -->
-        <div class="control-group">
-          <label>Schriftart:</label>
-          <select
-            ref="newTextFontSelect"
-            v-model="newTextStyle.fontFamily"
-            class="select-input font-select"
-          >
-            <!-- Wird dynamisch befüllt -->
-          </select>
-        </div>
-
-        <!-- Schriftgröße -->
-        <div class="control-group">
-          <label>Größe: {{ newTextStyle.fontSize }}px</label>
-          <input
-            type="range"
-            v-model.number="newTextStyle.fontSize"
-            min="12"
-            max="200"
-            class="slider"
-            :disabled="newTextStyle.autoFit"
-          />
-        </div>
-
-        <!-- Auto-Fit -->
-        <div class="control-group">
-          <label class="effect-checkbox">
-            <input
-              type="checkbox"
-              v-model="newTextStyle.autoFit"
-            />
-            📐 Automatisch an Canvas anpassen
-          </label>
-          <div v-if="newTextStyle.autoFit" class="auto-fit-settings">
-            <label>Rand-Abstand: {{ newTextStyle.autoFitPadding }}%</label>
+          <!-- Schriftgröße -->
+          <div class="control-group">
+            <label>Größe: {{ newTextStyle.fontSize }}px</label>
             <input
               type="range"
-              v-model.number="newTextStyle.autoFitPadding"
+              v-model.number="newTextStyle.fontSize"
+              min="12"
+              max="200"
+              class="slider"
+              :disabled="newTextStyle.autoFit"
+            />
+          </div>
+
+          <!-- Auto-Fit -->
+          <div class="control-group">
+            <label class="effect-checkbox">
+              <input
+                type="checkbox"
+                v-model="newTextStyle.autoFit"
+              />
+              📐 Automatisch an Canvas anpassen
+            </label>
+            <div v-if="newTextStyle.autoFit" class="auto-fit-settings">
+              <label>Rand-Abstand: {{ newTextStyle.autoFitPadding }}%</label>
+              <input
+                type="range"
+                v-model.number="newTextStyle.autoFitPadding"
+                min="0"
+                max="30"
+                class="slider"
+              />
+            </div>
+          </div>
+
+          <!-- Textfarbe -->
+          <div class="control-group">
+            <label>Textfarbe:</label>
+            <div class="color-picker-group">
+              <input
+                type="color"
+                v-model="newTextStyle.color"
+                class="color-input"
+              />
+              <input
+                type="text"
+                v-model="newTextStyle.color"
+                class="color-text-input"
+                placeholder="#ff0000"
+              />
+            </div>
+          </div>
+
+          <!-- Deckkraft -->
+          <div class="control-group">
+            <label>Deckkraft: {{ newTextStyle.opacity }}%</label>
+            <input
+              type="range"
+              v-model.number="newTextStyle.opacity"
               min="0"
-              max="30"
+              max="100"
               class="slider"
             />
           </div>
-        </div>
 
-        <!-- Textfarbe -->
-        <div class="control-group">
-          <label>Textfarbe:</label>
-          <div class="color-picker-group">
-            <input
-              type="color"
-              v-model="newTextStyle.color"
-              class="color-input"
-            />
-            <input
-              type="text"
-              v-model="newTextStyle.color"
-              class="color-text-input"
-              placeholder="#ff0000"
-            />
+          <!-- Schriftstil -->
+          <div class="control-group">
+            <label>Stil:</label>
+            <div class="button-group">
+              <button
+                @click="newTextStyle.fontWeight = newTextStyle.fontWeight === 'bold' ? 'normal' : 'bold'"
+                :class="['btn-small', { active: newTextStyle.fontWeight === 'bold' }]"
+              >
+                <strong>B</strong>
+              </button>
+              <button
+                @click="newTextStyle.fontStyle = newTextStyle.fontStyle === 'italic' ? 'normal' : 'italic'"
+                :class="['btn-small', { active: newTextStyle.fontStyle === 'italic' }]"
+              >
+                <em>I</em>
+              </button>
+            </div>
           </div>
-        </div>
 
-        <!-- Deckkraft -->
-        <div class="control-group">
-          <label>Deckkraft: {{ newTextStyle.opacity }}%</label>
-          <input
-            type="range"
-            v-model.number="newTextStyle.opacity"
-            min="0"
-            max="100"
-            class="slider"
-          />
-        </div>
-
-        <!-- Schriftstil -->
-        <div class="control-group">
-          <label>Stil:</label>
-          <div class="button-group">
-            <button
-              @click="newTextStyle.fontWeight = newTextStyle.fontWeight === 'bold' ? 'normal' : 'bold'"
-              :class="['btn-small', { active: newTextStyle.fontWeight === 'bold' }]"
-            >
-              <strong>B</strong>
-            </button>
-            <button
-              @click="newTextStyle.fontStyle = newTextStyle.fontStyle === 'italic' ? 'normal' : 'italic'"
-              :class="['btn-small', { active: newTextStyle.fontStyle === 'italic' }]"
-            >
-              <em>I</em>
-            </button>
+          <!-- Ausrichtung -->
+          <div class="control-group">
+            <label>Ausrichtung:</label>
+            <div class="button-group">
+              <button
+                @click="newTextStyle.textAlign = 'left'"
+                :class="['btn-small', { active: newTextStyle.textAlign === 'left' }]"
+              >
+                Links
+              </button>
+              <button
+                @click="newTextStyle.textAlign = 'center'"
+                :class="['btn-small', { active: newTextStyle.textAlign === 'center' }]"
+              >
+                Mitte
+              </button>
+              <button
+                @click="newTextStyle.textAlign = 'right'"
+                :class="['btn-small', { active: newTextStyle.textAlign === 'right' }]"
+              >
+                Rechts
+              </button>
+            </div>
           </div>
-        </div>
 
-        <!-- Ausrichtung -->
-        <div class="control-group">
-          <label>Ausrichtung:</label>
-          <div class="button-group">
-            <button
-              @click="newTextStyle.textAlign = 'left'"
-              :class="['btn-small', { active: newTextStyle.textAlign === 'left' }]"
-            >
-              Links
+          <!-- Einstellungen speichern/laden -->
+          <div class="settings-actions">
+            <button @click="saveCurrentSettings" class="btn-save" title="Aktuelle Einstellungen als Standard speichern">
+              💾 Als Standard speichern
             </button>
-            <button
-              @click="newTextStyle.textAlign = 'center'"
-              :class="['btn-small', { active: newTextStyle.textAlign === 'center' }]"
-            >
-              Mitte
-            </button>
-            <button
-              @click="newTextStyle.textAlign = 'right'"
-              :class="['btn-small', { active: newTextStyle.textAlign === 'right' }]"
-            >
-              Rechts
+            <button @click="clearSavedSettings" class="btn-reset-small" title="Auf Werkseinstellungen zurücksetzen">
+              🔄 Zurücksetzen
             </button>
           </div>
         </div>
+      </details>
 
-        <!-- Einstellungen speichern/laden -->
-        <div class="settings-actions">
-          <button @click="saveCurrentSettings" class="btn-save" title="Aktuelle Einstellungen als Standard speichern">
-            💾 Als Standard speichern
-          </button>
-          <button @click="clearSavedSettings" class="btn-reset-small" title="Auf Werkseinstellungen zurücksetzen">
-            🔄 Zurücksetzen
-          </button>
+      <!-- ✨ Typewriter-Einstellungen (klappbar) -->
+      <details class="collapsible-section">
+        <summary class="section-header">
+          <span class="section-icon">⌨️</span>
+          <span>Schreibmaschinen-Effekt</span>
+          <span v-if="newTextTypewriter.enabled" class="status-badge active">Aktiv</span>
+        </summary>
+        <div class="section-content">
+          <!-- Typewriter aktivieren -->
+          <div class="control-group">
+            <div class="button-group">
+              <button
+                @click="newTextTypewriter.enabled = !newTextTypewriter.enabled"
+                :class="['btn-small', 'full-width', { active: newTextTypewriter.enabled }]"
+              >
+                {{ newTextTypewriter.enabled ? '✓ Aktiviert' : 'Deaktiviert' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Typewriter-Einstellungen (nur wenn aktiviert) -->
+          <div v-if="newTextTypewriter.enabled">
+            <!-- Geschwindigkeit -->
+            <div class="control-group">
+              <label>Geschwindigkeit: {{ newTextTypewriter.speed }}ms/Buchstabe</label>
+              <input
+                type="range"
+                v-model.number="newTextTypewriter.speed"
+                min="10"
+                max="200"
+                class="slider"
+              />
+              <div class="hint-text">Niedrig = schneller, Hoch = langsamer</div>
+            </div>
+
+            <!-- Start-Verzögerung -->
+            <div class="control-group">
+              <label>Start-Verzögerung: {{ newTextTypewriter.startDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="newTextTypewriter.startDelay"
+                min="0"
+                max="3000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Loop -->
+            <div class="control-group">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="newTextTypewriter.loop"
+                />
+                Animation wiederholen (Loop)
+              </label>
+            </div>
+
+            <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
+            <div v-if="newTextTypewriter.loop" class="control-group">
+              <label>Pause zwischen Wiederholungen: {{ newTextTypewriter.loopDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="newTextTypewriter.loopDelay"
+                min="0"
+                max="5000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Cursor -->
+            <div class="control-group">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="newTextTypewriter.showCursor"
+                />
+                Blinkender Cursor anzeigen
+              </label>
+            </div>
+
+            <!-- Cursor-Zeichen (nur wenn Cursor aktiv) -->
+            <div v-if="newTextTypewriter.showCursor" class="control-group">
+              <label>Cursor-Zeichen:</label>
+              <select
+                v-model="newTextTypewriter.cursorChar"
+                class="select-input"
+              >
+                <option value="|">| (Strich)</option>
+                <option value="_">_ (Unterstrich)</option>
+                <option value="▌">▌ (Block)</option>
+                <option value="█">█ (Voller Block)</option>
+              </select>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- ✨ Typewriter-Einstellungen für neuen Text -->
-      <div class="control-group" style="margin-top: 12px;">
-        <label>Schreibmaschinen-Effekt:</label>
-        <div class="button-group">
-          <button
-            @click="newTextTypewriter.enabled = !newTextTypewriter.enabled"
-            :class="['btn-small', { active: newTextTypewriter.enabled }]"
-          >
-            {{ newTextTypewriter.enabled ? 'Aktiviert' : 'Deaktiviert' }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Typewriter-Einstellungen (nur wenn aktiviert) -->
-      <div v-if="newTextTypewriter.enabled" class="typewriter-settings">
-        <!-- Geschwindigkeit -->
-        <div class="control-group">
-          <label>Geschwindigkeit: {{ newTextTypewriter.speed }}ms/Buchstabe</label>
-          <input
-            type="range"
-            v-model.number="newTextTypewriter.speed"
-            min="10"
-            max="200"
-            class="slider"
-          />
-          <div class="hint-text">Niedrig = schneller, Hoch = langsamer</div>
-        </div>
-
-        <!-- Start-Verzögerung -->
-        <div class="control-group">
-          <label>Start-Verzögerung: {{ newTextTypewriter.startDelay }}ms</label>
-          <input
-            type="range"
-            v-model.number="newTextTypewriter.startDelay"
-            min="0"
-            max="3000"
-            step="100"
-            class="slider"
-          />
-        </div>
-
-        <!-- Loop -->
-        <div class="control-group">
-          <label class="effect-checkbox">
-            <input
-              type="checkbox"
-              v-model="newTextTypewriter.loop"
-            />
-            Animation wiederholen (Loop)
-          </label>
-        </div>
-
-        <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
-        <div v-if="newTextTypewriter.loop" class="control-group">
-          <label>Pause zwischen Wiederholungen: {{ newTextTypewriter.loopDelay }}ms</label>
-          <input
-            type="range"
-            v-model.number="newTextTypewriter.loopDelay"
-            min="0"
-            max="5000"
-            step="100"
-            class="slider"
-          />
-        </div>
-
-        <!-- Cursor -->
-        <div class="control-group">
-          <label class="effect-checkbox">
-            <input
-              type="checkbox"
-              v-model="newTextTypewriter.showCursor"
-            />
-            Blinkender Cursor anzeigen
-          </label>
-        </div>
-
-        <!-- Cursor-Zeichen (nur wenn Cursor aktiv) -->
-        <div v-if="newTextTypewriter.showCursor" class="control-group">
-          <label>Cursor-Zeichen:</label>
-          <select
-            v-model="newTextTypewriter.cursorChar"
-            class="select-input"
-          >
-            <option value="|">| (Strich)</option>
-            <option value="_">_ (Unterstrich)</option>
-            <option value="▌">▌ (Block)</option>
-            <option value="█">█ (Voller Block)</option>
-          </select>
-        </div>
-      </div>
+      </details>
 
       <div class="button-row">
         <button @click="createNewText" class="btn-primary" :disabled="!newTextContent.trim()">
@@ -286,292 +297,323 @@ Zeile 3..."
 
     <!-- Text-Einstellungen (nur wenn Text ausgewählt) -->
     <div v-if="selectedText" class="panel-section">
-      <h4>Text bearbeiten</h4>
-      
-      <!-- Text-Inhalt -->
-      <div class="control-group">
-        <label>Text:</label>
-        <textarea
-          ref="editTextInput"
-          v-model="selectedText.content"
-          @input="updateText"
-          @paste="handlePaste"
-          class="text-area"
-          placeholder="Mehrzeiliger Text wird unterstützt..."
-          rows="5"
-        ></textarea>
-        <div class="hint-text">
-          Enter für Zeilenumbrüche oder mehrzeiligen Text einfügen
-        </div>
-        <div v-if="selectedText.content.includes('\n')" class="success-hint">
-          {{ selectedText.content.split('\n').length }} Zeilen
-        </div>
-      </div>
 
-      <!-- Schriftart -->
-      <div class="control-group">
-        <label>Schriftart:</label>
-        <select 
-          ref="fontSelect"
-          v-model="selectedText.fontFamily" 
-          @change="updateText" 
-          class="select-input font-select"
-        >
-          <!-- Wird dynamisch befüllt -->
-        </select>
-      </div>
-
-      <!-- Schriftgröße -->
-      <div class="control-group">
-        <label>Größe: {{ selectedText.fontSize }}px</label>
-        <input 
-          type="range" 
-          v-model.number="selectedText.fontSize"
-          @input="updateText"
-          min="12"
-          max="200"
-          class="slider"
-        />
-      </div>
-
-      <!-- ✨ TRANSPARENZ/DECKKRAFT -->
-      <div class="control-group">
-        <label>Deckkraft: {{ selectedText.opacity }}%</label>
-        <input 
-          type="range" 
-          v-model.number="selectedText.opacity"
-          @input="updateText"
-          min="0"
-          max="100"
-          class="slider"
-        />
-      </div>
-
-      <!-- Textfarbe -->
-      <div class="control-group">
-        <label>Textfarbe:</label>
-        <div class="color-picker-group">
-          <input 
-            type="color" 
-            v-model="selectedText.color"
-            @input="updateText"
-            class="color-input"
-          />
-          <input 
-            type="text" 
-            v-model="selectedText.color"
-            @input="updateText"
-            class="color-text-input"
-            placeholder="#ffffff"
-          />
-        </div>
-      </div>
-
-      <!-- Schriftstil -->
-      <div class="control-group">
-        <label>Stil:</label>
-        <div class="button-group">
-          <button 
-            @click="toggleFontWeight"
-            :class="['btn-small', { active: selectedText.fontWeight === 'bold' }]"
-          >
-            <strong>B</strong>
-          </button>
-          <button 
-            @click="toggleFontStyle"
-            :class="['btn-small', { active: selectedText.fontStyle === 'italic' }]"
-          >
-            <em>I</em>
-          </button>
-        </div>
-      </div>
-
-      <!-- Ausrichtung -->
-      <div class="control-group">
-        <label>Ausrichtung:</label>
-        <div class="button-group">
-          <button 
-            @click="setTextAlign('left')"
-            :class="['btn-small', { active: selectedText.textAlign === 'left' }]"
-          >
-            Links
-          </button>
-          <button 
-            @click="setTextAlign('center')"
-            :class="['btn-small', { active: selectedText.textAlign === 'center' }]"
-          >
-            Mitte
-          </button>
-          <button 
-            @click="setTextAlign('right')"
-            :class="['btn-small', { active: selectedText.textAlign === 'right' }]"
-          >
-            Rechts
-          </button>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <h4>Abstände & Kontur</h4>
-
-      <!-- Buchstabenabstand -->
-      <div class="control-group">
-        <label>Buchstabenabstand: {{ selectedText.letterSpacing }}px</label>
-        <input 
-          type="range" 
-          v-model.number="selectedText.letterSpacing"
-          @input="updateText"
-          min="-20"
-          max="50"
-          class="slider"
-        />
-      </div>
-
-      <!-- Zeilenabstand -->
-      <div class="control-group">
-        <label>Zeilenabstand: {{ selectedText.lineHeightMultiplier }}%</label>
-        <input 
-          type="range" 
-          v-model.number="selectedText.lineHeightMultiplier"
-          @input="updateText"
-          min="100"
-          max="300"
-          class="slider"
-        />
-      </div>
-
-      <!-- Text-Kontur -->
-      <div class="control-group">
-        <label>Text-Kontur:</label>
-        <div class="button-group">
-          <button 
-            @click="toggleStroke"
-            :class="['btn-small', { active: selectedText.stroke.enabled }]"
-          >
-            {{ selectedText.stroke.enabled ? 'Aktiviert' : 'Deaktiviert' }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Kontur-Einstellungen (nur wenn aktiviert) -->
-      <div v-if="selectedText.stroke.enabled">
-        <!-- Konturfarbe -->
-        <div class="control-group">
-          <label>Konturfarbe:</label>
-          <div class="color-picker-group">
-            <input 
-              type="color" 
-              v-model="selectedText.stroke.color"
+      <!-- ✨ Text bearbeiten (klappbar) -->
+      <details class="collapsible-section" open>
+        <summary class="section-header">
+          <span class="section-icon">✏️</span>
+          <span>Text bearbeiten</span>
+        </summary>
+        <div class="section-content">
+          <!-- Text-Inhalt -->
+          <div class="control-group">
+            <label>Text:</label>
+            <textarea
+              ref="editTextInput"
+              v-model="selectedText.content"
               @input="updateText"
-              class="color-input"
+              @paste="handlePaste"
+              class="text-area"
+              placeholder="Mehrzeiliger Text wird unterstützt..."
+              rows="5"
+            ></textarea>
+            <div class="hint-text">
+              Enter für Zeilenumbrüche oder mehrzeiligen Text einfügen
+            </div>
+            <div v-if="selectedText.content.includes('\n')" class="success-hint">
+              {{ selectedText.content.split('\n').length }} Zeilen
+            </div>
+          </div>
+
+          <!-- Schriftart -->
+          <div class="control-group">
+            <label>Schriftart:</label>
+            <select
+              ref="fontSelect"
+              v-model="selectedText.fontFamily"
+              @change="updateText"
+              class="select-input font-select"
+            >
+              <!-- Wird dynamisch befüllt -->
+            </select>
+          </div>
+
+          <!-- Schriftgröße -->
+          <div class="control-group">
+            <label>Größe: {{ selectedText.fontSize }}px</label>
+            <input
+              type="range"
+              v-model.number="selectedText.fontSize"
+              @input="updateText"
+              min="12"
+              max="200"
+              class="slider"
             />
-            <input 
-              type="text" 
-              v-model="selectedText.stroke.color"
+          </div>
+
+          <!-- ✨ TRANSPARENZ/DECKKRAFT -->
+          <div class="control-group">
+            <label>Deckkraft: {{ selectedText.opacity }}%</label>
+            <input
+              type="range"
+              v-model.number="selectedText.opacity"
               @input="updateText"
-              class="color-text-input"
-              placeholder="#000000"
+              min="0"
+              max="100"
+              class="slider"
+            />
+          </div>
+
+          <!-- Textfarbe -->
+          <div class="control-group">
+            <label>Textfarbe:</label>
+            <div class="color-picker-group">
+              <input
+                type="color"
+                v-model="selectedText.color"
+                @input="updateText"
+                class="color-input"
+              />
+              <input
+                type="text"
+                v-model="selectedText.color"
+                @input="updateText"
+                class="color-text-input"
+                placeholder="#ffffff"
+              />
+            </div>
+          </div>
+
+          <!-- Schriftstil -->
+          <div class="control-group">
+            <label>Stil:</label>
+            <div class="button-group">
+              <button
+                @click="toggleFontWeight"
+                :class="['btn-small', { active: selectedText.fontWeight === 'bold' }]"
+              >
+                <strong>B</strong>
+              </button>
+              <button
+                @click="toggleFontStyle"
+                :class="['btn-small', { active: selectedText.fontStyle === 'italic' }]"
+              >
+                <em>I</em>
+              </button>
+            </div>
+          </div>
+
+          <!-- Ausrichtung -->
+          <div class="control-group">
+            <label>Ausrichtung:</label>
+            <div class="button-group">
+              <button
+                @click="setTextAlign('left')"
+                :class="['btn-small', { active: selectedText.textAlign === 'left' }]"
+              >
+                Links
+              </button>
+              <button
+                @click="setTextAlign('center')"
+                :class="['btn-small', { active: selectedText.textAlign === 'center' }]"
+              >
+                Mitte
+              </button>
+              <button
+                @click="setTextAlign('right')"
+                :class="['btn-small', { active: selectedText.textAlign === 'right' }]"
+              >
+                Rechts
+              </button>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- ✨ Abstände & Kontur (klappbar) -->
+      <details class="collapsible-section">
+        <summary class="section-header">
+          <span class="section-icon">↔️</span>
+          <span>Abstände & Kontur</span>
+          <span v-if="selectedText.stroke.enabled" class="status-badge active">Kontur</span>
+        </summary>
+        <div class="section-content">
+          <!-- Buchstabenabstand -->
+          <div class="control-group">
+            <label>Buchstabenabstand: {{ selectedText.letterSpacing }}px</label>
+            <input
+              type="range"
+              v-model.number="selectedText.letterSpacing"
+              @input="updateText"
+              min="-20"
+              max="50"
+              class="slider"
+            />
+          </div>
+
+          <!-- Zeilenabstand -->
+          <div class="control-group">
+            <label>Zeilenabstand: {{ selectedText.lineHeightMultiplier }}%</label>
+            <input
+              type="range"
+              v-model.number="selectedText.lineHeightMultiplier"
+              @input="updateText"
+              min="100"
+              max="300"
+              class="slider"
+            />
+          </div>
+
+          <!-- Text-Kontur -->
+          <div class="control-group">
+            <label>Text-Kontur:</label>
+            <div class="button-group">
+              <button
+                @click="toggleStroke"
+                :class="['btn-small', { active: selectedText.stroke.enabled }]"
+              >
+                {{ selectedText.stroke.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Kontur-Einstellungen (nur wenn aktiviert) -->
+          <div v-if="selectedText.stroke.enabled">
+            <!-- Konturfarbe -->
+            <div class="control-group">
+              <label>Konturfarbe:</label>
+              <div class="color-picker-group">
+                <input
+                  type="color"
+                  v-model="selectedText.stroke.color"
+                  @input="updateText"
+                  class="color-input"
+                />
+                <input
+                  type="text"
+                  v-model="selectedText.stroke.color"
+                  @input="updateText"
+                  class="color-text-input"
+                  placeholder="#000000"
+                />
+              </div>
+            </div>
+
+            <!-- Konturdicke -->
+            <div class="control-group">
+              <label>Konturdicke: {{ selectedText.stroke.width }}px</label>
+              <input
+                type="range"
+                v-model.number="selectedText.stroke.width"
+                @input="updateText"
+                min="1"
+                max="10"
+                class="slider"
+              />
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- ✨ Schatten (klappbar) -->
+      <details class="collapsible-section">
+        <summary class="section-header">
+          <span class="section-icon">🌑</span>
+          <span>Schatten</span>
+          <span v-if="selectedText.shadow.blur > 0 || selectedText.shadow.offsetX !== 0 || selectedText.shadow.offsetY !== 0" class="status-badge active">Aktiv</span>
+        </summary>
+        <div class="section-content">
+          <!-- Schattenfarbe -->
+          <div class="control-group">
+            <label>Schattenfarbe:</label>
+            <div class="color-picker-group">
+              <input
+                type="color"
+                v-model="selectedText.shadow.color"
+                @input="updateText"
+                class="color-input"
+              />
+              <input
+                type="text"
+                v-model="selectedText.shadow.color"
+                @input="updateText"
+                class="color-text-input"
+                placeholder="#000000"
+              />
+            </div>
+          </div>
+
+          <!-- Schatten-Unschärfe -->
+          <div class="control-group">
+            <label>Schatten-Unschärfe: {{ selectedText.shadow.blur }}px</label>
+            <input
+              type="range"
+              v-model.number="selectedText.shadow.blur"
+              @input="updateText"
+              min="0"
+              max="50"
+              class="slider"
+            />
+          </div>
+
+          <!-- Schatten X-Offset -->
+          <div class="control-group">
+            <label>Schatten X-Offset: {{ selectedText.shadow.offsetX }}px</label>
+            <input
+              type="range"
+              v-model.number="selectedText.shadow.offsetX"
+              @input="updateText"
+              min="-50"
+              max="50"
+              class="slider"
+            />
+          </div>
+
+          <!-- Schatten Y-Offset -->
+          <div class="control-group">
+            <label>Schatten Y-Offset: {{ selectedText.shadow.offsetY }}px</label>
+            <input
+              type="range"
+              v-model.number="selectedText.shadow.offsetY"
+              @input="updateText"
+              min="-50"
+              max="50"
+              class="slider"
             />
           </div>
         </div>
+      </details>
 
-        <!-- Konturdicke -->
-        <div class="control-group">
-          <label>Konturdicke: {{ selectedText.stroke.width }}px</label>
-          <input 
-            type="range" 
-            v-model.number="selectedText.stroke.width"
-            @input="updateText"
-            min="1"
-            max="10"
-            class="slider"
-          />
+      <!-- ✨ Rotation (klappbar) -->
+      <details class="collapsible-section">
+        <summary class="section-header">
+          <span class="section-icon">🔄</span>
+          <span>Rotation</span>
+          <span v-if="selectedText.rotation !== 0" class="status-badge">{{ selectedText.rotation }}°</span>
+        </summary>
+        <div class="section-content">
+          <div class="control-group">
+            <label>Rotation: {{ selectedText.rotation }}°</label>
+            <input
+              type="range"
+              v-model.number="selectedText.rotation"
+              @input="updateText"
+              min="-180"
+              max="180"
+              class="slider"
+            />
+          </div>
         </div>
-      </div>
+      </details>
 
-      <div class="divider"></div>
-
-      <h4>Schatten</h4>
-
-      <!-- Schattenfarbe -->
-      <div class="control-group">
-        <label>Schattenfarbe:</label>
-        <div class="color-picker-group">
-          <input 
-            type="color" 
-            v-model="selectedText.shadow.color"
-            @input="updateText"
-            class="color-input"
-          />
-          <input 
-            type="text" 
-            v-model="selectedText.shadow.color"
-            @input="updateText"
-            class="color-text-input"
-            placeholder="#000000"
-          />
-        </div>
-      </div>
-
-      <!-- Schatten-Unschärfe -->
-      <div class="control-group">
-        <label>Schatten-Unschärfe: {{ selectedText.shadow.blur }}px</label>
-        <input 
-          type="range" 
-          v-model.number="selectedText.shadow.blur"
-          @input="updateText"
-          min="0"
-          max="50"
-          class="slider"
-        />
-      </div>
-
-      <!-- Schatten X-Offset -->
-      <div class="control-group">
-        <label>Schatten X-Offset: {{ selectedText.shadow.offsetX }}px</label>
-        <input 
-          type="range" 
-          v-model.number="selectedText.shadow.offsetX"
-          @input="updateText"
-          min="-50"
-          max="50"
-          class="slider"
-        />
-      </div>
-
-      <!-- Schatten Y-Offset -->
-      <div class="control-group">
-        <label>Schatten Y-Offset: {{ selectedText.shadow.offsetY }}px</label>
-        <input 
-          type="range" 
-          v-model.number="selectedText.shadow.offsetY"
-          @input="updateText"
-          min="-50"
-          max="50"
-          class="slider"
-        />
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- Rotation -->
-      <div class="control-group">
-        <label>Rotation: {{ selectedText.rotation }}°</label>
-        <input
-          type="range"
-          v-model.number="selectedText.rotation"
-          @input="updateText"
-          min="-180"
-          max="180"
-          class="slider"
-        />
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- ✨ AUDIO-REAKTIVE EFFEKTE -->
-      <h4>Audio-Reaktiv</h4>
+      <!-- ✨ AUDIO-REAKTIVE EFFEKTE (klappbar) -->
+      <details class="collapsible-section">
+        <summary class="section-header">
+          <span class="section-icon">🎵</span>
+          <span>Audio-Reaktiv</span>
+          <span v-if="selectedText.audioReactive?.enabled" class="status-badge active">Aktiv</span>
+        </summary>
+        <div class="section-content">
 
       <!-- Aktivieren/Deaktivieren -->
       <div class="control-group">
@@ -973,122 +1015,126 @@ Zeile 3..."
         <div class="hint-text" style="margin-top: 10px;">
           Tipp: Aktiviere mehrere Effekte gleichzeitig für komplexe Animationen!
         </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- ✨ TEXT-ANIMATION (Typewriter) -->
-      <h4>Text-Animation</h4>
-
-      <!-- Typewriter aktivieren -->
-      <div class="control-group">
-        <label>Schreibmaschinen-Effekt:</label>
-        <div class="button-group">
-          <button
-            @click="toggleTypewriter"
-            :class="['btn-small', { active: selectedText.animation?.typewriter?.enabled }]"
-          >
-            {{ selectedText.animation?.typewriter?.enabled ? 'Aktiviert' : 'Deaktiviert' }}
-          </button>
-          <button
-            v-if="selectedText.animation?.typewriter?.enabled"
-            @click="restartTypewriter"
-            class="btn-small"
-            title="Animation neu starten"
-          >
-            🔄 Neustart
-          </button>
         </div>
-      </div>
+      </details>
 
-      <!-- Typewriter-Einstellungen (nur wenn aktiviert) -->
-      <div v-if="selectedText.animation?.typewriter?.enabled" class="typewriter-settings">
-        <!-- Geschwindigkeit -->
-        <div class="control-group">
-          <label>Geschwindigkeit: {{ selectedText.animation.typewriter.speed }}ms/Buchstabe</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.typewriter.speed"
-            @input="updateText"
-            min="10"
-            max="200"
-            class="slider"
-          />
-          <div class="hint-text">Niedrig = schneller, Hoch = langsamer</div>
+      <!-- ✨ TEXT-ANIMATION (klappbar) -->
+      <details class="collapsible-section">
+        <summary class="section-header">
+          <span class="section-icon">⌨️</span>
+          <span>Text-Animation</span>
+          <span v-if="selectedText.animation?.typewriter?.enabled" class="status-badge active">Typewriter</span>
+        </summary>
+        <div class="section-content">
+          <!-- Typewriter aktivieren -->
+          <div class="control-group">
+            <label>Schreibmaschinen-Effekt:</label>
+            <div class="button-group">
+              <button
+                @click="toggleTypewriter"
+                :class="['btn-small', { active: selectedText.animation?.typewriter?.enabled }]"
+              >
+                {{ selectedText.animation?.typewriter?.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+              </button>
+              <button
+                v-if="selectedText.animation?.typewriter?.enabled"
+                @click="restartTypewriter"
+                class="btn-small"
+                title="Animation neu starten"
+              >
+                🔄 Neustart
+              </button>
+            </div>
+          </div>
+
+          <!-- Typewriter-Einstellungen (nur wenn aktiviert) -->
+          <div v-if="selectedText.animation?.typewriter?.enabled" class="typewriter-settings">
+            <!-- Geschwindigkeit -->
+            <div class="control-group">
+              <label>Geschwindigkeit: {{ selectedText.animation.typewriter.speed }}ms/Buchstabe</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.typewriter.speed"
+                @input="updateText"
+                min="10"
+                max="200"
+                class="slider"
+              />
+              <div class="hint-text">Niedrig = schneller, Hoch = langsamer</div>
+            </div>
+
+            <!-- Start-Verzögerung -->
+            <div class="control-group">
+              <label>Start-Verzögerung: {{ selectedText.animation.typewriter.startDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.typewriter.startDelay"
+                @input="updateText"
+                min="0"
+                max="3000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Loop -->
+            <div class="control-group">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.animation.typewriter.loop"
+                  @change="updateText"
+                />
+                Animation wiederholen (Loop)
+              </label>
+            </div>
+
+            <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
+            <div v-if="selectedText.animation.typewriter.loop" class="control-group">
+              <label>Pause zwischen Wiederholungen: {{ selectedText.animation.typewriter.loopDelay }}ms</label>
+              <input
+                type="range"
+                v-model.number="selectedText.animation.typewriter.loopDelay"
+                @input="updateText"
+                min="0"
+                max="5000"
+                step="100"
+                class="slider"
+              />
+            </div>
+
+            <!-- Cursor -->
+            <div class="control-group">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.animation.typewriter.showCursor"
+                  @change="updateText"
+                />
+                Blinkender Cursor anzeigen
+              </label>
+            </div>
+
+            <!-- Cursor-Zeichen (nur wenn Cursor aktiv) -->
+            <div v-if="selectedText.animation.typewriter.showCursor" class="control-group">
+              <label>Cursor-Zeichen:</label>
+              <select
+                v-model="selectedText.animation.typewriter.cursorChar"
+                @change="updateText"
+                class="select-input"
+              >
+                <option value="|">| (Strich)</option>
+                <option value="_">_ (Unterstrich)</option>
+                <option value="▌">▌ (Block)</option>
+                <option value="█">█ (Voller Block)</option>
+              </select>
+            </div>
+          </div>
         </div>
-
-        <!-- Start-Verzögerung -->
-        <div class="control-group">
-          <label>Start-Verzögerung: {{ selectedText.animation.typewriter.startDelay }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.typewriter.startDelay"
-            @input="updateText"
-            min="0"
-            max="3000"
-            step="100"
-            class="slider"
-          />
-        </div>
-
-        <!-- Loop -->
-        <div class="control-group">
-          <label class="effect-checkbox">
-            <input
-              type="checkbox"
-              v-model="selectedText.animation.typewriter.loop"
-              @change="updateText"
-            />
-            Animation wiederholen (Loop)
-          </label>
-        </div>
-
-        <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
-        <div v-if="selectedText.animation.typewriter.loop" class="control-group">
-          <label>Pause zwischen Wiederholungen: {{ selectedText.animation.typewriter.loopDelay }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.typewriter.loopDelay"
-            @input="updateText"
-            min="0"
-            max="5000"
-            step="100"
-            class="slider"
-          />
-        </div>
-
-        <!-- Cursor -->
-        <div class="control-group">
-          <label class="effect-checkbox">
-            <input
-              type="checkbox"
-              v-model="selectedText.animation.typewriter.showCursor"
-              @change="updateText"
-            />
-            Blinkender Cursor anzeigen
-          </label>
-        </div>
-
-        <!-- Cursor-Zeichen (nur wenn Cursor aktiv) -->
-        <div v-if="selectedText.animation.typewriter.showCursor" class="control-group">
-          <label>Cursor-Zeichen:</label>
-          <select
-            v-model="selectedText.animation.typewriter.cursorChar"
-            @change="updateText"
-            class="select-input"
-          >
-            <option value="|">| (Strich)</option>
-            <option value="_">_ (Unterstrich)</option>
-            <option value="▌">▌ (Block)</option>
-            <option value="█">█ (Voller Block)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="divider"></div>
+      </details>
 
       <!-- Löschen Button -->
-      <button @click="deleteSelectedText" class="btn-danger full-width">
+      <button @click="deleteSelectedText" class="btn-danger full-width" style="margin-top: 16px;">
         Text löschen
       </button>
     </div>
@@ -2662,5 +2708,97 @@ h4 {
 .slider:disabled::-webkit-slider-thumb {
   background: #666;
   cursor: not-allowed;
+}
+
+/* ===== COLLAPSIBLE SECTIONS ===== */
+.collapsible-section {
+  background-color: #252525;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.collapsible-section:hover {
+  border-color: #4a4a4a;
+}
+
+.collapsible-section[open] {
+  border-color: #4a4a4a;
+}
+
+.collapsible-section summary {
+  list-style: none;
+}
+
+.collapsible-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2a2a2a 0%, #252525 100%);
+  font-size: 12px;
+  font-weight: 600;
+  color: #e0e0e0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.section-header:hover {
+  background: linear-gradient(135deg, #333 0%, #2a2a2a 100%);
+  color: #fff;
+}
+
+.collapsible-section[open] .section-header {
+  border-bottom: 1px solid #3a3a3a;
+  background: linear-gradient(135deg, #333 0%, #2d2d2d 100%);
+}
+
+.section-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.section-header::before {
+  content: '▶';
+  font-size: 8px;
+  color: #6ea8fe;
+  transition: transform 0.2s ease;
+  margin-right: 4px;
+}
+
+.collapsible-section[open] .section-header::before {
+  transform: rotate(90deg);
+}
+
+.section-content {
+  padding: 12px;
+  background-color: #1e1e1e;
+}
+
+.status-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 600;
+  border-radius: 10px;
+  background-color: #3a3a3a;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.status-badge.active {
+  background: linear-gradient(135deg, #2a5a2a 0%, #3a6a3a 100%);
+  color: #8fdf8f;
+  border: 1px solid #4a7a4a;
 }
 </style>

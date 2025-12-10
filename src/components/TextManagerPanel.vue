@@ -132,6 +132,16 @@ Zeile 3..."
             </button>
           </div>
         </div>
+
+        <!-- Einstellungen speichern/laden -->
+        <div class="settings-actions">
+          <button @click="saveCurrentSettings" class="btn-save" title="Aktuelle Einstellungen als Standard speichern">
+            💾 Als Standard speichern
+          </button>
+          <button @click="clearSavedSettings" class="btn-reset-small" title="Auf Werkseinstellungen zurücksetzen">
+            🔄 Zurücksetzen
+          </button>
+        </div>
       </div>
 
       <div class="divider"></div>
@@ -1105,6 +1115,86 @@ const newTextStyle = ref({
   opacity: 100
 });
 
+// ✨ LocalStorage Key für gespeicherte Einstellungen
+const SAVED_SETTINGS_KEY = 'visualizer_text_settings';
+
+// ✨ Lädt gespeicherte Einstellungen aus localStorage
+function loadSavedSettings() {
+  try {
+    const saved = localStorage.getItem(SAVED_SETTINGS_KEY);
+    if (saved) {
+      const settings = JSON.parse(saved);
+
+      // Stil-Einstellungen laden
+      if (settings.style) {
+        newTextStyle.value = { ...newTextStyle.value, ...settings.style };
+      }
+
+      // Typewriter-Einstellungen laden
+      if (settings.typewriter) {
+        newTextTypewriter.value = { ...newTextTypewriter.value, ...settings.typewriter };
+      }
+
+      console.log('✅ Gespeicherte Text-Einstellungen geladen');
+      return true;
+    }
+  } catch (e) {
+    console.warn('⚠️ Fehler beim Laden der Einstellungen:', e);
+  }
+  return false;
+}
+
+// ✨ Speichert aktuelle Einstellungen in localStorage
+function saveCurrentSettings() {
+  try {
+    const settings = {
+      style: {
+        fontSize: newTextStyle.value.fontSize,
+        fontFamily: newTextStyle.value.fontFamily,
+        color: newTextStyle.value.color,
+        fontWeight: newTextStyle.value.fontWeight,
+        fontStyle: newTextStyle.value.fontStyle,
+        textAlign: newTextStyle.value.textAlign,
+        opacity: newTextStyle.value.opacity
+      },
+      typewriter: {
+        enabled: newTextTypewriter.value.enabled,
+        speed: newTextTypewriter.value.speed,
+        startDelay: newTextTypewriter.value.startDelay,
+        loop: newTextTypewriter.value.loop,
+        loopDelay: newTextTypewriter.value.loopDelay,
+        showCursor: newTextTypewriter.value.showCursor,
+        cursorChar: newTextTypewriter.value.cursorChar
+      }
+    };
+
+    localStorage.setItem(SAVED_SETTINGS_KEY, JSON.stringify(settings));
+    console.log('💾 Text-Einstellungen gespeichert');
+    return true;
+  } catch (e) {
+    console.warn('⚠️ Fehler beim Speichern der Einstellungen:', e);
+    return false;
+  }
+}
+
+// ✨ Löscht gespeicherte Einstellungen und setzt auf Standard zurück
+function clearSavedSettings() {
+  try {
+    localStorage.removeItem(SAVED_SETTINGS_KEY);
+    resetNewTextSettings();
+    console.log('🗑️ Gespeicherte Einstellungen gelöscht');
+    return true;
+  } catch (e) {
+    console.warn('⚠️ Fehler beim Löschen der Einstellungen:', e);
+    return false;
+  }
+}
+
+// ✨ Prüft ob gespeicherte Einstellungen existieren
+function hasSavedSettings() {
+  return localStorage.getItem(SAVED_SETTINGS_KEY) !== null;
+}
+
 let eventListenerRegistered = false;
 
 // ✨ Normalisiere Zeilenumbrüche (Windows \r\n, Mac \r, Unix \n → alle zu \n)
@@ -1160,6 +1250,9 @@ function handlePaste(event) {
 function startAddingText() {
   isAddingNewText.value = true;
   newTextContent.value = '';
+
+  // ✨ Gespeicherte Einstellungen laden (falls vorhanden)
+  loadSavedSettings();
 
   nextTick(() => {
     if (newTextInput.value) {
@@ -2403,5 +2496,49 @@ h4 {
 
 .new-text-style-section .control-group:last-child {
   margin-bottom: 0;
+}
+
+/* ===== SETTINGS ACTIONS ===== */
+.settings-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(110, 168, 254, 0.2);
+}
+
+.btn-save {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 11px;
+  background: linear-gradient(135deg, #2a4a2a 0%, #3a5a3a 100%);
+  border: 1px solid #4a7a4a;
+  border-radius: 6px;
+  color: #aaffaa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-save:hover {
+  background: linear-gradient(135deg, #3a5a3a 0%, #4a6a4a 100%);
+  border-color: #6a9a6a;
+  color: #ccffcc;
+}
+
+.btn-reset-small {
+  padding: 8px 12px;
+  font-size: 11px;
+  background: linear-gradient(135deg, #3a3a3a 0%, #4a4a4a 100%);
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: #ccc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-reset-small:hover {
+  background: linear-gradient(135deg, #4a4a4a 0%, #5a5a5a 100%);
+  border-color: #777;
+  color: #fff;
 }
 </style>

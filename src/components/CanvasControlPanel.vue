@@ -261,9 +261,9 @@ import { ref, inject, computed, onMounted, watch } from 'vue';
 import BackgroundTilesPanel from './BackgroundTilesPanel.vue';
 
 const canvasManager = inject('canvasManager');
-const backgroundColor = ref('#000000'); // Hex-Farbe ohne Alpha
+const backgroundColor = ref('#ffffff'); // Hex-Farbe ohne Alpha (Standard: Weiß)
 const backgroundOpacity = ref(1.0); // Deckkraft State (0.0 bis 1.0)
-const colorDisplay = ref('rgba(0, 0, 0, 1)'); // Angezeigter Farbwert im Textfeld
+const colorDisplay = ref('rgba(255, 255, 255, 1)'); // Angezeigter Farbwert im Textfeld
 const showResetConfirm = ref(false);
 
 // ✨ Panel Ein-/Ausklappen
@@ -544,8 +544,8 @@ function resetBackground() {
   saveCanvasState();
 
   console.log('🔄 Setze Hintergrund zurück');
-  canvasManager.value.setBackground('#000000');
-  backgroundColor.value = '#000000';
+  canvasManager.value.setBackground('#ffffff');
+  backgroundColor.value = '#ffffff';
   backgroundOpacity.value = 1.0;
 
   // Workspace-Hintergrund auch zurücksetzen
@@ -567,7 +567,7 @@ function confirmReset() {
   
   console.log('🗑️ Setze Canvas komplett zurück');
   canvasManager.value.reset();
-  backgroundColor.value = '#000000';
+  backgroundColor.value = '#ffffff';
   backgroundOpacity.value = 1.0;
   updateColorDisplay();
   showResetConfirm.value = false;

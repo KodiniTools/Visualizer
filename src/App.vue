@@ -756,6 +756,8 @@ function draw() {
     if (canvasManagerInstance.value) {
       canvasManagerInstance.value.drawInteractiveElements(ctx);
       canvasManagerInstance.value.drawWorkspaceOutline(ctx);
+      // ✅ FIX: Text-Auswahl-Rechteck zeichnen (für Bereichsauswahl beim Text-Hinzufügen)
+      canvasManagerInstance.value.drawTextSelectionRect(ctx);
       if (gridManagerInstance.value) {
         gridManagerInstance.value.drawGrid(ctx);
       }

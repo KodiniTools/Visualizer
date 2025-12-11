@@ -205,11 +205,11 @@
 
       <!-- ✨ NEU: Presets speichern/laden -->
       <div class="panel-section">
-        <h4>💾 Einstellungen speichern</h4>
+        <h4>🎨 Canvas-Hintergrund Presets</h4>
 
         <div class="control-group">
           <button @click="saveCurrentAsPreset" class="btn-primary full-width">
-            Als Preset speichern
+            Hintergrund als Preset speichern
           </button>
         </div>
 
@@ -387,51 +387,58 @@ function saveCurrentAsPreset() {
 
   savedPresets.value.push(newPreset);
   persistPresets();
-  console.log('✅ Preset gespeichert:', newPreset.name);
+  console.log('✅ Canvas-Preset gespeichert:', newPreset);
 }
 
 // Preset laden
 function loadPreset(preset) {
-  // Grundfarbe
-  backgroundColor.value = preset.backgroundColor;
-  backgroundOpacity.value = preset.backgroundOpacity;
+  console.log('📥 Lade Canvas-Preset:', preset);
 
-  // Gradient
-  gradientEnabled.value = preset.gradientEnabled || false;
-  gradientColor2.value = preset.gradientColor2 || '#0066ff';
-  gradientType.value = preset.gradientType || 'radial';
-  gradientAngle.value = preset.gradientAngle || 45;
+  try {
+    // Grundfarbe
+    backgroundColor.value = preset.backgroundColor;
+    backgroundOpacity.value = preset.backgroundOpacity;
+    console.log('  → Farbe:', preset.backgroundColor, 'Deckkraft:', preset.backgroundOpacity);
 
-  // Audio-reaktiv
-  bgAudioEnabled.value = preset.bgAudioEnabled || false;
-  bgAudioSource.value = preset.bgAudioSource || 'bass';
-  bgAudioSmoothing.value = preset.bgAudioSmoothing || 50;
+    // Gradient
+    gradientEnabled.value = preset.gradientEnabled || false;
+    gradientColor2.value = preset.gradientColor2 || '#0066ff';
+    gradientType.value = preset.gradientType || 'radial';
+    gradientAngle.value = preset.gradientAngle || 45;
 
-  if (preset.bgEffects) {
-    bgEffectHue.value = preset.bgEffects.hue?.enabled || false;
-    bgEffectHueIntensity.value = preset.bgEffects.hue?.intensity || 80;
-    bgEffectBrightness.value = preset.bgEffects.brightness?.enabled || false;
-    bgEffectBrightnessIntensity.value = preset.bgEffects.brightness?.intensity || 80;
-    bgEffectSaturation.value = preset.bgEffects.saturation?.enabled || false;
-    bgEffectSaturationIntensity.value = preset.bgEffects.saturation?.intensity || 80;
-    bgEffectGlow.value = preset.bgEffects.glow?.enabled || false;
-    bgEffectGlowIntensity.value = preset.bgEffects.glow?.intensity || 80;
-    bgEffectGradientPulse.value = preset.bgEffects.gradientPulse?.enabled || false;
-    bgEffectGradientPulseIntensity.value = preset.bgEffects.gradientPulse?.intensity || 80;
-    bgEffectGradientRotation.value = preset.bgEffects.gradientRotation?.enabled || false;
-    bgEffectGradientRotationIntensity.value = preset.bgEffects.gradientRotation?.intensity || 80;
+    // Audio-reaktiv
+    bgAudioEnabled.value = preset.bgAudioEnabled || false;
+    bgAudioSource.value = preset.bgAudioSource || 'bass';
+    bgAudioSmoothing.value = preset.bgAudioSmoothing || 50;
+
+    if (preset.bgEffects) {
+      bgEffectHue.value = preset.bgEffects.hue?.enabled || false;
+      bgEffectHueIntensity.value = preset.bgEffects.hue?.intensity || 80;
+      bgEffectBrightness.value = preset.bgEffects.brightness?.enabled || false;
+      bgEffectBrightnessIntensity.value = preset.bgEffects.brightness?.intensity || 80;
+      bgEffectSaturation.value = preset.bgEffects.saturation?.enabled || false;
+      bgEffectSaturationIntensity.value = preset.bgEffects.saturation?.intensity || 80;
+      bgEffectGlow.value = preset.bgEffects.glow?.enabled || false;
+      bgEffectGlowIntensity.value = preset.bgEffects.glow?.intensity || 80;
+      bgEffectGradientPulse.value = preset.bgEffects.gradientPulse?.enabled || false;
+      bgEffectGradientPulseIntensity.value = preset.bgEffects.gradientPulse?.intensity || 80;
+      bgEffectGradientRotation.value = preset.bgEffects.gradientRotation?.enabled || false;
+      bgEffectGradientRotationIntensity.value = preset.bgEffects.gradientRotation?.intensity || 80;
+    }
+
+    // Canvas aktualisieren
+    updateFromColorPicker();
+    if (gradientEnabled.value) {
+      updateGradientSettings();
+    }
+    if (bgAudioEnabled.value) {
+      updateBgAudioReactive();
+    }
+
+    console.log('✅ Canvas-Preset erfolgreich geladen:', preset.name);
+  } catch (error) {
+    console.error('❌ Fehler beim Laden des Canvas-Presets:', error);
   }
-
-  // Canvas aktualisieren
-  updateFromColorPicker();
-  if (gradientEnabled.value) {
-    updateGradientSettings();
-  }
-  if (bgAudioEnabled.value) {
-    updateBgAudioReactive();
-  }
-
-  console.log('✅ Preset geladen:', preset.name);
 }
 
 // Preset löschen

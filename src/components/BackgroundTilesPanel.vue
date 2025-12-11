@@ -451,6 +451,33 @@
         </button>
       </div>
 
+      <!-- ✨ NEU: Kachel-Presets -->
+      <div class="control-group presets-section">
+        <label>💾 Kachel-Presets:</label>
+        <button @click="saveTilePreset" class="btn-save-preset">
+          Aktuelle Einstellungen speichern
+        </button>
+
+        <div v-if="tilePresets.length > 0" class="presets-list">
+          <div
+            v-for="preset in tilePresets"
+            :key="preset.id"
+            class="preset-item"
+          >
+            <span class="preset-name">{{ preset.name }}</span>
+            <div class="preset-actions">
+              <button @click="loadTilePreset(preset)" class="btn-small btn-load" title="Laden">
+                📥
+              </button>
+              <button @click="deleteTilePreset(preset.id)" class="btn-small btn-delete" title="Löschen">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+        <div v-else class="hint-text">Keine Kachel-Presets gespeichert</div>
+      </div>
+
       <!-- Alle Kacheln zurücksetzen -->
       <div class="control-group reset-all">
         <button class="btn-reset-all" @click="resetAllTiles">
@@ -462,13 +489,103 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue';
+import { ref, computed, inject, onMounted } from 'vue';
 import { useBackgroundTilesStore } from '../stores/backgroundTilesStore';
 
 const tilesStore = useBackgroundTilesStore();
 const canvasManager = inject('canvasManager');
 
 const fileInput = ref(null);
+
+// ✨ NEU: Kachel-Presets
+const TILE_PRESETS_KEY = 'visualizer-tile-presets';
+const tilePresets = ref([]);
+
+// Presets aus localStorage laden
+function loadTilePresets() {
+  try {
+    const stored = localStorage.getItem(TILE_PRESETS_KEY);
+    if (stored) {
+      tilePresets.value = JSON.parse(stored);
+    }
+  } catch (e) {
+    console.warn('Fehler beim Laden der Kachel-Presets:', e);
+  }
+}
+
+// Presets in localStorage speichern
+function persistTilePresets() {
+  try {
+    localStorage.setItem(TILE_PRESETS_KEY, JSON.stringify(tilePresets.value));
+  } catch (e) {
+    console.warn('Fehler beim Speichern der Kachel-Presets:', e);
+  }
+}
+
+// Aktuellen Zustand als Preset speichern
+function saveTilePreset() {
+  const presetNumber = tilePresets.value.length + 1;
+  const newPreset = {
+    id: Date.now(),
+    name: `Kachel-Preset ${presetNumber}`,
+    tileCount: tilesStore.tileCount,
+    tileGap: tilesStore.tileGap,
+    tiles: tilesStore.tiles.map(tile => ({
+      backgroundColor: tile.backgroundColor,
+      backgroundOpacity: tile.backgroundOpacity,
+      // Keine Bilder speichern - nur Farben und Einstellungen
+      audioReactive: tile.audioReactive ? { ...tile.audioReactive } : null
+    }))
+  };
+
+  tilePresets.value.push(newPreset);
+  persistTilePresets();
+  console.log('✅ Kachel-Preset gespeichert:', newPreset.name);
+}
+
+// Preset laden
+function loadTilePreset(preset) {
+  // Kachelanzahl setzen
+  tilesStore.setTileCount(preset.tileCount);
+
+  // Abstand setzen
+  tilesStore.setTileGap(preset.tileGap);
+
+  // Kachel-Einstellungen übernehmen
+  if (preset.tiles) {
+    preset.tiles.forEach((presetTile, index) => {
+      if (tilesStore.tiles[index]) {
+        tilesStore.updateTileSettings(index, {
+          backgroundColor: presetTile.backgroundColor,
+          backgroundOpacity: presetTile.backgroundOpacity
+        });
+        // Audio-reaktive Einstellungen
+        if (presetTile.audioReactive) {
+          tilesStore.tiles[index].audioReactive = { ...presetTile.audioReactive };
+        }
+      }
+    });
+  }
+
+  // Canvas aktualisieren
+  if (canvasManager.value) {
+    canvasManager.value.redrawCallback();
+  }
+
+  console.log('✅ Kachel-Preset geladen:', preset.name);
+}
+
+// Preset löschen
+function deleteTilePreset(presetId) {
+  tilePresets.value = tilePresets.value.filter(p => p.id !== presetId);
+  persistTilePresets();
+  console.log('🗑️ Kachel-Preset gelöscht');
+}
+
+// Beim Mounting Presets laden
+onMounted(() => {
+  loadTilePresets();
+});
 
 // Grid-Style für Vorschau basierend auf Kachel-Layout
 const gridStyle = computed(() => {
@@ -1182,5 +1299,103 @@ function setEffectIntensity(effectName, value) {
   color: #94a3b8;
   text-align: right;
   font-family: monospace;
+}
+
+/* ✨ Preset Styles */
+.presets-section {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(30, 30, 30, 0.6);
+  border: 1px solid #444;
+  border-radius: 8px;
+}
+
+.presets-section > label {
+  display: block;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.btn-save-preset {
+  width: 100%;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #6ea8fe 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-save-preset:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(110, 168, 254, 0.3);
+}
+
+.presets-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preset-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: rgba(40, 40, 40, 0.8);
+  border: 1px solid #555;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.preset-item:hover {
+  border-color: #6ea8fe;
+}
+
+.preset-name {
+  font-size: 11px;
+  color: #e0e0e0;
+}
+
+.preset-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-small {
+  padding: 3px 6px;
+  font-size: 12px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-load {
+  background: rgba(110, 168, 254, 0.2);
+}
+
+.btn-load:hover {
+  background: rgba(110, 168, 254, 0.4);
+}
+
+.btn-delete {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.4);
+}
+
+.hint-text {
+  font-size: 10px;
+  color: #666;
+  text-align: center;
+  margin-top: 8px;
 }
 </style>

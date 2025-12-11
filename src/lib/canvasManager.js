@@ -1409,12 +1409,12 @@ export class CanvasManager {
                 this.onTextSelectionComplete(bounds);
             }
 
-            // Modus beenden
+            // Modus beenden - textSelectionRect bleibt für Visualisierung
             this._stopDragListeners();
             this.currentAction = null;
-
-            // NICHT cancelTextSelectionMode aufrufen - das macht das Panel
-            // wenn der Benutzer den Text erstellt hat
+            this.textSelectionMode = false; // ✅ FIX: Modus beenden damit normale Operationen wieder funktionieren
+            this.canvas.style.cursor = 'default';
+            this.redrawCallback();
             return;
         }
 
@@ -1448,9 +1448,12 @@ export class CanvasManager {
                 this.onTextSelectionComplete(bounds);
             }
 
-            // Modus beenden
+            // Modus beenden - textSelectionRect bleibt für Visualisierung
             this._stopDragListeners();
             this.currentAction = null;
+            this.textSelectionMode = false; // ✅ FIX: Modus beenden damit normale Operationen wieder funktionieren
+            this.canvas.style.cursor = 'default';
+            this.redrawCallback();
             return;
         }
 
@@ -1923,10 +1926,13 @@ export class CanvasManager {
     }
 
     /**
-     * ✨ Zeichnet das Auswahl-Rechteck während der Auswahl
+     * ✨ Zeichnet das Auswahl-Rechteck während und nach der Auswahl
+     * Das Rechteck bleibt sichtbar bis der Text erstellt oder die Auswahl gelöscht wird
      */
     drawTextSelectionRect(ctx) {
-        if (!this.textSelectionMode || !this.textSelectionRect) return;
+        // ✅ FIX: Zeichne Rechteck wenn textSelectionRect vorhanden ist
+        // (auch wenn textSelectionMode bereits false ist)
+        if (!this.textSelectionRect) return;
 
         const rect = this.textSelectionRect;
         const x = Math.min(rect.startX, rect.endX);

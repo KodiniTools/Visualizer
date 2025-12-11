@@ -15,6 +15,53 @@
       </div>
     </div>
 
+    <!-- ✨ Farbeinstellungen für Bildabschnitte -->
+    <div class="color-settings-section">
+      <div class="color-settings-header" @click="showColorPicker = !showColorPicker">
+        <div class="color-settings-title">
+          <span class="color-preview-dot" :style="{ background: panelSettingsStore.getSelectedColor().gradient }"></span>
+          <span>Abschnittsfarbe</span>
+        </div>
+        <button class="color-toggle-btn" :class="{ 'rotated': showColorPicker }">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+      </div>
+      <transition name="collapse-color">
+        <div v-show="showColorPicker" class="color-picker-content">
+          <div class="color-presets">
+            <button
+              v-for="colorOption in panelSettingsStore.colorOptions"
+              :key="colorOption.id"
+              class="color-preset-btn"
+              :class="{ 'active': !panelSettingsStore.useCustomColor && panelSettingsStore.selectedImageSectionColorId === colorOption.id }"
+              :style="{ background: colorOption.gradient }"
+              :title="colorOption.name"
+              @click="panelSettingsStore.setImageSectionColor(colorOption.id)"
+            />
+          </div>
+          <div class="custom-color-row">
+            <label class="custom-color-label">
+              <input
+                type="checkbox"
+                :checked="panelSettingsStore.useCustomColor"
+                @change="panelSettingsStore.toggleCustomColor($event.target.checked)"
+              >
+              <span>Eigene Farbe</span>
+            </label>
+            <input
+              type="color"
+              class="custom-color-input"
+              :value="panelSettingsStore.customColor"
+              @input="panelSettingsStore.setCustomColor($event.target.value)"
+              :disabled="!panelSettingsStore.useCustomColor"
+            >
+          </div>
+        </div>
+      </transition>
+    </div>
+
     <!-- ✨ Stock-Galerie Sektion -->
     <div class="stock-gallery-section">
       <h4>Galerie</h4>
@@ -881,6 +928,7 @@
 
 <script setup>
 import { ref, computed, onMounted, inject, watch } from 'vue';
+import { usePanelSettingsStore } from '../stores/panelSettingsStore';
 
 // Refs für alle UI-Elemente
 const containerRef = ref(null);
@@ -995,6 +1043,10 @@ const lastSelectedStockId = ref(null); // ✨ NEU: Für Shift-Click Range-Select
 const stockImagesLoading = ref(true);
 const categoryLoading = ref(false); // Lädt gerade eine Kategorie?
 const loadedStockImages = ref(new Map()); // Cache für geladene Image-Objekte
+
+// ✨ NEU: Panel-Einstellungen Store für Farbkonfiguration
+const panelSettingsStore = usePanelSettingsStore();
+const showColorPicker = ref(false);
 
 // Holen die Manager-Instanzen aus App.vue (als reactive refs)
 const fotoManagerRef = inject('fotoManager');
@@ -2597,6 +2649,179 @@ watch(currentActiveImage, (newImage) => {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   ✨ FARBEINSTELLUNGEN FÜR BILDABSCHNITTE
+   ═══════════════════════════════════════════════════════════════════ */
+
+.color-settings-section {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  border: 1px solid #333;
+  overflow: hidden;
+}
+
+.color-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+
+.color-settings-header:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.color-settings-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.color-preview-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.color-toggle-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.color-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.color-toggle-btn svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.3s ease;
+}
+
+.color-toggle-btn.rotated svg {
+  transform: rotate(-180deg);
+}
+
+.color-picker-content {
+  padding: 12px 16px 16px;
+  border-top: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.color-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.color-preset-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.color-preset-btn:hover {
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.color-preset-btn.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.custom-color-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.custom-color-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.custom-color-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--image-section-accent, #6ea8fe);
+  cursor: pointer;
+}
+
+.custom-color-input {
+  width: 40px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.custom-color-input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.custom-color-input::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+
+.custom-color-input::-webkit-color-swatch {
+  border-radius: 4px;
+  border: 1px solid #555;
+}
+
+/* Collapse Animation */
+.collapse-color-enter-active,
+.collapse-color-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.collapse-color-enter-from,
+.collapse-color-leave-to {
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.collapse-color-enter-to,
+.collapse-color-leave-from {
+  opacity: 1;
+  max-height: 200px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    ✨ BILD-VORSCHAU OVERLAY STYLES
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -2693,7 +2918,7 @@ watch(currentActiveImage, (newImage) => {
 }
 
 .preview-actions .btn-primary {
-  background: linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%);
+  background: var(--image-section-gradient, linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%));
   color: #121212;
   font-weight: 600;
   border: none;
@@ -2761,7 +2986,7 @@ watch(currentActiveImage, (newImage) => {
 }
 
 .category-tab:hover {
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   color: #fff;
   background-color: #444;
   transform: translateY(-1px);
@@ -2769,8 +2994,8 @@ watch(currentActiveImage, (newImage) => {
 }
 
 .category-tab.active {
-  background: linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%);
-  border-color: #6ea8fe;
+  background: var(--image-section-gradient, linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%));
+  border-color: var(--image-section-accent, #6ea8fe);
   color: #121212;
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(110, 168, 254, 0.4);
@@ -2825,7 +3050,7 @@ watch(currentActiveImage, (newImage) => {
 }
 
 .stock-gallery-scroll::-webkit-scrollbar-thumb:hover {
-  background: #6ea8fe;
+  background: var(--image-section-accent, #6ea8fe);
 }
 
 /* Stock-Galerie Grid */
@@ -2847,12 +3072,12 @@ watch(currentActiveImage, (newImage) => {
 }
 
 .stock-thumbnail-item:hover {
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   transform: scale(1.03);
 }
 
 .stock-thumbnail-item.selected {
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.3);
 }
 
@@ -2918,16 +3143,16 @@ watch(currentActiveImage, (newImage) => {
 .btn-retry {
   padding: 8px 16px;
   border-radius: 6px;
-  border: 1px solid #6ea8fe;
+  border: 1px solid var(--image-section-accent, #6ea8fe);
   background-color: #2a2a2a;
-  color: #6ea8fe;
+  color: var(--image-section-accent, #6ea8fe);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-retry:hover {
-  background-color: #6ea8fe;
+  background-color: var(--image-section-accent, #6ea8fe);
   color: #121212;
 }
 
@@ -2962,7 +3187,7 @@ watch(currentActiveImage, (newImage) => {
 }
 
 .upload-area:hover {
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   background-color: #252525;
 }
 
@@ -3047,7 +3272,7 @@ watch(currentActiveImage, (newImage) => {
 }
 
 .gallery-scroll::-webkit-scrollbar-thumb:hover {
-  background: #6ea8fe;
+  background: var(--image-section-accent, #6ea8fe);
 }
 
 /* ✨ NEU: Thumbnail-Grid */
@@ -3069,12 +3294,12 @@ watch(currentActiveImage, (newImage) => {
 }
 
 .thumbnail-item:hover {
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   transform: scale(1.02);
 }
 
 .thumbnail-item.selected {
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.3);
 }
 
@@ -3174,10 +3399,10 @@ watch(currentActiveImage, (newImage) => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%);
+  background: var(--image-section-gradient, linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%));
   color: #121212;
   font-weight: 600;
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   box-shadow: 0 2px 4px rgba(110, 168, 254, 0.2);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3271,7 +3496,7 @@ watch(currentActiveImage, (newImage) => {
 
 .control-group.slider span {
   font-size: 11px;
-  color: #6ea8fe;
+  color: var(--image-section-accent, #6ea8fe);
   font-weight: 600;
   font-family: 'Courier New', monospace;
   min-width: 50px;
@@ -3293,7 +3518,7 @@ watch(currentActiveImage, (newImage) => {
 
 .control-group select:hover,
 .control-group select:focus {
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   z-index: 100;
 }
 
@@ -3337,7 +3562,7 @@ input[type="range"]::-webkit-slider-thumb {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%);
+  background: var(--image-section-gradient, linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%));
   cursor: pointer;
   border: 2px solid #fff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), 0 0 0 0 rgba(110, 168, 254, 0.5);
@@ -3357,7 +3582,7 @@ input[type="range"]::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%);
+  background: var(--image-section-gradient, linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%));
   cursor: pointer;
   border: 2px solid #fff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
@@ -3389,7 +3614,7 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .color-input:hover {
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
 }
 
 .color-text-input {
@@ -3404,7 +3629,7 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .color-text-input:focus {
   outline: none;
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
 }
 
 /* ✨ Divider */
@@ -3417,7 +3642,7 @@ input[type="range"]::-moz-range-thumb:hover {
 /* ✨ MODERNE SCHATTEN & ROTATIONS SEKTION */
 .modern-divider {
   height: 2px;
-  background: linear-gradient(90deg, transparent, #6ea8fe, transparent);
+  background: linear-gradient(90deg, transparent, var(--image-section-accent, #6ea8fe), transparent);
   margin: 24px 0 20px 0;
   border-radius: 2px;
 }
@@ -3470,7 +3695,7 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .label-value {
-  color: #6ea8fe;
+  color: var(--image-section-accent, #6ea8fe);
   font-weight: 600;
   font-family: 'Courier New', monospace;
   font-size: 11px;
@@ -3779,7 +4004,7 @@ input[type="range"]::-moz-range-thumb:hover {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6ea8fe, #5a96e5);
+  background: var(--image-section-gradient, linear-gradient(135deg, #6ea8fe, #5a96e5));
   cursor: pointer;
   border: 3px solid #1a1a2e;
   box-shadow: 0 2px 8px rgba(110, 168, 254, 0.5), 0 0 0 0 rgba(110, 168, 254, 0.4);
@@ -3801,7 +4026,7 @@ input[type="range"]::-moz-range-thumb:hover {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6ea8fe, #5a96e5);
+  background: var(--image-section-gradient, linear-gradient(135deg, #6ea8fe, #5a96e5));
   cursor: pointer;
   border: 3px solid #1a1a2e;
   box-shadow: 0 2px 8px rgba(110, 168, 254, 0.5);
@@ -3837,7 +4062,7 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .modern-color-input:hover {
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   box-shadow: 0 4px 16px rgba(110, 168, 254, 0.3);
   transform: scale(1.05);
 }
@@ -3856,7 +4081,7 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .modern-color-text:focus {
   outline: none;
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   box-shadow: 0 0 0 3px rgba(110, 168, 254, 0.2);
 }
 
@@ -3897,15 +4122,15 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .flip-button:hover {
   background: linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 100%);
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   color: #fff;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(110, 168, 254, 0.15);
 }
 
 .flip-button.active {
-  background: linear-gradient(135deg, #6ea8fe 0%, #5090e0 100%);
-  border-color: #6ea8fe;
+  background: var(--image-section-gradient, linear-gradient(135deg, #6ea8fe 0%, #5090e0 100%));
+  border-color: var(--image-section-accent, #6ea8fe);
   color: #fff;
   box-shadow: 0 4px 12px rgba(110, 168, 254, 0.3);
 }
@@ -3929,7 +4154,7 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .modern-reset-btn:hover {
   background: linear-gradient(135deg, #666 0%, #4a4a4a 100%);
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   box-shadow: 0 4px 12px rgba(110, 168, 254, 0.2);
   transform: translateY(-2px);
 }
@@ -3959,7 +4184,7 @@ input[type="range"]::-moz-range-thumb:hover {
 .layer-info {
   font-size: 12px;
   font-weight: 600;
-  color: #6ea8fe;
+  color: var(--image-section-accent, #6ea8fe);
   font-family: 'Courier New', monospace;
   background: rgba(110, 168, 254, 0.15);
   padding: 4px 10px;
@@ -3993,7 +4218,7 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .layer-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 100%);
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   color: #fff;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(110, 168, 254, 0.2);
@@ -4066,8 +4291,8 @@ input[type="range"]::-moz-range-thumb:hover {
 .btn-select-all:hover:not(:disabled),
 .btn-deselect-all:hover:not(:disabled) {
   background-color: #3a3a3a;
-  border-color: #6ea8fe;
-  color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
+  color: var(--image-section-accent, #6ea8fe);
 }
 
 .btn-select-all:disabled,
@@ -4079,7 +4304,7 @@ input[type="range"]::-moz-range-thumb:hover {
 /* Auswahl-Zähler */
 .selection-count {
   font-size: 11px;
-  color: #6ea8fe;
+  color: var(--image-section-accent, #6ea8fe);
   font-weight: 600;
   padding: 4px 8px;
   background-color: rgba(110, 168, 254, 0.15);
@@ -4116,14 +4341,14 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .selection-checkbox.checked {
-  background-color: #6ea8fe;
-  border-color: #6ea8fe;
+  background-color: var(--image-section-accent, #6ea8fe);
+  border-color: var(--image-section-accent, #6ea8fe);
   box-shadow: 0 2px 6px rgba(110, 168, 254, 0.4);
 }
 
 .thumbnail-item:hover .selection-checkbox:not(.checked),
 .stock-thumbnail-item:hover .selection-checkbox:not(.checked) {
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   background-color: rgba(110, 168, 254, 0.3);
 }
 
@@ -4136,7 +4361,7 @@ input[type="range"]::-moz-range-thumb:hover {
 /* Hervorhebung für ausgewählte Bilder */
 .thumbnail-item.selected,
 .stock-thumbnail-item.selected {
-  border-color: #6ea8fe;
+  border-color: var(--image-section-accent, #6ea8fe);
   box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.3), 0 4px 12px rgba(110, 168, 254, 0.2);
 }
 </style>

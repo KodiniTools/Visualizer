@@ -1248,6 +1248,7 @@ export class CanvasManager {
             };
             this.currentAction = 'text-selection';
             this._startDragListeners();
+            this.redrawCallback(); // ✅ FIX: Sofort neu zeichnen um Cursor-Änderung zu zeigen
             return;
         }
 

@@ -201,6 +201,22 @@ function scanAndSaveCategory(categoryDef) {
   // Sortiere nach Name
   images.sort((a, b) => a.name.localeCompare(b.name));
 
+  // Validierung: Prüfe auf doppelte IDs
+  const idCounts = new Map();
+  images.forEach(img => {
+    idCounts.set(img.id, (idCounts.get(img.id) || 0) + 1);
+  });
+  const duplicates = [...idCounts.entries()].filter(([, count]) => count > 1);
+  if (duplicates.length > 0) {
+    console.log(`   ⚠️  WARNUNG: ${duplicates.length} doppelte IDs gefunden:`);
+    duplicates.forEach(([id, count]) => {
+      console.log(`      - "${id}" kommt ${count}x vor`);
+    });
+  }
+
+  const uniqueIds = new Set(images.map(img => img.id));
+  console.log(`   📊 ${images.length} Bilder, ${uniqueIds.size} eindeutige IDs`);
+
   // Category JSON erstellen
   const categoryJson = {
     _generated: new Date().toISOString(),

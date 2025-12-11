@@ -203,11 +203,49 @@
 
       <div class="divider"></div>
 
+      <!-- ✨ NEU: Presets speichern/laden -->
+      <div class="panel-section">
+        <h4>💾 Einstellungen speichern</h4>
+
+        <div class="control-group">
+          <button @click="saveCurrentAsPreset" class="btn-primary full-width">
+            Als Preset speichern
+          </button>
+        </div>
+
+        <div v-if="savedPresets.length > 0" class="presets-list">
+          <label>Gespeicherte Presets:</label>
+          <div
+            v-for="preset in savedPresets"
+            :key="preset.id"
+            class="preset-item"
+          >
+            <div class="preset-info">
+              <span class="preset-name">{{ preset.name }}</span>
+              <span class="preset-preview" :style="{ backgroundColor: preset.backgroundColor }"></span>
+            </div>
+            <div class="preset-actions">
+              <button @click="loadPreset(preset)" class="btn-small btn-load" title="Laden">
+                📥
+              </button>
+              <button @click="deletePreset(preset.id)" class="btn-small btn-delete" title="Löschen">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+        <div v-else class="hint-text" style="text-align: center; margin-top: 8px;">
+          Keine Presets gespeichert
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
       <!-- Hintergrund zurücksetzen -->
       <div class="panel-section">
         <h4>Hintergrund zurücksetzen</h4>
         <p class="info-text">
-          Setzt Hintergrund auf Schwarz zurück
+          Setzt Hintergrund auf Weiß zurück
         </p>
         <button @click="resetBackground" class="btn-secondary full-width">
           Zurücksetzen
@@ -295,6 +333,113 @@ const gradientEnabled = ref(false);
 const gradientColor2 = ref('#0066ff');
 const gradientType = ref('radial');
 const gradientAngle = ref(45);
+
+// ✨ NEU: Presets für Hintergrund-Einstellungen
+const PRESETS_STORAGE_KEY = 'visualizer-canvas-presets';
+const savedPresets = ref([]);
+
+// Presets aus localStorage laden
+function loadPresets() {
+  try {
+    const stored = localStorage.getItem(PRESETS_STORAGE_KEY);
+    if (stored) {
+      savedPresets.value = JSON.parse(stored);
+    }
+  } catch (e) {
+    console.warn('Fehler beim Laden der Presets:', e);
+  }
+}
+
+// Presets in localStorage speichern
+function persistPresets() {
+  try {
+    localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(savedPresets.value));
+  } catch (e) {
+    console.warn('Fehler beim Speichern der Presets:', e);
+  }
+}
+
+// Aktuellen Zustand als Preset speichern
+function saveCurrentAsPreset() {
+  const presetNumber = savedPresets.value.length + 1;
+  const newPreset = {
+    id: Date.now(),
+    name: `Preset ${presetNumber}`,
+    backgroundColor: backgroundColor.value,
+    backgroundOpacity: backgroundOpacity.value,
+    gradientEnabled: gradientEnabled.value,
+    gradientColor2: gradientColor2.value,
+    gradientType: gradientType.value,
+    gradientAngle: gradientAngle.value,
+    // Audio-reaktive Einstellungen
+    bgAudioEnabled: bgAudioEnabled.value,
+    bgAudioSource: bgAudioSource.value,
+    bgAudioSmoothing: bgAudioSmoothing.value,
+    bgEffects: {
+      hue: { enabled: bgEffectHue.value, intensity: bgEffectHueIntensity.value },
+      brightness: { enabled: bgEffectBrightness.value, intensity: bgEffectBrightnessIntensity.value },
+      saturation: { enabled: bgEffectSaturation.value, intensity: bgEffectSaturationIntensity.value },
+      glow: { enabled: bgEffectGlow.value, intensity: bgEffectGlowIntensity.value },
+      gradientPulse: { enabled: bgEffectGradientPulse.value, intensity: bgEffectGradientPulseIntensity.value },
+      gradientRotation: { enabled: bgEffectGradientRotation.value, intensity: bgEffectGradientRotationIntensity.value }
+    }
+  };
+
+  savedPresets.value.push(newPreset);
+  persistPresets();
+  console.log('✅ Preset gespeichert:', newPreset.name);
+}
+
+// Preset laden
+function loadPreset(preset) {
+  // Grundfarbe
+  backgroundColor.value = preset.backgroundColor;
+  backgroundOpacity.value = preset.backgroundOpacity;
+
+  // Gradient
+  gradientEnabled.value = preset.gradientEnabled || false;
+  gradientColor2.value = preset.gradientColor2 || '#0066ff';
+  gradientType.value = preset.gradientType || 'radial';
+  gradientAngle.value = preset.gradientAngle || 45;
+
+  // Audio-reaktiv
+  bgAudioEnabled.value = preset.bgAudioEnabled || false;
+  bgAudioSource.value = preset.bgAudioSource || 'bass';
+  bgAudioSmoothing.value = preset.bgAudioSmoothing || 50;
+
+  if (preset.bgEffects) {
+    bgEffectHue.value = preset.bgEffects.hue?.enabled || false;
+    bgEffectHueIntensity.value = preset.bgEffects.hue?.intensity || 80;
+    bgEffectBrightness.value = preset.bgEffects.brightness?.enabled || false;
+    bgEffectBrightnessIntensity.value = preset.bgEffects.brightness?.intensity || 80;
+    bgEffectSaturation.value = preset.bgEffects.saturation?.enabled || false;
+    bgEffectSaturationIntensity.value = preset.bgEffects.saturation?.intensity || 80;
+    bgEffectGlow.value = preset.bgEffects.glow?.enabled || false;
+    bgEffectGlowIntensity.value = preset.bgEffects.glow?.intensity || 80;
+    bgEffectGradientPulse.value = preset.bgEffects.gradientPulse?.enabled || false;
+    bgEffectGradientPulseIntensity.value = preset.bgEffects.gradientPulse?.intensity || 80;
+    bgEffectGradientRotation.value = preset.bgEffects.gradientRotation?.enabled || false;
+    bgEffectGradientRotationIntensity.value = preset.bgEffects.gradientRotation?.intensity || 80;
+  }
+
+  // Canvas aktualisieren
+  updateFromColorPicker();
+  if (gradientEnabled.value) {
+    updateGradientSettings();
+  }
+  if (bgAudioEnabled.value) {
+    updateBgAudioReactive();
+  }
+
+  console.log('✅ Preset geladen:', preset.name);
+}
+
+// Preset löschen
+function deletePreset(presetId) {
+  savedPresets.value = savedPresets.value.filter(p => p.id !== presetId);
+  persistPresets();
+  console.log('🗑️ Preset gelöscht');
+}
 
 // Computed: Kann Undo ausgeführt werden?
 const canUndo = computed(() => undoHistory.value.length > 0);
@@ -581,22 +726,19 @@ watch([backgroundColor, backgroundOpacity], () => {
   updateColorDisplay();
 });
 
-// Initialisiere beim Mounting
+// Initialisiere beim Mounting - Canvas startet IMMER weiß
 onMounted(() => {
-  if (canvasManager.value && canvasManager.value.background) {
-    if (typeof canvasManager.value.background === 'string') {
-      // Versuche zu parsen ob RGBA oder Hex
-      const rgba = parseRGBA(canvasManager.value.background);
-      if (rgba) {
-        backgroundColor.value = rgbToHex(rgba.r, rgba.g, rgba.b);
-        backgroundOpacity.value = rgba.a;
-      } else {
-        backgroundColor.value = canvasManager.value.background;
-      }
-    }
+  // ✅ Gespeicherte Presets laden
+  loadPresets();
+
+  if (canvasManager.value) {
+    // ✅ Canvas startet IMMER mit weißem Hintergrund (Grundeinstellung)
+    canvasManager.value.setBackground('#ffffff');
+    backgroundColor.value = '#ffffff';
+    backgroundOpacity.value = 1.0;
   }
   updateColorDisplay();
-  console.log('✅ CanvasControlPanel mounted');
+  console.log('✅ CanvasControlPanel mounted - Hintergrund auf Weiß gesetzt');
 });
 </script>
 
@@ -1068,5 +1210,84 @@ h4 {
   color: #94a3b8;
   min-width: 32px;
   text-align: right;
+}
+
+/* ✨ Preset Styles */
+.presets-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.presets-list > label {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.preset-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid #444;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.preset-item:hover {
+  border-color: #6ea8fe;
+  background: rgba(40, 40, 40, 0.9);
+}
+
+.preset-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.preset-name {
+  font-size: 13px;
+  color: #e0e0e0;
+  font-weight: 500;
+}
+
+.preset-preview {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #555;
+}
+
+.preset-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-small {
+  padding: 4px 8px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-load {
+  background: rgba(110, 168, 254, 0.2);
+}
+
+.btn-load:hover {
+  background: rgba(110, 168, 254, 0.4);
+}
+
+.btn-delete {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.4);
 }
 </style>

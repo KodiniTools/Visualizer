@@ -42,6 +42,7 @@ function createDefaultTile(index) {
 }
 
 // Einstellungen aus localStorage laden
+// Hinweis: tileGap wird bei jeder Aktivierung auf 5px zurückgesetzt (Grundeinstellung)
 function loadSettings() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -138,8 +139,12 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   // Kachel-Modus aktivieren/deaktivieren
   function setTilesEnabled(enabled) {
     tilesEnabled.value = enabled;
-    if (enabled && tiles.value.length === 0) {
-      initializeTiles();
+    if (enabled) {
+      // ✅ Kacheln aktiviert: Immer mit 5px Abstand starten (Grundeinstellung)
+      tileGap.value = 5;
+      if (tiles.value.length === 0) {
+        initializeTiles();
+      }
     }
     persistSettings();
   }

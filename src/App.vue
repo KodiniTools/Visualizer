@@ -584,7 +584,10 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
 
   // Canvas Manager (Bilder, Backgrounds)
   if (canvasManagerInstance.value && !canvasManagerInstance.value.isCanvasEmpty()) {
+    // ✨ Recording-Modus setzen um UI-Elemente (wie Kachel-Auswahl) auszublenden
+    canvasManagerInstance.value.isRecording = true;
     canvasManagerInstance.value.drawScene(ctx);
+    canvasManagerInstance.value.isRecording = false;
   }
 
   // Visualizer

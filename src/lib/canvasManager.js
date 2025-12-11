@@ -892,63 +892,6 @@ export class CanvasManager {
     drawScene(ctx) {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-        // ✨ NEU: Prüfen ob Kachel-Hintergrund aktiviert ist
-        const tilesDrawn = this.drawBackgroundTiles(ctx);
-        if (tilesDrawn) {
-            // Kacheln wurden gezeichnet - normalen Hintergrund überspringen
-            // Aber weiter mit Workspace, Bildern und Text
-            // 2. WORKSPACE BACKGROUND (falls vorhanden)
-            if (this.workspaceBackground && this.workspacePreset) {
-                const workspaceBounds = this.getWorkspaceBounds();
-                if (workspaceBounds) {
-                    ctx.save();
-
-                    if (this.fotoManager) {
-                        this.fotoManager.applyFilters(ctx, this.workspaceBackground);
-                    }
-
-                    const wsAudioReactive = this._getAudioReactiveValues(this.workspaceBackground.fotoSettings?.audioReactive);
-                    if (wsAudioReactive && wsAudioReactive.hasEffects) {
-                        this._applyAudioReactiveFilters(ctx, wsAudioReactive);
-                    }
-
-                    const img = this.workspaceBackground.imageObject;
-
-                    let drawBounds = { ...workspaceBounds };
-                    if (wsAudioReactive && wsAudioReactive.effects.scale) {
-                        const scale = wsAudioReactive.effects.scale.scale;
-                        const centerX = workspaceBounds.x + workspaceBounds.width / 2;
-                        const centerY = workspaceBounds.y + workspaceBounds.height / 2;
-                        drawBounds.width = workspaceBounds.width * scale;
-                        drawBounds.height = workspaceBounds.height * scale;
-                        drawBounds.x = centerX - drawBounds.width / 2;
-                        drawBounds.y = centerY - drawBounds.height / 2;
-                    }
-
-                    ctx.drawImage(
-                        img,
-                        drawBounds.x,
-                        drawBounds.y,
-                        drawBounds.width,
-                        drawBounds.height
-                    );
-
-                    if (this.fotoManager) {
-                        this.fotoManager.resetFilters(ctx);
-                    }
-
-                    ctx.restore();
-                }
-            }
-
-            // 4. TEXTE rendern
-            if (this.textManager && this.textManager.draw) {
-                this.textManager.draw(ctx);
-            }
-
-            return; // Fertig - normalen Hintergrund überspringen
-        }
-
         // 1. GLOBAL BACKGROUND (Color or Image with Filters)
         // ✨ NEU: Audio-Reaktive Effekte für Hintergrundfarbe
         if (typeof this.background === 'string') {
@@ -1046,6 +989,11 @@ export class CanvasManager {
             ctx.fillStyle = '#000000';
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         }
+
+        // 1.5 KACHELN über dem Haupthintergrund zeichnen (falls aktiviert)
+        // Die Kacheln werden als separate Ebene über dem Haupthintergrund gezeichnet
+        // So bleibt der Haupthintergrund in den Lücken (tileGap) sichtbar
+        this.drawBackgroundTiles(ctx);
 
         // 2. WORKSPACE BACKGROUND (Image with Filters on Workspace)
         // ✨ NEU: Audio-Reaktive Effekte für Workspace-Hintergrund

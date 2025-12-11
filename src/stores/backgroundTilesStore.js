@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 
 const STORAGE_KEY = 'visualizer-background-tiles';
+const SETTINGS_VERSION = 2; // Version für Migrations-Logik (v2: tileGap Standard 5px)
 
 // Standard-Kachel-Konfiguration
 function createDefaultTile(index) {
@@ -41,12 +42,26 @@ function createDefaultTile(index) {
   };
 }
 
-// Einstellungen aus localStorage laden
+// Einstellungen aus localStorage laden (mit Migration)
 function loadSettings() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const settings = JSON.parse(stored);
+
+      // Migration: Alte Einstellungen ohne Version oder Version < 2
+      if (!settings.version || settings.version < 2) {
+        // Setze neuen Standard für tileGap wenn noch auf altem Default (0)
+        if (settings.tileGap === 0 || settings.tileGap === undefined) {
+          settings.tileGap = 5; // Neuer Standard
+        }
+        settings.version = SETTINGS_VERSION;
+        // Speichere migrierte Einstellungen
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+        console.log('✅ Kachel-Einstellungen migriert auf Version', SETTINGS_VERSION);
+      }
+
+      return settings;
     }
   } catch (e) {
     console.warn('Fehler beim Laden der Kachel-Einstellungen:', e);
@@ -304,6 +319,7 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   // Einstellungen persistieren (ohne Bilder - nur Metadaten)
   function persistSettings() {
     const settingsToSave = {
+      version: SETTINGS_VERSION, // ✅ NEU: Version für Migrations-Logik
       tilesEnabled: tilesEnabled.value,
       tileCount: tileCount.value,
       tileGap: tileGap.value,

@@ -583,16 +583,22 @@ watch([backgroundColor, backgroundOpacity], () => {
 
 // Initialisiere beim Mounting
 onMounted(() => {
-  if (canvasManager.value && canvasManager.value.background) {
-    if (typeof canvasManager.value.background === 'string') {
-      // Versuche zu parsen ob RGBA oder Hex
-      const rgba = parseRGBA(canvasManager.value.background);
-      if (rgba) {
-        backgroundColor.value = rgbToHex(rgba.r, rgba.g, rgba.b);
-        backgroundOpacity.value = rgba.a;
-      } else {
-        backgroundColor.value = canvasManager.value.background;
+  if (canvasManager.value) {
+    if (canvasManager.value.background) {
+      if (typeof canvasManager.value.background === 'string') {
+        // Versuche zu parsen ob RGBA oder Hex
+        const rgba = parseRGBA(canvasManager.value.background);
+        if (rgba) {
+          backgroundColor.value = rgbToHex(rgba.r, rgba.g, rgba.b);
+          backgroundOpacity.value = rgba.a;
+        } else {
+          backgroundColor.value = canvasManager.value.background;
+        }
       }
+    } else {
+      // ✅ NEU: Setze weißen Hintergrund als Standard wenn keiner existiert
+      canvasManager.value.setBackground('#ffffff');
+      backgroundColor.value = '#ffffff';
     }
   }
   updateColorDisplay();

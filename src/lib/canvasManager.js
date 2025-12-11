@@ -998,7 +998,8 @@ export class CanvasManager {
 
             ctx.restore();
         } else {
-            ctx.fillStyle = '#000000';
+            // Fallback: Weißer Hintergrund wenn nichts gesetzt
+            ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         }
 

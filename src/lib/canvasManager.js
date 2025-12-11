@@ -1240,6 +1240,7 @@ export class CanvasManager {
 
         // ✨ Text-Rechteck-Auswahl-Modus: Starte Rechteck-Zeichnung
         if (this.textSelectionMode) {
+            console.log('[CanvasManager] 🎯 Text-Auswahl gestartet bei:', x, y);
             this.textSelectionRect = {
                 startX: x,
                 startY: y,
@@ -1248,6 +1249,7 @@ export class CanvasManager {
             };
             this.currentAction = 'text-selection';
             this._startDragListeners();
+            this.redrawCallback(); // ✅ FIX: Sofort neu zeichnen um Cursor-Änderung zu zeigen
             return;
         }
 
@@ -1940,8 +1942,13 @@ export class CanvasManager {
         const width = Math.abs(rect.endX - rect.startX);
         const height = Math.abs(rect.endY - rect.startY);
 
+        console.log('[CanvasManager] 📐 Zeichne Rechteck:', { x, y, width, height });
+
         // Mindestgröße für sichtbare Vorschau
-        if (width < 5 || height < 5) return;
+        if (width < 5 || height < 5) {
+            console.log('[CanvasManager] ⚠️ Rechteck zu klein, überspringe');
+            return;
+        }
 
         ctx.save();
 

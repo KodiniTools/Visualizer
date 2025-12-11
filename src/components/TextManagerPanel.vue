@@ -2457,9 +2457,14 @@ function resetNewTextPosition() {
 
 // ✨ NEU: Canvas-Rechteck-Auswahl starten
 function startTextSelectionOnCanvas() {
-  if (!canvasManager.value) return;
+  console.log('[TextManagerPanel] 🎯 startTextSelectionOnCanvas aufgerufen, canvasManager:', !!canvasManager.value);
+  if (!canvasManager.value) {
+    console.error('[TextManagerPanel] ❌ canvasManager nicht verfügbar!');
+    return;
+  }
 
   isSelectingOnCanvas.value = true;
+  console.log('[TextManagerPanel] 🎯 Rufe startTextSelectionMode auf...');
 
   canvasManager.value.startTextSelectionMode((bounds) => {
     // Callback wenn Auswahl abgeschlossen

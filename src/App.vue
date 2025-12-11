@@ -556,10 +556,12 @@ function onObjectSelected(selectedObject) {
 }
 
 function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
-  if (canvasManagerInstance.value && !canvasManagerInstance.value.isCanvasEmpty()) {
+  // ✅ FIX: drawScene() IMMER aufrufen - es zeichnet den Hintergrund (weiß als Standard)
+  if (canvasManagerInstance.value) {
     canvasManagerInstance.value.drawScene(ctx);
   } else {
-    ctx.fillStyle = '#000000';
+    // Fallback nur wenn canvasManager noch nicht initialisiert
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   }
 
@@ -578,16 +580,15 @@ function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
 
 // Separate Funktion für Recording Canvas - rendert IMMER alle Module
 function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
-  // Basis: Schwarzer Hintergrund (immer)
-  ctx.fillStyle = '#000000';
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-  // Canvas Manager (Bilder, Backgrounds)
-  if (canvasManagerInstance.value && !canvasManagerInstance.value.isCanvasEmpty()) {
-    // ✨ Recording-Modus setzen um UI-Elemente (wie Kachel-Auswahl) auszublenden
+  // ✅ FIX: drawScene() IMMER aufrufen - es zeichnet den Hintergrund (weiß als Standard)
+  if (canvasManagerInstance.value) {
     canvasManagerInstance.value.isRecording = true;
     canvasManagerInstance.value.drawScene(ctx);
     canvasManagerInstance.value.isRecording = false;
+  } else {
+    // Fallback nur wenn canvasManager noch nicht initialisiert
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   }
 
   // Visualizer

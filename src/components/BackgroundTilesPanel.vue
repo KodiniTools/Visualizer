@@ -55,12 +55,13 @@
             v-for="(tile, index) in tilesStore.tiles"
             :key="tile.id"
             class="tile-preview"
-            :class="{ selected: tilesStore.selectedTileIndex === index }"
+            :class="{ selected: tilesStore.selectedTileIndex === index, 'has-audio': tile.audioReactive?.enabled }"
             :style="getTileStyle(tile)"
             @click="selectTile(index)"
           >
             <span class="tile-number">{{ index + 1 }}</span>
             <span v-if="tile.image" class="tile-has-image">Bild</span>
+            <span v-if="tile.audioReactive?.enabled" class="tile-has-audio" title="Audio-Reaktiv">♪</span>
           </div>
         </div>
       </div>
@@ -275,6 +276,175 @@
           </div>
         </div>
 
+        <!-- Audio-Reaktiv Sektion -->
+        <div class="audio-section">
+          <div class="audio-header">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                :checked="tilesStore.selectedTile.audioReactive?.enabled"
+                @change="toggleAudioReactive($event.target.checked)"
+              />
+              <span>Audio-Reaktiv</span>
+            </label>
+          </div>
+
+          <div v-if="tilesStore.selectedTile.audioReactive?.enabled" class="audio-controls">
+            <!-- Audio-Quelle -->
+            <div class="control-group">
+              <label>Reagiert auf:</label>
+              <select
+                :value="tilesStore.selectedTile.audioReactive.source"
+                @change="setAudioSource($event.target.value)"
+                class="audio-select"
+              >
+                <option value="bass">Bass (Kick/Sub)</option>
+                <option value="mid">Mitten (Vocals)</option>
+                <option value="treble">Höhen (Hi-Hats)</option>
+                <option value="volume">Lautstärke (Gesamt)</option>
+                <option value="dynamic">Dynamisch (Auto-Blend)</option>
+              </select>
+            </div>
+
+            <!-- Glättung -->
+            <div class="control-group">
+              <label>Glättung: {{ tilesStore.selectedTile.audioReactive.smoothing }}%</label>
+              <input
+                type="range"
+                :value="tilesStore.selectedTile.audioReactive.smoothing"
+                @input="setAudioSmoothing($event.target.value)"
+                min="0"
+                max="100"
+                step="5"
+                class="audio-slider"
+              />
+            </div>
+
+            <!-- Effekte -->
+            <div class="effects-list">
+              <!-- Hue (Farbton) -->
+              <label class="effect-item">
+                <input
+                  type="checkbox"
+                  :checked="tilesStore.selectedTile.audioReactive.effects.hue.enabled"
+                  @change="toggleEffect('hue', $event.target.checked)"
+                />
+                <span>Farbton</span>
+                <input
+                  type="range"
+                  :value="tilesStore.selectedTile.audioReactive.effects.hue.intensity"
+                  @input="setEffectIntensity('hue', $event.target.value)"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
+                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.hue.intensity }}%</span>
+              </label>
+
+              <!-- Brightness (Helligkeit) -->
+              <label class="effect-item">
+                <input
+                  type="checkbox"
+                  :checked="tilesStore.selectedTile.audioReactive.effects.brightness.enabled"
+                  @change="toggleEffect('brightness', $event.target.checked)"
+                />
+                <span>Helligkeit</span>
+                <input
+                  type="range"
+                  :value="tilesStore.selectedTile.audioReactive.effects.brightness.intensity"
+                  @input="setEffectIntensity('brightness', $event.target.value)"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
+                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.brightness.intensity }}%</span>
+              </label>
+
+              <!-- Saturation (Sättigung) -->
+              <label class="effect-item">
+                <input
+                  type="checkbox"
+                  :checked="tilesStore.selectedTile.audioReactive.effects.saturation.enabled"
+                  @change="toggleEffect('saturation', $event.target.checked)"
+                />
+                <span>Sättigung</span>
+                <input
+                  type="range"
+                  :value="tilesStore.selectedTile.audioReactive.effects.saturation.intensity"
+                  @input="setEffectIntensity('saturation', $event.target.value)"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
+                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.saturation.intensity }}%</span>
+              </label>
+
+              <!-- Glow (Leuchten) -->
+              <label class="effect-item">
+                <input
+                  type="checkbox"
+                  :checked="tilesStore.selectedTile.audioReactive.effects.glow.enabled"
+                  @change="toggleEffect('glow', $event.target.checked)"
+                />
+                <span>Leuchten</span>
+                <input
+                  type="range"
+                  :value="tilesStore.selectedTile.audioReactive.effects.glow.intensity"
+                  @input="setEffectIntensity('glow', $event.target.value)"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
+                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.glow.intensity }}%</span>
+              </label>
+
+              <!-- Scale (Skalierung) -->
+              <label class="effect-item">
+                <input
+                  type="checkbox"
+                  :checked="tilesStore.selectedTile.audioReactive.effects.scale.enabled"
+                  @change="toggleEffect('scale', $event.target.checked)"
+                />
+                <span>Pulsieren</span>
+                <input
+                  type="range"
+                  :value="tilesStore.selectedTile.audioReactive.effects.scale.intensity"
+                  @input="setEffectIntensity('scale', $event.target.value)"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
+                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.scale.intensity }}%</span>
+              </label>
+
+              <!-- Blur (Weichzeichnen) -->
+              <label class="effect-item">
+                <input
+                  type="checkbox"
+                  :checked="tilesStore.selectedTile.audioReactive.effects.blur.enabled"
+                  @change="toggleEffect('blur', $event.target.checked)"
+                />
+                <span>Weichzeichnen</span>
+                <input
+                  type="range"
+                  :value="tilesStore.selectedTile.audioReactive.effects.blur.intensity"
+                  @input="setEffectIntensity('blur', $event.target.value)"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
+                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.blur.intensity }}%</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
         <!-- Kachel zurücksetzen -->
         <button class="btn-reset" @click="resetTile">
           Kachel zurücksetzen
@@ -449,6 +619,52 @@ function resetAllTiles() {
     canvasManager.value.redrawCallback();
   }
 }
+
+// ✨ NEU: Audio-Reaktiv Funktionen
+function toggleAudioReactive(enabled) {
+  if (tilesStore.selectedTileIndex !== null) {
+    tilesStore.setTileAudioReactiveEnabled(tilesStore.selectedTileIndex, enabled);
+    if (canvasManager.value) {
+      canvasManager.value.redrawCallback();
+    }
+  }
+}
+
+function setAudioSource(source) {
+  if (tilesStore.selectedTileIndex !== null) {
+    tilesStore.setTileAudioSource(tilesStore.selectedTileIndex, source);
+    if (canvasManager.value) {
+      canvasManager.value.redrawCallback();
+    }
+  }
+}
+
+function setAudioSmoothing(value) {
+  if (tilesStore.selectedTileIndex !== null) {
+    tilesStore.setTileAudioSmoothing(tilesStore.selectedTileIndex, parseInt(value));
+    if (canvasManager.value) {
+      canvasManager.value.redrawCallback();
+    }
+  }
+}
+
+function toggleEffect(effectName, enabled) {
+  if (tilesStore.selectedTileIndex !== null) {
+    tilesStore.setTileAudioEffect(tilesStore.selectedTileIndex, effectName, enabled);
+    if (canvasManager.value) {
+      canvasManager.value.redrawCallback();
+    }
+  }
+}
+
+function setEffectIntensity(effectName, value) {
+  if (tilesStore.selectedTileIndex !== null) {
+    tilesStore.setTileAudioEffectIntensity(tilesStore.selectedTileIndex, effectName, parseInt(value));
+    if (canvasManager.value) {
+      canvasManager.value.redrawCallback();
+    }
+  }
+}
 </script>
 
 <style scoped>
@@ -600,6 +816,27 @@ function resetAllTiles() {
   padding: 2px 4px;
   border-radius: 2px;
   margin-top: 2px;
+}
+
+.tile-has-audio {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 10px;
+  color: #a78bfa;
+  background: rgba(139, 92, 246, 0.4);
+  padding: 1px 3px;
+  border-radius: 2px;
+  animation: pulse-audio 1.5s ease-in-out infinite;
+}
+
+.tile-preview.has-audio {
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.3);
+}
+
+@keyframes pulse-audio {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 
 /* Ausgewählte Kachel Editor */
@@ -835,5 +1072,115 @@ function resetAllTiles() {
 
 .btn-reset-all:hover {
   background: rgba(239, 68, 68, 0.25);
+}
+
+/* Audio-Reaktiv Sektion */
+.audio-section {
+  margin: 12px 0;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 6px;
+}
+
+.audio-header {
+  margin-bottom: 10px;
+}
+
+.audio-header .checkbox-label span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #a78bfa;
+}
+
+.audio-controls {
+  margin-top: 10px;
+}
+
+.audio-select {
+  width: 100%;
+  padding: 6px 10px;
+  background: rgba(30, 30, 50, 0.8);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.audio-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.audio-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.effects-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.effect-item {
+  display: grid;
+  grid-template-columns: auto 70px 1fr 35px;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  background: rgba(30, 30, 50, 0.6);
+  border-radius: 4px;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.effect-item input[type="checkbox"] {
+  width: 12px;
+  height: 12px;
+  accent-color: #8b5cf6;
+}
+
+.effect-item span {
+  color: #ccc;
+}
+
+.effect-slider {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.effect-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.effect-value {
+  font-size: 9px;
+  color: #94a3b8;
+  text-align: right;
+  font-family: monospace;
 }
 </style>

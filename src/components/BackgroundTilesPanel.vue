@@ -453,9 +453,9 @@
 
       <!-- ✨ NEU: Kachel-Presets -->
       <div class="control-group presets-section">
-        <label>💾 Kachel-Presets:</label>
+        <label>🔲 Kachel-Presets:</label>
         <button @click="saveTilePreset" class="btn-save-preset">
-          Aktuelle Einstellungen speichern
+          Kacheln als Preset speichern
         </button>
 
         <div v-if="tilePresets.length > 0" class="presets-list">

@@ -27,7 +27,7 @@ export class CanvasManager {
         this.fotoManager = dependencies.fotoManager;
         this.multiImageManager = dependencies.multiImageManager;
 
-        this.background = null;
+        this.background = '#ffffff'; // ✅ Standard: Weißer Hintergrund beim App-Start
         this.workspaceBackground = null;
         this.backgroundColorSettings = null; // ✨ NEU: Audio-Reaktive Einstellungen für Hintergrundfarbe
         this.backgroundTilesStore = null; // ✨ NEU: Referenz zum Kachel-Store

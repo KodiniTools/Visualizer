@@ -559,7 +559,8 @@ function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
   if (canvasManagerInstance.value && !canvasManagerInstance.value.isCanvasEmpty()) {
     canvasManagerInstance.value.drawScene(ctx);
   } else {
-    ctx.fillStyle = '#000000';
+    // ✅ Standard: Weißer Hintergrund (konsistent mit canvasManager default)
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   }
 
@@ -578,8 +579,8 @@ function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
 
 // Separate Funktion für Recording Canvas - rendert IMMER alle Module
 function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
-  // Basis: Schwarzer Hintergrund (immer)
-  ctx.fillStyle = '#000000';
+  // ✅ Basis: Weißer Hintergrund (konsistent mit canvasManager default)
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
   // Canvas Manager (Bilder, Backgrounds)

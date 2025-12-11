@@ -1439,6 +1439,21 @@ export class CanvasManager {
      * ✅ Reliability: Window-level mouseup ensures drag ends even outside canvas
      */
     onWindowMouseUp(e) {
+        // ✨ Text-Rechteck-Auswahl-Modus: Beende Auswahl und rufe Callback auf
+        if (this.currentAction === 'text-selection') {
+            const bounds = this.getTextSelectionBounds();
+
+            if (bounds && this.onTextSelectionComplete) {
+                // Callback mit den Auswahl-Bounds aufrufen
+                this.onTextSelectionComplete(bounds);
+            }
+
+            // Modus beenden
+            this._stopDragListeners();
+            this.currentAction = null;
+            return;
+        }
+
         this._endDrag();
     }
 

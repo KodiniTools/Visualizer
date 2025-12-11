@@ -758,6 +758,8 @@ function draw() {
       canvasManagerInstance.value.drawWorkspaceOutline(ctx);
       // ✅ FIX: Text-Auswahl-Rechteck zeichnen (für Bereichsauswahl beim Text-Hinzufügen)
       canvasManagerInstance.value.drawTextSelectionRect(ctx);
+      // ✅ NEU: Text-Positions-Vorschau zeichnen (für Slider/Schnellauswahl)
+      canvasManagerInstance.value.drawTextPositionPreview(ctx);
       if (gridManagerInstance.value) {
         gridManagerInstance.value.drawGrid(ctx);
       }

@@ -53,6 +53,9 @@ export class CanvasManager {
         this.textSelectionRect = null; // { startX, startY, endX, endY }
         this.onTextSelectionComplete = null; // Callback wenn Auswahl abgeschlossen
 
+        // ✨ NEU: Text-Positions-Vorschau (für Slider/Schnellauswahl)
+        this.textPositionPreview = null; // { relX, relY } - wird als Fadenkreuz gezeichnet
+
         // Bound handlers for cleanup
         this._boundWindowMouseUp = null;
         this._boundWindowMouseMove = null;
@@ -2024,6 +2027,89 @@ export class CanvasManager {
             relCenterX: (x + width / 2) / this.canvas.width,
             relCenterY: (y + height / 2) / this.canvas.height
         };
+    }
+
+    /**
+     * ✨ NEU: Setzt die Positions-Vorschau für manuell eingestellte Text-Position
+     * Wird als Fadenkreuz auf dem Canvas angezeigt
+     * @param {number} relX - Relative X-Position (0-1)
+     * @param {number} relY - Relative Y-Position (0-1)
+     */
+    setTextPositionPreview(relX, relY) {
+        if (relX === null || relY === null) {
+            this.textPositionPreview = null;
+        } else {
+            this.textPositionPreview = { relX, relY };
+        }
+    }
+
+    /**
+     * ✨ NEU: Löscht die Positions-Vorschau
+     */
+    clearTextPositionPreview() {
+        this.textPositionPreview = null;
+    }
+
+    /**
+     * ✨ NEU: Zeichnet die Positions-Vorschau als Fadenkreuz
+     */
+    drawTextPositionPreview(ctx) {
+        if (!this.textPositionPreview) return;
+
+        const x = this.textPositionPreview.relX * this.canvas.width;
+        const y = this.textPositionPreview.relY * this.canvas.height;
+
+        ctx.save();
+
+        // Fadenkreuz-Größe
+        const size = 40;
+        const innerSize = 10;
+
+        // Äußeres Fadenkreuz (gestrichelt)
+        ctx.strokeStyle = '#6ea8fe';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+
+        // Horizontale Linie
+        ctx.beginPath();
+        ctx.moveTo(x - size, y);
+        ctx.lineTo(x - innerSize, y);
+        ctx.moveTo(x + innerSize, y);
+        ctx.lineTo(x + size, y);
+        ctx.stroke();
+
+        // Vertikale Linie
+        ctx.beginPath();
+        ctx.moveTo(x, y - size);
+        ctx.lineTo(x, y - innerSize);
+        ctx.moveTo(x, y + innerSize);
+        ctx.lineTo(x, y + size);
+        ctx.stroke();
+
+        // Innerer Kreis
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(x, y, innerSize, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Mittelpunkt
+        ctx.fillStyle = '#6ea8fe';
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Position als Label
+        ctx.fillStyle = 'rgba(110, 168, 254, 0.9)';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const label = `${Math.round(x)} × ${Math.round(y)} px`;
+        const labelWidth = ctx.measureText(label).width + 12;
+        ctx.fillRect(x - labelWidth / 2, y + size + 5, labelWidth, 20);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(label, x, y + size + 10);
+
+        ctx.restore();
     }
 
     prepareForRecording(targetCanvas) {

@@ -2411,6 +2411,11 @@ function startAddingText() {
   // ✨ NEU: Position zurücksetzen auf Mitte
   resetNewTextPosition();
 
+  // ✅ NEU: Positions-Vorschau auf Canvas anzeigen
+  nextTick(() => {
+    updatePositionPreview();
+  });
+
   nextTick(() => {
     if (newTextInput.value) {
       newTextInput.value.focus();
@@ -2500,6 +2505,8 @@ function updatePositionFromPixel(axis) {
   } else {
     newTextPosition.value.y = newTextPosition.value.yPixel / canvasHeight.value;
   }
+  // ✅ NEU: Canvas-Vorschau aktualisieren
+  updatePositionPreview();
 }
 
 // ✨ NEU: Schnellposition setzen für neuen Text
@@ -2523,6 +2530,26 @@ function setQuickPosition(position) {
     newTextPosition.value.xPixel = Math.round(pos.x * canvasWidth.value);
     newTextPosition.value.yPixel = Math.round(pos.y * canvasHeight.value);
     textSelectionBounds.value = null;
+
+    // ✅ NEU: Canvas-Vorschau aktualisieren
+    updatePositionPreview();
+  }
+}
+
+// ✨ NEU: Aktualisiert die Positions-Vorschau auf dem Canvas
+function updatePositionPreview() {
+  if (canvasManager.value && isAddingNewText.value) {
+    canvasManager.value.setTextPositionPreview(
+      newTextPosition.value.x,
+      newTextPosition.value.y
+    );
+  }
+}
+
+// ✨ NEU: Löscht die Positions-Vorschau vom Canvas
+function clearPositionPreview() {
+  if (canvasManager.value) {
+    canvasManager.value.clearTextPositionPreview();
   }
 }
 
@@ -2758,8 +2785,9 @@ function createNewText() {
   newTextContent.value = '';
   resetNewTextSettings();
 
-  // ✅ FIX: Canvas-Auswahl-Rechteck löschen nach Texterstellung
+  // ✅ FIX: Canvas-Auswahl-Rechteck und Positions-Vorschau löschen nach Texterstellung
   clearTextSelection();
+  clearPositionPreview();
   resetNewTextPosition();
 }
 
@@ -2769,8 +2797,9 @@ function cancelNewText() {
   newTextContent.value = '';
   resetNewTextSettings();
 
-  // ✨ NEU: Canvas-Auswahl-Modus beenden falls aktiv
+  // ✨ NEU: Canvas-Auswahl-Modus und Positions-Vorschau beenden
   cancelTextSelectionOnCanvas();
+  clearPositionPreview();
   textSelectionBounds.value = null;
 }
 
@@ -3602,6 +3631,30 @@ function populateFontDropdown() {
 watch(() => canvasManager.value?.activeObject, (newObj) => {
   handleSelectionChange(newObj);
 }, { deep: true });
+
+// ✨ NEU: Überwache Position-Änderungen für Canvas-Vorschau (Slider v-model)
+watch(() => newTextPosition.value.x, () => {
+  if (isAddingNewText.value) {
+    // Pixel-Wert synchronisieren
+    newTextPosition.value.xPixel = Math.round(newTextPosition.value.x * canvasWidth.value);
+    updatePositionPreview();
+  }
+});
+
+watch(() => newTextPosition.value.y, () => {
+  if (isAddingNewText.value) {
+    // Pixel-Wert synchronisieren
+    newTextPosition.value.yPixel = Math.round(newTextPosition.value.y * canvasHeight.value);
+    updatePositionPreview();
+  }
+});
+
+// ✨ NEU: Vorschau löschen wenn isAddingNewText auf false wechselt
+watch(isAddingNewText, (newValue) => {
+  if (!newValue) {
+    clearPositionPreview();
+  }
+});
 
 // ✨ NEU: Handler für Tastatureingabe zum Öffnen des Texteditors
 function handleOpenTextEditorWithChar(event) {

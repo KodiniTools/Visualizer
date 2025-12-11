@@ -545,6 +545,8 @@ function saveTilePreset() {
 
 // Preset laden
 function loadTilePreset(preset) {
+  console.log('📥 Lade Kachel-Preset:', preset.name);
+
   // Kachelanzahl setzen
   tilesStore.setTileCount(preset.tileCount);
 
@@ -555,21 +557,16 @@ function loadTilePreset(preset) {
   if (preset.tiles) {
     preset.tiles.forEach((presetTile, index) => {
       if (tilesStore.tiles[index]) {
-        tilesStore.updateTileSettings(index, {
-          backgroundColor: presetTile.backgroundColor,
-          backgroundOpacity: presetTile.backgroundOpacity
-        });
+        // ✅ FIX: Existierende Store-Funktionen verwenden
+        tilesStore.setTileBackgroundColor(index, presetTile.backgroundColor);
+        tilesStore.setTileBackgroundOpacity(index, presetTile.backgroundOpacity);
+
         // Audio-reaktive Einstellungen
         if (presetTile.audioReactive) {
-          tilesStore.tiles[index].audioReactive = { ...presetTile.audioReactive };
+          tilesStore.setTileAudioReactive(index, { ...presetTile.audioReactive });
         }
       }
     });
-  }
-
-  // Canvas aktualisieren
-  if (canvasManager.value) {
-    canvasManager.value.redrawCallback();
   }
 
   console.log('✅ Kachel-Preset geladen:', preset.name);

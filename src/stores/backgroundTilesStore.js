@@ -81,8 +81,8 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   // Aktuell ausgewählte Kachel für Bearbeitung
   const selectedTileIndex = ref(null);
 
-  // Lücke zwischen Kacheln (in Pixel)
-  const tileGap = ref(savedSettings?.tileGap || 0);
+  // Lücke zwischen Kacheln (in Pixel) - Standard: 5px
+  const tileGap = ref(savedSettings?.tileGap ?? 5);
 
   // ===== Berechnete Werte (Computed) =====
 

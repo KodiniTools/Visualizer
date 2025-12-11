@@ -2758,6 +2758,9 @@ function createNewText() {
   newTextContent.value = '';
   resetNewTextSettings();
 
+  // ✅ FIX: Canvas-Auswahl-Rechteck löschen nach Texterstellung
+  clearTextSelection();
+  resetNewTextPosition();
 }
 
 // Abbrechen und Eingabemodus verlassen

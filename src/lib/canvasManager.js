@@ -46,6 +46,7 @@ export class CanvasManager {
         this.HANDLE_SIZE = 10;
         this.HANDLE_HIT_TOLERANCE = 4; // Extra pixels for easier handle targeting
         this.isEditingText = false;
+        this.isRecording = false; // ✨ NEU: Flag um Aufnahme-Modus zu erkennen (keine UI-Elemente zeichnen)
 
         // Bound handlers for cleanup
         this._boundWindowMouseUp = null;
@@ -525,7 +526,8 @@ export class CanvasManager {
                 ctx.restore();
 
                 // Auswahlrahmen zeichnen wenn Kachel ausgewählt ist
-                if (store.selectedTileIndex === tileIndex) {
+                // ✨ NICHT während Recording zeichnen (UI-Element)
+                if (!this.isRecording && store.selectedTileIndex === tileIndex) {
                     ctx.save();
                     ctx.strokeStyle = '#6ea8fe';
                     ctx.lineWidth = 3;
@@ -1838,9 +1840,13 @@ export class CanvasManager {
      * Memory: 4.8GB → 50MB (99% Reduktion)
      */
     drawForRecording(ctx, visualizerCallback = null) {
+        // ✨ Recording-Modus aktivieren (keine UI-Elemente wie Auswahlrahmen zeichnen)
+        this.isRecording = true;
+
         if (!this.workspacePreset) {
             this.drawScene(ctx);
             if (visualizerCallback) visualizerCallback(ctx);
+            this.isRecording = false;
             return;
         }
 
@@ -1848,6 +1854,7 @@ export class CanvasManager {
         if (!workspaceBounds) {
             this.drawScene(ctx);
             if (visualizerCallback) visualizerCallback(ctx);
+            this.isRecording = false;
             return;
         }
 
@@ -1905,8 +1912,11 @@ export class CanvasManager {
         
         // ✅ NOTE: Canvas werden NICHT gelöscht - sie werden wiederverwendet!
         // Cleanup nur wenn Recording beendet wird (via reset() oder _cleanupCanvasPool())
+
+        // ✨ Recording-Modus deaktivieren
+        this.isRecording = false;
     }
-    
+
     /**
      * ✅ NEW: Cleanup nach Recording
      * Gibt Image-Context Referenzen frei

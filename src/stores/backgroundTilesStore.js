@@ -2,7 +2,6 @@ import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 
 const STORAGE_KEY = 'visualizer-background-tiles';
-const SETTINGS_VERSION = 2; // Version für Migrations-Logik (v2: tileGap Standard 5px)
 
 // Standard-Kachel-Konfiguration
 function createDefaultTile(index) {
@@ -42,26 +41,13 @@ function createDefaultTile(index) {
   };
 }
 
-// Einstellungen aus localStorage laden (mit Migration)
+// Einstellungen aus localStorage laden
+// Hinweis: tileGap wird bei jeder Aktivierung auf 5px zurückgesetzt (Grundeinstellung)
 function loadSettings() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      const settings = JSON.parse(stored);
-
-      // Migration: Alte Einstellungen ohne Version oder Version < 2
-      if (!settings.version || settings.version < 2) {
-        // Setze neuen Standard für tileGap wenn noch auf altem Default (0)
-        if (settings.tileGap === 0 || settings.tileGap === undefined) {
-          settings.tileGap = 5; // Neuer Standard
-        }
-        settings.version = SETTINGS_VERSION;
-        // Speichere migrierte Einstellungen
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-        console.log('✅ Kachel-Einstellungen migriert auf Version', SETTINGS_VERSION);
-      }
-
-      return settings;
+      return JSON.parse(stored);
     }
   } catch (e) {
     console.warn('Fehler beim Laden der Kachel-Einstellungen:', e);
@@ -153,8 +139,12 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   // Kachel-Modus aktivieren/deaktivieren
   function setTilesEnabled(enabled) {
     tilesEnabled.value = enabled;
-    if (enabled && tiles.value.length === 0) {
-      initializeTiles();
+    if (enabled) {
+      // ✅ Kacheln aktiviert: Immer mit 5px Abstand starten (Grundeinstellung)
+      tileGap.value = 5;
+      if (tiles.value.length === 0) {
+        initializeTiles();
+      }
     }
     persistSettings();
   }
@@ -319,7 +309,6 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   // Einstellungen persistieren (ohne Bilder - nur Metadaten)
   function persistSettings() {
     const settingsToSave = {
-      version: SETTINGS_VERSION, // ✅ NEU: Version für Migrations-Logik
       tilesEnabled: tilesEnabled.value,
       tileCount: tileCount.value,
       tileGap: tileGap.value,

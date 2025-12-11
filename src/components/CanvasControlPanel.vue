@@ -581,28 +581,16 @@ watch([backgroundColor, backgroundOpacity], () => {
   updateColorDisplay();
 });
 
-// Initialisiere beim Mounting
+// Initialisiere beim Mounting - Canvas startet IMMER weiß
 onMounted(() => {
   if (canvasManager.value) {
-    if (canvasManager.value.background) {
-      if (typeof canvasManager.value.background === 'string') {
-        // Versuche zu parsen ob RGBA oder Hex
-        const rgba = parseRGBA(canvasManager.value.background);
-        if (rgba) {
-          backgroundColor.value = rgbToHex(rgba.r, rgba.g, rgba.b);
-          backgroundOpacity.value = rgba.a;
-        } else {
-          backgroundColor.value = canvasManager.value.background;
-        }
-      }
-    } else {
-      // ✅ NEU: Setze weißen Hintergrund als Standard wenn keiner existiert
-      canvasManager.value.setBackground('#ffffff');
-      backgroundColor.value = '#ffffff';
-    }
+    // ✅ Canvas startet IMMER mit weißem Hintergrund (Grundeinstellung)
+    canvasManager.value.setBackground('#ffffff');
+    backgroundColor.value = '#ffffff';
+    backgroundOpacity.value = 1.0;
   }
   updateColorDisplay();
-  console.log('✅ CanvasControlPanel mounted');
+  console.log('✅ CanvasControlPanel mounted - Hintergrund auf Weiß gesetzt');
 });
 </script>
 

@@ -530,46 +530,72 @@ function saveTilePreset() {
     name: `Kachel-Preset ${presetNumber}`,
     tileCount: tilesStore.tileCount,
     tileGap: tilesStore.tileGap,
+    // ✅ Deep Clone der Tile-Einstellungen (ohne Bilder)
     tiles: tilesStore.tiles.map(tile => ({
       backgroundColor: tile.backgroundColor,
       backgroundOpacity: tile.backgroundOpacity,
-      // Keine Bilder speichern - nur Farben und Einstellungen
-      audioReactive: tile.audioReactive ? { ...tile.audioReactive } : null
+      // Deep Clone für audioReactive (enthält verschachtelte effects)
+      audioReactive: tile.audioReactive
+        ? JSON.parse(JSON.stringify(tile.audioReactive))
+        : null
     }))
   };
 
   tilePresets.value.push(newPreset);
   persistTilePresets();
-  console.log('✅ Kachel-Preset gespeichert:', newPreset.name);
+  console.log('✅ Kachel-Preset gespeichert:', newPreset);
 }
 
 // Preset laden
 function loadTilePreset(preset) {
-  console.log('📥 Lade Kachel-Preset:', preset.name);
+  console.log('📥 Lade Kachel-Preset:', preset);
 
-  // Kachelanzahl setzen
-  tilesStore.setTileCount(preset.tileCount);
+  try {
+    // ✅ Sicherstellen dass Kacheln aktiviert sind
+    if (!tilesStore.tilesEnabled) {
+      tilesStore.setTilesEnabled(true);
+    }
 
-  // Abstand setzen
-  tilesStore.setTileGap(preset.tileGap);
+    // Kachelanzahl setzen (initialisiert auch die Kacheln neu)
+    tilesStore.setTileCount(preset.tileCount);
+    console.log('  → Kachelanzahl gesetzt:', preset.tileCount);
 
-  // Kachel-Einstellungen übernehmen
-  if (preset.tiles) {
-    preset.tiles.forEach((presetTile, index) => {
-      if (tilesStore.tiles[index]) {
-        // ✅ FIX: Existierende Store-Funktionen verwenden
-        tilesStore.setTileBackgroundColor(index, presetTile.backgroundColor);
-        tilesStore.setTileBackgroundOpacity(index, presetTile.backgroundOpacity);
+    // Abstand setzen
+    tilesStore.setTileGap(preset.tileGap);
+    console.log('  → Abstand gesetzt:', preset.tileGap);
 
-        // Audio-reaktive Einstellungen
-        if (presetTile.audioReactive) {
-          tilesStore.setTileAudioReactive(index, { ...presetTile.audioReactive });
+    // Kachel-Einstellungen übernehmen
+    if (preset.tiles && Array.isArray(preset.tiles)) {
+      console.log('  → Anzahl Preset-Tiles:', preset.tiles.length);
+      console.log('  → Anzahl Store-Tiles:', tilesStore.tiles.length);
+
+      preset.tiles.forEach((presetTile, index) => {
+        if (index < tilesStore.tiles.length && presetTile) {
+          // Hintergrundfarbe setzen
+          if (presetTile.backgroundColor) {
+            tilesStore.setTileBackgroundColor(index, presetTile.backgroundColor);
+          }
+
+          // Deckkraft setzen
+          if (presetTile.backgroundOpacity !== undefined) {
+            tilesStore.setTileBackgroundOpacity(index, presetTile.backgroundOpacity);
+          }
+
+          // Audio-reaktive Einstellungen (mit Deep Clone)
+          if (presetTile.audioReactive) {
+            const audioSettings = JSON.parse(JSON.stringify(presetTile.audioReactive));
+            tilesStore.setTileAudioReactive(index, audioSettings);
+          }
+
+          console.log(`  → Kachel ${index + 1}: ${presetTile.backgroundColor}`);
         }
-      }
-    });
-  }
+      });
+    }
 
-  console.log('✅ Kachel-Preset geladen:', preset.name);
+    console.log('✅ Kachel-Preset erfolgreich geladen:', preset.name);
+  } catch (error) {
+    console.error('❌ Fehler beim Laden des Presets:', error);
+  }
 }
 
 // Preset löschen

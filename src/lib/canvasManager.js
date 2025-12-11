@@ -30,6 +30,7 @@ export class CanvasManager {
         this.background = null;
         this.workspaceBackground = null;
         this.backgroundColorSettings = null; // ✨ NEU: Audio-Reaktive Einstellungen für Hintergrundfarbe
+        this.backgroundTilesStore = null; // ✨ NEU: Referenz zum Kachel-Store
 
         // ✨ NEU: Gradient-Einstellungen für Hintergrund
         this.gradientSettings = {
@@ -383,6 +384,174 @@ export class CanvasManager {
     }
 
     /**
+     * ✨ NEU: Setzt Referenz zum Background-Tiles-Store
+     */
+    setBackgroundTilesStore(store) {
+        this.backgroundTilesStore = store;
+    }
+
+    /**
+     * ✨ NEU: Zeichnet Kachel-Hintergrund
+     * Wird aufgerufen wenn tilesEnabled im Store aktiviert ist
+     */
+    drawBackgroundTiles(ctx) {
+        if (!this.backgroundTilesStore) return false;
+
+        const store = this.backgroundTilesStore;
+        if (!store.tilesEnabled || store.tiles.length === 0) return false;
+
+        const { rows, cols } = store.gridLayout;
+        const gap = store.tileGap;
+        const canvasWidth = ctx.canvas.width;
+        const canvasHeight = ctx.canvas.height;
+
+        // Kachelgröße berechnen (mit Lücken)
+        const totalGapX = gap * (cols - 1);
+        const totalGapY = gap * (rows - 1);
+        const tileWidth = (canvasWidth - totalGapX) / cols;
+        const tileHeight = (canvasHeight - totalGapY) / rows;
+
+        let tileIndex = 0;
+
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                if (tileIndex >= store.tiles.length) break;
+
+                const tile = store.tiles[tileIndex];
+                const x = col * (tileWidth + gap);
+                const y = row * (tileHeight + gap);
+
+                ctx.save();
+
+                // Kachel-Bereich clippen
+                ctx.beginPath();
+                ctx.rect(x, y, tileWidth, tileHeight);
+                ctx.clip();
+
+                // 1. Hintergrundfarbe der Kachel zeichnen
+                if (tile.backgroundColor) {
+                    ctx.globalAlpha = tile.backgroundOpacity || 1.0;
+                    ctx.fillStyle = tile.backgroundColor;
+                    ctx.fillRect(x, y, tileWidth, tileHeight);
+                    ctx.globalAlpha = 1.0;
+                }
+
+                // 2. Bild der Kachel zeichnen (falls vorhanden)
+                if (tile.image && tile.image.complete) {
+                    const settings = tile.imageSettings || {};
+
+                    // Filter anwenden
+                    const filterString = store.getTileImageFilter(tileIndex);
+                    if (filterString) {
+                        ctx.filter = filterString;
+                    }
+
+                    // Deckkraft
+                    ctx.globalAlpha = (settings.opacity || 100) / 100;
+
+                    // Skalierung und Offset
+                    const scale = settings.scale || 1.0;
+                    const offsetX = settings.offsetX || 0;
+                    const offsetY = settings.offsetY || 0;
+
+                    // Bild-Aspektratio beibehalten (Cover-Modus)
+                    const imgAspect = tile.image.width / tile.image.height;
+                    const tileAspect = tileWidth / tileHeight;
+
+                    let drawWidth, drawHeight, drawX, drawY;
+
+                    if (imgAspect > tileAspect) {
+                        // Bild ist breiter - Höhe anpassen
+                        drawHeight = tileHeight * scale;
+                        drawWidth = drawHeight * imgAspect;
+                    } else {
+                        // Bild ist höher - Breite anpassen
+                        drawWidth = tileWidth * scale;
+                        drawHeight = drawWidth / imgAspect;
+                    }
+
+                    // Zentrieren mit Offset
+                    drawX = x + (tileWidth - drawWidth) / 2 + offsetX;
+                    drawY = y + (tileHeight - drawHeight) / 2 + offsetY;
+
+                    ctx.drawImage(tile.image, drawX, drawY, drawWidth, drawHeight);
+
+                    // Filter zurücksetzen
+                    ctx.filter = 'none';
+                    ctx.globalAlpha = 1.0;
+                }
+
+                ctx.restore();
+
+                // Auswahlrahmen zeichnen wenn Kachel ausgewählt ist
+                if (store.selectedTileIndex === tileIndex) {
+                    ctx.save();
+                    ctx.strokeStyle = '#6ea8fe';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([8, 4]);
+                    ctx.strokeRect(x + 1.5, y + 1.5, tileWidth - 3, tileHeight - 3);
+                    ctx.setLineDash([]);
+
+                    // Kachel-Nummer anzeigen
+                    ctx.fillStyle = 'rgba(110, 168, 254, 0.9)';
+                    ctx.font = 'bold 16px Arial';
+                    const label = `Kachel ${tileIndex + 1}`;
+                    const textWidth = ctx.measureText(label).width;
+                    ctx.fillRect(x + 5, y + 5, textWidth + 12, 24);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(label, x + 11, y + 22);
+                    ctx.restore();
+                }
+
+                tileIndex++;
+            }
+        }
+
+        return true; // Kacheln wurden gezeichnet
+    }
+
+    /**
+     * ✨ NEU: Prüft ob ein Punkt innerhalb einer Kachel liegt
+     * Gibt den Kachel-Index zurück oder -1
+     */
+    getTileAtPosition(x, y) {
+        if (!this.backgroundTilesStore) return -1;
+
+        const store = this.backgroundTilesStore;
+        if (!store.tilesEnabled || store.tiles.length === 0) return -1;
+
+        const { rows, cols } = store.gridLayout;
+        const gap = store.tileGap;
+        const canvasWidth = this.canvas.width;
+        const canvasHeight = this.canvas.height;
+
+        const totalGapX = gap * (cols - 1);
+        const totalGapY = gap * (rows - 1);
+        const tileWidth = (canvasWidth - totalGapX) / cols;
+        const tileHeight = (canvasHeight - totalGapY) / rows;
+
+        let tileIndex = 0;
+
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                if (tileIndex >= store.tiles.length) return -1;
+
+                const tileX = col * (tileWidth + gap);
+                const tileY = row * (tileHeight + gap);
+
+                if (x >= tileX && x < tileX + tileWidth &&
+                    y >= tileY && y < tileY + tileHeight) {
+                    return tileIndex;
+                }
+
+                tileIndex++;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
      * ✨ NEU: Berechnet Audio-Reaktive Werte für Hintergründe
      * Verwendet die gleiche Logik wie multiImageManager
      */
@@ -681,6 +850,63 @@ export class CanvasManager {
 
     drawScene(ctx) {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+        // ✨ NEU: Prüfen ob Kachel-Hintergrund aktiviert ist
+        const tilesDrawn = this.drawBackgroundTiles(ctx);
+        if (tilesDrawn) {
+            // Kacheln wurden gezeichnet - normalen Hintergrund überspringen
+            // Aber weiter mit Workspace, Bildern und Text
+            // 2. WORKSPACE BACKGROUND (falls vorhanden)
+            if (this.workspaceBackground && this.workspacePreset) {
+                const workspaceBounds = this.getWorkspaceBounds();
+                if (workspaceBounds) {
+                    ctx.save();
+
+                    if (this.fotoManager) {
+                        this.fotoManager.applyFilters(ctx, this.workspaceBackground);
+                    }
+
+                    const wsAudioReactive = this._getAudioReactiveValues(this.workspaceBackground.fotoSettings?.audioReactive);
+                    if (wsAudioReactive && wsAudioReactive.hasEffects) {
+                        this._applyAudioReactiveFilters(ctx, wsAudioReactive);
+                    }
+
+                    const img = this.workspaceBackground.imageObject;
+
+                    let drawBounds = { ...workspaceBounds };
+                    if (wsAudioReactive && wsAudioReactive.effects.scale) {
+                        const scale = wsAudioReactive.effects.scale.scale;
+                        const centerX = workspaceBounds.x + workspaceBounds.width / 2;
+                        const centerY = workspaceBounds.y + workspaceBounds.height / 2;
+                        drawBounds.width = workspaceBounds.width * scale;
+                        drawBounds.height = workspaceBounds.height * scale;
+                        drawBounds.x = centerX - drawBounds.width / 2;
+                        drawBounds.y = centerY - drawBounds.height / 2;
+                    }
+
+                    ctx.drawImage(
+                        img,
+                        drawBounds.x,
+                        drawBounds.y,
+                        drawBounds.width,
+                        drawBounds.height
+                    );
+
+                    if (this.fotoManager) {
+                        this.fotoManager.resetFilters(ctx);
+                    }
+
+                    ctx.restore();
+                }
+            }
+
+            // 4. TEXTE rendern
+            if (this.textManager && this.textManager.draw) {
+                this.textManager.draw(ctx);
+            }
+
+            return; // Fertig - normalen Hintergrund überspringen
+        }
 
         // 1. GLOBAL BACKGROUND (Color or Image with Filters)
         // ✨ NEU: Audio-Reaktive Effekte für Hintergrundfarbe

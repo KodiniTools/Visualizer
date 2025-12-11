@@ -66,6 +66,7 @@ import { useTextStore } from './stores/textStore.js';
 import { useVisualizerStore } from './stores/visualizerStore.js';
 import { useGridStore } from './stores/gridStore.js';
 import { useWorkspaceStore } from './stores/workspaceStore.js';
+import { useBackgroundTilesStore } from './stores/backgroundTilesStore.js';
 import FileUploadPanel from './components/FileUploadPanel.vue';
 import PlayerPanel from './components/PlayerPanel.vue';
 import RecorderPanel from './components/RecorderPanel.vue';
@@ -96,6 +97,7 @@ const textStore = useTextStore();
 const visualizerStore = useVisualizerStore();
 const gridStore = useGridStore();
 const workspaceStore = useWorkspaceStore();
+const backgroundTilesStore = useBackgroundTilesStore();
 const audioRef = ref(null);
 const canvasRef = ref(null);
 
@@ -975,6 +977,9 @@ onMounted(async () => {
       multiImageManager: multiImageManagerInstance.value
     });
     canvasManagerInstance.value.setupInteractionHandlers();
+
+    // ✨ NEU: Background Tiles Store mit CanvasManager verbinden
+    canvasManagerInstance.value.setBackgroundTilesStore(backgroundTilesStore);
 
     // KeyboardShortcuts werden jetzt AUSSERHALB des canvas-Blocks initialisiert
 

@@ -186,6 +186,9 @@
             </div>
           </div>
         </div>
+
+        <!-- Kachel-Hintergrund Panel -->
+        <BackgroundTilesPanel />
       </div>
 
       <!-- Undo/Redo Sektion -->
@@ -255,6 +258,7 @@
 
 <script setup>
 import { ref, inject, computed, onMounted, watch } from 'vue';
+import BackgroundTilesPanel from './BackgroundTilesPanel.vue';
 
 const canvasManager = inject('canvasManager');
 const backgroundColor = ref('#000000'); // Hex-Farbe ohne Alpha

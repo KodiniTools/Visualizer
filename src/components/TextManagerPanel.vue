@@ -632,6 +632,100 @@ Zeile 3..."
         </div>
       </details>
 
+      <!-- ✨ NEU: Position & Bereich (klappbar) -->
+      <details class="collapsible-section" :open="textSelectionBounds !== null">
+        <summary class="section-header">
+          <span class="section-icon">📍</span>
+          <span>Position & Bereich</span>
+          <span v-if="textSelectionBounds" class="status-badge active">Auswahl</span>
+        </summary>
+        <div class="section-content">
+          <!-- Rechteck auf Canvas zeichnen -->
+          <div class="control-group">
+            <button
+              @click="startTextSelectionOnCanvas"
+              :class="['btn-selection', 'full-width', { active: isSelectingOnCanvas }]"
+              :disabled="isSelectingOnCanvas"
+            >
+              <span v-if="isSelectingOnCanvas">✓ Zeichnen Sie ein Rechteck auf dem Canvas...</span>
+              <span v-else>🖱️ Bereich auf Canvas markieren</span>
+            </button>
+            <div class="hint-text">
+              Ziehen Sie ein Rechteck auf dem Canvas, um die Position des Textes festzulegen
+            </div>
+          </div>
+
+          <!-- Auswahl-Info (nur wenn Auswahl vorhanden) -->
+          <div v-if="textSelectionBounds" class="selection-info">
+            <div class="selection-preview">
+              <span class="selection-label">Ausgewählter Bereich:</span>
+              <span class="selection-value">{{ Math.round(textSelectionBounds.width) }} × {{ Math.round(textSelectionBounds.height) }} px</span>
+            </div>
+            <button @click="clearTextSelection" class="btn-small btn-clear">
+              Auswahl löschen
+            </button>
+          </div>
+
+          <!-- Manuelle Position X -->
+          <div class="control-group">
+            <label>Position X: {{ Math.round(newTextPosition.x * 100) }}%</label>
+            <input
+              type="range"
+              v-model.number="newTextPosition.x"
+              min="0"
+              max="1"
+              step="0.01"
+              class="slider"
+            />
+            <input
+              type="number"
+              v-model.number="newTextPosition.xPixel"
+              @input="updatePositionFromPixel('x')"
+              class="number-input"
+              :placeholder="'0 - ' + canvasWidth"
+            />
+            <span class="unit-label">px</span>
+          </div>
+
+          <!-- Manuelle Position Y -->
+          <div class="control-group">
+            <label>Position Y: {{ Math.round(newTextPosition.y * 100) }}%</label>
+            <input
+              type="range"
+              v-model.number="newTextPosition.y"
+              min="0"
+              max="1"
+              step="0.01"
+              class="slider"
+            />
+            <input
+              type="number"
+              v-model.number="newTextPosition.yPixel"
+              @input="updatePositionFromPixel('y')"
+              class="number-input"
+              :placeholder="'0 - ' + canvasHeight"
+            />
+            <span class="unit-label">px</span>
+          </div>
+
+          <!-- Schnellauswahl-Buttons -->
+          <div class="control-group">
+            <label>Schnellauswahl:</label>
+            <div class="position-grid">
+              <button @click="setQuickPosition('top-left')" class="btn-pos" title="Oben Links">↖</button>
+              <button @click="setQuickPosition('top-center')" class="btn-pos" title="Oben Mitte">↑</button>
+              <button @click="setQuickPosition('top-right')" class="btn-pos" title="Oben Rechts">↗</button>
+              <button @click="setQuickPosition('middle-left')" class="btn-pos" title="Mitte Links">←</button>
+              <button @click="setQuickPosition('center')" class="btn-pos active" title="Zentrum">⊙</button>
+              <button @click="setQuickPosition('middle-right')" class="btn-pos" title="Mitte Rechts">→</button>
+              <button @click="setQuickPosition('bottom-left')" class="btn-pos" title="Unten Links">↙</button>
+              <button @click="setQuickPosition('bottom-center')" class="btn-pos" title="Unten Mitte">↓</button>
+              <button @click="setQuickPosition('bottom-right')" class="btn-pos" title="Unten Rechts">↘</button>
+            </div>
+          </div>
+        </div>
+      </details>
+
       <div class="button-row">
         <button @click="createNewText" class="btn-primary" :disabled="!newTextContent.trim()">
           Zum Canvas hinzufügen
@@ -654,6 +748,9 @@ Zeile 3..."
     <div v-else class="panel-section">
       <button @click="startAddingText" class="btn-primary full-width">
         Neuen Text hinzufügen
+      </button>
+      <button @click="startAddingTextWithSelection" class="btn-selection full-width" style="margin-top: 8px;">
+        🖱️ Mit Bereichsauswahl hinzufügen
       </button>
     </div>
 
@@ -787,6 +884,75 @@ Zeile 3..."
               >
                 Rechts
               </button>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- ✨ NEU: Position (klappbar) -->
+      <details class="collapsible-section">
+        <summary class="section-header">
+          <span class="section-icon">📍</span>
+          <span>Position</span>
+        </summary>
+        <div class="section-content">
+          <!-- Position X -->
+          <div class="control-group">
+            <label>Position X: {{ Math.round(selectedText.relX * 100) }}%</label>
+            <input
+              type="range"
+              v-model.number="selectedText.relX"
+              @input="updateText"
+              min="0"
+              max="1"
+              step="0.01"
+              class="slider"
+            />
+            <input
+              type="number"
+              :value="Math.round(selectedText.relX * canvasWidth)"
+              @input="updateSelectedTextPixelPosition('x', $event)"
+              class="number-input"
+              :placeholder="'0 - ' + canvasWidth"
+            />
+            <span class="unit-label">px</span>
+          </div>
+
+          <!-- Position Y -->
+          <div class="control-group">
+            <label>Position Y: {{ Math.round(selectedText.relY * 100) }}%</label>
+            <input
+              type="range"
+              v-model.number="selectedText.relY"
+              @input="updateText"
+              min="0"
+              max="1"
+              step="0.01"
+              class="slider"
+            />
+            <input
+              type="number"
+              :value="Math.round(selectedText.relY * canvasHeight)"
+              @input="updateSelectedTextPixelPosition('y', $event)"
+              class="number-input"
+              :placeholder="'0 - ' + canvasHeight"
+            />
+            <span class="unit-label">px</span>
+          </div>
+
+          <!-- Schnellauswahl-Buttons -->
+          <div class="control-group">
+            <label>Schnellauswahl:</label>
+            <div class="position-grid">
+              <button @click="setSelectedTextQuickPosition('top-left')" class="btn-pos" title="Oben Links">↖</button>
+              <button @click="setSelectedTextQuickPosition('top-center')" class="btn-pos" title="Oben Mitte">↑</button>
+              <button @click="setSelectedTextQuickPosition('top-right')" class="btn-pos" title="Oben Rechts">↗</button>
+              <button @click="setSelectedTextQuickPosition('middle-left')" class="btn-pos" title="Mitte Links">←</button>
+              <button @click="setSelectedTextQuickPosition('center')" class="btn-pos" title="Zentrum">⊙</button>
+              <button @click="setSelectedTextQuickPosition('middle-right')" class="btn-pos" title="Mitte Rechts">→</button>
+              <button @click="setSelectedTextQuickPosition('bottom-left')" class="btn-pos" title="Unten Links">↙</button>
+              <button @click="setSelectedTextQuickPosition('bottom-center')" class="btn-pos" title="Unten Mitte">↓</button>
+              <button @click="setSelectedTextQuickPosition('bottom-right')" class="btn-pos" title="Unten Rechts">↘</button>
             </div>
           </div>
         </div>
@@ -1908,7 +2074,7 @@ Zeile 3..."
 </template>
 
 <script setup>
-import { ref, inject, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, inject, onMounted, onUnmounted, nextTick, watch, computed } from 'vue';
 
 const canvasManager = inject('canvasManager');
 const fontManager = inject('fontManager');
@@ -1980,6 +2146,22 @@ const newTextStyle = ref({
   autoFit: false,        // ✨ NEU: Automatische Größenanpassung
   autoFitPadding: 10     // ✨ NEU: Abstand zum Rand in %
 });
+
+// ✨ NEU: Position für neuen Text
+const newTextPosition = ref({
+  x: 0.5,      // Relativ (0-1), Standard: Mitte
+  y: 0.5,      // Relativ (0-1), Standard: Mitte
+  xPixel: 0,   // Pixel-Wert für Anzeige
+  yPixel: 0    // Pixel-Wert für Anzeige
+});
+
+// ✨ NEU: Canvas-Rechteck-Auswahl-Modus
+const isSelectingOnCanvas = ref(false);
+const textSelectionBounds = ref(null); // { x, y, width, height, relX, relY, ... }
+
+// ✨ NEU: Canvas-Dimensionen für Pixel-Berechnungen
+const canvasWidth = ref(1920);
+const canvasHeight = ref(1080);
 
 // ✨ LocalStorage Key für gespeicherte Einstellungen
 const SAVED_SETTINGS_KEY = 'visualizer_text_settings';
@@ -2223,6 +2405,12 @@ function startAddingText() {
   // ✨ Gespeicherte Einstellungen laden (falls vorhanden)
   loadSavedSettings();
 
+  // ✨ NEU: Canvas-Dimensionen aktualisieren
+  updateCanvasDimensions();
+
+  // ✨ NEU: Position zurücksetzen auf Mitte
+  resetNewTextPosition();
+
   nextTick(() => {
     if (newTextInput.value) {
       newTextInput.value.focus();
@@ -2230,7 +2418,151 @@ function startAddingText() {
     // ✨ Font-Dropdown im Eingabemodus befüllen
     populateNewTextFontDropdown();
   });
+}
 
+// ✨ NEU: Starte Text hinzufügen mit Bereichsauswahl
+function startAddingTextWithSelection() {
+  // Erst in den Eingabemodus wechseln
+  startAddingText();
+
+  // Dann direkt den Canvas-Auswahl-Modus starten
+  nextTick(() => {
+    startTextSelectionOnCanvas();
+  });
+}
+
+// ✨ NEU: Canvas-Dimensionen aktualisieren
+function updateCanvasDimensions() {
+  if (canvasManager.value && canvasManager.value.canvas) {
+    canvasWidth.value = canvasManager.value.canvas.width;
+    canvasHeight.value = canvasManager.value.canvas.height;
+
+    // Pixel-Werte aktualisieren
+    newTextPosition.value.xPixel = Math.round(newTextPosition.value.x * canvasWidth.value);
+    newTextPosition.value.yPixel = Math.round(newTextPosition.value.y * canvasHeight.value);
+  }
+}
+
+// ✨ NEU: Position für neuen Text zurücksetzen
+function resetNewTextPosition() {
+  newTextPosition.value = {
+    x: 0.5,
+    y: 0.5,
+    xPixel: Math.round(canvasWidth.value / 2),
+    yPixel: Math.round(canvasHeight.value / 2)
+  };
+  textSelectionBounds.value = null;
+  isSelectingOnCanvas.value = false;
+}
+
+// ✨ NEU: Canvas-Rechteck-Auswahl starten
+function startTextSelectionOnCanvas() {
+  if (!canvasManager.value) return;
+
+  isSelectingOnCanvas.value = true;
+
+  canvasManager.value.startTextSelectionMode((bounds) => {
+    // Callback wenn Auswahl abgeschlossen
+    textSelectionBounds.value = bounds;
+
+    // Position aus der Auswahl übernehmen (Zentrum des Rechtecks)
+    newTextPosition.value.x = bounds.relCenterX;
+    newTextPosition.value.y = bounds.relCenterY;
+    newTextPosition.value.xPixel = Math.round(bounds.centerX);
+    newTextPosition.value.yPixel = Math.round(bounds.centerY);
+
+    isSelectingOnCanvas.value = false;
+
+    console.log('✅ Text-Bereich ausgewählt:', bounds);
+  });
+}
+
+// ✨ NEU: Canvas-Auswahl abbrechen
+function cancelTextSelectionOnCanvas() {
+  if (canvasManager.value) {
+    canvasManager.value.cancelTextSelectionMode();
+  }
+  isSelectingOnCanvas.value = false;
+}
+
+// ✨ NEU: Text-Auswahl löschen
+function clearTextSelection() {
+  textSelectionBounds.value = null;
+  if (canvasManager.value) {
+    canvasManager.value.cancelTextSelectionMode();
+  }
+}
+
+// ✨ NEU: Position aus Pixel-Eingabe aktualisieren
+function updatePositionFromPixel(axis) {
+  if (axis === 'x') {
+    newTextPosition.value.x = newTextPosition.value.xPixel / canvasWidth.value;
+  } else {
+    newTextPosition.value.y = newTextPosition.value.yPixel / canvasHeight.value;
+  }
+}
+
+// ✨ NEU: Schnellposition setzen für neuen Text
+function setQuickPosition(position) {
+  const positions = {
+    'top-left': { x: 0.1, y: 0.1 },
+    'top-center': { x: 0.5, y: 0.1 },
+    'top-right': { x: 0.9, y: 0.1 },
+    'middle-left': { x: 0.1, y: 0.5 },
+    'center': { x: 0.5, y: 0.5 },
+    'middle-right': { x: 0.9, y: 0.5 },
+    'bottom-left': { x: 0.1, y: 0.9 },
+    'bottom-center': { x: 0.5, y: 0.9 },
+    'bottom-right': { x: 0.9, y: 0.9 }
+  };
+
+  const pos = positions[position];
+  if (pos) {
+    newTextPosition.value.x = pos.x;
+    newTextPosition.value.y = pos.y;
+    newTextPosition.value.xPixel = Math.round(pos.x * canvasWidth.value);
+    newTextPosition.value.yPixel = Math.round(pos.y * canvasHeight.value);
+    textSelectionBounds.value = null;
+  }
+}
+
+// ✨ NEU: Schnellposition setzen für ausgewählten Text
+function setSelectedTextQuickPosition(position) {
+  if (!selectedText.value) return;
+
+  const positions = {
+    'top-left': { x: 0.1, y: 0.1 },
+    'top-center': { x: 0.5, y: 0.1 },
+    'top-right': { x: 0.9, y: 0.1 },
+    'middle-left': { x: 0.1, y: 0.5 },
+    'center': { x: 0.5, y: 0.5 },
+    'middle-right': { x: 0.9, y: 0.5 },
+    'bottom-left': { x: 0.1, y: 0.9 },
+    'bottom-center': { x: 0.5, y: 0.9 },
+    'bottom-right': { x: 0.9, y: 0.9 }
+  };
+
+  const pos = positions[position];
+  if (pos) {
+    selectedText.value.relX = pos.x;
+    selectedText.value.relY = pos.y;
+    updateText();
+  }
+}
+
+// ✨ NEU: Pixel-Position für ausgewählten Text aktualisieren
+function updateSelectedTextPixelPosition(axis, event) {
+  if (!selectedText.value) return;
+
+  const value = parseFloat(event.target.value);
+  if (isNaN(value)) return;
+
+  if (axis === 'x') {
+    selectedText.value.relX = value / canvasWidth.value;
+  } else {
+    selectedText.value.relY = value / canvasHeight.value;
+  }
+  updateText();
 }
 
 // ✨ Befülle das Font-Dropdown im Eingabemodus mit System + Custom Fonts
@@ -2312,8 +2644,16 @@ function createNewText() {
     console.log(`📐 Auto-Fit: Schriftgröße angepasst auf ${fontSize}px`);
   }
 
+  // ✨ NEU: Position aus Auswahl oder manueller Eingabe verwenden
+  const posX = newTextPosition.value.x;
+  const posY = newTextPosition.value.y;
+
+  console.log(`📍 Text-Position: X=${Math.round(posX * 100)}%, Y=${Math.round(posY * 100)}%`);
+
   // ✨ Erstelle den Text mit den benutzerdefinierten Stil-Einstellungen
   const newTextObj = canvasManager.value.addText(normalizedText, {
+    relX: posX,  // ✨ NEU: Position aus Eingabe/Auswahl
+    relY: posY,  // ✨ NEU: Position aus Eingabe/Auswahl
     fontSize: fontSize,
     fontFamily: newTextStyle.value.fontFamily,
     color: newTextStyle.value.color,
@@ -2425,6 +2765,10 @@ function cancelNewText() {
   isAddingNewText.value = false;
   newTextContent.value = '';
   resetNewTextSettings();
+
+  // ✨ NEU: Canvas-Auswahl-Modus beenden falls aktiv
+  cancelTextSelectionOnCanvas();
+  textSelectionBounds.value = null;
 }
 
 // ✨ Alle Einstellungen für neuen Text zurücksetzen
@@ -3305,6 +3649,9 @@ onMounted(() => {
 
   if (!canvasManager.value) return;
 
+  // ✨ NEU: Canvas-Dimensionen initialisieren
+  updateCanvasDimensions();
+
   // ✨ FIX: Registriere Event-Listener wenn verfügbar
   if (canvasManager.value.onSelectionChanged && !eventListenerRegistered) {
     canvasManager.value.onSelectionChanged(handleSelectionChange);
@@ -3342,7 +3689,33 @@ onUnmounted(() => {
   eventListenerRegistered = false;
   // ✨ NEU: Event-Listener entfernen
   window.removeEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar);
+
+  // ✨ NEU: Canvas-Auswahl-Modus beenden falls aktiv
+  if (isSelectingOnCanvas.value && canvasManager.value) {
+    canvasManager.value.cancelTextSelectionMode();
+  }
 });
+
+// ✨ NEU: Watch für Position-Synchronisation (Relativ → Pixel)
+watch(
+  () => [newTextPosition.value.x, newTextPosition.value.y],
+  ([newX, newY]) => {
+    newTextPosition.value.xPixel = Math.round(newX * canvasWidth.value);
+    newTextPosition.value.yPixel = Math.round(newY * canvasHeight.value);
+  }
+);
+
+// ✨ NEU: Watch für Canvas-Dimensionen Updates
+watch(
+  () => canvasManager.value?.canvas,
+  (canvas) => {
+    if (canvas) {
+      canvasWidth.value = canvas.width;
+      canvasHeight.value = canvas.height;
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>
@@ -4087,5 +4460,146 @@ h4 {
   background: linear-gradient(135deg, #2a5a2a 0%, #3a6a3a 100%);
   color: #8fdf8f;
   border: 1px solid #4a7a4a;
+}
+
+/* ✨ NEU: Position & Bereich Styles */
+.btn-selection {
+  background: linear-gradient(135deg, #3a5a8a 0%, #2a4a7a 100%);
+  border: 2px dashed #6ea8fe;
+  color: #6ea8fe;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.btn-selection:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4a6a9a 0%, #3a5a8a 100%);
+  border-color: #8ec8ff;
+  color: #8ec8ff;
+}
+
+.btn-selection.active {
+  background: linear-gradient(135deg, #2a5a2a 0%, #3a6a3a 100%);
+  border-color: #8fdf8f;
+  border-style: solid;
+  color: #8fdf8f;
+  animation: pulse-border 1.5s ease-in-out infinite;
+}
+
+.btn-selection:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: #8fdf8f; }
+  50% { border-color: #4a7a4a; }
+}
+
+.selection-info {
+  background: rgba(110, 168, 254, 0.1);
+  border: 1px solid rgba(110, 168, 254, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.selection-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.selection-label {
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.selection-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6ea8fe;
+}
+
+.btn-clear {
+  background: transparent;
+  border: 1px solid #dc3545;
+  color: #dc3545;
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+.btn-clear:hover {
+  background: rgba(220, 53, 69, 0.2);
+}
+
+.number-input {
+  width: 70px;
+  padding: 6px 8px;
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.number-input:focus {
+  border-color: #6ea8fe;
+  outline: none;
+}
+
+.unit-label {
+  color: #888;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.position-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.btn-pos {
+  background: linear-gradient(135deg, #333 0%, #2a2a2a 100%);
+  border: 1px solid #444;
+  color: #aaa;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-pos:hover {
+  background: linear-gradient(135deg, #3a3a3a 0%, #333 100%);
+  border-color: #6ea8fe;
+  color: #6ea8fe;
+}
+
+.btn-pos.active {
+  background: linear-gradient(135deg, #3a5a8a 0%, #2a4a7a 100%);
+  border-color: #6ea8fe;
+  color: #6ea8fe;
+}
+
+.control-group .slider + .number-input {
+  margin-top: 0;
+}
+
+.control-group .number-input + .unit-label {
+  display: inline;
 }
 </style>

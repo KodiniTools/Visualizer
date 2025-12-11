@@ -48,6 +48,11 @@ export class CanvasManager {
         this.isEditingText = false;
         this.isRecording = false; // ✨ NEU: Flag um Aufnahme-Modus zu erkennen (keine UI-Elemente zeichnen)
 
+        // ✨ NEU: Text-Rechteck-Auswahl-Modus
+        this.textSelectionMode = false;
+        this.textSelectionRect = null; // { startX, startY, endX, endY }
+        this.onTextSelectionComplete = null; // Callback wenn Auswahl abgeschlossen
+
         // Bound handlers for cleanup
         this._boundWindowMouseUp = null;
         this._boundWindowMouseMove = null;
@@ -888,6 +893,8 @@ export class CanvasManager {
         if (targetCtx === this.ctx) {
             this.drawInteractiveElements(targetCtx);
             this.drawWorkspaceOutline(targetCtx);
+            // ✨ Text-Auswahl-Rechteck zeichnen (immer obendrauf)
+            this.drawTextSelectionRect(targetCtx);
         }
     }
 
@@ -1231,6 +1238,19 @@ export class CanvasManager {
         if (this.isEditingText) return;
         const { x, y } = this.getMousePos(e);
 
+        // ✨ Text-Rechteck-Auswahl-Modus: Starte Rechteck-Zeichnung
+        if (this.textSelectionMode) {
+            this.textSelectionRect = {
+                startX: x,
+                startY: y,
+                endX: x,
+                endY: y
+            };
+            this.currentAction = 'text-selection';
+            this._startDragListeners();
+            return;
+        }
+
         if (this.activeObject) {
             const bounds = this.getObjectBounds(this.activeObject);
             if (bounds) {
@@ -1314,6 +1334,14 @@ export class CanvasManager {
         if (this.isEditingText) return;
         const { x, y } = this.getMousePos(e);
 
+        // ✨ Text-Rechteck-Auswahl-Modus: Aktualisiere Rechteck während des Ziehens
+        if (this.currentAction === 'text-selection' && this.textSelectionRect) {
+            this.textSelectionRect.endX = x;
+            this.textSelectionRect.endY = y;
+            this.redrawCallback();
+            return;
+        }
+
         if (this.currentAction) {
             if (!this.activeObject) return;
 
@@ -1372,6 +1400,24 @@ export class CanvasManager {
     }
 
     onMouseUp(e) {
+        // ✨ Text-Rechteck-Auswahl-Modus: Beende Auswahl und rufe Callback auf
+        if (this.currentAction === 'text-selection') {
+            const bounds = this.getTextSelectionBounds();
+
+            if (bounds && this.onTextSelectionComplete) {
+                // Callback mit den Auswahl-Bounds aufrufen
+                this.onTextSelectionComplete(bounds);
+            }
+
+            // Modus beenden
+            this._stopDragListeners();
+            this.currentAction = null;
+
+            // NICHT cancelTextSelectionMode aufrufen - das macht das Panel
+            // wenn der Benutzer den Text erstellt hat
+            return;
+        }
+
         this._endDrag();
     }
 
@@ -1400,6 +1446,15 @@ export class CanvasManager {
      * ✅ Reliability: Window-level mousemove allows drag to continue outside canvas
      */
     onWindowMouseMove(e) {
+        // ✨ Text-Rechteck-Auswahl: Auch außerhalb des Canvas aktualisieren
+        if (this.currentAction === 'text-selection' && this.textSelectionRect) {
+            const { x, y } = this.getMousePos(e);
+            this.textSelectionRect.endX = x;
+            this.textSelectionRect.endY = y;
+            this.redrawCallback();
+            return;
+        }
+
         if (!this.currentAction || !this.activeObject) return;
 
         const { x, y } = this.getMousePos(e);
@@ -1812,6 +1867,140 @@ export class CanvasManager {
             y: objectBounds.y - offset,
             width: size,
             height: size
+        };
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ✨ TEXT-RECHTECK-AUSWAHL-MODUS
+    // Ermöglicht dem Benutzer, ein Rechteck auf dem Canvas zu zeichnen,
+    // um die Position und Größe des neuen Textes festzulegen
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * ✨ Aktiviert den Text-Rechteck-Auswahl-Modus
+     * @param {Function} callback - Wird aufgerufen wenn die Auswahl abgeschlossen ist
+     *                              Erhält { x, y, width, height, relX, relY, relWidth, relHeight }
+     */
+    startTextSelectionMode(callback) {
+        this.textSelectionMode = true;
+        this.textSelectionRect = null;
+        this.onTextSelectionComplete = callback;
+        this.canvas.style.cursor = 'crosshair';
+
+        // Deselektiere aktives Objekt
+        this.setActiveObject(null);
+        this.redrawCallback();
+
+        console.log('[CanvasManager] ✨ Text-Auswahl-Modus aktiviert');
+    }
+
+    /**
+     * ✨ Beendet den Text-Rechteck-Auswahl-Modus
+     */
+    cancelTextSelectionMode() {
+        this.textSelectionMode = false;
+        this.textSelectionRect = null;
+        this.onTextSelectionComplete = null;
+        this.canvas.style.cursor = 'default';
+        this.redrawCallback();
+
+        console.log('[CanvasManager] ✨ Text-Auswahl-Modus beendet');
+    }
+
+    /**
+     * ✨ Zeichnet das Auswahl-Rechteck während der Auswahl
+     */
+    drawTextSelectionRect(ctx) {
+        if (!this.textSelectionMode || !this.textSelectionRect) return;
+
+        const rect = this.textSelectionRect;
+        const x = Math.min(rect.startX, rect.endX);
+        const y = Math.min(rect.startY, rect.endY);
+        const width = Math.abs(rect.endX - rect.startX);
+        const height = Math.abs(rect.endY - rect.startY);
+
+        // Mindestgröße für sichtbare Vorschau
+        if (width < 5 || height < 5) return;
+
+        ctx.save();
+
+        // Halbtransparenter Hintergrund
+        ctx.fillStyle = 'rgba(110, 168, 254, 0.15)';
+        ctx.fillRect(x, y, width, height);
+
+        // Gestrichelter Rahmen
+        ctx.strokeStyle = '#6ea8fe';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 4]);
+        ctx.strokeRect(x, y, width, height);
+
+        // Größenanzeige
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(110, 168, 254, 0.95)';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const label = `${Math.round(width)} × ${Math.round(height)} px`;
+        const labelPadding = 6;
+        const labelWidth = ctx.measureText(label).width + labelPadding * 2;
+        const labelHeight = 20;
+        const labelX = x + width / 2 - labelWidth / 2;
+        const labelY = y + height / 2 - labelHeight / 2;
+
+        // Label-Hintergrund
+        ctx.fillRect(labelX, labelY, labelWidth, labelHeight);
+
+        // Label-Text
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(label, x + width / 2, y + height / 2);
+
+        // Ecken-Markierungen
+        ctx.fillStyle = '#6ea8fe';
+        const cornerSize = 8;
+
+        // Oben-Links
+        ctx.fillRect(x - cornerSize / 2, y - cornerSize / 2, cornerSize, cornerSize);
+        // Oben-Rechts
+        ctx.fillRect(x + width - cornerSize / 2, y - cornerSize / 2, cornerSize, cornerSize);
+        // Unten-Links
+        ctx.fillRect(x - cornerSize / 2, y + height - cornerSize / 2, cornerSize, cornerSize);
+        // Unten-Rechts
+        ctx.fillRect(x + width - cornerSize / 2, y + height - cornerSize / 2, cornerSize, cornerSize);
+
+        ctx.restore();
+    }
+
+    /**
+     * ✨ Gibt die normalisierten Bounds des Auswahl-Rechtecks zurück
+     */
+    getTextSelectionBounds() {
+        if (!this.textSelectionRect) return null;
+
+        const rect = this.textSelectionRect;
+        const x = Math.min(rect.startX, rect.endX);
+        const y = Math.min(rect.startY, rect.endY);
+        const width = Math.abs(rect.endX - rect.startX);
+        const height = Math.abs(rect.endY - rect.startY);
+
+        // Mindestgröße prüfen (mindestens 30x30 Pixel)
+        if (width < 30 || height < 30) return null;
+
+        return {
+            x,
+            y,
+            width,
+            height,
+            // Relative Werte für Canvas-unabhängige Positionierung
+            relX: x / this.canvas.width,
+            relY: y / this.canvas.height,
+            relWidth: width / this.canvas.width,
+            relHeight: height / this.canvas.height,
+            // Zentrum für Text-Positionierung
+            centerX: x + width / 2,
+            centerY: y + height / 2,
+            relCenterX: (x + width / 2) / this.canvas.width,
+            relCenterY: (y + height / 2) / this.canvas.height
         };
     }
 

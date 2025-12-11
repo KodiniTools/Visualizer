@@ -74,12 +74,32 @@ function fileNameToDisplayName(fileName) {
 
 /**
  * Generiert eine eindeutige ID aus Kategorie und Dateiname
+ * Verwendet einen Map um Duplikate zu erkennen und zu nummerieren
  */
+const usedIds = new Map(); // Track used IDs per category
+
 function generateId(category, fileName) {
   const nameWithoutExt = path.basename(fileName, path.extname(fileName));
-  const cleanName = nameWithoutExt.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const cleanName = nameWithoutExt.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
   const prefix = category.substring(0, 2);
-  return `${prefix}-${cleanName}`;
+  let baseId = `${prefix}-${cleanName}`;
+
+  // Ensure unique ID by adding counter if duplicate
+  if (!usedIds.has(category)) {
+    usedIds.set(category, new Set());
+  }
+
+  const categoryIds = usedIds.get(category);
+  let finalId = baseId;
+  let counter = 2;
+
+  while (categoryIds.has(finalId)) {
+    finalId = `${baseId}-${counter}`;
+    counter++;
+  }
+
+  categoryIds.add(finalId);
+  return finalId;
 }
 
 /**
@@ -213,6 +233,9 @@ function scanAndSaveCategory(categoryDef) {
 function generateGallery() {
   console.log('\n🖼️  Gallery Generator (Modular)\n');
   console.log('━'.repeat(50));
+
+  // Reset used IDs for fresh generation
+  usedIds.clear();
 
   // Prüfen ob gallery-Ordner existiert
   if (!fs.existsSync(GALLERY_PATH)) {

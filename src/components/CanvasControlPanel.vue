@@ -361,27 +361,34 @@ function persistPresets() {
 
 // Aktuellen Zustand als Preset speichern
 function saveCurrentAsPreset() {
+  // Debug: Aktuelle Werte anzeigen
+  console.log('🔍 Aktuelle Werte vor dem Speichern:');
+  console.log('  - gradientEnabled:', gradientEnabled.value);
+  console.log('  - backgroundColor:', backgroundColor.value);
+  console.log('  - bgAudioEnabled:', bgAudioEnabled.value);
+
   const presetNumber = savedPresets.value.length + 1;
   const newPreset = {
     id: Date.now(),
     name: `Preset ${presetNumber}`,
     backgroundColor: backgroundColor.value,
     backgroundOpacity: backgroundOpacity.value,
-    gradientEnabled: gradientEnabled.value,
+    // ✅ Explizit Boolean verwenden
+    gradientEnabled: Boolean(gradientEnabled.value),
     gradientColor2: gradientColor2.value,
     gradientType: gradientType.value,
     gradientAngle: gradientAngle.value,
     // Audio-reaktive Einstellungen
-    bgAudioEnabled: bgAudioEnabled.value,
+    bgAudioEnabled: Boolean(bgAudioEnabled.value),
     bgAudioSource: bgAudioSource.value,
     bgAudioSmoothing: bgAudioSmoothing.value,
     bgEffects: {
-      hue: { enabled: bgEffectHue.value, intensity: bgEffectHueIntensity.value },
-      brightness: { enabled: bgEffectBrightness.value, intensity: bgEffectBrightnessIntensity.value },
-      saturation: { enabled: bgEffectSaturation.value, intensity: bgEffectSaturationIntensity.value },
-      glow: { enabled: bgEffectGlow.value, intensity: bgEffectGlowIntensity.value },
-      gradientPulse: { enabled: bgEffectGradientPulse.value, intensity: bgEffectGradientPulseIntensity.value },
-      gradientRotation: { enabled: bgEffectGradientRotation.value, intensity: bgEffectGradientRotationIntensity.value }
+      hue: { enabled: Boolean(bgEffectHue.value), intensity: bgEffectHueIntensity.value },
+      brightness: { enabled: Boolean(bgEffectBrightness.value), intensity: bgEffectBrightnessIntensity.value },
+      saturation: { enabled: Boolean(bgEffectSaturation.value), intensity: bgEffectSaturationIntensity.value },
+      glow: { enabled: Boolean(bgEffectGlow.value), intensity: bgEffectGlowIntensity.value },
+      gradientPulse: { enabled: Boolean(bgEffectGradientPulse.value), intensity: bgEffectGradientPulseIntensity.value },
+      gradientRotation: { enabled: Boolean(bgEffectGradientRotation.value), intensity: bgEffectGradientRotationIntensity.value }
     }
   };
 

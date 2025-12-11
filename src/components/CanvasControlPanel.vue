@@ -435,12 +435,10 @@ function loadPreset(preset) {
 
     // Canvas aktualisieren
     updateFromColorPicker();
-    if (gradientEnabled.value) {
-      updateGradientSettings();
-    }
-    if (bgAudioEnabled.value) {
-      updateBgAudioReactive();
-    }
+    // ✅ FIX: Gradient-Einstellungen IMMER aktualisieren (auch zum Deaktivieren!)
+    updateGradientSettings();
+    // ✅ FIX: Audio-Einstellungen IMMER aktualisieren (auch zum Deaktivieren!)
+    updateBgAudioReactive();
 
     console.log('✅ Canvas-Preset erfolgreich geladen:', preset.name);
   } catch (error) {

@@ -1321,8 +1321,22 @@ export class CanvasManager {
             // ✅ Reliability: Add window listeners for drag outside canvas
             this._startDragListeners();
             this.canvas.style.cursor = 'grabbing';
+            // ✨ Kachel-Auswahl aufheben wenn ein Objekt ausgewählt wird
+            if (this.backgroundTilesStore && this.backgroundTilesStore.tilesEnabled) {
+                this.backgroundTilesStore.selectTile(-1);
+            }
         } else {
             this.setActiveObject(null);
+
+            // ✨ NEU: Prüfen ob eine Kachel angeklickt wurde
+            if (this.backgroundTilesStore && this.backgroundTilesStore.tilesEnabled) {
+                const tileIndex = this.getTileAtPosition(x, y);
+                if (tileIndex >= 0) {
+                    this.backgroundTilesStore.selectTile(tileIndex);
+                } else {
+                    this.backgroundTilesStore.selectTile(-1);
+                }
+            }
         }
 
         this.redrawCallback();
@@ -1395,6 +1409,14 @@ export class CanvasManager {
         if (hoveredObj || this.activeObject) {
             this.canvas.style.cursor = 'pointer';
         } else {
+            // ✨ NEU: Cursor ändern wenn über einer Kachel gehovert wird
+            if (this.backgroundTilesStore && this.backgroundTilesStore.tilesEnabled) {
+                const tileIndex = this.getTileAtPosition(x, y);
+                if (tileIndex >= 0) {
+                    this.canvas.style.cursor = 'pointer';
+                    return;
+                }
+            }
             this.canvas.style.cursor = 'default';
         }
     }

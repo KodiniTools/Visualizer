@@ -428,11 +428,24 @@ export class CanvasManager {
                 ctx.rect(x, y, tileWidth, tileHeight);
                 ctx.clip();
 
+                // ✨ Audio-Reaktive Werte für diese Kachel berechnen
+                const audioReactive = this._getAudioReactiveValues(tile.audioReactive);
+
                 // 1. Hintergrundfarbe der Kachel zeichnen
                 if (tile.backgroundColor) {
                     ctx.globalAlpha = tile.backgroundOpacity || 1.0;
+
+                    // ✨ Audio-Reaktive Effekte auf Hintergrundfarbe anwenden
+                    if (audioReactive && audioReactive.hasEffects) {
+                        this._applyAudioReactiveFilters(ctx, audioReactive);
+                    }
+
                     ctx.fillStyle = tile.backgroundColor;
                     ctx.fillRect(x, y, tileWidth, tileHeight);
+
+                    // Filter und Alpha zurücksetzen für Bild
+                    ctx.filter = 'none';
+                    ctx.shadowBlur = 0;
                     ctx.globalAlpha = 1.0;
                 }
 
@@ -440,17 +453,44 @@ export class CanvasManager {
                 if (tile.image && tile.image.complete) {
                     const settings = tile.imageSettings || {};
 
-                    // Filter anwenden
-                    const filterString = store.getTileImageFilter(tileIndex);
-                    if (filterString) {
-                        ctx.filter = filterString;
+                    // Statische Filter anwenden
+                    let filterString = store.getTileImageFilter(tileIndex);
+
+                    // ✨ Audio-Reaktive Filter hinzufügen
+                    if (audioReactive && audioReactive.hasEffects) {
+                        const effects = audioReactive.effects;
+                        if (effects.hue) {
+                            filterString += ` hue-rotate(${effects.hue.hueRotate}deg)`;
+                        }
+                        if (effects.brightness) {
+                            filterString += ` brightness(${effects.brightness.brightness}%)`;
+                        }
+                        if (effects.saturation) {
+                            filterString += ` saturate(${effects.saturation.saturation}%)`;
+                        }
+                        if (effects.blur) {
+                            filterString += ` blur(${effects.blur.blur}px)`;
+                        }
+                        if (effects.glow) {
+                            ctx.shadowColor = effects.glow.glowColor;
+                            ctx.shadowBlur = effects.glow.glowBlur;
+                            ctx.shadowOffsetX = 0;
+                            ctx.shadowOffsetY = 0;
+                        }
+                    }
+
+                    if (filterString.trim()) {
+                        ctx.filter = filterString.trim();
                     }
 
                     // Deckkraft
                     ctx.globalAlpha = (settings.opacity || 100) / 100;
 
-                    // Skalierung und Offset
-                    const scale = settings.scale || 1.0;
+                    // Skalierung und Offset (inkl. Audio-reaktive Skalierung)
+                    let scale = settings.scale || 1.0;
+                    if (audioReactive && audioReactive.effects.scale) {
+                        scale *= audioReactive.effects.scale.scale;
+                    }
                     const offsetX = settings.offsetX || 0;
                     const offsetY = settings.offsetY || 0;
 
@@ -478,6 +518,7 @@ export class CanvasManager {
 
                     // Filter zurücksetzen
                     ctx.filter = 'none';
+                    ctx.shadowBlur = 0;
                     ctx.globalAlpha = 1.0;
                 }
 

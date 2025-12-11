@@ -23,6 +23,20 @@ function createDefaultTile(index) {
       scale: 1.0,
       offsetX: 0,
       offsetY: 0
+    },
+    // ✨ NEU: Audio-Reaktiv Einstellungen pro Kachel
+    audioReactive: {
+      enabled: false,
+      source: 'bass',      // 'bass', 'mid', 'treble', 'volume', 'dynamic'
+      smoothing: 50,       // 0-100
+      effects: {
+        hue: { enabled: false, intensity: 80 },
+        brightness: { enabled: false, intensity: 80 },
+        saturation: { enabled: false, intensity: 80 },
+        glow: { enabled: false, intensity: 80 },
+        scale: { enabled: false, intensity: 50 },
+        blur: { enabled: false, intensity: 50 }
+      }
     }
   };
 }
@@ -207,6 +221,64 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
     }
   }
 
+  // ✨ NEU: Audio-Reaktiv für Kachel aktivieren/deaktivieren
+  function setTileAudioReactiveEnabled(index, enabled) {
+    if (tiles.value[index]) {
+      if (!tiles.value[index].audioReactive) {
+        tiles.value[index].audioReactive = createDefaultTile(index).audioReactive;
+      }
+      tiles.value[index].audioReactive.enabled = enabled;
+      persistSettings();
+    }
+  }
+
+  // ✨ NEU: Audio-Quelle für Kachel setzen
+  function setTileAudioSource(index, source) {
+    if (tiles.value[index]?.audioReactive) {
+      tiles.value[index].audioReactive.source = source;
+      persistSettings();
+    }
+  }
+
+  // ✨ NEU: Audio-Glättung für Kachel setzen
+  function setTileAudioSmoothing(index, smoothing) {
+    if (tiles.value[index]?.audioReactive) {
+      tiles.value[index].audioReactive.smoothing = Math.max(0, Math.min(100, smoothing));
+      persistSettings();
+    }
+  }
+
+  // ✨ NEU: Audio-Effekt für Kachel aktivieren/deaktivieren
+  function setTileAudioEffect(index, effectName, enabled) {
+    if (tiles.value[index]?.audioReactive?.effects?.[effectName]) {
+      tiles.value[index].audioReactive.effects[effectName].enabled = enabled;
+      persistSettings();
+    }
+  }
+
+  // ✨ NEU: Audio-Effekt-Intensität für Kachel setzen
+  function setTileAudioEffectIntensity(index, effectName, intensity) {
+    if (tiles.value[index]?.audioReactive?.effects?.[effectName]) {
+      tiles.value[index].audioReactive.effects[effectName].intensity = Math.max(0, Math.min(100, intensity));
+      persistSettings();
+    }
+  }
+
+  // ✨ NEU: Alle Audio-Reaktiv-Einstellungen für Kachel auf einmal setzen
+  function setTileAudioReactive(index, settings) {
+    if (tiles.value[index]) {
+      tiles.value[index].audioReactive = {
+        ...createDefaultTile(index).audioReactive,
+        ...settings,
+        effects: {
+          ...createDefaultTile(index).audioReactive.effects,
+          ...(settings.effects || {})
+        }
+      };
+      persistSettings();
+    }
+  }
+
   // Lücke zwischen Kacheln setzen
   function setTileGap(gap) {
     tileGap.value = Math.max(0, Math.min(50, gap));
@@ -240,7 +312,14 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
         backgroundColor: tile.backgroundColor,
         backgroundOpacity: tile.backgroundOpacity,
         imageSrc: tile.imageSrc,
-        imageSettings: { ...tile.imageSettings }
+        imageSettings: { ...tile.imageSettings },
+        // ✨ NEU: Audio-Reaktiv-Einstellungen speichern
+        audioReactive: tile.audioReactive ? {
+          enabled: tile.audioReactive.enabled,
+          source: tile.audioReactive.source,
+          smoothing: tile.audioReactive.smoothing,
+          effects: { ...tile.audioReactive.effects }
+        } : null
       }))
     };
     saveSettings(settingsToSave);
@@ -331,6 +410,13 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
     resetTile,
     initializeTiles,
     getTileImageFilter,
-    restoreImages
+    restoreImages,
+    // ✨ NEU: Audio-Reaktiv Actions
+    setTileAudioReactiveEnabled,
+    setTileAudioSource,
+    setTileAudioSmoothing,
+    setTileAudioEffect,
+    setTileAudioEffectIntensity,
+    setTileAudioReactive
   };
 });

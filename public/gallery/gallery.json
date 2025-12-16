@@ -33,6 +33,16 @@
       "description_en": "Repeating patterns and textures",
       "count": 6,
       "jsonFile": "gallery/patterns/category.json"
+    },
+    {
+      "id": "text",
+      "name": "Text",
+      "name_en": "Text",
+      "icon": "T",
+      "description": "Fertige Textvorlagen als PNG, JPG und SVG",
+      "description_en": "Ready-made text templates as PNG, JPG and SVG",
+      "count": 0,
+      "jsonFile": "gallery/text/category.json"
     }
   ]
 }

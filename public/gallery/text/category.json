@@ -1,0 +1,14 @@
+{
+  "_generated": "2025-12-16T00:00:00.000Z",
+  "_info": "Automatisch generiert für Kategorie \"Text\". Führe \"npm run gallery:update\" aus, um zu aktualisieren.",
+  "category": {
+    "id": "text",
+    "name": "Text",
+    "name_en": "Text",
+    "icon": "T",
+    "description": "Fertige Textvorlagen als PNG, JPG und SVG",
+    "description_en": "Ready-made text templates as PNG, JPG and SVG"
+  },
+  "count": 0,
+  "images": []
+}

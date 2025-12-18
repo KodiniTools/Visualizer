@@ -664,13 +664,13 @@ onUnmounted(() => {
 
 <style scoped>
 .recorder-panel {
-  background-color: #2a2a2a;
+  background-color: var(--panel, #151b1d);
   border-radius: 8px;
-  padding: 12px;
-  border: 1px solid #333;
+  padding: 10px;
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .panel-header {
@@ -681,38 +681,51 @@ onUnmounted(() => {
 
 h3 {
   margin: 0;
-  color: #e0e0e0;
+  color: var(--text, #E9E9EB);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+h3::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='3' fill='white'/%3E%3C/svg%3E");
+  background-size: contain;
+  filter: drop-shadow(0 0 1px rgba(0,0,0,0.8));
 }
 
 /* Status Indicator */
 .status-indicator {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: rgba(158, 190, 193, 0.05);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.15));
   transition: all 0.3s ease;
 }
 
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #666;
+  background: var(--muted, #A8A992);
   animation: pulse 2s infinite;
 }
 
 .status-text {
-  font-size: 11px;
+  font-size: 0.6rem;
   font-weight: 600;
-  letter-spacing: 0.5px;
-  color: #888;
+  letter-spacing: 0.4px;
+  color: var(--muted, #A8A992);
 }
 
 .status-indicator.idle .status-dot {
@@ -789,21 +802,21 @@ h3 {
 /* Recorder Controls */
 .recorder-controls {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
 }
 
 .btn {
   flex: 1;
-  min-width: 80px;
+  min-width: 70px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 12px;
+  gap: 5px;
+  padding: 6px 10px;
   border: none;
-  border-radius: 6px;
-  font-size: 11px;
+  border-radius: 5px;
+  font-size: 0.6rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -812,8 +825,8 @@ h3 {
 }
 
 .btn .icon {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
 }
 
 .btn:disabled {
@@ -822,13 +835,13 @@ h3 {
 }
 
 .btn-prepare {
-  background: rgba(110, 168, 254, 0.2);
-  color: #6ea8fe;
-  border: 1px solid rgba(110, 168, 254, 0.3);
+  background: rgba(96, 145, 152, 0.2);
+  color: var(--accent-light, #BCE5E5);
+  border: 1px solid rgba(96, 145, 152, 0.3);
 }
 
 .btn-prepare:hover:not(:disabled) {
-  background: rgba(110, 168, 254, 0.3);
+  background: rgba(96, 145, 152, 0.3);
   transform: translateY(-1px);
 }
 

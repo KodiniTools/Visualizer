@@ -1198,21 +1198,22 @@ html, body {
 }
 #app {
   height: 100%;
-  background-color: #121212;
-  color: #e0e0e0;
-  font-family: sans-serif;
+  background-color: var(--bg, #0f1416);
+  color: var(--text, #E9E9EB);
+  font-family: var(--font-sans, sans-serif);
+  font-size: 12px;
 }
 #app-container {
   min-height: 100%;
-  background-color: #121212;
+  background-color: var(--bg, #0f1416);
 }
 .layout-grid {
   display: grid;
-  grid-template-columns: 380px 1fr 380px;
+  grid-template-columns: 340px 1fr 340px;
   grid-template-rows: minmax(0, 1fr);
-  gap: 16px;
+  gap: 12px;
   height: 100vh;
-  padding: 16px;
+  padding: 12px;
 }
 .left-toolbar, .center-column, .right-panel {
   border-radius: 12px;
@@ -1232,36 +1233,36 @@ html, body {
 /* Scrollbar Styling für die Side-Panels */
 .left-toolbar::-webkit-scrollbar,
 .right-panel::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 .left-toolbar::-webkit-scrollbar-track,
 .right-panel::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
+  background: rgba(158, 190, 193, 0.1);
+  border-radius: 3px;
 }
 .left-toolbar::-webkit-scrollbar-thumb,
 .right-panel::-webkit-scrollbar-thumb {
-  background: rgba(110, 168, 254, 0.4);
-  border-radius: 4px;
+  background: rgba(96, 145, 152, 0.4);
+  border-radius: 3px;
 }
 .left-toolbar::-webkit-scrollbar-thumb:hover,
 .right-panel::-webkit-scrollbar-thumb:hover {
-  background: rgba(110, 168, 254, 0.6);
+  background: rgba(96, 145, 152, 0.6);
 }
 </style>
 
 <style scoped>
 /* Panel Styles */
 .left-toolbar, .right-panel {
-  background-color: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  padding: 12px;
-  gap: 12px;
+  background-color: var(--panel, #151b1d);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  padding: 10px;
+  gap: 10px;
 }
 
 /* ZUSÄTZLICHER PLATZ am Ende für Dropdown-Inhalte */
 .right-panel {
-  padding-bottom: 100px;
+  padding-bottom: 80px;
 }
 
 .canvas-wrapper {
@@ -1291,21 +1292,21 @@ canvas {
 .canvas-images-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: linear-gradient(180deg, #1a1a1a 0%, #252525 100%);
-  border-radius: 8px;
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  border: 1px solid #333;
-  border-left: 3px solid #6ea8fe;
+  gap: 10px;
+  background: linear-gradient(180deg, var(--panel, #151b1d) 0%, rgba(96, 145, 152, 0.08) 100%);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border-left: 2px solid var(--accent, #609198);
 }
 
 .canvas-images-label {
-  font-size: 11px;
+  font-size: 0.65rem;
   font-weight: 600;
-  color: #6ea8fe;
+  color: var(--accent, #609198);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -1330,36 +1331,36 @@ canvas {
 }
 
 .canvas-images-scroll::-webkit-scrollbar-thumb {
-  background: #555;
+  background: var(--muted, #A8A992);
   border-radius: 3px;
 }
 
 .canvas-images-scroll::-webkit-scrollbar-thumb:hover {
-  background: #6ea8fe;
+  background: var(--accent, #609198);
 }
 
 .canvas-thumb {
   position: relative;
-  width: 50px;
-  height: 50px;
-  border-radius: 6px;
+  width: 44px;
+  height: 44px;
+  border-radius: 5px;
   overflow: hidden;
   cursor: pointer;
-  border: 2px solid #444;
+  border: 2px solid var(--border-color, rgba(158, 190, 193, 0.3));
   transition: all 0.2s ease;
-  background-color: #1e1e1e;
+  background-color: var(--btn, #1c2426);
   flex-shrink: 0;
 }
 
 .canvas-thumb:hover {
-  border-color: #6ea8fe;
+  border-color: var(--accent, #609198);
   transform: scale(1.08);
-  box-shadow: 0 4px 12px rgba(110, 168, 254, 0.4);
+  box-shadow: 0 4px 12px rgba(96, 145, 152, 0.4);
 }
 
 .canvas-thumb.selected {
-  border-color: #6ea8fe;
-  box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.5), 0 4px 12px rgba(110, 168, 254, 0.4);
+  border-color: var(--accent, #609198);
+  box-shadow: 0 0 0 2px rgba(96, 145, 152, 0.5), 0 4px 12px rgba(96, 145, 152, 0.4);
 }
 
 .canvas-thumb img {
@@ -1373,13 +1374,13 @@ canvas {
   position: absolute;
   bottom: 2px;
   left: 2px;
-  background: rgba(110, 168, 254, 0.95);
-  color: #121212;
-  font-size: 9px;
+  background: rgba(96, 145, 152, 0.95);
+  color: #E9E9EB;
+  font-size: 0.55rem;
   font-weight: 700;
   padding: 1px 4px;
   border-radius: 3px;
-  min-width: 14px;
+  min-width: 12px;
   text-align: center;
 }
 </style>

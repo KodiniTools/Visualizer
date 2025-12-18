@@ -105,74 +105,88 @@ function onDrop(event) {
 
 <style scoped>
 .panel {
-  background-color: #2a2a2a;
-  border: 1px solid #333;
-  padding: 12px;
+  background-color: var(--panel, #151b1d);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  padding: 10px;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 h3 {
   margin: 0;
-  color: #e0e0e0;
+  color: var(--text, #E9E9EB);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+h3::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Cpath d='M9 18V5l12-2v13'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Ccircle cx='18' cy='16' r='3'/%3E%3C/svg%3E");
+  background-size: contain;
+  filter: drop-shadow(0 0 1px rgba(0,0,0,0.8));
 }
 
 /* Upload Area */
 .upload-area {
-  background: linear-gradient(135deg, #333 0%, #3a3a3a 100%);
-  border: 2px dashed #555;
+  background: linear-gradient(135deg, var(--btn, #1c2426) 0%, rgba(96, 145, 152, 0.1) 100%);
+  border: 2px dashed var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 8px;
-  padding: 20px;
+  padding: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  min-height: 140px;
+  gap: 10px;
+  min-height: 100px;
   justify-content: center;
 }
 
 .upload-area:hover {
-  border-color: #6ea8fe;
-  background: linear-gradient(135deg, #3a3a3a 0%, #404040 100%);
-  transform: translateY(-2px);
+  border-color: var(--accent, #609198);
+  background: linear-gradient(135deg, rgba(96, 145, 152, 0.15) 0%, rgba(188, 229, 229, 0.1) 100%);
+  transform: translateY(-1px);
 }
 
 .upload-area.drag-over {
-  border-color: #6ea8fe;
-  background: linear-gradient(135deg, rgba(110, 168, 254, 0.1) 0%, rgba(110, 168, 254, 0.15) 100%);
+  border-color: var(--accent-light, #BCE5E5);
+  background: linear-gradient(135deg, rgba(96, 145, 152, 0.2) 0%, rgba(188, 229, 229, 0.15) 100%);
   border-style: solid;
-  transform: scale(1.02);
+  transform: scale(1.01);
 }
 
-/* Upload Icon */
+/* Upload Icon - Minimalistic white with black outline */
 .upload-icon {
-  width: 48px;
-  height: 48px;
-  color: #6ea8fe;
+  width: 36px;
+  height: 36px;
+  color: var(--accent-light, #BCE5E5);
   transition: all 0.3s ease;
-}
-
-.upload-area:hover .upload-icon {
-  transform: translateY(-4px);
-  color: #5a96e8;
-}
-
-.upload-area.drag-over .upload-icon {
-  transform: scale(1.2);
-  color: #5a96e8;
 }
 
 .upload-icon svg {
   width: 100%;
   height: 100%;
+  stroke: #ffffff;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 1px rgba(0,0,0,0.6));
+}
+
+.upload-area:hover .upload-icon {
+  transform: translateY(-3px);
+}
+
+.upload-area.drag-over .upload-icon {
+  transform: scale(1.15);
 }
 
 /* Upload Text */
@@ -180,19 +194,19 @@ h3 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   text-align: center;
 }
 
 .upload-main {
-  font-size: 12px;
-  color: #e0e0e0;
+  font-size: 0.7rem;
+  color: var(--text, #E9E9EB);
   font-weight: 600;
 }
 
 .upload-sub {
-  font-size: 10px;
-  color: #888;
+  font-size: 0.6rem;
+  color: var(--muted, #A8A992);
   font-weight: 500;
 }
 
@@ -200,74 +214,66 @@ h3 {
 .supported-formats {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .format-label {
-  font-size: 9px;
-  color: #666;
+  font-size: 0.55rem;
+  color: var(--muted, #A8A992);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   font-weight: 600;
 }
 
 .format-item {
-  font-size: 9px;
-  color: #888;
-  background-color: rgba(110, 168, 254, 0.1);
-  padding: 2px 6px;
+  font-size: 0.55rem;
+  color: var(--accent, #609198);
+  background-color: rgba(96, 145, 152, 0.15);
+  padding: 2px 5px;
   border-radius: 3px;
   font-weight: 500;
-  border: 1px solid rgba(110, 168, 254, 0.2);
+  border: 1px solid rgba(96, 145, 152, 0.25);
 }
 
 /* Tracks Info */
 .tracks-info {
-  background-color: rgba(110, 168, 254, 0.1);
-  border: 1px solid rgba(110, 168, 254, 0.3);
-  border-radius: 6px;
-  padding: 8px 10px;
+  background-color: rgba(197, 222, 176, 0.1);
+  border: 1px solid rgba(197, 222, 176, 0.3);
+  border-radius: 5px;
+  padding: 6px 8px;
 }
 
 .info-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .info-icon {
-  width: 16px;
-  height: 16px;
-  color: #6ea8fe;
+  width: 14px;
+  height: 14px;
+  color: var(--success, #C5DEB0);
   flex-shrink: 0;
 }
 
 .info-text {
-  font-size: 11px;
-  color: #6ea8fe;
+  font-size: 0.65rem;
+  color: var(--success, #C5DEB0);
   font-weight: 600;
 }
 
 /* Responsive */
 @media (max-width: 400px) {
   .upload-area {
-    padding: 16px;
-    min-height: 120px;
+    padding: 12px;
+    min-height: 90px;
   }
-  
+
   .upload-icon {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .upload-main {
-    font-size: 11px;
-  }
-  
-  .upload-sub {
-    font-size: 9px;
+    width: 32px;
+    height: 32px;
   }
 }
 </style>

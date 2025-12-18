@@ -7,46 +7,57 @@ style.css - Haupt-Stylesheet für den Audio Visualizer Pro
 :root {
     /* Define variables for both themes here */
     --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    --green: #22c55e;
+    --green: #C5DEB0;
     --red: #ef4444;
     --yellow: #eab308;
+    /* Modern color palette */
+    --palette-cyan: #BCE5E5;
+    --palette-beige: #A8A992;
+    --palette-grayblue: #9EBEC1;
+    --palette-lightgray: #E9E9EB;
+    --palette-lightgreen: #C5DEB0;
+    --palette-teal: #609198;
 }
 
-/* 🎨 Dark Theme (Almost Black) */
+/* 🎨 Dark Theme (Modern Teal) */
 [data-theme='dark'] {
-    --bg: #121212;
-    --panel: #161616;
-    --text: #f0f0f0;
-    --muted: #888888;
-    --accent: #6ea8fe;
-    --accent-text: #0a0a0a; /* Text on accent background */
-    --btn: #222222;
-    --btn-hover: #333333;
-    --ring: #3e66d3;
-    --border-color: rgb(255 255 255 / 15%);
+    --bg: #0f1416;
+    --panel: #151b1d;
+    --text: #E9E9EB;
+    --muted: #A8A992;
+    --accent: #609198;
+    --accent-light: #BCE5E5;
+    --accent-text: #0f1416;
+    --btn: #1c2426;
+    --btn-hover: #2a3335;
+    --ring: #609198;
+    --border-color: rgb(158 190 193 / 20%);
     --shadow-color: rgb(0 0 0 / 50%);
-    --gradient-color: rgb(255 255 255 / 3%);
-    --panel-highlight: rgb(255 255 255 / 6%);
-    --progress-bg: rgb(255 255 255 / 15%);
-    --body-gradient: radial-gradient(1200px 600px at 80% -20%, #1b2452 0%, transparent 60%), var(--bg);
+    --gradient-color: rgb(188 229 229 / 3%);
+    --panel-highlight: rgb(188 229 229 / 5%);
+    --progress-bg: rgb(158 190 193 / 20%);
+    --success: #C5DEB0;
+    --body-gradient: radial-gradient(1200px 600px at 80% -20%, #1a2a2d 0%, transparent 60%), var(--bg);
 }
 
-/* 💡 Light Theme */
+/* 💡 Light Theme (Modern Clean) */
 [data-theme='light'] {
-    --bg: #F0F0F0;         /* quantum-4 */
-    --panel: #FFFFFF;       /* quantum-2 */
-    --text: #1a1a1a;
-    --muted: #555555;
-    --accent: #005cda;
+    --bg: #E9E9EB;
+    --panel: #FFFFFF;
+    --text: #1a2426;
+    --muted: #6a7072;
+    --accent: #609198;
+    --accent-light: #BCE5E5;
     --accent-text: #FFFFFF;
-    --btn: #E8E8E8;         /* quantum-1 */
-    --btn-hover: #D4D4D4;    /* quantum-3 */
-    --ring: #3e66d3;
-    --border-color: #C0C0C0; /* quantum-5 */
-    --shadow-color: rgb(0 0 0 / 10%);
-    --gradient-color: rgb(0 0 0 / 2%);
-    --panel-highlight: rgb(0 0 0 / 2%);
-    --progress-bg: rgb(0 0 0 / 10%);
+    --btn: #9EBEC1;
+    --btn-hover: #BCE5E5;
+    --ring: #609198;
+    --border-color: #9EBEC1;
+    --shadow-color: rgb(0 0 0 / 12%);
+    --gradient-color: rgb(96 145 152 / 3%);
+    --panel-highlight: rgb(96 145 152 / 5%);
+    --progress-bg: rgb(96 145 152 / 20%);
+    --success: #C5DEB0;
     --body-gradient: var(--bg);
 }
 
@@ -64,10 +75,11 @@ body {
     margin: 0;
     font-family: var(--font-sans);
     color: var(--text);
-    background: #121212;
+    background: var(--bg, #0f1416);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-size: 15px;
+    font-size: 12px;
+    line-height: 1.4;
     transition: background 0.3s, color 0.3s;
 }
 
@@ -84,25 +96,25 @@ header {
 }
 
 .title {
-    font-size: 1.6rem;
+    font-size: 1.2rem;
     font-weight: 600;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.3px;
 }
 
 .muted {
     color: var(--muted);
-    font-size: 0.95rem;
+    font-size: 0.75rem;
 }
 
 .panel {
     background: linear-gradient(180deg, var(--gradient-color), transparent);
     background-color: var(--panel);
     border: 1px solid var(--border-color);
-    backdrop-filter: blur(4px);
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 10px 30px var(--shadow-color), inset 0 1px 0 var(--panel-highlight);
-    margin-bottom: 16px;
+    backdrop-filter: blur(8px);
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 4px 16px var(--shadow-color), inset 0 1px 0 var(--panel-highlight);
+    margin-bottom: 10px;
     transition: background-color 0.3s, border-color 0.3s;
 }
 
@@ -114,22 +126,25 @@ header {
 
 label {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.7rem;
     color: var(--muted);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 500;
 }
 
 /* Base styles for form elements */
 select, .btn, .custom-file-upload, input[type="text"], input[type="color"], textarea {
     width: 100%;
-    border-radius: 12px;
+    border-radius: 8px;
     border: 1px solid var(--border-color);
     background: var(--btn);
     color: var(--text);
-    padding: 10px 12px;
+    padding: 6px 10px;
     outline: none;
     transition: all 0.2s ease;
-    font-size: 1rem;
+    font-size: 0.8rem;
 }
 
 input[type="text"], textarea {
@@ -197,9 +212,11 @@ button:disabled, .btn:disabled {
     cursor: pointer;
     font-weight: 500;
     text-decoration: none;
-    gap: 8px;
+    gap: 6px;
     text-align: center;
-    overflow: hidden; /* Ensure child elements don't overflow */
+    overflow: hidden;
+    font-size: 0.75rem;
+    letter-spacing: 0.2px;
 }
 
 :where(.btn:hover:not(:disabled)) {
@@ -232,8 +249,8 @@ button:disabled, .btn:disabled {
 
 .btn .icon,
 .btn svg {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
 }
 
 .canvas-wrap {
@@ -290,21 +307,22 @@ button:disabled, .btn:disabled {
 }
 
 .theme-switcher button {
-    padding: 10px; /* Let padding define size */
+    padding: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .theme-switcher button svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
 }
 
 .lang-switcher button {
-    padding: 8px 16px;
+    padding: 6px 12px;
     font-weight: 600;
     width: auto;
+    font-size: 0.7rem;
 }
 
 
@@ -322,13 +340,14 @@ button:disabled, .btn:disabled {
 
 /* Status Boxes */
 .status-box {
-    padding: 12px;
-    border-radius: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
     font-weight: 500;
     text-align: center;
     transition: all 0.3s ease;
     border: 1px solid;
-    margin-bottom: 16px;
+    margin-bottom: 10px;
+    font-size: 0.75rem;
 }
 .status-box.ready {
     background: color-mix(in srgb, var(--yellow) 15%, transparent);
@@ -388,26 +407,27 @@ button:disabled, .btn:disabled {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    margin-top: 16px;
+    gap: 8px;
+    margin-top: 10px;
 }
 .player-controls .btn {
-    padding: 12px;
+    padding: 8px;
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 36px;
+    height: 36px;
     flex-shrink: 0;
 }
 .player-controls .btn svg {
-    width: 24px;
-    height: 24px;
+    width: 16px;
+    height: 16px;
 }
 .track-name {
     font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%; /* War 90%, um die ganze Breite zu nutzen */
+    max-width: 100%;
+    font-size: 0.75rem;
 }
 
 .progress-wrapper {
@@ -419,7 +439,7 @@ button:disabled, .btn:disabled {
 }
 
 .progress-wrapper .timer {
-    font-size: 0.8rem;
+    font-size: 0.65rem;
     color: var(--muted);
     flex-shrink: 0;
 }
@@ -453,16 +473,16 @@ button:disabled, .btn:disabled {
 
 /* Playlist */
 .playlist-container {
-    max-height: 150px;
+    max-height: 120px;
     overflow-y: auto;
     list-style: none;
     padding: 0;
-    margin-top: 16px;
+    margin-top: 10px;
 }
 .playlist-item {
-    padding: 10px 12px;
-    border-radius: 8px;
-    margin-bottom: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-bottom: 4px;
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.03s ease;
     background-color: color-mix(in srgb, var(--text) 5%, transparent);
@@ -470,7 +490,8 @@ button:disabled, .btn:disabled {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    font-size: 0.7rem;
 }
 .playlist-item > span {
     flex-grow: 1;

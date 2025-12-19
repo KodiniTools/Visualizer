@@ -160,7 +160,18 @@
 
     <!-- Footer -->
     <footer class="footer">
-      <div class="footer-content">
+      <!-- Footer Top: Links -->
+      <div class="footer-top">
+        <div class="footer-links">
+          <a href="#" class="footer-link">{{ t('footer.privacy') }}</a>
+          <span class="footer-divider">|</span>
+          <a href="#" class="footer-link">{{ t('footer.contact') }}</a>
+          <span class="footer-divider">|</span>
+          <button class="footer-link" @click="showCookieSettings">{{ t('footer.cookies') }}</button>
+        </div>
+      </div>
+      <!-- Footer Bottom: Brand, Copyright, Controls -->
+      <div class="footer-bottom">
         <div class="footer-brand">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 18V5l12-2v13"></path>
@@ -290,6 +301,11 @@ const faqItems = computed(() => {
 
 function toggleFaq(index) {
   activeFaq.value = activeFaq.value === index ? null : index;
+}
+
+function showCookieSettings() {
+  // Placeholder for cookie settings modal
+  console.log('Cookie settings clicked');
 }
 </script>
 
@@ -857,19 +873,61 @@ function toggleFaq(index) {
 /* Footer */
 .footer {
   margin-top: auto;
-  padding: 40px 24px;
-  background: rgba(10, 16, 18, 0.5);
+  background: rgba(10, 16, 18, 0.8);
   border-top: 1px solid rgba(158, 190, 193, 0.1);
 }
 
 .light-theme .footer {
-  background: rgba(233, 233, 235, 0.5);
-  border-top-color: rgba(96, 145, 152, 0.1);
+  background: rgba(233, 233, 235, 0.8);
+  border-top-color: rgba(96, 145, 152, 0.15);
 }
 
-.footer-content {
+/* Footer Top - Links */
+.footer-top {
+  padding: 24px 24px;
+  border-bottom: 1px solid rgba(158, 190, 193, 0.1);
+}
+
+.light-theme .footer-top {
+  border-bottom-color: rgba(96, 145, 152, 0.1);
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-link {
+  background: none;
+  border: none;
+  color: #9EBEC1;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  text-decoration: none;
+  padding: 4px 8px;
+}
+
+.footer-link:hover {
+  color: #BCE5E5;
+}
+
+.light-theme .footer-link {
+  color: #609198;
+}
+
+.light-theme .footer-link:hover {
+  color: #4a7a82;
+}
+
+/* Footer Bottom - Brand, Copyright, Controls */
+.footer-bottom {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 24px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -892,7 +950,7 @@ function toggleFaq(index) {
 .footer-copyright {
   margin: 0;
   color: #A8A992;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-align: center;
 }
 
@@ -959,7 +1017,7 @@ function toggleFaq(index) {
     max-width: 400px;
   }
 
-  .footer-content {
+  .footer-bottom {
     flex-direction: row;
     justify-content: space-between;
   }
@@ -1024,7 +1082,21 @@ function toggleFaq(index) {
     font-size: 0.9rem;
   }
 
-  .footer-content {
+  .footer-top {
+    padding: 16px;
+  }
+
+  .footer-links {
+    gap: 8px;
+  }
+
+  .footer-link {
+    font-size: 0.8rem;
+    padding: 2px 4px;
+  }
+
+  .footer-bottom {
+    padding: 16px;
     gap: 12px;
   }
 }

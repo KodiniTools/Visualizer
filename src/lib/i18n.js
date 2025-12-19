@@ -83,6 +83,9 @@ const translations = {
     },
     // Footer
     footer: {
+      privacy: 'Datenschutz',
+      contact: 'Kontakt',
+      cookies: 'Cookie-Einstellungen',
       copyright: '© 2025 Audio Visualizer. Alle Rechte vorbehalten.'
     },
     // Theme
@@ -169,6 +172,9 @@ const translations = {
     },
     // Footer
     footer: {
+      privacy: 'Privacy Policy',
+      contact: 'Contact',
+      cookies: 'Cookie Settings',
       copyright: '© 2025 Audio Visualizer. All rights reserved.'
     },
     // Theme

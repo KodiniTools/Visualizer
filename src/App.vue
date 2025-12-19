@@ -22,7 +22,7 @@ html, body {
 }
 
 #app {
-  height: 100%;
+  min-height: 100%;
   background-color: var(--bg, #0f1416);
   color: var(--text, #E9E9EB);
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif);

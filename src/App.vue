@@ -13,16 +13,22 @@
   box-sizing: border-box;
 }
 
-html, body {
+html {
+  height: 100%;
+}
+
+body {
   margin: 0;
   padding: 0;
-  height: 100%;
-  width: 100%;
-  overflow: auto;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 #app {
-  min-height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background-color: var(--bg, #0f1416);
   color: var(--text, #E9E9EB);
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif);

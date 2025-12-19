@@ -158,40 +158,6 @@
       </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-      <!-- Footer Top: Links -->
-      <div class="footer-top">
-        <div class="footer-links">
-          <a href="#" class="footer-link">{{ t('footer.privacy') }}</a>
-          <span class="footer-divider">|</span>
-          <a href="#" class="footer-link">{{ t('footer.contact') }}</a>
-          <span class="footer-divider">|</span>
-          <button class="footer-link" @click="showCookieSettings">{{ t('footer.cookies') }}</button>
-        </div>
-      </div>
-      <!-- Footer Bottom: Brand, Copyright, Controls -->
-      <div class="footer-bottom">
-        <div class="footer-brand">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 18V5l12-2v13"></path>
-            <circle cx="6" cy="18" r="3"></circle>
-            <circle cx="18" cy="16" r="3"></circle>
-          </svg>
-          <span>Audio Visualizer</span>
-        </div>
-        <p class="footer-copyright">{{ t('footer.copyright') }}</p>
-        <div class="footer-controls">
-          <button class="footer-btn" @click="toggleLocale">
-            {{ locale === 'de' ? 'English' : 'Deutsch' }}
-          </button>
-          <span class="footer-divider">|</span>
-          <button class="footer-btn" @click="toggleTheme">
-            {{ isDark ? t('theme.light') : t('theme.dark') }}
-          </button>
-        </div>
-      </div>
-    </footer>
   </div>
 </template>
 
@@ -301,11 +267,6 @@ const faqItems = computed(() => {
 
 function toggleFaq(index) {
   activeFaq.value = activeFaq.value === index ? null : index;
-}
-
-function showCookieSettings() {
-  // Placeholder for cookie settings modal
-  console.log('Cookie settings clicked');
 }
 </script>
 
@@ -870,126 +831,6 @@ function showCookieSettings() {
   color: #6b7280;
 }
 
-/* Footer */
-.footer {
-  margin-top: auto;
-  background: rgba(10, 16, 18, 0.8);
-  border-top: 1px solid rgba(158, 190, 193, 0.1);
-}
-
-.light-theme .footer {
-  background: rgba(233, 233, 235, 0.8);
-  border-top-color: rgba(96, 145, 152, 0.15);
-}
-
-/* Footer Top - Links */
-.footer-top {
-  padding: 24px 24px;
-  border-bottom: 1px solid rgba(158, 190, 193, 0.1);
-}
-
-.light-theme .footer-top {
-  border-bottom-color: rgba(96, 145, 152, 0.1);
-}
-
-.footer-links {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.footer-link {
-  background: none;
-  border: none;
-  color: #9EBEC1;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: color 0.2s ease;
-  text-decoration: none;
-  padding: 4px 8px;
-}
-
-.footer-link:hover {
-  color: #BCE5E5;
-}
-
-.light-theme .footer-link {
-  color: #609198;
-}
-
-.light-theme .footer-link:hover {
-  color: #4a7a82;
-}
-
-/* Footer Bottom - Brand, Copyright, Controls */
-.footer-bottom {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.footer-brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #BCE5E5;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.light-theme .footer-brand {
-  color: #609198;
-}
-
-.footer-copyright {
-  margin: 0;
-  color: #A8A992;
-  font-size: 0.85rem;
-  text-align: center;
-}
-
-.light-theme .footer-copyright {
-  color: #6b7280;
-}
-
-.footer-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.footer-btn {
-  background: none;
-  border: none;
-  color: #9EBEC1;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: color 0.2s ease;
-  padding: 4px 8px;
-}
-
-.footer-btn:hover {
-  color: #BCE5E5;
-}
-
-.light-theme .footer-btn {
-  color: #609198;
-}
-
-.light-theme .footer-btn:hover {
-  color: #4a7a82;
-}
-
-.footer-divider {
-  color: rgba(158, 190, 193, 0.3);
-}
-
 /* Responsive */
 @media (min-width: 768px) {
   .hero {
@@ -1015,23 +856,6 @@ function showCookieSettings() {
     display: block;
     flex: 1;
     max-width: 400px;
-  }
-
-  .footer-bottom {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-
-  .footer-brand {
-    order: 1;
-  }
-
-  .footer-copyright {
-    order: 2;
-  }
-
-  .footer-controls {
-    order: 3;
   }
 }
 
@@ -1080,24 +904,6 @@ function showCookieSettings() {
   .faq-answer p {
     padding: 0 22px 20px;
     font-size: 0.9rem;
-  }
-
-  .footer-top {
-    padding: 16px;
-  }
-
-  .footer-links {
-    gap: 8px;
-  }
-
-  .footer-link {
-    font-size: 0.8rem;
-    padding: 2px 4px;
-  }
-
-  .footer-bottom {
-    padding: 16px;
-    gap: 12px;
   }
 }
 </style>

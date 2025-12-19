@@ -273,7 +273,7 @@ function toggleFaq(index) {
 <style scoped>
 /* Landing Page - Dark Theme (default) */
 .landing-page {
-  min-height: 100vh;
+  flex: 1;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #0a1012 0%, #0f1416 50%, #0a1012 100%);

@@ -1,17 +1,51 @@
 <template>
-  <div class="landing-page">
+  <div class="landing-page" :class="{ 'light-theme': !isDark }">
+    <!-- Header with Controls -->
+    <header class="landing-header">
+      <div class="header-content">
+        <div class="header-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+          <span>Visualizer</span>
+        </div>
+        <div class="header-controls">
+          <!-- Language Switcher -->
+          <button class="control-btn" @click="toggleLocale" :title="locale === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'">
+            <span class="lang-label">{{ locale === 'de' ? 'DE' : 'EN' }}</span>
+          </button>
+          <!-- Theme Switcher -->
+          <button class="control-btn theme-btn" @click="toggleTheme" :title="isDark ? t('theme.light') : t('theme.dark')">
+            <svg v-if="isDark" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
     <!-- Hero Section -->
     <section class="hero">
       <div class="hero-content">
-        <div class="hero-badge">Audio Visualizer</div>
+        <div class="hero-badge">{{ t('hero.badge') }}</div>
         <h1 class="hero-title">
-          Verwandle deine Musik in
-          <span class="gradient-text">visuelle Kunst</span>
+          {{ t('hero.title') }}
+          <span class="gradient-text">{{ t('hero.titleHighlight') }}</span>
         </h1>
-        <p class="hero-subtitle">
-          Erstelle beeindruckende Audio-Visualisierungen für Social Media,
-          Musikvideos und mehr. Kostenlos, direkt im Browser.
-        </p>
+        <p class="hero-subtitle">{{ t('hero.subtitle') }}</p>
         <div class="hero-actions">
           <router-link to="/app" class="btn-primary">
             <span class="btn-icon">
@@ -19,10 +53,10 @@
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
             </span>
-            Visualizer starten
+            {{ t('hero.cta') }}
           </router-link>
           <a href="#features" class="btn-secondary">
-            Mehr erfahren
+            {{ t('hero.learnMore') }}
           </a>
         </div>
       </div>
@@ -36,71 +70,16 @@
     <!-- Features Section -->
     <section id="features" class="features">
       <div class="section-header">
-        <h2 class="section-title">Leistungsstarke Funktionen</h2>
-        <p class="section-subtitle">Alles was du brauchst, um professionelle Audio-Visualisierungen zu erstellen</p>
+        <h2 class="section-title">{{ t('features.title') }}</h2>
+        <p class="section-subtitle">{{ t('features.subtitle') }}</p>
       </div>
       <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon" style="background: linear-gradient(135deg, #BCE5E5, #9EBEC1);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 18V5l12-2v13"></path>
-              <circle cx="6" cy="18" r="3"></circle>
-              <circle cx="18" cy="16" r="3"></circle>
-            </svg>
+        <div class="feature-card" v-for="(card, index) in featureCards" :key="index">
+          <div class="feature-icon" :style="{ background: card.gradient }">
+            <component :is="card.icon" />
           </div>
-          <h3 class="feature-title">100+ Visualizer</h3>
-          <p class="feature-description">
-            Wahle aus einer grossen Sammlung von einzigartigen Audio-Visualisierungen -
-            von klassischen Wellenformen bis zu spektakularen 3D-Effekten.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon" style="background: linear-gradient(135deg, #C5DEB0, #9EBEC1);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
-              <line x1="7" y1="2" x2="7" y2="22"></line>
-              <line x1="17" y1="2" x2="17" y2="22"></line>
-              <line x1="2" y1="12" x2="22" y2="12"></line>
-              <line x1="2" y1="7" x2="7" y2="7"></line>
-              <line x1="2" y1="17" x2="7" y2="17"></line>
-              <line x1="17" y1="17" x2="22" y2="17"></line>
-              <line x1="17" y1="7" x2="22" y2="7"></line>
-            </svg>
-          </div>
-          <h3 class="feature-title">Social Media Formate</h3>
-          <p class="feature-description">
-            Vordefinierte Canvas-Grossen fur TikTok, Instagram Reels, YouTube Shorts
-            und mehr - perfekt optimiert fur jede Plattform.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon" style="background: linear-gradient(135deg, #609198, #BCE5E5);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="23 7 16 12 23 17 23 7"></polygon>
-              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-            </svg>
-          </div>
-          <h3 class="feature-title">HD Video Export</h3>
-          <p class="feature-description">
-            Exportiere deine Visualisierungen als hochauflosende MP4-Videos
-            mit bis zu 60 FPS - direkt aus dem Browser, ohne zusatzliche Software.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon" style="background: linear-gradient(135deg, #A8A992, #C5DEB0);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 20h9"></path>
-              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-            </svg>
-          </div>
-          <h3 class="feature-title">Text & Bilder</h3>
-          <p class="feature-description">
-            Fuge Texte, Logos und Bilder hinzu. Mit vollstandiger Kontrolle uber
-            Position, Grosse, Filter und audio-reaktive Effekte.
-          </p>
+          <h3 class="feature-title">{{ card.title }}</h3>
+          <p class="feature-description">{{ card.description }}</p>
         </div>
       </div>
     </section>
@@ -108,8 +87,8 @@
     <!-- Video Demo Section -->
     <section class="video-section">
       <div class="section-header">
-        <h2 class="section-title">So funktioniert es</h2>
-        <p class="section-subtitle">Schau dir an, wie einfach du atemberaubende Visualisierungen erstellen kannst</p>
+        <h2 class="section-title">{{ t('video.title') }}</h2>
+        <p class="section-subtitle">{{ t('video.subtitle') }}</p>
       </div>
       <div class="video-container">
         <div class="video-placeholder">
@@ -119,7 +98,7 @@
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
             </div>
-            <p class="video-placeholder-text">Demo-Video kommt bald</p>
+            <p class="video-placeholder-text">{{ t('video.placeholder') }}</p>
           </div>
         </div>
       </div>
@@ -128,13 +107,13 @@
     <!-- FAQ Section -->
     <section class="faq-section">
       <div class="section-header">
-        <h2 class="section-title">Haufig gestellte Fragen</h2>
-        <p class="section-subtitle">Antworten auf die wichtigsten Fragen</p>
+        <h2 class="section-title">{{ t('faq.title') }}</h2>
+        <p class="section-subtitle">{{ t('faq.subtitle') }}</p>
       </div>
       <div class="faq-list">
         <div
           class="faq-item"
-          v-for="(faq, index) in faqs"
+          v-for="(faq, index) in faqItems"
           :key="index"
           :class="{ 'active': activeFaq === index }"
           @click="toggleFaq(index)"
@@ -166,15 +145,15 @@
     <!-- CTA Section -->
     <section class="cta-section">
       <div class="cta-content">
-        <h2 class="cta-title">Bereit zum Starten?</h2>
-        <p class="cta-subtitle">Erstelle jetzt deine erste Audio-Visualisierung - kostenlos und ohne Anmeldung.</p>
+        <h2 class="cta-title">{{ t('cta.title') }}</h2>
+        <p class="cta-subtitle">{{ t('cta.subtitle') }}</p>
         <router-link to="/app" class="btn-primary btn-large">
           <span class="btn-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
           </span>
-          Visualizer starten
+          {{ t('cta.button') }}
         </router-link>
       </div>
     </section>
@@ -182,43 +161,132 @@
     <!-- Footer -->
     <footer class="footer">
       <div class="footer-content">
-        <p>&copy; 2025 Audio Visualizer. Alle Rechte vorbehalten.</p>
+        <div class="footer-brand">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+          <span>Audio Visualizer</span>
+        </div>
+        <p class="footer-copyright">{{ t('footer.copyright') }}</p>
+        <div class="footer-controls">
+          <button class="footer-btn" @click="toggleLocale">
+            {{ locale === 'de' ? 'English' : 'Deutsch' }}
+          </button>
+          <span class="footer-divider">|</span>
+          <button class="footer-btn" @click="toggleTheme">
+            {{ isDark ? t('theme.light') : t('theme.dark') }}
+          </button>
+        </div>
       </div>
     </footer>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, h } from 'vue';
+import { useI18n } from '../lib/i18n.js';
+import { useTheme } from '../lib/theme.js';
+
+const { t, locale, toggleLocale, messages } = useI18n();
+const { isDark, toggleTheme } = useTheme();
 
 const activeFaq = ref(null);
 
-const faqs = [
-  {
-    question: 'Ist der Audio Visualizer kostenlos?',
-    answer: 'Ja, der Audio Visualizer ist komplett kostenlos nutzbar. Du kannst alle Visualizer, Formate und Export-Funktionen ohne Einschrankungen verwenden.'
-  },
-  {
-    question: 'Welche Audioformate werden unterstutzt?',
-    answer: 'Der Visualizer unterstutzt alle gangigen Audioformate wie MP3, WAV, OGG, FLAC und mehr. Du kannst deine Audiodateien einfach per Drag & Drop hochladen.'
-  },
-  {
-    question: 'Kann ich die Videos fur kommerzielle Zwecke nutzen?',
-    answer: 'Ja, alle mit dem Visualizer erstellten Videos kannst du uneingeschrankt fur private und kommerzielle Zwecke nutzen - auf YouTube, TikTok, Instagram oder anderen Plattformen.'
-  },
-  {
-    question: 'Werden meine Audiodateien auf einen Server hochgeladen?',
-    answer: 'Nein, alle Verarbeitung findet lokal in deinem Browser statt. Deine Audiodateien werden niemals auf unsere Server hochgeladen - deine Daten bleiben privat.'
-  },
-  {
-    question: 'Welche Browser werden unterstutzt?',
-    answer: 'Der Visualizer funktioniert am besten mit aktuellen Versionen von Chrome, Firefox, Edge und Safari. Fur die beste Performance empfehlen wir Chrome oder Edge.'
-  },
-  {
-    question: 'Wie exportiere ich mein Video?',
-    answer: 'Klicke einfach auf den "Aufnehmen"-Button, spiele deine Musik ab, und der Visualizer nimmt automatisch alles auf. Nach dem Stoppen wird das Video als MP4-Datei heruntergeladen.'
-  }
-];
+// Force reactivity by using computed that depends on locale
+const currentLocale = computed(() => locale.value);
+
+// Feature icons as render functions
+const MusicIcon = () => h('svg', {
+  xmlns: 'http://www.w3.org/2000/svg',
+  width: 28,
+  height: 28,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  'stroke-width': 2,
+  'stroke-linecap': 'round',
+  'stroke-linejoin': 'round'
+}, [
+  h('path', { d: 'M9 18V5l12-2v13' }),
+  h('circle', { cx: 6, cy: 18, r: 3 }),
+  h('circle', { cx: 18, cy: 16, r: 3 })
+]);
+
+const GridIcon = () => h('svg', {
+  xmlns: 'http://www.w3.org/2000/svg',
+  width: 28,
+  height: 28,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  'stroke-width': 2,
+  'stroke-linecap': 'round',
+  'stroke-linejoin': 'round'
+}, [
+  h('rect', { x: 2, y: 2, width: 20, height: 20, rx: 2.18, ry: 2.18 }),
+  h('line', { x1: 7, y1: 2, x2: 7, y2: 22 }),
+  h('line', { x1: 17, y1: 2, x2: 17, y2: 22 }),
+  h('line', { x1: 2, y1: 12, x2: 22, y2: 12 })
+]);
+
+const VideoIcon = () => h('svg', {
+  xmlns: 'http://www.w3.org/2000/svg',
+  width: 28,
+  height: 28,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  'stroke-width': 2,
+  'stroke-linecap': 'round',
+  'stroke-linejoin': 'round'
+}, [
+  h('polygon', { points: '23 7 16 12 23 17 23 7' }),
+  h('rect', { x: 1, y: 5, width: 15, height: 14, rx: 2, ry: 2 })
+]);
+
+const EditIcon = () => h('svg', {
+  xmlns: 'http://www.w3.org/2000/svg',
+  width: 28,
+  height: 28,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  'stroke-width': 2,
+  'stroke-linecap': 'round',
+  'stroke-linejoin': 'round'
+}, [
+  h('path', { d: 'M12 20h9' }),
+  h('path', { d: 'M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z' })
+]);
+
+// Computed feature cards with translations - depends on locale for reactivity
+const featureCards = computed(() => {
+  // Access locale.value to ensure reactivity
+  const _ = locale.value;
+  const cards = t('features.cards');
+  const icons = [MusicIcon, GridIcon, VideoIcon, EditIcon];
+  const gradients = [
+    'linear-gradient(135deg, #BCE5E5, #9EBEC1)',
+    'linear-gradient(135deg, #C5DEB0, #9EBEC1)',
+    'linear-gradient(135deg, #609198, #BCE5E5)',
+    'linear-gradient(135deg, #A8A992, #C5DEB0)'
+  ];
+
+  return cards.map((card, index) => ({
+    ...card,
+    icon: icons[index],
+    gradient: gradients[index]
+  }));
+});
+
+// Computed FAQ items with translations - depends on locale for reactivity
+const faqItems = computed(() => {
+  // Access locale.value to ensure reactivity
+  const _ = locale.value;
+  return t('faq.items');
+});
 
 function toggleFaq(index) {
   activeFaq.value = activeFaq.value === index ? null : index;
@@ -226,22 +294,100 @@ function toggleFaq(index) {
 </script>
 
 <style scoped>
-/* Color Variables based on the provided palette */
-:root {
-  --landing-cyan-light: #BCE5E5;
-  --landing-olive: #A8A992;
-  --landing-cyan-mid: #9EBEC1;
-  --landing-gray: #E9E9EB;
-  --landing-green: #C5DEB0;
-  --landing-cyan-dark: #609198;
-}
-
+/* Landing Page - Dark Theme (default) */
 .landing-page {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(180deg, #0a1012 0%, #0f1416 50%, #0a1012 100%);
   color: #E9E9EB;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   overflow-x: hidden;
+}
+
+/* Light Theme */
+.landing-page.light-theme {
+  background: linear-gradient(180deg, #f5f7f8 0%, #E9E9EB 50%, #f5f7f8 100%);
+  color: #1a1f22;
+}
+
+/* Header */
+.landing-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 16px 24px;
+  background: rgba(10, 16, 18, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(158, 190, 193, 0.1);
+}
+
+.light-theme .landing-header {
+  background: rgba(233, 233, 235, 0.9);
+  border-bottom: 1px solid rgba(96, 145, 152, 0.15);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #BCE5E5;
+}
+
+.light-theme .header-logo {
+  color: #609198;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(96, 145, 152, 0.15);
+  border: 1px solid rgba(96, 145, 152, 0.25);
+  border-radius: 10px;
+  color: #BCE5E5;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+  background: rgba(96, 145, 152, 0.25);
+  border-color: rgba(96, 145, 152, 0.4);
+}
+
+.light-theme .control-btn {
+  background: rgba(96, 145, 152, 0.1);
+  border-color: rgba(96, 145, 152, 0.2);
+  color: #609198;
+}
+
+.light-theme .control-btn:hover {
+  background: rgba(96, 145, 152, 0.2);
+}
+
+.lang-label {
+  font-weight: 700;
+  font-size: 0.85rem;
 }
 
 /* Hero Section */
@@ -250,7 +396,7 @@ function toggleFaq(index) {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 60px 24px;
+  padding: 100px 24px 60px;
   position: relative;
   overflow: hidden;
 }
@@ -266,6 +412,12 @@ function toggleFaq(index) {
               radial-gradient(ellipse at 80% 80%, rgba(188, 229, 229, 0.08) 0%, transparent 40%),
               radial-gradient(ellipse at 20% 60%, rgba(197, 222, 176, 0.08) 0%, transparent 40%);
   pointer-events: none;
+}
+
+.light-theme .hero::before {
+  background: radial-gradient(ellipse at 50% 0%, rgba(96, 145, 152, 0.1) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 80%, rgba(188, 229, 229, 0.15) 0%, transparent 40%),
+              radial-gradient(ellipse at 20% 60%, rgba(197, 222, 176, 0.15) 0%, transparent 40%);
 }
 
 .hero-content {
@@ -288,12 +440,22 @@ function toggleFaq(index) {
   margin-bottom: 28px;
 }
 
+.light-theme .hero-badge {
+  background: rgba(96, 145, 152, 0.1);
+  border-color: rgba(96, 145, 152, 0.25);
+  color: #609198;
+}
+
 .hero-title {
   font-size: clamp(2.5rem, 6vw, 4rem);
   font-weight: 700;
   line-height: 1.15;
   margin: 0 0 24px 0;
   color: #E9E9EB;
+}
+
+.light-theme .hero-title {
+  color: #1a1f22;
 }
 
 .gradient-text {
@@ -311,6 +473,10 @@ function toggleFaq(index) {
   max-width: 550px;
   margin-left: auto;
   margin-right: auto;
+}
+
+.light-theme .hero-subtitle {
+  color: #6b7280;
 }
 
 .hero-actions {
@@ -358,6 +524,16 @@ function toggleFaq(index) {
 .btn-secondary:hover {
   border-color: #BCE5E5;
   background: rgba(188, 229, 229, 0.1);
+}
+
+.light-theme .btn-secondary {
+  color: #609198;
+  border-color: rgba(96, 145, 152, 0.3);
+}
+
+.light-theme .btn-secondary:hover {
+  border-color: #609198;
+  background: rgba(96, 145, 152, 0.1);
 }
 
 .btn-large {
@@ -409,6 +585,10 @@ function toggleFaq(index) {
   margin: 0 0 16px 0;
 }
 
+.light-theme .section-title {
+  color: #1a1f22;
+}
+
 .section-subtitle {
   font-size: 1.1rem;
   color: #A8A992;
@@ -416,6 +596,10 @@ function toggleFaq(index) {
   max-width: 500px;
   margin-left: auto;
   margin-right: auto;
+}
+
+.light-theme .section-subtitle {
+  color: #6b7280;
 }
 
 /* Features Section */
@@ -439,10 +623,20 @@ function toggleFaq(index) {
   transition: all 0.3s ease;
 }
 
+.light-theme .feature-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 100%);
+  border-color: rgba(96, 145, 152, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
 .feature-card:hover {
   transform: translateY(-4px);
   border-color: rgba(96, 145, 152, 0.4);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.light-theme .feature-card:hover {
+  box-shadow: 0 20px 40px rgba(96, 145, 152, 0.15);
 }
 
 .feature-icon {
@@ -463,11 +657,19 @@ function toggleFaq(index) {
   margin: 0 0 12px 0;
 }
 
+.light-theme .feature-title {
+  color: #1a1f22;
+}
+
 .feature-description {
   font-size: 0.95rem;
   line-height: 1.7;
   color: #9EBEC1;
   margin: 0;
+}
+
+.light-theme .feature-description {
+  color: #6b7280;
 }
 
 /* Video Section */
@@ -493,6 +695,10 @@ function toggleFaq(index) {
   align-items: center;
   justify-content: center;
   border-radius: 20px;
+}
+
+.light-theme .video-placeholder {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(233, 233, 235, 0.95) 100%);
 }
 
 .video-placeholder-content {
@@ -528,6 +734,10 @@ function toggleFaq(index) {
   margin: 0;
 }
 
+.light-theme .video-placeholder-text {
+  color: #6b7280;
+}
+
 /* FAQ Section */
 .faq-section {
   padding: 100px 24px;
@@ -550,6 +760,11 @@ function toggleFaq(index) {
   transition: all 0.3s ease;
 }
 
+.light-theme .faq-item {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(96, 145, 152, 0.15);
+}
+
 .faq-item:hover {
   border-color: rgba(96, 145, 152, 0.3);
 }
@@ -566,6 +781,10 @@ function toggleFaq(index) {
   font-size: 1.05rem;
   font-weight: 600;
   color: #E9E9EB;
+}
+
+.light-theme .faq-question {
+  color: #1a1f22;
 }
 
 .faq-icon {
@@ -597,6 +816,10 @@ function toggleFaq(index) {
   color: #9EBEC1;
 }
 
+.light-theme .faq-answer p {
+  color: #6b7280;
+}
+
 /* CTA Section */
 .cta-section {
   padding: 120px 24px;
@@ -616,6 +839,10 @@ function toggleFaq(index) {
   margin: 0 0 20px 0;
 }
 
+.light-theme .cta-title {
+  color: #1a1f22;
+}
+
 .cta-subtitle {
   font-size: 1.15rem;
   color: #A8A992;
@@ -623,20 +850,86 @@ function toggleFaq(index) {
   line-height: 1.7;
 }
 
+.light-theme .cta-subtitle {
+  color: #6b7280;
+}
+
 /* Footer */
 .footer {
+  margin-top: auto;
   padding: 40px 24px;
+  background: rgba(10, 16, 18, 0.5);
   border-top: 1px solid rgba(158, 190, 193, 0.1);
 }
 
-.footer-content {
-  text-align: center;
+.light-theme .footer {
+  background: rgba(233, 233, 235, 0.5);
+  border-top-color: rgba(96, 145, 152, 0.1);
 }
 
-.footer-content p {
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #BCE5E5;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.light-theme .footer-brand {
+  color: #609198;
+}
+
+.footer-copyright {
   margin: 0;
   color: #A8A992;
   font-size: 0.9rem;
+  text-align: center;
+}
+
+.light-theme .footer-copyright {
+  color: #6b7280;
+}
+
+.footer-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-btn {
+  background: none;
+  border: none;
+  color: #9EBEC1;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  padding: 4px 8px;
+}
+
+.footer-btn:hover {
+  color: #BCE5E5;
+}
+
+.light-theme .footer-btn {
+  color: #609198;
+}
+
+.light-theme .footer-btn:hover {
+  color: #4a7a82;
+}
+
+.footer-divider {
+  color: rgba(158, 190, 193, 0.3);
 }
 
 /* Responsive */
@@ -644,7 +937,7 @@ function toggleFaq(index) {
   .hero {
     flex-direction: row;
     gap: 60px;
-    padding: 80px 48px;
+    padding: 120px 48px 80px;
   }
 
   .hero-content {
@@ -665,9 +958,38 @@ function toggleFaq(index) {
     flex: 1;
     max-width: 400px;
   }
+
+  .footer-content {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    order: 1;
+  }
+
+  .footer-copyright {
+    order: 2;
+  }
+
+  .footer-controls {
+    order: 3;
+  }
 }
 
 @media (max-width: 600px) {
+  .landing-header {
+    padding: 12px 16px;
+  }
+
+  .header-logo span {
+    display: none;
+  }
+
+  .hero {
+    padding-top: 80px;
+  }
+
   .hero-title {
     font-size: 2rem;
   }
@@ -700,6 +1022,10 @@ function toggleFaq(index) {
   .faq-answer p {
     padding: 0 22px 20px;
     font-size: 0.9rem;
+  }
+
+  .footer-content {
+    gap: 12px;
   }
 }
 </style>

@@ -364,8 +364,12 @@ const translations = {
       active: 'Aktiv',
       // Info text
       clickToEdit: 'Klicken Sie auf einen Text im Canvas um ihn zu bearbeiten, oder fügen Sie einen neuen Text hinzu.',
-      addNewText: 'Neuer Text hinzufügen',
-      addWithArea: 'Mit Bereichauswahl hinzufügen',
+      addNewText: 'Neuen Text hinzufügen',
+      addWithArea: 'Mit Bereichsauswahl hinzufügen',
+      addToCanvas: 'Zum Canvas hinzufügen',
+      autoWrap: 'Auto-Umbruch',
+      autoWrapTitle: 'Text automatisch in Zeilen umbrechen',
+      editText: 'Text bearbeiten',
       textPosition: 'Textposition',
       textArea: 'Textbereich'
     },
@@ -907,6 +911,10 @@ const translations = {
       clickToEdit: 'Click on a text in the canvas to edit it, or add a new text.',
       addNewText: 'Add new text',
       addWithArea: 'Add with area selection',
+      addToCanvas: 'Add to Canvas',
+      autoWrap: 'Auto-wrap',
+      autoWrapTitle: 'Automatically wrap text into lines',
+      editText: 'Edit text',
       textPosition: 'Text position',
       textArea: 'Text area'
     },
@@ -1093,6 +1101,9 @@ function getNestedValue(obj, path) {
     return current && current[key] !== undefined ? current[key] : null
   }, obj)
 }
+
+// Export the reactive locale ref for use in stores
+export const localeRef = currentLocale
 
 // Get current locale
 export function getLocale() {

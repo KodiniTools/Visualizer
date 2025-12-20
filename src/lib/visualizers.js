@@ -3751,17 +3751,18 @@ export const Visualizers = {
   },
 
   /**
-   * Chiptune Pulse - Pulsing squares inspired by 8-bit music
+   * Chiptune Pulse - Futuristic pulsing grid with neon cyber colors
    */
   chiptunePulse: {
-    name_de: 'Chiptune-Puls (8-Bit)',
-    name_en: 'Chiptune Pulse (8-Bit)',
+    name_de: 'Chiptune-Puls (Futuristisch)',
+    name_en: 'Chiptune Pulse (Futuristic)',
     draw(ctx, dataArray, bufferLength, w, h, color, intensity = 1.0) {
       ctx.save();
       ctx.setTransform(1, 0, 0, 1, 0, 0);
 
       const baseHsl = hexToHsl(color);
-      const gridSize = Math.max(24, Math.floor(Math.min(w, h) / 16));
+      // Viel kleinere Quadrate für dichteres Grid
+      const gridSize = Math.max(8, Math.floor(Math.min(w, h) / 50));
       const cols = Math.ceil(w / gridSize);
       const rows = Math.ceil(h / gridSize);
 
@@ -3772,59 +3773,70 @@ export const Visualizers = {
         visualizerState[stateKey] = new Array(totalCells).fill(0);
       }
 
-      // Dunkler Hintergrund
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      // Dunkler Hintergrund mit leichtem Fade
+      ctx.fillStyle = 'rgba(0, 0, 10, 0.15)';
       ctx.fillRect(0, 0, w, h);
 
       // Berechne Frequenzbänder
       const maxFreqIndex = Math.floor(bufferLength * 0.21);
 
+      // Futuristische Neon-Farben: Cyan, Magenta, Electric Blue, Lime
+      const neonColors = [180, 300, 220, 120, 280, 200]; // Cyan, Magenta, Blue, Lime, Purple, Teal
+
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
           const cellIndex = row * cols + col;
 
-          // Wellenförmige Frequenzzuordnung
+          // Wellenförmige Frequenzzuordnung mit mehr Variation
           const distFromCenter = Math.sqrt(
             Math.pow((col - cols / 2) / cols, 2) +
             Math.pow((row - rows / 2) / rows, 2)
           );
-          const freqIndex = Math.floor(distFromCenter * maxFreqIndex * 2) % maxFreqIndex;
+
+          // Diagonale Wellen für dynamischeren Effekt
+          const waveOffset = Math.sin((col + row) * 0.3) * 0.5 + 0.5;
+          const freqIndex = Math.floor((distFromCenter + waveOffset * 0.3) * maxFreqIndex * 2) % maxFreqIndex;
           const value = dataArray[freqIndex] / 255;
 
-          // Smoothing
+          // Schnelleres Smoothing für reaktiveres Verhalten
           const target = value * intensity;
           visualizerState[stateKey][cellIndex] = applySmoothValue(
             visualizerState[stateKey][cellIndex] || 0,
             target,
-            0.3
+            0.4
           );
           const smoothedValue = visualizerState[stateKey][cellIndex];
 
-          if (smoothedValue > 0.1) {
+          if (smoothedValue > 0.05) {
             const x = col * gridSize;
             const y = row * gridSize;
 
             // Pulsierendes Quadrat
-            const pulseSize = gridSize * (0.3 + smoothedValue * 0.7);
+            const pulseSize = gridSize * (0.2 + smoothedValue * 0.8);
             const offset = (gridSize - pulseSize) / 2;
 
-            // Hue basierend auf Position und Energie
-            const hue = (baseHsl.h + distFromCenter * 180 + smoothedValue * 60) % 360;
+            // Futuristische Farbe basierend auf Position
+            const colorIndex = Math.floor((distFromCenter * 3 + smoothedValue * 2) % neonColors.length);
+            const hue = neonColors[colorIndex];
 
-            // Glow-Effekt
-            if (smoothedValue > 0.5) {
-              ctx.shadowBlur = smoothedValue * 15;
-              ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+            // Intensiver Glow-Effekt
+            if (smoothedValue > 0.3) {
+              ctx.shadowBlur = smoothedValue * 20;
+              ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
             }
 
-            // Quadrat mit Pixel-Ästhetik
-            ctx.fillStyle = `hsl(${hue}, ${70 + smoothedValue * 30}%, ${30 + smoothedValue * 40}%)`;
+            // Hauptquadrat mit Neon-Farbe
+            const lightness = 45 + smoothedValue * 40;
+            ctx.fillStyle = `hsl(${hue}, 100%, ${lightness}%)`;
             ctx.fillRect(x + offset, y + offset, pulseSize, pulseSize);
 
-            // Highlight
-            ctx.fillStyle = `hsla(${hue}, 100%, 80%, ${smoothedValue * 0.5})`;
-            ctx.fillRect(x + offset, y + offset, pulseSize, 3);
-            ctx.fillRect(x + offset, y + offset, 3, pulseSize);
+            // Heller Kern für intensivere Zellen
+            if (smoothedValue > 0.5) {
+              const coreSize = pulseSize * 0.6;
+              const coreOffset = (gridSize - coreSize) / 2;
+              ctx.fillStyle = `hsla(${hue}, 100%, 90%, ${smoothedValue * 0.8})`;
+              ctx.fillRect(x + coreOffset, y + coreOffset, coreSize, coreSize);
+            }
 
             ctx.shadowBlur = 0;
           }
@@ -3836,11 +3848,11 @@ export const Visualizers = {
   },
 
   /**
-   * Pixel Fireworks - Retro pixel explosions triggered by beats
+   * Pixel Fireworks - Intense retro pixel explosions triggered by beats
    */
   pixelFireworks: {
-    name_de: 'Pixel-Feuerwerk (Retro)',
-    name_en: 'Pixel Fireworks (Retro)',
+    name_de: 'Pixel-Feuerwerk (Intensiv)',
+    name_en: 'Pixel Fireworks (Intense)',
     init() {
       visualizerState.pixelFireworks = {
         explosions: [],
@@ -3852,7 +3864,8 @@ export const Visualizers = {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
 
       const baseHsl = hexToHsl(color);
-      const pixelSize = Math.max(4, Math.floor(Math.min(w, h) / 100));
+      // Größere Pixel für bessere Sichtbarkeit
+      const pixelSize = Math.max(6, Math.floor(Math.min(w, h) / 60));
 
       // Initialisiere State
       if (!visualizerState.pixelFireworks) {
@@ -3860,8 +3873,8 @@ export const Visualizers = {
       }
       const state = visualizerState.pixelFireworks;
 
-      // Fade Hintergrund (langsamer für Trails)
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      // Langsamerer Fade für längere Trails
+      ctx.fillStyle = 'rgba(0, 0, 5, 0.05)';
       ctx.fillRect(0, 0, w, h);
 
       // Berechne verschiedene Frequenzbänder
@@ -3875,36 +3888,72 @@ export const Visualizers = {
       const bassEnergy = bassSum / (bassEnd * 255);
       const midEnergy = midSum / ((midEnd - bassEnd) * 255);
 
-      // Bei starkem Beat neue Explosion spawnen
+      // Niedrigere Schwelle und kürzeres Intervall für mehr Explosionen
       const now = Date.now();
-      if (bassEnergy > 0.6 && now - state.lastBeat > 200) {
+      if (bassEnergy > 0.35 && now - state.lastBeat > 120) {
         state.lastBeat = now;
 
-        // Neue Explosion erstellen
-        const explosion = {
+        // Mehrere Explosionen bei starkem Beat
+        const numExplosions = bassEnergy > 0.7 ? 2 : 1;
+
+        for (let e = 0; e < numExplosions; e++) {
+          // Neue Explosion erstellen
+          const explosion = {
+            x: w * 0.1 + Math.random() * w * 0.8,
+            y: h * 0.1 + Math.random() * h * 0.8,
+            particles: [],
+            age: 0,
+            hue: (baseHsl.h + Math.random() * 180) % 360,
+            secondary: (baseHsl.h + 120 + Math.random() * 60) % 360
+          };
+
+          // Viel mehr Partikel für intensiveren Effekt
+          const numParticles = 50 + Math.floor(bassEnergy * 80);
+          for (let i = 0; i < numParticles; i++) {
+            const angle = (i / numParticles) * Math.PI * 2 + Math.random() * 0.3;
+            const speed = 3 + Math.random() * 10;
+            const useSecondary = Math.random() > 0.6;
+            explosion.particles.push({
+              x: explosion.x,
+              y: explosion.y,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              life: 1.0,
+              size: pixelSize * (1.5 + Math.random() * 1.5),
+              hue: useSecondary ? explosion.secondary : explosion.hue
+            });
+          }
+
+          state.explosions.push(explosion);
+        }
+      }
+
+      // Auch bei mittlerer Energie kleinere Funken
+      if (midEnergy > 0.4 && Math.random() > 0.7) {
+        const spark = {
           x: w * 0.2 + Math.random() * w * 0.6,
-          y: h * 0.2 + Math.random() * h * 0.6,
+          y: h * 0.3 + Math.random() * h * 0.4,
           particles: [],
           age: 0,
-          hue: (baseHsl.h + Math.random() * 120) % 360
+          hue: (baseHsl.h + Math.random() * 60) % 360,
+          secondary: baseHsl.h
         };
 
-        // Pixel-Partikel in alle Richtungen
-        const numParticles = 20 + Math.floor(bassEnergy * 30);
-        for (let i = 0; i < numParticles; i++) {
-          const angle = (i / numParticles) * Math.PI * 2;
-          const speed = 2 + Math.random() * 6;
-          explosion.particles.push({
-            x: explosion.x,
-            y: explosion.y,
+        const numSparks = 10 + Math.floor(midEnergy * 20);
+        for (let i = 0; i < numSparks; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 1 + Math.random() * 4;
+          spark.particles.push({
+            x: spark.x,
+            y: spark.y,
             vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            life: 1.0,
-            size: pixelSize * (1 + Math.random())
+            vy: Math.sin(angle) * speed - 2,
+            life: 0.7,
+            size: pixelSize * 0.8,
+            hue: spark.hue
           });
         }
-
-        state.explosions.push(explosion);
+        state.explosions.push(spark);
       }
 
       // Explosionen aktualisieren und zeichnen
@@ -3921,45 +3970,56 @@ export const Visualizers = {
           // Physik mit Schwerkraft
           particle.x += particle.vx;
           particle.y += particle.vy;
-          particle.vy += 0.15; // Schwerkraft
-          particle.vx *= 0.98; // Luftwiderstand
-          particle.life -= 0.015;
+          particle.vy += 0.12; // Etwas weniger Schwerkraft für längere Flugbahn
+          particle.vx *= 0.985;
+          particle.life -= 0.012; // Langsamerer Verfall
 
-          // Zeichne Pixel-Partikel
-          const alpha = particle.life * intensity;
-          const lightness = 40 + particle.life * 40;
+          // Zeichne Pixel-Partikel mit intensiverem Glow
+          const alpha = Math.min(1, particle.life * 1.3) * intensity;
+          const lightness = 50 + particle.life * 45;
+          const hue = particle.hue || explosion.hue;
 
-          // Hauptpixel
-          ctx.fillStyle = `hsla(${explosion.hue}, 100%, ${lightness}%, ${alpha})`;
-          const size = Math.floor(particle.size * particle.life);
-          ctx.fillRect(
-            Math.floor(particle.x / pixelSize) * pixelSize,
-            Math.floor(particle.y / pixelSize) * pixelSize,
-            size,
-            size
-          );
+          // Äußerer Glow zuerst
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
 
-          // Glow für hellere Partikel
-          if (particle.life > 0.5) {
-            ctx.fillStyle = `hsla(${explosion.hue}, 100%, 80%, ${alpha * 0.3})`;
+          // Hauptpixel (größer und heller)
+          ctx.fillStyle = `hsla(${hue}, 100%, ${lightness}%, ${alpha})`;
+          const size = Math.max(2, Math.floor(particle.size * (0.5 + particle.life * 0.5)));
+          const px = Math.floor(particle.x / pixelSize) * pixelSize;
+          const py = Math.floor(particle.y / pixelSize) * pixelSize;
+          ctx.fillRect(px, py, size, size);
+
+          // Heller Kern
+          if (particle.life > 0.4) {
+            ctx.fillStyle = `hsla(${hue}, 80%, 95%, ${alpha * 0.9})`;
+            const coreSize = Math.max(1, size * 0.5);
+            ctx.fillRect(px + size * 0.25, py + size * 0.25, coreSize, coreSize);
+          }
+
+          // Trail-Effekt
+          if (particle.life > 0.3) {
+            ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${alpha * 0.4})`;
             ctx.fillRect(
-              Math.floor(particle.x / pixelSize) * pixelSize - pixelSize,
-              Math.floor(particle.y / pixelSize) * pixelSize - pixelSize,
-              size + pixelSize * 2,
-              size + pixelSize * 2
+              px - particle.vx * 2,
+              py - particle.vy * 2,
+              size * 0.7,
+              size * 0.7
             );
           }
         }
 
+        ctx.shadowBlur = 0;
+
         // Entferne tote Explosionen
-        if (allDead || explosion.age > 300) {
+        if (allDead || explosion.age > 400) {
           state.explosions.splice(i, 1);
         }
       }
 
-      // Begrenze Anzahl der Explosionen
-      if (state.explosions.length > 10) {
-        state.explosions.splice(0, state.explosions.length - 10);
+      // Mehr Explosionen erlauben
+      if (state.explosions.length > 20) {
+        state.explosions.splice(0, state.explosions.length - 20);
       }
 
       ctx.restore();

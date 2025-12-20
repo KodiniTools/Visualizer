@@ -1,9 +1,9 @@
 <template>
   <div class="panel">
-    <h3>Audiodateien</h3>
-    
+    <h3>{{ t('fileUpload.title') }}</h3>
+
     <!-- Upload Area mit Drag & Drop -->
-    <div 
+    <div
       class="upload-area"
       :class="{ 'drag-over': isDragging }"
       @click="triggerFileInput"
@@ -18,45 +18,45 @@
           <line x1="12" y1="3" x2="12" y2="15"/>
         </svg>
       </div>
-      
+
       <div class="upload-text">
         <span class="upload-main" v-if="!playerStore.hasTracks">
-          Audio-Dateien auswählen
+          {{ t('fileUpload.selectFiles') }}
         </span>
         <span class="upload-main" v-else>
-          {{ playerStore.playlist.length }} Track{{ playerStore.playlist.length !== 1 ? 's' : '' }} geladen
+          {{ playerStore.playlist.length }} Track{{ playerStore.playlist.length !== 1 ? 's' : '' }}
         </span>
         <span class="upload-sub">
-          Klicken oder Dateien hierher ziehen
+          {{ t('fileUpload.dragOrClick') }}
         </span>
       </div>
-      
+
       <div class="supported-formats">
-        <span class="format-label">Unterstützt:</span>
+        <span class="format-label">{{ t('fileUpload.supported') }}:</span>
         <span class="format-item">MP3</span>
         <span class="format-item">WAV</span>
         <span class="format-item">OGG</span>
         <span class="format-item">M4A</span>
       </div>
     </div>
-    
+
     <!-- Hidden File Input -->
-    <input 
+    <input
       ref="fileInput"
-      type="file" 
-      @change="onSelectFiles" 
-      multiple 
-      accept="audio/*" 
+      type="file"
+      @change="onSelectFiles"
+      multiple
+      accept="audio/*"
       style="display: none;"
     />
-    
+
     <!-- Tracks Info -->
     <div v-if="playerStore.hasTracks" class="tracks-info">
       <div class="info-row">
         <svg class="info-icon" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
         </svg>
-        <span class="info-text">{{ playerStore.playlist.length }} Datei{{ playerStore.playlist.length !== 1 ? 'en' : '' }} bereit</span>
+        <span class="info-text">{{ playerStore.playlist.length }} {{ locale === 'de' ? (playerStore.playlist.length !== 1 ? 'Dateien' : 'Datei') : (playerStore.playlist.length !== 1 ? 'files' : 'file') }}</span>
       </div>
     </div>
   </div>
@@ -64,7 +64,10 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useI18n } from '../lib/i18n.js';
 import { usePlayerStore } from '../stores/playerStore.js';
+
+const { t, locale } = useI18n();
 
 const playerStore = usePlayerStore();
 const fileInput = ref(null);

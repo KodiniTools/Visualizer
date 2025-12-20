@@ -2,15 +2,15 @@
   <div class="panel-container" :class="{ 'panel-disabled': !store.showVisualizer }">
     <!-- Disabled Overlay -->
     <div v-if="!store.showVisualizer" class="disabled-overlay">
-      <span class="disabled-text">Visualizer deaktiviert</span>
+      <span class="disabled-text">{{ t('visualizer.disabled') }}</span>
     </div>
     <div class="panel-header">
-      <h4>Visualizer</h4>
+      <h4>{{ t('visualizer.title') }}</h4>
       <HelpTooltip
-        title="Audio Visualizer"
+        :title="t('visualizer.helpTitle')"
         icon="🎨"
-        text="Wählen Sie einen von 30+ Visualizer-Effekten. Die Visualisierung reagiert auf die Audiowiedergabe in Echtzeit."
-        tip="Starten Sie die Musik, um die Effekte live zu sehen!"
+        :text="t('visualizer.helpText')"
+        :tip="t('visualizer.helpTip')"
         position="left"
         :large="true"
       />
@@ -18,20 +18,20 @@
 
     <!-- Visualizer Ein/Aus -->
     <div class="control-section status-toggle">
-      <span class="section-label">Status</span>
+      <span class="section-label">{{ t('visualizer.status') }}</span>
       <button
         class="toggle-btn"
         :class="{ active: store.showVisualizer }"
         @click="store.toggleVisualizer()"
       >
         <span class="btn-icon">{{ store.showVisualizer ? '✓' : '×' }}</span>
-        {{ store.showVisualizer ? 'An' : 'Aus' }}
+        {{ store.showVisualizer ? t('common.on') : t('common.off') }}
       </button>
     </div>
 
     <!-- Farbwähler -->
     <div class="control-section">
-      <span class="section-label">Farbe</span>
+      <span class="section-label">{{ t('visualizer.color') }}</span>
       <input
         type="color"
         :value="store.visualizerColor"
@@ -43,7 +43,7 @@
     <!-- Intensität-Regler -->
     <div class="control-section">
       <span class="section-label">
-        Intensität: {{ Math.round(store.visualizerOpacity * 100) }}%
+        {{ t('visualizer.intensity') }}: {{ Math.round(store.visualizerOpacity * 100) }}%
       </span>
       <input
         type="range"
@@ -59,7 +59,7 @@
     <!-- Farbtransparenz-Regler -->
     <div class="control-section">
       <span class="section-label">
-        Farbtransparenz: {{ Math.round(store.colorOpacity * 100) }}%
+        {{ t('visualizer.colorTransparency') }}: {{ Math.round(store.colorOpacity * 100) }}%
       </span>
       <input
         type="range"
@@ -75,11 +75,11 @@
     <!-- ✨ NEU: Position & Größe -->
     <div class="control-section position-section">
       <div class="section-header">
-        <span class="section-label">Position & Größe</span>
+        <span class="section-label">{{ t('visualizer.positionSize') }}</span>
         <button
           class="reset-btn"
           @click="store.resetVisualizerTransform()"
-          title="Auf Standard zurücksetzen"
+          :title="t('visualizer.resetToDefault')"
         >
           ↺
         </button>
@@ -115,7 +115,7 @@
 
       <!-- Skalierung -->
       <div class="position-control">
-        <span class="control-label">Größe: {{ Math.round(store.visualizerScale * 100) }}%</span>
+        <span class="control-label">{{ t('foto.size') }}: {{ Math.round(store.visualizerScale * 100) }}%</span>
         <input
           type="range"
           min="0.1"
@@ -130,18 +130,18 @@
 
     <!-- Suchfeld -->
     <div class="control-section">
-      <span class="section-label">Suche</span>
+      <span class="section-label">{{ t('visualizer.search') }}</span>
       <input
         type="text"
         v-model="searchQuery"
-        placeholder="Visualizer suchen..."
+        :placeholder="t('visualizer.searchPlaceholder')"
         class="search-input"
       />
     </div>
 
     <!-- Kategorisierte Visualizer-Auswahl -->
     <div class="control-section">
-      <span class="section-label">Visualizer-Typ ({{ totalCount }} Effekte)</span>
+      <span class="section-label">{{ t('visualizer.visualizerType') }} ({{ totalCount }} {{ t('visualizer.effects') }})</span>
 
       <!-- Suchergebnisse -->
       <div v-if="searchQuery.trim()" class="visualizer-buttons">
@@ -155,7 +155,7 @@
           {{ viz.name }}
         </button>
         <div v-if="filteredVisualizers.length === 0" class="no-results">
-          Keine Ergebnisse für "{{ searchQuery }}"
+          {{ t('visualizer.noResultsFor') }} "{{ searchQuery }}"
         </div>
       </div>
 
@@ -192,9 +192,11 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { useI18n } from '../lib/i18n.js';
 import { useVisualizerStore } from '../stores/visualizerStore.js';
 import HelpTooltip from './HelpTooltip.vue';
 
+const { t, locale } = useI18n();
 const store = useVisualizerStore();
 const searchQuery = ref('');
 const openCategories = ref({

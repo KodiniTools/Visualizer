@@ -76,7 +76,7 @@
           @click="selectStockCategory(category.id)"
         >
           <span class="category-icon">{{ category.icon }}</span>
-          <span class="category-name">{{ category.name }}</span>
+          <span class="category-name">{{ getStockCategoryName(category) }}</span>
           <span v-if="category.count" class="category-count">{{ category.count }}</span>
         </button>
       </div>
@@ -932,6 +932,19 @@ import { usePanelSettingsStore } from '../stores/panelSettingsStore';
 import { useI18n } from '../lib/i18n.js';
 
 const { t, locale } = useI18n();
+
+// Function to get translated stock category name
+function getStockCategoryName(category) {
+  // Check if translation exists for this category ID
+  const translationKey = `foto.stockCategories.${category.id}`;
+  const translated = t(translationKey);
+  // If translation exists and is different from the key, use it
+  if (translated !== translationKey) {
+    return translated;
+  }
+  // Otherwise use name_en for English or name for German
+  return locale.value === 'en' && category.name_en ? category.name_en : category.name;
+}
 
 // Refs für alle UI-Elemente
 const containerRef = ref(null);

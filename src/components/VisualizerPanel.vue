@@ -169,7 +169,7 @@
         >
           <summary class="category-header" @click.prevent="toggleCategory(category)">
             <span class="category-icon">{{ getCategoryIcon(category) }}</span>
-            <span class="category-name">{{ category }}</span>
+            <span class="category-name">{{ getCategoryName(category) }}</span>
             <span class="category-count">{{ visualizers.length }}</span>
             <span class="category-arrow">{{ openCategories[category] ? '▼' : '▶' }}</span>
           </summary>
@@ -203,7 +203,7 @@ const openCategories = ref({
   'Balken & Spektrum': true // Erste Kategorie standardmäßig offen
 });
 
-// Icons für Kategorien
+// Icons für Kategorien (keys are internal IDs)
 const categoryIcons = {
   'Balken & Spektrum': '📊',
   'Wellen': '🌊',
@@ -216,8 +216,26 @@ const categoryIcons = {
   '3D-Objekte': '🎲'
 };
 
+// Map German category keys to i18n translation keys
+const categoryTranslationKeys = {
+  'Balken & Spektrum': 'visualizer.categories.barsSpectrum',
+  'Wellen': 'visualizer.categories.waves',
+  'Kreise & Kugeln': 'visualizer.categories.circlesSpheres',
+  'Partikel': 'visualizer.categories.particles',
+  'Geometrie': 'visualizer.categories.geometry',
+  'Organisch': 'visualizer.categories.organic',
+  'Kristalle & Netze': 'visualizer.categories.crystalsNets',
+  'Blüten': 'visualizer.categories.blossoms',
+  '3D-Objekte': 'visualizer.categories.objects3d'
+};
+
 function getCategoryIcon(category) {
   return categoryIcons[category] || '🎨';
+}
+
+function getCategoryName(category) {
+  const key = categoryTranslationKeys[category];
+  return key ? t(key) : category;
 }
 
 function isCategoryOpen(category) {

@@ -361,7 +361,13 @@ const translations = {
       deleteText: 'Text löschen',
       duplicateText: 'Text duplizieren',
       // Active status
-      active: 'Aktiv'
+      active: 'Aktiv',
+      // Info text
+      clickToEdit: 'Klicken Sie auf einen Text im Canvas um ihn zu bearbeiten, oder fügen Sie einen neuen Text hinzu.',
+      addNewText: 'Neuer Text hinzufügen',
+      addWithArea: 'Mit Bereichauswahl hinzufügen',
+      textPosition: 'Textposition',
+      textArea: 'Textbereich'
     },
 
     // ========== FOTO PANEL ==========
@@ -437,7 +443,13 @@ const translations = {
       presets: 'Bild-Presets',
       saveAsPreset: 'Als Preset speichern',
       noPresets: 'Keine Presets gespeichert',
-      load: 'Laden'
+      load: 'Laden',
+      // Stock gallery categories
+      stockCategories: {
+        backgrounds: 'Hintergründe',
+        elements: 'Elemente',
+        patterns: 'Muster'
+      }
     },
 
     // ========== BACKGROUND TILES PANEL ==========
@@ -890,7 +902,13 @@ const translations = {
       deleteText: 'Delete text',
       duplicateText: 'Duplicate text',
       // Active status
-      active: 'Active'
+      active: 'Active',
+      // Info text
+      clickToEdit: 'Click on a text in the canvas to edit it, or add a new text.',
+      addNewText: 'Add new text',
+      addWithArea: 'Add with area selection',
+      textPosition: 'Text position',
+      textArea: 'Text area'
     },
 
     // ========== FOTO PANEL ==========
@@ -966,7 +984,13 @@ const translations = {
       presets: 'Image Presets',
       saveAsPreset: 'Save as Preset',
       noPresets: 'No presets saved',
-      load: 'Load'
+      load: 'Load',
+      // Stock gallery categories
+      stockCategories: {
+        backgrounds: 'Backgrounds',
+        elements: 'Elements',
+        patterns: 'Patterns'
+      }
     },
 
     // ========== BACKGROUND TILES PANEL ==========

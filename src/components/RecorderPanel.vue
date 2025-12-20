@@ -1,12 +1,12 @@
 <template>
   <div class="recorder-panel">
     <div class="panel-header">
-      <h3>Recorder</h3>
+      <h3>{{ t('recorder.title') }}</h3>
       <HelpTooltip
-        title="Video aufnehmen"
+        :title="t('recorder.helpTitle')"
         icon="🎬"
-        text="Nehmen Sie Ihre Visualisierung als Video auf. Workflow: Prepare → Start → Stop. Das Video wird im WebM-Format erstellt."
-        tip="Wählen Sie 'High' Qualität für die meisten Anwendungen."
+        :text="t('recorder.helpText')"
+        :tip="t('recorder.helpTip')"
         position="left"
         :large="true"
       />
@@ -34,7 +34,7 @@
           <circle cx="12" cy="12" r="10"/>
           <path d="M8 12h8M12 8v8"/>
         </svg>
-        Prepare
+        {{ t('recorder.prepare') }}
       </button>
 
       <!-- Start Button -->
@@ -47,7 +47,7 @@
         <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="12" cy="12" r="8"/>
         </svg>
-        Start
+        {{ t('recorder.start') }}
       </button>
 
       <!-- Pause/Resume Button -->
@@ -61,7 +61,7 @@
           <rect x="6" y="4" width="4" height="16" rx="1"/>
           <rect x="14" y="4" width="4" height="16" rx="1"/>
         </svg>
-        Pause
+        {{ t('recorder.pause') }}
       </button>
 
       <button
@@ -73,7 +73,7 @@
         <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
           <path d="M8 5v14l11-7z"/>
         </svg>
-        Resume
+        {{ t('recorder.resume') }}
       </button>
 
       <!-- Stop Button -->
@@ -86,7 +86,7 @@
         <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
           <rect x="6" y="6" width="12" height="12" rx="2"/>
         </svg>
-        Stop
+        {{ t('recorder.stop') }}
       </button>
 
       <!-- Reset Button -->
@@ -100,13 +100,13 @@
           <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
           <path d="M3 3v5h5"/>
         </svg>
-        Reset
+        {{ t('recorder.reset') }}
       </button>
     </div>
 
     <!-- Qualitäts-Einstellungen -->
     <div class="control-section" v-if="!recorderStore.isRecording">
-      <span class="section-label">Video Quality</span>
+      <span class="section-label">{{ t('recorder.videoQuality') }}</span>
       <div class="quality-buttons">
         <button
           v-for="quality in qualityPresets"
@@ -123,7 +123,7 @@
 
     <!-- Upload Modus -->
     <div class="control-section" v-if="!recorderStore.isRecording">
-      <span class="section-label">Upload Mode</span>
+      <span class="section-label">{{ t('recorder.uploadMode') }}</span>
       <div class="upload-buttons">
         <button
           class="upload-btn"
@@ -155,11 +155,11 @@
     <!-- FFmpeg Server Conversion -->
     <div class="control-section" v-if="!recorderStore.isRecording">
       <div class="section-header">
-        <span class="section-label">MP4 Konvertierung</span>
+        <span class="section-label">{{ t('recorder.mp4Conversion') }}</span>
         <span
           class="server-status"
           :class="{ available: serverAvailable, unavailable: serverAvailable === false }"
-          :title="serverAvailable ? 'FFmpeg Server verfügbar' : 'FFmpeg Server nicht erreichbar'"
+          :title="serverAvailable ? t('recorder.serverAvailable') : t('recorder.serverUnavailable')"
         >
           {{ serverAvailable ? '●' : '○' }}
         </span>
@@ -171,7 +171,7 @@
           v-model="enableServerConversion"
           :disabled="!serverAvailable || recorderStore.isRecording"
         >
-        <span class="toggle-label">Auto-Konvertierung nach Aufnahme</span>
+        <span class="toggle-label">{{ t('recorder.autoConvert') }}</span>
       </label>
 
       <div class="quality-buttons conversion-quality" v-if="enableServerConversion && serverAvailable">
@@ -193,10 +193,10 @@
     <div class="conversion-progress" v-if="isConverting || conversionStatus === 'completed' || conversionStatus === 'error'">
       <div class="progress-header">
         <span class="progress-label">
-          {{ conversionStatus === 'uploading' ? 'Uploading...' :
-             conversionStatus === 'converting' ? 'Konvertiere zu MP4...' :
-             conversionStatus === 'completed' ? 'MP4 bereit!' :
-             conversionStatus === 'error' ? 'Konvertierung fehlgeschlagen!' : 'Verarbeite...' }}
+          {{ conversionStatus === 'uploading' ? t('recorder.uploading') :
+             conversionStatus === 'converting' ? t('recorder.converting') :
+             conversionStatus === 'completed' ? t('recorder.completed') :
+             conversionStatus === 'error' ? t('recorder.conversionError') : t('recorder.processing') }}
         </span>
         <span class="progress-percent">{{ conversionProgress }}%</span>
       </div>
@@ -221,9 +221,9 @@
             <polyline points="7 10 12 15 17 10"/>
             <line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
-          MP4 Download
+          {{ t('recorder.downloadMp4') }}
         </a>
-        <button class="btn btn-close-conversion" @click="dismissConversion(true)" title="Schließen und Server-Datei löschen">
+        <button class="btn btn-close-conversion" @click="dismissConversion(true)" :title="t('recorder.closeAndDelete')">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <line x1="18" y1="6" x2="6" y2="18"/>
             <line x1="6" y1="6" x2="18" y2="18"/>
@@ -233,7 +233,7 @@
 
       <!-- Error Actions -->
       <div v-if="conversionStatus === 'error'" class="error-actions">
-        <span class="error-message">{{ conversionError || 'Unbekannter Fehler' }}</span>
+        <span class="error-message">{{ conversionError || t('recorder.unknownError') }}</span>
         <button class="btn btn-retry" @click="retryConversion">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M23 4v6h-6"/>
@@ -241,10 +241,10 @@
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
             <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
           </svg>
-          Erneut versuchen
+          {{ t('recorder.retry') }}
         </button>
         <button class="btn btn-dismiss" @click="dismissConversion">
-          Schließen
+          {{ t('common.close') }}
         </button>
       </div>
     </div>
@@ -262,22 +262,22 @@
         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
         <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
       </svg>
-      Zu MP4 konvertieren
+      {{ t('recorder.convertToMp4') }}
     </button>
   </div>
 
   <!-- Results Modal (Fullscreen Popup) -->
   <Teleport to="body">
-    <div 
-      id="results-panel" 
+    <div
+      id="results-panel"
       class="results-modal"
       style="display: none;"
       @click.self="closeResults"
     >
       <div class="modal-content">
         <div class="modal-header">
-          <h2>🎬 Recording Preview</h2>
-          <button @click="closeResults" class="modal-close-btn" title="Close (ESC)">
+          <h2>{{ t('recorder.recordingPreview') }}</h2>
+          <button @click="closeResults" class="modal-close-btn" :title="t('common.close') + ' (ESC)'">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"/>
               <line x1="6" y1="6" x2="18" y2="18"/>
@@ -297,10 +297,10 @@
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
-              Download Video
+              {{ t('recorder.downloadVideo') }}
             </a>
             <button @click="closeResults" class="cancel-btn">
-              Close
+              {{ t('common.close') }}
             </button>
           </div>
 
@@ -313,10 +313,12 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useI18n } from '../lib/i18n.js';
 import { useRecorderStore } from '../stores/recorderStore.js';
 import HelpTooltip from './HelpTooltip.vue';
 import { checkServerHealth, convertAndWait, getFileUrl, getDownloadUrl, cleanupFile } from '../lib/videoApi.js';
 
+const { t } = useI18n();
 const recorderStore = useRecorderStore();
 
 // Lokaler State

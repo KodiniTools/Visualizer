@@ -1,28 +1,28 @@
 <template>
   <div class="panel-container">
-    <h4>Steuerung</h4>
-    
+    <h4>{{ t('controls.title') }}</h4>
+
     <div class="control-section">
-      <span class="section-label">Raster</span>
-      <button 
+      <span class="section-label">{{ t('controls.grid') }}</span>
+      <button
         class="toggle-btn"
         :class="{ active: gridStore.isVisible }"
         @click="gridStore.toggleGrid"
       >
         <span class="btn-icon">{{ gridStore.isVisible ? '✓' : '×' }}</span>
-        {{ gridStore.isVisible ? 'An' : 'Aus' }}
+        {{ gridStore.isVisible ? t('common.on') : t('common.off') }}
       </button>
     </div>
 
     <div class="control-section">
-      <span class="section-label">Arbeitsbereich</span>
+      <span class="section-label">{{ t('controls.workspace') }}</span>
       <div class="preset-buttons">
         <button
           class="preset-btn"
           :class="{ active: workspaceStore.selectedPresetKey === null }"
           @click="workspaceStore.selectedPresetKey = null"
         >
-          Frei
+          {{ t('controls.free') }}
         </button>
         <button
           v-for="(preset, key) in workspaceStore.presets"
@@ -40,9 +40,11 @@
 </template>
 
 <script setup>
+import { useI18n } from '../lib/i18n.js';
 import { useGridStore } from '../stores/gridStore.js';
 import { useWorkspaceStore } from '../stores/workspaceStore.js';
 
+const { t } = useI18n();
 const gridStore = useGridStore();
 const workspaceStore = useWorkspaceStore();
 

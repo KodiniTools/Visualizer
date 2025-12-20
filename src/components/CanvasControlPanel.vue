@@ -1,17 +1,17 @@
 <template>
   <div class="panel">
     <div class="panel-header" @click="isExpanded = !isExpanded">
-      <h3>Canvas-Steuerung</h3>
+      <h3>{{ t('canvasControl.title') }}</h3>
       <span class="chevron" :class="{ open: isExpanded }">▼</span>
     </div>
 
     <div class="panel-content" v-show="isExpanded">
       <!-- Hintergrundfarbe -->
       <div class="panel-section">
-        <h4>Hintergrundfarbe</h4>
-        
+        <h4>{{ t('canvasControl.backgroundColor') }}</h4>
+
         <div class="control-group">
-          <label>Farbe wählen:</label>
+          <label>{{ t('canvasControl.selectColor') }}:</label>
           <div class="color-picker-group">
             <input 
               type="color" 
@@ -33,7 +33,7 @@
         <!-- NEU: Hintergrund Deckkraft Slider -->
         <div class="control-group">
           <label>
-            Hintergrund Deckkraft: {{ Math.round(backgroundOpacity * 100) }}%
+            {{ t('canvasControl.backgroundOpacity') }}: {{ Math.round(backgroundOpacity * 100) }}%
           </label>
           <input
             type="range"
@@ -48,7 +48,7 @@
 
         <!-- ✨ NEU: Gradient-Einstellungen -->
         <div class="gradient-section">
-          <h5>🌈 Gradient</h5>
+          <h5>🌈 {{ t('canvasControl.gradient') }}</h5>
 
           <div class="control-group">
             <label class="checkbox-label">
@@ -57,13 +57,13 @@
                 v-model="gradientEnabled"
                 @change="updateGradientSettings"
               />
-              <span>Gradient aktivieren</span>
+              <span>{{ t('canvasControl.enableGradient') }}</span>
             </label>
           </div>
 
           <div v-if="gradientEnabled" class="gradient-controls">
             <div class="control-group">
-              <label>Zweite Farbe:</label>
+              <label>{{ t('canvasControl.secondColor') }}:</label>
               <div class="color-picker-group">
                 <input
                   type="color"
@@ -76,15 +76,15 @@
             </div>
 
             <div class="control-group">
-              <label>Typ:</label>
+              <label>{{ t('canvasControl.type') }}:</label>
               <select v-model="gradientType" @change="updateGradientSettings" class="gradient-select">
-                <option value="radial">🔵 Radial (vom Zentrum)</option>
-                <option value="linear">📐 Linear (mit Winkel)</option>
+                <option value="radial">🔵 {{ t('canvasControl.radial') }}</option>
+                <option value="linear">📐 {{ t('canvasControl.linear') }}</option>
               </select>
             </div>
 
             <div v-if="gradientType === 'linear'" class="control-group">
-              <label>Winkel: {{ gradientAngle }}°</label>
+              <label>{{ t('canvasControl.angle') }}: {{ gradientAngle }}°</label>
               <input
                 type="range"
                 v-model.number="gradientAngle"
@@ -100,7 +100,7 @@
 
         <!-- ✨ NEU: Audio-Reaktiv für Hintergrundfarbe -->
         <div class="audio-reactive-section">
-          <h5>🎵 Audio-Reaktiv</h5>
+          <h5>🎵 {{ t('canvasControl.audioReactive') }}</h5>
 
           <div class="control-group">
             <label class="checkbox-label">
@@ -109,24 +109,24 @@
                 v-model="bgAudioEnabled"
                 @change="updateBgAudioReactive"
               />
-              <span>Aktiviert</span>
+              <span>{{ t('common.enabled') }}</span>
             </label>
           </div>
 
           <div v-if="bgAudioEnabled" class="audio-controls">
             <div class="control-group">
-              <label>Reagiert auf:</label>
+              <label>{{ t('canvasControl.reactsTo') }}:</label>
               <select v-model="bgAudioSource" @change="updateBgAudioReactive" class="audio-select">
-                <option value="bass">Bass (Kick/Sub)</option>
-                <option value="mid">Mitten (Vocals)</option>
-                <option value="treble">Höhen (Hi-Hats)</option>
-                <option value="volume">Lautstärke (Gesamt)</option>
-                <option value="dynamic">✨ Dynamisch (Auto-Blend)</option>
+                <option value="bass">{{ t('canvasControl.bass') }}</option>
+                <option value="mid">{{ t('canvasControl.mid') }}</option>
+                <option value="treble">{{ t('canvasControl.trebleHiHats') }}</option>
+                <option value="volume">{{ t('canvasControl.volumeTotal') }}</option>
+                <option value="dynamic">✨ {{ t('canvasControl.dynamic') }}</option>
               </select>
             </div>
 
             <div class="control-group">
-              <label>Glättung: {{ bgAudioSmoothing }}%</label>
+              <label>{{ t('canvasControl.smoothing') }}: {{ bgAudioSmoothing }}%</label>
               <input
                 type="range"
                 v-model.number="bgAudioSmoothing"
@@ -141,28 +141,28 @@
             <div class="effects-list">
               <label class="effect-item">
                 <input type="checkbox" v-model="bgEffectHue" @change="updateBgAudioReactive" />
-                <span>🎨 Farbe (Hue)</span>
+                <span>🎨 {{ t('canvasControl.hue') }}</span>
                 <input type="range" v-model.number="bgEffectHueIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
                 <span class="effect-value">{{ bgEffectHueIntensity }}%</span>
               </label>
 
               <label class="effect-item">
                 <input type="checkbox" v-model="bgEffectBrightness" @change="updateBgAudioReactive" />
-                <span>☀️ Helligkeit</span>
+                <span>☀️ {{ t('canvasControl.brightness') }}</span>
                 <input type="range" v-model.number="bgEffectBrightnessIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
                 <span class="effect-value">{{ bgEffectBrightnessIntensity }}%</span>
               </label>
 
               <label class="effect-item">
                 <input type="checkbox" v-model="bgEffectSaturation" @change="updateBgAudioReactive" />
-                <span>🌈 Sättigung</span>
+                <span>🌈 {{ t('canvasControl.saturation') }}</span>
                 <input type="range" v-model.number="bgEffectSaturationIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
                 <span class="effect-value">{{ bgEffectSaturationIntensity }}%</span>
               </label>
 
               <label class="effect-item">
                 <input type="checkbox" v-model="bgEffectGlow" @change="updateBgAudioReactive" />
-                <span>✨ Leuchten</span>
+                <span>✨ {{ t('canvasControl.glow') }}</span>
                 <input type="range" v-model.number="bgEffectGlowIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
                 <span class="effect-value">{{ bgEffectGlowIntensity }}%</span>
               </label>
@@ -171,14 +171,14 @@
               <template v-if="gradientEnabled">
                 <label class="effect-item">
                   <input type="checkbox" v-model="bgEffectGradientPulse" @change="updateBgAudioReactive" />
-                  <span>💫 Gradient-Puls</span>
+                  <span>💫 {{ t('canvasControl.gradientPulse') }}</span>
                   <input type="range" v-model.number="bgEffectGradientPulseIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
                   <span class="effect-value">{{ bgEffectGradientPulseIntensity }}%</span>
                 </label>
 
                 <label class="effect-item">
                   <input type="checkbox" v-model="bgEffectGradientRotation" @change="updateBgAudioReactive" />
-                  <span>🔄 Gradient-Rotation</span>
+                  <span>🔄 {{ t('canvasControl.gradientRotation') }}</span>
                   <input type="range" v-model.number="bgEffectGradientRotationIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
                   <span class="effect-value">{{ bgEffectGradientRotationIntensity }}%</span>
                 </label>
@@ -194,10 +194,10 @@
       <!-- Undo/Redo Sektion -->
       <div v-if="canUndo" class="panel-section undo-section">
         <button @click="undoLastChange" class="btn-undo full-width">
-          Rückgängig
+          {{ t('canvasControl.undo') }}
         </button>
         <div class="hint-text" style="text-align: center; margin-top: 6px;">
-          {{ undoHistory.length }} im Verlauf
+          {{ undoHistory.length }} {{ t('canvasControl.inHistory') }}
         </div>
       </div>
 
@@ -205,16 +205,16 @@
 
       <!-- ✨ NEU: Presets speichern/laden -->
       <div class="panel-section">
-        <h4>🎨 Canvas-Hintergrund Presets</h4>
+        <h4>🎨 {{ t('canvasControl.presets') }}</h4>
 
         <div class="control-group">
           <button @click="saveCurrentAsPreset" class="btn-primary full-width">
-            Hintergrund als Preset speichern
+            {{ t('canvasControl.saveAsPreset') }}
           </button>
         </div>
 
         <div v-if="savedPresets.length > 0" class="presets-list">
-          <label>Gespeicherte Presets:</label>
+          <label>{{ t('canvasControl.savedPresets') }}:</label>
           <div
             v-for="preset in savedPresets"
             :key="preset.id"
@@ -225,17 +225,17 @@
               <span class="preset-preview" :style="{ backgroundColor: preset.backgroundColor }"></span>
             </div>
             <div class="preset-actions">
-              <button @click="loadPreset(preset)" class="btn-small btn-load" title="Laden">
+              <button @click="loadPreset(preset)" class="btn-small btn-load" :title="t('canvasControl.load')">
                 📥
               </button>
-              <button @click="deletePreset(preset.id)" class="btn-small btn-delete" title="Löschen">
+              <button @click="deletePreset(preset.id)" class="btn-small btn-delete" :title="t('common.delete')">
                 🗑️
               </button>
             </div>
           </div>
         </div>
         <div v-else class="hint-text" style="text-align: center; margin-top: 8px;">
-          Keine Presets gespeichert
+          {{ t('canvasControl.noPresets') }}
         </div>
       </div>
 
@@ -243,12 +243,12 @@
 
       <!-- Hintergrund zurücksetzen -->
       <div class="panel-section">
-        <h4>Hintergrund zurücksetzen</h4>
+        <h4>{{ t('canvasControl.resetBackground') }}</h4>
         <p class="info-text">
-          Setzt Hintergrund auf Weiß zurück
+          {{ t('canvasControl.resetsToWhite') }}
         </p>
         <button @click="resetBackground" class="btn-secondary full-width">
-          Zurücksetzen
+          {{ t('common.reset') }}
         </button>
       </div>
 
@@ -256,19 +256,19 @@
 
       <!-- Canvas komplett zurücksetzen -->
       <div class="panel-section">
-        <h4>Canvas löschen</h4>
+        <h4>{{ t('canvasControl.clearCanvas') }}</h4>
         <p class="info-text warning">
-          ⚠️ Entfernt alle Inhalte
+          ⚠️ {{ t('canvasControl.removesAll') }}
         </p>
-        <button 
-          @click="showResetConfirm = true" 
+        <button
+          @click="showResetConfirm = true"
           class="btn-danger full-width"
           :disabled="isCanvasEmpty"
         >
-          Alles löschen
+          {{ t('canvasControl.deleteAll') }}
         </button>
         <div v-if="isCanvasEmpty" class="hint-text" style="margin-top: 8px; text-align: center;">
-          Canvas ist leer
+          {{ t('canvasControl.canvasEmpty') }}
         </div>
       </div>
     </div>
@@ -276,17 +276,16 @@
     <!-- Bestätigungs-Dialog für Canvas-Reset -->
     <div v-if="showResetConfirm" class="confirm-overlay" @click="showResetConfirm = false">
       <div class="confirm-dialog" @click.stop>
-        <h4>Canvas wirklich löschen?</h4>
+        <h4>{{ t('canvasControl.confirmClear') }}</h4>
         <p>
-          Alle Inhalte werden gelöscht.<br>
-          Dies kann nicht rückgängig gemacht werden.
+          {{ t('canvasControl.confirmClearText') }}
         </p>
         <div class="confirm-actions">
           <button @click="confirmReset" class="btn-danger">
-            Löschen
+            {{ t('common.delete') }}
           </button>
           <button @click="showResetConfirm = false" class="btn-secondary">
-            Abbrechen
+            {{ t('common.cancel') }}
           </button>
         </div>
       </div>
@@ -296,8 +295,10 @@
 
 <script setup>
 import { ref, inject, computed, onMounted, watch } from 'vue';
+import { useI18n } from '../lib/i18n.js';
 import BackgroundTilesPanel from './BackgroundTilesPanel.vue';
 
+const { t } = useI18n();
 const canvasManager = inject('canvasManager');
 const backgroundColor = ref('#ffffff'); // Hex-Farbe ohne Alpha (Standard: Weiß)
 const backgroundOpacity = ref(1.0); // Deckkraft State (0.0 bis 1.0)

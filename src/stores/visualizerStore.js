@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { Visualizers } from '../lib/visualizers.js';
+import { localeRef } from '../lib/i18n.js';
 
 // ✅ Visualizer-Kategorien für bessere UX
 const VISUALIZER_CATEGORIES = {
@@ -17,27 +18,40 @@ const VISUALIZER_CATEGORIES = {
 };
 
 export const useVisualizerStore = defineStore('visualizer', () => {
-  // ✅ Kategorisierte Visualizer
+  // ✅ Helper function to get locale-aware visualizer name
+  function getVisualizerName(visualizer, id) {
+    const locale = localeRef.value; // Access .value for reactivity
+    if (locale === 'en') {
+      return visualizer.name_en || visualizer.name_de || id;
+    }
+    return visualizer.name_de || visualizer.name_en || id;
+  }
+
+  // ✅ Kategorisierte Visualizer (locale-aware)
   const categorizedVisualizers = computed(() => {
+    // Access localeRef.value to ensure reactive dependency tracking
+    const _locale = localeRef.value;
     const result = {};
     for (const [category, ids] of Object.entries(VISUALIZER_CATEGORIES)) {
       result[category] = ids
         .filter(id => Visualizers[id]) // Nur existierende
         .map(id => ({
           id,
-          name: Visualizers[id].name_de || Visualizers[id].name_en || id
+          name: getVisualizerName(Visualizers[id], id)
         }));
     }
     return result;
   });
 
-  // ✅ Flache Liste (für Kompatibilität)
-  const availableVisualizers = computed(() =>
-    Object.keys(Visualizers).map(key => ({
+  // ✅ Flache Liste (für Kompatibilität) - locale-aware
+  const availableVisualizers = computed(() => {
+    // Access localeRef.value to ensure reactive dependency tracking
+    const _locale = localeRef.value;
+    return Object.keys(Visualizers).map(key => ({
       id: key,
-      name: Visualizers[key].name_de || Visualizers[key].name_en || key
-    }))
-  );
+      name: getVisualizerName(Visualizers[key], key)
+    }));
+  });
 
   const selectedVisualizer = ref('bars');
 

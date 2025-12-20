@@ -728,15 +728,15 @@ Zeile 3..."
 
       <div class="button-row">
         <button @click="createNewText" class="btn-primary" :disabled="!newTextContent.trim()">
-          Zum Canvas hinzufügen
+          {{ t('textManager.addToCanvas') }}
         </button>
         <button
           v-if="newTextContent && !newTextContent.includes('\n') && newTextContent.length > 60"
           @click="autoWrapText"
           class="btn-secondary"
-          title="Text automatisch in Zeilen umbrechen"
+          :title="t('textManager.autoWrapTitle')"
         >
-          Auto-Umbruch
+          {{ t('textManager.autoWrap') }}
         </button>
         <button @click="cancelNewText" class="btn-secondary">
           {{ t('textManager.cancel') }}
@@ -747,10 +747,10 @@ Zeile 3..."
     <!-- Normal: Button zum Hinzufügen -->
     <div v-else class="panel-section">
       <button @click="startAddingText" class="btn-primary full-width">
-        Neuen Text hinzufügen
+        {{ t('textManager.addNewText') }}
       </button>
       <button @click="startAddingTextWithSelection" class="btn-selection full-width" style="margin-top: 8px;">
-        🖱️ Mit Bereichsauswahl hinzufügen
+        🖱️ {{ t('textManager.addWithArea') }}
       </button>
     </div>
 
@@ -761,7 +761,7 @@ Zeile 3..."
       <details class="collapsible-section" open>
         <summary class="section-header">
           <span class="section-icon">✏️</span>
-          <span>Text bearbeiten</span>
+          <span>{{ t('textManager.editText') }}</span>
         </summary>
         <div class="section-content">
           <!-- Text-Inhalt -->

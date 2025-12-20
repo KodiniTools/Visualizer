@@ -133,6 +133,17 @@ const translations = {
     // ========== PLAYER PANEL ==========
     player: {
       title: 'Player',
+      // Audio Source
+      audioSource: 'Audio-Quelle',
+      player: 'Player',
+      microphone: 'Mikrofon',
+      playerSource: 'Audio-Dateien abspielen',
+      microphoneSource: 'Live-Mikrofon-Eingang',
+      microphoneListening: 'Mikrofon aktiv - lauscht...',
+      selectDevice: 'Gerät auswählen',
+      microphonePermissionDenied: 'Mikrofon-Zugriff verweigert',
+      microphoneNotFound: 'Kein Mikrofon gefunden',
+      // Player controls
       prev: 'Zurück',
       play: 'Play',
       pause: 'Pause',
@@ -678,6 +689,17 @@ const translations = {
     // ========== PLAYER PANEL ==========
     player: {
       title: 'Player',
+      // Audio Source
+      audioSource: 'Audio Source',
+      player: 'Player',
+      microphone: 'Microphone',
+      playerSource: 'Play audio files',
+      microphoneSource: 'Live microphone input',
+      microphoneListening: 'Microphone active - listening...',
+      selectDevice: 'Select device',
+      microphonePermissionDenied: 'Microphone access denied',
+      microphoneNotFound: 'No microphone found',
+      // Player controls
       prev: 'Previous',
       play: 'Play',
       pause: 'Pause',

@@ -3463,5 +3463,506 @@ export const Visualizers = {
         );
       });
     }
+  },
+
+  // ============================================================================
+  // RETRO & PIXEL VISUALIZERS
+  // ============================================================================
+
+  /**
+   * Pixel Spectrum - Retro 8-bit style bar visualizer with chunky pixels
+   */
+  pixelSpectrum: {
+    name_de: 'Pixel-Spektrum (8-Bit)',
+    name_en: 'Pixel Spectrum (8-Bit)',
+    draw(ctx, dataArray, bufferLength, w, h, color, intensity = 1.0) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+      const baseHsl = hexToHsl(color);
+      const pixelSize = Math.max(8, Math.floor(w / 40)); // Chunky pixels
+      const numBars = Math.floor(w / pixelSize);
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+
+      // State für Smoothing
+      const stateKey = 'pixelSpectrum_bars';
+      if (!visualizerState[stateKey] || visualizerState[stateKey].length !== numBars) {
+        visualizerState[stateKey] = new Array(numBars).fill(0);
+      }
+
+      // Dunkler Hintergrund mit Scanlines
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+      ctx.fillRect(0, 0, w, h);
+
+      // Scanlines für CRT-Effekt
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      for (let y = 0; y < h; y += 4) {
+        ctx.fillRect(0, y, w, 2);
+      }
+
+      for (let i = 0; i < numBars; i++) {
+        const freqPerBar = maxFreqIndex / numBars;
+        const s = Math.floor(i * freqPerBar);
+        const e = Math.max(s + 1, Math.floor((i + 1) * freqPerBar));
+        const rawValue = averageRange(dataArray, s, e);
+
+        const dynamicGain = calculateDynamicGain(i, numBars);
+        const targetHeight = (rawValue / 255) * h * dynamicGain * 0.8 * intensity;
+        visualizerState[stateKey][i] = applySmoothValue(visualizerState[stateKey][i] || 0, targetHeight, 0.4);
+
+        const barHeight = visualizerState[stateKey][i];
+        const numPixelsY = Math.ceil(barHeight / pixelSize);
+        const x = i * pixelSize;
+
+        // Zeichne pixelige Blöcke
+        for (let py = 0; py < numPixelsY; py++) {
+          const y = h - (py + 1) * pixelSize;
+          const pixelEnergy = py / numPixelsY;
+
+          // Farbverlauf von unten nach oben (grün -> gelb -> rot wie alte Equalizer)
+          let hue;
+          if (pixelEnergy < 0.5) {
+            hue = 120; // Grün
+          } else if (pixelEnergy < 0.75) {
+            hue = 60; // Gelb
+          } else {
+            hue = 0; // Rot
+          }
+
+          // Pixel mit dunklem Rand für 8-bit Look
+          ctx.fillStyle = `hsl(${hue}, 100%, ${40 + pixelEnergy * 30}%)`;
+          ctx.fillRect(x + 1, y + 1, pixelSize - 2, pixelSize - 2);
+
+          // Highlight für 3D-Effekt
+          ctx.fillStyle = `hsla(${hue}, 100%, 80%, 0.3)`;
+          ctx.fillRect(x + 1, y + 1, pixelSize - 2, 2);
+        }
+      }
+
+      ctx.restore();
+    }
+  },
+
+  /**
+   * Retro Oscilloscope - Classic green phosphor CRT oscilloscope
+   */
+  retroOscilloscope: {
+    name_de: 'Retro-Oszilloskop (Grün)',
+    name_en: 'Retro Oscilloscope (Green)',
+    needsTimeData: true,
+    draw(ctx, dataArray, bufferLength, w, h, color, intensity = 1.0) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+      // CRT-Hintergrund mit Nachleuchteffekt
+      ctx.fillStyle = 'rgba(0, 10, 0, 0.15)';
+      ctx.fillRect(0, 0, w, h);
+
+      // Gitter zeichnen (wie bei echten Oszilloskopen)
+      ctx.strokeStyle = 'rgba(0, 80, 0, 0.3)';
+      ctx.lineWidth = 1;
+
+      // Vertikale Linien
+      const gridSpacing = w / 10;
+      for (let x = 0; x <= w; x += gridSpacing) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+
+      // Horizontale Linien
+      for (let y = 0; y <= h; y += gridSpacing) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // Mittellinien (heller)
+      ctx.strokeStyle = 'rgba(0, 120, 0, 0.5)';
+      ctx.beginPath();
+      ctx.moveTo(0, h / 2);
+      ctx.lineTo(w, h / 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(w / 2, 0);
+      ctx.lineTo(w / 2, h);
+      ctx.stroke();
+
+      // Wellenform zeichnen mit Phosphor-Glow
+      const sliceWidth = w / bufferLength;
+
+      // Äußerer Glow (breit, schwach)
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(0, 255, 0, ${0.1 * intensity})`;
+      ctx.lineWidth = 8;
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = '#00ff00';
+
+      for (let i = 0; i < bufferLength; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = (v * h) / 2;
+        const x = i * sliceWidth;
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.stroke();
+
+      // Mittlerer Glow
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(0, 255, 0, ${0.3 * intensity})`;
+      ctx.lineWidth = 4;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = (v * h) / 2;
+        const x = i * sliceWidth;
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.stroke();
+
+      // Helle Kernlinie
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(150, 255, 150, ${0.9 * intensity})`;
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 10;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = (v * h) / 2;
+        const x = i * sliceWidth;
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+  },
+
+  /**
+   * Arcade Blocks - Tetris/Space Invaders style falling blocks
+   */
+  arcadeBlocks: {
+    name_de: 'Arcade-Blöcke (Tetris)',
+    name_en: 'Arcade Blocks (Tetris)',
+    init() {
+      visualizerState.arcadeBlocks = {
+        blocks: [],
+        lastBeat: 0
+      };
+    },
+    draw(ctx, dataArray, bufferLength, w, h, color, intensity = 1.0) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+      const baseHsl = hexToHsl(color);
+      const blockSize = Math.max(16, Math.floor(w / 32));
+      const cols = Math.floor(w / blockSize);
+
+      // Initialisiere State
+      if (!visualizerState.arcadeBlocks) {
+        visualizerState.arcadeBlocks = { blocks: [], lastBeat: 0 };
+      }
+      const state = visualizerState.arcadeBlocks;
+
+      // Berechne Bass-Energie für Beat-Detection
+      const bassEnd = Math.floor(bufferLength * 0.1);
+      let bassSum = 0;
+      for (let i = 0; i < bassEnd; i++) {
+        bassSum += dataArray[i];
+      }
+      const bassEnergy = bassSum / (bassEnd * 255);
+
+      // Fade Hintergrund
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillRect(0, 0, w, h);
+
+      // Bei Beat neue Blöcke spawnen
+      const now = Date.now();
+      if (bassEnergy > 0.5 && now - state.lastBeat > 100) {
+        state.lastBeat = now;
+
+        // Spawn mehrere Blöcke basierend auf Energie
+        const numNewBlocks = Math.floor(bassEnergy * 5) + 1;
+        for (let i = 0; i < numNewBlocks; i++) {
+          const col = Math.floor(Math.random() * cols);
+          const tetrisColors = [0, 60, 120, 180, 240, 300]; // Tetris-Farben
+          state.blocks.push({
+            x: col * blockSize,
+            y: -blockSize,
+            speed: 2 + bassEnergy * 8,
+            hue: tetrisColors[Math.floor(Math.random() * tetrisColors.length)],
+            size: blockSize
+          });
+        }
+      }
+
+      // Blöcke aktualisieren und zeichnen
+      for (let i = state.blocks.length - 1; i >= 0; i--) {
+        const block = state.blocks[i];
+        block.y += block.speed;
+
+        // Block zeichnen mit Tetris-Style
+        const gradient = ctx.createLinearGradient(block.x, block.y, block.x + block.size, block.y + block.size);
+        gradient.addColorStop(0, `hsl(${block.hue}, 80%, 60%)`);
+        gradient.addColorStop(1, `hsl(${block.hue}, 80%, 40%)`);
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(block.x + 2, block.y + 2, block.size - 4, block.size - 4);
+
+        // 3D-Kanten
+        ctx.fillStyle = `hsl(${block.hue}, 80%, 75%)`;
+        ctx.fillRect(block.x + 2, block.y + 2, block.size - 4, 4);
+        ctx.fillRect(block.x + 2, block.y + 2, 4, block.size - 4);
+
+        ctx.fillStyle = `hsl(${block.hue}, 80%, 30%)`;
+        ctx.fillRect(block.x + block.size - 6, block.y + 6, 4, block.size - 8);
+        ctx.fillRect(block.x + 6, block.y + block.size - 6, block.size - 8, 4);
+
+        // Entferne Blöcke die unten angekommen sind
+        if (block.y > h) {
+          state.blocks.splice(i, 1);
+        }
+      }
+
+      // Begrenze Anzahl der Blöcke
+      if (state.blocks.length > 200) {
+        state.blocks.splice(0, state.blocks.length - 200);
+      }
+
+      ctx.restore();
+    }
+  },
+
+  /**
+   * Chiptune Pulse - Pulsing squares inspired by 8-bit music
+   */
+  chiptunePulse: {
+    name_de: 'Chiptune-Puls (8-Bit)',
+    name_en: 'Chiptune Pulse (8-Bit)',
+    draw(ctx, dataArray, bufferLength, w, h, color, intensity = 1.0) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+      const baseHsl = hexToHsl(color);
+      const gridSize = Math.max(24, Math.floor(Math.min(w, h) / 16));
+      const cols = Math.ceil(w / gridSize);
+      const rows = Math.ceil(h / gridSize);
+
+      // State für Smoothing
+      const stateKey = 'chiptunePulse_grid';
+      const totalCells = cols * rows;
+      if (!visualizerState[stateKey] || visualizerState[stateKey].length !== totalCells) {
+        visualizerState[stateKey] = new Array(totalCells).fill(0);
+      }
+
+      // Dunkler Hintergrund
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillRect(0, 0, w, h);
+
+      // Berechne Frequenzbänder
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const cellIndex = row * cols + col;
+
+          // Wellenförmige Frequenzzuordnung
+          const distFromCenter = Math.sqrt(
+            Math.pow((col - cols / 2) / cols, 2) +
+            Math.pow((row - rows / 2) / rows, 2)
+          );
+          const freqIndex = Math.floor(distFromCenter * maxFreqIndex * 2) % maxFreqIndex;
+          const value = dataArray[freqIndex] / 255;
+
+          // Smoothing
+          const target = value * intensity;
+          visualizerState[stateKey][cellIndex] = applySmoothValue(
+            visualizerState[stateKey][cellIndex] || 0,
+            target,
+            0.3
+          );
+          const smoothedValue = visualizerState[stateKey][cellIndex];
+
+          if (smoothedValue > 0.1) {
+            const x = col * gridSize;
+            const y = row * gridSize;
+
+            // Pulsierendes Quadrat
+            const pulseSize = gridSize * (0.3 + smoothedValue * 0.7);
+            const offset = (gridSize - pulseSize) / 2;
+
+            // Hue basierend auf Position und Energie
+            const hue = (baseHsl.h + distFromCenter * 180 + smoothedValue * 60) % 360;
+
+            // Glow-Effekt
+            if (smoothedValue > 0.5) {
+              ctx.shadowBlur = smoothedValue * 15;
+              ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+            }
+
+            // Quadrat mit Pixel-Ästhetik
+            ctx.fillStyle = `hsl(${hue}, ${70 + smoothedValue * 30}%, ${30 + smoothedValue * 40}%)`;
+            ctx.fillRect(x + offset, y + offset, pulseSize, pulseSize);
+
+            // Highlight
+            ctx.fillStyle = `hsla(${hue}, 100%, 80%, ${smoothedValue * 0.5})`;
+            ctx.fillRect(x + offset, y + offset, pulseSize, 3);
+            ctx.fillRect(x + offset, y + offset, 3, pulseSize);
+
+            ctx.shadowBlur = 0;
+          }
+        }
+      }
+
+      ctx.restore();
+    }
+  },
+
+  /**
+   * Pixel Fireworks - Retro pixel explosions triggered by beats
+   */
+  pixelFireworks: {
+    name_de: 'Pixel-Feuerwerk (Retro)',
+    name_en: 'Pixel Fireworks (Retro)',
+    init() {
+      visualizerState.pixelFireworks = {
+        explosions: [],
+        lastBeat: 0
+      };
+    },
+    draw(ctx, dataArray, bufferLength, w, h, color, intensity = 1.0) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+      const baseHsl = hexToHsl(color);
+      const pixelSize = Math.max(4, Math.floor(Math.min(w, h) / 100));
+
+      // Initialisiere State
+      if (!visualizerState.pixelFireworks) {
+        visualizerState.pixelFireworks = { explosions: [], lastBeat: 0 };
+      }
+      const state = visualizerState.pixelFireworks;
+
+      // Fade Hintergrund (langsamer für Trails)
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, w, h);
+
+      // Berechne verschiedene Frequenzbänder
+      const bassEnd = Math.floor(bufferLength * 0.1);
+      const midEnd = Math.floor(bufferLength * 0.4);
+
+      let bassSum = 0, midSum = 0;
+      for (let i = 0; i < bassEnd; i++) bassSum += dataArray[i];
+      for (let i = bassEnd; i < midEnd; i++) midSum += dataArray[i];
+
+      const bassEnergy = bassSum / (bassEnd * 255);
+      const midEnergy = midSum / ((midEnd - bassEnd) * 255);
+
+      // Bei starkem Beat neue Explosion spawnen
+      const now = Date.now();
+      if (bassEnergy > 0.6 && now - state.lastBeat > 200) {
+        state.lastBeat = now;
+
+        // Neue Explosion erstellen
+        const explosion = {
+          x: w * 0.2 + Math.random() * w * 0.6,
+          y: h * 0.2 + Math.random() * h * 0.6,
+          particles: [],
+          age: 0,
+          hue: (baseHsl.h + Math.random() * 120) % 360
+        };
+
+        // Pixel-Partikel in alle Richtungen
+        const numParticles = 20 + Math.floor(bassEnergy * 30);
+        for (let i = 0; i < numParticles; i++) {
+          const angle = (i / numParticles) * Math.PI * 2;
+          const speed = 2 + Math.random() * 6;
+          explosion.particles.push({
+            x: explosion.x,
+            y: explosion.y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 1.0,
+            size: pixelSize * (1 + Math.random())
+          });
+        }
+
+        state.explosions.push(explosion);
+      }
+
+      // Explosionen aktualisieren und zeichnen
+      for (let i = state.explosions.length - 1; i >= 0; i--) {
+        const explosion = state.explosions[i];
+        explosion.age++;
+
+        let allDead = true;
+
+        for (const particle of explosion.particles) {
+          if (particle.life <= 0) continue;
+          allDead = false;
+
+          // Physik mit Schwerkraft
+          particle.x += particle.vx;
+          particle.y += particle.vy;
+          particle.vy += 0.15; // Schwerkraft
+          particle.vx *= 0.98; // Luftwiderstand
+          particle.life -= 0.015;
+
+          // Zeichne Pixel-Partikel
+          const alpha = particle.life * intensity;
+          const lightness = 40 + particle.life * 40;
+
+          // Hauptpixel
+          ctx.fillStyle = `hsla(${explosion.hue}, 100%, ${lightness}%, ${alpha})`;
+          const size = Math.floor(particle.size * particle.life);
+          ctx.fillRect(
+            Math.floor(particle.x / pixelSize) * pixelSize,
+            Math.floor(particle.y / pixelSize) * pixelSize,
+            size,
+            size
+          );
+
+          // Glow für hellere Partikel
+          if (particle.life > 0.5) {
+            ctx.fillStyle = `hsla(${explosion.hue}, 100%, 80%, ${alpha * 0.3})`;
+            ctx.fillRect(
+              Math.floor(particle.x / pixelSize) * pixelSize - pixelSize,
+              Math.floor(particle.y / pixelSize) * pixelSize - pixelSize,
+              size + pixelSize * 2,
+              size + pixelSize * 2
+            );
+          }
+        }
+
+        // Entferne tote Explosionen
+        if (allDead || explosion.age > 300) {
+          state.explosions.splice(i, 1);
+        }
+      }
+
+      // Begrenze Anzahl der Explosionen
+      if (state.explosions.length > 10) {
+        state.explosions.splice(0, state.explosions.length - 10);
+      }
+
+      ctx.restore();
+    }
   }
 };

@@ -1,6 +1,6 @@
 <template>
   <div class="tiles-section">
-    <h5>Kachel-Hintergrund</h5>
+    <h5>{{ t('backgroundTiles.title') }}</h5>
 
     <!-- Aktivierung -->
     <div class="control-group">
@@ -10,14 +10,14 @@
           :checked="tilesStore.tilesEnabled"
           @change="toggleTiles"
         />
-        <span>Kachel-Modus aktivieren</span>
+        <span>{{ t('backgroundTiles.enableTiles') }}</span>
       </label>
     </div>
 
     <div v-if="tilesStore.tilesEnabled" class="tiles-controls">
       <!-- Kachelanzahl -->
       <div class="control-group">
-        <label>Anzahl Kacheln:</label>
+        <label>{{ t('backgroundTiles.tileCount') }}:</label>
         <div class="tile-count-buttons">
           <button
             v-for="count in [3, 6, 9, 12]"
@@ -32,7 +32,7 @@
 
       <!-- Lücke zwischen Kacheln -->
       <div class="control-group">
-        <label>Abstand: {{ tilesStore.tileGap }}px</label>
+        <label>{{ t('backgroundTiles.gap') }}: {{ tilesStore.tileGap }}px</label>
         <input
           type="range"
           :value="tilesStore.tileGap"
@@ -46,7 +46,7 @@
 
       <!-- Kachel-Vorschau/Auswahl -->
       <div class="control-group">
-        <label>Kachel auswählen:</label>
+        <label>{{ t('backgroundTiles.selectTile') }}:</label>
         <div
           class="tiles-preview"
           :style="gridStyle"
@@ -60,8 +60,8 @@
             @click="selectTile(index)"
           >
             <span class="tile-number">{{ index + 1 }}</span>
-            <span v-if="tile.image" class="tile-has-image">Bild</span>
-            <span v-if="tile.audioReactive?.enabled" class="tile-has-audio" title="Audio-Reaktiv">♪</span>
+            <span v-if="tile.image" class="tile-has-image">{{ t('backgroundTiles.image') }}</span>
+            <span v-if="tile.audioReactive?.enabled" class="tile-has-audio" :title="t('backgroundTiles.audioReactive')">♪</span>
           </div>
         </div>
       </div>
@@ -69,13 +69,13 @@
       <!-- Bearbeitung der ausgewählten Kachel -->
       <div v-if="tilesStore.selectedTile" class="selected-tile-editor">
         <div class="editor-header">
-          <h6>Kachel {{ tilesStore.selectedTileIndex + 1 }} bearbeiten</h6>
+          <h6>{{ locale === 'de' ? `Kachel ${tilesStore.selectedTileIndex + 1} bearbeiten` : `Edit tile ${tilesStore.selectedTileIndex + 1}` }}</h6>
           <button class="btn-close" @click="deselectTile">×</button>
         </div>
 
         <!-- Hintergrundfarbe -->
         <div class="control-group">
-          <label>Hintergrundfarbe:</label>
+          <label>{{ t('backgroundTiles.backgroundColor') }}:</label>
           <div class="color-picker-group">
             <input
               type="color"
@@ -89,7 +89,7 @@
 
         <!-- Hintergrund Deckkraft -->
         <div class="control-group">
-          <label>Deckkraft: {{ Math.round(tilesStore.selectedTile.backgroundOpacity * 100) }}%</label>
+          <label>{{ t('backgroundTiles.opacity') }}: {{ Math.round(tilesStore.selectedTile.backgroundOpacity * 100) }}%</label>
           <input
             type="range"
             :value="tilesStore.selectedTile.backgroundOpacity"
@@ -103,7 +103,7 @@
 
         <!-- Bild-Bereich -->
         <div class="image-section">
-          <label>Kachel-Bild:</label>
+          <label>{{ t('backgroundTiles.tileImage') }}:</label>
 
           <div v-if="!tilesStore.selectedTile.image" class="image-upload-area">
             <input
@@ -114,9 +114,9 @@
               style="display: none"
             />
             <button class="btn-upload" @click="$refs.fileInput.click()">
-              Bild hochladen
+              {{ t('backgroundTiles.uploadImage') }}
             </button>
-            <p class="hint">oder per Drag & Drop</p>
+            <p class="hint">{{ t('backgroundTiles.orDragDrop') }}</p>
           </div>
 
           <div v-else class="image-controls">
@@ -127,7 +127,7 @@
             <!-- Bild-Filter -->
             <div class="filter-controls">
               <div class="filter-row">
-                <label>Helligkeit</label>
+                <label>{{ t('backgroundTiles.brightness') }}</label>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.imageSettings.brightness"
@@ -140,7 +140,7 @@
               </div>
 
               <div class="filter-row">
-                <label>Kontrast</label>
+                <label>{{ t('backgroundTiles.contrast') }}</label>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.imageSettings.contrast"
@@ -153,7 +153,7 @@
               </div>
 
               <div class="filter-row">
-                <label>Sättigung</label>
+                <label>{{ t('backgroundTiles.saturation') }}</label>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.imageSettings.saturation"
@@ -166,7 +166,7 @@
               </div>
 
               <div class="filter-row">
-                <label>Deckkraft</label>
+                <label>{{ t('backgroundTiles.opacity') }}</label>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.imageSettings.opacity"
@@ -179,7 +179,7 @@
               </div>
 
               <div class="filter-row">
-                <label>Weichzeichnen</label>
+                <label>{{ t('backgroundTiles.blur') }}</label>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.imageSettings.blur"
@@ -192,7 +192,7 @@
               </div>
 
               <div class="filter-row">
-                <label>Farbton</label>
+                <label>{{ t('backgroundTiles.hueRotate') }}</label>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.imageSettings.hueRotate"
@@ -205,7 +205,7 @@
               </div>
 
               <div class="filter-row">
-                <label>Graustufen</label>
+                <label>{{ t('backgroundTiles.grayscale') }}</label>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.imageSettings.grayscale"
@@ -218,7 +218,7 @@
               </div>
 
               <div class="filter-row">
-                <label>Sepia</label>
+                <label>{{ t('backgroundTiles.sepia') }}</label>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.imageSettings.sepia"
@@ -231,7 +231,7 @@
               </div>
 
               <div class="filter-row">
-                <label>Skalierung</label>
+                <label>{{ t('backgroundTiles.scale') }}</label>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.imageSettings.scale"
@@ -244,7 +244,7 @@
               </div>
 
               <div class="filter-row">
-                <label>Verschieben X</label>
+                <label>{{ t('backgroundTiles.offsetX') }}</label>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.imageSettings.offsetX"
@@ -257,7 +257,7 @@
               </div>
 
               <div class="filter-row">
-                <label>Verschieben Y</label>
+                <label>{{ t('backgroundTiles.offsetY') }}</label>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.imageSettings.offsetY"
@@ -271,7 +271,7 @@
             </div>
 
             <button class="btn-remove" @click="removeImage">
-              Bild entfernen
+              {{ t('backgroundTiles.removeImage') }}
             </button>
           </div>
         </div>
@@ -285,30 +285,30 @@
                 :checked="tilesStore.selectedTile.audioReactive?.enabled"
                 @change="toggleAudioReactive($event.target.checked)"
               />
-              <span>Audio-Reaktiv</span>
+              <span>{{ t('backgroundTiles.audioReactive') }}</span>
             </label>
           </div>
 
           <div v-if="tilesStore.selectedTile.audioReactive?.enabled" class="audio-controls">
             <!-- Audio-Quelle -->
             <div class="control-group">
-              <label>Reagiert auf:</label>
+              <label>{{ t('backgroundTiles.reactsTo') }}:</label>
               <select
                 :value="tilesStore.selectedTile.audioReactive.source"
                 @change="setAudioSource($event.target.value)"
                 class="audio-select"
               >
-                <option value="bass">Bass (Kick/Sub)</option>
-                <option value="mid">Mitten (Vocals)</option>
-                <option value="treble">Höhen (Hi-Hats)</option>
-                <option value="volume">Lautstärke (Gesamt)</option>
-                <option value="dynamic">Dynamisch (Auto-Blend)</option>
+                <option value="bass">{{ t('backgroundTiles.bassBass') }}</option>
+                <option value="mid">{{ t('backgroundTiles.midVocals') }}</option>
+                <option value="treble">{{ t('backgroundTiles.trebleHiHats') }}</option>
+                <option value="volume">{{ t('backgroundTiles.volumeTotal') }}</option>
+                <option value="dynamic">{{ t('backgroundTiles.dynamicAuto') }}</option>
               </select>
             </div>
 
             <!-- Glättung -->
             <div class="control-group">
-              <label>Glättung: {{ tilesStore.selectedTile.audioReactive.smoothing }}%</label>
+              <label>{{ t('backgroundTiles.smoothing') }}: {{ tilesStore.selectedTile.audioReactive.smoothing }}%</label>
               <input
                 type="range"
                 :value="tilesStore.selectedTile.audioReactive.smoothing"
@@ -329,7 +329,7 @@
                   :checked="tilesStore.selectedTile.audioReactive.effects.hue.enabled"
                   @change="toggleEffect('hue', $event.target.checked)"
                 />
-                <span>Farbton</span>
+                <span>{{ t('backgroundTiles.hue') }}</span>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.audioReactive.effects.hue.intensity"
@@ -349,7 +349,7 @@
                   :checked="tilesStore.selectedTile.audioReactive.effects.brightness.enabled"
                   @change="toggleEffect('brightness', $event.target.checked)"
                 />
-                <span>Helligkeit</span>
+                <span>{{ t('backgroundTiles.brightness') }}</span>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.audioReactive.effects.brightness.intensity"
@@ -369,7 +369,7 @@
                   :checked="tilesStore.selectedTile.audioReactive.effects.saturation.enabled"
                   @change="toggleEffect('saturation', $event.target.checked)"
                 />
-                <span>Sättigung</span>
+                <span>{{ t('backgroundTiles.saturation') }}</span>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.audioReactive.effects.saturation.intensity"
@@ -389,7 +389,7 @@
                   :checked="tilesStore.selectedTile.audioReactive.effects.glow.enabled"
                   @change="toggleEffect('glow', $event.target.checked)"
                 />
-                <span>Leuchten</span>
+                <span>{{ t('backgroundTiles.glow') }}</span>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.audioReactive.effects.glow.intensity"
@@ -409,7 +409,7 @@
                   :checked="tilesStore.selectedTile.audioReactive.effects.scale.enabled"
                   @change="toggleEffect('scale', $event.target.checked)"
                 />
-                <span>Pulsieren</span>
+                <span>{{ t('backgroundTiles.pulse') }}</span>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.audioReactive.effects.scale.intensity"
@@ -429,7 +429,7 @@
                   :checked="tilesStore.selectedTile.audioReactive.effects.blur.enabled"
                   @change="toggleEffect('blur', $event.target.checked)"
                 />
-                <span>Weichzeichnen</span>
+                <span>{{ t('backgroundTiles.blur') }}</span>
                 <input
                   type="range"
                   :value="tilesStore.selectedTile.audioReactive.effects.blur.intensity"
@@ -447,15 +447,15 @@
 
         <!-- Kachel zurücksetzen -->
         <button class="btn-reset" @click="resetTile">
-          Kachel zurücksetzen
+          {{ t('backgroundTiles.resetTile') }}
         </button>
       </div>
 
       <!-- ✨ NEU: Kachel-Presets -->
       <div class="control-group presets-section">
-        <label>🔲 Kachel-Presets:</label>
+        <label>🔲 {{ t('backgroundTiles.tilePresets') }}:</label>
         <button @click="saveTilePreset" class="btn-save-preset">
-          Kacheln als Preset speichern
+          {{ t('backgroundTiles.saveTilePreset') }}
         </button>
 
         <div v-if="tilePresets.length > 0" class="presets-list">
@@ -466,22 +466,22 @@
           >
             <span class="preset-name">{{ preset.name }}</span>
             <div class="preset-actions">
-              <button @click="loadTilePreset(preset)" class="btn-small btn-load" title="Laden">
+              <button @click="loadTilePreset(preset)" class="btn-small btn-load" :title="t('backgroundTiles.load')">
                 📥
               </button>
-              <button @click="deleteTilePreset(preset.id)" class="btn-small btn-delete" title="Löschen">
+              <button @click="deleteTilePreset(preset.id)" class="btn-small btn-delete" :title="t('backgroundTiles.delete')">
                 🗑️
               </button>
             </div>
           </div>
         </div>
-        <div v-else class="hint-text">Keine Kachel-Presets gespeichert</div>
+        <div v-else class="hint-text">{{ t('backgroundTiles.noTilePresets') }}</div>
       </div>
 
       <!-- Alle Kacheln zurücksetzen -->
       <div class="control-group reset-all">
         <button class="btn-reset-all" @click="resetAllTiles">
-          Alle Kacheln zurücksetzen
+          {{ t('backgroundTiles.resetAllTiles') }}
         </button>
       </div>
     </div>
@@ -490,8 +490,10 @@
 
 <script setup>
 import { ref, computed, inject, onMounted } from 'vue';
+import { useI18n } from '../lib/i18n.js';
 import { useBackgroundTilesStore } from '../stores/backgroundTilesStore';
 
+const { t, locale } = useI18n();
 const tilesStore = useBackgroundTilesStore();
 const canvasManager = inject('canvasManager');
 

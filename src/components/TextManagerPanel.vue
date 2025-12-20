@@ -1,13 +1,13 @@
 <template>
   <div class="panel">
-    <h3>Text-Manager</h3>
+    <h3>{{ t('textManager.title') }}</h3>
     
     <!-- Neuer Text Eingabemodus -->
     <div v-if="isAddingNewText" class="panel-section">
-      <h4>Neuen Text erstellen</h4>
+      <h4>{{ t('textManager.createNewText') }}</h4>
       
       <div class="control-group">
-        <label>Text eingeben (Enter für neue Zeile):</label>
+        <label>{{ t('textManager.enterText') }}:</label>
         <textarea
           ref="newTextInput"
           v-model="newTextContent"
@@ -21,13 +21,13 @@ Zeile 3..."
           rows="8"
         ></textarea>
         <div class="hint-text">
-          <strong>Tipp für Browser-Texte:</strong> Nach dem Einfügen drücken Sie Enter, um Zeilenumbrüche hinzuzufügen
+          <strong>{{ t('textManager.browserTextTip') }}:</strong> {{ locale === 'de' ? 'Nach dem Einfügen drücken Sie Enter, um Zeilenumbrüche hinzuzufügen' : 'After pasting, press Enter to add line breaks' }}
         </div>
         <div class="hint-text" style="margin-top: 4px;">
-          <strong>Aus Notepad/Word:</strong> Zeilenumbrüche werden automatisch erkannt
+          <strong>{{ t('textManager.notepadTip') }}:</strong> {{ locale === 'de' ? 'Zeilenumbrüche werden automatisch erkannt' : 'Line breaks are automatically detected' }}
         </div>
         <div v-if="newTextContent.includes('\n')" class="success-hint">
-          {{ newTextContent.split('\n').length }} Zeilen erkannt
+          {{ locale === 'de' ? newTextContent.split('\n').length + ' Zeilen erkannt' : newTextContent.split('\n').length + ' lines detected' }}
         </div>
       </div>
 
@@ -35,12 +35,12 @@ Zeile 3..."
       <details class="collapsible-section" open>
         <summary class="section-header">
           <span class="section-icon">🎨</span>
-          <span>Text-Stil</span>
+          <span>{{ t('textManager.textStyle') }}</span>
         </summary>
         <div class="section-content">
           <!-- Schriftart -->
           <div class="control-group">
-            <label>Schriftart:</label>
+            <label>{{ t('textManager.font') }}:</label>
             <select
               ref="newTextFontSelect"
               v-model="newTextStyle.fontFamily"
@@ -52,7 +52,7 @@ Zeile 3..."
 
           <!-- Schriftgröße -->
           <div class="control-group">
-            <label>Größe: {{ newTextStyle.fontSize }}px</label>
+            <label>{{ t('textManager.fontSize') }}: {{ newTextStyle.fontSize }}px</label>
             <input
               type="range"
               v-model.number="newTextStyle.fontSize"
@@ -70,10 +70,10 @@ Zeile 3..."
                 type="checkbox"
                 v-model="newTextStyle.autoFit"
               />
-              📐 Automatisch an Canvas anpassen
+              📐 {{ t('textManager.autoFit') }}
             </label>
             <div v-if="newTextStyle.autoFit" class="auto-fit-settings">
-              <label>Rand-Abstand: {{ newTextStyle.autoFitPadding }}%</label>
+              <label>{{ t('textManager.autoFitPadding') }}: {{ newTextStyle.autoFitPadding }}%</label>
               <input
                 type="range"
                 v-model.number="newTextStyle.autoFitPadding"
@@ -86,7 +86,7 @@ Zeile 3..."
 
           <!-- Textfarbe -->
           <div class="control-group">
-            <label>Textfarbe:</label>
+            <label>{{ t('textManager.textColor') }}:</label>
             <div class="color-picker-group">
               <input
                 type="color"
@@ -104,7 +104,7 @@ Zeile 3..."
 
           <!-- Deckkraft -->
           <div class="control-group">
-            <label>Deckkraft: {{ newTextStyle.opacity }}%</label>
+            <label>{{ t('textManager.opacity') }}: {{ newTextStyle.opacity }}%</label>
             <input
               type="range"
               v-model.number="newTextStyle.opacity"
@@ -116,7 +116,7 @@ Zeile 3..."
 
           <!-- Schriftstil -->
           <div class="control-group">
-            <label>Stil:</label>
+            <label>{{ t('textManager.style') }}:</label>
             <div class="button-group">
               <button
                 @click="newTextStyle.fontWeight = newTextStyle.fontWeight === 'bold' ? 'normal' : 'bold'"
@@ -135,36 +135,36 @@ Zeile 3..."
 
           <!-- Ausrichtung -->
           <div class="control-group">
-            <label>Ausrichtung:</label>
+            <label>{{ t('textManager.alignment') }}:</label>
             <div class="button-group">
               <button
                 @click="newTextStyle.textAlign = 'left'"
                 :class="['btn-small', { active: newTextStyle.textAlign === 'left' }]"
               >
-                Links
+                {{ t('textManager.left') }}
               </button>
               <button
                 @click="newTextStyle.textAlign = 'center'"
                 :class="['btn-small', { active: newTextStyle.textAlign === 'center' }]"
               >
-                Mitte
+                {{ t('textManager.center') }}
               </button>
               <button
                 @click="newTextStyle.textAlign = 'right'"
                 :class="['btn-small', { active: newTextStyle.textAlign === 'right' }]"
               >
-                Rechts
+                {{ t('textManager.right') }}
               </button>
             </div>
           </div>
 
           <!-- Einstellungen speichern/laden -->
           <div class="settings-actions">
-            <button @click="saveCurrentSettings" class="btn-save" title="Aktuelle Einstellungen als Standard speichern">
-              💾 Als Standard speichern
+            <button @click="saveCurrentSettings" class="btn-save" :title="locale === 'de' ? 'Aktuelle Einstellungen als Standard speichern' : 'Save current settings as default'">
+              💾 {{ t('textManager.saveAsDefault') }}
             </button>
-            <button @click="clearSavedSettings" class="btn-reset-small" title="Auf Werkseinstellungen zurücksetzen">
-              🔄 Zurücksetzen
+            <button @click="clearSavedSettings" class="btn-reset-small" :title="locale === 'de' ? 'Auf Werkseinstellungen zurücksetzen' : 'Reset to factory settings'">
+              🔄 {{ t('textManager.resetToDefault') }}
             </button>
           </div>
         </div>
@@ -174,8 +174,8 @@ Zeile 3..."
       <details class="collapsible-section">
         <summary class="section-header">
           <span class="section-icon">⌨️</span>
-          <span>Schreibmaschinen-Effekt</span>
-          <span v-if="newTextTypewriter.enabled" class="status-badge active">Aktiv</span>
+          <span>{{ t('textManager.typewriterEffect') }}</span>
+          <span v-if="newTextTypewriter.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
         </summary>
         <div class="section-content">
           <!-- Typewriter aktivieren -->
@@ -185,7 +185,7 @@ Zeile 3..."
                 @click="newTextTypewriter.enabled = !newTextTypewriter.enabled"
                 :class="['btn-small', 'full-width', { active: newTextTypewriter.enabled }]"
               >
-                {{ newTextTypewriter.enabled ? '✓ Aktiviert' : 'Deaktiviert' }}
+                {{ newTextTypewriter.enabled ? '✓ ' + t('textManager.activated') : t('textManager.deactivated') }}
               </button>
             </div>
           </div>
@@ -194,7 +194,7 @@ Zeile 3..."
           <div v-if="newTextTypewriter.enabled">
             <!-- Geschwindigkeit -->
             <div class="control-group">
-              <label>Geschwindigkeit: {{ newTextTypewriter.speed }}ms/Buchstabe</label>
+              <label>{{ t('textManager.speed') }}: {{ newTextTypewriter.speed }}{{ t('textManager.msPerChar') }}</label>
               <input
                 type="range"
                 v-model.number="newTextTypewriter.speed"
@@ -202,12 +202,12 @@ Zeile 3..."
                 max="200"
                 class="slider"
               />
-              <div class="hint-text">Niedrig = schneller, Hoch = langsamer</div>
+              <div class="hint-text">{{ t('textManager.speedHint') }}</div>
             </div>
 
             <!-- Start-Verzögerung -->
             <div class="control-group">
-              <label>Start-Verzögerung: {{ newTextTypewriter.startDelay }}ms</label>
+              <label>{{ t('textManager.startDelay') }}: {{ newTextTypewriter.startDelay }}ms</label>
               <input
                 type="range"
                 v-model.number="newTextTypewriter.startDelay"
@@ -225,13 +225,13 @@ Zeile 3..."
                   type="checkbox"
                   v-model="newTextTypewriter.loop"
                 />
-                Animation wiederholen (Loop)
+                {{ t('textManager.loop') }}
               </label>
             </div>
 
             <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
             <div v-if="newTextTypewriter.loop" class="control-group">
-              <label>Pause zwischen Wiederholungen: {{ newTextTypewriter.loopDelay }}ms</label>
+              <label>{{ t('textManager.loopDelay') }}: {{ newTextTypewriter.loopDelay }}ms</label>
               <input
                 type="range"
                 v-model.number="newTextTypewriter.loopDelay"
@@ -249,21 +249,21 @@ Zeile 3..."
                   type="checkbox"
                   v-model="newTextTypewriter.showCursor"
                 />
-                Blinkender Cursor anzeigen
+                {{ t('textManager.showCursor') }}
               </label>
             </div>
 
             <!-- Cursor-Zeichen (nur wenn Cursor aktiv) -->
             <div v-if="newTextTypewriter.showCursor" class="control-group">
-              <label>Cursor-Zeichen:</label>
+              <label>{{ t('textManager.cursorChar') }}:</label>
               <select
                 v-model="newTextTypewriter.cursorChar"
                 class="select-input"
               >
-                <option value="|">| (Strich)</option>
-                <option value="_">_ (Unterstrich)</option>
-                <option value="▌">▌ (Block)</option>
-                <option value="█">█ (Voller Block)</option>
+                <option value="|">{{ t('textManager.cursorLine') }}</option>
+                <option value="_">{{ t('textManager.cursorUnderscore') }}</option>
+                <option value="▌">{{ t('textManager.cursorBlock') }}</option>
+                <option value="█">{{ t('textManager.cursorFullBlock') }}</option>
               </select>
             </div>
           </div>
@@ -274,8 +274,8 @@ Zeile 3..."
       <details class="collapsible-section">
         <summary class="section-header">
           <span class="section-icon">🌫️</span>
-          <span>Einblend-Effekt (Fade)</span>
-          <span v-if="newTextFade.enabled" class="status-badge active">Aktiv</span>
+          <span>{{ t('textManager.fadeEffect') }}</span>
+          <span v-if="newTextFade.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
         </summary>
         <div class="section-content">
           <!-- Fade aktivieren -->
@@ -285,7 +285,7 @@ Zeile 3..."
                 @click="newTextFade.enabled = !newTextFade.enabled"
                 :class="['btn-small', 'full-width', { active: newTextFade.enabled }]"
               >
-                {{ newTextFade.enabled ? '✓ Aktiviert' : 'Deaktiviert' }}
+                {{ newTextFade.enabled ? '✓ ' + t('textManager.activated') : t('textManager.deactivated') }}
               </button>
             </div>
           </div>
@@ -294,20 +294,20 @@ Zeile 3..."
           <div v-if="newTextFade.enabled">
             <!-- Richtung -->
             <div class="control-group">
-              <label>Richtung:</label>
+              <label>{{ t('textManager.direction') }}:</label>
               <select
                 v-model="newTextFade.direction"
                 class="select-input"
               >
-                <option value="in">Einblenden (0% → 100%)</option>
-                <option value="out">Ausblenden (100% → 0%)</option>
-                <option value="inOut">Ein- und Ausblenden</option>
+                <option value="in">{{ t('textManager.fadeIn') }}</option>
+                <option value="out">{{ t('textManager.fadeOut') }}</option>
+                <option value="inOut">{{ t('textManager.fadeInOut') }}</option>
               </select>
             </div>
 
             <!-- Dauer -->
             <div class="control-group">
-              <label>Dauer: {{ newTextFade.duration }}ms</label>
+              <label>{{ t('textManager.duration') }}: {{ newTextFade.duration }}ms</label>
               <input
                 type="range"
                 v-model.number="newTextFade.duration"
@@ -316,12 +316,12 @@ Zeile 3..."
                 step="100"
                 class="slider"
               />
-              <div class="hint-text">Wie lange das Ein-/Ausblenden dauert</div>
+              <div class="hint-text">{{ locale === 'de' ? 'Wie lange das Ein-/Ausblenden dauert' : 'How long the fade in/out takes' }}</div>
             </div>
 
             <!-- Start-Verzögerung -->
             <div class="control-group">
-              <label>Start-Verzögerung: {{ newTextFade.startDelay }}ms</label>
+              <label>{{ t('textManager.startDelay') }}: {{ newTextFade.startDelay }}ms</label>
               <input
                 type="range"
                 v-model.number="newTextFade.startDelay"
@@ -334,15 +334,15 @@ Zeile 3..."
 
             <!-- Easing -->
             <div class="control-group">
-              <label>Animation:</label>
+              <label>{{ t('textManager.animation') }}:</label>
               <select
                 v-model="newTextFade.easing"
                 class="select-input"
               >
-                <option value="linear">Linear (gleichmäßig)</option>
-                <option value="ease">Ease (natürlich)</option>
-                <option value="easeIn">Ease In (langsamer Start)</option>
-                <option value="easeOut">Ease Out (langsames Ende)</option>
+                <option value="linear">{{ t('textManager.linear') }}</option>
+                <option value="ease">{{ t('textManager.ease') }}</option>
+                <option value="easeIn">{{ t('textManager.easeIn') }}</option>
+                <option value="easeOut">{{ t('textManager.easeOut') }}</option>
               </select>
             </div>
 
@@ -353,13 +353,13 @@ Zeile 3..."
                   type="checkbox"
                   v-model="newTextFade.loop"
                 />
-                Animation wiederholen (Loop)
+                {{ t('textManager.loop') }}
               </label>
             </div>
 
             <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
             <div v-if="newTextFade.loop" class="control-group">
-              <label>Pause zwischen Wiederholungen: {{ newTextFade.loopDelay }}ms</label>
+              <label>{{ t('textManager.loopDelay') }}: {{ newTextFade.loopDelay }}ms</label>
               <input
                 type="range"
                 v-model.number="newTextFade.loopDelay"
@@ -377,8 +377,8 @@ Zeile 3..."
       <details class="collapsible-section">
         <summary class="section-header">
           <span class="section-icon">🔍</span>
-          <span>Skalierungs-Effekt (Scale)</span>
-          <span v-if="newTextScale.enabled" class="status-badge active">Aktiv</span>
+          <span>{{ t('textManager.scaleEffect') }}</span>
+          <span v-if="newTextScale.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
         </summary>
         <div class="section-content">
           <!-- Scale aktivieren -->
@@ -388,7 +388,7 @@ Zeile 3..."
                 @click="newTextScale.enabled = !newTextScale.enabled"
                 :class="['btn-small', 'full-width', { active: newTextScale.enabled }]"
               >
-                {{ newTextScale.enabled ? '✓ Aktiviert' : 'Deaktiviert' }}
+                {{ newTextScale.enabled ? '✓ ' + t('textManager.activated') : t('textManager.deactivated') }}
               </button>
             </div>
           </div>
@@ -397,20 +397,20 @@ Zeile 3..."
           <div v-if="newTextScale.enabled">
             <!-- Richtung -->
             <div class="control-group">
-              <label>Richtung:</label>
+              <label>{{ t('textManager.direction') }}:</label>
               <select
                 v-model="newTextScale.direction"
                 class="select-input"
               >
-                <option value="in">Reinzoomen (klein → groß)</option>
-                <option value="out">Rauszoomen (groß → klein)</option>
-                <option value="inOut">Rein und Raus</option>
+                <option value="in">{{ t('textManager.zoomIn') }}</option>
+                <option value="out">{{ t('textManager.zoomOut') }}</option>
+                <option value="inOut">{{ t('textManager.zoomInOut') }}</option>
               </select>
             </div>
 
             <!-- Start-Skalierung -->
             <div class="control-group">
-              <label>Start-Größe: {{ Math.round(newTextScale.startScale * 100) }}%</label>
+              <label>{{ t('textManager.startSize') }}: {{ Math.round(newTextScale.startScale * 100) }}%</label>
               <input
                 type="range"
                 v-model.number="newTextScale.startScale"
@@ -419,12 +419,12 @@ Zeile 3..."
                 step="0.1"
                 class="slider"
               />
-              <div class="hint-text">0% = unsichtbar, 100% = normal, 200% = doppelt</div>
+              <div class="hint-text">{{ t('textManager.sizeHint') }}</div>
             </div>
 
             <!-- End-Skalierung -->
             <div class="control-group">
-              <label>End-Größe: {{ Math.round(newTextScale.endScale * 100) }}%</label>
+              <label>{{ t('textManager.endSize') }}: {{ Math.round(newTextScale.endScale * 100) }}%</label>
               <input
                 type="range"
                 v-model.number="newTextScale.endScale"
@@ -437,7 +437,7 @@ Zeile 3..."
 
             <!-- Dauer -->
             <div class="control-group">
-              <label>Dauer: {{ newTextScale.duration }}ms</label>
+              <label>{{ t('textManager.duration') }}: {{ newTextScale.duration }}ms</label>
               <input
                 type="range"
                 v-model.number="newTextScale.duration"
@@ -450,7 +450,7 @@ Zeile 3..."
 
             <!-- Start-Verzögerung -->
             <div class="control-group">
-              <label>Start-Verzögerung: {{ newTextScale.startDelay }}ms</label>
+              <label>{{ t('textManager.startDelay') }}: {{ newTextScale.startDelay }}ms</label>
               <input
                 type="range"
                 v-model.number="newTextScale.startDelay"
@@ -463,15 +463,15 @@ Zeile 3..."
 
             <!-- Easing -->
             <div class="control-group">
-              <label>Animation:</label>
+              <label>{{ t('textManager.animation') }}:</label>
               <select
                 v-model="newTextScale.easing"
                 class="select-input"
               >
-                <option value="linear">Linear (gleichmäßig)</option>
-                <option value="ease">Ease (natürlich)</option>
-                <option value="easeIn">Ease In (langsamer Start)</option>
-                <option value="easeOut">Ease Out (langsames Ende)</option>
+                <option value="linear">{{ t('textManager.linear') }}</option>
+                <option value="ease">{{ t('textManager.ease') }}</option>
+                <option value="easeIn">{{ t('textManager.easeIn') }}</option>
+                <option value="easeOut">{{ t('textManager.easeOut') }}</option>
               </select>
             </div>
 
@@ -482,13 +482,13 @@ Zeile 3..."
                   type="checkbox"
                   v-model="newTextScale.loop"
                 />
-                Animation wiederholen (Loop)
+                {{ t('textManager.loop') }}
               </label>
             </div>
 
             <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
             <div v-if="newTextScale.loop" class="control-group">
-              <label>Pause zwischen Wiederholungen: {{ newTextScale.loopDelay }}ms</label>
+              <label>{{ t('textManager.loopDelay') }}: {{ newTextScale.loopDelay }}ms</label>
               <input
                 type="range"
                 v-model.number="newTextScale.loopDelay"
@@ -507,7 +507,7 @@ Zeile 3..."
         <summary class="section-header">
           <span class="section-icon">↔️</span>
           <span>Hereingleit-Effekt (Slide)</span>
-          <span v-if="newTextSlide.enabled" class="status-badge active">Aktiv</span>
+          <span v-if="newTextSlide.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
         </summary>
         <div class="section-content">
           <!-- Slide aktivieren -->
@@ -517,7 +517,7 @@ Zeile 3..."
                 @click="newTextSlide.enabled = !newTextSlide.enabled"
                 :class="['btn-small', 'full-width', { active: newTextSlide.enabled }]"
               >
-                {{ newTextSlide.enabled ? '✓ Aktiviert' : 'Deaktiviert' }}
+                {{ newTextSlide.enabled ? '✓ ' + t('textManager.activated') : t('textManager.deactivated') }}
               </button>
             </div>
           </div>
@@ -739,7 +739,7 @@ Zeile 3..."
           Auto-Umbruch
         </button>
         <button @click="cancelNewText" class="btn-secondary">
-          Abbrechen
+          {{ t('textManager.cancel') }}
         </button>
       </div>
     </div>
@@ -786,7 +786,7 @@ Zeile 3..."
 
           <!-- Schriftart -->
           <div class="control-group">
-            <label>Schriftart:</label>
+            <label>{{ t('textManager.font') }}:</label>
             <select
               ref="fontSelect"
               v-model="selectedText.fontFamily"
@@ -825,7 +825,7 @@ Zeile 3..."
 
           <!-- Textfarbe -->
           <div class="control-group">
-            <label>Textfarbe:</label>
+            <label>{{ t('textManager.textColor') }}:</label>
             <div class="color-picker-group">
               <input
                 type="color"
@@ -845,7 +845,7 @@ Zeile 3..."
 
           <!-- Schriftstil -->
           <div class="control-group">
-            <label>Stil:</label>
+            <label>{{ t('textManager.style') }}:</label>
             <div class="button-group">
               <button
                 @click="toggleFontWeight"
@@ -864,25 +864,25 @@ Zeile 3..."
 
           <!-- Ausrichtung -->
           <div class="control-group">
-            <label>Ausrichtung:</label>
+            <label>{{ t('textManager.alignment') }}:</label>
             <div class="button-group">
               <button
                 @click="setTextAlign('left')"
                 :class="['btn-small', { active: selectedText.textAlign === 'left' }]"
               >
-                Links
+                {{ t('textManager.left') }}
               </button>
               <button
                 @click="setTextAlign('center')"
                 :class="['btn-small', { active: selectedText.textAlign === 'center' }]"
               >
-                Mitte
+                {{ t('textManager.center') }}
               </button>
               <button
                 @click="setTextAlign('right')"
                 :class="['btn-small', { active: selectedText.textAlign === 'right' }]"
               >
-                Rechts
+                {{ t('textManager.right') }}
               </button>
             </div>
           </div>
@@ -963,7 +963,7 @@ Zeile 3..."
         <summary class="section-header">
           <span class="section-icon">↔️</span>
           <span>Abstände & Kontur</span>
-          <span v-if="selectedText.stroke.enabled" class="status-badge active">Kontur</span>
+          <span v-if="selectedText.stroke.enabled" class="status-badge active">{{ t('textManager.outline') }}</span>
         </summary>
         <div class="section-content">
           <!-- Buchstabenabstand -->
@@ -1000,7 +1000,7 @@ Zeile 3..."
                 @click="toggleStroke"
                 :class="['btn-small', { active: selectedText.stroke.enabled }]"
               >
-                {{ selectedText.stroke.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+                {{ selectedText.stroke.enabled ? t('textManager.activated') : t('textManager.deactivated') }}
               </button>
             </div>
           </div>
@@ -1009,7 +1009,7 @@ Zeile 3..."
           <div v-if="selectedText.stroke.enabled">
             <!-- Konturfarbe -->
             <div class="control-group">
-              <label>Konturfarbe:</label>
+              <label>{{ t('textManager.outlineColor') }}:</label>
               <div class="color-picker-group">
                 <input
                   type="color"
@@ -1029,7 +1029,7 @@ Zeile 3..."
 
             <!-- Konturdicke -->
             <div class="control-group">
-              <label>Konturdicke: {{ selectedText.stroke.width }}px</label>
+              <label>{{ t('textManager.outlineWidth') }}: {{ selectedText.stroke.width }}px</label>
               <input
                 type="range"
                 v-model.number="selectedText.stroke.width"
@@ -1047,13 +1047,13 @@ Zeile 3..."
       <details class="collapsible-section">
         <summary class="section-header">
           <span class="section-icon">🌑</span>
-          <span>Schatten</span>
-          <span v-if="selectedText.shadow.blur > 0 || selectedText.shadow.offsetX !== 0 || selectedText.shadow.offsetY !== 0" class="status-badge active">Aktiv</span>
+          <span>{{ t('textManager.shadow') }}</span>
+          <span v-if="selectedText.shadow.blur > 0 || selectedText.shadow.offsetX !== 0 || selectedText.shadow.offsetY !== 0" class="status-badge active">{{ t('textManager.active') }}</span>
         </summary>
         <div class="section-content">
           <!-- Schattenfarbe -->
           <div class="control-group">
-            <label>Schattenfarbe:</label>
+            <label>{{ t('textManager.shadowColor') }}:</label>
             <div class="color-picker-group">
               <input
                 type="color"
@@ -1073,7 +1073,7 @@ Zeile 3..."
 
           <!-- Schatten-Unschärfe -->
           <div class="control-group">
-            <label>Schatten-Unschärfe: {{ selectedText.shadow.blur }}px</label>
+            <label>{{ t('textManager.shadowBlur') }}: {{ selectedText.shadow.blur }}px</label>
             <input
               type="range"
               v-model.number="selectedText.shadow.blur"
@@ -1086,7 +1086,7 @@ Zeile 3..."
 
           <!-- Schatten X-Offset -->
           <div class="control-group">
-            <label>Schatten X-Offset: {{ selectedText.shadow.offsetX }}px</label>
+            <label>{{ t('textManager.shadowX') }}-Offset: {{ selectedText.shadow.offsetX }}px</label>
             <input
               type="range"
               v-model.number="selectedText.shadow.offsetX"
@@ -1099,7 +1099,7 @@ Zeile 3..."
 
           <!-- Schatten Y-Offset -->
           <div class="control-group">
-            <label>Schatten Y-Offset: {{ selectedText.shadow.offsetY }}px</label>
+            <label>{{ t('textManager.shadowY') }}-Offset: {{ selectedText.shadow.offsetY }}px</label>
             <input
               type="range"
               v-model.number="selectedText.shadow.offsetY"
@@ -1139,7 +1139,7 @@ Zeile 3..."
         <summary class="section-header">
           <span class="section-icon">🎵</span>
           <span>Audio-Reaktiv</span>
-          <span v-if="selectedText.audioReactive?.enabled" class="status-badge active">Aktiv</span>
+          <span v-if="selectedText.audioReactive?.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
         </summary>
         <div class="section-content">
 
@@ -1151,7 +1151,7 @@ Zeile 3..."
             @click="toggleAudioReactive"
             :class="['btn-small', { active: selectedText.audioReactive?.enabled }]"
           >
-            {{ selectedText.audioReactive?.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+            {{ selectedText.audioReactive?.enabled ? t('textManager.activated') : t('textManager.deactivated') }}
           </button>
         </div>
       </div>
@@ -1570,7 +1570,7 @@ Zeile 3..."
                 @click="toggleTypewriter"
                 :class="['btn-small', { active: selectedText.animation?.typewriter?.enabled }]"
               >
-                {{ selectedText.animation?.typewriter?.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+                {{ selectedText.animation?.typewriter?.enabled ? t('textManager.activated') : t('textManager.deactivated') }}
               </button>
               <button
                 v-if="selectedText.animation?.typewriter?.enabled"
@@ -1678,7 +1678,7 @@ Zeile 3..."
                 @click="toggleFade"
                 :class="['btn-small', { active: selectedText.animation?.fade?.enabled }]"
               >
-                {{ selectedText.animation?.fade?.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+                {{ selectedText.animation?.fade?.enabled ? t('textManager.activated') : t('textManager.deactivated') }}
               </button>
               <button
                 v-if="selectedText.animation?.fade?.enabled"
@@ -1789,7 +1789,7 @@ Zeile 3..."
                 @click="toggleScale"
                 :class="['btn-small', { active: selectedText.animation?.scale?.enabled }]"
               >
-                {{ selectedText.animation?.scale?.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+                {{ selectedText.animation?.scale?.enabled ? t('textManager.activated') : t('textManager.deactivated') }}
               </button>
               <button
                 v-if="selectedText.animation?.scale?.enabled"
@@ -1928,7 +1928,7 @@ Zeile 3..."
                 @click="toggleSlide"
                 :class="['btn-small', { active: selectedText.animation?.slide?.enabled }]"
               >
-                {{ selectedText.animation?.slide?.enabled ? 'Aktiviert' : 'Deaktiviert' }}
+                {{ selectedText.animation?.slide?.enabled ? t('textManager.activated') : t('textManager.deactivated') }}
               </button>
               <button
                 v-if="selectedText.animation?.slide?.enabled"
@@ -2075,7 +2075,9 @@ Zeile 3..."
 
 <script setup>
 import { ref, inject, onMounted, onUnmounted, nextTick, watch, computed } from 'vue';
+import { useI18n } from '../lib/i18n.js';
 
+const { t, locale } = useI18n();
 const canvasManager = inject('canvasManager');
 const fontManager = inject('fontManager');
 const selectedText = ref(null);

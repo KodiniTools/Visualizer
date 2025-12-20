@@ -535,6 +535,13 @@ async function setupMicrophoneSource() {
     // Create MediaStreamSource from microphone
     microphoneSourceNode = audioContext.createMediaStreamSource(stream);
 
+    // Ensure analyser exists and is configured correctly
+    if (!analyser) {
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 2048;
+      console.log('[App] Analyser created for microphone');
+    }
+
     // Connect microphone to analyser (for visualization)
     microphoneSourceNode.connect(analyser);
 
@@ -542,6 +549,13 @@ async function setupMicrophoneSource() {
     // The microphone audio will only be used for visualization, not playback.
 
     console.log('[App] Microphone source connected to analyser');
+    console.log('[App] AudioContext state:', audioContext.state);
+    console.log('[App] Analyser fftSize:', analyser.fftSize, 'frequencyBinCount:', analyser.frequencyBinCount);
+
+    // Verify stream is active
+    const tracks = stream.getAudioTracks();
+    console.log('[App] Audio tracks:', tracks.length, 'enabled:', tracks[0]?.enabled, 'muted:', tracks[0]?.muted);
+
     return true;
 
   } catch (error) {
@@ -669,6 +683,9 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
   }
 }
 
+// Debug counter for microphone logging
+let micDebugCounter = 0;
+
 function draw() {
   animationFrameId = requestAnimationFrame(draw);
   const canvas = canvasRef.value;
@@ -681,11 +698,30 @@ function draw() {
     let drawVisualizerCallback = null;
 
     // Check if we should analyze audio (player playing, recording, or microphone active)
+    const isMicActive = audioSourceStore.isMicrophoneActive;
     const shouldAnalyzeAudio = analyser && (
       playerStore.isPlaying ||
       recorderStore.isRecording ||
-      audioSourceStore.isMicrophoneActive
+      isMicActive
     );
+
+    // Debug logging for microphone (every ~60 frames = ~1 second)
+    if (isMicActive && ++micDebugCounter % 60 === 0) {
+      const testArray = new Uint8Array(analyser?.frequencyBinCount || 0);
+      if (analyser) {
+        analyser.getByteFrequencyData(testArray);
+        const sum = testArray.reduce((a, b) => a + b, 0);
+        console.log('[Mic Debug] Active:', isMicActive, 'Analyser:', !!analyser,
+                    'AudioContext state:', audioContext?.state, 'Audio sum:', sum);
+      }
+    }
+
+    // Auto-resume AudioContext if suspended while microphone is active
+    if (isMicActive && audioContext && audioContext.state === 'suspended') {
+      audioContext.resume().then(() => {
+        console.log('[App] AudioContext auto-resumed during microphone use');
+      });
+    }
 
     if (shouldAnalyzeAudio) {
       const bufferLength = analyser.frequencyBinCount;

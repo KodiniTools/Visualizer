@@ -2060,14 +2060,14 @@ Zeile 3..."
 
       <!-- Löschen Button -->
       <button @click="deleteSelectedText" class="btn-danger full-width" style="margin-top: 16px;">
-        Text löschen
+        {{ t('textManager.deleteText') }}
       </button>
     </div>
 
     <!-- Info wenn kein Text ausgewählt und nicht im Eingabemodus -->
     <div v-else-if="!isAddingNewText" class="panel-section">
       <p class="info-text">
-        Klicken Sie auf einen Text im Canvas um ihn zu bearbeiten, oder fügen Sie einen neuen Text hinzu.
+        {{ t('textManager.clickToEdit') }}
       </p>
     </div>
   </div>

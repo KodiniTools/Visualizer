@@ -165,6 +165,8 @@ function applyRecordingCanvasMonkeyPatch(canvas) {
 let audioContext, analyser, sourceNode, outputGain, recordingDest, recordingGain;
 let bassFilter, trebleFilter; // EQ-Filter für Bass und Treble
 let microphoneSourceNode = null; // Separate source node for microphone
+let microphoneAudioContext = null; // Separate AudioContext for microphone
+let microphoneAnalyser = null; // Separate Analyser for microphone
 let animationFrameId;
 let textManagerInstance = null;
 const lastSelectedVisualizerId = ref(null);
@@ -500,19 +502,12 @@ function ensureAudioContext() {
 }
 
 /**
- * Setup microphone as audio source
+ * Setup microphone as audio source with SEPARATE AudioContext
+ * This avoids conflicts with the player AudioContext
  */
 async function setupMicrophoneSource() {
   try {
-    ensureAudioContext();
-
-    // Resume AudioContext if suspended (browser autoplay policy)
-    if (audioContext.state === 'suspended') {
-      await audioContext.resume();
-      console.log('[App] AudioContext resumed');
-    }
-
-    // Get microphone stream
+    // Get microphone stream first
     const stream = await audioSourceStore.startMicrophone(
       audioSourceStore.selectedDeviceId !== 'default' ? audioSourceStore.selectedDeviceId : null
     );
@@ -522,35 +517,45 @@ async function setupMicrophoneSource() {
       return false;
     }
 
-    // Disconnect existing microphone source if any
-    if (microphoneSourceNode) {
+    // Close existing microphone AudioContext if any
+    if (microphoneAudioContext) {
       try {
-        microphoneSourceNode.disconnect();
+        if (microphoneSourceNode) {
+          microphoneSourceNode.disconnect();
+        }
+        await microphoneAudioContext.close();
+        console.log('[App] Previous microphone AudioContext closed');
       } catch (e) {
-        // Ignore disconnect errors
+        console.warn('[App] Error closing previous microphone context:', e);
       }
-      microphoneSourceNode = null;
+    }
+
+    // Create a fresh AudioContext specifically for microphone
+    microphoneAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+    console.log('[App] Created new AudioContext for microphone, sample rate:', microphoneAudioContext.sampleRate);
+
+    // Create analyser for microphone
+    microphoneAnalyser = microphoneAudioContext.createAnalyser();
+    microphoneAnalyser.fftSize = 2048;
+    microphoneAnalyser.smoothingTimeConstant = 0.8;
+
+    // Resume if suspended
+    if (microphoneAudioContext.state === 'suspended') {
+      await microphoneAudioContext.resume();
+      console.log('[App] Microphone AudioContext resumed');
     }
 
     // Create MediaStreamSource from microphone
-    microphoneSourceNode = audioContext.createMediaStreamSource(stream);
-
-    // Ensure analyser exists and is configured correctly
-    if (!analyser) {
-      analyser = audioContext.createAnalyser();
-      analyser.fftSize = 2048;
-      console.log('[App] Analyser created for microphone');
-    }
+    microphoneSourceNode = microphoneAudioContext.createMediaStreamSource(stream);
 
     // Connect microphone to analyser (for visualization)
-    microphoneSourceNode.connect(analyser);
+    microphoneSourceNode.connect(microphoneAnalyser);
 
-    // Note: We do NOT connect to audioContext.destination to avoid feedback!
-    // The microphone audio will only be used for visualization, not playback.
+    // Note: We do NOT connect to destination to avoid feedback!
 
-    console.log('[App] Microphone source connected to analyser');
-    console.log('[App] AudioContext state:', audioContext.state);
-    console.log('[App] Analyser fftSize:', analyser.fftSize, 'frequencyBinCount:', analyser.frequencyBinCount);
+    console.log('[App] Microphone source connected to microphone analyser');
+    console.log('[App] Microphone AudioContext state:', microphoneAudioContext.state);
+    console.log('[App] Microphone Analyser fftSize:', microphoneAnalyser.fftSize, 'frequencyBinCount:', microphoneAnalyser.frequencyBinCount);
 
     // Verify stream is active
     const tracks = stream.getAudioTracks();
@@ -566,7 +571,7 @@ async function setupMicrophoneSource() {
 }
 
 /**
- * Disconnect microphone source
+ * Disconnect microphone source and close its AudioContext
  */
 function disconnectMicrophoneSource() {
   if (microphoneSourceNode) {
@@ -578,6 +583,18 @@ function disconnectMicrophoneSource() {
     }
     microphoneSourceNode = null;
   }
+
+  if (microphoneAudioContext) {
+    try {
+      microphoneAudioContext.close();
+      console.log('[App] Microphone AudioContext closed');
+    } catch (e) {
+      // Ignore close errors
+    }
+    microphoneAudioContext = null;
+    microphoneAnalyser = null;
+  }
+
   audioSourceStore.stopMicrophone();
 }
 
@@ -699,7 +716,13 @@ function draw() {
 
     // Check if we should analyze audio (player playing, recording, or microphone active)
     const isMicActive = audioSourceStore.isMicrophoneActive;
-    const shouldAnalyzeAudio = analyser && (
+
+    // Select the correct analyser based on audio source
+    // Use microphone analyser when mic is active, otherwise use player analyser
+    const activeAnalyser = isMicActive ? microphoneAnalyser : analyser;
+    const activeContext = isMicActive ? microphoneAudioContext : audioContext;
+
+    const shouldAnalyzeAudio = activeAnalyser && (
       playerStore.isPlaying ||
       recorderStore.isRecording ||
       isMicActive
@@ -707,35 +730,35 @@ function draw() {
 
     // Debug logging for microphone (every ~60 frames = ~1 second)
     if (isMicActive && ++micDebugCounter % 60 === 0) {
-      const testArray = new Uint8Array(analyser?.frequencyBinCount || 0);
-      if (analyser) {
-        analyser.getByteFrequencyData(testArray);
+      const testArray = new Uint8Array(microphoneAnalyser?.frequencyBinCount || 0);
+      if (microphoneAnalyser) {
+        microphoneAnalyser.getByteFrequencyData(testArray);
         const sum = testArray.reduce((a, b) => a + b, 0);
-        console.log('[Mic Debug] Active:', isMicActive, 'Analyser:', !!analyser,
-                    'AudioContext state:', audioContext?.state, 'Audio sum:', sum);
+        console.log('[Mic Debug] Active:', isMicActive, 'MicAnalyser:', !!microphoneAnalyser,
+                    'MicContext state:', microphoneAudioContext?.state, 'Audio sum:', sum);
       }
     }
 
     // Auto-resume AudioContext if suspended while microphone is active
-    if (isMicActive && audioContext && audioContext.state === 'suspended') {
-      audioContext.resume().then(() => {
-        console.log('[App] AudioContext auto-resumed during microphone use');
+    if (isMicActive && microphoneAudioContext && microphoneAudioContext.state === 'suspended') {
+      microphoneAudioContext.resume().then(() => {
+        console.log('[App] Microphone AudioContext auto-resumed');
       });
     }
 
     if (shouldAnalyzeAudio) {
-      const bufferLength = analyser.frequencyBinCount;
+      const bufferLength = activeAnalyser.frequencyBinCount;
       if (!audioDataArray || audioDataArray.length !== bufferLength) {
         audioDataArray = new Uint8Array(bufferLength);
       }
-      analyser.getByteFrequencyData(audioDataArray);
+      activeAnalyser.getByteFrequencyData(audioDataArray);
       updateGlobalAudioData(audioDataArray, bufferLength);
     }
 
     const shouldDrawVisualizer = visualizerStore.showVisualizer &&
-      (playerStore.isPlaying || recorderStore.isRecording || audioSourceStore.isMicrophoneActive);
+      (playerStore.isPlaying || recorderStore.isRecording || isMicActive);
 
-    if (analyser && shouldDrawVisualizer) {
+    if (activeAnalyser && shouldDrawVisualizer) {
       const visualizer = Visualizers[visualizerStore.selectedVisualizer];
       if (visualizer) {
         const visualizerChanged = visualizerStore.selectedVisualizer !== lastSelectedVisualizerId.value;
@@ -762,14 +785,14 @@ function draw() {
           lastCanvasHeight.value = canvas.height;
         }
 
-        const bufferLength = analyser.frequencyBinCount;
+        const bufferLength = activeAnalyser.frequencyBinCount;
         if (!audioDataArray || audioDataArray.length !== bufferLength) {
           audioDataArray = new Uint8Array(bufferLength);
         }
         if (visualizer.needsTimeData) {
-          analyser.getByteTimeDomainData(audioDataArray);
+          activeAnalyser.getByteTimeDomainData(audioDataArray);
         } else {
-          analyser.getByteFrequencyData(audioDataArray);
+          activeAnalyser.getByteFrequencyData(audioDataArray);
         }
 
         if (!visualizerCacheCanvas || visualizerCacheCanvas.width !== canvas.width || visualizerCacheCanvas.height !== canvas.height) {

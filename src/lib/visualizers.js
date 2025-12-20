@@ -3848,178 +3848,111 @@ export const Visualizers = {
   },
 
   /**
-   * Pixel Fireworks - Intense retro pixel explosions triggered by beats
+   * Retro Starfield - Classic 80s style starfield flying through space
    */
   pixelFireworks: {
-    name_de: 'Pixel-Feuerwerk (Intensiv)',
-    name_en: 'Pixel Fireworks (Intense)',
+    name_de: 'Retro-Sternenfeld (Warp)',
+    name_en: 'Retro Starfield (Warp)',
     init() {
-      visualizerState.pixelFireworks = {
-        explosions: [],
-        lastBeat: 0
-      };
+      visualizerState.retroStarfield = null;
     },
     draw(ctx, dataArray, bufferLength, w, h, color, intensity = 1.0) {
       ctx.save();
       ctx.setTransform(1, 0, 0, 1, 0, 0);
 
       const baseHsl = hexToHsl(color);
-      // Größere Pixel für bessere Sichtbarkeit
-      const pixelSize = Math.max(6, Math.floor(Math.min(w, h) / 60));
 
-      // Initialisiere State
-      if (!visualizerState.pixelFireworks) {
-        visualizerState.pixelFireworks = { explosions: [], lastBeat: 0 };
-      }
-      const state = visualizerState.pixelFireworks;
-
-      // Langsamerer Fade für längere Trails
-      ctx.fillStyle = 'rgba(0, 0, 5, 0.05)';
-      ctx.fillRect(0, 0, w, h);
-
-      // Berechne verschiedene Frequenzbänder
-      const bassEnd = Math.floor(bufferLength * 0.1);
-      const midEnd = Math.floor(bufferLength * 0.4);
-
-      let bassSum = 0, midSum = 0;
-      for (let i = 0; i < bassEnd; i++) bassSum += dataArray[i];
-      for (let i = bassEnd; i < midEnd; i++) midSum += dataArray[i];
-
-      const bassEnergy = bassSum / (bassEnd * 255);
-      const midEnergy = midSum / ((midEnd - bassEnd) * 255);
-
-      // Niedrigere Schwelle und kürzeres Intervall für mehr Explosionen
-      const now = Date.now();
-      if (bassEnergy > 0.35 && now - state.lastBeat > 120) {
-        state.lastBeat = now;
-
-        // Mehrere Explosionen bei starkem Beat
-        const numExplosions = bassEnergy > 0.7 ? 2 : 1;
-
-        for (let e = 0; e < numExplosions; e++) {
-          // Neue Explosion erstellen
-          const explosion = {
-            x: w * 0.1 + Math.random() * w * 0.8,
-            y: h * 0.1 + Math.random() * h * 0.8,
-            particles: [],
-            age: 0,
-            hue: (baseHsl.h + Math.random() * 180) % 360,
-            secondary: (baseHsl.h + 120 + Math.random() * 60) % 360
-          };
-
-          // Viel mehr Partikel für intensiveren Effekt
-          const numParticles = 50 + Math.floor(bassEnergy * 80);
-          for (let i = 0; i < numParticles; i++) {
-            const angle = (i / numParticles) * Math.PI * 2 + Math.random() * 0.3;
-            const speed = 3 + Math.random() * 10;
-            const useSecondary = Math.random() > 0.6;
-            explosion.particles.push({
-              x: explosion.x,
-              y: explosion.y,
-              vx: Math.cos(angle) * speed,
-              vy: Math.sin(angle) * speed,
-              life: 1.0,
-              size: pixelSize * (1.5 + Math.random() * 1.5),
-              hue: useSecondary ? explosion.secondary : explosion.hue
-            });
-          }
-
-          state.explosions.push(explosion);
-        }
-      }
-
-      // Auch bei mittlerer Energie kleinere Funken
-      if (midEnergy > 0.4 && Math.random() > 0.7) {
-        const spark = {
-          x: w * 0.2 + Math.random() * w * 0.6,
-          y: h * 0.3 + Math.random() * h * 0.4,
-          particles: [],
-          age: 0,
-          hue: (baseHsl.h + Math.random() * 60) % 360,
-          secondary: baseHsl.h
-        };
-
-        const numSparks = 10 + Math.floor(midEnergy * 20);
-        for (let i = 0; i < numSparks; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const speed = 1 + Math.random() * 4;
-          spark.particles.push({
-            x: spark.x,
-            y: spark.y,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed - 2,
-            life: 0.7,
-            size: pixelSize * 0.8,
-            hue: spark.hue
+      // Initialisiere Sterne einmalig
+      if (!visualizerState.retroStarfield) {
+        const stars = [];
+        for (let i = 0; i < 150; i++) {
+          stars.push({
+            x: (Math.random() - 0.5) * w * 3,
+            y: (Math.random() - 0.5) * h * 3,
+            z: Math.random() * 1000 + 1
           });
         }
-        state.explosions.push(spark);
+        visualizerState.retroStarfield = { stars };
       }
+      const state = visualizerState.retroStarfield;
 
-      // Explosionen aktualisieren und zeichnen
-      for (let i = state.explosions.length - 1; i >= 0; i--) {
-        const explosion = state.explosions[i];
-        explosion.age++;
+      // Schwarzer Hintergrund
+      ctx.fillStyle = '#000005';
+      ctx.fillRect(0, 0, w, h);
 
-        let allDead = true;
+      // Berechne Bass-Energie für Warp-Geschwindigkeit
+      const bassEnd = Math.floor(bufferLength * 0.15);
+      let bassSum = 0;
+      for (let i = 0; i < bassEnd; i++) {
+        bassSum += dataArray[i];
+      }
+      const bassEnergy = bassSum / (bassEnd * 255);
 
-        for (const particle of explosion.particles) {
-          if (particle.life <= 0) continue;
-          allDead = false;
+      // Geschwindigkeit basierend auf Bass
+      const speed = 8 + bassEnergy * 40;
+      const centerX = w / 2;
+      const centerY = h / 2;
 
-          // Physik mit Schwerkraft
-          particle.x += particle.vx;
-          particle.y += particle.vy;
-          particle.vy += 0.12; // Etwas weniger Schwerkraft für längere Flugbahn
-          particle.vx *= 0.985;
-          particle.life -= 0.012; // Langsamerer Verfall
+      // Sterne bewegen und zeichnen
+      for (const star of state.stars) {
+        // Bewege Stern nach vorne
+        star.z -= speed;
 
-          // Zeichne Pixel-Partikel mit intensiverem Glow
-          const alpha = Math.min(1, particle.life * 1.3) * intensity;
-          const lightness = 50 + particle.life * 45;
-          const hue = particle.hue || explosion.hue;
+        // Reset wenn zu nah
+        if (star.z <= 1) {
+          star.x = (Math.random() - 0.5) * w * 3;
+          star.y = (Math.random() - 0.5) * h * 3;
+          star.z = 1000;
+        }
 
-          // Äußerer Glow zuerst
-          ctx.shadowBlur = 15;
-          ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
+        // Projiziere 3D auf 2D
+        const screenX = centerX + (star.x / star.z) * 400;
+        const screenY = centerY + (star.y / star.z) * 400;
 
-          // Hauptpixel (größer und heller)
-          ctx.fillStyle = `hsla(${hue}, 100%, ${lightness}%, ${alpha})`;
-          const size = Math.max(2, Math.floor(particle.size * (0.5 + particle.life * 0.5)));
-          const px = Math.floor(particle.x / pixelSize) * pixelSize;
-          const py = Math.floor(particle.y / pixelSize) * pixelSize;
-          ctx.fillRect(px, py, size, size);
+        // Alte Position für Trail
+        const oldZ = star.z + speed * 0.5;
+        const oldScreenX = centerX + (star.x / oldZ) * 400;
+        const oldScreenY = centerY + (star.y / oldZ) * 400;
 
-          // Heller Kern
-          if (particle.life > 0.4) {
-            ctx.fillStyle = `hsla(${hue}, 80%, 95%, ${alpha * 0.9})`;
-            const coreSize = Math.max(1, size * 0.5);
-            ctx.fillRect(px + size * 0.25, py + size * 0.25, coreSize, coreSize);
+        // Nur zeichnen wenn auf Bildschirm
+        if (screenX >= 0 && screenX <= w && screenY >= 0 && screenY <= h) {
+          // Größe und Helligkeit basierend auf Z
+          const size = Math.max(1, (1 - star.z / 1000) * 6);
+          const brightness = Math.min(100, 30 + (1 - star.z / 1000) * 70);
+
+          // Farbe basierend auf Tiefe
+          const hue = (baseHsl.h + (1 - star.z / 1000) * 60) % 360;
+
+          // Trail zeichnen (Linie)
+          if (speed > 15) {
+            ctx.beginPath();
+            ctx.moveTo(oldScreenX, oldScreenY);
+            ctx.lineTo(screenX, screenY);
+            ctx.strokeStyle = `hsla(${hue}, 80%, ${brightness * 0.6}%, ${intensity * 0.7})`;
+            ctx.lineWidth = size * 0.5;
+            ctx.stroke();
           }
 
-          // Trail-Effekt
-          if (particle.life > 0.3) {
-            ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${alpha * 0.4})`;
+          // Stern zeichnen (scharfes Rechteck)
+          ctx.fillStyle = `hsl(${hue}, 70%, ${brightness}%)`;
+          ctx.fillRect(
+            Math.floor(screenX - size / 2),
+            Math.floor(screenY - size / 2),
+            Math.ceil(size),
+            Math.ceil(size)
+          );
+
+          // Heller Kern bei nahen Sternen
+          if (star.z < 200) {
+            ctx.fillStyle = `hsla(${hue}, 50%, 95%, ${intensity})`;
             ctx.fillRect(
-              px - particle.vx * 2,
-              py - particle.vy * 2,
-              size * 0.7,
-              size * 0.7
+              Math.floor(screenX - size / 4),
+              Math.floor(screenY - size / 4),
+              Math.ceil(size / 2),
+              Math.ceil(size / 2)
             );
           }
         }
-
-        ctx.shadowBlur = 0;
-
-        // Entferne tote Explosionen
-        if (allDead || explosion.age > 400) {
-          state.explosions.splice(i, 1);
-        }
-      }
-
-      // Mehr Explosionen erlauben
-      if (state.explosions.length > 20) {
-        state.explosions.splice(0, state.explosions.length - 20);
       }
 
       ctx.restore();

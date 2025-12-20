@@ -1,6 +1,6 @@
 <template>
   <div class="panel">
-    <h3>Player</h3>
+    <h3>{{ t('player.title') }}</h3>
 
     <div v-if="playerStore.hasTracks" class="player-active">
       <!-- Current Track Display -->
@@ -32,13 +32,13 @@
 
       <!-- Player Controls with Add Marker Button -->
       <div class="player-controls">
-        <button @click="playerStore.prevTrack" class="control-btn" title="Zurück">
+        <button @click="playerStore.prevTrack" class="control-btn" :title="t('player.prev')">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
           </svg>
         </button>
 
-        <button @click="playerStore.togglePlayPause" class="control-btn control-btn-main" :title="playerStore.isPlaying ? 'Pause' : 'Play'">
+        <button @click="playerStore.togglePlayPause" class="control-btn control-btn-main" :title="playerStore.isPlaying ? t('player.pause') : t('player.play')">
           <svg v-if="!playerStore.isPlaying" viewBox="0 0 24 24" fill="currentColor">
             <path d="M8 5v14l11-7z"/>
           </svg>
@@ -47,13 +47,13 @@
           </svg>
         </button>
 
-        <button @click="playerStore.stopPlayer" class="control-btn" title="Stop">
+        <button @click="playerStore.stopPlayer" class="control-btn" :title="t('player.stop')">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 6h12v12H6z"/>
           </svg>
         </button>
 
-        <button @click="playerStore.nextTrack" class="control-btn" title="Vorwärts">
+        <button @click="playerStore.nextTrack" class="control-btn" :title="t('player.next')">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
           </svg>
@@ -64,7 +64,7 @@
           @click="addMarkerAtCurrentTime"
           class="control-btn control-btn-marker"
           :class="{ active: showMarkerPanel }"
-          title="Beat-Drop Marker setzen (M)"
+          :title="t('player.beatMarker')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -75,21 +75,21 @@
       <!-- Beat Marker Section -->
       <div class="beat-marker-section" v-if="beatMarkerStore.markerCount > 0 || showMarkerPanel">
         <div class="marker-header">
-          <span class="section-label">Beat-Drop Marker ({{ beatMarkerStore.markerCount }})</span>
+          <span class="section-label">{{ t('player.beatMarkers') }} ({{ beatMarkerStore.markerCount }})</span>
           <div class="marker-controls">
             <button
               @click="beatMarkerStore.toggleEnabled()"
               class="btn-toggle"
               :class="{ active: beatMarkerStore.markersEnabled }"
-              :title="beatMarkerStore.markersEnabled ? 'Marker deaktivieren' : 'Marker aktivieren'"
+              :title="beatMarkerStore.markersEnabled ? t('player.disableMarkers') : t('player.enableMarkers')"
             >
-              {{ beatMarkerStore.markersEnabled ? 'AN' : 'AUS' }}
+              {{ beatMarkerStore.markersEnabled ? (locale === 'de' ? 'AN' : 'ON') : (locale === 'de' ? 'AUS' : 'OFF') }}
             </button>
             <button
               v-if="beatMarkerStore.markerCount > 0"
               @click="clearAllMarkers"
               class="btn-clear-markers"
-              title="Alle Marker löschen"
+              :title="t('player.deleteAllMarkers')"
             >
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -101,31 +101,31 @@
         <!-- Add Marker Form -->
         <div v-if="showMarkerPanel" class="marker-add-form">
           <div class="form-row">
-            <label>Visualizer:</label>
+            <label>{{ t('player.visualizer') }}:</label>
             <select v-model="newMarkerVisualizer" class="marker-select">
-              <option value="">-- Kein Wechsel --</option>
+              <option value="">{{ t('player.noChange') }}</option>
               <optgroup v-for="(items, category) in visualizerStore.categorizedVisualizers" :key="category" :label="category">
                 <option v-for="viz in items" :key="viz.id" :value="viz.id">{{ viz.name }}</option>
               </optgroup>
             </select>
           </div>
           <div class="form-row">
-            <label>Farbe:</label>
+            <label>{{ t('player.color') }}:</label>
             <div class="color-input-wrapper">
               <input type="color" v-model="newMarkerColor" class="marker-color" />
               <label class="color-checkbox">
                 <input type="checkbox" v-model="newMarkerChangeColor" />
-                <span>Ändern</span>
+                <span>{{ t('player.change') }}</span>
               </label>
             </div>
           </div>
           <div class="form-row">
-            <label>Label:</label>
-            <input type="text" v-model="newMarkerLabel" placeholder="z.B. Bass Drop" class="marker-input" />
+            <label>{{ t('player.label') }}:</label>
+            <input type="text" v-model="newMarkerLabel" :placeholder="locale === 'de' ? 'z.B. Bass Drop' : 'e.g. Bass Drop'" class="marker-input" />
           </div>
           <div class="form-buttons">
-            <button @click="confirmAddMarker" class="btn-confirm">Hinzufügen</button>
-            <button @click="cancelAddMarker" class="btn-cancel">Abbrechen</button>
+            <button @click="confirmAddMarker" class="btn-confirm">{{ t('common.add') }}</button>
+            <button @click="cancelAddMarker" class="btn-cancel">{{ t('common.cancel') }}</button>
           </div>
         </div>
 
@@ -140,7 +140,7 @@
             <span class="marker-time" @click="seekToMarker(marker.time)">{{ formatTime(marker.time) }}</span>
             <span class="marker-label">{{ marker.label }}</span>
             <span v-if="marker.action.visualizer" class="marker-action">{{ getVisualizerName(marker.action.visualizer) }}</span>
-            <button @click="removeMarker(marker.id)" class="btn-delete-marker" title="Marker löschen">
+            <button @click="removeMarker(marker.id)" class="btn-delete-marker" :title="t('common.delete')">
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
               </svg>
@@ -151,7 +151,7 @@
 
       <!-- Volume Control -->
       <div class="volume-section">
-        <span class="section-label">Lautstärke: {{ volume }}%</span>
+        <span class="section-label">{{ t('player.volume') }}: {{ volume }}%</span>
         <div class="volume-control">
           <svg class="volume-icon" viewBox="0 0 24 24" fill="currentColor">
             <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
@@ -170,7 +170,7 @@
       <!-- EQ Controls: Bass & Treble -->
       <div class="eq-section">
         <div class="eq-control">
-          <span class="eq-label">Bass: {{ bass > 0 ? '+' : '' }}{{ bass }} dB</span>
+          <span class="eq-label">{{ t('player.bass') }}: {{ bass > 0 ? '+' : '' }}{{ bass }} dB</span>
           <div class="eq-slider-container">
             <svg class="eq-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
@@ -186,7 +186,7 @@
           </div>
         </div>
         <div class="eq-control">
-          <span class="eq-label">Treble: {{ treble > 0 ? '+' : '' }}{{ treble }} dB</span>
+          <span class="eq-label">{{ t('player.treble') }}: {{ treble > 0 ? '+' : '' }}{{ treble }} dB</span>
           <div class="eq-slider-container">
             <svg class="eq-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 3l.01 10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4c2.21 0 4-1.79 4-4V7h4V3H12zm-1.99 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
@@ -207,17 +207,17 @@
     <!-- Playlist -->
     <div class="playlist-section">
       <div class="playlist-header">
-        <span class="section-label">Wiedergabeliste</span>
-        <button v-if="playerStore.hasTracks" @click="clearAllTracks" class="btn-clear" title="Alles löschen">
+        <span class="section-label">{{ t('player.playlist') }}</span>
+        <button v-if="playerStore.hasTracks" @click="clearAllTracks" class="btn-clear" :title="t('player.deleteAll')">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
           </svg>
         </button>
       </div>
-      
+
       <ul class="playlist-container">
         <li v-if="!playerStore.hasTracks" class="playlist-item-empty">
-          Playlist ist leer
+          {{ t('player.playlistEmpty') }}
         </li>
         <li
           v-for="(track, index) in playerStore.playlist"
@@ -226,7 +226,7 @@
           :class="{ active: index === playerStore.currentTrackIndex }"
         >
           <span @click="loadTrackOnly(index)" class="track-name">{{ track.name }}</span>
-          <button @click.stop="removeTrack(index)" class="btn-delete" title="Track entfernen">
+          <button @click.stop="removeTrack(index)" class="btn-delete" :title="t('player.removeTrack')">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
             </svg>
@@ -239,10 +239,12 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { useI18n } from '../lib/i18n.js';
 import { usePlayerStore } from '../stores/playerStore.js';
 import { useBeatMarkerStore } from '../stores/beatMarkerStore.js';
 import { useVisualizerStore } from '../stores/visualizerStore.js';
 
+const { t, locale } = useI18n();
 const playerStore = usePlayerStore();
 const beatMarkerStore = useBeatMarkerStore();
 const visualizerStore = useVisualizerStore();

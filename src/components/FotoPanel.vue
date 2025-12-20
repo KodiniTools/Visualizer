@@ -9,8 +9,8 @@
           <span class="preview-name">{{ previewImage.name }}</span>
         </div>
         <div class="preview-actions">
-          <button @click="addPreviewToCanvas" class="btn-primary">Auf Canvas</button>
-          <button @click="setPreviewAsBackground" class="btn-secondary">Als Hintergrund</button>
+          <button @click="addPreviewToCanvas" class="btn-primary">{{ t('foto.placeOnCanvas') }}</button>
+          <button @click="setPreviewAsBackground" class="btn-secondary">{{ t('foto.asBackground') }}</button>
         </div>
       </div>
     </div>
@@ -20,7 +20,7 @@
       <div class="color-settings-header" @click="showColorPicker = !showColorPicker">
         <div class="color-settings-title">
           <span class="color-preview-dot" :style="{ background: panelSettingsStore.getSelectedColor().gradient }"></span>
-          <span>Abschnittsfarbe</span>
+          <span>{{ t('foto.sectionColor') }}</span>
         </div>
         <button class="color-toggle-btn" :class="{ 'rotated': showColorPicker }">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -48,7 +48,7 @@
                 :checked="panelSettingsStore.useCustomColor"
                 @change="panelSettingsStore.toggleCustomColor($event.target.checked)"
               >
-              <span>Eigene Farbe</span>
+              <span>{{ t('foto.customColor') }}</span>
             </label>
             <input
               type="color"
@@ -64,7 +64,7 @@
 
     <!-- ✨ Stock-Galerie Sektion -->
     <div class="stock-gallery-section">
-      <h4>Galerie</h4>
+      <h4>{{ t('foto.gallery') }}</h4>
 
       <!-- Kategorie-Tabs -->
       <div class="category-tabs">
@@ -86,14 +86,14 @@
         <!-- Auswahl-Steuerung -->
         <div v-if="filteredStockImages.length > 0" class="selection-controls">
           <button @click="selectAllStockImages" class="btn-select-all" :disabled="selectedStockCount === filteredStockImages.length">
-            Alle auswählen
+            {{ t('foto.selectAll') }}
           </button>
           <button @click="deselectAllStockImages" class="btn-deselect-all" :disabled="selectedStockCount === 0">
-            Auswahl aufheben
+            {{ t('foto.deselectAll') }}
           </button>
-          <span v-if="selectedStockCount > 0" class="selection-count">{{ selectedStockCount }} ausgewählt</span>
+          <span v-if="selectedStockCount > 0" class="selection-count">{{ selectedStockCount }} {{ t('foto.selected') }}</span>
         </div>
-        <p class="multiselect-hint">Tipp: Strg+Klick für Mehrfachauswahl, Shift+Klick für Bereich</p>
+        <p class="multiselect-hint">{{ t('foto.multiselectHint') }}</p>
         <div class="stock-gallery-grid">
           <div
             v-for="img in filteredStockImages"
@@ -118,70 +118,70 @@
       <!-- Stock-Bild Action-Buttons -->
       <div v-if="selectedStockCount > 0" class="action-buttons stock-actions">
         <button @click="addStockImageToCanvas" class="btn-primary">
-          {{ selectedStockCount > 1 ? `${selectedStockCount} Bilder auf Canvas` : 'Auf Canvas platzieren' }}
+          {{ selectedStockCount > 1 ? (locale === 'de' ? `${selectedStockCount} Bilder auf Canvas` : `${selectedStockCount} images on Canvas`) : t('foto.placeOnCanvas') }}
         </button>
         <button v-if="selectedStockCount === 1" @click="setStockAsBackground" class="btn-secondary">
-          Als Hintergrund
+          {{ t('foto.asBackground') }}
         </button>
         <button v-if="selectedStockCount === 1" @click="setStockAsWorkspaceBackground" class="btn-workspace">
-          Als Workspace-Hintergrund
+          {{ t('foto.asWorkspaceBackground') }}
         </button>
       </div>
 
       <!-- Ladeanzeige -->
       <div v-if="stockImagesLoading || categoryLoading" class="loading-state">
-        <p>{{ stockImagesLoading ? 'Galerie wird geladen...' : 'Kategorie wird geladen...' }}</p>
+        <p>{{ stockImagesLoading ? t('foto.loadingGallery') : t('foto.loadingCategory') }}</p>
       </div>
 
       <!-- Fehleranzeige wenn keine Bilder -->
       <div v-if="!stockImagesLoading && stockCategories.length === 0" class="error-state">
-        <p>Galerie konnte nicht geladen werden</p>
-        <button @click="loadStockGallery" class="btn-retry">Erneut versuchen</button>
+        <p>{{ t('foto.galleryLoadError') }}</p>
+        <button @click="loadStockGallery" class="btn-retry">{{ t('foto.retryLoad') }}</button>
       </div>
 
       <!-- Keine Bilder in Kategorie -->
       <div v-if="!stockImagesLoading && !categoryLoading && stockCategories.length > 0 && filteredStockImages.length === 0" class="empty-state">
-        <p>Keine Bilder in dieser Kategorie</p>
+        <p>{{ t('foto.noImagesInCategory') }}</p>
       </div>
     </div>
 
     <!-- ✨ Upload-Bereich (immer sichtbar) -->
     <div class="upload-section">
-      <h4>Eigene Bilder</h4>
+      <h4>{{ t('foto.ownImages') }}</h4>
 
       <div class="upload-area" @click="triggerFileInput">
-        <input 
-          type="file" 
-          ref="fileInputRef" 
-          @change="handleImageUpload" 
+        <input
+          type="file"
+          ref="fileInputRef"
+          @change="handleImageUpload"
           accept="image/*"
           multiple
           style="display: none;"
         >
         <div class="upload-placeholder">
-          <p>Klicken zum Hochladen</p>
-          <small>Mehrere Bilder möglich (JPG, PNG, GIF, WebP)</small>
+          <p>{{ t('foto.clickToUpload') }}</p>
+          <small>{{ t('foto.multipleImagesHint') }}</small>
         </div>
       </div>
 
       <!-- ✨ NEU: Scrollbare Galerie mit Thumbnails -->
       <div v-if="imageGallery.length > 0" class="gallery-container">
         <div class="gallery-header">
-          <span class="gallery-title">Galerie ({{ imageGallery.length }})</span>
-          <button @click="clearAllImages" class="btn-clear-all">Alle löschen</button>
+          <span class="gallery-title">{{ locale === 'de' ? 'Galerie (' + imageGallery.length + ')' : 'Gallery (' + imageGallery.length + ')' }}</span>
+          <button @click="clearAllImages" class="btn-clear-all">{{ t('foto.deleteAll') }}</button>
         </div>
 
         <!-- Auswahl-Steuerung -->
         <div class="selection-controls">
           <button @click="selectAllImages" class="btn-select-all" :disabled="selectedImageCount === imageGallery.length">
-            Alle auswählen
+            {{ t('foto.selectAll') }}
           </button>
           <button @click="deselectAllImages" class="btn-deselect-all" :disabled="selectedImageCount === 0">
-            Auswahl aufheben
+            {{ t('foto.deselectAll') }}
           </button>
-          <span v-if="selectedImageCount > 0" class="selection-count">{{ selectedImageCount }} ausgewählt</span>
+          <span v-if="selectedImageCount > 0" class="selection-count">{{ selectedImageCount }} {{ t('foto.selected') }}</span>
         </div>
-        <p class="multiselect-hint">Tipp: Strg+Klick für Mehrfachauswahl, Shift+Klick für Bereich</p>
+        <p class="multiselect-hint">{{ t('foto.multiselectHint') }}</p>
 
         <div class="gallery-scroll">
           <div class="gallery-grid">
@@ -213,30 +213,30 @@
       <!-- Action-Buttons (nur sichtbar wenn Bilder ausgewählt) -->
       <div v-if="selectedImageCount > 0" class="action-buttons">
         <button @click="addImageToCanvas" class="btn-primary">
-          {{ selectedImageCount > 1 ? `${selectedImageCount} Bilder auf Canvas` : 'Auf Canvas platzieren' }}
+          {{ selectedImageCount > 1 ? (locale === 'de' ? `${selectedImageCount} Bilder auf Canvas` : `${selectedImageCount} images on Canvas`) : t('foto.placeOnCanvas') }}
         </button>
         <button v-if="selectedImageCount === 1" @click="setAsBackground" class="btn-secondary">
-          Als Hintergrund
+          {{ t('foto.asBackground') }}
         </button>
         <button v-if="selectedImageCount === 1" @click="setAsWorkspaceBackground" class="btn-workspace">
-          Als Workspace-Hintergrund
+          {{ t('foto.asWorkspaceBackground') }}
         </button>
       </div>
 
       <!-- Info-Text wenn keine Bilder -->
       <div v-if="imageGallery.length === 0" class="empty-state">
-        <p>Keine Bilder hochgeladen</p>
+        <p>{{ t('foto.noImagesUploaded') }}</p>
       </div>
     </div>
 
     <!-- Filter-Bereich (nur sichtbar wenn Bild auf Canvas ausgewählt) -->
     <div class="foto-panel-container" ref="containerRef" style="display: none;">
-      <h4>Bild bearbeiten</h4>
+      <h4>{{ t('foto.editImage') }}</h4>
 
       <!-- ✨ NEU: Ebenen-Steuerung -->
       <div class="layer-controls-section">
         <div class="modern-section-header">
-          <h4>Ebenen</h4>
+          <h4>{{ t('foto.layers') }}</h4>
           <span class="layer-info" v-if="currentLayerInfo">{{ currentLayerInfo }}</span>
         </div>
         <div class="layer-buttons">
@@ -245,40 +245,40 @@
             class="layer-btn"
             @click="onBringToFront"
             :disabled="!canMoveUp"
-            title="Ganz nach vorne (oberste Ebene)"
+            :title="locale === 'de' ? 'Ganz nach vorne (oberste Ebene)' : 'Bring to front (top layer)'"
           >
             <span class="layer-icon">⬆⬆</span>
-            <span class="layer-text">Nach vorne</span>
+            <span class="layer-text">{{ t('foto.bringToFrontTop') }}</span>
           </button>
           <button
             type="button"
             class="layer-btn"
             @click="onMoveUp"
             :disabled="!canMoveUp"
-            title="Eine Ebene nach oben"
+            :title="locale === 'de' ? 'Eine Ebene nach oben' : 'Move layer up'"
           >
             <span class="layer-icon">↑</span>
-            <span class="layer-text">Ebene hoch</span>
+            <span class="layer-text">{{ t('foto.layerUp') }}</span>
           </button>
           <button
             type="button"
             class="layer-btn"
             @click="onMoveDown"
             :disabled="!canMoveDown"
-            title="Eine Ebene nach unten"
+            :title="locale === 'de' ? 'Eine Ebene nach unten' : 'Move layer down'"
           >
             <span class="layer-icon">↓</span>
-            <span class="layer-text">Ebene runter</span>
+            <span class="layer-text">{{ t('foto.layerDown') }}</span>
           </button>
           <button
             type="button"
             class="layer-btn"
             @click="onSendToBack"
             :disabled="!canMoveDown"
-            title="Ganz nach hinten (unterste Ebene)"
+            :title="locale === 'de' ? 'Ganz nach hinten (unterste Ebene)' : 'Send to back (bottom layer)'"
           >
             <span class="layer-icon">⬇⬇</span>
-            <span class="layer-text">Nach hinten</span>
+            <span class="layer-text">{{ t('foto.sendToBackBottom') }}</span>
           </button>
         </div>
       </div>
@@ -286,47 +286,47 @@
       <div class="modern-divider"></div>
 
       <div class="control-group">
-        <label>Filter-Preset</label>
+        <label>{{ t('foto.filterPreset') }}</label>
         <select ref="presetSelectRef" @change="onPresetChange">
-          <option value="">Kein Filter</option>
+          <option value="">{{ t('foto.noFilter') }}</option>
           <option v-for="preset in presets" :key="preset.id" :value="preset.id">
-            {{ preset.name_de }}
+            {{ locale === 'de' ? preset.name_de : preset.name_en }}
           </option>
         </select>
       </div>
 
       <div class="control-group slider">
-        <label>Helligkeit</label>
+        <label>{{ t('foto.brightness') }}</label>
         <input type="range" min="0" max="200" value="100" ref="brightnessInputRef" @input="onBrightnessChange">
         <span ref="brightnessValueRef">100%</span>
       </div>
 
       <div class="control-group slider">
-        <label>Kontrast</label>
+        <label>{{ t('foto.contrast') }}</label>
         <input type="range" min="0" max="200" value="100" ref="contrastInputRef" @input="onContrastChange">
         <span ref="contrastValueRef">100%</span>
       </div>
 
       <div class="control-group slider">
-        <label>Sättigung</label>
+        <label>{{ t('foto.saturate') }}</label>
         <input type="range" min="0" max="200" value="100" ref="saturationInputRef" @input="onSaturationChange">
         <span ref="saturationValueRef">100%</span>
       </div>
 
       <div class="control-group slider">
-        <label>Deckkraft</label>
+        <label>{{ t('foto.opacity') }}</label>
         <input type="range" min="0" max="100" value="100" ref="opacityInputRef" @input="onOpacityChange">
         <span ref="opacityValueRef">100%</span>
       </div>
 
       <div class="control-group slider">
-        <label>Unschärfe</label>
+        <label>{{ t('foto.blur') }}</label>
         <input type="range" min="0" max="20" value="0" step="1" ref="blurInputRef" @input="onBlurChange">
         <span ref="blurValueRef">0px</span>
       </div>
 
       <div class="control-group slider">
-        <label>Farbton</label>
+        <label>{{ t('foto.hueRotate') }}</label>
         <input type="range" min="0" max="360" value="0" step="1" ref="hueRotateInputRef" @input="onHueRotateChange">
         <span ref="hueRotateValueRef">0°</span>
       </div>
@@ -334,7 +334,7 @@
       <!-- MODERNE SCHATTEN & ROTATIONS-SEKTION -->
       <div class="modern-divider"></div>
       <div class="modern-section-header">
-        <h4>Schatten & Effekte</h4>
+        <h4>{{ t('foto.shadowEffects') }}</h4>
       </div>
 
       <!-- Shadow Controls Group -->
@@ -342,19 +342,19 @@
         <!-- Schattenfarbe -->
         <div class="modern-control">
           <label class="modern-label">
-            <span class="label-text">Farbe</span>
+            <span class="label-text">{{ t('foto.shadowColor') }}</span>
           </label>
           <div class="modern-color-picker">
-            <input 
-              type="color" 
+            <input
+              type="color"
               ref="shadowColorInputRef"
               @input="onShadowColorChange"
               value="#000000"
               class="modern-color-input"
-              title="Schattenfarbe wählen"
+              :title="locale === 'de' ? 'Schattenfarbe wählen' : 'Choose shadow color'"
             />
-            <input 
-              type="text" 
+            <input
+              type="text"
               ref="shadowColorTextRef"
               @input="onShadowColorTextChange"
               value="#000000"
@@ -367,7 +367,7 @@
         <!-- Schatten-Unschärfe -->
         <div class="modern-control">
           <label class="modern-label">
-            <span class="label-text">Unschärfe</span>
+            <span class="label-text">{{ t('foto.shadowBlur') }}</span>
             <span class="label-value" ref="shadowBlurValueRef">0px</span>
           </label>
           <input 
@@ -385,16 +385,16 @@
         <!-- Schatten X-Offset -->
         <div class="modern-control">
           <label class="modern-label">
-            <span class="label-text">Horizontal</span>
+            <span class="label-text">{{ t('foto.shadowHorizontal') }}</span>
             <span class="label-value" ref="shadowOffsetXValueRef">0px</span>
           </label>
-          <input 
-            type="range" 
-            min="-50" 
-            max="50" 
-            value="0" 
-            step="1" 
-            ref="shadowOffsetXInputRef" 
+          <input
+            type="range"
+            min="-50"
+            max="50"
+            value="0"
+            step="1"
+            ref="shadowOffsetXInputRef"
             @input="onShadowOffsetXChange"
             class="modern-slider shadow-slider"
           />
@@ -403,16 +403,16 @@
         <!-- Schatten Y-Offset -->
         <div class="modern-control">
           <label class="modern-label">
-            <span class="label-text">Vertikal</span>
+            <span class="label-text">{{ t('foto.shadowVertical') }}</span>
             <span class="label-value" ref="shadowOffsetYValueRef">0px</span>
           </label>
-          <input 
-            type="range" 
-            min="-50" 
-            max="50" 
-            value="0" 
-            step="1" 
-            ref="shadowOffsetYInputRef" 
+          <input
+            type="range"
+            min="-50"
+            max="50"
+            value="0"
+            step="1"
+            ref="shadowOffsetYInputRef"
             @input="onShadowOffsetYChange"
             class="modern-slider shadow-slider"
           />
@@ -421,13 +421,13 @@
 
       <!-- Rotation Section -->
       <div class="modern-section-header" style="margin-top: 20px;">
-        <h4>Rotation</h4>
+        <h4>{{ t('foto.rotation') }}</h4>
       </div>
 
       <div class="modern-controls-group">
         <div class="modern-control">
           <label class="modern-label">
-            <span class="label-text">Drehwinkel</span>
+            <span class="label-text">{{ t('foto.rotationAngle') }}</span>
             <span class="label-value" ref="rotationValueRef">0°</span>
           </label>
           <input
@@ -446,7 +446,7 @@
         <!-- Spiegeln (Flip) Buttons -->
         <div class="modern-control flip-controls">
           <label class="modern-label">
-            <span class="label-text">Spiegeln</span>
+            <span class="label-text">{{ t('foto.flip') }}</span>
           </label>
           <div class="flip-buttons">
             <button
@@ -454,18 +454,18 @@
               class="flip-button"
               :class="{ 'active': flipHRef }"
               @click="onFlipHorizontal"
-              title="Horizontal spiegeln"
+              :title="t('foto.flipHorizontal')"
             >
-              ↔ Horizontal
+              ↔ {{ t('foto.horizontal') }}
             </button>
             <button
               type="button"
               class="flip-button"
               :class="{ 'active': flipVRef }"
               @click="onFlipVertical"
-              title="Vertikal spiegeln"
+              :title="t('foto.flipVertical')"
             >
-              ↕ Vertikal
+              ↕ {{ t('foto.vertical') }}
             </button>
           </div>
         </div>
@@ -473,14 +473,14 @@
 
       <!-- Bildkontur Section -->
       <div class="modern-section-header" style="margin-top: 20px;">
-        <h4>Bildkontur</h4>
+        <h4>{{ t('foto.imageBorder') }}</h4>
       </div>
 
       <div class="modern-controls-group">
         <!-- Konturfarbe -->
         <div class="modern-control">
           <label class="modern-label">
-            <span class="label-text">Farbe</span>
+            <span class="label-text">{{ t('foto.shadowColor') }}</span>
           </label>
           <div class="modern-color-picker">
             <input
@@ -489,7 +489,7 @@
               @input="onBorderColorChange"
               value="#ffffff"
               class="modern-color-input"
-              title="Konturfarbe wählen"
+              :title="locale === 'de' ? 'Konturfarbe wählen' : 'Choose border color'"
             />
             <input
               type="text"
@@ -505,7 +505,7 @@
         <!-- Konturbreite -->
         <div class="modern-control">
           <label class="modern-label">
-            <span class="label-text">Dicke</span>
+            <span class="label-text">{{ t('foto.borderWidth') }}</span>
             <span class="label-value" ref="borderWidthValueRef">0px</span>
           </label>
           <input
@@ -523,7 +523,7 @@
         <!-- Konturtransparenz -->
         <div class="modern-control">
           <label class="modern-label">
-            <span class="label-text">Deckkraft</span>
+            <span class="label-text">{{ t('foto.opacity') }}</span>
             <span class="label-value" ref="borderOpacityValueRef">100%</span>
           </label>
           <input
@@ -929,6 +929,9 @@
 <script setup>
 import { ref, computed, onMounted, inject, watch } from 'vue';
 import { usePanelSettingsStore } from '../stores/panelSettingsStore';
+import { useI18n } from '../lib/i18n.js';
+
+const { t, locale } = useI18n();
 
 // Refs für alle UI-Elemente
 const containerRef = ref(null);

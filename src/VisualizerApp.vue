@@ -530,30 +530,55 @@ async function setupMicrophoneSource() {
       }
     }
 
-    // Create a fresh AudioContext specifically for microphone
-    microphoneAudioContext = new (window.AudioContext || window.webkitAudioContext)();
-    console.log('[App] Created new AudioContext for microphone, sample rate:', microphoneAudioContext.sampleRate);
+    // Get the microphone's actual sample rate from the track settings
+    const audioTrack = stream.getAudioTracks()[0];
+    const trackSettings = audioTrack?.getSettings();
+    const micSampleRate = trackSettings?.sampleRate;
+    console.log('[App] Microphone track settings:', trackSettings);
+
+    // Create AudioContext with a standard sample rate (48000 Hz)
+    // Using a fixed rate avoids sample rate mismatch issues
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    try {
+      microphoneAudioContext = new AudioContextClass({ sampleRate: 48000 });
+    } catch (e) {
+      console.warn('[App] Could not create AudioContext with 48000Hz, using default');
+      microphoneAudioContext = new AudioContextClass();
+    }
+    console.log('[App] Created AudioContext for microphone, sample rate:', microphoneAudioContext.sampleRate);
+
+    // Resume if suspended (MUST be done before creating nodes in some browsers)
+    if (microphoneAudioContext.state === 'suspended') {
+      await microphoneAudioContext.resume();
+      console.log('[App] Microphone AudioContext resumed');
+    }
 
     // Create analyser for microphone
     microphoneAnalyser = microphoneAudioContext.createAnalyser();
     microphoneAnalyser.fftSize = 2048;
     microphoneAnalyser.smoothingTimeConstant = 0.8;
 
-    // Resume if suspended
-    if (microphoneAudioContext.state === 'suspended') {
-      await microphoneAudioContext.resume();
-      console.log('[App] Microphone AudioContext resumed');
-    }
-
     // Create MediaStreamSource from microphone
     microphoneSourceNode = microphoneAudioContext.createMediaStreamSource(stream);
 
-    // Connect microphone to analyser (for visualization)
-    microphoneSourceNode.connect(microphoneAnalyser);
+    // IMPORTANT: Connect through a GainNode to ensure audio flows
+    // Some browsers have issues with direct MediaStreamSource -> Analyser connections
+    const micGain = microphoneAudioContext.createGain();
+    micGain.gain.value = 1.0;
 
-    // Note: We do NOT connect to destination to avoid feedback!
+    microphoneSourceNode.connect(micGain);
+    micGain.connect(microphoneAnalyser);
 
-    console.log('[App] Microphone source connected to microphone analyser');
+    // Also connect to a silent destination to keep the audio graph active
+    // This is a workaround for a Chrome bug where MediaStreamSource
+    // doesn't process audio unless connected to destination
+    const silentGain = microphoneAudioContext.createGain();
+    silentGain.gain.value = 0; // Silent - no audio output
+    micGain.connect(silentGain);
+    silentGain.connect(microphoneAudioContext.destination);
+
+    console.log('[App] Microphone audio graph: source -> gain -> analyser');
+    console.log('[App] Microphone audio graph: source -> gain -> silent -> destination (for Chrome bug)');
     console.log('[App] Microphone AudioContext state:', microphoneAudioContext.state);
     console.log('[App] Microphone Analyser fftSize:', microphoneAnalyser.fftSize, 'frequencyBinCount:', microphoneAnalyser.frequencyBinCount);
 
@@ -730,12 +755,26 @@ function draw() {
 
     // Debug logging for microphone (every ~60 frames = ~1 second)
     if (isMicActive && ++micDebugCounter % 60 === 0) {
-      const testArray = new Uint8Array(microphoneAnalyser?.frequencyBinCount || 0);
-      if (microphoneAnalyser) {
-        microphoneAnalyser.getByteFrequencyData(testArray);
-        const sum = testArray.reduce((a, b) => a + b, 0);
-        console.log('[Mic Debug] Active:', isMicActive, 'MicAnalyser:', !!microphoneAnalyser,
-                    'MicContext state:', microphoneAudioContext?.state, 'Audio sum:', sum);
+      if (microphoneAnalyser && microphoneAudioContext) {
+        // Test both frequency and time domain data
+        const freqArray = new Uint8Array(microphoneAnalyser.frequencyBinCount);
+        const timeArray = new Uint8Array(microphoneAnalyser.frequencyBinCount);
+
+        microphoneAnalyser.getByteFrequencyData(freqArray);
+        microphoneAnalyser.getByteTimeDomainData(timeArray);
+
+        const freqSum = freqArray.reduce((a, b) => a + b, 0);
+        const timeSum = timeArray.reduce((a, b) => a + b, 0);
+        const timeAvg = timeSum / timeArray.length;
+
+        // Check if microphone stream is still active
+        const stream = audioSourceStore.microphoneStream;
+        const track = stream?.getAudioTracks()[0];
+
+        console.log('[Mic Debug] MicContext state:', microphoneAudioContext.state,
+                    'FreqSum:', freqSum, 'TimeAvg:', timeAvg.toFixed(1),
+                    '(should be ~128 for silence)',
+                    'Track:', track?.readyState, track?.enabled ? 'enabled' : 'disabled');
       }
     }
 

@@ -2,6 +2,59 @@
   <div class="panel">
     <h3>{{ t('player.title') }}</h3>
 
+    <!-- Audio Source Selector -->
+    <div class="audio-source-section">
+      <span class="section-label">{{ t('player.audioSource') }}</span>
+      <div class="source-toggle">
+        <button
+          @click="selectSource('player')"
+          class="source-btn"
+          :class="{ active: audioSourceStore.isPlayerSource }"
+          :title="t('player.playerSource')"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+          <span>{{ t('player.player') }}</span>
+        </button>
+        <button
+          @click="selectSource('microphone')"
+          class="source-btn"
+          :class="{
+            active: audioSourceStore.isMicrophoneSource,
+            listening: audioSourceStore.isMicrophoneActive
+          }"
+          :title="t('player.microphoneSource')"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+          <span>{{ t('player.microphone') }}</span>
+        </button>
+      </div>
+
+      <!-- Microphone Status/Error Message -->
+      <div v-if="audioSourceStore.isMicrophoneSource" class="mic-status">
+        <div v-if="audioSourceStore.isMicrophoneActive" class="mic-active">
+          <span class="mic-indicator"></span>
+          <span>{{ t('player.microphoneListening') }}</span>
+        </div>
+        <div v-else-if="audioSourceStore.errorMessage" class="mic-error">
+          {{ audioSourceStore.errorMessage }}
+        </div>
+      </div>
+
+      <!-- Device Selector (when microphone is active) -->
+      <div v-if="audioSourceStore.isMicrophoneSource && audioSourceStore.audioInputDevices.length > 1" class="device-selector">
+        <label>{{ t('player.selectDevice') }}:</label>
+        <select v-model="selectedDevice" @change="changeDevice" class="device-select">
+          <option v-for="device in audioSourceStore.audioInputDevices" :key="device.deviceId" :value="device.deviceId">
+            {{ device.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+
     <div v-if="playerStore.hasTracks" class="player-active">
       <!-- Current Track Display -->
       <div class="current-track">
@@ -243,15 +296,45 @@ import { useI18n } from '../lib/i18n.js';
 import { usePlayerStore } from '../stores/playerStore.js';
 import { useBeatMarkerStore } from '../stores/beatMarkerStore.js';
 import { useVisualizerStore } from '../stores/visualizerStore.js';
+import { useAudioSourceStore } from '../stores/audioSourceStore.js';
 
 const { t, locale } = useI18n();
 const playerStore = usePlayerStore();
 const beatMarkerStore = useBeatMarkerStore();
 const visualizerStore = useVisualizerStore();
+const audioSourceStore = useAudioSourceStore();
 
 const volume = ref(100);
 const bass = ref(0);
 const treble = ref(0);
+
+// Audio Source Selection
+const selectedDevice = ref('default');
+
+const selectSource = async (sourceType) => {
+  if (sourceType === audioSourceStore.sourceType) return;
+
+  if (window.switchAudioSource) {
+    const success = await window.switchAudioSource(sourceType);
+    if (!success && sourceType === 'microphone') {
+      console.log('[PlayerPanel] Failed to switch to microphone');
+    }
+  } else {
+    console.error('[PlayerPanel] switchAudioSource not available');
+  }
+};
+
+const changeDevice = async () => {
+  if (!audioSourceStore.isMicrophoneSource) return;
+
+  audioSourceStore.selectedDeviceId = selectedDevice.value;
+
+  // Restart microphone with new device
+  if (window.switchAudioSource) {
+    await window.switchAudioSource('player'); // Stop current
+    await window.switchAudioSource('microphone'); // Restart with new device
+  }
+};
 
 // Beat Marker State
 const showMarkerPanel = ref(false);
@@ -1278,5 +1361,159 @@ h3::before {
 
 .marker-list::-webkit-scrollbar-thumb:hover {
   background: #666;
+}
+
+/* ========== Audio Source Selector ========== */
+
+.audio-source-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: linear-gradient(180deg, var(--panel, #151b1d) 0%, rgba(96, 145, 152, 0.08) 100%);
+  border-radius: 6px;
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border-left: 2px solid var(--accent, #609198);
+}
+
+.source-toggle {
+  display: flex;
+  gap: 6px;
+}
+
+.source-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: var(--btn, #1c2426);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  border-radius: 6px;
+  color: var(--muted, #A8A992);
+  font-size: 0.65rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.source-btn:hover {
+  background-color: var(--btn-hover, #2a3335);
+  border-color: var(--accent, #609198);
+  color: var(--text, #E9E9EB);
+}
+
+.source-btn.active {
+  background-color: var(--accent, #609198);
+  border-color: var(--accent, #609198);
+  color: var(--accent-text, #0f1416);
+  font-weight: 600;
+}
+
+.source-btn.listening {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border-color: #22c55e;
+  color: #fff;
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.7);
+  }
+}
+
+.source-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Microphone Status */
+.mic-status {
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 0.6rem;
+}
+
+.mic-active {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #22c55e;
+  background-color: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 5px;
+  padding: 6px 10px;
+}
+
+.mic-indicator {
+  width: 8px;
+  height: 8px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  animation: mic-pulse 1s ease-in-out infinite;
+}
+
+@keyframes mic-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}
+
+.mic-error {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 5px;
+  padding: 6px 10px;
+}
+
+/* Device Selector */
+.device-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.device-selector label {
+  font-size: 0.55rem;
+  color: var(--muted, #A8A992);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.device-select {
+  padding: 6px 8px;
+  font-size: 0.6rem;
+  background-color: var(--btn, #1c2426);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  border-radius: 5px;
+  color: var(--text, #E9E9EB);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.device-select:hover {
+  border-color: var(--accent, #609198);
+}
+
+.device-select:focus {
+  outline: none;
+  border-color: var(--accent, #609198);
+  box-shadow: 0 0 0 2px rgba(96, 145, 152, 0.2);
+}
+
+.device-select option {
+  background-color: var(--panel, #151b1d);
+  color: var(--text, #E9E9EB);
 }
 </style>

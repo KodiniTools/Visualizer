@@ -82,6 +82,7 @@ import { useVisualizerStore } from './stores/visualizerStore.js';
 import { useGridStore } from './stores/gridStore.js';
 import { useWorkspaceStore } from './stores/workspaceStore.js';
 import { useBackgroundTilesStore } from './stores/backgroundTilesStore.js';
+import { useAudioSourceStore } from './stores/audioSourceStore.js';
 import FileUploadPanel from './components/FileUploadPanel.vue';
 import PlayerPanel from './components/PlayerPanel.vue';
 import RecorderPanel from './components/RecorderPanel.vue';
@@ -116,6 +117,7 @@ const visualizerStore = useVisualizerStore();
 const gridStore = useGridStore();
 const workspaceStore = useWorkspaceStore();
 const backgroundTilesStore = useBackgroundTilesStore();
+const audioSourceStore = useAudioSourceStore();
 const audioRef = ref(null);
 const canvasRef = ref(null);
 
@@ -162,6 +164,7 @@ function applyRecordingCanvasMonkeyPatch(canvas) {
 
 let audioContext, analyser, sourceNode, outputGain, recordingDest, recordingGain;
 let bassFilter, trebleFilter; // EQ-Filter für Bass und Treble
+let microphoneSourceNode = null; // Separate source node for microphone
 let animationFrameId;
 let textManagerInstance = null;
 const lastSelectedVisualizerId = ref(null);
@@ -481,6 +484,113 @@ function disableRecorderAudio() {
   }
 }
 
+// ========== MICROPHONE AUDIO SOURCE ==========
+
+/**
+ * Initialize AudioContext if not already created (for microphone use)
+ */
+function ensureAudioContext() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    console.log('[App] AudioContext created for microphone');
+  }
+  return audioContext;
+}
+
+/**
+ * Setup microphone as audio source
+ */
+async function setupMicrophoneSource() {
+  try {
+    ensureAudioContext();
+
+    // Resume AudioContext if suspended (browser autoplay policy)
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+      console.log('[App] AudioContext resumed');
+    }
+
+    // Get microphone stream
+    const stream = await audioSourceStore.startMicrophone(
+      audioSourceStore.selectedDeviceId !== 'default' ? audioSourceStore.selectedDeviceId : null
+    );
+
+    if (!stream) {
+      console.error('[App] Failed to get microphone stream');
+      return false;
+    }
+
+    // Disconnect existing microphone source if any
+    if (microphoneSourceNode) {
+      try {
+        microphoneSourceNode.disconnect();
+      } catch (e) {
+        // Ignore disconnect errors
+      }
+      microphoneSourceNode = null;
+    }
+
+    // Create MediaStreamSource from microphone
+    microphoneSourceNode = audioContext.createMediaStreamSource(stream);
+
+    // Connect microphone to analyser (for visualization)
+    microphoneSourceNode.connect(analyser);
+
+    // Note: We do NOT connect to audioContext.destination to avoid feedback!
+    // The microphone audio will only be used for visualization, not playback.
+
+    console.log('[App] Microphone source connected to analyser');
+    return true;
+
+  } catch (error) {
+    console.error('[App] Error setting up microphone source:', error);
+    audioSourceStore.errorMessage = error.message;
+    return false;
+  }
+}
+
+/**
+ * Disconnect microphone source
+ */
+function disconnectMicrophoneSource() {
+  if (microphoneSourceNode) {
+    try {
+      microphoneSourceNode.disconnect();
+      console.log('[App] Microphone source disconnected');
+    } catch (e) {
+      // Ignore disconnect errors
+    }
+    microphoneSourceNode = null;
+  }
+  audioSourceStore.stopMicrophone();
+}
+
+/**
+ * Switch audio source (called from PlayerPanel)
+ */
+async function switchAudioSource(sourceType) {
+  console.log('[App] Switching audio source to:', sourceType);
+
+  if (sourceType === 'microphone') {
+    // Setup microphone
+    const success = await setupMicrophoneSource();
+    if (success) {
+      audioSourceStore.setSourceType('microphone');
+    }
+    return success;
+  } else {
+    // Switch back to player
+    disconnectMicrophoneSource();
+    audioSourceStore.setSourceType('player');
+    return true;
+  }
+}
+
+// Expose switch function globally for PlayerPanel
+window.switchAudioSource = switchAudioSource;
+
 function onObjectSelected(selectedObject) {
   if (!window.fotoPanelControls) {
     setTimeout(() => onObjectSelected(selectedObject), 100);
@@ -570,7 +680,14 @@ function draw() {
 
     let drawVisualizerCallback = null;
 
-    if (analyser && (playerStore.isPlaying || recorderStore.isRecording)) {
+    // Check if we should analyze audio (player playing, recording, or microphone active)
+    const shouldAnalyzeAudio = analyser && (
+      playerStore.isPlaying ||
+      recorderStore.isRecording ||
+      audioSourceStore.isMicrophoneActive
+    );
+
+    if (shouldAnalyzeAudio) {
       const bufferLength = analyser.frequencyBinCount;
       if (!audioDataArray || audioDataArray.length !== bufferLength) {
         audioDataArray = new Uint8Array(bufferLength);
@@ -580,7 +697,7 @@ function draw() {
     }
 
     const shouldDrawVisualizer = visualizerStore.showVisualizer &&
-      (playerStore.isPlaying || recorderStore.isRecording);
+      (playerStore.isPlaying || recorderStore.isRecording || audioSourceStore.isMicrophoneActive);
 
     if (analyser && shouldDrawVisualizer) {
       const visualizer = Visualizers[visualizerStore.selectedVisualizer];
@@ -1018,6 +1135,10 @@ onUnmounted(() => {
   console.log('[App] Component wird unmounted - Cleanup...');
 
   stopVisualizerLoop();
+
+  // Cleanup microphone
+  disconnectMicrophoneSource();
+  console.log('[App] Microphone cleanup completed');
 
   if (recordingCanvasStream) {
     recordingCanvasStream.getTracks().forEach(track => {

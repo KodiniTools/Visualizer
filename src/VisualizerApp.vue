@@ -908,16 +908,31 @@ function draw() {
 }
 
 async function createCombinedAudioStream() {
+  // Check if microphone is the active audio source
+  if (audioSourceStore.isMicrophoneActive && audioSourceStore.microphoneStream) {
+    console.log('[App] Using microphone stream for recording...');
+    const micStream = audioSourceStore.microphoneStream;
+    const tracks = micStream.getAudioTracks();
+
+    console.log('[App] Microphone Audio-Tracks:', tracks.length);
+    tracks.forEach((track, i) => {
+      console.log(`[App] Mic Track ${i}:`, track.label, 'enabled:', track.enabled, 'readyState:', track.readyState);
+    });
+
+    return micStream;
+  }
+
+  // Fall back to player audio
   if (!recordingDest) {
     console.error('[App] Recording Destination nicht verfügbar!');
     return null;
   }
 
-  console.log('[App] Erstelle kombinierten Audio-Stream...');
+  console.log('[App] Using player audio stream for recording...');
   const stream = recordingDest.stream;
   const tracks = stream.getAudioTracks();
 
-  console.log('[App] Audio-Tracks gefunden:', tracks.length);
+  console.log('[App] Player Audio-Tracks gefunden:', tracks.length);
   tracks.forEach((track, i) => {
     console.log(`[App] Track ${i}:`, track.label, 'enabled:', track.enabled, 'readyState:', track.readyState);
   });

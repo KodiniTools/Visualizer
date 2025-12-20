@@ -14,7 +14,8 @@ const VISUALIZER_CATEGORIES = {
   'Organisch': ['heartbeat', 'neuralNetwork', 'cellGrowth', 'fractalTree'],
   'Kristalle & Netze': ['liquidCrystals', 'electricWeb'],
   'Blüten': ['frequencyBlossoms', 'centralGlowBlossom'],
-  '3D-Objekte': ['rainbowCube']
+  '3D-Objekte': ['rainbowCube'],
+  'Retro & Pixel': ['pixelSpectrum', 'retroOscilloscope', 'arcadeBlocks', 'chiptunePulse', 'pixelFireworks']
 };
 
 export const useVisualizerStore = defineStore('visualizer', () => {

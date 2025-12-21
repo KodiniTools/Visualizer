@@ -128,6 +128,36 @@
         </button>
       </div>
 
+      <!-- ✨ NEU: Bereichsauswahl mit Animation für Stock-Bilder -->
+      <div v-if="selectedStockCount === 1" class="range-selection-section">
+        <div class="range-selection-header">
+          <span class="range-icon">📐</span>
+          <span>{{ locale === 'de' ? 'Bereichsauswahl' : 'Range Selection' }}</span>
+        </div>
+        <div class="animation-select-row">
+          <label>{{ locale === 'de' ? 'Eintritts-Animation:' : 'Entry Animation:' }}</label>
+          <select v-model="selectedAnimation" class="animation-select">
+            <option value="none">{{ locale === 'de' ? 'Keine' : 'None' }}</option>
+            <option value="fade">{{ locale === 'de' ? '✨ Einblenden' : '✨ Fade In' }}</option>
+            <option value="slideLeft">{{ locale === 'de' ? '← Gleiten Links' : '← Slide Left' }}</option>
+            <option value="slideRight">{{ locale === 'de' ? '→ Gleiten Rechts' : '→ Slide Right' }}</option>
+            <option value="slideUp">{{ locale === 'de' ? '↑ Gleiten Hoch' : '↑ Slide Up' }}</option>
+            <option value="slideDown">{{ locale === 'de' ? '↓ Gleiten Runter' : '↓ Slide Down' }}</option>
+            <option value="zoom">{{ locale === 'de' ? '🔍 Zoom' : '🔍 Zoom' }}</option>
+            <option value="bounce">{{ locale === 'de' ? '⬆️ Hüpfen' : '⬆️ Bounce' }}</option>
+            <option value="spin">{{ locale === 'de' ? '🔄 Drehen' : '🔄 Spin' }}</option>
+            <option value="elastic">{{ locale === 'de' ? '🎯 Elastisch' : '🎯 Elastic' }}</option>
+          </select>
+        </div>
+        <button @click="startStockImageRangeSelection" class="btn-range-select">
+          <span class="btn-icon">📐</span>
+          {{ locale === 'de' ? 'Bereich auf Canvas auswählen' : 'Select Range on Canvas' }}
+        </button>
+        <p v-if="isInRangeSelectionMode" class="range-hint">
+          {{ locale === 'de' ? '🎯 Ziehe einen Bereich auf dem Canvas...' : '🎯 Draw a range on the canvas...' }}
+        </p>
+      </div>
+
       <!-- Ladeanzeige -->
       <div v-if="stockImagesLoading || categoryLoading" class="loading-state">
         <p>{{ stockImagesLoading ? t('foto.loadingGallery') : t('foto.loadingCategory') }}</p>
@@ -221,6 +251,36 @@
         <button v-if="selectedImageCount === 1" @click="setAsWorkspaceBackground" class="btn-workspace">
           {{ t('foto.asWorkspaceBackground') }}
         </button>
+      </div>
+
+      <!-- ✨ NEU: Bereichsauswahl mit Animation für eigene Bilder -->
+      <div v-if="selectedImageCount === 1" class="range-selection-section">
+        <div class="range-selection-header">
+          <span class="range-icon">📐</span>
+          <span>{{ locale === 'de' ? 'Bereichsauswahl' : 'Range Selection' }}</span>
+        </div>
+        <div class="animation-select-row">
+          <label>{{ locale === 'de' ? 'Eintritts-Animation:' : 'Entry Animation:' }}</label>
+          <select v-model="selectedAnimation" class="animation-select">
+            <option value="none">{{ locale === 'de' ? 'Keine' : 'None' }}</option>
+            <option value="fade">{{ locale === 'de' ? '✨ Einblenden' : '✨ Fade In' }}</option>
+            <option value="slideLeft">{{ locale === 'de' ? '← Gleiten Links' : '← Slide Left' }}</option>
+            <option value="slideRight">{{ locale === 'de' ? '→ Gleiten Rechts' : '→ Slide Right' }}</option>
+            <option value="slideUp">{{ locale === 'de' ? '↑ Gleiten Hoch' : '↑ Slide Up' }}</option>
+            <option value="slideDown">{{ locale === 'de' ? '↓ Gleiten Runter' : '↓ Slide Down' }}</option>
+            <option value="zoom">{{ locale === 'de' ? '🔍 Zoom' : '🔍 Zoom' }}</option>
+            <option value="bounce">{{ locale === 'de' ? '⬆️ Hüpfen' : '⬆️ Bounce' }}</option>
+            <option value="spin">{{ locale === 'de' ? '🔄 Drehen' : '🔄 Spin' }}</option>
+            <option value="elastic">{{ locale === 'de' ? '🎯 Elastisch' : '🎯 Elastic' }}</option>
+          </select>
+        </div>
+        <button @click="startUploadedImageRangeSelection" class="btn-range-select">
+          <span class="btn-icon">📐</span>
+          {{ locale === 'de' ? 'Bereich auf Canvas auswählen' : 'Select Range on Canvas' }}
+        </button>
+        <p v-if="isInRangeSelectionMode" class="range-hint">
+          {{ locale === 'de' ? '🎯 Ziehe einen Bereich auf dem Canvas...' : '🎯 Draw a range on the canvas...' }}
+        </p>
       </div>
 
       <!-- Info-Text wenn keine Bilder -->
@@ -1063,6 +1123,12 @@ const loadedStockImages = ref(new Map()); // Cache für geladene Image-Objekte
 // ✨ NEU: Panel-Einstellungen Store für Farbkonfiguration
 const panelSettingsStore = usePanelSettingsStore();
 const showColorPicker = ref(false);
+
+// ✨ NEU: Bereichsauswahl und Animation Refs
+const selectedAnimation = ref('none');
+const isInRangeSelectionMode = ref(false);
+const pendingRangeSelectionImage = ref(null); // Das Bild, das nach der Bereichsauswahl platziert wird
+const pendingRangeSelectionType = ref(null); // 'stock' oder 'uploaded'
 
 // Holen die Manager-Instanzen aus App.vue (als reactive refs)
 const fotoManagerRef = inject('fotoManager');
@@ -2496,6 +2562,131 @@ async function setStockAsWorkspaceBackground() {
     console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
     alert('Das Bild konnte nicht geladen werden.');
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ✨ BEREICHSAUSWAHL MIT ANIMATION FUNKTIONEN
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * ✨ Startet die Bereichsauswahl für ein Stock-Bild
+ */
+async function startStockImageRangeSelection() {
+  if (selectedStockCount.value !== 1) return;
+
+  const stockImg = selectedStockImagesList.value[0];
+  if (!stockImg) return;
+
+  const canvasManager = canvasManagerRef?.value;
+  if (!canvasManager) {
+    console.error('❌ CanvasManager nicht verfügbar');
+    return;
+  }
+
+  try {
+    // Lade das Bild
+    const img = await loadStockImageObject(stockImg);
+    pendingRangeSelectionImage.value = img;
+    pendingRangeSelectionType.value = 'stock';
+    isInRangeSelectionMode.value = true;
+
+    // Starte den Bereichsauswahl-Modus im CanvasManager
+    canvasManager.startImageSelectionMode((bounds) => {
+      handleRangeSelectionComplete(bounds);
+    }, selectedAnimation.value);
+
+    console.log('📐 Bereichsauswahl-Modus gestartet für Stock-Bild:', stockImg.name);
+  } catch (error) {
+    console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
+    alert('Das Bild konnte nicht geladen werden.');
+    isInRangeSelectionMode.value = false;
+  }
+}
+
+/**
+ * ✨ Startet die Bereichsauswahl für ein hochgeladenes Bild
+ */
+function startUploadedImageRangeSelection() {
+  if (selectedImageCount.value !== 1) return;
+
+  const imgData = selectedImages.value[0];
+  if (!imgData || !imgData.img) return;
+
+  const canvasManager = canvasManagerRef?.value;
+  if (!canvasManager) {
+    console.error('❌ CanvasManager nicht verfügbar');
+    return;
+  }
+
+  pendingRangeSelectionImage.value = imgData.img;
+  pendingRangeSelectionType.value = 'uploaded';
+  isInRangeSelectionMode.value = true;
+
+  // Starte den Bereichsauswahl-Modus im CanvasManager
+  canvasManager.startImageSelectionMode((bounds) => {
+    handleRangeSelectionComplete(bounds);
+  }, selectedAnimation.value);
+
+  console.log('📐 Bereichsauswahl-Modus gestartet für hochgeladenes Bild:', imgData.name);
+}
+
+/**
+ * ✨ Wird aufgerufen wenn die Bereichsauswahl abgeschlossen ist
+ */
+function handleRangeSelectionComplete(bounds) {
+  if (!bounds || !pendingRangeSelectionImage.value) {
+    console.log('❌ Bereichsauswahl abgebrochen oder ungültig');
+    isInRangeSelectionMode.value = false;
+    pendingRangeSelectionImage.value = null;
+    pendingRangeSelectionType.value = null;
+    return;
+  }
+
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager) {
+    console.error('❌ MultiImageManager nicht verfügbar');
+    isInRangeSelectionMode.value = false;
+    return;
+  }
+
+  // Füge das Bild mit den ausgewählten Bounds und Animation hinzu
+  multiImageManager.addImageWithBounds(
+    pendingRangeSelectionImage.value,
+    bounds,
+    bounds.animation || selectedAnimation.value
+  );
+
+  console.log('✅ Bild mit Bereichsauswahl platziert:', {
+    bounds: bounds,
+    animation: bounds.animation || selectedAnimation.value
+  });
+
+  // Auswahl zurücksetzen
+  if (pendingRangeSelectionType.value === 'stock') {
+    deselectAllStockImages();
+  } else if (pendingRangeSelectionType.value === 'uploaded') {
+    deselectAllImages();
+  }
+
+  // Modus beenden
+  isInRangeSelectionMode.value = false;
+  pendingRangeSelectionImage.value = null;
+  pendingRangeSelectionType.value = null;
+}
+
+/**
+ * ✨ Bricht die Bereichsauswahl ab
+ */
+function cancelRangeSelection() {
+  const canvasManager = canvasManagerRef?.value;
+  if (canvasManager) {
+    canvasManager.cancelImageSelectionMode();
+  }
+
+  isInRangeSelectionMode.value = false;
+  pendingRangeSelectionImage.value = null;
+  pendingRangeSelectionType.value = null;
+  console.log('❌ Bereichsauswahl abgebrochen');
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -4379,5 +4570,119 @@ input[type="range"]::-moz-range-thumb:hover {
 .stock-thumbnail-item.selected {
   border-color: var(--image-section-accent, #6ea8fe);
   box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.3), 0 4px 12px rgba(110, 168, 254, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* ✨ BEREICHSAUSWAHL STYLES */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.range-selection-section {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.range-selection-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: #22c55e;
+  font-size: 0.9rem;
+}
+
+.range-icon {
+  font-size: 1.1rem;
+}
+
+.animation-select-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.animation-select-row label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.animation-select {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.animation-select:hover {
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.animation-select:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+.animation-select option {
+  background: #1a1a2e;
+  color: #fff;
+  padding: 8px;
+}
+
+.btn-range-select {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(34, 197, 94, 0.5);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%);
+  color: #22c55e;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-range-select:hover {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.15) 100%);
+  border-color: #22c55e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+}
+
+.btn-range-select:active {
+  transform: translateY(0);
+}
+
+.btn-icon {
+  font-size: 1rem;
+}
+
+.range-hint {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(34, 197, 94, 0.15);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #22c55e;
+  text-align: center;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 </style>

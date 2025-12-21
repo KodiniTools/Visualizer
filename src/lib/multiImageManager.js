@@ -190,11 +190,18 @@ export class MultiImageManager {
     _startAnimation(imageData) {
         if (!imageData.animation || !imageData.animation.active) return;
 
+        console.log('🎬 Animation gestartet:', {
+            type: imageData.animation.type,
+            duration: imageData.animation.duration,
+            startTime: imageData.animation.startTime
+        });
+
         const animate = () => {
             if (!imageData.animation || !imageData.animation.active) return;
 
             const elapsed = Date.now() - imageData.animation.startTime;
-            const progress = Math.min(elapsed / imageData.animation.duration, 1);
+            const duration = imageData.animation.duration;
+            const progress = Math.min(elapsed / duration, 1);
             imageData.animation.progress = progress;
 
             this.redrawCallback();
@@ -204,7 +211,7 @@ export class MultiImageManager {
             } else {
                 // Animation beendet
                 imageData.animation.active = false;
-                console.log('✅ Animation beendet für Bild:', imageData.id);
+                console.log('✅ Animation beendet für Bild:', imageData.id, 'nach', elapsed, 'ms');
             }
         };
 

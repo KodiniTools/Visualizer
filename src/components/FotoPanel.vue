@@ -128,122 +128,69 @@
         </button>
       </div>
 
-      <!-- ✨ NEU: Bereichsauswahl mit Animation für Stock-Bilder -->
-      <div v-if="selectedStockCount === 1" class="range-selection-section">
-        <div class="range-selection-header">
-          <span class="range-icon">📐</span>
-          <span>{{ locale === 'de' ? 'Bereichsauswahl' : 'Range Selection' }}</span>
+      <!-- ✨ Platzierung mit Animation für Stock-Bilder -->
+      <div v-if="selectedStockCount === 1" class="placement-section">
+        <div class="placement-header">
+          <span>{{ locale === 'de' ? 'Platzierung' : 'Placement' }}</span>
         </div>
 
-        <!-- Animation Auswahl -->
-        <div class="animation-select-row">
-          <label>{{ locale === 'de' ? 'Eintritts-Animation:' : 'Entry Animation:' }}</label>
-          <select v-model="selectedAnimation" class="animation-select">
-            <option value="none">{{ locale === 'de' ? 'Keine' : 'None' }}</option>
-            <option value="fade">{{ locale === 'de' ? '✨ Einblenden' : '✨ Fade In' }}</option>
-            <option value="slideLeft">{{ locale === 'de' ? '← Gleiten Links' : '← Slide Left' }}</option>
-            <option value="slideRight">{{ locale === 'de' ? '→ Gleiten Rechts' : '→ Slide Right' }}</option>
-            <option value="slideUp">{{ locale === 'de' ? '↑ Gleiten Hoch' : '↑ Slide Up' }}</option>
-            <option value="slideDown">{{ locale === 'de' ? '↓ Gleiten Runter' : '↓ Slide Down' }}</option>
-            <option value="zoom">{{ locale === 'de' ? '🔍 Zoom' : '🔍 Zoom' }}</option>
-            <option value="bounce">{{ locale === 'de' ? '⬆️ Hüpfen' : '⬆️ Bounce' }}</option>
-            <option value="spin">{{ locale === 'de' ? '🔄 Drehen' : '🔄 Spin' }}</option>
-            <option value="elastic">{{ locale === 'de' ? '🎯 Elastisch' : '🎯 Elastic' }}</option>
-          </select>
-        </div>
+        <!-- Kompakte Einstellungen Grid -->
+        <div class="placement-grid">
+          <!-- Animation -->
+          <div class="placement-row">
+            <span class="placement-label">{{ locale === 'de' ? 'Effekt' : 'Effect' }}</span>
+            <select v-model="selectedAnimation" class="placement-select">
+              <option value="none">–</option>
+              <option value="fade">Fade</option>
+              <option value="slideLeft">← Slide</option>
+              <option value="slideRight">→ Slide</option>
+              <option value="slideUp">↑ Slide</option>
+              <option value="slideDown">↓ Slide</option>
+              <option value="zoom">Zoom</option>
+              <option value="bounce">Bounce</option>
+              <option value="spin">Spin</option>
+              <option value="elastic">Elastic</option>
+            </select>
+          </div>
 
-        <!-- Animationsgeschwindigkeit -->
-        <div v-if="selectedAnimation !== 'none'" class="range-slider-row">
-          <label>
-            <span class="slider-icon">⏱️</span>
-            {{ locale === 'de' ? 'Geschwindigkeit:' : 'Speed:' }}
-          </label>
-          <div class="slider-container">
-            <input
-              type="range"
-              v-model.number="animationDuration"
-              min="100"
-              max="5000"
-              step="100"
-              class="range-slider"
-            />
-            <span class="slider-value">{{ (animationDuration / 1000).toFixed(1) }}s</span>
+          <!-- Dauer (nur wenn Animation) -->
+          <div v-if="selectedAnimation !== 'none'" class="placement-row">
+            <span class="placement-label">{{ locale === 'de' ? 'Dauer' : 'Duration' }}</span>
+            <div class="placement-slider-wrap">
+              <input type="range" v-model.number="animationDuration" min="100" max="5000" step="100" class="placement-slider" />
+              <span class="placement-value">{{ (animationDuration / 1000).toFixed(1) }}s</span>
+            </div>
+          </div>
+
+          <!-- Größe -->
+          <div class="placement-row">
+            <span class="placement-label">{{ locale === 'de' ? 'Größe' : 'Size' }}</span>
+            <div class="placement-slider-wrap">
+              <input type="range" v-model.number="imageScale" min="1" max="8" step="1" class="placement-slider" />
+              <span class="placement-value">{{ imageScale }}x</span>
+            </div>
+          </div>
+
+          <!-- X/Y Position in einer Zeile -->
+          <div class="placement-row placement-xy">
+            <span class="placement-label">X</span>
+            <input type="number" v-model.number="imageOffsetX" min="-500" max="500" step="10" class="placement-input" />
+            <span class="placement-label">Y</span>
+            <input type="number" v-model.number="imageOffsetY" min="-500" max="500" step="10" class="placement-input" />
           </div>
         </div>
 
-        <!-- Bildgröße -->
-        <div class="range-slider-row">
-          <label>
-            <span class="slider-icon">📏</span>
-            {{ locale === 'de' ? 'Bildgröße:' : 'Image Size:' }}
-          </label>
-          <div class="slider-container">
-            <input
-              type="range"
-              v-model.number="imageScale"
-              min="1"
-              max="8"
-              step="1"
-              class="range-slider"
-            />
-            <span class="slider-value">{{ imageScale }}x</span>
-          </div>
-        </div>
-
-        <!-- X-Achsen-Position -->
-        <div class="range-slider-row">
-          <label>
-            <span class="slider-icon">↔️</span>
-            {{ locale === 'de' ? 'X-Position:' : 'X-Position:' }}
-          </label>
-          <div class="slider-container">
-            <input
-              type="range"
-              v-model.number="imageOffsetX"
-              min="-50"
-              max="50"
-              step="1"
-              class="range-slider"
-            />
-            <span class="slider-value">{{ imageOffsetX > 0 ? '+' : '' }}{{ imageOffsetX }}%</span>
-          </div>
-        </div>
-
-        <!-- Y-Achsen-Position -->
-        <div class="range-slider-row">
-          <label>
-            <span class="slider-icon">↕️</span>
-            {{ locale === 'de' ? 'Y-Position:' : 'Y-Position:' }}
-          </label>
-          <div class="slider-container">
-            <input
-              type="range"
-              v-model.number="imageOffsetY"
-              min="-50"
-              max="50"
-              step="1"
-              class="range-slider"
-            />
-            <span class="slider-value">{{ imageOffsetY > 0 ? '+' : '' }}{{ imageOffsetY }}%</span>
-          </div>
-        </div>
-
-        <!-- Beide Buttons nebeneinander -->
-        <div class="range-buttons-row">
-          <!-- Bereichsauswahl -->
-          <button @click="startStockImageRangeSelection" class="btn-range-select">
-            <span class="btn-icon">📐</span>
-            {{ locale === 'de' ? 'Bereich zeichnen' : 'Draw Range' }}
+        <!-- Buttons -->
+        <div class="placement-buttons">
+          <button @click="startStockImageRangeSelection" class="btn-placement btn-draw">
+            {{ locale === 'de' ? 'Zeichnen' : 'Draw' }}
           </button>
-
-          <!-- Direktplatzierung -->
-          <button @click="addStockImageDirectly" class="btn-direct-place">
-            <span class="btn-icon">📍</span>
-            {{ locale === 'de' ? 'Direkt platzieren' : 'Place Directly' }}
+          <button @click="addStockImageDirectly" class="btn-placement btn-place">
+            {{ locale === 'de' ? 'Platzieren' : 'Place' }}
           </button>
         </div>
-        <p v-if="isInRangeSelectionMode" class="range-hint">
-          {{ locale === 'de' ? '🎯 Ziehe einen Bereich auf dem Canvas...' : '🎯 Draw a range on the canvas...' }}
+        <p v-if="isInRangeSelectionMode" class="placement-hint">
+          {{ locale === 'de' ? 'Bereich auf Canvas ziehen...' : 'Draw area on canvas...' }}
         </p>
       </div>
 
@@ -342,122 +289,69 @@
         </button>
       </div>
 
-      <!-- ✨ NEU: Bereichsauswahl mit Animation für eigene Bilder -->
-      <div v-if="selectedImageCount === 1" class="range-selection-section">
-        <div class="range-selection-header">
-          <span class="range-icon">📐</span>
-          <span>{{ locale === 'de' ? 'Bereichsauswahl' : 'Range Selection' }}</span>
+      <!-- ✨ Platzierung mit Animation für eigene Bilder -->
+      <div v-if="selectedImageCount === 1" class="placement-section">
+        <div class="placement-header">
+          <span>{{ locale === 'de' ? 'Platzierung' : 'Placement' }}</span>
         </div>
 
-        <!-- Animation Auswahl -->
-        <div class="animation-select-row">
-          <label>{{ locale === 'de' ? 'Eintritts-Animation:' : 'Entry Animation:' }}</label>
-          <select v-model="selectedAnimation" class="animation-select">
-            <option value="none">{{ locale === 'de' ? 'Keine' : 'None' }}</option>
-            <option value="fade">{{ locale === 'de' ? '✨ Einblenden' : '✨ Fade In' }}</option>
-            <option value="slideLeft">{{ locale === 'de' ? '← Gleiten Links' : '← Slide Left' }}</option>
-            <option value="slideRight">{{ locale === 'de' ? '→ Gleiten Rechts' : '→ Slide Right' }}</option>
-            <option value="slideUp">{{ locale === 'de' ? '↑ Gleiten Hoch' : '↑ Slide Up' }}</option>
-            <option value="slideDown">{{ locale === 'de' ? '↓ Gleiten Runter' : '↓ Slide Down' }}</option>
-            <option value="zoom">{{ locale === 'de' ? '🔍 Zoom' : '🔍 Zoom' }}</option>
-            <option value="bounce">{{ locale === 'de' ? '⬆️ Hüpfen' : '⬆️ Bounce' }}</option>
-            <option value="spin">{{ locale === 'de' ? '🔄 Drehen' : '🔄 Spin' }}</option>
-            <option value="elastic">{{ locale === 'de' ? '🎯 Elastisch' : '🎯 Elastic' }}</option>
-          </select>
-        </div>
+        <!-- Kompakte Einstellungen Grid -->
+        <div class="placement-grid">
+          <!-- Animation -->
+          <div class="placement-row">
+            <span class="placement-label">{{ locale === 'de' ? 'Effekt' : 'Effect' }}</span>
+            <select v-model="selectedAnimation" class="placement-select">
+              <option value="none">–</option>
+              <option value="fade">Fade</option>
+              <option value="slideLeft">← Slide</option>
+              <option value="slideRight">→ Slide</option>
+              <option value="slideUp">↑ Slide</option>
+              <option value="slideDown">↓ Slide</option>
+              <option value="zoom">Zoom</option>
+              <option value="bounce">Bounce</option>
+              <option value="spin">Spin</option>
+              <option value="elastic">Elastic</option>
+            </select>
+          </div>
 
-        <!-- Animationsgeschwindigkeit -->
-        <div v-if="selectedAnimation !== 'none'" class="range-slider-row">
-          <label>
-            <span class="slider-icon">⏱️</span>
-            {{ locale === 'de' ? 'Geschwindigkeit:' : 'Speed:' }}
-          </label>
-          <div class="slider-container">
-            <input
-              type="range"
-              v-model.number="animationDuration"
-              min="100"
-              max="5000"
-              step="100"
-              class="range-slider"
-            />
-            <span class="slider-value">{{ (animationDuration / 1000).toFixed(1) }}s</span>
+          <!-- Dauer (nur wenn Animation) -->
+          <div v-if="selectedAnimation !== 'none'" class="placement-row">
+            <span class="placement-label">{{ locale === 'de' ? 'Dauer' : 'Duration' }}</span>
+            <div class="placement-slider-wrap">
+              <input type="range" v-model.number="animationDuration" min="100" max="5000" step="100" class="placement-slider" />
+              <span class="placement-value">{{ (animationDuration / 1000).toFixed(1) }}s</span>
+            </div>
+          </div>
+
+          <!-- Größe -->
+          <div class="placement-row">
+            <span class="placement-label">{{ locale === 'de' ? 'Größe' : 'Size' }}</span>
+            <div class="placement-slider-wrap">
+              <input type="range" v-model.number="imageScale" min="1" max="8" step="1" class="placement-slider" />
+              <span class="placement-value">{{ imageScale }}x</span>
+            </div>
+          </div>
+
+          <!-- X/Y Position in einer Zeile -->
+          <div class="placement-row placement-xy">
+            <span class="placement-label">X</span>
+            <input type="number" v-model.number="imageOffsetX" min="-500" max="500" step="10" class="placement-input" />
+            <span class="placement-label">Y</span>
+            <input type="number" v-model.number="imageOffsetY" min="-500" max="500" step="10" class="placement-input" />
           </div>
         </div>
 
-        <!-- Bildgröße -->
-        <div class="range-slider-row">
-          <label>
-            <span class="slider-icon">📏</span>
-            {{ locale === 'de' ? 'Bildgröße:' : 'Image Size:' }}
-          </label>
-          <div class="slider-container">
-            <input
-              type="range"
-              v-model.number="imageScale"
-              min="1"
-              max="8"
-              step="1"
-              class="range-slider"
-            />
-            <span class="slider-value">{{ imageScale }}x</span>
-          </div>
-        </div>
-
-        <!-- X-Achsen-Position -->
-        <div class="range-slider-row">
-          <label>
-            <span class="slider-icon">↔️</span>
-            {{ locale === 'de' ? 'X-Position:' : 'X-Position:' }}
-          </label>
-          <div class="slider-container">
-            <input
-              type="range"
-              v-model.number="imageOffsetX"
-              min="-50"
-              max="50"
-              step="1"
-              class="range-slider"
-            />
-            <span class="slider-value">{{ imageOffsetX > 0 ? '+' : '' }}{{ imageOffsetX }}%</span>
-          </div>
-        </div>
-
-        <!-- Y-Achsen-Position -->
-        <div class="range-slider-row">
-          <label>
-            <span class="slider-icon">↕️</span>
-            {{ locale === 'de' ? 'Y-Position:' : 'Y-Position:' }}
-          </label>
-          <div class="slider-container">
-            <input
-              type="range"
-              v-model.number="imageOffsetY"
-              min="-50"
-              max="50"
-              step="1"
-              class="range-slider"
-            />
-            <span class="slider-value">{{ imageOffsetY > 0 ? '+' : '' }}{{ imageOffsetY }}%</span>
-          </div>
-        </div>
-
-        <!-- Beide Buttons nebeneinander -->
-        <div class="range-buttons-row">
-          <!-- Bereichsauswahl -->
-          <button @click="startUploadedImageRangeSelection" class="btn-range-select">
-            <span class="btn-icon">📐</span>
-            {{ locale === 'de' ? 'Bereich zeichnen' : 'Draw Range' }}
+        <!-- Buttons -->
+        <div class="placement-buttons">
+          <button @click="startUploadedImageRangeSelection" class="btn-placement btn-draw">
+            {{ locale === 'de' ? 'Zeichnen' : 'Draw' }}
           </button>
-
-          <!-- Direktplatzierung -->
-          <button @click="addUploadedImageDirectly" class="btn-direct-place">
-            <span class="btn-icon">📍</span>
-            {{ locale === 'de' ? 'Direkt platzieren' : 'Place Directly' }}
+          <button @click="addUploadedImageDirectly" class="btn-placement btn-place">
+            {{ locale === 'de' ? 'Platzieren' : 'Place' }}
           </button>
         </div>
-        <p v-if="isInRangeSelectionMode" class="range-hint">
-          {{ locale === 'de' ? '🎯 Ziehe einen Bereich auf dem Canvas...' : '🎯 Draw a range on the canvas...' }}
+        <p v-if="isInRangeSelectionMode" class="placement-hint">
+          {{ locale === 'de' ? 'Bereich auf Canvas ziehen...' : 'Draw area on canvas...' }}
         </p>
       </div>
 
@@ -1304,10 +1198,10 @@ const showColorPicker = ref(false);
 
 // ✨ NEU: Bereichsauswahl und Animation Refs
 const selectedAnimation = ref('none');
-const animationDuration = ref(500); // Animationsdauer in ms (100-5000)
-const imageScale = ref(1); // Bildgröße als Multiplikator (1x, 2x, 4x, 6x, 8x)
-const imageOffsetX = ref(0); // X-Achsen-Verschiebung in % (-50 bis +50)
-const imageOffsetY = ref(0); // Y-Achsen-Verschiebung in % (-50 bis +50)
+const animationDuration = ref(1000); // Animationsdauer in ms (100-5000)
+const imageScale = ref(1); // Bildgröße als Multiplikator (1x-8x)
+const imageOffsetX = ref(0); // X-Achsen-Verschiebung in Pixel (-500 bis +500)
+const imageOffsetY = ref(0); // Y-Achsen-Verschiebung in Pixel (-500 bis +500)
 const isInRangeSelectionMode = ref(false);
 const pendingRangeSelectionImage = ref(null); // Das Bild, das nach der Bereichsauswahl platziert wird
 const pendingRangeSelectionType = ref(null); // 'stock' oder 'uploaded'
@@ -2830,46 +2724,39 @@ function handleRangeSelectionComplete(bounds) {
   }
 
   const multiImageManager = multiImageManagerRef?.value;
-  if (!multiImageManager) {
-    console.error('❌ MultiImageManager nicht verfügbar');
+  const canvasManager = canvasManagerRef?.value;
+  if (!multiImageManager || !canvasManager) {
+    console.error('❌ Manager nicht verfügbar');
     isInRangeSelectionMode.value = false;
     return;
   }
 
-  // Skaliere die Bounds basierend auf imageScale (Multiplikator 1x, 2x, 4x, 6x, 8x)
+  const canvas = canvasManager.canvas;
   const scale = imageScale.value;
 
-  // Berechne X/Y-Offset basierend auf den Slider-Werten (-50% bis +50%)
-  const offsetX = (imageOffsetX.value / 100) * bounds.relWidth;
-  const offsetY = (imageOffsetY.value / 100) * bounds.relHeight;
+  // X/Y sind jetzt Pixel-Werte, konvertiere zu relativen Werten
+  const offsetX = imageOffsetX.value / canvas.width;
+  const offsetY = imageOffsetY.value / canvas.height;
 
   const scaledBounds = {
     ...bounds,
     relWidth: bounds.relWidth * scale,
     relHeight: bounds.relHeight * scale,
-    // Zentriere das skalierte Bild in der ursprünglichen Auswahl + Offset
     relX: bounds.relX + (bounds.relWidth * (1 - scale)) / 2 + offsetX,
     relY: bounds.relY + (bounds.relHeight * (1 - scale)) / 2 + offsetY
   };
 
-  // Füge das Bild mit den ausgewählten Bounds, Animation und Optionen hinzu
   multiImageManager.addImageWithBounds(
     pendingRangeSelectionImage.value,
     scaledBounds,
     bounds.animation || selectedAnimation.value,
-    {
-      duration: parseInt(animationDuration.value),
-      scale: scale
-    }
+    { duration: animationDuration.value }
   );
 
-  console.log('✅ Bild mit Bereichsauswahl platziert:', {
+  console.log('✅ Bild platziert:', {
     bounds: scaledBounds,
     animation: bounds.animation || selectedAnimation.value,
-    duration: animationDuration.value,
-    scale: imageScale.value,
-    offsetX: imageOffsetX.value,
-    offsetY: imageOffsetY.value
+    duration: animationDuration.value
   });
 
   // Auswahl zurücksetzen
@@ -2901,7 +2788,7 @@ function cancelRangeSelection() {
 }
 
 /**
- * ✨ Platziert ein Stock-Bild direkt an der konfigurierten X/Y-Position
+ * ✨ Platziert ein Stock-Bild direkt an der konfigurierten X/Y-Position (in Pixel)
  */
 async function addStockImageDirectly() {
   if (selectedStockCount.value !== 1) return;
@@ -2910,25 +2797,27 @@ async function addStockImageDirectly() {
   if (!stockImg) return;
 
   const multiImageManager = multiImageManagerRef?.value;
-  if (!multiImageManager) {
-    console.error('❌ MultiImageManager nicht verfügbar');
+  const canvasManager = canvasManagerRef?.value;
+  if (!multiImageManager || !canvasManager) {
+    console.error('❌ Manager nicht verfügbar');
     return;
   }
 
   try {
     const img = await loadStockImageObject(stockImg);
+    const canvas = canvasManager.canvas;
 
-    // Berechne Position basierend auf X/Y-Offset (0% = Mitte, -50% = links/oben, +50% = rechts/unten)
-    // Offset-Werte werden auf 0-1 Bereich umgerechnet
-    const relX = 0.5 + (imageOffsetX.value / 100); // -50 bis +50 -> 0 bis 1
-    const relY = 0.5 + (imageOffsetY.value / 100); // -50 bis +50 -> 0 bis 1
+    // X/Y sind Pixel-Werte (-500 bis +500), 0 = Mitte
+    // Konvertiere zu relativen Canvas-Koordinaten
+    const relX = 0.5 + (imageOffsetX.value / canvas.width);
+    const relY = 0.5 + (imageOffsetY.value / canvas.height);
 
     // Bildgröße basierend auf Scale (relativ zum Canvas)
-    const baseSize = 0.2; // Basisgröße: 20% des Canvas
+    const baseSize = 0.15;
     const relSize = baseSize * imageScale.value;
 
     const bounds = {
-      relX: relX - relSize / 2, // Zentriere das Bild an der Position
+      relX: relX - relSize / 2,
       relY: relY - relSize / 2,
       relWidth: relSize,
       relHeight: relSize
@@ -2938,25 +2827,25 @@ async function addStockImageDirectly() {
       img,
       bounds,
       selectedAnimation.value,
-      { duration: parseInt(animationDuration.value) }
+      { duration: animationDuration.value }
     );
 
-    console.log('✅ Stock-Bild direkt platziert:', {
+    console.log('✅ Stock-Bild platziert:', {
       name: stockImg.name,
-      position: { x: imageOffsetX.value + '%', y: imageOffsetY.value + '%' },
+      position: { x: imageOffsetX.value, y: imageOffsetY.value },
       scale: imageScale.value + 'x',
-      animation: selectedAnimation.value
+      animation: selectedAnimation.value,
+      duration: animationDuration.value
     });
 
     deselectAllStockImages();
   } catch (error) {
     console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
-    alert('Das Bild konnte nicht geladen werden.');
   }
 }
 
 /**
- * ✨ Platziert ein hochgeladenes Bild direkt an der konfigurierten X/Y-Position
+ * ✨ Platziert ein hochgeladenes Bild direkt an der konfigurierten X/Y-Position (in Pixel)
  */
 function addUploadedImageDirectly() {
   if (selectedImageCount.value !== 1) return;
@@ -2965,17 +2854,20 @@ function addUploadedImageDirectly() {
   if (!imgData || !imgData.img) return;
 
   const multiImageManager = multiImageManagerRef?.value;
-  if (!multiImageManager) {
-    console.error('❌ MultiImageManager nicht verfügbar');
+  const canvasManager = canvasManagerRef?.value;
+  if (!multiImageManager || !canvasManager) {
+    console.error('❌ Manager nicht verfügbar');
     return;
   }
 
-  // Berechne Position basierend auf X/Y-Offset (0% = Mitte, -50% = links/oben, +50% = rechts/unten)
-  const relX = 0.5 + (imageOffsetX.value / 100);
-  const relY = 0.5 + (imageOffsetY.value / 100);
+  const canvas = canvasManager.canvas;
 
-  // Bildgröße basierend auf Scale (relativ zum Canvas)
-  const baseSize = 0.2;
+  // X/Y sind Pixel-Werte (-500 bis +500), 0 = Mitte
+  const relX = 0.5 + (imageOffsetX.value / canvas.width);
+  const relY = 0.5 + (imageOffsetY.value / canvas.height);
+
+  // Bildgröße basierend auf Scale
+  const baseSize = 0.15;
   const relSize = baseSize * imageScale.value;
 
   const bounds = {
@@ -2989,14 +2881,15 @@ function addUploadedImageDirectly() {
     imgData.img,
     bounds,
     selectedAnimation.value,
-    { duration: parseInt(animationDuration.value) }
+    { duration: animationDuration.value }
   );
 
-  console.log('✅ Bild direkt platziert:', {
+  console.log('✅ Bild platziert:', {
     name: imgData.name,
-    position: { x: imageOffsetX.value + '%', y: imageOffsetY.value + '%' },
+    position: { x: imageOffsetX.value, y: imageOffsetY.value },
     scale: imageScale.value + 'x',
-    animation: selectedAnimation.value
+    animation: selectedAnimation.value,
+    duration: animationDuration.value
   });
 
   deselectAllImages();
@@ -5116,5 +5009,182 @@ input[type="range"]::-moz-range-thumb:hover {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ✨ MODERNE PLATZIERUNGS-SEKTION
+   ═══════════════════════════════════════════════════════════════════ */
+
+.placement-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.placement-header {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.placement-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.placement-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.placement-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  min-width: 40px;
+}
+
+.placement-select {
+  flex: 1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.placement-select:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.placement-select option {
+  background: #1a1a2e;
+  color: #fff;
+}
+
+.placement-slider-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.placement-slider {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.placement-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  border: none;
+}
+
+.placement-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  border: none;
+}
+
+.placement-value {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.6);
+  min-width: 28px;
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.placement-xy {
+  gap: 6px;
+}
+
+.placement-input {
+  width: 50px;
+  padding: 3px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  font-size: 0.65rem;
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.placement-input:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.placement-input::-webkit-inner-spin-button,
+.placement-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.placement-buttons {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.btn-placement {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.btn-draw {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.btn-draw:hover {
+  background: rgba(34, 197, 94, 0.25);
+}
+
+.btn-place {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.btn-place:hover {
+  background: rgba(59, 130, 246, 0.25);
+}
+
+.placement-hint {
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: rgba(34, 197, 94, 0.1);
+  border-radius: 4px;
+  font-size: 0.65rem;
+  color: #22c55e;
+  text-align: center;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 </style>

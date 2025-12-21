@@ -228,17 +228,20 @@
           </div>
         </div>
 
-        <!-- Direktplatzierung wenn X/Y-Position konfiguriert -->
-        <button v-if="hasPositionOffset" @click="addStockImageDirectly" class="btn-direct-place">
-          <span class="btn-icon">📍</span>
-          {{ locale === 'de' ? 'Bild an Position hinzufügen' : 'Add Image at Position' }}
-        </button>
+        <!-- Beide Buttons nebeneinander -->
+        <div class="range-buttons-row">
+          <!-- Bereichsauswahl -->
+          <button @click="startStockImageRangeSelection" class="btn-range-select">
+            <span class="btn-icon">📐</span>
+            {{ locale === 'de' ? 'Bereich zeichnen' : 'Draw Range' }}
+          </button>
 
-        <!-- Bereichsauswahl wenn keine X/Y-Position konfiguriert -->
-        <button v-else @click="startStockImageRangeSelection" class="btn-range-select">
-          <span class="btn-icon">📐</span>
-          {{ locale === 'de' ? 'Bereich auf Canvas auswählen' : 'Select Range on Canvas' }}
-        </button>
+          <!-- Direktplatzierung -->
+          <button @click="addStockImageDirectly" class="btn-direct-place">
+            <span class="btn-icon">📍</span>
+            {{ locale === 'de' ? 'Direkt platzieren' : 'Place Directly' }}
+          </button>
+        </div>
         <p v-if="isInRangeSelectionMode" class="range-hint">
           {{ locale === 'de' ? '🎯 Ziehe einen Bereich auf dem Canvas...' : '🎯 Draw a range on the canvas...' }}
         </p>
@@ -439,17 +442,20 @@
           </div>
         </div>
 
-        <!-- Direktplatzierung wenn X/Y-Position konfiguriert -->
-        <button v-if="hasPositionOffset" @click="addUploadedImageDirectly" class="btn-direct-place">
-          <span class="btn-icon">📍</span>
-          {{ locale === 'de' ? 'Bild an Position hinzufügen' : 'Add Image at Position' }}
-        </button>
+        <!-- Beide Buttons nebeneinander -->
+        <div class="range-buttons-row">
+          <!-- Bereichsauswahl -->
+          <button @click="startUploadedImageRangeSelection" class="btn-range-select">
+            <span class="btn-icon">📐</span>
+            {{ locale === 'de' ? 'Bereich zeichnen' : 'Draw Range' }}
+          </button>
 
-        <!-- Bereichsauswahl wenn keine X/Y-Position konfiguriert -->
-        <button v-else @click="startUploadedImageRangeSelection" class="btn-range-select">
-          <span class="btn-icon">📐</span>
-          {{ locale === 'de' ? 'Bereich auf Canvas auswählen' : 'Select Range on Canvas' }}
-        </button>
+          <!-- Direktplatzierung -->
+          <button @click="addUploadedImageDirectly" class="btn-direct-place">
+            <span class="btn-icon">📍</span>
+            {{ locale === 'de' ? 'Direkt platzieren' : 'Place Directly' }}
+          </button>
+        </div>
         <p v-if="isInRangeSelectionMode" class="range-hint">
           {{ locale === 'de' ? '🎯 Ziehe einen Bereich auf dem Canvas...' : '🎯 Draw a range on the canvas...' }}
         </p>
@@ -4945,18 +4951,24 @@ input[type="range"]::-moz-range-thumb:hover {
   padding: 8px;
 }
 
+.range-buttons-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 .btn-range-select {
-  width: 100%;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 6px;
+  padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid rgba(34, 197, 94, 0.5);
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%);
   color: #22c55e;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -4974,17 +4986,17 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .btn-direct-place {
-  width: 100%;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 6px;
+  padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid rgba(59, 130, 246, 0.5);
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
   color: #3b82f6;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;

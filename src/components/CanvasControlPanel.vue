@@ -692,7 +692,7 @@ const isCanvasEmpty = computed(() => {
   return canvasManager.value.isCanvasEmpty();
 });
 
-// Setze nur den Hintergrund zurück (inkl. Workspace-Hintergrund)
+// Setze nur den Hintergrund zurück (inkl. Workspace-Hintergrund und Video-Hintergründe)
 function resetBackground() {
   if (!canvasManager.value) {
     console.warn('⚠️ CanvasManager nicht verfügbar');
@@ -708,10 +708,34 @@ function resetBackground() {
 
   // Workspace-Hintergrund auch zurücksetzen
   canvasManager.value.workspaceBackground = null;
+
+  // ✨ NEU: Video-Hintergründe auch zurücksetzen
+  if (canvasManager.value.videoBackground) {
+    // Video stoppen und aufräumen
+    const video = canvasManager.value.videoBackground.videoElement;
+    if (video) {
+      video.pause();
+      video.src = '';
+    }
+    canvasManager.value.videoBackground = null;
+    console.log('🗑️ Video-Hintergrund entfernt');
+  }
+
+  if (canvasManager.value.workspaceVideoBackground) {
+    // Workspace-Video stoppen und aufräumen
+    const wsVideo = canvasManager.value.workspaceVideoBackground.videoElement;
+    if (wsVideo) {
+      wsVideo.pause();
+      wsVideo.src = '';
+    }
+    canvasManager.value.workspaceVideoBackground = null;
+    console.log('🗑️ Workspace-Video-Hintergrund entfernt');
+  }
+
   canvasManager.value.redrawCallback();
 
   updateColorDisplay();
-  console.log('✅ Hintergrund zurückgesetzt (inkl. Workspace)');
+  console.log('✅ Hintergrund zurückgesetzt (inkl. Workspace und Video-Hintergründe)');
 }
 
 // Bestätige Canvas-Reset

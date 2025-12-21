@@ -908,10 +908,36 @@ export class CanvasManager {
         if (this.textManager && this.textManager.textObjects) {
             this.textManager.textObjects = [];
         }
+
+        // ✨ NEU: VideoManager auch zurücksetzen
+        if (this.videoManager) {
+            this.videoManager.clear();
+        }
+
         this.background = null;
         this.workspaceBackground = null;
+
+        // ✨ NEU: Video-Hintergründe auch zurücksetzen
+        if (this.videoBackground) {
+            const video = this.videoBackground.videoElement;
+            if (video) {
+                video.pause();
+                video.src = '';
+            }
+            this.videoBackground = null;
+        }
+
+        if (this.workspaceVideoBackground) {
+            const wsVideo = this.workspaceVideoBackground.videoElement;
+            if (wsVideo) {
+                wsVideo.pause();
+                wsVideo.src = '';
+            }
+            this.workspaceVideoBackground = null;
+        }
+
         this.setActiveObject(null);
-        
+
         // ✅ CRITICAL: Cleanup canvas pool
         this._cleanupCanvasPool();
 
@@ -1004,10 +1030,13 @@ export class CanvasManager {
     isCanvasEmpty() {
         const isBgEmpty = !this.background || this.background === '#000000';
         const isWorkspaceBgEmpty = !this.workspaceBackground;
+        const isVideoBgEmpty = !this.videoBackground; // ✨ NEU
+        const isWsVideoBgEmpty = !this.workspaceVideoBackground; // ✨ NEU
         const imageCount = this.multiImageManager ? this.multiImageManager.getAllImages().length : 0;
-        const videoCount = this.videoManager ? this.videoManager.getAllVideos().length : 0; // ✨ NEU
+        const videoCount = this.videoManager ? this.videoManager.getAllVideos().length : 0;
         const textCount = (this.textManager && this.textManager.textObjects) ? this.textManager.textObjects.length : 0;
-        return imageCount === 0 && videoCount === 0 && textCount === 0 && isBgEmpty && isWorkspaceBgEmpty;
+        return imageCount === 0 && videoCount === 0 && textCount === 0 &&
+               isBgEmpty && isWorkspaceBgEmpty && isVideoBgEmpty && isWsVideoBgEmpty;
     }
 
     draw(targetCtx) {

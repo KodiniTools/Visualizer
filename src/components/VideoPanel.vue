@@ -182,12 +182,104 @@
           {{ locale === 'de' ? 'Alle pausieren' : 'Pause all' }}
         </button>
       </div>
+
+      <!-- Seek-Steuerung für ausgewähltes Video -->
+      <div v-if="selectedCanvasVideo" class="video-seek-section">
+        <div class="seek-header">
+          <span>{{ locale === 'de' ? 'Video-Steuerung' : 'Video Control' }}</span>
+          <span class="seek-time">{{ formatTime(selectedVideoCurrentTime) }} / {{ formatTime(selectedVideoDuration) }}</span>
+        </div>
+        <div class="seek-controls">
+          <button @click="seekBackward(selectedCanvasVideo, 5)" class="btn-seek" title="-5s">⏪</button>
+          <input
+            type="range"
+            :value="selectedVideoCurrentTime"
+            @input="seekToTime(selectedCanvasVideo, $event.target.value)"
+            :max="selectedVideoDuration"
+            min="0"
+            step="0.1"
+            class="seek-slider"
+          />
+          <button @click="seekForward(selectedCanvasVideo, 5)" class="btn-seek" title="+5s">⏩</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hintergrund-Video-Steuerung -->
+    <div v-if="hasVideoBackground" class="background-video-section">
+      <h4>{{ locale === 'de' ? 'Video-Hintergrund' : 'Video Background' }}</h4>
+
+      <!-- Globaler Video-Hintergrund -->
+      <div v-if="videoBackground" class="bg-video-item">
+        <div class="bg-video-header">
+          <span class="bg-video-label">{{ locale === 'de' ? 'Hintergrund' : 'Background' }}</span>
+          <span class="bg-video-status" :class="{ 'playing': isVideoBackgroundPlaying }">
+            {{ isVideoBackgroundPlaying ? '▶' : '⏸' }}
+          </span>
+        </div>
+
+        <div class="bg-video-controls">
+          <button @click="toggleVideoBackground" class="btn-control-lg" :title="isVideoBackgroundPlaying ? 'Pause' : 'Play'">
+            {{ isVideoBackgroundPlaying ? '⏸' : '▶' }}
+          </button>
+          <button @click="seekBackwardBg(5)" class="btn-control" title="-5s">⏪</button>
+          <button @click="seekForwardBg(5)" class="btn-control" title="+5s">⏩</button>
+          <button @click="removeVideoBackground" class="btn-control btn-delete" title="Entfernen">✕</button>
+        </div>
+
+        <div class="bg-video-seek">
+          <span class="seek-time-small">{{ formatTime(videoBackgroundTime) }}</span>
+          <input
+            type="range"
+            :value="videoBackgroundTime"
+            @input="seekVideoBackground($event.target.value)"
+            :max="videoBackgroundDuration"
+            min="0"
+            step="0.1"
+            class="seek-slider"
+          />
+          <span class="seek-time-small">{{ formatTime(videoBackgroundDuration) }}</span>
+        </div>
+      </div>
+
+      <!-- Workspace Video-Hintergrund -->
+      <div v-if="workspaceVideoBackground" class="bg-video-item workspace">
+        <div class="bg-video-header">
+          <span class="bg-video-label">{{ locale === 'de' ? 'Workspace-Hintergrund' : 'Workspace Background' }}</span>
+          <span class="bg-video-status" :class="{ 'playing': isWsVideoBackgroundPlaying }">
+            {{ isWsVideoBackgroundPlaying ? '▶' : '⏸' }}
+          </span>
+        </div>
+
+        <div class="bg-video-controls">
+          <button @click="toggleWsVideoBackground" class="btn-control-lg" :title="isWsVideoBackgroundPlaying ? 'Pause' : 'Play'">
+            {{ isWsVideoBackgroundPlaying ? '⏸' : '▶' }}
+          </button>
+          <button @click="seekBackwardWsBg(5)" class="btn-control" title="-5s">⏪</button>
+          <button @click="seekForwardWsBg(5)" class="btn-control" title="+5s">⏩</button>
+          <button @click="removeWsVideoBackground" class="btn-control btn-delete" title="Entfernen">✕</button>
+        </div>
+
+        <div class="bg-video-seek">
+          <span class="seek-time-small">{{ formatTime(wsVideoBackgroundTime) }}</span>
+          <input
+            type="range"
+            :value="wsVideoBackgroundTime"
+            @input="seekWsVideoBackground($event.target.value)"
+            :max="wsVideoBackgroundDuration"
+            min="0"
+            step="0.1"
+            class="seek-slider"
+          />
+          <span class="seek-time-small">{{ formatTime(wsVideoBackgroundDuration) }}</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, inject, onMounted } from 'vue';
+import { ref, computed, inject, onMounted, onUnmounted } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 
 const { locale } = useI18n();
@@ -208,10 +300,95 @@ const videoScale = ref(3);
 const videoLoop = ref(true);
 const videoMuted = ref(true);
 
+// ✨ NEU: Reaktive Video-Zeit-Updates
+const videoTimeUpdateKey = ref(0);
+let timeUpdateInterval = null;
+
 // Computed
 const canvasVideos = computed(() => {
   if (!videoManager.value) return [];
   return videoManager.value.getAllVideos() || [];
+});
+
+// ✨ NEU: Ausgewähltes Canvas-Video
+const selectedCanvasVideo = computed(() => {
+  const cm = canvasManager.value;
+  if (!cm || !cm.activeObject) return null;
+  if (cm.activeObject.type === 'video') {
+    return cm.activeObject;
+  }
+  return null;
+});
+
+// ✨ NEU: Zeit-Werte für ausgewähltes Video
+const selectedVideoCurrentTime = computed(() => {
+  videoTimeUpdateKey.value; // Trigger reactivity
+  const video = selectedCanvasVideo.value;
+  if (!video || !video.videoElement) return 0;
+  return video.videoElement.currentTime || 0;
+});
+
+const selectedVideoDuration = computed(() => {
+  const video = selectedCanvasVideo.value;
+  if (!video || !video.videoElement) return 0;
+  return video.videoElement.duration || 0;
+});
+
+// ✨ NEU: Hintergrund-Video Computed Properties
+const videoBackground = computed(() => {
+  const cm = canvasManager.value;
+  if (!cm) return null;
+  return cm.videoBackground;
+});
+
+const workspaceVideoBackground = computed(() => {
+  const cm = canvasManager.value;
+  if (!cm) return null;
+  return cm.workspaceVideoBackground;
+});
+
+const hasVideoBackground = computed(() => {
+  return videoBackground.value || workspaceVideoBackground.value;
+});
+
+const isVideoBackgroundPlaying = computed(() => {
+  videoTimeUpdateKey.value;
+  const vbg = videoBackground.value;
+  if (!vbg || !vbg.videoElement) return false;
+  return !vbg.videoElement.paused;
+});
+
+const isWsVideoBackgroundPlaying = computed(() => {
+  videoTimeUpdateKey.value;
+  const wsvbg = workspaceVideoBackground.value;
+  if (!wsvbg || !wsvbg.videoElement) return false;
+  return !wsvbg.videoElement.paused;
+});
+
+const videoBackgroundTime = computed(() => {
+  videoTimeUpdateKey.value;
+  const vbg = videoBackground.value;
+  if (!vbg || !vbg.videoElement) return 0;
+  return vbg.videoElement.currentTime || 0;
+});
+
+const videoBackgroundDuration = computed(() => {
+  const vbg = videoBackground.value;
+  if (!vbg || !vbg.videoElement) return 0;
+  return vbg.videoElement.duration || 0;
+});
+
+const wsVideoBackgroundTime = computed(() => {
+  videoTimeUpdateKey.value;
+  const wsvbg = workspaceVideoBackground.value;
+  if (!wsvbg || !wsvbg.videoElement) return 0;
+  return wsvbg.videoElement.currentTime || 0;
+});
+
+const wsVideoBackgroundDuration = computed(() => {
+  const wsvbg = workspaceVideoBackground.value;
+  if (!wsvbg || !wsvbg.videoElement) return 0;
+  return wsvbg.videoElement.duration || 0;
 });
 
 // Methods
@@ -488,8 +665,146 @@ function pauseAllVideos() {
   }
 }
 
+// ✨ NEU: Zeit-Formatierung
+function formatTime(seconds) {
+  if (!seconds || !isFinite(seconds)) return '0:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// ✨ NEU: Seek-Funktionen für Canvas-Videos
+function seekToTime(video, time) {
+  if (!video || !video.videoElement) return;
+  video.videoElement.currentTime = parseFloat(time);
+}
+
+function seekBackward(video, seconds) {
+  if (!video || !video.videoElement) return;
+  video.videoElement.currentTime = Math.max(0, video.videoElement.currentTime - seconds);
+}
+
+function seekForward(video, seconds) {
+  if (!video || !video.videoElement) return;
+  const duration = video.videoElement.duration || 0;
+  video.videoElement.currentTime = Math.min(duration, video.videoElement.currentTime + seconds);
+}
+
+// ✨ NEU: Hintergrund-Video Play/Pause
+function toggleVideoBackground() {
+  const vbg = videoBackground.value;
+  if (!vbg || !vbg.videoElement) return;
+
+  if (vbg.videoElement.paused) {
+    vbg.videoElement.play().catch(() => {});
+    console.log('▶️ Video-Hintergrund gestartet');
+  } else {
+    vbg.videoElement.pause();
+    console.log('⏸️ Video-Hintergrund pausiert');
+  }
+}
+
+function toggleWsVideoBackground() {
+  const wsvbg = workspaceVideoBackground.value;
+  if (!wsvbg || !wsvbg.videoElement) return;
+
+  if (wsvbg.videoElement.paused) {
+    wsvbg.videoElement.play().catch(() => {});
+    console.log('▶️ Workspace-Video-Hintergrund gestartet');
+  } else {
+    wsvbg.videoElement.pause();
+    console.log('⏸️ Workspace-Video-Hintergrund pausiert');
+  }
+}
+
+// ✨ NEU: Hintergrund-Video Seek
+function seekVideoBackground(time) {
+  const vbg = videoBackground.value;
+  if (!vbg || !vbg.videoElement) return;
+  vbg.videoElement.currentTime = parseFloat(time);
+}
+
+function seekBackwardBg(seconds) {
+  const vbg = videoBackground.value;
+  if (!vbg || !vbg.videoElement) return;
+  vbg.videoElement.currentTime = Math.max(0, vbg.videoElement.currentTime - seconds);
+}
+
+function seekForwardBg(seconds) {
+  const vbg = videoBackground.value;
+  if (!vbg || !vbg.videoElement) return;
+  const duration = vbg.videoElement.duration || 0;
+  vbg.videoElement.currentTime = Math.min(duration, vbg.videoElement.currentTime + seconds);
+}
+
+// ✨ NEU: Workspace-Video-Hintergrund Seek
+function seekWsVideoBackground(time) {
+  const wsvbg = workspaceVideoBackground.value;
+  if (!wsvbg || !wsvbg.videoElement) return;
+  wsvbg.videoElement.currentTime = parseFloat(time);
+}
+
+function seekBackwardWsBg(seconds) {
+  const wsvbg = workspaceVideoBackground.value;
+  if (!wsvbg || !wsvbg.videoElement) return;
+  wsvbg.videoElement.currentTime = Math.max(0, wsvbg.videoElement.currentTime - seconds);
+}
+
+function seekForwardWsBg(seconds) {
+  const wsvbg = workspaceVideoBackground.value;
+  if (!wsvbg || !wsvbg.videoElement) return;
+  const duration = wsvbg.videoElement.duration || 0;
+  wsvbg.videoElement.currentTime = Math.min(duration, wsvbg.videoElement.currentTime + seconds);
+}
+
+// ✨ NEU: Hintergrund-Video entfernen
+function removeVideoBackground() {
+  const cm = canvasManager.value;
+  if (!cm) return;
+
+  if (cm.videoBackground) {
+    const video = cm.videoBackground.videoElement;
+    if (video) {
+      video.pause();
+      video.src = '';
+    }
+    cm.videoBackground = null;
+    cm.redrawCallback?.();
+    console.log('🗑️ Video-Hintergrund entfernt');
+  }
+}
+
+function removeWsVideoBackground() {
+  const cm = canvasManager.value;
+  if (!cm) return;
+
+  if (cm.workspaceVideoBackground) {
+    const video = cm.workspaceVideoBackground.videoElement;
+    if (video) {
+      video.pause();
+      video.src = '';
+    }
+    cm.workspaceVideoBackground = null;
+    cm.redrawCallback?.();
+    console.log('🗑️ Workspace-Video-Hintergrund entfernt');
+  }
+}
+
 onMounted(() => {
   console.log('✅ VideoPanel mounted');
+
+  // ✨ NEU: Interval für Video-Zeit-Updates starten
+  timeUpdateInterval = setInterval(() => {
+    videoTimeUpdateKey.value++;
+  }, 250); // Alle 250ms aktualisieren
+});
+
+onUnmounted(() => {
+  // ✨ NEU: Interval aufräumen
+  if (timeUpdateInterval) {
+    clearInterval(timeUpdateInterval);
+    timeUpdateInterval = null;
+  }
 });
 </script>
 
@@ -989,5 +1304,169 @@ onMounted(() => {
 
 .btn-global:hover {
   background: rgba(139, 92, 246, 0.3);
+}
+
+/* ✨ NEU: Video Seek Section */
+.video-seek-section {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.seek-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--text-secondary, #9EBEC1);
+}
+
+.seek-time {
+  font-family: monospace;
+  color: var(--text, #E9E9EB);
+}
+
+.seek-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-seek {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(139, 92, 246, 0.3);
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-seek:hover {
+  background: rgba(139, 92, 246, 0.5);
+}
+
+.seek-slider {
+  flex: 1;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.seek-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #8b5cf6;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.seek-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* ✨ NEU: Hintergrund-Video Section */
+.background-video-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.background-video-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6ea8fe;
+}
+
+.bg-video-item {
+  padding: 12px;
+  background: rgba(110, 168, 254, 0.1);
+  border: 1px solid rgba(110, 168, 254, 0.3);
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.bg-video-item.workspace {
+  background: rgba(255, 215, 0, 0.08);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.bg-video-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.bg-video-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text, #E9E9EB);
+}
+
+.bg-video-status {
+  font-size: 12px;
+  color: var(--text-secondary, #9EBEC1);
+  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.bg-video-status.playing {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.15);
+}
+
+.bg-video-controls {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.btn-control-lg {
+  width: 36px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(110, 168, 254, 0.3);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-control-lg:hover {
+  background: rgba(110, 168, 254, 0.5);
+}
+
+.bg-video-seek {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.seek-time-small {
+  font-size: 10px;
+  font-family: monospace;
+  color: var(--text-secondary, #9EBEC1);
+  min-width: 35px;
 }
 </style>

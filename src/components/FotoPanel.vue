@@ -228,7 +228,14 @@
           </div>
         </div>
 
-        <button @click="startStockImageRangeSelection" class="btn-range-select">
+        <!-- Direktplatzierung wenn X/Y-Position konfiguriert -->
+        <button v-if="hasPositionOffset" @click="addStockImageDirectly" class="btn-direct-place">
+          <span class="btn-icon">📍</span>
+          {{ locale === 'de' ? 'Bild an Position hinzufügen' : 'Add Image at Position' }}
+        </button>
+
+        <!-- Bereichsauswahl wenn keine X/Y-Position konfiguriert -->
+        <button v-else @click="startStockImageRangeSelection" class="btn-range-select">
           <span class="btn-icon">📐</span>
           {{ locale === 'de' ? 'Bereich auf Canvas auswählen' : 'Select Range on Canvas' }}
         </button>
@@ -432,7 +439,14 @@
           </div>
         </div>
 
-        <button @click="startUploadedImageRangeSelection" class="btn-range-select">
+        <!-- Direktplatzierung wenn X/Y-Position konfiguriert -->
+        <button v-if="hasPositionOffset" @click="addUploadedImageDirectly" class="btn-direct-place">
+          <span class="btn-icon">📍</span>
+          {{ locale === 'de' ? 'Bild an Position hinzufügen' : 'Add Image at Position' }}
+        </button>
+
+        <!-- Bereichsauswahl wenn keine X/Y-Position konfiguriert -->
+        <button v-else @click="startUploadedImageRangeSelection" class="btn-range-select">
           <span class="btn-icon">📐</span>
           {{ locale === 'de' ? 'Bereich auf Canvas auswählen' : 'Select Range on Canvas' }}
         </button>
@@ -1291,6 +1305,11 @@ const imageOffsetY = ref(0); // Y-Achsen-Verschiebung in % (-50 bis +50)
 const isInRangeSelectionMode = ref(false);
 const pendingRangeSelectionImage = ref(null); // Das Bild, das nach der Bereichsauswahl platziert wird
 const pendingRangeSelectionType = ref(null); // 'stock' oder 'uploaded'
+
+// ✨ NEU: Computed - Prüft ob X/Y-Position konfiguriert ist (Direktplatzierung aktiv)
+const hasPositionOffset = computed(() => {
+  return imageOffsetX.value !== 0 || imageOffsetY.value !== 0;
+});
 
 // Holen die Manager-Instanzen aus App.vue (als reactive refs)
 const fotoManagerRef = inject('fotoManager');
@@ -2873,6 +2892,108 @@ function cancelRangeSelection() {
   pendingRangeSelectionImage.value = null;
   pendingRangeSelectionType.value = null;
   console.log('❌ Bereichsauswahl abgebrochen');
+}
+
+/**
+ * ✨ Platziert ein Stock-Bild direkt an der konfigurierten X/Y-Position
+ */
+async function addStockImageDirectly() {
+  if (selectedStockCount.value !== 1) return;
+
+  const stockImg = selectedStockImagesList.value[0];
+  if (!stockImg) return;
+
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager) {
+    console.error('❌ MultiImageManager nicht verfügbar');
+    return;
+  }
+
+  try {
+    const img = await loadStockImageObject(stockImg);
+
+    // Berechne Position basierend auf X/Y-Offset (0% = Mitte, -50% = links/oben, +50% = rechts/unten)
+    // Offset-Werte werden auf 0-1 Bereich umgerechnet
+    const relX = 0.5 + (imageOffsetX.value / 100); // -50 bis +50 -> 0 bis 1
+    const relY = 0.5 + (imageOffsetY.value / 100); // -50 bis +50 -> 0 bis 1
+
+    // Bildgröße basierend auf Scale (relativ zum Canvas)
+    const baseSize = 0.2; // Basisgröße: 20% des Canvas
+    const relSize = baseSize * imageScale.value;
+
+    const bounds = {
+      relX: relX - relSize / 2, // Zentriere das Bild an der Position
+      relY: relY - relSize / 2,
+      relWidth: relSize,
+      relHeight: relSize
+    };
+
+    multiImageManager.addImageWithBounds(
+      img,
+      bounds,
+      selectedAnimation.value,
+      { duration: parseInt(animationDuration.value) }
+    );
+
+    console.log('✅ Stock-Bild direkt platziert:', {
+      name: stockImg.name,
+      position: { x: imageOffsetX.value + '%', y: imageOffsetY.value + '%' },
+      scale: imageScale.value + 'x',
+      animation: selectedAnimation.value
+    });
+
+    deselectAllStockImages();
+  } catch (error) {
+    console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
+    alert('Das Bild konnte nicht geladen werden.');
+  }
+}
+
+/**
+ * ✨ Platziert ein hochgeladenes Bild direkt an der konfigurierten X/Y-Position
+ */
+function addUploadedImageDirectly() {
+  if (selectedImageCount.value !== 1) return;
+
+  const imgData = selectedImages.value[0];
+  if (!imgData || !imgData.img) return;
+
+  const multiImageManager = multiImageManagerRef?.value;
+  if (!multiImageManager) {
+    console.error('❌ MultiImageManager nicht verfügbar');
+    return;
+  }
+
+  // Berechne Position basierend auf X/Y-Offset (0% = Mitte, -50% = links/oben, +50% = rechts/unten)
+  const relX = 0.5 + (imageOffsetX.value / 100);
+  const relY = 0.5 + (imageOffsetY.value / 100);
+
+  // Bildgröße basierend auf Scale (relativ zum Canvas)
+  const baseSize = 0.2;
+  const relSize = baseSize * imageScale.value;
+
+  const bounds = {
+    relX: relX - relSize / 2,
+    relY: relY - relSize / 2,
+    relWidth: relSize,
+    relHeight: relSize
+  };
+
+  multiImageManager.addImageWithBounds(
+    imgData.img,
+    bounds,
+    selectedAnimation.value,
+    { duration: parseInt(animationDuration.value) }
+  );
+
+  console.log('✅ Bild direkt platziert:', {
+    name: imgData.name,
+    position: { x: imageOffsetX.value + '%', y: imageOffsetY.value + '%' },
+    scale: imageScale.value + 'x',
+    animation: selectedAnimation.value
+  });
+
+  deselectAllImages();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -4849,6 +4970,34 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .btn-range-select:active {
+  transform: translateY(0);
+}
+
+.btn-direct-place {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+  color: #3b82f6;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-direct-place:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.15) 100%);
+  border-color: #3b82f6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.btn-direct-place:active {
   transform: translateY(0);
 }
 

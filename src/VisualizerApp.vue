@@ -1164,7 +1164,7 @@ async function createCombinedAudioStream() {
     console.log('[App] Audio-Graph "aufgewärmt"');
   }
 
-  // ✅ VEREINFACHT: Initialen Zustand setzen
+  // ✅ Initialen Zustand setzen - NUR eine Quelle aktiv
   if (audioSourceStore.isMicrophoneActive) {
     console.log('[App] Mikrofon aktiv - setze Mic als Recording-Quelle...');
     recordingGain.gain.value = 0;
@@ -1173,11 +1173,9 @@ async function createCombinedAudioStream() {
   } else {
     console.log('[App] Player aktiv - setze Player als Recording-Quelle...');
     recordingGain.gain.value = 1;
-    micRecordingGain.gain.value = 1; // ✅ TEST: Mic auch an 1 setzen um zu prüfen ob Audio fließt!
+    micRecordingGain.gain.value = 0; // Mic stumm - wird bei Umschaltung aktiviert
     currentRecordingSource = 'player';
   }
-
-  console.log('[App] ⚠️ TEST-MODUS: Beide Gains auf 1 für Audio-Flow-Diagnose');
 
   const stream = recordingDest.stream;
   const tracks = stream.getAudioTracks();

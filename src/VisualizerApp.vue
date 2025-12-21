@@ -170,6 +170,12 @@ let bassFilter, trebleFilter; // EQ-Filter für Bass und Treble
 let microphoneSourceNode = null; // Separate source node for microphone
 let microphoneAudioContext = null; // Separate AudioContext for microphone
 let microphoneAnalyser = null; // Separate Analyser for microphone
+
+// ✨ NEU: Live Recording Source Switching
+let micRecordingGain = null; // Gain node for mic → recordingDest
+let micRecordingSourceNode = null; // MediaStreamSource for mic in main context
+let currentRecordingSource = 'player'; // 'player' or 'microphone'
+
 let animationFrameId;
 let textManagerInstance = null;
 const lastSelectedVisualizerId = ref(null);
@@ -448,6 +454,10 @@ function setupAudioContext() {
   recordingGain = audioContext.createGain();
   recordingGain.gain.value = 0;
 
+  // ✨ NEU: Mic Recording Gain (für Live-Umschaltung während Aufnahme)
+  micRecordingGain = audioContext.createGain();
+  micRecordingGain.gain.value = 0; // Startet stumm - wird bei Umschaltung aktiviert
+
   recordingDest = audioContext.createMediaStreamDestination();
 
   sourceNode.connect(bassFilter);
@@ -457,10 +467,15 @@ function setupAudioContext() {
 
   sourceNode.connect(analyser);
 
+  // Player Audio → recordingDest
   trebleFilter.connect(recordingGain);
   recordingGain.connect(recordingDest);
 
+  // Mic Audio → recordingDest (wird später verbunden wenn Mic aktiv)
+  micRecordingGain.connect(recordingDest);
+
   console.log('[App] Audio Context mit EQ-Filtern und dynamischem Recording Gain eingerichtet');
+  console.log('[App] ✅ Live Audio-Umschaltung für Recording vorbereitet');
 }
 
 function setBassGain(gain) {
@@ -922,35 +937,143 @@ function draw() {
   }
 }
 
-async function createCombinedAudioStream() {
-  // Check if microphone is the active audio source
-  if (audioSourceStore.isMicrophoneActive && audioSourceStore.microphoneStream) {
-    console.log('[App] Using microphone stream for recording...');
-    const micStream = audioSourceStore.microphoneStream;
-    const tracks = micStream.getAudioTracks();
-
-    console.log('[App] Microphone Audio-Tracks:', tracks.length);
-    tracks.forEach((track, i) => {
-      console.log(`[App] Mic Track ${i}:`, track.label, 'enabled:', track.enabled, 'readyState:', track.readyState);
-    });
-
-    return micStream;
+/**
+ * ✨ NEU: Verbindet Mikrofon mit dem Recording-Kanal für Live-Umschaltung
+ */
+function connectMicToRecordingChain(micStream) {
+  if (!audioContext || !micRecordingGain) {
+    console.error('[App] AudioContext oder micRecordingGain nicht verfügbar');
+    return false;
   }
 
-  // Fall back to player audio
+  // Alte Mic-Source trennen
+  if (micRecordingSourceNode) {
+    try {
+      micRecordingSourceNode.disconnect();
+    } catch (e) {
+      // Ignore
+    }
+    micRecordingSourceNode = null;
+  }
+
+  if (!micStream) {
+    console.log('[App] Keine Mic-Stream zum Verbinden');
+    return false;
+  }
+
+  try {
+    // Erstelle MediaStreamSource im HAUPT-AudioContext
+    micRecordingSourceNode = audioContext.createMediaStreamSource(micStream);
+    micRecordingSourceNode.connect(micRecordingGain);
+    console.log('[App] ✅ Mikrofon mit Recording-Kanal verbunden');
+    return true;
+  } catch (error) {
+    console.error('[App] Fehler beim Verbinden des Mikrofons:', error);
+    return false;
+  }
+}
+
+/**
+ * ✨ NEU: Trennt Mikrofon vom Recording-Kanal
+ */
+function disconnectMicFromRecordingChain() {
+  if (micRecordingSourceNode) {
+    try {
+      micRecordingSourceNode.disconnect();
+    } catch (e) {
+      // Ignore
+    }
+    micRecordingSourceNode = null;
+    console.log('[App] Mikrofon vom Recording-Kanal getrennt');
+  }
+}
+
+/**
+ * ✨ NEU: Wechselt die Audioquelle WÄHREND der Aufnahme
+ * @param {string} source - 'player' oder 'microphone'
+ */
+async function switchRecordingSource(source) {
+  if (!recordingGain || !micRecordingGain) {
+    console.error('[App] Recording Gains nicht verfügbar');
+    return false;
+  }
+
+  const recorderStore = window.recorderStore;
+  const isRecording = recorderStore && recorderStore.isRecording;
+
+  console.log(`[App] Wechsle Recording-Quelle zu: ${source} (Aufnahme aktiv: ${isRecording})`);
+
+  if (source === 'microphone') {
+    // Mikrofon aktivieren
+    if (!audioSourceStore.isMicrophoneActive) {
+      // Mikrofon starten falls noch nicht aktiv
+      const stream = await audioSourceStore.startMicrophone();
+      if (!stream) {
+        console.error('[App] Mikrofon konnte nicht gestartet werden');
+        return false;
+      }
+    }
+
+    // Mic mit Recording-Kanal verbinden
+    const micStream = audioSourceStore.microphoneStream;
+    if (!connectMicToRecordingChain(micStream)) {
+      return false;
+    }
+
+    // Gains umschalten: Player aus, Mic an
+    recordingGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.05);
+    micRecordingGain.gain.setTargetAtTime(1, audioContext.currentTime, 0.05);
+
+    currentRecordingSource = 'microphone';
+    console.log('[App] ✅ Recording-Quelle: MIKROFON');
+
+  } else {
+    // Player aktivieren
+    // Gains umschalten: Mic aus, Player an
+    micRecordingGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.05);
+    recordingGain.gain.setTargetAtTime(1, audioContext.currentTime, 0.05);
+
+    // Mic vom Recording-Kanal trennen (optional, spart Ressourcen)
+    disconnectMicFromRecordingChain();
+
+    currentRecordingSource = 'player';
+    console.log('[App] ✅ Recording-Quelle: PLAYER');
+  }
+
+  return true;
+}
+
+// Expose für RecorderPanel
+window.switchRecordingSource = switchRecordingSource;
+window.getCurrentRecordingSource = () => currentRecordingSource;
+
+async function createCombinedAudioStream() {
+  // ✨ GEÄNDERT: Immer recordingDest.stream zurückgeben für Live-Umschaltung
   if (!recordingDest) {
     console.error('[App] Recording Destination nicht verfügbar!');
     return null;
   }
 
-  console.log('[App] Using player audio stream for recording...');
+  // Initialen Zustand basierend auf aktueller Audioquelle setzen
+  if (audioSourceStore.isMicrophoneActive && audioSourceStore.microphoneStream) {
+    console.log('[App] Mikrofon aktiv - verbinde mit Recording-Kanal...');
+    connectMicToRecordingChain(audioSourceStore.microphoneStream);
+    recordingGain.gain.value = 0;
+    micRecordingGain.gain.value = 1;
+    currentRecordingSource = 'microphone';
+  } else {
+    console.log('[App] Player aktiv - Recording-Kanal bereit...');
+    recordingGain.gain.value = 1;
+    micRecordingGain.gain.value = 0;
+    currentRecordingSource = 'player';
+  }
+
   const stream = recordingDest.stream;
   const tracks = stream.getAudioTracks();
 
-  console.log('[App] Player Audio-Tracks gefunden:', tracks.length);
-  tracks.forEach((track, i) => {
-    console.log(`[App] Track ${i}:`, track.label, 'enabled:', track.enabled, 'readyState:', track.readyState);
-  });
+  console.log('[App] Recording-Stream bereit:', tracks.length, 'Audio-Tracks');
+  console.log('[App] Aktuelle Recording-Quelle:', currentRecordingSource);
+  console.log('[App] ✅ Live Audio-Umschaltung während Aufnahme möglich!');
 
   return stream;
 }

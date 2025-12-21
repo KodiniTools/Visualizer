@@ -112,6 +112,45 @@
       </button>
     </div>
 
+    <!-- ✨ NEU: Live Audio-Quelle während Aufnahme wechseln -->
+    <div class="control-section audio-source-section" v-if="recorderStore.isRecording">
+      <div class="section-header">
+        <span class="section-label">{{ t('recorder.audioSource') || 'Audio-Quelle' }}</span>
+        <span class="source-indicator" :class="currentAudioSource">
+          {{ currentAudioSource === 'microphone' ? '🎤' : '🎵' }}
+        </span>
+      </div>
+      <div class="audio-source-buttons">
+        <button
+          class="source-btn"
+          :class="{ active: currentAudioSource === 'player' }"
+          @click="switchToPlayer"
+          :disabled="isSwitchingSource"
+        >
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          </svg>
+          Player
+        </button>
+        <button
+          class="source-btn"
+          :class="{ active: currentAudioSource === 'microphone' }"
+          @click="switchToMicrophone"
+          :disabled="isSwitchingSource"
+        >
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+          Mikrofon
+        </button>
+      </div>
+      <p class="source-hint" v-if="isSwitchingSource">Wechsle Audio-Quelle...</p>
+    </div>
+
     <!-- Qualitäts-Einstellungen -->
     <div class="control-section" v-if="!recorderStore.isRecording">
       <span class="section-label">{{ t('recorder.videoQuality') }}</span>
@@ -340,6 +379,10 @@ const recordingElapsedAtPause = ref(0);
 const recordingDisplayTime = ref('00:00');
 let timerInterval = null;
 
+// ✨ NEU: Live Audio Source Switching State
+const currentAudioSource = ref('player');
+const isSwitchingSource = ref(false);
+
 // Server Conversion State
 const serverAvailable = ref(null); // null = unknown, true/false
 const enableServerConversion = ref(true); // FFmpeg Konvertierung aktiviert
@@ -451,6 +494,59 @@ function stopTimer() {
   recordingStartTime.value = null;
   recordingElapsedAtPause.value = 0;
   recordingDisplayTime.value = '00:00';
+}
+
+// ✨ NEU: Live Audio Source Switching
+async function switchToPlayer() {
+  if (isSwitchingSource.value || currentAudioSource.value === 'player') return;
+
+  isSwitchingSource.value = true;
+  try {
+    if (window.switchRecordingSource) {
+      const success = await window.switchRecordingSource('player');
+      if (success) {
+        currentAudioSource.value = 'player';
+        console.log('✅ [Panel] Audio-Quelle gewechselt: Player');
+      } else {
+        console.error('❌ [Panel] Audio-Quelle wechseln fehlgeschlagen');
+      }
+    } else {
+      console.error('❌ [Panel] switchRecordingSource nicht verfügbar');
+    }
+  } catch (error) {
+    console.error('❌ [Panel] Fehler beim Wechseln der Audio-Quelle:', error);
+  } finally {
+    isSwitchingSource.value = false;
+  }
+}
+
+async function switchToMicrophone() {
+  if (isSwitchingSource.value || currentAudioSource.value === 'microphone') return;
+
+  isSwitchingSource.value = true;
+  try {
+    if (window.switchRecordingSource) {
+      const success = await window.switchRecordingSource('microphone');
+      if (success) {
+        currentAudioSource.value = 'microphone';
+        console.log('✅ [Panel] Audio-Quelle gewechselt: Mikrofon');
+      } else {
+        console.error('❌ [Panel] Audio-Quelle wechseln fehlgeschlagen');
+      }
+    } else {
+      console.error('❌ [Panel] switchRecordingSource nicht verfügbar');
+    }
+  } catch (error) {
+    console.error('❌ [Panel] Fehler beim Wechseln der Audio-Quelle:', error);
+  } finally {
+    isSwitchingSource.value = false;
+  }
+}
+
+function updateCurrentAudioSource() {
+  if (window.getCurrentRecordingSource) {
+    currentAudioSource.value = window.getCurrentRecordingSource();
+  }
 }
 
 // Quality Selection
@@ -1011,6 +1107,87 @@ h3::before {
 .btn-reset:hover:not(:disabled) {
   background: rgba(158, 158, 158, 0.3);
   transform: translateY(-1px);
+}
+
+/* ✨ NEU: Audio Source Section */
+.audio-source-section {
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.source-indicator {
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.source-indicator.player {
+  background: rgba(76, 175, 80, 0.2);
+}
+
+.source-indicator.microphone {
+  background: rgba(244, 67, 54, 0.2);
+}
+
+.audio-source-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.source-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary, #9EBEC1);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.source-btn .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.source-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.source-btn.active {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #fff;
+}
+
+.source-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.source-hint {
+  margin: 6px 0 0 0;
+  font-size: 10px;
+  color: rgba(139, 92, 246, 0.8);
+  text-align: center;
+  animation: pulse 1s ease-in-out infinite;
 }
 
 /* Control Section (Quality & Upload Mode) */

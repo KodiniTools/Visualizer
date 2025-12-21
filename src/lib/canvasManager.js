@@ -407,8 +407,7 @@ export class CanvasManager {
             this.background = '#000000';
         }
 
-        // Video starten
-        videoElement.play().catch(() => {});
+        // Video NICHT automatisch starten - Nutzer soll Kontrolle haben
 
         this.activeObject = null;
         this.redrawCallback();
@@ -454,8 +453,7 @@ export class CanvasManager {
         // Entferne Bild-Workspace-Hintergrund wenn Video gesetzt wird
         this.workspaceBackground = null;
 
-        // Video starten
-        videoElement.play().catch(() => {});
+        // Video NICHT automatisch starten - Nutzer soll Kontrolle haben
 
         this.activeObject = null;
         this.redrawCallback();

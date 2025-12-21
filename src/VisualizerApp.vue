@@ -171,12 +171,13 @@ let microphoneSourceNode = null; // Separate source node for microphone
 let microphoneAudioContext = null; // Separate AudioContext for microphone
 let microphoneAnalyser = null; // Separate Analyser for microphone
 
-// ✨ NEU: Live Recording Source Switching
+// ✨ NEU: Live Recording Source Switching - Vereinfachter Ansatz
 let micRecordingGain = null; // Gain node for mic → recordingDest
 let micRecordingSourceNode = null; // MediaStreamSource for mic in main context
-let micRecordingStream = null; // ✨ SEPARATE Mic stream für Recording (nicht mit Visualizer teilen!)
-let micPathKeepAlive = null; // ✨ Stille Audio-Quelle um Mic-Pfad aktiv zu halten
+let micRecordingStream = null; // ✨ SEPARATE Mic stream für Recording
 let currentRecordingSource = 'player'; // 'player' or 'microphone'
+// ✨ NEU: Direkter Recording-Ansatz - alle Audio geht durch einen einzigen Pfad
+let recordingMixer = null; // Zentraler Mixer-Knoten für alle Recording-Quellen
 
 let animationFrameId;
 let textManagerInstance = null;
@@ -460,6 +461,11 @@ function setupAudioContext() {
   micRecordingGain = audioContext.createGain();
   micRecordingGain.gain.value = 0; // Startet stumm - wird bei Umschaltung aktiviert
 
+  // ✨ NEU: Zentraler Mixer - ALLE Audio-Quellen gehen hier durch
+  // Dieser Knoten ist IMMER mit recordingDest verbunden
+  recordingMixer = audioContext.createGain();
+  recordingMixer.gain.value = 1; // Immer voll an
+
   recordingDest = audioContext.createMediaStreamDestination();
 
   sourceNode.connect(bassFilter);
@@ -469,22 +475,19 @@ function setupAudioContext() {
 
   sourceNode.connect(analyser);
 
-  // Player Audio → recordingDest
+  // ✨ NEU: Beide Quellen → Mixer → recordingDest
+  // Player Audio → recordingGain → recordingMixer
   trebleFilter.connect(recordingGain);
-  recordingGain.connect(recordingDest);
+  recordingGain.connect(recordingMixer);
 
-  // Mic Audio → recordingDest (wird später verbunden wenn Mic aktiv)
-  micRecordingGain.connect(recordingDest);
+  // Mic Audio → micRecordingGain → recordingMixer
+  micRecordingGain.connect(recordingMixer);
 
-  // ✨ WICHTIG: Stille Audio-Quelle um den Mic-Pfad von Anfang an "aktiv" zu halten
-  // Ohne dies erkennen manche Browser den Mic-Pfad nicht, wenn er später hinzugefügt wird
-  micPathKeepAlive = audioContext.createConstantSource();
-  micPathKeepAlive.offset.value = 0; // Komplett still (DC offset = 0)
-  micPathKeepAlive.connect(micRecordingGain);
-  micPathKeepAlive.start();
-  console.log('[App] ✅ Mic-Pfad Keep-Alive aktiviert (stille ConstantSource)');
+  // Mixer → recordingDest (EINZIGER Pfad zum Recorder!)
+  recordingMixer.connect(recordingDest);
 
-  console.log('[App] Audio Context mit EQ-Filtern und dynamischem Recording Gain eingerichtet');
+  console.log('[App] Audio Context mit zentralem Recording-Mixer eingerichtet');
+  console.log('[App] Audio-Graph: [Player|Mic] → Gains → Mixer → recordingDest');
   console.log('[App] ✅ Live Audio-Umschaltung für Recording vorbereitet');
 }
 
@@ -1092,44 +1095,22 @@ async function switchRecordingSource(source) {
       console.log('[App] Recording-Mic bereits verbunden - wechsle nur Gains');
     }
 
-    // ✅ FIX: Gain-Werte direkt setzen (nicht nur mit setTargetAtTime)
-    // ✨ WICHTIG: Winzigen Gain statt 0 verwenden, um Audio-Pfad aktiv zu halten!
-    const SILENT_GAIN = 0.0001;
-    const now = audioContext.currentTime;
-
-    // Player fast stumm schalten (aber aktiv halten)
-    recordingGain.gain.cancelScheduledValues(now);
-    recordingGain.gain.setValueAtTime(recordingGain.gain.value, now);
-    recordingGain.gain.linearRampToValueAtTime(SILENT_GAIN, now + 0.05);
-
-    // Mic sofort aktivieren
-    micRecordingGain.gain.cancelScheduledValues(now);
-    micRecordingGain.gain.setValueAtTime(micRecordingGain.gain.value, now);
-    micRecordingGain.gain.linearRampToValueAtTime(1, now + 0.05);
+    // ✅ VEREINFACHT: Gains sofort setzen ohne Ramping
+    // Player stumm, Mic an
+    recordingGain.gain.value = 0;
+    micRecordingGain.gain.value = 1;
 
     currentRecordingSource = 'microphone';
-    console.log('[App] ✅ Recording-Quelle: MIKROFON (Player bleibt aktiv mit Gain', SILENT_GAIN, ')');
+    console.log('[App] ✅ Recording-Quelle: MIKROFON');
+    console.log('[App] Gain-Werte jetzt - Player:', recordingGain.gain.value, 'Mic:', micRecordingGain.gain.value);
 
   } else {
-    // Player aktivieren
-    const now = audioContext.currentTime;
-
-    // ✨ WICHTIG: Winzigen Gain statt 0 verwenden, um Audio-Pfad aktiv zu halten!
-    const SILENT_GAIN = 0.0001;
-
-    // Mic fast stumm schalten (aber VERBUNDEN und AKTIV lassen für späteren Wechsel!)
-    micRecordingGain.gain.cancelScheduledValues(now);
-    micRecordingGain.gain.setValueAtTime(micRecordingGain.gain.value, now);
-    micRecordingGain.gain.linearRampToValueAtTime(SILENT_GAIN, now + 0.05);
-
-    // Player sofort aktivieren
-    recordingGain.gain.cancelScheduledValues(now);
-    recordingGain.gain.setValueAtTime(recordingGain.gain.value, now);
-    recordingGain.gain.linearRampToValueAtTime(1, now + 0.05);
+    // ✅ VEREINFACHT: Gains sofort setzen ohne Ramping
+    // Mic stumm, Player an
+    micRecordingGain.gain.value = 0;
+    recordingGain.gain.value = 1;
 
     // ✨ WICHTIG: Während der Aufnahme KEINE Mic-Streams trennen!
-    // Das könnte den Recording-Mic-Stream beeinflussen.
-    // Wir ändern nur den sourceType für die UI, aber lassen alle Streams aktiv.
     if (isRecording) {
       console.log('[App] Aufnahme aktiv - Mic-Streams bleiben verbunden (nur Gains geändert)');
       audioSourceStore.setSourceType('player');
@@ -1141,11 +1122,9 @@ async function switchRecordingSource(source) {
       }
     }
 
-    // ✨ WICHTIG: Recording-Mic-Stream NICHT stoppen!
-    // Wir lassen ihn verbunden (mit minimalem Gain), damit wir später wieder zu Mic wechseln können.
-
     currentRecordingSource = 'player';
-    console.log('[App] ✅ Recording-Quelle: PLAYER (Mic bleibt aktiv mit Gain', SILENT_GAIN, ')');
+    console.log('[App] ✅ Recording-Quelle: PLAYER');
+    console.log('[App] Gain-Werte jetzt - Player:', recordingGain.gain.value, 'Mic:', micRecordingGain.gain.value);
   }
 
   return true;
@@ -1185,22 +1164,20 @@ async function createCombinedAudioStream() {
     console.log('[App] Audio-Graph "aufgewärmt"');
   }
 
-  // ✨ WICHTIG: Verwende winzigen Gain statt 0, um Audio-Pfad aktiv zu halten!
-  // Gain 0 kann dazu führen, dass der Browser den Pfad optimiert/deaktiviert
-  const SILENT_GAIN = 0.0001; // Praktisch unhörbar, aber Audio fließt
-
-  // Initialen Zustand basierend auf aktueller Audioquelle setzen
+  // ✅ VEREINFACHT: Initialen Zustand setzen
   if (audioSourceStore.isMicrophoneActive) {
     console.log('[App] Mikrofon aktiv - setze Mic als Recording-Quelle...');
-    recordingGain.gain.value = SILENT_GAIN; // Player fast stumm
+    recordingGain.gain.value = 0;
     micRecordingGain.gain.value = 1;
     currentRecordingSource = 'microphone';
   } else {
     console.log('[App] Player aktiv - setze Player als Recording-Quelle...');
     recordingGain.gain.value = 1;
-    micRecordingGain.gain.value = SILENT_GAIN; // Mic fast stumm, aber AKTIV!
+    micRecordingGain.gain.value = 1; // ✅ TEST: Mic auch an 1 setzen um zu prüfen ob Audio fließt!
     currentRecordingSource = 'player';
   }
+
+  console.log('[App] ⚠️ TEST-MODUS: Beide Gains auf 1 für Audio-Flow-Diagnose');
 
   const stream = recordingDest.stream;
   const tracks = stream.getAudioTracks();
@@ -1224,8 +1201,10 @@ window.debugRecordingAudio = function() {
   console.log('AudioContext Sample Rate:', audioContext?.sampleRate);
   console.log('recordingGain.gain.value:', recordingGain?.gain.value);
   console.log('micRecordingGain.gain.value:', micRecordingGain?.gain.value);
+  console.log('recordingMixer.gain.value:', recordingMixer?.gain.value);
   console.log('currentRecordingSource:', currentRecordingSource);
   console.log('micRecordingSourceNode:', micRecordingSourceNode ? 'connected' : 'null');
+  console.log('Audio-Graph: [Player→recordingGain] + [Mic→micRecordingGain] → recordingMixer → recordingDest');
 
   if (recordingDest) {
     const tracks = recordingDest.stream.getAudioTracks();

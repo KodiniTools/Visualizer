@@ -190,6 +190,44 @@
           </div>
         </div>
 
+        <!-- X-Achsen-Position -->
+        <div class="range-slider-row">
+          <label>
+            <span class="slider-icon">↔️</span>
+            {{ locale === 'de' ? 'X-Position:' : 'X-Position:' }}
+          </label>
+          <div class="slider-container">
+            <input
+              type="range"
+              v-model="imageOffsetX"
+              min="-50"
+              max="50"
+              step="1"
+              class="range-slider"
+            />
+            <span class="slider-value">{{ imageOffsetX > 0 ? '+' : '' }}{{ imageOffsetX }}%</span>
+          </div>
+        </div>
+
+        <!-- Y-Achsen-Position -->
+        <div class="range-slider-row">
+          <label>
+            <span class="slider-icon">↕️</span>
+            {{ locale === 'de' ? 'Y-Position:' : 'Y-Position:' }}
+          </label>
+          <div class="slider-container">
+            <input
+              type="range"
+              v-model="imageOffsetY"
+              min="-50"
+              max="50"
+              step="1"
+              class="range-slider"
+            />
+            <span class="slider-value">{{ imageOffsetY > 0 ? '+' : '' }}{{ imageOffsetY }}%</span>
+          </div>
+        </div>
+
         <button @click="startStockImageRangeSelection" class="btn-range-select">
           <span class="btn-icon">📐</span>
           {{ locale === 'de' ? 'Bereich auf Canvas auswählen' : 'Select Range on Canvas' }}
@@ -353,6 +391,44 @@
               class="range-slider"
             />
             <span class="slider-value">{{ imageScale }}x</span>
+          </div>
+        </div>
+
+        <!-- X-Achsen-Position -->
+        <div class="range-slider-row">
+          <label>
+            <span class="slider-icon">↔️</span>
+            {{ locale === 'de' ? 'X-Position:' : 'X-Position:' }}
+          </label>
+          <div class="slider-container">
+            <input
+              type="range"
+              v-model="imageOffsetX"
+              min="-50"
+              max="50"
+              step="1"
+              class="range-slider"
+            />
+            <span class="slider-value">{{ imageOffsetX > 0 ? '+' : '' }}{{ imageOffsetX }}%</span>
+          </div>
+        </div>
+
+        <!-- Y-Achsen-Position -->
+        <div class="range-slider-row">
+          <label>
+            <span class="slider-icon">↕️</span>
+            {{ locale === 'de' ? 'Y-Position:' : 'Y-Position:' }}
+          </label>
+          <div class="slider-container">
+            <input
+              type="range"
+              v-model="imageOffsetY"
+              min="-50"
+              max="50"
+              step="1"
+              class="range-slider"
+            />
+            <span class="slider-value">{{ imageOffsetY > 0 ? '+' : '' }}{{ imageOffsetY }}%</span>
           </div>
         </div>
 
@@ -1210,6 +1286,8 @@ const showColorPicker = ref(false);
 const selectedAnimation = ref('none');
 const animationDuration = ref(500); // Animationsdauer in ms (100-5000)
 const imageScale = ref(1); // Bildgröße als Multiplikator (1x, 2x, 4x, 6x, 8x)
+const imageOffsetX = ref(0); // X-Achsen-Verschiebung in % (-50 bis +50)
+const imageOffsetY = ref(0); // Y-Achsen-Verschiebung in % (-50 bis +50)
 const isInRangeSelectionMode = ref(false);
 const pendingRangeSelectionImage = ref(null); // Das Bild, das nach der Bereichsauswahl platziert wird
 const pendingRangeSelectionType = ref(null); // 'stock' oder 'uploaded'
@@ -2735,13 +2813,18 @@ function handleRangeSelectionComplete(bounds) {
 
   // Skaliere die Bounds basierend auf imageScale (Multiplikator 1x, 2x, 4x, 6x, 8x)
   const scale = imageScale.value;
+
+  // Berechne X/Y-Offset basierend auf den Slider-Werten (-50% bis +50%)
+  const offsetX = (imageOffsetX.value / 100) * bounds.relWidth;
+  const offsetY = (imageOffsetY.value / 100) * bounds.relHeight;
+
   const scaledBounds = {
     ...bounds,
     relWidth: bounds.relWidth * scale,
     relHeight: bounds.relHeight * scale,
-    // Zentriere das skalierte Bild in der ursprünglichen Auswahl
-    relX: bounds.relX + (bounds.relWidth * (1 - scale)) / 2,
-    relY: bounds.relY + (bounds.relHeight * (1 - scale)) / 2
+    // Zentriere das skalierte Bild in der ursprünglichen Auswahl + Offset
+    relX: bounds.relX + (bounds.relWidth * (1 - scale)) / 2 + offsetX,
+    relY: bounds.relY + (bounds.relHeight * (1 - scale)) / 2 + offsetY
   };
 
   // Füge das Bild mit den ausgewählten Bounds, Animation und Optionen hinzu
@@ -2759,7 +2842,9 @@ function handleRangeSelectionComplete(bounds) {
     bounds: scaledBounds,
     animation: bounds.animation || selectedAnimation.value,
     duration: animationDuration.value,
-    scale: imageScale.value
+    scale: imageScale.value,
+    offsetX: imageOffsetX.value,
+    offsetY: imageOffsetY.value
   });
 
   // Auswahl zurücksetzen

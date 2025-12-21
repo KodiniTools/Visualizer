@@ -178,6 +178,10 @@ let micRecordingStream = null; // ✨ SEPARATE Mic stream für Recording
 // ✨ NEU: Direkter Recording-Ansatz - alle Audio geht durch einen einzigen Pfad
 let recordingMixer = null; // Zentraler Mixer-Knoten für alle Recording-Quellen
 
+// ✨ NEU: Video-Audio für Recording
+let videoRecordingGain = null; // Gain node for video → recordingMixer
+const videoSourceNodes = new Map(); // Map von videoElement → { sourceNode, gainNode }
+
 let animationFrameId;
 let textManagerInstance = null;
 const lastSelectedVisualizerId = ref(null);
@@ -1115,6 +1119,98 @@ async function toggleRecordingMicrophone(enable) {
 
 // Expose für RecorderPanel
 window.toggleRecordingMicrophone = toggleRecordingMicrophone;
+
+// ========== VIDEO AUDIO FOR RECORDING ==========
+
+/**
+ * ✨ NEU: Verbindet ein Video-Element mit dem Recording-Graph
+ * Das Video-Audio wird in den recordingMixer geleitet
+ * @param {HTMLVideoElement} videoElement - Das Video-Element
+ * @param {number} volume - Initiale Lautstärke (0-1)
+ * @returns {boolean} Erfolg
+ */
+function connectVideoToRecording(videoElement, volume = 1) {
+  if (!audioContext || !recordingMixer) {
+    console.warn('[App] AudioContext oder recordingMixer nicht verfügbar');
+    return false;
+  }
+
+  // Prüfen ob bereits verbunden
+  if (videoSourceNodes.has(videoElement)) {
+    console.log('[App] Video bereits mit Recording verbunden');
+    return true;
+  }
+
+  try {
+    // VideoRecordingGain erstellen falls nicht vorhanden
+    if (!videoRecordingGain) {
+      videoRecordingGain = audioContext.createGain();
+      videoRecordingGain.gain.value = ACTIVE_GAIN;
+      videoRecordingGain.connect(recordingMixer);
+      console.log('[App] ✅ Video-Recording-Gain erstellt');
+    }
+
+    // MediaElementSource für das Video erstellen
+    const sourceNode = audioContext.createMediaElementSource(videoElement);
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = volume;
+
+    // Verbinden: Video → GainNode → Split
+    sourceNode.connect(gainNode);
+
+    // → Zum Lautsprecher (über outputGain für Master-Volume)
+    gainNode.connect(outputGain);
+
+    // → Zum Recording-Mixer
+    gainNode.connect(videoRecordingGain);
+
+    // Speichern für späteres Disconnect
+    videoSourceNodes.set(videoElement, { sourceNode, gainNode });
+
+    console.log('[App] ✅ Video-Audio mit Recording verbunden, Volume:', volume);
+    return true;
+
+  } catch (error) {
+    console.error('[App] Fehler beim Verbinden des Video-Audios:', error);
+    return false;
+  }
+}
+
+/**
+ * Trennt ein Video-Element vom Recording-Graph
+ * @param {HTMLVideoElement} videoElement
+ */
+function disconnectVideoFromRecording(videoElement) {
+  const nodes = videoSourceNodes.get(videoElement);
+  if (!nodes) return;
+
+  try {
+    nodes.gainNode.disconnect();
+    // sourceNode kann nicht getrennt werden - wird vom Browser verwaltet
+    videoSourceNodes.delete(videoElement);
+    console.log('[App] Video-Audio vom Recording getrennt');
+  } catch (error) {
+    console.warn('[App] Fehler beim Trennen des Video-Audios:', error);
+  }
+}
+
+/**
+ * Setzt die Lautstärke eines verbundenen Videos
+ * @param {HTMLVideoElement} videoElement
+ * @param {number} volume - Lautstärke (0-1)
+ */
+function setVideoVolume(videoElement, volume) {
+  const nodes = videoSourceNodes.get(videoElement);
+  if (nodes && nodes.gainNode) {
+    nodes.gainNode.gain.value = volume;
+    console.log('[App] Video-Lautstärke gesetzt:', volume);
+  }
+}
+
+// Expose für VideoPanel
+window.connectVideoToRecording = connectVideoToRecording;
+window.disconnectVideoFromRecording = disconnectVideoFromRecording;
+window.setVideoVolume = setVideoVolume;
 
 async function createCombinedAudioStream() {
   // ✨ GEÄNDERT: Immer recordingDest.stream zurückgeben für Live-Umschaltung

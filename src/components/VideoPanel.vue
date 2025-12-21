@@ -202,6 +202,27 @@
           />
           <button @click="seekForward(selectedCanvasVideo, 5)" class="btn-seek" title="+5s">⏩</button>
         </div>
+
+        <!-- ✨ NEU: Lautstärke-Slider für Video -->
+        <div class="video-volume-section">
+          <div class="volume-header">
+            <svg class="volume-icon" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path v-if="selectedVideoVolume > 0" d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span>{{ locale === 'de' ? 'Lautstärke' : 'Volume' }}: {{ Math.round(selectedVideoVolume * 100) }}%</span>
+          </div>
+          <input
+            type="range"
+            :value="selectedVideoVolume"
+            @input="updateVideoVolume($event.target.value)"
+            min="0"
+            max="1"
+            step="0.01"
+            class="volume-slider"
+          />
+          <p class="volume-hint">{{ locale === 'de' ? '💡 Video-Ton wird mit aufgenommen' : '💡 Video audio will be recorded' }}</p>
+        </div>
       </div>
     </div>
 
@@ -332,6 +353,13 @@ const selectedVideoDuration = computed(() => {
   const video = selectedCanvasVideo.value;
   if (!video || !video.videoElement) return 0;
   return video.videoElement.duration || 0;
+});
+
+// ✨ NEU: Video-Lautstärke
+const selectedVideoVolume = computed(() => {
+  const video = selectedCanvasVideo.value;
+  if (!video || !video.videoElement) return 1;
+  return video.videoElement.volume || 1;
 });
 
 // ✨ NEU: Hintergrund-Video Computed Properties
@@ -637,11 +665,18 @@ function togglePlayVideo(video) {
   if (video.isPlaying) {
     vm.pauseVideo(video.id);
   } else {
+    // ✨ NEU: Video-Audio mit Recording verbinden beim Abspielen
+    connectVideoAudioForRecording(video);
     vm.playVideo(video.id);
   }
 }
 
 function removeCanvasVideo(video) {
+  // ✨ NEU: Video-Audio vom Recording trennen
+  if (video && video.videoElement && window.disconnectVideoFromRecording) {
+    window.disconnectVideoFromRecording(video.videoElement);
+  }
+
   const vm = videoManager.value;
   if (vm) {
     vm.removeVideo(video.id);
@@ -651,6 +686,9 @@ function removeCanvasVideo(video) {
 function playAllVideos() {
   const vm = videoManager.value;
   if (vm) {
+    // ✨ NEU: Alle Videos mit Recording verbinden
+    const videos = vm.getAllVideos() || [];
+    videos.forEach(video => connectVideoAudioForRecording(video));
     vm.playAll();
   }
 }
@@ -685,6 +723,35 @@ function seekForward(video, seconds) {
   if (!video || !video.videoElement) return;
   const duration = video.videoElement.duration || 0;
   video.videoElement.currentTime = Math.min(duration, video.videoElement.currentTime + seconds);
+}
+
+// ✨ NEU: Video-Lautstärke aktualisieren
+function updateVideoVolume(value) {
+  const video = selectedCanvasVideo.value;
+  if (!video || !video.videoElement) return;
+
+  const volume = parseFloat(value);
+  video.videoElement.volume = volume;
+  video.videoElement.muted = volume === 0;
+
+  // Lautstärke auch im Recording-Graph aktualisieren
+  if (window.setVideoVolume) {
+    window.setVideoVolume(video.videoElement, volume);
+  }
+
+  // Trigger reactivity update
+  videoTimeUpdateKey.value++;
+}
+
+// ✨ NEU: Video mit Recording verbinden wenn abgespielt
+function connectVideoAudioForRecording(video) {
+  if (!video || !video.videoElement) return;
+
+  // Video-Audio mit Recording verbinden
+  if (window.connectVideoToRecording) {
+    const volume = video.videoElement.muted ? 0 : video.videoElement.volume;
+    window.connectVideoToRecording(video.videoElement, volume);
+  }
 }
 
 // ✨ NEU: Hintergrund-Video Play/Pause
@@ -1374,6 +1441,72 @@ onUnmounted(() => {
 
 .seek-slider::-webkit-slider-thumb:hover {
   transform: scale(1.2);
+}
+
+/* ✨ NEU: Video Volume Section */
+.video-volume-section {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.volume-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--text-secondary, #9EBEC1);
+}
+
+.volume-header .volume-icon {
+  width: 16px;
+  height: 16px;
+  color: #8b5cf6;
+}
+
+.volume-slider {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #8b5cf6;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #8b5cf6;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
+.volume-hint {
+  margin: 8px 0 0 0;
+  font-size: 10px;
+  color: rgba(255, 193, 7, 0.9);
+  background: rgba(255, 193, 7, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-align: center;
 }
 
 /* ✨ NEU: Hintergrund-Video Section */

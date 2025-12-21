@@ -1110,6 +1110,10 @@ async function toggleRecordingMicrophone(enable) {
     recordingGain.gain.value = ACTIVE_GAIN;
     micRecordingGain.gain.value = SILENT_GAIN;
 
+    // ✅ FIX: Visualizer-Mikrofon deaktivieren und zurück zu Player wechseln
+    disconnectMicrophoneSource();
+    audioSourceStore.setSourceType('player');
+
     console.log('[App] ✅ Mikrofon ABGESCHALTET (nur Player)');
     console.log('[App] Gain-Werte: Player:', recordingGain.gain.value, 'Mic:', micRecordingGain.gain.value);
   }
@@ -1610,6 +1614,13 @@ onMounted(async () => {
       // ✨ Recording Mic Stream stoppen
       disconnectMicFromRecordingChain();
       console.log('[App] Recording Mic Stream bereinigt');
+
+      // ✅ FIX: Visualizer-Mikrofon deaktivieren wenn aktiv
+      if (audioSourceStore.isMicrophoneActive) {
+        disconnectMicrophoneSource();
+        audioSourceStore.setSourceType('player');
+        console.log('[App] Visualizer-Mikrofon nach Recording-Ende zurückgesetzt');
+      }
 
       console.log('[App] Erstelle Recording Canvas neu...');
 

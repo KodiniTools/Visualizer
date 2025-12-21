@@ -13,12 +13,20 @@
     </div>
 
     <!-- Status Anzeige -->
-    <div 
-      class="status-indicator" 
+    <div
+      class="status-indicator"
       :class="statusClass"
     >
       <div class="status-dot"></div>
       <span class="status-text">{{ statusText }}</span>
+      <!-- Recording Timer -->
+      <span
+        v-if="recorderStore.isRecording"
+        class="recording-timer"
+        :class="{ paused: recorderStore.isPaused }"
+      >
+        {{ recordingDisplayTime }}
+      </span>
     </div>
 
     <!-- Haupt-Kontrollen -->
@@ -326,6 +334,12 @@ const selectedQuality = ref(8_000_000);
 const uploadMode = ref('auto');
 const isProcessing = ref(false);
 
+// Recording Timer State
+const recordingStartTime = ref(null);
+const recordingElapsedAtPause = ref(0);
+const recordingDisplayTime = ref('00:00');
+let timerInterval = null;
+
 // Server Conversion State
 const serverAvailable = ref(null); // null = unknown, true/false
 const enableServerConversion = ref(true); // FFmpeg Konvertierung aktiviert
@@ -376,6 +390,69 @@ const statusText = computed(() => {
   return 'IDLE';
 });
 
+// Timer Functions
+function formatTime(totalSeconds) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+
+  if (hours > 0) {
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function startTimer() {
+  recordingStartTime.value = Date.now();
+  recordingElapsedAtPause.value = 0;
+  updateTimerDisplay();
+
+  timerInterval = setInterval(() => {
+    updateTimerDisplay();
+  }, 100); // Update every 100ms for smooth display
+}
+
+function updateTimerDisplay() {
+  if (!recordingStartTime.value) {
+    recordingDisplayTime.value = '00:00';
+    return;
+  }
+
+  const elapsed = (Date.now() - recordingStartTime.value) / 1000 + recordingElapsedAtPause.value;
+  recordingDisplayTime.value = formatTime(elapsed);
+}
+
+function pauseTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
+  // Save elapsed time
+  if (recordingStartTime.value) {
+    recordingElapsedAtPause.value += (Date.now() - recordingStartTime.value) / 1000;
+    recordingStartTime.value = null;
+  }
+}
+
+function resumeTimer() {
+  recordingStartTime.value = Date.now();
+
+  timerInterval = setInterval(() => {
+    updateTimerDisplay();
+  }, 100);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  recordingStartTime.value = null;
+  recordingElapsedAtPause.value = 0;
+  recordingDisplayTime.value = '00:00';
+}
+
 // Quality Selection
 function selectQuality(value) {
   selectedQuality.value = value;
@@ -421,6 +498,7 @@ async function handleStart() {
     
     if (success) {
       console.log('✅ [Panel] Recording started');
+      startTimer();
     } else {
       console.error('❌ [Panel] Start failed');
     }
@@ -440,6 +518,7 @@ function handlePause() {
     
     if (success) {
       console.log('✅ [Panel] Recording paused (video frozen, audio continues)');
+      pauseTimer();
     } else {
       console.error('❌ [Panel] Pause failed');
     }
@@ -459,6 +538,7 @@ function handleResume() {
     
     if (success) {
       console.log('✅ [Panel] Recording resumed (video synchronized)');
+      resumeTimer();
     } else {
       console.error('❌ [Panel] Resume failed');
     }
@@ -474,6 +554,7 @@ async function handleStop() {
 
   try {
     isProcessing.value = true;
+    stopTimer();
     const blob = await recorderStore.stopRecording();
 
     if (blob) {
@@ -661,6 +742,11 @@ onMounted(async () => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown);
+  // Cleanup timer
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
 });
 </script>
 
@@ -728,6 +814,31 @@ h3::before {
   font-weight: 600;
   letter-spacing: 0.4px;
   color: var(--muted, #A8A992);
+}
+
+.recording-timer {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  color: #F44336;
+  margin-left: auto;
+  padding: 2px 8px;
+  background: rgba(244, 67, 54, 0.15);
+  border-radius: 4px;
+  letter-spacing: 1px;
+  min-width: 50px;
+  text-align: center;
+}
+
+.recording-timer.paused {
+  color: #FF9800;
+  background: rgba(255, 152, 0, 0.15);
+  animation: timerBlink 1s ease-in-out infinite;
+}
+
+@keyframes timerBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .status-indicator.idle .status-dot {

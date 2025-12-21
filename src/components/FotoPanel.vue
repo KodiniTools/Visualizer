@@ -4063,15 +4063,15 @@ input[type="range"]::-moz-range-thumb:hover {
 .modern-section-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .modern-section-header h4 {
   margin: 0;
-  font-size: 12px;
+  font-size: 0.65rem;
   font-weight: 600;
-  color: #aaa;
+  color: rgba(255, 255, 255, 0.4);
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
@@ -4079,40 +4079,38 @@ input[type="range"]::-moz-range-thumb:hover {
 .modern-controls-group {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  background: rgba(42, 42, 42, 0.5);
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(110, 168, 254, 0.1);
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .modern-control {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .modern-label {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
-  color: #aaa;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .label-text {
-  color: #bbb;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .label-value {
   color: var(--image-section-accent, #6ea8fe);
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
-  font-size: 11px;
-  min-width: 45px;
+  font-weight: 500;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  min-width: 35px;
   text-align: right;
 }
 
@@ -4121,11 +4119,11 @@ input[type="range"]::-moz-range-thumb:hover {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 6px;
-  border-radius: 3px;
+  height: 3px;
+  border-radius: 2px;
   outline: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;
   position: relative;
 }
 
@@ -4173,74 +4171,102 @@ input[type="range"]::-moz-range-thumb:hover {
   transform: scaleY(1.2);
 }
 
-/* ✨ AUDIO-REAKTIV STYLES */
+/* ✨ AUDIO-REAKTIV STYLES - Modern & Subtle */
 .audio-reactive-group {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 12px;
-  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 8px;
+  padding: 10px;
 }
 
 .audio-slider {
-  background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 50%, #f97316 100%);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(139, 92, 246, 0.4) 0%, rgba(236, 72, 153, 0.4) 100%);
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-.audio-slider:hover {
-  box-shadow: 0 3px 12px rgba(139, 92, 246, 0.5);
-  transform: scaleY(1.2);
+.audio-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #8b5cf6;
+  cursor: pointer;
+  border: none;
 }
 
-/* ✨ EFFEKTE-GRID (Mehrfachauswahl) */
+.audio-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #8b5cf6;
+  cursor: pointer;
+  border: none;
+}
+
+/* ✨ EFFEKTE-GRID (Mehrfachauswahl) - Kompakt */
 .effects-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.effects-grid .modern-label {
+  margin-bottom: 4px;
+}
+
+.effects-grid .modern-label .label-text {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .effect-item {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr 60px 28px;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  background: rgba(30, 30, 50, 0.6);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  gap: 6px;
+  padding: 5px 8px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  border-radius: 4px;
+  transition: all 0.15s ease;
 }
 
 .effect-item:hover {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.08);
+  border-color: rgba(139, 92, 246, 0.2);
 }
 
 .effect-checkbox-label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
 }
 
 .effect-checkbox {
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   accent-color: #8b5cf6;
   cursor: pointer;
 }
 
 .effect-name {
-  font-size: 13px;
-  color: #e2e8f0;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.7);
   white-space: nowrap;
 }
 
 .effect-slider {
-  width: 80px;
-  height: 6px;
-  border-radius: 3px;
-  background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(139, 92, 246, 0.2);
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
@@ -4248,80 +4274,75 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .effect-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  background: #8b5cf6;
   cursor: pointer;
+  border: none;
 }
 
 .effect-slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  background: #8b5cf6;
   cursor: pointer;
   border: none;
 }
 
 .effect-value {
-  font-size: 11px;
-  color: #94a3b8;
-  min-width: 35px;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.4);
   text-align: right;
+  font-family: 'JetBrains Mono', monospace;
 }
 
-/* ✨ AUDIO-PRESET AKTIONEN (Speichern/Anwenden) */
+/* ✨ AUDIO-PRESET AKTIONEN - Kompakt */
 .audio-preset-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(139, 92, 246, 0.2);
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(139, 92, 246, 0.1);
 }
 
 .btn-preset-action {
   flex: 1;
-  padding: 8px 12px;
-  font-size: 12px;
+  padding: 5px 8px;
+  font-size: 0.65rem;
   font-weight: 500;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .btn-preset-action:disabled {
-  opacity: 0.4;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
 .btn-save {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  color: white;
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
 }
 
 .btn-save:not(:disabled):hover {
-  background: linear-gradient(135deg, #9f7aea 0%, #8b5cf6 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.25);
 }
 
 .btn-apply {
-  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
-  color: white;
+  background: rgba(236, 72, 153, 0.15);
+  color: #f472b6;
 }
 
 .btn-apply:not(:disabled):hover {
-  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+  background: rgba(236, 72, 153, 0.25);
 }
 
 .checkbox-control {
@@ -4332,52 +4353,56 @@ input[type="range"]::-moz-range-thumb:hover {
 .modern-checkbox-label {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   cursor: pointer;
-  padding: 8px 12px;
-  background: rgba(139, 92, 246, 0.2);
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  padding: 5px 8px;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 4px;
+  transition: all 0.15s ease;
   width: 100%;
 }
 
 .modern-checkbox-label:hover {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(139, 92, 246, 0.15);
 }
 
 .modern-checkbox {
-  width: 20px;
-  height: 20px;
+  width: 12px;
+  height: 12px;
   accent-color: #8b5cf6;
   cursor: pointer;
 }
 
 .checkbox-text {
-  font-size: 14px;
+  font-size: 0.7rem;
   font-weight: 500;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .modern-select {
   width: 100%;
-  padding: 8px 12px;
-  background: rgba(30, 30, 50, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 8px;
-  color: #e2e8f0;
-  font-size: 13px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.7rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .modern-select:hover {
-  border-color: rgba(139, 92, 246, 0.6);
+  border-color: rgba(139, 92, 246, 0.3);
 }
 
 .modern-select:focus {
   outline: none;
-  border-color: #8b5cf6;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.modern-select option {
+  background: #1a1a2e;
+  color: #fff;
 }
 
 .audio-level-indicator {

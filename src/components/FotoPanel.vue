@@ -163,11 +163,11 @@
               type="range"
               v-model="animationDuration"
               min="100"
-              max="2000"
-              step="50"
+              max="5000"
+              step="100"
               class="range-slider"
             />
-            <span class="slider-value">{{ animationDuration }}ms</span>
+            <span class="slider-value">{{ (animationDuration / 1000).toFixed(1) }}s</span>
           </div>
         </div>
 
@@ -181,12 +181,12 @@
             <input
               type="range"
               v-model="imageScale"
-              min="10"
-              max="100"
-              step="5"
+              min="1"
+              max="8"
+              step="1"
               class="range-slider"
             />
-            <span class="slider-value">{{ imageScale }}%</span>
+            <span class="slider-value">{{ imageScale }}x</span>
           </div>
         </div>
 
@@ -329,11 +329,11 @@
               type="range"
               v-model="animationDuration"
               min="100"
-              max="2000"
-              step="50"
+              max="5000"
+              step="100"
               class="range-slider"
             />
-            <span class="slider-value">{{ animationDuration }}ms</span>
+            <span class="slider-value">{{ (animationDuration / 1000).toFixed(1) }}s</span>
           </div>
         </div>
 
@@ -347,12 +347,12 @@
             <input
               type="range"
               v-model="imageScale"
-              min="10"
-              max="100"
-              step="5"
+              min="1"
+              max="8"
+              step="1"
               class="range-slider"
             />
-            <span class="slider-value">{{ imageScale }}%</span>
+            <span class="slider-value">{{ imageScale }}x</span>
           </div>
         </div>
 
@@ -1208,8 +1208,8 @@ const showColorPicker = ref(false);
 
 // ✨ NEU: Bereichsauswahl und Animation Refs
 const selectedAnimation = ref('none');
-const animationDuration = ref(500); // Animationsdauer in ms (100-2000)
-const imageScale = ref(100); // Bildgröße in % (10-100)
+const animationDuration = ref(500); // Animationsdauer in ms (100-5000)
+const imageScale = ref(1); // Bildgröße als Multiplikator (1x, 2x, 4x, 6x, 8x)
 const isInRangeSelectionMode = ref(false);
 const pendingRangeSelectionImage = ref(null); // Das Bild, das nach der Bereichsauswahl platziert wird
 const pendingRangeSelectionType = ref(null); // 'stock' oder 'uploaded'
@@ -2733,8 +2733,8 @@ function handleRangeSelectionComplete(bounds) {
     return;
   }
 
-  // Skaliere die Bounds basierend auf imageScale
-  const scale = imageScale.value / 100;
+  // Skaliere die Bounds basierend auf imageScale (Multiplikator 1x, 2x, 4x, 6x, 8x)
+  const scale = imageScale.value;
   const scaledBounds = {
     ...bounds,
     relWidth: bounds.relWidth * scale,

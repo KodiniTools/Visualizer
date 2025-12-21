@@ -1130,15 +1130,28 @@ window.toggleRecordingMicrophone = toggleRecordingMicrophone;
  * @returns {boolean} Erfolg
  */
 function connectVideoToRecording(videoElement, volume = 1) {
-  if (!audioContext || !recordingMixer) {
-    console.warn('[App] AudioContext oder recordingMixer nicht verfügbar');
-    return false;
-  }
-
   // Prüfen ob bereits verbunden
   if (videoSourceNodes.has(videoElement)) {
     console.log('[App] Video bereits mit Recording verbunden');
     return true;
+  }
+
+  // ✅ FIX: AudioContext initialisieren falls noch nicht vorhanden
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    console.log('[App] AudioContext für Video erstellt');
+  }
+
+  // ✅ FIX: recordingMixer initialisieren falls noch nicht vorhanden
+  if (!recordingMixer) {
+    recordingMixer = audioContext.createGain();
+    recordingMixer.gain.value = 1;
+
+    if (!recordingDest) {
+      recordingDest = audioContext.createMediaStreamDestination();
+    }
+    recordingMixer.connect(recordingDest);
+    console.log('[App] recordingMixer für Video erstellt');
   }
 
   try {
@@ -1158,8 +1171,8 @@ function connectVideoToRecording(videoElement, volume = 1) {
     // Verbinden: Video → GainNode → Split
     sourceNode.connect(gainNode);
 
-    // → Zum Lautsprecher (über outputGain für Master-Volume)
-    gainNode.connect(outputGain);
+    // → Zum Lautsprecher (direkt zum destination, nicht über outputGain)
+    gainNode.connect(audioContext.destination);
 
     // → Zum Recording-Mixer
     gainNode.connect(videoRecordingGain);

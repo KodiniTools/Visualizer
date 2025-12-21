@@ -71,6 +71,12 @@
         <button @click="addVideoToCanvas" class="btn-primary">
           {{ locale === 'de' ? 'Auf Canvas platzieren' : 'Place on Canvas' }}
         </button>
+        <button @click="setVideoAsBackground" class="btn-secondary">
+          {{ locale === 'de' ? 'Als Hintergrund' : 'As Background' }}
+        </button>
+        <button @click="setVideoAsWorkspaceBackground" class="btn-workspace">
+          {{ locale === 'de' ? 'Workspace-Hintergrund' : 'Workspace Background' }}
+        </button>
       </div>
 
       <!-- Platzierung mit Animation -->
@@ -368,6 +374,75 @@ function addVideoDirectly() {
   canvasVideo.load();
 }
 
+function setVideoAsBackground() {
+  if (selectedVideoIndex.value === null) return;
+
+  const videoData = videoGallery.value[selectedVideoIndex.value];
+  if (!videoData) return;
+
+  const cm = canvasManager.value;
+  if (!cm) {
+    console.error('CanvasManager nicht verfügbar');
+    return;
+  }
+
+  // Create a new video element for background
+  const bgVideo = document.createElement('video');
+  bgVideo.src = videoData.src;
+  bgVideo.crossOrigin = 'anonymous';
+  bgVideo.preload = 'auto';
+  bgVideo.muted = true;
+  bgVideo.loop = true;
+
+  bgVideo.onloadeddata = () => {
+    cm.setVideoBackground(bgVideo);
+    console.log('✅ Video als Hintergrund gesetzt');
+  };
+
+  bgVideo.onerror = () => {
+    console.error('❌ Fehler beim Laden des Video-Hintergrunds');
+  };
+
+  bgVideo.load();
+}
+
+function setVideoAsWorkspaceBackground() {
+  if (selectedVideoIndex.value === null) return;
+
+  const videoData = videoGallery.value[selectedVideoIndex.value];
+  if (!videoData) return;
+
+  const cm = canvasManager.value;
+  if (!cm) {
+    console.error('CanvasManager nicht verfügbar');
+    return;
+  }
+
+  if (!cm.workspacePreset) {
+    console.warn('Kein Workspace ausgewählt. Bitte wähle zuerst ein Format aus.');
+    return;
+  }
+
+  // Create a new video element for workspace background
+  const wsBgVideo = document.createElement('video');
+  wsBgVideo.src = videoData.src;
+  wsBgVideo.crossOrigin = 'anonymous';
+  wsBgVideo.preload = 'auto';
+  wsBgVideo.muted = true;
+  wsBgVideo.loop = true;
+
+  wsBgVideo.onloadeddata = () => {
+    cm.setWorkspaceVideoBackground(wsBgVideo);
+    console.log('✅ Video als Workspace-Hintergrund gesetzt');
+  };
+
+  wsBgVideo.onerror = () => {
+    console.error('❌ Fehler beim Laden des Workspace-Video-Hintergrunds');
+  };
+
+  wsBgVideo.load();
+}
+
 function isVideoActive(video) {
   const cm = canvasManager.value;
   if (!cm) return false;
@@ -619,12 +694,14 @@ onMounted(() => {
 /* Action Buttons */
 .action-buttons {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 12px;
 }
 
 .btn-primary {
   flex: 1;
+  min-width: 100%;
   padding: 10px 16px;
   background: linear-gradient(135deg, #8b5cf6, #7c3aed);
   border: none;
@@ -639,6 +716,42 @@ onMounted(() => {
 .btn-primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.btn-secondary {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(110, 168, 254, 0.2);
+  border: 1px solid rgba(110, 168, 254, 0.4);
+  border-radius: 6px;
+  color: #6ea8fe;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(110, 168, 254, 0.3);
+  border-color: rgba(110, 168, 254, 0.6);
+}
+
+.btn-workspace {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(255, 215, 0, 0.15);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 6px;
+  color: #ffd700;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-workspace:hover {
+  background: rgba(255, 215, 0, 0.25);
+  border-color: rgba(255, 215, 0, 0.6);
 }
 
 /* Placement Section */

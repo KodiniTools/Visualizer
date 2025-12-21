@@ -30,6 +30,8 @@ export class CanvasManager {
 
         this.background = '#ffffff'; // ✅ Standard: Weißer Hintergrund beim App-Start
         this.workspaceBackground = null;
+        this.videoBackground = null; // ✨ NEU: Video als Hintergrund
+        this.workspaceVideoBackground = null; // ✨ NEU: Video als Workspace-Hintergrund
         this.backgroundColorSettings = null; // ✨ NEU: Audio-Reaktive Einstellungen für Hintergrundfarbe
         this.backgroundTilesStore = null; // ✨ NEU: Referenz zum Kachel-Store
 
@@ -369,6 +371,112 @@ export class CanvasManager {
         this.redrawCallback();
         this.updateUICallback();
         return true;
+    }
+
+    /**
+     * ✨ NEU: Setzt ein Video als globalen Hintergrund
+     */
+    setVideoBackground(videoElement) {
+        if (!videoElement) {
+            this.videoBackground = null;
+            this.redrawCallback();
+            this.updateUICallback();
+            return;
+        }
+
+        this.videoBackground = {
+            id: Date.now() + '_vbg',
+            type: 'video-background',
+            videoElement: videoElement,
+            loop: true,
+            muted: true
+        };
+
+        // Video-Einstellungen anwenden
+        videoElement.loop = true;
+        videoElement.muted = true;
+        videoElement.crossOrigin = 'anonymous';
+
+        // FotoSettings initialisieren
+        if (this.fotoManager) {
+            this.fotoManager.initializeImageSettings(this.videoBackground);
+        }
+
+        // Entferne Bild-Hintergrund wenn Video gesetzt wird
+        if (typeof this.background === 'object') {
+            this.background = '#000000';
+        }
+
+        // Video starten
+        videoElement.play().catch(() => {});
+
+        this.activeObject = null;
+        this.redrawCallback();
+        this.updateUICallback();
+
+        console.log('✅ Video als Hintergrund gesetzt');
+    }
+
+    /**
+     * ✨ NEU: Setzt ein Video als Workspace-Hintergrund
+     */
+    setWorkspaceVideoBackground(videoElement) {
+        if (!this.workspacePreset) {
+            console.warn('Kein Workspace-Preset ausgewählt');
+            return false;
+        }
+
+        if (!videoElement) {
+            this.workspaceVideoBackground = null;
+            this.redrawCallback();
+            this.updateUICallback();
+            return true;
+        }
+
+        this.workspaceVideoBackground = {
+            id: Date.now() + '_wsvbg',
+            type: 'workspace-video-background',
+            videoElement: videoElement,
+            loop: true,
+            muted: true
+        };
+
+        // Video-Einstellungen anwenden
+        videoElement.loop = true;
+        videoElement.muted = true;
+        videoElement.crossOrigin = 'anonymous';
+
+        // FotoSettings initialisieren
+        if (this.fotoManager) {
+            this.fotoManager.initializeImageSettings(this.workspaceVideoBackground);
+        }
+
+        // Entferne Bild-Workspace-Hintergrund wenn Video gesetzt wird
+        this.workspaceBackground = null;
+
+        // Video starten
+        videoElement.play().catch(() => {});
+
+        this.activeObject = null;
+        this.redrawCallback();
+        this.updateUICallback();
+
+        console.log('✅ Video als Workspace-Hintergrund gesetzt');
+        return true;
+    }
+
+    /**
+     * ✨ NEU: Gibt Video-Hintergrund zurück
+     */
+    getVideoBackground() {
+        return this.videoBackground;
+    }
+
+    /**
+     * ✨ NEU: Gibt Workspace-Video-Hintergrund zurück
+     */
+    getWorkspaceVideoBackground() {
+        return this.workspaceVideoBackground;
     }
 
     /**
@@ -1018,6 +1126,62 @@ export class CanvasManager {
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         }
 
+        // 1.2 ✨ NEU: VIDEO-HINTERGRUND zeichnen (über Farb-/Bild-Hintergrund)
+        if (this.videoBackground && this.videoBackground.videoElement) {
+            const video = this.videoBackground.videoElement;
+            if (video.readyState >= 2) { // HAVE_CURRENT_DATA
+                ctx.save();
+
+                // Filter anwenden
+                if (this.fotoManager) {
+                    this.fotoManager.applyFilters(ctx, this.videoBackground);
+                }
+
+                // Audio-Reaktive Effekte
+                const vbgAudioReactive = this._getAudioReactiveValues(this.videoBackground.fotoSettings?.audioReactive);
+                if (vbgAudioReactive && vbgAudioReactive.hasEffects) {
+                    this._applyAudioReactiveFilters(ctx, vbgAudioReactive);
+                }
+
+                // Video auf gesamten Canvas zeichnen (Cover-Modus)
+                const videoAspect = video.videoWidth / video.videoHeight;
+                const canvasAspect = ctx.canvas.width / ctx.canvas.height;
+
+                let drawX = 0, drawY = 0, drawW = ctx.canvas.width, drawH = ctx.canvas.height;
+
+                if (videoAspect > canvasAspect) {
+                    // Video ist breiter - an Höhe anpassen
+                    drawH = ctx.canvas.height;
+                    drawW = drawH * videoAspect;
+                    drawX = (ctx.canvas.width - drawW) / 2;
+                } else {
+                    // Video ist höher - an Breite anpassen
+                    drawW = ctx.canvas.width;
+                    drawH = drawW / videoAspect;
+                    drawY = (ctx.canvas.height - drawH) / 2;
+                }
+
+                // Scale-Effekt
+                if (vbgAudioReactive && vbgAudioReactive.effects && vbgAudioReactive.effects.scale) {
+                    const scale = vbgAudioReactive.effects.scale.scale;
+                    const centerX = ctx.canvas.width / 2;
+                    const centerY = ctx.canvas.height / 2;
+                    drawW *= scale;
+                    drawH *= scale;
+                    drawX = centerX - drawW / 2;
+                    drawY = centerY - drawH / 2;
+                }
+
+                ctx.drawImage(video, drawX, drawY, drawW, drawH);
+
+                if (this.fotoManager) {
+                    this.fotoManager.resetFilters(ctx);
+                }
+
+                ctx.restore();
+            }
+        }
+
         // 1.5 KACHELN über dem Haupthintergrund zeichnen (falls aktiviert)
         // Die Kacheln werden als separate Ebene über dem Haupthintergrund gezeichnet
         // So bleibt der Haupthintergrund in den Lücken (tileGap) sichtbar
@@ -1062,6 +1226,70 @@ export class CanvasManager {
                     drawBounds.width,
                     drawBounds.height
                 );
+
+                if (this.fotoManager) {
+                    this.fotoManager.resetFilters(ctx);
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // 2.5 ✨ NEU: WORKSPACE-VIDEO-HINTERGRUND zeichnen
+        if (this.workspaceVideoBackground && this.workspaceVideoBackground.videoElement && this.workspacePreset) {
+            const video = this.workspaceVideoBackground.videoElement;
+            const workspaceBounds = this.getWorkspaceBounds();
+
+            if (video.readyState >= 2 && workspaceBounds) {
+                ctx.save();
+
+                // Filter anwenden
+                if (this.fotoManager) {
+                    this.fotoManager.applyFilters(ctx, this.workspaceVideoBackground);
+                }
+
+                // Audio-Reaktive Effekte
+                const wsvbgAudioReactive = this._getAudioReactiveValues(this.workspaceVideoBackground.fotoSettings?.audioReactive);
+                if (wsvbgAudioReactive && wsvbgAudioReactive.hasEffects) {
+                    this._applyAudioReactiveFilters(ctx, wsvbgAudioReactive);
+                }
+
+                // Video im Workspace-Bereich zeichnen (Cover-Modus)
+                const videoAspect = video.videoWidth / video.videoHeight;
+                const wsAspect = workspaceBounds.width / workspaceBounds.height;
+
+                let drawX = workspaceBounds.x;
+                let drawY = workspaceBounds.y;
+                let drawW = workspaceBounds.width;
+                let drawH = workspaceBounds.height;
+
+                if (videoAspect > wsAspect) {
+                    drawH = workspaceBounds.height;
+                    drawW = drawH * videoAspect;
+                    drawX = workspaceBounds.x + (workspaceBounds.width - drawW) / 2;
+                } else {
+                    drawW = workspaceBounds.width;
+                    drawH = drawW / videoAspect;
+                    drawY = workspaceBounds.y + (workspaceBounds.height - drawH) / 2;
+                }
+
+                // Scale-Effekt
+                if (wsvbgAudioReactive && wsvbgAudioReactive.effects && wsvbgAudioReactive.effects.scale) {
+                    const scale = wsvbgAudioReactive.effects.scale.scale;
+                    const centerX = workspaceBounds.x + workspaceBounds.width / 2;
+                    const centerY = workspaceBounds.y + workspaceBounds.height / 2;
+                    drawW *= scale;
+                    drawH *= scale;
+                    drawX = centerX - drawW / 2;
+                    drawY = centerY - drawH / 2;
+                }
+
+                // Clip auf Workspace-Bereich
+                ctx.beginPath();
+                ctx.rect(workspaceBounds.x, workspaceBounds.y, workspaceBounds.width, workspaceBounds.height);
+                ctx.clip();
+
+                ctx.drawImage(video, drawX, drawY, drawW, drawH);
 
                 if (this.fotoManager) {
                     this.fotoManager.resetFilters(ctx);
@@ -1828,7 +2056,16 @@ export class CanvasManager {
     }
 
     resizeImage(obj, dx, dy) {
-        const imgAspectRatio = obj.imageObject.width / obj.imageObject.height;
+        // ✨ NEU: Unterstützung für Videos und Bilder
+        let imgAspectRatio;
+        if (obj.type === 'video' && obj.videoElement) {
+            imgAspectRatio = obj.videoElement.videoWidth / obj.videoElement.videoHeight;
+        } else if (obj.imageObject) {
+            imgAspectRatio = obj.imageObject.width / obj.imageObject.height;
+        } else {
+            imgAspectRatio = 16 / 9; // Fallback
+        }
+
         const currentPixelWidth = obj.relWidth * this.canvas.width;
         const currentPixelHeight = obj.relHeight * this.canvas.height;
         

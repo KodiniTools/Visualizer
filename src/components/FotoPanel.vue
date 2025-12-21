@@ -134,6 +134,8 @@
           <span class="range-icon">📐</span>
           <span>{{ locale === 'de' ? 'Bereichsauswahl' : 'Range Selection' }}</span>
         </div>
+
+        <!-- Animation Auswahl -->
         <div class="animation-select-row">
           <label>{{ locale === 'de' ? 'Eintritts-Animation:' : 'Entry Animation:' }}</label>
           <select v-model="selectedAnimation" class="animation-select">
@@ -149,6 +151,45 @@
             <option value="elastic">{{ locale === 'de' ? '🎯 Elastisch' : '🎯 Elastic' }}</option>
           </select>
         </div>
+
+        <!-- Animationsgeschwindigkeit -->
+        <div v-if="selectedAnimation !== 'none'" class="range-slider-row">
+          <label>
+            <span class="slider-icon">⏱️</span>
+            {{ locale === 'de' ? 'Geschwindigkeit:' : 'Speed:' }}
+          </label>
+          <div class="slider-container">
+            <input
+              type="range"
+              v-model="animationDuration"
+              min="100"
+              max="2000"
+              step="50"
+              class="range-slider"
+            />
+            <span class="slider-value">{{ animationDuration }}ms</span>
+          </div>
+        </div>
+
+        <!-- Bildgröße -->
+        <div class="range-slider-row">
+          <label>
+            <span class="slider-icon">📏</span>
+            {{ locale === 'de' ? 'Bildgröße:' : 'Image Size:' }}
+          </label>
+          <div class="slider-container">
+            <input
+              type="range"
+              v-model="imageScale"
+              min="10"
+              max="100"
+              step="5"
+              class="range-slider"
+            />
+            <span class="slider-value">{{ imageScale }}%</span>
+          </div>
+        </div>
+
         <button @click="startStockImageRangeSelection" class="btn-range-select">
           <span class="btn-icon">📐</span>
           {{ locale === 'de' ? 'Bereich auf Canvas auswählen' : 'Select Range on Canvas' }}
@@ -259,6 +300,8 @@
           <span class="range-icon">📐</span>
           <span>{{ locale === 'de' ? 'Bereichsauswahl' : 'Range Selection' }}</span>
         </div>
+
+        <!-- Animation Auswahl -->
         <div class="animation-select-row">
           <label>{{ locale === 'de' ? 'Eintritts-Animation:' : 'Entry Animation:' }}</label>
           <select v-model="selectedAnimation" class="animation-select">
@@ -274,6 +317,45 @@
             <option value="elastic">{{ locale === 'de' ? '🎯 Elastisch' : '🎯 Elastic' }}</option>
           </select>
         </div>
+
+        <!-- Animationsgeschwindigkeit -->
+        <div v-if="selectedAnimation !== 'none'" class="range-slider-row">
+          <label>
+            <span class="slider-icon">⏱️</span>
+            {{ locale === 'de' ? 'Geschwindigkeit:' : 'Speed:' }}
+          </label>
+          <div class="slider-container">
+            <input
+              type="range"
+              v-model="animationDuration"
+              min="100"
+              max="2000"
+              step="50"
+              class="range-slider"
+            />
+            <span class="slider-value">{{ animationDuration }}ms</span>
+          </div>
+        </div>
+
+        <!-- Bildgröße -->
+        <div class="range-slider-row">
+          <label>
+            <span class="slider-icon">📏</span>
+            {{ locale === 'de' ? 'Bildgröße:' : 'Image Size:' }}
+          </label>
+          <div class="slider-container">
+            <input
+              type="range"
+              v-model="imageScale"
+              min="10"
+              max="100"
+              step="5"
+              class="range-slider"
+            />
+            <span class="slider-value">{{ imageScale }}%</span>
+          </div>
+        </div>
+
         <button @click="startUploadedImageRangeSelection" class="btn-range-select">
           <span class="btn-icon">📐</span>
           {{ locale === 'de' ? 'Bereich auf Canvas auswählen' : 'Select Range on Canvas' }}
@@ -1126,6 +1208,8 @@ const showColorPicker = ref(false);
 
 // ✨ NEU: Bereichsauswahl und Animation Refs
 const selectedAnimation = ref('none');
+const animationDuration = ref(500); // Animationsdauer in ms (100-2000)
+const imageScale = ref(100); // Bildgröße in % (10-100)
 const isInRangeSelectionMode = ref(false);
 const pendingRangeSelectionImage = ref(null); // Das Bild, das nach der Bereichsauswahl platziert wird
 const pendingRangeSelectionType = ref(null); // 'stock' oder 'uploaded'
@@ -2649,16 +2733,33 @@ function handleRangeSelectionComplete(bounds) {
     return;
   }
 
-  // Füge das Bild mit den ausgewählten Bounds und Animation hinzu
+  // Skaliere die Bounds basierend auf imageScale
+  const scale = imageScale.value / 100;
+  const scaledBounds = {
+    ...bounds,
+    relWidth: bounds.relWidth * scale,
+    relHeight: bounds.relHeight * scale,
+    // Zentriere das skalierte Bild in der ursprünglichen Auswahl
+    relX: bounds.relX + (bounds.relWidth * (1 - scale)) / 2,
+    relY: bounds.relY + (bounds.relHeight * (1 - scale)) / 2
+  };
+
+  // Füge das Bild mit den ausgewählten Bounds, Animation und Optionen hinzu
   multiImageManager.addImageWithBounds(
     pendingRangeSelectionImage.value,
-    bounds,
-    bounds.animation || selectedAnimation.value
+    scaledBounds,
+    bounds.animation || selectedAnimation.value,
+    {
+      duration: parseInt(animationDuration.value),
+      scale: scale
+    }
   );
 
   console.log('✅ Bild mit Bereichsauswahl platziert:', {
-    bounds: bounds,
-    animation: bounds.animation || selectedAnimation.value
+    bounds: scaledBounds,
+    animation: bounds.animation || selectedAnimation.value,
+    duration: animationDuration.value,
+    scale: imageScale.value
   });
 
   // Auswahl zurücksetzen
@@ -4679,6 +4780,91 @@ input[type="range"]::-moz-range-thumb:hover {
   color: #22c55e;
   text-align: center;
   animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Slider-Zeile für Geschwindigkeit und Größe */
+.range-slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.range-slider-row label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.slider-icon {
+  font-size: 0.9rem;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.range-slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22c55e;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+  transition: all 0.2s ease;
+}
+
+.range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 10px rgba(34, 197, 94, 0.5);
+}
+
+.range-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22c55e;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+}
+
+.range-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.4) 0%, rgba(34, 197, 94, 0.1) 100%);
+}
+
+.range-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.4) 0%, rgba(34, 197, 94, 0.1) 100%);
+}
+
+.slider-value {
+  min-width: 55px;
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #22c55e;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 @keyframes pulse {

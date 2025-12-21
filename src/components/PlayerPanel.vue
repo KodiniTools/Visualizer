@@ -528,6 +528,14 @@ onMounted(() => {
     volume.value = Math.round(playerStore.audioRef.volume * 100);
   }
 
+  // ✅ FIX: Synchronisiere Lautstärke wenn audioRef später gesetzt wird
+  watch(() => playerStore.audioRef, (audioRef) => {
+    if (audioRef) {
+      audioRef.volume = volume.value / 100;
+      console.log('[Player] Audio-Lautstärke synchronisiert:', volume.value + '%');
+    }
+  }, { immediate: true });
+
   // Load saved bass and treble settings
   const savedBass = localStorage.getItem('playerBass');
   if (savedBass !== null) {

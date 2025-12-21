@@ -93,15 +93,200 @@ export class MultiImageManager {
         
         this.images.push(newImage);
         this.setSelectedImage(newImage);
-        
+
         console.log('✅ Bild hinzugefügt:', newImage.id, 'Anzahl Bilder:', this.images.length);
-        
+
         this.redrawCallback();
         this.onImageChanged();
-        
+
         return newImage;
     }
-    
+
+    /**
+     * ✨ NEU: Fügt ein Bild mit benutzerdefinierten Bounds und Animation hinzu
+     * @param {HTMLImageElement} imageObject - Das Bildobjekt
+     * @param {Object} bounds - Die Ziel-Bounds { relX, relY, relWidth, relHeight }
+     * @param {string} animation - Die Eintritts-Animation ('none', 'fade', 'slideLeft', 'slideRight', 'slideUp', 'slideDown', 'zoom', 'bounce', 'spin', 'elastic')
+     */
+    addImageWithBounds(imageObject, bounds, animation = 'none') {
+        if (!imageObject) {
+            console.error('❌ Kein Bild zum Hinzufügen übergeben');
+            return null;
+        }
+
+        // Berechne Bild-Seitenverhältnis
+        const imgAspectRatio = imageObject.height / imageObject.width;
+        const canvasAspectRatio = this.canvas.height / this.canvas.width;
+
+        // Berechne relative Höhe basierend auf der Breite und dem Seitenverhältnis
+        let finalRelWidth = bounds.relWidth;
+        let finalRelHeight = bounds.relWidth * imgAspectRatio / canvasAspectRatio;
+
+        // Wenn die Höhe größer ist als die Bounds, passe die Breite an
+        if (finalRelHeight > bounds.relHeight) {
+            finalRelHeight = bounds.relHeight;
+            finalRelWidth = bounds.relHeight * canvasAspectRatio / imgAspectRatio;
+        }
+
+        // Zentriere das Bild innerhalb der Bounds
+        const finalRelX = bounds.relX + (bounds.relWidth - finalRelWidth) / 2;
+        const finalRelY = bounds.relY + (bounds.relHeight - finalRelHeight) / 2;
+
+        // Erstelle Bild-Objekt
+        const newImage = {
+            id: Date.now() + Math.random(),
+            type: 'image',
+            imageObject: imageObject,
+            relX: finalRelX,
+            relY: finalRelY,
+            relWidth: finalRelWidth,
+            relHeight: finalRelHeight,
+            settings: {
+                brightness: 100,
+                contrast: 100,
+                saturation: 100,
+                opacity: 100,
+                blur: 0,
+                preset: null
+            },
+            // ✨ Animations-Status
+            animation: {
+                type: animation,
+                active: animation !== 'none',
+                startTime: Date.now(),
+                duration: 500, // ms
+                progress: 0
+            }
+        };
+
+        // Initialisiere fotoSettings
+        if (this.fotoManager) {
+            this.fotoManager.initializeImageSettings(newImage);
+        }
+
+        this.images.push(newImage);
+        this.setSelectedImage(newImage);
+
+        console.log('✅ Bild mit Bounds hinzugefügt:', newImage.id, 'Animation:', animation);
+
+        // Starte Animation wenn nötig
+        if (animation !== 'none') {
+            this._startAnimation(newImage);
+        }
+
+        this.redrawCallback();
+        this.onImageChanged();
+
+        return newImage;
+    }
+
+    /**
+     * ✨ NEU: Startet die Eintritts-Animation für ein Bild
+     */
+    _startAnimation(imageData) {
+        if (!imageData.animation || !imageData.animation.active) return;
+
+        const animate = () => {
+            if (!imageData.animation || !imageData.animation.active) return;
+
+            const elapsed = Date.now() - imageData.animation.startTime;
+            const progress = Math.min(elapsed / imageData.animation.duration, 1);
+            imageData.animation.progress = progress;
+
+            this.redrawCallback();
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                // Animation beendet
+                imageData.animation.active = false;
+                console.log('✅ Animation beendet für Bild:', imageData.id);
+            }
+        };
+
+        requestAnimationFrame(animate);
+    }
+
+    /**
+     * ✨ NEU: Berechnet die Animations-Transformation für ein Bild
+     * Gibt { opacity, translateX, translateY, scale, rotation } zurück
+     */
+    getAnimationTransform(imageData) {
+        if (!imageData.animation || !imageData.animation.active) {
+            return { opacity: 1, translateX: 0, translateY: 0, scale: 1, rotation: 0 };
+        }
+
+        const progress = imageData.animation.progress;
+        const eased = this._easeOutCubic(progress);
+        const type = imageData.animation.type;
+
+        switch (type) {
+            case 'fade':
+                return { opacity: eased, translateX: 0, translateY: 0, scale: 1, rotation: 0 };
+
+            case 'slideLeft':
+                return { opacity: 1, translateX: (1 - eased) * this.canvas.width * 0.3, translateY: 0, scale: 1, rotation: 0 };
+
+            case 'slideRight':
+                return { opacity: 1, translateX: (eased - 1) * this.canvas.width * 0.3, translateY: 0, scale: 1, rotation: 0 };
+
+            case 'slideUp':
+                return { opacity: 1, translateX: 0, translateY: (1 - eased) * this.canvas.height * 0.3, scale: 1, rotation: 0 };
+
+            case 'slideDown':
+                return { opacity: 1, translateX: 0, translateY: (eased - 1) * this.canvas.height * 0.3, scale: 1, rotation: 0 };
+
+            case 'zoom':
+                return { opacity: eased, translateX: 0, translateY: 0, scale: 0.3 + eased * 0.7, rotation: 0 };
+
+            case 'bounce':
+                const bounceEase = this._easeOutBounce(progress);
+                return { opacity: 1, translateX: 0, translateY: (1 - bounceEase) * -this.canvas.height * 0.2, scale: 1, rotation: 0 };
+
+            case 'spin':
+                return { opacity: eased, translateX: 0, translateY: 0, scale: eased, rotation: (1 - eased) * 360 };
+
+            case 'elastic':
+                const elasticEase = this._easeOutElastic(progress);
+                return { opacity: 1, translateX: 0, translateY: 0, scale: elasticEase, rotation: 0 };
+
+            default:
+                return { opacity: 1, translateX: 0, translateY: 0, scale: 1, rotation: 0 };
+        }
+    }
+
+    /**
+     * ✨ Easing-Funktionen für sanfte Animationen
+     */
+    _easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+
+    _easeOutBounce(t) {
+        const n1 = 7.5625;
+        const d1 = 2.75;
+
+        if (t < 1 / d1) {
+            return n1 * t * t;
+        } else if (t < 2 / d1) {
+            return n1 * (t -= 1.5 / d1) * t + 0.75;
+        } else if (t < 2.5 / d1) {
+            return n1 * (t -= 2.25 / d1) * t + 0.9375;
+        } else {
+            return n1 * (t -= 2.625 / d1) * t + 0.984375;
+        }
+    }
+
+    _easeOutElastic(t) {
+        const c4 = (2 * Math.PI) / 3;
+
+        return t === 0
+            ? 0
+            : t === 1
+            ? 1
+            : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+    }
+
     /**
      * Entfernt ein Bild vom Canvas
      */
@@ -339,8 +524,16 @@ export class MultiImageManager {
             // ✨ Audio-Reaktive Werte berechnen
             const audioReactive = this.getAudioReactiveValues(imgData.fotoSettings?.audioReactive);
 
+            // ✨ Eintritts-Animation Transformation berechnen
+            const animTransform = this.getAnimationTransform(imgData);
+
             // ✅ FIX: IMMER save/restore für jedes Bild um Filter-Leakage zu verhindern
             ctx.save();
+
+            // ✨ Eintritts-Animation anwenden (Opacity)
+            if (animTransform.opacity < 1) {
+                ctx.globalAlpha = animTransform.opacity;
+            }
 
             // ✨ Nutze FotoManager für Filter + Schatten (wenn verfügbar)
             if (this.fotoManager && imgData.fotoSettings) {
@@ -426,6 +619,33 @@ export class MultiImageManager {
 
             // ✨ AUDIO-REAKTIV: Bewegungseffekte - drawBounds für Position
             let drawBounds = { ...bounds };
+
+            // ✨ EINTRITTS-ANIMATION: Translate-Effekte
+            if (animTransform.translateX !== 0 || animTransform.translateY !== 0) {
+                drawBounds.x += animTransform.translateX;
+                drawBounds.y += animTransform.translateY;
+            }
+
+            // ✨ EINTRITTS-ANIMATION: Scale-Effekt
+            if (animTransform.scale !== 1) {
+                const centerX = drawBounds.x + drawBounds.width / 2;
+                const centerY = drawBounds.y + drawBounds.height / 2;
+                const newWidth = drawBounds.width * animTransform.scale;
+                const newHeight = drawBounds.height * animTransform.scale;
+                drawBounds.x = centerX - newWidth / 2;
+                drawBounds.y = centerY - newHeight / 2;
+                drawBounds.width = newWidth;
+                drawBounds.height = newHeight;
+            }
+
+            // ✨ EINTRITTS-ANIMATION: Rotation-Effekt
+            if (animTransform.rotation !== 0) {
+                const centerX = drawBounds.x + drawBounds.width / 2;
+                const centerY = drawBounds.y + drawBounds.height / 2;
+                ctx.translate(centerX, centerY);
+                ctx.rotate((animTransform.rotation * Math.PI) / 180);
+                ctx.translate(-centerX, -centerY);
+            }
 
             // ✨ AUDIO-REAKTIV: Shake-Effekt (Erschütterung)
             if (audioReactive && audioReactive.hasEffects && audioReactive.effects.shake) {

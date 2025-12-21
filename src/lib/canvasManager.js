@@ -56,6 +56,12 @@ export class CanvasManager {
         // ✨ NEU: Text-Positions-Vorschau (für Slider/Schnellauswahl)
         this.textPositionPreview = null; // { relX, relY } - wird als Fadenkreuz gezeichnet
 
+        // ✨ NEU: Bild-Bereichsauswahl-Modus
+        this.imageSelectionMode = false;
+        this.imageSelectionRect = null; // { startX, startY, endX, endY }
+        this.onImageSelectionComplete = null; // Callback wenn Auswahl abgeschlossen
+        this.pendingImageAnimation = null; // Animation die auf das nächste Bild angewendet wird
+
         // Bound handlers for cleanup
         this._boundWindowMouseUp = null;
         this._boundWindowMouseMove = null;
@@ -898,6 +904,8 @@ export class CanvasManager {
             this.drawWorkspaceOutline(targetCtx);
             // ✨ Text-Auswahl-Rechteck zeichnen (immer obendrauf)
             this.drawTextSelectionRect(targetCtx);
+            // ✨ Bild-Auswahl-Rechteck zeichnen (immer obendrauf)
+            this.drawImageSelectionRect(targetCtx);
         }
     }
 
@@ -1256,6 +1264,20 @@ export class CanvasManager {
             return;
         }
 
+        // ✨ Bild-Bereichsauswahl-Modus: Starte Rechteck-Zeichnung
+        if (this.imageSelectionMode) {
+            this.imageSelectionRect = {
+                startX: x,
+                startY: y,
+                endX: x,
+                endY: y
+            };
+            this.currentAction = 'image-selection';
+            this._startDragListeners();
+            this.redrawCallback();
+            return;
+        }
+
         if (this.activeObject) {
             const bounds = this.getObjectBounds(this.activeObject);
             if (bounds) {
@@ -1347,6 +1369,14 @@ export class CanvasManager {
             return;
         }
 
+        // ✨ Bild-Bereichsauswahl-Modus: Aktualisiere Rechteck während des Ziehens
+        if (this.currentAction === 'image-selection' && this.imageSelectionRect) {
+            this.imageSelectionRect.endX = x;
+            this.imageSelectionRect.endY = y;
+            this.redrawCallback();
+            return;
+        }
+
         if (this.currentAction) {
             if (!this.activeObject) return;
 
@@ -1423,6 +1453,25 @@ export class CanvasManager {
             return;
         }
 
+        // ✨ Bild-Bereichsauswahl-Modus: Beende Auswahl und rufe Callback auf
+        if (this.currentAction === 'image-selection') {
+            const bounds = this.getImageSelectionBounds();
+
+            if (bounds && this.onImageSelectionComplete) {
+                // Callback mit den Auswahl-Bounds und Animation aufrufen
+                this.onImageSelectionComplete(bounds);
+            }
+
+            // Modus beenden - imageSelectionRect wird gelöscht
+            this._stopDragListeners();
+            this.currentAction = null;
+            this.imageSelectionMode = false;
+            this.imageSelectionRect = null;
+            this.canvas.style.cursor = 'default';
+            this.redrawCallback();
+            return;
+        }
+
         this._endDrag();
     }
 
@@ -1462,6 +1511,25 @@ export class CanvasManager {
             return;
         }
 
+        // ✨ Bild-Bereichsauswahl-Modus: Beende Auswahl und rufe Callback auf
+        if (this.currentAction === 'image-selection') {
+            const bounds = this.getImageSelectionBounds();
+
+            if (bounds && this.onImageSelectionComplete) {
+                // Callback mit den Auswahl-Bounds und Animation aufrufen
+                this.onImageSelectionComplete(bounds);
+            }
+
+            // Modus beenden - imageSelectionRect wird gelöscht
+            this._stopDragListeners();
+            this.currentAction = null;
+            this.imageSelectionMode = false;
+            this.imageSelectionRect = null;
+            this.canvas.style.cursor = 'default';
+            this.redrawCallback();
+            return;
+        }
+
         this._endDrag();
     }
 
@@ -1474,6 +1542,15 @@ export class CanvasManager {
             const { x, y } = this.getMousePos(e);
             this.textSelectionRect.endX = x;
             this.textSelectionRect.endY = y;
+            this.redrawCallback();
+            return;
+        }
+
+        // ✨ Bild-Bereichsauswahl: Auch außerhalb des Canvas aktualisieren
+        if (this.currentAction === 'image-selection' && this.imageSelectionRect) {
+            const { x, y } = this.getMousePos(e);
+            this.imageSelectionRect.endX = x;
+            this.imageSelectionRect.endY = y;
             this.redrawCallback();
             return;
         }
@@ -2221,15 +2298,197 @@ export class CanvasManager {
      */
     cleanupAfterRecording() {
         console.log('[CanvasManager] 🧹 Cleanup after recording...');
-        
+
         // Cleanup MultiImageManager
         if (this.multiImageManager && this.multiImageManager.cleanupAfterRecording) {
             this.multiImageManager.cleanupAfterRecording();
         }
-        
+
         // Cleanup Canvas Pool
         this._cleanupCanvasPool();
-        
+
         console.log('[CanvasManager] ✅ Cleanup complete');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ✨ BILD-BEREICHSAUSWAHL-MODUS (für präzise Bild-Platzierung)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * ✨ Aktiviert den Bild-Bereichsauswahl-Modus
+     * @param {Function} callback - Wird aufgerufen wenn die Auswahl abgeschlossen ist
+     *                              Erhält { x, y, width, height, relX, relY, relWidth, relHeight }
+     * @param {string} animation - Optionale Animation ('none', 'fade', 'slideLeft', 'slideRight', 'slideUp', 'slideDown', 'zoom', 'bounce')
+     */
+    startImageSelectionMode(callback, animation = 'none') {
+        this.imageSelectionMode = true;
+        this.imageSelectionRect = null;
+        this.onImageSelectionComplete = callback;
+        this.pendingImageAnimation = animation;
+        this.canvas.style.cursor = 'crosshair';
+
+        // Deselektiere aktives Objekt
+        this.setActiveObject(null);
+        this.redrawCallback();
+
+        console.log('[CanvasManager] ✨ Bild-Bereichsauswahl-Modus aktiviert mit Animation:', animation);
+    }
+
+    /**
+     * ✨ Beendet den Bild-Bereichsauswahl-Modus
+     */
+    cancelImageSelectionMode() {
+        this.imageSelectionMode = false;
+        this.imageSelectionRect = null;
+        this.onImageSelectionComplete = null;
+        this.pendingImageAnimation = null;
+        this.canvas.style.cursor = 'default';
+        this.redrawCallback();
+
+        console.log('[CanvasManager] ✨ Bild-Bereichsauswahl-Modus beendet');
+    }
+
+    /**
+     * ✨ Zeichnet das Bild-Auswahl-Rechteck während und nach der Auswahl
+     */
+    drawImageSelectionRect(ctx) {
+        if (!this.imageSelectionRect) return;
+
+        const rect = this.imageSelectionRect;
+        const x = Math.min(rect.startX, rect.endX);
+        const y = Math.min(rect.startY, rect.endY);
+        const width = Math.abs(rect.endX - rect.startX);
+        const height = Math.abs(rect.endY - rect.startY);
+
+        // Mindestgröße für sichtbare Vorschau
+        if (width < 5 || height < 5) return;
+
+        ctx.save();
+
+        // Halbtransparenter Hintergrund (grünlich für Bilder)
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.15)';
+        ctx.fillRect(x, y, width, height);
+
+        // Gestrichelter Rahmen (grün)
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 4]);
+        ctx.strokeRect(x, y, width, height);
+
+        // Größenanzeige
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.95)';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const label = `📷 ${Math.round(width)} × ${Math.round(height)} px`;
+        const labelPadding = 6;
+        const labelWidth = ctx.measureText(label).width + labelPadding * 2;
+        const labelHeight = 20;
+        const labelX = x + width / 2 - labelWidth / 2;
+        const labelY = y + height / 2 - labelHeight / 2;
+
+        // Label-Hintergrund
+        ctx.fillRect(labelX, labelY, labelWidth, labelHeight);
+
+        // Label-Text
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(label, x + width / 2, y + height / 2);
+
+        // Animations-Hinweis wenn gesetzt
+        if (this.pendingImageAnimation && this.pendingImageAnimation !== 'none') {
+            const animLabel = this._getAnimationLabel(this.pendingImageAnimation);
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.9)';
+            const animWidth = ctx.measureText(animLabel).width + 12;
+            ctx.fillRect(x + width / 2 - animWidth / 2, labelY + labelHeight + 5, animWidth, 18);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 10px Arial';
+            ctx.fillText(animLabel, x + width / 2, labelY + labelHeight + 14);
+        }
+
+        // Ecken-Markierungen
+        ctx.fillStyle = '#22c55e';
+        const cornerSize = 8;
+
+        // Oben-Links
+        ctx.fillRect(x - cornerSize / 2, y - cornerSize / 2, cornerSize, cornerSize);
+        // Oben-Rechts
+        ctx.fillRect(x + width - cornerSize / 2, y - cornerSize / 2, cornerSize, cornerSize);
+        // Unten-Links
+        ctx.fillRect(x - cornerSize / 2, y + height - cornerSize / 2, cornerSize, cornerSize);
+        // Unten-Rechts
+        ctx.fillRect(x + width - cornerSize / 2, y + height - cornerSize / 2, cornerSize, cornerSize);
+
+        ctx.restore();
+    }
+
+    /**
+     * ✨ Gibt die normalisierten Bounds des Bild-Auswahl-Rechtecks zurück
+     */
+    getImageSelectionBounds() {
+        if (!this.imageSelectionRect) return null;
+
+        const rect = this.imageSelectionRect;
+        const x = Math.min(rect.startX, rect.endX);
+        const y = Math.min(rect.startY, rect.endY);
+        const width = Math.abs(rect.endX - rect.startX);
+        const height = Math.abs(rect.endY - rect.startY);
+
+        // Mindestgröße prüfen (mindestens 30x30 Pixel)
+        if (width < 30 || height < 30) return null;
+
+        return {
+            x,
+            y,
+            width,
+            height,
+            // Relative Werte für Canvas-unabhängige Positionierung
+            relX: x / this.canvas.width,
+            relY: y / this.canvas.height,
+            relWidth: width / this.canvas.width,
+            relHeight: height / this.canvas.height,
+            // Zentrum für Bild-Positionierung
+            centerX: x + width / 2,
+            centerY: y + height / 2,
+            relCenterX: (x + width / 2) / this.canvas.width,
+            relCenterY: (y + height / 2) / this.canvas.height,
+            // Animation
+            animation: this.pendingImageAnimation || 'none'
+        };
+    }
+
+    /**
+     * ✨ Hilfsfunktion: Gibt einen lesbaren Namen für die Animation zurück
+     */
+    _getAnimationLabel(animation) {
+        const labels = {
+            'none': '',
+            'fade': '✨ Einblenden',
+            'slideLeft': '← Gleiten Links',
+            'slideRight': '→ Gleiten Rechts',
+            'slideUp': '↑ Gleiten Hoch',
+            'slideDown': '↓ Gleiten Runter',
+            'zoom': '🔍 Zoom',
+            'bounce': '⬆️ Hüpfen',
+            'spin': '🔄 Drehen',
+            'elastic': '🎯 Elastisch'
+        };
+        return labels[animation] || animation;
+    }
+
+    /**
+     * ✨ Setzt die aktuelle Animations-Voreinstellung für das nächste Bild
+     */
+    setImageAnimation(animation) {
+        this.pendingImageAnimation = animation;
+        console.log('[CanvasManager] Animation gesetzt:', animation);
+    }
+
+    /**
+     * ✨ Gibt die aktuelle Animations-Voreinstellung zurück
+     */
+    getImageAnimation() {
+        return this.pendingImageAnimation || 'none';
     }
 }

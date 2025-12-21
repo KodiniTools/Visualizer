@@ -171,7 +171,7 @@ export class MultiImageManager {
         this.images.push(newImage);
         this.setSelectedImage(newImage);
 
-        console.log('✅ Bild mit Bounds hinzugefügt:', newImage.id, 'Animation:', animation);
+        console.log('✅ Bild mit Bounds hinzugefügt:', newImage.id, 'Animation:', animation, 'Dauer:', duration, 'ms');
 
         // Starte Animation wenn nötig
         if (animation !== 'none') {

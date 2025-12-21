@@ -175,6 +175,7 @@ let microphoneAnalyser = null; // Separate Analyser for microphone
 let micRecordingGain = null; // Gain node for mic → recordingDest
 let micRecordingSourceNode = null; // MediaStreamSource for mic in main context
 let micRecordingStream = null; // ✨ SEPARATE Mic stream für Recording (nicht mit Visualizer teilen!)
+let micPathKeepAlive = null; // ✨ Stille Audio-Quelle um Mic-Pfad aktiv zu halten
 let currentRecordingSource = 'player'; // 'player' or 'microphone'
 
 let animationFrameId;
@@ -474,6 +475,14 @@ function setupAudioContext() {
 
   // Mic Audio → recordingDest (wird später verbunden wenn Mic aktiv)
   micRecordingGain.connect(recordingDest);
+
+  // ✨ WICHTIG: Stille Audio-Quelle um den Mic-Pfad von Anfang an "aktiv" zu halten
+  // Ohne dies erkennen manche Browser den Mic-Pfad nicht, wenn er später hinzugefügt wird
+  micPathKeepAlive = audioContext.createConstantSource();
+  micPathKeepAlive.offset.value = 0; // Komplett still (DC offset = 0)
+  micPathKeepAlive.connect(micRecordingGain);
+  micPathKeepAlive.start();
+  console.log('[App] ✅ Mic-Pfad Keep-Alive aktiviert (stille ConstantSource)');
 
   console.log('[App] Audio Context mit EQ-Filtern und dynamischem Recording Gain eingerichtet');
   console.log('[App] ✅ Live Audio-Umschaltung für Recording vorbereitet');

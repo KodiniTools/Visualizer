@@ -107,12 +107,16 @@ export class MultiImageManager {
      * @param {HTMLImageElement} imageObject - Das Bildobjekt
      * @param {Object} bounds - Die Ziel-Bounds { relX, relY, relWidth, relHeight }
      * @param {string} animation - Die Eintritts-Animation ('none', 'fade', 'slideLeft', 'slideRight', 'slideUp', 'slideDown', 'zoom', 'bounce', 'spin', 'elastic')
+     * @param {Object} options - Optionen { duration: Animationsdauer in ms, scale: Skalierungsfaktor }
      */
-    addImageWithBounds(imageObject, bounds, animation = 'none') {
+    addImageWithBounds(imageObject, bounds, animation = 'none', options = {}) {
         if (!imageObject) {
             console.error('❌ Kein Bild zum Hinzufügen übergeben');
             return null;
         }
+
+        // Extrahiere Optionen mit Standardwerten
+        const duration = options.duration || 500;
 
         // Berechne Bild-Seitenverhältnis
         const imgAspectRatio = imageObject.height / imageObject.width;
@@ -154,7 +158,7 @@ export class MultiImageManager {
                 type: animation,
                 active: animation !== 'none',
                 startTime: Date.now(),
-                duration: 500, // ms
+                duration: duration,
                 progress: 0
             }
         };

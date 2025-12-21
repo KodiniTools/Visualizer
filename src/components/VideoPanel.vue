@@ -536,10 +536,7 @@ function addVideoDirectly() {
 
     vm.addVideo(canvasVideo, options);
 
-    // Auto-play if not muted
-    if (!videoMuted.value) {
-      canvasVideo.play().catch(() => {});
-    }
+    // Video NICHT automatisch starten - Nutzer soll über Steuerung kontrollieren
 
     console.log('✅ Video auf Canvas platziert');
   };

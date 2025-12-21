@@ -505,17 +505,22 @@ function setTrebleGain(gain) {
   }
 }
 
+// ✅ KRITISCH: Globale Konstanten für Audio-Gain
+const SILENT_GAIN = 0.0001; // Unhörbar aber technisch aktiv - MediaRecorder braucht das!
+const ACTIVE_GAIN = 1;
+
 function enableRecorderAudio() {
   if (recordingGain) {
-    recordingGain.gain.value = 1;
+    recordingGain.gain.value = ACTIVE_GAIN;
     console.log('[App] Recorder Audio ENABLED');
   }
 }
 
 function disableRecorderAudio() {
   if (recordingGain) {
-    recordingGain.gain.value = 0;
-    console.log('[App] Recorder Audio DISABLED');
+    // ✅ WICHTIG: Nie 0 verwenden! MediaRecorder braucht aktive Audio-Quellen
+    recordingGain.gain.value = SILENT_GAIN;
+    console.log('[App] Recorder Audio DISABLED (silent but active)');
   }
 }
 
@@ -1095,20 +1100,18 @@ async function switchRecordingSource(source) {
       console.log('[App] Recording-Mic bereits verbunden - wechsle nur Gains');
     }
 
-    // ✅ VEREINFACHT: Gains sofort setzen ohne Ramping
-    // Player stumm, Mic an
-    recordingGain.gain.value = 0;
-    micRecordingGain.gain.value = 1;
+    // ✅ Player praktisch stumm (aber technisch aktiv!), Mic laut
+    recordingGain.gain.value = SILENT_GAIN;
+    micRecordingGain.gain.value = ACTIVE_GAIN;
 
     currentRecordingSource = 'microphone';
     console.log('[App] ✅ Recording-Quelle: MIKROFON');
     console.log('[App] Gain-Werte jetzt - Player:', recordingGain.gain.value, 'Mic:', micRecordingGain.gain.value);
 
   } else {
-    // ✅ VEREINFACHT: Gains sofort setzen ohne Ramping
-    // Mic stumm, Player an
-    micRecordingGain.gain.value = 0;
-    recordingGain.gain.value = 1;
+    // ✅ Mic praktisch stumm (aber technisch aktiv!), Player laut
+    micRecordingGain.gain.value = SILENT_GAIN;
+    recordingGain.gain.value = ACTIVE_GAIN;
 
     // ✨ WICHTIG: Während der Aufnahme KEINE Mic-Streams trennen!
     if (isRecording) {
@@ -1157,23 +1160,29 @@ async function createCombinedAudioStream() {
     console.warn('[App] Mic-Recording-Stream konnte nicht verbunden werden - Live-Umschaltung auf Mic nicht möglich');
   } else {
     console.log('[App] ✅ Mic-Recording-Pfad vorbereitet');
-
-    // ✨ WICHTIG: Kurz warten, damit Audio-Samples durch den Graph fließen
-    // Manche Browser aktivieren MediaStreamSource erst wenn Samples fließen
-    await new Promise(resolve => setTimeout(resolve, 100));
-    console.log('[App] Audio-Graph "aufgewärmt"');
   }
 
-  // ✅ Initialen Zustand setzen - NUR eine Quelle aktiv
+  // ✅ KRITISCH: BEIDE Quellen müssen mit aktivem Audio starten!
+  // MediaRecorder "friert" Audio-Quellen ein, die bei Start stumm sind.
+  // LÖSUNG: Nie gain=0 verwenden! Stattdessen 0.0001 als "stumm" - technisch aktiv!
+  console.log('[App] ⏳ Warmup: Beide Audio-Quellen aktivieren...');
+  recordingGain.gain.value = 1;
+  micRecordingGain.gain.value = 1;
+
+  // ✨ WICHTIG: Länger warten, damit BEIDE Quellen Audio-Samples liefern
+  await new Promise(resolve => setTimeout(resolve, 300));
+  console.log('[App] ✅ Warmup abgeschlossen - beide Quellen haben Audio geliefert');
+
+  // ✅ Jetzt auf die gewünschte Quelle umschalten
   if (audioSourceStore.isMicrophoneActive) {
     console.log('[App] Mikrofon aktiv - setze Mic als Recording-Quelle...');
-    recordingGain.gain.value = 0;
-    micRecordingGain.gain.value = 1;
+    recordingGain.gain.value = SILENT_GAIN;
+    micRecordingGain.gain.value = ACTIVE_GAIN;
     currentRecordingSource = 'microphone';
   } else {
     console.log('[App] Player aktiv - setze Player als Recording-Quelle...');
-    recordingGain.gain.value = 1;
-    micRecordingGain.gain.value = 0; // Mic stumm - wird bei Umschaltung aktiviert
+    recordingGain.gain.value = ACTIVE_GAIN;
+    micRecordingGain.gain.value = SILENT_GAIN;
     currentRecordingSource = 'player';
   }
 

@@ -97,15 +97,6 @@
           </div>
         </div>
 
-        <div class="panel-footer">
-          <button @click="showFullTutorial" class="btn-tutorial">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <polygon points="10 8 16 12 10 16 10 8"/>
-            </svg>
-            Vollständiges Tutorial
-          </button>
-        </div>
       </div>
     </transition>
   </Teleport>
@@ -113,8 +104,6 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-
-const emit = defineEmits(['show-tutorial']);
 
 const isVisible = ref(false);
 
@@ -143,11 +132,6 @@ const tips = [
 
 function toggleGuide() {
   isVisible.value = !isVisible.value;
-}
-
-function showFullTutorial() {
-  isVisible.value = false;
-  emit('show-tutorial');
 }
 
 function handleKeydown(e) {
@@ -513,40 +497,6 @@ defineExpose({ show, hide, toggleGuide });
 .location-desc {
   font-size: 9px;
   color: rgba(255, 255, 255, 0.5);
-}
-
-/* Footer */
-.panel-footer {
-  padding: 12px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.btn-tutorial {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: rgba(110, 168, 254, 0.15);
-  border: 1px solid rgba(110, 168, 254, 0.3);
-  border-radius: 10px;
-  color: #6ea8fe;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-tutorial:hover {
-  background: rgba(110, 168, 254, 0.25);
-  transform: translateY(-2px);
-}
-
-.btn-tutorial svg {
-  width: 18px;
-  height: 18px;
 }
 
 /* Scrollbar */

@@ -1492,7 +1492,13 @@ onMounted(async () => {
       console.log('[App] Recording gestoppt');
       stopVisualizerLoop();
 
-      // ✨ NEU: Recording Mic Stream stoppen
+      // ✅ FIX: Mic-Gain zurücksetzen BEVOR Stream getrennt wird
+      if (micRecordingGain) {
+        micRecordingGain.gain.value = SILENT_GAIN;
+        console.log('[App] Mic-Gain zurückgesetzt auf SILENT');
+      }
+
+      // ✨ Recording Mic Stream stoppen
       disconnectMicFromRecordingChain();
       console.log('[App] Recording Mic Stream bereinigt');
 

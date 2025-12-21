@@ -26,6 +26,7 @@ export class CanvasManager {
         this.gridManager = dependencies.gridManager;
         this.fotoManager = dependencies.fotoManager;
         this.multiImageManager = dependencies.multiImageManager;
+        this.videoManager = dependencies.videoManager; // ✨ NEU: VideoManager für MP4-Videos
 
         this.background = '#ffffff'; // ✅ Standard: Weißer Hintergrund beim App-Start
         this.workspaceBackground = null;
@@ -832,9 +833,12 @@ export class CanvasManager {
 
     deleteActiveObject() {
         if (!this.activeObject) return;
-        
+
         if (this.activeObject.type === 'image' && this.multiImageManager) {
             this.multiImageManager.removeImage(this.activeObject.id);
+        } else if (this.activeObject.type === 'video' && this.videoManager) {
+            // ✨ NEU: Video löschen
+            this.videoManager.removeVideo(this.activeObject.id);
         } else if (this.activeObject.type === 'text') {
             if (this.textManager) {
                 this.textManager.delete(this.activeObject);
@@ -844,7 +848,7 @@ export class CanvasManager {
         } else if (this.activeObject.type === 'workspace-background') {
             this.workspaceBackground = null;
         }
-        
+
         this.setActiveObject(null);
         this.redrawCallback();
         this.updateUICallback();
@@ -879,8 +883,10 @@ export class CanvasManager {
     
     getCanvasState() {
         const images = this.multiImageManager ? this.multiImageManager.getAllImages() : [];
+        const videos = this.videoManager ? this.videoManager.getAllVideos() : []; // ✨ NEU
         return {
             images: images,
+            videos: videos, // ✨ NEU
             background: this.background,
             workspaceBackground: this.workspaceBackground,
             textObjects: this.textManager && this.textManager.textObjects ? this.textManager.textObjects : [],
@@ -891,8 +897,9 @@ export class CanvasManager {
         const isBgEmpty = !this.background || this.background === '#000000';
         const isWorkspaceBgEmpty = !this.workspaceBackground;
         const imageCount = this.multiImageManager ? this.multiImageManager.getAllImages().length : 0;
+        const videoCount = this.videoManager ? this.videoManager.getAllVideos().length : 0; // ✨ NEU
         const textCount = (this.textManager && this.textManager.textObjects) ? this.textManager.textObjects.length : 0;
-        return imageCount === 0 && textCount === 0 && isBgEmpty && isWorkspaceBgEmpty;
+        return imageCount === 0 && videoCount === 0 && textCount === 0 && isBgEmpty && isWorkspaceBgEmpty;
     }
 
     draw(targetCtx) {
@@ -1067,6 +1074,9 @@ export class CanvasManager {
         // 3. BILDER werden jetzt NUR im multiImageManager.drawImages() gezeichnet
         // Das verhindert doppelte Bilder und ermöglicht korrekte Rotation
         // (multiImageManager.drawImages() wird in App.vue renderScene() aufgerufen)
+
+        // 3.5 VIDEOS werden in App.vue renderScene() gezeichnet (nach Bildern, vor Text)
+        // damit sie korrekt über Bildern aber unter Text erscheinen
 
         // 4. ✅ FIX: TEXTE rendern (verhindert Geist-Bug beim Drag)
         if (this.textManager && this.textManager.draw) {
@@ -1631,6 +1641,18 @@ export class CanvasManager {
             }
         }
 
+        // ✨ NEU: Dann Videos prüfen (über Bildern, unter Text)
+        if (this.videoManager) {
+            const videos = this.videoManager.getAllVideos();
+            for (let i = videos.length - 1; i >= 0; i--) {
+                const videoData = videos[i];
+                const bounds = this.getObjectBounds(videoData);
+                if (bounds && this.isPointInRect(x, y, bounds)) {
+                    return videoData;
+                }
+            }
+        }
+
         // Dann Bilder prüfen (über Hintergründen)
         if (this.multiImageManager) {
             const images = this.multiImageManager.getAllImages();
@@ -1674,6 +1696,16 @@ export class CanvasManager {
 
         // Bilder haben relWidth/relHeight
         if (obj.type === 'image') {
+            return {
+                x: obj.relX * this.canvas.width,
+                y: obj.relY * this.canvas.height,
+                width: obj.relWidth * this.canvas.width,
+                height: obj.relHeight * this.canvas.height
+            };
+        }
+
+        // ✨ NEU: Videos haben gleiche Struktur wie Bilder
+        if (obj.type === 'video') {
             return {
                 x: obj.relX * this.canvas.width,
                 y: obj.relY * this.canvas.height,

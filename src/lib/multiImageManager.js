@@ -233,19 +233,20 @@ export class MultiImageManager {
 
         switch (type) {
             case 'fade':
-                return { opacity: eased, translateX: 0, translateY: 0, scale: 1, rotation: 0 };
+                // Linear für gleichmäßiges Einblenden über die gesamte Dauer
+                return { opacity: progress, translateX: 0, translateY: 0, scale: 1, rotation: 0 };
 
             case 'slideLeft':
-                return { opacity: 1, translateX: (1 - eased) * this.canvas.width * 0.3, translateY: 0, scale: 1, rotation: 0 };
+                return { opacity: eased, translateX: (1 - eased) * this.canvas.width * 0.3, translateY: 0, scale: 1, rotation: 0 };
 
             case 'slideRight':
-                return { opacity: 1, translateX: (eased - 1) * this.canvas.width * 0.3, translateY: 0, scale: 1, rotation: 0 };
+                return { opacity: eased, translateX: (eased - 1) * this.canvas.width * 0.3, translateY: 0, scale: 1, rotation: 0 };
 
             case 'slideUp':
-                return { opacity: 1, translateX: 0, translateY: (1 - eased) * this.canvas.height * 0.3, scale: 1, rotation: 0 };
+                return { opacity: eased, translateX: 0, translateY: (1 - eased) * this.canvas.height * 0.3, scale: 1, rotation: 0 };
 
             case 'slideDown':
-                return { opacity: 1, translateX: 0, translateY: (eased - 1) * this.canvas.height * 0.3, scale: 1, rotation: 0 };
+                return { opacity: eased, translateX: 0, translateY: (eased - 1) * this.canvas.height * 0.3, scale: 1, rotation: 0 };
 
             case 'zoom':
                 return { opacity: eased, translateX: 0, translateY: 0, scale: 0.3 + eased * 0.7, rotation: 0 };

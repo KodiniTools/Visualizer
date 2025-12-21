@@ -351,7 +351,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 import { useRecorderStore } from '../stores/recorderStore.js';
 import HelpTooltip from './HelpTooltip.vue';
@@ -374,6 +374,15 @@ let timerInterval = null;
 // ✨ NEU: Mikrofon zuschalten (Player + Mic gleichzeitig)
 const microphoneEnabled = ref(false);
 const isSwitchingSource = ref(false);
+
+// ✅ FIX: Mikrofon-Status zurücksetzen wenn Aufnahme endet
+watch(() => recorderStore.isRecording, (isRecording) => {
+  if (!isRecording) {
+    // Aufnahme beendet - Reset Mikrofon-Status
+    microphoneEnabled.value = false;
+    console.log('[Panel] Aufnahme beendet - Mikrofon-Status zurückgesetzt');
+  }
+});
 
 // Server Conversion State
 const serverAvailable = ref(null); // null = unknown, true/false

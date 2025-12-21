@@ -112,43 +112,35 @@
       </button>
     </div>
 
-    <!-- ✨ NEU: Live Audio-Quelle während Aufnahme wechseln -->
+    <!-- ✨ NEU: Mikrofon zuschalten während Aufnahme -->
     <div class="control-section audio-source-section" v-if="recorderStore.isRecording">
       <div class="section-header">
-        <span class="section-label">{{ t('recorder.audioSource') || 'Audio-Quelle' }}</span>
-        <span class="source-indicator" :class="currentAudioSource">
-          {{ currentAudioSource === 'microphone' ? '🎤' : '🎵' }}
+        <span class="section-label">{{ t('recorder.audioSource') || 'Audio' }}</span>
+        <span class="source-indicator active">
+          🎵 Player {{ microphoneEnabled ? '+ 🎤 Mic' : '' }}
         </span>
       </div>
-      <div class="audio-source-buttons">
-        <button
-          class="source-btn"
-          :class="{ active: currentAudioSource === 'player' }"
-          @click="switchToPlayer"
+      <label class="mic-toggle-row">
+        <input
+          type="checkbox"
+          v-model="microphoneEnabled"
+          @change="toggleMicrophone"
           :disabled="isSwitchingSource"
         >
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-          </svg>
-          Player
-        </button>
-        <button
-          class="source-btn"
-          :class="{ active: currentAudioSource === 'microphone' }"
-          @click="switchToMicrophone"
-          :disabled="isSwitchingSource"
-        >
+        <span class="toggle-label">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
             <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
             <line x1="12" y1="19" x2="12" y2="23"/>
             <line x1="8" y1="23" x2="16" y2="23"/>
           </svg>
-          Mikrofon
-        </button>
-      </div>
-      <p class="source-hint" v-if="isSwitchingSource">Wechsle Audio-Quelle...</p>
+          Mikrofon zuschalten
+        </span>
+      </label>
+      <p class="source-hint" v-if="isSwitchingSource">Aktiviere Mikrofon...</p>
+      <p class="source-hint info" v-else-if="microphoneEnabled">
+        💡 Nur Mic? Player pausieren oder stumm schalten
+      </p>
     </div>
 
     <!-- Qualitäts-Einstellungen -->
@@ -379,8 +371,8 @@ const recordingElapsedAtPause = ref(0);
 const recordingDisplayTime = ref('00:00');
 let timerInterval = null;
 
-// ✨ NEU: Live Audio Source Switching State
-const currentAudioSource = ref('player');
+// ✨ NEU: Mikrofon zuschalten (Player + Mic gleichzeitig)
+const microphoneEnabled = ref(false);
 const isSwitchingSource = ref(false);
 
 // Server Conversion State
@@ -496,56 +488,27 @@ function stopTimer() {
   recordingDisplayTime.value = '00:00';
 }
 
-// ✨ NEU: Live Audio Source Switching
-async function switchToPlayer() {
-  if (isSwitchingSource.value || currentAudioSource.value === 'player') return;
-
+// ✨ NEU: Mikrofon zuschalten (additiv zum Player)
+async function toggleMicrophone() {
   isSwitchingSource.value = true;
   try {
-    if (window.switchRecordingSource) {
-      const success = await window.switchRecordingSource('player');
+    if (window.toggleRecordingMicrophone) {
+      const success = await window.toggleRecordingMicrophone(microphoneEnabled.value);
       if (success) {
-        currentAudioSource.value = 'player';
-        console.log('✅ [Panel] Audio-Quelle gewechselt: Player');
+        console.log('✅ [Panel] Mikrofon', microphoneEnabled.value ? 'ZUGESCHALTET' : 'ABGESCHALTET');
       } else {
-        console.error('❌ [Panel] Audio-Quelle wechseln fehlgeschlagen');
+        console.error('❌ [Panel] Mikrofon-Toggle fehlgeschlagen');
+        microphoneEnabled.value = !microphoneEnabled.value; // Revert
       }
     } else {
-      console.error('❌ [Panel] switchRecordingSource nicht verfügbar');
+      console.error('❌ [Panel] toggleRecordingMicrophone nicht verfügbar');
+      microphoneEnabled.value = !microphoneEnabled.value; // Revert
     }
   } catch (error) {
-    console.error('❌ [Panel] Fehler beim Wechseln der Audio-Quelle:', error);
+    console.error('❌ [Panel] Fehler beim Mikrofon-Toggle:', error);
+    microphoneEnabled.value = !microphoneEnabled.value; // Revert
   } finally {
     isSwitchingSource.value = false;
-  }
-}
-
-async function switchToMicrophone() {
-  if (isSwitchingSource.value || currentAudioSource.value === 'microphone') return;
-
-  isSwitchingSource.value = true;
-  try {
-    if (window.switchRecordingSource) {
-      const success = await window.switchRecordingSource('microphone');
-      if (success) {
-        currentAudioSource.value = 'microphone';
-        console.log('✅ [Panel] Audio-Quelle gewechselt: Mikrofon');
-      } else {
-        console.error('❌ [Panel] Audio-Quelle wechseln fehlgeschlagen');
-      }
-    } else {
-      console.error('❌ [Panel] switchRecordingSource nicht verfügbar');
-    }
-  } catch (error) {
-    console.error('❌ [Panel] Fehler beim Wechseln der Audio-Quelle:', error);
-  } finally {
-    isSwitchingSource.value = false;
-  }
-}
-
-function updateCurrentAudioSource() {
-  if (window.getCurrentRecordingSource) {
-    currentAudioSource.value = window.getCurrentRecordingSource();
   }
 }
 
@@ -1125,61 +1088,54 @@ h3::before {
 }
 
 .source-indicator {
-  font-size: 14px;
+  font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
 }
 
-.source-indicator.player {
+.source-indicator.active {
   background: rgba(76, 175, 80, 0.2);
 }
 
-.source-indicator.microphone {
-  background: rgba(244, 67, 54, 0.2);
-}
-
-.audio-source-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.source-btn {
+.mic-toggle-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-secondary, #9EBEC1);
-  font-size: 11px;
-  font-weight: 500;
+  gap: 10px;
   cursor: pointer;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
   transition: all 0.2s ease;
 }
 
-.source-btn .icon {
-  width: 14px;
-  height: 14px;
+.mic-toggle-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(139, 92, 246, 0.3);
 }
 
-.source-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+.mic-toggle-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #8B5CF6;
+  cursor: pointer;
 }
 
-.source-btn.active {
-  background: rgba(139, 92, 246, 0.3);
-  border-color: rgba(139, 92, 246, 0.5);
-  color: #fff;
+.mic-toggle-row .toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text, #E9E9EB);
+  font-weight: 500;
 }
 
-.source-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.mic-toggle-row .toggle-label .icon {
+  width: 16px;
+  height: 16px;
+  color: #8B5CF6;
 }
 
 .source-hint {
@@ -1188,6 +1144,14 @@ h3::before {
   color: rgba(139, 92, 246, 0.8);
   text-align: center;
   animation: pulse 1s ease-in-out infinite;
+}
+
+.source-hint.info {
+  color: rgba(255, 193, 7, 0.9);
+  animation: none;
+  background: rgba(255, 193, 7, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
 /* Control Section (Quality & Upload Mode) */

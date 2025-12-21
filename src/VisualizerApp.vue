@@ -1071,11 +1071,16 @@ async function switchRecordingSource(source) {
       }
     }
 
-    // ✨ 2. Recording-Mic verbinden (SEPARATER Stream!)
-    const connected = await connectMicToRecordingChain();
-    if (!connected) {
-      console.error('[App] Konnte Recording-Mic-Stream nicht verbinden');
-      return false;
+    // ✨ 2. Recording-Mic: Prüfen ob bereits verbunden (sollte von createCombinedAudioStream sein)
+    if (!micRecordingSourceNode) {
+      console.log('[App] Recording-Mic nicht verbunden - verbinde jetzt...');
+      const connected = await connectMicToRecordingChain();
+      if (!connected) {
+        console.error('[App] Konnte Recording-Mic-Stream nicht verbinden');
+        return false;
+      }
+    } else {
+      console.log('[App] Recording-Mic bereits verbunden - wechsle nur Gains');
     }
 
     // ✅ FIX: Gain-Werte direkt setzen (nicht nur mit setTargetAtTime)
@@ -1100,7 +1105,7 @@ async function switchRecordingSource(source) {
     // Player aktivieren
     const now = audioContext.currentTime;
 
-    // Mic sofort stumm schalten
+    // Mic sofort stumm schalten (aber VERBUNDEN lassen für späteren Wechsel!)
     micRecordingGain.gain.cancelScheduledValues(now);
     micRecordingGain.gain.setValueAtTime(micRecordingGain.gain.value, now);
     micRecordingGain.gain.linearRampToValueAtTime(0, now + 0.05);
@@ -1116,12 +1121,12 @@ async function switchRecordingSource(source) {
       audioSourceStore.setSourceType('player');
     }
 
-    // Recording-Mic-Stream stoppen (Ressourcen sparen)
-    disconnectMicFromRecordingChain();
+    // ✨ WICHTIG: Recording-Mic-Stream NICHT stoppen!
+    // Wir lassen ihn verbunden (mit Gain 0), damit wir später wieder zu Mic wechseln können.
+    // disconnectMicFromRecordingChain(); // NICHT mehr!
 
     currentRecordingSource = 'player';
-    console.log('[App] ✅ Recording-Quelle: PLAYER');
-    console.log('[App] Neue Gain-Werte (nach 50ms) - Player: 1, Mic: 0');
+    console.log('[App] ✅ Recording-Quelle: PLAYER (Mic bleibt verbunden mit Gain 0)');
   }
 
   return true;
@@ -1144,24 +1149,28 @@ async function createCombinedAudioStream() {
     await audioContext.resume();
   }
 
+  // ✨ WICHTIG: IMMER Mic-Recording-Stream VOR dem MediaRecorder-Start einrichten!
+  // Der MediaRecorder erkennt neue Audio-Quellen nicht, die NACH dem Start verbunden werden.
+  // Deshalb verbinden wir den Mic IMMER, aber mit Gain 0 wenn Player aktiv ist.
+  console.log('[App] Bereite Mic-Recording-Pfad vor (für Live-Umschaltung)...');
+  const micConnected = await connectMicToRecordingChain();
+
+  if (!micConnected) {
+    console.warn('[App] Mic-Recording-Stream konnte nicht verbunden werden - Live-Umschaltung auf Mic nicht möglich');
+  } else {
+    console.log('[App] ✅ Mic-Recording-Pfad vorbereitet');
+  }
+
   // Initialen Zustand basierend auf aktueller Audioquelle setzen
   if (audioSourceStore.isMicrophoneActive) {
-    console.log('[App] Mikrofon aktiv - hole separaten Recording-Stream...');
-    const connected = await connectMicToRecordingChain();
-    if (connected) {
-      recordingGain.gain.value = 0;
-      micRecordingGain.gain.value = 1;
-      currentRecordingSource = 'microphone';
-    } else {
-      console.warn('[App] Mic-Recording-Stream fehlgeschlagen - Fallback auf Player');
-      recordingGain.gain.value = 1;
-      micRecordingGain.gain.value = 0;
-      currentRecordingSource = 'player';
-    }
+    console.log('[App] Mikrofon aktiv - setze Mic als Recording-Quelle...');
+    recordingGain.gain.value = 0;
+    micRecordingGain.gain.value = 1;
+    currentRecordingSource = 'microphone';
   } else {
-    console.log('[App] Player aktiv - Recording-Kanal bereit...');
+    console.log('[App] Player aktiv - setze Player als Recording-Quelle...');
     recordingGain.gain.value = 1;
-    micRecordingGain.gain.value = 0;
+    micRecordingGain.gain.value = 0; // Mic stumm, aber VERBUNDEN!
     currentRecordingSource = 'player';
   }
 

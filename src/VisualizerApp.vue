@@ -1118,10 +1118,18 @@ async function switchRecordingSource(source) {
     recordingGain.gain.setValueAtTime(recordingGain.gain.value, now);
     recordingGain.gain.linearRampToValueAtTime(1, now + 0.05);
 
-    // ✨ Visualizer zurück auf Player
-    if (audioSourceStore.isMicrophoneActive) {
-      disconnectMicrophoneSource();
+    // ✨ WICHTIG: Während der Aufnahme KEINE Mic-Streams trennen!
+    // Das könnte den Recording-Mic-Stream beeinflussen.
+    // Wir ändern nur den sourceType für die UI, aber lassen alle Streams aktiv.
+    if (isRecording) {
+      console.log('[App] Aufnahme aktiv - Mic-Streams bleiben verbunden (nur Gains geändert)');
       audioSourceStore.setSourceType('player');
+    } else {
+      // Nur außerhalb der Aufnahme die Mic-Verbindung trennen
+      if (audioSourceStore.isMicrophoneActive) {
+        disconnectMicrophoneSource();
+        audioSourceStore.setSourceType('player');
+      }
     }
 
     // ✨ WICHTIG: Recording-Mic-Stream NICHT stoppen!

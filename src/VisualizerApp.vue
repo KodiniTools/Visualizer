@@ -60,16 +60,8 @@
 
     <audio ref="audioRef" crossOrigin="anonymous" style="display: none;"></audio>
 
-    <!-- Onboarding & Help System -->
-    <OnboardingWizard
-      ref="onboardingWizardRef"
-      @complete="onTutorialComplete"
-      @skip="onTutorialSkip"
-    />
-    <QuickStartGuide
-      ref="quickStartGuideRef"
-      @show-tutorial="showTutorial"
-    />
+    <!-- Help System -->
+    <QuickStartGuide ref="quickStartGuideRef" />
 
   </div>
 </template>
@@ -93,7 +85,6 @@ import TextManagerPanel from './components/TextManagerPanel.vue';
 import ControlsPanel from './components/ControlsPanel.vue';
 import VisualizerPanel from './components/VisualizerPanel.vue';
 import CanvasControlPanel from './components/CanvasControlPanel.vue';
-import OnboardingWizard from './components/OnboardingWizard.vue';
 import QuickStartGuide from './components/QuickStartGuide.vue';
 import { Visualizers } from './lib/visualizers.js';
 import { TextManager } from './lib/textManager.js';
@@ -198,7 +189,6 @@ const multiImageManagerInstance = ref(null);
 const videoManagerInstance = ref(null); // ✨ NEU: VideoManager
 const fontManagerInstance = ref(null);
 const keyboardShortcutsInstance = ref(null);
-const onboardingWizardRef = ref(null);
 const quickStartGuideRef = ref(null);
 
 provide('fontManager', fontManagerInstance);
@@ -336,20 +326,6 @@ function selectCanvasImage(imgData) {
   }
 
   console.log('Canvas-Bild ausgewählt:', imgData.id);
-}
-
-function showTutorial() {
-  if (onboardingWizardRef.value) {
-    onboardingWizardRef.value.show();
-  }
-}
-
-function onTutorialComplete() {
-  console.log('Tutorial abgeschlossen');
-}
-
-function onTutorialSkip() {
-  console.log('Tutorial übersprungen');
 }
 
 // SEPARATE VISUALIZER RENDER-LOOP

@@ -63,12 +63,17 @@ export class FotoManager {
     }
 
     /**
-     * NEU: Prüft ob ein Objekt ein Bild oder Video ist (normal, background, workspace-background oder video)
-     * ✨ ERWEITERT: Unterstützt jetzt auch Videos
+     * NEU: Prüft ob ein Objekt ein Bild oder Video ist
+     * ✨ ERWEITERT: Unterstützt Bilder, Videos und Video-Hintergründe
      */
     _isImageObject(obj) {
         if (!obj) return false;
-        return obj.type === 'image' || obj.type === 'background' || obj.type === 'workspace-background' || obj.type === 'video';
+        return obj.type === 'image' ||
+               obj.type === 'background' ||
+               obj.type === 'workspace-background' ||
+               obj.type === 'video' ||
+               obj.type === 'video-background' ||
+               obj.type === 'workspace-video-background';
     }
 
     /**

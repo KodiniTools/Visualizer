@@ -20,6 +20,7 @@
       <aside class="left-toolbar">
         <TextManagerPanel />
         <FotoPanel />
+        <VideoPanel />
       </aside>
 
       <main class="center-column">
@@ -87,6 +88,7 @@ import FileUploadPanel from './components/FileUploadPanel.vue';
 import PlayerPanel from './components/PlayerPanel.vue';
 import RecorderPanel from './components/RecorderPanel.vue';
 import FotoPanel from './components/FotoPanel.vue';
+import VideoPanel from './components/VideoPanel.vue'; // ✨ NEU: Video-Panel
 import TextManagerPanel from './components/TextManagerPanel.vue';
 import ControlsPanel from './components/ControlsPanel.vue';
 import VisualizerPanel from './components/VisualizerPanel.vue';
@@ -101,6 +103,7 @@ import { CanvasManager } from './lib/canvasManager.js';
 import { FotoManager } from './lib/fotoManager.js';
 import { GridManager } from './lib/gridManager.js';
 import { MultiImageManager } from './lib/multiImageManager.js';
+import { VideoManager } from './lib/videoManager.js'; // ✨ NEU: Video-Support
 import { KeyboardShortcuts } from './lib/keyboardShortcuts.js';
 import { workerManager } from './lib/workerManager.js';
 
@@ -180,6 +183,7 @@ const canvasManagerInstance = ref(null);
 const fotoManagerInstance = ref(null);
 const gridManagerInstance = ref(null);
 const multiImageManagerInstance = ref(null);
+const videoManagerInstance = ref(null); // ✨ NEU: VideoManager
 const fontManagerInstance = ref(null);
 const keyboardShortcutsInstance = ref(null);
 const onboardingWizardRef = ref(null);
@@ -189,6 +193,7 @@ provide('fontManager', fontManagerInstance);
 provide('canvasManager', canvasManagerInstance);
 provide('fotoManager', fotoManagerInstance);
 provide('multiImageManager', multiImageManagerInstance);
+provide('videoManager', videoManagerInstance); // ✨ NEU: VideoManager
 
 // AUDIO-ANALYSE FÜR AUDIO-REAKTIVE BILDER
 
@@ -697,6 +702,11 @@ function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
     multiImageManagerInstance.value.drawImages(ctx);
   }
 
+  // ✨ NEU: Videos zeichnen (über Bildern, aber unter Text)
+  if (videoManagerInstance.value) {
+    videoManagerInstance.value.drawVideos(ctx);
+  }
+
   if (textManagerInstance) {
     textManagerInstance.draw(ctx, canvasWidth, canvasHeight);
   }
@@ -718,6 +728,11 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
 
   if (multiImageManagerInstance.value) {
     multiImageManagerInstance.value.drawImages(ctx);
+  }
+
+  // ✨ NEU: Videos zeichnen beim Recording
+  if (videoManagerInstance.value) {
+    videoManagerInstance.value.drawVideos(ctx);
   }
 
   if (textManagerInstance) {
@@ -1098,6 +1113,15 @@ onMounted(async () => {
       fotoManager: fotoManagerInstance.value
     });
 
+    // ✨ NEU: VideoManager initialisieren
+    videoManagerInstance.value = new VideoManager(canvas, {
+      redrawCallback: () => {},
+      onVideoSelected: onObjectSelected,
+      onVideoChanged: () => {},
+      fotoManager: fotoManagerInstance.value,
+      audioElement: audioRef.value
+    });
+
     canvasManagerInstance.value = new CanvasManager(canvas, {
       redrawCallback: () => {},
       onObjectSelected: onObjectSelected,
@@ -1106,7 +1130,8 @@ onMounted(async () => {
       textManager: textManagerInstance,
       fotoManager: fotoManagerInstance.value,
       gridManager: gridManagerInstance.value,
-      multiImageManager: multiImageManagerInstance.value
+      multiImageManager: multiImageManagerInstance.value,
+      videoManager: videoManagerInstance.value // ✨ NEU: VideoManager
     });
     canvasManagerInstance.value.setupInteractionHandlers();
 

@@ -161,7 +161,7 @@
           <div class="slider-container">
             <input
               type="range"
-              v-model="animationDuration"
+              v-model.number="animationDuration"
               min="100"
               max="5000"
               step="100"
@@ -180,7 +180,7 @@
           <div class="slider-container">
             <input
               type="range"
-              v-model="imageScale"
+              v-model.number="imageScale"
               min="1"
               max="8"
               step="1"
@@ -199,7 +199,7 @@
           <div class="slider-container">
             <input
               type="range"
-              v-model="imageOffsetX"
+              v-model.number="imageOffsetX"
               min="-50"
               max="50"
               step="1"
@@ -218,7 +218,7 @@
           <div class="slider-container">
             <input
               type="range"
-              v-model="imageOffsetY"
+              v-model.number="imageOffsetY"
               min="-50"
               max="50"
               step="1"
@@ -375,7 +375,7 @@
           <div class="slider-container">
             <input
               type="range"
-              v-model="animationDuration"
+              v-model.number="animationDuration"
               min="100"
               max="5000"
               step="100"
@@ -394,7 +394,7 @@
           <div class="slider-container">
             <input
               type="range"
-              v-model="imageScale"
+              v-model.number="imageScale"
               min="1"
               max="8"
               step="1"
@@ -413,7 +413,7 @@
           <div class="slider-container">
             <input
               type="range"
-              v-model="imageOffsetX"
+              v-model.number="imageOffsetX"
               min="-50"
               max="50"
               step="1"
@@ -432,7 +432,7 @@
           <div class="slider-container">
             <input
               type="range"
-              v-model="imageOffsetY"
+              v-model.number="imageOffsetY"
               min="-50"
               max="50"
               step="1"

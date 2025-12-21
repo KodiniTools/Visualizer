@@ -261,6 +261,26 @@
           />
           <span class="seek-time-small">{{ formatTime(videoBackgroundDuration) }}</span>
         </div>
+
+        <!-- ✨ NEU: Lautstärke für Hintergrund-Video -->
+        <div class="bg-video-volume">
+          <div class="volume-header-small">
+            <svg class="volume-icon-small" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path v-if="videoBackgroundVolume > 0" d="M15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span>{{ Math.round(videoBackgroundVolume * 100) }}%</span>
+          </div>
+          <input
+            type="range"
+            :value="videoBackgroundVolume"
+            @input="updateBgVideoVolume($event.target.value)"
+            min="0"
+            max="1"
+            step="0.01"
+            class="volume-slider-small"
+          />
+        </div>
       </div>
 
       <!-- Workspace Video-Hintergrund -->
@@ -294,6 +314,26 @@
           />
           <span class="seek-time-small">{{ formatTime(wsVideoBackgroundDuration) }}</span>
         </div>
+
+        <!-- ✨ NEU: Lautstärke für Workspace-Video-Hintergrund -->
+        <div class="bg-video-volume">
+          <div class="volume-header-small">
+            <svg class="volume-icon-small" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path v-if="wsVideoBackgroundVolume > 0" d="M15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span>{{ Math.round(wsVideoBackgroundVolume * 100) }}%</span>
+          </div>
+          <input
+            type="range"
+            :value="wsVideoBackgroundVolume"
+            @input="updateWsBgVideoVolume($event.target.value)"
+            min="0"
+            max="1"
+            step="0.01"
+            class="volume-slider-small"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -319,7 +359,7 @@ const selectedAnimation = ref('none');
 const animationDuration = ref(500);
 const videoScale = ref(3);
 const videoLoop = ref(true);
-const videoMuted = ref(true);
+const videoMuted = ref(false); // ✅ FIX: Standard ist jetzt mit Ton
 
 // ✨ NEU: Reaktive Video-Zeit-Updates
 const videoTimeUpdateKey = ref(0);
@@ -355,10 +395,12 @@ const selectedVideoDuration = computed(() => {
   return video.videoElement.duration || 0;
 });
 
-// ✨ NEU: Video-Lautstärke
+// ✨ NEU: Video-Lautstärke (reaktiv mit timeUpdateKey)
 const selectedVideoVolume = computed(() => {
+  videoTimeUpdateKey.value; // Trigger reactivity
   const video = selectedCanvasVideo.value;
   if (!video || !video.videoElement) return 1;
+  if (video.videoElement.muted) return 0;
   return video.videoElement.volume || 1;
 });
 
@@ -417,6 +459,23 @@ const wsVideoBackgroundDuration = computed(() => {
   const wsvbg = workspaceVideoBackground.value;
   if (!wsvbg || !wsvbg.videoElement) return 0;
   return wsvbg.videoElement.duration || 0;
+});
+
+// ✨ NEU: Lautstärke für Hintergrund-Videos
+const videoBackgroundVolume = computed(() => {
+  videoTimeUpdateKey.value; // Trigger reactivity
+  const vbg = videoBackground.value;
+  if (!vbg || !vbg.videoElement) return 1;
+  if (vbg.videoElement.muted) return 0;
+  return vbg.videoElement.volume || 1;
+});
+
+const wsVideoBackgroundVolume = computed(() => {
+  videoTimeUpdateKey.value; // Trigger reactivity
+  const wsvbg = workspaceVideoBackground.value;
+  if (!wsvbg || !wsvbg.videoElement) return 1;
+  if (wsvbg.videoElement.muted) return 0;
+  return wsvbg.videoElement.volume || 1;
 });
 
 // Methods
@@ -593,12 +652,17 @@ function setVideoAsBackground() {
   bgVideo.src = videoData.src;
   bgVideo.crossOrigin = 'anonymous';
   bgVideo.preload = 'auto';
-  bgVideo.muted = true;
+  bgVideo.muted = videoMuted.value; // ✅ FIX: Nutze Einstellung statt immer muted
   bgVideo.loop = true;
+  bgVideo.volume = 1;
 
   bgVideo.onloadeddata = () => {
     cm.setVideoBackground(bgVideo);
-    console.log('✅ Video als Hintergrund gesetzt');
+    // ✅ NEU: Audio mit Recording verbinden
+    if (!bgVideo.muted && window.connectVideoToRecording) {
+      window.connectVideoToRecording(bgVideo, bgVideo.volume);
+    }
+    console.log('✅ Video als Hintergrund gesetzt, Muted:', bgVideo.muted);
   };
 
   bgVideo.onerror = () => {
@@ -630,12 +694,17 @@ function setVideoAsWorkspaceBackground() {
   wsBgVideo.src = videoData.src;
   wsBgVideo.crossOrigin = 'anonymous';
   wsBgVideo.preload = 'auto';
-  wsBgVideo.muted = true;
+  wsBgVideo.muted = videoMuted.value; // ✅ FIX: Nutze Einstellung statt immer muted
   wsBgVideo.loop = true;
+  wsBgVideo.volume = 1;
 
   wsBgVideo.onloadeddata = () => {
     cm.setWorkspaceVideoBackground(wsBgVideo);
-    console.log('✅ Video als Workspace-Hintergrund gesetzt');
+    // ✅ NEU: Audio mit Recording verbinden
+    if (!wsBgVideo.muted && window.connectVideoToRecording) {
+      window.connectVideoToRecording(wsBgVideo, wsBgVideo.volume);
+    }
+    console.log('✅ Video als Workspace-Hintergrund gesetzt, Muted:', wsBgVideo.muted);
   };
 
   wsBgVideo.onerror = () => {
@@ -731,8 +800,20 @@ function updateVideoVolume(value) {
   if (!video || !video.videoElement) return;
 
   const volume = parseFloat(value);
+
+  // ✅ FIX: Zuerst muted deaktivieren, dann Lautstärke setzen
+  if (volume > 0) {
+    video.videoElement.muted = false;
+  }
   video.videoElement.volume = volume;
-  video.videoElement.muted = volume === 0;
+  if (volume === 0) {
+    video.videoElement.muted = true;
+  }
+
+  // Mit Recording-Graph verbinden falls nicht schon verbunden
+  if (volume > 0 && window.connectVideoToRecording) {
+    window.connectVideoToRecording(video.videoElement, volume);
+  }
 
   // Lautstärke auch im Recording-Graph aktualisieren
   if (window.setVideoVolume) {
@@ -741,6 +822,7 @@ function updateVideoVolume(value) {
 
   // Trigger reactivity update
   videoTimeUpdateKey.value++;
+  console.log('🔊 Canvas-Video Lautstärke:', Math.round(volume * 100) + '%');
 }
 
 // ✨ NEU: Video mit Recording verbinden wenn abgespielt
@@ -799,6 +881,51 @@ function seekForwardBg(seconds) {
   if (!vbg || !vbg.videoElement) return;
   const duration = vbg.videoElement.duration || 0;
   vbg.videoElement.currentTime = Math.min(duration, vbg.videoElement.currentTime + seconds);
+}
+
+// ✨ NEU: Hintergrund-Video Lautstärke
+function updateBgVideoVolume(value) {
+  const vbg = videoBackground.value;
+  if (!vbg || !vbg.videoElement) return;
+
+  const volume = parseFloat(value);
+  vbg.videoElement.volume = volume;
+  vbg.videoElement.muted = volume === 0;
+
+  // Mit Recording-Graph verbinden falls nicht schon verbunden
+  if (volume > 0 && window.connectVideoToRecording) {
+    window.connectVideoToRecording(vbg.videoElement, volume);
+  }
+
+  // Lautstärke im Recording-Graph aktualisieren
+  if (window.setVideoVolume) {
+    window.setVideoVolume(vbg.videoElement, volume);
+  }
+
+  videoTimeUpdateKey.value++;
+  console.log('🔊 Hintergrund-Video Lautstärke:', Math.round(volume * 100) + '%');
+}
+
+function updateWsBgVideoVolume(value) {
+  const wsvbg = workspaceVideoBackground.value;
+  if (!wsvbg || !wsvbg.videoElement) return;
+
+  const volume = parseFloat(value);
+  wsvbg.videoElement.volume = volume;
+  wsvbg.videoElement.muted = volume === 0;
+
+  // Mit Recording-Graph verbinden falls nicht schon verbunden
+  if (volume > 0 && window.connectVideoToRecording) {
+    window.connectVideoToRecording(wsvbg.videoElement, volume);
+  }
+
+  // Lautstärke im Recording-Graph aktualisieren
+  if (window.setVideoVolume) {
+    window.setVideoVolume(wsvbg.videoElement, volume);
+  }
+
+  videoTimeUpdateKey.value++;
+  console.log('🔊 Workspace-Hintergrund-Video Lautstärke:', Math.round(volume * 100) + '%');
 }
 
 // ✨ NEU: Workspace-Video-Hintergrund Seek
@@ -1023,7 +1150,7 @@ onUnmounted(() => {
   position: absolute;
   top: 4px;
   right: 4px;
-  opacity: 0;
+  opacity: 0.6;
   transition: opacity 0.2s;
 }
 
@@ -1598,5 +1725,76 @@ onUnmounted(() => {
   font-family: monospace;
   color: var(--text-secondary, #9EBEC1);
   min-width: 35px;
+}
+
+/* ✨ NEU: Hintergrund-Video Lautstärke */
+.bg-video-volume {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(110, 168, 254, 0.2);
+}
+
+.volume-header-small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 10px;
+  color: var(--text-secondary, #9EBEC1);
+}
+
+.volume-icon-small {
+  width: 14px;
+  height: 14px;
+  color: #6ea8fe;
+}
+
+.volume-slider-small {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(110, 168, 254, 0.3);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider-small::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #6ea8fe;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.volume-slider-small::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: #6ea8fe;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
+.bg-video-item.workspace .bg-video-volume {
+  border-top-color: rgba(255, 215, 0, 0.2);
+}
+
+.bg-video-item.workspace .volume-icon-small {
+  color: #ffd700;
+}
+
+.bg-video-item.workspace .volume-slider-small {
+  background: rgba(255, 215, 0, 0.3);
+}
+
+.bg-video-item.workspace .volume-slider-small::-webkit-slider-thumb {
+  background: #ffd700;
+}
+
+.bg-video-item.workspace .volume-slider-small::-moz-range-thumb {
+  background: #ffd700;
 }
 </style>

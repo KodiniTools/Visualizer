@@ -1084,13 +1084,14 @@ async function switchRecordingSource(source) {
     }
 
     // ✅ FIX: Gain-Werte direkt setzen (nicht nur mit setTargetAtTime)
-    // Erst sofort auf 0/1 setzen, dann sanft übergehen
+    // ✨ WICHTIG: Winzigen Gain statt 0 verwenden, um Audio-Pfad aktiv zu halten!
+    const SILENT_GAIN = 0.0001;
     const now = audioContext.currentTime;
 
-    // Player sofort stumm schalten
+    // Player fast stumm schalten (aber aktiv halten)
     recordingGain.gain.cancelScheduledValues(now);
     recordingGain.gain.setValueAtTime(recordingGain.gain.value, now);
-    recordingGain.gain.linearRampToValueAtTime(0, now + 0.05);
+    recordingGain.gain.linearRampToValueAtTime(SILENT_GAIN, now + 0.05);
 
     // Mic sofort aktivieren
     micRecordingGain.gain.cancelScheduledValues(now);
@@ -1098,17 +1099,19 @@ async function switchRecordingSource(source) {
     micRecordingGain.gain.linearRampToValueAtTime(1, now + 0.05);
 
     currentRecordingSource = 'microphone';
-    console.log('[App] ✅ Recording-Quelle: MIKROFON');
-    console.log('[App] Neue Gain-Werte (nach 50ms) - Player: 0, Mic: 1');
+    console.log('[App] ✅ Recording-Quelle: MIKROFON (Player bleibt aktiv mit Gain', SILENT_GAIN, ')');
 
   } else {
     // Player aktivieren
     const now = audioContext.currentTime;
 
-    // Mic sofort stumm schalten (aber VERBUNDEN lassen für späteren Wechsel!)
+    // ✨ WICHTIG: Winzigen Gain statt 0 verwenden, um Audio-Pfad aktiv zu halten!
+    const SILENT_GAIN = 0.0001;
+
+    // Mic fast stumm schalten (aber VERBUNDEN und AKTIV lassen für späteren Wechsel!)
     micRecordingGain.gain.cancelScheduledValues(now);
     micRecordingGain.gain.setValueAtTime(micRecordingGain.gain.value, now);
-    micRecordingGain.gain.linearRampToValueAtTime(0, now + 0.05);
+    micRecordingGain.gain.linearRampToValueAtTime(SILENT_GAIN, now + 0.05);
 
     // Player sofort aktivieren
     recordingGain.gain.cancelScheduledValues(now);
@@ -1122,11 +1125,10 @@ async function switchRecordingSource(source) {
     }
 
     // ✨ WICHTIG: Recording-Mic-Stream NICHT stoppen!
-    // Wir lassen ihn verbunden (mit Gain 0), damit wir später wieder zu Mic wechseln können.
-    // disconnectMicFromRecordingChain(); // NICHT mehr!
+    // Wir lassen ihn verbunden (mit minimalem Gain), damit wir später wieder zu Mic wechseln können.
 
     currentRecordingSource = 'player';
-    console.log('[App] ✅ Recording-Quelle: PLAYER (Mic bleibt verbunden mit Gain 0)');
+    console.log('[App] ✅ Recording-Quelle: PLAYER (Mic bleibt aktiv mit Gain', SILENT_GAIN, ')');
   }
 
   return true;
@@ -1151,7 +1153,7 @@ async function createCombinedAudioStream() {
 
   // ✨ WICHTIG: IMMER Mic-Recording-Stream VOR dem MediaRecorder-Start einrichten!
   // Der MediaRecorder erkennt neue Audio-Quellen nicht, die NACH dem Start verbunden werden.
-  // Deshalb verbinden wir den Mic IMMER, aber mit Gain 0 wenn Player aktiv ist.
+  // Deshalb verbinden wir den Mic IMMER, aber mit minimalem Gain wenn Player aktiv ist.
   console.log('[App] Bereite Mic-Recording-Pfad vor (für Live-Umschaltung)...');
   const micConnected = await connectMicToRecordingChain();
 
@@ -1159,18 +1161,27 @@ async function createCombinedAudioStream() {
     console.warn('[App] Mic-Recording-Stream konnte nicht verbunden werden - Live-Umschaltung auf Mic nicht möglich');
   } else {
     console.log('[App] ✅ Mic-Recording-Pfad vorbereitet');
+
+    // ✨ WICHTIG: Kurz warten, damit Audio-Samples durch den Graph fließen
+    // Manche Browser aktivieren MediaStreamSource erst wenn Samples fließen
+    await new Promise(resolve => setTimeout(resolve, 100));
+    console.log('[App] Audio-Graph "aufgewärmt"');
   }
+
+  // ✨ WICHTIG: Verwende winzigen Gain statt 0, um Audio-Pfad aktiv zu halten!
+  // Gain 0 kann dazu führen, dass der Browser den Pfad optimiert/deaktiviert
+  const SILENT_GAIN = 0.0001; // Praktisch unhörbar, aber Audio fließt
 
   // Initialen Zustand basierend auf aktueller Audioquelle setzen
   if (audioSourceStore.isMicrophoneActive) {
     console.log('[App] Mikrofon aktiv - setze Mic als Recording-Quelle...');
-    recordingGain.gain.value = 0;
+    recordingGain.gain.value = SILENT_GAIN; // Player fast stumm
     micRecordingGain.gain.value = 1;
     currentRecordingSource = 'microphone';
   } else {
     console.log('[App] Player aktiv - setze Player als Recording-Quelle...');
     recordingGain.gain.value = 1;
-    micRecordingGain.gain.value = 0; // Mic stumm, aber VERBUNDEN!
+    micRecordingGain.gain.value = SILENT_GAIN; // Mic fast stumm, aber AKTIV!
     currentRecordingSource = 'player';
   }
 

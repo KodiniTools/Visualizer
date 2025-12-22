@@ -1020,6 +1020,202 @@
             />
             <span class="effect-value" ref="effectOrbitValueRef">50%</span>
           </div>
+
+          <!-- ═══════════════════════════════════════════════════════════ -->
+          <!-- ✨ NEUE EFFEKTE -->
+          <!-- ═══════════════════════════════════════════════════════════ -->
+
+          <!-- Kontrast -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectContrastEnabledRef"
+                @change="(e) => onEffectToggle('contrast', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">🔲 Kontrast</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="60"
+              step="5"
+              ref="effectContrastIntensityRef"
+              @input="(e) => onEffectIntensityChange('contrast', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectContrastValueRef">60%</span>
+          </div>
+
+          <!-- Graustufen -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectGrayscaleEnabledRef"
+                @change="(e) => onEffectToggle('grayscale', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">⬛ Graustufen</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="80"
+              step="5"
+              ref="effectGrayscaleIntensityRef"
+              @input="(e) => onEffectIntensityChange('grayscale', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectGrayscaleValueRef">80%</span>
+          </div>
+
+          <!-- Sepia -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectSepiaEnabledRef"
+                @change="(e) => onEffectToggle('sepia', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">🟤 Sepia (Vintage)</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="70"
+              step="5"
+              ref="effectSepiaIntensityRef"
+              @input="(e) => onEffectIntensityChange('sepia', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectSepiaValueRef">70%</span>
+          </div>
+
+          <!-- Invertieren -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectInvertEnabledRef"
+                @change="(e) => onEffectToggle('invert', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">🔄 Invertieren</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              step="5"
+              ref="effectInvertIntensityRef"
+              @input="(e) => onEffectIntensityChange('invert', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectInvertValueRef">50%</span>
+          </div>
+
+          <!-- Verzerrung (Skew) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectSkewEnabledRef"
+                @change="(e) => onEffectToggle('skew', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">📐 Verzerrung</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="40"
+              step="5"
+              ref="effectSkewIntensityRef"
+              @input="(e) => onEffectIntensityChange('skew', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectSkewValueRef">40%</span>
+          </div>
+
+          <!-- Strobe (Blitz) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectStrobeEnabledRef"
+                @change="(e) => onEffectToggle('strobe', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">⚡ Strobe (Blitz)</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="70"
+              step="5"
+              ref="effectStrobeIntensityRef"
+              @input="(e) => onEffectIntensityChange('strobe', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectStrobeValueRef">70%</span>
+          </div>
+
+          <!-- Chromatische Aberration (Glitch) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectChromaticEnabledRef"
+                @change="(e) => onEffectToggle('chromatic', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">🌈 RGB-Glitch</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="60"
+              step="5"
+              ref="effectChromaticIntensityRef"
+              @input="(e) => onEffectIntensityChange('chromatic', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectChromaticValueRef">60%</span>
+          </div>
+
+          <!-- Perspektive (3D-Kipp) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectPerspectiveEnabledRef"
+                @change="(e) => onEffectToggle('perspective', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">🎲 3D-Perspektive</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              step="5"
+              ref="effectPerspectiveIntensityRef"
+              @input="(e) => onEffectIntensityChange('perspective', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectPerspectiveValueRef">50%</span>
+          </div>
         </div>
 
         <!-- Audio-Level Anzeige -->
@@ -1163,6 +1359,32 @@ const effectSwingValueRef = ref(null);
 const effectOrbitEnabledRef = ref(null);
 const effectOrbitIntensityRef = ref(null);
 const effectOrbitValueRef = ref(null);
+
+// ✨ NEUE EFFEKTE - Refs
+const effectContrastEnabledRef = ref(null);
+const effectContrastIntensityRef = ref(null);
+const effectContrastValueRef = ref(null);
+const effectGrayscaleEnabledRef = ref(null);
+const effectGrayscaleIntensityRef = ref(null);
+const effectGrayscaleValueRef = ref(null);
+const effectSepiaEnabledRef = ref(null);
+const effectSepiaIntensityRef = ref(null);
+const effectSepiaValueRef = ref(null);
+const effectInvertEnabledRef = ref(null);
+const effectInvertIntensityRef = ref(null);
+const effectInvertValueRef = ref(null);
+const effectSkewEnabledRef = ref(null);
+const effectSkewIntensityRef = ref(null);
+const effectSkewValueRef = ref(null);
+const effectStrobeEnabledRef = ref(null);
+const effectStrobeIntensityRef = ref(null);
+const effectStrobeValueRef = ref(null);
+const effectChromaticEnabledRef = ref(null);
+const effectChromaticIntensityRef = ref(null);
+const effectChromaticValueRef = ref(null);
+const effectPerspectiveEnabledRef = ref(null);
+const effectPerspectiveIntensityRef = ref(null);
+const effectPerspectiveValueRef = ref(null);
 
 // ✨ NEU: Gespeicherte Audio-Reaktiv Einstellungen
 const savedAudioReactiveSettings = ref(null);
@@ -1578,6 +1800,15 @@ function getEffectValueRef(effectName) {
     case 'bounce': return effectBounceValueRef;
     case 'swing': return effectSwingValueRef;
     case 'orbit': return effectOrbitValueRef;
+    // ✨ NEUE EFFEKTE
+    case 'contrast': return effectContrastValueRef;
+    case 'grayscale': return effectGrayscaleValueRef;
+    case 'sepia': return effectSepiaValueRef;
+    case 'invert': return effectInvertValueRef;
+    case 'skew': return effectSkewValueRef;
+    case 'strobe': return effectStrobeValueRef;
+    case 'chromatic': return effectChromaticValueRef;
+    case 'perspective': return effectPerspectiveValueRef;
     default: return null;
   }
 }
@@ -1693,7 +1924,9 @@ function loadAudioReactiveSettingsToUI() {
 
   // Alle Effekte laden
   const effects = audioReactive.effects || {};
-  const effectNames = ['hue', 'brightness', 'saturation', 'scale', 'glow', 'border', 'blur', 'rotation', 'shake', 'bounce', 'swing', 'orbit'];
+  const effectNames = ['hue', 'brightness', 'saturation', 'scale', 'glow', 'border', 'blur', 'rotation', 'shake', 'bounce', 'swing', 'orbit',
+    // ✨ NEUE EFFEKTE
+    'contrast', 'grayscale', 'sepia', 'invert', 'skew', 'strobe', 'chromatic', 'perspective'];
 
   effectNames.forEach(effectName => {
     const effect = effects[effectName] || { enabled: false, intensity: 80 };
@@ -1730,6 +1963,15 @@ function getEffectEnabledRef(effectName) {
     case 'bounce': return effectBounceEnabledRef;
     case 'swing': return effectSwingEnabledRef;
     case 'orbit': return effectOrbitEnabledRef;
+    // ✨ NEUE EFFEKTE
+    case 'contrast': return effectContrastEnabledRef;
+    case 'grayscale': return effectGrayscaleEnabledRef;
+    case 'sepia': return effectSepiaEnabledRef;
+    case 'invert': return effectInvertEnabledRef;
+    case 'skew': return effectSkewEnabledRef;
+    case 'strobe': return effectStrobeEnabledRef;
+    case 'chromatic': return effectChromaticEnabledRef;
+    case 'perspective': return effectPerspectiveEnabledRef;
     default: return null;
   }
 }
@@ -1751,6 +1993,15 @@ function getEffectIntensityRef(effectName) {
     case 'bounce': return effectBounceIntensityRef;
     case 'swing': return effectSwingIntensityRef;
     case 'orbit': return effectOrbitIntensityRef;
+    // ✨ NEUE EFFEKTE
+    case 'contrast': return effectContrastIntensityRef;
+    case 'grayscale': return effectGrayscaleIntensityRef;
+    case 'sepia': return effectSepiaIntensityRef;
+    case 'invert': return effectInvertIntensityRef;
+    case 'skew': return effectSkewIntensityRef;
+    case 'strobe': return effectStrobeIntensityRef;
+    case 'chromatic': return effectChromaticIntensityRef;
+    case 'perspective': return effectPerspectiveIntensityRef;
     default: return null;
   }
 }
@@ -1851,6 +2102,15 @@ function loadAudioReactiveSettings(imageData) {
     loadEffect('bounce', effectBounceEnabledRef, effectBounceIntensityRef, effectBounceValueRef, 50);
     loadEffect('swing', effectSwingEnabledRef, effectSwingIntensityRef, effectSwingValueRef, 50);
     loadEffect('orbit', effectOrbitEnabledRef, effectOrbitIntensityRef, effectOrbitValueRef, 50);
+    // ✨ NEUE EFFEKTE
+    loadEffect('contrast', effectContrastEnabledRef, effectContrastIntensityRef, effectContrastValueRef, 60);
+    loadEffect('grayscale', effectGrayscaleEnabledRef, effectGrayscaleIntensityRef, effectGrayscaleValueRef, 80);
+    loadEffect('sepia', effectSepiaEnabledRef, effectSepiaIntensityRef, effectSepiaValueRef, 70);
+    loadEffect('invert', effectInvertEnabledRef, effectInvertIntensityRef, effectInvertValueRef, 50);
+    loadEffect('skew', effectSkewEnabledRef, effectSkewIntensityRef, effectSkewValueRef, 40);
+    loadEffect('strobe', effectStrobeEnabledRef, effectStrobeIntensityRef, effectStrobeValueRef, 70);
+    loadEffect('chromatic', effectChromaticEnabledRef, effectChromaticIntensityRef, effectChromaticValueRef, 60);
+    loadEffect('perspective', effectPerspectiveEnabledRef, effectPerspectiveIntensityRef, effectPerspectiveValueRef, 50);
 
     stopAudioLevelIndicator();
     return;
@@ -1877,6 +2137,15 @@ function loadAudioReactiveSettings(imageData) {
   loadEffect('bounce', effectBounceEnabledRef, effectBounceIntensityRef, effectBounceValueRef, 50);
   loadEffect('swing', effectSwingEnabledRef, effectSwingIntensityRef, effectSwingValueRef, 50);
   loadEffect('orbit', effectOrbitEnabledRef, effectOrbitIntensityRef, effectOrbitValueRef, 50);
+  // ✨ NEUE EFFEKTE
+  loadEffect('contrast', effectContrastEnabledRef, effectContrastIntensityRef, effectContrastValueRef, 60);
+  loadEffect('grayscale', effectGrayscaleEnabledRef, effectGrayscaleIntensityRef, effectGrayscaleValueRef, 80);
+  loadEffect('sepia', effectSepiaEnabledRef, effectSepiaIntensityRef, effectSepiaValueRef, 70);
+  loadEffect('invert', effectInvertEnabledRef, effectInvertIntensityRef, effectInvertValueRef, 50);
+  loadEffect('skew', effectSkewEnabledRef, effectSkewIntensityRef, effectSkewValueRef, 40);
+  loadEffect('strobe', effectStrobeEnabledRef, effectStrobeIntensityRef, effectStrobeValueRef, 70);
+  loadEffect('chromatic', effectChromaticEnabledRef, effectChromaticIntensityRef, effectChromaticValueRef, 60);
+  loadEffect('perspective', effectPerspectiveEnabledRef, effectPerspectiveIntensityRef, effectPerspectiveValueRef, 50);
 
   if (ar.enabled) {
     startAudioLevelIndicator();

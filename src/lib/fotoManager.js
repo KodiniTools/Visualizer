@@ -54,7 +54,16 @@ export class FotoManager {
                     shake: { enabled: false, intensity: 50 },     // Erschütterung bei Bass
                     bounce: { enabled: false, intensity: 50 },    // Vertikales Hüpfen
                     swing: { enabled: false, intensity: 50 },     // Horizontales Pendeln
-                    orbit: { enabled: false, intensity: 50 }      // Kreisbewegung
+                    orbit: { enabled: false, intensity: 50 },     // Kreisbewegung
+                    // ✨ NEUE EFFEKTE
+                    contrast: { enabled: false, intensity: 60 },  // Kontrast-Pulsieren
+                    grayscale: { enabled: false, intensity: 80 }, // Schwarz-Weiß Überblendung
+                    sepia: { enabled: false, intensity: 70 },     // Vintage/Sepia Look
+                    invert: { enabled: false, intensity: 50 },    // Farbinversion bei Beats
+                    skew: { enabled: false, intensity: 40 },      // Scheren/Verzerrung
+                    strobe: { enabled: false, intensity: 70 },    // Blitz-Effekt bei Peaks
+                    chromatic: { enabled: false, intensity: 60 }, // RGB-Verschiebung (Glitch)
+                    perspective: { enabled: false, intensity: 50 } // 3D-Kipp-Effekt
                 },
                 source: 'bass',              // 'bass', 'mid', 'treble', 'volume'
                 smoothing: 50                // 0-100% Glättung (verhindert Flackern)
@@ -95,7 +104,16 @@ export class FotoManager {
                 shake: { ...defaultAR.effects.shake },
                 bounce: { ...defaultAR.effects.bounce },
                 swing: { ...defaultAR.effects.swing },
-                orbit: { ...defaultAR.effects.orbit }
+                orbit: { ...defaultAR.effects.orbit },
+                // ✨ NEUE EFFEKTE
+                contrast: { ...defaultAR.effects.contrast },
+                grayscale: { ...defaultAR.effects.grayscale },
+                sepia: { ...defaultAR.effects.sepia },
+                invert: { ...defaultAR.effects.invert },
+                skew: { ...defaultAR.effects.skew },
+                strobe: { ...defaultAR.effects.strobe },
+                chromatic: { ...defaultAR.effects.chromatic },
+                perspective: { ...defaultAR.effects.perspective }
             },
             source: defaultAR.source,
             smoothing: defaultAR.smoothing
@@ -125,7 +143,16 @@ export class FotoManager {
                     shake: { ...(oldSettings.effects.shake || { enabled: false, intensity: 50 }) },
                     bounce: { ...(oldSettings.effects.bounce || { enabled: false, intensity: 50 }) },
                     swing: { ...(oldSettings.effects.swing || { enabled: false, intensity: 50 }) },
-                    orbit: { ...(oldSettings.effects.orbit || { enabled: false, intensity: 50 }) }
+                    orbit: { ...(oldSettings.effects.orbit || { enabled: false, intensity: 50 }) },
+                    // ✨ NEUE EFFEKTE (mit Migration)
+                    contrast: { ...(oldSettings.effects.contrast || { enabled: false, intensity: 60 }) },
+                    grayscale: { ...(oldSettings.effects.grayscale || { enabled: false, intensity: 80 }) },
+                    sepia: { ...(oldSettings.effects.sepia || { enabled: false, intensity: 70 }) },
+                    invert: { ...(oldSettings.effects.invert || { enabled: false, intensity: 50 }) },
+                    skew: { ...(oldSettings.effects.skew || { enabled: false, intensity: 40 }) },
+                    strobe: { ...(oldSettings.effects.strobe || { enabled: false, intensity: 70 }) },
+                    chromatic: { ...(oldSettings.effects.chromatic || { enabled: false, intensity: 60 }) },
+                    perspective: { ...(oldSettings.effects.perspective || { enabled: false, intensity: 50 }) }
                 },
                 source: oldSettings.source || 'bass',
                 smoothing: oldSettings.smoothing ?? 50

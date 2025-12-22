@@ -420,9 +420,24 @@ const stopVisualizerLoop = () => {
 // ✅ KRITISCHER FIX: Canvas-Initialisierungsfunktion
 // Diese Funktion initialisiert den Canvas und alle Manager-Instanzen.
 // Sie wird aufgerufen, sobald der Canvas verfügbar ist.
-function initializeCanvas(canvas) {
-  if (canvasInitialized || !canvas) {
+function initializeCanvas(canvasParam) {
+  if (canvasInitialized) {
     return false;
+  }
+
+  // ✅ KRITISCHER FIX: Verwende IMMER das Canvas aus dem DOM
+  // Bei einem direkten Refresh kann die Ref auf ein anderes Element zeigen
+  const domCanvas = document.querySelector('.canvas-wrapper canvas');
+  const canvas = domCanvas || canvasParam;
+
+  if (!canvas) {
+    console.warn('[App] ⚠️ Kein Canvas gefunden - weder im DOM noch als Parameter');
+    return false;
+  }
+
+  // Prüfe ob DOM-Canvas und Parameter-Canvas unterschiedlich sind
+  if (domCanvas && canvasParam && domCanvas !== canvasParam) {
+    console.warn('[App] ⚠️ DOM-Canvas und Ref-Canvas sind unterschiedlich! Verwende DOM-Canvas.');
   }
 
   console.log('[App] ✅ Canvas-Initialisierung wird durchgeführt...');
@@ -878,18 +893,34 @@ let drawDebugCounter = 0;
 
 function draw() {
   animationFrameId = requestAnimationFrame(draw);
-  const canvas = canvasRef.value;
+
+  // ✅ KRITISCHER FIX: Hole Canvas DIREKT aus dem DOM
+  // Bei einem direkten Refresh kann canvasRef.value auf ein anderes Element zeigen
+  // als das tatsächlich sichtbare Canvas im DOM.
+  const domCanvas = document.querySelector('.canvas-wrapper canvas');
+  const refCanvas = canvasRef.value;
+
+  // Verwende das DOM-Canvas, falls verfügbar, sonst das Ref-Canvas
+  const canvas = domCanvas || refCanvas;
   if (!canvas) return;
 
   // 🔍 DEBUG: Einmal pro Sekunde Status ausgeben
   if (++drawDebugCounter % 60 === 1) {
+    const isSameCanvas = domCanvas === refCanvas;
     console.log('[Draw Debug]', {
       canvasWidth: canvas.width,
       canvasHeight: canvas.height,
       hasCanvasManager: !!canvasManagerInstance.value,
       hasMultiImageManager: !!multiImageManagerInstance.value,
-      imageCount: multiImageManagerInstance.value?.images?.length || 0
+      imageCount: multiImageManagerInstance.value?.images?.length || 0,
+      isSameCanvas, // ✅ KRITISCH: Sollte TRUE sein!
+      usingDomCanvas: canvas === domCanvas
     });
+
+    // ✅ FIX: Wenn die Canvas-Elemente unterschiedlich sind, aktualisiere die Ref
+    if (!isSameCanvas && domCanvas) {
+      console.warn('[Draw] ⚠️ Canvas-Referenz war inkorrekt! Verwende DOM-Canvas.');
+    }
   }
 
   if (canvas.width > 0 && canvas.height > 0) {

@@ -788,7 +788,21 @@ function onObjectSelected(selectedObject) {
   }
 }
 
+let renderDebugCounter = 0;
 function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
+  // 🔍 DEBUG: Einmal pro Sekunde Status ausgeben
+  if (++renderDebugCounter % 60 === 1) {
+    const imgCount = multiImageManagerInstance.value?.images?.length || 0;
+    const bgType = canvasManagerInstance.value?.background;
+    console.log('[Render Debug]', {
+      canvasWidth,
+      canvasHeight,
+      hasCanvasManager: !!canvasManagerInstance.value,
+      background: typeof bgType === 'string' ? bgType : (bgType ? 'image' : 'null'),
+      imageCount: imgCount
+    });
+  }
+
   if (canvasManagerInstance.value) {
     canvasManagerInstance.value.drawScene(ctx);
   } else {
@@ -844,11 +858,23 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
 
 // Debug counter for microphone logging
 let micDebugCounter = 0;
+let drawDebugCounter = 0;
 
 function draw() {
   animationFrameId = requestAnimationFrame(draw);
   const canvas = canvasRef.value;
   if (!canvas) return;
+
+  // 🔍 DEBUG: Einmal pro Sekunde Status ausgeben
+  if (++drawDebugCounter % 60 === 1) {
+    console.log('[Draw Debug]', {
+      canvasWidth: canvas.width,
+      canvasHeight: canvas.height,
+      hasCanvasManager: !!canvasManagerInstance.value,
+      hasMultiImageManager: !!multiImageManagerInstance.value,
+      imageCount: multiImageManagerInstance.value?.images?.length || 0
+    });
+  }
 
   if (canvas.width > 0 && canvas.height > 0) {
     const ctx = canvas.getContext('2d');

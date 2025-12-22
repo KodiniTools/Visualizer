@@ -410,23 +410,45 @@ export class VideoManager {
 
     /**
      * Startet die Wiedergabe eines Videos
+     * ✅ VERBESSERT: Besseres Error-Handling und sofortige State-Updates
      */
     playVideo(videoId) {
         const video = this.videos.find(v => v.id === videoId);
-        if (!video || !video.videoElement) return false;
+        if (!video || !video.videoElement) {
+            console.warn('❌ Video nicht gefunden oder kein videoElement:', videoId);
+            return false;
+        }
 
-        video.videoElement.play().then(() => {
-            video.isPlaying = true;
-            console.log('▶️ Video gestartet:', videoId);
-        }).catch(err => {
-            console.error('❌ Video-Wiedergabe fehlgeschlagen:', err);
-        });
+        // ✅ Sofort State setzen für bessere UI-Reaktivität
+        video.isPlaying = true;
 
+        // ✅ Video abspielen
+        const playPromise = video.videoElement.play();
+
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log('▶️ Video gestartet:', videoId);
+                this.redrawCallback();
+            }).catch(err => {
+                // Bei Fehler State zurücksetzen
+                video.isPlaying = false;
+                console.error('❌ Video-Wiedergabe fehlgeschlagen:', err.message);
+
+                // ✅ Bei Autoplay-Policy: User muss erst interagieren
+                if (err.name === 'NotAllowedError') {
+                    console.warn('⚠️ Autoplay blockiert - User-Interaktion erforderlich');
+                }
+                this.redrawCallback();
+            });
+        }
+
+        this.redrawCallback();
         return true;
     }
 
     /**
      * Pausiert ein Video
+     * ✅ VERBESSERT: Callback für UI-Update
      */
     pauseVideo(videoId) {
         const video = this.videos.find(v => v.id === videoId);
@@ -436,24 +458,31 @@ export class VideoManager {
         video.isPlaying = false;
         console.log('⏸️ Video pausiert:', videoId);
 
+        this.redrawCallback();
         return true;
     }
 
     /**
      * Startet alle Videos
+     * ✅ VERBESSERT: Callback für UI-Update
      */
     playAll() {
         this.videos.forEach(video => {
             if (video.videoElement) {
-                video.videoElement.play().catch(() => {});
                 video.isPlaying = true;
+                video.videoElement.play().catch(err => {
+                    video.isPlaying = false;
+                    console.warn('Video play fehlgeschlagen:', err.message);
+                });
             }
         });
         this.isPlaying = true;
+        this.redrawCallback();
     }
 
     /**
      * Pausiert alle Videos
+     * ✅ VERBESSERT: Callback für UI-Update
      */
     pauseAll() {
         this.videos.forEach(video => {
@@ -463,6 +492,7 @@ export class VideoManager {
             }
         });
         this.isPlaying = false;
+        this.redrawCallback();
     }
 
     /**

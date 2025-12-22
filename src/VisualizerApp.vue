@@ -1267,6 +1267,16 @@ function connectVideoToRecording(videoElement, volume = 1) {
     console.log('[App] AudioContext für Video erstellt');
   }
 
+  // ✅ KRITISCHER FIX: AudioContext MUSS resumed sein für Video-Audio!
+  // Sobald ein MediaElementSource erstellt wird, läuft das Audio NUR über den AudioContext.
+  // Bei suspended AudioContext gibt es keinen Ton.
+  if (audioContext.state === 'suspended') {
+    console.log('[App] AudioContext für Video resumed...');
+    audioContext.resume().catch(e => {
+      console.warn('[App] AudioContext resume für Video fehlgeschlagen:', e.message);
+    });
+  }
+
   // ✅ FIX: recordingMixer initialisieren falls noch nicht vorhanden
   if (!recordingMixer) {
     recordingMixer = audioContext.createGain();

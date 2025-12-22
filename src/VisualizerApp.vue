@@ -794,13 +794,29 @@ function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
   if (++renderDebugCounter % 60 === 1) {
     const imgCount = multiImageManagerInstance.value?.images?.length || 0;
     const bgType = canvasManagerInstance.value?.background;
+
+    // 🔍 KRITISCH: Prüfe ob ctx auf das richtige Canvas zeigt
+    const ctxCanvas = ctx.canvas;
+    const refCanvas = canvasRef.value;
+    const isSameCanvas = ctxCanvas === refCanvas;
+
     console.log('[Render Debug]', {
       canvasWidth,
       canvasHeight,
       hasCanvasManager: !!canvasManagerInstance.value,
       background: typeof bgType === 'string' ? bgType : (bgType ? 'image' : 'null'),
-      imageCount: imgCount
+      imageCount: imgCount,
+      isSameCanvas, // 🔍 KRITISCH: Sollte TRUE sein!
+      ctxCanvasWidth: ctxCanvas?.width,
+      ctxCanvasHeight: ctxCanvas?.height
     });
+
+    // 🔍 DIAGNOSE: Zeichne ein rotes Rechteck direkt auf den ctx
+    ctx.save();
+    ctx.fillStyle = 'red';
+    ctx.fillRect(50, 50, 100, 100);
+    ctx.restore();
+    console.log('[Render Debug] Rotes Test-Rechteck gezeichnet bei (50,50)');
   }
 
   if (canvasManagerInstance.value) {

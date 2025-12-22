@@ -481,15 +481,22 @@ export class VideoManager {
 
     /**
      * Berechnet die Bounds eines Videos
+     * ✅ KRITISCHER FIX: Akzeptiert optionalen Canvas-Parameter für korrekte Dimensionen
      */
-    getVideoBounds(videoData) {
+    getVideoBounds(videoData, canvasOverride = null) {
         if (!videoData || videoData.type !== 'video') return null;
 
+        // ✅ FIX: Verwende übergebenen Canvas wenn vorhanden, sonst this.canvas
+        const targetCanvas = canvasOverride || this.canvas;
+        if (!targetCanvas || targetCanvas.width === 0 || targetCanvas.height === 0) {
+            return null;
+        }
+
         return {
-            x: videoData.relX * this.canvas.width,
-            y: videoData.relY * this.canvas.height,
-            width: videoData.relWidth * this.canvas.width,
-            height: videoData.relHeight * this.canvas.height
+            x: videoData.relX * targetCanvas.width,
+            y: videoData.relY * targetCanvas.height,
+            width: videoData.relWidth * targetCanvas.width,
+            height: videoData.relHeight * targetCanvas.height
         };
     }
 
@@ -520,7 +527,8 @@ export class VideoManager {
         // Prüfe ob Video bereit ist zum Zeichnen
         if (video.readyState < 2) return; // HAVE_CURRENT_DATA oder höher
 
-        const bounds = this.getVideoBounds(videoData);
+        // ✅ FIX: Verwende ctx.canvas für korrekte Dimensionen
+        const bounds = this.getVideoBounds(videoData, ctx.canvas);
         if (!bounds) return;
 
         // Animation-Transform berechnen

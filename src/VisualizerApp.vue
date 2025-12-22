@@ -191,6 +191,9 @@ const fontManagerInstance = ref(null);
 const keyboardShortcutsInstance = ref(null);
 const quickStartGuideRef = ref(null);
 
+// ✅ FIX: Flag um zu tracken, ob die Canvas-Initialisierung bereits erfolgt ist
+let canvasInitialized = false;
+
 provide('fontManager', fontManagerInstance);
 provide('canvasManager', canvasManagerInstance);
 provide('fotoManager', fotoManagerInstance);
@@ -413,6 +416,93 @@ const stopVisualizerLoop = () => {
 
   console.log('[App] Visualizer-Loop GESTOPPT & bereinigt');
 };
+
+// ✅ KRITISCHER FIX: Canvas-Initialisierungsfunktion
+// Diese Funktion initialisiert den Canvas und alle Manager-Instanzen.
+// Sie wird aufgerufen, sobald der Canvas verfügbar ist.
+function initializeCanvas(canvas) {
+  if (canvasInitialized || !canvas) {
+    return false;
+  }
+
+  console.log('[App] ✅ Canvas-Initialisierung wird durchgeführt...');
+
+  const presetKey = workspaceStore.selectedPresetKey;
+  let canvasWidth = 1920;
+  let canvasHeight = 1080;
+
+  if (presetKey) {
+    const socialMediaPresets = {
+      'tiktok': { width: 1080, height: 1920 },
+      'instagram-story': { width: 1080, height: 1920 },
+      'instagram-post': { width: 1080, height: 1080 },
+      'instagram-reel': { width: 1080, height: 1920 },
+      'youtube-short': { width: 1080, height: 1920 },
+      'youtube-video': { width: 1920, height: 1080 },
+      'facebook-post': { width: 1200, height: 630 },
+      'twitter-video': { width: 1280, height: 720 },
+      'linkedin-video': { width: 1920, height: 1080 }
+    };
+
+    if (socialMediaPresets[presetKey]) {
+      canvasWidth = socialMediaPresets[presetKey].width;
+      canvasHeight = socialMediaPresets[presetKey].height;
+    }
+  }
+
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+  console.log(`[App] Canvas Dimensionen gesetzt: ${canvasWidth}x${canvasHeight}`);
+
+  // Recording Canvas synchronisieren
+  recordingCanvas.width = canvasWidth;
+  recordingCanvas.height = canvasHeight;
+
+  textManagerInstance = new TextManager(textStore);
+  gridManagerInstance.value = new GridManager(canvas);
+  fotoManagerInstance.value = new FotoManager(() => {});
+
+  multiImageManagerInstance.value = new MultiImageManager(canvas, {
+    redrawCallback: () => {},
+    onImageSelected: onObjectSelected,
+    onImageChanged: () => {},
+    fotoManager: fotoManagerInstance.value
+  });
+
+  videoManagerInstance.value = new VideoManager(canvas, {
+    redrawCallback: () => {},
+    onVideoSelected: onObjectSelected,
+    onVideoChanged: () => {},
+    fotoManager: fotoManagerInstance.value,
+    audioElement: audioRef.value
+  });
+
+  canvasManagerInstance.value = new CanvasManager(canvas, {
+    redrawCallback: () => {},
+    onObjectSelected: onObjectSelected,
+    onStateChange: () => {},
+    onTextDoubleClick: () => {},
+    textManager: textManagerInstance,
+    fotoManager: fotoManagerInstance.value,
+    gridManager: gridManagerInstance.value,
+    multiImageManager: multiImageManagerInstance.value,
+    videoManager: videoManagerInstance.value
+  });
+  canvasManagerInstance.value.setupInteractionHandlers();
+
+  canvasManagerInstance.value.setBackgroundTilesStore(backgroundTilesStore);
+
+  canvasInitialized = true;
+  console.log('[App] ✅ Canvas-Initialisierung ABGESCHLOSSEN');
+  console.log('[App] Manager-Status:', {
+    canvasManager: !!canvasManagerInstance.value,
+    multiImageManager: !!multiImageManagerInstance.value,
+    videoManager: !!videoManagerInstance.value,
+    fotoManager: !!fotoManagerInstance.value
+  });
+
+  return true;
+}
 
 
 function setupAudioContext() {
@@ -1420,13 +1510,44 @@ onMounted(async () => {
   window.setBassGain = setBassGain;
   window.setTrebleGain = setTrebleGain;
 
+  // ✅ KRITISCHER FIX: Canvas-Initialisierung mit Fallback
+  // Versuche die Initialisierung sofort
   const canvas = canvasRef.value;
   if (canvas) {
-    const presetKey = workspaceStore.selectedPresetKey;
-    let canvasWidth = 1920;
-    let canvasHeight = 1080;
+    initializeCanvas(canvas);
+  } else {
+    console.warn('[App] ⚠️ Canvas noch nicht verfügbar - warte auf Verfügbarkeit...');
+  }
 
-    if (presetKey) {
+  // ✅ KRITISCHER FIX: Watcher für Canvas-Verfügbarkeit
+  // Falls der Canvas zum Zeitpunkt von onMounted() noch nicht verfügbar war,
+  // wird die Initialisierung durchgeführt, sobald er verfügbar wird.
+  watch(
+    () => canvasRef.value,
+    (newCanvas) => {
+      if (newCanvas && !canvasInitialized) {
+        console.log('[App] ✅ Canvas jetzt verfügbar - starte verzögerte Initialisierung');
+        initializeCanvas(newCanvas);
+      }
+    },
+    { immediate: true }
+  );
+
+  // ✅ Grid-Watcher (AUSSERHALB des if-Blocks, damit er immer registriert wird)
+  watch(() => gridStore.isVisible, (newValue) => {
+    if (gridManagerInstance.value) {
+      gridManagerInstance.value.setVisibility(newValue);
+    }
+  }, { immediate: true });
+
+  // ✅ Workspace-Preset-Watcher (AUSSERHALB des if-Blocks)
+  watch(() => workspaceStore.selectedPresetKey, (newKey) => {
+    const canvas = canvasRef.value;
+    if (!canvas || !canvasManagerInstance.value) return;
+
+    canvasManagerInstance.value.setWorkspacePreset(newKey);
+
+    if (newKey) {
       const socialMediaPresets = {
         'tiktok': { width: 1080, height: 1920 },
         'instagram-story': { width: 1080, height: 1920 },
@@ -1439,113 +1560,47 @@ onMounted(async () => {
         'linkedin-video': { width: 1920, height: 1080 }
       };
 
-      if (socialMediaPresets[presetKey]) {
-        canvasWidth = socialMediaPresets[presetKey].width;
-        canvasHeight = socialMediaPresets[presetKey].height;
-      }
-    }
+      if (socialMediaPresets[newKey]) {
+        canvas.width = socialMediaPresets[newKey].width;
+        canvas.height = socialMediaPresets[newKey].height;
 
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-    console.log(`Canvas initialisiert mit fester Auflösung: ${canvasWidth}x${canvasHeight}`);
+        recordingCanvas.width = canvas.width;
+        recordingCanvas.height = canvas.height;
 
-    textManagerInstance = new TextManager(textStore);
-    gridManagerInstance.value = new GridManager(canvas);
-    fotoManagerInstance.value = new FotoManager(() => {});
+        console.log(`Canvas-Größe geändert zu: ${canvas.width}x${canvas.height}`);
 
-    multiImageManagerInstance.value = new MultiImageManager(canvas, {
-      redrawCallback: () => {},
-      onImageSelected: onObjectSelected,
-      onImageChanged: () => {},
-      fotoManager: fotoManagerInstance.value
-    });
-
-    // ✨ NEU: VideoManager initialisieren
-    videoManagerInstance.value = new VideoManager(canvas, {
-      redrawCallback: () => {},
-      onVideoSelected: onObjectSelected,
-      onVideoChanged: () => {},
-      fotoManager: fotoManagerInstance.value,
-      audioElement: audioRef.value
-    });
-
-    canvasManagerInstance.value = new CanvasManager(canvas, {
-      redrawCallback: () => {},
-      onObjectSelected: onObjectSelected,
-      onStateChange: () => {},
-      onTextDoubleClick: () => {},
-      textManager: textManagerInstance,
-      fotoManager: fotoManagerInstance.value,
-      gridManager: gridManagerInstance.value,
-      multiImageManager: multiImageManagerInstance.value,
-      videoManager: videoManagerInstance.value // ✨ NEU: VideoManager
-    });
-    canvasManagerInstance.value.setupInteractionHandlers();
-
-    canvasManagerInstance.value.setBackgroundTilesStore(backgroundTilesStore);
-
-    watch(() => gridStore.isVisible, (newValue) => {
-      if (gridManagerInstance.value) {
-        gridManagerInstance.value.setVisibility(newValue);
-      }
-    }, { immediate: true });
-
-    watch(() => workspaceStore.selectedPresetKey, (newKey) => {
-      if (canvasManagerInstance.value) {
-        canvasManagerInstance.value.setWorkspacePreset(newKey);
-
-        if (newKey) {
-          const socialMediaPresets = {
-            'tiktok': { width: 1080, height: 1920 },
-            'instagram-story': { width: 1080, height: 1920 },
-            'instagram-post': { width: 1080, height: 1080 },
-            'instagram-reel': { width: 1080, height: 1920 },
-            'youtube-short': { width: 1080, height: 1920 },
-            'youtube-video': { width: 1920, height: 1080 },
-            'facebook-post': { width: 1200, height: 630 },
-            'twitter-video': { width: 1280, height: 720 },
-            'linkedin-video': { width: 1920, height: 1080 }
-          };
-
-          if (socialMediaPresets[newKey]) {
-            canvas.width = socialMediaPresets[newKey].width;
-            canvas.height = socialMediaPresets[newKey].height;
-
-            recordingCanvas.width = canvas.width;
-            recordingCanvas.height = canvas.height;
-
-            console.log(`Canvas-Größe geändert zu: ${canvas.width}x${canvas.height}`);
-
-            const visualizer = Visualizers[visualizerStore.selectedVisualizer];
-            if (visualizer?.init) {
-              visualizer.init(canvas.width, canvas.height);
-              console.log(`Visualizer "${visualizerStore.selectedVisualizer}" re-initialisiert`);
-            }
-          }
-        } else {
-          canvas.width = 1920;
-          canvas.height = 1080;
-
-          recordingCanvas.width = 1920;
-          recordingCanvas.height = 1080;
-
-          const visualizer = Visualizers[visualizerStore.selectedVisualizer];
-          if (visualizer?.init) {
-            visualizer.init(canvas.width, canvas.height);
-            console.log(`Visualizer "${visualizerStore.selectedVisualizer}" re-initialisiert`);
-          }
-
-          console.log(`Canvas zurück zu Standard: 1920x1080`);
+        const visualizer = Visualizers[visualizerStore.selectedVisualizer];
+        if (visualizer?.init) {
+          visualizer.init(canvas.width, canvas.height);
+          console.log(`Visualizer "${visualizerStore.selectedVisualizer}" re-initialisiert`);
         }
       }
-    }, { immediate: true });
-  }
+    } else {
+      canvas.width = 1920;
+      canvas.height = 1080;
+
+      recordingCanvas.width = 1920;
+      recordingCanvas.height = 1080;
+
+      const visualizer = Visualizers[visualizerStore.selectedVisualizer];
+      if (visualizer?.init) {
+        visualizer.init(canvas.width, canvas.height);
+        console.log(`Visualizer "${visualizerStore.selectedVisualizer}" re-initialisiert`);
+      }
+
+      console.log(`Canvas zurück zu Standard: 1920x1080`);
+    }
+  }, { immediate: true });
 
   console.log('[App] Versuche KeyboardShortcuts zu initialisieren...');
   console.log('[App] canvasManagerInstance.value:', !!canvasManagerInstance.value);
   console.log('[App] multiImageManagerInstance.value:', !!multiImageManagerInstance.value);
 
-  if (canvasManagerInstance.value && multiImageManagerInstance.value) {
+  // ✅ FIX: Keyboard-Shortcuts Initialisierungsfunktion
+  function initKeyboardShortcuts() {
+    if (keyboardShortcutsInstance.value) return; // Bereits initialisiert
+    if (!canvasManagerInstance.value || !multiImageManagerInstance.value) return;
+
     keyboardShortcutsInstance.value = new KeyboardShortcuts(
       { playerStore, recorderStore, gridStore },
       {
@@ -1554,9 +1609,23 @@ onMounted(async () => {
       }
     );
     keyboardShortcutsInstance.value.enable();
-    console.log('Keyboard Shortcuts aktiviert (App-Start)');
-  } else {
-    console.error('[App] FEHLER: KeyboardShortcuts konnten nicht initialisiert werden!');
+    console.log('[App] ✅ Keyboard Shortcuts aktiviert');
+  }
+
+  // Versuche sofortige Initialisierung
+  initKeyboardShortcuts();
+
+  // ✅ FIX: Falls Manager noch nicht bereit, warte auf sie
+  if (!keyboardShortcutsInstance.value) {
+    console.log('[App] Keyboard Shortcuts warten auf Manager-Initialisierung...');
+    watch(
+      () => [canvasManagerInstance.value, multiImageManagerInstance.value],
+      () => {
+        if (!keyboardShortcutsInstance.value) {
+          initKeyboardShortcuts();
+        }
+      }
+    );
   }
 
   await initializeRecorder();

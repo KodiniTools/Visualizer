@@ -294,7 +294,7 @@
 </template>
 
 <script setup>
-import { ref, inject, computed, onMounted, watch } from 'vue';
+import { ref, inject, computed, onMounted, watch, nextTick } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 import BackgroundTilesPanel from './BackgroundTilesPanel.vue';
 
@@ -763,19 +763,45 @@ watch([backgroundColor, backgroundOpacity], () => {
   updateColorDisplay();
 });
 
-// Initialisiere beim Mounting - Canvas startet IMMER weiß
+// ✅ FIX: Initialisierungsfunktion für Canvas-Einstellungen
+function initializeCanvasSettings() {
+  if (!canvasManager.value) return false;
+
+  // ✅ Canvas startet IMMER mit weißem Hintergrund (Grundeinstellung)
+  canvasManager.value.setBackground('#ffffff');
+  backgroundColor.value = '#ffffff';
+  backgroundOpacity.value = 1.0;
+  updateColorDisplay();
+  console.log('✅ CanvasControlPanel initialisiert - Hintergrund auf Weiß gesetzt');
+  return true;
+}
+
+// ✅ KRITISCHER FIX: Watcher auf canvasManager
+// Vue Lifecycle: Kinder werden VOR dem Eltern-onMounted gemountet.
+// Daher ist canvasManager.value in Kind-onMounted() noch NULL.
+// Dieser Watcher reagiert, sobald der Eltern-onMounted den CanvasManager setzt.
+watch(
+  () => canvasManager.value,
+  (newValue) => {
+    if (newValue) {
+      console.log('✅ CanvasManager verfügbar - initialisiere Einstellungen');
+      nextTick(() => {
+        initializeCanvasSettings();
+      });
+    }
+  },
+  { immediate: true }
+);
+
+// Initialisiere beim Mounting
 onMounted(() => {
   // ✅ Gespeicherte Presets laden
   loadPresets();
 
-  if (canvasManager.value) {
-    // ✅ Canvas startet IMMER mit weißem Hintergrund (Grundeinstellung)
-    canvasManager.value.setBackground('#ffffff');
-    backgroundColor.value = '#ffffff';
-    backgroundOpacity.value = 1.0;
+  // ✅ Versuche Initialisierung (falls canvasManager bereits verfügbar)
+  if (!initializeCanvasSettings()) {
+    console.log('⏳ CanvasControlPanel mounted - warte auf CanvasManager...');
   }
-  updateColorDisplay();
-  console.log('✅ CanvasControlPanel mounted - Hintergrund auf Weiß gesetzt');
 });
 </script>
 

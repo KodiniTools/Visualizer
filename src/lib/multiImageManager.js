@@ -18,6 +18,20 @@ export class MultiImageManager {
         
         console.log('✅ MultiImageManager initialisiert');
     }
+
+    /**
+     * ✅ KRITISCHER FIX: Aktualisiert die Canvas-Referenz
+     * Wird aufgerufen, wenn das DOM-Canvas sich vom gespeicherten Canvas unterscheidet
+     * (z.B. nach einem direkten Page-Refresh)
+     */
+    updateCanvas(newCanvas) {
+        if (newCanvas && newCanvas !== this.canvas) {
+            console.log('[MultiImageManager] Canvas-Referenz aktualisiert');
+            this.canvas = newCanvas;
+            return true;
+        }
+        return false;
+    }
     
     /**
      * Initialisiert Filter-Einstellungen für ein Bild (für FotoManager-Kompatibilität)

@@ -803,37 +803,7 @@ function onObjectSelected(selectedObject) {
   }
 }
 
-let renderDebugCounter = 0;
 function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
-  // 🔍 DEBUG: Einmal pro Sekunde Status ausgeben
-  if (++renderDebugCounter % 60 === 1) {
-    const imgCount = multiImageManagerInstance.value?.images?.length || 0;
-    const bgType = canvasManagerInstance.value?.background;
-
-    // 🔍 KRITISCH: Prüfe ob ctx auf das richtige Canvas zeigt
-    const ctxCanvas = ctx.canvas;
-    const refCanvas = canvasRef.value;
-    const isSameCanvas = ctxCanvas === refCanvas;
-
-    console.log('[Render Debug]', {
-      canvasWidth,
-      canvasHeight,
-      hasCanvasManager: !!canvasManagerInstance.value,
-      background: typeof bgType === 'string' ? bgType : (bgType ? 'image' : 'null'),
-      imageCount: imgCount,
-      isSameCanvas, // 🔍 KRITISCH: Sollte TRUE sein!
-      ctxCanvasWidth: ctxCanvas?.width,
-      ctxCanvasHeight: ctxCanvas?.height
-    });
-
-    // 🔍 DIAGNOSE: Zeichne ein rotes Rechteck direkt auf den ctx
-    ctx.save();
-    ctx.fillStyle = 'red';
-    ctx.fillRect(50, 50, 100, 100);
-    ctx.restore();
-    console.log('[Render Debug] Rotes Test-Rechteck gezeichnet bei (50,50)');
-  }
-
   if (canvasManagerInstance.value) {
     canvasManagerInstance.value.drawScene(ctx);
   } else {
@@ -907,6 +877,9 @@ function draw() {
   // 🔍 DEBUG: Einmal pro Sekunde Status ausgeben
   if (++drawDebugCounter % 60 === 1) {
     const isSameCanvas = domCanvas === refCanvas;
+    const managerCanvas = canvasManagerInstance.value?.canvas;
+    const managerHasCorrectCanvas = managerCanvas === canvas;
+
     console.log('[Draw Debug]', {
       canvasWidth: canvas.width,
       canvasHeight: canvas.height,
@@ -914,13 +887,21 @@ function draw() {
       hasMultiImageManager: !!multiImageManagerInstance.value,
       imageCount: multiImageManagerInstance.value?.images?.length || 0,
       isSameCanvas, // ✅ KRITISCH: Sollte TRUE sein!
-      usingDomCanvas: canvas === domCanvas
+      usingDomCanvas: canvas === domCanvas,
+      managerHasCorrectCanvas // ✅ NEU: Manager-Canvas korrekt?
     });
 
     // ✅ FIX: Wenn die Canvas-Elemente unterschiedlich sind, aktualisiere die Ref
     if (!isSameCanvas && domCanvas) {
       console.warn('[Draw] ⚠️ Canvas-Referenz war inkorrekt! Verwende DOM-Canvas.');
     }
+  }
+
+  // ✅ KRITISCHER FIX: Wenn die Manager ein veraltetes Canvas haben, aktualisiere sie
+  // Dies behebt das Problem nach einem direkten Page-Refresh
+  if (canvasManagerInstance.value && canvasManagerInstance.value.canvas !== canvas) {
+    console.warn('[Draw] ⚠️ Manager-Canvas veraltet! Aktualisiere alle Manager...');
+    canvasManagerInstance.value.updateCanvas(canvas);
   }
 
   if (canvas.width > 0 && canvas.height > 0) {

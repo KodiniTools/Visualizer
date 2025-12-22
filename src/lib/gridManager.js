@@ -11,6 +11,20 @@ export class GridManager {
     }
 
     /**
+     * ✅ KRITISCHER FIX: Aktualisiert die Canvas-Referenz
+     * Wird aufgerufen, wenn das DOM-Canvas sich vom gespeicherten Canvas unterscheidet
+     * (z.B. nach einem direkten Page-Refresh)
+     */
+    updateCanvas(newCanvas) {
+        if (newCanvas && newCanvas !== this.canvas) {
+            console.log('[GridManager] Canvas-Referenz aktualisiert');
+            this.canvas = newCanvas;
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Zeichnet das Raster über den Canvas-Inhalt
      * Wird als letztes gezeichnet, damit es über allem liegt
      */

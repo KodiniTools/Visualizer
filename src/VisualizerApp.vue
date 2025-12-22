@@ -1457,6 +1457,19 @@ async function initializeRecorder() {
 onMounted(async () => {
   console.log('[App] onMounted - Starte Initialisierung...');
 
+  // ✅ KRITISCHER FIX: Watcher für Canvas-Verfügbarkeit SOFORT registrieren
+  // Muss VOR allen await-Aufrufen passieren, damit wir keine Änderungen verpassen!
+  watch(
+    () => canvasRef.value,
+    (newCanvas) => {
+      if (newCanvas && !canvasInitialized) {
+        console.log('[App] ✅ Canvas jetzt verfügbar (via Watcher) - starte Initialisierung');
+        initializeCanvas(newCanvas);
+      }
+    },
+    { immediate: true }
+  );
+
   console.log('[App] Initialisiere Web Workers...');
   try {
     const workerStatus = await workerManager.initAll();
@@ -1518,20 +1531,6 @@ onMounted(async () => {
   } else {
     console.warn('[App] ⚠️ Canvas noch nicht verfügbar - warte auf Verfügbarkeit...');
   }
-
-  // ✅ KRITISCHER FIX: Watcher für Canvas-Verfügbarkeit
-  // Falls der Canvas zum Zeitpunkt von onMounted() noch nicht verfügbar war,
-  // wird die Initialisierung durchgeführt, sobald er verfügbar wird.
-  watch(
-    () => canvasRef.value,
-    (newCanvas) => {
-      if (newCanvas && !canvasInitialized) {
-        console.log('[App] ✅ Canvas jetzt verfügbar - starte verzögerte Initialisierung');
-        initializeCanvas(newCanvas);
-      }
-    },
-    { immediate: true }
-  );
 
   // ✅ Grid-Watcher (AUSSERHALB des if-Blocks, damit er immer registriert wird)
   watch(() => gridStore.isVisible, (newValue) => {

@@ -1107,10 +1107,11 @@ async function connectMicToRecordingChain() {
   }
 
   try {
-    // ✅ FIX: AudioContext muss resumed sein
+    // ✅ KRITISCHER FIX: NICHT blockieren wenn AudioContext suspended ist
+    // Der AudioContext wird automatisch resumed sobald der User interagiert
     if (audioContext.state === 'suspended') {
-      console.log('[App] AudioContext ist suspended - resume...');
-      await audioContext.resume();
+      console.log('[App] AudioContext ist suspended - triggere resume (nicht blockierend)...');
+      audioContext.resume().catch(() => {}); // Ignoriere Fehler, da es später funktioniert
     }
 
     // ✨ WICHTIG: NEUEN Mic-Stream für Recording holen!
@@ -1356,10 +1357,16 @@ async function createCombinedAudioStream() {
     return null;
   }
 
-  // ✅ FIX: AudioContext muss aktiv sein
+  // ✅ KRITISCHER FIX: NICHT auf resume() warten!
+  // AudioContext.resume() blockiert UNENDLICH wenn kein User-Gesture vorhanden ist.
+  // Stattdessen nur triggern - der AudioContext wird automatisch resumed
+  // sobald der User interagiert.
   if (audioContext.state === 'suspended') {
-    console.log('[App] AudioContext suspended - resume...');
-    await audioContext.resume();
+    console.log('[App] AudioContext suspended - triggere resume (nicht blockierend)...');
+    audioContext.resume().catch(e => {
+      console.warn('[App] AudioContext resume fehlgeschlagen:', e.message);
+    });
+    // NICHT warten! Weiter mit der Initialisierung.
   }
 
   // ✨ WICHTIG: IMMER Mic-Recording-Stream VOR dem MediaRecorder-Start einrichten!

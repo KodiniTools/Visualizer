@@ -102,6 +102,33 @@ export class CanvasManager {
     }
 
     /**
+     * ✅ KRITISCHER FIX: Aktualisiert die Canvas-Referenz
+     * Wird aufgerufen, wenn das DOM-Canvas sich vom gespeicherten Canvas unterscheidet
+     * (z.B. nach einem direkten Page-Refresh)
+     */
+    updateCanvas(newCanvas) {
+        if (newCanvas && newCanvas !== this.canvas) {
+            console.log('[CanvasManager] Canvas-Referenz aktualisiert');
+            this.canvas = newCanvas;
+            this.ctx = newCanvas.getContext('2d');
+
+            // Auch die abhängigen Manager aktualisieren
+            if (this.multiImageManager && typeof this.multiImageManager.updateCanvas === 'function') {
+                this.multiImageManager.updateCanvas(newCanvas);
+            }
+            if (this.videoManager && typeof this.videoManager.updateCanvas === 'function') {
+                this.videoManager.updateCanvas(newCanvas);
+            }
+            if (this.gridManager && typeof this.gridManager.updateCanvas === 'function') {
+                this.gridManager.updateCanvas(newCanvas);
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * ✅ NEW: Initialisiert Canvas-Pool
      * ✅ QUALITÄTSVERBESSERUNG: Hohe Bildqualität für Recording
      */

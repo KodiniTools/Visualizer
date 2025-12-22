@@ -30,6 +30,20 @@ export class VideoManager {
     }
 
     /**
+     * ✅ KRITISCHER FIX: Aktualisiert die Canvas-Referenz
+     * Wird aufgerufen, wenn das DOM-Canvas sich vom gespeicherten Canvas unterscheidet
+     * (z.B. nach einem direkten Page-Refresh)
+     */
+    updateCanvas(newCanvas) {
+        if (newCanvas && newCanvas !== this.canvas) {
+            console.log('[VideoManager] Canvas-Referenz aktualisiert');
+            this.canvas = newCanvas;
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Setzt das Audio-Element für Synchronisation
      */
     setAudioElement(audioElement) {

@@ -404,7 +404,7 @@ export class CanvasManager {
 
         // Entferne Bild-Hintergrund wenn Video gesetzt wird
         if (typeof this.background === 'object') {
-            this.background = '#000000';
+            this.background = '#ffffff'; // Weißer Hintergrund statt schwarz
         }
 
         // Video NICHT automatisch starten - Nutzer soll Kontrolle haben
@@ -1026,7 +1026,7 @@ export class CanvasManager {
     }
     
     isCanvasEmpty() {
-        const isBgEmpty = !this.background || this.background === '#000000';
+        const isBgEmpty = !this.background || this.background === '#ffffff';
         const isWorkspaceBgEmpty = !this.workspaceBackground;
         const isVideoBgEmpty = !this.videoBackground; // ✨ NEU
         const isWsVideoBgEmpty = !this.workspaceVideoBackground; // ✨ NEU

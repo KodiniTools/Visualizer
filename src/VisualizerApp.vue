@@ -1826,7 +1826,7 @@ html, body {
 
 .canvas-wrapper {
   flex-grow: 1;
-  background-color: #000;
+  background-color: #ffffff; /* Weißer Hintergrund statt schwarz */
   border-radius: 12px;
   overflow: auto;
   min-height: 0;
@@ -1841,7 +1841,7 @@ canvas {
   width: auto;
   height: auto;
   object-fit: contain;
-  background-color: #000;
+  background-color: #ffffff; /* Weißer Hintergrund statt schwarz */
 }
 
 /* CANVAS-BILDER LEISTE (horizontal scrollbar) */

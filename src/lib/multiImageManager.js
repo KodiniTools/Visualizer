@@ -542,9 +542,13 @@ export class MultiImageManager {
     drawImages(ctx) {
         if (!ctx || this.images.length === 0) return;
 
+        // ✅ KRITISCHER FIX: Verwende ctx.canvas für Bounds-Berechnung
+        // Dies stellt sicher, dass wir die Dimensionen des TATSÄCHLICH sichtbaren Canvas verwenden
+        const renderCanvas = ctx.canvas;
+
         // ✅ OPTIMIZATION: Batch-Rendering mit weniger save/restore calls
         this.images.forEach(imgData => {
-            const bounds = this.getImageBounds(imgData);
+            const bounds = this.getImageBounds(imgData, renderCanvas);
             if (!bounds) return;
 
             // ✨ Audio-Reaktive Werte berechnen
@@ -819,15 +823,26 @@ export class MultiImageManager {
     
     /**
      * Berechnet die Bounds eines Bildes
+     * ✅ KRITISCHER FIX: Akzeptiert optionalen Canvas-Parameter für korrekte Dimensionen
+     * @param {Object} imgData - Bild-Daten
+     * @param {HTMLCanvasElement} canvasOverride - Optionaler Canvas für Dimensionen (z.B. ctx.canvas)
      */
-    getImageBounds(imgData) {
+    getImageBounds(imgData, canvasOverride = null) {
         if (!imgData || imgData.type !== 'image') return null;
-        
+
+        // ✅ FIX: Verwende übergebenen Canvas wenn vorhanden, sonst this.canvas
+        const targetCanvas = canvasOverride || this.canvas;
+        if (!targetCanvas || targetCanvas.width === 0 || targetCanvas.height === 0) {
+            console.warn('[MultiImageManager] Canvas hat ungültige Dimensionen:',
+                         targetCanvas?.width, 'x', targetCanvas?.height);
+            return null;
+        }
+
         return {
-            x: imgData.relX * this.canvas.width,
-            y: imgData.relY * this.canvas.height,
-            width: imgData.relWidth * this.canvas.width,
-            height: imgData.relHeight * this.canvas.height
+            x: imgData.relX * targetCanvas.width,
+            y: imgData.relY * targetCanvas.height,
+            width: imgData.relWidth * targetCanvas.width,
+            height: imgData.relHeight * targetCanvas.height
         };
     }
     

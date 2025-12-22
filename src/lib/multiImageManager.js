@@ -528,6 +528,70 @@ export class MultiImageManager {
                 const orbitX = Math.cos(timeOrbit) * orbitRadius;
                 const orbitY = Math.sin(timeOrbit) * orbitRadius;
                 return { orbitX, orbitY };
+
+            // ═══════════════════════════════════════════════════════════════
+            // ✨ NEUE EFFEKTE
+            // ═══════════════════════════════════════════════════════════════
+
+            case 'contrast':
+                // Kontrast-Pulsieren: 80-200% basierend auf Audio-Level
+                return { contrast: 80 + (normalizedLevel * 120) };
+
+            case 'grayscale':
+                // Schwarz-Weiß Überblendung: 0-100% basierend auf Audio-Level
+                return { grayscale: normalizedLevel * 100 };
+
+            case 'sepia':
+                // Vintage/Sepia Look: 0-100% basierend auf Audio-Level
+                return { sepia: normalizedLevel * 100 };
+
+            case 'invert':
+                // Farbinversion: Bei Peaks stark invertieren (0-100%)
+                // Quadratische Kurve für dramatischeren Effekt bei lauten Stellen
+                const invertLevel = Math.pow(normalizedLevel, 1.5) * 100;
+                return { invert: invertLevel };
+
+            case 'skew':
+                // Scheren/Verzerrung: Oszillierende Scherung in X und Y
+                const timeSkew = Date.now() * 0.004;
+                const skewAmount = normalizedLevel * 15; // Max ±15 Grad
+                const skewX = Math.sin(timeSkew) * skewAmount;
+                const skewY = Math.cos(timeSkew * 0.7) * skewAmount * 0.5; // Langsamere Y-Scherung
+                return { skewX, skewY };
+
+            case 'strobe':
+                // Blitz-Effekt: Schnelles Aufblitzen bei Peaks (>60% Audio)
+                // Verwendet Audio-Level als Schwellwert für dramatischen Effekt
+                if (normalizedLevel > 0.6) {
+                    // Bei Peak: Volle Helligkeit mit Zufalls-Faktor
+                    const strobeFlash = 0.8 + Math.random() * 0.2;
+                    return { strobeOpacity: strobeFlash, strobeBrightness: 150 + normalizedLevel * 100 };
+                } else if (normalizedLevel > 0.3) {
+                    // Mittlere Levels: Leichtes Pulsieren
+                    return { strobeOpacity: 0.7 + normalizedLevel * 0.3, strobeBrightness: 100 };
+                }
+                return { strobeOpacity: 1, strobeBrightness: 100 };
+
+            case 'chromatic':
+                // Chromatische Aberration (RGB-Verschiebung / Glitch)
+                // Verschiebung der Farbkanäle bei Audio-Peaks
+                const chromaticOffset = normalizedLevel * 8; // Max 8px Verschiebung
+                return {
+                    chromaticOffset,
+                    // Richtungen für R, G, B Kanäle
+                    chromaticR: { x: chromaticOffset, y: 0 },
+                    chromaticG: { x: 0, y: 0 },
+                    chromaticB: { x: -chromaticOffset, y: 0 }
+                };
+
+            case 'perspective':
+                // 3D-Kipp-Effekt: Oszillierende Perspektiven-Rotation
+                const timePerspective = Date.now() * 0.002;
+                const perspectiveAmount = normalizedLevel * 25; // Max ±25 Grad
+                const rotateX = Math.sin(timePerspective) * perspectiveAmount;
+                const rotateY = Math.cos(timePerspective * 0.8) * perspectiveAmount * 0.7;
+                return { perspectiveRotateX: rotateX, perspectiveRotateY: rotateY };
+
             default:
                 return {};
         }
@@ -599,6 +663,31 @@ export class MultiImageManager {
                 // Blur (Unschärfe)
                 if (effects.blur) {
                     currentFilter += ` blur(${effects.blur.blur}px)`;
+                }
+
+                // ✨ NEU: Kontrast
+                if (effects.contrast) {
+                    currentFilter += ` contrast(${effects.contrast.contrast}%)`;
+                }
+
+                // ✨ NEU: Graustufen
+                if (effects.grayscale) {
+                    currentFilter += ` grayscale(${effects.grayscale.grayscale}%)`;
+                }
+
+                // ✨ NEU: Sepia
+                if (effects.sepia) {
+                    currentFilter += ` sepia(${effects.sepia.sepia}%)`;
+                }
+
+                // ✨ NEU: Invertieren
+                if (effects.invert) {
+                    currentFilter += ` invert(${effects.invert.invert}%)`;
+                }
+
+                // ✨ NEU: Strobe Helligkeit (zusätzlicher Brightness-Boost bei Peaks)
+                if (effects.strobe && effects.strobe.strobeBrightness !== 100) {
+                    currentFilter += ` brightness(${effects.strobe.strobeBrightness}%)`;
                 }
 
                 // Glow als Shadow-Effekt
@@ -703,6 +792,50 @@ export class MultiImageManager {
                 drawBounds.y += orbit.orbitY || 0;
             }
 
+            // ✨ NEU: AUDIO-REAKTIV: Skew-Effekt (Verzerrung)
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.skew) {
+                const skew = audioReactive.effects.skew;
+                const centerX = drawBounds.x + drawBounds.width / 2;
+                const centerY = drawBounds.y + drawBounds.height / 2;
+                ctx.translate(centerX, centerY);
+                // CSS skew in Radians: tan(angle) für die Transformationsmatrix
+                const skewXRad = (skew.skewX || 0) * Math.PI / 180;
+                const skewYRad = (skew.skewY || 0) * Math.PI / 180;
+                ctx.transform(1, Math.tan(skewYRad), Math.tan(skewXRad), 1, 0, 0);
+                ctx.translate(-centerX, -centerY);
+            }
+
+            // ✨ NEU: AUDIO-REAKTIV: Perspective-Effekt (3D-Kipp)
+            // Hinweis: Canvas 2D unterstützt keine echte 3D-Perspektive,
+            // daher simulieren wir den Effekt durch Kombination von Skalierung und Scherung
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.perspective) {
+                const persp = audioReactive.effects.perspective;
+                const centerX = drawBounds.x + drawBounds.width / 2;
+                const centerY = drawBounds.y + drawBounds.height / 2;
+
+                // Simulierte Perspektive durch asymmetrische Skalierung
+                const rotX = (persp.perspectiveRotateX || 0) * Math.PI / 180;
+                const rotY = (persp.perspectiveRotateY || 0) * Math.PI / 180;
+
+                // Skalierungsfaktoren basierend auf "Neigung"
+                const scaleXFactor = 1 - Math.abs(Math.sin(rotY)) * 0.15;
+                const scaleYFactor = 1 - Math.abs(Math.sin(rotX)) * 0.15;
+
+                ctx.translate(centerX, centerY);
+                ctx.scale(scaleXFactor, scaleYFactor);
+                // Leichte Scherung für Pseudo-3D-Effekt
+                ctx.transform(1, Math.sin(rotX) * 0.1, Math.sin(rotY) * 0.1, 1, 0, 0);
+                ctx.translate(-centerX, -centerY);
+            }
+
+            // ✨ NEU: AUDIO-REAKTIV: Strobe-Opacity-Effekt
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.strobe) {
+                const strobe = audioReactive.effects.strobe;
+                if (strobe.strobeOpacity !== undefined && strobe.strobeOpacity !== 1) {
+                    ctx.globalAlpha = ctx.globalAlpha * strobe.strobeOpacity;
+                }
+            }
+
             // ✨ AUDIO-REAKTIV: Scale-Effekt (Pulsieren)
             if (audioReactive && audioReactive.hasEffects && audioReactive.effects.scale) {
                 const scaleFactor = audioReactive.effects.scale.scale || 1.0;
@@ -735,7 +868,58 @@ export class MultiImageManager {
                 borderGlow = audioBorder.borderGlow;
             }
 
-            if (borderWidth > 0) {
+            // ✨ NEU: Chromatische Aberration - zeichnet RGB-Kanäle mit Verschiebung
+            const hasChromaticEffect = audioReactive && audioReactive.hasEffects &&
+                                       audioReactive.effects.chromatic &&
+                                       audioReactive.effects.chromatic.chromaticOffset > 0.5;
+
+            if (hasChromaticEffect && borderWidth === 0) {
+                // Chromatische Aberration: Bild in RGB-Kanälen mit Offset zeichnen
+                const chromatic = audioReactive.effects.chromatic;
+                const offset = chromatic.chromaticOffset;
+
+                try {
+                    // Speichere aktuellen Filter
+                    const currentFilter = ctx.filter;
+                    const currentAlpha = ctx.globalAlpha;
+
+                    // Rot-Kanal (nach rechts verschoben)
+                    ctx.globalCompositeOperation = 'screen';
+                    ctx.filter = `${currentFilter} saturate(0%) brightness(100%) sepia(100%) hue-rotate(-50deg) saturate(600%)`;
+                    ctx.globalAlpha = currentAlpha * 0.8;
+                    ctx.drawImage(imgData.imageObject,
+                        drawBounds.x + offset, drawBounds.y,
+                        drawBounds.width, drawBounds.height);
+
+                    // Grün-Kanal (mittig)
+                    ctx.filter = `${currentFilter} saturate(0%) brightness(100%) sepia(100%) hue-rotate(50deg) saturate(600%)`;
+                    ctx.globalAlpha = currentAlpha * 0.8;
+                    ctx.drawImage(imgData.imageObject,
+                        drawBounds.x, drawBounds.y,
+                        drawBounds.width, drawBounds.height);
+
+                    // Blau-Kanal (nach links verschoben)
+                    ctx.filter = `${currentFilter} saturate(0%) brightness(100%) sepia(100%) hue-rotate(170deg) saturate(600%)`;
+                    ctx.globalAlpha = currentAlpha * 0.8;
+                    ctx.drawImage(imgData.imageObject,
+                        drawBounds.x - offset, drawBounds.y,
+                        drawBounds.width, drawBounds.height);
+
+                    // Original darüber für Farbtreue
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.filter = currentFilter;
+                    ctx.globalAlpha = currentAlpha * 0.4;
+                    ctx.drawImage(imgData.imageObject,
+                        drawBounds.x, drawBounds.y,
+                        drawBounds.width, drawBounds.height);
+
+                    // Reset
+                    ctx.globalAlpha = currentAlpha;
+                    ctx.globalCompositeOperation = 'source-over';
+                } catch (e) {
+                    console.warn('[MultiImageManager] Chromatic effect error:', e);
+                }
+            } else if (borderWidth > 0) {
                 // Mit Kontur: _drawImageOutline zeichnet sowohl Kontur als auch Bild
                 // Zeichne Kontur um die sichtbare Form des Bildes (inklusive Bild darüber)
                 // Filter werden in _drawImageOutline auf das Originalbild angewendet

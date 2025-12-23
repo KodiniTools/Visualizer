@@ -81,7 +81,10 @@ export class TextManager {
                     skew: { enabled: false, intensity: 80 },           // Verzerrung: Oszillierende Scheren-Transformation
                     strobe: { enabled: false, intensity: 80 },         // Strobe: Blitz-Effekt bei Audio-Peaks (>60%)
                     rgbGlitch: { enabled: false, intensity: 80 },      // RGB-Glitch: Chromatische Aberration
-                    perspective3d: { enabled: false, intensity: 80 }   // 3D-Perspektive: Simulierter 3D-Kipp-Effekt
+                    perspective3d: { enabled: false, intensity: 80 },  // 3D-Perspektive: Simulierter 3D-Kipp-Effekt
+                    wave: { enabled: false, intensity: 80 },           // Welle: Buchstaben bewegen sich wellenförmig
+                    rotation: { enabled: false, intensity: 80 },       // Rotation: Text dreht sich oszillierend
+                    elastic: { enabled: false, intensity: 80 }         // Elastic: Gummiartige Verformung (Stretch)
                 }
             },
 
@@ -962,15 +965,34 @@ export class TextManager {
             skewY += skewEffect.skewY || 0;
         }
 
-        // Rotation + Scale + Skew anwenden
-        const totalRotation = textObj.rotation || 0;
-        const hasTransform = totalRotation !== 0 || scale !== 1.0 || skewX !== 0 || skewY !== 0;
+        // ✨ AUDIO-REAKTIV: Rotation-Effekt (oszillierende Drehung)
+        let audioRotation = 0;
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.rotation) {
+            audioRotation = audioReactive.effects.rotation.rotationAngle || 0;
+        }
+
+        // ✨ AUDIO-REAKTIV: Elastic-Effekt (Gummi-Verformung)
+        let stretchX = 1.0;
+        let stretchY = 1.0;
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.elastic) {
+            const elastic = audioReactive.effects.elastic;
+            stretchX = elastic.stretchX || 1.0;
+            stretchY = elastic.stretchY || 1.0;
+        }
+
+        // Rotation + Scale + Skew + Elastic anwenden
+        const totalRotation = (textObj.rotation || 0) + audioRotation;
+        const hasElastic = stretchX !== 1.0 || stretchY !== 1.0;
+        const hasTransform = totalRotation !== 0 || scale !== 1.0 || skewX !== 0 || skewY !== 0 || hasElastic;
         if (hasTransform) {
             ctx.translate(pixelX, pixelY);
             if (totalRotation !== 0) {
                 ctx.rotate((totalRotation * Math.PI) / 180);
             }
-            if (scale !== 1.0) {
+            // ✨ Elastic: Asymmetrische Skalierung (Stretch)
+            if (hasElastic) {
+                ctx.scale(stretchX * scale, stretchY * scale);
+            } else if (scale !== 1.0) {
                 ctx.scale(scale, scale);
             }
             // ✨ Skew-Transformation anwenden (Scheren-Effekt)
@@ -1049,19 +1071,55 @@ export class TextManager {
         const hasRgbGlitch = audioReactive && audioReactive.hasEffects && audioReactive.effects.rgbGlitch;
         const rgbGlitch = hasRgbGlitch ? audioReactive.effects.rgbGlitch : null;
 
+        // ✨ AUDIO-REAKTIV: Wave-Effekt prüfen
+        const hasWave = audioReactive && audioReactive.hasEffects && audioReactive.effects.wave && audioReactive.effects.wave.waveEnabled;
+        const wave = hasWave ? audioReactive.effects.wave : null;
+
         // Zeichne jede Zeile einzeln
-        lines.forEach((line, index) => {
-            const yPos = startY + (index * lineHeight);
+        lines.forEach((line, lineIndex) => {
+            const yPos = startY + (lineIndex * lineHeight);
 
             // ✨ KONTUR zeichnen (wenn aktiviert oder audio-reaktiv)
             const hasStroke = textObj.stroke.enabled ||
                 (audioReactive && audioReactive.hasEffects && audioReactive.effects.strokeWidth);
-            if (hasStroke && !hasRgbGlitch) {
-                ctx.strokeText(line, pixelX, yPos);
-            }
 
+            // ✨ WAVE-EFFEKT: Buchstaben einzeln mit Wellenverschiebung zeichnen
+            if (hasWave && wave.waveAmplitude > 0) {
+                // Buchstabenweises Rendering für Welleneffekt
+                const chars = line.split('');
+                let currentX = pixelX;
+                const letterSpacing = textObj.letterSpacing || 0;
+
+                // Bei zentriertem Text: Startposition berechnen
+                if (textObj.textAlign === 'center') {
+                    const totalWidth = ctx.measureText(line).width + (letterSpacing * (chars.length - 1));
+                    currentX = pixelX - totalWidth / 2;
+                    ctx.textAlign = 'left'; // Temporär auf left setzen für buchstabenweises Rendering
+                } else if (textObj.textAlign === 'right') {
+                    const totalWidth = ctx.measureText(line).width + (letterSpacing * (chars.length - 1));
+                    currentX = pixelX - totalWidth;
+                    ctx.textAlign = 'left';
+                }
+
+                chars.forEach((char, charIndex) => {
+                    // Wellenförmige Y-Verschiebung basierend auf Buchstabenindex und Zeit
+                    const waveOffset = Math.sin(wave.waveSpeed + charIndex * wave.waveFrequency) * wave.waveAmplitude;
+                    const charY = yPos + waveOffset;
+
+                    if (hasStroke && !hasRgbGlitch) {
+                        ctx.strokeText(char, currentX, charY);
+                    }
+                    ctx.fillText(char, currentX, charY);
+
+                    // Nächste X-Position berechnen
+                    currentX += ctx.measureText(char).width + letterSpacing;
+                });
+
+                // TextAlign zurücksetzen
+                ctx.textAlign = textObj.textAlign;
+            }
             // ✨ RGB-Glitch: Chromatische Aberration (Text 3x mit R/G/B Verschiebung)
-            if (hasRgbGlitch && rgbGlitch.glitchIntensity > 0) {
+            else if (hasRgbGlitch && rgbGlitch.glitchIntensity > 0) {
                 const originalFillStyle = ctx.fillStyle;
                 const originalComposite = ctx.globalCompositeOperation;
 
@@ -1084,6 +1142,10 @@ export class TextManager {
                 ctx.globalCompositeOperation = originalComposite;
                 ctx.fillStyle = originalFillStyle;
             } else {
+                // ✨ Standard-Rendering (ohne Wave/RGB-Glitch)
+                if (hasStroke) {
+                    ctx.strokeText(line, pixelX, yPos);
+                }
                 // Text füllen (normal)
                 ctx.fillText(line, pixelX, yPos);
             }
@@ -1458,6 +1520,27 @@ export class TextManager {
                 const perspective3dSkewX = Math.sin(time3d) * level * 10;
                 const perspective3dSkewY = Math.cos(time3d * 0.6) * level * 5;
                 return { rotateX, rotateY, perspective3dScale, perspective3dSkewX, perspective3dSkewY };
+
+            case 'wave':
+                // Welle: Parameter für wellenförmige Buchstabenbewegung (La-Ola-Effekt)
+                const waveTime = Date.now() * 0.005;
+                const waveAmplitude = level * 20;      // Max 20px Amplitude
+                const waveFrequency = 0.3;             // Wellenlänge
+                const waveSpeed = waveTime;            // Geschwindigkeit der Welle
+                return { waveAmplitude, waveFrequency, waveSpeed, waveEnabled: true };
+
+            case 'rotation':
+                // Rotation: Oszillierende Drehung basierend auf Audio
+                const rotTime = Date.now() * 0.003;
+                const rotationAngle = Math.sin(rotTime) * level * 30;  // -30 bis +30 Grad
+                return { rotationAngle };
+
+            case 'elastic':
+                // Elastic: Gummiartige Verformung (asymmetrisches Stretch auf X/Y)
+                const elasticTime = Date.now() * 0.004;
+                const stretchX = 1.0 + Math.sin(elasticTime) * level * 0.3;           // 0.7 - 1.3
+                const stretchY = 1.0 + Math.sin(elasticTime + 1.5) * level * 0.2;     // 0.8 - 1.2 (gegenläufig)
+                return { stretchX, stretchY };
 
             default:
                 return {};

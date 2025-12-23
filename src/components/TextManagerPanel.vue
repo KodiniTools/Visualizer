@@ -1646,6 +1646,84 @@ Zeile 3..."
               <span class="intensity-value">{{ selectedText.audioReactive.effects.perspective3d.intensity }}%</span>
             </div>
           </div>
+
+          <!-- ✨ NEU: Welle (Wave) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.wave.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">🌊</span> {{ t('textManager.wave') }}
+              </label>
+              <span class="effect-hint" :title="t('textManager.waveHint')">ℹ️</span>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.wave.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.wave.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.wave.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- ✨ NEU: Rotation -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.rotation.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">🔄</span> {{ t('textManager.rotation') }}
+              </label>
+              <span class="effect-hint" :title="t('textManager.rotationHint')">ℹ️</span>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.rotation.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.rotation.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.rotation.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- ✨ NEU: Elastic -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.elastic.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">🎈</span> {{ t('textManager.elastic') }}
+              </label>
+              <span class="effect-hint" :title="t('textManager.elasticHint')">ℹ️</span>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.elastic.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.elastic.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.elastic.intensity }}%</span>
+            </div>
+          </div>
         </div>
 
         <div class="hint-text" style="margin-top: 10px;">

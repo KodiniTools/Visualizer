@@ -1134,18 +1134,18 @@ Zeile 3..."
         </div>
       </details>
 
-      <!-- ✨ AUDIO-REACTIVE EFFECTS (collapsible) -->
+      <!-- ✨ AUDIO-REAKTIVE EFFEKTE (klappbar) -->
       <details class="collapsible-section">
         <summary class="section-header">
           <span class="section-icon">🎵</span>
-          <span>Audio Reactive</span>
+          <span>Audio-Reaktiv</span>
           <span v-if="selectedText.audioReactive?.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
         </summary>
         <div class="section-content">
 
-      <!-- Enable/Disable -->
+      <!-- Aktivieren/Deaktivieren -->
       <div class="control-group">
-        <label>Audio Reactive Effects:</label>
+        <label>Audio-Reaktive Effekte:</label>
         <div class="button-group">
           <button
             @click="toggleAudioReactive"
@@ -1156,30 +1156,30 @@ Zeile 3..."
         </div>
       </div>
 
-      <!-- Audio settings (only when enabled) -->
+      <!-- Audio-Einstellungen (nur wenn aktiviert) -->
       <div v-if="selectedText.audioReactive?.enabled">
-        <!-- Audio Source -->
+        <!-- Audio-Quelle -->
         <div class="control-group">
-          <label>Audio Source:</label>
+          <label>Audio-Quelle:</label>
           <select
             v-model="selectedText.audioReactive.source"
             @change="updateText"
             class="select-input"
           >
             <option value="bass">Bass (Kick/Drums)</option>
-            <option value="mid">Mid (Vocals/Melody)</option>
-            <option value="treble">Treble (Hi-Hats/Highs)</option>
-            <option value="volume">Volume (Overall)</option>
-            <option value="dynamic">✨ Dynamic (Auto-Blend)</option>
+            <option value="mid">Mid (Vocals/Melodie)</option>
+            <option value="treble">Treble (Hi-Hats/Höhen)</option>
+            <option value="volume">Volume (Gesamt)</option>
+            <option value="dynamic">✨ Dynamisch (Auto-Blend)</option>
           </select>
-          <div v-if="selectedText.audioReactive.source === 'dynamic'" class="hint-text" style="color: var(--accent, #609198);">
-            Automatically combines all frequencies based on their current energy
+          <div v-if="selectedText.audioReactive.source === 'dynamic'" class="hint-text" style="color: #6ea8fe;">
+            Kombiniert automatisch alle Frequenzen basierend auf ihrer aktuellen Energie
           </div>
         </div>
 
         <!-- Smoothing -->
         <div class="control-group">
-          <label>Smoothing: {{ selectedText.audioReactive.smoothing }}%</label>
+          <label>Glättung: {{ selectedText.audioReactive.smoothing }}%</label>
           <input
             type="range"
             v-model.number="selectedText.audioReactive.smoothing"
@@ -1189,36 +1189,36 @@ Zeile 3..."
             class="slider"
           />
           <div class="hint-text">
-            Low = fast reaction, High = smooth animation
+            Niedrig = schnelle Reaktion, Hoch = sanfte Animation
           </div>
         </div>
 
-        <!-- ✨ Advanced Audio Settings -->
+        <!-- ✨ Erweiterte Audio-Einstellungen -->
         <details class="advanced-settings">
-          <summary>⚙️ Advanced Settings</summary>
+          <summary>⚙️ Erweiterte Einstellungen</summary>
 
           <!-- Presets -->
           <div class="control-group">
             <label>Presets:</label>
             <div class="preset-buttons">
-              <button @click="applyAudioPreset('punchy')" class="btn-preset" title="Fast, snappy reaction">
+              <button @click="applyAudioPreset('punchy')" class="btn-preset" title="Schnelle, knackige Reaktion">
                 ⚡ Punchy
               </button>
-              <button @click="applyAudioPreset('smooth')" class="btn-preset" title="Gentle, flowing animation">
+              <button @click="applyAudioPreset('smooth')" class="btn-preset" title="Sanfte, fließende Animation">
                 🌊 Smooth
               </button>
-              <button @click="applyAudioPreset('subtle')" class="btn-preset" title="Subtle, restrained effects">
+              <button @click="applyAudioPreset('subtle')" class="btn-preset" title="Dezente, subtile Effekte">
                 🎭 Subtle
               </button>
-              <button @click="applyAudioPreset('extreme')" class="btn-preset" title="Maximum reaction">
-                🔥 Extreme
+              <button @click="applyAudioPreset('extreme')" class="btn-preset" title="Maximale Reaktion">
+                🔥 Extrem
               </button>
             </div>
           </div>
 
           <!-- Threshold -->
           <div class="control-group">
-            <label>Threshold: {{ selectedText.audioReactive.threshold || 0 }}%</label>
+            <label>Schwellenwert: {{ selectedText.audioReactive.threshold || 0 }}%</label>
             <input
               type="range"
               v-model.number="selectedText.audioReactive.threshold"
@@ -1227,7 +1227,7 @@ Zeile 3..."
               max="50"
               class="slider"
             />
-            <div class="hint-text">Ignores quiet audio signals</div>
+            <div class="hint-text">Ignoriert leise Audio-Signale</div>
           </div>
 
           <!-- Attack -->
@@ -1241,7 +1241,7 @@ Zeile 3..."
               max="100"
               class="slider"
             />
-            <div class="hint-text">How fast the effect responds</div>
+            <div class="hint-text">Wie schnell der Effekt anspricht</div>
           </div>
 
           <!-- Release -->
@@ -1255,22 +1255,22 @@ Zeile 3..."
               max="100"
               class="slider"
             />
-            <div class="hint-text">How slowly the effect decays</div>
+            <div class="hint-text">Wie langsam der Effekt abklingt</div>
           </div>
 
           <!-- Reset Button -->
           <button @click="resetAudioSettings" class="btn-reset">
-            🔄 Reset
+            🔄 Zurücksetzen
           </button>
         </details>
 
         <div class="divider"></div>
 
-        <h4>Select Effects</h4>
+        <h4>Effekte auswählen</h4>
 
-        <!-- Effects List -->
+        <!-- Effekt-Liste -->
         <div class="effects-grid">
-          <!-- Hue (Color Rotation) -->
+          <!-- Hue (Farbrotation) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1279,7 +1279,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.hue.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">🎨</span> Color Rotation
+                <span class="effect-icon">🎨</span> Farbrotation
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.hue.enabled" class="effect-intensity">
@@ -1295,7 +1295,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Brightness -->
+          <!-- Brightness (Helligkeit) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1304,7 +1304,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.brightness.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">☀️</span> Brightness
+                <span class="effect-icon">☀️</span> Helligkeit
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.brightness.enabled" class="effect-intensity">
@@ -1320,7 +1320,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Scale (Pulsate) -->
+          <!-- Scale (Pulsieren) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1329,7 +1329,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.scale.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">📐</span> Pulsate
+                <span class="effect-icon">📐</span> Pulsieren
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.scale.enabled" class="effect-intensity">
@@ -1345,7 +1345,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Glow -->
+          <!-- Glow (Leuchten) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1354,7 +1354,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.glow.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">✨</span> Glow
+                <span class="effect-icon">✨</span> Leuchten
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.glow.enabled" class="effect-intensity">
@@ -1370,7 +1370,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Shake -->
+          <!-- Shake (Wackeln) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1379,7 +1379,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.shake.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">🫨</span> Shake
+                <span class="effect-icon">🫨</span> Wackeln
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.shake.enabled" class="effect-intensity">
@@ -1395,7 +1395,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Bounce -->
+          <!-- Bounce (Hüpfen) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1404,7 +1404,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.bounce.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">⬆️</span> Bounce
+                <span class="effect-icon">⬆️</span> Hüpfen
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.bounce.enabled" class="effect-intensity">
@@ -1420,7 +1420,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Swing -->
+          <!-- Swing (Pendeln) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1429,7 +1429,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.swing.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">➡️</span> Swing
+                <span class="effect-icon">➡️</span> Pendeln
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.swing.enabled" class="effect-intensity">
@@ -1445,7 +1445,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Opacity (Blink) -->
+          <!-- Opacity (Blinken) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1454,12 +1454,12 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.opacity.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">👁️</span> Blink
+                <span class="effect-icon">👁️</span> Blinken
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.opacity.enabled" class="effect-details">
               <div class="effect-intensity">
-                <span class="effect-label">Intensity:</span>
+                <span class="effect-label">Intensität:</span>
                 <input
                   type="range"
                   v-model.number="selectedText.audioReactive.effects.opacity.intensity"
@@ -1488,12 +1488,12 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.opacity.ease"
                   @change="updateText"
                 />
-                Ease Curve
+                Ease-Kurve
               </label>
             </div>
           </div>
 
-          <!-- Letter Spacing -->
+          <!-- Letter Spacing (Buchstabenabstand) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1502,7 +1502,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.letterSpacing.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">↔️</span> Spacing
+                <span class="effect-icon">↔️</span> Abstand
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.letterSpacing.enabled" class="effect-intensity">
@@ -1518,7 +1518,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Stroke Width (Outline) -->
+          <!-- Stroke Width (Kontur) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1527,7 +1527,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.strokeWidth.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">🖼️</span> Outline
+                <span class="effect-icon">🖼️</span> Kontur
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.strokeWidth.enabled" class="effect-intensity">
@@ -1545,7 +1545,7 @@ Zeile 3..."
         </div>
 
         <div class="hint-text" style="margin-top: 10px;">
-          Tip: Enable multiple effects for complex animations!
+          Tipp: Aktiviere mehrere Effekte gleichzeitig für komplexe Animationen!
         </div>
       </div>
       </div>
@@ -4092,24 +4092,24 @@ h4 {
   text-align: center;
 }
 
-/* ===== AUDIO-REACTIVE EFFECTS GRID ===== */
+/* ===== AUDIO-REAKTIV EFFEKTE GRID ===== */
 .effects-grid {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .effect-item {
-  background-color: var(--btn, #1c2426);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
-  border-radius: 5px;
-  padding: 6px 8px;
+  background-color: #252525;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  padding: 8px 10px;
   transition: all 0.2s ease;
 }
 
 .effect-item:hover {
-  border-color: var(--accent, #609198);
-  background-color: var(--btn-hover, #2a3335);
+  border-color: #4a4a4a;
+  background-color: #2a2a2a;
 }
 
 .effect-header {
@@ -4120,47 +4120,45 @@ h4 {
 .effect-checkbox {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   cursor: pointer;
-  font-size: 0.55rem;
-  color: var(--text, #E9E9EB);
+  font-size: 12px;
+  color: #e0e0e0;
   user-select: none;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
 }
 
 .effect-checkbox input[type="checkbox"] {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   cursor: pointer;
-  accent-color: var(--accent, #609198);
+  accent-color: #6ea8fe;
 }
 
 .effect-icon {
-  font-size: 0.65rem;
+  font-size: 14px;
   margin-right: 2px;
 }
 
 .effect-intensity {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #3a3a3a;
 }
 
 .effect-details {
-  margin-top: 6px;
-  padding: 6px;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 4px;
-  border-top: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  border-top: 1px solid #3a3a3a;
 }
 
 .effect-details .effect-intensity {
-  margin-top: 4px;
-  padding-top: 4px;
+  margin-top: 6px;
+  padding-top: 6px;
   border-top: none;
 }
 
@@ -4170,76 +4168,69 @@ h4 {
 }
 
 .effect-label {
-  font-size: 0.5rem;
-  color: var(--muted, #A8A992);
-  min-width: 50px;
-  text-transform: uppercase;
+  font-size: 11px;
+  color: #888;
+  min-width: 65px;
 }
 
 .effect-checkbox-small {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.5rem;
-  color: var(--muted, #A8A992);
-  margin-top: 6px;
+  gap: 6px;
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 8px;
   cursor: pointer;
-  text-transform: uppercase;
 }
 
 .effect-checkbox-small input[type="checkbox"] {
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   cursor: pointer;
 }
 
 .advanced-settings {
-  margin-top: 8px;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 5px;
-  padding: 6px;
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.15));
+  margin-top: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 8px;
 }
 
 .advanced-settings summary {
   cursor: pointer;
-  font-size: 0.55rem;
-  color: var(--accent, #609198);
+  font-size: 13px;
+  color: #6ea8fe;
   padding: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
 }
 
 .advanced-settings summary:hover {
-  color: var(--accent-light, #BCE5E5);
+  color: #8ec5ff;
 }
 
 .preset-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 4px;
+  gap: 6px;
+  margin-top: 6px;
 }
 
 .btn-preset {
   flex: 1;
-  min-width: 60px;
-  padding: 5px 6px;
-  font-size: 0.5rem;
-  background: var(--btn, #1c2426);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
-  border-radius: 4px;
-  color: var(--text, #E9E9EB);
+  min-width: 70px;
+  padding: 6px 8px;
+  font-size: 11px;
+  background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+  border: 1px solid #444;
+  border-radius: 6px;
+  color: #ddd;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.2px;
 }
 
 .btn-preset:hover {
-  background: var(--btn-hover, #2a3335);
-  border-color: var(--accent, #609198);
-  color: var(--accent-light, #BCE5E5);
+  background: linear-gradient(135deg, #3a3a3a 0%, #4a4a4a 100%);
+  border-color: #6ea8fe;
+  color: #fff;
   transform: translateY(-1px);
 }
 
@@ -4249,91 +4240,81 @@ h4 {
 
 .btn-reset {
   width: 100%;
-  margin-top: 8px;
-  padding: 5px 8px;
-  font-size: 0.55rem;
-  background: rgba(255, 100, 100, 0.1);
-  border: 1px solid rgba(255, 100, 100, 0.3);
-  border-radius: 4px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  font-size: 12px;
+  background: linear-gradient(135deg, #3a2a2a 0%, #4a3a3a 100%);
+  border: 1px solid #664444;
+  border-radius: 6px;
   color: #ffaaaa;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
 }
 
 .btn-reset:hover {
-  background: rgba(255, 100, 100, 0.2);
-  border-color: rgba(255, 100, 100, 0.5);
+  background: linear-gradient(135deg, #4a3a3a 0%, #5a4a4a 100%);
+  border-color: #ff6666;
   color: #fff;
 }
 
 .advanced-settings .control-group {
-  margin-top: 6px;
+  margin-top: 10px;
 }
 
 .advanced-settings .control-group label {
-  font-size: 0.55rem;
+  font-size: 12px;
 }
 
 .advanced-settings .hint-text {
-  font-size: 0.45rem;
+  font-size: 10px;
   margin-top: 2px;
 }
 
 .slider-small {
   flex: 1;
-  height: 3px;
-  background: linear-gradient(90deg, var(--muted, #A8A992) 0%, var(--accent, #609198) 100%);
-  border-radius: 2px;
+  height: 4px;
+  background: linear-gradient(90deg, #2a2a2a 0%, #3a3a3a 100%);
+  border-radius: 10px;
   outline: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  -webkit-appearance: none;
-  appearance: none;
+  transition: all 0.3s ease;
+  border: 1px solid #333;
 }
 
 .slider-small::-webkit-slider-thumb {
-  -webkit-appearance: none;
   appearance: none;
-  width: 12px;
-  height: 12px;
-  background: var(--accent-light, #BCE5E5);
+  width: 14px;
+  height: 14px;
+  background: linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%);
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
 .slider-small::-webkit-slider-thumb:hover {
   transform: scale(1.1);
-  background: var(--accent, #609198);
+  box-shadow: 0 2px 6px rgba(110, 168, 254, 0.4);
 }
 
 .slider-small::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  background: var(--accent-light, #BCE5E5);
+  width: 14px;
+  height: 14px;
+  background: linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%);
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
-.slider-small::-moz-range-thumb:hover {
-  transform: scale(1.1);
-  background: var(--accent, #609198);
-}
-
 .intensity-value {
-  font-size: 0.5rem;
-  color: var(--muted, #A8A992);
-  font-weight: 500;
-  min-width: 30px;
+  font-size: 11px;
+  color: #6ea8fe;
+  font-weight: 600;
+  min-width: 35px;
   text-align: right;
-  font-family: monospace;
 }
 
 /* ===== TYPEWRITER SETTINGS ===== */

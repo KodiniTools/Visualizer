@@ -1134,18 +1134,18 @@ Zeile 3..."
         </div>
       </details>
 
-      <!-- ✨ AUDIO-REAKTIVE EFFEKTE (klappbar) -->
+      <!-- ✨ AUDIO-REACTIVE EFFECTS (collapsible) -->
       <details class="collapsible-section">
         <summary class="section-header">
           <span class="section-icon">🎵</span>
-          <span>Audio-Reaktiv</span>
+          <span>{{ t('canvas.audioReactive') }}</span>
           <span v-if="selectedText.audioReactive?.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
         </summary>
         <div class="section-content">
 
-      <!-- Aktivieren/Deaktivieren -->
+      <!-- Enable/Disable -->
       <div class="control-group">
-        <label>Audio-Reaktive Effekte:</label>
+        <label>{{ t('textManager.audioReactiveEffects') }}:</label>
         <div class="button-group">
           <button
             @click="toggleAudioReactive"
@@ -1156,30 +1156,30 @@ Zeile 3..."
         </div>
       </div>
 
-      <!-- Audio-Einstellungen (nur wenn aktiviert) -->
+      <!-- Audio settings (only when enabled) -->
       <div v-if="selectedText.audioReactive?.enabled">
-        <!-- Audio-Quelle -->
+        <!-- Audio Source -->
         <div class="control-group">
-          <label>Audio-Quelle:</label>
+          <label>{{ t('textManager.audioSource') }}:</label>
           <select
             v-model="selectedText.audioReactive.source"
             @change="updateText"
             class="select-input"
           >
-            <option value="bass">Bass (Kick/Drums)</option>
-            <option value="mid">Mid (Vocals/Melodie)</option>
-            <option value="treble">Treble (Hi-Hats/Höhen)</option>
-            <option value="volume">Volume (Gesamt)</option>
-            <option value="dynamic">✨ Dynamisch (Auto-Blend)</option>
+            <option value="bass">{{ t('textManager.bassKickDrums') }}</option>
+            <option value="mid">{{ t('textManager.midVocalsMelody') }}</option>
+            <option value="treble">{{ t('textManager.trebleHiHatsHighs') }}</option>
+            <option value="volume">{{ t('textManager.volumeOverall') }}</option>
+            <option value="dynamic">✨ {{ t('textManager.dynamicAutoBlend') }}</option>
           </select>
-          <div v-if="selectedText.audioReactive.source === 'dynamic'" class="hint-text" style="color: #6ea8fe;">
-            Kombiniert automatisch alle Frequenzen basierend auf ihrer aktuellen Energie
+          <div v-if="selectedText.audioReactive.source === 'dynamic'" class="hint-text" style="color: var(--accent, #609198);">
+            {{ t('textManager.dynamicHint') }}
           </div>
         </div>
 
         <!-- Smoothing -->
         <div class="control-group">
-          <label>Glättung: {{ selectedText.audioReactive.smoothing }}%</label>
+          <label>{{ t('textManager.smoothing') }}: {{ selectedText.audioReactive.smoothing }}%</label>
           <input
             type="range"
             v-model.number="selectedText.audioReactive.smoothing"
@@ -1189,36 +1189,36 @@ Zeile 3..."
             class="slider"
           />
           <div class="hint-text">
-            Niedrig = schnelle Reaktion, Hoch = sanfte Animation
+            {{ t('textManager.smoothingHint') }}
           </div>
         </div>
 
-        <!-- ✨ Erweiterte Audio-Einstellungen -->
+        <!-- ✨ Advanced Audio Settings -->
         <details class="advanced-settings">
-          <summary>⚙️ Erweiterte Einstellungen</summary>
+          <summary>⚙️ {{ t('textManager.advancedSettings') }}</summary>
 
           <!-- Presets -->
           <div class="control-group">
             <label>Presets:</label>
             <div class="preset-buttons">
-              <button @click="applyAudioPreset('punchy')" class="btn-preset" title="Schnelle, knackige Reaktion">
-                ⚡ Punchy
+              <button @click="applyAudioPreset('punchy')" class="btn-preset" :title="t('textManager.presetPunchyTitle')">
+                ⚡ {{ t('textManager.presetPunchy') }}
               </button>
-              <button @click="applyAudioPreset('smooth')" class="btn-preset" title="Sanfte, fließende Animation">
-                🌊 Smooth
+              <button @click="applyAudioPreset('smooth')" class="btn-preset" :title="t('textManager.presetSmoothTitle')">
+                🌊 {{ t('textManager.presetSmooth') }}
               </button>
-              <button @click="applyAudioPreset('subtle')" class="btn-preset" title="Dezente, subtile Effekte">
-                🎭 Subtle
+              <button @click="applyAudioPreset('subtle')" class="btn-preset" :title="t('textManager.presetSubtleTitle')">
+                🎭 {{ t('textManager.presetSubtle') }}
               </button>
-              <button @click="applyAudioPreset('extreme')" class="btn-preset" title="Maximale Reaktion">
-                🔥 Extrem
+              <button @click="applyAudioPreset('extreme')" class="btn-preset" :title="t('textManager.presetExtremeTitle')">
+                🔥 {{ t('textManager.presetExtreme') }}
               </button>
             </div>
           </div>
 
           <!-- Threshold -->
           <div class="control-group">
-            <label>Schwellenwert: {{ selectedText.audioReactive.threshold || 0 }}%</label>
+            <label>{{ t('textManager.threshold') }}: {{ selectedText.audioReactive.threshold || 0 }}%</label>
             <input
               type="range"
               v-model.number="selectedText.audioReactive.threshold"
@@ -1227,12 +1227,12 @@ Zeile 3..."
               max="50"
               class="slider"
             />
-            <div class="hint-text">Ignoriert leise Audio-Signale</div>
+            <div class="hint-text">{{ t('textManager.thresholdHint') }}</div>
           </div>
 
           <!-- Attack -->
           <div class="control-group">
-            <label>Attack: {{ selectedText.audioReactive.attack || 90 }}%</label>
+            <label>{{ t('textManager.attack') }}: {{ selectedText.audioReactive.attack || 90 }}%</label>
             <input
               type="range"
               v-model.number="selectedText.audioReactive.attack"
@@ -1241,12 +1241,12 @@ Zeile 3..."
               max="100"
               class="slider"
             />
-            <div class="hint-text">Wie schnell der Effekt anspricht</div>
+            <div class="hint-text">{{ t('textManager.attackHint') }}</div>
           </div>
 
           <!-- Release -->
           <div class="control-group">
-            <label>Release: {{ selectedText.audioReactive.release || 50 }}%</label>
+            <label>{{ t('textManager.release') }}: {{ selectedText.audioReactive.release || 50 }}%</label>
             <input
               type="range"
               v-model.number="selectedText.audioReactive.release"
@@ -1255,22 +1255,22 @@ Zeile 3..."
               max="100"
               class="slider"
             />
-            <div class="hint-text">Wie langsam der Effekt abklingt</div>
+            <div class="hint-text">{{ t('textManager.releaseHint') }}</div>
           </div>
 
           <!-- Reset Button -->
           <button @click="resetAudioSettings" class="btn-reset">
-            🔄 Zurücksetzen
+            🔄 {{ t('textManager.reset') }}
           </button>
         </details>
 
         <div class="divider"></div>
 
-        <h4>Effekte auswählen</h4>
+        <h4>{{ t('textManager.selectEffects') }}</h4>
 
-        <!-- Effekt-Liste -->
+        <!-- Effects List -->
         <div class="effects-grid">
-          <!-- Hue (Farbrotation) -->
+          <!-- Hue (Color Rotation) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1279,7 +1279,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.hue.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">🎨</span> Farbrotation
+                <span class="effect-icon">🎨</span> {{ t('textManager.colorRotation') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.hue.enabled" class="effect-intensity">
@@ -1295,7 +1295,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Brightness (Helligkeit) -->
+          <!-- Brightness -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1304,7 +1304,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.brightness.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">☀️</span> Helligkeit
+                <span class="effect-icon">☀️</span> {{ t('textManager.brightness') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.brightness.enabled" class="effect-intensity">
@@ -1320,7 +1320,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Scale (Pulsieren) -->
+          <!-- Scale (Pulsate) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1329,7 +1329,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.scale.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">📐</span> Pulsieren
+                <span class="effect-icon">📐</span> {{ t('textManager.pulsate') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.scale.enabled" class="effect-intensity">
@@ -1345,7 +1345,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Glow (Leuchten) -->
+          <!-- Glow -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1354,7 +1354,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.glow.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">✨</span> Leuchten
+                <span class="effect-icon">✨</span> {{ t('textManager.glow') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.glow.enabled" class="effect-intensity">
@@ -1370,7 +1370,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Shake (Wackeln) -->
+          <!-- Shake -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1379,7 +1379,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.shake.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">🫨</span> Wackeln
+                <span class="effect-icon">🫨</span> {{ t('textManager.shake') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.shake.enabled" class="effect-intensity">
@@ -1395,7 +1395,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Bounce (Hüpfen) -->
+          <!-- Bounce -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1404,7 +1404,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.bounce.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">⬆️</span> Hüpfen
+                <span class="effect-icon">⬆️</span> {{ t('textManager.bounce') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.bounce.enabled" class="effect-intensity">
@@ -1420,7 +1420,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Swing (Pendeln) -->
+          <!-- Swing -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1429,7 +1429,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.swing.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">➡️</span> Pendeln
+                <span class="effect-icon">➡️</span> {{ t('textManager.swing') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.swing.enabled" class="effect-intensity">
@@ -1445,7 +1445,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Opacity (Blinken) -->
+          <!-- Opacity (Blink) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1454,12 +1454,12 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.opacity.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">👁️</span> Blinken
+                <span class="effect-icon">👁️</span> {{ t('textManager.blink') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.opacity.enabled" class="effect-details">
               <div class="effect-intensity">
-                <span class="effect-label">Intensität:</span>
+                <span class="effect-label">{{ t('textManager.intensity') }}:</span>
                 <input
                   type="range"
                   v-model.number="selectedText.audioReactive.effects.opacity.intensity"
@@ -1471,7 +1471,7 @@ Zeile 3..."
                 <span class="intensity-value">{{ selectedText.audioReactive.effects.opacity.intensity }}%</span>
               </div>
               <div class="effect-intensity">
-                <span class="effect-label">Minimum:</span>
+                <span class="effect-label">{{ t('textManager.minimum') }}:</span>
                 <input
                   type="range"
                   v-model.number="selectedText.audioReactive.effects.opacity.minimum"
@@ -1488,12 +1488,12 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.opacity.ease"
                   @change="updateText"
                 />
-                Ease-Kurve
+                {{ t('textManager.easeCurve') }}
               </label>
             </div>
           </div>
 
-          <!-- Letter Spacing (Buchstabenabstand) -->
+          <!-- Letter Spacing -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1502,7 +1502,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.letterSpacing.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">↔️</span> Abstand
+                <span class="effect-icon">↔️</span> {{ t('textManager.spacing') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.letterSpacing.enabled" class="effect-intensity">
@@ -1518,7 +1518,7 @@ Zeile 3..."
             </div>
           </div>
 
-          <!-- Stroke Width (Kontur) -->
+          <!-- Stroke Width (Outline) -->
           <div class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
@@ -1527,7 +1527,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.strokeWidth.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">🖼️</span> Kontur
+                <span class="effect-icon">🖼️</span> {{ t('textManager.outline') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.strokeWidth.enabled" class="effect-intensity">
@@ -1545,7 +1545,7 @@ Zeile 3..."
         </div>
 
         <div class="hint-text" style="margin-top: 10px;">
-          Tipp: Aktiviere mehrere Effekte gleichzeitig für komplexe Animationen!
+          {{ t('textManager.effectsTip') }}
         </div>
       </div>
       </div>
@@ -4092,24 +4092,24 @@ h4 {
   text-align: center;
 }
 
-/* ===== AUDIO-REAKTIV EFFEKTE GRID ===== */
+/* ===== AUDIO-REACTIVE EFFECTS GRID ===== */
 .effects-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .effect-item {
-  background-color: #252525;
-  border: 1px solid #3a3a3a;
-  border-radius: 6px;
-  padding: 8px 10px;
+  background-color: var(--btn, #1c2426);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border-radius: 5px;
+  padding: 6px 8px;
   transition: all 0.2s ease;
 }
 
 .effect-item:hover {
-  border-color: #4a4a4a;
-  background-color: #2a2a2a;
+  border-color: var(--accent, #609198);
+  background-color: var(--btn-hover, #2a3335);
 }
 
 .effect-header {
@@ -4120,45 +4120,47 @@ h4 {
 .effect-checkbox {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
-  font-size: 12px;
-  color: #e0e0e0;
+  font-size: 0.55rem;
+  color: var(--text, #E9E9EB);
   user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .effect-checkbox input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   cursor: pointer;
-  accent-color: #6ea8fe;
+  accent-color: var(--accent, #609198);
 }
 
 .effect-icon {
-  font-size: 14px;
+  font-size: 0.65rem;
   margin-right: 2px;
 }
 
 .effect-intensity {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #3a3a3a;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
 }
 
 .effect-details {
-  margin-top: 8px;
-  padding: 8px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-  border-top: 1px solid #3a3a3a;
+  margin-top: 6px;
+  padding: 6px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  border-top: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
 }
 
 .effect-details .effect-intensity {
-  margin-top: 6px;
-  padding-top: 6px;
+  margin-top: 4px;
+  padding-top: 4px;
   border-top: none;
 }
 
@@ -4168,69 +4170,76 @@ h4 {
 }
 
 .effect-label {
-  font-size: 11px;
-  color: #888;
-  min-width: 65px;
+  font-size: 0.5rem;
+  color: var(--muted, #A8A992);
+  min-width: 50px;
+  text-transform: uppercase;
 }
 
 .effect-checkbox-small {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #aaa;
-  margin-top: 8px;
+  gap: 4px;
+  font-size: 0.5rem;
+  color: var(--muted, #A8A992);
+  margin-top: 6px;
   cursor: pointer;
+  text-transform: uppercase;
 }
 
 .effect-checkbox-small input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
   cursor: pointer;
 }
 
 .advanced-settings {
-  margin-top: 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  padding: 8px;
+  margin-top: 8px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 5px;
+  padding: 6px;
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.15));
 }
 
 .advanced-settings summary {
   cursor: pointer;
-  font-size: 13px;
-  color: #6ea8fe;
+  font-size: 0.55rem;
+  color: var(--accent, #609198);
   padding: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .advanced-settings summary:hover {
-  color: #8ec5ff;
+  color: var(--accent-light, #BCE5E5);
 }
 
 .preset-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
+  gap: 4px;
+  margin-top: 4px;
 }
 
 .btn-preset {
   flex: 1;
-  min-width: 70px;
-  padding: 6px 8px;
-  font-size: 11px;
-  background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
-  border: 1px solid #444;
-  border-radius: 6px;
-  color: #ddd;
+  min-width: 60px;
+  padding: 5px 6px;
+  font-size: 0.5rem;
+  background: var(--btn, #1c2426);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border-radius: 4px;
+  color: var(--text, #E9E9EB);
   cursor: pointer;
   transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
 }
 
 .btn-preset:hover {
-  background: linear-gradient(135deg, #3a3a3a 0%, #4a4a4a 100%);
-  border-color: #6ea8fe;
-  color: #fff;
+  background: var(--btn-hover, #2a3335);
+  border-color: var(--accent, #609198);
+  color: var(--accent-light, #BCE5E5);
   transform: translateY(-1px);
 }
 
@@ -4240,81 +4249,91 @@ h4 {
 
 .btn-reset {
   width: 100%;
-  margin-top: 12px;
-  padding: 8px 12px;
-  font-size: 12px;
-  background: linear-gradient(135deg, #3a2a2a 0%, #4a3a3a 100%);
-  border: 1px solid #664444;
-  border-radius: 6px;
+  margin-top: 8px;
+  padding: 5px 8px;
+  font-size: 0.55rem;
+  background: rgba(255, 100, 100, 0.1);
+  border: 1px solid rgba(255, 100, 100, 0.3);
+  border-radius: 4px;
   color: #ffaaaa;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .btn-reset:hover {
-  background: linear-gradient(135deg, #4a3a3a 0%, #5a4a4a 100%);
-  border-color: #ff6666;
+  background: rgba(255, 100, 100, 0.2);
+  border-color: rgba(255, 100, 100, 0.5);
   color: #fff;
 }
 
 .advanced-settings .control-group {
-  margin-top: 10px;
+  margin-top: 6px;
 }
 
 .advanced-settings .control-group label {
-  font-size: 12px;
+  font-size: 0.55rem;
 }
 
 .advanced-settings .hint-text {
-  font-size: 10px;
+  font-size: 0.45rem;
   margin-top: 2px;
 }
 
 .slider-small {
   flex: 1;
-  height: 4px;
-  background: linear-gradient(90deg, #2a2a2a 0%, #3a3a3a 100%);
-  border-radius: 10px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--muted, #A8A992) 0%, var(--accent, #609198) 100%);
+  border-radius: 2px;
   outline: none;
   cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid #333;
+  transition: all 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .slider-small::-webkit-slider-thumb {
+  -webkit-appearance: none;
   appearance: none;
-  width: 14px;
-  height: 14px;
-  background: linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%);
+  width: 12px;
+  height: 12px;
+  background: var(--accent-light, #BCE5E5);
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
 .slider-small::-webkit-slider-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 0 2px 6px rgba(110, 168, 254, 0.4);
+  background: var(--accent, #609198);
 }
 
 .slider-small::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  background: linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%);
+  width: 12px;
+  height: 12px;
+  background: var(--accent-light, #BCE5E5);
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
+.slider-small::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  background: var(--accent, #609198);
+}
+
 .intensity-value {
-  font-size: 11px;
-  color: #6ea8fe;
-  font-weight: 600;
-  min-width: 35px;
+  font-size: 0.5rem;
+  color: var(--muted, #A8A992);
+  font-weight: 500;
+  min-width: 30px;
   text-align: right;
+  font-family: monospace;
 }
 
 /* ===== TYPEWRITER SETTINGS ===== */

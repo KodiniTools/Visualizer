@@ -76,7 +76,12 @@ export class TextManager {
                     swing: { enabled: false, intensity: 80 },
                     opacity: { enabled: false, intensity: 80, minimum: 0, ease: false },
                     letterSpacing: { enabled: false, intensity: 80 },
-                    strokeWidth: { enabled: false, intensity: 80 }
+                    strokeWidth: { enabled: false, intensity: 80 },
+                    // ✨ NEU: Erweiterte Audio-Reaktive Effekte
+                    skew: { enabled: false, intensity: 80 },           // Verzerrung: Oszillierende Scheren-Transformation
+                    strobe: { enabled: false, intensity: 80 },         // Strobe: Blitz-Effekt bei Audio-Peaks (>60%)
+                    rgbGlitch: { enabled: false, intensity: 80 },      // RGB-Glitch: Chromatische Aberration
+                    perspective3d: { enabled: false, intensity: 80 }   // 3D-Perspektive: Simulierter 3D-Kipp-Effekt
                 }
             },
 
@@ -890,6 +895,14 @@ export class TextManager {
         const fadeResult = this._getFadeOpacity(textObj);
         baseOpacity = baseOpacity * fadeResult.opacity;
 
+        // ✨ AUDIO-REAKTIV: Strobe-Effekt (Blitz bei Audio-Peaks)
+        let strobeBrightnessMultiplier = 100;
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.strobe) {
+            const strobe = audioReactive.effects.strobe;
+            baseOpacity = baseOpacity * (strobe.strobeOpacity || 1.0);
+            strobeBrightnessMultiplier = strobe.strobeBrightness || 100;
+        }
+
         ctx.globalAlpha = baseOpacity;
 
         // Basis-Position berechnen
@@ -930,9 +943,29 @@ export class TextManager {
         const scaleResult = this._getScaleValue(textObj);
         scale = scale * scaleResult.scale;
 
-        // Rotation + Scale anwenden
+        // ✨ AUDIO-REAKTIV: 3D-Perspektive-Effekt (Skalierung + Scherung)
+        let perspectiveSkewX = 0;
+        let perspectiveSkewY = 0;
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.perspective3d) {
+            const p3d = audioReactive.effects.perspective3d;
+            scale = scale * (p3d.perspective3dScale || 1.0);
+            perspectiveSkewX = p3d.perspective3dSkewX || 0;
+            perspectiveSkewY = p3d.perspective3dSkewY || 0;
+        }
+
+        // ✨ AUDIO-REAKTIV: Skew-Effekt (Verzerrung)
+        let skewX = perspectiveSkewX;
+        let skewY = perspectiveSkewY;
+        if (audioReactive && audioReactive.hasEffects && audioReactive.effects.skew) {
+            const skewEffect = audioReactive.effects.skew;
+            skewX += skewEffect.skewX || 0;
+            skewY += skewEffect.skewY || 0;
+        }
+
+        // Rotation + Scale + Skew anwenden
         const totalRotation = textObj.rotation || 0;
-        if (totalRotation !== 0 || scale !== 1.0) {
+        const hasTransform = totalRotation !== 0 || scale !== 1.0 || skewX !== 0 || skewY !== 0;
+        if (hasTransform) {
             ctx.translate(pixelX, pixelY);
             if (totalRotation !== 0) {
                 ctx.rotate((totalRotation * Math.PI) / 180);
@@ -940,10 +973,17 @@ export class TextManager {
             if (scale !== 1.0) {
                 ctx.scale(scale, scale);
             }
+            // ✨ Skew-Transformation anwenden (Scheren-Effekt)
+            if (skewX !== 0 || skewY !== 0) {
+                // ctx.transform(a, b, c, d, e, f) - b und c sind die Scherfaktoren
+                const skewXRad = (skewX * Math.PI) / 180;
+                const skewYRad = (skewY * Math.PI) / 180;
+                ctx.transform(1, Math.tan(skewYRad), Math.tan(skewXRad), 1, 0, 0);
+            }
             ctx.translate(-pixelX, -pixelY);
         }
 
-        // ✨ AUDIO-REAKTIV: Filter anwenden (Hue, Brightness)
+        // ✨ AUDIO-REAKTIV: Filter anwenden (Hue, Brightness, Strobe)
         let filterString = '';
         if (audioReactive && audioReactive.hasEffects) {
             const effects = audioReactive.effects;
@@ -953,10 +993,21 @@ export class TextManager {
                 filterString += `hue-rotate(${effects.hue.hueRotate}deg) `;
             }
 
-            // Helligkeit
+            // Helligkeit (kombiniert mit Strobe-Brightness)
+            let totalBrightness = 100;
             if (effects.brightness) {
-                filterString += `brightness(${effects.brightness.brightness}%) `;
+                totalBrightness = effects.brightness.brightness;
             }
+            // ✨ Strobe-Brightness addieren (strobeBrightnessMultiplier kommt von weiter oben)
+            if (strobeBrightnessMultiplier !== 100) {
+                totalBrightness = (totalBrightness / 100) * strobeBrightnessMultiplier;
+            }
+            if (totalBrightness !== 100) {
+                filterString += `brightness(${totalBrightness}%) `;
+            }
+        } else if (strobeBrightnessMultiplier !== 100) {
+            // Strobe ohne andere Audio-Effekte
+            filterString += `brightness(${strobeBrightnessMultiplier}%) `;
         }
         if (filterString) {
             ctx.filter = filterString.trim();
@@ -994,6 +1045,10 @@ export class TextManager {
             }
         }
 
+        // ✨ AUDIO-REAKTIV: RGB-Glitch prüfen
+        const hasRgbGlitch = audioReactive && audioReactive.hasEffects && audioReactive.effects.rgbGlitch;
+        const rgbGlitch = hasRgbGlitch ? audioReactive.effects.rgbGlitch : null;
+
         // Zeichne jede Zeile einzeln
         lines.forEach((line, index) => {
             const yPos = startY + (index * lineHeight);
@@ -1001,12 +1056,37 @@ export class TextManager {
             // ✨ KONTUR zeichnen (wenn aktiviert oder audio-reaktiv)
             const hasStroke = textObj.stroke.enabled ||
                 (audioReactive && audioReactive.hasEffects && audioReactive.effects.strokeWidth);
-            if (hasStroke) {
+            if (hasStroke && !hasRgbGlitch) {
                 ctx.strokeText(line, pixelX, yPos);
             }
 
-            // Text füllen
-            ctx.fillText(line, pixelX, yPos);
+            // ✨ RGB-Glitch: Chromatische Aberration (Text 3x mit R/G/B Verschiebung)
+            if (hasRgbGlitch && rgbGlitch.glitchIntensity > 0) {
+                const originalFillStyle = ctx.fillStyle;
+                const originalComposite = ctx.globalCompositeOperation;
+
+                // Additives Blending für Farbüberlagerung
+                ctx.globalCompositeOperation = 'lighter';
+
+                // Rot-Kanal (versetzt nach links-oben)
+                ctx.fillStyle = `rgba(255, 0, 0, 0.7)`;
+                ctx.fillText(line, pixelX + rgbGlitch.redOffsetX, yPos + rgbGlitch.redOffsetY);
+
+                // Grün-Kanal (Original-Position)
+                ctx.fillStyle = `rgba(0, 255, 0, 0.7)`;
+                ctx.fillText(line, pixelX, yPos);
+
+                // Blau-Kanal (versetzt nach rechts-unten)
+                ctx.fillStyle = `rgba(0, 0, 255, 0.7)`;
+                ctx.fillText(line, pixelX + rgbGlitch.blueOffsetX, yPos + rgbGlitch.blueOffsetY);
+
+                // Zurücksetzen
+                ctx.globalCompositeOperation = originalComposite;
+                ctx.fillStyle = originalFillStyle;
+            } else {
+                // Text füllen (normal)
+                ctx.fillText(line, pixelX, yPos);
+            }
         });
 
         // ✨ TYPEWRITER: Cursor zeichnen
@@ -1343,6 +1423,42 @@ export class TextManager {
             case 'strokeWidth':
                 // Pulsierende Kontur-Dicke: 0-10px basierend auf Audio-Level
                 return { strokeWidth: level * 10 };
+
+            // ✨ NEU: Erweiterte Audio-Reaktive Effekte
+            case 'skew':
+                // Verzerrung: Oszillierende Scheren-Transformation (X/Y unabhängig)
+                const timeSkew = Date.now() * 0.003;
+                const skewX = Math.sin(timeSkew) * level * 30;           // -30 bis +30 Grad auf X-Achse
+                const skewY = Math.cos(timeSkew * 0.7) * level * 15;     // -15 bis +15 Grad auf Y-Achse (langsamer)
+                return { skewX, skewY };
+
+            case 'strobe':
+                // Strobe: Blitz-Effekt bei Audio-Peaks (nur aktiviert wenn Audio > 60%)
+                const strobeActive = level > 0.6;
+                const strobeOpacity = strobeActive ? (Math.random() > 0.3 ? 1.0 : 0.0) : 1.0;
+                const strobeBrightness = strobeActive ? (150 + Math.random() * 100) : 100;
+                return { strobeOpacity, strobeBrightness, strobeActive };
+
+            case 'rgbGlitch':
+                // RGB-Glitch: Chromatische Aberration (Rot/Grün/Blau Verschiebung)
+                const glitchIntensity = level * 8;  // Max 8px Verschiebung
+                const timeGlitch = Date.now() * 0.01;
+                const redOffsetX = Math.sin(timeGlitch) * glitchIntensity;
+                const redOffsetY = Math.cos(timeGlitch * 1.3) * glitchIntensity * 0.5;
+                const blueOffsetX = Math.sin(timeGlitch + 2) * glitchIntensity;
+                const blueOffsetY = Math.cos(timeGlitch * 0.8 + 1) * glitchIntensity * 0.5;
+                return { redOffsetX, redOffsetY, blueOffsetX, blueOffsetY, glitchIntensity };
+
+            case 'perspective3d':
+                // 3D-Perspektive: Simulierter 3D-Kipp-Effekt (Skalierung + Scherung kombiniert)
+                const time3d = Date.now() * 0.002;
+                const rotateX = Math.sin(time3d) * level * 20;           // Kippung um X-Achse
+                const rotateY = Math.cos(time3d * 0.8) * level * 15;     // Kippung um Y-Achse
+                const perspective3dScale = 1.0 + Math.sin(time3d * 0.5) * level * 0.15;  // Leichte Skalierung
+                const perspective3dSkewX = Math.sin(time3d) * level * 10;
+                const perspective3dSkewY = Math.cos(time3d * 0.6) * level * 5;
+                return { rotateX, rotateY, perspective3dScale, perspective3dSkewX, perspective3dSkewY };
+
             default:
                 return {};
         }

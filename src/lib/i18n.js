@@ -410,6 +410,15 @@ const translations = {
       easeCurve: 'Ease-Kurve',
       spacing: 'Abstand',
       outline: 'Kontur',
+      // ✨ NEU: Erweiterte Audio-Reaktive Effekte
+      skew: 'Verzerrung',
+      skewHint: 'Oszillierende Scheren-Transformation (X/Y-Achsen unabhängig)',
+      strobe: 'Strobe',
+      strobeHint: 'Blitz-Effekt bei Audio-Peaks (aktiviert >60% Audio)',
+      rgbGlitch: 'RGB-Glitch',
+      rgbGlitchHint: 'Chromatische Aberration (Rot/Grün/Blau Verschiebung)',
+      perspective3d: '3D-Perspektive',
+      perspective3dHint: 'Simulierter 3D-Kipp-Effekt (kombiniert Skalierung + Scherung)',
       effectsTip: 'Tipp: Aktiviere mehrere Effekte gleichzeitig für komplexe Animationen!',
       // Audio source options
       bassKickDrums: 'Bass (Kick/Drums)',
@@ -1010,6 +1019,15 @@ const translations = {
       easeCurve: 'Ease Curve',
       spacing: 'Spacing',
       outline: 'Outline',
+      // ✨ NEW: Extended Audio Reactive Effects
+      skew: 'Distortion',
+      skewHint: 'Oscillating shear transformation (X/Y axes independent)',
+      strobe: 'Strobe',
+      strobeHint: 'Flash effect on audio peaks (activates >60% audio)',
+      rgbGlitch: 'RGB Glitch',
+      rgbGlitchHint: 'Chromatic aberration (Red/Green/Blue shift)',
+      perspective3d: '3D Perspective',
+      perspective3dHint: 'Simulated 3D tilt effect (combines scaling + shearing)',
       effectsTip: 'Tip: Enable multiple effects for complex animations!',
       // Audio source options
       bassKickDrums: 'Bass (Kick/Drums)',

@@ -1542,6 +1542,110 @@ Zeile 3..."
               <span class="intensity-value">{{ selectedText.audioReactive.effects.strokeWidth.intensity }}%</span>
             </div>
           </div>
+
+          <!-- ✨ NEU: Skew (Verzerrung) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.skew.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">📐</span> {{ t('textManager.skew') }}
+              </label>
+              <span class="effect-hint" :title="t('textManager.skewHint')">ℹ️</span>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.skew.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.skew.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.skew.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- ✨ NEU: Strobe (Blitz-Effekt) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.strobe.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">⚡</span> {{ t('textManager.strobe') }}
+              </label>
+              <span class="effect-hint" :title="t('textManager.strobeHint')">ℹ️</span>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.strobe.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.strobe.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.strobe.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- ✨ NEU: RGB-Glitch (Chromatische Aberration) -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.rgbGlitch.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">🌈</span> {{ t('textManager.rgbGlitch') }}
+              </label>
+              <span class="effect-hint" :title="t('textManager.rgbGlitchHint')">ℹ️</span>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.rgbGlitch.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.rgbGlitch.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.rgbGlitch.intensity }}%</span>
+            </div>
+          </div>
+
+          <!-- ✨ NEU: 3D-Perspektive -->
+          <div class="effect-item">
+            <div class="effect-header">
+              <label class="effect-checkbox">
+                <input
+                  type="checkbox"
+                  v-model="selectedText.audioReactive.effects.perspective3d.enabled"
+                  @change="updateText"
+                />
+                <span class="effect-icon">🎲</span> {{ t('textManager.perspective3d') }}
+              </label>
+              <span class="effect-hint" :title="t('textManager.perspective3dHint')">ℹ️</span>
+            </div>
+            <div v-if="selectedText.audioReactive.effects.perspective3d.enabled" class="effect-intensity">
+              <input
+                type="range"
+                v-model.number="selectedText.audioReactive.effects.perspective3d.intensity"
+                @input="updateText"
+                min="10"
+                max="100"
+                class="slider-small"
+              />
+              <span class="intensity-value">{{ selectedText.audioReactive.effects.perspective3d.intensity }}%</span>
+            </div>
+          </div>
         </div>
 
         <div class="hint-text" style="margin-top: 10px;">

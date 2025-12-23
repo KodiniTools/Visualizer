@@ -3327,7 +3327,7 @@ watch(currentActiveImage, (newImage) => {
 .foto-panel-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 10px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -3335,9 +3335,9 @@ watch(currentActiveImage, (newImage) => {
    ═══════════════════════════════════════════════════════════════════ */
 
 .color-settings-section {
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  border: 1px solid #333;
+  background-color: var(--btn, #1c2426);
+  border-radius: 6px;
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   overflow: hidden;
 }
 
@@ -3345,32 +3345,32 @@ watch(currentActiveImage, (newImage) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 8px 10px;
   cursor: pointer;
   user-select: none;
   transition: background 0.2s ease;
 }
 
 .color-settings-header:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(96, 145, 152, 0.05);
 }
 
 .color-settings-title {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 12px;
+  gap: 8px;
+  font-size: 0.6rem;
   font-weight: 600;
-  color: #aaa;
+  color: var(--muted, #A8A992);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .color-preview-dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .color-toggle-btn {
@@ -3629,62 +3629,71 @@ watch(currentActiveImage, (newImage) => {
 .stock-gallery-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  padding: 16px;
-  border: 1px solid #333;
+  gap: 8px;
+  background-color: var(--panel, #151b1d);
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
 }
 
 .stock-gallery-section h4 {
-  margin: 0 0 8px 0;
-  font-size: 12px;
+  margin: 0 0 6px 0;
+  font-size: 0.7rem;
   font-weight: 600;
-  color: #aaa;
+  color: var(--text, #E9E9EB);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stock-gallery-section h4::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpath d='M21 15l-5-5L5 21'/%3E%3C/svg%3E");
+  background-size: contain;
+  filter: drop-shadow(0 0 1px rgba(0,0,0,0.8));
 }
 
 /* Kategorie-Tabs */
 .category-tabs {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
 }
 
 .category-tab {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #555;
-  background-color: #333;
-  color: #e0e0e0;
-  font-size: 12px;
+  gap: 4px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  background-color: var(--btn, #1c2426);
+  color: var(--text, #E9E9EB);
+  font-size: 0.55rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .category-tab:hover {
-  border-color: var(--image-section-accent, #6ea8fe);
-  color: #fff;
-  background-color: #444;
+  border-color: var(--accent, #609198);
+  background-color: var(--btn-hover, #2a3335);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(110, 168, 254, 0.2);
 }
 
 .category-tab.active {
-  background: var(--image-section-gradient, linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%));
-  border-color: var(--image-section-accent, #6ea8fe);
-  color: #121212;
+  background: rgba(96, 145, 152, 0.3);
+  border-color: var(--accent, #609198);
+  color: var(--accent-light, #BCE5E5);
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(110, 168, 254, 0.4);
 }
 
 .category-icon {
-  font-size: 14px;
+  font-size: 0.65rem;
 }
 
 .category-name {

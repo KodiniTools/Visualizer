@@ -1138,14 +1138,14 @@ Zeile 3..."
       <details class="collapsible-section">
         <summary class="section-header">
           <span class="section-icon">🎵</span>
-          <span>Audio Reactive</span>
+          <span>{{ t('canvas.audioReactive') }}</span>
           <span v-if="selectedText.audioReactive?.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
         </summary>
         <div class="section-content">
 
       <!-- Enable/Disable -->
       <div class="control-group">
-        <label>Audio Reactive Effects:</label>
+        <label>{{ t('textManager.audioReactiveEffects') }}:</label>
         <div class="button-group">
           <button
             @click="toggleAudioReactive"
@@ -1160,26 +1160,26 @@ Zeile 3..."
       <div v-if="selectedText.audioReactive?.enabled">
         <!-- Audio Source -->
         <div class="control-group">
-          <label>Audio Source:</label>
+          <label>{{ t('textManager.audioSource') }}:</label>
           <select
             v-model="selectedText.audioReactive.source"
             @change="updateText"
             class="select-input"
           >
-            <option value="bass">Bass (Kick/Drums)</option>
-            <option value="mid">Mid (Vocals/Melody)</option>
-            <option value="treble">Treble (Hi-Hats/Highs)</option>
-            <option value="volume">Volume (Overall)</option>
-            <option value="dynamic">✨ Dynamic (Auto-Blend)</option>
+            <option value="bass">{{ t('textManager.bassKickDrums') }}</option>
+            <option value="mid">{{ t('textManager.midVocalsMelody') }}</option>
+            <option value="treble">{{ t('textManager.trebleHiHatsHighs') }}</option>
+            <option value="volume">{{ t('textManager.volumeOverall') }}</option>
+            <option value="dynamic">✨ {{ t('textManager.dynamicAutoBlend') }}</option>
           </select>
           <div v-if="selectedText.audioReactive.source === 'dynamic'" class="hint-text" style="color: var(--accent, #609198);">
-            Automatically combines all frequencies based on their current energy
+            {{ t('textManager.dynamicHint') }}
           </div>
         </div>
 
         <!-- Smoothing -->
         <div class="control-group">
-          <label>Smoothing: {{ selectedText.audioReactive.smoothing }}%</label>
+          <label>{{ t('textManager.smoothing') }}: {{ selectedText.audioReactive.smoothing }}%</label>
           <input
             type="range"
             v-model.number="selectedText.audioReactive.smoothing"
@@ -1189,36 +1189,36 @@ Zeile 3..."
             class="slider"
           />
           <div class="hint-text">
-            Low = fast reaction, High = smooth animation
+            {{ t('textManager.smoothingHint') }}
           </div>
         </div>
 
         <!-- ✨ Advanced Audio Settings -->
         <details class="advanced-settings">
-          <summary>⚙️ Advanced Settings</summary>
+          <summary>⚙️ {{ t('textManager.advancedSettings') }}</summary>
 
           <!-- Presets -->
           <div class="control-group">
             <label>Presets:</label>
             <div class="preset-buttons">
-              <button @click="applyAudioPreset('punchy')" class="btn-preset" title="Fast, snappy reaction">
-                ⚡ Punchy
+              <button @click="applyAudioPreset('punchy')" class="btn-preset" :title="t('textManager.presetPunchyTitle')">
+                ⚡ {{ t('textManager.presetPunchy') }}
               </button>
-              <button @click="applyAudioPreset('smooth')" class="btn-preset" title="Gentle, flowing animation">
-                🌊 Smooth
+              <button @click="applyAudioPreset('smooth')" class="btn-preset" :title="t('textManager.presetSmoothTitle')">
+                🌊 {{ t('textManager.presetSmooth') }}
               </button>
-              <button @click="applyAudioPreset('subtle')" class="btn-preset" title="Subtle, restrained effects">
-                🎭 Subtle
+              <button @click="applyAudioPreset('subtle')" class="btn-preset" :title="t('textManager.presetSubtleTitle')">
+                🎭 {{ t('textManager.presetSubtle') }}
               </button>
-              <button @click="applyAudioPreset('extreme')" class="btn-preset" title="Maximum reaction">
-                🔥 Extreme
+              <button @click="applyAudioPreset('extreme')" class="btn-preset" :title="t('textManager.presetExtremeTitle')">
+                🔥 {{ t('textManager.presetExtreme') }}
               </button>
             </div>
           </div>
 
           <!-- Threshold -->
           <div class="control-group">
-            <label>Threshold: {{ selectedText.audioReactive.threshold || 0 }}%</label>
+            <label>{{ t('textManager.threshold') }}: {{ selectedText.audioReactive.threshold || 0 }}%</label>
             <input
               type="range"
               v-model.number="selectedText.audioReactive.threshold"
@@ -1227,12 +1227,12 @@ Zeile 3..."
               max="50"
               class="slider"
             />
-            <div class="hint-text">Ignores quiet audio signals</div>
+            <div class="hint-text">{{ t('textManager.thresholdHint') }}</div>
           </div>
 
           <!-- Attack -->
           <div class="control-group">
-            <label>Attack: {{ selectedText.audioReactive.attack || 90 }}%</label>
+            <label>{{ t('textManager.attack') }}: {{ selectedText.audioReactive.attack || 90 }}%</label>
             <input
               type="range"
               v-model.number="selectedText.audioReactive.attack"
@@ -1241,12 +1241,12 @@ Zeile 3..."
               max="100"
               class="slider"
             />
-            <div class="hint-text">How fast the effect responds</div>
+            <div class="hint-text">{{ t('textManager.attackHint') }}</div>
           </div>
 
           <!-- Release -->
           <div class="control-group">
-            <label>Release: {{ selectedText.audioReactive.release || 50 }}%</label>
+            <label>{{ t('textManager.release') }}: {{ selectedText.audioReactive.release || 50 }}%</label>
             <input
               type="range"
               v-model.number="selectedText.audioReactive.release"
@@ -1255,18 +1255,18 @@ Zeile 3..."
               max="100"
               class="slider"
             />
-            <div class="hint-text">How slowly the effect decays</div>
+            <div class="hint-text">{{ t('textManager.releaseHint') }}</div>
           </div>
 
           <!-- Reset Button -->
           <button @click="resetAudioSettings" class="btn-reset">
-            🔄 Reset
+            🔄 {{ t('textManager.reset') }}
           </button>
         </details>
 
         <div class="divider"></div>
 
-        <h4>Select Effects</h4>
+        <h4>{{ t('textManager.selectEffects') }}</h4>
 
         <!-- Effects List -->
         <div class="effects-grid">
@@ -1279,7 +1279,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.hue.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">🎨</span> Color Rotation
+                <span class="effect-icon">🎨</span> {{ t('textManager.colorRotation') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.hue.enabled" class="effect-intensity">
@@ -1304,7 +1304,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.brightness.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">☀️</span> Brightness
+                <span class="effect-icon">☀️</span> {{ t('textManager.brightness') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.brightness.enabled" class="effect-intensity">
@@ -1329,7 +1329,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.scale.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">📐</span> Pulsate
+                <span class="effect-icon">📐</span> {{ t('textManager.pulsate') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.scale.enabled" class="effect-intensity">
@@ -1354,7 +1354,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.glow.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">✨</span> Glow
+                <span class="effect-icon">✨</span> {{ t('textManager.glow') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.glow.enabled" class="effect-intensity">
@@ -1379,7 +1379,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.shake.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">🫨</span> Shake
+                <span class="effect-icon">🫨</span> {{ t('textManager.shake') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.shake.enabled" class="effect-intensity">
@@ -1404,7 +1404,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.bounce.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">⬆️</span> Bounce
+                <span class="effect-icon">⬆️</span> {{ t('textManager.bounce') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.bounce.enabled" class="effect-intensity">
@@ -1429,7 +1429,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.swing.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">➡️</span> Swing
+                <span class="effect-icon">➡️</span> {{ t('textManager.swing') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.swing.enabled" class="effect-intensity">
@@ -1454,12 +1454,12 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.opacity.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">👁️</span> Blink
+                <span class="effect-icon">👁️</span> {{ t('textManager.blink') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.opacity.enabled" class="effect-details">
               <div class="effect-intensity">
-                <span class="effect-label">Intensity:</span>
+                <span class="effect-label">{{ t('textManager.intensity') }}:</span>
                 <input
                   type="range"
                   v-model.number="selectedText.audioReactive.effects.opacity.intensity"
@@ -1471,7 +1471,7 @@ Zeile 3..."
                 <span class="intensity-value">{{ selectedText.audioReactive.effects.opacity.intensity }}%</span>
               </div>
               <div class="effect-intensity">
-                <span class="effect-label">Minimum:</span>
+                <span class="effect-label">{{ t('textManager.minimum') }}:</span>
                 <input
                   type="range"
                   v-model.number="selectedText.audioReactive.effects.opacity.minimum"
@@ -1488,7 +1488,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.opacity.ease"
                   @change="updateText"
                 />
-                Ease Curve
+                {{ t('textManager.easeCurve') }}
               </label>
             </div>
           </div>
@@ -1502,7 +1502,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.letterSpacing.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">↔️</span> Spacing
+                <span class="effect-icon">↔️</span> {{ t('textManager.spacing') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.letterSpacing.enabled" class="effect-intensity">
@@ -1527,7 +1527,7 @@ Zeile 3..."
                   v-model="selectedText.audioReactive.effects.strokeWidth.enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">🖼️</span> Outline
+                <span class="effect-icon">🖼️</span> {{ t('textManager.outline') }}
               </label>
             </div>
             <div v-if="selectedText.audioReactive.effects.strokeWidth.enabled" class="effect-intensity">
@@ -1545,7 +1545,7 @@ Zeile 3..."
         </div>
 
         <div class="hint-text" style="margin-top: 10px;">
-          Tip: Enable multiple effects for complex animations!
+          {{ t('textManager.effectsTip') }}
         </div>
       </div>
       </div>

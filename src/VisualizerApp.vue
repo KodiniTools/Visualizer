@@ -786,13 +786,32 @@ function onObjectSelected(selectedObject) {
     selectedCanvasImageId.value = null;
   }
 
+  // ✨ FIX: Für Hintergründe das Ref auf null setzen und dann neu setzen,
+  // um den Watch in FotoPanel.vue auszulösen (Vue erkennt sonst keine Änderung)
+  const isBackgroundType = selectedObject && (
+    selectedObject.type === 'workspace-background' ||
+    selectedObject.type === 'background'
+  );
+
   if (window.fotoPanelControls.currentActiveImage) {
-    window.fotoPanelControls.currentActiveImage.value = isImageSelected ? selectedObject : null;
+    if (isBackgroundType) {
+      // Kurz auf null setzen, damit Vue die Änderung erkennt
+      window.fotoPanelControls.currentActiveImage.value = null;
+      // Im nächsten Tick den Wert setzen
+      setTimeout(() => {
+        if (window.fotoPanelControls.currentActiveImage) {
+          window.fotoPanelControls.currentActiveImage.value = selectedObject;
+        }
+      }, 0);
+    } else {
+      window.fotoPanelControls.currentActiveImage.value = isImageSelected ? selectedObject : null;
+    }
   }
 
   window.fotoPanelControls.container.style.display = isImageSelected ? 'block' : 'none';
 
-  if (isImageSelected && selectedObject.type === 'image' && window.fotoPanelControls.loadImageSettings) {
+  // ✨ FIX: loadImageSettings für ALLE Bild-Typen aufrufen (nicht nur 'image')
+  if (isImageSelected && window.fotoPanelControls.loadImageSettings) {
     window.fotoPanelControls.loadImageSettings(selectedObject);
   }
   else if (isImageSelected && fotoManagerInstance.value) {

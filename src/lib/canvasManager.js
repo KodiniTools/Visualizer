@@ -853,8 +853,68 @@ export class CanvasManager {
                 return { gradientRadius: 0.3 + (normalizedLevel * 0.7) }; // 30-100% des Canvas
             case 'gradientRotation':
                 // Gradient-Rotation: Winkel dreht sich mit Audio
-                const time = Date.now() * 0.002;
-                return { gradientAngle: (Math.sin(time) * normalizedLevel * 180) }; // ±180°
+                const timeGrad = Date.now() * 0.002;
+                return { gradientAngle: (Math.sin(timeGrad) * normalizedLevel * 180) }; // ±180°
+
+            // ═══════════════════════════════════════════════════════════════
+            // ✨ NEUE EFFEKTE
+            // ═══════════════════════════════════════════════════════════════
+
+            case 'contrast':
+                // Kontrast-Pulsieren: 80-200% basierend auf Audio-Level
+                return { contrast: 80 + (normalizedLevel * 120) };
+
+            case 'grayscale':
+                // Schwarz-Weiß Überblendung: 0-100% basierend auf Audio-Level
+                return { grayscale: normalizedLevel * 100 };
+
+            case 'sepia':
+                // Vintage/Sepia Look: 0-100% basierend auf Audio-Level
+                return { sepia: normalizedLevel * 100 };
+
+            case 'invert':
+                // Farbinversion: Bei Peaks stark invertieren (0-100%)
+                const invertLevel = Math.pow(normalizedLevel, 1.5) * 100;
+                return { invert: invertLevel };
+
+            case 'skew':
+                // Scheren/Verzerrung: Oszillierende Scherung in X und Y
+                const timeSkew = Date.now() * 0.004;
+                const skewAmount = normalizedLevel * 15;
+                return {
+                    skewX: Math.sin(timeSkew) * skewAmount,
+                    skewY: Math.cos(timeSkew * 0.7) * skewAmount * 0.5
+                };
+
+            case 'strobe':
+                // Blitz-Effekt: Schnelles Aufblitzen bei Peaks
+                if (normalizedLevel > 0.6) {
+                    const strobeFlash = 0.8 + Math.random() * 0.2;
+                    return { strobeOpacity: strobeFlash, strobeBrightness: 150 + normalizedLevel * 100 };
+                } else if (normalizedLevel > 0.3) {
+                    return { strobeOpacity: 0.7 + normalizedLevel * 0.3, strobeBrightness: 100 };
+                }
+                return { strobeOpacity: 1, strobeBrightness: 100 };
+
+            case 'chromatic':
+                // Chromatische Aberration (RGB-Verschiebung)
+                const chromaticOffset = normalizedLevel * 8;
+                return {
+                    chromaticOffset,
+                    chromaticR: { x: chromaticOffset, y: 0 },
+                    chromaticG: { x: 0, y: 0 },
+                    chromaticB: { x: -chromaticOffset, y: 0 }
+                };
+
+            case 'perspective':
+                // 3D-Kipp-Effekt
+                const timePerspective = Date.now() * 0.002;
+                const perspectiveAmount = normalizedLevel * 25;
+                return {
+                    perspectiveRotateX: Math.sin(timePerspective) * perspectiveAmount,
+                    perspectiveRotateY: Math.cos(timePerspective * 0.8) * perspectiveAmount * 0.7
+                };
+
             default:
                 return {};
         }
@@ -871,6 +931,7 @@ export class CanvasManager {
 
         const effects = audioReactive.effects;
 
+        // Bestehende Effekte
         if (effects.hue) {
             currentFilter += ` hue-rotate(${effects.hue.hueRotate}deg)`;
         }
@@ -888,6 +949,26 @@ export class CanvasManager {
             ctx.shadowBlur = effects.glow.glowBlur;
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 0;
+        }
+
+        // ✨ NEUE EFFEKTE
+        if (effects.contrast) {
+            currentFilter += ` contrast(${effects.contrast.contrast}%)`;
+        }
+        if (effects.grayscale) {
+            currentFilter += ` grayscale(${effects.grayscale.grayscale}%)`;
+        }
+        if (effects.sepia) {
+            currentFilter += ` sepia(${effects.sepia.sepia}%)`;
+        }
+        if (effects.invert) {
+            currentFilter += ` invert(${effects.invert.invert}%)`;
+        }
+        if (effects.strobe && effects.strobe.strobeBrightness !== 100) {
+            currentFilter += ` brightness(${effects.strobe.strobeBrightness}%)`;
+        }
+        if (effects.strobe && effects.strobe.strobeOpacity !== undefined && effects.strobe.strobeOpacity !== 1) {
+            ctx.globalAlpha = ctx.globalAlpha * effects.strobe.strobeOpacity;
         }
 
         if (currentFilter.trim()) {
@@ -1530,7 +1611,16 @@ export class CanvasManager {
             }
         }
 
-        if (obj !== previousActive) {
+        // ✨ FIX: Für Hintergrund-Typen IMMER den Callback aufrufen,
+        // auch wenn es das gleiche Objekt ist (ermöglicht Panel-Wiedereröffnung)
+        const isBackgroundType = obj && (
+            obj.type === 'workspace-background' ||
+            obj.type === 'background' ||
+            obj.type === 'video-background' ||
+            obj.type === 'workspace-video-background'
+        );
+
+        if (obj !== previousActive || isBackgroundType) {
             if (this.onSelectionChange) {
                 this.onSelectionChange(obj);
             }

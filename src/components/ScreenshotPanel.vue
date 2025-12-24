@@ -131,13 +131,6 @@ const formats = [
 ];
 
 /**
- * Get the main canvas element from the DOM
- */
-function getCanvasElement() {
-  return document.querySelector('.canvas-wrapper canvas');
-}
-
-/**
  * Format file size for display
  */
 function formatFileSize(bytes) {
@@ -151,11 +144,13 @@ function formatFileSize(bytes) {
 }
 
 /**
- * Take a screenshot of the canvas
+ * Take a screenshot of the canvas (pure content without UI elements)
+ * Uses the global takeCanvasScreenshot function from VisualizerApp.vue
  */
 async function takeScreenshot() {
-  const canvas = getCanvasElement();
-  if (!canvas) {
+  // Check if the screenshot function is available
+  if (typeof window.takeCanvasScreenshot !== 'function') {
+    console.error('[ScreenshotPanel] takeCanvasScreenshot function not available');
     toastStore.error(t('screenshot.canvasNotFound'));
     return;
   }
@@ -171,34 +166,33 @@ async function takeScreenshot() {
 
     // Determine MIME type and quality
     const mimeType = `image/${selectedFormat.value}`;
-    const qualityValue = selectedFormat.value === 'png' ? undefined : quality.value / 100;
+    const qualityValue = quality.value / 100;
 
-    // Create blob from canvas
-    const blob = await new Promise((resolve, reject) => {
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Failed to create blob'));
-          }
-        },
-        mimeType,
-        qualityValue
-      );
-    });
+    // Create screenshot using the global function (renders without UI elements)
+    const blob = await window.takeCanvasScreenshot(mimeType, qualityValue);
+
+    if (!blob) {
+      throw new Error('Failed to create screenshot');
+    }
 
     // Create preview URL
     previewUrl.value = URL.createObjectURL(blob);
 
+    // Get dimensions from the blob by loading it as an image
+    const img = new Image();
+    img.src = previewUrl.value;
+    await new Promise((resolve) => {
+      img.onload = resolve;
+    });
+
     // Generate filename
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
     const extension = selectedFormat.value === 'jpeg' ? 'jpg' : selectedFormat.value;
-    fileName.value = `screenshot_${canvas.width}x${canvas.height}_${timestamp}.${extension}`;
+    fileName.value = `screenshot_${img.width}x${img.height}_${timestamp}.${extension}`;
 
     // Set file info
     fileSize.value = formatFileSize(blob.size);
-    fileDimensions.value = `${canvas.width} x ${canvas.height}`;
+    fileDimensions.value = `${img.width} x ${img.height}`;
 
     toastStore.success(t('screenshot.captureSuccess'));
 

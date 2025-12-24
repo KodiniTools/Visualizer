@@ -1490,6 +1490,113 @@ window.debugRecordingAudio = function() {
 
 window.getAudioStreamForRecorder = createCombinedAudioStream;
 
+/**
+ * ✨ NEU: Screenshot-Funktion für reinen Canvas-Inhalt (ohne UI-Elemente)
+ * Rendert die Szene wie beim Recording - ohne Workspace-Rahmen, Labels etc.
+ * @param {string} mimeType - 'image/png', 'image/jpeg', oder 'image/webp'
+ * @param {number} quality - Qualität für JPEG/WebP (0-1)
+ * @returns {Promise<Blob>} - Screenshot als Blob
+ */
+window.takeCanvasScreenshot = async function(mimeType = 'image/png', quality = 0.9) {
+  console.log('[App] takeCanvasScreenshot aufgerufen:', mimeType, quality);
+
+  const canvas = canvasRef.value;
+  if (!canvas) {
+    console.error('[App] Canvas nicht verfügbar');
+    return null;
+  }
+
+  // Temporäres Canvas für den Screenshot erstellen
+  const screenshotCanvas = document.createElement('canvas');
+
+  // Wenn ein Workspace-Preset aktiv ist, verwende dessen Dimensionen
+  let targetWidth = canvas.width;
+  let targetHeight = canvas.height;
+
+  if (canvasManagerInstance.value?.workspacePreset) {
+    const preset = canvasManagerInstance.value.socialMediaPresets[canvasManagerInstance.value.workspacePreset];
+    if (preset) {
+      targetWidth = preset.width;
+      targetHeight = preset.height;
+    }
+  }
+
+  screenshotCanvas.width = targetWidth;
+  screenshotCanvas.height = targetHeight;
+
+  const ctx = screenshotCanvas.getContext('2d');
+
+  // ✅ Höchste Bildqualität
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  // Hintergrund-Farbe setzen (falls nötig)
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, targetWidth, targetHeight);
+
+  // Szene ohne UI-Elemente rendern (wie beim Recording)
+  // Wir nutzen die renderRecordingScene-Logik
+  if (canvasManagerInstance.value) {
+    canvasManagerInstance.value.isRecording = true;
+    canvasManagerInstance.value.drawScene(ctx);
+    canvasManagerInstance.value.isRecording = false;
+  }
+
+  // Visualizer zeichnen falls aktiv
+  if (visualizerCacheCanvas && visualizerStore.showVisualizer) {
+    const scale = visualizerStore.visualizerScale;
+    const posX = visualizerStore.visualizerX;
+    const posY = visualizerStore.visualizerY;
+
+    const scaledWidth = targetWidth * scale;
+    const scaledHeight = targetHeight * scale;
+
+    const destX = targetWidth * posX - scaledWidth / 2;
+    const destY = targetHeight * posY - scaledHeight / 2;
+
+    if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
+      ctx.drawImage(
+        visualizerCacheCanvas,
+        0, 0, visualizerCacheCanvas.width, visualizerCacheCanvas.height,
+        destX, destY, scaledWidth, scaledHeight
+      );
+    } else {
+      ctx.drawImage(visualizerCacheCanvas, 0, 0, targetWidth, targetHeight);
+    }
+  }
+
+  // Bilder zeichnen
+  if (multiImageManagerInstance.value) {
+    multiImageManagerInstance.value.drawImages(ctx);
+  }
+
+  // Videos zeichnen
+  if (videoManagerInstance.value) {
+    videoManagerInstance.value.drawVideos(ctx);
+  }
+
+  // Text zeichnen
+  if (textManagerInstance) {
+    textManagerInstance.draw(ctx, targetWidth, targetHeight);
+  }
+
+  // Als Blob exportieren
+  return new Promise((resolve, reject) => {
+    screenshotCanvas.toBlob(
+      (blob) => {
+        if (blob) {
+          console.log('[App] Screenshot erstellt:', blob.size, 'bytes');
+          resolve(blob);
+        } else {
+          reject(new Error('Failed to create screenshot blob'));
+        }
+      },
+      mimeType,
+      mimeType === 'image/png' ? undefined : quality
+    );
+  });
+};
+
 window.getCanvasStreamForRecorder = function() {
   console.log('[App] getCanvasStreamForRecorder() aufgerufen');
 

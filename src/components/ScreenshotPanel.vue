@@ -124,60 +124,40 @@
         @keydown.esc="closeFullscreenPreview"
       >
         <div class="fullscreen-modal" @click.stop>
-          <!-- Modal Header -->
-          <div class="modal-header">
-            <h4>{{ t('screenshot.previewTitle') }}</h4>
-            <button class="btn-close-modal" @click="closeFullscreenPreview" :title="t('common.close')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          </div>
+          <!-- Close Button (floating) -->
+          <button class="btn-close-floating" @click="closeFullscreenPreview" :title="t('common.close')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
 
           <!-- Modal Image -->
           <div class="modal-image-container">
             <img :src="previewUrl" alt="Screenshot" class="modal-image" />
           </div>
 
-          <!-- Modal Metadata -->
-          <div class="modal-metadata">
-            <div class="metadata-item">
-              <span class="metadata-label">{{ t('screenshot.fileName') }}</span>
-              <span class="metadata-value">{{ fileName }}</span>
+          <!-- Compact Footer with Metadata + Download -->
+          <div class="modal-footer">
+            <div class="metadata-inline">
+              <span class="metadata-tag">{{ formatLabel }}</span>
+              <span class="metadata-text">{{ fileDimensions }}</span>
+              <span class="metadata-divider">•</span>
+              <span class="metadata-text">{{ fileSize }}</span>
             </div>
-            <div class="metadata-item">
-              <span class="metadata-label">{{ t('screenshot.format') }}</span>
-              <span class="metadata-value format-badge">{{ formatLabel }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">{{ t('screenshot.dimensions') }}</span>
-              <span class="metadata-value">{{ fileDimensions }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">{{ t('screenshot.fileSize') }}</span>
-              <span class="metadata-value">{{ fileSize }}</span>
-            </div>
-          </div>
-
-          <!-- Modal Actions -->
-          <div class="modal-actions">
             <a
               :href="previewUrl"
               :download="fileName"
-              class="btn btn-download-large"
+              class="btn-download-icon"
               @click="handleDownload"
+              :title="t('screenshot.download')"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
-              {{ t('screenshot.download') }}
             </a>
-            <button class="btn btn-close-action" @click="closeFullscreenPreview">
-              {{ t('common.close') }}
-            </button>
           </div>
         </div>
       </div>
@@ -684,11 +664,10 @@ h3::before {
 
 /* Fullscreen Modal */
 .fullscreen-modal {
+  position: relative;
   background: #1a1a1a;
   border-radius: 12px;
-  width: fit-content;
   max-width: 90vw;
-  height: fit-content;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
@@ -706,30 +685,17 @@ h3::before {
   to { transform: scale(1); opacity: 1; }
 }
 
-/* Modal Header */
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  flex-shrink: 0;
-}
-
-.modal-header h4 {
-  margin: 0;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.btn-close-modal {
-  width: 32px;
-  height: 32px;
+/* Floating Close Button */
+.btn-close-floating {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  width: 28px;
+  height: 28px;
   border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.8);
   border-radius: 6px;
   cursor: pointer;
   display: flex;
@@ -739,14 +705,14 @@ h3::before {
   transition: all 0.2s ease;
 }
 
-.btn-close-modal svg {
-  width: 18px;
-  height: 18px;
+.btn-close-floating svg {
+  width: 16px;
+  height: 16px;
 }
 
-.btn-close-modal:hover {
-  background: rgba(244, 67, 54, 0.2);
-  color: #F44336;
+.btn-close-floating:hover {
+  background: rgba(244, 67, 54, 0.8);
+  color: #fff;
 }
 
 /* Modal Image Container */
@@ -755,7 +721,7 @@ h3::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 12px;
   background: #000;
   overflow: hidden;
   min-height: 0;
@@ -768,104 +734,67 @@ h3::before {
   height: auto;
   object-fit: contain;
   border-radius: 4px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* Modal Metadata */
-.modal-metadata {
+/* Compact Modal Footer */
+.modal-footer {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px 24px;
-  padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.03);
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.4);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 
-.metadata-item {
+.metadata-inline {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
 }
 
-.metadata-label {
-  font-size: 10px;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.metadata-value {
-  font-size: 13px;
-  color: #fff;
-  font-weight: 500;
-  word-break: break-all;
-}
-
-.format-badge {
+.metadata-tag {
   display: inline-block;
   background: linear-gradient(135deg, #6ea8fe 0%, #4FC3F7 100%);
   color: #fff;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
   font-weight: 600;
-  width: fit-content;
 }
 
-/* Modal Actions */
-.modal-actions {
+.metadata-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.metadata-divider {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 10px;
+}
+
+.btn-download-icon {
   display: flex;
-  gap: 10px;
-  padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  flex-shrink: 0;
-}
-
-.btn-download-large {
-  flex: 1;
-  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 20px;
+  width: 32px;
+  height: 32px;
   background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
   color: white;
   text-decoration: none;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.btn-download-large:hover {
+.btn-download-icon:hover {
   background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+  transform: scale(1.05);
 }
 
-.btn-download-large svg {
-  width: 18px;
-  height: 18px;
-}
-
-.btn-close-action {
-  padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #ccc;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-close-action:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
+.btn-download-icon svg {
+  width: 16px;
+  height: 16px;
 }
 </style>

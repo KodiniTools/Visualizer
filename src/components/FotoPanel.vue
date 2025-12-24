@@ -2429,6 +2429,7 @@ function handleImageUpload(event) {
         }
 
         console.log('✅ Bild zur Galerie hinzugefügt:', imageData.name, imageData.dimensions);
+        toastStore.success(t('toast.imageLoadSuccess'));
       };
       img.onerror = () => {
         toastStore.error(`${t('toast.imageLoadError')}: ${file.name}`);
@@ -2578,6 +2579,7 @@ function addImageToCanvas() {
   });
 
   console.log(`✅ ${imagesToAdd.length} Bild(er) auf Canvas platziert`);
+  toastStore.success(t('toast.imagesAddedToCanvas').replace('{count}', imagesToAdd.length));
 
   // Auswahl zurücksetzen nach dem Hinzufügen
   deselectAllImages();
@@ -2854,6 +2856,7 @@ async function addStockImageToCanvas() {
     }
 
     console.log(`✅ ${imagesToAdd.length} Stock-Bild(er) auf Canvas platziert`);
+    toastStore.success(t('toast.imagesAddedToCanvas').replace('{count}', imagesToAdd.length));
 
     // Auswahl zurücksetzen nach dem Hinzufügen
     deselectAllStockImages();

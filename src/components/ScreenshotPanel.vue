@@ -668,7 +668,7 @@ h3::before {
   background: #1a1a1a;
   border-radius: 12px;
   max-width: 90vw;
-  max-height: 90vh;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -717,19 +717,18 @@ h3::before {
 
 /* Modal Image Container */
 .modal-image-container {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 12px;
   background: #000;
   overflow: hidden;
-  min-height: 0;
+  max-height: calc(85vh - 48px);
 }
 
 .modal-image {
   max-width: 100%;
-  max-height: 100%;
+  max-height: calc(85vh - 72px);
   width: auto;
   height: auto;
   object-fit: contain;

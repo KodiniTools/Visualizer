@@ -686,7 +686,9 @@ h3::before {
 .fullscreen-modal {
   background: #1a1a1a;
   border-radius: 12px;
+  width: fit-content;
   max-width: 90vw;
+  height: fit-content;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
@@ -709,9 +711,10 @@ h3::before {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 12px 20px;
   background: rgba(255, 255, 255, 0.05);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
 .modal-header h4 {
@@ -752,16 +755,17 @@ h3::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
   background: #000;
-  overflow: auto;
-  min-height: 200px;
-  max-height: 60vh;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .modal-image {
   max-width: 100%;
   max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
   border-radius: 4px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -769,12 +773,13 @@ h3::before {
 
 /* Modal Metadata */
 .modal-metadata {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  padding: 16px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  padding: 12px 20px;
   background: rgba(255, 255, 255, 0.03);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
 .metadata-item {
@@ -812,9 +817,10 @@ h3::before {
 .modal-actions {
   display: flex;
   gap: 10px;
-  padding: 16px 20px;
+  padding: 12px 20px;
   background: rgba(255, 255, 255, 0.05);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
 .btn-download-large {

@@ -618,6 +618,27 @@ const translations = {
       showTutorial: 'Tutorial anzeigen'
     },
 
+    // ========== SCREENSHOT PANEL ==========
+    screenshot: {
+      title: 'Screenshot',
+      helpTitle: 'Canvas-Screenshot',
+      helpText: 'Erstellen Sie einen Screenshot des aktuellen Canvas-Inhalts. Wählen Sie das gewünschte Format und die Qualität.',
+      helpTip: 'PNG für verlustfreie Qualität, JPG/WebP für kleinere Dateien.',
+      format: 'Format',
+      quality: 'Qualität',
+      lowQuality: 'Klein',
+      highQuality: 'Beste',
+      pngInfo: 'PNG bietet verlustfreie Komprimierung und unterstützt Transparenz. Ideal für Grafiken und Text.',
+      capture: 'Screenshot aufnehmen',
+      processing: 'Verarbeite...',
+      preview: 'Vorschau',
+      download: 'Herunterladen',
+      captureSuccess: 'Screenshot erfolgreich erstellt',
+      captureError: 'Fehler beim Erstellen des Screenshots',
+      canvasNotFound: 'Canvas nicht gefunden',
+      downloadStarted: 'Download gestartet'
+    },
+
     // ========== TOAST NOTIFICATIONS ==========
     toast: {
       // Titles
@@ -1287,6 +1308,27 @@ const translations = {
       step2: 'Select visualizer',
       step3: 'Record video',
       showTutorial: 'Show tutorial'
+    },
+
+    // ========== SCREENSHOT PANEL ==========
+    screenshot: {
+      title: 'Screenshot',
+      helpTitle: 'Canvas Screenshot',
+      helpText: 'Create a screenshot of the current canvas content. Choose your desired format and quality.',
+      helpTip: 'PNG for lossless quality, JPG/WebP for smaller files.',
+      format: 'Format',
+      quality: 'Quality',
+      lowQuality: 'Small',
+      highQuality: 'Best',
+      pngInfo: 'PNG offers lossless compression and supports transparency. Ideal for graphics and text.',
+      capture: 'Take Screenshot',
+      processing: 'Processing...',
+      preview: 'Preview',
+      download: 'Download',
+      captureSuccess: 'Screenshot created successfully',
+      captureError: 'Error creating screenshot',
+      canvasNotFound: 'Canvas not found',
+      downloadStarted: 'Download started'
     },
 
     // ========== TOAST NOTIFICATIONS ==========

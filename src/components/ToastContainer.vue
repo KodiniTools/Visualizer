@@ -84,15 +84,23 @@ function removeToast(id) {
   max-width: 400px;
   padding: 14px 16px;
   border-radius: 8px;
-  background-color: var(--panel);
-  border: 1px solid var(--border-color);
-  box-shadow: 0 4px 12px var(--shadow-color);
   pointer-events: auto;
   position: relative;
   overflow: hidden;
+  /* Dark theme als Standard (passend zur rechten Spalte) */
+  background-color: #151b1d;
+  border: 1px solid rgba(158, 190, 193, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* Toast type colors - using right panel color scheme */
+/* Light theme Unterstützung */
+[data-theme='light'] .toast {
+  background-color: #ffffff;
+  border: 1px solid rgba(100, 100, 100, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Toast type colors */
 .toast--success {
   border-left: 4px solid #4ade80;
 }
@@ -118,11 +126,11 @@ function removeToast(id) {
 }
 
 .toast--info {
-  border-left: 4px solid var(--accent);
+  border-left: 4px solid #609198;
 }
 
 .toast--info .toast__icon {
-  color: var(--accent);
+  color: #609198;
 }
 
 .toast__icon {
@@ -144,15 +152,23 @@ function removeToast(id) {
 .toast__title {
   font-weight: 600;
   font-size: 14px;
-  color: var(--text);
+  color: #E9E9EB;
   margin-bottom: 4px;
+}
+
+[data-theme='light'] .toast__title {
+  color: #1a2426;
 }
 
 .toast__message {
   font-size: 13px;
-  color: var(--muted);
+  color: #A8A992;
   line-height: 1.4;
   word-wrap: break-word;
+}
+
+[data-theme='light'] .toast__message {
+  color: #6a7072;
 }
 
 .toast__close {
@@ -162,7 +178,7 @@ function removeToast(id) {
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--muted);
+  color: #A8A992;
   cursor: pointer;
   opacity: 0.6;
   transition: opacity 0.2s, color 0.2s;
@@ -170,7 +186,15 @@ function removeToast(id) {
 
 .toast__close:hover {
   opacity: 1;
-  color: var(--text);
+  color: #E9E9EB;
+}
+
+[data-theme='light'] .toast__close {
+  color: #6a7072;
+}
+
+[data-theme='light'] .toast__close:hover {
+  color: #1a2426;
 }
 
 .toast__close svg {
@@ -185,7 +209,7 @@ function removeToast(id) {
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--accent);
+  background: #609198;
   opacity: 0.5;
   animation: toast-progress linear forwards;
   transform-origin: left;

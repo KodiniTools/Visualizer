@@ -2631,7 +2631,8 @@ function setAsWorkspaceBackground() {
 const FALLBACK_CATEGORIES = [
   { id: 'backgrounds', name: 'Hintergründe', name_en: 'Backgrounds', icon: '🎨', description: 'Farbverläufe und Hintergrundbilder' },
   { id: 'elements', name: 'Elemente', name_en: 'Elements', icon: '✨', description: 'Grafische Formen und Objekte' },
-  { id: 'patterns', name: 'Muster', name_en: 'Patterns', icon: '🔲', description: 'Wiederholende Muster und Texturen' }
+  { id: 'patterns', name: 'Muster', name_en: 'Patterns', icon: '🔲', description: 'Wiederholende Muster und Texturen' },
+  { id: 'text', name: 'Text', name_en: 'Text', icon: 'T', description: 'Fertige Textvorlagen als PNG, JPG und SVG' }
 ];
 
 // Stock-Galerie Index laden (Modulare Struktur v2.0)

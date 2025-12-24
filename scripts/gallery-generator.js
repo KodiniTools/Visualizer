@@ -52,6 +52,14 @@ const CATEGORIES = [
     icon: '🔲',
     description: 'Wiederholende Muster und Texturen',
     description_en: 'Repeating patterns and textures'
+  },
+  {
+    id: 'text',
+    name: 'Text',
+    name_en: 'Text',
+    icon: 'T',
+    description: 'Fertige Textvorlagen als PNG, JPG und SVG',
+    description_en: 'Ready-made text templates as PNG, JPG and SVG'
   }
 ];
 

@@ -2258,8 +2258,10 @@ Zeile 3..."
 <script setup>
 import { ref, inject, onMounted, onUnmounted, nextTick, watch, computed } from 'vue';
 import { useI18n } from '../lib/i18n.js';
+import { useToastStore } from '../stores/toastStore.js';
 
 const { t, locale } = useI18n();
+const toastStore = useToastStore();
 const canvasManager = inject('canvasManager');
 const fontManager = inject('fontManager');
 const selectedText = ref(null);
@@ -2962,6 +2964,7 @@ function createNewText() {
 
     selectedText.value = newTextObj;
     console.log('✅ Text erstellt mit Stil:', newTextStyle.value);
+    toastStore.success(t('toast.textAdded'));
   }
 
   // Beende den Eingabemodus und setze alle Einstellungen zurück

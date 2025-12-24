@@ -66,10 +66,12 @@
 import { ref } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 import { usePlayerStore } from '../stores/playerStore.js';
+import { useToastStore } from '../stores/toastStore.js';
 
 const { t, locale } = useI18n();
 
 const playerStore = usePlayerStore();
+const toastStore = useToastStore();
 const fileInput = ref(null);
 const isDragging = ref(false);
 
@@ -81,6 +83,7 @@ function onSelectFiles(event) {
   const files = event.target.files;
   if (files && files.length > 0) {
     playerStore.addTracks(files);
+    toastStore.success(t('toast.tracksAdded').replace('{count}', files.length));
     event.target.value = ''; // Reset input to allow re-uploading same files
   }
 }
@@ -101,6 +104,7 @@ function onDrop(event) {
     const audioFiles = Array.from(files).filter(file => file.type.startsWith('audio/'));
     if (audioFiles.length > 0) {
       playerStore.addTracks(audioFiles);
+      toastStore.success(t('toast.tracksAdded').replace('{count}', audioFiles.length));
     }
   }
 }

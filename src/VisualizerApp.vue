@@ -51,6 +51,7 @@
         <FileUploadPanel />
         <PlayerPanel />
         <RecorderPanel />
+        <ScreenshotPanel />
         <VisualizerPanel />
         <ControlsPanel />
         <CanvasControlPanel />
@@ -82,6 +83,7 @@ import { useAudioSourceStore } from './stores/audioSourceStore.js';
 import FileUploadPanel from './components/FileUploadPanel.vue';
 import PlayerPanel from './components/PlayerPanel.vue';
 import RecorderPanel from './components/RecorderPanel.vue';
+import ScreenshotPanel from './components/ScreenshotPanel.vue';
 import FotoPanel from './components/FotoPanel.vue';
 import VideoPanel from './components/VideoPanel.vue'; // ✨ NEU: Video-Panel
 import TextManagerPanel from './components/TextManagerPanel.vue';

@@ -63,6 +63,9 @@
     <!-- Help System -->
     <QuickStartGuide ref="quickStartGuideRef" />
 
+    <!-- Toast Notifications -->
+    <ToastContainer />
+
   </div>
 </template>
 <script setup>
@@ -86,6 +89,7 @@ import ControlsPanel from './components/ControlsPanel.vue';
 import VisualizerPanel from './components/VisualizerPanel.vue';
 import CanvasControlPanel from './components/CanvasControlPanel.vue';
 import QuickStartGuide from './components/QuickStartGuide.vue';
+import ToastContainer from './components/ToastContainer.vue';
 import { Visualizers } from './lib/visualizers.js';
 import { TextManager } from './lib/textManager.js';
 import { CUSTOM_FONTS } from './lib/fonts.js';

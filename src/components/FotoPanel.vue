@@ -1257,9 +1257,11 @@
 <script setup>
 import { ref, computed, onMounted, inject, watch } from 'vue';
 import { usePanelSettingsStore } from '../stores/panelSettingsStore';
+import { useToastStore } from '../stores/toastStore';
 import { useI18n } from '../lib/i18n.js';
 
 const { t, locale } = useI18n();
+const toastStore = useToastStore();
 
 // Function to get translated stock category name
 function getStockCategoryName(category) {
@@ -2429,7 +2431,7 @@ function handleImageUpload(event) {
         console.log('✅ Bild zur Galerie hinzugefügt:', imageData.name, imageData.dimensions);
       };
       img.onerror = () => {
-        alert(`Fehler beim Laden des Bildes: ${file.name}`);
+        toastStore.error(`${t('toast.imageLoadError')}: ${file.name}`);
       };
       img.src = e.target.result;
     };
@@ -2619,7 +2621,7 @@ function setAsWorkspaceBackground() {
     // Auswahl zurücksetzen
     deselectAllImages();
   } else {
-    alert('⚠️ Bitte wählen Sie zuerst einen Social Media Workspace aus (z.B. TikTok, Instagram Story, etc.)');
+    toastStore.warning(t('toast.selectWorkspaceFirst'));
   }
 }
 
@@ -2857,7 +2859,7 @@ async function addStockImageToCanvas() {
     deselectAllStockImages();
   } catch (error) {
     console.error('❌ Fehler beim Laden der Stock-Bilder:', error);
-    alert('Ein oder mehrere Bilder konnten nicht geladen werden.');
+    toastStore.error(t('toast.imagesLoadError'));
   }
 }
 
@@ -2882,7 +2884,7 @@ async function setStockAsBackground() {
     deselectAllStockImages();
   } catch (error) {
     console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
-    alert('Das Bild konnte nicht geladen werden.');
+    toastStore.error(t('toast.imageLoadError'));
   }
 }
 
@@ -2907,11 +2909,11 @@ async function setStockAsWorkspaceBackground() {
       // Auswahl zurücksetzen
       deselectAllStockImages();
     } else {
-      alert('⚠️ Bitte wählen Sie zuerst einen Social Media Workspace aus (z.B. TikTok, Instagram Story, etc.)');
+      toastStore.warning(t('toast.selectWorkspaceFirst'));
     }
   } catch (error) {
     console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
-    alert('Das Bild konnte nicht geladen werden.');
+    toastStore.error(t('toast.imageLoadError'));
   }
 }
 
@@ -2949,7 +2951,7 @@ async function startStockImageRangeSelection() {
     console.log('📐 Bereichsauswahl-Modus gestartet für Stock-Bild:', stockImg.name);
   } catch (error) {
     console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
-    alert('Das Bild konnte nicht geladen werden.');
+    toastStore.error(t('toast.imageLoadError'));
     isInRangeSelectionMode.value = false;
   }
 }

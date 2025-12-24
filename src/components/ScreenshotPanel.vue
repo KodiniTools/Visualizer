@@ -694,6 +694,9 @@ h3::before {
   border: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
   animation: scaleIn 0.2s ease;
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif);
+  font-size: 12px;
+  color: var(--text, #E9E9EB);
 }
 
 @keyframes scaleIn {

@@ -616,6 +616,62 @@ const translations = {
       step2: 'Visualizer auswählen',
       step3: 'Video aufnehmen',
       showTutorial: 'Tutorial anzeigen'
+    },
+
+    // ========== TOAST NOTIFICATIONS ==========
+    toast: {
+      // Titles
+      successTitle: 'Erfolg',
+      errorTitle: 'Fehler',
+      warningTitle: 'Warnung',
+      infoTitle: 'Information',
+      // Common messages
+      settingsSaved: 'Einstellungen gespeichert',
+      settingsReset: 'Einstellungen zurückgesetzt',
+      copySuccess: 'In die Zwischenablage kopiert',
+      copyError: 'Kopieren fehlgeschlagen',
+      // File operations
+      fileUploadSuccess: 'Datei erfolgreich hochgeladen',
+      fileUploadError: 'Fehler beim Hochladen der Datei',
+      filesUploadSuccess: '{count} Dateien erfolgreich hochgeladen',
+      fileDeleteSuccess: 'Datei gelöscht',
+      fileDeleteError: 'Fehler beim Löschen der Datei',
+      // Image operations
+      imageLoadSuccess: 'Bild erfolgreich geladen',
+      imageLoadError: 'Fehler beim Laden des Bildes',
+      imagesLoadError: 'Ein oder mehrere Bilder konnten nicht geladen werden',
+      imageAddedToCanvas: 'Bild zum Canvas hinzugefügt',
+      imagesAddedToCanvas: '{count} Bilder zum Canvas hinzugefügt',
+      selectWorkspaceFirst: 'Bitte wählen Sie zuerst einen Social Media Workspace aus',
+      // Audio operations
+      audioLoadSuccess: 'Audio erfolgreich geladen',
+      audioLoadError: 'Fehler beim Laden der Audio-Datei',
+      tracksAdded: '{count} Track(s) zur Playlist hinzugefügt',
+      playlistCleared: 'Playlist geleert',
+      // Recording operations
+      recordingStarted: 'Aufnahme gestartet',
+      recordingStopped: 'Aufnahme beendet',
+      recordingError: 'Fehler bei der Aufnahme',
+      conversionStarted: 'MP4-Konvertierung gestartet',
+      conversionSuccess: 'Video erfolgreich konvertiert',
+      conversionError: 'Konvertierung fehlgeschlagen',
+      downloadStarted: 'Download gestartet',
+      // Preset operations
+      presetSaved: 'Preset gespeichert',
+      presetLoaded: 'Preset geladen',
+      presetDeleted: 'Preset gelöscht',
+      // Text operations
+      textAdded: 'Text hinzugefügt',
+      textDeleted: 'Text gelöscht',
+      textDuplicated: 'Text dupliziert',
+      // Canvas operations
+      canvasCleared: 'Canvas geleert',
+      backgroundReset: 'Hintergrund zurückgesetzt',
+      // General
+      actionUndone: 'Aktion rückgängig gemacht',
+      operationCancelled: 'Vorgang abgebrochen',
+      networkError: 'Netzwerkfehler - bitte versuchen Sie es erneut',
+      unexpectedError: 'Ein unerwarteter Fehler ist aufgetreten'
     }
   },
 
@@ -1231,6 +1287,62 @@ const translations = {
       step2: 'Select visualizer',
       step3: 'Record video',
       showTutorial: 'Show tutorial'
+    },
+
+    // ========== TOAST NOTIFICATIONS ==========
+    toast: {
+      // Titles
+      successTitle: 'Success',
+      errorTitle: 'Error',
+      warningTitle: 'Warning',
+      infoTitle: 'Information',
+      // Common messages
+      settingsSaved: 'Settings saved',
+      settingsReset: 'Settings reset',
+      copySuccess: 'Copied to clipboard',
+      copyError: 'Copy failed',
+      // File operations
+      fileUploadSuccess: 'File uploaded successfully',
+      fileUploadError: 'Error uploading file',
+      filesUploadSuccess: '{count} files uploaded successfully',
+      fileDeleteSuccess: 'File deleted',
+      fileDeleteError: 'Error deleting file',
+      // Image operations
+      imageLoadSuccess: 'Image loaded successfully',
+      imageLoadError: 'Error loading image',
+      imagesLoadError: 'One or more images could not be loaded',
+      imageAddedToCanvas: 'Image added to canvas',
+      imagesAddedToCanvas: '{count} images added to canvas',
+      selectWorkspaceFirst: 'Please select a Social Media Workspace first',
+      // Audio operations
+      audioLoadSuccess: 'Audio loaded successfully',
+      audioLoadError: 'Error loading audio file',
+      tracksAdded: '{count} track(s) added to playlist',
+      playlistCleared: 'Playlist cleared',
+      // Recording operations
+      recordingStarted: 'Recording started',
+      recordingStopped: 'Recording stopped',
+      recordingError: 'Recording error',
+      conversionStarted: 'MP4 conversion started',
+      conversionSuccess: 'Video converted successfully',
+      conversionError: 'Conversion failed',
+      downloadStarted: 'Download started',
+      // Preset operations
+      presetSaved: 'Preset saved',
+      presetLoaded: 'Preset loaded',
+      presetDeleted: 'Preset deleted',
+      // Text operations
+      textAdded: 'Text added',
+      textDeleted: 'Text deleted',
+      textDuplicated: 'Text duplicated',
+      // Canvas operations
+      canvasCleared: 'Canvas cleared',
+      backgroundReset: 'Background reset',
+      // General
+      actionUndone: 'Action undone',
+      operationCancelled: 'Operation cancelled',
+      networkError: 'Network error - please try again',
+      unexpectedError: 'An unexpected error occurred'
     }
   }
 }

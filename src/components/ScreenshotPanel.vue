@@ -81,8 +81,20 @@
           </svg>
         </button>
       </div>
-      <div class="preview-container">
+      <div
+        class="preview-container"
+        @dblclick="openFullscreenPreview"
+        :title="t('screenshot.doubleClickHint')"
+      >
         <img :src="previewUrl" alt="Screenshot Preview" class="preview-image" />
+        <div class="preview-zoom-hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <line x1="11" y1="8" x2="11" y2="14"/>
+            <line x1="8" y1="11" x2="14" y2="11"/>
+          </svg>
+        </div>
       </div>
       <div class="preview-info">
         <span class="file-size">{{ fileSize }}</span>
@@ -102,6 +114,74 @@
         {{ t('screenshot.download') }}
       </a>
     </div>
+
+    <!-- Fullscreen Preview Modal -->
+    <Teleport to="body">
+      <div
+        v-if="showFullscreenPreview"
+        class="fullscreen-modal-overlay"
+        @click="closeFullscreenPreview"
+        @keydown.esc="closeFullscreenPreview"
+      >
+        <div class="fullscreen-modal" @click.stop>
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h4>{{ t('screenshot.previewTitle') }}</h4>
+            <button class="btn-close-modal" @click="closeFullscreenPreview" :title="t('common.close')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Modal Image -->
+          <div class="modal-image-container">
+            <img :src="previewUrl" alt="Screenshot" class="modal-image" />
+          </div>
+
+          <!-- Modal Metadata -->
+          <div class="modal-metadata">
+            <div class="metadata-item">
+              <span class="metadata-label">{{ t('screenshot.fileName') }}</span>
+              <span class="metadata-value">{{ fileName }}</span>
+            </div>
+            <div class="metadata-item">
+              <span class="metadata-label">{{ t('screenshot.format') }}</span>
+              <span class="metadata-value format-badge">{{ formatLabel }}</span>
+            </div>
+            <div class="metadata-item">
+              <span class="metadata-label">{{ t('screenshot.dimensions') }}</span>
+              <span class="metadata-value">{{ fileDimensions }}</span>
+            </div>
+            <div class="metadata-item">
+              <span class="metadata-label">{{ t('screenshot.fileSize') }}</span>
+              <span class="metadata-value">{{ fileSize }}</span>
+            </div>
+          </div>
+
+          <!-- Modal Actions -->
+          <div class="modal-actions">
+            <a
+              :href="previewUrl"
+              :download="fileName"
+              class="btn btn-download-large"
+              @click="handleDownload"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              {{ t('screenshot.download') }}
+            </a>
+            <button class="btn btn-close-action" @click="closeFullscreenPreview">
+              {{ t('common.close') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -122,6 +202,13 @@ const previewUrl = ref(null);
 const fileName = ref('');
 const fileSize = ref('');
 const fileDimensions = ref('');
+const showFullscreenPreview = ref(false);
+
+// Computed
+const formatLabel = computed(() => {
+  const format = formats.find(f => f.value === selectedFormat.value);
+  return format ? format.label : selectedFormat.value.toUpperCase();
+});
 
 // Format options
 const formats = [
@@ -222,6 +309,34 @@ function clearPreview() {
   fileName.value = '';
   fileSize.value = '';
   fileDimensions.value = '';
+  showFullscreenPreview.value = false;
+}
+
+/**
+ * Open fullscreen preview modal
+ */
+function openFullscreenPreview() {
+  showFullscreenPreview.value = true;
+  // Add ESC key listener
+  document.addEventListener('keydown', handleEscKey);
+}
+
+/**
+ * Close fullscreen preview modal
+ */
+function closeFullscreenPreview() {
+  showFullscreenPreview.value = false;
+  // Remove ESC key listener
+  document.removeEventListener('keydown', handleEscKey);
+}
+
+/**
+ * Handle ESC key to close modal
+ */
+function handleEscKey(e) {
+  if (e.key === 'Escape') {
+    closeFullscreenPreview();
+  }
 }
 </script>
 
@@ -512,5 +627,236 @@ h3::before {
 .btn-download svg {
   width: 16px;
   height: 16px;
+}
+
+/* Preview zoom hint */
+.preview-container {
+  position: relative;
+  cursor: zoom-in;
+}
+
+.preview-zoom-hint {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.preview-zoom-hint svg {
+  width: 14px;
+  height: 14px;
+  color: #fff;
+}
+
+.preview-container:hover .preview-zoom-hint {
+  opacity: 1;
+}
+
+/* Fullscreen Modal Overlay */
+.fullscreen-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Fullscreen Modal */
+.fullscreen-modal {
+  background: #1a1a1a;
+  border-radius: 12px;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  animation: scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h4 {
+  margin: 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btn-close-modal {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.btn-close-modal svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-close-modal:hover {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+}
+
+/* Modal Image Container */
+.modal-image-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #000;
+  overflow: auto;
+  min-height: 200px;
+  max-height: 60vh;
+}
+
+.modal-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal Metadata */
+.modal-metadata {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.metadata-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metadata-label {
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metadata-value {
+  font-size: 13px;
+  color: #fff;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.format-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #6ea8fe 0%, #4FC3F7 100%);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-download-large {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  text-decoration: none;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-download-large:hover {
+  background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+}
+
+.btn-download-large svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-close-action {
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-close-action:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
 }
 </style>

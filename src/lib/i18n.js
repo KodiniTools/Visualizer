@@ -632,11 +632,16 @@ const translations = {
       capture: 'Screenshot aufnehmen',
       processing: 'Verarbeite...',
       preview: 'Vorschau',
+      previewTitle: 'Screenshot-Vorschau',
       download: 'Herunterladen',
       captureSuccess: 'Screenshot erfolgreich erstellt',
       captureError: 'Fehler beim Erstellen des Screenshots',
       canvasNotFound: 'Canvas nicht gefunden',
-      downloadStarted: 'Download gestartet'
+      downloadStarted: 'Download gestartet',
+      doubleClickHint: 'Doppelklick für Großansicht',
+      fileName: 'Dateiname',
+      dimensions: 'Abmessungen',
+      fileSize: 'Dateigröße'
     },
 
     // ========== TOAST NOTIFICATIONS ==========
@@ -1324,11 +1329,16 @@ const translations = {
       capture: 'Take Screenshot',
       processing: 'Processing...',
       preview: 'Preview',
+      previewTitle: 'Screenshot Preview',
       download: 'Download',
       captureSuccess: 'Screenshot created successfully',
       captureError: 'Error creating screenshot',
       canvasNotFound: 'Canvas not found',
-      downloadStarted: 'Download started'
+      downloadStarted: 'Download started',
+      doubleClickHint: 'Double-click for fullscreen view',
+      fileName: 'Filename',
+      dimensions: 'Dimensions',
+      fileSize: 'File Size'
     },
 
     // ========== TOAST NOTIFICATIONS ==========

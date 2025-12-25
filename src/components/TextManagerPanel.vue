@@ -1035,7 +1035,7 @@ Zeile 3..."
                 v-model.number="selectedText.stroke.width"
                 @input="updateText"
                 min="1"
-                max="10"
+                max="100"
                 class="slider"
               />
             </div>

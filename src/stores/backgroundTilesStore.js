@@ -35,7 +35,9 @@ function createDefaultTile(index) {
         saturation: { enabled: false, intensity: 80 },
         glow: { enabled: false, intensity: 80 },
         scale: { enabled: false, intensity: 50 },
-        blur: { enabled: false, intensity: 50 }
+        blur: { enabled: false, intensity: 50 },
+        strobe: { enabled: false, intensity: 80 },
+        contrast: { enabled: false, intensity: 70 }
       }
     }
   };

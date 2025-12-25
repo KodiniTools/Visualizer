@@ -441,6 +441,46 @@
                 />
                 <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.blur.intensity }}%</span>
               </label>
+
+              <!-- Strobe (Blitz) -->
+              <label class="effect-item">
+                <input
+                  type="checkbox"
+                  :checked="tilesStore.selectedTile.audioReactive.effects.strobe?.enabled"
+                  @change="toggleEffect('strobe', $event.target.checked)"
+                />
+                <span>{{ t('backgroundTiles.strobe') }}</span>
+                <input
+                  type="range"
+                  :value="tilesStore.selectedTile.audioReactive.effects.strobe?.intensity || 80"
+                  @input="setEffectIntensity('strobe', $event.target.value)"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
+                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.strobe?.intensity || 80 }}%</span>
+              </label>
+
+              <!-- Contrast (Kontrast) -->
+              <label class="effect-item">
+                <input
+                  type="checkbox"
+                  :checked="tilesStore.selectedTile.audioReactive.effects.contrast?.enabled"
+                  @change="toggleEffect('contrast', $event.target.checked)"
+                />
+                <span>{{ t('backgroundTiles.contrastEffect') }}</span>
+                <input
+                  type="range"
+                  :value="tilesStore.selectedTile.audioReactive.effects.contrast?.intensity || 70"
+                  @input="setEffectIntensity('contrast', $event.target.value)"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
+                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.contrast?.intensity || 70 }}%</span>
+              </label>
             </div>
           </div>
         </div>

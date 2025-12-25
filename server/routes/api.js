@@ -46,7 +46,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: {
-    fileSize: 1024 * 1024 * 1024, // 1 GB (war 500 MB)
+    fileSize: 4 * 1024 * 1024 * 1024, // 4 GB
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['video/webm', 'video/mp4', 'video/quicktime', 'video/x-matroska'];
@@ -135,7 +135,7 @@ router.get('/info', async (req, res) => {
       ffmpeg: ffmpegStatus,
       presets: Object.keys(ffmpegService.ENCODING_PRESETS),
       limits: {
-        maxFileSize: '500 MB',
+        maxFileSize: '4 GB',
         supportedFormats: ['webm', 'mp4', 'mov', 'mkv']
       }
     });
@@ -598,7 +598,7 @@ router.delete('/job/:jobId', async (req, res) => {
  * POST /api/convert-blob
  * Direkte Blob-Konvertierung (für Browser-seitige Aufnahmen)
  */
-router.post('/convert-blob', express.raw({ type: 'video/webm', limit: '1gb' }), async (req, res) => {
+router.post('/convert-blob', express.raw({ type: 'video/webm', limit: '4gb' }), async (req, res) => {
   if (!req.body || req.body.length === 0) {
     return res.status(400).json({ error: 'Keine Videodaten empfangen' });
   }

@@ -206,7 +206,13 @@ const translations = {
       retry: 'Erneut versuchen',
       convertToMp4: 'Zu MP4 konvertieren',
       recordingPreview: 'Aufnahme-Vorschau',
-      downloadVideo: 'Video herunterladen'
+      downloadVideo: 'Video herunterladen',
+      // Conversion Overlay
+      convertingVideo: 'Dein Video wird konvertiert',
+      uploadingToServer: 'Video wird hochgeladen...',
+      processingOnServer: 'Server verarbeitet dein Video...',
+      dontCloseWindow: 'Bitte das Fenster nicht schließen',
+      audioSource: 'Audio'
     },
 
     // ========== VISUALIZER PANEL ==========
@@ -903,7 +909,13 @@ const translations = {
       retry: 'Retry',
       convertToMp4: 'Convert to MP4',
       recordingPreview: 'Recording Preview',
-      downloadVideo: 'Download Video'
+      downloadVideo: 'Download Video',
+      // Conversion Overlay
+      convertingVideo: 'Your video is being converted',
+      uploadingToServer: 'Uploading video...',
+      processingOnServer: 'Server is processing your video...',
+      dontCloseWindow: 'Please don\'t close this window',
+      audioSource: 'Audio'
     },
 
     // ========== VISUALIZER PANEL ==========

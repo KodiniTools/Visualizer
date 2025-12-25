@@ -167,6 +167,20 @@
                 <span class="effect-value">{{ bgEffectGlowIntensity }}%</span>
               </label>
 
+              <label class="effect-item">
+                <input type="checkbox" v-model="bgEffectStrobe" @change="updateBgAudioReactive" />
+                <span>⚡ {{ t('canvasControl.strobe') }}</span>
+                <input type="range" v-model.number="bgEffectStrobeIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <span class="effect-value">{{ bgEffectStrobeIntensity }}%</span>
+              </label>
+
+              <label class="effect-item">
+                <input type="checkbox" v-model="bgEffectContrast" @change="updateBgAudioReactive" />
+                <span>🔲 {{ t('canvasControl.contrastEffect') }}</span>
+                <input type="range" v-model.number="bgEffectContrastIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <span class="effect-value">{{ bgEffectContrastIntensity }}%</span>
+              </label>
+
               <!-- Gradient-Effekte (nur wenn Gradient aktiviert) -->
               <template v-if="gradientEnabled">
                 <label class="effect-item">
@@ -324,6 +338,10 @@ const bgEffectSaturation = ref(false);
 const bgEffectSaturationIntensity = ref(80);
 const bgEffectGlow = ref(false);
 const bgEffectGlowIntensity = ref(80);
+const bgEffectStrobe = ref(false);
+const bgEffectStrobeIntensity = ref(80);
+const bgEffectContrast = ref(false);
+const bgEffectContrastIntensity = ref(70);
 const bgEffectGradientPulse = ref(false);
 const bgEffectGradientPulseIntensity = ref(80);
 const bgEffectGradientRotation = ref(false);
@@ -569,6 +587,8 @@ function updateBgAudioReactive() {
       brightness: { enabled: bgEffectBrightness.value, intensity: bgEffectBrightnessIntensity.value },
       saturation: { enabled: bgEffectSaturation.value, intensity: bgEffectSaturationIntensity.value },
       glow: { enabled: bgEffectGlow.value, intensity: bgEffectGlowIntensity.value },
+      strobe: { enabled: bgEffectStrobe.value, intensity: bgEffectStrobeIntensity.value },
+      contrast: { enabled: bgEffectContrast.value, intensity: bgEffectContrastIntensity.value },
       gradientPulse: { enabled: bgEffectGradientPulse.value, intensity: bgEffectGradientPulseIntensity.value },
       gradientRotation: { enabled: bgEffectGradientRotation.value, intensity: bgEffectGradientRotationIntensity.value }
     }

@@ -1732,6 +1732,23 @@ Zeile 3..."
           {{ t('textManager.resetAllEffects') || 'Alle Effekte zurücksetzen' }}
         </button>
 
+        <!-- Save/Load Audio Effects Preset -->
+        <div class="audio-preset-actions">
+          <button @click="saveAudioEffectsPreset" class="btn-save-preset">
+            <span class="preset-icon">💾</span>
+            {{ t('textManager.saveEffectsPreset') || 'Effekte speichern' }}
+          </button>
+          <button
+            @click="loadAudioEffectsPreset"
+            class="btn-load-preset"
+            :disabled="!hasAudioEffectsPreset"
+            :title="hasAudioEffectsPreset ? '' : (t('textManager.noPresetSaved') || 'Kein Preset gespeichert')"
+          >
+            <span class="preset-icon">📂</span>
+            {{ t('textManager.loadEffectsPreset') || 'Effekte laden' }}
+          </button>
+        </div>
+
         <div class="hint-text" style="margin-top: 10px;">
           {{ t('textManager.effectsTip') }}
         </div>
@@ -3254,6 +3271,88 @@ function resetAllAudioEffects() {
   console.log('🔄 Alle Audio-Effekte zurückgesetzt');
 }
 
+// ✨ Audio-Effekte Preset speichern
+const AUDIO_EFFECTS_PRESET_KEY = 'visualizer_audio_effects_preset';
+
+const hasAudioEffectsPreset = ref(false);
+
+// Check on mount if preset exists
+function checkAudioEffectsPreset() {
+  try {
+    const saved = localStorage.getItem(AUDIO_EFFECTS_PRESET_KEY);
+    hasAudioEffectsPreset.value = !!saved;
+  } catch (e) {
+    hasAudioEffectsPreset.value = false;
+  }
+}
+
+function saveAudioEffectsPreset() {
+  if (!selectedText.value?.audioReactive) {
+    toastStore.warning(t('textManager.noEffectsToSave') || 'Keine Effekte zum Speichern');
+    return;
+  }
+
+  try {
+    const preset = {
+      source: selectedText.value.audioReactive.source,
+      smoothing: selectedText.value.audioReactive.smoothing,
+      threshold: selectedText.value.audioReactive.threshold,
+      attack: selectedText.value.audioReactive.attack,
+      release: selectedText.value.audioReactive.release,
+      effects: JSON.parse(JSON.stringify(selectedText.value.audioReactive.effects))
+    };
+
+    localStorage.setItem(AUDIO_EFFECTS_PRESET_KEY, JSON.stringify(preset));
+    hasAudioEffectsPreset.value = true;
+    toastStore.success(t('textManager.effectsPresetSaved') || 'Audio-Effekte gespeichert');
+    console.log('💾 Audio-Effekte Preset gespeichert');
+  } catch (error) {
+    console.error('❌ Fehler beim Speichern des Presets:', error);
+    toastStore.error(t('textManager.effectsPresetSaveError') || 'Fehler beim Speichern');
+  }
+}
+
+function loadAudioEffectsPreset() {
+  if (!selectedText.value?.audioReactive) {
+    toastStore.warning(t('textManager.selectTextFirst') || 'Bitte wähle zuerst einen Text aus');
+    return;
+  }
+
+  try {
+    const saved = localStorage.getItem(AUDIO_EFFECTS_PRESET_KEY);
+    if (!saved) {
+      toastStore.warning(t('textManager.noPresetSaved') || 'Kein Preset gespeichert');
+      return;
+    }
+
+    const preset = JSON.parse(saved);
+
+    // Apply preset to current text
+    selectedText.value.audioReactive.enabled = true;
+    selectedText.value.audioReactive.source = preset.source || 'bass';
+    selectedText.value.audioReactive.smoothing = preset.smoothing || 50;
+    selectedText.value.audioReactive.threshold = preset.threshold || 0;
+    selectedText.value.audioReactive.attack = preset.attack || 90;
+    selectedText.value.audioReactive.release = preset.release || 50;
+
+    // Deep copy effects
+    if (preset.effects) {
+      Object.keys(preset.effects).forEach(key => {
+        if (selectedText.value.audioReactive.effects[key]) {
+          Object.assign(selectedText.value.audioReactive.effects[key], preset.effects[key]);
+        }
+      });
+    }
+
+    updateText();
+    toastStore.success(t('textManager.effectsPresetLoaded') || 'Audio-Effekte geladen');
+    console.log('📂 Audio-Effekte Preset geladen');
+  } catch (error) {
+    console.error('❌ Fehler beim Laden des Presets:', error);
+    toastStore.error(t('textManager.effectsPresetLoadError') || 'Fehler beim Laden');
+  }
+}
+
 // ✨ Typewriter-Animation aktivieren/deaktivieren
 function toggleTypewriter() {
   if (!selectedText.value) return;
@@ -3925,6 +4024,9 @@ onMounted(() => {
   // ✨ WICHTIG: Event-Listener für Tastatureingabe IMMER registrieren (unabhängig von canvasManager)
   window.addEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar);
 
+  // Check if audio effects preset exists in localStorage
+  checkAudioEffectsPreset();
+
   if (!canvasManager.value) return;
 
   // ✨ NEU: Canvas-Dimensionen initialisieren
@@ -4519,6 +4621,69 @@ h4 {
 
 .btn-reset-all-effects .reset-icon {
   font-size: 0.8rem;
+}
+
+/* Audio Effects Preset Actions */
+.audio-preset-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-save-preset,
+.btn-load-preset {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-save-preset {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(129, 199, 132, 0.15) 100%);
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  color: #81c784;
+}
+
+.btn-save-preset:hover {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.25) 0%, rgba(129, 199, 132, 0.25) 100%);
+  border-color: rgba(76, 175, 80, 0.6);
+  color: #a5d6a7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
+
+.btn-load-preset {
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.15) 0%, rgba(100, 181, 246, 0.15) 100%);
+  border: 1px solid rgba(33, 150, 243, 0.4);
+  color: #64b5f6;
+}
+
+.btn-load-preset:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.25) 0%, rgba(100, 181, 246, 0.25) 100%);
+  border-color: rgba(33, 150, 243, 0.6);
+  color: #90caf9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+}
+
+.btn-load-preset:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-save-preset .preset-icon,
+.btn-load-preset .preset-icon {
+  font-size: 0.75rem;
 }
 
 .advanced-settings .control-group {

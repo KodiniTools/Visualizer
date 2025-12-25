@@ -1726,6 +1726,12 @@ Zeile 3..."
           </div>
         </div>
 
+        <!-- Reset All Effects Button -->
+        <button @click="resetAllAudioEffects" class="btn-reset-all-effects">
+          <span class="reset-icon">🔄</span>
+          {{ t('textManager.resetAllEffects') || 'Alle Effekte zurücksetzen' }}
+        </button>
+
         <div class="hint-text" style="margin-top: 10px;">
           {{ t('textManager.effectsTip') }}
         </div>
@@ -3219,6 +3225,35 @@ function resetAudioSettings() {
   console.log('🔄 Audio-Einstellungen zurückgesetzt');
 }
 
+// ✨ Alle Audio-Effekte zurücksetzen
+function resetAllAudioEffects() {
+  if (!selectedText.value?.audioReactive?.effects) return;
+
+  const effects = selectedText.value.audioReactive.effects;
+
+  // Alle Effekte deaktivieren und Intensität zurücksetzen
+  const effectKeys = [
+    'hue', 'brightness', 'scale', 'glow', 'shake', 'bounce',
+    'swing', 'opacity', 'letterSpacing', 'strokeWidth',
+    'skew', 'strobe', 'rgbGlitch', 'perspective3d', 'wave', 'rotation', 'elastic'
+  ];
+
+  effectKeys.forEach(key => {
+    if (effects[key]) {
+      effects[key].enabled = false;
+      effects[key].intensity = 50;
+      // Reset special properties
+      if (key === 'opacity') {
+        effects[key].minimum = 0;
+        effects[key].ease = false;
+      }
+    }
+  });
+
+  updateText();
+  console.log('🔄 Alle Audio-Effekte zurückgesetzt');
+}
+
 // ✨ Typewriter-Animation aktivieren/deaktivieren
 function toggleTypewriter() {
   if (!selectedText.value) return;
@@ -4451,6 +4486,39 @@ h4 {
   background: rgba(255, 100, 100, 0.2);
   border-color: rgba(255, 100, 100, 0.5);
   color: #fff;
+}
+
+/* Reset All Effects Button */
+.btn-reset-all-effects {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 14px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, rgba(255, 100, 100, 0.15) 0%, rgba(255, 150, 100, 0.15) 100%);
+  border: 1px solid rgba(255, 100, 100, 0.4);
+  border-radius: 6px;
+  color: #ffaaaa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-reset-all-effects:hover {
+  background: linear-gradient(135deg, rgba(255, 100, 100, 0.25) 0%, rgba(255, 150, 100, 0.25) 100%);
+  border-color: rgba(255, 100, 100, 0.6);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 100, 100, 0.2);
+}
+
+.btn-reset-all-effects .reset-icon {
+  font-size: 0.8rem;
 }
 
 .advanced-settings .control-group {

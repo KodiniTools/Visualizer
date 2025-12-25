@@ -447,7 +447,9 @@ const translations = {
       presetSubtle: 'Subtle',
       presetSubtleTitle: 'Dezente, subtile Effekte',
       presetExtreme: 'Extrem',
-      presetExtremeTitle: 'Maximale Reaktion'
+      presetExtremeTitle: 'Maximale Reaktion',
+      // Reset All Effects
+      resetAllEffects: 'Alle Effekte zurücksetzen'
     },
 
     // ========== FOTO PANEL ==========
@@ -1150,7 +1152,9 @@ const translations = {
       presetSubtle: 'Subtle',
       presetSubtleTitle: 'Subtle, restrained effects',
       presetExtreme: 'Extreme',
-      presetExtremeTitle: 'Maximum reaction'
+      presetExtremeTitle: 'Maximum reaction',
+      // Reset All Effects
+      resetAllEffects: 'Reset all effects'
     },
 
     // ========== FOTO PANEL ==========

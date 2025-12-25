@@ -449,7 +449,17 @@ const translations = {
       presetExtreme: 'Extrem',
       presetExtremeTitle: 'Maximale Reaktion',
       // Reset All Effects
-      resetAllEffects: 'Alle Effekte zurücksetzen'
+      resetAllEffects: 'Alle Effekte zurücksetzen',
+      // Audio Effects Presets
+      saveEffectsPreset: 'Effekte speichern',
+      loadEffectsPreset: 'Effekte laden',
+      noPresetSaved: 'Kein Preset gespeichert',
+      noEffectsToSave: 'Keine Effekte zum Speichern',
+      selectTextFirst: 'Bitte wähle zuerst einen Text aus',
+      effectsPresetSaved: 'Audio-Effekte gespeichert',
+      effectsPresetLoaded: 'Audio-Effekte geladen',
+      effectsPresetSaveError: 'Fehler beim Speichern',
+      effectsPresetLoadError: 'Fehler beim Laden'
     },
 
     // ========== FOTO PANEL ==========
@@ -1154,7 +1164,17 @@ const translations = {
       presetExtreme: 'Extreme',
       presetExtremeTitle: 'Maximum reaction',
       // Reset All Effects
-      resetAllEffects: 'Reset all effects'
+      resetAllEffects: 'Reset all effects',
+      // Audio Effects Presets
+      saveEffectsPreset: 'Save effects',
+      loadEffectsPreset: 'Load effects',
+      noPresetSaved: 'No preset saved',
+      noEffectsToSave: 'No effects to save',
+      selectTextFirst: 'Please select a text first',
+      effectsPresetSaved: 'Audio effects saved',
+      effectsPresetLoaded: 'Audio effects loaded',
+      effectsPresetSaveError: 'Error saving preset',
+      effectsPresetLoadError: 'Error loading preset'
     },
 
     // ========== FOTO PANEL ==========

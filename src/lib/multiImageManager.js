@@ -592,6 +592,31 @@ export class MultiImageManager {
                 const rotateY = Math.cos(timePerspective * 0.8) * perspectiveAmount * 0.7;
                 return { perspectiveRotateX: rotateX, perspectiveRotateY: rotateY };
 
+            case 'orbitingLight':
+                // ✨ Kreisendes Licht: Ein farbiges Licht, das um das Bild rotiert
+                // Die Farbe wechselt im Musikrhythmus (Hue-Rotation basierend auf Zeit + Audio)
+                const timeLight = Date.now() * 0.003; // Geschwindigkeit der Kreisbewegung
+                const lightAngle = timeLight + (normalizedLevel * Math.PI * 2); // Audio beeinflusst Position
+
+                // Hue basierend auf Zeit + Audio für dynamischen Farbwechsel
+                // Audio-Level verschiebt die Farbe im Spektrum
+                const hueTime = Date.now() * 0.0005; // Langsamer Basis-Farbwechsel
+                const hueOffset = normalizedLevel * 360; // Audio verschiebt Farbe dramatisch
+                const hue = (hueTime * 360 + hueOffset) % 360;
+
+                // Lichtintensität pulsiert mit Audio
+                const lightIntensity = 0.4 + normalizedLevel * 0.6; // 40-100%
+                const lightRadius = 20 + normalizedLevel * 40; // 20-60px Blur
+
+                return {
+                    lightAngle,
+                    lightHue: hue,
+                    lightIntensity,
+                    lightRadius,
+                    // Relative Position des Lichts auf dem Orbit (0-1 vom Zentrum zum Rand)
+                    lightOrbitRadius: 0.6 + normalizedLevel * 0.2 // 60-80% vom Bildrand
+                };
+
             default:
                 return {};
         }
@@ -937,6 +962,59 @@ export class MultiImageManager {
                 } catch (e) {
                     console.warn('[MultiImageManager] Image render error:', e);
                 }
+            }
+
+            // ✨ AUDIO-REAKTIV: Kreisendes Licht (Orbiting Light) - über dem Bild zeichnen
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.orbitingLight) {
+                const light = audioReactive.effects.orbitingLight;
+
+                // Berechne Zentrum und Radius des Orbits
+                const centerX = drawBounds.x + drawBounds.width / 2;
+                const centerY = drawBounds.y + drawBounds.height / 2;
+                const orbitRadius = Math.min(drawBounds.width, drawBounds.height) * light.lightOrbitRadius / 2;
+
+                // Position des Lichts auf dem Orbit
+                const lightX = centerX + Math.cos(light.lightAngle) * orbitRadius;
+                const lightY = centerY + Math.sin(light.lightAngle) * orbitRadius;
+
+                // HSL-Farbe mit dynamischem Hue
+                const lightColor = `hsla(${light.lightHue}, 100%, 60%, ${light.lightIntensity})`;
+                const glowColor = `hsla(${light.lightHue}, 100%, 50%, ${light.lightIntensity * 0.5})`;
+
+                // Zeichne das kreisende Licht mit Glow-Effekt
+                ctx.save();
+                ctx.filter = 'none'; // Keine Filter auf das Licht anwenden
+
+                // Äußerer Glow (größer, weicher)
+                const outerGradient = ctx.createRadialGradient(
+                    lightX, lightY, 0,
+                    lightX, lightY, light.lightRadius * 2
+                );
+                outerGradient.addColorStop(0, glowColor);
+                outerGradient.addColorStop(0.5, `hsla(${light.lightHue}, 100%, 50%, ${light.lightIntensity * 0.2})`);
+                outerGradient.addColorStop(1, 'transparent');
+
+                ctx.globalCompositeOperation = 'screen'; // Additives Mischen für Lichteffekt
+                ctx.fillStyle = outerGradient;
+                ctx.beginPath();
+                ctx.arc(lightX, lightY, light.lightRadius * 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Innerer heller Kern
+                const innerGradient = ctx.createRadialGradient(
+                    lightX, lightY, 0,
+                    lightX, lightY, light.lightRadius * 0.5
+                );
+                innerGradient.addColorStop(0, `hsla(${light.lightHue}, 80%, 90%, ${light.lightIntensity})`);
+                innerGradient.addColorStop(0.5, lightColor);
+                innerGradient.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = innerGradient;
+                ctx.beginPath();
+                ctx.arc(lightX, lightY, light.lightRadius * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
             }
 
             // ✅ FIX: ctx.restore() stellt alle Filter/Transformationen wieder her

@@ -1216,6 +1216,30 @@
             />
             <span class="effect-value" ref="effectPerspectiveValueRef">50%</span>
           </div>
+
+          <!-- Kreisendes Licht (Orbiting Light) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input
+                type="checkbox"
+                ref="effectOrbitingLightEnabledRef"
+                @change="(e) => onEffectToggle('orbitingLight', e.target.checked)"
+                class="effect-checkbox"
+              />
+              <span class="effect-name">💫 Kreisendes Licht</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="70"
+              step="5"
+              ref="effectOrbitingLightIntensityRef"
+              @input="(e) => onEffectIntensityChange('orbitingLight', e.target.value)"
+              class="effect-slider"
+            />
+            <span class="effect-value" ref="effectOrbitingLightValueRef">70%</span>
+          </div>
         </div>
 
         <!-- Audio-Level Anzeige -->
@@ -1387,6 +1411,9 @@ const effectChromaticValueRef = ref(null);
 const effectPerspectiveEnabledRef = ref(null);
 const effectPerspectiveIntensityRef = ref(null);
 const effectPerspectiveValueRef = ref(null);
+const effectOrbitingLightEnabledRef = ref(null);
+const effectOrbitingLightIntensityRef = ref(null);
+const effectOrbitingLightValueRef = ref(null);
 
 // ✨ NEU: Gespeicherte Audio-Reaktiv Einstellungen
 const savedAudioReactiveSettings = ref(null);
@@ -1811,6 +1838,7 @@ function getEffectValueRef(effectName) {
     case 'strobe': return effectStrobeValueRef;
     case 'chromatic': return effectChromaticValueRef;
     case 'perspective': return effectPerspectiveValueRef;
+    case 'orbitingLight': return effectOrbitingLightValueRef;
     default: return null;
   }
 }
@@ -1974,6 +2002,7 @@ function getEffectEnabledRef(effectName) {
     case 'strobe': return effectStrobeEnabledRef;
     case 'chromatic': return effectChromaticEnabledRef;
     case 'perspective': return effectPerspectiveEnabledRef;
+    case 'orbitingLight': return effectOrbitingLightEnabledRef;
     default: return null;
   }
 }
@@ -2004,6 +2033,7 @@ function getEffectIntensityRef(effectName) {
     case 'strobe': return effectStrobeIntensityRef;
     case 'chromatic': return effectChromaticIntensityRef;
     case 'perspective': return effectPerspectiveIntensityRef;
+    case 'orbitingLight': return effectOrbitingLightIntensityRef;
     default: return null;
   }
 }
@@ -2113,6 +2143,7 @@ function loadAudioReactiveSettings(imageData) {
     loadEffect('strobe', effectStrobeEnabledRef, effectStrobeIntensityRef, effectStrobeValueRef, 70);
     loadEffect('chromatic', effectChromaticEnabledRef, effectChromaticIntensityRef, effectChromaticValueRef, 60);
     loadEffect('perspective', effectPerspectiveEnabledRef, effectPerspectiveIntensityRef, effectPerspectiveValueRef, 50);
+    loadEffect('orbitingLight', effectOrbitingLightEnabledRef, effectOrbitingLightIntensityRef, effectOrbitingLightValueRef, 70);
 
     stopAudioLevelIndicator();
     return;
@@ -2148,6 +2179,7 @@ function loadAudioReactiveSettings(imageData) {
   loadEffect('strobe', effectStrobeEnabledRef, effectStrobeIntensityRef, effectStrobeValueRef, 70);
   loadEffect('chromatic', effectChromaticEnabledRef, effectChromaticIntensityRef, effectChromaticValueRef, 60);
   loadEffect('perspective', effectPerspectiveEnabledRef, effectPerspectiveIntensityRef, effectPerspectiveValueRef, 50);
+  loadEffect('orbitingLight', effectOrbitingLightEnabledRef, effectOrbitingLightIntensityRef, effectOrbitingLightValueRef, 70);
 
   if (ar.enabled) {
     startAudioLevelIndicator();

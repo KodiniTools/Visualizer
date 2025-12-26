@@ -127,7 +127,8 @@ const translations = {
       position: 'Position',
       layer: 'Ebene',
       close: 'Schließen',
-      dblClickPreview: 'Doppelklick für Vorschau'
+      dblClickPreview: 'Doppelklick für Vorschau',
+      dragToReorder: 'Ziehen um Ebenenreihenfolge zu ändern'
     },
 
     // ========== FILE UPLOAD PANEL ==========
@@ -856,7 +857,8 @@ const translations = {
       position: 'Position',
       layer: 'Layer',
       close: 'Close',
-      dblClickPreview: 'Double-click for preview'
+      dblClickPreview: 'Double-click for preview',
+      dragToReorder: 'Drag to change layer order'
     },
 
     // ========== FILE UPLOAD PANEL ==========

@@ -32,12 +32,22 @@
               v-for="(imgData, index) in canvasImages"
               :key="imgData.id"
               class="canvas-thumb"
-              :class="{ 'selected': selectedCanvasImageId === imgData.id }"
+              :class="{
+                'selected': selectedCanvasImageId === imgData.id,
+                'dragging': draggedImageIndex === index,
+                'drag-over': dragOverIndex === index && draggedImageIndex !== index
+              }"
+              draggable="true"
               @click="selectCanvasImage(imgData)"
               @dblclick="openImagePreview(imgData, index)"
-              :title="`${t('common.layer')} ${index + 1} - ${t('app.dblClickPreview')}`"
+              @dragstart="handleDragStart($event, index)"
+              @dragend="handleDragEnd"
+              @dragover.prevent="handleDragOver($event, index)"
+              @dragleave="handleDragLeave"
+              @drop.prevent="handleDrop($event, index)"
+              :title="`${t('common.layer')} ${index + 1} - ${t('app.dragToReorder')}`"
             >
-              <img :src="imgData.imageObject.src" alt="Canvas Bild">
+              <img :src="imgData.imageObject.src" alt="Canvas Bild" draggable="false">
               <span class="canvas-thumb-layer">{{ index + 1 }}</span>
               <button
                 class="canvas-thumb-delete"
@@ -364,6 +374,10 @@ const showImagePreview = ref(false);
 const previewImageData = ref(null);
 const previewImageIndex = ref(0);
 
+// Drag & Drop State
+const draggedImageIndex = ref(null);
+const dragOverIndex = ref(null);
+
 const canvasImages = computed(() => {
   const manager = multiImageManagerInstance.value;
   if (!manager) return [];
@@ -422,6 +436,52 @@ function closeImagePreview() {
   showImagePreview.value = false;
   previewImageData.value = null;
   previewImageIndex.value = 0;
+}
+
+// Drag & Drop Handler für Ebenenreihenfolge
+function handleDragStart(event, index) {
+  draggedImageIndex.value = index;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', index.toString());
+
+  // Etwas Verzögerung für visuelles Feedback
+  setTimeout(() => {
+    event.target.classList.add('dragging');
+  }, 0);
+}
+
+function handleDragEnd() {
+  draggedImageIndex.value = null;
+  dragOverIndex.value = null;
+}
+
+function handleDragOver(event, index) {
+  if (draggedImageIndex.value === null) return;
+  if (draggedImageIndex.value === index) return;
+
+  dragOverIndex.value = index;
+  event.dataTransfer.dropEffect = 'move';
+}
+
+function handleDragLeave() {
+  // Nur zurücksetzen wenn wir die Scroll-Area verlassen
+  // dragOverIndex.value = null;
+}
+
+function handleDrop(event, toIndex) {
+  const fromIndex = draggedImageIndex.value;
+
+  if (fromIndex === null || fromIndex === toIndex) {
+    handleDragEnd();
+    return;
+  }
+
+  const manager = multiImageManagerInstance.value;
+  if (manager) {
+    manager.reorderImage(fromIndex, toIndex);
+  }
+
+  handleDragEnd();
 }
 
 // SEPARATE VISUALIZER RENDER-LOOP
@@ -2328,6 +2388,46 @@ canvas {
 .canvas-thumb.selected {
   border-color: var(--accent, #609198);
   box-shadow: 0 0 0 2px rgba(96, 145, 152, 0.5), 0 4px 12px rgba(96, 145, 152, 0.4);
+}
+
+/* Drag & Drop States */
+.canvas-thumb[draggable="true"] {
+  cursor: grab;
+}
+
+.canvas-thumb[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.canvas-thumb.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+  border-color: var(--accent, #609198);
+  box-shadow: 0 0 0 2px rgba(96, 145, 152, 0.3);
+}
+
+.canvas-thumb.drag-over {
+  border-color: #4ade80;
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.5), 0 4px 16px rgba(74, 222, 128, 0.4);
+  transform: scale(1.1);
+}
+
+.canvas-thumb.drag-over::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border: 2px dashed #4ade80;
+  border-radius: 7px;
+  pointer-events: none;
+  animation: dragPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes dragPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .canvas-thumb img {

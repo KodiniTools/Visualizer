@@ -1343,6 +1343,30 @@ export class MultiImageManager {
     }
 
     /**
+     * ✨ Verschiebt ein Bild von einer Position zu einer anderen (für Drag & Drop)
+     * @param {number} fromIndex - Ursprünglicher Index des Bildes
+     * @param {number} toIndex - Zielindex für das Bild
+     * @returns {boolean} true wenn erfolgreich
+     */
+    reorderImage(fromIndex, toIndex) {
+        // Validierung
+        if (fromIndex < 0 || fromIndex >= this.images.length) return false;
+        if (toIndex < 0 || toIndex >= this.images.length) return false;
+        if (fromIndex === toIndex) return false;
+
+        // Entferne das Bild von der ursprünglichen Position
+        const [movedImage] = this.images.splice(fromIndex, 1);
+
+        // Füge es an der neuen Position ein
+        this.images.splice(toIndex, 0, movedImage);
+
+        console.log('🔀 Bild neu angeordnet:', movedImage.id, `von Ebene ${fromIndex + 1} nach ${toIndex + 1}`);
+        this.redrawCallback();
+        this.onImageChanged();
+        return true;
+    }
+
+    /**
      * ✨ Zeichnet eine Kontur um die sichtbare Form eines Bildes (unterstützt Transparenz)
      * Verwendet einen Outline-Effekt durch mehrfaches Zeichnen mit Offset
      * HINWEIS: Rotation wird bereits im aufrufenden Context angewendet

@@ -34,13 +34,62 @@
               class="canvas-thumb"
               :class="{ 'selected': selectedCanvasImageId === imgData.id }"
               @click="selectCanvasImage(imgData)"
-              :title="`${t('common.layer')} ${index + 1} - ${t('app.clickToSelect')}`"
+              @dblclick="openImagePreview(imgData, index)"
+              :title="`${t('common.layer')} ${index + 1} - ${t('app.dblClickPreview')}`"
             >
               <img :src="imgData.imageObject.src" alt="Canvas Bild">
               <span class="canvas-thumb-layer">{{ index + 1 }}</span>
+              <button
+                class="canvas-thumb-delete"
+                @click.stop="deleteCanvasImage(imgData.id)"
+                :title="t('app.deleteImage')"
+              >×</button>
             </div>
           </div>
+          <button
+            class="canvas-images-clear-all"
+            @click="deleteAllCanvasImages"
+            :title="t('app.confirmDeleteAll')"
+          >
+            <span class="clear-all-icon">🗑</span>
+            <span class="clear-all-text">{{ t('app.deleteAllImages') }}</span>
+          </button>
         </div>
+
+        <!-- Image Preview Modal -->
+        <Teleport to="body">
+          <div v-if="showImagePreview" class="image-preview-modal-overlay" @click="closeImagePreview">
+            <div class="image-preview-modal" @click.stop>
+              <button class="preview-modal-close" @click="closeImagePreview">×</button>
+              <div class="preview-modal-content">
+                <div class="preview-modal-image-container">
+                  <img v-if="previewImageData" :src="previewImageData.imageObject.src" alt="Preview">
+                </div>
+                <div class="preview-modal-info">
+                  <h3>{{ t('app.imageMetadata') }}</h3>
+                  <div class="preview-info-grid" v-if="previewImageData">
+                    <div class="preview-info-item">
+                      <span class="preview-info-label">{{ t('app.layer') }}:</span>
+                      <span class="preview-info-value">{{ previewImageIndex + 1 }} / {{ canvasImages.length }}</span>
+                    </div>
+                    <div class="preview-info-item">
+                      <span class="preview-info-label">{{ t('app.dimensions') }}:</span>
+                      <span class="preview-info-value">{{ previewImageData.imageObject.naturalWidth }} × {{ previewImageData.imageObject.naturalHeight }} px</span>
+                    </div>
+                    <div class="preview-info-item">
+                      <span class="preview-info-label">{{ t('app.position') }}:</span>
+                      <span class="preview-info-value">X: {{ Math.round(previewImageData.relX * 100) }}%, Y: {{ Math.round(previewImageData.relY * 100) }}%</span>
+                    </div>
+                    <div class="preview-info-item">
+                      <span class="preview-info-label">{{ t('common.size') || 'Größe' }}:</span>
+                      <span class="preview-info-value">{{ Math.round(previewImageData.relWidth * 100) }}% × {{ Math.round(previewImageData.relHeight * 100) }}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Teleport>
 
         <div class="canvas-wrapper">
           <canvas ref="canvasRef"></canvas>
@@ -311,6 +360,9 @@ function applyAudioData(data) {
 // CANVAS-BILDER LEISTE
 
 const selectedCanvasImageId = ref(null);
+const showImagePreview = ref(false);
+const previewImageData = ref(null);
+const previewImageIndex = ref(0);
 
 const canvasImages = computed(() => {
   const manager = multiImageManagerInstance.value;
@@ -333,8 +385,43 @@ function selectCanvasImage(imgData) {
   if (window.fotoPanelControls?.currentActiveImage) {
     window.fotoPanelControls.currentActiveImage.value = imgData;
   }
+}
 
-  console.log('Canvas-Bild ausgewählt:', imgData.id);
+function deleteCanvasImage(imageId) {
+  const manager = multiImageManagerInstance.value;
+  if (!manager) return;
+
+  manager.removeImage(imageId);
+
+  // Deselect if the deleted image was selected
+  if (selectedCanvasImageId.value === imageId) {
+    selectedCanvasImageId.value = null;
+  }
+
+  console.log('🗑️ Bild aus Preview-Leiste gelöscht:', imageId);
+}
+
+function deleteAllCanvasImages() {
+  const manager = multiImageManagerInstance.value;
+  if (!manager) return;
+
+  // Clear all images
+  manager.clear();
+  selectedCanvasImageId.value = null;
+
+  console.log('🗑️ Alle Bilder vom Canvas gelöscht');
+}
+
+function openImagePreview(imgData, index) {
+  previewImageData.value = imgData;
+  previewImageIndex.value = index;
+  showImagePreview.value = true;
+}
+
+function closeImagePreview() {
+  showImagePreview.value = false;
+  previewImageData.value = null;
+  previewImageIndex.value = 0;
 }
 
 // SEPARATE VISUALIZER RENDER-LOOP
@@ -2262,5 +2349,224 @@ canvas {
   border-radius: 3px;
   min-width: 12px;
   text-align: center;
+}
+
+/* Thumbnail Delete Button */
+.canvas-thumb-delete {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 69, 58, 0.95);
+  border: 2px solid var(--panel, #151b1d);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 10;
+}
+
+.canvas-thumb:hover .canvas-thumb-delete {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.canvas-thumb-delete:hover {
+  background: #ff453a;
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(255, 69, 58, 0.5);
+}
+
+/* Clear All Button */
+.canvas-images-clear-all {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(255, 69, 58, 0.15);
+  border: 1px solid rgba(255, 69, 58, 0.4);
+  border-radius: 5px;
+  color: #ff6b6b;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.canvas-images-clear-all:hover {
+  background: rgba(255, 69, 58, 0.25);
+  border-color: rgba(255, 69, 58, 0.6);
+  color: #ff453a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 69, 58, 0.3);
+}
+
+.canvas-images-clear-all .clear-all-icon {
+  font-size: 0.7rem;
+}
+
+.canvas-images-clear-all .clear-all-text {
+  display: inline;
+}
+
+/* Image Preview Modal */
+.image-preview-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.image-preview-modal {
+  background: linear-gradient(180deg, var(--panel, #151b1d) 0%, rgba(21, 27, 29, 0.98) 100%);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(96, 145, 152, 0.2);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  animation: modalSlideIn 0.25s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.preview-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.preview-modal-close:hover {
+  background: rgba(255, 69, 58, 0.8);
+  border-color: rgba(255, 69, 58, 0.9);
+  transform: rotate(90deg);
+}
+
+.preview-modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+}
+
+.preview-modal-image-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  min-height: 300px;
+  max-height: 60vh;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.preview-modal-image-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.preview-modal-info {
+  padding: 20px 24px;
+  border-top: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+}
+
+.preview-modal-info h3 {
+  margin: 0 0 16px 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent, #609198);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.preview-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.preview-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preview-info-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--muted, #A8A992);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.preview-info-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #E9E9EB;
+  font-family: 'SF Mono', 'Monaco', monospace;
+}
+
+/* Responsive adjustments for preview modal */
+@media (max-width: 600px) {
+  .preview-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .canvas-images-clear-all .clear-all-text {
+    display: none;
+  }
 }
 </style>

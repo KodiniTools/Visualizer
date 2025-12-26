@@ -117,7 +117,17 @@ const translations = {
     app: {
       imagesOnCanvas: 'Bilder auf Canvas',
       clickToSelect: 'Klicken zum Auswählen',
-      backToHome: 'Zur Startseite'
+      backToHome: 'Zur Startseite',
+      deleteImage: 'Bild löschen',
+      deleteAllImages: 'Alle löschen',
+      confirmDeleteAll: 'Alle Bilder vom Canvas entfernen?',
+      imagePreview: 'Bildvorschau',
+      imageMetadata: 'Bildinformationen',
+      dimensions: 'Abmessungen',
+      position: 'Position',
+      layer: 'Ebene',
+      close: 'Schließen',
+      dblClickPreview: 'Doppelklick für Vorschau'
     },
 
     // ========== FILE UPLOAD PANEL ==========
@@ -836,7 +846,17 @@ const translations = {
     app: {
       imagesOnCanvas: 'Images on Canvas',
       clickToSelect: 'Click to select',
-      backToHome: 'Back to Home'
+      backToHome: 'Back to Home',
+      deleteImage: 'Delete image',
+      deleteAllImages: 'Delete all',
+      confirmDeleteAll: 'Remove all images from canvas?',
+      imagePreview: 'Image Preview',
+      imageMetadata: 'Image Information',
+      dimensions: 'Dimensions',
+      position: 'Position',
+      layer: 'Layer',
+      close: 'Close',
+      dblClickPreview: 'Double-click for preview'
     },
 
     // ========== FILE UPLOAD PANEL ==========

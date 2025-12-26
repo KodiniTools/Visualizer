@@ -169,6 +169,36 @@
               </label>
             </div>
 
+            <!-- Ersetzen-Buttons für Video -->
+            <div class="replace-section">
+              <span class="replace-label">{{ t('backgroundTiles.replaceWith') }}:</span>
+              <div class="replace-buttons">
+                <input
+                  type="file"
+                  accept="image/*"
+                  @change="handleImageUpload"
+                  ref="replaceImageFromVideoInput"
+                  style="display: none"
+                />
+                <input
+                  type="file"
+                  accept="video/*"
+                  @change="handleVideoUpload"
+                  ref="replaceVideoFromVideoInput"
+                  style="display: none"
+                />
+                <button class="btn-replace" @click="$refs.replaceImageFromVideoInput.click()">
+                  📁 {{ t('backgroundTiles.uploadImage') }}
+                </button>
+                <button class="btn-replace btn-replace-gallery" @click="openGalleryModal">
+                  🖼️ {{ t('backgroundTiles.fromGallery') }}
+                </button>
+                <button class="btn-replace btn-replace-video" @click="$refs.replaceVideoFromVideoInput.click()">
+                  🎬 {{ t('backgroundTiles.uploadVideo') }}
+                </button>
+              </div>
+            </div>
+
             <button class="btn-remove" @click="removeVideo">
               {{ t('backgroundTiles.removeVideo') }}
             </button>
@@ -178,6 +208,36 @@
           <div v-else class="image-controls">
             <div class="image-preview">
               <img :src="tilesStore.selectedTile.imageSrc" alt="Kachel-Bild" />
+            </div>
+
+            <!-- Ersetzen-Buttons -->
+            <div class="replace-section">
+              <span class="replace-label">{{ t('backgroundTiles.replaceWith') }}:</span>
+              <div class="replace-buttons">
+                <input
+                  type="file"
+                  accept="image/*"
+                  @change="handleImageUpload"
+                  ref="replaceImageInput"
+                  style="display: none"
+                />
+                <input
+                  type="file"
+                  accept="video/*"
+                  @change="handleVideoUpload"
+                  ref="replaceVideoInput"
+                  style="display: none"
+                />
+                <button class="btn-replace" @click="$refs.replaceImageInput.click()">
+                  📁 {{ t('backgroundTiles.uploadImage') }}
+                </button>
+                <button class="btn-replace btn-replace-gallery" @click="openGalleryModal">
+                  🖼️ {{ t('backgroundTiles.fromGallery') }}
+                </button>
+                <button class="btn-replace btn-replace-video" @click="$refs.replaceVideoInput.click()">
+                  🎬 {{ t('backgroundTiles.uploadVideo') }}
+                </button>
+              </div>
             </div>
 
             <!-- Bild-Filter -->
@@ -656,6 +716,10 @@ const canvasManager = inject('canvasManager');
 
 const fileInput = ref(null);
 const videoInput = ref(null);
+const replaceImageInput = ref(null);
+const replaceVideoInput = ref(null);
+const replaceImageFromVideoInput = ref(null);
+const replaceVideoFromVideoInput = ref(null);
 
 // ✨ Galerie-Modal State
 const showGalleryModal = ref(false);
@@ -2178,5 +2242,75 @@ function setEffectIntensity(effectName, value) {
 .btn-select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ERSETZEN-BUTTONS STYLES
+   ═══════════════════════════════════════════════════════════════ */
+
+.replace-section {
+  margin: 10px 0;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px dashed rgba(74, 222, 128, 0.3);
+  border-radius: 6px;
+}
+
+.replace-label {
+  display: block;
+  font-size: 10px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.replace-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-replace {
+  flex: 1;
+  min-width: 80px;
+  padding: 6px 10px;
+  font-size: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(74, 222, 128, 0.15);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  color: #4ade80;
+}
+
+.btn-replace:hover {
+  background: rgba(74, 222, 128, 0.25);
+  border-color: rgba(74, 222, 128, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-replace-gallery {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+  color: #c4b5fd;
+}
+
+.btn-replace-gallery:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.btn-replace-video {
+  background: rgba(236, 72, 153, 0.15);
+  border-color: rgba(236, 72, 153, 0.3);
+  color: #f9a8d4;
+}
+
+.btn-replace-video:hover {
+  background: rgba(236, 72, 153, 0.25);
+  border-color: rgba(236, 72, 153, 0.5);
 }
 </style>

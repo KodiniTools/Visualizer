@@ -595,18 +595,18 @@ export class MultiImageManager {
             case 'orbitingLight':
                 // ✨ Kreisendes Licht: Ein farbiges Licht, das um das Bild rotiert
                 // Die Farbe wechselt im Musikrhythmus (Hue-Rotation basierend auf Zeit + Audio)
-                const timeLight = Date.now() * 0.003; // Geschwindigkeit der Kreisbewegung
-                const lightAngle = timeLight + (normalizedLevel * Math.PI * 2); // Audio beeinflusst Position
+                const timeLight = Date.now() * 0.002; // Geschwindigkeit der Kreisbewegung
+                const lightAngle = timeLight + (normalizedLevel * Math.PI); // Audio beeinflusst Position
 
                 // Hue basierend auf Zeit + Audio für dynamischen Farbwechsel
                 // Audio-Level verschiebt die Farbe im Spektrum
-                const hueTime = Date.now() * 0.0005; // Langsamer Basis-Farbwechsel
-                const hueOffset = normalizedLevel * 360; // Audio verschiebt Farbe dramatisch
+                const hueTime = Date.now() * 0.0003; // Langsamer Basis-Farbwechsel
+                const hueOffset = normalizedLevel * 180; // Audio verschiebt Farbe
                 const hue = (hueTime * 360 + hueOffset) % 360;
 
                 // Lichtintensität pulsiert mit Audio
-                const lightIntensity = 0.4 + normalizedLevel * 0.6; // 40-100%
-                const lightRadius = 20 + normalizedLevel * 40; // 20-60px Blur
+                const lightIntensity = 0.6 + normalizedLevel * 0.4; // 60-100%
+                const lightRadius = 40 + normalizedLevel * 80; // 40-120px Blur (größer!)
 
                 return {
                     lightAngle,
@@ -614,7 +614,7 @@ export class MultiImageManager {
                     lightIntensity,
                     lightRadius,
                     // Relative Position des Lichts auf dem Orbit (0-1 vom Zentrum zum Rand)
-                    lightOrbitRadius: 0.6 + normalizedLevel * 0.2 // 60-80% vom Bildrand
+                    lightOrbitRadius: 0.5 + normalizedLevel * 0.3 // 50-80% vom Bildrand
                 };
 
             default:
@@ -971,47 +971,61 @@ export class MultiImageManager {
                 // Berechne Zentrum und Radius des Orbits
                 const centerX = drawBounds.x + drawBounds.width / 2;
                 const centerY = drawBounds.y + drawBounds.height / 2;
-                const orbitRadius = Math.min(drawBounds.width, drawBounds.height) * light.lightOrbitRadius / 2;
+                const orbitRadius = Math.max(drawBounds.width, drawBounds.height) * light.lightOrbitRadius / 2;
 
                 // Position des Lichts auf dem Orbit
                 const lightX = centerX + Math.cos(light.lightAngle) * orbitRadius;
                 const lightY = centerY + Math.sin(light.lightAngle) * orbitRadius;
 
-                // HSL-Farbe mit dynamischem Hue
-                const lightColor = `hsla(${light.lightHue}, 100%, 60%, ${light.lightIntensity})`;
-                const glowColor = `hsla(${light.lightHue}, 100%, 50%, ${light.lightIntensity * 0.5})`;
-
                 // Zeichne das kreisende Licht mit Glow-Effekt
                 ctx.save();
                 ctx.filter = 'none'; // Keine Filter auf das Licht anwenden
 
-                // Äußerer Glow (größer, weicher)
+                // ✨ Äußerer großer Glow (weich, atmosphärisch)
+                const outerRadius = light.lightRadius * 3;
                 const outerGradient = ctx.createRadialGradient(
                     lightX, lightY, 0,
-                    lightX, lightY, light.lightRadius * 2
+                    lightX, lightY, outerRadius
                 );
-                outerGradient.addColorStop(0, glowColor);
-                outerGradient.addColorStop(0.5, `hsla(${light.lightHue}, 100%, 50%, ${light.lightIntensity * 0.2})`);
+                outerGradient.addColorStop(0, `hsla(${light.lightHue}, 100%, 60%, ${light.lightIntensity * 0.8})`);
+                outerGradient.addColorStop(0.3, `hsla(${light.lightHue}, 100%, 50%, ${light.lightIntensity * 0.4})`);
+                outerGradient.addColorStop(0.6, `hsla(${light.lightHue}, 100%, 40%, ${light.lightIntensity * 0.15})`);
                 outerGradient.addColorStop(1, 'transparent');
 
-                ctx.globalCompositeOperation = 'screen'; // Additives Mischen für Lichteffekt
+                ctx.globalCompositeOperation = 'lighter'; // Additives Mischen für Lichteffekt
                 ctx.fillStyle = outerGradient;
                 ctx.beginPath();
-                ctx.arc(lightX, lightY, light.lightRadius * 2, 0, Math.PI * 2);
+                ctx.arc(lightX, lightY, outerRadius, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Innerer heller Kern
-                const innerGradient = ctx.createRadialGradient(
+                // ✨ Mittlerer Glow (intensiver)
+                const midRadius = light.lightRadius * 1.5;
+                const midGradient = ctx.createRadialGradient(
                     lightX, lightY, 0,
-                    lightX, lightY, light.lightRadius * 0.5
+                    lightX, lightY, midRadius
                 );
-                innerGradient.addColorStop(0, `hsla(${light.lightHue}, 80%, 90%, ${light.lightIntensity})`);
-                innerGradient.addColorStop(0.5, lightColor);
-                innerGradient.addColorStop(1, 'transparent');
+                midGradient.addColorStop(0, `hsla(${light.lightHue}, 100%, 70%, ${light.lightIntensity})`);
+                midGradient.addColorStop(0.5, `hsla(${light.lightHue}, 100%, 55%, ${light.lightIntensity * 0.5})`);
+                midGradient.addColorStop(1, 'transparent');
 
-                ctx.fillStyle = innerGradient;
+                ctx.fillStyle = midGradient;
                 ctx.beginPath();
-                ctx.arc(lightX, lightY, light.lightRadius * 0.5, 0, Math.PI * 2);
+                ctx.arc(lightX, lightY, midRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // ✨ Innerer heller Kern (sehr hell, klein)
+                const coreRadius = light.lightRadius * 0.4;
+                const coreGradient = ctx.createRadialGradient(
+                    lightX, lightY, 0,
+                    lightX, lightY, coreRadius
+                );
+                coreGradient.addColorStop(0, `hsla(${light.lightHue}, 50%, 95%, 1)`); // Fast weiß
+                coreGradient.addColorStop(0.4, `hsla(${light.lightHue}, 80%, 80%, ${light.lightIntensity})`);
+                coreGradient.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = coreGradient;
+                ctx.beginPath();
+                ctx.arc(lightX, lightY, coreRadius, 0, Math.PI * 2);
                 ctx.fill();
 
                 ctx.restore();

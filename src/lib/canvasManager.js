@@ -1682,6 +1682,19 @@ export class CanvasManager {
                 }
 
                 if (this.isPointInRect(x, y, bounds)) {
+                    // ✅ FIX: Prüfe ob ein Text-Objekt mit höherer Priorität an dieser Position liegt
+                    // Text muss IMMER anklickbar sein, auch wenn ein anderes Objekt aktiv ist
+                    const textAtPos = this.getTextAtPos(x, y);
+                    if (textAtPos && this.activeObject !== textAtPos) {
+                        // Text gefunden - wechsle zu diesem Text-Objekt
+                        this.setActiveObject(textAtPos);
+                        this.currentAction = 'move';
+                        this.dragStartPos = { x, y };
+                        this._startDragListeners();
+                        this.canvas.style.cursor = 'grabbing';
+                        return;
+                    }
+
                     this.currentAction = 'move';
                     this.dragStartPos = { x, y };
                     // ✅ Reliability: Add window listeners for drag outside canvas
@@ -1998,6 +2011,23 @@ export class CanvasManager {
                 this.onTextEditStart(clickedObj);
             }
         }
+    }
+
+    /**
+     * ✅ NEU: Prüft NUR ob ein Text-Objekt an der Position liegt
+     * Wird verwendet um Text-Priorität über anderen Objekten sicherzustellen
+     */
+    getTextAtPos(x, y) {
+        if (this.textManager && this.textManager.textObjects) {
+            for (let i = this.textManager.textObjects.length - 1; i >= 0; i--) {
+                const textObj = this.textManager.textObjects[i];
+                const bounds = this.getObjectBounds(textObj);
+                if (bounds && this.isPointInRect(x, y, bounds)) {
+                    return textObj;
+                }
+            }
+        }
+        return null;
     }
 
     getObjectAtPos(x, y) {

@@ -8,7 +8,7 @@ import { localeRef } from '../lib/i18n.js';
 const VISUALIZER_CATEGORIES = {
   'Balken & Spektrum': ['bars', 'mirroredBars', 'radialBars', 'vibratingCubes'],
   'Wellen': ['waveform', 'waveformHorizon', 'texturedWave', 'fluidWaves', 'synthWave'],
-  'Kreise & Kugeln': ['circles', 'pulsingOrbs', 'rippleEffect', 'soundWaves'],
+  'Kreise & Kugeln': ['circles', 'pulsingOrbs', 'rippleEffect', 'soundWaves', 'orbitingLight'],
   'Partikel': ['particleStorm', 'networkPlexus', 'cosmicNebula', 'digitalRain', 'matrixRain'],
   'Geometrie': ['spiralGalaxy', 'bloomingMandala', 'geometricKaleidoscope', 'hexagonGrid', 'shardMosaic', 'lightBeams', 'neonGrid', 'vortexPortal'],
   'Organisch': ['heartbeat', 'neuralNetwork', 'cellGrowth', 'fractalTree'],

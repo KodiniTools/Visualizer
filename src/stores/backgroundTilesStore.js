@@ -11,6 +11,14 @@ function createDefaultTile(index) {
     backgroundOpacity: 1.0,
     image: null,           // Bild-Objekt (HTMLImageElement)
     imageSrc: null,        // Bild-URL für Persistenz
+    // ✨ NEU: Video-Unterstützung
+    video: null,           // Video-Objekt (HTMLVideoElement)
+    videoSrc: null,        // Video-URL für Persistenz
+    videoSettings: {
+      muted: true,         // Standard: stumm
+      loop: true,          // Standard: Endlosschleife
+      playbackRate: 1.0    // Abspielgeschwindigkeit
+    },
     imageSettings: {
       brightness: 100,
       contrast: 100,
@@ -220,6 +228,68 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
     }
   }
 
+  // ✨ NEU: Video zu Kachel hinzufügen
+  function setTileVideo(index, videoElement, videoSrc = null) {
+    if (tiles.value[index]) {
+      // Vorheriges Video stoppen falls vorhanden
+      if (tiles.value[index].video) {
+        tiles.value[index].video.pause();
+        tiles.value[index].video.src = '';
+      }
+      // Vorheriges Bild entfernen (Video ersetzt Bild)
+      tiles.value[index].image = null;
+      tiles.value[index].imageSrc = null;
+
+      tiles.value[index].video = videoElement;
+      tiles.value[index].videoSrc = videoSrc;
+      // Video-Einstellungen zurücksetzen
+      tiles.value[index].videoSettings = {
+        muted: true,
+        loop: true,
+        playbackRate: 1.0
+      };
+      // Video starten
+      if (videoElement) {
+        videoElement.muted = true;
+        videoElement.loop = true;
+        videoElement.play().catch(e => console.warn('Video autoplay blocked:', e));
+      }
+      persistSettings();
+    }
+  }
+
+  // ✨ NEU: Video von Kachel entfernen
+  function removeTileVideo(index) {
+    if (tiles.value[index]) {
+      if (tiles.value[index].video) {
+        tiles.value[index].video.pause();
+        tiles.value[index].video.src = '';
+      }
+      tiles.value[index].video = null;
+      tiles.value[index].videoSrc = null;
+      persistSettings();
+    }
+  }
+
+  // ✨ NEU: Video-Einstellung für Kachel ändern
+  function updateTileVideoSetting(index, setting, value) {
+    if (tiles.value[index]) {
+      if (!tiles.value[index].videoSettings) {
+        tiles.value[index].videoSettings = { muted: true, loop: true, playbackRate: 1.0 };
+      }
+      tiles.value[index].videoSettings[setting] = value;
+
+      // Einstellung auf Video anwenden
+      const video = tiles.value[index].video;
+      if (video) {
+        if (setting === 'muted') video.muted = value;
+        if (setting === 'loop') video.loop = value;
+        if (setting === 'playbackRate') video.playbackRate = value;
+      }
+      persistSettings();
+    }
+  }
+
   // Bild-Einstellung für Kachel ändern
   function updateTileImageSetting(index, setting, value) {
     if (tiles.value[index] && tiles.value[index].imageSettings) {
@@ -412,6 +482,10 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
     setTileImage,
     removeTileImage,
     updateTileImageSetting,
+    // ✨ NEU: Video Actions
+    setTileVideo,
+    removeTileVideo,
+    updateTileVideoSetting,
     setTileGap,
     resetAllTiles,
     resetTile,

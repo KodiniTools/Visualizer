@@ -105,12 +105,19 @@
         <div class="image-section">
           <label>{{ t('backgroundTiles.tileImage') }}:</label>
 
-          <div v-if="!tilesStore.selectedTile.image" class="image-upload-area">
+          <div v-if="!tilesStore.selectedTile.image && !tilesStore.selectedTile.video" class="image-upload-area">
             <input
               type="file"
               accept="image/*"
               @change="handleImageUpload"
               ref="fileInput"
+              style="display: none"
+            />
+            <input
+              type="file"
+              accept="video/*"
+              @change="handleVideoUpload"
+              ref="videoInput"
               style="display: none"
             />
             <div class="image-source-buttons">
@@ -121,9 +128,53 @@
                 🖼️ {{ t('backgroundTiles.fromGallery') }}
               </button>
             </div>
+            <div class="image-source-buttons" style="margin-top: 6px;">
+              <button class="btn-video" @click="$refs.videoInput.click()">
+                🎬 {{ t('backgroundTiles.uploadVideo') }}
+              </button>
+            </div>
             <p class="hint">{{ t('backgroundTiles.orDragDrop') }}</p>
           </div>
 
+          <!-- Video-Vorschau und Steuerung -->
+          <div v-else-if="tilesStore.selectedTile.video" class="video-controls">
+            <div class="video-preview">
+              <video
+                :src="tilesStore.selectedTile.videoSrc"
+                muted
+                loop
+                autoplay
+                playsinline
+              ></video>
+              <span class="video-badge">🎬 {{ t('backgroundTiles.videoPlaying') }}</span>
+            </div>
+
+            <!-- Video-Einstellungen -->
+            <div class="video-settings">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  :checked="tilesStore.selectedTile.videoSettings?.muted !== false"
+                  @change="updateVideoSetting('muted', $event.target.checked)"
+                />
+                <span>{{ t('backgroundTiles.videoMuted') }}</span>
+              </label>
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  :checked="tilesStore.selectedTile.videoSettings?.loop !== false"
+                  @change="updateVideoSetting('loop', $event.target.checked)"
+                />
+                <span>{{ t('backgroundTiles.videoLoop') }}</span>
+              </label>
+            </div>
+
+            <button class="btn-remove" @click="removeVideo">
+              {{ t('backgroundTiles.removeVideo') }}
+            </button>
+          </div>
+
+          <!-- Bild-Vorschau und Filter -->
           <div v-else class="image-controls">
             <div class="image-preview">
               <img :src="tilesStore.selectedTile.imageSrc" alt="Kachel-Bild" />
@@ -604,6 +655,7 @@ const tilesStore = useBackgroundTilesStore();
 const canvasManager = inject('canvasManager');
 
 const fileInput = ref(null);
+const videoInput = ref(null);
 
 // ✨ Galerie-Modal State
 const showGalleryModal = ref(false);
@@ -853,6 +905,66 @@ function updateImageSetting(setting, value) {
 function removeImage() {
   if (tilesStore.selectedTileIndex !== null) {
     tilesStore.removeTileImage(tilesStore.selectedTileIndex);
+    if (canvasManager.value) {
+      canvasManager.value.redrawCallback();
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ✨ VIDEO-UPLOAD FUNKTIONEN
+// ═══════════════════════════════════════════════════════════════
+
+// Video hochladen
+function handleVideoUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Video-Element erstellen
+  const video = document.createElement('video');
+  video.muted = true;
+  video.loop = true;
+  video.playsInline = true;
+  video.crossOrigin = 'anonymous';
+
+  // URL erstellen
+  const videoUrl = URL.createObjectURL(file);
+
+  video.onloadeddata = () => {
+    if (tilesStore.selectedTileIndex !== null) {
+      tilesStore.setTileVideo(tilesStore.selectedTileIndex, video, videoUrl);
+      if (canvasManager.value) {
+        canvasManager.value.redrawCallback();
+      }
+    }
+  };
+
+  video.onerror = (e) => {
+    console.error('❌ Fehler beim Laden des Videos:', e);
+    URL.revokeObjectURL(videoUrl);
+  };
+
+  video.src = videoUrl;
+  video.load();
+
+  // Input zurücksetzen für erneutes Hochladen
+  event.target.value = '';
+}
+
+// Video-Einstellung aktualisieren
+function updateVideoSetting(setting, value) {
+  if (tilesStore.selectedTileIndex !== null) {
+    tilesStore.updateTileVideoSetting(tilesStore.selectedTileIndex, setting, value);
+    if (canvasManager.value) {
+      canvasManager.value.redrawCallback();
+    }
+  }
+}
+
+// Video entfernen
+function removeVideo() {
+  if (tilesStore.selectedTileIndex !== null) {
+    tilesStore.removeTileVideo(tilesStore.selectedTileIndex);
     if (canvasManager.value) {
       canvasManager.value.redrawCallback();
     }
@@ -1683,6 +1795,92 @@ function setEffectIntensity(effectName, value) {
   color: #666;
   text-align: center;
   margin-top: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VIDEO STYLES
+   ═══════════════════════════════════════════════════════════════ */
+
+.btn-video {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+  border: 1px solid rgba(236, 72, 153, 0.4);
+  color: #f9a8d4;
+}
+
+.btn-video:hover {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
+  border-color: rgba(236, 72, 153, 0.6);
+  transform: translateY(-1px);
+}
+
+.video-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.video-preview {
+  position: relative;
+  width: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #000;
+}
+
+.video-preview video {
+  width: 100%;
+  height: auto;
+  max-height: 120px;
+  object-fit: cover;
+  display: block;
+}
+
+.video-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 3px 8px;
+  background: rgba(236, 72, 153, 0.9);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.video-settings {
+  display: flex;
+  gap: 12px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.video-settings .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #A8A992;
+  cursor: pointer;
+}
+
+.video-settings .checkbox-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: #ec4899;
 }
 
 /* ═══════════════════════════════════════════════════════════════

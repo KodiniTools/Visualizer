@@ -598,8 +598,11 @@ export class CanvasManager {
                     ctx.globalAlpha = 1.0;
                 }
 
-                // 2. Bild der Kachel zeichnen (falls vorhanden)
-                if (tile.image && tile.image.complete) {
+                // 2. Bild oder Video der Kachel zeichnen (falls vorhanden)
+                const mediaElement = tile.video || tile.image;
+                const isVideo = !!tile.video;
+
+                if (mediaElement && (isVideo ? mediaElement.readyState >= 2 : mediaElement.complete)) {
                     const settings = tile.imageSettings || {};
 
                     // Statische Filter anwenden
@@ -643,27 +646,29 @@ export class CanvasManager {
                     const offsetX = settings.offsetX || 0;
                     const offsetY = settings.offsetY || 0;
 
-                    // Bild-Aspektratio beibehalten (Cover-Modus)
-                    const imgAspect = tile.image.width / tile.image.height;
+                    // Media-Aspektratio beibehalten (Cover-Modus)
+                    const mediaWidth = isVideo ? mediaElement.videoWidth : mediaElement.width;
+                    const mediaHeight = isVideo ? mediaElement.videoHeight : mediaElement.height;
+                    const mediaAspect = mediaWidth / mediaHeight;
                     const tileAspect = tileWidth / tileHeight;
 
                     let drawWidth, drawHeight, drawX, drawY;
 
-                    if (imgAspect > tileAspect) {
-                        // Bild ist breiter - Höhe anpassen
+                    if (mediaAspect > tileAspect) {
+                        // Media ist breiter - Höhe anpassen
                         drawHeight = tileHeight * scale;
-                        drawWidth = drawHeight * imgAspect;
+                        drawWidth = drawHeight * mediaAspect;
                     } else {
-                        // Bild ist höher - Breite anpassen
+                        // Media ist höher - Breite anpassen
                         drawWidth = tileWidth * scale;
-                        drawHeight = drawWidth / imgAspect;
+                        drawHeight = drawWidth / mediaAspect;
                     }
 
                     // Zentrieren mit Offset
                     drawX = x + (tileWidth - drawWidth) / 2 + offsetX;
                     drawY = y + (tileHeight - drawHeight) / 2 + offsetY;
 
-                    ctx.drawImage(tile.image, drawX, drawY, drawWidth, drawHeight);
+                    ctx.drawImage(mediaElement, drawX, drawY, drawWidth, drawHeight);
 
                     // Filter zurücksetzen
                     ctx.filter = 'none';

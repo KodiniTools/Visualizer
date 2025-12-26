@@ -113,9 +113,14 @@
               ref="fileInput"
               style="display: none"
             />
-            <button class="btn-upload" @click="$refs.fileInput.click()">
-              {{ t('backgroundTiles.uploadImage') }}
-            </button>
+            <div class="image-source-buttons">
+              <button class="btn-upload" @click="$refs.fileInput.click()">
+                📁 {{ t('backgroundTiles.uploadImage') }}
+              </button>
+              <button class="btn-gallery" @click="openGalleryModal">
+                🖼️ {{ t('backgroundTiles.fromGallery') }}
+              </button>
+            </div>
             <p class="hint">{{ t('backgroundTiles.orDragDrop') }}</p>
           </div>
 
@@ -525,6 +530,67 @@
         </button>
       </div>
     </div>
+
+    <!-- Galerie-Modal -->
+    <Teleport to="body">
+      <div v-if="showGalleryModal" class="tile-gallery-modal-overlay" @click="closeGalleryModal">
+        <div class="tile-gallery-modal" @click.stop>
+          <div class="gallery-modal-header">
+            <h3>{{ t('backgroundTiles.galleryTitle') }}</h3>
+            <button class="gallery-modal-close" @click="closeGalleryModal">×</button>
+          </div>
+
+          <div class="gallery-modal-content">
+            <!-- Kategorie-Tabs -->
+            <div class="gallery-categories">
+              <button
+                v-for="category in galleryCategories"
+                :key="category.id"
+                class="category-tab"
+                :class="{ active: selectedGalleryCategory === category.id }"
+                @click="selectGalleryCategory(category.id)"
+              >
+                <span class="category-icon">{{ category.icon }}</span>
+                <span class="category-name">{{ locale === 'de' ? category.name : category.name_en }}</span>
+              </button>
+            </div>
+
+            <!-- Bilder-Grid -->
+            <div class="gallery-images-container">
+              <div v-if="galleryLoading" class="gallery-loading">
+                <span class="loading-spinner"></span>
+              </div>
+              <div v-else class="gallery-images-grid">
+                <div
+                  v-for="image in galleryImages"
+                  :key="image.id"
+                  class="gallery-image-item"
+                  :class="{ selected: selectedGalleryImage?.id === image.id }"
+                  @click="selectGalleryImage(image)"
+                  @dblclick="confirmGallerySelection"
+                >
+                  <img :src="image.thumbnail || image.file" :alt="image.name" loading="lazy" />
+                  <span class="gallery-image-name">{{ locale === 'de' ? image.name : (image.name_en || image.name) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="gallery-modal-footer">
+            <button class="btn-cancel" @click="closeGalleryModal">
+              {{ t('backgroundTiles.galleryCancel') }}
+            </button>
+            <button
+              class="btn-select"
+              :disabled="!selectedGalleryImage"
+              @click="confirmGallerySelection"
+            >
+              {{ t('backgroundTiles.gallerySelect') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -538,6 +604,15 @@ const tilesStore = useBackgroundTilesStore();
 const canvasManager = inject('canvasManager');
 
 const fileInput = ref(null);
+
+// ✨ Galerie-Modal State
+const showGalleryModal = ref(false);
+const galleryCategories = ref([]);
+const galleryImages = ref([]);
+const selectedGalleryCategory = ref(null);
+const selectedGalleryImage = ref(null);
+const galleryLoading = ref(false);
+const galleryCategoryCache = ref(new Map());
 
 // ✨ NEU: Kachel-Presets
 const TILE_PRESETS_KEY = 'visualizer-tile-presets';
@@ -782,6 +857,152 @@ function removeImage() {
       canvasManager.value.redrawCallback();
     }
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ✨ GALERIE-MODAL FUNKTIONEN
+// ═══════════════════════════════════════════════════════════════
+
+// Galerie-Modal öffnen
+async function openGalleryModal() {
+  showGalleryModal.value = true;
+  selectedGalleryImage.value = null;
+
+  // Galerie-Index laden wenn noch nicht geladen
+  if (galleryCategories.value.length === 0) {
+    await loadGalleryIndex();
+  }
+}
+
+// Galerie-Modal schließen
+function closeGalleryModal() {
+  showGalleryModal.value = false;
+  selectedGalleryImage.value = null;
+}
+
+// Galerie-Index laden
+async function loadGalleryIndex() {
+  galleryLoading.value = true;
+  try {
+    const paths = ['gallery/gallery.json', './gallery/gallery.json'];
+    let response = null;
+
+    for (const path of paths) {
+      try {
+        response = await fetch(path);
+        if (response.ok) break;
+      } catch (e) {
+        // Try next path
+      }
+    }
+
+    if (!response || !response.ok) {
+      throw new Error('Galerie konnte nicht geladen werden');
+    }
+
+    const data = await response.json();
+
+    if (data._version === '2.0' && data.categories) {
+      galleryCategories.value = data.categories;
+
+      // Erste Kategorie auswählen und laden
+      if (galleryCategories.value.length > 0) {
+        await selectGalleryCategory(galleryCategories.value[0].id);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Fehler beim Laden der Galerie:', error);
+  } finally {
+    galleryLoading.value = false;
+  }
+}
+
+// Kategorie auswählen
+async function selectGalleryCategory(categoryId) {
+  if (selectedGalleryCategory.value === categoryId) return;
+
+  selectedGalleryCategory.value = categoryId;
+  selectedGalleryImage.value = null;
+
+  // Prüfen ob bereits im Cache
+  if (galleryCategoryCache.value.has(categoryId)) {
+    galleryImages.value = galleryCategoryCache.value.get(categoryId);
+    return;
+  }
+
+  galleryLoading.value = true;
+  try {
+    const categoryInfo = galleryCategories.value.find(c => c.id === categoryId);
+    if (!categoryInfo || !categoryInfo.jsonFile) {
+      galleryImages.value = [];
+      return;
+    }
+
+    const response = await fetch(categoryInfo.jsonFile);
+    if (!response.ok) {
+      throw new Error(`Kategorie ${categoryId} konnte nicht geladen werden`);
+    }
+
+    const data = await response.json();
+    const images = data.images || [];
+
+    // Im Cache speichern
+    galleryCategoryCache.value.set(categoryId, images);
+    galleryImages.value = images;
+  } catch (error) {
+    console.error('❌ Fehler beim Laden der Kategorie:', error);
+    galleryImages.value = [];
+  } finally {
+    galleryLoading.value = false;
+  }
+}
+
+// Bild auswählen
+function selectGalleryImage(image) {
+  selectedGalleryImage.value = image;
+}
+
+// Auswahl bestätigen und Bild in Kachel laden
+async function confirmGallerySelection() {
+  if (!selectedGalleryImage.value || tilesStore.selectedTileIndex === null) {
+    closeGalleryModal();
+    return;
+  }
+
+  const imagePath = selectedGalleryImage.value.file;
+
+  try {
+    // Bild laden
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = imagePath;
+    });
+
+    // Bild als Data-URL konvertieren für Persistenz
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+    // Bild in Kachel setzen
+    tilesStore.setTileImage(tilesStore.selectedTileIndex, img, dataUrl);
+
+    if (canvasManager.value) {
+      canvasManager.value.redrawCallback();
+    }
+
+    console.log('✅ Bild aus Galerie in Kachel geladen:', selectedGalleryImage.value.name);
+  } catch (error) {
+    console.error('❌ Fehler beim Laden des Galerie-Bildes:', error);
+  }
+
+  closeGalleryModal();
 }
 
 // Einzelne Kachel zurücksetzen
@@ -1462,5 +1683,302 @@ function setEffectIntensity(effectName, value) {
   color: #666;
   text-align: center;
   margin-top: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GALERIE-MODAL STYLES
+   ═══════════════════════════════════════════════════════════════ */
+
+.image-source-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.image-source-buttons .btn-upload,
+.image-source-buttons .btn-gallery {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-gallery {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(96, 145, 152, 0.2) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: #c4b5fd;
+}
+
+.btn-gallery:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(96, 145, 152, 0.3) 100%);
+  border-color: rgba(139, 92, 246, 0.6);
+  transform: translateY(-1px);
+}
+
+/* Modal Overlay */
+.tile-gallery-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal Container */
+.tile-gallery-modal {
+  background: linear-gradient(180deg, #1a1f22 0%, #151b1d 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(158, 190, 193, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(96, 145, 152, 0.2);
+  width: 90vw;
+  max-width: 800px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalSlideIn 0.25s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Modal Header */
+.gallery-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(158, 190, 193, 0.2);
+}
+
+.gallery-modal-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #E9E9EB;
+}
+
+.gallery-modal-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-modal-close:hover {
+  background: rgba(255, 69, 58, 0.8);
+  border-color: rgba(255, 69, 58, 0.9);
+}
+
+/* Modal Content */
+.gallery-modal-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Category Tabs */
+.gallery-categories {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(158, 190, 193, 0.15);
+  overflow-x: auto;
+}
+
+.category-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #A8A992;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.category-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #E9E9EB;
+}
+
+.category-tab.active {
+  background: rgba(96, 145, 152, 0.3);
+  border-color: rgba(96, 145, 152, 0.5);
+  color: #609198;
+}
+
+.category-icon {
+  font-size: 14px;
+}
+
+.category-name {
+  font-weight: 500;
+}
+
+/* Images Container */
+.gallery-images-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  min-height: 200px;
+}
+
+.gallery-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(96, 145, 152, 0.3);
+  border-top-color: #609198;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Images Grid */
+.gallery-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.gallery-image-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.gallery-image-item:hover {
+  border-color: rgba(96, 145, 152, 0.5);
+  transform: scale(1.03);
+}
+
+.gallery-image-item.selected {
+  border-color: #609198;
+  box-shadow: 0 0 0 2px rgba(96, 145, 152, 0.4), 0 4px 12px rgba(96, 145, 152, 0.3);
+}
+
+.gallery-image-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-image-name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4px 6px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  color: #fff;
+  font-size: 9px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Modal Footer */
+.gallery-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 20px;
+  border-top: 1px solid rgba(158, 190, 193, 0.2);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.gallery-modal-footer button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #A8A992;
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #E9E9EB;
+}
+
+.btn-select {
+  background: linear-gradient(135deg, #609198 0%, #4a7a80 100%);
+  border: 1px solid rgba(96, 145, 152, 0.5);
+  color: #fff;
+}
+
+.btn-select:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6ea8b0 0%, #609198 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(96, 145, 152, 0.4);
+}
+
+.btn-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

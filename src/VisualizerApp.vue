@@ -855,30 +855,104 @@ function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
 }
 
 function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
-  if (canvasManagerInstance.value) {
-    canvasManagerInstance.value.isRecording = true;
-    canvasManagerInstance.value.drawScene(ctx);
-    canvasManagerInstance.value.isRecording = false;
+  // ✅ FIX: Workspace-Bereich korrekt extrahieren für Recording/Screenshot
+  const workspaceBounds = canvasManagerInstance.value?.getWorkspaceBounds();
+  const hasWorkspace = workspaceBounds && canvasManagerInstance.value?.workspacePreset;
+
+  if (hasWorkspace) {
+    // Workspace aktiv: Zeichne auf temporäres Canvas und extrahiere Workspace-Bereich
+    const mainCanvas = canvasRef.value;
+    if (!mainCanvas) return;
+
+    // Temporäres Canvas in voller Größe erstellen
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = mainCanvas.width;
+    tempCanvas.height = mainCanvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    // Komplette Szene auf temporäres Canvas zeichnen
+    if (canvasManagerInstance.value) {
+      canvasManagerInstance.value.isRecording = true;
+      canvasManagerInstance.value.drawScene(tempCtx);
+      canvasManagerInstance.value.isRecording = false;
+    } else {
+      tempCtx.fillStyle = '#ffffff';
+      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    }
+
+    // Visualizer im Workspace-Bereich zeichnen
+    if (drawVisualizerCallback) {
+      tempCtx.save();
+      tempCtx.beginPath();
+      tempCtx.rect(workspaceBounds.x, workspaceBounds.y, workspaceBounds.width, workspaceBounds.height);
+      tempCtx.clip();
+
+      // Visualizer relativ zum Workspace zeichnen
+      const vizCanvas = document.createElement('canvas');
+      vizCanvas.width = workspaceBounds.width;
+      vizCanvas.height = workspaceBounds.height;
+      const vizCtx = vizCanvas.getContext('2d');
+      drawVisualizerCallback(vizCtx, vizCanvas.width, vizCanvas.height);
+      tempCtx.drawImage(vizCanvas, workspaceBounds.x, workspaceBounds.y);
+
+      tempCtx.restore();
+    }
+
+    // Bilder zeichnen
+    if (multiImageManagerInstance.value) {
+      multiImageManagerInstance.value.drawImages(tempCtx);
+    }
+
+    // Videos zeichnen
+    if (videoManagerInstance.value) {
+      videoManagerInstance.value.drawVideos(tempCtx);
+    }
+
+    // Text zeichnen
+    if (textManagerInstance) {
+      textManagerInstance.draw(tempCtx, tempCanvas.width, tempCanvas.height);
+    }
+
+    // ✅ KRITISCH: Nur den Workspace-Bereich extrahieren und auf Ziel-Canvas skalieren
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    ctx.drawImage(
+      tempCanvas,
+      workspaceBounds.x,
+      workspaceBounds.y,
+      workspaceBounds.width,
+      workspaceBounds.height,
+      0,
+      0,
+      canvasWidth,
+      canvasHeight
+    );
   } else {
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-  }
+    // Kein Workspace: Direkt zeichnen wie bisher
+    if (canvasManagerInstance.value) {
+      canvasManagerInstance.value.isRecording = true;
+      canvasManagerInstance.value.drawScene(ctx);
+      canvasManagerInstance.value.isRecording = false;
+    } else {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    }
 
-  if (drawVisualizerCallback) {
-    drawVisualizerCallback(ctx, canvasWidth, canvasHeight);
-  }
+    if (drawVisualizerCallback) {
+      drawVisualizerCallback(ctx, canvasWidth, canvasHeight);
+    }
 
-  if (multiImageManagerInstance.value) {
-    multiImageManagerInstance.value.drawImages(ctx);
-  }
+    if (multiImageManagerInstance.value) {
+      multiImageManagerInstance.value.drawImages(ctx);
+    }
 
-  // ✨ NEU: Videos zeichnen beim Recording
-  if (videoManagerInstance.value) {
-    videoManagerInstance.value.drawVideos(ctx);
-  }
+    // ✨ NEU: Videos zeichnen beim Recording
+    if (videoManagerInstance.value) {
+      videoManagerInstance.value.drawVideos(ctx);
+    }
 
-  if (textManagerInstance) {
-    textManagerInstance.draw(ctx, canvasWidth, canvasHeight);
+    if (textManagerInstance) {
+      textManagerInstance.draw(ctx, canvasWidth, canvasHeight);
+    }
   }
 }
 
@@ -1493,6 +1567,7 @@ window.getAudioStreamForRecorder = createCombinedAudioStream;
 /**
  * ✨ NEU: Screenshot-Funktion für reinen Canvas-Inhalt (ohne UI-Elemente)
  * Rendert die Szene wie beim Recording - ohne Workspace-Rahmen, Labels etc.
+ * ✅ FIX: Respektiert Workspace-Bereich korrekt
  * @param {string} mimeType - 'image/png', 'image/jpeg', oder 'image/webp'
  * @param {number} quality - Qualität für JPEG/WebP (0-1)
  * @returns {Promise<Blob>} - Screenshot als Blob
@@ -1506,7 +1581,7 @@ window.takeCanvasScreenshot = async function(mimeType = 'image/png', quality = 0
     return null;
   }
 
-  // Temporäres Canvas für den Screenshot erstellen
+  // Screenshot-Canvas erstellen
   const screenshotCanvas = document.createElement('canvas');
 
   // Wenn ein Workspace-Preset aktiv ist, verwende dessen Dimensionen
@@ -1530,55 +1605,32 @@ window.takeCanvasScreenshot = async function(mimeType = 'image/png', quality = 0
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
 
-  // Hintergrund-Farbe setzen (falls nötig)
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, targetWidth, targetHeight);
+  // Visualizer-Callback für Screenshot erstellen
+  const drawVisualizerCallback = visualizerCacheCanvas && visualizerStore.showVisualizer
+    ? (vizCtx, vizWidth, vizHeight) => {
+        const scale = visualizerStore.visualizerScale;
+        const posX = visualizerStore.visualizerX;
+        const posY = visualizerStore.visualizerY;
 
-  // Szene ohne UI-Elemente rendern (wie beim Recording)
-  // Wir nutzen die renderRecordingScene-Logik
-  if (canvasManagerInstance.value) {
-    canvasManagerInstance.value.isRecording = true;
-    canvasManagerInstance.value.drawScene(ctx);
-    canvasManagerInstance.value.isRecording = false;
-  }
+        const scaledWidth = vizWidth * scale;
+        const scaledHeight = vizHeight * scale;
+        const destX = vizWidth * posX - scaledWidth / 2;
+        const destY = vizHeight * posY - scaledHeight / 2;
 
-  // Visualizer zeichnen falls aktiv
-  if (visualizerCacheCanvas && visualizerStore.showVisualizer) {
-    const scale = visualizerStore.visualizerScale;
-    const posX = visualizerStore.visualizerX;
-    const posY = visualizerStore.visualizerY;
+        if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
+          vizCtx.drawImage(
+            visualizerCacheCanvas,
+            0, 0, visualizerCacheCanvas.width, visualizerCacheCanvas.height,
+            destX, destY, scaledWidth, scaledHeight
+          );
+        } else {
+          vizCtx.drawImage(visualizerCacheCanvas, 0, 0, vizWidth, vizHeight);
+        }
+      }
+    : null;
 
-    const scaledWidth = targetWidth * scale;
-    const scaledHeight = targetHeight * scale;
-
-    const destX = targetWidth * posX - scaledWidth / 2;
-    const destY = targetHeight * posY - scaledHeight / 2;
-
-    if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
-      ctx.drawImage(
-        visualizerCacheCanvas,
-        0, 0, visualizerCacheCanvas.width, visualizerCacheCanvas.height,
-        destX, destY, scaledWidth, scaledHeight
-      );
-    } else {
-      ctx.drawImage(visualizerCacheCanvas, 0, 0, targetWidth, targetHeight);
-    }
-  }
-
-  // Bilder zeichnen
-  if (multiImageManagerInstance.value) {
-    multiImageManagerInstance.value.drawImages(ctx);
-  }
-
-  // Videos zeichnen
-  if (videoManagerInstance.value) {
-    videoManagerInstance.value.drawVideos(ctx);
-  }
-
-  // Text zeichnen
-  if (textManagerInstance) {
-    textManagerInstance.draw(ctx, targetWidth, targetHeight);
-  }
+  // ✅ FIX: renderRecordingScene nutzen - respektiert Workspace-Bereich korrekt
+  renderRecordingScene(ctx, targetWidth, targetHeight, drawVisualizerCallback);
 
   // Als Blob exportieren
   return new Promise((resolve, reject) => {

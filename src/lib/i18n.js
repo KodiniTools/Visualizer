@@ -133,7 +133,9 @@ const translations = {
       replaceWith: 'Ersetzen mit',
       uploadImage: 'Bild hochladen',
       fromGallery: 'Aus Galerie',
-      selectFromGallery: 'Aus Galerie wählen'
+      selectFromGallery: 'Aus Galerie wählen',
+      newImagePreview: 'Neues Bild Vorschau',
+      confirmReplace: 'Ersetzen bestätigen'
     },
 
     // ========== FILE UPLOAD PANEL ==========
@@ -884,7 +886,9 @@ const translations = {
       replaceWith: 'Replace with',
       uploadImage: 'Upload Image',
       fromGallery: 'From Gallery',
-      selectFromGallery: 'Select from Gallery'
+      selectFromGallery: 'Select from Gallery',
+      newImagePreview: 'New Image Preview',
+      confirmReplace: 'Confirm Replace'
     },
 
     // ========== FILE UPLOAD PANEL ==========

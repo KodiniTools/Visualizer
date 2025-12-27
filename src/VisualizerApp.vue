@@ -114,6 +114,24 @@
                       </button>
                     </div>
                   </div>
+
+                  <!-- Vorschau für neues Bild -->
+                  <div v-if="pendingReplaceImageSrc" class="pending-replace-preview">
+                    <div class="pending-replace-header">
+                      <span class="pending-replace-label">{{ t('app.newImagePreview') }}:</span>
+                    </div>
+                    <div class="pending-replace-image-container">
+                      <img :src="pendingReplaceImageSrc" alt="Preview" class="pending-replace-image" />
+                    </div>
+                    <div class="pending-replace-actions">
+                      <button class="btn-cancel-replace" @click="cancelPendingReplace">
+                        ✕ {{ t('common.cancel') }}
+                      </button>
+                      <button class="btn-confirm-replace" @click="confirmPendingReplace">
+                        ✓ {{ t('app.confirmReplace') }}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -465,6 +483,10 @@ const selectedReplaceImage = ref(null);
 const replaceGalleryLoading = ref(false);
 const replaceGalleryCategoryCache = ref(new Map());
 
+// Vorschau-Zustand für Bild-Ersetzen
+const pendingReplaceImage = ref(null);
+const pendingReplaceImageSrc = ref(null);
+
 // Drag & Drop State
 const draggedImageIndex = ref(null);
 const dragOverIndex = ref(null);
@@ -527,27 +549,24 @@ function closeImagePreview() {
   showImagePreview.value = false;
   previewImageData.value = null;
   previewImageIndex.value = 0;
+  // Vorschau-Zustand zurücksetzen
+  pendingReplaceImage.value = null;
+  pendingReplaceImageSrc.value = null;
 }
 
-// Ersetzen eines Canvas-Bildes
+// Ersetzen eines Canvas-Bildes - Vorschau laden
 function handleReplaceCanvasImage(event) {
   const file = event.target.files?.[0];
   if (!file || !previewImageData.value) return;
-
-  const manager = multiImageManagerInstance.value;
-  if (!manager) return;
 
   const reader = new FileReader();
   reader.onload = (e) => {
     const img = new Image();
     img.onload = () => {
-      // Ersetze das Bild über den Manager
-      const result = manager.replaceImage(previewImageData.value.id, img);
-      if (result) {
-        // Aktualisiere die Preview-Ansicht
-        previewImageData.value = result;
-        console.log('✅ Canvas-Bild erfolgreich ersetzt');
-      }
+      // Speichere in Vorschau-Zustand statt direktem Ersetzen
+      pendingReplaceImage.value = img;
+      pendingReplaceImageSrc.value = e.target.result;
+      console.log('🔍 Neues Bild in Vorschau geladen:', img.naturalWidth, 'x', img.naturalHeight);
     };
     img.src = e.target.result;
   };
@@ -555,6 +574,31 @@ function handleReplaceCanvasImage(event) {
 
   // Input zurücksetzen für erneute Auswahl derselben Datei
   event.target.value = '';
+}
+
+// Vorschau bestätigen und Bild tatsächlich ersetzen
+function confirmPendingReplace() {
+  if (!pendingReplaceImage.value || !previewImageData.value) return;
+
+  const manager = multiImageManagerInstance.value;
+  if (!manager) return;
+
+  const result = manager.replaceImage(previewImageData.value.id, pendingReplaceImage.value);
+  if (result) {
+    previewImageData.value = result;
+    console.log('✅ Canvas-Bild erfolgreich ersetzt');
+  }
+
+  // Vorschau-Zustand zurücksetzen
+  pendingReplaceImage.value = null;
+  pendingReplaceImageSrc.value = null;
+}
+
+// Vorschau abbrechen
+function cancelPendingReplace() {
+  pendingReplaceImage.value = null;
+  pendingReplaceImageSrc.value = null;
+  console.log('❌ Bild-Ersetzen abgebrochen');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -662,8 +706,6 @@ async function confirmReplaceFromGallery() {
   }
 
   const imagePath = selectedReplaceImage.value.file;
-  const manager = multiImageManagerInstance.value;
-  if (!manager) return;
 
   try {
     const img = new Image();
@@ -675,12 +717,10 @@ async function confirmReplaceFromGallery() {
       img.src = imagePath;
     });
 
-    // Ersetze das Bild
-    const result = manager.replaceImage(previewImageData.value.id, img);
-    if (result) {
-      previewImageData.value = result;
-      console.log('✅ Canvas-Bild aus Galerie ersetzt:', imagePath);
-    }
+    // Speichere in Vorschau-Zustand statt direktem Ersetzen
+    pendingReplaceImage.value = img;
+    pendingReplaceImageSrc.value = imagePath;
+    console.log('🔍 Galeriebild in Vorschau geladen:', imagePath);
 
     closeReplaceGallery();
   } catch (error) {
@@ -2966,6 +3006,87 @@ canvas {
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PENDING REPLACE PREVIEW
+   ═══════════════════════════════════════════════════════════════ */
+
+.pending-replace-preview {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px dashed rgba(34, 197, 94, 0.4);
+  border-radius: 12px;
+}
+
+.pending-replace-header {
+  margin-bottom: 12px;
+}
+
+.pending-replace-label {
+  font-size: 0.75rem;
+  color: #22c55e;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pending-replace-image-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.pending-replace-image {
+  max-width: 100%;
+  max-height: 150px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 2px solid rgba(34, 197, 94, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.pending-replace-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.btn-cancel-replace {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel-replace:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.btn-confirm-replace {
+  padding: 8px 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.btn-confirm-replace:hover {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+  transform: translateY(-1px);
 }
 
 /* ═══════════════════════════════════════════════════════════════

@@ -1007,38 +1007,93 @@ onMounted(() => {
 // ✨ NEU: Watcher für Stumm-Einstellung - wendet Änderungen auf alle Canvas-Videos an
 watch(videoMuted, (newMuted) => {
   const vm = videoManager.value;
-  if (!vm) return;
+  const cm = canvasManager.value;
 
-  const videos = vm.getAllVideos() || [];
-  videos.forEach(video => {
-    if (video.videoElement) {
-      video.videoElement.muted = newMuted;
-      video.muted = newMuted;
+  // Canvas-Videos aktualisieren
+  if (vm) {
+    const videos = vm.getAllVideos() || [];
+    videos.forEach(video => {
+      if (video.videoElement) {
+        video.videoElement.muted = newMuted;
+        video.muted = newMuted;
 
-      // Wenn unmuted, Video mit Recording verbinden
-      if (!newMuted && window.connectVideoToRecording) {
-        window.connectVideoToRecording(video.videoElement, video.videoElement.volume);
+        // Wenn unmuted, Lautstärke sicherstellen und mit Recording verbinden
+        if (!newMuted) {
+          // Sicherstellen, dass Lautstärke hörbar ist
+          if (video.videoElement.volume === 0) {
+            video.videoElement.volume = 1;
+          }
+          if (window.connectVideoToRecording) {
+            window.connectVideoToRecording(video.videoElement, video.videoElement.volume);
+          }
+        }
+      }
+    });
+    console.log(`🔊 Alle Canvas-Videos ${newMuted ? 'stumm geschaltet' : 'Ton aktiviert'}`);
+  }
+
+  // Hintergrund-Video aktualisieren
+  if (cm && cm.videoBackground && cm.videoBackground.videoElement) {
+    const bgVideo = cm.videoBackground.videoElement;
+    bgVideo.muted = newMuted;
+    if (!newMuted) {
+      if (bgVideo.volume === 0) {
+        bgVideo.volume = 1;
+      }
+      if (window.connectVideoToRecording) {
+        window.connectVideoToRecording(bgVideo, bgVideo.volume);
       }
     }
-  });
+    console.log(`🔊 Hintergrund-Video ${newMuted ? 'stumm geschaltet' : 'Ton aktiviert'}`);
+  }
 
-  console.log(`🔊 Alle Canvas-Videos ${newMuted ? 'stumm geschaltet' : 'Ton aktiviert'}`);
+  // Workspace-Hintergrund-Video aktualisieren
+  if (cm && cm.workspaceVideoBackground && cm.workspaceVideoBackground.videoElement) {
+    const wsBgVideo = cm.workspaceVideoBackground.videoElement;
+    wsBgVideo.muted = newMuted;
+    if (!newMuted) {
+      if (wsBgVideo.volume === 0) {
+        wsBgVideo.volume = 1;
+      }
+      if (window.connectVideoToRecording) {
+        window.connectVideoToRecording(wsBgVideo, wsBgVideo.volume);
+      }
+    }
+    console.log(`🔊 Workspace-Hintergrund-Video ${newMuted ? 'stumm geschaltet' : 'Ton aktiviert'}`);
+  }
+
+  // UI reaktivität triggern
+  videoTimeUpdateKey.value++;
 });
 
 // ✨ NEU: Watcher für Wiederholen-Einstellung - wendet Änderungen auf alle Canvas-Videos an
 watch(videoLoop, (newLoop) => {
   const vm = videoManager.value;
-  if (!vm) return;
+  const cm = canvasManager.value;
 
-  const videos = vm.getAllVideos() || [];
-  videos.forEach(video => {
-    if (video.videoElement) {
-      video.videoElement.loop = newLoop;
-      video.loop = newLoop;
-    }
-  });
+  // Canvas-Videos aktualisieren
+  if (vm) {
+    const videos = vm.getAllVideos() || [];
+    videos.forEach(video => {
+      if (video.videoElement) {
+        video.videoElement.loop = newLoop;
+        video.loop = newLoop;
+      }
+    });
+    console.log(`🔁 Alle Canvas-Videos Wiederholen: ${newLoop ? 'aktiviert' : 'deaktiviert'}`);
+  }
 
-  console.log(`🔁 Alle Canvas-Videos Wiederholen: ${newLoop ? 'aktiviert' : 'deaktiviert'}`);
+  // Hintergrund-Video aktualisieren
+  if (cm && cm.videoBackground && cm.videoBackground.videoElement) {
+    cm.videoBackground.videoElement.loop = newLoop;
+    console.log(`🔁 Hintergrund-Video Wiederholen: ${newLoop ? 'aktiviert' : 'deaktiviert'}`);
+  }
+
+  // Workspace-Hintergrund-Video aktualisieren
+  if (cm && cm.workspaceVideoBackground && cm.workspaceVideoBackground.videoElement) {
+    cm.workspaceVideoBackground.videoElement.loop = newLoop;
+    console.log(`🔁 Workspace-Hintergrund-Video Wiederholen: ${newLoop ? 'aktiviert' : 'deaktiviert'}`);
+  }
 });
 
 onUnmounted(() => {

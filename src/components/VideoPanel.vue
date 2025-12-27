@@ -761,8 +761,15 @@ function removeCanvasVideo(video) {
   }
 
   const vm = videoManager.value;
+  const cm = canvasManager.value;
+
   if (vm) {
     vm.removeVideo(video.id);
+  }
+
+  // ✅ FIX: Auswahl im CanvasManager zurücksetzen, um Markierung zu entfernen
+  if (cm) {
+    cm.setActiveObject(null);
   }
 }
 

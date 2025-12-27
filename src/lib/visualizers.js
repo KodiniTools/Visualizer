@@ -289,6 +289,67 @@ function withSafeCanvasState(ctx, drawFunction) {
   }
 }
 
+/**
+ * Draw a rounded rectangle (bar) with optional glow effect
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @param {number} width - Rectangle width
+ * @param {number} height - Rectangle height
+ * @param {number} radius - Corner radius
+ * @param {Object} options - Optional settings for glow effect
+ */
+function drawRoundedBar(ctx, x, y, width, height, radius, options = {}) {
+  const { glow = false, glowColor = null, glowBlur = 15, glowIntensity = 0.6 } = options;
+
+  // Ensure radius doesn't exceed half of width or height
+  const r = Math.min(radius, width / 2, Math.abs(height) / 2);
+
+  if (height === 0) return;
+
+  ctx.beginPath();
+
+  if (height > 0) {
+    // Drawing upward (normal bars)
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + width - r, y);
+    ctx.arcTo(x + width, y, x + width, y - r, r);
+    ctx.lineTo(x + width, y - height + r);
+    ctx.arcTo(x + width, y - height, x + width - r, y - height, r);
+    ctx.lineTo(x + r, y - height);
+    ctx.arcTo(x, y - height, x, y - height + r, r);
+    ctx.lineTo(x, y - r);
+    ctx.arcTo(x, y, x + r, y, r);
+  } else {
+    // Drawing downward (mirrored bars)
+    const absHeight = Math.abs(height);
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + width - r, y);
+    ctx.arcTo(x + width, y, x + width, y + r, r);
+    ctx.lineTo(x + width, y + absHeight - r);
+    ctx.arcTo(x + width, y + absHeight, x + width - r, y + absHeight, r);
+    ctx.lineTo(x + r, y + absHeight);
+    ctx.arcTo(x, y + absHeight, x, y + absHeight - r, r);
+    ctx.lineTo(x, y + r);
+    ctx.arcTo(x, y, x + r, y, r);
+  }
+
+  ctx.closePath();
+
+  // Apply glow effect if enabled
+  if (glow && glowColor) {
+    ctx.save();
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = glowBlur * glowIntensity;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.fill();
+}
+
 // ============================================================================
 // VISUALIZERS
 // ============================================================================
@@ -330,6 +391,7 @@ export const Visualizers = {
       }
 
       const masterGain = 0.35; // Reduziert für optimale Balkenhöhe
+      const cornerRadius = Math.max(2, actualBarWidth * 0.3); // Abgerundete Ecken
 
       // Zeichne Balken über die gesamte Breite
       for (let i = 0; i < numBars; i++) {
@@ -341,18 +403,30 @@ export const Visualizers = {
         const e = Math.max(s + 1, Math.floor((i + 1) * freqPerBar));
 
         const rawValue = averageRange(dataArray, s, e);
+        const normalizedValue = rawValue / 255;
 
-        const targetHeight = (rawValue / 255) * h * dynamicGain * masterGain * intensity;
+        const targetHeight = normalizedValue * h * dynamicGain * masterGain * intensity;
         const smoothingFactor = getFrequencyBasedSmoothing(i, numBars, CONSTANTS.SMOOTHING_BASE);
         visualizerState[stateKey][i] = applySmoothValue(visualizerState[stateKey][i] || 0, targetHeight, smoothingFactor);
 
-        // Exakte Positionierung: Start bei 0, Ende bei w
-        const x = i * barWidth;
-        const hue = (baseHsl.h + (i / numBars) * 120) % 360;
-        ctx.fillStyle = `hsl(${hue}, ${baseHsl.s}%, ${baseHsl.l}%)`;
+        const barHeight = visualizerState[stateKey][i];
+        if (barHeight < 1) continue;
 
-        // Zeichne Balken mit Gap
-        ctx.fillRect(x + gapWidth / 2, h - visualizerState[stateKey][i], actualBarWidth, visualizerState[stateKey][i]);
+        // Exakte Positionierung: Start bei 0, Ende bei w
+        const x = i * barWidth + gapWidth / 2;
+        const hue = (baseHsl.h + (i / numBars) * 120) % 360;
+        const barColor = `hsl(${hue}, ${baseHsl.s}%, ${baseHsl.l}%)`;
+        const glowColor = `hsla(${hue}, 100%, 60%, ${0.4 + normalizedValue * 0.6})`;
+
+        ctx.fillStyle = barColor;
+
+        // Zeichne Balken mit abgerundeten Ecken und Glow-Effekt
+        drawRoundedBar(ctx, x, h, actualBarWidth, barHeight, cornerRadius, {
+          glow: true,
+          glowColor: glowColor,
+          glowBlur: 12 + normalizedValue * 8,
+          glowIntensity: 0.5 + normalizedValue * 0.5
+        });
       }
 
       // Stelle Transform wieder her
@@ -504,27 +578,51 @@ export const Visualizers = {
     draw(ctx, dataArray, bufferLength, w, h, color, intensity = 1.0) {
       const numBars = 64;
       const barWidth = w / numBars;
+      const actualBarWidth = barWidth * 0.9;
       const centerX = w / 2;
       const centerY = h / 2;
       const baseHsl = hexToHsl(color);
+      const cornerRadius = Math.max(2, actualBarWidth * 0.3);
+
       if (visualizerState.smoothedMirroredBars.length !== numBars) {
         visualizerState.smoothedMirroredBars = new Array(numBars).fill(0);
       }
+
       for (let i = 0; i < numBars / 2; i++) {
         const dynamicGain = calculateDynamicGain(i, numBars);
         const [s, e] = rangeForBar(i, numBars, bufferLength);
-        const targetHeight = (averageRange(dataArray, s, e) / 255) * (h / 2) * dynamicGain * intensity;
+        const rawValue = averageRange(dataArray, s, e);
+        const normalizedValue = rawValue / 255;
+        const targetHeight = normalizedValue * (h / 2) * dynamicGain * intensity;
         const smoothingFactor = getFrequencyBasedSmoothing(i, numBars, CONSTANTS.SMOOTHING_BASE);
         visualizerState.smoothedMirroredBars[i] = applySmoothValue(visualizerState.smoothedMirroredBars[i] || 0, targetHeight, smoothingFactor);
+
+        const currentHeight = visualizerState.smoothedMirroredBars[i];
+        if (currentHeight < 1) continue;
+
         const xLeft = centerX - (i + 1) * barWidth;
         const xRight = centerX + i * barWidth;
         const hue = (baseHsl.h + (i / (numBars / 2)) * 90) % 360;
-        ctx.fillStyle = `hsl(${hue}, ${baseHsl.s}%, ${baseHsl.l}%)`;
-        const currentHeight = visualizerState.smoothedMirroredBars[i];
-        ctx.fillRect(xLeft, centerY - currentHeight, barWidth * 0.9, currentHeight);
-        ctx.fillRect(xLeft, centerY, barWidth * 0.9, currentHeight);
-        ctx.fillRect(xRight, centerY - currentHeight, barWidth * 0.9, currentHeight);
-        ctx.fillRect(xRight, centerY, barWidth * 0.9, currentHeight);
+        const barColor = `hsl(${hue}, ${baseHsl.s}%, ${baseHsl.l}%)`;
+        const glowColor = `hsla(${hue}, 100%, 60%, ${0.4 + normalizedValue * 0.6})`;
+
+        ctx.fillStyle = barColor;
+
+        const glowOptions = {
+          glow: true,
+          glowColor: glowColor,
+          glowBlur: 10 + normalizedValue * 10,
+          glowIntensity: 0.5 + normalizedValue * 0.5
+        };
+
+        // Linke Seite - oben (nach oben zeichnen)
+        drawRoundedBar(ctx, xLeft, centerY, actualBarWidth, currentHeight, cornerRadius, glowOptions);
+        // Linke Seite - unten (nach unten zeichnen)
+        drawRoundedBar(ctx, xLeft, centerY, actualBarWidth, -currentHeight, cornerRadius, glowOptions);
+        // Rechte Seite - oben
+        drawRoundedBar(ctx, xRight, centerY, actualBarWidth, currentHeight, cornerRadius, glowOptions);
+        // Rechte Seite - unten
+        drawRoundedBar(ctx, xRight, centerY, actualBarWidth, -currentHeight, cornerRadius, glowOptions);
       }
     }
   },

@@ -1367,6 +1367,42 @@ export class MultiImageManager {
     }
 
     /**
+     * ✨ NEU: Ersetzt das Bild eines bestehenden Canvas-Elements
+     * Behält Position, Größe, Filter und Einstellungen bei
+     * @param {number|string} imageId - ID des zu ersetzenden Bildes
+     * @param {HTMLImageElement} newImageObject - Das neue Bild
+     * @returns {Object|null} Das aktualisierte Bildobjekt oder null bei Fehler
+     */
+    replaceImage(imageId, newImageObject) {
+        if (!newImageObject) {
+            console.error('❌ Kein neues Bild zum Ersetzen übergeben');
+            return null;
+        }
+
+        const image = this.images.find(img => img.id === imageId);
+        if (!image) {
+            console.error('❌ Bild mit ID nicht gefunden:', imageId);
+            return null;
+        }
+
+        // Altes Bild merken für Log
+        const oldWidth = image.imageObject?.naturalWidth || 0;
+        const oldHeight = image.imageObject?.naturalHeight || 0;
+
+        // Neues Bild setzen - alle anderen Eigenschaften bleiben erhalten
+        image.imageObject = newImageObject;
+
+        console.log('🔄 Bild ersetzt:', imageId,
+            `Alt: ${oldWidth}x${oldHeight}`,
+            `Neu: ${newImageObject.naturalWidth}x${newImageObject.naturalHeight}`);
+
+        this.redrawCallback();
+        this.onImageChanged();
+
+        return image;
+    }
+
+    /**
      * ✨ Zeichnet eine Kontur um die sichtbare Form eines Bildes (unterstützt Transparenz)
      * Verwendet einen Outline-Effekt durch mehrfaches Zeichnen mit Offset
      * HINWEIS: Rotation wird bereits im aufrufenden Context angewendet

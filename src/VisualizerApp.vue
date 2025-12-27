@@ -95,6 +95,19 @@
                       <span class="preview-info-value">{{ Math.round(previewImageData.relWidth * 100) }}% × {{ Math.round(previewImageData.relHeight * 100) }}%</span>
                     </div>
                   </div>
+                  <!-- Ersetzen-Button -->
+                  <div class="preview-modal-actions">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      @change="handleReplaceCanvasImage"
+                      ref="replaceCanvasImageInput"
+                      style="display: none"
+                    />
+                    <button class="btn-replace-canvas-image" @click="replaceCanvasImageInput?.click()">
+                      🔄 {{ t('app.replaceImage') }}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -373,6 +386,7 @@ const selectedCanvasImageId = ref(null);
 const showImagePreview = ref(false);
 const previewImageData = ref(null);
 const previewImageIndex = ref(0);
+const replaceCanvasImageInput = ref(null);
 
 // Drag & Drop State
 const draggedImageIndex = ref(null);
@@ -436,6 +450,34 @@ function closeImagePreview() {
   showImagePreview.value = false;
   previewImageData.value = null;
   previewImageIndex.value = 0;
+}
+
+// Ersetzen eines Canvas-Bildes
+function handleReplaceCanvasImage(event) {
+  const file = event.target.files?.[0];
+  if (!file || !previewImageData.value) return;
+
+  const manager = multiImageManagerInstance.value;
+  if (!manager) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      // Ersetze das Bild über den Manager
+      const result = manager.replaceImage(previewImageData.value.id, img);
+      if (result) {
+        // Aktualisiere die Preview-Ansicht
+        previewImageData.value = result;
+        console.log('✅ Canvas-Bild erfolgreich ersetzt');
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+
+  // Input zurücksetzen für erneute Auswahl derselben Datei
+  event.target.value = '';
 }
 
 // Drag & Drop Handler für Ebenenreihenfolge
@@ -2657,6 +2699,37 @@ canvas {
   font-weight: 600;
   color: #E9E9EB;
   font-family: 'SF Mono', 'Monaco', monospace;
+}
+
+/* Preview Modal Actions */
+.preview-modal-actions {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, rgba(158, 190, 193, 0.15));
+  display: flex;
+  justify-content: center;
+}
+
+.btn-replace-canvas-image {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-replace-canvas-image:hover {
+  background: rgba(74, 222, 128, 0.2);
+  border-color: rgba(74, 222, 128, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);
 }
 
 /* Responsive adjustments for preview modal */

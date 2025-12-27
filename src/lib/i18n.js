@@ -128,7 +128,8 @@ const translations = {
       layer: 'Ebene',
       close: 'Schließen',
       dblClickPreview: 'Doppelklick für Vorschau',
-      dragToReorder: 'Ziehen um Ebenenreihenfolge zu ändern'
+      dragToReorder: 'Ziehen um Ebenenreihenfolge zu ändern',
+      replaceImage: 'Bild ersetzen'
     },
 
     // ========== FILE UPLOAD PANEL ==========
@@ -874,7 +875,8 @@ const translations = {
       layer: 'Layer',
       close: 'Close',
       dblClickPreview: 'Double-click for preview',
-      dragToReorder: 'Drag to change layer order'
+      dragToReorder: 'Drag to change layer order',
+      replaceImage: 'Replace Image'
     },
 
     // ========== FILE UPLOAD PANEL ==========

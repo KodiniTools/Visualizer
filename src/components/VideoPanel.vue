@@ -667,7 +667,7 @@ function setVideoAsBackground() {
   bgVideo.crossOrigin = 'anonymous';
   bgVideo.preload = 'auto';
   bgVideo.muted = videoMuted.value; // ✅ FIX: Nutze Einstellung statt immer muted
-  bgVideo.loop = true;
+  bgVideo.loop = videoLoop.value; // ✅ FIX: Nutze Einstellung statt immer true
   bgVideo.volume = 1;
 
   bgVideo.onloadeddata = () => {
@@ -709,7 +709,7 @@ function setVideoAsWorkspaceBackground() {
   wsBgVideo.crossOrigin = 'anonymous';
   wsBgVideo.preload = 'auto';
   wsBgVideo.muted = videoMuted.value; // ✅ FIX: Nutze Einstellung statt immer muted
-  wsBgVideo.loop = true;
+  wsBgVideo.loop = videoLoop.value; // ✅ FIX: Nutze Einstellung statt immer true
   wsBgVideo.volume = 1;
 
   wsBgVideo.onloadeddata = () => {

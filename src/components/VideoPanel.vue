@@ -183,6 +183,20 @@
         </button>
       </div>
 
+      <!-- ✨ NEU: Globale Video-Einstellungen für alle Canvas-Videos -->
+      <div class="global-video-settings">
+        <div class="settings-row">
+          <label class="checkbox-label">
+            <input type="checkbox" v-model="videoLoop" />
+            <span>{{ locale === 'de' ? 'Wiederholen' : 'Loop' }}</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" v-model="videoMuted" />
+            <span>{{ locale === 'de' ? 'Stumm' : 'Muted' }}</span>
+          </label>
+        </div>
+      </div>
+
       <!-- Seek-Steuerung für ausgewähltes Video -->
       <div v-if="selectedCanvasVideo" class="video-seek-section">
         <div class="seek-header">
@@ -340,7 +354,7 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, onMounted, onUnmounted } from 'vue';
+import { ref, computed, inject, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 
 const { locale } = useI18n();
@@ -990,6 +1004,43 @@ onMounted(() => {
   }, 250); // Alle 250ms aktualisieren
 });
 
+// ✨ NEU: Watcher für Stumm-Einstellung - wendet Änderungen auf alle Canvas-Videos an
+watch(videoMuted, (newMuted) => {
+  const vm = videoManager.value;
+  if (!vm) return;
+
+  const videos = vm.getAllVideos() || [];
+  videos.forEach(video => {
+    if (video.videoElement) {
+      video.videoElement.muted = newMuted;
+      video.muted = newMuted;
+
+      // Wenn unmuted, Video mit Recording verbinden
+      if (!newMuted && window.connectVideoToRecording) {
+        window.connectVideoToRecording(video.videoElement, video.videoElement.volume);
+      }
+    }
+  });
+
+  console.log(`🔊 Alle Canvas-Videos ${newMuted ? 'stumm geschaltet' : 'Ton aktiviert'}`);
+});
+
+// ✨ NEU: Watcher für Wiederholen-Einstellung - wendet Änderungen auf alle Canvas-Videos an
+watch(videoLoop, (newLoop) => {
+  const vm = videoManager.value;
+  if (!vm) return;
+
+  const videos = vm.getAllVideos() || [];
+  videos.forEach(video => {
+    if (video.videoElement) {
+      video.videoElement.loop = newLoop;
+      video.loop = newLoop;
+    }
+  });
+
+  console.log(`🔁 Alle Canvas-Videos Wiederholen: ${newLoop ? 'aktiviert' : 'deaktiviert'}`);
+});
+
 onUnmounted(() => {
   // ✨ NEU: Interval aufräumen
   if (timeUpdateInterval) {
@@ -1524,6 +1575,21 @@ onUnmounted(() => {
 
 .btn-global:hover {
   background: rgba(139, 92, 246, 0.3);
+}
+
+/* ✨ NEU: Globale Video-Einstellungen */
+.global-video-settings {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 6px;
+}
+
+.global-video-settings .settings-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
 }
 
 /* ✨ NEU: Video Seek Section */

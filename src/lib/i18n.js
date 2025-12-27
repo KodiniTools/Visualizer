@@ -129,7 +129,11 @@ const translations = {
       close: 'Schließen',
       dblClickPreview: 'Doppelklick für Vorschau',
       dragToReorder: 'Ziehen um Ebenenreihenfolge zu ändern',
-      replaceImage: 'Bild ersetzen'
+      replaceImage: 'Bild ersetzen',
+      replaceWith: 'Ersetzen mit',
+      uploadImage: 'Bild hochladen',
+      fromGallery: 'Aus Galerie',
+      selectFromGallery: 'Aus Galerie wählen'
     },
 
     // ========== FILE UPLOAD PANEL ==========
@@ -876,7 +880,11 @@ const translations = {
       close: 'Close',
       dblClickPreview: 'Double-click for preview',
       dragToReorder: 'Drag to change layer order',
-      replaceImage: 'Replace Image'
+      replaceImage: 'Replace Image',
+      replaceWith: 'Replace with',
+      uploadImage: 'Upload Image',
+      fromGallery: 'From Gallery',
+      selectFromGallery: 'Select from Gallery'
     },
 
     // ========== FILE UPLOAD PANEL ==========

@@ -485,6 +485,29 @@ watch(() => playerStore.currentTime, (newTime, oldTime) => {
   }
 });
 
+// Check for markers at start (0:00) when playback begins
+watch(() => playerStore.isPlaying, (isPlaying) => {
+  if (isPlaying && playerStore.currentTime < 0.5) {
+    // Reset triggers first to ensure clean state
+    beatMarkerStore.resetTriggers();
+
+    // Check if there's a marker at or near the start
+    const triggered = beatMarkerStore.checkTrigger(playerStore.currentTime);
+    if (triggered && triggered.action) {
+      // Apply visualizer change
+      if (triggered.action.visualizer) {
+        visualizerStore.selectVisualizer(triggered.action.visualizer);
+        console.log('🎯 Start-Marker: Visualizer gewechselt zu:', triggered.action.visualizer);
+      }
+      // Apply color change
+      if (triggered.action.color) {
+        visualizerStore.setColor(triggered.action.color);
+        console.log('🎨 Start-Marker: Farbe gewechselt zu:', triggered.action.color);
+      }
+    }
+  }
+});
+
 // Keyboard shortcut for adding marker (M key)
 const handleKeydown = (e) => {
   if (e.key === 'm' || e.key === 'M') {

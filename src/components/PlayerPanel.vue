@@ -154,6 +154,21 @@
         <!-- Add Marker Form -->
         <div v-if="showMarkerPanel" class="marker-add-form">
           <div class="form-row">
+            <label>{{ t('player.time') }}:</label>
+            <div class="time-input-wrapper">
+              <input
+                type="text"
+                v-model="pendingMarkerTimeInput"
+                @blur="updateMarkerTimeFromInput"
+                @keyup.enter="updateMarkerTimeFromInput"
+                class="marker-time-input"
+                :placeholder="locale === 'de' ? 'z.B. 1:30' : 'e.g. 1:30'"
+              />
+              <span class="time-hint">{{ locale === 'de' ? '(MM:SS oder Sek.)' : '(MM:SS or sec.)' }}</span>
+              <span class="time-max">/ {{ formatTime(playerStore.duration) }}</span>
+            </div>
+          </div>
+          <div class="form-row">
             <label>{{ t('player.visualizer') }}:</label>
             <select v-model="newMarkerVisualizer" class="marker-select">
               <option value="">{{ t('player.noChange') }}</option>
@@ -339,6 +354,7 @@ const changeDevice = async () => {
 // Beat Marker State
 const showMarkerPanel = ref(false);
 const pendingMarkerTime = ref(0);
+const pendingMarkerTimeInput = ref('0:00');
 const newMarkerVisualizer = ref('');
 const newMarkerColor = ref('#6ea8fe');
 const newMarkerChangeColor = ref(false);
@@ -351,6 +367,46 @@ const formatTime = (seconds) => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
+// Parse MM:SS or M:SS format to seconds
+const parseTimeInput = (timeStr) => {
+  if (!timeStr) return 0;
+
+  // Remove spaces and normalize
+  const cleaned = timeStr.trim();
+
+  // Handle pure seconds input (e.g., "125")
+  if (/^\d+$/.test(cleaned)) {
+    return parseInt(cleaned, 10);
+  }
+
+  // Handle MM:SS or M:SS format
+  const parts = cleaned.split(':');
+  if (parts.length === 2) {
+    const mins = parseInt(parts[0], 10) || 0;
+    const secs = parseInt(parts[1], 10) || 0;
+    return mins * 60 + secs;
+  }
+
+  // Handle MM:SS:ms or similar (take first two parts)
+  if (parts.length >= 2) {
+    const mins = parseInt(parts[0], 10) || 0;
+    const secs = parseInt(parts[1], 10) || 0;
+    return mins * 60 + secs;
+  }
+
+  return 0;
+};
+
+// Update pendingMarkerTime when input changes
+const updateMarkerTimeFromInput = () => {
+  const seconds = parseTimeInput(pendingMarkerTimeInput.value);
+  // Clamp to valid range
+  const maxTime = playerStore.duration || 0;
+  pendingMarkerTime.value = Math.max(0, Math.min(seconds, maxTime));
+  // Update display to show normalized format
+  pendingMarkerTimeInput.value = formatTime(pendingMarkerTime.value);
+};
+
 // Beat Marker Functions
 const getMarkerPosition = (time) => {
   if (playerStore.duration === 0) return 0;
@@ -359,6 +415,7 @@ const getMarkerPosition = (time) => {
 
 const addMarkerAtCurrentTime = () => {
   pendingMarkerTime.value = playerStore.currentTime;
+  pendingMarkerTimeInput.value = formatTime(playerStore.currentTime);
   newMarkerLabel.value = `Drop ${beatMarkerStore.markerCount + 1}`;
   newMarkerVisualizer.value = '';
   newMarkerChangeColor.value = false;
@@ -1226,6 +1283,45 @@ h3::before {
 .marker-input:focus {
   border-color: #6ea8fe;
   outline: none;
+}
+
+/* Time Input */
+.time-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.marker-time-input {
+  width: 60px;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  background-color: #3a3a3a;
+  border: 1px solid #ffd700;
+  border-radius: 4px;
+  color: #ffd700;
+  text-align: center;
+}
+
+.marker-time-input:focus {
+  border-color: #ffed4a;
+  outline: none;
+  box-shadow: 0 0 4px rgba(255, 215, 0, 0.4);
+}
+
+.time-hint {
+  font-size: 9px;
+  color: #666;
+  font-style: italic;
+}
+
+.time-max {
+  font-size: 10px;
+  color: #888;
+  font-family: 'Courier New', monospace;
 }
 
 .form-buttons {

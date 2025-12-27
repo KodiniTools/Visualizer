@@ -95,20 +95,88 @@
                       <span class="preview-info-value">{{ Math.round(previewImageData.relWidth * 100) }}% × {{ Math.round(previewImageData.relHeight * 100) }}%</span>
                     </div>
                   </div>
-                  <!-- Ersetzen-Button -->
+                  <!-- Ersetzen-Buttons -->
                   <div class="preview-modal-actions">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      @change="handleReplaceCanvasImage"
-                      ref="replaceCanvasImageInput"
-                      style="display: none"
-                    />
-                    <button class="btn-replace-canvas-image" @click="replaceCanvasImageInput?.click()">
-                      🔄 {{ t('app.replaceImage') }}
-                    </button>
+                    <span class="replace-with-label">{{ t('app.replaceWith') }}:</span>
+                    <div class="replace-buttons-row">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        @change="handleReplaceCanvasImage"
+                        ref="replaceCanvasImageInput"
+                        style="display: none"
+                      />
+                      <button class="btn-replace-canvas-image" @click="replaceCanvasImageInput?.click()">
+                        📁 {{ t('app.uploadImage') }}
+                      </button>
+                      <button class="btn-replace-canvas-image btn-gallery" @click="openReplaceGallery">
+                        🖼️ {{ t('app.fromGallery') }}
+                      </button>
+                    </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </Teleport>
+
+        <!-- Replace Gallery Modal -->
+        <Teleport to="body">
+          <div v-if="showReplaceGallery" class="replace-gallery-modal-overlay" @click="closeReplaceGallery">
+            <div class="replace-gallery-modal" @click.stop>
+              <div class="replace-gallery-header">
+                <h3>🖼️ {{ t('app.selectFromGallery') }}</h3>
+                <button class="replace-gallery-close" @click="closeReplaceGallery">×</button>
+              </div>
+
+              <!-- Kategorie-Tabs -->
+              <div class="replace-gallery-categories">
+                <button
+                  v-for="category in replaceGalleryCategories"
+                  :key="category.id"
+                  class="replace-category-tab"
+                  :class="{ active: selectedReplaceCategory === category.id }"
+                  @click="selectReplaceGalleryCategory(category.id)"
+                >
+                  <span class="category-icon">{{ category.icon }}</span>
+                  <span class="category-name">{{ category.name }}</span>
+                </button>
+              </div>
+
+              <!-- Bilder-Grid -->
+              <div class="replace-gallery-content">
+                <div v-if="replaceGalleryLoading" class="replace-gallery-loading">
+                  ⏳ {{ t('common.loading') }}
+                </div>
+                <div v-else-if="replaceGalleryImages.length === 0" class="replace-gallery-empty">
+                  {{ t('common.noResults') }}
+                </div>
+                <div v-else class="replace-gallery-grid">
+                  <div
+                    v-for="image in replaceGalleryImages"
+                    :key="image.file"
+                    class="replace-gallery-item"
+                    :class="{ selected: selectedReplaceImage === image }"
+                    @click="selectReplaceGalleryImage(image)"
+                  >
+                    <img :src="image.thumb || image.file" :alt="image.name || 'Gallery image'" loading="lazy" />
+                    <span v-if="image.name" class="replace-gallery-item-name">{{ image.name }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer mit Buttons -->
+              <div class="replace-gallery-footer">
+                <button class="btn-cancel" @click="closeReplaceGallery">
+                  {{ t('common.cancel') }}
+                </button>
+                <button
+                  class="btn-confirm"
+                  :disabled="!selectedReplaceImage"
+                  @click="confirmReplaceFromGallery"
+                >
+                  ✓ {{ t('app.replaceImage') }}
+                </button>
               </div>
             </div>
           </div>
@@ -388,6 +456,15 @@ const previewImageData = ref(null);
 const previewImageIndex = ref(0);
 const replaceCanvasImageInput = ref(null);
 
+// Galerie-State für Bild-Ersetzen
+const showReplaceGallery = ref(false);
+const replaceGalleryCategories = ref([]);
+const replaceGalleryImages = ref([]);
+const selectedReplaceCategory = ref(null);
+const selectedReplaceImage = ref(null);
+const replaceGalleryLoading = ref(false);
+const replaceGalleryCategoryCache = ref(new Map());
+
 // Drag & Drop State
 const draggedImageIndex = ref(null);
 const dragOverIndex = ref(null);
@@ -478,6 +555,137 @@ function handleReplaceCanvasImage(event) {
 
   // Input zurücksetzen für erneute Auswahl derselben Datei
   event.target.value = '';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GALERIE FÜR BILD-ERSETZEN
+// ═══════════════════════════════════════════════════════════════
+
+async function openReplaceGallery() {
+  showReplaceGallery.value = true;
+  selectedReplaceImage.value = null;
+
+  // Galerie-Index laden wenn noch nicht geladen
+  if (replaceGalleryCategories.value.length === 0) {
+    await loadReplaceGalleryIndex();
+  }
+}
+
+function closeReplaceGallery() {
+  showReplaceGallery.value = false;
+  selectedReplaceImage.value = null;
+}
+
+async function loadReplaceGalleryIndex() {
+  replaceGalleryLoading.value = true;
+  try {
+    const paths = ['gallery/gallery.json', './gallery/gallery.json'];
+    let response = null;
+
+    for (const path of paths) {
+      try {
+        response = await fetch(path);
+        if (response.ok) break;
+      } catch (e) {
+        // Try next path
+      }
+    }
+
+    if (!response || !response.ok) {
+      throw new Error('Galerie konnte nicht geladen werden');
+    }
+
+    const data = await response.json();
+
+    if (data._version === '2.0' && data.categories) {
+      replaceGalleryCategories.value = data.categories;
+
+      // Erste Kategorie auswählen und laden
+      if (replaceGalleryCategories.value.length > 0) {
+        await selectReplaceGalleryCategory(replaceGalleryCategories.value[0].id);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Fehler beim Laden der Galerie:', error);
+  } finally {
+    replaceGalleryLoading.value = false;
+  }
+}
+
+async function selectReplaceGalleryCategory(categoryId) {
+  if (selectedReplaceCategory.value === categoryId) return;
+
+  selectedReplaceCategory.value = categoryId;
+  selectedReplaceImage.value = null;
+
+  // Prüfen ob bereits im Cache
+  if (replaceGalleryCategoryCache.value.has(categoryId)) {
+    replaceGalleryImages.value = replaceGalleryCategoryCache.value.get(categoryId);
+    return;
+  }
+
+  replaceGalleryLoading.value = true;
+  try {
+    const categoryInfo = replaceGalleryCategories.value.find(c => c.id === categoryId);
+    if (!categoryInfo || !categoryInfo.jsonFile) {
+      replaceGalleryImages.value = [];
+      return;
+    }
+
+    const response = await fetch(categoryInfo.jsonFile);
+    if (!response.ok) {
+      throw new Error(`Kategorie ${categoryId} konnte nicht geladen werden`);
+    }
+
+    const data = await response.json();
+    const images = data.images || [];
+
+    // Im Cache speichern
+    replaceGalleryCategoryCache.value.set(categoryId, images);
+    replaceGalleryImages.value = images;
+  } catch (error) {
+    console.error('❌ Fehler beim Laden der Kategorie:', error);
+    replaceGalleryImages.value = [];
+  } finally {
+    replaceGalleryLoading.value = false;
+  }
+}
+
+function selectReplaceGalleryImage(image) {
+  selectedReplaceImage.value = image;
+}
+
+async function confirmReplaceFromGallery() {
+  if (!selectedReplaceImage.value || !previewImageData.value) {
+    closeReplaceGallery();
+    return;
+  }
+
+  const imagePath = selectedReplaceImage.value.file;
+  const manager = multiImageManagerInstance.value;
+  if (!manager) return;
+
+  try {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = imagePath;
+    });
+
+    // Ersetze das Bild
+    const result = manager.replaceImage(previewImageData.value.id, img);
+    if (result) {
+      previewImageData.value = result;
+      console.log('✅ Canvas-Bild aus Galerie ersetzt:', imagePath);
+    }
+
+    closeReplaceGallery();
+  } catch (error) {
+    console.error('❌ Fehler beim Laden des Galeriebildes:', error);
+  }
 }
 
 // Drag & Drop Handler für Ebenenreihenfolge
@@ -2730,6 +2938,252 @@ canvas {
   border-color: rgba(74, 222, 128, 0.5);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);
+}
+
+.btn-replace-canvas-image.btn-gallery {
+  color: #c4b5fd;
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.btn-replace-canvas-image.btn-gallery:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
+.replace-with-label {
+  display: block;
+  font-size: 0.7rem;
+  color: #888;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.replace-buttons-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REPLACE GALLERY MODAL
+   ═══════════════════════════════════════════════════════════════ */
+
+.replace-gallery-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  animation: fadeIn 0.2s ease;
+}
+
+.replace-gallery-modal {
+  background: linear-gradient(180deg, var(--panel, #151b1d) 0%, rgba(21, 27, 29, 0.98) 100%);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  width: 90vw;
+  max-width: 800px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideIn 0.25s ease;
+}
+
+.replace-gallery-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+}
+
+.replace-gallery-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent, #609198);
+}
+
+.replace-gallery-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.replace-gallery-close:hover {
+  background: rgba(255, 69, 58, 0.3);
+  border-color: rgba(255, 69, 58, 0.5);
+}
+
+.replace-gallery-categories {
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color, rgba(158, 190, 193, 0.15));
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.replace-category-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(158, 190, 193, 0.2);
+  background: rgba(0, 0, 0, 0.2);
+  color: #999;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.replace-category-tab:hover {
+  background: rgba(96, 145, 152, 0.15);
+  color: #ccc;
+}
+
+.replace-category-tab.active {
+  background: rgba(96, 145, 152, 0.25);
+  border-color: var(--accent, #609198);
+  color: var(--accent, #609198);
+}
+
+.category-icon {
+  font-size: 1rem;
+}
+
+.category-name {
+  font-size: 0.75rem;
+}
+
+.replace-gallery-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  min-height: 200px;
+}
+
+.replace-gallery-loading,
+.replace-gallery-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.replace-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.replace-gallery-item {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  background: rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.replace-gallery-item:hover {
+  border-color: rgba(96, 145, 152, 0.5);
+  transform: scale(1.03);
+}
+
+.replace-gallery-item.selected {
+  border-color: #4ade80;
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.3);
+}
+
+.replace-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.replace-gallery-item-name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 0.65rem;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.replace-gallery-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+}
+
+.replace-gallery-footer .btn-cancel {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: #aaa;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.replace-gallery-footer .btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.replace-gallery-footer .btn-confirm {
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.replace-gallery-footer .btn-confirm:hover:not(:disabled) {
+  background: rgba(74, 222, 128, 0.25);
+  transform: translateY(-1px);
+}
+
+.replace-gallery-footer .btn-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Responsive adjustments for preview modal */

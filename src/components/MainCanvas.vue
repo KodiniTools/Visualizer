@@ -10,6 +10,7 @@
 <script setup>
 // ✨ NEU: 'watch' wird für die Synchronisierung mit dem Store benötigt
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useCanvasStore } from '../stores/canvasStore.js';
 import { useFontStore } from '../stores/fontStore.js';
 // ✨ NEU: Der Store für das Grid wird importiert
@@ -24,6 +25,8 @@ const canvasStore = useCanvasStore();
 const fontStore = useFontStore();
 // ✨ NEU: Der Grid-Store wird instanziiert
 const gridStore = useGridStore();
+// Reaktive Referenzen für die Watcher
+const { isVisible: gridIsVisible, gridSize, gridColor } = storeToRefs(gridStore);
 const canvasRef = ref(null);
 const canvasEl = ref(null);
 let manager;
@@ -107,7 +110,8 @@ onMounted(() => {
   // Dieser Block "beobachtet" die `isVisible` Eigenschaft im Store.
   // Ändert sich der Wert (z.B. durch den Schalter im ControlsPanel),
   // wird die Sichtbarkeit im GridManager aktualisiert.
-  watch(() => gridStore.isVisible, (newValue) => {
+  watch(gridIsVisible, (newValue) => {
+    console.log('[MainCanvas] gridIsVisible Watcher ausgelöst:', newValue);
     if (gridManager) {
       gridManager.setVisibility(newValue);
       redraw(); // Fordert ein Neuzeichnen an, um das Grid anzuzeigen/auszublenden
@@ -119,7 +123,7 @@ onMounted(() => {
   });
 
   // Watcher für die Rastergröße
-  watch(() => gridStore.gridSize, (newValue) => {
+  watch(gridSize, (newValue) => {
     console.log('[MainCanvas] gridSize Watcher ausgelöst:', newValue);
     if (gridManager) {
       gridManager.setGridSize(newValue);
@@ -129,7 +133,7 @@ onMounted(() => {
   }, { immediate: true });
 
   // Watcher für die Rasterfarbe
-  watch(() => gridStore.gridColor, (newValue) => {
+  watch(gridColor, (newValue) => {
     console.log('[MainCanvas] gridColor Watcher ausgelöst:', newValue);
     if (gridManager) {
       gridManager.setGridColor(newValue);

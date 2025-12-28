@@ -5,7 +5,7 @@ export const useGridStore = defineStore('grid', () => {
   // Zustand (State)
   const isVisible = ref(false);
   const gridSize = ref(50);
-  const gridColor = ref('#FFFFFF');
+  const gridColor = ref('#333333'); // Dunkelgrau für bessere Sichtbarkeit auf weißem Hintergrund
   const snapToGrid = ref(false);
 
   // Aktionen (Actions)

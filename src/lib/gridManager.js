@@ -5,7 +5,7 @@ export class GridManager {
         this.canvas = canvas;
         this.isVisible = false;
         this.gridSize = 50; // Standard-Rastergröße in Pixeln
-        this.gridColor = 'rgba(255, 255, 255, 0.3)';
+        this.gridColor = 'rgba(51, 51, 51, 0.6)'; // Dunkelgrau für bessere Sichtbarkeit
         this.snapToGrid = false;
         this.snapTolerance = 10; // Pixel-Toleranz für Snap-to-Grid
     }
@@ -117,7 +117,7 @@ export class GridManager {
     /**
      * Grid-Farbe mit Transparenz ändern (optimiert)
      */
-    setGridColor(color, opacity = 0.3) {
+    setGridColor(color, opacity = 0.6) {
         // Opacity-Wert normalisieren (0-100 zu 0-1 oder direkt 0-1)
         let normalizedOpacity = opacity;
         if (opacity > 1) {

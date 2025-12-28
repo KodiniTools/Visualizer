@@ -120,16 +120,20 @@ onMounted(() => {
 
   // Watcher für die Rastergröße
   watch(() => gridStore.gridSize, (newValue) => {
+    console.log('[MainCanvas] gridSize Watcher ausgelöst:', newValue);
     if (gridManager) {
       gridManager.setGridSize(newValue);
+      console.log('[MainCanvas] gridManager.gridSize ist jetzt:', gridManager.gridSize);
       redraw();
     }
   }, { immediate: true });
 
   // Watcher für die Rasterfarbe
   watch(() => gridStore.gridColor, (newValue) => {
+    console.log('[MainCanvas] gridColor Watcher ausgelöst:', newValue);
     if (gridManager) {
       gridManager.setGridColor(newValue);
+      console.log('[MainCanvas] gridManager.gridColor ist jetzt:', gridManager.gridColor);
       redraw();
     }
   }, { immediate: true });

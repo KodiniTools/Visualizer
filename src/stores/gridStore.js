@@ -19,12 +19,10 @@ export const useGridStore = defineStore('grid', () => {
   }
 
   function setSize(size) {
-    console.log('[gridStore] setSize aufgerufen:', size);
     gridSize.value = size;
   }
 
   function setColor(color) {
-    console.log('[gridStore] setColor aufgerufen:', color);
     gridColor.value = color;
   }
 

@@ -12,31 +12,6 @@
         <span class="btn-icon">{{ gridStore.isVisible ? '✓' : '×' }}</span>
         {{ gridStore.isVisible ? t('common.on') : t('common.off') }}
       </button>
-
-      <div v-if="gridStore.isVisible" class="grid-options">
-        <div class="slider-group">
-          <label class="slider-label">
-            {{ t('controls.gridSize') }}
-            <span class="slider-value">{{ gridSizeValue }}px</span>
-          </label>
-          <input
-            type="range"
-            class="slider"
-            min="10"
-            max="200"
-            v-model="gridSizeValue"
-          />
-        </div>
-
-        <div class="color-group">
-          <label class="slider-label">{{ t('controls.gridColor') }}</label>
-          <input
-            type="color"
-            class="color-picker"
-            v-model="gridColorValue"
-          />
-        </div>
-      </div>
     </div>
 
     <div class="control-section">
@@ -65,7 +40,6 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 import { useGridStore } from '../stores/gridStore.js';
 import { useWorkspaceStore } from '../stores/workspaceStore.js';
@@ -73,17 +47,6 @@ import { useWorkspaceStore } from '../stores/workspaceStore.js';
 const { t } = useI18n();
 const gridStore = useGridStore();
 const workspaceStore = useWorkspaceStore();
-
-// Computed properties für v-model Bindung
-const gridSizeValue = computed({
-  get: () => gridStore.gridSize,
-  set: (value) => gridStore.setSize(Number(value))
-});
-
-const gridColorValue = computed({
-  get: () => gridStore.gridColor,
-  set: (value) => gridStore.setColor(value)
-});
 
 // Funktion für Kurzbezeichnungen der Presets
 function getPresetShortName(name) {
@@ -210,91 +173,6 @@ h4 {
 
 .preset-btn.active:hover {
   background-color: #5a96e8;
-}
-
-/* Grid Options */
-.grid-options {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #444;
-}
-
-.slider-group {
-  margin-bottom: 12px;
-}
-
-.slider-label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 11px;
-  color: #aaa;
-  margin-bottom: 6px;
-}
-
-.slider-value {
-  color: #6ea8fe;
-  font-weight: 600;
-}
-
-.slider {
-  width: 100%;
-  height: 4px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: #444;
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #6ea8fe;
-  cursor: pointer;
-  transition: transform 0.1s ease;
-}
-
-.slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-}
-
-.slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #6ea8fe;
-  cursor: pointer;
-  border: none;
-}
-
-.color-group {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.color-picker {
-  width: 40px;
-  height: 28px;
-  padding: 0;
-  border: 2px solid #555;
-  border-radius: 4px;
-  cursor: pointer;
-  background: transparent;
-}
-
-.color-picker::-webkit-color-swatch-wrapper {
-  padding: 0;
-}
-
-.color-picker::-webkit-color-swatch {
-  border: none;
-  border-radius: 2px;
 }
 
 /* Responsive Anpassung für kleine Bildschirme */

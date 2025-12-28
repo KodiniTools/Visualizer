@@ -22,6 +22,10 @@ export const useGridStore = defineStore('grid', () => {
     gridSize.value = size;
   }
 
+  function setColor(color) {
+    gridColor.value = color;
+  }
+
   return {
     isVisible,
     gridSize,
@@ -30,5 +34,6 @@ export const useGridStore = defineStore('grid', () => {
     toggleGrid,
     setGridVisibility,
     setSize,
+    setColor,
   };
 });

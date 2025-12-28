@@ -269,6 +269,8 @@ const translations = {
     controls: {
       title: 'Steuerung',
       grid: 'Raster',
+      gridSize: 'Rastergröße',
+      gridColor: 'Rasterfarbe',
       workspace: 'Arbeitsbereich',
       free: 'Frei'
     },
@@ -1022,6 +1024,8 @@ const translations = {
     controls: {
       title: 'Controls',
       grid: 'Grid',
+      gridSize: 'Grid Size',
+      gridColor: 'Grid Color',
       workspace: 'Workspace',
       free: 'Free'
     },

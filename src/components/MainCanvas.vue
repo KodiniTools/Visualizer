@@ -117,6 +117,22 @@ onMounted(() => {
     // aus dem Store beim Laden der Komponente sofort übernommen wird.
     immediate: true
   });
+
+  // Watcher für die Rastergröße
+  watch(() => gridStore.gridSize, (newValue) => {
+    if (gridManager) {
+      gridManager.setGridSize(newValue);
+      redraw();
+    }
+  }, { immediate: true });
+
+  // Watcher für die Rasterfarbe
+  watch(() => gridStore.gridColor, (newValue) => {
+    if (gridManager) {
+      gridManager.setGridColor(newValue);
+      redraw();
+    }
+  }, { immediate: true });
 });
 
 onBeforeUnmount(() => {

@@ -221,13 +221,16 @@ function parseFFmpegTime(timeStr) {
 /**
  * Vollständiges Re-Encoding (für VP8/VP9/andere Codecs)
  */
-async function doFullEncoding(jobId, inputPath, outputPath, quality, totalDuration) {
+async function doFullEncoding(jobId, inputPath, outputPath, quality, totalDuration, inputFileSize = 0) {
   let lastProgressTime = 0;
 
-  // Timeout basierend auf Videolänge und Codec
-  // VP8: ~2s pro Sekunde Video, VP9: ~5s pro Sekunde Video
-  const estimatedTimeout = Math.max(180000, (totalDuration * 3 + 60) * 1000);
-  console.log(`⏱️ [Job ${jobId}] Encoding-Timeout: ${Math.round(estimatedTimeout / 1000)}s`);
+  // Timeout basierend auf Videolänge UND Dateigröße
+  // VP8/VP9: ~3s pro Sekunde Video für Encoding
+  // Große Dateien: +1 Minute pro 100 MB für faststart-Finalisierung
+  const durationBasedTimeout = (totalDuration * 3 + 60) * 1000;
+  const sizeBasedTimeout = (inputFileSize / (100 * 1024 * 1024)) * 60000; // 1 Min pro 100 MB
+  const estimatedTimeout = Math.max(300000, durationBasedTimeout + sizeBasedTimeout); // Min 5 Minuten
+  console.log(`⏱️ [Job ${jobId}] Encoding-Timeout: ${Math.round(estimatedTimeout / 1000)}s (Dauer: ${totalDuration.toFixed(0)}s, Größe: ${(inputFileSize / 1024 / 1024).toFixed(0)}MB)`);
 
   await ffmpegService.convertToMP4(inputPath, outputPath, {
     quality,
@@ -298,12 +301,12 @@ async function processConversion(jobId, inputPath, quality) {
       } catch (remuxError) {
         console.warn(`⚠️ [Job ${jobId}] Remux fehlgeschlagen, fallback zu Re-Encoding:`, remuxError.message);
         // Fallback zu normalem Encoding
-        await doFullEncoding(jobId, inputPath, outputPath, quality, totalDuration);
+        await doFullEncoding(jobId, inputPath, outputPath, quality, totalDuration, inputFileSize);
       }
     } else {
       // Normales Encoding für VP8/VP9/andere Codecs
       console.log(`🔄 [Job ${jobId}] ${videoCodec} erkannt - vollständiges Re-Encoding erforderlich`);
-      await doFullEncoding(jobId, inputPath, outputPath, quality, totalDuration);
+      await doFullEncoding(jobId, inputPath, outputPath, quality, totalDuration, inputFileSize);
     }
 
     // FFmpeg Encoding/Remux fertig

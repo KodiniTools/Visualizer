@@ -150,9 +150,10 @@ const ENCODING_PRESETS = {
 export async function convertToMP4(inputPath, outputPath, options = {}) {
   const preset = ENCODING_PRESETS[options.quality] || ENCODING_PRESETS.high;
 
-  // Timeout für FFmpeg: 10 Minuten pro Video, mit Heartbeat-Überwachung
-  const FFMPEG_TIMEOUT = options.timeout || 600000; // 10 Minuten
-  const HEARTBEAT_TIMEOUT = 60000; // 60 Sekunden ohne Output = hängt
+  // Timeout für FFmpeg: Standard 30 Minuten, mit Heartbeat-Überwachung
+  // Große Dateien (100+ MB) brauchen länger für -movflags +faststart Finalisierung
+  const FFMPEG_TIMEOUT = options.timeout || 1800000; // 30 Minuten (Standard)
+  const HEARTBEAT_TIMEOUT = 300000; // 5 Minuten ohne Output = Warnung (faststart kann lange dauern)
 
   return new Promise((resolve, reject) => {
     // Parse Bitrate für Buffer-Berechnung (z.B. '6M' -> 6)
@@ -212,7 +213,7 @@ export async function convertToMP4(inputPath, outputPath, options = {}) {
       const timeSinceLastOutput = Date.now() - lastOutputTime;
 
       // Während der Finalisierung (faststart) gibt es keine Ausgabe
-      // Das ist normal und kann etwas dauern
+      // Das ist normal und kann bei großen Dateien (100+ MB) mehrere Minuten dauern
       if (timeSinceLastOutput > HEARTBEAT_TIMEOUT) {
         // Prüfe ob FFmpeg noch läuft
         if (proc.killed) {
@@ -220,11 +221,11 @@ export async function convertToMP4(inputPath, outputPath, options = {}) {
           return;
         }
 
-        console.warn(`⚠️ FFmpeg: Keine Ausgabe seit ${Math.round(timeSinceLastOutput / 1000)}s - prüfe Prozess...`);
+        console.warn(`⚠️ FFmpeg: Keine Ausgabe seit ${Math.round(timeSinceLastOutput / 1000)}s - prüfe Prozess (normal bei großen Dateien)...`);
 
-        // Nach 2 Minuten ohne Output abbrechen
-        if (timeSinceLastOutput > HEARTBEAT_TIMEOUT * 2) {
-          console.error('❌ FFmpeg: Timeout - keine Aktivität, breche ab');
+        // Nach 15 Minuten ohne Output abbrechen (große Dateien brauchen lange für faststart)
+        if (timeSinceLastOutput > HEARTBEAT_TIMEOUT * 3) {
+          console.error('❌ FFmpeg: Timeout - keine Aktivität nach 15 Minuten, breche ab');
           proc.kill('SIGKILL');
           clearInterval(heartbeatInterval);
           isFinished = true;

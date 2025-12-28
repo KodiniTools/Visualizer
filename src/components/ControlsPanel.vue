@@ -17,15 +17,14 @@
         <div class="slider-group">
           <label class="slider-label">
             {{ t('controls.gridSize') }}
-            <span class="slider-value">{{ gridStore.gridSize }}px</span>
+            <span class="slider-value">{{ gridSizeValue }}px</span>
           </label>
           <input
             type="range"
             class="slider"
             min="10"
             max="200"
-            :value="gridStore.gridSize"
-            @input="gridStore.setSize(Number($event.target.value))"
+            v-model="gridSizeValue"
           />
         </div>
 
@@ -34,8 +33,7 @@
           <input
             type="color"
             class="color-picker"
-            :value="gridStore.gridColor"
-            @input="gridStore.setColor($event.target.value)"
+            v-model="gridColorValue"
           />
         </div>
       </div>
@@ -67,6 +65,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 import { useGridStore } from '../stores/gridStore.js';
 import { useWorkspaceStore } from '../stores/workspaceStore.js';
@@ -74,6 +73,17 @@ import { useWorkspaceStore } from '../stores/workspaceStore.js';
 const { t } = useI18n();
 const gridStore = useGridStore();
 const workspaceStore = useWorkspaceStore();
+
+// Computed properties für v-model Bindung
+const gridSizeValue = computed({
+  get: () => gridStore.gridSize,
+  set: (value) => gridStore.setSize(Number(value))
+});
+
+const gridColorValue = computed({
+  get: () => gridStore.gridColor,
+  set: (value) => gridStore.setColor(value)
+});
 
 // Funktion für Kurzbezeichnungen der Presets
 function getPresetShortName(name) {

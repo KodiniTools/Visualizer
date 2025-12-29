@@ -401,6 +401,50 @@ export class CanvasManager {
     }
 
     /**
+     * ✨ NEU: Aktualisiert die Flip-Einstellung für den normalen Hintergrund
+     */
+    updateBackgroundFlip(flipH, flipV) {
+        if (!this.background || typeof this.background !== 'object') {
+            console.warn('⚠️ Kein Bild-Hintergrund vorhanden');
+            return false;
+        }
+
+        if (!this.background.fotoSettings) {
+            if (this.fotoManager) {
+                this.fotoManager.initializeImageSettings(this.background);
+            }
+        }
+
+        this.background.fotoSettings.flipH = flipH;
+        this.background.fotoSettings.flipV = flipV;
+
+        this.redrawCallback();
+        return true;
+    }
+
+    /**
+     * ✨ NEU: Aktualisiert die Flip-Einstellung für den Workspace-Hintergrund
+     */
+    updateWorkspaceBackgroundFlip(flipH, flipV) {
+        if (!this.workspaceBackground) {
+            console.warn('⚠️ Kein Workspace-Hintergrund vorhanden');
+            return false;
+        }
+
+        if (!this.workspaceBackground.fotoSettings) {
+            if (this.fotoManager) {
+                this.fotoManager.initializeImageSettings(this.workspaceBackground);
+            }
+        }
+
+        this.workspaceBackground.fotoSettings.flipH = flipH;
+        this.workspaceBackground.fotoSettings.flipV = flipV;
+
+        this.redrawCallback();
+        return true;
+    }
+
+    /**
      * ✨ NEU: Setzt ein Video als globalen Hintergrund
      */
     setVideoBackground(videoElement) {
@@ -1253,6 +1297,17 @@ export class CanvasManager {
                 drawY = centerY - drawH / 2;
             }
 
+            // ✨ FLIP anwenden (Horizontal und/oder Vertikal spiegeln)
+            const bgFlipH = this.background.fotoSettings?.flipH || false;
+            const bgFlipV = this.background.fotoSettings?.flipV || false;
+            if (bgFlipH || bgFlipV) {
+                const centerX = drawX + drawW / 2;
+                const centerY = drawY + drawH / 2;
+                ctx.translate(centerX, centerY);
+                ctx.scale(bgFlipH ? -1 : 1, bgFlipV ? -1 : 1);
+                ctx.translate(-centerX, -centerY);
+            }
+
             ctx.drawImage(img, drawX, drawY, drawW, drawH);
 
             if (this.fotoManager && this.background.type === 'background') {
@@ -1357,6 +1412,17 @@ export class CanvasManager {
                     drawBounds.height = workspaceBounds.height * scale;
                     drawBounds.x = centerX - drawBounds.width / 2;
                     drawBounds.y = centerY - drawBounds.height / 2;
+                }
+
+                // ✨ FLIP anwenden (Horizontal und/oder Vertikal spiegeln)
+                const wsFlipH = this.workspaceBackground.fotoSettings?.flipH || false;
+                const wsFlipV = this.workspaceBackground.fotoSettings?.flipV || false;
+                if (wsFlipH || wsFlipV) {
+                    const centerX = drawBounds.x + drawBounds.width / 2;
+                    const centerY = drawBounds.y + drawBounds.height / 2;
+                    ctx.translate(centerX, centerY);
+                    ctx.scale(wsFlipH ? -1 : 1, wsFlipV ? -1 : 1);
+                    ctx.translate(-centerX, -centerY);
                 }
 
                 ctx.drawImage(

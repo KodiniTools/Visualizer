@@ -316,7 +316,13 @@ const translations = {
       deleteAll: 'Alles löschen',
       canvasEmpty: 'Canvas ist leer',
       confirmClear: 'Canvas wirklich löschen?',
-      confirmClearText: 'Alle Inhalte werden gelöscht. Dies kann nicht rückgängig gemacht werden.'
+      confirmClearText: 'Alle Inhalte werden gelöscht. Dies kann nicht rückgängig gemacht werden.',
+      flipBackground: 'Hintergrund-Bild spiegeln',
+      flipWorkspaceBackground: 'Workspace-Hintergrund spiegeln',
+      flipHorizontal: 'Horizontal spiegeln',
+      flipVertical: 'Vertikal spiegeln',
+      horizontal: 'Horizontal',
+      vertical: 'Vertikal'
     },
 
     // ========== TEXT MANAGER PANEL ==========
@@ -1069,7 +1075,13 @@ const translations = {
       deleteAll: 'Delete All',
       canvasEmpty: 'Canvas is empty',
       confirmClear: 'Really clear canvas?',
-      confirmClearText: 'All content will be deleted. This cannot be undone.'
+      confirmClearText: 'All content will be deleted. This cannot be undone.',
+      flipBackground: 'Flip Background Image',
+      flipWorkspaceBackground: 'Flip Workspace Background',
+      flipHorizontal: 'Flip horizontally',
+      flipVertical: 'Flip vertically',
+      horizontal: 'Horizontal',
+      vertical: 'Vertical'
     },
 
     // ========== TEXT MANAGER PANEL ==========

@@ -203,6 +203,56 @@
 
         <!-- Kachel-Hintergrund Panel -->
         <BackgroundTilesPanel />
+
+        <!-- ✨ NEU: Bild-Hintergrund Spiegeln -->
+        <div v-if="hasImageBackground" class="flip-section">
+          <h5>🔄 {{ t('canvasControl.flipBackground') }}</h5>
+          <div class="flip-buttons">
+            <button
+              type="button"
+              class="flip-button"
+              :class="{ 'active': bgFlipH }"
+              @click="toggleBgFlipH"
+              :title="t('canvasControl.flipHorizontal')"
+            >
+              ↔ {{ t('canvasControl.horizontal') }}
+            </button>
+            <button
+              type="button"
+              class="flip-button"
+              :class="{ 'active': bgFlipV }"
+              @click="toggleBgFlipV"
+              :title="t('canvasControl.flipVertical')"
+            >
+              ↕ {{ t('canvasControl.vertical') }}
+            </button>
+          </div>
+        </div>
+
+        <!-- ✨ NEU: Workspace-Hintergrund Spiegeln -->
+        <div v-if="hasWorkspaceBackground" class="flip-section">
+          <h5>🔄 {{ t('canvasControl.flipWorkspaceBackground') }}</h5>
+          <div class="flip-buttons">
+            <button
+              type="button"
+              class="flip-button"
+              :class="{ 'active': wsBgFlipH }"
+              @click="toggleWsBgFlipH"
+              :title="t('canvasControl.flipHorizontal')"
+            >
+              ↔ {{ t('canvasControl.horizontal') }}
+            </button>
+            <button
+              type="button"
+              class="flip-button"
+              :class="{ 'active': wsBgFlipV }"
+              @click="toggleWsBgFlipV"
+              :title="t('canvasControl.flipVertical')"
+            >
+              ↕ {{ t('canvasControl.vertical') }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Undo/Redo Sektion -->
@@ -352,6 +402,56 @@ const gradientEnabled = ref(false);
 const gradientColor2 = ref('#0066ff');
 const gradientType = ref('radial');
 const gradientAngle = ref(45);
+
+// ✨ NEU: Flip-Einstellungen für Bild-Hintergründe
+const bgFlipH = ref(false);
+const bgFlipV = ref(false);
+const wsBgFlipH = ref(false);
+const wsBgFlipV = ref(false);
+
+// Computed: Prüft ob ein Bild-Hintergrund vorhanden ist
+const hasImageBackground = computed(() => {
+  if (!canvasManager.value) return false;
+  return canvasManager.value.background && typeof canvasManager.value.background === 'object';
+});
+
+// Computed: Prüft ob ein Workspace-Hintergrund vorhanden ist
+const hasWorkspaceBackground = computed(() => {
+  if (!canvasManager.value) return false;
+  return !!canvasManager.value.workspaceBackground;
+});
+
+// Toggle Flip Horizontal für Bild-Hintergrund
+function toggleBgFlipH() {
+  if (!canvasManager.value || !hasImageBackground.value) return;
+  bgFlipH.value = !bgFlipH.value;
+  canvasManager.value.updateBackgroundFlip(bgFlipH.value, bgFlipV.value);
+  console.log('🔄 Hintergrund Flip H:', bgFlipH.value);
+}
+
+// Toggle Flip Vertical für Bild-Hintergrund
+function toggleBgFlipV() {
+  if (!canvasManager.value || !hasImageBackground.value) return;
+  bgFlipV.value = !bgFlipV.value;
+  canvasManager.value.updateBackgroundFlip(bgFlipH.value, bgFlipV.value);
+  console.log('🔄 Hintergrund Flip V:', bgFlipV.value);
+}
+
+// Toggle Flip Horizontal für Workspace-Hintergrund
+function toggleWsBgFlipH() {
+  if (!canvasManager.value || !hasWorkspaceBackground.value) return;
+  wsBgFlipH.value = !wsBgFlipH.value;
+  canvasManager.value.updateWorkspaceBackgroundFlip(wsBgFlipH.value, wsBgFlipV.value);
+  console.log('🔄 Workspace-Hintergrund Flip H:', wsBgFlipH.value);
+}
+
+// Toggle Flip Vertical für Workspace-Hintergrund
+function toggleWsBgFlipV() {
+  if (!canvasManager.value || !hasWorkspaceBackground.value) return;
+  wsBgFlipV.value = !wsBgFlipV.value;
+  canvasManager.value.updateWorkspaceBackgroundFlip(wsBgFlipH.value, wsBgFlipV.value);
+  console.log('🔄 Workspace-Hintergrund Flip V:', wsBgFlipV.value);
+}
 
 // ✨ NEU: Presets für Hintergrund-Einstellungen
 const PRESETS_STORAGE_KEY = 'visualizer-canvas-presets';
@@ -729,6 +829,12 @@ function resetBackground() {
   // Workspace-Hintergrund auch zurücksetzen
   canvasManager.value.workspaceBackground = null;
 
+  // ✨ NEU: Flip-Zustände zurücksetzen
+  bgFlipH.value = false;
+  bgFlipV.value = false;
+  wsBgFlipH.value = false;
+  wsBgFlipV.value = false;
+
   // ✨ NEU: Video-Hintergründe auch zurücksetzen
   if (canvasManager.value.videoBackground) {
     // Video stoppen und aufräumen
@@ -782,6 +888,36 @@ function confirmReset() {
 watch([backgroundColor, backgroundOpacity], () => {
   updateColorDisplay();
 });
+
+// ✨ NEU: Watcher für Hintergrund-Flip-Synchronisation
+watch(
+  () => canvasManager.value?.background,
+  (newBg) => {
+    if (newBg && typeof newBg === 'object' && newBg.fotoSettings) {
+      bgFlipH.value = newBg.fotoSettings.flipH || false;
+      bgFlipV.value = newBg.fotoSettings.flipV || false;
+    } else {
+      bgFlipH.value = false;
+      bgFlipV.value = false;
+    }
+  },
+  { deep: true }
+);
+
+// ✨ NEU: Watcher für Workspace-Hintergrund-Flip-Synchronisation
+watch(
+  () => canvasManager.value?.workspaceBackground,
+  (newWsBg) => {
+    if (newWsBg && newWsBg.fotoSettings) {
+      wsBgFlipH.value = newWsBg.fotoSettings.flipH || false;
+      wsBgFlipV.value = newWsBg.fotoSettings.flipV || false;
+    } else {
+      wsBgFlipH.value = false;
+      wsBgFlipV.value = false;
+    }
+  },
+  { deep: true }
+);
 
 // ✅ FIX: Initialisierungsfunktion für Canvas-Einstellungen
 function initializeCanvasSettings() {
@@ -1443,5 +1579,57 @@ h4 {
 
 .btn-delete:hover {
   background: rgba(244, 67, 54, 0.4);
+}
+
+/* ✨ NEU: Flip-Section Styles */
+.flip-section {
+  margin-top: 10px;
+  padding: 8px;
+  background: linear-gradient(180deg, var(--panel, #151b1d) 0%, rgba(96, 145, 152, 0.08) 100%);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border-left: 2px solid var(--accent, #609198);
+  border-radius: 6px;
+}
+
+.flip-section h5 {
+  margin: 0 0 8px 0;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--accent-light, #BCE5E5);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.flip-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.flip-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--btn, #1c2426);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  border-radius: 5px;
+  color: var(--text, #E9E9EB);
+  font-size: 0.55rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.flip-button:hover {
+  background: var(--btn-hover, #2a3335);
+  border-color: var(--accent, #609198);
+}
+
+.flip-button.active {
+  background: rgba(96, 145, 152, 0.3);
+  border-color: var(--accent, #609198);
+  color: var(--accent-light, #BCE5E5);
 }
 </style>

@@ -88,6 +88,34 @@ const translations = {
       dark: 'Dunkel'
     },
 
+    // ========== INTERNAL LANDING PAGE ==========
+    internalLanding: {
+      lightMode: 'Hell',
+      darkMode: 'Dunkel',
+      hero: {
+        title: 'Dein Audio.',
+        highlight: 'Visuell erlebbar.',
+        subtitle: 'Erstelle beeindruckende Musikvisualisierungen in Sekunden. Kostenlos, direkt im Browser, ohne Installation.',
+        cta: 'Jetzt starten'
+      },
+      features: {
+        cards: [
+          {
+            title: '100+ Visualizer',
+            description: 'Von klassischen Waveforms bis zu spektakulären 3D-Effekten. Wähle aus einer riesigen Sammlung einzigartiger Audio-Visualisierungen.'
+          },
+          {
+            title: 'HD Video-Export',
+            description: 'Exportiere deine Kreationen als hochauflösende MP4-Videos mit bis zu 60 FPS. Direkt aus dem Browser, ohne zusätzliche Software.'
+          },
+          {
+            title: 'Volle Kontrolle',
+            description: 'Füge Texte, Bilder und Logos hinzu. Nutze audio-reaktive Effekte und passe jeden Aspekt deiner Visualisierung individuell an.'
+          }
+        ]
+      }
+    },
+
     // ========== APP COMMON ==========
     common: {
       on: 'An',
@@ -846,6 +874,34 @@ const translations = {
     theme: {
       light: 'Light',
       dark: 'Dark'
+    },
+
+    // ========== INTERNAL LANDING PAGE ==========
+    internalLanding: {
+      lightMode: 'Light',
+      darkMode: 'Dark',
+      hero: {
+        title: 'Your Audio.',
+        highlight: 'Visually alive.',
+        subtitle: 'Create stunning music visualizations in seconds. Free, directly in your browser, no installation required.',
+        cta: 'Get Started'
+      },
+      features: {
+        cards: [
+          {
+            title: '100+ Visualizers',
+            description: 'From classic waveforms to spectacular 3D effects. Choose from a huge collection of unique audio visualizations.'
+          },
+          {
+            title: 'HD Video Export',
+            description: 'Export your creations as high-resolution MP4 videos with up to 60 FPS. Directly from your browser, no additional software needed.'
+          },
+          {
+            title: 'Full Control',
+            description: 'Add texts, images and logos. Use audio-reactive effects and customize every aspect of your visualization individually.'
+          }
+        ]
+      }
     },
 
     // ========== APP COMMON ==========

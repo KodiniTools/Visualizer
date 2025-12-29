@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LandingPage from '../components/LandingPage.vue'
+import InternalLandingPage from '../components/InternalLandingPage.vue'
 import VisualizerApp from '../VisualizerApp.vue'
 
 const routes = [
@@ -7,6 +8,11 @@ const routes = [
     path: '/',
     name: 'Landing',
     component: LandingPage
+  },
+  {
+    path: '/internal',
+    name: 'InternalLanding',
+    component: InternalLandingPage
   },
   {
     path: '/app',

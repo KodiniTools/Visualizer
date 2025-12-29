@@ -291,8 +291,19 @@
           v-for="(track, index) in playerStore.playlist"
           :key="track.url"
           class="playlist-item"
-          :class="{ active: index === playerStore.currentTrackIndex }"
+          :class="{
+            active: index === playerStore.currentTrackIndex,
+            dragging: draggedTrackIndex === index,
+            'drag-over': dragOverTrackIndex === index && draggedTrackIndex !== index
+          }"
+          draggable="true"
+          @dragstart="handleDragStart($event, index)"
+          @dragend="handleDragEnd"
+          @dragover.prevent="handleDragOver($event, index)"
+          @dragleave="handleDragLeave"
+          @drop.prevent="handleDrop($event, index)"
         >
+          <span class="drag-handle" :title="t('player.dragToReorder')">⠿</span>
           <span @click="loadTrackOnly(index)" class="track-name">{{ track.name }}</span>
           <button @click.stop="removeTrack(index)" class="btn-delete" :title="t('player.removeTrack')">
             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -322,6 +333,10 @@ const audioSourceStore = useAudioSourceStore();
 const volume = ref(100);
 const bass = ref(0);
 const treble = ref(0);
+
+// Drag & Drop State für Playlist-Neuordnung
+const draggedTrackIndex = ref(null);
+const dragOverTrackIndex = ref(null);
 
 // Audio Source Selection
 const selectedDevice = ref('default');
@@ -556,6 +571,47 @@ const seekToPosition = (event) => {
 const loadTrackOnly = (index) => {
   playerStore.loadTrack(index);
   console.log('[PlayerPanel] Track loaded (no autoplay):', playerStore.playlist[index].name);
+};
+
+// === DRAG & DROP HANDLERS für Playlist-Neuordnung ===
+const handleDragStart = (event, index) => {
+  draggedTrackIndex.value = index;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', index.toString());
+  // Visuelles Feedback verzögert hinzufügen
+  setTimeout(() => {
+    event.target.classList.add('dragging');
+  }, 0);
+};
+
+const handleDragEnd = () => {
+  draggedTrackIndex.value = null;
+  dragOverTrackIndex.value = null;
+};
+
+const handleDragOver = (event, index) => {
+  if (draggedTrackIndex.value === null) return;
+  if (draggedTrackIndex.value === index) return;
+
+  dragOverTrackIndex.value = index;
+  event.dataTransfer.dropEffect = 'move';
+};
+
+const handleDragLeave = () => {
+  // Optional: Reset nur wenn wir das Element wirklich verlassen
+};
+
+const handleDrop = (event, toIndex) => {
+  const fromIndex = draggedTrackIndex.value;
+
+  if (fromIndex === null || fromIndex === toIndex) {
+    handleDragEnd();
+    return;
+  }
+
+  // Playlist im Store neu ordnen
+  playerStore.reorderPlaylist(fromIndex, toIndex);
+  handleDragEnd();
 };
 
 const removeTrack = (index) => {
@@ -1016,6 +1072,7 @@ h3::before {
 }
 
 .playlist-item {
+  position: relative;
   padding: 5px 7px;
   font-size: 0.6rem;
   display: flex;
@@ -1083,6 +1140,60 @@ h3::before {
   background-color: rgba(255, 68, 68, 0.8);
   color: #fff;
   opacity: 1;
+}
+
+/* Drag Handle für Playlist-Neuordnung */
+.drag-handle {
+  cursor: grab;
+  color: #666;
+  font-size: 0.7rem;
+  user-select: none;
+  opacity: 0.5;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+  padding-right: 4px;
+}
+
+.drag-handle:hover {
+  opacity: 1;
+  color: var(--accent, #609198);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Drag & Drop Styles */
+.playlist-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  background-color: var(--accent, #609198) !important;
+  border-color: var(--accent, #609198);
+  box-shadow: 0 0 0 2px rgba(96, 145, 152, 0.3);
+}
+
+.playlist-item.drag-over {
+  border-color: #4ade80;
+  background-color: rgba(74, 222, 128, 0.15) !important;
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.4);
+  transform: scale(1.02);
+}
+
+.playlist-item.drag-over::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #4ade80;
+  border-radius: 1px;
+  animation: dragPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes dragPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .playlist-item-empty {

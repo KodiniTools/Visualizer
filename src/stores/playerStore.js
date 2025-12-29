@@ -220,6 +220,37 @@ export const usePlayerStore = defineStore('player', () => {
     if (audioRef.value) audioRef.value.src = "";
   }
 
+  /**
+   * Ordnet einen Track in der Playlist per Drag & Drop neu an
+   * @param {number} fromIndex - Ursprüngliche Position
+   * @param {number} toIndex - Neue Position
+   */
+  function reorderPlaylist(fromIndex, toIndex) {
+    // Validierung
+    if (fromIndex < 0 || fromIndex >= playlist.value.length) return false;
+    if (toIndex < 0 || toIndex >= playlist.value.length) return false;
+    if (fromIndex === toIndex) return false;
+
+    // Track entfernen und an neuer Position einfügen
+    const [movedTrack] = playlist.value.splice(fromIndex, 1);
+    playlist.value.splice(toIndex, 0, movedTrack);
+
+    // CurrentTrackIndex anpassen, damit der aktive Track weiterhin aktiv bleibt
+    if (fromIndex === currentTrackIndex.value) {
+      // Der aktive Track wurde verschoben
+      currentTrackIndex.value = toIndex;
+    } else if (fromIndex < currentTrackIndex.value && toIndex >= currentTrackIndex.value) {
+      // Ein Track vor dem aktiven wurde nach hinten verschoben
+      currentTrackIndex.value--;
+    } else if (fromIndex > currentTrackIndex.value && toIndex <= currentTrackIndex.value) {
+      // Ein Track hinter dem aktiven wurde nach vorne verschoben
+      currentTrackIndex.value++;
+    }
+
+    console.log('[PlayerStore] Playlist reordered:', fromIndex, '->', toIndex);
+    return true;
+  }
+
   // Cleanup-Funktion
   function cleanup() {
     if (audioRef.value) {
@@ -243,16 +274,17 @@ export const usePlayerStore = defineStore('player', () => {
     progressPercentage,
     
     // Actions
-    setAudioRef, 
-    addTracks, 
-    loadTrack, 
-    playTrack, 
-    togglePlayPause, 
-    stopPlayer, 
-    nextTrack, 
-    prevTrack, 
+    setAudioRef,
+    addTracks,
+    loadTrack,
+    playTrack,
+    togglePlayPause,
+    stopPlayer,
+    nextTrack,
+    prevTrack,
     seekTo,
     clearPlaylist,
+    reorderPlaylist,
     cleanup
   };
 });

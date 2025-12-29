@@ -185,6 +185,7 @@ const translations = {
       deleteAll: 'Alles löschen',
       playlistEmpty: 'Playlist ist leer',
       removeTrack: 'Track entfernen',
+      dragToReorder: 'Ziehen um Reihenfolge zu ändern',
       confirmDeleteAll: 'Möchten Sie wirklich alle Tracks aus der Playlist entfernen?',
       confirmDeleteMarkers: 'Alle Beat-Drop Marker löschen?'
     },
@@ -944,6 +945,7 @@ const translations = {
       deleteAll: 'Delete all',
       playlistEmpty: 'Playlist is empty',
       removeTrack: 'Remove track',
+      dragToReorder: 'Drag to reorder',
       confirmDeleteAll: 'Are you sure you want to remove all tracks from the playlist?',
       confirmDeleteMarkers: 'Delete all beat-drop markers?'
     },

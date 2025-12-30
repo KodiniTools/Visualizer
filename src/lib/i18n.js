@@ -351,7 +351,13 @@ const translations = {
       flipHorizontal: 'Horizontal spiegeln',
       flipVertical: 'Vertikal spiegeln',
       horizontal: 'Horizontal',
-      vertical: 'Vertikal'
+      vertical: 'Vertikal',
+      backgroundImage: 'Hintergrundbild',
+      workspaceBackgroundImage: 'Workspace-Hintergrundbild',
+      dblClickToReplace: 'Doppelklick zum Ersetzen',
+      replaceBackground: 'Hintergrund ersetzen',
+      replaceWorkspaceBackground: 'Workspace-Hintergrund ersetzen',
+      audioReactiveKept: 'Audio-Reactive Einstellungen werden übernommen'
     },
 
     // ========== TEXT MANAGER PANEL ==========
@@ -1139,7 +1145,13 @@ const translations = {
       flipHorizontal: 'Flip horizontally',
       flipVertical: 'Flip vertically',
       horizontal: 'Horizontal',
-      vertical: 'Vertical'
+      vertical: 'Vertical',
+      backgroundImage: 'Background Image',
+      workspaceBackgroundImage: 'Workspace Background Image',
+      dblClickToReplace: 'Double-click to replace',
+      replaceBackground: 'Replace Background',
+      replaceWorkspaceBackground: 'Replace Workspace Background',
+      audioReactiveKept: 'Audio-Reactive settings will be preserved'
     },
 
     // ========== TEXT MANAGER PANEL ==========

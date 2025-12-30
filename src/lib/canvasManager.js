@@ -445,6 +445,118 @@ export class CanvasManager {
     }
 
     /**
+     * ✨ NEU: Ersetzt das Hintergrundbild und übernimmt Audio-Reactive-Einstellungen
+     * @param {HTMLImageElement} newImageObject - Das neue Hintergrundbild
+     * @returns {Object|null} Das aktualisierte Hintergrundobjekt oder null bei Fehler
+     */
+    replaceBackground(newImageObject) {
+        if (!newImageObject) {
+            console.error('❌ Kein neues Bild zum Ersetzen übergeben');
+            return null;
+        }
+
+        if (!this.background || typeof this.background !== 'object') {
+            console.warn('⚠️ Kein Bild-Hintergrund vorhanden zum Ersetzen');
+            return null;
+        }
+
+        // Alte Einstellungen sichern
+        const oldSettings = this.background.fotoSettings ? { ...this.background.fotoSettings } : null;
+        const oldAudioReactive = oldSettings?.audioReactive ? JSON.parse(JSON.stringify(oldSettings.audioReactive)) : null;
+        const oldFlipH = oldSettings?.flipH || false;
+        const oldFlipV = oldSettings?.flipV || false;
+
+        // Altes Bild merken für Log
+        const oldWidth = this.background.imageObject?.naturalWidth || 0;
+        const oldHeight = this.background.imageObject?.naturalHeight || 0;
+
+        // Neues Bild setzen
+        this.background.imageObject = newImageObject;
+
+        // Einstellungen neu initialisieren
+        if (this.fotoManager) {
+            this.fotoManager.initializeImageSettings(this.background);
+        }
+
+        // Alte Audio-Reactive-Einstellungen übernehmen
+        if (oldAudioReactive && this.background.fotoSettings) {
+            this.background.fotoSettings.audioReactive = oldAudioReactive;
+        }
+
+        // Alte Flip-Einstellungen übernehmen
+        if (this.background.fotoSettings) {
+            this.background.fotoSettings.flipH = oldFlipH;
+            this.background.fotoSettings.flipV = oldFlipV;
+        }
+
+        console.log('🔄 Hintergrund ersetzt:',
+            `Alt: ${oldWidth}x${oldHeight}`,
+            `Neu: ${newImageObject.naturalWidth}x${newImageObject.naturalHeight}`,
+            'Audio-Reactive übernommen:', !!oldAudioReactive);
+
+        this.redrawCallback();
+        this.updateUICallback();
+
+        return this.background;
+    }
+
+    /**
+     * ✨ NEU: Ersetzt das Workspace-Hintergrundbild und übernimmt Audio-Reactive-Einstellungen
+     * @param {HTMLImageElement} newImageObject - Das neue Workspace-Hintergrundbild
+     * @returns {Object|null} Das aktualisierte Hintergrundobjekt oder null bei Fehler
+     */
+    replaceWorkspaceBackground(newImageObject) {
+        if (!newImageObject) {
+            console.error('❌ Kein neues Bild zum Ersetzen übergeben');
+            return null;
+        }
+
+        if (!this.workspaceBackground) {
+            console.warn('⚠️ Kein Workspace-Hintergrund vorhanden zum Ersetzen');
+            return null;
+        }
+
+        // Alte Einstellungen sichern
+        const oldSettings = this.workspaceBackground.fotoSettings ? { ...this.workspaceBackground.fotoSettings } : null;
+        const oldAudioReactive = oldSettings?.audioReactive ? JSON.parse(JSON.stringify(oldSettings.audioReactive)) : null;
+        const oldFlipH = oldSettings?.flipH || false;
+        const oldFlipV = oldSettings?.flipV || false;
+
+        // Altes Bild merken für Log
+        const oldWidth = this.workspaceBackground.imageObject?.naturalWidth || 0;
+        const oldHeight = this.workspaceBackground.imageObject?.naturalHeight || 0;
+
+        // Neues Bild setzen
+        this.workspaceBackground.imageObject = newImageObject;
+
+        // Einstellungen neu initialisieren
+        if (this.fotoManager) {
+            this.fotoManager.initializeImageSettings(this.workspaceBackground);
+        }
+
+        // Alte Audio-Reactive-Einstellungen übernehmen
+        if (oldAudioReactive && this.workspaceBackground.fotoSettings) {
+            this.workspaceBackground.fotoSettings.audioReactive = oldAudioReactive;
+        }
+
+        // Alte Flip-Einstellungen übernehmen
+        if (this.workspaceBackground.fotoSettings) {
+            this.workspaceBackground.fotoSettings.flipH = oldFlipH;
+            this.workspaceBackground.fotoSettings.flipV = oldFlipV;
+        }
+
+        console.log('🔄 Workspace-Hintergrund ersetzt:',
+            `Alt: ${oldWidth}x${oldHeight}`,
+            `Neu: ${newImageObject.naturalWidth}x${newImageObject.naturalHeight}`,
+            'Audio-Reactive übernommen:', !!oldAudioReactive);
+
+        this.redrawCallback();
+        this.updateUICallback();
+
+        return this.workspaceBackground;
+    }
+
+    /**
      * ✨ NEU: Setzt ein Video als globalen Hintergrund
      */
     setVideoBackground(videoElement) {

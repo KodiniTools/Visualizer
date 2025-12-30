@@ -253,6 +253,40 @@
             </button>
           </div>
         </div>
+
+        <!-- ✨ NEU: Hintergrund-Thumbnail mit Doppelklick zum Ersetzen -->
+        <div v-if="hasImageBackground" class="background-thumb-section">
+          <h5>🖼️ {{ t('canvasControl.backgroundImage') || 'Hintergrundbild' }}</h5>
+          <div
+            class="background-thumb"
+            @dblclick="openBackgroundReplaceModal('background')"
+            :title="t('canvasControl.dblClickToReplace') || 'Doppelklick zum Ersetzen'"
+          >
+            <img
+              v-if="backgroundImageSrc"
+              :src="backgroundImageSrc"
+              alt="Background"
+            />
+            <span class="thumb-hint">{{ t('canvasControl.dblClickToReplace') || 'Doppelklick zum Ersetzen' }}</span>
+          </div>
+        </div>
+
+        <!-- ✨ NEU: Workspace-Hintergrund-Thumbnail mit Doppelklick zum Ersetzen -->
+        <div v-if="hasWorkspaceBackground" class="background-thumb-section">
+          <h5>🖼️ {{ t('canvasControl.workspaceBackgroundImage') || 'Workspace-Hintergrundbild' }}</h5>
+          <div
+            class="background-thumb"
+            @dblclick="openBackgroundReplaceModal('workspace')"
+            :title="t('canvasControl.dblClickToReplace') || 'Doppelklick zum Ersetzen'"
+          >
+            <img
+              v-if="workspaceBackgroundImageSrc"
+              :src="workspaceBackgroundImageSrc"
+              alt="Workspace Background"
+            />
+            <span class="thumb-hint">{{ t('canvasControl.dblClickToReplace') || 'Doppelklick zum Ersetzen' }}</span>
+          </div>
+        </div>
       </div>
 
       <!-- Undo/Redo Sektion -->
@@ -354,6 +388,56 @@
         </div>
       </div>
     </div>
+
+    <!-- ✨ NEU: Modal zum Ersetzen des Hintergrundbildes -->
+    <Teleport to="body">
+      <div v-if="showBackgroundReplaceModal" class="bg-replace-modal-overlay" @click="closeBackgroundReplaceModal">
+        <div class="bg-replace-modal" @click.stop>
+          <button class="bg-replace-modal-close" @click="closeBackgroundReplaceModal">×</button>
+          <div class="bg-replace-modal-content">
+            <div class="bg-replace-modal-image-container">
+              <img v-if="currentBackgroundForReplace" :src="currentBackgroundForReplace" alt="Current Background">
+            </div>
+            <div class="bg-replace-modal-info">
+              <h3>{{ replaceType === 'workspace' ? (t('canvasControl.replaceWorkspaceBackground') || 'Workspace-Hintergrund ersetzen') : (t('canvasControl.replaceBackground') || 'Hintergrund ersetzen') }}</h3>
+              <p class="bg-replace-hint">{{ t('canvasControl.audioReactiveKept') || 'Audio-Reactive Einstellungen werden übernommen' }}</p>
+
+              <!-- Ersetzen-Buttons -->
+              <div class="bg-replace-modal-actions">
+                <input
+                  type="file"
+                  accept="image/*"
+                  @change="handleBackgroundReplaceFile"
+                  ref="bgReplaceFileInput"
+                  style="display: none"
+                />
+                <button class="btn-replace" @click="bgReplaceFileInput?.click()">
+                  📁 {{ t('app.uploadImage') || 'Bild hochladen' }}
+                </button>
+              </div>
+
+              <!-- Vorschau für neues Bild -->
+              <div v-if="pendingBackgroundReplaceSrc" class="pending-bg-replace-preview">
+                <div class="pending-bg-replace-header">
+                  <span class="pending-bg-replace-label">{{ t('app.newImagePreview') || 'Vorschau:' }}</span>
+                </div>
+                <div class="pending-bg-replace-image-container">
+                  <img :src="pendingBackgroundReplaceSrc" alt="Preview" class="pending-bg-replace-image" />
+                </div>
+                <div class="pending-bg-replace-actions">
+                  <button class="btn-cancel-replace" @click="cancelBackgroundReplace">
+                    ✕ {{ t('common.cancel') || 'Abbrechen' }}
+                  </button>
+                  <button class="btn-confirm-replace" @click="confirmBackgroundReplace">
+                    ✓ {{ t('app.confirmReplace') || 'Ersetzen bestätigen' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -420,6 +504,103 @@ const hasWorkspaceBackground = computed(() => {
   if (!canvasManager.value) return false;
   return !!canvasManager.value.workspaceBackground;
 });
+
+// ✨ NEU: Hintergrund-Ersetzung
+const showBackgroundReplaceModal = ref(false);
+const replaceType = ref('background'); // 'background' oder 'workspace'
+const pendingBackgroundReplaceImage = ref(null);
+const pendingBackgroundReplaceSrc = ref(null);
+const bgReplaceFileInput = ref(null);
+
+// Computed: Aktuelles Hintergrundbild-Src für Thumbnail
+const backgroundImageSrc = computed(() => {
+  if (!canvasManager.value) return null;
+  const bg = canvasManager.value.background;
+  if (bg && typeof bg === 'object' && bg.imageObject) {
+    return bg.imageObject.src;
+  }
+  return null;
+});
+
+// Computed: Aktuelles Workspace-Hintergrundbild-Src für Thumbnail
+const workspaceBackgroundImageSrc = computed(() => {
+  if (!canvasManager.value) return null;
+  const wsBg = canvasManager.value.workspaceBackground;
+  if (wsBg && wsBg.imageObject) {
+    return wsBg.imageObject.src;
+  }
+  return null;
+});
+
+// Computed: Aktuelles Bild für das Ersetzen-Modal
+const currentBackgroundForReplace = computed(() => {
+  if (replaceType.value === 'workspace') {
+    return workspaceBackgroundImageSrc.value;
+  }
+  return backgroundImageSrc.value;
+});
+
+// ✨ NEU: Öffnet das Modal zum Ersetzen des Hintergrundbildes
+function openBackgroundReplaceModal(type) {
+  replaceType.value = type;
+  pendingBackgroundReplaceImage.value = null;
+  pendingBackgroundReplaceSrc.value = null;
+  showBackgroundReplaceModal.value = true;
+  console.log(`🖼️ Hintergrund-Ersetzung Modal geöffnet für: ${type}`);
+}
+
+// ✨ NEU: Schließt das Modal
+function closeBackgroundReplaceModal() {
+  showBackgroundReplaceModal.value = false;
+  pendingBackgroundReplaceImage.value = null;
+  pendingBackgroundReplaceSrc.value = null;
+}
+
+// ✨ NEU: Handler für Datei-Upload
+function handleBackgroundReplaceFile(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      pendingBackgroundReplaceImage.value = img;
+      pendingBackgroundReplaceSrc.value = e.target.result;
+      console.log('🔍 Neues Hintergrundbild in Vorschau geladen:', img.naturalWidth, 'x', img.naturalHeight);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+
+  // Input zurücksetzen für erneute Auswahl derselben Datei
+  event.target.value = '';
+}
+
+// ✨ NEU: Vorschau bestätigen und Hintergrund ersetzen
+function confirmBackgroundReplace() {
+  if (!pendingBackgroundReplaceImage.value || !canvasManager.value) return;
+
+  let result;
+  if (replaceType.value === 'workspace') {
+    result = canvasManager.value.replaceWorkspaceBackground(pendingBackgroundReplaceImage.value);
+  } else {
+    result = canvasManager.value.replaceBackground(pendingBackgroundReplaceImage.value);
+  }
+
+  if (result) {
+    console.log(`✅ ${replaceType.value === 'workspace' ? 'Workspace-' : ''}Hintergrund erfolgreich ersetzt`);
+  }
+
+  closeBackgroundReplaceModal();
+}
+
+// ✨ NEU: Ersetzung abbrechen
+function cancelBackgroundReplace() {
+  pendingBackgroundReplaceImage.value = null;
+  pendingBackgroundReplaceSrc.value = null;
+  console.log('❌ Hintergrund-Ersetzen abgebrochen');
+}
 
 // Toggle Flip Horizontal für Bild-Hintergrund
 function toggleBgFlipH() {
@@ -1631,5 +1812,248 @@ h4 {
   background: rgba(96, 145, 152, 0.3);
   border-color: var(--accent, #609198);
   color: var(--accent-light, #BCE5E5);
+}
+
+/* ✨ NEU: Background Thumbnail Styles */
+.background-thumb-section {
+  margin-top: 10px;
+  padding: 8px;
+  background: linear-gradient(180deg, var(--panel, #151b1d) 0%, rgba(96, 145, 152, 0.08) 100%);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border-left: 2px solid var(--accent, #609198);
+  border-radius: 6px;
+}
+
+.background-thumb-section h5 {
+  margin: 0 0 8px 0;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--accent-light, #BCE5E5);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.background-thumb {
+  position: relative;
+  width: 100%;
+  height: 60px;
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.background-thumb:hover {
+  border-color: var(--accent, #609198);
+  box-shadow: 0 0 8px rgba(96, 145, 152, 0.3);
+}
+
+.background-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.background-thumb .thumb-hint {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.7);
+  color: var(--text, #E9E9EB);
+  font-size: 0.5rem;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.background-thumb:hover .thumb-hint {
+  opacity: 1;
+}
+
+/* ✨ NEU: Background Replace Modal Styles */
+.bg-replace-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  backdrop-filter: blur(4px);
+}
+
+.bg-replace-modal {
+  position: relative;
+  background: var(--panel, #151b1d);
+  border: 1px solid var(--accent, #609198);
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.bg-replace-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.bg-replace-modal-close:hover {
+  background: rgba(244, 67, 54, 0.4);
+  transform: scale(1.1);
+}
+
+.bg-replace-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 15px;
+}
+
+.bg-replace-modal-image-container {
+  width: 100%;
+  height: 150px;
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--btn, #1c2426);
+}
+
+.bg-replace-modal-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.bg-replace-modal-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 0.8rem;
+  color: var(--text, #E9E9EB);
+}
+
+.bg-replace-hint {
+  font-size: 0.55rem;
+  color: var(--accent, #609198);
+  margin: 0 0 12px 0;
+  padding: 6px 8px;
+  background: rgba(96, 145, 152, 0.1);
+  border-radius: 4px;
+  border-left: 2px solid var(--accent, #609198);
+}
+
+.bg-replace-modal-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-replace {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(96, 145, 152, 0.2);
+  border: 1px solid var(--accent, #609198);
+  border-radius: 6px;
+  color: var(--accent-light, #BCE5E5);
+  font-size: 0.65rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-replace:hover {
+  background: rgba(96, 145, 152, 0.3);
+  transform: translateY(-1px);
+}
+
+.pending-bg-replace-preview {
+  margin-top: 12px;
+  padding: 10px;
+  background: var(--btn, #1c2426);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border-radius: 8px;
+}
+
+.pending-bg-replace-header {
+  margin-bottom: 8px;
+}
+
+.pending-bg-replace-label {
+  font-size: 0.6rem;
+  color: var(--accent-light, #BCE5E5);
+  font-weight: 600;
+}
+
+.pending-bg-replace-image-container {
+  width: 100%;
+  height: 100px;
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.pending-bg-replace-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pending-bg-replace-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-cancel-replace {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(244, 67, 54, 0.2);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 6px;
+  color: #F44336;
+  font-size: 0.6rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel-replace:hover {
+  background: rgba(244, 67, 54, 0.3);
+}
+
+.btn-confirm-replace {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(76, 175, 80, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 6px;
+  color: #4CAF50;
+  font-size: 0.6rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-confirm-replace:hover {
+  background: rgba(76, 175, 80, 0.3);
 }
 </style>

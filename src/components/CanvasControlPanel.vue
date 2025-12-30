@@ -414,6 +414,61 @@
                 <button class="btn-replace" @click="bgReplaceFileInput?.click()">
                   📁 {{ t('app.uploadImage') || 'Bild hochladen' }}
                 </button>
+                <button class="btn-replace btn-gallery" @click="openBgReplaceGallery">
+                  🖼️ {{ t('app.fromGallery') || 'Aus Galerie' }}
+                </button>
+              </div>
+
+              <!-- Galerie-Auswahl -->
+              <div v-if="showBgReplaceGallery" class="bg-gallery-section">
+                <!-- Kategorie-Tabs -->
+                <div class="bg-gallery-categories">
+                  <button
+                    v-for="category in bgGalleryCategories"
+                    :key="category.id"
+                    class="bg-category-tab"
+                    :class="{ active: selectedBgCategory === category.id }"
+                    @click="selectBgGalleryCategory(category.id)"
+                  >
+                    <span class="category-icon">{{ category.icon }}</span>
+                    <span class="category-name">{{ category.name }}</span>
+                  </button>
+                </div>
+
+                <!-- Bilder-Grid -->
+                <div class="bg-gallery-content">
+                  <div v-if="bgGalleryLoading" class="bg-gallery-loading">
+                    ⏳ {{ t('common.loading') || 'Laden...' }}
+                  </div>
+                  <div v-else-if="bgGalleryImages.length === 0" class="bg-gallery-empty">
+                    {{ t('common.noResults') || 'Keine Ergebnisse' }}
+                  </div>
+                  <div v-else class="bg-gallery-grid">
+                    <div
+                      v-for="image in bgGalleryImages"
+                      :key="image.file"
+                      class="bg-gallery-item"
+                      :class="{ selected: selectedBgGalleryImage === image }"
+                      @click="selectBgGalleryImage(image)"
+                    >
+                      <img :src="image.thumb || image.file" :alt="image.name || 'Gallery image'" loading="lazy" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Galerie-Bestätigung -->
+                <div class="bg-gallery-footer">
+                  <button class="btn-cancel-gallery" @click="closeBgReplaceGallery">
+                    {{ t('common.cancel') || 'Abbrechen' }}
+                  </button>
+                  <button
+                    class="btn-confirm-gallery"
+                    :disabled="!selectedBgGalleryImage"
+                    @click="confirmBgReplaceFromGallery"
+                  >
+                    ✓ {{ t('app.selectImage') || 'Bild auswählen' }}
+                  </button>
+                </div>
               </div>
 
               <!-- Vorschau für neues Bild -->
@@ -512,6 +567,15 @@ const pendingBackgroundReplaceImage = ref(null);
 const pendingBackgroundReplaceSrc = ref(null);
 const bgReplaceFileInput = ref(null);
 
+// ✨ NEU: Galerie für Hintergrund-Ersetzung
+const showBgReplaceGallery = ref(false);
+const bgGalleryCategories = ref([]);
+const bgGalleryImages = ref([]);
+const selectedBgCategory = ref(null);
+const selectedBgGalleryImage = ref(null);
+const bgGalleryLoading = ref(false);
+const bgGalleryCategoryCache = ref(new Map());
+
 // Computed: Aktuelles Hintergrundbild-Src für Thumbnail
 const backgroundImageSrc = computed(() => {
   if (!canvasManager.value) return null;
@@ -554,6 +618,9 @@ function closeBackgroundReplaceModal() {
   showBackgroundReplaceModal.value = false;
   pendingBackgroundReplaceImage.value = null;
   pendingBackgroundReplaceSrc.value = null;
+  // Galerie-State zurücksetzen
+  showBgReplaceGallery.value = false;
+  selectedBgGalleryImage.value = null;
 }
 
 // ✨ NEU: Handler für Datei-Upload
@@ -600,6 +667,130 @@ function cancelBackgroundReplace() {
   pendingBackgroundReplaceImage.value = null;
   pendingBackgroundReplaceSrc.value = null;
   console.log('❌ Hintergrund-Ersetzen abgebrochen');
+}
+
+// ✨ NEU: Galerie-Funktionen für Hintergrund-Ersetzung
+async function openBgReplaceGallery() {
+  showBgReplaceGallery.value = true;
+  selectedBgGalleryImage.value = null;
+
+  // Galerie-Index laden wenn noch nicht geladen
+  if (bgGalleryCategories.value.length === 0) {
+    await loadBgGalleryIndex();
+  }
+}
+
+function closeBgReplaceGallery() {
+  showBgReplaceGallery.value = false;
+  selectedBgGalleryImage.value = null;
+}
+
+async function loadBgGalleryIndex() {
+  bgGalleryLoading.value = true;
+  try {
+    const paths = ['gallery/gallery.json', './gallery/gallery.json'];
+    let response = null;
+
+    for (const path of paths) {
+      try {
+        response = await fetch(path);
+        if (response.ok) break;
+      } catch (e) {
+        // Try next path
+      }
+    }
+
+    if (!response || !response.ok) {
+      throw new Error('Galerie konnte nicht geladen werden');
+    }
+
+    const data = await response.json();
+
+    if (data._version === '2.0' && data.categories) {
+      bgGalleryCategories.value = data.categories;
+
+      // Erste Kategorie auswählen und laden
+      if (bgGalleryCategories.value.length > 0) {
+        await selectBgGalleryCategory(bgGalleryCategories.value[0].id);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Fehler beim Laden der Galerie:', error);
+  } finally {
+    bgGalleryLoading.value = false;
+  }
+}
+
+async function selectBgGalleryCategory(categoryId) {
+  if (selectedBgCategory.value === categoryId) return;
+
+  selectedBgCategory.value = categoryId;
+  selectedBgGalleryImage.value = null;
+
+  // Prüfen ob bereits im Cache
+  if (bgGalleryCategoryCache.value.has(categoryId)) {
+    bgGalleryImages.value = bgGalleryCategoryCache.value.get(categoryId);
+    return;
+  }
+
+  bgGalleryLoading.value = true;
+  try {
+    const categoryInfo = bgGalleryCategories.value.find(c => c.id === categoryId);
+    if (!categoryInfo || !categoryInfo.jsonFile) {
+      bgGalleryImages.value = [];
+      return;
+    }
+
+    const response = await fetch(categoryInfo.jsonFile);
+    if (!response.ok) {
+      throw new Error(`Kategorie ${categoryId} konnte nicht geladen werden`);
+    }
+
+    const data = await response.json();
+    const images = data.images || [];
+
+    // Im Cache speichern
+    bgGalleryCategoryCache.value.set(categoryId, images);
+    bgGalleryImages.value = images;
+  } catch (error) {
+    console.error('❌ Fehler beim Laden der Kategorie:', error);
+    bgGalleryImages.value = [];
+  } finally {
+    bgGalleryLoading.value = false;
+  }
+}
+
+function selectBgGalleryImage(image) {
+  selectedBgGalleryImage.value = image;
+}
+
+async function confirmBgReplaceFromGallery() {
+  if (!selectedBgGalleryImage.value) {
+    closeBgReplaceGallery();
+    return;
+  }
+
+  const imagePath = selectedBgGalleryImage.value.file;
+
+  try {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = imagePath;
+    });
+
+    // Speichere in Vorschau-Zustand
+    pendingBackgroundReplaceImage.value = img;
+    pendingBackgroundReplaceSrc.value = imagePath;
+    console.log('🔍 Galeriebild in Vorschau geladen:', imagePath);
+
+    closeBgReplaceGallery();
+  } catch (error) {
+    console.error('❌ Fehler beim Laden des Galeriebildes:', error);
+  }
 }
 
 // Toggle Flip Horizontal für Bild-Hintergrund
@@ -2055,5 +2246,155 @@ h4 {
 
 .btn-confirm-replace:hover {
   background: rgba(76, 175, 80, 0.3);
+}
+
+/* ✨ NEU: Galerie-Styles für Hintergrund-Ersetzung */
+.btn-replace.btn-gallery {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: #8b5cf6;
+  color: #a78bfa;
+}
+
+.btn-replace.btn-gallery:hover {
+  background: rgba(139, 92, 246, 0.3);
+}
+
+.bg-gallery-section {
+  margin-top: 12px;
+  padding: 10px;
+  background: var(--btn, #1c2426);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border-radius: 8px;
+}
+
+.bg-gallery-categories {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.bg-category-tab {
+  padding: 5px 8px;
+  background: var(--panel, #151b1d);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border-radius: 5px;
+  color: var(--text, #E9E9EB);
+  font-size: 0.55rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bg-category-tab:hover {
+  border-color: var(--accent, #609198);
+}
+
+.bg-category-tab.active {
+  background: rgba(96, 145, 152, 0.2);
+  border-color: var(--accent, #609198);
+  color: var(--accent-light, #BCE5E5);
+}
+
+.bg-category-tab .category-icon {
+  font-size: 0.7rem;
+}
+
+.bg-category-tab .category-name {
+  font-size: 0.5rem;
+}
+
+.bg-gallery-content {
+  min-height: 100px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.bg-gallery-loading,
+.bg-gallery-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: var(--muted, #A8A992);
+  font-size: 0.6rem;
+}
+
+.bg-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.bg-gallery-item {
+  aspect-ratio: 1;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bg-gallery-item:hover {
+  border-color: var(--accent, #609198);
+  transform: scale(1.05);
+}
+
+.bg-gallery-item.selected {
+  border-color: #4CAF50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+}
+
+.bg-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bg-gallery-footer {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-cancel-gallery {
+  flex: 1;
+  padding: 6px 10px;
+  background: rgba(244, 67, 54, 0.2);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 5px;
+  color: #F44336;
+  font-size: 0.55rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel-gallery:hover {
+  background: rgba(244, 67, 54, 0.3);
+}
+
+.btn-confirm-gallery {
+  flex: 1;
+  padding: 6px 10px;
+  background: rgba(76, 175, 80, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 5px;
+  color: #4CAF50;
+  font-size: 0.55rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-confirm-gallery:hover {
+  background: rgba(76, 175, 80, 0.3);
+}
+
+.btn-confirm-gallery:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

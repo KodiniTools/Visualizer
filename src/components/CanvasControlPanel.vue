@@ -343,10 +343,28 @@
       <div class="panel-section">
         <h4>{{ t('canvasControl.resetBackground') }}</h4>
         <p class="info-text">
-          {{ t('canvasControl.resetsToWhite') }}
+          {{ t('canvasControl.selectWhatToReset') || 'Wählen Sie, was zurückgesetzt werden soll' }}
         </p>
-        <button @click="resetBackground" class="btn-secondary full-width">
-          {{ t('common.reset') }}
+        <div class="reset-options">
+          <button
+            @click="resetNormalBackground"
+            class="btn-reset-option"
+            :disabled="!hasImageBackground && !hasVideoBackground"
+            :title="t('canvasControl.resetNormalBg') || 'Normaler Hintergrund zurücksetzen'"
+          >
+            🖼️ {{ t('canvasControl.normalBackground') || 'Hintergrund' }}
+          </button>
+          <button
+            @click="resetWorkspaceBackgroundOnly"
+            class="btn-reset-option"
+            :disabled="!hasWorkspaceBackground && !hasWorkspaceVideoBackground"
+            :title="t('canvasControl.resetWorkspaceBg') || 'Workspace-Hintergrund zurücksetzen'"
+          >
+            📐 {{ t('canvasControl.workspaceBackground') || 'Workspace' }}
+          </button>
+        </div>
+        <button @click="resetAllBackgrounds" class="btn-secondary full-width" style="margin-top: 8px;">
+          🔄 {{ t('canvasControl.resetAll') || 'Alle zurücksetzen' }}
         </button>
       </div>
 
@@ -558,6 +576,18 @@ const hasImageBackground = computed(() => {
 const hasWorkspaceBackground = computed(() => {
   if (!canvasManager.value) return false;
   return !!canvasManager.value.workspaceBackground;
+});
+
+// Computed: Prüft ob ein Video-Hintergrund vorhanden ist
+const hasVideoBackground = computed(() => {
+  if (!canvasManager.value) return false;
+  return !!canvasManager.value.videoBackground;
+});
+
+// Computed: Prüft ob ein Workspace-Video-Hintergrund vorhanden ist
+const hasWorkspaceVideoBackground = computed(() => {
+  if (!canvasManager.value) return false;
+  return !!canvasManager.value.workspaceVideoBackground;
 });
 
 // ✨ NEU: Hintergrund-Ersetzung
@@ -1184,8 +1214,8 @@ const isCanvasEmpty = computed(() => {
   return canvasManager.value.isCanvasEmpty();
 });
 
-// Setze nur den Hintergrund zurück (inkl. Workspace-Hintergrund und Video-Hintergründe)
-function resetBackground() {
+// ✨ NEU: Nur normalen Hintergrund zurücksetzen
+function resetNormalBackground() {
   if (!canvasManager.value) {
     console.warn('⚠️ CanvasManager nicht verfügbar');
     return;
@@ -1193,23 +1223,17 @@ function resetBackground() {
 
   saveCanvasState();
 
-  console.log('🔄 Setze Hintergrund zurück');
+  console.log('🔄 Setze normalen Hintergrund zurück');
   canvasManager.value.setBackground('#ffffff');
   backgroundColor.value = '#ffffff';
   backgroundOpacity.value = 1.0;
 
-  // Workspace-Hintergrund auch zurücksetzen
-  canvasManager.value.workspaceBackground = null;
-
-  // ✨ NEU: Flip-Zustände zurücksetzen
+  // Flip-Zustände für normalen Hintergrund zurücksetzen
   bgFlipH.value = false;
   bgFlipV.value = false;
-  wsBgFlipH.value = false;
-  wsBgFlipV.value = false;
 
-  // ✨ NEU: Video-Hintergründe auch zurücksetzen
+  // Video-Hintergrund zurücksetzen
   if (canvasManager.value.videoBackground) {
-    // Video stoppen und aufräumen
     const video = canvasManager.value.videoBackground.videoElement;
     if (video) {
       video.pause();
@@ -1219,8 +1243,29 @@ function resetBackground() {
     console.log('🗑️ Video-Hintergrund entfernt');
   }
 
+  canvasManager.value.redrawCallback();
+  updateColorDisplay();
+  console.log('✅ Normaler Hintergrund zurückgesetzt');
+}
+
+// ✨ NEU: Nur Workspace-Hintergrund zurücksetzen
+function resetWorkspaceBackgroundOnly() {
+  if (!canvasManager.value) {
+    console.warn('⚠️ CanvasManager nicht verfügbar');
+    return;
+  }
+
+  saveCanvasState();
+
+  console.log('🔄 Setze Workspace-Hintergrund zurück');
+  canvasManager.value.workspaceBackground = null;
+
+  // Flip-Zustände für Workspace-Hintergrund zurücksetzen
+  wsBgFlipH.value = false;
+  wsBgFlipV.value = false;
+
+  // Workspace-Video-Hintergrund zurücksetzen
   if (canvasManager.value.workspaceVideoBackground) {
-    // Workspace-Video stoppen und aufräumen
     const wsVideo = canvasManager.value.workspaceVideoBackground.videoElement;
     if (wsVideo) {
       wsVideo.pause();
@@ -1231,9 +1276,59 @@ function resetBackground() {
   }
 
   canvasManager.value.redrawCallback();
+  console.log('✅ Workspace-Hintergrund zurückgesetzt');
+}
 
+// ✨ NEU: Alle Hintergründe zurücksetzen
+function resetAllBackgrounds() {
+  if (!canvasManager.value) {
+    console.warn('⚠️ CanvasManager nicht verfügbar');
+    return;
+  }
+
+  saveCanvasState();
+
+  console.log('🔄 Setze alle Hintergründe zurück');
+
+  // Normaler Hintergrund
+  canvasManager.value.setBackground('#ffffff');
+  backgroundColor.value = '#ffffff';
+  backgroundOpacity.value = 1.0;
+
+  // Workspace-Hintergrund
+  canvasManager.value.workspaceBackground = null;
+
+  // Alle Flip-Zustände zurücksetzen
+  bgFlipH.value = false;
+  bgFlipV.value = false;
+  wsBgFlipH.value = false;
+  wsBgFlipV.value = false;
+
+  // Video-Hintergrund zurücksetzen
+  if (canvasManager.value.videoBackground) {
+    const video = canvasManager.value.videoBackground.videoElement;
+    if (video) {
+      video.pause();
+      video.src = '';
+    }
+    canvasManager.value.videoBackground = null;
+    console.log('🗑️ Video-Hintergrund entfernt');
+  }
+
+  // Workspace-Video-Hintergrund zurücksetzen
+  if (canvasManager.value.workspaceVideoBackground) {
+    const wsVideo = canvasManager.value.workspaceVideoBackground.videoElement;
+    if (wsVideo) {
+      wsVideo.pause();
+      wsVideo.src = '';
+    }
+    canvasManager.value.workspaceVideoBackground = null;
+    console.log('🗑️ Workspace-Video-Hintergrund entfernt');
+  }
+
+  canvasManager.value.redrawCallback();
   updateColorDisplay();
-  console.log('✅ Hintergrund zurückgesetzt (inkl. Workspace und Video-Hintergründe)');
+  console.log('✅ Alle Hintergründe zurückgesetzt');
 }
 
 // Bestätige Canvas-Reset
@@ -2395,6 +2490,41 @@ h4 {
 
 .btn-confirm-gallery:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ✨ NEU: Reset-Optionen Styles */
+.reset-options {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.btn-reset-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--btn, #1c2426);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  border-radius: 5px;
+  color: var(--text, #E9E9EB);
+  font-size: 0.55rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-reset-option:hover:not(:disabled) {
+  background: var(--btn-hover, #2a3335);
+  border-color: var(--accent, #609198);
+  color: var(--accent-light, #BCE5E5);
+}
+
+.btn-reset-option:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 </style>

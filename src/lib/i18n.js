@@ -357,7 +357,13 @@ const translations = {
       dblClickToReplace: 'Doppelklick zum Ersetzen',
       replaceBackground: 'Hintergrund ersetzen',
       replaceWorkspaceBackground: 'Workspace-Hintergrund ersetzen',
-      audioReactiveKept: 'Audio-Reactive Einstellungen werden übernommen'
+      audioReactiveKept: 'Audio-Reactive Einstellungen werden übernommen',
+      selectWhatToReset: 'Wählen Sie, was zurückgesetzt werden soll',
+      normalBackground: 'Hintergrund',
+      workspaceBackground: 'Workspace',
+      resetNormalBg: 'Normaler Hintergrund zurücksetzen',
+      resetWorkspaceBg: 'Workspace-Hintergrund zurücksetzen',
+      resetAll: 'Alle zurücksetzen'
     },
 
     // ========== TEXT MANAGER PANEL ==========
@@ -1151,7 +1157,13 @@ const translations = {
       dblClickToReplace: 'Double-click to replace',
       replaceBackground: 'Replace Background',
       replaceWorkspaceBackground: 'Replace Workspace Background',
-      audioReactiveKept: 'Audio-Reactive settings will be preserved'
+      audioReactiveKept: 'Audio-Reactive settings will be preserved',
+      selectWhatToReset: 'Select what to reset',
+      normalBackground: 'Background',
+      workspaceBackground: 'Workspace',
+      resetNormalBg: 'Reset normal background',
+      resetWorkspaceBg: 'Reset workspace background',
+      resetAll: 'Reset all'
     },
 
     // ========== TEXT MANAGER PANEL ==========

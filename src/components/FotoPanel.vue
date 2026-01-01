@@ -789,22 +789,46 @@
             <span class="label-text">Schnell-Presets</span>
           </label>
           <div class="preset-grid">
-            <button @click="applyAudioPreset('pulse')" class="preset-btn" title="Pulsierendes Leuchten">
+            <button
+              @click="toggleAudioPreset('pulse')"
+              :class="['preset-btn', { active: activeAudioPreset === 'pulse' }]"
+              title="Pulsierendes Leuchten"
+            >
               💫 Puls
             </button>
-            <button @click="applyAudioPreset('dance')" class="preset-btn" title="Tanzbewegungen">
+            <button
+              @click="toggleAudioPreset('dance')"
+              :class="['preset-btn', { active: activeAudioPreset === 'dance' }]"
+              title="Tanzbewegungen"
+            >
               💃 Tanz
             </button>
-            <button @click="applyAudioPreset('shake')" class="preset-btn" title="Starke Erschütterung">
+            <button
+              @click="toggleAudioPreset('shake')"
+              :class="['preset-btn', { active: activeAudioPreset === 'shake' }]"
+              title="Starke Erschütterung"
+            >
               🔊 Shake
             </button>
-            <button @click="applyAudioPreset('glow')" class="preset-btn" title="Sanftes Leuchten">
+            <button
+              @click="toggleAudioPreset('glow')"
+              :class="['preset-btn', { active: activeAudioPreset === 'glow' }]"
+              title="Sanftes Leuchten"
+            >
               ✨ Glow
             </button>
-            <button @click="applyAudioPreset('strobe')" class="preset-btn" title="Stroboskop-Effekt">
+            <button
+              @click="toggleAudioPreset('strobe')"
+              :class="['preset-btn', { active: activeAudioPreset === 'strobe' }]"
+              title="Stroboskop-Effekt"
+            >
               ⚡ Strobe
             </button>
-            <button @click="applyAudioPreset('glitch')" class="preset-btn" title="Glitch-Effekt">
+            <button
+              @click="toggleAudioPreset('glitch')"
+              :class="['preset-btn', { active: activeAudioPreset === 'glitch' }]"
+              title="Glitch-Effekt"
+            >
               🔀 Glitch
             </button>
           </div>
@@ -1410,6 +1434,7 @@ const audioReactiveBeatBoostRef = ref(null);
 const audioReactiveBeatBoostValueRef = ref(null);
 const audioReactivePhaseRef = ref(null);
 const audioReactivePhaseValueRef = ref(null);
+const activeAudioPreset = ref(null);  // ✨ NEU: Aktives Preset für visuelle Hervorhebung
 const audioLevelBarRef = ref(null);
 let audioLevelAnimationId = null;
 
@@ -1812,6 +1837,8 @@ function onAudioReactiveToggle(event) {
     startAudioLevelIndicator();
   } else {
     stopAudioLevelIndicator();
+    // ✨ Preset-Status zurücksetzen wenn manuell deaktiviert
+    activeAudioPreset.value = null;
   }
 }
 
@@ -1859,6 +1886,49 @@ function onAudioReactivePhaseChange(event) {
     audioReactivePhaseValueRef.value.textContent = value + '°';
   }
   updateAudioReactiveSetting('phase', value);
+}
+
+/**
+ * ✨ NEU: Audio-Reaktiv Preset Toggle (aktivieren/deaktivieren)
+ */
+function toggleAudioPreset(presetName) {
+  // Wenn gleiches Preset aktiv ist, deaktivieren
+  if (activeAudioPreset.value === presetName) {
+    deactivateAudioPreset();
+  } else {
+    // Anderes oder kein Preset aktiv, neues Preset aktivieren
+    applyAudioPreset(presetName);
+  }
+}
+
+/**
+ * ✨ NEU: Audio-Reaktiv Preset deaktivieren
+ */
+function deactivateAudioPreset() {
+  if (!currentActiveImage.value) return;
+
+  const fotoManager = fotoManagerRef?.value;
+  if (!fotoManager) return;
+
+  fotoManager.initializeImageSettings(currentActiveImage.value);
+
+  const ar = currentActiveImage.value.fotoSettings.audioReactive;
+
+  // Alle Effekte deaktivieren
+  for (const effectName of Object.keys(ar.effects)) {
+    ar.effects[effectName].enabled = false;
+  }
+
+  // Audio-Reaktiv komplett deaktivieren
+  ar.enabled = false;
+
+  // Preset zurücksetzen
+  activeAudioPreset.value = null;
+
+  console.log('🎵 Audio-Preset deaktiviert');
+
+  // UI aktualisieren
+  loadAudioReactiveSettingsToUI();
 }
 
 /**
@@ -1940,6 +2010,9 @@ function applyAudioPreset(presetName) {
       ar.effects[effectName].intensity = config.intensity;
     }
   }
+
+  // ✨ Aktives Preset setzen für visuelle Hervorhebung
+  activeAudioPreset.value = presetName;
 
   console.log('🎵 Audio-Preset angewendet:', presetName, preset);
 
@@ -2114,6 +2187,8 @@ function loadAudioReactiveSettingsToUI() {
       startAudioLevelIndicator();
     } else {
       stopAudioLevelIndicator();
+      // ✨ Preset-Status zurücksetzen wenn Audio-Reaktiv deaktiviert
+      activeAudioPreset.value = null;
     }
   }
 
@@ -2350,6 +2425,8 @@ function loadAudioReactiveSettings(imageData) {
     loadEffect('perspective', effectPerspectiveEnabledRef, effectPerspectiveIntensityRef, effectPerspectiveValueRef, 50);
 
     stopAudioLevelIndicator();
+    // ✨ Preset-Status zurücksetzen beim Bildwechsel ohne Audio-Reaktiv
+    activeAudioPreset.value = null;
     return;
   }
 
@@ -2406,6 +2483,10 @@ function loadAudioReactiveSettings(imageData) {
   } else {
     stopAudioLevelIndicator();
   }
+
+  // ✨ Preset-Status beim Bildwechsel zurücksetzen
+  // (Preset ist bildspezifisch und wird nicht gespeichert)
+  activeAudioPreset.value = null;
 }
 
 function onPresetChange(event) {
@@ -4754,6 +4835,24 @@ input[type="range"]::-moz-range-thumb:hover {
 .preset-btn:active {
   transform: translateY(0);
   background: rgba(139, 92, 246, 0.4);
+}
+
+/* ✨ Aktiver Preset-Button */
+.preset-btn.active {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.6) 0%, rgba(236, 72, 153, 0.5) 100%);
+  border-color: rgba(236, 72, 153, 0.8);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.5), 0 0 20px rgba(236, 72, 153, 0.3);
+  color: #ffffff;
+  animation: presetGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes presetGlow {
+  0% {
+    box-shadow: 0 0 8px rgba(139, 92, 246, 0.5), 0 0 16px rgba(236, 72, 153, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 16px rgba(139, 92, 246, 0.7), 0 0 24px rgba(236, 72, 153, 0.4);
+  }
 }
 
 /* ✨ EFFEKTE-GRID (Mehrfachauswahl) - Kompakt */

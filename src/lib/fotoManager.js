@@ -41,31 +41,32 @@ export class FotoManager {
             // ✨ AUDIO-REAKTIV (Musik-Synchronisierung) - MEHRERE EFFEKTE GLEICHZEITIG
             audioReactive: {
                 enabled: false,              // Audio-Reaktivität aktiviert
-                // Individuelle Effekte mit eigenem Toggle und Intensität
+                // Individuelle Effekte mit eigenem Toggle, Intensität und optionaler Quelle
+                // source: null = globale Quelle verwenden, sonst individuelle Quelle
                 effects: {
-                    hue: { enabled: false, intensity: 80 },
-                    brightness: { enabled: false, intensity: 80 },
-                    saturation: { enabled: false, intensity: 80 },
-                    scale: { enabled: false, intensity: 80 },
-                    glow: { enabled: false, intensity: 80 },
-                    border: { enabled: false, intensity: 80 },
-                    blur: { enabled: false, intensity: 50 },      // Dynamische Unschärfe
-                    rotation: { enabled: false, intensity: 50 },  // Leichte Drehung
-                    shake: { enabled: false, intensity: 50 },     // Erschütterung bei Bass
-                    bounce: { enabled: false, intensity: 50 },    // Vertikales Hüpfen
-                    swing: { enabled: false, intensity: 50 },     // Horizontales Pendeln
-                    orbit: { enabled: false, intensity: 50 },     // Kreisbewegung
+                    hue: { enabled: false, intensity: 80, source: null },
+                    brightness: { enabled: false, intensity: 80, source: null },
+                    saturation: { enabled: false, intensity: 80, source: null },
+                    scale: { enabled: false, intensity: 80, source: null },
+                    glow: { enabled: false, intensity: 80, source: null },
+                    border: { enabled: false, intensity: 80, source: null },
+                    blur: { enabled: false, intensity: 50, source: null },
+                    rotation: { enabled: false, intensity: 50, source: null },
+                    shake: { enabled: false, intensity: 50, source: null },
+                    bounce: { enabled: false, intensity: 50, source: null },
+                    swing: { enabled: false, intensity: 50, source: null },
+                    orbit: { enabled: false, intensity: 50, source: null },
                     // ✨ NEUE EFFEKTE
-                    contrast: { enabled: false, intensity: 60 },  // Kontrast-Pulsieren
-                    grayscale: { enabled: false, intensity: 80 }, // Schwarz-Weiß Überblendung
-                    sepia: { enabled: false, intensity: 70 },     // Vintage/Sepia Look
-                    invert: { enabled: false, intensity: 50 },    // Farbinversion bei Beats
-                    skew: { enabled: false, intensity: 40 },      // Scheren/Verzerrung
-                    strobe: { enabled: false, intensity: 70 },    // Blitz-Effekt bei Peaks
-                    chromatic: { enabled: false, intensity: 60 }, // RGB-Verschiebung (Glitch)
-                    perspective: { enabled: false, intensity: 50 } // 3D-Kipp-Effekt
+                    contrast: { enabled: false, intensity: 60, source: null },
+                    grayscale: { enabled: false, intensity: 80, source: null },
+                    sepia: { enabled: false, intensity: 70, source: null },
+                    invert: { enabled: false, intensity: 50, source: null },
+                    skew: { enabled: false, intensity: 40, source: null },
+                    strobe: { enabled: false, intensity: 70, source: null },
+                    chromatic: { enabled: false, intensity: 60, source: null },
+                    perspective: { enabled: false, intensity: 50, source: null }
                 },
-                source: 'bass',              // 'bass', 'mid', 'treble', 'volume', 'dynamic'
+                source: 'bass',              // 'bass', 'mid', 'treble', 'volume', 'dynamic' (globale Standard-Quelle)
                 smoothing: 50,               // 0-100% Glättung (verhindert Flackern)
                 // ✨ NEU: Erweiterte Steuerung
                 easing: 'linear',            // 'linear', 'easeIn', 'easeOut', 'easeInOut', 'bounce', 'elastic', 'punch'
@@ -130,37 +131,48 @@ export class FotoManager {
 
     /**
      * Migriert alte audioReactive-Struktur (einzelner Effekt) zur neuen (mehrere Effekte)
+     * ✨ NEU: Unterstützt individuelle Quellen pro Effekt
      */
     _migrateAudioReactiveSettings(oldSettings) {
         if (!oldSettings) return this._deepCopyAudioReactive();
 
+        // Helper: Migriert einen einzelnen Effekt mit source-Unterstützung
+        const migrateEffect = (oldEffect, defaultIntensity = 80) => {
+            if (!oldEffect) return { enabled: false, intensity: defaultIntensity, source: null };
+            return {
+                enabled: oldEffect.enabled ?? false,
+                intensity: oldEffect.intensity ?? defaultIntensity,
+                source: oldEffect.source ?? null  // null = globale Quelle verwenden
+            };
+        };
+
         // Falls bereits neue Struktur vorhanden
         if (oldSettings.effects) {
-            // Deep copy der existierenden Struktur
+            // Deep copy der existierenden Struktur mit source-Migration
             return {
                 enabled: oldSettings.enabled ?? false,
                 effects: {
-                    hue: { ...(oldSettings.effects.hue || { enabled: false, intensity: 80 }) },
-                    brightness: { ...(oldSettings.effects.brightness || { enabled: false, intensity: 80 }) },
-                    saturation: { ...(oldSettings.effects.saturation || { enabled: false, intensity: 80 }) },
-                    scale: { ...(oldSettings.effects.scale || { enabled: false, intensity: 80 }) },
-                    glow: { ...(oldSettings.effects.glow || { enabled: false, intensity: 80 }) },
-                    border: { ...(oldSettings.effects.border || { enabled: false, intensity: 80 }) },
-                    blur: { ...(oldSettings.effects.blur || { enabled: false, intensity: 50 }) },
-                    rotation: { ...(oldSettings.effects.rotation || { enabled: false, intensity: 50 }) },
-                    shake: { ...(oldSettings.effects.shake || { enabled: false, intensity: 50 }) },
-                    bounce: { ...(oldSettings.effects.bounce || { enabled: false, intensity: 50 }) },
-                    swing: { ...(oldSettings.effects.swing || { enabled: false, intensity: 50 }) },
-                    orbit: { ...(oldSettings.effects.orbit || { enabled: false, intensity: 50 }) },
+                    hue: migrateEffect(oldSettings.effects.hue, 80),
+                    brightness: migrateEffect(oldSettings.effects.brightness, 80),
+                    saturation: migrateEffect(oldSettings.effects.saturation, 80),
+                    scale: migrateEffect(oldSettings.effects.scale, 80),
+                    glow: migrateEffect(oldSettings.effects.glow, 80),
+                    border: migrateEffect(oldSettings.effects.border, 80),
+                    blur: migrateEffect(oldSettings.effects.blur, 50),
+                    rotation: migrateEffect(oldSettings.effects.rotation, 50),
+                    shake: migrateEffect(oldSettings.effects.shake, 50),
+                    bounce: migrateEffect(oldSettings.effects.bounce, 50),
+                    swing: migrateEffect(oldSettings.effects.swing, 50),
+                    orbit: migrateEffect(oldSettings.effects.orbit, 50),
                     // ✨ NEUE EFFEKTE (mit Migration)
-                    contrast: { ...(oldSettings.effects.contrast || { enabled: false, intensity: 60 }) },
-                    grayscale: { ...(oldSettings.effects.grayscale || { enabled: false, intensity: 80 }) },
-                    sepia: { ...(oldSettings.effects.sepia || { enabled: false, intensity: 70 }) },
-                    invert: { ...(oldSettings.effects.invert || { enabled: false, intensity: 50 }) },
-                    skew: { ...(oldSettings.effects.skew || { enabled: false, intensity: 40 }) },
-                    strobe: { ...(oldSettings.effects.strobe || { enabled: false, intensity: 70 }) },
-                    chromatic: { ...(oldSettings.effects.chromatic || { enabled: false, intensity: 60 }) },
-                    perspective: { ...(oldSettings.effects.perspective || { enabled: false, intensity: 50 }) }
+                    contrast: migrateEffect(oldSettings.effects.contrast, 60),
+                    grayscale: migrateEffect(oldSettings.effects.grayscale, 80),
+                    sepia: migrateEffect(oldSettings.effects.sepia, 70),
+                    invert: migrateEffect(oldSettings.effects.invert, 50),
+                    skew: migrateEffect(oldSettings.effects.skew, 40),
+                    strobe: migrateEffect(oldSettings.effects.strobe, 70),
+                    chromatic: migrateEffect(oldSettings.effects.chromatic, 60),
+                    perspective: migrateEffect(oldSettings.effects.perspective, 50)
                 },
                 source: oldSettings.source || 'bass',
                 smoothing: oldSettings.smoothing ?? 50,

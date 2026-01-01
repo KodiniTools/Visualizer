@@ -65,8 +65,12 @@ export class FotoManager {
                     chromatic: { enabled: false, intensity: 60 }, // RGB-Verschiebung (Glitch)
                     perspective: { enabled: false, intensity: 50 } // 3D-Kipp-Effekt
                 },
-                source: 'bass',              // 'bass', 'mid', 'treble', 'volume'
-                smoothing: 50                // 0-100% Glättung (verhindert Flackern)
+                source: 'bass',              // 'bass', 'mid', 'treble', 'volume', 'dynamic'
+                smoothing: 50,               // 0-100% Glättung (verhindert Flackern)
+                // ✨ NEU: Erweiterte Steuerung
+                easing: 'linear',            // 'linear', 'easeIn', 'easeOut', 'easeInOut', 'bounce', 'elastic', 'punch'
+                phase: 0,                    // 0-360° Phasenversatz für Kaskaden-Effekte
+                beatBoost: 1.0               // 1.0-3.0 Beat-Verstärkung (1.0 = aus)
             }
         };
     }
@@ -116,7 +120,11 @@ export class FotoManager {
                 perspective: { ...defaultAR.effects.perspective }
             },
             source: defaultAR.source,
-            smoothing: defaultAR.smoothing
+            smoothing: defaultAR.smoothing,
+            // ✨ NEU: Erweiterte Steuerung
+            easing: defaultAR.easing,
+            phase: defaultAR.phase,
+            beatBoost: defaultAR.beatBoost
         };
     }
 
@@ -155,7 +163,11 @@ export class FotoManager {
                     perspective: { ...(oldSettings.effects.perspective || { enabled: false, intensity: 50 }) }
                 },
                 source: oldSettings.source || 'bass',
-                smoothing: oldSettings.smoothing ?? 50
+                smoothing: oldSettings.smoothing ?? 50,
+                // ✨ NEU: Erweiterte Steuerung (mit Migration)
+                easing: oldSettings.easing || 'linear',
+                phase: oldSettings.phase ?? 0,
+                beatBoost: oldSettings.beatBoost ?? 1.0
             };
         }
 
@@ -164,6 +176,9 @@ export class FotoManager {
         newSettings.enabled = oldSettings.enabled ?? false;
         newSettings.source = oldSettings.source || 'bass';
         newSettings.smoothing = oldSettings.smoothing ?? 50;
+        newSettings.easing = oldSettings.easing || 'linear';
+        newSettings.phase = oldSettings.phase ?? 0;
+        newSettings.beatBoost = oldSettings.beatBoost ?? 1.0;
 
         // Alten einzelnen Effekt in neuer Struktur aktivieren
         if (oldSettings.effect && oldSettings.enabled) {

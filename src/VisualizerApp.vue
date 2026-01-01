@@ -1600,6 +1600,8 @@ function draw() {
     }
 
     if (canvasManagerInstance.value) {
+      // ✨ Ghost-Markierungen für ausgeblendete Texte zeichnen
+      canvasManagerInstance.value.drawFadedTextMarkers(ctx);
       canvasManagerInstance.value.drawInteractiveElements(ctx);
       canvasManagerInstance.value.drawWorkspaceOutline(ctx);
       canvasManagerInstance.value.drawTextSelectionRect(ctx);

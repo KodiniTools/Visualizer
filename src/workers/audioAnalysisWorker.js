@@ -1,6 +1,7 @@
 /**
  * Audio Analysis Web Worker
  * Entlastet den Main Thread von FFT-Berechnungen
+ * ✨ NEU: Beat-Peak-Erkennung für dramatischere Effekte
  */
 
 // Gespeicherte geglättete Werte für Smoothing
@@ -8,6 +9,14 @@ let smoothBass = 0;
 let smoothMid = 0;
 let smoothTreble = 0;
 let smoothVolume = 0;
+
+// ✨ Beat-Detection State
+let lastBassLevel = 0;
+let lastBeatTime = 0;
+let beatHistory = [];          // Letzte Beat-Intervalle für BPM-Schätzung
+const BEAT_HISTORY_SIZE = 8;   // Anzahl der gespeicherten Intervalle
+let averageBeatInterval = 500; // Durchschnittliches Beat-Intervall (ms)
+let beatConfidence = 0;        // Wie sicher ist die Beat-Erkennung (0-1)
 
 /**
  * Analysiert FFT-Daten und berechnet Frequenzbänder
@@ -69,6 +78,57 @@ function analyzeAudioData(audioDataArray, bufferLength) {
   smoothTreble = Math.floor(smoothTreble * (1 - trebleSmoothFactor) + treble * trebleSmoothFactor);
   smoothVolume = Math.floor(smoothVolume * (1 - smoothFactor) + volume * smoothFactor);
 
+  // ✨ Beat-Detection: Erkennt starke Bass-Peaks
+  const now = Date.now();
+  const bassNormalized = bass / 255;
+  const lastBassNormalized = lastBassLevel / 255;
+
+  // Beat erkannt wenn: signifikanter Anstieg + über Schwellwert + Mindestabstand zum letzten Beat
+  const beatThreshold = 0.45;          // Mindest-Level für Beat
+  const beatRiseThreshold = 0.15;      // Mindest-Anstieg für Beat
+  const minBeatInterval = 150;         // Mindestens 150ms zwischen Beats (max 400 BPM)
+
+  const timeSinceLastBeat = now - lastBeatTime;
+  const isRising = bassNormalized - lastBassNormalized > beatRiseThreshold;
+  const isAboveThreshold = bassNormalized > beatThreshold;
+  const hasMinInterval = timeSinceLastBeat > minBeatInterval;
+
+  let isBeat = false;
+  let beatIntensity = 0;
+
+  if (isRising && isAboveThreshold && hasMinInterval) {
+    isBeat = true;
+    beatIntensity = Math.min(1, (bassNormalized - beatThreshold) / (1 - beatThreshold));
+
+    // Beat-Intervall für BPM-Berechnung speichern
+    if (lastBeatTime > 0 && timeSinceLastBeat < 2000) {
+      beatHistory.push(timeSinceLastBeat);
+      if (beatHistory.length > BEAT_HISTORY_SIZE) {
+        beatHistory.shift();
+      }
+
+      // Durchschnittliches Intervall berechnen
+      if (beatHistory.length >= 3) {
+        const sum = beatHistory.reduce((a, b) => a + b, 0);
+        averageBeatInterval = sum / beatHistory.length;
+
+        // Confidence basierend auf Konsistenz der Intervalle
+        const variance = beatHistory.reduce((sum, val) =>
+          sum + Math.pow(val - averageBeatInterval, 2), 0) / beatHistory.length;
+        const stdDev = Math.sqrt(variance);
+        beatConfidence = Math.max(0, 1 - (stdDev / averageBeatInterval));
+      }
+    }
+
+    lastBeatTime = now;
+  }
+
+  // Bass-Level für nächsten Frame speichern
+  lastBassLevel = bass;
+
+  // BPM berechnen (wenn genug Daten)
+  const bpm = beatHistory.length >= 3 ? Math.round(60000 / averageBeatInterval) : 0;
+
   return {
     bass,
     mid,
@@ -77,7 +137,13 @@ function analyzeAudioData(audioDataArray, bufferLength) {
     smoothBass,
     smoothMid,
     smoothTreble,
-    smoothVolume
+    smoothVolume,
+    // ✨ NEU: Beat-Detection Daten
+    isBeat,
+    beatIntensity,
+    timeSinceLastBeat,
+    bpm,
+    beatConfidence
   };
 }
 
@@ -99,6 +165,12 @@ self.onmessage = function(e) {
       smoothMid = 0;
       smoothTreble = 0;
       smoothVolume = 0;
+      // ✨ Reset Beat-Detection State
+      lastBassLevel = 0;
+      lastBeatTime = 0;
+      beatHistory = [];
+      averageBeatInterval = 500;
+      beatConfidence = 0;
       self.postMessage({ type: 'reset', success: true });
       break;
 

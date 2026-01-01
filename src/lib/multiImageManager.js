@@ -366,9 +366,72 @@ export class MultiImageManager {
         return this.images;
     }
     
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ✨ EASING-FUNKTIONEN für geschmeidigere Audio-Reaktionen
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Wendet eine Easing-Funktion auf einen Wert an (0-1)
+     */
+    _applyEasing(value, easingType = 'linear') {
+        const t = Math.max(0, Math.min(1, value)); // Clamp auf 0-1
+
+        switch (easingType) {
+            case 'linear':
+                return t;
+
+            case 'easeIn':
+                // Langsamer Start, beschleunigt zum Ende
+                return t * t * t;
+
+            case 'easeOut':
+                // Schneller Start, verlangsamt zum Ende
+                return 1 - Math.pow(1 - t, 3);
+
+            case 'easeInOut':
+                // Langsamer Start und Ende, schnell in der Mitte
+                return t < 0.5
+                    ? 4 * t * t * t
+                    : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+            case 'bounce':
+                // Federnder Effekt
+                const n1 = 7.5625;
+                const d1 = 2.75;
+                if (t < 1 / d1) {
+                    return n1 * t * t;
+                } else if (t < 2 / d1) {
+                    const t2 = t - 1.5 / d1;
+                    return n1 * t2 * t2 + 0.75;
+                } else if (t < 2.5 / d1) {
+                    const t2 = t - 2.25 / d1;
+                    return n1 * t2 * t2 + 0.9375;
+                } else {
+                    const t2 = t - 2.625 / d1;
+                    return n1 * t2 * t2 + 0.984375;
+                }
+
+            case 'elastic':
+                // Elastischer Effekt
+                if (t === 0 || t === 1) return t;
+                const c4 = (2 * Math.PI) / 3;
+                return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+
+            case 'punch':
+                // Starker Punch-Effekt für Beats
+                return Math.pow(t, 0.5) * (1 + Math.sin(t * Math.PI) * 0.3);
+
+            default:
+                return t;
+        }
+    }
+
     /**
      * ✨ Berechnet Audio-Reaktive Effekt-Werte basierend auf den aktuellen Audio-Daten
      * ✅ NEU: Unterstützt jetzt MEHRERE Effekte gleichzeitig
+     * ✅ NEU: Easing-Funktionen für geschmeidigere Übergänge
+     * ✅ NEU: Delay/Phasenversatz für Kaskaden-Effekte
+     * ✅ NEU: Beat-Boost für dramatischere Effekte bei Beats
      */
     getAudioReactiveValues(audioSettings) {
         if (!audioSettings || !audioSettings.enabled) {
@@ -381,6 +444,10 @@ export class MultiImageManager {
         // Audio-Level basierend auf gewählter Quelle holen
         const source = audioSettings.source || 'bass';
         const smoothing = audioSettings.smoothing || 50;
+        const easing = audioSettings.easing || 'linear';
+        const phase = audioSettings.phase || 0;           // Phasenversatz in Grad (0-360)
+        const beatBoost = audioSettings.beatBoost ?? 1.0; // Beat-Verstärkung (1.0 = aus, 2.0 = stark)
+
         let audioLevel = 0;
 
         // Wähle zwischen geglätteten und rohen Werten basierend auf Smoothing
@@ -426,8 +493,25 @@ export class MultiImageManager {
                 break;
         }
 
+        // ✨ NEU: Beat-Boost - Verstärke bei erkanntem Beat
+        if (audioData.isBeat && beatBoost > 1.0) {
+            const boostAmount = 1 + ((beatBoost - 1) * (audioData.beatIntensity || 0));
+            audioLevel = Math.min(255, audioLevel * boostAmount);
+        }
+
+        // ✨ NEU: Phasenversatz anwenden (verschiebt die Wellenform)
+        if (phase > 0) {
+            const phaseRad = (phase * Math.PI) / 180;
+            const time = Date.now() * 0.002;
+            const phaseModifier = (Math.sin(time + phaseRad) + 1) / 2; // 0-1
+            audioLevel = audioLevel * (0.5 + phaseModifier * 0.5); // Variiert zwischen 50-100%
+        }
+
         // Basis Audio-Level normalisiert auf 0-1
-        const baseLevel = audioLevel / 255;
+        let baseLevel = audioLevel / 255;
+
+        // ✨ NEU: Easing-Funktion anwenden
+        baseLevel = this._applyEasing(baseLevel, easing);
 
         // Ergebnis-Objekt für alle aktivierten Effekte
         const result = {

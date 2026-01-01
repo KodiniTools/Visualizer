@@ -727,6 +727,89 @@
           />
         </div>
 
+        <!-- ✨ NEU: Easing-Funktion -->
+        <div class="modern-control">
+          <label class="modern-label">
+            <span class="label-text">Bewegungskurve</span>
+          </label>
+          <select
+            ref="audioReactiveEasingRef"
+            @change="onAudioReactiveEasingChange"
+            class="modern-select"
+          >
+            <option value="linear">Linear (Standard)</option>
+            <option value="easeIn">Ease-In (Langsamer Start)</option>
+            <option value="easeOut">Ease-Out (Sanftes Ende)</option>
+            <option value="easeInOut">Ease-In-Out (Geschmeidig)</option>
+            <option value="bounce">Bounce (Federnd)</option>
+            <option value="elastic">Elastic (Elastisch)</option>
+            <option value="punch">Punch (Schlagkräftig)</option>
+          </select>
+        </div>
+
+        <!-- ✨ NEU: Beat-Boost -->
+        <div class="modern-control">
+          <label class="modern-label">
+            <span class="label-text">Beat-Verstärkung</span>
+            <span class="label-value" ref="audioReactiveBeatBoostValueRef">Aus</span>
+          </label>
+          <input
+            type="range"
+            min="1.0"
+            max="3.0"
+            value="1.0"
+            step="0.1"
+            ref="audioReactiveBeatBoostRef"
+            @input="onAudioReactiveBeatBoostChange"
+            class="modern-slider audio-slider"
+          />
+        </div>
+
+        <!-- ✨ NEU: Phasenversatz -->
+        <div class="modern-control">
+          <label class="modern-label">
+            <span class="label-text">Phasenversatz</span>
+            <span class="label-value" ref="audioReactivePhaseValueRef">0°</span>
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="360"
+            value="0"
+            step="15"
+            ref="audioReactivePhaseRef"
+            @input="onAudioReactivePhaseChange"
+            class="modern-slider audio-slider"
+          />
+        </div>
+
+        <!-- ✨ NEU: Schnell-Presets -->
+        <div class="modern-control preset-buttons">
+          <label class="modern-label">
+            <span class="label-text">Schnell-Presets</span>
+          </label>
+          <div class="preset-grid">
+            <button @click="applyAudioPreset('pulse')" class="preset-btn" title="Pulsierendes Leuchten">
+              💫 Puls
+            </button>
+            <button @click="applyAudioPreset('dance')" class="preset-btn" title="Tanzbewegungen">
+              💃 Tanz
+            </button>
+            <button @click="applyAudioPreset('shake')" class="preset-btn" title="Starke Erschütterung">
+              🔊 Shake
+            </button>
+            <button @click="applyAudioPreset('glow')" class="preset-btn" title="Sanftes Leuchten">
+              ✨ Glow
+            </button>
+            <button @click="applyAudioPreset('strobe')" class="preset-btn" title="Stroboskop-Effekt">
+              ⚡ Strobe
+            </button>
+            <button @click="applyAudioPreset('glitch')" class="preset-btn" title="Glitch-Effekt">
+              🔀 Glitch
+            </button>
+          </div>
+        </div>
+
         <!-- Effekte-Auswahl (Mehrfachauswahl) -->
         <div class="modern-control effects-grid">
           <label class="modern-label">
@@ -1321,6 +1404,12 @@ const audioReactiveEnabledRef = ref(null);
 const audioReactiveSourceRef = ref(null);
 const audioReactiveSmoothingRef = ref(null);
 const audioReactiveSmoothingValueRef = ref(null);
+// ✨ NEU: Refs für erweiterte Audio-Steuerung
+const audioReactiveEasingRef = ref(null);
+const audioReactiveBeatBoostRef = ref(null);
+const audioReactiveBeatBoostValueRef = ref(null);
+const audioReactivePhaseRef = ref(null);
+const audioReactivePhaseValueRef = ref(null);
 const audioLevelBarRef = ref(null);
 let audioLevelAnimationId = null;
 
@@ -1743,6 +1832,122 @@ function onAudioReactiveSmoothingChange(event) {
 }
 
 /**
+ * ✨ NEU: Easing-Funktion ändern
+ */
+function onAudioReactiveEasingChange(event) {
+  updateAudioReactiveSetting('easing', event.target.value);
+}
+
+/**
+ * ✨ NEU: Beat-Boost ändern
+ */
+function onAudioReactiveBeatBoostChange(event) {
+  const value = parseFloat(event.target.value);
+  const displayValue = value <= 1.0 ? 'Aus' : `${Math.round((value - 1) * 100)}%`;
+  if (audioReactiveBeatBoostValueRef.value) {
+    audioReactiveBeatBoostValueRef.value.textContent = displayValue;
+  }
+  updateAudioReactiveSetting('beatBoost', value);
+}
+
+/**
+ * ✨ NEU: Phasenversatz ändern
+ */
+function onAudioReactivePhaseChange(event) {
+  const value = parseInt(event.target.value);
+  if (audioReactivePhaseValueRef.value) {
+    audioReactivePhaseValueRef.value.textContent = value + '°';
+  }
+  updateAudioReactiveSetting('phase', value);
+}
+
+/**
+ * ✨ NEU: Audio-Reaktiv Preset anwenden
+ */
+function applyAudioPreset(presetName) {
+  if (!currentActiveImage.value) return;
+
+  const fotoManager = fotoManagerRef?.value;
+  if (!fotoManager) return;
+
+  fotoManager.initializeImageSettings(currentActiveImage.value);
+
+  // Alle Effekte deaktivieren
+  const ar = currentActiveImage.value.fotoSettings.audioReactive;
+  for (const effectName of Object.keys(ar.effects)) {
+    ar.effects[effectName].enabled = false;
+  }
+
+  // Preset-Definitionen
+  const presets = {
+    pulse: {
+      effects: { scale: { enabled: true, intensity: 70 }, glow: { enabled: true, intensity: 80 } },
+      source: 'bass',
+      easing: 'easeOut',
+      beatBoost: 1.5,
+      smoothing: 60
+    },
+    dance: {
+      effects: { bounce: { enabled: true, intensity: 60 }, swing: { enabled: true, intensity: 50 }, rotation: { enabled: true, intensity: 30 } },
+      source: 'mid',
+      easing: 'bounce',
+      beatBoost: 1.3,
+      smoothing: 40
+    },
+    shake: {
+      effects: { shake: { enabled: true, intensity: 80 }, scale: { enabled: true, intensity: 40 } },
+      source: 'bass',
+      easing: 'punch',
+      beatBoost: 2.0,
+      smoothing: 20
+    },
+    glow: {
+      effects: { glow: { enabled: true, intensity: 90 }, brightness: { enabled: true, intensity: 50 }, hue: { enabled: true, intensity: 30 } },
+      source: 'volume',
+      easing: 'easeInOut',
+      beatBoost: 1.0,
+      smoothing: 70
+    },
+    strobe: {
+      effects: { strobe: { enabled: true, intensity: 85 }, invert: { enabled: true, intensity: 60 } },
+      source: 'bass',
+      easing: 'linear',
+      beatBoost: 2.5,
+      smoothing: 10
+    },
+    glitch: {
+      effects: { chromatic: { enabled: true, intensity: 75 }, skew: { enabled: true, intensity: 50 }, shake: { enabled: true, intensity: 40 } },
+      source: 'bass',
+      easing: 'elastic',
+      beatBoost: 2.0,
+      smoothing: 25
+    }
+  };
+
+  const preset = presets[presetName];
+  if (!preset) return;
+
+  // Preset anwenden
+  ar.enabled = true;
+  ar.source = preset.source;
+  ar.easing = preset.easing;
+  ar.beatBoost = preset.beatBoost;
+  ar.smoothing = preset.smoothing;
+
+  for (const [effectName, config] of Object.entries(preset.effects)) {
+    if (ar.effects[effectName]) {
+      ar.effects[effectName].enabled = config.enabled;
+      ar.effects[effectName].intensity = config.intensity;
+    }
+  }
+
+  console.log('🎵 Audio-Preset angewendet:', presetName, preset);
+
+  // UI aktualisieren
+  loadAudioReactiveSettingsToUI();
+}
+
+/**
  * Effekt ein-/ausschalten
  */
 function onEffectToggle(effectName, enabled) {
@@ -1924,6 +2129,30 @@ function loadAudioReactiveSettingsToUI() {
     }
   }
 
+  // ✨ NEU: Easing laden
+  if (audioReactiveEasingRef.value) {
+    audioReactiveEasingRef.value.value = audioReactive.easing || 'linear';
+  }
+
+  // ✨ NEU: Beat-Boost laden
+  if (audioReactiveBeatBoostRef.value) {
+    const beatBoost = audioReactive.beatBoost ?? 1.0;
+    audioReactiveBeatBoostRef.value.value = beatBoost;
+    if (audioReactiveBeatBoostValueRef.value) {
+      const displayValue = beatBoost <= 1.0 ? 'Aus' : `${Math.round((beatBoost - 1) * 100)}%`;
+      audioReactiveBeatBoostValueRef.value.textContent = displayValue;
+    }
+  }
+
+  // ✨ NEU: Phase laden
+  if (audioReactivePhaseRef.value) {
+    const phase = audioReactive.phase ?? 0;
+    audioReactivePhaseRef.value.value = phase;
+    if (audioReactivePhaseValueRef.value) {
+      audioReactivePhaseValueRef.value.textContent = phase + '°';
+    }
+  }
+
   // Alle Effekte laden
   const effects = audioReactive.effects || {};
   const effectNames = ['hue', 'brightness', 'saturation', 'scale', 'glow', 'border', 'blur', 'rotation', 'shake', 'bounce', 'swing', 'orbit',
@@ -2090,6 +2319,12 @@ function loadAudioReactiveSettings(imageData) {
     if (audioReactiveSourceRef.value) audioReactiveSourceRef.value.value = 'bass';
     if (audioReactiveSmoothingRef.value) audioReactiveSmoothingRef.value.value = 50;
     if (audioReactiveSmoothingValueRef.value) audioReactiveSmoothingValueRef.value.textContent = '50%';
+    // ✨ NEU: Standardwerte für erweiterte Steuerung
+    if (audioReactiveEasingRef.value) audioReactiveEasingRef.value.value = 'linear';
+    if (audioReactiveBeatBoostRef.value) audioReactiveBeatBoostRef.value.value = 1.0;
+    if (audioReactiveBeatBoostValueRef.value) audioReactiveBeatBoostValueRef.value.textContent = 'Aus';
+    if (audioReactivePhaseRef.value) audioReactivePhaseRef.value.value = 0;
+    if (audioReactivePhaseValueRef.value) audioReactivePhaseValueRef.value.textContent = '0°';
 
     // Alle Effekte auf Standard
     loadEffect('hue', effectHueEnabledRef, effectHueIntensityRef, effectHueValueRef);
@@ -2125,6 +2360,23 @@ function loadAudioReactiveSettings(imageData) {
   if (audioReactiveSourceRef.value) audioReactiveSourceRef.value.value = ar.source || 'bass';
   if (audioReactiveSmoothingRef.value) audioReactiveSmoothingRef.value.value = ar.smoothing || 50;
   if (audioReactiveSmoothingValueRef.value) audioReactiveSmoothingValueRef.value.textContent = (ar.smoothing || 50) + '%';
+
+  // ✨ NEU: Erweiterte Steuerung laden
+  if (audioReactiveEasingRef.value) audioReactiveEasingRef.value.value = ar.easing || 'linear';
+  if (audioReactiveBeatBoostRef.value) {
+    const beatBoost = ar.beatBoost ?? 1.0;
+    audioReactiveBeatBoostRef.value.value = beatBoost;
+    if (audioReactiveBeatBoostValueRef.value) {
+      audioReactiveBeatBoostValueRef.value.textContent = beatBoost <= 1.0 ? 'Aus' : `${Math.round((beatBoost - 1) * 100)}%`;
+    }
+  }
+  if (audioReactivePhaseRef.value) {
+    const phase = ar.phase ?? 0;
+    audioReactivePhaseRef.value.value = phase;
+    if (audioReactivePhaseValueRef.value) {
+      audioReactivePhaseValueRef.value.textContent = phase + '°';
+    }
+  }
 
   // Individuelle Effekte laden
   loadEffect('hue', effectHueEnabledRef, effectHueIntensityRef, effectHueValueRef);
@@ -4466,6 +4718,42 @@ input[type="range"]::-moz-range-thumb:hover {
   background: #8b5cf6;
   cursor: pointer;
   border: none;
+}
+
+/* ✨ PRESET-BUTTONS für Audio-Reaktiv */
+.preset-buttons {
+  margin-top: 8px;
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.preset-btn {
+  padding: 6px 4px;
+  font-size: 0.6rem;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.preset-btn:hover {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+.preset-btn:active {
+  transform: translateY(0);
+  background: rgba(139, 92, 246, 0.4);
 }
 
 /* ✨ EFFEKTE-GRID (Mehrfachauswahl) - Kompakt */

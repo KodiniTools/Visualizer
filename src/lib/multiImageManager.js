@@ -427,31 +427,14 @@ export class MultiImageManager {
     }
 
     /**
-     * ✨ Berechnet Audio-Reaktive Effekt-Werte basierend auf den aktuellen Audio-Daten
-     * ✅ NEU: Unterstützt jetzt MEHRERE Effekte gleichzeitig
-     * ✅ NEU: Easing-Funktionen für geschmeidigere Übergänge
-     * ✅ NEU: Delay/Phasenversatz für Kaskaden-Effekte
-     * ✅ NEU: Beat-Boost für dramatischere Effekte bei Beats
+     * ✨ Berechnet den Audio-Level für eine bestimmte Quelle
+     * @param {string} source - 'bass', 'mid', 'treble', 'volume', 'dynamic'
+     * @param {object} audioData - Die Audio-Analyse-Daten
+     * @param {boolean} useSmooth - Ob geglättete Werte verwendet werden sollen
+     * @returns {number} Audio-Level (0-255)
      */
-    getAudioReactiveValues(audioSettings) {
-        if (!audioSettings || !audioSettings.enabled) {
-            return null;
-        }
-
-        const audioData = window.audioAnalysisData;
-        if (!audioData) return null;
-
-        // Audio-Level basierend auf gewählter Quelle holen
-        const source = audioSettings.source || 'bass';
-        const smoothing = audioSettings.smoothing || 50;
-        const easing = audioSettings.easing || 'linear';
-        const phase = audioSettings.phase || 0;           // Phasenversatz in Grad (0-360)
-        const beatBoost = audioSettings.beatBoost ?? 1.0; // Beat-Verstärkung (1.0 = aus, 2.0 = stark)
-
+    _getAudioLevelForSource(source, audioData, useSmooth) {
         let audioLevel = 0;
-
-        // Wähle zwischen geglätteten und rohen Werten basierend auf Smoothing
-        const useSmooth = smoothing > 30;
 
         switch (source) {
             case 'bass':
@@ -467,51 +450,51 @@ export class MultiImageManager {
                 audioLevel = useSmooth ? audioData.smoothVolume : audioData.volume;
                 break;
             case 'dynamic':
-                // ✨ Dynamischer Modus: Gewichtete Mischung aller Frequenzbänder
-                // basierend auf ihrer aktuellen Energie
+                // Dynamischer Modus: Gewichtete Mischung aller Frequenzbänder
                 const bass = useSmooth ? audioData.smoothBass : audioData.bass;
                 const mid = useSmooth ? audioData.smoothMid : audioData.mid;
                 const treble = useSmooth ? audioData.smoothTreble : audioData.treble;
 
-                // Gesamtenergie berechnen (mit Minimum um Division durch 0 zu vermeiden)
                 const totalEnergy = Math.max(bass + mid + treble, 1);
-
-                // Gewichte basierend auf aktueller Energie jedes Bands
                 const bassWeight = bass / totalEnergy;
                 const midWeight = mid / totalEnergy;
                 const trebleWeight = treble / totalEnergy;
 
-                // Gewichtete Mischung - die dominante Frequenz trägt am meisten bei
                 let rawLevel = (bass * bassWeight) + (mid * midWeight) + (treble * trebleWeight);
-
-                // ✨ Soft Compression: Verhindert konstantes Peaking bei lauter Musik (z.B. Techno)
-                // Wurzelkurve erweitert den dynamischen Bereich - leise Teile werden verstärkt,
-                // laute Teile werden komprimiert
                 const normalized = rawLevel / 255;
-                const compressed = Math.pow(normalized, 0.7); // 0.7 = sanfte Kompression
-                audioLevel = compressed * 255 * 0.85; // 0.85 = leichte Dämpfung
+                const compressed = Math.pow(normalized, 0.7);
+                audioLevel = compressed * 255 * 0.85;
                 break;
+            default:
+                audioLevel = useSmooth ? audioData.smoothBass : audioData.bass;
         }
 
-        // ✨ NEU: Beat-Boost - Verstärke bei erkanntem Beat
-        if (audioData.isBeat && beatBoost > 1.0) {
-            const boostAmount = 1 + ((beatBoost - 1) * (audioData.beatIntensity || 0));
-            audioLevel = Math.min(255, audioLevel * boostAmount);
+        return audioLevel;
+    }
+
+    /**
+     * ✨ Berechnet Audio-Reaktive Effekt-Werte basierend auf den aktuellen Audio-Daten
+     * ✅ Unterstützt MEHRERE Effekte gleichzeitig
+     * ✅ Easing-Funktionen für geschmeidigere Übergänge
+     * ✅ Delay/Phasenversatz für Kaskaden-Effekte
+     * ✅ Beat-Boost für dramatischere Effekte bei Beats
+     * ✅ NEU: Individuelle Audio-Quelle pro Effekt
+     */
+    getAudioReactiveValues(audioSettings) {
+        if (!audioSettings || !audioSettings.enabled) {
+            return null;
         }
 
-        // ✨ NEU: Phasenversatz anwenden (verschiebt die Wellenform)
-        if (phase > 0) {
-            const phaseRad = (phase * Math.PI) / 180;
-            const time = Date.now() * 0.002;
-            const phaseModifier = (Math.sin(time + phaseRad) + 1) / 2; // 0-1
-            audioLevel = audioLevel * (0.5 + phaseModifier * 0.5); // Variiert zwischen 50-100%
-        }
+        const audioData = window.audioAnalysisData;
+        if (!audioData) return null;
 
-        // Basis Audio-Level normalisiert auf 0-1
-        let baseLevel = audioLevel / 255;
-
-        // ✨ NEU: Easing-Funktion anwenden
-        baseLevel = this._applyEasing(baseLevel, easing);
+        // Globale Einstellungen
+        const globalSource = audioSettings.source || 'bass';
+        const smoothing = audioSettings.smoothing || 50;
+        const easing = audioSettings.easing || 'linear';
+        const phase = audioSettings.phase || 0;
+        const beatBoost = audioSettings.beatBoost ?? 1.0;
+        const useSmooth = smoothing > 30;
 
         // Ergebnis-Objekt für alle aktivierten Effekte
         const result = {
@@ -523,18 +506,56 @@ export class MultiImageManager {
         const effects = audioSettings.effects;
         if (!effects) {
             // Fallback für alte Struktur (einzelner Effekt)
+            let audioLevel = this._getAudioLevelForSource(globalSource, audioData, useSmooth);
+
+            // Beat-Boost anwenden
+            if (audioData.isBeat && beatBoost > 1.0) {
+                const boostAmount = 1 + ((beatBoost - 1) * (audioData.beatIntensity || 0));
+                audioLevel = Math.min(255, audioLevel * boostAmount);
+            }
+
+            // Phasenversatz anwenden
+            if (phase > 0) {
+                const phaseRad = (phase * Math.PI) / 180;
+                const time = Date.now() * 0.002;
+                const phaseModifier = (Math.sin(time + phaseRad) + 1) / 2;
+                audioLevel = audioLevel * (0.5 + phaseModifier * 0.5);
+            }
+
+            let baseLevel = this._applyEasing(audioLevel / 255, easing);
             const effect = audioSettings.effect || 'hue';
             const intensity = (audioSettings.intensity || 80) / 100;
-            const normalizedLevel = baseLevel * intensity;
 
             result.hasEffects = true;
-            result.effects[effect] = this._calculateEffectValue(effect, normalizedLevel);
+            result.effects[effect] = this._calculateEffectValue(effect, baseLevel * intensity);
             return result;
         }
 
         // Berechne Werte für jeden aktivierten Effekt
         for (const [effectName, effectConfig] of Object.entries(effects)) {
             if (effectConfig && effectConfig.enabled) {
+                // ✨ NEU: Verwende individuelle Quelle oder globale Quelle
+                const effectSource = effectConfig.source || globalSource;
+
+                // Audio-Level für diese spezifische Quelle berechnen
+                let audioLevel = this._getAudioLevelForSource(effectSource, audioData, useSmooth);
+
+                // Beat-Boost anwenden (global)
+                if (audioData.isBeat && beatBoost > 1.0) {
+                    const boostAmount = 1 + ((beatBoost - 1) * (audioData.beatIntensity || 0));
+                    audioLevel = Math.min(255, audioLevel * boostAmount);
+                }
+
+                // Phasenversatz anwenden (global)
+                if (phase > 0) {
+                    const phaseRad = (phase * Math.PI) / 180;
+                    const time = Date.now() * 0.002;
+                    const phaseModifier = (Math.sin(time + phaseRad) + 1) / 2;
+                    audioLevel = audioLevel * (0.5 + phaseModifier * 0.5);
+                }
+
+                // Normalisieren, Easing anwenden, Intensität
+                let baseLevel = this._applyEasing(audioLevel / 255, easing);
                 const intensity = (effectConfig.intensity || 80) / 100;
                 const normalizedLevel = baseLevel * intensity;
 

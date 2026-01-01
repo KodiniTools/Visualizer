@@ -837,7 +837,7 @@
         <!-- Effekte-Auswahl (Mehrfachauswahl) -->
         <div class="modern-control effects-grid">
           <label class="modern-label">
-            <span class="label-text">Effekte (Mehrfachauswahl)</span>
+            <span class="label-text">Effekte (Mehrfachauswahl) - Quelle pro Effekt wählbar</span>
           </label>
 
           <!-- Farbe (Hue) -->
@@ -849,8 +849,20 @@
                 @change="(e) => onEffectToggle('hue', e.target.checked)"
                 class="effect-checkbox"
               />
-              <span class="effect-name">🎨 Farbe (Hue)</span>
+              <span class="effect-name">🎨 Farbe</span>
             </label>
+            <select
+              ref="effectHueSourceRef"
+              @change="(e) => onEffectSourceChange('hue', e.target.value)"
+              class="effect-source-select"
+              title="Audio-Quelle für diesen Effekt"
+            >
+              <option value="">Global</option>
+              <option value="bass">Bass</option>
+              <option value="mid">Mid</option>
+              <option value="treble">Treble</option>
+              <option value="volume">Vol</option>
+            </select>
             <input
               type="range"
               min="0"
@@ -875,6 +887,18 @@
               />
               <span class="effect-name">☀️ Helligkeit</span>
             </label>
+            <select
+              ref="effectBrightnessSourceRef"
+              @change="(e) => onEffectSourceChange('brightness', e.target.value)"
+              class="effect-source-select"
+              title="Audio-Quelle für diesen Effekt"
+            >
+              <option value="">Global</option>
+              <option value="bass">Bass</option>
+              <option value="mid">Mid</option>
+              <option value="treble">Treble</option>
+              <option value="volume">Vol</option>
+            </select>
             <input
               type="range"
               min="0"
@@ -891,240 +915,130 @@
           <!-- Sättigung -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectSaturationEnabledRef"
-                @change="(e) => onEffectToggle('saturation', e.target.checked)"
-                class="effect-checkbox"
-              />
+              <input type="checkbox" ref="effectSaturationEnabledRef" @change="(e) => onEffectToggle('saturation', e.target.checked)" class="effect-checkbox" />
               <span class="effect-name">🌈 Sättigung</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="80"
-              step="5"
-              ref="effectSaturationIntensityRef"
-              @input="(e) => onEffectIntensityChange('saturation', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectSaturationSourceRef" @change="(e) => onEffectSourceChange('saturation', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="80" step="5" ref="effectSaturationIntensityRef" @input="(e) => onEffectIntensityChange('saturation', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectSaturationValueRef">80%</span>
           </div>
 
-          <!-- Skalieren (Scale/Pulsieren) -->
+          <!-- Skalieren -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectScaleEnabledRef"
-                @change="(e) => onEffectToggle('scale', e.target.checked)"
-                class="effect-checkbox"
-              />
-              <span class="effect-name">📐 Skalieren (Pulsieren)</span>
+              <input type="checkbox" ref="effectScaleEnabledRef" @change="(e) => onEffectToggle('scale', e.target.checked)" class="effect-checkbox" />
+              <span class="effect-name">📐 Pulsieren</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="80"
-              step="5"
-              ref="effectScaleIntensityRef"
-              @input="(e) => onEffectIntensityChange('scale', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectScaleSourceRef" @change="(e) => onEffectSourceChange('scale', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="80" step="5" ref="effectScaleIntensityRef" @input="(e) => onEffectIntensityChange('scale', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectScaleValueRef">80%</span>
           </div>
 
-          <!-- Leuchten (Glow) -->
+          <!-- Glow -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectGlowEnabledRef"
-                @change="(e) => onEffectToggle('glow', e.target.checked)"
-                class="effect-checkbox"
-              />
-              <span class="effect-name">✨ Leuchten (Glow)</span>
+              <input type="checkbox" ref="effectGlowEnabledRef" @change="(e) => onEffectToggle('glow', e.target.checked)" class="effect-checkbox" />
+              <span class="effect-name">✨ Leuchten</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="80"
-              step="5"
-              ref="effectGlowIntensityRef"
-              @input="(e) => onEffectIntensityChange('glow', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectGlowSourceRef" @change="(e) => onEffectSourceChange('glow', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="80" step="5" ref="effectGlowIntensityRef" @input="(e) => onEffectIntensityChange('glow', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectGlowValueRef">80%</span>
           </div>
 
-          <!-- Bildkontur (Border) -->
+          <!-- Border -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectBorderEnabledRef"
-                @change="(e) => onEffectToggle('border', e.target.checked)"
-                class="effect-checkbox"
-              />
-              <span class="effect-name">🖼️ Bildkontur</span>
+              <input type="checkbox" ref="effectBorderEnabledRef" @change="(e) => onEffectToggle('border', e.target.checked)" class="effect-checkbox" />
+              <span class="effect-name">🖼️ Kontur</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="80"
-              step="5"
-              ref="effectBorderIntensityRef"
-              @input="(e) => onEffectIntensityChange('border', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectBorderSourceRef" @change="(e) => onEffectSourceChange('border', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="80" step="5" ref="effectBorderIntensityRef" @input="(e) => onEffectIntensityChange('border', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectBorderValueRef">80%</span>
           </div>
 
-          <!-- Unschärfe (Blur) -->
+          <!-- Blur -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectBlurEnabledRef"
-                @change="(e) => onEffectToggle('blur', e.target.checked)"
-                class="effect-checkbox"
-              />
+              <input type="checkbox" ref="effectBlurEnabledRef" @change="(e) => onEffectToggle('blur', e.target.checked)" class="effect-checkbox" />
               <span class="effect-name">🌫️ Unschärfe</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="50"
-              step="5"
-              ref="effectBlurIntensityRef"
-              @input="(e) => onEffectIntensityChange('blur', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectBlurSourceRef" @change="(e) => onEffectSourceChange('blur', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="50" step="5" ref="effectBlurIntensityRef" @input="(e) => onEffectIntensityChange('blur', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectBlurValueRef">50%</span>
           </div>
 
           <!-- Rotation -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectRotationEnabledRef"
-                @change="(e) => onEffectToggle('rotation', e.target.checked)"
-                class="effect-checkbox"
-              />
+              <input type="checkbox" ref="effectRotationEnabledRef" @change="(e) => onEffectToggle('rotation', e.target.checked)" class="effect-checkbox" />
               <span class="effect-name">🔄 Rotation</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="50"
-              step="5"
-              ref="effectRotationIntensityRef"
-              @input="(e) => onEffectIntensityChange('rotation', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectRotationSourceRef" @change="(e) => onEffectSourceChange('rotation', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="50" step="5" ref="effectRotationIntensityRef" @input="(e) => onEffectIntensityChange('rotation', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectRotationValueRef">50%</span>
           </div>
 
-          <!-- Shake (Erschütterung) -->
+          <!-- Shake -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectShakeEnabledRef"
-                @change="(e) => onEffectToggle('shake', e.target.checked)"
-                class="effect-checkbox"
-              />
-              <span class="effect-name">🫨 Erschütterung</span>
+              <input type="checkbox" ref="effectShakeEnabledRef" @change="(e) => onEffectToggle('shake', e.target.checked)" class="effect-checkbox" />
+              <span class="effect-name">🫨 Shake</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="50"
-              step="5"
-              ref="effectShakeIntensityRef"
-              @input="(e) => onEffectIntensityChange('shake', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectShakeSourceRef" @change="(e) => onEffectSourceChange('shake', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="50" step="5" ref="effectShakeIntensityRef" @input="(e) => onEffectIntensityChange('shake', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectShakeValueRef">50%</span>
           </div>
 
-          <!-- Bounce (Hüpfen) -->
+          <!-- Bounce -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectBounceEnabledRef"
-                @change="(e) => onEffectToggle('bounce', e.target.checked)"
-                class="effect-checkbox"
-              />
+              <input type="checkbox" ref="effectBounceEnabledRef" @change="(e) => onEffectToggle('bounce', e.target.checked)" class="effect-checkbox" />
               <span class="effect-name">⬆️ Hüpfen</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="50"
-              step="5"
-              ref="effectBounceIntensityRef"
-              @input="(e) => onEffectIntensityChange('bounce', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectBounceSourceRef" @change="(e) => onEffectSourceChange('bounce', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="50" step="5" ref="effectBounceIntensityRef" @input="(e) => onEffectIntensityChange('bounce', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectBounceValueRef">50%</span>
           </div>
 
-          <!-- Swing (Horizontales Pendeln) -->
+          <!-- Swing -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectSwingEnabledRef"
-                @change="(e) => onEffectToggle('swing', e.target.checked)"
-                class="effect-checkbox"
-              />
+              <input type="checkbox" ref="effectSwingEnabledRef" @change="(e) => onEffectToggle('swing', e.target.checked)" class="effect-checkbox" />
               <span class="effect-name">↔️ Pendeln</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="50"
-              step="5"
-              ref="effectSwingIntensityRef"
-              @input="(e) => onEffectIntensityChange('swing', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectSwingSourceRef" @change="(e) => onEffectSourceChange('swing', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="50" step="5" ref="effectSwingIntensityRef" @input="(e) => onEffectIntensityChange('swing', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectSwingValueRef">50%</span>
           </div>
 
-          <!-- Orbit (Kreisbewegung) -->
+          <!-- Orbit -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectOrbitEnabledRef"
-                @change="(e) => onEffectToggle('orbit', e.target.checked)"
-                class="effect-checkbox"
-              />
-              <span class="effect-name">🔵 Kreisbewegung</span>
+              <input type="checkbox" ref="effectOrbitEnabledRef" @change="(e) => onEffectToggle('orbit', e.target.checked)" class="effect-checkbox" />
+              <span class="effect-name">🔵 Orbit</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="50"
-              step="5"
-              ref="effectOrbitIntensityRef"
-              @input="(e) => onEffectIntensityChange('orbit', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectOrbitSourceRef" @change="(e) => onEffectSourceChange('orbit', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="50" step="5" ref="effectOrbitIntensityRef" @input="(e) => onEffectIntensityChange('orbit', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectOrbitValueRef">50%</span>
           </div>
 
@@ -1135,192 +1049,104 @@
           <!-- Kontrast -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectContrastEnabledRef"
-                @change="(e) => onEffectToggle('contrast', e.target.checked)"
-                class="effect-checkbox"
-              />
+              <input type="checkbox" ref="effectContrastEnabledRef" @change="(e) => onEffectToggle('contrast', e.target.checked)" class="effect-checkbox" />
               <span class="effect-name">🔲 Kontrast</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="60"
-              step="5"
-              ref="effectContrastIntensityRef"
-              @input="(e) => onEffectIntensityChange('contrast', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectContrastSourceRef" @change="(e) => onEffectSourceChange('contrast', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="60" step="5" ref="effectContrastIntensityRef" @input="(e) => onEffectIntensityChange('contrast', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectContrastValueRef">60%</span>
           </div>
 
           <!-- Graustufen -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectGrayscaleEnabledRef"
-                @change="(e) => onEffectToggle('grayscale', e.target.checked)"
-                class="effect-checkbox"
-              />
+              <input type="checkbox" ref="effectGrayscaleEnabledRef" @change="(e) => onEffectToggle('grayscale', e.target.checked)" class="effect-checkbox" />
               <span class="effect-name">⬛ Graustufen</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="80"
-              step="5"
-              ref="effectGrayscaleIntensityRef"
-              @input="(e) => onEffectIntensityChange('grayscale', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectGrayscaleSourceRef" @change="(e) => onEffectSourceChange('grayscale', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="80" step="5" ref="effectGrayscaleIntensityRef" @input="(e) => onEffectIntensityChange('grayscale', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectGrayscaleValueRef">80%</span>
           </div>
 
           <!-- Sepia -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectSepiaEnabledRef"
-                @change="(e) => onEffectToggle('sepia', e.target.checked)"
-                class="effect-checkbox"
-              />
+              <input type="checkbox" ref="effectSepiaEnabledRef" @change="(e) => onEffectToggle('sepia', e.target.checked)" class="effect-checkbox" />
               <span class="effect-name">🟤 Sepia (Vintage)</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="70"
-              step="5"
-              ref="effectSepiaIntensityRef"
-              @input="(e) => onEffectIntensityChange('sepia', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectSepiaSourceRef" @change="(e) => onEffectSourceChange('sepia', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="70" step="5" ref="effectSepiaIntensityRef" @input="(e) => onEffectIntensityChange('sepia', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectSepiaValueRef">70%</span>
           </div>
 
           <!-- Invertieren -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectInvertEnabledRef"
-                @change="(e) => onEffectToggle('invert', e.target.checked)"
-                class="effect-checkbox"
-              />
+              <input type="checkbox" ref="effectInvertEnabledRef" @change="(e) => onEffectToggle('invert', e.target.checked)" class="effect-checkbox" />
               <span class="effect-name">🔄 Invertieren</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="50"
-              step="5"
-              ref="effectInvertIntensityRef"
-              @input="(e) => onEffectIntensityChange('invert', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectInvertSourceRef" @change="(e) => onEffectSourceChange('invert', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="50" step="5" ref="effectInvertIntensityRef" @input="(e) => onEffectIntensityChange('invert', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectInvertValueRef">50%</span>
           </div>
 
           <!-- Verzerrung (Skew) -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectSkewEnabledRef"
-                @change="(e) => onEffectToggle('skew', e.target.checked)"
-                class="effect-checkbox"
-              />
+              <input type="checkbox" ref="effectSkewEnabledRef" @change="(e) => onEffectToggle('skew', e.target.checked)" class="effect-checkbox" />
               <span class="effect-name">📐 Verzerrung</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="40"
-              step="5"
-              ref="effectSkewIntensityRef"
-              @input="(e) => onEffectIntensityChange('skew', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectSkewSourceRef" @change="(e) => onEffectSourceChange('skew', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="40" step="5" ref="effectSkewIntensityRef" @input="(e) => onEffectIntensityChange('skew', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectSkewValueRef">40%</span>
           </div>
 
           <!-- Strobe (Blitz) -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectStrobeEnabledRef"
-                @change="(e) => onEffectToggle('strobe', e.target.checked)"
-                class="effect-checkbox"
-              />
+              <input type="checkbox" ref="effectStrobeEnabledRef" @change="(e) => onEffectToggle('strobe', e.target.checked)" class="effect-checkbox" />
               <span class="effect-name">⚡ Strobe (Blitz)</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="70"
-              step="5"
-              ref="effectStrobeIntensityRef"
-              @input="(e) => onEffectIntensityChange('strobe', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectStrobeSourceRef" @change="(e) => onEffectSourceChange('strobe', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="70" step="5" ref="effectStrobeIntensityRef" @input="(e) => onEffectIntensityChange('strobe', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectStrobeValueRef">70%</span>
           </div>
 
           <!-- Chromatische Aberration (Glitch) -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectChromaticEnabledRef"
-                @change="(e) => onEffectToggle('chromatic', e.target.checked)"
-                class="effect-checkbox"
-              />
+              <input type="checkbox" ref="effectChromaticEnabledRef" @change="(e) => onEffectToggle('chromatic', e.target.checked)" class="effect-checkbox" />
               <span class="effect-name">🌈 RGB-Glitch</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="60"
-              step="5"
-              ref="effectChromaticIntensityRef"
-              @input="(e) => onEffectIntensityChange('chromatic', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectChromaticSourceRef" @change="(e) => onEffectSourceChange('chromatic', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="60" step="5" ref="effectChromaticIntensityRef" @input="(e) => onEffectIntensityChange('chromatic', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectChromaticValueRef">60%</span>
           </div>
 
           <!-- Perspektive (3D-Kipp) -->
           <div class="effect-item">
             <label class="effect-checkbox-label">
-              <input
-                type="checkbox"
-                ref="effectPerspectiveEnabledRef"
-                @change="(e) => onEffectToggle('perspective', e.target.checked)"
-                class="effect-checkbox"
-              />
+              <input type="checkbox" ref="effectPerspectiveEnabledRef" @change="(e) => onEffectToggle('perspective', e.target.checked)" class="effect-checkbox" />
               <span class="effect-name">🎲 3D-Perspektive</span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="50"
-              step="5"
-              ref="effectPerspectiveIntensityRef"
-              @input="(e) => onEffectIntensityChange('perspective', e.target.value)"
-              class="effect-slider"
-            />
+            <select ref="effectPerspectiveSourceRef" @change="(e) => onEffectSourceChange('perspective', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="50" step="5" ref="effectPerspectiveIntensityRef" @input="(e) => onEffectIntensityChange('perspective', e.target.value)" class="effect-slider" />
             <span class="effect-value" ref="effectPerspectiveValueRef">50%</span>
           </div>
         </div>
@@ -1475,6 +1301,28 @@ const effectSwingValueRef = ref(null);
 const effectOrbitEnabledRef = ref(null);
 const effectOrbitIntensityRef = ref(null);
 const effectOrbitValueRef = ref(null);
+
+// ✨ Source Refs für Effekt-spezifische Audio-Quellen
+const effectHueSourceRef = ref(null);
+const effectBrightnessSourceRef = ref(null);
+const effectSaturationSourceRef = ref(null);
+const effectScaleSourceRef = ref(null);
+const effectGlowSourceRef = ref(null);
+const effectBorderSourceRef = ref(null);
+const effectBlurSourceRef = ref(null);
+const effectRotationSourceRef = ref(null);
+const effectShakeSourceRef = ref(null);
+const effectBounceSourceRef = ref(null);
+const effectSwingSourceRef = ref(null);
+const effectOrbitSourceRef = ref(null);
+const effectContrastSourceRef = ref(null);
+const effectGrayscaleSourceRef = ref(null);
+const effectSepiaSourceRef = ref(null);
+const effectInvertSourceRef = ref(null);
+const effectSkewSourceRef = ref(null);
+const effectStrobeSourceRef = ref(null);
+const effectChromaticSourceRef = ref(null);
+const effectPerspectiveSourceRef = ref(null);
 
 // ✨ NEUE EFFEKTE - Refs
 const effectContrastEnabledRef = ref(null);
@@ -2064,6 +1912,26 @@ function onEffectIntensityChange(effectName, value) {
 }
 
 /**
+ * ✨ NEU: Effekt-Quelle ändern (individuelle Audio-Quelle pro Effekt)
+ */
+function onEffectSourceChange(effectName, value) {
+  if (!currentActiveImage.value) return;
+
+  const fotoManager = fotoManagerRef?.value;
+  if (!fotoManager) return;
+
+  fotoManager.initializeImageSettings(currentActiveImage.value);
+
+  const audioReactive = currentActiveImage.value.fotoSettings.audioReactive;
+  if (audioReactive.effects && audioReactive.effects[effectName]) {
+    // null = globale Quelle verwenden, sonst individuelle Quelle
+    audioReactive.effects[effectName].source = value === '' ? null : value;
+  }
+
+  console.log('🎵 Effekt-Quelle geändert:', effectName, '=', value || 'Global');
+}
+
+/**
  * Hilfsfunktion: Gibt die Value-Ref für einen Effekt zurück
  */
 function getEffectValueRef(effectName) {
@@ -2089,6 +1957,35 @@ function getEffectValueRef(effectName) {
     case 'strobe': return effectStrobeValueRef;
     case 'chromatic': return effectChromaticValueRef;
     case 'perspective': return effectPerspectiveValueRef;
+    default: return null;
+  }
+}
+
+/**
+ * ✨ NEU: Hilfsfunktion: Gibt die Source-Ref für einen Effekt zurück
+ */
+function getEffectSourceRef(effectName) {
+  switch (effectName) {
+    case 'hue': return effectHueSourceRef;
+    case 'brightness': return effectBrightnessSourceRef;
+    case 'saturation': return effectSaturationSourceRef;
+    case 'scale': return effectScaleSourceRef;
+    case 'glow': return effectGlowSourceRef;
+    case 'border': return effectBorderSourceRef;
+    case 'blur': return effectBlurSourceRef;
+    case 'rotation': return effectRotationSourceRef;
+    case 'shake': return effectShakeSourceRef;
+    case 'bounce': return effectBounceSourceRef;
+    case 'swing': return effectSwingSourceRef;
+    case 'orbit': return effectOrbitSourceRef;
+    case 'contrast': return effectContrastSourceRef;
+    case 'grayscale': return effectGrayscaleSourceRef;
+    case 'sepia': return effectSepiaSourceRef;
+    case 'invert': return effectInvertSourceRef;
+    case 'skew': return effectSkewSourceRef;
+    case 'strobe': return effectStrobeSourceRef;
+    case 'chromatic': return effectChromaticSourceRef;
+    case 'perspective': return effectPerspectiveSourceRef;
     default: return null;
   }
 }
@@ -2235,10 +2132,11 @@ function loadAudioReactiveSettingsToUI() {
     'contrast', 'grayscale', 'sepia', 'invert', 'skew', 'strobe', 'chromatic', 'perspective'];
 
   effectNames.forEach(effectName => {
-    const effect = effects[effectName] || { enabled: false, intensity: 80 };
+    const effect = effects[effectName] || { enabled: false, intensity: 80, source: null };
     const enabledRef = getEffectEnabledRef(effectName);
     const intensityRef = getEffectIntensityRef(effectName);
     const valueRef = getEffectValueRef(effectName);
+    const sourceRef = getEffectSourceRef(effectName);
 
     if (enabledRef?.value) {
       enabledRef.value.checked = effect.enabled || false;
@@ -2248,6 +2146,10 @@ function loadAudioReactiveSettingsToUI() {
     }
     if (valueRef?.value) {
       valueRef.value.textContent = (effect.intensity ?? 80) + '%';
+    }
+    // ✨ NEU: Source-Auswahl laden
+    if (sourceRef?.value) {
+      sourceRef.value.value = effect.source || '';
     }
   });
 }
@@ -4876,14 +4778,44 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .effect-item {
   display: grid;
-  grid-template-columns: 1fr 60px 28px;
+  grid-template-columns: 1fr 50px 45px 28px;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   padding: 5px 8px;
   background: rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(139, 92, 246, 0.1);
   border-radius: 4px;
   transition: all 0.15s ease;
+}
+
+/* ✨ Source-Select für individuelle Audio-Quelle pro Effekt */
+.effect-source-select {
+  width: 100%;
+  padding: 2px 4px;
+  font-size: 0.55rem;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 3px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: center;
+}
+
+.effect-source-select:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.effect-source-select:focus {
+  outline: none;
+  border-color: #8b5cf6;
+}
+
+.effect-source-select option {
+  background: #1a1a2e;
+  color: #fff;
 }
 
 .effect-item:hover {

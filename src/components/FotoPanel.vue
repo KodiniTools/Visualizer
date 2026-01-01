@@ -2412,6 +2412,11 @@ function loadAudioReactiveSettings(imageData) {
     loadEffect('bounce', effectBounceEnabledRef, effectBounceIntensityRef, effectBounceValueRef, 50);
     loadEffect('swing', effectSwingEnabledRef, effectSwingIntensityRef, effectSwingValueRef, 50);
     loadEffect('orbit', effectOrbitEnabledRef, effectOrbitIntensityRef, effectOrbitValueRef, 50);
+    // ✨ NEUE BEWEGUNGSPFADE
+    loadEffect('figure8', effectFigure8EnabledRef, effectFigure8IntensityRef, effectFigure8ValueRef, 50);
+    loadEffect('wave', effectWaveEnabledRef, effectWaveIntensityRef, effectWaveValueRef, 50);
+    loadEffect('spiral', effectSpiralEnabledRef, effectSpiralIntensityRef, effectSpiralValueRef, 50);
+    loadEffect('float', effectFloatEnabledRef, effectFloatIntensityRef, effectFloatValueRef, 50);
     // ✨ NEUE EFFEKTE
     loadEffect('contrast', effectContrastEnabledRef, effectContrastIntensityRef, effectContrastValueRef, 60);
     loadEffect('grayscale', effectGrayscaleEnabledRef, effectGrayscaleIntensityRef, effectGrayscaleValueRef, 80);
@@ -2466,6 +2471,11 @@ function loadAudioReactiveSettings(imageData) {
   loadEffect('bounce', effectBounceEnabledRef, effectBounceIntensityRef, effectBounceValueRef, 50);
   loadEffect('swing', effectSwingEnabledRef, effectSwingIntensityRef, effectSwingValueRef, 50);
   loadEffect('orbit', effectOrbitEnabledRef, effectOrbitIntensityRef, effectOrbitValueRef, 50);
+  // ✨ NEUE BEWEGUNGSPFADE
+  loadEffect('figure8', effectFigure8EnabledRef, effectFigure8IntensityRef, effectFigure8ValueRef, 50);
+  loadEffect('wave', effectWaveEnabledRef, effectWaveIntensityRef, effectWaveValueRef, 50);
+  loadEffect('spiral', effectSpiralEnabledRef, effectSpiralIntensityRef, effectSpiralValueRef, 50);
+  loadEffect('float', effectFloatEnabledRef, effectFloatIntensityRef, effectFloatValueRef, 50);
   // ✨ NEUE EFFEKTE
   loadEffect('contrast', effectContrastEnabledRef, effectContrastIntensityRef, effectContrastValueRef, 60);
   loadEffect('grayscale', effectGrayscaleEnabledRef, effectGrayscaleIntensityRef, effectGrayscaleValueRef, 80);

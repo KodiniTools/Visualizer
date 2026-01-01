@@ -218,6 +218,7 @@ export class FotoManager {
      * Initialisiert die Bildbearbeitungs-Einstellungen für ein Bild
      * ✅ FIX: Deep copy für audioReactive um geteilte Referenzen zu vermeiden
      * ✅ NEU: Unterstützt Migration von alter zu neuer Struktur
+     * ✅ FIX: Fügt fehlende Effekte zu existierenden Einstellungen hinzu
      */
     initializeImageSettings(imageObject) {
         if (!imageObject.fotoSettings) {
@@ -234,6 +235,19 @@ export class FotoManager {
             imageObject.fotoSettings.audioReactive = this._migrateAudioReactiveSettings(
                 imageObject.fotoSettings.audioReactive
             );
+        } else {
+            // ✅ FIX: Füge fehlende Effekte hinzu (für neue Effekte die später hinzugefügt wurden)
+            const defaultEffects = this._deepCopyAudioReactive().effects;
+            const existingEffects = imageObject.fotoSettings.audioReactive.effects;
+
+            for (const [effectName, defaultConfig] of Object.entries(defaultEffects)) {
+                if (!existingEffects[effectName]) {
+                    existingEffects[effectName] = { ...defaultConfig };
+                } else if (existingEffects[effectName].source === undefined) {
+                    // Füge source hinzu wenn es fehlt
+                    existingEffects[effectName].source = null;
+                }
+            }
         }
     }
 

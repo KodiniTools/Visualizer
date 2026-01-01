@@ -56,6 +56,11 @@ export class FotoManager {
                     bounce: { enabled: false, intensity: 50, source: null },
                     swing: { enabled: false, intensity: 50, source: null },
                     orbit: { enabled: false, intensity: 50, source: null },
+                    // ✨ NEUE BEWEGUNGSPFADE
+                    figure8: { enabled: false, intensity: 50, source: null },
+                    wave: { enabled: false, intensity: 50, source: null },
+                    spiral: { enabled: false, intensity: 50, source: null },
+                    float: { enabled: false, intensity: 50, source: null },
                     // ✨ NEUE EFFEKTE
                     contrast: { enabled: false, intensity: 60, source: null },
                     grayscale: { enabled: false, intensity: 80, source: null },
@@ -164,6 +169,11 @@ export class FotoManager {
                     bounce: migrateEffect(oldSettings.effects.bounce, 50),
                     swing: migrateEffect(oldSettings.effects.swing, 50),
                     orbit: migrateEffect(oldSettings.effects.orbit, 50),
+                    // ✨ NEUE BEWEGUNGSPFADE (mit Migration)
+                    figure8: migrateEffect(oldSettings.effects.figure8, 50),
+                    wave: migrateEffect(oldSettings.effects.wave, 50),
+                    spiral: migrateEffect(oldSettings.effects.spiral, 50),
+                    float: migrateEffect(oldSettings.effects.float, 50),
                     // ✨ NEUE EFFEKTE (mit Migration)
                     contrast: migrateEffect(oldSettings.effects.contrast, 60),
                     grayscale: migrateEffect(oldSettings.effects.grayscale, 80),

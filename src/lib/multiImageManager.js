@@ -635,6 +635,48 @@ export class MultiImageManager {
                 return { orbitX, orbitY };
 
             // ═══════════════════════════════════════════════════════════════
+            // ✨ NEUE BEWEGUNGSPFADE
+            // ═══════════════════════════════════════════════════════════════
+
+            case 'figure8':
+                // Achter-Bewegung (Lemniskate): Elegante liegende 8
+                const timeFigure8 = Date.now() * 0.002; // Moderate Geschwindigkeit
+                const figure8Scale = normalizedLevel * 30; // Max 30px Amplitude
+                // Lemniskate von Bernoulli: x = cos(t), y = sin(2t)/2
+                const figure8X = Math.cos(timeFigure8) * figure8Scale;
+                const figure8Y = Math.sin(timeFigure8 * 2) * figure8Scale * 0.5;
+                return { figure8X, figure8Y };
+
+            case 'wave':
+                // Sinuswellen-Bewegung: Horizontale Drift mit vertikaler Welle
+                const timeWave = Date.now() * 0.003;
+                const waveAmplitude = normalizedLevel * 20; // Max 20px Amplitude
+                // Horizontale Bewegung + vertikale Sinuswelle
+                const waveX = Math.sin(timeWave * 0.5) * waveAmplitude * 1.5;
+                const waveY = Math.sin(timeWave * 2) * waveAmplitude;
+                return { waveX, waveY };
+
+            case 'spiral':
+                // Spirale nach außen: Wachsender Radius mit Rotation
+                const timeSpiral = Date.now() * 0.002;
+                const spiralMaxRadius = normalizedLevel * 35; // Max 35px Radius
+                // Pulsierender Radius: wächst und schrumpft
+                const spiralPhase = (timeSpiral % (Math.PI * 2)) / (Math.PI * 2);
+                const spiralRadius = spiralMaxRadius * (0.3 + spiralPhase * 0.7);
+                const spiralX = Math.cos(timeSpiral * 3) * spiralRadius;
+                const spiralY = Math.sin(timeSpiral * 3) * spiralRadius;
+                return { spiralX, spiralY };
+
+            case 'float':
+                // Zufälliges Schweben: Sanfte, organische Bewegung
+                const timeFloat = Date.now() * 0.001;
+                const floatAmplitude = normalizedLevel * 15; // Max 15px Amplitude
+                // Kombination mehrerer Sinuswellen für organische Bewegung
+                const floatX = (Math.sin(timeFloat * 1.3) + Math.sin(timeFloat * 2.7) * 0.5) * floatAmplitude;
+                const floatY = (Math.cos(timeFloat * 1.7) + Math.cos(timeFloat * 3.1) * 0.5) * floatAmplitude;
+                return { floatX, floatY };
+
+            // ═══════════════════════════════════════════════════════════════
             // ✨ NEUE EFFEKTE
             // ═══════════════════════════════════════════════════════════════
 
@@ -895,6 +937,34 @@ export class MultiImageManager {
                 const orbit = audioReactive.effects.orbit;
                 drawBounds.x += orbit.orbitX || 0;
                 drawBounds.y += orbit.orbitY || 0;
+            }
+
+            // ✨ AUDIO-REAKTIV: Figure8-Effekt (Achter-Bewegung)
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.figure8) {
+                const figure8 = audioReactive.effects.figure8;
+                drawBounds.x += figure8.figure8X || 0;
+                drawBounds.y += figure8.figure8Y || 0;
+            }
+
+            // ✨ AUDIO-REAKTIV: Wave-Effekt (Sinuswelle)
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.wave) {
+                const wave = audioReactive.effects.wave;
+                drawBounds.x += wave.waveX || 0;
+                drawBounds.y += wave.waveY || 0;
+            }
+
+            // ✨ AUDIO-REAKTIV: Spiral-Effekt (Spirale)
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.spiral) {
+                const spiral = audioReactive.effects.spiral;
+                drawBounds.x += spiral.spiralX || 0;
+                drawBounds.y += spiral.spiralY || 0;
+            }
+
+            // ✨ AUDIO-REAKTIV: Float-Effekt (Schweben)
+            if (audioReactive && audioReactive.hasEffects && audioReactive.effects.float) {
+                const float = audioReactive.effects.float;
+                drawBounds.x += float.floatX || 0;
+                drawBounds.y += float.floatY || 0;
             }
 
             // ✨ NEU: AUDIO-REAKTIV: Skew-Effekt (Verzerrung)

@@ -1043,6 +1043,62 @@
           </div>
 
           <!-- ═══════════════════════════════════════════════════════════ -->
+          <!-- ✨ NEUE BEWEGUNGSPFADE -->
+          <!-- ═══════════════════════════════════════════════════════════ -->
+
+          <!-- Figure8 (Achter) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input type="checkbox" ref="effectFigure8EnabledRef" @change="(e) => onEffectToggle('figure8', e.target.checked)" class="effect-checkbox" />
+              <span class="effect-name">♾️ Achter</span>
+            </label>
+            <select ref="effectFigure8SourceRef" @change="(e) => onEffectSourceChange('figure8', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="50" step="5" ref="effectFigure8IntensityRef" @input="(e) => onEffectIntensityChange('figure8', e.target.value)" class="effect-slider" />
+            <span class="effect-value" ref="effectFigure8ValueRef">50%</span>
+          </div>
+
+          <!-- Wave (Welle) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input type="checkbox" ref="effectWaveEnabledRef" @change="(e) => onEffectToggle('wave', e.target.checked)" class="effect-checkbox" />
+              <span class="effect-name">🌊 Welle</span>
+            </label>
+            <select ref="effectWaveSourceRef" @change="(e) => onEffectSourceChange('wave', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="50" step="5" ref="effectWaveIntensityRef" @input="(e) => onEffectIntensityChange('wave', e.target.value)" class="effect-slider" />
+            <span class="effect-value" ref="effectWaveValueRef">50%</span>
+          </div>
+
+          <!-- Spiral (Spirale) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input type="checkbox" ref="effectSpiralEnabledRef" @change="(e) => onEffectToggle('spiral', e.target.checked)" class="effect-checkbox" />
+              <span class="effect-name">🌀 Spirale</span>
+            </label>
+            <select ref="effectSpiralSourceRef" @change="(e) => onEffectSourceChange('spiral', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="50" step="5" ref="effectSpiralIntensityRef" @input="(e) => onEffectIntensityChange('spiral', e.target.value)" class="effect-slider" />
+            <span class="effect-value" ref="effectSpiralValueRef">50%</span>
+          </div>
+
+          <!-- Float (Schweben) -->
+          <div class="effect-item">
+            <label class="effect-checkbox-label">
+              <input type="checkbox" ref="effectFloatEnabledRef" @change="(e) => onEffectToggle('float', e.target.checked)" class="effect-checkbox" />
+              <span class="effect-name">☁️ Schweben</span>
+            </label>
+            <select ref="effectFloatSourceRef" @change="(e) => onEffectSourceChange('float', e.target.value)" class="effect-source-select" title="Audio-Quelle">
+              <option value="">Global</option><option value="bass">Bass</option><option value="mid">Mid</option><option value="treble">Treble</option><option value="volume">Vol</option>
+            </select>
+            <input type="range" min="0" max="100" value="50" step="5" ref="effectFloatIntensityRef" @input="(e) => onEffectIntensityChange('float', e.target.value)" class="effect-slider" />
+            <span class="effect-value" ref="effectFloatValueRef">50%</span>
+          </div>
+
+          <!-- ═══════════════════════════════════════════════════════════ -->
           <!-- ✨ NEUE EFFEKTE -->
           <!-- ═══════════════════════════════════════════════════════════ -->
 
@@ -1302,6 +1358,20 @@ const effectOrbitEnabledRef = ref(null);
 const effectOrbitIntensityRef = ref(null);
 const effectOrbitValueRef = ref(null);
 
+// ✨ NEUE BEWEGUNGSPFADE - Refs
+const effectFigure8EnabledRef = ref(null);
+const effectFigure8IntensityRef = ref(null);
+const effectFigure8ValueRef = ref(null);
+const effectWaveEnabledRef = ref(null);
+const effectWaveIntensityRef = ref(null);
+const effectWaveValueRef = ref(null);
+const effectSpiralEnabledRef = ref(null);
+const effectSpiralIntensityRef = ref(null);
+const effectSpiralValueRef = ref(null);
+const effectFloatEnabledRef = ref(null);
+const effectFloatIntensityRef = ref(null);
+const effectFloatValueRef = ref(null);
+
 // ✨ Source Refs für Effekt-spezifische Audio-Quellen
 const effectHueSourceRef = ref(null);
 const effectBrightnessSourceRef = ref(null);
@@ -1315,6 +1385,10 @@ const effectShakeSourceRef = ref(null);
 const effectBounceSourceRef = ref(null);
 const effectSwingSourceRef = ref(null);
 const effectOrbitSourceRef = ref(null);
+const effectFigure8SourceRef = ref(null);
+const effectWaveSourceRef = ref(null);
+const effectSpiralSourceRef = ref(null);
+const effectFloatSourceRef = ref(null);
 const effectContrastSourceRef = ref(null);
 const effectGrayscaleSourceRef = ref(null);
 const effectSepiaSourceRef = ref(null);
@@ -1948,6 +2022,11 @@ function getEffectValueRef(effectName) {
     case 'bounce': return effectBounceValueRef;
     case 'swing': return effectSwingValueRef;
     case 'orbit': return effectOrbitValueRef;
+    // ✨ NEUE BEWEGUNGSPFADE
+    case 'figure8': return effectFigure8ValueRef;
+    case 'wave': return effectWaveValueRef;
+    case 'spiral': return effectSpiralValueRef;
+    case 'float': return effectFloatValueRef;
     // ✨ NEUE EFFEKTE
     case 'contrast': return effectContrastValueRef;
     case 'grayscale': return effectGrayscaleValueRef;
@@ -1978,6 +2057,11 @@ function getEffectSourceRef(effectName) {
     case 'bounce': return effectBounceSourceRef;
     case 'swing': return effectSwingSourceRef;
     case 'orbit': return effectOrbitSourceRef;
+    // ✨ NEUE BEWEGUNGSPFADE
+    case 'figure8': return effectFigure8SourceRef;
+    case 'wave': return effectWaveSourceRef;
+    case 'spiral': return effectSpiralSourceRef;
+    case 'float': return effectFloatSourceRef;
     case 'contrast': return effectContrastSourceRef;
     case 'grayscale': return effectGrayscaleSourceRef;
     case 'sepia': return effectSepiaSourceRef;
@@ -2128,6 +2212,8 @@ function loadAudioReactiveSettingsToUI() {
   // Alle Effekte laden
   const effects = audioReactive.effects || {};
   const effectNames = ['hue', 'brightness', 'saturation', 'scale', 'glow', 'border', 'blur', 'rotation', 'shake', 'bounce', 'swing', 'orbit',
+    // ✨ NEUE BEWEGUNGSPFADE
+    'figure8', 'wave', 'spiral', 'float',
     // ✨ NEUE EFFEKTE
     'contrast', 'grayscale', 'sepia', 'invert', 'skew', 'strobe', 'chromatic', 'perspective'];
 
@@ -2171,6 +2257,11 @@ function getEffectEnabledRef(effectName) {
     case 'bounce': return effectBounceEnabledRef;
     case 'swing': return effectSwingEnabledRef;
     case 'orbit': return effectOrbitEnabledRef;
+    // ✨ NEUE BEWEGUNGSPFADE
+    case 'figure8': return effectFigure8EnabledRef;
+    case 'wave': return effectWaveEnabledRef;
+    case 'spiral': return effectSpiralEnabledRef;
+    case 'float': return effectFloatEnabledRef;
     // ✨ NEUE EFFEKTE
     case 'contrast': return effectContrastEnabledRef;
     case 'grayscale': return effectGrayscaleEnabledRef;
@@ -2201,6 +2292,11 @@ function getEffectIntensityRef(effectName) {
     case 'bounce': return effectBounceIntensityRef;
     case 'swing': return effectSwingIntensityRef;
     case 'orbit': return effectOrbitIntensityRef;
+    // ✨ NEUE BEWEGUNGSPFADE
+    case 'figure8': return effectFigure8IntensityRef;
+    case 'wave': return effectWaveIntensityRef;
+    case 'spiral': return effectSpiralIntensityRef;
+    case 'float': return effectFloatIntensityRef;
     // ✨ NEUE EFFEKTE
     case 'contrast': return effectContrastIntensityRef;
     case 'grayscale': return effectGrayscaleIntensityRef;

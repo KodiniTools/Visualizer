@@ -1311,6 +1311,8 @@ export class CanvasManager {
         this.gridManager.drawGrid(targetCtx);
 
         if (targetCtx === this.ctx) {
+            // ✨ NEU: Markierungen für ausgeblendete Texte zeichnen (immer sichtbar)
+            this.drawFadedTextMarkers(targetCtx);
             this.drawInteractiveElements(targetCtx);
             this.drawWorkspaceOutline(targetCtx);
             // ✨ Text-Auswahl-Rechteck zeichnen (immer obendrauf)
@@ -1659,7 +1661,63 @@ export class CanvasManager {
         ctx.fillText(labelText, bounds.x + labelPadding, bounds.y - labelHeight + 4);
         ctx.restore();
     }
-    
+
+    /**
+     * ✨ NEU: Zeichnet Markierungen für ausgeblendete Texte
+     * Diese bleiben sichtbar, damit der Benutzer sie wieder anklicken kann
+     */
+    drawFadedTextMarkers(ctx) {
+        if (!this.textManager || !this.textManager.textObjects) return;
+
+        const texts = this.textManager.textObjects;
+
+        for (const textObj of texts) {
+            // Prüfe ob der Text eine Fade-Animation hat und aktuell ausgeblendet ist
+            if (!textObj.animation || !textObj.animation.fade || !textObj.animation.fade.enabled) {
+                continue;
+            }
+
+            // Berechne die aktuelle Opacity
+            const fadeResult = this.textManager._getFadeOpacity(textObj);
+            const currentOpacity = fadeResult.opacity * (textObj.opacity / 100);
+
+            // Zeichne Markierung nur wenn der Text fast unsichtbar ist (< 10% opacity)
+            // und nicht das aktive Objekt ist (das bekommt sowieso eine Markierung)
+            if (currentOpacity < 0.1 && this.activeObject !== textObj) {
+                const bounds = this.textManager.getObjectBounds(textObj, ctx.canvas);
+                if (!bounds) continue;
+
+                ctx.save();
+
+                // Gestrichelter Rahmen in Orange/Gelb für "versteckte" Texte
+                ctx.strokeStyle = 'rgba(255, 193, 7, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 4]);
+                ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
+                ctx.setLineDash([]);
+
+                // Kleines Label "Ausgeblendet"
+                ctx.fillStyle = 'rgba(255, 193, 7, 0.9)';
+                ctx.font = 'bold 10px Arial';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+
+                const label = '👻 Ausgeblendet';
+                const labelMetrics = ctx.measureText(label);
+                const labelPadding = 4;
+                const labelWidth = labelMetrics.width + labelPadding * 2;
+                const labelHeight = 16;
+
+                // Label oben links am Rahmen
+                ctx.fillRect(bounds.x, bounds.y - labelHeight - 2, labelWidth, labelHeight);
+                ctx.fillStyle = '#000000';
+                ctx.fillText(label, bounds.x + labelPadding, bounds.y - labelHeight);
+
+                ctx.restore();
+            }
+        }
+    }
+
     drawInteractiveElements(ctx) {
         if (this.isEditingText) return;
 

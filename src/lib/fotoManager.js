@@ -115,6 +115,11 @@ export class FotoManager {
                 bounce: { ...defaultAR.effects.bounce },
                 swing: { ...defaultAR.effects.swing },
                 orbit: { ...defaultAR.effects.orbit },
+                // ✨ BEWEGUNGSPFADE
+                figure8: { ...defaultAR.effects.figure8 },
+                wave: { ...defaultAR.effects.wave },
+                spiral: { ...defaultAR.effects.spiral },
+                float: { ...defaultAR.effects.float },
                 // ✨ NEUE EFFEKTE
                 contrast: { ...defaultAR.effects.contrast },
                 grayscale: { ...defaultAR.effects.grayscale },

@@ -2383,10 +2383,9 @@ onMounted(async () => {
         }
       }
 
-      if (canvasManagerInstance.value && canvasManagerInstance.value.multiImageManager) {
-        canvasManagerInstance.value.multiImageManager.clear();
-        console.log('[App] Bilder gelöscht - Text/Hintergrund bleiben erhalten');
-      }
+      // ✅ Bilder und Texte bleiben nach Recording erhalten
+      // Löschung nur über expliziten "Alle löschen" Button oder Canvas zurücksetzen
+      console.log('[App] Recording beendet - Bilder/Texte bleiben erhalten');
     }
   });
 

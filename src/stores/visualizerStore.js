@@ -1,7 +1,7 @@
 // src/stores/visualizerStore.js
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { Visualizers } from '../lib/visualizers.js';
+import { Visualizers } from '../lib/visualizers/index.js';
 import { localeRef } from '../lib/i18n.js';
 
 // ✅ Visualizer-Kategorien für bessere UX

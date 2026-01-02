@@ -250,7 +250,7 @@ import VisualizerPanel from './components/VisualizerPanel.vue';
 import CanvasControlPanel from './components/CanvasControlPanel.vue';
 import QuickStartGuide from './components/QuickStartGuide.vue';
 import ToastContainer from './components/ToastContainer.vue';
-import { Visualizers } from './lib/visualizers.js';
+import { Visualizers } from './lib/visualizers/index.js';
 import { TextManager } from './lib/textManager.js';
 import { CUSTOM_FONTS } from './lib/fonts.js';
 import { FontManager } from './lib/fontManager.js';

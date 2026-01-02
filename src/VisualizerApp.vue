@@ -345,6 +345,7 @@ const lastCanvasWidth = ref(0);
 const lastCanvasHeight = ref(0);
 let visualizerCacheCanvas = null;
 let visualizerCacheCtx = null;
+let layerCacheCanvases = null; // Map<layerId, {canvas, ctx, lastVisualizerId}> für Multi-Layer-Modus
 
 const canvasManagerInstance = ref(null);
 const fotoManagerInstance = ref(null);
@@ -1505,88 +1506,203 @@ function draw() {
       (playerStore.isPlaying || recorderStore.isRecording || isMicActive);
 
     if (activeAnalyser && shouldDrawVisualizer) {
-      const visualizer = Visualizers[visualizerStore.selectedVisualizer];
-      if (visualizer) {
-        const visualizerChanged = visualizerStore.selectedVisualizer !== lastSelectedVisualizerId.value;
-        const canvasResized = canvas.width !== lastCanvasWidth.value || canvas.height !== lastCanvasHeight.value;
+      // ═══════════════════════════════════════════════════════════════════════
+      // 🎨 MULTI-VISUALIZER RENDERING
+      // ═══════════════════════════════════════════════════════════════════════
 
-        if (visualizerChanged || canvasResized) {
-          if (lastSelectedVisualizerId.value && Visualizers[lastSelectedVisualizerId.value]) {
-            const oldVisualizer = Visualizers[lastSelectedVisualizerId.value];
-            if (typeof oldVisualizer.cleanup === 'function') {
-              try {
-                oldVisualizer.cleanup();
-                console.log(`[App] Visualizer "${lastSelectedVisualizerId.value}" bereinigt`);
-              } catch (e) {
-                console.warn(`[App] Cleanup-Fehler bei "${lastSelectedVisualizerId.value}":`, e);
-              }
-            }
-          }
-
-          if (typeof visualizer.init === 'function') {
-            visualizer.init(canvas.width, canvas.height);
-          }
-          lastSelectedVisualizerId.value = visualizerStore.selectedVisualizer;
-          lastCanvasWidth.value = canvas.width;
-          lastCanvasHeight.value = canvas.height;
-        }
-
+      if (visualizerStore.multiLayerMode && visualizerStore.visibleLayers.length > 0) {
+        // MULTI-LAYER MODE: Render multiple visualizers with individual settings
         const bufferLength = activeAnalyser.frequencyBinCount;
         if (!audioDataArray || audioDataArray.length !== bufferLength) {
           audioDataArray = new Uint8Array(bufferLength);
         }
-        if (visualizer.needsTimeData) {
-          activeAnalyser.getByteTimeDomainData(audioDataArray);
-        } else {
-          activeAnalyser.getByteFrequencyData(audioDataArray);
+
+        // Ensure layer cache canvases exist
+        if (!layerCacheCanvases) {
+          layerCacheCanvases = new Map();
         }
 
-        if (!visualizerCacheCanvas || visualizerCacheCanvas.width !== canvas.width || visualizerCacheCanvas.height !== canvas.height) {
-          visualizerCacheCanvas = document.createElement('canvas');
-          visualizerCacheCanvas.width = canvas.width;
-          visualizerCacheCanvas.height = canvas.height;
-          visualizerCacheCtx = visualizerCacheCanvas.getContext('2d');
-        }
+        // Render each visible layer
+        for (const layer of visualizerStore.visibleLayers) {
+          const visualizer = Visualizers[layer.visualizerId];
+          if (!visualizer) continue;
 
-        visualizerCacheCtx.clearRect(0, 0, canvas.width, canvas.height);
-        visualizerCacheCtx.save();
-        visualizerCacheCtx.globalAlpha = visualizerStore.colorOpacity;
-        try {
-          visualizer.draw(visualizerCacheCtx, audioDataArray, bufferLength, canvas.width, canvas.height, visualizerStore.visualizerColor, visualizerStore.visualizerOpacity);
-          visualizerStore.markVisualizerWorking(visualizerStore.selectedVisualizer);
-        } catch (error) {
-          console.error(`Visualizer "${visualizerStore.selectedVisualizer}" Fehler:`, error);
-          visualizerCacheCtx.fillStyle = '#000';
-          visualizerCacheCtx.fillRect(0, 0, canvas.width, canvas.height);
-          visualizerStore.fallbackToLastWorking();
-        }
-        visualizerCacheCtx.restore();
+          // Get or create cache canvas for this layer
+          let layerCache = layerCacheCanvases.get(layer.id);
+          if (!layerCache || layerCache.width !== canvas.width || layerCache.height !== canvas.height) {
+            const cacheCanvas = document.createElement('canvas');
+            cacheCanvas.width = canvas.width;
+            cacheCanvas.height = canvas.height;
+            layerCache = {
+              canvas: cacheCanvas,
+              ctx: cacheCanvas.getContext('2d'),
+              lastVisualizerId: null
+            };
+            layerCacheCanvases.set(layer.id, layerCache);
+          }
 
-        drawVisualizerCallback = (targetCtx, width, height, useTransform = true) => {
-          const scale = visualizerStore.visualizerScale;
-          const posX = visualizerStore.visualizerX;
-          const posY = visualizerStore.visualizerY;
-
-          const scaledWidth = canvas.width * scale;
-          const scaledHeight = canvas.height * scale;
-
-          const destX = width * posX - scaledWidth / 2;
-          const destY = height * posY - scaledHeight / 2;
-
-          if (useTransform && (scale !== 1.0 || posX !== 0.5 || posY !== 0.5)) {
-            targetCtx.drawImage(
-              visualizerCacheCanvas,
-              0, 0, canvas.width, canvas.height,
-              destX, destY, scaledWidth, scaledHeight
-            );
-          } else {
-            if (width === canvas.width && height === canvas.height) {
-              targetCtx.drawImage(visualizerCacheCanvas, 0, 0);
-            } else {
-              targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height);
+          // Handle visualizer init/cleanup for this layer
+          if (layerCache.lastVisualizerId !== layer.visualizerId) {
+            if (layerCache.lastVisualizerId && Visualizers[layerCache.lastVisualizerId]) {
+              const oldViz = Visualizers[layerCache.lastVisualizerId];
+              if (typeof oldViz.cleanup === 'function') {
+                try { oldViz.cleanup(); } catch (e) { /* ignore */ }
+              }
             }
+            if (typeof visualizer.init === 'function') {
+              visualizer.init(canvas.width, canvas.height);
+            }
+            layerCache.lastVisualizerId = layer.visualizerId;
+          }
+
+          // Get audio data for this visualizer
+          if (visualizer.needsTimeData) {
+            activeAnalyser.getByteTimeDomainData(audioDataArray);
+          } else {
+            activeAnalyser.getByteFrequencyData(audioDataArray);
+          }
+
+          // Render to layer cache
+          layerCache.ctx.clearRect(0, 0, canvas.width, canvas.height);
+          layerCache.ctx.save();
+          layerCache.ctx.globalAlpha = layer.colorOpacity;
+          try {
+            visualizer.draw(layerCache.ctx, audioDataArray, bufferLength, canvas.width, canvas.height, layer.color, layer.opacity);
+          } catch (error) {
+            console.error(`Layer "${layer.id}" Visualizer "${layer.visualizerId}" Fehler:`, error);
+          }
+          layerCache.ctx.restore();
+        }
+
+        // Create composite callback for multi-layer rendering
+        drawVisualizerCallback = (targetCtx, width, height, useTransform = true) => {
+          for (const layer of visualizerStore.visibleLayers) {
+            const layerCache = layerCacheCanvases.get(layer.id);
+            if (!layerCache) continue;
+
+            targetCtx.save();
+            targetCtx.globalCompositeOperation = layer.blendMode || 'source-over';
+
+            const scale = layer.scale;
+            const posX = layer.x;
+            const posY = layer.y;
+
+            const scaledWidth = canvas.width * scale;
+            const scaledHeight = canvas.height * scale;
+            const destX = width * posX - scaledWidth / 2;
+            const destY = height * posY - scaledHeight / 2;
+
+            if (useTransform && (scale !== 1.0 || posX !== 0.5 || posY !== 0.5)) {
+              targetCtx.drawImage(
+                layerCache.canvas,
+                0, 0, canvas.width, canvas.height,
+                destX, destY, scaledWidth, scaledHeight
+              );
+            } else {
+              if (width === canvas.width && height === canvas.height) {
+                targetCtx.drawImage(layerCache.canvas, 0, 0);
+              } else {
+                targetCtx.drawImage(layerCache.canvas, 0, 0, width, height);
+              }
+            }
+
+            targetCtx.restore();
           }
         };
+
+        // Cleanup old layer caches that are no longer in use
+        const currentLayerIds = new Set(visualizerStore.visualizerLayers.map(l => l.id));
+        for (const layerId of layerCacheCanvases.keys()) {
+          if (!currentLayerIds.has(layerId)) {
+            layerCacheCanvases.delete(layerId);
+          }
+        }
+
+      } else {
+        // SINGLE MODE: Original single-visualizer rendering (backward compatible)
+        const visualizer = Visualizers[visualizerStore.selectedVisualizer];
+        if (visualizer) {
+          const visualizerChanged = visualizerStore.selectedVisualizer !== lastSelectedVisualizerId.value;
+          const canvasResized = canvas.width !== lastCanvasWidth.value || canvas.height !== lastCanvasHeight.value;
+
+          if (visualizerChanged || canvasResized) {
+            if (lastSelectedVisualizerId.value && Visualizers[lastSelectedVisualizerId.value]) {
+              const oldVisualizer = Visualizers[lastSelectedVisualizerId.value];
+              if (typeof oldVisualizer.cleanup === 'function') {
+                try {
+                  oldVisualizer.cleanup();
+                  console.log(`[App] Visualizer "${lastSelectedVisualizerId.value}" bereinigt`);
+                } catch (e) {
+                  console.warn(`[App] Cleanup-Fehler bei "${lastSelectedVisualizerId.value}":`, e);
+                }
+              }
+            }
+
+            if (typeof visualizer.init === 'function') {
+              visualizer.init(canvas.width, canvas.height);
+            }
+            lastSelectedVisualizerId.value = visualizerStore.selectedVisualizer;
+            lastCanvasWidth.value = canvas.width;
+            lastCanvasHeight.value = canvas.height;
+          }
+
+          const bufferLength = activeAnalyser.frequencyBinCount;
+          if (!audioDataArray || audioDataArray.length !== bufferLength) {
+            audioDataArray = new Uint8Array(bufferLength);
+          }
+          if (visualizer.needsTimeData) {
+            activeAnalyser.getByteTimeDomainData(audioDataArray);
+          } else {
+            activeAnalyser.getByteFrequencyData(audioDataArray);
+          }
+
+          if (!visualizerCacheCanvas || visualizerCacheCanvas.width !== canvas.width || visualizerCacheCanvas.height !== canvas.height) {
+            visualizerCacheCanvas = document.createElement('canvas');
+            visualizerCacheCanvas.width = canvas.width;
+            visualizerCacheCanvas.height = canvas.height;
+            visualizerCacheCtx = visualizerCacheCanvas.getContext('2d');
+          }
+
+          visualizerCacheCtx.clearRect(0, 0, canvas.width, canvas.height);
+          visualizerCacheCtx.save();
+          visualizerCacheCtx.globalAlpha = visualizerStore.colorOpacity;
+          try {
+            visualizer.draw(visualizerCacheCtx, audioDataArray, bufferLength, canvas.width, canvas.height, visualizerStore.visualizerColor, visualizerStore.visualizerOpacity);
+            visualizerStore.markVisualizerWorking(visualizerStore.selectedVisualizer);
+          } catch (error) {
+            console.error(`Visualizer "${visualizerStore.selectedVisualizer}" Fehler:`, error);
+            visualizerCacheCtx.fillStyle = '#000';
+            visualizerCacheCtx.fillRect(0, 0, canvas.width, canvas.height);
+            visualizerStore.fallbackToLastWorking();
+          }
+          visualizerCacheCtx.restore();
+
+          drawVisualizerCallback = (targetCtx, width, height, useTransform = true) => {
+            const scale = visualizerStore.visualizerScale;
+            const posX = visualizerStore.visualizerX;
+            const posY = visualizerStore.visualizerY;
+
+            const scaledWidth = canvas.width * scale;
+            const scaledHeight = canvas.height * scale;
+
+            const destX = width * posX - scaledWidth / 2;
+            const destY = height * posY - scaledHeight / 2;
+
+            if (useTransform && (scale !== 1.0 || posX !== 0.5 || posY !== 0.5)) {
+              targetCtx.drawImage(
+                visualizerCacheCanvas,
+                0, 0, canvas.width, canvas.height,
+                destX, destY, scaledWidth, scaledHeight
+              );
+            } else {
+              if (width === canvas.width && height === canvas.height) {
+                targetCtx.drawImage(visualizerCacheCanvas, 0, 0);
+              } else {
+                targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height);
+              }
+            }
+          };
+        }
       }
     }
 

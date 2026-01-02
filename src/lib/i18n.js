@@ -290,8 +290,16 @@ const translations = {
         organic: 'Organisch',
         crystalsNets: 'Kristalle & Netze',
         blossoms: 'Blüten',
-        objects3d: '3D-Objekte'
-      }
+        objects3d: '3D-Objekte',
+        retroPixel: 'Retro & Pixel'
+      },
+      // Multi-Layer
+      multiLayer: 'Multi-Layer',
+      addLayer: 'Layer hinzufügen',
+      noLayers: 'Keine Layer vorhanden',
+      hideLayer: 'Layer ausblenden',
+      showLayer: 'Layer einblenden',
+      blendMode: 'Mischmodus'
     },
 
     // ========== CONTROLS PANEL ==========
@@ -1090,8 +1098,16 @@ const translations = {
         organic: 'Organic',
         crystalsNets: 'Crystals & Nets',
         blossoms: 'Blossoms',
-        objects3d: '3D Objects'
-      }
+        objects3d: '3D Objects',
+        retroPixel: 'Retro & Pixel'
+      },
+      // Multi-Layer
+      multiLayer: 'Multi-Layer',
+      addLayer: 'Add Layer',
+      noLayers: 'No layers',
+      hideLayer: 'Hide layer',
+      showLayer: 'Show layer',
+      blendMode: 'Blend Mode'
     },
 
     // ========== CONTROLS PANEL ==========

@@ -187,6 +187,9 @@
         </details>
       </div>
     </div>
+
+    <!-- Multi-Layer Panel -->
+    <VisualizerLayerPanel />
   </div>
 </template>
 
@@ -195,6 +198,7 @@ import { ref, computed } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 import { useVisualizerStore } from '../stores/visualizerStore.js';
 import HelpTooltip from './HelpTooltip.vue';
+import VisualizerLayerPanel from './VisualizerLayerPanel.vue';
 
 const { t, locale } = useI18n();
 const store = useVisualizerStore();

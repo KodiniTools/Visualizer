@@ -346,6 +346,8 @@ const lastCanvasHeight = ref(0);
 let visualizerCacheCanvas = null;
 let visualizerCacheCtx = null;
 let layerCacheCanvases = null; // Map<layerId, {canvas, ctx, lastVisualizerId}> für Multi-Layer-Modus
+let multiLayerCompositeCanvas = null; // ✨ Performance: Vor-composited Multi-Layer Output
+let multiLayerCompositeCtx = null;
 
 const canvasManagerInstance = ref(null);
 const fotoManagerInstance = ref(null);
@@ -1522,7 +1524,15 @@ function draw() {
           layerCacheCanvases = new Map();
         }
 
-        // Render each visible layer
+        // ✨ PERFORMANCE: Ensure composite canvas exists for pre-compositing
+        if (!multiLayerCompositeCanvas || multiLayerCompositeCanvas.width !== canvas.width || multiLayerCompositeCanvas.height !== canvas.height) {
+          multiLayerCompositeCanvas = document.createElement('canvas');
+          multiLayerCompositeCanvas.width = canvas.width;
+          multiLayerCompositeCanvas.height = canvas.height;
+          multiLayerCompositeCtx = multiLayerCompositeCanvas.getContext('2d');
+        }
+
+        // Render each visible layer to its cache
         for (const layer of visualizerStore.visibleLayers) {
           const visualizer = Visualizers[layer.visualizerId];
           if (!visualizer) continue;
@@ -1574,39 +1584,45 @@ function draw() {
           layerCache.ctx.restore();
         }
 
-        // Create composite callback for multi-layer rendering
+        // ✨ PERFORMANCE: Pre-composite all layers ONCE per frame
+        // This is done only once, then reused for both main canvas and recording
+        multiLayerCompositeCtx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const layer of visualizerStore.visibleLayers) {
+          const layerCache = layerCacheCanvases.get(layer.id);
+          if (!layerCache) continue;
+
+          multiLayerCompositeCtx.save();
+          multiLayerCompositeCtx.globalCompositeOperation = layer.blendMode || 'source-over';
+
+          const scale = layer.scale;
+          const posX = layer.x;
+          const posY = layer.y;
+
+          const scaledWidth = canvas.width * scale;
+          const scaledHeight = canvas.height * scale;
+          const destX = canvas.width * posX - scaledWidth / 2;
+          const destY = canvas.height * posY - scaledHeight / 2;
+
+          if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
+            multiLayerCompositeCtx.drawImage(
+              layerCache.canvas,
+              0, 0, canvas.width, canvas.height,
+              destX, destY, scaledWidth, scaledHeight
+            );
+          } else {
+            multiLayerCompositeCtx.drawImage(layerCache.canvas, 0, 0);
+          }
+
+          multiLayerCompositeCtx.restore();
+        }
+
+        // ✨ PERFORMANCE: Simple callback that just draws the pre-composited result
+        // No more per-layer iteration - just a single drawImage call
         drawVisualizerCallback = (targetCtx, width, height, useTransform = true) => {
-          for (const layer of visualizerStore.visibleLayers) {
-            const layerCache = layerCacheCanvases.get(layer.id);
-            if (!layerCache) continue;
-
-            targetCtx.save();
-            targetCtx.globalCompositeOperation = layer.blendMode || 'source-over';
-
-            const scale = layer.scale;
-            const posX = layer.x;
-            const posY = layer.y;
-
-            const scaledWidth = canvas.width * scale;
-            const scaledHeight = canvas.height * scale;
-            const destX = width * posX - scaledWidth / 2;
-            const destY = height * posY - scaledHeight / 2;
-
-            if (useTransform && (scale !== 1.0 || posX !== 0.5 || posY !== 0.5)) {
-              targetCtx.drawImage(
-                layerCache.canvas,
-                0, 0, canvas.width, canvas.height,
-                destX, destY, scaledWidth, scaledHeight
-              );
-            } else {
-              if (width === canvas.width && height === canvas.height) {
-                targetCtx.drawImage(layerCache.canvas, 0, 0);
-              } else {
-                targetCtx.drawImage(layerCache.canvas, 0, 0, width, height);
-              }
-            }
-
-            targetCtx.restore();
+          if (width === canvas.width && height === canvas.height) {
+            targetCtx.drawImage(multiLayerCompositeCanvas, 0, 0);
+          } else {
+            targetCtx.drawImage(multiLayerCompositeCanvas, 0, 0, width, height);
           }
         };
 

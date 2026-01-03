@@ -2177,8 +2177,24 @@ window.takeCanvasScreenshot = async function(mimeType = 'image/png', quality = 0
   ctx.imageSmoothingQuality = 'high';
 
   // Visualizer-Callback für Screenshot erstellen
-  const drawVisualizerCallback = visualizerCacheCanvas && visualizerStore.showVisualizer
-    ? (vizCtx, vizWidth, vizHeight) => {
+  // ✅ FIX: Multi-Layer-Modus unterstützen
+  let drawVisualizerCallback = null;
+
+  if (visualizerStore.showVisualizer) {
+    if (visualizerStore.multiLayerMode && multiLayerCompositeCanvas) {
+      // ✅ MULTI-LAYER MODE: Verwende das vorkombinierte Multi-Layer-Canvas
+      drawVisualizerCallback = (vizCtx, vizWidth, vizHeight) => {
+        // Multi-Layer-Canvas hat bereits alle Layer mit ihren individuellen
+        // Positionen, Skalierungen und Blend-Modi kombiniert
+        if (vizWidth === multiLayerCompositeCanvas.width && vizHeight === multiLayerCompositeCanvas.height) {
+          vizCtx.drawImage(multiLayerCompositeCanvas, 0, 0);
+        } else {
+          vizCtx.drawImage(multiLayerCompositeCanvas, 0, 0, vizWidth, vizHeight);
+        }
+      };
+    } else if (visualizerCacheCanvas) {
+      // SINGLE MODE: Verwende das Single-Visualizer-Cache-Canvas
+      drawVisualizerCallback = (vizCtx, vizWidth, vizHeight) => {
         const scale = visualizerStore.visualizerScale;
         const posX = visualizerStore.visualizerX;
         const posY = visualizerStore.visualizerY;
@@ -2197,8 +2213,9 @@ window.takeCanvasScreenshot = async function(mimeType = 'image/png', quality = 0
         } else {
           vizCtx.drawImage(visualizerCacheCanvas, 0, 0, vizWidth, vizHeight);
         }
-      }
-    : null;
+      };
+    }
+  }
 
   // ✅ FIX: renderRecordingScene nutzen - respektiert Workspace-Bereich korrekt
   renderRecordingScene(ctx, targetWidth, targetHeight, drawVisualizerCallback);

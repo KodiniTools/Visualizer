@@ -104,17 +104,17 @@
       <!-- Farbeffekte -->
       <div class="effect-category">
         <span class="category-title">{{ t('foto.colorEffects') }}</span>
-        <div v-for="effect in colorEffects" :key="effect.id" class="effect-item">
+        <div v-for="effect in colorEffects" :key="effect.id" class="effect-item" :data-effect-id="effect.id">
           <label class="effect-checkbox-label">
             <input type="checkbox" class="effect-checkbox" @change="$emit('effect-toggle', effect.id, $event.target.checked)" />
             <span class="effect-name">{{ effect.name }}</span>
           </label>
           <select class="effect-source-select" @change="$emit('effect-source-change', effect.id, $event.target.value)">
-            <option value="">Global</option>
-            <option value="bass">Bass</option>
-            <option value="mid">Mid</option>
-            <option value="treble">Treble</option>
-            <option value="volume">Volume</option>
+            <option value="">{{ t('foto.global') }}</option>
+            <option value="bass">{{ t('foto.bass') }}</option>
+            <option value="mid">{{ t('foto.mid') }}</option>
+            <option value="treble">{{ t('foto.treble') }}</option>
+            <option value="volume">{{ t('foto.volume') }}</option>
           </select>
           <input type="range" class="effect-slider" min="0" max="100" value="80" @input="$emit('effect-intensity-change', effect.id, $event.target.value)" />
           <span class="effect-value">80%</span>
@@ -124,17 +124,17 @@
       <!-- Transformationseffekte -->
       <div class="effect-category">
         <span class="category-title">{{ t('foto.transformEffects') }}</span>
-        <div v-for="effect in transformEffects" :key="effect.id" class="effect-item">
+        <div v-for="effect in transformEffects" :key="effect.id" class="effect-item" :data-effect-id="effect.id">
           <label class="effect-checkbox-label">
             <input type="checkbox" class="effect-checkbox" @change="$emit('effect-toggle', effect.id, $event.target.checked)" />
             <span class="effect-name">{{ effect.name }}</span>
           </label>
           <select class="effect-source-select" @change="$emit('effect-source-change', effect.id, $event.target.value)">
-            <option value="">Global</option>
-            <option value="bass">Bass</option>
-            <option value="mid">Mid</option>
-            <option value="treble">Treble</option>
-            <option value="volume">Volume</option>
+            <option value="">{{ t('foto.global') }}</option>
+            <option value="bass">{{ t('foto.bass') }}</option>
+            <option value="mid">{{ t('foto.mid') }}</option>
+            <option value="treble">{{ t('foto.treble') }}</option>
+            <option value="volume">{{ t('foto.volume') }}</option>
           </select>
           <input type="range" class="effect-slider" min="0" max="100" value="50" @input="$emit('effect-intensity-change', effect.id, $event.target.value)" />
           <span class="effect-value">50%</span>
@@ -144,17 +144,17 @@
       <!-- Bewegungseffekte -->
       <div class="effect-category">
         <span class="category-title">{{ t('foto.movementEffects') }}</span>
-        <div v-for="effect in movementEffects" :key="effect.id" class="effect-item">
+        <div v-for="effect in movementEffects" :key="effect.id" class="effect-item" :data-effect-id="effect.id">
           <label class="effect-checkbox-label">
             <input type="checkbox" class="effect-checkbox" @change="$emit('effect-toggle', effect.id, $event.target.checked)" />
             <span class="effect-name">{{ effect.name }}</span>
           </label>
           <select class="effect-source-select" @change="$emit('effect-source-change', effect.id, $event.target.value)">
-            <option value="">Global</option>
-            <option value="bass">Bass</option>
-            <option value="mid">Mid</option>
-            <option value="treble">Treble</option>
-            <option value="volume">Volume</option>
+            <option value="">{{ t('foto.global') }}</option>
+            <option value="bass">{{ t('foto.bass') }}</option>
+            <option value="mid">{{ t('foto.mid') }}</option>
+            <option value="treble">{{ t('foto.treble') }}</option>
+            <option value="volume">{{ t('foto.volume') }}</option>
           </select>
           <input type="range" class="effect-slider" min="0" max="100" value="50" @input="$emit('effect-intensity-change', effect.id, $event.target.value)" />
           <span class="effect-value">50%</span>
@@ -164,17 +164,17 @@
       <!-- Spezialeffekte -->
       <div class="effect-category">
         <span class="category-title">{{ t('foto.specialEffects') }}</span>
-        <div v-for="effect in specialEffects" :key="effect.id" class="effect-item">
+        <div v-for="effect in specialEffects" :key="effect.id" class="effect-item" :data-effect-id="effect.id">
           <label class="effect-checkbox-label">
             <input type="checkbox" class="effect-checkbox" @change="$emit('effect-toggle', effect.id, $event.target.checked)" />
             <span class="effect-name">{{ effect.name }}</span>
           </label>
           <select class="effect-source-select" @change="$emit('effect-source-change', effect.id, $event.target.value)">
-            <option value="">Global</option>
-            <option value="bass">Bass</option>
-            <option value="mid">Mid</option>
-            <option value="treble">Treble</option>
-            <option value="volume">Volume</option>
+            <option value="">{{ t('foto.global') }}</option>
+            <option value="bass">{{ t('foto.bass') }}</option>
+            <option value="mid">{{ t('foto.mid') }}</option>
+            <option value="treble">{{ t('foto.treble') }}</option>
+            <option value="volume">{{ t('foto.volume') }}</option>
           </select>
           <input type="range" class="effect-slider" min="0" max="100" value="60" @input="$emit('effect-intensity-change', effect.id, $event.target.value)" />
           <span class="effect-value">60%</span>
@@ -254,42 +254,42 @@ const presetList = [
   { id: 'glitch', name: 'Glitch', icon: '🔥' }
 ];
 
-// Effekt-Kategorien
-const colorEffects = [
-  { id: 'hue', name: 'Farbton' },
-  { id: 'brightness', name: 'Helligkeit' },
-  { id: 'saturation', name: 'Sättigung' },
-  { id: 'contrast', name: 'Kontrast' },
-  { id: 'grayscale', name: 'Graustufen' },
-  { id: 'sepia', name: 'Sepia' },
-  { id: 'invert', name: 'Invertieren' }
-];
+// Effekt-Kategorien (mit i18n)
+const colorEffects = computed(() => [
+  { id: 'hue', name: t('foto.effectNames.hue') },
+  { id: 'brightness', name: t('foto.effectNames.brightness') },
+  { id: 'saturation', name: t('foto.effectNames.saturation') },
+  { id: 'contrast', name: t('foto.effectNames.contrast') },
+  { id: 'grayscale', name: t('foto.effectNames.grayscale') },
+  { id: 'sepia', name: t('foto.effectNames.sepia') },
+  { id: 'invert', name: t('foto.effectNames.invert') }
+]);
 
-const transformEffects = [
-  { id: 'scale', name: 'Skalierung' },
-  { id: 'rotation', name: 'Rotation' },
-  { id: 'skew', name: 'Verzerrung' },
-  { id: 'perspective', name: 'Perspektive' }
-];
+const transformEffects = computed(() => [
+  { id: 'scale', name: t('foto.effectNames.scale') },
+  { id: 'rotation', name: t('foto.effectNames.rotation') },
+  { id: 'skew', name: t('foto.effectNames.skew') },
+  { id: 'perspective', name: t('foto.effectNames.perspective') }
+]);
 
-const movementEffects = [
-  { id: 'shake', name: 'Schütteln' },
-  { id: 'bounce', name: 'Hüpfen' },
-  { id: 'swing', name: 'Schwingen' },
-  { id: 'orbit', name: 'Orbit' },
-  { id: 'figure8', name: 'Acht' },
-  { id: 'wave', name: 'Welle' },
-  { id: 'spiral', name: 'Spirale' },
-  { id: 'float', name: 'Schweben' }
-];
+const movementEffects = computed(() => [
+  { id: 'shake', name: t('foto.effectNames.shake') },
+  { id: 'bounce', name: t('foto.effectNames.bounce') },
+  { id: 'swing', name: t('foto.effectNames.swing') },
+  { id: 'orbit', name: t('foto.effectNames.orbit') },
+  { id: 'figure8', name: t('foto.effectNames.figure8') },
+  { id: 'wave', name: t('foto.effectNames.wave') },
+  { id: 'spiral', name: t('foto.effectNames.spiral') },
+  { id: 'float', name: t('foto.effectNames.float') }
+]);
 
-const specialEffects = [
-  { id: 'glow', name: 'Leuchten' },
-  { id: 'border', name: 'Rahmen' },
-  { id: 'blur', name: 'Unschärfe' },
-  { id: 'strobe', name: 'Strobe' },
-  { id: 'chromatic', name: 'Chromatisch' }
-];
+const specialEffects = computed(() => [
+  { id: 'glow', name: t('foto.effectNames.glow') },
+  { id: 'border', name: t('foto.effectNames.border') },
+  { id: 'blur', name: t('foto.effectNames.blur') },
+  { id: 'strobe', name: t('foto.effectNames.strobe') },
+  { id: 'chromatic', name: t('foto.effectNames.chromatic') }
+]);
 
 // Handlers
 function onAudioReactiveToggle(event) {
@@ -315,7 +315,7 @@ function onAudioReactiveEasingChange(event) {
 
 function onAudioReactiveBeatBoostChange(event) {
   const value = parseFloat(event.target.value);
-  const displayValue = value <= 1.0 ? 'Aus' : `${Math.round((value - 1) * 100)}%`;
+  const displayValue = value <= 1.0 ? t('foto.beatBoostOff') : `${Math.round((value - 1) * 100)}%`;
   if (audioReactiveBeatBoostValueRef.value) {
     audioReactiveBeatBoostValueRef.value.textContent = displayValue;
   }
@@ -372,7 +372,7 @@ function loadSettings(imageData) {
     const beatBoost = audioReactive.beatBoost ?? 1.0;
     audioReactiveBeatBoostRef.value.value = beatBoost;
     if (audioReactiveBeatBoostValueRef.value) {
-      const displayValue = beatBoost <= 1.0 ? 'Aus' : `${Math.round((beatBoost - 1) * 100)}%`;
+      const displayValue = beatBoost <= 1.0 ? t('foto.beatBoostOff') : `${Math.round((beatBoost - 1) * 100)}%`;
       audioReactiveBeatBoostValueRef.value.textContent = displayValue;
     }
   }
@@ -387,32 +387,34 @@ function loadSettings(imageData) {
 
   // Effekte laden (alle Effekt-Checkboxen und Slider)
   const effects = audioReactive.effects || {};
-  const allEffects = [...colorEffects, ...transformEffects, ...movementEffects, ...specialEffects];
+  const allEffectIds = [
+    'hue', 'brightness', 'saturation', 'contrast', 'grayscale', 'sepia', 'invert',
+    'scale', 'rotation', 'skew', 'perspective',
+    'shake', 'bounce', 'swing', 'orbit', 'figure8', 'wave', 'spiral', 'float',
+    'glow', 'border', 'blur', 'strobe', 'chromatic'
+  ];
 
-  // DOM-Elemente für Effekte suchen und aktualisieren
+  // DOM-Elemente für Effekte suchen und aktualisieren (über data-effect-id)
   setTimeout(() => {
-    allEffects.forEach(effect => {
-      const effectData = effects[effect.id];
+    allEffectIds.forEach(effectId => {
+      const effectData = effects[effectId];
       const enabled = effectData?.enabled || false;
       const intensity = effectData?.intensity ?? 80;
       const source = effectData?.source || '';
 
-      // Finde die Effekt-Elemente im DOM
-      const effectItems = document.querySelectorAll('.effect-item');
-      effectItems.forEach(item => {
-        const nameEl = item.querySelector('.effect-name');
-        if (nameEl && nameEl.textContent === effect.name) {
-          const checkbox = item.querySelector('.effect-checkbox');
-          const slider = item.querySelector('.effect-slider');
-          const valueSpan = item.querySelector('.effect-value');
-          const sourceSelect = item.querySelector('.effect-source-select');
+      // Finde die Effekt-Elemente im DOM über data-effect-id
+      const effectItem = document.querySelector(`.effect-item[data-effect-id="${effectId}"]`);
+      if (effectItem) {
+        const checkbox = effectItem.querySelector('.effect-checkbox');
+        const slider = effectItem.querySelector('.effect-slider');
+        const valueSpan = effectItem.querySelector('.effect-value');
+        const sourceSelect = effectItem.querySelector('.effect-source-select');
 
-          if (checkbox) checkbox.checked = enabled;
-          if (slider) slider.value = intensity;
-          if (valueSpan) valueSpan.textContent = intensity + '%';
-          if (sourceSelect) sourceSelect.value = source;
-        }
-      });
+        if (checkbox) checkbox.checked = enabled;
+        if (slider) slider.value = intensity;
+        if (valueSpan) valueSpan.textContent = intensity + '%';
+        if (sourceSelect) sourceSelect.value = source;
+      }
     });
   }, 0);
 

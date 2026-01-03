@@ -17,11 +17,28 @@
 
     <!-- Layer Controls (nur wenn Multi-Layer aktiv) -->
     <div v-if="store.multiLayerMode" class="layer-content">
-      <!-- Add Layer Button -->
-      <button class="add-layer-btn" @click="addNewLayer">
-        <span class="btn-icon">+</span>
-        {{ t('visualizer.addLayer') || 'Layer hinzufügen' }}
-      </button>
+      <!-- Add Layer Section -->
+      <div class="add-layer-section">
+        <select v-model="newLayerVisualizerId" class="add-layer-select">
+          <optgroup
+            v-for="(visualizers, category) in store.categorizedVisualizers"
+            :key="category"
+            :label="getCategoryName(category)"
+          >
+            <option
+              v-for="viz in visualizers"
+              :key="viz.id"
+              :value="viz.id"
+            >
+              {{ viz.name }}
+            </option>
+          </optgroup>
+        </select>
+        <button class="add-layer-btn" @click="addNewLayer">
+          <span class="btn-icon">+</span>
+          {{ t('visualizer.addLayer') || 'Hinzufügen' }}
+        </button>
+      </div>
 
       <!-- Layer Liste (unterster Layer unten) -->
       <div class="layer-list">
@@ -202,7 +219,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 import { useVisualizerStore, BLEND_MODES } from '../stores/visualizerStore.js';
 import { Visualizers } from '../lib/visualizers/index.js';
@@ -212,6 +229,9 @@ const store = useVisualizerStore();
 
 // Blend modes
 const blendModes = BLEND_MODES;
+
+// Auswahl für neuen Layer (Standard: aktuell ausgewählter Visualizer)
+const newLayerVisualizerId = ref(store.selectedVisualizer || 'bars');
 
 // Umgekehrte Layer-Liste (oberster Layer oben in der UI)
 const reversedLayers = computed(() => {
@@ -254,14 +274,28 @@ function toggleMultiLayerMode() {
 }
 
 function addNewLayer() {
-  // Füge neuen Layer mit zufälligem Visualizer hinzu
-  const visualizerIds = Object.keys(Visualizers);
-  const randomId = visualizerIds[Math.floor(Math.random() * visualizerIds.length)];
+  // Füge neuen Layer mit dem ausgewählten Visualizer hinzu
+  const visualizerId = newLayerVisualizerId.value;
 
-  // Zufällige Farbe
-  const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+  // Generiere eine harmonische Farbe basierend auf der Layer-Anzahl
+  const hue = (store.visualizerLayers.length * 137.5) % 360; // Goldener Winkel für Farbverteilung
+  const color = `hsl(${hue}, 70%, 60%)`;
 
-  store.addLayer(randomId, { color: randomColor });
+  // Konvertiere HSL zu HEX
+  const hslToHex = (h, s, l) => {
+    s /= 100;
+    l /= 100;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  };
+
+  const hexColor = hslToHex(hue, 70, 60);
+  store.addLayer(visualizerId, { color: hexColor });
 }
 
 function updateProperty(layerId, property, value) {
@@ -332,26 +366,58 @@ function updateProperty(layerId, property, value) {
   gap: 8px;
 }
 
-.add-layer-btn {
-  width: 100%;
+.add-layer-section {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.add-layer-select {
+  flex: 1;
   background-color: var(--btn, #1c2426);
-  color: var(--accent, #609198);
-  border: 1px dashed var(--accent, #609198);
+  color: var(--text, #E9E9EB);
+  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 5px;
-  padding: 8px;
-  font-size: 0.65rem;
+  padding: 6px 8px;
+  font-size: 0.6rem;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.add-layer-select:focus {
+  outline: none;
+  border-color: var(--accent, #609198);
+}
+
+.add-layer-select optgroup {
+  font-weight: 600;
+  color: var(--muted, #A8A992);
+}
+
+.add-layer-select option {
+  background-color: var(--panel, #151b1d);
+  color: var(--text, #E9E9EB);
+}
+
+.add-layer-btn {
+  background-color: var(--accent, #609198);
+  color: var(--accent-text, #0f1416);
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 0.6rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
+  white-space: nowrap;
 }
 
 .add-layer-btn:hover {
-  background-color: var(--accent, #609198);
-  color: var(--accent-text, #0f1416);
-  border-style: solid;
+  background-color: var(--accent-light, #BCE5E5);
 }
 
 .btn-icon {

@@ -1278,12 +1278,18 @@ function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   }
 
+  // ✨ NEU: Bilder die HINTER dem Visualizer gerendert werden sollen
+  if (multiImageManagerInstance.value) {
+    multiImageManagerInstance.value.drawImages(ctx, { behindVisualizer: true });
+  }
+
   if (drawVisualizerCallback) {
     drawVisualizerCallback(ctx, canvasWidth, canvasHeight);
   }
 
+  // ✨ NEU: Bilder die VOR dem Visualizer gerendert werden (Standard)
   if (multiImageManagerInstance.value) {
-    multiImageManagerInstance.value.drawImages(ctx);
+    multiImageManagerInstance.value.drawImages(ctx, { behindVisualizer: false });
   }
 
   // ✨ NEU: Videos zeichnen (über Bildern, aber unter Text)
@@ -1322,6 +1328,11 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
       tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
     }
 
+    // ✨ NEU: Bilder die HINTER dem Visualizer gerendert werden sollen
+    if (multiImageManagerInstance.value) {
+      multiImageManagerInstance.value.drawImages(tempCtx, { behindVisualizer: true });
+    }
+
     // Visualizer im Workspace-Bereich zeichnen
     if (drawVisualizerCallback) {
       tempCtx.save();
@@ -1340,9 +1351,9 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
       tempCtx.restore();
     }
 
-    // Bilder zeichnen
+    // ✨ NEU: Bilder die VOR dem Visualizer gerendert werden (Standard)
     if (multiImageManagerInstance.value) {
-      multiImageManagerInstance.value.drawImages(tempCtx);
+      multiImageManagerInstance.value.drawImages(tempCtx, { behindVisualizer: false });
     }
 
     // Videos zeichnen
@@ -1379,12 +1390,18 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
 
+    // ✨ NEU: Bilder die HINTER dem Visualizer gerendert werden sollen
+    if (multiImageManagerInstance.value) {
+      multiImageManagerInstance.value.drawImages(ctx, { behindVisualizer: true });
+    }
+
     if (drawVisualizerCallback) {
       drawVisualizerCallback(ctx, canvasWidth, canvasHeight);
     }
 
+    // ✨ NEU: Bilder die VOR dem Visualizer gerendert werden (Standard)
     if (multiImageManagerInstance.value) {
-      multiImageManagerInstance.value.drawImages(ctx);
+      multiImageManagerInstance.value.drawImages(ctx, { behindVisualizer: false });
     }
 
     // ✨ NEU: Videos zeichnen beim Recording

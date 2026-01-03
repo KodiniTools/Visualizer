@@ -587,6 +587,7 @@ const translations = {
       // Image editing
       editImage: 'Bild bearbeiten',
       layers: 'Ebenen',
+      renderBehindVisualizer: 'Hinter Visualizer rendern',
       bringToFrontTop: 'Nach vorne',
       layerUp: 'Ebene hoch',
       layerDown: 'Ebene runter',
@@ -1395,6 +1396,7 @@ const translations = {
       // Image editing
       editImage: 'Edit Image',
       layers: 'Layers',
+      renderBehindVisualizer: 'Render behind visualizer',
       bringToFrontTop: 'Bring to front',
       layerUp: 'Layer up',
       layerDown: 'Layer down',

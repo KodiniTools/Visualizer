@@ -38,6 +38,9 @@ export class FotoManager {
             borderColor: '#ffffff',  // Konturfarbe
             borderOpacity: 100,      // 0-100% Konturtransparenz
 
+            // ✨ VISUALIZER-LAYER
+            renderBehindVisualizer: false,  // true = Bild wird hinter dem Visualizer gerendert
+
             // ✨ AUDIO-REAKTIV (Musik-Synchronisierung) - MEHRERE EFFEKTE GLEICHZEITIG
             audioReactive: {
                 enabled: false,              // Audio-Reaktivität aktiviert

@@ -749,16 +749,31 @@ export class MultiImageManager {
      * ✅ OPTIMIERT: Reduziert Canvas-Context Overhead für Recording
      * ✨ ERWEITERT: Unterstützt jetzt Filter, Schatten und Rotation vom FotoManager
      * ✨ NEU: Audio-Reaktive Effekte
+     * ✨ NEU: Layer-Filter für Visualizer-Unterstützung
+     * @param {CanvasRenderingContext2D} ctx - Canvas-Kontext
+     * @param {Object} options - Optionen
+     * @param {boolean|null} options.behindVisualizer - null=alle, true=nur hinter Visualizer, false=nur vor Visualizer
      */
-    drawImages(ctx) {
+    drawImages(ctx, options = {}) {
         if (!ctx || this.images.length === 0) return;
 
         // ✅ KRITISCHER FIX: Verwende ctx.canvas für Bounds-Berechnung
         // Dies stellt sicher, dass wir die Dimensionen des TATSÄCHLICH sichtbaren Canvas verwenden
         const renderCanvas = ctx.canvas;
 
+        // ✨ Filter Bilder basierend auf Layer-Einstellung
+        const { behindVisualizer = null } = options;
+        let imagesToDraw = this.images;
+
+        if (behindVisualizer !== null) {
+            imagesToDraw = this.images.filter(imgData => {
+                const renderBehind = imgData.fotoSettings?.renderBehindVisualizer || false;
+                return renderBehind === behindVisualizer;
+            });
+        }
+
         // ✅ OPTIMIZATION: Batch-Rendering mit weniger save/restore calls
-        this.images.forEach(imgData => {
+        imagesToDraw.forEach(imgData => {
             const bounds = this.getImageBounds(imgData, renderCanvas);
             if (!bounds) return;
 

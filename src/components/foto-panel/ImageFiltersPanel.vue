@@ -24,6 +24,18 @@
           <span class="layer-text">{{ t('foto.sendToBack') }}</span>
         </button>
       </div>
+
+      <!-- Visualizer Layer Toggle -->
+      <div class="visualizer-layer-toggle">
+        <label class="toggle-label">
+          <input
+            type="checkbox"
+            :checked="renderBehindVisualizerRef"
+            @change="onRenderBehindVisualizerChange"
+          />
+          <span class="toggle-text">{{ t('foto.renderBehindVisualizer') }}</span>
+        </label>
+      </div>
     </div>
 
     <!-- Preset Auswahl -->
@@ -274,6 +286,9 @@ const rotationValueRef = ref(null);
 const flipHRef = ref(false);
 const flipVRef = ref(false);
 
+// Visualizer Layer Ref
+const renderBehindVisualizerRef = ref(false);
+
 // Border Refs
 const borderColorInputRef = ref(null);
 const borderColorTextRef = ref(null);
@@ -373,6 +388,11 @@ function onFlipHorizontal() {
 function onFlipVertical() {
   flipVRef.value = !flipVRef.value;
   emitFilterChange('flipV', flipVRef.value);
+}
+
+function onRenderBehindVisualizerChange(event) {
+  renderBehindVisualizerRef.value = event.target.checked;
+  emitFilterChange('renderBehindVisualizer', renderBehindVisualizerRef.value);
 }
 
 function onBorderColorChange(event) {
@@ -479,6 +499,7 @@ function loadImageSettings(settings) {
 
   flipHRef.value = s.flipH || false;
   flipVRef.value = s.flipV || false;
+  renderBehindVisualizerRef.value = s.renderBehindVisualizer || false;
 
   if (borderColorInputRef.value) borderColorInputRef.value.value = s.borderColor || '#ffffff';
   if (borderColorTextRef.value) borderColorTextRef.value.value = s.borderColor || '#ffffff';
@@ -914,5 +935,32 @@ input[type="range"]::-moz-range-thumb {
   text-transform: uppercase;
   letter-spacing: 0.3px;
   opacity: 0.8;
+}
+
+/* Visualizer Layer Toggle */
+.visualizer-layer-toggle {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(110, 168, 254, 0.15);
+}
+
+.visualizer-layer-toggle .toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--text, #E9E9EB);
+}
+
+.visualizer-layer-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--image-section-accent, #6ea8fe);
+  cursor: pointer;
+}
+
+.visualizer-layer-toggle .toggle-text {
+  opacity: 0.9;
 }
 </style>

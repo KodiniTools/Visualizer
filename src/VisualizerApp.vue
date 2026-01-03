@@ -1254,7 +1254,9 @@ function onObjectSelected(selectedObject) {
     }
   }
 
-  window.fotoPanelControls.container.style.display = isImageSelected ? 'block' : 'none';
+  if (window.fotoPanelControls.container) {
+    window.fotoPanelControls.container.style.display = isImageSelected ? 'block' : 'none';
+  }
 
   // ✨ FIX: loadImageSettings für ALLE Bild-Typen aufrufen (nicht nur 'image')
   if (isImageSelected && window.fotoPanelControls.loadImageSettings) {

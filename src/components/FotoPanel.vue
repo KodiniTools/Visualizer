@@ -126,9 +126,9 @@ const { t, locale } = useI18n();
 const toastStore = useToastStore();
 
 // Injected Refs von App.vue
-const fotoManagerRef = inject('fotoManagerRef', ref(null));
-const multiImageManagerRef = inject('multiImageManagerRef', ref(null));
-const canvasManagerRef = inject('canvasManagerRef', ref(null));
+const fotoManagerRef = inject('fotoManager');
+const multiImageManagerRef = inject('multiImageManager');
+const canvasManagerRef = inject('canvasManager');
 
 // Panel-Refs
 const imageFiltersPanelRef = ref(null);

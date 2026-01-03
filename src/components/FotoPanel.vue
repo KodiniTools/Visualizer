@@ -809,6 +809,9 @@ onMounted(() => {
         if (imageFiltersPanelRef.value) {
           imageFiltersPanelRef.value.loadImageSettings(imgData?.fotoSettings || {});
         }
+        if (audioReactivePanelRef.value) {
+          audioReactivePanelRef.value.loadSettings(imgData);
+        }
       },
       currentActiveImage: currentActiveImage
     };
@@ -831,8 +834,16 @@ onMounted(() => {
 
 // Watcher für aktives Bild
 watch(currentActiveImage, (newImage) => {
-  if (newImage && imageFiltersPanelRef.value) {
-    imageFiltersPanelRef.value.loadImageSettings(newImage.fotoSettings || {});
+  if (newImage) {
+    // Filter-Einstellungen laden
+    if (imageFiltersPanelRef.value) {
+      imageFiltersPanelRef.value.loadImageSettings(newImage.fotoSettings || {});
+    }
+    // Audio-Reaktiv Einstellungen laden
+    if (audioReactivePanelRef.value) {
+      audioReactivePanelRef.value.loadSettings(newImage);
+    }
+    console.log('🖼️ Aktives Bild geändert:', newImage.id || newImage);
   }
 }, { immediate: true });
 </script>

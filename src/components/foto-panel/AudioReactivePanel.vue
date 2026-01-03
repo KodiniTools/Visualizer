@@ -330,7 +330,96 @@ function onAudioReactivePhaseChange(event) {
   emit('phase-change', event);
 }
 
-// Expose refs
+/**
+ * Lädt Audio-Reaktiv Einstellungen in die UI
+ */
+function loadSettings(imageData) {
+  if (!imageData) {
+    // Reset to defaults
+    isEnabled.value = false;
+    if (audioReactiveEnabledRef.value) {
+      audioReactiveEnabledRef.value.checked = false;
+    }
+    return;
+  }
+
+  const audioReactive = imageData.fotoSettings?.audioReactive || {};
+
+  // Master-Einstellungen
+  const enabled = audioReactive.enabled || false;
+  isEnabled.value = enabled;
+  if (audioReactiveEnabledRef.value) {
+    audioReactiveEnabledRef.value.checked = enabled;
+  }
+
+  if (audioReactiveSourceRef.value) {
+    audioReactiveSourceRef.value.value = audioReactive.source || 'bass';
+  }
+
+  if (audioReactiveSmoothingRef.value) {
+    const smoothing = audioReactive.smoothing ?? 50;
+    audioReactiveSmoothingRef.value.value = smoothing;
+    if (audioReactiveSmoothingValueRef.value) {
+      audioReactiveSmoothingValueRef.value.textContent = smoothing + '%';
+    }
+  }
+
+  if (audioReactiveEasingRef.value) {
+    audioReactiveEasingRef.value.value = audioReactive.easing || 'linear';
+  }
+
+  if (audioReactiveBeatBoostRef.value) {
+    const beatBoost = audioReactive.beatBoost ?? 1.0;
+    audioReactiveBeatBoostRef.value.value = beatBoost;
+    if (audioReactiveBeatBoostValueRef.value) {
+      const displayValue = beatBoost <= 1.0 ? 'Aus' : `${Math.round((beatBoost - 1) * 100)}%`;
+      audioReactiveBeatBoostValueRef.value.textContent = displayValue;
+    }
+  }
+
+  if (audioReactivePhaseRef.value) {
+    const phase = audioReactive.phase ?? 0;
+    audioReactivePhaseRef.value.value = phase;
+    if (audioReactivePhaseValueRef.value) {
+      audioReactivePhaseValueRef.value.textContent = phase + '°';
+    }
+  }
+
+  // Effekte laden (alle Effekt-Checkboxen und Slider)
+  const effects = audioReactive.effects || {};
+  const allEffects = [...colorEffects, ...transformEffects, ...movementEffects, ...specialEffects];
+
+  // DOM-Elemente für Effekte suchen und aktualisieren
+  setTimeout(() => {
+    allEffects.forEach(effect => {
+      const effectData = effects[effect.id];
+      const enabled = effectData?.enabled || false;
+      const intensity = effectData?.intensity ?? 80;
+      const source = effectData?.source || '';
+
+      // Finde die Effekt-Elemente im DOM
+      const effectItems = document.querySelectorAll('.effect-item');
+      effectItems.forEach(item => {
+        const nameEl = item.querySelector('.effect-name');
+        if (nameEl && nameEl.textContent === effect.name) {
+          const checkbox = item.querySelector('.effect-checkbox');
+          const slider = item.querySelector('.effect-slider');
+          const valueSpan = item.querySelector('.effect-value');
+          const sourceSelect = item.querySelector('.effect-source-select');
+
+          if (checkbox) checkbox.checked = enabled;
+          if (slider) slider.value = intensity;
+          if (valueSpan) valueSpan.textContent = intensity + '%';
+          if (sourceSelect) sourceSelect.value = source;
+        }
+      });
+    });
+  }, 0);
+
+  console.log('🔊 Audio-Reaktiv Einstellungen geladen:', audioReactive);
+}
+
+// Expose refs and methods
 defineExpose({
   audioReactiveEnabledRef,
   audioLevelBarRef,
@@ -342,7 +431,8 @@ defineExpose({
   audioReactiveBeatBoostValueRef,
   audioReactivePhaseRef,
   audioReactivePhaseValueRef,
-  isEnabled
+  isEnabled,
+  loadSettings
 });
 </script>
 

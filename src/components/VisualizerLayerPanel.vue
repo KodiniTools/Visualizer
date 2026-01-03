@@ -41,16 +41,17 @@
       </div>
 
       <!-- Layer Liste (unterster Layer unten) -->
-      <div class="layer-list">
+      <div class="layer-list" ref="layerListRef">
         <div
           v-for="(layer, index) in reversedLayers"
           :key="layer.id"
+          :ref="el => setLayerRef(layer.id, el)"
           class="layer-item"
           :class="{
             active: store.activeLayerId === layer.id,
             hidden: !layer.visible
           }"
-          @click="store.selectLayer(layer.id)"
+          @click="selectLayerAndScroll(layer.id)"
         >
           <!-- Layer Header -->
           <div class="layer-item-header">
@@ -219,7 +220,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 import { useVisualizerStore, BLEND_MODES } from '../stores/visualizerStore.js';
 import { Visualizers } from '../lib/visualizers/index.js';
@@ -232,6 +233,30 @@ const blendModes = BLEND_MODES;
 
 // Auswahl für neuen Layer (Standard: aktuell ausgewählter Visualizer)
 const newLayerVisualizerId = ref(store.selectedVisualizer || 'bars');
+
+// Refs für Layer-Elemente (für Auto-Scroll)
+const layerListRef = ref(null);
+const layerRefs = ref({});
+
+function setLayerRef(layerId, el) {
+  if (el) {
+    layerRefs.value[layerId] = el;
+  } else {
+    delete layerRefs.value[layerId];
+  }
+}
+
+// Layer auswählen und in Sicht scrollen
+function selectLayerAndScroll(layerId) {
+  store.selectLayer(layerId);
+  // Nach dem Rendern der Details in Sicht scrollen
+  nextTick(() => {
+    const el = layerRefs.value[layerId];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
+}
 
 // Umgekehrte Layer-Liste (oberster Layer oben in der UI)
 const reversedLayers = computed(() => {
@@ -279,7 +304,6 @@ function addNewLayer() {
 
   // Generiere eine harmonische Farbe basierend auf der Layer-Anzahl
   const hue = (store.visualizerLayers.length * 137.5) % 360; // Goldener Winkel für Farbverteilung
-  const color = `hsl(${hue}, 70%, 60%)`;
 
   // Konvertiere HSL zu HEX
   const hslToHex = (h, s, l) => {
@@ -295,7 +319,15 @@ function addNewLayer() {
   };
 
   const hexColor = hslToHex(hue, 70, 60);
-  store.addLayer(visualizerId, { color: hexColor });
+  const newLayer = store.addLayer(visualizerId, { color: hexColor });
+
+  // Nach dem Rendern zum neuen Layer scrollen (ist oben in der Liste)
+  nextTick(() => {
+    const el = layerRefs.value[newLayer.id];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
 }
 
 function updateProperty(layerId, property, value) {
@@ -429,8 +461,15 @@ function updateProperty(layerId, property, value) {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: 400px;
+  max-height: 60vh;
   overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+}
+
+/* Aktiver Layer scrollt in Sicht */
+.layer-item.active {
+  scroll-margin: 10px;
 }
 
 .layer-item {

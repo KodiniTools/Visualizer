@@ -746,7 +746,7 @@ class Recorder {
 
     async _attemptServerUpload(blob, fileName) {
         const formData = new FormData();
-        formData.append('file', blob, fileName);
+        formData.append('video', blob, fileName);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 

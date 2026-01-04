@@ -746,12 +746,12 @@ class Recorder {
 
     async _attemptServerUpload(blob, fileName) {
         const formData = new FormData();
-        formData.append('video', blob, fileName);
+        formData.append('file', blob, fileName);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
-            const response = await fetch('/visualizer/api/upload', {
+            const response = await fetch('/visualizer/upload', {
                 method: 'POST',
                 body: formData,
                 signal: controller.signal

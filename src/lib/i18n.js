@@ -88,6 +88,362 @@ const translations = {
       dark: 'Dunkel'
     },
 
+    // ========== BLOG PAGE ==========
+    blog: {
+      nav: {
+        home: 'Startseite',
+        features: 'Funktionen'
+      },
+      hero: {
+        title: 'Audio Visualizer: Alle Funktionen im Uberblick',
+        subtitle: 'Verwandle deine Musik in visuelle Kunst - direkt im Browser, ohne Installation, komplett kostenlos.'
+      },
+      intro: 'Musik ist mehr als nur Klang - sie ist Emotion, Energie und Ausdruck. Der Audio Visualizer bringt diese unsichtbare Kraft auf den Bildschirm und verwandelt jeden Beat, jede Frequenz und jede Melodie in faszinierende visuelle Erlebnisse. Ob fur Social Media Content, Musikvideos, Live-Streams oder kunstlerische Projekte - dieses Tool bietet alles, was du brauchst.',
+      sections: {
+        audio: {
+          title: 'Audio-Steuerung und -Analyse',
+          player: {
+            title: 'Der vollwertige Audio-Player',
+            items: [
+              'Vollstandige Wiedergabesteuerung: Play, Pause, Stop, Vor- und Zuruckspulen',
+              'Lautstarke-Regler mit visuellem Feedback',
+              'Equalizer fur Bass und Hohen - passe den Sound perfekt an',
+              'Playlist-Verwaltung fur mehrere Tracks mit Drag-and-Drop Sortierung'
+            ]
+          },
+          microphone: {
+            title: 'Live-Mikrofon-Unterstutzung',
+            items: [
+              'Gerateauswahl fur verschiedene Audio-Eingange',
+              'Echo-Unterdruckung fur saubere Aufnahmen',
+              'Rauschunterdruckung fur professionelle Qualitat',
+              'Auto-Gain-Control fur konsistente Pegel'
+            ]
+          },
+          beatMarkers: {
+            title: 'Beat-Marker System',
+            items: [
+              'Benutzerdefinierte Beat-Marker an beliebigen Zeitpunkten',
+              'Farbcodierung und Beschriftungen fur jeden Marker',
+              'Visuelle Vorschau der Marker in der Wellenform'
+            ]
+          },
+          frequency: {
+            title: 'Professionelle Frequenzanalyse',
+            items: [
+              'Echtzeit-Analyse mit 1024-Punkt FFT (Fast Fourier Transform)',
+              'Bass-Erkennung fur Kick-Drums und tiefe Frequenzen',
+              'Mitten-Analyse fur Vocals und Melodien',
+              'Hohen-Tracking fur Hi-Hats und Cymbals',
+              'Dynamische Frequenzmischung fur optimale Reaktivitat'
+            ]
+          }
+        },
+        visualizers: {
+          title: 'Uber 30 professionelle Visualizer',
+          intro: 'Der Audio Visualizer bietet eine beeindruckende Sammlung von uber 30 verschiedenen Visualisierungen, organisiert in zehn Kategorien:',
+          categories: [
+            { name: 'Bars und Spektrum', items: ['Ultra-dynamische Frequenz-Bars', 'Gespiegelte Multi-Band Bars', 'Radiale Bars', 'Wellenform-Visualisierung'] },
+            { name: 'Wellen und Organische Formen', items: ['Fluid Waves', 'Ripple-Effekt', 'Wellenform-Horizont'] },
+            { name: 'Kreise und Geometrie', items: ['Dynamische konzentrische Kreise', 'Audio-reaktive Kreismuster', 'Geometrisches Kaleidoskop'] },
+            { name: 'Partikel und Weltraum', items: ['Partikel-Sturm', 'Orbitierende Lichter', 'Pulsierende Kugeln'] },
+            { name: 'Tech und Digital', items: ['Matrix Rain', 'Netzwerk-Plexus', 'Digital Rain', 'Neon Grid'] },
+            { name: 'Kosmische Effekte', items: ['Kosmischer Nebel', 'Elektrisches Netz', 'Vortex-Portal', 'Spiralgalaxie'] },
+            { name: 'Organische Visualisierungen', items: ['Bluhende Mandala', 'Frequenz-Bluten', 'Fraktaler Baum', 'Zellwachstum'] },
+            { name: 'Retro und Pixel', items: ['8-Bit Pixel-Spektrum', 'Retro-Oszilloskop', 'Arcade-Blocke', 'Chiptune-Puls'] }
+          ],
+          features: {
+            title: 'Visualizer-Funktionen',
+            items: [
+              'Multi-Layer-Unterstutzung: Staple mehrere Visualizer ubereinander',
+              'Mischmodi: Bestimme, wie Layer miteinander interagieren',
+              'Volle Farbkontrolle mit Transparenz',
+              'Intensitatsregelung von 0% bis 200%',
+              'Position und Grosse frei einstellbar',
+              'Glattungsoptionen fur flussige Animationen',
+              'Suchfilter zum schnellen Finden des perfekten Visualizers'
+            ]
+          }
+        },
+        text: {
+          title: 'Professionelle Text-Funktionen',
+          editor: {
+            title: 'Text-Editor',
+            items: [
+              'Mehrzeilige Texte mit voller Absatzunterstutzung',
+              '15+ professionelle Schriften: Satoshi, Switzer, Author, Alpino und mehr',
+              'Schriftstile: Fett, Kursiv, verschiedene Schriftgewichte',
+              'Dynamische Textgrosse mit automatischer Canvas-Anpassung',
+              'Volle Farbauswahl mit Transparenz',
+              'Textausrichtung: Links, Mitte, Rechts',
+              'Zeichenabstand und Zeilenhohe individuell einstellbar'
+            ]
+          },
+          effects: {
+            title: 'Text-Effekte',
+            items: [
+              'Anpassbare Schatten mit Unscharfe, Versatz und Farbe',
+              'Text-Umrandung mit Farb- und Breitenkontrolle',
+              'Schreibmaschinen-Effekt mit einstellbarer Geschwindigkeit',
+              'Uberblend-Effekt mit verschiedenen Richtungen',
+              'Skalierungs-Effekt mit Start- und Endgrosse'
+            ]
+          },
+          audioReactive: {
+            title: 'Audio-reaktive Text-Effekte (15+ Effekte)',
+            items: [
+              'Farbeffekte: Farbton-Rotation, RGB-Glitch, Farbwechsel',
+              'Helligkeit: Dynamische Helligkeitsanderungen',
+              'Sattigung: Animierte Farbsattigung',
+              'Skalierung/Zoom: Grossenanderung basierend auf Audio',
+              'Gluhen: Leuchtender Effekt mit variabler Intensitat',
+              'Schutteln, Hupfen, Schwingen, Rotation',
+              'Stroboskop: Blitz-Effekt bei Audio-Peaks',
+              'Welle: Zeichen bewegen sich wellenformig',
+              'Elastisch: Gummiartige Verformung',
+              '3D-Perspektive: Simulierter 3D-Kippeffekt'
+            ]
+          }
+        },
+        images: {
+          title: 'Umfangreiche Bild-Funktionen',
+          management: {
+            title: 'Bildverwaltung',
+            items: [
+              'Mehrere Bilder gleichzeitig auf dem Canvas',
+              'Bildgalerie mit eigenen Uploads',
+              'Format-Unterstutzung: JPG, PNG, GIF, WebP',
+              'Ebenen-Management: Ordne Bilder in Z-Reihenfolge',
+              'Position: Drag-and-Drop Platzierung',
+              'Skalierung: Grossenanderung mit Seitenverhaltnis-Kontrolle',
+              'Rotation: 0-360 Grad Drehung'
+            ]
+          },
+          filters: {
+            title: 'Bildfilter und Effekte',
+            items: [
+              'Helligkeit: -100% bis +200%',
+              'Kontrast: 0-200%',
+              'Sattigung: 0-200%',
+              'Unscharfe: 0-20px Gausssche Unscharfe',
+              'Farbton-Rotation: 0-360 Grad Farbverschiebung',
+              'Graustufen: 0-100% Entsattigung',
+              'Sepia: 0-100% Vintage-Ton',
+              'Invertieren: 0-100% Farbumkehrung'
+            ]
+          },
+          audioReactive: {
+            title: 'Audio-reaktive Bild-Effekte (23+ Effekte)',
+            items: [
+              'Farbeffekte: Farbton, Helligkeit, Sattigung, Kontrast',
+              'Transformationen: Skalierung, Rotation, Verzerrung, Perspektive',
+              'Bewegungseffekte: Schutteln, Hupfen, Schwingen, Orbit, Welle, Spirale',
+              'Spezialeffekte: Gluhen, Rahmen, Unscharfe, Stroboskop, Chromatische Aberration',
+              'Beat-Boost: Verstarke Effekte bei Beat-Hits (1.0-3.0x)',
+              'Phasenversatz: Kaskadiere Effekte uber mehrere Bilder'
+            ]
+          }
+        },
+        background: {
+          title: 'Hintergrund und Canvas',
+          canvas: {
+            title: 'Canvas-Kontrolle',
+            intro: 'Social Media Presets - optimierte Grossen fur alle Plattformen:',
+            presets: [
+              'TikTok (1080x1920)',
+              'Instagram Story (1080x1920)',
+              'Instagram Post (1080x1080)',
+              'Instagram Reel (1080x1920)',
+              'YouTube Shorts (1080x1920)',
+              'YouTube Video (1920x1080)',
+              'Facebook Post (1200x630)',
+              'X/Twitter Video (1280x720)',
+              'LinkedIn Video (1920x1080)',
+              'Freie Canvas-Grosse fur individuelle Dimensionen'
+            ]
+          },
+          options: {
+            title: 'Hintergrund-Optionen',
+            items: [
+              'Vollfarben-Hintergrund mit Farbwahler',
+              'Transparenz-Kontrolle',
+              'Lineare Farbverlaufe mit Winkelkontrolle',
+              'Radiale Farbverlaufe mit Zentrumsausrichtung',
+              'Animierte Farbverlaufe mit Audio-Reaktion',
+              'Bilder als Hintergrund verwenden',
+              'Video-Hintergrunde mit Wiedergabekontrolle'
+            ]
+          },
+          tiles: {
+            title: 'Gekachelter Hintergrund',
+            items: [
+              'Kachel-Modi: 3, 6, 9 oder 12 Kacheln',
+              'Abstandskontrolle zwischen Kacheln',
+              'Individuelle Einstellungen pro Kachel',
+              'Eigene Hintergrundfarbe, Bild oder Video pro Kachel',
+              'Eigene Filter und Audio-Reaktivitat pro Kachel',
+              'Kachel-Presets speichern und laden'
+            ]
+          }
+        },
+        recording: {
+          title: 'Video-Aufnahme und Export',
+          controls: {
+            title: 'Aufnahme-Steuerung',
+            items: [
+              'Vorbereiten: Canvas-Stream einrichten',
+              'Start/Stop: Volle Aufnahmekontrolle',
+              'Pause/Fortsetzen: Aufnahme unterbrechen ohne zu stoppen',
+              'Zurucksetzen: Fur neue Aufnahme vorbereiten',
+              'Status-Anzeige: IDLE, READY, RECORDING, PAUSED'
+            ]
+          },
+          quality: {
+            title: 'Qualitatsoptionen',
+            items: [
+              'Qualitatsstufen: Niedrig, Mittel, Hoch',
+              'Auflosung: 720p, 1080p, 4K',
+              'Bildrate: 30-60 FPS konfigurierbar',
+              'Bitrate-Kontrolle: Adaptive Steuerung'
+            ]
+          },
+          export: {
+            title: 'Export-Formate',
+            items: [
+              'WebM: Standard Browser-Format',
+              'MP4-Konvertierung: Via integriertem Server',
+              'Automatische Konvertierung: Optional nach Aufnahme',
+              'Direkter Download: Video auf Computer speichern',
+              'Audio einbinden: Optional in Aufnahme'
+            ]
+          }
+        },
+        screenshot: {
+          title: 'Screenshot-Funktion',
+          items: [
+            'Format-Optionen: PNG, JPG, WebP',
+            'Qualitatsstufen: Klein bis Hochste Qualitat',
+            'Vorschau vor dem Download',
+            'Verlustfreies PNG mit Transparenz-Unterstutzung',
+            'Komprimiertes JPG fur kleinere Dateigrosse',
+            'Modernes WebP fur optimale Kompression'
+          ]
+        },
+        shortcuts: {
+          title: 'Tastaturkurzel',
+          items: [
+            { key: 'Leertaste', action: 'Play/Pause' },
+            { key: 'S', action: 'Stop' },
+            { key: 'R', action: 'Aufnahme' },
+            { key: 'Strg+Z', action: 'Ruckgangig' },
+            { key: 'Entf', action: 'Loschen' },
+            { key: 'Strg+A', action: 'Alles auswahlen' },
+            { key: 'Pfeiltasten', action: 'Objekt bewegen' },
+            { key: '+/-', action: 'Zoom' },
+            { key: 'G', action: 'Raster ein/aus' },
+            { key: 'M', action: 'Beat-Marker setzen' }
+          ]
+        },
+        history: {
+          title: 'Ruckgangig/Wiederholen',
+          items: [
+            '50 Schritte Verlauf',
+            'Ruckgangig mit visueller Ruckmeldung',
+            'Wiederholen fur versehentlich ruckgangig gemachte Aktionen',
+            'Command-Pattern: Jede Aktion ist reversibel'
+          ]
+        },
+        audioReactivity: {
+          title: 'Erweiterte Audio-Reaktivitat',
+          frequency: {
+            title: 'Frequenzfilterung',
+            items: [
+              'Bass-Analyse: Kick-Drum-Erkennung',
+              'Mitten-Analyse: Vocals/Melodie',
+              'Hohen-Analyse: Hi-Hats/Cymbals',
+              'Gesamtlautstarke: Vollstandiger Audio-Level',
+              'Dynamische Mischung: Automatische Frequenzkombination'
+            ]
+          },
+          parameters: {
+            title: 'Audio-Effekt-Parameter',
+            items: [
+              'Glattung: Flussige Animationen (0-100%)',
+              'Schwellenwert: Minimaler Audio-Level fur Trigger',
+              'Attack: Reaktionsgeschwindigkeit (10-100%)',
+              'Release: Abklinggeschwindigkeit (10-100%)',
+              'Easing-Kurven: Linear, Ease, Bounce, Elastic, Punch',
+              'Phasenversatz: Verzogerte Effekte fur Kaskaden (0-360 Grad)',
+              'Beat-Boost: Verstarkung bei Beats (1.0-3.0x)'
+            ]
+          },
+          presets: {
+            title: 'Effekt-Presets',
+            items: [
+              'Punchy: Schnell und prazise',
+              'Smooth: Sanft und fliessend',
+              'Subtle: Zuruckhaltend und dezent',
+              'Extreme: Maximale Audio-Reaktion'
+            ]
+          }
+        },
+        browser: {
+          title: 'Browser und Format-Unterstutzung',
+          browsers: {
+            title: 'Unterstutzte Browser',
+            items: [
+              'Chrome/Chromium: Vollstandig (empfohlen)',
+              'Firefox: Vollstandig',
+              'Edge: Vollstandig',
+              'Safari: Unterstutzt (mit MediaRecorder-Einschrankungen)'
+            ]
+          },
+          formats: {
+            title: 'Unterstutzte Formate',
+            items: [
+              'Audio: MP3, WAV, OGG, FLAC, AAC und mehr',
+              'Bilder: JPG, PNG, GIF, WebP',
+              'Video: MP4, WebM, MOV (browserabhangig)'
+            ]
+          }
+        },
+        unique: {
+          title: 'Einzigartige Vorteile',
+          items: [
+            '100% browserbasiert: Keine Installation erforderlich',
+            'Datenschutz-fokussiert: Audio-Dateien werden nie hochgeladen',
+            'Echtzeit-Verarbeitung: Live-Visualisierung wahrend der Wiedergabe',
+            'Hardware-beschleunigt: Canvas-basierte 2D-Grafik',
+            'Modulare Architektur: Separate Manager fur jede Funktion',
+            'Professionelle Qualitat: Geeignet fur echte Musikvideos',
+            'Komplett kostenlos: Keine Wasserzeichen, keine Einschrankungen'
+          ]
+        }
+      },
+      summary: {
+        title: 'Zusammenfassung',
+        text: 'Der Audio Visualizer ist ein umfassendes, funktionsreiches browserbasiertes Tool mit:',
+        items: [
+          '30+ professionelle Visualizer in uber 10 Kategorien',
+          'Mehrere Content-Ebenen: Visualizer, Bilder, Text, Hintergrunde',
+          'Audio-reaktive Effekte: 15+ Text-Effekte, 23+ Bild-Effekte',
+          'Professioneller Export: WebM-Videoaufnahme + MP4-Konvertierung',
+          'Reichhaltige Textbearbeitung: Animationseffekte, Schatten, Umrisse',
+          'Fortgeschrittene Bildverarbeitung: Filter, Transformationen, Effekte',
+          'Social Media Optimierung: Fertige Presets fur alle Plattformen',
+          'Komplette Audio-Steuerung: EQ, Beat-Marker, Mikrofon',
+          '50-Schritte Ruckgangig-System',
+          'Zweisprachige Oberflache: Deutsch und Englisch'
+        ],
+        cta: 'Probiere es jetzt aus und verwandle deine Musik in visuelle Kunst!'
+      },
+      cta: {
+        title: 'Bereit zum Starten?',
+        subtitle: 'Erstelle jetzt deine erste Audio-Visualisierung - kostenlos und ohne Anmeldung.',
+        button: 'Visualizer starten'
+      }
+    },
+
     // ========== INTERNAL LANDING PAGE ==========
     internalLanding: {
       lightMode: 'Hell',
@@ -942,6 +1298,362 @@ const translations = {
     theme: {
       light: 'Light',
       dark: 'Dark'
+    },
+
+    // ========== BLOG PAGE ==========
+    blog: {
+      nav: {
+        home: 'Home',
+        features: 'Features'
+      },
+      hero: {
+        title: 'Audio Visualizer: Complete Feature Overview',
+        subtitle: 'Transform your music into visual art - directly in your browser, no installation required, completely free.'
+      },
+      intro: 'Music is more than just sound - it is emotion, energy and expression. The Audio Visualizer brings this invisible force to the screen and transforms every beat, every frequency and every melody into fascinating visual experiences. Whether for social media content, music videos, live streams or artistic projects - this tool offers everything you need.',
+      sections: {
+        audio: {
+          title: 'Audio Control and Analysis',
+          player: {
+            title: 'Full-Featured Audio Player',
+            items: [
+              'Complete playback control: Play, Pause, Stop, Forward and Rewind',
+              'Volume control with visual feedback',
+              'Equalizer for bass and treble - adjust the sound perfectly',
+              'Playlist management for multiple tracks with drag-and-drop sorting'
+            ]
+          },
+          microphone: {
+            title: 'Live Microphone Support',
+            items: [
+              'Device selection for various audio inputs',
+              'Echo cancellation for clean recordings',
+              'Noise suppression for professional quality',
+              'Auto-gain control for consistent levels'
+            ]
+          },
+          beatMarkers: {
+            title: 'Beat Marker System',
+            items: [
+              'Custom beat markers at any timestamp',
+              'Color coding and labels for each marker',
+              'Visual preview of markers in the waveform'
+            ]
+          },
+          frequency: {
+            title: 'Professional Frequency Analysis',
+            items: [
+              'Real-time analysis with 1024-point FFT (Fast Fourier Transform)',
+              'Bass detection for kick drums and low frequencies',
+              'Mid-range analysis for vocals and melodies',
+              'Treble tracking for hi-hats and cymbals',
+              'Dynamic frequency mixing for optimal reactivity'
+            ]
+          }
+        },
+        visualizers: {
+          title: 'Over 30 Professional Visualizers',
+          intro: 'The Audio Visualizer offers an impressive collection of over 30 different visualizations, organized into ten categories:',
+          categories: [
+            { name: 'Bars and Spectrum', items: ['Ultra-dynamic frequency bars', 'Mirrored multi-band bars', 'Radial bars', 'Waveform visualization'] },
+            { name: 'Waves and Organic Forms', items: ['Fluid Waves', 'Ripple Effect', 'Waveform Horizon'] },
+            { name: 'Circles and Geometry', items: ['Dynamic concentric circles', 'Audio-reactive circle patterns', 'Geometric kaleidoscope'] },
+            { name: 'Particles and Space', items: ['Particle Storm', 'Orbiting Lights', 'Pulsating Orbs'] },
+            { name: 'Tech and Digital', items: ['Matrix Rain', 'Network Plexus', 'Digital Rain', 'Neon Grid'] },
+            { name: 'Cosmic Effects', items: ['Cosmic Nebula', 'Electric Web', 'Vortex Portal', 'Spiral Galaxy'] },
+            { name: 'Organic Visualizations', items: ['Blooming Mandala', 'Frequency Blossoms', 'Fractal Tree', 'Cell Growth'] },
+            { name: 'Retro and Pixel', items: ['8-Bit Pixel Spectrum', 'Retro Oscilloscope', 'Arcade Blocks', 'Chiptune Pulse'] }
+          ],
+          features: {
+            title: 'Visualizer Features',
+            items: [
+              'Multi-layer support: Stack multiple visualizers on top of each other',
+              'Blend modes: Determine how layers interact with each other',
+              'Full color control with transparency',
+              'Intensity control from 0% to 200%',
+              'Position and size freely adjustable',
+              'Smoothing options for fluid animations',
+              'Search filter to quickly find the perfect visualizer'
+            ]
+          }
+        },
+        text: {
+          title: 'Professional Text Features',
+          editor: {
+            title: 'Text Editor',
+            items: [
+              'Multi-line texts with full paragraph support',
+              '15+ professional fonts: Satoshi, Switzer, Author, Alpino and more',
+              'Font styles: Bold, Italic, various font weights',
+              'Dynamic text size with automatic canvas adjustment',
+              'Full color selection with transparency',
+              'Text alignment: Left, Center, Right',
+              'Letter spacing and line height individually adjustable'
+            ]
+          },
+          effects: {
+            title: 'Text Effects',
+            items: [
+              'Customizable shadows with blur, offset and color',
+              'Text outline with color and width control',
+              'Typewriter effect with adjustable speed',
+              'Fade effect with various directions',
+              'Scale effect with start and end size'
+            ]
+          },
+          audioReactive: {
+            title: 'Audio-Reactive Text Effects (15+ Effects)',
+            items: [
+              'Color effects: Hue rotation, RGB glitch, color change',
+              'Brightness: Dynamic brightness changes',
+              'Saturation: Animated color saturation',
+              'Scale/Zoom: Size changes based on audio',
+              'Glow: Luminous effect with variable intensity',
+              'Shake, Bounce, Swing, Rotation',
+              'Strobe: Flash effect on audio peaks',
+              'Wave: Characters move in wave pattern',
+              'Elastic: Rubber-like deformation',
+              '3D Perspective: Simulated 3D tilt effect'
+            ]
+          }
+        },
+        images: {
+          title: 'Comprehensive Image Features',
+          management: {
+            title: 'Image Management',
+            items: [
+              'Multiple images simultaneously on the canvas',
+              'Image gallery with your own uploads',
+              'Format support: JPG, PNG, GIF, WebP',
+              'Layer management: Arrange images in Z-order',
+              'Position: Drag-and-drop placement',
+              'Scaling: Resize with aspect ratio control',
+              'Rotation: 0-360 degree rotation'
+            ]
+          },
+          filters: {
+            title: 'Image Filters and Effects',
+            items: [
+              'Brightness: -100% to +200%',
+              'Contrast: 0-200%',
+              'Saturation: 0-200%',
+              'Blur: 0-20px Gaussian blur',
+              'Hue Rotation: 0-360 degree color shift',
+              'Grayscale: 0-100% desaturation',
+              'Sepia: 0-100% vintage tone',
+              'Invert: 0-100% color inversion'
+            ]
+          },
+          audioReactive: {
+            title: 'Audio-Reactive Image Effects (23+ Effects)',
+            items: [
+              'Color effects: Hue, brightness, saturation, contrast',
+              'Transformations: Scale, rotation, skew, perspective',
+              'Movement effects: Shake, bounce, swing, orbit, wave, spiral',
+              'Special effects: Glow, border, blur, strobe, chromatic aberration',
+              'Beat Boost: Amplify effects on beat hits (1.0-3.0x)',
+              'Phase offset: Cascade effects across multiple images'
+            ]
+          }
+        },
+        background: {
+          title: 'Background and Canvas',
+          canvas: {
+            title: 'Canvas Control',
+            intro: 'Social Media Presets - optimized sizes for all platforms:',
+            presets: [
+              'TikTok (1080x1920)',
+              'Instagram Story (1080x1920)',
+              'Instagram Post (1080x1080)',
+              'Instagram Reel (1080x1920)',
+              'YouTube Shorts (1080x1920)',
+              'YouTube Video (1920x1080)',
+              'Facebook Post (1200x630)',
+              'X/Twitter Video (1280x720)',
+              'LinkedIn Video (1920x1080)',
+              'Free canvas size for custom dimensions'
+            ]
+          },
+          options: {
+            title: 'Background Options',
+            items: [
+              'Solid color background with color picker',
+              'Transparency control',
+              'Linear gradients with angle control',
+              'Radial gradients with center alignment',
+              'Animated gradients with audio reaction',
+              'Use images as background',
+              'Video backgrounds with playback control'
+            ]
+          },
+          tiles: {
+            title: 'Tiled Background',
+            items: [
+              'Tile modes: 3, 6, 9 or 12 tiles',
+              'Gap control between tiles',
+              'Individual settings per tile',
+              'Custom background color, image or video per tile',
+              'Custom filters and audio reactivity per tile',
+              'Save and load tile presets'
+            ]
+          }
+        },
+        recording: {
+          title: 'Video Recording and Export',
+          controls: {
+            title: 'Recording Controls',
+            items: [
+              'Prepare: Set up canvas stream',
+              'Start/Stop: Full recording control',
+              'Pause/Resume: Pause recording without stopping',
+              'Reset: Prepare for new recording',
+              'Status display: IDLE, READY, RECORDING, PAUSED'
+            ]
+          },
+          quality: {
+            title: 'Quality Options',
+            items: [
+              'Quality levels: Low, Medium, High',
+              'Resolution: 720p, 1080p, 4K',
+              'Frame rate: 30-60 FPS configurable',
+              'Bitrate control: Adaptive management'
+            ]
+          },
+          export: {
+            title: 'Export Formats',
+            items: [
+              'WebM: Standard browser format',
+              'MP4 conversion: Via integrated server',
+              'Automatic conversion: Optional after recording',
+              'Direct download: Save video to computer',
+              'Include audio: Optional in recording'
+            ]
+          }
+        },
+        screenshot: {
+          title: 'Screenshot Feature',
+          items: [
+            'Format options: PNG, JPG, WebP',
+            'Quality levels: Small to highest quality',
+            'Preview before download',
+            'Lossless PNG with transparency support',
+            'Compressed JPG for smaller file size',
+            'Modern WebP for optimal compression'
+          ]
+        },
+        shortcuts: {
+          title: 'Keyboard Shortcuts',
+          items: [
+            { key: 'Space', action: 'Play/Pause' },
+            { key: 'S', action: 'Stop' },
+            { key: 'R', action: 'Record' },
+            { key: 'Ctrl+Z', action: 'Undo' },
+            { key: 'Del', action: 'Delete' },
+            { key: 'Ctrl+A', action: 'Select all' },
+            { key: 'Arrow keys', action: 'Move object' },
+            { key: '+/-', action: 'Zoom' },
+            { key: 'G', action: 'Toggle grid' },
+            { key: 'M', action: 'Set beat marker' }
+          ]
+        },
+        history: {
+          title: 'Undo/Redo',
+          items: [
+            '50 steps history',
+            'Undo with visual feedback',
+            'Redo for accidentally undone actions',
+            'Command pattern: Every action is reversible'
+          ]
+        },
+        audioReactivity: {
+          title: 'Advanced Audio Reactivity',
+          frequency: {
+            title: 'Frequency Filtering',
+            items: [
+              'Bass analysis: Kick drum detection',
+              'Mid-range analysis: Vocals/melody',
+              'Treble analysis: Hi-hats/cymbals',
+              'Overall volume: Complete audio level',
+              'Dynamic mixing: Automatic frequency combination'
+            ]
+          },
+          parameters: {
+            title: 'Audio Effect Parameters',
+            items: [
+              'Smoothing: Fluid animations (0-100%)',
+              'Threshold: Minimum audio level for trigger',
+              'Attack: Response speed (10-100%)',
+              'Release: Decay speed (10-100%)',
+              'Easing curves: Linear, Ease, Bounce, Elastic, Punch',
+              'Phase offset: Delayed effects for cascades (0-360 degrees)',
+              'Beat Boost: Amplification on beats (1.0-3.0x)'
+            ]
+          },
+          presets: {
+            title: 'Effect Presets',
+            items: [
+              'Punchy: Fast and precise',
+              'Smooth: Gentle and flowing',
+              'Subtle: Restrained and delicate',
+              'Extreme: Maximum audio reaction'
+            ]
+          }
+        },
+        browser: {
+          title: 'Browser and Format Support',
+          browsers: {
+            title: 'Supported Browsers',
+            items: [
+              'Chrome/Chromium: Full support (recommended)',
+              'Firefox: Full support',
+              'Edge: Full support',
+              'Safari: Supported (with MediaRecorder limitations)'
+            ]
+          },
+          formats: {
+            title: 'Supported Formats',
+            items: [
+              'Audio: MP3, WAV, OGG, FLAC, AAC and more',
+              'Images: JPG, PNG, GIF, WebP',
+              'Video: MP4, WebM, MOV (browser dependent)'
+            ]
+          }
+        },
+        unique: {
+          title: 'Unique Advantages',
+          items: [
+            '100% browser-based: No installation required',
+            'Privacy-focused: Audio files are never uploaded',
+            'Real-time processing: Live visualization during playback',
+            'Hardware-accelerated: Canvas-based 2D graphics',
+            'Modular architecture: Separate managers for each function',
+            'Professional quality: Suitable for real music videos',
+            'Completely free: No watermarks, no restrictions'
+          ]
+        }
+      },
+      summary: {
+        title: 'Summary',
+        text: 'The Audio Visualizer is a comprehensive, feature-rich browser-based tool with:',
+        items: [
+          '30+ professional visualizers in over 10 categories',
+          'Multiple content layers: Visualizers, images, text, backgrounds',
+          'Audio-reactive effects: 15+ text effects, 23+ image effects',
+          'Professional export: WebM video recording + MP4 conversion',
+          'Rich text editing: Animation effects, shadows, outlines',
+          'Advanced image processing: Filters, transformations, effects',
+          'Social media optimization: Ready-made presets for all platforms',
+          'Complete audio control: EQ, beat markers, microphone',
+          '50-step undo system',
+          'Bilingual interface: German and English'
+        ],
+        cta: 'Try it now and transform your music into visual art!'
+      },
+      cta: {
+        title: 'Ready to Start?',
+        subtitle: 'Create your first audio visualization now - free and without registration.',
+        button: 'Start Visualizer'
+      }
     },
 
     // ========== INTERNAL LANDING PAGE ==========

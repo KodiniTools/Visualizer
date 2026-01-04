@@ -2274,8 +2274,12 @@ async function initializeRecorder() {
   console.log('[App] Initialisiere Recorder...');
 
   const canvas = canvasRef.value;
-  recordingCanvas.width = canvas.width;
-  recordingCanvas.height = canvas.height;
+  if (!canvas) {
+    console.warn('[App] Canvas nicht verfügbar - Recorder-Initialisierung abgebrochen');
+    return;
+  }
+  recordingCanvas.width = canvas.width || 1920;
+  recordingCanvas.height = canvas.height || 1080;
 
   applyRecordingCanvasMonkeyPatch(recordingCanvas);
 
@@ -2425,8 +2429,10 @@ onMounted(async () => {
         canvas.width = socialMediaPresets[newKey].width;
         canvas.height = socialMediaPresets[newKey].height;
 
-        recordingCanvas.width = canvas.width;
-        recordingCanvas.height = canvas.height;
+        if (recordingCanvas) {
+          recordingCanvas.width = canvas.width;
+          recordingCanvas.height = canvas.height;
+        }
 
         console.log(`Canvas-Größe geändert zu: ${canvas.width}x${canvas.height}`);
 
@@ -2440,8 +2446,10 @@ onMounted(async () => {
       canvas.width = 1920;
       canvas.height = 1080;
 
-      recordingCanvas.width = 1920;
-      recordingCanvas.height = 1080;
+      if (recordingCanvas) {
+        recordingCanvas.width = 1920;
+        recordingCanvas.height = 1080;
+      }
 
       const visualizer = Visualizers[visualizerStore.selectedVisualizer];
       if (visualizer?.init) {
@@ -2537,8 +2545,8 @@ onMounted(async () => {
 
       const canvas = canvasRef.value;
       recordingCanvas = document.createElement('canvas');
-      recordingCanvas.width = canvas.width;
-      recordingCanvas.height = canvas.height;
+      recordingCanvas.width = canvas?.width || 1920;
+      recordingCanvas.height = canvas?.height || 1080;
 
       console.log('[App] Frischer Recording Canvas erstellt:', recordingCanvas.width, 'x', recordingCanvas.height);
 

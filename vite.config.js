@@ -22,11 +22,17 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Code-Splitting: Große Dependencies in separate Chunks auslagern
-        manualChunks: {
-          // Vue-Ecosystem in separaten Chunk
-          'vue-vendor': ['vue', 'vue-router', 'pinia'],
-          // Lodash separat (oft groß)
-          'lodash': ['lodash-es']
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            // Vue-Ecosystem in separaten Chunk
+            if (id.includes('/vue@') || id.includes('/vue-router@') || id.includes('/pinia@') || id.includes('/@vue/')) {
+              return 'vue-vendor';
+            }
+            // Lodash separat
+            if (id.includes('/lodash-es@') || id.includes('/lodash-es/')) {
+              return 'lodash';
+            }
+          }
         },
         assetFileNames: (assetInfo) => {
           // Fonts in separaten fonts/ Ordner

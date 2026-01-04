@@ -746,7 +746,7 @@ class Recorder {
 
     async _attemptServerUpload(blob, fileName) {
         const formData = new FormData();
-        formData.append('video', blob, fileName);
+        formData.append('file', blob, fileName);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
@@ -766,13 +766,13 @@ class Recorder {
             const result = await response.json();
 
             // ✅ CRITICAL: Clear FormData reference immediately
-            formData.delete('video');
+            formData.delete('file');
 
             return result;
         } catch (error) {
             clearTimeout(timeoutId);
             // ✅ CRITICAL: Clear FormData even on error
-            formData.delete('video');
+            formData.delete('file');
             throw error;
         }
     }

@@ -67,7 +67,7 @@ export async function convertVideo(videoBlob, options = {}) {
   const quality = options.quality || 'high';
 
   const formData = new FormData();
-  formData.append('video', videoBlob, 'recording.webm');
+  formData.append('file', videoBlob, 'recording.webm');
   formData.append('quality', quality);
 
   try {

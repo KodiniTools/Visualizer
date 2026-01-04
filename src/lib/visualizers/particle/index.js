@@ -39,8 +39,7 @@ export const particleStorm = {
 
     const speed = (15 + bassEnergy * 50) * intensity;
 
-    ctx.fillStyle = `rgba(0, 0, 0, ${0.15 + bassEnergy * 0.1})`;
-    ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
 
     if (bassEnergy > 0.3) {
       const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 200);
@@ -111,8 +110,7 @@ export const rippleEffect = {
     visualizerState.rippleTime = (visualizerState.rippleTime || 0) + 0.02;
     const time = visualizerState.rippleTime;
 
-    ctx.fillStyle = `rgba(0, 0, 0, ${0.1 + bassEnergy * 0.05})`;
-    ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
 
     if (bassEnergy > 0.3) {
       const pulseGradient = ctx.createRadialGradient(
@@ -235,8 +233,7 @@ export const cosmicNebula = {
     const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
     const highEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.7), maxFreqIndex) / 255;
 
-    ctx.fillStyle = `rgba(0, 0, 0, ${0.02 + bassEnergy * 0.03})`;
-    ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
 
     if (bassEnergy > 0.2) {
       const centerGlow = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, 300 + bassEnergy * 200);
@@ -316,8 +313,7 @@ export const pixelFireworks = {
     }
     const state = visualizerState.retroStarfield;
 
-    ctx.fillStyle = '#000005';
-    ctx.fillRect(0, 0, w, h);
+    ctx.clearRect(0, 0, w, h);
 
     const bassEnd = Math.floor(bufferLength * 0.15);
     let bassSum = 0;

@@ -910,8 +910,10 @@ const translations = {
       brightness: 'Helligkeit',
       contrast: 'Kontrast',
       saturate: 'Sättigung',
+      saturation: 'Sättigung',
       blur: 'Weichzeichner',
       hueRotate: 'Farbton',
+      hue: 'Farbton',
       audioReactive: 'Audio-Reaktiv',
       deleteImage: 'Bild löschen',
       bringToFront: 'Nach vorne',
@@ -955,12 +957,18 @@ const translations = {
       shadowBlur: 'Unschärfe',
       shadowHorizontal: 'Horizontal',
       shadowVertical: 'Vertikal',
+      shadowOffsetX: 'Horizontal',
+      shadowOffsetY: 'Vertikal',
       rotationAngle: 'Drehwinkel',
       flip: 'Spiegeln',
+      flipV: 'Vertikal',
       horizontal: 'Horizontal',
       vertical: 'Vertikal',
       imageBorder: 'Bildkontur',
+      border: 'Rahmen',
       borderWidth: 'Stärke',
+      borderColor: 'Rahmenfarbe',
+      borderOpacity: 'Deckkraft',
       borderRadius: 'Rundung',
       borderRadiusPercent: 'Rundung (%)',
       removeImage: 'Bild entfernen',
@@ -1020,7 +1028,8 @@ const translations = {
       stockCategories: {
         backgrounds: 'Hintergründe',
         elements: 'Elemente',
-        patterns: 'Muster'
+        patterns: 'Muster',
+        text: 'Text'
       }
     },
 
@@ -2122,8 +2131,10 @@ const translations = {
       brightness: 'Brightness',
       contrast: 'Contrast',
       saturate: 'Saturation',
+      saturation: 'Saturation',
       blur: 'Blur',
       hueRotate: 'Hue',
+      hue: 'Hue',
       audioReactive: 'Audio-Reactive',
       deleteImage: 'Delete image',
       bringToFront: 'Bring to front',
@@ -2167,12 +2178,18 @@ const translations = {
       shadowBlur: 'Blur',
       shadowHorizontal: 'Horizontal',
       shadowVertical: 'Vertical',
+      shadowOffsetX: 'Horizontal',
+      shadowOffsetY: 'Vertical',
       rotationAngle: 'Rotation angle',
       flip: 'Flip',
+      flipV: 'Vertical',
       horizontal: 'Horizontal',
       vertical: 'Vertical',
       imageBorder: 'Image Border',
+      border: 'Border',
       borderWidth: 'Width',
+      borderColor: 'Border Color',
+      borderOpacity: 'Opacity',
       borderRadius: 'Radius',
       borderRadiusPercent: 'Radius (%)',
       removeImage: 'Remove Image',
@@ -2232,7 +2249,8 @@ const translations = {
       stockCategories: {
         backgrounds: 'Backgrounds',
         elements: 'Elements',
-        patterns: 'Patterns'
+        patterns: 'Patterns',
+        text: 'Text'
       }
     },
 

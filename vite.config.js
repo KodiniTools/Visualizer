@@ -21,6 +21,13 @@ export default defineConfig({
     assetsDir: 'assets',
     rollupOptions: {
       output: {
+        // Code-Splitting: Große Dependencies in separate Chunks auslagern
+        manualChunks: {
+          // Vue-Ecosystem in separaten Chunk
+          'vue-vendor': ['vue', 'vue-router', 'pinia'],
+          // Lodash separat (oft groß)
+          'lodash': ['lodash-es']
+        },
         assetFileNames: (assetInfo) => {
           // Fonts in separaten fonts/ Ordner
           if (assetInfo.name && assetInfo.name.endsWith('.woff2')) {

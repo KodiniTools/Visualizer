@@ -199,8 +199,7 @@ export const waveform = {
     const centerY = h / 2;
     const totalEnergy = averageRange(dataArray, 0, Math.floor(bufferLength * 0.3)) / 255;
 
-    ctx.fillStyle = `rgba(0, 0, 0, ${0.15 + totalEnergy * 0.1})`;
-    ctx.fillRect(0, 0, w, h);
+    ctx.clearRect(0, 0, w, h);
 
     ctx.beginPath();
     ctx.moveTo(0, centerY);
@@ -338,8 +337,7 @@ export const soundWaves = {
     const state = visualizerState.soundWaves;
     const baseHsl = hexToHsl(color);
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-    ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
 
     const maxFreqIndex = Math.floor(bufferLength * 0.21);
     const now = Date.now();

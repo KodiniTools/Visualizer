@@ -578,8 +578,7 @@ export const texturedWave = {
     const centerY = height / 2;
     const baseHsl = hexToHsl(color);
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-    ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
 
     const numPoints = 150;
     const sliceWidth = width / numPoints;

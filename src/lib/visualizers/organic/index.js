@@ -354,8 +354,7 @@ export const fluidWaves = {
       visualizerState.smoothedFluidWaves = new Array(numWaves).fill(0);
     }
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-    ctx.fillRect(0, 0, w, h);
+    ctx.clearRect(0, 0, w, h);
 
     for (let wave = 0; wave < numWaves; wave++) {
       const freqPerWave = maxFreqIndex / numWaves;

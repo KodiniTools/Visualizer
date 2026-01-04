@@ -751,7 +751,7 @@ class Recorder {
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
-            const response = await fetch('/visualizer/upload', {
+            const response = await fetch('/visualizer/api/upload', {
                 method: 'POST',
                 body: formData,
                 signal: controller.signal

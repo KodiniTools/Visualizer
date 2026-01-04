@@ -11,6 +11,10 @@
           </svg>
           <span>Visualizer</span>
         </div>
+        <nav class="header-nav">
+          <router-link to="/" class="nav-link active">{{ t('blog.nav.home') }}</router-link>
+          <router-link to="/blog" class="nav-link">{{ t('blog.nav.features') }}</router-link>
+        </nav>
         <div class="header-controls">
           <!-- Language Switcher -->
           <button class="control-btn" @click="toggleLocale" :title="locale === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'">
@@ -324,6 +328,34 @@ function toggleFaq(index) {
 }
 
 .light-theme .header-logo {
+  color: #609198;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-link {
+  color: #9EBEC1;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: #BCE5E5;
+}
+
+.light-theme .nav-link {
+  color: #6b7280;
+}
+
+.light-theme .nav-link:hover,
+.light-theme .nav-link.active {
   color: #609198;
 }
 
@@ -856,6 +888,12 @@ function toggleFaq(index) {
     display: block;
     flex: 1;
     max-width: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-nav {
+    display: none;
   }
 }
 

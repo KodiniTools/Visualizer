@@ -746,12 +746,12 @@ class Recorder {
 
     async _attemptServerUpload(blob, fileName) {
         const formData = new FormData();
-        formData.append('file', blob, fileName);
+        formData.append('video', blob, fileName);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
-            const response = await fetch('/visualizer/upload', {
+            const response = await fetch('/visualizer/api/upload', {
                 method: 'POST',
                 body: formData,
                 signal: controller.signal
@@ -762,17 +762,17 @@ class Recorder {
                 const errorText = await response.text().catch(() => 'Unknown error');
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
-            
+
             const result = await response.json();
-            
+
             // ✅ CRITICAL: Clear FormData reference immediately
-            formData.delete('file');
-            
+            formData.delete('video');
+
             return result;
         } catch (error) {
             clearTimeout(timeoutId);
             // ✅ CRITICAL: Clear FormData even on error
-            formData.delete('file');
+            formData.delete('video');
             throw error;
         }
     }

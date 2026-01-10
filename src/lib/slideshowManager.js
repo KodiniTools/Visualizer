@@ -61,10 +61,12 @@ export class SlideshowManager {
      * @param {Object} config - Konfiguration
      */
     configure(config) {
-        this.config = {
-            ...this.config,
-            ...config
-        };
+        // ✨ FIX: Nur definierte Werte überschreiben, undefined-Werte ignorieren
+        for (const key of Object.keys(config)) {
+            if (config[key] !== undefined) {
+                this.config[key] = config[key];
+            }
+        }
         console.log('[SlideshowManager] Konfiguration aktualisiert, renderBehindVisualizer:', this.config.renderBehindVisualizer);
     }
 

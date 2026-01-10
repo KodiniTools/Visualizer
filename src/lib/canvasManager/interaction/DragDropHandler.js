@@ -27,11 +27,6 @@ export class DragDropHandler {
         // ✨ NEU: Slideshow-Bilder bewegen die gesamte Slideshow
         if (obj.isSlideshowImage && window.slideshowManager) {
             window.slideshowManager.moveSlideshow(relDx, relDy);
-            // Auswahl aufheben, da die Markierung sonst an alter Position bleibt
-            if (this.manager.multiImageManager) {
-                this.manager.multiImageManager.setSelectedImage(null);
-            }
-            this.manager.activeObject = null;
             return;
         }
 
@@ -154,11 +149,6 @@ export class DragDropHandler {
                               this.manager.currentAction.includes('b') ? 1 : -1;
             const scaleFactor = 1 + (movement * direction * 0.002);
             window.slideshowManager.scaleSlideshow(scaleFactor);
-            // Auswahl aufheben, da die Markierung sonst an alter Position bleibt
-            if (this.manager.multiImageManager) {
-                this.manager.multiImageManager.setSelectedImage(null);
-            }
-            this.manager.activeObject = null;
             return;
         }
 

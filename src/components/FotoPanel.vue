@@ -66,6 +66,20 @@
       @update:placement-settings="updatePlacementSettings"
     />
 
+    <!-- Slideshow-Panel (wenn 2+ Bilder ausgewählt) -->
+    <SlideshowPanel
+      :images="slideshowImages"
+      :hasSavedSettings="hasSavedAudioSettings"
+      :isActive="slideshowIsActive"
+      :isPaused="slideshowIsPaused"
+      :currentImageIndex="slideshowCurrentIndex"
+      :currentPhase="slideshowCurrentPhase"
+      @start="startSlideshow"
+      @pause="pauseSlideshow"
+      @resume="resumeSlideshow"
+      @stop="stopSlideshow"
+    />
+
     <!-- Filter-Bereich -->
     <ImageFiltersPanel
       ref="imageFiltersPanelRef"
@@ -117,6 +131,10 @@ import StockGallerySection from './foto-panel/StockGallerySection.vue';
 import ImageUploadSection from './foto-panel/ImageUploadSection.vue';
 import ImageFiltersPanel from './foto-panel/ImageFiltersPanel.vue';
 import AudioReactivePanel from './foto-panel/AudioReactivePanel.vue';
+import SlideshowPanel from './foto-panel/SlideshowPanel.vue';
+
+// Lib
+import { SlideshowManager } from '../lib/slideshowManager.js';
 
 // Composables
 import { useStockGallery } from '../composables/useStockGallery.js';
@@ -195,6 +213,30 @@ const {
 const activeAudioPreset = ref(null);
 const savedAudioReactiveSettings = ref(null);
 const hasSavedAudioSettings = computed(() => savedAudioReactiveSettings.value !== null);
+
+// ═══════════════════════════════════════════════════════════════════
+// SLIDESHOW STATE
+// ═══════════════════════════════════════════════════════════════════
+
+const slideshowManagerRef = ref(null);
+const slideshowIsActive = ref(false);
+const slideshowIsPaused = ref(false);
+const slideshowCurrentIndex = ref(0);
+const slideshowCurrentPhase = ref('fadeIn');
+
+// Kombinierte ausgewählte Bilder für Slideshow (hochgeladene + Stock)
+const slideshowImages = computed(() => {
+  const images = [];
+  // Hochgeladene Bilder
+  for (const imgData of selectedImages.value) {
+    images.push({
+      imageObject: imgData.img,
+      name: imgData.name,
+      id: imgData.id
+    });
+  }
+  return images;
+});
 
 // ═══════════════════════════════════════════════════════════════════
 // EBENEN-STEUERUNG (Z-Index)
@@ -458,6 +500,103 @@ function applyAudioReactiveSettings() {
   fotoManager.initializeImageSettings(currentActiveImage.value);
   currentActiveImage.value.fotoSettings.audioReactive = JSON.parse(JSON.stringify(savedAudioReactiveSettings.value));
   console.log('📋 Audio-Reaktiv Einstellungen angewendet');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SLIDESHOW FUNKTIONEN
+// ═══════════════════════════════════════════════════════════════════
+
+function initSlideshowManager() {
+  const multiImageManager = multiImageManagerRef?.value;
+  const fotoManager = fotoManagerRef?.value;
+  const canvasManager = canvasManagerRef?.value;
+
+  if (!multiImageManager || !fotoManager) {
+    console.warn('[Slideshow] Manager nicht verfügbar, versuche später erneut');
+    setTimeout(initSlideshowManager, 500);
+    return;
+  }
+
+  slideshowManagerRef.value = new SlideshowManager(multiImageManager, fotoManager, {
+    redrawCallback: () => {
+      if (canvasManager && canvasManager.redraw) {
+        canvasManager.redraw();
+      }
+    },
+    onSlideshowComplete: () => {
+      slideshowIsActive.value = false;
+      slideshowIsPaused.value = false;
+      slideshowCurrentIndex.value = 0;
+      toastStore.success(t('slideshow.title') + ' beendet');
+      console.log('[Slideshow] Beendet');
+    },
+    onImageTransition: (index, total, phase) => {
+      slideshowCurrentIndex.value = index;
+      slideshowCurrentPhase.value = phase;
+    }
+  });
+
+  console.log('[Slideshow] SlideshowManager initialisiert');
+}
+
+function startSlideshow(config) {
+  if (!slideshowManagerRef.value) {
+    initSlideshowManager();
+  }
+
+  if (!slideshowManagerRef.value) {
+    toastStore.error('Slideshow Manager nicht bereit');
+    return;
+  }
+
+  // Bilder aus der Konfiguration extrahieren
+  const images = config.images.map(img => ({
+    imageObject: img.imageObject || img.img,
+    name: img.name,
+    audioReactiveSettings: config.applyAudioReactive && savedAudioReactiveSettings.value
+      ? savedAudioReactiveSettings.value
+      : null
+  }));
+
+  const success = slideshowManagerRef.value.start(images, {
+    fadeInDuration: config.fadeInDuration,
+    displayDuration: config.displayDuration,
+    fadeOutDuration: config.fadeOutDuration,
+    loop: config.loop,
+    autoApplyAudioReactive: config.applyAudioReactive,
+    audioReactiveSettings: config.applyAudioReactive ? savedAudioReactiveSettings.value : null
+  });
+
+  if (success) {
+    slideshowIsActive.value = true;
+    slideshowIsPaused.value = false;
+    toastStore.success(t('slideshow.title') + ' gestartet');
+    // Auswahl aufheben nach dem Start
+    deselectAllImages();
+  }
+}
+
+function pauseSlideshow() {
+  if (slideshowManagerRef.value) {
+    slideshowManagerRef.value.pause();
+    slideshowIsPaused.value = true;
+  }
+}
+
+function resumeSlideshow() {
+  if (slideshowManagerRef.value) {
+    slideshowManagerRef.value.resume();
+    slideshowIsPaused.value = false;
+  }
+}
+
+function stopSlideshow() {
+  if (slideshowManagerRef.value) {
+    slideshowManagerRef.value.stop();
+    slideshowIsActive.value = false;
+    slideshowIsPaused.value = false;
+    slideshowCurrentIndex.value = 0;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -830,6 +969,11 @@ onMounted(() => {
   };
 
   initializePanel();
+
+  // Slideshow Manager initialisieren
+  setTimeout(() => {
+    initSlideshowManager();
+  }, 1000);
 });
 
 // Watcher für aktives Bild

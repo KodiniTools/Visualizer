@@ -71,6 +71,11 @@ Visualizer/
 │   │   ├── BackgroundTilesPanel.vue
 │   │   ├── CanvasControlPanel.vue
 │   │   ├── FotoPanel.vue
+│   │   ├── foto-panel/        # FotoPanel Sub-Komponenten
+│   │   │   ├── SlideshowPanel.vue    # Bild-Slideshow UI
+│   │   │   ├── ImageUploadSection.vue
+│   │   │   ├── AudioReactivePanel.vue
+│   │   │   └── ...
 │   │   ├── LandingPage.vue
 │   │   ├── MainCanvas.vue
 │   │   ├── PlayerPanel.vue
@@ -84,6 +89,7 @@ Visualizer/
 │   │   │   ├── interaction/   # Benutzerinteraktion
 │   │   │   ├── recording/     # Aufnahme-Logik
 │   │   │   └── rendering/     # Render-Pipeline
+│   │   ├── slideshowManager.js # Bild-Slideshow Orchestrierung
 │   │   └── visualizers/       # Visualisierungs-Module
 │   │       ├── core/          # Kern-Utilities
 │   │       ├── effects/       # Effekt-Visualizer
@@ -210,6 +216,56 @@ Der gesamte Frontend-State wird durch **Pinia Stores** verwaltet:
 | `tech` | Digitale, Matrix, Netzwerk-Stile |
 | `retro` | 80er, Synthwave, Pixel-Art |
 | `effects` | Spezial-Effekte, Ambient |
+
+---
+
+## Bild-Slideshow
+
+Die Slideshow-Funktion ermoeglicht das sequenzielle Ein- und Ausblenden von Bildern auf dem Canvas mit konfigurierbarem Timing und Audio-Reaktiven Effekten.
+
+### Komponenten
+
+| Datei | Beschreibung |
+|-------|--------------|
+| `src/lib/slideshowManager.js` | Orchestriert die Slideshow-Logik (Queue, Timing, Animationen) |
+| `src/components/foto-panel/SlideshowPanel.vue` | UI-Komponente mit Steuerungen und Einstellungen |
+
+### Funktionsweise
+
+1. **Bilder auswaehlen**: Nutzer waehlt 2+ Bilder aus der Galerie
+2. **Reihenfolge festlegen**: Drag & Drop in der gewuenschten Reihenfolge
+3. **Timing konfigurieren**:
+   - Einblenddauer (100ms - 5s)
+   - Anzeigedauer (0.5s - 30s)
+   - Ausblenddauer (100ms - 5s)
+4. **Optionen**:
+   - Audio-Reaktive Effekte automatisch anwenden
+   - Endlos-Schleife aktivieren
+5. **Start**: Bilder werden sequenziell auf Canvas hinzugefuegt
+
+### Slideshow-Phasen
+
+| Phase | Beschreibung |
+|-------|--------------|
+| `fadeIn` | Bild wird eingeblendet (Opacity 0 → 1) |
+| `display` | Bild wird mit voller Opacity angezeigt |
+| `fadeOut` | Bild wird ausgeblendet (Opacity 1 → 0), naechstes Bild startet |
+
+### Integration mit MultiImageManager
+
+Die Slideshow-Opacity wird in `multiImageManager.drawImages()` angewendet:
+
+```javascript
+// Slideshow-Opacity anwenden
+if (imgData.slideshow && imgData.slideshow.active) {
+    const slideshowOpacity = Math.max(0, Math.min(1, imgData.slideshow.opacity));
+    ctx.globalAlpha = ctx.globalAlpha * slideshowOpacity;
+}
+```
+
+### Recorder-Kompatibilitaet
+
+Alle Slideshow-Animationen laufen ueber den Canvas-Context und werden vom Recorder vollstaendig erfasst, da dieser `onForceRedraw()` verwendet.
 
 ---
 

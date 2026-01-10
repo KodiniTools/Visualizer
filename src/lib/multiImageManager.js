@@ -791,6 +791,12 @@ export class MultiImageManager {
                 ctx.globalAlpha = animTransform.opacity;
             }
 
+            // ✨ SLIDESHOW: Slideshow-Opacity anwenden (für Ein-/Ausblend-Animationen)
+            if (imgData.slideshow && imgData.slideshow.active) {
+                const slideshowOpacity = Math.max(0, Math.min(1, imgData.slideshow.opacity));
+                ctx.globalAlpha = ctx.globalAlpha * slideshowOpacity;
+            }
+
             // ✨ Nutze FotoManager für Filter + Schatten (wenn verfügbar)
             if (this.fotoManager && imgData.fotoSettings) {
                 this.fotoManager.applyFilters(ctx, imgData);

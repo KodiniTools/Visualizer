@@ -1033,6 +1033,28 @@ const translations = {
       }
     },
 
+    // ========== SLIDESHOW ==========
+    slideshow: {
+      title: 'Bild-Slideshow',
+      order: 'Reihenfolge (Drag & Drop)',
+      timing: 'Timing-Einstellungen',
+      fadeIn: 'Einblenden',
+      display: 'Anzeigedauer',
+      fadeOut: 'Ausblenden',
+      applyAudioReactive: 'Audio-Reaktive Effekte anwenden',
+      audioReactiveHint: 'Gespeicherte Audio-Einstellungen werden auf alle Bilder angewendet',
+      noSavedSettings: 'Keine Audio-Einstellungen gespeichert. Speichere zuerst Einstellungen im Audio-Reaktiv Panel.',
+      loop: 'Endlos wiederholen',
+      start: 'Slideshow starten',
+      pause: 'Pause',
+      resume: 'Fortsetzen',
+      stop: 'Stoppen',
+      running: 'Läuft',
+      paused: 'Pausiert',
+      ready: 'Bereit',
+      image: 'Bild'
+    },
+
     // ========== BACKGROUND TILES PANEL ==========
     backgroundTiles: {
       title: 'Kachel-Hintergrund',
@@ -2252,6 +2274,28 @@ const translations = {
         patterns: 'Patterns',
         text: 'Text'
       }
+    },
+
+    // ========== SLIDESHOW ==========
+    slideshow: {
+      title: 'Image Slideshow',
+      order: 'Order (Drag & Drop)',
+      timing: 'Timing Settings',
+      fadeIn: 'Fade In',
+      display: 'Display Duration',
+      fadeOut: 'Fade Out',
+      applyAudioReactive: 'Apply Audio-Reactive Effects',
+      audioReactiveHint: 'Saved audio settings will be applied to all images',
+      noSavedSettings: 'No audio settings saved. Save settings in the Audio-Reactive panel first.',
+      loop: 'Loop Forever',
+      start: 'Start Slideshow',
+      pause: 'Pause',
+      resume: 'Resume',
+      stop: 'Stop',
+      running: 'Running',
+      paused: 'Paused',
+      ready: 'Ready',
+      image: 'Image'
     },
 
     // ========== BACKGROUND TILES PANEL ==========

@@ -1052,7 +1052,15 @@ const translations = {
       running: 'Läuft',
       paused: 'Pausiert',
       ready: 'Bereit',
-      image: 'Bild'
+      image: 'Bild',
+      renderBehind: 'Hinter Visualizer rendern',
+      positionSize: 'Position & Größe',
+      positionX: 'X-Position',
+      positionY: 'Y-Position',
+      width: 'Breite',
+      height: 'Höhe',
+      resetPosition: 'Position zurücksetzen',
+      dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.'
     },
 
     // ========== BACKGROUND TILES PANEL ==========
@@ -2295,7 +2303,15 @@ const translations = {
       running: 'Running',
       paused: 'Paused',
       ready: 'Ready',
-      image: 'Image'
+      image: 'Image',
+      renderBehind: 'Render behind visualizer',
+      positionSize: 'Position & Size',
+      positionX: 'X Position',
+      positionY: 'Y Position',
+      width: 'Width',
+      height: 'Height',
+      resetPosition: 'Reset position',
+      dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.'
     },
 
     // ========== BACKGROUND TILES PANEL ==========

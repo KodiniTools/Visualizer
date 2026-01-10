@@ -79,6 +79,9 @@
       @pause="pauseSlideshow"
       @resume="resumeSlideshow"
       @stop="stopSlideshow"
+      @order-changed="onSlideshowOrderChanged"
+      @render-layer-change="onSlideshowRenderLayerChange"
+      @transform-change="onSlideshowTransformChange"
     />
 
     <!-- Filter-Bereich -->
@@ -532,12 +535,17 @@ function initSlideshowManager() {
       slideshowTotalImages.value = 0;
       toastStore.success(t('slideshow.title') + ' beendet');
       console.log('[Slideshow] Beendet');
+      // ✨ Global entfernen wenn gestoppt
+      window.slideshowManager = null;
     },
     onImageTransition: (index, total, phase) => {
       slideshowCurrentIndex.value = index;
       slideshowCurrentPhase.value = phase;
     }
   });
+
+  // ✨ NEU: Global verfügbar machen für Maus-Interaktion
+  window.slideshowManager = slideshowManagerRef.value;
 
   console.log('[Slideshow] SlideshowManager initialisiert');
 }
@@ -567,13 +575,17 @@ function startSlideshow(config) {
     fadeOutDuration: config.fadeOutDuration,
     loop: config.loop,
     autoApplyAudioReactive: config.applyAudioReactive,
-    audioReactiveSettings: config.applyAudioReactive ? savedAudioReactiveSettings.value : null
+    audioReactiveSettings: config.applyAudioReactive ? savedAudioReactiveSettings.value : null,
+    renderBehindVisualizer: config.renderBehindVisualizer,
+    transform: config.transform
   });
 
   if (success) {
     slideshowIsActive.value = true;
     slideshowIsPaused.value = false;
     slideshowTotalImages.value = images.length;
+    // ✨ Global verfügbar machen für Maus-Interaktion
+    window.slideshowManager = slideshowManagerRef.value;
     toastStore.success(t('slideshow.title') + ' gestartet');
     // Auswahl aufheben nach dem Start
     deselectAllImages();
@@ -601,6 +613,29 @@ function stopSlideshow() {
     slideshowIsPaused.value = false;
     slideshowCurrentIndex.value = 0;
     slideshowTotalImages.value = 0;
+    // ✨ Global entfernen wenn gestoppt
+    window.slideshowManager = null;
+  }
+}
+
+// ✨ NEU: Slideshow Bild-Reihenfolge geändert
+function onSlideshowOrderChanged(orderedImages) {
+  console.log('[Slideshow] Reihenfolge geändert:', orderedImages.length, 'Bilder');
+}
+
+// ✨ NEU: Slideshow Render-Layer geändert
+function onSlideshowRenderLayerChange(renderBehindVisualizer) {
+  if (slideshowManagerRef.value) {
+    slideshowManagerRef.value.setRenderBehindVisualizer(renderBehindVisualizer);
+    console.log('[Slideshow] Render-Layer geändert:', renderBehindVisualizer ? 'hinter Visualizer' : 'vor Visualizer');
+  }
+}
+
+// ✨ NEU: Slideshow Transform geändert
+function onSlideshowTransformChange(transform) {
+  if (slideshowManagerRef.value) {
+    slideshowManagerRef.value.setTransform(transform);
+    console.log('[Slideshow] Transform geändert:', transform);
   }
 }
 

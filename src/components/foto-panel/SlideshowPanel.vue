@@ -107,6 +107,87 @@
       </label>
     </div>
 
+    <!-- Render Behind Visualizer Option -->
+    <div class="layer-section">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          v-model="renderBehindVisualizer"
+          @change="onRenderLayerChange"
+        >
+        <span>{{ t('slideshow.renderBehind') }}</span>
+      </label>
+    </div>
+
+    <!-- Position & Größe Sektion -->
+    <div class="transform-section" v-if="!isActive">
+      <label class="section-label">{{ t('slideshow.positionSize') }}</label>
+
+      <div class="transform-controls">
+        <div class="transform-control">
+          <label>{{ t('slideshow.positionX') }}</label>
+          <div class="slider-row">
+            <input
+              type="range"
+              v-model.number="transformX"
+              min="0"
+              max="100"
+              step="1"
+            >
+            <span class="value">{{ transformX }}%</span>
+          </div>
+        </div>
+
+        <div class="transform-control">
+          <label>{{ t('slideshow.positionY') }}</label>
+          <div class="slider-row">
+            <input
+              type="range"
+              v-model.number="transformY"
+              min="0"
+              max="100"
+              step="1"
+            >
+            <span class="value">{{ transformY }}%</span>
+          </div>
+        </div>
+
+        <div class="transform-control">
+          <label>{{ t('slideshow.width') }}</label>
+          <div class="slider-row">
+            <input
+              type="range"
+              v-model.number="transformWidth"
+              min="10"
+              max="100"
+              step="1"
+            >
+            <span class="value">{{ transformWidth }}%</span>
+          </div>
+        </div>
+
+        <div class="transform-control">
+          <label>{{ t('slideshow.height') }}</label>
+          <div class="slider-row">
+            <input
+              type="range"
+              v-model.number="transformHeight"
+              min="10"
+              max="100"
+              step="1"
+            >
+            <span class="value">{{ transformHeight }}%</span>
+          </div>
+        </div>
+
+        <button class="btn-reset-transform" @click="resetTransform">
+          {{ t('slideshow.resetPosition') }}
+        </button>
+      </div>
+
+      <p class="hint">{{ t('slideshow.dragHint') }}</p>
+    </div>
+
     <!-- Action Buttons -->
     <div class="action-buttons">
       <button
@@ -193,7 +274,9 @@ const emit = defineEmits([
   'pause',
   'resume',
   'stop',
-  'order-changed'
+  'order-changed',
+  'render-layer-change',
+  'transform-change'
 ]);
 
 // Timing-Einstellungen
@@ -202,6 +285,15 @@ const displayDuration = ref(3000);
 const fadeOutDuration = ref(1000);
 const applyAudioReactive = ref(true);
 const loopSlideshow = ref(false);
+
+// ✨ NEU: Render Layer
+const renderBehindVisualizer = ref(false);
+
+// ✨ NEU: Transform-Einstellungen (in Prozent für UI)
+const transformX = ref(10);      // 0-100%
+const transformY = ref(10);      // 0-100%
+const transformWidth = ref(80);  // 10-100%
+const transformHeight = ref(80); // 10-100%
 
 // Geordnete Bilder-Liste
 const orderedImages = ref([]);
@@ -261,7 +353,14 @@ function startSlideshow() {
     displayDuration: displayDuration.value,
     fadeOutDuration: fadeOutDuration.value,
     applyAudioReactive: applyAudioReactive.value,
-    loop: loopSlideshow.value
+    loop: loopSlideshow.value,
+    renderBehindVisualizer: renderBehindVisualizer.value,
+    transform: {
+      relX: transformX.value / 100,
+      relY: transformY.value / 100,
+      relWidth: transformWidth.value / 100,
+      relHeight: transformHeight.value / 100
+    }
   });
 }
 
@@ -276,6 +375,35 @@ function resumeSlideshow() {
 function stopSlideshow() {
   emit('stop');
 }
+
+// ✨ NEU: Render Layer geändert (auch während laufender Slideshow)
+function onRenderLayerChange() {
+  emit('render-layer-change', renderBehindVisualizer.value);
+}
+
+// ✨ NEU: Transform zurücksetzen
+function resetTransform() {
+  transformX.value = 10;
+  transformY.value = 10;
+  transformWidth.value = 80;
+  transformHeight.value = 80;
+  emitTransformChange();
+}
+
+// ✨ NEU: Transform-Änderung emittieren
+function emitTransformChange() {
+  emit('transform-change', {
+    relX: transformX.value / 100,
+    relY: transformY.value / 100,
+    relWidth: transformWidth.value / 100,
+    relHeight: transformHeight.value / 100
+  });
+}
+
+// ✨ NEU: Watch für Transform-Änderungen
+watch([transformX, transformY, transformWidth, transformHeight], () => {
+  emitTransformChange();
+}, { deep: true });
 </script>
 
 <style scoped>
@@ -609,5 +737,61 @@ function stopSlideshow() {
 .phase-indicator.fadeOut {
   background-color: rgba(231, 76, 60, 0.2);
   color: #e74c3c;
+}
+
+/* ✨ Layer Section */
+.layer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #3a3a3a;
+}
+
+/* ✨ Transform Section */
+.transform-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #3a3a3a;
+}
+
+.transform-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.transform-control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.transform-control label {
+  font-size: 11px;
+  color: #aaa;
+}
+
+.btn-reset-transform {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #4a4a4a;
+  background-color: #333;
+  color: #e0e0e0;
+}
+
+.btn-reset-transform:hover {
+  background-color: #3a3a3a;
+  border-color: #6ea8fe;
+  color: #6ea8fe;
 }
 </style>

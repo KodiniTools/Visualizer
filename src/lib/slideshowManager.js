@@ -37,7 +37,17 @@ export class SlideshowManager {
             fadeOutDuration: 1000, // ms
             loop: false,          // Endlos wiederholen
             autoApplyAudioReactive: true,
-            defaultAudioReactiveSettings: null // Wird auf alle Bilder angewendet
+            defaultAudioReactiveSettings: null, // Wird auf alle Bilder angewendet
+            renderBehindVisualizer: false // Slideshow hinter dem Visualizer rendern
+        };
+
+        // ✨ NEU: Slideshow Transform-Einstellungen (Position und Größe)
+        // Diese werden auf alle Slideshow-Bilder angewendet
+        this.transform = {
+            relX: 0.1,        // X-Position (0-1, relativ zur Canvas-Breite)
+            relY: 0.1,        // Y-Position (0-1, relativ zur Canvas-Höhe)
+            relWidth: 0.8,    // Breite (0-1, relativ zur Canvas-Breite)
+            relHeight: 0.8    // Höhe (0-1, relativ zur Canvas-Höhe)
         };
 
         // Aktuell angezeigte Bilder auf dem Canvas (für Cleanup)
@@ -56,6 +66,64 @@ export class SlideshowManager {
             ...config
         };
         console.log('[SlideshowManager] Konfiguration aktualisiert:', this.config);
+    }
+
+    /**
+     * ✨ NEU: Setzt die Transform-Einstellungen (Position und Größe)
+     * @param {Object} transform - { relX, relY, relWidth, relHeight }
+     */
+    setTransform(transform) {
+        this.transform = {
+            ...this.transform,
+            ...transform
+        };
+        console.log('[SlideshowManager] Transform aktualisiert:', this.transform);
+
+        // Aktualisiere alle aktiven Bilder mit neuen Transform-Einstellungen
+        this._updateActiveImagesTransform();
+    }
+
+    /**
+     * ✨ NEU: Gibt die aktuellen Transform-Einstellungen zurück
+     */
+    getTransform() {
+        return { ...this.transform };
+    }
+
+    /**
+     * ✨ NEU: Aktualisiert die Position/Größe aller aktiven Slideshow-Bilder
+     */
+    _updateActiveImagesTransform() {
+        if (!this.isActive || this.activeImages.length === 0) return;
+
+        const canvas = this.multiImageManager.canvas;
+        const canvasAspectRatio = canvas.height / canvas.width;
+
+        for (const imageData of this.activeImages) {
+            if (!imageData.imageObject) continue;
+
+            const imgAspectRatio = imageData.imageObject.height / imageData.imageObject.width;
+
+            // Berechne die Größe innerhalb der Transform-Bounds
+            let relWidth, relHeight;
+            if (imgAspectRatio > canvasAspectRatio) {
+                // Bild ist höher - an Höhe anpassen
+                relHeight = this.transform.relHeight;
+                relWidth = relHeight * canvasAspectRatio / imgAspectRatio;
+            } else {
+                // Bild ist breiter - an Breite anpassen
+                relWidth = this.transform.relWidth;
+                relHeight = relWidth * imgAspectRatio / canvasAspectRatio;
+            }
+
+            // Zentriere das Bild innerhalb der Transform-Bounds
+            imageData.relX = this.transform.relX + (this.transform.relWidth - relWidth) / 2;
+            imageData.relY = this.transform.relY + (this.transform.relHeight - relHeight) / 2;
+            imageData.relWidth = relWidth;
+            imageData.relHeight = relHeight;
+        }
+
+        this.redrawCallback();
     }
 
     /**
@@ -82,8 +150,14 @@ export class SlideshowManager {
             fadeOutDuration: options.fadeOutDuration ?? this.config.fadeOutDuration,
             loop: options.loop ?? this.config.loop,
             autoApplyAudioReactive: options.autoApplyAudioReactive ?? this.config.autoApplyAudioReactive,
-            defaultAudioReactiveSettings: options.audioReactiveSettings ?? this.config.defaultAudioReactiveSettings
+            defaultAudioReactiveSettings: options.audioReactiveSettings ?? this.config.defaultAudioReactiveSettings,
+            renderBehindVisualizer: options.renderBehindVisualizer ?? this.config.renderBehindVisualizer
         });
+
+        // ✨ Transform-Einstellungen aktualisieren wenn vorhanden
+        if (options.transform) {
+            this.setTransform(options.transform);
+        }
 
         // State zurücksetzen
         this.currentIndex = 0;
@@ -186,25 +260,27 @@ export class SlideshowManager {
             return this._addNextImage();
         }
 
-        // Berechne Canvas-zentrierte Bounds (Vollbild oder angepasst)
+        // ✨ Berechne Bounds basierend auf Transform-Einstellungen
         const canvas = this.multiImageManager.canvas;
         const imgAspectRatio = imageObject.height / imageObject.width;
         const canvasAspectRatio = canvas.height / canvas.width;
 
+        // Verwende die Transform-Einstellungen für Größe
         let relWidth, relHeight;
         if (imgAspectRatio > canvasAspectRatio) {
             // Bild ist höher - an Höhe anpassen
-            relHeight = 0.8;
+            relHeight = this.transform.relHeight;
             relWidth = relHeight * canvasAspectRatio / imgAspectRatio;
         } else {
             // Bild ist breiter - an Breite anpassen
-            relWidth = 0.8;
+            relWidth = this.transform.relWidth;
             relHeight = relWidth * imgAspectRatio / canvasAspectRatio;
         }
 
+        // Zentriere das Bild innerhalb der Transform-Bounds
         const bounds = {
-            relX: (1 - relWidth) / 2,
-            relY: (1 - relHeight) / 2,
+            relX: this.transform.relX + (this.transform.relWidth - relWidth) / 2,
+            relY: this.transform.relY + (this.transform.relHeight - relHeight) / 2,
             relWidth: relWidth,
             relHeight: relHeight
         };
@@ -240,6 +316,15 @@ export class SlideshowManager {
         if (this.config.autoApplyAudioReactive) {
             this._applyAudioReactiveSettings(newImage, imageConfig);
         }
+
+        // ✨ NEU: Render-Layer setzen (vor oder hinter Visualizer)
+        if (!newImage.fotoSettings) {
+            this.fotoManager.initializeImageSettings(newImage);
+        }
+        newImage.fotoSettings.renderBehindVisualizer = this.config.renderBehindVisualizer;
+
+        // ✨ Markiere das Bild als Slideshow-Bild für spezielle Behandlung
+        newImage.isSlideshowImage = true;
 
         // Zur aktiven Liste hinzufügen
         this.activeImages.push(newImage);
@@ -404,6 +489,118 @@ export class SlideshowManager {
     }
 
     /**
+     * ✨ NEU: Setzt die Layer-Einstellung (vor/hinter Visualizer) auch während laufender Slideshow
+     */
+    setRenderBehindVisualizer(value) {
+        this.config.renderBehindVisualizer = value;
+
+        // Aktualisiere alle aktiven Bilder
+        for (const imageData of this.activeImages) {
+            if (imageData.fotoSettings) {
+                imageData.fotoSettings.renderBehindVisualizer = value;
+            }
+        }
+
+        this.redrawCallback();
+        console.log('[SlideshowManager] Render-Layer geändert:', value ? 'hinter Visualizer' : 'vor Visualizer');
+    }
+
+    /**
+     * ✨ NEU: Gibt das aktive Slideshow-Bild zurück (für Maus-Interaktion)
+     * Gibt das Bild mit der höchsten Opacity zurück
+     */
+    getActiveImage() {
+        if (!this.isActive || this.activeImages.length === 0) return null;
+
+        // Finde das Bild mit der höchsten Opacity (das sichtbarste)
+        let bestImage = null;
+        let highestOpacity = -1;
+
+        for (const imageData of this.activeImages) {
+            if (imageData.slideshow && imageData.slideshow.active) {
+                const opacity = imageData.slideshow.opacity;
+                if (opacity > highestOpacity) {
+                    highestOpacity = opacity;
+                    bestImage = imageData;
+                }
+            }
+        }
+
+        return bestImage;
+    }
+
+    /**
+     * ✨ NEU: Prüft ob ein Punkt innerhalb des Slideshow-Transform-Bereichs liegt
+     * @param {number} relX - Relative X-Position (0-1)
+     * @param {number} relY - Relative Y-Position (0-1)
+     * @returns {boolean}
+     */
+    isPointInTransformArea(relX, relY) {
+        return relX >= this.transform.relX &&
+               relX <= this.transform.relX + this.transform.relWidth &&
+               relY >= this.transform.relY &&
+               relY <= this.transform.relY + this.transform.relHeight;
+    }
+
+    /**
+     * ✨ NEU: Verschiebt die Slideshow-Position
+     * @param {number} deltaRelX - Relative X-Verschiebung
+     * @param {number} deltaRelY - Relative Y-Verschiebung
+     */
+    moveSlideshow(deltaRelX, deltaRelY) {
+        // Neue Position berechnen mit Constraints
+        let newRelX = this.transform.relX + deltaRelX;
+        let newRelY = this.transform.relY + deltaRelY;
+
+        // Begrenze auf Canvas-Bereich
+        newRelX = Math.max(0, Math.min(newRelX, 1 - this.transform.relWidth));
+        newRelY = Math.max(0, Math.min(newRelY, 1 - this.transform.relHeight));
+
+        this.setTransform({
+            relX: newRelX,
+            relY: newRelY
+        });
+    }
+
+    /**
+     * ✨ NEU: Skaliert die Slideshow
+     * @param {number} scaleMultiplier - Skalierungsfaktor (1 = keine Änderung)
+     */
+    scaleSlideshow(scaleMultiplier) {
+        const currentWidth = this.transform.relWidth;
+        const currentHeight = this.transform.relHeight;
+
+        // Neue Größe berechnen
+        let newWidth = currentWidth * scaleMultiplier;
+        let newHeight = currentHeight * scaleMultiplier;
+
+        // Minimale und maximale Größe
+        const minSize = 0.1;
+        const maxSize = 1.0;
+
+        newWidth = Math.max(minSize, Math.min(newWidth, maxSize));
+        newHeight = Math.max(minSize, Math.min(newHeight, maxSize));
+
+        // Zentriere die Skalierung um den aktuellen Mittelpunkt
+        const centerX = this.transform.relX + currentWidth / 2;
+        const centerY = this.transform.relY + currentHeight / 2;
+
+        let newRelX = centerX - newWidth / 2;
+        let newRelY = centerY - newHeight / 2;
+
+        // Begrenze auf Canvas-Bereich
+        newRelX = Math.max(0, Math.min(newRelX, 1 - newWidth));
+        newRelY = Math.max(0, Math.min(newRelY, 1 - newHeight));
+
+        this.setTransform({
+            relX: newRelX,
+            relY: newRelY,
+            relWidth: newWidth,
+            relHeight: newHeight
+        });
+    }
+
+    /**
      * Gibt den aktuellen Status zurück
      */
     getStatus() {
@@ -413,7 +610,9 @@ export class SlideshowManager {
             currentIndex: this.currentIndex,
             totalImages: this.config.images.length,
             activeImagesCount: this.activeImages.length,
-            config: { ...this.config, images: undefined } // Ohne Bild-Daten
+            config: { ...this.config, images: undefined }, // Ohne Bild-Daten
+            transform: { ...this.transform },
+            renderBehindVisualizer: this.config.renderBehindVisualizer
         };
     }
 }

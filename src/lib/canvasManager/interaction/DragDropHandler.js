@@ -24,6 +24,12 @@ export class DragDropHandler {
         const relDx = dx / this.manager.canvas.width;
         const relDy = dy / this.manager.canvas.height;
 
+        // ✨ NEU: Slideshow-Bilder bewegen die gesamte Slideshow
+        if (obj.isSlideshowImage && window.slideshowManager) {
+            window.slideshowManager.moveSlideshow(relDx, relDy);
+            return;
+        }
+
         obj.relX += relDx;
         obj.relY += relDy;
 
@@ -135,6 +141,18 @@ export class DragDropHandler {
      * Skaliert ein Bild oder Video
      */
     resizeImage(obj, dx, dy) {
+        // ✨ NEU: Slideshow-Bilder skalieren die gesamte Slideshow
+        if (obj.isSlideshowImage && window.slideshowManager) {
+            // Berechne Skalierungsfaktor basierend auf der Mausbewegung
+            const currentWidth = obj.relWidth * this.manager.canvas.width;
+            const movement = Math.abs(dx) > Math.abs(dy) ? dx : dy;
+            const direction = this.manager.currentAction.includes('r') ||
+                              this.manager.currentAction.includes('b') ? 1 : -1;
+            const scaleFactor = 1 + (movement * direction * 0.002);
+            window.slideshowManager.scaleSlideshow(scaleFactor);
+            return;
+        }
+
         // Unterstützung für Videos und Bilder
         let imgAspectRatio;
         if (obj.type === 'video' && obj.videoElement) {

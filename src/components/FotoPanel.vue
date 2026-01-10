@@ -66,13 +66,14 @@
       @update:placement-settings="updatePlacementSettings"
     />
 
-    <!-- Slideshow-Panel (wenn 2+ Bilder ausgewählt) -->
+    <!-- Slideshow-Panel (wenn 2+ Bilder ausgewählt oder aktiv) -->
     <SlideshowPanel
       :images="slideshowImages"
       :hasSavedSettings="hasSavedAudioSettings"
       :isActive="slideshowIsActive"
       :isPaused="slideshowIsPaused"
       :currentImageIndex="slideshowCurrentIndex"
+      :totalImages="slideshowTotalImages"
       :currentPhase="slideshowCurrentPhase"
       @start="startSlideshow"
       @pause="pauseSlideshow"
@@ -223,6 +224,7 @@ const slideshowIsActive = ref(false);
 const slideshowIsPaused = ref(false);
 const slideshowCurrentIndex = ref(0);
 const slideshowCurrentPhase = ref('fadeIn');
+const slideshowTotalImages = ref(0);
 
 // Kombinierte ausgewählte Bilder für Slideshow (hochgeladene + Stock)
 const slideshowImages = computed(() => {
@@ -527,6 +529,7 @@ function initSlideshowManager() {
       slideshowIsActive.value = false;
       slideshowIsPaused.value = false;
       slideshowCurrentIndex.value = 0;
+      slideshowTotalImages.value = 0;
       toastStore.success(t('slideshow.title') + ' beendet');
       console.log('[Slideshow] Beendet');
     },
@@ -570,6 +573,7 @@ function startSlideshow(config) {
   if (success) {
     slideshowIsActive.value = true;
     slideshowIsPaused.value = false;
+    slideshowTotalImages.value = images.length;
     toastStore.success(t('slideshow.title') + ' gestartet');
     // Auswahl aufheben nach dem Start
     deselectAllImages();
@@ -596,6 +600,7 @@ function stopSlideshow() {
     slideshowIsActive.value = false;
     slideshowIsPaused.value = false;
     slideshowCurrentIndex.value = 0;
+    slideshowTotalImages.value = 0;
   }
 }
 

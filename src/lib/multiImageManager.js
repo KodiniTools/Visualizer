@@ -774,7 +774,8 @@ export class MultiImageManager {
 
         // ✅ OPTIMIZATION: Batch-Rendering mit weniger save/restore calls
         imagesToDraw.forEach(imgData => {
-            const bounds = this.getImageBounds(imgData, renderCanvas);
+            // ✨ forceImageBounds=true damit die tatsächlichen Bild-Koordinaten verwendet werden
+            const bounds = this.getImageBounds(imgData, renderCanvas, true);
             if (!bounds) return;
 
             // ✨ Audio-Reaktive Werte berechnen
@@ -1145,8 +1146,20 @@ export class MultiImageManager {
      */
     drawInteractiveElements(ctx) {
         if (!this.selectedImage || this.selectedImage.type !== 'image') return;
-        
-        const bounds = this.getImageBounds(this.selectedImage);
+
+        // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden
+        let bounds;
+        if (this.selectedImage.isSlideshowImage && window.slideshowManager) {
+            const transform = window.slideshowManager.getTransform();
+            bounds = {
+                x: transform.relX * this.canvas.width,
+                y: transform.relY * this.canvas.height,
+                width: transform.relWidth * this.canvas.width,
+                height: transform.relHeight * this.canvas.height
+            };
+        } else {
+            bounds = this.getImageBounds(this.selectedImage);
+        }
         if (!bounds) return;
         
         ctx.save();
@@ -1204,10 +1217,12 @@ export class MultiImageManager {
     /**
      * Berechnet die Bounds eines Bildes
      * ✅ KRITISCHER FIX: Akzeptiert optionalen Canvas-Parameter für korrekte Dimensionen
+     * ✨ NEU: Für Slideshow-Bilder werden die Slideshow-Transform-Bounds zurückgegeben
      * @param {Object} imgData - Bild-Daten
      * @param {HTMLCanvasElement} canvasOverride - Optionaler Canvas für Dimensionen (z.B. ctx.canvas)
+     * @param {boolean} forceImageBounds - Wenn true, werden immer die Bild-Bounds verwendet (für Rendering)
      */
-    getImageBounds(imgData, canvasOverride = null) {
+    getImageBounds(imgData, canvasOverride = null, forceImageBounds = false) {
         if (!imgData || imgData.type !== 'image') return null;
 
         // ✅ FIX: Verwende übergebenen Canvas wenn vorhanden, sonst this.canvas
@@ -1216,6 +1231,17 @@ export class MultiImageManager {
             console.warn('[MultiImageManager] Canvas hat ungültige Dimensionen:',
                          targetCanvas?.width, 'x', targetCanvas?.height);
             return null;
+        }
+
+        // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden (für Selection)
+        if (!forceImageBounds && imgData.isSlideshowImage && window.slideshowManager) {
+            const transform = window.slideshowManager.getTransform();
+            return {
+                x: transform.relX * targetCanvas.width,
+                y: transform.relY * targetCanvas.height,
+                width: transform.relWidth * targetCanvas.width,
+                height: transform.relHeight * targetCanvas.height
+            };
         }
 
         return {

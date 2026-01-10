@@ -1006,6 +1006,16 @@ export class CanvasManager {
         }
 
         if (obj.type === 'image') {
+            // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden
+            if (obj.isSlideshowImage && window.slideshowManager) {
+                const transform = window.slideshowManager.getTransform();
+                return {
+                    x: transform.relX * this.canvas.width,
+                    y: transform.relY * this.canvas.height,
+                    width: transform.relWidth * this.canvas.width,
+                    height: transform.relHeight * this.canvas.height
+                };
+            }
             return {
                 x: obj.relX * this.canvas.width,
                 y: obj.relY * this.canvas.height,

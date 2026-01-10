@@ -1,5 +1,5 @@
 <template>
-  <div class="slideshow-panel" v-if="images.length >= 2">
+  <div class="slideshow-panel" v-if="images.length >= 2 || isActive">
     <div class="panel-header">
       <h4>{{ t('slideshow.title') }}</h4>
       <div class="status-badge" :class="{ 'active': isActive, 'paused': isPaused }">
@@ -9,8 +9,8 @@
       </div>
     </div>
 
-    <!-- Reihenfolge der Bilder -->
-    <div class="order-section">
+    <!-- Reihenfolge der Bilder (nur wenn nicht aktiv) -->
+    <div class="order-section" v-if="!isActive && images.length >= 2">
       <label class="section-label">{{ t('slideshow.order') }}</label>
       <div class="image-order-list" ref="orderListRef">
         <div
@@ -32,8 +32,8 @@
       </div>
     </div>
 
-    <!-- Timing-Einstellungen -->
-    <div class="timing-section">
+    <!-- Timing-Einstellungen (nur wenn nicht aktiv) -->
+    <div class="timing-section" v-if="!isActive">
       <label class="section-label">{{ t('slideshow.timing') }}</label>
 
       <div class="timing-control">
@@ -79,8 +79,8 @@
       </div>
     </div>
 
-    <!-- Audio-Reaktiv Option -->
-    <div class="audio-reactive-section">
+    <!-- Audio-Reaktiv Option (nur wenn nicht aktiv) -->
+    <div class="audio-reactive-section" v-if="!isActive">
       <label class="checkbox-label">
         <input
           type="checkbox"
@@ -96,8 +96,8 @@
       </p>
     </div>
 
-    <!-- Loop Option -->
-    <div class="loop-section">
+    <!-- Loop Option (nur wenn nicht aktiv) -->
+    <div class="loop-section" v-if="!isActive">
       <label class="checkbox-label">
         <input
           type="checkbox"
@@ -144,7 +144,7 @@
     <!-- Progress Indicator -->
     <div v-if="isActive" class="progress-section">
       <div class="progress-info">
-        <span>{{ t('slideshow.image') }} {{ currentImageIndex + 1 }} / {{ images.length }}</span>
+        <span>{{ t('slideshow.image') }} {{ currentImageIndex + 1 }} / {{ totalImages || images.length }}</span>
         <span class="phase-indicator" :class="currentPhase">{{ phaseLabel }}</span>
       </div>
     </div>
@@ -175,6 +175,10 @@ const props = defineProps({
     default: false
   },
   currentImageIndex: {
+    type: Number,
+    default: 0
+  },
+  totalImages: {
     type: Number,
     default: 0
   },

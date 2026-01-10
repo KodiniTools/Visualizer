@@ -61,11 +61,13 @@ export class SlideshowManager {
      * @param {Object} config - Konfiguration
      */
     configure(config) {
-        this.config = {
-            ...this.config,
-            ...config
-        };
-        console.log('[SlideshowManager] Konfiguration aktualisiert:', this.config);
+        // ✨ FIX: Nur definierte Werte überschreiben, undefined-Werte ignorieren
+        for (const key of Object.keys(config)) {
+            if (config[key] !== undefined) {
+                this.config[key] = config[key];
+            }
+        }
+        console.log('[SlideshowManager] Konfiguration aktualisiert, renderBehindVisualizer:', this.config.renderBehindVisualizer);
     }
 
     /**
@@ -317,11 +319,15 @@ export class SlideshowManager {
             this._applyAudioReactiveSettings(newImage, imageConfig);
         }
 
-        // ✨ NEU: Render-Layer setzen (vor oder hinter Visualizer)
+        // ✨ KRITISCH: Render-Layer setzen (vor oder hinter Visualizer)
+        // Muss NACH allen anderen fotoSettings-Initialisierungen erfolgen
         if (!newImage.fotoSettings) {
             this.fotoManager.initializeImageSettings(newImage);
         }
+        // Immer die aktuelle Konfiguration verwenden
         newImage.fotoSettings.renderBehindVisualizer = this.config.renderBehindVisualizer;
+
+        console.log(`[SlideshowManager] Bild ${this.currentIndex + 1} renderBehindVisualizer:`, this.config.renderBehindVisualizer);
 
         // ✨ Markiere das Bild als Slideshow-Bild für spezielle Behandlung
         newImage.isSlideshowImage = true;
@@ -492,17 +498,21 @@ export class SlideshowManager {
      * ✨ NEU: Setzt die Layer-Einstellung (vor/hinter Visualizer) auch während laufender Slideshow
      */
     setRenderBehindVisualizer(value) {
+        console.log('[SlideshowManager] setRenderBehindVisualizer aufgerufen mit:', value);
         this.config.renderBehindVisualizer = value;
 
         // Aktualisiere alle aktiven Bilder
         for (const imageData of this.activeImages) {
-            if (imageData.fotoSettings) {
-                imageData.fotoSettings.renderBehindVisualizer = value;
+            // Stelle sicher, dass fotoSettings existiert
+            if (!imageData.fotoSettings) {
+                this.fotoManager.initializeImageSettings(imageData);
             }
+            imageData.fotoSettings.renderBehindVisualizer = value;
+            console.log('[SlideshowManager] Bild', imageData.id, 'aktualisiert auf renderBehindVisualizer:', value);
         }
 
         this.redrawCallback();
-        console.log('[SlideshowManager] Render-Layer geändert:', value ? 'hinter Visualizer' : 'vor Visualizer');
+        console.log('[SlideshowManager] Render-Layer geändert:', value ? 'hinter Visualizer' : 'vor Visualizer', '- Anzahl aktive Bilder:', this.activeImages.length);
     }
 
     /**

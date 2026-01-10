@@ -430,15 +430,6 @@ export class MouseHandler {
      * Central method to end drag operations cleanly
      */
     _endDrag() {
-        // ✨ NEU: Auswahl aufheben wenn ein Slideshow-Bild verschoben/skaliert wurde
-        // um veraltete Markierungen zu vermeiden
-        if (this.manager.activeObject && this.manager.activeObject.isSlideshowImage) {
-            if (this.manager.multiImageManager) {
-                this.manager.multiImageManager.setSelectedImage(null);
-            }
-            this.manager.activeObject = null;
-        }
-
         if (this.manager.currentAction) {
             this._stopDragListeners();
         }

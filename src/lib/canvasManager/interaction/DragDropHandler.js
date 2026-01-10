@@ -27,6 +27,11 @@ export class DragDropHandler {
         // ✨ NEU: Slideshow-Bilder bewegen die gesamte Slideshow
         if (obj.isSlideshowImage && window.slideshowManager) {
             window.slideshowManager.moveSlideshow(relDx, relDy);
+            // Auswahl aufheben, da die Markierung sonst an alter Position bleibt
+            if (this.manager.multiImageManager) {
+                this.manager.multiImageManager.setSelectedImage(null);
+            }
+            this.manager.activeObject = null;
             return;
         }
 
@@ -144,12 +149,16 @@ export class DragDropHandler {
         // ✨ NEU: Slideshow-Bilder skalieren die gesamte Slideshow
         if (obj.isSlideshowImage && window.slideshowManager) {
             // Berechne Skalierungsfaktor basierend auf der Mausbewegung
-            const currentWidth = obj.relWidth * this.manager.canvas.width;
             const movement = Math.abs(dx) > Math.abs(dy) ? dx : dy;
             const direction = this.manager.currentAction.includes('r') ||
                               this.manager.currentAction.includes('b') ? 1 : -1;
             const scaleFactor = 1 + (movement * direction * 0.002);
             window.slideshowManager.scaleSlideshow(scaleFactor);
+            // Auswahl aufheben, da die Markierung sonst an alter Position bleibt
+            if (this.manager.multiImageManager) {
+                this.manager.multiImageManager.setSelectedImage(null);
+            }
+            this.manager.activeObject = null;
             return;
         }
 

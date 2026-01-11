@@ -121,7 +121,7 @@ export class MultiImageManager {
      * @param {HTMLImageElement} imageObject - Das Bildobjekt
      * @param {Object} bounds - Die Ziel-Bounds { relX, relY, relWidth, relHeight }
      * @param {string} animation - Die Eintritts-Animation ('none', 'fade', 'slideLeft', 'slideRight', 'slideUp', 'slideDown', 'zoom', 'bounce', 'spin', 'elastic')
-     * @param {Object} options - Optionen { duration: Animationsdauer in ms, scale: Skalierungsfaktor }
+     * @param {Object} options - Optionen { duration: Animationsdauer in ms, scale: Skalierungsfaktor, isSlideshowImage: boolean }
      */
     addImageWithBounds(imageObject, bounds, animation = 'none', options = {}) {
         if (!imageObject) {
@@ -131,6 +131,7 @@ export class MultiImageManager {
 
         // Extrahiere Optionen mit Standardwerten
         const duration = options.duration || 500;
+        const isSlideshowImage = options.isSlideshowImage || false;
 
         // Berechne Bild-Seitenverhältnis
         const imgAspectRatio = imageObject.height / imageObject.width;
@@ -174,7 +175,10 @@ export class MultiImageManager {
                 startTime: Date.now(),
                 duration: duration,
                 progress: 0
-            }
+            },
+            // ✨ FIX: isSlideshowImage Flag SOFORT setzen, BEVOR setSelectedImage() aufgerufen wird
+            // Dies stellt sicher, dass Selection-Marker die korrekten Transform-Bounds verwenden
+            isSlideshowImage: isSlideshowImage
         };
 
         // Initialisiere fotoSettings
@@ -185,7 +189,7 @@ export class MultiImageManager {
         this.images.push(newImage);
         this.setSelectedImage(newImage);
 
-        console.log('✅ Bild mit Bounds hinzugefügt:', newImage.id, 'Animation:', animation, 'Dauer:', duration, 'ms');
+        console.log('✅ Bild mit Bounds hinzugefügt:', newImage.id, 'Animation:', animation, 'Dauer:', duration, 'ms', 'isSlideshowImage:', isSlideshowImage);
 
         // Starte Animation wenn nötig
         if (animation !== 'none') {

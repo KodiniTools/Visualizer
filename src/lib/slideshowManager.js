@@ -262,6 +262,9 @@ export class SlideshowManager {
             return this._addNextImage();
         }
 
+        // ✨ Debug: Log transform values when adding new image
+        console.log('[SlideshowManager] _addNextImage() mit Transform:', JSON.stringify(this.transform));
+
         // ✨ Berechne Bounds basierend auf Transform-Einstellungen
         const canvas = this.multiImageManager.canvas;
         const imgAspectRatio = imageObject.height / imageObject.width;
@@ -287,12 +290,17 @@ export class SlideshowManager {
             relHeight: relHeight
         };
 
-        // Bild mit Slideshow-Animation hinzufügen
+        // ✨ FIX: Füge Bild mit benutzerdefinierten Optionen hinzu, einschließlich isSlideshowImage
+        // WICHTIG: isSlideshowImage muss VOR dem redraw gesetzt werden, damit Selection-Marker
+        // sofort die korrekten Transform-Bounds verwenden
         const newImage = this.multiImageManager.addImageWithBounds(
             imageObject,
             bounds,
             'none', // Keine Standard-Animation, wir nutzen slideshow
-            { duration: 0 }
+            {
+                duration: 0,
+                isSlideshowImage: true  // ✨ NEU: Flag direkt beim Hinzufügen setzen
+            }
         );
 
         if (!newImage) {
@@ -300,6 +308,9 @@ export class SlideshowManager {
             this.currentIndex++;
             return this._addNextImage();
         }
+
+        // ✨ Sicherstellen dass isSlideshowImage gesetzt ist (falls nicht von addImageWithBounds)
+        newImage.isSlideshowImage = true;
 
         // Slideshow-spezifische Eigenschaften setzen
         const now = Date.now();
@@ -328,9 +339,6 @@ export class SlideshowManager {
         newImage.fotoSettings.renderBehindVisualizer = this.config.renderBehindVisualizer;
 
         console.log(`[SlideshowManager] Bild ${this.currentIndex + 1} renderBehindVisualizer:`, this.config.renderBehindVisualizer);
-
-        // ✨ Markiere das Bild als Slideshow-Bild für spezielle Behandlung
-        newImage.isSlideshowImage = true;
 
         // Zur aktiven Liste hinzufügen
         this.activeImages.push(newImage);

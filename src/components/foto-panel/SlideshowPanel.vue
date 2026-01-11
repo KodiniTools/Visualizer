@@ -401,8 +401,11 @@ function emitTransformChange() {
 }
 
 // ✨ NEU: Watch für Transform-Änderungen
+// ✨ FIX: Nur emittieren wenn Slideshow NICHT aktiv ist, um Maus-Änderungen nicht zu überschreiben
 watch([transformX, transformY, transformWidth, transformHeight], () => {
-  emitTransformChange();
+  if (!props.isActive) {
+    emitTransformChange();
+  }
 }, { deep: true });
 </script>
 

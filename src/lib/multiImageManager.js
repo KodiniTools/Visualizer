@@ -1,7 +1,17 @@
 /**
  * MultiImageManager - Verwaltet mehrere Bilder auf dem Canvas
  * Arbeitet eng mit CanvasManager zusammen
+ * ✨ Verwendet modularisierte Audio-Verarbeitung
  */
+
+import {
+    applyEasing,
+    getAudioLevel,
+    applyBeatBoost,
+    applyPhaseOffset,
+    calculateEffectValue
+} from './audio/index.js';
+
 export class MultiImageManager {
     constructor(canvas, callbacks = {}) {
         this.canvas = canvas;
@@ -372,108 +382,27 @@ export class MultiImageManager {
     
     // ═══════════════════════════════════════════════════════════════════════════
     // ✨ EASING-FUNKTIONEN für geschmeidigere Audio-Reaktionen
+    // ✅ Delegiert an modulares Audio-System
     // ═══════════════════════════════════════════════════════════════════════════
 
     /**
      * Wendet eine Easing-Funktion auf einen Wert an (0-1)
+     * ✅ Verwendet jetzt das modulare EasingFunctions-Modul
      */
     _applyEasing(value, easingType = 'linear') {
-        const t = Math.max(0, Math.min(1, value)); // Clamp auf 0-1
-
-        switch (easingType) {
-            case 'linear':
-                return t;
-
-            case 'easeIn':
-                // Langsamer Start, beschleunigt zum Ende
-                return t * t * t;
-
-            case 'easeOut':
-                // Schneller Start, verlangsamt zum Ende
-                return 1 - Math.pow(1 - t, 3);
-
-            case 'easeInOut':
-                // Langsamer Start und Ende, schnell in der Mitte
-                return t < 0.5
-                    ? 4 * t * t * t
-                    : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-            case 'bounce':
-                // Federnder Effekt
-                const n1 = 7.5625;
-                const d1 = 2.75;
-                if (t < 1 / d1) {
-                    return n1 * t * t;
-                } else if (t < 2 / d1) {
-                    const t2 = t - 1.5 / d1;
-                    return n1 * t2 * t2 + 0.75;
-                } else if (t < 2.5 / d1) {
-                    const t2 = t - 2.25 / d1;
-                    return n1 * t2 * t2 + 0.9375;
-                } else {
-                    const t2 = t - 2.625 / d1;
-                    return n1 * t2 * t2 + 0.984375;
-                }
-
-            case 'elastic':
-                // Elastischer Effekt
-                if (t === 0 || t === 1) return t;
-                const c4 = (2 * Math.PI) / 3;
-                return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
-
-            case 'punch':
-                // Starker Punch-Effekt für Beats
-                return Math.pow(t, 0.5) * (1 + Math.sin(t * Math.PI) * 0.3);
-
-            default:
-                return t;
-        }
+        return applyEasing(value, easingType);
     }
 
     /**
      * ✨ Berechnet den Audio-Level für eine bestimmte Quelle
+     * ✅ Verwendet jetzt das modulare AudioLevelCalculator-Modul
      * @param {string} source - 'bass', 'mid', 'treble', 'volume', 'dynamic'
      * @param {object} audioData - Die Audio-Analyse-Daten
      * @param {boolean} useSmooth - Ob geglättete Werte verwendet werden sollen
      * @returns {number} Audio-Level (0-255)
      */
     _getAudioLevelForSource(source, audioData, useSmooth) {
-        let audioLevel = 0;
-
-        switch (source) {
-            case 'bass':
-                audioLevel = useSmooth ? audioData.smoothBass : audioData.bass;
-                break;
-            case 'mid':
-                audioLevel = useSmooth ? audioData.smoothMid : audioData.mid;
-                break;
-            case 'treble':
-                audioLevel = useSmooth ? audioData.smoothTreble : audioData.treble;
-                break;
-            case 'volume':
-                audioLevel = useSmooth ? audioData.smoothVolume : audioData.volume;
-                break;
-            case 'dynamic':
-                // Dynamischer Modus: Gewichtete Mischung aller Frequenzbänder
-                const bass = useSmooth ? audioData.smoothBass : audioData.bass;
-                const mid = useSmooth ? audioData.smoothMid : audioData.mid;
-                const treble = useSmooth ? audioData.smoothTreble : audioData.treble;
-
-                const totalEnergy = Math.max(bass + mid + treble, 1);
-                const bassWeight = bass / totalEnergy;
-                const midWeight = mid / totalEnergy;
-                const trebleWeight = treble / totalEnergy;
-
-                let rawLevel = (bass * bassWeight) + (mid * midWeight) + (treble * trebleWeight);
-                const normalized = rawLevel / 255;
-                const compressed = Math.pow(normalized, 0.7);
-                audioLevel = compressed * 255 * 0.85;
-                break;
-            default:
-                audioLevel = useSmooth ? audioData.smoothBass : audioData.bass;
-        }
-
-        return audioLevel;
+        return getAudioLevel(source, audioData, useSmooth);
     }
 
     /**
@@ -483,6 +412,7 @@ export class MultiImageManager {
      * ✅ Delay/Phasenversatz für Kaskaden-Effekte
      * ✅ Beat-Boost für dramatischere Effekte bei Beats
      * ✅ NEU: Individuelle Audio-Quelle pro Effekt
+     * ✅ Verwendet modulares Audio-System
      */
     getAudioReactiveValues(audioSettings) {
         if (!audioSettings || !audioSettings.enabled) {
@@ -512,19 +442,11 @@ export class MultiImageManager {
             // Fallback für alte Struktur (einzelner Effekt)
             let audioLevel = this._getAudioLevelForSource(globalSource, audioData, useSmooth);
 
-            // Beat-Boost anwenden
-            if (audioData.isBeat && beatBoost > 1.0) {
-                const boostAmount = 1 + ((beatBoost - 1) * (audioData.beatIntensity || 0));
-                audioLevel = Math.min(255, audioLevel * boostAmount);
-            }
+            // Beat-Boost anwenden (modulare Funktion)
+            audioLevel = applyBeatBoost(audioLevel, audioData, beatBoost);
 
-            // Phasenversatz anwenden
-            if (phase > 0) {
-                const phaseRad = (phase * Math.PI) / 180;
-                const time = Date.now() * 0.002;
-                const phaseModifier = (Math.sin(time + phaseRad) + 1) / 2;
-                audioLevel = audioLevel * (0.5 + phaseModifier * 0.5);
-            }
+            // Phasenversatz anwenden (modulare Funktion)
+            audioLevel = applyPhaseOffset(audioLevel, phase);
 
             let baseLevel = this._applyEasing(audioLevel / 255, easing);
             const effect = audioSettings.effect || 'hue';
@@ -544,19 +466,11 @@ export class MultiImageManager {
                 // Audio-Level für diese spezifische Quelle berechnen
                 let audioLevel = this._getAudioLevelForSource(effectSource, audioData, useSmooth);
 
-                // Beat-Boost anwenden (global)
-                if (audioData.isBeat && beatBoost > 1.0) {
-                    const boostAmount = 1 + ((beatBoost - 1) * (audioData.beatIntensity || 0));
-                    audioLevel = Math.min(255, audioLevel * boostAmount);
-                }
+                // Beat-Boost anwenden (modulare Funktion)
+                audioLevel = applyBeatBoost(audioLevel, audioData, beatBoost);
 
-                // Phasenversatz anwenden (global)
-                if (phase > 0) {
-                    const phaseRad = (phase * Math.PI) / 180;
-                    const time = Date.now() * 0.002;
-                    const phaseModifier = (Math.sin(time + phaseRad) + 1) / 2;
-                    audioLevel = audioLevel * (0.5 + phaseModifier * 0.5);
-                }
+                // Phasenversatz anwenden (modulare Funktion)
+                audioLevel = applyPhaseOffset(audioLevel, phase);
 
                 // Normalisieren, Easing anwenden, Intensität
                 let baseLevel = this._applyEasing(audioLevel / 255, easing);
@@ -573,179 +487,10 @@ export class MultiImageManager {
 
     /**
      * ✨ Berechnet den Wert für einen einzelnen Effekt
+     * ✅ Verwendet jetzt das modulare AudioReactiveEffects-Modul
      */
     _calculateEffectValue(effectName, normalizedLevel) {
-        switch (effectName) {
-            case 'hue':
-                // Hue-Rotation: 0-720 Grad (2x Durchlauf für stärkeren Effekt)
-                return { hueRotate: normalizedLevel * 720 };
-            case 'brightness':
-                // Helligkeit: 60-180% basierend auf Audio-Level (verstärkt)
-                return { brightness: 60 + (normalizedLevel * 120) };
-            case 'saturation':
-                // Sättigung: 30-250% basierend auf Audio-Level (verstärkt)
-                return { saturation: 30 + (normalizedLevel * 220) };
-            case 'scale':
-                // Pulsieren/Skalieren: 1.0-1.5x basierend auf Audio-Level
-                return { scale: 1.0 + (normalizedLevel * 0.5) };
-            case 'glow':
-                // Glow/Shadow: 0-50px basierend auf Audio-Level (verstärkt)
-                return {
-                    glowBlur: normalizedLevel * 50,
-                    glowColor: `rgba(139, 92, 246, ${0.5 + normalizedLevel * 0.5})`
-                };
-            case 'border':
-                // Audio-reaktive Bildkontur: Breite und Farbe pulsieren
-                return {
-                    borderWidth: normalizedLevel * 20,  // 0-20px
-                    borderOpacity: 0.5 + (normalizedLevel * 0.5),  // 50-100%
-                    borderGlow: normalizedLevel * 30  // Leuchten um die Kontur
-                };
-            case 'blur':
-                // Dynamische Unschärfe: 0-10px basierend auf Audio-Level
-                return { blur: normalizedLevel * 10 };
-            case 'rotation':
-                // Leichte Drehung: -15 bis +15 Grad (oszillierend)
-                const timeRot = Date.now() * 0.005;
-                const oscillation = Math.sin(timeRot) * normalizedLevel;
-                return { rotation: oscillation * 15 };
-            case 'shake':
-                // Erschütterung: Zufällige X/Y-Verschiebung bei hohem Audio-Level
-                // Nur bei signifikantem Audio-Level aktivieren (>20%)
-                if (normalizedLevel > 0.2) {
-                    const shakeIntensity = normalizedLevel * 15; // Max 15px
-                    const shakeX = (Math.random() - 0.5) * 2 * shakeIntensity;
-                    const shakeY = (Math.random() - 0.5) * 2 * shakeIntensity;
-                    return { shakeX, shakeY };
-                }
-                return { shakeX: 0, shakeY: 0 };
-            case 'bounce':
-                // Vertikales Hüpfen: Sinuswelle + Audio-Level
-                const timeBounce = Date.now() * 0.008; // Schnellere Oszillation
-                // Nur nach oben hüpfen (negative Y-Werte), verstärkt durch Audio
-                const bounceAmount = Math.abs(Math.sin(timeBounce)) * normalizedLevel * 30;
-                return { bounceY: -bounceAmount }; // Negativ = nach oben
-            case 'swing':
-                // Horizontales Pendeln: Sinuswelle für sanftes Hin-und-Her
-                const timeSwing = Date.now() * 0.004; // Langsame Oszillation
-                const swingAmount = Math.sin(timeSwing) * normalizedLevel * 40; // Max ±40px
-                return { swingX: swingAmount };
-            case 'orbit':
-                // Kreisbewegung: X und Y folgen einem Kreis
-                const timeOrbit = Date.now() * 0.003; // Langsame Kreisbewegung
-                const orbitRadius = normalizedLevel * 25; // Max 25px Radius
-                const orbitX = Math.cos(timeOrbit) * orbitRadius;
-                const orbitY = Math.sin(timeOrbit) * orbitRadius;
-                return { orbitX, orbitY };
-
-            // ═══════════════════════════════════════════════════════════════
-            // ✨ NEUE BEWEGUNGSPFADE
-            // ═══════════════════════════════════════════════════════════════
-
-            case 'figure8':
-                // Achter-Bewegung (Lemniskate): Elegante liegende 8
-                const timeFigure8 = Date.now() * 0.002; // Moderate Geschwindigkeit
-                const figure8Scale = normalizedLevel * 30; // Max 30px Amplitude
-                // Lemniskate von Bernoulli: x = cos(t), y = sin(2t)/2
-                const figure8X = Math.cos(timeFigure8) * figure8Scale;
-                const figure8Y = Math.sin(timeFigure8 * 2) * figure8Scale * 0.5;
-                return { figure8X, figure8Y };
-
-            case 'wave':
-                // Sinuswellen-Bewegung: Horizontale Drift mit vertikaler Welle
-                const timeWave = Date.now() * 0.003;
-                const waveAmplitude = normalizedLevel * 20; // Max 20px Amplitude
-                // Horizontale Bewegung + vertikale Sinuswelle
-                const waveX = Math.sin(timeWave * 0.5) * waveAmplitude * 1.5;
-                const waveY = Math.sin(timeWave * 2) * waveAmplitude;
-                return { waveX, waveY };
-
-            case 'spiral':
-                // Spirale nach außen: Wachsender Radius mit Rotation
-                const timeSpiral = Date.now() * 0.002;
-                const spiralMaxRadius = normalizedLevel * 35; // Max 35px Radius
-                // Pulsierender Radius: wächst und schrumpft
-                const spiralPhase = (timeSpiral % (Math.PI * 2)) / (Math.PI * 2);
-                const spiralRadius = spiralMaxRadius * (0.3 + spiralPhase * 0.7);
-                const spiralX = Math.cos(timeSpiral * 3) * spiralRadius;
-                const spiralY = Math.sin(timeSpiral * 3) * spiralRadius;
-                return { spiralX, spiralY };
-
-            case 'float':
-                // Zufälliges Schweben: Sanfte, organische Bewegung
-                const timeFloat = Date.now() * 0.001;
-                const floatAmplitude = normalizedLevel * 15; // Max 15px Amplitude
-                // Kombination mehrerer Sinuswellen für organische Bewegung
-                const floatX = (Math.sin(timeFloat * 1.3) + Math.sin(timeFloat * 2.7) * 0.5) * floatAmplitude;
-                const floatY = (Math.cos(timeFloat * 1.7) + Math.cos(timeFloat * 3.1) * 0.5) * floatAmplitude;
-                return { floatX, floatY };
-
-            // ═══════════════════════════════════════════════════════════════
-            // ✨ NEUE EFFEKTE
-            // ═══════════════════════════════════════════════════════════════
-
-            case 'contrast':
-                // Kontrast-Pulsieren: 80-200% basierend auf Audio-Level
-                return { contrast: 80 + (normalizedLevel * 120) };
-
-            case 'grayscale':
-                // Schwarz-Weiß Überblendung: 0-100% basierend auf Audio-Level
-                return { grayscale: normalizedLevel * 100 };
-
-            case 'sepia':
-                // Vintage/Sepia Look: 0-100% basierend auf Audio-Level
-                return { sepia: normalizedLevel * 100 };
-
-            case 'invert':
-                // Farbinversion: Bei Peaks stark invertieren (0-100%)
-                // Quadratische Kurve für dramatischeren Effekt bei lauten Stellen
-                const invertLevel = Math.pow(normalizedLevel, 1.5) * 100;
-                return { invert: invertLevel };
-
-            case 'skew':
-                // Scheren/Verzerrung: Oszillierende Scherung in X und Y
-                const timeSkew = Date.now() * 0.004;
-                const skewAmount = normalizedLevel * 15; // Max ±15 Grad
-                const skewX = Math.sin(timeSkew) * skewAmount;
-                const skewY = Math.cos(timeSkew * 0.7) * skewAmount * 0.5; // Langsamere Y-Scherung
-                return { skewX, skewY };
-
-            case 'strobe':
-                // Blitz-Effekt: Schnelles Aufblitzen bei Peaks (>60% Audio)
-                // Verwendet Audio-Level als Schwellwert für dramatischen Effekt
-                if (normalizedLevel > 0.6) {
-                    // Bei Peak: Volle Helligkeit mit Zufalls-Faktor
-                    const strobeFlash = 0.8 + Math.random() * 0.2;
-                    return { strobeOpacity: strobeFlash, strobeBrightness: 150 + normalizedLevel * 100 };
-                } else if (normalizedLevel > 0.3) {
-                    // Mittlere Levels: Leichtes Pulsieren
-                    return { strobeOpacity: 0.7 + normalizedLevel * 0.3, strobeBrightness: 100 };
-                }
-                return { strobeOpacity: 1, strobeBrightness: 100 };
-
-            case 'chromatic':
-                // Chromatische Aberration (RGB-Verschiebung / Glitch)
-                // Verschiebung der Farbkanäle bei Audio-Peaks
-                const chromaticOffset = normalizedLevel * 8; // Max 8px Verschiebung
-                return {
-                    chromaticOffset,
-                    // Richtungen für R, G, B Kanäle
-                    chromaticR: { x: chromaticOffset, y: 0 },
-                    chromaticG: { x: 0, y: 0 },
-                    chromaticB: { x: -chromaticOffset, y: 0 }
-                };
-
-            case 'perspective':
-                // 3D-Kipp-Effekt: Oszillierende Perspektiven-Rotation
-                const timePerspective = Date.now() * 0.002;
-                const perspectiveAmount = normalizedLevel * 25; // Max ±25 Grad
-                const rotateX = Math.sin(timePerspective) * perspectiveAmount;
-                const rotateY = Math.cos(timePerspective * 0.8) * perspectiveAmount * 0.7;
-                return { perspectiveRotateX: rotateX, perspectiveRotateY: rotateY };
-
-            default:
-                return {};
-        }
+        return calculateEffectValue(effectName, normalizedLevel);
     }
 
     /**

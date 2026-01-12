@@ -25,3 +25,22 @@ export {
   batchArcs,
   rotatePoint
 } from './helpers.js';
+
+// ✨ Input validation utilities
+export {
+  validateNumber,
+  validatePositiveNumber,
+  validateRange,
+  validateDataArray,
+  validateBufferLength,
+  validateDimensions,
+  validateCanvasContext,
+  validateHexColor,
+  validateIntensity,
+  validateDrawParams,
+  createSafeDrawWrapper,
+  validateArrayIndex,
+  clampFrequencyIndex,
+  safeGetAudioValue,
+  validateAngle
+} from './validation.js';

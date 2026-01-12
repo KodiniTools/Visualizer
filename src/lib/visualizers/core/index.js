@@ -15,5 +15,13 @@ export {
   getFrequencyBasedSmoothing,
   applySmoothValue,
   withSafeCanvasState,
-  drawRoundedBar
+  drawRoundedBar,
+  // ✨ Performance utilities
+  batchStyleChanges,
+  forEachRotatedSegment,
+  getCachedRadialGradient,
+  clearGradientCache,
+  withConditionalShadow,
+  batchArcs,
+  rotatePoint
 } from './helpers.js';

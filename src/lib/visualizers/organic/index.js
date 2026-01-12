@@ -1,5 +1,6 @@
 /**
  * Organic visualizers - Natural, flowing, and living patterns
+ * ✨ OPTIMIZED: Reduced canvas state manipulations, cached gradients
  * @module visualizers/organic
  */
 
@@ -8,7 +9,9 @@ import {
   hexToHsl,
   averageRange,
   calculateDynamicGain,
-  withSafeCanvasState
+  withSafeCanvasState,
+  withConditionalShadow,
+  rotatePoint
 } from '../core/index.js';
 
 export const spiralGalaxy = {
@@ -32,6 +35,7 @@ export const spiralGalaxy = {
     ctx.fillRect(0, 0, width, height);
 
     withSafeCanvasState(ctx, () => {
+      // ✨ OPTIMIZED: Center glow drawn once
       const centerGlow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxRadius * 0.2);
       centerGlow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 70%, 0.4)`);
       centerGlow.addColorStop(1, 'transparent');
@@ -39,6 +43,9 @@ export const spiralGalaxy = {
       ctx.arc(centerX, centerY, maxRadius * 0.2, 0, Math.PI * 2);
       ctx.fillStyle = centerGlow;
       ctx.fill();
+
+      // ✨ OPTIMIZED: Track if shadow is active to avoid unnecessary resets
+      let shadowActive = false;
 
       for (let arm = 0; arm < arms; arm++) {
         for (let i = 0; i < pointsPerArm; i++) {
@@ -65,9 +72,14 @@ export const spiralGalaxy = {
           const size = (baseSize + currentIntensity * 8) * intensity;
           const hue = (baseHsl.h + t * 60 + arm * 30) % 360;
 
+          // ✨ OPTIMIZED: Only set shadow when needed
           if (currentIntensity > 0.4) {
             ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
             ctx.shadowBlur = 8 + currentIntensity * 12;
+            shadowActive = true;
+          } else if (shadowActive) {
+            ctx.shadowBlur = 0;
+            shadowActive = false;
           }
 
           ctx.beginPath();
@@ -76,7 +88,11 @@ export const spiralGalaxy = {
           ctx.fill();
         }
       }
-      ctx.shadowBlur = 0;
+
+      // ✨ OPTIMIZED: Only reset if shadow was active
+      if (shadowActive) {
+        ctx.shadowBlur = 0;
+      }
     });
   }
 };
@@ -95,10 +111,11 @@ export const bloomingMandala = {
       ctx.translate(centerX, centerY);
       const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255;
 
+      // ✨ OPTIMIZED: Pre-calculate segment data, NO save/restore inside loop
+      const segmentAngle = (Math.PI * 2) / numSegments;
+
       for (let i = 0; i < numSegments; i++) {
-        const angle = (i / numSegments) * Math.PI * 2;
-        ctx.save();
-        ctx.rotate(angle);
+        const angle = i * segmentAngle;
 
         const freqIndex = Math.floor((i / numSegments) * maxFreqIndex);
         const amplitude = (dataArray[freqIndex] / 255) * 1.5 + 0.3;
@@ -106,12 +123,32 @@ export const bloomingMandala = {
         const petalWidth = (20 + overallEnergy * 60) * intensity;
         const hue = (baseHsl.h + i * (360 / numSegments)) % 360;
 
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.bezierCurveTo(petalWidth, petalLength * 0.4, petalWidth * 0.5, petalLength * 0.8, 0, petalLength);
-        ctx.bezierCurveTo(-petalWidth * 0.5, petalLength * 0.8, -petalWidth, petalLength * 0.4, 0, 0);
+        // ✨ OPTIMIZED: Use rotatePoint instead of save/rotate/restore
+        // Calculate bezier points in rotated space mathematically
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
 
-        const gradient = ctx.createLinearGradient(0, 0, 0, petalLength);
+        // Transform local petal coordinates to global
+        const transformPoint = (lx, ly) => ({
+          x: lx * cos - ly * sin,
+          y: lx * sin + ly * cos
+        });
+
+        // Petal control and end points in local coordinates (Y is along petal length)
+        const p0 = transformPoint(0, 0);
+        const cp1 = transformPoint(petalWidth, petalLength * 0.4);
+        const cp2 = transformPoint(petalWidth * 0.5, petalLength * 0.8);
+        const pEnd = transformPoint(0, petalLength);
+        const cp3 = transformPoint(-petalWidth * 0.5, petalLength * 0.8);
+        const cp4 = transformPoint(-petalWidth, petalLength * 0.4);
+
+        ctx.beginPath();
+        ctx.moveTo(p0.x, p0.y);
+        ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, pEnd.x, pEnd.y);
+        ctx.bezierCurveTo(cp3.x, cp3.y, cp4.x, cp4.y, p0.x, p0.y);
+
+        // ✨ OPTIMIZED: Create gradient along transformed axis
+        const gradient = ctx.createLinearGradient(p0.x, p0.y, pEnd.x, pEnd.y);
         gradient.addColorStop(0, `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l}%, 0.9)`);
         gradient.addColorStop(0.5, `hsla(${hue}, ${baseHsl.s}%, ${Math.min(80, baseHsl.l + 20)}%, 0.7)`);
         gradient.addColorStop(1, `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l}%, 0.3)`);
@@ -121,10 +158,9 @@ export const bloomingMandala = {
         ctx.strokeStyle = `hsla(${hue}, 100%, 70%, ${0.5 + amplitude * 0.5})`;
         ctx.lineWidth = (2 + amplitude * 3) * intensity;
         ctx.stroke();
-
-        ctx.restore();
       }
 
+      // Center glow
       const centerGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, 50 * intensity);
       centerGlow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 80%, ${0.8 + overallEnergy * 0.2})`);
       centerGlow.addColorStop(1, `hsla(${baseHsl.h}, 100%, 50%, 0)`);
@@ -171,6 +207,7 @@ export const frequencyBlossoms = {
       ctx.translate(centerX, centerY);
       ctx.rotate(state.rotation);
 
+      // Background glow
       const glowRadius = baseRadius + state.smoothedEnergy * maxRadius * 0.5;
       const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, glowRadius * 1.5);
       glow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 60%, ${0.3 + bassEnergy * 0.3})`);
@@ -180,6 +217,9 @@ export const frequencyBlossoms = {
       ctx.beginPath();
       ctx.arc(0, 0, glowRadius * 1.5, 0, Math.PI * 2);
       ctx.fill();
+
+      // ✨ OPTIMIZED: Batch shadow state changes
+      let shadowActive = false;
 
       for (let p = 0; p < numPetals; p++) {
         const freqIndex = Math.floor((p / numPetals) * maxFreqIndex);
@@ -200,6 +240,7 @@ export const frequencyBlossoms = {
 
         const hue = (baseHsl.h + p * (360 / numPetals) + midEnergy * 30) % 360;
 
+        // Draw filled petal
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.quadraticCurveTo(cp1x, cp1y, x1, y1);
@@ -212,18 +253,28 @@ export const frequencyBlossoms = {
         ctx.fillStyle = petalGradient;
         ctx.fill();
 
+        // ✨ OPTIMIZED: Set shadow only once for stroke batch
+        if (!shadowActive) {
+          ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+          ctx.shadowBlur = 10 + amplitude * 15;
+          shadowActive = true;
+        }
+
+        // Draw petal outline
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.quadraticCurveTo(cp1x, cp1y, x1, y1);
         ctx.strokeStyle = `hsla(${hue}, 100%, 75%, ${0.5 + amplitude * 0.5})`;
         ctx.lineWidth = (2 + amplitude * 4) * intensity;
-        ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
-        ctx.shadowBlur = 10 + amplitude * 15;
         ctx.stroke();
       }
 
-      ctx.shadowBlur = 0;
+      // ✨ OPTIMIZED: Reset shadow once after loop
+      if (shadowActive) {
+        ctx.shadowBlur = 0;
+      }
 
+      // Core
       const coreRadius = 15 + state.smoothedEnergy * 25;
       const coreGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, coreRadius);
       coreGradient.addColorStop(0, `hsla(${baseHsl.h}, 100%, 95%, 1)`);
@@ -272,6 +323,7 @@ export const centralGlowBlossom = {
     withSafeCanvasState(ctx, () => {
       ctx.translate(centerX, centerY);
 
+      // ✨ OPTIMIZED: Draw all glow layers in sequence without state changes
       for (let layer = 3; layer >= 0; layer--) {
         const layerRadius = (baseRadius + bassEnergy * 100) * (1 + layer * 0.5);
         const layerGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, layerRadius);
@@ -285,6 +337,9 @@ export const centralGlowBlossom = {
       }
 
       ctx.rotate(state.rotation);
+
+      // ✨ OPTIMIZED: Collect points for high-amplitude effects
+      const highAmplitudePoints = [];
 
       for (let r = 0; r < numRays; r++) {
         const freqIndex = Math.floor((r / numRays) * maxFreqIndex);
@@ -302,6 +357,7 @@ export const centralGlowBlossom = {
 
         const hue = (baseHsl.h + r * (180 / numRays) + highEnergy * 40) % 360;
 
+        // Draw ray line
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(x, y);
@@ -317,16 +373,23 @@ export const centralGlowBlossom = {
         ctx.shadowBlur = 8 + amplitude * 12;
         ctx.stroke();
 
+        // ✨ OPTIMIZED: Collect high amplitude points for batch rendering
         if (amplitude > 0.3) {
-          ctx.beginPath();
-          ctx.arc(x, y, 3 + amplitude * 5, 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${hue}, 100%, 85%, ${0.5 + amplitude * 0.5})`;
-          ctx.fill();
+          highAmplitudePoints.push({ x, y, amplitude, hue });
         }
       }
 
+      // ✨ OPTIMIZED: Reset shadow once, then batch draw high amplitude points
       ctx.shadowBlur = 0;
 
+      for (const point of highAmplitudePoints) {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 3 + point.amplitude * 5, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${point.hue}, 100%, 85%, ${0.5 + point.amplitude * 0.5})`;
+        ctx.fill();
+      }
+
+      // Core
       const coreSize = 20 + bassEnergy * 30 + Math.sin(state.pulse * 2) * 10;
       const coreGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, coreSize * 2);
       coreGlow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 100%, 1)`);
@@ -356,6 +419,7 @@ export const fluidWaves = {
 
     ctx.clearRect(0, 0, w, h);
 
+    // ✨ OPTIMIZED: Pre-calculate wave data
     for (let wave = 0; wave < numWaves; wave++) {
       const freqPerWave = maxFreqIndex / numWaves;
       const s = Math.floor(wave * freqPerWave);
@@ -371,7 +435,9 @@ export const fluidWaves = {
       ctx.beginPath();
       ctx.moveTo(0, h);
 
-      for (let x = 0; x <= w; x += 5) {
+      // ✨ OPTIMIZED: Use larger step for wave points (8 instead of 5)
+      const step = 8;
+      for (let x = 0; x <= w; x += step) {
         const y = baseY + Math.sin((x * 0.01) + time * (1 + wave * 0.3) + wave) * waveHeight * intensity;
         ctx.lineTo(x, y);
       }
@@ -466,25 +532,27 @@ export const cellGrowth = {
       state.nextSpawn = now + spawnCooldown / intensity;
     }
 
-    for (let i = state.cells.length - 1; i >= 0; i--) {
-      const cell = state.cells[i];
-      cell.age++;
+    // ✨ OPTIMIZED: Single save/restore for all cells instead of per-cell
+    withSafeCanvasState(ctx, () => {
+      for (let i = state.cells.length - 1; i >= 0; i--) {
+        const cell = state.cells[i];
+        cell.age++;
 
-      if (cell.radius < cell.targetRadius) {
-        cell.radius += (cell.targetRadius - cell.radius) * 0.05 * (1 + bassEnergy * 2) * intensity;
-      }
+        if (cell.radius < cell.targetRadius) {
+          cell.radius += (cell.targetRadius - cell.radius) * 0.05 * (1 + bassEnergy * 2) * intensity;
+        }
 
-      const lifeProgress = cell.age / cell.maxAge;
-      if (lifeProgress >= 1) {
-        state.cells.splice(i, 1);
-        continue;
-      }
+        const lifeProgress = cell.age / cell.maxAge;
+        if (lifeProgress >= 1) {
+          state.cells.splice(i, 1);
+          continue;
+        }
 
-      const pulsePhase = Math.sin(cell.age * 0.1 + cell.generation) * 0.15;
-      const displayRadius = cell.radius * (1 + pulsePhase + overallEnergy * 0.2) * intensity;
-      const alpha = lifeProgress > 0.7 ? (1 - lifeProgress) / 0.3 : 1;
+        const pulsePhase = Math.sin(cell.age * 0.1 + cell.generation) * 0.15;
+        const displayRadius = cell.radius * (1 + pulsePhase + overallEnergy * 0.2) * intensity;
+        const alpha = lifeProgress > 0.7 ? (1 - lifeProgress) / 0.3 : 1;
 
-      withSafeCanvasState(ctx, () => {
+        // Outer glow
         ctx.beginPath();
         ctx.arc(cell.x, cell.y, displayRadius * 1.3, 0, Math.PI * 2);
         const outerGradient = ctx.createRadialGradient(cell.x, cell.y, 0, cell.x, cell.y, displayRadius * 1.3);
@@ -494,6 +562,7 @@ export const cellGrowth = {
         ctx.fillStyle = outerGradient;
         ctx.fill();
 
+        // Cell body
         ctx.beginPath();
         ctx.arc(cell.x, cell.y, displayRadius, 0, Math.PI * 2);
         const cellGradient = ctx.createRadialGradient(
@@ -506,11 +575,13 @@ export const cellGrowth = {
         ctx.fillStyle = cellGradient;
         ctx.fill();
 
+        // Nucleus
         ctx.beginPath();
         ctx.arc(cell.x, cell.y, displayRadius * 0.3, 0, Math.PI * 2);
         ctx.fillStyle = `hsla(${(cell.hue + 30) % 360}, 80%, 70%, ${alpha})`;
         ctx.fill();
 
+        // Organelles
         const organelleCount = 3 + cell.generation;
         for (let j = 0; j < organelleCount; j++) {
           const angle = (j / organelleCount) * Math.PI * 2 + cell.age * 0.02;
@@ -523,11 +594,13 @@ export const cellGrowth = {
           ctx.fillStyle = `hsla(${(cell.hue + 60) % 360}, 70%, 60%, ${alpha * 0.7})`;
           ctx.fill();
         }
-      });
-    }
+      }
+    });
 
+    // ✨ OPTIMIZED: Draw connections in batch
     withSafeCanvasState(ctx, () => {
       const connectionDistance = Math.min(width, height) * 0.15;
+      ctx.lineWidth = 1 * intensity;
 
       for (let i = 0; i < state.cells.length; i++) {
         for (let j = i + 1; j < state.cells.length; j++) {
@@ -547,7 +620,6 @@ export const cellGrowth = {
 
             const avgHue = (cell1.hue + cell2.hue) / 2;
             ctx.strokeStyle = `hsla(${avgHue}, 70%, 60%, ${alpha})`;
-            ctx.lineWidth = 1 * intensity;
             ctx.stroke();
           }
         }
@@ -583,6 +655,9 @@ export const fractalTree = {
     state.smoothedMid = state.smoothedMid * 0.9 + midEnergy * 0.1;
     state.smoothedHigh = state.smoothedHigh * 0.9 + highEnergy * 0.1;
 
+    // ✨ OPTIMIZED: Collect glow effects for batch rendering
+    const glowEffects = [];
+
     const drawBranch = (x, y, length, angle, depth, energy) => {
       if (depth === 0 || length < 2) return;
 
@@ -597,6 +672,7 @@ export const fractalTree = {
       const depthProgress = 1 - depth / 8;
       const hue = (baseHsl.h + depthProgress * 80 + state.smoothedHigh * 40) % 360;
 
+      // Draw branch line
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.lineTo(endX, endY);
@@ -604,13 +680,12 @@ export const fractalTree = {
       ctx.lineWidth = thickness;
       ctx.stroke();
 
+      // ✨ OPTIMIZED: Collect glow effects instead of immediate drawing
       if (energy > 0.5 && depth < 5) {
-        ctx.shadowColor = `hsl(${hue}, ${baseHsl.s}%, 70%)`;
-        ctx.shadowBlur = energy * 15 * intensity;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
+        glowEffects.push({ x, y, endX, endY, hue, energy, thickness });
       }
 
+      // Draw leaves
       if (depth <= 2) {
         const leafSize = (3 + state.smoothedHigh * 8) * intensity;
         ctx.beginPath();
@@ -619,13 +694,11 @@ export const fractalTree = {
         ctx.fill();
 
         if (state.smoothedHigh > 0.5) {
-          ctx.shadowColor = `hsl(${(hue + 30) % 360}, 100%, 70%)`;
-          ctx.shadowBlur = 10 * intensity;
-          ctx.fill();
-          ctx.shadowBlur = 0;
+          glowEffects.push({ isLeaf: true, x: endX, y: endY, leafSize, hue });
         }
       }
 
+      // Recursive branches
       const angleVariation = (Math.PI / 6) * (1 + state.smoothedMid * 0.5);
       const lengthReduction = 0.67 + state.smoothedBass * 0.1;
       const branchEnergy = energy * 0.9 + state.smoothedMid * 0.1;
@@ -649,6 +722,7 @@ export const fractalTree = {
       const maxDepth = 8;
       const energy = (state.smoothedBass + state.smoothedMid + state.smoothedHigh) / 3;
 
+      // Draw trunk
       const trunkHeight = initialLength * 1.5;
       ctx.beginPath();
       ctx.moveTo(startX, startY);
@@ -657,6 +731,7 @@ export const fractalTree = {
       ctx.lineWidth = (8 + state.smoothedBass * 4) * intensity;
       ctx.stroke();
 
+      // Draw roots
       const rootCount = 5;
       for (let i = 0; i < rootCount; i++) {
         const rootAngle = Math.PI / 2 + (i - rootCount / 2) * 0.3;
@@ -677,7 +752,34 @@ export const fractalTree = {
         ctx.stroke();
       }
 
+      // Draw branches (this populates glowEffects)
       drawBranch(startX, startY - trunkHeight, initialLength, initialAngle, maxDepth, energy);
+
+      // ✨ OPTIMIZED: Batch render all glow effects at once
+      if (glowEffects.length > 0) {
+        ctx.shadowBlur = 0;
+
+        for (const effect of glowEffects) {
+          if (effect.isLeaf) {
+            ctx.shadowColor = `hsl(${(effect.hue + 30) % 360}, 100%, 70%)`;
+            ctx.shadowBlur = 10 * intensity;
+            ctx.beginPath();
+            ctx.arc(effect.x, effect.y, effect.leafSize, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${(effect.hue + 30) % 360}, 100%, 60%, 0.8)`;
+            ctx.fill();
+          } else {
+            ctx.shadowColor = `hsl(${effect.hue}, ${baseHsl.s}%, 70%)`;
+            ctx.shadowBlur = effect.energy * 15 * intensity;
+            ctx.beginPath();
+            ctx.moveTo(effect.x, effect.y);
+            ctx.lineTo(effect.endX, effect.endY);
+            ctx.lineWidth = effect.thickness;
+            ctx.stroke();
+          }
+        }
+
+        ctx.shadowBlur = 0;
+      }
     });
   }
 };

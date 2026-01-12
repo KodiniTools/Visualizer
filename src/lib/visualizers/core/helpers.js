@@ -110,6 +110,152 @@ export function withSafeCanvasState(ctx, drawFunction) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ✨ PERFORMANCE UTILITIES - Optimized Canvas Rendering
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Batch canvas style changes to minimize state manipulation
+ * Sets multiple style properties at once, only if they differ from current values
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ * @param {Object} styles - Style properties to set
+ */
+export function batchStyleChanges(ctx, styles) {
+  for (const [key, value] of Object.entries(styles)) {
+    if (value !== undefined && ctx[key] !== value) {
+      ctx[key] = value;
+    }
+  }
+}
+
+/**
+ * Optimized rotation loop helper - avoids save/restore inside loops
+ * Uses mathematical rotation instead of canvas state changes
+ * @param {number} count - Number of segments
+ * @param {number} centerX - Center X coordinate
+ * @param {number} centerY - Center Y coordinate
+ * @param {Function} callback - Function(index, angle, cos, sin) for each segment
+ */
+export function forEachRotatedSegment(count, centerX, centerY, callback) {
+  const angleStep = (Math.PI * 2) / count;
+  for (let i = 0; i < count; i++) {
+    const angle = i * angleStep;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    callback(i, angle, cos, sin);
+  }
+}
+
+/**
+ * Pre-calculated gradient cache for reuse across frames
+ * Reduces gradient creation overhead in animation loops
+ */
+const gradientCache = new Map();
+
+/**
+ * Creates or retrieves a cached radial gradient
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ * @param {string} key - Unique cache key
+ * @param {number} x - Center X
+ * @param {number} y - Center Y
+ * @param {number} r1 - Inner radius
+ * @param {number} r2 - Outer radius
+ * @param {Array} colorStops - Array of [offset, color] pairs
+ * @returns {CanvasGradient} Cached or new gradient
+ */
+export function getCachedRadialGradient(ctx, key, x, y, r1, r2, colorStops) {
+  const cacheKey = `${key}_${r1.toFixed(0)}_${r2.toFixed(0)}`;
+
+  // Check if we have a valid cached gradient
+  if (!gradientCache.has(cacheKey)) {
+    const gradient = ctx.createRadialGradient(x, y, r1, x, y, r2);
+    colorStops.forEach(([offset, color]) => gradient.addColorStop(offset, color));
+    gradientCache.set(cacheKey, gradient);
+
+    // Limit cache size
+    if (gradientCache.size > 100) {
+      const firstKey = gradientCache.keys().next().value;
+      gradientCache.delete(firstKey);
+    }
+  }
+
+  return gradientCache.get(cacheKey);
+}
+
+/**
+ * Clears the gradient cache (call on visualizer change or resize)
+ */
+export function clearGradientCache() {
+  gradientCache.clear();
+}
+
+/**
+ * Optimized shadow effect - only applies when needed and resets efficiently
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ * @param {boolean} condition - Whether to apply shadow
+ * @param {string} color - Shadow color
+ * @param {number} blur - Shadow blur amount
+ * @param {Function} drawFn - Drawing function to execute
+ */
+export function withConditionalShadow(ctx, condition, color, blur, drawFn) {
+  if (condition) {
+    ctx.shadowColor = color;
+    ctx.shadowBlur = blur;
+    drawFn();
+    ctx.shadowBlur = 0;
+  } else {
+    drawFn();
+  }
+}
+
+/**
+ * Batch multiple arc drawings without individual beginPath calls
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ * @param {Array} arcs - Array of {x, y, radius, startAngle, endAngle, fillStyle}
+ */
+export function batchArcs(ctx, arcs) {
+  // Group arcs by fillStyle for efficient rendering
+  const groups = new Map();
+
+  for (const arc of arcs) {
+    const key = arc.fillStyle || 'default';
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+    groups.get(key).push(arc);
+  }
+
+  for (const [fillStyle, group] of groups) {
+    if (fillStyle !== 'default') {
+      ctx.fillStyle = fillStyle;
+    }
+
+    for (const arc of group) {
+      ctx.beginPath();
+      ctx.arc(arc.x, arc.y, arc.radius, arc.startAngle || 0, arc.endAngle || Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+/**
+ * Transform coordinates for rotated drawing without canvas rotation
+ * @param {number} x - Local X coordinate
+ * @param {number} y - Local Y coordinate
+ * @param {number} angle - Rotation angle in radians
+ * @param {number} centerX - Center X coordinate
+ * @param {number} centerY - Center Y coordinate
+ * @returns {Object} Transformed {x, y} coordinates
+ */
+export function rotatePoint(x, y, angle, centerX = 0, centerY = 0) {
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  return {
+    x: centerX + x * cos - y * sin,
+    y: centerY + x * sin + y * cos
+  };
+}
+
 /**
  * Draw a rounded rectangle (bar) with optional glow effect
  * @param {CanvasRenderingContext2D} ctx - Canvas context

@@ -253,21 +253,22 @@ export const useRecorderStore = defineStore('recorder', {
         },
 
         /**
-         * Pausiert die Aufnahme (nur Video, Audio läuft weiter)
-         * Player wird NICHT gesteuert - läuft unabhängig weiter
+         * Pausiert die Aufnahme (Video UND Audio synchron)
+         * ✅ IMPROVED: Audio-Player pausiert mit, kein Audio geht verloren
+         * ✅ IMPROVED: Smooth fade-out verhindert Knackser
          */
-        pauseRecording() {
+        async pauseRecording() {
             if (!this.recorder || !this.isRecording || this.isPaused) {
                 console.error('[RecorderStore] Kann nicht pausieren - falscher State');
                 return false;
             }
 
-            console.log('[RecorderStore] Pausiere Aufnahme (nur Video, Audio läuft weiter)');
-            this.recorder.pause();
+            console.log('[RecorderStore] Pausiere Aufnahme (Video + Audio synchron, mit Fade)');
+            await this.recorder.pause();
             this.syncRecorderState();
 
             if (this.isPaused) {
-                console.log('✅ [RecorderStore] Aufnahme pausiert');
+                console.log('✅ [RecorderStore] Aufnahme pausiert (nahtlos)');
                 return true;
             } else {
                 console.error('❌ [RecorderStore] Pause fehlgeschlagen');
@@ -276,21 +277,22 @@ export const useRecorderStore = defineStore('recorder', {
         },
 
         /**
-         * Setzt die Aufnahme fort (nur Video, Audio läuft weiter)
-         * Player wird NICHT gesteuert - läuft unabhängig weiter
+         * Setzt die Aufnahme fort (Video UND Audio synchron)
+         * ✅ IMPROVED: Audio-Player setzt an der gleichen Stelle fort
+         * ✅ IMPROVED: Smooth fade-in verhindert Knackser
          */
-        resumeRecording() {
+        async resumeRecording() {
             if (!this.recorder || !this.isRecording || !this.isPaused) {
                 console.error('[RecorderStore] Kann nicht fortsetzen - falscher State');
                 return false;
             }
 
-            console.log('[RecorderStore] Setze Aufnahme fort (nur Video, Audio läuft weiter)');
-            this.recorder.resume();
+            console.log('[RecorderStore] Setze Aufnahme fort (Video + Audio synchron, mit Fade)');
+            await this.recorder.resume();
             this.syncRecorderState();
 
             if (!this.isPaused) {
-                console.log('✅ [RecorderStore] Aufnahme fortgesetzt');
+                console.log('✅ [RecorderStore] Aufnahme fortgesetzt (nahtlos)');
                 return true;
             } else {
                 console.error('❌ [RecorderStore] Resume fehlgeschlagen');

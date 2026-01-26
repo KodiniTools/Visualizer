@@ -492,14 +492,20 @@ class Recorder {
     /**
      * Pause recording - synchronizes video AND audio
      * ✅ NEW: Also pauses the audio player so no audio is lost
+     * ✅ IMPROVED: Smooth fade-out prevents audio clicks/pops
      * When resumed, both continue from the same point
      */
-    pause() {
+    async pause() {
         if (!this.isActive || this.isPaused) {
             return;
         }
 
-        // ✅ NEW: Save audio player state and pause it
+        // ✅ NEW: Smooth fade-out BEFORE pausing (prevents click/pop)
+        if (typeof window.fadeOutRecordingAudio === 'function') {
+            await window.fadeOutRecordingAudio(50); // 50ms fade
+        }
+
+        // ✅ Save audio player state and pause it
         if (this.audioElement) {
             this._audioWasPlayingBeforePause = !this.audioElement.paused;
             if (this._audioWasPlayingBeforePause) {
@@ -514,15 +520,16 @@ class Recorder {
 
         this.isPaused = true;
         this.updateState();
-        console.log('[RECORDER] ⏸️ Recording paused - Video & Audio synchronized');
+        console.log('[RECORDER] ⏸️ Recording paused - Video & Audio synchronized (smooth fade)');
     }
 
     /**
      * Resume recording - synchronizes video AND audio
      * ✅ NEW: Also resumes the audio player if it was playing before pause
+     * ✅ IMPROVED: Smooth fade-in prevents audio clicks/pops
      * Ensures seamless continuation without gaps
      */
-    resume() {
+    async resume() {
         if (!this.isActive || !this.isPaused) {
             return;
         }
@@ -531,7 +538,7 @@ class Recorder {
             this.mediaRecorder.resume();
         }
 
-        // ✅ NEW: Resume audio player if it was playing before pause
+        // ✅ Resume audio player if it was playing before pause
         if (this.audioElement && this._audioWasPlayingBeforePause) {
             this.audioElement.play().catch(err => {
                 console.warn('[RECORDER] Could not resume audio:', err);
@@ -539,10 +546,15 @@ class Recorder {
             console.log('[RECORDER] ▶️ Audio player resumed (synchronized)');
         }
 
+        // ✅ NEW: Smooth fade-in AFTER resuming (prevents click/pop)
+        if (typeof window.fadeInRecordingAudio === 'function') {
+            await window.fadeInRecordingAudio(50); // 50ms fade
+        }
+
         this.isPaused = false;
         this._audioWasPlayingBeforePause = false; // Reset state
         this.updateState();
-        console.log('[RECORDER] ▶️ Recording resumed - Video & Audio synchronized');
+        console.log('[RECORDER] ▶️ Recording resumed - Video & Audio synchronized (smooth fade)');
     }
 
     async stop() {

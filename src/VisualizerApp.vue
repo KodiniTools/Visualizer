@@ -2049,6 +2049,73 @@ window.connectVideoToRecording = connectVideoToRecording;
 window.disconnectVideoFromRecording = disconnectVideoFromRecording;
 window.setVideoVolume = setVideoVolume;
 
+/**
+ * ✅ NEW: Smooth fade-out for recording audio (prevents click/pop on pause)
+ * Uses exponential ramp for natural-sounding fade
+ * @param {number} duration - Fade duration in milliseconds (default: 50ms)
+ * @returns {Promise} - Resolves when fade is complete
+ */
+async function fadeOutRecordingAudio(duration = 50) {
+  if (!recordingMixer || !audioContext) {
+    console.warn('[App] Cannot fade - recordingMixer not available');
+    return;
+  }
+
+  const now = audioContext.currentTime;
+  const fadeTime = duration / 1000; // Convert to seconds
+
+  // Cancel any scheduled changes
+  recordingMixer.gain.cancelScheduledValues(now);
+
+  // Set current value explicitly (required before ramp)
+  recordingMixer.gain.setValueAtTime(recordingMixer.gain.value, now);
+
+  // Exponential ramp to near-zero (can't ramp to exactly 0)
+  recordingMixer.gain.exponentialRampToValueAtTime(0.001, now + fadeTime);
+
+  // Wait for fade to complete
+  await new Promise(resolve => setTimeout(resolve, duration));
+
+  // Set to exactly 0 after fade
+  recordingMixer.gain.setValueAtTime(0, audioContext.currentTime);
+
+  console.log('[App] 🔇 Recording audio faded out');
+}
+
+/**
+ * ✅ NEW: Smooth fade-in for recording audio (prevents click/pop on resume)
+ * Uses exponential ramp for natural-sounding fade
+ * @param {number} duration - Fade duration in milliseconds (default: 50ms)
+ * @returns {Promise} - Resolves when fade is complete
+ */
+async function fadeInRecordingAudio(duration = 50) {
+  if (!recordingMixer || !audioContext) {
+    console.warn('[App] Cannot fade - recordingMixer not available');
+    return;
+  }
+
+  const now = audioContext.currentTime;
+  const fadeTime = duration / 1000; // Convert to seconds
+
+  // Cancel any scheduled changes
+  recordingMixer.gain.cancelScheduledValues(now);
+
+  // Start from near-zero (required for exponential ramp)
+  recordingMixer.gain.setValueAtTime(0.001, now);
+
+  // Exponential ramp back to full volume
+  recordingMixer.gain.exponentialRampToValueAtTime(1, now + fadeTime);
+
+  // Wait for fade to complete
+  await new Promise(resolve => setTimeout(resolve, duration));
+
+  console.log('[App] 🔊 Recording audio faded in');
+}
+
+// Expose fade functions for Recorder
+window.fadeOutRecordingAudio = fadeOutRecordingAudio;
+window.fadeInRecordingAudio = fadeInRecordingAudio;
+
 async function createCombinedAudioStream() {
   // ✨ GEÄNDERT: Immer recordingDest.stream zurückgeben für Live-Umschaltung
   if (!recordingDest) {

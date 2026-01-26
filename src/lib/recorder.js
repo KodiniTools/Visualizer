@@ -44,9 +44,12 @@ class Recorder {
         // Memory Management
         this.currentObjectURL = null;
         this.previousBlob = null;
-        
+
         // ✅ NEW: Track event listeners for cleanup
         this._activeEventListeners = new Map();
+
+        // ✅ NEW: Track audio player state for synchronized pause
+        this._audioWasPlayingBeforePause = false;
 
         // CRITICAL: Validate onForceRedraw callback
         if (!this.onForceRedraw) {
@@ -145,6 +148,7 @@ class Recorder {
         this.isPrepared = false;
         this.isActive = false;
         this.isPaused = false;
+        this._audioWasPlayingBeforePause = false; // Reset audio sync state
 
         // ✅ CRITICAL: Complete MediaRecorder cleanup
         this._cleanupMediaRecorder();
@@ -485,9 +489,23 @@ class Recorder {
         });
     }
 
+    /**
+     * Pause recording - synchronizes video AND audio
+     * ✅ NEW: Also pauses the audio player so no audio is lost
+     * When resumed, both continue from the same point
+     */
     pause() {
         if (!this.isActive || this.isPaused) {
             return;
+        }
+
+        // ✅ NEW: Save audio player state and pause it
+        if (this.audioElement) {
+            this._audioWasPlayingBeforePause = !this.audioElement.paused;
+            if (this._audioWasPlayingBeforePause) {
+                this.audioElement.pause();
+                console.log('[RECORDER] ⏸️ Audio player paused (synchronized)');
+            }
         }
 
         if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
@@ -496,8 +514,14 @@ class Recorder {
 
         this.isPaused = true;
         this.updateState();
+        console.log('[RECORDER] ⏸️ Recording paused - Video & Audio synchronized');
     }
 
+    /**
+     * Resume recording - synchronizes video AND audio
+     * ✅ NEW: Also resumes the audio player if it was playing before pause
+     * Ensures seamless continuation without gaps
+     */
     resume() {
         if (!this.isActive || !this.isPaused) {
             return;
@@ -507,8 +531,18 @@ class Recorder {
             this.mediaRecorder.resume();
         }
 
+        // ✅ NEW: Resume audio player if it was playing before pause
+        if (this.audioElement && this._audioWasPlayingBeforePause) {
+            this.audioElement.play().catch(err => {
+                console.warn('[RECORDER] Could not resume audio:', err);
+            });
+            console.log('[RECORDER] ▶️ Audio player resumed (synchronized)');
+        }
+
         this.isPaused = false;
+        this._audioWasPlayingBeforePause = false; // Reset state
         this.updateState();
+        console.log('[RECORDER] ▶️ Recording resumed - Video & Audio synchronized');
     }
 
     async stop() {

@@ -630,4 +630,154 @@ router.post('/convert-blob', express.raw({ type: 'video/webm', limit: '5gb' }), 
   }
 });
 
+/**
+ * POST /api/concat-segments
+ * Fügt mehrere Video-Segmente nahtlos zusammen (für Pause/Resume Recording)
+ * Erwartet multipart/form-data mit mehreren 'segment' Dateien
+ */
+router.post('/concat-segments', upload.array('segment', 50), async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'Keine Video-Segmente empfangen' });
+    }
+
+    console.log(`📥 [Concat] ${req.files.length} Segmente empfangen`);
+
+    const quality = req.body.quality || 'high';
+    const segmentPaths = req.files.map(f => f.path);
+
+    const job = createJob(segmentPaths[0], {
+      quality,
+      action: 'concat-segments',
+      segmentCount: req.files.length
+    });
+
+    // Starte Zusammenfügung asynchron
+    processConcatenation(job.id, segmentPaths, quality);
+
+    res.json({
+      success: true,
+      jobId: job.id,
+      status: 'processing',
+      segmentCount: req.files.length,
+      message: `Füge ${req.files.length} Segmente zusammen. Status unter /api/status/${job.id}`
+    });
+  } catch (error) {
+    // Cleanup bei Fehler
+    if (req.files) {
+      for (const file of req.files) {
+        await fs.unlink(file.path).catch(() => {});
+      }
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Asynchrone Segment-Zusammenfügung
+ */
+async function processConcatenation(jobId, segmentPaths, quality) {
+  const outputFilename = `concat_${Date.now()}.mp4`;
+  const outputPath = path.join(FILES_DIR, outputFilename);
+
+  updateJob(jobId, { status: 'processing', progress: 5 });
+  console.log(`🎬 [Job ${jobId}] Starte Concat: ${segmentPaths.length} Segmente → ${outputFilename}`);
+
+  try {
+    // Hole Gesamtdauer aller Segmente für Progress
+    let totalDuration = 0;
+    for (const segmentPath of segmentPaths) {
+      try {
+        const info = await ffmpegService.getVideoInfo(segmentPath);
+        totalDuration += parseFloat(info.format?.duration) || 0;
+      } catch (e) {
+        // Ignoriere Fehler bei einzelnen Segmenten
+      }
+    }
+    console.log(`📊 [Job ${jobId}] Gesamtdauer: ${totalDuration.toFixed(2)}s`);
+
+    updateJob(jobId, { progress: 10 });
+
+    let lastProgressTime = 0;
+
+    // Führe Concat durch
+    await ffmpegService.concatenateSegments(segmentPaths, outputPath, {
+      quality,
+      onProgress: (time) => {
+        const currentTime = parseFFmpegTime(time);
+        if (currentTime - lastProgressTime < 2) return;
+        lastProgressTime = currentTime;
+
+        if (totalDuration > 0) {
+          const progressPercent = Math.min(85, Math.round(10 + (currentTime / totalDuration) * 75));
+          updateJob(jobId, { progress: progressPercent });
+          console.log(`📊 [Job ${jobId}] Concat Progress: ${progressPercent}% (${time})`);
+        }
+      }
+    });
+
+    updateJob(jobId, { progress: 90 });
+    console.log(`✅ [Job ${jobId}] Concat abgeschlossen`);
+
+    // Thumbnail generieren (optional)
+    let thumbnailFilename = null;
+    try {
+      const thumbnailPath = path.join(FILES_DIR, `thumb_${Date.now()}.jpg`);
+      await ffmpegService.generateThumbnail(outputPath, thumbnailPath);
+      thumbnailFilename = path.basename(thumbnailPath);
+    } catch (thumbError) {
+      console.warn(`⚠️ [Job ${jobId}] Thumbnail-Fehler (nicht fatal):`, thumbError.message);
+    }
+
+    // Video-Info holen
+    let videoInfo = {};
+    try {
+      const info = await ffmpegService.getVideoInfo(outputPath);
+      const stats = await fs.stat(outputPath);
+      videoInfo = {
+        duration: info.format?.duration,
+        size: stats.size,
+        format: 'mp4',
+        segmentCount: segmentPaths.length
+      };
+    } catch (infoError) {
+      try {
+        const stats = await fs.stat(outputPath);
+        videoInfo = { size: stats.size, format: 'mp4', segmentCount: segmentPaths.length };
+      } catch {}
+    }
+
+    // Job als COMPLETED markieren
+    updateJob(jobId, {
+      status: 'completed',
+      progress: 100,
+      outputFile: outputFilename,
+      thumbnail: thumbnailFilename,
+      info: videoInfo
+    });
+
+    console.log(`✅ [Job ${jobId}] Fertig: ${outputFilename} (${segmentPaths.length} Segmente)`);
+
+    // Cleanup: Alle Segment-Dateien löschen
+    for (const segmentPath of segmentPaths) {
+      await fs.unlink(segmentPath).catch(() => {});
+    }
+    console.log(`🧹 [Job ${jobId}] ${segmentPaths.length} Segment-Dateien gelöscht`);
+
+  } catch (error) {
+    console.error(`❌ [Job ${jobId}] Concat fehlgeschlagen:`, error.message);
+
+    updateJob(jobId, {
+      status: 'failed',
+      error: error.message
+    });
+
+    // Cleanup bei Fehler
+    for (const segmentPath of segmentPaths) {
+      await fs.unlink(segmentPath).catch(() => {});
+    }
+    await fs.unlink(outputPath).catch(() => {});
+  }
+}
+
 export default router;

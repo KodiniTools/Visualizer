@@ -512,6 +512,112 @@ export async function trimVideo(inputPath, outputPath, startTime, endTime, optio
   });
 }
 
+/**
+ * Fügt mehrere Video-Segmente nahtlos zusammen (für Pause/Resume Recording)
+ * Verwendet FFmpeg concat demuxer für verlustfreies Zusammenfügen
+ * @param {string[]} inputPaths - Array von Pfaden zu den Segment-Dateien
+ * @param {string} outputPath - Pfad für die Ausgabedatei
+ * @param {object} options - Optionen (quality, onProgress)
+ */
+export async function concatenateSegments(inputPaths, outputPath, options = {}) {
+  if (!inputPaths || inputPaths.length === 0) {
+    throw new Error('Keine Segmente zum Zusammenfügen');
+  }
+
+  // Bei nur einem Segment: einfach kopieren/konvertieren
+  if (inputPaths.length === 1) {
+    return convertToMP4(inputPaths[0], outputPath, options);
+  }
+
+  const listFilePath = outputPath.replace(/\.[^.]+$/, '_concat_list.txt');
+
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Erstelle concat list file für FFmpeg
+      const listContent = inputPaths.map(p => `file '${p}'`).join('\n');
+      await fs.writeFile(listFilePath, listContent, 'utf8');
+      console.log(`📝 Concat-Liste erstellt: ${inputPaths.length} Segmente`);
+
+      const preset = ENCODING_PRESETS[options.quality] || ENCODING_PRESETS.high;
+
+      // FFmpeg concat mit Re-Encoding für nahtlose Übergänge
+      const args = [
+        '-y',
+        '-f', 'concat',           // Concat demuxer
+        '-safe', '0',             // Erlaube absolute Pfade
+        '-i', listFilePath,       // Input: concat list
+        '-threads', '0',
+
+        // Video Codec
+        '-c:v', preset.videoCodec,
+        '-preset', 'ultrafast',
+        '-tune', 'zerolatency',
+        '-crf', preset.crf,
+        '-profile:v', 'baseline',
+        '-bf', '0',
+
+        // Audio Codec - WICHTIG: Audio-Streams nahtlos zusammenfügen
+        '-c:a', preset.audioCodec,
+        '-b:a', preset.audioBitrate,
+        '-ar', preset.audioSampleRate,
+        '-ac', '2',
+
+        // Streaming-Optimierung
+        '-movflags', '+faststart',
+
+        outputPath
+      ];
+
+      console.log('🎬 FFmpeg Concat Command:', FFMPEG_PATH, args.slice(0, 10).join(' '), '...');
+
+      const proc = spawn(FFMPEG_PATH, args);
+      let stderr = '';
+      let lastTimeMatch = null;
+
+      proc.stderr.on('data', (data) => {
+        stderr += data.toString();
+
+        // Progress parsing
+        const timeMatch = stderr.match(/time=(\d+:\d+:\d+\.\d+)/g);
+        if (timeMatch && timeMatch.length > 0) {
+          const latestTime = timeMatch[timeMatch.length - 1].replace('time=', '');
+          if (latestTime !== lastTimeMatch) {
+            lastTimeMatch = latestTime;
+            if (options.onProgress) {
+              options.onProgress(latestTime);
+            }
+          }
+        }
+      });
+
+      proc.on('close', async (code) => {
+        // Cleanup concat list
+        await fs.unlink(listFilePath).catch(() => {});
+
+        if (code === 0) {
+          console.log(`✅ Concat abgeschlossen: ${inputPaths.length} Segmente → ${path.basename(outputPath)}`);
+          resolve({
+            success: true,
+            output: outputPath,
+            segmentCount: inputPaths.length
+          });
+        } else {
+          reject(new Error(`Concat failed (code ${code}): ${stderr.slice(-500)}`));
+        }
+      });
+
+      proc.on('error', async (err) => {
+        await fs.unlink(listFilePath).catch(() => {});
+        reject(new Error(`FFmpeg error: ${err.message}`));
+      });
+
+    } catch (error) {
+      await fs.unlink(listFilePath).catch(() => {});
+      reject(error);
+    }
+  });
+}
+
 export default {
   checkFFmpeg,
   getVideoInfo,
@@ -521,5 +627,6 @@ export default {
   extractAudio,
   addAudioToVideo,
   trimVideo,
+  concatenateSegments,
   ENCODING_PRESETS
 };

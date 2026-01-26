@@ -815,7 +815,8 @@ class Recorder {
                     this._displayServerResults({
                         success: true,
                         downloadUrl: `/visualizer/api/download/${job.outputFile}`,
-                        fileName: fileName
+                        fileName: fileName,
+                        info: job.info // ✅ Pass job info for file size display
                     }, fileName, null);
 
                     return;
@@ -1042,7 +1043,7 @@ class Recorder {
     _displayServerResults(result, fileName, originalBlob) {
         // ✅ CRITICAL: Cleanup old resources
         this._aggressiveCleanup();
-        
+
         const resultsPanel = document.getElementById('results-panel');
         document.getElementById('preview').src = result.downloadUrl;
         const downloadLink = document.getElementById('downloadLink');
@@ -1050,20 +1051,28 @@ class Recorder {
         downloadLink.download = result.fileName || fileName;
         downloadLink.blob = null;
 
-        const originalSizeMB = (originalBlob.size / (1024 * 1024)).toFixed(2);
+        // ✅ FIX: Handle case when originalBlob is null (segment concat)
+        let sizeInfo = '';
+        if (originalBlob && originalBlob.size) {
+            const originalSizeMB = (originalBlob.size / (1024 / 1024)).toFixed(2);
+            sizeInfo = ` | Size: ${originalSizeMB}MB`;
+        } else if (result.info && result.info.size) {
+            const sizeMB = (result.info.size / (1024 * 1024)).toFixed(2);
+            sizeInfo = ` | Size: ${sizeMB}MB`;
+        }
 
-        document.getElementById('mimeInfo').textContent = `Format: video/mp4 (AAC Audio) | Resolution: ${this.recordingCanvas.width}x${this.recordingCanvas.height} | Size: ${originalSizeMB}MB`;
+        document.getElementById('mimeInfo').textContent = `Format: video/mp4 (AAC Audio) | Resolution: ${this.recordingCanvas.width}x${this.recordingCanvas.height}${sizeInfo}`;
         resultsPanel.style.display = 'block';
         resultsPanel.scrollIntoView({ behavior: 'smooth' });
 
         this.ui.statusBox.textContent = 'Server upload and conversion successful!';
         this.ui.statusBox.className = 'status-box ready';
-        
+
         // ✅ CRITICAL: Reset recorder state so 2nd recording is possible
         this.isPrepared = false;
         this.isActive = false;
         this.isPaused = false;
-        
+
         this.updateState();
     }
 

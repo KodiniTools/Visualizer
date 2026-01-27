@@ -1,18 +1,20 @@
-// recorder.js - SEGMENT-BASED RECORDING for seamless pause/resume
+// recorder.js - FINAL FIX v2 - Behebt Preview-Video Problem
 
 /**
- * recorder.js - Segment-basierte Aufnahme für nahtlose Pause
- *
- * NEUES KONZEPT:
- * ✅ Bei Pause: MediaRecorder STOPPEN (nicht pausieren), Segment speichern
- * ✅ Bei Resume: NEUEN MediaRecorder starten
- * ✅ Bei Stop: Alle Segmente an Server senden, FFmpeg fügt nahtlos zusammen
- * ✅ Ergebnis: KEINE hörbaren Knackser oder Aussetzer an Pausestellen
- *
- * VORHERIGE FIXES (beibehalten):
+ * recorder.js - Optimierte Version mit VOLLSTÄNDIGER State-Reset
+ * 
+ * KRITISCHE FIXES v2:
  * ✅ State wird nach _processRecording korrekt zurückgesetzt
+ * ✅ 2. Aufnahme ist jetzt möglich
  * ✅ Preview-Video wird korrekt erstellt
+ * ✅ Keine Race Conditions mehr
+ * 
+ * ALLE VORHERIGEN FIXES:
+ * ✅ recordedChunks wird sofort nach Blob-Erstellung geleert
  * ✅ Alle Event-Listener werden explizit entfernt
+ * ✅ MediaRecorder wird vollständig nullifiziert
+ * ✅ FormData-Referenzen werden sofort freigegeben
+ * ✅ Blob-Referenzen werden explizit auf null gesetzt
  * ✅ Canvas Stream wird mit Timeout bereinigt
  */
 class Recorder {
@@ -38,20 +40,16 @@ class Recorder {
         this.currentCanvasStream = null;
         this.frameRequesterInterval = null;
         this.frameRequesterRunning = false;
-
+        
         // Memory Management
         this.currentObjectURL = null;
         this.previousBlob = null;
-
+        
         // ✅ NEW: Track event listeners for cleanup
         this._activeEventListeners = new Map();
 
         // ✅ NEW: Track audio player state for synchronized pause
         this._audioWasPlayingBeforePause = false;
-
-        // ✅ NEW: Segment-based recording for seamless pause
-        this.recordedSegments = []; // Array of Blobs (one per segment)
-        this._currentVideoBitsPerSecond = 8_000_000; // Remember bitrate for resume
 
         // CRITICAL: Validate onForceRedraw callback
         if (!this.onForceRedraw) {
@@ -93,15 +91,11 @@ class Recorder {
             console.warn('[RECORDER] Canvas appears to be empty');
         }
 
-        // ✅ CRITICAL: Clear chunks and segments BEFORE preparing
+        // ✅ CRITICAL: Clear chunks BEFORE preparing
         this._clearChunks();
-        this.recordedSegments = [];
 
         const qualitySelect = document.getElementById('qualitySelect');
         const videoBitsPerSecond = options?.videoBitsPerSecond || parseInt(qualitySelect?.value, 10) || 8_000_000;
-
-        // ✅ NEW: Save bitrate for segment-based resume
-        this._currentVideoBitsPerSecond = videoBitsPerSecond;
 
         const setupSuccess = await this._setupMediaRecorder(videoBitsPerSecond);
         if (setupSuccess) {
@@ -154,10 +148,7 @@ class Recorder {
         this.isPrepared = false;
         this.isActive = false;
         this.isPaused = false;
-        this._audioWasPlayingBeforePause = false; // Reset audio sync state
-
-        // ✅ NEW: Clear recorded segments
-        this.recordedSegments = [];
+        this._audioWasPlayingBeforePause = false;
 
         // ✅ CRITICAL: Complete MediaRecorder cleanup
         this._cleanupMediaRecorder();
@@ -499,346 +490,132 @@ class Recorder {
     }
 
     /**
-     * Pause recording - SEGMENT-BASED approach for truly seamless pause
-     * ✅ STRATEGY: Stop MediaRecorder completely, save segment as Blob
-     * ✅ FFmpeg will concatenate all segments seamlessly on server
-     * ✅ Result: No clicks, pops, or gaps in final output
+     * Pause recording with synchronized audio player
+     * Uses short 15ms fade to minimize audible artifacts
      */
     async pause() {
         if (!this.isActive || this.isPaused) {
             return;
         }
 
-        console.log('[RECORDER] ⏸️ Pausing recording (segment-based)...');
+        // ✅ Short fade-out before pausing (15ms - barely perceptible)
+        if (typeof window.fadeOutRecordingAudio === 'function') {
+            await window.fadeOutRecordingAudio(15);
+        }
 
-        // ✅ Save audio player state and pause it FIRST
+        // ✅ Save audio player state and pause it
         if (this.audioElement) {
             this._audioWasPlayingBeforePause = !this.audioElement.paused;
             if (this._audioWasPlayingBeforePause) {
                 this.audioElement.pause();
-                console.log('[RECORDER] ⏸️ Audio player paused');
             }
         }
 
-        // ✅ Stop frame requester
-        this._stopFrameRequester();
-
-        // ✅ SEGMENT-BASED: Stop MediaRecorder and save current segment
         if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-            await this._stopAndSaveSegment();
+            this.mediaRecorder.pause();
         }
 
         this.isPaused = true;
         this.updateState();
-        console.log(`[RECORDER] ⏸️ Recording paused - Segment ${this.recordedSegments.length} saved`);
+        console.log('[RECORDER] ⏸️ Recording paused (audio synchronized)');
     }
 
     /**
-     * Helper: Stop current MediaRecorder and save the segment
-     * @returns {Promise<Blob>} The saved segment blob
-     */
-    async _stopAndSaveSegment() {
-        return new Promise((resolve) => {
-            if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') {
-                resolve(null);
-                return;
-            }
-
-            // Request final data
-            if (this.mediaRecorder.state === 'recording') {
-                this.mediaRecorder.requestData();
-            }
-
-            const onStop = () => {
-                // Short delay to ensure all data is collected
-                setTimeout(() => {
-                    if (this.recordedChunks.length > 0) {
-                        const segmentBlob = new Blob(this.recordedChunks, { type: this.recordingMimeType });
-                        this.recordedSegments.push(segmentBlob);
-                        console.log(`[RECORDER] 💾 Segment ${this.recordedSegments.length} saved: ${(segmentBlob.size / 1024 / 1024).toFixed(2)}MB`);
-                        this._clearChunks();
-                        resolve(segmentBlob);
-                    } else {
-                        resolve(null);
-                    }
-
-                    // Cleanup MediaRecorder (but keep canvas stream for resume)
-                    this._cleanupMediaRecorder();
-                }, 100);
-            };
-
-            this.mediaRecorder.onstop = onStop;
-            this.mediaRecorder.stop();
-        });
-    }
-
-    /**
-     * Resume recording - SEGMENT-BASED approach
-     * ✅ STRATEGY: Create a NEW MediaRecorder and start fresh segment
-     * ✅ All segments will be concatenated by FFmpeg at the end
+     * Resume recording with synchronized audio player
+     * Uses short 15ms fade to minimize audible artifacts
      */
     async resume() {
         if (!this.isActive || !this.isPaused) {
             return;
         }
 
-        console.log('[RECORDER] ▶️ Resuming recording (starting new segment)...');
+        if (this.mediaRecorder && this.mediaRecorder.state === 'paused') {
+            this.mediaRecorder.resume();
+        }
 
-        // ✅ Resume audio player FIRST
+        // ✅ Resume audio player if it was playing before
         if (this.audioElement && this._audioWasPlayingBeforePause) {
             this.audioElement.play().catch(err => {
                 console.warn('[RECORDER] Could not resume audio:', err);
             });
-            console.log('[RECORDER] ▶️ Audio player resumed');
         }
 
-        // ✅ Ensure canvas stream is still valid
-        if (!this.currentCanvasStream || !this.currentCanvasStream.active) {
-            console.log('[RECORDER] 🔄 Recreating canvas stream...');
-            this.currentCanvasStream = this.recordingCanvas.captureStream(0);
-            await new Promise(resolve => setTimeout(resolve, 100));
+        // ✅ Short fade-in after resuming (15ms - barely perceptible)
+        if (typeof window.fadeInRecordingAudio === 'function') {
+            await window.fadeInRecordingAudio(15);
         }
 
-        // ✅ Create new MediaRecorder for next segment
-        const setupSuccess = await this._setupMediaRecorderOnly(this._currentVideoBitsPerSecond);
-        if (!setupSuccess) {
-            console.error('[RECORDER] ❌ Failed to create new MediaRecorder for resume');
-            return;
-        }
-
-        // ✅ Start the new MediaRecorder
-        try {
-            await this._warmupCanvasStream();
-            this.mediaRecorder.start(50);
-            this._startFrameRequester();
-
-            this.isPaused = false;
-            this._audioWasPlayingBeforePause = false;
-            this.updateState();
-
-            console.log(`[RECORDER] ▶️ Recording resumed - Starting segment ${this.recordedSegments.length + 1}`);
-        } catch (error) {
-            console.error('[RECORDER] ❌ Failed to resume recording:', error);
-        }
+        this.isPaused = false;
+        this._audioWasPlayingBeforePause = false;
+        this.updateState();
+        console.log('[RECORDER] ▶️ Recording resumed (audio synchronized)');
     }
 
-    /**
-     * Setup MediaRecorder only (without recreating canvas stream)
-     * Used for resume after pause
-     */
-    async _setupMediaRecorderOnly(videoBitsPerSecond) {
-        const videoTracks = this.currentCanvasStream.getVideoTracks();
-        if (videoTracks.length === 0) {
-            console.error('[RECORDER] No video tracks available');
-            return false;
-        }
-
-        const audioTracks = this.audioStream.getAudioTracks();
-        if (audioTracks.length === 0) {
-            console.error('[RECORDER] No audio tracks available');
-            return false;
-        }
-
-        audioTracks.forEach(track => { track.enabled = true; });
-
-        const combinedStream = new MediaStream([...audioTracks, ...videoTracks]);
-
-        const preferredMimeTypes = [
-            'video/mp4;codecs=h264,aac',
-            'video/mp4;codecs=avc1,mp4a',
-            'video/webm;codecs=vp8,opus',
-            'video/mp4',
-            'video/webm;codecs=vp9,opus',
-            'video/webm'
-        ];
-
-        this.mediaRecorder = this._tryInitializeMediaRecorder(combinedStream, videoBitsPerSecond, preferredMimeTypes);
-        if (!this.mediaRecorder) {
-            return false;
-        }
-
-        this.recordingMimeType = this.mediaRecorder.mimeType || 'video/webm';
-        this._clearChunks();
-
-        this.mediaRecorder.ondataavailable = e => {
-            if (e.data && e.data.size > 0) {
-                this.recordedChunks.push(e.data);
-            }
-        };
-
-        this.mediaRecorder.onstart = () => { this.updateState(); };
-        this.mediaRecorder.onerror = (e) => {
-            console.error('[RECORDER] MediaRecorder error:', e);
-        };
-
-        return true;
-    }
-
-    /**
-     * Stop recording - SEGMENT-BASED approach
-     * ✅ Saves final segment and processes all segments
-     * ✅ If multiple segments: sends to server for FFmpeg concat
-     * ✅ If single segment: processes normally
-     */
     async stop() {
-        console.log(`[RECORDER] 🛑 Stopping recording (${this.recordedSegments.length} segments so far)...`);
-
-        // Stop frame requester
-        this._stopFrameRequester();
-
-        // ✅ Save final segment if MediaRecorder is active
-        if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-            await this._stopAndSaveSegment();
-        } else if (this.recordedChunks && this.recordedChunks.length > 0) {
-            // Handle any remaining chunks (e.g., if paused)
-            const segmentBlob = new Blob(this.recordedChunks, { type: this.recordingMimeType });
-            this.recordedSegments.push(segmentBlob);
-            console.log(`[RECORDER] 💾 Final segment saved: ${(segmentBlob.size / 1024 / 1024).toFixed(2)}MB`);
-            this._clearChunks();
-        }
-
-        this.isActive = false;
-
-        // ✅ Process all segments
-        const totalSegments = this.recordedSegments.length;
-        console.log(`[RECORDER] 📊 Total segments to process: ${totalSegments}`);
-
-        if (totalSegments === 0) {
-            console.warn('[RECORDER] No segments recorded');
-            this.reset();
-            return null;
-        }
-
-        // Calculate total size
-        const totalSize = this.recordedSegments.reduce((sum, seg) => sum + seg.size, 0);
-        console.log(`[RECORDER] 📊 Total size: ${(totalSize / 1024 / 1024).toFixed(2)}MB`);
-
-        if (totalSegments === 1) {
-            // ✅ Single segment: process normally (no concatenation needed)
-            const blob = this.recordedSegments[0];
-            this.recordedSegments = [];
-            this._processRecording(blob);
-            return blob;
-        } else {
-            // ✅ Multiple segments: send to server for FFmpeg concatenation
-            await this._processSegments(this.recordedSegments);
-            this.recordedSegments = [];
-            return null; // Async processing
-        }
-    }
-
-    /**
-     * Process multiple segments by sending them to server for FFmpeg concat
-     */
-    async _processSegments(segments) {
-        const totalSize = segments.reduce((sum, seg) => sum + seg.size, 0);
-        const fileSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
-
-        this.ui.statusBox.textContent = `Uploading ${segments.length} segments (${fileSizeMB}MB) for concatenation...`;
-        this.ui.statusBox.className = 'status-box processing';
-
-        try {
-            // Build FormData with all segments
-            const formData = new FormData();
-            const extension = this.recordingMimeType.includes('mp4') ? 'mp4' : 'webm';
-
-            segments.forEach((segment, index) => {
-                const filename = `segment_${index}_${Date.now()}.${extension}`;
-                formData.append('segment', segment, filename);
-            });
-
-            // Add quality setting
-            const qualitySelect = document.getElementById('qualitySelect');
-            formData.append('quality', qualitySelect?.value > 20_000_000 ? 'highest' : 'high');
-
-            console.log(`[RECORDER] 📤 Uploading ${segments.length} segments to server...`);
-
-            // Upload to server
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 min timeout
-
-            const response = await fetch('/visualizer/api/concat-segments', {
-                method: 'POST',
-                body: formData,
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                const errorText = await response.text().catch(() => 'Unknown error');
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
+        return new Promise((resolve, reject) => {
+            if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') {
+                try {
+                    if (this.recordedChunks && this.recordedChunks.length > 0) {
+                        const blob = new Blob(this.recordedChunks, { type: this.recordingMimeType });
+                        // ✅ CRITICAL: Clear chunks IMMEDIATELY after blob creation
+                        this._clearChunks();
+                        this._processRecording(blob);
+                        resolve(blob);
+                        // ✅ NOTE: reset() wird in _processRecording callbacks aufgerufen
+                    } else {
+                        this.reset(); // Reset wenn keine Chunks
+                        resolve(null);
+                    }
+                } catch (e) {
+                    this.reset(); // Reset bei Error
+                    reject(e);
+                }
+                return;
             }
 
-            const result = await response.json();
-            console.log(`[RECORDER] ✅ Segments uploaded, job ID: ${result.jobId}`);
+            // Request final data before stopping
+            if (this.mediaRecorder.state === 'recording' || this.mediaRecorder.state === 'paused') {
+                this.mediaRecorder.requestData();
+            }
 
-            // Poll for job completion
-            this.ui.statusBox.textContent = 'Server is concatenating segments...';
-            await this._pollJobStatus(result.jobId);
+            this.mediaRecorder.onstop = () => {
+                // Short delay to ensure all data is received
+                setTimeout(() => {
+                    try {
+                        if (this.recordedChunks && this.recordedChunks.length > 0) {
+                            const totalSize = this.recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0);
+                            console.log(`[RECORDER] Final chunks: ${this.recordedChunks.length}, Total: ${(totalSize/1024/1024).toFixed(2)}MB`);
+                            
+                            const blob = new Blob(this.recordedChunks, { type: this.recordingMimeType });
+                            // ✅ CRITICAL: Clear chunks IMMEDIATELY after blob creation
+                            this._clearChunks();
+                            this._processRecording(blob);
+                            resolve(blob);
+                        } else {
+                            console.warn('[RECORDER] No chunks recorded');
+                            this.reset(); // Reset wenn keine Chunks
+                            resolve(null);
+                        }
+                    } catch (e) {
+                        console.error('[RECORDER] Stop error:', e);
+                        reject(e);
+                    }
+                    // ✅ NOTE: reset() wird in _offerDirectDownload oder _displayServerResults aufgerufen
+                    // NICHT hier, weil _processRecording async ist
+                }, 100);
+            };
 
-        } catch (error) {
-            console.error('[RECORDER] ❌ Segment upload failed:', error);
-
-            // Fallback: Try to combine segments locally and offer direct download
-            this.ui.statusBox.textContent = 'Server unavailable, preparing local download...';
-
-            // Combine all segments into one blob (will have seams, but better than nothing)
-            const combinedBlob = new Blob(segments, { type: this.recordingMimeType });
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-            const extension = this.recordingMimeType.includes('mp4') ? 'mp4' : 'webm';
-            const fileName = `recording_${this.recordingCanvas.width}x${this.recordingCanvas.height}_${timestamp}.${extension}`;
-
-            this._offerDirectDownload(combinedBlob, fileName, `Server unavailable (${segments.length} segments combined locally)`);
-        }
-    }
-
-    /**
-     * Poll job status until completion
-     */
-    async _pollJobStatus(jobId) {
-        const maxAttempts = 600; // 10 minutes max
-        const pollInterval = 1000; // 1 second
-
-        for (let i = 0; i < maxAttempts; i++) {
             try {
-                const response = await fetch(`/visualizer/api/status/${jobId}`);
-                const job = await response.json();
-
-                if (job.status === 'completed') {
-                    console.log(`[RECORDER] ✅ Job ${jobId} completed`);
-
-                    // Display results
-                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-                    const fileName = `recording_${this.recordingCanvas.width}x${this.recordingCanvas.height}_${timestamp}.mp4`;
-
-                    this._displayServerResults({
-                        success: true,
-                        downloadUrl: `/visualizer/api/download/${job.outputFile}`,
-                        fileName: fileName,
-                        info: job.info // ✅ Pass job info for file size display
-                    }, fileName, null);
-
-                    return;
-                }
-
-                if (job.status === 'failed') {
-                    throw new Error(job.error || 'Job failed');
-                }
-
-                // Update progress
-                if (job.progress) {
-                    this.ui.statusBox.textContent = `Concatenating segments: ${job.progress}%`;
-                }
-
-                await new Promise(resolve => setTimeout(resolve, pollInterval));
+                // Stop frame requester BEFORE stopping MediaRecorder
+                this._stopFrameRequester();
+                
+                this.mediaRecorder.stop();
+                this.isActive = false;
             } catch (error) {
-                console.warn(`[RECORDER] Poll error:`, error);
-                await new Promise(resolve => setTimeout(resolve, pollInterval));
+                console.error('[RECORDER] Stop error:', error);
+                reject(error);
             }
-        }
-
-        throw new Error('Job timed out');
+        });
     }
 
     async _setupMediaRecorder(videoBitsPerSecond) {
@@ -1043,7 +820,7 @@ class Recorder {
     _displayServerResults(result, fileName, originalBlob) {
         // ✅ CRITICAL: Cleanup old resources
         this._aggressiveCleanup();
-
+        
         const resultsPanel = document.getElementById('results-panel');
         document.getElementById('preview').src = result.downloadUrl;
         const downloadLink = document.getElementById('downloadLink');
@@ -1051,28 +828,20 @@ class Recorder {
         downloadLink.download = result.fileName || fileName;
         downloadLink.blob = null;
 
-        // ✅ FIX: Handle case when originalBlob is null (segment concat)
-        let sizeInfo = '';
-        if (originalBlob && originalBlob.size) {
-            const originalSizeMB = (originalBlob.size / (1024 / 1024)).toFixed(2);
-            sizeInfo = ` | Size: ${originalSizeMB}MB`;
-        } else if (result.info && result.info.size) {
-            const sizeMB = (result.info.size / (1024 * 1024)).toFixed(2);
-            sizeInfo = ` | Size: ${sizeMB}MB`;
-        }
+        const originalSizeMB = (originalBlob.size / (1024 * 1024)).toFixed(2);
 
-        document.getElementById('mimeInfo').textContent = `Format: video/mp4 (AAC Audio) | Resolution: ${this.recordingCanvas.width}x${this.recordingCanvas.height}${sizeInfo}`;
+        document.getElementById('mimeInfo').textContent = `Format: video/mp4 (AAC Audio) | Resolution: ${this.recordingCanvas.width}x${this.recordingCanvas.height} | Size: ${originalSizeMB}MB`;
         resultsPanel.style.display = 'block';
         resultsPanel.scrollIntoView({ behavior: 'smooth' });
 
         this.ui.statusBox.textContent = 'Server upload and conversion successful!';
         this.ui.statusBox.className = 'status-box ready';
-
+        
         // ✅ CRITICAL: Reset recorder state so 2nd recording is possible
         this.isPrepared = false;
         this.isActive = false;
         this.isPaused = false;
-
+        
         this.updateState();
     }
 

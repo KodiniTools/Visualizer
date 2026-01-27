@@ -1,7 +1,7 @@
 <template>
   <div class="landing-page" :class="{ 'light-theme': !isDark }">
     <!-- Header with Controls -->
-    <header class="landing-header">
+    <header class="landing-header" :class="{ 'scrolled': isScrolled }">
       <div class="header-content">
         <div class="header-logo">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -166,7 +166,7 @@
 </template>
 
 <script setup>
-import { ref, computed, h } from 'vue';
+import { ref, computed, h, onMounted, onUnmounted } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 import { useTheme } from '../lib/theme.js';
 
@@ -174,6 +174,21 @@ const { t, locale, toggleLocale, messages } = useI18n();
 const { isDark, toggleTheme } = useTheme();
 
 const activeFaq = ref(null);
+const isScrolled = ref(false);
+
+// Scroll listener for header styling
+function handleScroll() {
+  isScrolled.value = window.scrollY > 50;
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+  handleScroll(); // Check initial state
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+});
 
 // Force reactivity by using computed that depends on locale
 const currentLocale = computed(() => locale.value);
@@ -295,7 +310,7 @@ function toggleFaq(index) {
 /* Header */
 .landing-header {
   position: fixed;
-  top: 0;
+  top: 60px; /* Space for global navigation */
   left: 0;
   right: 0;
   z-index: 100;
@@ -303,11 +318,23 @@ function toggleFaq(index) {
   background: rgba(10, 16, 18, 0.8);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(158, 190, 193, 0.1);
+  transition: top 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.landing-header.scrolled {
+  top: 0;
+  background: rgba(10, 16, 18, 0.95);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .light-theme .landing-header {
   background: rgba(233, 233, 235, 0.9);
   border-bottom: 1px solid rgba(96, 145, 152, 0.15);
+}
+
+.light-theme .landing-header.scrolled {
+  background: rgba(233, 233, 235, 0.98);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .header-content {
@@ -405,7 +432,7 @@ function toggleFaq(index) {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 100px 24px 60px;
+  padding: 160px 24px 60px; /* Extra padding for global + local navigation */
   position: relative;
   overflow: hidden;
 }
@@ -868,7 +895,7 @@ function toggleFaq(index) {
   .hero {
     flex-direction: row;
     gap: 60px;
-    padding: 120px 48px 80px;
+    padding: 180px 48px 80px; /* Extra padding for global + local navigation */
   }
 
   .hero-content {
@@ -900,6 +927,11 @@ function toggleFaq(index) {
 @media (max-width: 600px) {
   .landing-header {
     padding: 12px 16px;
+    top: 50px; /* Smaller global nav on mobile */
+  }
+
+  .landing-header.scrolled {
+    top: 0;
   }
 
   .header-logo span {
@@ -907,7 +939,7 @@ function toggleFaq(index) {
   }
 
   .hero {
-    padding-top: 80px;
+    padding-top: 140px; /* Extra padding for global + local navigation */
   }
 
   .hero-title {

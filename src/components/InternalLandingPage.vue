@@ -1,7 +1,7 @@
 <template>
   <div class="internal-landing" :class="{ 'light-theme': !isDark }">
     <!-- Header -->
-    <header class="landing-header">
+    <header class="landing-header" :class="{ 'scrolled': isScrolled }">
       <div class="header-content">
         <div class="header-logo">
           <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -97,12 +97,28 @@
 </template>
 
 <script setup>
-import { computed, h } from 'vue';
+import { computed, h, ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 import { useTheme } from '../lib/theme.js';
 
 const { t, locale, toggleLocale } = useI18n();
 const { isDark, toggleTheme } = useTheme();
+
+const isScrolled = ref(false);
+
+// Scroll listener for header styling
+function handleScroll() {
+  isScrolled.value = window.scrollY > 50;
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+  handleScroll(); // Check initial state
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+});
 
 // Feature Icons
 const VisualizerIcon = () => h('svg', {
@@ -193,7 +209,7 @@ const featureCards = computed(() => {
 /* Header */
 .landing-header {
   position: fixed;
-  top: 0;
+  top: 60px; /* Space for global navigation */
   left: 0;
   right: 0;
   z-index: 100;
@@ -201,11 +217,23 @@ const featureCards = computed(() => {
   background: rgba(10, 16, 18, 0.85);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(158, 190, 193, 0.1);
+  transition: top 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.landing-header.scrolled {
+  top: 0;
+  background: rgba(10, 16, 18, 0.95);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .light-theme .landing-header {
   background: rgba(233, 233, 235, 0.9);
   border-bottom: 1px solid rgba(96, 145, 152, 0.15);
+}
+
+.light-theme .landing-header.scrolled {
+  background: rgba(233, 233, 235, 0.98);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .header-content {
@@ -276,7 +304,7 @@ const featureCards = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 120px 24px 60px;
+  padding: 180px 24px 60px; /* Extra padding for global + local navigation */
   position: relative;
   min-height: 100vh;
 }
@@ -482,13 +510,18 @@ const featureCards = computed(() => {
   }
 
   .hero-section {
-    padding-top: 100px;
+    padding-top: 160px; /* Extra padding for global + local navigation */
   }
 }
 
 @media (max-width: 600px) {
   .landing-header {
     padding: 12px 16px;
+    top: 50px; /* Smaller global nav on mobile */
+  }
+
+  .landing-header.scrolled {
+    top: 0;
   }
 
   .header-logo span {
@@ -496,7 +529,7 @@ const featureCards = computed(() => {
   }
 
   .hero-section {
-    padding: 90px 20px 40px;
+    padding: 140px 20px 40px; /* Extra padding for global + local navigation */
   }
 
   .hero-title {

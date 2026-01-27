@@ -212,7 +212,7 @@ const featureCards = computed(() => {
   top: 60px; /* Space for global navigation */
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 50; /* Lower than global nav dropdown */
   padding: 16px 24px;
   background: rgba(10, 16, 18, 0.85);
   backdrop-filter: blur(16px);

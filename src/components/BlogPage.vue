@@ -1,7 +1,7 @@
 <template>
   <div class="blog-page" :class="{ 'light-theme': !isDark }">
     <!-- Header with Controls -->
-    <header class="landing-header">
+    <header class="landing-header" :class="{ 'scrolled': isScrolled }">
       <div class="header-content">
         <router-link to="/" class="header-logo">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -282,7 +282,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 import { useTheme } from '../lib/theme.js';
 
@@ -291,6 +291,22 @@ const { isDark, toggleTheme } = useTheme();
 
 // Force reactivity by using computed that depends on locale
 const currentLocale = computed(() => locale.value);
+
+const isScrolled = ref(false);
+
+// Scroll listener for header styling
+function handleScroll() {
+  isScrolled.value = window.scrollY > 50;
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+  handleScroll(); // Check initial state
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+});
 </script>
 
 <style scoped>
@@ -314,7 +330,7 @@ const currentLocale = computed(() => locale.value);
 /* Header */
 .landing-header {
   position: fixed;
-  top: 0;
+  top: 60px; /* Space for global navigation */
   left: 0;
   right: 0;
   z-index: 100;
@@ -322,11 +338,23 @@ const currentLocale = computed(() => locale.value);
   background: rgba(10, 16, 18, 0.8);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(158, 190, 193, 0.1);
+  transition: top 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.landing-header.scrolled {
+  top: 0;
+  background: rgba(10, 16, 18, 0.95);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .light-theme .landing-header {
   background: rgba(233, 233, 235, 0.9);
   border-bottom: 1px solid rgba(96, 145, 152, 0.15);
+}
+
+.light-theme .landing-header.scrolled {
+  background: rgba(233, 233, 235, 0.98);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .header-content {
@@ -421,7 +449,7 @@ const currentLocale = computed(() => locale.value);
 
 /* Blog Hero */
 .blog-hero {
-  padding: 140px 24px 60px;
+  padding: 200px 24px 60px; /* Extra padding for global + local navigation */
   text-align: center;
   background: radial-gradient(ellipse at 50% 0%, rgba(96, 145, 152, 0.15) 0%, transparent 60%);
 }
@@ -765,8 +793,16 @@ const currentLocale = computed(() => locale.value);
     display: none;
   }
 
+  .landing-header {
+    top: 50px; /* Smaller global nav on mobile */
+  }
+
+  .landing-header.scrolled {
+    top: 0;
+  }
+
   .blog-hero {
-    padding: 120px 20px 40px;
+    padding: 160px 20px 40px; /* Extra padding for global + local navigation */
   }
 
   .blog-content {

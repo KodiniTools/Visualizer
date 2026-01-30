@@ -23,6 +23,7 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  background-color: var(--bg, #0f1416);
 }
 
 #app {

@@ -838,5 +838,83 @@ input[type="range"]::-moz-range-thumb {
     fill: currentColor;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL NAVIGATION & FOOTER - Transparent Styling
+   Für Server-Side Include Elemente (nav.html, footer.html)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Global Navigation - Transparent */
+.global-nav,
+.site-nav,
+.main-nav,
+nav.global,
+header.global,
+#global-nav,
+[class*="global-nav"],
+[class*="site-header"],
+body > nav:first-of-type,
+body > header:first-of-type {
+    background: transparent !important;
+    background-color: transparent !important;
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border-color, rgba(158, 190, 193, 0.15));
+}
+
+/* Global Footer - Transparent */
+.global-footer,
+.site-footer,
+footer.global,
+#global-footer,
+[class*="global-footer"],
+[class*="site-footer"],
+body > footer:last-of-type {
+    background: transparent !important;
+    background-color: transparent !important;
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--border-color, rgba(158, 190, 193, 0.15));
+}
+
+/* Footer Links - Guter Kontrast */
+.global-footer a,
+.site-footer a,
+footer a,
+[class*="footer"] a {
+    color: var(--muted, #A8A992);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.global-footer a:hover,
+.site-footer a:hover,
+footer a:hover,
+[class*="footer"] a:hover {
+    color: var(--text, #E9E9EB);
+}
+
+/* Navigation Links - Guter Kontrast */
+.global-nav a,
+.site-nav a,
+nav a,
+[class*="nav"] a {
+    color: var(--text, #E9E9EB);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.global-nav a:hover,
+.site-nav a:hover,
+[class*="nav"] a:hover {
+    color: var(--accent-light, #BCE5E5);
+}
+
+/* Copyright Text - Kontrast */
+.copyright,
+[class*="copyright"],
+footer small,
+.global-footer small,
+.site-footer small {
+    color: var(--muted, #A8A992);
+}
+
 
 

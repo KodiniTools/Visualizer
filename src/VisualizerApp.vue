@@ -2711,7 +2711,7 @@ html, body {
   align-items: center;
   gap: 8px;
   padding: 4px 12px;
-  background: linear-gradient(180deg, rgba(30, 40, 45, 0.95) 0%, rgba(15, 20, 22, 0.9) 100%);
+  background: transparent; /* Transparent für nahtlose Integration */
   border-bottom: 1px solid var(--border-color, rgba(158, 190, 193, 0.15));
   flex-shrink: 0;
 }
@@ -2777,6 +2777,7 @@ html, body {
   flex: 1;
   padding: 12px;
   min-height: 0;
+  background-color: var(--bg, #0f1416); /* Dunkler Hintergrund für das gesamte Layout */
 }
 .left-toolbar, .center-column, .right-panel {
   border-radius: 12px;
@@ -2791,6 +2792,7 @@ html, body {
 .center-column {
   min-width: 0;
   overflow: hidden;
+  background-color: var(--bg, #0f1416); /* Dunkler Hintergrund für den Mittelbereich */
 }
 
 /* Scrollbar Styling für die Side-Panels */
@@ -2830,7 +2832,7 @@ html, body {
 
 .canvas-wrapper {
   flex-grow: 1;
-  background-color: #ffffff; /* Weißer Hintergrund statt schwarz */
+  background-color: var(--panel, #151b1d); /* Dunkler Hintergrund passend zu den Sidebars */
   border-radius: 12px;
   overflow: auto;
   min-height: 0;
@@ -2845,7 +2847,7 @@ canvas {
   width: auto;
   height: auto;
   object-fit: contain;
-  background-color: #ffffff; /* Weißer Hintergrund statt schwarz */
+  background-color: transparent; /* Transparent, damit der Canvas-Hintergrund sichtbar ist */
 }
 
 /* CANVAS-BILDER LEISTE (horizontal scrollbar) */

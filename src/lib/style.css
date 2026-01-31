@@ -891,15 +891,15 @@ footer a:hover,
     color: var(--text, #E9E9EB);
 }
 
-/* Navigation Links - Guter Kontrast (mit !important für SSI Partials) */
+/* Navigation Links - Guter Kontrast (NUR für SSI Partials, nicht Vue-Komponenten) */
 .global-nav a,
 .site-nav a,
-nav a,
-[class*="nav"] a,
-body > nav a,
-body > header a,
+body > nav:first-of-type a,
+body > header:first-of-type a,
 header.global a,
-nav.global a {
+nav.global a,
+[class*="global-nav"] a,
+[class*="site-nav"] a {
     color: var(--text, #E9E9EB) !important;
     text-decoration: none !important;
     transition: color 0.2s ease;
@@ -907,14 +907,14 @@ nav.global a {
 
 .global-nav a:hover,
 .site-nav a:hover,
-nav a:hover,
-[class*="nav"] a:hover,
-body > nav a:hover,
-body > header a:hover {
+body > nav:first-of-type a:hover,
+body > header:first-of-type a:hover,
+header.global a:hover,
+nav.global a:hover {
     color: var(--accent-light, #BCE5E5) !important;
 }
 
-/* Navigation Text (nicht-Links) - für Beschriftungen und Labels */
+/* Navigation Text (nicht-Links) - NUR für SSI Partials */
 .global-nav,
 .site-nav,
 nav.global,
@@ -935,17 +935,17 @@ body > header:first-of-type * {
     color: inherit !important;
 }
 
-/* Spezifische Überschreibung für schwarze Schrift in Partials */
+/* Spezifische Überschreibung für schwarze Schrift in SSI Partials */
 .global-nav span,
 .global-nav label,
 .global-nav p,
 .site-nav span,
 .site-nav label,
 .site-nav p,
-nav span,
-nav label,
-header span,
-header label {
+body > nav:first-of-type span,
+body > nav:first-of-type label,
+body > header:first-of-type span,
+body > header:first-of-type label {
     color: var(--text, #E9E9EB) !important;
 }
 

@@ -891,20 +891,62 @@ footer a:hover,
     color: var(--text, #E9E9EB);
 }
 
-/* Navigation Links - Guter Kontrast */
+/* Navigation Links - Guter Kontrast (mit !important für SSI Partials) */
 .global-nav a,
 .site-nav a,
 nav a,
-[class*="nav"] a {
-    color: var(--text, #E9E9EB);
-    text-decoration: none;
+[class*="nav"] a,
+body > nav a,
+body > header a,
+header.global a,
+nav.global a {
+    color: var(--text, #E9E9EB) !important;
+    text-decoration: none !important;
     transition: color 0.2s ease;
 }
 
 .global-nav a:hover,
 .site-nav a:hover,
-[class*="nav"] a:hover {
-    color: var(--accent-light, #BCE5E5);
+nav a:hover,
+[class*="nav"] a:hover,
+body > nav a:hover,
+body > header a:hover {
+    color: var(--accent-light, #BCE5E5) !important;
+}
+
+/* Navigation Text (nicht-Links) - für Beschriftungen und Labels */
+.global-nav,
+.site-nav,
+nav.global,
+header.global,
+body > nav:first-of-type,
+body > header:first-of-type,
+[class*="global-nav"],
+[class*="site-nav"] {
+    color: var(--text, #E9E9EB) !important;
+}
+
+.global-nav *,
+.site-nav *,
+nav.global *,
+header.global *,
+body > nav:first-of-type *,
+body > header:first-of-type * {
+    color: inherit !important;
+}
+
+/* Spezifische Überschreibung für schwarze Schrift in Partials */
+.global-nav span,
+.global-nav label,
+.global-nav p,
+.site-nav span,
+.site-nav label,
+.site-nav p,
+nav span,
+nav label,
+header span,
+header label {
+    color: var(--text, #E9E9EB) !important;
 }
 
 /* Copyright Text - Kontrast */

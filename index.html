@@ -69,10 +69,20 @@
         .footer-nav a:hover { color: var(--text, #E9E9EB); }
 
         /* Global Navigation & Footer - Transparent */
-        .global-nav, .site-nav, nav.global, header.global, #global-nav { background: transparent !important; backdrop-filter: blur(8px); }
+        .global-nav, .site-nav, nav.global, header.global, #global-nav, body > nav:first-of-type, body > header:first-of-type {
+            background: transparent !important;
+            backdrop-filter: blur(8px);
+            color: var(--text, #E9E9EB) !important;
+        }
         .global-footer, .site-footer, footer.global, #global-footer { background: transparent !important; backdrop-filter: blur(8px); }
-        .global-footer a, .site-footer a, footer a { color: var(--muted, #A8A992); }
-        .global-footer a:hover, .site-footer a:hover, footer a:hover { color: var(--text, #E9E9EB); }
+        .global-footer a, .site-footer a, footer a { color: var(--muted, #A8A992) !important; }
+        .global-footer a:hover, .site-footer a:hover, footer a:hover { color: var(--text, #E9E9EB) !important; }
+
+        /* Navigation Text Kontrast Fix - für SSI Partials */
+        .global-nav a, .site-nav a, nav a, body > nav a, body > header a { color: var(--text, #E9E9EB) !important; }
+        .global-nav a:hover, .site-nav a:hover, nav a:hover { color: var(--accent-light, #BCE5E5) !important; }
+        .global-nav *, .site-nav *, nav.global *, header.global *, body > nav:first-of-type *, body > header:first-of-type * { color: inherit !important; }
+        .global-nav span, .global-nav label, .site-nav span, .site-nav label, nav span, nav label, header span, header label { color: var(--text, #E9E9EB) !important; }
     </style>
 
     <!-- JSON-LD: SoftwareApplication -->

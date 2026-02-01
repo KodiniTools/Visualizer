@@ -1707,7 +1707,12 @@ function draw() {
 
     renderScene(ctx, canvas.width, canvas.height, drawVisualizerCallback);
 
-    if (recorderStore.isRecording) {
+    // ✅ FIX: Recording-Canvas auch während "prepared" Phase aktualisieren!
+    // Vorher: Nur wenn isRecording === true
+    // Problem: isRecording wird erst NACH MediaRecorder.start() gesetzt
+    // → Die ersten Frames waren leer weil der Canvas nicht aktualisiert wurde
+    // Lösung: Auch wenn isPrepared === true den Canvas aktualisieren
+    if (recorderStore.isRecording || recorderStore.isPrepared) {
       const recordingCtx = recordingCanvas.getContext('2d');
       if (recordingCtx) {
         renderRecordingScene(recordingCtx, recordingCanvas.width, recordingCanvas.height, drawVisualizerCallback);

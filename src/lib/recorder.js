@@ -329,91 +329,20 @@ class Recorder {
     }
 
     _startFrameRequester() {
-        if (this.frameRequesterRunning) {
-            return;
-        }
+        // ✅ OPTIMIERUNG: Frame-Requester nicht mehr benötigt!
+        // Frames werden jetzt direkt aus dem Haupt-Render-Loop (requestAnimationFrame)
+        // in VisualizerApp.vue angefordert. Dies stellt sicher, dass:
+        // 1. Frames exakt synchron mit dem Canvas-Rendering erfasst werden
+        // 2. Keine doppelten Frame-Anforderungen entstehen
+        // 3. Die Aufnahme flüssig und ohne Verzögerungen läuft
+        //
+        // Der alte setInterval-basierte Ansatz hatte folgende Probleme:
+        // - setInterval ist nicht mit requestAnimationFrame synchronisiert
+        // - onForceRedraw Event wurde nicht abgehört
+        // - Frames wurden angefordert bevor der Canvas aktualisiert war
 
-        if (this.frameRequesterInterval) {
-            clearInterval(this.frameRequesterInterval);
-            this.frameRequesterInterval = null;
-        }
-
-        if (!this.currentCanvasStream) {
-            return;
-        }
-
-        if (!this.currentCanvasStream.active) {
-            return;
-        }
-
-        const getOptimalFPS = () => {
-            return 16; // ✅ Erhöht auf ~60 FPS für smoothere Videos
-        };
-        
-        let lastFrameTime = 0;
-        let errorCount = 0;
-        const MAX_ERRORS = 3;
-        
         this.frameRequesterRunning = true;
-        
-        this.frameRequesterInterval = setInterval(() => {
-            if (!this.frameRequesterRunning) {
-                this._stopFrameRequester();
-                return;
-            }
-
-            const videoTrack = this.currentCanvasStream?.getVideoTracks()[0];
-            
-            if (!videoTrack) {
-                errorCount++;
-                if (errorCount >= MAX_ERRORS) {
-                    this._stopFrameRequester();
-                }
-                return;
-            }
-
-            if (videoTrack.readyState !== 'live') {
-                errorCount++;
-                if (errorCount >= MAX_ERRORS) {
-                    this._stopFrameRequester();
-                }
-                return;
-            }
-
-            if (!this.isActive || this.isPaused) {
-                return;
-            }
-
-            const now = Date.now();
-            const interval = getOptimalFPS();
-            
-            if (now - lastFrameTime >= interval) {
-                try {
-                    // CRITICAL: Canvas must be updated BEFORE requestFrame()
-                    if (this.onForceRedraw) {
-                        this.onForceRedraw();
-                    } else {
-                        console.error('[RECORDER] CRITICAL: onForceRedraw callback missing!');
-                        this._stopFrameRequester();
-                        return;
-                    }
-                    
-                    // Request frame AFTER canvas update
-                    if (typeof videoTrack.requestFrame === 'function') {
-                        videoTrack.requestFrame();
-                    }
-                    
-                    lastFrameTime = now;
-                    errorCount = 0;
-                } catch (error) {
-                    console.error('[RECORDER] Frame request error:', error);
-                    errorCount++;
-                    if (errorCount >= MAX_ERRORS) {
-                        this._stopFrameRequester();
-                    }
-                }
-            }
-        }, 16);
+        console.log('[RECORDER] Frame-Requester: Frames werden vom Haupt-Render-Loop bereitgestellt');
     }
 
     _stopFrameRequester() {

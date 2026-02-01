@@ -1747,6 +1747,17 @@ function draw() {
       const recordingCtx = recordingCanvas.getContext('2d');
       if (recordingCtx) {
         renderRecordingScene(recordingCtx, recordingCanvas.width, recordingCanvas.height, drawVisualizerCallback);
+
+        // ✅ KRITISCHER FIX: Frame direkt nach dem Rendering anfordern
+        // Dies stellt sicher, dass Frames synchron mit dem Rendering erfasst werden
+        // und verhindert Verzögerungen/Aussetzer in der Aufnahme
+        // Keine Frames anfordern wenn pausiert
+        if (!recorderStore.isPaused && recorderStore.recorder?.currentCanvasStream) {
+          const videoTrack = recorderStore.recorder.currentCanvasStream.getVideoTracks()[0];
+          if (videoTrack && videoTrack.readyState === 'live' && typeof videoTrack.requestFrame === 'function') {
+            videoTrack.requestFrame();
+          }
+        }
       }
     }
 

@@ -311,9 +311,18 @@ function applyRecordingCanvasMonkeyPatch(canvas) {
       console.log('[App] Recording Canvas pre-rendered für Stream');
     }
 
-    // 60 FPS für smoothere Videos
-    recordingCanvasStream = originalCaptureStream(60);
-    console.log('[App] Canvas-Stream mit 60 FPS erstellt (via Monkey Patch)');
+    // ✅ FIX: Verwende captureStream(0) statt captureStream(60)!
+    //
+    // PROBLEM: captureStream(60) funktioniert nicht zuverlässig mit Off-Screen Canvas.
+    // Der Browser versucht automatisch 60 FPS zu erfassen, aber wenn der Canvas
+    // nicht "sichtbar" ist oder nicht synchron aktualisiert wird, entstehen leere Frames.
+    //
+    // LÖSUNG: captureStream(0) = manueller Modus
+    // - Der Browser erfasst nur Frames wenn requestFrame() aufgerufen wird
+    // - Wir rufen requestFrame() nach jedem renderRecordingScene() auf
+    // - Das garantiert, dass jeder gerenderte Frame auch erfasst wird
+    recordingCanvasStream = originalCaptureStream(0);
+    console.log('[App] Canvas-Stream mit MANUELLER Frame-Erfassung erstellt (captureStream(0))');
 
     return recordingCanvasStream;
   };
@@ -1716,6 +1725,15 @@ function draw() {
       const recordingCtx = recordingCanvas.getContext('2d');
       if (recordingCtx) {
         renderRecordingScene(recordingCtx, recordingCanvas.width, recordingCanvas.height, drawVisualizerCallback);
+
+        // ✅ FIX: Mit captureStream(0) müssen wir manuell requestFrame() aufrufen!
+        // Dies teilt dem Browser mit, dass ein neuer Frame bereit ist.
+        if (recordingCanvasStream) {
+          const videoTrack = recordingCanvasStream.getVideoTracks()[0];
+          if (videoTrack && videoTrack.readyState === 'live' && typeof videoTrack.requestFrame === 'function') {
+            videoTrack.requestFrame();
+          }
+        }
       }
     }
 
@@ -2604,6 +2622,14 @@ onMounted(async () => {
     }
 
     renderRecordingScene(recordingCtx, recordingCanvas.width, recordingCanvas.height, drawVisualizerCallback);
+
+    // ✅ FIX: Mit captureStream(0) müssen wir manuell requestFrame() aufrufen!
+    if (recordingCanvasStream) {
+      const videoTrack = recordingCanvasStream.getVideoTracks()[0];
+      if (videoTrack && videoTrack.readyState === 'live' && typeof videoTrack.requestFrame === 'function') {
+        videoTrack.requestFrame();
+      }
+    }
   });
 
   watch(() => recorderStore.isRecording, (isRecording) => {

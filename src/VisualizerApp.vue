@@ -1317,7 +1317,20 @@ function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
   }
 }
 
+// ✅ DEBUG: Zähle wie oft renderRecordingScene aufgerufen wird
+let renderRecordingSceneCallCount = 0;
+let lastRenderLogTime = 0;
+
 function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
+  renderRecordingSceneCallCount++;
+
+  // Log alle 60 Frames (ca. 1x pro Sekunde bei 60 FPS)
+  const now = Date.now();
+  if (now - lastRenderLogTime > 1000) {
+    console.log(`[RenderRecording] ${renderRecordingSceneCallCount} Frames gerendert, ctx:`, ctx ? 'OK' : 'NULL', 'size:', canvasWidth, 'x', canvasHeight);
+    lastRenderLogTime = now;
+  }
+
   // ✅ FIX: Workspace-Bereich korrekt extrahieren für Recording/Screenshot
   const workspaceBounds = canvasManagerInstance.value?.getWorkspaceBounds();
   const hasWorkspace = workspaceBounds && canvasManagerInstance.value?.workspacePreset;
@@ -1325,7 +1338,10 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
   if (hasWorkspace) {
     // Workspace aktiv: Zeichne auf temporäres Canvas und extrahiere Workspace-Bereich
     const mainCanvas = canvasRef.value;
-    if (!mainCanvas) return;
+    if (!mainCanvas) {
+      console.warn('[RenderRecording] mainCanvas ist NULL - überspringe Frame!');
+      return;
+    }
 
     // ✅ FIX: Reuse temp canvas instead of creating new one every frame (prevents GC stuttering)
     if (!recordingTempCanvas || recordingTempCanvas.width !== mainCanvas.width || recordingTempCanvas.height !== mainCanvas.height) {

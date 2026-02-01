@@ -137,15 +137,20 @@ class Recorder {
      * Solution: Aggressive cleanup + longer settle time in prepare()
      */
     reset() {
+        // ✅ FIX: AudioContext-Keepalive stoppen
+        if (typeof window.stopAudioContextKeepalive === 'function') {
+            window.stopAudioContextKeepalive();
+        }
+
         // Stoppe Frame Requester FIRST
         this._stopFrameRequester();
-        
+
         // ✅ CRITICAL: Aggressive chunks cleanup
         this._clearChunks();
-        
+
         // ✅ CRITICAL: Revoke Object URLs
         this._aggressiveCleanup();
-        
+
         this.isPrepared = false;
         this.isActive = false;
         this.isPaused = false;
@@ -306,21 +311,16 @@ class Recorder {
                 return false;
             }
 
-            // ✅ FIX: Längere Timeslice (1000ms statt 50ms) verhindert Audio-Dropouts!
-            //
-            // PROBLEM: 50ms Timeslice verursacht "1 Sek flüssig, 1 Sek Pause" Muster:
-            // - Bei 50ms muss der Encoder 20x pro Sekunde Chunks finalisieren
-            // - Jede Finalisierung blockiert kurz den Audio-Stream
-            // - CPU-Overhead akkumuliert sich → periodische Aussetzer
-            //
-            // LÖSUNG: 1000ms Timeslice:
-            // - Nur 1 Chunk pro Sekunde = minimaler Overhead
-            // - Audio-Stream bleibt kontinuierlich
-            // - Browser-Encoder arbeitet effizienter mit größeren Chunks
-            // - Standard MediaRecorder Best-Practice für stabile Aufnahmen
-            this.mediaRecorder.start(1000);
+            // ✅ FIX: AudioContext-Keepalive starten (verhindert Browser-Throttling)
+            if (typeof window.startAudioContextKeepalive === 'function') {
+                window.startAudioContextKeepalive();
+            }
+
+            // ✅ QUALITÄTSVERBESSERUNG: Kürzere Timeslice (50ms statt 100ms)
+            // Schnellere Chunk-Erzeugung = bessere Synchronisation mit Audio-Reaktiven Effekten
+            this.mediaRecorder.start(50);
             this.isActive = true;
-            
+
             // CRITICAL: Start continuous frame requesting
             this._startFrameRequester();
             
@@ -347,11 +347,67 @@ class Recorder {
         // The visualizer already renders via requestAnimationFrame at 60 FPS
         this.frameRequesterRunning = true;
         console.log('[RECORDER] Frame capture running automatically at 60 FPS');
+
+        // ✅ FIX: Audio-Kontinuitäts-Monitor starten
+        // Ruft regelmäßig requestData() auf, um Audio-Buffer-Stalls zu verhindern
+        this._startAudioContinuityMonitor();
     }
 
     _stopFrameRequester() {
         // ✅ SIMPLIFIED: Just update the flag, no interval to clear with captureStream(60)
         this.frameRequesterRunning = false;
+
+        // ✅ FIX: Audio-Monitor stoppen
+        this._stopAudioContinuityMonitor();
+    }
+
+    /**
+     * ✅ FIX: Audio-Kontinuitäts-Monitor
+     * Verhindert Audio-Dropouts durch regelmäßiges requestData()
+     *
+     * PROBLEM: MediaRecorder kann bei hoher CPU-Last Audio-Buffer "vergessen"
+     * LÖSUNG: Periodisch requestData() aufrufen erzwingt Chunk-Erstellung
+     */
+    _startAudioContinuityMonitor() {
+        if (this._audioContinuityInterval) {
+            clearInterval(this._audioContinuityInterval);
+        }
+
+        let lastChunkCount = 0;
+        let stallCount = 0;
+
+        this._audioContinuityInterval = setInterval(() => {
+            if (!this.mediaRecorder || this.mediaRecorder.state !== 'recording') {
+                return;
+            }
+
+            // Prüfe ob neue Chunks gekommen sind
+            const currentCount = this.recordedChunks.length;
+            if (currentCount === lastChunkCount) {
+                stallCount++;
+                if (stallCount >= 3) {
+                    console.warn('[RECORDER] ⚠️ Audio stall detected - forcing data request');
+                    try {
+                        this.mediaRecorder.requestData();
+                    } catch (e) {
+                        // Ignore errors
+                    }
+                }
+            } else {
+                stallCount = 0;
+            }
+            lastChunkCount = currentCount;
+        }, 100);
+
+        console.log('[RECORDER] Audio continuity monitor started');
+    }
+
+    _stopAudioContinuityMonitor() {
+        if (this._audioContinuityInterval) {
+            clearInterval(this._audioContinuityInterval);
+            this._audioContinuityInterval = null;
+            console.log('[RECORDER] Audio continuity monitor stopped');
+        }
     }
 
     async _warmupCanvasStream() {
@@ -364,13 +420,13 @@ class Recorder {
             return false;
         }
 
-        // ✅ OPTIMIERT: Schnellere Warmup-Phase ohne Audio-Unterbrechungen
-        // Weniger Frames, kürzere Wartezeiten - vermeidet Audio-Buffer-Lücken
+        // ✅ QUALITÄTSVERBESSERUNG: Erweiterte Warmup-Phase für bessere erste Frames
+        // Mehr Frames und schnellere Intervalle für 60 FPS Aufnahme
         if (this.onForceRedraw) {
-            // Phase 1: Initiale Canvas-Aktualisierungen (3 Frames reichen)
-            for (let i = 0; i < 3; i++) {
+            // Phase 1: Initiale Canvas-Aktualisierungen (5 statt 3)
+            for (let i = 0; i < 5; i++) {
                 this.onForceRedraw();
-                await new Promise(resolve => setTimeout(resolve, 16)); // 60 FPS
+                await new Promise(resolve => setTimeout(resolve, 33)); // ~30 FPS Warmup
             }
         } else {
             console.error('[RECORDER] CRITICAL: No rendering method available!');
@@ -379,17 +435,16 @@ class Recorder {
 
         // Phase 2: Force frame requests für Video-Encoder-Initialisierung
         if (typeof videoTrack.requestFrame === 'function') {
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 5; i++) {
                 videoTrack.requestFrame();
-                await new Promise(resolve => setTimeout(resolve, 16)); // 60 FPS
+                await new Promise(resolve => setTimeout(resolve, 16)); // ~60 FPS
             }
         }
 
-        // Phase 3: Kürzere Stabilisierung (100ms statt 200ms)
-        // Audio-Buffer sollte bereits aktiv sein, lange Pausen verursachen Dropouts
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Phase 3: Finale Stabilisierung - längere Pause für Encoder-Buffer
+        await new Promise(resolve => setTimeout(resolve, 200));
 
-        console.log('[RECORDER] ✅ Warmup-Phase abgeschlossen');
+        console.log('[RECORDER] ✅ Warmup-Phase abgeschlossen (5 Frames @ 60 FPS)');
         return true;
     }
 

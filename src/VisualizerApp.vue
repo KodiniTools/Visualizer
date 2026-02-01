@@ -2080,6 +2080,35 @@ async function fadeInRecordingAudio(duration = 50) {
 window.fadeOutRecordingAudio = fadeOutRecordingAudio;
 window.fadeInRecordingAudio = fadeInRecordingAudio;
 
+// ✅ FIX: AudioContext-Keepalive während Recording
+// Verhindert Browser-Throttling und AudioContext-Suspension
+let audioContextKeepaliveInterval = null;
+
+function startAudioContextKeepalive() {
+  if (audioContextKeepaliveInterval) return;
+
+  audioContextKeepaliveInterval = setInterval(() => {
+    if (audioContext && audioContext.state === 'suspended') {
+      console.warn('[App] AudioContext suspended during recording - resuming!');
+      audioContext.resume().catch(() => {});
+    }
+  }, 500);
+
+  console.log('[App] AudioContext keepalive started');
+}
+
+function stopAudioContextKeepalive() {
+  if (audioContextKeepaliveInterval) {
+    clearInterval(audioContextKeepaliveInterval);
+    audioContextKeepaliveInterval = null;
+    console.log('[App] AudioContext keepalive stopped');
+  }
+}
+
+// Expose keepalive functions globally
+window.startAudioContextKeepalive = startAudioContextKeepalive;
+window.stopAudioContextKeepalive = stopAudioContextKeepalive;
+
 async function createCombinedAudioStream() {
   // ✨ GEÄNDERT: Immer recordingDest.stream zurückgeben für Live-Umschaltung
   if (!recordingDest) {
@@ -2117,9 +2146,8 @@ async function createCombinedAudioStream() {
   recordingGain.gain.value = ACTIVE_GAIN;
   micRecordingGain.gain.value = ACTIVE_GAIN;
 
-  // ✅ FIX: Kürzere Warmup-Zeit (150ms statt 300ms)
-  // Längere Warmups können zu Audio-Buffer-Lücken führen
-  await new Promise(resolve => setTimeout(resolve, 150));
+  // ✨ Kurz warten, damit beide Quellen Audio-Samples liefern
+  await new Promise(resolve => setTimeout(resolve, 300));
   console.log('[App] ✅ Warmup abgeschlossen');
 
   // ✅ Standard: Player aktiv, Mic stumm (kann während Aufnahme zugeschaltet werden)

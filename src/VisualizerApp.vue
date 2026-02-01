@@ -1415,10 +1415,6 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
   }
 }
 
-// Debug counter for microphone logging
-let micDebugCounter = 0;
-let drawDebugCounter = 0;
-
 function draw() {
   animationFrameId = requestAnimationFrame(draw);
 
@@ -1432,28 +1428,6 @@ function draw() {
   const canvas = domCanvas || refCanvas;
   if (!canvas) return;
 
-  // 🔍 DEBUG: Einmal pro Sekunde Status ausgeben
-  if (++drawDebugCounter % 60 === 1) {
-    const isSameCanvas = domCanvas === refCanvas;
-    const managerCanvas = canvasManagerInstance.value?.canvas;
-    const managerHasCorrectCanvas = managerCanvas === canvas;
-
-    console.log('[Draw Debug]', {
-      canvasWidth: canvas.width,
-      canvasHeight: canvas.height,
-      hasCanvasManager: !!canvasManagerInstance.value,
-      hasMultiImageManager: !!multiImageManagerInstance.value,
-      imageCount: multiImageManagerInstance.value?.images?.length || 0,
-      isSameCanvas, // ✅ KRITISCH: Sollte TRUE sein!
-      usingDomCanvas: canvas === domCanvas,
-      managerHasCorrectCanvas // ✅ NEU: Manager-Canvas korrekt?
-    });
-
-    // ✅ FIX: Wenn die Canvas-Elemente unterschiedlich sind, aktualisiere die Ref
-    if (!isSameCanvas && domCanvas) {
-      console.warn('[Draw] ⚠️ Canvas-Referenz war inkorrekt! Verwende DOM-Canvas.');
-    }
-  }
 
   // ✅ KRITISCHER FIX: Wenn die Manager ein veraltetes Canvas haben, aktualisiere sie
   // Dies behebt das Problem nach einem direkten Page-Refresh
@@ -1482,36 +1456,9 @@ function draw() {
       isMicActive
     );
 
-    // Debug logging for microphone (every ~60 frames = ~1 second)
-    if (isMicActive && ++micDebugCounter % 60 === 0) {
-      if (microphoneAnalyser && microphoneAudioContext) {
-        // Test both frequency and time domain data
-        const freqArray = new Uint8Array(microphoneAnalyser.frequencyBinCount);
-        const timeArray = new Uint8Array(microphoneAnalyser.frequencyBinCount);
-
-        microphoneAnalyser.getByteFrequencyData(freqArray);
-        microphoneAnalyser.getByteTimeDomainData(timeArray);
-
-        const freqSum = freqArray.reduce((a, b) => a + b, 0);
-        const timeSum = timeArray.reduce((a, b) => a + b, 0);
-        const timeAvg = timeSum / timeArray.length;
-
-        // Check if microphone stream is still active
-        const stream = audioSourceStore.microphoneStream;
-        const track = stream?.getAudioTracks()[0];
-
-        console.log('[Mic Debug] MicContext state:', microphoneAudioContext.state,
-                    'FreqSum:', freqSum, 'TimeAvg:', timeAvg.toFixed(1),
-                    '(should be ~128 for silence)',
-                    'Track:', track?.readyState, track?.enabled ? 'enabled' : 'disabled');
-      }
-    }
-
     // Auto-resume AudioContext if suspended while microphone is active
     if (isMicActive && microphoneAudioContext && microphoneAudioContext.state === 'suspended') {
-      microphoneAudioContext.resume().then(() => {
-        console.log('[App] Microphone AudioContext auto-resumed');
-      });
+      microphoneAudioContext.resume();
     }
 
     if (shouldAnalyzeAudio) {

@@ -571,7 +571,10 @@ const translations = {
       removeTrack: 'Track entfernen',
       dragToReorder: 'Ziehen um Reihenfolge zu ändern',
       confirmDeleteAll: 'Möchten Sie wirklich alle Tracks aus der Playlist entfernen?',
-      confirmDeleteMarkers: 'Alle Beat-Drop Marker löschen?'
+      confirmDeleteMarkers: 'Alle Beat-Drop Marker löschen?',
+      editMarker: 'Marker bearbeiten',
+      editMarkerTitle: 'Marker bearbeiten',
+      addMarkerTitle: 'Neuer Marker'
     },
 
     // ========== RECORDER PANEL ==========
@@ -1822,7 +1825,10 @@ const translations = {
       removeTrack: 'Remove track',
       dragToReorder: 'Drag to reorder',
       confirmDeleteAll: 'Are you sure you want to remove all tracks from the playlist?',
-      confirmDeleteMarkers: 'Delete all beat-drop markers?'
+      confirmDeleteMarkers: 'Delete all beat-drop markers?',
+      editMarker: 'Edit marker',
+      editMarkerTitle: 'Edit Marker',
+      addMarkerTitle: 'New Marker'
     },
 
     // ========== RECORDER PANEL ==========

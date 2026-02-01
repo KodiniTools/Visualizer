@@ -151,8 +151,9 @@
           </div>
         </div>
 
-        <!-- Add Marker Form -->
+        <!-- Add/Edit Marker Form -->
         <div v-if="showMarkerPanel" class="marker-add-form">
+          <div class="form-title">{{ editingMarkerId !== null ? t('player.editMarkerTitle') : t('player.addMarkerTitle') }}</div>
           <div class="form-row">
             <label>{{ t('player.time') }}:</label>
             <div class="time-input-wrapper">
@@ -192,7 +193,7 @@
             <input type="text" v-model="newMarkerLabel" :placeholder="locale === 'de' ? 'z.B. Bass Drop' : 'e.g. Bass Drop'" class="marker-input" />
           </div>
           <div class="form-buttons">
-            <button @click="confirmAddMarker" class="btn-confirm">{{ t('common.add') }}</button>
+            <button @click="confirmAddMarker" class="btn-confirm">{{ editingMarkerId !== null ? t('common.save') : t('common.add') }}</button>
             <button @click="cancelAddMarker" class="btn-cancel">{{ t('common.cancel') }}</button>
           </div>
         </div>
@@ -203,16 +204,23 @@
             v-for="marker in beatMarkerStore.sortedMarkers"
             :key="marker.id"
             class="marker-item"
-            :class="{ triggered: marker.triggered }"
+            :class="{ triggered: marker.triggered, editing: editingMarkerId === marker.id }"
           >
             <span class="marker-time" @click="seekToMarker(marker.time)">{{ formatTime(marker.time) }}</span>
-            <span class="marker-label">{{ marker.label }}</span>
+            <span class="marker-label" @click="startEditMarker(marker)" :title="t('player.editMarker')">{{ marker.label }}</span>
             <span v-if="marker.action.visualizer" class="marker-action">{{ getVisualizerName(marker.action.visualizer) }}</span>
-            <button @click="removeMarker(marker.id)" class="btn-delete-marker" :title="t('common.delete')">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-              </svg>
-            </button>
+            <div class="marker-buttons">
+              <button @click="startEditMarker(marker)" class="btn-edit-marker" :title="t('player.editMarker')">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                </svg>
+              </button>
+              <button @click="removeMarker(marker.id)" class="btn-delete-marker" :title="t('common.delete')">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+              </button>
+            </div>
           </li>
         </ul>
       </div>
@@ -368,6 +376,7 @@ const changeDevice = async () => {
 
 // Beat Marker State
 const showMarkerPanel = ref(false);
+const editingMarkerId = ref(null); // null = adding new, number = editing existing
 const pendingMarkerTime = ref(0);
 const pendingMarkerTimeInput = ref('0:00');
 const newMarkerVisualizer = ref('');
@@ -429,11 +438,23 @@ const getMarkerPosition = (time) => {
 };
 
 const addMarkerAtCurrentTime = () => {
+  editingMarkerId.value = null; // New marker mode
   pendingMarkerTime.value = playerStore.currentTime;
   pendingMarkerTimeInput.value = formatTime(playerStore.currentTime);
   newMarkerLabel.value = `Drop ${beatMarkerStore.markerCount + 1}`;
   newMarkerVisualizer.value = '';
   newMarkerChangeColor.value = false;
+  showMarkerPanel.value = true;
+};
+
+const startEditMarker = (marker) => {
+  editingMarkerId.value = marker.id; // Edit mode
+  pendingMarkerTime.value = marker.time;
+  pendingMarkerTimeInput.value = formatTime(marker.time);
+  newMarkerLabel.value = marker.label || '';
+  newMarkerVisualizer.value = marker.action?.visualizer || '';
+  newMarkerColor.value = marker.action?.color || '#6ea8fe';
+  newMarkerChangeColor.value = !!marker.action?.color;
   showMarkerPanel.value = true;
 };
 
@@ -444,11 +465,24 @@ const confirmAddMarker = () => {
     color: newMarkerChangeColor.value ? newMarkerColor.value : null
   };
 
-  beatMarkerStore.addMarker(pendingMarkerTime.value, action, newMarkerLabel.value);
+  if (editingMarkerId.value !== null) {
+    // Update existing marker
+    beatMarkerStore.updateMarker(editingMarkerId.value, {
+      time: pendingMarkerTime.value,
+      label: newMarkerLabel.value,
+      action: action
+    });
+  } else {
+    // Add new marker
+    beatMarkerStore.addMarker(pendingMarkerTime.value, action, newMarkerLabel.value);
+  }
+
+  editingMarkerId.value = null;
   showMarkerPanel.value = false;
 };
 
 const cancelAddMarker = () => {
+  editingMarkerId.value = null;
   showMarkerPanel.value = false;
 };
 
@@ -1345,6 +1379,15 @@ h3::before {
   border: 1px solid #ffd700;
 }
 
+.form-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffd700;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #444;
+}
+
 .form-row {
   display: flex;
   align-items: center;
@@ -1531,6 +1574,17 @@ h3::before {
   border-left: 2px solid #4ade80;
 }
 
+.marker-item.editing {
+  background-color: rgba(255, 215, 0, 0.15);
+  border-left: 2px solid #ffd700;
+}
+
+.marker-buttons {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
 .marker-time {
   font-weight: 600;
   color: #ffd700;
@@ -1548,6 +1602,12 @@ h3::before {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.marker-label:hover {
+  color: #ffd700;
 }
 
 .marker-action {
@@ -1578,6 +1638,30 @@ h3::before {
 }
 
 .btn-delete-marker svg {
+  width: 12px;
+  height: 12px;
+}
+
+.btn-edit-marker {
+  background-color: transparent;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  opacity: 0.5;
+}
+
+.btn-edit-marker:hover {
+  background-color: rgba(255, 215, 0, 0.8);
+  color: #000;
+  opacity: 1;
+}
+
+.btn-edit-marker svg {
   width: 12px;
   height: 12px;
 }

@@ -349,6 +349,12 @@ let layerCacheCanvases = null; // Map<layerId, {canvas, ctx, lastVisualizerId}> 
 let multiLayerCompositeCanvas = null; // ✨ Performance: Vor-composited Multi-Layer Output
 let multiLayerCompositeCtx = null;
 
+// ✅ FIX: Reusable canvases for renderRecordingScene to avoid GC stuttering
+let recordingTempCanvas = null;
+let recordingTempCtx = null;
+let recordingVizCanvas = null;
+let recordingVizCtx = null;
+
 const canvasManagerInstance = ref(null);
 const fotoManagerInstance = ref(null);
 const gridManagerInstance = ref(null);
@@ -1312,11 +1318,17 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
     const mainCanvas = canvasRef.value;
     if (!mainCanvas) return;
 
-    // Temporäres Canvas in voller Größe erstellen
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = mainCanvas.width;
-    tempCanvas.height = mainCanvas.height;
-    const tempCtx = tempCanvas.getContext('2d');
+    // ✅ FIX: Reuse temp canvas instead of creating new one every frame (prevents GC stuttering)
+    if (!recordingTempCanvas || recordingTempCanvas.width !== mainCanvas.width || recordingTempCanvas.height !== mainCanvas.height) {
+      recordingTempCanvas = document.createElement('canvas');
+      recordingTempCanvas.width = mainCanvas.width;
+      recordingTempCanvas.height = mainCanvas.height;
+      recordingTempCtx = recordingTempCanvas.getContext('2d');
+    }
+    const tempCtx = recordingTempCtx;
+
+    // Clear the reused canvas
+    tempCtx.clearRect(0, 0, recordingTempCanvas.width, recordingTempCanvas.height);
 
     // Komplette Szene auf temporäres Canvas zeichnen
     if (canvasManagerInstance.value) {
@@ -1325,7 +1337,7 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
       canvasManagerInstance.value.isRecording = false;
     } else {
       tempCtx.fillStyle = '#ffffff';
-      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+      tempCtx.fillRect(0, 0, recordingTempCanvas.width, recordingTempCanvas.height);
     }
 
     // ✨ NEU: Bilder die HINTER dem Visualizer gerendert werden sollen
@@ -1340,13 +1352,18 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
       tempCtx.rect(workspaceBounds.x, workspaceBounds.y, workspaceBounds.width, workspaceBounds.height);
       tempCtx.clip();
 
-      // Visualizer relativ zum Workspace zeichnen
-      const vizCanvas = document.createElement('canvas');
-      vizCanvas.width = workspaceBounds.width;
-      vizCanvas.height = workspaceBounds.height;
-      const vizCtx = vizCanvas.getContext('2d');
-      drawVisualizerCallback(vizCtx, vizCanvas.width, vizCanvas.height);
-      tempCtx.drawImage(vizCanvas, workspaceBounds.x, workspaceBounds.y);
+      // ✅ FIX: Reuse viz canvas instead of creating new one every frame (prevents GC stuttering)
+      if (!recordingVizCanvas || recordingVizCanvas.width !== workspaceBounds.width || recordingVizCanvas.height !== workspaceBounds.height) {
+        recordingVizCanvas = document.createElement('canvas');
+        recordingVizCanvas.width = workspaceBounds.width;
+        recordingVizCanvas.height = workspaceBounds.height;
+        recordingVizCtx = recordingVizCanvas.getContext('2d');
+      }
+      const vizCtx = recordingVizCtx;
+      vizCtx.clearRect(0, 0, recordingVizCanvas.width, recordingVizCanvas.height);
+
+      drawVisualizerCallback(vizCtx, recordingVizCanvas.width, recordingVizCanvas.height);
+      tempCtx.drawImage(recordingVizCanvas, workspaceBounds.x, workspaceBounds.y);
 
       tempCtx.restore();
     }
@@ -1363,13 +1380,13 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
 
     // Text zeichnen
     if (textManagerInstance) {
-      textManagerInstance.draw(tempCtx, tempCanvas.width, tempCanvas.height);
+      textManagerInstance.draw(tempCtx, recordingTempCanvas.width, recordingTempCanvas.height);
     }
 
     // ✅ KRITISCH: Nur den Workspace-Bereich extrahieren und auf Ziel-Canvas skalieren
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     ctx.drawImage(
-      tempCanvas,
+      recordingTempCanvas,
       workspaceBounds.x,
       workspaceBounds.y,
       workspaceBounds.width,

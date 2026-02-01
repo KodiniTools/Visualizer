@@ -28,6 +28,7 @@ class Recorder {
 
         this.mediaRecorder = null;
         this.recordedChunks = [];
+        this.totalChunksSize = 0; // ✅ FIX: Track size incrementally instead of O(n²) reduce
         this.recordingMimeType = '';
         this.isPrepared = false;
         this.isActive = false;
@@ -171,6 +172,8 @@ class Recorder {
         }
         // Create new empty array
         this.recordedChunks = [];
+        // ✅ FIX: Reset size counter
+        this.totalChunksSize = 0;
     }
 
     /**
@@ -499,8 +502,8 @@ class Recorder {
                 setTimeout(() => {
                     try {
                         if (this.recordedChunks && this.recordedChunks.length > 0) {
-                            const totalSize = this.recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0);
-                            console.log(`[RECORDER] Final chunks: ${this.recordedChunks.length}, Total: ${(totalSize/1024/1024).toFixed(2)}MB`);
+                            // ✅ FIX: Use pre-calculated size instead of O(n) reduce
+                            console.log(`[RECORDER] Final chunks: ${this.recordedChunks.length}, Total: ${(this.totalChunksSize/1024/1024).toFixed(2)}MB`);
                             
                             const blob = new Blob(this.recordedChunks, { type: this.recordingMimeType });
                             // ✅ CRITICAL: Clear chunks IMMEDIATELY after blob creation
@@ -612,11 +615,11 @@ class Recorder {
         this._clearChunks();
 
         // ✅ CRITICAL: ondataavailable handler must not hold references
+        // ✅ FIX: Use incremental size tracking instead of O(n²) reduce on every chunk
         this.mediaRecorder.ondataavailable = e => {
             if (e.data && e.data.size > 0) {
                 this.recordedChunks.push(e.data);
-                const totalSize = this.recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0);
-                // Don't log every chunk - too verbose
+                this.totalChunksSize += e.data.size; // O(1) instead of O(n)
             } else {
                 console.warn('[RECORDER] Received empty chunk');
             }

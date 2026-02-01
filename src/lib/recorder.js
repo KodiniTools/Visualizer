@@ -559,27 +559,24 @@ class Recorder {
                 this._cleanupCanvasStream();
                 await new Promise(resolve => setTimeout(resolve, 200));
             }
-            
-            // IMPORTANT: Use 0 FPS (manual) - frames requested via requestFrame()
-            this.currentCanvasStream = this.recordingCanvas.captureStream(0);
-            console.log('[RECORDER] ✅ New canvas stream created');
-            
+
+            // ✅ FIX: Automatischer 60 FPS Modus statt manuell
+            // captureStream(60) erfasst automatisch 60 Frames/Sekunde vom Canvas
+            // Dies ist zuverlässiger als manuelles requestFrame() aus dem Render-Loop
+            this.currentCanvasStream = this.recordingCanvas.captureStream(60);
+            console.log('[RECORDER] ✅ Canvas stream mit 60 FPS erstellt (automatischer Modus)');
+
             await new Promise(resolve => setTimeout(resolve, 100));
-            
+
             const videoTrack = this.currentCanvasStream.getVideoTracks()[0];
-            
+
             if (!videoTrack) {
                 console.error('[RECORDER] ❌ No video track in canvas stream!');
                 return false;
             }
-            
+
             console.log('[RECORDER] Video track state:', videoTrack.readyState);
-            
-            // Trigger first frame
-            if (typeof videoTrack.requestFrame === 'function') {
-                videoTrack.requestFrame();
-            }
-            
+
         } catch (error) {
             console.error('[RECORDER] Canvas stream setup failed:', error);
             return false;

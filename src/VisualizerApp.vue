@@ -1746,7 +1746,6 @@ function draw() {
     if (recorderStore.isRecording) {
       const recordingCtx = recordingCanvas.getContext('2d');
       if (recordingCtx) {
-        // Canvas wird gerendert - captureStream(60) erfasst automatisch Frames
         renderRecordingScene(recordingCtx, recordingCanvas.width, recordingCanvas.height, drawVisualizerCallback);
       }
     }

@@ -2117,9 +2117,8 @@ async function createCombinedAudioStream() {
   recordingGain.gain.value = ACTIVE_GAIN;
   micRecordingGain.gain.value = ACTIVE_GAIN;
 
-  // ✅ FIX: Kürzere Warmup-Zeit (150ms statt 300ms)
-  // Längere Warmups können zu Audio-Buffer-Lücken führen
-  await new Promise(resolve => setTimeout(resolve, 150));
+  // ✨ Kurz warten, damit beide Quellen Audio-Samples liefern
+  await new Promise(resolve => setTimeout(resolve, 300));
   console.log('[App] ✅ Warmup abgeschlossen');
 
   // ✅ Standard: Player aktiv, Mic stumm (kann während Aufnahme zugeschaltet werden)

@@ -1746,7 +1746,6 @@ function draw() {
     if (recorderStore.isRecording) {
       const recordingCtx = recordingCanvas.getContext('2d');
       if (recordingCtx) {
-        // Canvas wird gerendert - captureStream(60) erfasst automatisch Frames
         renderRecordingScene(recordingCtx, recordingCanvas.width, recordingCanvas.height, drawVisualizerCallback);
       }
     }
@@ -2456,6 +2455,20 @@ onMounted(async () => {
 
   window.setBassGain = setBassGain;
   window.setTrebleGain = setTrebleGain;
+
+  // ✅ KRITISCHER FIX: Event-Listener für recorder:forceRedraw
+  // Der Frame-Requester im Recorder dispatcht dieses Event, um den Canvas zu aktualisieren
+  // Ohne diesen Listener werden Frames erfasst, bevor der Canvas aktualisiert wurde
+  window.addEventListener('recorder:forceRedraw', () => {
+    if (recorderStore.isRecording && recordingCanvas && canvasRef.value) {
+      const recordingCtx = recordingCanvas.getContext('2d');
+      if (recordingCtx) {
+        // Kopiere den Inhalt des Haupt-Canvas auf das recordingCanvas
+        recordingCtx.drawImage(canvasRef.value, 0, 0, recordingCanvas.width, recordingCanvas.height);
+      }
+    }
+  });
+  console.log('[App] ✅ recorder:forceRedraw Event-Listener registriert');
 
   // ✅ KRITISCHER FIX: Canvas-Initialisierung mit Fallback
   // Versuche die Initialisierung sofort

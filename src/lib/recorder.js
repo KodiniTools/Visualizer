@@ -329,20 +329,91 @@ class Recorder {
     }
 
     _startFrameRequester() {
-        // ✅ OPTIMIERUNG: Frame-Requester nicht mehr benötigt!
-        // Frames werden jetzt direkt aus dem Haupt-Render-Loop (requestAnimationFrame)
-        // in VisualizerApp.vue angefordert. Dies stellt sicher, dass:
-        // 1. Frames exakt synchron mit dem Canvas-Rendering erfasst werden
-        // 2. Keine doppelten Frame-Anforderungen entstehen
-        // 3. Die Aufnahme flüssig und ohne Verzögerungen läuft
-        //
-        // Der alte setInterval-basierte Ansatz hatte folgende Probleme:
-        // - setInterval ist nicht mit requestAnimationFrame synchronisiert
-        // - onForceRedraw Event wurde nicht abgehört
-        // - Frames wurden angefordert bevor der Canvas aktualisiert war
+        if (this.frameRequesterRunning) {
+            return;
+        }
 
+        if (this.frameRequesterInterval) {
+            clearInterval(this.frameRequesterInterval);
+            this.frameRequesterInterval = null;
+        }
+
+        if (!this.currentCanvasStream) {
+            return;
+        }
+
+        if (!this.currentCanvasStream.active) {
+            return;
+        }
+
+        const getOptimalFPS = () => {
+            return 16; // ✅ Erhöht auf ~60 FPS für smoothere Videos
+        };
+        
+        let lastFrameTime = 0;
+        let errorCount = 0;
+        const MAX_ERRORS = 3;
+        
         this.frameRequesterRunning = true;
-        console.log('[RECORDER] Frame-Requester: Frames werden vom Haupt-Render-Loop bereitgestellt');
+        
+        this.frameRequesterInterval = setInterval(() => {
+            if (!this.frameRequesterRunning) {
+                this._stopFrameRequester();
+                return;
+            }
+
+            const videoTrack = this.currentCanvasStream?.getVideoTracks()[0];
+            
+            if (!videoTrack) {
+                errorCount++;
+                if (errorCount >= MAX_ERRORS) {
+                    this._stopFrameRequester();
+                }
+                return;
+            }
+
+            if (videoTrack.readyState !== 'live') {
+                errorCount++;
+                if (errorCount >= MAX_ERRORS) {
+                    this._stopFrameRequester();
+                }
+                return;
+            }
+
+            if (!this.isActive || this.isPaused) {
+                return;
+            }
+
+            const now = Date.now();
+            const interval = getOptimalFPS();
+            
+            if (now - lastFrameTime >= interval) {
+                try {
+                    // CRITICAL: Canvas must be updated BEFORE requestFrame()
+                    if (this.onForceRedraw) {
+                        this.onForceRedraw();
+                    } else {
+                        console.error('[RECORDER] CRITICAL: onForceRedraw callback missing!');
+                        this._stopFrameRequester();
+                        return;
+                    }
+                    
+                    // Request frame AFTER canvas update
+                    if (typeof videoTrack.requestFrame === 'function') {
+                        videoTrack.requestFrame();
+                    }
+                    
+                    lastFrameTime = now;
+                    errorCount = 0;
+                } catch (error) {
+                    console.error('[RECORDER] Frame request error:', error);
+                    errorCount++;
+                    if (errorCount >= MAX_ERRORS) {
+                        this._stopFrameRequester();
+                    }
+                }
+            }
+        }, 16);
     }
 
     _stopFrameRequester() {
@@ -559,24 +630,27 @@ class Recorder {
                 this._cleanupCanvasStream();
                 await new Promise(resolve => setTimeout(resolve, 200));
             }
-
-            // ✅ FIX: Automatischer 60 FPS Modus statt manuell
-            // captureStream(60) erfasst automatisch 60 Frames/Sekunde vom Canvas
-            // Dies ist zuverlässiger als manuelles requestFrame() aus dem Render-Loop
-            this.currentCanvasStream = this.recordingCanvas.captureStream(60);
-            console.log('[RECORDER] ✅ Canvas stream mit 60 FPS erstellt (automatischer Modus)');
-
+            
+            // IMPORTANT: Use 0 FPS (manual) - frames requested via requestFrame()
+            this.currentCanvasStream = this.recordingCanvas.captureStream(0);
+            console.log('[RECORDER] ✅ New canvas stream created');
+            
             await new Promise(resolve => setTimeout(resolve, 100));
-
+            
             const videoTrack = this.currentCanvasStream.getVideoTracks()[0];
-
+            
             if (!videoTrack) {
                 console.error('[RECORDER] ❌ No video track in canvas stream!');
                 return false;
             }
-
+            
             console.log('[RECORDER] Video track state:', videoTrack.readyState);
-
+            
+            // Trigger first frame
+            if (typeof videoTrack.requestFrame === 'function') {
+                videoTrack.requestFrame();
+            }
+            
         } catch (error) {
             console.error('[RECORDER] Canvas stream setup failed:', error);
             return false;

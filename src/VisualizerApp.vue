@@ -2569,12 +2569,44 @@ onMounted(async () => {
 
   draw();
 
+  // ✅ FIX: Event-Listener für recorder:forceRedraw
+  // Rendert den Recording-Canvas während der Warmup-Phase VOR dem MediaRecorder-Start
+  window.addEventListener('recorder:forceRedraw', () => {
+    const domCanvas = document.querySelector('.canvas-wrapper canvas');
+    const canvas = domCanvas || canvasRef.value;
+    if (!canvas || !recordingCanvas) return;
+
+    const recordingCtx = recordingCanvas.getContext('2d');
+    if (!recordingCtx) return;
+
+    // Hole den aktuellen Visualizer-Callback aus dem draw() Kontext
+    const activeAnalyser = audioSourceStore.isMicrophoneActive ? microphoneAnalyser : analyser;
+
+    let drawVisualizerCallback = null;
+    if (activeAnalyser) {
+      if (!audioDataArray || audioDataArray.length !== activeAnalyser.frequencyBinCount) {
+        audioDataArray = new Uint8Array(activeAnalyser.frequencyBinCount);
+      }
+      activeAnalyser.getByteFrequencyData(audioDataArray);
+
+      drawVisualizerCallback = (targetCtx) => {
+        if (visualizerCacheCanvas && visualizerCacheCtx) {
+          const width = targetCtx.canvas.width;
+          const height = targetCtx.canvas.height;
+          targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height);
+        }
+      };
+    }
+
+    renderRecordingScene(recordingCtx, recordingCanvas.width, recordingCanvas.height, drawVisualizerCallback);
+  });
+
   watch(() => recorderStore.isRecording, (isRecording) => {
     if (isRecording) {
       console.log('[App] Recording gestartet');
-      setTimeout(() => {
-        startVisualizerLoop();
-      }, 100);
+      // ✅ FIX: Kein setTimeout - Visualizer-Loop sofort starten!
+      // Die 100ms Verzögerung verursachte leere Frames am Anfang der Aufnahme
+      startVisualizerLoop();
     } else {
       console.log('[App] Recording gestoppt');
       stopVisualizerLoop();

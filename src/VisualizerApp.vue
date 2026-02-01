@@ -2080,6 +2080,35 @@ async function fadeInRecordingAudio(duration = 50) {
 window.fadeOutRecordingAudio = fadeOutRecordingAudio;
 window.fadeInRecordingAudio = fadeInRecordingAudio;
 
+// ✅ FIX: AudioContext-Keepalive während Recording
+// Verhindert Browser-Throttling und AudioContext-Suspension
+let audioContextKeepaliveInterval = null;
+
+function startAudioContextKeepalive() {
+  if (audioContextKeepaliveInterval) return;
+
+  audioContextKeepaliveInterval = setInterval(() => {
+    if (audioContext && audioContext.state === 'suspended') {
+      console.warn('[App] AudioContext suspended during recording - resuming!');
+      audioContext.resume().catch(() => {});
+    }
+  }, 500);
+
+  console.log('[App] AudioContext keepalive started');
+}
+
+function stopAudioContextKeepalive() {
+  if (audioContextKeepaliveInterval) {
+    clearInterval(audioContextKeepaliveInterval);
+    audioContextKeepaliveInterval = null;
+    console.log('[App] AudioContext keepalive stopped');
+  }
+}
+
+// Expose keepalive functions globally
+window.startAudioContextKeepalive = startAudioContextKeepalive;
+window.stopAudioContextKeepalive = stopAudioContextKeepalive;
+
 async function createCombinedAudioStream() {
   // ✨ GEÄNDERT: Immer recordingDest.stream zurückgeben für Live-Umschaltung
   if (!recordingDest) {

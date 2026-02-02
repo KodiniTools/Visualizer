@@ -2429,6 +2429,7 @@ onMounted(async () => {
 
     // Erstelle drawVisualizerCallback für aktuelle Audio-Daten
     let drawVisualizerCallback = null;
+    const isMicActive = audioSourceStore.isMicrophoneActive;
     const activeAnalyser = isMicActive ? microphoneAnalyser : analyser;
 
     if (activeAnalyser && visualizerStore.showVisualizer) {

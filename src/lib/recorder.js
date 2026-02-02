@@ -38,7 +38,7 @@ class Recorder {
         this.serverAvailable = null;
 
         this.currentCanvasStream = null;
-        this.frameRequesterInterval = null;
+        this.frameRequesterId = null;  // Changed from Interval to Id for rAF
         this.frameRequesterRunning = false;
         
         // Memory Management
@@ -329,9 +329,9 @@ class Recorder {
             return;
         }
 
-        if (this.frameRequesterInterval) {
-            clearInterval(this.frameRequesterInterval);
-            this.frameRequesterInterval = null;
+        if (this.frameRequesterId) {
+            cancelAnimationFrame(this.frameRequesterId);
+            this.frameRequesterId = null;
         }
 
         if (!this.currentCanvasStream) {
@@ -342,29 +342,28 @@ class Recorder {
             return;
         }
 
-        const getOptimalFPS = () => {
-            return 16; // ✅ Erhöht auf ~60 FPS für smoothere Videos
-        };
-        
-        let lastFrameTime = 0;
         let errorCount = 0;
         const MAX_ERRORS = 3;
-        
+
         this.frameRequesterRunning = true;
-        
-        this.frameRequesterInterval = setInterval(() => {
+
+        // ✅ FIX: Use requestAnimationFrame instead of setInterval
+        // requestAnimationFrame is synchronized with the browser's render cycle
+        // and provides smooth, consistent frame timing for video recording
+        const frameLoop = () => {
             if (!this.frameRequesterRunning) {
-                this._stopFrameRequester();
                 return;
             }
 
             const videoTrack = this.currentCanvasStream?.getVideoTracks()[0];
-            
+
             if (!videoTrack) {
                 errorCount++;
                 if (errorCount >= MAX_ERRORS) {
                     this._stopFrameRequester();
+                    return;
                 }
+                this.frameRequesterId = requestAnimationFrame(frameLoop);
                 return;
             }
 
@@ -372,52 +371,58 @@ class Recorder {
                 errorCount++;
                 if (errorCount >= MAX_ERRORS) {
                     this._stopFrameRequester();
+                    return;
                 }
+                this.frameRequesterId = requestAnimationFrame(frameLoop);
                 return;
             }
 
             if (!this.isActive || this.isPaused) {
+                // Still keep the loop running, just don't capture frames
+                this.frameRequesterId = requestAnimationFrame(frameLoop);
                 return;
             }
 
-            const now = Date.now();
-            const interval = getOptimalFPS();
-            
-            if (now - lastFrameTime >= interval) {
-                try {
-                    // CRITICAL: Canvas must be updated BEFORE requestFrame()
-                    if (this.onForceRedraw) {
-                        this.onForceRedraw();
-                    } else {
-                        console.error('[RECORDER] CRITICAL: onForceRedraw callback missing!');
-                        this._stopFrameRequester();
-                        return;
-                    }
-                    
-                    // Request frame AFTER canvas update
-                    if (typeof videoTrack.requestFrame === 'function') {
-                        videoTrack.requestFrame();
-                    }
-                    
-                    lastFrameTime = now;
-                    errorCount = 0;
-                } catch (error) {
-                    console.error('[RECORDER] Frame request error:', error);
-                    errorCount++;
-                    if (errorCount >= MAX_ERRORS) {
-                        this._stopFrameRequester();
-                    }
+            try {
+                // CRITICAL: Canvas must be updated BEFORE requestFrame()
+                if (this.onForceRedraw) {
+                    this.onForceRedraw();
+                } else {
+                    console.error('[RECORDER] CRITICAL: onForceRedraw callback missing!');
+                    this._stopFrameRequester();
+                    return;
+                }
+
+                // Request frame AFTER canvas update
+                // This captures the frame at the exact moment the canvas was updated
+                if (typeof videoTrack.requestFrame === 'function') {
+                    videoTrack.requestFrame();
+                }
+
+                errorCount = 0;
+            } catch (error) {
+                console.error('[RECORDER] Frame request error:', error);
+                errorCount++;
+                if (errorCount >= MAX_ERRORS) {
+                    this._stopFrameRequester();
+                    return;
                 }
             }
-        }, 16);
+
+            // Continue the loop - requestAnimationFrame runs at monitor refresh rate (~60Hz)
+            this.frameRequesterId = requestAnimationFrame(frameLoop);
+        };
+
+        // Start the loop
+        this.frameRequesterId = requestAnimationFrame(frameLoop);
     }
 
     _stopFrameRequester() {
         this.frameRequesterRunning = false;
-        
-        if (this.frameRequesterInterval) {
-            clearInterval(this.frameRequesterInterval);
-            this.frameRequesterInterval = null;
+
+        if (this.frameRequesterId) {
+            cancelAnimationFrame(this.frameRequesterId);
+            this.frameRequesterId = null;
         }
     }
 

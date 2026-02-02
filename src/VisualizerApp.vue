@@ -1707,12 +1707,9 @@ function draw() {
 
     renderScene(ctx, canvas.width, canvas.height, drawVisualizerCallback);
 
-    if (recorderStore.isRecording) {
-      const recordingCtx = recordingCanvas.getContext('2d');
-      if (recordingCtx) {
-        renderRecordingScene(recordingCtx, recordingCanvas.width, recordingCanvas.height, drawVisualizerCallback);
-      }
-    }
+    // ✅ FIX: Recording canvas is now EXCLUSIVELY updated by recorder:forceRedraw event
+    // This prevents race conditions between requestAnimationFrame and recorder's setInterval
+    // The recorder's frame requester handles rendering + requestFrame() synchronously
 
     if (canvasManagerInstance.value) {
       // ✨ Ghost-Markierungen für ausgeblendete Texte zeichnen
@@ -2427,20 +2424,22 @@ onMounted(async () => {
     const recordingCtx = recordingCanvas.getContext('2d');
     if (!recordingCtx) return;
 
-    // Erstelle drawVisualizerCallback für aktuelle Audio-Daten
+    // ✅ FIX: Support both multi-layer and single mode (like screenshot function)
     let drawVisualizerCallback = null;
-    const isMicActive = audioSourceStore.isMicrophoneActive;
-    const activeAnalyser = isMicActive ? microphoneAnalyser : analyser;
 
-    if (activeAnalyser && visualizerStore.showVisualizer) {
-      const bufferLength = activeAnalyser.frequencyBinCount;
-      if (!audioDataArray || audioDataArray.length !== bufferLength) {
-        audioDataArray = new Uint8Array(bufferLength);
-      }
-      activeAnalyser.getByteFrequencyData(audioDataArray);
-
-      drawVisualizerCallback = (targetCtx, width, height) => {
-        if (visualizerCacheCanvas) {
+    if (visualizerStore.showVisualizer) {
+      if (visualizerStore.multiLayerMode && multiLayerCompositeCanvas) {
+        // ✅ MULTI-LAYER MODE: Use the pre-composited multi-layer canvas
+        drawVisualizerCallback = (vizCtx, vizWidth, vizHeight) => {
+          if (vizWidth === multiLayerCompositeCanvas.width && vizHeight === multiLayerCompositeCanvas.height) {
+            vizCtx.drawImage(multiLayerCompositeCanvas, 0, 0);
+          } else {
+            vizCtx.drawImage(multiLayerCompositeCanvas, 0, 0, vizWidth, vizHeight);
+          }
+        };
+      } else if (visualizerCacheCanvas) {
+        // SINGLE MODE: Use the single-visualizer cache canvas with scale/position
+        drawVisualizerCallback = (targetCtx, width, height) => {
           const scale = visualizerStore.visualizerScale;
           const posX = visualizerStore.visualizerX;
           const posY = visualizerStore.visualizerY;
@@ -2460,8 +2459,8 @@ onMounted(async () => {
           } else {
             targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height);
           }
-        }
-      };
+        };
+      }
     }
 
     // Rendere die Szene auf den Recording-Canvas

@@ -2440,8 +2440,26 @@ onMounted(async () => {
       activeAnalyser.getByteFrequencyData(audioDataArray);
 
       drawVisualizerCallback = (targetCtx, width, height) => {
-        if (visualizerManagerInstance.value) {
-          visualizerManagerInstance.value.draw(targetCtx, audioDataArray, width, height);
+        if (visualizerCacheCanvas) {
+          const scale = visualizerStore.visualizerScale;
+          const posX = visualizerStore.visualizerX;
+          const posY = visualizerStore.visualizerY;
+
+          const scaledWidth = visualizerCacheCanvas.width * scale;
+          const scaledHeight = visualizerCacheCanvas.height * scale;
+
+          const destX = width * posX - scaledWidth / 2;
+          const destY = height * posY - scaledHeight / 2;
+
+          if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
+            targetCtx.drawImage(
+              visualizerCacheCanvas,
+              0, 0, visualizerCacheCanvas.width, visualizerCacheCanvas.height,
+              destX, destY, scaledWidth, scaledHeight
+            );
+          } else {
+            targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height);
+          }
         }
       };
     }

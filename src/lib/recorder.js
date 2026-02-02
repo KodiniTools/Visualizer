@@ -28,7 +28,6 @@ class Recorder {
 
         this.mediaRecorder = null;
         this.recordedChunks = [];
-        this.totalChunksSize = 0; // ✅ FIX: Track size incrementally instead of O(n²) reduce
         this.recordingMimeType = '';
         this.isPrepared = false;
         this.isActive = false;
@@ -48,9 +47,6 @@ class Recorder {
         
         // ✅ NEW: Track event listeners for cleanup
         this._activeEventListeners = new Map();
-
-        // ✅ NEW: Track audio player state for synchronized pause
-        this._audioWasPlayingBeforePause = false;
 
         // CRITICAL: Validate onForceRedraw callback
         if (!this.onForceRedraw) {
@@ -137,24 +133,18 @@ class Recorder {
      * Solution: Aggressive cleanup + longer settle time in prepare()
      */
     reset() {
-        // ✅ FIX: AudioContext-Keepalive stoppen
-        if (typeof window.stopAudioContextKeepalive === 'function') {
-            window.stopAudioContextKeepalive();
-        }
-
         // Stoppe Frame Requester FIRST
         this._stopFrameRequester();
-
+        
         // ✅ CRITICAL: Aggressive chunks cleanup
         this._clearChunks();
-
+        
         // ✅ CRITICAL: Revoke Object URLs
         this._aggressiveCleanup();
-
+        
         this.isPrepared = false;
         this.isActive = false;
         this.isPaused = false;
-        this._audioWasPlayingBeforePause = false;
 
         // ✅ CRITICAL: Complete MediaRecorder cleanup
         this._cleanupMediaRecorder();
@@ -177,8 +167,6 @@ class Recorder {
         }
         // Create new empty array
         this.recordedChunks = [];
-        // ✅ FIX: Reset size counter
-        this.totalChunksSize = 0;
     }
 
     /**
@@ -311,16 +299,11 @@ class Recorder {
                 return false;
             }
 
-            // ✅ FIX: AudioContext-Keepalive starten (verhindert Browser-Throttling)
-            if (typeof window.startAudioContextKeepalive === 'function') {
-                window.startAudioContextKeepalive();
-            }
-
             // ✅ QUALITÄTSVERBESSERUNG: Kürzere Timeslice (50ms statt 100ms)
             // Schnellere Chunk-Erzeugung = bessere Synchronisation mit Audio-Reaktiven Effekten
             this.mediaRecorder.start(50);
             this.isActive = true;
-
+            
             // CRITICAL: Start continuous frame requesting
             this._startFrameRequester();
             
@@ -342,71 +325,99 @@ class Recorder {
     }
 
     _startFrameRequester() {
-        // ✅ SIMPLIFIED: With captureStream(60), browser automatically captures frames
-        // No need for manual requestFrame() calls via setInterval which caused stuttering
-        // The visualizer already renders via requestAnimationFrame at 60 FPS
-        this.frameRequesterRunning = true;
-        console.log('[RECORDER] Frame capture running automatically at 60 FPS');
-
-        // ✅ FIX: Audio-Kontinuitäts-Monitor starten
-        // Ruft regelmäßig requestData() auf, um Audio-Buffer-Stalls zu verhindern
-        this._startAudioContinuityMonitor();
-    }
-
-    _stopFrameRequester() {
-        // ✅ SIMPLIFIED: Just update the flag, no interval to clear with captureStream(60)
-        this.frameRequesterRunning = false;
-
-        // ✅ FIX: Audio-Monitor stoppen
-        this._stopAudioContinuityMonitor();
-    }
-
-    /**
-     * ✅ FIX: Audio-Kontinuitäts-Monitor
-     * Verhindert Audio-Dropouts durch regelmäßiges requestData()
-     *
-     * PROBLEM: MediaRecorder kann bei hoher CPU-Last Audio-Buffer "vergessen"
-     * LÖSUNG: Periodisch requestData() aufrufen erzwingt Chunk-Erstellung
-     */
-    _startAudioContinuityMonitor() {
-        if (this._audioContinuityInterval) {
-            clearInterval(this._audioContinuityInterval);
+        if (this.frameRequesterRunning) {
+            return;
         }
 
-        let lastChunkCount = 0;
-        let stallCount = 0;
+        if (this.frameRequesterInterval) {
+            clearInterval(this.frameRequesterInterval);
+            this.frameRequesterInterval = null;
+        }
 
-        this._audioContinuityInterval = setInterval(() => {
-            if (!this.mediaRecorder || this.mediaRecorder.state !== 'recording') {
+        if (!this.currentCanvasStream) {
+            return;
+        }
+
+        if (!this.currentCanvasStream.active) {
+            return;
+        }
+
+        const getOptimalFPS = () => {
+            return 16; // ✅ Erhöht auf ~60 FPS für smoothere Videos
+        };
+        
+        let lastFrameTime = 0;
+        let errorCount = 0;
+        const MAX_ERRORS = 3;
+        
+        this.frameRequesterRunning = true;
+        
+        this.frameRequesterInterval = setInterval(() => {
+            if (!this.frameRequesterRunning) {
+                this._stopFrameRequester();
                 return;
             }
 
-            // Prüfe ob neue Chunks gekommen sind
-            const currentCount = this.recordedChunks.length;
-            if (currentCount === lastChunkCount) {
-                stallCount++;
-                if (stallCount >= 3) {
-                    console.warn('[RECORDER] ⚠️ Audio stall detected - forcing data request');
-                    try {
-                        this.mediaRecorder.requestData();
-                    } catch (e) {
-                        // Ignore errors
+            const videoTrack = this.currentCanvasStream?.getVideoTracks()[0];
+            
+            if (!videoTrack) {
+                errorCount++;
+                if (errorCount >= MAX_ERRORS) {
+                    this._stopFrameRequester();
+                }
+                return;
+            }
+
+            if (videoTrack.readyState !== 'live') {
+                errorCount++;
+                if (errorCount >= MAX_ERRORS) {
+                    this._stopFrameRequester();
+                }
+                return;
+            }
+
+            if (!this.isActive || this.isPaused) {
+                return;
+            }
+
+            const now = Date.now();
+            const interval = getOptimalFPS();
+            
+            if (now - lastFrameTime >= interval) {
+                try {
+                    // CRITICAL: Canvas must be updated BEFORE requestFrame()
+                    if (this.onForceRedraw) {
+                        this.onForceRedraw();
+                    } else {
+                        console.error('[RECORDER] CRITICAL: onForceRedraw callback missing!');
+                        this._stopFrameRequester();
+                        return;
+                    }
+                    
+                    // Request frame AFTER canvas update
+                    if (typeof videoTrack.requestFrame === 'function') {
+                        videoTrack.requestFrame();
+                    }
+                    
+                    lastFrameTime = now;
+                    errorCount = 0;
+                } catch (error) {
+                    console.error('[RECORDER] Frame request error:', error);
+                    errorCount++;
+                    if (errorCount >= MAX_ERRORS) {
+                        this._stopFrameRequester();
                     }
                 }
-            } else {
-                stallCount = 0;
             }
-            lastChunkCount = currentCount;
-        }, 100);
-
-        console.log('[RECORDER] Audio continuity monitor started');
+        }, 16);
     }
 
-    _stopAudioContinuityMonitor() {
-        if (this._audioContinuityInterval) {
-            clearInterval(this._audioContinuityInterval);
-            this._audioContinuityInterval = null;
-            console.log('[RECORDER] Audio continuity monitor stopped');
+    _stopFrameRequester() {
+        this.frameRequesterRunning = false;
+        
+        if (this.frameRequesterInterval) {
+            clearInterval(this.frameRequesterInterval);
+            this.frameRequesterInterval = null;
         }
     }
 
@@ -474,26 +485,9 @@ class Recorder {
         });
     }
 
-    /**
-     * Pause recording with synchronized audio player
-     * Uses short 15ms fade to minimize audible artifacts
-     */
-    async pause() {
+    pause() {
         if (!this.isActive || this.isPaused) {
             return;
-        }
-
-        // ✅ Short fade-out before pausing (15ms - barely perceptible)
-        if (typeof window.fadeOutRecordingAudio === 'function') {
-            await window.fadeOutRecordingAudio(15);
-        }
-
-        // ✅ Save audio player state and pause it
-        if (this.audioElement) {
-            this._audioWasPlayingBeforePause = !this.audioElement.paused;
-            if (this._audioWasPlayingBeforePause) {
-                this.audioElement.pause();
-            }
         }
 
         if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
@@ -502,14 +496,9 @@ class Recorder {
 
         this.isPaused = true;
         this.updateState();
-        console.log('[RECORDER] ⏸️ Recording paused (audio synchronized)');
     }
 
-    /**
-     * Resume recording with synchronized audio player
-     * Uses short 15ms fade to minimize audible artifacts
-     */
-    async resume() {
+    resume() {
         if (!this.isActive || !this.isPaused) {
             return;
         }
@@ -518,22 +507,8 @@ class Recorder {
             this.mediaRecorder.resume();
         }
 
-        // ✅ Resume audio player if it was playing before
-        if (this.audioElement && this._audioWasPlayingBeforePause) {
-            this.audioElement.play().catch(err => {
-                console.warn('[RECORDER] Could not resume audio:', err);
-            });
-        }
-
-        // ✅ Short fade-in after resuming (15ms - barely perceptible)
-        if (typeof window.fadeInRecordingAudio === 'function') {
-            await window.fadeInRecordingAudio(15);
-        }
-
         this.isPaused = false;
-        this._audioWasPlayingBeforePause = false;
         this.updateState();
-        console.log('[RECORDER] ▶️ Recording resumed (audio synchronized)');
     }
 
     async stop() {
@@ -568,8 +543,8 @@ class Recorder {
                 setTimeout(() => {
                     try {
                         if (this.recordedChunks && this.recordedChunks.length > 0) {
-                            // ✅ FIX: Use pre-calculated size instead of O(n) reduce
-                            console.log(`[RECORDER] Final chunks: ${this.recordedChunks.length}, Total: ${(this.totalChunksSize/1024/1024).toFixed(2)}MB`);
+                            const totalSize = this.recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0);
+                            console.log(`[RECORDER] Final chunks: ${this.recordedChunks.length}, Total: ${(totalSize/1024/1024).toFixed(2)}MB`);
                             
                             const blob = new Blob(this.recordedChunks, { type: this.recordingMimeType });
                             // ✅ CRITICAL: Clear chunks IMMEDIATELY after blob creation
@@ -616,10 +591,8 @@ class Recorder {
                 await new Promise(resolve => setTimeout(resolve, 200));
             }
             
-            // ✅ FIX: Use 60 FPS automatic capture instead of manual requestFrame()
-            // Manual mode (0 FPS) with setInterval causes stuttering because setInterval
-            // is not reliable when main thread is busy with rendering/audio processing
-            this.currentCanvasStream = this.recordingCanvas.captureStream(60);
+            // IMPORTANT: Use 0 FPS (manual) - frames requested via requestFrame()
+            this.currentCanvasStream = this.recordingCanvas.captureStream(0);
             console.log('[RECORDER] ✅ New canvas stream created');
             
             await new Promise(resolve => setTimeout(resolve, 100));
@@ -681,11 +654,11 @@ class Recorder {
         this._clearChunks();
 
         // ✅ CRITICAL: ondataavailable handler must not hold references
-        // ✅ FIX: Use incremental size tracking instead of O(n²) reduce on every chunk
         this.mediaRecorder.ondataavailable = e => {
             if (e.data && e.data.size > 0) {
                 this.recordedChunks.push(e.data);
-                this.totalChunksSize += e.data.size; // O(1) instead of O(n)
+                const totalSize = this.recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0);
+                // Don't log every chunk - too verbose
             } else {
                 console.warn('[RECORDER] Received empty chunk');
             }
@@ -773,12 +746,12 @@ class Recorder {
 
     async _attemptServerUpload(blob, fileName) {
         const formData = new FormData();
-        formData.append('video', blob, fileName);
+        formData.append('file', blob, fileName);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
-            const response = await fetch('/visualizer/api/upload', {
+            const response = await fetch('/visualizer/upload', {
                 method: 'POST',
                 body: formData,
                 signal: controller.signal
@@ -789,17 +762,17 @@ class Recorder {
                 const errorText = await response.text().catch(() => 'Unknown error');
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
-
+            
             const result = await response.json();
-
+            
             // ✅ CRITICAL: Clear FormData reference immediately
-            formData.delete('video');
-
+            formData.delete('file');
+            
             return result;
         } catch (error) {
             clearTimeout(timeoutId);
             // ✅ CRITICAL: Clear FormData even on error
-            formData.delete('video');
+            formData.delete('file');
             throw error;
         }
     }

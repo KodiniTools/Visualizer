@@ -311,18 +311,9 @@ function applyRecordingCanvasMonkeyPatch(canvas) {
       console.log('[App] Recording Canvas pre-rendered für Stream');
     }
 
-    // ✅ FIX: Verwende captureStream(0) statt captureStream(60)!
-    //
-    // PROBLEM: captureStream(60) funktioniert nicht zuverlässig mit Off-Screen Canvas.
-    // Der Browser versucht automatisch 60 FPS zu erfassen, aber wenn der Canvas
-    // nicht "sichtbar" ist oder nicht synchron aktualisiert wird, entstehen leere Frames.
-    //
-    // LÖSUNG: captureStream(0) = manueller Modus
-    // - Der Browser erfasst nur Frames wenn requestFrame() aufgerufen wird
-    // - Wir rufen requestFrame() nach jedem renderRecordingScene() auf
-    // - Das garantiert, dass jeder gerenderte Frame auch erfasst wird
-    recordingCanvasStream = originalCaptureStream(0);
-    console.log('[App] Canvas-Stream mit MANUELLER Frame-Erfassung erstellt (captureStream(0))');
+    // Use the frameRate requested by the recorder (0 = manual mode for requestFrame)
+    recordingCanvasStream = originalCaptureStream(frameRate);
+    console.log(`[App] Canvas-Stream mit ${frameRate} FPS erstellt (via Monkey Patch)`);
 
     return recordingCanvasStream;
   };
@@ -1317,20 +1308,7 @@ function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
   }
 }
 
-// ✅ DEBUG: Zähle wie oft renderRecordingScene aufgerufen wird
-let renderRecordingSceneCallCount = 0;
-let lastRenderLogTime = 0;
-
 function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
-  renderRecordingSceneCallCount++;
-
-  // Log alle 60 Frames (ca. 1x pro Sekunde bei 60 FPS)
-  const now = Date.now();
-  if (now - lastRenderLogTime > 1000) {
-    console.log(`[RenderRecording] ${renderRecordingSceneCallCount} Frames gerendert, ctx:`, ctx ? 'OK' : 'NULL', 'size:', canvasWidth, 'x', canvasHeight);
-    lastRenderLogTime = now;
-  }
-
   // ✅ FIX: Workspace-Bereich korrekt extrahieren für Recording/Screenshot
   const workspaceBounds = canvasManagerInstance.value?.getWorkspaceBounds();
   const hasWorkspace = workspaceBounds && canvasManagerInstance.value?.workspacePreset;
@@ -1338,10 +1316,7 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
   if (hasWorkspace) {
     // Workspace aktiv: Zeichne auf temporäres Canvas und extrahiere Workspace-Bereich
     const mainCanvas = canvasRef.value;
-    if (!mainCanvas) {
-      console.warn('[RenderRecording] mainCanvas ist NULL - überspringe Frame!');
-      return;
-    }
+    if (!mainCanvas) return;
 
     // ✅ FIX: Reuse temp canvas instead of creating new one every frame (prevents GC stuttering)
     if (!recordingTempCanvas || recordingTempCanvas.width !== mainCanvas.width || recordingTempCanvas.height !== mainCanvas.height) {
@@ -1732,24 +1707,10 @@ function draw() {
 
     renderScene(ctx, canvas.width, canvas.height, drawVisualizerCallback);
 
-    // ✅ FIX: Recording-Canvas auch während "prepared" Phase aktualisieren!
-    // Vorher: Nur wenn isRecording === true
-    // Problem: isRecording wird erst NACH MediaRecorder.start() gesetzt
-    // → Die ersten Frames waren leer weil der Canvas nicht aktualisiert wurde
-    // Lösung: Auch wenn isPrepared === true den Canvas aktualisieren
-    if (recorderStore.isRecording || recorderStore.isPrepared) {
+    if (recorderStore.isRecording) {
       const recordingCtx = recordingCanvas.getContext('2d');
       if (recordingCtx) {
         renderRecordingScene(recordingCtx, recordingCanvas.width, recordingCanvas.height, drawVisualizerCallback);
-
-        // ✅ FIX: Mit captureStream(0) müssen wir manuell requestFrame() aufrufen!
-        // Dies teilt dem Browser mit, dass ein neuer Frame bereit ist.
-        if (recordingCanvasStream) {
-          const videoTrack = recordingCanvasStream.getVideoTracks()[0];
-          if (videoTrack && videoTrack.readyState === 'live' && typeof videoTrack.requestFrame === 'function') {
-            videoTrack.requestFrame();
-          }
-        }
       }
     }
 
@@ -2119,35 +2080,6 @@ async function fadeInRecordingAudio(duration = 50) {
 window.fadeOutRecordingAudio = fadeOutRecordingAudio;
 window.fadeInRecordingAudio = fadeInRecordingAudio;
 
-// ✅ FIX: AudioContext-Keepalive während Recording
-// Verhindert Browser-Throttling und AudioContext-Suspension
-let audioContextKeepaliveInterval = null;
-
-function startAudioContextKeepalive() {
-  if (audioContextKeepaliveInterval) return;
-
-  audioContextKeepaliveInterval = setInterval(() => {
-    if (audioContext && audioContext.state === 'suspended') {
-      console.warn('[App] AudioContext suspended during recording - resuming!');
-      audioContext.resume().catch(() => {});
-    }
-  }, 500);
-
-  console.log('[App] AudioContext keepalive started');
-}
-
-function stopAudioContextKeepalive() {
-  if (audioContextKeepaliveInterval) {
-    clearInterval(audioContextKeepaliveInterval);
-    audioContextKeepaliveInterval = null;
-    console.log('[App] AudioContext keepalive stopped');
-  }
-}
-
-// Expose keepalive functions globally
-window.startAudioContextKeepalive = startAudioContextKeepalive;
-window.stopAudioContextKeepalive = stopAudioContextKeepalive;
-
 async function createCombinedAudioStream() {
   // ✨ GEÄNDERT: Immer recordingDest.stream zurückgeben für Live-Umschaltung
   if (!recordingDest) {
@@ -2363,8 +2295,9 @@ window.getCanvasStreamForRecorder = function() {
     console.log('[App] Alter Canvas-Stream gestoppt');
   }
 
-  recordingCanvasStream = recordingCanvas.captureStream(30);
-  console.log('[App] Neuer Canvas-Stream erstellt (30 FPS)');
+  // Use 0 FPS (manual mode) - frames are captured via requestFrame()
+  recordingCanvasStream = recordingCanvas.captureStream(0);
+  console.log('[App] Neuer Canvas-Stream erstellt (manual mode, 0 FPS)');
 
   return recordingCanvasStream;
 };
@@ -2608,52 +2541,12 @@ onMounted(async () => {
 
   draw();
 
-  // ✅ FIX: Event-Listener für recorder:forceRedraw
-  // Rendert den Recording-Canvas während der Warmup-Phase VOR dem MediaRecorder-Start
-  window.addEventListener('recorder:forceRedraw', () => {
-    const domCanvas = document.querySelector('.canvas-wrapper canvas');
-    const canvas = domCanvas || canvasRef.value;
-    if (!canvas || !recordingCanvas) return;
-
-    const recordingCtx = recordingCanvas.getContext('2d');
-    if (!recordingCtx) return;
-
-    // Hole den aktuellen Visualizer-Callback aus dem draw() Kontext
-    const activeAnalyser = audioSourceStore.isMicrophoneActive ? microphoneAnalyser : analyser;
-
-    let drawVisualizerCallback = null;
-    if (activeAnalyser) {
-      if (!audioDataArray || audioDataArray.length !== activeAnalyser.frequencyBinCount) {
-        audioDataArray = new Uint8Array(activeAnalyser.frequencyBinCount);
-      }
-      activeAnalyser.getByteFrequencyData(audioDataArray);
-
-      drawVisualizerCallback = (targetCtx) => {
-        if (visualizerCacheCanvas && visualizerCacheCtx) {
-          const width = targetCtx.canvas.width;
-          const height = targetCtx.canvas.height;
-          targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height);
-        }
-      };
-    }
-
-    renderRecordingScene(recordingCtx, recordingCanvas.width, recordingCanvas.height, drawVisualizerCallback);
-
-    // ✅ FIX: Mit captureStream(0) müssen wir manuell requestFrame() aufrufen!
-    if (recordingCanvasStream) {
-      const videoTrack = recordingCanvasStream.getVideoTracks()[0];
-      if (videoTrack && videoTrack.readyState === 'live' && typeof videoTrack.requestFrame === 'function') {
-        videoTrack.requestFrame();
-      }
-    }
-  });
-
   watch(() => recorderStore.isRecording, (isRecording) => {
     if (isRecording) {
       console.log('[App] Recording gestartet');
-      // ✅ FIX: Kein setTimeout - Visualizer-Loop sofort starten!
-      // Die 100ms Verzögerung verursachte leere Frames am Anfang der Aufnahme
-      startVisualizerLoop();
+      setTimeout(() => {
+        startVisualizerLoop();
+      }, 100);
     } else {
       console.log('[App] Recording gestoppt');
       stopVisualizerLoop();

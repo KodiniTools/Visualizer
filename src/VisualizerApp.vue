@@ -2418,6 +2418,38 @@ onMounted(async () => {
   setupAudioContext();
   console.log('Audio-Context bereit - recordingDest verfügbar');
 
+  // ✅ KRITISCHER FIX: Event-Listener für recorder:forceRedraw
+  // Der Recorder ruft onForceRedraw() auf, was dieses Event dispatcht.
+  // Wir müssen den Recording-Canvas SYNCHRON aktualisieren BEVOR requestFrame() aufgerufen wird.
+  window.addEventListener('recorder:forceRedraw', () => {
+    if (!recorderStore.isRecording || !recordingCanvas) return;
+
+    const recordingCtx = recordingCanvas.getContext('2d');
+    if (!recordingCtx) return;
+
+    // Erstelle drawVisualizerCallback für aktuelle Audio-Daten
+    let drawVisualizerCallback = null;
+    const activeAnalyser = isMicActive ? microphoneAnalyser : analyser;
+
+    if (activeAnalyser && visualizerStore.showVisualizer) {
+      const bufferLength = activeAnalyser.frequencyBinCount;
+      if (!audioDataArray || audioDataArray.length !== bufferLength) {
+        audioDataArray = new Uint8Array(bufferLength);
+      }
+      activeAnalyser.getByteFrequencyData(audioDataArray);
+
+      drawVisualizerCallback = (targetCtx, width, height) => {
+        if (visualizerManagerInstance.value) {
+          visualizerManagerInstance.value.draw(targetCtx, audioDataArray, width, height);
+        }
+      };
+    }
+
+    // Rendere die Szene auf den Recording-Canvas
+    renderRecordingScene(recordingCtx, recordingCanvas.width, recordingCanvas.height, drawVisualizerCallback);
+  });
+  console.log('[App] recorder:forceRedraw Event-Listener registriert');
+
   window.setBassGain = setBassGain;
   window.setTrebleGain = setTrebleGain;
 

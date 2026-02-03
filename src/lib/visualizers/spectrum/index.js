@@ -10,6 +10,7 @@ export { radialBars } from './radialBars.js';
 export { waveform } from './waveform.js';
 export { waveformHorizon } from './waveformHorizon.js';
 export { soundWaves } from './soundWaves.js';
+export { vibratingStrings } from './vibratingStrings.js';
 
 // Re-import for backwards compatibility object
 import { bars } from './bars.js';
@@ -18,6 +19,7 @@ import { radialBars } from './radialBars.js';
 import { waveform } from './waveform.js';
 import { waveformHorizon } from './waveformHorizon.js';
 import { soundWaves } from './soundWaves.js';
+import { vibratingStrings } from './vibratingStrings.js';
 
 export const spectrumVisualizers = {
   bars,
@@ -25,5 +27,6 @@ export const spectrumVisualizers = {
   radialBars,
   waveform,
   waveformHorizon,
-  soundWaves
+  soundWaves,
+  vibratingStrings
 };

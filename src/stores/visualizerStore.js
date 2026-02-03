@@ -26,16 +26,17 @@ export const BLEND_MODES = [
 
 // ✅ Visualizer-Kategorien für bessere UX
 const VISUALIZER_CATEGORIES = {
-  'Balken & Spektrum': ['bars', 'mirroredBars', 'radialBars', 'vibratingCubes'],
+  'Balken & Spektrum': ['bars', 'mirroredBars', 'radialBars', 'vibratingCubes', 'vibratingStrings'],
   'Wellen': ['waveform', 'waveformHorizon', 'texturedWave', 'fluidWaves', 'synthWave'],
   'Kreise & Kugeln': ['circles', 'pulsingOrbs', 'rippleEffect', 'soundWaves', 'orbitingLight'],
-  'Partikel': ['particleStorm', 'networkPlexus', 'cosmicNebula', 'digitalRain', 'matrixRain'],
+  'Partikel': ['particleStorm', 'networkPlexus', 'cosmicNebula', 'digitalRain', 'matrixRain', 'audioFire'],
   'Geometrie': ['spiralGalaxy', 'bloomingMandala', 'geometricKaleidoscope', 'hexagonGrid', 'shardMosaic', 'lightBeams', 'neonGrid', 'vortexPortal'],
   'Organisch': ['heartbeat', 'neuralNetwork', 'cellGrowth', 'fractalTree'],
   'Kristalle & Netze': ['liquidCrystals', 'electricWeb'],
   'Blüten': ['frequencyBlossoms', 'centralGlowBlossom'],
   '3D-Objekte': ['rainbowCube'],
-  'Retro & Pixel': ['pixelSpectrum', 'retroOscilloscope', 'arcadeBlocks', 'chiptunePulse', 'pixelFireworks']
+  'Retro & Pixel': ['pixelSpectrum', 'retroOscilloscope', 'arcadeBlocks', 'chiptunePulse', 'pixelFireworks'],
+  'Wetter': ['weatherStorm']
 };
 
 export const useVisualizerStore = defineStore('visualizer', () => {

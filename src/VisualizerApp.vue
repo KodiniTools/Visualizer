@@ -338,6 +338,7 @@ let videoRecordingGain = null; // Gain node for video → recordingMixer
 const videoSourceNodes = new Map(); // Map von videoElement → { sourceNode, gainNode }
 
 let animationFrameId;
+let drawTimeoutId = null; // ✅ FIX: Fallback timer for recording when tab is hidden
 let textManagerInstance = null;
 const lastSelectedVisualizerId = ref(null);
 let audioDataArray = null;
@@ -1433,7 +1434,14 @@ function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCall
 }
 
 function draw() {
-  animationFrameId = requestAnimationFrame(draw);
+  // ✅ FIX: Hybrid scheduling for reliable recording
+  // Use setTimeout fallback when recording AND tab is hidden
+  // rAF is throttled to ~1 FPS when tab is hidden, breaking video recording
+  if (recorderStore.isRecording && document.hidden) {
+    drawTimeoutId = setTimeout(draw, 16); // ~60 FPS fallback
+  } else {
+    animationFrameId = requestAnimationFrame(draw);
+  }
 
   // ✅ KRITISCHER FIX: Hole Canvas DIREKT aus dem DOM
   // Bei einem direkten Refresh kann canvasRef.value auf ein anderes Element zeigen
@@ -2681,6 +2689,11 @@ onUnmounted(() => {
 
   if (animationFrameId) {
     cancelAnimationFrame(animationFrameId);
+  }
+
+  // ✅ FIX: Also clear the fallback timeout
+  if (drawTimeoutId) {
+    clearTimeout(drawTimeoutId);
   }
 
   workerManager.terminate();

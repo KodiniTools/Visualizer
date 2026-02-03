@@ -38,7 +38,8 @@ class Recorder {
         this.serverAvailable = null;
 
         this.currentCanvasStream = null;
-        this.frameRequesterId = null;  // Changed from Interval to Id for rAF
+        this.frameRequesterId = null;      // For requestAnimationFrame
+        this.frameRequesterTimeout = null; // For setTimeout fallback
         this.frameRequesterRunning = false;
         
         // Memory Management
@@ -334,6 +335,11 @@ class Recorder {
             this.frameRequesterId = null;
         }
 
+        if (this.frameRequesterTimeout) {
+            clearTimeout(this.frameRequesterTimeout);
+            this.frameRequesterTimeout = null;
+        }
+
         if (!this.currentCanvasStream) {
             return;
         }
@@ -344,13 +350,15 @@ class Recorder {
 
         let errorCount = 0;
         const MAX_ERRORS = 3;
+        const TARGET_INTERVAL = 16; // ~60 FPS
+        let lastFrameTime = 0;
 
         this.frameRequesterRunning = true;
 
-        // ✅ FIX: Use requestAnimationFrame instead of setInterval
-        // requestAnimationFrame is synchronized with the browser's render cycle
-        // and provides smooth, consistent frame timing for video recording
-        const frameLoop = () => {
+        // ✅ FIX: Hybrid approach using both rAF and setTimeout
+        // rAF provides smooth timing when tab is focused
+        // setTimeout ensures frames continue when tab is in background
+        const frameLoop = (useRAF = true) => {
             if (!this.frameRequesterRunning) {
                 return;
             }
@@ -363,7 +371,7 @@ class Recorder {
                     this._stopFrameRequester();
                     return;
                 }
-                this.frameRequesterId = requestAnimationFrame(frameLoop);
+                this._scheduleNextFrame(frameLoop, useRAF);
                 return;
             }
 
@@ -373,48 +381,70 @@ class Recorder {
                     this._stopFrameRequester();
                     return;
                 }
-                this.frameRequesterId = requestAnimationFrame(frameLoop);
+                this._scheduleNextFrame(frameLoop, useRAF);
                 return;
             }
 
             if (!this.isActive || this.isPaused) {
-                // Still keep the loop running, just don't capture frames
-                this.frameRequesterId = requestAnimationFrame(frameLoop);
+                this._scheduleNextFrame(frameLoop, useRAF);
                 return;
             }
 
-            try {
-                // CRITICAL: Canvas must be updated BEFORE requestFrame()
-                if (this.onForceRedraw) {
-                    this.onForceRedraw();
-                } else {
-                    console.error('[RECORDER] CRITICAL: onForceRedraw callback missing!');
-                    this._stopFrameRequester();
-                    return;
-                }
+            const now = performance.now();
+            const elapsed = now - lastFrameTime;
 
-                // Request frame AFTER canvas update
-                // This captures the frame at the exact moment the canvas was updated
-                if (typeof videoTrack.requestFrame === 'function') {
-                    videoTrack.requestFrame();
-                }
+            // Only process if enough time has elapsed (rate limiting for setTimeout fallback)
+            if (elapsed >= TARGET_INTERVAL - 1) {
+                try {
+                    // CRITICAL: Canvas must be updated BEFORE frame capture
+                    if (this.onForceRedraw) {
+                        this.onForceRedraw();
+                    } else {
+                        console.error('[RECORDER] CRITICAL: onForceRedraw callback missing!');
+                        this._stopFrameRequester();
+                        return;
+                    }
 
-                errorCount = 0;
-            } catch (error) {
-                console.error('[RECORDER] Frame request error:', error);
-                errorCount++;
-                if (errorCount >= MAX_ERRORS) {
-                    this._stopFrameRequester();
-                    return;
+                    // For captureStream(0), manually request frame
+                    // For captureStream(60), this is a no-op but harmless
+                    if (typeof videoTrack.requestFrame === 'function') {
+                        videoTrack.requestFrame();
+                    }
+
+                    lastFrameTime = now;
+                    errorCount = 0;
+                } catch (error) {
+                    console.error('[RECORDER] Frame request error:', error);
+                    errorCount++;
+                    if (errorCount >= MAX_ERRORS) {
+                        this._stopFrameRequester();
+                        return;
+                    }
                 }
             }
 
-            // Continue the loop - requestAnimationFrame runs at monitor refresh rate (~60Hz)
-            this.frameRequesterId = requestAnimationFrame(frameLoop);
+            this._scheduleNextFrame(frameLoop, useRAF);
         };
 
-        // Start the loop
-        this.frameRequesterId = requestAnimationFrame(frameLoop);
+        // Start the loop with rAF
+        this._scheduleNextFrame(frameLoop, true);
+    }
+
+    _scheduleNextFrame(frameLoop, preferRAF) {
+        if (!this.frameRequesterRunning) {
+            return;
+        }
+
+        // Use rAF when document is visible for smooth timing
+        // Use setTimeout when hidden to ensure frames continue
+        const useRAF = preferRAF && !document.hidden;
+
+        if (useRAF) {
+            this.frameRequesterId = requestAnimationFrame(() => frameLoop(true));
+        } else {
+            // setTimeout fallback - runs even when tab is hidden
+            this.frameRequesterTimeout = setTimeout(() => frameLoop(false), 16);
+        }
     }
 
     _stopFrameRequester() {
@@ -423,6 +453,11 @@ class Recorder {
         if (this.frameRequesterId) {
             cancelAnimationFrame(this.frameRequesterId);
             this.frameRequesterId = null;
+        }
+
+        if (this.frameRequesterTimeout) {
+            clearTimeout(this.frameRequesterTimeout);
+            this.frameRequesterTimeout = null;
         }
     }
 

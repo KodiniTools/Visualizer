@@ -11,6 +11,7 @@ export { liquidCrystals } from './liquidCrystals.js';
 export { orbitingLight } from './orbitingLight.js';
 export { heartbeat } from './heartbeat.js';
 export { texturedWave } from './texturedWave.js';
+export { weatherStorm } from './weatherStorm.js';
 
 // Import for backwards compatibility object
 import { pulsingOrbs } from './pulsingOrbs.js';
@@ -20,6 +21,7 @@ import { liquidCrystals } from './liquidCrystals.js';
 import { orbitingLight } from './orbitingLight.js';
 import { heartbeat } from './heartbeat.js';
 import { texturedWave } from './texturedWave.js';
+import { weatherStorm } from './weatherStorm.js';
 
 /**
  * Collection of all effects visualizers for backwards compatibility
@@ -32,5 +34,6 @@ export const effectsVisualizers = {
   liquidCrystals,
   orbitingLight,
   heartbeat,
-  texturedWave
+  texturedWave,
+  weatherStorm
 };

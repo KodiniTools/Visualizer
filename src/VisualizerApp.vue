@@ -1,20 +1,6 @@
 <template>
   <div id="app-container">
 
-    <!-- Language Switcher Bar -->
-    <div class="language-bar">
-      <router-link to="/" class="home-link" :title="t('app.backToHome')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          <polyline points="9 22 9 12 15 12 15 22"/>
-        </svg>
-      </router-link>
-      <button class="lang-btn" @click="toggleLocale" :title="locale === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'">
-        <span class="lang-flag">{{ locale === 'de' ? '🇩🇪' : '🇬🇧' }}</span>
-        <span class="lang-label">{{ locale === 'de' ? 'DE' : 'EN' }}</span>
-      </button>
-    </div>
-
     <div class="layout-grid">
 
       <aside class="left-toolbar">
@@ -266,7 +252,7 @@ import { workerManager } from './lib/workerManager.js';
 let useAudioWorker = false;
 
 // i18n
-const { t, locale, toggleLocale } = useI18n();
+const { t, locale } = useI18n();
 
 const playerStore = usePlayerStore();
 const recorderStore = useRecorderStore();
@@ -2732,71 +2718,6 @@ html, body {
   height: 100vh;
 }
 
-/* Language Switcher Bar */
-.language-bar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  background: transparent; /* Transparent für nahtlose Integration */
-  border-bottom: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
-  flex-shrink: 0;
-}
-
-.home-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: rgba(201, 152, 77, 0.15);
-  border: 1px solid rgba(201, 152, 77, 0.3);
-  color: var(--accent-tertiary, #f8e1a9);
-  transition: all 0.2s ease;
-  text-decoration: none;
-}
-
-.home-link:hover {
-  background: rgba(201, 152, 77, 0.3);
-  border-color: var(--accent-primary, #c9984d);
-  transform: translateY(-1px);
-}
-
-.home-link svg {
-  width: 16px;
-  height: 16px;
-}
-
-.lang-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: rgba(201, 152, 77, 0.15);
-  border: 1px solid rgba(201, 152, 77, 0.3);
-  border-radius: 6px;
-  color: var(--text-primary, #E9E9EB);
-  font-size: 0.7rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.lang-btn:hover {
-  background: rgba(201, 152, 77, 0.3);
-  border-color: var(--accent-primary, #c9984d);
-}
-
-.lang-flag {
-  font-size: 1rem;
-}
-
-.lang-label {
-  letter-spacing: 0.5px;
-}
-
 .layout-grid {
   display: grid;
   grid-template-columns: 340px 1fr 340px;
@@ -3618,26 +3539,6 @@ canvas {
 /* ═══════════════════════════════════════════════════════════════
    LIGHT THEME OVERRIDES
    ═══════════════════════════════════════════════════════════════ */
-
-/* Language bar & home link */
-[data-theme='light'] .home-link {
-  background: rgba(1, 79, 153, 0.08);
-  border-color: rgba(1, 79, 153, 0.25);
-  color: #014f99;
-}
-[data-theme='light'] .home-link:hover {
-  background: rgba(1, 79, 153, 0.15);
-  border-color: #014f99;
-}
-[data-theme='light'] .lang-btn {
-  background: rgba(1, 79, 153, 0.06);
-  border-color: rgba(1, 79, 153, 0.2);
-  color: #003971;
-}
-[data-theme='light'] .lang-btn:hover {
-  background: rgba(1, 79, 153, 0.12);
-  border-color: rgba(1, 79, 153, 0.35);
-}
 
 /* Canvas images bar */
 [data-theme='light'] .canvas-images-bar {

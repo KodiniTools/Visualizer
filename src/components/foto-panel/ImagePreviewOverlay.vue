@@ -72,9 +72,9 @@ defineEmits(['close', 'add-to-canvas', 'set-as-background']);
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  color: white;
+  background-color: var(--btn-hover);
+  border: 2px solid var(--border-color);
+  color: var(--text-primary);
   font-size: 18px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -104,7 +104,7 @@ defineEmits(['close', 'add-to-canvas', 'set-as-background']);
 .preview-name {
   font-size: 16px;
   font-weight: 600;
-  color: white;
+  color: var(--text-primary);
 }
 
 .preview-actions {
@@ -124,7 +124,7 @@ defineEmits(['close', 'add-to-canvas', 'set-as-background']);
 
 .preview-actions .btn-primary {
   background: var(--image-section-gradient, linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%));
-  color: #121212;
+  color: var(--accent-text);
   font-weight: 600;
   border: none;
 }
@@ -135,13 +135,13 @@ defineEmits(['close', 'add-to-canvas', 'set-as-background']);
 }
 
 .preview-actions .btn-secondary {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background-color: var(--btn-hover);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .preview-actions .btn-secondary:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--btn-hover);
   transform: translateY(-2px);
 }
 </style>

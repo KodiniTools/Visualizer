@@ -135,7 +135,7 @@ function emitUpdate() {
 .placement-header {
   font-size: 0.65rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin-bottom: 8px;
@@ -155,7 +155,7 @@ function emitUpdate() {
 
 .placement-label {
   font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   min-width: 40px;
 }
 
@@ -163,10 +163,10 @@ function emitUpdate() {
   flex: 1;
   padding: 4px 8px;
   font-size: 0.6rem;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #e0e0e0;
+  color: var(--text-primary);
   cursor: pointer;
 }
 
@@ -198,7 +198,7 @@ function emitUpdate() {
   border-radius: 50%;
   background: #22c55e;
   cursor: pointer;
-  border: 2px solid #fff;
+  border: 2px solid var(--text-primary);
 }
 
 .placement-value {
@@ -220,10 +220,10 @@ function emitUpdate() {
   width: 100%;
   padding: 4px 6px;
   font-size: 0.6rem;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #e0e0e0;
+  color: var(--text-primary);
   text-align: center;
 }
 

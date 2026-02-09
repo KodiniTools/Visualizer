@@ -127,7 +127,7 @@ defineEmits(['close']);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(18, 18, 18, 0.98);
+  background: var(--card-bg);
   border: 2px solid #6ea8fe;
   border-radius: 16px;
   padding: 0;
@@ -144,7 +144,7 @@ defineEmits(['close']);
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border-color);
   background: linear-gradient(135deg, rgba(110, 168, 254, 0.1), rgba(110, 168, 254, 0.05));
 }
 
@@ -190,7 +190,7 @@ defineEmits(['close']);
 }
 
 .shortcuts-content::-webkit-scrollbar-track {
-  background: rgba(42, 42, 42, 0.5);
+  background: var(--secondary-bg);
   border-radius: 4px;
 }
 
@@ -204,7 +204,7 @@ defineEmits(['close']);
 }
 
 .shortcut-section {
-  background: rgba(42, 42, 42, 0.5);
+  background: var(--secondary-bg);
   border-radius: 12px;
   padding: 16px;
   border: 1px solid rgba(110, 168, 254, 0.2);
@@ -231,7 +231,7 @@ defineEmits(['close']);
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--btn-hover);
   border-radius: 8px;
   transition: all 0.2s;
 }
@@ -246,7 +246,7 @@ defineEmits(['close']);
 }
 
 .shortcut-item span {
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-size: 14px;
 }
 
@@ -255,7 +255,7 @@ defineEmits(['close']);
 }
 
 kbd {
-  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  background: linear-gradient(135deg, var(--card-bg), var(--secondary-bg));
   color: #6ea8fe;
   padding: 4px 10px;
   border-radius: 6px;
@@ -273,14 +273,14 @@ kbd {
 
 .panel-footer {
   padding: 16px 24px;
-  border-top: 1px solid #2a2a2a;
-  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid var(--border-color);
+  background: var(--btn-hover);
 }
 
 .tip {
   margin: 0;
   font-size: 13px;
-  color: #888;
+  color: var(--text-muted);
   text-align: center;
 }
 
@@ -322,15 +322,13 @@ kbd {
   }
 }
 
-/* ═══ Light Theme Overrides ═══ */
+/* ═══ Light Theme Overrides (accent colors only - backgrounds/text use CSS variables) ═══ */
 [data-theme='light'] .shortcuts-panel {
-  background: rgba(255, 255, 255, 0.98);
   border-color: #014f99;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .panel-header {
-  border-bottom-color: #d4c8a8;
   background: linear-gradient(135deg, rgba(1, 79, 153, 0.1), rgba(1, 79, 153, 0.05));
 }
 
@@ -338,12 +336,7 @@ kbd {
   color: #014f99;
 }
 
-[data-theme='light'] .shortcuts-content::-webkit-scrollbar-track {
-  background: rgba(249, 242, 213, 0.5);
-}
-
 [data-theme='light'] .shortcut-section {
-  background: rgba(249, 242, 213, 0.5);
   border-color: rgba(1, 79, 153, 0.2);
 }
 
@@ -351,32 +344,14 @@ kbd {
   color: #014f99;
 }
 
-[data-theme='light'] .shortcut-item {
-  background: rgba(255, 255, 255, 0.6);
-}
-
 [data-theme='light'] .shortcut-item:hover:not(.disabled) {
   background: rgba(1, 79, 153, 0.1);
 }
 
-[data-theme='light'] .shortcut-item span {
-  color: #003971;
-}
-
 [data-theme='light'] kbd {
-  background: linear-gradient(135deg, #f0ead0, #f9f2d5);
   color: #014f99;
   border-color: rgba(1, 79, 153, 0.3);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1),
               inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-[data-theme='light'] .panel-footer {
-  border-top-color: #d4c8a8;
-  background: rgba(249, 242, 213, 0.3);
-}
-
-[data-theme='light'] .tip {
-  color: #4d6d8e;
 }
 </style>

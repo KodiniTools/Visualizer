@@ -263,7 +263,7 @@ function getStockCategoryName(category) {
 .category-count {
   font-size: 10px;
   background-color: rgba(255, 255, 255, 0.15);
-  color: #ccc;
+  color: var(--text-secondary);
   padding: 2px 6px;
   border-radius: 10px;
   font-weight: 600;
@@ -289,12 +289,12 @@ function getStockCategoryName(category) {
 }
 
 .stock-gallery-scroll::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: var(--secondary-bg);
   border-radius: 3px;
 }
 
 .stock-gallery-scroll::-webkit-scrollbar-thumb {
-  background: #555;
+  background: var(--border-color);
   border-radius: 3px;
 }
 
@@ -317,7 +317,7 @@ function getStockCategoryName(category) {
   cursor: pointer;
   border: 2px solid transparent;
   transition: all 0.2s ease;
-  background-color: #1e1e1e;
+  background-color: var(--secondary-bg);
 }
 
 .stock-thumbnail-item:hover {
@@ -370,8 +370,8 @@ function getStockCategoryName(category) {
   padding: 5px 10px;
   font-size: 11px;
   border-radius: 4px;
-  border: 1px solid #444;
-  background-color: #2a2a2a;
+  border: 1px solid var(--border-color);
+  background-color: var(--secondary-bg);
   color: #e0e0e0;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -382,7 +382,7 @@ function getStockCategoryName(category) {
 
 .btn-select-all:hover:not(:disabled),
 .btn-deselect-all:hover:not(:disabled) {
-  background-color: #3a3a3a;
+  background-color: var(--secondary-bg);
   border-color: var(--image-section-accent, #6ea8fe);
   color: var(--image-section-accent, #6ea8fe);
 }
@@ -405,7 +405,7 @@ function getStockCategoryName(category) {
 
 .multiselect-hint {
   font-size: 10px;
-  color: #888;
+  color: var(--text-muted);
   margin: 0 0 8px 0;
   font-style: italic;
 }
@@ -503,7 +503,7 @@ function getStockCategoryName(category) {
 .loading-state {
   text-align: center;
   padding: 20px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .loading-state p {
@@ -531,7 +531,7 @@ function getStockCategoryName(category) {
   padding: 8px 16px;
   border-radius: 6px;
   border: 1px solid var(--image-section-accent, #6ea8fe);
-  background-color: #2a2a2a;
+  background-color: var(--secondary-bg);
   color: var(--image-section-accent, #6ea8fe);
   font-size: 12px;
   cursor: pointer;
@@ -547,7 +547,7 @@ function getStockCategoryName(category) {
 .empty-state {
   text-align: center;
   padding: 20px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .empty-state p {

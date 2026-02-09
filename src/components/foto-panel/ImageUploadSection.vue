@@ -172,34 +172,34 @@ function triggerFileInput() {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background-color: #2a2a2a;
+  background-color: var(--secondary-bg);
   border-radius: 8px;
   padding: 16px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
 }
 
 .upload-section h4 {
   margin: 0 0 14px 0;
   font-size: 12px;
   font-weight: 600;
-  color: #aaa;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .upload-area {
-  border: 2px dashed #555;
+  border: 2px dashed var(--border-color);
   border-radius: 8px;
   padding: 24px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  background-color: #1e1e1e;
+  background-color: var(--secondary-bg);
 }
 
 .upload-area:hover {
   border-color: var(--image-section-accent, #6ea8fe);
-  background-color: #252525;
+  background-color: var(--secondary-bg);
 }
 
 .upload-placeholder {
@@ -218,7 +218,7 @@ function triggerFileInput() {
 
 .upload-placeholder small {
   font-size: 11px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 /* Galerie-Container */
@@ -226,7 +226,7 @@ function triggerFileInput() {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background-color: #2a2a2a;
+  background-color: var(--secondary-bg);
   border-radius: 8px;
   padding: 12px;
 }
@@ -248,7 +248,7 @@ function triggerFileInput() {
   padding: 4px 10px;
   font-size: 11px;
   border-radius: 4px;
-  border: 1px solid #555;
+  border: 1px solid var(--border-color);
   background-color: #ff6b6b;
   color: white;
   cursor: pointer;
@@ -273,12 +273,12 @@ function triggerFileInput() {
 }
 
 .gallery-scroll::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: var(--secondary-bg);
   border-radius: 3px;
 }
 
 .gallery-scroll::-webkit-scrollbar-thumb {
-  background: #555;
+  background: var(--border-color);
   border-radius: 3px;
 }
 
@@ -301,7 +301,7 @@ function triggerFileInput() {
   cursor: pointer;
   border: 2px solid transparent;
   transition: all 0.2s ease;
-  background-color: #1e1e1e;
+  background-color: var(--secondary-bg);
 }
 
 .thumbnail-item:hover {
@@ -378,7 +378,7 @@ function triggerFileInput() {
 
 .thumbnail-size {
   font-size: 9px;
-  color: #ccc;
+  color: var(--text-secondary);
 }
 
 /* Selection Controls */
@@ -395,8 +395,8 @@ function triggerFileInput() {
   padding: 5px 10px;
   font-size: 11px;
   border-radius: 4px;
-  border: 1px solid #444;
-  background-color: #2a2a2a;
+  border: 1px solid var(--border-color);
+  background-color: var(--secondary-bg);
   color: #e0e0e0;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -407,7 +407,7 @@ function triggerFileInput() {
 
 .btn-select-all:hover:not(:disabled),
 .btn-deselect-all:hover:not(:disabled) {
-  background-color: #3a3a3a;
+  background-color: var(--secondary-bg);
   border-color: var(--image-section-accent, #6ea8fe);
   color: var(--image-section-accent, #6ea8fe);
 }
@@ -430,7 +430,7 @@ function triggerFileInput() {
 
 .multiselect-hint {
   font-size: 10px;
-  color: #888;
+  color: var(--text-muted);
   margin: 0 0 8px 0;
   font-style: italic;
 }
@@ -524,7 +524,7 @@ function triggerFileInput() {
 .empty-state {
   text-align: center;
   padding: 20px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .empty-state p {

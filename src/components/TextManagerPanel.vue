@@ -3906,7 +3906,7 @@ function populateFontDropdown() {
     currentOption.textContent = `✨ ${currentFont} (aktuell)`;
     currentOption.style.fontFamily = currentFont;
     currentOption.style.fontWeight = 'bold';
-    currentOption.style.backgroundColor = '#3a3a3a';
+    currentOption.style.backgroundColor = 'var(--card-bg)';
     fontSelect.value.appendChild(currentOption);
     
     // Separator
@@ -4822,16 +4822,16 @@ h4 {
 .btn-reset-small {
   padding: 8px 12px;
   font-size: 11px;
-  background: linear-gradient(135deg, #3a3a3a 0%, #4a4a4a 100%);
-  border: 1px solid #555;
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--btn-hover) 100%);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
-  color: #ccc;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-reset-small:hover {
-  background: linear-gradient(135deg, #4a4a4a 0%, #5a5a5a 100%);
+  background: linear-gradient(135deg, var(--btn-hover) 0%, var(--btn-hover) 100%);
   border-color: #777;
   color: #fff;
 }
@@ -4848,7 +4848,7 @@ h4 {
   display: block;
   margin-bottom: 4px;
   font-size: 11px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 /* Disabled slider style */
@@ -4864,8 +4864,8 @@ h4 {
 
 /* ===== COLLAPSIBLE SECTIONS ===== */
 .collapsible-section {
-  background-color: #252525;
-  border: 1px solid #3a3a3a;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--card-bg);
   border-radius: 8px;
   margin-bottom: 10px;
   overflow: hidden;
@@ -4873,11 +4873,11 @@ h4 {
 }
 
 .collapsible-section:hover {
-  border-color: #4a4a4a;
+  border-color: var(--btn-hover);
 }
 
 .collapsible-section[open] {
-  border-color: #4a4a4a;
+  border-color: var(--btn-hover);
 }
 
 .collapsible-section summary {
@@ -4894,7 +4894,7 @@ h4 {
   gap: 8px;
   padding: 10px 12px;
   cursor: pointer;
-  background: linear-gradient(135deg, #2a2a2a 0%, #252525 100%);
+  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--secondary-bg) 100%);
   font-size: 12px;
   font-weight: 600;
   color: #e0e0e0;
@@ -4905,13 +4905,13 @@ h4 {
 }
 
 .section-header:hover {
-  background: linear-gradient(135deg, #333 0%, #2a2a2a 100%);
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
   color: #fff;
 }
 
 .collapsible-section[open] .section-header {
-  border-bottom: 1px solid #3a3a3a;
-  background: linear-gradient(135deg, #333 0%, #2d2d2d 100%);
+  border-bottom: 1px solid var(--card-bg);
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
 }
 
 .section-icon {
@@ -4933,7 +4933,7 @@ h4 {
 
 .section-content {
   padding: 12px;
-  background-color: #1e1e1e;
+  background-color: var(--secondary-bg);
 }
 
 .status-badge {
@@ -4942,8 +4942,8 @@ h4 {
   font-size: 9px;
   font-weight: 600;
   border-radius: 10px;
-  background-color: #3a3a3a;
-  color: #999;
+  background-color: var(--secondary-bg);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -5009,7 +5009,7 @@ h4 {
 
 .selection-label {
   font-size: 10px;
-  color: #888;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -5035,8 +5035,8 @@ h4 {
 .number-input {
   width: 70px;
   padding: 6px 8px;
-  background-color: #2a2a2a;
-  border: 1px solid #444;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   color: #fff;
   font-size: 12px;
@@ -5049,7 +5049,7 @@ h4 {
 }
 
 .unit-label {
-  color: #888;
+  color: var(--text-muted);
   font-size: 11px;
   margin-left: 4px;
 }
@@ -5062,9 +5062,9 @@ h4 {
 }
 
 .btn-pos {
-  background: linear-gradient(135deg, #333 0%, #2a2a2a 100%);
-  border: 1px solid #444;
-  color: #aaa;
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
   padding: 8px;
   border-radius: 6px;
   cursor: pointer;
@@ -5076,7 +5076,7 @@ h4 {
 }
 
 .btn-pos:hover {
-  background: linear-gradient(135deg, #3a3a3a 0%, #333 100%);
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg) 100%);
   border-color: #6ea8fe;
   color: #6ea8fe;
 }

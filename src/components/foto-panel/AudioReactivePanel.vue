@@ -483,7 +483,7 @@ defineExpose({
 .checkbox-text {
   font-size: 0.7rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
 }
 
 .modern-control {
@@ -498,12 +498,12 @@ defineExpose({
   justify-content: space-between;
   align-items: center;
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .label-text {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted);
 }
 
 .label-value {
@@ -518,10 +518,10 @@ defineExpose({
 .modern-select {
   width: 100%;
   padding: 4px 8px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
   font-size: 0.7rem;
   cursor: pointer;
 }
@@ -536,8 +536,8 @@ defineExpose({
 }
 
 .modern-select option {
-  background: #1a1a2e;
-  color: #fff;
+  background: var(--card-bg);
+  color: var(--text-primary);
 }
 
 .audio-slider {
@@ -584,7 +584,7 @@ defineExpose({
 .level-bar-container {
   flex: 1;
   height: 8px;
-  background: rgba(30, 30, 50, 0.8);
+  background: var(--secondary-bg);
   border-radius: 4px;
   overflow: hidden;
   border: 1px solid rgba(139, 92, 246, 0.2);
@@ -616,7 +616,7 @@ defineExpose({
   background: rgba(139, 92, 246, 0.15);
   border: 1px solid rgba(139, 92, 246, 0.3);
   border-radius: 4px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -633,7 +633,7 @@ defineExpose({
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.6) 0%, rgba(236, 72, 153, 0.5) 100%);
   border-color: rgba(236, 72, 153, 0.8);
   box-shadow: 0 0 12px rgba(139, 92, 246, 0.5), 0 0 20px rgba(236, 72, 153, 0.3);
-  color: #ffffff;
+  color: var(--text-primary);
   animation: presetGlow 2s ease-in-out infinite alternate;
 }
 
@@ -660,7 +660,7 @@ defineExpose({
   font-size: 0.55rem;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   display: block;
   margin-bottom: 6px;
 }
@@ -699,7 +699,7 @@ defineExpose({
 
 .effect-name {
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
@@ -710,7 +710,7 @@ defineExpose({
   background: rgba(139, 92, 246, 0.15);
   border: 1px solid rgba(139, 92, 246, 0.3);
   border-radius: 3px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
@@ -728,8 +728,8 @@ defineExpose({
 }
 
 .effect-source-select option {
-  background: #1a1a2e;
-  color: #fff;
+  background: var(--card-bg);
+  color: var(--text-primary);
 }
 
 .effect-slider {
@@ -763,7 +763,7 @@ defineExpose({
 
 .effect-value {
   font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   text-align: right;
   font-family: 'JetBrains Mono', monospace;
 }

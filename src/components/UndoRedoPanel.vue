@@ -126,8 +126,8 @@ function formatTime(timestamp) {
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
 }
 
@@ -143,8 +143,8 @@ button {
   justify-content: center;
   gap: 8px;
   padding: 10px 16px;
-  background: #2a2a2a;
-  border: 1px solid #444;
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   color: #e0e0e0;
   cursor: pointer;
@@ -154,8 +154,8 @@ button {
 }
 
 button:hover:not(:disabled) {
-  background: #3a3a3a;
-  border-color: #555;
+  background: var(--card-bg);
+  border-color: var(--border-color);
   transform: translateY(-1px);
 }
 
@@ -182,7 +182,7 @@ button:disabled {
   flex-direction: column;
   gap: 4px;
   font-size: 12px;
-  color: #888;
+  color: var(--text-muted);
   padding: 8px;
   background: #151515;
   border-radius: 4px;
@@ -190,7 +190,7 @@ button:disabled {
 
 .position {
   font-weight: 600;
-  color: #aaa;
+  color: var(--text-muted);
 }
 
 .current-action {
@@ -228,7 +228,7 @@ button:disabled {
 }
 
 .history-item:hover {
-  background: #2a2a2a;
+  background: var(--secondary-bg);
 }
 
 .history-item.active {
@@ -244,7 +244,7 @@ button:disabled {
 
 .history-name {
   flex: 1;
-  color: #ccc;
+  color: var(--text-secondary);
 }
 
 .history-item.active .history-name {
@@ -254,11 +254,11 @@ button:disabled {
 
 .history-time {
   font-size: 10px;
-  color: #555;
+  color: var(--text-muted);
 }
 
 .history-item.active .history-time {
-  color: #aaa;
+  color: var(--text-muted);
 }
 
 /* Scrollbar Styling */
@@ -272,12 +272,12 @@ button:disabled {
 }
 
 .history-list::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--card-bg);
   border-radius: 3px;
 }
 
 .history-list::-webkit-scrollbar-thumb:hover {
-  background: #444;
+  background: var(--btn-hover);
 }
 
 /* ═══ Light Theme Overrides ═══ */

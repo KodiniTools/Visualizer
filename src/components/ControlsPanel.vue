@@ -67,10 +67,10 @@ function getPresetShortName(name) {
 
 <style scoped>
 .panel-container {
-  background-color: #2a2a2a;
+  background-color: var(--secondary-bg);
   border-radius: 8px;
   padding: 12px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
 }
 
 h4 {
@@ -93,7 +93,7 @@ h4 {
 .section-label {
   display: block;
   font-size: 11px;
-  color: #888;
+  color: var(--text-muted);
   margin-bottom: 6px;
   font-weight: 500;
   text-transform: uppercase;
@@ -102,9 +102,9 @@ h4 {
 
 .toggle-btn {
   width: 100%;
-  background-color: #3a3a3a;
-  color: #c0c0c0;
-  border: 1px solid #555;
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 6px 10px;
   font-size: 12px;
@@ -144,9 +144,9 @@ h4 {
 }
 
 .preset-btn {
-  background-color: #3a3a3a;
-  color: #c0c0c0;
-  border: 1px solid #555;
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 5px 8px;
   font-size: 10px;

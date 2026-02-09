@@ -229,7 +229,7 @@ defineExpose({ show, hide, toggleGuide });
   right: 24px;
   width: 360px;
   max-height: calc(100vh - 120px);
-  background: linear-gradient(145deg, #1e1e1e 0%, #252525 100%);
+  background: linear-gradient(145deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   box-shadow:

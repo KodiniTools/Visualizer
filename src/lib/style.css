@@ -40,25 +40,25 @@ style.css - Haupt-Stylesheet für den Audio Visualizer Pro
     --body-gradient: radial-gradient(1200px 600px at 80% -20%, #1a2a2d 0%, transparent 60%), var(--bg);
 }
 
-/* 💡 Light Theme (Modern Clean) */
+/* 💡 Light Theme (Gold & Navy) */
 [data-theme='light'] {
-    --bg: #E9E9EB;
+    --bg: #F5F4D6;
     --panel: #FFFFFF;
-    --text: #1a2426;
-    --muted: #6a7072;
-    --accent: #609198;
-    --accent-light: #BCE5E5;
-    --accent-text: #FFFFFF;
-    --btn: #9EBEC1;
-    --btn-hover: #BCE5E5;
-    --ring: #609198;
-    --border-color: #9EBEC1;
-    --shadow-color: rgb(0 0 0 / 12%);
-    --gradient-color: rgb(96 145 152 / 3%);
-    --panel-highlight: rgb(96 145 152 / 5%);
-    --progress-bg: rgb(96 145 152 / 20%);
+    --text: #003971;
+    --muted: #4d6d8e;
+    --accent: #014f99;
+    --accent-light: #c9984d;
+    --accent-text: #F5F4D6;
+    --btn: #f9f2d5;
+    --btn-hover: #f8e1a9;
+    --ring: #c9984d;
+    --border-color: rgb(201 152 77 / 30%);
+    --shadow-color: rgb(0 0 0 / 10%);
+    --gradient-color: rgb(201 152 77 / 5%);
+    --panel-highlight: rgb(201 152 77 / 8%);
+    --progress-bg: rgb(1 79 153 / 15%);
     --success: #C5DEB0;
-    --body-gradient: var(--bg);
+    --body-gradient: radial-gradient(1200px 600px at 80% -20%, #f8e1a9 0%, transparent 60%), #F5F4D6;
 }
 
 /* --- BASE STYLES --- */

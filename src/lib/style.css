@@ -962,5 +962,36 @@ footer small,
     color: var(--text-muted, #7A8DA0);
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT THEME OVERRIDES - Global Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Context menu */
+[data-theme='light'] .thumbnail-context-menu {
+    background: #FFFFFF;
+    border-color: rgba(201, 152, 77, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+[data-theme='light'] .thumbnail-context-menu-item:hover {
+    background: rgba(1, 79, 153, 0.08);
+}
+
+/* Gallery thumbnails scrollbar */
+[data-theme='light'] #gallery-thumbnails::-webkit-scrollbar-track {
+    background: rgba(1, 79, 153, 0.05);
+}
+
+/* Tool cards */
+[data-theme='light'] .tool-card:hover {
+    border-color: #014f99;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+[data-theme='light'] .tool-card-icon {
+    color: #014f99;
+}
+[data-theme='light'] .tool-card h3 {
+    color: #014f99;
+}
+
 
 

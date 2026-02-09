@@ -96,7 +96,7 @@ function removeToast(id) {
 /* Light theme Unterstützung */
 [data-theme='light'] .toast {
   background-color: #ffffff;
-  border: 1px solid rgba(201, 152, 77, 0.2);
+  border: 1px solid rgba(1, 79, 153, 0.2);
   box-shadow: 0 4px 12px rgba(0, 57, 113, 0.1);
 }
 
@@ -271,6 +271,33 @@ function removeToast(id) {
 
 .toast-container::-webkit-scrollbar-thumb:hover {
   background: rgba(201, 152, 77, 0.6);
+}
+
+/* ═══ Light Theme Overrides ═══ */
+
+[data-theme='light'] .toast--info {
+  border-left: 4px solid #014f99;
+}
+
+[data-theme='light'] .toast--info .toast__icon {
+  color: #014f99;
+}
+
+[data-theme='light'] .toast__progress {
+  background: #014f99;
+}
+
+[data-theme='light'] .toast-container::-webkit-scrollbar-track {
+  background: rgba(1, 79, 153, 0.1);
+}
+
+[data-theme='light'] .toast-container::-webkit-scrollbar-thumb {
+  background: rgba(1, 79, 153, 0.4);
+  border-radius: 3px;
+}
+
+[data-theme='light'] .toast-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(1, 79, 153, 0.6);
 }
 
 /* Responsive adjustments */

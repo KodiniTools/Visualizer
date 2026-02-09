@@ -55,4 +55,15 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(201, 152, 77, 0.6);
 }
+
+/* Light Theme Scrollbar */
+[data-theme='light'] ::-webkit-scrollbar-track {
+  background: rgba(1, 79, 153, 0.05);
+}
+[data-theme='light'] ::-webkit-scrollbar-thumb {
+  background: rgba(1, 79, 153, 0.2);
+}
+[data-theme='light'] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(1, 79, 153, 0.4);
+}
 </style>

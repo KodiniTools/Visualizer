@@ -192,6 +192,18 @@ onUnmounted(() => {
   width: 14px;
   height: 14px;
 }
+
+/* ═══ Light Theme Overrides ═══ */
+[data-theme='light'] .tooltip-trigger {
+  background: rgba(1, 79, 153, 0.1);
+  color: rgba(0, 57, 113, 0.5);
+}
+
+[data-theme='light'] .tooltip-trigger:hover,
+[data-theme='light'] .tooltip-trigger.active {
+  background: rgba(1, 79, 153, 0.2);
+  color: #014f99;
+}
 </style>
 
 <style>
@@ -352,5 +364,46 @@ onUnmounted(() => {
 .tooltip-right.tooltip-enter-from,
 .tooltip-right.tooltip-leave-to {
   transform: translate(0, -50%) scale(0.95);
+}
+
+/* ═══ Light Theme Overrides ═══ */
+[data-theme='light'] .tooltip-content {
+  background: linear-gradient(145deg, #FFFFFF 0%, #f9f2d5 100%);
+  border-color: rgba(0, 57, 113, 0.15);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12),
+              0 0 0 1px rgba(0, 57, 113, 0.08);
+}
+
+[data-theme='light'] .tooltip-arrow {
+  background: #FFFFFF;
+  border-color: rgba(0, 57, 113, 0.15);
+}
+
+[data-theme='light'] .tooltip-header {
+  border-bottom-color: rgba(0, 57, 113, 0.1);
+}
+
+[data-theme='light'] .tooltip-title {
+  color: #003971;
+}
+
+[data-theme='light'] .tooltip-body {
+  color: #003971;
+}
+
+[data-theme='light'] .tooltip-shortcut {
+  border-top-color: rgba(0, 57, 113, 0.1);
+}
+
+[data-theme='light'] .tooltip-shortcut kbd {
+  background: rgba(1, 79, 153, 0.1);
+  border-color: rgba(1, 79, 153, 0.2);
+  color: #003971;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .tooltip-tip {
+  background: rgba(201, 152, 77, 0.12);
+  color: #c9984d;
 }
 </style>

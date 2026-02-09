@@ -844,4 +844,148 @@ onUnmounted(() => {
     grid-template-columns: 1fr;
   }
 }
+
+/* ═══ Light Theme Overrides ═══ */
+
+[data-theme='light'].blog-page {
+  background: linear-gradient(180deg, #F5F4D6 0%, #f9f2d5 50%, #F5F4D6 100%);
+  color: #003971;
+}
+
+[data-theme='light'] .landing-header {
+  background: rgba(249, 242, 213, 0.9);
+  border-bottom: 1px solid rgba(1, 79, 153, 0.1);
+}
+
+[data-theme='light'] .landing-header.scrolled {
+  background: rgba(249, 242, 213, 0.98);
+  box-shadow: 0 4px 20px rgba(1, 79, 153, 0.08);
+}
+
+[data-theme='light'] .header-logo {
+  color: #014f99;
+}
+
+[data-theme='light'] .nav-link {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .nav-link:hover,
+[data-theme='light'] .nav-link.active {
+  color: #014f99;
+}
+
+[data-theme='light'] .control-btn {
+  background: rgba(1, 79, 153, 0.08);
+  border: 1px solid rgba(1, 79, 153, 0.2);
+  color: #014f99;
+}
+
+[data-theme='light'] .control-btn:hover {
+  background: rgba(1, 79, 153, 0.15);
+  border-color: rgba(1, 79, 153, 0.3);
+}
+
+[data-theme='light'] .blog-hero {
+  background: radial-gradient(ellipse at 50% 0%, rgba(1, 79, 153, 0.1) 0%, transparent 60%);
+}
+
+[data-theme='light'] .blog-title {
+  color: #003971;
+}
+
+[data-theme='light'] .blog-subtitle {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .blog-section {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(201, 152, 77, 0.2);
+}
+
+[data-theme='light'] .blog-section.summary {
+  background: linear-gradient(135deg, rgba(1, 79, 153, 0.06) 0%, rgba(249, 242, 213, 0.4) 100%);
+  border-color: rgba(201, 152, 77, 0.3);
+}
+
+[data-theme='light'] .intro-text {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .section-title {
+  color: #014f99;
+}
+
+[data-theme='light'] .subsection-title {
+  color: #003971;
+}
+
+[data-theme='light'] .feature-list li {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .feature-list li::before {
+  background: #014f99;
+}
+
+[data-theme='light'] .feature-list.highlight li::before {
+  background: #014f99;
+}
+
+[data-theme='light'] .category-card {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(201, 152, 77, 0.2);
+}
+
+[data-theme='light'] .category-title {
+  color: #014f99;
+}
+
+[data-theme='light'] .category-list li {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .shortcut-key {
+  background: rgba(1, 79, 153, 0.08);
+  border: 1px solid rgba(1, 79, 153, 0.2);
+  color: #014f99;
+}
+
+[data-theme='light'] .shortcut-action {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .summary-list li {
+  color: #003971;
+}
+
+[data-theme='light'] .summary-list li::before {
+  background: linear-gradient(135deg, #014f99, #3a7cc5);
+}
+
+[data-theme='light'] .summary-cta {
+  color: #014f99;
+}
+
+[data-theme='light'] .cta-section {
+  background: radial-gradient(ellipse at 50% 100%, rgba(1, 79, 153, 0.08) 0%, transparent 60%);
+}
+
+[data-theme='light'] .cta-title {
+  color: #003971;
+}
+
+[data-theme='light'] .cta-subtitle {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .btn-primary {
+  background: linear-gradient(135deg, #014f99 0%, #3a7cc5 100%);
+  color: #F5F4D6;
+  box-shadow: 0 4px 20px rgba(1, 79, 153, 0.3);
+}
+
+[data-theme='light'] .btn-primary:hover {
+  box-shadow: 0 8px 30px rgba(1, 79, 153, 0.4);
+}
 </style>

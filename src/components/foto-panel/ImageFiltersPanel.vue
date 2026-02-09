@@ -963,4 +963,178 @@ input[type="range"]::-moz-range-thumb {
 .visualizer-layer-toggle .toggle-text {
   opacity: 0.9;
 }
+
+/* ═══ Light Theme Overrides ═══ */
+[data-theme='light'] .foto-panel-container {
+  border-top-color: rgba(1, 79, 153, 0.2);
+}
+
+[data-theme='light'] .foto-panel-container h4 {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .control-group.slider label {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .control-group.slider span {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .control-group select {
+  background-color: #FFFFFF;
+  color: #003971;
+  border-color: rgba(1, 79, 153, 0.3);
+}
+
+[data-theme='light'] .control-group select:hover,
+[data-theme='light'] .control-group select:focus {
+  border-color: #014f99;
+}
+
+[data-theme='light'] input[type="range"] {
+  background: linear-gradient(90deg, #4d6d8e 0%, #014f99 100%);
+}
+
+[data-theme='light'] input[type="range"]::-webkit-slider-thumb {
+  background: #c9984d;
+}
+
+[data-theme='light'] input[type="range"]::-moz-range-thumb {
+  background: #c9984d;
+}
+
+[data-theme='light'] .modern-section-header h4 {
+  color: rgba(0, 57, 113, 0.6);
+}
+
+[data-theme='light'] .modern-controls-group {
+  background: rgba(1, 79, 153, 0.04);
+  border-color: rgba(1, 79, 153, 0.1);
+}
+
+[data-theme='light'] .modern-label {
+  color: rgba(0, 57, 113, 0.7);
+}
+
+[data-theme='light'] .label-text {
+  color: #003971;
+}
+
+[data-theme='light'] .label-value {
+  color: #014f99;
+}
+
+[data-theme='light'] .shadow-slider {
+  background: linear-gradient(90deg, #f9f2d5 0%, #014f99 50%, #6a5acd 100%);
+}
+
+[data-theme='light'] .border-slider {
+  background: linear-gradient(90deg, #f9f2d5 0%, #003971 50%, #014f99 100%);
+}
+
+[data-theme='light'] .border-opacity-slider {
+  background: linear-gradient(90deg, rgba(0, 57, 113, 0.1) 0%, rgba(0, 57, 113, 0.4) 50%, #003971 100%);
+}
+
+[data-theme='light'] .modern-slider::-webkit-slider-thumb {
+  background: #c9984d;
+}
+
+[data-theme='light'] .modern-slider::-moz-range-thumb {
+  background: #c9984d;
+}
+
+[data-theme='light'] .modern-color-input {
+  border-color: rgba(1, 79, 153, 0.3);
+  background-color: #FFFFFF;
+}
+
+[data-theme='light'] .modern-color-input:hover {
+  border-color: #014f99;
+}
+
+[data-theme='light'] .modern-color-text {
+  border-color: rgba(1, 79, 153, 0.3);
+  background-color: #FFFFFF;
+  color: #003971;
+}
+
+[data-theme='light'] .modern-color-text:focus {
+  border-color: #014f99;
+}
+
+[data-theme='light'] .rotation-hint {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .flip-button {
+  background: linear-gradient(135deg, #FFFFFF 0%, #f9f2d5 100%);
+  border-color: rgba(1, 79, 153, 0.3);
+  color: #003971;
+}
+
+[data-theme='light'] .flip-button:hover {
+  background: linear-gradient(135deg, #f9f2d5 0%, #FFFFFF 100%);
+  border-color: #014f99;
+  color: #014f99;
+}
+
+[data-theme='light'] .flip-button.active {
+  background: linear-gradient(135deg, #014f99 0%, #003971 100%);
+  border-color: #014f99;
+  color: #F5F4D6;
+}
+
+[data-theme='light'] .btn-secondary {
+  background-color: #FFFFFF;
+  color: #003971;
+  border-color: rgba(1, 79, 153, 0.3);
+}
+
+[data-theme='light'] .btn-secondary:hover {
+  background-color: #f9f2d5;
+  border-color: #014f99;
+}
+
+[data-theme='light'] .modern-reset-btn {
+  background: linear-gradient(135deg, #FFFFFF 0%, #f9f2d5 100%);
+  border-color: rgba(1, 79, 153, 0.3);
+}
+
+[data-theme='light'] .modern-reset-btn:hover {
+  background: linear-gradient(135deg, #f9f2d5 0%, #FFFFFF 100%);
+  border-color: #014f99;
+}
+
+[data-theme='light'] .layer-controls-section {
+  background: rgba(1, 79, 153, 0.05);
+  border-color: rgba(1, 79, 153, 0.15);
+}
+
+[data-theme='light'] .layer-info {
+  color: #014f99;
+  background: rgba(1, 79, 153, 0.1);
+  border-color: rgba(1, 79, 153, 0.25);
+}
+
+[data-theme='light'] .layer-btn {
+  background: #FFFFFF;
+  color: #003971;
+  border-color: rgba(1, 79, 153, 0.2);
+}
+
+[data-theme='light'] .layer-btn:hover:not(:disabled) {
+  background: #f9f2d5;
+  border-color: #014f99;
+  color: #014f99;
+}
+
+[data-theme='light'] .visualizer-layer-toggle {
+  border-top-color: rgba(1, 79, 153, 0.15);
+}
+
+[data-theme='light'] .visualizer-layer-toggle .toggle-label {
+  color: #003971;
+}
 </style>

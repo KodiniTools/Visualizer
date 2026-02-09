@@ -11,37 +11,6 @@
           </svg>
           <span>Visualizer</span>
         </div>
-        <div class="header-controls">
-          <!-- Language Switcher -->
-          <button
-            class="control-btn"
-            @click="toggleLocale"
-            :title="locale === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'"
-          >
-            <span class="lang-label">{{ locale === 'de' ? 'DE' : 'EN' }}</span>
-          </button>
-          <!-- Theme Switcher -->
-          <button
-            class="control-btn theme-btn"
-            @click="toggleTheme"
-            :title="isDark ? t('internalLanding.lightMode') : t('internalLanding.darkMode')"
-          >
-            <svg v-if="isDark" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="5"></circle>
-              <line x1="12" y1="1" x2="12" y2="3"></line>
-              <line x1="12" y1="21" x2="12" y2="23"></line>
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-              <line x1="1" y1="12" x2="3" y2="12"></line>
-              <line x1="21" y1="12" x2="23" y2="12"></line>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
-          </button>
-        </div>
       </div>
     </header>
 
@@ -101,8 +70,8 @@ import { computed, h, ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from '../lib/i18n.js';
 import { useTheme } from '../lib/theme.js';
 
-const { t, locale, toggleLocale } = useI18n();
-const { isDark, toggleTheme } = useTheme();
+const { t, locale } = useI18n();
+const { isDark } = useTheme();
 
 const isScrolled = ref(false);
 
@@ -257,46 +226,6 @@ const featureCards = computed(() => {
   color: #014f99;
 }
 
-.header-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.control-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  background: rgba(201, 152, 77, 0.15);
-  border: 1px solid rgba(201, 152, 77, 0.25);
-  border-radius: 12px;
-  color: #f8e1a9;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.control-btn:hover {
-  background: rgba(201, 152, 77, 0.3);
-  border-color: rgba(201, 152, 77, 0.5);
-  transform: translateY(-1px);
-}
-
-.light-theme .control-btn {
-  background: rgba(1, 79, 153, 0.08);
-  border-color: rgba(1, 79, 153, 0.2);
-  color: #014f99;
-}
-
-.light-theme .control-btn:hover {
-  background: rgba(1, 79, 153, 0.15);
-}
-
-.lang-label {
-  font-weight: 700;
-  font-size: 0.9rem;
-}
 
 /* Hero Section */
 .hero-section {
@@ -603,16 +532,6 @@ const featureCards = computed(() => {
   color: #014f99;
 }
 
-[data-theme='light'] .control-btn {
-  background: rgba(1, 79, 153, 0.08);
-  border: 1px solid rgba(1, 79, 153, 0.2);
-  color: #014f99;
-}
-
-[data-theme='light'] .control-btn:hover {
-  background: rgba(1, 79, 153, 0.15);
-  border-color: rgba(1, 79, 153, 0.35);
-}
 
 [data-theme='light'] .hero-title {
   color: #003971;

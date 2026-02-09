@@ -58,7 +58,7 @@ const showColorPicker = ref(false);
 
 <style scoped>
 .color-settings-section {
-  background-color: var(--btn, #1c2426);
+  background-color: var(--secondary-bg, #1c2426);
   border-radius: 6px;
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   overflow: hidden;
@@ -84,7 +84,7 @@ const showColorPicker = ref(false);
   gap: 8px;
   font-size: 0.6rem;
   font-weight: 600;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }

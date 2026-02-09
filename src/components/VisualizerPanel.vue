@@ -267,7 +267,7 @@ const totalCount = computed(() => store.availableVisualizers.length);
 
 <style scoped>
 .panel-container {
-  background-color: var(--panel, #151b1d);
+  background-color: var(--card-bg, #151b1d);
   border-radius: 8px;
   padding: 10px;
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
@@ -282,7 +282,7 @@ const totalCount = computed(() => store.availableVisualizers.length);
 
 h4 {
   margin: 0;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-weight: 600;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -313,7 +313,7 @@ h4::before {
 .section-label {
   display: block;
   font-size: 0.6rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   margin-bottom: 5px;
   font-weight: 500;
   text-transform: uppercase;
@@ -323,8 +323,8 @@ h4::before {
 /* Toggle Button */
 .toggle-btn {
   width: 100%;
-  background-color: var(--btn, #1c2426);
-  color: var(--text, #E9E9EB);
+  background-color: var(--secondary-bg, #1c2426);
+  color: var(--text-primary, #E9E9EB);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 5px;
   padding: 5px 8px;
@@ -340,17 +340,17 @@ h4::before {
 
 .toggle-btn:hover {
   background-color: var(--btn-hover, #2a3335);
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
 }
 
 .toggle-btn.active {
-  background-color: var(--accent, #609198);
+  background-color: var(--accent-primary, #609198);
   color: var(--accent-text, #0f1416);
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
 }
 
 .toggle-btn.active:hover {
-  background-color: var(--accent-light, #BCE5E5);
+  background-color: var(--accent-tertiary, #BCE5E5);
 }
 
 .btn-icon {
@@ -365,12 +365,12 @@ h4::before {
   border: 2px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 5px;
   cursor: pointer;
-  background-color: var(--btn, #1c2426);
+  background-color: var(--secondary-bg, #1c2426);
   transition: border-color 0.2s ease;
 }
 
 .color-picker:hover {
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
 }
 
 .color-picker::-webkit-color-swatch-wrapper {
@@ -400,7 +400,7 @@ h4::before {
 
 /* Intensität-Slider */
 .intensity-slider {
-  background: linear-gradient(to right, var(--btn, #1c2426) 0%, var(--accent, #609198) 100%);
+  background: linear-gradient(to right, var(--secondary-bg, #1c2426) 0%, var(--accent-primary, #609198) 100%);
 }
 
 .intensity-slider::-webkit-slider-thumb {
@@ -409,7 +409,7 @@ h4::before {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--accent-light, #BCE5E5);
+  background: var(--accent-tertiary, #BCE5E5);
   cursor: pointer;
   border: 2px solid #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -417,7 +417,7 @@ h4::before {
 }
 
 .intensity-slider::-webkit-slider-thumb:hover {
-  background: var(--accent, #609198);
+  background: var(--accent-primary, #609198);
   transform: scale(1.1);
 }
 
@@ -425,7 +425,7 @@ h4::before {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--accent-light, #BCE5E5);
+  background: var(--accent-tertiary, #BCE5E5);
   cursor: pointer;
   border: 2px solid #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -433,7 +433,7 @@ h4::before {
 }
 
 .intensity-slider::-moz-range-thumb:hover {
-  background: var(--accent, #609198);
+  background: var(--accent-primary, #609198);
   transform: scale(1.1);
 }
 
@@ -480,21 +480,21 @@ h4::before {
 .search-input {
   width: 100%;
   padding: 6px 10px;
-  background-color: var(--btn, #1c2426);
+  background-color: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 5px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-size: 0.65rem;
   outline: none;
   transition: border-color 0.2s ease;
 }
 
 .search-input:focus {
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
 }
 
 .search-input::placeholder {
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
 }
 
 /* Category List */
@@ -515,7 +515,7 @@ h4::before {
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  background-color: var(--btn, #1c2426);
+  background-color: var(--secondary-bg, #1c2426);
   cursor: pointer;
   user-select: none;
   transition: background-color 0.2s ease;
@@ -533,12 +533,12 @@ h4::before {
   flex: 1;
   font-size: 0.65rem;
   font-weight: 500;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
 }
 
 .category-count {
   font-size: 0.55rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   background-color: rgba(96, 145, 152, 0.2);
   padding: 1px 5px;
   border-radius: 8px;
@@ -546,7 +546,7 @@ h4::before {
 
 .category-arrow {
   font-size: 0.5rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
 }
 
 .category-content {
@@ -554,7 +554,7 @@ h4::before {
   flex-direction: column;
   gap: 2px;
   padding: 3px;
-  background-color: var(--panel, #151b1d);
+  background-color: var(--card-bg, #151b1d);
 }
 
 /* Visualizer Buttons */
@@ -566,8 +566,8 @@ h4::before {
 
 .visualizer-btn {
   width: 100%;
-  background-color: var(--btn, #1c2426);
-  color: var(--text, #E9E9EB);
+  background-color: var(--secondary-bg, #1c2426);
+  color: var(--text-primary, #E9E9EB);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   border-radius: 5px;
   padding: 6px 10px;
@@ -580,25 +580,25 @@ h4::before {
 
 .visualizer-btn:hover {
   background-color: var(--btn-hover, #2a3335);
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   transform: translateX(2px);
 }
 
 .visualizer-btn.active {
-  background-color: var(--accent, #609198);
+  background-color: var(--accent-primary, #609198);
   color: var(--accent-text, #0f1416);
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   font-weight: 600;
 }
 
 .visualizer-btn.active:hover {
-  background-color: var(--accent-light, #BCE5E5);
+  background-color: var(--accent-tertiary, #BCE5E5);
 }
 
 .no-results {
   padding: 10px;
   text-align: center;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   font-size: 0.65rem;
   font-style: italic;
 }
@@ -623,8 +623,8 @@ h4::before {
 }
 
 .reset-btn {
-  background-color: var(--btn, #1c2426);
-  color: var(--muted, #A8A992);
+  background-color: var(--secondary-bg, #1c2426);
+  color: var(--text-muted, #A8A992);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 4px;
   width: 24px;
@@ -638,9 +638,9 @@ h4::before {
 }
 
 .reset-btn:hover {
-  background-color: var(--accent, #609198);
+  background-color: var(--accent-primary, #609198);
   color: var(--accent-text, #0f1416);
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
 }
 
 .position-control {
@@ -654,7 +654,7 @@ h4::before {
 .control-label {
   display: block;
   font-size: 0.55rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   margin-bottom: 3px;
   font-weight: 500;
 }

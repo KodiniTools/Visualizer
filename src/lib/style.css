@@ -21,14 +21,16 @@ style.css - Haupt-Stylesheet für den Audio Visualizer Pro
 
 /* 🎨 Dark Theme (Gold & Navy Dark) */
 [data-theme='dark'] {
-    --bg: #091428;
-    --panel: #142640;
-    --text: #f9f2d5;
-    --muted: #7A8DA0;
-    --accent: #c9984d;
-    --accent-light: #f8e1a9;
+    --primary-bg: #091428;
+    --secondary-bg: #0E1C32;
+    --card-bg: #142640;
+    --accent-primary: #c9984d;
+    --accent-secondary: #014f99;
+    --accent-tertiary: #f8e1a9;
     --accent-text: #091428;
-    --btn: #0E1C32;
+    --text-primary: #f9f2d5;
+    --text-secondary: #f8e1a9;
+    --text-muted: #7A8DA0;
     --btn-hover: #1a2a42;
     --ring: #c9984d;
     --border-color: rgb(201 152 77 / 20%);
@@ -37,19 +39,21 @@ style.css - Haupt-Stylesheet für den Audio Visualizer Pro
     --panel-highlight: rgb(201 152 77 / 5%);
     --progress-bg: rgb(1 79 153 / 20%);
     --success: #C5DEB0;
-    --body-gradient: radial-gradient(1200px 600px at 80% -20%, #0a2850 0%, transparent 60%), var(--bg);
+    --body-gradient: radial-gradient(1200px 600px at 80% -20%, #0a2850 0%, transparent 60%), var(--primary-bg);
 }
 
 /* 💡 Light Theme (Gold & Navy) */
 [data-theme='light'] {
-    --bg: #F5F4D6;
-    --panel: #FFFFFF;
-    --text: #003971;
-    --muted: #4d6d8e;
-    --accent: #014f99;
-    --accent-light: #c9984d;
+    --primary-bg: #F5F4D6;
+    --secondary-bg: #f9f2d5;
+    --card-bg: #FFFFFF;
+    --accent-primary: #014f99;
+    --accent-secondary: #c9984d;
+    --accent-tertiary: #c9984d;
     --accent-text: #F5F4D6;
-    --btn: #f9f2d5;
+    --text-primary: #003971;
+    --text-secondary: #014f99;
+    --text-muted: #4d6d8e;
     --btn-hover: #f8e1a9;
     --ring: #c9984d;
     --border-color: rgb(201 152 77 / 30%);
@@ -74,8 +78,8 @@ html {
 body {
     margin: 0;
     font-family: var(--font-sans);
-    color: var(--text);
-    background: var(--bg, #0f1416);
+    color: var(--text-primary);
+    background: var(--primary-bg, #0f1416);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-size: 12px;
@@ -102,13 +106,13 @@ header {
 }
 
 .muted {
-    color: var(--muted);
+    color: var(--text-muted);
     font-size: 0.75rem;
 }
 
 .panel {
     background: linear-gradient(180deg, var(--gradient-color), transparent);
-    background-color: var(--panel);
+    background-color: var(--card-bg);
     border: 1px solid var(--border-color);
     backdrop-filter: blur(8px);
     border-radius: 10px;
@@ -127,7 +131,7 @@ header {
 label {
     display: block;
     font-size: 0.7rem;
-    color: var(--muted);
+    color: var(--text-muted);
     margin-bottom: 4px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -139,8 +143,8 @@ select, .btn, .custom-file-upload, input[type="text"], input[type="color"], text
     width: 100%;
     border-radius: 8px;
     border: 1px solid var(--border-color);
-    background: var(--btn);
-    color: var(--text);
+    background: var(--secondary-bg);
+    color: var(--text-primary);
     padding: 6px 10px;
     outline: none;
     transition: all 0.2s ease;
@@ -148,7 +152,7 @@ select, .btn, .custom-file-upload, input[type="text"], input[type="color"], text
 }
 
 input[type="text"], textarea {
-    background: var(--panel);
+    background: var(--card-bg);
 }
 
 textarea {
@@ -181,7 +185,7 @@ input:focus,
 textarea:focus,
 .custom-file-upload:focus-within {
     box-shadow: 0 0 0 3px var(--ring);
-    border-color: var(--accent);
+    border-color: var(--accent-primary);
 }
 
 button:disabled, .btn:disabled {
@@ -228,14 +232,14 @@ button:disabled, .btn:disabled {
 }
 
 .btn.primary {
-    background: var(--accent);
+    background: var(--accent-primary);
     color: var(--accent-text);
-    border-color: var(--accent);
+    border-color: var(--accent-primary);
 }
 
 :where(.btn.primary:hover:not(:disabled)) {
     filter: brightness(1.1);
-    background: var(--accent); /* Re-declare to override base hover */
+    background: var(--accent-primary); /* Re-declare to override base hover */
 }
 
 .btn.btn-secondary {
@@ -291,7 +295,7 @@ button:disabled, .btn:disabled {
 
 .theme-switcher, .lang-switcher {
     display: flex;
-    background-color: var(--btn);
+    background-color: var(--secondary-bg);
     border-radius: 20px; /* Pill shape */
     overflow: hidden;
     border: 1px solid var(--border-color);
@@ -301,7 +305,7 @@ button:disabled, .btn:disabled {
 .theme-switcher button, .lang-switcher button {
     background: transparent;
     border: none;
-    color: var(--muted);
+    color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -327,14 +331,14 @@ button:disabled, .btn:disabled {
 
 
 .theme-switcher button.active, .lang-switcher button.active {
-    background-color: var(--accent);
+    background-color: var(--accent-primary);
     color: var(--accent-text);
     cursor: default;
 }
 
 .theme-switcher button:not(.active):hover, .lang-switcher button:not(.active):hover {
     background-color: var(--btn-hover);
-    color: var(--text);
+    color: var(--text-primary);
 }
 
 
@@ -440,7 +444,7 @@ button:disabled, .btn:disabled {
 
 .progress-wrapper .timer {
     font-size: 0.65rem;
-    color: var(--muted);
+    color: var(--text-muted);
     flex-shrink: 0;
 }
 
@@ -454,7 +458,7 @@ button:disabled, .btn:disabled {
 }
 .progress-bar {
     height: 100%;
-    background: var(--accent);
+    background: var(--accent-primary);
     border-radius: 3px;
     width: 0%;
     transition: width 0.1s linear;
@@ -485,7 +489,7 @@ button:disabled, .btn:disabled {
     margin-bottom: 4px;
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.03s ease;
-    background-color: color-mix(in srgb, var(--text) 5%, transparent);
+    background-color: color-mix(in srgb, var(--text-primary) 5%, transparent);
     font-weight: 500;
     display: flex;
     justify-content: space-between;
@@ -503,7 +507,7 @@ button:disabled, .btn:disabled {
     background-color: var(--btn-hover);
 }
 .playlist-item.active {
-    background: var(--accent);
+    background: var(--accent-primary);
     color: var(--accent-text);
     font-weight: 600;
     box-shadow: 0 4px 8px var(--shadow-color);
@@ -524,19 +528,19 @@ button:disabled, .btn:disabled {
 }
 .volume-control:hover .volume-slider { width: 100px; opacity: 1; }
 .volume-slider::-webkit-slider-thumb {
-    appearance: none; width: 16px; height: 16px; background: var(--accent);
-    cursor: pointer; border-radius: 50%; border: 3px solid var(--panel);
+    appearance: none; width: 16px; height: 16px; background: var(--accent-primary);
+    cursor: pointer; border-radius: 50%; border: 3px solid var(--card-bg);
     box-shadow: 0 0 5px var(--shadow-color);
 }
 .volume-slider::-moz-range-thumb {
-    width: 16px; height: 16px; background: var(--accent);
-    cursor: pointer; border-radius: 50%; border: 3px solid var(--panel);
+    width: 16px; height: 16px; background: var(--accent-primary);
+    cursor: pointer; border-radius: 50%; border: 3px solid var(--card-bg);
     box-shadow: 0 0 5px var(--shadow-color);
 }
 .custom-dropdown-container { position: relative; }
 .custom-dropdown {
     position: absolute; top: calc(100% + 5px); left: 0; width: 100%;
-    background: var(--panel); border: 1px solid var(--border-color);
+    background: var(--card-bg); border: 1px solid var(--border-color);
     border-radius: 12px; z-index: 1000; max-height: 210px; overflow-y: auto;
     box-shadow: 0 8px 20px var(--shadow-color); padding: 5px;
 }
@@ -556,17 +560,17 @@ button:disabled, .btn:disabled {
 }
 
 .custom-dropdown-item:hover:not(.disabled) { background-color: var(--btn-hover); }
-.custom-dropdown-item.active { background-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+.custom-dropdown-item.active { background-color: var(--accent-primary); color: var(--accent-text); font-weight: 600; }
 .custom-dropdown-item.disabled { opacity: 0.5; cursor: default; }
-.custom-dropdown-item.add-new { font-weight: 600; color: var(--accent); cursor: pointer; }
+.custom-dropdown-item.add-new { font-weight: 600; color: var(--accent-primary); cursor: pointer; }
 
 /* Settings & Text Controls */
 .settings-details { margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px; }
 .settings-details summary {
-    font-weight: 600; cursor: pointer; color: var(--accent); padding: 8px;
+    font-weight: 600; cursor: pointer; color: var(--accent-primary); padding: 8px;
     border-radius: 8px; transition: background-color 0.2s; margin: -8px; margin-bottom: 8px;
 }
-.settings-details summary:hover { background-color: var(--btn); }
+.settings-details summary:hover { background-color: var(--secondary-bg); }
 .text-controls-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 12px; padding-top: 16px;
@@ -579,21 +583,21 @@ button:disabled, .btn:disabled {
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
 .slider {
   position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-  background-color: var(--btn); border: 1px solid var(--border-color);
+  background-color: var(--secondary-bg); border: 1px solid var(--border-color);
   transition: .4s; border-radius: 28px;
 }
 .slider:before {
   position: absolute; content: ""; height: 20px; width: 20px; left: 3px;
-  bottom: 3px; background-color: var(--muted); transition: .4s; border-radius: 50%;
+  bottom: 3px; background-color: var(--text-muted); transition: .4s; border-radius: 50%;
 }
-input:checked + .slider { background-color: var(--accent); }
+input:checked + .slider { background-color: var(--accent-primary); }
 input:focus + .slider { box-shadow: 0 0 0 3px var(--ring); }
-input:checked + .slider:before { transform: translateX(22px); background-color: var(--panel); }
+input:checked + .slider:before { transform: translateX(22px); background-color: var(--card-bg); }
 
 /* Color & Range Inputs */
 input[type="color"] {
     padding: 2px; height: 28px; cursor: pointer;
-    background: var(--btn); border-radius: 8px;
+    background: var(--secondary-bg); border-radius: 8px;
 }
 .color-picker-wrapper input[type="color"] { width: 50px; }
 input[type="range"] {
@@ -603,12 +607,12 @@ input[type="range"] {
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
-  background: var(--accent); border-radius: 50%; border: 3px solid var(--panel);
+  background: var(--accent-primary); border-radius: 50%; border: 3px solid var(--card-bg);
   box-shadow: 0 0 5px var(--shadow-color);
 }
 input[type="range"]::-moz-range-thumb {
-  width: 18px; height: 18px; background: var(--accent);
-  border-radius: 50%; border: 3px solid var(--panel);
+  width: 18px; height: 18px; background: var(--accent-primary);
+  border-radius: 50%; border: 3px solid var(--card-bg);
   box-shadow: 0 0 5px var(--shadow-color);
 }
 /* ERGÄNZUNGEN FÜR style.css - Social Media Workspace Controls */
@@ -622,8 +626,8 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .workspace-info {
-    background: color-mix(in srgb, var(--accent) 8%, transparent);
-    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent);
     border-radius: 8px;
     padding: 12px;
     margin-top: 8px;
@@ -633,7 +637,7 @@ input[type="range"]::-moz-range-thumb {
     margin: 0;
     font-size: 0.85rem;
     line-height: 1.4;
-    color: var(--muted);
+    color: var(--text-muted);
 }
 
 /* Workspace Select Styling */
@@ -644,8 +648,8 @@ input[type="range"]::-moz-range-thumb {
 
 #workspaceSelect option {
     padding: 8px;
-    background: var(--panel);
-    color: var(--text);
+    background: var(--card-bg);
+    color: var(--text-primary);
 }
 
 /* Enhanced Control Group Flex für Workspace */
@@ -679,11 +683,11 @@ input[type="range"]::-moz-range-thumb {
     gap: 16px;
 }
 .tool-card {
-    background: var(--btn);
+    background: var(--secondary-bg);
     border-radius: 16px;
     padding: 24px;
     text-decoration: none;
-    color: var(--text);
+    color: var(--text-primary);
     border: 1px solid var(--border-color);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     aspect-ratio: 1 / 1; /* Creates a square */
@@ -710,7 +714,7 @@ input[type="range"]::-moz-range-thumb {
 }
 .tool-card p {
     margin: 0;
-    color: var(--muted);
+    color: var(--text-muted);
     font-size: 0.9rem;
     line-height: 1.5;
 }
@@ -744,7 +748,7 @@ input[type="range"]::-moz-range-thumb {
 #gallery-thumbnails-container h4 {
     margin: 0 0 10px 0;
     font-size: 14px;
-    color: var(--text);
+    color: var(--text-primary);
 }
 
 #gallery-thumbnails {
@@ -764,7 +768,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 #gallery-thumbnails::-webkit-scrollbar-thumb {
-    background: var(--accent);
+    background: var(--accent-primary);
     border-radius: 4px;
 }
 
@@ -781,7 +785,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .gallery-thumb:hover {
-    border-color: var(--accent);
+    border-color: var(--accent-primary);
     transform: scale(1.05);
 }
 
@@ -823,7 +827,7 @@ input[type="range"]::-moz-range-thumb {
     display: flex;
     align-items: center;
     gap: 10px;
-    color: var(--text, #fff);
+    color: var(--text-primary, #fff);
     font-size: 14px;
     transition: background 0.2s;
 }
@@ -879,7 +883,7 @@ body > footer:last-of-type {
 .site-footer a,
 footer a,
 [class*="footer"] a {
-    color: var(--muted, #A8A992);
+    color: var(--text-muted, #A8A992);
     text-decoration: none;
     transition: color 0.2s ease;
 }
@@ -888,7 +892,7 @@ footer a,
 .site-footer a:hover,
 footer a:hover,
 [class*="footer"] a:hover {
-    color: var(--text, #E9E9EB);
+    color: var(--text-primary, #E9E9EB);
 }
 
 /* Navigation Links - Guter Kontrast (NUR für SSI Partials, nicht Vue-Komponenten) */
@@ -900,7 +904,7 @@ header.global a,
 nav.global a,
 [class*="global-nav"] a,
 [class*="site-nav"] a {
-    color: var(--text, #E9E9EB) !important;
+    color: var(--text-primary, #E9E9EB) !important;
     text-decoration: none !important;
     transition: color 0.2s ease;
 }
@@ -911,7 +915,7 @@ body > nav:first-of-type a:hover,
 body > header:first-of-type a:hover,
 header.global a:hover,
 nav.global a:hover {
-    color: var(--accent-light, #BCE5E5) !important;
+    color: var(--accent-tertiary, #BCE5E5) !important;
 }
 
 /* Navigation Text (nicht-Links) - NUR für SSI Partials */
@@ -923,7 +927,7 @@ body > nav:first-of-type,
 body > header:first-of-type,
 [class*="global-nav"],
 [class*="site-nav"] {
-    color: var(--text, #E9E9EB) !important;
+    color: var(--text-primary, #E9E9EB) !important;
 }
 
 .global-nav *,
@@ -946,7 +950,7 @@ body > nav:first-of-type span,
 body > nav:first-of-type label,
 body > header:first-of-type span,
 body > header:first-of-type label {
-    color: var(--text, #E9E9EB) !important;
+    color: var(--text-primary, #E9E9EB) !important;
 }
 
 /* Copyright Text - Kontrast */
@@ -955,7 +959,7 @@ body > header:first-of-type label {
 footer small,
 .global-footer small,
 .site-footer small {
-    color: var(--muted, #A8A992);
+    color: var(--text-muted, #A8A992);
 }
 
 

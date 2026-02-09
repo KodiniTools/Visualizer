@@ -322,7 +322,7 @@ function handleEscKey(e) {
 
 <style scoped>
 .screenshot-panel {
-  background-color: var(--panel, #151b1d);
+  background-color: var(--card-bg, #151b1d);
   border-radius: 8px;
   padding: 10px;
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
@@ -339,7 +339,7 @@ function handleEscKey(e) {
 
 h3 {
   margin: 0;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-weight: 600;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -677,7 +677,7 @@ h3::before {
   animation: scaleIn 0.2s ease;
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif);
   font-size: 12px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
 }
 
 @keyframes scaleIn {

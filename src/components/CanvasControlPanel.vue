@@ -1430,11 +1430,11 @@ onMounted(() => {
 
 <style scoped>
 .panel {
-  background-color: var(--panel, #151b1d);
+  background-color: var(--card-bg, #151b1d);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   border-radius: 8px;
   padding: 10px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1451,12 +1451,12 @@ onMounted(() => {
 }
 
 .panel-header:hover h3 {
-  color: var(--accent-light, #BCE5E5);
+  color: var(--accent-tertiary, #BCE5E5);
 }
 
 .chevron {
   font-size: 8px;
-  color: var(--accent, #609198);
+  color: var(--accent-primary, #609198);
   transition: transform 0.2s;
   display: inline-block;
   margin-left: 6px;
@@ -1485,7 +1485,7 @@ h3 {
   margin: 0;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   transition: color 0.2s;
@@ -1508,7 +1508,7 @@ h4 {
   margin: 0 0 5px 0;
   font-size: 0.6rem;
   font-weight: 500;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -1518,7 +1518,7 @@ h4 {
 }
 
 .undo-section {
-  background-color: var(--btn, #1c2426);
+  background-color: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   border-radius: 5px;
   padding: 8px;
@@ -1532,7 +1532,7 @@ h4 {
   display: block;
   margin-bottom: 4px;
   font-size: 0.6rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   font-weight: 500;
 }
 
@@ -1548,30 +1548,30 @@ h4 {
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 4px;
   cursor: pointer;
-  background-color: var(--btn, #1c2426);
+  background-color: var(--secondary-bg, #1c2426);
 }
 
 .color-text-input {
   flex: 1;
   padding: 5px 7px;
-  background-color: var(--btn, #1c2426);
+  background-color: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 4px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-size: 0.6rem;
   font-family: 'Courier New', monospace;
 }
 
 .color-text-input:focus {
   outline: none;
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
 }
 
 /* Styles für den Deckkraft-Slider */
 .opacity-slider {
   width: 100%;
   height: 3px;
-  background: linear-gradient(to right, var(--muted, #A8A992) 0%, var(--accent, #609198) 100%);
+  background: linear-gradient(to right, var(--text-muted, #A8A992) 0%, var(--accent-primary, #609198) 100%);
   border-radius: 2px;
   outline: none;
   -webkit-appearance: none;
@@ -1584,7 +1584,7 @@ h4 {
   appearance: none;
   width: 12px;
   height: 12px;
-  background-color: var(--accent-light, #BCE5E5);
+  background-color: var(--accent-tertiary, #BCE5E5);
   border: 2px solid #fff;
   border-radius: 50%;
   cursor: pointer;
@@ -1593,14 +1593,14 @@ h4 {
 }
 
 .opacity-slider::-webkit-slider-thumb:hover {
-  background-color: var(--accent, #609198);
+  background-color: var(--accent-primary, #609198);
   transform: scale(1.1);
 }
 
 .opacity-slider::-moz-range-thumb {
   width: 12px;
   height: 12px;
-  background-color: var(--accent-light, #BCE5E5);
+  background-color: var(--accent-tertiary, #BCE5E5);
   border: 2px solid #fff;
   border-radius: 50%;
   cursor: pointer;
@@ -1609,13 +1609,13 @@ h4 {
 }
 
 .opacity-slider::-moz-range-thumb:hover {
-  background-color: var(--accent, #609198);
+  background-color: var(--accent-primary, #609198);
   transform: scale(1.1);
 }
 
 .info-text {
   font-size: 0.55rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   line-height: 1.3;
   margin: 0 0 6px 0;
 }
@@ -1627,7 +1627,7 @@ h4 {
 
 .hint-text {
   font-size: 0.5rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   font-style: italic;
 }
 
@@ -1659,7 +1659,7 @@ h4 {
 
 .btn-primary {
   background: rgba(96, 145, 152, 0.2);
-  color: var(--accent-light, #BCE5E5);
+  color: var(--accent-tertiary, #BCE5E5);
   border: 1px solid rgba(96, 145, 152, 0.3);
 }
 
@@ -1669,14 +1669,14 @@ h4 {
 }
 
 .btn-secondary {
-  background-color: var(--btn, #1c2426);
-  color: var(--text, #E9E9EB);
+  background-color: var(--secondary-bg, #1c2426);
+  color: var(--text-primary, #E9E9EB);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
 }
 
 .btn-secondary:hover {
   background-color: var(--btn-hover, #2a3335);
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   transform: translateY(-1px);
 }
 
@@ -1692,8 +1692,8 @@ h4 {
 }
 
 .btn-danger:disabled {
-  background-color: var(--btn, #1c2426);
-  color: var(--muted, #A8A992);
+  background-color: var(--secondary-bg, #1c2426);
+  color: var(--text-muted, #A8A992);
   cursor: not-allowed;
   opacity: 0.5;
 }
@@ -1723,7 +1723,7 @@ h4 {
 }
 
 .confirm-dialog {
-  background-color: var(--panel, #151b1d);
+  background-color: var(--card-bg, #151b1d);
   border: 1px solid rgba(244, 67, 54, 0.5);
   border-radius: 8px;
   padding: 12px;
@@ -1744,7 +1744,7 @@ h4 {
   margin: 0 0 12px 0;
   font-size: 0.6rem;
   line-height: 1.5;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
 }
 
 .confirm-actions {
@@ -1760,9 +1760,9 @@ h4 {
 .gradient-section {
   margin-top: 10px;
   padding: 8px;
-  background: linear-gradient(180deg, var(--panel, #151b1d) 0%, rgba(96, 145, 152, 0.08) 100%);
+  background: linear-gradient(180deg, var(--card-bg, #151b1d) 0%, rgba(96, 145, 152, 0.08) 100%);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
-  border-left: 2px solid var(--accent, #609198);
+  border-left: 2px solid var(--accent-primary, #609198);
   border-radius: 6px;
 }
 
@@ -1770,7 +1770,7 @@ h4 {
   margin: 0 0 8px 0;
   font-size: 0.6rem;
   font-weight: 600;
-  color: var(--accent-light, #BCE5E5);
+  color: var(--accent-tertiary, #BCE5E5);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -1785,27 +1785,27 @@ h4 {
 .gradient-select {
   width: 100%;
   padding: 5px 8px;
-  background: var(--btn, #1c2426);
+  background: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 5px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-size: 0.6rem;
   cursor: pointer;
 }
 
 .gradient-select:hover {
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
 }
 
 .gradient-select:focus {
   outline: none;
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
 }
 
 .angle-slider {
   width: 100%;
   height: 3px;
-  background: linear-gradient(to right, var(--muted, #A8A992) 0%, var(--accent, #609198) 100%);
+  background: linear-gradient(to right, var(--text-muted, #A8A992) 0%, var(--accent-primary, #609198) 100%);
   border-radius: 2px;
   -webkit-appearance: none;
   appearance: none;
@@ -1816,7 +1816,7 @@ h4 {
   -webkit-appearance: none;
   width: 12px;
   height: 12px;
-  background: var(--accent-light, #BCE5E5);
+  background: var(--accent-tertiary, #BCE5E5);
   border: 2px solid #fff;
   border-radius: 50%;
   cursor: pointer;
@@ -1825,7 +1825,7 @@ h4 {
 
 .color-hex {
   font-size: 0.55rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   font-family: monospace;
 }
 
@@ -1833,7 +1833,7 @@ h4 {
 .audio-reactive-section {
   margin-top: 10px;
   padding: 8px;
-  background: linear-gradient(180deg, var(--panel, #151b1d) 0%, rgba(139, 92, 246, 0.08) 100%);
+  background: linear-gradient(180deg, var(--card-bg, #151b1d) 0%, rgba(139, 92, 246, 0.08) 100%);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   border-left: 2px solid #8b5cf6;
   border-radius: 6px;
@@ -1854,7 +1854,7 @@ h4 {
   gap: 6px;
   cursor: pointer;
   font-size: 0.6rem;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -1870,10 +1870,10 @@ h4 {
 .audio-select {
   width: 100%;
   padding: 5px 8px;
-  background: var(--btn, #1c2426);
+  background: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 5px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-size: 0.6rem;
   cursor: pointer;
 }
@@ -1891,7 +1891,7 @@ h4 {
   width: 100%;
   height: 3px;
   border-radius: 2px;
-  background: linear-gradient(90deg, var(--muted, #A8A992) 0%, #8b5cf6 100%);
+  background: linear-gradient(90deg, var(--text-muted, #A8A992) 0%, #8b5cf6 100%);
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
@@ -1921,7 +1921,7 @@ h4 {
   align-items: center;
   gap: 6px;
   padding: 5px 6px;
-  background: var(--btn, #1c2426);
+  background: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.15));
   border-radius: 5px;
   font-size: 0.55rem;
@@ -1943,7 +1943,7 @@ h4 {
   width: 50px;
   height: 3px;
   border-radius: 2px;
-  background: linear-gradient(90deg, var(--muted, #A8A992) 0%, #8b5cf6 100%);
+  background: linear-gradient(90deg, var(--text-muted, #A8A992) 0%, #8b5cf6 100%);
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
@@ -1962,7 +1962,7 @@ h4 {
 
 .effect-value {
   font-size: 0.5rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   min-width: 28px;
   text-align: right;
 }
@@ -1977,7 +1977,7 @@ h4 {
 
 .presets-list > label {
   font-size: 0.55rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   margin-bottom: 3px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -1988,14 +1988,14 @@ h4 {
   justify-content: space-between;
   align-items: center;
   padding: 5px 7px;
-  background: var(--btn, #1c2426);
+  background: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   border-radius: 5px;
   transition: all 0.2s ease;
 }
 
 .preset-item:hover {
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   background: var(--btn-hover, #2a3335);
 }
 
@@ -2007,7 +2007,7 @@ h4 {
 
 .preset-name {
   font-size: 0.6rem;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-weight: 500;
 }
 
@@ -2052,9 +2052,9 @@ h4 {
 .flip-section {
   margin-top: 10px;
   padding: 8px;
-  background: linear-gradient(180deg, var(--panel, #151b1d) 0%, rgba(96, 145, 152, 0.08) 100%);
+  background: linear-gradient(180deg, var(--card-bg, #151b1d) 0%, rgba(96, 145, 152, 0.08) 100%);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
-  border-left: 2px solid var(--accent, #609198);
+  border-left: 2px solid var(--accent-primary, #609198);
   border-radius: 6px;
 }
 
@@ -2062,7 +2062,7 @@ h4 {
   margin: 0 0 8px 0;
   font-size: 0.6rem;
   font-weight: 600;
-  color: var(--accent-light, #BCE5E5);
+  color: var(--accent-tertiary, #BCE5E5);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -2079,10 +2079,10 @@ h4 {
   justify-content: center;
   gap: 4px;
   padding: 6px 8px;
-  background: var(--btn, #1c2426);
+  background: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 5px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-size: 0.55rem;
   font-weight: 500;
   cursor: pointer;
@@ -2091,22 +2091,22 @@ h4 {
 
 .flip-button:hover {
   background: var(--btn-hover, #2a3335);
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
 }
 
 .flip-button.active {
   background: rgba(96, 145, 152, 0.3);
-  border-color: var(--accent, #609198);
-  color: var(--accent-light, #BCE5E5);
+  border-color: var(--accent-primary, #609198);
+  color: var(--accent-tertiary, #BCE5E5);
 }
 
 /* ✨ NEU: Background Thumbnail Styles */
 .background-thumb-section {
   margin-top: 10px;
   padding: 8px;
-  background: linear-gradient(180deg, var(--panel, #151b1d) 0%, rgba(96, 145, 152, 0.08) 100%);
+  background: linear-gradient(180deg, var(--card-bg, #151b1d) 0%, rgba(96, 145, 152, 0.08) 100%);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
-  border-left: 2px solid var(--accent, #609198);
+  border-left: 2px solid var(--accent-primary, #609198);
   border-radius: 6px;
 }
 
@@ -2114,7 +2114,7 @@ h4 {
   margin: 0 0 8px 0;
   font-size: 0.6rem;
   font-weight: 600;
-  color: var(--accent-light, #BCE5E5);
+  color: var(--accent-tertiary, #BCE5E5);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -2131,7 +2131,7 @@ h4 {
 }
 
 .background-thumb:hover {
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   box-shadow: 0 0 8px rgba(96, 145, 152, 0.3);
 }
 
@@ -2148,7 +2148,7 @@ h4 {
   right: 0;
   padding: 4px 6px;
   background: rgba(0, 0, 0, 0.7);
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-size: 0.5rem;
   text-align: center;
   opacity: 0;
@@ -2176,8 +2176,8 @@ h4 {
 
 .bg-replace-modal {
   position: relative;
-  background: var(--panel, #151b1d);
-  border: 1px solid var(--accent, #609198);
+  background: var(--card-bg, #151b1d);
+  border: 1px solid var(--accent-primary, #609198);
   border-radius: 12px;
   max-width: 500px;
   width: 90%;
@@ -2223,7 +2223,7 @@ h4 {
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 8px;
   overflow: hidden;
-  background: var(--btn, #1c2426);
+  background: var(--secondary-bg, #1c2426);
 }
 
 .bg-replace-modal-image-container img {
@@ -2235,17 +2235,17 @@ h4 {
 .bg-replace-modal-info h3 {
   margin: 0 0 8px 0;
   font-size: 0.8rem;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
 }
 
 .bg-replace-hint {
   font-size: 0.55rem;
-  color: var(--accent, #609198);
+  color: var(--accent-primary, #609198);
   margin: 0 0 12px 0;
   padding: 6px 8px;
   background: rgba(96, 145, 152, 0.1);
   border-radius: 4px;
-  border-left: 2px solid var(--accent, #609198);
+  border-left: 2px solid var(--accent-primary, #609198);
 }
 
 .bg-replace-modal-actions {
@@ -2257,9 +2257,9 @@ h4 {
   flex: 1;
   padding: 8px 12px;
   background: rgba(96, 145, 152, 0.2);
-  border: 1px solid var(--accent, #609198);
+  border: 1px solid var(--accent-primary, #609198);
   border-radius: 6px;
-  color: var(--accent-light, #BCE5E5);
+  color: var(--accent-tertiary, #BCE5E5);
   font-size: 0.65rem;
   font-weight: 600;
   cursor: pointer;
@@ -2274,7 +2274,7 @@ h4 {
 .pending-bg-replace-preview {
   margin-top: 12px;
   padding: 10px;
-  background: var(--btn, #1c2426);
+  background: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   border-radius: 8px;
 }
@@ -2285,7 +2285,7 @@ h4 {
 
 .pending-bg-replace-label {
   font-size: 0.6rem;
-  color: var(--accent-light, #BCE5E5);
+  color: var(--accent-tertiary, #BCE5E5);
   font-weight: 600;
 }
 
@@ -2357,7 +2357,7 @@ h4 {
 .bg-gallery-section {
   margin-top: 12px;
   padding: 10px;
-  background: var(--btn, #1c2426);
+  background: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   border-radius: 8px;
 }
@@ -2371,10 +2371,10 @@ h4 {
 
 .bg-category-tab {
   padding: 5px 8px;
-  background: var(--panel, #151b1d);
+  background: var(--card-bg, #151b1d);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   border-radius: 5px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-size: 0.55rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -2384,13 +2384,13 @@ h4 {
 }
 
 .bg-category-tab:hover {
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
 }
 
 .bg-category-tab.active {
   background: rgba(96, 145, 152, 0.2);
-  border-color: var(--accent, #609198);
-  color: var(--accent-light, #BCE5E5);
+  border-color: var(--accent-primary, #609198);
+  color: var(--accent-tertiary, #BCE5E5);
 }
 
 .bg-category-tab .category-icon {
@@ -2414,7 +2414,7 @@ h4 {
   align-items: center;
   justify-content: center;
   height: 100px;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   font-size: 0.6rem;
 }
 
@@ -2434,7 +2434,7 @@ h4 {
 }
 
 .bg-gallery-item:hover {
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   transform: scale(1.05);
 }
 
@@ -2507,10 +2507,10 @@ h4 {
   justify-content: center;
   gap: 4px;
   padding: 8px 10px;
-  background: var(--btn, #1c2426);
+  background: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 5px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-size: 0.55rem;
   font-weight: 500;
   cursor: pointer;
@@ -2519,8 +2519,8 @@ h4 {
 
 .btn-reset-option:hover:not(:disabled) {
   background: var(--btn-hover, #2a3335);
-  border-color: var(--accent, #609198);
-  color: var(--accent-light, #BCE5E5);
+  border-color: var(--accent-primary, #609198);
+  color: var(--accent-tertiary, #BCE5E5);
 }
 
 .btn-reset-option:disabled {

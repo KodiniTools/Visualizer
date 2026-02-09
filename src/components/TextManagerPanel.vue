@@ -1172,7 +1172,7 @@ Zeile 3..."
             <option value="volume">{{ t('textManager.volumeOverall') }}</option>
             <option value="dynamic">✨ {{ t('textManager.dynamicAutoBlend') }}</option>
           </select>
-          <div v-if="selectedText.audioReactive.source === 'dynamic'" class="hint-text" style="color: var(--accent, #609198);">
+          <div v-if="selectedText.audioReactive.source === 'dynamic'" class="hint-text" style="color: var(--accent-primary, #609198);">
             {{ t('textManager.dynamicHint') }}
           </div>
         </div>
@@ -4101,11 +4101,11 @@ watch(
 <style scoped>
 /* ===== MAIN PANEL ===== */
 .panel {
-  background-color: var(--panel, #151b1d);
+  background-color: var(--card-bg, #151b1d);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   border-radius: 8px;
   padding: 10px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -4116,7 +4116,7 @@ h3 {
   margin: 0 0 8px 0;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   letter-spacing: 0.4px;
   text-transform: uppercase;
   display: flex;
@@ -4138,7 +4138,7 @@ h4 {
   margin: 8px 0 6px 0;
   font-size: 0.6rem;
   font-weight: 500;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -4157,7 +4157,7 @@ h4 {
   display: block;
   margin-bottom: 4px;
   font-size: 0.6rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   font-weight: 500;
@@ -4170,10 +4170,10 @@ h4 {
 .text-area {
   width: 100%;
   padding: 5px 8px;
-  background-color: var(--btn, #1c2426);
+  background-color: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 5px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-size: 0.6rem;
   font-family: inherit;
   resize: vertical;
@@ -4199,14 +4199,14 @@ h4 {
 .color-text-input:focus,
 .text-area:focus {
   outline: none;
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   background-color: var(--btn-hover, #2a3335);
 }
 
 /* ===== HINT TEXT ===== */
 .hint-text {
   font-size: 0.5rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   margin-top: 3px;
   line-height: 1.4;
 }
@@ -4225,7 +4225,7 @@ h4 {
 .slider {
   width: 100%;
   height: 3px;
-  background: linear-gradient(90deg, var(--muted, #A8A992) 0%, var(--accent, #609198) 100%);
+  background: linear-gradient(90deg, var(--text-muted, #A8A992) 0%, var(--accent-primary, #609198) 100%);
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -4240,7 +4240,7 @@ h4 {
   appearance: none;
   width: 12px;
   height: 12px;
-  background: var(--accent-light, #BCE5E5);
+  background: var(--accent-tertiary, #BCE5E5);
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid #fff;
@@ -4249,14 +4249,14 @@ h4 {
 }
 
 .slider::-webkit-slider-thumb:hover {
-  background: var(--accent, #609198);
+  background: var(--accent-primary, #609198);
   transform: scale(1.1);
 }
 
 .slider::-moz-range-thumb {
   width: 12px;
   height: 12px;
-  background: var(--accent-light, #BCE5E5);
+  background: var(--accent-tertiary, #BCE5E5);
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid #fff;
@@ -4265,7 +4265,7 @@ h4 {
 }
 
 .slider::-moz-range-thumb:hover {
-  background: var(--accent, #609198);
+  background: var(--accent-primary, #609198);
   transform: scale(1.1);
 }
 
@@ -4282,12 +4282,12 @@ h4 {
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 5px;
   cursor: pointer;
-  background-color: var(--btn, #1c2426);
+  background-color: var(--secondary-bg, #1c2426);
   transition: all 0.2s ease;
 }
 
 .color-input:hover {
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
 }
 
 .color-text-input {
@@ -4314,10 +4314,10 @@ h4 {
 .btn-small {
   flex: 1;
   padding: 5px 8px;
-  background-color: var(--btn, #1c2426);
+  background-color: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 5px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   cursor: pointer;
   font-size: 0.6rem;
   font-weight: 500;
@@ -4328,14 +4328,14 @@ h4 {
 
 .btn-small:hover {
   background-color: var(--btn-hover, #2a3335);
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   transform: translateY(-1px);
 }
 
 .btn-small.active {
   background: rgba(96, 145, 152, 0.3);
-  border-color: var(--accent, #609198);
-  color: var(--accent-light, #BCE5E5);
+  border-color: var(--accent-primary, #609198);
+  color: var(--accent-tertiary, #BCE5E5);
   font-weight: 600;
 }
 
@@ -4355,7 +4355,7 @@ h4 {
 
 .btn-primary {
   background: rgba(96, 145, 152, 0.2);
-  color: var(--accent-light, #BCE5E5);
+  color: var(--accent-tertiary, #BCE5E5);
   border: 1px solid rgba(96, 145, 152, 0.3);
 }
 
@@ -4365,21 +4365,21 @@ h4 {
 }
 
 .btn-primary:disabled {
-  background-color: var(--btn, #1c2426);
-  color: var(--muted, #A8A992);
+  background-color: var(--secondary-bg, #1c2426);
+  color: var(--text-muted, #A8A992);
   cursor: not-allowed;
   opacity: 0.5;
 }
 
 .btn-secondary {
-  background-color: var(--btn, #1c2426);
-  color: var(--text, #E9E9EB);
+  background-color: var(--secondary-bg, #1c2426);
+  color: var(--text-primary, #E9E9EB);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
 }
 
 .btn-secondary:hover {
   background-color: var(--btn-hover, #2a3335);
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   transform: translateY(-1px);
 }
 
@@ -4422,7 +4422,7 @@ h4 {
 }
 
 .effect-item {
-  background-color: var(--btn, #1c2426);
+  background-color: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   border-radius: 5px;
   padding: 6px 8px;
@@ -4430,7 +4430,7 @@ h4 {
 }
 
 .effect-item:hover {
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   background-color: var(--btn-hover, #2a3335);
 }
 
@@ -4445,7 +4445,7 @@ h4 {
   gap: 6px;
   cursor: pointer;
   font-size: 0.55rem;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   user-select: none;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -4455,7 +4455,7 @@ h4 {
   width: 12px;
   height: 12px;
   cursor: pointer;
-  accent-color: var(--accent, #609198);
+  accent-color: var(--accent-primary, #609198);
 }
 
 .effect-icon {
@@ -4493,7 +4493,7 @@ h4 {
 
 .effect-label {
   font-size: 0.5rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   min-width: 50px;
   text-transform: uppercase;
 }
@@ -4503,7 +4503,7 @@ h4 {
   align-items: center;
   gap: 4px;
   font-size: 0.5rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   margin-top: 6px;
   cursor: pointer;
   text-transform: uppercase;
@@ -4526,14 +4526,14 @@ h4 {
 .advanced-settings summary {
   cursor: pointer;
   font-size: 0.55rem;
-  color: var(--accent, #609198);
+  color: var(--accent-primary, #609198);
   padding: 4px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .advanced-settings summary:hover {
-  color: var(--accent-light, #BCE5E5);
+  color: var(--accent-tertiary, #BCE5E5);
 }
 
 .preset-buttons {
@@ -4548,10 +4548,10 @@ h4 {
   min-width: 60px;
   padding: 5px 6px;
   font-size: 0.5rem;
-  background: var(--btn, #1c2426);
+  background: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   border-radius: 4px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   cursor: pointer;
   transition: all 0.2s ease;
   text-transform: uppercase;
@@ -4560,8 +4560,8 @@ h4 {
 
 .btn-preset:hover {
   background: var(--btn-hover, #2a3335);
-  border-color: var(--accent, #609198);
-  color: var(--accent-light, #BCE5E5);
+  border-color: var(--accent-primary, #609198);
+  color: var(--accent-tertiary, #BCE5E5);
   transform: translateY(-1px);
 }
 
@@ -4702,7 +4702,7 @@ h4 {
 .slider-small {
   flex: 1;
   height: 3px;
-  background: linear-gradient(90deg, var(--muted, #A8A992) 0%, var(--accent, #609198) 100%);
+  background: linear-gradient(90deg, var(--text-muted, #A8A992) 0%, var(--accent-primary, #609198) 100%);
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -4716,7 +4716,7 @@ h4 {
   appearance: none;
   width: 12px;
   height: 12px;
-  background: var(--accent-light, #BCE5E5);
+  background: var(--accent-tertiary, #BCE5E5);
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid #fff;
@@ -4726,13 +4726,13 @@ h4 {
 
 .slider-small::-webkit-slider-thumb:hover {
   transform: scale(1.1);
-  background: var(--accent, #609198);
+  background: var(--accent-primary, #609198);
 }
 
 .slider-small::-moz-range-thumb {
   width: 12px;
   height: 12px;
-  background: var(--accent-light, #BCE5E5);
+  background: var(--accent-tertiary, #BCE5E5);
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid #fff;
@@ -4742,12 +4742,12 @@ h4 {
 
 .slider-small::-moz-range-thumb:hover {
   transform: scale(1.1);
-  background: var(--accent, #609198);
+  background: var(--accent-primary, #609198);
 }
 
 .intensity-value {
   font-size: 0.5rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   font-weight: 500;
   min-width: 30px;
   text-align: right;

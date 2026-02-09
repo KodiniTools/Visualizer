@@ -1276,7 +1276,7 @@ h3::before {
 }
 
 .beat-marker-indicator:hover {
-  border-top-color: #ffed4a;
+  border-top-color: var(--accent-tertiary);
   transform: translateX(-50%) scale(1.3);
 }
 
@@ -1300,7 +1300,7 @@ h3::before {
 }
 
 .control-btn-marker:hover {
-  background-color: #ffed4a;
+  background-color: var(--accent-tertiary);
   border-color: var(--accent-tertiary);
 }
 
@@ -1486,7 +1486,7 @@ h3::before {
 .marker-time-input:focus {
   border-color: var(--accent-tertiary);
   outline: none;
-  box-shadow: 0 0 4px rgba(255, 215, 0, 0.4);
+  box-shadow: 0 0 4px rgba(201, 152, 77, 0.4);
 }
 
 .time-hint {
@@ -1566,7 +1566,7 @@ h3::before {
 }
 
 .marker-item:hover {
-  background-color: var(--secondary-bg);
+  background-color: var(--btn-hover);
 }
 
 .marker-item.triggered {
@@ -1575,8 +1575,8 @@ h3::before {
 }
 
 .marker-item.editing {
-  background-color: rgba(255, 215, 0, 0.15);
-  border-left: 2px solid #ffd700;
+  background-color: rgba(201, 152, 77, 0.15);
+  border-left: 2px solid var(--accent-primary);
 }
 
 .marker-buttons {
@@ -1612,8 +1612,8 @@ h3::before {
 
 .marker-action {
   font-size: 9px;
-  color: #6ea8fe;
-  background-color: rgba(110, 168, 254, 0.1);
+  color: var(--accent-primary);
+  background-color: rgba(201, 152, 77, 0.1);
   padding: 2px 6px;
   border-radius: 3px;
 }
@@ -1656,8 +1656,8 @@ h3::before {
 }
 
 .btn-edit-marker:hover {
-  background-color: rgba(255, 215, 0, 0.8);
-  color: #000;
+  background-color: rgba(201, 152, 77, 0.8);
+  color: var(--accent-text);
   opacity: 1;
 }
 

@@ -2537,6 +2537,14 @@ export function setLocale(locale) {
   }
 }
 
+// Listen for SSI navigation language-changed events to keep Vue reactive state in sync
+if (typeof window !== 'undefined') {
+  window.addEventListener('language-changed', (e) => {
+    const lang = e.detail && e.detail.lang
+    if (lang) setLocale(lang)
+  })
+}
+
 // Toggle between locales
 export function toggleLocale() {
   const newLocale = currentLocale.value === 'de' ? 'en' : 'de'

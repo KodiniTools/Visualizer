@@ -1524,6 +1524,328 @@ h3::before {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ═══ Light Theme Overrides ═══ */
+
+/* Panel container: dark bg → white card */
+[data-theme='light'] .recorder-panel {
+  background-color: #FFFFFF;
+  border-color: rgba(1, 79, 153, 0.15);
+}
+
+/* Heading text: light → dark blue */
+[data-theme='light'] h3 {
+  color: #003971;
+}
+
+/* Heading icon: white strokes → dark blue strokes */
+[data-theme='light'] h3::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23003971' stroke-width='1.5'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%23003971'/%3E%3C/svg%3E");
+  filter: none;
+}
+
+/* Status indicator: gold rgba bg → blue rgba bg */
+[data-theme='light'] .status-indicator {
+  background: rgba(1, 79, 153, 0.05);
+  border-color: rgba(1, 79, 153, 0.15);
+}
+
+/* Status dot: muted → light-mode muted */
+[data-theme='light'] .status-dot {
+  background: #4d6d8e;
+}
+
+/* Status text: muted → light-mode muted */
+[data-theme='light'] .status-text {
+  color: #4d6d8e;
+}
+
+/* Recording timer: soften rgba bg for light bg */
+[data-theme='light'] .recording-timer {
+  background: rgba(244, 67, 54, 0.1);
+}
+
+[data-theme='light'] .recording-timer.paused {
+  background: rgba(255, 152, 0, 0.1);
+}
+
+/* Idle dot: dark grey → lighter grey */
+[data-theme='light'] .status-indicator.idle .status-dot {
+  background: #aab4be;
+}
+
+/* Processing: soften bg for light */
+[data-theme='light'] .status-indicator.processing {
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+/* Ready: soften bg for light */
+[data-theme='light'] .status-indicator.ready {
+  background: rgba(76, 175, 80, 0.08);
+}
+
+/* Recording: soften bg for light */
+[data-theme='light'] .status-indicator.recording {
+  background: rgba(244, 67, 54, 0.08);
+}
+
+/* Paused: soften bg for light */
+[data-theme='light'] .status-indicator.paused {
+  background: rgba(255, 152, 0, 0.08);
+}
+
+/* Prepare button: gold accent → blue accent */
+[data-theme='light'] .btn-prepare {
+  background: rgba(1, 79, 153, 0.1);
+  color: #014f99;
+  border-color: rgba(1, 79, 153, 0.25);
+}
+
+[data-theme='light'] .btn-prepare:hover:not(:disabled) {
+  background: rgba(1, 79, 153, 0.18);
+}
+
+/* Start button: soften green bg for light */
+[data-theme='light'] .btn-start {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.25);
+}
+
+[data-theme='light'] .btn-start:hover:not(:disabled) {
+  background: rgba(76, 175, 80, 0.2);
+}
+
+/* Pause button: soften orange bg for light */
+[data-theme='light'] .btn-pause {
+  background: rgba(255, 152, 0, 0.1);
+  border-color: rgba(255, 152, 0, 0.25);
+}
+
+[data-theme='light'] .btn-pause:hover:not(:disabled) {
+  background: rgba(255, 152, 0, 0.2);
+}
+
+/* Resume button: soften blue bg for light */
+[data-theme='light'] .btn-resume {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: rgba(33, 150, 243, 0.25);
+}
+
+[data-theme='light'] .btn-resume:hover:not(:disabled) {
+  background: rgba(33, 150, 243, 0.2);
+}
+
+/* Stop button: soften red bg for light */
+[data-theme='light'] .btn-stop {
+  background: rgba(244, 67, 54, 0.1);
+  border-color: rgba(244, 67, 54, 0.25);
+}
+
+[data-theme='light'] .btn-stop:hover:not(:disabled) {
+  background: rgba(244, 67, 54, 0.2);
+}
+
+/* Reset button: soften grey bg for light */
+[data-theme='light'] .btn-reset {
+  background: rgba(0, 0, 0, 0.05);
+  color: #6b7280;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme='light'] .btn-reset:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Audio source section: soften purple bg for light */
+[data-theme='light'] .audio-source-section {
+  background: rgba(139, 92, 246, 0.05);
+  border-color: rgba(139, 92, 246, 0.15);
+}
+
+/* Source indicator: soften green bg for light */
+[data-theme='light'] .source-indicator {
+  background: rgba(76, 175, 80, 0.12);
+}
+
+[data-theme='light'] .source-indicator.active {
+  background: rgba(76, 175, 80, 0.12);
+}
+
+/* Mic toggle row: white-on-dark → dark-on-light */
+[data-theme='light'] .mic-toggle-row {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .mic-toggle-row:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+[data-theme='light'] .mic-toggle-row input[type="checkbox"] {
+  accent-color: #014f99;
+}
+
+/* Mic toggle label: light text → dark blue */
+[data-theme='light'] .mic-toggle-row .toggle-label {
+  color: #003971;
+}
+
+/* Mic toggle icon: purple stays but darken slightly */
+[data-theme='light'] .mic-toggle-row .toggle-label .icon {
+  color: #7c3aed;
+}
+
+/* Source hint info: soften amber bg for light */
+[data-theme='light'] .source-hint.info {
+  color: rgba(180, 130, 0, 0.9);
+  background: rgba(255, 193, 7, 0.08);
+}
+
+/* Section label: grey → muted blue */
+[data-theme='light'] .section-label {
+  color: #4d6d8e;
+}
+
+/* Quality buttons: dark bg → light bg */
+[data-theme='light'] .quality-btn {
+  background-color: #f0f0f0;
+  color: #003971;
+  border-color: #d0d0d0;
+}
+
+[data-theme='light'] .quality-btn:hover:not(:disabled) {
+  background-color: #e4e4e4;
+  border-color: #bbb;
+}
+
+/* Quality active: blue accent → primary blue */
+[data-theme='light'] .quality-btn.active {
+  background-color: #014f99;
+  color: #F5F4D6;
+  border-color: #014f99;
+}
+
+[data-theme='light'] .quality-btn.active:hover {
+  background-color: #003971;
+}
+
+/* Upload buttons: dark bg → light bg */
+[data-theme='light'] .upload-btn {
+  background-color: #f0f0f0;
+  color: #003971;
+  border-color: #d0d0d0;
+}
+
+[data-theme='light'] .upload-btn:hover:not(:disabled) {
+  background-color: #e4e4e4;
+  border-color: #bbb;
+}
+
+/* Upload active: blue accent → primary blue */
+[data-theme='light'] .upload-btn.active {
+  background-color: #014f99;
+  color: #F5F4D6;
+  border-color: #014f99;
+}
+
+[data-theme='light'] .upload-btn.active:hover {
+  background-color: #003971;
+}
+
+/* Server status unavailable: dark grey → lighter grey */
+[data-theme='light'] .server-status.unavailable {
+  color: #999;
+}
+
+/* Toggle checkbox: blue → primary blue */
+[data-theme='light'] .toggle-row input[type="checkbox"] {
+  accent-color: #014f99;
+}
+
+/* Toggle label: light grey → dark blue */
+[data-theme='light'] .toggle-label {
+  color: #003971;
+}
+
+/* Conversion progress: blue rgba bg → lighter blue on white */
+[data-theme='light'] .conversion-progress {
+  background: rgba(1, 79, 153, 0.05);
+  border-color: rgba(1, 79, 153, 0.18);
+}
+
+/* Progress label / percent: blue → primary blue */
+[data-theme='light'] .progress-label {
+  color: #014f99;
+}
+
+[data-theme='light'] .progress-percent {
+  color: #014f99;
+}
+
+/* Progress bar track: white-on-dark → dark-on-light */
+[data-theme='light'] .progress-bar {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Progress fill gradient: bright blue → primary blue */
+[data-theme='light'] .progress-fill {
+  background: linear-gradient(90deg, #014f99, #3a7cc6);
+}
+
+/* MP4 download button: soften shadow for light */
+[data-theme='light'] .mp4-download-btn:hover {
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
+
+/* Close conversion button: dark grey → light grey */
+[data-theme='light'] .btn-close-conversion {
+  background: rgba(0, 0, 0, 0.05);
+  color: #4d6d8e;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme='light'] .btn-close-conversion:hover:not(:disabled) {
+  background: rgba(244, 67, 54, 0.1);
+  border-color: rgba(244, 67, 54, 0.2);
+}
+
+/* Error message: soften red bg for light */
+[data-theme='light'] .error-message {
+  background: rgba(244, 67, 54, 0.08);
+}
+
+/* Retry button: soften orange bg for light */
+[data-theme='light'] .btn-retry {
+  background: rgba(255, 152, 0, 0.1);
+  border-color: rgba(255, 152, 0, 0.25);
+}
+
+[data-theme='light'] .btn-retry:hover:not(:disabled) {
+  background: rgba(255, 152, 0, 0.2);
+}
+
+/* Dismiss button: dark grey → light grey */
+[data-theme='light'] .btn-dismiss {
+  background: rgba(0, 0, 0, 0.05);
+  color: #4d6d8e;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme='light'] .btn-dismiss:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Convert button: soften purple for light */
+[data-theme='light'] .btn-convert {
+  background: rgba(156, 39, 176, 0.08);
+  color: #9C27B0;
+  border-color: rgba(156, 39, 176, 0.2);
+}
+
+[data-theme='light'] .btn-convert:hover:not(:disabled) {
+  background: rgba(156, 39, 176, 0.15);
+}
 </style>
 
 <style>

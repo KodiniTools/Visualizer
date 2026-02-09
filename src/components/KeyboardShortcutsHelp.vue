@@ -321,4 +321,62 @@ kbd {
     font-size: 20px;
   }
 }
+
+/* ═══ Light Theme Overrides ═══ */
+[data-theme='light'] .shortcuts-panel {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: #014f99;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme='light'] .panel-header {
+  border-bottom-color: #d4c8a8;
+  background: linear-gradient(135deg, rgba(1, 79, 153, 0.1), rgba(1, 79, 153, 0.05));
+}
+
+[data-theme='light'] .panel-header h3 {
+  color: #014f99;
+}
+
+[data-theme='light'] .shortcuts-content::-webkit-scrollbar-track {
+  background: rgba(249, 242, 213, 0.5);
+}
+
+[data-theme='light'] .shortcut-section {
+  background: rgba(249, 242, 213, 0.5);
+  border-color: rgba(1, 79, 153, 0.2);
+}
+
+[data-theme='light'] .shortcut-section h4 {
+  color: #014f99;
+}
+
+[data-theme='light'] .shortcut-item {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme='light'] .shortcut-item:hover:not(.disabled) {
+  background: rgba(1, 79, 153, 0.1);
+}
+
+[data-theme='light'] .shortcut-item span {
+  color: #003971;
+}
+
+[data-theme='light'] kbd {
+  background: linear-gradient(135deg, #f0ead0, #f9f2d5);
+  color: #014f99;
+  border-color: rgba(1, 79, 153, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+[data-theme='light'] .panel-footer {
+  border-top-color: #d4c8a8;
+  background: rgba(249, 242, 213, 0.3);
+}
+
+[data-theme='light'] .tip {
+  color: #4d6d8e;
+}
 </style>

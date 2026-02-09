@@ -581,4 +581,93 @@ const featureCards = computed(() => {
     padding: 16px 32px;
   }
 }
+
+/* ═══ Light Theme Overrides ═══ */
+
+[data-theme='light'] .internal-landing {
+  background: linear-gradient(180deg, #F5F4D6 0%, #f9f2d5 50%, #F5F4D6 100%);
+  color: #003971;
+}
+
+[data-theme='light'] .landing-header {
+  background: rgba(249, 242, 213, 0.9);
+  border-bottom: 1px solid rgba(1, 79, 153, 0.1);
+}
+
+[data-theme='light'] .landing-header.scrolled {
+  background: rgba(249, 242, 213, 0.98);
+  box-shadow: 0 4px 20px rgba(0, 57, 113, 0.08);
+}
+
+[data-theme='light'] .header-logo {
+  color: #014f99;
+}
+
+[data-theme='light'] .control-btn {
+  background: rgba(1, 79, 153, 0.08);
+  border: 1px solid rgba(1, 79, 153, 0.2);
+  color: #014f99;
+}
+
+[data-theme='light'] .control-btn:hover {
+  background: rgba(1, 79, 153, 0.15);
+  border-color: rgba(1, 79, 153, 0.35);
+}
+
+[data-theme='light'] .hero-title {
+  color: #003971;
+}
+
+[data-theme='light'] .gradient-text {
+  background: linear-gradient(135deg, #c9984d 0%, #014f99 50%, #003971 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme='light'] .hero-subtitle {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .feature-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 242, 213, 0.95) 100%);
+  border-color: rgba(1, 79, 153, 0.15);
+  box-shadow: 0 4px 24px rgba(0, 57, 113, 0.06);
+}
+
+[data-theme='light'] .feature-card:hover {
+  border-color: rgba(1, 79, 153, 0.4);
+  box-shadow: 0 20px 50px rgba(0, 57, 113, 0.12);
+}
+
+[data-theme='light'] .card-icon {
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px rgba(1, 79, 153, 0.2);
+}
+
+[data-theme='light'] .card-title {
+  color: #003971;
+}
+
+[data-theme='light'] .card-description {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .btn-primary {
+  background: linear-gradient(135deg, #014f99 0%, #3a7cc5 100%);
+  color: #F5F4D6;
+  box-shadow: 0 6px 28px rgba(1, 79, 153, 0.35);
+}
+
+[data-theme='light'] .btn-primary:hover {
+  box-shadow: 0 12px 40px rgba(1, 79, 153, 0.45);
+}
+
+[data-theme='light'] .hero-background {
+  opacity: 0.1;
+}
+
+[data-theme='light'] .wave-bar {
+  background: linear-gradient(180deg, #014f99 0%, #3a7cc5 100%);
+}
 </style>

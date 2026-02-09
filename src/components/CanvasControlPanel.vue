@@ -2527,4 +2527,127 @@ h4 {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ═══ Light Theme Overrides ═══ */
+
+/* Panel icon SVG: white stroke → dark blue stroke */
+[data-theme='light'] h3::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23003971' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M9 3v18M15 3v18M3 9h18M3 15h18'/%3E%3C/svg%3E");
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.15));
+}
+
+/* Primary button: gold rgba → blue rgba */
+[data-theme='light'] .btn-primary {
+  background: rgba(1, 79, 153, 0.1);
+  border: 1px solid rgba(1, 79, 153, 0.3);
+}
+
+[data-theme='light'] .btn-primary:hover {
+  background: rgba(1, 79, 153, 0.18);
+}
+
+/* Load button: gold → blue */
+[data-theme='light'] .btn-load {
+  background: rgba(1, 79, 153, 0.1);
+}
+
+[data-theme='light'] .btn-load:hover {
+  background: rgba(1, 79, 153, 0.2);
+}
+
+/* Replace button: gold → blue */
+[data-theme='light'] .btn-replace {
+  background: rgba(1, 79, 153, 0.1);
+}
+
+[data-theme='light'] .btn-replace:hover {
+  background: rgba(1, 79, 153, 0.18);
+}
+
+/* Replace hint: gold bg → blue bg */
+[data-theme='light'] .bg-replace-hint {
+  background: rgba(1, 79, 153, 0.08);
+}
+
+/* Active states: gold → blue */
+[data-theme='light'] .flip-button.active {
+  background: rgba(1, 79, 153, 0.15);
+}
+
+[data-theme='light'] .bg-category-tab.active {
+  background: rgba(1, 79, 153, 0.12);
+}
+
+/* Gradient section backgrounds: dark gradient → light gradient */
+[data-theme='light'] .gradient-section {
+  background: linear-gradient(180deg, #FFFFFF 0%, rgba(1, 79, 153, 0.06) 100%);
+}
+
+[data-theme='light'] .flip-section {
+  background: linear-gradient(180deg, #FFFFFF 0%, rgba(1, 79, 153, 0.06) 100%);
+}
+
+[data-theme='light'] .background-thumb-section {
+  background: linear-gradient(180deg, #FFFFFF 0%, rgba(1, 79, 153, 0.06) 100%);
+}
+
+[data-theme='light'] .audio-reactive-section {
+  background: linear-gradient(180deg, #FFFFFF 0%, rgba(139, 92, 246, 0.06) 100%);
+}
+
+/* Background thumb hover: gold glow → blue glow */
+[data-theme='light'] .background-thumb:hover {
+  box-shadow: 0 0 8px rgba(1, 79, 153, 0.2);
+}
+
+/* Thumb hint overlay: dark → light */
+[data-theme='light'] .background-thumb .thumb-hint {
+  background: rgba(255, 255, 255, 0.85);
+  color: #003971;
+}
+
+/* Overlays: reduce darkness for light theme */
+[data-theme='light'] .confirm-overlay {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='light'] .bg-replace-modal-overlay {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Dialog/modal shadows: reduce opacity */
+[data-theme='light'] .confirm-dialog {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .bg-replace-modal {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+}
+
+/* Slider thumbs: white border → blue border, lighter shadows */
+[data-theme='light'] .opacity-slider::-webkit-slider-thumb {
+  border-color: #014f99;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .opacity-slider::-moz-range-thumb {
+  border-color: #014f99;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .angle-slider::-webkit-slider-thumb {
+  border-color: #014f99;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Audio/effect slider thumbs: white border → purple border, lighter shadows */
+[data-theme='light'] .audio-slider::-webkit-slider-thumb {
+  border-color: #8b5cf6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .effect-slider::-webkit-slider-thumb {
+  border-color: #8b5cf6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
 </style>

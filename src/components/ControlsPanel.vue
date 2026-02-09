@@ -181,4 +181,60 @@ h4 {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ═══ Light Theme Overrides ═══ */
+[data-theme='light'] .panel-container {
+  background-color: #FFFFFF;
+  border-color: #d4c8a8;
+}
+
+[data-theme='light'] h4 {
+  color: #003971;
+}
+
+[data-theme='light'] .section-label {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .toggle-btn {
+  background-color: #f0ead0;
+  color: #003971;
+  border-color: #d4c8a8;
+}
+
+[data-theme='light'] .toggle-btn:hover {
+  background-color: #e8e0c0;
+  border-color: #c9984d;
+}
+
+[data-theme='light'] .toggle-btn.active {
+  background-color: #014f99;
+  color: #F5F4D6;
+  border-color: #014f99;
+}
+
+[data-theme='light'] .toggle-btn.active:hover {
+  background-color: #003971;
+}
+
+[data-theme='light'] .preset-btn {
+  background-color: #f0ead0;
+  color: #003971;
+  border-color: #d4c8a8;
+}
+
+[data-theme='light'] .preset-btn:hover {
+  background-color: #e8e0c0;
+  border-color: #c9984d;
+}
+
+[data-theme='light'] .preset-btn.active {
+  background-color: #014f99;
+  color: #F5F4D6;
+  border-color: #014f99;
+}
+
+[data-theme='light'] .preset-btn.active:hover {
+  background-color: #003971;
+}
 </style>

@@ -41,4 +41,18 @@
   margin: 0;
   font-style: italic;
 }
+
+/* ═══ Light Theme Overrides ═══ */
+[data-theme='light'] .empty-panel {
+  background-color: #FFFFFF;
+  border-color: #d4c8a8;
+}
+
+[data-theme='light'] .panel-title {
+  color: #003971;
+}
+
+[data-theme='light'] .placeholder-text {
+  color: #4d6d8e;
+}
 </style>

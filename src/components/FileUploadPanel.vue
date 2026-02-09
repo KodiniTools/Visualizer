@@ -283,4 +283,71 @@ h3::before {
     height: 32px;
   }
 }
+
+/* ═══ Light Theme Overrides ═══ */
+[data-theme='light'] .panel {
+  background-color: #FFFFFF;
+}
+
+[data-theme='light'] h3 {
+  color: #003971;
+}
+
+[data-theme='light'] h3::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23003971' stroke-width='1.5'%3E%3Cpath d='M9 18V5l12-2v13'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Ccircle cx='18' cy='16' r='3'/%3E%3C/svg%3E");
+  filter: none;
+}
+
+[data-theme='light'] .upload-area {
+  background: linear-gradient(135deg, #f9f2d5 0%, rgba(1, 79, 153, 0.08) 100%);
+}
+
+[data-theme='light'] .upload-area:hover {
+  border-color: #014f99;
+  background: linear-gradient(135deg, rgba(1, 79, 153, 0.1) 0%, rgba(201, 152, 77, 0.1) 100%);
+}
+
+[data-theme='light'] .upload-area.drag-over {
+  border-color: #c9984d;
+  background: linear-gradient(135deg, rgba(1, 79, 153, 0.15) 0%, rgba(201, 152, 77, 0.12) 100%);
+}
+
+[data-theme='light'] .upload-icon {
+  color: #c9984d;
+}
+
+[data-theme='light'] .upload-icon svg {
+  stroke: #014f99;
+  filter: none;
+}
+
+[data-theme='light'] .upload-main {
+  color: #003971;
+}
+
+[data-theme='light'] .upload-sub {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .format-label {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .format-item {
+  color: #014f99;
+  background-color: rgba(1, 79, 153, 0.1);
+}
+
+[data-theme='light'] .tracks-info {
+  background-color: rgba(56, 142, 60, 0.08);
+  border-color: rgba(56, 142, 60, 0.25);
+}
+
+[data-theme='light'] .info-icon {
+  color: #388E3C;
+}
+
+[data-theme='light'] .info-text {
+  color: #388E3C;
+}
 </style>

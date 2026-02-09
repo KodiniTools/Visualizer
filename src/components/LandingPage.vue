@@ -1019,4 +1019,182 @@ function toggleFaq(index) {
     font-size: 0.9rem;
   }
 }
+
+/* ═══ Light Theme Overrides ═══ */
+
+[data-theme='light'] .landing-page {
+  background: linear-gradient(180deg, #F5F4D6 0%, #FFFFFF 50%, #F5F4D6 100%);
+  color: #003971;
+}
+
+[data-theme='light'] .landing-header {
+  background: rgba(249, 242, 213, 0.9);
+  border-bottom: 1px solid rgba(201, 152, 77, 0.2);
+}
+
+[data-theme='light'] .landing-header.scrolled {
+  background: rgba(249, 242, 213, 0.98);
+  box-shadow: 0 4px 20px rgba(0, 57, 113, 0.08);
+}
+
+[data-theme='light'] .header-logo {
+  color: #014f99;
+}
+
+[data-theme='light'] .nav-link {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .nav-link:hover,
+[data-theme='light'] .nav-link.active {
+  color: #014f99;
+}
+
+[data-theme='light'] .control-btn {
+  background: rgba(1, 79, 153, 0.08);
+  border: 1px solid rgba(1, 79, 153, 0.2);
+  color: #014f99;
+}
+
+[data-theme='light'] .control-btn:hover {
+  background: rgba(1, 79, 153, 0.15);
+  border-color: rgba(1, 79, 153, 0.3);
+}
+
+[data-theme='light'] .hero::before {
+  background: radial-gradient(ellipse at 50% 0%, rgba(1, 79, 153, 0.08) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 80%, rgba(201, 152, 77, 0.1) 0%, transparent 40%),
+              radial-gradient(ellipse at 20% 60%, rgba(1, 79, 153, 0.06) 0%, transparent 40%);
+}
+
+[data-theme='light'] .hero-badge {
+  background: rgba(201, 152, 77, 0.1);
+  border: 1px solid rgba(201, 152, 77, 0.3);
+  color: #c9984d;
+}
+
+[data-theme='light'] .hero-title {
+  color: #003971;
+}
+
+[data-theme='light'] .gradient-text {
+  background: linear-gradient(135deg, #c9984d 0%, #014f99 50%, #003971 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme='light'] .hero-subtitle {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .btn-primary {
+  background: linear-gradient(135deg, #014f99 0%, #003971 100%);
+  color: #F5F4D6;
+  box-shadow: 0 4px 20px rgba(1, 79, 153, 0.35);
+}
+
+[data-theme='light'] .btn-primary:hover {
+  box-shadow: 0 8px 30px rgba(1, 79, 153, 0.45);
+}
+
+[data-theme='light'] .btn-secondary {
+  color: #014f99;
+  border: 2px solid rgba(1, 79, 153, 0.3);
+}
+
+[data-theme='light'] .btn-secondary:hover {
+  border-color: #014f99;
+  background: rgba(1, 79, 153, 0.08);
+}
+
+[data-theme='light'] .wave-bar {
+  background: linear-gradient(180deg, #014f99 0%, #003971 100%);
+}
+
+[data-theme='light'] .section-title {
+  color: #003971;
+}
+
+[data-theme='light'] .section-subtitle {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .feature-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 100%);
+  border: 1px solid rgba(201, 152, 77, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 57, 113, 0.05);
+}
+
+[data-theme='light'] .feature-card:hover {
+  border-color: rgba(201, 152, 77, 0.4);
+  box-shadow: 0 20px 40px rgba(201, 152, 77, 0.15);
+}
+
+[data-theme='light'] .feature-icon {
+  color: #003971;
+}
+
+[data-theme='light'] .feature-title {
+  color: #003971;
+}
+
+[data-theme='light'] .feature-description {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .video-placeholder {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 242, 213, 0.95) 100%);
+  border: 2px dashed rgba(1, 79, 153, 0.2);
+}
+
+[data-theme='light'] .play-button {
+  background: linear-gradient(135deg, #014f99 0%, #003971 100%);
+  color: #F5F4D6;
+}
+
+[data-theme='light'] .play-button:hover {
+  box-shadow: 0 10px 40px rgba(1, 79, 153, 0.4);
+}
+
+[data-theme='light'] .video-placeholder-text {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .faq-item {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(201, 152, 77, 0.2);
+}
+
+[data-theme='light'] .faq-item:hover {
+  border-color: rgba(201, 152, 77, 0.3);
+}
+
+[data-theme='light'] .faq-item.active {
+  border-color: rgba(201, 152, 77, 0.4);
+}
+
+[data-theme='light'] .faq-question {
+  color: #003971;
+}
+
+[data-theme='light'] .faq-icon {
+  color: #014f99;
+}
+
+[data-theme='light'] .faq-answer p {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .cta-section {
+  background: radial-gradient(ellipse at 50% 100%, rgba(1, 79, 153, 0.08) 0%, transparent 60%);
+}
+
+[data-theme='light'] .cta-title {
+  color: #003971;
+}
+
+[data-theme='light'] .cta-subtitle {
+  color: #4d6d8e;
+}
 </style>

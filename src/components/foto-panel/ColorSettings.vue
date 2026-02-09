@@ -225,4 +225,53 @@ const showColorPicker = ref(false);
   opacity: 1;
   max-height: 200px;
 }
+
+/* ═══ Light Theme Overrides ═══ */
+[data-theme='light'] .color-settings-section {
+  background-color: #FFFFFF;
+  border-color: rgba(1, 79, 153, 0.2);
+}
+
+[data-theme='light'] .color-settings-header:hover {
+  background: rgba(1, 79, 153, 0.05);
+}
+
+[data-theme='light'] .color-settings-title {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .color-toggle-btn {
+  background: rgba(1, 79, 153, 0.08);
+  color: rgba(0, 57, 113, 0.5);
+}
+
+[data-theme='light'] .color-toggle-btn:hover {
+  background: rgba(1, 79, 153, 0.15);
+  color: #014f99;
+}
+
+[data-theme='light'] .color-picker-content {
+  border-top-color: rgba(1, 79, 153, 0.15);
+}
+
+[data-theme='light'] .color-preset-btn {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .color-preset-btn:hover {
+  border-color: rgba(1, 79, 153, 0.4);
+}
+
+[data-theme='light'] .color-preset-btn.active {
+  border-color: #014f99;
+  box-shadow: 0 0 0 2px rgba(1, 79, 153, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme='light'] .custom-color-label {
+  color: #003971;
+}
+
+[data-theme='light'] .custom-color-input::-webkit-color-swatch {
+  border-color: rgba(1, 79, 153, 0.3);
+}
 </style>

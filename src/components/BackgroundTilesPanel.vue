@@ -2313,4 +2313,285 @@ function setEffectIntensity(effectName, value) {
   background: rgba(236, 72, 153, 0.25);
   border-color: rgba(236, 72, 153, 0.5);
 }
+
+/* ═══ Light Theme Overrides ═══ */
+
+/* Tiles section container */
+[data-theme='light'] .tiles-section {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+/* Control labels: #bbb → #4d6d8e */
+[data-theme='light'] .control-group label {
+  color: #4d6d8e;
+}
+
+/* Tile count buttons: dark bg → white, light text → dark blue */
+[data-theme='light'] .tile-count-buttons button {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(74, 222, 128, 0.25);
+  color: #003971;
+}
+
+[data-theme='light'] .tile-count-buttons button:hover {
+  background: rgba(74, 222, 128, 0.12);
+  border-color: rgba(74, 222, 128, 0.4);
+}
+
+[data-theme='light'] .tile-count-buttons button.active {
+  background: rgba(74, 222, 128, 0.15);
+}
+
+/* Tiles preview grid: dark bg → subtle light */
+[data-theme='light'] .tiles-preview {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Tile number: white text → dark text */
+[data-theme='light'] .tile-number {
+  color: rgba(0, 0, 0, 0.7);
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.5);
+}
+
+/* Tile has-image badge: dark overlay → light overlay */
+[data-theme='light'] .tile-has-image {
+  color: rgba(0, 0, 0, 0.6);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Selected tile editor: dark bg → white card */
+[data-theme='light'] .selected-tile-editor {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(74, 222, 128, 0.2);
+}
+
+/* Close button: muted → dark blue */
+[data-theme='light'] .btn-close {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .btn-close:hover {
+  color: #003971;
+}
+
+/* Color picker: dark bg → white */
+[data-theme='light'] .color-input {
+  background-color: #FFFFFF;
+  border-color: #ccc;
+}
+
+/* Color hex label: #94a3b8 → #4d6d8e */
+[data-theme='light'] .color-hex {
+  color: #4d6d8e;
+}
+
+/* Image upload area: dark bg → light */
+[data-theme='light'] .image-upload-area {
+  background: rgba(255, 255, 255, 0.4);
+  border-color: rgba(74, 222, 128, 0.25);
+}
+
+/* Hint text: #888 → #4d6d8e */
+[data-theme='light'] .hint {
+  color: #4d6d8e;
+}
+
+/* Image preview: dark bg → light */
+[data-theme='light'] .image-preview {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Filter row labels: #aaa → #4d6d8e */
+[data-theme='light'] .filter-row label {
+  color: #4d6d8e;
+}
+
+/* Filter row values: #888 → #4d6d8e */
+[data-theme='light'] .filter-row span {
+  color: #4d6d8e;
+}
+
+/* Audio select: dark bg → white */
+[data-theme='light'] .audio-select {
+  background: rgba(255, 255, 255, 0.8);
+  color: #003971;
+}
+
+/* Effect items: dark bg → white card */
+[data-theme='light'] .effect-item {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Effect item text: #ccc → dark blue */
+[data-theme='light'] .effect-item span {
+  color: #003971;
+}
+
+/* Effect value: #94a3b8 → #4d6d8e */
+[data-theme='light'] .effect-value {
+  color: #4d6d8e;
+}
+
+/* Presets section: dark bg → white card */
+[data-theme='light'] .presets-section {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: #ccc;
+}
+
+/* Presets label: #94a3b8 → #4d6d8e */
+[data-theme='light'] .presets-section > label {
+  color: #4d6d8e;
+}
+
+/* Preset items: dark bg → white */
+[data-theme='light'] .preset-item {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #ccc;
+}
+
+/* Preset name: #e0e0e0 → dark blue */
+[data-theme='light'] .preset-name {
+  color: #003971;
+}
+
+/* Hint text: #666 → #4d6d8e */
+[data-theme='light'] .hint-text {
+  color: #4d6d8e;
+}
+
+/* Video preview: #000 → cream */
+[data-theme='light'] .video-preview {
+  background: #f9f2d5;
+}
+
+/* Video settings: dark bg → subtle light */
+[data-theme='light'] .video-settings {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Video settings label: #7A8DA0 → #4d6d8e */
+[data-theme='light'] .video-settings .checkbox-label {
+  color: #4d6d8e;
+}
+
+/* Gallery button: gold rgba bg → blue rgba bg */
+[data-theme='light'] .btn-gallery {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(1, 79, 153, 0.15) 100%);
+}
+
+[data-theme='light'] .btn-gallery:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(1, 79, 153, 0.25) 100%);
+}
+
+/* Modal overlay: very dark → lighter */
+[data-theme='light'] .tile-gallery-modal-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal container: dark gradient → white/cream, shadow lighter */
+[data-theme='light'] .tile-gallery-modal {
+  background: linear-gradient(180deg, #FFFFFF 0%, #f9f2d5 100%);
+  border-color: rgba(201, 152, 77, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(201, 152, 77, 0.15);
+}
+
+/* Modal header title: #E9E9EB → dark blue */
+[data-theme='light'] .gallery-modal-header h3 {
+  color: #003971;
+}
+
+/* Modal close button: white tint → dark tint */
+[data-theme='light'] .gallery-modal-close {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #003971;
+}
+
+/* Gallery categories bar: dark bg → subtle light */
+[data-theme='light'] .gallery-categories {
+  background: rgba(0, 0, 0, 0.03);
+  border-bottom-color: rgba(201, 152, 77, 0.1);
+}
+
+/* Category tabs: dark bg → light, #7A8DA0 → #4d6d8e */
+[data-theme='light'] .category-tab {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .category-tab:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #003971;
+}
+
+/* Active category: gold rgba bg → blue rgba bg, #c9984d → #014f99 */
+[data-theme='light'] .category-tab.active {
+  background: rgba(1, 79, 153, 0.12);
+  border-color: rgba(1, 79, 153, 0.4);
+  color: #014f99;
+}
+
+/* Loading spinner: gold rgba → blue rgba */
+[data-theme='light'] .loading-spinner {
+  border-color: rgba(1, 79, 153, 0.3);
+  border-top-color: #014f99;
+}
+
+/* Gallery image item: dark bg → subtle light */
+[data-theme='light'] .gallery-image-item {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Selected gallery image: #c9984d → #014f99, gold shadows → blue shadows */
+[data-theme='light'] .gallery-image-item.selected {
+  border-color: #014f99;
+  box-shadow: 0 0 0 2px rgba(1, 79, 153, 0.3), 0 4px 12px rgba(1, 79, 153, 0.2);
+}
+
+/* Gallery image name overlay: slightly lighter gradient */
+[data-theme='light'] .gallery-image-name {
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+}
+
+/* Modal footer: dark bg → subtle light */
+[data-theme='light'] .gallery-modal-footer {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* Cancel button: white tint → dark tint, #7A8DA0 → #4d6d8e */
+[data-theme='light'] .btn-cancel {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .btn-cancel:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #003971;
+}
+
+/* Select button: gold gradient → blue, #a07838 → #014f99 */
+[data-theme='light'] .btn-select {
+  background: linear-gradient(135deg, #014f99 0%, #014f99 100%);
+  border-color: rgba(1, 79, 153, 0.5);
+  color: #F5F4D6;
+}
+
+/* Select hover: #d4a85c → #c9984d, #c9984d → #014f99 */
+[data-theme='light'] .btn-select:hover:not(:disabled) {
+  background: linear-gradient(135deg, #c9984d 0%, #014f99 100%);
+  box-shadow: 0 4px 12px rgba(1, 79, 153, 0.3);
+}
+
+/* Replace section: dark bg → light */
+[data-theme='light'] .replace-section {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Replace label: #888 → #4d6d8e */
+[data-theme='light'] .replace-label {
+  color: #4d6d8e;
+}
 </style>

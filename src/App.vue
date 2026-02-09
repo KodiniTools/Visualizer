@@ -8,6 +8,64 @@
 </script>
 
 <style>
+/* --- THEME VARIABLE DEFINITIONS --- */
+:root {
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --green: #C5DEB0;
+    --red: #ef4444;
+    --yellow: #eab308;
+    --palette-cyan: #f8e1a9;
+    --palette-beige: #7A8DA0;
+    --palette-grayblue: #f8e1a9;
+    --palette-lightgray: #E9E9EB;
+    --palette-lightgreen: #C5DEB0;
+    --palette-teal: #c9984d;
+}
+
+[data-theme='dark'] {
+    --primary-bg: #091428;
+    --secondary-bg: #0E1C32;
+    --card-bg: #142640;
+    --accent-primary: #c9984d;
+    --accent-secondary: #014f99;
+    --accent-tertiary: #f8e1a9;
+    --accent-text: #091428;
+    --text-primary: #f9f2d5;
+    --text-secondary: #f8e1a9;
+    --text-muted: #7A8DA0;
+    --btn-hover: #1a2a42;
+    --ring: #c9984d;
+    --border-color: rgb(201 152 77 / 20%);
+    --shadow-color: rgb(0 0 0 / 50%);
+    --gradient-color: rgb(201 152 77 / 3%);
+    --panel-highlight: rgb(201 152 77 / 5%);
+    --progress-bg: rgb(1 79 153 / 20%);
+    --success: #C5DEB0;
+    --body-gradient: radial-gradient(1200px 600px at 80% -20%, #0a2850 0%, transparent 60%), var(--primary-bg);
+}
+
+[data-theme='light'] {
+    --primary-bg: #F5F4D6;
+    --secondary-bg: #f9f2d5;
+    --card-bg: #FFFFFF;
+    --accent-primary: #014f99;
+    --accent-secondary: #c9984d;
+    --accent-tertiary: #c9984d;
+    --accent-text: #F5F4D6;
+    --text-primary: #003971;
+    --text-secondary: #014f99;
+    --text-muted: #4d6d8e;
+    --btn-hover: #f8e1a9;
+    --ring: #c9984d;
+    --border-color: rgb(201 152 77 / 30%);
+    --shadow-color: rgb(0 0 0 / 10%);
+    --gradient-color: rgb(201 152 77 / 5%);
+    --panel-highlight: rgb(201 152 77 / 8%);
+    --progress-bg: rgb(1 79 153 / 15%);
+    --success: #C5DEB0;
+    --body-gradient: radial-gradient(1200px 600px at 80% -20%, #f8e1a9 0%, transparent 60%), #F5F4D6;
+}
+
 /* Global styles */
 *, *::before, *::after {
   box-sizing: border-box;

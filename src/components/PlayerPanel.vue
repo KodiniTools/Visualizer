@@ -1029,7 +1029,7 @@ h3::before {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #6ea8fe;
+  background: var(--accent-primary);
   cursor: pointer;
   transition: all 0.2s ease;
   border: 2px solid #fff;
@@ -1037,7 +1037,7 @@ h3::before {
 }
 
 .eq-slider::-webkit-slider-thumb:hover {
-  background: #5a98ee;
+  background: var(--accent-tertiary);
   transform: scale(1.15);
 }
 
@@ -1045,7 +1045,7 @@ h3::before {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #6ea8fe;
+  background: var(--accent-primary);
   cursor: pointer;
   border: 2px solid #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -1053,7 +1053,7 @@ h3::before {
 }
 
 .eq-slider::-moz-range-thumb:hover {
-  background: #5a98ee;
+  background: var(--accent-tertiary);
   transform: scale(1.15);
 }
 
@@ -1142,7 +1142,7 @@ h3::before {
 .btn-delete {
   background-color: transparent;
   border: none;
-  color: #888;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 2px;
   display: flex;
@@ -1166,7 +1166,7 @@ h3::before {
 }
 
 .playlist-item.active .btn-delete {
-  color: #121212;
+  color: var(--accent-text);
   opacity: 0.7;
 }
 
@@ -1179,7 +1179,7 @@ h3::before {
 /* Drag Handle für Playlist-Neuordnung */
 .drag-handle {
   cursor: grab;
-  color: #666;
+  color: var(--text-muted);
   font-size: 0.7rem;
   user-select: none;
   opacity: 0.5;
@@ -1232,7 +1232,7 @@ h3::before {
 
 .playlist-item-empty {
   padding: 12px;
-  color: #666;
+  color: var(--text-muted);
   font-style: italic;
   text-align: center;
   font-size: 11px;
@@ -1244,17 +1244,17 @@ h3::before {
 }
 
 .playlist-container::-webkit-scrollbar-track {
-  background: #2a2a2a;
+  background: var(--secondary-bg);
   border-radius: 3px;
 }
 
 .playlist-container::-webkit-scrollbar-thumb {
-  background: #555;
+  background: var(--border-color);
   border-radius: 3px;
 }
 
 .playlist-container::-webkit-scrollbar-thumb:hover {
-  background: #666;
+  background: var(--text-muted);
 }
 
 /* ========== Beat Marker Styles ========== */
@@ -1267,7 +1267,7 @@ h3::before {
   height: 0;
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-top: 8px solid #ffd700;
+  border-top: 8px solid var(--accent-primary);
   transform: translateX(-50%);
   cursor: pointer;
   z-index: 10;
@@ -1293,15 +1293,15 @@ h3::before {
 
 /* Add marker button */
 .control-btn-marker {
-  background-color: #ffd700;
-  border-color: #ffd700;
-  color: #121212;
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: var(--accent-text);
   margin-left: 8px;
 }
 
 .control-btn-marker:hover {
   background-color: #ffed4a;
-  border-color: #ffed4a;
+  border-color: var(--accent-tertiary);
 }
 
 .control-btn-marker.active {
@@ -1311,10 +1311,10 @@ h3::before {
 
 /* Beat Marker Section */
 .beat-marker-section {
-  background-color: #333;
+  background-color: var(--card-bg);
   border-radius: 6px;
   padding: 8px;
-  border: 1px solid #444;
+  border: 1px solid var(--border-color);
 }
 
 .marker-header {
@@ -1334,10 +1334,10 @@ h3::before {
   padding: 3px 8px;
   font-size: 9px;
   font-weight: 600;
-  border: 1px solid #555;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background-color: #3a3a3a;
-  color: #888;
+  background-color: var(--secondary-bg);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -1345,13 +1345,13 @@ h3::before {
 .btn-toggle.active {
   background-color: #4ade80;
   border-color: #4ade80;
-  color: #121212;
+  color: var(--accent-text);
 }
 
 .btn-clear-markers {
   background-color: transparent;
   border: none;
-  color: #888;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 2px;
   display: flex;
@@ -1372,20 +1372,20 @@ h3::before {
 
 /* Add Marker Form */
 .marker-add-form {
-  background-color: #2a2a2a;
+  background-color: var(--secondary-bg);
   border-radius: 4px;
   padding: 8px;
   margin-bottom: 8px;
-  border: 1px solid #ffd700;
+  border: 1px solid var(--accent-primary);
 }
 
 .form-title {
   font-size: 11px;
   font-weight: 600;
-  color: #ffd700;
+  color: var(--accent-primary);
   margin-bottom: 8px;
   padding-bottom: 4px;
-  border-bottom: 1px solid #444;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .form-row {
@@ -1397,7 +1397,7 @@ h3::before {
 
 .form-row label {
   font-size: 10px;
-  color: #aaa;
+  color: var(--text-muted);
   min-width: 60px;
 }
 
@@ -1405,14 +1405,14 @@ h3::before {
   flex: 1;
   padding: 4px 6px;
   font-size: 10px;
-  background-color: #3a3a3a;
-  border: 1px solid #555;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #e0e0e0;
+  color: var(--text-primary);
 }
 
 .marker-select:focus {
-  border-color: #6ea8fe;
+  border-color: var(--accent-primary);
   outline: none;
 }
 
@@ -1427,7 +1427,7 @@ h3::before {
   width: 28px;
   height: 22px;
   padding: 0;
-  border: 1px solid #555;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   cursor: pointer;
   background: transparent;
@@ -1438,7 +1438,7 @@ h3::before {
   align-items: center;
   gap: 4px;
   font-size: 10px;
-  color: #aaa;
+  color: var(--text-muted);
   cursor: pointer;
 }
 
@@ -1451,14 +1451,14 @@ h3::before {
   flex: 1;
   padding: 4px 6px;
   font-size: 10px;
-  background-color: #3a3a3a;
-  border: 1px solid #555;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #e0e0e0;
+  color: var(--text-primary);
 }
 
 .marker-input:focus {
-  border-color: #6ea8fe;
+  border-color: var(--accent-primary);
   outline: none;
 }
 
@@ -1476,28 +1476,28 @@ h3::before {
   font-size: 11px;
   font-weight: 600;
   font-family: 'Courier New', monospace;
-  background-color: #3a3a3a;
-  border: 1px solid #ffd700;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--accent-primary);
   border-radius: 4px;
-  color: #ffd700;
+  color: var(--accent-primary);
   text-align: center;
 }
 
 .marker-time-input:focus {
-  border-color: #ffed4a;
+  border-color: var(--accent-tertiary);
   outline: none;
   box-shadow: 0 0 4px rgba(255, 215, 0, 0.4);
 }
 
 .time-hint {
   font-size: 9px;
-  color: #666;
+  color: var(--text-muted);
   font-style: italic;
 }
 
 .time-max {
   font-size: 10px;
-  color: #888;
+  color: var(--text-muted);
   font-family: 'Courier New', monospace;
 }
 
@@ -1515,7 +1515,7 @@ h3::before {
   background-color: #4ade80;
   border: none;
   border-radius: 4px;
-  color: #121212;
+  color: var(--accent-text);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -1527,17 +1527,17 @@ h3::before {
 .btn-cancel {
   padding: 4px 12px;
   font-size: 10px;
-  background-color: #3a3a3a;
-  border: 1px solid #555;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #aaa;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-cancel:hover {
-  background-color: #4a4a4a;
-  color: #e0e0e0;
+  background-color: var(--btn-hover);
+  color: var(--text-primary);
 }
 
 /* Marker List */
@@ -1555,7 +1555,7 @@ h3::before {
   gap: 6px;
   padding: 4px 6px;
   font-size: 10px;
-  background-color: #2a2a2a;
+  background-color: var(--secondary-bg);
   border-radius: 4px;
   margin-bottom: 4px;
   transition: all 0.2s ease;
@@ -1566,7 +1566,7 @@ h3::before {
 }
 
 .marker-item:hover {
-  background-color: #3a3a3a;
+  background-color: var(--secondary-bg);
 }
 
 .marker-item.triggered {
@@ -1587,7 +1587,7 @@ h3::before {
 
 .marker-time {
   font-weight: 600;
-  color: #ffd700;
+  color: var(--accent-primary);
   cursor: pointer;
   min-width: 36px;
 }
@@ -1598,7 +1598,7 @@ h3::before {
 
 .marker-label {
   flex: 1;
-  color: #e0e0e0;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1607,7 +1607,7 @@ h3::before {
 }
 
 .marker-label:hover {
-  color: #ffd700;
+  color: var(--accent-primary);
 }
 
 .marker-action {
@@ -1621,7 +1621,7 @@ h3::before {
 .btn-delete-marker {
   background-color: transparent;
   border: none;
-  color: #666;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 2px;
   display: flex;
@@ -1645,7 +1645,7 @@ h3::before {
 .btn-edit-marker {
   background-color: transparent;
   border: none;
-  color: #666;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 2px;
   display: flex;
@@ -1672,17 +1672,17 @@ h3::before {
 }
 
 .marker-list::-webkit-scrollbar-track {
-  background: #2a2a2a;
+  background: var(--secondary-bg);
   border-radius: 2px;
 }
 
 .marker-list::-webkit-scrollbar-thumb {
-  background: #555;
+  background: var(--border-color);
   border-radius: 2px;
 }
 
 .marker-list::-webkit-scrollbar-thumb:hover {
-  background: #666;
+  background: var(--text-muted);
 }
 
 /* ========== Audio Source Selector ========== */

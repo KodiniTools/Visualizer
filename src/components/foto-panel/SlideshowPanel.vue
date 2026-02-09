@@ -414,10 +414,10 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--primary-bg) 100%);
   border-radius: 10px;
   padding: 16px;
-  border: 1px solid #3a3a3a;
+  border: 1px solid var(--card-bg);
   margin-top: 8px;
 }
 
@@ -442,8 +442,8 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  background-color: #3a3a3a;
-  color: #888;
+  background-color: var(--secondary-bg);
+  color: var(--text-muted);
 }
 
 .status-badge.active {
@@ -458,7 +458,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 
 .section-label {
   font-size: 11px;
-  color: #888;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -485,12 +485,12 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 }
 
 .image-order-list::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: var(--secondary-bg);
   border-radius: 3px;
 }
 
 .image-order-list::-webkit-scrollbar-thumb {
-  background: #444;
+  background: var(--btn-hover);
   border-radius: 3px;
 }
 
@@ -498,7 +498,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   display: flex;
   align-items: center;
   gap: 10px;
-  background-color: #333;
+  background-color: var(--card-bg);
   border-radius: 6px;
   padding: 8px 10px;
   cursor: grab;
@@ -507,8 +507,8 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 }
 
 .order-item:hover {
-  background-color: #3a3a3a;
-  border-color: #4a4a4a;
+  background-color: var(--secondary-bg);
+  border-color: var(--border-color);
 }
 
 .order-item.dragging {
@@ -555,7 +555,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 }
 
 .drag-handle:hover {
-  color: #888;
+  color: var(--text-muted);
 }
 
 /* Timing-Sektion */
@@ -573,7 +573,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 
 .timing-control label {
   font-size: 11px;
-  color: #aaa;
+  color: var(--text-muted);
 }
 
 .slider-row {
@@ -586,7 +586,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   flex: 1;
   height: 6px;
   border-radius: 3px;
-  background: #444;
+  background: var(--btn-hover);
   -webkit-appearance: none;
   appearance: none;
 }
@@ -636,7 +636,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 
 .hint {
   font-size: 10px;
-  color: #888;
+  color: var(--text-muted);
   margin: 0;
   padding-left: 26px;
 }
@@ -677,7 +677,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 
 .btn-pause {
   background: linear-gradient(135deg, #f1c40f 0%, #e2b70e 100%);
-  color: #1e1e1e;
+  color: var(--text-primary);
 }
 
 .btn-pause:hover {
@@ -708,7 +708,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 /* Progress Section */
 .progress-section {
   padding-top: 12px;
-  border-top: 1px solid #3a3a3a;
+  border-top: 1px solid var(--card-bg);
 }
 
 .progress-info {
@@ -716,7 +716,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   justify-content: space-between;
   align-items: center;
   font-size: 11px;
-  color: #aaa;
+  color: var(--text-muted);
 }
 
 .phase-indicator {
@@ -748,7 +748,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   flex-direction: column;
   gap: 6px;
   padding-top: 8px;
-  border-top: 1px solid #3a3a3a;
+  border-top: 1px solid var(--card-bg);
 }
 
 /* ✨ Transform Section */
@@ -757,7 +757,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   flex-direction: column;
   gap: 12px;
   padding-top: 8px;
-  border-top: 1px solid #3a3a3a;
+  border-top: 1px solid var(--card-bg);
 }
 
 .transform-controls {
@@ -774,7 +774,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 
 .transform-control label {
   font-size: 11px;
-  color: #aaa;
+  color: var(--text-muted);
 }
 
 .btn-reset-transform {
@@ -787,13 +787,13 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid #4a4a4a;
-  background-color: #333;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
   color: #e0e0e0;
 }
 
 .btn-reset-transform:hover {
-  background-color: #3a3a3a;
+  background-color: var(--secondary-bg);
   border-color: #6ea8fe;
   color: #6ea8fe;
 }

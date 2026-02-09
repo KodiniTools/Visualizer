@@ -2940,7 +2940,7 @@ canvas {
 }
 
 .canvas-images-scroll::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: var(--secondary-bg, #0E1C32);
   border-radius: 3px;
 }
 
@@ -3292,7 +3292,7 @@ canvas {
 .replace-with-label {
   display: block;
   font-size: 0.7rem;
-  color: #888;
+  color: var(--text-muted);
   margin-bottom: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3466,7 +3466,7 @@ canvas {
   border-radius: 20px;
   border: 1px solid rgba(201, 152, 77, 0.2);
   background: rgba(0, 0, 0, 0.2);
-  color: #999;
+  color: var(--text-muted);
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
@@ -3476,7 +3476,7 @@ canvas {
 
 .replace-category-tab:hover {
   background: rgba(201, 152, 77, 0.15);
-  color: #ccc;
+  color: var(--text-secondary);
 }
 
 .replace-category-tab.active {
@@ -3506,7 +3506,7 @@ canvas {
   align-items: center;
   justify-content: center;
   height: 150px;
-  color: #888;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
@@ -3571,7 +3571,7 @@ canvas {
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.05);
-  color: #aaa;
+  color: var(--text-muted);
   font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.2s ease;

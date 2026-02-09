@@ -62,19 +62,19 @@ function toggleCollapse() {
 
 <style scoped>
 .workflow-section {
-  background: linear-gradient(145deg, #252525 0%, #1e1e1e 100%);
-  border: 1px solid #333;
+  background: linear-gradient(145deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
 .workflow-section:hover {
-  border-color: #444;
+  border-color: var(--border-color);
 }
 
 .workflow-section.collapsed {
-  background: #1e1e1e;
+  background: var(--secondary-bg);
 }
 
 /* Header */
@@ -89,7 +89,7 @@ function toggleCollapse() {
 }
 
 .section-header:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--btn-hover);
 }
 
 .header-left {
@@ -107,7 +107,7 @@ function toggleCollapse() {
   justify-content: center;
   font-size: 13px;
   font-weight: 700;
-  color: #121212;
+  color: var(--accent-text);
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
@@ -122,21 +122,21 @@ function toggleCollapse() {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
   letter-spacing: 0.3px;
 }
 
 .section-subtitle {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
 }
 
 .collapse-btn {
   width: 24px;
   height: 24px;
   border: none;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.5);
+  background: var(--btn-hover);
+  color: var(--text-muted);
   border-radius: 6px;
   cursor: pointer;
   display: flex;
@@ -146,8 +146,8 @@ function toggleCollapse() {
 }
 
 .collapse-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--btn-hover);
+  color: var(--text-primary);
 }
 
 .collapse-btn svg {

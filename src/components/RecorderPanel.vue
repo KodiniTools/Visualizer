@@ -1143,14 +1143,14 @@ h3::before {
   gap: 10px;
   cursor: pointer;
   padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   transition: all 0.2s ease;
 }
 
 .mic-toggle-row:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--btn-hover);
   border-color: rgba(139, 92, 246, 0.3);
 }
 
@@ -1201,7 +1201,7 @@ h3::before {
 
 .section-label {
   font-size: 11px;
-  color: #888;
+  color: var(--text-muted);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -1215,9 +1215,9 @@ h3::before {
 }
 
 .quality-btn {
-  background-color: #3a3a3a;
-  color: #c0c0c0;
-  border: 1px solid #555;
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 6px 8px;
   font-size: 10px;
@@ -1229,8 +1229,8 @@ h3::before {
 }
 
 .quality-btn:hover:not(:disabled) {
-  background-color: #454545;
-  border-color: #666;
+  background-color: var(--btn-hover);
+  border-color: var(--border-color);
   transform: translateY(-1px);
 }
 
@@ -1258,9 +1258,9 @@ h3::before {
 }
 
 .upload-btn {
-  background-color: #3a3a3a;
-  color: #c0c0c0;
-  border: 1px solid #555;
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 6px 8px;
   font-size: 10px;
@@ -1272,8 +1272,8 @@ h3::before {
 }
 
 .upload-btn:hover:not(:disabled) {
-  background-color: #454545;
-  border-color: #666;
+  background-color: var(--btn-hover);
+  border-color: var(--border-color);
   transform: translateY(-1px);
 }
 
@@ -1310,7 +1310,7 @@ h3::before {
 }
 
 .server-status.unavailable {
-  color: #666;
+  color: var(--text-muted);
 }
 
 .toggle-row {
@@ -1335,7 +1335,7 @@ h3::before {
 
 .toggle-label {
   font-size: 11px;
-  color: #c0c0c0;
+  color: var(--text-primary);
 }
 
 .conversion-quality {
@@ -1373,7 +1373,7 @@ h3::before {
 
 .progress-bar {
   height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--secondary-bg);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -1755,7 +1755,7 @@ h3::before {
 
 /* Server status unavailable: dark grey → lighter grey */
 [data-theme='light'] .server-status.unavailable {
-  color: #999;
+  color: var(--text-muted);
 }
 
 /* Toggle checkbox: blue → primary blue */
@@ -1878,7 +1878,7 @@ h3::before {
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
+  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--card-bg) 100%);
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   max-width: 800px;
@@ -1908,15 +1908,15 @@ h3::before {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--secondary-bg);
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1927,8 +1927,8 @@ h3::before {
   width: 36px;
   height: 36px;
   border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
+  background: var(--btn-hover);
+  color: var(--text-muted);
   border-radius: 50%;
   cursor: pointer;
   display: flex;
@@ -2020,9 +2020,9 @@ h3::before {
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-weight: 600;
   font-size: 14px;
@@ -2032,19 +2032,19 @@ h3::before {
 }
 
 .cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--btn-hover);
+  color: var(--text-primary);
+  border-color: var(--border-color);
 }
 
 .file-info {
   padding: 14px 18px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--secondary-bg);
   border-radius: 8px;
   font-size: 12px;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   font-family: inherit;
 }
 
@@ -2115,12 +2115,12 @@ h3::before {
 }
 
 .conversion-modal {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
   border-radius: 20px;
   padding: 40px 50px;
   text-align: center;
   box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(110, 168, 254, 0.15);
-  border: 1px solid rgba(110, 168, 254, 0.2);
+  border: 1px solid var(--border-color);
   max-width: 420px;
   width: 90%;
   animation: slideIn 0.4s ease;
@@ -2153,19 +2153,19 @@ h3::before {
   margin: 0 0 12px 0;
   font-size: 22px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   letter-spacing: 0.3px;
 }
 
 .conversion-subtitle {
   margin: 0 0 28px 0;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
 }
 
 .conversion-progress-bar {
   height: 10px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--secondary-bg);
   border-radius: 5px;
   overflow: hidden;
   margin-bottom: 12px;
@@ -2198,7 +2198,7 @@ h3::before {
 .conversion-hint {
   margin: 0;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   font-style: italic;
 }
 
@@ -2225,5 +2225,53 @@ h3::before {
   .conversion-percent {
     font-size: 24px;
   }
+}
+
+/* ═══ Light Theme Overrides (Global Styles) ═══ */
+
+/* Results modal overlay: soften for light mode */
+[data-theme='light'] .results-modal {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* Modal content: softer shadow for light */
+[data-theme='light'] .modal-content {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+/* File info strong: use theme-appropriate accent */
+[data-theme='light'] .file-info strong {
+  color: #014f99;
+}
+
+/* Conversion overlay: soften for light mode */
+[data-theme='light'] .conversion-overlay {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+/* Conversion modal: softer shadow for light */
+[data-theme='light'] .conversion-modal {
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25), 0 0 60px rgba(1, 79, 153, 0.1);
+}
+
+/* Conversion icon: darker blue for light bg */
+[data-theme='light'] .conversion-icon svg {
+  color: #014f99;
+}
+
+/* Conversion percent: darker blue for light bg */
+[data-theme='light'] .conversion-percent {
+  color: #014f99;
+}
+
+/* Conversion progress bar: softer inset shadow for light */
+[data-theme='light'] .conversion-progress-bar {
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Conversion progress fill: theme-appropriate blue gradient */
+[data-theme='light'] .conversion-progress-fill {
+  background: linear-gradient(90deg, #014f99 0%, #3a7cc6 50%, #014f99 100%);
+  background-size: 200% 100%;
 }
 </style>

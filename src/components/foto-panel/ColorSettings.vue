@@ -127,7 +127,7 @@ const showColorPicker = ref(false);
 
 .color-picker-content {
   padding: 12px 16px 16px;
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -171,7 +171,7 @@ const showColorPicker = ref(false);
   align-items: center;
   gap: 8px;
   font-size: 11px;
-  color: #ccc;
+  color: var(--text-secondary);
   cursor: pointer;
 }
 
@@ -202,7 +202,7 @@ const showColorPicker = ref(false);
 
 .custom-color-input::-webkit-color-swatch {
   border-radius: 4px;
-  border: 1px solid #555;
+  border: 1px solid var(--border-color);
 }
 
 /* Collapse Animation */

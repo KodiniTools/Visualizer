@@ -211,14 +211,14 @@ onUnmounted(() => {
 .tooltip-content {
   position: fixed;
   z-index: 10001;
-  background: linear-gradient(145deg, #2a2a2a 0%, #1e1e1e 100%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(145deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 12px 16px;
   max-width: 280px;
   box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
+    0 0 0 1px var(--border-color);
   pointer-events: none;
 }
 
@@ -232,8 +232,8 @@ onUnmounted(() => {
   position: absolute;
   width: 12px;
   height: 12px;
-  background: #2a2a2a;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   transform: rotate(45deg);
 }
 
@@ -276,7 +276,7 @@ onUnmounted(() => {
   gap: 8px;
   margin-bottom: 8px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .tooltip-icon {
@@ -286,13 +286,13 @@ onUnmounted(() => {
 .tooltip-title {
   font-size: 13px;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 /* Body */
 .tooltip-body {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
   line-height: 1.5;
 }
 
@@ -302,7 +302,7 @@ onUnmounted(() => {
   gap: 4px;
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-color);
 }
 
 .tooltip-shortcut kbd {
@@ -312,12 +312,12 @@ onUnmounted(() => {
   min-width: 24px;
   height: 22px;
   padding: 0 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 11px;
   font-family: inherit;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
 }
 
@@ -367,41 +367,6 @@ onUnmounted(() => {
 }
 
 /* ═══ Light Theme Overrides ═══ */
-[data-theme='light'] .tooltip-content {
-  background: linear-gradient(145deg, #FFFFFF 0%, #f9f2d5 100%);
-  border-color: rgba(0, 57, 113, 0.15);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12),
-              0 0 0 1px rgba(0, 57, 113, 0.08);
-}
-
-[data-theme='light'] .tooltip-arrow {
-  background: #FFFFFF;
-  border-color: rgba(0, 57, 113, 0.15);
-}
-
-[data-theme='light'] .tooltip-header {
-  border-bottom-color: rgba(0, 57, 113, 0.1);
-}
-
-[data-theme='light'] .tooltip-title {
-  color: #003971;
-}
-
-[data-theme='light'] .tooltip-body {
-  color: #003971;
-}
-
-[data-theme='light'] .tooltip-shortcut {
-  border-top-color: rgba(0, 57, 113, 0.1);
-}
-
-[data-theme='light'] .tooltip-shortcut kbd {
-  background: rgba(1, 79, 153, 0.1);
-  border-color: rgba(1, 79, 153, 0.2);
-  color: #003971;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
-}
-
 [data-theme='light'] .tooltip-tip {
   background: rgba(201, 152, 77, 0.12);
   color: #c9984d;

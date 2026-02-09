@@ -1439,7 +1439,7 @@ function setEffectIntensity(effectName, value) {
 .btn-close {
   background: none;
   border: none;
-  color: #888;
+  color: var(--text-muted);
   font-size: 18px;
   cursor: pointer;
   padding: 0;
@@ -1460,10 +1460,10 @@ function setEffectIntensity(effectName, value) {
 .color-input {
   width: 40px;
   height: 30px;
-  border: 1px solid #444;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   cursor: pointer;
-  background-color: #2a2a2a;
+  background-color: var(--secondary-bg);
 }
 
 .color-hex {
@@ -1528,7 +1528,7 @@ function setEffectIntensity(effectName, value) {
 
 .hint {
   font-size: 10px;
-  color: #888;
+  color: var(--text-muted);
   margin-top: 8px;
 }
 
@@ -1568,7 +1568,7 @@ function setEffectIntensity(effectName, value) {
 }
 
 .filter-row label {
-  color: #aaa;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -1592,7 +1592,7 @@ function setEffectIntensity(effectName, value) {
 }
 
 .filter-row span {
-  color: #888;
+  color: var(--text-muted);
   text-align: right;
   font-family: monospace;
 }
@@ -1733,7 +1733,7 @@ function setEffectIntensity(effectName, value) {
 }
 
 .effect-item span {
-  color: #ccc;
+  color: var(--text-secondary);
 }
 
 .effect-slider {
@@ -1768,7 +1768,7 @@ function setEffectIntensity(effectName, value) {
   margin-top: 16px;
   padding: 12px;
   background: rgba(30, 30, 30, 0.6);
-  border: 1px solid #444;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
 }
 
@@ -1810,7 +1810,7 @@ function setEffectIntensity(effectName, value) {
   align-items: center;
   padding: 6px 10px;
   background: rgba(40, 40, 40, 0.8);
-  border: 1px solid #555;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   transition: all 0.15s ease;
 }
@@ -2006,7 +2006,7 @@ function setEffectIntensity(effectName, value) {
 
 /* Modal Container */
 .tile-gallery-modal {
-  background: linear-gradient(180deg, #0a1830 0%, #142640 100%);
+  background: linear-gradient(180deg, var(--primary-bg) 0%, var(--card-bg) 100%);
   border-radius: 12px;
   border: 1px solid rgba(201, 152, 77, 0.3);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(201, 152, 77, 0.2);
@@ -2259,7 +2259,7 @@ function setEffectIntensity(effectName, value) {
 .replace-label {
   display: block;
   font-size: 10px;
-  color: #888;
+  color: var(--text-muted);
   margin-bottom: 8px;
 }
 
@@ -2378,7 +2378,7 @@ function setEffectIntensity(effectName, value) {
 /* Color picker: dark bg → white */
 [data-theme='light'] .color-input {
   background-color: #FFFFFF;
-  border-color: #ccc;
+  border-color: var(--text-secondary);
 }
 
 /* Color hex label: #94a3b8 → #4d6d8e */
@@ -2436,7 +2436,7 @@ function setEffectIntensity(effectName, value) {
 /* Presets section: dark bg → white card */
 [data-theme='light'] .presets-section {
   background: rgba(255, 255, 255, 0.5);
-  border-color: #ccc;
+  border-color: var(--text-secondary);
 }
 
 /* Presets label: #94a3b8 → #4d6d8e */
@@ -2447,7 +2447,7 @@ function setEffectIntensity(effectName, value) {
 /* Preset items: dark bg → white */
 [data-theme='light'] .preset-item {
   background: rgba(255, 255, 255, 0.8);
-  border-color: #ccc;
+  border-color: var(--text-secondary);
 }
 
 /* Preset name: #e0e0e0 → dark blue */

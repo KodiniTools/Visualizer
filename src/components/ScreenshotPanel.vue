@@ -374,7 +374,7 @@ h3::before {
 
 .section-label {
   font-size: 11px;
-  color: #888;
+  color: var(--text-muted);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -388,9 +388,9 @@ h3::before {
 }
 
 .format-btn {
-  background-color: #3a3a3a;
-  color: #c0c0c0;
-  border: 1px solid #555;
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 8px 10px;
   font-size: 11px;
@@ -402,8 +402,8 @@ h3::before {
 }
 
 .format-btn:hover:not(:disabled) {
-  background-color: #454545;
-  border-color: #666;
+  background-color: var(--btn-hover);
+  border-color: var(--border-color);
   transform: translateY(-1px);
 }
 
@@ -430,7 +430,7 @@ h3::before {
   height: 6px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--panel-highlight);
   border-radius: 3px;
   outline: none;
   cursor: pointer;
@@ -464,7 +464,7 @@ h3::before {
   display: flex;
   justify-content: space-between;
   font-size: 9px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 /* Info Section */
@@ -478,7 +478,7 @@ h3::before {
 .format-info {
   margin: 0;
   font-size: 11px;
-  color: #c0c0c0;
+  color: var(--text-primary);
   display: flex;
   align-items: flex-start;
   gap: 6px;
@@ -529,8 +529,8 @@ h3::before {
 
 /* Preview Section */
 .preview-section {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--gradient-color);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 10px;
   display: flex;
@@ -548,8 +548,8 @@ h3::before {
   width: 24px;
   height: 24px;
   border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
+  background: var(--panel-highlight);
+  color: var(--text-muted);
   border-radius: 4px;
   cursor: pointer;
   display: flex;
@@ -589,7 +589,7 @@ h3::before {
   display: flex;
   justify-content: space-between;
   font-size: 10px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .btn-download {
@@ -665,14 +665,14 @@ h3::before {
 /* Fullscreen Modal */
 .fullscreen-modal {
   position: relative;
-  background: #1a1a1a;
+  background: var(--primary-bg);
   border-radius: 12px;
   max-width: 90vw;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
   overflow: hidden;
   animation: scaleIn 0.2s ease;
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif);
@@ -695,7 +695,7 @@ h3::before {
   height: 28px;
   border: none;
   background: rgba(0, 0, 0, 0.6);
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
   border-radius: 6px;
   cursor: pointer;
   display: flex;
@@ -741,8 +741,8 @@ h3::before {
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.4);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--secondary-bg);
+  border-top: 1px solid var(--border-color);
   flex-shrink: 0;
 }
 
@@ -764,11 +764,11 @@ h3::before {
 
 .metadata-text {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
 }
 
 .metadata-divider {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
   font-size: 10px;
 }
 

@@ -14,10 +14,10 @@
 
 <style scoped>
 .empty-panel {
-  background-color: #252525;
+  background-color: var(--secondary-bg);
   border-radius: 8px;
   padding: 16px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
 }
 
 .panel-title {
@@ -36,7 +36,7 @@
 }
 
 .placeholder-text {
-  color: #888;
+  color: var(--text-muted);
   font-size: 13px;
   margin: 0;
   font-style: italic;

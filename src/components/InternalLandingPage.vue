@@ -202,8 +202,8 @@ const featureCards = computed(() => {
 
 /* Light Theme */
 .internal-landing.light-theme {
-  background: linear-gradient(180deg, #f5f7f8 0%, #E9E9EB 50%, #f5f7f8 100%);
-  color: #1a1f22;
+  background: linear-gradient(180deg, #F5F4D6 0%, #f9f2d5 50%, #F5F4D6 100%);
+  color: #003971;
 }
 
 /* Header */
@@ -227,13 +227,13 @@ const featureCards = computed(() => {
 }
 
 .light-theme .landing-header {
-  background: rgba(233, 233, 235, 0.9);
-  border-bottom: 1px solid rgba(96, 145, 152, 0.15);
+  background: rgba(249, 242, 213, 0.9);
+  border-bottom: 1px solid rgba(201, 152, 77, 0.2);
 }
 
 .light-theme .landing-header.scrolled {
-  background: rgba(233, 233, 235, 0.98);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: rgba(249, 242, 213, 0.98);
+  box-shadow: 0 4px 20px rgba(0, 57, 113, 0.08);
 }
 
 .header-content {
@@ -254,7 +254,7 @@ const featureCards = computed(() => {
 }
 
 .light-theme .header-logo {
-  color: #609198;
+  color: #014f99;
 }
 
 .header-controls {
@@ -284,13 +284,13 @@ const featureCards = computed(() => {
 }
 
 .light-theme .control-btn {
-  background: rgba(96, 145, 152, 0.1);
-  border-color: rgba(96, 145, 152, 0.2);
-  color: #609198;
+  background: rgba(1, 79, 153, 0.08);
+  border-color: rgba(1, 79, 153, 0.2);
+  color: #014f99;
 }
 
 .light-theme .control-btn:hover {
-  background: rgba(96, 145, 152, 0.2);
+  background: rgba(1, 79, 153, 0.15);
 }
 
 .lang-label {
@@ -334,12 +334,19 @@ const featureCards = computed(() => {
 }
 
 .light-theme .hero-title {
-  color: #1a1f22;
+  color: #003971;
 }
 
 .gradient-text {
   display: block;
   background: linear-gradient(135deg, #BCE5E5 0%, #609198 50%, #C5DEB0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.light-theme .gradient-text {
+  background: linear-gradient(135deg, #c9984d 0%, #014f99 50%, #003971 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -353,7 +360,7 @@ const featureCards = computed(() => {
 }
 
 .light-theme .hero-subtitle {
-  color: #6b7280;
+  color: #4d6d8e;
 }
 
 /* Features Grid */
@@ -376,9 +383,9 @@ const featureCards = computed(() => {
 }
 
 .light-theme .feature-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(245, 247, 248, 0.95) 100%);
-  border-color: rgba(96, 145, 152, 0.15);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 242, 213, 0.95) 100%);
+  border-color: rgba(201, 152, 77, 0.2);
+  box-shadow: 0 4px 24px rgba(0, 57, 113, 0.06);
 }
 
 .feature-card:hover {
@@ -388,7 +395,8 @@ const featureCards = computed(() => {
 }
 
 .light-theme .feature-card:hover {
-  box-shadow: 0 20px 50px rgba(96, 145, 152, 0.15);
+  border-color: rgba(201, 152, 77, 0.4);
+  box-shadow: 0 20px 50px rgba(201, 152, 77, 0.15);
 }
 
 @keyframes fadeInUp {
@@ -422,7 +430,7 @@ const featureCards = computed(() => {
 }
 
 .light-theme .card-title {
-  color: #1a1f22;
+  color: #003971;
 }
 
 .card-description {
@@ -433,7 +441,7 @@ const featureCards = computed(() => {
 }
 
 .light-theme .card-description {
-  color: #6b7280;
+  color: #4d6d8e;
 }
 
 /* CTA Button */
@@ -459,6 +467,16 @@ const featureCards = computed(() => {
 .btn-primary:hover {
   transform: translateY(-3px);
   box-shadow: 0 12px 40px rgba(96, 145, 152, 0.55);
+}
+
+.light-theme .btn-primary {
+  background: linear-gradient(135deg, #014f99 0%, #3a7cc5 100%);
+  color: #F5F4D6;
+  box-shadow: 0 6px 28px rgba(1, 79, 153, 0.35);
+}
+
+.light-theme .btn-primary:hover {
+  box-shadow: 0 12px 40px rgba(1, 79, 153, 0.45);
 }
 
 .btn-icon {

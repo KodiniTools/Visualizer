@@ -96,8 +96,8 @@ function removeToast(id) {
 /* Light theme Unterstützung */
 [data-theme='light'] .toast {
   background-color: #ffffff;
-  border: 1px solid rgba(100, 100, 100, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(201, 152, 77, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 57, 113, 0.1);
 }
 
 /* Toast type colors */
@@ -157,7 +157,7 @@ function removeToast(id) {
 }
 
 [data-theme='light'] .toast__title {
-  color: #1a2426;
+  color: #003971;
 }
 
 .toast__message {
@@ -168,7 +168,7 @@ function removeToast(id) {
 }
 
 [data-theme='light'] .toast__message {
-  color: #6a7072;
+  color: #4d6d8e;
 }
 
 .toast__close {
@@ -190,11 +190,11 @@ function removeToast(id) {
 }
 
 [data-theme='light'] .toast__close {
-  color: #6a7072;
+  color: #4d6d8e;
 }
 
 [data-theme='light'] .toast__close:hover {
-  color: #1a2426;
+  color: #003971;
 }
 
 .toast__close svg {

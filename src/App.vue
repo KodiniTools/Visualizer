@@ -23,14 +23,14 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--primary-bg, #0f1416);
+  background-color: var(--primary-bg, #091428);
 }
 
 #app {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--primary-bg, #0f1416);
+  background-color: var(--primary-bg, #091428);
   color: var(--text-primary, #E9E9EB);
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif);
   font-size: 12px;
@@ -43,16 +43,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(158, 190, 193, 0.1);
+  background: rgba(201, 152, 77, 0.1);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(96, 145, 152, 0.4);
+  background: rgba(201, 152, 77, 0.4);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(96, 145, 152, 0.6);
+  background: rgba(201, 152, 77, 0.6);
 }
 </style>

@@ -112,8 +112,8 @@ function onDrop(event) {
 
 <style scoped>
 .panel {
-  background-color: var(--card-bg, #151b1d);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  background-color: var(--card-bg, #142640);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   padding: 10px;
   border-radius: 8px;
   display: flex;
@@ -145,8 +145,8 @@ h3::before {
 
 /* Upload Area */
 .upload-area {
-  background: linear-gradient(135deg, var(--secondary-bg, #1c2426) 0%, rgba(96, 145, 152, 0.1) 100%);
-  border: 2px dashed var(--border-color, rgba(158, 190, 193, 0.3));
+  background: linear-gradient(135deg, var(--secondary-bg, #0E1C32) 0%, rgba(201, 152, 77, 0.1) 100%);
+  border: 2px dashed var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 8px;
   padding: 16px;
   cursor: pointer;
@@ -160,14 +160,14 @@ h3::before {
 }
 
 .upload-area:hover {
-  border-color: var(--accent-primary, #609198);
-  background: linear-gradient(135deg, rgba(96, 145, 152, 0.15) 0%, rgba(188, 229, 229, 0.1) 100%);
+  border-color: var(--accent-primary, #c9984d);
+  background: linear-gradient(135deg, rgba(201, 152, 77, 0.15) 0%, rgba(248, 225, 169, 0.1) 100%);
   transform: translateY(-1px);
 }
 
 .upload-area.drag-over {
-  border-color: var(--accent-tertiary, #BCE5E5);
-  background: linear-gradient(135deg, rgba(96, 145, 152, 0.2) 0%, rgba(188, 229, 229, 0.15) 100%);
+  border-color: var(--accent-tertiary, #f8e1a9);
+  background: linear-gradient(135deg, rgba(201, 152, 77, 0.2) 0%, rgba(248, 225, 169, 0.15) 100%);
   border-style: solid;
   transform: scale(1.01);
 }
@@ -176,7 +176,7 @@ h3::before {
 .upload-icon {
   width: 36px;
   height: 36px;
-  color: var(--accent-tertiary, #BCE5E5);
+  color: var(--accent-tertiary, #f8e1a9);
   transition: all 0.3s ease;
 }
 
@@ -213,7 +213,7 @@ h3::before {
 
 .upload-sub {
   font-size: 0.6rem;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
   font-weight: 500;
 }
 
@@ -228,7 +228,7 @@ h3::before {
 
 .format-label {
   font-size: 0.55rem;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   font-weight: 600;
@@ -236,12 +236,12 @@ h3::before {
 
 .format-item {
   font-size: 0.55rem;
-  color: var(--accent-primary, #609198);
-  background-color: rgba(96, 145, 152, 0.15);
+  color: var(--accent-primary, #c9984d);
+  background-color: rgba(201, 152, 77, 0.15);
   padding: 2px 5px;
   border-radius: 3px;
   font-weight: 500;
-  border: 1px solid rgba(96, 145, 152, 0.25);
+  border: 1px solid rgba(201, 152, 77, 0.25);
 }
 
 /* Tracks Info */

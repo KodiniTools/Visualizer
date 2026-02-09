@@ -1937,7 +1937,7 @@ function setEffectIntensity(effectName, value) {
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #A8A992;
+  color: #7A8DA0;
   cursor: pointer;
 }
 
@@ -1972,13 +1972,13 @@ function setEffectIntensity(effectName, value) {
 }
 
 .btn-gallery {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(96, 145, 152, 0.2) 100%);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(201, 152, 77, 0.2) 100%);
   border: 1px solid rgba(139, 92, 246, 0.4);
   color: #c4b5fd;
 }
 
 .btn-gallery:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(96, 145, 152, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(201, 152, 77, 0.3) 100%);
   border-color: rgba(139, 92, 246, 0.6);
   transform: translateY(-1px);
 }
@@ -2006,10 +2006,10 @@ function setEffectIntensity(effectName, value) {
 
 /* Modal Container */
 .tile-gallery-modal {
-  background: linear-gradient(180deg, #1a1f22 0%, #151b1d 100%);
+  background: linear-gradient(180deg, #0a1830 0%, #142640 100%);
   border-radius: 12px;
-  border: 1px solid rgba(158, 190, 193, 0.3);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(96, 145, 152, 0.2);
+  border: 1px solid rgba(201, 152, 77, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(201, 152, 77, 0.2);
   width: 90vw;
   max-width: 800px;
   max-height: 80vh;
@@ -2036,7 +2036,7 @@ function setEffectIntensity(effectName, value) {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(158, 190, 193, 0.2);
+  border-bottom: 1px solid rgba(201, 152, 77, 0.2);
 }
 
 .gallery-modal-header h3 {
@@ -2081,7 +2081,7 @@ function setEffectIntensity(effectName, value) {
   gap: 4px;
   padding: 12px 16px;
   background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(158, 190, 193, 0.15);
+  border-bottom: 1px solid rgba(201, 152, 77, 0.15);
   overflow-x: auto;
 }
 
@@ -2093,7 +2093,7 @@ function setEffectIntensity(effectName, value) {
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #A8A992;
+  color: #7A8DA0;
   font-size: 11px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -2106,9 +2106,9 @@ function setEffectIntensity(effectName, value) {
 }
 
 .category-tab.active {
-  background: rgba(96, 145, 152, 0.3);
-  border-color: rgba(96, 145, 152, 0.5);
-  color: #609198;
+  background: rgba(201, 152, 77, 0.3);
+  border-color: rgba(201, 152, 77, 0.5);
+  color: #c9984d;
 }
 
 .category-icon {
@@ -2137,8 +2137,8 @@ function setEffectIntensity(effectName, value) {
 .loading-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid rgba(96, 145, 152, 0.3);
-  border-top-color: #609198;
+  border: 3px solid rgba(201, 152, 77, 0.3);
+  border-top-color: #c9984d;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -2166,13 +2166,13 @@ function setEffectIntensity(effectName, value) {
 }
 
 .gallery-image-item:hover {
-  border-color: rgba(96, 145, 152, 0.5);
+  border-color: rgba(201, 152, 77, 0.5);
   transform: scale(1.03);
 }
 
 .gallery-image-item.selected {
-  border-color: #609198;
-  box-shadow: 0 0 0 2px rgba(96, 145, 152, 0.4), 0 4px 12px rgba(96, 145, 152, 0.3);
+  border-color: #c9984d;
+  box-shadow: 0 0 0 2px rgba(201, 152, 77, 0.4), 0 4px 12px rgba(201, 152, 77, 0.3);
 }
 
 .gallery-image-item img {
@@ -2203,7 +2203,7 @@ function setEffectIntensity(effectName, value) {
   justify-content: flex-end;
   gap: 10px;
   padding: 16px 20px;
-  border-top: 1px solid rgba(158, 190, 193, 0.2);
+  border-top: 1px solid rgba(201, 152, 77, 0.2);
   background: rgba(0, 0, 0, 0.2);
 }
 
@@ -2219,7 +2219,7 @@ function setEffectIntensity(effectName, value) {
 .btn-cancel {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #A8A992;
+  color: #7A8DA0;
 }
 
 .btn-cancel:hover {
@@ -2228,15 +2228,15 @@ function setEffectIntensity(effectName, value) {
 }
 
 .btn-select {
-  background: linear-gradient(135deg, #609198 0%, #4a7a80 100%);
-  border: 1px solid rgba(96, 145, 152, 0.5);
+  background: linear-gradient(135deg, #c9984d 0%, #a07838 100%);
+  border: 1px solid rgba(201, 152, 77, 0.5);
   color: #fff;
 }
 
 .btn-select:hover:not(:disabled) {
-  background: linear-gradient(135deg, #6ea8b0 0%, #609198 100%);
+  background: linear-gradient(135deg, #d4a85c 0%, #c9984d 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(96, 145, 152, 0.4);
+  box-shadow: 0 4px 12px rgba(201, 152, 77, 0.4);
 }
 
 .btn-select:disabled {

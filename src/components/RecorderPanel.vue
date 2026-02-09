@@ -849,10 +849,10 @@ onUnmounted(() => {
 
 <style scoped>
 .recorder-panel {
-  background-color: var(--card-bg, #151b1d);
+  background-color: var(--card-bg, #142640);
   border-radius: 8px;
   padding: 10px;
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -893,8 +893,8 @@ h3::before {
   gap: 6px;
   padding: 6px 10px;
   border-radius: 5px;
-  background: rgba(158, 190, 193, 0.05);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.15));
+  background: rgba(201, 152, 77, 0.05);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
   transition: all 0.3s ease;
 }
 
@@ -902,7 +902,7 @@ h3::before {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--text-muted, #A8A992);
+  background: var(--text-muted, #7A8DA0);
   animation: pulse 2s infinite;
 }
 
@@ -910,7 +910,7 @@ h3::before {
   font-size: 0.6rem;
   font-weight: 600;
   letter-spacing: 0.4px;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
 }
 
 .recording-timer {
@@ -1045,13 +1045,13 @@ h3::before {
 }
 
 .btn-prepare {
-  background: rgba(96, 145, 152, 0.2);
-  color: var(--accent-tertiary, #BCE5E5);
-  border: 1px solid rgba(96, 145, 152, 0.3);
+  background: rgba(201, 152, 77, 0.2);
+  color: var(--accent-tertiary, #f8e1a9);
+  border: 1px solid rgba(201, 152, 77, 0.3);
 }
 
 .btn-prepare:hover:not(:disabled) {
-  background: rgba(96, 145, 152, 0.3);
+  background: rgba(201, 152, 77, 0.3);
   transform: translateY(-1px);
 }
 

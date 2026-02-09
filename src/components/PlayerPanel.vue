@@ -731,8 +731,8 @@ onUnmounted(() => {
 
 <style scoped>
 .panel {
-  background-color: var(--card-bg, #151b1d);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  background-color: var(--card-bg, #142640);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   padding: 10px;
   border-radius: 8px;
   display: flex;
@@ -765,7 +765,7 @@ h3::before {
 .section-label {
   display: block;
   font-size: 0.6rem;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -780,15 +780,15 @@ h3::before {
 
 /* Current Track */
 .current-track {
-  background-color: var(--secondary-bg, #1c2426);
+  background-color: var(--secondary-bg, #0E1C32);
   padding: 6px 8px;
   border-radius: 5px;
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
 }
 
 .track-title {
   font-size: 0.65rem;
-  color: var(--accent-tertiary, #BCE5E5);
+  color: var(--accent-tertiary, #f8e1a9);
   font-weight: 600;
   display: block;
   overflow: hidden;
@@ -805,7 +805,7 @@ h3::before {
 
 .time-display {
   font-size: 0.55rem;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
   min-width: 28px;
   text-align: center;
   font-weight: 500;
@@ -820,7 +820,7 @@ h3::before {
 .progress-bar-background {
   position: relative;
   height: 4px;
-  background-color: var(--secondary-bg, #1c2426);
+  background-color: var(--secondary-bg, #0E1C32);
   border-radius: 2px;
   overflow: visible;
 }
@@ -828,7 +828,7 @@ h3::before {
 .progress-bar-fill {
   position: absolute;
   height: 100%;
-  background-color: var(--accent-primary, #609198);
+  background-color: var(--accent-primary, #c9984d);
   border-radius: 2px;
   transition: width 0.1s linear;
 }
@@ -839,7 +839,7 @@ h3::before {
   transform: translate(-50%, -50%);
   width: 8px;
   height: 8px;
-  background-color: var(--accent-tertiary, #BCE5E5);
+  background-color: var(--accent-tertiary, #f8e1a9);
   border-radius: 50%;
   transition: left 0.1s linear;
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
@@ -852,7 +852,7 @@ h3::before {
 .progress-bar-container:hover .progress-bar-handle {
   width: 10px;
   height: 10px;
-  background-color: var(--accent-primary, #609198);
+  background-color: var(--accent-primary, #c9984d);
 }
 
 /* Player Controls */
@@ -864,8 +864,8 @@ h3::before {
 }
 
 .control-btn {
-  background-color: var(--secondary-bg, #1c2426);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  background-color: var(--secondary-bg, #0E1C32);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 50%;
   width: 26px;
   height: 26px;
@@ -879,8 +879,8 @@ h3::before {
 }
 
 .control-btn:hover {
-  background-color: var(--btn-hover, #2a3335);
-  border-color: var(--accent-primary, #609198);
+  background-color: var(--btn-hover, #1a2a42);
+  border-color: var(--accent-primary, #c9984d);
   transform: scale(1.05);
 }
 
@@ -891,14 +891,14 @@ h3::before {
 .control-btn-main {
   width: 32px;
   height: 32px;
-  background-color: var(--accent-primary, #609198);
-  border-color: var(--accent-primary, #609198);
-  color: var(--accent-text, #0f1416);
+  background-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary, #c9984d);
+  color: var(--accent-text, #091428);
 }
 
 .control-btn-main:hover {
-  background-color: var(--accent-tertiary, #BCE5E5);
-  border-color: var(--accent-tertiary, #BCE5E5);
+  background-color: var(--accent-tertiary, #f8e1a9);
+  border-color: var(--accent-tertiary, #f8e1a9);
 }
 
 .control-btn svg {
@@ -923,7 +923,7 @@ h3::before {
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  background-color: var(--secondary-bg, #1c2426);
+  background-color: var(--secondary-bg, #0E1C32);
   border-radius: 5px;
 }
 
@@ -938,7 +938,7 @@ h3::before {
   flex: 1;
   height: 3px;
   border-radius: 2px;
-  background: linear-gradient(to right, var(--text-muted, #A8A992) 0%, var(--accent-primary, #609198) 100%);
+  background: linear-gradient(to right, var(--text-muted, #7A8DA0) 0%, var(--accent-primary, #c9984d) 100%);
   outline: none;
   -webkit-appearance: none;
   appearance: none;
@@ -950,7 +950,7 @@ h3::before {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--accent-tertiary, #BCE5E5);
+  background: var(--accent-tertiary, #f8e1a9);
   cursor: pointer;
   transition: all 0.2s ease;
   border: 2px solid #fff;
@@ -958,7 +958,7 @@ h3::before {
 }
 
 .volume-slider::-webkit-slider-thumb:hover {
-  background: var(--accent-primary, #609198);
+  background: var(--accent-primary, #c9984d);
   transform: scale(1.1);
 }
 
@@ -966,7 +966,7 @@ h3::before {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--accent-tertiary, #BCE5E5);
+  background: var(--accent-tertiary, #f8e1a9);
   cursor: pointer;
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -974,7 +974,7 @@ h3::before {
 }
 
 .volume-slider::-moz-range-thumb:hover {
-  background: var(--accent-primary, #609198);
+  background: var(--accent-primary, #c9984d);
   transform: scale(1.1);
 }
 
@@ -994,7 +994,7 @@ h3::before {
 
 .eq-label {
   font-size: 0.6rem;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
 }
 
 .eq-slider-container {
@@ -1002,7 +1002,7 @@ h3::before {
   align-items: center;
   gap: 6px;
   padding: 5px 7px;
-  background-color: var(--secondary-bg, #1c2426);
+  background-color: var(--secondary-bg, #0E1C32);
   border-radius: 5px;
 }
 
@@ -1017,7 +1017,7 @@ h3::before {
   flex: 1;
   height: 3px;
   border-radius: 2px;
-  background: linear-gradient(to right, var(--text-muted, #A8A992) 0%, var(--accent-primary, #609198) 50%, var(--accent-tertiary, #BCE5E5) 100%);
+  background: linear-gradient(to right, var(--text-muted, #7A8DA0) 0%, var(--accent-primary, #c9984d) 50%, var(--accent-tertiary, #f8e1a9) 100%);
   outline: none;
   -webkit-appearance: none;
   appearance: none;
@@ -1073,7 +1073,7 @@ h3::before {
 .btn-clear {
   background-color: transparent;
   border: none;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
   cursor: pointer;
   padding: 3px;
   display: flex;
@@ -1100,9 +1100,9 @@ h3::before {
   margin: 0;
   max-height: 100px;
   overflow-y: auto;
-  background-color: var(--secondary-bg, #1c2426);
+  background-color: var(--secondary-bg, #0E1C32);
   border-radius: 5px;
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
 }
 
 .playlist-item {
@@ -1114,7 +1114,7 @@ h3::before {
   align-items: center;
   gap: 5px;
   transition: all 0.2s ease;
-  border-bottom: 1px solid var(--border-color, rgba(158, 190, 193, 0.1));
+  border-bottom: 1px solid var(--border-color, rgba(201, 152, 77, 0.1));
 }
 
 .playlist-item:last-child {
@@ -1122,12 +1122,12 @@ h3::before {
 }
 
 .playlist-item:hover {
-  background-color: var(--btn-hover, #2a3335);
+  background-color: var(--btn-hover, #1a2a42);
 }
 
 .playlist-item.active {
-  background-color: var(--accent-primary, #609198);
-  color: var(--accent-text, #0f1416);
+  background-color: var(--accent-primary, #c9984d);
+  color: var(--accent-text, #091428);
   font-weight: 600;
 }
 
@@ -1190,7 +1190,7 @@ h3::before {
 
 .drag-handle:hover {
   opacity: 1;
-  color: var(--accent-primary, #609198);
+  color: var(--accent-primary, #c9984d);
 }
 
 .drag-handle:active {
@@ -1201,9 +1201,9 @@ h3::before {
 .playlist-item.dragging {
   opacity: 0.5;
   transform: scale(0.98);
-  background-color: var(--accent-primary, #609198) !important;
-  border-color: var(--accent-primary, #609198);
-  box-shadow: 0 0 0 2px rgba(96, 145, 152, 0.3);
+  background-color: var(--accent-primary, #c9984d) !important;
+  border-color: var(--accent-primary, #c9984d);
+  box-shadow: 0 0 0 2px rgba(201, 152, 77, 0.3);
 }
 
 .playlist-item.drag-over {
@@ -1692,10 +1692,10 @@ h3::before {
   flex-direction: column;
   gap: 8px;
   padding: 8px;
-  background: linear-gradient(180deg, var(--card-bg, #151b1d) 0%, rgba(96, 145, 152, 0.08) 100%);
+  background: linear-gradient(180deg, var(--card-bg, #142640) 0%, rgba(201, 152, 77, 0.08) 100%);
   border-radius: 6px;
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
-  border-left: 2px solid var(--accent-primary, #609198);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border-left: 2px solid var(--accent-primary, #c9984d);
 }
 
 .source-toggle {
@@ -1710,10 +1710,10 @@ h3::before {
   justify-content: center;
   gap: 6px;
   padding: 8px 12px;
-  background-color: var(--secondary-bg, #1c2426);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  background-color: var(--secondary-bg, #0E1C32);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 6px;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
   font-size: 0.65rem;
   font-weight: 500;
   cursor: pointer;
@@ -1721,15 +1721,15 @@ h3::before {
 }
 
 .source-btn:hover {
-  background-color: var(--btn-hover, #2a3335);
-  border-color: var(--accent-primary, #609198);
+  background-color: var(--btn-hover, #1a2a42);
+  border-color: var(--accent-primary, #c9984d);
   color: var(--text-primary, #E9E9EB);
 }
 
 .source-btn.active {
-  background-color: var(--accent-primary, #609198);
-  border-color: var(--accent-primary, #609198);
-  color: var(--accent-text, #0f1416);
+  background-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary, #c9984d);
+  color: var(--accent-text, #091428);
   font-weight: 600;
 }
 
@@ -1808,7 +1808,7 @@ h3::before {
 
 .device-selector label {
   font-size: 0.55rem;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -1816,8 +1816,8 @@ h3::before {
 .device-select {
   padding: 6px 8px;
   font-size: 0.6rem;
-  background-color: var(--secondary-bg, #1c2426);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  background-color: var(--secondary-bg, #0E1C32);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
   color: var(--text-primary, #E9E9EB);
   cursor: pointer;
@@ -1825,17 +1825,17 @@ h3::before {
 }
 
 .device-select:hover {
-  border-color: var(--accent-primary, #609198);
+  border-color: var(--accent-primary, #c9984d);
 }
 
 .device-select:focus {
   outline: none;
-  border-color: var(--accent-primary, #609198);
-  box-shadow: 0 0 0 2px rgba(96, 145, 152, 0.2);
+  border-color: var(--accent-primary, #c9984d);
+  box-shadow: 0 0 0 2px rgba(201, 152, 77, 0.2);
 }
 
 .device-select option {
-  background-color: var(--card-bg, #151b1d);
+  background-color: var(--card-bg, #142640);
   color: var(--text-primary, #E9E9EB);
 }
 </style>

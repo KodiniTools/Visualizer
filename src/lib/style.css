@@ -11,12 +11,12 @@ style.css - Haupt-Stylesheet für den Audio Visualizer Pro
     --red: #ef4444;
     --yellow: #eab308;
     /* Modern color palette */
-    --palette-cyan: #BCE5E5;
-    --palette-beige: #A8A992;
-    --palette-grayblue: #9EBEC1;
+    --palette-cyan: #f8e1a9;
+    --palette-beige: #7A8DA0;
+    --palette-grayblue: #f8e1a9;
     --palette-lightgray: #E9E9EB;
     --palette-lightgreen: #C5DEB0;
-    --palette-teal: #609198;
+    --palette-teal: #c9984d;
 }
 
 /* 🎨 Dark Theme (Gold & Navy Dark) */
@@ -79,7 +79,7 @@ body {
     margin: 0;
     font-family: var(--font-sans);
     color: var(--text-primary);
-    background: var(--primary-bg, #0f1416);
+    background: var(--primary-bg, #091428);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-size: 12px;
@@ -861,7 +861,7 @@ body > header:first-of-type {
     background: transparent !important;
     background-color: transparent !important;
     backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border-color, rgba(158, 190, 193, 0.15));
+    border-bottom: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
 }
 
 /* Global Footer - Transparent */
@@ -875,7 +875,7 @@ body > footer:last-of-type {
     background: transparent !important;
     background-color: transparent !important;
     backdrop-filter: blur(8px);
-    border-top: 1px solid var(--border-color, rgba(158, 190, 193, 0.15));
+    border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
 }
 
 /* Footer Links - Guter Kontrast */
@@ -883,7 +883,7 @@ body > footer:last-of-type {
 .site-footer a,
 footer a,
 [class*="footer"] a {
-    color: var(--text-muted, #A8A992);
+    color: var(--text-muted, #7A8DA0);
     text-decoration: none;
     transition: color 0.2s ease;
 }
@@ -915,7 +915,7 @@ body > nav:first-of-type a:hover,
 body > header:first-of-type a:hover,
 header.global a:hover,
 nav.global a:hover {
-    color: var(--accent-tertiary, #BCE5E5) !important;
+    color: var(--accent-tertiary, #f8e1a9) !important;
 }
 
 /* Navigation Text (nicht-Links) - NUR für SSI Partials */
@@ -959,7 +959,7 @@ body > header:first-of-type label {
 footer small,
 .global-footer small,
 .site-footer small {
-    color: var(--text-muted, #A8A992);
+    color: var(--text-muted, #7A8DA0);
 }
 
 

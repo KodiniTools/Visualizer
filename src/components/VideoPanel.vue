@@ -1144,18 +1144,18 @@ onUnmounted(() => {
 }
 
 .upload-area {
-  border: 1px dashed var(--border-color, rgba(158, 190, 193, 0.4));
+  border: 1px dashed var(--border-color, rgba(201, 152, 77, 0.4));
   border-radius: 6px;
   padding: 14px;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: var(--secondary-bg, #1c2426);
+  background: var(--secondary-bg, #0E1C32);
 }
 
 .upload-area:hover {
-  border-color: var(--accent-primary, #609198);
-  background: var(--btn-hover, #2a3335);
+  border-color: var(--accent-primary, #c9984d);
+  background: var(--btn-hover, #1a2a42);
 }
 
 .upload-placeholder {
@@ -1168,7 +1168,7 @@ onUnmounted(() => {
 .upload-icon {
   width: 32px;
   height: 32px;
-  color: var(--accent-primary, #609198);
+  color: var(--accent-primary, #c9984d);
 }
 
 .upload-icon svg {
@@ -1184,7 +1184,7 @@ onUnmounted(() => {
 
 .upload-placeholder small {
   font-size: 0.5rem;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
 }
 
 /* Gallery */
@@ -1201,7 +1201,7 @@ onUnmounted(() => {
 
 .gallery-title {
   font-size: 0.55rem;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -1339,10 +1339,10 @@ onUnmounted(() => {
   flex: 1;
   min-width: 100%;
   padding: 6px 10px;
-  background: rgba(96, 145, 152, 0.2);
-  border: 1px solid rgba(96, 145, 152, 0.3);
+  background: rgba(201, 152, 77, 0.2);
+  border: 1px solid rgba(201, 152, 77, 0.3);
   border-radius: 5px;
-  color: var(--accent-tertiary, #BCE5E5);
+  color: var(--accent-tertiary, #f8e1a9);
   font-size: 0.6rem;
   font-weight: 600;
   cursor: pointer;
@@ -1353,14 +1353,14 @@ onUnmounted(() => {
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  background: rgba(96, 145, 152, 0.3);
+  background: rgba(201, 152, 77, 0.3);
 }
 
 .btn-secondary {
   flex: 1;
   padding: 5px 8px;
-  background: var(--secondary-bg, #1c2426);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  background: var(--secondary-bg, #0E1C32);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
   color: var(--text-primary, #E9E9EB);
   font-size: 0.55rem;
@@ -1371,8 +1371,8 @@ onUnmounted(() => {
 }
 
 .btn-secondary:hover {
-  background: var(--btn-hover, #2a3335);
-  border-color: var(--accent-primary, #609198);
+  background: var(--btn-hover, #1a2a42);
+  border-color: var(--accent-primary, #c9984d);
 }
 
 .btn-workspace {
@@ -1398,9 +1398,9 @@ onUnmounted(() => {
 .placement-section {
   margin-top: 8px;
   padding: 8px;
-  background: var(--secondary-bg, #1c2426);
+  background: var(--secondary-bg, #0E1C32);
   border-radius: 6px;
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
 }
 
 .placement-header {
@@ -1426,7 +1426,7 @@ onUnmounted(() => {
 
 .placement-label {
   font-size: 0.55rem;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
   min-width: 40px;
   text-transform: uppercase;
 }
@@ -1434,8 +1434,8 @@ onUnmounted(() => {
 .placement-select {
   flex: 1;
   padding: 4px 6px;
-  background: var(--card-bg, #151b1d);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  background: var(--card-bg, #142640);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 4px;
   color: var(--text-primary, #E9E9EB);
   font-size: 0.55rem;
@@ -1453,7 +1453,7 @@ onUnmounted(() => {
   height: 3px;
   -webkit-appearance: none;
   appearance: none;
-  background: linear-gradient(90deg, var(--text-muted, #A8A992) 0%, var(--accent-primary, #609198) 100%);
+  background: linear-gradient(90deg, var(--text-muted, #7A8DA0) 0%, var(--accent-primary, #c9984d) 100%);
   border-radius: 2px;
   outline: none;
 }
@@ -1462,7 +1462,7 @@ onUnmounted(() => {
   -webkit-appearance: none;
   width: 10px;
   height: 10px;
-  background: var(--accent-tertiary, #BCE5E5);
+  background: var(--accent-tertiary, #f8e1a9);
   border: 2px solid #fff;
   border-radius: 50%;
   cursor: pointer;
@@ -1470,7 +1470,7 @@ onUnmounted(() => {
 
 .placement-value {
   font-size: 0.5rem;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
   min-width: 28px;
   text-align: right;
 }
@@ -1489,7 +1489,7 @@ onUnmounted(() => {
 }
 
 .checkbox-label input[type="checkbox"] {
-  accent-color: var(--accent-primary, #609198);
+  accent-color: var(--accent-primary, #c9984d);
   width: 12px;
   height: 12px;
 }
@@ -1513,14 +1513,14 @@ onUnmounted(() => {
 }
 
 .btn-place {
-  background: rgba(96, 145, 152, 0.2);
-  border: 1px solid rgba(96, 145, 152, 0.3);
-  color: var(--accent-tertiary, #BCE5E5);
+  background: rgba(201, 152, 77, 0.2);
+  border: 1px solid rgba(201, 152, 77, 0.3);
+  color: var(--accent-tertiary, #f8e1a9);
 }
 
 .btn-place:hover {
   transform: translateY(-1px);
-  background: rgba(96, 145, 152, 0.3);
+  background: rgba(201, 152, 77, 0.3);
 }
 
 /* Canvas Videos Section */
@@ -1581,7 +1581,7 @@ onUnmounted(() => {
 
 .video-status {
   font-size: 10px;
-  color: var(--text-secondary, #9EBEC1);
+  color: var(--text-secondary, #f8e1a9);
 }
 
 .video-status.playing {
@@ -1669,7 +1669,7 @@ onUnmounted(() => {
   align-items: center;
   margin-bottom: 8px;
   font-size: 11px;
-  color: var(--text-secondary, #9EBEC1);
+  color: var(--text-secondary, #f8e1a9);
 }
 
 .seek-time {
@@ -1740,7 +1740,7 @@ onUnmounted(() => {
   gap: 8px;
   margin-bottom: 8px;
   font-size: 11px;
-  color: var(--text-secondary, #9EBEC1);
+  color: var(--text-secondary, #f8e1a9);
 }
 
 .volume-header .volume-icon {
@@ -1835,7 +1835,7 @@ onUnmounted(() => {
 
 .bg-video-status {
   font-size: 12px;
-  color: var(--text-secondary, #9EBEC1);
+  color: var(--text-secondary, #f8e1a9);
   padding: 2px 8px;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 4px;
@@ -1880,7 +1880,7 @@ onUnmounted(() => {
 .seek-time-small {
   font-size: 10px;
   font-family: monospace;
-  color: var(--text-secondary, #9EBEC1);
+  color: var(--text-secondary, #f8e1a9);
   min-width: 35px;
 }
 
@@ -1897,7 +1897,7 @@ onUnmounted(() => {
   gap: 6px;
   margin-bottom: 6px;
   font-size: 10px;
-  color: var(--text-secondary, #9EBEC1);
+  color: var(--text-secondary, #f8e1a9);
 }
 
 .volume-icon-small {

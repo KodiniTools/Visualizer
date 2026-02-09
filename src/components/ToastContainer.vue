@@ -88,8 +88,8 @@ function removeToast(id) {
   position: relative;
   overflow: hidden;
   /* Dark theme als Standard (passend zur rechten Spalte) */
-  background-color: #151b1d;
-  border: 1px solid rgba(158, 190, 193, 0.2);
+  background-color: #142640;
+  border: 1px solid rgba(201, 152, 77, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
@@ -126,11 +126,11 @@ function removeToast(id) {
 }
 
 .toast--info {
-  border-left: 4px solid #609198;
+  border-left: 4px solid #c9984d;
 }
 
 .toast--info .toast__icon {
-  color: #609198;
+  color: #c9984d;
 }
 
 .toast__icon {
@@ -162,7 +162,7 @@ function removeToast(id) {
 
 .toast__message {
   font-size: 13px;
-  color: #A8A992;
+  color: #7A8DA0;
   line-height: 1.4;
   word-wrap: break-word;
 }
@@ -178,7 +178,7 @@ function removeToast(id) {
   padding: 0;
   border: none;
   background: transparent;
-  color: #A8A992;
+  color: #7A8DA0;
   cursor: pointer;
   opacity: 0.6;
   transition: opacity 0.2s, color 0.2s;
@@ -209,7 +209,7 @@ function removeToast(id) {
   left: 0;
   right: 0;
   height: 3px;
-  background: #609198;
+  background: #c9984d;
   opacity: 0.5;
   animation: toast-progress linear forwards;
   transform-origin: left;
@@ -261,16 +261,16 @@ function removeToast(id) {
 }
 
 .toast-container::-webkit-scrollbar-track {
-  background: rgba(158, 190, 193, 0.1);
+  background: rgba(201, 152, 77, 0.1);
 }
 
 .toast-container::-webkit-scrollbar-thumb {
-  background: rgba(96, 145, 152, 0.4);
+  background: rgba(201, 152, 77, 0.4);
   border-radius: 3px;
 }
 
 .toast-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(96, 145, 152, 0.6);
+  background: rgba(201, 152, 77, 0.6);
 }
 
 /* Responsive adjustments */

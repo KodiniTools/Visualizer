@@ -88,7 +88,7 @@ function removeToast(id) {
   position: relative;
   overflow: hidden;
   /* Dark theme als Standard (passend zur rechten Spalte) */
-  background-color: #142640;
+  background-color: var(--card-bg, #142640);
   border: 1px solid rgba(201, 152, 77, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }

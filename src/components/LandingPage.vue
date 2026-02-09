@@ -264,10 +264,10 @@ const featureCards = computed(() => {
   const cards = t('features.cards');
   const icons = [MusicIcon, GridIcon, VideoIcon, EditIcon];
   const gradients = [
-    'linear-gradient(135deg, #BCE5E5, #9EBEC1)',
-    'linear-gradient(135deg, #C5DEB0, #9EBEC1)',
-    'linear-gradient(135deg, #609198, #BCE5E5)',
-    'linear-gradient(135deg, #A8A992, #C5DEB0)'
+    'linear-gradient(135deg, #f8e1a9, #f8e1a9)',
+    'linear-gradient(135deg, #C5DEB0, #f8e1a9)',
+    'linear-gradient(135deg, #c9984d, #f8e1a9)',
+    'linear-gradient(135deg, #7A8DA0, #C5DEB0)'
   ];
 
   return cards.map((card, index) => ({
@@ -295,7 +295,7 @@ function toggleFaq(index) {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #0a1012 0%, #0f1416 50%, #0a1012 100%);
+  background: linear-gradient(180deg, #050c1e 0%, #091428 50%, #050c1e 100%);
   color: #E9E9EB;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   overflow-x: hidden;
@@ -317,7 +317,7 @@ function toggleFaq(index) {
   padding: 16px 24px;
   background: rgba(10, 16, 18, 0.8);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(158, 190, 193, 0.1);
+  border-bottom: 1px solid rgba(201, 152, 77, 0.1);
   transition: top 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -351,7 +351,7 @@ function toggleFaq(index) {
   gap: 10px;
   font-weight: 700;
   font-size: 1.1rem;
-  color: #BCE5E5;
+  color: #f8e1a9;
 }
 
 .light-theme .header-logo {
@@ -365,7 +365,7 @@ function toggleFaq(index) {
 }
 
 .nav-link {
-  color: #9EBEC1;
+  color: #f8e1a9;
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
@@ -374,7 +374,7 @@ function toggleFaq(index) {
 
 .nav-link:hover,
 .nav-link.active {
-  color: #BCE5E5;
+  color: #f8e1a9;
 }
 
 .light-theme .nav-link {
@@ -398,17 +398,17 @@ function toggleFaq(index) {
   justify-content: center;
   width: 40px;
   height: 40px;
-  background: rgba(96, 145, 152, 0.15);
-  border: 1px solid rgba(96, 145, 152, 0.25);
+  background: rgba(201, 152, 77, 0.15);
+  border: 1px solid rgba(201, 152, 77, 0.25);
   border-radius: 10px;
-  color: #BCE5E5;
+  color: #f8e1a9;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .control-btn:hover {
-  background: rgba(96, 145, 152, 0.25);
-  border-color: rgba(96, 145, 152, 0.4);
+  background: rgba(201, 152, 77, 0.25);
+  border-color: rgba(201, 152, 77, 0.4);
 }
 
 .light-theme .control-btn {
@@ -444,8 +444,8 @@ function toggleFaq(index) {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(ellipse at 50% 0%, rgba(96, 145, 152, 0.15) 0%, transparent 60%),
-              radial-gradient(ellipse at 80% 80%, rgba(188, 229, 229, 0.08) 0%, transparent 40%),
+  background: radial-gradient(ellipse at 50% 0%, rgba(201, 152, 77, 0.15) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 80%, rgba(248, 225, 169, 0.08) 0%, transparent 40%),
               radial-gradient(ellipse at 20% 60%, rgba(197, 222, 176, 0.08) 0%, transparent 40%);
   pointer-events: none;
 }
@@ -465,12 +465,12 @@ function toggleFaq(index) {
 .hero-badge {
   display: inline-block;
   padding: 8px 20px;
-  background: rgba(96, 145, 152, 0.15);
-  border: 1px solid rgba(96, 145, 152, 0.3);
+  background: rgba(201, 152, 77, 0.15);
+  border: 1px solid rgba(201, 152, 77, 0.3);
   border-radius: 30px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #BCE5E5;
+  color: #f8e1a9;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 28px;
@@ -495,7 +495,7 @@ function toggleFaq(index) {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #BCE5E5 0%, #609198 50%, #C5DEB0 100%);
+  background: linear-gradient(135deg, #f8e1a9 0%, #c9984d 50%, #C5DEB0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -511,7 +511,7 @@ function toggleFaq(index) {
 .hero-subtitle {
   font-size: 1.15rem;
   line-height: 1.7;
-  color: #A8A992;
+  color: #7A8DA0;
   margin: 0 0 40px 0;
   max-width: 550px;
   margin-left: auto;
@@ -534,19 +534,19 @@ function toggleFaq(index) {
   align-items: center;
   gap: 10px;
   padding: 16px 32px;
-  background: linear-gradient(135deg, #609198 0%, #9EBEC1 100%);
-  color: #0f1416;
+  background: linear-gradient(135deg, #c9984d 0%, #f8e1a9 100%);
+  color: #091428;
   font-size: 1rem;
   font-weight: 600;
   border-radius: 12px;
   text-decoration: none;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(96, 145, 152, 0.4);
+  box-shadow: 0 4px 20px rgba(201, 152, 77, 0.4);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(96, 145, 152, 0.5);
+  box-shadow: 0 8px 30px rgba(201, 152, 77, 0.5);
 }
 
 .light-theme .btn-primary {
@@ -565,18 +565,18 @@ function toggleFaq(index) {
   gap: 10px;
   padding: 16px 32px;
   background: transparent;
-  color: #BCE5E5;
+  color: #f8e1a9;
   font-size: 1rem;
   font-weight: 600;
-  border: 2px solid rgba(188, 229, 229, 0.3);
+  border: 2px solid rgba(248, 225, 169, 0.3);
   border-radius: 12px;
   text-decoration: none;
   transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
-  border-color: #BCE5E5;
-  background: rgba(188, 229, 229, 0.1);
+  border-color: #f8e1a9;
+  background: rgba(248, 225, 169, 0.1);
 }
 
 .light-theme .btn-secondary {
@@ -615,7 +615,7 @@ function toggleFaq(index) {
 
 .wave-bar {
   width: 8px;
-  background: linear-gradient(180deg, #609198 0%, #BCE5E5 100%);
+  background: linear-gradient(180deg, #c9984d 0%, #f8e1a9 100%);
   border-radius: 4px;
   animation: wave 1.2s ease-in-out infinite;
 }
@@ -644,7 +644,7 @@ function toggleFaq(index) {
 
 .section-subtitle {
   font-size: 1.1rem;
-  color: #A8A992;
+  color: #7A8DA0;
   margin: 0;
   max-width: 500px;
   margin-left: auto;
@@ -669,8 +669,8 @@ function toggleFaq(index) {
 }
 
 .feature-card {
-  background: linear-gradient(180deg, rgba(21, 27, 29, 0.9) 0%, rgba(21, 27, 29, 0.6) 100%);
-  border: 1px solid rgba(158, 190, 193, 0.15);
+  background: linear-gradient(180deg, rgba(20, 38, 64, 0.9) 0%, rgba(20, 38, 64, 0.6) 100%);
+  border: 1px solid rgba(201, 152, 77, 0.15);
   border-radius: 20px;
   padding: 36px 28px;
   transition: all 0.3s ease;
@@ -684,7 +684,7 @@ function toggleFaq(index) {
 
 .feature-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(96, 145, 152, 0.4);
+  border-color: rgba(201, 152, 77, 0.4);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
@@ -701,7 +701,7 @@ function toggleFaq(index) {
   align-items: center;
   justify-content: center;
   margin-bottom: 24px;
-  color: #0f1416;
+  color: #091428;
 }
 
 .feature-title {
@@ -718,7 +718,7 @@ function toggleFaq(index) {
 .feature-description {
   font-size: 0.95rem;
   line-height: 1.7;
-  color: #9EBEC1;
+  color: #f8e1a9;
   margin: 0;
 }
 
@@ -743,8 +743,8 @@ function toggleFaq(index) {
 .video-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(21, 27, 29, 0.95) 0%, rgba(10, 16, 18, 0.95) 100%);
-  border: 2px dashed rgba(96, 145, 152, 0.3);
+  background: linear-gradient(135deg, rgba(20, 38, 64, 0.95) 0%, rgba(10, 16, 18, 0.95) 100%);
+  border: 2px dashed rgba(201, 152, 77, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -762,20 +762,20 @@ function toggleFaq(index) {
 .play-button {
   width: 90px;
   height: 90px;
-  background: linear-gradient(135deg, #609198 0%, #9EBEC1 100%);
+  background: linear-gradient(135deg, #c9984d 0%, #f8e1a9 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 20px;
-  color: #0f1416;
+  color: #091428;
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .play-button:hover {
   transform: scale(1.05);
-  box-shadow: 0 10px 40px rgba(96, 145, 152, 0.5);
+  box-shadow: 0 10px 40px rgba(201, 152, 77, 0.5);
 }
 
 .light-theme .play-button {
@@ -792,7 +792,7 @@ function toggleFaq(index) {
 }
 
 .video-placeholder-text {
-  color: #A8A992;
+  color: #7A8DA0;
   font-size: 1rem;
   margin: 0;
 }
@@ -815,8 +815,8 @@ function toggleFaq(index) {
 }
 
 .faq-item {
-  background: rgba(21, 27, 29, 0.8);
-  border: 1px solid rgba(158, 190, 193, 0.15);
+  background: rgba(20, 38, 64, 0.8);
+  border: 1px solid rgba(201, 152, 77, 0.15);
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
@@ -829,7 +829,7 @@ function toggleFaq(index) {
 }
 
 .faq-item:hover {
-  border-color: rgba(96, 145, 152, 0.3);
+  border-color: rgba(201, 152, 77, 0.3);
 }
 
 .light-theme .faq-item:hover {
@@ -837,7 +837,7 @@ function toggleFaq(index) {
 }
 
 .faq-item.active {
-  border-color: rgba(96, 145, 152, 0.4);
+  border-color: rgba(201, 152, 77, 0.4);
 }
 
 .light-theme .faq-item.active {
@@ -859,7 +859,7 @@ function toggleFaq(index) {
 }
 
 .faq-icon {
-  color: #609198;
+  color: #c9984d;
   transition: transform 0.3s ease;
   flex-shrink: 0;
   margin-left: 16px;
@@ -888,7 +888,7 @@ function toggleFaq(index) {
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.7;
-  color: #9EBEC1;
+  color: #f8e1a9;
 }
 
 .light-theme .faq-answer p {
@@ -899,7 +899,7 @@ function toggleFaq(index) {
 .cta-section {
   padding: 120px 24px;
   text-align: center;
-  background: radial-gradient(ellipse at 50% 100%, rgba(96, 145, 152, 0.12) 0%, transparent 60%);
+  background: radial-gradient(ellipse at 50% 100%, rgba(201, 152, 77, 0.12) 0%, transparent 60%);
 }
 
 .light-theme .cta-section {
@@ -924,7 +924,7 @@ function toggleFaq(index) {
 
 .cta-subtitle {
   font-size: 1.15rem;
-  color: #A8A992;
+  color: #7A8DA0;
   margin: 0 0 40px 0;
   line-height: 1.7;
 }

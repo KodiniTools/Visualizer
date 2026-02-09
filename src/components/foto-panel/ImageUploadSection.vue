@@ -476,7 +476,7 @@ function triggerFileInput() {
 .action-buttons button {
   padding: 6px 10px;
   border-radius: 5px;
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   font-size: 0.6rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -486,25 +486,25 @@ function triggerFileInput() {
 }
 
 .btn-primary {
-  background: rgba(96, 145, 152, 0.2);
-  color: var(--accent-tertiary, #BCE5E5);
-  border: 1px solid rgba(96, 145, 152, 0.3);
+  background: rgba(201, 152, 77, 0.2);
+  color: var(--accent-tertiary, #f8e1a9);
+  border: 1px solid rgba(201, 152, 77, 0.3);
 }
 
 .btn-primary:hover {
-  background: rgba(96, 145, 152, 0.3);
+  background: rgba(201, 152, 77, 0.3);
   transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background-color: var(--secondary-bg, #1c2426);
+  background-color: var(--secondary-bg, #0E1C32);
   color: var(--text-primary, #E9E9EB);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
 }
 
 .btn-secondary:hover {
-  background-color: var(--btn-hover, #2a3335);
-  border-color: var(--accent-primary, #609198);
+  background-color: var(--btn-hover, #1a2a42);
+  border-color: var(--accent-primary, #c9984d);
   transform: translateY(-1px);
 }
 

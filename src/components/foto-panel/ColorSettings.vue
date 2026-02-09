@@ -58,9 +58,9 @@ const showColorPicker = ref(false);
 
 <style scoped>
 .color-settings-section {
-  background-color: var(--secondary-bg, #1c2426);
+  background-color: var(--secondary-bg, #0E1C32);
   border-radius: 6px;
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   overflow: hidden;
 }
 
@@ -75,7 +75,7 @@ const showColorPicker = ref(false);
 }
 
 .color-settings-header:hover {
-  background: rgba(96, 145, 152, 0.05);
+  background: rgba(201, 152, 77, 0.05);
 }
 
 .color-settings-title {
@@ -84,7 +84,7 @@ const showColorPicker = ref(false);
   gap: 8px;
   font-size: 0.6rem;
   font-weight: 600;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }

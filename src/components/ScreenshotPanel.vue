@@ -322,10 +322,10 @@ function handleEscKey(e) {
 
 <style scoped>
 .screenshot-panel {
-  background-color: var(--card-bg, #151b1d);
+  background-color: var(--card-bg, #142640);
   border-radius: 8px;
   padding: 10px;
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   display: flex;
   flex-direction: column;
   gap: 10px;

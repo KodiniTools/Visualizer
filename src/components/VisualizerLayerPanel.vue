@@ -337,10 +337,10 @@ function updateProperty(layerId, property, value) {
 
 <style scoped>
 .layer-panel {
-  background-color: var(--card-bg, #151b1d);
+  background-color: var(--card-bg, #142640);
   border-radius: 8px;
   padding: 10px;
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   margin-top: 10px;
 }
 
@@ -370,9 +370,9 @@ function updateProperty(layerId, property, value) {
 }
 
 .toggle-btn {
-  background-color: var(--secondary-bg, #1c2426);
+  background-color: var(--secondary-bg, #0E1C32);
   color: var(--text-primary, #E9E9EB);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
   padding: 4px 10px;
   font-size: 0.6rem;
@@ -382,14 +382,14 @@ function updateProperty(layerId, property, value) {
 }
 
 .toggle-btn:hover {
-  background-color: var(--btn-hover, #2a3335);
-  border-color: var(--accent-primary, #609198);
+  background-color: var(--btn-hover, #1a2a42);
+  border-color: var(--accent-primary, #c9984d);
 }
 
 .toggle-btn.active {
-  background-color: var(--accent-primary, #609198);
-  color: var(--accent-text, #0f1416);
-  border-color: var(--accent-primary, #609198);
+  background-color: var(--accent-primary, #c9984d);
+  color: var(--accent-text, #091428);
+  border-color: var(--accent-primary, #c9984d);
 }
 
 .layer-content {
@@ -406,9 +406,9 @@ function updateProperty(layerId, property, value) {
 
 .add-layer-select {
   flex: 1;
-  background-color: var(--secondary-bg, #1c2426);
+  background-color: var(--secondary-bg, #0E1C32);
   color: var(--text-primary, #E9E9EB);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
   padding: 6px 8px;
   font-size: 0.6rem;
@@ -418,22 +418,22 @@ function updateProperty(layerId, property, value) {
 
 .add-layer-select:focus {
   outline: none;
-  border-color: var(--accent-primary, #609198);
+  border-color: var(--accent-primary, #c9984d);
 }
 
 .add-layer-select optgroup {
   font-weight: 600;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
 }
 
 .add-layer-select option {
-  background-color: var(--card-bg, #151b1d);
+  background-color: var(--card-bg, #142640);
   color: var(--text-primary, #E9E9EB);
 }
 
 .add-layer-btn {
-  background-color: var(--accent-primary, #609198);
-  color: var(--accent-text, #0f1416);
+  background-color: var(--accent-primary, #c9984d);
+  color: var(--accent-text, #091428);
   border: none;
   border-radius: 5px;
   padding: 6px 12px;
@@ -449,7 +449,7 @@ function updateProperty(layerId, property, value) {
 }
 
 .add-layer-btn:hover {
-  background-color: var(--accent-tertiary, #BCE5E5);
+  background-color: var(--accent-tertiary, #f8e1a9);
 }
 
 .btn-icon {
@@ -473,8 +473,8 @@ function updateProperty(layerId, property, value) {
 }
 
 .layer-item {
-  background-color: var(--secondary-bg, #1c2426);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  background-color: var(--secondary-bg, #0E1C32);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 5px;
   overflow: hidden;
   cursor: pointer;
@@ -482,11 +482,11 @@ function updateProperty(layerId, property, value) {
 }
 
 .layer-item:hover {
-  border-color: var(--accent-primary, #609198);
+  border-color: var(--accent-primary, #c9984d);
 }
 
 .layer-item.active {
-  border-color: var(--accent-primary, #609198);
+  border-color: var(--accent-primary, #c9984d);
   border-width: 2px;
 }
 
@@ -538,9 +538,9 @@ function updateProperty(layerId, property, value) {
 }
 
 .action-btn {
-  background-color: var(--card-bg, #151b1d);
-  color: var(--text-muted, #A8A992);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  background-color: var(--card-bg, #142640);
+  color: var(--text-muted, #7A8DA0);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 3px;
   width: 18px;
   height: 18px;
@@ -553,9 +553,9 @@ function updateProperty(layerId, property, value) {
 }
 
 .action-btn:hover:not(:disabled) {
-  background-color: var(--accent-primary, #609198);
-  color: var(--accent-text, #0f1416);
-  border-color: var(--accent-primary, #609198);
+  background-color: var(--accent-primary, #c9984d);
+  color: var(--accent-text, #091428);
+  border-color: var(--accent-primary, #c9984d);
 }
 
 .action-btn:disabled {
@@ -569,12 +569,12 @@ function updateProperty(layerId, property, value) {
 }
 
 .layer-details {
-  background-color: var(--card-bg, #151b1d);
+  background-color: var(--card-bg, #142640);
   padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  border-top: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
+  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
 }
 
 .detail-row {
@@ -585,14 +585,14 @@ function updateProperty(layerId, property, value) {
 
 .detail-label {
   font-size: 0.55rem;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
   font-weight: 500;
 }
 
 .detail-select {
-  background-color: var(--secondary-bg, #1c2426);
+  background-color: var(--secondary-bg, #0E1C32);
   color: var(--text-primary, #E9E9EB);
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 4px;
   padding: 4px 6px;
   font-size: 0.6rem;
@@ -601,16 +601,16 @@ function updateProperty(layerId, property, value) {
 
 .detail-select:focus {
   outline: none;
-  border-color: var(--accent-primary, #609198);
+  border-color: var(--accent-primary, #c9984d);
 }
 
 .detail-color {
   width: 100%;
   height: 24px;
-  border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 4px;
   cursor: pointer;
-  background-color: var(--secondary-bg, #1c2426);
+  background-color: var(--secondary-bg, #0E1C32);
 }
 
 .detail-color::-webkit-color-swatch-wrapper {
@@ -630,7 +630,7 @@ function updateProperty(layerId, property, value) {
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
-  background: linear-gradient(to right, var(--secondary-bg, #1c2426) 0%, var(--accent-primary, #609198) 100%);
+  background: linear-gradient(to right, var(--secondary-bg, #0E1C32) 0%, var(--accent-primary, #c9984d) 100%);
 }
 
 .detail-slider::-webkit-slider-thumb {
@@ -639,7 +639,7 @@ function updateProperty(layerId, property, value) {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--accent-tertiary, #BCE5E5);
+  background: var(--accent-tertiary, #f8e1a9);
   cursor: pointer;
   border: 2px solid #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -649,7 +649,7 @@ function updateProperty(layerId, property, value) {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--accent-tertiary, #BCE5E5);
+  background: var(--accent-tertiary, #f8e1a9);
   cursor: pointer;
   border: 2px solid #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -682,7 +682,7 @@ function updateProperty(layerId, property, value) {
 .no-layers {
   text-align: center;
   padding: 15px;
-  color: var(--text-muted, #A8A992);
+  color: var(--text-muted, #7A8DA0);
   font-size: 0.65rem;
   font-style: italic;
 }
@@ -693,16 +693,16 @@ function updateProperty(layerId, property, value) {
 }
 
 .layer-list::-webkit-scrollbar-track {
-  background: var(--card-bg, #151b1d);
+  background: var(--card-bg, #142640);
   border-radius: 3px;
 }
 
 .layer-list::-webkit-scrollbar-thumb {
-  background: var(--border-color, rgba(158, 190, 193, 0.3));
+  background: var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 3px;
 }
 
 .layer-list::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-primary, #609198);
+  background: var(--accent-primary, #c9984d);
 }
 </style>

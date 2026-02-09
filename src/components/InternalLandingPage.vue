@@ -175,9 +175,9 @@ const featureCards = computed(() => {
   const cards = t('internalLanding.features.cards');
   const icons = [VisualizerIcon, VideoIcon, CustomizeIcon];
   const gradients = [
-    'linear-gradient(135deg, #BCE5E5 0%, #609198 100%)',
-    'linear-gradient(135deg, #C5DEB0 0%, #9EBEC1 100%)',
-    'linear-gradient(135deg, #609198 0%, #A8A992 100%)'
+    'linear-gradient(135deg, #f8e1a9 0%, #c9984d 100%)',
+    'linear-gradient(135deg, #C5DEB0 0%, #f8e1a9 100%)',
+    'linear-gradient(135deg, #c9984d 0%, #7A8DA0 100%)'
   ];
 
   return cards.map((card, index) => ({
@@ -194,7 +194,7 @@ const featureCards = computed(() => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #0a1012 0%, #0f1416 50%, #0a1012 100%);
+  background: linear-gradient(180deg, #050c1e 0%, #091428 50%, #050c1e 100%);
   color: #E9E9EB;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   overflow-x: hidden;
@@ -216,7 +216,7 @@ const featureCards = computed(() => {
   padding: 16px 24px;
   background: rgba(10, 16, 18, 0.85);
   backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(158, 190, 193, 0.1);
+  border-bottom: 1px solid rgba(201, 152, 77, 0.1);
   transition: top 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -250,7 +250,7 @@ const featureCards = computed(() => {
   gap: 12px;
   font-weight: 700;
   font-size: 1.2rem;
-  color: #BCE5E5;
+  color: #f8e1a9;
 }
 
 .light-theme .header-logo {
@@ -269,17 +269,17 @@ const featureCards = computed(() => {
   justify-content: center;
   width: 42px;
   height: 42px;
-  background: rgba(96, 145, 152, 0.15);
-  border: 1px solid rgba(96, 145, 152, 0.25);
+  background: rgba(201, 152, 77, 0.15);
+  border: 1px solid rgba(201, 152, 77, 0.25);
   border-radius: 12px;
-  color: #BCE5E5;
+  color: #f8e1a9;
   cursor: pointer;
   transition: all 0.25s ease;
 }
 
 .control-btn:hover {
-  background: rgba(96, 145, 152, 0.3);
-  border-color: rgba(96, 145, 152, 0.5);
+  background: rgba(201, 152, 77, 0.3);
+  border-color: rgba(201, 152, 77, 0.5);
   transform: translateY(-1px);
 }
 
@@ -339,7 +339,7 @@ const featureCards = computed(() => {
 
 .gradient-text {
   display: block;
-  background: linear-gradient(135deg, #BCE5E5 0%, #609198 50%, #C5DEB0 100%);
+  background: linear-gradient(135deg, #f8e1a9 0%, #c9984d 50%, #C5DEB0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -355,7 +355,7 @@ const featureCards = computed(() => {
 .hero-subtitle {
   font-size: 1.15rem;
   line-height: 1.7;
-  color: #A8A992;
+  color: #7A8DA0;
   margin: 0;
 }
 
@@ -372,8 +372,8 @@ const featureCards = computed(() => {
 }
 
 .feature-card {
-  background: linear-gradient(180deg, rgba(21, 27, 29, 0.95) 0%, rgba(15, 20, 22, 0.9) 100%);
-  border: 1px solid rgba(158, 190, 193, 0.15);
+  background: linear-gradient(180deg, rgba(20, 38, 64, 0.95) 0%, rgba(15, 20, 22, 0.9) 100%);
+  border: 1px solid rgba(201, 152, 77, 0.15);
   border-radius: 20px;
   padding: 32px 28px;
   text-align: center;
@@ -390,7 +390,7 @@ const featureCards = computed(() => {
 
 .feature-card:hover {
   transform: translateY(-6px);
-  border-color: rgba(96, 145, 152, 0.4);
+  border-color: rgba(201, 152, 77, 0.4);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
 }
 
@@ -418,8 +418,8 @@ const featureCards = computed(() => {
   align-items: center;
   justify-content: center;
   margin: 0 auto 20px;
-  color: #0f1416;
-  box-shadow: 0 8px 24px rgba(96, 145, 152, 0.3);
+  color: #091428;
+  box-shadow: 0 8px 24px rgba(201, 152, 77, 0.3);
 }
 
 .card-title {
@@ -436,7 +436,7 @@ const featureCards = computed(() => {
 .card-description {
   font-size: 0.95rem;
   line-height: 1.65;
-  color: #9EBEC1;
+  color: #f8e1a9;
   margin: 0;
 }
 
@@ -454,19 +454,19 @@ const featureCards = computed(() => {
   align-items: center;
   gap: 12px;
   padding: 18px 40px;
-  background: linear-gradient(135deg, #609198 0%, #9EBEC1 100%);
-  color: #0f1416;
+  background: linear-gradient(135deg, #c9984d 0%, #f8e1a9 100%);
+  color: #091428;
   font-size: 1.1rem;
   font-weight: 700;
   border-radius: 14px;
   text-decoration: none;
   transition: all 0.3s ease;
-  box-shadow: 0 6px 28px rgba(96, 145, 152, 0.45);
+  box-shadow: 0 6px 28px rgba(201, 152, 77, 0.45);
 }
 
 .btn-primary:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(96, 145, 152, 0.55);
+  box-shadow: 0 12px 40px rgba(201, 152, 77, 0.55);
 }
 
 .light-theme .btn-primary {
@@ -509,7 +509,7 @@ const featureCards = computed(() => {
 .wave-bar {
   width: 12px;
   min-height: 20px;
-  background: linear-gradient(180deg, #609198 0%, #BCE5E5 100%);
+  background: linear-gradient(180deg, #c9984d 0%, #f8e1a9 100%);
   border-radius: 6px;
   animation: waveAnimation 1.4s ease-in-out infinite;
 }

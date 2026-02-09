@@ -142,7 +142,7 @@ defineExpose({
 }
 .canvas-wrapper {
   flex-grow: 1;
-  background-color: var(--card-bg, #151b1d); /* Dunkler Hintergrund passend zu den Sidebars */
+  background-color: var(--card-bg, #142640); /* Dunkler Hintergrund passend zu den Sidebars */
   border-radius: 12px;
   overflow: auto;        /* ← ÄNDERN: hidden → auto */
   min-height: 0;

@@ -112,7 +112,7 @@ function onDrop(event) {
 
 <style scoped>
 .panel {
-  background-color: var(--panel, #151b1d);
+  background-color: var(--card-bg, #151b1d);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   padding: 10px;
   border-radius: 8px;
@@ -123,7 +123,7 @@ function onDrop(event) {
 
 h3 {
   margin: 0;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-weight: 600;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -145,7 +145,7 @@ h3::before {
 
 /* Upload Area */
 .upload-area {
-  background: linear-gradient(135deg, var(--btn, #1c2426) 0%, rgba(96, 145, 152, 0.1) 100%);
+  background: linear-gradient(135deg, var(--secondary-bg, #1c2426) 0%, rgba(96, 145, 152, 0.1) 100%);
   border: 2px dashed var(--border-color, rgba(158, 190, 193, 0.3));
   border-radius: 8px;
   padding: 16px;
@@ -160,13 +160,13 @@ h3::before {
 }
 
 .upload-area:hover {
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   background: linear-gradient(135deg, rgba(96, 145, 152, 0.15) 0%, rgba(188, 229, 229, 0.1) 100%);
   transform: translateY(-1px);
 }
 
 .upload-area.drag-over {
-  border-color: var(--accent-light, #BCE5E5);
+  border-color: var(--accent-tertiary, #BCE5E5);
   background: linear-gradient(135deg, rgba(96, 145, 152, 0.2) 0%, rgba(188, 229, 229, 0.15) 100%);
   border-style: solid;
   transform: scale(1.01);
@@ -176,7 +176,7 @@ h3::before {
 .upload-icon {
   width: 36px;
   height: 36px;
-  color: var(--accent-light, #BCE5E5);
+  color: var(--accent-tertiary, #BCE5E5);
   transition: all 0.3s ease;
 }
 
@@ -207,13 +207,13 @@ h3::before {
 
 .upload-main {
   font-size: 0.7rem;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-weight: 600;
 }
 
 .upload-sub {
   font-size: 0.6rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   font-weight: 500;
 }
 
@@ -228,7 +228,7 @@ h3::before {
 
 .format-label {
   font-size: 0.55rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   font-weight: 600;
@@ -236,7 +236,7 @@ h3::before {
 
 .format-item {
   font-size: 0.55rem;
-  color: var(--accent, #609198);
+  color: var(--accent-primary, #609198);
   background-color: rgba(96, 145, 152, 0.15);
   padding: 2px 5px;
   border-radius: 3px;

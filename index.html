@@ -41,7 +41,7 @@
     <style>
         .header-controls { display: flex; gap: 12px; align-items: center; }
         .playlist-header { display: flex; justify-content: space-between; align-items: center; margin: 16px 4px 8px 4px; }
-        .playlist-header h4 { margin: 0; font-weight: 600; color: var(--text); }
+        .playlist-header h4 { margin: 0; font-weight: 600; color: var(--text-primary); }
         .btn-small { padding: 4px 10px; font-size: 0.8rem; }
         .file-input-group { display: flex; gap: 10px; }
         .file-input-group > * { flex: 1; }
@@ -52,34 +52,34 @@
         /* SEO Content Styles */
         .intro-section { margin: 20px 0; }
         .intro-section h2 { font-size: 1.5rem; margin-bottom: 12px; }
-        .intro-section p { line-height: 1.6; color: var(--muted); }
+        .intro-section p { line-height: 1.6; color: var(--text-muted); }
         
         .faq-section { margin: 32px 0; }
         .faq-section h2 { font-size: 1.4rem; margin-bottom: 16px; }
         .faq-section details { margin-bottom: 8px; background: var(--panel-bg, rgba(255, 255, 255, 0.05)); border-radius: 8px; }
         .faq-section summary { padding: 12px 16px; cursor: pointer; font-weight: 600; border-radius: 8px; transition: background-color 0.2s ease; }
         .faq-section summary:hover { background-color: var(--btn-hover); }
-        .faq-section details > div { padding: 8px 16px 12px 16px; color: var(--muted); }
+        .faq-section details > div { padding: 8px 16px 12px 16px; color: var(--text-muted); }
         
         .footer-nav { text-align: center; margin-top: 40px; padding: 20px 0; border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.12)); background: transparent; }
-        .footer-nav a { color: var(--muted, #A8A992); text-decoration: none; margin: 0 8px; transition: color 0.2s ease; }
-        .footer-nav a:hover { color: var(--text, #E9E9EB); }
+        .footer-nav a { color: var(--text-muted, #A8A992); text-decoration: none; margin: 0 8px; transition: color 0.2s ease; }
+        .footer-nav a:hover { color: var(--text-primary, #E9E9EB); }
 
         /* Global Navigation & Footer - Transparent */
         .global-nav, .site-nav, nav.global, header.global, #global-nav, body > nav:first-of-type, body > header:first-of-type {
             background: transparent !important;
             backdrop-filter: blur(8px);
-            color: var(--text, #E9E9EB) !important;
+            color: var(--text-primary, #E9E9EB) !important;
         }
         .global-footer, .site-footer, footer.global, #global-footer { background: transparent !important; backdrop-filter: blur(8px); }
-        .global-footer a, .site-footer a, footer a { color: var(--muted, #A8A992) !important; }
-        .global-footer a:hover, .site-footer a:hover, footer a:hover { color: var(--text, #E9E9EB) !important; }
+        .global-footer a, .site-footer a, footer a { color: var(--text-muted, #A8A992) !important; }
+        .global-footer a:hover, .site-footer a:hover, footer a:hover { color: var(--text-primary, #E9E9EB) !important; }
 
         /* Navigation Text Kontrast Fix - NUR für SSI Partials (nicht Vue-Komponenten) */
-        .global-nav a, .site-nav a, body > nav:first-of-type a, body > header:first-of-type a { color: var(--text, #E9E9EB) !important; }
-        .global-nav a:hover, .site-nav a:hover, body > nav:first-of-type a:hover, body > header:first-of-type a:hover { color: var(--accent-light, #BCE5E5) !important; }
+        .global-nav a, .site-nav a, body > nav:first-of-type a, body > header:first-of-type a { color: var(--text-primary, #E9E9EB) !important; }
+        .global-nav a:hover, .site-nav a:hover, body > nav:first-of-type a:hover, body > header:first-of-type a:hover { color: var(--accent-tertiary, #BCE5E5) !important; }
         .global-nav *, .site-nav *, nav.global *, header.global *, body > nav:first-of-type *, body > header:first-of-type * { color: inherit !important; }
-        .global-nav span, .global-nav label, .site-nav span, .site-nav label, body > nav:first-of-type span, body > header:first-of-type span { color: var(--text, #E9E9EB) !important; }
+        .global-nav span, .global-nav label, .site-nav span, .site-nav label, body > nav:first-of-type span, body > header:first-of-type span { color: var(--text-primary, #E9E9EB) !important; }
     </style>
 
     <!-- JSON-LD: SoftwareApplication -->

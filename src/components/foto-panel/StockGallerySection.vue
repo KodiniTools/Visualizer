@@ -188,7 +188,7 @@ function getStockCategoryName(category) {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background-color: var(--panel, #151b1d);
+  background-color: var(--card-bg, #151b1d);
   border-radius: 6px;
   padding: 10px;
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
@@ -198,7 +198,7 @@ function getStockCategoryName(category) {
   margin: 0 0 6px 0;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   display: flex;
@@ -230,23 +230,23 @@ function getStockCategoryName(category) {
   padding: 5px 8px;
   border-radius: 5px;
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
-  background-color: var(--btn, #1c2426);
-  color: var(--text, #E9E9EB);
+  background-color: var(--secondary-bg, #1c2426);
+  color: var(--text-primary, #E9E9EB);
   font-size: 0.55rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .category-tab:hover {
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   background-color: var(--btn-hover, #2a3335);
   transform: translateY(-1px);
 }
 
 .category-tab.active {
   background: rgba(96, 145, 152, 0.3);
-  border-color: var(--accent, #609198);
-  color: var(--accent-light, #BCE5E5);
+  border-color: var(--accent-primary, #609198);
+  color: var(--accent-tertiary, #BCE5E5);
   font-weight: 600;
 }
 
@@ -466,7 +466,7 @@ function getStockCategoryName(category) {
 
 .btn-primary {
   background: rgba(96, 145, 152, 0.2);
-  color: var(--accent-light, #BCE5E5);
+  color: var(--accent-tertiary, #BCE5E5);
   border: 1px solid rgba(96, 145, 152, 0.3);
 }
 
@@ -476,14 +476,14 @@ function getStockCategoryName(category) {
 }
 
 .btn-secondary {
-  background-color: var(--btn, #1c2426);
-  color: var(--text, #E9E9EB);
+  background-color: var(--secondary-bg, #1c2426);
+  color: var(--text-primary, #E9E9EB);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
 }
 
 .btn-secondary:hover {
   background-color: var(--btn-hover, #2a3335);
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   transform: translateY(-1px);
 }
 

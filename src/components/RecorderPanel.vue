@@ -849,7 +849,7 @@ onUnmounted(() => {
 
 <style scoped>
 .recorder-panel {
-  background-color: var(--panel, #151b1d);
+  background-color: var(--card-bg, #151b1d);
   border-radius: 8px;
   padding: 10px;
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
@@ -866,7 +866,7 @@ onUnmounted(() => {
 
 h3 {
   margin: 0;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-weight: 600;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -902,7 +902,7 @@ h3::before {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--muted, #A8A992);
+  background: var(--text-muted, #A8A992);
   animation: pulse 2s infinite;
 }
 
@@ -910,7 +910,7 @@ h3::before {
   font-size: 0.6rem;
   font-weight: 600;
   letter-spacing: 0.4px;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
 }
 
 .recording-timer {
@@ -1046,7 +1046,7 @@ h3::before {
 
 .btn-prepare {
   background: rgba(96, 145, 152, 0.2);
-  color: var(--accent-light, #BCE5E5);
+  color: var(--accent-tertiary, #BCE5E5);
   border: 1px solid rgba(96, 145, 152, 0.3);
 }
 
@@ -1166,7 +1166,7 @@ h3::before {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-weight: 500;
 }
 

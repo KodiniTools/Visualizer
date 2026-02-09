@@ -23,15 +23,15 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg, #0f1416);
+  background-color: var(--primary-bg, #0f1416);
 }
 
 #app {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg, #0f1416);
-  color: var(--text, #E9E9EB);
+  background-color: var(--primary-bg, #0f1416);
+  color: var(--text-primary, #E9E9EB);
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif);
   font-size: 12px;
 }

@@ -543,7 +543,7 @@ defineExpose({
   margin: 0 0 6px 0;
   font-size: 0.6rem;
   font-weight: 500;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -565,7 +565,7 @@ defineExpose({
 .control-group.slider label {
   grid-column: 1 / 3;
   font-size: 0.55rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   font-weight: 500;
@@ -577,7 +577,7 @@ defineExpose({
 
 .control-group.slider span {
   font-size: 0.5rem;
-  color: var(--muted, #A8A992);
+  color: var(--text-muted, #A8A992);
   font-weight: 500;
   font-family: monospace;
   min-width: 35px;
@@ -589,15 +589,15 @@ defineExpose({
   padding: 5px 8px;
   border-radius: 5px;
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
-  background-color: var(--btn, #1c2426);
-  color: var(--text, #E9E9EB);
+  background-color: var(--secondary-bg, #1c2426);
+  color: var(--text-primary, #E9E9EB);
   font-size: 0.6rem;
   cursor: pointer;
 }
 
 .control-group select:hover,
 .control-group select:focus {
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
   outline: none;
 }
 
@@ -608,7 +608,7 @@ input[type="range"] {
   width: 100%;
   height: 3px;
   border-radius: 2px;
-  background: linear-gradient(90deg, var(--muted, #A8A992) 0%, var(--accent, #609198) 100%);
+  background: linear-gradient(90deg, var(--text-muted, #A8A992) 0%, var(--accent-primary, #609198) 100%);
   outline: none;
   cursor: pointer;
 }
@@ -619,7 +619,7 @@ input[type="range"]::-webkit-slider-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--accent-light, #BCE5E5);
+  background: var(--accent-tertiary, #BCE5E5);
   cursor: pointer;
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -629,7 +629,7 @@ input[type="range"]::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--accent-light, #BCE5E5);
+  background: var(--accent-tertiary, #BCE5E5);
   cursor: pointer;
   border: 2px solid #fff;
 }
@@ -728,7 +728,7 @@ input[type="range"]::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--accent-light, #BCE5E5);
+  background: var(--accent-tertiary, #BCE5E5);
   cursor: pointer;
   border: 2px solid #fff;
 }
@@ -737,7 +737,7 @@ input[type="range"]::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--accent-light, #BCE5E5);
+  background: var(--accent-tertiary, #BCE5E5);
   cursor: pointer;
   border: 2px solid #fff;
 }
@@ -831,8 +831,8 @@ input[type="range"]::-moz-range-thumb {
   padding: 6px 10px;
   border-radius: 5px;
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.3));
-  background-color: var(--btn, #1c2426);
-  color: var(--text, #E9E9EB);
+  background-color: var(--secondary-bg, #1c2426);
+  color: var(--text-primary, #E9E9EB);
   font-size: 0.6rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -841,7 +841,7 @@ input[type="range"]::-moz-range-thumb {
 
 .btn-secondary:hover {
   background-color: var(--btn-hover, #2a3335);
-  border-color: var(--accent, #609198);
+  border-color: var(--accent-primary, #609198);
 }
 
 .modern-reset-btn {
@@ -903,10 +903,10 @@ input[type="range"]::-moz-range-thumb {
   justify-content: center;
   gap: 2px;
   padding: 6px 4px;
-  background: var(--btn, #1c2426);
+  background: var(--secondary-bg, #1c2426);
   border: 1px solid var(--border-color, rgba(158, 190, 193, 0.2));
   border-radius: 5px;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
   font-size: 0.55rem;
   font-weight: 500;
   cursor: pointer;
@@ -916,8 +916,8 @@ input[type="range"]::-moz-range-thumb {
 
 .layer-btn:hover:not(:disabled) {
   background: var(--btn-hover, #2a3335);
-  border-color: var(--accent, #609198);
-  color: var(--accent-light, #BCE5E5);
+  border-color: var(--accent-primary, #609198);
+  color: var(--accent-tertiary, #BCE5E5);
 }
 
 .layer-btn:disabled {
@@ -950,7 +950,7 @@ input[type="range"]::-moz-range-thumb {
   gap: 8px;
   cursor: pointer;
   font-size: 0.75rem;
-  color: var(--text, #E9E9EB);
+  color: var(--text-primary, #E9E9EB);
 }
 
 .visualizer-layer-toggle input[type="checkbox"] {

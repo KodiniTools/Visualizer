@@ -1,15 +1,43 @@
 <template>
   <div id="app-container">
 
+    <!-- Mobile Panel Toggle Bar -->
+    <div class="mobile-panel-bar">
+      <button
+        class="mobile-panel-btn"
+        :class="{ active: mobilePanel === 'left' }"
+        @click="mobilePanel = mobilePanel === 'left' ? 'canvas' : 'left'"
+      >
+        <span class="mobile-panel-icon">🎨</span>
+        <span class="mobile-panel-label">Foto</span>
+      </button>
+      <button
+        class="mobile-panel-btn"
+        :class="{ active: mobilePanel === 'canvas' }"
+        @click="mobilePanel = 'canvas'"
+      >
+        <span class="mobile-panel-icon">🖼️</span>
+        <span class="mobile-panel-label">Canvas</span>
+      </button>
+      <button
+        class="mobile-panel-btn"
+        :class="{ active: mobilePanel === 'right' }"
+        @click="mobilePanel = mobilePanel === 'right' ? 'canvas' : 'right'"
+      >
+        <span class="mobile-panel-icon">⚙️</span>
+        <span class="mobile-panel-label">Controls</span>
+      </button>
+    </div>
+
     <div class="layout-grid">
 
-      <aside class="left-toolbar">
+      <aside class="left-toolbar" :class="{ 'mobile-visible': mobilePanel === 'left' }">
         <TextManagerPanel />
         <FotoPanel />
         <VideoPanel />
       </aside>
 
-      <main class="center-column">
+      <main class="center-column" :class="{ 'mobile-visible': mobilePanel === 'canvas' }">
         <!-- Canvas-Bilder Leiste (horizontal scrollbar) -->
         <div v-if="canvasImages.length > 0" class="canvas-images-bar">
           <span class="canvas-images-label">{{ t('app.imagesOnCanvas') }}:</span>
@@ -191,7 +219,7 @@
         </div>
       </main>
 
-      <aside class="right-panel">
+      <aside class="right-panel" :class="{ 'mobile-visible': mobilePanel === 'right' }">
         <FileUploadPanel />
         <PlayerPanel />
         <RecorderPanel />
@@ -264,6 +292,7 @@ const backgroundTilesStore = useBackgroundTilesStore();
 const audioSourceStore = useAudioSourceStore();
 const audioRef = ref(null);
 const canvasRef = ref(null);
+const mobilePanel = ref('canvas'); // 'left' | 'canvas' | 'right'
 
 // Recording Canvas - wird für den Recorder verwendet
 let recordingCanvas = document.createElement('canvas');
@@ -3647,5 +3676,171 @@ canvas {
 }
 [data-theme='light'] .replace-with-label {
   color: #4d6d8e;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE PANEL TOGGLE BAR
+   ═══════════════════════════════════════════════════════════════ */
+.mobile-panel-bar {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Tablet Portrait (< 1024px): Schmalere Sidebars */
+@media (max-width: 1024px) {
+  .layout-grid {
+    grid-template-columns: 280px 1fr 280px;
+    gap: 8px;
+    padding: 8px;
+  }
+}
+
+/* Small Tablet / Large Phone Landscape (< 768px): Single column + Toggle */
+@media (max-width: 768px) {
+  .mobile-panel-bar {
+    display: flex;
+    gap: 4px;
+    padding: 6px 8px;
+    background: var(--card-bg, #142640);
+    border-bottom: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .mobile-panel-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px;
+    min-height: 44px;
+    background: var(--secondary-bg, #0E1C32);
+    border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+    border-radius: 8px;
+    color: var(--text-muted, #7A8DA0);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-panel-btn.active {
+    background: var(--accent-primary, #c9984d);
+    color: var(--accent-text, #091428);
+    border-color: var(--accent-primary, #c9984d);
+  }
+
+  .mobile-panel-icon {
+    font-size: 1rem;
+  }
+
+  .layout-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0;
+    padding: 0;
+  }
+
+  .left-toolbar,
+  .right-panel {
+    display: none;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    max-height: calc(100vh - 56px);
+  }
+
+  .left-toolbar.mobile-visible,
+  .right-panel.mobile-visible {
+    display: flex;
+  }
+
+  .center-column {
+    display: none;
+    border-radius: 0;
+    min-height: calc(100vh - 56px);
+  }
+
+  .center-column.mobile-visible {
+    display: flex;
+  }
+
+  .canvas-wrapper {
+    border-radius: 0;
+  }
+
+  /* Light Theme Mobile Overrides */
+  [data-theme='light'] .mobile-panel-btn {
+    background: #FDFBF2;
+    color: #4d6d8e;
+    border-color: var(--border-color);
+  }
+
+  [data-theme='light'] .mobile-panel-btn.active {
+    background: #014f99;
+    color: #F5F4D6;
+    border-color: #014f99;
+  }
+}
+
+/* Phone (< 480px): Tighter spacing */
+@media (max-width: 480px) {
+  .mobile-panel-bar {
+    padding: 4px 6px;
+  }
+
+  .mobile-panel-btn {
+    padding: 8px 4px;
+    font-size: 0.65rem;
+    gap: 4px;
+  }
+
+  .mobile-panel-label {
+    display: none;
+  }
+
+  .mobile-panel-icon {
+    font-size: 1.2rem;
+  }
+
+  .left-toolbar,
+  .right-panel {
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .canvas-images-bar {
+    padding: 4px 6px;
+    gap: 6px;
+  }
+
+  .canvas-images-label {
+    font-size: 0.55rem;
+  }
+
+  .canvas-thumb {
+    width: 36px;
+    height: 36px;
+  }
+
+  .image-preview-modal {
+    max-width: 95vw;
+    max-height: 95vh;
+    border-radius: 8px;
+  }
+
+  .preview-modal-image-container {
+    padding: 10px;
+    min-height: 200px;
+  }
+
+  .preview-modal-info {
+    padding: 12px;
+  }
 }
 </style>

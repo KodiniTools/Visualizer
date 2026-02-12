@@ -5398,4 +5398,39 @@ h4 {
   border-color: #014f99;
   color: #014f99;
 }
+
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .text-area {
+    min-height: 44px;
+    font-size: 0.8rem;
+  }
+
+  .color-input {
+    width: 40px;
+    height: 36px;
+  }
+
+  .btn-pos {
+    min-height: 36px;
+    min-width: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .color-input {
+    width: 44px;
+    height: 40px;
+  }
+
+  .btn-pos {
+    min-height: 40px;
+    min-width: 40px;
+  }
+
+  .text-area {
+    min-height: 50px;
+    font-size: 0.85rem;
+  }
+}
 </style>

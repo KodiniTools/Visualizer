@@ -278,4 +278,12 @@ function emitUpdate() {
   font-style: italic;
   text-align: center;
 }
+
+/* ═══ Responsive ═══ */
+@media (max-width: 480px) {
+  .placement-grid {
+    grid-template-columns: auto 1fr;
+    gap: 4px 8px;
+  }
+}
 </style>

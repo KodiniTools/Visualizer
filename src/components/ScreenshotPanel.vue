@@ -922,4 +922,44 @@ h3::before {
 [data-theme='light'] .metadata-divider {
   color: rgba(0, 0, 0, 0.3);
 }
+
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .screenshot-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .screenshot-btn {
+    padding: 8px;
+    font-size: 0.65rem;
+    min-height: 40px;
+  }
+
+  .btn-close-preview,
+  .btn-close-floating {
+    width: 32px;
+    height: 32px;
+  }
+
+  .preview-container {
+    max-height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .screenshot-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .screenshot-btn {
+    min-height: 44px;
+    font-size: 0.7rem;
+  }
+
+  .btn-close-preview,
+  .btn-close-floating {
+    width: 36px;
+    height: 36px;
+  }
+}
 </style>

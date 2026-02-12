@@ -2276,4 +2276,47 @@ onUnmounted(() => {
 [data-theme='light'] .bg-video-item.workspace .volume-slider-small::-moz-range-thumb {
   background: #c9984d;
 }
+
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .video-gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 6px;
+  }
+
+  .gallery-scroll {
+    max-height: 250px;
+  }
+
+  .video-play-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .btn-delete-thumb {
+    width: 24px;
+    height: 24px;
+  }
+
+  .upload-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .video-gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  }
+
+  .video-play-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .btn-delete-thumb {
+    width: 28px;
+    height: 28px;
+  }
+}
 </style>

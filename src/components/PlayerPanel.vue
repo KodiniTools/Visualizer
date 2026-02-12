@@ -2081,4 +2081,62 @@ h3::before {
 [data-theme='light'] .drag-handle {
   color: #4d6d8e;
 }
+
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .control-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .control-btn-main {
+    width: 44px;
+    height: 44px;
+  }
+
+  .control-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .control-btn-main svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .progress-bar-handle {
+    width: 14px;
+    height: 14px;
+  }
+
+  .time-display {
+    font-size: 0.6rem;
+    min-width: 36px;
+  }
+
+  .playlist-container {
+    max-height: 150px;
+  }
+
+  .marker-list {
+    max-height: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .control-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .control-btn-main {
+    width: 48px;
+    height: 48px;
+  }
+
+  .progress-bar-handle {
+    width: 18px;
+    height: 18px;
+  }
+}
 </style>

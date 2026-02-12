@@ -924,4 +924,34 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   border-color: #014f99;
   color: #014f99;
 }
+
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .order-thumb {
+    width: 40px;
+    height: 40px;
+  }
+
+  .order-number {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+
+  .image-order-list {
+    max-height: 220px;
+  }
+}
+
+@media (max-width: 480px) {
+  .order-thumb {
+    width: 44px;
+    height: 44px;
+  }
+
+  .order-number {
+    width: 28px;
+    height: 28px;
+  }
+}
 </style>

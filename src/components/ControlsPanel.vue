@@ -197,7 +197,7 @@ h4 {
 }
 
 [data-theme='light'] .toggle-btn {
-  background-color: #f0ead0;
+  background-color: #FDFBF2;
   color: #003971;
   border-color: #d4c8a8;
 }
@@ -218,7 +218,7 @@ h4 {
 }
 
 [data-theme='light'] .preset-btn {
-  background-color: #f0ead0;
+  background-color: #FDFBF2;
   color: #003971;
   border-color: #d4c8a8;
 }

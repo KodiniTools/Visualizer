@@ -274,7 +274,7 @@ function toggleFaq(index) {
   flex-direction: column;
   background: linear-gradient(180deg, #050c1e 0%, #091428 50%, #050c1e 100%);
   color: #E9E9EB;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-family: 'Supreme', sans-serif;
   overflow-x: hidden;
 }
 

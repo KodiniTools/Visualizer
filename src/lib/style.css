@@ -2,11 +2,20 @@
 style.css - Haupt-Stylesheet für den Audio Visualizer Pro
 */
 
+/* --- CUSTOM FONT --- */
+@font-face {
+    font-family: 'Supreme';
+    src: url('/fonts/Supreme-Regular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* --- THEME DEFINITIONS --- */
 
 :root {
     /* Define variables for both themes here */
-    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-sans: 'Supreme', sans-serif;
     --green: #C5DEB0;
     --red: #ef4444;
     --yellow: #eab308;

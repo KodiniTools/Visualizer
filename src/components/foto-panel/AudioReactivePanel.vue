@@ -814,4 +814,70 @@ defineExpose({
 .btn-apply:not(:disabled):hover {
   background: rgba(236, 72, 153, 0.25);
 }
+
+/* ═══ Light Theme Overrides ═══ */
+[data-theme='light'] .audio-reactive-group {
+  border-color: var(--border-color);
+}
+
+[data-theme='light'] .modern-checkbox-label {
+  background: #FDFBF2;
+}
+
+[data-theme='light'] .modern-checkbox-label:hover {
+  background: var(--btn-hover);
+}
+
+[data-theme='light'] .preset-btn {
+  background: #FDFBF2;
+  border-color: var(--border-color);
+}
+
+[data-theme='light'] .preset-btn:hover {
+  background: var(--btn-hover);
+  border-color: var(--accent-secondary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .effect-item {
+  background: #FDFBF2;
+  border-color: var(--border-color);
+}
+
+[data-theme='light'] .effect-item:hover {
+  background: var(--btn-hover);
+  border-color: var(--accent-secondary);
+}
+
+[data-theme='light'] .effect-source-select {
+  background: #FDFBF2;
+  border-color: var(--border-color);
+}
+
+[data-theme='light'] .effect-source-select:hover {
+  background: var(--btn-hover);
+  border-color: var(--accent-secondary);
+}
+
+[data-theme='light'] .btn-save {
+  background: #FDFBF2;
+  color: var(--text-primary);
+}
+
+[data-theme='light'] .btn-save:not(:disabled):hover {
+  background: var(--btn-hover);
+}
+
+[data-theme='light'] .btn-apply {
+  background: #FDFBF2;
+  color: var(--text-primary);
+}
+
+[data-theme='light'] .btn-apply:not(:disabled):hover {
+  background: var(--btn-hover);
+}
+
+[data-theme='light'] .level-bar-container {
+  border-color: var(--border-color);
+}
 </style>

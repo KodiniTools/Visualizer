@@ -8,9 +8,6 @@
       @set-as-background="setPreviewAsBackground"
     />
 
-    <!-- Farbeinstellungen für Bildabschnitte -->
-    <ColorSettings />
-
     <!-- Stock-Galerie Sektion -->
     <StockGallerySection
       :stockCategories="stockCategories"
@@ -130,7 +127,6 @@ import { useToastStore } from '../stores/toastStore';
 
 // Sub-Komponenten
 import ImagePreviewOverlay from './foto-panel/ImagePreviewOverlay.vue';
-import ColorSettings from './foto-panel/ColorSettings.vue';
 import StockGallerySection from './foto-panel/StockGallerySection.vue';
 import ImageUploadSection from './foto-panel/ImageUploadSection.vue';
 import ImageFiltersPanel from './foto-panel/ImageFiltersPanel.vue';

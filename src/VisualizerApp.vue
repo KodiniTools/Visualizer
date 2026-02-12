@@ -2702,6 +2702,7 @@ html, body {
   height: 100%;
   width: 100%;
   overflow: auto;
+  font-family: var(--font-sans, 'Supreme', sans-serif);
 }
 #app {
   height: 100%;

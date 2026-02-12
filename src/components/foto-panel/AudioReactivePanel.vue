@@ -880,4 +880,40 @@ defineExpose({
 [data-theme='light'] .level-bar-container {
   border-color: var(--border-color);
 }
+
+[data-theme='light'] .audio-slider {
+  background: linear-gradient(90deg, rgba(7, 63, 116, 0.25) 0%, rgba(1, 79, 153, 0.45) 100%);
+}
+
+[data-theme='light'] .audio-slider::-webkit-slider-thumb {
+  background: #073F74;
+}
+
+[data-theme='light'] .audio-slider::-moz-range-thumb {
+  background: #073F74;
+}
+
+[data-theme='light'] .effect-slider {
+  background: linear-gradient(90deg, rgba(7, 63, 116, 0.2) 0%, rgba(1, 79, 153, 0.4) 100%);
+}
+
+[data-theme='light'] .effect-slider::-webkit-slider-thumb {
+  background: #073F74;
+}
+
+[data-theme='light'] .effect-slider::-moz-range-thumb {
+  background: #073F74;
+}
+
+[data-theme='light'] .label-value {
+  color: #073F74;
+}
+
+[data-theme='light'] .modern-select:hover {
+  border-color: var(--accent-secondary);
+}
+
+[data-theme='light'] .modern-select:focus {
+  border-color: var(--accent-primary);
+}
 </style>

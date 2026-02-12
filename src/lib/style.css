@@ -54,7 +54,7 @@ style.css - Haupt-Stylesheet für den Audio Visualizer Pro
 /* 💡 Light Theme (Gold & Navy) */
 [data-theme='light'] {
     --primary-bg: #F5F4D6;
-    --secondary-bg: #f9f2d5;
+    --secondary-bg: #FDFBF2;
     --card-bg: #FFFFFF;
     --accent-primary: #014f99;
     --accent-secondary: #c9984d;

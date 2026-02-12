@@ -80,6 +80,15 @@ style.css - Haupt-Stylesheet für den Audio Visualizer Pro
     box-sizing: border-box;
 }
 
+/* Supreme Font auf alle UI-Elemente anwenden */
+h1, h2, h3, h4, h5, h6,
+label, legend, summary,
+button, input, select, textarea,
+.btn, .panel-title, .header-title, .section-title,
+.custom-file-upload, details summary {
+    font-family: var(--font-sans);
+}
+
 html {
     scroll-behavior: smooth;
 }
@@ -139,6 +148,7 @@ header {
 
 label {
     display: block;
+    font-family: var(--font-sans);
     font-size: 0.7rem;
     color: var(--text-muted);
     margin-bottom: 4px;
@@ -158,6 +168,7 @@ select, .btn, .custom-file-upload, input[type="text"], input[type="color"], text
     outline: none;
     transition: all 0.2s ease;
     font-size: 0.8rem;
+    font-family: var(--font-sans);
 }
 
 input[type="text"], textarea {
@@ -223,6 +234,7 @@ button:disabled, .btn:disabled {
 .btn {
     transition: background 0.2s ease, transform 0.03s ease, border-color 0.2s, color 0.2s;
     cursor: pointer;
+    font-family: var(--font-sans);
     font-weight: 500;
     text-decoration: none;
     gap: 6px;
@@ -576,7 +588,7 @@ button:disabled, .btn:disabled {
 /* Settings & Text Controls */
 .settings-details { margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px; }
 .settings-details summary {
-    font-weight: 600; cursor: pointer; color: var(--accent-primary); padding: 8px;
+    font-family: var(--font-sans); font-weight: 600; cursor: pointer; color: var(--accent-primary); padding: 8px;
     border-radius: 8px; transition: background-color 0.2s; margin: -8px; margin-bottom: 8px;
 }
 .settings-details summary:hover { background-color: var(--secondary-bg); }
@@ -651,7 +663,7 @@ input[type="range"]::-moz-range-thumb {
 
 /* Workspace Select Styling */
 #workspaceSelect {
-    font-family: 'Courier New', monospace;
+    font-family: var(--font-sans);
     font-size: 0.9rem;
 }
 

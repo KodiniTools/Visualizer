@@ -8,6 +8,15 @@
 </script>
 
 <style>
+/* --- CUSTOM FONT --- */
+@font-face {
+    font-family: 'Supreme';
+    src: url('/fonts/Supreme-Regular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* --- THEME VARIABLE DEFINITIONS --- */
 :root {
     --font-sans: 'Supreme', sans-serif;
@@ -71,6 +80,16 @@
   box-sizing: border-box;
 }
 
+/* Supreme Font auf alle UI-Elemente anwenden (Browser-Defaults überschreiben) */
+h1, h2, h3, h4, h5, h6,
+p, span, div, a, li,
+label, legend, summary,
+button, input, select, textarea,
+.btn, .panel-title, .header-title, .section-title,
+.custom-file-upload, details summary {
+    font-family: var(--font-sans);
+}
+
 html {
   height: 100%;
 }
@@ -81,6 +100,7 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  font-family: var(--font-sans);
   background-color: var(--primary-bg, #091428);
 }
 

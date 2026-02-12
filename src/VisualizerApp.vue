@@ -2707,7 +2707,7 @@ html, body {
   height: 100%;
   background-color: var(--primary-bg, #091428);
   color: var(--text-primary, #E9E9EB);
-  font-family: var(--font-sans, sans-serif);
+  font-family: var(--font-sans, 'Supreme', sans-serif);
   font-size: 12px;
 }
 #app-container {

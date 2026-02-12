@@ -675,7 +675,7 @@ h3::before {
   border: 1px solid var(--border-color);
   overflow: hidden;
   animation: scaleIn 0.2s ease;
-  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif);
+  font-family: var(--font-sans, 'Supreme', sans-serif);
   font-size: 12px;
   color: var(--text-primary, #E9E9EB);
 }

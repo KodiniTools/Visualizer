@@ -10,7 +10,7 @@
 <style>
 /* --- THEME VARIABLE DEFINITIONS --- */
 :root {
-    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-sans: 'Supreme', sans-serif;
     --green: #C5DEB0;
     --red: #ef4444;
     --yellow: #eab308;
@@ -90,7 +90,7 @@ body {
   flex-direction: column;
   background-color: var(--primary-bg, #091428);
   color: var(--text-primary, #E9E9EB);
-  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif);
+  font-family: var(--font-sans, 'Supreme', sans-serif);
   font-size: 12px;
 }
 

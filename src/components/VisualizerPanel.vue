@@ -987,4 +987,27 @@ h4::before {
 [data-theme='light'] .disabled-text {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
+
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .color-picker {
+    height: 36px;
+  }
+
+  .reset-btn {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .color-picker {
+    height: 40px;
+  }
+
+  .reset-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
 </style>

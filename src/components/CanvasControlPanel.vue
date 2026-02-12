@@ -2767,4 +2767,98 @@ h4 {
 [data-theme='light'] .info-text.warning {
   color: #014f99;
 }
+
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .panel {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  h3 {
+    font-size: 0.75rem;
+  }
+
+  h4 {
+    font-size: 0.65rem;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger,
+  .btn-undo {
+    padding: 8px 12px;
+    font-size: 0.65rem;
+    min-height: 40px;
+  }
+
+  .flip-button,
+  .btn-reset-option {
+    padding: 8px 10px;
+    font-size: 0.6rem;
+    min-height: 40px;
+  }
+
+  .opacity-slider::-webkit-slider-thumb,
+  .angle-slider::-webkit-slider-thumb,
+  .audio-slider::-webkit-slider-thumb,
+  .effect-slider::-webkit-slider-thumb {
+    width: 16px;
+    height: 16px;
+  }
+
+  .opacity-slider::-moz-range-thumb,
+  .audio-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+  }
+
+  .gradient-select,
+  .audio-select {
+    min-height: 36px;
+    font-size: 0.65rem;
+  }
+
+  .preset-item {
+    padding: 6px 8px;
+  }
+
+  .bg-replace-modal {
+    max-width: 95vw;
+    width: 95%;
+  }
+
+  .bg-replace-modal-content {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .confirm-dialog {
+    max-width: 90vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .flip-buttons {
+    flex-direction: column;
+  }
+
+  .reset-options {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger,
+  .btn-undo {
+    min-height: 44px;
+    font-size: 0.7rem;
+  }
+
+  .flip-button,
+  .btn-reset-option {
+    min-height: 44px;
+    font-size: 0.65rem;
+  }
+}
 </style>

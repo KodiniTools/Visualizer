@@ -271,8 +271,23 @@ h3::before {
   font-weight: 600;
 }
 
-/* Responsive */
-@media (max-width: 400px) {
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .upload-area {
+    padding: 14px;
+    min-height: 100px;
+  }
+
+  .upload-main {
+    font-size: 0.75rem;
+  }
+
+  .upload-sub {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
   .upload-area {
     padding: 12px;
     min-height: 90px;

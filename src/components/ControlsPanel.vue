@@ -237,4 +237,40 @@ h4 {
 [data-theme='light'] .preset-btn.active:hover {
   background-color: #003971;
 }
+
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .panel-container {
+    padding: 10px;
+  }
+
+  h4 {
+    font-size: 14px;
+    margin: 0 0 10px 0;
+  }
+
+  .section-label {
+    font-size: 11px;
+  }
+
+  .toggle-btn,
+  .preset-btn {
+    padding: 8px 10px;
+    font-size: 12px;
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .preset-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .toggle-btn,
+  .preset-btn {
+    padding: 10px 8px;
+    font-size: 11px;
+    min-height: 44px;
+  }
+}
 </style>

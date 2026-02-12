@@ -916,4 +916,61 @@ defineExpose({
 [data-theme='light'] .modern-select:focus {
   border-color: var(--accent-primary);
 }
+
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .preset-btn {
+    padding: 8px 6px;
+    font-size: 0.7rem;
+    min-height: 40px;
+  }
+
+  .effect-item {
+    grid-template-columns: 1fr 50px 50px 28px;
+    padding: 6px 8px;
+  }
+
+  .effect-source-select {
+    font-size: 0.6rem;
+    padding: 4px 6px;
+    min-height: 32px;
+  }
+
+  .modern-checkbox-label {
+    padding: 8px 10px;
+  }
+
+  .audio-slider::-webkit-slider-thumb,
+  .effect-slider::-webkit-slider-thumb {
+    width: 16px;
+    height: 16px;
+  }
+
+  .audio-slider::-moz-range-thumb,
+  .effect-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+  }
+
+  .modern-select {
+    min-height: 36px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .preset-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .preset-btn {
+    padding: 10px 6px;
+    font-size: 0.75rem;
+    min-height: 44px;
+  }
+
+  .effect-item {
+    grid-template-columns: 1fr 45px 40px 28px;
+  }
+}
 </style>

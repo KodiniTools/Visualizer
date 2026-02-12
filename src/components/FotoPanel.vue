@@ -1034,4 +1034,10 @@ watch(currentActiveImage, (newImage) => {
   flex-direction: column;
   gap: 10px;
 }
+
+@media (max-width: 480px) {
+  .foto-panel-wrapper {
+    gap: 6px;
+  }
+}
 </style>

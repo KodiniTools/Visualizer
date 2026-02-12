@@ -740,25 +740,7 @@ input[type="range"]::-moz-range-thumb {
     line-height: 1.5;
 }
 
-/* Responsive Design für Workspace Controls */
-@media (max-width: 768px) {
-    .workspace-controls .control-group-flex {
-        flex-direction: column;
-        gap: 12px;
-        align-items: stretch;
-    }
-    
-    .workspace-controls .control-group-flex > div:first-child {
-        flex: none;
-    }
-    
-    .workspace-controls .toggle-wrapper {
-        min-width: auto;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-}
+/* Responsive Design für Workspace Controls → verschoben ans Datei-Ende */
 #gallery-thumbnails-container {
     margin-bottom: 15px;
     padding: 15px;
@@ -1014,5 +996,110 @@ footer small,
     color: #014f99;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL RESPONSIVE BREAKPOINTS
+   ═══════════════════════════════════════════════════════════════ */
 
+/* Tablet (< 768px): Größere Touch-Targets, lesbarere Schrift */
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+
+    .btn {
+        font-size: 0.8rem;
+        padding: 8px 12px;
+        min-height: 44px;
+    }
+
+    .btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .player-controls .btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    select, .custom-file-upload, input[type="text"], input[type="color"], textarea {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        min-height: 44px;
+    }
+
+    .toggle-switch {
+        width: 52px;
+        height: 32px;
+    }
+
+    .slider:before {
+        height: 24px;
+        width: 24px;
+        left: 3px;
+        bottom: 3px;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(20px);
+    }
+
+    input[type="range"] {
+        height: 8px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+        width: 24px;
+        height: 24px;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+    }
+
+    .playlist-item {
+        padding: 10px 12px;
+        font-size: 0.8rem;
+        min-height: 44px;
+    }
+
+    .btn-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .workspace-controls .control-group-flex {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .workspace-controls .control-group-flex > div:first-child {
+        flex: none;
+    }
+
+    .workspace-controls .toggle-wrapper {
+        min-width: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+/* Phone (< 480px): Kompakteres Layout */
+@media (max-width: 480px) {
+    .btn-row {
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-thumb {
+        width: 64px;
+        height: 64px;
+    }
+
+    .tools-grid {
+        grid-template-columns: 1fr;
+    }
+}
 

@@ -40,6 +40,13 @@ export const usePlayerStore = defineStore('player', () => {
     if (audioRef.value) {
       addAllListeners(audioRef.value);
       console.log('[PlayerStore] Audio element connected and listeners added');
+
+      // Falls Tracks bereits geladen wurden bevor das Audio-Element verfügbar war,
+      // jetzt den aktuellen Track laden (behebt Timing-Problem mit shared files)
+      if (hasTracks.value) {
+        console.log('[PlayerStore] Tracks already in playlist - loading current track now');
+        loadTrack(currentTrackIndex.value);
+      }
     }
   }
 
@@ -177,6 +184,7 @@ export const usePlayerStore = defineStore('player', () => {
     loadTrack(index);
     if (audioRef.value) {
       audioRef.value.play().catch(error => {
+        if (error.name === 'AbortError') return; // play() interrupted by pause() - expected
         console.error('[PlayerStore] Playback error:', error);
         isPlaying.value = false;
       });
@@ -188,11 +196,12 @@ export const usePlayerStore = defineStore('player', () => {
       console.warn('[PlayerStore] Cannot toggle play/pause: no audio or tracks');
       return;
     }
-    
+
     if (isPlaying.value) {
       audioRef.value.pause();
     } else {
       audioRef.value.play().catch(error => {
+        if (error.name === 'AbortError') return; // play() interrupted by pause() - expected
         console.error('[PlayerStore] Playback error:', error);
         isPlaying.value = false;
       });
@@ -214,10 +223,11 @@ export const usePlayerStore = defineStore('player', () => {
     const wasPlaying = isPlaying.value;
     const newIndex = (currentTrackIndex.value + 1) % playlist.value.length;
     loadTrack(newIndex);
-    
+
     // Nur abspielen wenn vorher auch abgespielt wurde
     if (wasPlaying && audioRef.value) {
       audioRef.value.play().catch(error => {
+        if (error.name === 'AbortError') return;
         console.error('[PlayerStore] Playback error:', error);
         isPlaying.value = false;
       });
@@ -229,10 +239,11 @@ export const usePlayerStore = defineStore('player', () => {
     const wasPlaying = isPlaying.value;
     const newIndex = (currentTrackIndex.value - 1 + playlist.value.length) % playlist.value.length;
     loadTrack(newIndex);
-    
+
     // Nur abspielen wenn vorher auch abgespielt wurde
     if (wasPlaying && audioRef.value) {
       audioRef.value.play().catch(error => {
+        if (error.name === 'AbortError') return;
         console.error('[PlayerStore] Playback error:', error);
         isPlaying.value = false;
       });

@@ -110,15 +110,50 @@ export const usePlayerStore = defineStore('player', () => {
   function addTracks(files) {
     if (!files || files.length === 0) return;
     const wasEmpty = !hasTracks.value;
-    const newTracks = Array.from(files).map(file => ({ 
-      name: file.name, 
-      url: URL.createObjectURL(file) 
+    const newTracks = Array.from(files).map(file => ({
+      name: file.name,
+      url: URL.createObjectURL(file)
     }));
     playlist.value.push(...newTracks);
     if (wasEmpty) {
       loadTrack(0);
       console.log('[PlayerStore] First track loaded - NO AUTOPLAY');
     }
+  }
+
+  /**
+   * Adds tracks from Blob objects (e.g. from IndexedDB shared files).
+   * @param {{ name: string, blob: Blob }[]} blobRecords
+   * @returns {number} Number of tracks successfully added
+   */
+  function addTracksFromBlobs(blobRecords) {
+    if (!blobRecords || blobRecords.length === 0) return 0;
+    const wasEmpty = !hasTracks.value;
+    let added = 0;
+
+    for (const record of blobRecords) {
+      const blob = record.blob instanceof Blob
+        ? record.blob
+        : new Blob([record.blob], { type: record.mimeType || 'audio/wav' });
+
+      if (blob.size === 0) {
+        console.warn('[PlayerStore] Skipping empty blob:', record.name);
+        continue;
+      }
+
+      playlist.value.push({
+        name: record.name,
+        url: URL.createObjectURL(blob)
+      });
+      added++;
+    }
+
+    if (wasEmpty && added > 0) {
+      loadTrack(0);
+      console.log('[PlayerStore] First shared track loaded - NO AUTOPLAY');
+    }
+
+    return added;
   }
 
   function loadTrack(index) {
@@ -276,6 +311,7 @@ export const usePlayerStore = defineStore('player', () => {
     // Actions
     setAudioRef,
     addTracks,
+    addTracksFromBlobs,
     loadTrack,
     playTrack,
     togglePlayPause,

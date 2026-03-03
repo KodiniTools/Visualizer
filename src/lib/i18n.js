@@ -1235,6 +1235,11 @@ const translations = {
       audioLoadError: 'Fehler beim Laden der Audio-Datei',
       tracksAdded: '{count} Track(s) zur Playlist hinzugefügt',
       playlistCleared: 'Playlist geleert',
+      // Shared files (Audio Konverter)
+      sharedFilesLoading: '{count} Datei(en) vom Audio Konverter werden importiert\u2026',
+      sharedFilesLoaded: '{count} Datei(en) erfolgreich importiert',
+      sharedFilesEmpty: 'Keine Dateien vom Audio Konverter gefunden',
+      sharedFilesError: 'Fehler beim Importieren',
       // Recording operations
       recordingStarted: 'Aufnahme gestartet',
       recordingStopped: 'Aufnahme beendet',
@@ -2493,6 +2498,11 @@ const translations = {
       audioLoadError: 'Error loading audio file',
       tracksAdded: '{count} track(s) added to playlist',
       playlistCleared: 'Playlist cleared',
+      // Shared files (Audio Converter)
+      sharedFilesLoading: 'Importing {count} file(s) from Audio Converter\u2026',
+      sharedFilesLoaded: '{count} file(s) successfully imported',
+      sharedFilesEmpty: 'No files found from Audio Converter',
+      sharedFilesError: 'Error importing files',
       // Recording operations
       recordingStarted: 'Recording started',
       recordingStopped: 'Recording stopped',

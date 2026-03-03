@@ -220,6 +220,10 @@
       </main>
 
       <aside class="right-panel" :class="{ 'mobile-visible': mobilePanel === 'right' }">
+        <!-- Shared Files Banner -->
+        <div v-if="sharedBanner" class="shared-banner" :class="'shared-banner-' + sharedBanner.type">
+          <span>{{ sharedBanner.message }}</span>
+        </div>
         <FileUploadPanel />
         <PlayerPanel />
         <RecorderPanel />
@@ -243,7 +247,9 @@
 </template>
 <script setup>
 import { ref, computed, onMounted, onUnmounted, provide, watch, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from './lib/i18n.js';
+import { getSharedFiles, clearSharedFiles } from './utils/sharedFileRepository.js';
 import { usePlayerStore } from './stores/playerStore.js';
 import { useRecorderStore } from './stores/recorderStore.js';
 import { useTextStore } from './stores/textStore.js';
@@ -290,6 +296,13 @@ const gridStore = useGridStore();
 const workspaceStore = useWorkspaceStore();
 const backgroundTilesStore = useBackgroundTilesStore();
 const audioSourceStore = useAudioSourceStore();
+const route = useRoute();
+const router = useRouter();
+
+// Shared files receiver state
+const sharedBanner = ref(null);
+let sharedFilesHandled = false;
+
 const audioRef = ref(null);
 const canvasRef = ref(null);
 const mobilePanel = ref('canvas'); // 'left' | 'canvas' | 'right'
@@ -2372,6 +2385,54 @@ async function initializeRecorder() {
   }
 }
 
+// ========== SHARED FILES RECEIVER ==========
+async function loadSharedFiles() {
+  if (sharedFilesHandled) return;
+  sharedFilesHandled = true;
+
+  try {
+    const records = await getSharedFiles();
+
+    if (!records?.length) {
+      sharedBanner.value = { type: 'warning', message: t('toast.sharedFilesEmpty') };
+      setTimeout(() => { sharedBanner.value = null }, 5000);
+      return;
+    }
+
+    sharedBanner.value = {
+      type: 'info',
+      message: t('toast.sharedFilesLoading').replace('{count}', records.length)
+    };
+
+    const processed = playerStore.addTracksFromBlobs(records);
+
+    if (processed > 0) {
+      sharedBanner.value = {
+        type: 'success',
+        message: t('toast.sharedFilesLoaded').replace('{count}', processed)
+      };
+      await clearSharedFiles();
+    } else {
+      sharedBanner.value = { type: 'warning', message: t('toast.sharedFilesEmpty') };
+    }
+  } catch (error) {
+    console.error('[App] Shared files import error:', error);
+    sharedBanner.value = { type: 'error', message: t('toast.sharedFilesError') };
+  }
+
+  setTimeout(() => { sharedBanner.value = null }, 5000);
+}
+
+// Primary: after router is ready
+router.isReady().then(() => {
+  if (route.query.source === 'audiokonverter') loadSharedFiles();
+});
+
+// Fallback: route watcher
+watch(() => route.query.source, (s) => {
+  if (s === 'audiokonverter') loadSharedFiles();
+});
+
 onMounted(async () => {
   console.log('[App] onMounted - Starte Initialisierung...');
 
@@ -3842,5 +3903,71 @@ canvas {
   .preview-modal-info {
     padding: 12px;
   }
+}
+
+/* ========== SHARED FILES BANNER ========== */
+.shared-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.shared-banner-success {
+  background-color: rgba(197, 222, 176, 0.15);
+  border: 1px solid rgba(197, 222, 176, 0.4);
+  color: var(--success, #C5DEB0);
+}
+
+.shared-banner-error {
+  background-color: rgba(255, 100, 100, 0.15);
+  border: 1px solid rgba(255, 100, 100, 0.4);
+  color: #ff6464;
+}
+
+.shared-banner-warning {
+  background-color: rgba(255, 200, 50, 0.15);
+  border: 1px solid rgba(255, 200, 50, 0.4);
+  color: #ffc832;
+}
+
+.shared-banner-info {
+  background-color: rgba(100, 180, 255, 0.15);
+  border: 1px solid rgba(100, 180, 255, 0.4);
+  color: #64b4ff;
+}
+
+/* Light theme overrides */
+[data-theme='light'] .shared-banner-success {
+  background-color: rgba(56, 142, 60, 0.1);
+  border-color: rgba(56, 142, 60, 0.3);
+  color: #388E3C;
+}
+
+[data-theme='light'] .shared-banner-error {
+  background-color: rgba(211, 47, 47, 0.1);
+  border-color: rgba(211, 47, 47, 0.3);
+  color: #D32F2F;
+}
+
+[data-theme='light'] .shared-banner-warning {
+  background-color: rgba(245, 124, 0, 0.1);
+  border-color: rgba(245, 124, 0, 0.3);
+  color: #F57C00;
+}
+
+[data-theme='light'] .shared-banner-info {
+  background-color: rgba(1, 79, 153, 0.1);
+  border-color: rgba(1, 79, 153, 0.3);
+  color: #014f99;
 }
 </style>

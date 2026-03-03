@@ -44,4 +44,13 @@ const router = createRouter({
   }
 })
 
+// Redirect from landing to app when coming from audiokonverter
+router.beforeEach((to, from, next) => {
+  if (to.name === 'Landing' && to.query.source === 'audiokonverter') {
+    next({ name: 'Visualizer', query: { source: 'audiokonverter' } })
+  } else {
+    next()
+  }
+})
+
 export default router

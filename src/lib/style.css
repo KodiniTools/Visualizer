@@ -933,13 +933,21 @@ body > header:first-of-type,
     color: var(--text-primary, #E9E9EB) !important;
 }
 
-.global-nav *,
+.global-nav *:not(.global-nav-theme-toggle):not(.global-nav-theme-icon):not(.global-nav-lang-btn):not(.global-nav-lang-switcher),
 .site-nav *,
 nav.global *,
 header.global *,
 body > nav:first-of-type *,
 body > header:first-of-type * {
     color: inherit !important;
+}
+
+/* Allow nav controls to use their own colors */
+.global-nav .global-nav-lang-btn.active {
+    color: #ffffff !important;
+}
+[data-theme="dark"] .global-nav .global-nav-lang-btn.active {
+    color: #0C0C10 !important;
 }
 
 /* Spezifische Überschreibung für schwarze Schrift in SSI Partials */

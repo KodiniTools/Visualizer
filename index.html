@@ -82,7 +82,9 @@
         /* Navigation Text Kontrast Fix - NUR für SSI Partials (nicht Vue-Komponenten) */
         .global-nav a, .site-nav a, body > nav:first-of-type a, body > header:first-of-type a { color: var(--text-primary, #E9E9EB) !important; }
         .global-nav a:hover, .site-nav a:hover, body > nav:first-of-type a:hover, body > header:first-of-type a:hover { color: var(--accent-tertiary, #f8e1a9) !important; }
-        .global-nav *, .site-nav *, nav.global *, header.global *, body > nav:first-of-type *, body > header:first-of-type * { color: inherit !important; }
+        .global-nav *:not(.global-nav-theme-toggle):not(.global-nav-theme-icon):not(.global-nav-lang-btn):not(.global-nav-lang-switcher), .site-nav *, nav.global *, header.global *, body > nav:first-of-type *, body > header:first-of-type * { color: inherit !important; }
+        .global-nav .global-nav-lang-btn.active { color: #ffffff !important; }
+        [data-theme="dark"] .global-nav .global-nav-lang-btn.active { color: #0C0C10 !important; }
         .global-nav span, .global-nav label, .site-nav span, .site-nav label, body > nav:first-of-type span, body > header:first-of-type span { color: var(--text-primary, #E9E9EB) !important; }
     </style>
 

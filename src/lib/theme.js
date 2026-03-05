@@ -24,20 +24,24 @@ if (typeof window !== 'undefined') {
   }
   applyTheme(currentTheme.value)
 
-  // Listen for SSI navigation theme-changed events to keep reactive state in sync
-  window.addEventListener('theme-changed', (e) => {
-    const theme = e.detail && e.detail.theme
-    if (theme === 'light' || theme === 'dark') {
-      currentTheme.value = theme
-      // SSI nav sets data-theme on documentElement; also set on body
-      document.body.setAttribute('data-theme', theme)
-      // Update meta theme-color
-      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
-      if (metaThemeColor) {
-        metaThemeColor.setAttribute('content', theme === 'dark' ? '#091428' : '#F5F4D6')
+  // SSI nav sets data-theme on documentElement directly without dispatching events.
+  // Use MutationObserver to detect attribute changes and sync Vue reactive state.
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+        const theme = document.documentElement.getAttribute('data-theme')
+        if ((theme === 'light' || theme === 'dark') && theme !== currentTheme.value) {
+          currentTheme.value = theme
+          document.body.setAttribute('data-theme', theme)
+          const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+          if (metaThemeColor) {
+            metaThemeColor.setAttribute('content', theme === 'dark' ? '#091428' : '#F5F4D6')
+          }
+        }
       }
     }
   })
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 }
 
 // Get current theme

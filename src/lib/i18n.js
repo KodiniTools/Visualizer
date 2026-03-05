@@ -2555,10 +2555,10 @@ export function setLocale(locale) {
   }
 }
 
-// Listen for SSI navigation language-changed events to keep Vue reactive state in sync
+// Listen for SSI navigation locale-changed events to keep Vue reactive state in sync
 if (typeof window !== 'undefined') {
-  window.addEventListener('language-changed', (e) => {
-    const lang = e.detail && e.detail.lang
+  window.addEventListener('locale-changed', (e) => {
+    const lang = e.detail && e.detail.locale
     if (lang) setLocale(lang)
   })
 }

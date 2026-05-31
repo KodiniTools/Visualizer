@@ -842,64 +842,87 @@ export const Visualizers = {
     name_de: 'Konzentrische Kreise',
     name_en: 'Concentric Circles',
     draw(ctx, dataArray, bufferLength, w, h, color, intensity = 1.0) {
-      const maxR = Math.min(w, h) / 2 * 0.85;
-      const minR = 20; // Mindestradius
-      const numCircles = 16; // Weniger Kreise, aber alle sichtbar
-      const baseHsl = hexToHsl(color);
-      const maxFreqIndex = Math.floor(bufferLength * 0.21); // ✅ Nur nutzbarer Bereich
-      const centerX = w / 2;
-      const centerY = h / 2;
+      const maxR      = Math.min(w, h) / 2 * 0.85;
+      const minR      = 20;
+      const numCircles = 16;
+      const baseHsl   = hexToHsl(color);
+      const maxFreqIndex = Math.floor(bufferLength * 0.21);
+      const centerX   = w / 2;
+      const centerY   = h / 2;
+      const now       = Date.now() * 0.001;
 
-      if (!visualizerState.smoothedCircles || visualizerState.smoothedCircles.length !== numCircles) {
-        visualizerState.smoothedCircles = new Array(numCircles).fill(minR);
+      const cs = visualizerState._circlesState || (visualizerState._circlesState = {
+        smoothed: new Float32Array(numCircles).fill(minR),
+        rotation: new Float32Array(numCircles),
+        bassPrev: 0,
+        beatExpand: 0
+      });
+
+      if (cs.smoothed.length !== numCircles) {
+        cs.smoothed  = new Float32Array(numCircles).fill(minR);
+        cs.rotation  = new Float32Array(numCircles);
       }
 
-      // Gesamtenergie für Pulsation
       const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255;
+      const bassNow       = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.15)) / 255;
+
+      // Beat detection → momentane Expansion aller Kreise
+      const isBeat = bassNow > 0.52 && bassNow > cs.bassPrev * 1.18;
+      cs.bassPrev  = bassNow;
+      cs.beatExpand = isBeat ? 1.0 : Math.max(0, cs.beatExpand - 0.07);
 
       withSafeCanvasState(ctx, () => {
-        // Hintergrund-Glow
-        const bgGlow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxR);
-        bgGlow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 50%, ${overallEnergy * 0.15})`);
-        bgGlow.addColorStop(1, `hsla(${baseHsl.h}, 100%, 50%, 0)`);
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, maxR, 0, Math.PI * 2);
-        ctx.fillStyle = bgGlow;
-        ctx.fill();
+        // Hintergrund-Glow — intensiver bei Beat
+        const bgAlpha = overallEnergy * 0.12 + cs.beatExpand * 0.08;
+        if (bgAlpha > 0.005) {
+          const bgGlow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxR);
+          bgGlow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 55%, ${bgAlpha})`);
+          bgGlow.addColorStop(1, `hsla(${baseHsl.h}, 100%, 50%, 0)`);
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, maxR, 0, Math.PI * 2);
+          ctx.fillStyle = bgGlow;
+          ctx.fill();
+        }
 
-        // Kreise von außen nach innen zeichnen
         for (let i = numCircles - 1; i >= 0; i--) {
-          // ✅ FIX: Frequenzen auf nutzbaren Bereich mappen
-          const freqIndex = Math.floor((i / numCircles) * maxFreqIndex);
+          const freqIndex  = Math.floor((i / numCircles) * maxFreqIndex);
           const sampleSize = Math.max(2, Math.floor(maxFreqIndex / numCircles));
-          const amplitude = averageRange(dataArray, freqIndex, Math.min(maxFreqIndex, freqIndex + sampleSize)) / 255;
+          const amplitude  = averageRange(dataArray, freqIndex, Math.min(maxFreqIndex, freqIndex + sampleSize)) / 255;
 
-          // Basis-Radius + Audio-Modulation
-          const baseRadius = minR + (i / numCircles) * (maxR - minR);
-          const audioBoost = amplitude * 50 * intensity;
-          const targetRadius = baseRadius + audioBoost;
+          const baseRadius  = minR + (i / numCircles) * (maxR - minR);
+          const beatBoost   = cs.beatExpand * (12 + i * 1.5); // äußere Kreise expandieren mehr
+          const targetRadius = baseRadius + amplitude * 55 * intensity + beatBoost;
 
-          // Smoothing
-          visualizerState.smoothedCircles[i] = visualizerState.smoothedCircles[i] * 0.7 + targetRadius * 0.3;
-          const radius = visualizerState.smoothedCircles[i];
+          // Äußere Kreise (Bass) → träger; innere (Treble) → reaktiver
+          const smoothing = 0.22 + (i / numCircles) * 0.22;
+          cs.smoothed[i] = cs.smoothed[i] * (1 - smoothing) + targetRadius * smoothing;
 
+          // Langsame Rotation — jeder Kreis leicht anders
+          cs.rotation[i] += (0.003 + i * 0.0004) * (1 + bassNow * 1.5);
+
+          const radius        = cs.smoothed[i];
           const normalizedPos = i / numCircles;
-          const hue = (baseHsl.h + normalizedPos * 60) % 360;
+          const hue           = (baseHsl.h + normalizedPos * 120) % 360; // 60°→120° mehr Farbbreite
 
-          // Dickere Linien, abhängig von Amplitude
-          ctx.lineWidth = (3 + amplitude * 6) * intensity;
+          // Arc statt Vollkreis: kleiner Spalt rotiert mit
+          const gapAngle  = 0.18 + (1 - amplitude) * 0.25; // kleinerer Spalt bei hoher Amplitude
+          const startAngle = cs.rotation[i];
+          const endAngle   = startAngle + Math.PI * 2 - gapAngle;
 
-          // Glow bei hoher Amplitude
-          if (amplitude > 0.4) {
-            ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
-            ctx.shadowBlur = 10 + amplitude * 15;
+          // Glow — sanfter Ramp statt hartem Schwellenwert
+          const glowStrength = Math.max(0, (amplitude - 0.15) / 0.5);
+          if (glowStrength > 0) {
+            ctx.shadowColor = `hsl(${hue}, 100%, 65%)`;
+            ctx.shadowBlur  = glowStrength * (12 + amplitude * 14);
           } else {
-            ctx.shadowBlur = 0;
+            ctx.shadowBlur  = 0;
           }
 
-          ctx.strokeStyle = `hsla(${hue}, ${baseHsl.s}%, ${Math.min(80, baseHsl.l + amplitude * 20)}%, ${0.6 + amplitude * 0.4})`;
+          ctx.strokeStyle = `hsla(${hue}, ${baseHsl.s}%, ${Math.min(82, baseHsl.l + amplitude * 22)}%, ${0.55 + amplitude * 0.45})`;
+          ctx.lineWidth   = (2.5 + amplitude * 5.5) * intensity;
+          ctx.lineCap     = 'round';
           ctx.beginPath();
-          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+          ctx.arc(centerX, centerY, radius, startAngle, endAngle);
           ctx.stroke();
         }
         ctx.shadowBlur = 0;
@@ -1148,117 +1171,111 @@ export const Visualizers = {
     name_en: "Ripple Effect (High-Freq Bursts)",
     init() {
       visualizerState.ripples = [];
-      visualizerState.rippleTime = 0;
+      visualizerState._rippleState = { time: 0, cooldowns: [0, 0, 0] };
     },
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
-      if (!visualizerState.ripples) this.init();
+      if (!visualizerState.ripples || !visualizerState._rippleState) this.init();
 
       const baseHsl = hexToHsl(color);
       const maxFreqIndex = Math.floor(bufferLength * 0.21);
 
       const bassEnergy = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.3)) / 255;
-      const midEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
+      const midEnergy  = averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255;
       const highEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.7), maxFreqIndex) / 255;
 
-      // Animierter Hintergrund
-      visualizerState.rippleTime = (visualizerState.rippleTime || 0) + 0.02;
-      const time = visualizerState.rippleTime;
+      const rs = visualizerState._rippleState;
+      rs.time += 0.02;
+      const time = rs.time;
 
-      // Dynamischer Gradient-Hintergrund
       ctx.fillStyle = `rgba(0, 0, 0, ${0.1 + bassEnergy * 0.05})`;
       ctx.fillRect(0, 0, width, height);
 
-      // Hintergrund-Pulse bei Bass
-      if (bassEnergy > 0.3) {
-        const pulseGradient = ctx.createRadialGradient(
-          width / 2, height / 2, 0,
-          width / 2, height / 2, Math.max(width, height) * 0.6
-        );
-        pulseGradient.addColorStop(0, `hsla(${baseHsl.h}, 80%, 30%, ${bassEnergy * 0.2})`);
-        pulseGradient.addColorStop(0.5, `hsla(${(baseHsl.h + 30) % 360}, 70%, 20%, ${bassEnergy * 0.1})`);
-        pulseGradient.addColorStop(1, 'transparent');
-        ctx.fillStyle = pulseGradient;
+      // Hintergrund-Puls — sanfter Ramp statt hartem if
+      const bgRamp = Math.max(0, (bassEnergy - 0.12) / 0.38);
+      if (bgRamp > 0.005) {
+        const pulseGrad = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, Math.max(width, height) * 0.6);
+        pulseGrad.addColorStop(0,   `hsla(${baseHsl.h}, 80%, 30%, ${bgRamp * bassEnergy * 0.22})`);
+        pulseGrad.addColorStop(0.5, `hsla(${(baseHsl.h+30)%360}, 70%, 20%, ${bgRamp * bassEnergy * 0.10})`);
+        pulseGrad.addColorStop(1, 'transparent');
+        ctx.fillStyle = pulseGrad;
         ctx.fillRect(0, 0, width, height);
       }
 
-      // Mehr Ripples basierend auf verschiedenen Frequenzbereichen
-      const energyTypes = [
-        { energy: bassEnergy, threshold: 0.25, size: 200, speed: 4, hueShift: 0 },
-        { energy: midEnergy, threshold: 0.2, size: 150, speed: 5, hueShift: 30 },
-        { energy: highEnergy, threshold: 0.15, size: 100, speed: 6, hueShift: 60 }
+      // Deterministischer Spawn — Cooldown statt Math.random()
+      // Jeder Frequenzbereich hat eine feste Spawn-Zone (links/mitte/rechts)
+      const spawnDefs = [
+        { energy: bassEnergy,  minE: 0.22, cooldownMs: 320, size: 200, speed: 4,   hueShift:  0, xZone: 0.2 },
+        { energy: midEnergy,   minE: 0.18, cooldownMs: 240, size: 155, speed: 5.5, hueShift: 30, xZone: 0.5 },
+        { energy: highEnergy,  minE: 0.14, cooldownMs: 180, size: 105, speed: 7,   hueShift: 60, xZone: 0.8 }
       ];
+      const nowMs = Date.now();
 
-      energyTypes.forEach(({ energy, threshold, size, speed, hueShift }) => {
-        if (energy > threshold && Math.random() < 0.5 * intensity && visualizerState.ripples.length < 30) {
+      spawnDefs.forEach(({ energy, minE, cooldownMs, size, speed, hueShift, xZone }, idx) => {
+        if (energy > minE && nowMs > rs.cooldowns[idx] && visualizerState.ripples.length < 28) {
+          // Spawn-X um die Zone leicht variieren (sin-basiert, kein Math.random)
+          const jitter = Math.sin(time * 3.7 + idx * 2.1) * 0.12;
           visualizerState.ripples.push({
-            x: Math.random() * width,
-            y: Math.random() * height,
+            x: (xZone + jitter) * width,
+            y: (0.35 + Math.sin(time * 1.9 + idx) * 0.2) * height,
             radius: 0,
             maxRadius: (size * 0.5 + energy * size) * intensity,
-            hue: (baseHsl.h + hueShift + Math.random() * 40) % 360,
-            alpha: 1,
+            hue: (baseHsl.h + hueShift + Math.sin(time + idx) * 20) % 360,
             speed: (speed + energy * 4) * intensity,
-            thickness: 3 + energy * 5
+            thickness: 2.5 + energy * 5
           });
+          rs.cooldowns[idx] = nowMs + cooldownMs / (1 + energy);
         }
       });
 
       withSafeCanvasState(ctx, () => {
-        // Ripples zeichnen
         for (let i = visualizerState.ripples.length - 1; i >= 0; i--) {
-          const r = visualizerState.ripples[i];
-          r.radius += r.speed;
+          const r        = visualizerState.ripples[i];
+          r.radius      += r.speed;
           const progress = r.radius / r.maxRadius;
-          r.alpha = 1 - progress;
+          const alpha    = 1 - progress;
 
-          if (r.alpha <= 0) {
-            visualizerState.ripples.splice(i, 1);
-            continue;
-          }
+          if (alpha <= 0) { visualizerState.ripples.splice(i, 1); continue; }
 
-          // Mehrere Ringe pro Ripple
-          const rings = 2;
-          for (let ring = 0; ring < rings; ring++) {
-            const ringRadius = r.radius - ring * 20;
-            if (ringRadius > 0) {
-              ctx.beginPath();
-              ctx.arc(r.x, r.y, ringRadius, 0, Math.PI * 2);
+          // Haupt-Ring
+          const lightness = 52 + (1 - progress) * 28;
+          ctx.strokeStyle = `hsla(${r.hue}, 100%, ${lightness}%, ${alpha})`;
+          ctx.lineWidth   = r.thickness * (1 - progress * 0.55);
+          ctx.shadowColor = `hsl(${r.hue}, 100%, 62%)`;
+          ctx.shadowBlur  = progress < 0.35 ? (14 * (1 - progress / 0.35)) : 0;
+          ctx.beginPath();
+          ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
 
-              const ringAlpha = r.alpha * (1 - ring * 0.4);
-              const lightness = 50 + (1 - progress) * 30;
-              ctx.strokeStyle = `hsla(${r.hue}, 100%, ${lightness}%, ${ringAlpha})`;
-              ctx.lineWidth = (r.thickness || 4) * (1 - ring * 0.3) * (1 - progress * 0.5);
-
-              // Glow bei neuen Ripples
-              if (progress < 0.3) {
-                ctx.shadowColor = `hsl(${r.hue}, 100%, 60%)`;
-                ctx.shadowBlur = 15 * (1 - progress * 3);
-              }
-              ctx.stroke();
-              ctx.shadowBlur = 0;
-            }
-          }
-
-          // Zentraler Punkt bei neuen Ripples
-          if (progress < 0.2) {
+          // Echo-Ring (leichter Nachläufer)
+          const echoR = r.radius * 0.72;
+          if (echoR > 2) {
+            ctx.strokeStyle = `hsla(${r.hue}, 80%, ${lightness}%, ${alpha * 0.38})`;
+            ctx.lineWidth   = r.thickness * 0.5 * (1 - progress);
             ctx.beginPath();
-            ctx.arc(r.x, r.y, 5 * (1 - progress * 5), 0, Math.PI * 2);
-            ctx.fillStyle = `hsla(${r.hue}, 100%, 80%, ${1 - progress * 5})`;
+            ctx.arc(r.x, r.y, echoR, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
+          // Zentraler Dot beim Entstehen
+          if (progress < 0.18) {
+            const dotR = 5 * (1 - progress / 0.18);
+            ctx.beginPath();
+            ctx.arc(r.x, r.y, dotR, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${r.hue}, 100%, 82%, ${1 - progress / 0.18})`;
             ctx.fill();
           }
         }
       });
 
-      // Schwebende Partikel im Hintergrund
-      const numParticles = 20;
-      for (let i = 0; i < numParticles; i++) {
-        const px = (Math.sin(time + i * 0.5) * 0.5 + 0.5) * width;
-        const py = (Math.cos(time * 0.7 + i * 0.3) * 0.5 + 0.5) * height;
-        const size = 2 + Math.sin(time * 2 + i) * 1 + midEnergy * 3;
-
+      // Schwebende Ambient-Partikel (sin-basiert, kein Zufall)
+      for (let i = 0; i < 18; i++) {
+        const px   = (Math.sin(time * 0.55 + i * 0.52) * 0.48 + 0.5) * width;
+        const py   = (Math.cos(time * 0.38 + i * 0.31) * 0.44 + 0.5) * height;
+        const size = 1.5 + Math.sin(time * 1.8 + i) * 0.8 + midEnergy * 2.5;
         ctx.beginPath();
         ctx.arc(px, py, size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${(baseHsl.h + i * 10) % 360}, 80%, 60%, ${0.2 + midEnergy * 0.3})`;
+        ctx.fillStyle = `hsla(${(baseHsl.h + i * 12) % 360}, 80%, 62%, ${0.18 + midEnergy * 0.28})`;
         ctx.fill();
       }
     }
@@ -1984,33 +2001,105 @@ export const Visualizers = {
     name_de: "Pulsierende Kugeln",
     name_en: "Pulsing Orbs",
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
-      // OPTIMIERT: Nutze nur 21% der Frequenzen mit linearer Verteilung
       const maxFreqIndex = Math.floor(bufferLength * 0.21);
-      const numOrbs = Math.min(12, maxFreqIndex);
+      const numOrbs  = Math.min(12, maxFreqIndex);
+      const baseHsl  = hexToHsl(color);
+      const baseR    = Math.min(width, height) / 28;
+      const now      = Date.now() * 0.001;
 
-      const baseHsl = hexToHsl(color);
-      for (let i = 0; i < numOrbs; i++) {
-        // LINEARE Verteilung über nutzbaren Frequenzbereich
-        const freqPerOrb = maxFreqIndex / numOrbs;
-        const s = Math.floor(i * freqPerOrb);
-        const e = Math.max(s + 1, Math.floor((i + 1) * freqPerOrb));
-
-        const amplitude = averageRange(dataArray, s, e) / 255;
-        const dynamicGain = calculateDynamicGain(i, numOrbs);
-        const x = (width / (numOrbs + 1)) * (i + 1);
-        const y = height / 2;
-        const baseRadius = Math.min(width, height) / 30;
-        const radius = baseRadius + (amplitude * dynamicGain * baseRadius * 2 * intensity);
-        withSafeCanvasState(ctx, () => {
-          const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
-          const hue = (baseHsl.h + (i / numOrbs) * 60) % 360;
-          gradient.addColorStop(0, `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l}%, ${0.8 + amplitude * 0.2})`);
-          gradient.addColorStop(0.7, `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l}%, ${0.4 + amplitude * 0.6})`);
-          gradient.addColorStop(1, `hsla(${hue}, ${baseHsl.s}%, ${baseHsl.l}%, 0)`);
-          ctx.beginPath(); ctx.arc(x, y, radius * 1.5, 0, Math.PI * 2); ctx.fillStyle = gradient; ctx.fill();
-          ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fillStyle = `hsl(${hue}, ${baseHsl.s}%, ${70 + amplitude * 30}%)`; ctx.fill();
-        });
+      // Persistenter State für Smoothing und Float-Phase
+      const ps = visualizerState._pulsingOrbsState || (visualizerState._pulsingOrbsState = {
+        smoothed: new Float32Array(numOrbs),
+        phases:   Float32Array.from({ length: numOrbs }, (_, i) => i * 1.3)
+      });
+      if (ps.smoothed.length !== numOrbs) {
+        ps.smoothed = new Float32Array(numOrbs);
+        ps.phases   = Float32Array.from({ length: numOrbs }, (_, i) => i * 1.3);
       }
+
+      const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255;
+
+      withSafeCanvasState(ctx, () => {
+        // Verbindungslinien zwischen Nachbar-Orbs bei hoher Energie (sanfter Ramp)
+        const connAlpha = Math.max(0, (overallEnergy - 0.3) / 0.4) * intensity;
+        if (connAlpha > 0.01) {
+          for (let i = 0; i < numOrbs - 1; i++) {
+            const x0 = (width / (numOrbs + 1)) * (i + 1);
+            const x1 = (width / (numOrbs + 1)) * (i + 2);
+            const y0 = height / 2 + Math.sin(now * 0.7 + ps.phases[i]) * height * 0.06;
+            const y1 = height / 2 + Math.sin(now * 0.7 + ps.phases[i + 1]) * height * 0.06;
+            const hue0 = (baseHsl.h + (i / numOrbs) * 80) % 360;
+            const hue1 = (baseHsl.h + ((i + 1) / numOrbs) * 80) % 360;
+            const connGrad = ctx.createLinearGradient(x0, y0, x1, y1);
+            connGrad.addColorStop(0, `hsla(${hue0}, 100%, 65%, ${connAlpha * 0.55})`);
+            connGrad.addColorStop(1, `hsla(${hue1}, 100%, 65%, ${connAlpha * 0.55})`);
+            ctx.beginPath();
+            ctx.moveTo(x0, y0);
+            ctx.lineTo(x1, y1);
+            ctx.strokeStyle = connGrad;
+            ctx.lineWidth = 1 + overallEnergy * 2;
+            ctx.stroke();
+          }
+        }
+
+        for (let i = 0; i < numOrbs; i++) {
+          const freqPerOrb = maxFreqIndex / numOrbs;
+          const s = Math.floor(i * freqPerOrb);
+          const e = Math.max(s + 1, Math.floor((i + 1) * freqPerOrb));
+
+          const amplitude   = averageRange(dataArray, s, e) / 255;
+          const dynamicGain = calculateDynamicGain(i, numOrbs);
+
+          // Smoothed radius — schneller für Treble, langsamer für Bass
+          const smoothing  = 0.25 + (i / numOrbs) * 0.3;
+          const targetR    = baseR + amplitude * dynamicGain * baseR * 2.2 * intensity;
+          ps.smoothed[i]   = ps.smoothed[i] * (1 - smoothing) + targetR * smoothing;
+          const radius     = ps.smoothed[i];
+
+          // Vertikales Floating — jeder Orb mit eigener Phase
+          ps.phases[i] += 0.008 + i * 0.001;
+          const floatY = Math.sin(ps.phases[i]) * height * 0.06;
+          const x = (width / (numOrbs + 1)) * (i + 1);
+          const y = height / 2 + floatY;
+
+          const hue = (baseHsl.h + (i / numOrbs) * 80) % 360;
+
+          // Äußerer Glow-Halo
+          const haloR = radius * 2.2;
+          const halo  = ctx.createRadialGradient(x, y, radius * 0.5, x, y, haloR);
+          halo.addColorStop(0, `hsla(${hue}, 100%, 65%, ${0.55 + amplitude * 0.35})`);
+          halo.addColorStop(0.5, `hsla(${hue}, 90%, 55%, ${0.22 + amplitude * 0.25})`);
+          halo.addColorStop(1, `hsla(${hue}, 80%, 45%, 0)`);
+          ctx.beginPath();
+          ctx.arc(x, y, haloR, 0, Math.PI * 2);
+          ctx.fillStyle = halo;
+          ctx.fill();
+
+          // Orb-Körper mit Tiefengradient
+          const body = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, 0, x, y, radius);
+          body.addColorStop(0,   `hsl(${hue}, 60%, ${82 + amplitude * 15}%)`); // Glanzpunkt
+          body.addColorStop(0.35,`hsl(${hue}, ${baseHsl.s}%, ${65 + amplitude * 18}%)`);
+          body.addColorStop(0.75,`hsl(${hue}, ${baseHsl.s}%, ${42 + amplitude * 12}%)`);
+          body.addColorStop(1,   `hsl(${hue}, ${baseHsl.s}%, ${28 + amplitude * 8}%)`);
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fillStyle = body;
+          ctx.fill();
+
+          // Spiegelglanz-Highlight (kleiner heller Fleck oben-links)
+          const shineR = radius * 0.28;
+          const shine  = ctx.createRadialGradient(
+            x - radius * 0.28, y - radius * 0.28, 0,
+            x - radius * 0.28, y - radius * 0.28, shineR
+          );
+          shine.addColorStop(0, `hsla(${hue}, 40%, 96%, ${0.75 + amplitude * 0.2})`);
+          shine.addColorStop(1, `hsla(${hue}, 60%, 80%, 0)`);
+          ctx.beginPath();
+          ctx.arc(x - radius * 0.28, y - radius * 0.28, shineR, 0, Math.PI * 2);
+          ctx.fillStyle = shine;
+          ctx.fill();
+        }
+      });
     }
   },
   digitalRain: {
@@ -3317,107 +3406,129 @@ export const Visualizers = {
     name_de: "Schallwellen",
     name_en: "Sound Waves",
     init(width, height) {
-      visualizerState.soundWaves = {
-        waves: [],
-        emitters: []
-      };
-
-      // Weniger Schallquellen für bessere Performance (3 statt 5)
       const numEmitters = 3;
+      const emitters = [];
       for (let i = 0; i < numEmitters; i++) {
-        visualizerState.soundWaves.emitters.push({
+        emitters.push({
           x: (width / (numEmitters + 1)) * (i + 1),
+          baseY: height / 2,
           y: height / 2,
           nextWave: 0,
-          hue: (360 / numEmitters) * i
+          hue: (360 / numEmitters) * i,
+          floatPhase: i * 2.1
         });
       }
+      visualizerState.soundWaves = { waves: [], emitters };
     },
     draw(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
       if (!visualizerState.soundWaves) this.init(width, height);
-      const state = visualizerState.soundWaves;
+      const state   = visualizerState.soundWaves;
       const baseHsl = hexToHsl(color);
+      const now     = Date.now();
+      const nowSec  = now * 0.001;
 
-      // Etwas stärkerer Fade für weniger Überlagerung
       ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
       ctx.fillRect(0, 0, width, height);
 
       const maxFreqIndex = Math.floor(bufferLength * 0.21);
-      const now = Date.now();
+      const maxWaves     = 18;
 
-      // Maximale Anzahl Wellen begrenzen für Performance
-      const maxWaves = 15;
+      // Emitter-Y sanft floaten
+      state.emitters.forEach(em => {
+        em.floatPhase += 0.012;
+        em.y = em.baseY + Math.sin(em.floatPhase) * height * 0.08;
+      });
 
-      // Für jeden Emitter Wellen erzeugen
+      // Wellen erzeugen
       state.emitters.forEach((emitter, index) => {
         const freqPerEmitter = maxFreqIndex / state.emitters.length;
         const s = Math.floor(index * freqPerEmitter);
         const e = Math.max(s + 1, Math.floor((index + 1) * freqPerEmitter));
 
-        const amplitude = averageRange(dataArray, s, e) / 255;
+        const amplitude   = averageRange(dataArray, s, e) / 255;
         const dynamicGain = calculateDynamicGain(index, state.emitters.length);
-        const energy = amplitude * dynamicGain;
+        const energy      = amplitude * dynamicGain;
 
-        // Neue Welle bei ausreichender Energie - längeres Intervall
-        if (energy > 0.25 && now > emitter.nextWave && state.waves.length < maxWaves) {
+        if (energy > 0.22 && now > emitter.nextWave && state.waves.length < maxWaves) {
           state.waves.push({
             x: emitter.x,
-            y: emitter.y,
+            y: emitter.y,        // Y von aktuellem Float-Zustand
             radius: 0,
-            maxRadius: (80 + energy * 200) * intensity, // Kleinere max Größe
-            speed: (2 + energy * 4) * intensity,
+            maxRadius: (85 + energy * 210) * intensity,
+            speed: (2.5 + energy * 4.5) * intensity,
             hue: (baseHsl.h + emitter.hue) % 360,
-            thickness: (2 + energy * 4) * intensity, // Dünnere Linien
-            alpha: 0.7 + energy * 0.2
+            thickness: (2 + energy * 4.5) * intensity,
+            alpha: 0.72 + energy * 0.2,
+            energy
           });
-
-          // Längeres Intervall zwischen Wellen
-          emitter.nextWave = now + (400 / (1 + energy));
+          emitter.nextWave = now + 380 / (1 + energy);
         }
       });
 
-      // Wellen zeichnen und updaten - vereinfacht
       withSafeCanvasState(ctx, () => {
         for (let i = state.waves.length - 1; i >= 0; i--) {
-          const wave = state.waves[i];
-
-          wave.radius += wave.speed;
+          const wave     = state.waves[i];
+          wave.radius   += wave.speed;
           const progress = wave.radius / wave.maxRadius;
+          if (progress >= 1) { state.waves.splice(i, 1); continue; }
 
-          // Welle entfernen wenn zu groß
-          if (progress >= 1) {
-            state.waves.splice(i, 1);
-            continue;
-          }
+          const alpha     = wave.alpha * (1 - progress);
+          const lightness = 52 + (1 - progress) * 28;
 
-          // Fade-out
-          const alpha = wave.alpha * (1 - progress);
+          // Glow — sanft ausblendend in den ersten 35% der Lebensdauer
+          const glowAlpha = Math.max(0, 1 - progress / 0.35);
+          ctx.shadowColor = `hsl(${wave.hue}, 100%, 62%)`;
+          ctx.shadowBlur  = glowAlpha * (12 + wave.energy * 10);
 
-          // NUR EIN Ring statt 3 - viel bessere Performance
+          // Haupt-Ring
+          ctx.strokeStyle = `hsla(${wave.hue}, ${baseHsl.s}%, ${lightness}%, ${alpha})`;
+          ctx.lineWidth   = wave.thickness * (1 - progress * 0.5);
           ctx.beginPath();
           ctx.arc(wave.x, wave.y, wave.radius, 0, Math.PI * 2);
-          ctx.strokeStyle = `hsla(${wave.hue}, ${baseHsl.s}%, ${50 + (1 - progress) * 30}%, ${alpha})`;
-          ctx.lineWidth = wave.thickness * (1 - progress * 0.5);
           ctx.stroke();
+          ctx.shadowBlur = 0;
 
-          // Kein Shadow-Glow mehr - spart viel Performance
+          // Echo-Ring (leichterer Nachläufer)
+          if (wave.radius * 0.68 > 4) {
+            ctx.strokeStyle = `hsla(${wave.hue}, 70%, ${lightness}%, ${alpha * 0.35})`;
+            ctx.lineWidth   = wave.thickness * 0.45 * (1 - progress);
+            ctx.beginPath();
+            ctx.arc(wave.x, wave.y, wave.radius * 0.68, 0, Math.PI * 2);
+            ctx.stroke();
+          }
         }
       });
 
-      // Emitter zeichnen - vereinfacht
+      // Emitter-Visualisierung: pulsierender Körper + Glow-Halo
       state.emitters.forEach((emitter, index) => {
         const freqPerEmitter = maxFreqIndex / state.emitters.length;
         const s = Math.floor(index * freqPerEmitter);
         const e = Math.max(s + 1, Math.floor((index + 1) * freqPerEmitter));
 
         const amplitude = averageRange(dataArray, s, e) / 255;
-        const radius = (4 + amplitude * 10) * intensity;
-        const hue = (baseHsl.h + emitter.hue) % 360;
+        const hue       = (baseHsl.h + emitter.hue) % 360;
+        const radius    = (5 + amplitude * 12) * intensity;
 
-        // Einfacher Emitter ohne Gradient
+        // Halo-Glow um Emitter (energyRamp-basiert)
+        const glowRamp = Math.max(0, (amplitude - 0.1) / 0.45);
+        if (glowRamp > 0.01) {
+          const halo = ctx.createRadialGradient(emitter.x, emitter.y, 0, emitter.x, emitter.y, radius * 3.5);
+          halo.addColorStop(0, `hsla(${hue}, 100%, 65%, ${glowRamp * amplitude * 0.6})`);
+          halo.addColorStop(1, 'transparent');
+          ctx.beginPath();
+          ctx.arc(emitter.x, emitter.y, radius * 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = halo;
+          ctx.fill();
+        }
+
+        // Emitter-Kern
+        const body = ctx.createRadialGradient(emitter.x - radius * 0.25, emitter.y - radius * 0.25, 0, emitter.x, emitter.y, radius);
+        body.addColorStop(0,   `hsl(${hue}, 60%, 90%)`);
+        body.addColorStop(0.4, `hsl(${hue}, 100%, ${62 + amplitude * 22}%)`);
+        body.addColorStop(1,   `hsl(${hue}, ${baseHsl.s}%, ${38 + amplitude * 12}%)`);
         ctx.beginPath();
         ctx.arc(emitter.x, emitter.y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${hue}, 100%, ${60 + amplitude * 30}%, ${0.7 + amplitude * 0.3})`;
+        ctx.fillStyle = body;
         ctx.fill();
       });
     }
@@ -4197,20 +4308,29 @@ export const Visualizers = {
             light.trail.pop();
           }
 
-          // Trail zeichnen
-          light.trail.forEach((point, trailIndex) => {
-            const trailProgress = trailIndex / light.trail.length;
-            const trailAlpha = (1 - trailProgress) * 0.6 * intensity;
-            const trailSize = light.size * (1 - trailProgress * 0.7);
-            const trailHue = (baseHsl.h + light.hueOffset + trailIndex * 2) % 360;
-
-            if (trailAlpha > 0.02) {
+          // Trail als Gradient-Linie — ersetzt N Einzel-Arcs durch einen Path
+          if (light.trail.length > 1) {
+            const trailHue = (baseHsl.h + light.hueOffset) % 360;
+            for (let t = 0; t < light.trail.length - 1; t++) {
+              const p0 = light.trail[t];
+              const p1 = light.trail[t + 1];
+              const t0 = t / light.trail.length;
+              const t1 = (t + 1) / light.trail.length;
+              const a0 = (1 - t0) * 0.55 * intensity;
+              const a1 = (1 - t1) * 0.55 * intensity;
+              if (a0 < 0.02) break;
+              const seg = ctx.createLinearGradient(p0.x, p0.y, p1.x, p1.y);
+              seg.addColorStop(0, `hsla(${trailHue}, 90%, 62%, ${a0})`);
+              seg.addColorStop(1, `hsla(${trailHue}, 90%, 62%, ${a1})`);
               ctx.beginPath();
-              ctx.arc(point.x, point.y, trailSize, 0, Math.PI * 2);
-              ctx.fillStyle = `hsla(${trailHue}, 90%, 60%, ${trailAlpha})`;
-              ctx.fill();
+              ctx.moveTo(p0.x, p0.y);
+              ctx.lineTo(p1.x, p1.y);
+              ctx.strokeStyle = seg;
+              ctx.lineWidth = light.size * (1 - t0 * 0.8);
+              ctx.lineCap = 'round';
+              ctx.stroke();
             }
-          });
+          }
 
           // Haupt-Lichtpunkt mit Pulsierung
           const pulseFactor = 1 + Math.sin(state.pulsePhase + index) * state.smoothedBass * 0.5;

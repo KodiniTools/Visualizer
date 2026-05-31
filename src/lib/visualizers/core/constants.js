@@ -32,5 +32,18 @@ export const CONSTANTS = {
   BEAT_THRESHOLD: 0.65,
 
   // Cache settings
-  COLOR_CACHE_MAX_SIZE: 100
+  COLOR_CACHE_MAX_SIZE: 100,
+
+  // Frequency analysis
+  FREQ_RATIO: 0.21,             // Standard upper freq limit (% of buffer)
+
+  // Smoothing presets (use with applySmoothValue)
+  SMOOTH_FAST:   0.25,          // Fast response (hi-hats, transients)
+  SMOOTH_NORMAL: 0.45,          // Balanced (mids)
+  SMOOTH_SLOW:   0.70,          // Slow inertia (bass, overall energy)
+  SMOOTH_INERTIA: 0.88,         // Very slow decay
+
+  // Beat detection
+  BEAT_RISE_FACTOR: 1.2,        // Current must be this × previous to count as beat
+  MAX_SIGNALS: 120,             // Cap for unbounded signal arrays
 };

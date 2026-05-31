@@ -8,7 +8,8 @@ import {
   hexToHsl,
   averageRange,
   calculateDynamicGain,
-  withSafeCanvasState
+  withSafeCanvasState,
+  CONSTANTS
 } from '../core/index.js';
 
 export const neuralNetwork = {
@@ -71,14 +72,16 @@ export const neuralNetwork = {
         neuron.activation = 1.0;
         neuron.lastFire = now;
 
-        neuron.connections.forEach(targetIdx => {
-          state.signals.push({
-            from: index,
-            to: targetIdx,
-            progress: 0,
-            hue: (baseHsl.h + index * 10) % 360
+        if (state.signals.length < CONSTANTS.MAX_SIGNALS) {
+          neuron.connections.forEach(targetIdx => {
+            state.signals.push({
+              from: index,
+              to: targetIdx,
+              progress: 0,
+              hue: (baseHsl.h + index * 10) % 360
+            });
           });
-        });
+        }
       }
     });
 

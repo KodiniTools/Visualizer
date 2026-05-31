@@ -8,7 +8,8 @@ import {
   hexToHsl,
   calculateDynamicGain,
   averageRange,
-  withSafeCanvasState
+  withSafeCanvasState,
+  energyRamp
 } from '../core/index.js';
 
 export const liquidCrystals = {
@@ -45,9 +46,10 @@ export const liquidCrystals = {
     ctx.fillStyle = `rgba(0, 0, 0, ${0.08 + bassEnergy * 0.05})`;
     ctx.fillRect(0, 0, width, height);
 
-    if (bassEnergy > 0.3) {
+    const bgGlowAlpha = energyRamp(bassEnergy, 0.15, 0.5);
+    if (bgGlowAlpha > 0) {
       const bgGlow = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, Math.max(width, height) * 0.5);
-      bgGlow.addColorStop(0, `hsla(${baseHsl.h}, 80%, 40%, ${bassEnergy * 0.15})`);
+      bgGlow.addColorStop(0, `hsla(${baseHsl.h}, 80%, 40%, ${bgGlowAlpha * bassEnergy * 0.5})`);
       bgGlow.addColorStop(1, 'transparent');
       ctx.fillStyle = bgGlow;
       ctx.fillRect(0, 0, width, height);

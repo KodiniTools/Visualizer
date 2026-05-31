@@ -6,7 +6,8 @@
 import {
   visualizerState,
   hexToHsl,
-  applySmoothValue
+  applySmoothValue,
+  energyRamp
 } from '../core/index.js';
 
 export const chiptunePulse = {
@@ -61,10 +62,9 @@ export const chiptunePulse = {
           const colorIndex = Math.floor((distFromCenter * 3 + smoothedValue * 2) % neonColors.length);
           const hue = neonColors[colorIndex];
 
-          if (smoothedValue > 0.3) {
-            ctx.shadowBlur = smoothedValue * 20;
-            ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
-          }
+          const glowStrength = energyRamp(smoothedValue, 0.12, 0.5);
+          ctx.shadowBlur = glowStrength * smoothedValue * 24;
+          ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
 
           const lightness = 45 + smoothedValue * 40;
           ctx.fillStyle = `hsl(${hue}, 100%, ${lightness}%)`;

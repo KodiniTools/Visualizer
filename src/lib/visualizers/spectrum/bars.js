@@ -11,7 +11,8 @@ import {
   calculateDynamicGain,
   getFrequencyBasedSmoothing,
   applySmoothValue,
-  drawRoundedBar
+  drawRoundedBar,
+  detectBeat
 } from '../core/index.js';
 
 export const bars = {
@@ -21,7 +22,7 @@ export const bars = {
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-    const maxFreqIndex = Math.floor(bufferLength * 0.21);
+    const maxFreqIndex = Math.floor(bufferLength * CONSTANTS.FREQ_RATIO);
     const numBars = maxFreqIndex;
     const barWidth = w / numBars;
     const gapWidth = barWidth * 0.1;
@@ -29,13 +30,21 @@ export const bars = {
     const baseHsl = hexToHsl(color);
 
     const stateKey = `bars_${numBars}`;
-    if (!visualizerState[stateKey]) {
-      visualizerState[stateKey] = new Array(numBars).fill(0);
-    }
-    if (visualizerState[stateKey].length !== numBars) {
+    if (!visualizerState[stateKey] || visualizerState[stateKey].length !== numBars) {
       visualizerState[stateKey] = new Array(numBars).fill(0);
     }
 
+    // Beat detection on bass band
+    const bassNow = averageRange(dataArray, 0, Math.floor(maxFreqIndex * 0.15)) / 255;
+    const bassPrev = visualizerState._barsBassPrev || 0;
+    const isBeat = detectBeat(bassNow, bassPrev, 0.55);
+    visualizerState._barsBassPrev = bassNow;
+    // Decay beat multiplier over frames for smooth spike
+    visualizerState._barsBeatMult = isBeat
+      ? 1.35
+      : Math.max(1.0, (visualizerState._barsBeatMult || 1.0) * 0.88);
+
+    const beatMult = visualizerState._barsBeatMult;
     const masterGain = 0.35;
     const cornerRadius = Math.max(2, actualBarWidth * 0.3);
 
@@ -48,7 +57,11 @@ export const bars = {
       const rawValue = averageRange(dataArray, s, e);
       const normalizedValue = rawValue / 255;
 
-      const targetHeight = normalizedValue * h * dynamicGain * masterGain * intensity;
+      // Bass bars get the beat multiplier; higher freqs stay neutral
+      const isBassBar = i < numBars * 0.2;
+      const barBeatMult = isBassBar ? beatMult : 1.0 + (beatMult - 1.0) * 0.3;
+      const targetHeight = normalizedValue * h * dynamicGain * masterGain * intensity * barBeatMult;
+
       const smoothingFactor = getFrequencyBasedSmoothing(i, numBars, CONSTANTS.SMOOTHING_BASE);
       visualizerState[stateKey][i] = applySmoothValue(visualizerState[stateKey][i] || 0, targetHeight, smoothingFactor);
 
@@ -64,8 +77,8 @@ export const bars = {
       drawRoundedBar(ctx, x, h, actualBarWidth, barHeight, cornerRadius, {
         glow: true,
         glowColor: glowColor,
-        glowBlur: 12 + normalizedValue * 8,
-        glowIntensity: 0.5 + normalizedValue * 0.5
+        glowBlur: 10 + normalizedValue * 10,
+        glowIntensity: 0.45 + normalizedValue * 0.55
       });
     }
 

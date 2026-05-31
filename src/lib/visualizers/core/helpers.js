@@ -256,6 +256,112 @@ export function rotatePoint(x, y, angle, centerX = 0, centerY = 0) {
   };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// 🎯 EASING & ANIMATION MATH
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Linear interpolation
+ * @param {number} a - Start value
+ * @param {number} b - End value
+ * @param {number} t - Progress (0-1)
+ */
+export function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+/**
+ * Easing functions for natural animation curves
+ */
+export const easing = {
+  /** Decelerates — great for peaks/beats settling down */
+  outCubic: t => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3),
+  /** Accelerates then decelerates — good for balanced animations */
+  inOutQuad: t => {
+    t = Math.min(1, Math.max(0, t));
+    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  },
+  /** Bouncy spring release — great for beat reactions */
+  elasticOut: t => {
+    t = Math.min(1, Math.max(0, t));
+    if (t === 0 || t === 1) return t;
+    return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI) / 4.5) + 1;
+  },
+  /** Smooth S-curve */
+  smoothStep: t => {
+    t = Math.min(1, Math.max(0, t));
+    return t * t * (3 - 2 * t);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🥁 BEAT DETECTION
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Detect a beat from current vs previous energy level.
+ * Returns true on the frame a beat is detected.
+ * @param {number} current - Current energy (0–1)
+ * @param {number} previous - Energy from last frame (0–1)
+ * @param {number} threshold - Minimum energy to qualify (default 0.55)
+ * @param {number} riseFactor - How much bigger current must be vs previous (default 1.2)
+ */
+export function detectBeat(current, previous, threshold = 0.55, riseFactor = 1.2) {
+  return current > threshold && current > previous * riseFactor;
+}
+
+/**
+ * Smooth-ramp an alpha/opacity value around an energy threshold.
+ * Avoids abrupt on/off glow appearances.
+ * @param {number} energy - Current energy (0–1)
+ * @param {number} onAt - Energy level where effect becomes visible (e.g. 0.2)
+ * @param {number} fullAt - Energy level where effect is at full strength (e.g. 0.5)
+ * @returns {number} Alpha value 0–1
+ */
+export function energyRamp(energy, onAt, fullAt) {
+  if (energy <= onAt) return 0;
+  if (energy >= fullAt) return 1;
+  return easing.smoothStep((energy - onAt) / (fullAt - onAt));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🎨 LINEAR GRADIENT CACHE
+// ═══════════════════════════════════════════════════════════════════════════
+
+const linearGradientCache = new Map();
+
+/**
+ * Creates or retrieves a cached linear gradient by key.
+ * Use when gradient color stops are the same every frame (only position changes rarely).
+ * The key must change whenever stops change (e.g. include hue).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {string} key - Unique cache key (include hue, size, etc.)
+ * @param {number} x0 - Start X
+ * @param {number} y0 - Start Y
+ * @param {number} x1 - End X
+ * @param {number} y1 - End Y
+ * @param {Array} colorStops - [[offset, color], ...]
+ */
+export function getCachedLinearGradient(ctx, key, x0, y0, x1, y1, colorStops) {
+  if (!linearGradientCache.has(key)) {
+    const g = ctx.createLinearGradient(x0, y0, x1, y1);
+    colorStops.forEach(([offset, color]) => g.addColorStop(offset, color));
+    linearGradientCache.set(key, g);
+    if (linearGradientCache.size > 200) {
+      linearGradientCache.delete(linearGradientCache.keys().next().value);
+    }
+  }
+  return linearGradientCache.get(key);
+}
+
+/**
+ * Clears all gradient caches (call on visualizer switch or canvas resize)
+ */
+export function clearAllGradientCaches() {
+  gradientCache.clear();
+  linearGradientCache.clear();
+}
+
 /**
  * Draw a rounded rectangle (bar) with optional glow effect
  * @param {CanvasRenderingContext2D} ctx - Canvas context

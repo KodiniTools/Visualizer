@@ -6,7 +6,8 @@
 import {
   hexToHsl,
   averageRange,
-  withSafeCanvasState
+  withSafeCanvasState,
+  energyRamp
 } from '../core/index.js';
 
 export const neonGrid = {
@@ -81,13 +82,14 @@ export const neonGrid = {
         ctx.stroke();
       }
 
-      if (bassEnergy > 0.2) {
+      const horizonGlowRamp = energyRamp(bassEnergy, 0.05, 0.4);
+      if (horizonGlowRamp > 0) {
         const glowGradient = ctx.createRadialGradient(
           vanishingPointX, horizon, 0,
           vanishingPointX, horizon, 150 + bassEnergy * 100
         );
-        glowGradient.addColorStop(0, `hsla(${baseHsl.h}, 100%, 70%, ${bassEnergy * 0.4})`);
-        glowGradient.addColorStop(0.5, `hsla(${(baseHsl.h + 30) % 360}, 100%, 50%, ${bassEnergy * 0.2})`);
+        glowGradient.addColorStop(0, `hsla(${baseHsl.h}, 100%, 70%, ${horizonGlowRamp * bassEnergy * 0.45})`);
+        glowGradient.addColorStop(0.5, `hsla(${(baseHsl.h + 30) % 360}, 100%, 50%, ${horizonGlowRamp * bassEnergy * 0.22})`);
         glowGradient.addColorStop(1, 'transparent');
         ctx.fillStyle = glowGradient;
         ctx.fillRect(0, 0, width, height);

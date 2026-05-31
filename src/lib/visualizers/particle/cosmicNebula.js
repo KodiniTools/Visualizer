@@ -6,7 +6,8 @@
 import {
   visualizerState,
   hexToHsl,
-  averageRange
+  averageRange,
+  energyRamp
 } from '../core/index.js';
 
 export const cosmicNebula = {
@@ -43,10 +44,11 @@ export const cosmicNebula = {
 
     ctx.clearRect(0, 0, width, height);
 
-    if (bassEnergy > 0.2) {
+    const glowRamp = energyRamp(bassEnergy, 0.08, 0.45);
+    if (glowRamp > 0) {
       const centerGlow = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, 300 + bassEnergy * 200);
-      centerGlow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 50%, ${bassEnergy * 0.15})`);
-      centerGlow.addColorStop(0.5, `hsla(${(baseHsl.h + 60) % 360}, 80%, 40%, ${bassEnergy * 0.08})`);
+      centerGlow.addColorStop(0, `hsla(${baseHsl.h}, 100%, 50%, ${glowRamp * bassEnergy * 0.35})`);
+      centerGlow.addColorStop(0.5, `hsla(${(baseHsl.h + 60) % 360}, 80%, 40%, ${glowRamp * bassEnergy * 0.18})`);
       centerGlow.addColorStop(1, 'transparent');
       ctx.fillStyle = centerGlow;
       ctx.fillRect(0, 0, width, height);

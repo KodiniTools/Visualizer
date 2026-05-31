@@ -23,7 +23,15 @@ export {
   clearGradientCache,
   withConditionalShadow,
   batchArcs,
-  rotatePoint
+  rotatePoint,
+  // 🎯 Easing & animation
+  lerp,
+  easing,
+  detectBeat,
+  energyRamp,
+  // 🎨 Linear gradient cache
+  getCachedLinearGradient,
+  clearAllGradientCaches
 } from './helpers.js';
 
 // ✨ Input validation utilities

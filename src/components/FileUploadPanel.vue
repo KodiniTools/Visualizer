@@ -2,11 +2,10 @@
   <div class="panel">
     <h3>{{ t('fileUpload.title') }}</h3>
 
-    <!-- Upload Area mit Drag & Drop -->
+    <!-- Upload Area mit Drag & Drop (kein @click – Buttons übernehmen das) -->
     <div
       class="upload-area"
       :class="{ 'drag-over': isDragging }"
-      @click="triggerFileInput"
       @dragover.prevent="onDragOver"
       @dragleave.prevent="onDragLeave"
       @drop.prevent="onDrop"
@@ -27,7 +26,7 @@
           {{ playerStore.playlist.length }} Track{{ playerStore.playlist.length !== 1 ? 's' : '' }}
         </span>
         <span class="upload-sub">
-          {{ t('fileUpload.dragOrClick') }}
+          {{ locale === 'de' ? 'Dateien oder Ordner hierher ziehen' : 'Drag files or a folder here' }}
         </span>
       </div>
 
@@ -38,16 +37,42 @@
         <span class="format-item">OGG</span>
         <span class="format-item">M4A</span>
       </div>
+
+      <!-- Upload-Buttons innerhalb der Drop-Zone -->
+      <div class="upload-buttons">
+        <button class="upload-btn" @click.stop="fileInput.click()">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+          {{ locale === 'de' ? 'Dateien' : 'Files' }}
+        </button>
+        <button class="upload-btn" @click.stop="folderInput.click()">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
+            <path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+          </svg>
+          {{ locale === 'de' ? 'Ordner' : 'Folder' }}
+        </button>
+      </div>
     </div>
 
-    <!-- Hidden File Input -->
+    <!-- Hidden File Input: einzelne Audiodateien -->
     <input
       ref="fileInput"
       type="file"
-      @change="onSelectFiles"
       multiple
       accept="audio/*"
       style="display: none;"
+      @change="onSelectFiles"
+    />
+    <!-- Hidden Folder Input: webkitdirectory muss beim DOM-Parse gesetzt sein -->
+    <input
+      ref="folderInput"
+      type="file"
+      multiple
+      accept="audio/*"
+      webkitdirectory
+      style="display: none;"
+      @change="onSelectFiles"
     />
 
     <!-- Tracks Info -->
@@ -73,40 +98,100 @@ const { t, locale } = useI18n();
 const playerStore = usePlayerStore();
 const toastStore = useToastStore();
 const fileInput = ref(null);
+const folderInput = ref(null);
 const isDragging = ref(false);
-
-function triggerFileInput() {
-  fileInput.value?.click();
-}
 
 function onSelectFiles(event) {
   const files = event.target.files;
   if (files && files.length > 0) {
-    playerStore.addTracks(files);
-    toastStore.success(t('toast.tracksAdded').replace('{count}', files.length));
-    event.target.value = ''; // Reset input to allow re-uploading same files
-  }
-}
-
-function onDragOver(event) {
-  isDragging.value = true;
-}
-
-function onDragLeave(event) {
-  isDragging.value = false;
-}
-
-function onDrop(event) {
-  isDragging.value = false;
-  const files = event.dataTransfer.files;
-  if (files && files.length > 0) {
-    // Filter nur Audio-Dateien
-    const audioFiles = Array.from(files).filter(file => file.type.startsWith('audio/'));
+    const audioFiles = Array.from(files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(f.name));
     if (audioFiles.length > 0) {
       playerStore.addTracks(audioFiles);
       toastStore.success(t('toast.tracksAdded').replace('{count}', audioFiles.length));
     }
+    event.target.value = '';
   }
+}
+
+function onDragOver() {
+  isDragging.value = true;
+}
+
+function onDragLeave() {
+  isDragging.value = false;
+}
+
+async function onDrop(event) {
+  isDragging.value = false;
+
+  const items = event.dataTransfer?.items;
+  if (items && items.length > 0) {
+    const files = await collectFromItems(items);
+    if (files.length > 0) {
+      playerStore.addTracks(files);
+      toastStore.success(t('toast.tracksAdded').replace('{count}', files.length));
+    }
+    return;
+  }
+
+  // Fallback: dataTransfer.files (kein Ordner-Traversal)
+  const rawFiles = Array.from(event.dataTransfer.files).filter(isAudio);
+  if (rawFiles.length > 0) {
+    playerStore.addTracks(rawFiles);
+    toastStore.success(t('toast.tracksAdded').replace('{count}', rawFiles.length));
+  }
+}
+
+function isAudio(file) {
+  return file.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(file.name);
+}
+
+async function collectFromItems(items) {
+  const files = [];
+  const promises = [];
+
+  for (const item of items) {
+    const entry = item.webkitGetAsEntry?.();
+    if (entry) {
+      promises.push(traverseEntry(entry, files));
+    } else {
+      const f = item.getAsFile?.();
+      if (f && isAudio(f)) files.push(f);
+    }
+  }
+
+  await Promise.all(promises);
+  return files;
+}
+
+function traverseEntry(entry, files) {
+  if (entry.isFile) {
+    return new Promise(resolve => {
+      entry.file(f => {
+        if (isAudio(f)) files.push(f);
+        resolve();
+      }, resolve);
+    });
+  }
+
+  if (entry.isDirectory) {
+    const reader = entry.createReader();
+    return new Promise(resolve => {
+      function readAll(accumulated) {
+        reader.readEntries(async entries => {
+          if (!entries.length) {
+            await Promise.all(accumulated.map(e => traverseEntry(e, files)));
+            resolve();
+          } else {
+            readAll(accumulated.concat(Array.from(entries)));
+          }
+        }, resolve);
+      }
+      readAll([]);
+    });
+  }
+
+  return Promise.resolve();
 }
 </script>
 
@@ -244,6 +329,33 @@ h3::before {
   border: 1px solid rgba(201, 152, 77, 0.25);
 }
 
+/* Upload Buttons */
+.upload-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  border-radius: 5px;
+  border: 1px solid var(--accent-primary, #c9984d);
+  background-color: rgba(201, 152, 77, 0.15);
+  color: var(--accent-primary, #c9984d);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-btn:hover {
+  background-color: var(--accent-primary, #c9984d);
+  color: var(--accent-text, #091428);
+}
+
 /* Tracks Info */
 .tracks-info {
   background-color: rgba(197, 222, 176, 0.1);
@@ -351,6 +463,17 @@ h3::before {
 [data-theme='light'] .format-item {
   color: #014f99;
   background-color: rgba(1, 79, 153, 0.1);
+}
+
+[data-theme='light'] .upload-btn {
+  border-color: #014f99;
+  background-color: rgba(1, 79, 153, 0.1);
+  color: #014f99;
+}
+
+[data-theme='light'] .upload-btn:hover {
+  background-color: #014f99;
+  color: #F5F4D6;
 }
 
 [data-theme='light'] .tracks-info {

@@ -33,7 +33,7 @@ export const radialBars = {
     withSafeCanvasState(ctx, () => {
       const glowGradient = getCachedRadialGradient(
         ctx, `radial_center_${baseHsl.h | 0}`,
-        centerX, centerY, 0, centerX, centerY, minRadius * 2,
+        centerX, centerY, 0, minRadius * 2,
         [
           [0, `hsla(${baseHsl.h}, 100%, 70%, 0.8)`],
           [1, `hsla(${baseHsl.h}, 100%, 50%, 0)`]

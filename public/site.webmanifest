@@ -1,0 +1,16 @@
+{
+  "name": "Visualizer",
+  "short_name": "Visualizer",
+  "description": "Audio Visualizer App",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#181616",
+  "theme_color": "#181616",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

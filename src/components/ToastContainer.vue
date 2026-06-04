@@ -9,20 +9,40 @@
           role="alert"
         >
           <div class="toast__icon">
-            <svg v-if="toast.type === 'success'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg
+              v-if="toast.type === 'success'"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
-            <svg v-else-if="toast.type === 'error'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M15 9l-6 6M9 9l6 6" stroke-linecap="round"/>
+            <svg
+              v-else-if="toast.type === 'error'"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M15 9l-6 6M9 9l6 6" stroke-linecap="round" />
             </svg>
-            <svg v-else-if="toast.type === 'warning'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 9v4M12 17h.01"/>
-              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            <svg
+              v-else-if="toast.type === 'warning'"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 9v4M12 17h.01" />
+              <path
+                d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+              />
             </svg>
             <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 16v-4M12 8h.01"/>
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 16v-4M12 8h.01" />
             </svg>
           </div>
           <div class="toast__content">
@@ -36,7 +56,7 @@
             :aria-label="t('common.close')"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/>
+              <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" />
             </svg>
           </button>
           <div class="toast__progress" :style="{ animationDuration: `${toast.duration}ms` }"></div>
@@ -47,17 +67,17 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useToastStore } from '../stores/toastStore';
-import { useI18n } from '../lib/i18n';
+import { computed } from 'vue'
+import { useToastStore } from '../stores/toastStore'
+import { useI18n } from '../lib/i18n'
 
-const toastStore = useToastStore();
-const { t } = useI18n();
+const toastStore = useToastStore()
+const { t } = useI18n()
 
-const activeToasts = computed(() => toastStore.activeToasts);
+const activeToasts = computed(() => toastStore.activeToasts)
 
 function removeToast(id) {
-  toastStore.removeToast(id);
+  toastStore.removeToast(id)
 }
 </script>
 
@@ -152,7 +172,7 @@ function removeToast(id) {
 .toast__title {
   font-weight: 600;
   font-size: 14px;
-  color: #E9E9EB;
+  color: #e9e9eb;
   margin-bottom: 4px;
 }
 
@@ -162,7 +182,7 @@ function removeToast(id) {
 
 .toast__message {
   font-size: 13px;
-  color: #7A8DA0;
+  color: #7a8da0;
   line-height: 1.4;
   word-wrap: break-word;
 }
@@ -178,15 +198,17 @@ function removeToast(id) {
   padding: 0;
   border: none;
   background: transparent;
-  color: #7A8DA0;
+  color: #7a8da0;
   cursor: pointer;
   opacity: 0.6;
-  transition: opacity 0.2s, color 0.2s;
+  transition:
+    opacity 0.2s,
+    color 0.2s;
 }
 
 .toast__close:hover {
   opacity: 1;
-  color: #E9E9EB;
+  color: #e9e9eb;
 }
 
 [data-theme='light'] .toast__close {

@@ -25,11 +25,7 @@
             :key="category"
             :label="getCategoryName(category)"
           >
-            <option
-              v-for="viz in visualizers"
-              :key="viz.id"
-              :value="viz.id"
-            >
+            <option v-for="viz in visualizers" :key="viz.id" :value="viz.id">
               {{ viz.name }}
             </option>
           </optgroup>
@@ -45,11 +41,11 @@
         <div
           v-for="(layer, index) in reversedLayers"
           :key="layer.id"
-          :ref="el => setLayerRef(layer.id, el)"
+          :ref="(el) => setLayerRef(layer.id, el)"
           class="layer-item"
           :class="{
             active: store.activeLayerId === layer.id,
-            hidden: !layer.visible
+            hidden: !layer.visible,
           }"
           @click="selectLayerAndScroll(layer.id)"
         >
@@ -73,23 +69,31 @@
                 @click.stop="store.moveLayerUp(layer.id)"
                 :disabled="index === 0"
                 title="Nach oben"
-              >▲</button>
+              >
+                ▲
+              </button>
               <button
                 class="action-btn"
                 @click.stop="store.moveLayerDown(layer.id)"
                 :disabled="index === reversedLayers.length - 1"
                 title="Nach unten"
-              >▼</button>
+              >
+                ▼
+              </button>
               <button
                 class="action-btn duplicate-btn"
                 @click.stop="store.duplicateLayer(layer.id)"
                 title="Duplizieren"
-              >⧉</button>
+              >
+                ⧉
+              </button>
               <button
                 class="action-btn delete-btn"
                 @click.stop="store.removeLayer(layer.id)"
                 title="Löschen"
-              >×</button>
+              >
+                ×
+              </button>
             </div>
           </div>
 
@@ -108,11 +112,7 @@
                   :key="category"
                   :label="getCategoryName(category)"
                 >
-                  <option
-                    v-for="viz in visualizers"
-                    :key="viz.id"
-                    :value="viz.id"
-                  >
+                  <option v-for="viz in visualizers" :key="viz.id" :value="viz.id">
                     {{ viz.name }}
                   </option>
                 </optgroup>
@@ -132,11 +132,15 @@
 
             <!-- Deckkraft -->
             <div class="detail-row">
-              <span class="detail-label">{{ t('visualizer.intensity') }}: {{ Math.round(layer.opacity * 100) }}%</span>
+              <span class="detail-label"
+                >{{ t('visualizer.intensity') }}: {{ Math.round(layer.opacity * 100) }}%</span
+              >
               <input
                 type="range"
                 class="detail-slider"
-                min="0" max="1" step="0.01"
+                min="0"
+                max="1"
+                step="0.01"
                 :value="layer.opacity"
                 @input="updateProperty(layer.id, 'opacity', parseFloat($event.target.value))"
               />
@@ -144,11 +148,16 @@
 
             <!-- Farbtransparenz -->
             <div class="detail-row">
-              <span class="detail-label">{{ t('visualizer.colorTransparency') }}: {{ Math.round(layer.colorOpacity * 100) }}%</span>
+              <span class="detail-label"
+                >{{ t('visualizer.colorTransparency') }}:
+                {{ Math.round(layer.colorOpacity * 100) }}%</span
+              >
               <input
                 type="range"
                 class="detail-slider"
-                min="0" max="1" step="0.01"
+                min="0"
+                max="1"
+                step="0.01"
                 :value="layer.colorOpacity"
                 @input="updateProperty(layer.id, 'colorOpacity', parseFloat($event.target.value))"
               />
@@ -162,11 +171,7 @@
                 :value="layer.blendMode"
                 @change="updateProperty(layer.id, 'blendMode', $event.target.value)"
               >
-                <option
-                  v-for="mode in blendModes"
-                  :key="mode.id"
-                  :value="mode.id"
-                >
+                <option v-for="mode in blendModes" :key="mode.id" :value="mode.id">
                   {{ getBlendModeName(mode) }}
                 </option>
               </select>
@@ -178,7 +183,9 @@
               <input
                 type="range"
                 class="detail-slider position-slider"
-                min="0" max="1" step="0.01"
+                min="0"
+                max="1"
+                step="0.01"
                 :value="layer.x"
                 @input="updateProperty(layer.id, 'x', parseFloat($event.target.value))"
               />
@@ -190,7 +197,9 @@
               <input
                 type="range"
                 class="detail-slider position-slider"
-                min="0" max="1" step="0.01"
+                min="0"
+                max="1"
+                step="0.01"
                 :value="layer.y"
                 @input="updateProperty(layer.id, 'y', parseFloat($event.target.value))"
               />
@@ -198,11 +207,15 @@
 
             <!-- Skalierung -->
             <div class="detail-row">
-              <span class="detail-label">{{ t('foto.size') || 'Größe' }}: {{ Math.round(layer.scale * 100) }}%</span>
+              <span class="detail-label"
+                >{{ t('foto.size') || 'Größe' }}: {{ Math.round(layer.scale * 100) }}%</span
+              >
               <input
                 type="range"
                 class="detail-slider scale-slider"
-                min="0.1" max="3" step="0.01"
+                min="0.1"
+                max="3"
+                step="0.01"
                 :value="layer.scale"
                 @input="updateProperty(layer.id, 'scale', parseFloat($event.target.value))"
               />
@@ -220,118 +233,120 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue';
-import { useI18n } from '../lib/i18n.js';
-import { useVisualizerStore, BLEND_MODES } from '../stores/visualizerStore.js';
-import { Visualizers } from '../lib/visualizers/index.js';
+import { ref, computed, nextTick } from 'vue'
+import { useI18n } from '../lib/i18n.js'
+import { useVisualizerStore, BLEND_MODES } from '../stores/visualizerStore.js'
+import { Visualizers } from '../lib/visualizers/index.js'
 
-const { t, locale } = useI18n();
-const store = useVisualizerStore();
+const { t, locale } = useI18n()
+const store = useVisualizerStore()
 
 // Blend modes
-const blendModes = BLEND_MODES;
+const blendModes = BLEND_MODES
 
 // Auswahl für neuen Layer (Standard: aktuell ausgewählter Visualizer)
-const newLayerVisualizerId = ref(store.selectedVisualizer || 'bars');
+const newLayerVisualizerId = ref(store.selectedVisualizer || 'bars')
 
 // Refs für Layer-Elemente (für Auto-Scroll)
-const layerListRef = ref(null);
-const layerRefs = ref({});
+const layerListRef = ref(null)
+const layerRefs = ref({})
 
 function setLayerRef(layerId, el) {
   if (el) {
-    layerRefs.value[layerId] = el;
+    layerRefs.value[layerId] = el
   } else {
-    delete layerRefs.value[layerId];
+    delete layerRefs.value[layerId]
   }
 }
 
 // Layer auswählen und in Sicht scrollen
 function selectLayerAndScroll(layerId) {
-  store.selectLayer(layerId);
+  store.selectLayer(layerId)
   // Nach dem Rendern der Details in Sicht scrollen
   nextTick(() => {
-    const el = layerRefs.value[layerId];
+    const el = layerRefs.value[layerId]
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
-  });
+  })
 }
 
 // Umgekehrte Layer-Liste (oberster Layer oben in der UI)
 const reversedLayers = computed(() => {
-  return [...store.visualizerLayers].reverse();
-});
+  return [...store.visualizerLayers].reverse()
+})
 
 // Kategorie-Namen (Übersetzung)
 const categoryTranslationKeys = {
   'Balken & Spektrum': 'visualizer.categories.barsSpectrum',
-  'Wellen': 'visualizer.categories.waves',
+  Wellen: 'visualizer.categories.waves',
   'Kreise & Kugeln': 'visualizer.categories.circlesSpheres',
-  'Partikel': 'visualizer.categories.particles',
-  'Geometrie': 'visualizer.categories.geometry',
-  'Organisch': 'visualizer.categories.organic',
+  Partikel: 'visualizer.categories.particles',
+  Geometrie: 'visualizer.categories.geometry',
+  Organisch: 'visualizer.categories.organic',
   'Kristalle & Netze': 'visualizer.categories.crystalsNets',
-  'Blüten': 'visualizer.categories.blossoms',
+  Blüten: 'visualizer.categories.blossoms',
   '3D-Objekte': 'visualizer.categories.objects3d',
-  'Retro & Pixel': 'visualizer.categories.retroPixel'
-};
+  'Retro & Pixel': 'visualizer.categories.retroPixel',
+}
 
 function getCategoryName(category) {
-  const key = categoryTranslationKeys[category];
-  return key ? t(key) : category;
+  const key = categoryTranslationKeys[category]
+  return key ? t(key) : category
 }
 
 function getVisualizerName(visualizerId) {
-  const viz = Visualizers[visualizerId];
-  if (!viz) return visualizerId;
+  const viz = Visualizers[visualizerId]
+  if (!viz) return visualizerId
   return locale.value === 'en'
-    ? (viz.name_en || viz.name_de || visualizerId)
-    : (viz.name_de || viz.name_en || visualizerId);
+    ? viz.name_en || viz.name_de || visualizerId
+    : viz.name_de || viz.name_en || visualizerId
 }
 
 function getBlendModeName(mode) {
-  return locale.value === 'en' ? mode.name_en : mode.name_de;
+  return locale.value === 'en' ? mode.name_en : mode.name_de
 }
 
 function toggleMultiLayerMode() {
-  store.setMultiLayerMode(!store.multiLayerMode);
+  store.setMultiLayerMode(!store.multiLayerMode)
 }
 
 function addNewLayer() {
   // Füge neuen Layer mit dem ausgewählten Visualizer hinzu
-  const visualizerId = newLayerVisualizerId.value;
+  const visualizerId = newLayerVisualizerId.value
 
   // Generiere eine harmonische Farbe basierend auf der Layer-Anzahl
-  const hue = (store.visualizerLayers.length * 137.5) % 360; // Goldener Winkel für Farbverteilung
+  const hue = (store.visualizerLayers.length * 137.5) % 360 // Goldener Winkel für Farbverteilung
 
   // Konvertiere HSL zu HEX
   const hslToHex = (h, s, l) => {
-    s /= 100;
-    l /= 100;
-    const a = s * Math.min(l, 1 - l);
-    const f = n => {
-      const k = (n + h / 30) % 12;
-      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-      return Math.round(255 * color).toString(16).padStart(2, '0');
-    };
-    return `#${f(0)}${f(8)}${f(4)}`;
-  };
+    s /= 100
+    l /= 100
+    const a = s * Math.min(l, 1 - l)
+    const f = (n) => {
+      const k = (n + h / 30) % 12
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
+      return Math.round(255 * color)
+        .toString(16)
+        .padStart(2, '0')
+    }
+    return `#${f(0)}${f(8)}${f(4)}`
+  }
 
-  const hexColor = hslToHex(hue, 70, 60);
-  const newLayer = store.addLayer(visualizerId, { color: hexColor });
+  const hexColor = hslToHex(hue, 70, 60)
+  const newLayer = store.addLayer(visualizerId, { color: hexColor })
 
   // Nach dem Rendern zum neuen Layer scrollen (ist oben in der Liste)
   nextTick(() => {
-    const el = layerRefs.value[newLayer.id];
+    const el = layerRefs.value[newLayer.id]
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
-  });
+  })
 }
 
 function updateProperty(layerId, property, value) {
-  store.updateLayerProperty(layerId, property, value);
+  store.updateLayerProperty(layerId, property, value)
 }
 </script>
 
@@ -364,14 +379,14 @@ function updateProperty(layerId, property, value) {
 .header-title {
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
 
 .toggle-btn {
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-primary, #E9E9EB);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
   padding: 4px 10px;
@@ -406,8 +421,8 @@ function updateProperty(layerId, property, value) {
 
 .add-layer-select {
   flex: 1;
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-primary, #E9E9EB);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
   padding: 6px 8px;
@@ -423,12 +438,12 @@ function updateProperty(layerId, property, value) {
 
 .add-layer-select optgroup {
   font-weight: 600;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
 }
 
 .add-layer-select option {
   background-color: var(--card-bg, #142640);
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
 }
 
 .add-layer-btn {
@@ -473,7 +488,7 @@ function updateProperty(layerId, property, value) {
 }
 
 .layer-item {
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 5px;
   overflow: hidden;
@@ -526,7 +541,7 @@ function updateProperty(layerId, property, value) {
 .layer-name {
   flex: 1;
   font-size: 0.6rem;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -539,7 +554,7 @@ function updateProperty(layerId, property, value) {
 
 .action-btn {
   background-color: var(--card-bg, #142640);
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 3px;
   width: 18px;
@@ -585,13 +600,13 @@ function updateProperty(layerId, property, value) {
 
 .detail-label {
   font-size: 0.55rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   font-weight: 500;
 }
 
 .detail-select {
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-primary, #E9E9EB);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 4px;
   padding: 4px 6px;
@@ -610,7 +625,7 @@ function updateProperty(layerId, property, value) {
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 4px;
   cursor: pointer;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
 }
 
 .detail-color::-webkit-color-swatch-wrapper {
@@ -630,7 +645,11 @@ function updateProperty(layerId, property, value) {
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
-  background: linear-gradient(to right, var(--secondary-bg, #0E1C32) 0%, var(--accent-primary, #c9984d) 100%);
+  background: linear-gradient(
+    to right,
+    var(--secondary-bg, #0e1c32) 0%,
+    var(--accent-primary, #c9984d) 100%
+  );
 }
 
 .detail-slider::-webkit-slider-thumb {
@@ -682,7 +701,7 @@ function updateProperty(layerId, property, value) {
 .no-layers {
   text-align: center;
   padding: 15px;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   font-size: 0.65rem;
   font-style: italic;
 }
@@ -709,7 +728,7 @@ function updateProperty(layerId, property, value) {
 /* ═══ Light Theme Overrides ═══ */
 
 [data-theme='light'] .layer-panel {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-color: rgba(1, 79, 153, 0.18);
 }
 
@@ -730,7 +749,7 @@ function updateProperty(layerId, property, value) {
 
 [data-theme='light'] .toggle-btn.active {
   background-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
   border-color: #014f99;
 }
 
@@ -749,13 +768,13 @@ function updateProperty(layerId, property, value) {
 }
 
 [data-theme='light'] .add-layer-select option {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   color: #003971;
 }
 
 [data-theme='light'] .add-layer-btn {
   background-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .add-layer-btn:hover {
@@ -784,14 +803,14 @@ function updateProperty(layerId, property, value) {
 }
 
 [data-theme='light'] .action-btn {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   color: #4d6d8e;
   border-color: rgba(1, 79, 153, 0.18);
 }
 
 [data-theme='light'] .action-btn:hover:not(:disabled) {
   background-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
   border-color: #014f99;
 }
 
@@ -801,7 +820,7 @@ function updateProperty(layerId, property, value) {
 }
 
 [data-theme='light'] .layer-details {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-top-color: rgba(1, 79, 153, 0.15);
 }
 
@@ -853,7 +872,7 @@ function updateProperty(layerId, property, value) {
 }
 
 [data-theme='light'] .layer-list::-webkit-scrollbar-track {
-  background: #FFFFFF;
+  background: #ffffff;
 }
 
 [data-theme='light'] .layer-list::-webkit-scrollbar-thumb {

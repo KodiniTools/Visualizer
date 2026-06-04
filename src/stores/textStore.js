@@ -1,14 +1,14 @@
 // src/stores/textStore.js
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
 
 export const useTextStore = defineStore('text', () => {
-  const texts = ref([]);
-  const selectedTextId = ref(null);
+  const texts = ref([])
+  const selectedTextId = ref(null)
 
   const selectedText = computed(() => {
-    return texts.value.find(t => t.id === selectedTextId.value) || null;
-  });
+    return texts.value.find((t) => t.id === selectedTextId.value) || null
+  })
 
   function addText(textProperties) {
     const newText = {
@@ -21,27 +21,27 @@ export const useTextStore = defineStore('text', () => {
       x: 50, // in %
       y: 50, // in %
       ...textProperties,
-    };
-    texts.value.push(newText);
-    selectedTextId.value = newText.id;
+    }
+    texts.value.push(newText)
+    selectedTextId.value = newText.id
   }
 
   function updateText(id, newProperties) {
-    const index = texts.value.findIndex(t => t.id === id);
+    const index = texts.value.findIndex((t) => t.id === id)
     if (index !== -1) {
-      texts.value[index] = { ...texts.value[index], ...newProperties };
+      texts.value[index] = { ...texts.value[index], ...newProperties }
     }
   }
 
   function removeText(id) {
-    texts.value = texts.value.filter(t => t.id !== id);
+    texts.value = texts.value.filter((t) => t.id !== id)
     if (selectedTextId.value === id) {
-      selectedTextId.value = null;
+      selectedTextId.value = null
     }
   }
 
   function setSelectedText(id) {
-    selectedTextId.value = id;
+    selectedTextId.value = id
   }
 
   return {
@@ -52,5 +52,5 @@ export const useTextStore = defineStore('text', () => {
     updateText,
     removeText,
     setSelectedText,
-  };
-});
+  }
+})

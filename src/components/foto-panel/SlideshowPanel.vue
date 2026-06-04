@@ -2,7 +2,7 @@
   <div class="slideshow-panel" v-if="images.length >= 2 || isActive">
     <div class="panel-header">
       <h4>{{ t('slideshow.title') }}</h4>
-      <div class="status-badge" :class="{ 'active': isActive, 'paused': isPaused }">
+      <div class="status-badge" :class="{ active: isActive, paused: isPaused }">
         <span v-if="isActive && !isPaused">{{ t('slideshow.running') }}</span>
         <span v-else-if="isPaused">{{ t('slideshow.paused') }}</span>
         <span v-else>{{ t('slideshow.ready') }}</span>
@@ -17,7 +17,7 @@
           v-for="(img, index) in orderedImages"
           :key="img.id || index"
           class="order-item"
-          :class="{ 'dragging': dragIndex === index }"
+          :class="{ dragging: dragIndex === index }"
           draggable="true"
           @dragstart="onDragStart(index, $event)"
           @dragover.prevent="onDragOver(index)"
@@ -25,7 +25,11 @@
           @dragend="onDragEnd"
         >
           <span class="order-number">{{ index + 1 }}</span>
-          <img :src="img.img?.src || img.imageObject?.src" :alt="img.name || 'Bild'" class="order-thumb">
+          <img
+            :src="img.img?.src || img.imageObject?.src"
+            :alt="img.name || 'Bild'"
+            class="order-thumb"
+          />
           <span class="order-name">{{ img.name || `Bild ${index + 1}` }}</span>
           <span class="drag-handle">&#x2630;</span>
         </div>
@@ -39,13 +43,7 @@
       <div class="timing-control">
         <label>{{ t('slideshow.fadeIn') }}</label>
         <div class="slider-row">
-          <input
-            type="range"
-            v-model.number="fadeInDuration"
-            min="100"
-            max="5000"
-            step="100"
-          >
+          <input type="range" v-model.number="fadeInDuration" min="100" max="5000" step="100" />
           <span class="value">{{ (fadeInDuration / 1000).toFixed(1) }}s</span>
         </div>
       </div>
@@ -53,13 +51,7 @@
       <div class="timing-control">
         <label>{{ t('slideshow.display') }}</label>
         <div class="slider-row">
-          <input
-            type="range"
-            v-model.number="displayDuration"
-            min="500"
-            max="30000"
-            step="500"
-          >
+          <input type="range" v-model.number="displayDuration" min="500" max="30000" step="500" />
           <span class="value">{{ (displayDuration / 1000).toFixed(1) }}s</span>
         </div>
       </div>
@@ -67,13 +59,7 @@
       <div class="timing-control">
         <label>{{ t('slideshow.fadeOut') }}</label>
         <div class="slider-row">
-          <input
-            type="range"
-            v-model.number="fadeOutDuration"
-            min="100"
-            max="5000"
-            step="100"
-          >
+          <input type="range" v-model.number="fadeOutDuration" min="100" max="5000" step="100" />
           <span class="value">{{ (fadeOutDuration / 1000).toFixed(1) }}s</span>
         </div>
       </div>
@@ -82,10 +68,7 @@
     <!-- Audio-Reaktiv Option (nur wenn nicht aktiv) -->
     <div class="audio-reactive-section" v-if="!isActive">
       <label class="checkbox-label">
-        <input
-          type="checkbox"
-          v-model="applyAudioReactive"
-        >
+        <input type="checkbox" v-model="applyAudioReactive" />
         <span>{{ t('slideshow.applyAudioReactive') }}</span>
       </label>
       <p class="hint" v-if="applyAudioReactive && hasSavedSettings">
@@ -99,10 +82,7 @@
     <!-- Loop Option (nur wenn nicht aktiv) -->
     <div class="loop-section" v-if="!isActive">
       <label class="checkbox-label">
-        <input
-          type="checkbox"
-          v-model="loopSlideshow"
-        >
+        <input type="checkbox" v-model="loopSlideshow" />
         <span>{{ t('slideshow.loop') }}</span>
       </label>
     </div>
@@ -110,11 +90,7 @@
     <!-- Render Behind Visualizer Option -->
     <div class="layer-section">
       <label class="checkbox-label">
-        <input
-          type="checkbox"
-          v-model="renderBehindVisualizer"
-          @change="onRenderLayerChange"
-        >
+        <input type="checkbox" v-model="renderBehindVisualizer" @change="onRenderLayerChange" />
         <span>{{ t('slideshow.renderBehind') }}</span>
       </label>
     </div>
@@ -127,13 +103,7 @@
         <div class="transform-control">
           <label>{{ t('slideshow.positionX') }}</label>
           <div class="slider-row">
-            <input
-              type="range"
-              v-model.number="transformX"
-              min="0"
-              max="100"
-              step="1"
-            >
+            <input type="range" v-model.number="transformX" min="0" max="100" step="1" />
             <span class="value">{{ transformX }}%</span>
           </div>
         </div>
@@ -141,13 +111,7 @@
         <div class="transform-control">
           <label>{{ t('slideshow.positionY') }}</label>
           <div class="slider-row">
-            <input
-              type="range"
-              v-model.number="transformY"
-              min="0"
-              max="100"
-              step="1"
-            >
+            <input type="range" v-model.number="transformY" min="0" max="100" step="1" />
             <span class="value">{{ transformY }}%</span>
           </div>
         </div>
@@ -155,13 +119,7 @@
         <div class="transform-control">
           <label>{{ t('slideshow.width') }}</label>
           <div class="slider-row">
-            <input
-              type="range"
-              v-model.number="transformWidth"
-              min="10"
-              max="100"
-              step="1"
-            >
+            <input type="range" v-model.number="transformWidth" min="10" max="100" step="1" />
             <span class="value">{{ transformWidth }}%</span>
           </div>
         </div>
@@ -169,13 +127,7 @@
         <div class="transform-control">
           <label>{{ t('slideshow.height') }}</label>
           <div class="slider-row">
-            <input
-              type="range"
-              v-model.number="transformHeight"
-              min="10"
-              max="100"
-              step="1"
-            >
+            <input type="range" v-model.number="transformHeight" min="10" max="100" step="1" />
             <span class="value">{{ transformHeight }}%</span>
           </div>
         </div>
@@ -190,33 +142,18 @@
 
     <!-- Action Buttons -->
     <div class="action-buttons">
-      <button
-        v-if="!isActive"
-        @click="startSlideshow"
-        class="btn-start"
-      >
+      <button v-if="!isActive" @click="startSlideshow" class="btn-start">
         {{ t('slideshow.start') }}
       </button>
 
       <template v-else>
-        <button
-          v-if="!isPaused"
-          @click="pauseSlideshow"
-          class="btn-pause"
-        >
+        <button v-if="!isPaused" @click="pauseSlideshow" class="btn-pause">
           {{ t('slideshow.pause') }}
         </button>
-        <button
-          v-else
-          @click="resumeSlideshow"
-          class="btn-resume"
-        >
+        <button v-else @click="resumeSlideshow" class="btn-resume">
           {{ t('slideshow.resume') }}
         </button>
-        <button
-          @click="stopSlideshow"
-          class="btn-stop"
-        >
+        <button @click="stopSlideshow" class="btn-stop">
           {{ t('slideshow.stop') }}
         </button>
       </template>
@@ -225,7 +162,10 @@
     <!-- Progress Indicator -->
     <div v-if="isActive" class="progress-section">
       <div class="progress-info">
-        <span>{{ t('slideshow.image') }} {{ currentImageIndex + 1 }} / {{ totalImages || images.length }}</span>
+        <span
+          >{{ t('slideshow.image') }} {{ currentImageIndex + 1 }} /
+          {{ totalImages || images.length }}</span
+        >
         <span class="phase-indicator" :class="currentPhase">{{ phaseLabel }}</span>
       </div>
     </div>
@@ -233,41 +173,41 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
-import { useI18n } from '../../lib/i18n.js';
+import { ref, computed, watch } from 'vue'
+import { useI18n } from '../../lib/i18n.js'
 
-const { t, locale } = useI18n();
+const { t, locale } = useI18n()
 
 const props = defineProps({
   images: {
     type: Array,
-    required: true
+    required: true,
   },
   hasSavedSettings: {
     type: Boolean,
-    default: false
+    default: false,
   },
   isActive: {
     type: Boolean,
-    default: false
+    default: false,
   },
   isPaused: {
     type: Boolean,
-    default: false
+    default: false,
   },
   currentImageIndex: {
     type: Number,
-    default: 0
+    default: 0,
   },
   totalImages: {
     type: Number,
-    default: 0
+    default: 0,
   },
   currentPhase: {
     type: String,
-    default: 'fadeIn'
-  }
-});
+    default: 'fadeIn',
+  },
+})
 
 const emit = defineEmits([
   'start',
@@ -276,73 +216,77 @@ const emit = defineEmits([
   'stop',
   'order-changed',
   'render-layer-change',
-  'transform-change'
-]);
+  'transform-change',
+])
 
 // Timing-Einstellungen
-const fadeInDuration = ref(1000);
-const displayDuration = ref(3000);
-const fadeOutDuration = ref(1000);
-const applyAudioReactive = ref(true);
-const loopSlideshow = ref(false);
+const fadeInDuration = ref(1000)
+const displayDuration = ref(3000)
+const fadeOutDuration = ref(1000)
+const applyAudioReactive = ref(true)
+const loopSlideshow = ref(false)
 
 // ✨ NEU: Render Layer
-const renderBehindVisualizer = ref(false);
+const renderBehindVisualizer = ref(false)
 
 // ✨ NEU: Transform-Einstellungen (in Prozent für UI)
-const transformX = ref(10);      // 0-100%
-const transformY = ref(10);      // 0-100%
-const transformWidth = ref(80);  // 10-100%
-const transformHeight = ref(80); // 10-100%
+const transformX = ref(10) // 0-100%
+const transformY = ref(10) // 0-100%
+const transformWidth = ref(80) // 10-100%
+const transformHeight = ref(80) // 10-100%
 
 // Geordnete Bilder-Liste
-const orderedImages = ref([]);
+const orderedImages = ref([])
 
 // Drag & Drop State
-const dragIndex = ref(null);
-const orderListRef = ref(null);
+const dragIndex = ref(null)
+const orderListRef = ref(null)
 
 // Initialisiere geordnete Bilder wenn sich images ändert
-watch(() => props.images, (newImages) => {
-  orderedImages.value = [...newImages];
-}, { immediate: true, deep: true });
+watch(
+  () => props.images,
+  (newImages) => {
+    orderedImages.value = [...newImages]
+  },
+  { immediate: true, deep: true },
+)
 
 // Phase Label
 const phaseLabel = computed(() => {
   switch (props.currentPhase) {
     case 'fadeIn':
-      return locale.value === 'de' ? 'Einblenden' : 'Fading In';
+      return locale.value === 'de' ? 'Einblenden' : 'Fading In'
     case 'display':
-      return locale.value === 'de' ? 'Anzeige' : 'Displaying';
+      return locale.value === 'de' ? 'Anzeige' : 'Displaying'
     case 'fadeOut':
-      return locale.value === 'de' ? 'Ausblenden' : 'Fading Out';
+      return locale.value === 'de' ? 'Ausblenden' : 'Fading Out'
     default:
-      return '';
+      return ''
   }
-});
+})
 
 // Drag & Drop Handlers
 function onDragStart(index, event) {
-  dragIndex.value = index;
-  event.dataTransfer.effectAllowed = 'move';
-  event.dataTransfer.setData('text/plain', index.toString());
+  dragIndex.value = index
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', index.toString())
 }
 
 function onDragOver(index) {
-  if (dragIndex.value === null || dragIndex.value === index) return;
+  if (dragIndex.value === null || dragIndex.value === index) return
 
-  const item = orderedImages.value[dragIndex.value];
-  orderedImages.value.splice(dragIndex.value, 1);
-  orderedImages.value.splice(index, 0, item);
-  dragIndex.value = index;
+  const item = orderedImages.value[dragIndex.value]
+  orderedImages.value.splice(dragIndex.value, 1)
+  orderedImages.value.splice(index, 0, item)
+  dragIndex.value = index
 }
 
 function onDrop() {
-  emit('order-changed', orderedImages.value);
+  emit('order-changed', orderedImages.value)
 }
 
 function onDragEnd() {
-  dragIndex.value = null;
+  dragIndex.value = null
 }
 
 // Slideshow Controls
@@ -359,35 +303,35 @@ function startSlideshow() {
       relX: transformX.value / 100,
       relY: transformY.value / 100,
       relWidth: transformWidth.value / 100,
-      relHeight: transformHeight.value / 100
-    }
-  });
+      relHeight: transformHeight.value / 100,
+    },
+  })
 }
 
 function pauseSlideshow() {
-  emit('pause');
+  emit('pause')
 }
 
 function resumeSlideshow() {
-  emit('resume');
+  emit('resume')
 }
 
 function stopSlideshow() {
-  emit('stop');
+  emit('stop')
 }
 
 // ✨ NEU: Render Layer geändert (auch während laufender Slideshow)
 function onRenderLayerChange() {
-  emit('render-layer-change', renderBehindVisualizer.value);
+  emit('render-layer-change', renderBehindVisualizer.value)
 }
 
 // ✨ NEU: Transform zurücksetzen
 function resetTransform() {
-  transformX.value = 10;
-  transformY.value = 10;
-  transformWidth.value = 80;
-  transformHeight.value = 80;
-  emitTransformChange();
+  transformX.value = 10
+  transformY.value = 10
+  transformWidth.value = 80
+  transformHeight.value = 80
+  emitTransformChange()
 }
 
 // ✨ NEU: Transform-Änderung emittieren
@@ -396,17 +340,21 @@ function emitTransformChange() {
     relX: transformX.value / 100,
     relY: transformY.value / 100,
     relWidth: transformWidth.value / 100,
-    relHeight: transformHeight.value / 100
-  });
+    relHeight: transformHeight.value / 100,
+  })
 }
 
 // ✨ NEU: Watch für Transform-Änderungen
 // ✨ FIX: Nur emittieren wenn Slideshow NICHT aktiv ist, um Maus-Änderungen nicht zu überschreiben
-watch([transformX, transformY, transformWidth, transformHeight], () => {
-  if (!props.isActive) {
-    emitTransformChange();
-  }
-}, { deep: true });
+watch(
+  [transformX, transformY, transformWidth, transformHeight],
+  () => {
+    if (!props.isActive) {
+      emitTransformChange()
+    }
+  },
+  { deep: true },
+)
 </script>
 
 <style scoped>
@@ -582,7 +530,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   gap: 10px;
 }
 
-.slider-row input[type="range"] {
+.slider-row input[type='range'] {
   flex: 1;
   height: 6px;
   border-radius: 3px;
@@ -591,7 +539,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   appearance: none;
 }
 
-.slider-row input[type="range"]::-webkit-slider-thumb {
+.slider-row input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
@@ -627,7 +575,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   color: #e0e0e0;
 }
 
-.checkbox-label input[type="checkbox"] {
+.checkbox-label input[type='checkbox'] {
   width: 16px;
   height: 16px;
   accent-color: #6ea8fe;
@@ -800,7 +748,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .slideshow-panel {
-  background: linear-gradient(135deg, #FFFFFF 0%, #f9f2d5 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f9f2d5 100%);
   border-color: #d4c8a8;
 }
 
@@ -836,7 +784,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 
 [data-theme='light'] .order-number {
   background: linear-gradient(135deg, #014f99 0%, #003971 100%);
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .order-name {
@@ -855,11 +803,11 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   color: #4d6d8e;
 }
 
-[data-theme='light'] .slider-row input[type="range"] {
+[data-theme='light'] .slider-row input[type='range'] {
   background: #d4c8a8;
 }
 
-[data-theme='light'] .slider-row input[type="range"]::-webkit-slider-thumb {
+[data-theme='light'] .slider-row input[type='range']::-webkit-slider-thumb {
   background: linear-gradient(135deg, #014f99 0%, #003971 100%);
   box-shadow: 0 2px 6px rgba(1, 79, 153, 0.4);
 }
@@ -872,7 +820,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   color: #003971;
 }
 
-[data-theme='light'] .checkbox-label input[type="checkbox"] {
+[data-theme='light'] .checkbox-label input[type='checkbox'] {
   accent-color: #014f99;
 }
 
@@ -882,7 +830,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 
 [data-theme='light'] .btn-start {
   background: linear-gradient(135deg, #014f99 0%, #003971 100%);
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .btn-start:hover {

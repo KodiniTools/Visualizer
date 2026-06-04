@@ -8,7 +8,7 @@
         v-for="category in stockCategories"
         :key="category.id"
         class="category-tab"
-        :class="{ 'active': selectedStockCategory === category.id }"
+        :class="{ active: selectedStockCategory === category.id }"
         @click="$emit('select-category', category.id)"
       >
         <span class="category-icon">{{ category.icon }}</span>
@@ -21,13 +21,23 @@
     <div class="stock-gallery-scroll">
       <!-- Auswahl-Steuerung -->
       <div v-if="filteredStockImages.length > 0" class="selection-controls">
-        <button @click="$emit('select-all')" class="btn-select-all" :disabled="selectedStockCount === filteredStockImages.length">
+        <button
+          @click="$emit('select-all')"
+          class="btn-select-all"
+          :disabled="selectedStockCount === filteredStockImages.length"
+        >
           {{ t('foto.selectAll') }}
         </button>
-        <button @click="$emit('deselect-all')" class="btn-deselect-all" :disabled="selectedStockCount === 0">
+        <button
+          @click="$emit('deselect-all')"
+          class="btn-deselect-all"
+          :disabled="selectedStockCount === 0"
+        >
           {{ t('foto.deselectAll') }}
         </button>
-        <span v-if="selectedStockCount > 0" class="selection-count">{{ selectedStockCount }} {{ t('foto.selected') }}</span>
+        <span v-if="selectedStockCount > 0" class="selection-count"
+          >{{ selectedStockCount }} {{ t('foto.selected') }}</span
+        >
       </div>
       <p class="multiselect-hint">{{ t('foto.multiselectHint') }}</p>
       <div class="stock-gallery-grid">
@@ -35,15 +45,15 @@
           v-for="img in filteredStockImages"
           :key="img.id"
           class="stock-thumbnail-item"
-          :class="{ 'selected': selectedStockImages.has(img.id) }"
+          :class="{ selected: selectedStockImages.has(img.id) }"
           @click="$emit('select-image', img, $event)"
           @dblclick="$emit('open-preview', img)"
         >
           <!-- Checkbox für Mehrfachauswahl -->
-          <div class="selection-checkbox" :class="{ 'checked': selectedStockImages.has(img.id) }">
+          <div class="selection-checkbox" :class="{ checked: selectedStockImages.has(img.id) }">
             <span v-if="selectedStockImages.has(img.id)">✓</span>
           </div>
-          <img :src="img.thumbnail" :alt="img.name" loading="lazy">
+          <img :src="img.thumbnail" :alt="img.name" loading="lazy" />
           <div class="stock-thumbnail-info">
             <span class="stock-thumbnail-name">{{ img.name }}</span>
           </div>
@@ -54,12 +64,26 @@
     <!-- Stock-Bild Action-Buttons -->
     <div v-if="selectedStockCount > 0" class="action-buttons stock-actions">
       <button @click="$emit('add-to-canvas')" class="btn-primary">
-        {{ selectedStockCount > 1 ? (locale === 'de' ? `${selectedStockCount} Bilder auf Canvas` : `${selectedStockCount} images on Canvas`) : t('foto.placeOnCanvas') }}
+        {{
+          selectedStockCount > 1
+            ? locale === 'de'
+              ? `${selectedStockCount} Bilder auf Canvas`
+              : `${selectedStockCount} images on Canvas`
+            : t('foto.placeOnCanvas')
+        }}
       </button>
-      <button v-if="selectedStockCount === 1" @click="$emit('set-as-background')" class="btn-secondary">
+      <button
+        v-if="selectedStockCount === 1"
+        @click="$emit('set-as-background')"
+        class="btn-secondary"
+      >
         {{ t('foto.asBackground') }}
       </button>
-      <button v-if="selectedStockCount === 1" @click="$emit('set-as-workspace-background')" class="btn-workspace">
+      <button
+        v-if="selectedStockCount === 1"
+        @click="$emit('set-as-workspace-background')"
+        class="btn-workspace"
+      >
         {{ t('foto.asWorkspaceBackground') }}
       </button>
     </div>
@@ -90,72 +114,80 @@
     </div>
 
     <!-- Keine Bilder in Kategorie -->
-    <div v-if="!stockImagesLoading && !categoryLoading && stockCategories.length > 0 && filteredStockImages.length === 0" class="empty-state">
+    <div
+      v-if="
+        !stockImagesLoading &&
+        !categoryLoading &&
+        stockCategories.length > 0 &&
+        filteredStockImages.length === 0
+      "
+      class="empty-state"
+    >
       <p>{{ t('foto.noImagesInCategory') }}</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useI18n } from '../../lib/i18n.js';
-import PlacementSettings from './PlacementSettings.vue';
+import { useI18n } from '../../lib/i18n.js'
+import PlacementSettings from './PlacementSettings.vue'
 
-const { t, locale } = useI18n();
+const { t, locale } = useI18n()
 
 defineProps({
   stockCategories: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   filteredStockImages: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   selectedStockCategory: {
     type: String,
-    default: 'backgrounds'
+    default: 'backgrounds',
   },
   selectedStockImages: {
     type: Set,
-    default: () => new Set()
+    default: () => new Set(),
   },
   selectedStockCount: {
     type: Number,
-    default: 0
+    default: 0,
   },
   stockImagesLoading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   categoryLoading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   selectedAnimation: {
     type: String,
-    default: 'none'
+    default: 'none',
   },
   animationDuration: {
     type: Number,
-    default: 1000
+    default: 1000,
   },
   imageScale: {
     type: Number,
-    default: 1
+    default: 1,
   },
   imageOffsetX: {
     type: Number,
-    default: 0
+    default: 0,
   },
   imageOffsetY: {
     type: Number,
-    default: 0
+    default: 0,
   },
   isInRangeSelectionMode: {
     type: Boolean,
-    default: false
-  }
-});
+    default: false,
+  },
+})
 
 defineEmits([
   'select-category',
@@ -169,17 +201,17 @@ defineEmits([
   'start-range-selection',
   'add-directly',
   'retry-load',
-  'update:placement-settings'
-]);
+  'update:placement-settings',
+])
 
 // Function to get translated stock category name
 function getStockCategoryName(category) {
-  const translationKey = `foto.stockCategories.${category.id}`;
-  const translated = t(translationKey);
+  const translationKey = `foto.stockCategories.${category.id}`
+  const translated = t(translationKey)
   if (translated !== translationKey) {
-    return translated;
+    return translated
   }
-  return locale.value === 'en' && category.name_en ? category.name_en : category.name;
+  return locale.value === 'en' && category.name_en ? category.name_en : category.name
 }
 </script>
 
@@ -198,7 +230,7 @@ function getStockCategoryName(category) {
   margin: 0 0 6px 0;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   display: flex;
@@ -213,7 +245,7 @@ function getStockCategoryName(category) {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpath d='M21 15l-5-5L5 21'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 /* Kategorie-Tabs */
@@ -230,8 +262,8 @@ function getStockCategoryName(category) {
   padding: 5px 8px;
   border-radius: 5px;
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-primary, #E9E9EB);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
   font-size: 0.55rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -342,7 +374,7 @@ function getStockCategoryName(category) {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
   padding: 6px 6px 4px 6px;
 }
 
@@ -476,8 +508,8 @@ function getStockCategoryName(category) {
 }
 
 .btn-secondary {
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-primary, #E9E9EB);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
 }
 
@@ -489,7 +521,7 @@ function getStockCategoryName(category) {
 
 .btn-workspace {
   background: rgba(255, 193, 7, 0.1);
-  color: #FFC107;
+  color: #ffc107;
   border: 1px solid rgba(255, 193, 7, 0.3);
 }
 
@@ -557,7 +589,7 @@ function getStockCategoryName(category) {
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .stock-gallery-section {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-color: rgba(1, 79, 153, 0.2);
 }
 
@@ -566,7 +598,7 @@ function getStockCategoryName(category) {
 }
 
 [data-theme='light'] .category-tab {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-color: rgba(1, 79, 153, 0.3);
   color: #003971;
 }
@@ -620,7 +652,7 @@ function getStockCategoryName(category) {
 [data-theme='light'] .btn-select-all,
 [data-theme='light'] .btn-deselect-all {
   border-color: rgba(1, 79, 153, 0.3);
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   color: #003971;
 }
 
@@ -666,7 +698,7 @@ function getStockCategoryName(category) {
 }
 
 [data-theme='light'] .btn-secondary {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   color: #003971;
   border-color: rgba(1, 79, 153, 0.3);
 }
@@ -677,14 +709,14 @@ function getStockCategoryName(category) {
 }
 
 [data-theme='light'] .btn-retry {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-color: #014f99;
   color: #014f99;
 }
 
 [data-theme='light'] .btn-retry:hover {
   background-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .loading-state {

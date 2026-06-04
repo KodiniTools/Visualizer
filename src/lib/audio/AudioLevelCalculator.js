@@ -13,13 +13,13 @@ export const AUDIO_SOURCES = {
   MID: 'mid',
   TREBLE: 'treble',
   VOLUME: 'volume',
-  DYNAMIC: 'dynamic'
-};
+  DYNAMIC: 'dynamic',
+}
 
 /**
  * List of all available source names
  */
-export const sourceNames = Object.values(AUDIO_SOURCES);
+export const sourceNames = Object.values(AUDIO_SOURCES)
 
 /**
  * Gets the audio level for a specific source
@@ -29,27 +29,27 @@ export const sourceNames = Object.values(AUDIO_SOURCES);
  * @returns {number} Audio level (0-255)
  */
 export function getAudioLevel(source, audioData, useSmooth = true) {
-  if (!audioData) return 0;
+  if (!audioData) return 0
 
   switch (source) {
     case AUDIO_SOURCES.BASS:
-      return useSmooth ? (audioData.smoothBass || 0) : (audioData.bass || 0);
+      return useSmooth ? audioData.smoothBass || 0 : audioData.bass || 0
 
     case AUDIO_SOURCES.MID:
-      return useSmooth ? (audioData.smoothMid || 0) : (audioData.mid || 0);
+      return useSmooth ? audioData.smoothMid || 0 : audioData.mid || 0
 
     case AUDIO_SOURCES.TREBLE:
-      return useSmooth ? (audioData.smoothTreble || 0) : (audioData.treble || 0);
+      return useSmooth ? audioData.smoothTreble || 0 : audioData.treble || 0
 
     case AUDIO_SOURCES.VOLUME:
-      return useSmooth ? (audioData.smoothVolume || 0) : (audioData.volume || 0);
+      return useSmooth ? audioData.smoothVolume || 0 : audioData.volume || 0
 
     case AUDIO_SOURCES.DYNAMIC:
-      return calculateDynamicLevel(audioData, useSmooth);
+      return calculateDynamicLevel(audioData, useSmooth)
 
     default:
       // Default to bass if unknown source
-      return useSmooth ? (audioData.smoothBass || 0) : (audioData.bass || 0);
+      return useSmooth ? audioData.smoothBass || 0 : audioData.bass || 0
   }
 }
 
@@ -60,26 +60,26 @@ export function getAudioLevel(source, audioData, useSmooth = true) {
  * @returns {number} Dynamic audio level (0-255)
  */
 export function calculateDynamicLevel(audioData, useSmooth = true) {
-  if (!audioData) return 0;
+  if (!audioData) return 0
 
-  const bass = useSmooth ? (audioData.smoothBass || 0) : (audioData.bass || 0);
-  const mid = useSmooth ? (audioData.smoothMid || 0) : (audioData.mid || 0);
-  const treble = useSmooth ? (audioData.smoothTreble || 0) : (audioData.treble || 0);
+  const bass = useSmooth ? audioData.smoothBass || 0 : audioData.bass || 0
+  const mid = useSmooth ? audioData.smoothMid || 0 : audioData.mid || 0
+  const treble = useSmooth ? audioData.smoothTreble || 0 : audioData.treble || 0
 
   // Calculate energy-based weights
-  const totalEnergy = Math.max(bass + mid + treble, 1);
-  const bassWeight = bass / totalEnergy;
-  const midWeight = mid / totalEnergy;
-  const trebleWeight = treble / totalEnergy;
+  const totalEnergy = Math.max(bass + mid + treble, 1)
+  const bassWeight = bass / totalEnergy
+  const midWeight = mid / totalEnergy
+  const trebleWeight = treble / totalEnergy
 
   // Weighted combination
-  let rawLevel = (bass * bassWeight) + (mid * midWeight) + (treble * trebleWeight);
+  let rawLevel = bass * bassWeight + mid * midWeight + treble * trebleWeight
 
   // Normalize and apply compression for more consistent output
-  const normalized = rawLevel / 255;
-  const compressed = Math.pow(normalized, 0.7);
+  const normalized = rawLevel / 255
+  const compressed = Math.pow(normalized, 0.7)
 
-  return Math.floor(compressed * 255 * 0.85);
+  return Math.floor(compressed * 255 * 0.85)
 }
 
 /**
@@ -90,7 +90,7 @@ export function calculateDynamicLevel(audioData, useSmooth = true) {
  * @returns {number} Normalized audio level (0-1)
  */
 export function getNormalizedLevel(source, audioData, useSmooth = true) {
-  return getAudioLevel(source, audioData, useSmooth) / 255;
+  return getAudioLevel(source, audioData, useSmooth) / 255
 }
 
 /**
@@ -102,13 +102,13 @@ export function getNormalizedLevel(source, audioData, useSmooth = true) {
  */
 export function applyBeatBoost(level, audioData, beatBoost = 1.0) {
   if (!audioData || beatBoost <= 1.0 || !audioData.isBeat) {
-    return level;
+    return level
   }
 
-  const beatIntensity = audioData.beatIntensity || 0;
-  const boostAmount = 1 + ((beatBoost - 1) * beatIntensity);
+  const beatIntensity = audioData.beatIntensity || 0
+  const boostAmount = 1 + (beatBoost - 1) * beatIntensity
 
-  return Math.min(255, level * boostAmount);
+  return Math.min(255, level * boostAmount)
 }
 
 /**
@@ -119,13 +119,13 @@ export function applyBeatBoost(level, audioData, beatBoost = 1.0) {
  * @returns {number} Phase-modified audio level (0-255)
  */
 export function applyPhaseOffset(level, phase, time = Date.now()) {
-  if (phase <= 0) return level;
+  if (phase <= 0) return level
 
-  const phaseRad = (phase * Math.PI) / 180;
-  const timeOffset = time * 0.002;
-  const phaseModifier = (Math.sin(timeOffset + phaseRad) + 1) / 2;
+  const phaseRad = (phase * Math.PI) / 180
+  const timeOffset = time * 0.002
+  const phaseModifier = (Math.sin(timeOffset + phaseRad) + 1) / 2
 
-  return level * (0.5 + phaseModifier * 0.5);
+  return level * (0.5 + phaseModifier * 0.5)
 }
 
 /**
@@ -143,8 +143,8 @@ export class AudioLevelCalculator {
       useSmooth: true,
       beatBoost: 1.0,
       phase: 0,
-      ...config
-    };
+      ...config,
+    }
   }
 
   /**
@@ -154,21 +154,21 @@ export class AudioLevelCalculator {
    * @returns {number} Calculated audio level (0-255)
    */
   calculate(audioData, options = {}) {
-    const source = options.source || this.config.defaultSource;
-    const useSmooth = options.useSmooth ?? this.config.useSmooth;
-    const beatBoost = options.beatBoost ?? this.config.beatBoost;
-    const phase = options.phase ?? this.config.phase;
+    const source = options.source || this.config.defaultSource
+    const useSmooth = options.useSmooth ?? this.config.useSmooth
+    const beatBoost = options.beatBoost ?? this.config.beatBoost
+    const phase = options.phase ?? this.config.phase
 
     // Get base level
-    let level = getAudioLevel(source, audioData, useSmooth);
+    let level = getAudioLevel(source, audioData, useSmooth)
 
     // Apply beat boost
-    level = applyBeatBoost(level, audioData, beatBoost);
+    level = applyBeatBoost(level, audioData, beatBoost)
 
     // Apply phase offset
-    level = applyPhaseOffset(level, phase);
+    level = applyPhaseOffset(level, phase)
 
-    return level;
+    return level
   }
 
   /**
@@ -178,7 +178,7 @@ export class AudioLevelCalculator {
    * @returns {number} Normalized level (0-1)
    */
   calculateNormalized(audioData, options = {}) {
-    return this.calculate(audioData, options) / 255;
+    return this.calculate(audioData, options) / 255
   }
 
   /**
@@ -186,7 +186,7 @@ export class AudioLevelCalculator {
    * @param {object} newConfig - New configuration values
    */
   updateConfig(newConfig) {
-    this.config = { ...this.config, ...newConfig };
+    this.config = { ...this.config, ...newConfig }
   }
 
   /**
@@ -194,7 +194,7 @@ export class AudioLevelCalculator {
    * @returns {object} Current configuration
    */
   getConfig() {
-    return { ...this.config };
+    return { ...this.config }
   }
 }
 
@@ -206,5 +206,5 @@ export default {
   getNormalizedLevel,
   applyBeatBoost,
   applyPhaseOffset,
-  AudioLevelCalculator
-};
+  AudioLevelCalculator,
+}

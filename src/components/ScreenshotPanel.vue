@@ -34,14 +34,7 @@
         <span class="section-label">{{ t('screenshot.quality') }}</span>
         <span class="quality-value">{{ quality }}%</span>
       </div>
-      <input
-        type="range"
-        v-model="quality"
-        min="10"
-        max="100"
-        step="5"
-        class="quality-slider"
-      />
+      <input type="range" v-model="quality" min="10" max="100" step="5" class="quality-slider" />
       <div class="quality-hints">
         <span>{{ t('screenshot.lowQuality') }}</span>
         <span>{{ t('screenshot.highQuality') }}</span>
@@ -57,15 +50,11 @@
     </div>
 
     <!-- Screenshot Button -->
-    <button
-      class="btn btn-screenshot"
-      @click="takeScreenshot"
-      :disabled="isProcessing"
-    >
+    <button class="btn btn-screenshot" @click="takeScreenshot" :disabled="isProcessing">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-        <circle cx="8.5" cy="8.5" r="1.5"/>
-        <polyline points="21 15 16 10 5 21"/>
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+        <circle cx="8.5" cy="8.5" r="1.5" />
+        <polyline points="21 15 16 10 5 21" />
       </svg>
       {{ isProcessing ? t('screenshot.processing') : t('screenshot.capture') }}
     </button>
@@ -76,8 +65,8 @@
         <span class="section-label">{{ t('screenshot.preview') }}</span>
         <button class="btn-close-preview" @click="clearPreview" :title="t('common.close')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       </div>
@@ -89,10 +78,10 @@
         <img :src="previewUrl" alt="Screenshot Preview" class="preview-image" />
         <div class="preview-zoom-hint">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            <line x1="11" y1="8" x2="11" y2="14"/>
-            <line x1="8" y1="11" x2="14" y2="11"/>
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            <line x1="11" y1="8" x2="11" y2="14" />
+            <line x1="8" y1="11" x2="14" y2="11" />
           </svg>
         </div>
       </div>
@@ -100,16 +89,11 @@
         <span class="file-size">{{ fileSize }}</span>
         <span class="file-dimensions">{{ fileDimensions }}</span>
       </div>
-      <a
-        :href="previewUrl"
-        :download="fileName"
-        class="btn btn-download"
-        @click="handleDownload"
-      >
+      <a :href="previewUrl" :download="fileName" class="btn btn-download" @click="handleDownload">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
         </svg>
         {{ t('screenshot.download') }}
       </a>
@@ -125,10 +109,14 @@
       >
         <div class="fullscreen-modal" @click.stop>
           <!-- Close Button (floating) -->
-          <button class="btn-close-floating" @click="closeFullscreenPreview" :title="t('common.close')">
+          <button
+            class="btn-close-floating"
+            @click="closeFullscreenPreview"
+            :title="t('common.close')"
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
 
@@ -153,9 +141,9 @@
               :title="t('screenshot.download')"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
             </a>
           </div>
@@ -166,47 +154,47 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useI18n } from '../lib/i18n.js';
-import { useToastStore } from '../stores/toastStore.js';
-import HelpTooltip from './HelpTooltip.vue';
+import { ref, computed } from 'vue'
+import { useI18n } from '../lib/i18n.js'
+import { useToastStore } from '../stores/toastStore.js'
+import HelpTooltip from './HelpTooltip.vue'
 
-const { t } = useI18n();
-const toastStore = useToastStore();
+const { t } = useI18n()
+const toastStore = useToastStore()
 
 // State
-const selectedFormat = ref('png');
-const quality = ref(90);
-const isProcessing = ref(false);
-const previewUrl = ref(null);
-const fileName = ref('');
-const fileSize = ref('');
-const fileDimensions = ref('');
-const showFullscreenPreview = ref(false);
+const selectedFormat = ref('png')
+const quality = ref(90)
+const isProcessing = ref(false)
+const previewUrl = ref(null)
+const fileName = ref('')
+const fileSize = ref('')
+const fileDimensions = ref('')
+const showFullscreenPreview = ref(false)
 
 // Computed
 const formatLabel = computed(() => {
-  const format = formats.find(f => f.value === selectedFormat.value);
-  return format ? format.label : selectedFormat.value.toUpperCase();
-});
+  const format = formats.find((f) => f.value === selectedFormat.value)
+  return format ? format.label : selectedFormat.value.toUpperCase()
+})
 
 // Format options
 const formats = [
   { value: 'png', label: 'PNG' },
   { value: 'jpeg', label: 'JPG' },
-  { value: 'webp', label: 'WebP' }
-];
+  { value: 'webp', label: 'WebP' },
+]
 
 /**
  * Format file size for display
  */
 function formatFileSize(bytes) {
   if (bytes < 1024) {
-    return bytes + ' B';
+    return bytes + ' B'
   } else if (bytes < 1024 * 1024) {
-    return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1024).toFixed(1) + ' KB'
   } else {
-    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
   }
 }
 
@@ -217,57 +205,56 @@ function formatFileSize(bytes) {
 async function takeScreenshot() {
   // Check if the screenshot function is available
   if (typeof window.takeCanvasScreenshot !== 'function') {
-    console.error('[ScreenshotPanel] takeCanvasScreenshot function not available');
-    toastStore.error(t('screenshot.canvasNotFound'));
-    return;
+    console.error('[ScreenshotPanel] takeCanvasScreenshot function not available')
+    toastStore.error(t('screenshot.canvasNotFound'))
+    return
   }
 
-  isProcessing.value = true;
+  isProcessing.value = true
 
   try {
     // Clear previous preview
     if (previewUrl.value) {
-      URL.revokeObjectURL(previewUrl.value);
-      previewUrl.value = null;
+      URL.revokeObjectURL(previewUrl.value)
+      previewUrl.value = null
     }
 
     // Determine MIME type and quality
-    const mimeType = `image/${selectedFormat.value}`;
-    const qualityValue = quality.value / 100;
+    const mimeType = `image/${selectedFormat.value}`
+    const qualityValue = quality.value / 100
 
     // Create screenshot using the global function (renders without UI elements)
-    const blob = await window.takeCanvasScreenshot(mimeType, qualityValue);
+    const blob = await window.takeCanvasScreenshot(mimeType, qualityValue)
 
     if (!blob) {
-      throw new Error('Failed to create screenshot');
+      throw new Error('Failed to create screenshot')
     }
 
     // Create preview URL
-    previewUrl.value = URL.createObjectURL(blob);
+    previewUrl.value = URL.createObjectURL(blob)
 
     // Get dimensions from the blob by loading it as an image
-    const img = new Image();
-    img.src = previewUrl.value;
+    const img = new Image()
+    img.src = previewUrl.value
     await new Promise((resolve) => {
-      img.onload = resolve;
-    });
+      img.onload = resolve
+    })
 
     // Generate filename
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-    const extension = selectedFormat.value === 'jpeg' ? 'jpg' : selectedFormat.value;
-    fileName.value = `screenshot_${img.width}x${img.height}_${timestamp}.${extension}`;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+    const extension = selectedFormat.value === 'jpeg' ? 'jpg' : selectedFormat.value
+    fileName.value = `screenshot_${img.width}x${img.height}_${timestamp}.${extension}`
 
     // Set file info
-    fileSize.value = formatFileSize(blob.size);
-    fileDimensions.value = `${img.width} x ${img.height}`;
+    fileSize.value = formatFileSize(blob.size)
+    fileDimensions.value = `${img.width} x ${img.height}`
 
-    toastStore.success(t('screenshot.captureSuccess'));
-
+    toastStore.success(t('screenshot.captureSuccess'))
   } catch (error) {
-    console.error('[ScreenshotPanel] Error taking screenshot:', error);
-    toastStore.error(t('screenshot.captureError'));
+    console.error('[ScreenshotPanel] Error taking screenshot:', error)
+    toastStore.error(t('screenshot.captureError'))
   } finally {
-    isProcessing.value = false;
+    isProcessing.value = false
   }
 }
 
@@ -275,7 +262,7 @@ async function takeScreenshot() {
  * Handle download click
  */
 function handleDownload() {
-  toastStore.success(t('screenshot.downloadStarted'));
+  toastStore.success(t('screenshot.downloadStarted'))
 }
 
 /**
@@ -283,31 +270,31 @@ function handleDownload() {
  */
 function clearPreview() {
   if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value);
-    previewUrl.value = null;
+    URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = null
   }
-  fileName.value = '';
-  fileSize.value = '';
-  fileDimensions.value = '';
-  showFullscreenPreview.value = false;
+  fileName.value = ''
+  fileSize.value = ''
+  fileDimensions.value = ''
+  showFullscreenPreview.value = false
 }
 
 /**
  * Open fullscreen preview modal
  */
 function openFullscreenPreview() {
-  showFullscreenPreview.value = true;
+  showFullscreenPreview.value = true
   // Add ESC key listener
-  document.addEventListener('keydown', handleEscKey);
+  document.addEventListener('keydown', handleEscKey)
 }
 
 /**
  * Close fullscreen preview modal
  */
 function closeFullscreenPreview() {
-  showFullscreenPreview.value = false;
+  showFullscreenPreview.value = false
   // Remove ESC key listener
-  document.removeEventListener('keydown', handleEscKey);
+  document.removeEventListener('keydown', handleEscKey)
 }
 
 /**
@@ -315,7 +302,7 @@ function closeFullscreenPreview() {
  */
 function handleEscKey(e) {
   if (e.key === 'Escape') {
-    closeFullscreenPreview();
+    closeFullscreenPreview()
   }
 }
 </script>
@@ -339,7 +326,7 @@ function handleEscKey(e) {
 
 h3 {
   margin: 0;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-weight: 600;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -356,7 +343,7 @@ h3::before {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 /* Control Section */
@@ -516,7 +503,7 @@ h3::before {
 }
 
 .btn-screenshot {
-  background: linear-gradient(135deg, #6ea8fe 0%, #4FC3F7 100%);
+  background: linear-gradient(135deg, #6ea8fe 0%, #4fc3f7 100%);
   color: white;
   border: 1px solid rgba(110, 168, 254, 0.3);
 }
@@ -566,7 +553,7 @@ h3::before {
 
 .btn-close-preview:hover {
   background: rgba(244, 67, 54, 0.2);
-  color: #F44336;
+  color: #f44336;
 }
 
 .preview-container {
@@ -593,13 +580,13 @@ h3::before {
 }
 
 .btn-download {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
   color: white;
   text-decoration: none;
 }
 
 .btn-download:hover {
-  background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+  background: linear-gradient(135deg, #45a049 0%, #4caf50 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
@@ -658,8 +645,12 @@ h3::before {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Fullscreen Modal */
@@ -677,12 +668,18 @@ h3::before {
   animation: scaleIn 0.2s ease;
   font-family: var(--font-sans, 'Supreme', sans-serif);
   font-size: 12px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
 }
 
 @keyframes scaleIn {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* Floating Close Button */
@@ -754,7 +751,7 @@ h3::before {
 
 .metadata-tag {
   display: inline-block;
-  background: linear-gradient(135deg, #6ea8fe 0%, #4FC3F7 100%);
+  background: linear-gradient(135deg, #6ea8fe 0%, #4fc3f7 100%);
   color: #fff;
   padding: 2px 6px;
   border-radius: 3px;
@@ -778,7 +775,7 @@ h3::before {
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
   color: white;
   text-decoration: none;
   border: none;
@@ -788,7 +785,7 @@ h3::before {
 }
 
 .btn-download-icon:hover {
-  background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+  background: linear-gradient(135deg, #45a049 0%, #4caf50 100%);
   transform: scale(1.05);
 }
 
@@ -799,7 +796,7 @@ h3::before {
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .screenshot-panel {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 [data-theme='light'] h3 {
@@ -816,7 +813,7 @@ h3::before {
 }
 
 [data-theme='light'] .format-btn {
-  background-color: #F5F4D6;
+  background-color: #f5f4d6;
   color: #003971;
   border-color: rgba(1, 79, 153, 0.2);
 }
@@ -828,7 +825,7 @@ h3::before {
 
 [data-theme='light'] .format-btn.active {
   background-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
   border-color: #014f99;
 }
 
@@ -871,7 +868,7 @@ h3::before {
 
 [data-theme='light'] .btn-screenshot {
   background: linear-gradient(135deg, #014f99 0%, #0070cc 100%);
-  color: #F5F4D6;
+  color: #f5f4d6;
   border-color: rgba(1, 79, 153, 0.3);
 }
 
@@ -895,7 +892,7 @@ h3::before {
 }
 
 [data-theme='light'] .fullscreen-modal {
-  background: #FFFFFF;
+  background: #ffffff;
   border-color: rgba(0, 0, 0, 0.15);
   color: #003971;
 }
@@ -912,7 +909,7 @@ h3::before {
 
 [data-theme='light'] .metadata-tag {
   background: linear-gradient(135deg, #014f99 0%, #0070cc 100%);
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .metadata-text {

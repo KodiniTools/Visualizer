@@ -13,7 +13,7 @@
       </div>
       <button class="collapse-btn" :class="{ rotated: isCollapsed }">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="6 9 12 15 18 9"/>
+          <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
     </div>
@@ -28,35 +28,35 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref } from 'vue'
 
 const props = defineProps({
   step: {
     type: [String, Number],
-    required: true
+    required: true,
   },
   title: {
     type: String,
-    required: true
+    required: true,
   },
   subtitle: {
     type: String,
-    default: ''
+    default: '',
   },
   badgeColor: {
     type: String,
-    default: 'linear-gradient(135deg, #6ea8fe 0%, #5a96e5 100%)'
+    default: 'linear-gradient(135deg, #6ea8fe 0%, #5a96e5 100%)',
   },
   defaultCollapsed: {
     type: Boolean,
-    default: false
-  }
-});
+    default: false,
+  },
+})
 
-const isCollapsed = ref(props.defaultCollapsed);
+const isCollapsed = ref(props.defaultCollapsed)
 
 function toggleCollapse() {
-  isCollapsed.value = !isCollapsed.value;
+  isCollapsed.value = !isCollapsed.value
 }
 </script>
 

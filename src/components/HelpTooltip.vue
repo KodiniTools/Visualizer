@@ -4,9 +4,9 @@
     <slot name="trigger">
       <button class="tooltip-trigger" :class="{ active: isVisible }" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-          <line x1="12" y1="17" x2="12.01" y2="17"/>
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
       </button>
     </slot>
@@ -52,113 +52,113 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   title: {
     type: String,
-    default: ''
+    default: '',
   },
   text: {
     type: String,
-    default: ''
+    default: '',
   },
   icon: {
     type: String,
-    default: ''
+    default: '',
   },
   shortcut: {
     type: String,
-    default: ''
+    default: '',
   },
   tip: {
     type: String,
-    default: ''
+    default: '',
   },
   position: {
     type: String,
     default: 'top',
-    validator: (value) => ['top', 'bottom', 'left', 'right'].includes(value)
+    validator: (value) => ['top', 'bottom', 'left', 'right'].includes(value),
   },
   large: {
     type: Boolean,
-    default: false
+    default: false,
   },
   delay: {
     type: Number,
-    default: 300
-  }
-});
+    default: 300,
+  },
+})
 
-const isVisible = ref(false);
-const tooltipRef = ref(null);
-const triggerRect = ref(null);
-let showTimeout = null;
-let hideTimeout = null;
+const isVisible = ref(false)
+const tooltipRef = ref(null)
+const triggerRect = ref(null)
+let showTimeout = null
+let hideTimeout = null
 
 const shortcutKeys = computed(() => {
-  if (!props.shortcut) return [];
-  return props.shortcut.split('+').map(key => key.trim());
-});
+  if (!props.shortcut) return []
+  return props.shortcut.split('+').map((key) => key.trim())
+})
 
 const tooltipStyle = computed(() => {
-  if (!triggerRect.value) return {};
+  if (!triggerRect.value) return {}
 
-  const rect = triggerRect.value;
-  const padding = 12;
+  const rect = triggerRect.value
+  const padding = 12
 
   switch (props.position) {
     case 'top':
       return {
         left: `${rect.left + rect.width / 2}px`,
         top: `${rect.top - padding}px`,
-        transform: 'translate(-50%, -100%)'
-      };
+        transform: 'translate(-50%, -100%)',
+      }
     case 'bottom':
       return {
         left: `${rect.left + rect.width / 2}px`,
         top: `${rect.bottom + padding}px`,
-        transform: 'translate(-50%, 0)'
-      };
+        transform: 'translate(-50%, 0)',
+      }
     case 'left':
       return {
         left: `${rect.left - padding}px`,
         top: `${rect.top + rect.height / 2}px`,
-        transform: 'translate(-100%, -50%)'
-      };
+        transform: 'translate(-100%, -50%)',
+      }
     case 'right':
       return {
         left: `${rect.right + padding}px`,
         top: `${rect.top + rect.height / 2}px`,
-        transform: 'translate(0, -50%)'
-      };
+        transform: 'translate(0, -50%)',
+      }
     default:
-      return {};
+      return {}
   }
-});
+})
 
 function showTooltip(event) {
-  clearTimeout(hideTimeout);
+  clearTimeout(hideTimeout)
 
   showTimeout = setTimeout(() => {
-    const trigger = event.currentTarget;
-    triggerRect.value = trigger.getBoundingClientRect();
-    isVisible.value = true;
-  }, props.delay);
+    const trigger = event.currentTarget
+    triggerRect.value = trigger.getBoundingClientRect()
+    isVisible.value = true
+  }, props.delay)
 }
 
 function hideTooltip() {
-  clearTimeout(showTimeout);
+  clearTimeout(showTimeout)
 
   hideTimeout = setTimeout(() => {
-    isVisible.value = false;
-  }, 100);
+    isVisible.value = false
+  }, 100)
 }
 
 onUnmounted(() => {
-  clearTimeout(showTimeout);
-  clearTimeout(hideTimeout);
-});
+  clearTimeout(showTimeout)
+  clearTimeout(hideTimeout)
+})
 </script>
 
 <style scoped>

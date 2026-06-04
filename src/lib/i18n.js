@@ -11,9 +11,10 @@ const translations = {
       badge: 'Audio Visualizer',
       title: 'Verwandle deine Musik in',
       titleHighlight: 'visuelle Kunst',
-      subtitle: 'Erstelle beeindruckende Audio-Visualisierungen für Social Media, Musikvideos und mehr. Kostenlos, direkt im Browser.',
+      subtitle:
+        'Erstelle beeindruckende Audio-Visualisierungen für Social Media, Musikvideos und mehr. Kostenlos, direkt im Browser.',
       cta: 'Visualizer starten',
-      learnMore: 'Mehr erfahren'
+      learnMore: 'Mehr erfahren',
     },
     features: {
       title: 'Leistungsstarke Funktionen',
@@ -21,26 +22,30 @@ const translations = {
       cards: [
         {
           title: '100+ Visualizer',
-          description: 'Wähle aus einer großen Sammlung von einzigartigen Audio-Visualisierungen - von klassischen Wellenformen bis zu spektakulären 3D-Effekten.'
+          description:
+            'Wähle aus einer großen Sammlung von einzigartigen Audio-Visualisierungen - von klassischen Wellenformen bis zu spektakulären 3D-Effekten.',
         },
         {
           title: 'Social Media Formate',
-          description: 'Vordefinierte Canvas-Größen für TikTok, Instagram Reels, YouTube Shorts und mehr - perfekt optimiert für jede Plattform.'
+          description:
+            'Vordefinierte Canvas-Größen für TikTok, Instagram Reels, YouTube Shorts und mehr - perfekt optimiert für jede Plattform.',
         },
         {
           title: 'HD Video Export',
-          description: 'Exportiere deine Visualisierungen als hochauflösende MP4-Videos mit bis zu 60 FPS - direkt aus dem Browser, ohne zusätzliche Software.'
+          description:
+            'Exportiere deine Visualisierungen als hochauflösende MP4-Videos mit bis zu 60 FPS - direkt aus dem Browser, ohne zusätzliche Software.',
         },
         {
           title: 'Text & Bilder',
-          description: 'Füge Texte, Logos und Bilder hinzu. Mit vollständiger Kontrolle über Position, Größe, Filter und audio-reaktive Effekte.'
-        }
-      ]
+          description:
+            'Füge Texte, Logos und Bilder hinzu. Mit vollständiger Kontrolle über Position, Größe, Filter und audio-reaktive Effekte.',
+        },
+      ],
     },
     video: {
       title: 'So funktioniert es',
       subtitle: 'Schau dir an, wie einfach du atemberaubende Visualisierungen erstellen kannst',
-      placeholder: 'Demo-Video kommt bald'
+      placeholder: 'Demo-Video kommt bald',
     },
     faq: {
       title: 'Häufig gestellte Fragen',
@@ -48,57 +53,65 @@ const translations = {
       items: [
         {
           question: 'Ist der Audio Visualizer kostenlos?',
-          answer: 'Ja, der Audio Visualizer ist komplett kostenlos nutzbar. Du kannst alle Visualizer, Formate und Export-Funktionen ohne Einschränkungen verwenden.'
+          answer:
+            'Ja, der Audio Visualizer ist komplett kostenlos nutzbar. Du kannst alle Visualizer, Formate und Export-Funktionen ohne Einschränkungen verwenden.',
         },
         {
           question: 'Welche Audioformate werden unterstützt?',
-          answer: 'Der Visualizer unterstützt alle gängigen Audioformate wie MP3, WAV, OGG, FLAC und mehr. Du kannst deine Audiodateien einfach per Drag & Drop hochladen.'
+          answer:
+            'Der Visualizer unterstützt alle gängigen Audioformate wie MP3, WAV, OGG, FLAC und mehr. Du kannst deine Audiodateien einfach per Drag & Drop hochladen.',
         },
         {
           question: 'Kann ich die Videos für kommerzielle Zwecke nutzen?',
-          answer: 'Ja, alle mit dem Visualizer erstellten Videos kannst du uneingeschränkt für private und kommerzielle Zwecke nutzen - auf YouTube, TikTok, Instagram oder anderen Plattformen.'
+          answer:
+            'Ja, alle mit dem Visualizer erstellten Videos kannst du uneingeschränkt für private und kommerzielle Zwecke nutzen - auf YouTube, TikTok, Instagram oder anderen Plattformen.',
         },
         {
           question: 'Werden meine Audiodateien auf einen Server hochgeladen?',
-          answer: 'Nein, alle Verarbeitung findet lokal in deinem Browser statt. Deine Audiodateien werden niemals auf unsere Server hochgeladen - deine Daten bleiben privat.'
+          answer:
+            'Nein, alle Verarbeitung findet lokal in deinem Browser statt. Deine Audiodateien werden niemals auf unsere Server hochgeladen - deine Daten bleiben privat.',
         },
         {
           question: 'Welche Browser werden unterstützt?',
-          answer: 'Der Visualizer funktioniert am besten mit aktuellen Versionen von Chrome, Firefox, Edge und Safari. Für die beste Performance empfehlen wir Chrome oder Edge.'
+          answer:
+            'Der Visualizer funktioniert am besten mit aktuellen Versionen von Chrome, Firefox, Edge und Safari. Für die beste Performance empfehlen wir Chrome oder Edge.',
         },
         {
           question: 'Wie exportiere ich mein Video?',
-          answer: 'Klicke einfach auf den "Aufnehmen"-Button, spiele deine Musik ab, und der Visualizer nimmt automatisch alles auf. Nach dem Stoppen wird das Video als MP4-Datei heruntergeladen.'
-        }
-      ]
+          answer:
+            'Klicke einfach auf den "Aufnehmen"-Button, spiele deine Musik ab, und der Visualizer nimmt automatisch alles auf. Nach dem Stoppen wird das Video als MP4-Datei heruntergeladen.',
+        },
+      ],
     },
     cta: {
       title: 'Bereit zum Starten?',
       subtitle: 'Erstelle jetzt deine erste Audio-Visualisierung - kostenlos und ohne Anmeldung.',
-      button: 'Visualizer starten'
+      button: 'Visualizer starten',
     },
     footer: {
       privacy: 'Datenschutz',
       contact: 'Kontakt',
       cookies: 'Cookie-Einstellungen',
-      copyright: '© 2025 Audio Visualizer. Alle Rechte vorbehalten.'
+      copyright: '© 2025 Audio Visualizer. Alle Rechte vorbehalten.',
     },
     theme: {
       light: 'Hell',
-      dark: 'Dunkel'
+      dark: 'Dunkel',
     },
 
     // ========== BLOG PAGE ==========
     blog: {
       nav: {
         home: 'Startseite',
-        features: 'Funktionen'
+        features: 'Funktionen',
       },
       hero: {
         title: 'Audio Visualizer: Alle Funktionen im Uberblick',
-        subtitle: 'Verwandle deine Musik in visuelle Kunst - direkt im Browser, ohne Installation, komplett kostenlos.'
+        subtitle:
+          'Verwandle deine Musik in visuelle Kunst - direkt im Browser, ohne Installation, komplett kostenlos.',
       },
-      intro: 'Musik ist mehr als nur Klang - sie ist Emotion, Energie und Ausdruck. Der Audio Visualizer bringt diese unsichtbare Kraft auf den Bildschirm und verwandelt jeden Beat, jede Frequenz und jede Melodie in faszinierende visuelle Erlebnisse. Ob fur Social Media Content, Musikvideos, Live-Streams oder kunstlerische Projekte - dieses Tool bietet alles, was du brauchst.',
+      intro:
+        'Musik ist mehr als nur Klang - sie ist Emotion, Energie und Ausdruck. Der Audio Visualizer bringt diese unsichtbare Kraft auf den Bildschirm und verwandelt jeden Beat, jede Frequenz und jede Melodie in faszinierende visuelle Erlebnisse. Ob fur Social Media Content, Musikvideos, Live-Streams oder kunstlerische Projekte - dieses Tool bietet alles, was du brauchst.',
       sections: {
         audio: {
           title: 'Audio-Steuerung und -Analyse',
@@ -108,8 +121,8 @@ const translations = {
               'Vollstandige Wiedergabesteuerung: Play, Pause, Stop, Vor- und Zuruckspulen',
               'Lautstarke-Regler mit visuellem Feedback',
               'Equalizer fur Bass und Hohen - passe den Sound perfekt an',
-              'Playlist-Verwaltung fur mehrere Tracks mit Drag-and-Drop Sortierung'
-            ]
+              'Playlist-Verwaltung fur mehrere Tracks mit Drag-and-Drop Sortierung',
+            ],
           },
           microphone: {
             title: 'Live-Mikrofon-Unterstutzung',
@@ -117,16 +130,16 @@ const translations = {
               'Gerateauswahl fur verschiedene Audio-Eingange',
               'Echo-Unterdruckung fur saubere Aufnahmen',
               'Rauschunterdruckung fur professionelle Qualitat',
-              'Auto-Gain-Control fur konsistente Pegel'
-            ]
+              'Auto-Gain-Control fur konsistente Pegel',
+            ],
           },
           beatMarkers: {
             title: 'Beat-Marker System',
             items: [
               'Benutzerdefinierte Beat-Marker an beliebigen Zeitpunkten',
               'Farbcodierung und Beschriftungen fur jeden Marker',
-              'Visuelle Vorschau der Marker in der Wellenform'
-            ]
+              'Visuelle Vorschau der Marker in der Wellenform',
+            ],
           },
           frequency: {
             title: 'Professionelle Frequenzanalyse',
@@ -135,22 +148,61 @@ const translations = {
               'Bass-Erkennung fur Kick-Drums und tiefe Frequenzen',
               'Mitten-Analyse fur Vocals und Melodien',
               'Hohen-Tracking fur Hi-Hats und Cymbals',
-              'Dynamische Frequenzmischung fur optimale Reaktivitat'
-            ]
-          }
+              'Dynamische Frequenzmischung fur optimale Reaktivitat',
+            ],
+          },
         },
         visualizers: {
           title: 'Uber 30 professionelle Visualizer',
-          intro: 'Der Audio Visualizer bietet eine beeindruckende Sammlung von uber 30 verschiedenen Visualisierungen, organisiert in zehn Kategorien:',
+          intro:
+            'Der Audio Visualizer bietet eine beeindruckende Sammlung von uber 30 verschiedenen Visualisierungen, organisiert in zehn Kategorien:',
           categories: [
-            { name: 'Bars und Spektrum', items: ['Ultra-dynamische Frequenz-Bars', 'Gespiegelte Multi-Band Bars', 'Radiale Bars', 'Wellenform-Visualisierung'] },
-            { name: 'Wellen und Organische Formen', items: ['Fluid Waves', 'Ripple-Effekt', 'Wellenform-Horizont'] },
-            { name: 'Kreise und Geometrie', items: ['Dynamische konzentrische Kreise', 'Audio-reaktive Kreismuster', 'Geometrisches Kaleidoskop'] },
-            { name: 'Partikel und Weltraum', items: ['Partikel-Sturm', 'Orbitierende Lichter', 'Pulsierende Kugeln'] },
-            { name: 'Tech und Digital', items: ['Matrix Rain', 'Netzwerk-Plexus', 'Digital Rain', 'Neon Grid'] },
-            { name: 'Kosmische Effekte', items: ['Kosmischer Nebel', 'Elektrisches Netz', 'Vortex-Portal', 'Spiralgalaxie'] },
-            { name: 'Organische Visualisierungen', items: ['Bluhende Mandala', 'Frequenz-Bluten', 'Fraktaler Baum', 'Zellwachstum'] },
-            { name: 'Retro und Pixel', items: ['8-Bit Pixel-Spektrum', 'Retro-Oszilloskop', 'Arcade-Blocke', 'Chiptune-Puls'] }
+            {
+              name: 'Bars und Spektrum',
+              items: [
+                'Ultra-dynamische Frequenz-Bars',
+                'Gespiegelte Multi-Band Bars',
+                'Radiale Bars',
+                'Wellenform-Visualisierung',
+              ],
+            },
+            {
+              name: 'Wellen und Organische Formen',
+              items: ['Fluid Waves', 'Ripple-Effekt', 'Wellenform-Horizont'],
+            },
+            {
+              name: 'Kreise und Geometrie',
+              items: [
+                'Dynamische konzentrische Kreise',
+                'Audio-reaktive Kreismuster',
+                'Geometrisches Kaleidoskop',
+              ],
+            },
+            {
+              name: 'Partikel und Weltraum',
+              items: ['Partikel-Sturm', 'Orbitierende Lichter', 'Pulsierende Kugeln'],
+            },
+            {
+              name: 'Tech und Digital',
+              items: ['Matrix Rain', 'Netzwerk-Plexus', 'Digital Rain', 'Neon Grid'],
+            },
+            {
+              name: 'Kosmische Effekte',
+              items: ['Kosmischer Nebel', 'Elektrisches Netz', 'Vortex-Portal', 'Spiralgalaxie'],
+            },
+            {
+              name: 'Organische Visualisierungen',
+              items: ['Bluhende Mandala', 'Frequenz-Bluten', 'Fraktaler Baum', 'Zellwachstum'],
+            },
+            {
+              name: 'Retro und Pixel',
+              items: [
+                '8-Bit Pixel-Spektrum',
+                'Retro-Oszilloskop',
+                'Arcade-Blocke',
+                'Chiptune-Puls',
+              ],
+            },
           ],
           features: {
             title: 'Visualizer-Funktionen',
@@ -161,9 +213,9 @@ const translations = {
               'Intensitatsregelung von 0% bis 200%',
               'Position und Grosse frei einstellbar',
               'Glattungsoptionen fur flussige Animationen',
-              'Suchfilter zum schnellen Finden des perfekten Visualizers'
-            ]
-          }
+              'Suchfilter zum schnellen Finden des perfekten Visualizers',
+            ],
+          },
         },
         text: {
           title: 'Professionelle Text-Funktionen',
@@ -176,8 +228,8 @@ const translations = {
               'Dynamische Textgrosse mit automatischer Canvas-Anpassung',
               'Volle Farbauswahl mit Transparenz',
               'Textausrichtung: Links, Mitte, Rechts',
-              'Zeichenabstand und Zeilenhohe individuell einstellbar'
-            ]
+              'Zeichenabstand und Zeilenhohe individuell einstellbar',
+            ],
           },
           effects: {
             title: 'Text-Effekte',
@@ -186,8 +238,8 @@ const translations = {
               'Text-Umrandung mit Farb- und Breitenkontrolle',
               'Schreibmaschinen-Effekt mit einstellbarer Geschwindigkeit',
               'Uberblend-Effekt mit verschiedenen Richtungen',
-              'Skalierungs-Effekt mit Start- und Endgrosse'
-            ]
+              'Skalierungs-Effekt mit Start- und Endgrosse',
+            ],
           },
           audioReactive: {
             title: 'Audio-reaktive Text-Effekte (15+ Effekte)',
@@ -201,9 +253,9 @@ const translations = {
               'Stroboskop: Blitz-Effekt bei Audio-Peaks',
               'Welle: Zeichen bewegen sich wellenformig',
               'Elastisch: Gummiartige Verformung',
-              '3D-Perspektive: Simulierter 3D-Kippeffekt'
-            ]
-          }
+              '3D-Perspektive: Simulierter 3D-Kippeffekt',
+            ],
+          },
         },
         images: {
           title: 'Umfangreiche Bild-Funktionen',
@@ -216,8 +268,8 @@ const translations = {
               'Ebenen-Management: Ordne Bilder in Z-Reihenfolge',
               'Position: Drag-and-Drop Platzierung',
               'Skalierung: Grossenanderung mit Seitenverhaltnis-Kontrolle',
-              'Rotation: 0-360 Grad Drehung'
-            ]
+              'Rotation: 0-360 Grad Drehung',
+            ],
           },
           filters: {
             title: 'Bildfilter und Effekte',
@@ -229,8 +281,8 @@ const translations = {
               'Farbton-Rotation: 0-360 Grad Farbverschiebung',
               'Graustufen: 0-100% Entsattigung',
               'Sepia: 0-100% Vintage-Ton',
-              'Invertieren: 0-100% Farbumkehrung'
-            ]
+              'Invertieren: 0-100% Farbumkehrung',
+            ],
           },
           audioReactive: {
             title: 'Audio-reaktive Bild-Effekte (23+ Effekte)',
@@ -240,9 +292,9 @@ const translations = {
               'Bewegungseffekte: Schutteln, Hupfen, Schwingen, Orbit, Welle, Spirale',
               'Spezialeffekte: Gluhen, Rahmen, Unscharfe, Stroboskop, Chromatische Aberration',
               'Beat-Boost: Verstarke Effekte bei Beat-Hits (1.0-3.0x)',
-              'Phasenversatz: Kaskadiere Effekte uber mehrere Bilder'
-            ]
-          }
+              'Phasenversatz: Kaskadiere Effekte uber mehrere Bilder',
+            ],
+          },
         },
         background: {
           title: 'Hintergrund und Canvas',
@@ -259,8 +311,8 @@ const translations = {
               'Facebook Post (1200x630)',
               'X/Twitter Video (1280x720)',
               'LinkedIn Video (1920x1080)',
-              'Freie Canvas-Grosse fur individuelle Dimensionen'
-            ]
+              'Freie Canvas-Grosse fur individuelle Dimensionen',
+            ],
           },
           options: {
             title: 'Hintergrund-Optionen',
@@ -271,8 +323,8 @@ const translations = {
               'Radiale Farbverlaufe mit Zentrumsausrichtung',
               'Animierte Farbverlaufe mit Audio-Reaktion',
               'Bilder als Hintergrund verwenden',
-              'Video-Hintergrunde mit Wiedergabekontrolle'
-            ]
+              'Video-Hintergrunde mit Wiedergabekontrolle',
+            ],
           },
           tiles: {
             title: 'Gekachelter Hintergrund',
@@ -282,9 +334,9 @@ const translations = {
               'Individuelle Einstellungen pro Kachel',
               'Eigene Hintergrundfarbe, Bild oder Video pro Kachel',
               'Eigene Filter und Audio-Reaktivitat pro Kachel',
-              'Kachel-Presets speichern und laden'
-            ]
-          }
+              'Kachel-Presets speichern und laden',
+            ],
+          },
         },
         recording: {
           title: 'Video-Aufnahme und Export',
@@ -295,8 +347,8 @@ const translations = {
               'Start/Stop: Volle Aufnahmekontrolle',
               'Pause/Fortsetzen: Aufnahme unterbrechen ohne zu stoppen',
               'Zurucksetzen: Fur neue Aufnahme vorbereiten',
-              'Status-Anzeige: IDLE, READY, RECORDING, PAUSED'
-            ]
+              'Status-Anzeige: IDLE, READY, RECORDING, PAUSED',
+            ],
           },
           quality: {
             title: 'Qualitatsoptionen',
@@ -304,8 +356,8 @@ const translations = {
               'Qualitatsstufen: Niedrig, Mittel, Hoch',
               'Auflosung: 720p, 1080p, 4K',
               'Bildrate: 30-60 FPS konfigurierbar',
-              'Bitrate-Kontrolle: Adaptive Steuerung'
-            ]
+              'Bitrate-Kontrolle: Adaptive Steuerung',
+            ],
           },
           export: {
             title: 'Export-Formate',
@@ -314,9 +366,9 @@ const translations = {
               'MP4-Konvertierung: Via integriertem Server',
               'Automatische Konvertierung: Optional nach Aufnahme',
               'Direkter Download: Video auf Computer speichern',
-              'Audio einbinden: Optional in Aufnahme'
-            ]
-          }
+              'Audio einbinden: Optional in Aufnahme',
+            ],
+          },
         },
         screenshot: {
           title: 'Screenshot-Funktion',
@@ -326,8 +378,8 @@ const translations = {
             'Vorschau vor dem Download',
             'Verlustfreies PNG mit Transparenz-Unterstutzung',
             'Komprimiertes JPG fur kleinere Dateigrosse',
-            'Modernes WebP fur optimale Kompression'
-          ]
+            'Modernes WebP fur optimale Kompression',
+          ],
         },
         shortcuts: {
           title: 'Tastaturkurzel',
@@ -341,8 +393,8 @@ const translations = {
             { key: 'Pfeiltasten', action: 'Objekt bewegen' },
             { key: '+/-', action: 'Zoom' },
             { key: 'G', action: 'Raster ein/aus' },
-            { key: 'M', action: 'Beat-Marker setzen' }
-          ]
+            { key: 'M', action: 'Beat-Marker setzen' },
+          ],
         },
         history: {
           title: 'Ruckgangig/Wiederholen',
@@ -350,8 +402,8 @@ const translations = {
             '50 Schritte Verlauf',
             'Ruckgangig mit visueller Ruckmeldung',
             'Wiederholen fur versehentlich ruckgangig gemachte Aktionen',
-            'Command-Pattern: Jede Aktion ist reversibel'
-          ]
+            'Command-Pattern: Jede Aktion ist reversibel',
+          ],
         },
         audioReactivity: {
           title: 'Erweiterte Audio-Reaktivitat',
@@ -362,8 +414,8 @@ const translations = {
               'Mitten-Analyse: Vocals/Melodie',
               'Hohen-Analyse: Hi-Hats/Cymbals',
               'Gesamtlautstarke: Vollstandiger Audio-Level',
-              'Dynamische Mischung: Automatische Frequenzkombination'
-            ]
+              'Dynamische Mischung: Automatische Frequenzkombination',
+            ],
           },
           parameters: {
             title: 'Audio-Effekt-Parameter',
@@ -374,8 +426,8 @@ const translations = {
               'Release: Abklinggeschwindigkeit (10-100%)',
               'Easing-Kurven: Linear, Ease, Bounce, Elastic, Punch',
               'Phasenversatz: Verzogerte Effekte fur Kaskaden (0-360 Grad)',
-              'Beat-Boost: Verstarkung bei Beats (1.0-3.0x)'
-            ]
+              'Beat-Boost: Verstarkung bei Beats (1.0-3.0x)',
+            ],
           },
           presets: {
             title: 'Effekt-Presets',
@@ -383,9 +435,9 @@ const translations = {
               'Punchy: Schnell und prazise',
               'Smooth: Sanft und fliessend',
               'Subtle: Zuruckhaltend und dezent',
-              'Extreme: Maximale Audio-Reaktion'
-            ]
-          }
+              'Extreme: Maximale Audio-Reaktion',
+            ],
+          },
         },
         browser: {
           title: 'Browser und Format-Unterstutzung',
@@ -395,17 +447,17 @@ const translations = {
               'Chrome/Chromium: Vollstandig (empfohlen)',
               'Firefox: Vollstandig',
               'Edge: Vollstandig',
-              'Safari: Unterstutzt (mit MediaRecorder-Einschrankungen)'
-            ]
+              'Safari: Unterstutzt (mit MediaRecorder-Einschrankungen)',
+            ],
           },
           formats: {
             title: 'Unterstutzte Formate',
             items: [
               'Audio: MP3, WAV, OGG, FLAC, AAC und mehr',
               'Bilder: JPG, PNG, GIF, WebP',
-              'Video: MP4, WebM, MOV (browserabhangig)'
-            ]
-          }
+              'Video: MP4, WebM, MOV (browserabhangig)',
+            ],
+          },
         },
         unique: {
           title: 'Einzigartige Vorteile',
@@ -416,9 +468,9 @@ const translations = {
             'Hardware-beschleunigt: Canvas-basierte 2D-Grafik',
             'Modulare Architektur: Separate Manager fur jede Funktion',
             'Professionelle Qualitat: Geeignet fur echte Musikvideos',
-            'Komplett kostenlos: Keine Wasserzeichen, keine Einschrankungen'
-          ]
-        }
+            'Komplett kostenlos: Keine Wasserzeichen, keine Einschrankungen',
+          ],
+        },
       },
       summary: {
         title: 'Zusammenfassung',
@@ -433,15 +485,15 @@ const translations = {
           'Social Media Optimierung: Fertige Presets fur alle Plattformen',
           'Komplette Audio-Steuerung: EQ, Beat-Marker, Mikrofon',
           '50-Schritte Ruckgangig-System',
-          'Zweisprachige Oberflache: Deutsch und Englisch'
+          'Zweisprachige Oberflache: Deutsch und Englisch',
         ],
-        cta: 'Probiere es jetzt aus und verwandle deine Musik in visuelle Kunst!'
+        cta: 'Probiere es jetzt aus und verwandle deine Musik in visuelle Kunst!',
       },
       cta: {
         title: 'Bereit zum Starten?',
         subtitle: 'Erstelle jetzt deine erste Audio-Visualisierung - kostenlos und ohne Anmeldung.',
-        button: 'Visualizer starten'
-      }
+        button: 'Visualizer starten',
+      },
     },
 
     // ========== INTERNAL LANDING PAGE ==========
@@ -451,25 +503,29 @@ const translations = {
       hero: {
         title: 'Dein Audio.',
         highlight: 'Visuell erlebbar.',
-        subtitle: 'Erstelle beeindruckende Musikvisualisierungen in Sekunden. Kostenlos, direkt im Browser, ohne Installation.',
-        cta: 'Jetzt starten'
+        subtitle:
+          'Erstelle beeindruckende Musikvisualisierungen in Sekunden. Kostenlos, direkt im Browser, ohne Installation.',
+        cta: 'Jetzt starten',
       },
       features: {
         cards: [
           {
             title: '100+ Visualizer',
-            description: 'Von klassischen Waveforms bis zu spektakulären 3D-Effekten. Wähle aus einer riesigen Sammlung einzigartiger Audio-Visualisierungen.'
+            description:
+              'Von klassischen Waveforms bis zu spektakulären 3D-Effekten. Wähle aus einer riesigen Sammlung einzigartiger Audio-Visualisierungen.',
           },
           {
             title: 'HD Video-Export',
-            description: 'Exportiere deine Kreationen als hochauflösende MP4-Videos mit bis zu 60 FPS. Direkt aus dem Browser, ohne zusätzliche Software.'
+            description:
+              'Exportiere deine Kreationen als hochauflösende MP4-Videos mit bis zu 60 FPS. Direkt aus dem Browser, ohne zusätzliche Software.',
           },
           {
             title: 'Volle Kontrolle',
-            description: 'Füge Texte, Bilder und Logos hinzu. Nutze audio-reaktive Effekte und passe jeden Aspekt deiner Visualisierung individuell an.'
-          }
-        ]
-      }
+            description:
+              'Füge Texte, Bilder und Logos hinzu. Nutze audio-reaktive Effekte und passe jeden Aspekt deiner Visualisierung individuell an.',
+          },
+        ],
+      },
     },
 
     // ========== APP COMMON ==========
@@ -494,7 +550,7 @@ const translations = {
       layer: 'Ebene',
       noResults: 'Keine Ergebnisse',
       enabled: 'Aktiviert',
-      disabled: 'Deaktiviert'
+      disabled: 'Deaktiviert',
     },
 
     // ========== VISUALIZER APP ==========
@@ -519,7 +575,7 @@ const translations = {
       fromGallery: 'Aus Galerie',
       selectFromGallery: 'Aus Galerie wählen',
       newImagePreview: 'Neues Bild Vorschau',
-      confirmReplace: 'Ersetzen bestätigen'
+      confirmReplace: 'Ersetzen bestätigen',
     },
 
     // ========== FILE UPLOAD PANEL ==========
@@ -529,7 +585,7 @@ const translations = {
       tracksLoaded: '{count} Track(s) geladen',
       dragOrClick: 'Klicken oder Dateien hierher ziehen',
       supported: 'Unterstützt',
-      filesReady: '{count} Datei(en) bereit'
+      filesReady: '{count} Datei(en) bereit',
     },
 
     // ========== PLAYER PANEL ==========
@@ -574,21 +630,22 @@ const translations = {
       confirmDeleteMarkers: 'Alle Beat-Drop Marker löschen?',
       editMarker: 'Marker bearbeiten',
       editMarkerTitle: 'Marker bearbeiten',
-      addMarkerTitle: 'Neuer Marker'
+      addMarkerTitle: 'Neuer Marker',
     },
 
     // ========== RECORDER PANEL ==========
     recorder: {
       title: 'Recorder',
       helpTitle: 'Video aufnehmen',
-      helpText: 'Nehmen Sie Ihre Visualisierung als Video auf. Workflow: Prepare → Start → Stop. Das Video wird im WebM-Format erstellt.',
-      helpTip: 'Wählen Sie \'High\' Qualität für die meisten Anwendungen.',
+      helpText:
+        'Nehmen Sie Ihre Visualisierung als Video auf. Workflow: Prepare → Start → Stop. Das Video wird im WebM-Format erstellt.',
+      helpTip: "Wählen Sie 'High' Qualität für die meisten Anwendungen.",
       status: {
         idle: 'BEREIT',
         ready: 'VORBEREITET',
         recording: 'AUFNAHME',
         paused: 'PAUSIERT',
-        processing: 'Verarbeite...'
+        processing: 'Verarbeite...',
       },
       prepare: 'Vorbereiten',
       start: 'Start',
@@ -619,14 +676,15 @@ const translations = {
       uploadingToServer: 'Video wird hochgeladen...',
       processingOnServer: 'Server verarbeitet dein Video...',
       dontCloseWindow: 'Bitte das Fenster nicht schließen',
-      audioSource: 'Audio'
+      audioSource: 'Audio',
     },
 
     // ========== VISUALIZER PANEL ==========
     visualizer: {
       title: 'Visualizer',
       helpTitle: 'Audio Visualizer',
-      helpText: 'Wählen Sie einen von 30+ Visualizer-Effekten. Die Visualisierung reagiert auf die Audiowiedergabe in Echtzeit.',
+      helpText:
+        'Wählen Sie einen von 30+ Visualizer-Effekten. Die Visualisierung reagiert auf die Audiowiedergabe in Echtzeit.',
       helpTip: 'Starten Sie die Musik, um die Effekte live zu sehen!',
       status: 'Status',
       disabled: 'Visualizer deaktiviert',
@@ -650,7 +708,7 @@ const translations = {
         crystalsNets: 'Kristalle & Netze',
         blossoms: 'Blüten',
         objects3d: '3D-Objekte',
-        retroPixel: 'Retro & Pixel'
+        retroPixel: 'Retro & Pixel',
       },
       // Multi-Layer
       multiLayer: 'Multi-Layer',
@@ -658,7 +716,7 @@ const translations = {
       noLayers: 'Keine Layer vorhanden',
       hideLayer: 'Layer ausblenden',
       showLayer: 'Layer einblenden',
-      blendMode: 'Mischmodus'
+      blendMode: 'Mischmodus',
     },
 
     // ========== CONTROLS PANEL ==========
@@ -666,7 +724,7 @@ const translations = {
       title: 'Steuerung',
       grid: 'Raster',
       workspace: 'Arbeitsbereich',
-      free: 'Frei'
+      free: 'Frei',
     },
 
     // ========== CANVAS CONTROL PANEL ==========
@@ -730,7 +788,7 @@ const translations = {
       workspaceBackground: 'Workspace',
       resetNormalBg: 'Normaler Hintergrund zurücksetzen',
       resetWorkspaceBg: 'Workspace-Hintergrund zurücksetzen',
-      resetAll: 'Alle zurücksetzen'
+      resetAll: 'Alle zurücksetzen',
     },
 
     // ========== TEXT MANAGER PANEL ==========
@@ -740,7 +798,8 @@ const translations = {
       createNewText: 'Neuen Text erstellen',
       enterText: 'Text eingeben (Enter für neue Zeile)',
       textPlaceholder: 'Mehrzeiliger Text wird unterstützt!\nZeile 1\nZeile 2\nZeile 3...',
-      browserTextTip: 'Tipp für Browser-Texte: Nach dem Einfügen drücken Sie Enter, um Zeilenumbrüche hinzuzufügen',
+      browserTextTip:
+        'Tipp für Browser-Texte: Nach dem Einfügen drücken Sie Enter, um Zeilenumbrüche hinzuzufügen',
       notepadTip: 'Aus Notepad/Word: Zeilenumbrüche werden automatisch erkannt',
       linesDetected: '{n} Zeilen erkannt',
       textStyle: 'Text-Stil',
@@ -815,7 +874,8 @@ const translations = {
       // Active status
       active: 'Aktiv',
       // Info text
-      clickToEdit: 'Klicken Sie auf einen Text im Canvas um ihn zu bearbeiten, oder fügen Sie einen neuen Text hinzu.',
+      clickToEdit:
+        'Klicken Sie auf einen Text im Canvas um ihn zu bearbeiten, oder fügen Sie einen neuen Text hinzu.',
       addNewText: 'Neuen Text hinzufügen',
       addWithArea: 'Mit Bereichsauswahl hinzufügen',
       addToCanvas: 'Zum Canvas hinzufügen',
@@ -894,7 +954,7 @@ const translations = {
       effectsPresetSaved: 'Audio-Effekte gespeichert',
       effectsPresetLoaded: 'Audio-Effekte geladen',
       effectsPresetSaveError: 'Fehler beim Speichern',
-      effectsPresetLoadError: 'Fehler beim Laden'
+      effectsPresetLoadError: 'Fehler beim Laden',
     },
 
     // ========== FOTO PANEL ==========
@@ -1029,15 +1089,15 @@ const translations = {
         border: 'Rahmen',
         blur: 'Unschärfe',
         strobe: 'Strobe',
-        chromatic: 'Chromatisch'
+        chromatic: 'Chromatisch',
       },
       // Stock gallery categories
       stockCategories: {
         backgrounds: 'Hintergründe',
         elements: 'Elemente',
         patterns: 'Muster',
-        text: 'Text'
-      }
+        text: 'Text',
+      },
     },
 
     // ========== SLIDESHOW ==========
@@ -1050,7 +1110,8 @@ const translations = {
       fadeOut: 'Ausblenden',
       applyAudioReactive: 'Audio-Reaktive Effekte anwenden',
       audioReactiveHint: 'Gespeicherte Audio-Einstellungen werden auf alle Bilder angewendet',
-      noSavedSettings: 'Keine Audio-Einstellungen gespeichert. Speichere zuerst Einstellungen im Audio-Reaktiv Panel.',
+      noSavedSettings:
+        'Keine Audio-Einstellungen gespeichert. Speichere zuerst Einstellungen im Audio-Reaktiv Panel.',
       loop: 'Endlos wiederholen',
       start: 'Slideshow starten',
       pause: 'Pause',
@@ -1067,7 +1128,8 @@ const translations = {
       width: 'Breite',
       height: 'Höhe',
       resetPosition: 'Position zurücksetzen',
-      dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.'
+      dragHint:
+        'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.',
     },
 
     // ========== BACKGROUND TILES PANEL ==========
@@ -1129,7 +1191,7 @@ const translations = {
       noTilePresets: 'Keine Kachel-Presets gespeichert',
       load: 'Laden',
       delete: 'Löschen',
-      resetAllTiles: 'Alle Kacheln zurücksetzen'
+      resetAllTiles: 'Alle Kacheln zurücksetzen',
     },
 
     // ========== ONBOARDING WIZARD ==========
@@ -1145,8 +1207,8 @@ const translations = {
       step4Title: 'Aufnehmen',
       step4Text: 'Klicken Sie auf Aufnehmen, um Ihr Video zu erstellen.',
       skip: 'Überspringen',
-      finish: 'Los geht\'s!',
-      showAgain: 'Nicht mehr anzeigen'
+      finish: "Los geht's!",
+      showAgain: 'Nicht mehr anzeigen',
     },
 
     // ========== KEYBOARD SHORTCUTS ==========
@@ -1167,7 +1229,7 @@ const translations = {
       zoomOut: 'Verkleinern',
       resetView: 'Ansicht zurücksetzen',
       toggleGrid: 'Raster ein/aus',
-      addMarker: 'Marker hinzufügen'
+      addMarker: 'Marker hinzufügen',
     },
 
     // ========== QUICK START GUIDE ==========
@@ -1176,20 +1238,22 @@ const translations = {
       step1: 'Audio-Datei hochladen',
       step2: 'Visualizer auswählen',
       step3: 'Video aufnehmen',
-      showTutorial: 'Tutorial anzeigen'
+      showTutorial: 'Tutorial anzeigen',
     },
 
     // ========== SCREENSHOT PANEL ==========
     screenshot: {
       title: 'Screenshot',
       helpTitle: 'Canvas-Screenshot',
-      helpText: 'Erstellen Sie einen Screenshot des aktuellen Canvas-Inhalts. Wählen Sie das gewünschte Format und die Qualität.',
+      helpText:
+        'Erstellen Sie einen Screenshot des aktuellen Canvas-Inhalts. Wählen Sie das gewünschte Format und die Qualität.',
       helpTip: 'PNG für verlustfreie Qualität, JPG/WebP für kleinere Dateien.',
       format: 'Format',
       quality: 'Qualität',
       lowQuality: 'Klein',
       highQuality: 'Beste',
-      pngInfo: 'PNG bietet verlustfreie Komprimierung und unterstützt Transparenz. Ideal für Grafiken und Text.',
+      pngInfo:
+        'PNG bietet verlustfreie Komprimierung und unterstützt Transparenz. Ideal für Grafiken und Text.',
       capture: 'Screenshot aufnehmen',
       processing: 'Verarbeite...',
       preview: 'Vorschau',
@@ -1202,7 +1266,7 @@ const translations = {
       doubleClickHint: 'Doppelklick für Großansicht',
       fileName: 'Dateiname',
       dimensions: 'Abmessungen',
-      fileSize: 'Dateigröße'
+      fileSize: 'Dateigröße',
     },
 
     // ========== TOAST NOTIFICATIONS ==========
@@ -1263,8 +1327,8 @@ const translations = {
       actionUndone: 'Aktion rückgängig gemacht',
       operationCancelled: 'Vorgang abgebrochen',
       networkError: 'Netzwerkfehler - bitte versuchen Sie es erneut',
-      unexpectedError: 'Ein unerwarteter Fehler ist aufgetreten'
-    }
+      unexpectedError: 'Ein unerwarteter Fehler ist aufgetreten',
+    },
   },
 
   // ========== ENGLISH ==========
@@ -1274,9 +1338,10 @@ const translations = {
       badge: 'Audio Visualizer',
       title: 'Transform your music into',
       titleHighlight: 'visual art',
-      subtitle: 'Create stunning audio visualizations for social media, music videos and more. Free, directly in your browser.',
+      subtitle:
+        'Create stunning audio visualizations for social media, music videos and more. Free, directly in your browser.',
       cta: 'Start Visualizer',
-      learnMore: 'Learn more'
+      learnMore: 'Learn more',
     },
     features: {
       title: 'Powerful Features',
@@ -1284,26 +1349,30 @@ const translations = {
       cards: [
         {
           title: '100+ Visualizers',
-          description: 'Choose from a large collection of unique audio visualizations - from classic waveforms to spectacular 3D effects.'
+          description:
+            'Choose from a large collection of unique audio visualizations - from classic waveforms to spectacular 3D effects.',
         },
         {
           title: 'Social Media Formats',
-          description: 'Predefined canvas sizes for TikTok, Instagram Reels, YouTube Shorts and more - perfectly optimized for each platform.'
+          description:
+            'Predefined canvas sizes for TikTok, Instagram Reels, YouTube Shorts and more - perfectly optimized for each platform.',
         },
         {
           title: 'HD Video Export',
-          description: 'Export your visualizations as high-resolution MP4 videos with up to 60 FPS - directly from your browser, no additional software needed.'
+          description:
+            'Export your visualizations as high-resolution MP4 videos with up to 60 FPS - directly from your browser, no additional software needed.',
         },
         {
           title: 'Text & Images',
-          description: 'Add texts, logos and images. With full control over position, size, filters and audio-reactive effects.'
-        }
-      ]
+          description:
+            'Add texts, logos and images. With full control over position, size, filters and audio-reactive effects.',
+        },
+      ],
     },
     video: {
       title: 'How it works',
       subtitle: 'See how easy it is to create stunning visualizations',
-      placeholder: 'Demo video coming soon'
+      placeholder: 'Demo video coming soon',
     },
     faq: {
       title: 'Frequently Asked Questions',
@@ -1311,57 +1380,65 @@ const translations = {
       items: [
         {
           question: 'Is the Audio Visualizer free?',
-          answer: 'Yes, the Audio Visualizer is completely free to use. You can use all visualizers, formats and export features without any restrictions.'
+          answer:
+            'Yes, the Audio Visualizer is completely free to use. You can use all visualizers, formats and export features without any restrictions.',
         },
         {
           question: 'Which audio formats are supported?',
-          answer: 'The Visualizer supports all common audio formats like MP3, WAV, OGG, FLAC and more. You can simply upload your audio files via drag & drop.'
+          answer:
+            'The Visualizer supports all common audio formats like MP3, WAV, OGG, FLAC and more. You can simply upload your audio files via drag & drop.',
         },
         {
           question: 'Can I use the videos for commercial purposes?',
-          answer: 'Yes, you can use all videos created with the Visualizer without restrictions for private and commercial purposes - on YouTube, TikTok, Instagram or other platforms.'
+          answer:
+            'Yes, you can use all videos created with the Visualizer without restrictions for private and commercial purposes - on YouTube, TikTok, Instagram or other platforms.',
         },
         {
           question: 'Are my audio files uploaded to a server?',
-          answer: 'No, all processing takes place locally in your browser. Your audio files are never uploaded to our servers - your data remains private.'
+          answer:
+            'No, all processing takes place locally in your browser. Your audio files are never uploaded to our servers - your data remains private.',
         },
         {
           question: 'Which browsers are supported?',
-          answer: 'The Visualizer works best with current versions of Chrome, Firefox, Edge and Safari. For the best performance, we recommend Chrome or Edge.'
+          answer:
+            'The Visualizer works best with current versions of Chrome, Firefox, Edge and Safari. For the best performance, we recommend Chrome or Edge.',
         },
         {
           question: 'How do I export my video?',
-          answer: 'Simply click the "Record" button, play your music, and the Visualizer will automatically record everything. After stopping, the video will be downloaded as an MP4 file.'
-        }
-      ]
+          answer:
+            'Simply click the "Record" button, play your music, and the Visualizer will automatically record everything. After stopping, the video will be downloaded as an MP4 file.',
+        },
+      ],
     },
     cta: {
       title: 'Ready to start?',
       subtitle: 'Create your first audio visualization now - free and without registration.',
-      button: 'Start Visualizer'
+      button: 'Start Visualizer',
     },
     footer: {
       privacy: 'Privacy Policy',
       contact: 'Contact',
       cookies: 'Cookie Settings',
-      copyright: '© 2025 Audio Visualizer. All rights reserved.'
+      copyright: '© 2025 Audio Visualizer. All rights reserved.',
     },
     theme: {
       light: 'Light',
-      dark: 'Dark'
+      dark: 'Dark',
     },
 
     // ========== BLOG PAGE ==========
     blog: {
       nav: {
         home: 'Home',
-        features: 'Features'
+        features: 'Features',
       },
       hero: {
         title: 'Audio Visualizer: Complete Feature Overview',
-        subtitle: 'Transform your music into visual art - directly in your browser, no installation required, completely free.'
+        subtitle:
+          'Transform your music into visual art - directly in your browser, no installation required, completely free.',
       },
-      intro: 'Music is more than just sound - it is emotion, energy and expression. The Audio Visualizer brings this invisible force to the screen and transforms every beat, every frequency and every melody into fascinating visual experiences. Whether for social media content, music videos, live streams or artistic projects - this tool offers everything you need.',
+      intro:
+        'Music is more than just sound - it is emotion, energy and expression. The Audio Visualizer brings this invisible force to the screen and transforms every beat, every frequency and every melody into fascinating visual experiences. Whether for social media content, music videos, live streams or artistic projects - this tool offers everything you need.',
       sections: {
         audio: {
           title: 'Audio Control and Analysis',
@@ -1371,8 +1448,8 @@ const translations = {
               'Complete playback control: Play, Pause, Stop, Forward and Rewind',
               'Volume control with visual feedback',
               'Equalizer for bass and treble - adjust the sound perfectly',
-              'Playlist management for multiple tracks with drag-and-drop sorting'
-            ]
+              'Playlist management for multiple tracks with drag-and-drop sorting',
+            ],
           },
           microphone: {
             title: 'Live Microphone Support',
@@ -1380,16 +1457,16 @@ const translations = {
               'Device selection for various audio inputs',
               'Echo cancellation for clean recordings',
               'Noise suppression for professional quality',
-              'Auto-gain control for consistent levels'
-            ]
+              'Auto-gain control for consistent levels',
+            ],
           },
           beatMarkers: {
             title: 'Beat Marker System',
             items: [
               'Custom beat markers at any timestamp',
               'Color coding and labels for each marker',
-              'Visual preview of markers in the waveform'
-            ]
+              'Visual preview of markers in the waveform',
+            ],
           },
           frequency: {
             title: 'Professional Frequency Analysis',
@@ -1398,22 +1475,61 @@ const translations = {
               'Bass detection for kick drums and low frequencies',
               'Mid-range analysis for vocals and melodies',
               'Treble tracking for hi-hats and cymbals',
-              'Dynamic frequency mixing for optimal reactivity'
-            ]
-          }
+              'Dynamic frequency mixing for optimal reactivity',
+            ],
+          },
         },
         visualizers: {
           title: 'Over 30 Professional Visualizers',
-          intro: 'The Audio Visualizer offers an impressive collection of over 30 different visualizations, organized into ten categories:',
+          intro:
+            'The Audio Visualizer offers an impressive collection of over 30 different visualizations, organized into ten categories:',
           categories: [
-            { name: 'Bars and Spectrum', items: ['Ultra-dynamic frequency bars', 'Mirrored multi-band bars', 'Radial bars', 'Waveform visualization'] },
-            { name: 'Waves and Organic Forms', items: ['Fluid Waves', 'Ripple Effect', 'Waveform Horizon'] },
-            { name: 'Circles and Geometry', items: ['Dynamic concentric circles', 'Audio-reactive circle patterns', 'Geometric kaleidoscope'] },
-            { name: 'Particles and Space', items: ['Particle Storm', 'Orbiting Lights', 'Pulsating Orbs'] },
-            { name: 'Tech and Digital', items: ['Matrix Rain', 'Network Plexus', 'Digital Rain', 'Neon Grid'] },
-            { name: 'Cosmic Effects', items: ['Cosmic Nebula', 'Electric Web', 'Vortex Portal', 'Spiral Galaxy'] },
-            { name: 'Organic Visualizations', items: ['Blooming Mandala', 'Frequency Blossoms', 'Fractal Tree', 'Cell Growth'] },
-            { name: 'Retro and Pixel', items: ['8-Bit Pixel Spectrum', 'Retro Oscilloscope', 'Arcade Blocks', 'Chiptune Pulse'] }
+            {
+              name: 'Bars and Spectrum',
+              items: [
+                'Ultra-dynamic frequency bars',
+                'Mirrored multi-band bars',
+                'Radial bars',
+                'Waveform visualization',
+              ],
+            },
+            {
+              name: 'Waves and Organic Forms',
+              items: ['Fluid Waves', 'Ripple Effect', 'Waveform Horizon'],
+            },
+            {
+              name: 'Circles and Geometry',
+              items: [
+                'Dynamic concentric circles',
+                'Audio-reactive circle patterns',
+                'Geometric kaleidoscope',
+              ],
+            },
+            {
+              name: 'Particles and Space',
+              items: ['Particle Storm', 'Orbiting Lights', 'Pulsating Orbs'],
+            },
+            {
+              name: 'Tech and Digital',
+              items: ['Matrix Rain', 'Network Plexus', 'Digital Rain', 'Neon Grid'],
+            },
+            {
+              name: 'Cosmic Effects',
+              items: ['Cosmic Nebula', 'Electric Web', 'Vortex Portal', 'Spiral Galaxy'],
+            },
+            {
+              name: 'Organic Visualizations',
+              items: ['Blooming Mandala', 'Frequency Blossoms', 'Fractal Tree', 'Cell Growth'],
+            },
+            {
+              name: 'Retro and Pixel',
+              items: [
+                '8-Bit Pixel Spectrum',
+                'Retro Oscilloscope',
+                'Arcade Blocks',
+                'Chiptune Pulse',
+              ],
+            },
           ],
           features: {
             title: 'Visualizer Features',
@@ -1424,9 +1540,9 @@ const translations = {
               'Intensity control from 0% to 200%',
               'Position and size freely adjustable',
               'Smoothing options for fluid animations',
-              'Search filter to quickly find the perfect visualizer'
-            ]
-          }
+              'Search filter to quickly find the perfect visualizer',
+            ],
+          },
         },
         text: {
           title: 'Professional Text Features',
@@ -1439,8 +1555,8 @@ const translations = {
               'Dynamic text size with automatic canvas adjustment',
               'Full color selection with transparency',
               'Text alignment: Left, Center, Right',
-              'Letter spacing and line height individually adjustable'
-            ]
+              'Letter spacing and line height individually adjustable',
+            ],
           },
           effects: {
             title: 'Text Effects',
@@ -1449,8 +1565,8 @@ const translations = {
               'Text outline with color and width control',
               'Typewriter effect with adjustable speed',
               'Fade effect with various directions',
-              'Scale effect with start and end size'
-            ]
+              'Scale effect with start and end size',
+            ],
           },
           audioReactive: {
             title: 'Audio-Reactive Text Effects (15+ Effects)',
@@ -1464,9 +1580,9 @@ const translations = {
               'Strobe: Flash effect on audio peaks',
               'Wave: Characters move in wave pattern',
               'Elastic: Rubber-like deformation',
-              '3D Perspective: Simulated 3D tilt effect'
-            ]
-          }
+              '3D Perspective: Simulated 3D tilt effect',
+            ],
+          },
         },
         images: {
           title: 'Comprehensive Image Features',
@@ -1479,8 +1595,8 @@ const translations = {
               'Layer management: Arrange images in Z-order',
               'Position: Drag-and-drop placement',
               'Scaling: Resize with aspect ratio control',
-              'Rotation: 0-360 degree rotation'
-            ]
+              'Rotation: 0-360 degree rotation',
+            ],
           },
           filters: {
             title: 'Image Filters and Effects',
@@ -1492,8 +1608,8 @@ const translations = {
               'Hue Rotation: 0-360 degree color shift',
               'Grayscale: 0-100% desaturation',
               'Sepia: 0-100% vintage tone',
-              'Invert: 0-100% color inversion'
-            ]
+              'Invert: 0-100% color inversion',
+            ],
           },
           audioReactive: {
             title: 'Audio-Reactive Image Effects (23+ Effects)',
@@ -1503,9 +1619,9 @@ const translations = {
               'Movement effects: Shake, bounce, swing, orbit, wave, spiral',
               'Special effects: Glow, border, blur, strobe, chromatic aberration',
               'Beat Boost: Amplify effects on beat hits (1.0-3.0x)',
-              'Phase offset: Cascade effects across multiple images'
-            ]
-          }
+              'Phase offset: Cascade effects across multiple images',
+            ],
+          },
         },
         background: {
           title: 'Background and Canvas',
@@ -1522,8 +1638,8 @@ const translations = {
               'Facebook Post (1200x630)',
               'X/Twitter Video (1280x720)',
               'LinkedIn Video (1920x1080)',
-              'Free canvas size for custom dimensions'
-            ]
+              'Free canvas size for custom dimensions',
+            ],
           },
           options: {
             title: 'Background Options',
@@ -1534,8 +1650,8 @@ const translations = {
               'Radial gradients with center alignment',
               'Animated gradients with audio reaction',
               'Use images as background',
-              'Video backgrounds with playback control'
-            ]
+              'Video backgrounds with playback control',
+            ],
           },
           tiles: {
             title: 'Tiled Background',
@@ -1545,9 +1661,9 @@ const translations = {
               'Individual settings per tile',
               'Custom background color, image or video per tile',
               'Custom filters and audio reactivity per tile',
-              'Save and load tile presets'
-            ]
-          }
+              'Save and load tile presets',
+            ],
+          },
         },
         recording: {
           title: 'Video Recording and Export',
@@ -1558,8 +1674,8 @@ const translations = {
               'Start/Stop: Full recording control',
               'Pause/Resume: Pause recording without stopping',
               'Reset: Prepare for new recording',
-              'Status display: IDLE, READY, RECORDING, PAUSED'
-            ]
+              'Status display: IDLE, READY, RECORDING, PAUSED',
+            ],
           },
           quality: {
             title: 'Quality Options',
@@ -1567,8 +1683,8 @@ const translations = {
               'Quality levels: Low, Medium, High',
               'Resolution: 720p, 1080p, 4K',
               'Frame rate: 30-60 FPS configurable',
-              'Bitrate control: Adaptive management'
-            ]
+              'Bitrate control: Adaptive management',
+            ],
           },
           export: {
             title: 'Export Formats',
@@ -1577,9 +1693,9 @@ const translations = {
               'MP4 conversion: Via integrated server',
               'Automatic conversion: Optional after recording',
               'Direct download: Save video to computer',
-              'Include audio: Optional in recording'
-            ]
-          }
+              'Include audio: Optional in recording',
+            ],
+          },
         },
         screenshot: {
           title: 'Screenshot Feature',
@@ -1589,8 +1705,8 @@ const translations = {
             'Preview before download',
             'Lossless PNG with transparency support',
             'Compressed JPG for smaller file size',
-            'Modern WebP for optimal compression'
-          ]
+            'Modern WebP for optimal compression',
+          ],
         },
         shortcuts: {
           title: 'Keyboard Shortcuts',
@@ -1604,8 +1720,8 @@ const translations = {
             { key: 'Arrow keys', action: 'Move object' },
             { key: '+/-', action: 'Zoom' },
             { key: 'G', action: 'Toggle grid' },
-            { key: 'M', action: 'Set beat marker' }
-          ]
+            { key: 'M', action: 'Set beat marker' },
+          ],
         },
         history: {
           title: 'Undo/Redo',
@@ -1613,8 +1729,8 @@ const translations = {
             '50 steps history',
             'Undo with visual feedback',
             'Redo for accidentally undone actions',
-            'Command pattern: Every action is reversible'
-          ]
+            'Command pattern: Every action is reversible',
+          ],
         },
         audioReactivity: {
           title: 'Advanced Audio Reactivity',
@@ -1625,8 +1741,8 @@ const translations = {
               'Mid-range analysis: Vocals/melody',
               'Treble analysis: Hi-hats/cymbals',
               'Overall volume: Complete audio level',
-              'Dynamic mixing: Automatic frequency combination'
-            ]
+              'Dynamic mixing: Automatic frequency combination',
+            ],
           },
           parameters: {
             title: 'Audio Effect Parameters',
@@ -1637,8 +1753,8 @@ const translations = {
               'Release: Decay speed (10-100%)',
               'Easing curves: Linear, Ease, Bounce, Elastic, Punch',
               'Phase offset: Delayed effects for cascades (0-360 degrees)',
-              'Beat Boost: Amplification on beats (1.0-3.0x)'
-            ]
+              'Beat Boost: Amplification on beats (1.0-3.0x)',
+            ],
           },
           presets: {
             title: 'Effect Presets',
@@ -1646,9 +1762,9 @@ const translations = {
               'Punchy: Fast and precise',
               'Smooth: Gentle and flowing',
               'Subtle: Restrained and delicate',
-              'Extreme: Maximum audio reaction'
-            ]
-          }
+              'Extreme: Maximum audio reaction',
+            ],
+          },
         },
         browser: {
           title: 'Browser and Format Support',
@@ -1658,17 +1774,17 @@ const translations = {
               'Chrome/Chromium: Full support (recommended)',
               'Firefox: Full support',
               'Edge: Full support',
-              'Safari: Supported (with MediaRecorder limitations)'
-            ]
+              'Safari: Supported (with MediaRecorder limitations)',
+            ],
           },
           formats: {
             title: 'Supported Formats',
             items: [
               'Audio: MP3, WAV, OGG, FLAC, AAC and more',
               'Images: JPG, PNG, GIF, WebP',
-              'Video: MP4, WebM, MOV (browser dependent)'
-            ]
-          }
+              'Video: MP4, WebM, MOV (browser dependent)',
+            ],
+          },
         },
         unique: {
           title: 'Unique Advantages',
@@ -1679,9 +1795,9 @@ const translations = {
             'Hardware-accelerated: Canvas-based 2D graphics',
             'Modular architecture: Separate managers for each function',
             'Professional quality: Suitable for real music videos',
-            'Completely free: No watermarks, no restrictions'
-          ]
-        }
+            'Completely free: No watermarks, no restrictions',
+          ],
+        },
       },
       summary: {
         title: 'Summary',
@@ -1696,15 +1812,15 @@ const translations = {
           'Social media optimization: Ready-made presets for all platforms',
           'Complete audio control: EQ, beat markers, microphone',
           '50-step undo system',
-          'Bilingual interface: German and English'
+          'Bilingual interface: German and English',
         ],
-        cta: 'Try it now and transform your music into visual art!'
+        cta: 'Try it now and transform your music into visual art!',
       },
       cta: {
         title: 'Ready to Start?',
         subtitle: 'Create your first audio visualization now - free and without registration.',
-        button: 'Start Visualizer'
-      }
+        button: 'Start Visualizer',
+      },
     },
 
     // ========== INTERNAL LANDING PAGE ==========
@@ -1714,25 +1830,29 @@ const translations = {
       hero: {
         title: 'Your Audio.',
         highlight: 'Visually alive.',
-        subtitle: 'Create stunning music visualizations in seconds. Free, directly in your browser, no installation required.',
-        cta: 'Get Started'
+        subtitle:
+          'Create stunning music visualizations in seconds. Free, directly in your browser, no installation required.',
+        cta: 'Get Started',
       },
       features: {
         cards: [
           {
             title: '100+ Visualizers',
-            description: 'From classic waveforms to spectacular 3D effects. Choose from a huge collection of unique audio visualizations.'
+            description:
+              'From classic waveforms to spectacular 3D effects. Choose from a huge collection of unique audio visualizations.',
           },
           {
             title: 'HD Video Export',
-            description: 'Export your creations as high-resolution MP4 videos with up to 60 FPS. Directly from your browser, no additional software needed.'
+            description:
+              'Export your creations as high-resolution MP4 videos with up to 60 FPS. Directly from your browser, no additional software needed.',
           },
           {
             title: 'Full Control',
-            description: 'Add texts, images and logos. Use audio-reactive effects and customize every aspect of your visualization individually.'
-          }
-        ]
-      }
+            description:
+              'Add texts, images and logos. Use audio-reactive effects and customize every aspect of your visualization individually.',
+          },
+        ],
+      },
     },
 
     // ========== APP COMMON ==========
@@ -1757,7 +1877,7 @@ const translations = {
       layer: 'Layer',
       noResults: 'No results',
       enabled: 'Enabled',
-      disabled: 'Disabled'
+      disabled: 'Disabled',
     },
 
     // ========== VISUALIZER APP ==========
@@ -1782,7 +1902,7 @@ const translations = {
       fromGallery: 'From Gallery',
       selectFromGallery: 'Select from Gallery',
       newImagePreview: 'New Image Preview',
-      confirmReplace: 'Confirm Replace'
+      confirmReplace: 'Confirm Replace',
     },
 
     // ========== FILE UPLOAD PANEL ==========
@@ -1792,7 +1912,7 @@ const translations = {
       tracksLoaded: '{count} track(s) loaded',
       dragOrClick: 'Click or drag files here',
       supported: 'Supported',
-      filesReady: '{count} file(s) ready'
+      filesReady: '{count} file(s) ready',
     },
 
     // ========== PLAYER PANEL ==========
@@ -1837,21 +1957,22 @@ const translations = {
       confirmDeleteMarkers: 'Delete all beat-drop markers?',
       editMarker: 'Edit marker',
       editMarkerTitle: 'Edit Marker',
-      addMarkerTitle: 'New Marker'
+      addMarkerTitle: 'New Marker',
     },
 
     // ========== RECORDER PANEL ==========
     recorder: {
       title: 'Recorder',
       helpTitle: 'Record video',
-      helpText: 'Record your visualization as video. Workflow: Prepare → Start → Stop. The video will be created in WebM format.',
-      helpTip: 'Choose \'High\' quality for most applications.',
+      helpText:
+        'Record your visualization as video. Workflow: Prepare → Start → Stop. The video will be created in WebM format.',
+      helpTip: "Choose 'High' quality for most applications.",
       status: {
         idle: 'IDLE',
         ready: 'READY',
         recording: 'RECORDING',
         paused: 'PAUSED',
-        processing: 'Processing...'
+        processing: 'Processing...',
       },
       prepare: 'Prepare',
       start: 'Start',
@@ -1881,15 +2002,16 @@ const translations = {
       convertingVideo: 'Your video is being converted',
       uploadingToServer: 'Uploading video...',
       processingOnServer: 'Server is processing your video...',
-      dontCloseWindow: 'Please don\'t close this window',
-      audioSource: 'Audio'
+      dontCloseWindow: "Please don't close this window",
+      audioSource: 'Audio',
     },
 
     // ========== VISUALIZER PANEL ==========
     visualizer: {
       title: 'Visualizer',
       helpTitle: 'Audio Visualizer',
-      helpText: 'Choose from 30+ visualizer effects. The visualization reacts to audio playback in real-time.',
+      helpText:
+        'Choose from 30+ visualizer effects. The visualization reacts to audio playback in real-time.',
       helpTip: 'Start the music to see the effects live!',
       status: 'Status',
       disabled: 'Visualizer disabled',
@@ -1913,7 +2035,7 @@ const translations = {
         crystalsNets: 'Crystals & Nets',
         blossoms: 'Blossoms',
         objects3d: '3D Objects',
-        retroPixel: 'Retro & Pixel'
+        retroPixel: 'Retro & Pixel',
       },
       // Multi-Layer
       multiLayer: 'Multi-Layer',
@@ -1921,7 +2043,7 @@ const translations = {
       noLayers: 'No layers',
       hideLayer: 'Hide layer',
       showLayer: 'Show layer',
-      blendMode: 'Blend Mode'
+      blendMode: 'Blend Mode',
     },
 
     // ========== CONTROLS PANEL ==========
@@ -1929,7 +2051,7 @@ const translations = {
       title: 'Controls',
       grid: 'Grid',
       workspace: 'Workspace',
-      free: 'Free'
+      free: 'Free',
     },
 
     // ========== CANVAS CONTROL PANEL ==========
@@ -1993,7 +2115,7 @@ const translations = {
       workspaceBackground: 'Workspace',
       resetNormalBg: 'Reset normal background',
       resetWorkspaceBg: 'Reset workspace background',
-      resetAll: 'Reset all'
+      resetAll: 'Reset all',
     },
 
     // ========== TEXT MANAGER PANEL ==========
@@ -2157,7 +2279,7 @@ const translations = {
       effectsPresetSaved: 'Audio effects saved',
       effectsPresetLoaded: 'Audio effects loaded',
       effectsPresetSaveError: 'Error saving preset',
-      effectsPresetLoadError: 'Error loading preset'
+      effectsPresetLoadError: 'Error loading preset',
     },
 
     // ========== FOTO PANEL ==========
@@ -2292,15 +2414,15 @@ const translations = {
         border: 'Border',
         blur: 'Blur',
         strobe: 'Strobe',
-        chromatic: 'Chromatic'
+        chromatic: 'Chromatic',
       },
       // Stock gallery categories
       stockCategories: {
         backgrounds: 'Backgrounds',
         elements: 'Elements',
         patterns: 'Patterns',
-        text: 'Text'
-      }
+        text: 'Text',
+      },
     },
 
     // ========== SLIDESHOW ==========
@@ -2330,7 +2452,7 @@ const translations = {
       width: 'Width',
       height: 'Height',
       resetPosition: 'Reset position',
-      dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.'
+      dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.',
     },
 
     // ========== BACKGROUND TILES PANEL ==========
@@ -2392,7 +2514,7 @@ const translations = {
       noTilePresets: 'No tile presets saved',
       load: 'Load',
       delete: 'Delete',
-      resetAllTiles: 'Reset all tiles'
+      resetAllTiles: 'Reset all tiles',
     },
 
     // ========== ONBOARDING WIZARD ==========
@@ -2408,8 +2530,8 @@ const translations = {
       step4Title: 'Record',
       step4Text: 'Click Record to create your video.',
       skip: 'Skip',
-      finish: 'Let\'s go!',
-      showAgain: 'Don\'t show again'
+      finish: "Let's go!",
+      showAgain: "Don't show again",
     },
 
     // ========== KEYBOARD SHORTCUTS ==========
@@ -2430,7 +2552,7 @@ const translations = {
       zoomOut: 'Zoom out',
       resetView: 'Reset view',
       toggleGrid: 'Toggle grid',
-      addMarker: 'Add marker'
+      addMarker: 'Add marker',
     },
 
     // ========== QUICK START GUIDE ==========
@@ -2439,20 +2561,22 @@ const translations = {
       step1: 'Upload audio file',
       step2: 'Select visualizer',
       step3: 'Record video',
-      showTutorial: 'Show tutorial'
+      showTutorial: 'Show tutorial',
     },
 
     // ========== SCREENSHOT PANEL ==========
     screenshot: {
       title: 'Screenshot',
       helpTitle: 'Canvas Screenshot',
-      helpText: 'Create a screenshot of the current canvas content. Choose your desired format and quality.',
+      helpText:
+        'Create a screenshot of the current canvas content. Choose your desired format and quality.',
       helpTip: 'PNG for lossless quality, JPG/WebP for smaller files.',
       format: 'Format',
       quality: 'Quality',
       lowQuality: 'Small',
       highQuality: 'Best',
-      pngInfo: 'PNG offers lossless compression and supports transparency. Ideal for graphics and text.',
+      pngInfo:
+        'PNG offers lossless compression and supports transparency. Ideal for graphics and text.',
       capture: 'Take Screenshot',
       processing: 'Processing...',
       preview: 'Preview',
@@ -2465,7 +2589,7 @@ const translations = {
       doubleClickHint: 'Double-click for fullscreen view',
       fileName: 'Filename',
       dimensions: 'Dimensions',
-      fileSize: 'File Size'
+      fileSize: 'File Size',
     },
 
     // ========== TOAST NOTIFICATIONS ==========
@@ -2526,9 +2650,9 @@ const translations = {
       actionUndone: 'Action undone',
       operationCancelled: 'Operation cancelled',
       networkError: 'Network error - please try again',
-      unexpectedError: 'An unexpected error occurred'
-    }
-  }
+      unexpectedError: 'An unexpected error occurred',
+    },
+  },
 }
 
 // Get nested translation by key path
@@ -2596,6 +2720,6 @@ export function useI18n() {
     messages,
     setLocale,
     toggleLocale,
-    availableLocales
+    availableLocales,
   }
 }

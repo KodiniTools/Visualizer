@@ -4,7 +4,7 @@
       <h3>⌨️ Keyboard Shortcuts</h3>
       <button @click="$emit('close')" class="close-btn">✕</button>
     </div>
-    
+
     <div class="shortcuts-content">
       <!-- Player Controls -->
       <div class="shortcut-section">
@@ -118,7 +118,7 @@
 
 <script setup>
 // Keine Props oder Emits nötig, nur close emit
-defineEmits(['close']);
+defineEmits(['close'])
 </script>
 
 <style scoped>
@@ -263,8 +263,9 @@ kbd {
   font-size: 13px;
   font-weight: 600;
   border: 1px solid rgba(110, 168, 254, 0.3);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   display: inline-block;
   min-width: 32px;
   text-align: center;
@@ -351,7 +352,8 @@ kbd {
 [data-theme='light'] kbd {
   color: #014f99;
   border-color: rgba(1, 79, 153, 0.3);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1),
-              inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 </style>

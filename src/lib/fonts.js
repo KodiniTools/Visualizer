@@ -156,8 +156,8 @@ export const CUSTOM_FONTS = [
   { name: 'Chillax Medium', file: 'Chillax-Medium.woff2' },
   { name: 'Chillax Semibold', file: 'Chillax-Semibold.woff2' },
   { name: 'Chillax Bold', file: 'Chillax-Bold.woff2' },
-  { name: 'Chillax Variable', file: 'Chillax-Variable.woff2' }
-];
+  { name: 'Chillax Variable', file: 'Chillax-Variable.woff2' },
+]
 
 /**
  * System Fonts (immer verfügbar)
@@ -171,10 +171,10 @@ export const SYSTEM_FONTS = [
   { name: 'Comic Sans MS' },
   { name: 'Impact' },
   { name: 'Trebuchet MS' },
-];
+]
 
 // Cache für geladene Fonts
-const loadedFontsCache = new Set();
+const loadedFontsCache = new Set()
 
 /**
  * ✨ NEU: Ermittle den Base-Path aus import.meta.env
@@ -183,18 +183,18 @@ const loadedFontsCache = new Set();
 function getBasePath() {
   // In Vite können wir import.meta.env.BASE_URL verwenden
   // Das wird automatisch zur Build-Zeit ersetzt
-  return import.meta.env.BASE_URL || '/';
+  return import.meta.env.BASE_URL || '/'
 }
 
 /**
  * ✨ NEU: Erstelle Font-URL mit korrektem Base-Path
  */
 function getFontUrl(filename) {
-  const basePath = getBasePath();
+  const basePath = getBasePath()
   // Entferne doppelte Slashes
-  const path = `${basePath}fonts/${filename}`.replace(/\/+/g, '/');
-  console.log(`🔤 Font URL: ${path}`);
-  return path;
+  const path = `${basePath}fonts/${filename}`.replace(/\/+/g, '/')
+  console.log(`🔤 Font URL: ${path}`)
+  return path
 }
 
 /**
@@ -203,59 +203,57 @@ function getFontUrl(filename) {
  */
 export async function loadCustomFonts() {
   if (CUSTOM_FONTS.length === 0) {
-    console.log('ℹ️ Keine Custom Fonts definiert');
-    return { loadedFonts: [], failedFonts: [] };
+    console.log('ℹ️ Keine Custom Fonts definiert')
+    return { loadedFonts: [], failedFonts: [] }
   }
 
-  console.log(`📤 Starte Laden von ${CUSTOM_FONTS.length} Custom Fonts...`);
-  console.log(`📍 Base-Path: ${getBasePath()}`);
-  
-  const loadedFonts = [];
-  const failedFonts = [];
+  console.log(`📤 Starte Laden von ${CUSTOM_FONTS.length} Custom Fonts...`)
+  console.log(`📍 Base-Path: ${getBasePath()}`)
+
+  const loadedFonts = []
+  const failedFonts = []
 
   for (const font of CUSTOM_FONTS) {
     // Skip if already loaded
     if (loadedFontsCache.has(font.name)) {
-      loadedFonts.push(font.name);
-      continue;
+      loadedFonts.push(font.name)
+      continue
     }
 
     try {
       // ✨ NEU: Verwende getFontUrl für korrekten Pfad
-      const fontUrl = getFontUrl(font.file);
-      
+      const fontUrl = getFontUrl(font.file)
+
       // Font-Face erstellen
-      const fontFace = new FontFace(
-        font.name,
-        `url(${fontUrl})`,
-        {
-          weight: 'normal',
-          style: 'normal',
-        }
-      );
+      const fontFace = new FontFace(font.name, `url(${fontUrl})`, {
+        weight: 'normal',
+        style: 'normal',
+      })
 
       // Font laden
-      const loadedFont = await fontFace.load();
+      const loadedFont = await fontFace.load()
 
       // Zum Document hinzufügen
-      document.fonts.add(loadedFont);
+      document.fonts.add(loadedFont)
 
       // Cache updaten
-      loadedFontsCache.add(font.name);
-      loadedFonts.push(font.name);
-
+      loadedFontsCache.add(font.name)
+      loadedFonts.push(font.name)
     } catch (error) {
-      failedFonts.push(font.name);
-      console.warn(`⚠️ Font konnte nicht geladen werden: ${font.name}`, error);
+      failedFonts.push(font.name)
+      console.warn(`⚠️ Font konnte nicht geladen werden: ${font.name}`, error)
     }
   }
 
-  console.log(`✅ ${loadedFonts.length}/${CUSTOM_FONTS.length} Fonts erfolgreich geladen`);
+  console.log(`✅ ${loadedFonts.length}/${CUSTOM_FONTS.length} Fonts erfolgreich geladen`)
   if (failedFonts.length > 0) {
-    console.warn(`⚠️ ${failedFonts.length} Fonts fehlgeschlagen:`, failedFonts.slice(0, 5).join(', ') + (failedFonts.length > 5 ? '...' : ''));
+    console.warn(
+      `⚠️ ${failedFonts.length} Fonts fehlgeschlagen:`,
+      failedFonts.slice(0, 5).join(', ') + (failedFonts.length > 5 ? '...' : ''),
+    )
   }
 
-  return { loadedFonts, failedFonts };
+  return { loadedFonts, failedFonts }
 }
 
 /**
@@ -263,17 +261,17 @@ export async function loadCustomFonts() {
  */
 export function isFontAvailable(fontName) {
   // System Fonts sind immer verfügbar
-  if (SYSTEM_FONTS.some(f => f.name === fontName)) {
-    return true;
+  if (SYSTEM_FONTS.some((f) => f.name === fontName)) {
+    return true
   }
 
   // Im Cache?
   if (loadedFontsCache.has(fontName)) {
-    return true;
+    return true
   }
 
   // Custom Font prüfen mit Font Loading API
-  return document.fonts.check(`16px "${fontName}"`);
+  return document.fonts.check(`16px "${fontName}"`)
 }
 
 /**
@@ -281,51 +279,47 @@ export function isFontAvailable(fontName) {
  */
 export async function waitForFont(fontName, timeout = 3000) {
   // System Font?
-  if (SYSTEM_FONTS.some(f => f.name === fontName)) {
-    return true;
+  if (SYSTEM_FONTS.some((f) => f.name === fontName)) {
+    return true
   }
 
   // Bereits im Cache?
   if (loadedFontsCache.has(fontName)) {
-    return true;
+    return true
   }
 
   // Font finden
-  const fontDef = CUSTOM_FONTS.find(f => f.name === fontName);
+  const fontDef = CUSTOM_FONTS.find((f) => f.name === fontName)
   if (!fontDef) {
-    console.warn(`⚠️ Font nicht in CUSTOM_FONTS definiert: ${fontName}`);
-    return false;
+    console.warn(`⚠️ Font nicht in CUSTOM_FONTS definiert: ${fontName}`)
+    return false
   }
 
   try {
-    console.log(`⏳ Lade Font: ${fontName}...`);
+    console.log(`⏳ Lade Font: ${fontName}...`)
 
     // ✨ NEU: Verwende getFontUrl für korrekten Pfad
-    const fontUrl = getFontUrl(fontDef.file);
+    const fontUrl = getFontUrl(fontDef.file)
 
     // Font-Face erstellen und laden
-    const fontFace = new FontFace(
-      fontName,
-      `url(${fontUrl})`,
-      { weight: 'normal', style: 'normal' }
-    );
+    const fontFace = new FontFace(fontName, `url(${fontUrl})`, {
+      weight: 'normal',
+      style: 'normal',
+    })
 
     const loadedFont = await Promise.race([
       fontFace.load(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), timeout)
-      )
-    ]);
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeout)),
+    ])
 
-    document.fonts.add(loadedFont);
-    loadedFontsCache.add(fontName);
+    document.fonts.add(loadedFont)
+    loadedFontsCache.add(fontName)
 
-    console.log(`✅ Font geladen: ${fontName}`);
-    return true;
-
+    console.log(`✅ Font geladen: ${fontName}`)
+    return true
   } catch (error) {
-    console.error(`❌ Font konnte nicht geladen werden: ${fontName}`, error);
-    return false;
+    console.error(`❌ Font konnte nicht geladen werden: ${fontName}`, error)
+    return false
   }
 }
 
@@ -333,15 +327,15 @@ export async function waitForFont(fontName, timeout = 3000) {
  * Gibt alle verfügbaren Fonts zurück (System + erfolgreich geladene Custom)
  */
 export function getAllAvailableFonts() {
-  const available = [...SYSTEM_FONTS];
+  const available = [...SYSTEM_FONTS]
 
   for (const font of CUSTOM_FONTS) {
     if (loadedFontsCache.has(font.name) || isFontAvailable(font.name)) {
-      available.push(font);
+      available.push(font)
     }
   }
 
-  return available;
+  return available
 }
 
 /**
@@ -352,6 +346,6 @@ export function getFontStats() {
     total: CUSTOM_FONTS.length,
     loaded: loadedFontsCache.size,
     systemFonts: SYSTEM_FONTS.length,
-    available: getAllAvailableFonts().length
-  };
+    available: getAllAvailableFonts().length,
+  }
 }

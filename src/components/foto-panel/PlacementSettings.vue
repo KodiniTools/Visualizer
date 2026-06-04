@@ -27,7 +27,15 @@
       <div v-if="localAnimation !== 'none'" class="placement-row">
         <span class="placement-label">{{ locale === 'de' ? 'Dauer' : 'Duration' }}</span>
         <div class="placement-slider-wrap">
-          <input type="range" v-model.number="localDuration" min="100" max="5000" step="100" class="placement-slider" @input="emitUpdate" />
+          <input
+            type="range"
+            v-model.number="localDuration"
+            min="100"
+            max="5000"
+            step="100"
+            class="placement-slider"
+            @input="emitUpdate"
+          />
           <span class="placement-value">{{ (localDuration / 1000).toFixed(1) }}s</span>
         </div>
       </div>
@@ -36,7 +44,15 @@
       <div class="placement-row">
         <span class="placement-label">{{ locale === 'de' ? 'Größe' : 'Size' }}</span>
         <div class="placement-slider-wrap">
-          <input type="range" v-model.number="localScale" min="1" max="8" step="1" class="placement-slider" @input="emitUpdate" />
+          <input
+            type="range"
+            v-model.number="localScale"
+            min="1"
+            max="8"
+            step="1"
+            class="placement-slider"
+            @input="emitUpdate"
+          />
           <span class="placement-value">{{ localScale }}x</span>
         </div>
       </div>
@@ -44,9 +60,25 @@
       <!-- X/Y Position in einer Zeile -->
       <div class="placement-row placement-xy">
         <span class="placement-label">X</span>
-        <input type="number" v-model.number="localOffsetX" min="-500" max="500" step="10" class="placement-input" @input="emitUpdate" />
+        <input
+          type="number"
+          v-model.number="localOffsetX"
+          min="-500"
+          max="500"
+          step="10"
+          class="placement-input"
+          @input="emitUpdate"
+        />
         <span class="placement-label">Y</span>
-        <input type="number" v-model.number="localOffsetY" min="-500" max="500" step="10" class="placement-input" @input="emitUpdate" />
+        <input
+          type="number"
+          v-model.number="localOffsetY"
+          min="-500"
+          max="500"
+          step="10"
+          class="placement-input"
+          @input="emitUpdate"
+        />
       </div>
     </div>
 
@@ -66,51 +98,66 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
-import { useI18n } from '../../lib/i18n.js';
+import { ref, watch } from 'vue'
+import { useI18n } from '../../lib/i18n.js'
 
-const { locale } = useI18n();
+const { locale } = useI18n()
 
 const props = defineProps({
   selectedAnimation: {
     type: String,
-    default: 'none'
+    default: 'none',
   },
   animationDuration: {
     type: Number,
-    default: 1000
+    default: 1000,
   },
   imageScale: {
     type: Number,
-    default: 1
+    default: 1,
   },
   imageOffsetX: {
     type: Number,
-    default: 0
+    default: 0,
   },
   imageOffsetY: {
     type: Number,
-    default: 0
+    default: 0,
   },
   isInRangeSelectionMode: {
     type: Boolean,
-    default: false
-  }
-});
+    default: false,
+  },
+})
 
-const emit = defineEmits(['update:settings', 'start-draw', 'place-directly']);
+const emit = defineEmits(['update:settings', 'start-draw', 'place-directly'])
 
-const localAnimation = ref(props.selectedAnimation);
-const localDuration = ref(props.animationDuration);
-const localScale = ref(props.imageScale);
-const localOffsetX = ref(props.imageOffsetX);
-const localOffsetY = ref(props.imageOffsetY);
+const localAnimation = ref(props.selectedAnimation)
+const localDuration = ref(props.animationDuration)
+const localScale = ref(props.imageScale)
+const localOffsetX = ref(props.imageOffsetX)
+const localOffsetY = ref(props.imageOffsetY)
 
-watch(() => props.selectedAnimation, (val) => localAnimation.value = val);
-watch(() => props.animationDuration, (val) => localDuration.value = val);
-watch(() => props.imageScale, (val) => localScale.value = val);
-watch(() => props.imageOffsetX, (val) => localOffsetX.value = val);
-watch(() => props.imageOffsetY, (val) => localOffsetY.value = val);
+watch(
+  () => props.selectedAnimation,
+  (val) => (localAnimation.value = val),
+)
+watch(
+  () => props.animationDuration,
+  (val) => (localDuration.value = val),
+)
+watch(
+  () => props.imageScale,
+  (val) => (localScale.value = val),
+)
+watch(
+  () => props.imageOffsetX,
+  (val) => (localOffsetX.value = val),
+)
+watch(
+  () => props.imageOffsetY,
+  (val) => (localOffsetY.value = val),
+)
 
 function emitUpdate() {
   emit('update:settings', {
@@ -118,8 +165,8 @@ function emitUpdate() {
     animationDuration: localDuration.value,
     imageScale: localScale.value,
     imageOffsetX: localOffsetX.value,
-    imageOffsetY: localOffsetY.value
-  });
+    imageOffsetY: localOffsetY.value,
+  })
 }
 </script>
 

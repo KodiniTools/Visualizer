@@ -20,17 +20,17 @@ export {
   getFrequencyBasedSmoothing,
   applySmoothValue,
   withSafeCanvasState,
-  drawRoundedBar
-} from './core/index.js';
+  drawRoundedBar,
+} from './core/index.js'
 
 // Import all visualizer categories
-import { spectrumVisualizers } from './spectrum/index.js';
-import { geometricVisualizers } from './geometric/index.js';
-import { organicVisualizers } from './organic/index.js';
-import { particleVisualizers } from './particle/index.js';
-import { techVisualizers } from './tech/index.js';
-import { retroVisualizers } from './retro/index.js';
-import { effectsVisualizers } from './effects/index.js';
+import { spectrumVisualizers } from './spectrum/index.js'
+import { geometricVisualizers } from './geometric/index.js'
+import { organicVisualizers } from './organic/index.js'
+import { particleVisualizers } from './particle/index.js'
+import { techVisualizers } from './tech/index.js'
+import { retroVisualizers } from './retro/index.js'
+import { effectsVisualizers } from './effects/index.js'
 
 /**
  * All visualizers combined into a single object.
@@ -58,8 +58,8 @@ export const Visualizers = {
   ...retroVisualizers,
 
   // Effects visualizers (special effects, ambient)
-  ...effectsVisualizers
-};
+  ...effectsVisualizers,
+}
 
 // Also export individual category collections for selective imports
 export {
@@ -69,8 +69,8 @@ export {
   particleVisualizers,
   techVisualizers,
   retroVisualizers,
-  effectsVisualizers
-};
+  effectsVisualizers,
+}
 
 // Default export for convenience
-export default Visualizers;
+export default Visualizers

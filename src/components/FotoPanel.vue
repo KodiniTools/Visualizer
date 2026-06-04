@@ -121,57 +121,57 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, inject } from 'vue';
-import { useI18n } from '../lib/i18n.js';
-import { useToastStore } from '../stores/toastStore';
+import { ref, computed, watch, onMounted, inject } from 'vue'
+import { useI18n } from '../lib/i18n.js'
+import { useToastStore } from '../stores/toastStore'
 
 // Sub-Komponenten
-import ImagePreviewOverlay from './foto-panel/ImagePreviewOverlay.vue';
-import StockGallerySection from './foto-panel/StockGallerySection.vue';
-import ImageUploadSection from './foto-panel/ImageUploadSection.vue';
-import ImageFiltersPanel from './foto-panel/ImageFiltersPanel.vue';
-import AudioReactivePanel from './foto-panel/AudioReactivePanel.vue';
-import SlideshowPanel from './foto-panel/SlideshowPanel.vue';
+import ImagePreviewOverlay from './foto-panel/ImagePreviewOverlay.vue'
+import StockGallerySection from './foto-panel/StockGallerySection.vue'
+import ImageUploadSection from './foto-panel/ImageUploadSection.vue'
+import ImageFiltersPanel from './foto-panel/ImageFiltersPanel.vue'
+import AudioReactivePanel from './foto-panel/AudioReactivePanel.vue'
+import SlideshowPanel from './foto-panel/SlideshowPanel.vue'
 
 // Lib
-import { SlideshowManager } from '../lib/slideshowManager.js';
+import { SlideshowManager } from '../lib/slideshowManager.js'
 
 // Composables
-import { useStockGallery } from '../composables/useStockGallery.js';
-import { useImageGallery } from '../composables/useImageGallery.js';
+import { useStockGallery } from '../composables/useStockGallery.js'
+import { useImageGallery } from '../composables/useImageGallery.js'
 
-const { t, locale } = useI18n();
-const toastStore = useToastStore();
+const { t, locale } = useI18n()
+const toastStore = useToastStore()
 
 // Injected Refs von App.vue
-const fotoManagerRef = inject('fotoManager');
-const multiImageManagerRef = inject('multiImageManager');
-const canvasManagerRef = inject('canvasManager');
+const fotoManagerRef = inject('fotoManager')
+const multiImageManagerRef = inject('multiImageManager')
+const canvasManagerRef = inject('canvasManager')
 
 // Panel-Refs
-const imageFiltersPanelRef = ref(null);
-const audioReactivePanelRef = ref(null);
+const imageFiltersPanelRef = ref(null)
+const audioReactivePanelRef = ref(null)
 
 // Aktuell aktives Bild (für Filter-UI)
-const currentActiveImage = ref(null);
+const currentActiveImage = ref(null)
 
 // Presets
-const presets = ref([]);
+const presets = ref([])
 
 // Platzierungs-Einstellungen
-const selectedAnimation = ref('none');
-const animationDuration = ref(1000);
-const imageScale = ref(1);
-const imageOffsetX = ref(0);
-const imageOffsetY = ref(0);
+const selectedAnimation = ref('none')
+const animationDuration = ref(1000)
+const imageScale = ref(1)
+const imageOffsetX = ref(0)
+const imageOffsetY = ref(0)
 
 // Bereichsauswahl-Modus
-const isInRangeSelectionMode = ref(false);
-const pendingRangeSelectionImage = ref(null);
-const pendingRangeSelectionType = ref(null);
+const isInRangeSelectionMode = ref(false)
+const pendingRangeSelectionImage = ref(null)
+const pendingRangeSelectionType = ref(null)
 
 // Bild-Vorschau
-const previewImage = ref(null);
+const previewImage = ref(null)
 
 // Stock-Galerie Composable
 const {
@@ -190,8 +190,8 @@ const {
   selectStockImage,
   selectAllStockImages,
   deselectAllStockImages,
-  loadStockImageObject
-} = useStockGallery();
+  loadStockImageObject,
+} = useStockGallery()
 
 // Image-Galerie Composable
 const {
@@ -206,92 +206,92 @@ const {
   selectAllImages,
   deselectAllImages,
   deleteImage,
-  clearAllImages: clearAllImagesComposable
-} = useImageGallery();
+  clearAllImages: clearAllImagesComposable,
+} = useImageGallery()
 
 // Audio-Reaktiv State
-const activeAudioPreset = ref(null);
-const savedAudioReactiveSettings = ref(null);
-const hasSavedAudioSettings = computed(() => savedAudioReactiveSettings.value !== null);
+const activeAudioPreset = ref(null)
+const savedAudioReactiveSettings = ref(null)
+const hasSavedAudioSettings = computed(() => savedAudioReactiveSettings.value !== null)
 
 // ═══════════════════════════════════════════════════════════════════
 // SLIDESHOW STATE
 // ═══════════════════════════════════════════════════════════════════
 
-const slideshowManagerRef = ref(null);
-const slideshowIsActive = ref(false);
-const slideshowIsPaused = ref(false);
-const slideshowCurrentIndex = ref(0);
-const slideshowCurrentPhase = ref('fadeIn');
-const slideshowTotalImages = ref(0);
+const slideshowManagerRef = ref(null)
+const slideshowIsActive = ref(false)
+const slideshowIsPaused = ref(false)
+const slideshowCurrentIndex = ref(0)
+const slideshowCurrentPhase = ref('fadeIn')
+const slideshowTotalImages = ref(0)
 
 // Kombinierte ausgewählte Bilder für Slideshow (hochgeladene + Stock)
 const slideshowImages = computed(() => {
-  const images = [];
+  const images = []
   // Hochgeladene Bilder
   for (const imgData of selectedImages.value) {
     images.push({
       imageObject: imgData.img,
       name: imgData.name,
-      id: imgData.id
-    });
+      id: imgData.id,
+    })
   }
-  return images;
-});
+  return images
+})
 
 // ═══════════════════════════════════════════════════════════════════
 // EBENEN-STEUERUNG (Z-Index)
 // ═══════════════════════════════════════════════════════════════════
 
 const canMoveUp = computed(() => {
-  if (!currentActiveImage.value) return false;
-  const multiImageManager = multiImageManagerRef?.value;
-  if (!multiImageManager) return false;
-  const index = multiImageManager.getImageIndex(currentActiveImage.value);
-  const count = multiImageManager.getImageCount();
-  return index !== -1 && index < count - 1;
-});
+  if (!currentActiveImage.value) return false
+  const multiImageManager = multiImageManagerRef?.value
+  if (!multiImageManager) return false
+  const index = multiImageManager.getImageIndex(currentActiveImage.value)
+  const count = multiImageManager.getImageCount()
+  return index !== -1 && index < count - 1
+})
 
 const canMoveDown = computed(() => {
-  if (!currentActiveImage.value) return false;
-  const multiImageManager = multiImageManagerRef?.value;
-  if (!multiImageManager) return false;
-  const index = multiImageManager.getImageIndex(currentActiveImage.value);
-  return index > 0;
-});
+  if (!currentActiveImage.value) return false
+  const multiImageManager = multiImageManagerRef?.value
+  if (!multiImageManager) return false
+  const index = multiImageManager.getImageIndex(currentActiveImage.value)
+  return index > 0
+})
 
 const currentLayerInfo = computed(() => {
-  if (!currentActiveImage.value) return '';
-  const multiImageManager = multiImageManagerRef?.value;
-  if (!multiImageManager) return '';
-  const index = multiImageManager.getImageIndex(currentActiveImage.value);
-  const count = multiImageManager.getImageCount();
-  if (index === -1 || count === 0) return '';
-  return `${index + 1} / ${count}`;
-});
+  if (!currentActiveImage.value) return ''
+  const multiImageManager = multiImageManagerRef?.value
+  if (!multiImageManager) return ''
+  const index = multiImageManager.getImageIndex(currentActiveImage.value)
+  const count = multiImageManager.getImageCount()
+  if (index === -1 || count === 0) return ''
+  return `${index + 1} / ${count}`
+})
 
 function onBringToFront() {
-  const multiImageManager = multiImageManagerRef?.value;
-  if (!multiImageManager || !currentActiveImage.value) return;
-  multiImageManager.bringToFront(currentActiveImage.value);
+  const multiImageManager = multiImageManagerRef?.value
+  if (!multiImageManager || !currentActiveImage.value) return
+  multiImageManager.bringToFront(currentActiveImage.value)
 }
 
 function onSendToBack() {
-  const multiImageManager = multiImageManagerRef?.value;
-  if (!multiImageManager || !currentActiveImage.value) return;
-  multiImageManager.sendToBack(currentActiveImage.value);
+  const multiImageManager = multiImageManagerRef?.value
+  if (!multiImageManager || !currentActiveImage.value) return
+  multiImageManager.sendToBack(currentActiveImage.value)
 }
 
 function onMoveUp() {
-  const multiImageManager = multiImageManagerRef?.value;
-  if (!multiImageManager || !currentActiveImage.value) return;
-  multiImageManager.moveUp(currentActiveImage.value);
+  const multiImageManager = multiImageManagerRef?.value
+  if (!multiImageManager || !currentActiveImage.value) return
+  multiImageManager.moveUp(currentActiveImage.value)
 }
 
 function onMoveDown() {
-  const multiImageManager = multiImageManagerRef?.value;
-  if (!multiImageManager || !currentActiveImage.value) return;
-  multiImageManager.moveDown(currentActiveImage.value);
+  const multiImageManager = multiImageManagerRef?.value
+  if (!multiImageManager || !currentActiveImage.value) return
+  multiImageManager.moveDown(currentActiveImage.value)
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -299,31 +299,31 @@ function onMoveDown() {
 // ═══════════════════════════════════════════════════════════════════
 
 function onPresetChange(presetId) {
-  if (!currentActiveImage.value) return;
-  const fotoManager = fotoManagerRef?.value;
-  if (!fotoManager) return;
+  if (!currentActiveImage.value) return
+  const fotoManager = fotoManagerRef?.value
+  if (!fotoManager) return
 
   if (presetId === '') {
-    fotoManager.applyPreset(currentActiveImage.value, 'normal');
+    fotoManager.applyPreset(currentActiveImage.value, 'normal')
   } else {
-    fotoManager.applyPreset(currentActiveImage.value, presetId);
+    fotoManager.applyPreset(currentActiveImage.value, presetId)
   }
-  console.log('🎨 Preset angewendet:', presetId || 'normal');
+  console.log('🎨 Preset angewendet:', presetId || 'normal')
 }
 
 function onFilterChange({ property, value }) {
-  if (!currentActiveImage.value) return;
+  if (!currentActiveImage.value) return
 
   if (!currentActiveImage.value.fotoSettings) {
-    currentActiveImage.value.fotoSettings = {};
+    currentActiveImage.value.fotoSettings = {}
   }
 
-  currentActiveImage.value.fotoSettings[property] = value;
-  console.log(`✏️ Filter aktualisiert: ${property} = ${value}`);
+  currentActiveImage.value.fotoSettings[property] = value
+  console.log(`✏️ Filter aktualisiert: ${property} = ${value}`)
 }
 
 function resetFilters() {
-  if (!currentActiveImage.value) return;
+  if (!currentActiveImage.value) return
 
   const defaultSettings = {
     brightness: 100,
@@ -341,11 +341,11 @@ function resetFilters() {
     flipV: false,
     borderColor: '#ffffff',
     borderWidth: 0,
-    borderOpacity: 100
-  };
+    borderOpacity: 100,
+  }
 
-  currentActiveImage.value.fotoSettings = { ...defaultSettings };
-  console.log('🔄 Filter zurückgesetzt');
+  currentActiveImage.value.fotoSettings = { ...defaultSettings }
+  console.log('🔄 Filter zurückgesetzt')
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -353,154 +353,207 @@ function resetFilters() {
 // ═══════════════════════════════════════════════════════════════════
 
 function onAudioReactiveToggle(event) {
-  const enabled = event.target.checked;
-  updateAudioReactiveSetting('enabled', enabled);
-  if (!enabled) activeAudioPreset.value = null;
+  const enabled = event.target.checked
+  updateAudioReactiveSetting('enabled', enabled)
+  if (!enabled) activeAudioPreset.value = null
 }
 
 function onAudioReactiveSourceChange(event) {
-  updateAudioReactiveSetting('source', event.target.value);
+  updateAudioReactiveSetting('source', event.target.value)
 }
 
 function onAudioReactiveSmoothingChange(event) {
-  updateAudioReactiveSetting('smoothing', parseInt(event.target.value));
+  updateAudioReactiveSetting('smoothing', parseInt(event.target.value))
 }
 
 function onAudioReactiveEasingChange(event) {
-  updateAudioReactiveSetting('easing', event.target.value);
+  updateAudioReactiveSetting('easing', event.target.value)
 }
 
 function onAudioReactiveBeatBoostChange(event) {
-  updateAudioReactiveSetting('beatBoost', parseFloat(event.target.value));
+  updateAudioReactiveSetting('beatBoost', parseFloat(event.target.value))
 }
 
 function onAudioReactivePhaseChange(event) {
-  updateAudioReactiveSetting('phase', parseInt(event.target.value));
+  updateAudioReactiveSetting('phase', parseInt(event.target.value))
 }
 
 function updateAudioReactiveSetting(property, value) {
-  if (!currentActiveImage.value) return;
-  const fotoManager = fotoManagerRef?.value;
-  if (!fotoManager) return;
-  fotoManager.initializeImageSettings(currentActiveImage.value);
-  currentActiveImage.value.fotoSettings.audioReactive[property] = value;
+  if (!currentActiveImage.value) return
+  const fotoManager = fotoManagerRef?.value
+  if (!fotoManager) return
+  fotoManager.initializeImageSettings(currentActiveImage.value)
+  currentActiveImage.value.fotoSettings.audioReactive[property] = value
 }
 
 function toggleAudioPreset(presetName) {
   if (activeAudioPreset.value === presetName) {
-    deactivateAudioPreset();
+    deactivateAudioPreset()
   } else {
-    applyAudioPreset(presetName);
+    applyAudioPreset(presetName)
   }
 }
 
 function deactivateAudioPreset() {
-  if (!currentActiveImage.value) return;
-  const fotoManager = fotoManagerRef?.value;
-  if (!fotoManager) return;
-  fotoManager.initializeImageSettings(currentActiveImage.value);
-  const ar = currentActiveImage.value.fotoSettings.audioReactive;
+  if (!currentActiveImage.value) return
+  const fotoManager = fotoManagerRef?.value
+  if (!fotoManager) return
+  fotoManager.initializeImageSettings(currentActiveImage.value)
+  const ar = currentActiveImage.value.fotoSettings.audioReactive
   for (const effectName of Object.keys(ar.effects)) {
-    ar.effects[effectName].enabled = false;
+    ar.effects[effectName].enabled = false
   }
-  ar.enabled = false;
-  activeAudioPreset.value = null;
+  ar.enabled = false
+  activeAudioPreset.value = null
 }
 
 function applyAudioPreset(presetName) {
-  if (!currentActiveImage.value) return;
-  const fotoManager = fotoManagerRef?.value;
-  if (!fotoManager) return;
-  fotoManager.initializeImageSettings(currentActiveImage.value);
-  const ar = currentActiveImage.value.fotoSettings.audioReactive;
+  if (!currentActiveImage.value) return
+  const fotoManager = fotoManagerRef?.value
+  if (!fotoManager) return
+  fotoManager.initializeImageSettings(currentActiveImage.value)
+  const ar = currentActiveImage.value.fotoSettings.audioReactive
 
   const presets = {
-    pulse: { effects: { scale: { enabled: true, intensity: 70 }, glow: { enabled: true, intensity: 80 } }, source: 'bass', easing: 'easeOut', beatBoost: 1.5, smoothing: 60 },
-    dance: { effects: { bounce: { enabled: true, intensity: 60 }, swing: { enabled: true, intensity: 50 }, rotation: { enabled: true, intensity: 30 } }, source: 'mid', easing: 'bounce', beatBoost: 1.3, smoothing: 40 },
-    shake: { effects: { shake: { enabled: true, intensity: 80 }, scale: { enabled: true, intensity: 40 } }, source: 'bass', easing: 'punch', beatBoost: 2.0, smoothing: 20 },
-    glow: { effects: { glow: { enabled: true, intensity: 90 }, brightness: { enabled: true, intensity: 50 }, hue: { enabled: true, intensity: 30 } }, source: 'volume', easing: 'easeInOut', beatBoost: 1.0, smoothing: 70 },
-    strobe: { effects: { strobe: { enabled: true, intensity: 85 }, invert: { enabled: true, intensity: 60 } }, source: 'bass', easing: 'linear', beatBoost: 2.5, smoothing: 10 },
-    glitch: { effects: { chromatic: { enabled: true, intensity: 75 }, skew: { enabled: true, intensity: 50 }, shake: { enabled: true, intensity: 40 } }, source: 'bass', easing: 'elastic', beatBoost: 2.0, smoothing: 25 }
-  };
-
-  for (const effectName of Object.keys(ar.effects)) {
-    ar.effects[effectName].enabled = false;
+    pulse: {
+      effects: { scale: { enabled: true, intensity: 70 }, glow: { enabled: true, intensity: 80 } },
+      source: 'bass',
+      easing: 'easeOut',
+      beatBoost: 1.5,
+      smoothing: 60,
+    },
+    dance: {
+      effects: {
+        bounce: { enabled: true, intensity: 60 },
+        swing: { enabled: true, intensity: 50 },
+        rotation: { enabled: true, intensity: 30 },
+      },
+      source: 'mid',
+      easing: 'bounce',
+      beatBoost: 1.3,
+      smoothing: 40,
+    },
+    shake: {
+      effects: { shake: { enabled: true, intensity: 80 }, scale: { enabled: true, intensity: 40 } },
+      source: 'bass',
+      easing: 'punch',
+      beatBoost: 2.0,
+      smoothing: 20,
+    },
+    glow: {
+      effects: {
+        glow: { enabled: true, intensity: 90 },
+        brightness: { enabled: true, intensity: 50 },
+        hue: { enabled: true, intensity: 30 },
+      },
+      source: 'volume',
+      easing: 'easeInOut',
+      beatBoost: 1.0,
+      smoothing: 70,
+    },
+    strobe: {
+      effects: {
+        strobe: { enabled: true, intensity: 85 },
+        invert: { enabled: true, intensity: 60 },
+      },
+      source: 'bass',
+      easing: 'linear',
+      beatBoost: 2.5,
+      smoothing: 10,
+    },
+    glitch: {
+      effects: {
+        chromatic: { enabled: true, intensity: 75 },
+        skew: { enabled: true, intensity: 50 },
+        shake: { enabled: true, intensity: 40 },
+      },
+      source: 'bass',
+      easing: 'elastic',
+      beatBoost: 2.0,
+      smoothing: 25,
+    },
   }
 
-  const preset = presets[presetName];
-  if (!preset) return;
+  for (const effectName of Object.keys(ar.effects)) {
+    ar.effects[effectName].enabled = false
+  }
 
-  ar.enabled = true;
-  ar.source = preset.source;
-  ar.easing = preset.easing;
-  ar.beatBoost = preset.beatBoost;
-  ar.smoothing = preset.smoothing;
+  const preset = presets[presetName]
+  if (!preset) return
+
+  ar.enabled = true
+  ar.source = preset.source
+  ar.easing = preset.easing
+  ar.beatBoost = preset.beatBoost
+  ar.smoothing = preset.smoothing
 
   for (const [effectName, config] of Object.entries(preset.effects)) {
     if (ar.effects[effectName]) {
-      ar.effects[effectName].enabled = config.enabled;
-      ar.effects[effectName].intensity = config.intensity;
+      ar.effects[effectName].enabled = config.enabled
+      ar.effects[effectName].intensity = config.intensity
     }
   }
 
-  activeAudioPreset.value = presetName;
+  activeAudioPreset.value = presetName
 }
 
 function onEffectToggle(effectName, enabled) {
-  if (!currentActiveImage.value) return;
-  const fotoManager = fotoManagerRef?.value;
-  if (!fotoManager) return;
-  fotoManager.initializeImageSettings(currentActiveImage.value);
-  const ar = currentActiveImage.value.fotoSettings.audioReactive;
+  if (!currentActiveImage.value) return
+  const fotoManager = fotoManagerRef?.value
+  if (!fotoManager) return
+  fotoManager.initializeImageSettings(currentActiveImage.value)
+  const ar = currentActiveImage.value.fotoSettings.audioReactive
   if (ar.effects && ar.effects[effectName]) {
-    ar.effects[effectName].enabled = enabled;
+    ar.effects[effectName].enabled = enabled
   }
 }
 
 function onEffectIntensityChange(effectName, value) {
-  if (!currentActiveImage.value) return;
-  const fotoManager = fotoManagerRef?.value;
-  if (!fotoManager) return;
-  fotoManager.initializeImageSettings(currentActiveImage.value);
-  const ar = currentActiveImage.value.fotoSettings.audioReactive;
+  if (!currentActiveImage.value) return
+  const fotoManager = fotoManagerRef?.value
+  if (!fotoManager) return
+  fotoManager.initializeImageSettings(currentActiveImage.value)
+  const ar = currentActiveImage.value.fotoSettings.audioReactive
   if (ar.effects && ar.effects[effectName]) {
-    ar.effects[effectName].intensity = parseInt(value);
+    ar.effects[effectName].intensity = parseInt(value)
   }
 }
 
 function onEffectSourceChange(effectName, value) {
-  if (!currentActiveImage.value) return;
-  const fotoManager = fotoManagerRef?.value;
-  if (!fotoManager) return;
-  fotoManager.initializeImageSettings(currentActiveImage.value);
-  const ar = currentActiveImage.value.fotoSettings.audioReactive;
+  if (!currentActiveImage.value) return
+  const fotoManager = fotoManagerRef?.value
+  if (!fotoManager) return
+  fotoManager.initializeImageSettings(currentActiveImage.value)
+  const ar = currentActiveImage.value.fotoSettings.audioReactive
   if (ar.effects && ar.effects[effectName]) {
-    ar.effects[effectName].source = value === '' ? null : value;
+    ar.effects[effectName].source = value === '' ? null : value
   }
 }
 
 function saveAudioReactiveSettings() {
-  if (!currentActiveImage.value) return;
-  const fotoManager = fotoManagerRef?.value;
-  if (!fotoManager) return;
-  fotoManager.initializeImageSettings(currentActiveImage.value);
-  const ar = currentActiveImage.value.fotoSettings.audioReactive;
-  savedAudioReactiveSettings.value = JSON.parse(JSON.stringify(ar));
+  if (!currentActiveImage.value) return
+  const fotoManager = fotoManagerRef?.value
+  if (!fotoManager) return
+  fotoManager.initializeImageSettings(currentActiveImage.value)
+  const ar = currentActiveImage.value.fotoSettings.audioReactive
+  savedAudioReactiveSettings.value = JSON.parse(JSON.stringify(ar))
   try {
-    localStorage.setItem('visualizer_audioReactivePreset', JSON.stringify(ar));
-    console.log('💾 Audio-Reaktiv Einstellungen gespeichert');
+    localStorage.setItem('visualizer_audioReactivePreset', JSON.stringify(ar))
+    console.log('💾 Audio-Reaktiv Einstellungen gespeichert')
   } catch (e) {
-    console.warn('⚠️ Konnte nicht in localStorage speichern:', e);
+    console.warn('⚠️ Konnte nicht in localStorage speichern:', e)
   }
 }
 
 function applyAudioReactiveSettings() {
-  if (!currentActiveImage.value || !savedAudioReactiveSettings.value) return;
-  const fotoManager = fotoManagerRef?.value;
-  if (!fotoManager) return;
-  fotoManager.initializeImageSettings(currentActiveImage.value);
-  currentActiveImage.value.fotoSettings.audioReactive = JSON.parse(JSON.stringify(savedAudioReactiveSettings.value));
-  console.log('📋 Audio-Reaktiv Einstellungen angewendet');
+  if (!currentActiveImage.value || !savedAudioReactiveSettings.value) return
+  const fotoManager = fotoManagerRef?.value
+  if (!fotoManager) return
+  fotoManager.initializeImageSettings(currentActiveImage.value)
+  currentActiveImage.value.fotoSettings.audioReactive = JSON.parse(
+    JSON.stringify(savedAudioReactiveSettings.value),
+  )
+  console.log('📋 Audio-Reaktiv Einstellungen angewendet')
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -508,62 +561,63 @@ function applyAudioReactiveSettings() {
 // ═══════════════════════════════════════════════════════════════════
 
 function initSlideshowManager() {
-  const multiImageManager = multiImageManagerRef?.value;
-  const fotoManager = fotoManagerRef?.value;
-  const canvasManager = canvasManagerRef?.value;
+  const multiImageManager = multiImageManagerRef?.value
+  const fotoManager = fotoManagerRef?.value
+  const canvasManager = canvasManagerRef?.value
 
   if (!multiImageManager || !fotoManager) {
-    console.warn('[Slideshow] Manager nicht verfügbar, versuche später erneut');
-    setTimeout(initSlideshowManager, 500);
-    return;
+    console.warn('[Slideshow] Manager nicht verfügbar, versuche später erneut')
+    setTimeout(initSlideshowManager, 500)
+    return
   }
 
   slideshowManagerRef.value = new SlideshowManager(multiImageManager, fotoManager, {
     redrawCallback: () => {
       if (canvasManager && canvasManager.redraw) {
-        canvasManager.redraw();
+        canvasManager.redraw()
       }
     },
     onSlideshowComplete: () => {
-      slideshowIsActive.value = false;
-      slideshowIsPaused.value = false;
-      slideshowCurrentIndex.value = 0;
-      slideshowTotalImages.value = 0;
-      toastStore.success(t('slideshow.title') + ' beendet');
-      console.log('[Slideshow] Beendet');
+      slideshowIsActive.value = false
+      slideshowIsPaused.value = false
+      slideshowCurrentIndex.value = 0
+      slideshowTotalImages.value = 0
+      toastStore.success(t('slideshow.title') + ' beendet')
+      console.log('[Slideshow] Beendet')
       // ✨ Global entfernen wenn gestoppt
-      window.slideshowManager = null;
+      window.slideshowManager = null
     },
     onImageTransition: (index, total, phase) => {
-      slideshowCurrentIndex.value = index;
-      slideshowCurrentPhase.value = phase;
-    }
-  });
+      slideshowCurrentIndex.value = index
+      slideshowCurrentPhase.value = phase
+    },
+  })
 
   // ✨ NEU: Global verfügbar machen für Maus-Interaktion
-  window.slideshowManager = slideshowManagerRef.value;
+  window.slideshowManager = slideshowManagerRef.value
 
-  console.log('[Slideshow] SlideshowManager initialisiert');
+  console.log('[Slideshow] SlideshowManager initialisiert')
 }
 
 function startSlideshow(config) {
   if (!slideshowManagerRef.value) {
-    initSlideshowManager();
+    initSlideshowManager()
   }
 
   if (!slideshowManagerRef.value) {
-    toastStore.error('Slideshow Manager nicht bereit');
-    return;
+    toastStore.error('Slideshow Manager nicht bereit')
+    return
   }
 
   // Bilder aus der Konfiguration extrahieren
-  const images = config.images.map(img => ({
+  const images = config.images.map((img) => ({
     imageObject: img.imageObject || img.img,
     name: img.name,
-    audioReactiveSettings: config.applyAudioReactive && savedAudioReactiveSettings.value
-      ? savedAudioReactiveSettings.value
-      : null
-  }));
+    audioReactiveSettings:
+      config.applyAudioReactive && savedAudioReactiveSettings.value
+        ? savedAudioReactiveSettings.value
+        : null,
+  }))
 
   const success = slideshowManagerRef.value.start(images, {
     fadeInDuration: config.fadeInDuration,
@@ -573,65 +627,68 @@ function startSlideshow(config) {
     autoApplyAudioReactive: config.applyAudioReactive,
     audioReactiveSettings: config.applyAudioReactive ? savedAudioReactiveSettings.value : null,
     renderBehindVisualizer: config.renderBehindVisualizer,
-    transform: config.transform
-  });
+    transform: config.transform,
+  })
 
   if (success) {
-    slideshowIsActive.value = true;
-    slideshowIsPaused.value = false;
-    slideshowTotalImages.value = images.length;
+    slideshowIsActive.value = true
+    slideshowIsPaused.value = false
+    slideshowTotalImages.value = images.length
     // ✨ Global verfügbar machen für Maus-Interaktion
-    window.slideshowManager = slideshowManagerRef.value;
-    toastStore.success(t('slideshow.title') + ' gestartet');
+    window.slideshowManager = slideshowManagerRef.value
+    toastStore.success(t('slideshow.title') + ' gestartet')
     // Auswahl aufheben nach dem Start
-    deselectAllImages();
+    deselectAllImages()
   }
 }
 
 function pauseSlideshow() {
   if (slideshowManagerRef.value) {
-    slideshowManagerRef.value.pause();
-    slideshowIsPaused.value = true;
+    slideshowManagerRef.value.pause()
+    slideshowIsPaused.value = true
   }
 }
 
 function resumeSlideshow() {
   if (slideshowManagerRef.value) {
-    slideshowManagerRef.value.resume();
-    slideshowIsPaused.value = false;
+    slideshowManagerRef.value.resume()
+    slideshowIsPaused.value = false
   }
 }
 
 function stopSlideshow() {
   if (slideshowManagerRef.value) {
-    slideshowManagerRef.value.stop();
-    slideshowIsActive.value = false;
-    slideshowIsPaused.value = false;
-    slideshowCurrentIndex.value = 0;
-    slideshowTotalImages.value = 0;
+    slideshowManagerRef.value.stop()
+    slideshowIsActive.value = false
+    slideshowIsPaused.value = false
+    slideshowCurrentIndex.value = 0
+    slideshowTotalImages.value = 0
     // ✨ Global entfernen wenn gestoppt
-    window.slideshowManager = null;
+    window.slideshowManager = null
   }
 }
 
 // ✨ NEU: Slideshow Bild-Reihenfolge geändert
 function onSlideshowOrderChanged(orderedImages) {
-  console.log('[Slideshow] Reihenfolge geändert:', orderedImages.length, 'Bilder');
+  console.log('[Slideshow] Reihenfolge geändert:', orderedImages.length, 'Bilder')
 }
 
 // ✨ NEU: Slideshow Render-Layer geändert
 function onSlideshowRenderLayerChange(renderBehindVisualizer) {
   if (slideshowManagerRef.value) {
-    slideshowManagerRef.value.setRenderBehindVisualizer(renderBehindVisualizer);
-    console.log('[Slideshow] Render-Layer geändert:', renderBehindVisualizer ? 'hinter Visualizer' : 'vor Visualizer');
+    slideshowManagerRef.value.setRenderBehindVisualizer(renderBehindVisualizer)
+    console.log(
+      '[Slideshow] Render-Layer geändert:',
+      renderBehindVisualizer ? 'hinter Visualizer' : 'vor Visualizer',
+    )
   }
 }
 
 // ✨ NEU: Slideshow Transform geändert
 function onSlideshowTransformChange(transform) {
   if (slideshowManagerRef.value) {
-    slideshowManagerRef.value.setTransform(transform);
-    console.log('[Slideshow] Transform geändert:', transform);
+    slideshowManagerRef.value.setTransform(transform)
+    console.log('[Slideshow] Transform geändert:', transform)
   }
 }
 
@@ -640,116 +697,117 @@ function onSlideshowTransformChange(transform) {
 // ═══════════════════════════════════════════════════════════════════
 
 function handleImageUpload(event) {
-  handleImageUploadComposable(event,
+  handleImageUploadComposable(
+    event,
     () => toastStore.success(t('toast.imageLoadSuccess')),
-    (name) => toastStore.error(`${t('toast.imageLoadError')}: ${name}`)
-  );
+    (name) => toastStore.error(`${t('toast.imageLoadError')}: ${name}`),
+  )
 }
 
 function clearAllImages() {
-  if (!confirm(`Alle ${imageGallery.value.length} Bilder aus der Galerie löschen?`)) return;
-  clearAllImagesComposable();
+  if (!confirm(`Alle ${imageGallery.value.length} Bilder aus der Galerie löschen?`)) return
+  clearAllImagesComposable()
 }
 
 function addImageToCanvas() {
-  const imagesToAdd = selectedImages.value;
-  if (imagesToAdd.length === 0) return;
-  const multiImageManager = multiImageManagerRef?.value;
-  if (!multiImageManager) return;
+  const imagesToAdd = selectedImages.value
+  if (imagesToAdd.length === 0) return
+  const multiImageManager = multiImageManagerRef?.value
+  if (!multiImageManager) return
 
   imagesToAdd.forEach((imgData) => {
-    multiImageManager.addImage(imgData.img);
-  });
+    multiImageManager.addImage(imgData.img)
+  })
 
-  console.log(`✅ ${imagesToAdd.length} Bild(er) auf Canvas platziert`);
-  toastStore.success(t('toast.imagesAddedToCanvas').replace('{count}', imagesToAdd.length));
-  deselectAllImages();
+  console.log(`✅ ${imagesToAdd.length} Bild(er) auf Canvas platziert`)
+  toastStore.success(t('toast.imagesAddedToCanvas').replace('{count}', imagesToAdd.length))
+  deselectAllImages()
 }
 
 function setAsBackground() {
-  if (selectedImageCount.value !== 1) return;
-  const imgToSet = selectedImages.value[0];
-  if (!imgToSet) return;
-  const canvasManager = canvasManagerRef?.value;
-  if (!canvasManager) return;
-  canvasManager.setBackground(imgToSet.img);
-  console.log('✅ Bild als Hintergrund gesetzt:', imgToSet.name);
-  deselectAllImages();
+  if (selectedImageCount.value !== 1) return
+  const imgToSet = selectedImages.value[0]
+  if (!imgToSet) return
+  const canvasManager = canvasManagerRef?.value
+  if (!canvasManager) return
+  canvasManager.setBackground(imgToSet.img)
+  console.log('✅ Bild als Hintergrund gesetzt:', imgToSet.name)
+  deselectAllImages()
 }
 
 function setAsWorkspaceBackground() {
-  if (selectedImageCount.value !== 1) return;
-  const imgToSet = selectedImages.value[0];
-  if (!imgToSet) return;
-  const canvasManager = canvasManagerRef?.value;
-  if (!canvasManager) return;
-  const success = canvasManager.setWorkspaceBackground(imgToSet.img);
+  if (selectedImageCount.value !== 1) return
+  const imgToSet = selectedImages.value[0]
+  if (!imgToSet) return
+  const canvasManager = canvasManagerRef?.value
+  if (!canvasManager) return
+  const success = canvasManager.setWorkspaceBackground(imgToSet.img)
   if (success) {
-    console.log('✅ Bild als Workspace-Hintergrund gesetzt:', imgToSet.name);
-    deselectAllImages();
+    console.log('✅ Bild als Workspace-Hintergrund gesetzt:', imgToSet.name)
+    deselectAllImages()
   } else {
-    toastStore.warning(t('toast.selectWorkspaceFirst'));
+    toastStore.warning(t('toast.selectWorkspaceFirst'))
   }
 }
 
 // Stock-Image Canvas-Operationen
 async function addStockImageToCanvas() {
-  const imagesToAdd = selectedStockImagesList.value;
-  if (imagesToAdd.length === 0) return;
-  const multiImageManager = multiImageManagerRef?.value;
-  if (!multiImageManager) return;
+  const imagesToAdd = selectedStockImagesList.value
+  if (imagesToAdd.length === 0) return
+  const multiImageManager = multiImageManagerRef?.value
+  if (!multiImageManager) return
 
   try {
     for (const stockImg of imagesToAdd) {
-      const img = await loadStockImageObject(stockImg);
-      multiImageManager.addImage(img);
+      const img = await loadStockImageObject(stockImg)
+      multiImageManager.addImage(img)
     }
-    console.log(`✅ ${imagesToAdd.length} Stock-Bild(er) auf Canvas platziert`);
-    toastStore.success(t('toast.imagesAddedToCanvas').replace('{count}', imagesToAdd.length));
-    deselectAllStockImages();
+    console.log(`✅ ${imagesToAdd.length} Stock-Bild(er) auf Canvas platziert`)
+    toastStore.success(t('toast.imagesAddedToCanvas').replace('{count}', imagesToAdd.length))
+    deselectAllStockImages()
   } catch (error) {
-    console.error('❌ Fehler beim Laden der Stock-Bilder:', error);
-    toastStore.error(t('toast.imagesLoadError'));
+    console.error('❌ Fehler beim Laden der Stock-Bilder:', error)
+    toastStore.error(t('toast.imagesLoadError'))
   }
 }
 
 async function setStockAsBackground() {
-  if (selectedStockCount.value !== 1) return;
-  const stockImg = selectedStockImagesList.value[0];
-  if (!stockImg) return;
-  const canvasManager = canvasManagerRef?.value;
-  if (!canvasManager) return;
+  if (selectedStockCount.value !== 1) return
+  const stockImg = selectedStockImagesList.value[0]
+  if (!stockImg) return
+  const canvasManager = canvasManagerRef?.value
+  if (!canvasManager) return
 
   try {
-    const img = await loadStockImageObject(stockImg);
-    canvasManager.setBackground(img);
-    console.log('✅ Stock-Bild als Hintergrund gesetzt:', stockImg.name);
-    deselectAllStockImages();
+    const img = await loadStockImageObject(stockImg)
+    canvasManager.setBackground(img)
+    console.log('✅ Stock-Bild als Hintergrund gesetzt:', stockImg.name)
+    deselectAllStockImages()
   } catch (error) {
-    console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
-    toastStore.error(t('toast.imageLoadError'));
+    console.error('❌ Fehler beim Laden des Stock-Bildes:', error)
+    toastStore.error(t('toast.imageLoadError'))
   }
 }
 
 async function setStockAsWorkspaceBackground() {
-  if (selectedStockCount.value !== 1) return;
-  const stockImg = selectedStockImagesList.value[0];
-  if (!stockImg) return;
-  const canvasManager = canvasManagerRef?.value;
-  if (!canvasManager) return;
+  if (selectedStockCount.value !== 1) return
+  const stockImg = selectedStockImagesList.value[0]
+  if (!stockImg) return
+  const canvasManager = canvasManagerRef?.value
+  if (!canvasManager) return
 
   try {
-    const img = await loadStockImageObject(stockImg);
-    const success = canvasManager.setWorkspaceBackground(img);
+    const img = await loadStockImageObject(stockImg)
+    const success = canvasManager.setWorkspaceBackground(img)
     if (success) {
-      console.log('✅ Stock-Bild als Workspace-Hintergrund gesetzt:', stockImg.name);
-      deselectAllStockImages();
+      console.log('✅ Stock-Bild als Workspace-Hintergrund gesetzt:', stockImg.name)
+      deselectAllStockImages()
     } else {
-      toastStore.warning(t('toast.selectWorkspaceFirst'));
+      toastStore.warning(t('toast.selectWorkspaceFirst'))
     }
   } catch (error) {
-    console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
-    toastStore.error(t('toast.imageLoadError'));
+    console.error('❌ Fehler beim Laden des Stock-Bildes:', error)
+    toastStore.error(t('toast.imageLoadError'))
   }
 }
 
@@ -758,149 +816,159 @@ async function setStockAsWorkspaceBackground() {
 // ═══════════════════════════════════════════════════════════════════
 
 function updatePlacementSettings(settings) {
-  selectedAnimation.value = settings.selectedAnimation;
-  animationDuration.value = settings.animationDuration;
-  imageScale.value = settings.imageScale;
-  imageOffsetX.value = settings.imageOffsetX;
-  imageOffsetY.value = settings.imageOffsetY;
+  selectedAnimation.value = settings.selectedAnimation
+  animationDuration.value = settings.animationDuration
+  imageScale.value = settings.imageScale
+  imageOffsetX.value = settings.imageOffsetX
+  imageOffsetY.value = settings.imageOffsetY
 }
 
 async function startStockImageRangeSelection() {
-  if (selectedStockCount.value !== 1) return;
-  const stockImg = selectedStockImagesList.value[0];
-  if (!stockImg) return;
-  const canvasManager = canvasManagerRef?.value;
-  if (!canvasManager) return;
+  if (selectedStockCount.value !== 1) return
+  const stockImg = selectedStockImagesList.value[0]
+  if (!stockImg) return
+  const canvasManager = canvasManagerRef?.value
+  if (!canvasManager) return
 
   try {
-    const img = await loadStockImageObject(stockImg);
-    pendingRangeSelectionImage.value = img;
-    pendingRangeSelectionType.value = 'stock';
-    isInRangeSelectionMode.value = true;
-    canvasManager.startImageSelectionMode((bounds) => handleRangeSelectionComplete(bounds), selectedAnimation.value);
-    console.log('📐 Bereichsauswahl-Modus gestartet für Stock-Bild:', stockImg.name);
+    const img = await loadStockImageObject(stockImg)
+    pendingRangeSelectionImage.value = img
+    pendingRangeSelectionType.value = 'stock'
+    isInRangeSelectionMode.value = true
+    canvasManager.startImageSelectionMode(
+      (bounds) => handleRangeSelectionComplete(bounds),
+      selectedAnimation.value,
+    )
+    console.log('📐 Bereichsauswahl-Modus gestartet für Stock-Bild:', stockImg.name)
   } catch (error) {
-    console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
-    toastStore.error(t('toast.imageLoadError'));
-    isInRangeSelectionMode.value = false;
+    console.error('❌ Fehler beim Laden des Stock-Bildes:', error)
+    toastStore.error(t('toast.imageLoadError'))
+    isInRangeSelectionMode.value = false
   }
 }
 
 function startUploadedImageRangeSelection() {
-  if (selectedImageCount.value !== 1) return;
-  const imgData = selectedImages.value[0];
-  if (!imgData || !imgData.img) return;
-  const canvasManager = canvasManagerRef?.value;
-  if (!canvasManager) return;
+  if (selectedImageCount.value !== 1) return
+  const imgData = selectedImages.value[0]
+  if (!imgData || !imgData.img) return
+  const canvasManager = canvasManagerRef?.value
+  if (!canvasManager) return
 
-  pendingRangeSelectionImage.value = imgData.img;
-  pendingRangeSelectionType.value = 'uploaded';
-  isInRangeSelectionMode.value = true;
-  canvasManager.startImageSelectionMode((bounds) => handleRangeSelectionComplete(bounds), selectedAnimation.value);
-  console.log('📐 Bereichsauswahl-Modus gestartet für hochgeladenes Bild:', imgData.name);
+  pendingRangeSelectionImage.value = imgData.img
+  pendingRangeSelectionType.value = 'uploaded'
+  isInRangeSelectionMode.value = true
+  canvasManager.startImageSelectionMode(
+    (bounds) => handleRangeSelectionComplete(bounds),
+    selectedAnimation.value,
+  )
+  console.log('📐 Bereichsauswahl-Modus gestartet für hochgeladenes Bild:', imgData.name)
 }
 
 function handleRangeSelectionComplete(bounds) {
   if (!bounds || !pendingRangeSelectionImage.value) {
-    isInRangeSelectionMode.value = false;
-    pendingRangeSelectionImage.value = null;
-    pendingRangeSelectionType.value = null;
-    return;
+    isInRangeSelectionMode.value = false
+    pendingRangeSelectionImage.value = null
+    pendingRangeSelectionType.value = null
+    return
   }
 
-  const multiImageManager = multiImageManagerRef?.value;
-  const canvasManager = canvasManagerRef?.value;
+  const multiImageManager = multiImageManagerRef?.value
+  const canvasManager = canvasManagerRef?.value
   if (!multiImageManager || !canvasManager) {
-    isInRangeSelectionMode.value = false;
-    return;
+    isInRangeSelectionMode.value = false
+    return
   }
 
-  const canvas = canvasManager.canvas;
-  const scale = imageScale.value;
-  const offsetX = imageOffsetX.value / canvas.width;
-  const offsetY = imageOffsetY.value / canvas.height;
+  const canvas = canvasManager.canvas
+  const scale = imageScale.value
+  const offsetX = imageOffsetX.value / canvas.width
+  const offsetY = imageOffsetY.value / canvas.height
 
   const scaledBounds = {
     ...bounds,
     relWidth: bounds.relWidth * scale,
     relHeight: bounds.relHeight * scale,
     relX: bounds.relX + (bounds.relWidth * (1 - scale)) / 2 + offsetX,
-    relY: bounds.relY + (bounds.relHeight * (1 - scale)) / 2 + offsetY
-  };
+    relY: bounds.relY + (bounds.relHeight * (1 - scale)) / 2 + offsetY,
+  }
 
   multiImageManager.addImageWithBounds(
     pendingRangeSelectionImage.value,
     scaledBounds,
     bounds.animation || selectedAnimation.value,
-    { duration: animationDuration.value }
-  );
+    { duration: animationDuration.value },
+  )
 
   if (pendingRangeSelectionType.value === 'stock') {
-    deselectAllStockImages();
+    deselectAllStockImages()
   } else {
-    deselectAllImages();
+    deselectAllImages()
   }
 
-  isInRangeSelectionMode.value = false;
-  pendingRangeSelectionImage.value = null;
-  pendingRangeSelectionType.value = null;
+  isInRangeSelectionMode.value = false
+  pendingRangeSelectionImage.value = null
+  pendingRangeSelectionType.value = null
 }
 
 async function addStockImageDirectly() {
-  if (selectedStockCount.value !== 1) return;
-  const stockImg = selectedStockImagesList.value[0];
-  if (!stockImg) return;
-  const multiImageManager = multiImageManagerRef?.value;
-  const canvasManager = canvasManagerRef?.value;
-  if (!multiImageManager || !canvasManager) return;
+  if (selectedStockCount.value !== 1) return
+  const stockImg = selectedStockImagesList.value[0]
+  if (!stockImg) return
+  const multiImageManager = multiImageManagerRef?.value
+  const canvasManager = canvasManagerRef?.value
+  if (!multiImageManager || !canvasManager) return
 
   try {
-    const img = await loadStockImageObject(stockImg);
-    const canvas = canvasManager.canvas;
-    const relX = 0.5 + (imageOffsetX.value / canvas.width);
-    const relY = 0.5 + (imageOffsetY.value / canvas.height);
-    const baseSize = 0.15;
-    const relSize = baseSize * imageScale.value;
+    const img = await loadStockImageObject(stockImg)
+    const canvas = canvasManager.canvas
+    const relX = 0.5 + imageOffsetX.value / canvas.width
+    const relY = 0.5 + imageOffsetY.value / canvas.height
+    const baseSize = 0.15
+    const relSize = baseSize * imageScale.value
 
     const bounds = {
       relX: relX - relSize / 2,
       relY: relY - relSize / 2,
       relWidth: relSize,
-      relHeight: relSize
-    };
+      relHeight: relSize,
+    }
 
-    multiImageManager.addImageWithBounds(img, bounds, selectedAnimation.value, { duration: animationDuration.value });
-    console.log('✅ Stock-Bild platziert');
-    deselectAllStockImages();
+    multiImageManager.addImageWithBounds(img, bounds, selectedAnimation.value, {
+      duration: animationDuration.value,
+    })
+    console.log('✅ Stock-Bild platziert')
+    deselectAllStockImages()
   } catch (error) {
-    console.error('❌ Fehler beim Laden des Stock-Bildes:', error);
+    console.error('❌ Fehler beim Laden des Stock-Bildes:', error)
   }
 }
 
 function addUploadedImageDirectly() {
-  if (selectedImageCount.value !== 1) return;
-  const imgData = selectedImages.value[0];
-  if (!imgData || !imgData.img) return;
-  const multiImageManager = multiImageManagerRef?.value;
-  const canvasManager = canvasManagerRef?.value;
-  if (!multiImageManager || !canvasManager) return;
+  if (selectedImageCount.value !== 1) return
+  const imgData = selectedImages.value[0]
+  if (!imgData || !imgData.img) return
+  const multiImageManager = multiImageManagerRef?.value
+  const canvasManager = canvasManagerRef?.value
+  if (!multiImageManager || !canvasManager) return
 
-  const canvas = canvasManager.canvas;
-  const relX = 0.5 + (imageOffsetX.value / canvas.width);
-  const relY = 0.5 + (imageOffsetY.value / canvas.height);
-  const baseSize = 0.15;
-  const relSize = baseSize * imageScale.value;
+  const canvas = canvasManager.canvas
+  const relX = 0.5 + imageOffsetX.value / canvas.width
+  const relY = 0.5 + imageOffsetY.value / canvas.height
+  const baseSize = 0.15
+  const relSize = baseSize * imageScale.value
 
   const bounds = {
     relX: relX - relSize / 2,
     relY: relY - relSize / 2,
     relWidth: relSize,
-    relHeight: relSize
-  };
+    relHeight: relSize,
+  }
 
-  multiImageManager.addImageWithBounds(imgData.img, bounds, selectedAnimation.value, { duration: animationDuration.value });
-  console.log('✅ Bild platziert');
-  deselectAllImages();
+  multiImageManager.addImageWithBounds(imgData.img, bounds, selectedAnimation.value, {
+    duration: animationDuration.value,
+  })
+  console.log('✅ Bild platziert')
+  deselectAllImages()
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -909,15 +977,15 @@ function addUploadedImageDirectly() {
 
 async function openStockPreview(img) {
   try {
-    const loadedImg = await loadStockImageObject(img);
+    const loadedImg = await loadStockImageObject(img)
     previewImage.value = {
       src: loadedImg.src,
       name: img.name,
       type: 'stock',
-      data: img
-    };
+      data: img,
+    }
   } catch (error) {
-    console.error('❌ Fehler beim Laden der Vorschau:', error);
+    console.error('❌ Fehler beim Laden der Vorschau:', error)
   }
 }
 
@@ -926,40 +994,40 @@ function openUploadedPreview(imgData) {
     src: imgData.img.src,
     name: imgData.name,
     type: 'uploaded',
-    data: imgData
-  };
+    data: imgData,
+  }
 }
 
 function closePreview() {
-  previewImage.value = null;
+  previewImage.value = null
 }
 
 async function addPreviewToCanvas() {
-  if (!previewImage.value) return;
-  const multiImageManager = multiImageManagerRef?.value;
-  if (!multiImageManager) return;
+  if (!previewImage.value) return
+  const multiImageManager = multiImageManagerRef?.value
+  if (!multiImageManager) return
 
   if (previewImage.value.type === 'stock') {
-    const img = await loadStockImageObject(previewImage.value.data);
-    multiImageManager.addImage(img);
+    const img = await loadStockImageObject(previewImage.value.data)
+    multiImageManager.addImage(img)
   } else {
-    multiImageManager.addImage(previewImage.value.data.img);
+    multiImageManager.addImage(previewImage.value.data.img)
   }
-  closePreview();
+  closePreview()
 }
 
 async function setPreviewAsBackground() {
-  if (!previewImage.value) return;
-  const canvasManager = canvasManagerRef?.value;
-  if (!canvasManager) return;
+  if (!previewImage.value) return
+  const canvasManager = canvasManagerRef?.value
+  if (!canvasManager) return
 
   if (previewImage.value.type === 'stock') {
-    const img = await loadStockImageObject(previewImage.value.data);
-    canvasManager.setBackground(img);
+    const img = await loadStockImageObject(previewImage.value.data)
+    canvasManager.setBackground(img)
   } else {
-    canvasManager.setBackground(previewImage.value.data.img);
+    canvasManager.setBackground(previewImage.value.data.img)
   }
-  closePreview();
+  closePreview()
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -967,65 +1035,69 @@ async function setPreviewAsBackground() {
 // ═══════════════════════════════════════════════════════════════════
 
 onMounted(() => {
-  loadStockGallery();
+  loadStockGallery()
 
   const initializePanel = () => {
-    const fotoManager = fotoManagerRef?.value;
+    const fotoManager = fotoManagerRef?.value
     if (!fotoManager) {
-      setTimeout(initializePanel, 100);
-      return;
+      setTimeout(initializePanel, 100)
+      return
     }
 
-    presets.value = fotoManager.getAvailablePresets();
+    presets.value = fotoManager.getAvailablePresets()
 
     // Controls global verfügbar machen
     window.fotoPanelControls = {
       loadImageSettings: (imgData) => {
         if (imageFiltersPanelRef.value) {
-          imageFiltersPanelRef.value.loadImageSettings(imgData?.fotoSettings || {});
+          imageFiltersPanelRef.value.loadImageSettings(imgData?.fotoSettings || {})
         }
         if (audioReactivePanelRef.value) {
-          audioReactivePanelRef.value.loadSettings(imgData);
+          audioReactivePanelRef.value.loadSettings(imgData)
         }
       },
-      currentActiveImage: currentActiveImage
-    };
+      currentActiveImage: currentActiveImage,
+    }
 
     // Gespeicherte Audio-Reaktiv Einstellungen laden
     try {
-      const savedPreset = localStorage.getItem('visualizer_audioReactivePreset');
+      const savedPreset = localStorage.getItem('visualizer_audioReactivePreset')
       if (savedPreset) {
-        savedAudioReactiveSettings.value = JSON.parse(savedPreset);
+        savedAudioReactiveSettings.value = JSON.parse(savedPreset)
       }
     } catch (e) {
-      console.warn('⚠️ Konnte Audio-Reaktiv Preset nicht laden:', e);
+      console.warn('⚠️ Konnte Audio-Reaktiv Preset nicht laden:', e)
     }
 
-    console.log('✅ FotoPanel initialisiert');
-  };
+    console.log('✅ FotoPanel initialisiert')
+  }
 
-  initializePanel();
+  initializePanel()
 
   // Slideshow Manager initialisieren
   setTimeout(() => {
-    initSlideshowManager();
-  }, 1000);
-});
+    initSlideshowManager()
+  }, 1000)
+})
 
 // Watcher für aktives Bild
-watch(currentActiveImage, (newImage) => {
-  if (newImage) {
-    // Filter-Einstellungen laden
-    if (imageFiltersPanelRef.value) {
-      imageFiltersPanelRef.value.loadImageSettings(newImage.fotoSettings || {});
+watch(
+  currentActiveImage,
+  (newImage) => {
+    if (newImage) {
+      // Filter-Einstellungen laden
+      if (imageFiltersPanelRef.value) {
+        imageFiltersPanelRef.value.loadImageSettings(newImage.fotoSettings || {})
+      }
+      // Audio-Reaktiv Einstellungen laden
+      if (audioReactivePanelRef.value) {
+        audioReactivePanelRef.value.loadSettings(newImage)
+      }
+      console.log('🖼️ Aktives Bild geändert:', newImage.id || newImage)
     }
-    // Audio-Reaktiv Einstellungen laden
-    if (audioReactivePanelRef.value) {
-      audioReactivePanelRef.value.loadSettings(newImage);
-    }
-    console.log('🖼️ Aktives Bild geändert:', newImage.id || newImage);
-  }
-}, { immediate: true });
+  },
+  { immediate: true },
+)
 </script>
 
 <style scoped>

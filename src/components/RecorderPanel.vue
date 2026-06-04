@@ -13,10 +13,7 @@
     </div>
 
     <!-- Status Anzeige -->
-    <div
-      class="status-indicator"
-      :class="statusClass"
-    >
+    <div class="status-indicator" :class="statusClass">
       <div class="status-dot"></div>
       <span class="status-text">{{ statusText }}</span>
       <!-- Recording Timer -->
@@ -39,8 +36,8 @@
         :disabled="isProcessing"
       >
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M8 12h8M12 8v8"/>
+          <circle cx="12" cy="12" r="10" />
+          <path d="M8 12h8M12 8v8" />
         </svg>
         {{ t('recorder.prepare') }}
       </button>
@@ -53,7 +50,7 @@
         :disabled="isProcessing"
       >
         <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="12" cy="12" r="8"/>
+          <circle cx="12" cy="12" r="8" />
         </svg>
         {{ t('recorder.start') }}
       </button>
@@ -66,8 +63,8 @@
         :disabled="isProcessing"
       >
         <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="6" y="4" width="4" height="16" rx="1"/>
-          <rect x="14" y="4" width="4" height="16" rx="1"/>
+          <rect x="6" y="4" width="4" height="16" rx="1" />
+          <rect x="14" y="4" width="4" height="16" rx="1" />
         </svg>
         {{ t('recorder.pause') }}
       </button>
@@ -79,7 +76,7 @@
         :disabled="isProcessing"
       >
         <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8 5v14l11-7z"/>
+          <path d="M8 5v14l11-7z" />
         </svg>
         {{ t('recorder.resume') }}
       </button>
@@ -92,7 +89,7 @@
         :disabled="isProcessing"
       >
         <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="6" y="6" width="12" height="12" rx="2"/>
+          <rect x="6" y="6" width="12" height="12" rx="2" />
         </svg>
         {{ t('recorder.stop') }}
       </button>
@@ -105,8 +102,8 @@
         :disabled="isProcessing"
       >
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-          <path d="M3 3v5h5"/>
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
         </svg>
         {{ t('recorder.reset') }}
       </button>
@@ -126,13 +123,13 @@
           v-model="microphoneEnabled"
           @change="toggleMicrophone"
           :disabled="isSwitchingSource"
-        >
+        />
         <span class="toggle-label">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-            <line x1="12" y1="19" x2="12" y2="23"/>
-            <line x1="8" y1="23" x2="16" y2="23"/>
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+            <line x1="12" y1="19" x2="12" y2="23" />
+            <line x1="8" y1="23" x2="16" y2="23" />
           </svg>
           Mikrofon zuschalten
         </span>
@@ -209,11 +206,14 @@
           type="checkbox"
           v-model="enableServerConversion"
           :disabled="!serverAvailable || recorderStore.isRecording"
-        >
+        />
         <span class="toggle-label">{{ t('recorder.autoConvert') }}</span>
       </label>
 
-      <div class="quality-buttons conversion-quality" v-if="enableServerConversion && serverAvailable">
+      <div
+        class="quality-buttons conversion-quality"
+        v-if="enableServerConversion && serverAvailable"
+      >
         <button
           v-for="preset in conversionPresets"
           :key="preset.value"
@@ -229,20 +229,33 @@
     </div>
 
     <!-- Conversion Progress -->
-    <div class="conversion-progress" v-if="isConverting || conversionStatus === 'completed' || conversionStatus === 'error'">
+    <div
+      class="conversion-progress"
+      v-if="isConverting || conversionStatus === 'completed' || conversionStatus === 'error'"
+    >
       <div class="progress-header">
         <span class="progress-label">
-          {{ conversionStatus === 'uploading' ? t('recorder.uploading') :
-             conversionStatus === 'converting' ? t('recorder.converting') :
-             conversionStatus === 'completed' ? t('recorder.completed') :
-             conversionStatus === 'error' ? t('recorder.conversionError') : t('recorder.processing') }}
+          {{
+            conversionStatus === 'uploading'
+              ? t('recorder.uploading')
+              : conversionStatus === 'converting'
+                ? t('recorder.converting')
+                : conversionStatus === 'completed'
+                  ? t('recorder.completed')
+                  : conversionStatus === 'error'
+                    ? t('recorder.conversionError')
+                    : t('recorder.processing')
+          }}
         </span>
         <span class="progress-percent">{{ conversionProgress }}%</span>
       </div>
       <div class="progress-bar">
         <div
           class="progress-fill"
-          :class="{ completed: conversionStatus === 'completed', error: conversionStatus === 'error' }"
+          :class="{
+            completed: conversionStatus === 'completed',
+            error: conversionStatus === 'error',
+          }"
           :style="{ width: conversionProgress + '%' }"
         ></div>
       </div>
@@ -256,16 +269,20 @@
           @click="handleDownloadClick"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
           {{ t('recorder.downloadMp4') }}
         </a>
-        <button class="btn btn-close-conversion" @click="dismissConversion(true)" :title="t('recorder.closeAndDelete')">
+        <button
+          class="btn btn-close-conversion"
+          @click="dismissConversion(true)"
+          :title="t('recorder.closeAndDelete')"
+        >
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       </div>
@@ -275,10 +292,10 @@
         <span class="error-message">{{ conversionError || t('recorder.unknownError') }}</span>
         <button class="btn btn-retry" @click="retryConversion">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M23 4v6h-6"/>
-            <path d="M1 20v-6h6"/>
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
-            <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
+            <path d="M23 4v6h-6" />
+            <path d="M1 20v-6h6" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10" />
+            <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14" />
           </svg>
           {{ t('recorder.retry') }}
         </button>
@@ -290,16 +307,22 @@
 
     <!-- Manual Convert Button - nur wenn Auto-Konvertierung DEAKTIVIERT ist -->
     <button
-      v-if="recorderStore.lastRecording && !isConverting && serverAvailable && !enableServerConversion && conversionStatus !== 'completed'"
+      v-if="
+        recorderStore.lastRecording &&
+        !isConverting &&
+        serverAvailable &&
+        !enableServerConversion &&
+        conversionStatus !== 'completed'
+      "
       class="btn btn-convert"
       @click="convertLastRecording"
       :disabled="isProcessing"
     >
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M23 4v6h-6"/>
-        <path d="M1 20v-6h6"/>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
-        <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
+        <path d="M23 4v6h-6" />
+        <path d="M1 20v-6h6" />
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10" />
+        <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14" />
       </svg>
       {{ t('recorder.convertToMp4') }}
     </button>
@@ -307,48 +330,51 @@
 
   <!-- Conversion Overlay (Fullscreen) -->
   <Teleport to="body">
-    <div
-      v-if="isConverting"
-      class="conversion-overlay"
-    >
+    <div v-if="isConverting" class="conversion-overlay">
       <div class="conversion-modal">
         <div class="conversion-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M23 4v6h-6"/>
-            <path d="M1 20v-6h6"/>
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
-            <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
+            <path d="M23 4v6h-6" />
+            <path d="M1 20v-6h6" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10" />
+            <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14" />
           </svg>
         </div>
-        <h2 class="conversion-title">{{ t('recorder.convertingVideo') || 'Dein Video wird konvertiert' }}</h2>
+        <h2 class="conversion-title">
+          {{ t('recorder.convertingVideo') || 'Dein Video wird konvertiert' }}
+        </h2>
         <p class="conversion-subtitle">
-          {{ conversionStatus === 'uploading' ? (t('recorder.uploadingToServer') || 'Video wird hochgeladen...') :
-             (t('recorder.processingOnServer') || 'Server verarbeitet dein Video...') }}
+          {{
+            conversionStatus === 'uploading'
+              ? t('recorder.uploadingToServer') || 'Video wird hochgeladen...'
+              : t('recorder.processingOnServer') || 'Server verarbeitet dein Video...'
+          }}
         </p>
         <div class="conversion-progress-bar">
           <div class="conversion-progress-fill" :style="{ width: conversionProgress + '%' }"></div>
         </div>
         <span class="conversion-percent">{{ conversionProgress }}%</span>
-        <p class="conversion-hint">{{ t('recorder.dontCloseWindow') || 'Bitte das Fenster nicht schließen' }}</p>
+        <p class="conversion-hint">
+          {{ t('recorder.dontCloseWindow') || 'Bitte das Fenster nicht schließen' }}
+        </p>
       </div>
     </div>
   </Teleport>
 
   <!-- Results Modal (Fullscreen Popup) -->
   <Teleport to="body">
-    <div
-      id="results-panel"
-      class="results-modal"
-      style="display: none;"
-      @click.self="closeResults"
-    >
+    <div id="results-panel" class="results-modal" style="display: none" @click.self="closeResults">
       <div class="modal-content">
         <div class="modal-header">
           <h2>{{ t('recorder.recordingPreview') }}</h2>
-          <button @click="closeResults" class="modal-close-btn" :title="t('common.close') + ' (ESC)'">
+          <button
+            @click="closeResults"
+            class="modal-close-btn"
+            :title="t('common.close') + ' (ESC)'"
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
@@ -361,9 +387,9 @@
           <div class="modal-actions">
             <a id="downloadLink" download class="download-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
               {{ t('recorder.downloadVideo') }}
             </a>
@@ -380,49 +406,58 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { useI18n } from '../lib/i18n.js';
-import { useRecorderStore } from '../stores/recorderStore.js';
-import HelpTooltip from './HelpTooltip.vue';
-import { checkServerHealth, convertAndWait, getFileUrl, getDownloadUrl, cleanupFile } from '../lib/videoApi.js';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useI18n } from '../lib/i18n.js'
+import { useRecorderStore } from '../stores/recorderStore.js'
+import HelpTooltip from './HelpTooltip.vue'
+import {
+  checkServerHealth,
+  convertAndWait,
+  getFileUrl,
+  getDownloadUrl,
+  cleanupFile,
+} from '../lib/videoApi.js'
 
-const { t } = useI18n();
-const recorderStore = useRecorderStore();
+const { t } = useI18n()
+const recorderStore = useRecorderStore()
 
 // Lokaler State
-const selectedQuality = ref(8_000_000);
-const uploadMode = ref('auto');
-const isProcessing = ref(false);
+const selectedQuality = ref(8_000_000)
+const uploadMode = ref('auto')
+const isProcessing = ref(false)
 
 // Recording Timer State
-const recordingStartTime = ref(null);
-const recordingElapsedAtPause = ref(0);
-const recordingDisplayTime = ref('00:00');
-let timerInterval = null;
+const recordingStartTime = ref(null)
+const recordingElapsedAtPause = ref(0)
+const recordingDisplayTime = ref('00:00')
+let timerInterval = null
 
 // ✨ NEU: Mikrofon zuschalten (Player + Mic gleichzeitig)
-const microphoneEnabled = ref(false);
-const isSwitchingSource = ref(false);
+const microphoneEnabled = ref(false)
+const isSwitchingSource = ref(false)
 
 // ✅ FIX: Mikrofon-Status zurücksetzen wenn Aufnahme endet
-watch(() => recorderStore.isRecording, (isRecording) => {
-  if (!isRecording) {
-    // Aufnahme beendet - Reset Mikrofon-Status
-    microphoneEnabled.value = false;
-    console.log('[Panel] Aufnahme beendet - Mikrofon-Status zurückgesetzt');
-  }
-});
+watch(
+  () => recorderStore.isRecording,
+  (isRecording) => {
+    if (!isRecording) {
+      // Aufnahme beendet - Reset Mikrofon-Status
+      microphoneEnabled.value = false
+      console.log('[Panel] Aufnahme beendet - Mikrofon-Status zurückgesetzt')
+    }
+  },
+)
 
 // Server Conversion State
-const serverAvailable = ref(null); // null = unknown, true/false
-const enableServerConversion = ref(true); // FFmpeg Konvertierung aktiviert
-const conversionQuality = ref('social'); // FFmpeg Preset
-const isConverting = ref(false);
-const conversionProgress = ref(0);
-const conversionStatus = ref(''); // 'uploading', 'converting', 'completed', 'error'
-const conversionError = ref(null);
-const convertedVideoUrl = ref(null);
-const convertedFilename = ref(null);
+const serverAvailable = ref(null) // null = unknown, true/false
+const enableServerConversion = ref(true) // FFmpeg Konvertierung aktiviert
+const conversionQuality = ref('social') // FFmpeg Preset
+const isConverting = ref(false)
+const conversionProgress = ref(0)
+const conversionStatus = ref('') // 'uploading', 'converting', 'completed', 'error'
+const conversionError = ref(null)
+const convertedVideoUrl = ref(null)
+const convertedFilename = ref(null)
 
 // Quality Presets - ✅ Erweitert für 4K+ und Audio-Reaktiv
 const qualityPresets = [
@@ -433,8 +468,8 @@ const qualityPresets = [
   { value: 25_000_000, label: 'Ultra' },
   { value: 40_000_000, label: '4K' },
   { value: 60_000_000, label: '4K+' },
-  { value: 80_000_000, label: 'Max' }
-];
+  { value: 80_000_000, label: 'Max' },
+]
 
 // FFmpeg Conversion Presets
 const conversionPresets = [
@@ -442,233 +477,236 @@ const conversionPresets = [
   { value: 'medium', label: 'Medium', desc: 'Gute Balance' },
   { value: 'social', label: 'Social', desc: 'Optimiert für Social Media' },
   { value: 'high', label: 'High', desc: 'Hohe Qualität' },
-  { value: 'highest', label: 'Highest', desc: 'Maximale Qualität' }
-];
+  { value: 'highest', label: 'Highest', desc: 'Maximale Qualität' },
+]
 
 // Computed
 const statusClass = computed(() => {
-  const baseClass = 'status-indicator';
-  if (recorderStore.statusType === 'processing') return `${baseClass} processing`;
-  if (recorderStore.isPaused) return `${baseClass} paused`;
-  if (recorderStore.isRecording) return `${baseClass} recording`;
-  if (recorderStore.isPrepared) return `${baseClass} ready`;
-  return `${baseClass} idle`;
-});
+  const baseClass = 'status-indicator'
+  if (recorderStore.statusType === 'processing') return `${baseClass} processing`
+  if (recorderStore.isPaused) return `${baseClass} paused`
+  if (recorderStore.isRecording) return `${baseClass} recording`
+  if (recorderStore.isPrepared) return `${baseClass} ready`
+  return `${baseClass} idle`
+})
 
 const statusText = computed(() => {
-  if (recorderStore.statusType === 'processing') return '🎬 Processing...';
-  if (recorderStore.isPaused) return 'PAUSED';
-  if (recorderStore.isRecording) return 'RECORDING';
-  if (recorderStore.isPrepared) return 'READY';
-  return 'IDLE';
-});
+  if (recorderStore.statusType === 'processing') return '🎬 Processing...'
+  if (recorderStore.isPaused) return 'PAUSED'
+  if (recorderStore.isRecording) return 'RECORDING'
+  if (recorderStore.isPrepared) return 'READY'
+  return 'IDLE'
+})
 
 // Timer Functions
 function formatTime(totalSeconds) {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = Math.floor(totalSeconds % 60);
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = Math.floor(totalSeconds % 60)
 
   if (hours > 0) {
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
   }
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 }
 
 function startTimer() {
-  recordingStartTime.value = Date.now();
-  recordingElapsedAtPause.value = 0;
-  updateTimerDisplay();
+  recordingStartTime.value = Date.now()
+  recordingElapsedAtPause.value = 0
+  updateTimerDisplay()
 
   timerInterval = setInterval(() => {
-    updateTimerDisplay();
-  }, 100); // Update every 100ms for smooth display
+    updateTimerDisplay()
+  }, 100) // Update every 100ms for smooth display
 }
 
 function updateTimerDisplay() {
   if (!recordingStartTime.value) {
-    recordingDisplayTime.value = '00:00';
-    return;
+    recordingDisplayTime.value = '00:00'
+    return
   }
 
-  const elapsed = (Date.now() - recordingStartTime.value) / 1000 + recordingElapsedAtPause.value;
-  recordingDisplayTime.value = formatTime(elapsed);
+  const elapsed = (Date.now() - recordingStartTime.value) / 1000 + recordingElapsedAtPause.value
+  recordingDisplayTime.value = formatTime(elapsed)
 }
 
 function pauseTimer() {
   if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
+    clearInterval(timerInterval)
+    timerInterval = null
   }
 
   // Save elapsed time
   if (recordingStartTime.value) {
-    recordingElapsedAtPause.value += (Date.now() - recordingStartTime.value) / 1000;
-    recordingStartTime.value = null;
+    recordingElapsedAtPause.value += (Date.now() - recordingStartTime.value) / 1000
+    recordingStartTime.value = null
   }
 }
 
 function resumeTimer() {
-  recordingStartTime.value = Date.now();
+  recordingStartTime.value = Date.now()
 
   timerInterval = setInterval(() => {
-    updateTimerDisplay();
-  }, 100);
+    updateTimerDisplay()
+  }, 100)
 }
 
 function stopTimer() {
   if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
+    clearInterval(timerInterval)
+    timerInterval = null
   }
-  recordingStartTime.value = null;
-  recordingElapsedAtPause.value = 0;
-  recordingDisplayTime.value = '00:00';
+  recordingStartTime.value = null
+  recordingElapsedAtPause.value = 0
+  recordingDisplayTime.value = '00:00'
 }
 
 // ✨ NEU: Mikrofon zuschalten (additiv zum Player)
 async function toggleMicrophone() {
-  isSwitchingSource.value = true;
+  isSwitchingSource.value = true
   try {
     if (window.toggleRecordingMicrophone) {
-      const success = await window.toggleRecordingMicrophone(microphoneEnabled.value);
+      const success = await window.toggleRecordingMicrophone(microphoneEnabled.value)
       if (success) {
-        console.log('✅ [Panel] Mikrofon', microphoneEnabled.value ? 'ZUGESCHALTET' : 'ABGESCHALTET');
+        console.log(
+          '✅ [Panel] Mikrofon',
+          microphoneEnabled.value ? 'ZUGESCHALTET' : 'ABGESCHALTET',
+        )
       } else {
-        console.error('❌ [Panel] Mikrofon-Toggle fehlgeschlagen');
-        microphoneEnabled.value = !microphoneEnabled.value; // Revert
+        console.error('❌ [Panel] Mikrofon-Toggle fehlgeschlagen')
+        microphoneEnabled.value = !microphoneEnabled.value // Revert
       }
     } else {
-      console.error('❌ [Panel] toggleRecordingMicrophone nicht verfügbar');
-      microphoneEnabled.value = !microphoneEnabled.value; // Revert
+      console.error('❌ [Panel] toggleRecordingMicrophone nicht verfügbar')
+      microphoneEnabled.value = !microphoneEnabled.value // Revert
     }
   } catch (error) {
-    console.error('❌ [Panel] Fehler beim Mikrofon-Toggle:', error);
-    microphoneEnabled.value = !microphoneEnabled.value; // Revert
+    console.error('❌ [Panel] Fehler beim Mikrofon-Toggle:', error)
+    microphoneEnabled.value = !microphoneEnabled.value // Revert
   } finally {
-    isSwitchingSource.value = false;
+    isSwitchingSource.value = false
   }
 }
 
 // Quality Selection
 function selectQuality(value) {
-  selectedQuality.value = value;
-  recorderStore.setRecordingQuality(value);
-  console.log('✅ [Panel] Quality changed to:', (value / 1_000_000).toFixed(1), 'Mbps');
+  selectedQuality.value = value
+  recorderStore.setRecordingQuality(value)
+  console.log('✅ [Panel] Quality changed to:', (value / 1_000_000).toFixed(1), 'Mbps')
 }
 
 // Upload Mode Selection
 function selectUploadMode(mode) {
-  uploadMode.value = mode;
-  recorderStore.setUploadMode(mode);
-  console.log('✅ [Panel] Upload mode changed to:', mode);
+  uploadMode.value = mode
+  recorderStore.setUploadMode(mode)
+  console.log('✅ [Panel] Upload mode changed to:', mode)
 }
 
 // Event Handlers
 async function handlePrepare() {
-  if (isProcessing.value) return;
-  
+  if (isProcessing.value) return
+
   try {
-    isProcessing.value = true;
+    isProcessing.value = true
     const success = await recorderStore.prepareRecording({
-      quality: selectedQuality.value
-    });
-    
+      quality: selectedQuality.value,
+    })
+
     if (success) {
-      console.log('✅ [Panel] Preparation successful');
+      console.log('✅ [Panel] Preparation successful')
     } else {
-      console.error('❌ [Panel] Preparation failed');
+      console.error('❌ [Panel] Preparation failed')
     }
   } catch (error) {
-    console.error('❌ [Panel] Prepare error:', error);
+    console.error('❌ [Panel] Prepare error:', error)
   } finally {
-    isProcessing.value = false;
+    isProcessing.value = false
   }
 }
 
 async function handleStart() {
-  if (isProcessing.value) return;
-  
+  if (isProcessing.value) return
+
   try {
-    isProcessing.value = true;
-    const success = await recorderStore.startRecording();
-    
+    isProcessing.value = true
+    const success = await recorderStore.startRecording()
+
     if (success) {
-      console.log('✅ [Panel] Recording started');
-      startTimer();
+      console.log('✅ [Panel] Recording started')
+      startTimer()
     } else {
-      console.error('❌ [Panel] Start failed');
+      console.error('❌ [Panel] Start failed')
     }
   } catch (error) {
-    console.error('❌ [Panel] Start error:', error);
+    console.error('❌ [Panel] Start error:', error)
   } finally {
-    isProcessing.value = false;
+    isProcessing.value = false
   }
 }
 
 function handlePause() {
-  if (isProcessing.value) return;
-  
+  if (isProcessing.value) return
+
   try {
-    isProcessing.value = true;
-    const success = recorderStore.pauseRecording();
-    
+    isProcessing.value = true
+    const success = recorderStore.pauseRecording()
+
     if (success) {
-      console.log('✅ [Panel] Recording paused (video frozen, audio continues)');
-      pauseTimer();
+      console.log('✅ [Panel] Recording paused (video frozen, audio continues)')
+      pauseTimer()
     } else {
-      console.error('❌ [Panel] Pause failed');
+      console.error('❌ [Panel] Pause failed')
     }
   } catch (error) {
-    console.error('❌ [Panel] Pause error:', error);
+    console.error('❌ [Panel] Pause error:', error)
   } finally {
-    isProcessing.value = false;
+    isProcessing.value = false
   }
 }
 
 function handleResume() {
-  if (isProcessing.value) return;
-  
+  if (isProcessing.value) return
+
   try {
-    isProcessing.value = true;
-    const success = recorderStore.resumeRecording();
-    
+    isProcessing.value = true
+    const success = recorderStore.resumeRecording()
+
     if (success) {
-      console.log('✅ [Panel] Recording resumed (video synchronized)');
-      resumeTimer();
+      console.log('✅ [Panel] Recording resumed (video synchronized)')
+      resumeTimer()
     } else {
-      console.error('❌ [Panel] Resume failed');
+      console.error('❌ [Panel] Resume failed')
     }
   } catch (error) {
-    console.error('❌ [Panel] Resume error:', error);
+    console.error('❌ [Panel] Resume error:', error)
   } finally {
-    isProcessing.value = false;
+    isProcessing.value = false
   }
 }
 
 async function handleStop() {
-  if (isProcessing.value) return;
+  if (isProcessing.value) return
 
   try {
-    isProcessing.value = true;
-    stopTimer();
-    const blob = await recorderStore.stopRecording();
+    isProcessing.value = true
+    stopTimer()
+    const blob = await recorderStore.stopRecording()
 
     if (blob) {
-      const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
-      console.log('✅ [Panel] Recording stopped:', sizeMB, 'MB');
+      const sizeMB = (blob.size / 1024 / 1024).toFixed(2)
+      console.log('✅ [Panel] Recording stopped:', sizeMB, 'MB')
 
       // Server-Konvertierung starten wenn aktiviert
       if (enableServerConversion.value && serverAvailable.value) {
-        await startServerConversion(blob);
+        await startServerConversion(blob)
       }
     } else {
-      console.warn('⚠️ [Panel] Recording stopped but no blob received');
+      console.warn('⚠️ [Panel] Recording stopped but no blob received')
     }
   } catch (error) {
-    console.error('❌ [Panel] Stop error:', error);
+    console.error('❌ [Panel] Stop error:', error)
   } finally {
-    isProcessing.value = false;
+    isProcessing.value = false
   }
 }
 
@@ -676,42 +714,42 @@ async function handleStop() {
  * Startet die Server-seitige FFmpeg Konvertierung
  */
 async function startServerConversion(blob) {
-  if (!blob || isConverting.value) return;
+  if (!blob || isConverting.value) return
 
-  console.log('🎬 [Panel] Starte Server-Konvertierung...');
-  isConverting.value = true;
-  conversionProgress.value = 0;
-  conversionStatus.value = 'uploading';
-  conversionError.value = null;
-  convertedVideoUrl.value = null;
-  convertedFilename.value = null;
+  console.log('🎬 [Panel] Starte Server-Konvertierung...')
+  isConverting.value = true
+  conversionProgress.value = 0
+  conversionStatus.value = 'uploading'
+  conversionError.value = null
+  convertedVideoUrl.value = null
+  convertedFilename.value = null
 
   try {
     const result = await convertAndWait(blob, {
       quality: conversionQuality.value,
       onProgress: (progress) => {
-        conversionProgress.value = progress;
-        console.log('📊 [Panel] Progress:', progress + '%');
+        conversionProgress.value = progress
+        console.log('📊 [Panel] Progress:', progress + '%')
       },
       onStatusChange: (status) => {
-        conversionStatus.value = status;
-        console.log('📊 [Panel] Conversion status:', status);
-      }
-    });
+        conversionStatus.value = status
+        console.log('📊 [Panel] Conversion status:', status)
+      },
+    })
 
     if (result.success) {
-      convertedVideoUrl.value = result.fileUrl;
-      convertedFilename.value = result.filename;
-      conversionStatus.value = 'completed';
-      conversionProgress.value = 100;
-      console.log('✅ [Panel] Konvertierung abgeschlossen:', result.filename);
+      convertedVideoUrl.value = result.fileUrl
+      convertedFilename.value = result.filename
+      conversionStatus.value = 'completed'
+      conversionProgress.value = 100
+      console.log('✅ [Panel] Konvertierung abgeschlossen:', result.filename)
     }
   } catch (error) {
-    console.error('❌ [Panel] Konvertierung fehlgeschlagen:', error);
-    conversionStatus.value = 'error';
-    conversionError.value = error.message || 'Verbindung zum Server fehlgeschlagen';
+    console.error('❌ [Panel] Konvertierung fehlgeschlagen:', error)
+    conversionStatus.value = 'error'
+    conversionError.value = error.message || 'Verbindung zum Server fehlgeschlagen'
   } finally {
-    isConverting.value = false;
+    isConverting.value = false
   }
 }
 
@@ -720,7 +758,7 @@ async function startServerConversion(blob) {
  */
 function retryConversion() {
   if (recorderStore.lastRecording?.blob) {
-    startServerConversion(recorderStore.lastRecording.blob);
+    startServerConversion(recorderStore.lastRecording.blob)
   }
 }
 
@@ -732,46 +770,46 @@ async function dismissConversion(cleanup = false) {
   // Cleanup auf Server wenn gewünscht und Datei vorhanden
   if (cleanup && convertedFilename.value) {
     try {
-      await cleanupFile(convertedFilename.value);
-      console.log('🧹 [Panel] Server-Datei gelöscht:', convertedFilename.value);
+      await cleanupFile(convertedFilename.value)
+      console.log('🧹 [Panel] Server-Datei gelöscht:', convertedFilename.value)
     } catch (e) {
-      console.warn('⚠️ [Panel] Cleanup fehlgeschlagen:', e);
+      console.warn('⚠️ [Panel] Cleanup fehlgeschlagen:', e)
     }
   }
 
-  conversionStatus.value = '';
-  conversionProgress.value = 0;
-  conversionError.value = null;
-  convertedVideoUrl.value = null;
-  convertedFilename.value = null;
+  conversionStatus.value = ''
+  conversionProgress.value = 0
+  conversionError.value = null
+  convertedVideoUrl.value = null
+  convertedFilename.value = null
 }
 
 /**
  * Handle MP4 download click - cleanup after delay and hide UI
  */
 function handleDownloadClick() {
-  console.log('📥 [Panel] MP4 Download gestartet');
+  console.log('📥 [Panel] MP4 Download gestartet')
 
   // Nach Download: Warte kurz und lösche Server-Datei
   setTimeout(async () => {
     if (convertedFilename.value) {
       try {
-        await cleanupFile(convertedFilename.value);
-        console.log('🧹 [Panel] Server-Datei nach Download gelöscht');
+        await cleanupFile(convertedFilename.value)
+        console.log('🧹 [Panel] Server-Datei nach Download gelöscht')
       } catch (e) {
-        console.warn('⚠️ [Panel] Auto-Cleanup fehlgeschlagen:', e);
+        console.warn('⚠️ [Panel] Auto-Cleanup fehlgeschlagen:', e)
       }
     }
 
     // UI komplett zurücksetzen - Panel verschwindet
-    conversionStatus.value = '';
-    conversionProgress.value = 0;
-    conversionError.value = null;
-    convertedVideoUrl.value = null;
-    convertedFilename.value = null;
+    conversionStatus.value = ''
+    conversionProgress.value = 0
+    conversionError.value = null
+    convertedVideoUrl.value = null
+    convertedFilename.value = null
 
-    console.log('✅ [Panel] Konvertierung abgeschlossen, UI zurückgesetzt');
-  }, 2000); // 2 Sekunden Delay für Download-Start
+    console.log('✅ [Panel] Konvertierung abgeschlossen, UI zurückgesetzt')
+  }, 2000) // 2 Sekunden Delay für Download-Start
 }
 
 /**
@@ -779,35 +817,35 @@ function handleDownloadClick() {
  */
 async function convertLastRecording() {
   if (!recorderStore.lastRecording?.blob) {
-    console.warn('⚠️ [Panel] Keine Aufnahme zum Konvertieren');
-    return;
+    console.warn('⚠️ [Panel] Keine Aufnahme zum Konvertieren')
+    return
   }
 
-  await startServerConversion(recorderStore.lastRecording.blob);
+  await startServerConversion(recorderStore.lastRecording.blob)
 }
 
 function handleReset() {
-  if (isProcessing.value) return;
-  
+  if (isProcessing.value) return
+
   try {
-    isProcessing.value = true;
-    recorderStore.resetRecorder();
-    console.log('✅ [Panel] Recorder reset');
+    isProcessing.value = true
+    recorderStore.resetRecorder()
+    console.log('✅ [Panel] Recorder reset')
   } catch (error) {
-    console.error('❌ [Panel] Reset error:', error);
+    console.error('❌ [Panel] Reset error:', error)
   } finally {
-    isProcessing.value = false;
+    isProcessing.value = false
   }
 }
 
 function closeResults() {
-  const modal = document.getElementById('results-panel');
+  const modal = document.getElementById('results-panel')
   if (modal) {
-    modal.style.display = 'none';
-    const video = document.getElementById('preview');
+    modal.style.display = 'none'
+    const video = document.getElementById('preview')
     if (video) {
-      video.pause();
-      video.src = '';
+      video.pause()
+      video.src = ''
     }
   }
 }
@@ -815,36 +853,36 @@ function closeResults() {
 // Keyboard Shortcuts
 function handleKeydown(e) {
   if (e.key === 'Escape') {
-    closeResults();
+    closeResults()
   }
 }
 
 onMounted(async () => {
-  document.addEventListener('keydown', handleKeydown);
+  document.addEventListener('keydown', handleKeydown)
 
   // Server-Verfügbarkeit prüfen
   try {
-    const health = await checkServerHealth();
-    serverAvailable.value = health.available;
+    const health = await checkServerHealth()
+    serverAvailable.value = health.available
     if (health.available) {
-      console.log('✅ [Panel] FFmpeg Backend verfügbar');
+      console.log('✅ [Panel] FFmpeg Backend verfügbar')
     } else {
-      console.warn('⚠️ [Panel] FFmpeg Backend nicht erreichbar:', health.error);
+      console.warn('⚠️ [Panel] FFmpeg Backend nicht erreichbar:', health.error)
     }
   } catch (error) {
-    serverAvailable.value = false;
-    console.error('❌ [Panel] Server Health Check fehlgeschlagen:', error);
+    serverAvailable.value = false
+    console.error('❌ [Panel] Server Health Check fehlgeschlagen:', error)
   }
-});
+})
 
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown);
+  document.removeEventListener('keydown', handleKeydown)
   // Cleanup timer
   if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
+    clearInterval(timerInterval)
+    timerInterval = null
   }
-});
+})
 </script>
 
 <style scoped>
@@ -866,7 +904,7 @@ onUnmounted(() => {
 
 h3 {
   margin: 0;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-weight: 600;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -883,7 +921,7 @@ h3::before {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='3' fill='white'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 /* Status Indicator */
@@ -902,7 +940,7 @@ h3::before {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--text-muted, #7A8DA0);
+  background: var(--text-muted, #7a8da0);
   animation: pulse 2s infinite;
 }
 
@@ -910,14 +948,14 @@ h3::before {
   font-size: 0.6rem;
   font-weight: 600;
   letter-spacing: 0.4px;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
 }
 
 .recording-timer {
   font-size: 0.75rem;
   font-weight: 700;
   font-family: 'Courier New', monospace;
-  color: #F44336;
+  color: #f44336;
   margin-left: auto;
   padding: 2px 8px;
   background: rgba(244, 67, 54, 0.15);
@@ -928,14 +966,19 @@ h3::before {
 }
 
 .recording-timer.paused {
-  color: #FF9800;
+  color: #ff9800;
   background: rgba(255, 152, 0, 0.15);
   animation: timerBlink 1s ease-in-out infinite;
 }
 
 @keyframes timerBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .status-indicator.idle .status-dot {
@@ -949,13 +992,20 @@ h3::before {
 }
 
 .status-indicator.processing .status-dot {
-  background-color: #FFC107;
+  background-color: #ffc107;
   animation: processingPulse 1.5s ease-in-out infinite;
 }
 
 @keyframes processingPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.1); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
 }
 
 .status-indicator.ready {
@@ -964,11 +1014,11 @@ h3::before {
 }
 
 .status-indicator.ready .status-dot {
-  background: #4CAF50;
+  background: #4caf50;
 }
 
 .status-indicator.ready .status-text {
-  color: #4CAF50;
+  color: #4caf50;
 }
 
 .status-indicator.recording {
@@ -977,11 +1027,11 @@ h3::before {
 }
 
 .status-indicator.recording .status-dot {
-  background: #F44336;
+  background: #f44336;
 }
 
 .status-indicator.recording .status-text {
-  color: #F44336;
+  color: #f44336;
 }
 
 .status-indicator.paused {
@@ -990,16 +1040,17 @@ h3::before {
 }
 
 .status-indicator.paused .status-dot {
-  background: #FF9800;
+  background: #ff9800;
   animation: none;
 }
 
 .status-indicator.paused .status-text {
-  color: #FF9800;
+  color: #ff9800;
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -1057,7 +1108,7 @@ h3::before {
 
 .btn-start {
   background: rgba(76, 175, 80, 0.2);
-  color: #4CAF50;
+  color: #4caf50;
   border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
@@ -1068,7 +1119,7 @@ h3::before {
 
 .btn-pause {
   background: rgba(255, 152, 0, 0.2);
-  color: #FF9800;
+  color: #ff9800;
   border: 1px solid rgba(255, 152, 0, 0.3);
 }
 
@@ -1079,7 +1130,7 @@ h3::before {
 
 .btn-resume {
   background: rgba(33, 150, 243, 0.2);
-  color: #2196F3;
+  color: #2196f3;
   border: 1px solid rgba(33, 150, 243, 0.3);
 }
 
@@ -1090,7 +1141,7 @@ h3::before {
 
 .btn-stop {
   background: rgba(244, 67, 54, 0.2);
-  color: #F44336;
+  color: #f44336;
   border: 1px solid rgba(244, 67, 54, 0.3);
 }
 
@@ -1130,7 +1181,7 @@ h3::before {
   padding: 2px 6px;
   border-radius: 4px;
   background: rgba(76, 175, 80, 0.2);
-  color: #4CAF50;
+  color: #4caf50;
 }
 
 .source-indicator.active {
@@ -1154,10 +1205,10 @@ h3::before {
   border-color: rgba(139, 92, 246, 0.3);
 }
 
-.mic-toggle-row input[type="checkbox"] {
+.mic-toggle-row input[type='checkbox'] {
   width: 18px;
   height: 18px;
-  accent-color: #8B5CF6;
+  accent-color: #8b5cf6;
   cursor: pointer;
 }
 
@@ -1166,14 +1217,14 @@ h3::before {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-weight: 500;
 }
 
 .mic-toggle-row .toggle-label .icon {
   width: 16px;
   height: 16px;
-  color: #8B5CF6;
+  color: #8b5cf6;
 }
 
 .source-hint {
@@ -1306,7 +1357,7 @@ h3::before {
 }
 
 .server-status.available {
-  color: #4CAF50;
+  color: #4caf50;
 }
 
 .server-status.unavailable {
@@ -1321,14 +1372,14 @@ h3::before {
   padding: 4px 0;
 }
 
-.toggle-row input[type="checkbox"] {
+.toggle-row input[type='checkbox'] {
   width: 16px;
   height: 16px;
   accent-color: #6ea8fe;
   cursor: pointer;
 }
 
-.toggle-row input[type="checkbox"]:disabled {
+.toggle-row input[type='checkbox']:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
@@ -1380,17 +1431,17 @@ h3::before {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6ea8fe, #4FC3F7);
+  background: linear-gradient(90deg, #6ea8fe, #4fc3f7);
   border-radius: 3px;
   transition: width 0.3s ease;
 }
 
 .progress-fill.completed {
-  background: linear-gradient(90deg, #4CAF50, #66BB6A);
+  background: linear-gradient(90deg, #4caf50, #66bb6a);
 }
 
 .progress-fill.error {
-  background: linear-gradient(90deg, #F44336, #E57373);
+  background: linear-gradient(90deg, #f44336, #e57373);
 }
 
 .mp4-download-btn {
@@ -1399,7 +1450,7 @@ h3::before {
   justify-content: center;
   gap: 6px;
   padding: 8px 12px;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
   color: white;
   text-decoration: none;
   border-radius: 6px;
@@ -1416,7 +1467,7 @@ h3::before {
 }
 
 .mp4-download-btn:hover {
-  background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+  background: linear-gradient(135deg, #45a049 0%, #4caf50 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
@@ -1443,7 +1494,7 @@ h3::before {
 
 .btn-close-conversion:hover:not(:disabled) {
   background: rgba(244, 67, 54, 0.2);
-  color: #F44336;
+  color: #f44336;
   border-color: rgba(244, 67, 54, 0.3);
 }
 
@@ -1457,7 +1508,7 @@ h3::before {
 
 .error-message {
   font-size: 11px;
-  color: #F44336;
+  color: #f44336;
   text-align: center;
   padding: 4px 8px;
   background: rgba(244, 67, 54, 0.1);
@@ -1468,7 +1519,7 @@ h3::before {
 
 .btn-retry {
   background: rgba(255, 152, 0, 0.2);
-  color: #FF9800;
+  color: #ff9800;
   border: 1px solid rgba(255, 152, 0, 0.3);
   width: 100%;
 }
@@ -1494,7 +1545,7 @@ h3::before {
 /* Convert Button */
 .btn-convert {
   background: rgba(156, 39, 176, 0.2);
-  color: #CE93D8;
+  color: #ce93d8;
   border: 1px solid rgba(156, 39, 176, 0.3);
   width: 100%;
 }
@@ -1529,7 +1580,7 @@ h3::before {
 
 /* Panel container: dark bg → white card */
 [data-theme='light'] .recorder-panel {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-color: rgba(1, 79, 153, 0.15);
 }
 
@@ -1682,7 +1733,7 @@ h3::before {
   border-color: rgba(139, 92, 246, 0.3);
 }
 
-[data-theme='light'] .mic-toggle-row input[type="checkbox"] {
+[data-theme='light'] .mic-toggle-row input[type='checkbox'] {
   accent-color: #014f99;
 }
 
@@ -1722,7 +1773,7 @@ h3::before {
 /* Quality active: blue accent → primary blue */
 [data-theme='light'] .quality-btn.active {
   background-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
   border-color: #014f99;
 }
 
@@ -1745,7 +1796,7 @@ h3::before {
 /* Upload active: blue accent → primary blue */
 [data-theme='light'] .upload-btn.active {
   background-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
   border-color: #014f99;
 }
 
@@ -1759,7 +1810,7 @@ h3::before {
 }
 
 /* Toggle checkbox: blue → primary blue */
-[data-theme='light'] .toggle-row input[type="checkbox"] {
+[data-theme='light'] .toggle-row input[type='checkbox'] {
   accent-color: #014f99;
 }
 
@@ -1839,7 +1890,7 @@ h3::before {
 /* Convert button: soften purple for light */
 [data-theme='light'] .btn-convert {
   background: rgba(156, 39, 176, 0.08);
-  color: #9C27B0;
+  color: #9c27b0;
   border-color: rgba(156, 39, 176, 0.2);
 }
 
@@ -1945,7 +1996,7 @@ h3::before {
 
 .modal-close-btn:hover {
   background: rgba(244, 67, 54, 0.2);
-  color: #F44336;
+  color: #f44336;
   transform: rotate(90deg);
 }
 
@@ -1987,7 +2038,7 @@ h3::before {
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
   color: white;
   text-decoration: none;
   border-radius: 8px;
@@ -2006,7 +2057,7 @@ h3::before {
 }
 
 .download-btn:hover {
-  background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+  background: linear-gradient(135deg, #45a049 0%, #4caf50 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
 }
@@ -2049,7 +2100,7 @@ h3::before {
 }
 
 .file-info strong {
-  color: #4FC3F7;
+  color: #4fc3f7;
   font-weight: 600;
 }
 
@@ -2119,7 +2170,9 @@ h3::before {
   border-radius: 20px;
   padding: 40px 50px;
   text-align: center;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(110, 168, 254, 0.15);
+  box-shadow:
+    0 25px 80px rgba(0, 0, 0, 0.6),
+    0 0 60px rgba(110, 168, 254, 0.15);
   border: 1px solid var(--border-color);
   max-width: 420px;
   width: 90%;
@@ -2145,8 +2198,12 @@ h3::before {
 }
 
 @keyframes rotateIcon {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .conversion-title {
@@ -2174,7 +2231,7 @@ h3::before {
 
 .conversion-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6ea8fe 0%, #4FC3F7 50%, #6ea8fe 100%);
+  background: linear-gradient(90deg, #6ea8fe 0%, #4fc3f7 50%, #6ea8fe 100%);
   background-size: 200% 100%;
   border-radius: 5px;
   transition: width 0.4s ease;
@@ -2182,8 +2239,12 @@ h3::before {
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .conversion-percent {
@@ -2251,7 +2312,9 @@ h3::before {
 
 /* Conversion modal: softer shadow for light */
 [data-theme='light'] .conversion-modal {
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25), 0 0 60px rgba(1, 79, 153, 0.1);
+  box-shadow:
+    0 25px 80px rgba(0, 0, 0, 0.25),
+    0 0 60px rgba(1, 79, 153, 0.1);
 }
 
 /* Conversion icon: darker blue for light bg */

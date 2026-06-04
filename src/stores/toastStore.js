@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
 
 /**
  * Toast-Benachrichtigungen Store
@@ -7,15 +7,15 @@ import { ref, computed } from 'vue';
  */
 export const useToastStore = defineStore('toast', () => {
   // === STATE ===
-  const toasts = ref([]);
-  let toastIdCounter = 0;
+  const toasts = ref([])
+  let toastIdCounter = 0
 
   // Standard-Anzeigedauer in Millisekunden
-  const DEFAULT_DURATION = 3000;
+  const DEFAULT_DURATION = 3000
 
   // === GETTERS ===
-  const activeToasts = computed(() => toasts.value);
-  const hasToasts = computed(() => toasts.value.length > 0);
+  const activeToasts = computed(() => toasts.value)
+  const hasToasts = computed(() => toasts.value.length > 0)
 
   // === ACTIONS ===
 
@@ -30,7 +30,7 @@ export const useToastStore = defineStore('toast', () => {
    * @returns {number} Die ID des erstellten Toasts
    */
   function addToast(options) {
-    const id = ++toastIdCounter;
+    const id = ++toastIdCounter
 
     const toast = {
       id,
@@ -39,19 +39,19 @@ export const useToastStore = defineStore('toast', () => {
       title: options.title || null,
       duration: options.duration ?? DEFAULT_DURATION,
       dismissible: options.dismissible ?? true,
-      createdAt: Date.now()
-    };
+      createdAt: Date.now(),
+    }
 
-    toasts.value.push(toast);
+    toasts.value.push(toast)
 
     // Auto-Entfernung nach Ablauf der Dauer
     if (toast.duration > 0) {
       setTimeout(() => {
-        removeToast(id);
-      }, toast.duration);
+        removeToast(id)
+      }, toast.duration)
     }
 
-    return id;
+    return id
   }
 
   /**
@@ -59,9 +59,9 @@ export const useToastStore = defineStore('toast', () => {
    * @param {number} id - Die Toast-ID
    */
   function removeToast(id) {
-    const index = toasts.value.findIndex(t => t.id === id);
+    const index = toasts.value.findIndex((t) => t.id === id)
     if (index !== -1) {
-      toasts.value.splice(index, 1);
+      toasts.value.splice(index, 1)
     }
   }
 
@@ -69,7 +69,7 @@ export const useToastStore = defineStore('toast', () => {
    * Entfernt alle Toasts
    */
   function clearAll() {
-    toasts.value = [];
+    toasts.value = []
   }
 
   // === CONVENIENCE METHODS ===
@@ -80,7 +80,7 @@ export const useToastStore = defineStore('toast', () => {
    * @param {Object} options - Zusätzliche Optionen
    */
   function success(message, options = {}) {
-    return addToast({ ...options, message, type: 'success' });
+    return addToast({ ...options, message, type: 'success' })
   }
 
   /**
@@ -89,7 +89,7 @@ export const useToastStore = defineStore('toast', () => {
    * @param {Object} options - Zusätzliche Optionen
    */
   function error(message, options = {}) {
-    return addToast({ ...options, message, type: 'error' });
+    return addToast({ ...options, message, type: 'error' })
   }
 
   /**
@@ -98,7 +98,7 @@ export const useToastStore = defineStore('toast', () => {
    * @param {Object} options - Zusätzliche Optionen
    */
   function warning(message, options = {}) {
-    return addToast({ ...options, message, type: 'warning' });
+    return addToast({ ...options, message, type: 'warning' })
   }
 
   /**
@@ -107,7 +107,7 @@ export const useToastStore = defineStore('toast', () => {
    * @param {Object} options - Zusätzliche Optionen
    */
   function info(message, options = {}) {
-    return addToast({ ...options, message, type: 'info' });
+    return addToast({ ...options, message, type: 'info' })
   }
 
   return {
@@ -127,6 +127,6 @@ export const useToastStore = defineStore('toast', () => {
     success,
     error,
     warning,
-    info
-  };
-});
+    info,
+  }
+})

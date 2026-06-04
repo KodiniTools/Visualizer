@@ -11,7 +11,7 @@
  * @returns {number} Output value (0-1)
  */
 export function linear(t) {
-  return clamp(t);
+  return clamp(t)
 }
 
 /**
@@ -21,8 +21,8 @@ export function linear(t) {
  * @returns {number} Output value (0-1)
  */
 export function easeIn(t) {
-  const c = clamp(t);
-  return c * c * c;
+  const c = clamp(t)
+  return c * c * c
 }
 
 /**
@@ -32,8 +32,8 @@ export function easeIn(t) {
  * @returns {number} Output value (0-1)
  */
 export function easeOut(t) {
-  const c = clamp(t);
-  return 1 - Math.pow(1 - c, 3);
+  const c = clamp(t)
+  return 1 - Math.pow(1 - c, 3)
 }
 
 /**
@@ -43,10 +43,8 @@ export function easeOut(t) {
  * @returns {number} Output value (0-1)
  */
 export function easeInOut(t) {
-  const c = clamp(t);
-  return c < 0.5
-    ? 4 * c * c * c
-    : 1 - Math.pow(-2 * c + 2, 3) / 2;
+  const c = clamp(t)
+  return c < 0.5 ? 4 * c * c * c : 1 - Math.pow(-2 * c + 2, 3) / 2
 }
 
 /**
@@ -56,21 +54,21 @@ export function easeInOut(t) {
  * @returns {number} Output value (0-1)
  */
 export function bounce(t) {
-  const c = clamp(t);
-  const n1 = 7.5625;
-  const d1 = 2.75;
+  const c = clamp(t)
+  const n1 = 7.5625
+  const d1 = 2.75
 
   if (c < 1 / d1) {
-    return n1 * c * c;
+    return n1 * c * c
   } else if (c < 2 / d1) {
-    const t2 = c - 1.5 / d1;
-    return n1 * t2 * t2 + 0.75;
+    const t2 = c - 1.5 / d1
+    return n1 * t2 * t2 + 0.75
   } else if (c < 2.5 / d1) {
-    const t2 = c - 2.25 / d1;
-    return n1 * t2 * t2 + 0.9375;
+    const t2 = c - 2.25 / d1
+    return n1 * t2 * t2 + 0.9375
   } else {
-    const t2 = c - 2.625 / d1;
-    return n1 * t2 * t2 + 0.984375;
+    const t2 = c - 2.625 / d1
+    return n1 * t2 * t2 + 0.984375
   }
 }
 
@@ -81,11 +79,11 @@ export function bounce(t) {
  * @returns {number} Output value (0-1)
  */
 export function elastic(t) {
-  const c = clamp(t);
-  if (c === 0 || c === 1) return c;
+  const c = clamp(t)
+  if (c === 0 || c === 1) return c
 
-  const c4 = (2 * Math.PI) / 3;
-  return Math.pow(2, -10 * c) * Math.sin((c * 10 - 0.75) * c4) + 1;
+  const c4 = (2 * Math.PI) / 3
+  return Math.pow(2, -10 * c) * Math.sin((c * 10 - 0.75) * c4) + 1
 }
 
 /**
@@ -95,8 +93,8 @@ export function elastic(t) {
  * @returns {number} Output value (0-1)
  */
 export function punch(t) {
-  const c = clamp(t);
-  return Math.pow(c, 0.5) * (1 + Math.sin(c * Math.PI) * 0.3);
+  const c = clamp(t)
+  return Math.pow(c, 0.5) * (1 + Math.sin(c * Math.PI) * 0.3)
 }
 
 /**
@@ -105,8 +103,8 @@ export function punch(t) {
  * @returns {number} Output value (0-1)
  */
 export function exponentialIn(t) {
-  const c = clamp(t);
-  return c === 0 ? 0 : Math.pow(2, 10 * c - 10);
+  const c = clamp(t)
+  return c === 0 ? 0 : Math.pow(2, 10 * c - 10)
 }
 
 /**
@@ -115,8 +113,8 @@ export function exponentialIn(t) {
  * @returns {number} Output value (0-1)
  */
 export function exponentialOut(t) {
-  const c = clamp(t);
-  return c === 1 ? 1 : 1 - Math.pow(2, -10 * c);
+  const c = clamp(t)
+  return c === 1 ? 1 : 1 - Math.pow(2, -10 * c)
 }
 
 /**
@@ -125,8 +123,8 @@ export function exponentialOut(t) {
  * @returns {number} Output value (0-1)
  */
 export function sineIn(t) {
-  const c = clamp(t);
-  return 1 - Math.cos((c * Math.PI) / 2);
+  const c = clamp(t)
+  return 1 - Math.cos((c * Math.PI) / 2)
 }
 
 /**
@@ -135,8 +133,8 @@ export function sineIn(t) {
  * @returns {number} Output value (0-1)
  */
 export function sineOut(t) {
-  const c = clamp(t);
-  return Math.sin((c * Math.PI) / 2);
+  const c = clamp(t)
+  return Math.sin((c * Math.PI) / 2)
 }
 
 /**
@@ -145,10 +143,10 @@ export function sineOut(t) {
  * @returns {number} Output value (0-1)
  */
 export function backIn(t) {
-  const c = clamp(t);
-  const c1 = 1.70158;
-  const c3 = c1 + 1;
-  return c3 * c * c * c - c1 * c * c;
+  const c = clamp(t)
+  const c1 = 1.70158
+  const c3 = c1 + 1
+  return c3 * c * c * c - c1 * c * c
 }
 
 /**
@@ -157,10 +155,10 @@ export function backIn(t) {
  * @returns {number} Output value (0-1)
  */
 export function backOut(t) {
-  const c = clamp(t);
-  const c1 = 1.70158;
-  const c3 = c1 + 1;
-  return 1 + c3 * Math.pow(c - 1, 3) + c1 * Math.pow(c - 1, 2);
+  const c = clamp(t)
+  const c1 = 1.70158
+  const c3 = c1 + 1
+  return 1 + c3 * Math.pow(c - 1, 3) + c1 * Math.pow(c - 1, 2)
 }
 
 /**
@@ -169,7 +167,7 @@ export function backOut(t) {
  * @returns {number} Clamped value
  */
 function clamp(value) {
-  return Math.max(0, Math.min(1, value));
+  return Math.max(0, Math.min(1, value))
 }
 
 /**
@@ -188,13 +186,13 @@ export const easingMap = {
   sineIn,
   sineOut,
   backIn,
-  backOut
-};
+  backOut,
+}
 
 /**
  * List of all available easing function names
  */
-export const easingNames = Object.keys(easingMap);
+export const easingNames = Object.keys(easingMap)
 
 /**
  * Applies easing function by name
@@ -203,11 +201,11 @@ export const easingNames = Object.keys(easingMap);
  * @returns {number} Output value with easing applied
  */
 export function applyEasing(value, easingType = 'linear') {
-  const easingFn = easingMap[easingType];
+  const easingFn = easingMap[easingType]
   if (easingFn) {
-    return easingFn(value);
+    return easingFn(value)
   }
-  return linear(value);
+  return linear(value)
 }
 
 export default {
@@ -226,5 +224,5 @@ export default {
   backOut,
   easingMap,
   easingNames,
-  applyEasing
-};
+  applyEasing,
+}

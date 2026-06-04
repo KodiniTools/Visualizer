@@ -1,11 +1,11 @@
 <template>
   <div class="panel">
     <h3>{{ t('textManager.title') }}</h3>
-    
+
     <!-- Neuer Text Eingabemodus -->
     <div v-if="isAddingNewText" class="panel-section">
       <h4>{{ t('textManager.createNewText') }}</h4>
-      
+
       <div class="control-group">
         <label>{{ t('textManager.enterText') }}:</label>
         <textarea
@@ -21,13 +21,27 @@ Zeile 3..."
           rows="8"
         ></textarea>
         <div class="hint-text">
-          <strong>{{ t('textManager.browserTextTip') }}:</strong> {{ locale === 'de' ? 'Nach dem Einfügen drücken Sie Enter, um Zeilenumbrüche hinzuzufügen' : 'After pasting, press Enter to add line breaks' }}
+          <strong>{{ t('textManager.browserTextTip') }}:</strong>
+          {{
+            locale === 'de'
+              ? 'Nach dem Einfügen drücken Sie Enter, um Zeilenumbrüche hinzuzufügen'
+              : 'After pasting, press Enter to add line breaks'
+          }}
         </div>
-        <div class="hint-text" style="margin-top: 4px;">
-          <strong>{{ t('textManager.notepadTip') }}:</strong> {{ locale === 'de' ? 'Zeilenumbrüche werden automatisch erkannt' : 'Line breaks are automatically detected' }}
+        <div class="hint-text" style="margin-top: 4px">
+          <strong>{{ t('textManager.notepadTip') }}:</strong>
+          {{
+            locale === 'de'
+              ? 'Zeilenumbrüche werden automatisch erkannt'
+              : 'Line breaks are automatically detected'
+          }}
         </div>
         <div v-if="newTextContent.includes('\n')" class="success-hint">
-          {{ locale === 'de' ? newTextContent.split('\n').length + ' Zeilen erkannt' : newTextContent.split('\n').length + ' lines detected' }}
+          {{
+            locale === 'de'
+              ? newTextContent.split('\n').length + ' Zeilen erkannt'
+              : newTextContent.split('\n').length + ' lines detected'
+          }}
         </div>
       </div>
 
@@ -66,14 +80,13 @@ Zeile 3..."
           <!-- Auto-Fit -->
           <div class="control-group">
             <label class="effect-checkbox">
-              <input
-                type="checkbox"
-                v-model="newTextStyle.autoFit"
-              />
+              <input type="checkbox" v-model="newTextStyle.autoFit" />
               📐 {{ t('textManager.autoFit') }}
             </label>
             <div v-if="newTextStyle.autoFit" class="auto-fit-settings">
-              <label>{{ t('textManager.autoFitPadding') }}: {{ newTextStyle.autoFitPadding }}%</label>
+              <label
+                >{{ t('textManager.autoFitPadding') }}: {{ newTextStyle.autoFitPadding }}%</label
+              >
               <input
                 type="range"
                 v-model.number="newTextStyle.autoFitPadding"
@@ -88,11 +101,7 @@ Zeile 3..."
           <div class="control-group">
             <label>{{ t('textManager.textColor') }}:</label>
             <div class="color-picker-group">
-              <input
-                type="color"
-                v-model="newTextStyle.color"
-                class="color-input"
-              />
+              <input type="color" v-model="newTextStyle.color" class="color-input" />
               <input
                 type="text"
                 v-model="newTextStyle.color"
@@ -119,13 +128,17 @@ Zeile 3..."
             <label>{{ t('textManager.style') }}:</label>
             <div class="button-group">
               <button
-                @click="newTextStyle.fontWeight = newTextStyle.fontWeight === 'bold' ? 'normal' : 'bold'"
+                @click="
+                  newTextStyle.fontWeight = newTextStyle.fontWeight === 'bold' ? 'normal' : 'bold'
+                "
                 :class="['btn-small', { active: newTextStyle.fontWeight === 'bold' }]"
               >
                 <strong>B</strong>
               </button>
               <button
-                @click="newTextStyle.fontStyle = newTextStyle.fontStyle === 'italic' ? 'normal' : 'italic'"
+                @click="
+                  newTextStyle.fontStyle = newTextStyle.fontStyle === 'italic' ? 'normal' : 'italic'
+                "
                 :class="['btn-small', { active: newTextStyle.fontStyle === 'italic' }]"
               >
                 <em>I</em>
@@ -160,10 +173,26 @@ Zeile 3..."
 
           <!-- Einstellungen speichern/laden -->
           <div class="settings-actions">
-            <button @click="saveCurrentSettings" class="btn-save" :title="locale === 'de' ? 'Aktuelle Einstellungen als Standard speichern' : 'Save current settings as default'">
+            <button
+              @click="saveCurrentSettings"
+              class="btn-save"
+              :title="
+                locale === 'de'
+                  ? 'Aktuelle Einstellungen als Standard speichern'
+                  : 'Save current settings as default'
+              "
+            >
               💾 {{ t('textManager.saveAsDefault') }}
             </button>
-            <button @click="clearSavedSettings" class="btn-reset-small" :title="locale === 'de' ? 'Auf Werkseinstellungen zurücksetzen' : 'Reset to factory settings'">
+            <button
+              @click="clearSavedSettings"
+              class="btn-reset-small"
+              :title="
+                locale === 'de'
+                  ? 'Auf Werkseinstellungen zurücksetzen'
+                  : 'Reset to factory settings'
+              "
+            >
               🔄 {{ t('textManager.resetToDefault') }}
             </button>
           </div>
@@ -175,7 +204,9 @@ Zeile 3..."
         <summary class="section-header">
           <span class="section-icon">⌨️</span>
           <span>{{ t('textManager.typewriterEffect') }}</span>
-          <span v-if="newTextTypewriter.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
+          <span v-if="newTextTypewriter.enabled" class="status-badge active">{{
+            t('textManager.active')
+          }}</span>
         </summary>
         <div class="section-content">
           <!-- Typewriter aktivieren -->
@@ -185,7 +216,11 @@ Zeile 3..."
                 @click="newTextTypewriter.enabled = !newTextTypewriter.enabled"
                 :class="['btn-small', 'full-width', { active: newTextTypewriter.enabled }]"
               >
-                {{ newTextTypewriter.enabled ? '✓ ' + t('textManager.activated') : t('textManager.deactivated') }}
+                {{
+                  newTextTypewriter.enabled
+                    ? '✓ ' + t('textManager.activated')
+                    : t('textManager.deactivated')
+                }}
               </button>
             </div>
           </div>
@@ -194,7 +229,10 @@ Zeile 3..."
           <div v-if="newTextTypewriter.enabled">
             <!-- Geschwindigkeit -->
             <div class="control-group">
-              <label>{{ t('textManager.speed') }}: {{ newTextTypewriter.speed }}{{ t('textManager.msPerChar') }}</label>
+              <label
+                >{{ t('textManager.speed') }}: {{ newTextTypewriter.speed
+                }}{{ t('textManager.msPerChar') }}</label
+              >
               <input
                 type="range"
                 v-model.number="newTextTypewriter.speed"
@@ -221,10 +259,7 @@ Zeile 3..."
             <!-- Loop -->
             <div class="control-group">
               <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="newTextTypewriter.loop"
-                />
+                <input type="checkbox" v-model="newTextTypewriter.loop" />
                 {{ t('textManager.loop') }}
               </label>
             </div>
@@ -245,10 +280,7 @@ Zeile 3..."
             <!-- Cursor -->
             <div class="control-group">
               <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="newTextTypewriter.showCursor"
-                />
+                <input type="checkbox" v-model="newTextTypewriter.showCursor" />
                 {{ t('textManager.showCursor') }}
               </label>
             </div>
@@ -256,10 +288,7 @@ Zeile 3..."
             <!-- Cursor-Zeichen (nur wenn Cursor aktiv) -->
             <div v-if="newTextTypewriter.showCursor" class="control-group">
               <label>{{ t('textManager.cursorChar') }}:</label>
-              <select
-                v-model="newTextTypewriter.cursorChar"
-                class="select-input"
-              >
+              <select v-model="newTextTypewriter.cursorChar" class="select-input">
                 <option value="|">{{ t('textManager.cursorLine') }}</option>
                 <option value="_">{{ t('textManager.cursorUnderscore') }}</option>
                 <option value="▌">{{ t('textManager.cursorBlock') }}</option>
@@ -275,7 +304,9 @@ Zeile 3..."
         <summary class="section-header">
           <span class="section-icon">🌫️</span>
           <span>{{ t('textManager.fadeEffect') }}</span>
-          <span v-if="newTextFade.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
+          <span v-if="newTextFade.enabled" class="status-badge active">{{
+            t('textManager.active')
+          }}</span>
         </summary>
         <div class="section-content">
           <!-- Fade aktivieren -->
@@ -285,7 +316,11 @@ Zeile 3..."
                 @click="newTextFade.enabled = !newTextFade.enabled"
                 :class="['btn-small', 'full-width', { active: newTextFade.enabled }]"
               >
-                {{ newTextFade.enabled ? '✓ ' + t('textManager.activated') : t('textManager.deactivated') }}
+                {{
+                  newTextFade.enabled
+                    ? '✓ ' + t('textManager.activated')
+                    : t('textManager.deactivated')
+                }}
               </button>
             </div>
           </div>
@@ -295,10 +330,7 @@ Zeile 3..."
             <!-- Richtung -->
             <div class="control-group">
               <label>{{ t('textManager.direction') }}:</label>
-              <select
-                v-model="newTextFade.direction"
-                class="select-input"
-              >
+              <select v-model="newTextFade.direction" class="select-input">
                 <option value="in">{{ t('textManager.fadeIn') }}</option>
                 <option value="out">{{ t('textManager.fadeOut') }}</option>
                 <option value="inOut">{{ t('textManager.fadeInOut') }}</option>
@@ -316,7 +348,13 @@ Zeile 3..."
                 step="100"
                 class="slider"
               />
-              <div class="hint-text">{{ locale === 'de' ? 'Wie lange das Ein-/Ausblenden dauert' : 'How long the fade in/out takes' }}</div>
+              <div class="hint-text">
+                {{
+                  locale === 'de'
+                    ? 'Wie lange das Ein-/Ausblenden dauert'
+                    : 'How long the fade in/out takes'
+                }}
+              </div>
             </div>
 
             <!-- Start-Verzögerung -->
@@ -335,10 +373,7 @@ Zeile 3..."
             <!-- Easing -->
             <div class="control-group">
               <label>{{ t('textManager.animation') }}:</label>
-              <select
-                v-model="newTextFade.easing"
-                class="select-input"
-              >
+              <select v-model="newTextFade.easing" class="select-input">
                 <option value="linear">{{ t('textManager.linear') }}</option>
                 <option value="ease">{{ t('textManager.ease') }}</option>
                 <option value="easeIn">{{ t('textManager.easeIn') }}</option>
@@ -349,10 +384,7 @@ Zeile 3..."
             <!-- Loop -->
             <div class="control-group">
               <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="newTextFade.loop"
-                />
+                <input type="checkbox" v-model="newTextFade.loop" />
                 {{ t('textManager.loop') }}
               </label>
             </div>
@@ -378,7 +410,9 @@ Zeile 3..."
         <summary class="section-header">
           <span class="section-icon">🔍</span>
           <span>{{ t('textManager.scaleEffect') }}</span>
-          <span v-if="newTextScale.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
+          <span v-if="newTextScale.enabled" class="status-badge active">{{
+            t('textManager.active')
+          }}</span>
         </summary>
         <div class="section-content">
           <!-- Scale aktivieren -->
@@ -388,7 +422,11 @@ Zeile 3..."
                 @click="newTextScale.enabled = !newTextScale.enabled"
                 :class="['btn-small', 'full-width', { active: newTextScale.enabled }]"
               >
-                {{ newTextScale.enabled ? '✓ ' + t('textManager.activated') : t('textManager.deactivated') }}
+                {{
+                  newTextScale.enabled
+                    ? '✓ ' + t('textManager.activated')
+                    : t('textManager.deactivated')
+                }}
               </button>
             </div>
           </div>
@@ -398,10 +436,7 @@ Zeile 3..."
             <!-- Richtung -->
             <div class="control-group">
               <label>{{ t('textManager.direction') }}:</label>
-              <select
-                v-model="newTextScale.direction"
-                class="select-input"
-              >
+              <select v-model="newTextScale.direction" class="select-input">
                 <option value="in">{{ t('textManager.zoomIn') }}</option>
                 <option value="out">{{ t('textManager.zoomOut') }}</option>
                 <option value="inOut">{{ t('textManager.zoomInOut') }}</option>
@@ -410,7 +445,10 @@ Zeile 3..."
 
             <!-- Start-Skalierung -->
             <div class="control-group">
-              <label>{{ t('textManager.startSize') }}: {{ Math.round(newTextScale.startScale * 100) }}%</label>
+              <label
+                >{{ t('textManager.startSize') }}:
+                {{ Math.round(newTextScale.startScale * 100) }}%</label
+              >
               <input
                 type="range"
                 v-model.number="newTextScale.startScale"
@@ -424,7 +462,10 @@ Zeile 3..."
 
             <!-- End-Skalierung -->
             <div class="control-group">
-              <label>{{ t('textManager.endSize') }}: {{ Math.round(newTextScale.endScale * 100) }}%</label>
+              <label
+                >{{ t('textManager.endSize') }}:
+                {{ Math.round(newTextScale.endScale * 100) }}%</label
+              >
               <input
                 type="range"
                 v-model.number="newTextScale.endScale"
@@ -464,10 +505,7 @@ Zeile 3..."
             <!-- Easing -->
             <div class="control-group">
               <label>{{ t('textManager.animation') }}:</label>
-              <select
-                v-model="newTextScale.easing"
-                class="select-input"
-              >
+              <select v-model="newTextScale.easing" class="select-input">
                 <option value="linear">{{ t('textManager.linear') }}</option>
                 <option value="ease">{{ t('textManager.ease') }}</option>
                 <option value="easeIn">{{ t('textManager.easeIn') }}</option>
@@ -478,10 +516,7 @@ Zeile 3..."
             <!-- Loop -->
             <div class="control-group">
               <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="newTextScale.loop"
-                />
+                <input type="checkbox" v-model="newTextScale.loop" />
                 {{ t('textManager.loop') }}
               </label>
             </div>
@@ -507,7 +542,9 @@ Zeile 3..."
         <summary class="section-header">
           <span class="section-icon">↔️</span>
           <span>Hereingleit-Effekt (Slide)</span>
-          <span v-if="newTextSlide.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
+          <span v-if="newTextSlide.enabled" class="status-badge active">{{
+            t('textManager.active')
+          }}</span>
         </summary>
         <div class="section-content">
           <!-- Slide aktivieren -->
@@ -517,7 +554,11 @@ Zeile 3..."
                 @click="newTextSlide.enabled = !newTextSlide.enabled"
                 :class="['btn-small', 'full-width', { active: newTextSlide.enabled }]"
               >
-                {{ newTextSlide.enabled ? '✓ ' + t('textManager.activated') : t('textManager.deactivated') }}
+                {{
+                  newTextSlide.enabled
+                    ? '✓ ' + t('textManager.activated')
+                    : t('textManager.deactivated')
+                }}
               </button>
             </div>
           </div>
@@ -527,10 +568,7 @@ Zeile 3..."
             <!-- Richtung (von wo) -->
             <div class="control-group">
               <label>Einfahren von:</label>
-              <select
-                v-model="newTextSlide.from"
-                class="select-input"
-              >
+              <select v-model="newTextSlide.from" class="select-input">
                 <option value="left">Links</option>
                 <option value="right">Rechts</option>
                 <option value="top">Oben</option>
@@ -541,10 +579,7 @@ Zeile 3..."
             <!-- Animation-Richtung -->
             <div class="control-group">
               <label>Animation:</label>
-              <select
-                v-model="newTextSlide.direction"
-                class="select-input"
-              >
+              <select v-model="newTextSlide.direction" class="select-input">
                 <option value="in">Hereinfahren</option>
                 <option value="out">Herausfahren</option>
                 <option value="inOut">Herein und Heraus</option>
@@ -594,10 +629,7 @@ Zeile 3..."
             <!-- Easing -->
             <div class="control-group">
               <label>Bewegung:</label>
-              <select
-                v-model="newTextSlide.easing"
-                class="select-input"
-              >
+              <select v-model="newTextSlide.easing" class="select-input">
                 <option value="linear">Linear (gleichmäßig)</option>
                 <option value="ease">Ease (natürlich)</option>
                 <option value="easeIn">Ease In (langsamer Start)</option>
@@ -608,10 +640,7 @@ Zeile 3..."
             <!-- Loop -->
             <div class="control-group">
               <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="newTextSlide.loop"
-                />
+                <input type="checkbox" v-model="newTextSlide.loop" />
                 Animation wiederholen (Loop)
               </label>
             </div>
@@ -659,11 +688,12 @@ Zeile 3..."
           <div v-if="textSelectionBounds" class="selection-info">
             <div class="selection-preview">
               <span class="selection-label">Ausgewählter Bereich:</span>
-              <span class="selection-value">{{ Math.round(textSelectionBounds.width) }} × {{ Math.round(textSelectionBounds.height) }} px</span>
+              <span class="selection-value"
+                >{{ Math.round(textSelectionBounds.width) }} ×
+                {{ Math.round(textSelectionBounds.height) }} px</span
+              >
             </div>
-            <button @click="clearTextSelection" class="btn-small btn-clear">
-              Auswahl löschen
-            </button>
+            <button @click="clearTextSelection" class="btn-small btn-clear">Auswahl löschen</button>
           </div>
 
           <!-- Manuelle Position X -->
@@ -712,15 +742,45 @@ Zeile 3..."
           <div class="control-group">
             <label>Schnellauswahl:</label>
             <div class="position-grid">
-              <button @click="setQuickPosition('top-left')" class="btn-pos" title="Oben Links">↖</button>
-              <button @click="setQuickPosition('top-center')" class="btn-pos" title="Oben Mitte">↑</button>
-              <button @click="setQuickPosition('top-right')" class="btn-pos" title="Oben Rechts">↗</button>
-              <button @click="setQuickPosition('middle-left')" class="btn-pos" title="Mitte Links">←</button>
-              <button @click="setQuickPosition('center')" class="btn-pos active" title="Zentrum">⊙</button>
-              <button @click="setQuickPosition('middle-right')" class="btn-pos" title="Mitte Rechts">→</button>
-              <button @click="setQuickPosition('bottom-left')" class="btn-pos" title="Unten Links">↙</button>
-              <button @click="setQuickPosition('bottom-center')" class="btn-pos" title="Unten Mitte">↓</button>
-              <button @click="setQuickPosition('bottom-right')" class="btn-pos" title="Unten Rechts">↘</button>
+              <button @click="setQuickPosition('top-left')" class="btn-pos" title="Oben Links">
+                ↖
+              </button>
+              <button @click="setQuickPosition('top-center')" class="btn-pos" title="Oben Mitte">
+                ↑
+              </button>
+              <button @click="setQuickPosition('top-right')" class="btn-pos" title="Oben Rechts">
+                ↗
+              </button>
+              <button @click="setQuickPosition('middle-left')" class="btn-pos" title="Mitte Links">
+                ←
+              </button>
+              <button @click="setQuickPosition('center')" class="btn-pos active" title="Zentrum">
+                ⊙
+              </button>
+              <button
+                @click="setQuickPosition('middle-right')"
+                class="btn-pos"
+                title="Mitte Rechts"
+              >
+                →
+              </button>
+              <button @click="setQuickPosition('bottom-left')" class="btn-pos" title="Unten Links">
+                ↙
+              </button>
+              <button
+                @click="setQuickPosition('bottom-center')"
+                class="btn-pos"
+                title="Unten Mitte"
+              >
+                ↓
+              </button>
+              <button
+                @click="setQuickPosition('bottom-right')"
+                class="btn-pos"
+                title="Unten Rechts"
+              >
+                ↘
+              </button>
             </div>
           </div>
         </div>
@@ -749,14 +809,17 @@ Zeile 3..."
       <button @click="startAddingText" class="btn-primary full-width">
         {{ t('textManager.addNewText') }}
       </button>
-      <button @click="startAddingTextWithSelection" class="btn-selection full-width" style="margin-top: 8px;">
+      <button
+        @click="startAddingTextWithSelection"
+        class="btn-selection full-width"
+        style="margin-top: 8px"
+      >
         🖱️ {{ t('textManager.addWithArea') }}
       </button>
     </div>
 
     <!-- Text-Einstellungen (nur wenn Text ausgewählt) -->
     <div v-if="selectedText" class="panel-section">
-
       <!-- ✨ Text bearbeiten (klappbar) -->
       <details class="collapsible-section" open>
         <summary class="section-header">
@@ -776,9 +839,7 @@ Zeile 3..."
               placeholder="Mehrzeiliger Text wird unterstützt..."
               rows="5"
             ></textarea>
-            <div class="hint-text">
-              Enter für Zeilenumbrüche oder mehrzeiligen Text einfügen
-            </div>
+            <div class="hint-text">Enter für Zeilenumbrüche oder mehrzeiligen Text einfügen</div>
             <div v-if="selectedText.content.includes('\n')" class="success-hint">
               {{ selectedText.content.split('\n').length }} Zeilen
             </div>
@@ -944,15 +1005,69 @@ Zeile 3..."
           <div class="control-group">
             <label>Schnellauswahl:</label>
             <div class="position-grid">
-              <button @click="setSelectedTextQuickPosition('top-left')" class="btn-pos" title="Oben Links">↖</button>
-              <button @click="setSelectedTextQuickPosition('top-center')" class="btn-pos" title="Oben Mitte">↑</button>
-              <button @click="setSelectedTextQuickPosition('top-right')" class="btn-pos" title="Oben Rechts">↗</button>
-              <button @click="setSelectedTextQuickPosition('middle-left')" class="btn-pos" title="Mitte Links">←</button>
-              <button @click="setSelectedTextQuickPosition('center')" class="btn-pos" title="Zentrum">⊙</button>
-              <button @click="setSelectedTextQuickPosition('middle-right')" class="btn-pos" title="Mitte Rechts">→</button>
-              <button @click="setSelectedTextQuickPosition('bottom-left')" class="btn-pos" title="Unten Links">↙</button>
-              <button @click="setSelectedTextQuickPosition('bottom-center')" class="btn-pos" title="Unten Mitte">↓</button>
-              <button @click="setSelectedTextQuickPosition('bottom-right')" class="btn-pos" title="Unten Rechts">↘</button>
+              <button
+                @click="setSelectedTextQuickPosition('top-left')"
+                class="btn-pos"
+                title="Oben Links"
+              >
+                ↖
+              </button>
+              <button
+                @click="setSelectedTextQuickPosition('top-center')"
+                class="btn-pos"
+                title="Oben Mitte"
+              >
+                ↑
+              </button>
+              <button
+                @click="setSelectedTextQuickPosition('top-right')"
+                class="btn-pos"
+                title="Oben Rechts"
+              >
+                ↗
+              </button>
+              <button
+                @click="setSelectedTextQuickPosition('middle-left')"
+                class="btn-pos"
+                title="Mitte Links"
+              >
+                ←
+              </button>
+              <button
+                @click="setSelectedTextQuickPosition('center')"
+                class="btn-pos"
+                title="Zentrum"
+              >
+                ⊙
+              </button>
+              <button
+                @click="setSelectedTextQuickPosition('middle-right')"
+                class="btn-pos"
+                title="Mitte Rechts"
+              >
+                →
+              </button>
+              <button
+                @click="setSelectedTextQuickPosition('bottom-left')"
+                class="btn-pos"
+                title="Unten Links"
+              >
+                ↙
+              </button>
+              <button
+                @click="setSelectedTextQuickPosition('bottom-center')"
+                class="btn-pos"
+                title="Unten Mitte"
+              >
+                ↓
+              </button>
+              <button
+                @click="setSelectedTextQuickPosition('bottom-right')"
+                class="btn-pos"
+                title="Unten Rechts"
+              >
+                ↘
+              </button>
             </div>
           </div>
         </div>
@@ -963,7 +1078,9 @@ Zeile 3..."
         <summary class="section-header">
           <span class="section-icon">↔️</span>
           <span>Abstände & Kontur</span>
-          <span v-if="selectedText.stroke.enabled" class="status-badge active">{{ t('textManager.outline') }}</span>
+          <span v-if="selectedText.stroke.enabled" class="status-badge active">{{
+            t('textManager.outline')
+          }}</span>
         </summary>
         <div class="section-content">
           <!-- Buchstabenabstand -->
@@ -1000,7 +1117,11 @@ Zeile 3..."
                 @click="toggleStroke"
                 :class="['btn-small', { active: selectedText.stroke.enabled }]"
               >
-                {{ selectedText.stroke.enabled ? t('textManager.activated') : t('textManager.deactivated') }}
+                {{
+                  selectedText.stroke.enabled
+                    ? t('textManager.activated')
+                    : t('textManager.deactivated')
+                }}
               </button>
             </div>
           </div>
@@ -1048,7 +1169,15 @@ Zeile 3..."
         <summary class="section-header">
           <span class="section-icon">🌑</span>
           <span>{{ t('textManager.shadow') }}</span>
-          <span v-if="selectedText.shadow.blur > 0 || selectedText.shadow.offsetX !== 0 || selectedText.shadow.offsetY !== 0" class="status-badge active">{{ t('textManager.active') }}</span>
+          <span
+            v-if="
+              selectedText.shadow.blur > 0 ||
+              selectedText.shadow.offsetX !== 0 ||
+              selectedText.shadow.offsetY !== 0
+            "
+            class="status-badge active"
+            >{{ t('textManager.active') }}</span
+          >
         </summary>
         <div class="section-content">
           <!-- Schattenfarbe -->
@@ -1086,7 +1215,9 @@ Zeile 3..."
 
           <!-- Schatten X-Offset -->
           <div class="control-group">
-            <label>{{ t('textManager.shadowX') }}-Offset: {{ selectedText.shadow.offsetX }}px</label>
+            <label
+              >{{ t('textManager.shadowX') }}-Offset: {{ selectedText.shadow.offsetX }}px</label
+            >
             <input
               type="range"
               v-model.number="selectedText.shadow.offsetX"
@@ -1099,7 +1230,9 @@ Zeile 3..."
 
           <!-- Schatten Y-Offset -->
           <div class="control-group">
-            <label>{{ t('textManager.shadowY') }}-Offset: {{ selectedText.shadow.offsetY }}px</label>
+            <label
+              >{{ t('textManager.shadowY') }}-Offset: {{ selectedText.shadow.offsetY }}px</label
+            >
             <input
               type="range"
               v-model.number="selectedText.shadow.offsetY"
@@ -1117,7 +1250,9 @@ Zeile 3..."
         <summary class="section-header">
           <span class="section-icon">🔄</span>
           <span>Rotation</span>
-          <span v-if="selectedText.rotation !== 0" class="status-badge">{{ selectedText.rotation }}°</span>
+          <span v-if="selectedText.rotation !== 0" class="status-badge"
+            >{{ selectedText.rotation }}°</span
+          >
         </summary>
         <div class="section-content">
           <div class="control-group">
@@ -1139,621 +1274,746 @@ Zeile 3..."
         <summary class="section-header">
           <span class="section-icon">🎵</span>
           <span>{{ t('canvas.audioReactive') }}</span>
-          <span v-if="selectedText.audioReactive?.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
+          <span v-if="selectedText.audioReactive?.enabled" class="status-badge active">{{
+            t('textManager.active')
+          }}</span>
         </summary>
         <div class="section-content">
-
-      <!-- Enable/Disable -->
-      <div class="control-group">
-        <label>{{ t('textManager.audioReactiveEffects') }}:</label>
-        <div class="button-group">
-          <button
-            @click="toggleAudioReactive"
-            :class="['btn-small', { active: selectedText.audioReactive?.enabled }]"
-          >
-            {{ selectedText.audioReactive?.enabled ? t('textManager.activated') : t('textManager.deactivated') }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Audio settings (only when enabled) -->
-      <div v-if="selectedText.audioReactive?.enabled">
-        <!-- Audio Source -->
-        <div class="control-group">
-          <label>{{ t('textManager.audioSource') }}:</label>
-          <select
-            v-model="selectedText.audioReactive.source"
-            @change="updateText"
-            class="select-input"
-          >
-            <option value="bass">{{ t('textManager.bassKickDrums') }}</option>
-            <option value="mid">{{ t('textManager.midVocalsMelody') }}</option>
-            <option value="treble">{{ t('textManager.trebleHiHatsHighs') }}</option>
-            <option value="volume">{{ t('textManager.volumeOverall') }}</option>
-            <option value="dynamic">✨ {{ t('textManager.dynamicAutoBlend') }}</option>
-          </select>
-          <div v-if="selectedText.audioReactive.source === 'dynamic'" class="hint-text" style="color: var(--accent-primary, #c9984d);">
-            {{ t('textManager.dynamicHint') }}
-          </div>
-        </div>
-
-        <!-- Smoothing -->
-        <div class="control-group">
-          <label>{{ t('textManager.smoothing') }}: {{ selectedText.audioReactive.smoothing }}%</label>
-          <input
-            type="range"
-            v-model.number="selectedText.audioReactive.smoothing"
-            @input="updateText"
-            min="0"
-            max="100"
-            class="slider"
-          />
-          <div class="hint-text">
-            {{ t('textManager.smoothingHint') }}
-          </div>
-        </div>
-
-        <!-- ✨ Advanced Audio Settings -->
-        <details class="advanced-settings">
-          <summary>⚙️ {{ t('textManager.advancedSettings') }}</summary>
-
-          <!-- Presets -->
+          <!-- Enable/Disable -->
           <div class="control-group">
-            <label>Presets:</label>
-            <div class="preset-buttons">
-              <button @click="applyAudioPreset('punchy')" class="btn-preset" :title="t('textManager.presetPunchyTitle')">
-                ⚡ {{ t('textManager.presetPunchy') }}
-              </button>
-              <button @click="applyAudioPreset('smooth')" class="btn-preset" :title="t('textManager.presetSmoothTitle')">
-                🌊 {{ t('textManager.presetSmooth') }}
-              </button>
-              <button @click="applyAudioPreset('subtle')" class="btn-preset" :title="t('textManager.presetSubtleTitle')">
-                🎭 {{ t('textManager.presetSubtle') }}
-              </button>
-              <button @click="applyAudioPreset('extreme')" class="btn-preset" :title="t('textManager.presetExtremeTitle')">
-                🔥 {{ t('textManager.presetExtreme') }}
+            <label>{{ t('textManager.audioReactiveEffects') }}:</label>
+            <div class="button-group">
+              <button
+                @click="toggleAudioReactive"
+                :class="['btn-small', { active: selectedText.audioReactive?.enabled }]"
+              >
+                {{
+                  selectedText.audioReactive?.enabled
+                    ? t('textManager.activated')
+                    : t('textManager.deactivated')
+                }}
               </button>
             </div>
           </div>
 
-          <!-- Threshold -->
-          <div class="control-group">
-            <label>{{ t('textManager.threshold') }}: {{ selectedText.audioReactive.threshold || 0 }}%</label>
-            <input
-              type="range"
-              v-model.number="selectedText.audioReactive.threshold"
-              @input="updateText"
-              min="0"
-              max="50"
-              class="slider"
-            />
-            <div class="hint-text">{{ t('textManager.thresholdHint') }}</div>
-          </div>
-
-          <!-- Attack -->
-          <div class="control-group">
-            <label>{{ t('textManager.attack') }}: {{ selectedText.audioReactive.attack || 90 }}%</label>
-            <input
-              type="range"
-              v-model.number="selectedText.audioReactive.attack"
-              @input="updateText"
-              min="10"
-              max="100"
-              class="slider"
-            />
-            <div class="hint-text">{{ t('textManager.attackHint') }}</div>
-          </div>
-
-          <!-- Release -->
-          <div class="control-group">
-            <label>{{ t('textManager.release') }}: {{ selectedText.audioReactive.release || 50 }}%</label>
-            <input
-              type="range"
-              v-model.number="selectedText.audioReactive.release"
-              @input="updateText"
-              min="10"
-              max="100"
-              class="slider"
-            />
-            <div class="hint-text">{{ t('textManager.releaseHint') }}</div>
-          </div>
-
-          <!-- Reset Button -->
-          <button @click="resetAudioSettings" class="btn-reset">
-            🔄 {{ t('textManager.reset') }}
-          </button>
-        </details>
-
-        <div class="divider"></div>
-
-        <h4>{{ t('textManager.selectEffects') }}</h4>
-
-        <!-- Effects List -->
-        <div class="effects-grid">
-          <!-- Hue (Color Rotation) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.hue.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🎨</span> {{ t('textManager.colorRotation') }}
-              </label>
+          <!-- Audio settings (only when enabled) -->
+          <div v-if="selectedText.audioReactive?.enabled">
+            <!-- Audio Source -->
+            <div class="control-group">
+              <label>{{ t('textManager.audioSource') }}:</label>
+              <select
+                v-model="selectedText.audioReactive.source"
+                @change="updateText"
+                class="select-input"
+              >
+                <option value="bass">{{ t('textManager.bassKickDrums') }}</option>
+                <option value="mid">{{ t('textManager.midVocalsMelody') }}</option>
+                <option value="treble">{{ t('textManager.trebleHiHatsHighs') }}</option>
+                <option value="volume">{{ t('textManager.volumeOverall') }}</option>
+                <option value="dynamic">✨ {{ t('textManager.dynamicAutoBlend') }}</option>
+              </select>
+              <div
+                v-if="selectedText.audioReactive.source === 'dynamic'"
+                class="hint-text"
+                style="color: var(--accent-primary, #c9984d)"
+              >
+                {{ t('textManager.dynamicHint') }}
+              </div>
             </div>
-            <div v-if="selectedText.audioReactive.effects.hue.enabled" class="effect-intensity">
+
+            <!-- Smoothing -->
+            <div class="control-group">
+              <label
+                >{{ t('textManager.smoothing') }}:
+                {{ selectedText.audioReactive.smoothing }}%</label
+              >
               <input
                 type="range"
-                v-model.number="selectedText.audioReactive.effects.hue.intensity"
+                v-model.number="selectedText.audioReactive.smoothing"
                 @input="updateText"
-                min="10"
+                min="0"
                 max="100"
-                class="slider-small"
+                class="slider"
               />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.hue.intensity }}%</span>
+              <div class="hint-text">
+                {{ t('textManager.smoothingHint') }}
+              </div>
             </div>
-          </div>
 
-          <!-- Brightness -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.brightness.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">☀️</span> {{ t('textManager.brightness') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.brightness.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.brightness.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.brightness.intensity }}%</span>
-            </div>
-          </div>
+            <!-- ✨ Advanced Audio Settings -->
+            <details class="advanced-settings">
+              <summary>⚙️ {{ t('textManager.advancedSettings') }}</summary>
 
-          <!-- Scale (Pulsate) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.scale.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">📐</span> {{ t('textManager.pulsate') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.scale.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.scale.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.scale.intensity }}%</span>
-            </div>
-          </div>
+              <!-- Presets -->
+              <div class="control-group">
+                <label>Presets:</label>
+                <div class="preset-buttons">
+                  <button
+                    @click="applyAudioPreset('punchy')"
+                    class="btn-preset"
+                    :title="t('textManager.presetPunchyTitle')"
+                  >
+                    ⚡ {{ t('textManager.presetPunchy') }}
+                  </button>
+                  <button
+                    @click="applyAudioPreset('smooth')"
+                    class="btn-preset"
+                    :title="t('textManager.presetSmoothTitle')"
+                  >
+                    🌊 {{ t('textManager.presetSmooth') }}
+                  </button>
+                  <button
+                    @click="applyAudioPreset('subtle')"
+                    class="btn-preset"
+                    :title="t('textManager.presetSubtleTitle')"
+                  >
+                    🎭 {{ t('textManager.presetSubtle') }}
+                  </button>
+                  <button
+                    @click="applyAudioPreset('extreme')"
+                    class="btn-preset"
+                    :title="t('textManager.presetExtremeTitle')"
+                  >
+                    🔥 {{ t('textManager.presetExtreme') }}
+                  </button>
+                </div>
+              </div>
 
-          <!-- Glow -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.glow.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">✨</span> {{ t('textManager.glow') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.glow.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.glow.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.glow.intensity }}%</span>
-            </div>
-          </div>
-
-          <!-- Shake -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.shake.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🫨</span> {{ t('textManager.shake') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.shake.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.shake.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.shake.intensity }}%</span>
-            </div>
-          </div>
-
-          <!-- Bounce -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.bounce.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">⬆️</span> {{ t('textManager.bounce') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.bounce.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.bounce.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.bounce.intensity }}%</span>
-            </div>
-          </div>
-
-          <!-- Swing -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.swing.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">➡️</span> {{ t('textManager.swing') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.swing.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.swing.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.swing.intensity }}%</span>
-            </div>
-          </div>
-
-          <!-- Opacity (Blink) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.opacity.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">👁️</span> {{ t('textManager.blink') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.opacity.enabled" class="effect-details">
-              <div class="effect-intensity">
-                <span class="effect-label">{{ t('textManager.intensity') }}:</span>
+              <!-- Threshold -->
+              <div class="control-group">
+                <label
+                  >{{ t('textManager.threshold') }}:
+                  {{ selectedText.audioReactive.threshold || 0 }}%</label
+                >
                 <input
                   type="range"
-                  v-model.number="selectedText.audioReactive.effects.opacity.intensity"
+                  v-model.number="selectedText.audioReactive.threshold"
+                  @input="updateText"
+                  min="0"
+                  max="50"
+                  class="slider"
+                />
+                <div class="hint-text">{{ t('textManager.thresholdHint') }}</div>
+              </div>
+
+              <!-- Attack -->
+              <div class="control-group">
+                <label
+                  >{{ t('textManager.attack') }}:
+                  {{ selectedText.audioReactive.attack || 90 }}%</label
+                >
+                <input
+                  type="range"
+                  v-model.number="selectedText.audioReactive.attack"
                   @input="updateText"
                   min="10"
                   max="100"
-                  class="slider-small"
+                  class="slider"
                 />
-                <span class="intensity-value">{{ selectedText.audioReactive.effects.opacity.intensity }}%</span>
+                <div class="hint-text">{{ t('textManager.attackHint') }}</div>
               </div>
-              <div class="effect-intensity">
-                <span class="effect-label">{{ t('textManager.minimum') }}:</span>
+
+              <!-- Release -->
+              <div class="control-group">
+                <label
+                  >{{ t('textManager.release') }}:
+                  {{ selectedText.audioReactive.release || 50 }}%</label
+                >
                 <input
                   type="range"
-                  v-model.number="selectedText.audioReactive.effects.opacity.minimum"
+                  v-model.number="selectedText.audioReactive.release"
                   @input="updateText"
-                  min="0"
-                  max="90"
-                  class="slider-small"
+                  min="10"
+                  max="100"
+                  class="slider"
                 />
-                <span class="intensity-value">{{ selectedText.audioReactive.effects.opacity.minimum || 0 }}%</span>
+                <div class="hint-text">{{ t('textManager.releaseHint') }}</div>
               </div>
-              <label class="effect-checkbox-small">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.opacity.ease"
-                  @change="updateText"
-                />
-                {{ t('textManager.easeCurve') }}
-              </label>
-            </div>
-          </div>
 
-          <!-- Letter Spacing -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.letterSpacing.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">↔️</span> {{ t('textManager.spacing') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.letterSpacing.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.letterSpacing.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.letterSpacing.intensity }}%</span>
-            </div>
-          </div>
+              <!-- Reset Button -->
+              <button @click="resetAudioSettings" class="btn-reset">
+                🔄 {{ t('textManager.reset') }}
+              </button>
+            </details>
 
-          <!-- Stroke Width (Outline) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.strokeWidth.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🖼️</span> {{ t('textManager.outline') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.strokeWidth.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.strokeWidth.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.strokeWidth.intensity }}%</span>
-            </div>
-          </div>
+            <div class="divider"></div>
 
-          <!-- ✨ NEU: Skew (Verzerrung) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.skew.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">📐</span> {{ t('textManager.skew') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.skewHint')">ℹ️</span>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.skew.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.skew.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.skew.intensity }}%</span>
-            </div>
-          </div>
+            <h4>{{ t('textManager.selectEffects') }}</h4>
 
-          <!-- ✨ NEU: Strobe (Blitz-Effekt) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.strobe.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">⚡</span> {{ t('textManager.strobe') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.strobeHint')">ℹ️</span>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.strobe.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.strobe.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.strobe.intensity }}%</span>
-            </div>
-          </div>
+            <!-- Effects List -->
+            <div class="effects-grid">
+              <!-- Hue (Color Rotation) -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.hue.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">🎨</span> {{ t('textManager.colorRotation') }}
+                  </label>
+                </div>
+                <div v-if="selectedText.audioReactive.effects.hue.enabled" class="effect-intensity">
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.hue.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.hue.intensity }}%</span
+                  >
+                </div>
+              </div>
 
-          <!-- ✨ NEU: RGB-Glitch (Chromatische Aberration) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.rgbGlitch.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🌈</span> {{ t('textManager.rgbGlitch') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.rgbGlitchHint')">ℹ️</span>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.rgbGlitch.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.rgbGlitch.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.rgbGlitch.intensity }}%</span>
-            </div>
-          </div>
+              <!-- Brightness -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.brightness.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">☀️</span> {{ t('textManager.brightness') }}
+                  </label>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.brightness.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.brightness.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.brightness.intensity }}%</span
+                  >
+                </div>
+              </div>
 
-          <!-- ✨ NEU: 3D-Perspektive -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.perspective3d.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🎲</span> {{ t('textManager.perspective3d') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.perspective3dHint')">ℹ️</span>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.perspective3d.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.perspective3d.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.perspective3d.intensity }}%</span>
-            </div>
-          </div>
+              <!-- Scale (Pulsate) -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.scale.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">📐</span> {{ t('textManager.pulsate') }}
+                  </label>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.scale.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.scale.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.scale.intensity }}%</span
+                  >
+                </div>
+              </div>
 
-          <!-- ✨ NEU: Welle (Wave) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.wave.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🌊</span> {{ t('textManager.wave') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.waveHint')">ℹ️</span>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.wave.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.wave.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.wave.intensity }}%</span>
-            </div>
-          </div>
+              <!-- Glow -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.glow.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">✨</span> {{ t('textManager.glow') }}
+                  </label>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.glow.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.glow.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.glow.intensity }}%</span
+                  >
+                </div>
+              </div>
 
-          <!-- ✨ NEU: Rotation -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.rotation.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🔄</span> {{ t('textManager.rotation') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.rotationHint')">ℹ️</span>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.rotation.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.rotation.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.rotation.intensity }}%</span>
-            </div>
-          </div>
+              <!-- Shake -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.shake.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">🫨</span> {{ t('textManager.shake') }}
+                  </label>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.shake.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.shake.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.shake.intensity }}%</span
+                  >
+                </div>
+              </div>
 
-          <!-- ✨ NEU: Elastic -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.elastic.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🎈</span> {{ t('textManager.elastic') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.elasticHint')">ℹ️</span>
+              <!-- Bounce -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.bounce.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">⬆️</span> {{ t('textManager.bounce') }}
+                  </label>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.bounce.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.bounce.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.bounce.intensity }}%</span
+                  >
+                </div>
+              </div>
+
+              <!-- Swing -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.swing.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">➡️</span> {{ t('textManager.swing') }}
+                  </label>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.swing.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.swing.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.swing.intensity }}%</span
+                  >
+                </div>
+              </div>
+
+              <!-- Opacity (Blink) -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.opacity.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">👁️</span> {{ t('textManager.blink') }}
+                  </label>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.opacity.enabled"
+                  class="effect-details"
+                >
+                  <div class="effect-intensity">
+                    <span class="effect-label">{{ t('textManager.intensity') }}:</span>
+                    <input
+                      type="range"
+                      v-model.number="selectedText.audioReactive.effects.opacity.intensity"
+                      @input="updateText"
+                      min="10"
+                      max="100"
+                      class="slider-small"
+                    />
+                    <span class="intensity-value"
+                      >{{ selectedText.audioReactive.effects.opacity.intensity }}%</span
+                    >
+                  </div>
+                  <div class="effect-intensity">
+                    <span class="effect-label">{{ t('textManager.minimum') }}:</span>
+                    <input
+                      type="range"
+                      v-model.number="selectedText.audioReactive.effects.opacity.minimum"
+                      @input="updateText"
+                      min="0"
+                      max="90"
+                      class="slider-small"
+                    />
+                    <span class="intensity-value"
+                      >{{ selectedText.audioReactive.effects.opacity.minimum || 0 }}%</span
+                    >
+                  </div>
+                  <label class="effect-checkbox-small">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.opacity.ease"
+                      @change="updateText"
+                    />
+                    {{ t('textManager.easeCurve') }}
+                  </label>
+                </div>
+              </div>
+
+              <!-- Letter Spacing -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.letterSpacing.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">↔️</span> {{ t('textManager.spacing') }}
+                  </label>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.letterSpacing.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.letterSpacing.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.letterSpacing.intensity }}%</span
+                  >
+                </div>
+              </div>
+
+              <!-- Stroke Width (Outline) -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.strokeWidth.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">🖼️</span> {{ t('textManager.outline') }}
+                  </label>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.strokeWidth.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.strokeWidth.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.strokeWidth.intensity }}%</span
+                  >
+                </div>
+              </div>
+
+              <!-- ✨ NEU: Skew (Verzerrung) -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.skew.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">📐</span> {{ t('textManager.skew') }}
+                  </label>
+                  <span class="effect-hint" :title="t('textManager.skewHint')">ℹ️</span>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.skew.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.skew.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.skew.intensity }}%</span
+                  >
+                </div>
+              </div>
+
+              <!-- ✨ NEU: Strobe (Blitz-Effekt) -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.strobe.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">⚡</span> {{ t('textManager.strobe') }}
+                  </label>
+                  <span class="effect-hint" :title="t('textManager.strobeHint')">ℹ️</span>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.strobe.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.strobe.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.strobe.intensity }}%</span
+                  >
+                </div>
+              </div>
+
+              <!-- ✨ NEU: RGB-Glitch (Chromatische Aberration) -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.rgbGlitch.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">🌈</span> {{ t('textManager.rgbGlitch') }}
+                  </label>
+                  <span class="effect-hint" :title="t('textManager.rgbGlitchHint')">ℹ️</span>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.rgbGlitch.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.rgbGlitch.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.rgbGlitch.intensity }}%</span
+                  >
+                </div>
+              </div>
+
+              <!-- ✨ NEU: 3D-Perspektive -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.perspective3d.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">🎲</span> {{ t('textManager.perspective3d') }}
+                  </label>
+                  <span class="effect-hint" :title="t('textManager.perspective3dHint')">ℹ️</span>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.perspective3d.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.perspective3d.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.perspective3d.intensity }}%</span
+                  >
+                </div>
+              </div>
+
+              <!-- ✨ NEU: Welle (Wave) -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.wave.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">🌊</span> {{ t('textManager.wave') }}
+                  </label>
+                  <span class="effect-hint" :title="t('textManager.waveHint')">ℹ️</span>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.wave.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.wave.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.wave.intensity }}%</span
+                  >
+                </div>
+              </div>
+
+              <!-- ✨ NEU: Rotation -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.rotation.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">🔄</span> {{ t('textManager.rotation') }}
+                  </label>
+                  <span class="effect-hint" :title="t('textManager.rotationHint')">ℹ️</span>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.rotation.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.rotation.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.rotation.intensity }}%</span
+                  >
+                </div>
+              </div>
+
+              <!-- ✨ NEU: Elastic -->
+              <div class="effect-item">
+                <div class="effect-header">
+                  <label class="effect-checkbox">
+                    <input
+                      type="checkbox"
+                      v-model="selectedText.audioReactive.effects.elastic.enabled"
+                      @change="updateText"
+                    />
+                    <span class="effect-icon">🎈</span> {{ t('textManager.elastic') }}
+                  </label>
+                  <span class="effect-hint" :title="t('textManager.elasticHint')">ℹ️</span>
+                </div>
+                <div
+                  v-if="selectedText.audioReactive.effects.elastic.enabled"
+                  class="effect-intensity"
+                >
+                  <input
+                    type="range"
+                    v-model.number="selectedText.audioReactive.effects.elastic.intensity"
+                    @input="updateText"
+                    min="10"
+                    max="100"
+                    class="slider-small"
+                  />
+                  <span class="intensity-value"
+                    >{{ selectedText.audioReactive.effects.elastic.intensity }}%</span
+                  >
+                </div>
+              </div>
             </div>
-            <div v-if="selectedText.audioReactive.effects.elastic.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.elastic.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value">{{ selectedText.audioReactive.effects.elastic.intensity }}%</span>
+
+            <!-- Reset All Effects Button -->
+            <button @click="resetAllAudioEffects" class="btn-reset-all-effects">
+              <span class="reset-icon">🔄</span>
+              {{ t('textManager.resetAllEffects') || 'Alle Effekte zurücksetzen' }}
+            </button>
+
+            <!-- Save/Load Audio Effects Preset -->
+            <div class="audio-preset-actions">
+              <button @click="saveAudioEffectsPreset" class="btn-save-preset">
+                <span class="preset-icon">💾</span>
+                {{ t('textManager.saveEffectsPreset') || 'Effekte speichern' }}
+              </button>
+              <button
+                @click="loadAudioEffectsPreset"
+                class="btn-load-preset"
+                :disabled="!hasAudioEffectsPreset"
+                :title="
+                  hasAudioEffectsPreset
+                    ? ''
+                    : t('textManager.noPresetSaved') || 'Kein Preset gespeichert'
+                "
+              >
+                <span class="preset-icon">📂</span>
+                {{ t('textManager.loadEffectsPreset') || 'Effekte laden' }}
+              </button>
+            </div>
+
+            <div class="hint-text" style="margin-top: 10px">
+              {{ t('textManager.effectsTip') }}
             </div>
           </div>
         </div>
-
-        <!-- Reset All Effects Button -->
-        <button @click="resetAllAudioEffects" class="btn-reset-all-effects">
-          <span class="reset-icon">🔄</span>
-          {{ t('textManager.resetAllEffects') || 'Alle Effekte zurücksetzen' }}
-        </button>
-
-        <!-- Save/Load Audio Effects Preset -->
-        <div class="audio-preset-actions">
-          <button @click="saveAudioEffectsPreset" class="btn-save-preset">
-            <span class="preset-icon">💾</span>
-            {{ t('textManager.saveEffectsPreset') || 'Effekte speichern' }}
-          </button>
-          <button
-            @click="loadAudioEffectsPreset"
-            class="btn-load-preset"
-            :disabled="!hasAudioEffectsPreset"
-            :title="hasAudioEffectsPreset ? '' : (t('textManager.noPresetSaved') || 'Kein Preset gespeichert')"
-          >
-            <span class="preset-icon">📂</span>
-            {{ t('textManager.loadEffectsPreset') || 'Effekte laden' }}
-          </button>
-        </div>
-
-        <div class="hint-text" style="margin-top: 10px;">
-          {{ t('textManager.effectsTip') }}
-        </div>
-      </div>
-      </div>
       </details>
 
       <!-- ✨ TEXT-ANIMATION (klappbar) -->
@@ -1761,10 +2021,16 @@ Zeile 3..."
         <summary class="section-header">
           <span class="section-icon">⌨️</span>
           <span>Text-Animation</span>
-          <span v-if="selectedText.animation?.typewriter?.enabled" class="status-badge active">Typewriter</span>
+          <span v-if="selectedText.animation?.typewriter?.enabled" class="status-badge active"
+            >Typewriter</span
+          >
           <span v-if="selectedText.animation?.fade?.enabled" class="status-badge active">Fade</span>
-          <span v-if="selectedText.animation?.scale?.enabled" class="status-badge active">Scale</span>
-          <span v-if="selectedText.animation?.slide?.enabled" class="status-badge active">Slide</span>
+          <span v-if="selectedText.animation?.scale?.enabled" class="status-badge active"
+            >Scale</span
+          >
+          <span v-if="selectedText.animation?.slide?.enabled" class="status-badge active"
+            >Slide</span
+          >
         </summary>
         <div class="section-content">
           <!-- Typewriter aktivieren -->
@@ -1775,7 +2041,11 @@ Zeile 3..."
                 @click="toggleTypewriter"
                 :class="['btn-small', { active: selectedText.animation?.typewriter?.enabled }]"
               >
-                {{ selectedText.animation?.typewriter?.enabled ? t('textManager.activated') : t('textManager.deactivated') }}
+                {{
+                  selectedText.animation?.typewriter?.enabled
+                    ? t('textManager.activated')
+                    : t('textManager.deactivated')
+                }}
               </button>
               <button
                 v-if="selectedText.animation?.typewriter?.enabled"
@@ -1792,7 +2062,9 @@ Zeile 3..."
           <div v-if="selectedText.animation?.typewriter?.enabled" class="typewriter-settings">
             <!-- Geschwindigkeit -->
             <div class="control-group">
-              <label>Geschwindigkeit: {{ selectedText.animation.typewriter.speed }}ms/Buchstabe</label>
+              <label
+                >Geschwindigkeit: {{ selectedText.animation.typewriter.speed }}ms/Buchstabe</label
+              >
               <input
                 type="range"
                 v-model.number="selectedText.animation.typewriter.speed"
@@ -1832,7 +2104,10 @@ Zeile 3..."
 
             <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
             <div v-if="selectedText.animation.typewriter.loop" class="control-group">
-              <label>Pause zwischen Wiederholungen: {{ selectedText.animation.typewriter.loopDelay }}ms</label>
+              <label
+                >Pause zwischen Wiederholungen:
+                {{ selectedText.animation.typewriter.loopDelay }}ms</label
+              >
               <input
                 type="range"
                 v-model.number="selectedText.animation.typewriter.loopDelay"
@@ -1873,7 +2148,10 @@ Zeile 3..."
           </div>
 
           <!-- Trennlinie -->
-          <hr class="section-divider" style="margin: 12px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);" />
+          <hr
+            class="section-divider"
+            style="margin: 12px 0; border: none; border-top: 1px solid rgba(255, 255, 255, 0.1)"
+          />
 
           <!-- Fade aktivieren -->
           <div class="control-group">
@@ -1883,7 +2161,11 @@ Zeile 3..."
                 @click="toggleFade"
                 :class="['btn-small', { active: selectedText.animation?.fade?.enabled }]"
               >
-                {{ selectedText.animation?.fade?.enabled ? t('textManager.activated') : t('textManager.deactivated') }}
+                {{
+                  selectedText.animation?.fade?.enabled
+                    ? t('textManager.activated')
+                    : t('textManager.deactivated')
+                }}
               </button>
               <button
                 v-if="selectedText.animation?.fade?.enabled"
@@ -1970,7 +2252,9 @@ Zeile 3..."
 
             <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
             <div v-if="selectedText.animation.fade.loop" class="control-group">
-              <label>Pause zwischen Wiederholungen: {{ selectedText.animation.fade.loopDelay }}ms</label>
+              <label
+                >Pause zwischen Wiederholungen: {{ selectedText.animation.fade.loopDelay }}ms</label
+              >
               <input
                 type="range"
                 v-model.number="selectedText.animation.fade.loopDelay"
@@ -1984,7 +2268,10 @@ Zeile 3..."
           </div>
 
           <!-- Trennlinie -->
-          <hr class="section-divider" style="margin: 12px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);" />
+          <hr
+            class="section-divider"
+            style="margin: 12px 0; border: none; border-top: 1px solid rgba(255, 255, 255, 0.1)"
+          />
 
           <!-- Scale aktivieren -->
           <div class="control-group">
@@ -1994,7 +2281,11 @@ Zeile 3..."
                 @click="toggleScale"
                 :class="['btn-small', { active: selectedText.animation?.scale?.enabled }]"
               >
-                {{ selectedText.animation?.scale?.enabled ? t('textManager.activated') : t('textManager.deactivated') }}
+                {{
+                  selectedText.animation?.scale?.enabled
+                    ? t('textManager.activated')
+                    : t('textManager.deactivated')
+                }}
               </button>
               <button
                 v-if="selectedText.animation?.scale?.enabled"
@@ -2025,7 +2316,10 @@ Zeile 3..."
 
             <!-- Start-Skalierung -->
             <div class="control-group">
-              <label>Start-Größe: {{ Math.round(selectedText.animation.scale.startScale * 100) }}%</label>
+              <label
+                >Start-Größe:
+                {{ Math.round(selectedText.animation.scale.startScale * 100) }}%</label
+              >
               <input
                 type="range"
                 v-model.number="selectedText.animation.scale.startScale"
@@ -2040,7 +2334,9 @@ Zeile 3..."
 
             <!-- End-Skalierung -->
             <div class="control-group">
-              <label>End-Größe: {{ Math.round(selectedText.animation.scale.endScale * 100) }}%</label>
+              <label
+                >End-Größe: {{ Math.round(selectedText.animation.scale.endScale * 100) }}%</label
+              >
               <input
                 type="range"
                 v-model.number="selectedText.animation.scale.endScale"
@@ -2109,7 +2405,10 @@ Zeile 3..."
 
             <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
             <div v-if="selectedText.animation.scale.loop" class="control-group">
-              <label>Pause zwischen Wiederholungen: {{ selectedText.animation.scale.loopDelay }}ms</label>
+              <label
+                >Pause zwischen Wiederholungen:
+                {{ selectedText.animation.scale.loopDelay }}ms</label
+              >
               <input
                 type="range"
                 v-model.number="selectedText.animation.scale.loopDelay"
@@ -2123,7 +2422,10 @@ Zeile 3..."
           </div>
 
           <!-- Trennlinie -->
-          <hr class="section-divider" style="margin: 12px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);" />
+          <hr
+            class="section-divider"
+            style="margin: 12px 0; border: none; border-top: 1px solid rgba(255, 255, 255, 0.1)"
+          />
 
           <!-- Slide aktivieren -->
           <div class="control-group">
@@ -2133,7 +2435,11 @@ Zeile 3..."
                 @click="toggleSlide"
                 :class="['btn-small', { active: selectedText.animation?.slide?.enabled }]"
               >
-                {{ selectedText.animation?.slide?.enabled ? t('textManager.activated') : t('textManager.deactivated') }}
+                {{
+                  selectedText.animation?.slide?.enabled
+                    ? t('textManager.activated')
+                    : t('textManager.deactivated')
+                }}
               </button>
               <button
                 v-if="selectedText.animation?.slide?.enabled"
@@ -2248,7 +2554,10 @@ Zeile 3..."
 
             <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
             <div v-if="selectedText.animation.slide.loop" class="control-group">
-              <label>Pause zwischen Wiederholungen: {{ selectedText.animation.slide.loopDelay }}ms</label>
+              <label
+                >Pause zwischen Wiederholungen:
+                {{ selectedText.animation.slide.loopDelay }}ms</label
+              >
               <input
                 type="range"
                 v-model.number="selectedText.animation.slide.loopDelay"
@@ -2264,7 +2573,7 @@ Zeile 3..."
       </details>
 
       <!-- Löschen Button -->
-      <button @click="deleteSelectedText" class="btn-danger full-width" style="margin-top: 16px;">
+      <button @click="deleteSelectedText" class="btn-danger full-width" style="margin-top: 16px">
         {{ t('textManager.deleteText') }}
       </button>
     </div>
@@ -2279,21 +2588,21 @@ Zeile 3..."
 </template>
 
 <script setup>
-import { ref, inject, onMounted, onUnmounted, nextTick, watch, computed } from 'vue';
-import { useI18n } from '../lib/i18n.js';
-import { useToastStore } from '../stores/toastStore.js';
+import { ref, inject, onMounted, onUnmounted, nextTick, watch, computed } from 'vue'
+import { useI18n } from '../lib/i18n.js'
+import { useToastStore } from '../stores/toastStore.js'
 
-const { t, locale } = useI18n();
-const toastStore = useToastStore();
-const canvasManager = inject('canvasManager');
-const fontManager = inject('fontManager');
-const selectedText = ref(null);
-const isAddingNewText = ref(false);
-const newTextContent = ref('');
-const newTextInput = ref(null);
-const editTextInput = ref(null); // ✨ NEU: Referenz für das Editor-Textarea
-const fontSelect = ref(null);
-const newTextFontSelect = ref(null); // ✨ NEU: Referenz für Font-Dropdown im Eingabemodus
+const { t, locale } = useI18n()
+const toastStore = useToastStore()
+const canvasManager = inject('canvasManager')
+const fontManager = inject('fontManager')
+const selectedText = ref(null)
+const isAddingNewText = ref(false)
+const newTextContent = ref('')
+const newTextInput = ref(null)
+const editTextInput = ref(null) // ✨ NEU: Referenz für das Editor-Textarea
+const fontSelect = ref(null)
+const newTextFontSelect = ref(null) // ✨ NEU: Referenz für Font-Dropdown im Eingabemodus
 
 // ✨ Typewriter-Einstellungen für neuen Text (im Eingabemodus)
 const newTextTypewriter = ref({
@@ -2303,8 +2612,8 @@ const newTextTypewriter = ref({
   loop: false,
   loopDelay: 1000,
   showCursor: true,
-  cursorChar: '|'
-});
+  cursorChar: '|',
+})
 
 // ✨ Fade-Einstellungen für neuen Text (im Eingabemodus)
 const newTextFade = ref({
@@ -2314,8 +2623,8 @@ const newTextFade = ref({
   direction: 'in',
   loop: false,
   loopDelay: 1000,
-  easing: 'ease'
-});
+  easing: 'ease',
+})
 
 // ✨ Scale-Einstellungen für neuen Text (im Eingabemodus)
 const newTextScale = ref({
@@ -2327,8 +2636,8 @@ const newTextScale = ref({
   direction: 'in',
   loop: false,
   loopDelay: 1000,
-  easing: 'ease'
-});
+  easing: 'ease',
+})
 
 // ✨ Slide-Einstellungen für neuen Text (im Eingabemodus)
 const newTextSlide = ref({
@@ -2340,8 +2649,8 @@ const newTextSlide = ref({
   direction: 'in',
   loop: false,
   loopDelay: 1000,
-  easing: 'ease'
-});
+  easing: 'ease',
+})
 
 // ✨ Text-Stil-Einstellungen für neuen Text (im Eingabemodus)
 const newTextStyle = ref({
@@ -2352,68 +2661,68 @@ const newTextStyle = ref({
   fontStyle: 'normal',
   textAlign: 'center',
   opacity: 100,
-  autoFit: false,        // ✨ NEU: Automatische Größenanpassung
-  autoFitPadding: 10     // ✨ NEU: Abstand zum Rand in %
-});
+  autoFit: false, // ✨ NEU: Automatische Größenanpassung
+  autoFitPadding: 10, // ✨ NEU: Abstand zum Rand in %
+})
 
 // ✨ NEU: Position für neuen Text
 const newTextPosition = ref({
-  x: 0.5,      // Relativ (0-1), Standard: Mitte
-  y: 0.5,      // Relativ (0-1), Standard: Mitte
-  xPixel: 0,   // Pixel-Wert für Anzeige
-  yPixel: 0    // Pixel-Wert für Anzeige
-});
+  x: 0.5, // Relativ (0-1), Standard: Mitte
+  y: 0.5, // Relativ (0-1), Standard: Mitte
+  xPixel: 0, // Pixel-Wert für Anzeige
+  yPixel: 0, // Pixel-Wert für Anzeige
+})
 
 // ✨ NEU: Canvas-Rechteck-Auswahl-Modus
-const isSelectingOnCanvas = ref(false);
-const textSelectionBounds = ref(null); // { x, y, width, height, relX, relY, ... }
+const isSelectingOnCanvas = ref(false)
+const textSelectionBounds = ref(null) // { x, y, width, height, relX, relY, ... }
 
 // ✨ NEU: Canvas-Dimensionen für Pixel-Berechnungen
-const canvasWidth = ref(1920);
-const canvasHeight = ref(1080);
+const canvasWidth = ref(1920)
+const canvasHeight = ref(1080)
 
 // ✨ LocalStorage Key für gespeicherte Einstellungen
-const SAVED_SETTINGS_KEY = 'visualizer_text_settings';
+const SAVED_SETTINGS_KEY = 'visualizer_text_settings'
 
 // ✨ Lädt gespeicherte Einstellungen aus localStorage
 function loadSavedSettings() {
   try {
-    const saved = localStorage.getItem(SAVED_SETTINGS_KEY);
+    const saved = localStorage.getItem(SAVED_SETTINGS_KEY)
     if (saved) {
-      const settings = JSON.parse(saved);
+      const settings = JSON.parse(saved)
 
       // Stil-Einstellungen laden
       if (settings.style) {
-        newTextStyle.value = { ...newTextStyle.value, ...settings.style };
+        newTextStyle.value = { ...newTextStyle.value, ...settings.style }
       }
 
       // Typewriter-Einstellungen laden
       if (settings.typewriter) {
-        newTextTypewriter.value = { ...newTextTypewriter.value, ...settings.typewriter };
+        newTextTypewriter.value = { ...newTextTypewriter.value, ...settings.typewriter }
       }
 
       // Fade-Einstellungen laden
       if (settings.fade) {
-        newTextFade.value = { ...newTextFade.value, ...settings.fade };
+        newTextFade.value = { ...newTextFade.value, ...settings.fade }
       }
 
       // Scale-Einstellungen laden
       if (settings.scale) {
-        newTextScale.value = { ...newTextScale.value, ...settings.scale };
+        newTextScale.value = { ...newTextScale.value, ...settings.scale }
       }
 
       // Slide-Einstellungen laden
       if (settings.slide) {
-        newTextSlide.value = { ...newTextSlide.value, ...settings.slide };
+        newTextSlide.value = { ...newTextSlide.value, ...settings.slide }
       }
 
-      console.log('✅ Gespeicherte Text-Einstellungen geladen');
-      return true;
+      console.log('✅ Gespeicherte Text-Einstellungen geladen')
+      return true
     }
   } catch (e) {
-    console.warn('⚠️ Fehler beim Laden der Einstellungen:', e);
+    console.warn('⚠️ Fehler beim Laden der Einstellungen:', e)
   }
-  return false;
+  return false
 }
 
 // ✨ Speichert aktuelle Einstellungen in localStorage
@@ -2429,7 +2738,7 @@ function saveCurrentSettings() {
         textAlign: newTextStyle.value.textAlign,
         opacity: newTextStyle.value.opacity,
         autoFit: newTextStyle.value.autoFit,
-        autoFitPadding: newTextStyle.value.autoFitPadding
+        autoFitPadding: newTextStyle.value.autoFitPadding,
       },
       typewriter: {
         enabled: newTextTypewriter.value.enabled,
@@ -2438,7 +2747,7 @@ function saveCurrentSettings() {
         loop: newTextTypewriter.value.loop,
         loopDelay: newTextTypewriter.value.loopDelay,
         showCursor: newTextTypewriter.value.showCursor,
-        cursorChar: newTextTypewriter.value.cursorChar
+        cursorChar: newTextTypewriter.value.cursorChar,
       },
       fade: {
         enabled: newTextFade.value.enabled,
@@ -2447,7 +2756,7 @@ function saveCurrentSettings() {
         direction: newTextFade.value.direction,
         loop: newTextFade.value.loop,
         loopDelay: newTextFade.value.loopDelay,
-        easing: newTextFade.value.easing
+        easing: newTextFade.value.easing,
       },
       scale: {
         enabled: newTextScale.value.enabled,
@@ -2458,7 +2767,7 @@ function saveCurrentSettings() {
         direction: newTextScale.value.direction,
         loop: newTextScale.value.loop,
         loopDelay: newTextScale.value.loopDelay,
-        easing: newTextScale.value.easing
+        easing: newTextScale.value.easing,
       },
       slide: {
         enabled: newTextSlide.value.enabled,
@@ -2469,191 +2778,190 @@ function saveCurrentSettings() {
         direction: newTextSlide.value.direction,
         loop: newTextSlide.value.loop,
         loopDelay: newTextSlide.value.loopDelay,
-        easing: newTextSlide.value.easing
-      }
-    };
+        easing: newTextSlide.value.easing,
+      },
+    }
 
-    localStorage.setItem(SAVED_SETTINGS_KEY, JSON.stringify(settings));
-    console.log('💾 Text-Einstellungen gespeichert');
-    return true;
+    localStorage.setItem(SAVED_SETTINGS_KEY, JSON.stringify(settings))
+    console.log('💾 Text-Einstellungen gespeichert')
+    return true
   } catch (e) {
-    console.warn('⚠️ Fehler beim Speichern der Einstellungen:', e);
-    return false;
+    console.warn('⚠️ Fehler beim Speichern der Einstellungen:', e)
+    return false
   }
 }
 
 // ✨ Löscht gespeicherte Einstellungen und setzt auf Standard zurück
 function clearSavedSettings() {
   try {
-    localStorage.removeItem(SAVED_SETTINGS_KEY);
-    resetNewTextSettings();
-    console.log('🗑️ Gespeicherte Einstellungen gelöscht');
-    return true;
+    localStorage.removeItem(SAVED_SETTINGS_KEY)
+    resetNewTextSettings()
+    console.log('🗑️ Gespeicherte Einstellungen gelöscht')
+    return true
   } catch (e) {
-    console.warn('⚠️ Fehler beim Löschen der Einstellungen:', e);
-    return false;
+    console.warn('⚠️ Fehler beim Löschen der Einstellungen:', e)
+    return false
   }
 }
 
 // ✨ Prüft ob gespeicherte Einstellungen existieren
 function hasSavedSettings() {
-  return localStorage.getItem(SAVED_SETTINGS_KEY) !== null;
+  return localStorage.getItem(SAVED_SETTINGS_KEY) !== null
 }
 
 // ✨ Berechnet die optimale Schriftgröße, damit der Text ins Canvas passt
 function calculateAutoFitFontSize(text, fontFamily, fontWeight, fontStyle, paddingPercent = 10) {
-  if (!canvasManager.value || !text) return 48;
+  if (!canvasManager.value || !text) return 48
 
-  const canvas = canvasManager.value.canvas;
-  if (!canvas) return 48;
+  const canvas = canvasManager.value.canvas
+  if (!canvas) return 48
 
-  const canvasWidth = canvas.width;
-  const canvasHeight = canvas.height;
+  const canvasWidth = canvas.width
+  const canvasHeight = canvas.height
 
   // Verfügbarer Platz mit Padding
-  const padding = paddingPercent / 100;
-  const availableWidth = canvasWidth * (1 - padding * 2);
-  const availableHeight = canvasHeight * (1 - padding * 2);
+  const padding = paddingPercent / 100
+  const availableWidth = canvasWidth * (1 - padding * 2)
+  const availableHeight = canvasHeight * (1 - padding * 2)
 
   // Temporäres Canvas für Textmessung
-  const tempCanvas = document.createElement('canvas');
-  const ctx = tempCanvas.getContext('2d');
+  const tempCanvas = document.createElement('canvas')
+  const ctx = tempCanvas.getContext('2d')
 
   // Teile Text in Zeilen
-  const lines = text.split('\n');
-  const lineCount = lines.length;
+  const lines = text.split('\n')
+  const lineCount = lines.length
 
   // Starte mit einer großen Schriftgröße und reduziere
-  let fontSize = 200; // Maximale Startgröße
-  const minFontSize = 12; // Minimale Schriftgröße
-  const lineHeightMultiplier = 1.2; // Standard Zeilenabstand
+  let fontSize = 200 // Maximale Startgröße
+  const minFontSize = 12 // Minimale Schriftgröße
+  const lineHeightMultiplier = 1.2 // Standard Zeilenabstand
 
   while (fontSize > minFontSize) {
-    ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
+    ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`
 
     // Berechne Gesamthöhe (alle Zeilen)
-    const totalHeight = fontSize * lineHeightMultiplier * lineCount;
+    const totalHeight = fontSize * lineHeightMultiplier * lineCount
 
     // Finde die breiteste Zeile
-    let maxWidth = 0;
-    lines.forEach(line => {
-      const metrics = ctx.measureText(line);
+    let maxWidth = 0
+    lines.forEach((line) => {
+      const metrics = ctx.measureText(line)
       if (metrics.width > maxWidth) {
-        maxWidth = metrics.width;
+        maxWidth = metrics.width
       }
-    });
+    })
 
     // Passt der Text?
     if (maxWidth <= availableWidth && totalHeight <= availableHeight) {
-      break;
+      break
     }
 
     // Reduziere Schriftgröße
-    fontSize -= 2;
+    fontSize -= 2
   }
 
-  return Math.max(fontSize, minFontSize);
+  return Math.max(fontSize, minFontSize)
 }
 
-let eventListenerRegistered = false;
+let eventListenerRegistered = false
 
 // ✨ Normalisiere Zeilenumbrüche (Windows \r\n, Mac \r, Unix \n → alle zu \n)
 function normalizeLineBreaks(text) {
-  if (!text) return text;
+  if (!text) return text
   // Ersetze Windows (\r\n) und alte Mac (\r) Zeilenumbrüche mit Unix (\n)
-  const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  return normalized;
+  const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  return normalized
 }
 
 // ✨ Handle Paste Events - Lasse Browser die Arbeit machen, dann normalisieren
 function handlePaste(event) {
-  
-  const clipboardData = event.clipboardData || window.clipboardData;
-  
+  const clipboardData = event.clipboardData || window.clipboardData
+
   if (clipboardData) {
-    const plainText = clipboardData.getData('text/plain') || '';
-    const html = clipboardData.getData('text/html') || '';
+    const plainText = clipboardData.getData('text/plain') || ''
+    const html = clipboardData.getData('text/html') || ''
   }
-  
+
   // ✨ NEUE STRATEGIE: Lasse das normale Paste-Verhalten zu
   // Das Textarea handhabt die Konvertierung automatisch besser als wir
   // Wir normalisieren nur NACHHER
   setTimeout(() => {
-    let textToNormalize = '';
-    let targetRef = null;
-    
+    let textToNormalize = ''
+    let targetRef = null
+
     if (isAddingNewText.value) {
-      textToNormalize = newTextContent.value;
-      targetRef = 'newText';
+      textToNormalize = newTextContent.value
+      targetRef = 'newText'
     } else if (selectedText.value) {
-      textToNormalize = selectedText.value.content;
-      targetRef = 'selectedText';
+      textToNormalize = selectedText.value.content
+      targetRef = 'selectedText'
     }
-    
+
     if (textToNormalize) {
       // Normalisiere ALLE Arten von Zeilenumbrüchen
-      const normalized = normalizeLineBreaks(textToNormalize);
-      
-      const lineCount = normalized.split('\n').length;
-      
+      const normalized = normalizeLineBreaks(textToNormalize)
+
+      const lineCount = normalized.split('\n').length
+
       if (targetRef === 'newText') {
-        newTextContent.value = normalized;
+        newTextContent.value = normalized
       } else {
-        selectedText.value.content = normalized;
-        updateText();
+        selectedText.value.content = normalized
+        updateText()
       }
     }
-  }, 50); // Längeres Timeout um sicherzustellen dass der Browser fertig ist
+  }, 50) // Längeres Timeout um sicherzustellen dass der Browser fertig ist
 }
 
 // Starte den Eingabemodus für neuen Text
 function startAddingText() {
-  isAddingNewText.value = true;
-  newTextContent.value = '';
+  isAddingNewText.value = true
+  newTextContent.value = ''
 
   // ✨ Gespeicherte Einstellungen laden (falls vorhanden)
-  loadSavedSettings();
+  loadSavedSettings()
 
   // ✨ NEU: Canvas-Dimensionen aktualisieren
-  updateCanvasDimensions();
+  updateCanvasDimensions()
 
   // ✨ NEU: Position zurücksetzen auf Mitte
-  resetNewTextPosition();
+  resetNewTextPosition()
 
   // ✅ NEU: Positions-Vorschau auf Canvas anzeigen
   nextTick(() => {
-    updatePositionPreview();
-  });
+    updatePositionPreview()
+  })
 
   nextTick(() => {
     if (newTextInput.value) {
-      newTextInput.value.focus();
+      newTextInput.value.focus()
     }
     // ✨ Font-Dropdown im Eingabemodus befüllen
-    populateNewTextFontDropdown();
-  });
+    populateNewTextFontDropdown()
+  })
 }
 
 // ✨ NEU: Starte Text hinzufügen mit Bereichsauswahl
 function startAddingTextWithSelection() {
   // Erst in den Eingabemodus wechseln
-  startAddingText();
+  startAddingText()
 
   // Dann direkt den Canvas-Auswahl-Modus starten
   nextTick(() => {
-    startTextSelectionOnCanvas();
-  });
+    startTextSelectionOnCanvas()
+  })
 }
 
 // ✨ NEU: Canvas-Dimensionen aktualisieren
 function updateCanvasDimensions() {
   if (canvasManager.value && canvasManager.value.canvas) {
-    canvasWidth.value = canvasManager.value.canvas.width;
-    canvasHeight.value = canvasManager.value.canvas.height;
+    canvasWidth.value = canvasManager.value.canvas.width
+    canvasHeight.value = canvasManager.value.canvas.height
 
     // Pixel-Werte aktualisieren
-    newTextPosition.value.xPixel = Math.round(newTextPosition.value.x * canvasWidth.value);
-    newTextPosition.value.yPixel = Math.round(newTextPosition.value.y * canvasHeight.value);
+    newTextPosition.value.xPixel = Math.round(newTextPosition.value.x * canvasWidth.value)
+    newTextPosition.value.yPixel = Math.round(newTextPosition.value.y * canvasHeight.value)
   }
 }
 
@@ -2663,59 +2971,59 @@ function resetNewTextPosition() {
     x: 0.5,
     y: 0.5,
     xPixel: Math.round(canvasWidth.value / 2),
-    yPixel: Math.round(canvasHeight.value / 2)
-  };
-  textSelectionBounds.value = null;
-  isSelectingOnCanvas.value = false;
+    yPixel: Math.round(canvasHeight.value / 2),
+  }
+  textSelectionBounds.value = null
+  isSelectingOnCanvas.value = false
 }
 
 // ✨ NEU: Canvas-Rechteck-Auswahl starten
 function startTextSelectionOnCanvas() {
-  if (!canvasManager.value) return;
+  if (!canvasManager.value) return
 
-  isSelectingOnCanvas.value = true;
+  isSelectingOnCanvas.value = true
 
   canvasManager.value.startTextSelectionMode((bounds) => {
     // Callback wenn Auswahl abgeschlossen
-    textSelectionBounds.value = bounds;
+    textSelectionBounds.value = bounds
 
     // Position aus der Auswahl übernehmen (Zentrum des Rechtecks)
-    newTextPosition.value.x = bounds.relCenterX;
-    newTextPosition.value.y = bounds.relCenterY;
-    newTextPosition.value.xPixel = Math.round(bounds.centerX);
-    newTextPosition.value.yPixel = Math.round(bounds.centerY);
+    newTextPosition.value.x = bounds.relCenterX
+    newTextPosition.value.y = bounds.relCenterY
+    newTextPosition.value.xPixel = Math.round(bounds.centerX)
+    newTextPosition.value.yPixel = Math.round(bounds.centerY)
 
-    isSelectingOnCanvas.value = false;
+    isSelectingOnCanvas.value = false
 
-    console.log('✅ Text-Bereich ausgewählt:', bounds);
-  });
+    console.log('✅ Text-Bereich ausgewählt:', bounds)
+  })
 }
 
 // ✨ NEU: Canvas-Auswahl abbrechen
 function cancelTextSelectionOnCanvas() {
   if (canvasManager.value) {
-    canvasManager.value.cancelTextSelectionMode();
+    canvasManager.value.cancelTextSelectionMode()
   }
-  isSelectingOnCanvas.value = false;
+  isSelectingOnCanvas.value = false
 }
 
 // ✨ NEU: Text-Auswahl löschen
 function clearTextSelection() {
-  textSelectionBounds.value = null;
+  textSelectionBounds.value = null
   if (canvasManager.value) {
-    canvasManager.value.cancelTextSelectionMode();
+    canvasManager.value.cancelTextSelectionMode()
   }
 }
 
 // ✨ NEU: Position aus Pixel-Eingabe aktualisieren
 function updatePositionFromPixel(axis) {
   if (axis === 'x') {
-    newTextPosition.value.x = newTextPosition.value.xPixel / canvasWidth.value;
+    newTextPosition.value.x = newTextPosition.value.xPixel / canvasWidth.value
   } else {
-    newTextPosition.value.y = newTextPosition.value.yPixel / canvasHeight.value;
+    newTextPosition.value.y = newTextPosition.value.yPixel / canvasHeight.value
   }
   // ✅ NEU: Canvas-Vorschau aktualisieren
-  updatePositionPreview();
+  updatePositionPreview()
 }
 
 // ✨ NEU: Schnellposition setzen für neuen Text
@@ -2725,90 +3033,87 @@ function setQuickPosition(position) {
     'top-center': { x: 0.5, y: 0.1 },
     'top-right': { x: 0.9, y: 0.1 },
     'middle-left': { x: 0.1, y: 0.5 },
-    'center': { x: 0.5, y: 0.5 },
+    center: { x: 0.5, y: 0.5 },
     'middle-right': { x: 0.9, y: 0.5 },
     'bottom-left': { x: 0.1, y: 0.9 },
     'bottom-center': { x: 0.5, y: 0.9 },
-    'bottom-right': { x: 0.9, y: 0.9 }
-  };
+    'bottom-right': { x: 0.9, y: 0.9 },
+  }
 
-  const pos = positions[position];
+  const pos = positions[position]
   if (pos) {
-    newTextPosition.value.x = pos.x;
-    newTextPosition.value.y = pos.y;
-    newTextPosition.value.xPixel = Math.round(pos.x * canvasWidth.value);
-    newTextPosition.value.yPixel = Math.round(pos.y * canvasHeight.value);
-    textSelectionBounds.value = null;
+    newTextPosition.value.x = pos.x
+    newTextPosition.value.y = pos.y
+    newTextPosition.value.xPixel = Math.round(pos.x * canvasWidth.value)
+    newTextPosition.value.yPixel = Math.round(pos.y * canvasHeight.value)
+    textSelectionBounds.value = null
 
     // ✅ NEU: Canvas-Vorschau aktualisieren
-    updatePositionPreview();
+    updatePositionPreview()
   }
 }
 
 // ✨ NEU: Aktualisiert die Positions-Vorschau auf dem Canvas
 function updatePositionPreview() {
   if (canvasManager.value && isAddingNewText.value) {
-    canvasManager.value.setTextPositionPreview(
-      newTextPosition.value.x,
-      newTextPosition.value.y
-    );
+    canvasManager.value.setTextPositionPreview(newTextPosition.value.x, newTextPosition.value.y)
   }
 }
 
 // ✨ NEU: Löscht die Positions-Vorschau vom Canvas
 function clearPositionPreview() {
   if (canvasManager.value) {
-    canvasManager.value.clearTextPositionPreview();
+    canvasManager.value.clearTextPositionPreview()
   }
 }
 
 // ✨ NEU: Schnellposition setzen für ausgewählten Text
 function setSelectedTextQuickPosition(position) {
-  if (!selectedText.value) return;
+  if (!selectedText.value) return
 
   const positions = {
     'top-left': { x: 0.1, y: 0.1 },
     'top-center': { x: 0.5, y: 0.1 },
     'top-right': { x: 0.9, y: 0.1 },
     'middle-left': { x: 0.1, y: 0.5 },
-    'center': { x: 0.5, y: 0.5 },
+    center: { x: 0.5, y: 0.5 },
     'middle-right': { x: 0.9, y: 0.5 },
     'bottom-left': { x: 0.1, y: 0.9 },
     'bottom-center': { x: 0.5, y: 0.9 },
-    'bottom-right': { x: 0.9, y: 0.9 }
-  };
+    'bottom-right': { x: 0.9, y: 0.9 },
+  }
 
-  const pos = positions[position];
+  const pos = positions[position]
   if (pos) {
-    selectedText.value.relX = pos.x;
-    selectedText.value.relY = pos.y;
-    updateText();
+    selectedText.value.relX = pos.x
+    selectedText.value.relY = pos.y
+    updateText()
   }
 }
 
 // ✨ NEU: Pixel-Position für ausgewählten Text aktualisieren
 function updateSelectedTextPixelPosition(axis, event) {
-  if (!selectedText.value) return;
+  if (!selectedText.value) return
 
-  const value = parseFloat(event.target.value);
-  if (isNaN(value)) return;
+  const value = parseFloat(event.target.value)
+  if (isNaN(value)) return
 
   if (axis === 'x') {
-    selectedText.value.relX = value / canvasWidth.value;
+    selectedText.value.relX = value / canvasWidth.value
   } else {
-    selectedText.value.relY = value / canvasHeight.value;
+    selectedText.value.relY = value / canvasHeight.value
   }
-  updateText();
+  updateText()
 }
 
 // ✨ Befülle das Font-Dropdown im Eingabemodus mit System + Custom Fonts
 function populateNewTextFontDropdown() {
   if (!newTextFontSelect.value) {
-    return;
+    return
   }
 
   // Leere das Dropdown
-  newTextFontSelect.value.innerHTML = '';
+  newTextFontSelect.value.innerHTML = ''
 
   // System Fonts
   const systemFonts = [
@@ -2820,76 +3125,77 @@ function populateNewTextFontDropdown() {
     'Verdana',
     'Impact',
     'Comic Sans MS',
-    'Trebuchet MS'
-  ];
+    'Trebuchet MS',
+  ]
 
   // Custom Fonts sammeln
-  const customFonts = fontManager?.value && fontManager.value.isInitialized
-    ? Array.from(fontManager.value.loadedFonts).sort()
-    : [];
+  const customFonts =
+    fontManager?.value && fontManager.value.isInitialized
+      ? Array.from(fontManager.value.loadedFonts).sort()
+      : []
 
   // 1️⃣ System Fonts
-  systemFonts.forEach(fontName => {
-    const option = document.createElement('option');
-    option.value = fontName;
-    option.textContent = fontName;
-    option.style.fontFamily = fontName;
-    newTextFontSelect.value.appendChild(option);
-  });
+  systemFonts.forEach((fontName) => {
+    const option = document.createElement('option')
+    option.value = fontName
+    option.textContent = fontName
+    option.style.fontFamily = fontName
+    newTextFontSelect.value.appendChild(option)
+  })
 
   // 2️⃣ Custom Fonts (mit Separator, falls vorhanden)
   if (customFonts.length > 0) {
-    const separator = document.createElement('option');
-    separator.disabled = true;
-    separator.textContent = '── Custom Fonts ──';
-    newTextFontSelect.value.appendChild(separator);
+    const separator = document.createElement('option')
+    separator.disabled = true
+    separator.textContent = '── Custom Fonts ──'
+    newTextFontSelect.value.appendChild(separator)
 
-    customFonts.forEach(fontName => {
-      const option = document.createElement('option');
-      option.value = fontName;
-      option.textContent = fontName;
-      option.style.fontFamily = fontName;
-      newTextFontSelect.value.appendChild(option);
-    });
+    customFonts.forEach((fontName) => {
+      const option = document.createElement('option')
+      option.value = fontName
+      option.textContent = fontName
+      option.style.fontFamily = fontName
+      newTextFontSelect.value.appendChild(option)
+    })
   }
 
   // Setze den Wert auf die aktuelle Auswahl
-  newTextFontSelect.value.value = newTextStyle.value.fontFamily;
+  newTextFontSelect.value.value = newTextStyle.value.fontFamily
 }
 
 // Erstelle den Text auf dem Canvas
 function createNewText() {
   if (!canvasManager.value || !newTextContent.value.trim()) {
-    return;
+    return
   }
 
   // ✨ Normalisiere Zeilenumbrüche bevor der Text erstellt wird
-  const normalizedText = normalizeLineBreaks(newTextContent.value);
-  const lineCount = normalizedText.split('\n').length;
+  const normalizedText = normalizeLineBreaks(newTextContent.value)
+  const lineCount = normalizedText.split('\n').length
 
   // ✨ Auto-Fit: Berechne optimale Schriftgröße wenn aktiviert
-  let fontSize = newTextStyle.value.fontSize;
+  let fontSize = newTextStyle.value.fontSize
   if (newTextStyle.value.autoFit) {
     fontSize = calculateAutoFitFontSize(
       normalizedText,
       newTextStyle.value.fontFamily,
       newTextStyle.value.fontWeight,
       newTextStyle.value.fontStyle,
-      newTextStyle.value.autoFitPadding
-    );
-    console.log(`📐 Auto-Fit: Schriftgröße angepasst auf ${fontSize}px`);
+      newTextStyle.value.autoFitPadding,
+    )
+    console.log(`📐 Auto-Fit: Schriftgröße angepasst auf ${fontSize}px`)
   }
 
   // ✨ NEU: Position aus Auswahl oder manueller Eingabe verwenden
-  const posX = newTextPosition.value.x;
-  const posY = newTextPosition.value.y;
+  const posX = newTextPosition.value.x
+  const posY = newTextPosition.value.y
 
-  console.log(`📍 Text-Position: X=${Math.round(posX * 100)}%, Y=${Math.round(posY * 100)}%`);
+  console.log(`📍 Text-Position: X=${Math.round(posX * 100)}%, Y=${Math.round(posY * 100)}%`)
 
   // ✨ Erstelle den Text mit den benutzerdefinierten Stil-Einstellungen
   const newTextObj = canvasManager.value.addText(normalizedText, {
-    relX: posX,  // ✨ NEU: Position aus Eingabe/Auswahl
-    relY: posY,  // ✨ NEU: Position aus Eingabe/Auswahl
+    relX: posX, // ✨ NEU: Position aus Eingabe/Auswahl
+    relY: posY, // ✨ NEU: Position aus Eingabe/Auswahl
     fontSize: fontSize,
     fontFamily: newTextStyle.value.fontFamily,
     color: newTextStyle.value.color,
@@ -2905,30 +3211,30 @@ function createNewText() {
     shadowColor: '#000000',
     shadowBlur: 0,
     shadowOffsetX: 0,
-    shadowOffsetY: 0
-  });
+    shadowOffsetY: 0,
+  })
 
   // ✨ FIX: Setze den neuen Text direkt als selectedText
   if (newTextObj) {
     // ✨ Stil-Einstellungen direkt auf das Objekt setzen (für Eigenschaften die nicht über options gehen)
-    newTextObj.fontWeight = newTextStyle.value.fontWeight;
-    newTextObj.fontStyle = newTextStyle.value.fontStyle;
-    newTextObj.textAlign = newTextStyle.value.textAlign;
+    newTextObj.fontWeight = newTextStyle.value.fontWeight
+    newTextObj.fontStyle = newTextStyle.value.fontStyle
+    newTextObj.textAlign = newTextStyle.value.textAlign
 
     // ✨ Animations-Einstellungen übernehmen (Typewriter, Fade, Scale und/oder Slide)
-    const hasTypewriter = newTextTypewriter.value.enabled;
-    const hasFade = newTextFade.value.enabled;
-    const hasScale = newTextScale.value.enabled;
-    const hasSlide = newTextSlide.value.enabled;
+    const hasTypewriter = newTextTypewriter.value.enabled
+    const hasFade = newTextFade.value.enabled
+    const hasScale = newTextScale.value.enabled
+    const hasSlide = newTextSlide.value.enabled
 
     if (hasTypewriter || hasFade || hasScale || hasSlide) {
       // Bestimme den Animations-Typ (für Logging)
-      const types = [];
-      if (hasTypewriter) types.push('typewriter');
-      if (hasFade) types.push('fade');
-      if (hasScale) types.push('scale');
-      if (hasSlide) types.push('slide');
-      const animationType = types.join('+') || 'none';
+      const types = []
+      if (hasTypewriter) types.push('typewriter')
+      if (hasFade) types.push('fade')
+      if (hasScale) types.push('scale')
+      if (hasSlide) types.push('slide')
+      const animationType = types.join('+') || 'none'
 
       newTextObj.animation = {
         type: animationType,
@@ -2939,7 +3245,7 @@ function createNewText() {
           loop: newTextTypewriter.value.loop,
           loopDelay: newTextTypewriter.value.loopDelay,
           showCursor: newTextTypewriter.value.showCursor,
-          cursorChar: newTextTypewriter.value.cursorChar
+          cursorChar: newTextTypewriter.value.cursorChar,
         },
         fade: {
           enabled: hasFade,
@@ -2948,7 +3254,7 @@ function createNewText() {
           direction: newTextFade.value.direction,
           loop: newTextFade.value.loop,
           loopDelay: newTextFade.value.loopDelay,
-          easing: newTextFade.value.easing
+          easing: newTextFade.value.easing,
         },
         scale: {
           enabled: hasScale,
@@ -2959,7 +3265,7 @@ function createNewText() {
           direction: newTextScale.value.direction,
           loop: newTextScale.value.loop,
           loopDelay: newTextScale.value.loopDelay,
-          easing: newTextScale.value.easing
+          easing: newTextScale.value.easing,
         },
         slide: {
           enabled: hasSlide,
@@ -2970,47 +3276,47 @@ function createNewText() {
           direction: newTextSlide.value.direction,
           loop: newTextSlide.value.loop,
           loopDelay: newTextSlide.value.loopDelay,
-          easing: newTextSlide.value.easing
+          easing: newTextSlide.value.easing,
         },
         _state: {
           startTime: null,
           isPlaying: false,
-          currentIndex: 0
-        }
-      };
+          currentIndex: 0,
+        },
+      }
 
-      if (hasTypewriter) console.log('⌨️ Text mit Typewriter-Effekt erstellt');
-      if (hasFade) console.log('🌫️ Text mit Fade-Effekt erstellt');
-      if (hasScale) console.log('🔍 Text mit Scale-Effekt erstellt');
-      if (hasSlide) console.log('➡️ Text mit Slide-Effekt erstellt');
+      if (hasTypewriter) console.log('⌨️ Text mit Typewriter-Effekt erstellt')
+      if (hasFade) console.log('🌫️ Text mit Fade-Effekt erstellt')
+      if (hasScale) console.log('🔍 Text mit Scale-Effekt erstellt')
+      if (hasSlide) console.log('➡️ Text mit Slide-Effekt erstellt')
     }
 
-    selectedText.value = newTextObj;
-    console.log('✅ Text erstellt mit Stil:', newTextStyle.value);
-    toastStore.success(t('toast.textAdded'));
+    selectedText.value = newTextObj
+    console.log('✅ Text erstellt mit Stil:', newTextStyle.value)
+    toastStore.success(t('toast.textAdded'))
   }
 
   // Beende den Eingabemodus und setze alle Einstellungen zurück
-  isAddingNewText.value = false;
-  newTextContent.value = '';
-  resetNewTextSettings();
+  isAddingNewText.value = false
+  newTextContent.value = ''
+  resetNewTextSettings()
 
   // ✅ FIX: Canvas-Auswahl-Rechteck und Positions-Vorschau löschen nach Texterstellung
-  clearTextSelection();
-  clearPositionPreview();
-  resetNewTextPosition();
+  clearTextSelection()
+  clearPositionPreview()
+  resetNewTextPosition()
 }
 
 // Abbrechen und Eingabemodus verlassen
 function cancelNewText() {
-  isAddingNewText.value = false;
-  newTextContent.value = '';
-  resetNewTextSettings();
+  isAddingNewText.value = false
+  newTextContent.value = ''
+  resetNewTextSettings()
 
   // ✨ NEU: Canvas-Auswahl-Modus und Positions-Vorschau beenden
-  cancelTextSelectionOnCanvas();
-  clearPositionPreview();
-  textSelectionBounds.value = null;
+  cancelTextSelectionOnCanvas()
+  clearPositionPreview()
+  textSelectionBounds.value = null
 }
 
 // ✨ Alle Einstellungen für neuen Text zurücksetzen
@@ -3023,8 +3329,8 @@ function resetNewTextSettings() {
     loop: false,
     loopDelay: 1000,
     showCursor: true,
-    cursorChar: '|'
-  };
+    cursorChar: '|',
+  }
 
   // Fade zurücksetzen
   newTextFade.value = {
@@ -3034,8 +3340,8 @@ function resetNewTextSettings() {
     direction: 'in',
     loop: false,
     loopDelay: 1000,
-    easing: 'ease'
-  };
+    easing: 'ease',
+  }
 
   // Scale zurücksetzen
   newTextScale.value = {
@@ -3047,8 +3353,8 @@ function resetNewTextSettings() {
     direction: 'in',
     loop: false,
     loopDelay: 1000,
-    easing: 'ease'
-  };
+    easing: 'ease',
+  }
 
   // Slide zurücksetzen
   newTextSlide.value = {
@@ -3060,8 +3366,8 @@ function resetNewTextSettings() {
     direction: 'in',
     loop: false,
     loopDelay: 1000,
-    easing: 'ease'
-  };
+    easing: 'ease',
+  }
 
   // Stil zurücksetzen
   newTextStyle.value = {
@@ -3073,80 +3379,80 @@ function resetNewTextSettings() {
     textAlign: 'center',
     opacity: 100,
     autoFit: false,
-    autoFitPadding: 10
-  };
+    autoFitPadding: 10,
+  }
 }
 
 // ✨ Auto-Wrap: Bricht langen Text automatisch in sinnvolle Zeilen um
 function autoWrapText() {
-  if (!newTextContent.value) return;
-  
-  const maxCharsPerLine = 50; // Maximale Zeichenanzahl pro Zeile
-  const text = newTextContent.value.trim();
-  const words = text.split(/\s+/); // Teile in Wörter
-  
-  let lines = [];
-  let currentLine = '';
-  
-  words.forEach(word => {
+  if (!newTextContent.value) return
+
+  const maxCharsPerLine = 50 // Maximale Zeichenanzahl pro Zeile
+  const text = newTextContent.value.trim()
+  const words = text.split(/\s+/) // Teile in Wörter
+
+  let lines = []
+  let currentLine = ''
+
+  words.forEach((word) => {
     // Wenn das Hinzufügen des Wortes die Zeile zu lang macht
     if ((currentLine + ' ' + word).trim().length > maxCharsPerLine && currentLine.length > 0) {
-      lines.push(currentLine.trim());
-      currentLine = word;
+      lines.push(currentLine.trim())
+      currentLine = word
     } else {
-      currentLine = currentLine ? currentLine + ' ' + word : word;
+      currentLine = currentLine ? currentLine + ' ' + word : word
     }
-  });
-  
+  })
+
   // Füge die letzte Zeile hinzu
   if (currentLine) {
-    lines.push(currentLine.trim());
+    lines.push(currentLine.trim())
   }
-  
-  newTextContent.value = lines.join('\n');
+
+  newTextContent.value = lines.join('\n')
 }
 
 // Text aktualisieren (bei jeder Änderung)
 function updateText() {
   // ✨ Normalisiere Zeilenumbrüche wenn Text bearbeitet wird
   if (selectedText.value && selectedText.value.content) {
-    selectedText.value.content = normalizeLineBreaks(selectedText.value.content);
+    selectedText.value.content = normalizeLineBreaks(selectedText.value.content)
   }
-  
+
   if (canvasManager.value && canvasManager.value.redrawCallback) {
-    canvasManager.value.redrawCallback();
+    canvasManager.value.redrawCallback()
   }
 }
 
 // Fett/Normal umschalten
 function toggleFontWeight() {
   if (selectedText.value) {
-    selectedText.value.fontWeight = selectedText.value.fontWeight === 'bold' ? 'normal' : 'bold';
-    updateText();
+    selectedText.value.fontWeight = selectedText.value.fontWeight === 'bold' ? 'normal' : 'bold'
+    updateText()
   }
 }
 
 // Kursiv/Normal umschalten
 function toggleFontStyle() {
   if (selectedText.value) {
-    selectedText.value.fontStyle = selectedText.value.fontStyle === 'italic' ? 'normal' : 'italic';
-    updateText();
+    selectedText.value.fontStyle = selectedText.value.fontStyle === 'italic' ? 'normal' : 'italic'
+    updateText()
   }
 }
 
 // Text-Ausrichtung setzen
 function setTextAlign(align) {
   if (selectedText.value) {
-    selectedText.value.textAlign = align;
-    updateText();
+    selectedText.value.textAlign = align
+    updateText()
   }
 }
 
 // Text-Kontur aktivieren/deaktivieren
 function toggleStroke() {
   if (selectedText.value) {
-    selectedText.value.stroke.enabled = !selectedText.value.stroke.enabled;
-    updateText();
+    selectedText.value.stroke.enabled = !selectedText.value.stroke.enabled
+    updateText()
   }
 }
 
@@ -3172,124 +3478,138 @@ function toggleAudioReactive() {
           swing: { enabled: false, intensity: 80 },
           opacity: { enabled: false, intensity: 80, minimum: 0, ease: false },
           letterSpacing: { enabled: false, intensity: 80 },
-          strokeWidth: { enabled: false, intensity: 80 }
-        }
-      };
+          strokeWidth: { enabled: false, intensity: 80 },
+        },
+      }
     }
-    selectedText.value.audioReactive.enabled = !selectedText.value.audioReactive.enabled;
-    updateText();
+    selectedText.value.audioReactive.enabled = !selectedText.value.audioReactive.enabled
+    updateText()
   }
 }
 
 // ✨ Audio-Presets anwenden
 function applyAudioPreset(presetName) {
-  if (!selectedText.value?.audioReactive) return;
+  if (!selectedText.value?.audioReactive) return
 
   const presets = {
     punchy: {
       threshold: 10,
       attack: 95,
       release: 70,
-      smoothing: 20
+      smoothing: 20,
     },
     smooth: {
       threshold: 5,
       attack: 50,
       release: 30,
-      smoothing: 70
+      smoothing: 70,
     },
     subtle: {
       threshold: 15,
       attack: 60,
       release: 40,
-      smoothing: 60
+      smoothing: 60,
     },
     extreme: {
       threshold: 0,
       attack: 100,
       release: 85,
-      smoothing: 10
-    }
-  };
+      smoothing: 10,
+    },
+  }
 
-  const preset = presets[presetName];
+  const preset = presets[presetName]
   if (preset) {
-    selectedText.value.audioReactive.threshold = preset.threshold;
-    selectedText.value.audioReactive.attack = preset.attack;
-    selectedText.value.audioReactive.release = preset.release;
-    selectedText.value.audioReactive.smoothing = preset.smoothing;
-    updateText();
-    console.log(`🎛️ Audio-Preset "${presetName}" angewendet`);
+    selectedText.value.audioReactive.threshold = preset.threshold
+    selectedText.value.audioReactive.attack = preset.attack
+    selectedText.value.audioReactive.release = preset.release
+    selectedText.value.audioReactive.smoothing = preset.smoothing
+    updateText()
+    console.log(`🎛️ Audio-Preset "${presetName}" angewendet`)
   }
 }
 
 // ✨ Audio-Einstellungen zurücksetzen
 function resetAudioSettings() {
-  if (!selectedText.value?.audioReactive) return;
+  if (!selectedText.value?.audioReactive) return
 
-  selectedText.value.audioReactive.threshold = 0;
-  selectedText.value.audioReactive.attack = 90;
-  selectedText.value.audioReactive.release = 50;
-  selectedText.value.audioReactive.smoothing = 50;
+  selectedText.value.audioReactive.threshold = 0
+  selectedText.value.audioReactive.attack = 90
+  selectedText.value.audioReactive.release = 50
+  selectedText.value.audioReactive.smoothing = 50
 
   // Auch Opacity-spezifische Einstellungen zurücksetzen
   if (selectedText.value.audioReactive.effects?.opacity) {
-    selectedText.value.audioReactive.effects.opacity.minimum = 0;
-    selectedText.value.audioReactive.effects.opacity.ease = false;
+    selectedText.value.audioReactive.effects.opacity.minimum = 0
+    selectedText.value.audioReactive.effects.opacity.ease = false
   }
 
-  updateText();
-  console.log('🔄 Audio-Einstellungen zurückgesetzt');
+  updateText()
+  console.log('🔄 Audio-Einstellungen zurückgesetzt')
 }
 
 // ✨ Alle Audio-Effekte zurücksetzen
 function resetAllAudioEffects() {
-  if (!selectedText.value?.audioReactive?.effects) return;
+  if (!selectedText.value?.audioReactive?.effects) return
 
-  const effects = selectedText.value.audioReactive.effects;
+  const effects = selectedText.value.audioReactive.effects
 
   // Alle Effekte deaktivieren und Intensität zurücksetzen
   const effectKeys = [
-    'hue', 'brightness', 'scale', 'glow', 'shake', 'bounce',
-    'swing', 'opacity', 'letterSpacing', 'strokeWidth',
-    'skew', 'strobe', 'rgbGlitch', 'perspective3d', 'wave', 'rotation', 'elastic'
-  ];
+    'hue',
+    'brightness',
+    'scale',
+    'glow',
+    'shake',
+    'bounce',
+    'swing',
+    'opacity',
+    'letterSpacing',
+    'strokeWidth',
+    'skew',
+    'strobe',
+    'rgbGlitch',
+    'perspective3d',
+    'wave',
+    'rotation',
+    'elastic',
+  ]
 
-  effectKeys.forEach(key => {
+  effectKeys.forEach((key) => {
     if (effects[key]) {
-      effects[key].enabled = false;
-      effects[key].intensity = 50;
+      effects[key].enabled = false
+      effects[key].intensity = 50
       // Reset special properties
       if (key === 'opacity') {
-        effects[key].minimum = 0;
-        effects[key].ease = false;
+        effects[key].minimum = 0
+        effects[key].ease = false
       }
     }
-  });
+  })
 
-  updateText();
-  console.log('🔄 Alle Audio-Effekte zurückgesetzt');
+  updateText()
+  console.log('🔄 Alle Audio-Effekte zurückgesetzt')
 }
 
 // ✨ Audio-Effekte Preset speichern
-const AUDIO_EFFECTS_PRESET_KEY = 'visualizer_audio_effects_preset';
+const AUDIO_EFFECTS_PRESET_KEY = 'visualizer_audio_effects_preset'
 
-const hasAudioEffectsPreset = ref(false);
+const hasAudioEffectsPreset = ref(false)
 
 // Check on mount if preset exists
 function checkAudioEffectsPreset() {
   try {
-    const saved = localStorage.getItem(AUDIO_EFFECTS_PRESET_KEY);
-    hasAudioEffectsPreset.value = !!saved;
+    const saved = localStorage.getItem(AUDIO_EFFECTS_PRESET_KEY)
+    hasAudioEffectsPreset.value = !!saved
   } catch (e) {
-    hasAudioEffectsPreset.value = false;
+    hasAudioEffectsPreset.value = false
   }
 }
 
 function saveAudioEffectsPreset() {
   if (!selectedText.value?.audioReactive) {
-    toastStore.warning(t('textManager.noEffectsToSave') || 'Keine Effekte zum Speichern');
-    return;
+    toastStore.warning(t('textManager.noEffectsToSave') || 'Keine Effekte zum Speichern')
+    return
   }
 
   try {
@@ -3299,63 +3619,63 @@ function saveAudioEffectsPreset() {
       threshold: selectedText.value.audioReactive.threshold,
       attack: selectedText.value.audioReactive.attack,
       release: selectedText.value.audioReactive.release,
-      effects: JSON.parse(JSON.stringify(selectedText.value.audioReactive.effects))
-    };
+      effects: JSON.parse(JSON.stringify(selectedText.value.audioReactive.effects)),
+    }
 
-    localStorage.setItem(AUDIO_EFFECTS_PRESET_KEY, JSON.stringify(preset));
-    hasAudioEffectsPreset.value = true;
-    toastStore.success(t('textManager.effectsPresetSaved') || 'Audio-Effekte gespeichert');
-    console.log('💾 Audio-Effekte Preset gespeichert');
+    localStorage.setItem(AUDIO_EFFECTS_PRESET_KEY, JSON.stringify(preset))
+    hasAudioEffectsPreset.value = true
+    toastStore.success(t('textManager.effectsPresetSaved') || 'Audio-Effekte gespeichert')
+    console.log('💾 Audio-Effekte Preset gespeichert')
   } catch (error) {
-    console.error('❌ Fehler beim Speichern des Presets:', error);
-    toastStore.error(t('textManager.effectsPresetSaveError') || 'Fehler beim Speichern');
+    console.error('❌ Fehler beim Speichern des Presets:', error)
+    toastStore.error(t('textManager.effectsPresetSaveError') || 'Fehler beim Speichern')
   }
 }
 
 function loadAudioEffectsPreset() {
   if (!selectedText.value?.audioReactive) {
-    toastStore.warning(t('textManager.selectTextFirst') || 'Bitte wähle zuerst einen Text aus');
-    return;
+    toastStore.warning(t('textManager.selectTextFirst') || 'Bitte wähle zuerst einen Text aus')
+    return
   }
 
   try {
-    const saved = localStorage.getItem(AUDIO_EFFECTS_PRESET_KEY);
+    const saved = localStorage.getItem(AUDIO_EFFECTS_PRESET_KEY)
     if (!saved) {
-      toastStore.warning(t('textManager.noPresetSaved') || 'Kein Preset gespeichert');
-      return;
+      toastStore.warning(t('textManager.noPresetSaved') || 'Kein Preset gespeichert')
+      return
     }
 
-    const preset = JSON.parse(saved);
+    const preset = JSON.parse(saved)
 
     // Apply preset to current text
-    selectedText.value.audioReactive.enabled = true;
-    selectedText.value.audioReactive.source = preset.source || 'bass';
-    selectedText.value.audioReactive.smoothing = preset.smoothing || 50;
-    selectedText.value.audioReactive.threshold = preset.threshold || 0;
-    selectedText.value.audioReactive.attack = preset.attack || 90;
-    selectedText.value.audioReactive.release = preset.release || 50;
+    selectedText.value.audioReactive.enabled = true
+    selectedText.value.audioReactive.source = preset.source || 'bass'
+    selectedText.value.audioReactive.smoothing = preset.smoothing || 50
+    selectedText.value.audioReactive.threshold = preset.threshold || 0
+    selectedText.value.audioReactive.attack = preset.attack || 90
+    selectedText.value.audioReactive.release = preset.release || 50
 
     // Deep copy effects
     if (preset.effects) {
-      Object.keys(preset.effects).forEach(key => {
+      Object.keys(preset.effects).forEach((key) => {
         if (selectedText.value.audioReactive.effects[key]) {
-          Object.assign(selectedText.value.audioReactive.effects[key], preset.effects[key]);
+          Object.assign(selectedText.value.audioReactive.effects[key], preset.effects[key])
         }
-      });
+      })
     }
 
-    updateText();
-    toastStore.success(t('textManager.effectsPresetLoaded') || 'Audio-Effekte geladen');
-    console.log('📂 Audio-Effekte Preset geladen');
+    updateText()
+    toastStore.success(t('textManager.effectsPresetLoaded') || 'Audio-Effekte geladen')
+    console.log('📂 Audio-Effekte Preset geladen')
   } catch (error) {
-    console.error('❌ Fehler beim Laden des Presets:', error);
-    toastStore.error(t('textManager.effectsPresetLoadError') || 'Fehler beim Laden');
+    console.error('❌ Fehler beim Laden des Presets:', error)
+    toastStore.error(t('textManager.effectsPresetLoadError') || 'Fehler beim Laden')
   }
 }
 
 // ✨ Typewriter-Animation aktivieren/deaktivieren
 function toggleTypewriter() {
-  if (!selectedText.value) return;
+  if (!selectedText.value) return
 
   // Initialisiere animation wenn nicht vorhanden
   if (!selectedText.value.animation) {
@@ -3368,7 +3688,7 @@ function toggleTypewriter() {
         loop: false,
         loopDelay: 1000,
         showCursor: true,
-        cursorChar: '|'
+        cursorChar: '|',
       },
       fade: {
         enabled: false,
@@ -3377,7 +3697,7 @@ function toggleTypewriter() {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
-        easing: 'ease'
+        easing: 'ease',
       },
       scale: {
         enabled: false,
@@ -3388,7 +3708,7 @@ function toggleTypewriter() {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
-        easing: 'ease'
+        easing: 'ease',
       },
       slide: {
         enabled: false,
@@ -3399,61 +3719,63 @@ function toggleTypewriter() {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
-        easing: 'ease'
+        easing: 'ease',
       },
       _state: {
         startTime: null,
         isPlaying: false,
-        currentIndex: 0
-      }
-    };
+        currentIndex: 0,
+      },
+    }
   }
 
   // Toggle enabled
-  selectedText.value.animation.typewriter.enabled = !selectedText.value.animation.typewriter.enabled;
+  selectedText.value.animation.typewriter.enabled = !selectedText.value.animation.typewriter.enabled
 
   // Animation-Typ aktualisieren (berücksichtigt Fade, Scale und Slide)
-  const hasTypewriter = selectedText.value.animation.typewriter.enabled;
-  const hasFade = selectedText.value.animation.fade?.enabled;
-  const hasScale = selectedText.value.animation.scale?.enabled;
-  const hasSlide = selectedText.value.animation.slide?.enabled;
+  const hasTypewriter = selectedText.value.animation.typewriter.enabled
+  const hasFade = selectedText.value.animation.fade?.enabled
+  const hasScale = selectedText.value.animation.scale?.enabled
+  const hasSlide = selectedText.value.animation.slide?.enabled
 
-  const types = [];
-  if (hasTypewriter) types.push('typewriter');
-  if (hasFade) types.push('fade');
-  if (hasScale) types.push('scale');
-  if (hasSlide) types.push('slide');
-  selectedText.value.animation.type = types.join('+') || 'none';
+  const types = []
+  if (hasTypewriter) types.push('typewriter')
+  if (hasFade) types.push('fade')
+  if (hasScale) types.push('scale')
+  if (hasSlide) types.push('slide')
+  selectedText.value.animation.type = types.join('+') || 'none'
 
   // Bei Aktivierung: Animation-State zurücksetzen für sofortigen Start
   if (selectedText.value.animation.typewriter.enabled) {
-    selectedText.value.animation._state.startTime = null;
-    selectedText.value.animation._state.isPlaying = false;
-    selectedText.value.animation._state.currentIndex = 0;
+    selectedText.value.animation._state.startTime = null
+    selectedText.value.animation._state.isPlaying = false
+    selectedText.value.animation._state.currentIndex = 0
   }
 
-  updateText();
-  console.log(`⌨️ Typewriter ${selectedText.value.animation.typewriter.enabled ? 'aktiviert' : 'deaktiviert'}`);
+  updateText()
+  console.log(
+    `⌨️ Typewriter ${selectedText.value.animation.typewriter.enabled ? 'aktiviert' : 'deaktiviert'}`,
+  )
 }
 
 // ✨ Typewriter-Animation neu starten
 function restartTypewriter() {
-  if (!selectedText.value?.animation) return;
+  if (!selectedText.value?.animation) return
 
   // State zurücksetzen
   selectedText.value.animation._state = {
     startTime: null,
     isPlaying: false,
-    currentIndex: 0
-  };
+    currentIndex: 0,
+  }
 
-  updateText();
-  console.log('🔄 Typewriter-Animation neu gestartet');
+  updateText()
+  console.log('🔄 Typewriter-Animation neu gestartet')
 }
 
 // ✨ Fade-Animation aktivieren/deaktivieren
 function toggleFade() {
-  if (!selectedText.value) return;
+  if (!selectedText.value) return
 
   // Initialisiere animation wenn nicht vorhanden
   if (!selectedText.value.animation) {
@@ -3466,7 +3788,7 @@ function toggleFade() {
         loop: false,
         loopDelay: 1000,
         showCursor: true,
-        cursorChar: '|'
+        cursorChar: '|',
       },
       fade: {
         enabled: false,
@@ -3475,7 +3797,7 @@ function toggleFade() {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
-        easing: 'ease'
+        easing: 'ease',
       },
       scale: {
         enabled: false,
@@ -3486,7 +3808,7 @@ function toggleFade() {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
-        easing: 'ease'
+        easing: 'ease',
       },
       slide: {
         enabled: false,
@@ -3497,14 +3819,14 @@ function toggleFade() {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
-        easing: 'ease'
+        easing: 'ease',
       },
       _state: {
         startTime: null,
         isPlaying: false,
-        currentIndex: 0
-      }
-    };
+        currentIndex: 0,
+      },
+    }
   }
 
   // Initialisiere fade wenn nicht vorhanden
@@ -3516,51 +3838,51 @@ function toggleFade() {
       direction: 'in',
       loop: false,
       loopDelay: 1000,
-      easing: 'ease'
-    };
+      easing: 'ease',
+    }
   }
 
   // Toggle enabled
-  selectedText.value.animation.fade.enabled = !selectedText.value.animation.fade.enabled;
+  selectedText.value.animation.fade.enabled = !selectedText.value.animation.fade.enabled
 
   // Animation-Typ aktualisieren (berücksichtigt Scale und Slide)
-  const hasTypewriter = selectedText.value.animation.typewriter?.enabled;
-  const hasFade = selectedText.value.animation.fade.enabled;
-  const hasScale = selectedText.value.animation.scale?.enabled;
-  const hasSlide = selectedText.value.animation.slide?.enabled;
+  const hasTypewriter = selectedText.value.animation.typewriter?.enabled
+  const hasFade = selectedText.value.animation.fade.enabled
+  const hasScale = selectedText.value.animation.scale?.enabled
+  const hasSlide = selectedText.value.animation.slide?.enabled
 
-  const types = [];
-  if (hasTypewriter) types.push('typewriter');
-  if (hasFade) types.push('fade');
-  if (hasScale) types.push('scale');
-  if (hasSlide) types.push('slide');
-  selectedText.value.animation.type = types.join('+') || 'none';
+  const types = []
+  if (hasTypewriter) types.push('typewriter')
+  if (hasFade) types.push('fade')
+  if (hasScale) types.push('scale')
+  if (hasSlide) types.push('slide')
+  selectedText.value.animation.type = types.join('+') || 'none'
 
   // Bei Aktivierung: Fade-State zurücksetzen für sofortigen Start
   if (selectedText.value.animation.fade.enabled) {
-    selectedText.value.animation._state.fadeStartTime = null;
-    selectedText.value.animation._state.fadePhase = null;
+    selectedText.value.animation._state.fadeStartTime = null
+    selectedText.value.animation._state.fadePhase = null
   }
 
-  updateText();
-  console.log(`🌫️ Fade ${selectedText.value.animation.fade.enabled ? 'aktiviert' : 'deaktiviert'}`);
+  updateText()
+  console.log(`🌫️ Fade ${selectedText.value.animation.fade.enabled ? 'aktiviert' : 'deaktiviert'}`)
 }
 
 // ✨ Fade-Animation neu starten
 function restartFade() {
-  if (!selectedText.value?.animation) return;
+  if (!selectedText.value?.animation) return
 
   // Fade-State zurücksetzen
-  selectedText.value.animation._state.fadeStartTime = null;
-  selectedText.value.animation._state.fadePhase = null;
+  selectedText.value.animation._state.fadeStartTime = null
+  selectedText.value.animation._state.fadePhase = null
 
-  updateText();
-  console.log('🔄 Fade-Animation neu gestartet');
+  updateText()
+  console.log('🔄 Fade-Animation neu gestartet')
 }
 
 // ✨ Scale-Animation aktivieren/deaktivieren
 function toggleScale() {
-  if (!selectedText.value) return;
+  if (!selectedText.value) return
 
   // Initialisiere animation wenn nicht vorhanden
   if (!selectedText.value.animation) {
@@ -3573,7 +3895,7 @@ function toggleScale() {
         loop: false,
         loopDelay: 1000,
         showCursor: true,
-        cursorChar: '|'
+        cursorChar: '|',
       },
       fade: {
         enabled: false,
@@ -3582,7 +3904,7 @@ function toggleScale() {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
-        easing: 'ease'
+        easing: 'ease',
       },
       scale: {
         enabled: false,
@@ -3593,7 +3915,7 @@ function toggleScale() {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
-        easing: 'ease'
+        easing: 'ease',
       },
       slide: {
         enabled: false,
@@ -3604,14 +3926,14 @@ function toggleScale() {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
-        easing: 'ease'
+        easing: 'ease',
       },
       _state: {
         startTime: null,
         isPlaying: false,
-        currentIndex: 0
-      }
-    };
+        currentIndex: 0,
+      },
+    }
   }
 
   // Initialisiere scale wenn nicht vorhanden
@@ -3625,49 +3947,51 @@ function toggleScale() {
       direction: 'in',
       loop: false,
       loopDelay: 1000,
-      easing: 'ease'
-    };
+      easing: 'ease',
+    }
   }
 
   // Toggle enabled
-  selectedText.value.animation.scale.enabled = !selectedText.value.animation.scale.enabled;
+  selectedText.value.animation.scale.enabled = !selectedText.value.animation.scale.enabled
 
   // Animation-Typ aktualisieren
-  const hasTypewriter = selectedText.value.animation.typewriter?.enabled;
-  const hasFade = selectedText.value.animation.fade?.enabled;
-  const hasScale = selectedText.value.animation.scale.enabled;
-  const hasSlide = selectedText.value.animation.slide?.enabled;
+  const hasTypewriter = selectedText.value.animation.typewriter?.enabled
+  const hasFade = selectedText.value.animation.fade?.enabled
+  const hasScale = selectedText.value.animation.scale.enabled
+  const hasSlide = selectedText.value.animation.slide?.enabled
 
-  const types = [];
-  if (hasTypewriter) types.push('typewriter');
-  if (hasFade) types.push('fade');
-  if (hasScale) types.push('scale');
-  if (hasSlide) types.push('slide');
-  selectedText.value.animation.type = types.join('+') || 'none';
+  const types = []
+  if (hasTypewriter) types.push('typewriter')
+  if (hasFade) types.push('fade')
+  if (hasScale) types.push('scale')
+  if (hasSlide) types.push('slide')
+  selectedText.value.animation.type = types.join('+') || 'none'
 
   // Bei Aktivierung: Scale-State zurücksetzen für sofortigen Start
   if (selectedText.value.animation.scale.enabled) {
-    selectedText.value.animation._state.scaleStartTime = null;
+    selectedText.value.animation._state.scaleStartTime = null
   }
 
-  updateText();
-  console.log(`🔍 Scale ${selectedText.value.animation.scale.enabled ? 'aktiviert' : 'deaktiviert'}`);
+  updateText()
+  console.log(
+    `🔍 Scale ${selectedText.value.animation.scale.enabled ? 'aktiviert' : 'deaktiviert'}`,
+  )
 }
 
 // ✨ Scale-Animation neu starten
 function restartScale() {
-  if (!selectedText.value?.animation) return;
+  if (!selectedText.value?.animation) return
 
   // Scale-State zurücksetzen
-  selectedText.value.animation._state.scaleStartTime = null;
+  selectedText.value.animation._state.scaleStartTime = null
 
-  updateText();
-  console.log('🔄 Scale-Animation neu gestartet');
+  updateText()
+  console.log('🔄 Scale-Animation neu gestartet')
 }
 
 // ✨ Slide-Animation aktivieren/deaktivieren
 function toggleSlide() {
-  if (!selectedText.value) return;
+  if (!selectedText.value) return
 
   // Initialisiere animation wenn nicht vorhanden
   if (!selectedText.value.animation) {
@@ -3680,7 +4004,7 @@ function toggleSlide() {
         loop: false,
         loopDelay: 1000,
         showCursor: true,
-        cursorChar: '|'
+        cursorChar: '|',
       },
       fade: {
         enabled: false,
@@ -3689,7 +4013,7 @@ function toggleSlide() {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
-        easing: 'ease'
+        easing: 'ease',
       },
       scale: {
         enabled: false,
@@ -3700,7 +4024,7 @@ function toggleSlide() {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
-        easing: 'ease'
+        easing: 'ease',
       },
       slide: {
         enabled: false,
@@ -3711,14 +4035,14 @@ function toggleSlide() {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
-        easing: 'ease'
+        easing: 'ease',
       },
       _state: {
         startTime: null,
         isPlaying: false,
-        currentIndex: 0
-      }
-    };
+        currentIndex: 0,
+      },
+    }
   }
 
   // Initialisiere slide wenn nicht vorhanden
@@ -3732,78 +4056,79 @@ function toggleSlide() {
       direction: 'in',
       loop: false,
       loopDelay: 1000,
-      easing: 'ease'
-    };
+      easing: 'ease',
+    }
   }
 
   // Toggle enabled
-  selectedText.value.animation.slide.enabled = !selectedText.value.animation.slide.enabled;
+  selectedText.value.animation.slide.enabled = !selectedText.value.animation.slide.enabled
 
   // Animation-Typ aktualisieren
-  const hasTypewriter = selectedText.value.animation.typewriter?.enabled;
-  const hasFade = selectedText.value.animation.fade?.enabled;
-  const hasScale = selectedText.value.animation.scale?.enabled;
-  const hasSlide = selectedText.value.animation.slide.enabled;
+  const hasTypewriter = selectedText.value.animation.typewriter?.enabled
+  const hasFade = selectedText.value.animation.fade?.enabled
+  const hasScale = selectedText.value.animation.scale?.enabled
+  const hasSlide = selectedText.value.animation.slide.enabled
 
-  const types = [];
-  if (hasTypewriter) types.push('typewriter');
-  if (hasFade) types.push('fade');
-  if (hasScale) types.push('scale');
-  if (hasSlide) types.push('slide');
-  selectedText.value.animation.type = types.join('+') || 'none';
+  const types = []
+  if (hasTypewriter) types.push('typewriter')
+  if (hasFade) types.push('fade')
+  if (hasScale) types.push('scale')
+  if (hasSlide) types.push('slide')
+  selectedText.value.animation.type = types.join('+') || 'none'
 
   // Bei Aktivierung: Slide-State zurücksetzen für sofortigen Start
   if (selectedText.value.animation.slide.enabled) {
-    selectedText.value.animation._state.slideStartTime = null;
+    selectedText.value.animation._state.slideStartTime = null
   }
 
-  updateText();
-  console.log(`➡️ Slide ${selectedText.value.animation.slide.enabled ? 'aktiviert' : 'deaktiviert'}`);
+  updateText()
+  console.log(
+    `➡️ Slide ${selectedText.value.animation.slide.enabled ? 'aktiviert' : 'deaktiviert'}`,
+  )
 }
 
 // ✨ Slide-Animation neu starten
 function restartSlide() {
-  if (!selectedText.value?.animation) return;
+  if (!selectedText.value?.animation) return
 
   // Slide-State zurücksetzen
-  selectedText.value.animation._state.slideStartTime = null;
+  selectedText.value.animation._state.slideStartTime = null
 
-  updateText();
-  console.log('🔄 Slide-Animation neu gestartet');
+  updateText()
+  console.log('🔄 Slide-Animation neu gestartet')
 }
 
 // Ausgewählten Text löschen
 function deleteSelectedText() {
   if (canvasManager.value && selectedText.value) {
-    canvasManager.value.deleteActiveObject();
-    selectedText.value = null;
+    canvasManager.value.deleteActiveObject()
+    selectedText.value = null
   }
 }
 
 // ✨ FIX: Verbesserte Callback-Funktion für Selection-Changes
 function handleSelectionChange(obj) {
-
   if (obj && obj.type === 'text') {
     // Sicherheitsprüfung: Initialisiere fehlende Properties
     if (!obj.letterSpacing && obj.letterSpacing !== 0) {
-      obj.letterSpacing = 0;
+      obj.letterSpacing = 0
     }
     if (!obj.lineHeightMultiplier) {
-      obj.lineHeightMultiplier = 120;
+      obj.lineHeightMultiplier = 120
     }
     if (!obj.stroke) {
-      obj.stroke = { enabled: false, color: '#000000', width: 2 };
+      obj.stroke = { enabled: false, color: '#000000', width: 2 }
     }
     if (obj.stroke && obj.stroke.enabled === undefined) {
-      obj.stroke.enabled = false;
+      obj.stroke.enabled = false
     }
     if (!obj.shadow) {
       obj.shadow = {
         color: '#000000',
         blur: 0,
         offsetX: 0,
-        offsetY: 0
-      };
+        offsetY: 0,
+      }
     }
 
     // ✨ Initialisiere audioReactive wenn nicht vorhanden (für ältere Text-Objekte)
@@ -3825,9 +4150,9 @@ function handleSelectionChange(obj) {
           swing: { enabled: false, intensity: 80 },
           opacity: { enabled: false, intensity: 80, minimum: 0, ease: false },
           letterSpacing: { enabled: false, intensity: 80 },
-          strokeWidth: { enabled: false, intensity: 80 }
-        }
-      };
+          strokeWidth: { enabled: false, intensity: 80 },
+        },
+      }
     }
 
     // ✨ Initialisiere animation wenn nicht vorhanden (für ältere Text-Objekte)
@@ -3841,27 +4166,26 @@ function handleSelectionChange(obj) {
           loop: false,
           loopDelay: 1000,
           showCursor: true,
-          cursorChar: '|'
+          cursorChar: '|',
         },
         _state: {
           startTime: null,
           isPlaying: false,
-          currentIndex: 0
-        }
-      };
+          currentIndex: 0,
+        },
+      }
     }
 
-    selectedText.value = obj;
-    isAddingNewText.value = false;
+    selectedText.value = obj
+    isAddingNewText.value = false
 
     // ✨ FIX: Font-Dropdown befüllen - KEIN automatischer Fokus auf Text-Eingabe
     // Der Benutzer kann selbst nach oben scrollen wenn Textbearbeitung gewünscht
     nextTick(() => {
-      populateFontDropdown();
-    });
-
+      populateFontDropdown()
+    })
   } else {
-    selectedText.value = null;
+    selectedText.value = null
   }
 }
 
@@ -3869,121 +4193,131 @@ function handleSelectionChange(obj) {
 // 🎯 Die aktuelle Schriftart des ausgewählten Textes wird IMMER an erster Stelle angezeigt
 function populateFontDropdown() {
   if (!fontSelect.value) {
-    return;
+    return
   }
-  
+
   // Leere das Dropdown
-  fontSelect.value.innerHTML = '';
-  
+  fontSelect.value.innerHTML = ''
+
   // System Fonts
   const systemFonts = [
     'Arial',
-    'Helvetica', 
+    'Helvetica',
     'Times New Roman',
     'Georgia',
     'Courier New',
     'Verdana',
     'Impact',
     'Comic Sans MS',
-    'Trebuchet MS'
-  ];
-  
+    'Trebuchet MS',
+  ]
+
   // Custom Fonts sammeln
-  const customFonts = fontManager?.value && fontManager.value.isInitialized 
-    ? Array.from(fontManager.value.loadedFonts).sort()
-    : [];
-  
+  const customFonts =
+    fontManager?.value && fontManager.value.isInitialized
+      ? Array.from(fontManager.value.loadedFonts).sort()
+      : []
+
   // Alle verfügbaren Fonts kombinieren
-  const allFonts = [...systemFonts, ...customFonts];
-  
+  const allFonts = [...systemFonts, ...customFonts]
+
   // 🎯 AKTUELLE SCHRIFTART DES AUSGEWÄHLTEN TEXTES
-  const currentFont = selectedText.value?.fontFamily || 'Arial';
-  
+  const currentFont = selectedText.value?.fontFamily || 'Arial'
+
   // 1️⃣ Aktuelle Schriftart an erster Stelle (hervorgehoben)
   if (currentFont && allFonts.includes(currentFont)) {
-    const currentOption = document.createElement('option');
-    currentOption.value = currentFont;
-    currentOption.textContent = `✨ ${currentFont} (aktuell)`;
-    currentOption.style.fontFamily = currentFont;
-    currentOption.style.fontWeight = 'bold';
-    currentOption.style.backgroundColor = 'var(--card-bg)';
-    fontSelect.value.appendChild(currentOption);
-    
+    const currentOption = document.createElement('option')
+    currentOption.value = currentFont
+    currentOption.textContent = `✨ ${currentFont} (aktuell)`
+    currentOption.style.fontFamily = currentFont
+    currentOption.style.fontWeight = 'bold'
+    currentOption.style.backgroundColor = 'var(--card-bg)'
+    fontSelect.value.appendChild(currentOption)
+
     // Separator
-    const separator1 = document.createElement('option');
-    separator1.disabled = true;
-    separator1.textContent = '──────────────────';
-    fontSelect.value.appendChild(separator1);
+    const separator1 = document.createElement('option')
+    separator1.disabled = true
+    separator1.textContent = '──────────────────'
+    fontSelect.value.appendChild(separator1)
   }
-  
+
   // 2️⃣ System Fonts (ohne die aktuelle Schriftart, falls bereits oben)
-  systemFonts.forEach(fontName => {
-    if (fontName === currentFont) return; // Überspringe aktuelle Schriftart
-    
-    const option = document.createElement('option');
-    option.value = fontName;
-    option.textContent = fontName;
-    option.style.fontFamily = fontName;
-    fontSelect.value.appendChild(option);
-  });
-  
+  systemFonts.forEach((fontName) => {
+    if (fontName === currentFont) return // Überspringe aktuelle Schriftart
+
+    const option = document.createElement('option')
+    option.value = fontName
+    option.textContent = fontName
+    option.style.fontFamily = fontName
+    fontSelect.value.appendChild(option)
+  })
+
   // 3️⃣ Custom Fonts (mit Separator, falls vorhanden)
   if (customFonts.length > 0) {
-    const separator2 = document.createElement('option');
-    separator2.disabled = true;
-    separator2.textContent = '── Custom Fonts ──';
-    fontSelect.value.appendChild(separator2);
-    
-    customFonts.forEach(fontName => {
-      if (fontName === currentFont) return; // Überspringe aktuelle Schriftart
-      
-      const option = document.createElement('option');
-      option.value = fontName;
-      option.textContent = fontName;
-      option.style.fontFamily = fontName;
-      fontSelect.value.appendChild(option);
-    });
-    
+    const separator2 = document.createElement('option')
+    separator2.disabled = true
+    separator2.textContent = '── Custom Fonts ──'
+    fontSelect.value.appendChild(separator2)
+
+    customFonts.forEach((fontName) => {
+      if (fontName === currentFont) return // Überspringe aktuelle Schriftart
+
+      const option = document.createElement('option')
+      option.value = fontName
+      option.textContent = fontName
+      option.style.fontFamily = fontName
+      fontSelect.value.appendChild(option)
+    })
   } else {
   }
 }
 
 // ✨ FIX: Überwache canvasManager.activeObject direkt
-watch(() => canvasManager.value?.activeObject, (newObj) => {
-  handleSelectionChange(newObj);
-}, { deep: true });
+watch(
+  () => canvasManager.value?.activeObject,
+  (newObj) => {
+    handleSelectionChange(newObj)
+  },
+  { deep: true },
+)
 
 // ✨ NEU: Überwache Position-Änderungen für Canvas-Vorschau (Slider v-model)
-watch(() => newTextPosition.value.x, () => {
-  if (isAddingNewText.value) {
-    // Pixel-Wert synchronisieren
-    newTextPosition.value.xPixel = Math.round(newTextPosition.value.x * canvasWidth.value);
-    updatePositionPreview();
-  }
-});
+watch(
+  () => newTextPosition.value.x,
+  () => {
+    if (isAddingNewText.value) {
+      // Pixel-Wert synchronisieren
+      newTextPosition.value.xPixel = Math.round(newTextPosition.value.x * canvasWidth.value)
+      updatePositionPreview()
+    }
+  },
+)
 
-watch(() => newTextPosition.value.y, () => {
-  if (isAddingNewText.value) {
-    // Pixel-Wert synchronisieren
-    newTextPosition.value.yPixel = Math.round(newTextPosition.value.y * canvasHeight.value);
-    updatePositionPreview();
-  }
-});
+watch(
+  () => newTextPosition.value.y,
+  () => {
+    if (isAddingNewText.value) {
+      // Pixel-Wert synchronisieren
+      newTextPosition.value.yPixel = Math.round(newTextPosition.value.y * canvasHeight.value)
+      updatePositionPreview()
+    }
+  },
+)
 
 // ✨ NEU: Vorschau löschen wenn isAddingNewText auf false wechselt
 watch(isAddingNewText, (newValue) => {
   if (!newValue) {
-    clearPositionPreview();
+    clearPositionPreview()
   }
-});
+})
 
 // ✨ NEU: Handler für Tastatureingabe zum Öffnen des Texteditors
 function handleOpenTextEditorWithChar(event) {
-  const char = event.detail?.char;
-  if (!char) return;
+  const char = event.detail?.char
+  if (!char) return
 
   // ✨ LÖSUNG: Sofort Text zum Canvas hinzufügen und Editor öffnen!
-  if (!canvasManager.value) return;
+  if (!canvasManager.value) return
 
   // Erstelle sofort einen neuen Text auf dem Canvas mit dem eingegebenen Zeichen
   const newTextObj = canvasManager.value.addText(char, {
@@ -3999,54 +4333,54 @@ function handleOpenTextEditorWithChar(event) {
     shadowColor: '#000000',
     shadowBlur: 5,
     shadowOffsetX: 2,
-    shadowOffsetY: 2
-  });
+    shadowOffsetY: 2,
+  })
 
   // Der Text wird automatisch als activeObject gesetzt (durch addText)
   // Das triggert handleSelectionChange, was selectedText setzt und den Editor öffnet
   if (newTextObj) {
-    selectedText.value = newTextObj;
-    isAddingNewText.value = false;
+    selectedText.value = newTextObj
+    isAddingNewText.value = false
 
     // Fokussiere das Editor-Textarea, damit der Benutzer weiter tippen kann
     nextTick(() => {
       if (editTextInput.value) {
-        editTextInput.value.focus();
+        editTextInput.value.focus()
         // Setze Cursor ans Ende des Textes
-        editTextInput.value.selectionStart = editTextInput.value.selectionEnd = char.length;
+        editTextInput.value.selectionStart = editTextInput.value.selectionEnd = char.length
       }
-    });
+    })
   }
 }
 
 // Setup beim Mounting
 onMounted(() => {
   // ✨ WICHTIG: Event-Listener für Tastatureingabe IMMER registrieren (unabhängig von canvasManager)
-  window.addEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar);
+  window.addEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar)
 
   // Check if audio effects preset exists in localStorage
-  checkAudioEffectsPreset();
+  checkAudioEffectsPreset()
 
-  if (!canvasManager.value) return;
+  if (!canvasManager.value) return
 
   // ✨ NEU: Canvas-Dimensionen initialisieren
-  updateCanvasDimensions();
+  updateCanvasDimensions()
 
   // ✨ FIX: Registriere Event-Listener wenn verfügbar
   if (canvasManager.value.onSelectionChanged && !eventListenerRegistered) {
-    canvasManager.value.onSelectionChanged(handleSelectionChange);
-    eventListenerRegistered = true;
+    canvasManager.value.onSelectionChanged(handleSelectionChange)
+    eventListenerRegistered = true
   }
 
   // Prüfe ob bereits ein Text ausgewählt ist
   if (canvasManager.value.activeObject?.type === 'text') {
-    handleSelectionChange(canvasManager.value.activeObject);
+    handleSelectionChange(canvasManager.value.activeObject)
   }
 
   // Befülle Font-Dropdown nach dem Mounting
   nextTick(() => {
-    populateFontDropdown();
-  });
+    populateFontDropdown()
+  })
 
   // Überwache FontManager und aktualisiere Dropdown wenn Fonts geladen werden
   if (fontManager?.value) {
@@ -4055,47 +4389,47 @@ onMounted(() => {
       (isInitialized) => {
         if (isInitialized) {
           nextTick(() => {
-            populateFontDropdown();
-          });
+            populateFontDropdown()
+          })
         }
       },
-      { immediate: true }
-    );
+      { immediate: true },
+    )
   }
-});
+})
 
 // Cleanup beim Unmounting
 onUnmounted(() => {
-  eventListenerRegistered = false;
+  eventListenerRegistered = false
   // ✨ NEU: Event-Listener entfernen
-  window.removeEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar);
+  window.removeEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar)
 
   // ✨ NEU: Canvas-Auswahl-Modus beenden falls aktiv
   if (isSelectingOnCanvas.value && canvasManager.value) {
-    canvasManager.value.cancelTextSelectionMode();
+    canvasManager.value.cancelTextSelectionMode()
   }
-});
+})
 
 // ✨ NEU: Watch für Position-Synchronisation (Relativ → Pixel)
 watch(
   () => [newTextPosition.value.x, newTextPosition.value.y],
   ([newX, newY]) => {
-    newTextPosition.value.xPixel = Math.round(newX * canvasWidth.value);
-    newTextPosition.value.yPixel = Math.round(newY * canvasHeight.value);
-  }
-);
+    newTextPosition.value.xPixel = Math.round(newX * canvasWidth.value)
+    newTextPosition.value.yPixel = Math.round(newY * canvasHeight.value)
+  },
+)
 
 // ✨ NEU: Watch für Canvas-Dimensionen Updates
 watch(
   () => canvasManager.value?.canvas,
   (canvas) => {
     if (canvas) {
-      canvasWidth.value = canvas.width;
-      canvasHeight.value = canvas.height;
+      canvasWidth.value = canvas.width
+      canvasHeight.value = canvas.height
     }
   },
-  { immediate: true }
-);
+  { immediate: true },
+)
 </script>
 
 <style scoped>
@@ -4105,7 +4439,7 @@ watch(
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 8px;
   padding: 10px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -4116,7 +4450,7 @@ h3 {
   margin: 0 0 8px 0;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   letter-spacing: 0.4px;
   text-transform: uppercase;
   display: flex;
@@ -4131,14 +4465,14 @@ h3::before {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Cpath d='M4 7V4h16v3M9 20h6M12 4v16'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 h4 {
   margin: 8px 0 6px 0;
   font-size: 0.6rem;
   font-weight: 500;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -4157,7 +4491,7 @@ h4 {
   display: block;
   margin-bottom: 4px;
   font-size: 0.6rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   font-weight: 500;
@@ -4170,10 +4504,10 @@ h4 {
 .text-area {
   width: 100%;
   padding: 5px 8px;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-size: 0.6rem;
   font-family: inherit;
   resize: vertical;
@@ -4206,7 +4540,7 @@ h4 {
 /* ===== HINT TEXT ===== */
 .hint-text {
   font-size: 0.5rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   margin-top: 3px;
   line-height: 1.4;
 }
@@ -4225,7 +4559,11 @@ h4 {
 .slider {
   width: 100%;
   height: 3px;
-  background: linear-gradient(90deg, var(--text-muted, #7A8DA0) 0%, var(--accent-primary, #c9984d) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--text-muted, #7a8da0) 0%,
+    var(--accent-primary, #c9984d) 100%
+  );
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -4282,7 +4620,7 @@ h4 {
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
   cursor: pointer;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   transition: all 0.2s ease;
 }
 
@@ -4314,10 +4652,10 @@ h4 {
 .btn-small {
   flex: 1;
   padding: 5px 8px;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   cursor: pointer;
   font-size: 0.6rem;
   font-weight: 500;
@@ -4365,15 +4703,15 @@ h4 {
 }
 
 .btn-primary:disabled {
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-muted, #7A8DA0);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-muted, #7a8da0);
   cursor: not-allowed;
   opacity: 0.5;
 }
 
 .btn-secondary {
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-primary, #E9E9EB);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
 }
 
@@ -4385,7 +4723,7 @@ h4 {
 
 .btn-danger {
   background: rgba(244, 67, 54, 0.2);
-  color: #F44336;
+  color: #f44336;
   border: 1px solid rgba(244, 67, 54, 0.3);
 }
 
@@ -4422,7 +4760,7 @@ h4 {
 }
 
 .effect-item {
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 5px;
   padding: 6px 8px;
@@ -4445,13 +4783,13 @@ h4 {
   gap: 6px;
   cursor: pointer;
   font-size: 0.55rem;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   user-select: none;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
-.effect-checkbox input[type="checkbox"] {
+.effect-checkbox input[type='checkbox'] {
   width: 12px;
   height: 12px;
   cursor: pointer;
@@ -4493,7 +4831,7 @@ h4 {
 
 .effect-label {
   font-size: 0.5rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   min-width: 50px;
   text-transform: uppercase;
 }
@@ -4503,13 +4841,13 @@ h4 {
   align-items: center;
   gap: 4px;
   font-size: 0.5rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   margin-top: 6px;
   cursor: pointer;
   text-transform: uppercase;
 }
 
-.effect-checkbox-small input[type="checkbox"] {
+.effect-checkbox-small input[type='checkbox'] {
   width: 10px;
   height: 10px;
   cursor: pointer;
@@ -4548,10 +4886,10 @@ h4 {
   min-width: 60px;
   padding: 5px 6px;
   font-size: 0.5rem;
-  background: var(--secondary-bg, #0E1C32);
+  background: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 4px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   cursor: pointer;
   transition: all 0.2s ease;
   text-transform: uppercase;
@@ -4702,7 +5040,11 @@ h4 {
 .slider-small {
   flex: 1;
   height: 3px;
-  background: linear-gradient(90deg, var(--text-muted, #7A8DA0) 0%, var(--accent-primary, #c9984d) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--text-muted, #7a8da0) 0%,
+    var(--accent-primary, #c9984d) 100%
+  );
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -4747,7 +5089,7 @@ h4 {
 
 .intensity-value {
   font-size: 0.5rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   font-weight: 500;
   min-width: 30px;
   text-align: right;
@@ -4986,8 +5328,13 @@ h4 {
 }
 
 @keyframes pulse-border {
-  0%, 100% { border-color: #8fdf8f; }
-  50% { border-color: #4a7a4a; }
+  0%,
+  100% {
+    border-color: #8fdf8f;
+  }
+  50% {
+    border-color: #4a7a4a;
+  }
 }
 
 .selection-info {
@@ -5279,7 +5626,7 @@ h4 {
 
 /* --- Collapsible Sections --- */
 [data-theme='light'] .collapsible-section {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border: 1px solid rgba(1, 79, 153, 0.15);
 }
 
@@ -5292,18 +5639,18 @@ h4 {
 }
 
 [data-theme='light'] .section-header {
-  background: linear-gradient(135deg, #f9f2d5 0%, #FFFFFF 100%);
+  background: linear-gradient(135deg, #f9f2d5 0%, #ffffff 100%);
   color: #003971;
 }
 
 [data-theme='light'] .section-header:hover {
-  background: linear-gradient(135deg, #FFFFFF 0%, #f9f2d5 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f9f2d5 100%);
   color: #014f99;
 }
 
 [data-theme='light'] .collapsible-section[open] .section-header {
   border-bottom: 1px solid rgba(1, 79, 153, 0.12);
-  background: linear-gradient(135deg, #FFFFFF 0%, #f9f2d5 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f9f2d5 100%);
 }
 
 [data-theme='light'] .section-header::before {
@@ -5311,7 +5658,7 @@ h4 {
 }
 
 [data-theme='light'] .section-content {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 /* --- Status Badge --- */
@@ -5347,8 +5694,13 @@ h4 {
 }
 
 @keyframes pulse-border-light {
-  0%, 100% { border-color: #2e7d32; }
-  50% { border-color: rgba(76, 175, 80, 0.3); }
+  0%,
+  100% {
+    border-color: #2e7d32;
+  }
+  50% {
+    border-color: rgba(76, 175, 80, 0.3);
+  }
 }
 
 /* --- Selection Info --- */
@@ -5367,7 +5719,7 @@ h4 {
 
 /* --- Number Input --- */
 [data-theme='light'] .number-input {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border: 1px solid rgba(1, 79, 153, 0.2);
   color: #003971;
 }
@@ -5382,13 +5734,13 @@ h4 {
 
 /* --- Position Buttons --- */
 [data-theme='light'] .btn-pos {
-  background: linear-gradient(135deg, #FFFFFF 0%, #f9f2d5 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f9f2d5 100%);
   border: 1px solid rgba(1, 79, 153, 0.15);
   color: #4d6d8e;
 }
 
 [data-theme='light'] .btn-pos:hover {
-  background: linear-gradient(135deg, #f9f2d5 0%, #FFFFFF 100%);
+  background: linear-gradient(135deg, #f9f2d5 0%, #ffffff 100%);
   border-color: #014f99;
   color: #014f99;
 }

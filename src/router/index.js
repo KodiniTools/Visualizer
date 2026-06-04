@@ -8,23 +8,23 @@ const routes = [
   {
     path: '/',
     name: 'Landing',
-    component: LandingPage
+    component: LandingPage,
   },
   {
     path: '/internal',
     name: 'InternalLanding',
-    component: InternalLandingPage
+    component: InternalLandingPage,
   },
   {
     path: '/blog',
     name: 'Blog',
-    component: BlogPage
+    component: BlogPage,
   },
   {
     path: '/app',
     name: 'Visualizer',
-    component: VisualizerApp
-  }
+    component: VisualizerApp,
+  },
 ]
 
 const router = createRouter({
@@ -34,14 +34,14 @@ const router = createRouter({
     if (to.hash) {
       return {
         el: to.hash,
-        behavior: 'smooth'
+        behavior: 'smooth',
       }
     }
     if (savedPosition) {
       return savedPosition
     }
     return { top: 0 }
-  }
+  },
 })
 
 // Redirect from landing to app when coming from audiokonverter

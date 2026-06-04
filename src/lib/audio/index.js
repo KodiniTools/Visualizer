@@ -6,19 +6,13 @@
  */
 
 // Main processor
-export { AudioProcessor, createWorkerProcessor } from './AudioProcessor.js';
+export { AudioProcessor, createWorkerProcessor } from './AudioProcessor.js'
 
 // Frequency analysis
-export {
-  FrequencyAnalyzer,
-  DEFAULT_CONFIG as FREQUENCY_CONFIG
-} from './FrequencyAnalyzer.js';
+export { FrequencyAnalyzer, DEFAULT_CONFIG as FREQUENCY_CONFIG } from './FrequencyAnalyzer.js'
 
 // Beat detection
-export {
-  BeatDetector,
-  DEFAULT_CONFIG as BEAT_CONFIG
-} from './BeatDetector.js';
+export { BeatDetector, DEFAULT_CONFIG as BEAT_CONFIG } from './BeatDetector.js'
 
 // Easing functions
 export {
@@ -37,8 +31,8 @@ export {
   backOut,
   easingMap,
   easingNames,
-  applyEasing
-} from './EasingFunctions.js';
+  applyEasing,
+} from './EasingFunctions.js'
 
 // Audio level calculation
 export {
@@ -49,8 +43,8 @@ export {
   getNormalizedLevel,
   applyBeatBoost,
   applyPhaseOffset,
-  AudioLevelCalculator
-} from './AudioLevelCalculator.js';
+  AudioLevelCalculator,
+} from './AudioLevelCalculator.js'
 
 // Audio-reactive effects
 export {
@@ -59,8 +53,8 @@ export {
   calculateEffectValue,
   getMotionOffset,
   getFilterString,
-  AudioReactiveEffects
-} from './AudioReactiveEffects.js';
+  AudioReactiveEffects,
+} from './AudioReactiveEffects.js'
 
 // Default export: main AudioProcessor class
-export { AudioProcessor as default } from './AudioProcessor.js';
+export { AudioProcessor as default } from './AudioProcessor.js'

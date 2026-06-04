@@ -115,7 +115,9 @@
 
       <!-- Skalierung -->
       <div class="position-control">
-        <span class="control-label">{{ t('foto.size') }}: {{ Math.round(store.visualizerScale * 100) }}%</span>
+        <span class="control-label"
+          >{{ t('foto.size') }}: {{ Math.round(store.visualizerScale * 100) }}%</span
+        >
         <input
           type="range"
           min="0.1"
@@ -141,7 +143,9 @@
 
     <!-- Kategorisierte Visualizer-Auswahl -->
     <div class="control-section">
-      <span class="section-label">{{ t('visualizer.visualizerType') }} ({{ totalCount }} {{ t('visualizer.effects') }})</span>
+      <span class="section-label"
+        >{{ t('visualizer.visualizerType') }} ({{ totalCount }} {{ t('visualizer.effects') }})</span
+      >
 
       <!-- Suchergebnisse -->
       <div v-if="searchQuery.trim()" class="visualizer-buttons">
@@ -194,75 +198,74 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useI18n } from '../lib/i18n.js';
-import { useVisualizerStore } from '../stores/visualizerStore.js';
-import HelpTooltip from './HelpTooltip.vue';
-import VisualizerLayerPanel from './VisualizerLayerPanel.vue';
+import { ref, computed } from 'vue'
+import { useI18n } from '../lib/i18n.js'
+import { useVisualizerStore } from '../stores/visualizerStore.js'
+import HelpTooltip from './HelpTooltip.vue'
+import VisualizerLayerPanel from './VisualizerLayerPanel.vue'
 
-const { t, locale } = useI18n();
-const store = useVisualizerStore();
-const searchQuery = ref('');
+const { t, locale } = useI18n()
+const store = useVisualizerStore()
+const searchQuery = ref('')
 const openCategories = ref({
-  'Balken & Spektrum': true // Erste Kategorie standardmäßig offen
-});
+  'Balken & Spektrum': true, // Erste Kategorie standardmäßig offen
+})
 
 // Icons für Kategorien (keys are internal IDs)
 const categoryIcons = {
   'Balken & Spektrum': '📊',
-  'Wellen': '🌊',
+  Wellen: '🌊',
   'Kreise & Kugeln': '⭕',
-  'Partikel': '✨',
-  'Geometrie': '🔷',
-  'Organisch': '🌿',
+  Partikel: '✨',
+  Geometrie: '🔷',
+  Organisch: '🌿',
   'Kristalle & Netze': '💎',
-  'Blüten': '🌸',
-  '3D-Objekte': '🎲'
-};
+  Blüten: '🌸',
+  '3D-Objekte': '🎲',
+}
 
 // Map German category keys to i18n translation keys
 const categoryTranslationKeys = {
   'Balken & Spektrum': 'visualizer.categories.barsSpectrum',
-  'Wellen': 'visualizer.categories.waves',
+  Wellen: 'visualizer.categories.waves',
   'Kreise & Kugeln': 'visualizer.categories.circlesSpheres',
-  'Partikel': 'visualizer.categories.particles',
-  'Geometrie': 'visualizer.categories.geometry',
-  'Organisch': 'visualizer.categories.organic',
+  Partikel: 'visualizer.categories.particles',
+  Geometrie: 'visualizer.categories.geometry',
+  Organisch: 'visualizer.categories.organic',
   'Kristalle & Netze': 'visualizer.categories.crystalsNets',
-  'Blüten': 'visualizer.categories.blossoms',
-  '3D-Objekte': 'visualizer.categories.objects3d'
-};
+  Blüten: 'visualizer.categories.blossoms',
+  '3D-Objekte': 'visualizer.categories.objects3d',
+}
 
 function getCategoryIcon(category) {
-  return categoryIcons[category] || '🎨';
+  return categoryIcons[category] || '🎨'
 }
 
 function getCategoryName(category) {
-  const key = categoryTranslationKeys[category];
-  return key ? t(key) : category;
+  const key = categoryTranslationKeys[category]
+  return key ? t(key) : category
 }
 
 function isCategoryOpen(category) {
-  return openCategories.value[category] || false;
+  return openCategories.value[category] || false
 }
 
 function toggleCategory(category) {
-  openCategories.value[category] = !openCategories.value[category];
+  openCategories.value[category] = !openCategories.value[category]
 }
 
 // Gefilterte Visualizer für Suche
 const filteredVisualizers = computed(() => {
-  const query = searchQuery.value.toLowerCase().trim();
-  if (!query) return [];
+  const query = searchQuery.value.toLowerCase().trim()
+  if (!query) return []
 
-  return store.availableVisualizers.filter(viz =>
-    viz.name.toLowerCase().includes(query) ||
-    viz.id.toLowerCase().includes(query)
-  );
-});
+  return store.availableVisualizers.filter(
+    (viz) => viz.name.toLowerCase().includes(query) || viz.id.toLowerCase().includes(query),
+  )
+})
 
 // Gesamtanzahl der Visualizer
-const totalCount = computed(() => store.availableVisualizers.length);
+const totalCount = computed(() => store.availableVisualizers.length)
 </script>
 
 <style scoped>
@@ -282,7 +285,7 @@ const totalCount = computed(() => store.availableVisualizers.length);
 
 h4 {
   margin: 0;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-weight: 600;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -299,7 +302,7 @@ h4::before {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Cpath d='M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 .control-section {
@@ -313,7 +316,7 @@ h4::before {
 .section-label {
   display: block;
   font-size: 0.6rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   margin-bottom: 5px;
   font-weight: 500;
   text-transform: uppercase;
@@ -323,8 +326,8 @@ h4::before {
 /* Toggle Button */
 .toggle-btn {
   width: 100%;
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-primary, #E9E9EB);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
   padding: 5px 8px;
@@ -365,7 +368,7 @@ h4::before {
   border: 2px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
   cursor: pointer;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   transition: border-color 0.2s ease;
 }
 
@@ -400,7 +403,11 @@ h4::before {
 
 /* Intensität-Slider */
 .intensity-slider {
-  background: linear-gradient(to right, var(--secondary-bg, #0E1C32) 0%, var(--accent-primary, #c9984d) 100%);
+  background: linear-gradient(
+    to right,
+    var(--secondary-bg, #0e1c32) 0%,
+    var(--accent-primary, #c9984d) 100%
+  );
 }
 
 .intensity-slider::-webkit-slider-thumb {
@@ -480,10 +487,10 @@ h4::before {
 .search-input {
   width: 100%;
   padding: 6px 10px;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-size: 0.65rem;
   outline: none;
   transition: border-color 0.2s ease;
@@ -494,7 +501,7 @@ h4::before {
 }
 
 .search-input::placeholder {
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
 }
 
 /* Category List */
@@ -515,7 +522,7 @@ h4::before {
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   cursor: pointer;
   user-select: none;
   transition: background-color 0.2s ease;
@@ -533,12 +540,12 @@ h4::before {
   flex: 1;
   font-size: 0.65rem;
   font-weight: 500;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
 }
 
 .category-count {
   font-size: 0.55rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   background-color: rgba(201, 152, 77, 0.2);
   padding: 1px 5px;
   border-radius: 8px;
@@ -546,7 +553,7 @@ h4::before {
 
 .category-arrow {
   font-size: 0.5rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
 }
 
 .category-content {
@@ -566,8 +573,8 @@ h4::before {
 
 .visualizer-btn {
   width: 100%;
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-primary, #E9E9EB);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 5px;
   padding: 6px 10px;
@@ -598,7 +605,7 @@ h4::before {
 .no-results {
   padding: 10px;
   text-align: center;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   font-size: 0.65rem;
   font-style: italic;
 }
@@ -623,8 +630,8 @@ h4::before {
 }
 
 .reset-btn {
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-muted, #7A8DA0);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-muted, #7a8da0);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 4px;
   width: 24px;
@@ -654,7 +661,7 @@ h4::before {
 .control-label {
   display: block;
   font-size: 0.55rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   margin-bottom: 3px;
   font-weight: 500;
 }
@@ -791,7 +798,7 @@ h4::before {
 /* ═══ Light Theme Overrides ═══ */
 
 [data-theme='light'] .panel-container {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-color: rgba(1, 79, 153, 0.2);
 }
 
@@ -820,7 +827,7 @@ h4::before {
 
 [data-theme='light'] .toggle-btn.active {
   background-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
   border-color: #014f99;
 }
 
@@ -907,7 +914,7 @@ h4::before {
 }
 
 [data-theme='light'] .category-content {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 [data-theme='light'] .visualizer-btn {
@@ -923,7 +930,7 @@ h4::before {
 
 [data-theme='light'] .visualizer-btn.active {
   background-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
   border-color: #014f99;
 }
 
@@ -948,7 +955,7 @@ h4::before {
 
 [data-theme='light'] .reset-btn:hover {
   background-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
   border-color: #014f99;
 }
 

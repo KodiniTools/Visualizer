@@ -40,13 +40,13 @@
 </template>
 
 <script setup>
-import { useI18n } from '../lib/i18n.js';
-import { useGridStore } from '../stores/gridStore.js';
-import { useWorkspaceStore } from '../stores/workspaceStore.js';
+import { useI18n } from '../lib/i18n.js'
+import { useGridStore } from '../stores/gridStore.js'
+import { useWorkspaceStore } from '../stores/workspaceStore.js'
 
-const { t } = useI18n();
-const gridStore = useGridStore();
-const workspaceStore = useWorkspaceStore();
+const { t } = useI18n()
+const gridStore = useGridStore()
+const workspaceStore = useWorkspaceStore()
 
 // Funktion für Kurzbezeichnungen der Presets
 function getPresetShortName(name) {
@@ -59,9 +59,9 @@ function getPresetShortName(name) {
     'YouTube Video (16:9)': 'YT Video',
     'Facebook Post (1.91:1)': 'FB',
     'X/Twitter Video (16:9)': 'X/Twitter',
-    'LinkedIn Video (16:9)': 'LinkedIn'
-  };
-  return mapping[name] || name;
+    'LinkedIn Video (16:9)': 'LinkedIn',
+  }
+  return mapping[name] || name
 }
 </script>
 
@@ -184,7 +184,7 @@ h4 {
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .panel-container {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-color: #d4c8a8;
 }
 
@@ -197,7 +197,7 @@ h4 {
 }
 
 [data-theme='light'] .toggle-btn {
-  background-color: #FDFBF2;
+  background-color: #fdfbf2;
   color: #003971;
   border-color: #d4c8a8;
 }
@@ -209,7 +209,7 @@ h4 {
 
 [data-theme='light'] .toggle-btn.active {
   background-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
   border-color: #014f99;
 }
 
@@ -218,7 +218,7 @@ h4 {
 }
 
 [data-theme='light'] .preset-btn {
-  background-color: #FDFBF2;
+  background-color: #fdfbf2;
   color: #003971;
   border-color: #d4c8a8;
 }
@@ -230,7 +230,7 @@ h4 {
 
 [data-theme='light'] .preset-btn.active {
   background-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
   border-color: #014f99;
 }
 

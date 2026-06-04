@@ -1,26 +1,28 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
 
 export const usePlayerStore = defineStore('player', () => {
   // === STATE (Die Daten des Players) ===
-  const playlist = ref([]);
-  const currentTrackIndex = ref(0);
-  const isPlaying = ref(false);
-  const audioRef = ref(null);
-  
+  const playlist = ref([])
+  const currentTrackIndex = ref(0)
+  const isPlaying = ref(false)
+  const audioRef = ref(null)
+
   // Progress-Tracking direkt im Store
-  const currentTime = ref(0);
-  const duration = ref(0);
+  const currentTime = ref(0)
+  const duration = ref(0)
 
   // === GETTERS (Abgeleitete Daten, wie computed) ===
-  const hasTracks = computed(() => playlist.value.length > 0);
-  const currentTrack = computed(() => hasTracks.value ? playlist.value[currentTrackIndex.value] : null);
-  
+  const hasTracks = computed(() => playlist.value.length > 0)
+  const currentTrack = computed(() =>
+    hasTracks.value ? playlist.value[currentTrackIndex.value] : null,
+  )
+
   // Progress-Percentage berechnen
   const progressPercentage = computed(() => {
-    if (duration.value === 0) return 0;
-    return (currentTime.value / duration.value) * 100;
-  });
+    if (duration.value === 0) return 0
+    return (currentTime.value / duration.value) * 100
+  })
 
   // === ACTIONS (Die Funktionen, die den Zustand ändern) ===
 
@@ -31,21 +33,21 @@ export const usePlayerStore = defineStore('player', () => {
   function setAudioRef(element) {
     // Falls bereits ein audioRef existiert, cleanup alte Listener
     if (audioRef.value) {
-      removeAllListeners(audioRef.value);
+      removeAllListeners(audioRef.value)
     }
 
-    audioRef.value = element;
+    audioRef.value = element
 
     // Event Listener hinzufügen
     if (audioRef.value) {
-      addAllListeners(audioRef.value);
-      console.log('[PlayerStore] Audio element connected and listeners added');
+      addAllListeners(audioRef.value)
+      console.log('[PlayerStore] Audio element connected and listeners added')
 
       // Falls Tracks bereits geladen wurden bevor das Audio-Element verfügbar war,
       // jetzt den aktuellen Track laden (behebt Timing-Problem mit shared files)
       if (hasTracks.value) {
-        console.log('[PlayerStore] Tracks already in playlist - loading current track now');
-        loadTrack(currentTrackIndex.value);
+        console.log('[PlayerStore] Tracks already in playlist - loading current track now')
+        loadTrack(currentTrackIndex.value)
       }
     }
   }
@@ -54,77 +56,77 @@ export const usePlayerStore = defineStore('player', () => {
    * Fügt alle benötigten Event Listener zum Audio-Element hinzu
    */
   function addAllListeners(audio) {
-    audio.addEventListener('play', handlePlay);
-    audio.addEventListener('pause', handlePause);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('durationchange', handleDurationChange);
+    audio.addEventListener('play', handlePlay)
+    audio.addEventListener('pause', handlePause)
+    audio.addEventListener('ended', handleEnded)
+    audio.addEventListener('timeupdate', handleTimeUpdate)
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata)
+    audio.addEventListener('durationchange', handleDurationChange)
   }
 
   /**
    * Entfernt alle Event Listener vom Audio-Element
    */
   function removeAllListeners(audio) {
-    audio.removeEventListener('play', handlePlay);
-    audio.removeEventListener('pause', handlePause);
-    audio.removeEventListener('ended', handleEnded);
-    audio.removeEventListener('timeupdate', handleTimeUpdate);
-    audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.removeEventListener('durationchange', handleDurationChange);
+    audio.removeEventListener('play', handlePlay)
+    audio.removeEventListener('pause', handlePause)
+    audio.removeEventListener('ended', handleEnded)
+    audio.removeEventListener('timeupdate', handleTimeUpdate)
+    audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
+    audio.removeEventListener('durationchange', handleDurationChange)
   }
 
   // === EVENT HANDLERS ===
-  
+
   function handlePlay() {
-    isPlaying.value = true;
-    console.log('[PlayerStore] Playing');
+    isPlaying.value = true
+    console.log('[PlayerStore] Playing')
   }
 
   function handlePause() {
-    isPlaying.value = false;
-    console.log('[PlayerStore] Paused');
+    isPlaying.value = false
+    console.log('[PlayerStore] Paused')
   }
 
   function handleEnded() {
-    isPlaying.value = false;
-    console.log('[PlayerStore] Track ended - NO AUTOPLAY');
+    isPlaying.value = false
+    console.log('[PlayerStore] Track ended - NO AUTOPLAY')
     // ✨ WICHTIG: Kein automatisches Abspielen des nächsten Tracks
   }
 
   function handleTimeUpdate() {
     if (audioRef.value) {
-      currentTime.value = audioRef.value.currentTime;
+      currentTime.value = audioRef.value.currentTime
     }
   }
 
   function handleLoadedMetadata() {
     if (audioRef.value) {
-      duration.value = audioRef.value.duration || 0;
-      console.log('[PlayerStore] Metadata loaded, duration:', duration.value);
+      duration.value = audioRef.value.duration || 0
+      console.log('[PlayerStore] Metadata loaded, duration:', duration.value)
     }
   }
 
   function handleDurationChange() {
     if (audioRef.value) {
-      duration.value = audioRef.value.duration || 0;
-      console.log('[PlayerStore] Duration changed:', duration.value);
+      duration.value = audioRef.value.duration || 0
+      console.log('[PlayerStore] Duration changed:', duration.value)
     }
   }
 
   // === PLAYER ACTIONS ===
 
   function addTracks(files) {
-    if (!files || files.length === 0) return;
-    const wasEmpty = !hasTracks.value;
-    const newTracks = Array.from(files).map(file => ({
+    if (!files || files.length === 0) return
+    const wasEmpty = !hasTracks.value
+    const newTracks = Array.from(files).map((file) => ({
       name: file.name,
-      url: URL.createObjectURL(file)
-    }));
-    playlist.value.push(...newTracks);
+      url: URL.createObjectURL(file),
+    }))
+    playlist.value.push(...newTracks)
     if (wasEmpty) {
-      loadTrack(0);
-      console.log('[PlayerStore] First track loaded - NO AUTOPLAY');
+      loadTrack(0)
+      console.log('[PlayerStore] First track loaded - NO AUTOPLAY')
     }
   }
 
@@ -134,136 +136,137 @@ export const usePlayerStore = defineStore('player', () => {
    * @returns {number} Number of tracks successfully added
    */
   function addTracksFromBlobs(blobRecords) {
-    if (!blobRecords || blobRecords.length === 0) return 0;
-    const wasEmpty = !hasTracks.value;
-    let added = 0;
+    if (!blobRecords || blobRecords.length === 0) return 0
+    const wasEmpty = !hasTracks.value
+    let added = 0
 
     for (const record of blobRecords) {
-      const blob = record.blob instanceof Blob
-        ? record.blob
-        : new Blob([record.blob], { type: record.mimeType || 'audio/wav' });
+      const blob =
+        record.blob instanceof Blob
+          ? record.blob
+          : new Blob([record.blob], { type: record.mimeType || 'audio/wav' })
 
       if (blob.size === 0) {
-        console.warn('[PlayerStore] Skipping empty blob:', record.name);
-        continue;
+        console.warn('[PlayerStore] Skipping empty blob:', record.name)
+        continue
       }
 
       playlist.value.push({
         name: record.name,
-        url: URL.createObjectURL(blob)
-      });
-      added++;
+        url: URL.createObjectURL(blob),
+      })
+      added++
     }
 
     if (wasEmpty && added > 0) {
-      loadTrack(0);
-      console.log('[PlayerStore] First shared track loaded - NO AUTOPLAY');
+      loadTrack(0)
+      console.log('[PlayerStore] First shared track loaded - NO AUTOPLAY')
     }
 
-    return added;
+    return added
   }
 
   function loadTrack(index) {
     if (!audioRef.value || index < 0 || index >= playlist.value.length) {
-      console.warn('[PlayerStore] Cannot load track:', index);
-      return;
+      console.warn('[PlayerStore] Cannot load track:', index)
+      return
     }
-    
-    currentTrackIndex.value = index;
-    audioRef.value.src = playlist.value[index].url;
-    audioRef.value.load();
-    
+
+    currentTrackIndex.value = index
+    audioRef.value.src = playlist.value[index].url
+    audioRef.value.load()
+
     // Reset progress
-    currentTime.value = 0;
-    duration.value = 0;
-    
-    console.log('[PlayerStore] Track loaded (no autoplay):', playlist.value[index].name);
+    currentTime.value = 0
+    duration.value = 0
+
+    console.log('[PlayerStore] Track loaded (no autoplay):', playlist.value[index].name)
   }
 
   function playTrack(index) {
-    loadTrack(index);
+    loadTrack(index)
     if (audioRef.value) {
-      audioRef.value.play().catch(error => {
-        if (error.name === 'AbortError') return; // play() interrupted by pause() - expected
-        console.error('[PlayerStore] Playback error:', error);
-        isPlaying.value = false;
-      });
+      audioRef.value.play().catch((error) => {
+        if (error.name === 'AbortError') return // play() interrupted by pause() - expected
+        console.error('[PlayerStore] Playback error:', error)
+        isPlaying.value = false
+      })
     }
   }
 
   function togglePlayPause() {
     if (!audioRef.value || !hasTracks.value) {
-      console.warn('[PlayerStore] Cannot toggle play/pause: no audio or tracks');
-      return;
+      console.warn('[PlayerStore] Cannot toggle play/pause: no audio or tracks')
+      return
     }
 
     if (isPlaying.value) {
-      audioRef.value.pause();
+      audioRef.value.pause()
     } else {
-      audioRef.value.play().catch(error => {
-        if (error.name === 'AbortError') return; // play() interrupted by pause() - expected
-        console.error('[PlayerStore] Playback error:', error);
-        isPlaying.value = false;
-      });
+      audioRef.value.play().catch((error) => {
+        if (error.name === 'AbortError') return // play() interrupted by pause() - expected
+        console.error('[PlayerStore] Playback error:', error)
+        isPlaying.value = false
+      })
     }
   }
 
   function stopPlayer() {
-    if (!audioRef.value) return;
-    audioRef.value.pause();
-    audioRef.value.currentTime = 0;
-    currentTime.value = 0;
-    isPlaying.value = false;
+    if (!audioRef.value) return
+    audioRef.value.pause()
+    audioRef.value.currentTime = 0
+    currentTime.value = 0
+    isPlaying.value = false
   }
 
   // ✨ WICHTIG: Next/Prev Tracks spielen NICHT automatisch ab
   // Sie laden nur den Track, außer der Player war bereits am Abspielen
   function nextTrack() {
-    if (!hasTracks.value) return;
-    const wasPlaying = isPlaying.value;
-    const newIndex = (currentTrackIndex.value + 1) % playlist.value.length;
-    loadTrack(newIndex);
+    if (!hasTracks.value) return
+    const wasPlaying = isPlaying.value
+    const newIndex = (currentTrackIndex.value + 1) % playlist.value.length
+    loadTrack(newIndex)
 
     // Nur abspielen wenn vorher auch abgespielt wurde
     if (wasPlaying && audioRef.value) {
-      audioRef.value.play().catch(error => {
-        if (error.name === 'AbortError') return;
-        console.error('[PlayerStore] Playback error:', error);
-        isPlaying.value = false;
-      });
+      audioRef.value.play().catch((error) => {
+        if (error.name === 'AbortError') return
+        console.error('[PlayerStore] Playback error:', error)
+        isPlaying.value = false
+      })
     }
   }
 
   function prevTrack() {
-    if (!hasTracks.value) return;
-    const wasPlaying = isPlaying.value;
-    const newIndex = (currentTrackIndex.value - 1 + playlist.value.length) % playlist.value.length;
-    loadTrack(newIndex);
+    if (!hasTracks.value) return
+    const wasPlaying = isPlaying.value
+    const newIndex = (currentTrackIndex.value - 1 + playlist.value.length) % playlist.value.length
+    loadTrack(newIndex)
 
     // Nur abspielen wenn vorher auch abgespielt wurde
     if (wasPlaying && audioRef.value) {
-      audioRef.value.play().catch(error => {
-        if (error.name === 'AbortError') return;
-        console.error('[PlayerStore] Playback error:', error);
-        isPlaying.value = false;
-      });
+      audioRef.value.play().catch((error) => {
+        if (error.name === 'AbortError') return
+        console.error('[PlayerStore] Playback error:', error)
+        isPlaying.value = false
+      })
     }
   }
 
   function seekTo(time) {
-    if (!audioRef.value) return;
-    audioRef.value.currentTime = time;
-    currentTime.value = time;
+    if (!audioRef.value) return
+    audioRef.value.currentTime = time
+    currentTime.value = time
   }
 
   function clearPlaylist() {
-    stopPlayer();
-    playlist.value.forEach(track => URL.revokeObjectURL(track.url));
-    playlist.value = [];
-    currentTrackIndex.value = 0;
-    currentTime.value = 0;
-    duration.value = 0;
-    if (audioRef.value) audioRef.value.src = "";
+    stopPlayer()
+    playlist.value.forEach((track) => URL.revokeObjectURL(track.url))
+    playlist.value = []
+    currentTrackIndex.value = 0
+    currentTime.value = 0
+    duration.value = 0
+    if (audioRef.value) audioRef.value.src = ''
   }
 
   /**
@@ -273,52 +276,52 @@ export const usePlayerStore = defineStore('player', () => {
    */
   function reorderPlaylist(fromIndex, toIndex) {
     // Validierung
-    if (fromIndex < 0 || fromIndex >= playlist.value.length) return false;
-    if (toIndex < 0 || toIndex >= playlist.value.length) return false;
-    if (fromIndex === toIndex) return false;
+    if (fromIndex < 0 || fromIndex >= playlist.value.length) return false
+    if (toIndex < 0 || toIndex >= playlist.value.length) return false
+    if (fromIndex === toIndex) return false
 
     // Track entfernen und an neuer Position einfügen
-    const [movedTrack] = playlist.value.splice(fromIndex, 1);
-    playlist.value.splice(toIndex, 0, movedTrack);
+    const [movedTrack] = playlist.value.splice(fromIndex, 1)
+    playlist.value.splice(toIndex, 0, movedTrack)
 
     // CurrentTrackIndex anpassen, damit der aktive Track weiterhin aktiv bleibt
     if (fromIndex === currentTrackIndex.value) {
       // Der aktive Track wurde verschoben
-      currentTrackIndex.value = toIndex;
+      currentTrackIndex.value = toIndex
     } else if (fromIndex < currentTrackIndex.value && toIndex >= currentTrackIndex.value) {
       // Ein Track vor dem aktiven wurde nach hinten verschoben
-      currentTrackIndex.value--;
+      currentTrackIndex.value--
     } else if (fromIndex > currentTrackIndex.value && toIndex <= currentTrackIndex.value) {
       // Ein Track hinter dem aktiven wurde nach vorne verschoben
-      currentTrackIndex.value++;
+      currentTrackIndex.value++
     }
 
-    console.log('[PlayerStore] Playlist reordered:', fromIndex, '->', toIndex);
-    return true;
+    console.log('[PlayerStore] Playlist reordered:', fromIndex, '->', toIndex)
+    return true
   }
 
   // Cleanup-Funktion
   function cleanup() {
     if (audioRef.value) {
-      removeAllListeners(audioRef.value);
+      removeAllListeners(audioRef.value)
     }
   }
 
   // Alles zurückgeben
   return {
     // State
-    playlist, 
-    currentTrackIndex, 
-    isPlaying, 
+    playlist,
+    currentTrackIndex,
+    isPlaying,
     audioRef,
     currentTime,
     duration,
-    
+
     // Getters
-    hasTracks, 
+    hasTracks,
     currentTrack,
     progressPercentage,
-    
+
     // Actions
     setAudioRef,
     addTracks,
@@ -332,6 +335,6 @@ export const usePlayerStore = defineStore('player', () => {
     seekTo,
     clearPlaylist,
     reorderPlaylist,
-    cleanup
-  };
-});
+    cleanup,
+  }
+})

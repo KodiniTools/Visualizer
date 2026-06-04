@@ -3,10 +3,10 @@
  * @module visualizers/core
  */
 
-export { CONSTANTS } from './constants.js';
-export { visualizerState } from './state.js';
-export { hexToHsl } from './colorUtils.js';
-export { Particle } from './Particle.js';
+export { CONSTANTS } from './constants.js'
+export { visualizerState } from './state.js'
+export { hexToHsl } from './colorUtils.js'
+export { Particle } from './Particle.js'
 export {
   expo01,
   rangeForBar,
@@ -31,8 +31,8 @@ export {
   energyRamp,
   // 🎨 Linear gradient cache
   getCachedLinearGradient,
-  clearAllGradientCaches
-} from './helpers.js';
+  clearAllGradientCaches,
+} from './helpers.js'
 
 // ✨ Input validation utilities
 export {
@@ -50,5 +50,5 @@ export {
   validateArrayIndex,
   clampFrequencyIndex,
   safeGetAudioValue,
-  validateAngle
-} from './validation.js';
+  validateAngle,
+} from './validation.js'

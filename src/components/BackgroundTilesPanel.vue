@@ -5,11 +5,7 @@
     <!-- Aktivierung -->
     <div class="control-group">
       <label class="checkbox-label">
-        <input
-          type="checkbox"
-          :checked="tilesStore.tilesEnabled"
-          @change="toggleTiles"
-        />
+        <input type="checkbox" :checked="tilesStore.tilesEnabled" @change="toggleTiles" />
         <span>{{ t('backgroundTiles.enableTiles') }}</span>
       </label>
     </div>
@@ -47,21 +43,26 @@
       <!-- Kachel-Vorschau/Auswahl -->
       <div class="control-group">
         <label>{{ t('backgroundTiles.selectTile') }}:</label>
-        <div
-          class="tiles-preview"
-          :style="gridStyle"
-        >
+        <div class="tiles-preview" :style="gridStyle">
           <div
             v-for="(tile, index) in tilesStore.tiles"
             :key="tile.id"
             class="tile-preview"
-            :class="{ selected: tilesStore.selectedTileIndex === index, 'has-audio': tile.audioReactive?.enabled }"
+            :class="{
+              selected: tilesStore.selectedTileIndex === index,
+              'has-audio': tile.audioReactive?.enabled,
+            }"
             :style="getTileStyle(tile)"
             @click="selectTile(index)"
           >
             <span class="tile-number">{{ index + 1 }}</span>
             <span v-if="tile.image" class="tile-has-image">{{ t('backgroundTiles.image') }}</span>
-            <span v-if="tile.audioReactive?.enabled" class="tile-has-audio" :title="t('backgroundTiles.audioReactive')">♪</span>
+            <span
+              v-if="tile.audioReactive?.enabled"
+              class="tile-has-audio"
+              :title="t('backgroundTiles.audioReactive')"
+              >♪</span
+            >
           </div>
         </div>
       </div>
@@ -69,7 +70,13 @@
       <!-- Bearbeitung der ausgewählten Kachel -->
       <div v-if="tilesStore.selectedTile" class="selected-tile-editor">
         <div class="editor-header">
-          <h6>{{ locale === 'de' ? `Kachel ${tilesStore.selectedTileIndex + 1} bearbeiten` : `Edit tile ${tilesStore.selectedTileIndex + 1}` }}</h6>
+          <h6>
+            {{
+              locale === 'de'
+                ? `Kachel ${tilesStore.selectedTileIndex + 1} bearbeiten`
+                : `Edit tile ${tilesStore.selectedTileIndex + 1}`
+            }}
+          </h6>
           <button class="btn-close" @click="deselectTile">×</button>
         </div>
 
@@ -89,7 +96,10 @@
 
         <!-- Hintergrund Deckkraft -->
         <div class="control-group">
-          <label>{{ t('backgroundTiles.opacity') }}: {{ Math.round(tilesStore.selectedTile.backgroundOpacity * 100) }}%</label>
+          <label
+            >{{ t('backgroundTiles.opacity') }}:
+            {{ Math.round(tilesStore.selectedTile.backgroundOpacity * 100) }}%</label
+          >
           <input
             type="range"
             :value="tilesStore.selectedTile.backgroundOpacity"
@@ -105,7 +115,10 @@
         <div class="image-section">
           <label>{{ t('backgroundTiles.tileImage') }}:</label>
 
-          <div v-if="!tilesStore.selectedTile.image && !tilesStore.selectedTile.video" class="image-upload-area">
+          <div
+            v-if="!tilesStore.selectedTile.image && !tilesStore.selectedTile.video"
+            class="image-upload-area"
+          >
             <input
               type="file"
               accept="image/*"
@@ -128,7 +141,7 @@
                 🖼️ {{ t('backgroundTiles.fromGallery') }}
               </button>
             </div>
-            <div class="image-source-buttons" style="margin-top: 6px;">
+            <div class="image-source-buttons" style="margin-top: 6px">
               <button class="btn-video" @click="$refs.videoInput.click()">
                 🎬 {{ t('backgroundTiles.uploadVideo') }}
               </button>
@@ -193,7 +206,10 @@
                 <button class="btn-replace btn-replace-gallery" @click="openGalleryModal">
                   🖼️ {{ t('backgroundTiles.fromGallery') }}
                 </button>
-                <button class="btn-replace btn-replace-video" @click="$refs.replaceVideoFromVideoInput.click()">
+                <button
+                  class="btn-replace btn-replace-video"
+                  @click="$refs.replaceVideoFromVideoInput.click()"
+                >
                   🎬 {{ t('backgroundTiles.uploadVideo') }}
                 </button>
               </div>
@@ -234,7 +250,10 @@
                 <button class="btn-replace btn-replace-gallery" @click="openGalleryModal">
                   🖼️ {{ t('backgroundTiles.fromGallery') }}
                 </button>
-                <button class="btn-replace btn-replace-video" @click="$refs.replaceVideoInput.click()">
+                <button
+                  class="btn-replace btn-replace-video"
+                  @click="$refs.replaceVideoInput.click()"
+                >
                   🎬 {{ t('backgroundTiles.uploadVideo') }}
                 </button>
               </div>
@@ -424,7 +443,10 @@
 
             <!-- Glättung -->
             <div class="control-group">
-              <label>{{ t('backgroundTiles.smoothing') }}: {{ tilesStore.selectedTile.audioReactive.smoothing }}%</label>
+              <label
+                >{{ t('backgroundTiles.smoothing') }}:
+                {{ tilesStore.selectedTile.audioReactive.smoothing }}%</label
+              >
               <input
                 type="range"
                 :value="tilesStore.selectedTile.audioReactive.smoothing"
@@ -455,7 +477,9 @@
                   step="5"
                   class="effect-slider"
                 />
-                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.hue.intensity }}%</span>
+                <span class="effect-value"
+                  >{{ tilesStore.selectedTile.audioReactive.effects.hue.intensity }}%</span
+                >
               </label>
 
               <!-- Brightness (Helligkeit) -->
@@ -475,7 +499,9 @@
                   step="5"
                   class="effect-slider"
                 />
-                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.brightness.intensity }}%</span>
+                <span class="effect-value"
+                  >{{ tilesStore.selectedTile.audioReactive.effects.brightness.intensity }}%</span
+                >
               </label>
 
               <!-- Saturation (Sättigung) -->
@@ -495,7 +521,9 @@
                   step="5"
                   class="effect-slider"
                 />
-                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.saturation.intensity }}%</span>
+                <span class="effect-value"
+                  >{{ tilesStore.selectedTile.audioReactive.effects.saturation.intensity }}%</span
+                >
               </label>
 
               <!-- Glow (Leuchten) -->
@@ -515,7 +543,9 @@
                   step="5"
                   class="effect-slider"
                 />
-                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.glow.intensity }}%</span>
+                <span class="effect-value"
+                  >{{ tilesStore.selectedTile.audioReactive.effects.glow.intensity }}%</span
+                >
               </label>
 
               <!-- Scale (Skalierung) -->
@@ -535,7 +565,9 @@
                   step="5"
                   class="effect-slider"
                 />
-                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.scale.intensity }}%</span>
+                <span class="effect-value"
+                  >{{ tilesStore.selectedTile.audioReactive.effects.scale.intensity }}%</span
+                >
               </label>
 
               <!-- Blur (Weichzeichnen) -->
@@ -555,7 +587,9 @@
                   step="5"
                   class="effect-slider"
                 />
-                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.blur.intensity }}%</span>
+                <span class="effect-value"
+                  >{{ tilesStore.selectedTile.audioReactive.effects.blur.intensity }}%</span
+                >
               </label>
 
               <!-- Strobe (Blitz) -->
@@ -575,7 +609,11 @@
                   step="5"
                   class="effect-slider"
                 />
-                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.strobe?.intensity || 80 }}%</span>
+                <span class="effect-value"
+                  >{{
+                    tilesStore.selectedTile.audioReactive.effects.strobe?.intensity || 80
+                  }}%</span
+                >
               </label>
 
               <!-- Contrast (Kontrast) -->
@@ -595,7 +633,11 @@
                   step="5"
                   class="effect-slider"
                 />
-                <span class="effect-value">{{ tilesStore.selectedTile.audioReactive.effects.contrast?.intensity || 70 }}%</span>
+                <span class="effect-value"
+                  >{{
+                    tilesStore.selectedTile.audioReactive.effects.contrast?.intensity || 70
+                  }}%</span
+                >
               </label>
             </div>
           </div>
@@ -615,17 +657,21 @@
         </button>
 
         <div v-if="tilePresets.length > 0" class="presets-list">
-          <div
-            v-for="preset in tilePresets"
-            :key="preset.id"
-            class="preset-item"
-          >
+          <div v-for="preset in tilePresets" :key="preset.id" class="preset-item">
             <span class="preset-name">{{ preset.name }}</span>
             <div class="preset-actions">
-              <button @click="loadTilePreset(preset)" class="btn-small btn-load" :title="t('backgroundTiles.load')">
+              <button
+                @click="loadTilePreset(preset)"
+                class="btn-small btn-load"
+                :title="t('backgroundTiles.load')"
+              >
                 📥
               </button>
-              <button @click="deleteTilePreset(preset.id)" class="btn-small btn-delete" :title="t('backgroundTiles.delete')">
+              <button
+                @click="deleteTilePreset(preset.id)"
+                class="btn-small btn-delete"
+                :title="t('backgroundTiles.delete')"
+              >
                 🗑️
               </button>
             </div>
@@ -662,7 +708,9 @@
                 @click="selectGalleryCategory(category.id)"
               >
                 <span class="category-icon">{{ category.icon }}</span>
-                <span class="category-name">{{ locale === 'de' ? category.name : category.name_en }}</span>
+                <span class="category-name">{{
+                  locale === 'de' ? category.name : category.name_en
+                }}</span>
               </button>
             </div>
 
@@ -681,7 +729,9 @@
                   @dblclick="confirmGallerySelection"
                 >
                   <img :src="image.thumbnail || image.file" :alt="image.name" loading="lazy" />
-                  <span class="gallery-image-name">{{ locale === 'de' ? image.name : (image.name_en || image.name) }}</span>
+                  <span class="gallery-image-name">{{
+                    locale === 'de' ? image.name : image.name_en || image.name
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -706,216 +756,214 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, onMounted } from 'vue';
-import { useI18n } from '../lib/i18n.js';
-import { useBackgroundTilesStore } from '../stores/backgroundTilesStore';
+import { ref, computed, inject, onMounted } from 'vue'
+import { useI18n } from '../lib/i18n.js'
+import { useBackgroundTilesStore } from '../stores/backgroundTilesStore'
 
-const { t, locale } = useI18n();
-const tilesStore = useBackgroundTilesStore();
-const canvasManager = inject('canvasManager');
+const { t, locale } = useI18n()
+const tilesStore = useBackgroundTilesStore()
+const canvasManager = inject('canvasManager')
 
-const fileInput = ref(null);
-const videoInput = ref(null);
-const replaceImageInput = ref(null);
-const replaceVideoInput = ref(null);
-const replaceImageFromVideoInput = ref(null);
-const replaceVideoFromVideoInput = ref(null);
+const fileInput = ref(null)
+const videoInput = ref(null)
+const replaceImageInput = ref(null)
+const replaceVideoInput = ref(null)
+const replaceImageFromVideoInput = ref(null)
+const replaceVideoFromVideoInput = ref(null)
 
 // ✨ Galerie-Modal State
-const showGalleryModal = ref(false);
-const galleryCategories = ref([]);
-const galleryImages = ref([]);
-const selectedGalleryCategory = ref(null);
-const selectedGalleryImage = ref(null);
-const galleryLoading = ref(false);
-const galleryCategoryCache = ref(new Map());
+const showGalleryModal = ref(false)
+const galleryCategories = ref([])
+const galleryImages = ref([])
+const selectedGalleryCategory = ref(null)
+const selectedGalleryImage = ref(null)
+const galleryLoading = ref(false)
+const galleryCategoryCache = ref(new Map())
 
 // ✨ NEU: Kachel-Presets
-const TILE_PRESETS_KEY = 'visualizer-tile-presets';
-const tilePresets = ref([]);
+const TILE_PRESETS_KEY = 'visualizer-tile-presets'
+const tilePresets = ref([])
 
 // Presets aus localStorage laden
 function loadTilePresets() {
   try {
-    const stored = localStorage.getItem(TILE_PRESETS_KEY);
+    const stored = localStorage.getItem(TILE_PRESETS_KEY)
     if (stored) {
-      tilePresets.value = JSON.parse(stored);
+      tilePresets.value = JSON.parse(stored)
     }
   } catch (e) {
-    console.warn('Fehler beim Laden der Kachel-Presets:', e);
+    console.warn('Fehler beim Laden der Kachel-Presets:', e)
   }
 }
 
 // Presets in localStorage speichern
 function persistTilePresets() {
   try {
-    localStorage.setItem(TILE_PRESETS_KEY, JSON.stringify(tilePresets.value));
+    localStorage.setItem(TILE_PRESETS_KEY, JSON.stringify(tilePresets.value))
   } catch (e) {
-    console.warn('Fehler beim Speichern der Kachel-Presets:', e);
+    console.warn('Fehler beim Speichern der Kachel-Presets:', e)
   }
 }
 
 // Aktuellen Zustand als Preset speichern
 function saveTilePreset() {
-  const presetNumber = tilePresets.value.length + 1;
+  const presetNumber = tilePresets.value.length + 1
   const newPreset = {
     id: Date.now(),
     name: `Kachel-Preset ${presetNumber}`,
     tileCount: tilesStore.tileCount,
     tileGap: tilesStore.tileGap,
     // ✅ Deep Clone der Tile-Einstellungen (ohne Bilder)
-    tiles: tilesStore.tiles.map(tile => ({
+    tiles: tilesStore.tiles.map((tile) => ({
       backgroundColor: tile.backgroundColor,
       backgroundOpacity: tile.backgroundOpacity,
       // Deep Clone für audioReactive (enthält verschachtelte effects)
-      audioReactive: tile.audioReactive
-        ? JSON.parse(JSON.stringify(tile.audioReactive))
-        : null
-    }))
-  };
+      audioReactive: tile.audioReactive ? JSON.parse(JSON.stringify(tile.audioReactive)) : null,
+    })),
+  }
 
-  tilePresets.value.push(newPreset);
-  persistTilePresets();
-  console.log('✅ Kachel-Preset gespeichert:', newPreset);
+  tilePresets.value.push(newPreset)
+  persistTilePresets()
+  console.log('✅ Kachel-Preset gespeichert:', newPreset)
 }
 
 // Preset laden
 function loadTilePreset(preset) {
-  console.log('📥 Lade Kachel-Preset:', preset);
+  console.log('📥 Lade Kachel-Preset:', preset)
 
   try {
     // ✅ Sicherstellen dass Kacheln aktiviert sind
     if (!tilesStore.tilesEnabled) {
-      tilesStore.setTilesEnabled(true);
+      tilesStore.setTilesEnabled(true)
     }
 
     // Kachelanzahl setzen (initialisiert auch die Kacheln neu)
-    tilesStore.setTileCount(preset.tileCount);
-    console.log('  → Kachelanzahl gesetzt:', preset.tileCount);
+    tilesStore.setTileCount(preset.tileCount)
+    console.log('  → Kachelanzahl gesetzt:', preset.tileCount)
 
     // Abstand setzen
-    tilesStore.setTileGap(preset.tileGap);
-    console.log('  → Abstand gesetzt:', preset.tileGap);
+    tilesStore.setTileGap(preset.tileGap)
+    console.log('  → Abstand gesetzt:', preset.tileGap)
 
     // Kachel-Einstellungen übernehmen
     if (preset.tiles && Array.isArray(preset.tiles)) {
-      console.log('  → Anzahl Preset-Tiles:', preset.tiles.length);
-      console.log('  → Anzahl Store-Tiles:', tilesStore.tiles.length);
+      console.log('  → Anzahl Preset-Tiles:', preset.tiles.length)
+      console.log('  → Anzahl Store-Tiles:', tilesStore.tiles.length)
 
       preset.tiles.forEach((presetTile, index) => {
         if (index < tilesStore.tiles.length && presetTile) {
           // Hintergrundfarbe setzen
           if (presetTile.backgroundColor) {
-            tilesStore.setTileBackgroundColor(index, presetTile.backgroundColor);
+            tilesStore.setTileBackgroundColor(index, presetTile.backgroundColor)
           }
 
           // Deckkraft setzen
           if (presetTile.backgroundOpacity !== undefined) {
-            tilesStore.setTileBackgroundOpacity(index, presetTile.backgroundOpacity);
+            tilesStore.setTileBackgroundOpacity(index, presetTile.backgroundOpacity)
           }
 
           // Audio-reaktive Einstellungen (mit Deep Clone)
           if (presetTile.audioReactive) {
-            const audioSettings = JSON.parse(JSON.stringify(presetTile.audioReactive));
-            tilesStore.setTileAudioReactive(index, audioSettings);
+            const audioSettings = JSON.parse(JSON.stringify(presetTile.audioReactive))
+            tilesStore.setTileAudioReactive(index, audioSettings)
           }
 
-          console.log(`  → Kachel ${index + 1}: ${presetTile.backgroundColor}`);
+          console.log(`  → Kachel ${index + 1}: ${presetTile.backgroundColor}`)
         }
-      });
+      })
     }
 
-    console.log('✅ Kachel-Preset erfolgreich geladen:', preset.name);
+    console.log('✅ Kachel-Preset erfolgreich geladen:', preset.name)
   } catch (error) {
-    console.error('❌ Fehler beim Laden des Presets:', error);
+    console.error('❌ Fehler beim Laden des Presets:', error)
   }
 }
 
 // Preset löschen
 function deleteTilePreset(presetId) {
-  tilePresets.value = tilePresets.value.filter(p => p.id !== presetId);
-  persistTilePresets();
-  console.log('🗑️ Kachel-Preset gelöscht');
+  tilePresets.value = tilePresets.value.filter((p) => p.id !== presetId)
+  persistTilePresets()
+  console.log('🗑️ Kachel-Preset gelöscht')
 }
 
 // Beim Mounting Presets laden
 onMounted(() => {
-  loadTilePresets();
-});
+  loadTilePresets()
+})
 
 // Grid-Style für Vorschau basierend auf Kachel-Layout
 const gridStyle = computed(() => {
-  const { rows, cols } = tilesStore.gridLayout;
+  const { rows, cols } = tilesStore.gridLayout
   return {
     display: 'grid',
     gridTemplateColumns: `repeat(${cols}, 1fr)`,
     gridTemplateRows: `repeat(${rows}, 1fr)`,
-    gap: `${Math.min(tilesStore.tileGap, 4)}px`
-  };
-});
+    gap: `${Math.min(tilesStore.tileGap, 4)}px`,
+  }
+})
 
 // Style für einzelne Kachel in der Vorschau
 function getTileStyle(tile) {
   const style = {
     backgroundColor: tile.backgroundColor,
-    opacity: tile.backgroundOpacity
-  };
-
-  if (tile.imageSrc) {
-    style.backgroundImage = `url(${tile.imageSrc})`;
-    style.backgroundSize = 'cover';
-    style.backgroundPosition = 'center';
+    opacity: tile.backgroundOpacity,
   }
 
-  return style;
+  if (tile.imageSrc) {
+    style.backgroundImage = `url(${tile.imageSrc})`
+    style.backgroundSize = 'cover'
+    style.backgroundPosition = 'center'
+  }
+
+  return style
 }
 
 // Kachel-Modus aktivieren/deaktivieren
 function toggleTiles(event) {
-  tilesStore.setTilesEnabled(event.target.checked);
+  tilesStore.setTilesEnabled(event.target.checked)
   if (canvasManager.value) {
-    canvasManager.value.redrawCallback();
+    canvasManager.value.redrawCallback()
   }
 }
 
 // Kachelanzahl ändern
 function setTileCount(count) {
-  tilesStore.setTileCount(count);
+  tilesStore.setTileCount(count)
   if (canvasManager.value) {
-    canvasManager.value.redrawCallback();
+    canvasManager.value.redrawCallback()
   }
 }
 
 // Lücke zwischen Kacheln setzen
 function setTileGap(value) {
-  tilesStore.setTileGap(parseInt(value));
+  tilesStore.setTileGap(parseInt(value))
   if (canvasManager.value) {
-    canvasManager.value.redrawCallback();
+    canvasManager.value.redrawCallback()
   }
 }
 
 // Kachel auswählen
 function selectTile(index) {
-  tilesStore.selectTile(index);
+  tilesStore.selectTile(index)
   if (canvasManager.value) {
-    canvasManager.value.redrawCallback();
+    canvasManager.value.redrawCallback()
   }
 }
 
 // Kachel-Auswahl aufheben
 function deselectTile() {
-  tilesStore.selectTile(-1);
+  tilesStore.selectTile(-1)
   if (canvasManager.value) {
-    canvasManager.value.redrawCallback();
+    canvasManager.value.redrawCallback()
   }
 }
 
 // Kachel-Farbe setzen
 function setTileColor(color) {
   if (tilesStore.selectedTileIndex !== null) {
-    tilesStore.setTileBackgroundColor(tilesStore.selectedTileIndex, color);
+    tilesStore.setTileBackgroundColor(tilesStore.selectedTileIndex, color)
     if (canvasManager.value) {
-      canvasManager.value.redrawCallback();
+      canvasManager.value.redrawCallback()
     }
   }
 }
@@ -923,44 +971,44 @@ function setTileColor(color) {
 // Kachel-Deckkraft setzen
 function setTileOpacity(value) {
   if (tilesStore.selectedTileIndex !== null) {
-    tilesStore.setTileBackgroundOpacity(tilesStore.selectedTileIndex, parseFloat(value));
+    tilesStore.setTileBackgroundOpacity(tilesStore.selectedTileIndex, parseFloat(value))
     if (canvasManager.value) {
-      canvasManager.value.redrawCallback();
+      canvasManager.value.redrawCallback()
     }
   }
 }
 
 // Bild hochladen
 function handleImageUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+  const file = event.target.files[0]
+  if (!file) return
 
-  const reader = new FileReader();
+  const reader = new FileReader()
   reader.onload = (e) => {
-    const img = new Image();
+    const img = new Image()
     img.onload = () => {
       if (tilesStore.selectedTileIndex !== null) {
-        tilesStore.setTileImage(tilesStore.selectedTileIndex, img, e.target.result);
+        tilesStore.setTileImage(tilesStore.selectedTileIndex, img, e.target.result)
         if (canvasManager.value) {
-          canvasManager.value.redrawCallback();
+          canvasManager.value.redrawCallback()
         }
       }
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+    }
+    img.src = e.target.result
+  }
+  reader.readAsDataURL(file)
 
   // Input zurücksetzen für erneutes Hochladen
-  event.target.value = '';
+  event.target.value = ''
 }
 
 // Bild-Einstellung aktualisieren
 function updateImageSetting(setting, value) {
   if (tilesStore.selectedTileIndex !== null) {
-    const numValue = setting === 'scale' ? parseFloat(value) : parseInt(value);
-    tilesStore.updateTileImageSetting(tilesStore.selectedTileIndex, setting, numValue);
+    const numValue = setting === 'scale' ? parseFloat(value) : parseInt(value)
+    tilesStore.updateTileImageSetting(tilesStore.selectedTileIndex, setting, numValue)
     if (canvasManager.value) {
-      canvasManager.value.redrawCallback();
+      canvasManager.value.redrawCallback()
     }
   }
 }
@@ -968,9 +1016,9 @@ function updateImageSetting(setting, value) {
 // Bild entfernen
 function removeImage() {
   if (tilesStore.selectedTileIndex !== null) {
-    tilesStore.removeTileImage(tilesStore.selectedTileIndex);
+    tilesStore.removeTileImage(tilesStore.selectedTileIndex)
     if (canvasManager.value) {
-      canvasManager.value.redrawCallback();
+      canvasManager.value.redrawCallback()
     }
   }
 }
@@ -981,46 +1029,46 @@ function removeImage() {
 
 // Video hochladen
 function handleVideoUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+  const file = event.target.files[0]
+  if (!file) return
 
   // Video-Element erstellen
-  const video = document.createElement('video');
-  video.muted = true;
-  video.loop = true;
-  video.playsInline = true;
-  video.crossOrigin = 'anonymous';
+  const video = document.createElement('video')
+  video.muted = true
+  video.loop = true
+  video.playsInline = true
+  video.crossOrigin = 'anonymous'
 
   // URL erstellen
-  const videoUrl = URL.createObjectURL(file);
+  const videoUrl = URL.createObjectURL(file)
 
   video.onloadeddata = () => {
     if (tilesStore.selectedTileIndex !== null) {
-      tilesStore.setTileVideo(tilesStore.selectedTileIndex, video, videoUrl);
+      tilesStore.setTileVideo(tilesStore.selectedTileIndex, video, videoUrl)
       if (canvasManager.value) {
-        canvasManager.value.redrawCallback();
+        canvasManager.value.redrawCallback()
       }
     }
-  };
+  }
 
   video.onerror = (e) => {
-    console.error('❌ Fehler beim Laden des Videos:', e);
-    URL.revokeObjectURL(videoUrl);
-  };
+    console.error('❌ Fehler beim Laden des Videos:', e)
+    URL.revokeObjectURL(videoUrl)
+  }
 
-  video.src = videoUrl;
-  video.load();
+  video.src = videoUrl
+  video.load()
 
   // Input zurücksetzen für erneutes Hochladen
-  event.target.value = '';
+  event.target.value = ''
 }
 
 // Video-Einstellung aktualisieren
 function updateVideoSetting(setting, value) {
   if (tilesStore.selectedTileIndex !== null) {
-    tilesStore.updateTileVideoSetting(tilesStore.selectedTileIndex, setting, value);
+    tilesStore.updateTileVideoSetting(tilesStore.selectedTileIndex, setting, value)
     if (canvasManager.value) {
-      canvasManager.value.redrawCallback();
+      canvasManager.value.redrawCallback()
     }
   }
 }
@@ -1028,9 +1076,9 @@ function updateVideoSetting(setting, value) {
 // Video entfernen
 function removeVideo() {
   if (tilesStore.selectedTileIndex !== null) {
-    tilesStore.removeTileVideo(tilesStore.selectedTileIndex);
+    tilesStore.removeTileVideo(tilesStore.selectedTileIndex)
     if (canvasManager.value) {
-      canvasManager.value.redrawCallback();
+      canvasManager.value.redrawCallback()
     }
   }
 }
@@ -1041,206 +1089,210 @@ function removeVideo() {
 
 // Galerie-Modal öffnen
 async function openGalleryModal() {
-  showGalleryModal.value = true;
-  selectedGalleryImage.value = null;
+  showGalleryModal.value = true
+  selectedGalleryImage.value = null
 
   // Galerie-Index laden wenn noch nicht geladen
   if (galleryCategories.value.length === 0) {
-    await loadGalleryIndex();
+    await loadGalleryIndex()
   }
 }
 
 // Galerie-Modal schließen
 function closeGalleryModal() {
-  showGalleryModal.value = false;
-  selectedGalleryImage.value = null;
+  showGalleryModal.value = false
+  selectedGalleryImage.value = null
 }
 
 // Galerie-Index laden
 async function loadGalleryIndex() {
-  galleryLoading.value = true;
+  galleryLoading.value = true
   try {
-    const paths = ['gallery/gallery.json', './gallery/gallery.json'];
-    let response = null;
+    const paths = ['gallery/gallery.json', './gallery/gallery.json']
+    let response = null
 
     for (const path of paths) {
       try {
-        response = await fetch(path);
-        if (response.ok) break;
+        response = await fetch(path)
+        if (response.ok) break
       } catch (e) {
         // Try next path
       }
     }
 
     if (!response || !response.ok) {
-      throw new Error('Galerie konnte nicht geladen werden');
+      throw new Error('Galerie konnte nicht geladen werden')
     }
 
-    const data = await response.json();
+    const data = await response.json()
 
     if (data._version === '2.0' && data.categories) {
-      galleryCategories.value = data.categories;
+      galleryCategories.value = data.categories
 
       // Erste Kategorie auswählen und laden
       if (galleryCategories.value.length > 0) {
-        await selectGalleryCategory(galleryCategories.value[0].id);
+        await selectGalleryCategory(galleryCategories.value[0].id)
       }
     }
   } catch (error) {
-    console.error('❌ Fehler beim Laden der Galerie:', error);
+    console.error('❌ Fehler beim Laden der Galerie:', error)
   } finally {
-    galleryLoading.value = false;
+    galleryLoading.value = false
   }
 }
 
 // Kategorie auswählen
 async function selectGalleryCategory(categoryId) {
-  if (selectedGalleryCategory.value === categoryId) return;
+  if (selectedGalleryCategory.value === categoryId) return
 
-  selectedGalleryCategory.value = categoryId;
-  selectedGalleryImage.value = null;
+  selectedGalleryCategory.value = categoryId
+  selectedGalleryImage.value = null
 
   // Prüfen ob bereits im Cache
   if (galleryCategoryCache.value.has(categoryId)) {
-    galleryImages.value = galleryCategoryCache.value.get(categoryId);
-    return;
+    galleryImages.value = galleryCategoryCache.value.get(categoryId)
+    return
   }
 
-  galleryLoading.value = true;
+  galleryLoading.value = true
   try {
-    const categoryInfo = galleryCategories.value.find(c => c.id === categoryId);
+    const categoryInfo = galleryCategories.value.find((c) => c.id === categoryId)
     if (!categoryInfo || !categoryInfo.jsonFile) {
-      galleryImages.value = [];
-      return;
+      galleryImages.value = []
+      return
     }
 
-    const response = await fetch(categoryInfo.jsonFile);
+    const response = await fetch(categoryInfo.jsonFile)
     if (!response.ok) {
-      throw new Error(`Kategorie ${categoryId} konnte nicht geladen werden`);
+      throw new Error(`Kategorie ${categoryId} konnte nicht geladen werden`)
     }
 
-    const data = await response.json();
-    const images = data.images || [];
+    const data = await response.json()
+    const images = data.images || []
 
     // Im Cache speichern
-    galleryCategoryCache.value.set(categoryId, images);
-    galleryImages.value = images;
+    galleryCategoryCache.value.set(categoryId, images)
+    galleryImages.value = images
   } catch (error) {
-    console.error('❌ Fehler beim Laden der Kategorie:', error);
-    galleryImages.value = [];
+    console.error('❌ Fehler beim Laden der Kategorie:', error)
+    galleryImages.value = []
   } finally {
-    galleryLoading.value = false;
+    galleryLoading.value = false
   }
 }
 
 // Bild auswählen
 function selectGalleryImage(image) {
-  selectedGalleryImage.value = image;
+  selectedGalleryImage.value = image
 }
 
 // Auswahl bestätigen und Bild in Kachel laden
 async function confirmGallerySelection() {
   if (!selectedGalleryImage.value || tilesStore.selectedTileIndex === null) {
-    closeGalleryModal();
-    return;
+    closeGalleryModal()
+    return
   }
 
-  const imagePath = selectedGalleryImage.value.file;
+  const imagePath = selectedGalleryImage.value.file
 
   try {
     // Bild laden
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
 
     await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = imagePath;
-    });
+      img.onload = resolve
+      img.onerror = reject
+      img.src = imagePath
+    })
 
     // Bild als Data-URL konvertieren für Persistenz
-    const canvas = document.createElement('canvas');
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    const canvas = document.createElement('canvas')
+    canvas.width = img.naturalWidth
+    canvas.height = img.naturalHeight
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(img, 0, 0)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
 
     // Bild in Kachel setzen
-    tilesStore.setTileImage(tilesStore.selectedTileIndex, img, dataUrl);
+    tilesStore.setTileImage(tilesStore.selectedTileIndex, img, dataUrl)
 
     if (canvasManager.value) {
-      canvasManager.value.redrawCallback();
+      canvasManager.value.redrawCallback()
     }
 
-    console.log('✅ Bild aus Galerie in Kachel geladen:', selectedGalleryImage.value.name);
+    console.log('✅ Bild aus Galerie in Kachel geladen:', selectedGalleryImage.value.name)
   } catch (error) {
-    console.error('❌ Fehler beim Laden des Galerie-Bildes:', error);
+    console.error('❌ Fehler beim Laden des Galerie-Bildes:', error)
   }
 
-  closeGalleryModal();
+  closeGalleryModal()
 }
 
 // Einzelne Kachel zurücksetzen
 function resetTile() {
   if (tilesStore.selectedTileIndex !== null) {
-    tilesStore.resetTile(tilesStore.selectedTileIndex);
+    tilesStore.resetTile(tilesStore.selectedTileIndex)
     if (canvasManager.value) {
-      canvasManager.value.redrawCallback();
+      canvasManager.value.redrawCallback()
     }
   }
 }
 
 // Alle Kacheln zurücksetzen
 function resetAllTiles() {
-  tilesStore.resetAllTiles();
+  tilesStore.resetAllTiles()
   if (canvasManager.value) {
-    canvasManager.value.redrawCallback();
+    canvasManager.value.redrawCallback()
   }
 }
 
 // ✨ NEU: Audio-Reaktiv Funktionen
 function toggleAudioReactive(enabled) {
   if (tilesStore.selectedTileIndex !== null) {
-    tilesStore.setTileAudioReactiveEnabled(tilesStore.selectedTileIndex, enabled);
+    tilesStore.setTileAudioReactiveEnabled(tilesStore.selectedTileIndex, enabled)
     if (canvasManager.value) {
-      canvasManager.value.redrawCallback();
+      canvasManager.value.redrawCallback()
     }
   }
 }
 
 function setAudioSource(source) {
   if (tilesStore.selectedTileIndex !== null) {
-    tilesStore.setTileAudioSource(tilesStore.selectedTileIndex, source);
+    tilesStore.setTileAudioSource(tilesStore.selectedTileIndex, source)
     if (canvasManager.value) {
-      canvasManager.value.redrawCallback();
+      canvasManager.value.redrawCallback()
     }
   }
 }
 
 function setAudioSmoothing(value) {
   if (tilesStore.selectedTileIndex !== null) {
-    tilesStore.setTileAudioSmoothing(tilesStore.selectedTileIndex, parseInt(value));
+    tilesStore.setTileAudioSmoothing(tilesStore.selectedTileIndex, parseInt(value))
     if (canvasManager.value) {
-      canvasManager.value.redrawCallback();
+      canvasManager.value.redrawCallback()
     }
   }
 }
 
 function toggleEffect(effectName, enabled) {
   if (tilesStore.selectedTileIndex !== null) {
-    tilesStore.setTileAudioEffect(tilesStore.selectedTileIndex, effectName, enabled);
+    tilesStore.setTileAudioEffect(tilesStore.selectedTileIndex, effectName, enabled)
     if (canvasManager.value) {
-      canvasManager.value.redrawCallback();
+      canvasManager.value.redrawCallback()
     }
   }
 }
 
 function setEffectIntensity(effectName, value) {
   if (tilesStore.selectedTileIndex !== null) {
-    tilesStore.setTileAudioEffectIntensity(tilesStore.selectedTileIndex, effectName, parseInt(value));
+    tilesStore.setTileAudioEffectIntensity(
+      tilesStore.selectedTileIndex,
+      effectName,
+      parseInt(value),
+    )
     if (canvasManager.value) {
-      canvasManager.value.redrawCallback();
+      canvasManager.value.redrawCallback()
     }
   }
 }
@@ -1289,7 +1341,7 @@ function setEffectIntensity(effectName, value) {
   font-size: 13px;
 }
 
-.checkbox-label input[type="checkbox"] {
+.checkbox-label input[type='checkbox'] {
   width: 16px;
   height: 16px;
   accent-color: #4ade80;
@@ -1414,8 +1466,13 @@ function setEffectIntensity(effectName, value) {
 }
 
 @keyframes pulse-audio {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Ausgewählte Kachel Editor */
@@ -1572,7 +1629,7 @@ function setEffectIntensity(effectName, value) {
   margin: 0;
 }
 
-.filter-row input[type="range"] {
+.filter-row input[type='range'] {
   width: 100%;
   height: 4px;
   border-radius: 2px;
@@ -1582,7 +1639,7 @@ function setEffectIntensity(effectName, value) {
   appearance: none;
 }
 
-.filter-row input[type="range"]::-webkit-slider-thumb {
+.filter-row input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 10px;
   height: 10px;
@@ -1726,7 +1783,7 @@ function setEffectIntensity(effectName, value) {
   cursor: pointer;
 }
 
-.effect-item input[type="checkbox"] {
+.effect-item input[type='checkbox'] {
   width: 12px;
   height: 12px;
   accent-color: #8b5cf6;
@@ -1937,11 +1994,11 @@ function setEffectIntensity(effectName, value) {
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #7A8DA0;
+  color: #7a8da0;
   cursor: pointer;
 }
 
-.video-settings .checkbox-label input[type="checkbox"] {
+.video-settings .checkbox-label input[type='checkbox'] {
   width: 14px;
   height: 14px;
   accent-color: #ec4899;
@@ -2000,8 +2057,12 @@ function setEffectIntensity(effectName, value) {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Modal Container */
@@ -2009,7 +2070,9 @@ function setEffectIntensity(effectName, value) {
   background: linear-gradient(180deg, var(--primary-bg) 0%, var(--card-bg) 100%);
   border-radius: 12px;
   border: 1px solid rgba(201, 152, 77, 0.3);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(201, 152, 77, 0.2);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(201, 152, 77, 0.2);
   width: 90vw;
   max-width: 800px;
   max-height: 80vh;
@@ -2043,7 +2106,7 @@ function setEffectIntensity(effectName, value) {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #E9E9EB;
+  color: #e9e9eb;
 }
 
 .gallery-modal-close {
@@ -2093,7 +2156,7 @@ function setEffectIntensity(effectName, value) {
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #7A8DA0;
+  color: #7a8da0;
   font-size: 11px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -2102,7 +2165,7 @@ function setEffectIntensity(effectName, value) {
 
 .category-tab:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: #E9E9EB;
+  color: #e9e9eb;
 }
 
 .category-tab.active {
@@ -2144,7 +2207,9 @@ function setEffectIntensity(effectName, value) {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Images Grid */
@@ -2172,7 +2237,9 @@ function setEffectIntensity(effectName, value) {
 
 .gallery-image-item.selected {
   border-color: #c9984d;
-  box-shadow: 0 0 0 2px rgba(201, 152, 77, 0.4), 0 4px 12px rgba(201, 152, 77, 0.3);
+  box-shadow:
+    0 0 0 2px rgba(201, 152, 77, 0.4),
+    0 4px 12px rgba(201, 152, 77, 0.3);
 }
 
 .gallery-image-item img {
@@ -2219,12 +2286,12 @@ function setEffectIntensity(effectName, value) {
 .btn-cancel {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #7A8DA0;
+  color: #7a8da0;
 }
 
 .btn-cancel:hover {
   background: rgba(255, 255, 255, 0.15);
-  color: #E9E9EB;
+  color: #e9e9eb;
 }
 
 .btn-select {
@@ -2337,17 +2404,17 @@ function setEffectIntensity(effectName, value) {
 }
 
 /* Checkboxes: green → navy */
-[data-theme='light'] .checkbox-label input[type="checkbox"] {
+[data-theme='light'] .checkbox-label input[type='checkbox'] {
   accent-color: #014f99;
 }
 
-[data-theme='light'] .effect-item input[type="checkbox"] {
+[data-theme='light'] .effect-item input[type='checkbox'] {
   accent-color: #014f99;
 }
 
 /* Tile count buttons: dark bg → #FDFBF2 */
 [data-theme='light'] .tile-count-buttons button {
-  background: #FDFBF2;
+  background: #fdfbf2;
   border-color: rgba(1, 79, 153, 0.2);
   color: #003971;
 }
@@ -2369,12 +2436,12 @@ function setEffectIntensity(effectName, value) {
 }
 
 [data-theme='light'] .gap-slider::-webkit-slider-thumb {
-  background: #073F74;
+  background: #073f74;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .gap-slider::-moz-range-thumb {
-  background: #073F74;
+  background: #073f74;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
@@ -2426,7 +2493,7 @@ function setEffectIntensity(effectName, value) {
 
 /* Color picker: dark bg → white */
 [data-theme='light'] .color-input {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-color: var(--border-color);
 }
 
@@ -2441,12 +2508,12 @@ function setEffectIntensity(effectName, value) {
 }
 
 [data-theme='light'] .opacity-slider::-webkit-slider-thumb {
-  background: #073F74;
+  background: #073f74;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .opacity-slider::-moz-range-thumb {
-  background: #073F74;
+  background: #073f74;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
@@ -2492,7 +2559,7 @@ function setEffectIntensity(effectName, value) {
 }
 
 /* Filter range: green → blue */
-[data-theme='light'] .filter-row input[type="range"] {
+[data-theme='light'] .filter-row input[type='range'] {
   background: rgba(1, 79, 153, 0.2);
 }
 
@@ -2530,7 +2597,7 @@ function setEffectIntensity(effectName, value) {
 
 /* Audio select: dark bg → white */
 [data-theme='light'] .audio-select {
-  background: #FDFBF2;
+  background: #fdfbf2;
   color: #003971;
   border-color: var(--border-color);
 }
@@ -2545,18 +2612,18 @@ function setEffectIntensity(effectName, value) {
 }
 
 [data-theme='light'] .audio-slider::-webkit-slider-thumb {
-  background: #073F74;
+  background: #073f74;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .audio-slider::-moz-range-thumb {
-  background: #073F74;
+  background: #073f74;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* Effect items: dark bg → #FDFBF2 */
 [data-theme='light'] .effect-item {
-  background: #FDFBF2;
+  background: #fdfbf2;
 }
 
 [data-theme='light'] .effect-item span {
@@ -2569,12 +2636,12 @@ function setEffectIntensity(effectName, value) {
 }
 
 [data-theme='light'] .effect-slider::-webkit-slider-thumb {
-  background: #073F74;
+  background: #073f74;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .effect-slider::-moz-range-thumb {
-  background: #073F74;
+  background: #073f74;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
@@ -2595,8 +2662,8 @@ function setEffectIntensity(effectName, value) {
 
 /* Save preset button: purple gradient → blue */
 [data-theme='light'] .btn-save-preset {
-  background: linear-gradient(135deg, #014f99 0%, #073F74 100%);
-  color: #F5F4D6;
+  background: linear-gradient(135deg, #014f99 0%, #073f74 100%);
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .btn-save-preset:hover {
@@ -2605,7 +2672,7 @@ function setEffectIntensity(effectName, value) {
 
 /* Preset items: dark bg → white */
 [data-theme='light'] .preset-item {
-  background: #FDFBF2;
+  background: #fdfbf2;
   border-color: var(--border-color);
 }
 
@@ -2633,7 +2700,7 @@ function setEffectIntensity(effectName, value) {
 
 /* Video preview */
 [data-theme='light'] .video-preview {
-  background: #FDFBF2;
+  background: #fdfbf2;
 }
 
 /* Video settings: dark bg → subtle light */
@@ -2645,7 +2712,7 @@ function setEffectIntensity(effectName, value) {
   color: #4d6d8e;
 }
 
-[data-theme='light'] .video-settings .checkbox-label input[type="checkbox"] {
+[data-theme='light'] .video-settings .checkbox-label input[type='checkbox'] {
   accent-color: #014f99;
 }
 
@@ -2724,7 +2791,7 @@ function setEffectIntensity(effectName, value) {
 
 /* Modal container: dark gradient → white */
 [data-theme='light'] .tile-gallery-modal {
-  background: linear-gradient(180deg, #FFFFFF 0%, #FDFBF2 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #fdfbf2 100%);
   border-color: rgba(1, 79, 153, 0.2);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
 }
@@ -2785,7 +2852,9 @@ function setEffectIntensity(effectName, value) {
 
 [data-theme='light'] .gallery-image-item.selected {
   border-color: #014f99;
-  box-shadow: 0 0 0 2px rgba(1, 79, 153, 0.3), 0 4px 12px rgba(1, 79, 153, 0.2);
+  box-shadow:
+    0 0 0 2px rgba(1, 79, 153, 0.3),
+    0 4px 12px rgba(1, 79, 153, 0.2);
 }
 
 [data-theme='light'] .gallery-image-name {
@@ -2810,13 +2879,13 @@ function setEffectIntensity(effectName, value) {
 }
 
 [data-theme='light'] .btn-select {
-  background: linear-gradient(135deg, #014f99 0%, #073F74 100%);
+  background: linear-gradient(135deg, #014f99 0%, #073f74 100%);
   border-color: rgba(1, 79, 153, 0.5);
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .btn-select:hover:not(:disabled) {
-  background: linear-gradient(135deg, #073F74 0%, #014f99 100%);
+  background: linear-gradient(135deg, #073f74 0%, #014f99 100%);
   box-shadow: 0 4px 12px rgba(1, 79, 153, 0.3);
 }
 

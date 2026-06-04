@@ -13,14 +13,14 @@
         <div class="control-group">
           <label>{{ t('canvasControl.selectColor') }}:</label>
           <div class="color-picker-group">
-            <input 
-              type="color" 
+            <input
+              type="color"
               v-model="backgroundColor"
               @input="updateFromColorPicker"
               class="color-input"
             />
-            <input 
-              type="text" 
+            <input
+              type="text"
               v-model="colorDisplay"
               @input="updateFromTextInput"
               @blur="formatColorDisplay"
@@ -52,11 +52,7 @@
 
           <div class="control-group">
             <label class="checkbox-label">
-              <input
-                type="checkbox"
-                v-model="gradientEnabled"
-                @change="updateGradientSettings"
-              />
+              <input type="checkbox" v-model="gradientEnabled" @change="updateGradientSettings" />
               <span>{{ t('canvasControl.enableGradient') }}</span>
             </label>
           </div>
@@ -77,7 +73,11 @@
 
             <div class="control-group">
               <label>{{ t('canvasControl.type') }}:</label>
-              <select v-model="gradientType" @change="updateGradientSettings" class="gradient-select">
+              <select
+                v-model="gradientType"
+                @change="updateGradientSettings"
+                class="gradient-select"
+              >
                 <option value="radial">🔵 {{ t('canvasControl.radial') }}</option>
                 <option value="linear">📐 {{ t('canvasControl.linear') }}</option>
               </select>
@@ -104,11 +104,7 @@
 
           <div class="control-group">
             <label class="checkbox-label">
-              <input
-                type="checkbox"
-                v-model="bgAudioEnabled"
-                @change="updateBgAudioReactive"
-              />
+              <input type="checkbox" v-model="bgAudioEnabled" @change="updateBgAudioReactive" />
               <span>{{ t('common.enabled') }}</span>
             </label>
           </div>
@@ -142,58 +138,138 @@
               <label class="effect-item">
                 <input type="checkbox" v-model="bgEffectHue" @change="updateBgAudioReactive" />
                 <span>🎨 {{ t('canvasControl.hue') }}</span>
-                <input type="range" v-model.number="bgEffectHueIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <input
+                  type="range"
+                  v-model.number="bgEffectHueIntensity"
+                  @input="updateBgAudioReactive"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
                 <span class="effect-value">{{ bgEffectHueIntensity }}%</span>
               </label>
 
               <label class="effect-item">
-                <input type="checkbox" v-model="bgEffectBrightness" @change="updateBgAudioReactive" />
+                <input
+                  type="checkbox"
+                  v-model="bgEffectBrightness"
+                  @change="updateBgAudioReactive"
+                />
                 <span>☀️ {{ t('canvasControl.brightness') }}</span>
-                <input type="range" v-model.number="bgEffectBrightnessIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <input
+                  type="range"
+                  v-model.number="bgEffectBrightnessIntensity"
+                  @input="updateBgAudioReactive"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
                 <span class="effect-value">{{ bgEffectBrightnessIntensity }}%</span>
               </label>
 
               <label class="effect-item">
-                <input type="checkbox" v-model="bgEffectSaturation" @change="updateBgAudioReactive" />
+                <input
+                  type="checkbox"
+                  v-model="bgEffectSaturation"
+                  @change="updateBgAudioReactive"
+                />
                 <span>🌈 {{ t('canvasControl.saturation') }}</span>
-                <input type="range" v-model.number="bgEffectSaturationIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <input
+                  type="range"
+                  v-model.number="bgEffectSaturationIntensity"
+                  @input="updateBgAudioReactive"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
                 <span class="effect-value">{{ bgEffectSaturationIntensity }}%</span>
               </label>
 
               <label class="effect-item">
                 <input type="checkbox" v-model="bgEffectGlow" @change="updateBgAudioReactive" />
                 <span>✨ {{ t('canvasControl.glow') }}</span>
-                <input type="range" v-model.number="bgEffectGlowIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <input
+                  type="range"
+                  v-model.number="bgEffectGlowIntensity"
+                  @input="updateBgAudioReactive"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
                 <span class="effect-value">{{ bgEffectGlowIntensity }}%</span>
               </label>
 
               <label class="effect-item">
                 <input type="checkbox" v-model="bgEffectStrobe" @change="updateBgAudioReactive" />
                 <span>⚡ {{ t('canvasControl.strobe') }}</span>
-                <input type="range" v-model.number="bgEffectStrobeIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <input
+                  type="range"
+                  v-model.number="bgEffectStrobeIntensity"
+                  @input="updateBgAudioReactive"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
                 <span class="effect-value">{{ bgEffectStrobeIntensity }}%</span>
               </label>
 
               <label class="effect-item">
                 <input type="checkbox" v-model="bgEffectContrast" @change="updateBgAudioReactive" />
                 <span>🔲 {{ t('canvasControl.contrastEffect') }}</span>
-                <input type="range" v-model.number="bgEffectContrastIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                <input
+                  type="range"
+                  v-model.number="bgEffectContrastIntensity"
+                  @input="updateBgAudioReactive"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="effect-slider"
+                />
                 <span class="effect-value">{{ bgEffectContrastIntensity }}%</span>
               </label>
 
               <!-- Gradient-Effekte (nur wenn Gradient aktiviert) -->
               <template v-if="gradientEnabled">
                 <label class="effect-item">
-                  <input type="checkbox" v-model="bgEffectGradientPulse" @change="updateBgAudioReactive" />
+                  <input
+                    type="checkbox"
+                    v-model="bgEffectGradientPulse"
+                    @change="updateBgAudioReactive"
+                  />
                   <span>💫 {{ t('canvasControl.gradientPulse') }}</span>
-                  <input type="range" v-model.number="bgEffectGradientPulseIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                  <input
+                    type="range"
+                    v-model.number="bgEffectGradientPulseIntensity"
+                    @input="updateBgAudioReactive"
+                    min="0"
+                    max="100"
+                    step="5"
+                    class="effect-slider"
+                  />
                   <span class="effect-value">{{ bgEffectGradientPulseIntensity }}%</span>
                 </label>
 
                 <label class="effect-item">
-                  <input type="checkbox" v-model="bgEffectGradientRotation" @change="updateBgAudioReactive" />
+                  <input
+                    type="checkbox"
+                    v-model="bgEffectGradientRotation"
+                    @change="updateBgAudioReactive"
+                  />
                   <span>🔄 {{ t('canvasControl.gradientRotation') }}</span>
-                  <input type="range" v-model.number="bgEffectGradientRotationIntensity" @input="updateBgAudioReactive" min="0" max="100" step="5" class="effect-slider" />
+                  <input
+                    type="range"
+                    v-model.number="bgEffectGradientRotationIntensity"
+                    @input="updateBgAudioReactive"
+                    min="0"
+                    max="100"
+                    step="5"
+                    class="effect-slider"
+                  />
                   <span class="effect-value">{{ bgEffectGradientRotationIntensity }}%</span>
                 </label>
               </template>
@@ -211,7 +287,7 @@
             <button
               type="button"
               class="flip-button"
-              :class="{ 'active': bgFlipH }"
+              :class="{ active: bgFlipH }"
               @click="toggleBgFlipH"
               :title="t('canvasControl.flipHorizontal')"
             >
@@ -220,7 +296,7 @@
             <button
               type="button"
               class="flip-button"
-              :class="{ 'active': bgFlipV }"
+              :class="{ active: bgFlipV }"
               @click="toggleBgFlipV"
               :title="t('canvasControl.flipVertical')"
             >
@@ -236,7 +312,7 @@
             <button
               type="button"
               class="flip-button"
-              :class="{ 'active': wsBgFlipH }"
+              :class="{ active: wsBgFlipH }"
               @click="toggleWsBgFlipH"
               :title="t('canvasControl.flipHorizontal')"
             >
@@ -245,7 +321,7 @@
             <button
               type="button"
               class="flip-button"
-              :class="{ 'active': wsBgFlipV }"
+              :class="{ active: wsBgFlipV }"
               @click="toggleWsBgFlipV"
               :title="t('canvasControl.flipVertical')"
             >
@@ -262,18 +338,18 @@
             @dblclick="openBackgroundReplaceModal('background')"
             :title="t('canvasControl.dblClickToReplace') || 'Doppelklick zum Ersetzen'"
           >
-            <img
-              v-if="backgroundImageSrc"
-              :src="backgroundImageSrc"
-              alt="Background"
-            />
-            <span class="thumb-hint">{{ t('canvasControl.dblClickToReplace') || 'Doppelklick zum Ersetzen' }}</span>
+            <img v-if="backgroundImageSrc" :src="backgroundImageSrc" alt="Background" />
+            <span class="thumb-hint">{{
+              t('canvasControl.dblClickToReplace') || 'Doppelklick zum Ersetzen'
+            }}</span>
           </div>
         </div>
 
         <!-- ✨ NEU: Workspace-Hintergrund-Thumbnail mit Doppelklick zum Ersetzen -->
         <div v-if="hasWorkspaceBackground" class="background-thumb-section">
-          <h5>🖼️ {{ t('canvasControl.workspaceBackgroundImage') || 'Workspace-Hintergrundbild' }}</h5>
+          <h5>
+            🖼️ {{ t('canvasControl.workspaceBackgroundImage') || 'Workspace-Hintergrundbild' }}
+          </h5>
           <div
             class="background-thumb"
             @dblclick="openBackgroundReplaceModal('workspace')"
@@ -284,7 +360,9 @@
               :src="workspaceBackgroundImageSrc"
               alt="Workspace Background"
             />
-            <span class="thumb-hint">{{ t('canvasControl.dblClickToReplace') || 'Doppelklick zum Ersetzen' }}</span>
+            <span class="thumb-hint">{{
+              t('canvasControl.dblClickToReplace') || 'Doppelklick zum Ersetzen'
+            }}</span>
           </div>
         </div>
       </div>
@@ -294,7 +372,7 @@
         <button @click="undoLastChange" class="btn-undo full-width">
           {{ t('canvasControl.undo') }}
         </button>
-        <div class="hint-text" style="text-align: center; margin-top: 6px;">
+        <div class="hint-text" style="text-align: center; margin-top: 6px">
           {{ undoHistory.length }} {{ t('canvasControl.inHistory') }}
         </div>
       </div>
@@ -313,26 +391,33 @@
 
         <div v-if="savedPresets.length > 0" class="presets-list">
           <label>{{ t('canvasControl.savedPresets') }}:</label>
-          <div
-            v-for="preset in savedPresets"
-            :key="preset.id"
-            class="preset-item"
-          >
+          <div v-for="preset in savedPresets" :key="preset.id" class="preset-item">
             <div class="preset-info">
               <span class="preset-name">{{ preset.name }}</span>
-              <span class="preset-preview" :style="{ backgroundColor: preset.backgroundColor }"></span>
+              <span
+                class="preset-preview"
+                :style="{ backgroundColor: preset.backgroundColor }"
+              ></span>
             </div>
             <div class="preset-actions">
-              <button @click="loadPreset(preset)" class="btn-small btn-load" :title="t('canvasControl.load')">
+              <button
+                @click="loadPreset(preset)"
+                class="btn-small btn-load"
+                :title="t('canvasControl.load')"
+              >
                 📥
               </button>
-              <button @click="deletePreset(preset.id)" class="btn-small btn-delete" :title="t('common.delete')">
+              <button
+                @click="deletePreset(preset.id)"
+                class="btn-small btn-delete"
+                :title="t('common.delete')"
+              >
                 🗑️
               </button>
             </div>
           </div>
         </div>
-        <div v-else class="hint-text" style="text-align: center; margin-top: 8px;">
+        <div v-else class="hint-text" style="text-align: center; margin-top: 8px">
           {{ t('canvasControl.noPresets') }}
         </div>
       </div>
@@ -363,7 +448,11 @@
             📐 {{ t('canvasControl.workspaceBackground') || 'Workspace' }}
           </button>
         </div>
-        <button @click="resetAllBackgrounds" class="btn-secondary full-width" style="margin-top: 8px;">
+        <button
+          @click="resetAllBackgrounds"
+          class="btn-secondary full-width"
+          style="margin-top: 8px"
+        >
           🔄 {{ t('canvasControl.resetAll') || 'Alle zurücksetzen' }}
         </button>
       </div>
@@ -373,9 +462,7 @@
       <!-- Canvas komplett zurücksetzen -->
       <div class="panel-section">
         <h4>{{ t('canvasControl.clearCanvas') }}</h4>
-        <p class="info-text warning">
-          ⚠️ {{ t('canvasControl.removesAll') }}
-        </p>
+        <p class="info-text warning">⚠️ {{ t('canvasControl.removesAll') }}</p>
         <button
           @click="showResetConfirm = true"
           class="btn-danger full-width"
@@ -383,7 +470,7 @@
         >
           {{ t('canvasControl.deleteAll') }}
         </button>
-        <div v-if="isCanvasEmpty" class="hint-text" style="margin-top: 8px; text-align: center;">
+        <div v-if="isCanvasEmpty" class="hint-text" style="margin-top: 8px; text-align: center">
           {{ t('canvasControl.canvasEmpty') }}
         </div>
       </div>
@@ -409,16 +496,36 @@
 
     <!-- ✨ NEU: Modal zum Ersetzen des Hintergrundbildes -->
     <Teleport to="body">
-      <div v-if="showBackgroundReplaceModal" class="bg-replace-modal-overlay" @click="closeBackgroundReplaceModal">
+      <div
+        v-if="showBackgroundReplaceModal"
+        class="bg-replace-modal-overlay"
+        @click="closeBackgroundReplaceModal"
+      >
         <div class="bg-replace-modal" @click.stop>
           <button class="bg-replace-modal-close" @click="closeBackgroundReplaceModal">×</button>
           <div class="bg-replace-modal-content">
             <div class="bg-replace-modal-image-container">
-              <img v-if="currentBackgroundForReplace" :src="currentBackgroundForReplace" alt="Current Background">
+              <img
+                v-if="currentBackgroundForReplace"
+                :src="currentBackgroundForReplace"
+                alt="Current Background"
+              />
             </div>
             <div class="bg-replace-modal-info">
-              <h3>{{ replaceType === 'workspace' ? (t('canvasControl.replaceWorkspaceBackground') || 'Workspace-Hintergrund ersetzen') : (t('canvasControl.replaceBackground') || 'Hintergrund ersetzen') }}</h3>
-              <p class="bg-replace-hint">{{ t('canvasControl.audioReactiveKept') || 'Audio-Reactive Einstellungen werden übernommen' }}</p>
+              <h3>
+                {{
+                  replaceType === 'workspace'
+                    ? t('canvasControl.replaceWorkspaceBackground') ||
+                      'Workspace-Hintergrund ersetzen'
+                    : t('canvasControl.replaceBackground') || 'Hintergrund ersetzen'
+                }}
+              </h3>
+              <p class="bg-replace-hint">
+                {{
+                  t('canvasControl.audioReactiveKept') ||
+                  'Audio-Reactive Einstellungen werden übernommen'
+                }}
+              </p>
 
               <!-- Ersetzen-Buttons -->
               <div class="bg-replace-modal-actions">
@@ -469,7 +576,11 @@
                       :class="{ selected: selectedBgGalleryImage === image }"
                       @click="selectBgGalleryImage(image)"
                     >
-                      <img :src="image.thumb || image.file" :alt="image.name || 'Gallery image'" loading="lazy" />
+                      <img
+                        :src="image.thumb || image.file"
+                        :alt="image.name || 'Gallery image'"
+                        loading="lazy"
+                      />
                     </div>
                   </div>
                 </div>
@@ -492,10 +603,16 @@
               <!-- Vorschau für neues Bild -->
               <div v-if="pendingBackgroundReplaceSrc" class="pending-bg-replace-preview">
                 <div class="pending-bg-replace-header">
-                  <span class="pending-bg-replace-label">{{ t('app.newImagePreview') || 'Vorschau:' }}</span>
+                  <span class="pending-bg-replace-label">{{
+                    t('app.newImagePreview') || 'Vorschau:'
+                  }}</span>
                 </div>
                 <div class="pending-bg-replace-image-container">
-                  <img :src="pendingBackgroundReplaceSrc" alt="Preview" class="pending-bg-replace-image" />
+                  <img
+                    :src="pendingBackgroundReplaceSrc"
+                    alt="Preview"
+                    class="pending-bg-replace-image"
+                  />
                 </div>
                 <div class="pending-bg-replace-actions">
                   <button class="btn-cancel-replace" @click="cancelBackgroundReplace">
@@ -515,380 +632,387 @@
 </template>
 
 <script setup>
-import { ref, inject, computed, onMounted, watch, nextTick } from 'vue';
-import { useI18n } from '../lib/i18n.js';
-import BackgroundTilesPanel from './BackgroundTilesPanel.vue';
+import { ref, inject, computed, onMounted, watch, nextTick } from 'vue'
+import { useI18n } from '../lib/i18n.js'
+import BackgroundTilesPanel from './BackgroundTilesPanel.vue'
 
-const { t } = useI18n();
-const canvasManager = inject('canvasManager');
-const backgroundColor = ref('#ffffff'); // Hex-Farbe ohne Alpha (Standard: Weiß)
-const backgroundOpacity = ref(1.0); // Deckkraft State (0.0 bis 1.0)
-const colorDisplay = ref('rgba(255, 255, 255, 1)'); // Angezeigter Farbwert im Textfeld
-const showResetConfirm = ref(false);
+const { t } = useI18n()
+const canvasManager = inject('canvasManager')
+const backgroundColor = ref('#ffffff') // Hex-Farbe ohne Alpha (Standard: Weiß)
+const backgroundOpacity = ref(1.0) // Deckkraft State (0.0 bis 1.0)
+const colorDisplay = ref('rgba(255, 255, 255, 1)') // Angezeigter Farbwert im Textfeld
+const showResetConfirm = ref(false)
 
 // ✨ Panel Ein-/Ausklappen
-const isExpanded = ref(true);
+const isExpanded = ref(true)
 
 // ✨ Undo-System
-const undoHistory = ref([]);
-const MAX_HISTORY = 10;
+const undoHistory = ref([])
+const MAX_HISTORY = 10
 
 // ✨ NEU: Audio-Reaktiv für Hintergrundfarbe
-const bgAudioEnabled = ref(false);
-const bgAudioSource = ref('bass');
-const bgAudioSmoothing = ref(50);
-const bgEffectHue = ref(false);
-const bgEffectHueIntensity = ref(80);
-const bgEffectBrightness = ref(false);
-const bgEffectBrightnessIntensity = ref(80);
-const bgEffectSaturation = ref(false);
-const bgEffectSaturationIntensity = ref(80);
-const bgEffectGlow = ref(false);
-const bgEffectGlowIntensity = ref(80);
-const bgEffectStrobe = ref(false);
-const bgEffectStrobeIntensity = ref(80);
-const bgEffectContrast = ref(false);
-const bgEffectContrastIntensity = ref(70);
-const bgEffectGradientPulse = ref(false);
-const bgEffectGradientPulseIntensity = ref(80);
-const bgEffectGradientRotation = ref(false);
-const bgEffectGradientRotationIntensity = ref(80);
+const bgAudioEnabled = ref(false)
+const bgAudioSource = ref('bass')
+const bgAudioSmoothing = ref(50)
+const bgEffectHue = ref(false)
+const bgEffectHueIntensity = ref(80)
+const bgEffectBrightness = ref(false)
+const bgEffectBrightnessIntensity = ref(80)
+const bgEffectSaturation = ref(false)
+const bgEffectSaturationIntensity = ref(80)
+const bgEffectGlow = ref(false)
+const bgEffectGlowIntensity = ref(80)
+const bgEffectStrobe = ref(false)
+const bgEffectStrobeIntensity = ref(80)
+const bgEffectContrast = ref(false)
+const bgEffectContrastIntensity = ref(70)
+const bgEffectGradientPulse = ref(false)
+const bgEffectGradientPulseIntensity = ref(80)
+const bgEffectGradientRotation = ref(false)
+const bgEffectGradientRotationIntensity = ref(80)
 
 // ✨ NEU: Gradient-Einstellungen
-const gradientEnabled = ref(false);
-const gradientColor2 = ref('#0066ff');
-const gradientType = ref('radial');
-const gradientAngle = ref(45);
+const gradientEnabled = ref(false)
+const gradientColor2 = ref('#0066ff')
+const gradientType = ref('radial')
+const gradientAngle = ref(45)
 
 // ✨ NEU: Flip-Einstellungen für Bild-Hintergründe
-const bgFlipH = ref(false);
-const bgFlipV = ref(false);
-const wsBgFlipH = ref(false);
-const wsBgFlipV = ref(false);
+const bgFlipH = ref(false)
+const bgFlipV = ref(false)
+const wsBgFlipH = ref(false)
+const wsBgFlipV = ref(false)
 
 // Computed: Prüft ob ein Bild-Hintergrund vorhanden ist
 const hasImageBackground = computed(() => {
-  if (!canvasManager.value) return false;
-  return canvasManager.value.background && typeof canvasManager.value.background === 'object';
-});
+  if (!canvasManager.value) return false
+  return canvasManager.value.background && typeof canvasManager.value.background === 'object'
+})
 
 // Computed: Prüft ob ein Workspace-Hintergrund vorhanden ist
 const hasWorkspaceBackground = computed(() => {
-  if (!canvasManager.value) return false;
-  return !!canvasManager.value.workspaceBackground;
-});
+  if (!canvasManager.value) return false
+  return !!canvasManager.value.workspaceBackground
+})
 
 // Computed: Prüft ob ein Video-Hintergrund vorhanden ist
 const hasVideoBackground = computed(() => {
-  if (!canvasManager.value) return false;
-  return !!canvasManager.value.videoBackground;
-});
+  if (!canvasManager.value) return false
+  return !!canvasManager.value.videoBackground
+})
 
 // Computed: Prüft ob ein Workspace-Video-Hintergrund vorhanden ist
 const hasWorkspaceVideoBackground = computed(() => {
-  if (!canvasManager.value) return false;
-  return !!canvasManager.value.workspaceVideoBackground;
-});
+  if (!canvasManager.value) return false
+  return !!canvasManager.value.workspaceVideoBackground
+})
 
 // ✨ NEU: Hintergrund-Ersetzung
-const showBackgroundReplaceModal = ref(false);
-const replaceType = ref('background'); // 'background' oder 'workspace'
-const pendingBackgroundReplaceImage = ref(null);
-const pendingBackgroundReplaceSrc = ref(null);
-const bgReplaceFileInput = ref(null);
+const showBackgroundReplaceModal = ref(false)
+const replaceType = ref('background') // 'background' oder 'workspace'
+const pendingBackgroundReplaceImage = ref(null)
+const pendingBackgroundReplaceSrc = ref(null)
+const bgReplaceFileInput = ref(null)
 
 // ✨ NEU: Galerie für Hintergrund-Ersetzung
-const showBgReplaceGallery = ref(false);
-const bgGalleryCategories = ref([]);
-const bgGalleryImages = ref([]);
-const selectedBgCategory = ref(null);
-const selectedBgGalleryImage = ref(null);
-const bgGalleryLoading = ref(false);
-const bgGalleryCategoryCache = ref(new Map());
+const showBgReplaceGallery = ref(false)
+const bgGalleryCategories = ref([])
+const bgGalleryImages = ref([])
+const selectedBgCategory = ref(null)
+const selectedBgGalleryImage = ref(null)
+const bgGalleryLoading = ref(false)
+const bgGalleryCategoryCache = ref(new Map())
 
 // Computed: Aktuelles Hintergrundbild-Src für Thumbnail
 const backgroundImageSrc = computed(() => {
-  if (!canvasManager.value) return null;
-  const bg = canvasManager.value.background;
+  if (!canvasManager.value) return null
+  const bg = canvasManager.value.background
   if (bg && typeof bg === 'object' && bg.imageObject) {
-    return bg.imageObject.src;
+    return bg.imageObject.src
   }
-  return null;
-});
+  return null
+})
 
 // Computed: Aktuelles Workspace-Hintergrundbild-Src für Thumbnail
 const workspaceBackgroundImageSrc = computed(() => {
-  if (!canvasManager.value) return null;
-  const wsBg = canvasManager.value.workspaceBackground;
+  if (!canvasManager.value) return null
+  const wsBg = canvasManager.value.workspaceBackground
   if (wsBg && wsBg.imageObject) {
-    return wsBg.imageObject.src;
+    return wsBg.imageObject.src
   }
-  return null;
-});
+  return null
+})
 
 // Computed: Aktuelles Bild für das Ersetzen-Modal
 const currentBackgroundForReplace = computed(() => {
   if (replaceType.value === 'workspace') {
-    return workspaceBackgroundImageSrc.value;
+    return workspaceBackgroundImageSrc.value
   }
-  return backgroundImageSrc.value;
-});
+  return backgroundImageSrc.value
+})
 
 // ✨ NEU: Öffnet das Modal zum Ersetzen des Hintergrundbildes
 function openBackgroundReplaceModal(type) {
-  replaceType.value = type;
-  pendingBackgroundReplaceImage.value = null;
-  pendingBackgroundReplaceSrc.value = null;
-  showBackgroundReplaceModal.value = true;
-  console.log(`🖼️ Hintergrund-Ersetzung Modal geöffnet für: ${type}`);
+  replaceType.value = type
+  pendingBackgroundReplaceImage.value = null
+  pendingBackgroundReplaceSrc.value = null
+  showBackgroundReplaceModal.value = true
+  console.log(`🖼️ Hintergrund-Ersetzung Modal geöffnet für: ${type}`)
 }
 
 // ✨ NEU: Schließt das Modal
 function closeBackgroundReplaceModal() {
-  showBackgroundReplaceModal.value = false;
-  pendingBackgroundReplaceImage.value = null;
-  pendingBackgroundReplaceSrc.value = null;
+  showBackgroundReplaceModal.value = false
+  pendingBackgroundReplaceImage.value = null
+  pendingBackgroundReplaceSrc.value = null
   // Galerie-State zurücksetzen
-  showBgReplaceGallery.value = false;
-  selectedBgGalleryImage.value = null;
+  showBgReplaceGallery.value = false
+  selectedBgGalleryImage.value = null
 }
 
 // ✨ NEU: Handler für Datei-Upload
 function handleBackgroundReplaceFile(event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
+  const file = event.target.files?.[0]
+  if (!file) return
 
-  const reader = new FileReader();
+  const reader = new FileReader()
   reader.onload = (e) => {
-    const img = new Image();
+    const img = new Image()
     img.onload = () => {
-      pendingBackgroundReplaceImage.value = img;
-      pendingBackgroundReplaceSrc.value = e.target.result;
-      console.log('🔍 Neues Hintergrundbild in Vorschau geladen:', img.naturalWidth, 'x', img.naturalHeight);
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+      pendingBackgroundReplaceImage.value = img
+      pendingBackgroundReplaceSrc.value = e.target.result
+      console.log(
+        '🔍 Neues Hintergrundbild in Vorschau geladen:',
+        img.naturalWidth,
+        'x',
+        img.naturalHeight,
+      )
+    }
+    img.src = e.target.result
+  }
+  reader.readAsDataURL(file)
 
   // Input zurücksetzen für erneute Auswahl derselben Datei
-  event.target.value = '';
+  event.target.value = ''
 }
 
 // ✨ NEU: Vorschau bestätigen und Hintergrund ersetzen
 function confirmBackgroundReplace() {
-  if (!pendingBackgroundReplaceImage.value || !canvasManager.value) return;
+  if (!pendingBackgroundReplaceImage.value || !canvasManager.value) return
 
-  let result;
+  let result
   if (replaceType.value === 'workspace') {
-    result = canvasManager.value.replaceWorkspaceBackground(pendingBackgroundReplaceImage.value);
+    result = canvasManager.value.replaceWorkspaceBackground(pendingBackgroundReplaceImage.value)
   } else {
-    result = canvasManager.value.replaceBackground(pendingBackgroundReplaceImage.value);
+    result = canvasManager.value.replaceBackground(pendingBackgroundReplaceImage.value)
   }
 
   if (result) {
-    console.log(`✅ ${replaceType.value === 'workspace' ? 'Workspace-' : ''}Hintergrund erfolgreich ersetzt`);
+    console.log(
+      `✅ ${replaceType.value === 'workspace' ? 'Workspace-' : ''}Hintergrund erfolgreich ersetzt`,
+    )
   }
 
-  closeBackgroundReplaceModal();
+  closeBackgroundReplaceModal()
 }
 
 // ✨ NEU: Ersetzung abbrechen
 function cancelBackgroundReplace() {
-  pendingBackgroundReplaceImage.value = null;
-  pendingBackgroundReplaceSrc.value = null;
-  console.log('❌ Hintergrund-Ersetzen abgebrochen');
+  pendingBackgroundReplaceImage.value = null
+  pendingBackgroundReplaceSrc.value = null
+  console.log('❌ Hintergrund-Ersetzen abgebrochen')
 }
 
 // ✨ NEU: Galerie-Funktionen für Hintergrund-Ersetzung
 async function openBgReplaceGallery() {
-  showBgReplaceGallery.value = true;
-  selectedBgGalleryImage.value = null;
+  showBgReplaceGallery.value = true
+  selectedBgGalleryImage.value = null
 
   // Galerie-Index laden wenn noch nicht geladen
   if (bgGalleryCategories.value.length === 0) {
-    await loadBgGalleryIndex();
+    await loadBgGalleryIndex()
   }
 }
 
 function closeBgReplaceGallery() {
-  showBgReplaceGallery.value = false;
-  selectedBgGalleryImage.value = null;
+  showBgReplaceGallery.value = false
+  selectedBgGalleryImage.value = null
 }
 
 async function loadBgGalleryIndex() {
-  bgGalleryLoading.value = true;
+  bgGalleryLoading.value = true
   try {
-    const paths = ['gallery/gallery.json', './gallery/gallery.json'];
-    let response = null;
+    const paths = ['gallery/gallery.json', './gallery/gallery.json']
+    let response = null
 
     for (const path of paths) {
       try {
-        response = await fetch(path);
-        if (response.ok) break;
+        response = await fetch(path)
+        if (response.ok) break
       } catch (e) {
         // Try next path
       }
     }
 
     if (!response || !response.ok) {
-      throw new Error('Galerie konnte nicht geladen werden');
+      throw new Error('Galerie konnte nicht geladen werden')
     }
 
-    const data = await response.json();
+    const data = await response.json()
 
     if (data._version === '2.0' && data.categories) {
-      bgGalleryCategories.value = data.categories;
+      bgGalleryCategories.value = data.categories
 
       // Erste Kategorie auswählen und laden
       if (bgGalleryCategories.value.length > 0) {
-        await selectBgGalleryCategory(bgGalleryCategories.value[0].id);
+        await selectBgGalleryCategory(bgGalleryCategories.value[0].id)
       }
     }
   } catch (error) {
-    console.error('❌ Fehler beim Laden der Galerie:', error);
+    console.error('❌ Fehler beim Laden der Galerie:', error)
   } finally {
-    bgGalleryLoading.value = false;
+    bgGalleryLoading.value = false
   }
 }
 
 async function selectBgGalleryCategory(categoryId) {
-  if (selectedBgCategory.value === categoryId) return;
+  if (selectedBgCategory.value === categoryId) return
 
-  selectedBgCategory.value = categoryId;
-  selectedBgGalleryImage.value = null;
+  selectedBgCategory.value = categoryId
+  selectedBgGalleryImage.value = null
 
   // Prüfen ob bereits im Cache
   if (bgGalleryCategoryCache.value.has(categoryId)) {
-    bgGalleryImages.value = bgGalleryCategoryCache.value.get(categoryId);
-    return;
+    bgGalleryImages.value = bgGalleryCategoryCache.value.get(categoryId)
+    return
   }
 
-  bgGalleryLoading.value = true;
+  bgGalleryLoading.value = true
   try {
-    const categoryInfo = bgGalleryCategories.value.find(c => c.id === categoryId);
+    const categoryInfo = bgGalleryCategories.value.find((c) => c.id === categoryId)
     if (!categoryInfo || !categoryInfo.jsonFile) {
-      bgGalleryImages.value = [];
-      return;
+      bgGalleryImages.value = []
+      return
     }
 
-    const response = await fetch(categoryInfo.jsonFile);
+    const response = await fetch(categoryInfo.jsonFile)
     if (!response.ok) {
-      throw new Error(`Kategorie ${categoryId} konnte nicht geladen werden`);
+      throw new Error(`Kategorie ${categoryId} konnte nicht geladen werden`)
     }
 
-    const data = await response.json();
-    const images = data.images || [];
+    const data = await response.json()
+    const images = data.images || []
 
     // Im Cache speichern
-    bgGalleryCategoryCache.value.set(categoryId, images);
-    bgGalleryImages.value = images;
+    bgGalleryCategoryCache.value.set(categoryId, images)
+    bgGalleryImages.value = images
   } catch (error) {
-    console.error('❌ Fehler beim Laden der Kategorie:', error);
-    bgGalleryImages.value = [];
+    console.error('❌ Fehler beim Laden der Kategorie:', error)
+    bgGalleryImages.value = []
   } finally {
-    bgGalleryLoading.value = false;
+    bgGalleryLoading.value = false
   }
 }
 
 function selectBgGalleryImage(image) {
-  selectedBgGalleryImage.value = image;
+  selectedBgGalleryImage.value = image
 }
 
 async function confirmBgReplaceFromGallery() {
   if (!selectedBgGalleryImage.value) {
-    closeBgReplaceGallery();
-    return;
+    closeBgReplaceGallery()
+    return
   }
 
-  const imagePath = selectedBgGalleryImage.value.file;
+  const imagePath = selectedBgGalleryImage.value.file
 
   try {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
 
     await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = imagePath;
-    });
+      img.onload = resolve
+      img.onerror = reject
+      img.src = imagePath
+    })
 
     // Speichere in Vorschau-Zustand
-    pendingBackgroundReplaceImage.value = img;
-    pendingBackgroundReplaceSrc.value = imagePath;
-    console.log('🔍 Galeriebild in Vorschau geladen:', imagePath);
+    pendingBackgroundReplaceImage.value = img
+    pendingBackgroundReplaceSrc.value = imagePath
+    console.log('🔍 Galeriebild in Vorschau geladen:', imagePath)
 
-    closeBgReplaceGallery();
+    closeBgReplaceGallery()
   } catch (error) {
-    console.error('❌ Fehler beim Laden des Galeriebildes:', error);
+    console.error('❌ Fehler beim Laden des Galeriebildes:', error)
   }
 }
 
 // Toggle Flip Horizontal für Bild-Hintergrund
 function toggleBgFlipH() {
-  if (!canvasManager.value || !hasImageBackground.value) return;
-  bgFlipH.value = !bgFlipH.value;
-  canvasManager.value.updateBackgroundFlip(bgFlipH.value, bgFlipV.value);
-  console.log('🔄 Hintergrund Flip H:', bgFlipH.value);
+  if (!canvasManager.value || !hasImageBackground.value) return
+  bgFlipH.value = !bgFlipH.value
+  canvasManager.value.updateBackgroundFlip(bgFlipH.value, bgFlipV.value)
+  console.log('🔄 Hintergrund Flip H:', bgFlipH.value)
 }
 
 // Toggle Flip Vertical für Bild-Hintergrund
 function toggleBgFlipV() {
-  if (!canvasManager.value || !hasImageBackground.value) return;
-  bgFlipV.value = !bgFlipV.value;
-  canvasManager.value.updateBackgroundFlip(bgFlipH.value, bgFlipV.value);
-  console.log('🔄 Hintergrund Flip V:', bgFlipV.value);
+  if (!canvasManager.value || !hasImageBackground.value) return
+  bgFlipV.value = !bgFlipV.value
+  canvasManager.value.updateBackgroundFlip(bgFlipH.value, bgFlipV.value)
+  console.log('🔄 Hintergrund Flip V:', bgFlipV.value)
 }
 
 // Toggle Flip Horizontal für Workspace-Hintergrund
 function toggleWsBgFlipH() {
-  if (!canvasManager.value || !hasWorkspaceBackground.value) return;
-  wsBgFlipH.value = !wsBgFlipH.value;
-  canvasManager.value.updateWorkspaceBackgroundFlip(wsBgFlipH.value, wsBgFlipV.value);
-  console.log('🔄 Workspace-Hintergrund Flip H:', wsBgFlipH.value);
+  if (!canvasManager.value || !hasWorkspaceBackground.value) return
+  wsBgFlipH.value = !wsBgFlipH.value
+  canvasManager.value.updateWorkspaceBackgroundFlip(wsBgFlipH.value, wsBgFlipV.value)
+  console.log('🔄 Workspace-Hintergrund Flip H:', wsBgFlipH.value)
 }
 
 // Toggle Flip Vertical für Workspace-Hintergrund
 function toggleWsBgFlipV() {
-  if (!canvasManager.value || !hasWorkspaceBackground.value) return;
-  wsBgFlipV.value = !wsBgFlipV.value;
-  canvasManager.value.updateWorkspaceBackgroundFlip(wsBgFlipH.value, wsBgFlipV.value);
-  console.log('🔄 Workspace-Hintergrund Flip V:', wsBgFlipV.value);
+  if (!canvasManager.value || !hasWorkspaceBackground.value) return
+  wsBgFlipV.value = !wsBgFlipV.value
+  canvasManager.value.updateWorkspaceBackgroundFlip(wsBgFlipH.value, wsBgFlipV.value)
+  console.log('🔄 Workspace-Hintergrund Flip V:', wsBgFlipV.value)
 }
 
 // ✨ NEU: Presets für Hintergrund-Einstellungen
-const PRESETS_STORAGE_KEY = 'visualizer-canvas-presets';
-const savedPresets = ref([]);
+const PRESETS_STORAGE_KEY = 'visualizer-canvas-presets'
+const savedPresets = ref([])
 
 // Presets aus localStorage laden
 function loadPresets() {
   try {
-    const stored = localStorage.getItem(PRESETS_STORAGE_KEY);
+    const stored = localStorage.getItem(PRESETS_STORAGE_KEY)
     if (stored) {
-      savedPresets.value = JSON.parse(stored);
+      savedPresets.value = JSON.parse(stored)
     }
   } catch (e) {
-    console.warn('Fehler beim Laden der Presets:', e);
+    console.warn('Fehler beim Laden der Presets:', e)
   }
 }
 
 // Presets in localStorage speichern
 function persistPresets() {
   try {
-    localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(savedPresets.value));
+    localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(savedPresets.value))
   } catch (e) {
-    console.warn('Fehler beim Speichern der Presets:', e);
+    console.warn('Fehler beim Speichern der Presets:', e)
   }
 }
 
 // Aktuellen Zustand als Preset speichern
 function saveCurrentAsPreset() {
   // Debug: Aktuelle Werte anzeigen
-  console.log('🔍 Aktuelle Werte vor dem Speichern:');
-  console.log('  - gradientEnabled:', gradientEnabled.value);
-  console.log('  - backgroundColor:', backgroundColor.value);
-  console.log('  - bgAudioEnabled:', bgAudioEnabled.value);
+  console.log('🔍 Aktuelle Werte vor dem Speichern:')
+  console.log('  - gradientEnabled:', gradientEnabled.value)
+  console.log('  - backgroundColor:', backgroundColor.value)
+  console.log('  - bgAudioEnabled:', bgAudioEnabled.value)
 
-  const presetNumber = savedPresets.value.length + 1;
+  const presetNumber = savedPresets.value.length + 1
   const newPreset = {
     id: Date.now(),
     name: `Preset ${presetNumber}`,
@@ -905,180 +1029,199 @@ function saveCurrentAsPreset() {
     bgAudioSmoothing: bgAudioSmoothing.value,
     bgEffects: {
       hue: { enabled: Boolean(bgEffectHue.value), intensity: bgEffectHueIntensity.value },
-      brightness: { enabled: Boolean(bgEffectBrightness.value), intensity: bgEffectBrightnessIntensity.value },
-      saturation: { enabled: Boolean(bgEffectSaturation.value), intensity: bgEffectSaturationIntensity.value },
+      brightness: {
+        enabled: Boolean(bgEffectBrightness.value),
+        intensity: bgEffectBrightnessIntensity.value,
+      },
+      saturation: {
+        enabled: Boolean(bgEffectSaturation.value),
+        intensity: bgEffectSaturationIntensity.value,
+      },
       glow: { enabled: Boolean(bgEffectGlow.value), intensity: bgEffectGlowIntensity.value },
-      gradientPulse: { enabled: Boolean(bgEffectGradientPulse.value), intensity: bgEffectGradientPulseIntensity.value },
-      gradientRotation: { enabled: Boolean(bgEffectGradientRotation.value), intensity: bgEffectGradientRotationIntensity.value }
-    }
-  };
+      gradientPulse: {
+        enabled: Boolean(bgEffectGradientPulse.value),
+        intensity: bgEffectGradientPulseIntensity.value,
+      },
+      gradientRotation: {
+        enabled: Boolean(bgEffectGradientRotation.value),
+        intensity: bgEffectGradientRotationIntensity.value,
+      },
+    },
+  }
 
-  savedPresets.value.push(newPreset);
-  persistPresets();
-  console.log('✅ Canvas-Preset gespeichert:', newPreset);
+  savedPresets.value.push(newPreset)
+  persistPresets()
+  console.log('✅ Canvas-Preset gespeichert:', newPreset)
 }
 
 // Preset laden
 function loadPreset(preset) {
-  console.log('📥 Lade Canvas-Preset:', preset);
+  console.log('📥 Lade Canvas-Preset:', preset)
 
   try {
     // Grundfarbe
-    backgroundColor.value = preset.backgroundColor;
-    backgroundOpacity.value = preset.backgroundOpacity;
-    console.log('  → Farbe:', preset.backgroundColor, 'Deckkraft:', preset.backgroundOpacity);
+    backgroundColor.value = preset.backgroundColor
+    backgroundOpacity.value = preset.backgroundOpacity
+    console.log('  → Farbe:', preset.backgroundColor, 'Deckkraft:', preset.backgroundOpacity)
 
     // Gradient
-    gradientEnabled.value = preset.gradientEnabled || false;
-    gradientColor2.value = preset.gradientColor2 || '#0066ff';
-    gradientType.value = preset.gradientType || 'radial';
-    gradientAngle.value = preset.gradientAngle || 45;
+    gradientEnabled.value = preset.gradientEnabled || false
+    gradientColor2.value = preset.gradientColor2 || '#0066ff'
+    gradientType.value = preset.gradientType || 'radial'
+    gradientAngle.value = preset.gradientAngle || 45
 
     // Audio-reaktiv
-    bgAudioEnabled.value = preset.bgAudioEnabled || false;
-    bgAudioSource.value = preset.bgAudioSource || 'bass';
-    bgAudioSmoothing.value = preset.bgAudioSmoothing || 50;
+    bgAudioEnabled.value = preset.bgAudioEnabled || false
+    bgAudioSource.value = preset.bgAudioSource || 'bass'
+    bgAudioSmoothing.value = preset.bgAudioSmoothing || 50
 
     if (preset.bgEffects) {
-      bgEffectHue.value = preset.bgEffects.hue?.enabled || false;
-      bgEffectHueIntensity.value = preset.bgEffects.hue?.intensity || 80;
-      bgEffectBrightness.value = preset.bgEffects.brightness?.enabled || false;
-      bgEffectBrightnessIntensity.value = preset.bgEffects.brightness?.intensity || 80;
-      bgEffectSaturation.value = preset.bgEffects.saturation?.enabled || false;
-      bgEffectSaturationIntensity.value = preset.bgEffects.saturation?.intensity || 80;
-      bgEffectGlow.value = preset.bgEffects.glow?.enabled || false;
-      bgEffectGlowIntensity.value = preset.bgEffects.glow?.intensity || 80;
-      bgEffectGradientPulse.value = preset.bgEffects.gradientPulse?.enabled || false;
-      bgEffectGradientPulseIntensity.value = preset.bgEffects.gradientPulse?.intensity || 80;
-      bgEffectGradientRotation.value = preset.bgEffects.gradientRotation?.enabled || false;
-      bgEffectGradientRotationIntensity.value = preset.bgEffects.gradientRotation?.intensity || 80;
+      bgEffectHue.value = preset.bgEffects.hue?.enabled || false
+      bgEffectHueIntensity.value = preset.bgEffects.hue?.intensity || 80
+      bgEffectBrightness.value = preset.bgEffects.brightness?.enabled || false
+      bgEffectBrightnessIntensity.value = preset.bgEffects.brightness?.intensity || 80
+      bgEffectSaturation.value = preset.bgEffects.saturation?.enabled || false
+      bgEffectSaturationIntensity.value = preset.bgEffects.saturation?.intensity || 80
+      bgEffectGlow.value = preset.bgEffects.glow?.enabled || false
+      bgEffectGlowIntensity.value = preset.bgEffects.glow?.intensity || 80
+      bgEffectGradientPulse.value = preset.bgEffects.gradientPulse?.enabled || false
+      bgEffectGradientPulseIntensity.value = preset.bgEffects.gradientPulse?.intensity || 80
+      bgEffectGradientRotation.value = preset.bgEffects.gradientRotation?.enabled || false
+      bgEffectGradientRotationIntensity.value = preset.bgEffects.gradientRotation?.intensity || 80
     }
 
     // Canvas aktualisieren
-    updateFromColorPicker();
+    updateFromColorPicker()
     // ✅ FIX: Gradient-Einstellungen IMMER aktualisieren (auch zum Deaktivieren!)
-    updateGradientSettings();
+    updateGradientSettings()
     // ✅ FIX: Audio-Einstellungen IMMER aktualisieren (auch zum Deaktivieren!)
-    updateBgAudioReactive();
+    updateBgAudioReactive()
 
-    console.log('✅ Canvas-Preset erfolgreich geladen:', preset.name);
+    console.log('✅ Canvas-Preset erfolgreich geladen:', preset.name)
   } catch (error) {
-    console.error('❌ Fehler beim Laden des Canvas-Presets:', error);
+    console.error('❌ Fehler beim Laden des Canvas-Presets:', error)
   }
 }
 
 // Preset löschen
 function deletePreset(presetId) {
-  savedPresets.value = savedPresets.value.filter(p => p.id !== presetId);
-  persistPresets();
-  console.log('🗑️ Preset gelöscht');
+  savedPresets.value = savedPresets.value.filter((p) => p.id !== presetId)
+  persistPresets()
+  console.log('🗑️ Preset gelöscht')
 }
 
 // Computed: Kann Undo ausgeführt werden?
-const canUndo = computed(() => undoHistory.value.length > 0);
+const canUndo = computed(() => undoHistory.value.length > 0)
 
 // ===== HILFSFUNKTIONEN FÜR FARBKONVERTIERUNG =====
 
 // Konvertiere Hex zu RGBA
 function hexToRGBA(hex, alpha) {
-  hex = hex.replace('#', '');
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  hex = hex.replace('#', '')
+  const r = parseInt(hex.substring(0, 2), 16)
+  const g = parseInt(hex.substring(2, 4), 16)
+  const b = parseInt(hex.substring(4, 6), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
 // Konvertiere RGB-Werte zu Hex
 function rgbToHex(r, g, b) {
-  return '#' + [r, g, b].map(x => {
-    const hex = Math.round(x).toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
-  }).join('');
+  return (
+    '#' +
+    [r, g, b]
+      .map((x) => {
+        const hex = Math.round(x).toString(16)
+        return hex.length === 1 ? '0' + hex : hex
+      })
+      .join('')
+  )
 }
 
 // Parse RGBA String zu Komponenten
 function parseRGBA(rgbaString) {
   // Unterstützt: rgba(255, 0, 0, 0.5) oder rgb(255, 0, 0)
-  const match = rgbaString.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/i);
+  const match = rgbaString.match(
+    /rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/i,
+  )
   if (match) {
     return {
       r: parseInt(match[1]),
       g: parseInt(match[2]),
       b: parseInt(match[3]),
-      a: match[4] !== undefined ? parseFloat(match[4]) : 1.0
-    };
+      a: match[4] !== undefined ? parseFloat(match[4]) : 1.0,
+    }
   }
-  return null;
+  return null
 }
 
 // ===== UPDATE-FUNKTIONEN =====
 
 // Aktualisiere colorDisplay basierend auf aktuellen Werten
 function updateColorDisplay() {
-  colorDisplay.value = hexToRGBA(backgroundColor.value, backgroundOpacity.value);
+  colorDisplay.value = hexToRGBA(backgroundColor.value, backgroundOpacity.value)
 }
 
 // Update vom Color Picker (nur Farbe, keine Transparenz)
 function updateFromColorPicker() {
-  updateColorDisplay();
-  applyBackgroundColor();
+  updateColorDisplay()
+  applyBackgroundColor()
 }
 
 // Update vom Opacity Slider
 function updateFromOpacitySlider() {
-  updateColorDisplay();
-  applyBackgroundColor();
+  updateColorDisplay()
+  applyBackgroundColor()
 }
 
 // Update vom Text Input
 function updateFromTextInput() {
-  const input = colorDisplay.value.trim();
-  
+  const input = colorDisplay.value.trim()
+
   // Versuche RGBA zu parsen
-  const rgba = parseRGBA(input);
+  const rgba = parseRGBA(input)
   if (rgba) {
-    backgroundColor.value = rgbToHex(rgba.r, rgba.g, rgba.b);
-    backgroundOpacity.value = rgba.a;
-    applyBackgroundColor();
-    return;
+    backgroundColor.value = rgbToHex(rgba.r, rgba.g, rgba.b)
+    backgroundOpacity.value = rgba.a
+    applyBackgroundColor()
+    return
   }
-  
+
   // Versuche Hex zu parsen
   if (input.match(/^#[0-9A-Fa-f]{6}$/)) {
-    backgroundColor.value = input;
+    backgroundColor.value = input
     // Behalte die aktuelle Opacity bei
-    applyBackgroundColor();
-    return;
+    applyBackgroundColor()
+    return
   }
-  
+
   // Ungültiges Format - keine Aktion
 }
 
 // Formatiere die Anzeige beim Verlassen des Feldes
 function formatColorDisplay() {
-  updateColorDisplay();
+  updateColorDisplay()
 }
 
 // Wende die Hintergrundfarbe an
 function applyBackgroundColor() {
   if (!canvasManager.value) {
-    console.warn('⚠️ CanvasManager nicht verfügbar');
-    return;
+    console.warn('⚠️ CanvasManager nicht verfügbar')
+    return
   }
 
   // Speichere Zustand VOR der Änderung
-  saveCanvasState();
+  saveCanvasState()
 
   // Konvertiere zu RGBA mit aktueller Deckkraft
-  const rgbaColor = hexToRGBA(backgroundColor.value, backgroundOpacity.value);
+  const rgbaColor = hexToRGBA(backgroundColor.value, backgroundOpacity.value)
 
-  console.log('🎨 Setze Hintergrundfarbe:', rgbaColor);
-  canvasManager.value.setBackground(rgbaColor);
+  console.log('🎨 Setze Hintergrundfarbe:', rgbaColor)
+  canvasManager.value.setBackground(rgbaColor)
 }
 
 // ✨ NEU: Aktualisiere Audio-Reaktiv Einstellungen für Hintergrundfarbe
 function updateBgAudioReactive() {
-  if (!canvasManager.value) return;
+  if (!canvasManager.value) return
 
   const settings = {
     enabled: bgAudioEnabled.value,
@@ -1086,317 +1229,332 @@ function updateBgAudioReactive() {
     smoothing: bgAudioSmoothing.value,
     effects: {
       hue: { enabled: bgEffectHue.value, intensity: bgEffectHueIntensity.value },
-      brightness: { enabled: bgEffectBrightness.value, intensity: bgEffectBrightnessIntensity.value },
-      saturation: { enabled: bgEffectSaturation.value, intensity: bgEffectSaturationIntensity.value },
+      brightness: {
+        enabled: bgEffectBrightness.value,
+        intensity: bgEffectBrightnessIntensity.value,
+      },
+      saturation: {
+        enabled: bgEffectSaturation.value,
+        intensity: bgEffectSaturationIntensity.value,
+      },
       glow: { enabled: bgEffectGlow.value, intensity: bgEffectGlowIntensity.value },
       strobe: { enabled: bgEffectStrobe.value, intensity: bgEffectStrobeIntensity.value },
       contrast: { enabled: bgEffectContrast.value, intensity: bgEffectContrastIntensity.value },
-      gradientPulse: { enabled: bgEffectGradientPulse.value, intensity: bgEffectGradientPulseIntensity.value },
-      gradientRotation: { enabled: bgEffectGradientRotation.value, intensity: bgEffectGradientRotationIntensity.value }
-    }
-  };
+      gradientPulse: {
+        enabled: bgEffectGradientPulse.value,
+        intensity: bgEffectGradientPulseIntensity.value,
+      },
+      gradientRotation: {
+        enabled: bgEffectGradientRotation.value,
+        intensity: bgEffectGradientRotationIntensity.value,
+      },
+    },
+  }
 
-  canvasManager.value.setBackgroundColorAudioReactive(settings);
-  console.log('🎵 Hintergrund Audio-Reaktiv:', settings);
+  canvasManager.value.setBackgroundColorAudioReactive(settings)
+  console.log('🎵 Hintergrund Audio-Reaktiv:', settings)
 }
 
 // ✨ NEU: Aktualisiere Gradient-Einstellungen
 function updateGradientSettings() {
-  if (!canvasManager.value) return;
+  if (!canvasManager.value) return
 
   canvasManager.value.setGradientSettings({
     enabled: gradientEnabled.value,
     color2: gradientColor2.value,
     type: gradientType.value,
-    angle: gradientAngle.value
-  });
+    angle: gradientAngle.value,
+  })
 
   console.log('🌈 Gradient:', {
     enabled: gradientEnabled.value,
     color2: gradientColor2.value,
     type: gradientType.value,
-    angle: gradientAngle.value
-  });
+    angle: gradientAngle.value,
+  })
 }
 
 // ===== UNDO-SYSTEM =====
 
 // Speichere den aktuellen Canvas-Zustand
 function saveCanvasState() {
-  if (!canvasManager.value) return;
-  
+  if (!canvasManager.value) return
+
   const state = {
     background: canvasManager.value.background,
     workspaceBackground: canvasManager.value.workspaceBackground,
     backgroundColor: backgroundColor.value,
     backgroundOpacity: backgroundOpacity.value,
-    images: canvasManager.value.multiImageManager ? 
-      canvasManager.value.multiImageManager.getAllImages().map(img => ({
-        id: img.id,
-        type: img.type,
-        relX: img.relX,
-        relY: img.relY,
-        relWidth: img.relWidth,
-        relHeight: img.relHeight,
-        rotation: img.rotation,
-        imageObject: img.imageObject
-      })) : [],
-    texts: canvasManager.value.textManager && canvasManager.value.textManager.textObjects ? 
-      JSON.parse(JSON.stringify(canvasManager.value.textManager.textObjects)) : [],
-    timestamp: Date.now()
-  };
-  
-  undoHistory.value.push(state);
-  
-  if (undoHistory.value.length > MAX_HISTORY) {
-    undoHistory.value.shift();
+    images: canvasManager.value.multiImageManager
+      ? canvasManager.value.multiImageManager.getAllImages().map((img) => ({
+          id: img.id,
+          type: img.type,
+          relX: img.relX,
+          relY: img.relY,
+          relWidth: img.relWidth,
+          relHeight: img.relHeight,
+          rotation: img.rotation,
+          imageObject: img.imageObject,
+        }))
+      : [],
+    texts:
+      canvasManager.value.textManager && canvasManager.value.textManager.textObjects
+        ? JSON.parse(JSON.stringify(canvasManager.value.textManager.textObjects))
+        : [],
+    timestamp: Date.now(),
   }
-  
-  console.log('💾 Canvas-Zustand gespeichert');
+
+  undoHistory.value.push(state)
+
+  if (undoHistory.value.length > MAX_HISTORY) {
+    undoHistory.value.shift()
+  }
+
+  console.log('💾 Canvas-Zustand gespeichert')
 }
 
 // Stelle den letzten Zustand wieder her
 function undoLastChange() {
   if (undoHistory.value.length === 0 || !canvasManager.value) {
-    console.warn('⚠️ Kein Verlauf vorhanden');
-    return;
+    console.warn('⚠️ Kein Verlauf vorhanden')
+    return
   }
-  
-  const lastState = undoHistory.value.pop();
-  
+
+  const lastState = undoHistory.value.pop()
+
   // Stelle Hintergrund wieder her
   if (lastState.background !== undefined) {
-    canvasManager.value.background = lastState.background;
+    canvasManager.value.background = lastState.background
   }
-  
+
   // Stelle Farbe und Opacity wieder her
   if (lastState.backgroundColor !== undefined) {
-    backgroundColor.value = lastState.backgroundColor;
+    backgroundColor.value = lastState.backgroundColor
   }
   if (lastState.backgroundOpacity !== undefined) {
-    backgroundOpacity.value = lastState.backgroundOpacity;
+    backgroundOpacity.value = lastState.backgroundOpacity
   }
-  updateColorDisplay();
-  
+  updateColorDisplay()
+
   // Stelle Workspace-Hintergrund wieder her
   if (lastState.workspaceBackground !== undefined) {
-    canvasManager.value.workspaceBackground = lastState.workspaceBackground;
+    canvasManager.value.workspaceBackground = lastState.workspaceBackground
   }
-  
+
   // Stelle Bilder wieder her
   if (canvasManager.value.multiImageManager && lastState.images) {
-    canvasManager.value.multiImageManager.images = [...lastState.images];
+    canvasManager.value.multiImageManager.images = [...lastState.images]
   }
-  
+
   // Stelle Texte wieder her
   if (canvasManager.value.textManager && lastState.texts) {
-    canvasManager.value.textManager.textObjects = JSON.parse(JSON.stringify(lastState.texts));
+    canvasManager.value.textManager.textObjects = JSON.parse(JSON.stringify(lastState.texts))
   }
-  
+
   // Redraw
   if (canvasManager.value.redrawCallback) {
-    canvasManager.value.redrawCallback();
+    canvasManager.value.redrawCallback()
   }
-  
+
   // Update UI
   if (canvasManager.value.updateUICallback) {
-    canvasManager.value.updateUICallback();
+    canvasManager.value.updateUICallback()
   }
-  
-  console.log('✅ Zustand wiederhergestellt');
+
+  console.log('✅ Zustand wiederhergestellt')
 }
 
 // ===== RESET-FUNKTIONEN =====
 
 // Prüfe ob Canvas leer ist
 const isCanvasEmpty = computed(() => {
-  if (!canvasManager.value) return true;
-  return canvasManager.value.isCanvasEmpty();
-});
+  if (!canvasManager.value) return true
+  return canvasManager.value.isCanvasEmpty()
+})
 
 // ✨ NEU: Nur normalen Hintergrund zurücksetzen
 function resetNormalBackground() {
   if (!canvasManager.value) {
-    console.warn('⚠️ CanvasManager nicht verfügbar');
-    return;
+    console.warn('⚠️ CanvasManager nicht verfügbar')
+    return
   }
 
-  saveCanvasState();
+  saveCanvasState()
 
-  console.log('🔄 Setze normalen Hintergrund zurück');
-  canvasManager.value.setBackground('#ffffff');
-  backgroundColor.value = '#ffffff';
-  backgroundOpacity.value = 1.0;
+  console.log('🔄 Setze normalen Hintergrund zurück')
+  canvasManager.value.setBackground('#ffffff')
+  backgroundColor.value = '#ffffff'
+  backgroundOpacity.value = 1.0
 
   // Flip-Zustände für normalen Hintergrund zurücksetzen
-  bgFlipH.value = false;
-  bgFlipV.value = false;
+  bgFlipH.value = false
+  bgFlipV.value = false
 
   // Video-Hintergrund zurücksetzen
   if (canvasManager.value.videoBackground) {
-    const video = canvasManager.value.videoBackground.videoElement;
+    const video = canvasManager.value.videoBackground.videoElement
     if (video) {
-      video.pause();
-      video.src = '';
+      video.pause()
+      video.src = ''
     }
-    canvasManager.value.videoBackground = null;
-    console.log('🗑️ Video-Hintergrund entfernt');
+    canvasManager.value.videoBackground = null
+    console.log('🗑️ Video-Hintergrund entfernt')
   }
 
-  canvasManager.value.redrawCallback();
-  updateColorDisplay();
-  console.log('✅ Normaler Hintergrund zurückgesetzt');
+  canvasManager.value.redrawCallback()
+  updateColorDisplay()
+  console.log('✅ Normaler Hintergrund zurückgesetzt')
 }
 
 // ✨ NEU: Nur Workspace-Hintergrund zurücksetzen
 function resetWorkspaceBackgroundOnly() {
   if (!canvasManager.value) {
-    console.warn('⚠️ CanvasManager nicht verfügbar');
-    return;
+    console.warn('⚠️ CanvasManager nicht verfügbar')
+    return
   }
 
-  saveCanvasState();
+  saveCanvasState()
 
-  console.log('🔄 Setze Workspace-Hintergrund zurück');
-  canvasManager.value.workspaceBackground = null;
+  console.log('🔄 Setze Workspace-Hintergrund zurück')
+  canvasManager.value.workspaceBackground = null
 
   // Flip-Zustände für Workspace-Hintergrund zurücksetzen
-  wsBgFlipH.value = false;
-  wsBgFlipV.value = false;
+  wsBgFlipH.value = false
+  wsBgFlipV.value = false
 
   // Workspace-Video-Hintergrund zurücksetzen
   if (canvasManager.value.workspaceVideoBackground) {
-    const wsVideo = canvasManager.value.workspaceVideoBackground.videoElement;
+    const wsVideo = canvasManager.value.workspaceVideoBackground.videoElement
     if (wsVideo) {
-      wsVideo.pause();
-      wsVideo.src = '';
+      wsVideo.pause()
+      wsVideo.src = ''
     }
-    canvasManager.value.workspaceVideoBackground = null;
-    console.log('🗑️ Workspace-Video-Hintergrund entfernt');
+    canvasManager.value.workspaceVideoBackground = null
+    console.log('🗑️ Workspace-Video-Hintergrund entfernt')
   }
 
-  canvasManager.value.redrawCallback();
-  console.log('✅ Workspace-Hintergrund zurückgesetzt');
+  canvasManager.value.redrawCallback()
+  console.log('✅ Workspace-Hintergrund zurückgesetzt')
 }
 
 // ✨ NEU: Alle Hintergründe zurücksetzen
 function resetAllBackgrounds() {
   if (!canvasManager.value) {
-    console.warn('⚠️ CanvasManager nicht verfügbar');
-    return;
+    console.warn('⚠️ CanvasManager nicht verfügbar')
+    return
   }
 
-  saveCanvasState();
+  saveCanvasState()
 
-  console.log('🔄 Setze alle Hintergründe zurück');
+  console.log('🔄 Setze alle Hintergründe zurück')
 
   // Normaler Hintergrund
-  canvasManager.value.setBackground('#ffffff');
-  backgroundColor.value = '#ffffff';
-  backgroundOpacity.value = 1.0;
+  canvasManager.value.setBackground('#ffffff')
+  backgroundColor.value = '#ffffff'
+  backgroundOpacity.value = 1.0
 
   // Workspace-Hintergrund
-  canvasManager.value.workspaceBackground = null;
+  canvasManager.value.workspaceBackground = null
 
   // Alle Flip-Zustände zurücksetzen
-  bgFlipH.value = false;
-  bgFlipV.value = false;
-  wsBgFlipH.value = false;
-  wsBgFlipV.value = false;
+  bgFlipH.value = false
+  bgFlipV.value = false
+  wsBgFlipH.value = false
+  wsBgFlipV.value = false
 
   // Video-Hintergrund zurücksetzen
   if (canvasManager.value.videoBackground) {
-    const video = canvasManager.value.videoBackground.videoElement;
+    const video = canvasManager.value.videoBackground.videoElement
     if (video) {
-      video.pause();
-      video.src = '';
+      video.pause()
+      video.src = ''
     }
-    canvasManager.value.videoBackground = null;
-    console.log('🗑️ Video-Hintergrund entfernt');
+    canvasManager.value.videoBackground = null
+    console.log('🗑️ Video-Hintergrund entfernt')
   }
 
   // Workspace-Video-Hintergrund zurücksetzen
   if (canvasManager.value.workspaceVideoBackground) {
-    const wsVideo = canvasManager.value.workspaceVideoBackground.videoElement;
+    const wsVideo = canvasManager.value.workspaceVideoBackground.videoElement
     if (wsVideo) {
-      wsVideo.pause();
-      wsVideo.src = '';
+      wsVideo.pause()
+      wsVideo.src = ''
     }
-    canvasManager.value.workspaceVideoBackground = null;
-    console.log('🗑️ Workspace-Video-Hintergrund entfernt');
+    canvasManager.value.workspaceVideoBackground = null
+    console.log('🗑️ Workspace-Video-Hintergrund entfernt')
   }
 
-  canvasManager.value.redrawCallback();
-  updateColorDisplay();
-  console.log('✅ Alle Hintergründe zurückgesetzt');
+  canvasManager.value.redrawCallback()
+  updateColorDisplay()
+  console.log('✅ Alle Hintergründe zurückgesetzt')
 }
 
 // Bestätige Canvas-Reset
 function confirmReset() {
   if (!canvasManager.value) {
-    console.warn('⚠️ CanvasManager nicht verfügbar');
-    return;
+    console.warn('⚠️ CanvasManager nicht verfügbar')
+    return
   }
-  
-  saveCanvasState();
-  
-  console.log('🗑️ Setze Canvas komplett zurück');
-  canvasManager.value.reset();
-  backgroundColor.value = '#ffffff';
-  backgroundOpacity.value = 1.0;
-  updateColorDisplay();
-  showResetConfirm.value = false;
-  console.log('✅ Canvas zurückgesetzt');
+
+  saveCanvasState()
+
+  console.log('🗑️ Setze Canvas komplett zurück')
+  canvasManager.value.reset()
+  backgroundColor.value = '#ffffff'
+  backgroundOpacity.value = 1.0
+  updateColorDisplay()
+  showResetConfirm.value = false
+  console.log('✅ Canvas zurückgesetzt')
 }
 
 // ===== LIFECYCLE =====
 
 // Watcher: Synchronisiere colorDisplay mit backgroundColor und backgroundOpacity
 watch([backgroundColor, backgroundOpacity], () => {
-  updateColorDisplay();
-});
+  updateColorDisplay()
+})
 
 // ✨ NEU: Watcher für Hintergrund-Flip-Synchronisation
 watch(
   () => canvasManager.value?.background,
   (newBg) => {
     if (newBg && typeof newBg === 'object' && newBg.fotoSettings) {
-      bgFlipH.value = newBg.fotoSettings.flipH || false;
-      bgFlipV.value = newBg.fotoSettings.flipV || false;
+      bgFlipH.value = newBg.fotoSettings.flipH || false
+      bgFlipV.value = newBg.fotoSettings.flipV || false
     } else {
-      bgFlipH.value = false;
-      bgFlipV.value = false;
+      bgFlipH.value = false
+      bgFlipV.value = false
     }
   },
-  { deep: true }
-);
+  { deep: true },
+)
 
 // ✨ NEU: Watcher für Workspace-Hintergrund-Flip-Synchronisation
 watch(
   () => canvasManager.value?.workspaceBackground,
   (newWsBg) => {
     if (newWsBg && newWsBg.fotoSettings) {
-      wsBgFlipH.value = newWsBg.fotoSettings.flipH || false;
-      wsBgFlipV.value = newWsBg.fotoSettings.flipV || false;
+      wsBgFlipH.value = newWsBg.fotoSettings.flipH || false
+      wsBgFlipV.value = newWsBg.fotoSettings.flipV || false
     } else {
-      wsBgFlipH.value = false;
-      wsBgFlipV.value = false;
+      wsBgFlipH.value = false
+      wsBgFlipV.value = false
     }
   },
-  { deep: true }
-);
+  { deep: true },
+)
 
 // ✅ FIX: Initialisierungsfunktion für Canvas-Einstellungen
 function initializeCanvasSettings() {
-  if (!canvasManager.value) return false;
+  if (!canvasManager.value) return false
 
   // ✅ Canvas startet IMMER mit weißem Hintergrund (Grundeinstellung)
-  canvasManager.value.setBackground('#ffffff');
-  backgroundColor.value = '#ffffff';
-  backgroundOpacity.value = 1.0;
-  updateColorDisplay();
-  console.log('✅ CanvasControlPanel initialisiert - Hintergrund auf Weiß gesetzt');
-  return true;
+  canvasManager.value.setBackground('#ffffff')
+  backgroundColor.value = '#ffffff'
+  backgroundOpacity.value = 1.0
+  updateColorDisplay()
+  console.log('✅ CanvasControlPanel initialisiert - Hintergrund auf Weiß gesetzt')
+  return true
 }
 
 // ✅ KRITISCHER FIX: Watcher auf canvasManager
@@ -1407,25 +1565,25 @@ watch(
   () => canvasManager.value,
   (newValue) => {
     if (newValue) {
-      console.log('✅ CanvasManager verfügbar - initialisiere Einstellungen');
+      console.log('✅ CanvasManager verfügbar - initialisiere Einstellungen')
       nextTick(() => {
-        initializeCanvasSettings();
-      });
+        initializeCanvasSettings()
+      })
     }
   },
-  { immediate: true }
-);
+  { immediate: true },
+)
 
 // Initialisiere beim Mounting
 onMounted(() => {
   // ✅ Gespeicherte Presets laden
-  loadPresets();
+  loadPresets()
 
   // ✅ Versuche Initialisierung (falls canvasManager bereits verfügbar)
   if (!initializeCanvasSettings()) {
-    console.log('⏳ CanvasControlPanel mounted - warte auf CanvasManager...');
+    console.log('⏳ CanvasControlPanel mounted - warte auf CanvasManager...')
   }
-});
+})
 </script>
 
 <style scoped>
@@ -1434,7 +1592,7 @@ onMounted(() => {
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 8px;
   padding: 10px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1485,7 +1643,7 @@ h3 {
   margin: 0;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   transition: color 0.2s;
@@ -1501,14 +1659,14 @@ h3::before {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M9 3v18M15 3v18M3 9h18M3 15h18'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 h4 {
   margin: 0 0 5px 0;
   font-size: 0.6rem;
   font-weight: 500;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -1518,7 +1676,7 @@ h4 {
 }
 
 .undo-section {
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 5px;
   padding: 8px;
@@ -1532,7 +1690,7 @@ h4 {
   display: block;
   margin-bottom: 4px;
   font-size: 0.6rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   font-weight: 500;
 }
 
@@ -1548,16 +1706,16 @@ h4 {
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 4px;
   cursor: pointer;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
 }
 
 .color-text-input {
   flex: 1;
   padding: 5px 7px;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 4px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-size: 0.6rem;
   font-family: 'Courier New', monospace;
 }
@@ -1571,7 +1729,11 @@ h4 {
 .opacity-slider {
   width: 100%;
   height: 3px;
-  background: linear-gradient(to right, var(--text-muted, #7A8DA0) 0%, var(--accent-primary, #c9984d) 100%);
+  background: linear-gradient(
+    to right,
+    var(--text-muted, #7a8da0) 0%,
+    var(--accent-primary, #c9984d) 100%
+  );
   border-radius: 2px;
   outline: none;
   -webkit-appearance: none;
@@ -1615,19 +1777,19 @@ h4 {
 
 .info-text {
   font-size: 0.55rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   line-height: 1.3;
   margin: 0 0 6px 0;
 }
 
 .info-text.warning {
-  color: #FF9800;
+  color: #ff9800;
   font-weight: 500;
 }
 
 .hint-text {
   font-size: 0.5rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   font-style: italic;
 }
 
@@ -1648,7 +1810,7 @@ h4 {
 
 .btn-undo {
   background: rgba(255, 152, 0, 0.2);
-  color: #FF9800;
+  color: #ff9800;
   border: 1px solid rgba(255, 152, 0, 0.3);
 }
 
@@ -1669,8 +1831,8 @@ h4 {
 }
 
 .btn-secondary {
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-primary, #E9E9EB);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
 }
 
@@ -1682,7 +1844,7 @@ h4 {
 
 .btn-danger {
   background: rgba(244, 67, 54, 0.2);
-  color: #F44336;
+  color: #f44336;
   border: 1px solid rgba(244, 67, 54, 0.3);
 }
 
@@ -1692,8 +1854,8 @@ h4 {
 }
 
 .btn-danger:disabled {
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-muted, #7A8DA0);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-muted, #7a8da0);
   cursor: not-allowed;
   opacity: 0.5;
 }
@@ -1735,7 +1897,7 @@ h4 {
   margin: 0 0 8px 0;
   font-size: 0.7rem;
   font-weight: 600;
-  color: #F44336;
+  color: #f44336;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -1744,7 +1906,7 @@ h4 {
   margin: 0 0 12px 0;
   font-size: 0.6rem;
   line-height: 1.5;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
 }
 
 .confirm-actions {
@@ -1785,10 +1947,10 @@ h4 {
 .gradient-select {
   width: 100%;
   padding: 5px 8px;
-  background: var(--secondary-bg, #0E1C32);
+  background: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-size: 0.6rem;
   cursor: pointer;
 }
@@ -1805,7 +1967,11 @@ h4 {
 .angle-slider {
   width: 100%;
   height: 3px;
-  background: linear-gradient(to right, var(--text-muted, #7A8DA0) 0%, var(--accent-primary, #c9984d) 100%);
+  background: linear-gradient(
+    to right,
+    var(--text-muted, #7a8da0) 0%,
+    var(--accent-primary, #c9984d) 100%
+  );
   border-radius: 2px;
   -webkit-appearance: none;
   appearance: none;
@@ -1825,7 +1991,7 @@ h4 {
 
 .color-hex {
   font-size: 0.55rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   font-family: monospace;
 }
 
@@ -1854,10 +2020,10 @@ h4 {
   gap: 6px;
   cursor: pointer;
   font-size: 0.6rem;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
 }
 
-.checkbox-label input[type="checkbox"] {
+.checkbox-label input[type='checkbox'] {
   width: 14px;
   height: 14px;
   accent-color: #8b5cf6;
@@ -1870,10 +2036,10 @@ h4 {
 .audio-select {
   width: 100%;
   padding: 5px 8px;
-  background: var(--secondary-bg, #0E1C32);
+  background: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-size: 0.6rem;
   cursor: pointer;
 }
@@ -1891,7 +2057,7 @@ h4 {
   width: 100%;
   height: 3px;
   border-radius: 2px;
-  background: linear-gradient(90deg, var(--text-muted, #7A8DA0) 0%, #8b5cf6 100%);
+  background: linear-gradient(90deg, var(--text-muted, #7a8da0) 0%, #8b5cf6 100%);
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
@@ -1921,7 +2087,7 @@ h4 {
   align-items: center;
   gap: 6px;
   padding: 5px 6px;
-  background: var(--secondary-bg, #0E1C32);
+  background: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
   border-radius: 5px;
   font-size: 0.55rem;
@@ -1933,7 +2099,7 @@ h4 {
   border-color: var(--border-color, rgba(201, 152, 77, 0.3));
 }
 
-.effect-item input[type="checkbox"] {
+.effect-item input[type='checkbox'] {
   width: 12px;
   height: 12px;
   accent-color: #8b5cf6;
@@ -1943,7 +2109,7 @@ h4 {
   width: 50px;
   height: 3px;
   border-radius: 2px;
-  background: linear-gradient(90deg, var(--text-muted, #7A8DA0) 0%, #8b5cf6 100%);
+  background: linear-gradient(90deg, var(--text-muted, #7a8da0) 0%, #8b5cf6 100%);
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
@@ -1962,7 +2128,7 @@ h4 {
 
 .effect-value {
   font-size: 0.5rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   min-width: 28px;
   text-align: right;
 }
@@ -1977,7 +2143,7 @@ h4 {
 
 .presets-list > label {
   font-size: 0.55rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   margin-bottom: 3px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -1988,7 +2154,7 @@ h4 {
   justify-content: space-between;
   align-items: center;
   padding: 5px 7px;
-  background: var(--secondary-bg, #0E1C32);
+  background: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 5px;
   transition: all 0.2s ease;
@@ -2007,7 +2173,7 @@ h4 {
 
 .preset-name {
   font-size: 0.6rem;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-weight: 500;
 }
 
@@ -2079,10 +2245,10 @@ h4 {
   justify-content: center;
   gap: 4px;
   padding: 6px 8px;
-  background: var(--secondary-bg, #0E1C32);
+  background: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-size: 0.55rem;
   font-weight: 500;
   cursor: pointer;
@@ -2148,7 +2314,7 @@ h4 {
   right: 0;
   padding: 4px 6px;
   background: rgba(0, 0, 0, 0.7);
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-size: 0.5rem;
   text-align: center;
   opacity: 0;
@@ -2194,7 +2360,7 @@ h4 {
   height: 28px;
   border: none;
   background: rgba(244, 67, 54, 0.2);
-  color: #F44336;
+  color: #f44336;
   font-size: 18px;
   cursor: pointer;
   border-radius: 50%;
@@ -2223,7 +2389,7 @@ h4 {
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 8px;
   overflow: hidden;
-  background: var(--secondary-bg, #0E1C32);
+  background: var(--secondary-bg, #0e1c32);
 }
 
 .bg-replace-modal-image-container img {
@@ -2235,7 +2401,7 @@ h4 {
 .bg-replace-modal-info h3 {
   margin: 0 0 8px 0;
   font-size: 0.8rem;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
 }
 
 .bg-replace-hint {
@@ -2274,7 +2440,7 @@ h4 {
 .pending-bg-replace-preview {
   margin-top: 12px;
   padding: 10px;
-  background: var(--secondary-bg, #0E1C32);
+  background: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 8px;
 }
@@ -2315,7 +2481,7 @@ h4 {
   background: rgba(244, 67, 54, 0.2);
   border: 1px solid rgba(244, 67, 54, 0.3);
   border-radius: 6px;
-  color: #F44336;
+  color: #f44336;
   font-size: 0.6rem;
   font-weight: 600;
   cursor: pointer;
@@ -2332,7 +2498,7 @@ h4 {
   background: rgba(76, 175, 80, 0.2);
   border: 1px solid rgba(76, 175, 80, 0.3);
   border-radius: 6px;
-  color: #4CAF50;
+  color: #4caf50;
   font-size: 0.6rem;
   font-weight: 600;
   cursor: pointer;
@@ -2357,7 +2523,7 @@ h4 {
 .bg-gallery-section {
   margin-top: 12px;
   padding: 10px;
-  background: var(--secondary-bg, #0E1C32);
+  background: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 8px;
 }
@@ -2374,7 +2540,7 @@ h4 {
   background: var(--card-bg, #142640);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 5px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-size: 0.55rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -2414,7 +2580,7 @@ h4 {
   align-items: center;
   justify-content: center;
   height: 100px;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   font-size: 0.6rem;
 }
 
@@ -2439,7 +2605,7 @@ h4 {
 }
 
 .bg-gallery-item.selected {
-  border-color: #4CAF50;
+  border-color: #4caf50;
   box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
 }
 
@@ -2460,7 +2626,7 @@ h4 {
   background: rgba(244, 67, 54, 0.2);
   border: 1px solid rgba(244, 67, 54, 0.3);
   border-radius: 5px;
-  color: #F44336;
+  color: #f44336;
   font-size: 0.55rem;
   font-weight: 600;
   cursor: pointer;
@@ -2477,7 +2643,7 @@ h4 {
   background: rgba(76, 175, 80, 0.2);
   border: 1px solid rgba(76, 175, 80, 0.3);
   border-radius: 5px;
-  color: #4CAF50;
+  color: #4caf50;
   font-size: 0.55rem;
   font-weight: 600;
   cursor: pointer;
@@ -2507,10 +2673,10 @@ h4 {
   justify-content: center;
   gap: 4px;
   padding: 8px 10px;
-  background: var(--secondary-bg, #0E1C32);
+  background: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-size: 0.55rem;
   font-weight: 500;
   cursor: pointer;
@@ -2555,22 +2721,22 @@ h4 {
 
 /* Section left borders → navy */
 [data-theme='light'] .gradient-section {
-  background: linear-gradient(180deg, #FFFFFF 0%, rgba(1, 79, 153, 0.06) 100%);
+  background: linear-gradient(180deg, #ffffff 0%, rgba(1, 79, 153, 0.06) 100%);
   border-left-color: #014f99;
 }
 
 [data-theme='light'] .flip-section {
-  background: linear-gradient(180deg, #FFFFFF 0%, rgba(1, 79, 153, 0.06) 100%);
+  background: linear-gradient(180deg, #ffffff 0%, rgba(1, 79, 153, 0.06) 100%);
   border-left-color: #014f99;
 }
 
 [data-theme='light'] .background-thumb-section {
-  background: linear-gradient(180deg, #FFFFFF 0%, rgba(1, 79, 153, 0.06) 100%);
+  background: linear-gradient(180deg, #ffffff 0%, rgba(1, 79, 153, 0.06) 100%);
   border-left-color: #014f99;
 }
 
 [data-theme='light'] .audio-reactive-section {
-  background: linear-gradient(180deg, #FFFFFF 0%, rgba(1, 79, 153, 0.06) 100%);
+  background: linear-gradient(180deg, #ffffff 0%, rgba(1, 79, 153, 0.06) 100%);
   border-left-color: #014f99;
 }
 
@@ -2619,7 +2785,7 @@ h4 {
 
 /* Flip buttons: dark bg → #FDFBF2 */
 [data-theme='light'] .flip-button {
-  background: #FDFBF2;
+  background: #fdfbf2;
   border-color: var(--border-color);
   color: #003971;
 }
@@ -2637,7 +2803,7 @@ h4 {
 
 /* Reset option buttons: dark bg → #FDFBF2 */
 [data-theme='light'] .btn-reset-option {
-  background: #FDFBF2;
+  background: #fdfbf2;
   border-color: var(--border-color);
   color: #003971;
 }
@@ -2650,7 +2816,7 @@ h4 {
 
 /* Effect items: dark bg → #FDFBF2 */
 [data-theme='light'] .effect-item {
-  background: #FDFBF2;
+  background: #fdfbf2;
 }
 
 /* Preset items */
@@ -2664,11 +2830,11 @@ h4 {
 }
 
 /* Checkboxes: purple → navy */
-[data-theme='light'] .checkbox-label input[type="checkbox"] {
+[data-theme='light'] .checkbox-label input[type='checkbox'] {
   accent-color: #014f99;
 }
 
-[data-theme='light'] .effect-item input[type="checkbox"] {
+[data-theme='light'] .effect-item input[type='checkbox'] {
   accent-color: #014f99;
 }
 
@@ -2687,13 +2853,13 @@ h4 {
 }
 
 [data-theme='light'] .opacity-slider::-webkit-slider-thumb {
-  background: #073F74;
+  background: #073f74;
   border-color: #014f99;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 [data-theme='light'] .opacity-slider::-moz-range-thumb {
-  background: #073F74;
+  background: #073f74;
   border-color: #014f99;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
@@ -2704,7 +2870,7 @@ h4 {
 }
 
 [data-theme='light'] .angle-slider::-webkit-slider-thumb {
-  background: #073F74;
+  background: #073f74;
   border-color: #014f99;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
@@ -2715,7 +2881,7 @@ h4 {
 }
 
 [data-theme='light'] .audio-slider::-webkit-slider-thumb {
-  background: #073F74;
+  background: #073f74;
   border-color: #014f99;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
@@ -2726,7 +2892,7 @@ h4 {
 }
 
 [data-theme='light'] .effect-slider::-webkit-slider-thumb {
-  background: #073F74;
+  background: #073f74;
   border-color: #014f99;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
@@ -2753,12 +2919,12 @@ h4 {
 
 /* Dialogs/modals: dark bg → light */
 [data-theme='light'] .confirm-dialog {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
 [data-theme='light'] .bg-replace-modal {
-  background: #FFFFFF;
+  background: #ffffff;
   border-color: #014f99;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
 }

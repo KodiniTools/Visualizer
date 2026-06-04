@@ -27,5 +27,5 @@ export const visualizerState = {
   cosmicNebula: null,
   liquidCrystals: null,
   electricWeb: null,
-  orbitingLight: null
-};
+  orbitingLight: null,
+}

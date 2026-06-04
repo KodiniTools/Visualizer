@@ -1,10 +1,20 @@
 <template>
   <div class="blog-page" :class="{ 'light-theme': !isDark }">
     <!-- Header with Controls -->
-    <header class="landing-header" :class="{ 'scrolled': isScrolled }">
+    <header class="landing-header" :class="{ scrolled: isScrolled }">
       <div class="header-content">
         <router-link to="/" class="header-logo">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <path d="M9 18V5l12-2v13"></path>
             <circle cx="6" cy="18" r="3"></circle>
             <circle cx="18" cy="16" r="3"></circle>
@@ -29,7 +39,6 @@
     <!-- Blog Content -->
     <main class="blog-content">
       <article class="blog-article">
-
         <!-- Introduction -->
         <section class="blog-section">
           <p class="intro-text">{{ t('blog.intro') }}</p>
@@ -41,22 +50,42 @@
 
           <h3 class="subsection-title">{{ t('blog.sections.audio.player.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.audio.player.items')" :key="'player-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.audio.player.items')"
+              :key="'player-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
           <h3 class="subsection-title">{{ t('blog.sections.audio.microphone.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.audio.microphone.items')" :key="'mic-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.audio.microphone.items')"
+              :key="'mic-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
           <h3 class="subsection-title">{{ t('blog.sections.audio.beatMarkers.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.audio.beatMarkers.items')" :key="'beat-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.audio.beatMarkers.items')"
+              :key="'beat-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
           <h3 class="subsection-title">{{ t('blog.sections.audio.frequency.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.audio.frequency.items')" :key="'freq-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.audio.frequency.items')"
+              :key="'freq-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
         </section>
 
@@ -66,7 +95,11 @@
           <p>{{ t('blog.sections.visualizers.intro') }}</p>
 
           <div class="category-grid">
-            <div class="category-card" v-for="(category, index) in t('blog.sections.visualizers.categories')" :key="'cat-' + index">
+            <div
+              class="category-card"
+              v-for="(category, index) in t('blog.sections.visualizers.categories')"
+              :key="'cat-' + index"
+            >
               <h4 class="category-title">{{ category.name }}</h4>
               <ul class="category-list">
                 <li v-for="(item, idx) in category.items" :key="'item-' + idx">{{ item }}</li>
@@ -76,7 +109,12 @@
 
           <h3 class="subsection-title">{{ t('blog.sections.visualizers.features.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.visualizers.features.items')" :key="'vizfeat-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.visualizers.features.items')"
+              :key="'vizfeat-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
         </section>
 
@@ -86,17 +124,32 @@
 
           <h3 class="subsection-title">{{ t('blog.sections.text.editor.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.text.editor.items')" :key="'editor-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.text.editor.items')"
+              :key="'editor-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
           <h3 class="subsection-title">{{ t('blog.sections.text.effects.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.text.effects.items')" :key="'textfx-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.text.effects.items')"
+              :key="'textfx-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
           <h3 class="subsection-title">{{ t('blog.sections.text.audioReactive.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.text.audioReactive.items')" :key="'textaudio-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.text.audioReactive.items')"
+              :key="'textaudio-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
         </section>
 
@@ -106,17 +159,32 @@
 
           <h3 class="subsection-title">{{ t('blog.sections.images.management.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.images.management.items')" :key="'imgmgmt-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.images.management.items')"
+              :key="'imgmgmt-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
           <h3 class="subsection-title">{{ t('blog.sections.images.filters.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.images.filters.items')" :key="'imgfilt-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.images.filters.items')"
+              :key="'imgfilt-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
           <h3 class="subsection-title">{{ t('blog.sections.images.audioReactive.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.images.audioReactive.items')" :key="'imgaudio-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.images.audioReactive.items')"
+              :key="'imgaudio-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
         </section>
 
@@ -127,17 +195,32 @@
           <h3 class="subsection-title">{{ t('blog.sections.background.canvas.title') }}</h3>
           <p>{{ t('blog.sections.background.canvas.intro') }}</p>
           <ul class="feature-list compact">
-            <li v-for="(item, index) in t('blog.sections.background.canvas.presets')" :key="'preset-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.background.canvas.presets')"
+              :key="'preset-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
           <h3 class="subsection-title">{{ t('blog.sections.background.options.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.background.options.items')" :key="'bgopt-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.background.options.items')"
+              :key="'bgopt-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
           <h3 class="subsection-title">{{ t('blog.sections.background.tiles.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.background.tiles.items')" :key="'tiles-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.background.tiles.items')"
+              :key="'tiles-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
         </section>
 
@@ -147,17 +230,32 @@
 
           <h3 class="subsection-title">{{ t('blog.sections.recording.controls.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.recording.controls.items')" :key="'rec-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.recording.controls.items')"
+              :key="'rec-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
           <h3 class="subsection-title">{{ t('blog.sections.recording.quality.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.recording.quality.items')" :key="'qual-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.recording.quality.items')"
+              :key="'qual-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
           <h3 class="subsection-title">{{ t('blog.sections.recording.export.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.recording.export.items')" :key="'exp-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.recording.export.items')"
+              :key="'exp-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
         </section>
 
@@ -165,7 +263,12 @@
         <section class="blog-section">
           <h2 class="section-title">{{ t('blog.sections.screenshot.title') }}</h2>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.screenshot.items')" :key="'screen-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.screenshot.items')"
+              :key="'screen-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
         </section>
 
@@ -173,7 +276,11 @@
         <section class="blog-section">
           <h2 class="section-title">{{ t('blog.sections.shortcuts.title') }}</h2>
           <div class="shortcuts-grid">
-            <div class="shortcut-item" v-for="(shortcut, index) in t('blog.sections.shortcuts.items')" :key="'short-' + index">
+            <div
+              class="shortcut-item"
+              v-for="(shortcut, index) in t('blog.sections.shortcuts.items')"
+              :key="'short-' + index"
+            >
               <span class="shortcut-key">{{ shortcut.key }}</span>
               <span class="shortcut-action">{{ shortcut.action }}</span>
             </div>
@@ -184,7 +291,9 @@
         <section class="blog-section">
           <h2 class="section-title">{{ t('blog.sections.history.title') }}</h2>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.history.items')" :key="'hist-' + index">{{ item }}</li>
+            <li v-for="(item, index) in t('blog.sections.history.items')" :key="'hist-' + index">
+              {{ item }}
+            </li>
           </ul>
         </section>
 
@@ -194,17 +303,34 @@
 
           <h3 class="subsection-title">{{ t('blog.sections.audioReactivity.frequency.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.audioReactivity.frequency.items')" :key="'freqf-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.audioReactivity.frequency.items')"
+              :key="'freqf-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
-          <h3 class="subsection-title">{{ t('blog.sections.audioReactivity.parameters.title') }}</h3>
+          <h3 class="subsection-title">
+            {{ t('blog.sections.audioReactivity.parameters.title') }}
+          </h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.audioReactivity.parameters.items')" :key="'param-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.audioReactivity.parameters.items')"
+              :key="'param-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
           <h3 class="subsection-title">{{ t('blog.sections.audioReactivity.presets.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.audioReactivity.presets.items')" :key="'prepre-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.audioReactivity.presets.items')"
+              :key="'prepre-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
         </section>
 
@@ -214,12 +340,22 @@
 
           <h3 class="subsection-title">{{ t('blog.sections.browser.browsers.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.browser.browsers.items')" :key="'browser-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.browser.browsers.items')"
+              :key="'browser-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
 
           <h3 class="subsection-title">{{ t('blog.sections.browser.formats.title') }}</h3>
           <ul class="feature-list">
-            <li v-for="(item, index) in t('blog.sections.browser.formats.items')" :key="'format-' + index">{{ item }}</li>
+            <li
+              v-for="(item, index) in t('blog.sections.browser.formats.items')"
+              :key="'format-' + index"
+            >
+              {{ item }}
+            </li>
           </ul>
         </section>
 
@@ -227,7 +363,9 @@
         <section class="blog-section">
           <h2 class="section-title">{{ t('blog.sections.unique.title') }}</h2>
           <ul class="feature-list highlight">
-            <li v-for="(item, index) in t('blog.sections.unique.items')" :key="'unique-' + index">{{ item }}</li>
+            <li v-for="(item, index) in t('blog.sections.unique.items')" :key="'unique-' + index">
+              {{ item }}
+            </li>
           </ul>
         </section>
 
@@ -236,11 +374,12 @@
           <h2 class="section-title">{{ t('blog.summary.title') }}</h2>
           <p>{{ t('blog.summary.text') }}</p>
           <ul class="summary-list">
-            <li v-for="(item, index) in t('blog.summary.items')" :key="'sum-' + index">{{ item }}</li>
+            <li v-for="(item, index) in t('blog.summary.items')" :key="'sum-' + index">
+              {{ item }}
+            </li>
           </ul>
           <p class="summary-cta">{{ t('blog.summary.cta') }}</p>
         </section>
-
       </article>
     </main>
 
@@ -254,36 +393,35 @@
         </router-link>
       </div>
     </section>
-
   </div>
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue';
-import { useI18n } from '../lib/i18n.js';
-import { useTheme } from '../lib/theme.js';
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from '../lib/i18n.js'
+import { useTheme } from '../lib/theme.js'
 
-const { t, locale } = useI18n();
-const { isDark } = useTheme();
+const { t, locale } = useI18n()
+const { isDark } = useTheme()
 
 // Force reactivity by using computed that depends on locale
-const currentLocale = computed(() => locale.value);
+const currentLocale = computed(() => locale.value)
 
-const isScrolled = ref(false);
+const isScrolled = ref(false)
 
 // Scroll listener for header styling
 function handleScroll() {
-  isScrolled.value = window.scrollY > 50;
+  isScrolled.value = window.scrollY > 50
 }
 
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll);
-  handleScroll(); // Check initial state
-});
+  window.addEventListener('scroll', handleScroll)
+  handleScroll() // Check initial state
+})
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll);
-});
+  window.removeEventListener('scroll', handleScroll)
+})
 </script>
 
 <style scoped>
@@ -293,14 +431,14 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #050c1e 0%, #091428 50%, #050c1e 100%);
-  color: #E9E9EB;
+  color: #e9e9eb;
   font-family: 'Supreme', sans-serif;
   overflow-x: hidden;
 }
 
 /* Light Theme */
 .blog-page.light-theme {
-  background: linear-gradient(180deg, #F5F4D6 0%, #f9f2d5 50%, #F5F4D6 100%);
+  background: linear-gradient(180deg, #f5f4d6 0%, #f9f2d5 50%, #f5f4d6 100%);
   color: #003971;
 }
 
@@ -315,7 +453,10 @@ onUnmounted(() => {
   background: rgba(10, 16, 18, 0.8);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(201, 152, 77, 0.1);
-  transition: top 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    top 0.3s ease,
+    background 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .landing-header.scrolled {
@@ -384,7 +525,6 @@ onUnmounted(() => {
   color: #014f99;
 }
 
-
 /* Blog Hero */
 .blog-hero {
   padding: 200px 24px 60px; /* Extra padding for global + local navigation */
@@ -404,7 +544,7 @@ onUnmounted(() => {
 .blog-title {
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 700;
-  color: #E9E9EB;
+  color: #e9e9eb;
   margin: 0 0 16px 0;
   line-height: 1.2;
 }
@@ -415,7 +555,7 @@ onUnmounted(() => {
 
 .blog-subtitle {
   font-size: 1.15rem;
-  color: #7A8DA0;
+  color: #7a8da0;
   margin: 0;
   line-height: 1.6;
 }
@@ -484,7 +624,7 @@ onUnmounted(() => {
 .subsection-title {
   font-size: 1.15rem;
   font-weight: 600;
-  color: #E9E9EB;
+  color: #e9e9eb;
   margin: 24px 0 12px 0;
 }
 
@@ -641,7 +781,7 @@ onUnmounted(() => {
   padding-left: 20px;
   font-size: 0.95rem;
   line-height: 1.6;
-  color: #E9E9EB;
+  color: #e9e9eb;
 }
 
 .light-theme .summary-list li {
@@ -690,7 +830,7 @@ onUnmounted(() => {
 .cta-title {
   font-size: clamp(1.8rem, 4vw, 2.5rem);
   font-weight: 700;
-  color: #E9E9EB;
+  color: #e9e9eb;
   margin: 0 0 16px 0;
 }
 
@@ -700,7 +840,7 @@ onUnmounted(() => {
 
 .cta-subtitle {
   font-size: 1.1rem;
-  color: #7A8DA0;
+  color: #7a8da0;
   margin: 0 0 32px 0;
   line-height: 1.6;
 }
@@ -731,7 +871,7 @@ onUnmounted(() => {
 
 .light-theme .btn-primary {
   background: linear-gradient(135deg, #014f99 0%, #3a7cc5 100%);
-  color: #F5F4D6;
+  color: #f5f4d6;
   box-shadow: 0 4px 20px rgba(1, 79, 153, 0.35);
 }
 
@@ -786,7 +926,7 @@ onUnmounted(() => {
 /* ═══ Light Theme Overrides ═══ */
 
 [data-theme='light'].blog-page {
-  background: linear-gradient(180deg, #F5F4D6 0%, #f9f2d5 50%, #F5F4D6 100%);
+  background: linear-gradient(180deg, #f5f4d6 0%, #f9f2d5 50%, #f5f4d6 100%);
   color: #003971;
 }
 
@@ -812,7 +952,6 @@ onUnmounted(() => {
 [data-theme='light'] .nav-link.active {
   color: #014f99;
 }
-
 
 [data-theme='light'] .blog-hero {
   background: radial-gradient(ellipse at 50% 0%, rgba(1, 79, 153, 0.1) 0%, transparent 60%);
@@ -909,7 +1048,7 @@ onUnmounted(() => {
 
 [data-theme='light'] .btn-primary {
   background: linear-gradient(135deg, #014f99 0%, #3a7cc5 100%);
-  color: #F5F4D6;
+  color: #f5f4d6;
   box-shadow: 0 4px 20px rgba(1, 79, 153, 0.3);
 }
 

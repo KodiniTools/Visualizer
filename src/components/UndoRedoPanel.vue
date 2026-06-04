@@ -1,8 +1,8 @@
 <template>
   <div class="undo-redo-panel">
     <div class="button-group">
-      <button 
-        @click="undo" 
+      <button
+        @click="undo"
         :disabled="!historyStore.canUndo"
         :title="`Rückgängig (${historyStore.undoCount} verfügbar) - Strg+Z`"
         class="undo-button"
@@ -10,9 +10,9 @@
         <span class="icon">↩️</span>
         <span class="label">Undo</span>
       </button>
-      
-      <button 
-        @click="redo" 
+
+      <button
+        @click="redo"
         :disabled="!historyStore.canRedo"
         :title="`Wiederholen (${historyStore.redoCount} verfügbar) - Strg+Y`"
         class="redo-button"
@@ -21,7 +21,7 @@
         <span class="label">Redo</span>
       </button>
     </div>
-    
+
     <div class="history-info" v-if="showInfo">
       <span class="position">
         {{ historyStore.currentIndex + 1 }} / {{ historyStore.history.length }}
@@ -34,8 +34,8 @@
     <!-- Optional: History-Liste anzeigen -->
     <div class="history-list" v-if="showHistory && historyStore.history.length > 0">
       <div class="history-list-header">Verlauf:</div>
-      <div 
-        v-for="(command, index) in historyStore.history" 
+      <div
+        v-for="(command, index) in historyStore.history"
         :key="index"
         :class="['history-item', { active: index === historyStore.currentIndex }]"
         @click="jumpToHistory(index)"
@@ -50,73 +50,73 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useHistoryStore } from '../stores/historyStore.js';
+import { computed } from 'vue'
+import { useHistoryStore } from '../stores/historyStore.js'
 
 // Props
 const props = defineProps({
   // Zeige Info-Text an
   showInfo: {
     type: Boolean,
-    default: true
+    default: true,
   },
   // Zeige komplette History-Liste
   showHistory: {
     type: Boolean,
-    default: false
-  }
-});
+    default: false,
+  },
+})
 
 // Store
-const historyStore = useHistoryStore();
+const historyStore = useHistoryStore()
 
 // Computed: Aktuelle Aktion anzeigen
 const currentAction = computed(() => {
   if (historyStore.currentIndex >= 0 && historyStore.currentIndex < historyStore.history.length) {
-    return historyStore.history[historyStore.currentIndex].name;
+    return historyStore.history[historyStore.currentIndex].name
   }
-  return null;
-});
+  return null
+})
 
 // Methods
 async function undo() {
-  await historyStore.undo();
+  await historyStore.undo()
 }
 
 async function redo() {
-  await historyStore.redo();
+  await historyStore.redo()
 }
 
 // Springe zu einem bestimmten Punkt in der History
 async function jumpToHistory(targetIndex) {
-  const currentIndex = historyStore.currentIndex;
-  
+  const currentIndex = historyStore.currentIndex
+
   if (targetIndex < currentIndex) {
     // Undo bis zum Ziel
-    const steps = currentIndex - targetIndex;
+    const steps = currentIndex - targetIndex
     for (let i = 0; i < steps; i++) {
-      await historyStore.undo();
+      await historyStore.undo()
     }
   } else if (targetIndex > currentIndex) {
     // Redo bis zum Ziel
-    const steps = targetIndex - currentIndex;
+    const steps = targetIndex - currentIndex
     for (let i = 0; i < steps; i++) {
-      await historyStore.redo();
+      await historyStore.redo()
     }
   }
 }
 
 // Zeit formatieren
 function formatTime(timestamp) {
-  const now = Date.now();
-  const diff = now - timestamp;
-  
-  if (diff < 60000) return 'gerade eben';
-  if (diff < 3600000) return `vor ${Math.floor(diff / 60000)}m`;
-  if (diff < 86400000) return `vor ${Math.floor(diff / 3600000)}h`;
-  
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  const now = Date.now()
+  const diff = now - timestamp
+
+  if (diff < 60000) return 'gerade eben'
+  if (diff < 3600000) return `vor ${Math.floor(diff / 60000)}m`
+  if (diff < 86400000) return `vor ${Math.floor(diff / 3600000)}h`
+
+  const date = new Date(timestamp)
+  return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
 }
 </script>
 
@@ -282,7 +282,7 @@ button:disabled {
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .undo-redo-panel {
-  background: #FFFFFF;
+  background: #ffffff;
   border-color: #d4c8a8;
 }
 
@@ -328,7 +328,7 @@ button:disabled {
 
 [data-theme='light'] .history-item.active {
   background: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .history-index {
@@ -340,7 +340,7 @@ button:disabled {
 }
 
 [data-theme='light'] .history-item.active .history-name {
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .history-time {

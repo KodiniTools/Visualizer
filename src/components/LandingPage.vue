@@ -1,10 +1,20 @@
 <template>
   <div class="landing-page" :class="{ 'light-theme': !isDark }">
     <!-- Header with Controls -->
-    <header class="landing-header" :class="{ 'scrolled': isScrolled }">
+    <header class="landing-header" :class="{ scrolled: isScrolled }">
       <div class="header-content">
         <div class="header-logo">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <path d="M9 18V5l12-2v13"></path>
             <circle cx="6" cy="18" r="3"></circle>
             <circle cx="18" cy="16" r="3"></circle>
@@ -30,7 +40,17 @@
         <div class="hero-actions">
           <router-link to="/app" class="btn-primary">
             <span class="btn-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
             </span>
@@ -43,7 +63,12 @@
       </div>
       <div class="hero-visual">
         <div class="visualizer-preview">
-          <div class="wave-bar" v-for="n in 20" :key="n" :style="{ animationDelay: `${n * 0.05}s` }"></div>
+          <div
+            class="wave-bar"
+            v-for="n in 20"
+            :key="n"
+            :style="{ animationDelay: `${n * 0.05}s` }"
+          ></div>
         </div>
       </div>
     </section>
@@ -75,7 +100,13 @@
         <div class="video-placeholder">
           <div class="video-placeholder-content">
             <div class="play-button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
             </div>
@@ -96,7 +127,7 @@
           class="faq-item"
           v-for="(faq, index) in faqItems"
           :key="index"
-          :class="{ 'active': activeFaq === index }"
+          :class="{ active: activeFaq === index }"
           @click="toggleFaq(index)"
         >
           <div class="faq-question">
@@ -130,7 +161,17 @@
         <p class="cta-subtitle">{{ t('cta.subtitle') }}</p>
         <router-link to="/app" class="btn-primary btn-large">
           <span class="btn-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
           </span>
@@ -138,131 +179,150 @@
         </router-link>
       </div>
     </section>
-
   </div>
 </template>
 
 <script setup>
-import { ref, computed, h, onMounted, onUnmounted } from 'vue';
-import { useI18n } from '../lib/i18n.js';
-import { useTheme } from '../lib/theme.js';
+import { ref, computed, h, onMounted, onUnmounted } from 'vue'
+import { useI18n } from '../lib/i18n.js'
+import { useTheme } from '../lib/theme.js'
 
-const { t, locale, messages } = useI18n();
-const { isDark } = useTheme();
+const { t, locale, messages } = useI18n()
+const { isDark } = useTheme()
 
-const activeFaq = ref(null);
-const isScrolled = ref(false);
+const activeFaq = ref(null)
+const isScrolled = ref(false)
 
 // Scroll listener for header styling
 function handleScroll() {
-  isScrolled.value = window.scrollY > 50;
+  isScrolled.value = window.scrollY > 50
 }
 
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll);
-  handleScroll(); // Check initial state
-});
+  window.addEventListener('scroll', handleScroll)
+  handleScroll() // Check initial state
+})
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll);
-});
+  window.removeEventListener('scroll', handleScroll)
+})
 
 // Force reactivity by using computed that depends on locale
-const currentLocale = computed(() => locale.value);
+const currentLocale = computed(() => locale.value)
 
 // Feature icons as render functions
-const MusicIcon = () => h('svg', {
-  xmlns: 'http://www.w3.org/2000/svg',
-  width: 28,
-  height: 28,
-  viewBox: '0 0 24 24',
-  fill: 'none',
-  stroke: 'currentColor',
-  'stroke-width': 2,
-  'stroke-linecap': 'round',
-  'stroke-linejoin': 'round'
-}, [
-  h('path', { d: 'M9 18V5l12-2v13' }),
-  h('circle', { cx: 6, cy: 18, r: 3 }),
-  h('circle', { cx: 18, cy: 16, r: 3 })
-]);
+const MusicIcon = () =>
+  h(
+    'svg',
+    {
+      xmlns: 'http://www.w3.org/2000/svg',
+      width: 28,
+      height: 28,
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 2,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+    },
+    [
+      h('path', { d: 'M9 18V5l12-2v13' }),
+      h('circle', { cx: 6, cy: 18, r: 3 }),
+      h('circle', { cx: 18, cy: 16, r: 3 }),
+    ],
+  )
 
-const GridIcon = () => h('svg', {
-  xmlns: 'http://www.w3.org/2000/svg',
-  width: 28,
-  height: 28,
-  viewBox: '0 0 24 24',
-  fill: 'none',
-  stroke: 'currentColor',
-  'stroke-width': 2,
-  'stroke-linecap': 'round',
-  'stroke-linejoin': 'round'
-}, [
-  h('rect', { x: 2, y: 2, width: 20, height: 20, rx: 2.18, ry: 2.18 }),
-  h('line', { x1: 7, y1: 2, x2: 7, y2: 22 }),
-  h('line', { x1: 17, y1: 2, x2: 17, y2: 22 }),
-  h('line', { x1: 2, y1: 12, x2: 22, y2: 12 })
-]);
+const GridIcon = () =>
+  h(
+    'svg',
+    {
+      xmlns: 'http://www.w3.org/2000/svg',
+      width: 28,
+      height: 28,
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 2,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+    },
+    [
+      h('rect', { x: 2, y: 2, width: 20, height: 20, rx: 2.18, ry: 2.18 }),
+      h('line', { x1: 7, y1: 2, x2: 7, y2: 22 }),
+      h('line', { x1: 17, y1: 2, x2: 17, y2: 22 }),
+      h('line', { x1: 2, y1: 12, x2: 22, y2: 12 }),
+    ],
+  )
 
-const VideoIcon = () => h('svg', {
-  xmlns: 'http://www.w3.org/2000/svg',
-  width: 28,
-  height: 28,
-  viewBox: '0 0 24 24',
-  fill: 'none',
-  stroke: 'currentColor',
-  'stroke-width': 2,
-  'stroke-linecap': 'round',
-  'stroke-linejoin': 'round'
-}, [
-  h('polygon', { points: '23 7 16 12 23 17 23 7' }),
-  h('rect', { x: 1, y: 5, width: 15, height: 14, rx: 2, ry: 2 })
-]);
+const VideoIcon = () =>
+  h(
+    'svg',
+    {
+      xmlns: 'http://www.w3.org/2000/svg',
+      width: 28,
+      height: 28,
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 2,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+    },
+    [
+      h('polygon', { points: '23 7 16 12 23 17 23 7' }),
+      h('rect', { x: 1, y: 5, width: 15, height: 14, rx: 2, ry: 2 }),
+    ],
+  )
 
-const EditIcon = () => h('svg', {
-  xmlns: 'http://www.w3.org/2000/svg',
-  width: 28,
-  height: 28,
-  viewBox: '0 0 24 24',
-  fill: 'none',
-  stroke: 'currentColor',
-  'stroke-width': 2,
-  'stroke-linecap': 'round',
-  'stroke-linejoin': 'round'
-}, [
-  h('path', { d: 'M12 20h9' }),
-  h('path', { d: 'M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z' })
-]);
+const EditIcon = () =>
+  h(
+    'svg',
+    {
+      xmlns: 'http://www.w3.org/2000/svg',
+      width: 28,
+      height: 28,
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 2,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+    },
+    [
+      h('path', { d: 'M12 20h9' }),
+      h('path', { d: 'M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z' }),
+    ],
+  )
 
 // Computed feature cards with translations - depends on locale for reactivity
 const featureCards = computed(() => {
   // Access locale.value to ensure reactivity
-  const _ = locale.value;
-  const cards = t('features.cards');
-  const icons = [MusicIcon, GridIcon, VideoIcon, EditIcon];
+  const _ = locale.value
+  const cards = t('features.cards')
+  const icons = [MusicIcon, GridIcon, VideoIcon, EditIcon]
   const gradients = [
     'linear-gradient(135deg, #f8e1a9, #f8e1a9)',
     'linear-gradient(135deg, #C5DEB0, #f8e1a9)',
     'linear-gradient(135deg, #c9984d, #f8e1a9)',
-    'linear-gradient(135deg, #7A8DA0, #C5DEB0)'
-  ];
+    'linear-gradient(135deg, #7A8DA0, #C5DEB0)',
+  ]
 
   return cards.map((card, index) => ({
     ...card,
     icon: icons[index],
-    gradient: gradients[index]
-  }));
-});
+    gradient: gradients[index],
+  }))
+})
 
 // Computed FAQ items with translations - depends on locale for reactivity
 const faqItems = computed(() => {
   // Access locale.value to ensure reactivity
-  const _ = locale.value;
-  return t('faq.items');
-});
+  const _ = locale.value
+  return t('faq.items')
+})
 
 function toggleFaq(index) {
-  activeFaq.value = activeFaq.value === index ? null : index;
+  activeFaq.value = activeFaq.value === index ? null : index
 }
 </script>
 
@@ -273,14 +333,14 @@ function toggleFaq(index) {
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #050c1e 0%, #091428 50%, #050c1e 100%);
-  color: #E9E9EB;
+  color: #e9e9eb;
   font-family: 'Supreme', sans-serif;
   overflow-x: hidden;
 }
 
 /* Light Theme */
 .landing-page.light-theme {
-  background: linear-gradient(180deg, #F5F4D6 0%, #f9f2d5 50%, #F5F4D6 100%);
+  background: linear-gradient(180deg, #f5f4d6 0%, #f9f2d5 50%, #f5f4d6 100%);
   color: #003971;
 }
 
@@ -295,7 +355,10 @@ function toggleFaq(index) {
   background: rgba(10, 16, 18, 0.8);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(201, 152, 77, 0.1);
-  transition: top 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    top 0.3s ease,
+    background 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .landing-header.scrolled {
@@ -363,7 +426,6 @@ function toggleFaq(index) {
   color: #014f99;
 }
 
-
 /* Hero Section */
 .hero {
   min-height: 100vh;
@@ -382,16 +444,18 @@ function toggleFaq(index) {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(ellipse at 50% 0%, rgba(201, 152, 77, 0.15) 0%, transparent 60%),
-              radial-gradient(ellipse at 80% 80%, rgba(248, 225, 169, 0.08) 0%, transparent 40%),
-              radial-gradient(ellipse at 20% 60%, rgba(197, 222, 176, 0.08) 0%, transparent 40%);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(201, 152, 77, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(248, 225, 169, 0.08) 0%, transparent 40%),
+    radial-gradient(ellipse at 20% 60%, rgba(197, 222, 176, 0.08) 0%, transparent 40%);
   pointer-events: none;
 }
 
 .light-theme .hero::before {
-  background: radial-gradient(ellipse at 50% 0%, rgba(201, 152, 77, 0.1) 0%, transparent 60%),
-              radial-gradient(ellipse at 80% 80%, rgba(248, 225, 169, 0.2) 0%, transparent 40%),
-              radial-gradient(ellipse at 20% 60%, rgba(1, 79, 153, 0.06) 0%, transparent 40%);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(201, 152, 77, 0.1) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(248, 225, 169, 0.2) 0%, transparent 40%),
+    radial-gradient(ellipse at 20% 60%, rgba(1, 79, 153, 0.06) 0%, transparent 40%);
 }
 
 .hero-content {
@@ -425,7 +489,7 @@ function toggleFaq(index) {
   font-weight: 700;
   line-height: 1.15;
   margin: 0 0 24px 0;
-  color: #E9E9EB;
+  color: #e9e9eb;
 }
 
 .light-theme .hero-title {
@@ -433,7 +497,7 @@ function toggleFaq(index) {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #f8e1a9 0%, #c9984d 50%, #C5DEB0 100%);
+  background: linear-gradient(135deg, #f8e1a9 0%, #c9984d 50%, #c5deb0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -449,7 +513,7 @@ function toggleFaq(index) {
 .hero-subtitle {
   font-size: 1.15rem;
   line-height: 1.7;
-  color: #7A8DA0;
+  color: #7a8da0;
   margin: 0 0 40px 0;
   max-width: 550px;
   margin-left: auto;
@@ -489,7 +553,7 @@ function toggleFaq(index) {
 
 .light-theme .btn-primary {
   background: linear-gradient(135deg, #014f99 0%, #3a7cc5 100%);
-  color: #F5F4D6;
+  color: #f5f4d6;
   box-shadow: 0 4px 20px rgba(1, 79, 153, 0.35);
 }
 
@@ -559,8 +623,13 @@ function toggleFaq(index) {
 }
 
 @keyframes wave {
-  0%, 100% { height: 20px; }
-  50% { height: 100px; }
+  0%,
+  100% {
+    height: 20px;
+  }
+  50% {
+    height: 100px;
+  }
 }
 
 /* Section Styling */
@@ -572,7 +641,7 @@ function toggleFaq(index) {
 .section-title {
   font-size: clamp(1.8rem, 4vw, 2.5rem);
   font-weight: 700;
-  color: #E9E9EB;
+  color: #e9e9eb;
   margin: 0 0 16px 0;
 }
 
@@ -582,7 +651,7 @@ function toggleFaq(index) {
 
 .section-subtitle {
   font-size: 1.1rem;
-  color: #7A8DA0;
+  color: #7a8da0;
   margin: 0;
   max-width: 500px;
   margin-left: auto;
@@ -645,7 +714,7 @@ function toggleFaq(index) {
 .feature-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #E9E9EB;
+  color: #e9e9eb;
   margin: 0 0 12px 0;
 }
 
@@ -718,7 +787,7 @@ function toggleFaq(index) {
 
 .light-theme .play-button {
   background: linear-gradient(135deg, #014f99 0%, #3a7cc5 100%);
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 .light-theme .play-button:hover {
@@ -730,7 +799,7 @@ function toggleFaq(index) {
 }
 
 .video-placeholder-text {
-  color: #7A8DA0;
+  color: #7a8da0;
   font-size: 1rem;
   margin: 0;
 }
@@ -789,7 +858,7 @@ function toggleFaq(index) {
   padding: 24px 28px;
   font-size: 1.05rem;
   font-weight: 600;
-  color: #E9E9EB;
+  color: #e9e9eb;
 }
 
 .light-theme .faq-question {
@@ -814,7 +883,9 @@ function toggleFaq(index) {
 .faq-answer {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease, padding 0.3s ease;
+  transition:
+    max-height 0.3s ease,
+    padding 0.3s ease;
 }
 
 .faq-item.active .faq-answer {
@@ -852,7 +923,7 @@ function toggleFaq(index) {
 .cta-title {
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 700;
-  color: #E9E9EB;
+  color: #e9e9eb;
   margin: 0 0 20px 0;
 }
 
@@ -862,7 +933,7 @@ function toggleFaq(index) {
 
 .cta-subtitle {
   font-size: 1.15rem;
-  color: #7A8DA0;
+  color: #7a8da0;
   margin: 0 0 40px 0;
   line-height: 1.7;
 }
@@ -961,7 +1032,7 @@ function toggleFaq(index) {
 /* ═══ Light Theme Overrides ═══ */
 
 [data-theme='light'] .landing-page {
-  background: linear-gradient(180deg, #F5F4D6 0%, #FFFFFF 50%, #F5F4D6 100%);
+  background: linear-gradient(180deg, #f5f4d6 0%, #ffffff 50%, #f5f4d6 100%);
   color: #003971;
 }
 
@@ -988,11 +1059,11 @@ function toggleFaq(index) {
   color: #014f99;
 }
 
-
 [data-theme='light'] .hero::before {
-  background: radial-gradient(ellipse at 50% 0%, rgba(1, 79, 153, 0.08) 0%, transparent 60%),
-              radial-gradient(ellipse at 80% 80%, rgba(201, 152, 77, 0.1) 0%, transparent 40%),
-              radial-gradient(ellipse at 20% 60%, rgba(1, 79, 153, 0.06) 0%, transparent 40%);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(1, 79, 153, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(201, 152, 77, 0.1) 0%, transparent 40%),
+    radial-gradient(ellipse at 20% 60%, rgba(1, 79, 153, 0.06) 0%, transparent 40%);
 }
 
 [data-theme='light'] .hero-badge {
@@ -1018,7 +1089,7 @@ function toggleFaq(index) {
 
 [data-theme='light'] .btn-primary {
   background: linear-gradient(135deg, #014f99 0%, #003971 100%);
-  color: #F5F4D6;
+  color: #f5f4d6;
   box-shadow: 0 4px 20px rgba(1, 79, 153, 0.35);
 }
 
@@ -1078,7 +1149,7 @@ function toggleFaq(index) {
 
 [data-theme='light'] .play-button {
   background: linear-gradient(135deg, #014f99 0%, #003971 100%);
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .play-button:hover {

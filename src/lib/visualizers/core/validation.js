@@ -24,10 +24,10 @@ export function validateNumber(value, name, defaultValue = 0) {
     return {
       valid: false,
       error: `${name} must be a finite number, got ${typeof value}`,
-      sanitized: defaultValue
-    };
+      sanitized: defaultValue,
+    }
   }
-  return { valid: true, error: null, sanitized: value };
+  return { valid: true, error: null, sanitized: value }
 }
 
 /**
@@ -38,17 +38,17 @@ export function validateNumber(value, name, defaultValue = 0) {
  * @returns {ValidationResult}
  */
 export function validatePositiveNumber(value, name, defaultValue = 1) {
-  const numResult = validateNumber(value, name, defaultValue);
-  if (!numResult.valid) return numResult;
+  const numResult = validateNumber(value, name, defaultValue)
+  if (!numResult.valid) return numResult
 
   if (value <= 0) {
     return {
       valid: false,
       error: `${name} must be positive, got ${value}`,
-      sanitized: defaultValue
-    };
+      sanitized: defaultValue,
+    }
   }
-  return { valid: true, error: null, sanitized: value };
+  return { valid: true, error: null, sanitized: value }
 }
 
 /**
@@ -61,17 +61,17 @@ export function validatePositiveNumber(value, name, defaultValue = 1) {
  * @returns {ValidationResult}
  */
 export function validateRange(value, name, min, max, defaultValue = min) {
-  const numResult = validateNumber(value, name, defaultValue);
-  if (!numResult.valid) return numResult;
+  const numResult = validateNumber(value, name, defaultValue)
+  if (!numResult.valid) return numResult
 
   if (value < min || value > max) {
     return {
       valid: false,
       error: `${name} must be between ${min} and ${max}, got ${value}`,
-      sanitized: Math.max(min, Math.min(max, value))
-    };
+      sanitized: Math.max(min, Math.min(max, value)),
+    }
   }
-  return { valid: true, error: null, sanitized: value };
+  return { valid: true, error: null, sanitized: value }
 }
 
 /**
@@ -86,8 +86,8 @@ export function validateDataArray(dataArray, minLength = 1) {
     return {
       valid: false,
       error: 'dataArray must be an array-like object',
-      sanitized: new Uint8Array(minLength)
-    };
+      sanitized: new Uint8Array(minLength),
+    }
   }
 
   // Check minimum length
@@ -95,31 +95,32 @@ export function validateDataArray(dataArray, minLength = 1) {
     return {
       valid: false,
       error: `dataArray must have at least ${minLength} elements, got ${dataArray.length}`,
-      sanitized: new Uint8Array(minLength)
-    };
+      sanitized: new Uint8Array(minLength),
+    }
   }
 
   // Validate it's a typed array or regular array
-  const isTypedArray = dataArray instanceof Uint8Array ||
-                       dataArray instanceof Float32Array ||
-                       dataArray instanceof Int8Array ||
-                       dataArray instanceof Uint16Array ||
-                       dataArray instanceof Int16Array ||
-                       dataArray instanceof Uint32Array ||
-                       dataArray instanceof Int32Array ||
-                       dataArray instanceof Float64Array;
+  const isTypedArray =
+    dataArray instanceof Uint8Array ||
+    dataArray instanceof Float32Array ||
+    dataArray instanceof Int8Array ||
+    dataArray instanceof Uint16Array ||
+    dataArray instanceof Int16Array ||
+    dataArray instanceof Uint32Array ||
+    dataArray instanceof Int32Array ||
+    dataArray instanceof Float64Array
 
-  const isRegularArray = Array.isArray(dataArray);
+  const isRegularArray = Array.isArray(dataArray)
 
   if (!isTypedArray && !isRegularArray) {
     return {
       valid: false,
       error: 'dataArray must be a TypedArray or Array',
-      sanitized: new Uint8Array(dataArray.length || minLength)
-    };
+      sanitized: new Uint8Array(dataArray.length || minLength),
+    }
   }
 
-  return { valid: true, error: null, sanitized: dataArray };
+  return { valid: true, error: null, sanitized: dataArray }
 }
 
 /**
@@ -129,19 +130,19 @@ export function validateDataArray(dataArray, minLength = 1) {
  * @returns {ValidationResult}
  */
 export function validateBufferLength(bufferLength, dataArray) {
-  const numResult = validatePositiveNumber(bufferLength, 'bufferLength', 256);
-  if (!numResult.valid) return numResult;
+  const numResult = validatePositiveNumber(bufferLength, 'bufferLength', 256)
+  if (!numResult.valid) return numResult
 
   // bufferLength should not exceed dataArray length
   if (dataArray && bufferLength > dataArray.length) {
     return {
       valid: false,
       error: `bufferLength (${bufferLength}) exceeds dataArray length (${dataArray.length})`,
-      sanitized: dataArray.length
-    };
+      sanitized: dataArray.length,
+    }
   }
 
-  return { valid: true, error: null, sanitized: Math.floor(bufferLength) };
+  return { valid: true, error: null, sanitized: Math.floor(bufferLength) }
 }
 
 /**
@@ -151,35 +152,35 @@ export function validateBufferLength(bufferLength, dataArray) {
  * @returns {ValidationResult}
  */
 export function validateDimensions(width, height) {
-  const widthResult = validatePositiveNumber(width, 'width', 800);
-  const heightResult = validatePositiveNumber(height, 'height', 600);
+  const widthResult = validatePositiveNumber(width, 'width', 800)
+  const heightResult = validatePositiveNumber(height, 'height', 600)
 
   if (!widthResult.valid || !heightResult.valid) {
     return {
       valid: false,
       error: widthResult.error || heightResult.error,
-      sanitized: { width: widthResult.sanitized, height: heightResult.sanitized }
-    };
+      sanitized: { width: widthResult.sanitized, height: heightResult.sanitized },
+    }
   }
 
   // Check for reasonable maximum dimensions (prevent memory issues)
-  const maxDimension = 16384; // WebGL max texture size
+  const maxDimension = 16384 // WebGL max texture size
   if (width > maxDimension || height > maxDimension) {
     return {
       valid: false,
       error: `Dimensions exceed maximum (${maxDimension}): ${width}x${height}`,
       sanitized: {
         width: Math.min(width, maxDimension),
-        height: Math.min(height, maxDimension)
-      }
-    };
+        height: Math.min(height, maxDimension),
+      },
+    }
   }
 
   return {
     valid: true,
     error: null,
-    sanitized: { width: Math.floor(width), height: Math.floor(height) }
-  };
+    sanitized: { width: Math.floor(width), height: Math.floor(height) },
+  }
 }
 
 /**
@@ -192,23 +193,23 @@ export function validateCanvasContext(ctx) {
     return {
       valid: false,
       error: 'Canvas context is null or undefined',
-      sanitized: null
-    };
+      sanitized: null,
+    }
   }
 
   // Check for essential 2D context methods
-  const requiredMethods = ['beginPath', 'fill', 'stroke', 'arc', 'moveTo', 'lineTo'];
+  const requiredMethods = ['beginPath', 'fill', 'stroke', 'arc', 'moveTo', 'lineTo']
   for (const method of requiredMethods) {
     if (typeof ctx[method] !== 'function') {
       return {
         valid: false,
         error: `Canvas context missing required method: ${method}`,
-        sanitized: null
-      };
+        sanitized: null,
+      }
     }
   }
 
-  return { valid: true, error: null, sanitized: ctx };
+  return { valid: true, error: null, sanitized: ctx }
 }
 
 /**
@@ -222,21 +223,21 @@ export function validateHexColor(color, defaultColor = '#ffffff') {
     return {
       valid: false,
       error: `Color must be a string, got ${typeof color}`,
-      sanitized: defaultColor
-    };
+      sanitized: defaultColor,
+    }
   }
 
   // Match #RGB, #RRGGBB, #RGBA, #RRGGBBAA
-  const hexPattern = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
+  const hexPattern = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/
   if (!hexPattern.test(color)) {
     return {
       valid: false,
       error: `Invalid hex color format: ${color}`,
-      sanitized: defaultColor
-    };
+      sanitized: defaultColor,
+    }
   }
 
-  return { valid: true, error: null, sanitized: color };
+  return { valid: true, error: null, sanitized: color }
 }
 
 /**
@@ -247,10 +248,10 @@ export function validateHexColor(color, defaultColor = '#ffffff') {
  */
 export function validateIntensity(intensity, defaultValue = 1.0) {
   if (intensity === undefined || intensity === null) {
-    return { valid: true, error: null, sanitized: defaultValue };
+    return { valid: true, error: null, sanitized: defaultValue }
   }
 
-  return validateRange(intensity, 'intensity', 0, 2, defaultValue);
+  return validateRange(intensity, 'intensity', 0, 2, defaultValue)
 }
 
 /**
@@ -265,59 +266,67 @@ export function validateIntensity(intensity, defaultValue = 1.0) {
  * @param {*} params.intensity - Intensity value
  * @returns {Object} Validation results with sanitized values
  */
-export function validateDrawParams({ ctx, dataArray, bufferLength, width, height, color, intensity }) {
+export function validateDrawParams({
+  ctx,
+  dataArray,
+  bufferLength,
+  width,
+  height,
+  color,
+  intensity,
+}) {
   const results = {
     valid: true,
     errors: [],
-    params: {}
-  };
+    params: {},
+  }
 
   // Validate context
-  const ctxResult = validateCanvasContext(ctx);
+  const ctxResult = validateCanvasContext(ctx)
   if (!ctxResult.valid) {
-    results.valid = false;
-    results.errors.push(ctxResult.error);
+    results.valid = false
+    results.errors.push(ctxResult.error)
   }
-  results.params.ctx = ctxResult.sanitized;
+  results.params.ctx = ctxResult.sanitized
 
   // Validate data array
-  const dataResult = validateDataArray(dataArray);
+  const dataResult = validateDataArray(dataArray)
   if (!dataResult.valid) {
-    results.valid = false;
-    results.errors.push(dataResult.error);
+    results.valid = false
+    results.errors.push(dataResult.error)
   }
-  results.params.dataArray = dataResult.sanitized;
+  results.params.dataArray = dataResult.sanitized
 
   // Validate buffer length
-  const bufferResult = validateBufferLength(bufferLength, results.params.dataArray);
+  const bufferResult = validateBufferLength(bufferLength, results.params.dataArray)
   if (!bufferResult.valid) {
-    results.errors.push(bufferResult.error); // Warning, not failure
+    results.errors.push(bufferResult.error) // Warning, not failure
   }
-  results.params.bufferLength = bufferResult.sanitized;
+  results.params.bufferLength = bufferResult.sanitized
 
   // Validate dimensions
-  const dimResult = validateDimensions(width, height);
+  const dimResult = validateDimensions(width, height)
   if (!dimResult.valid) {
-    results.errors.push(dimResult.error); // Warning, not failure
+    results.errors.push(dimResult.error) // Warning, not failure
   }
-  results.params.width = dimResult.sanitized.width;
-  results.params.height = dimResult.sanitized.height;
+  results.params.width = dimResult.sanitized.width
+  results.params.height = dimResult.sanitized.height
 
   // Validate color
-  const colorResult = validateHexColor(color);
+  const colorResult = validateHexColor(color)
   if (!colorResult.valid) {
-    results.errors.push(colorResult.error); // Warning, not failure
+    results.errors.push(colorResult.error) // Warning, not failure
   }
-  results.params.color = colorResult.sanitized;
+  results.params.color = colorResult.sanitized
 
   // Validate intensity
-  const intensityResult = validateIntensity(intensity);
+  const intensityResult = validateIntensity(intensity)
   if (!intensityResult.valid) {
-    results.errors.push(intensityResult.error); // Warning, not failure
+    results.errors.push(intensityResult.error) // Warning, not failure
   }
-  results.params.intensity = intensityResult.sanitized;
+  results.params.intensity = intensityResult.sanitized
 
-  return results;
+  return results
 }
 
 /**
@@ -328,32 +337,47 @@ export function validateDrawParams({ ctx, dataArray, bufferLength, width, height
  * @returns {Function} Wrapped draw function
  */
 export function createSafeDrawWrapper(drawFn, visualizerName = 'unknown') {
-  return function safeDrawWrapper(ctx, dataArray, bufferLength, width, height, color, intensity = 1.0) {
+  return function safeDrawWrapper(
+    ctx,
+    dataArray,
+    bufferLength,
+    width,
+    height,
+    color,
+    intensity = 1.0,
+  ) {
     // Quick validation of critical params
     if (!ctx || !dataArray) {
-      console.warn(`[${visualizerName}] Missing critical parameters`);
-      return;
+      console.warn(`[${visualizerName}] Missing critical parameters`)
+      return
     }
 
     // Sanitize numeric parameters
-    const safeWidth = (typeof width === 'number' && width > 0) ? width : 800;
-    const safeHeight = (typeof height === 'number' && height > 0) ? height : 600;
-    const safeBufferLength = (typeof bufferLength === 'number' && bufferLength > 0)
-      ? Math.min(bufferLength, dataArray.length)
-      : dataArray.length;
-    const safeIntensity = (typeof intensity === 'number' && intensity >= 0)
-      ? Math.min(intensity, 2)
-      : 1.0;
-    const safeColor = (typeof color === 'string' && color.startsWith('#'))
-      ? color
-      : '#ffffff';
+    const safeWidth = typeof width === 'number' && width > 0 ? width : 800
+    const safeHeight = typeof height === 'number' && height > 0 ? height : 600
+    const safeBufferLength =
+      typeof bufferLength === 'number' && bufferLength > 0
+        ? Math.min(bufferLength, dataArray.length)
+        : dataArray.length
+    const safeIntensity =
+      typeof intensity === 'number' && intensity >= 0 ? Math.min(intensity, 2) : 1.0
+    const safeColor = typeof color === 'string' && color.startsWith('#') ? color : '#ffffff'
 
     try {
-      drawFn.call(this, ctx, dataArray, safeBufferLength, safeWidth, safeHeight, safeColor, safeIntensity);
+      drawFn.call(
+        this,
+        ctx,
+        dataArray,
+        safeBufferLength,
+        safeWidth,
+        safeHeight,
+        safeColor,
+        safeIntensity,
+      )
     } catch (error) {
-      console.error(`[${visualizerName}] Rendering error:`, error.message);
+      console.error(`[${visualizerName}] Rendering error:`, error.message)
     }
-  };
+  }
 }
 
 /**
@@ -364,19 +388,19 @@ export function createSafeDrawWrapper(drawFn, visualizerName = 'unknown') {
  * @returns {ValidationResult}
  */
 export function validateArrayIndex(index, length, name = 'index') {
-  const numResult = validateNumber(index, name, 0);
-  if (!numResult.valid) return numResult;
+  const numResult = validateNumber(index, name, 0)
+  if (!numResult.valid) return numResult
 
-  const intIndex = Math.floor(index);
+  const intIndex = Math.floor(index)
   if (intIndex < 0 || intIndex >= length) {
     return {
       valid: false,
       error: `${name} out of bounds: ${intIndex} (length: ${length})`,
-      sanitized: Math.max(0, Math.min(length - 1, intIndex))
-    };
+      sanitized: Math.max(0, Math.min(length - 1, intIndex)),
+    }
   }
 
-  return { valid: true, error: null, sanitized: intIndex };
+  return { valid: true, error: null, sanitized: intIndex }
 }
 
 /**
@@ -387,8 +411,8 @@ export function validateArrayIndex(index, length, name = 'index') {
  * @returns {number} Clamped frequency index
  */
 export function clampFrequencyIndex(freqIndex, bufferLength, maxFreqRatio = 0.21) {
-  const maxIndex = Math.floor(bufferLength * maxFreqRatio);
-  return Math.max(0, Math.min(maxIndex, Math.floor(freqIndex)));
+  const maxIndex = Math.floor(bufferLength * maxFreqRatio)
+  return Math.max(0, Math.min(maxIndex, Math.floor(freqIndex)))
 }
 
 /**
@@ -400,10 +424,10 @@ export function clampFrequencyIndex(freqIndex, bufferLength, maxFreqRatio = 0.21
  */
 export function safeGetAudioValue(dataArray, index, defaultValue = 0) {
   if (!dataArray || index < 0 || index >= dataArray.length) {
-    return defaultValue;
+    return defaultValue
   }
-  const value = dataArray[Math.floor(index)];
-  return (typeof value === 'number' && Number.isFinite(value)) ? value : defaultValue;
+  const value = dataArray[Math.floor(index)]
+  return typeof value === 'number' && Number.isFinite(value) ? value : defaultValue
 }
 
 /**
@@ -413,12 +437,12 @@ export function safeGetAudioValue(dataArray, index, defaultValue = 0) {
  * @returns {ValidationResult}
  */
 export function validateAngle(angle, defaultValue = 0) {
-  const numResult = validateNumber(angle, 'angle', defaultValue);
-  if (!numResult.valid) return numResult;
+  const numResult = validateNumber(angle, 'angle', defaultValue)
+  if (!numResult.valid) return numResult
 
   // Normalize to [0, 2π) range
-  let normalized = angle % (Math.PI * 2);
-  if (normalized < 0) normalized += Math.PI * 2;
+  let normalized = angle % (Math.PI * 2)
+  if (normalized < 0) normalized += Math.PI * 2
 
-  return { valid: true, error: null, sanitized: normalized };
+  return { valid: true, error: null, sanitized: normalized }
 }

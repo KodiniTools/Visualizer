@@ -51,28 +51,56 @@
     <!-- Helligkeit -->
     <div class="control-group slider">
       <label>{{ t('foto.brightness') }}</label>
-      <input type="range" ref="brightnessInputRef" min="0" max="200" value="100" @input="onBrightnessChange" />
+      <input
+        type="range"
+        ref="brightnessInputRef"
+        min="0"
+        max="200"
+        value="100"
+        @input="onBrightnessChange"
+      />
       <span ref="brightnessValueRef">100%</span>
     </div>
 
     <!-- Kontrast -->
     <div class="control-group slider">
       <label>{{ t('foto.contrast') }}</label>
-      <input type="range" ref="contrastInputRef" min="0" max="200" value="100" @input="onContrastChange" />
+      <input
+        type="range"
+        ref="contrastInputRef"
+        min="0"
+        max="200"
+        value="100"
+        @input="onContrastChange"
+      />
       <span ref="contrastValueRef">100%</span>
     </div>
 
     <!-- Sättigung -->
     <div class="control-group slider">
       <label>{{ t('foto.saturation') }}</label>
-      <input type="range" ref="saturationInputRef" min="0" max="200" value="100" @input="onSaturationChange" />
+      <input
+        type="range"
+        ref="saturationInputRef"
+        min="0"
+        max="200"
+        value="100"
+        @input="onSaturationChange"
+      />
       <span ref="saturationValueRef">100%</span>
     </div>
 
     <!-- Deckkraft -->
     <div class="control-group slider">
       <label>{{ t('foto.opacity') }}</label>
-      <input type="range" ref="opacityInputRef" min="0" max="100" value="100" @input="onOpacityChange" />
+      <input
+        type="range"
+        ref="opacityInputRef"
+        min="0"
+        max="100"
+        value="100"
+        @input="onOpacityChange"
+      />
       <span ref="opacityValueRef">100%</span>
     </div>
 
@@ -86,7 +114,14 @@
     <!-- Farbton -->
     <div class="control-group slider">
       <label>{{ t('foto.hue') }}</label>
-      <input type="range" ref="hueRotateInputRef" min="-180" max="180" value="0" @input="onHueRotateChange" />
+      <input
+        type="range"
+        ref="hueRotateInputRef"
+        min="-180"
+        max="180"
+        value="0"
+        @input="onHueRotateChange"
+      />
       <span ref="hueRotateValueRef">0°</span>
     </div>
 
@@ -104,8 +139,20 @@
           <span class="label-text">{{ t('foto.shadowColor') }}</span>
         </div>
         <div class="modern-color-picker">
-          <input type="color" ref="shadowColorInputRef" value="#000000" class="modern-color-input" @input="onShadowColorChange" />
-          <input type="text" ref="shadowColorTextRef" value="#000000" class="modern-color-text" @change="onShadowColorTextChange" />
+          <input
+            type="color"
+            ref="shadowColorInputRef"
+            value="#000000"
+            class="modern-color-input"
+            @input="onShadowColorChange"
+          />
+          <input
+            type="text"
+            ref="shadowColorTextRef"
+            value="#000000"
+            class="modern-color-text"
+            @change="onShadowColorTextChange"
+          />
         </div>
       </div>
 
@@ -114,7 +161,15 @@
           <span class="label-text">{{ t('foto.shadowBlur') }}</span>
           <span class="label-value" ref="shadowBlurValueRef">0px</span>
         </div>
-        <input type="range" ref="shadowBlurInputRef" min="0" max="50" value="0" class="modern-slider shadow-slider" @input="onShadowBlurChange" />
+        <input
+          type="range"
+          ref="shadowBlurInputRef"
+          min="0"
+          max="50"
+          value="0"
+          class="modern-slider shadow-slider"
+          @input="onShadowBlurChange"
+        />
       </div>
 
       <div class="modern-control">
@@ -122,7 +177,15 @@
           <span class="label-text">{{ t('foto.shadowOffsetX') }}</span>
           <span class="label-value" ref="shadowOffsetXValueRef">0px</span>
         </div>
-        <input type="range" ref="shadowOffsetXInputRef" min="-50" max="50" value="0" class="modern-slider shadow-slider" @input="onShadowOffsetXChange" />
+        <input
+          type="range"
+          ref="shadowOffsetXInputRef"
+          min="-50"
+          max="50"
+          value="0"
+          class="modern-slider shadow-slider"
+          @input="onShadowOffsetXChange"
+        />
       </div>
 
       <div class="modern-control">
@@ -130,7 +193,15 @@
           <span class="label-text">{{ t('foto.shadowOffsetY') }}</span>
           <span class="label-value" ref="shadowOffsetYValueRef">0px</span>
         </div>
-        <input type="range" ref="shadowOffsetYInputRef" min="-50" max="50" value="0" class="modern-slider shadow-slider" @input="onShadowOffsetYChange" />
+        <input
+          type="range"
+          ref="shadowOffsetYInputRef"
+          min="-50"
+          max="50"
+          value="0"
+          class="modern-slider shadow-slider"
+          @input="onShadowOffsetYChange"
+        />
       </div>
     </div>
 
@@ -148,7 +219,15 @@
           <span class="label-text">{{ t('foto.rotationAngle') }}</span>
           <span class="label-value" ref="rotationValueRef">0°</span>
         </div>
-        <input type="range" ref="rotationInputRef" min="0" max="100" value="50" class="modern-slider rotation-slider" @input="onRotationChange" />
+        <input
+          type="range"
+          ref="rotationInputRef"
+          min="0"
+          max="100"
+          value="50"
+          class="modern-slider rotation-slider"
+          @input="onRotationChange"
+        />
         <span class="rotation-hint">-180° ← → +180°</span>
       </div>
     </div>
@@ -159,10 +238,10 @@
         <h4>{{ t('foto.flip') }}</h4>
       </div>
       <div class="flip-buttons">
-        <button @click="onFlipHorizontal" class="flip-button" :class="{ 'active': flipHRef }">
+        <button @click="onFlipHorizontal" class="flip-button" :class="{ active: flipHRef }">
           ↔ {{ t('foto.flipH') }}
         </button>
-        <button @click="onFlipVertical" class="flip-button" :class="{ 'active': flipVRef }">
+        <button @click="onFlipVertical" class="flip-button" :class="{ active: flipVRef }">
           ↕ {{ t('foto.flipV') }}
         </button>
       </div>
@@ -182,8 +261,20 @@
           <span class="label-text">{{ t('foto.borderColor') }}</span>
         </div>
         <div class="modern-color-picker">
-          <input type="color" ref="borderColorInputRef" value="#ffffff" class="modern-color-input" @input="onBorderColorChange" />
-          <input type="text" ref="borderColorTextRef" value="#ffffff" class="modern-color-text" @change="onBorderColorTextChange" />
+          <input
+            type="color"
+            ref="borderColorInputRef"
+            value="#ffffff"
+            class="modern-color-input"
+            @input="onBorderColorChange"
+          />
+          <input
+            type="text"
+            ref="borderColorTextRef"
+            value="#ffffff"
+            class="modern-color-text"
+            @change="onBorderColorTextChange"
+          />
         </div>
       </div>
 
@@ -192,7 +283,15 @@
           <span class="label-text">{{ t('foto.borderWidth') }}</span>
           <span class="label-value" ref="borderWidthValueRef">0px</span>
         </div>
-        <input type="range" ref="borderWidthInputRef" min="0" max="50" value="0" class="modern-slider border-slider" @input="onBorderWidthChange" />
+        <input
+          type="range"
+          ref="borderWidthInputRef"
+          min="0"
+          max="50"
+          value="0"
+          class="modern-slider border-slider"
+          @input="onBorderWidthChange"
+        />
       </div>
 
       <div class="modern-control">
@@ -200,7 +299,15 @@
           <span class="label-text">{{ t('foto.borderOpacity') }}</span>
           <span class="label-value" ref="borderOpacityValueRef">100%</span>
         </div>
-        <input type="range" ref="borderOpacityInputRef" min="0" max="100" value="100" class="modern-slider border-opacity-slider" @input="onBorderOpacityChange" />
+        <input
+          type="range"
+          ref="borderOpacityInputRef"
+          min="0"
+          max="100"
+          value="100"
+          class="modern-slider border-opacity-slider"
+          @input="onBorderOpacityChange"
+        />
       </div>
     </div>
 
@@ -212,33 +319,33 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
-import { useI18n } from '../../lib/i18n.js';
+import { ref, computed, watch, onMounted } from 'vue'
+import { useI18n } from '../../lib/i18n.js'
 
-const { t } = useI18n();
+const { t } = useI18n()
 
 const props = defineProps({
   currentActiveImage: {
     type: Object,
-    default: null
+    default: null,
   },
   presets: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   canMoveUp: {
     type: Boolean,
-    default: false
+    default: false,
   },
   canMoveDown: {
     type: Boolean,
-    default: false
+    default: false,
   },
   currentLayerInfo: {
     type: String,
-    default: ''
-  }
-});
+    default: '',
+  },
+})
 
 const emit = defineEmits([
   'bring-to-front',
@@ -247,268 +354,275 @@ const emit = defineEmits([
   'send-to-back',
   'preset-change',
   'filter-change',
-  'reset-filters'
-]);
+  'reset-filters',
+])
 
 // Container Ref
-const containerRef = ref(null);
+const containerRef = ref(null)
 
 // Preset Ref
-const presetSelectRef = ref(null);
+const presetSelectRef = ref(null)
 
 // Filter Refs
-const brightnessInputRef = ref(null);
-const brightnessValueRef = ref(null);
-const contrastInputRef = ref(null);
-const contrastValueRef = ref(null);
-const saturationInputRef = ref(null);
-const saturationValueRef = ref(null);
-const opacityInputRef = ref(null);
-const opacityValueRef = ref(null);
-const blurInputRef = ref(null);
-const blurValueRef = ref(null);
-const hueRotateInputRef = ref(null);
-const hueRotateValueRef = ref(null);
+const brightnessInputRef = ref(null)
+const brightnessValueRef = ref(null)
+const contrastInputRef = ref(null)
+const contrastValueRef = ref(null)
+const saturationInputRef = ref(null)
+const saturationValueRef = ref(null)
+const opacityInputRef = ref(null)
+const opacityValueRef = ref(null)
+const blurInputRef = ref(null)
+const blurValueRef = ref(null)
+const hueRotateInputRef = ref(null)
+const hueRotateValueRef = ref(null)
 
 // Shadow Refs
-const shadowColorInputRef = ref(null);
-const shadowColorTextRef = ref(null);
-const shadowBlurInputRef = ref(null);
-const shadowBlurValueRef = ref(null);
-const shadowOffsetXInputRef = ref(null);
-const shadowOffsetXValueRef = ref(null);
-const shadowOffsetYInputRef = ref(null);
-const shadowOffsetYValueRef = ref(null);
-const rotationInputRef = ref(null);
-const rotationValueRef = ref(null);
+const shadowColorInputRef = ref(null)
+const shadowColorTextRef = ref(null)
+const shadowBlurInputRef = ref(null)
+const shadowBlurValueRef = ref(null)
+const shadowOffsetXInputRef = ref(null)
+const shadowOffsetXValueRef = ref(null)
+const shadowOffsetYInputRef = ref(null)
+const shadowOffsetYValueRef = ref(null)
+const rotationInputRef = ref(null)
+const rotationValueRef = ref(null)
 
 // Flip Refs
-const flipHRef = ref(false);
-const flipVRef = ref(false);
+const flipHRef = ref(false)
+const flipVRef = ref(false)
 
 // Visualizer Layer Ref
-const renderBehindVisualizerRef = ref(false);
+const renderBehindVisualizerRef = ref(false)
 
 // Border Refs
-const borderColorInputRef = ref(null);
-const borderColorTextRef = ref(null);
-const borderWidthInputRef = ref(null);
-const borderWidthValueRef = ref(null);
-const borderOpacityInputRef = ref(null);
-const borderOpacityValueRef = ref(null);
+const borderColorInputRef = ref(null)
+const borderColorTextRef = ref(null)
+const borderWidthInputRef = ref(null)
+const borderWidthValueRef = ref(null)
+const borderOpacityInputRef = ref(null)
+const borderOpacityValueRef = ref(null)
 
 // Emit filter change
 function emitFilterChange(property, value) {
-  emit('filter-change', { property, value });
+  emit('filter-change', { property, value })
 }
 
 // Handlers
 function onPresetChange(event) {
-  emit('preset-change', event.target.value);
+  emit('preset-change', event.target.value)
 }
 
 function onBrightnessChange(event) {
-  const value = parseInt(event.target.value);
-  if (brightnessValueRef.value) brightnessValueRef.value.textContent = value + '%';
-  emitFilterChange('brightness', value);
+  const value = parseInt(event.target.value)
+  if (brightnessValueRef.value) brightnessValueRef.value.textContent = value + '%'
+  emitFilterChange('brightness', value)
 }
 
 function onContrastChange(event) {
-  const value = parseInt(event.target.value);
-  if (contrastValueRef.value) contrastValueRef.value.textContent = value + '%';
-  emitFilterChange('contrast', value);
+  const value = parseInt(event.target.value)
+  if (contrastValueRef.value) contrastValueRef.value.textContent = value + '%'
+  emitFilterChange('contrast', value)
 }
 
 function onSaturationChange(event) {
-  const value = parseInt(event.target.value);
-  if (saturationValueRef.value) saturationValueRef.value.textContent = value + '%';
-  emitFilterChange('saturation', value);
+  const value = parseInt(event.target.value)
+  if (saturationValueRef.value) saturationValueRef.value.textContent = value + '%'
+  emitFilterChange('saturation', value)
 }
 
 function onOpacityChange(event) {
-  const value = parseInt(event.target.value);
-  if (opacityValueRef.value) opacityValueRef.value.textContent = value + '%';
-  emitFilterChange('opacity', value);
+  const value = parseInt(event.target.value)
+  if (opacityValueRef.value) opacityValueRef.value.textContent = value + '%'
+  emitFilterChange('opacity', value)
 }
 
 function onBlurChange(event) {
-  const value = parseInt(event.target.value);
-  if (blurValueRef.value) blurValueRef.value.textContent = value + 'px';
-  emitFilterChange('blur', value);
+  const value = parseInt(event.target.value)
+  if (blurValueRef.value) blurValueRef.value.textContent = value + 'px'
+  emitFilterChange('blur', value)
 }
 
 function onHueRotateChange(event) {
-  const value = parseInt(event.target.value);
-  if (hueRotateValueRef.value) hueRotateValueRef.value.textContent = value + '°';
-  emitFilterChange('hueRotate', value);
+  const value = parseInt(event.target.value)
+  if (hueRotateValueRef.value) hueRotateValueRef.value.textContent = value + '°'
+  emitFilterChange('hueRotate', value)
 }
 
 function onShadowColorChange(event) {
-  const value = event.target.value;
-  if (shadowColorTextRef.value) shadowColorTextRef.value.value = value;
-  emitFilterChange('shadowColor', value);
+  const value = event.target.value
+  if (shadowColorTextRef.value) shadowColorTextRef.value.value = value
+  emitFilterChange('shadowColor', value)
 }
 
 function onShadowColorTextChange(event) {
-  const value = event.target.value;
-  if (shadowColorInputRef.value) shadowColorInputRef.value.value = value;
-  emitFilterChange('shadowColor', value);
+  const value = event.target.value
+  if (shadowColorInputRef.value) shadowColorInputRef.value.value = value
+  emitFilterChange('shadowColor', value)
 }
 
 function onShadowBlurChange(event) {
-  const value = parseInt(event.target.value);
-  if (shadowBlurValueRef.value) shadowBlurValueRef.value.textContent = value + 'px';
-  emitFilterChange('shadowBlur', value);
+  const value = parseInt(event.target.value)
+  if (shadowBlurValueRef.value) shadowBlurValueRef.value.textContent = value + 'px'
+  emitFilterChange('shadowBlur', value)
 }
 
 function onShadowOffsetXChange(event) {
-  const value = parseInt(event.target.value);
-  if (shadowOffsetXValueRef.value) shadowOffsetXValueRef.value.textContent = value + 'px';
-  emitFilterChange('shadowOffsetX', value);
+  const value = parseInt(event.target.value)
+  if (shadowOffsetXValueRef.value) shadowOffsetXValueRef.value.textContent = value + 'px'
+  emitFilterChange('shadowOffsetX', value)
 }
 
 function onShadowOffsetYChange(event) {
-  const value = parseInt(event.target.value);
-  if (shadowOffsetYValueRef.value) shadowOffsetYValueRef.value.textContent = value + 'px';
-  emitFilterChange('shadowOffsetY', value);
+  const value = parseInt(event.target.value)
+  if (shadowOffsetYValueRef.value) shadowOffsetYValueRef.value.textContent = value + 'px'
+  emitFilterChange('shadowOffsetY', value)
 }
 
 function onRotationChange(event) {
-  const sliderValue = parseInt(event.target.value);
-  const actualRotation = (sliderValue - 50) * 3.6;
-  if (rotationValueRef.value) rotationValueRef.value.textContent = Math.round(actualRotation) + '°';
-  emitFilterChange('rotation', actualRotation);
+  const sliderValue = parseInt(event.target.value)
+  const actualRotation = (sliderValue - 50) * 3.6
+  if (rotationValueRef.value) rotationValueRef.value.textContent = Math.round(actualRotation) + '°'
+  emitFilterChange('rotation', actualRotation)
 }
 
 function onFlipHorizontal() {
-  flipHRef.value = !flipHRef.value;
-  emitFilterChange('flipH', flipHRef.value);
+  flipHRef.value = !flipHRef.value
+  emitFilterChange('flipH', flipHRef.value)
 }
 
 function onFlipVertical() {
-  flipVRef.value = !flipVRef.value;
-  emitFilterChange('flipV', flipVRef.value);
+  flipVRef.value = !flipVRef.value
+  emitFilterChange('flipV', flipVRef.value)
 }
 
 function onRenderBehindVisualizerChange(event) {
-  renderBehindVisualizerRef.value = event.target.checked;
-  emitFilterChange('renderBehindVisualizer', renderBehindVisualizerRef.value);
+  renderBehindVisualizerRef.value = event.target.checked
+  emitFilterChange('renderBehindVisualizer', renderBehindVisualizerRef.value)
 }
 
 function onBorderColorChange(event) {
-  const value = event.target.value;
-  if (borderColorTextRef.value) borderColorTextRef.value.value = value;
-  emitFilterChange('borderColor', value);
+  const value = event.target.value
+  if (borderColorTextRef.value) borderColorTextRef.value.value = value
+  emitFilterChange('borderColor', value)
 }
 
 function onBorderColorTextChange(event) {
-  const value = event.target.value;
-  if (borderColorInputRef.value) borderColorInputRef.value.value = value;
-  emitFilterChange('borderColor', value);
+  const value = event.target.value
+  if (borderColorInputRef.value) borderColorInputRef.value.value = value
+  emitFilterChange('borderColor', value)
 }
 
 function onBorderWidthChange(event) {
-  const value = parseInt(event.target.value);
-  if (borderWidthValueRef.value) borderWidthValueRef.value.textContent = value + 'px';
-  emitFilterChange('borderWidth', value);
+  const value = parseInt(event.target.value)
+  if (borderWidthValueRef.value) borderWidthValueRef.value.textContent = value + 'px'
+  emitFilterChange('borderWidth', value)
 }
 
 function onBorderOpacityChange(event) {
-  const value = parseInt(event.target.value);
-  if (borderOpacityValueRef.value) borderOpacityValueRef.value.textContent = value + '%';
-  emitFilterChange('borderOpacity', value);
+  const value = parseInt(event.target.value)
+  if (borderOpacityValueRef.value) borderOpacityValueRef.value.textContent = value + '%'
+  emitFilterChange('borderOpacity', value)
 }
 
 function resetFilters() {
   // Reset all inputs to default values
-  if (brightnessInputRef.value) brightnessInputRef.value.value = 100;
-  if (brightnessValueRef.value) brightnessValueRef.value.textContent = '100%';
-  if (contrastInputRef.value) contrastInputRef.value.value = 100;
-  if (contrastValueRef.value) contrastValueRef.value.textContent = '100%';
-  if (saturationInputRef.value) saturationInputRef.value.value = 100;
-  if (saturationValueRef.value) saturationValueRef.value.textContent = '100%';
-  if (opacityInputRef.value) opacityInputRef.value.value = 100;
-  if (opacityValueRef.value) opacityValueRef.value.textContent = '100%';
-  if (blurInputRef.value) blurInputRef.value.value = 0;
-  if (blurValueRef.value) blurValueRef.value.textContent = '0px';
-  if (hueRotateInputRef.value) hueRotateInputRef.value.value = 0;
-  if (hueRotateValueRef.value) hueRotateValueRef.value.textContent = '0°';
+  if (brightnessInputRef.value) brightnessInputRef.value.value = 100
+  if (brightnessValueRef.value) brightnessValueRef.value.textContent = '100%'
+  if (contrastInputRef.value) contrastInputRef.value.value = 100
+  if (contrastValueRef.value) contrastValueRef.value.textContent = '100%'
+  if (saturationInputRef.value) saturationInputRef.value.value = 100
+  if (saturationValueRef.value) saturationValueRef.value.textContent = '100%'
+  if (opacityInputRef.value) opacityInputRef.value.value = 100
+  if (opacityValueRef.value) opacityValueRef.value.textContent = '100%'
+  if (blurInputRef.value) blurInputRef.value.value = 0
+  if (blurValueRef.value) blurValueRef.value.textContent = '0px'
+  if (hueRotateInputRef.value) hueRotateInputRef.value.value = 0
+  if (hueRotateValueRef.value) hueRotateValueRef.value.textContent = '0°'
 
-  if (shadowColorInputRef.value) shadowColorInputRef.value.value = '#000000';
-  if (shadowColorTextRef.value) shadowColorTextRef.value.value = '#000000';
-  if (shadowBlurInputRef.value) shadowBlurInputRef.value.value = 0;
-  if (shadowBlurValueRef.value) shadowBlurValueRef.value.textContent = '0px';
-  if (shadowOffsetXInputRef.value) shadowOffsetXInputRef.value.value = 0;
-  if (shadowOffsetXValueRef.value) shadowOffsetXValueRef.value.textContent = '0px';
-  if (shadowOffsetYInputRef.value) shadowOffsetYInputRef.value.value = 0;
-  if (shadowOffsetYValueRef.value) shadowOffsetYValueRef.value.textContent = '0px';
-  if (rotationInputRef.value) rotationInputRef.value.value = 50;
-  if (rotationValueRef.value) rotationValueRef.value.textContent = '0°';
+  if (shadowColorInputRef.value) shadowColorInputRef.value.value = '#000000'
+  if (shadowColorTextRef.value) shadowColorTextRef.value.value = '#000000'
+  if (shadowBlurInputRef.value) shadowBlurInputRef.value.value = 0
+  if (shadowBlurValueRef.value) shadowBlurValueRef.value.textContent = '0px'
+  if (shadowOffsetXInputRef.value) shadowOffsetXInputRef.value.value = 0
+  if (shadowOffsetXValueRef.value) shadowOffsetXValueRef.value.textContent = '0px'
+  if (shadowOffsetYInputRef.value) shadowOffsetYInputRef.value.value = 0
+  if (shadowOffsetYValueRef.value) shadowOffsetYValueRef.value.textContent = '0px'
+  if (rotationInputRef.value) rotationInputRef.value.value = 50
+  if (rotationValueRef.value) rotationValueRef.value.textContent = '0°'
 
-  flipHRef.value = false;
-  flipVRef.value = false;
+  flipHRef.value = false
+  flipVRef.value = false
 
-  if (borderColorInputRef.value) borderColorInputRef.value.value = '#ffffff';
-  if (borderColorTextRef.value) borderColorTextRef.value.value = '#ffffff';
-  if (borderWidthInputRef.value) borderWidthInputRef.value.value = 0;
-  if (borderWidthValueRef.value) borderWidthValueRef.value.textContent = '0px';
-  if (borderOpacityInputRef.value) borderOpacityInputRef.value.value = 100;
-  if (borderOpacityValueRef.value) borderOpacityValueRef.value.textContent = '100%';
+  if (borderColorInputRef.value) borderColorInputRef.value.value = '#ffffff'
+  if (borderColorTextRef.value) borderColorTextRef.value.value = '#ffffff'
+  if (borderWidthInputRef.value) borderWidthInputRef.value.value = 0
+  if (borderWidthValueRef.value) borderWidthValueRef.value.textContent = '0px'
+  if (borderOpacityInputRef.value) borderOpacityInputRef.value.value = 100
+  if (borderOpacityValueRef.value) borderOpacityValueRef.value.textContent = '100%'
 
-  if (presetSelectRef.value) presetSelectRef.value.value = '';
+  if (presetSelectRef.value) presetSelectRef.value.value = ''
 
-  emit('reset-filters');
+  emit('reset-filters')
 }
 
 // Watch for active image changes and update UI
-watch(() => props.currentActiveImage, (newImage) => {
-  if (newImage && newImage.fotoSettings) {
-    loadImageSettings(newImage.fotoSettings);
-  }
-}, { immediate: true, deep: true });
+watch(
+  () => props.currentActiveImage,
+  (newImage) => {
+    if (newImage && newImage.fotoSettings) {
+      loadImageSettings(newImage.fotoSettings)
+    }
+  },
+  { immediate: true, deep: true },
+)
 
 function loadImageSettings(settings) {
-  const s = settings || {};
+  const s = settings || {}
 
-  if (brightnessInputRef.value) brightnessInputRef.value.value = s.brightness || 100;
-  if (brightnessValueRef.value) brightnessValueRef.value.textContent = (s.brightness || 100) + '%';
-  if (contrastInputRef.value) contrastInputRef.value.value = s.contrast || 100;
-  if (contrastValueRef.value) contrastValueRef.value.textContent = (s.contrast || 100) + '%';
-  if (saturationInputRef.value) saturationInputRef.value.value = s.saturation || 100;
-  if (saturationValueRef.value) saturationValueRef.value.textContent = (s.saturation || 100) + '%';
-  if (opacityInputRef.value) opacityInputRef.value.value = s.opacity || 100;
-  if (opacityValueRef.value) opacityValueRef.value.textContent = (s.opacity || 100) + '%';
-  if (blurInputRef.value) blurInputRef.value.value = s.blur || 0;
-  if (blurValueRef.value) blurValueRef.value.textContent = (s.blur || 0) + 'px';
-  if (hueRotateInputRef.value) hueRotateInputRef.value.value = s.hueRotate || 0;
-  if (hueRotateValueRef.value) hueRotateValueRef.value.textContent = (s.hueRotate || 0) + '°';
+  if (brightnessInputRef.value) brightnessInputRef.value.value = s.brightness || 100
+  if (brightnessValueRef.value) brightnessValueRef.value.textContent = (s.brightness || 100) + '%'
+  if (contrastInputRef.value) contrastInputRef.value.value = s.contrast || 100
+  if (contrastValueRef.value) contrastValueRef.value.textContent = (s.contrast || 100) + '%'
+  if (saturationInputRef.value) saturationInputRef.value.value = s.saturation || 100
+  if (saturationValueRef.value) saturationValueRef.value.textContent = (s.saturation || 100) + '%'
+  if (opacityInputRef.value) opacityInputRef.value.value = s.opacity || 100
+  if (opacityValueRef.value) opacityValueRef.value.textContent = (s.opacity || 100) + '%'
+  if (blurInputRef.value) blurInputRef.value.value = s.blur || 0
+  if (blurValueRef.value) blurValueRef.value.textContent = (s.blur || 0) + 'px'
+  if (hueRotateInputRef.value) hueRotateInputRef.value.value = s.hueRotate || 0
+  if (hueRotateValueRef.value) hueRotateValueRef.value.textContent = (s.hueRotate || 0) + '°'
 
-  if (shadowColorInputRef.value) shadowColorInputRef.value.value = s.shadowColor || '#000000';
-  if (shadowColorTextRef.value) shadowColorTextRef.value.value = s.shadowColor || '#000000';
-  if (shadowBlurInputRef.value) shadowBlurInputRef.value.value = s.shadowBlur || 0;
-  if (shadowBlurValueRef.value) shadowBlurValueRef.value.textContent = (s.shadowBlur || 0) + 'px';
-  if (shadowOffsetXInputRef.value) shadowOffsetXInputRef.value.value = s.shadowOffsetX || 0;
-  if (shadowOffsetXValueRef.value) shadowOffsetXValueRef.value.textContent = (s.shadowOffsetX || 0) + 'px';
-  if (shadowOffsetYInputRef.value) shadowOffsetYInputRef.value.value = s.shadowOffsetY || 0;
-  if (shadowOffsetYValueRef.value) shadowOffsetYValueRef.value.textContent = (s.shadowOffsetY || 0) + 'px';
+  if (shadowColorInputRef.value) shadowColorInputRef.value.value = s.shadowColor || '#000000'
+  if (shadowColorTextRef.value) shadowColorTextRef.value.value = s.shadowColor || '#000000'
+  if (shadowBlurInputRef.value) shadowBlurInputRef.value.value = s.shadowBlur || 0
+  if (shadowBlurValueRef.value) shadowBlurValueRef.value.textContent = (s.shadowBlur || 0) + 'px'
+  if (shadowOffsetXInputRef.value) shadowOffsetXInputRef.value.value = s.shadowOffsetX || 0
+  if (shadowOffsetXValueRef.value)
+    shadowOffsetXValueRef.value.textContent = (s.shadowOffsetX || 0) + 'px'
+  if (shadowOffsetYInputRef.value) shadowOffsetYInputRef.value.value = s.shadowOffsetY || 0
+  if (shadowOffsetYValueRef.value)
+    shadowOffsetYValueRef.value.textContent = (s.shadowOffsetY || 0) + 'px'
 
-  const rotation = s.rotation || 0;
-  const sliderValue = Math.round((rotation / 3.6) + 50);
-  if (rotationInputRef.value) rotationInputRef.value.value = sliderValue;
-  if (rotationValueRef.value) rotationValueRef.value.textContent = Math.round(rotation) + '°';
+  const rotation = s.rotation || 0
+  const sliderValue = Math.round(rotation / 3.6 + 50)
+  if (rotationInputRef.value) rotationInputRef.value.value = sliderValue
+  if (rotationValueRef.value) rotationValueRef.value.textContent = Math.round(rotation) + '°'
 
-  flipHRef.value = s.flipH || false;
-  flipVRef.value = s.flipV || false;
-  renderBehindVisualizerRef.value = s.renderBehindVisualizer || false;
+  flipHRef.value = s.flipH || false
+  flipVRef.value = s.flipV || false
+  renderBehindVisualizerRef.value = s.renderBehindVisualizer || false
 
-  if (borderColorInputRef.value) borderColorInputRef.value.value = s.borderColor || '#ffffff';
-  if (borderColorTextRef.value) borderColorTextRef.value.value = s.borderColor || '#ffffff';
-  if (borderWidthInputRef.value) borderWidthInputRef.value.value = s.borderWidth || 0;
-  if (borderWidthValueRef.value) borderWidthValueRef.value.textContent = (s.borderWidth || 0) + 'px';
-  if (borderOpacityInputRef.value) borderOpacityInputRef.value.value = s.borderOpacity ?? 100;
-  if (borderOpacityValueRef.value) borderOpacityValueRef.value.textContent = (s.borderOpacity ?? 100) + '%';
+  if (borderColorInputRef.value) borderColorInputRef.value.value = s.borderColor || '#ffffff'
+  if (borderColorTextRef.value) borderColorTextRef.value.value = s.borderColor || '#ffffff'
+  if (borderWidthInputRef.value) borderWidthInputRef.value.value = s.borderWidth || 0
+  if (borderWidthValueRef.value) borderWidthValueRef.value.textContent = (s.borderWidth || 0) + 'px'
+  if (borderOpacityInputRef.value) borderOpacityInputRef.value.value = s.borderOpacity ?? 100
+  if (borderOpacityValueRef.value)
+    borderOpacityValueRef.value.textContent = (s.borderOpacity ?? 100) + '%'
 
-  if (presetSelectRef.value) presetSelectRef.value.value = s.preset || '';
+  if (presetSelectRef.value) presetSelectRef.value.value = s.preset || ''
 }
 
 // Expose refs for parent component
@@ -525,8 +639,8 @@ defineExpose({
   opacityValueRef,
   blurInputRef,
   blurValueRef,
-  loadImageSettings
-});
+  loadImageSettings,
+})
 </script>
 
 <style scoped>
@@ -543,7 +657,7 @@ defineExpose({
   margin: 0 0 6px 0;
   font-size: 0.6rem;
   font-weight: 500;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -565,7 +679,7 @@ defineExpose({
 .control-group.slider label {
   grid-column: 1 / 3;
   font-size: 0.55rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   font-weight: 500;
@@ -577,7 +691,7 @@ defineExpose({
 
 .control-group.slider span {
   font-size: 0.5rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   font-weight: 500;
   font-family: monospace;
   min-width: 35px;
@@ -589,8 +703,8 @@ defineExpose({
   padding: 5px 8px;
   border-radius: 5px;
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-primary, #E9E9EB);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
   font-size: 0.6rem;
   cursor: pointer;
 }
@@ -602,18 +716,22 @@ defineExpose({
 }
 
 /* Range Slider Styling */
-input[type="range"] {
+input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
   height: 3px;
   border-radius: 2px;
-  background: linear-gradient(90deg, var(--text-muted, #7A8DA0) 0%, var(--accent-primary, #c9984d) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--text-muted, #7a8da0) 0%,
+    var(--accent-primary, #c9984d) 100%
+  );
   outline: none;
   cursor: pointer;
 }
 
-input[type="range"]::-webkit-slider-thumb {
+input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 12px;
@@ -625,7 +743,7 @@ input[type="range"]::-webkit-slider-thumb {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-input[type="range"]::-moz-range-thumb {
+input[type='range']::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -637,7 +755,12 @@ input[type="range"]::-moz-range-thumb {
 /* Modern Divider */
 .modern-divider {
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--image-section-accent, #6ea8fe), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--image-section-accent, #6ea8fe),
+    transparent
+  );
   margin: 24px 0 20px 0;
   border-radius: 2px;
 }
@@ -720,7 +843,12 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .border-opacity-slider {
-  background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.5) 50%, #ffffff 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    #ffffff 100%
+  );
 }
 
 .modern-slider::-webkit-slider-thumb {
@@ -831,8 +959,8 @@ input[type="range"]::-moz-range-thumb {
   padding: 6px 10px;
   border-radius: 5px;
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-primary, #E9E9EB);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
   font-size: 0.6rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -903,10 +1031,10 @@ input[type="range"]::-moz-range-thumb {
   justify-content: center;
   gap: 2px;
   padding: 6px 4px;
-  background: var(--secondary-bg, #0E1C32);
+  background: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 5px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-size: 0.55rem;
   font-weight: 500;
   cursor: pointer;
@@ -950,10 +1078,10 @@ input[type="range"]::-moz-range-thumb {
   gap: 8px;
   cursor: pointer;
   font-size: 0.75rem;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
 }
 
-.visualizer-layer-toggle input[type="checkbox"] {
+.visualizer-layer-toggle input[type='checkbox'] {
   width: 16px;
   height: 16px;
   accent-color: var(--image-section-accent, #6ea8fe);
@@ -982,7 +1110,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 [data-theme='light'] .control-group select {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   color: #003971;
   border-color: rgba(1, 79, 153, 0.3);
 }
@@ -992,15 +1120,15 @@ input[type="range"]::-moz-range-thumb {
   border-color: #014f99;
 }
 
-[data-theme='light'] input[type="range"] {
+[data-theme='light'] input[type='range'] {
   background: linear-gradient(90deg, #4d6d8e 0%, #014f99 100%);
 }
 
-[data-theme='light'] input[type="range"]::-webkit-slider-thumb {
+[data-theme='light'] input[type='range']::-webkit-slider-thumb {
   background: #c9984d;
 }
 
-[data-theme='light'] input[type="range"]::-moz-range-thumb {
+[data-theme='light'] input[type='range']::-moz-range-thumb {
   background: #c9984d;
 }
 
@@ -1034,7 +1162,12 @@ input[type="range"]::-moz-range-thumb {
 }
 
 [data-theme='light'] .border-opacity-slider {
-  background: linear-gradient(90deg, rgba(0, 57, 113, 0.1) 0%, rgba(0, 57, 113, 0.4) 50%, #003971 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 57, 113, 0.1) 0%,
+    rgba(0, 57, 113, 0.4) 50%,
+    #003971 100%
+  );
 }
 
 [data-theme='light'] .modern-slider::-webkit-slider-thumb {
@@ -1047,7 +1180,7 @@ input[type="range"]::-moz-range-thumb {
 
 [data-theme='light'] .modern-color-input {
   border-color: rgba(1, 79, 153, 0.3);
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 [data-theme='light'] .modern-color-input:hover {
@@ -1056,7 +1189,7 @@ input[type="range"]::-moz-range-thumb {
 
 [data-theme='light'] .modern-color-text {
   border-color: rgba(1, 79, 153, 0.3);
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   color: #003971;
 }
 
@@ -1069,13 +1202,13 @@ input[type="range"]::-moz-range-thumb {
 }
 
 [data-theme='light'] .flip-button {
-  background: linear-gradient(135deg, #FFFFFF 0%, #f9f2d5 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f9f2d5 100%);
   border-color: rgba(1, 79, 153, 0.3);
   color: #003971;
 }
 
 [data-theme='light'] .flip-button:hover {
-  background: linear-gradient(135deg, #f9f2d5 0%, #FFFFFF 100%);
+  background: linear-gradient(135deg, #f9f2d5 0%, #ffffff 100%);
   border-color: #014f99;
   color: #014f99;
 }
@@ -1083,11 +1216,11 @@ input[type="range"]::-moz-range-thumb {
 [data-theme='light'] .flip-button.active {
   background: linear-gradient(135deg, #014f99 0%, #003971 100%);
   border-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .btn-secondary {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   color: #003971;
   border-color: rgba(1, 79, 153, 0.3);
 }
@@ -1098,12 +1231,12 @@ input[type="range"]::-moz-range-thumb {
 }
 
 [data-theme='light'] .modern-reset-btn {
-  background: linear-gradient(135deg, #FFFFFF 0%, #f9f2d5 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f9f2d5 100%);
   border-color: rgba(1, 79, 153, 0.3);
 }
 
 [data-theme='light'] .modern-reset-btn:hover {
-  background: linear-gradient(135deg, #f9f2d5 0%, #FFFFFF 100%);
+  background: linear-gradient(135deg, #f9f2d5 0%, #ffffff 100%);
   border-color: #014f99;
 }
 
@@ -1119,7 +1252,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 [data-theme='light'] .layer-btn {
-  background: #FFFFFF;
+  background: #ffffff;
   color: #003971;
   border-color: rgba(1, 79, 153, 0.2);
 }

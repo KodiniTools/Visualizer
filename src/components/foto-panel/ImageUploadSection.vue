@@ -9,8 +9,8 @@
         @change="$emit('upload', $event)"
         accept="image/*"
         multiple
-        style="display: none;"
-      >
+        style="display: none"
+      />
       <div class="upload-placeholder">
         <p>{{ t('foto.clickToUpload') }}</p>
         <small>{{ t('foto.multipleImagesHint') }}</small>
@@ -20,19 +20,33 @@
     <!-- Scrollbare Galerie mit Thumbnails -->
     <div v-if="imageGallery.length > 0" class="gallery-container">
       <div class="gallery-header">
-        <span class="gallery-title">{{ locale === 'de' ? 'Galerie (' + imageGallery.length + ')' : 'Gallery (' + imageGallery.length + ')' }}</span>
+        <span class="gallery-title">{{
+          locale === 'de'
+            ? 'Galerie (' + imageGallery.length + ')'
+            : 'Gallery (' + imageGallery.length + ')'
+        }}</span>
         <button @click="$emit('clear-all')" class="btn-clear-all">{{ t('foto.deleteAll') }}</button>
       </div>
 
       <!-- Auswahl-Steuerung -->
       <div class="selection-controls">
-        <button @click="$emit('select-all')" class="btn-select-all" :disabled="selectedImageCount === imageGallery.length">
+        <button
+          @click="$emit('select-all')"
+          class="btn-select-all"
+          :disabled="selectedImageCount === imageGallery.length"
+        >
           {{ t('foto.selectAll') }}
         </button>
-        <button @click="$emit('deselect-all')" class="btn-deselect-all" :disabled="selectedImageCount === 0">
+        <button
+          @click="$emit('deselect-all')"
+          class="btn-deselect-all"
+          :disabled="selectedImageCount === 0"
+        >
           {{ t('foto.deselectAll') }}
         </button>
-        <span v-if="selectedImageCount > 0" class="selection-count">{{ selectedImageCount }} {{ t('foto.selected') }}</span>
+        <span v-if="selectedImageCount > 0" class="selection-count"
+          >{{ selectedImageCount }} {{ t('foto.selected') }}</span
+        >
       </div>
       <p class="multiselect-hint">{{ t('foto.multiselectHint') }}</p>
 
@@ -42,15 +56,15 @@
             v-for="(imgData, index) in imageGallery"
             :key="imgData.id"
             class="thumbnail-item"
-            :class="{ 'selected': selectedImageIndices.has(index) }"
+            :class="{ selected: selectedImageIndices.has(index) }"
             @click="$emit('select-image', index, $event)"
             @dblclick="$emit('open-preview', imgData)"
           >
             <!-- Checkbox für Mehrfachauswahl -->
-            <div class="selection-checkbox" :class="{ 'checked': selectedImageIndices.has(index) }">
+            <div class="selection-checkbox" :class="{ checked: selectedImageIndices.has(index) }">
               <span v-if="selectedImageIndices.has(index)">✓</span>
             </div>
-            <img :src="imgData.img.src" :alt="imgData.name">
+            <img :src="imgData.img.src" :alt="imgData.name" />
             <div class="thumbnail-overlay">
               <button @click.stop="$emit('delete-image', index)" class="btn-delete-thumb">✕</button>
             </div>
@@ -66,12 +80,26 @@
     <!-- Action-Buttons (nur sichtbar wenn Bilder ausgewählt) -->
     <div v-if="selectedImageCount > 0" class="action-buttons">
       <button @click="$emit('add-to-canvas')" class="btn-primary">
-        {{ selectedImageCount > 1 ? (locale === 'de' ? `${selectedImageCount} Bilder auf Canvas` : `${selectedImageCount} images on Canvas`) : t('foto.placeOnCanvas') }}
+        {{
+          selectedImageCount > 1
+            ? locale === 'de'
+              ? `${selectedImageCount} Bilder auf Canvas`
+              : `${selectedImageCount} images on Canvas`
+            : t('foto.placeOnCanvas')
+        }}
       </button>
-      <button v-if="selectedImageCount === 1" @click="$emit('set-as-background')" class="btn-secondary">
+      <button
+        v-if="selectedImageCount === 1"
+        @click="$emit('set-as-background')"
+        class="btn-secondary"
+      >
         {{ t('foto.asBackground') }}
       </button>
-      <button v-if="selectedImageCount === 1" @click="$emit('set-as-workspace-background')" class="btn-workspace">
+      <button
+        v-if="selectedImageCount === 1"
+        @click="$emit('set-as-workspace-background')"
+        class="btn-workspace"
+      >
         {{ t('foto.asWorkspaceBackground') }}
       </button>
     </div>
@@ -98,50 +126,50 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useI18n } from '../../lib/i18n.js';
-import PlacementSettings from './PlacementSettings.vue';
+import { ref } from 'vue'
+import { useI18n } from '../../lib/i18n.js'
+import PlacementSettings from './PlacementSettings.vue'
 
-const { t, locale } = useI18n();
+const { t, locale } = useI18n()
 
 defineProps({
   imageGallery: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   selectedImageIndices: {
     type: Set,
-    default: () => new Set()
+    default: () => new Set(),
   },
   selectedImageCount: {
     type: Number,
-    default: 0
+    default: 0,
   },
   selectedAnimation: {
     type: String,
-    default: 'none'
+    default: 'none',
   },
   animationDuration: {
     type: Number,
-    default: 1000
+    default: 1000,
   },
   imageScale: {
     type: Number,
-    default: 1
+    default: 1,
   },
   imageOffsetX: {
     type: Number,
-    default: 0
+    default: 0,
   },
   imageOffsetY: {
     type: Number,
-    default: 0
+    default: 0,
   },
   isInRangeSelectionMode: {
     type: Boolean,
-    default: false
-  }
-});
+    default: false,
+  },
+})
 
 defineEmits([
   'upload',
@@ -156,13 +184,13 @@ defineEmits([
   'set-as-workspace-background',
   'start-range-selection',
   'add-directly',
-  'update:placement-settings'
-]);
+  'update:placement-settings',
+])
 
-const fileInputRef = ref(null);
+const fileInputRef = ref(null)
 
 function triggerFileInput() {
-  fileInputRef.value?.click();
+  fileInputRef.value?.click()
 }
 </script>
 
@@ -360,7 +388,7 @@ function triggerFileInput() {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
   padding: 6px 6px 4px 6px;
   display: flex;
   flex-direction: column;
@@ -497,8 +525,8 @@ function triggerFileInput() {
 }
 
 .btn-secondary {
-  background-color: var(--secondary-bg, #0E1C32);
-  color: var(--text-primary, #E9E9EB);
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
 }
 
@@ -510,7 +538,7 @@ function triggerFileInput() {
 
 .btn-workspace {
   background: rgba(255, 193, 7, 0.1);
-  color: #FFC107;
+  color: #ffc107;
   border: 1px solid rgba(255, 193, 7, 0.3);
 }
 
@@ -534,7 +562,7 @@ function triggerFileInput() {
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .upload-section {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-color: rgba(1, 79, 153, 0.2);
 }
 
@@ -549,7 +577,7 @@ function triggerFileInput() {
 
 [data-theme='light'] .upload-area:hover {
   border-color: #014f99;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 [data-theme='light'] .upload-placeholder p {
@@ -561,7 +589,7 @@ function triggerFileInput() {
 }
 
 [data-theme='light'] .gallery-container {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 [data-theme='light'] .gallery-title {
@@ -600,7 +628,7 @@ function triggerFileInput() {
 [data-theme='light'] .btn-select-all,
 [data-theme='light'] .btn-deselect-all {
   border-color: rgba(1, 79, 153, 0.3);
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   color: #003971;
 }
 
@@ -646,7 +674,7 @@ function triggerFileInput() {
 }
 
 [data-theme='light'] .btn-secondary {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   color: #003971;
   border-color: rgba(1, 79, 153, 0.3);
 }

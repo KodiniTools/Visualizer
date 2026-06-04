@@ -13,7 +13,9 @@
           :title="t('player.playerSource')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+            <path
+              d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+            />
           </svg>
           <span>{{ t('player.player') }}</span>
         </button>
@@ -22,12 +24,14 @@
           class="source-btn"
           :class="{
             active: audioSourceStore.isMicrophoneSource,
-            listening: audioSourceStore.isMicrophoneActive
+            listening: audioSourceStore.isMicrophoneActive,
           }"
           :title="t('player.microphoneSource')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            <path
+              d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"
+            />
           </svg>
           <span>{{ t('player.microphone') }}</span>
         </button>
@@ -45,10 +49,17 @@
       </div>
 
       <!-- Device Selector (when microphone is active) -->
-      <div v-if="audioSourceStore.isMicrophoneSource && audioSourceStore.audioInputDevices.length > 1" class="device-selector">
+      <div
+        v-if="audioSourceStore.isMicrophoneSource && audioSourceStore.audioInputDevices.length > 1"
+        class="device-selector"
+      >
         <label>{{ t('player.selectDevice') }}:</label>
         <select v-model="selectedDevice" @change="changeDevice" class="device-select">
-          <option v-for="device in audioSourceStore.audioInputDevices" :key="device.deviceId" :value="device.deviceId">
+          <option
+            v-for="device in audioSourceStore.audioInputDevices"
+            :key="device.deviceId"
+            :value="device.deviceId"
+          >
             {{ device.label }}
           </option>
         </select>
@@ -66,7 +77,10 @@
         <span class="time-display">{{ formatTime(playerStore.currentTime) }}</span>
         <div class="progress-bar-container" @click="seekToPosition">
           <div class="progress-bar-background">
-            <div class="progress-bar-fill" :style="{ width: playerStore.progressPercentage + '%' }"></div>
+            <div
+              class="progress-bar-fill"
+              :style="{ width: playerStore.progressPercentage + '%' }"
+            ></div>
             <!-- Beat Markers on Progress Bar -->
             <div
               v-for="marker in beatMarkerStore.sortedMarkers"
@@ -77,7 +91,10 @@
               :title="marker.label + ' (' + formatTime(marker.time) + ')'"
               @click.stop="seekToMarker(marker.time)"
             ></div>
-            <div class="progress-bar-handle" :style="{ left: playerStore.progressPercentage + '%' }"></div>
+            <div
+              class="progress-bar-handle"
+              :style="{ left: playerStore.progressPercentage + '%' }"
+            ></div>
           </div>
         </div>
         <span class="time-display">{{ formatTime(playerStore.duration) }}</span>
@@ -87,28 +104,32 @@
       <div class="player-controls">
         <button @click="playerStore.prevTrack" class="control-btn" :title="t('player.prev')">
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
           </svg>
         </button>
 
-        <button @click="playerStore.togglePlayPause" class="control-btn control-btn-main" :title="playerStore.isPlaying ? t('player.pause') : t('player.play')">
+        <button
+          @click="playerStore.togglePlayPause"
+          class="control-btn control-btn-main"
+          :title="playerStore.isPlaying ? t('player.pause') : t('player.play')"
+        >
           <svg v-if="!playerStore.isPlaying" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8 5v14l11-7z"/>
+            <path d="M8 5v14l11-7z" />
           </svg>
           <svg v-else viewBox="0 0 24 24" fill="currentColor">
-            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
           </svg>
         </button>
 
         <button @click="playerStore.stopPlayer" class="control-btn" :title="t('player.stop')">
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M6 6h12v12H6z"/>
+            <path d="M6 6h12v12H6z" />
           </svg>
         </button>
 
         <button @click="playerStore.nextTrack" class="control-btn" :title="t('player.next')">
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
           </svg>
         </button>
 
@@ -120,7 +141,9 @@
           :title="t('player.beatMarker')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+            />
           </svg>
         </button>
       </div>
@@ -128,15 +151,29 @@
       <!-- Beat Marker Section -->
       <div class="beat-marker-section" v-if="beatMarkerStore.markerCount > 0 || showMarkerPanel">
         <div class="marker-header">
-          <span class="section-label">{{ t('player.beatMarkers') }} ({{ beatMarkerStore.markerCount }})</span>
+          <span class="section-label"
+            >{{ t('player.beatMarkers') }} ({{ beatMarkerStore.markerCount }})</span
+          >
           <div class="marker-controls">
             <button
               @click="beatMarkerStore.toggleEnabled()"
               class="btn-toggle"
               :class="{ active: beatMarkerStore.markersEnabled }"
-              :title="beatMarkerStore.markersEnabled ? t('player.disableMarkers') : t('player.enableMarkers')"
+              :title="
+                beatMarkerStore.markersEnabled
+                  ? t('player.disableMarkers')
+                  : t('player.enableMarkers')
+              "
             >
-              {{ beatMarkerStore.markersEnabled ? (locale === 'de' ? 'AN' : 'ON') : (locale === 'de' ? 'AUS' : 'OFF') }}
+              {{
+                beatMarkerStore.markersEnabled
+                  ? locale === 'de'
+                    ? 'AN'
+                    : 'ON'
+                  : locale === 'de'
+                    ? 'AUS'
+                    : 'OFF'
+              }}
             </button>
             <button
               v-if="beatMarkerStore.markerCount > 0"
@@ -145,7 +182,9 @@
               :title="t('player.deleteAllMarkers')"
             >
               <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                <path
+                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                />
               </svg>
             </button>
           </div>
@@ -153,7 +192,11 @@
 
         <!-- Add/Edit Marker Form -->
         <div v-if="showMarkerPanel" class="marker-add-form">
-          <div class="form-title">{{ editingMarkerId !== null ? t('player.editMarkerTitle') : t('player.addMarkerTitle') }}</div>
+          <div class="form-title">
+            {{
+              editingMarkerId !== null ? t('player.editMarkerTitle') : t('player.addMarkerTitle')
+            }}
+          </div>
           <div class="form-row">
             <label>{{ t('player.time') }}:</label>
             <div class="time-input-wrapper">
@@ -165,7 +208,9 @@
                 class="marker-time-input"
                 :placeholder="locale === 'de' ? 'z.B. 1:30' : 'e.g. 1:30'"
               />
-              <span class="time-hint">{{ locale === 'de' ? '(MM:SS oder Sek.)' : '(MM:SS or sec.)' }}</span>
+              <span class="time-hint">{{
+                locale === 'de' ? '(MM:SS oder Sek.)' : '(MM:SS or sec.)'
+              }}</span>
               <span class="time-max">/ {{ formatTime(playerStore.duration) }}</span>
             </div>
           </div>
@@ -173,7 +218,11 @@
             <label>{{ t('player.visualizer') }}:</label>
             <select v-model="newMarkerVisualizer" class="marker-select">
               <option value="">{{ t('player.noChange') }}</option>
-              <optgroup v-for="(items, category) in visualizerStore.categorizedVisualizers" :key="category" :label="category">
+              <optgroup
+                v-for="(items, category) in visualizerStore.categorizedVisualizers"
+                :key="category"
+                :label="category"
+              >
                 <option v-for="viz in items" :key="viz.id" :value="viz.id">{{ viz.name }}</option>
               </optgroup>
             </select>
@@ -190,10 +239,17 @@
           </div>
           <div class="form-row">
             <label>{{ t('player.label') }}:</label>
-            <input type="text" v-model="newMarkerLabel" :placeholder="locale === 'de' ? 'z.B. Bass Drop' : 'e.g. Bass Drop'" class="marker-input" />
+            <input
+              type="text"
+              v-model="newMarkerLabel"
+              :placeholder="locale === 'de' ? 'z.B. Bass Drop' : 'e.g. Bass Drop'"
+              class="marker-input"
+            />
           </div>
           <div class="form-buttons">
-            <button @click="confirmAddMarker" class="btn-confirm">{{ editingMarkerId !== null ? t('common.save') : t('common.add') }}</button>
+            <button @click="confirmAddMarker" class="btn-confirm">
+              {{ editingMarkerId !== null ? t('common.save') : t('common.add') }}
+            </button>
             <button @click="cancelAddMarker" class="btn-cancel">{{ t('common.cancel') }}</button>
           </div>
         </div>
@@ -206,18 +262,39 @@
             class="marker-item"
             :class="{ triggered: marker.triggered, editing: editingMarkerId === marker.id }"
           >
-            <span class="marker-time" @click="seekToMarker(marker.time)">{{ formatTime(marker.time) }}</span>
-            <span class="marker-label" @click="startEditMarker(marker)" :title="t('player.editMarker')">{{ marker.label }}</span>
-            <span v-if="marker.action.visualizer" class="marker-action">{{ getVisualizerName(marker.action.visualizer) }}</span>
+            <span class="marker-time" @click="seekToMarker(marker.time)">{{
+              formatTime(marker.time)
+            }}</span>
+            <span
+              class="marker-label"
+              @click="startEditMarker(marker)"
+              :title="t('player.editMarker')"
+              >{{ marker.label }}</span
+            >
+            <span v-if="marker.action.visualizer" class="marker-action">{{
+              getVisualizerName(marker.action.visualizer)
+            }}</span>
             <div class="marker-buttons">
-              <button @click="startEditMarker(marker)" class="btn-edit-marker" :title="t('player.editMarker')">
+              <button
+                @click="startEditMarker(marker)"
+                class="btn-edit-marker"
+                :title="t('player.editMarker')"
+              >
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                  <path
+                    d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                  />
                 </svg>
               </button>
-              <button @click="removeMarker(marker.id)" class="btn-delete-marker" :title="t('common.delete')">
+              <button
+                @click="removeMarker(marker.id)"
+                class="btn-delete-marker"
+                :title="t('common.delete')"
+              >
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                  <path
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                  />
                 </svg>
               </button>
             </div>
@@ -230,7 +307,9 @@
         <span class="section-label">{{ t('player.volume') }}: {{ volume }}%</span>
         <div class="volume-control">
           <svg class="volume-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+            <path
+              d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"
+            />
           </svg>
           <input
             type="range"
@@ -246,10 +325,14 @@
       <!-- EQ Controls: Bass & Treble -->
       <div class="eq-section">
         <div class="eq-control">
-          <span class="eq-label">{{ t('player.bass') }}: {{ bass > 0 ? '+' : '' }}{{ bass }} dB</span>
+          <span class="eq-label"
+            >{{ t('player.bass') }}: {{ bass > 0 ? '+' : '' }}{{ bass }} dB</span
+          >
           <div class="eq-slider-container">
             <svg class="eq-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+              <path
+                d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+              />
             </svg>
             <input
               type="range"
@@ -262,10 +345,14 @@
           </div>
         </div>
         <div class="eq-control">
-          <span class="eq-label">{{ t('player.treble') }}: {{ treble > 0 ? '+' : '' }}{{ treble }} dB</span>
+          <span class="eq-label"
+            >{{ t('player.treble') }}: {{ treble > 0 ? '+' : '' }}{{ treble }} dB</span
+          >
           <div class="eq-slider-container">
             <svg class="eq-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 3l.01 10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4c2.21 0 4-1.79 4-4V7h4V3H12zm-1.99 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+              <path
+                d="M12 3l.01 10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4c2.21 0 4-1.79 4-4V7h4V3H12zm-1.99 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"
+              />
             </svg>
             <input
               type="range"
@@ -284,9 +371,16 @@
     <div class="playlist-section">
       <div class="playlist-header">
         <span class="section-label">{{ t('player.playlist') }}</span>
-        <button v-if="playerStore.hasTracks" @click="clearAllTracks" class="btn-clear" :title="t('player.deleteAll')">
+        <button
+          v-if="playerStore.hasTracks"
+          @click="clearAllTracks"
+          class="btn-clear"
+          :title="t('player.deleteAll')"
+        >
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+            <path
+              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+            />
           </svg>
         </button>
       </div>
@@ -302,7 +396,7 @@
           :class="{
             active: index === playerStore.currentTrackIndex,
             dragging: draggedTrackIndex === index,
-            'drag-over': dragOverTrackIndex === index && draggedTrackIndex !== index
+            'drag-over': dragOverTrackIndex === index && draggedTrackIndex !== index,
           }"
           draggable="true"
           @dragstart="handleDragStart($event, index)"
@@ -313,9 +407,15 @@
         >
           <span class="drag-handle" :title="t('player.dragToReorder')">⠿</span>
           <span @click="loadTrackOnly(index)" class="track-name">{{ track.name }}</span>
-          <button @click.stop="removeTrack(index)" class="btn-delete" :title="t('player.removeTrack')">
+          <button
+            @click.stop="removeTrack(index)"
+            class="btn-delete"
+            :title="t('player.removeTrack')"
+          >
             <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              />
             </svg>
           </button>
         </li>
@@ -325,408 +425,421 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { useI18n } from '../lib/i18n.js';
-import { usePlayerStore } from '../stores/playerStore.js';
-import { useBeatMarkerStore } from '../stores/beatMarkerStore.js';
-import { useVisualizerStore } from '../stores/visualizerStore.js';
-import { useAudioSourceStore } from '../stores/audioSourceStore.js';
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useI18n } from '../lib/i18n.js'
+import { usePlayerStore } from '../stores/playerStore.js'
+import { useBeatMarkerStore } from '../stores/beatMarkerStore.js'
+import { useVisualizerStore } from '../stores/visualizerStore.js'
+import { useAudioSourceStore } from '../stores/audioSourceStore.js'
 
-const { t, locale } = useI18n();
-const playerStore = usePlayerStore();
-const beatMarkerStore = useBeatMarkerStore();
-const visualizerStore = useVisualizerStore();
-const audioSourceStore = useAudioSourceStore();
+const { t, locale } = useI18n()
+const playerStore = usePlayerStore()
+const beatMarkerStore = useBeatMarkerStore()
+const visualizerStore = useVisualizerStore()
+const audioSourceStore = useAudioSourceStore()
 
-const volume = ref(100);
-const bass = ref(0);
-const treble = ref(0);
+const volume = ref(100)
+const bass = ref(0)
+const treble = ref(0)
 
 // Drag & Drop State für Playlist-Neuordnung
-const draggedTrackIndex = ref(null);
-const dragOverTrackIndex = ref(null);
+const draggedTrackIndex = ref(null)
+const dragOverTrackIndex = ref(null)
 
 // Audio Source Selection
-const selectedDevice = ref('default');
+const selectedDevice = ref('default')
 
 const selectSource = async (sourceType) => {
-  if (sourceType === audioSourceStore.sourceType) return;
+  if (sourceType === audioSourceStore.sourceType) return
 
   if (window.switchAudioSource) {
-    const success = await window.switchAudioSource(sourceType);
+    const success = await window.switchAudioSource(sourceType)
     if (!success && sourceType === 'microphone') {
-      console.log('[PlayerPanel] Failed to switch to microphone');
+      console.log('[PlayerPanel] Failed to switch to microphone')
     }
   } else {
-    console.error('[PlayerPanel] switchAudioSource not available');
+    console.error('[PlayerPanel] switchAudioSource not available')
   }
-};
+}
 
 const changeDevice = async () => {
-  if (!audioSourceStore.isMicrophoneSource) return;
+  if (!audioSourceStore.isMicrophoneSource) return
 
-  audioSourceStore.selectedDeviceId = selectedDevice.value;
+  audioSourceStore.selectedDeviceId = selectedDevice.value
 
   // Restart microphone with new device
   if (window.switchAudioSource) {
-    await window.switchAudioSource('player'); // Stop current
-    await window.switchAudioSource('microphone'); // Restart with new device
+    await window.switchAudioSource('player') // Stop current
+    await window.switchAudioSource('microphone') // Restart with new device
   }
-};
+}
 
 // Beat Marker State
-const showMarkerPanel = ref(false);
-const editingMarkerId = ref(null); // null = adding new, number = editing existing
-const pendingMarkerTime = ref(0);
-const pendingMarkerTimeInput = ref('0:00');
-const newMarkerVisualizer = ref('');
-const newMarkerColor = ref('#6ea8fe');
-const newMarkerChangeColor = ref(false);
-const newMarkerLabel = ref('');
+const showMarkerPanel = ref(false)
+const editingMarkerId = ref(null) // null = adding new, number = editing existing
+const pendingMarkerTime = ref(0)
+const pendingMarkerTimeInput = ref('0:00')
+const newMarkerVisualizer = ref('')
+const newMarkerColor = ref('#6ea8fe')
+const newMarkerChangeColor = ref(false)
+const newMarkerLabel = ref('')
 
 const formatTime = (seconds) => {
-  if (isNaN(seconds) || seconds === 0) return '0:00';
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-};
+  if (isNaN(seconds) || seconds === 0) return '0:00'
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+}
 
 // Parse MM:SS or M:SS format to seconds
 const parseTimeInput = (timeStr) => {
-  if (!timeStr) return 0;
+  if (!timeStr) return 0
 
   // Remove spaces and normalize
-  const cleaned = timeStr.trim();
+  const cleaned = timeStr.trim()
 
   // Handle pure seconds input (e.g., "125")
   if (/^\d+$/.test(cleaned)) {
-    return parseInt(cleaned, 10);
+    return parseInt(cleaned, 10)
   }
 
   // Handle MM:SS or M:SS format
-  const parts = cleaned.split(':');
+  const parts = cleaned.split(':')
   if (parts.length === 2) {
-    const mins = parseInt(parts[0], 10) || 0;
-    const secs = parseInt(parts[1], 10) || 0;
-    return mins * 60 + secs;
+    const mins = parseInt(parts[0], 10) || 0
+    const secs = parseInt(parts[1], 10) || 0
+    return mins * 60 + secs
   }
 
   // Handle MM:SS:ms or similar (take first two parts)
   if (parts.length >= 2) {
-    const mins = parseInt(parts[0], 10) || 0;
-    const secs = parseInt(parts[1], 10) || 0;
-    return mins * 60 + secs;
+    const mins = parseInt(parts[0], 10) || 0
+    const secs = parseInt(parts[1], 10) || 0
+    return mins * 60 + secs
   }
 
-  return 0;
-};
+  return 0
+}
 
 // Update pendingMarkerTime when input changes
 const updateMarkerTimeFromInput = () => {
-  const seconds = parseTimeInput(pendingMarkerTimeInput.value);
+  const seconds = parseTimeInput(pendingMarkerTimeInput.value)
   // Clamp to valid range
-  const maxTime = playerStore.duration || 0;
-  pendingMarkerTime.value = Math.max(0, Math.min(seconds, maxTime));
+  const maxTime = playerStore.duration || 0
+  pendingMarkerTime.value = Math.max(0, Math.min(seconds, maxTime))
   // Update display to show normalized format
-  pendingMarkerTimeInput.value = formatTime(pendingMarkerTime.value);
-};
+  pendingMarkerTimeInput.value = formatTime(pendingMarkerTime.value)
+}
 
 // Beat Marker Functions
 const getMarkerPosition = (time) => {
-  if (playerStore.duration === 0) return 0;
-  return (time / playerStore.duration) * 100;
-};
+  if (playerStore.duration === 0) return 0
+  return (time / playerStore.duration) * 100
+}
 
 const addMarkerAtCurrentTime = () => {
-  editingMarkerId.value = null; // New marker mode
-  pendingMarkerTime.value = playerStore.currentTime;
-  pendingMarkerTimeInput.value = formatTime(playerStore.currentTime);
-  newMarkerLabel.value = `Drop ${beatMarkerStore.markerCount + 1}`;
-  newMarkerVisualizer.value = '';
-  newMarkerChangeColor.value = false;
-  showMarkerPanel.value = true;
-};
+  editingMarkerId.value = null // New marker mode
+  pendingMarkerTime.value = playerStore.currentTime
+  pendingMarkerTimeInput.value = formatTime(playerStore.currentTime)
+  newMarkerLabel.value = `Drop ${beatMarkerStore.markerCount + 1}`
+  newMarkerVisualizer.value = ''
+  newMarkerChangeColor.value = false
+  showMarkerPanel.value = true
+}
 
 const startEditMarker = (marker) => {
-  editingMarkerId.value = marker.id; // Edit mode
-  pendingMarkerTime.value = marker.time;
-  pendingMarkerTimeInput.value = formatTime(marker.time);
-  newMarkerLabel.value = marker.label || '';
-  newMarkerVisualizer.value = marker.action?.visualizer || '';
-  newMarkerColor.value = marker.action?.color || '#6ea8fe';
-  newMarkerChangeColor.value = !!marker.action?.color;
-  showMarkerPanel.value = true;
-};
+  editingMarkerId.value = marker.id // Edit mode
+  pendingMarkerTime.value = marker.time
+  pendingMarkerTimeInput.value = formatTime(marker.time)
+  newMarkerLabel.value = marker.label || ''
+  newMarkerVisualizer.value = marker.action?.visualizer || ''
+  newMarkerColor.value = marker.action?.color || '#6ea8fe'
+  newMarkerChangeColor.value = !!marker.action?.color
+  showMarkerPanel.value = true
+}
 
 const confirmAddMarker = () => {
   const action = {
     type: 'combined',
     visualizer: newMarkerVisualizer.value || null,
-    color: newMarkerChangeColor.value ? newMarkerColor.value : null
-  };
+    color: newMarkerChangeColor.value ? newMarkerColor.value : null,
+  }
 
   if (editingMarkerId.value !== null) {
     // Update existing marker
     beatMarkerStore.updateMarker(editingMarkerId.value, {
       time: pendingMarkerTime.value,
       label: newMarkerLabel.value,
-      action: action
-    });
+      action: action,
+    })
   } else {
     // Add new marker
-    beatMarkerStore.addMarker(pendingMarkerTime.value, action, newMarkerLabel.value);
+    beatMarkerStore.addMarker(pendingMarkerTime.value, action, newMarkerLabel.value)
   }
 
-  editingMarkerId.value = null;
-  showMarkerPanel.value = false;
-};
+  editingMarkerId.value = null
+  showMarkerPanel.value = false
+}
 
 const cancelAddMarker = () => {
-  editingMarkerId.value = null;
-  showMarkerPanel.value = false;
-};
+  editingMarkerId.value = null
+  showMarkerPanel.value = false
+}
 
 const seekToMarker = (time) => {
-  playerStore.seekTo(time);
-  beatMarkerStore.resetTriggers();
-};
+  playerStore.seekTo(time)
+  beatMarkerStore.resetTriggers()
+}
 
 const removeMarker = (id) => {
-  beatMarkerStore.removeMarker(id);
-};
+  beatMarkerStore.removeMarker(id)
+}
 
 const clearAllMarkers = () => {
   if (confirm('Alle Beat-Drop Marker löschen?')) {
-    beatMarkerStore.clearAllMarkers();
+    beatMarkerStore.clearAllMarkers()
   }
-};
+}
 
 const getVisualizerName = (id) => {
-  const allViz = visualizerStore.availableVisualizers;
-  const found = allViz.find(v => v.id === id);
-  return found ? found.name : id;
-};
+  const allViz = visualizerStore.availableVisualizers
+  const found = allViz.find((v) => v.id === id)
+  return found ? found.name : id
+}
 
 // Watch for time changes to trigger markers
-watch(() => playerStore.currentTime, (newTime) => {
-  if (!playerStore.isPlaying) return;
+watch(
+  () => playerStore.currentTime,
+  (newTime) => {
+    if (!playerStore.isPlaying) return
 
-  const triggered = beatMarkerStore.checkTrigger(newTime);
-  if (triggered && triggered.action) {
-    // Apply visualizer change
-    if (triggered.action.visualizer) {
-      visualizerStore.selectVisualizer(triggered.action.visualizer);
-      console.log('🎯 Visualizer gewechselt zu:', triggered.action.visualizer);
-    }
-    // Apply color change
-    if (triggered.action.color) {
-      visualizerStore.setColor(triggered.action.color);
-      console.log('🎨 Farbe gewechselt zu:', triggered.action.color);
-    }
-  }
-});
-
-// Reset markers when seeking
-watch(() => playerStore.currentTime, (newTime, oldTime) => {
-  // Detect seek (large time jump)
-  if (Math.abs(newTime - oldTime) > 1) {
-    beatMarkerStore.resetTriggers();
-  }
-});
-
-// Check for markers at start (0:00) when playback begins
-watch(() => playerStore.isPlaying, (isPlaying) => {
-  if (isPlaying && playerStore.currentTime < 0.5) {
-    // Reset triggers first to ensure clean state
-    beatMarkerStore.resetTriggers();
-
-    // Check if there's a marker at or near the start
-    const triggered = beatMarkerStore.checkTrigger(playerStore.currentTime);
+    const triggered = beatMarkerStore.checkTrigger(newTime)
     if (triggered && triggered.action) {
       // Apply visualizer change
       if (triggered.action.visualizer) {
-        visualizerStore.selectVisualizer(triggered.action.visualizer);
-        console.log('🎯 Start-Marker: Visualizer gewechselt zu:', triggered.action.visualizer);
+        visualizerStore.selectVisualizer(triggered.action.visualizer)
+        console.log('🎯 Visualizer gewechselt zu:', triggered.action.visualizer)
       }
       // Apply color change
       if (triggered.action.color) {
-        visualizerStore.setColor(triggered.action.color);
-        console.log('🎨 Start-Marker: Farbe gewechselt zu:', triggered.action.color);
+        visualizerStore.setColor(triggered.action.color)
+        console.log('🎨 Farbe gewechselt zu:', triggered.action.color)
       }
     }
-  }
-});
+  },
+)
+
+// Reset markers when seeking
+watch(
+  () => playerStore.currentTime,
+  (newTime, oldTime) => {
+    // Detect seek (large time jump)
+    if (Math.abs(newTime - oldTime) > 1) {
+      beatMarkerStore.resetTriggers()
+    }
+  },
+)
+
+// Check for markers at start (0:00) when playback begins
+watch(
+  () => playerStore.isPlaying,
+  (isPlaying) => {
+    if (isPlaying && playerStore.currentTime < 0.5) {
+      // Reset triggers first to ensure clean state
+      beatMarkerStore.resetTriggers()
+
+      // Check if there's a marker at or near the start
+      const triggered = beatMarkerStore.checkTrigger(playerStore.currentTime)
+      if (triggered && triggered.action) {
+        // Apply visualizer change
+        if (triggered.action.visualizer) {
+          visualizerStore.selectVisualizer(triggered.action.visualizer)
+          console.log('🎯 Start-Marker: Visualizer gewechselt zu:', triggered.action.visualizer)
+        }
+        // Apply color change
+        if (triggered.action.color) {
+          visualizerStore.setColor(triggered.action.color)
+          console.log('🎨 Start-Marker: Farbe gewechselt zu:', triggered.action.color)
+        }
+      }
+    }
+  },
+)
 
 // Keyboard shortcut for adding marker (M key)
 const handleKeydown = (e) => {
   if (e.key === 'm' || e.key === 'M') {
     if (!e.target.matches('input, textarea, select')) {
-      e.preventDefault();
+      e.preventDefault()
       if (playerStore.hasTracks) {
-        addMarkerAtCurrentTime();
+        addMarkerAtCurrentTime()
       }
     }
   }
-};
+}
 
 const updateVolume = () => {
   if (playerStore.audioRef) {
-    playerStore.audioRef.volume = volume.value / 100;
-    localStorage.setItem('playerVolume', volume.value);
+    playerStore.audioRef.volume = volume.value / 100
+    localStorage.setItem('playerVolume', volume.value)
   }
-};
+}
 
 const updateBass = () => {
   if (window.setBassGain) {
-    window.setBassGain(parseFloat(bass.value));
-    localStorage.setItem('playerBass', bass.value);
+    window.setBassGain(parseFloat(bass.value))
+    localStorage.setItem('playerBass', bass.value)
   }
-};
+}
 
 const updateTreble = () => {
   if (window.setTrebleGain) {
-    window.setTrebleGain(parseFloat(treble.value));
-    localStorage.setItem('playerTreble', treble.value);
+    window.setTrebleGain(parseFloat(treble.value))
+    localStorage.setItem('playerTreble', treble.value)
   }
-};
+}
 
 const seekToPosition = (event) => {
-  if (!playerStore.audioRef || playerStore.duration === 0) return;
+  if (!playerStore.audioRef || playerStore.duration === 0) return
 
-  const rect = event.currentTarget.getBoundingClientRect();
-  const clickX = event.clientX - rect.left;
-  const percentage = clickX / rect.width;
-  const newTime = percentage * playerStore.duration;
+  const rect = event.currentTarget.getBoundingClientRect()
+  const clickX = event.clientX - rect.left
+  const percentage = clickX / rect.width
+  const newTime = percentage * playerStore.duration
 
-  playerStore.seekTo(newTime);
-};
+  playerStore.seekTo(newTime)
+}
 
 // ✨ NEU: Lädt Track OHNE automatisches Abspielen
 const loadTrackOnly = (index) => {
-  playerStore.loadTrack(index);
-  console.log('[PlayerPanel] Track loaded (no autoplay):', playerStore.playlist[index].name);
-};
+  playerStore.loadTrack(index)
+  console.log('[PlayerPanel] Track loaded (no autoplay):', playerStore.playlist[index].name)
+}
 
 // === DRAG & DROP HANDLERS für Playlist-Neuordnung ===
 const handleDragStart = (event, index) => {
-  draggedTrackIndex.value = index;
-  event.dataTransfer.effectAllowed = 'move';
-  event.dataTransfer.setData('text/plain', index.toString());
+  draggedTrackIndex.value = index
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', index.toString())
   // Visuelles Feedback verzögert hinzufügen
   setTimeout(() => {
-    event.target.classList.add('dragging');
-  }, 0);
-};
+    event.target.classList.add('dragging')
+  }, 0)
+}
 
 const handleDragEnd = () => {
-  draggedTrackIndex.value = null;
-  dragOverTrackIndex.value = null;
-};
+  draggedTrackIndex.value = null
+  dragOverTrackIndex.value = null
+}
 
 const handleDragOver = (event, index) => {
-  if (draggedTrackIndex.value === null) return;
-  if (draggedTrackIndex.value === index) return;
+  if (draggedTrackIndex.value === null) return
+  if (draggedTrackIndex.value === index) return
 
-  dragOverTrackIndex.value = index;
-  event.dataTransfer.dropEffect = 'move';
-};
+  dragOverTrackIndex.value = index
+  event.dataTransfer.dropEffect = 'move'
+}
 
 const handleDragLeave = () => {
   // Optional: Reset nur wenn wir das Element wirklich verlassen
-};
+}
 
 const handleDrop = (event, toIndex) => {
-  const fromIndex = draggedTrackIndex.value;
+  const fromIndex = draggedTrackIndex.value
 
   if (fromIndex === null || fromIndex === toIndex) {
-    handleDragEnd();
-    return;
+    handleDragEnd()
+    return
   }
 
   // Playlist im Store neu ordnen
-  playerStore.reorderPlaylist(fromIndex, toIndex);
-  handleDragEnd();
-};
+  playerStore.reorderPlaylist(fromIndex, toIndex)
+  handleDragEnd()
+}
 
 const removeTrack = (index) => {
-  const wasPlaying = playerStore.isPlaying;
-  const wasCurrentTrack = index === playerStore.currentTrackIndex;
-  
-  playerStore.playlist.splice(index, 1);
+  const wasPlaying = playerStore.isPlaying
+  const wasCurrentTrack = index === playerStore.currentTrackIndex
+
+  playerStore.playlist.splice(index, 1)
 
   // If playlist is now empty, reset everything
   if (playerStore.playlist.length === 0) {
-    resetPlayer();
+    resetPlayer()
   } else {
     // Adjust currentTrackIndex if necessary
     if (index < playerStore.currentTrackIndex) {
-      playerStore.currentTrackIndex--;
+      playerStore.currentTrackIndex--
     } else if (wasCurrentTrack) {
       // Stop playback if we're removing the current track
-      playerStore.stopPlayer();
-      
+      playerStore.stopPlayer()
+
       // Load next track without playing
       if (index >= playerStore.playlist.length) {
-        playerStore.currentTrackIndex = playerStore.playlist.length - 1;
+        playerStore.currentTrackIndex = playerStore.playlist.length - 1
       } else {
-        playerStore.currentTrackIndex = index;
+        playerStore.currentTrackIndex = index
       }
-      
+
       // ✨ Nur laden, NICHT abspielen
-      playerStore.loadTrack(playerStore.currentTrackIndex);
+      playerStore.loadTrack(playerStore.currentTrackIndex)
     }
   }
-};
+}
 
 const clearAllTracks = () => {
   if (confirm('Möchten Sie wirklich alle Tracks aus der Playlist entfernen?')) {
-    resetPlayer();
+    resetPlayer()
   }
-};
+}
 
 const resetPlayer = () => {
-  playerStore.clearPlaylist();
-};
+  playerStore.clearPlaylist()
+}
 
 onMounted(() => {
   // Load saved volume
-  const savedVolume = localStorage.getItem('playerVolume');
+  const savedVolume = localStorage.getItem('playerVolume')
   if (savedVolume !== null) {
-    volume.value = parseInt(savedVolume);
-    updateVolume();
+    volume.value = parseInt(savedVolume)
+    updateVolume()
   } else if (playerStore.audioRef) {
-    volume.value = Math.round(playerStore.audioRef.volume * 100);
+    volume.value = Math.round(playerStore.audioRef.volume * 100)
   }
 
   // ✅ FIX: Synchronisiere Lautstärke wenn audioRef später gesetzt wird
-  watch(() => playerStore.audioRef, (audioRef) => {
-    if (audioRef) {
-      audioRef.volume = volume.value / 100;
-      console.log('[Player] Audio-Lautstärke synchronisiert:', volume.value + '%');
-    }
-  }, { immediate: true });
+  watch(
+    () => playerStore.audioRef,
+    (audioRef) => {
+      if (audioRef) {
+        audioRef.volume = volume.value / 100
+        console.log('[Player] Audio-Lautstärke synchronisiert:', volume.value + '%')
+      }
+    },
+    { immediate: true },
+  )
 
   // Load saved bass and treble settings
-  const savedBass = localStorage.getItem('playerBass');
+  const savedBass = localStorage.getItem('playerBass')
   if (savedBass !== null) {
-    bass.value = parseInt(savedBass);
-    updateBass();
+    bass.value = parseInt(savedBass)
+    updateBass()
   }
 
-  const savedTreble = localStorage.getItem('playerTreble');
+  const savedTreble = localStorage.getItem('playerTreble')
   if (savedTreble !== null) {
-    treble.value = parseInt(savedTreble);
-    updateTreble();
+    treble.value = parseInt(savedTreble)
+    updateTreble()
   }
 
   // Add keyboard listener for beat marker shortcut
-  window.addEventListener('keydown', handleKeydown);
-});
+  window.addEventListener('keydown', handleKeydown)
+})
 
 onUnmounted(() => {
   // Remove keyboard listener
-  window.removeEventListener('keydown', handleKeydown);
-});
+  window.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <style scoped>
@@ -742,7 +855,7 @@ onUnmounted(() => {
 
 h3 {
   margin: 0;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-weight: 600;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -759,13 +872,13 @@ h3::before {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Cpolygon points='5 3 19 12 5 21 5 3'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 .section-label {
   display: block;
   font-size: 0.6rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -780,7 +893,7 @@ h3::before {
 
 /* Current Track */
 .current-track {
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   padding: 6px 8px;
   border-radius: 5px;
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
@@ -805,7 +918,7 @@ h3::before {
 
 .time-display {
   font-size: 0.55rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   min-width: 28px;
   text-align: center;
   font-weight: 500;
@@ -820,7 +933,7 @@ h3::before {
 .progress-bar-background {
   position: relative;
   height: 4px;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border-radius: 2px;
   overflow: visible;
 }
@@ -864,7 +977,7 @@ h3::before {
 }
 
 .control-btn {
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 50%;
   width: 26px;
@@ -873,7 +986,7 @@ h3::before {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   transition: all 0.2s ease;
   padding: 0;
 }
@@ -923,14 +1036,14 @@ h3::before {
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border-radius: 5px;
 }
 
 .volume-icon {
   width: 14px;
   height: 14px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   flex-shrink: 0;
 }
 
@@ -938,7 +1051,11 @@ h3::before {
   flex: 1;
   height: 3px;
   border-radius: 2px;
-  background: linear-gradient(to right, var(--text-muted, #7A8DA0) 0%, var(--accent-primary, #c9984d) 100%);
+  background: linear-gradient(
+    to right,
+    var(--text-muted, #7a8da0) 0%,
+    var(--accent-primary, #c9984d) 100%
+  );
   outline: none;
   -webkit-appearance: none;
   appearance: none;
@@ -994,7 +1111,7 @@ h3::before {
 
 .eq-label {
   font-size: 0.6rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
 }
 
 .eq-slider-container {
@@ -1002,14 +1119,14 @@ h3::before {
   align-items: center;
   gap: 6px;
   padding: 5px 7px;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border-radius: 5px;
 }
 
 .eq-icon {
   width: 12px;
   height: 12px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   flex-shrink: 0;
 }
 
@@ -1017,7 +1134,12 @@ h3::before {
   flex: 1;
   height: 3px;
   border-radius: 2px;
-  background: linear-gradient(to right, var(--text-muted, #7A8DA0) 0%, var(--accent-primary, #c9984d) 50%, var(--accent-tertiary, #f8e1a9) 100%);
+  background: linear-gradient(
+    to right,
+    var(--text-muted, #7a8da0) 0%,
+    var(--accent-primary, #c9984d) 50%,
+    var(--accent-tertiary, #f8e1a9) 100%
+  );
   outline: none;
   -webkit-appearance: none;
   appearance: none;
@@ -1073,7 +1195,7 @@ h3::before {
 .btn-clear {
   background-color: transparent;
   border: none;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   cursor: pointer;
   padding: 3px;
   display: flex;
@@ -1100,7 +1222,7 @@ h3::before {
   margin: 0;
   max-height: 100px;
   overflow-y: auto;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border-radius: 5px;
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
 }
@@ -1183,7 +1305,9 @@ h3::before {
   font-size: 0.7rem;
   user-select: none;
   opacity: 0.5;
-  transition: opacity 0.2s ease, color 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    color 0.2s ease;
   flex-shrink: 0;
   padding-right: 4px;
 }
@@ -1226,8 +1350,13 @@ h3::before {
 }
 
 @keyframes dragPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .playlist-item-empty {
@@ -1272,7 +1401,7 @@ h3::before {
   cursor: pointer;
   z-index: 10;
   transition: all 0.2s ease;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
 .beat-marker-indicator:hover {
@@ -1286,9 +1415,15 @@ h3::before {
 }
 
 @keyframes markerPulse {
-  0% { transform: translateX(-50%) scale(1); }
-  50% { transform: translateX(-50%) scale(1.5); }
-  100% { transform: translateX(-50%) scale(1); }
+  0% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.5);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
 }
 
 /* Add marker button */
@@ -1710,10 +1845,10 @@ h3::before {
   justify-content: center;
   gap: 6px;
   padding: 8px 12px;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 6px;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   font-size: 0.65rem;
   font-weight: 500;
   cursor: pointer;
@@ -1723,7 +1858,7 @@ h3::before {
 .source-btn:hover {
   background-color: var(--btn-hover, #1a2a42);
   border-color: var(--accent-primary, #c9984d);
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
 }
 
 .source-btn.active {
@@ -1741,7 +1876,8 @@ h3::before {
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 5px rgba(34, 197, 94, 0.4);
   }
   50% {
@@ -1781,7 +1917,8 @@ h3::before {
 }
 
 @keyframes mic-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -1808,7 +1945,7 @@ h3::before {
 
 .device-selector label {
   font-size: 0.55rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -1816,10 +1953,10 @@ h3::before {
 .device-select {
   padding: 6px 8px;
   font-size: 0.6rem;
-  background-color: var(--secondary-bg, #0E1C32);
+  background-color: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 5px;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -1836,14 +1973,14 @@ h3::before {
 
 .device-select option {
   background-color: var(--card-bg, #142640);
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
 }
 
 /* ═══ Light Theme Overrides ═══ */
 
 [data-theme='light'] h3::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23003971' stroke-width='1.5'%3E%3Cpolygon points='5 3 19 12 5 21 5 3'/%3E%3C/svg%3E");
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.15));
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.15));
 }
 
 [data-theme='light'] .progress-bar-handle {
@@ -1862,7 +1999,7 @@ h3::before {
 
 [data-theme='light'] .eq-slider::-webkit-slider-thumb {
   background: #014f99;
-  border: 2px solid #FFFFFF;
+  border: 2px solid #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
@@ -1872,7 +2009,7 @@ h3::before {
 
 [data-theme='light'] .eq-slider::-moz-range-thumb {
   background: #014f99;
-  border: 2px solid #FFFFFF;
+  border: 2px solid #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
@@ -1894,7 +2031,7 @@ h3::before {
 
 [data-theme='light'] .beat-marker-indicator {
   border-top-color: #014f99;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
 }
 
 [data-theme='light'] .beat-marker-indicator:hover {
@@ -1904,7 +2041,7 @@ h3::before {
 [data-theme='light'] .control-btn-marker {
   background-color: #014f99;
   border-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .control-btn-marker:hover {
@@ -1919,7 +2056,7 @@ h3::before {
 
 [data-theme='light'] .btn-toggle {
   border: 1px solid rgba(1, 79, 153, 0.2);
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   color: #4d6d8e;
 }
 
@@ -1928,7 +2065,7 @@ h3::before {
 }
 
 [data-theme='light'] .marker-add-form {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border: 1px solid #014f99;
 }
 
@@ -1942,7 +2079,7 @@ h3::before {
 }
 
 [data-theme='light'] .marker-select {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border: 1px solid rgba(1, 79, 153, 0.2);
   color: #003971;
 }
@@ -1960,7 +2097,7 @@ h3::before {
 }
 
 [data-theme='light'] .marker-input {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border: 1px solid rgba(1, 79, 153, 0.2);
   color: #003971;
 }
@@ -1970,7 +2107,7 @@ h3::before {
 }
 
 [data-theme='light'] .marker-time-input {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border: 1px solid #014f99;
   color: #014f99;
 }
@@ -1995,12 +2132,12 @@ h3::before {
 }
 
 [data-theme='light'] .btn-cancel:hover {
-  background-color: #F5F4D6;
+  background-color: #f5f4d6;
   color: #003971;
 }
 
 [data-theme='light'] .marker-item {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 [data-theme='light'] .marker-item:hover {
@@ -2039,7 +2176,7 @@ h3::before {
 
 [data-theme='light'] .btn-edit-marker:hover {
   background-color: rgba(1, 79, 153, 0.8);
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .marker-list::-webkit-scrollbar-track {
@@ -2055,7 +2192,7 @@ h3::before {
 }
 
 [data-theme='light'] .audio-source-section {
-  background: linear-gradient(180deg, #FFFFFF 0%, rgba(1, 79, 153, 0.06) 100%);
+  background: linear-gradient(180deg, #ffffff 0%, rgba(1, 79, 153, 0.06) 100%);
 }
 
 [data-theme='light'] .device-select:focus {
@@ -2067,7 +2204,7 @@ h3::before {
 }
 
 [data-theme='light'] .playlist-item.active .btn-delete {
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .playlist-item.dragging {

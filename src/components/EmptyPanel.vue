@@ -44,7 +44,7 @@
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .empty-panel {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-color: #d4c8a8;
 }
 

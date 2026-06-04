@@ -5,16 +5,16 @@
  * @module audio/AudioProcessor
  */
 
-import { FrequencyAnalyzer } from './FrequencyAnalyzer.js';
-import { BeatDetector } from './BeatDetector.js';
+import { FrequencyAnalyzer } from './FrequencyAnalyzer.js'
+import { BeatDetector } from './BeatDetector.js'
 import {
   getAudioLevel,
   applyBeatBoost,
   applyPhaseOffset,
-  AUDIO_SOURCES
-} from './AudioLevelCalculator.js';
-import { applyEasing } from './EasingFunctions.js';
-import { calculateEffectValue, EFFECT_NAMES } from './AudioReactiveEffects.js';
+  AUDIO_SOURCES,
+} from './AudioLevelCalculator.js'
+import { applyEasing } from './EasingFunctions.js'
+import { calculateEffectValue, EFFECT_NAMES } from './AudioReactiveEffects.js'
 
 /**
  * AudioProcessor class
@@ -26,11 +26,11 @@ export class AudioProcessor {
    * @param {object} config - Configuration options
    */
   constructor(config = {}) {
-    this.frequencyAnalyzer = new FrequencyAnalyzer(config.frequency);
-    this.beatDetector = new BeatDetector(config.beat);
+    this.frequencyAnalyzer = new FrequencyAnalyzer(config.frequency)
+    this.beatDetector = new BeatDetector(config.beat)
 
     // Store last analysis result for global access
-    this.lastAnalysis = null;
+    this.lastAnalysis = null
   }
 
   /**
@@ -41,28 +41,28 @@ export class AudioProcessor {
    */
   analyze(audioDataArray, bufferLength) {
     // Frequency analysis
-    const frequencyData = this.frequencyAnalyzer.analyze(audioDataArray, bufferLength);
-    if (!frequencyData) return null;
+    const frequencyData = this.frequencyAnalyzer.analyze(audioDataArray, bufferLength)
+    if (!frequencyData) return null
 
     // Beat detection (uses bass level)
-    const beatData = this.beatDetector.detect(frequencyData.bass);
+    const beatData = this.beatDetector.detect(frequencyData.bass)
 
     // Combine results
     this.lastAnalysis = {
       ...frequencyData,
-      ...beatData
-    };
+      ...beatData,
+    }
 
-    return this.lastAnalysis;
+    return this.lastAnalysis
   }
 
   /**
    * Resets all analyzers
    */
   reset() {
-    this.frequencyAnalyzer.reset();
-    this.beatDetector.reset();
-    this.lastAnalysis = null;
+    this.frequencyAnalyzer.reset()
+    this.beatDetector.reset()
+    this.lastAnalysis = null
   }
 
   /**
@@ -70,7 +70,7 @@ export class AudioProcessor {
    * @returns {object|null} Last analysis data
    */
   getLastAnalysis() {
-    return this.lastAnalysis;
+    return this.lastAnalysis
   }
 
   /**
@@ -85,33 +85,33 @@ export class AudioProcessor {
    * @returns {number} Calculated audio level (0-1 normalized)
    */
   getLevel(options = {}, audioData = null) {
-    const data = audioData || this.lastAnalysis;
-    if (!data) return 0;
+    const data = audioData || this.lastAnalysis
+    if (!data) return 0
 
     const {
       source = AUDIO_SOURCES.BASS,
       useSmooth = true,
       beatBoost = 1.0,
       phase = 0,
-      easing = 'linear'
-    } = options;
+      easing = 'linear',
+    } = options
 
     // Get base level
-    let level = getAudioLevel(source, data, useSmooth);
+    let level = getAudioLevel(source, data, useSmooth)
 
     // Apply beat boost
-    level = applyBeatBoost(level, data, beatBoost);
+    level = applyBeatBoost(level, data, beatBoost)
 
     // Apply phase offset
-    level = applyPhaseOffset(level, phase);
+    level = applyPhaseOffset(level, phase)
 
     // Normalize to 0-1
-    let normalizedLevel = level / 255;
+    let normalizedLevel = level / 255
 
     // Apply easing
-    normalizedLevel = applyEasing(normalizedLevel, easing);
+    normalizedLevel = applyEasing(normalizedLevel, easing)
 
-    return normalizedLevel;
+    return normalizedLevel
   }
 
   /**
@@ -122,67 +122,73 @@ export class AudioProcessor {
    */
   getAudioReactiveValues(audioSettings, audioData = null) {
     if (!audioSettings || !audioSettings.enabled) {
-      return null;
+      return null
     }
 
-    const data = audioData || this.lastAnalysis;
-    if (!data) return null;
+    const data = audioData || this.lastAnalysis
+    if (!data) return null
 
     // Global settings
-    const globalSource = audioSettings.source || 'bass';
-    const smoothing = audioSettings.smoothing || 50;
-    const easing = audioSettings.easing || 'linear';
-    const phase = audioSettings.phase || 0;
-    const beatBoost = audioSettings.beatBoost ?? 1.0;
-    const useSmooth = smoothing > 30;
+    const globalSource = audioSettings.source || 'bass'
+    const smoothing = audioSettings.smoothing || 50
+    const easing = audioSettings.easing || 'linear'
+    const phase = audioSettings.phase || 0
+    const beatBoost = audioSettings.beatBoost ?? 1.0
+    const useSmooth = smoothing > 30
 
     const result = {
       hasEffects: false,
-      effects: {}
-    };
+      effects: {},
+    }
 
-    const effects = audioSettings.effects;
+    const effects = audioSettings.effects
     if (!effects) {
       // Fallback for old structure (single effect)
-      const level = this.getLevel({
-        source: globalSource,
-        useSmooth,
-        beatBoost,
-        phase,
-        easing
-      }, data);
+      const level = this.getLevel(
+        {
+          source: globalSource,
+          useSmooth,
+          beatBoost,
+          phase,
+          easing,
+        },
+        data,
+      )
 
-      const effect = audioSettings.effect || 'hue';
-      const intensity = (audioSettings.intensity || 80) / 100;
+      const effect = audioSettings.effect || 'hue'
+      const intensity = (audioSettings.intensity || 80) / 100
 
-      result.hasEffects = true;
-      result.effects[effect] = calculateEffectValue(effect, level * intensity);
-      return result;
+      result.hasEffects = true
+      result.effects[effect] = calculateEffectValue(effect, level * intensity)
+      return result
     }
 
     // Calculate values for each enabled effect
     for (const [effectName, effectConfig] of Object.entries(effects)) {
       if (effectConfig && effectConfig.enabled) {
         // Use individual source or global source
-        const effectSource = effectConfig.source || globalSource;
+        const effectSource = effectConfig.source || globalSource
 
-        const level = this.getLevel({
-          source: effectSource,
-          useSmooth,
-          beatBoost,
-          phase,
-          easing
-        }, data);
+        const level = this.getLevel(
+          {
+            source: effectSource,
+            useSmooth,
+            beatBoost,
+            phase,
+            easing,
+          },
+          data,
+        )
 
-        const intensity = (effectConfig.intensity || 80) / 100;
-        const effectLevel = level * intensity;
+        const intensity = (effectConfig.intensity || 80) / 100
+        const effectLevel = level * intensity
 
-        result.hasEffects = true;
-        result.effects[effectName] = calculateEffectValue(effectName, effectLevel);
+        result.hasEffects = true
+        result.effects[effectName] = calculateEffectValue(effectName, effectLevel)
       }
     }
 
-    return result.hasEffects ? result : null;
+    return result.hasEffects ? result : null
   }
 
   /**
@@ -190,7 +196,7 @@ export class AudioProcessor {
    * @param {object} config - New configuration
    */
   updateFrequencyConfig(config) {
-    this.frequencyAnalyzer.updateConfig(config);
+    this.frequencyAnalyzer.updateConfig(config)
   }
 
   /**
@@ -198,7 +204,7 @@ export class AudioProcessor {
    * @param {object} config - New configuration
    */
   updateBeatConfig(config) {
-    this.beatDetector.updateConfig(config);
+    this.beatDetector.updateConfig(config)
   }
 
   /**
@@ -206,7 +212,7 @@ export class AudioProcessor {
    * @returns {object} BPM statistics from beat detector
    */
   getBpmStats() {
-    return this.beatDetector.getStats();
+    return this.beatDetector.getStats()
   }
 }
 
@@ -215,7 +221,7 @@ export class AudioProcessor {
  * This function can be copied into a Worker for independent processing
  */
 export function createWorkerProcessor() {
-  return new AudioProcessor();
+  return new AudioProcessor()
 }
 
-export default AudioProcessor;
+export default AudioProcessor

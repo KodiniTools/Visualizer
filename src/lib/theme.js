@@ -78,6 +78,6 @@ export function useTheme() {
     theme,
     isDark,
     setTheme,
-    toggleTheme
+    toggleTheme,
   }
 }

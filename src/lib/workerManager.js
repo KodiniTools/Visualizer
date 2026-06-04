@@ -6,25 +6,25 @@
 
 export class WorkerManager {
   constructor() {
-    this.audioWorker = null;
-    this.visualizerWorker = null;
-    this.imageFilterWorker = null;
+    this.audioWorker = null
+    this.visualizerWorker = null
+    this.imageFilterWorker = null
 
-    this.audioWorkerReady = false;
-    this.visualizerWorkerReady = false;
-    this.imageFilterWorkerReady = false;
+    this.audioWorkerReady = false
+    this.visualizerWorkerReady = false
+    this.imageFilterWorkerReady = false
 
-    this.audioCallback = null;
-    this.pendingFilterJobs = new Map();
+    this.audioCallback = null
+    this.pendingFilterJobs = new Map()
 
     // Feature Detection
-    this.supportsOffscreenCanvas = typeof OffscreenCanvas !== 'undefined';
-    this.supportsWorkers = typeof Worker !== 'undefined';
+    this.supportsOffscreenCanvas = typeof OffscreenCanvas !== 'undefined'
+    this.supportsWorkers = typeof Worker !== 'undefined'
 
     console.log('[WorkerManager] Initialisiert', {
       supportsWorkers: this.supportsWorkers,
-      supportsOffscreenCanvas: this.supportsOffscreenCanvas
-    });
+      supportsOffscreenCanvas: this.supportsOffscreenCanvas,
+    })
   }
 
   /**
@@ -32,52 +32,51 @@ export class WorkerManager {
    */
   async initAudioWorker() {
     if (!this.supportsWorkers) {
-      console.warn('[WorkerManager] Workers nicht unterstützt');
-      return false;
+      console.warn('[WorkerManager] Workers nicht unterstützt')
+      return false
     }
 
     try {
-      this.audioWorker = new Worker(
-        new URL('../workers/audioAnalysisWorker.js', import.meta.url),
-        { type: 'module' }
-      );
+      this.audioWorker = new Worker(new URL('../workers/audioAnalysisWorker.js', import.meta.url), {
+        type: 'module',
+      })
 
       return new Promise((resolve) => {
         this.audioWorker.onmessage = (e) => {
-          const { type, data } = e.data;
+          const { type, data } = e.data
 
           switch (type) {
             case 'ready':
-              this.audioWorkerReady = true;
-              console.log('[WorkerManager] Audio Worker bereit');
-              resolve(true);
-              break;
+              this.audioWorkerReady = true
+              console.log('[WorkerManager] Audio Worker bereit')
+              resolve(true)
+              break
 
             case 'audioData':
               if (this.audioCallback) {
-                this.audioCallback(data);
+                this.audioCallback(data)
               }
-              break;
+              break
           }
-        };
+        }
 
         this.audioWorker.onerror = (error) => {
-          console.error('[WorkerManager] Audio Worker Fehler:', error);
-          this.audioWorkerReady = false;
-          resolve(false);
-        };
+          console.error('[WorkerManager] Audio Worker Fehler:', error)
+          this.audioWorkerReady = false
+          resolve(false)
+        }
 
         // Timeout nach 5 Sekunden
         setTimeout(() => {
           if (!this.audioWorkerReady) {
-            console.warn('[WorkerManager] Audio Worker Timeout');
-            resolve(false);
+            console.warn('[WorkerManager] Audio Worker Timeout')
+            resolve(false)
           }
-        }, 5000);
-      });
+        }, 5000)
+      })
     } catch (error) {
-      console.error('[WorkerManager] Audio Worker konnte nicht erstellt werden:', error);
-      return false;
+      console.error('[WorkerManager] Audio Worker konnte nicht erstellt werden:', error)
+      return false
     }
   }
 
@@ -86,21 +85,21 @@ export class WorkerManager {
    */
   async initVisualizerWorker(canvas) {
     if (!this.supportsWorkers || !this.supportsOffscreenCanvas) {
-      console.warn('[WorkerManager] OffscreenCanvas nicht unterstützt');
-      return false;
+      console.warn('[WorkerManager] OffscreenCanvas nicht unterstützt')
+      return false
     }
 
     try {
       this.visualizerWorker = new Worker(
         new URL('../workers/visualizerWorker.js', import.meta.url),
-        { type: 'module' }
-      );
+        { type: 'module' },
+      )
 
-      const offscreen = canvas.transferControlToOffscreen();
+      const offscreen = canvas.transferControlToOffscreen()
 
       return new Promise((resolve) => {
         this.visualizerWorker.onmessage = (e) => {
-          const { type } = e.data;
+          const { type } = e.data
 
           switch (type) {
             case 'ready':
@@ -110,40 +109,40 @@ export class WorkerManager {
                   type: 'init',
                   canvas: offscreen,
                   width: canvas.width,
-                  height: canvas.height
+                  height: canvas.height,
                 },
-                [offscreen]
-              );
-              break;
+                [offscreen],
+              )
+              break
 
             case 'initialized':
-              this.visualizerWorkerReady = true;
-              console.log('[WorkerManager] Visualizer Worker bereit');
-              resolve(true);
-              break;
+              this.visualizerWorkerReady = true
+              console.log('[WorkerManager] Visualizer Worker bereit')
+              resolve(true)
+              break
 
             case 'frame':
               // Frame wurde gerendert - kann hier verarbeitet werden
-              break;
+              break
           }
-        };
+        }
 
         this.visualizerWorker.onerror = (error) => {
-          console.error('[WorkerManager] Visualizer Worker Fehler:', error);
-          this.visualizerWorkerReady = false;
-          resolve(false);
-        };
+          console.error('[WorkerManager] Visualizer Worker Fehler:', error)
+          this.visualizerWorkerReady = false
+          resolve(false)
+        }
 
         setTimeout(() => {
           if (!this.visualizerWorkerReady) {
-            console.warn('[WorkerManager] Visualizer Worker Timeout');
-            resolve(false);
+            console.warn('[WorkerManager] Visualizer Worker Timeout')
+            resolve(false)
           }
-        }, 5000);
-      });
+        }, 5000)
+      })
     } catch (error) {
-      console.error('[WorkerManager] Visualizer Worker konnte nicht erstellt werden:', error);
-      return false;
+      console.error('[WorkerManager] Visualizer Worker konnte nicht erstellt werden:', error)
+      return false
     }
   }
 
@@ -152,61 +151,61 @@ export class WorkerManager {
    */
   async initImageFilterWorker() {
     if (!this.supportsWorkers) {
-      console.warn('[WorkerManager] Workers nicht unterstützt');
-      return false;
+      console.warn('[WorkerManager] Workers nicht unterstützt')
+      return false
     }
 
     try {
       this.imageFilterWorker = new Worker(
         new URL('../workers/imageFilterWorker.js', import.meta.url),
-        { type: 'module' }
-      );
+        { type: 'module' },
+      )
 
       return new Promise((resolve) => {
         this.imageFilterWorker.onmessage = (e) => {
-          const { type, imageData, jobId, error } = e.data;
+          const { type, imageData, jobId, error } = e.data
 
           switch (type) {
             case 'ready':
-              this.imageFilterWorkerReady = true;
-              console.log('[WorkerManager] Image Filter Worker bereit');
-              resolve(true);
-              break;
+              this.imageFilterWorkerReady = true
+              console.log('[WorkerManager] Image Filter Worker bereit')
+              resolve(true)
+              break
 
             case 'filterResult':
-              const pendingJob = this.pendingFilterJobs.get(jobId);
+              const pendingJob = this.pendingFilterJobs.get(jobId)
               if (pendingJob) {
-                pendingJob.resolve(imageData);
-                this.pendingFilterJobs.delete(jobId);
+                pendingJob.resolve(imageData)
+                this.pendingFilterJobs.delete(jobId)
               }
-              break;
+              break
 
             case 'error':
-              const errorJob = this.pendingFilterJobs.get(jobId);
+              const errorJob = this.pendingFilterJobs.get(jobId)
               if (errorJob) {
-                errorJob.reject(new Error(error));
-                this.pendingFilterJobs.delete(jobId);
+                errorJob.reject(new Error(error))
+                this.pendingFilterJobs.delete(jobId)
               }
-              break;
+              break
           }
-        };
+        }
 
         this.imageFilterWorker.onerror = (error) => {
-          console.error('[WorkerManager] Image Filter Worker Fehler:', error);
-          this.imageFilterWorkerReady = false;
-          resolve(false);
-        };
+          console.error('[WorkerManager] Image Filter Worker Fehler:', error)
+          this.imageFilterWorkerReady = false
+          resolve(false)
+        }
 
         setTimeout(() => {
           if (!this.imageFilterWorkerReady) {
-            console.warn('[WorkerManager] Image Filter Worker Timeout');
-            resolve(false);
+            console.warn('[WorkerManager] Image Filter Worker Timeout')
+            resolve(false)
           }
-        }, 5000);
-      });
+        }, 5000)
+      })
     } catch (error) {
-      console.error('[WorkerManager] Image Filter Worker konnte nicht erstellt werden:', error);
-      return false;
+      console.error('[WorkerManager] Image Filter Worker konnte nicht erstellt werden:', error)
+      return false
     }
   }
 
@@ -217,20 +216,20 @@ export class WorkerManager {
     const results = await Promise.all([
       this.initAudioWorker(),
       this.initImageFilterWorker(),
-      visualizerCanvas ? this.initVisualizerWorker(visualizerCanvas) : Promise.resolve(false)
-    ]);
+      visualizerCanvas ? this.initVisualizerWorker(visualizerCanvas) : Promise.resolve(false),
+    ])
 
     console.log('[WorkerManager] Initialisierung abgeschlossen:', {
       audio: results[0],
       imageFilter: results[1],
-      visualizer: results[2]
-    });
+      visualizer: results[2],
+    })
 
     return {
       audio: results[0],
       imageFilter: results[1],
-      visualizer: results[2]
-    };
+      visualizer: results[2],
+    }
   }
 
   /**
@@ -238,29 +237,29 @@ export class WorkerManager {
    */
   analyzeAudio(audioDataArray, bufferLength) {
     if (!this.audioWorkerReady || !this.audioWorker) {
-      return false;
+      return false
     }
 
     // Kopie erstellen für Transfer
-    const copy = new Uint8Array(audioDataArray);
+    const copy = new Uint8Array(audioDataArray)
 
     this.audioWorker.postMessage(
       {
         type: 'analyze',
         audioData: copy,
-        bufferLength
+        bufferLength,
       },
-      [copy.buffer]
-    );
+      [copy.buffer],
+    )
 
-    return true;
+    return true
   }
 
   /**
    * Setzt Callback für Audio-Analyse Ergebnisse
    */
   onAudioData(callback) {
-    this.audioCallback = callback;
+    this.audioCallback = callback
   }
 
   /**
@@ -269,20 +268,20 @@ export class WorkerManager {
   async applyImageFilters(imageData, filters, blur = 0) {
     if (!this.imageFilterWorkerReady || !this.imageFilterWorker) {
       // Fallback: Filter im Main Thread (nicht implementiert hier)
-      throw new Error('Image Filter Worker nicht verfügbar');
+      throw new Error('Image Filter Worker nicht verfügbar')
     }
 
-    const jobId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const jobId = Date.now() + '_' + Math.random().toString(36).substr(2, 9)
 
     return new Promise((resolve, reject) => {
-      this.pendingFilterJobs.set(jobId, { resolve, reject });
+      this.pendingFilterJobs.set(jobId, { resolve, reject })
 
       // Kopie für Transfer
       const copy = new ImageData(
         new Uint8ClampedArray(imageData.data),
         imageData.width,
-        imageData.height
-      );
+        imageData.height,
+      )
 
       this.imageFilterWorker.postMessage(
         {
@@ -290,19 +289,19 @@ export class WorkerManager {
           imageData: copy,
           filters,
           blur,
-          jobId
+          jobId,
         },
-        [copy.data.buffer]
-      );
+        [copy.data.buffer],
+      )
 
       // Timeout nach 10 Sekunden
       setTimeout(() => {
         if (this.pendingFilterJobs.has(jobId)) {
-          this.pendingFilterJobs.delete(jobId);
-          reject(new Error('Filter Timeout'));
+          this.pendingFilterJobs.delete(jobId)
+          reject(new Error('Filter Timeout'))
         }
-      }, 10000);
-    });
+      }, 10000)
+    })
   }
 
   /**
@@ -310,10 +309,10 @@ export class WorkerManager {
    */
   renderVisualizerFrame(visualizerName, audioData, bufferLength, color, opacity) {
     if (!this.visualizerWorkerReady || !this.visualizerWorker) {
-      return false;
+      return false
     }
 
-    const copy = new Uint8Array(audioData);
+    const copy = new Uint8Array(audioData)
 
     this.visualizerWorker.postMessage(
       {
@@ -322,12 +321,12 @@ export class WorkerManager {
         audioData: copy,
         bufferLength,
         color,
-        opacity
+        opacity,
       },
-      [copy.buffer]
-    );
+      [copy.buffer],
+    )
 
-    return true;
+    return true
   }
 
   /**
@@ -338,8 +337,8 @@ export class WorkerManager {
       this.visualizerWorker.postMessage({
         type: 'resize',
         width,
-        height
-      });
+        height,
+      })
     }
   }
 
@@ -348,25 +347,25 @@ export class WorkerManager {
    */
   terminate() {
     if (this.audioWorker) {
-      this.audioWorker.terminate();
-      this.audioWorker = null;
-      this.audioWorkerReady = false;
+      this.audioWorker.terminate()
+      this.audioWorker = null
+      this.audioWorkerReady = false
     }
 
     if (this.visualizerWorker) {
-      this.visualizerWorker.terminate();
-      this.visualizerWorker = null;
-      this.visualizerWorkerReady = false;
+      this.visualizerWorker.terminate()
+      this.visualizerWorker = null
+      this.visualizerWorkerReady = false
     }
 
     if (this.imageFilterWorker) {
-      this.imageFilterWorker.terminate();
-      this.imageFilterWorker = null;
-      this.imageFilterWorkerReady = false;
+      this.imageFilterWorker.terminate()
+      this.imageFilterWorker = null
+      this.imageFilterWorkerReady = false
     }
 
-    this.pendingFilterJobs.clear();
-    console.log('[WorkerManager] Alle Worker beendet');
+    this.pendingFilterJobs.clear()
+    console.log('[WorkerManager] Alle Worker beendet')
   }
 
   /**
@@ -378,10 +377,10 @@ export class WorkerManager {
       visualizer: this.visualizerWorkerReady,
       imageFilter: this.imageFilterWorkerReady,
       supportsWorkers: this.supportsWorkers,
-      supportsOffscreenCanvas: this.supportsOffscreenCanvas
-    };
+      supportsOffscreenCanvas: this.supportsOffscreenCanvas,
+    }
   }
 }
 
 // Singleton-Export
-export const workerManager = new WorkerManager();
+export const workerManager = new WorkerManager()

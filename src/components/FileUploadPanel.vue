@@ -12,9 +12,9 @@
     >
       <div class="upload-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="17 8 12 3 7 8"/>
-          <line x1="12" y1="3" x2="12" y2="15"/>
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
         </svg>
       </div>
 
@@ -26,7 +26,9 @@
           {{ playerStore.playlist.length }} Track{{ playerStore.playlist.length !== 1 ? 's' : '' }}
         </span>
         <span class="upload-sub">
-          {{ locale === 'de' ? 'Dateien oder Ordner hierher ziehen' : 'Drag files or a folder here' }}
+          {{
+            locale === 'de' ? 'Dateien oder Ordner hierher ziehen' : 'Drag files or a folder here'
+          }}
         </span>
       </div>
 
@@ -42,13 +44,17 @@
       <div class="upload-buttons">
         <button class="upload-btn" @click.stop="fileInput.click()">
           <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
-            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+            <path
+              d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+            />
           </svg>
           {{ locale === 'de' ? 'Dateien' : 'Files' }}
         </button>
         <button class="upload-btn" @click.stop="folderInput.click()">
           <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
-            <path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+            <path
+              d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+            />
           </svg>
           {{ locale === 'de' ? 'Ordner' : 'Folder' }}
         </button>
@@ -61,7 +67,7 @@
       type="file"
       multiple
       accept="audio/*"
-      style="display: none;"
+      style="display: none"
       @change="onSelectFiles"
     />
     <!-- Hidden Folder Input: webkitdirectory muss beim DOM-Parse gesetzt sein -->
@@ -71,7 +77,7 @@
       multiple
       accept="audio/*"
       webkitdirectory
-      style="display: none;"
+      style="display: none"
       @change="onSelectFiles"
     />
 
@@ -79,119 +85,134 @@
     <div v-if="playerStore.hasTracks" class="tracks-info">
       <div class="info-row">
         <svg class="info-icon" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          <path
+            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+          />
         </svg>
-        <span class="info-text">{{ playerStore.playlist.length }} {{ locale === 'de' ? (playerStore.playlist.length !== 1 ? 'Dateien' : 'Datei') : (playerStore.playlist.length !== 1 ? 'files' : 'file') }}</span>
+        <span class="info-text"
+          >{{ playerStore.playlist.length }}
+          {{
+            locale === 'de'
+              ? playerStore.playlist.length !== 1
+                ? 'Dateien'
+                : 'Datei'
+              : playerStore.playlist.length !== 1
+                ? 'files'
+                : 'file'
+          }}</span
+        >
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useI18n } from '../lib/i18n.js';
-import { usePlayerStore } from '../stores/playerStore.js';
-import { useToastStore } from '../stores/toastStore.js';
+import { ref } from 'vue'
+import { useI18n } from '../lib/i18n.js'
+import { usePlayerStore } from '../stores/playerStore.js'
+import { useToastStore } from '../stores/toastStore.js'
 
-const { t, locale } = useI18n();
+const { t, locale } = useI18n()
 
-const playerStore = usePlayerStore();
-const toastStore = useToastStore();
-const fileInput = ref(null);
-const folderInput = ref(null);
-const isDragging = ref(false);
+const playerStore = usePlayerStore()
+const toastStore = useToastStore()
+const fileInput = ref(null)
+const folderInput = ref(null)
+const isDragging = ref(false)
 
 function onSelectFiles(event) {
-  const files = event.target.files;
+  const files = event.target.files
   if (files && files.length > 0) {
-    const audioFiles = Array.from(files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(f.name));
+    const audioFiles = Array.from(files).filter(
+      (f) => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(f.name),
+    )
     if (audioFiles.length > 0) {
-      playerStore.addTracks(audioFiles);
-      toastStore.success(t('toast.tracksAdded').replace('{count}', audioFiles.length));
+      playerStore.addTracks(audioFiles)
+      toastStore.success(t('toast.tracksAdded').replace('{count}', audioFiles.length))
     }
-    event.target.value = '';
+    event.target.value = ''
   }
 }
 
 function onDragOver() {
-  isDragging.value = true;
+  isDragging.value = true
 }
 
 function onDragLeave() {
-  isDragging.value = false;
+  isDragging.value = false
 }
 
 async function onDrop(event) {
-  isDragging.value = false;
+  isDragging.value = false
 
-  const items = event.dataTransfer?.items;
+  const items = event.dataTransfer?.items
   if (items && items.length > 0) {
-    const files = await collectFromItems(items);
+    const files = await collectFromItems(items)
     if (files.length > 0) {
-      playerStore.addTracks(files);
-      toastStore.success(t('toast.tracksAdded').replace('{count}', files.length));
+      playerStore.addTracks(files)
+      toastStore.success(t('toast.tracksAdded').replace('{count}', files.length))
     }
-    return;
+    return
   }
 
   // Fallback: dataTransfer.files (kein Ordner-Traversal)
-  const rawFiles = Array.from(event.dataTransfer.files).filter(isAudio);
+  const rawFiles = Array.from(event.dataTransfer.files).filter(isAudio)
   if (rawFiles.length > 0) {
-    playerStore.addTracks(rawFiles);
-    toastStore.success(t('toast.tracksAdded').replace('{count}', rawFiles.length));
+    playerStore.addTracks(rawFiles)
+    toastStore.success(t('toast.tracksAdded').replace('{count}', rawFiles.length))
   }
 }
 
 function isAudio(file) {
-  return file.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(file.name);
+  return file.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(file.name)
 }
 
 async function collectFromItems(items) {
-  const files = [];
-  const promises = [];
+  const files = []
+  const promises = []
 
   for (const item of items) {
-    const entry = item.webkitGetAsEntry?.();
+    const entry = item.webkitGetAsEntry?.()
     if (entry) {
-      promises.push(traverseEntry(entry, files));
+      promises.push(traverseEntry(entry, files))
     } else {
-      const f = item.getAsFile?.();
-      if (f && isAudio(f)) files.push(f);
+      const f = item.getAsFile?.()
+      if (f && isAudio(f)) files.push(f)
     }
   }
 
-  await Promise.all(promises);
-  return files;
+  await Promise.all(promises)
+  return files
 }
 
 function traverseEntry(entry, files) {
   if (entry.isFile) {
-    return new Promise(resolve => {
-      entry.file(f => {
-        if (isAudio(f)) files.push(f);
-        resolve();
-      }, resolve);
-    });
+    return new Promise((resolve) => {
+      entry.file((f) => {
+        if (isAudio(f)) files.push(f)
+        resolve()
+      }, resolve)
+    })
   }
 
   if (entry.isDirectory) {
-    const reader = entry.createReader();
-    return new Promise(resolve => {
+    const reader = entry.createReader()
+    return new Promise((resolve) => {
       function readAll(accumulated) {
-        reader.readEntries(async entries => {
+        reader.readEntries(async (entries) => {
           if (!entries.length) {
-            await Promise.all(accumulated.map(e => traverseEntry(e, files)));
-            resolve();
+            await Promise.all(accumulated.map((e) => traverseEntry(e, files)))
+            resolve()
           } else {
-            readAll(accumulated.concat(Array.from(entries)));
+            readAll(accumulated.concat(Array.from(entries)))
           }
-        }, resolve);
+        }, resolve)
       }
-      readAll([]);
-    });
+      readAll([])
+    })
   }
 
-  return Promise.resolve();
+  return Promise.resolve()
 }
 </script>
 
@@ -208,7 +229,7 @@ function traverseEntry(entry, files) {
 
 h3 {
   margin: 0;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-weight: 600;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -225,12 +246,16 @@ h3::before {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Cpath d='M9 18V5l12-2v13'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Ccircle cx='18' cy='16' r='3'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 /* Upload Area */
 .upload-area {
-  background: linear-gradient(135deg, var(--secondary-bg, #0E1C32) 0%, rgba(201, 152, 77, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--secondary-bg, #0e1c32) 0%,
+    rgba(201, 152, 77, 0.1) 100%
+  );
   border: 2px dashed var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 8px;
   padding: 16px;
@@ -270,7 +295,7 @@ h3::before {
   height: 100%;
   stroke: #ffffff;
   stroke-width: 1.5;
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.6));
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
 }
 
 .upload-area:hover .upload-icon {
@@ -292,13 +317,13 @@ h3::before {
 
 .upload-main {
   font-size: 0.7rem;
-  color: var(--text-primary, #E9E9EB);
+  color: var(--text-primary, #e9e9eb);
   font-weight: 600;
 }
 
 .upload-sub {
   font-size: 0.6rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   font-weight: 500;
 }
 
@@ -313,7 +338,7 @@ h3::before {
 
 .format-label {
   font-size: 0.55rem;
-  color: var(--text-muted, #7A8DA0);
+  color: var(--text-muted, #7a8da0);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   font-weight: 600;
@@ -373,13 +398,13 @@ h3::before {
 .info-icon {
   width: 14px;
   height: 14px;
-  color: var(--success, #C5DEB0);
+  color: var(--success, #c5deb0);
   flex-shrink: 0;
 }
 
 .info-text {
   font-size: 0.65rem;
-  color: var(--success, #C5DEB0);
+  color: var(--success, #c5deb0);
   font-weight: 600;
 }
 
@@ -413,7 +438,7 @@ h3::before {
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .panel {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 [data-theme='light'] h3 {
@@ -473,7 +498,7 @@ h3::before {
 
 [data-theme='light'] .upload-btn:hover {
   background-color: #014f99;
-  color: #F5F4D6;
+  color: #f5f4d6;
 }
 
 [data-theme='light'] .tracks-info {
@@ -482,10 +507,10 @@ h3::before {
 }
 
 [data-theme='light'] .info-icon {
-  color: #388E3C;
+  color: #388e3c;
 }
 
 [data-theme='light'] .info-text {
-  color: #388E3C;
+  color: #388e3c;
 }
 </style>

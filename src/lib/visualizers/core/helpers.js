@@ -3,7 +3,7 @@
  * @module visualizers/core/helpers
  */
 
-import { CONSTANTS } from './constants.js';
+import { CONSTANTS } from './constants.js'
 
 /**
  * Exponential mapping from [0,1] to [0,1] with adjustable base
@@ -12,7 +12,7 @@ import { CONSTANTS } from './constants.js';
  * @returns {number} Mapped value (0 to 1)
  */
 export function expo01(u, base = 4) {
-  return (Math.pow(base, Math.min(1, Math.max(0, u))) - 1) / (base - 1);
+  return (Math.pow(base, Math.min(1, Math.max(0, u))) - 1) / (base - 1)
 }
 
 /**
@@ -23,12 +23,12 @@ export function expo01(u, base = 4) {
  * @returns {[number, number]} Start and end indices for the frequency range
  */
 export function rangeForBar(i, totalBars, dataSize) {
-  const t0 = i / totalBars;
-  const t1 = (i + 1) / totalBars;
-  const maxIdx = Math.max(1, dataSize) - 1;
-  const start = Math.floor(expo01(t0) * maxIdx);
-  const end = Math.max(start + 1, Math.floor(expo01(t1) * maxIdx));
-  return [start, end];
+  const t0 = i / totalBars
+  const t1 = (i + 1) / totalBars
+  const maxIdx = Math.max(1, dataSize) - 1
+  const start = Math.floor(expo01(t0) * maxIdx)
+  const end = Math.max(start + 1, Math.floor(expo01(t1) * maxIdx))
+  return [start, end]
 }
 
 /**
@@ -39,13 +39,13 @@ export function rangeForBar(i, totalBars, dataSize) {
  * @returns {number} Average value
  */
 export function averageRange(arr, start, end) {
-  let sum = 0;
-  const s = Math.max(0, start) | 0;
-  const e = Math.max(s + 1, end) | 0;
+  let sum = 0
+  const s = Math.max(0, start) | 0
+  const e = Math.max(s + 1, end) | 0
   for (let i = s; i < e; i++) {
-    sum += arr[i] || 0;
+    sum += arr[i] || 0
   }
-  return sum / (e - s);
+  return sum / (e - s)
 }
 
 /**
@@ -57,18 +57,40 @@ export function averageRange(arr, start, end) {
  */
 export function calculateDynamicGain(barIndex, totalBars, settings = {}) {
   const {
-    bassGain = CONSTANTS.BASS_GAIN, lowMidGain = CONSTANTS.LOW_MID_GAIN,
-    highMidGain = CONSTANTS.HIGH_MID_GAIN, highGain = CONSTANTS.HIGH_GAIN,
-    ultraHighGain = CONSTANTS.ULTRA_HIGH_GAIN, bassThreshold = CONSTANTS.BASS_THRESHOLD,
-    lowMidThreshold = CONSTANTS.LOW_MID_THRESHOLD, highMidThreshold = CONSTANTS.HIGH_MID_THRESHOLD,
-    highThreshold = CONSTANTS.HIGH_THRESHOLD
-  } = settings;
-  const normalizedPosition = barIndex / totalBars;
-  if (normalizedPosition <= bassThreshold) return bassGain;
-  if (normalizedPosition <= lowMidThreshold) return bassGain + ((normalizedPosition - bassThreshold) / (lowMidThreshold - bassThreshold)) * (lowMidGain - bassGain);
-  if (normalizedPosition <= highMidThreshold) return lowMidGain + ((normalizedPosition - lowMidThreshold) / (highMidThreshold - lowMidThreshold)) * (highMidGain - lowMidGain);
-  if (normalizedPosition <= highThreshold) return highMidGain + ((normalizedPosition - highMidThreshold) / (highThreshold - highMidThreshold)) * (highGain - highMidGain);
-  return highGain + ((normalizedPosition - highThreshold) / (1.0 - highThreshold)) * (ultraHighGain - highGain);
+    bassGain = CONSTANTS.BASS_GAIN,
+    lowMidGain = CONSTANTS.LOW_MID_GAIN,
+    highMidGain = CONSTANTS.HIGH_MID_GAIN,
+    highGain = CONSTANTS.HIGH_GAIN,
+    ultraHighGain = CONSTANTS.ULTRA_HIGH_GAIN,
+    bassThreshold = CONSTANTS.BASS_THRESHOLD,
+    lowMidThreshold = CONSTANTS.LOW_MID_THRESHOLD,
+    highMidThreshold = CONSTANTS.HIGH_MID_THRESHOLD,
+    highThreshold = CONSTANTS.HIGH_THRESHOLD,
+  } = settings
+  const normalizedPosition = barIndex / totalBars
+  if (normalizedPosition <= bassThreshold) return bassGain
+  if (normalizedPosition <= lowMidThreshold)
+    return (
+      bassGain +
+      ((normalizedPosition - bassThreshold) / (lowMidThreshold - bassThreshold)) *
+        (lowMidGain - bassGain)
+    )
+  if (normalizedPosition <= highMidThreshold)
+    return (
+      lowMidGain +
+      ((normalizedPosition - lowMidThreshold) / (highMidThreshold - lowMidThreshold)) *
+        (highMidGain - lowMidGain)
+    )
+  if (normalizedPosition <= highThreshold)
+    return (
+      highMidGain +
+      ((normalizedPosition - highMidThreshold) / (highThreshold - highMidThreshold)) *
+        (highGain - highMidGain)
+    )
+  return (
+    highGain +
+    ((normalizedPosition - highThreshold) / (1.0 - highThreshold)) * (ultraHighGain - highGain)
+  )
 }
 
 /**
@@ -78,11 +100,15 @@ export function calculateDynamicGain(barIndex, totalBars, settings = {}) {
  * @param {number} baseSmoothingFactor - Base smoothing factor
  * @returns {number} Adjusted smoothing factor
  */
-export function getFrequencyBasedSmoothing(barIndex, totalBars, baseSmoothingFactor = CONSTANTS.SMOOTHING_BASE) {
-  const normalizedPosition = barIndex / totalBars;
-  if (normalizedPosition > 0.7) return baseSmoothingFactor * CONSTANTS.SMOOTHING_HIGH_MULTIPLIER;
-  if (normalizedPosition > 0.3) return baseSmoothingFactor * CONSTANTS.SMOOTHING_MID_MULTIPLIER;
-  return baseSmoothingFactor;
+export function getFrequencyBasedSmoothing(
+  barIndex,
+  totalBars,
+  baseSmoothingFactor = CONSTANTS.SMOOTHING_BASE,
+) {
+  const normalizedPosition = barIndex / totalBars
+  if (normalizedPosition > 0.7) return baseSmoothingFactor * CONSTANTS.SMOOTHING_HIGH_MULTIPLIER
+  if (normalizedPosition > 0.3) return baseSmoothingFactor * CONSTANTS.SMOOTHING_MID_MULTIPLIER
+  return baseSmoothingFactor
 }
 
 /**
@@ -93,7 +119,7 @@ export function getFrequencyBasedSmoothing(barIndex, totalBars, baseSmoothingFac
  * @returns {number} New smoothed value
  */
 export function applySmoothValue(current, target, factor) {
-  return current + (target - current) * factor;
+  return current + (target - current) * factor
 }
 
 /**
@@ -102,11 +128,11 @@ export function applySmoothValue(current, target, factor) {
  * @param {Function} drawFunction - Function to execute with safe state
  */
 export function withSafeCanvasState(ctx, drawFunction) {
-  ctx.save();
+  ctx.save()
   try {
-    drawFunction();
+    drawFunction()
   } finally {
-    ctx.restore();
+    ctx.restore()
   }
 }
 
@@ -123,7 +149,7 @@ export function withSafeCanvasState(ctx, drawFunction) {
 export function batchStyleChanges(ctx, styles) {
   for (const [key, value] of Object.entries(styles)) {
     if (value !== undefined && ctx[key] !== value) {
-      ctx[key] = value;
+      ctx[key] = value
     }
   }
 }
@@ -137,12 +163,12 @@ export function batchStyleChanges(ctx, styles) {
  * @param {Function} callback - Function(index, angle, cos, sin) for each segment
  */
 export function forEachRotatedSegment(count, centerX, centerY, callback) {
-  const angleStep = (Math.PI * 2) / count;
+  const angleStep = (Math.PI * 2) / count
   for (let i = 0; i < count; i++) {
-    const angle = i * angleStep;
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-    callback(i, angle, cos, sin);
+    const angle = i * angleStep
+    const cos = Math.cos(angle)
+    const sin = Math.sin(angle)
+    callback(i, angle, cos, sin)
   }
 }
 
@@ -150,7 +176,7 @@ export function forEachRotatedSegment(count, centerX, centerY, callback) {
  * Pre-calculated gradient cache for reuse across frames
  * Reduces gradient creation overhead in animation loops
  */
-const gradientCache = new Map();
+const gradientCache = new Map()
 
 /**
  * Creates or retrieves a cached radial gradient
@@ -164,29 +190,29 @@ const gradientCache = new Map();
  * @returns {CanvasGradient} Cached or new gradient
  */
 export function getCachedRadialGradient(ctx, key, x, y, r1, r2, colorStops) {
-  const cacheKey = `${key}_${r1.toFixed(0)}_${r2.toFixed(0)}`;
+  const cacheKey = `${key}_${r1.toFixed(0)}_${r2.toFixed(0)}`
 
   // Check if we have a valid cached gradient
   if (!gradientCache.has(cacheKey)) {
-    const gradient = ctx.createRadialGradient(x, y, r1, x, y, r2);
-    colorStops.forEach(([offset, color]) => gradient.addColorStop(offset, color));
-    gradientCache.set(cacheKey, gradient);
+    const gradient = ctx.createRadialGradient(x, y, r1, x, y, r2)
+    colorStops.forEach(([offset, color]) => gradient.addColorStop(offset, color))
+    gradientCache.set(cacheKey, gradient)
 
     // Limit cache size
     if (gradientCache.size > 100) {
-      const firstKey = gradientCache.keys().next().value;
-      gradientCache.delete(firstKey);
+      const firstKey = gradientCache.keys().next().value
+      gradientCache.delete(firstKey)
     }
   }
 
-  return gradientCache.get(cacheKey);
+  return gradientCache.get(cacheKey)
 }
 
 /**
  * Clears the gradient cache (call on visualizer change or resize)
  */
 export function clearGradientCache() {
-  gradientCache.clear();
+  gradientCache.clear()
 }
 
 /**
@@ -199,12 +225,12 @@ export function clearGradientCache() {
  */
 export function withConditionalShadow(ctx, condition, color, blur, drawFn) {
   if (condition) {
-    ctx.shadowColor = color;
-    ctx.shadowBlur = blur;
-    drawFn();
-    ctx.shadowBlur = 0;
+    ctx.shadowColor = color
+    ctx.shadowBlur = blur
+    drawFn()
+    ctx.shadowBlur = 0
   } else {
-    drawFn();
+    drawFn()
   }
 }
 
@@ -215,25 +241,25 @@ export function withConditionalShadow(ctx, condition, color, blur, drawFn) {
  */
 export function batchArcs(ctx, arcs) {
   // Group arcs by fillStyle for efficient rendering
-  const groups = new Map();
+  const groups = new Map()
 
   for (const arc of arcs) {
-    const key = arc.fillStyle || 'default';
+    const key = arc.fillStyle || 'default'
     if (!groups.has(key)) {
-      groups.set(key, []);
+      groups.set(key, [])
     }
-    groups.get(key).push(arc);
+    groups.get(key).push(arc)
   }
 
   for (const [fillStyle, group] of groups) {
     if (fillStyle !== 'default') {
-      ctx.fillStyle = fillStyle;
+      ctx.fillStyle = fillStyle
     }
 
     for (const arc of group) {
-      ctx.beginPath();
-      ctx.arc(arc.x, arc.y, arc.radius, arc.startAngle || 0, arc.endAngle || Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath()
+      ctx.arc(arc.x, arc.y, arc.radius, arc.startAngle || 0, arc.endAngle || Math.PI * 2)
+      ctx.fill()
     }
   }
 }
@@ -248,12 +274,12 @@ export function batchArcs(ctx, arcs) {
  * @returns {Object} Transformed {x, y} coordinates
  */
 export function rotatePoint(x, y, angle, centerX = 0, centerY = 0) {
-  const cos = Math.cos(angle);
-  const sin = Math.sin(angle);
+  const cos = Math.cos(angle)
+  const sin = Math.sin(angle)
   return {
     x: centerX + x * cos - y * sin,
-    y: centerY + x * sin + y * cos
-  };
+    y: centerY + x * sin + y * cos,
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -267,7 +293,7 @@ export function rotatePoint(x, y, angle, centerX = 0, centerY = 0) {
  * @param {number} t - Progress (0-1)
  */
 export function lerp(a, b, t) {
-  return a + (b - a) * t;
+  return a + (b - a) * t
 }
 
 /**
@@ -275,24 +301,24 @@ export function lerp(a, b, t) {
  */
 export const easing = {
   /** Decelerates — great for peaks/beats settling down */
-  outCubic: t => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3),
+  outCubic: (t) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3),
   /** Accelerates then decelerates — good for balanced animations */
-  inOutQuad: t => {
-    t = Math.min(1, Math.max(0, t));
-    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  inOutQuad: (t) => {
+    t = Math.min(1, Math.max(0, t))
+    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
   },
   /** Bouncy spring release — great for beat reactions */
-  elasticOut: t => {
-    t = Math.min(1, Math.max(0, t));
-    if (t === 0 || t === 1) return t;
-    return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI) / 4.5) + 1;
+  elasticOut: (t) => {
+    t = Math.min(1, Math.max(0, t))
+    if (t === 0 || t === 1) return t
+    return Math.pow(2, -10 * t) * Math.sin(((t * 10 - 0.75) * (2 * Math.PI)) / 4.5) + 1
   },
   /** Smooth S-curve */
-  smoothStep: t => {
-    t = Math.min(1, Math.max(0, t));
-    return t * t * (3 - 2 * t);
-  }
-};
+  smoothStep: (t) => {
+    t = Math.min(1, Math.max(0, t))
+    return t * t * (3 - 2 * t)
+  },
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 🥁 BEAT DETECTION
@@ -307,7 +333,7 @@ export const easing = {
  * @param {number} riseFactor - How much bigger current must be vs previous (default 1.2)
  */
 export function detectBeat(current, previous, threshold = 0.55, riseFactor = 1.2) {
-  return current > threshold && current > previous * riseFactor;
+  return current > threshold && current > previous * riseFactor
 }
 
 /**
@@ -319,16 +345,16 @@ export function detectBeat(current, previous, threshold = 0.55, riseFactor = 1.2
  * @returns {number} Alpha value 0–1
  */
 export function energyRamp(energy, onAt, fullAt) {
-  if (energy <= onAt) return 0;
-  if (energy >= fullAt) return 1;
-  return easing.smoothStep((energy - onAt) / (fullAt - onAt));
+  if (energy <= onAt) return 0
+  if (energy >= fullAt) return 1
+  return easing.smoothStep((energy - onAt) / (fullAt - onAt))
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 🎨 LINEAR GRADIENT CACHE
 // ═══════════════════════════════════════════════════════════════════════════
 
-const linearGradientCache = new Map();
+const linearGradientCache = new Map()
 
 /**
  * Creates or retrieves a cached linear gradient by key.
@@ -344,22 +370,22 @@ const linearGradientCache = new Map();
  */
 export function getCachedLinearGradient(ctx, key, x0, y0, x1, y1, colorStops) {
   if (!linearGradientCache.has(key)) {
-    const g = ctx.createLinearGradient(x0, y0, x1, y1);
-    colorStops.forEach(([offset, color]) => g.addColorStop(offset, color));
-    linearGradientCache.set(key, g);
+    const g = ctx.createLinearGradient(x0, y0, x1, y1)
+    colorStops.forEach(([offset, color]) => g.addColorStop(offset, color))
+    linearGradientCache.set(key, g)
     if (linearGradientCache.size > 200) {
-      linearGradientCache.delete(linearGradientCache.keys().next().value);
+      linearGradientCache.delete(linearGradientCache.keys().next().value)
     }
   }
-  return linearGradientCache.get(key);
+  return linearGradientCache.get(key)
 }
 
 /**
  * Clears all gradient caches (call on visualizer switch or canvas resize)
  */
 export function clearAllGradientCaches() {
-  gradientCache.clear();
-  linearGradientCache.clear();
+  gradientCache.clear()
+  linearGradientCache.clear()
 }
 
 /**
@@ -373,52 +399,52 @@ export function clearAllGradientCaches() {
  * @param {Object} options - Optional settings for glow effect
  */
 export function drawRoundedBar(ctx, x, y, width, height, radius, options = {}) {
-  const { glow = false, glowColor = null, glowBlur = 15, glowIntensity = 0.6 } = options;
+  const { glow = false, glowColor = null, glowBlur = 15, glowIntensity = 0.6 } = options
 
   // Ensure radius doesn't exceed half of width or height
-  const r = Math.min(radius, width / 2, Math.abs(height) / 2);
+  const r = Math.min(radius, width / 2, Math.abs(height) / 2)
 
-  if (height === 0) return;
+  if (height === 0) return
 
-  ctx.beginPath();
+  ctx.beginPath()
 
   if (height > 0) {
     // Drawing upward (normal bars)
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + width - r, y);
-    ctx.arcTo(x + width, y, x + width, y - r, r);
-    ctx.lineTo(x + width, y - height + r);
-    ctx.arcTo(x + width, y - height, x + width - r, y - height, r);
-    ctx.lineTo(x + r, y - height);
-    ctx.arcTo(x, y - height, x, y - height + r, r);
-    ctx.lineTo(x, y - r);
-    ctx.arcTo(x, y, x + r, y, r);
+    ctx.moveTo(x + r, y)
+    ctx.lineTo(x + width - r, y)
+    ctx.arcTo(x + width, y, x + width, y - r, r)
+    ctx.lineTo(x + width, y - height + r)
+    ctx.arcTo(x + width, y - height, x + width - r, y - height, r)
+    ctx.lineTo(x + r, y - height)
+    ctx.arcTo(x, y - height, x, y - height + r, r)
+    ctx.lineTo(x, y - r)
+    ctx.arcTo(x, y, x + r, y, r)
   } else {
     // Drawing downward (mirrored bars)
-    const absHeight = Math.abs(height);
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + width - r, y);
-    ctx.arcTo(x + width, y, x + width, y + r, r);
-    ctx.lineTo(x + width, y + absHeight - r);
-    ctx.arcTo(x + width, y + absHeight, x + width - r, y + absHeight, r);
-    ctx.lineTo(x + r, y + absHeight);
-    ctx.arcTo(x, y + absHeight, x, y + absHeight - r, r);
-    ctx.lineTo(x, y + r);
-    ctx.arcTo(x, y, x + r, y, r);
+    const absHeight = Math.abs(height)
+    ctx.moveTo(x + r, y)
+    ctx.lineTo(x + width - r, y)
+    ctx.arcTo(x + width, y, x + width, y + r, r)
+    ctx.lineTo(x + width, y + absHeight - r)
+    ctx.arcTo(x + width, y + absHeight, x + width - r, y + absHeight, r)
+    ctx.lineTo(x + r, y + absHeight)
+    ctx.arcTo(x, y + absHeight, x, y + absHeight - r, r)
+    ctx.lineTo(x, y + r)
+    ctx.arcTo(x, y, x + r, y, r)
   }
 
-  ctx.closePath();
+  ctx.closePath()
 
   // Apply glow effect if enabled
   if (glow && glowColor) {
-    ctx.save();
-    ctx.shadowColor = glowColor;
-    ctx.shadowBlur = glowBlur * glowIntensity;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.fill();
-    ctx.restore();
+    ctx.save()
+    ctx.shadowColor = glowColor
+    ctx.shadowBlur = glowBlur * glowIntensity
+    ctx.shadowOffsetX = 0
+    ctx.shadowOffsetY = 0
+    ctx.fill()
+    ctx.restore()
   }
 
-  ctx.fill();
+  ctx.fill()
 }

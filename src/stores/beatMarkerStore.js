@@ -1,6 +1,6 @@
 // src/stores/beatMarkerStore.js
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
 
 /**
  * Beat-Drop Marker Store
@@ -8,27 +8,27 @@ import { ref, computed } from 'vue';
  */
 export const useBeatMarkerStore = defineStore('beatMarker', () => {
   // Alle Marker für den aktuellen Track
-  const markers = ref([]);
+  const markers = ref([])
 
   // ID-Counter für eindeutige Marker-IDs
-  const nextId = ref(1);
+  const nextId = ref(1)
 
   // Letzter ausgelöster Marker (verhindert Mehrfachauslösung)
-  const lastTriggeredMarkerId = ref(null);
+  const lastTriggeredMarkerId = ref(null)
 
   // Toleranz in Sekunden für Marker-Erkennung
-  const triggerTolerance = ref(0.15);
+  const triggerTolerance = ref(0.15)
 
   // Marker aktiviert/deaktiviert
-  const markersEnabled = ref(true);
+  const markersEnabled = ref(true)
 
   // Sortierte Marker nach Zeit
   const sortedMarkers = computed(() => {
-    return [...markers.value].sort((a, b) => a.time - b.time);
-  });
+    return [...markers.value].sort((a, b) => a.time - b.time)
+  })
 
   // Anzahl der Marker
-  const markerCount = computed(() => markers.value.length);
+  const markerCount = computed(() => markers.value.length)
 
   /**
    * Fügt einen neuen Marker hinzu
@@ -45,15 +45,15 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
         visualizer: action.visualizer || null,
         color: action.color || null,
         opacity: action.opacity !== undefined ? action.opacity : null,
-        ...action
+        ...action,
       },
       label: label || `Drop ${markers.value.length + 1}`,
-      triggered: false
-    };
+      triggered: false,
+    }
 
-    markers.value.push(marker);
-    console.log('🎯 [BeatMarker] Marker hinzugefügt:', marker);
-    return marker;
+    markers.value.push(marker)
+    console.log('🎯 [BeatMarker] Marker hinzugefügt:', marker)
+    return marker
   }
 
   /**
@@ -61,10 +61,10 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
    * @param {number} id - Marker-ID
    */
   function removeMarker(id) {
-    const index = markers.value.findIndex(m => m.id === id);
+    const index = markers.value.findIndex((m) => m.id === id)
     if (index !== -1) {
-      const removed = markers.value.splice(index, 1)[0];
-      console.log('🗑️ [BeatMarker] Marker entfernt:', removed);
+      const removed = markers.value.splice(index, 1)[0]
+      console.log('🗑️ [BeatMarker] Marker entfernt:', removed)
     }
   }
 
@@ -74,13 +74,13 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
    * @param {object} updates - Zu aktualisierende Felder
    */
   function updateMarker(id, updates) {
-    const marker = markers.value.find(m => m.id === id);
+    const marker = markers.value.find((m) => m.id === id)
     if (marker) {
-      Object.assign(marker, updates);
+      Object.assign(marker, updates)
       if (updates.action) {
-        Object.assign(marker.action, updates.action);
+        Object.assign(marker.action, updates.action)
       }
-      console.log('✏️ [BeatMarker] Marker aktualisiert:', marker);
+      console.log('✏️ [BeatMarker] Marker aktualisiert:', marker)
     }
   }
 
@@ -90,39 +90,39 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
    * @returns {object|null} - Ausgelöster Marker oder null
    */
   function checkTrigger(currentTime) {
-    if (!markersEnabled.value) return null;
+    if (!markersEnabled.value) return null
 
     for (const marker of markers.value) {
       // Prüfe ob Zeit innerhalb der Toleranz liegt
-      const timeDiff = Math.abs(currentTime - marker.time);
+      const timeDiff = Math.abs(currentTime - marker.time)
 
       if (timeDiff <= triggerTolerance.value && marker.id !== lastTriggeredMarkerId.value) {
-        lastTriggeredMarkerId.value = marker.id;
-        marker.triggered = true;
-        console.log('🎯 [BeatMarker] TRIGGER!', marker.label, 'bei', currentTime.toFixed(2) + 's');
-        return marker;
+        lastTriggeredMarkerId.value = marker.id
+        marker.triggered = true
+        console.log('🎯 [BeatMarker] TRIGGER!', marker.label, 'bei', currentTime.toFixed(2) + 's')
+        return marker
       }
     }
-    return null;
+    return null
   }
 
   /**
    * Setzt alle Marker auf nicht-ausgelöst zurück (z.B. bei Seek)
    */
   function resetTriggers() {
-    lastTriggeredMarkerId.value = null;
-    markers.value.forEach(m => m.triggered = false);
-    console.log('🔄 [BeatMarker] Trigger zurückgesetzt');
+    lastTriggeredMarkerId.value = null
+    markers.value.forEach((m) => (m.triggered = false))
+    console.log('🔄 [BeatMarker] Trigger zurückgesetzt')
   }
 
   /**
    * Löscht alle Marker
    */
   function clearAllMarkers() {
-    markers.value = [];
-    nextId.value = 1;
-    lastTriggeredMarkerId.value = null;
-    console.log('🗑️ [BeatMarker] Alle Marker gelöscht');
+    markers.value = []
+    nextId.value = 1
+    lastTriggeredMarkerId.value = null
+    console.log('🗑️ [BeatMarker] Alle Marker gelöscht')
   }
 
   /**
@@ -131,7 +131,7 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
    * @returns {object|null} - Nächster Marker oder null
    */
   function getNextMarker(currentTime) {
-    return sortedMarkers.value.find(m => m.time > currentTime) || null;
+    return sortedMarkers.value.find((m) => m.time > currentTime) || null
   }
 
   /**
@@ -140,8 +140,8 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
   function exportMarkers() {
     return JSON.stringify({
       markers: markers.value,
-      nextId: nextId.value
-    });
+      nextId: nextId.value,
+    })
   }
 
   /**
@@ -150,12 +150,12 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
    */
   function importMarkers(json) {
     try {
-      const data = JSON.parse(json);
-      markers.value = data.markers || [];
-      nextId.value = data.nextId || markers.value.length + 1;
-      console.log('📥 [BeatMarker] Marker importiert:', markers.value.length);
+      const data = JSON.parse(json)
+      markers.value = data.markers || []
+      nextId.value = data.nextId || markers.value.length + 1
+      console.log('📥 [BeatMarker] Marker importiert:', markers.value.length)
     } catch (e) {
-      console.error('❌ [BeatMarker] Import fehlgeschlagen:', e);
+      console.error('❌ [BeatMarker] Import fehlgeschlagen:', e)
     }
   }
 
@@ -163,8 +163,8 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
    * Togglet Marker-Aktivierung
    */
   function toggleEnabled() {
-    markersEnabled.value = !markersEnabled.value;
-    console.log('🎯 [BeatMarker] Marker', markersEnabled.value ? 'aktiviert' : 'deaktiviert');
+    markersEnabled.value = !markersEnabled.value
+    console.log('🎯 [BeatMarker] Marker', markersEnabled.value ? 'aktiviert' : 'deaktiviert')
   }
 
   return {
@@ -187,6 +187,6 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
     getNextMarker,
     exportMarkers,
     importMarkers,
-    toggleEnabled
-  };
-});
+    toggleEnabled,
+  }
+})

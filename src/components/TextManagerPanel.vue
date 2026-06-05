@@ -2,6 +2,9 @@
   <div class="panel">
     <h3>{{ t('textManager.title') }}</h3>
 
+    <!-- Add new text — always visible (collapses to a button when not in use) -->
+    <TextNewForm @created="onTextCreated" />
+
     <!-- Multi-select edit mode -->
     <TextMultiEditPanel
       v-if="multiSelectedTexts.length > 1"
@@ -19,9 +22,6 @@
       ref="editPanelRef"
       @delete="deleteSelectedText"
     />
-
-    <!-- New text form mode -->
-    <TextNewForm v-else @created="onTextCreated" />
   </div>
 </template>
 

@@ -116,6 +116,16 @@ export class MouseHandler {
 
     const clickedObject = this.manager.selectionManager.getObjectAtPos(x, y)
     if (clickedObject) {
+      // Shift+click on text: toggle multi-selection instead of replacing
+      if (e.shiftKey && clickedObject.type === 'text') {
+        if (!this.manager.activeObject || this.manager.activeObject.type !== 'text') {
+          this.manager.setActiveObject(clickedObject)
+        } else {
+          this.manager.toggleMultiSelect(clickedObject)
+        }
+        this.manager.redrawCallback()
+        return
+      }
       this.manager.setActiveObject(clickedObject)
       this.manager.currentAction = 'move'
       this.manager.dragStartPos = { x, y }

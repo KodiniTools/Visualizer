@@ -63,6 +63,9 @@ export class CanvasManager {
     this.isEditingText = false
     this.isRecording = false
 
+    // Multi-selection: array of text objects selected alongside activeObject
+    this.selectedObjects = []
+
     // Text-Rechteck-Auswahl-Modus
     this.textSelectionMode = false
     this.textSelectionRect = null
@@ -156,6 +159,43 @@ export class CanvasManager {
 
   _notifySelectionListeners(obj) {
     this._selectionListeners.forEach((listener) => listener(obj))
+  }
+
+  // ───────── Multi-selection helpers ─────────
+
+  toggleMultiSelect(obj) {
+    if (!obj || obj.type !== 'text') return
+    const idx = this.selectedObjects.indexOf(obj)
+    if (idx >= 0) {
+      this.selectedObjects.splice(idx, 1)
+    } else {
+      this.selectedObjects.push(obj)
+    }
+    // Notify listeners with array so TextManagerPanel can show multi-edit
+    this._selectionListeners.forEach((listener) =>
+      listener(this.activeObject, this.selectedObjects),
+    )
+    this.redrawCallback()
+  }
+
+  clearMultiSelection() {
+    this.selectedObjects = []
+  }
+
+  isInMultiSelection(obj) {
+    return this.selectedObjects.includes(obj)
+  }
+
+  selectAllTexts() {
+    if (!this.textManager) return
+    const texts = this.textManager.textObjects
+    if (!texts || texts.length === 0) return
+    this.activeObject = texts[texts.length - 1]
+    this.selectedObjects = [...texts]
+    this._selectionListeners.forEach((listener) =>
+      listener(this.activeObject, this.selectedObjects),
+    )
+    this.redrawCallback()
   }
 
   // ═══════════════════════════════════════════════════════════════════

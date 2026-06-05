@@ -23,6 +23,8 @@ export class SelectionManager {
   setActiveObject(obj) {
     const previousActive = this.manager.activeObject
     this.manager.activeObject = obj
+    // Normal click always clears multi-selection
+    this.manager.selectedObjects = []
 
     // Text-Objekte immer an die oberste Ebene verschieben
     if (obj && obj.type === 'text' && this.manager.textManager) {

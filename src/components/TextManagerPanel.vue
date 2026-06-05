@@ -2,6 +2,9 @@
   <div class="panel">
     <h3>{{ t('textManager.title') }}</h3>
 
+    <!-- Add new text — always visible (collapses to a button when not in use) -->
+    <TextNewForm @created="onTextCreated" />
+
     <!-- Multi-select edit mode -->
     <TextMultiEditPanel
       v-if="multiSelectedTexts.length > 1"
@@ -19,9 +22,6 @@
       ref="editPanelRef"
       @delete="deleteSelectedText"
     />
-
-    <!-- New text form mode -->
-    <TextNewForm v-else @created="onTextCreated" />
   </div>
 </template>
 
@@ -195,9 +195,9 @@ watch(
   (arr) => {
     if (arr && arr.length > 1) {
       multiSelectedTexts.value = [...arr]
-      if (!selectedText.value && arr[arr.length - 1]) {
-        handleSelectionChange(arr[arr.length - 1])
-      }
+      // Keep selectedText pointing at activeObject for audio-reactive copy button
+      const active = canvasManager.value?.activeObject
+      if (active?.type === 'text') handleSelectionChange(active)
     } else {
       multiSelectedTexts.value = []
     }

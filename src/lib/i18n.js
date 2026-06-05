@@ -802,6 +802,19 @@ const translations = {
       saved: 'Preset gespeichert',
     },
 
+    // ========== BEAT DROP ==========
+    beatDrop: {
+      title: 'Beat-Drop Effekte',
+      source: 'Quelle',
+      flash: 'Flash',
+      colorBurst: 'Color Burst',
+      strobe: 'Strobe',
+      vignette: 'Vignette Puls',
+      intensity: 'Intensität',
+      decay: 'Abklingen',
+      rate: 'Frequenz',
+    },
+
     // ========== TEXT MANAGER PANEL ==========
     textManager: {
       title: 'Text-Manager',
@@ -2138,6 +2151,19 @@ const translations = {
       namePlaceholder: 'Preset name...',
       applied: 'Preset "{name}" applied',
       saved: 'Preset saved',
+    },
+
+    // ========== BEAT DROP ==========
+    beatDrop: {
+      title: 'Beat-Drop Effects',
+      source: 'Source',
+      flash: 'Flash',
+      colorBurst: 'Color Burst',
+      strobe: 'Strobe',
+      vignette: 'Vignette Pulse',
+      intensity: 'Intensity',
+      decay: 'Decay',
+      rate: 'Rate',
     },
 
     // ========== TEXT MANAGER PANEL ==========

@@ -300,6 +300,8 @@ import { useGridStore } from './stores/gridStore.js'
 import { useWorkspaceStore } from './stores/workspaceStore.js'
 import { useBackgroundTilesStore } from './stores/backgroundTilesStore.js'
 import { useAudioSourceStore } from './stores/audioSourceStore.js'
+import { useBeatDropStore } from './stores/beatDropStore.js'
+import { BeatDropRenderer } from './lib/canvasManager/rendering/BeatDropRenderer.js'
 import FileUploadPanel from './components/FileUploadPanel.vue'
 import PlayerPanel from './components/PlayerPanel.vue'
 import RecorderPanel from './components/RecorderPanel.vue'
@@ -335,6 +337,7 @@ const playerStore = usePlayerStore()
 const recorderStore = useRecorderStore()
 const textStore = useTextStore()
 const visualizerStore = useVisualizerStore()
+const beatDropStore = useBeatDropStore()
 const gridStore = useGridStore()
 const workspaceStore = useWorkspaceStore()
 const backgroundTilesStore = useBackgroundTilesStore()
@@ -410,6 +413,7 @@ const videoSourceNodes = new Map() // Map von videoElement → { sourceNode, gai
 
 let animationFrameId
 let drawTimeoutId = null // ✅ FIX: Fallback timer for recording when tab is hidden
+const beatDropRenderer = new BeatDropRenderer()
 let textManagerInstance = null
 const lastSelectedVisualizerId = ref(null)
 let audioDataArray = null
@@ -1858,6 +1862,15 @@ function draw() {
     }
 
     renderScene(ctx, canvas.width, canvas.height, drawVisualizerCallback)
+
+    // Beat-Drop global canvas effects
+    beatDropRenderer.render(
+      ctx,
+      canvas.width,
+      canvas.height,
+      window.audioAnalysisData,
+      beatDropStore.$state,
+    )
 
     // ✅ FIX: Recording canvas is now EXCLUSIVELY updated by recorder:forceRedraw event
     // This prevents race conditions between requestAnimationFrame and recorder's setInterval

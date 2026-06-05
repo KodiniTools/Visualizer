@@ -2460,6 +2460,15 @@ window.takeCanvasScreenshot = async function (mimeType = 'image/png', quality = 
   // ✅ FIX: renderRecordingScene nutzen - respektiert Workspace-Bereich korrekt
   renderRecordingScene(ctx, targetWidth, targetHeight, drawVisualizerCallback)
 
+  // Beat-Drop Effekte auch im Screenshot einbetten
+  beatDropRenderer.render(
+    ctx,
+    targetWidth,
+    targetHeight,
+    window.audioAnalysisData,
+    beatDropStore.$state,
+  )
+
   // Als Blob exportieren
   return new Promise((resolve, reject) => {
     screenshotCanvas.toBlob(
@@ -2726,6 +2735,15 @@ onMounted(async () => {
       recordingCanvas.width,
       recordingCanvas.height,
       drawVisualizerCallback,
+    )
+
+    // Beat-Drop Effekte auch auf den Recording-Canvas anwenden
+    beatDropRenderer.render(
+      recordingCtx,
+      recordingCanvas.width,
+      recordingCanvas.height,
+      window.audioAnalysisData,
+      beatDropStore.$state,
     )
   })
   console.log('[App] recorder:forceRedraw Event-Listener registriert')

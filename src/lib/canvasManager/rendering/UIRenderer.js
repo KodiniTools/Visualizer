@@ -22,6 +22,21 @@ export class UIRenderer {
   drawInteractiveElements(ctx) {
     if (this.manager.isEditingText) return
 
+    // Draw dashed frames for all multi-selected objects (except activeObject)
+    if (this.manager.selectedObjects && this.manager.selectedObjects.length > 0) {
+      ctx.save()
+      ctx.strokeStyle = 'rgba(110, 200, 110, 0.8)'
+      ctx.lineWidth = 1.5
+      ctx.setLineDash([5, 4])
+      for (const obj of this.manager.selectedObjects) {
+        if (obj === this.manager.activeObject) continue
+        const b = this.manager.getObjectBounds(obj)
+        if (b) ctx.strokeRect(b.x, b.y, b.width, b.height)
+      }
+      ctx.setLineDash([])
+      ctx.restore()
+    }
+
     const targetObject = this.manager.activeObject || this.manager.hoveredObject
     if (!targetObject) return
 

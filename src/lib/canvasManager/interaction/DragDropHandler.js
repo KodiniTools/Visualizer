@@ -41,6 +41,16 @@ export class DragDropHandler {
       obj.relY = Math.max(0, Math.min(obj.relY, 1 - obj.relHeight))
     }
     // Text wird nicht begrenzt - kann frei positioniert werden
+
+    // When multiple texts are selected, move them all together
+    if (this.manager.selectedObjects && this.manager.selectedObjects.length > 0) {
+      for (const other of this.manager.selectedObjects) {
+        if (other !== obj && other.type === 'text') {
+          other.relX += relDx
+          other.relY += relDy
+        }
+      }
+    }
   }
 
   /**

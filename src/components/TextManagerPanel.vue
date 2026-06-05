@@ -2,18 +2,26 @@
   <div class="panel">
     <h3>{{ t('textManager.title') }}</h3>
 
-    <!-- New text form mode -->
-    <TextNewForm v-if="!selectedText" @created="onTextCreated" />
+    <!-- Multi-select edit mode -->
+    <TextMultiEditPanel
+      v-if="multiSelectedTexts.length > 1"
+      :texts="multiSelectedTexts"
+      :active-text="selectedText"
+      @clear="clearMultiSelection"
+    />
 
-    <!-- Edit mode -->
+    <!-- Single edit mode -->
     <TextEditPanel
-      v-if="selectedText"
+      v-else-if="selectedText"
       :selected-text="selectedText"
       :canvas-width="canvasWidth"
       :canvas-height="canvasHeight"
       ref="editPanelRef"
       @delete="deleteSelectedText"
     />
+
+    <!-- New text form mode -->
+    <TextNewForm v-else @created="onTextCreated" />
   </div>
 </template>
 
@@ -22,12 +30,14 @@ import { ref, inject, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import TextNewForm from './text-manager/TextNewForm.vue'
 import TextEditPanel from './text-manager/TextEditPanel.vue'
+import TextMultiEditPanel from './text-manager/TextMultiEditPanel.vue'
 
 const { t } = useI18n()
 const canvasManager = inject('canvasManager')
 const fontManager = inject('fontManager')
 
 const selectedText = ref(null)
+const multiSelectedTexts = ref([])
 const canvasWidth = ref(1920)
 const canvasHeight = ref(1080)
 const editPanelRef = ref(null)
@@ -178,6 +188,31 @@ watch(
   },
   { deep: true },
 )
+
+// Watch multi-selection array
+watch(
+  () => canvasManager.value?.selectedObjects,
+  (arr) => {
+    if (arr && arr.length > 1) {
+      multiSelectedTexts.value = [...arr]
+      if (!selectedText.value && arr[arr.length - 1]) {
+        handleSelectionChange(arr[arr.length - 1])
+      }
+    } else {
+      multiSelectedTexts.value = []
+    }
+  },
+  { deep: true },
+)
+
+function clearMultiSelection() {
+  if (canvasManager.value) {
+    canvasManager.value.clearMultiSelection()
+    canvasManager.value.setActiveObject(null)
+  }
+  multiSelectedTexts.value = []
+  selectedText.value = null
+}
 
 // ✨ NEU: Watch für Canvas-Dimensionen Updates
 watch(

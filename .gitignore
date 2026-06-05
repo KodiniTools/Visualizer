@@ -5,6 +5,9 @@ dist/
 *.log
 .DS_Store
 
+# Claude Code
+.claude/
+
 # Server
 server/uploads/
 server/files/

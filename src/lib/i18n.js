@@ -791,6 +791,17 @@ const translations = {
       resetAll: 'Alle zurücksetzen',
     },
 
+    // ========== PRESET PANEL ==========
+    presets: {
+      title: 'Presets',
+      builtIn: 'Vorlagen',
+      myPresets: 'Meine Presets',
+      save: 'Speichern',
+      namePlaceholder: 'Preset-Name...',
+      applied: 'Preset "{name}" angewendet',
+      saved: 'Preset gespeichert',
+    },
+
     // ========== TEXT MANAGER PANEL ==========
     textManager: {
       title: 'Text-Manager',
@@ -2116,6 +2127,17 @@ const translations = {
       resetNormalBg: 'Reset normal background',
       resetWorkspaceBg: 'Reset workspace background',
       resetAll: 'Reset all',
+    },
+
+    // ========== PRESET PANEL ==========
+    presets: {
+      title: 'Presets',
+      builtIn: 'Templates',
+      myPresets: 'My Presets',
+      save: 'Save',
+      namePlaceholder: 'Preset name...',
+      applied: 'Preset "{name}" applied',
+      saved: 'Preset saved',
     },
 
     // ========== TEXT MANAGER PANEL ==========

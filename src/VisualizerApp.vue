@@ -271,6 +271,7 @@
         <PlayerPanel />
         <RecorderPanel />
         <ScreenshotPanel />
+        <PresetPanel />
         <VisualizerPanel />
         <ControlsPanel />
         <CanvasControlPanel />
@@ -308,6 +309,7 @@ import VideoPanel from './components/VideoPanel.vue' // ✨ NEU: Video-Panel
 import TextManagerPanel from './components/TextManagerPanel.vue'
 import ControlsPanel from './components/ControlsPanel.vue'
 import VisualizerPanel from './components/VisualizerPanel.vue'
+import PresetPanel from './components/PresetPanel.vue'
 import CanvasControlPanel from './components/CanvasControlPanel.vue'
 import QuickStartGuide from './components/QuickStartGuide.vue'
 import ToastContainer from './components/ToastContainer.vue'

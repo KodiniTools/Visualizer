@@ -195,9 +195,9 @@ watch(
   (arr) => {
     if (arr && arr.length > 1) {
       multiSelectedTexts.value = [...arr]
-      if (!selectedText.value && arr[arr.length - 1]) {
-        handleSelectionChange(arr[arr.length - 1])
-      }
+      // Keep selectedText pointing at activeObject for audio-reactive copy button
+      const active = canvasManager.value?.activeObject
+      if (active?.type === 'text') handleSelectionChange(active)
     } else {
       multiSelectedTexts.value = []
     }

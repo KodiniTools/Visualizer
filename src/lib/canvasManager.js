@@ -165,12 +165,25 @@ export class CanvasManager {
 
   toggleMultiSelect(obj) {
     if (!obj || obj.type !== 'text') return
+
+    // On first shift+click ensure activeObject is part of the set
+    if (this.activeObject && !this.selectedObjects.includes(this.activeObject)) {
+      this.selectedObjects.unshift(this.activeObject)
+    }
+
     const idx = this.selectedObjects.indexOf(obj)
     if (idx >= 0) {
       this.selectedObjects.splice(idx, 1)
+      // If we removed the activeObject, promote the next one
+      if (obj === this.activeObject && this.selectedObjects.length > 0) {
+        this.activeObject = this.selectedObjects[this.selectedObjects.length - 1]
+      } else if (obj === this.activeObject) {
+        this.activeObject = null
+      }
     } else {
       this.selectedObjects.push(obj)
     }
+
     // Notify listeners with array so TextManagerPanel can show multi-edit
     this._selectionListeners.forEach((listener) =>
       listener(this.activeObject, this.selectedObjects),

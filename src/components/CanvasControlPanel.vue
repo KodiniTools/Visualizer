@@ -632,7 +632,7 @@
 </template>
 
 <script setup>
-import { ref, inject, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, inject, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import BackgroundTilesPanel from './BackgroundTilesPanel.vue'
 
@@ -1575,14 +1575,32 @@ watch(
 )
 
 // Initialisiere beim Mounting
+function handlePresetApply(event) {
+  const bg = event.detail?.background
+  if (!bg || !canvasManager.value) return
+  backgroundColor.value = bg.color || '#ffffff'
+  backgroundOpacity.value = bg.opacity ?? 1.0
+  gradientEnabled.value = bg.gradientEnabled ?? false
+  gradientColor2.value = bg.gradientColor2 || '#0066ff'
+  applyBackgroundColor()
+  if (gradientEnabled.value) updateGradientSettings()
+}
+
 onMounted(() => {
   // ✅ Gespeicherte Presets laden
   loadPresets()
+
+  // ✅ Preset-System: Background-Updates von PresetPanel empfangen
+  window.addEventListener('preset:apply', handlePresetApply)
 
   // ✅ Versuche Initialisierung (falls canvasManager bereits verfügbar)
   if (!initializeCanvasSettings()) {
     console.log('⏳ CanvasControlPanel mounted - warte auf CanvasManager...')
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('preset:apply', handlePresetApply)
 })
 </script>
 

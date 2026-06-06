@@ -396,14 +396,27 @@
       <div class="section-header">
         <span class="section-label">{{ t('recorder.webmExport') }}</span>
       </div>
-      <a :href="webmBlobUrl" :download="webmFilename" class="mp4-download-btn webm-download-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="7 10 12 15 17 10" />
-          <line x1="12" y1="15" x2="12" y2="3" />
-        </svg>
-        {{ t('recorder.downloadWebm') }}
-      </a>
+      <div class="download-actions">
+        <a
+          :href="webmBlobUrl"
+          :download="webmFilename"
+          class="mp4-download-btn webm-download-btn"
+          @click="handleWebmDownloadClick"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          {{ t('recorder.downloadWebm') }}
+        </a>
+        <button class="btn btn-close-conversion" @click="dismissWebm" :title="t('common.close')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
       <p class="webm-info">{{ t('recorder.webmInfo') }}</p>
     </div>
 
@@ -985,6 +998,18 @@ function prepareWebmDownload(blob) {
   webmFilename.value = `visualizer_${ts}.webm`
 }
 
+function handleWebmDownloadClick() {
+  setTimeout(() => {
+    dismissWebm()
+  }, 2000)
+}
+
+function dismissWebm() {
+  if (webmBlobUrl.value) URL.revokeObjectURL(webmBlobUrl.value)
+  webmBlobUrl.value = null
+  webmFilename.value = null
+}
+
 /**
  * GIF-Export via FFmpeg 2-Pass
  */
@@ -1144,7 +1169,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
-  if (webmBlobUrl.value) URL.revokeObjectURL(webmBlobUrl.value)
+  dismissWebm()
   // Cleanup timer
   if (timerInterval) {
     clearInterval(timerInterval)

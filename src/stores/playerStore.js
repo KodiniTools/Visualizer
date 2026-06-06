@@ -127,12 +127,19 @@ export const usePlayerStore = defineStore('player', () => {
 
   function _playNext(index) {
     loadTrack(index)
-    if (audioRef.value) {
-      audioRef.value.play().catch((err) => {
-        if (err.name !== 'AbortError') console.error('[PlayerStore] Autoplay error:', err)
-        isPlaying.value = false
-      })
-    }
+    if (!audioRef.value) return
+
+    const audio = audioRef.value
+    audio.addEventListener(
+      'canplay',
+      () => {
+        audio.play().catch((err) => {
+          if (err.name !== 'AbortError') console.error('[PlayerStore] Autoplay error:', err)
+          isPlaying.value = false
+        })
+      },
+      { once: true },
+    )
   }
 
   function handleTimeUpdate() {

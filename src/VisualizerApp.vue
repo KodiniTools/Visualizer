@@ -302,6 +302,8 @@ import { useBackgroundTilesStore } from './stores/backgroundTilesStore.js'
 import { useAudioSourceStore } from './stores/audioSourceStore.js'
 import { useBeatDropStore } from './stores/beatDropStore.js'
 import { BeatDropRenderer } from './lib/canvasManager/rendering/BeatDropRenderer.js'
+import { useAudioFxStore } from './stores/audioFxStore.js'
+import { AudioFxRenderer } from './lib/canvasManager/rendering/AudioFxRenderer.js'
 import FileUploadPanel from './components/FileUploadPanel.vue'
 import PlayerPanel from './components/PlayerPanel.vue'
 import RecorderPanel from './components/RecorderPanel.vue'
@@ -338,6 +340,7 @@ const recorderStore = useRecorderStore()
 const textStore = useTextStore()
 const visualizerStore = useVisualizerStore()
 const beatDropStore = useBeatDropStore()
+const audioFxStore = useAudioFxStore()
 const gridStore = useGridStore()
 const workspaceStore = useWorkspaceStore()
 const backgroundTilesStore = useBackgroundTilesStore()
@@ -414,6 +417,7 @@ const videoSourceNodes = new Map() // Map von videoElement → { sourceNode, gai
 let animationFrameId
 let drawTimeoutId = null // ✅ FIX: Fallback timer for recording when tab is hidden
 const beatDropRenderer = new BeatDropRenderer()
+const audioFxRenderer = new AudioFxRenderer()
 let textManagerInstance = null
 const lastSelectedVisualizerId = ref(null)
 let audioDataArray = null
@@ -1863,6 +1867,15 @@ function draw() {
 
     renderScene(ctx, canvas.width, canvas.height, drawVisualizerCallback)
 
+    // Audio-Reaktive Effekte (kontinuierlich, per-frame)
+    audioFxRenderer.render(
+      ctx,
+      canvas.width,
+      canvas.height,
+      window.audioAnalysisData,
+      audioFxStore.$state,
+    )
+
     // Beat-Drop global canvas effects
     beatDropRenderer.render(
       ctx,
@@ -2460,6 +2473,15 @@ window.takeCanvasScreenshot = async function (mimeType = 'image/png', quality = 
   // ✅ FIX: renderRecordingScene nutzen - respektiert Workspace-Bereich korrekt
   renderRecordingScene(ctx, targetWidth, targetHeight, drawVisualizerCallback)
 
+  // Audio-Reaktive Effekte im Screenshot einbetten
+  audioFxRenderer.render(
+    ctx,
+    targetWidth,
+    targetHeight,
+    window.audioAnalysisData,
+    audioFxStore.$state,
+  )
+
   // Beat-Drop Effekte auch im Screenshot einbetten
   beatDropRenderer.render(
     ctx,
@@ -2735,6 +2757,15 @@ onMounted(async () => {
       recordingCanvas.width,
       recordingCanvas.height,
       drawVisualizerCallback,
+    )
+
+    // Audio-Reaktive Effekte auf den Recording-Canvas anwenden
+    audioFxRenderer.render(
+      recordingCtx,
+      recordingCanvas.width,
+      recordingCanvas.height,
+      window.audioAnalysisData,
+      audioFxStore.$state,
     )
 
     // Beat-Drop Effekte auch auf den Recording-Canvas anwenden

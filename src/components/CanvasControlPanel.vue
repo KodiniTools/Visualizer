@@ -589,6 +589,11 @@
         </template>
       </div>
 
+      <!-- Audio-Reaktive Effekte -->
+      <div class="panel-section">
+        <AudioFxPanel />
+      </div>
+
       <div class="panel-section">
         <h4>{{ t('canvasControl.clearCanvas') }}</h4>
         <p class="info-text warning">⚠️ {{ t('canvasControl.removesAll') }}</p>
@@ -765,6 +770,7 @@ import { ref, inject, computed, onMounted, onUnmounted, watch, nextTick } from '
 import { useI18n } from '../lib/i18n.js'
 import BackgroundTilesPanel from './BackgroundTilesPanel.vue'
 import { useBeatDropStore } from '../stores/beatDropStore.js'
+import AudioFxPanel from './AudioFxPanel.vue'
 
 const { t } = useI18n()
 const canvasManager = inject('canvasManager')

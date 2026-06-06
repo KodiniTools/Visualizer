@@ -677,6 +677,16 @@ const translations = {
       processingOnServer: 'Server verarbeitet dein Video...',
       dontCloseWindow: 'Bitte das Fenster nicht schließen',
       audioSource: 'Audio',
+      // GIF Export
+      gifExport: 'GIF Export',
+      gifAutoCreate: 'GIF nach Aufnahme erstellen',
+      gifFps: 'FPS',
+      gifWidth: 'Breite',
+      gifConverting: 'Erstelle GIF...',
+      gifCompleted: 'GIF bereit!',
+      gifError: 'GIF-Erstellung fehlgeschlagen!',
+      downloadGif: 'GIF Download',
+      convertToGif: 'Als GIF exportieren',
     },
 
     // ========== VISUALIZER PANEL ==========
@@ -2028,6 +2038,16 @@ const translations = {
       processingOnServer: 'Server is processing your video...',
       dontCloseWindow: "Please don't close this window",
       audioSource: 'Audio',
+      // GIF Export
+      gifExport: 'GIF Export',
+      gifAutoCreate: 'Create GIF after recording',
+      gifFps: 'FPS',
+      gifWidth: 'Width',
+      gifConverting: 'Creating GIF...',
+      gifCompleted: 'GIF ready!',
+      gifError: 'GIF creation failed!',
+      downloadGif: 'GIF Download',
+      convertToGif: 'Export as GIF',
     },
 
     // ========== VISUALIZER PANEL ==========

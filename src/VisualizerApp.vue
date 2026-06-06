@@ -1,5 +1,7 @@
 <template>
   <div id="app-container">
+    <AppHeader />
+
     <!-- Mobile Panel Toggle Bar -->
     <div class="mobile-panel-bar">
       <button
@@ -317,6 +319,7 @@ import PresetPanel from './components/PresetPanel.vue'
 import CanvasControlPanel from './components/CanvasControlPanel.vue'
 import QuickStartGuide from './components/QuickStartGuide.vue'
 import ToastContainer from './components/ToastContainer.vue'
+import AppHeader from './components/AppHeader.vue'
 import { Visualizers } from './lib/visualizers/index.js'
 import { TextManager } from './lib/textManager.js'
 import { CUSTOM_FONTS } from './lib/fonts.js'

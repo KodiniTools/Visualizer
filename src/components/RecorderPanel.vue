@@ -1230,6 +1230,9 @@ async function finishHqExport(audioBlob) {
       }, 2000)
     })
 
+    // Tatsächliche Aufnahmedauer aus dem Capture-Stop-Ergebnis
+    const durationMs = remaining?.durationMs || 0
+
     // Letzte Frames hochladen
     if (remaining?.frames?.length > 0) {
       await uploadFrameBatch(sessionId, remaining.frames, remaining.startIndex)
@@ -1245,8 +1248,8 @@ async function finishHqExport(audioBlob) {
     hqProgress.value = 50
     hqStatus.value = 'assembling'
 
-    // FFmpeg Assemblierung starten
-    const assemblyJobId = await assembleFrameExport(sessionId)
+    // FFmpeg Assemblierung starten — mit echter Dauer für korrektes Timing
+    const assemblyJobId = await assembleFrameExport(sessionId, durationMs)
     hqSessionId.value = null
 
     // Auf Fertigstellung pollen

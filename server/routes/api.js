@@ -1003,11 +1003,14 @@ router.post('/frame-export/:jobId/audio', audioUpload.single('audio'), async (re
  * POST /api/frame-export/:jobId/assemble
  * Startet FFmpeg-Assemblierung (frames + audio → MP4)
  */
-router.post('/frame-export/:jobId/assemble', async (req, res) => {
+router.post('/frame-export/:jobId/assemble', express.json(), async (req, res) => {
   const frameJob = frameJobs.get(req.params.jobId)
   if (!frameJob) return res.status(404).json({ error: 'Frame job not found' })
 
-  // Normalen Job für Status-Polling erstellen
+  // Tatsächliche Aufnahmedauer für korrektes Frame-Timing
+  const durationMs = parseInt(req.body?.durationMs) || 0
+  if (durationMs > 0) frameJob.durationMs = durationMs
+
   const outputFilename = `hq_${Date.now()}.mp4`
   const outputPath = path.join(FILES_DIR, outputFilename)
   const job = createJob(null, { type: 'frame-export' })
@@ -1015,7 +1018,6 @@ router.post('/frame-export/:jobId/assemble', async (req, res) => {
 
   res.json({ success: true, jobId: job.id })
 
-  // Assemblierung im Hintergrund
   processFrameAssembly(job.id, frameJob, outputPath, outputFilename)
 })
 
@@ -1025,6 +1027,7 @@ async function processFrameAssembly(jobId, frameJob, outputPath, outputFilename)
 
     await assembleFrames(frameJob.framesDir, frameJob.audioPath || null, outputPath, {
       fps: frameJob.fps,
+      durationMs: frameJob.durationMs || 0,
       onProgress: (progress) => updateJob(jobId, { progress }),
     })
 

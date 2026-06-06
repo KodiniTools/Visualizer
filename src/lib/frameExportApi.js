@@ -61,11 +61,14 @@ export async function uploadAudio(jobId, audioBlob) {
 /**
  * Startet die FFmpeg-Assemblierung
  * @param {string} jobId
+ * @param {number} durationMs - Tatsächliche Aufnahmedauer in ms
  * @returns {Promise<string>} assemblyJobId für Status-Polling
  */
-export async function assembleFrameExport(jobId) {
+export async function assembleFrameExport(jobId, durationMs) {
   const res = await fetch(`${API_BASE}/frame-export/${jobId}/assemble`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ durationMs: durationMs || 0 }),
   })
   if (!res.ok) throw new Error(`Assemble failed: ${res.status}`)
   const data = await res.json()

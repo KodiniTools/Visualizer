@@ -1,16 +1,15 @@
 /**
  * useFrameCapture
  *
- * Kapselt die Frame-by-Frame Canvas-Capture-Logik:
- * - Erfasst JPEG-Frames in einem festen FPS-Intervall
- * - Sammelt Frames in Batches (BATCH_SIZE Frames)
- * - Ruft onBatch() auf wenn ein Batch bereit ist
- * - Gibt letzten Teil-Batch über flush() zurück
+ * Kapselt die Frame-by-Frame Canvas-Capture-Logik.
+ * Trackt tatsächliche Start/Stop-Zeitstempel damit FFmpeg
+ * die korrekte Videolänge berechnen kann — unabhängig davon,
+ * wie viele Frames wegen langsamer toBlob()-Calls übersprungen wurden.
  */
 
 import { ref } from 'vue'
 
-const BATCH_SIZE = 30 // Frames pro Upload-Batch
+const BATCH_SIZE = 30
 
 export function useFrameCapture() {
   const isCapturing = ref(false)
@@ -22,6 +21,7 @@ export function useFrameCapture() {
   let _pendingBatch = []
   let _onBatch = null
   let _captureInProgress = false
+  let _startTime = 0
 
   function start(canvas, fps, onBatch) {
     if (isCapturing.value) return
@@ -31,12 +31,13 @@ export function useFrameCapture() {
     _onBatch = onBatch
     _captureInProgress = false
     capturedFrameCount.value = 0
+    _startTime = Date.now()
     isCapturing.value = true
 
     const intervalMs = 1000 / fps
 
     _intervalId = setInterval(() => {
-      if (_captureInProgress) return // Letzter Capture noch nicht fertig — Frame überspringen
+      if (_captureInProgress) return
       _captureInProgress = true
 
       _canvas.toBlob(
@@ -65,12 +66,14 @@ export function useFrameCapture() {
   }
 
   /**
-   * Stoppt die Capture und gibt verbleibende Frames zurück
-   * @returns {{ frames: Blob[], startIndex: number } | null}
+   * Stoppt die Capture.
+   * @returns {{ frames: Blob[], startIndex: number, durationMs: number } | null}
    */
   function stop() {
     if (!isCapturing.value) return null
     isCapturing.value = false
+
+    const durationMs = Date.now() - _startTime
 
     if (_intervalId) {
       clearInterval(_intervalId)
@@ -81,7 +84,12 @@ export function useFrameCapture() {
     const startIndex = _frameIndex - remaining.length
     _canvas = null
 
-    return remaining.length > 0 ? { frames: remaining, startIndex } : null
+    return {
+      frames: remaining,
+      startIndex,
+      durationMs,
+      totalFrames: _frameIndex + remaining.length,
+    }
   }
 
   return { isCapturing, capturedFrameCount, start, stop }

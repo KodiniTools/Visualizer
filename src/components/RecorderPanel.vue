@@ -2299,9 +2299,10 @@ h3::before {
 .preview-video {
   width: 100%;
   height: auto;
-  max-height: 40vh;
+  max-height: 60vh;
   display: block;
   object-fit: contain;
+  border-radius: 6px;
 }
 
 .modal-actions {

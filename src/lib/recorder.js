@@ -891,13 +891,10 @@ class Recorder {
     downloadLink.blob = blob
 
     const fileSizeMB = (blob.size / (1024 * 1024)).toFixed(2)
-    const reasonText = reason ? ` (Reason: ${reason})` : ''
-
     document.getElementById('mimeInfo').innerHTML = `
-            <strong>Format:</strong> ${this.recordingMimeType}<br>
+            <strong>Format:</strong> WebM (VP8/VP9 + Opus)<br>
             <strong>Resolution:</strong> ${this.recordingCanvas.width}x${this.recordingCanvas.height}<br>
-            <strong>Size:</strong> ${fileSizeMB}MB<br>
-            <strong>Download:</strong> Direct Browser Download${reasonText}
+            <strong>Size:</strong> ${fileSizeMB}MB
         `
 
     const resultsPanel = document.getElementById('results-panel')

@@ -133,6 +133,51 @@
           </svg>
         </button>
 
+        <!-- Playlist-Modus Button -->
+        <button
+          @click="cyclePlayMode"
+          class="control-btn control-btn-playmode"
+          :class="{ active: playerStore.playMode !== 'none' }"
+          :title="playModeLabel"
+        >
+          <!-- none: single note -->
+          <svg v-if="playerStore.playMode === 'none'" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z" />
+          </svg>
+          <!-- sequence: play arrow + bar -->
+          <svg
+            v-else-if="playerStore.playMode === 'sequence'"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path d="M6 18l8.5-6L6 6v12zm8.5-6L23 6v12l-8.5-6zM4 6H2v12h2V6z" />
+          </svg>
+          <!-- repeat-one -->
+          <svg
+            v-else-if="playerStore.playMode === 'repeat-one'"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path
+              d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4zm-4-2V9h-1l-2 1v1h1.5v4H13z"
+            />
+          </svg>
+          <!-- repeat-all -->
+          <svg
+            v-else-if="playerStore.playMode === 'repeat-all'"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z" />
+          </svg>
+          <!-- shuffle -->
+          <svg v-else viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"
+            />
+          </svg>
+        </button>
+
         <!-- Add Beat Marker Button -->
         <button
           @click="addMarkerAtCurrentTime"
@@ -425,7 +470,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { usePlayerStore } from '../stores/playerStore.js'
 import { useBeatMarkerStore } from '../stores/beatMarkerStore.js'
@@ -441,6 +486,23 @@ const audioSourceStore = useAudioSourceStore()
 const volume = ref(100)
 const bass = ref(0)
 const treble = ref(0)
+
+// Playlist-Modus durchschalten
+const PLAY_MODES = ['none', 'sequence', 'repeat-one', 'repeat-all', 'shuffle']
+function cyclePlayMode() {
+  const idx = PLAY_MODES.indexOf(playerStore.playMode)
+  playerStore.playMode = PLAY_MODES[(idx + 1) % PLAY_MODES.length]
+}
+const playModeLabel = computed(() => {
+  const labels = {
+    none: locale.value === 'de' ? 'Kein Autoplay' : 'No autoplay',
+    sequence: locale.value === 'de' ? 'Playlist (einmal)' : 'Playlist (once)',
+    'repeat-one': locale.value === 'de' ? 'Track wiederholen' : 'Repeat track',
+    'repeat-all': locale.value === 'de' ? 'Playlist wiederholen' : 'Repeat all',
+    shuffle: locale.value === 'de' ? 'Zufällige Reihenfolge' : 'Shuffle',
+  }
+  return labels[playerStore.playMode] ?? ''
+})
 
 // Drag & Drop State für Playlist-Neuordnung
 const draggedTrackIndex = ref(null)
@@ -1442,6 +1504,23 @@ h3::before {
 .control-btn-marker.active {
   background-color: #4ade80;
   border-color: #4ade80;
+}
+
+.control-btn-playmode {
+  font-size: 0.55rem;
+  min-width: 28px;
+}
+
+.control-btn-playmode.active {
+  background-color: rgba(74, 158, 255, 0.2);
+  border-color: #4a9eff;
+  color: #4a9eff;
+}
+
+[data-theme='light'] .control-btn-playmode.active {
+  background-color: rgba(1, 79, 153, 0.12);
+  border-color: #014f99;
+  color: #014f99;
 }
 
 /* Beat Marker Section */

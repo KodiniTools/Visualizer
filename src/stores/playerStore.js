@@ -12,6 +12,9 @@ export const usePlayerStore = defineStore('player', () => {
   const currentTime = ref(0)
   const duration = ref(0)
 
+  // Playlist-Modus: 'none' | 'sequence' | 'repeat-one' | 'repeat-all' | 'shuffle'
+  const playMode = ref('none')
+
   // === GETTERS (Abgeleitete Daten, wie computed) ===
   const hasTracks = computed(() => playlist.value.length > 0)
   const currentTrack = computed(() =>
@@ -90,8 +93,46 @@ export const usePlayerStore = defineStore('player', () => {
 
   function handleEnded() {
     isPlaying.value = false
-    console.log('[PlayerStore] Track ended - NO AUTOPLAY')
-    // ✨ WICHTIG: Kein automatisches Abspielen des nächsten Tracks
+    console.log('[PlayerStore] Track ended, playMode:', playMode.value)
+
+    if (!hasTracks.value) return
+
+    if (playMode.value === 'repeat-one') {
+      // Selben Track neu starten
+      if (audioRef.value) {
+        audioRef.value.currentTime = 0
+        audioRef.value.play().catch(() => {})
+      }
+    } else if (playMode.value === 'sequence') {
+      // Nächster Track, aber am Ende stoppen
+      if (currentTrackIndex.value < playlist.value.length - 1) {
+        _playNext(currentTrackIndex.value + 1)
+      }
+    } else if (playMode.value === 'repeat-all') {
+      // Nächster Track, am Ende wieder von vorne
+      const next = (currentTrackIndex.value + 1) % playlist.value.length
+      _playNext(next)
+    } else if (playMode.value === 'shuffle') {
+      // Zufälliger Track (nicht der aktuelle)
+      if (playlist.value.length > 1) {
+        let next
+        do {
+          next = Math.floor(Math.random() * playlist.value.length)
+        } while (next === currentTrackIndex.value)
+        _playNext(next)
+      }
+    }
+    // playMode === 'none': kein Autoplay
+  }
+
+  function _playNext(index) {
+    loadTrack(index)
+    if (audioRef.value) {
+      audioRef.value.play().catch((err) => {
+        if (err.name !== 'AbortError') console.error('[PlayerStore] Autoplay error:', err)
+        isPlaying.value = false
+      })
+    }
   }
 
   function handleTimeUpdate() {
@@ -316,6 +357,7 @@ export const usePlayerStore = defineStore('player', () => {
     audioRef,
     currentTime,
     duration,
+    playMode,
 
     // Getters
     hasTracks,

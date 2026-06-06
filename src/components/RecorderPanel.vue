@@ -707,102 +707,78 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useRecorderStore } from '../stores/recorderStore.js'
 import HelpTooltip from './HelpTooltip.vue'
-import {
-  checkServerHealth,
-  convertAndWait,
-  convertGifAndWait,
-  getFileUrl,
-  getDownloadUrl,
-  cleanupFile,
-} from '../lib/videoApi.js'
-import {
-  startFrameExportSession,
-  uploadFrameBatch,
-  uploadAudio,
-  assembleFrameExport,
-  cancelFrameExport,
-} from '../lib/frameExportApi.js'
-import { useFrameCapture } from '../composables/useFrameCapture.js'
-import { getJobStatus, waitForJob } from '../lib/videoApi.js'
+import { checkServerHealth } from '../lib/videoApi.js'
+import { useRecordingTimer } from '../composables/useRecordingTimer.js'
+import { useMicrophoneToggle } from '../composables/useMicrophoneToggle.js'
+import { useWebmExport } from '../composables/useWebmExport.js'
+import { useServerConversion } from '../composables/useServerConversion.js'
+import { useGifConversion } from '../composables/useGifConversion.js'
+import { useHqExport } from '../composables/useHqExport.js'
 
 const { t } = useI18n()
 const recorderStore = useRecorderStore()
 
-// Lokaler State
+// ── Base State ───────────────────────────────────────────────────────
 const selectedQuality = ref(8_000_000)
 const uploadMode = ref('auto')
 const isProcessing = ref(false)
+const serverAvailable = ref(null)
+const enableServerConversion = ref(true)
+const conversionQuality = ref('social')
 
-// Recording Timer State
-const recordingStartTime = ref(null)
-const recordingElapsedAtPause = ref(0)
-const recordingDisplayTime = ref('00:00')
-let timerInterval = null
-
-// ✨ NEU: Mikrofon zuschalten (Player + Mic gleichzeitig)
-const microphoneEnabled = ref(false)
-const isSwitchingSource = ref(false)
-
-// ✅ FIX: Mikrofon-Status zurücksetzen wenn Aufnahme endet
-watch(
-  () => recorderStore.isRecording,
-  (isRecording) => {
-    if (!isRecording) {
-      // Aufnahme beendet - Reset Mikrofon-Status
-      microphoneEnabled.value = false
-      console.log('[Panel] Aufnahme beendet - Mikrofon-Status zurückgesetzt')
-    }
-  },
-)
-
-// Server Conversion State
-const serverAvailable = ref(null) // null = unknown, true/false
-const enableServerConversion = ref(true) // FFmpeg Konvertierung aktiviert
-const conversionQuality = ref('social') // FFmpeg Preset
-const isConverting = ref(false)
-const conversionProgress = ref(0)
-const conversionStatus = ref('') // 'uploading', 'converting', 'completed', 'error'
-const conversionError = ref(null)
-const convertedVideoUrl = ref(null)
-const convertedFilename = ref(null)
-
-// WebM Export State
-const webmBlobUrl = ref(null)
-const webmFilename = ref(null)
-
-// GIF Export State
-const enableGifExport = ref(false)
-const gifFps = ref(15)
-const gifWidth = ref(480)
-const isConvertingGif = ref(false)
-const gifConversionProgress = ref(0)
-const gifConversionStatus = ref('') // 'uploading'|'converting'|'completed'|'error'
-const gifConversionError = ref(null)
-const convertedGifUrl = ref(null)
-const convertedGifFilename = ref(null)
-
-// HQ Frame Export State
-const enableHqExport = ref(false)
-const hqFps = ref(30)
-const hqSessionId = ref(null) // Frame-Export Session-ID
-const isHqCapturing = ref(false) // läuft während Aufnahme
-const hqStatus = ref('') // 'capturing'|'uploading'|'assembling'|'completed'|'error'
-const hqProgress = ref(0)
-const hqError = ref(null)
-const hqVideoUrl = ref(null)
-const hqFilename = ref(null)
+// ── Composables ──────────────────────────────────────────────────────
+const { recordingDisplayTime, startTimer, pauseTimer, resumeTimer, stopTimer, destroyTimer } =
+  useRecordingTimer()
+const { microphoneEnabled, isSwitchingSource, toggleMicrophone } = useMicrophoneToggle()
+const { webmBlobUrl, webmFilename, prepareWebmDownload, handleWebmDownloadClick, dismissWebm } =
+  useWebmExport()
 const {
-  isCapturing: hqIsCapturing,
+  isConverting,
+  conversionProgress,
+  conversionStatus,
+  conversionError,
+  convertedVideoUrl,
+  convertedFilename,
+  startServerConversion,
+  retryConversion,
+  dismissConversion,
+  handleDownloadClick,
+} = useServerConversion()
+const {
+  enableGifExport,
+  gifFps,
+  gifWidth,
+  isConvertingGif,
+  gifConversionProgress,
+  gifConversionStatus,
+  gifConversionError,
+  convertedGifUrl,
+  convertedGifFilename,
+  startGifConversion,
+  dismissGifConversion,
+  handleGifDownloadClick,
+} = useGifConversion()
+const {
+  enableHqExport,
+  hqFps,
+  hqSessionId,
+  hqStatus,
+  hqProgress,
+  hqError,
+  hqVideoUrl,
+  hqFilename,
   capturedFrameCount,
-  start: startCapture,
-  stop: stopCapture,
-} = useFrameCapture()
+  startHqCapture,
+  finishHqExport,
+  dismissHqExport,
+  handleHqDownloadClick,
+} = useHqExport()
 
-// Quality Presets - ✅ Erweitert für 4K+ und Audio-Reaktiv
+// ── Presets ──────────────────────────────────────────────────────────
 const qualityPresets = [
   { value: 2_000_000, label: 'Low' },
   { value: 5_000_000, label: 'Med' },
@@ -813,8 +789,6 @@ const qualityPresets = [
   { value: 60_000_000, label: '4K+' },
   { value: 80_000_000, label: 'Max' },
 ]
-
-// FFmpeg Conversion Presets
 const conversionPresets = [
   { value: 'preview', label: 'Preview', desc: 'Schnell, niedrige Qualität' },
   { value: 'medium', label: 'Medium', desc: 'Gute Balance' },
@@ -823,16 +797,14 @@ const conversionPresets = [
   { value: 'highest', label: 'Highest', desc: 'Maximale Qualität' },
 ]
 
-// Computed
+// ── Computed ─────────────────────────────────────────────────────────
 const statusClass = computed(() => {
-  const baseClass = 'status-indicator'
-  if (recorderStore.statusType === 'processing') return `${baseClass} processing`
-  if (recorderStore.isPaused) return `${baseClass} paused`
-  if (recorderStore.isRecording) return `${baseClass} recording`
-  if (recorderStore.isPrepared) return `${baseClass} ready`
-  return `${baseClass} idle`
+  if (recorderStore.statusType === 'processing') return 'status-indicator processing'
+  if (recorderStore.isPaused) return 'status-indicator paused'
+  if (recorderStore.isRecording) return 'status-indicator recording'
+  if (recorderStore.isPrepared) return 'status-indicator ready'
+  return 'status-indicator idle'
 })
-
 const statusText = computed(() => {
   if (recorderStore.statusType === 'processing') return '🎬 Processing...'
   if (recorderStore.isPaused) return 'PAUSED'
@@ -841,578 +813,87 @@ const statusText = computed(() => {
   return 'IDLE'
 })
 
-// Timer Functions
-function formatTime(totalSeconds) {
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = Math.floor(totalSeconds % 60)
-
-  if (hours > 0) {
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-  }
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-}
-
-function startTimer() {
-  recordingStartTime.value = Date.now()
-  recordingElapsedAtPause.value = 0
-  updateTimerDisplay()
-
-  timerInterval = setInterval(() => {
-    updateTimerDisplay()
-  }, 100) // Update every 100ms for smooth display
-}
-
-function updateTimerDisplay() {
-  if (!recordingStartTime.value) {
-    recordingDisplayTime.value = '00:00'
-    return
-  }
-
-  const elapsed = (Date.now() - recordingStartTime.value) / 1000 + recordingElapsedAtPause.value
-  recordingDisplayTime.value = formatTime(elapsed)
-}
-
-function pauseTimer() {
-  if (timerInterval) {
-    clearInterval(timerInterval)
-    timerInterval = null
-  }
-
-  // Save elapsed time
-  if (recordingStartTime.value) {
-    recordingElapsedAtPause.value += (Date.now() - recordingStartTime.value) / 1000
-    recordingStartTime.value = null
-  }
-}
-
-function resumeTimer() {
-  recordingStartTime.value = Date.now()
-
-  timerInterval = setInterval(() => {
-    updateTimerDisplay()
-  }, 100)
-}
-
-function stopTimer() {
-  if (timerInterval) {
-    clearInterval(timerInterval)
-    timerInterval = null
-  }
-  recordingStartTime.value = null
-  recordingElapsedAtPause.value = 0
-  recordingDisplayTime.value = '00:00'
-}
-
-// ✨ NEU: Mikrofon zuschalten (additiv zum Player)
-async function toggleMicrophone() {
-  isSwitchingSource.value = true
-  try {
-    if (window.toggleRecordingMicrophone) {
-      const success = await window.toggleRecordingMicrophone(microphoneEnabled.value)
-      if (success) {
-        console.log(
-          '✅ [Panel] Mikrofon',
-          microphoneEnabled.value ? 'ZUGESCHALTET' : 'ABGESCHALTET',
-        )
-      } else {
-        console.error('❌ [Panel] Mikrofon-Toggle fehlgeschlagen')
-        microphoneEnabled.value = !microphoneEnabled.value // Revert
-      }
-    } else {
-      console.error('❌ [Panel] toggleRecordingMicrophone nicht verfügbar')
-      microphoneEnabled.value = !microphoneEnabled.value // Revert
-    }
-  } catch (error) {
-    console.error('❌ [Panel] Fehler beim Mikrofon-Toggle:', error)
-    microphoneEnabled.value = !microphoneEnabled.value // Revert
-  } finally {
-    isSwitchingSource.value = false
-  }
-}
-
-// Quality Selection
+// ── Actions ───────────────────────────────────────────────────────────
 function selectQuality(value) {
   selectedQuality.value = value
   recorderStore.setRecordingQuality(value)
-  console.log('✅ [Panel] Quality changed to:', (value / 1_000_000).toFixed(1), 'Mbps')
 }
-
-// Upload Mode Selection
 function selectUploadMode(mode) {
   uploadMode.value = mode
   recorderStore.setUploadMode(mode)
-  console.log('✅ [Panel] Upload mode changed to:', mode)
 }
 
-// Event Handlers
 async function handlePrepare() {
   if (isProcessing.value) return
-
+  isProcessing.value = true
   try {
-    isProcessing.value = true
-    const success = await recorderStore.prepareRecording({
-      quality: selectedQuality.value,
-    })
-
-    if (success) {
-      console.log('✅ [Panel] Preparation successful')
-    } else {
-      console.error('❌ [Panel] Preparation failed')
-    }
-  } catch (error) {
-    console.error('❌ [Panel] Prepare error:', error)
+    await recorderStore.prepareRecording({ quality: selectedQuality.value })
   } finally {
     isProcessing.value = false
   }
 }
-
 async function handleStart() {
   if (isProcessing.value) return
-
+  isProcessing.value = true
   try {
-    isProcessing.value = true
     const success = await recorderStore.startRecording()
-
     if (success) {
-      console.log('✅ [Panel] Recording started')
       startTimer()
-
-      // HQ Frame Capture starten (parallel zur normalen Aufnahme)
-      if (enableHqExport.value && serverAvailable.value) {
-        startHqCapture()
-      }
-    } else {
-      console.error('❌ [Panel] Start failed')
+      if (enableHqExport.value && serverAvailable.value) startHqCapture()
     }
-  } catch (error) {
-    console.error('❌ [Panel] Start error:', error)
   } finally {
     isProcessing.value = false
   }
 }
-
 function handlePause() {
   if (isProcessing.value) return
-
+  isProcessing.value = true
   try {
-    isProcessing.value = true
-    const success = recorderStore.pauseRecording()
-
-    if (success) {
-      console.log('✅ [Panel] Recording paused (video frozen, audio continues)')
-      pauseTimer()
-    } else {
-      console.error('❌ [Panel] Pause failed')
-    }
-  } catch (error) {
-    console.error('❌ [Panel] Pause error:', error)
+    if (recorderStore.pauseRecording()) pauseTimer()
   } finally {
     isProcessing.value = false
   }
 }
-
 function handleResume() {
   if (isProcessing.value) return
-
+  isProcessing.value = true
   try {
-    isProcessing.value = true
-    const success = recorderStore.resumeRecording()
-
-    if (success) {
-      console.log('✅ [Panel] Recording resumed (video synchronized)')
-      resumeTimer()
-    } else {
-      console.error('❌ [Panel] Resume failed')
-    }
-  } catch (error) {
-    console.error('❌ [Panel] Resume error:', error)
+    if (recorderStore.resumeRecording()) resumeTimer()
   } finally {
     isProcessing.value = false
   }
 }
-
 async function handleStop() {
   if (isProcessing.value) return
-
+  isProcessing.value = true
   try {
-    isProcessing.value = true
     stopTimer()
     const blob = await recorderStore.stopRecording()
-
     if (blob) {
-      const sizeMB = (blob.size / 1024 / 1024).toFixed(2)
-      console.log('✅ [Panel] Recording stopped:', sizeMB, 'MB')
-
-      // WebM blob URL immer bereitstellen (kein Server nötig)
       prepareWebmDownload(blob)
-
-      // HQ Frame Export finalisieren (Frame-Capture wurde bereits gestoppt)
-      if (enableHqExport.value && serverAvailable.value && hqSessionId.value) {
-        finishHqExport(blob) // kein await – läuft parallel
-      }
-
-      // Server-Konvertierung starten wenn aktiviert
-      if (enableServerConversion.value && serverAvailable.value) {
-        await startServerConversion(blob)
-      }
-      if (enableGifExport.value && serverAvailable.value) {
-        startGifConversion(blob) // parallel, kein await
-      }
-    } else {
-      console.warn('⚠️ [Panel] Recording stopped but no blob received')
+      if (enableHqExport.value && serverAvailable.value && hqSessionId.value) finishHqExport(blob)
+      if (enableServerConversion.value && serverAvailable.value)
+        await startServerConversion(blob, conversionQuality.value)
+      if (enableGifExport.value && serverAvailable.value) startGifConversion(blob)
     }
-  } catch (error) {
-    console.error('❌ [Panel] Stop error:', error)
   } finally {
     isProcessing.value = false
   }
 }
-
-/**
- * Startet die Server-seitige FFmpeg Konvertierung
- */
-async function startServerConversion(blob) {
-  if (!blob || isConverting.value) return
-
-  console.log('🎬 [Panel] Starte Server-Konvertierung...')
-  isConverting.value = true
-  conversionProgress.value = 0
-  conversionStatus.value = 'uploading'
-  conversionError.value = null
-  convertedVideoUrl.value = null
-  convertedFilename.value = null
-
-  try {
-    const result = await convertAndWait(blob, {
-      quality: conversionQuality.value,
-      onProgress: (progress) => {
-        conversionProgress.value = progress
-        console.log('📊 [Panel] Progress:', progress + '%')
-      },
-      onStatusChange: (status) => {
-        conversionStatus.value = status
-        console.log('📊 [Panel] Conversion status:', status)
-      },
-    })
-
-    if (result.success) {
-      convertedVideoUrl.value = result.fileUrl
-      convertedFilename.value = result.filename
-      conversionStatus.value = 'completed'
-      conversionProgress.value = 100
-      console.log('✅ [Panel] Konvertierung abgeschlossen:', result.filename)
-    }
-  } catch (error) {
-    console.error('❌ [Panel] Konvertierung fehlgeschlagen:', error)
-    conversionStatus.value = 'error'
-    conversionError.value = error.message || 'Verbindung zum Server fehlgeschlagen'
-  } finally {
-    isConverting.value = false
-  }
-}
-
-/**
- * Retry failed conversion
- */
-function retryConversion() {
-  if (recorderStore.lastRecording?.blob) {
-    startServerConversion(recorderStore.lastRecording.blob)
-  }
-}
-
-/**
- * Dismiss conversion progress/error
- * Optionally cleanup server file
- */
-async function dismissConversion(cleanup = false) {
-  // Cleanup auf Server wenn gewünscht und Datei vorhanden
-  if (cleanup && convertedFilename.value) {
-    try {
-      await cleanupFile(convertedFilename.value)
-      console.log('🧹 [Panel] Server-Datei gelöscht:', convertedFilename.value)
-    } catch (e) {
-      console.warn('⚠️ [Panel] Cleanup fehlgeschlagen:', e)
-    }
-  }
-
-  conversionStatus.value = ''
-  conversionProgress.value = 0
-  conversionError.value = null
-  convertedVideoUrl.value = null
-  convertedFilename.value = null
-}
-
-/**
- * WebM-Download vorbereiten (kein Server nötig – raw blob)
- */
-function prepareWebmDownload(blob) {
-  if (webmBlobUrl.value) URL.revokeObjectURL(webmBlobUrl.value)
-  webmBlobUrl.value = URL.createObjectURL(blob)
-  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-  webmFilename.value = `visualizer_${ts}.webm`
-}
-
-function handleWebmDownloadClick() {
-  setTimeout(() => {
-    dismissWebm()
-  }, 2000)
-}
-
-function dismissWebm() {
-  if (webmBlobUrl.value) URL.revokeObjectURL(webmBlobUrl.value)
-  webmBlobUrl.value = null
-  webmFilename.value = null
-}
-
-// ─── HQ Frame Export ────────────────────────────────────────────────
-
-async function startHqCapture() {
-  try {
-    hqStatus.value = 'capturing'
-    hqProgress.value = 0
-    hqError.value = null
-    hqVideoUrl.value = null
-    hqFilename.value = null
-
-    const sessionId = await startFrameExportSession(hqFps.value)
-    hqSessionId.value = sessionId
-
-    let uploadedFrameCount = 0
-
-    // App-Canvas-Capture via window event starten
-    window.dispatchEvent(
-      new CustomEvent('hq:startCapture', {
-        detail: {
-          fps: hqFps.value,
-          onBatch: async (frames, startIndex) => {
-            try {
-              await uploadFrameBatch(sessionId, frames, startIndex)
-              uploadedFrameCount += frames.length
-            } catch (err) {
-              console.warn('[HQ] Batch upload fehlgeschlagen:', err.message)
-            }
-          },
-        },
-      }),
-    )
-
-    console.log('🎬 [HQ] Frame Capture gestartet, Session:', sessionId)
-  } catch (err) {
-    console.error('❌ [HQ] Capture Start fehlgeschlagen:', err)
-    hqStatus.value = 'error'
-    hqError.value = err.message
-    hqSessionId.value = null
-  }
-}
-
-async function finishHqExport(audioBlob) {
-  const sessionId = hqSessionId.value
-  if (!sessionId) return
-
-  try {
-    hqStatus.value = 'uploading'
-    hqProgress.value = 5
-
-    // Frame-Capture stoppen und letzte Frames holen
-    window.dispatchEvent(new CustomEvent('hq:stopCapture'))
-
-    // Kurz warten damit App die restlichen Frames zurückschickt
-    const remaining = await new Promise((resolve) => {
-      const handler = (e) => {
-        window.removeEventListener('hq:captureRemaining', handler)
-        resolve(e.detail)
-      }
-      window.addEventListener('hq:captureRemaining', handler)
-      setTimeout(() => {
-        window.removeEventListener('hq:captureRemaining', handler)
-        resolve(null)
-      }, 2000)
-    })
-
-    // Tatsächliche Aufnahmedauer aus dem Capture-Stop-Ergebnis
-    const durationMs = remaining?.durationMs || 0
-
-    // Letzte Frames hochladen
-    if (remaining?.frames?.length > 0) {
-      await uploadFrameBatch(sessionId, remaining.frames, remaining.startIndex)
-    }
-
-    hqProgress.value = 30
-
-    // Audio hochladen
-    if (audioBlob) {
-      await uploadAudio(sessionId, audioBlob)
-    }
-
-    hqProgress.value = 50
-    hqStatus.value = 'assembling'
-
-    // FFmpeg Assemblierung starten — mit echter Dauer für korrektes Timing
-    const assemblyJobId = await assembleFrameExport(sessionId, durationMs)
-    hqSessionId.value = null
-
-    // Auf Fertigstellung pollen
-    const result = await waitForJob(assemblyJobId, {
-      onProgress: (p) => {
-        hqProgress.value = 50 + Math.round(p * 0.48)
-      },
-      pollInterval: 1500,
-      timeout: 3600000, // 1 Stunde
-    })
-
-    hqVideoUrl.value = getFileUrl(result.outputFile)
-    hqFilename.value = result.outputFile
-    hqStatus.value = 'completed'
-    hqProgress.value = 100
-    console.log('✅ [HQ] Export fertig:', result.outputFile)
-  } catch (err) {
-    console.error('❌ [HQ] Export fehlgeschlagen:', err)
-    hqStatus.value = 'error'
-    hqError.value = err.message
-    if (sessionId) cancelFrameExport(sessionId).catch(() => {})
-    hqSessionId.value = null
-  }
-}
-
-function dismissHqExport(cleanup = false) {
-  if (cleanup && hqFilename.value) {
-    cleanupFile(hqFilename.value).catch(() => {})
-  }
-  hqStatus.value = ''
-  hqProgress.value = 0
-  hqError.value = null
-  hqVideoUrl.value = null
-  hqFilename.value = null
-}
-
-function handleHqDownloadClick() {
-  setTimeout(() => {
-    if (hqFilename.value) cleanupFile(hqFilename.value).catch(() => {})
-    dismissHqExport()
-  }, 2000)
-}
-
-/**
- * GIF-Export via FFmpeg 2-Pass
- */
-async function startGifConversion(blob) {
-  if (!blob || isConvertingGif.value) return
-
-  console.log('🎨 [Panel] Starte GIF-Konvertierung...')
-  isConvertingGif.value = true
-  gifConversionProgress.value = 0
-  gifConversionStatus.value = 'uploading'
-  gifConversionError.value = null
-  convertedGifUrl.value = null
-  convertedGifFilename.value = null
-
-  try {
-    const result = await convertGifAndWait(blob, {
-      fps: gifFps.value,
-      width: gifWidth.value,
-      colors: 256,
-      onProgress: (progress) => {
-        gifConversionProgress.value = progress
-      },
-      onStatusChange: (status) => {
-        gifConversionStatus.value = status
-      },
-    })
-
-    if (result.success) {
-      convertedGifUrl.value = result.fileUrl
-      convertedGifFilename.value = result.filename
-      gifConversionStatus.value = 'completed'
-      gifConversionProgress.value = 100
-      console.log('✅ [Panel] GIF fertig:', result.filename)
-    }
-  } catch (error) {
-    console.error('❌ [Panel] GIF-Konvertierung fehlgeschlagen:', error)
-    gifConversionStatus.value = 'error'
-    gifConversionError.value = error.message || 'GIF-Erstellung fehlgeschlagen'
-  } finally {
-    isConvertingGif.value = false
-  }
-}
-
-async function dismissGifConversion(cleanup = false) {
-  if (cleanup && convertedGifFilename.value) {
-    await cleanupFile(convertedGifFilename.value).catch(() => {})
-  }
-  gifConversionStatus.value = ''
-  gifConversionProgress.value = 0
-  gifConversionError.value = null
-  convertedGifUrl.value = null
-  convertedGifFilename.value = null
-}
-
-function handleGifDownloadClick() {
-  setTimeout(async () => {
-    if (convertedGifFilename.value) {
-      await cleanupFile(convertedGifFilename.value).catch(() => {})
-    }
-    gifConversionStatus.value = ''
-    gifConversionProgress.value = 0
-    convertedGifUrl.value = null
-    convertedGifFilename.value = null
-  }, 2000)
-}
-
-/**
- * Handle MP4 download click - cleanup after delay and hide UI
- */
-function handleDownloadClick() {
-  console.log('📥 [Panel] MP4 Download gestartet')
-
-  // Nach Download: Warte kurz und lösche Server-Datei
-  setTimeout(async () => {
-    if (convertedFilename.value) {
-      try {
-        await cleanupFile(convertedFilename.value)
-        console.log('🧹 [Panel] Server-Datei nach Download gelöscht')
-      } catch (e) {
-        console.warn('⚠️ [Panel] Auto-Cleanup fehlgeschlagen:', e)
-      }
-    }
-
-    // UI komplett zurücksetzen - Panel verschwindet
-    conversionStatus.value = ''
-    conversionProgress.value = 0
-    conversionError.value = null
-    convertedVideoUrl.value = null
-    convertedFilename.value = null
-
-    console.log('✅ [Panel] Konvertierung abgeschlossen, UI zurückgesetzt')
-  }, 2000) // 2 Sekunden Delay für Download-Start
-}
-
-/**
- * Manuelle Konvertierung starten (für bereits aufgenommene Videos)
- */
-async function convertLastRecording() {
-  if (!recorderStore.lastRecording?.blob) {
-    console.warn('⚠️ [Panel] Keine Aufnahme zum Konvertieren')
-    return
-  }
-
-  await startServerConversion(recorderStore.lastRecording.blob)
-}
-
 function handleReset() {
   if (isProcessing.value) return
-
+  isProcessing.value = true
   try {
-    isProcessing.value = true
     recorderStore.resetRecorder()
-    console.log('✅ [Panel] Recorder reset')
-  } catch (error) {
-    console.error('❌ [Panel] Reset error:', error)
   } finally {
     isProcessing.value = false
   }
 }
-
+async function convertLastRecording() {
+  if (recorderStore.lastRecording?.blob) {
+    await startServerConversion(recorderStore.lastRecording.blob, conversionQuality.value)
+  }
+}
 function closeResults() {
   const modal = document.getElementById('results-panel')
   if (modal) {
@@ -1424,40 +905,25 @@ function closeResults() {
     }
   }
 }
-
-// Keyboard Shortcuts
 function handleKeydown(e) {
-  if (e.key === 'Escape') {
-    closeResults()
-  }
+  if (e.key === 'Escape') closeResults()
 }
 
+// ── Lifecycle ─────────────────────────────────────────────────────────
 onMounted(async () => {
   document.addEventListener('keydown', handleKeydown)
-
-  // Server-Verfügbarkeit prüfen
   try {
     const health = await checkServerHealth()
     serverAvailable.value = health.available
-    if (health.available) {
-      console.log('✅ [Panel] FFmpeg Backend verfügbar')
-    } else {
-      console.warn('⚠️ [Panel] FFmpeg Backend nicht erreichbar:', health.error)
-    }
-  } catch (error) {
+    if (health.available) console.log('✅ [Panel] FFmpeg Backend verfügbar')
+  } catch {
     serverAvailable.value = false
-    console.error('❌ [Panel] Server Health Check fehlgeschlagen:', error)
   }
 })
-
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
+  destroyTimer()
   dismissWebm()
-  // Cleanup timer
-  if (timerInterval) {
-    clearInterval(timerInterval)
-    timerInterval = null
-  }
 })
 </script>
 

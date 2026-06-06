@@ -287,14 +287,107 @@ export async function convertAndWait(videoBlob, options = {}) {
   }
 }
 
+/**
+ * Startet GIF-Konvertierung auf dem Server (WebM → GIF)
+ *
+ * @param {Blob} videoBlob
+ * @param {Object} options
+ * @param {number} options.fps    - Frames/s (default 15)
+ * @param {number} options.width  - Breite in px (default 480)
+ * @param {number} options.colors - Farben 2–256 (default 256)
+ * @returns {Promise<{jobId, status}>}
+ */
+export async function convertGif(videoBlob, options = {}) {
+  const formData = new FormData()
+  formData.append('video', videoBlob, 'recording.webm')
+  formData.append('fps', String(options.fps || 15))
+  formData.append('width', String(options.width || 480))
+  formData.append('colors', String(options.colors || 256))
+
+  try {
+    const response = await fetch(`${API_BASE}/convert-gif`, {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`GIF upload failed: ${response.status} - ${errorText}`)
+    }
+
+    const result = await response.json()
+
+    if (result.success && result.jobId) {
+      return { success: true, jobId: result.jobId, status: result.status }
+    }
+
+    throw new Error(result.error || 'Unknown error')
+  } catch (error) {
+    console.error('[VideoAPI] convertGif error:', error)
+    throw error
+  }
+}
+
+/**
+ * Kompletter GIF-Export-Workflow (Upload → Polling → fertig)
+ *
+ * @param {Blob} videoBlob
+ * @param {Object} options
+ * @param {number}   options.fps          - Frames/s
+ * @param {number}   options.width        - Breite in px
+ * @param {number}   options.colors       - Anzahl Farben
+ * @param {function} options.onProgress   - Callback (0–100)
+ * @param {function} options.onStatusChange - Callback ('uploading'|'converting'|'completed')
+ * @returns {Promise<{success, downloadUrl, fileUrl, filename, info}>}
+ */
+export async function convertGifAndWait(videoBlob, options = {}) {
+  const onProgress = options.onProgress || (() => {})
+  const onStatusChange = options.onStatusChange || (() => {})
+
+  onStatusChange('uploading')
+  onProgress(5)
+
+  const uploadResult = await convertGif(videoBlob, {
+    fps: options.fps || 15,
+    width: options.width || 480,
+    colors: options.colors || 256,
+  })
+
+  if (!uploadResult.success) throw new Error('GIF upload failed')
+
+  onStatusChange('converting')
+  onProgress(10)
+
+  const result = await waitForJob(uploadResult.jobId, {
+    onProgress: (progress) => {
+      onProgress(Math.round(10 + progress * 0.88))
+    },
+    pollInterval: 1500,
+    timeout: 900000, // 15 Minuten (GIFs sind schneller als MP4)
+  })
+
+  onStatusChange('completed')
+  onProgress(100)
+
+  return {
+    success: true,
+    downloadUrl: getDownloadUrl(result.outputFile),
+    fileUrl: getFileUrl(result.outputFile),
+    filename: result.outputFile,
+    info: result.info,
+  }
+}
+
 export default {
   checkServerHealth,
   getServerInfo,
   convertVideo,
+  convertGif,
   getJobStatus,
   waitForJob,
   getDownloadUrl,
   getFileUrl,
   cleanupFile,
   convertAndWait,
+  convertGifAndWait,
 }

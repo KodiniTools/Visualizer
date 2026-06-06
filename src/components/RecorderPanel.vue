@@ -228,6 +228,169 @@
       </div>
     </div>
 
+    <!-- GIF Export -->
+    <div class="control-section" v-if="!recorderStore.isRecording">
+      <div class="section-header">
+        <span class="section-label">{{ t('recorder.gifExport') }}</span>
+        <span
+          class="server-status"
+          :class="{ available: serverAvailable, unavailable: serverAvailable === false }"
+          :title="serverAvailable ? t('recorder.serverAvailable') : t('recorder.serverUnavailable')"
+        >
+          {{ serverAvailable ? '●' : '○' }}
+        </span>
+      </div>
+
+      <label class="toggle-row">
+        <input
+          type="checkbox"
+          v-model="enableGifExport"
+          :disabled="!serverAvailable || recorderStore.isRecording"
+        />
+        <span class="toggle-label">{{ t('recorder.gifAutoCreate') }}</span>
+      </label>
+
+      <div class="gif-options" v-if="enableGifExport && serverAvailable">
+        <div class="gif-option-row">
+          <span class="gif-option-label">{{ t('recorder.gifFps') }}:</span>
+          <div class="quality-buttons">
+            <button
+              v-for="fps in [10, 15, 20]"
+              :key="fps"
+              class="quality-btn"
+              :class="{ active: gifFps === fps }"
+              @click="gifFps = fps"
+              :disabled="recorderStore.isRecording"
+            >
+              {{ fps }}
+            </button>
+          </div>
+        </div>
+        <div class="gif-option-row">
+          <span class="gif-option-label">{{ t('recorder.gifWidth') }}:</span>
+          <div class="quality-buttons">
+            <button
+              v-for="w in [
+                { v: 320, l: '320' },
+                { v: 480, l: '480' },
+                { v: 640, l: '640' },
+              ]"
+              :key="w.v"
+              class="quality-btn"
+              :class="{ active: gifWidth === w.v }"
+              @click="gifWidth = w.v"
+              :disabled="recorderStore.isRecording"
+            >
+              {{ w.l }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GIF Conversion Progress -->
+    <div
+      class="conversion-progress gif-conversion-progress"
+      v-if="
+        isConvertingGif || gifConversionStatus === 'completed' || gifConversionStatus === 'error'
+      "
+    >
+      <div class="progress-header">
+        <span class="progress-label">
+          {{
+            gifConversionStatus === 'uploading'
+              ? t('recorder.uploading')
+              : gifConversionStatus === 'converting'
+                ? t('recorder.gifConverting')
+                : gifConversionStatus === 'completed'
+                  ? t('recorder.gifCompleted')
+                  : gifConversionStatus === 'error'
+                    ? t('recorder.gifError')
+                    : t('recorder.processing')
+          }}
+        </span>
+        <span class="progress-percent">{{ gifConversionProgress }}%</span>
+      </div>
+      <div class="progress-bar">
+        <div
+          class="progress-fill gif-fill"
+          :class="{
+            completed: gifConversionStatus === 'completed',
+            error: gifConversionStatus === 'error',
+          }"
+          :style="{ width: gifConversionProgress + '%' }"
+        ></div>
+      </div>
+
+      <!-- GIF Download -->
+      <div v-if="convertedGifUrl && gifConversionStatus === 'completed'" class="download-actions">
+        <a
+          :href="convertedGifUrl"
+          :download="convertedGifFilename"
+          class="mp4-download-btn gif-download-btn"
+          @click="handleGifDownloadClick"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          {{ t('recorder.downloadGif') }}
+        </a>
+        <button
+          class="btn btn-close-conversion"
+          @click="dismissGifConversion(true)"
+          :title="t('recorder.closeAndDelete')"
+        >
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- GIF Error -->
+      <div v-if="gifConversionStatus === 'error'" class="error-actions">
+        <span class="error-message">{{ gifConversionError || t('recorder.unknownError') }}</span>
+        <button
+          class="btn btn-retry"
+          @click="startGifConversion(recorderStore.lastRecording?.blob)"
+        >
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M23 4v6h-6" />
+            <path d="M1 20v-6h6" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10" />
+            <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14" />
+          </svg>
+          {{ t('recorder.retry') }}
+        </button>
+        <button class="btn btn-dismiss" @click="dismissGifConversion">
+          {{ t('common.close') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Manual GIF Button - nur wenn Auto deaktiviert -->
+    <button
+      v-if="
+        recorderStore.lastRecording &&
+        !isConvertingGif &&
+        serverAvailable &&
+        enableGifExport &&
+        !enableServerConversion &&
+        gifConversionStatus !== 'completed'
+      "
+      class="btn btn-convert"
+      @click="startGifConversion(recorderStore.lastRecording.blob)"
+      :disabled="isProcessing"
+    >
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M8 12h8M12 8v8" />
+      </svg>
+      {{ t('recorder.convertToGif') }}
+    </button>
+
     <!-- Conversion Progress -->
     <div
       class="conversion-progress"
@@ -413,6 +576,7 @@ import HelpTooltip from './HelpTooltip.vue'
 import {
   checkServerHealth,
   convertAndWait,
+  convertGifAndWait,
   getFileUrl,
   getDownloadUrl,
   cleanupFile,
@@ -458,6 +622,17 @@ const conversionStatus = ref('') // 'uploading', 'converting', 'completed', 'err
 const conversionError = ref(null)
 const convertedVideoUrl = ref(null)
 const convertedFilename = ref(null)
+
+// GIF Export State
+const enableGifExport = ref(false)
+const gifFps = ref(15)
+const gifWidth = ref(480)
+const isConvertingGif = ref(false)
+const gifConversionProgress = ref(0)
+const gifConversionStatus = ref('') // 'uploading'|'converting'|'completed'|'error'
+const gifConversionError = ref(null)
+const convertedGifUrl = ref(null)
+const convertedGifFilename = ref(null)
 
 // Quality Presets - ✅ Erweitert für 4K+ und Audio-Reaktiv
 const qualityPresets = [
@@ -700,6 +875,9 @@ async function handleStop() {
       if (enableServerConversion.value && serverAvailable.value) {
         await startServerConversion(blob)
       }
+      if (enableGifExport.value && serverAvailable.value) {
+        startGifConversion(blob) // parallel, kein await
+      }
     } else {
       console.warn('⚠️ [Panel] Recording stopped but no blob received')
     }
@@ -782,6 +960,72 @@ async function dismissConversion(cleanup = false) {
   conversionError.value = null
   convertedVideoUrl.value = null
   convertedFilename.value = null
+}
+
+/**
+ * GIF-Export via FFmpeg 2-Pass
+ */
+async function startGifConversion(blob) {
+  if (!blob || isConvertingGif.value) return
+
+  console.log('🎨 [Panel] Starte GIF-Konvertierung...')
+  isConvertingGif.value = true
+  gifConversionProgress.value = 0
+  gifConversionStatus.value = 'uploading'
+  gifConversionError.value = null
+  convertedGifUrl.value = null
+  convertedGifFilename.value = null
+
+  try {
+    const result = await convertGifAndWait(blob, {
+      fps: gifFps.value,
+      width: gifWidth.value,
+      colors: 256,
+      onProgress: (progress) => {
+        gifConversionProgress.value = progress
+      },
+      onStatusChange: (status) => {
+        gifConversionStatus.value = status
+      },
+    })
+
+    if (result.success) {
+      convertedGifUrl.value = result.fileUrl
+      convertedGifFilename.value = result.filename
+      gifConversionStatus.value = 'completed'
+      gifConversionProgress.value = 100
+      console.log('✅ [Panel] GIF fertig:', result.filename)
+    }
+  } catch (error) {
+    console.error('❌ [Panel] GIF-Konvertierung fehlgeschlagen:', error)
+    gifConversionStatus.value = 'error'
+    gifConversionError.value = error.message || 'GIF-Erstellung fehlgeschlagen'
+  } finally {
+    isConvertingGif.value = false
+  }
+}
+
+async function dismissGifConversion(cleanup = false) {
+  if (cleanup && convertedGifFilename.value) {
+    await cleanupFile(convertedGifFilename.value).catch(() => {})
+  }
+  gifConversionStatus.value = ''
+  gifConversionProgress.value = 0
+  gifConversionError.value = null
+  convertedGifUrl.value = null
+  convertedGifFilename.value = null
+}
+
+function handleGifDownloadClick() {
+  setTimeout(async () => {
+    if (convertedGifFilename.value) {
+      await cleanupFile(convertedGifFilename.value).catch(() => {})
+    }
+    gifConversionStatus.value = ''
+    gifConversionProgress.value = 0
+    convertedGifUrl.value = null
+    convertedGifFilename.value = null
+  }, 2000)
 }
 
 /**
@@ -2336,5 +2580,66 @@ h3::before {
 [data-theme='light'] .conversion-progress-fill {
   background: linear-gradient(90deg, #014f99 0%, #3a7cc6 50%, #014f99 100%);
   background-size: 200% 100%;
+}
+
+/* ── GIF Export ─────────────────────────────────────────── */
+.gif-conversion-progress {
+  border-color: rgba(74, 222, 128, 0.25);
+  background-color: rgba(74, 222, 128, 0.04);
+}
+
+.gif-fill {
+  background: linear-gradient(90deg, #22c55e 0%, #4ade80 50%, #22c55e 100%) !important;
+  background-size: 200% 100% !important;
+}
+
+.gif-fill.completed {
+  background: #22c55e !important;
+  animation: none !important;
+}
+
+.gif-download-btn {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  border-color: #22c55e !important;
+  color: #fff !important;
+}
+
+.gif-download-btn:hover {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+}
+
+.gif-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: var(--secondary-bg, #0e1c32);
+  border-radius: 5px;
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
+}
+
+.gif-option-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gif-option-label {
+  font-size: 0.55rem;
+  color: var(--text-muted, #7a8da0);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  min-width: 38px;
+}
+
+[data-theme='light'] .gif-conversion-progress {
+  border-color: rgba(34, 197, 94, 0.3);
+  background-color: rgba(34, 197, 94, 0.05);
+}
+
+[data-theme='light'] .gif-download-btn {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+  border-color: #16a34a !important;
 }
 </style>

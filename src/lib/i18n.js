@@ -687,6 +687,10 @@ const translations = {
       gifError: 'GIF-Erstellung fehlgeschlagen!',
       downloadGif: 'GIF Download',
       convertToGif: 'Als GIF exportieren',
+      // WebM Export
+      webmExport: 'WebM Export',
+      downloadWebm: 'WebM Download',
+      webmInfo: 'Kleinste Dateigröße – ideal für Web & Landingpages',
     },
 
     // ========== VISUALIZER PANEL ==========
@@ -2048,6 +2052,10 @@ const translations = {
       gifError: 'GIF creation failed!',
       downloadGif: 'GIF Download',
       convertToGif: 'Export as GIF',
+      // WebM Export
+      webmExport: 'WebM Export',
+      downloadWebm: 'WebM Download',
+      webmInfo: 'Smallest file size – ideal for web & landing pages',
     },
 
     // ========== VISUALIZER PANEL ==========

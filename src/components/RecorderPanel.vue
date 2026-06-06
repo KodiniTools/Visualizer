@@ -391,6 +391,22 @@
       {{ t('recorder.convertToGif') }}
     </button>
 
+    <!-- WebM Download -->
+    <div class="control-section webm-section" v-if="webmBlobUrl && !recorderStore.isRecording">
+      <div class="section-header">
+        <span class="section-label">{{ t('recorder.webmExport') }}</span>
+      </div>
+      <a :href="webmBlobUrl" :download="webmFilename" class="mp4-download-btn webm-download-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        {{ t('recorder.downloadWebm') }}
+      </a>
+      <p class="webm-info">{{ t('recorder.webmInfo') }}</p>
+    </div>
+
     <!-- Conversion Progress -->
     <div
       class="conversion-progress"
@@ -622,6 +638,10 @@ const conversionStatus = ref('') // 'uploading', 'converting', 'completed', 'err
 const conversionError = ref(null)
 const convertedVideoUrl = ref(null)
 const convertedFilename = ref(null)
+
+// WebM Export State
+const webmBlobUrl = ref(null)
+const webmFilename = ref(null)
 
 // GIF Export State
 const enableGifExport = ref(false)
@@ -871,6 +891,9 @@ async function handleStop() {
       const sizeMB = (blob.size / 1024 / 1024).toFixed(2)
       console.log('✅ [Panel] Recording stopped:', sizeMB, 'MB')
 
+      // WebM blob URL immer bereitstellen (kein Server nötig)
+      prepareWebmDownload(blob)
+
       // Server-Konvertierung starten wenn aktiviert
       if (enableServerConversion.value && serverAvailable.value) {
         await startServerConversion(blob)
@@ -960,6 +983,16 @@ async function dismissConversion(cleanup = false) {
   conversionError.value = null
   convertedVideoUrl.value = null
   convertedFilename.value = null
+}
+
+/**
+ * WebM-Download vorbereiten (kein Server nötig – raw blob)
+ */
+function prepareWebmDownload(blob) {
+  if (webmBlobUrl.value) URL.revokeObjectURL(webmBlobUrl.value)
+  webmBlobUrl.value = URL.createObjectURL(blob)
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+  webmFilename.value = `visualizer_${ts}.webm`
 }
 
 /**
@@ -1121,6 +1154,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
+  if (webmBlobUrl.value) URL.revokeObjectURL(webmBlobUrl.value)
   // Cleanup timer
   if (timerInterval) {
     clearInterval(timerInterval)
@@ -2265,9 +2299,10 @@ h3::before {
 .preview-video {
   width: 100%;
   height: auto;
-  max-height: 40vh;
+  max-height: 60vh;
   display: block;
   object-fit: contain;
+  border-radius: 6px;
 }
 
 .modal-actions {
@@ -2641,5 +2676,37 @@ h3::before {
 [data-theme='light'] .gif-download-btn {
   background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
   border-color: #16a34a !important;
+}
+
+.webm-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 10px;
+}
+
+.webm-download-btn {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border-color: #2563eb !important;
+  margin-top: 6px;
+}
+
+.webm-download-btn:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  border-color: #3b82f6 !important;
+}
+
+.webm-info {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 4px 0 0 0;
+  text-align: center;
+}
+
+[data-theme='light'] .webm-download-btn {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border-color: #2563eb !important;
+}
+
+[data-theme='light'] .webm-info {
+  color: rgba(0, 0, 0, 0.4);
 }
 </style>

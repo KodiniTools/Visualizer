@@ -38,8 +38,19 @@ export async function assembleFrames(framesDir, audioPath, outputPath, options =
   console.log(`[FrameExport] ${totalFrames} frames @ ${fps}fps = ${durationSeconds.toFixed(1)}s`)
 
   // Concat-Liste erstellen (für präzises Timing)
+  // Wenn durationMs bekannt: tatsächliche Dauer/Frame berechnen (unabhängig von FPS-Drops)
+  // Sonst: festes Intervall aus FPS
+  const durationMs = options.durationMs || 0
+  const frameDuration = durationMs > 0 ? durationMs / 1000 / totalFrames : 1 / fps
+
+  console.log(
+    `[FrameExport] Frame-Dauer: ${(frameDuration * 1000).toFixed(1)}ms` +
+      (durationMs > 0
+        ? ` (aus ${(durationMs / 1000).toFixed(1)}s Aufnahmedauer)`
+        : ` (aus ${fps} FPS)`),
+  )
+
   const listPath = path.join(framesDir, 'frames.txt')
-  const frameDuration = 1 / fps
   const listContent = files
     .map((f) => `file '${path.join(framesDir, f)}'\nduration ${frameDuration}`)
     .join('\n')

@@ -8,6 +8,7 @@ export { retroOscilloscope } from './retroOscilloscope.js'
 export { arcadeBlocks } from './arcadeBlocks.js'
 export { chiptunePulse } from './chiptunePulse.js'
 export { pixelSpectrum } from './pixelSpectrum.js'
+export { vinylRecord } from './vinylRecord.js'
 
 // Re-import for backwards compatibility object
 import { synthWave } from './synthWave.js'
@@ -15,6 +16,7 @@ import { retroOscilloscope } from './retroOscilloscope.js'
 import { arcadeBlocks } from './arcadeBlocks.js'
 import { chiptunePulse } from './chiptunePulse.js'
 import { pixelSpectrum } from './pixelSpectrum.js'
+import { vinylRecord } from './vinylRecord.js'
 
 export const retroVisualizers = {
   synthWave,
@@ -22,4 +24,5 @@ export const retroVisualizers = {
   arcadeBlocks,
   chiptunePulse,
   pixelSpectrum,
+  vinylRecord,
 }

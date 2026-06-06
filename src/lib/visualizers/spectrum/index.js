@@ -11,6 +11,8 @@ export { waveform } from './waveform.js'
 export { waveformHorizon } from './waveformHorizon.js'
 export { soundWaves } from './soundWaves.js'
 export { vibratingStrings } from './vibratingStrings.js'
+export { classicWaveform } from './classicWaveform.js'
+export { bars3D } from './bars3D.js'
 
 // Re-import for backwards compatibility object
 import { bars } from './bars.js'
@@ -20,6 +22,8 @@ import { waveform } from './waveform.js'
 import { waveformHorizon } from './waveformHorizon.js'
 import { soundWaves } from './soundWaves.js'
 import { vibratingStrings } from './vibratingStrings.js'
+import { classicWaveform } from './classicWaveform.js'
+import { bars3D } from './bars3D.js'
 
 export const spectrumVisualizers = {
   bars,
@@ -29,4 +33,6 @@ export const spectrumVisualizers = {
   waveformHorizon,
   soundWaves,
   vibratingStrings,
+  classicWaveform,
+  bars3D,
 }

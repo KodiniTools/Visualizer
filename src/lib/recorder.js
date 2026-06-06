@@ -885,18 +885,6 @@ class Recorder {
 
     document.getElementById('preview').src = url
 
-    const downloadLink = document.getElementById('downloadLink')
-    downloadLink.href = url
-    downloadLink.download = fileName
-    downloadLink.blob = blob
-
-    const fileSizeMB = (blob.size / (1024 * 1024)).toFixed(2)
-    document.getElementById('mimeInfo').innerHTML = `
-            <strong>Format:</strong> WebM (VP8/VP9 + Opus)<br>
-            <strong>Resolution:</strong> ${this.recordingCanvas.width}x${this.recordingCanvas.height}<br>
-            <strong>Size:</strong> ${fileSizeMB}MB
-        `
-
     const resultsPanel = document.getElementById('results-panel')
     resultsPanel.style.display = 'block'
     resultsPanel.scrollIntoView({ behavior: 'smooth' })

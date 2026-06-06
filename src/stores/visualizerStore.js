@@ -26,8 +26,22 @@ export const BLEND_MODES = [
 
 // ✅ Visualizer-Kategorien für bessere UX
 const VISUALIZER_CATEGORIES = {
-  'Balken & Spektrum': ['bars', 'mirroredBars', 'radialBars', 'vibratingCubes', 'vibratingStrings'],
-  Wellen: ['waveform', 'waveformHorizon', 'texturedWave', 'fluidWaves', 'synthWave'],
+  'Balken & Spektrum': [
+    'bars',
+    'mirroredBars',
+    'radialBars',
+    'vibratingCubes',
+    'vibratingStrings',
+    'bars3D',
+  ],
+  Wellen: [
+    'waveform',
+    'waveformHorizon',
+    'classicWaveform',
+    'texturedWave',
+    'fluidWaves',
+    'synthWave',
+  ],
   'Kreise & Kugeln': ['circles', 'pulsingOrbs', 'rippleEffect', 'soundWaves', 'orbitingLight'],
   Partikel: [
     'particleStorm',
@@ -57,6 +71,7 @@ const VISUALIZER_CATEGORIES = {
     'arcadeBlocks',
     'chiptunePulse',
     'pixelFireworks',
+    'vinylRecord',
   ],
   Wetter: ['weatherStorm'],
 }

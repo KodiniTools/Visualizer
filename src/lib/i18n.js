@@ -691,6 +691,17 @@ const translations = {
       webmExport: 'WebM Export',
       downloadWebm: 'WebM Download',
       webmInfo: 'Kleinste Dateigröße – ideal für Web & Landingpages',
+      // HQ Frame Export
+      hqExport: 'HQ Frame Export',
+      hqAutoCreate: 'HQ Export nach Aufnahme',
+      hqFps: 'FPS',
+      hqInfo: 'Frame-by-Frame Qualität – kein Ruckeln bei komplexen Visualizern',
+      hqCapturing: 'Frames werden erfasst',
+      hqUploading: 'Frames werden hochgeladen...',
+      hqAssembling: 'FFmpeg assembliert...',
+      hqCompleted: 'HQ Export bereit!',
+      hqError: 'HQ Export fehlgeschlagen',
+      downloadHq: 'HQ MP4 Download',
     },
 
     // ========== VISUALIZER PANEL ==========
@@ -2056,6 +2067,17 @@ const translations = {
       webmExport: 'WebM Export',
       downloadWebm: 'WebM Download',
       webmInfo: 'Smallest file size – ideal for web & landing pages',
+      // HQ Frame Export
+      hqExport: 'HQ Frame Export',
+      hqAutoCreate: 'HQ Export after recording',
+      hqFps: 'FPS',
+      hqInfo: 'Frame-by-frame quality – no stuttering with complex visualizers',
+      hqCapturing: 'Capturing frames',
+      hqUploading: 'Uploading frames...',
+      hqAssembling: 'FFmpeg assembling...',
+      hqCompleted: 'HQ Export ready!',
+      hqError: 'HQ Export failed',
+      downloadHq: 'HQ MP4 Download',
     },
 
     // ========== VISUALIZER PANEL ==========

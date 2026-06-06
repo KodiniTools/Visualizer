@@ -17,6 +17,7 @@ import { fileURLToPath } from 'url'
 import fs from 'fs/promises'
 import crypto from 'crypto'
 import ffmpegService from '../services/ffmpegService.js'
+import { assembleFrames, writeFrames } from '../services/frameExportService.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -910,5 +911,154 @@ async function processConcatenation(jobId, segmentPaths, quality) {
     await fs.unlink(outputPath).catch(() => {})
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// FRAME EXPORT ROUTES
+// ═══════════════════════════════════════════════════════════════════
+
+// In-Memory store for frame export sessions (separate from jobs)
+const frameJobs = new Map()
+
+const frameStorage = multer.memoryStorage()
+const frameUpload = multer({
+  storage: frameStorage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB per batch
+})
+
+const audioStorage = multer.diskStorage({
+  destination: UPLOADS_DIR,
+  filename: (req, file, cb) => {
+    cb(null, `audio_${req.params.jobId}.webm`)
+  },
+})
+const audioUpload = multer({ storage: audioStorage, limits: { fileSize: 2 * 1024 * 1024 * 1024 } })
+
+/**
+ * POST /api/frame-export/start
+ * Startet einen neuen Frame-Export-Job, erstellt Frames-Verzeichnis
+ */
+router.post('/frame-export/start', async (req, res) => {
+  try {
+    const jobId = generateJobId()
+    const framesDir = path.join(UPLOADS_DIR, `frames_${jobId}`)
+    await fs.mkdir(framesDir, { recursive: true })
+
+    frameJobs.set(jobId, {
+      id: jobId,
+      framesDir,
+      frameCount: 0,
+      fps: parseInt(req.body.fps) || 30,
+      status: 'collecting',
+      createdAt: Date.now(),
+    })
+
+    console.log(`📹 [FrameExport] Job gestartet: ${jobId}`)
+    res.json({ success: true, jobId })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+/**
+ * POST /api/frame-export/:jobId/frames
+ * Empfängt einen Batch von JPEG-Frames (multipart)
+ * Felder: frame_000001, frame_000002, ... (JPEG buffer)
+ *         startIndex: erster Frame-Index dieses Batches
+ */
+router.post('/frame-export/:jobId/frames', frameUpload.any(), async (req, res) => {
+  const job = frameJobs.get(req.params.jobId)
+  if (!job) return res.status(404).json({ error: 'Frame job not found' })
+
+  try {
+    const startIndex = parseInt(req.body.startIndex) || 0
+    const frames = req.files.map((file, i) => ({
+      index: startIndex + i,
+      buffer: file.buffer,
+    }))
+
+    await writeFrames(job.framesDir, frames)
+    job.frameCount = Math.max(job.frameCount, startIndex + frames.length)
+
+    res.json({ success: true, received: frames.length, total: job.frameCount })
+  } catch (error) {
+    console.error(`❌ [FrameExport] Batch error:`, error.message)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+/**
+ * POST /api/frame-export/:jobId/audio
+ * Empfängt die Audio-Datei für den Frame-Export
+ */
+router.post('/frame-export/:jobId/audio', audioUpload.single('audio'), async (req, res) => {
+  const job = frameJobs.get(req.params.jobId)
+  if (!job) return res.status(404).json({ error: 'Frame job not found' })
+
+  job.audioPath = req.file?.path || null
+  console.log(`🎵 [FrameExport] Audio empfangen: ${job.audioPath}`)
+  res.json({ success: true })
+})
+
+/**
+ * POST /api/frame-export/:jobId/assemble
+ * Startet FFmpeg-Assemblierung (frames + audio → MP4)
+ */
+router.post('/frame-export/:jobId/assemble', async (req, res) => {
+  const frameJob = frameJobs.get(req.params.jobId)
+  if (!frameJob) return res.status(404).json({ error: 'Frame job not found' })
+
+  // Normalen Job für Status-Polling erstellen
+  const outputFilename = `hq_${Date.now()}.mp4`
+  const outputPath = path.join(FILES_DIR, outputFilename)
+  const job = createJob(null, { type: 'frame-export' })
+  updateJob(job.id, { status: 'processing', progress: 0 })
+
+  res.json({ success: true, jobId: job.id })
+
+  // Assemblierung im Hintergrund
+  processFrameAssembly(job.id, frameJob, outputPath, outputFilename)
+})
+
+async function processFrameAssembly(jobId, frameJob, outputPath, outputFilename) {
+  try {
+    console.log(`🎬 [FrameExport] Assembliere ${frameJob.frameCount} Frames...`)
+
+    await assembleFrames(frameJob.framesDir, frameJob.audioPath || null, outputPath, {
+      fps: frameJob.fps,
+      onProgress: (progress) => updateJob(jobId, { progress }),
+    })
+
+    updateJob(jobId, {
+      status: 'completed',
+      progress: 100,
+      outputFile: outputFilename,
+    })
+
+    console.log(`✅ [FrameExport] Fertig: ${outputFilename}`)
+  } catch (error) {
+    console.error(`❌ [FrameExport] Assembly fehlgeschlagen:`, error.message)
+    updateJob(jobId, { status: 'failed', error: error.message })
+  } finally {
+    // Temp-Dateien bereinigen
+    await fs.rm(frameJob.framesDir, { recursive: true, force: true }).catch(() => {})
+    if (frameJob.audioPath) await fs.unlink(frameJob.audioPath).catch(() => {})
+    frameJobs.delete(frameJob.id)
+  }
+}
+
+/**
+ * POST /api/frame-export/:jobId/cancel
+ * Bricht einen laufenden Frame-Export ab und räumt auf
+ */
+router.post('/frame-export/:jobId/cancel', async (req, res) => {
+  const job = frameJobs.get(req.params.jobId)
+  if (!job) return res.json({ success: true }) // bereits aufgeräumt
+
+  await fs.rm(job.framesDir, { recursive: true, force: true }).catch(() => {})
+  if (job.audioPath) await fs.unlink(job.audioPath).catch(() => {})
+  frameJobs.delete(req.params.jobId)
+
+  res.json({ success: true })
+})
 
 export default router

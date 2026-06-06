@@ -304,6 +304,7 @@ import { useBackgroundTilesStore } from './stores/backgroundTilesStore.js'
 import { useAudioSourceStore } from './stores/audioSourceStore.js'
 import { useBeatDropStore } from './stores/beatDropStore.js'
 import { BeatDropRenderer } from './lib/canvasManager/rendering/BeatDropRenderer.js'
+import { useFrameCapture } from './composables/useFrameCapture.js'
 import { useAudioFxStore } from './stores/audioFxStore.js'
 import { AudioFxRenderer } from './lib/canvasManager/rendering/AudioFxRenderer.js'
 import FileUploadPanel from './components/FileUploadPanel.vue'
@@ -350,6 +351,9 @@ const backgroundTilesStore = useBackgroundTilesStore()
 const audioSourceStore = useAudioSourceStore()
 const route = useRoute()
 const router = useRouter()
+
+// HQ Frame Capture (gesteuert via window events vom RecorderPanel)
+const { start: startCapture, stop: stopCapture } = useFrameCapture()
 
 // Shared files receiver state
 const sharedBanner = ref(null)
@@ -2781,6 +2785,20 @@ onMounted(async () => {
     )
   })
   console.log('[App] recorder:forceRedraw Event-Listener registriert')
+
+  // HQ Frame Capture: RecorderPanel → App-Kanal
+  window.addEventListener('hq:startCapture', (e) => {
+    const { fps, onBatch } = e.detail
+    if (!recordingCanvas) return
+    startCapture(recordingCanvas, fps, onBatch)
+    console.log(`[App] HQ Frame Capture gestartet (${fps} FPS)`)
+  })
+
+  window.addEventListener('hq:stopCapture', () => {
+    const remaining = stopCapture()
+    window.dispatchEvent(new CustomEvent('hq:captureRemaining', { detail: remaining }))
+    console.log('[App] HQ Frame Capture gestoppt')
+  })
 
   window.setBassGain = setBassGain
   window.setTrebleGain = setTrebleGain

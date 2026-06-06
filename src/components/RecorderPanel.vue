@@ -288,6 +288,125 @@
       </div>
     </div>
 
+    <!-- HQ Frame Export Settings -->
+    <div class="control-section" v-if="!recorderStore.isRecording">
+      <div class="section-header">
+        <span class="section-label">{{ t('recorder.hqExport') }}</span>
+        <span
+          class="server-status"
+          :class="{ available: serverAvailable, unavailable: serverAvailable === false }"
+          :title="serverAvailable ? t('recorder.serverAvailable') : t('recorder.serverUnavailable')"
+        >
+          {{ serverAvailable ? '●' : '○' }}
+        </span>
+      </div>
+
+      <label class="toggle-row">
+        <input
+          type="checkbox"
+          v-model="enableHqExport"
+          :disabled="!serverAvailable || recorderStore.isRecording"
+        />
+        <span class="toggle-label">{{ t('recorder.hqAutoCreate') }}</span>
+      </label>
+
+      <div class="gif-options" v-if="enableHqExport && serverAvailable">
+        <div class="gif-option-row">
+          <span class="gif-option-label">{{ t('recorder.hqFps') }}:</span>
+          <div class="quality-buttons">
+            <button
+              v-for="fps in [24, 30, 60]"
+              :key="fps"
+              class="quality-btn"
+              :class="{ active: hqFps === fps }"
+              @click="hqFps = fps"
+              :disabled="recorderStore.isRecording"
+            >
+              {{ fps }}
+            </button>
+          </div>
+        </div>
+        <p class="webm-info">{{ t('recorder.hqInfo') }}</p>
+      </div>
+    </div>
+
+    <!-- HQ Capturing Indicator (während Aufnahme) -->
+    <div
+      class="hq-capturing-indicator"
+      v-if="enableHqExport && recorderStore.isRecording && serverAvailable"
+    >
+      <span class="hq-dot"></span>
+      {{ t('recorder.hqCapturing') }}: {{ capturedFrameCount }} frames
+    </div>
+
+    <!-- HQ Conversion Progress -->
+    <div
+      class="conversion-progress hq-conversion-progress"
+      v-if="
+        hqStatus === 'uploading' ||
+        hqStatus === 'assembling' ||
+        hqStatus === 'completed' ||
+        hqStatus === 'error'
+      "
+    >
+      <div class="progress-header">
+        <span class="progress-label">
+          {{
+            hqStatus === 'uploading'
+              ? t('recorder.hqUploading')
+              : hqStatus === 'assembling'
+                ? t('recorder.hqAssembling')
+                : hqStatus === 'completed'
+                  ? t('recorder.hqCompleted')
+                  : t('recorder.hqError')
+          }}
+        </span>
+        <span class="progress-percent">{{ hqProgress }}%</span>
+      </div>
+      <div class="progress-bar">
+        <div
+          class="progress-fill hq-fill"
+          :class="{ completed: hqStatus === 'completed', error: hqStatus === 'error' }"
+          :style="{ width: hqProgress + '%' }"
+        ></div>
+      </div>
+
+      <!-- HQ Download -->
+      <div v-if="hqVideoUrl && hqStatus === 'completed'" class="download-actions">
+        <a
+          :href="hqVideoUrl"
+          :download="hqFilename"
+          class="mp4-download-btn hq-download-btn"
+          @click="handleHqDownloadClick"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          {{ t('recorder.downloadHq') }}
+        </a>
+        <button
+          class="btn btn-close-conversion"
+          @click="dismissHqExport(true)"
+          :title="t('recorder.closeAndDelete')"
+        >
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- HQ Error -->
+      <div v-if="hqStatus === 'error'" class="error-actions">
+        <span class="error-message">{{ hqError || t('recorder.unknownError') }}</span>
+        <button class="btn btn-dismiss" @click="dismissHqExport()">
+          {{ t('common.close') }}
+        </button>
+      </div>
+    </div>
+
     <!-- GIF Conversion Progress -->
     <div
       class="conversion-progress gif-conversion-progress"
@@ -600,6 +719,15 @@ import {
   getDownloadUrl,
   cleanupFile,
 } from '../lib/videoApi.js'
+import {
+  startFrameExportSession,
+  uploadFrameBatch,
+  uploadAudio,
+  assembleFrameExport,
+  cancelFrameExport,
+} from '../lib/frameExportApi.js'
+import { useFrameCapture } from '../composables/useFrameCapture.js'
+import { getJobStatus, waitForJob } from '../lib/videoApi.js'
 
 const { t } = useI18n()
 const recorderStore = useRecorderStore()
@@ -656,6 +784,23 @@ const gifConversionStatus = ref('') // 'uploading'|'converting'|'completed'|'err
 const gifConversionError = ref(null)
 const convertedGifUrl = ref(null)
 const convertedGifFilename = ref(null)
+
+// HQ Frame Export State
+const enableHqExport = ref(false)
+const hqFps = ref(30)
+const hqSessionId = ref(null) // Frame-Export Session-ID
+const isHqCapturing = ref(false) // läuft während Aufnahme
+const hqStatus = ref('') // 'capturing'|'uploading'|'assembling'|'completed'|'error'
+const hqProgress = ref(0)
+const hqError = ref(null)
+const hqVideoUrl = ref(null)
+const hqFilename = ref(null)
+const {
+  isCapturing: hqIsCapturing,
+  capturedFrameCount,
+  start: startCapture,
+  stop: stopCapture,
+} = useFrameCapture()
 
 // Quality Presets - ✅ Erweitert für 4K+ und Audio-Reaktiv
 const qualityPresets = [
@@ -832,6 +977,11 @@ async function handleStart() {
     if (success) {
       console.log('✅ [Panel] Recording started')
       startTimer()
+
+      // HQ Frame Capture starten (parallel zur normalen Aufnahme)
+      if (enableHqExport.value && serverAvailable.value) {
+        startHqCapture()
+      }
     } else {
       console.error('❌ [Panel] Start failed')
     }
@@ -896,6 +1046,11 @@ async function handleStop() {
 
       // WebM blob URL immer bereitstellen (kein Server nötig)
       prepareWebmDownload(blob)
+
+      // HQ Frame Export finalisieren (Frame-Capture wurde bereits gestoppt)
+      if (enableHqExport.value && serverAvailable.value && hqSessionId.value) {
+        finishHqExport(blob) // kein await – läuft parallel
+      }
 
       // Server-Konvertierung starten wenn aktiviert
       if (enableServerConversion.value && serverAvailable.value) {
@@ -1008,6 +1163,131 @@ function dismissWebm() {
   if (webmBlobUrl.value) URL.revokeObjectURL(webmBlobUrl.value)
   webmBlobUrl.value = null
   webmFilename.value = null
+}
+
+// ─── HQ Frame Export ────────────────────────────────────────────────
+
+async function startHqCapture() {
+  try {
+    hqStatus.value = 'capturing'
+    hqProgress.value = 0
+    hqError.value = null
+    hqVideoUrl.value = null
+    hqFilename.value = null
+
+    const sessionId = await startFrameExportSession(hqFps.value)
+    hqSessionId.value = sessionId
+
+    let uploadedFrameCount = 0
+
+    // App-Canvas-Capture via window event starten
+    window.dispatchEvent(
+      new CustomEvent('hq:startCapture', {
+        detail: {
+          fps: hqFps.value,
+          onBatch: async (frames, startIndex) => {
+            try {
+              await uploadFrameBatch(sessionId, frames, startIndex)
+              uploadedFrameCount += frames.length
+            } catch (err) {
+              console.warn('[HQ] Batch upload fehlgeschlagen:', err.message)
+            }
+          },
+        },
+      }),
+    )
+
+    console.log('🎬 [HQ] Frame Capture gestartet, Session:', sessionId)
+  } catch (err) {
+    console.error('❌ [HQ] Capture Start fehlgeschlagen:', err)
+    hqStatus.value = 'error'
+    hqError.value = err.message
+    hqSessionId.value = null
+  }
+}
+
+async function finishHqExport(audioBlob) {
+  const sessionId = hqSessionId.value
+  if (!sessionId) return
+
+  try {
+    hqStatus.value = 'uploading'
+    hqProgress.value = 5
+
+    // Frame-Capture stoppen und letzte Frames holen
+    window.dispatchEvent(new CustomEvent('hq:stopCapture'))
+
+    // Kurz warten damit App die restlichen Frames zurückschickt
+    const remaining = await new Promise((resolve) => {
+      const handler = (e) => {
+        window.removeEventListener('hq:captureRemaining', handler)
+        resolve(e.detail)
+      }
+      window.addEventListener('hq:captureRemaining', handler)
+      setTimeout(() => {
+        window.removeEventListener('hq:captureRemaining', handler)
+        resolve(null)
+      }, 2000)
+    })
+
+    // Letzte Frames hochladen
+    if (remaining?.frames?.length > 0) {
+      await uploadFrameBatch(sessionId, remaining.frames, remaining.startIndex)
+    }
+
+    hqProgress.value = 30
+
+    // Audio hochladen
+    if (audioBlob) {
+      await uploadAudio(sessionId, audioBlob)
+    }
+
+    hqProgress.value = 50
+    hqStatus.value = 'assembling'
+
+    // FFmpeg Assemblierung starten
+    const assemblyJobId = await assembleFrameExport(sessionId)
+    hqSessionId.value = null
+
+    // Auf Fertigstellung pollen
+    const result = await waitForJob(assemblyJobId, {
+      onProgress: (p) => {
+        hqProgress.value = 50 + Math.round(p * 0.48)
+      },
+      pollInterval: 1500,
+      timeout: 3600000, // 1 Stunde
+    })
+
+    hqVideoUrl.value = getFileUrl(result.outputFile)
+    hqFilename.value = result.outputFile
+    hqStatus.value = 'completed'
+    hqProgress.value = 100
+    console.log('✅ [HQ] Export fertig:', result.outputFile)
+  } catch (err) {
+    console.error('❌ [HQ] Export fehlgeschlagen:', err)
+    hqStatus.value = 'error'
+    hqError.value = err.message
+    if (sessionId) cancelFrameExport(sessionId).catch(() => {})
+    hqSessionId.value = null
+  }
+}
+
+function dismissHqExport(cleanup = false) {
+  if (cleanup && hqFilename.value) {
+    cleanupFile(hqFilename.value).catch(() => {})
+  }
+  hqStatus.value = ''
+  hqProgress.value = 0
+  hqError.value = null
+  hqVideoUrl.value = null
+  hqFilename.value = null
+}
+
+function handleHqDownloadClick() {
+  setTimeout(() => {
+    if (hqFilename.value) cleanupFile(hqFilename.value).catch(() => {})
+    dismissHqExport()
+  }, 2000)
 }
 
 /**
@@ -2725,5 +3005,60 @@ h3::before {
 
 [data-theme='light'] .webm-info {
   color: rgba(0, 0, 0, 0.4);
+}
+
+/* HQ Frame Export */
+.hq-capturing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(255, 200, 0, 0.85);
+  padding: 4px 8px;
+  background: rgba(255, 200, 0, 0.08);
+  border-radius: 6px;
+  margin: 4px 0;
+}
+
+.hq-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffc800;
+  animation: pulse 1s infinite;
+  flex-shrink: 0;
+}
+
+.hq-conversion-progress {
+  border: 1px solid rgba(234, 179, 8, 0.2);
+  background: rgba(234, 179, 8, 0.05);
+}
+
+.hq-fill {
+  background: linear-gradient(90deg, #ca8a04, #eab308) !important;
+}
+
+.hq-fill.completed {
+  background: linear-gradient(90deg, #16a34a, #22c55e) !important;
+}
+
+.hq-download-btn {
+  background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%) !important;
+  border-color: #ca8a04 !important;
+}
+
+.hq-download-btn:hover {
+  background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;
+  border-color: #eab308 !important;
+}
+
+[data-theme='light'] .hq-conversion-progress {
+  border-color: rgba(202, 138, 4, 0.3);
+  background: rgba(202, 138, 4, 0.06);
+}
+
+[data-theme='light'] .hq-download-btn {
+  background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%) !important;
+  border-color: #ca8a04 !important;
 }
 </style>

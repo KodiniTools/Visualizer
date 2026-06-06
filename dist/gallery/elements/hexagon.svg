@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8338EC"/>
+      <stop offset="100%" style="stop-color:#FF006E"/>
+    </linearGradient>
+  </defs>
+  <polygon points="200,30 350,110 350,290 200,370 50,290 50,110" fill="url(#hexGrad)" stroke="#fff" stroke-width="3"/>
+</svg>

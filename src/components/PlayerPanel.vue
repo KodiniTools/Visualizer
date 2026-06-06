@@ -137,7 +137,7 @@
         <button
           @click="cyclePlayMode"
           class="control-btn control-btn-playmode"
-          :class="{ active: playerStore.playMode !== 'none' }"
+          :class="['mode-' + playerStore.playMode, { active: playerStore.playMode !== 'none' }]"
           :title="playModeLabel"
         >
           <!-- none: single note -->

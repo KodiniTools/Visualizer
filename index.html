@@ -1,23 +1,32 @@
 <!doctype html>
 <html lang="de">
 <head>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-KBNF8DV7');</script>
-
     <meta charset="UTF-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="/visualizer/favicon.ico">
 
-    <!-- SEO Metadaten (werden dynamisch von Vue aktualisiert) -->
+    <!-- Font Preload (verhindert FOUT) -->
+    <link rel="preload" href="/fonts/Supreme-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+    <!-- Favicon -->
+    <link rel="icon" href="/visualizer/favicon.ico">
+    <link rel="icon" href="/visualizer/icons/favicon-32x32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="/visualizer/icons/icon-192x192.png">
+
+    <!-- PWA -->
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="theme-color" content="#091428">
+
+    <!-- SEO -->
     <title>Audio Visualizer Pro – Online Musik-Visualizer & MP4-Export</title>
-    <link rel="canonical" href="https://kodinitools.com/visualizer/">
     <meta name="description" content="Audio Visualizer Pro – Erstelle beeindruckende Musik-Visualisierungen direkt im Browser. Tracks hochladen, Visualisierung wählen, Text/Bild hinzufügen und als MP4 exportieren.">
     <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://kodinitools.com/visualizer/">
+
+    <!-- hreflang: Sprachversionen -->
+    <link rel="alternate" hreflang="de" href="https://kodinitools.com/visualizer/">
+    <link rel="alternate" hreflang="en" href="https://kodinitools.com/visualizer/">
+    <link rel="alternate" hreflang="x-default" href="https://kodinitools.com/visualizer/">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
@@ -28,6 +37,9 @@
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Audio Visualizer Pro – Browser-basierter Musik-Visualizer">
+    <meta property="og:locale" content="de_DE">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:site_name" content="Kodini Tools">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
@@ -35,15 +47,18 @@
     <meta name="twitter:description" content="Interaktiver Audio-Visualizer mit MP4-Export, Text-Overlay, Bildhintergrund & Farbkontrolle.">
     <meta name="twitter:image" content="https://kodinitools.com/visualizer/og-image.png">
 
-    <!-- PWA / Icons -->
-    <link rel="manifest" href="site.webmanifest">
-    <meta name="theme-color" content="#0a0a0a">
-    <link rel="icon" href="/visualizer/icons/favicon-32x32.png" sizes="32x32" type="image/png">
-    <link rel="apple-touch-icon" href="/visualizer/icons/icon-192x192.png">
-
     <!-- FontAwesome (lokal) -->
-    <link rel="stylesheet" href="/fontawesome/css/fontawesome.min.css" />
-    <link rel="stylesheet" href="/fontawesome/css/solid.min.css" />
+    <link rel="stylesheet" href="/fontawesome/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/fontawesome/css/solid.min.css">
+
+    <!-- Google Tag Manager (async – kein Render-Blocking) -->
+    <script>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-KBNF8DV7');
+    </script>
 
     <style>
         .header-controls { display: flex; gap: 12px; align-items: center; }
@@ -55,24 +70,24 @@
         .file-input-group #addTextBtn { flex-grow: 0; flex-basis: 120px; }
         .color-input-group { display: flex; align-items: center; gap: 10px; }
         .color-input-group input[type="color"] { padding: 0; border: none; background: none; width: 40px; height: 40px; }
-        
+
         /* SEO Content Styles */
         .intro-section { margin: 20px 0; }
         .intro-section h2 { font-size: 1.5rem; margin-bottom: 12px; }
         .intro-section p { line-height: 1.6; color: var(--text-muted); }
-        
+
         .faq-section { margin: 32px 0; }
         .faq-section h2 { font-size: 1.4rem; margin-bottom: 16px; }
         .faq-section details { margin-bottom: 8px; background: var(--panel-bg, rgba(255, 255, 255, 0.05)); border-radius: 8px; }
         .faq-section summary { padding: 12px 16px; cursor: pointer; font-weight: 600; border-radius: 8px; transition: background-color 0.2s ease; }
         .faq-section summary:hover { background-color: var(--btn-hover); }
         .faq-section details > div { padding: 8px 16px 12px 16px; color: var(--text-muted); }
-        
+
         .footer-nav { text-align: center; margin-top: 40px; padding: 20px 0; border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.12)); background: transparent; }
         .footer-nav a { color: var(--text-muted, #7A8DA0); text-decoration: none; margin: 0 8px; transition: color 0.2s ease; }
         .footer-nav a:hover { color: var(--text-primary, #E9E9EB); }
 
-        /* Global Navigation & Footer - Transparent */
+        /* Global Navigation & Footer – Transparent */
         .global-nav, .site-nav, nav.global, header.global, #global-nav, body > nav:first-of-type, body > header:first-of-type {
             background: transparent !important;
             backdrop-filter: blur(8px);
@@ -82,7 +97,7 @@
         .global-footer a, .site-footer a, footer a { color: var(--text-muted, #7A8DA0) !important; }
         .global-footer a:hover, .site-footer a:hover, footer a:hover { color: var(--text-primary, #E9E9EB) !important; }
 
-        /* Navigation Text Kontrast Fix - NUR für SSI Partials (nicht Vue-Komponenten) */
+        /* Navigation Text Kontrast Fix */
         .global-nav a, .site-nav a, body > nav:first-of-type a, body > header:first-of-type a { color: var(--text-primary, #E9E9EB) !important; }
         .global-nav a:hover, .site-nav a:hover, body > nav:first-of-type a:hover, body > header:first-of-type a:hover { color: var(--accent-tertiary, #f8e1a9) !important; }
         .global-nav *:not(.global-nav-theme-toggle):not(.global-nav-theme-icon):not(.global-nav-lang-btn):not(.global-nav-lang-switcher), .site-nav *, nav.global *, header.global *, body > nav:first-of-type *, body > header:first-of-type * { color: inherit !important; }
@@ -94,46 +109,91 @@
     <!-- JSON-LD: SoftwareApplication -->
     <script type="application/ld+json">
     {
-        "@context":"https://schema.org",
-        "@type":"SoftwareApplication",
-        "name":"Audio Visualizer Pro",
-        "url":"https://kodinitools.com/visualizer/",
-        "applicationCategory":"MultimediaApplication",
-        "operatingSystem":"Web",
-        "offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},
-        "description":"Interaktiver Audio-Visualizer im Browser. Tracks hochladen, Visualisierungen wählen, Texte & Bilder hinzufügen, als MP4 exportieren.",
-        "publisher":{"@type":"Organization","name":"Kodini Tools","url":"https://kodinitools.com/"}
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Audio Visualizer Pro",
+        "url": "https://kodinitools.com/visualizer/",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Web",
+        "inLanguage": ["de", "en"],
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+        "description": "Interaktiver Audio-Visualizer im Browser. Tracks hochladen, Visualisierungen wählen, Texte & Bilder hinzufügen, als MP4 exportieren.",
+        "featureList": [
+            "30+ Visualizer-Effekte",
+            "MP4-Export in 720p, 1080p, 1440p",
+            "Text-Overlay mit Audio-reaktiven Effekten",
+            "Bildhintergrund und Video-Hintergrund",
+            "Beat-Marker System",
+            "Playlist-Wiedergabe"
+        ],
+        "screenshot": "https://kodinitools.com/visualizer/og-image.png",
+        "publisher": { "@type": "Organization", "name": "Kodini Tools", "url": "https://kodinitools.com/" }
     }
     </script>
 
-    <!-- JSON-LD: FAQ -->
+    <!-- JSON-LD: FAQ (DE + EN) -->
     <script type="application/ld+json">
     {
-        "@context":"https://schema.org",
-        "@type":"FAQPage",
-        "mainEntity":[
-            {"@type":"Question","name":"Welche Audioformate werden unterstützt?",
-             "acceptedAnswer":{"@type":"Answer","text":"MP3, WAV sowie weitere Formate, die der Browser unterstützt."}},
-            {"@type":"Question","name":"Kann ich das Video exportieren?",
-             "acceptedAnswer":{"@type":"Answer","text":"Ja, Export direkt im Browser als MP4, z. B. in 720p, 1080p oder 1440p."}},
-            {"@type":"Question","name":"Werden meine Dateien gespeichert?",
-             "acceptedAnswer":{"@type":"Answer","text":"Nein, die Verarbeitung ist clientseitig; es werden keine Dateien auf dem Server gespeichert."}}
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "Welche Audioformate werden unterstützt?",
+                "acceptedAnswer": { "@type": "Answer", "text": "MP3, WAV sowie alle weiteren Formate, die der Browser nativ unterstützt (z. B. OGG, FLAC, AAC)." }
+            },
+            {
+                "@type": "Question",
+                "name": "Which audio formats are supported?",
+                "acceptedAnswer": { "@type": "Answer", "text": "MP3, WAV and all other formats natively supported by the browser (e.g. OGG, FLAC, AAC)." }
+            },
+            {
+                "@type": "Question",
+                "name": "Kann ich das Video exportieren?",
+                "acceptedAnswer": { "@type": "Answer", "text": "Ja, der Export erfolgt direkt im Browser als MP4 in 720p, 1080p oder 1440p – ohne Upload auf einen Server." }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I export the video?",
+                "acceptedAnswer": { "@type": "Answer", "text": "Yes, export happens directly in the browser as MP4 in 720p, 1080p or 1440p – no server upload required." }
+            },
+            {
+                "@type": "Question",
+                "name": "Werden meine Dateien gespeichert?",
+                "acceptedAnswer": { "@type": "Answer", "text": "Nein, die gesamte Verarbeitung erfolgt clientseitig im Browser. Es werden keine Dateien auf einem Server gespeichert." }
+            },
+            {
+                "@type": "Question",
+                "name": "Are my files stored on a server?",
+                "acceptedAnswer": { "@type": "Answer", "text": "No, all processing happens client-side in the browser. No files are uploaded or stored on any server." }
+            },
+            {
+                "@type": "Question",
+                "name": "Ist der Visualizer kostenlos?",
+                "acceptedAnswer": { "@type": "Answer", "text": "Ja, Audio Visualizer Pro ist vollständig kostenlos und erfordert keine Registrierung." }
+            },
+            {
+                "@type": "Question",
+                "name": "Is the visualizer free to use?",
+                "acceptedAnswer": { "@type": "Answer", "text": "Yes, Audio Visualizer Pro is completely free and requires no registration." }
+            }
         ]
     }
     </script>
 </head>
 <body data-theme="dark">
-<!--#include virtual="/partials/nav.html" -->
     <!-- Google Tag Manager (noscript) -->
     <noscript>
         <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KBNF8DV7" height="0" width="0" style="display:none;visibility:hidden"></iframe>
         <p>Bitte JavaScript aktivieren, um den Audio Visualizer Pro zu verwenden.</p>
     </noscript>
-    
+
+    <!--#include virtual="/partials/nav.html" -->
+
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
-	
-<!--#include virtual="/partials/footer.html" -->
-<!--#include virtual="/partials/cookie-banner.html" -->
+
+    <!--#include virtual="/partials/footer.html" -->
+    <!--#include virtual="/partials/cookie-banner.html" -->
 </body>
 </html>

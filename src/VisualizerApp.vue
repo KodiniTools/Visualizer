@@ -1892,10 +1892,9 @@ function draw() {
       beatDropStore.$state,
     )
 
-    // Copy clean scene to recording canvas and submit frame to encoder.
-    // Called before UI overlays so recording stays clean (no selection handles etc.).
-    // requestFrame() is synchronised here — no separate rAF loop in recorder needed.
-    if (recorderStore.isRecording && recordingCanvas && window._recorderRequestFrame) {
+    // Copy clean scene to recording canvas (before UI overlays)
+    // This is a fast GPU blit — no re-rendering, no slowdown
+    if (recorderStore.isRecording && recordingCanvas) {
       const recordingCtx = recordingCanvas.getContext('2d')
       if (recordingCtx) {
         const workspaceBounds = canvasManagerInstance.value?.getWorkspaceBounds()
@@ -1917,7 +1916,6 @@ function draw() {
         } else {
           recordingCtx.drawImage(canvas, 0, 0)
         }
-        window._recorderRequestFrame()
       }
     }
 
@@ -2568,7 +2566,9 @@ async function initializeRecorder() {
 
   applyRecordingCanvasMonkeyPatch(recordingCanvas)
 
-  // Audio stream only — video stream is created inside _setupMediaRecorder via captureStream(0)
+  const canvasStream = recordingCanvas.captureStream(60)
+  console.log('[App] Canvas-Stream erstellt (60 FPS)')
+
   const audio = audioRef.value
   if (!audio) {
     console.error('[App] Audio Element nicht gefunden!')
@@ -2581,8 +2581,17 @@ async function initializeRecorder() {
     return
   }
 
-  // Pass audio-only stream — recorder creates the video stream itself via captureStream(0)
-  const combinedMediaStream = new MediaStream([...combinedAudioStream.getAudioTracks()])
+  const videoTracks = canvasStream.getVideoTracks()
+  const audioTracks = combinedAudioStream.getAudioTracks()
+  const combinedMediaStream = new MediaStream([...videoTracks, ...audioTracks])
+
+  console.log(
+    '[App] Kombinierter MediaStream erstellt:',
+    videoTracks.length,
+    'Video,',
+    audioTracks.length,
+    'Audio',
+  )
 
   console.log('[App] Setze Recorder-Refs im Store...')
   const success = recorderStore.setRecorderRefs(recordingCanvas, audio, combinedMediaStream, null)

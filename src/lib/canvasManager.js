@@ -697,10 +697,12 @@ export class CanvasManager {
     const effects = audioSettings.effects
     if (!effects) return null
 
+    const gain = audioSettings.gain ?? 1.0
+
     for (const [effectName, effectConfig] of Object.entries(effects)) {
       if (effectConfig && effectConfig.enabled) {
         const intensity = (effectConfig.intensity || 80) / 100
-        const normalizedLevel = baseLevel * intensity
+        const normalizedLevel = Math.min(baseLevel * intensity * gain, 1)
 
         result.hasEffects = true
         result.effects[effectName] = this._calculateEffectValue(effectName, normalizedLevel)

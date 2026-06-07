@@ -110,6 +110,7 @@
       @easing-change="onAudioReactiveEasingChange"
       @beat-boost-change="onAudioReactiveBeatBoostChange"
       @phase-change="onAudioReactivePhaseChange"
+      @gain-change="onAudioReactiveGainChange"
       @toggle-preset="toggleAudioPreset"
       @effect-toggle="onEffectToggle"
       @effect-intensity-change="onEffectIntensityChange"
@@ -376,6 +377,10 @@ function onAudioReactiveBeatBoostChange(event) {
 
 function onAudioReactivePhaseChange(event) {
   updateAudioReactiveSetting('phase', parseInt(event.target.value))
+}
+
+function onAudioReactiveGainChange(event) {
+  updateAudioReactiveSetting('gain', parseFloat(event.target.value))
 }
 
 function updateAudioReactiveSetting(property, value) {

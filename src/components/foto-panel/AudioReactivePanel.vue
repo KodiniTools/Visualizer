@@ -58,6 +58,24 @@
           />
         </div>
 
+        <!-- Audio-Pegel (Gain) -->
+        <div class="modern-control">
+          <div class="modern-label">
+            <span class="label-text">{{ t('foto.audioGain') }}</span>
+            <span class="label-value" ref="audioReactiveGainValueRef">100%</span>
+          </div>
+          <input
+            type="range"
+            ref="audioReactiveGainRef"
+            min="0"
+            max="2"
+            step="0.05"
+            value="1"
+            class="audio-slider"
+            @input="onAudioReactiveGainChange"
+          />
+        </div>
+
         <!-- Easing -->
         <div class="modern-control">
           <div class="modern-label">
@@ -344,6 +362,7 @@ const emit = defineEmits([
   'easing-change',
   'beat-boost-change',
   'phase-change',
+  'gain-change',
   'toggle-preset',
   'effect-toggle',
   'effect-intensity-change',
@@ -363,6 +382,8 @@ const audioReactiveBeatBoostRef = ref(null)
 const audioReactiveBeatBoostValueRef = ref(null)
 const audioReactivePhaseRef = ref(null)
 const audioReactivePhaseValueRef = ref(null)
+const audioReactiveGainRef = ref(null)
+const audioReactiveGainValueRef = ref(null)
 
 const isEnabled = ref(false)
 
@@ -452,6 +473,14 @@ function onAudioReactivePhaseChange(event) {
   emit('phase-change', event)
 }
 
+function onAudioReactiveGainChange(event) {
+  const value = parseFloat(event.target.value)
+  if (audioReactiveGainValueRef.value) {
+    audioReactiveGainValueRef.value.textContent = Math.round(value * 100) + '%'
+  }
+  emit('gain-change', event)
+}
+
 /**
  * Lädt Audio-Reaktiv Einstellungen in die UI
  */
@@ -505,6 +534,14 @@ function loadSettings(imageData) {
     audioReactivePhaseRef.value.value = phase
     if (audioReactivePhaseValueRef.value) {
       audioReactivePhaseValueRef.value.textContent = phase + '°'
+    }
+  }
+
+  if (audioReactiveGainRef.value) {
+    const gain = audioReactive.gain ?? 1.0
+    audioReactiveGainRef.value.value = gain
+    if (audioReactiveGainValueRef.value) {
+      audioReactiveGainValueRef.value.textContent = Math.round(gain * 100) + '%'
     }
   }
 

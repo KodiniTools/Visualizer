@@ -174,6 +174,11 @@ export function useAudioReactive(fotoManagerRef, currentActiveImage) {
     updateAudioReactiveSetting('phase', value)
   }
 
+  function onAudioReactiveGainChange(event) {
+    const value = parseFloat(event.target.value)
+    updateAudioReactiveSetting('gain', value)
+  }
+
   // Preset Toggle
   function toggleAudioPreset(presetName) {
     if (activeAudioPreset.value === presetName) {
@@ -593,6 +598,7 @@ export function useAudioReactive(fotoManagerRef, currentActiveImage) {
     onAudioReactiveEasingChange,
     onAudioReactiveBeatBoostChange,
     onAudioReactivePhaseChange,
+    onAudioReactiveGainChange,
     toggleAudioPreset,
     deactivateAudioPreset,
     applyAudioPreset,

@@ -80,6 +80,7 @@ export class FotoManager {
         easing: 'linear', // 'linear', 'easeIn', 'easeOut', 'easeInOut', 'bounce', 'elastic', 'punch'
         phase: 0, // 0-360° Phasenversatz für Kaskaden-Effekte
         beatBoost: 1.0, // 1.0-3.0 Beat-Verstärkung (1.0 = aus)
+        gain: 1.0, // 0.0-2.0 Audio-Pegel-Multiplikator
       },
     }
   }

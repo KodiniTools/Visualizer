@@ -19,6 +19,9 @@ export function useHqExport() {
   const hqVideoUrl = ref(null)
   const hqFilename = ref(null)
 
+  // Unabhängige Zeiterfassung als Fallback falls Worker-Event zu spät kommt
+  let _captureStartTime = 0
+
   const { capturedFrameCount, start: startCapture, stop: stopCapture } = useFrameCapture()
 
   async function startHqCapture() {
@@ -28,6 +31,7 @@ export function useHqExport() {
       hqError.value = null
       hqVideoUrl.value = null
       hqFilename.value = null
+      _captureStartTime = Date.now()
 
       const sessionId = await startFrameExportSession(hqFps.value)
       hqSessionId.value = sessionId
@@ -61,6 +65,7 @@ export function useHqExport() {
 
       window.dispatchEvent(new CustomEvent('hq:stopCapture'))
 
+      // Worker braucht Zeit zum Encodieren der letzten Frames → großzügiger Timeout
       const remaining = await new Promise((resolve) => {
         const handler = (e) => {
           window.removeEventListener('hq:captureRemaining', handler)
@@ -70,10 +75,11 @@ export function useHqExport() {
         setTimeout(() => {
           window.removeEventListener('hq:captureRemaining', handler)
           resolve(null)
-        }, 2000)
+        }, 15000)
       })
 
-      const durationMs = remaining?.durationMs || 0
+      // Fallback: eigene Zeiterfassung wenn Worker-Event ausblieb
+      const durationMs = remaining?.durationMs || Date.now() - _captureStartTime
       if (remaining?.frames?.length > 0) {
         await uploadFrameBatch(sessionId, remaining.frames, remaining.startIndex)
       }

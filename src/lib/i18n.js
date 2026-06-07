@@ -1032,7 +1032,9 @@ const translations = {
       sendToBack: 'Nach hinten',
       flipHorizontal: 'Horizontal spiegeln',
       flipVertical: 'Vertikal spiegeln',
-      resetFilters: 'Filter zurücksetzen',
+      resetFilters: 'Zurücksetzen',
+      undo: 'Rückgängig',
+      redo: 'Wiederholen',
       // Gallery section
       sectionColor: 'Abschnittsfarbe',
       customColor: 'Eigene Farbe',
@@ -2407,7 +2409,9 @@ const translations = {
       sendToBack: 'Send to back',
       flipHorizontal: 'Flip horizontal',
       flipVertical: 'Flip vertical',
-      resetFilters: 'Reset filters',
+      resetFilters: 'Reset',
+      undo: 'Undo',
+      redo: 'Redo',
       // Gallery section
       sectionColor: 'Section Color',
       customColor: 'Custom Color',

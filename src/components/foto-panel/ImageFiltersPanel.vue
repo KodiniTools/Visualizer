@@ -40,7 +40,7 @@
 
     <!-- Preset Auswahl -->
     <div class="control-group">
-      <select ref="presetSelectRef" @change="onPresetChange">
+      <select ref="presetSelectRef" @mousedown="onSliderStart" @change="onPresetChange">
         <option value="">{{ t('foto.noFilter') }}</option>
         <option v-for="preset in presets" :key="preset.id" :value="preset.id">
           {{ preset.name }}
@@ -57,6 +57,8 @@
         min="0"
         max="200"
         value="100"
+        @pointerdown="onSliderStart"
+        @pointerup="onSliderEnd"
         @input="onBrightnessChange"
       />
       <span ref="brightnessValueRef">100%</span>
@@ -71,6 +73,8 @@
         min="0"
         max="200"
         value="100"
+        @pointerdown="onSliderStart"
+        @pointerup="onSliderEnd"
         @input="onContrastChange"
       />
       <span ref="contrastValueRef">100%</span>
@@ -85,6 +89,8 @@
         min="0"
         max="200"
         value="100"
+        @pointerdown="onSliderStart"
+        @pointerup="onSliderEnd"
         @input="onSaturationChange"
       />
       <span ref="saturationValueRef">100%</span>
@@ -99,6 +105,8 @@
         min="0"
         max="100"
         value="100"
+        @pointerdown="onSliderStart"
+        @pointerup="onSliderEnd"
         @input="onOpacityChange"
       />
       <span ref="opacityValueRef">100%</span>
@@ -107,7 +115,16 @@
     <!-- Unschärfe -->
     <div class="control-group slider">
       <label>{{ t('foto.blur') }}</label>
-      <input type="range" ref="blurInputRef" min="0" max="20" value="0" @input="onBlurChange" />
+      <input
+        type="range"
+        ref="blurInputRef"
+        min="0"
+        max="20"
+        value="0"
+        @pointerdown="onSliderStart"
+        @pointerup="onSliderEnd"
+        @input="onBlurChange"
+      />
       <span ref="blurValueRef">0px</span>
     </div>
 
@@ -120,6 +137,8 @@
         min="-180"
         max="180"
         value="0"
+        @pointerdown="onSliderStart"
+        @pointerup="onSliderEnd"
         @input="onHueRotateChange"
       />
       <span ref="hueRotateValueRef">0°</span>
@@ -144,6 +163,8 @@
             ref="shadowColorInputRef"
             value="#000000"
             class="modern-color-input"
+            @mousedown="onSliderStart"
+            @change="onSliderEnd"
             @input="onShadowColorChange"
           />
           <input
@@ -168,6 +189,8 @@
           max="50"
           value="0"
           class="modern-slider shadow-slider"
+          @pointerdown="onSliderStart"
+          @pointerup="onSliderEnd"
           @input="onShadowBlurChange"
         />
       </div>
@@ -184,6 +207,8 @@
           max="50"
           value="0"
           class="modern-slider shadow-slider"
+          @pointerdown="onSliderStart"
+          @pointerup="onSliderEnd"
           @input="onShadowOffsetXChange"
         />
       </div>
@@ -200,6 +225,8 @@
           max="50"
           value="0"
           class="modern-slider shadow-slider"
+          @pointerdown="onSliderStart"
+          @pointerup="onSliderEnd"
           @input="onShadowOffsetYChange"
         />
       </div>
@@ -226,6 +253,8 @@
           max="100"
           value="50"
           class="modern-slider rotation-slider"
+          @pointerdown="onSliderStart"
+          @pointerup="onSliderEnd"
           @input="onRotationChange"
         />
         <span class="rotation-hint">-180° ← → +180°</span>
@@ -238,10 +267,20 @@
         <h4>{{ t('foto.flip') }}</h4>
       </div>
       <div class="flip-buttons">
-        <button @click="onFlipHorizontal" class="flip-button" :class="{ active: flipHRef }">
+        <button
+          @pointerdown="onSliderStart"
+          @click="onFlipHorizontal"
+          class="flip-button"
+          :class="{ active: flipHRef }"
+        >
           ↔ {{ t('foto.flipH') }}
         </button>
-        <button @click="onFlipVertical" class="flip-button" :class="{ active: flipVRef }">
+        <button
+          @pointerdown="onSliderStart"
+          @click="onFlipVertical"
+          class="flip-button"
+          :class="{ active: flipVRef }"
+        >
           ↕ {{ t('foto.flipV') }}
         </button>
       </div>
@@ -266,6 +305,8 @@
             ref="borderColorInputRef"
             value="#ffffff"
             class="modern-color-input"
+            @mousedown="onSliderStart"
+            @change="onSliderEnd"
             @input="onBorderColorChange"
           />
           <input
@@ -290,6 +331,8 @@
           max="50"
           value="0"
           class="modern-slider border-slider"
+          @pointerdown="onSliderStart"
+          @pointerup="onSliderEnd"
           @input="onBorderWidthChange"
         />
       </div>
@@ -306,20 +349,42 @@
           max="100"
           value="100"
           class="modern-slider border-opacity-slider"
+          @pointerdown="onSliderStart"
+          @pointerup="onSliderEnd"
           @input="onBorderOpacityChange"
         />
       </div>
     </div>
 
-    <!-- Reset Button -->
-    <button @click="resetFilters" class="btn-secondary modern-reset-btn">
-      {{ t('foto.resetFilters') }}
-    </button>
+    <!-- Undo / Redo / Reset -->
+    <div class="history-actions">
+      <button class="btn-history" :disabled="!canUndo" @click="undo" :title="t('foto.undo')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 7v6h6" />
+          <path d="M3 13C5.33 7.5 10 4 16 4a9 9 0 0 1 0 18H8" />
+        </svg>
+        {{ t('foto.undo') }}
+      </button>
+      <button class="btn-history" :disabled="!canRedo" @click="redo" :title="t('foto.redo')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 7v6h-6" />
+          <path d="M21 13C18.67 7.5 14 4 8 4a9 9 0 0 0 0 18h8" />
+        </svg>
+        {{ t('foto.redo') }}
+      </button>
+      <button @click="resetFilters" class="btn-history btn-reset" :title="t('foto.resetFilters')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
+        {{ t('foto.resetFilters') }}
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 
 const { t } = useI18n()
@@ -356,6 +421,96 @@ const emit = defineEmits([
   'filter-change',
   'reset-filters',
 ])
+
+// ── Undo / Redo ──────────────────────────────────────────────────────────────
+const MAX_HISTORY = 30
+const undoStack = ref([])
+const redoStack = ref([])
+const canUndo = computed(() => undoStack.value.length > 0)
+const canRedo = computed(() => redoStack.value.length > 0)
+
+let _beforeSnapshot = null
+
+function _getCurrentSnapshot() {
+  return {
+    brightness: parseInt(brightnessInputRef.value?.value ?? 100),
+    contrast: parseInt(contrastInputRef.value?.value ?? 100),
+    saturation: parseInt(saturationInputRef.value?.value ?? 100),
+    opacity: parseInt(opacityInputRef.value?.value ?? 100),
+    blur: parseInt(blurInputRef.value?.value ?? 0),
+    hueRotate: parseInt(hueRotateInputRef.value?.value ?? 0),
+    shadowColor: shadowColorInputRef.value?.value ?? '#000000',
+    shadowBlur: parseInt(shadowBlurInputRef.value?.value ?? 0),
+    shadowOffsetX: parseInt(shadowOffsetXInputRef.value?.value ?? 0),
+    shadowOffsetY: parseInt(shadowOffsetYInputRef.value?.value ?? 0),
+    rotation: rotationInputRef.value ? (parseInt(rotationInputRef.value.value) - 50) * 3.6 : 0,
+    flipH: flipHRef.value,
+    flipV: flipVRef.value,
+    borderColor: borderColorInputRef.value?.value ?? '#ffffff',
+    borderWidth: parseInt(borderWidthInputRef.value?.value ?? 0),
+    borderOpacity: parseInt(borderOpacityInputRef.value?.value ?? 100),
+    preset: presetSelectRef.value?.value ?? '',
+  }
+}
+
+function _pushToUndo(snapshot) {
+  undoStack.value.push(snapshot)
+  if (undoStack.value.length > MAX_HISTORY) undoStack.value.shift()
+  redoStack.value = []
+}
+
+function onSliderStart() {
+  _beforeSnapshot = _getCurrentSnapshot()
+}
+
+function onSliderEnd() {
+  if (_beforeSnapshot) {
+    _pushToUndo(_beforeSnapshot)
+    _beforeSnapshot = null
+  }
+}
+
+function _applySnapshot(snapshot) {
+  loadImageSettings(snapshot)
+  const props = [
+    'brightness',
+    'contrast',
+    'saturation',
+    'opacity',
+    'blur',
+    'hueRotate',
+    'shadowColor',
+    'shadowBlur',
+    'shadowOffsetX',
+    'shadowOffsetY',
+    'rotation',
+    'flipH',
+    'flipV',
+    'borderColor',
+    'borderWidth',
+    'borderOpacity',
+  ]
+  props.forEach((p) => emit('filter-change', { property: p, value: snapshot[p] }))
+  if (snapshot.preset !== undefined) emit('preset-change', snapshot.preset)
+}
+
+function undo() {
+  if (!canUndo.value) return
+  const current = _getCurrentSnapshot()
+  redoStack.value.push(current)
+  const previous = undoStack.value.pop()
+  _applySnapshot(previous)
+}
+
+function redo() {
+  if (!canRedo.value) return
+  const current = _getCurrentSnapshot()
+  // Push to undo without clearing redo stack
+  undoStack.value.push(current)
+  if (undoStack.value.length > MAX_HISTORY) undoStack.value.shift()
+  const next = redoStack.value.pop()
+  _applySnapshot(next)
+}
 
 // Container Ref
 const containerRef = ref(null)
@@ -488,11 +643,13 @@ function onRotationChange(event) {
 }
 
 function onFlipHorizontal() {
+  onSliderEnd()
   flipHRef.value = !flipHRef.value
   emitFilterChange('flipH', flipHRef.value)
 }
 
 function onFlipVertical() {
+  onSliderEnd()
   flipVRef.value = !flipVRef.value
   emitFilterChange('flipV', flipVRef.value)
 }
@@ -527,6 +684,7 @@ function onBorderOpacityChange(event) {
 }
 
 function resetFilters() {
+  _pushToUndo(_getCurrentSnapshot())
   // Reset all inputs to default values
   if (brightnessInputRef.value) brightnessInputRef.value.value = 100
   if (brightnessValueRef.value) brightnessValueRef.value.textContent = '100%'
@@ -776,7 +934,7 @@ input[type='range']::-moz-range-thumb {
   margin: 0;
   font-size: 0.65rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted, #7a8da0);
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
@@ -802,12 +960,12 @@ input[type='range']::-moz-range-thumb {
   justify-content: space-between;
   align-items: center;
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted, #7a8da0);
   font-weight: 500;
 }
 
 .label-text {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-primary, #e9e9eb);
 }
 
 .label-value {
@@ -1090,6 +1248,54 @@ input[type='range']::-moz-range-thumb {
 
 .visualizer-layer-toggle .toggle-text {
   opacity: 0.9;
+}
+
+/* History Actions */
+.history-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 16px;
+}
+
+.btn-history {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
+  font-size: 0.55rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-history svg {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+}
+
+.btn-history:hover:not(:disabled) {
+  background-color: var(--btn-hover, #1a2a42);
+  border-color: var(--image-section-accent, #6ea8fe);
+  color: var(--image-section-accent, #6ea8fe);
+}
+
+.btn-history:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-reset:hover:not(:disabled) {
+  border-color: var(--accent-primary, #c9984d);
+  color: var(--accent-tertiary, #f8e1a9);
 }
 
 /* ═══ Light Theme Overrides ═══ */

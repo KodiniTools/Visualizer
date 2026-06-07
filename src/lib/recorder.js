@@ -402,8 +402,17 @@ class Recorder {
       // Only process if enough time has elapsed (rate limiting for setTimeout fallback)
       if (elapsed >= TARGET_INTERVAL - 1) {
         try {
-          // Canvas is updated by the main draw() loop — no forced redraw needed here.
-          // For captureStream(0), manually request frame; for captureStream(60) this is a no-op.
+          // CRITICAL: Canvas must be updated BEFORE frame capture
+          if (this.onForceRedraw) {
+            this.onForceRedraw()
+          } else {
+            console.error('[RECORDER] CRITICAL: onForceRedraw callback missing!')
+            this._stopFrameRequester()
+            return
+          }
+
+          // For captureStream(0), manually request frame
+          // For captureStream(60), this is a no-op but harmless
           if (typeof videoTrack.requestFrame === 'function') {
             videoTrack.requestFrame()
           }
@@ -468,15 +477,29 @@ class Recorder {
       return false
     }
 
-    // Warmup: let the main draw() loop populate the canvas before encoder starts
-    await new Promise((resolve) => setTimeout(resolve, 200))
+    // ✅ QUALITÄTSVERBESSERUNG: Erweiterte Warmup-Phase für bessere erste Frames
+    // Mehr Frames und schnellere Intervalle für 60 FPS Aufnahme
+    if (this.onForceRedraw) {
+      // Phase 1: Initiale Canvas-Aktualisierungen (5 statt 3)
+      for (let i = 0; i < 5; i++) {
+        this.onForceRedraw()
+        await new Promise((resolve) => setTimeout(resolve, 33)) // ~30 FPS Warmup
+      }
+    } else {
+      console.error('[RECORDER] CRITICAL: No rendering method available!')
+      return false
+    }
 
+    // Phase 2: Force frame requests für Video-Encoder-Initialisierung
     if (typeof videoTrack.requestFrame === 'function') {
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 5; i++) {
         videoTrack.requestFrame()
-        await new Promise((resolve) => setTimeout(resolve, 16))
+        await new Promise((resolve) => setTimeout(resolve, 16)) // ~60 FPS
       }
     }
+
+    // Phase 3: Finale Stabilisierung - längere Pause für Encoder-Buffer
+    await new Promise((resolve) => setTimeout(resolve, 200))
 
     console.log('[RECORDER] ✅ Warmup-Phase abgeschlossen (5 Frames @ 60 FPS)')
     return true

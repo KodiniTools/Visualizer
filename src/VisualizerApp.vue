@@ -2794,10 +2794,13 @@ onMounted(async () => {
     console.log(`[App] HQ Frame Capture gestartet (${fps} FPS)`)
   })
 
-  window.addEventListener('hq:stopCapture', () => {
-    const remaining = stopCapture()
+  window.addEventListener('hq:stopCapture', async () => {
+    const remaining = await stopCapture()
     window.dispatchEvent(new CustomEvent('hq:captureRemaining', { detail: remaining }))
-    console.log('[App] HQ Frame Capture gestoppt')
+    console.log(
+      '[App] HQ Frame Capture gestoppt, verbleibende Frames:',
+      remaining?.frames?.length ?? 0,
+    )
   })
 
   window.setBassGain = setBassGain

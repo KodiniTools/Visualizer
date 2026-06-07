@@ -857,21 +857,20 @@ defineExpose({
 }
 
 .control-group select {
+  display: block;
   width: 100%;
   padding: 5px 8px;
   border-radius: 5px;
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #f9f2d5);
+  background-color: #0e1c32;
+  color: #f9f2d5;
   font-size: 0.75rem;
   cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
 }
 
 .control-group select option {
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #f9f2d5);
+  background-color: #0e1c32;
+  color: #f9f2d5;
 }
 
 .control-group select:hover,
@@ -1323,14 +1322,14 @@ input[type='range']::-moz-range-thumb {
 }
 
 [data-theme='light'] .control-group select {
-  background-color: #ffffff;
-  color: #003971;
+  background-color: #ffffff !important;
+  color: #003971 !important;
   border-color: rgba(1, 79, 153, 0.3);
 }
 
 [data-theme='light'] .control-group select option {
-  background-color: #ffffff;
-  color: #003971;
+  background-color: #ffffff !important;
+  color: #003971 !important;
 }
 
 [data-theme='light'] .control-group select:hover,

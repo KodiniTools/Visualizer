@@ -43,7 +43,7 @@
       <select ref="presetSelectRef" @mousedown="onSliderStart" @change="onPresetChange">
         <option value="">{{ t('foto.noFilter') }}</option>
         <option v-for="preset in presets" :key="preset.id" :value="preset.id">
-          {{ preset.name }}
+          {{ locale === 'de' ? preset.name_de || preset.name : preset.name_en || preset.name }}
         </option>
       </select>
     </div>
@@ -387,7 +387,7 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const props = defineProps({
   currentActiveImage: {

@@ -207,6 +207,7 @@ class Recorder {
    * ✅ IMPROVED: Complete Canvas Stream cleanup with retry
    */
   _cleanupCanvasStream() {
+    window._recorderRequestFrame = null
     if (!this.currentCanvasStream) return
 
     try {
@@ -332,9 +333,9 @@ class Recorder {
   }
 
   _startFrameRequester() {
-    if (this.frameRequesterRunning) {
-      return
-    }
+    // requestFrame() is now called directly from the main draw() loop via
+    // window._recorderRequestFrame — no separate rAF loop needed.
+    return
 
     if (this.frameRequesterId) {
       cancelAnimationFrame(this.frameRequesterId)
@@ -635,10 +636,15 @@ class Recorder {
 
       console.log('[RECORDER] Video track state:', videoTrack.readyState)
 
-      // Trigger first frame
-      if (typeof videoTrack.requestFrame === 'function') {
-        videoTrack.requestFrame()
+      // Expose requestFrame globally so draw() can call it directly — no separate rAF loop needed
+      window._recorderRequestFrame = () => {
+        try {
+          if (videoTrack.readyState === 'live' && typeof videoTrack.requestFrame === 'function') {
+            videoTrack.requestFrame()
+          }
+        } catch (_) {}
       }
+      window._recorderRequestFrame()
     } catch (error) {
       console.error('[RECORDER] Canvas stream setup failed:', error)
       return false

@@ -1892,34 +1892,9 @@ function draw() {
       beatDropStore.$state,
     )
 
-    // Copy clean scene to recording canvas and submit frame to encoder.
-    // Called before UI overlays so recording stays clean (no selection handles etc.).
-    // requestFrame() is synchronised here — no separate rAF loop in recorder needed.
-    if (recorderStore.isRecording && recordingCanvas && window._recorderRequestFrame) {
-      const recordingCtx = recordingCanvas.getContext('2d')
-      if (recordingCtx) {
-        const workspaceBounds = canvasManagerInstance.value?.getWorkspaceBounds()
-        const hasWorkspace = workspaceBounds && canvasManagerInstance.value?.workspacePreset
-        recordingCtx.clearRect(0, 0, recordingCanvas.width, recordingCanvas.height)
-        if (hasWorkspace) {
-          const { x, y, width, height } = workspaceBounds
-          recordingCtx.drawImage(
-            canvas,
-            x,
-            y,
-            width,
-            height,
-            0,
-            0,
-            recordingCanvas.width,
-            recordingCanvas.height,
-          )
-        } else {
-          recordingCtx.drawImage(canvas, 0, 0)
-        }
-        window._recorderRequestFrame()
-      }
-    }
+    // ✅ FIX: Recording canvas is now EXCLUSIVELY updated by recorder:forceRedraw event
+    // This prevents race conditions between requestAnimationFrame and recorder's setInterval
+    // The recorder's frame requester handles rendering + requestFrame() synchronously
 
     if (canvasManagerInstance.value) {
       // ✨ Ghost-Markierungen für ausgeblendete Texte zeichnen
@@ -2568,7 +2543,9 @@ async function initializeRecorder() {
 
   applyRecordingCanvasMonkeyPatch(recordingCanvas)
 
-  // Audio stream only — video stream is created inside _setupMediaRecorder via captureStream(0)
+  const canvasStream = recordingCanvas.captureStream(60)
+  console.log('[App] Canvas-Stream erstellt (60 FPS)')
+
   const audio = audioRef.value
   if (!audio) {
     console.error('[App] Audio Element nicht gefunden!')
@@ -2581,8 +2558,17 @@ async function initializeRecorder() {
     return
   }
 
-  // Pass audio-only stream — recorder creates the video stream itself via captureStream(0)
-  const combinedMediaStream = new MediaStream([...combinedAudioStream.getAudioTracks()])
+  const videoTracks = canvasStream.getVideoTracks()
+  const audioTracks = combinedAudioStream.getAudioTracks()
+  const combinedMediaStream = new MediaStream([...videoTracks, ...audioTracks])
+
+  console.log(
+    '[App] Kombinierter MediaStream erstellt:',
+    videoTracks.length,
+    'Video,',
+    audioTracks.length,
+    'Audio',
+  )
 
   console.log('[App] Setze Recorder-Refs im Store...')
   const success = recorderStore.setRecorderRefs(recordingCanvas, audio, combinedMediaStream, null)
@@ -2715,11 +2701,90 @@ onMounted(async () => {
   setupAudioContext()
   console.log('Audio-Context bereit - recordingDest verfügbar')
 
-  // recorder:forceRedraw is kept as no-op — recording canvas is now updated
-  // inside the main draw() loop via a fast drawImage blit (before UI overlays).
-  // This eliminates the double-render that caused the slowdown during recording.
-  window.addEventListener('recorder:forceRedraw', () => {})
-  console.log('[App] recorder:forceRedraw Event-Listener registriert (no-op)')
+  // ✅ KRITISCHER FIX: Event-Listener für recorder:forceRedraw
+  // Der Recorder ruft onForceRedraw() auf, was dieses Event dispatcht.
+  // Wir müssen den Recording-Canvas SYNCHRON aktualisieren BEVOR requestFrame() aufgerufen wird.
+  window.addEventListener('recorder:forceRedraw', () => {
+    if (!recorderStore.isRecording || !recordingCanvas) return
+
+    const recordingCtx = recordingCanvas.getContext('2d')
+    if (!recordingCtx) return
+
+    // ✅ FIX: Support both multi-layer and single mode (like screenshot function)
+    let drawVisualizerCallback = null
+
+    if (visualizerStore.showVisualizer) {
+      if (visualizerStore.multiLayerMode && multiLayerCompositeCanvas) {
+        // ✅ MULTI-LAYER MODE: Use the pre-composited multi-layer canvas
+        drawVisualizerCallback = (vizCtx, vizWidth, vizHeight) => {
+          if (
+            vizWidth === multiLayerCompositeCanvas.width &&
+            vizHeight === multiLayerCompositeCanvas.height
+          ) {
+            vizCtx.drawImage(multiLayerCompositeCanvas, 0, 0)
+          } else {
+            vizCtx.drawImage(multiLayerCompositeCanvas, 0, 0, vizWidth, vizHeight)
+          }
+        }
+      } else if (visualizerCacheCanvas) {
+        // SINGLE MODE: Use the single-visualizer cache canvas with scale/position
+        drawVisualizerCallback = (targetCtx, width, height) => {
+          const scale = visualizerStore.visualizerScale
+          const posX = visualizerStore.visualizerX
+          const posY = visualizerStore.visualizerY
+
+          const scaledWidth = visualizerCacheCanvas.width * scale
+          const scaledHeight = visualizerCacheCanvas.height * scale
+
+          const destX = width * posX - scaledWidth / 2
+          const destY = height * posY - scaledHeight / 2
+
+          if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
+            targetCtx.drawImage(
+              visualizerCacheCanvas,
+              0,
+              0,
+              visualizerCacheCanvas.width,
+              visualizerCacheCanvas.height,
+              destX,
+              destY,
+              scaledWidth,
+              scaledHeight,
+            )
+          } else {
+            targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height)
+          }
+        }
+      }
+    }
+
+    // Rendere die Szene auf den Recording-Canvas
+    renderRecordingScene(
+      recordingCtx,
+      recordingCanvas.width,
+      recordingCanvas.height,
+      drawVisualizerCallback,
+    )
+
+    // Audio-Reaktive Effekte auf den Recording-Canvas anwenden
+    audioFxRenderer.render(
+      recordingCtx,
+      recordingCanvas.width,
+      recordingCanvas.height,
+      window.audioAnalysisData,
+      audioFxStore.$state,
+    )
+
+    // Beat-Drop Effekte auch auf den Recording-Canvas anwenden
+    beatDropRenderer.render(
+      recordingCtx,
+      recordingCanvas.width,
+      recordingCanvas.height,
+      window.audioAnalysisData,
+      beatDropStore.$state,
+    )
+  })
+  console.log('[App] recorder:forceRedraw Event-Listener registriert')
 
   // HQ Frame Capture: RecorderPanel → App-Kanal
   window.addEventListener('hq:startCapture', (e) => {

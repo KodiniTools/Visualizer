@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /visualizer/
+Disallow: /visualizer/internal
+
+Sitemap: https://kodinitools.com/visualizer/sitemap.xml

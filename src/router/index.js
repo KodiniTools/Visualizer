@@ -82,6 +82,7 @@ router.afterEach((to) => {
   setMeta('property', 'og:url', canonical)
   setMeta('name', 'twitter:title', title)
   setMeta('name', 'twitter:description', description)
+  setMeta('name', 'twitter:url', canonical)
 
   setCanonical(canonical)
 })

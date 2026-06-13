@@ -569,12 +569,46 @@ function scrollToSection(id) {
 }
 
 onMounted(() => {
+  // Fix #app flex-sizing so blog content determines height (not flex allocation)
+  const appEl = document.getElementById('app')
+  if (appEl) {
+    appEl.dataset.origFlex = appEl.style.flex || ''
+    appEl.style.setProperty('flex', '0 0 auto', 'important')
+  }
+
+  // Fix SSI footer: force it out of fixed/sticky positioning
+  // Try every plausible selector the KodiniTools footer might use
+  const footerSelectors = [
+    '#global-footer', '.global-footer', '.site-footer',
+    'footer.global', 'footer', 'body > footer',
+  ]
+  for (const sel of footerSelectors) {
+    try {
+      document.querySelectorAll(sel).forEach(el => {
+        if (!el.closest('#app')) {
+          el.style.setProperty('position', 'static', 'important')
+          el.style.setProperty('bottom', 'auto', 'important')
+        }
+      })
+    } catch (_) { /* ignore invalid selectors */ }
+  }
+
   window.addEventListener('scroll', handleScroll, { passive: true })
   document.addEventListener('scroll', handleScroll, { passive: true })
   handleScroll()
 })
 
 onUnmounted(() => {
+  // Restore #app flex-sizing for other pages (e.g. VisualizerApp needs full height)
+  const appEl = document.getElementById('app')
+  if (appEl) {
+    const orig = appEl.dataset.origFlex
+    if (orig !== undefined) {
+      appEl.style.removeProperty('flex')
+      if (orig) appEl.style.flex = orig
+    }
+  }
+
   window.removeEventListener('scroll', handleScroll)
   document.removeEventListener('scroll', handleScroll)
 })

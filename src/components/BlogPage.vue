@@ -1,5 +1,5 @@
 <template>
-  <div class="blog-page" :class="{ 'light-theme': !isDark }" :data-locale="currentLocale">
+  <div class="blog-page" ref="pageRef" :class="{ 'light-theme': !isDark }" :data-locale="currentLocale">
     <!-- SEO structured data -->
     <teleport to="head">
       <title>Funktionen – Audio Visualizer Pro | Alle Features im Überblick</title>
@@ -464,6 +464,7 @@ const { isDark } = useTheme()
 const currentLocale = computed(() => locale.value)
 const isScrolled = ref(false)
 const activeSection = ref('')
+const pageRef = ref(null)
 
 const overviewCards = [
   {
@@ -531,92 +532,55 @@ const tocSections = [
   { id: 'unique', label: 'Einzigartige Vorteile', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' },
 ]
 
-function getScrollTop() {
-  return window.scrollY ?? document.documentElement.scrollTop ?? document.body.scrollTop ?? 0
-}
-
 function handleScroll() {
-  const scrollTop = getScrollTop()
+  const container = pageRef.value
+  if (!container) return
+  const scrollTop = container.scrollTop
   isScrolled.value = scrollTop > 50
 
-  // Update active TOC section using getBoundingClientRect for accuracy
+  // Determine active TOC section based on viewport position of each section
   const sectionIds = tocSections.map(s => s.id)
   for (let i = sectionIds.length - 1; i >= 0; i--) {
     const el = document.getElementById(sectionIds[i])
-    if (el) {
-      const top = el.getBoundingClientRect().top + scrollTop
-      if (scrollTop >= top - 130) {
-        activeSection.value = sectionIds[i]
-        break
-      }
+    if (el && el.getBoundingClientRect().top <= 140) {
+      activeSection.value = sectionIds[i]
+      break
     }
   }
 }
 
 function scrollToSection(id) {
+  const container = pageRef.value
   const el = document.getElementById(id)
-  if (!el) return
-  // scrollIntoView works regardless of which ancestor is the scroll container
-  const headerOffset = 110
+  if (!container || !el) return
   const rect = el.getBoundingClientRect()
-  const scrollTop = getScrollTop()
-  const target = scrollTop + rect.top - headerOffset
-  try {
-    window.scrollTo({ top: target, behavior: 'smooth' })
-  } catch {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
+  const target = container.scrollTop + rect.top - 110
+  container.scrollTo({ top: target, behavior: 'smooth' })
 }
 
 onMounted(() => {
-  // Fix #app flex-sizing so blog content determines height (not flex allocation)
-  const appEl = document.getElementById('app')
-  if (appEl) {
-    appEl.dataset.origFlex = appEl.style.flex || ''
-    appEl.style.setProperty('flex', '0 0 auto', 'important')
+  const container = pageRef.value
+  if (container) {
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
   }
-
-  // Fix SSI footer: force it out of fixed/sticky positioning
-  // Try every plausible selector the KodiniTools footer might use
-  const footerSelectors = [
-    '#global-footer', '.global-footer', '.site-footer',
-    'footer.global', 'footer', 'body > footer',
-  ]
-  for (const sel of footerSelectors) {
-    try {
-      document.querySelectorAll(sel).forEach(el => {
-        if (!el.closest('#app')) {
-          el.style.setProperty('position', 'static', 'important')
-          el.style.setProperty('bottom', 'auto', 'important')
-        }
-      })
-    } catch (_) { /* ignore invalid selectors */ }
-  }
-
-  window.addEventListener('scroll', handleScroll, { passive: true })
-  document.addEventListener('scroll', handleScroll, { passive: true })
-  handleScroll()
 })
 
 onUnmounted(() => {
-  // Restore #app flex-sizing for other pages (e.g. VisualizerApp needs full height)
-  const appEl = document.getElementById('app')
-  if (appEl) {
-    const orig = appEl.dataset.origFlex
-    if (orig !== undefined) {
-      appEl.style.removeProperty('flex')
-      if (orig) appEl.style.flex = orig
-    }
+  const container = pageRef.value
+  if (container) {
+    container.removeEventListener('scroll', handleScroll)
   }
-
-  window.removeEventListener('scroll', handleScroll)
-  document.removeEventListener('scroll', handleScroll)
 })
 </script>
 
 <style scoped>
 /* ═══ Base ═══ */
 .blog-page {
+  /* Own scroll container – SSI footer is outside this element and irrelevant */
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #050c1e 0%, #091428 50%, #050c1e 100%);

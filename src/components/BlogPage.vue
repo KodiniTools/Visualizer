@@ -577,8 +577,10 @@ onUnmounted(() => {
 <style scoped>
 /* ═══ Base ═══ */
 .blog-page {
-  /* Own scroll container – SSI footer is outside this element and irrelevant */
-  height: 100vh;
+  /* flex:1 fills #app; min-height:0 allows flex child to shrink below
+     content size so overflow-y:auto creates a real scroll container */
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
@@ -591,6 +593,11 @@ onUnmounted(() => {
 .blog-page.light-theme {
   background: linear-gradient(180deg, #f5f4d6 0%, #f9f2d5 50%, #f5f4d6 100%);
   color: #003971;
+}
+
+/* Ensure #app also allows shrinking so blog-page inherits the correct height */
+:global(#app) {
+  min-height: 0;
 }
 
 /* ═══ Header ═══ */

@@ -531,26 +531,35 @@ const tocSections = [
   { id: 'unique', label: 'Einzigartige Vorteile', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' },
 ]
 
-function handleScroll() {
-  isScrolled.value = window.scrollY > 50
+function getScrollTop() {
+  return window.scrollY ?? document.documentElement.scrollTop ?? document.body.scrollTop ?? 0
+}
 
-  // Update active TOC section
+function handleScroll() {
+  const scrollTop = getScrollTop()
+  isScrolled.value = scrollTop > 50
+
+  // Update active TOC section using getBoundingClientRect for accuracy
   const sectionIds = tocSections.map(s => s.id)
   for (let i = sectionIds.length - 1; i >= 0; i--) {
     const el = document.getElementById(sectionIds[i])
-    if (el && window.scrollY >= el.offsetTop - 120) {
-      activeSection.value = sectionIds[i]
-      break
+    if (el) {
+      const top = el.getBoundingClientRect().top + scrollTop
+      if (scrollTop >= top - 130) {
+        activeSection.value = sectionIds[i]
+        break
+      }
     }
   }
 }
 
 function scrollToSection(id) {
   const el = document.getElementById(id)
-  if (el) {
-    const offset = 100
-    window.scrollTo({ top: el.offsetTop - offset, behavior: 'smooth' })
-  }
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  const scrollTop = getScrollTop()
+  const target = scrollTop + rect.top - 110
+  window.scrollTo({ top: target, behavior: 'smooth' })
 }
 
 onMounted(() => {
@@ -566,7 +575,6 @@ onUnmounted(() => {
 <style scoped>
 /* ═══ Base ═══ */
 .blog-page {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #050c1e 0%, #091428 50%, #050c1e 100%);

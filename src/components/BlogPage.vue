@@ -1,5 +1,5 @@
 <template>
-  <div class="blog-page" :class="{ 'light-theme': !isDark }">
+  <div class="blog-page" :class="{ 'light-theme': !isDark }" :data-locale="currentLocale">
     <!-- SEO structured data -->
     <teleport to="head">
       <title>Funktionen – Audio Visualizer Pro | Alle Features im Überblick</title>
@@ -556,19 +556,27 @@ function handleScroll() {
 function scrollToSection(id) {
   const el = document.getElementById(id)
   if (!el) return
+  // scrollIntoView works regardless of which ancestor is the scroll container
+  const headerOffset = 110
   const rect = el.getBoundingClientRect()
   const scrollTop = getScrollTop()
-  const target = scrollTop + rect.top - 110
-  window.scrollTo({ top: target, behavior: 'smooth' })
+  const target = scrollTop + rect.top - headerOffset
+  try {
+    window.scrollTo({ top: target, behavior: 'smooth' })
+  } catch {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 }
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
+  document.addEventListener('scroll', handleScroll, { passive: true })
   handleScroll()
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  document.removeEventListener('scroll', handleScroll)
 })
 </script>
 

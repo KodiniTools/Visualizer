@@ -533,12 +533,10 @@ const tocSections = [
 ]
 
 function handleScroll() {
-  const container = pageRef.value
-  if (!container) return
-  const scrollTop = container.scrollTop
+  const scrollTop = window.scrollY || document.documentElement.scrollTop || 0
   isScrolled.value = scrollTop > 50
 
-  // Determine active TOC section based on viewport position of each section
+  // Determine active TOC section
   const sectionIds = tocSections.map(s => s.id)
   for (let i = sectionIds.length - 1; i >= 0; i--) {
     const el = document.getElementById(sectionIds[i])
@@ -550,41 +548,31 @@ function handleScroll() {
 }
 
 function scrollToSection(id) {
-  const container = pageRef.value
   const el = document.getElementById(id)
-  if (!container || !el) return
+  if (!el) return
   const rect = el.getBoundingClientRect()
-  const target = container.scrollTop + rect.top - 110
-  container.scrollTo({ top: target, behavior: 'smooth' })
+  const scrollTop = window.scrollY || document.documentElement.scrollTop || 0
+  const target = scrollTop + rect.top - 110
+  window.scrollTo({ top: target, behavior: 'smooth' })
 }
 
 onMounted(() => {
-  const container = pageRef.value
-  if (container) {
-    container.addEventListener('scroll', handleScroll, { passive: true })
-    handleScroll()
-  }
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  handleScroll()
 })
 
 onUnmounted(() => {
-  const container = pageRef.value
-  if (container) {
-    container.removeEventListener('scroll', handleScroll)
-  }
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 
 <style scoped>
 /* ═══ Base ═══ */
 .blog-page {
-  /* flex:1 fills #app; min-height:0 allows flex child to shrink below
-     content size so overflow-y:auto creates a real scroll container */
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
   background: linear-gradient(180deg, #050c1e 0%, #091428 50%, #050c1e 100%);
   color: #e9e9eb;
   font-family: 'Supreme', sans-serif;
@@ -593,11 +581,6 @@ onUnmounted(() => {
 .blog-page.light-theme {
   background: linear-gradient(180deg, #f5f4d6 0%, #f9f2d5 50%, #f5f4d6 100%);
   color: #003971;
-}
-
-/* Ensure #app also allows shrinking so blog-page inherits the correct height */
-:global(#app) {
-  min-height: 0;
 }
 
 /* ═══ Header ═══ */

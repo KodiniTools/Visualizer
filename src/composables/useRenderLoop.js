@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { Visualizers } from '../lib/visualizers/index.js'
+import { workerManager } from '../lib/workerManager.js'
 
 export function useRenderLoop({
   canvasRef,
@@ -40,6 +41,11 @@ export function useRenderLoop({
   let recordingTempCtx = null
   let recordingVizCanvas = null
   let recordingVizCtx = null
+
+  // OffscreenCanvas Worker state
+  let vizWorkerActive = false
+  let vizWorkerBitmap = null // latest ImageBitmap from worker
+  let vizWorkerInitialized = false
 
   function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
     if (canvasManagerInstance.value) {
@@ -394,21 +400,45 @@ export function useRenderLoop({
           if (!currentLayerIds.has(layerId)) layerCacheCanvases.delete(layerId)
         }
       } else {
-        const visualizer = Visualizers[visualizerStore.selectedVisualizer]
+        const visualizerId = visualizerStore.selectedVisualizer
+        const visualizer = Visualizers[visualizerId]
         if (visualizer) {
-          const visualizerChanged =
-            visualizerStore.selectedVisualizer !== lastSelectedVisualizerId.value
+          const visualizerChanged = visualizerId !== lastSelectedVisualizerId.value
           const canvasResized =
             canvas.width !== lastCanvasWidth.value || canvas.height !== lastCanvasHeight.value
 
+          // Lazy-init visualizer worker once on first draw
+          if (!vizWorkerInitialized) {
+            vizWorkerInitialized = true
+            workerManager.initVisualizerWorker(canvas.width, canvas.height).then((ok) => {
+              vizWorkerActive = ok
+              if (ok) {
+                workerManager.onVisualizerFrame((bitmap) => {
+                  if (vizWorkerBitmap) vizWorkerBitmap.close()
+                  vizWorkerBitmap = bitmap
+                  visualizerStore.markVisualizerWorking(visualizerId)
+                })
+                console.log('[RenderLoop] Visualizer Worker aktiv')
+              } else {
+                console.log('[RenderLoop] Visualizer Worker nicht verfügbar – Fallback aktiv')
+              }
+            })
+          }
+
           if (visualizerChanged || canvasResized) {
-            if (lastSelectedVisualizerId.value && Visualizers[lastSelectedVisualizerId.value]) {
+            workerManager.cleanupVisualizerState()
+            if (
+              !vizWorkerActive &&
+              lastSelectedVisualizerId.value &&
+              Visualizers[lastSelectedVisualizerId.value]
+            ) {
               try {
                 Visualizers[lastSelectedVisualizerId.value].cleanup?.()
               } catch {}
             }
-            visualizer.init?.(canvas.width, canvas.height)
-            lastSelectedVisualizerId.value = visualizerStore.selectedVisualizer
+            if (!vizWorkerActive) visualizer.init?.(canvas.width, canvas.height)
+            if (canvasResized) workerManager.resizeVisualizerCanvas(canvas.width, canvas.height)
+            lastSelectedVisualizerId.value = visualizerId
             lastCanvasWidth.value = canvas.width
             lastCanvasHeight.value = canvas.height
           }
@@ -424,62 +454,104 @@ export function useRenderLoop({
             activeAnalyser.getByteFrequencyData(audioDataArray)
           }
 
-          if (
-            !visualizerCacheCanvas ||
-            visualizerCacheCanvas.width !== canvas.width ||
-            visualizerCacheCanvas.height !== canvas.height
-          ) {
-            visualizerCacheCanvas = document.createElement('canvas')
-            visualizerCacheCanvas.width = canvas.width
-            visualizerCacheCanvas.height = canvas.height
-            visualizerCacheCtx = visualizerCacheCanvas.getContext('2d')
-          }
-
-          visualizerCacheCtx.clearRect(0, 0, canvas.width, canvas.height)
-          visualizerCacheCtx.save()
-          visualizerCacheCtx.globalAlpha = visualizerStore.colorOpacity
-          try {
-            visualizer.draw(
-              visualizerCacheCtx,
-              audioDataArray,
+          if (vizWorkerActive) {
+            // Off-thread path: send audio data to worker, use previous frame's bitmap
+            workerManager.renderVisualizerFrame({
+              visualizerId,
+              audioData: audioDataArray,
               bufferLength,
-              canvas.width,
-              canvas.height,
-              visualizerStore.visualizerColor,
-              visualizerStore.visualizerOpacity,
-            )
-            visualizerStore.markVisualizerWorking(visualizerStore.selectedVisualizer)
-          } catch (error) {
-            console.error(`Visualizer "${visualizerStore.selectedVisualizer}" Fehler:`, error)
-            visualizerCacheCtx.fillStyle = '#000'
-            visualizerCacheCtx.fillRect(0, 0, canvas.width, canvas.height)
-            visualizerStore.fallbackToLastWorking()
-          }
-          visualizerCacheCtx.restore()
+              color: visualizerStore.visualizerColor,
+              opacity: visualizerStore.visualizerOpacity,
+              colorOpacity: visualizerStore.colorOpacity,
+            })
 
-          drawVisualizerCallback = (targetCtx, width, height) => {
-            const scale = visualizerStore.visualizerScale
-            const posX = visualizerStore.visualizerX
-            const posY = visualizerStore.visualizerY
-            const scaledWidth = canvas.width * scale
-            const scaledHeight = canvas.height * scale
-            const destX = width * posX - scaledWidth / 2
-            const destY = height * posY - scaledHeight / 2
+            if (vizWorkerBitmap) {
+              const bitmap = vizWorkerBitmap
+              drawVisualizerCallback = (targetCtx, w, h) => {
+                const scale = visualizerStore.visualizerScale
+                const posX = visualizerStore.visualizerX
+                const posY = visualizerStore.visualizerY
+                const scaledW = canvas.width * scale
+                const scaledH = canvas.height * scale
+                const destX = w * posX - scaledW / 2
+                const destY = h * posY - scaledH / 2
 
-            if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
-              targetCtx.drawImage(
-                visualizerCacheCanvas,
-                0,
-                0,
+                if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
+                  targetCtx.drawImage(
+                    bitmap,
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height,
+                    destX,
+                    destY,
+                    scaledW,
+                    scaledH,
+                  )
+                } else if (w === canvas.width && h === canvas.height) {
+                  targetCtx.drawImage(bitmap, 0, 0)
+                } else {
+                  targetCtx.drawImage(bitmap, 0, 0, w, h)
+                }
+              }
+            }
+          } else {
+            // Main-thread fallback path
+            if (
+              !visualizerCacheCanvas ||
+              visualizerCacheCanvas.width !== canvas.width ||
+              visualizerCacheCanvas.height !== canvas.height
+            ) {
+              visualizerCacheCanvas = document.createElement('canvas')
+              visualizerCacheCanvas.width = canvas.width
+              visualizerCacheCanvas.height = canvas.height
+              visualizerCacheCtx = visualizerCacheCanvas.getContext('2d')
+            }
+
+            visualizerCacheCtx.clearRect(0, 0, canvas.width, canvas.height)
+            visualizerCacheCtx.save()
+            visualizerCacheCtx.globalAlpha = visualizerStore.colorOpacity
+            try {
+              visualizer.draw(
+                visualizerCacheCtx,
+                audioDataArray,
+                bufferLength,
                 canvas.width,
                 canvas.height,
-                destX,
-                destY,
-                scaledWidth,
-                scaledHeight,
+                visualizerStore.visualizerColor,
+                visualizerStore.visualizerOpacity,
               )
-            } else {
-              if (width === canvas.width && height === canvas.height) {
+              visualizerStore.markVisualizerWorking(visualizerId)
+            } catch (error) {
+              console.error(`Visualizer "${visualizerId}" Fehler:`, error)
+              visualizerCacheCtx.fillStyle = '#000'
+              visualizerCacheCtx.fillRect(0, 0, canvas.width, canvas.height)
+              visualizerStore.fallbackToLastWorking()
+            }
+            visualizerCacheCtx.restore()
+
+            drawVisualizerCallback = (targetCtx, width, height) => {
+              const scale = visualizerStore.visualizerScale
+              const posX = visualizerStore.visualizerX
+              const posY = visualizerStore.visualizerY
+              const scaledWidth = canvas.width * scale
+              const scaledHeight = canvas.height * scale
+              const destX = width * posX - scaledWidth / 2
+              const destY = height * posY - scaledHeight / 2
+
+              if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
+                targetCtx.drawImage(
+                  visualizerCacheCanvas,
+                  0,
+                  0,
+                  canvas.width,
+                  canvas.height,
+                  destX,
+                  destY,
+                  scaledWidth,
+                  scaledHeight,
+                )
+              } else if (width === canvas.width && height === canvas.height) {
                 targetCtx.drawImage(visualizerCacheCanvas, 0, 0)
               } else {
                 targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height)
@@ -610,6 +682,10 @@ export function useRenderLoop({
   function cleanup() {
     if (animationFrameId) cancelAnimationFrame(animationFrameId)
     if (drawTimeoutId) clearTimeout(drawTimeoutId)
+    if (vizWorkerBitmap) {
+      vizWorkerBitmap.close()
+      vizWorkerBitmap = null
+    }
   }
 
   return {

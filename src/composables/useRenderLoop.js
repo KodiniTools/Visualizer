@@ -416,7 +416,7 @@ export function useRenderLoop({
                 workerManager.onVisualizerFrame((bitmap) => {
                   if (vizWorkerBitmap) vizWorkerBitmap.close()
                   vizWorkerBitmap = bitmap
-                  visualizerStore.markVisualizerWorking(visualizerId)
+                  visualizerStore.markVisualizerWorking(visualizerStore.selectedVisualizer)
                 })
                 console.log('[RenderLoop] Visualizer Worker aktiv')
               } else {

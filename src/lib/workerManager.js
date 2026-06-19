@@ -15,6 +15,7 @@ export class WorkerManager {
     this.imageFilterWorkerReady = false
 
     this.audioCallback = null
+    this.visualizerFrameCallback = null
     this.pendingFilterJobs = new Map()
 
     // Feature Detection
@@ -81,9 +82,10 @@ export class WorkerManager {
   }
 
   /**
-   * Initialisiert den Visualizer Worker mit OffscreenCanvas
+   * Initialisiert den Visualizer Worker mit eigener OffscreenCanvas-Instanz.
+   * Kein DOM-Canvas-Transfer nötig — der Worker erstellt sein eigenes OffscreenCanvas.
    */
-  async initVisualizerWorker(canvas) {
+  async initVisualizerWorker(width, height) {
     if (!this.supportsWorkers || !this.supportsOffscreenCanvas) {
       console.warn('[WorkerManager] OffscreenCanvas nicht unterstützt')
       return false
@@ -95,34 +97,26 @@ export class WorkerManager {
         { type: 'module' },
       )
 
-      const offscreen = canvas.transferControlToOffscreen()
-
       return new Promise((resolve) => {
         this.visualizerWorker.onmessage = (e) => {
           const { type } = e.data
 
           switch (type) {
-            case 'ready':
-              // Canvas zum Worker senden
-              this.visualizerWorker.postMessage(
-                {
-                  type: 'init',
-                  canvas: offscreen,
-                  width: canvas.width,
-                  height: canvas.height,
-                },
-                [offscreen],
-              )
+            case 'workerLoaded':
+              // Worker-Skript geladen — OffscreenCanvas im Worker initialisieren
+              this.visualizerWorker.postMessage({ type: 'init', width, height })
               break
 
-            case 'initialized':
+            case 'ready':
               this.visualizerWorkerReady = true
               console.log('[WorkerManager] Visualizer Worker bereit')
               resolve(true)
               break
 
             case 'frame':
-              // Frame wurde gerendert - kann hier verarbeitet werden
+              if (this.visualizerFrameCallback) {
+                this.visualizerFrameCallback(e.data.bitmap)
+              }
               break
           }
         }
@@ -144,6 +138,13 @@ export class WorkerManager {
       console.error('[WorkerManager] Visualizer Worker konnte nicht erstellt werden:', error)
       return false
     }
+  }
+
+  /**
+   * Setzt Callback für fertig gerenderte Visualizer-Frames (ImageBitmap)
+   */
+  onVisualizerFrame(callback) {
+    this.visualizerFrameCallback = callback
   }
 
   /**
@@ -210,25 +211,21 @@ export class WorkerManager {
   }
 
   /**
-   * Initialisiert alle Worker
+   * Initialisiert Audio- und ImageFilter-Worker.
+   * Der Visualizer-Worker wird separat via initVisualizerWorker(width, height) gestartet,
+   * sobald die Canvas-Größe bekannt ist.
    */
-  async initAll(visualizerCanvas = null) {
-    const results = await Promise.all([
-      this.initAudioWorker(),
-      this.initImageFilterWorker(),
-      visualizerCanvas ? this.initVisualizerWorker(visualizerCanvas) : Promise.resolve(false),
-    ])
+  async initAll() {
+    const results = await Promise.all([this.initAudioWorker(), this.initImageFilterWorker()])
 
     console.log('[WorkerManager] Initialisierung abgeschlossen:', {
       audio: results[0],
       imageFilter: results[1],
-      visualizer: results[2],
     })
 
     return {
       audio: results[0],
       imageFilter: results[1],
-      visualizer: results[2],
     }
   }
 
@@ -305,40 +302,35 @@ export class WorkerManager {
   }
 
   /**
-   * Rendert einen Visualizer-Frame (wenn Worker aktiv)
+   * Sendet einen Render-Auftrag an den Visualizer Worker.
+   * Das Ergebnis (ImageBitmap) wird asynchron via onVisualizerFrame-Callback geliefert.
    */
-  renderVisualizerFrame(visualizerName, audioData, bufferLength, color, opacity) {
-    if (!this.visualizerWorkerReady || !this.visualizerWorker) {
-      return false
-    }
+  renderVisualizerFrame({ visualizerId, audioData, bufferLength, color, opacity, colorOpacity }) {
+    if (!this.visualizerWorkerReady || !this.visualizerWorker) return false
 
     const copy = new Uint8Array(audioData)
-
     this.visualizerWorker.postMessage(
-      {
-        type: 'render',
-        visualizer: visualizerName,
-        audioData: copy,
-        bufferLength,
-        color,
-        opacity,
-      },
+      { type: 'render', visualizerId, audioData: copy, bufferLength, color, opacity, colorOpacity },
       [copy.buffer],
     )
-
     return true
   }
 
   /**
-   * Aktualisiert Visualizer-Canvas Größe
+   * Informiert den Visualizer Worker über eine Canvas-Größenänderung
    */
   resizeVisualizerCanvas(width, height) {
     if (this.visualizerWorkerReady && this.visualizerWorker) {
-      this.visualizerWorker.postMessage({
-        type: 'resize',
-        width,
-        height,
-      })
+      this.visualizerWorker.postMessage({ type: 'resize', width, height })
+    }
+  }
+
+  /**
+   * Bereinigt den aktuellen Visualizer-State im Worker (z.B. beim Wechsel)
+   */
+  cleanupVisualizerState() {
+    if (this.visualizerWorkerReady && this.visualizerWorker) {
+      this.visualizerWorker.postMessage({ type: 'cleanup' })
     }
   }
 

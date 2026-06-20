@@ -1,12 +1,12 @@
 <template>
   <!-- Hintergrund-Video-Steuerung -->
   <div v-if="hasVideoBackground" class="background-video-section">
-    <h4>{{ locale === 'de' ? 'Video-Hintergrund' : 'Video Background' }}</h4>
+    <h4>{{ t('videoPanel.bgVideoTitle') }}</h4>
 
     <!-- Globaler Video-Hintergrund -->
     <div v-if="videoBackground" class="bg-video-item">
       <div class="bg-video-header">
-        <span class="bg-video-label">{{ locale === 'de' ? 'Hintergrund' : 'Background' }}</span>
+        <span class="bg-video-label">{{ t('videoPanel.bgLabel') }}</span>
         <span class="bg-video-status" :class="{ playing: isVideoBackgroundPlaying }">
           {{ isVideoBackgroundPlaying ? '▶' : '⏸' }}
         </span>
@@ -75,9 +75,7 @@
     <!-- Workspace Video-Hintergrund -->
     <div v-if="workspaceVideoBackground" class="bg-video-item workspace">
       <div class="bg-video-header">
-        <span class="bg-video-label">{{
-          locale === 'de' ? 'Workspace-Hintergrund' : 'Workspace Background'
-        }}</span>
+        <span class="bg-video-label">{{ t('videoPanel.wsBgLabel') }}</span>
         <span class="bg-video-status" :class="{ playing: isWsVideoBackgroundPlaying }">
           {{ isWsVideoBackgroundPlaying ? '▶' : '⏸' }}
         </span>

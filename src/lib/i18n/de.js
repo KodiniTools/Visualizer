@@ -1388,5 +1388,8 @@ export default {
     videoControl: 'Video-Steuerung',
     volume: 'Lautstärke',
     audioRecordHint: '💡 Video-Ton wird mit aufgenommen',
+    bgVideoTitle: 'Video-Hintergrund',
+    bgLabel: 'Hintergrund',
+    wsBgLabel: 'Workspace-Hintergrund',
   },
 }

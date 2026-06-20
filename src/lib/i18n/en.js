@@ -1390,5 +1390,8 @@ export default {
     videoControl: 'Video Control',
     volume: 'Volume',
     audioRecordHint: '💡 Video audio will be recorded',
+    bgVideoTitle: 'Video Background',
+    bgLabel: 'Background',
+    wsBgLabel: 'Workspace Background',
   },
 }

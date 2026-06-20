@@ -14,6 +14,7 @@
       <div class="upload-placeholder">
         <p>{{ t('foto.clickToUpload') }}</p>
         <small>{{ t('foto.multipleImagesHint') }}</small>
+        <small>{{ locale === 'de' ? 'oder Ctrl+V zum Einfügen' : 'or Ctrl+V to paste' }}</small>
       </div>
     </div>
 
@@ -126,7 +127,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import PlacementSettings from './PlacementSettings.vue'
 
@@ -171,7 +172,7 @@ defineProps({
   },
 })
 
-defineEmits([
+const emit = defineEmits([
   'upload',
   'select-image',
   'open-preview',
@@ -192,6 +193,24 @@ const fileInputRef = ref(null)
 function triggerFileInput() {
   fileInputRef.value?.click()
 }
+
+function onPaste(event) {
+  const items = event.clipboardData?.items
+  if (!items) return
+  const imageFiles = []
+  for (const item of items) {
+    if (item.kind === 'file' && item.type.startsWith('image/')) {
+      const file = item.getAsFile()
+      if (file) imageFiles.push(file)
+    }
+  }
+  if (imageFiles.length > 0) {
+    emit('upload', { target: { files: imageFiles } })
+  }
+}
+
+onMounted(() => document.addEventListener('paste', onPaste))
+onUnmounted(() => document.removeEventListener('paste', onPaste))
 </script>
 
 <style scoped>

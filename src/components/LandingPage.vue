@@ -475,7 +475,7 @@ function toggleFaq(index) {
 }
 
 .hero-title {
-  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
   font-weight: 700;
   line-height: 1.15;
   margin: 0 0 24px 0;

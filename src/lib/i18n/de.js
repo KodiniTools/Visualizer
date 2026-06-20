@@ -2,10 +2,10 @@ export default {
   // ========== LANDING PAGE ==========
   hero: {
     badge: 'Audio Visualizer',
-    title: 'Verwandle deine Musik in',
-    titleHighlight: 'visuelle Kunst',
+    title: 'Verwandle deine Musik in visuelle Kunst:',
+    titleHighlight: 'Kostenloser Audio-Visualizer für den Browser',
     subtitle:
-      'Erstelle beeindruckende Audio-Visualisierungen für Social Media, Musikvideos und mehr. Kostenlos, direkt im Browser.',
+      'Bringe deine Tracks, Podcasts und Audio-Aufnahmen auf das nächste Level. Erstelle im Handumdrehen beeindruckende Audio-Visualisierungen für Social Media, YouTube und Musikvideos – 100 % kostenlos, ohne Anmeldung und direkt in deinem Browser.',
     cta: 'Visualizer starten',
     learnMore: 'Mehr erfahren',
   },
@@ -36,8 +36,9 @@ export default {
     ],
   },
   video: {
-    title: 'So funktioniert es',
-    subtitle: 'Schau dir an, wie einfach du atemberaubende Visualisierungen erstellen kannst',
+    title: 'Der Podcast-Visualizer: So einfach funktioniert es',
+    subtitle:
+      'Schau dir an, wie du aus deinen Audio-Aufnahmen im Handumdrehen packende visuelle Erlebnisse für deine Hörer machst',
     placeholder: 'Demo-Video kommt bald',
   },
   faq: {

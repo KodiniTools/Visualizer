@@ -112,7 +112,7 @@
     <!-- ✨ NEU: Mikrofon zuschalten während Aufnahme -->
     <div class="control-section audio-source-section" v-if="recorderStore.isRecording">
       <div class="section-header">
-        <span class="section-label">{{ t('recorder.audioSource') || 'Audio' }}</span>
+        <span class="section-label">{{ t('recorder.audioSource') }}</span>
         <span class="source-indicator active">
           🎵 Player {{ microphoneEnabled ? '+ 🎤 Mic' : '' }}
         </span>
@@ -131,12 +131,12 @@
             <line x1="12" y1="19" x2="12" y2="23" />
             <line x1="8" y1="23" x2="16" y2="23" />
           </svg>
-          Mikrofon zuschalten
+          {{ t('recorder.addMicrophone') }}
         </span>
       </label>
-      <p class="source-hint" v-if="isSwitchingSource">Aktiviere Mikrofon...</p>
+      <p class="source-hint" v-if="isSwitchingSource">{{ t('recorder.activatingMicrophone') }}</p>
       <p class="source-hint info" v-else-if="microphoneEnabled">
-        💡 Nur Mic? Player pausieren oder stumm schalten
+        {{ t('recorder.micOnlyHint') }}
       </p>
     </div>
 
@@ -652,13 +652,13 @@
           </svg>
         </div>
         <h2 class="conversion-title">
-          {{ t('recorder.convertingVideo') || 'Dein Video wird konvertiert' }}
+          {{ t('recorder.convertingVideo') }}
         </h2>
         <p class="conversion-subtitle">
           {{
             conversionStatus === 'uploading'
-              ? t('recorder.uploadingToServer') || 'Video wird hochgeladen...'
-              : t('recorder.processingOnServer') || 'Server verarbeitet dein Video...'
+              ? t('recorder.uploadingToServer')
+              : t('recorder.processingOnServer')
           }}
         </p>
         <div class="conversion-progress-bar">
@@ -666,7 +666,7 @@
         </div>
         <span class="conversion-percent">{{ conversionProgress }}%</span>
         <p class="conversion-hint">
-          {{ t('recorder.dontCloseWindow') || 'Bitte das Fenster nicht schließen' }}
+          {{ t('recorder.dontCloseWindow') }}
         </p>
       </div>
     </div>
@@ -789,13 +789,13 @@ const qualityPresets = [
   { value: 60_000_000, label: '4K+' },
   { value: 80_000_000, label: 'Max' },
 ]
-const conversionPresets = [
-  { value: 'preview', label: 'Preview', desc: 'Schnell, niedrige Qualität' },
-  { value: 'medium', label: 'Medium', desc: 'Gute Balance' },
-  { value: 'social', label: 'Social', desc: 'Optimiert für Social Media' },
-  { value: 'high', label: 'High', desc: 'Hohe Qualität' },
-  { value: 'highest', label: 'Highest', desc: 'Maximale Qualität' },
-]
+const conversionPresets = computed(() => [
+  { value: 'preview', label: 'Preview', desc: t('recorder.conversionPreviewDesc') },
+  { value: 'medium', label: 'Medium', desc: t('recorder.conversionMediumDesc') },
+  { value: 'social', label: 'Social', desc: t('recorder.conversionSocialDesc') },
+  { value: 'high', label: 'High', desc: t('recorder.conversionHighDesc') },
+  { value: 'highest', label: 'Highest', desc: t('recorder.conversionHighestDesc') },
+])
 
 // ── Computed ─────────────────────────────────────────────────────────
 const statusClass = computed(() => {
@@ -806,11 +806,11 @@ const statusClass = computed(() => {
   return 'status-indicator idle'
 })
 const statusText = computed(() => {
-  if (recorderStore.statusType === 'processing') return '🎬 Processing...'
-  if (recorderStore.isPaused) return 'PAUSED'
-  if (recorderStore.isRecording) return 'RECORDING'
-  if (recorderStore.isPrepared) return 'READY'
-  return 'IDLE'
+  if (recorderStore.statusType === 'processing') return t('recorder.status.processing')
+  if (recorderStore.isPaused) return t('recorder.status.paused')
+  if (recorderStore.isRecording) return t('recorder.status.recording')
+  if (recorderStore.isPrepared) return t('recorder.status.ready')
+  return t('recorder.status.idle')
 })
 
 // ── Actions ───────────────────────────────────────────────────────────

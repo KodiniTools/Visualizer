@@ -699,6 +699,14 @@ export default {
     hqCompleted: 'HQ Export bereit!',
     hqError: 'HQ Export fehlgeschlagen',
     downloadHq: 'HQ MP4 Download',
+    addMicrophone: 'Mikrofon zuschalten',
+    activatingMicrophone: 'Aktiviere Mikrofon...',
+    micOnlyHint: '💡 Nur Mic? Player pausieren oder stumm schalten',
+    conversionPreviewDesc: 'Schnell, niedrige Qualität',
+    conversionMediumDesc: 'Gute Balance',
+    conversionSocialDesc: 'Optimiert für Social Media',
+    conversionHighDesc: 'Hohe Qualität',
+    conversionHighestDesc: 'Maximale Qualität',
   },
 
   // ========== VISUALIZER PANEL ==========

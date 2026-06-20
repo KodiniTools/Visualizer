@@ -547,6 +547,8 @@ export default {
     clickToSelect: 'Klicken zum Auswählen',
     backToHome: 'Zur Startseite',
     deleteImage: 'Bild löschen',
+    mobileTabFoto: 'Fotos',
+    mobileTabControls: 'Einstellungen',
     deleteAllImages: 'Alle löschen',
     confirmDeleteAll: 'Alle Bilder vom Canvas entfernen?',
     imagePreview: 'Bildvorschau',

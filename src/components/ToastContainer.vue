@@ -1,11 +1,17 @@
 <template>
   <Teleport to="body">
-    <div class="toast-container" aria-live="polite" aria-atomic="true">
-      <TransitionGroup name="toast">
+    <div
+      class="toast-container"
+      :class="{ 'is-stacked': toastCount > 1 }"
+      aria-live="polite"
+      aria-atomic="false"
+    >
+      <TransitionGroup name="toast" tag="div" class="toast-list">
         <div
-          v-for="toast in activeToasts"
+          v-for="(toast, i) in displayToasts"
           :key="toast.id"
           :class="['toast', `toast--${toast.type}`]"
+          :style="{ '--depth': i }"
           role="alert"
         >
           <div class="toast__icon">
@@ -62,6 +68,9 @@
           <div class="toast__progress" :style="{ animationDuration: `${toast.duration}ms` }"></div>
         </div>
       </TransitionGroup>
+
+      <!-- Stack count badge when 2+ toasts exist and container is not hovered -->
+      <div v-if="toastCount > 1" class="toast-stack-badge">{{ toastCount }}</div>
     </div>
   </Teleport>
 </template>
@@ -74,7 +83,9 @@ import { useI18n } from '../lib/i18n'
 const toastStore = useToastStore()
 const { t } = useI18n()
 
-const activeToasts = computed(() => toastStore.activeToasts)
+// Newest toast first → appears at top of the stack
+const displayToasts = computed(() => [...toastStore.activeToasts].reverse().slice(0, 5))
+const toastCount = computed(() => toastStore.activeToasts.length)
 
 function removeToast(id) {
   toastStore.removeToast(id)
@@ -84,16 +95,21 @@ function removeToast(id) {
 <style scoped>
 .toast-container {
   position: fixed;
-  top: 50%;
+  top: 20px;
   right: 20px;
-  transform: translateY(-50%);
   z-index: 10000;
+  pointer-events: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: 80vh;
-  overflow-y: auto;
-  pointer-events: none;
+  align-items: flex-end;
+}
+
+.toast-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  width: 100%;
 }
 
 .toast {
@@ -107,13 +123,77 @@ function removeToast(id) {
   pointer-events: auto;
   position: relative;
   overflow: hidden;
-  /* Dark theme als Standard (passend zur rechten Spalte) */
   background-color: var(--card-bg, #142640);
   border: 1px solid rgba(201, 152, 77, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  transition:
+    max-height 0.28s ease,
+    margin-top 0.28s ease,
+    opacity 0.28s ease,
+    transform 0.28s ease;
+  max-height: 500px;
 }
 
-/* Light theme Unterstützung */
+/* ── Stacked (collapsed) mode ─────────────────────────────────────────── */
+
+/* When 2+ toasts exist and not hovered: collapse older toasts into a thin peek */
+.toast-container.is-stacked:not(:hover) .toast-list {
+  gap: 0;
+}
+
+.toast-container.is-stacked:not(:hover) .toast:not(:first-child) {
+  max-height: 10px;
+  overflow: hidden;
+  margin-top: 3px;
+  opacity: calc(0.8 - var(--depth) * 0.15);
+  transform: scaleX(calc(1 - var(--depth) * 0.04));
+  transform-origin: right center;
+  pointer-events: none;
+  border-radius: 4px;
+}
+
+/* Hide any beyond the 3rd */
+.toast-container.is-stacked:not(:hover) .toast:nth-child(n + 4) {
+  display: none;
+}
+
+/* Hover: expand all toasts fully */
+.toast-container.is-stacked:hover .toast-list {
+  gap: 8px;
+}
+.toast-container.is-stacked:hover .toast {
+  max-height: 500px;
+  overflow: hidden;
+  margin-top: 0;
+  opacity: 1;
+  transform: scaleX(1);
+  pointer-events: auto;
+}
+
+/* Stack count badge */
+.toast-stack-badge {
+  display: none;
+  position: absolute;
+  top: 6px;
+  left: -10px;
+  background: var(--accent-primary, #c9984d);
+  color: #000;
+  font-size: 0.6rem;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: opacity 0.2s;
+}
+.toast-container.is-stacked:not(:hover) .toast-stack-badge {
+  display: flex;
+}
+
+/* Light theme */
 [data-theme='light'] .toast {
   background-color: #ffffff;
   border: 1px solid rgba(1, 79, 153, 0.2);
@@ -124,31 +204,24 @@ function removeToast(id) {
 .toast--success {
   border-left: 4px solid #4ade80;
 }
-
 .toast--success .toast__icon {
   color: #4ade80;
 }
-
 .toast--error {
   border-left: 4px solid #f87171;
 }
-
 .toast--error .toast__icon {
   color: #f87171;
 }
-
 .toast--warning {
   border-left: 4px solid #fbbf24;
 }
-
 .toast--warning .toast__icon {
   color: #fbbf24;
 }
-
 .toast--info {
   border-left: 4px solid #c9984d;
 }
-
 .toast--info .toast__icon {
   color: #c9984d;
 }
@@ -158,7 +231,6 @@ function removeToast(id) {
   width: 22px;
   height: 22px;
 }
-
 .toast__icon svg {
   width: 100%;
   height: 100%;
@@ -168,25 +240,21 @@ function removeToast(id) {
   flex: 1;
   min-width: 0;
 }
-
 .toast__title {
   font-weight: 600;
   font-size: 14px;
   color: #e9e9eb;
   margin-bottom: 4px;
 }
-
 [data-theme='light'] .toast__title {
   color: #003971;
 }
-
 .toast__message {
   font-size: 13px;
   color: #7a8da0;
   line-height: 1.4;
   word-wrap: break-word;
 }
-
 [data-theme='light'] .toast__message {
   color: #4d6d8e;
 }
@@ -205,20 +273,16 @@ function removeToast(id) {
     opacity 0.2s,
     color 0.2s;
 }
-
 .toast__close:hover {
   opacity: 1;
   color: #e9e9eb;
 }
-
 [data-theme='light'] .toast__close {
   color: #4d6d8e;
 }
-
 [data-theme='light'] .toast__close:hover {
   color: #003971;
 }
-
 .toast__close svg {
   width: 100%;
   height: 100%;
@@ -236,7 +300,6 @@ function removeToast(id) {
   animation: toast-progress linear forwards;
   transform-origin: left;
 }
-
 @keyframes toast-progress {
   from {
     transform: scaleX(1);
@@ -246,26 +309,28 @@ function removeToast(id) {
   }
 }
 
-/* Transition animations */
+/* TransitionGroup enter/leave */
 .toast-enter-active {
-  animation: toast-in 0.3s ease-out;
+  animation: toast-in 0.28s ease-out;
 }
-
 .toast-leave-active {
-  animation: toast-out 0.3s ease-in;
+  animation: toast-out 0.22s ease-in;
+  pointer-events: none;
+}
+.toast-move {
+  transition: all 0.28s ease;
 }
 
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateX(100%);
+    transform: translateX(calc(100% + 20px));
   }
   to {
     opacity: 1;
     transform: translateX(0);
   }
 }
-
 @keyframes toast-out {
   from {
     opacity: 1;
@@ -273,66 +338,39 @@ function removeToast(id) {
   }
   to {
     opacity: 0;
-    transform: translateX(100%);
+    transform: translateX(calc(100% + 20px));
   }
 }
 
-/* Scrollbar styling matching right panel */
-.toast-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.toast-container::-webkit-scrollbar-track {
-  background: rgba(201, 152, 77, 0.1);
-}
-
-.toast-container::-webkit-scrollbar-thumb {
-  background: rgba(201, 152, 77, 0.4);
-  border-radius: 3px;
-}
-
-.toast-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(201, 152, 77, 0.6);
-}
-
-/* ═══ Light Theme Overrides ═══ */
-
+/* Light theme type overrides */
 [data-theme='light'] .toast--info {
   border-left: 4px solid #014f99;
 }
-
 [data-theme='light'] .toast--info .toast__icon {
   color: #014f99;
 }
-
 [data-theme='light'] .toast__progress {
   background: #014f99;
 }
 
-[data-theme='light'] .toast-container::-webkit-scrollbar-track {
-  background: rgba(1, 79, 153, 0.1);
-}
-
-[data-theme='light'] .toast-container::-webkit-scrollbar-thumb {
-  background: rgba(1, 79, 153, 0.4);
-  border-radius: 3px;
-}
-
-[data-theme='light'] .toast-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(1, 79, 153, 0.6);
-}
-
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 768px) {
   .toast-container {
+    top: auto;
+    bottom: 16px;
     right: 10px;
     left: 10px;
-    transform: translateY(-50%);
+    align-items: stretch;
   }
-
+  .toast-list {
+    align-items: stretch;
+  }
   .toast {
     min-width: unset;
     max-width: none;
+  }
+  .toast-container.is-stacked:not(:hover) .toast:not(:first-child) {
+    transform: scaleX(calc(1 - var(--depth) * 0.02));
   }
 }
 </style>

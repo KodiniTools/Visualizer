@@ -205,8 +205,19 @@ onUnmounted(() => {
 .canvas-thumb.selected {
   border-color: var(--accent-primary, #c9984d);
   box-shadow:
-    0 0 0 2px rgba(201, 152, 77, 0.5),
-    0 4px 12px rgba(201, 152, 77, 0.4);
+    0 0 0 3px rgba(201, 152, 77, 0.6),
+    0 6px 16px rgba(201, 152, 77, 0.5);
+  transform: scale(1.1);
+  z-index: 1;
+}
+
+.canvas-thumb.selected::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: linear-gradient(to bottom, rgba(201, 152, 77, 0.18) 0%, transparent 60%);
+  pointer-events: none;
 }
 
 .canvas-thumb[draggable='true'] {
@@ -358,8 +369,9 @@ onUnmounted(() => {
 [data-theme='light'] .canvas-thumb.selected {
   border-color: #014f99;
   box-shadow:
-    0 0 0 2px rgba(1, 79, 153, 0.35),
-    0 4px 12px rgba(1, 79, 153, 0.2);
+    0 0 0 3px rgba(1, 79, 153, 0.45),
+    0 6px 16px rgba(1, 79, 153, 0.3);
+  transform: scale(1.1);
 }
 [data-theme='light'] .canvas-thumb.dragging {
   border-color: #014f99;

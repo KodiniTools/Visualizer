@@ -544,6 +544,12 @@ export default {
     noResults: 'No results',
     enabled: 'Enabled',
     disabled: 'Disabled',
+    backToHome: 'Back to Home',
+    size: 'Size',
+    remove: 'Remove',
+    moveUp: 'Move up',
+    moveDown: 'Move down',
+    duplicate: 'Duplicate',
   },
 
   // ========== VISUALIZER APP ==========
@@ -569,6 +575,7 @@ export default {
     uploadImage: 'Upload Image',
     fromGallery: 'From Gallery',
     selectFromGallery: 'Select from Gallery',
+    selectImage: 'Select Image',
     newImagePreview: 'New Image Preview',
     confirmReplace: 'Confirm Replace',
   },
@@ -1371,5 +1378,20 @@ export default {
     operationCancelled: 'Operation cancelled',
     networkError: 'Network error - please try again',
     unexpectedError: 'An unexpected error occurred',
+  },
+
+  // ========== VIDEO PANEL ==========
+  videoPanel: {
+    canvasVideosTitle: 'Videos on Canvas',
+    playAll: 'Play all',
+    pauseAll: 'Pause all',
+    loop: 'Loop',
+    muted: 'Muted',
+    videoControl: 'Video Control',
+    volume: 'Volume',
+    audioRecordHint: '💡 Video audio will be recorded',
+    bgVideoTitle: 'Video Background',
+    bgLabel: 'Background',
+    wsBgLabel: 'Workspace Background',
   },
 }

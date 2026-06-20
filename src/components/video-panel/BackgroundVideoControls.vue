@@ -1,12 +1,12 @@
 <template>
   <!-- Hintergrund-Video-Steuerung -->
   <div v-if="hasVideoBackground" class="background-video-section">
-    <h4>{{ locale === 'de' ? 'Video-Hintergrund' : 'Video Background' }}</h4>
+    <h4>{{ t('videoPanel.bgVideoTitle') }}</h4>
 
     <!-- Globaler Video-Hintergrund -->
     <div v-if="videoBackground" class="bg-video-item">
       <div class="bg-video-header">
-        <span class="bg-video-label">{{ locale === 'de' ? 'Hintergrund' : 'Background' }}</span>
+        <span class="bg-video-label">{{ t('videoPanel.bgLabel') }}</span>
         <span class="bg-video-status" :class="{ playing: isVideoBackgroundPlaying }">
           {{ isVideoBackgroundPlaying ? '▶' : '⏸' }}
         </span>
@@ -22,7 +22,11 @@
         </button>
         <button @click="seekBackwardBg(5)" class="btn-control" title="-5s">⏪</button>
         <button @click="seekForwardBg(5)" class="btn-control" title="+5s">⏩</button>
-        <button @click="removeVideoBackground" class="btn-control btn-delete" title="Entfernen">
+        <button
+          @click="removeVideoBackground"
+          class="btn-control btn-delete"
+          :title="t('common.remove')"
+        >
           ✕
         </button>
       </div>
@@ -71,9 +75,7 @@
     <!-- Workspace Video-Hintergrund -->
     <div v-if="workspaceVideoBackground" class="bg-video-item workspace">
       <div class="bg-video-header">
-        <span class="bg-video-label">{{
-          locale === 'de' ? 'Workspace-Hintergrund' : 'Workspace Background'
-        }}</span>
+        <span class="bg-video-label">{{ t('videoPanel.wsBgLabel') }}</span>
         <span class="bg-video-status" :class="{ playing: isWsVideoBackgroundPlaying }">
           {{ isWsVideoBackgroundPlaying ? '▶' : '⏸' }}
         </span>
@@ -89,7 +91,11 @@
         </button>
         <button @click="seekBackwardWsBg(5)" class="btn-control" title="-5s">⏪</button>
         <button @click="seekForwardWsBg(5)" class="btn-control" title="+5s">⏩</button>
-        <button @click="removeWsVideoBackground" class="btn-control btn-delete" title="Entfernen">
+        <button
+          @click="removeWsVideoBackground"
+          class="btn-control btn-delete"
+          :title="t('common.remove')"
+        >
           ✕
         </button>
       </div>
@@ -139,6 +145,9 @@
 
 <script setup>
 import { inject } from 'vue'
+import { useI18n } from '../../lib/i18n.js'
+
+const { t } = useI18n()
 
 const {
   locale,

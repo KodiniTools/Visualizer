@@ -22,7 +22,11 @@
         </button>
         <button @click="seekBackwardBg(5)" class="btn-control" title="-5s">⏪</button>
         <button @click="seekForwardBg(5)" class="btn-control" title="+5s">⏩</button>
-        <button @click="removeVideoBackground" class="btn-control btn-delete" title="Entfernen">
+        <button
+          @click="removeVideoBackground"
+          class="btn-control btn-delete"
+          :title="t('common.remove')"
+        >
           ✕
         </button>
       </div>
@@ -89,7 +93,11 @@
         </button>
         <button @click="seekBackwardWsBg(5)" class="btn-control" title="-5s">⏪</button>
         <button @click="seekForwardWsBg(5)" class="btn-control" title="+5s">⏩</button>
-        <button @click="removeWsVideoBackground" class="btn-control btn-delete" title="Entfernen">
+        <button
+          @click="removeWsVideoBackground"
+          class="btn-control btn-delete"
+          :title="t('common.remove')"
+        >
           ✕
         </button>
       </div>
@@ -139,6 +147,9 @@
 
 <script setup>
 import { inject } from 'vue'
+import { useI18n } from '../../lib/i18n.js'
+
+const { t } = useI18n()
 
 const {
   locale,

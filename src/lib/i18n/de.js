@@ -539,6 +539,12 @@ export default {
     noResults: 'Keine Ergebnisse',
     enabled: 'Aktiviert',
     disabled: 'Deaktiviert',
+    backToHome: 'Zur Startseite',
+    size: 'Größe',
+    remove: 'Entfernen',
+    moveUp: 'Nach oben',
+    moveDown: 'Nach unten',
+    duplicate: 'Duplizieren',
   },
 
   // ========== VISUALIZER APP ==========
@@ -564,6 +570,7 @@ export default {
     uploadImage: 'Bild hochladen',
     fromGallery: 'Aus Galerie',
     selectFromGallery: 'Aus Galerie wählen',
+    selectImage: 'Bild auswählen',
     newImagePreview: 'Neues Bild Vorschau',
     confirmReplace: 'Ersetzen bestätigen',
   },
@@ -1369,5 +1376,17 @@ export default {
     operationCancelled: 'Vorgang abgebrochen',
     networkError: 'Netzwerkfehler - bitte versuchen Sie es erneut',
     unexpectedError: 'Ein unerwarteter Fehler ist aufgetreten',
+  },
+
+  // ========== VIDEO PANEL ==========
+  videoPanel: {
+    canvasVideosTitle: 'Videos auf Canvas',
+    playAll: 'Alle abspielen',
+    pauseAll: 'Alle pausieren',
+    loop: 'Wiederholen',
+    muted: 'Stumm',
+    videoControl: 'Video-Steuerung',
+    volume: 'Lautstärke',
+    audioRecordHint: '💡 Video-Ton wird mit aufgenommen',
   },
 }

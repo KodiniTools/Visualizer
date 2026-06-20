@@ -61,7 +61,11 @@
                 <span class="preset-name">{{ preset.name }}</span>
                 <span class="preset-viz">{{ preset.visualizer.selectedVisualizer }}</span>
               </button>
-              <button class="btn-delete" @click.stop="deletePreset(preset.id)" title="Löschen">
+              <button
+                class="btn-delete"
+                @click.stop="deletePreset(preset.id)"
+                :title="t('common.delete')"
+              >
                 ✕
               </button>
             </div>

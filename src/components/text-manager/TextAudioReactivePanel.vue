@@ -3,7 +3,7 @@
   <details class="collapsible-section">
     <summary class="section-header">
       <span class="section-icon">🎵</span>
-      <span>{{ t('canvas.audioReactive') }}</span>
+      <span>{{ t('canvasControl.audioReactive') }}</span>
       <span v-if="selectedText.audioReactive?.enabled" class="status-badge active">{{
         t('textManager.active')
       }}</span>

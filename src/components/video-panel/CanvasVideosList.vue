@@ -1,7 +1,7 @@
 <template>
   <!-- Canvas-Videos Liste -->
   <div v-if="canvasVideos.length > 0" class="canvas-videos-section">
-    <h4>{{ locale === 'de' ? 'Videos auf Canvas' : 'Videos on Canvas' }}</h4>
+    <h4>{{ t('videoPanel.canvasVideosTitle') }}</h4>
     <div class="canvas-videos-list">
       <div
         v-for="(video, index) in canvasVideos"
@@ -28,7 +28,7 @@
           <button
             @click.stop="removeCanvasVideo(video)"
             class="btn-control btn-delete"
-            title="Entfernen"
+            :title="t('common.remove')"
           >
             ✕
           </button>
@@ -39,10 +39,10 @@
     <!-- Globale Video-Steuerung -->
     <div class="global-video-controls">
       <button @click="playAllVideos" class="btn-global">
-        {{ locale === 'de' ? 'Alle abspielen' : 'Play all' }}
+        {{ t('videoPanel.playAll') }}
       </button>
       <button @click="pauseAllVideos" class="btn-global">
-        {{ locale === 'de' ? 'Alle pausieren' : 'Pause all' }}
+        {{ t('videoPanel.pauseAll') }}
       </button>
     </div>
 
@@ -51,11 +51,11 @@
       <div class="settings-row">
         <label class="checkbox-label">
           <input type="checkbox" v-model="videoLoop" />
-          <span>{{ locale === 'de' ? 'Wiederholen' : 'Loop' }}</span>
+          <span>{{ t('videoPanel.loop') }}</span>
         </label>
         <label class="checkbox-label">
           <input type="checkbox" v-model="videoMuted" />
-          <span>{{ locale === 'de' ? 'Stumm' : 'Muted' }}</span>
+          <span>{{ t('videoPanel.muted') }}</span>
         </label>
       </div>
     </div>
@@ -63,7 +63,7 @@
     <!-- Seek-Steuerung für ausgewähltes Video -->
     <div v-if="selectedCanvasVideo" class="video-seek-section">
       <div class="seek-header">
-        <span>{{ locale === 'de' ? 'Video-Steuerung' : 'Video Control' }}</span>
+        <span>{{ t('videoPanel.videoControl') }}</span>
         <span class="seek-time"
           >{{ formatTime(selectedVideoCurrentTime) }} /
           {{ formatTime(selectedVideoDuration) }}</span
@@ -100,10 +100,7 @@
               stroke-width="2"
             />
           </svg>
-          <span
-            >{{ locale === 'de' ? 'Lautstärke' : 'Volume' }}:
-            {{ Math.round(selectedVideoVolume * 100) }}%</span
-          >
+          <span>{{ t('videoPanel.volume') }}: {{ Math.round(selectedVideoVolume * 100) }}%</span>
         </div>
         <input
           type="range"
@@ -114,13 +111,7 @@
           step="0.01"
           class="volume-slider"
         />
-        <p class="volume-hint">
-          {{
-            locale === 'de'
-              ? '💡 Video-Ton wird mit aufgenommen'
-              : '💡 Video audio will be recorded'
-          }}
-        </p>
+        <p class="volume-hint">{{ t('videoPanel.audioRecordHint') }}</p>
       </div>
     </div>
   </div>
@@ -128,6 +119,9 @@
 
 <script setup>
 import { inject } from 'vue'
+import { useI18n } from '../../lib/i18n.js'
+
+const { t } = useI18n()
 
 const {
   locale,

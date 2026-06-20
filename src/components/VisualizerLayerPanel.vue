@@ -68,7 +68,7 @@
                 class="action-btn"
                 @click.stop="store.moveLayerUp(layer.id)"
                 :disabled="index === 0"
-                title="Nach oben"
+                :title="t('common.moveUp')"
               >
                 ▲
               </button>
@@ -76,21 +76,21 @@
                 class="action-btn"
                 @click.stop="store.moveLayerDown(layer.id)"
                 :disabled="index === reversedLayers.length - 1"
-                title="Nach unten"
+                :title="t('common.moveDown')"
               >
                 ▼
               </button>
               <button
                 class="action-btn duplicate-btn"
                 @click.stop="store.duplicateLayer(layer.id)"
-                title="Duplizieren"
+                :title="t('common.duplicate')"
               >
                 ⧉
               </button>
               <button
                 class="action-btn delete-btn"
                 @click.stop="store.removeLayer(layer.id)"
-                title="Löschen"
+                :title="t('common.delete')"
               >
                 ×
               </button>

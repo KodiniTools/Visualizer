@@ -14,7 +14,7 @@ export default {
     subtitle: 'Alles was du brauchst, um professionelle Audio-Visualisierungen zu erstellen',
     cards: [
       {
-        title: '100+ Visualizer',
+        title: '30+ Visualizer',
         description:
           'Wähle aus einer großen Sammlung von einzigartigen Audio-Visualisierungen - von klassischen Wellenformen bis zu spektakulären 3D-Effekten.',
       },
@@ -22,11 +22,6 @@ export default {
         title: 'Social Media Formate',
         description:
           'Vordefinierte Canvas-Größen für TikTok, Instagram Reels, YouTube Shorts und mehr - perfekt optimiert für jede Plattform.',
-      },
-      {
-        title: 'HD Video Export',
-        description:
-          'Exportiere deine Visualisierungen als hochauflösende MP4-Videos mit bis zu 60 FPS - direkt aus dem Browser, ohne zusätzliche Software.',
       },
       {
         title: 'Text & Bilder',
@@ -499,7 +494,7 @@ export default {
     features: {
       cards: [
         {
-          title: '100+ Visualizer',
+          title: '30+ Visualizer',
           description:
             'Von klassischen Waveforms bis zu spektakulären 3D-Effekten. Wähle aus einer riesigen Sammlung einzigartiger Audio-Visualisierungen.',
         },

@@ -5,68 +5,70 @@
       <span class="collapse-icon" :class="{ rotated: !collapsed }">▼</span>
     </div>
 
-    <div v-if="!collapsed" class="panel-body">
-      <!-- Built-in Presets -->
-      <div class="section-label">{{ t('presets.builtIn') }}</div>
-      <div class="presets-grid">
-        <button
-          v-for="preset in builtInPresets"
-          :key="preset.id"
-          class="preset-card"
-          :class="{ active: activePresetId === preset.id }"
-          :style="{
-            '--preset-color': preset.visualizer.color,
-            '--preset-bg': preset.background.color,
-          }"
-          @click="apply(preset)"
-          :title="preset.name"
-        >
-          <span class="preset-emoji">{{ preset.emoji }}</span>
-          <span class="preset-name">{{ preset.name }}</span>
-          <span class="preset-viz">{{ preset.visualizer.selectedVisualizer }}</span>
-        </button>
-      </div>
-
-      <!-- Save current -->
-      <div class="save-section">
-        <input
-          v-model="newPresetName"
-          class="preset-name-input"
-          :placeholder="t('presets.namePlaceholder')"
-          @keydown.enter="saveCurrent"
-          maxlength="30"
-        />
-        <button class="btn-save" @click="saveCurrent" :disabled="!newPresetName.trim()">
-          💾 {{ t('presets.save') }}
-        </button>
-      </div>
-
-      <!-- User Presets -->
-      <template v-if="presetStore.userPresets.length > 0">
-        <div class="section-label">{{ t('presets.myPresets') }}</div>
+    <Transition name="panel-collapse">
+      <div v-show="!collapsed" class="panel-body">
+        <!-- Built-in Presets -->
+        <div class="section-label">{{ t('presets.builtIn') }}</div>
         <div class="presets-grid">
-          <div
-            v-for="preset in presetStore.userPresets"
+          <button
+            v-for="preset in builtInPresets"
             :key="preset.id"
-            class="preset-card user-preset"
+            class="preset-card"
             :class="{ active: activePresetId === preset.id }"
             :style="{
               '--preset-color': preset.visualizer.color,
               '--preset-bg': preset.background.color,
             }"
+            @click="apply(preset)"
+            :title="preset.name"
           >
-            <button class="preset-apply-area" @click="apply(preset)">
-              <span class="preset-emoji">{{ preset.emoji }}</span>
-              <span class="preset-name">{{ preset.name }}</span>
-              <span class="preset-viz">{{ preset.visualizer.selectedVisualizer }}</span>
-            </button>
-            <button class="btn-delete" @click.stop="deletePreset(preset.id)" title="Löschen">
-              ✕
-            </button>
-          </div>
+            <span class="preset-emoji">{{ preset.emoji }}</span>
+            <span class="preset-name">{{ preset.name }}</span>
+            <span class="preset-viz">{{ preset.visualizer.selectedVisualizer }}</span>
+          </button>
         </div>
-      </template>
-    </div>
+
+        <!-- Save current -->
+        <div class="save-section">
+          <input
+            v-model="newPresetName"
+            class="preset-name-input"
+            :placeholder="t('presets.namePlaceholder')"
+            @keydown.enter="saveCurrent"
+            maxlength="30"
+          />
+          <button class="btn-save" @click="saveCurrent" :disabled="!newPresetName.trim()">
+            💾 {{ t('presets.save') }}
+          </button>
+        </div>
+
+        <!-- User Presets -->
+        <template v-if="presetStore.userPresets.length > 0">
+          <div class="section-label">{{ t('presets.myPresets') }}</div>
+          <div class="presets-grid">
+            <div
+              v-for="preset in presetStore.userPresets"
+              :key="preset.id"
+              class="preset-card user-preset"
+              :class="{ active: activePresetId === preset.id }"
+              :style="{
+                '--preset-color': preset.visualizer.color,
+                '--preset-bg': preset.background.color,
+              }"
+            >
+              <button class="preset-apply-area" @click="apply(preset)">
+                <span class="preset-emoji">{{ preset.emoji }}</span>
+                <span class="preset-name">{{ preset.name }}</span>
+                <span class="preset-viz">{{ preset.visualizer.selectedVisualizer }}</span>
+              </button>
+              <button class="btn-delete" @click.stop="deletePreset(preset.id)" title="Löschen">
+                ✕
+              </button>
+            </div>
+          </div>
+        </template>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -298,8 +300,9 @@ h3 {
   font-family: inherit;
 }
 
-.preset-name-input:focus {
+.preset-name-input:focus-visible {
   outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
   border-color: var(--accent-primary, #c9984d);
 }
 

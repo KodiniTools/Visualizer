@@ -19,7 +19,7 @@
     </div>
 
     <!-- Section Content -->
-    <transition name="collapse">
+    <transition name="panel-collapse">
       <div v-show="!isCollapsed" class="section-content">
         <slot></slot>
       </div>
@@ -166,26 +166,5 @@ function toggleCollapse() {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-/* Collapse Transition */
-.collapse-enter-active,
-.collapse-leave-active {
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-
-.collapse-enter-from,
-.collapse-leave-to {
-  opacity: 0;
-  max-height: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
-.collapse-enter-to,
-.collapse-leave-from {
-  opacity: 1;
-  max-height: 2000px;
 }
 </style>

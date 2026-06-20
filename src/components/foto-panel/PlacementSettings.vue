@@ -274,8 +274,9 @@ function emitUpdate() {
   text-align: center;
 }
 
-.placement-input:focus {
+.placement-input:focus-visible {
   outline: none;
+  box-shadow: 0 0 0 3px rgb(34 197 94 / 25%);
   border-color: rgba(34, 197, 94, 0.5);
 }
 

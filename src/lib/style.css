@@ -285,11 +285,21 @@ input[type='file'] {
   border-color: color-mix(in srgb, var(--border-color) 70%, var(--accent-primary) 30%);
 }
 
-/* Focus states — accessible ring */
-select:focus,
-button:focus-visible,
+/* Suppress default browser outline — our ring takes over */
+button:focus,
 input:focus,
+select:focus,
 textarea:focus,
+[tabindex]:focus {
+  outline: none;
+}
+
+/* Keyboard-only focus ring via :focus-visible */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible,
 .custom-file-upload:focus-within {
   outline: none;
   box-shadow: 0 0 0 3px var(--ring);
@@ -1373,4 +1383,23 @@ footer small,
   .tools-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── Panel collapse transition (shared across all collapsible panels) ── */
+.panel-collapse-enter-active,
+.panel-collapse-leave-active {
+  overflow: hidden;
+  transition:
+    max-height 0.28s ease,
+    opacity 0.2s ease;
+}
+.panel-collapse-enter-from,
+.panel-collapse-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+.panel-collapse-enter-to,
+.panel-collapse-leave-from {
+  max-height: 1200px;
+  opacity: 1;
 }

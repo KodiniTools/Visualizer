@@ -10,683 +10,685 @@
       </label>
     </div>
 
-    <div v-if="tilesStore.tilesEnabled" class="tiles-controls">
-      <!-- Kachelanzahl -->
-      <div class="control-group">
-        <label>{{ t('backgroundTiles.tileCount') }}:</label>
-        <div class="tile-count-buttons">
-          <button
-            v-for="count in [3, 6, 9, 12]"
-            :key="count"
-            :class="{ active: tilesStore.tileCount === count }"
-            @click="setTileCount(count)"
-          >
-            {{ count }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Lücke zwischen Kacheln -->
-      <div class="control-group">
-        <label>{{ t('backgroundTiles.gap') }}: {{ tilesStore.tileGap }}px</label>
-        <input
-          type="range"
-          :value="tilesStore.tileGap"
-          @input="setTileGap($event.target.value)"
-          min="0"
-          max="30"
-          step="1"
-          class="gap-slider"
-        />
-      </div>
-
-      <!-- Kachel-Vorschau/Auswahl -->
-      <div class="control-group">
-        <label>{{ t('backgroundTiles.selectTile') }}:</label>
-        <div class="tiles-preview" :style="gridStyle">
-          <div
-            v-for="(tile, index) in tilesStore.tiles"
-            :key="tile.id"
-            class="tile-preview"
-            :class="{
-              selected: tilesStore.selectedTileIndex === index,
-              'has-audio': tile.audioReactive?.enabled,
-            }"
-            :style="getTileStyle(tile)"
-            @click="selectTile(index)"
-          >
-            <span class="tile-number">{{ index + 1 }}</span>
-            <span v-if="tile.image" class="tile-has-image">{{ t('backgroundTiles.image') }}</span>
-            <span
-              v-if="tile.audioReactive?.enabled"
-              class="tile-has-audio"
-              :title="t('backgroundTiles.audioReactive')"
-              >♪</span
+    <Transition name="panel-collapse">
+      <div v-show="tilesStore.tilesEnabled" class="tiles-controls">
+        <!-- Kachelanzahl -->
+        <div class="control-group">
+          <label>{{ t('backgroundTiles.tileCount') }}:</label>
+          <div class="tile-count-buttons">
+            <button
+              v-for="count in [3, 6, 9, 12]"
+              :key="count"
+              :class="{ active: tilesStore.tileCount === count }"
+              @click="setTileCount(count)"
             >
-          </div>
-        </div>
-      </div>
-
-      <!-- Bearbeitung der ausgewählten Kachel -->
-      <div v-if="tilesStore.selectedTile" class="selected-tile-editor">
-        <div class="editor-header">
-          <h6>
-            {{
-              locale === 'de'
-                ? `Kachel ${tilesStore.selectedTileIndex + 1} bearbeiten`
-                : `Edit tile ${tilesStore.selectedTileIndex + 1}`
-            }}
-          </h6>
-          <button class="btn-close" @click="deselectTile">×</button>
-        </div>
-
-        <!-- Hintergrundfarbe -->
-        <div class="control-group">
-          <label>{{ t('backgroundTiles.backgroundColor') }}:</label>
-          <div class="color-picker-group">
-            <input
-              type="color"
-              :value="tilesStore.selectedTile.backgroundColor"
-              @input="setTileColor($event.target.value)"
-              class="color-input"
-            />
-            <span class="color-hex">{{ tilesStore.selectedTile.backgroundColor }}</span>
+              {{ count }}
+            </button>
           </div>
         </div>
 
-        <!-- Hintergrund Deckkraft -->
+        <!-- Lücke zwischen Kacheln -->
         <div class="control-group">
-          <label
-            >{{ t('backgroundTiles.opacity') }}:
-            {{ Math.round(tilesStore.selectedTile.backgroundOpacity * 100) }}%</label
-          >
+          <label>{{ t('backgroundTiles.gap') }}: {{ tilesStore.tileGap }}px</label>
           <input
             type="range"
-            :value="tilesStore.selectedTile.backgroundOpacity"
-            @input="setTileOpacity($event.target.value)"
+            :value="tilesStore.tileGap"
+            @input="setTileGap($event.target.value)"
             min="0"
-            max="1"
-            step="0.05"
-            class="opacity-slider"
+            max="30"
+            step="1"
+            class="gap-slider"
           />
         </div>
 
-        <!-- Bild-Bereich -->
-        <div class="image-section">
-          <label>{{ t('backgroundTiles.tileImage') }}:</label>
+        <!-- Kachel-Vorschau/Auswahl -->
+        <div class="control-group">
+          <label>{{ t('backgroundTiles.selectTile') }}:</label>
+          <div class="tiles-preview" :style="gridStyle">
+            <div
+              v-for="(tile, index) in tilesStore.tiles"
+              :key="tile.id"
+              class="tile-preview"
+              :class="{
+                selected: tilesStore.selectedTileIndex === index,
+                'has-audio': tile.audioReactive?.enabled,
+              }"
+              :style="getTileStyle(tile)"
+              @click="selectTile(index)"
+            >
+              <span class="tile-number">{{ index + 1 }}</span>
+              <span v-if="tile.image" class="tile-has-image">{{ t('backgroundTiles.image') }}</span>
+              <span
+                v-if="tile.audioReactive?.enabled"
+                class="tile-has-audio"
+                :title="t('backgroundTiles.audioReactive')"
+                >♪</span
+              >
+            </div>
+          </div>
+        </div>
 
-          <div
-            v-if="!tilesStore.selectedTile.image && !tilesStore.selectedTile.video"
-            class="image-upload-area"
-          >
-            <input
-              type="file"
-              accept="image/*"
-              @change="handleImageUpload"
-              ref="fileInput"
-              style="display: none"
-            />
-            <input
-              type="file"
-              accept="video/*"
-              @change="handleVideoUpload"
-              ref="videoInput"
-              style="display: none"
-            />
-            <div class="image-source-buttons">
-              <button class="btn-upload" @click="$refs.fileInput.click()">
-                📁 {{ t('backgroundTiles.uploadImage') }}
-              </button>
-              <button class="btn-gallery" @click="openGalleryModal">
-                🖼️ {{ t('backgroundTiles.fromGallery') }}
-              </button>
-            </div>
-            <div class="image-source-buttons" style="margin-top: 6px">
-              <button class="btn-video" @click="$refs.videoInput.click()">
-                🎬 {{ t('backgroundTiles.uploadVideo') }}
-              </button>
-            </div>
-            <p class="hint">{{ t('backgroundTiles.orDragDrop') }}</p>
+        <!-- Bearbeitung der ausgewählten Kachel -->
+        <div v-if="tilesStore.selectedTile" class="selected-tile-editor">
+          <div class="editor-header">
+            <h6>
+              {{
+                locale === 'de'
+                  ? `Kachel ${tilesStore.selectedTileIndex + 1} bearbeiten`
+                  : `Edit tile ${tilesStore.selectedTileIndex + 1}`
+              }}
+            </h6>
+            <button class="btn-close" @click="deselectTile">×</button>
           </div>
 
-          <!-- Video-Vorschau und Steuerung -->
-          <div v-else-if="tilesStore.selectedTile.video" class="video-controls">
-            <div class="video-preview">
-              <video
-                :src="tilesStore.selectedTile.videoSrc"
-                muted
-                loop
-                autoplay
-                playsinline
-              ></video>
-              <span class="video-badge">🎬 {{ t('backgroundTiles.videoPlaying') }}</span>
+          <!-- Hintergrundfarbe -->
+          <div class="control-group">
+            <label>{{ t('backgroundTiles.backgroundColor') }}:</label>
+            <div class="color-picker-group">
+              <input
+                type="color"
+                :value="tilesStore.selectedTile.backgroundColor"
+                @input="setTileColor($event.target.value)"
+                class="color-input"
+              />
+              <span class="color-hex">{{ tilesStore.selectedTile.backgroundColor }}</span>
             </div>
+          </div>
 
-            <!-- Video-Einstellungen -->
-            <div class="video-settings">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  :checked="tilesStore.selectedTile.videoSettings?.muted !== false"
-                  @change="updateVideoSetting('muted', $event.target.checked)"
-                />
-                <span>{{ t('backgroundTiles.videoMuted') }}</span>
-              </label>
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  :checked="tilesStore.selectedTile.videoSettings?.loop !== false"
-                  @change="updateVideoSetting('loop', $event.target.checked)"
-                />
-                <span>{{ t('backgroundTiles.videoLoop') }}</span>
-              </label>
-            </div>
+          <!-- Hintergrund Deckkraft -->
+          <div class="control-group">
+            <label
+              >{{ t('backgroundTiles.opacity') }}:
+              {{ Math.round(tilesStore.selectedTile.backgroundOpacity * 100) }}%</label
+            >
+            <input
+              type="range"
+              :value="tilesStore.selectedTile.backgroundOpacity"
+              @input="setTileOpacity($event.target.value)"
+              min="0"
+              max="1"
+              step="0.05"
+              class="opacity-slider"
+            />
+          </div>
 
-            <!-- Ersetzen-Buttons für Video -->
-            <div class="replace-section">
-              <span class="replace-label">{{ t('backgroundTiles.replaceWith') }}:</span>
-              <div class="replace-buttons">
-                <input
-                  type="file"
-                  accept="image/*"
-                  @change="handleImageUpload"
-                  ref="replaceImageFromVideoInput"
-                  style="display: none"
-                />
-                <input
-                  type="file"
-                  accept="video/*"
-                  @change="handleVideoUpload"
-                  ref="replaceVideoFromVideoInput"
-                  style="display: none"
-                />
-                <button class="btn-replace" @click="$refs.replaceImageFromVideoInput.click()">
+          <!-- Bild-Bereich -->
+          <div class="image-section">
+            <label>{{ t('backgroundTiles.tileImage') }}:</label>
+
+            <div
+              v-if="!tilesStore.selectedTile.image && !tilesStore.selectedTile.video"
+              class="image-upload-area"
+            >
+              <input
+                type="file"
+                accept="image/*"
+                @change="handleImageUpload"
+                ref="fileInput"
+                style="display: none"
+              />
+              <input
+                type="file"
+                accept="video/*"
+                @change="handleVideoUpload"
+                ref="videoInput"
+                style="display: none"
+              />
+              <div class="image-source-buttons">
+                <button class="btn-upload" @click="$refs.fileInput.click()">
                   📁 {{ t('backgroundTiles.uploadImage') }}
                 </button>
-                <button class="btn-replace btn-replace-gallery" @click="openGalleryModal">
+                <button class="btn-gallery" @click="openGalleryModal">
                   🖼️ {{ t('backgroundTiles.fromGallery') }}
                 </button>
-                <button
-                  class="btn-replace btn-replace-video"
-                  @click="$refs.replaceVideoFromVideoInput.click()"
-                >
+              </div>
+              <div class="image-source-buttons" style="margin-top: 6px">
+                <button class="btn-video" @click="$refs.videoInput.click()">
                   🎬 {{ t('backgroundTiles.uploadVideo') }}
                 </button>
               </div>
+              <p class="hint">{{ t('backgroundTiles.orDragDrop') }}</p>
             </div>
 
-            <button class="btn-remove" @click="removeVideo">
-              {{ t('backgroundTiles.removeVideo') }}
-            </button>
+            <!-- Video-Vorschau und Steuerung -->
+            <div v-else-if="tilesStore.selectedTile.video" class="video-controls">
+              <div class="video-preview">
+                <video
+                  :src="tilesStore.selectedTile.videoSrc"
+                  muted
+                  loop
+                  autoplay
+                  playsinline
+                ></video>
+                <span class="video-badge">🎬 {{ t('backgroundTiles.videoPlaying') }}</span>
+              </div>
+
+              <!-- Video-Einstellungen -->
+              <div class="video-settings">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    :checked="tilesStore.selectedTile.videoSettings?.muted !== false"
+                    @change="updateVideoSetting('muted', $event.target.checked)"
+                  />
+                  <span>{{ t('backgroundTiles.videoMuted') }}</span>
+                </label>
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    :checked="tilesStore.selectedTile.videoSettings?.loop !== false"
+                    @change="updateVideoSetting('loop', $event.target.checked)"
+                  />
+                  <span>{{ t('backgroundTiles.videoLoop') }}</span>
+                </label>
+              </div>
+
+              <!-- Ersetzen-Buttons für Video -->
+              <div class="replace-section">
+                <span class="replace-label">{{ t('backgroundTiles.replaceWith') }}:</span>
+                <div class="replace-buttons">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    @change="handleImageUpload"
+                    ref="replaceImageFromVideoInput"
+                    style="display: none"
+                  />
+                  <input
+                    type="file"
+                    accept="video/*"
+                    @change="handleVideoUpload"
+                    ref="replaceVideoFromVideoInput"
+                    style="display: none"
+                  />
+                  <button class="btn-replace" @click="$refs.replaceImageFromVideoInput.click()">
+                    📁 {{ t('backgroundTiles.uploadImage') }}
+                  </button>
+                  <button class="btn-replace btn-replace-gallery" @click="openGalleryModal">
+                    🖼️ {{ t('backgroundTiles.fromGallery') }}
+                  </button>
+                  <button
+                    class="btn-replace btn-replace-video"
+                    @click="$refs.replaceVideoFromVideoInput.click()"
+                  >
+                    🎬 {{ t('backgroundTiles.uploadVideo') }}
+                  </button>
+                </div>
+              </div>
+
+              <button class="btn-remove" @click="removeVideo">
+                {{ t('backgroundTiles.removeVideo') }}
+              </button>
+            </div>
+
+            <!-- Bild-Vorschau und Filter -->
+            <div v-else class="image-controls">
+              <div class="image-preview">
+                <img :src="tilesStore.selectedTile.imageSrc" alt="Kachel-Bild" />
+              </div>
+
+              <!-- Ersetzen-Buttons -->
+              <div class="replace-section">
+                <span class="replace-label">{{ t('backgroundTiles.replaceWith') }}:</span>
+                <div class="replace-buttons">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    @change="handleImageUpload"
+                    ref="replaceImageInput"
+                    style="display: none"
+                  />
+                  <input
+                    type="file"
+                    accept="video/*"
+                    @change="handleVideoUpload"
+                    ref="replaceVideoInput"
+                    style="display: none"
+                  />
+                  <button class="btn-replace" @click="$refs.replaceImageInput.click()">
+                    📁 {{ t('backgroundTiles.uploadImage') }}
+                  </button>
+                  <button class="btn-replace btn-replace-gallery" @click="openGalleryModal">
+                    🖼️ {{ t('backgroundTiles.fromGallery') }}
+                  </button>
+                  <button
+                    class="btn-replace btn-replace-video"
+                    @click="$refs.replaceVideoInput.click()"
+                  >
+                    🎬 {{ t('backgroundTiles.uploadVideo') }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Bild-Filter -->
+              <div class="filter-controls">
+                <div class="filter-row">
+                  <label>{{ t('backgroundTiles.brightness') }}</label>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.imageSettings.brightness"
+                    @input="updateImageSetting('brightness', $event.target.value)"
+                    min="0"
+                    max="200"
+                    step="5"
+                  />
+                  <span>{{ tilesStore.selectedTile.imageSettings.brightness }}%</span>
+                </div>
+
+                <div class="filter-row">
+                  <label>{{ t('backgroundTiles.contrast') }}</label>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.imageSettings.contrast"
+                    @input="updateImageSetting('contrast', $event.target.value)"
+                    min="0"
+                    max="200"
+                    step="5"
+                  />
+                  <span>{{ tilesStore.selectedTile.imageSettings.contrast }}%</span>
+                </div>
+
+                <div class="filter-row">
+                  <label>{{ t('backgroundTiles.saturation') }}</label>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.imageSettings.saturation"
+                    @input="updateImageSetting('saturation', $event.target.value)"
+                    min="0"
+                    max="200"
+                    step="5"
+                  />
+                  <span>{{ tilesStore.selectedTile.imageSettings.saturation }}%</span>
+                </div>
+
+                <div class="filter-row">
+                  <label>{{ t('backgroundTiles.opacity') }}</label>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.imageSettings.opacity"
+                    @input="updateImageSetting('opacity', $event.target.value)"
+                    min="0"
+                    max="100"
+                    step="5"
+                  />
+                  <span>{{ tilesStore.selectedTile.imageSettings.opacity }}%</span>
+                </div>
+
+                <div class="filter-row">
+                  <label>{{ t('backgroundTiles.blur') }}</label>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.imageSettings.blur"
+                    @input="updateImageSetting('blur', $event.target.value)"
+                    min="0"
+                    max="20"
+                    step="1"
+                  />
+                  <span>{{ tilesStore.selectedTile.imageSettings.blur }}px</span>
+                </div>
+
+                <div class="filter-row">
+                  <label>{{ t('backgroundTiles.hueRotate') }}</label>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.imageSettings.hueRotate"
+                    @input="updateImageSetting('hueRotate', $event.target.value)"
+                    min="0"
+                    max="360"
+                    step="10"
+                  />
+                  <span>{{ tilesStore.selectedTile.imageSettings.hueRotate }}°</span>
+                </div>
+
+                <div class="filter-row">
+                  <label>{{ t('backgroundTiles.grayscale') }}</label>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.imageSettings.grayscale"
+                    @input="updateImageSetting('grayscale', $event.target.value)"
+                    min="0"
+                    max="100"
+                    step="5"
+                  />
+                  <span>{{ tilesStore.selectedTile.imageSettings.grayscale }}%</span>
+                </div>
+
+                <div class="filter-row">
+                  <label>{{ t('backgroundTiles.sepia') }}</label>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.imageSettings.sepia"
+                    @input="updateImageSetting('sepia', $event.target.value)"
+                    min="0"
+                    max="100"
+                    step="5"
+                  />
+                  <span>{{ tilesStore.selectedTile.imageSettings.sepia }}%</span>
+                </div>
+
+                <div class="filter-row">
+                  <label>{{ t('backgroundTiles.scale') }}</label>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.imageSettings.scale"
+                    @input="updateImageSetting('scale', $event.target.value)"
+                    min="0.5"
+                    max="2"
+                    step="0.1"
+                  />
+                  <span>{{ Math.round(tilesStore.selectedTile.imageSettings.scale * 100) }}%</span>
+                </div>
+
+                <div class="filter-row">
+                  <label>{{ t('backgroundTiles.offsetX') }}</label>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.imageSettings.offsetX"
+                    @input="updateImageSetting('offsetX', $event.target.value)"
+                    min="-200"
+                    max="200"
+                    step="5"
+                  />
+                  <span>{{ tilesStore.selectedTile.imageSettings.offsetX }}px</span>
+                </div>
+
+                <div class="filter-row">
+                  <label>{{ t('backgroundTiles.offsetY') }}</label>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.imageSettings.offsetY"
+                    @input="updateImageSetting('offsetY', $event.target.value)"
+                    min="-200"
+                    max="200"
+                    step="5"
+                  />
+                  <span>{{ tilesStore.selectedTile.imageSettings.offsetY }}px</span>
+                </div>
+              </div>
+
+              <button class="btn-remove" @click="removeImage">
+                {{ t('backgroundTiles.removeImage') }}
+              </button>
+            </div>
           </div>
 
-          <!-- Bild-Vorschau und Filter -->
-          <div v-else class="image-controls">
-            <div class="image-preview">
-              <img :src="tilesStore.selectedTile.imageSrc" alt="Kachel-Bild" />
+          <!-- Audio-Reaktiv Sektion -->
+          <div class="audio-section">
+            <div class="audio-header">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  :checked="tilesStore.selectedTile.audioReactive?.enabled"
+                  @change="toggleAudioReactive($event.target.checked)"
+                />
+                <span>{{ t('backgroundTiles.audioReactive') }}</span>
+              </label>
             </div>
 
-            <!-- Ersetzen-Buttons -->
-            <div class="replace-section">
-              <span class="replace-label">{{ t('backgroundTiles.replaceWith') }}:</span>
-              <div class="replace-buttons">
+            <div v-if="tilesStore.selectedTile.audioReactive?.enabled" class="audio-controls">
+              <!-- Audio-Quelle -->
+              <div class="control-group">
+                <label>{{ t('backgroundTiles.reactsTo') }}:</label>
+                <select
+                  :value="tilesStore.selectedTile.audioReactive.source"
+                  @change="setAudioSource($event.target.value)"
+                  class="audio-select"
+                >
+                  <option value="bass">{{ t('backgroundTiles.bassBass') }}</option>
+                  <option value="mid">{{ t('backgroundTiles.midVocals') }}</option>
+                  <option value="treble">{{ t('backgroundTiles.trebleHiHats') }}</option>
+                  <option value="volume">{{ t('backgroundTiles.volumeTotal') }}</option>
+                  <option value="dynamic">{{ t('backgroundTiles.dynamicAuto') }}</option>
+                </select>
+              </div>
+
+              <!-- Glättung -->
+              <div class="control-group">
+                <label
+                  >{{ t('backgroundTiles.smoothing') }}:
+                  {{ tilesStore.selectedTile.audioReactive.smoothing }}%</label
+                >
                 <input
-                  type="file"
-                  accept="image/*"
-                  @change="handleImageUpload"
-                  ref="replaceImageInput"
-                  style="display: none"
+                  type="range"
+                  :value="tilesStore.selectedTile.audioReactive.smoothing"
+                  @input="setAudioSmoothing($event.target.value)"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="audio-slider"
                 />
-                <input
-                  type="file"
-                  accept="video/*"
-                  @change="handleVideoUpload"
-                  ref="replaceVideoInput"
-                  style="display: none"
-                />
-                <button class="btn-replace" @click="$refs.replaceImageInput.click()">
-                  📁 {{ t('backgroundTiles.uploadImage') }}
-                </button>
-                <button class="btn-replace btn-replace-gallery" @click="openGalleryModal">
-                  🖼️ {{ t('backgroundTiles.fromGallery') }}
+              </div>
+
+              <!-- Effekte -->
+              <div class="effects-list">
+                <!-- Hue (Farbton) -->
+                <label class="effect-item">
+                  <input
+                    type="checkbox"
+                    :checked="tilesStore.selectedTile.audioReactive.effects.hue.enabled"
+                    @change="toggleEffect('hue', $event.target.checked)"
+                  />
+                  <span>{{ t('backgroundTiles.hue') }}</span>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.audioReactive.effects.hue.intensity"
+                    @input="setEffectIntensity('hue', $event.target.value)"
+                    min="0"
+                    max="100"
+                    step="5"
+                    class="effect-slider"
+                  />
+                  <span class="effect-value"
+                    >{{ tilesStore.selectedTile.audioReactive.effects.hue.intensity }}%</span
+                  >
+                </label>
+
+                <!-- Brightness (Helligkeit) -->
+                <label class="effect-item">
+                  <input
+                    type="checkbox"
+                    :checked="tilesStore.selectedTile.audioReactive.effects.brightness.enabled"
+                    @change="toggleEffect('brightness', $event.target.checked)"
+                  />
+                  <span>{{ t('backgroundTiles.brightness') }}</span>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.audioReactive.effects.brightness.intensity"
+                    @input="setEffectIntensity('brightness', $event.target.value)"
+                    min="0"
+                    max="100"
+                    step="5"
+                    class="effect-slider"
+                  />
+                  <span class="effect-value"
+                    >{{ tilesStore.selectedTile.audioReactive.effects.brightness.intensity }}%</span
+                  >
+                </label>
+
+                <!-- Saturation (Sättigung) -->
+                <label class="effect-item">
+                  <input
+                    type="checkbox"
+                    :checked="tilesStore.selectedTile.audioReactive.effects.saturation.enabled"
+                    @change="toggleEffect('saturation', $event.target.checked)"
+                  />
+                  <span>{{ t('backgroundTiles.saturation') }}</span>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.audioReactive.effects.saturation.intensity"
+                    @input="setEffectIntensity('saturation', $event.target.value)"
+                    min="0"
+                    max="100"
+                    step="5"
+                    class="effect-slider"
+                  />
+                  <span class="effect-value"
+                    >{{ tilesStore.selectedTile.audioReactive.effects.saturation.intensity }}%</span
+                  >
+                </label>
+
+                <!-- Glow (Leuchten) -->
+                <label class="effect-item">
+                  <input
+                    type="checkbox"
+                    :checked="tilesStore.selectedTile.audioReactive.effects.glow.enabled"
+                    @change="toggleEffect('glow', $event.target.checked)"
+                  />
+                  <span>{{ t('backgroundTiles.glow') }}</span>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.audioReactive.effects.glow.intensity"
+                    @input="setEffectIntensity('glow', $event.target.value)"
+                    min="0"
+                    max="100"
+                    step="5"
+                    class="effect-slider"
+                  />
+                  <span class="effect-value"
+                    >{{ tilesStore.selectedTile.audioReactive.effects.glow.intensity }}%</span
+                  >
+                </label>
+
+                <!-- Scale (Skalierung) -->
+                <label class="effect-item">
+                  <input
+                    type="checkbox"
+                    :checked="tilesStore.selectedTile.audioReactive.effects.scale.enabled"
+                    @change="toggleEffect('scale', $event.target.checked)"
+                  />
+                  <span>{{ t('backgroundTiles.pulse') }}</span>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.audioReactive.effects.scale.intensity"
+                    @input="setEffectIntensity('scale', $event.target.value)"
+                    min="0"
+                    max="100"
+                    step="5"
+                    class="effect-slider"
+                  />
+                  <span class="effect-value"
+                    >{{ tilesStore.selectedTile.audioReactive.effects.scale.intensity }}%</span
+                  >
+                </label>
+
+                <!-- Blur (Weichzeichnen) -->
+                <label class="effect-item">
+                  <input
+                    type="checkbox"
+                    :checked="tilesStore.selectedTile.audioReactive.effects.blur.enabled"
+                    @change="toggleEffect('blur', $event.target.checked)"
+                  />
+                  <span>{{ t('backgroundTiles.blur') }}</span>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.audioReactive.effects.blur.intensity"
+                    @input="setEffectIntensity('blur', $event.target.value)"
+                    min="0"
+                    max="100"
+                    step="5"
+                    class="effect-slider"
+                  />
+                  <span class="effect-value"
+                    >{{ tilesStore.selectedTile.audioReactive.effects.blur.intensity }}%</span
+                  >
+                </label>
+
+                <!-- Strobe (Blitz) -->
+                <label class="effect-item">
+                  <input
+                    type="checkbox"
+                    :checked="tilesStore.selectedTile.audioReactive.effects.strobe?.enabled"
+                    @change="toggleEffect('strobe', $event.target.checked)"
+                  />
+                  <span>{{ t('backgroundTiles.strobe') }}</span>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.audioReactive.effects.strobe?.intensity || 80"
+                    @input="setEffectIntensity('strobe', $event.target.value)"
+                    min="0"
+                    max="100"
+                    step="5"
+                    class="effect-slider"
+                  />
+                  <span class="effect-value"
+                    >{{
+                      tilesStore.selectedTile.audioReactive.effects.strobe?.intensity || 80
+                    }}%</span
+                  >
+                </label>
+
+                <!-- Contrast (Kontrast) -->
+                <label class="effect-item">
+                  <input
+                    type="checkbox"
+                    :checked="tilesStore.selectedTile.audioReactive.effects.contrast?.enabled"
+                    @change="toggleEffect('contrast', $event.target.checked)"
+                  />
+                  <span>{{ t('backgroundTiles.contrastEffect') }}</span>
+                  <input
+                    type="range"
+                    :value="tilesStore.selectedTile.audioReactive.effects.contrast?.intensity || 70"
+                    @input="setEffectIntensity('contrast', $event.target.value)"
+                    min="0"
+                    max="100"
+                    step="5"
+                    class="effect-slider"
+                  />
+                  <span class="effect-value"
+                    >{{
+                      tilesStore.selectedTile.audioReactive.effects.contrast?.intensity || 70
+                    }}%</span
+                  >
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kachel zurücksetzen -->
+          <button class="btn-reset" @click="resetTile">
+            {{ t('backgroundTiles.resetTile') }}
+          </button>
+        </div>
+
+        <!-- ✨ NEU: Kachel-Presets -->
+        <div class="control-group presets-section">
+          <label>🔲 {{ t('backgroundTiles.tilePresets') }}:</label>
+          <button @click="saveTilePreset" class="btn-save-preset">
+            {{ t('backgroundTiles.saveTilePreset') }}
+          </button>
+
+          <div v-if="tilePresets.length > 0" class="presets-list">
+            <div v-for="preset in tilePresets" :key="preset.id" class="preset-item">
+              <span class="preset-name">{{ preset.name }}</span>
+              <div class="preset-actions">
+                <button
+                  @click="loadTilePreset(preset)"
+                  class="btn-small btn-load"
+                  :title="t('backgroundTiles.load')"
+                >
+                  📥
                 </button>
                 <button
-                  class="btn-replace btn-replace-video"
-                  @click="$refs.replaceVideoInput.click()"
+                  @click="deleteTilePreset(preset.id)"
+                  class="btn-small btn-delete"
+                  :title="t('backgroundTiles.delete')"
                 >
-                  🎬 {{ t('backgroundTiles.uploadVideo') }}
+                  🗑️
                 </button>
               </div>
             </div>
-
-            <!-- Bild-Filter -->
-            <div class="filter-controls">
-              <div class="filter-row">
-                <label>{{ t('backgroundTiles.brightness') }}</label>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.imageSettings.brightness"
-                  @input="updateImageSetting('brightness', $event.target.value)"
-                  min="0"
-                  max="200"
-                  step="5"
-                />
-                <span>{{ tilesStore.selectedTile.imageSettings.brightness }}%</span>
-              </div>
-
-              <div class="filter-row">
-                <label>{{ t('backgroundTiles.contrast') }}</label>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.imageSettings.contrast"
-                  @input="updateImageSetting('contrast', $event.target.value)"
-                  min="0"
-                  max="200"
-                  step="5"
-                />
-                <span>{{ tilesStore.selectedTile.imageSettings.contrast }}%</span>
-              </div>
-
-              <div class="filter-row">
-                <label>{{ t('backgroundTiles.saturation') }}</label>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.imageSettings.saturation"
-                  @input="updateImageSetting('saturation', $event.target.value)"
-                  min="0"
-                  max="200"
-                  step="5"
-                />
-                <span>{{ tilesStore.selectedTile.imageSettings.saturation }}%</span>
-              </div>
-
-              <div class="filter-row">
-                <label>{{ t('backgroundTiles.opacity') }}</label>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.imageSettings.opacity"
-                  @input="updateImageSetting('opacity', $event.target.value)"
-                  min="0"
-                  max="100"
-                  step="5"
-                />
-                <span>{{ tilesStore.selectedTile.imageSettings.opacity }}%</span>
-              </div>
-
-              <div class="filter-row">
-                <label>{{ t('backgroundTiles.blur') }}</label>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.imageSettings.blur"
-                  @input="updateImageSetting('blur', $event.target.value)"
-                  min="0"
-                  max="20"
-                  step="1"
-                />
-                <span>{{ tilesStore.selectedTile.imageSettings.blur }}px</span>
-              </div>
-
-              <div class="filter-row">
-                <label>{{ t('backgroundTiles.hueRotate') }}</label>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.imageSettings.hueRotate"
-                  @input="updateImageSetting('hueRotate', $event.target.value)"
-                  min="0"
-                  max="360"
-                  step="10"
-                />
-                <span>{{ tilesStore.selectedTile.imageSettings.hueRotate }}°</span>
-              </div>
-
-              <div class="filter-row">
-                <label>{{ t('backgroundTiles.grayscale') }}</label>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.imageSettings.grayscale"
-                  @input="updateImageSetting('grayscale', $event.target.value)"
-                  min="0"
-                  max="100"
-                  step="5"
-                />
-                <span>{{ tilesStore.selectedTile.imageSettings.grayscale }}%</span>
-              </div>
-
-              <div class="filter-row">
-                <label>{{ t('backgroundTiles.sepia') }}</label>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.imageSettings.sepia"
-                  @input="updateImageSetting('sepia', $event.target.value)"
-                  min="0"
-                  max="100"
-                  step="5"
-                />
-                <span>{{ tilesStore.selectedTile.imageSettings.sepia }}%</span>
-              </div>
-
-              <div class="filter-row">
-                <label>{{ t('backgroundTiles.scale') }}</label>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.imageSettings.scale"
-                  @input="updateImageSetting('scale', $event.target.value)"
-                  min="0.5"
-                  max="2"
-                  step="0.1"
-                />
-                <span>{{ Math.round(tilesStore.selectedTile.imageSettings.scale * 100) }}%</span>
-              </div>
-
-              <div class="filter-row">
-                <label>{{ t('backgroundTiles.offsetX') }}</label>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.imageSettings.offsetX"
-                  @input="updateImageSetting('offsetX', $event.target.value)"
-                  min="-200"
-                  max="200"
-                  step="5"
-                />
-                <span>{{ tilesStore.selectedTile.imageSettings.offsetX }}px</span>
-              </div>
-
-              <div class="filter-row">
-                <label>{{ t('backgroundTiles.offsetY') }}</label>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.imageSettings.offsetY"
-                  @input="updateImageSetting('offsetY', $event.target.value)"
-                  min="-200"
-                  max="200"
-                  step="5"
-                />
-                <span>{{ tilesStore.selectedTile.imageSettings.offsetY }}px</span>
-              </div>
-            </div>
-
-            <button class="btn-remove" @click="removeImage">
-              {{ t('backgroundTiles.removeImage') }}
-            </button>
           </div>
+          <div v-else class="hint-text">{{ t('backgroundTiles.noTilePresets') }}</div>
         </div>
 
-        <!-- Audio-Reaktiv Sektion -->
-        <div class="audio-section">
-          <div class="audio-header">
-            <label class="checkbox-label">
-              <input
-                type="checkbox"
-                :checked="tilesStore.selectedTile.audioReactive?.enabled"
-                @change="toggleAudioReactive($event.target.checked)"
-              />
-              <span>{{ t('backgroundTiles.audioReactive') }}</span>
-            </label>
-          </div>
-
-          <div v-if="tilesStore.selectedTile.audioReactive?.enabled" class="audio-controls">
-            <!-- Audio-Quelle -->
-            <div class="control-group">
-              <label>{{ t('backgroundTiles.reactsTo') }}:</label>
-              <select
-                :value="tilesStore.selectedTile.audioReactive.source"
-                @change="setAudioSource($event.target.value)"
-                class="audio-select"
-              >
-                <option value="bass">{{ t('backgroundTiles.bassBass') }}</option>
-                <option value="mid">{{ t('backgroundTiles.midVocals') }}</option>
-                <option value="treble">{{ t('backgroundTiles.trebleHiHats') }}</option>
-                <option value="volume">{{ t('backgroundTiles.volumeTotal') }}</option>
-                <option value="dynamic">{{ t('backgroundTiles.dynamicAuto') }}</option>
-              </select>
-            </div>
-
-            <!-- Glättung -->
-            <div class="control-group">
-              <label
-                >{{ t('backgroundTiles.smoothing') }}:
-                {{ tilesStore.selectedTile.audioReactive.smoothing }}%</label
-              >
-              <input
-                type="range"
-                :value="tilesStore.selectedTile.audioReactive.smoothing"
-                @input="setAudioSmoothing($event.target.value)"
-                min="0"
-                max="100"
-                step="5"
-                class="audio-slider"
-              />
-            </div>
-
-            <!-- Effekte -->
-            <div class="effects-list">
-              <!-- Hue (Farbton) -->
-              <label class="effect-item">
-                <input
-                  type="checkbox"
-                  :checked="tilesStore.selectedTile.audioReactive.effects.hue.enabled"
-                  @change="toggleEffect('hue', $event.target.checked)"
-                />
-                <span>{{ t('backgroundTiles.hue') }}</span>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.audioReactive.effects.hue.intensity"
-                  @input="setEffectIntensity('hue', $event.target.value)"
-                  min="0"
-                  max="100"
-                  step="5"
-                  class="effect-slider"
-                />
-                <span class="effect-value"
-                  >{{ tilesStore.selectedTile.audioReactive.effects.hue.intensity }}%</span
-                >
-              </label>
-
-              <!-- Brightness (Helligkeit) -->
-              <label class="effect-item">
-                <input
-                  type="checkbox"
-                  :checked="tilesStore.selectedTile.audioReactive.effects.brightness.enabled"
-                  @change="toggleEffect('brightness', $event.target.checked)"
-                />
-                <span>{{ t('backgroundTiles.brightness') }}</span>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.audioReactive.effects.brightness.intensity"
-                  @input="setEffectIntensity('brightness', $event.target.value)"
-                  min="0"
-                  max="100"
-                  step="5"
-                  class="effect-slider"
-                />
-                <span class="effect-value"
-                  >{{ tilesStore.selectedTile.audioReactive.effects.brightness.intensity }}%</span
-                >
-              </label>
-
-              <!-- Saturation (Sättigung) -->
-              <label class="effect-item">
-                <input
-                  type="checkbox"
-                  :checked="tilesStore.selectedTile.audioReactive.effects.saturation.enabled"
-                  @change="toggleEffect('saturation', $event.target.checked)"
-                />
-                <span>{{ t('backgroundTiles.saturation') }}</span>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.audioReactive.effects.saturation.intensity"
-                  @input="setEffectIntensity('saturation', $event.target.value)"
-                  min="0"
-                  max="100"
-                  step="5"
-                  class="effect-slider"
-                />
-                <span class="effect-value"
-                  >{{ tilesStore.selectedTile.audioReactive.effects.saturation.intensity }}%</span
-                >
-              </label>
-
-              <!-- Glow (Leuchten) -->
-              <label class="effect-item">
-                <input
-                  type="checkbox"
-                  :checked="tilesStore.selectedTile.audioReactive.effects.glow.enabled"
-                  @change="toggleEffect('glow', $event.target.checked)"
-                />
-                <span>{{ t('backgroundTiles.glow') }}</span>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.audioReactive.effects.glow.intensity"
-                  @input="setEffectIntensity('glow', $event.target.value)"
-                  min="0"
-                  max="100"
-                  step="5"
-                  class="effect-slider"
-                />
-                <span class="effect-value"
-                  >{{ tilesStore.selectedTile.audioReactive.effects.glow.intensity }}%</span
-                >
-              </label>
-
-              <!-- Scale (Skalierung) -->
-              <label class="effect-item">
-                <input
-                  type="checkbox"
-                  :checked="tilesStore.selectedTile.audioReactive.effects.scale.enabled"
-                  @change="toggleEffect('scale', $event.target.checked)"
-                />
-                <span>{{ t('backgroundTiles.pulse') }}</span>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.audioReactive.effects.scale.intensity"
-                  @input="setEffectIntensity('scale', $event.target.value)"
-                  min="0"
-                  max="100"
-                  step="5"
-                  class="effect-slider"
-                />
-                <span class="effect-value"
-                  >{{ tilesStore.selectedTile.audioReactive.effects.scale.intensity }}%</span
-                >
-              </label>
-
-              <!-- Blur (Weichzeichnen) -->
-              <label class="effect-item">
-                <input
-                  type="checkbox"
-                  :checked="tilesStore.selectedTile.audioReactive.effects.blur.enabled"
-                  @change="toggleEffect('blur', $event.target.checked)"
-                />
-                <span>{{ t('backgroundTiles.blur') }}</span>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.audioReactive.effects.blur.intensity"
-                  @input="setEffectIntensity('blur', $event.target.value)"
-                  min="0"
-                  max="100"
-                  step="5"
-                  class="effect-slider"
-                />
-                <span class="effect-value"
-                  >{{ tilesStore.selectedTile.audioReactive.effects.blur.intensity }}%</span
-                >
-              </label>
-
-              <!-- Strobe (Blitz) -->
-              <label class="effect-item">
-                <input
-                  type="checkbox"
-                  :checked="tilesStore.selectedTile.audioReactive.effects.strobe?.enabled"
-                  @change="toggleEffect('strobe', $event.target.checked)"
-                />
-                <span>{{ t('backgroundTiles.strobe') }}</span>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.audioReactive.effects.strobe?.intensity || 80"
-                  @input="setEffectIntensity('strobe', $event.target.value)"
-                  min="0"
-                  max="100"
-                  step="5"
-                  class="effect-slider"
-                />
-                <span class="effect-value"
-                  >{{
-                    tilesStore.selectedTile.audioReactive.effects.strobe?.intensity || 80
-                  }}%</span
-                >
-              </label>
-
-              <!-- Contrast (Kontrast) -->
-              <label class="effect-item">
-                <input
-                  type="checkbox"
-                  :checked="tilesStore.selectedTile.audioReactive.effects.contrast?.enabled"
-                  @change="toggleEffect('contrast', $event.target.checked)"
-                />
-                <span>{{ t('backgroundTiles.contrastEffect') }}</span>
-                <input
-                  type="range"
-                  :value="tilesStore.selectedTile.audioReactive.effects.contrast?.intensity || 70"
-                  @input="setEffectIntensity('contrast', $event.target.value)"
-                  min="0"
-                  max="100"
-                  step="5"
-                  class="effect-slider"
-                />
-                <span class="effect-value"
-                  >{{
-                    tilesStore.selectedTile.audioReactive.effects.contrast?.intensity || 70
-                  }}%</span
-                >
-              </label>
-            </div>
-          </div>
+        <!-- Alle Kacheln zurücksetzen -->
+        <div class="control-group reset-all">
+          <button class="btn-reset-all" @click="resetAllTiles">
+            {{ t('backgroundTiles.resetAllTiles') }}
+          </button>
         </div>
-
-        <!-- Kachel zurücksetzen -->
-        <button class="btn-reset" @click="resetTile">
-          {{ t('backgroundTiles.resetTile') }}
-        </button>
       </div>
-
-      <!-- ✨ NEU: Kachel-Presets -->
-      <div class="control-group presets-section">
-        <label>🔲 {{ t('backgroundTiles.tilePresets') }}:</label>
-        <button @click="saveTilePreset" class="btn-save-preset">
-          {{ t('backgroundTiles.saveTilePreset') }}
-        </button>
-
-        <div v-if="tilePresets.length > 0" class="presets-list">
-          <div v-for="preset in tilePresets" :key="preset.id" class="preset-item">
-            <span class="preset-name">{{ preset.name }}</span>
-            <div class="preset-actions">
-              <button
-                @click="loadTilePreset(preset)"
-                class="btn-small btn-load"
-                :title="t('backgroundTiles.load')"
-              >
-                📥
-              </button>
-              <button
-                @click="deleteTilePreset(preset.id)"
-                class="btn-small btn-delete"
-                :title="t('backgroundTiles.delete')"
-              >
-                🗑️
-              </button>
-            </div>
-          </div>
-        </div>
-        <div v-else class="hint-text">{{ t('backgroundTiles.noTilePresets') }}</div>
-      </div>
-
-      <!-- Alle Kacheln zurücksetzen -->
-      <div class="control-group reset-all">
-        <button class="btn-reset-all" @click="resetAllTiles">
-          {{ t('backgroundTiles.resetAllTiles') }}
-        </button>
-      </div>
-    </div>
+    </Transition>
 
     <!-- Galerie-Modal -->
     <Teleport to="body">

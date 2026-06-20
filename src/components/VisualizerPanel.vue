@@ -496,7 +496,9 @@ h4::before {
   transition: border-color 0.2s ease;
 }
 
-.search-input:focus {
+.search-input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
   border-color: var(--accent-primary, #c9984d);
 }
 
@@ -880,7 +882,7 @@ h4::before {
   border-color: rgba(1, 79, 153, 0.3);
 }
 
-[data-theme='light'] .search-input:focus {
+[data-theme='light'] .search-input:focus-visible {
   border-color: #014f99;
 }
 

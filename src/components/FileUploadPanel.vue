@@ -30,6 +30,9 @@
             locale === 'de' ? 'Dateien oder Ordner hierher ziehen' : 'Drag files or a folder here'
           }}
         </span>
+        <span class="upload-sub">
+          {{ locale === 'de' ? 'oder Ctrl+V zum Einfügen' : 'or Ctrl+V to paste' }}
+        </span>
       </div>
 
       <div class="supported-formats">
@@ -107,7 +110,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { usePlayerStore } from '../stores/playerStore.js'
 import { useToastStore } from '../stores/toastStore.js'
@@ -119,6 +122,25 @@ const toastStore = useToastStore()
 const fileInput = ref(null)
 const folderInput = ref(null)
 const isDragging = ref(false)
+
+function onPaste(event) {
+  const items = event.clipboardData?.items
+  if (!items) return
+  const audioFiles = []
+  for (const item of items) {
+    if (item.kind === 'file' && (item.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(item.type))) {
+      const file = item.getAsFile()
+      if (file) audioFiles.push(file)
+    }
+  }
+  if (audioFiles.length > 0) {
+    playerStore.addTracks(audioFiles)
+    toastStore.success(t('toast.tracksAdded').replace('{count}', audioFiles.length))
+  }
+}
+
+onMounted(() => document.addEventListener('paste', onPaste))
+onUnmounted(() => document.removeEventListener('paste', onPaste))
 
 function onSelectFiles(event) {
   const files = event.target.files

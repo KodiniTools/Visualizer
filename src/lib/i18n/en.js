@@ -552,6 +552,8 @@ export default {
     clickToSelect: 'Click to select',
     backToHome: 'Back to Home',
     deleteImage: 'Delete image',
+    mobileTabFoto: 'Photos',
+    mobileTabControls: 'Settings',
     deleteAllImages: 'Delete all',
     confirmDeleteAll: 'Remove all images from canvas?',
     imagePreview: 'Image Preview',

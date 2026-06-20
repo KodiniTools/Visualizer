@@ -1,35 +1,39 @@
 <template>
   <div class="canvas-images-bar">
     <span class="canvas-images-label">{{ t('app.imagesOnCanvas') }}:</span>
-    <div class="canvas-images-scroll">
-      <div
-        v-for="(imgData, index) in canvasImages"
-        :key="imgData.id"
-        class="canvas-thumb"
-        :class="{
-          selected: selectedCanvasImageId === imgData.id,
-          dragging: draggedImageIndex === index,
-          'drag-over': dragOverIndex === index && draggedImageIndex !== index,
-        }"
-        draggable="true"
-        @click="selectCanvasImage(imgData)"
-        @dblclick="openImagePreview(imgData, index)"
-        @dragstart="handleDragStart($event, index)"
-        @dragend="handleDragEnd"
-        @dragover.prevent="handleDragOver($event, index)"
-        @dragleave="handleDragLeave"
-        @drop.prevent="handleDrop($event, index)"
-        :title="`${t('common.layer')} ${index + 1} - ${t('app.dragToReorder')}`"
-      >
-        <img :src="imgData.imageObject.src" alt="Canvas Bild" draggable="false" />
-        <span class="canvas-thumb-layer">{{ index + 1 }}</span>
-        <button
-          class="canvas-thumb-delete"
-          @click.stop="deleteCanvasImage(imgData.id)"
-          :title="t('app.deleteImage')"
-        >
-          ×
-        </button>
+    <div class="canvas-images-scroll" ref="scrollRef" @scroll.passive="onScroll">
+      <div class="canvas-images-inner" :style="{ width: totalWidth + 'px' }">
+        <div class="canvas-images-window" :style="{ transform: `translateX(${offsetLeft}px)` }">
+          <div
+            v-for="{ imgData, globalIndex } in visibleItems"
+            :key="imgData.id"
+            class="canvas-thumb"
+            :class="{
+              selected: selectedCanvasImageId === imgData.id,
+              dragging: draggedImageIndex === globalIndex,
+              'drag-over': dragOverIndex === globalIndex && draggedImageIndex !== globalIndex,
+            }"
+            draggable="true"
+            @click="selectCanvasImage(imgData)"
+            @dblclick="openImagePreview(imgData, globalIndex)"
+            @dragstart="handleDragStart($event, globalIndex)"
+            @dragend="handleDragEnd"
+            @dragover.prevent="handleDragOver($event, globalIndex)"
+            @dragleave="handleDragLeave"
+            @drop.prevent="handleDrop($event, globalIndex)"
+            :title="`${t('common.layer')} ${globalIndex + 1} - ${t('app.dragToReorder')}`"
+          >
+            <img :src="imgData.imageObject.src" alt="Canvas Bild" draggable="false" />
+            <span class="canvas-thumb-layer">{{ globalIndex + 1 }}</span>
+            <button
+              class="canvas-thumb-delete"
+              @click.stop="deleteCanvasImage(imgData.id)"
+              :title="t('app.deleteImage')"
+            >
+              ×
+            </button>
+          </div>
+        </div>
       </div>
     </div>
     <button
@@ -44,7 +48,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+
+const props = defineProps({
   canvasImages: { type: Array, required: true },
   selectedCanvasImageId: { type: String, default: null },
   draggedImageIndex: { type: Number, default: null },
@@ -59,6 +65,59 @@ defineProps({
   handleDragOver: { type: Function, required: true },
   handleDragLeave: { type: Function, required: true },
   handleDrop: { type: Function, required: true },
+})
+
+// Virtual scrolling: 44px thumb + 8px gap = 52px per slot
+const ITEM_SLOT = 52
+const BUFFER = 4
+
+const scrollRef = ref(null)
+const scrollLeft = ref(0)
+const containerWidth = ref(600) // avoid empty render on first paint
+
+// Full virtual width: N items with N-1 gaps between them
+const totalWidth = computed(() => {
+  const n = props.canvasImages.length
+  return n > 0 ? n * ITEM_SLOT - 8 : 0
+})
+
+const visibleRange = computed(() => {
+  const start = Math.max(0, Math.floor(scrollLeft.value / ITEM_SLOT) - BUFFER)
+  const end = Math.min(
+    props.canvasImages.length - 1,
+    Math.ceil((scrollLeft.value + containerWidth.value) / ITEM_SLOT) + BUFFER,
+  )
+  return { start, end }
+})
+
+const visibleItems = computed(() => {
+  const { start, end } = visibleRange.value
+  return props.canvasImages.slice(start, end + 1).map((imgData, i) => ({
+    imgData,
+    globalIndex: start + i,
+  }))
+})
+
+// translateX so visible items land at their correct virtual positions
+const offsetLeft = computed(() => visibleRange.value.start * ITEM_SLOT)
+
+function onScroll(e) {
+  scrollLeft.value = e.target.scrollLeft
+}
+
+let resizeObserver = null
+
+onMounted(() => {
+  if (!scrollRef.value) return
+  containerWidth.value = scrollRef.value.clientWidth
+  resizeObserver = new ResizeObserver(([entry]) => {
+    containerWidth.value = entry.contentRect.width
+  })
+  resizeObserver.observe(scrollRef.value)
+})
+
+onUnmounted(() => {
+  resizeObserver?.disconnect()
 })
 </script>
 
@@ -86,12 +145,10 @@ defineProps({
 }
 
 .canvas-images-scroll {
-  display: flex;
-  gap: 8px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 4px 0;
   flex-grow: 1;
+  padding: 4px 0;
 }
 
 .canvas-images-scroll::-webkit-scrollbar {
@@ -107,6 +164,23 @@ defineProps({
 }
 .canvas-images-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--accent-primary, #c9984d);
+}
+
+/* Inner div carries the full virtual width to enable scrolling */
+.canvas-images-inner {
+  position: relative;
+  height: 44px;
+}
+
+/* Only visible items, translated to their correct scroll position */
+.canvas-images-window {
+  display: flex;
+  gap: 8px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 44px;
+  will-change: transform;
 }
 
 .canvas-thumb {
@@ -316,6 +390,12 @@ defineProps({
   }
   .canvas-thumb {
     width: 36px;
+    height: 36px;
+  }
+  .canvas-images-inner {
+    height: 36px;
+  }
+  .canvas-images-window {
     height: 36px;
   }
   .clear-all-text {

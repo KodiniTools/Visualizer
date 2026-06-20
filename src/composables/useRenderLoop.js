@@ -30,7 +30,9 @@ export function useRenderLoop({
   const lastCanvasWidth = ref(0)
   const lastCanvasHeight = ref(0)
 
-  let audioDataArray = null
+  let audioDataArray = null // frequency domain data, read once per frame
+  let timeDomainArray = null // time domain data, read lazily per frame
+  let timeDomainFresh = false // reset each draw() call
   let visualizerCacheCanvas = null
   let visualizerCacheCtx = null
   let layerCacheCanvases = null
@@ -232,7 +234,19 @@ export function useRenderLoop({
     return null
   }
 
+  function getTimeDomainData(analyser, bufferLength) {
+    if (!timeDomainArray || timeDomainArray.length !== bufferLength) {
+      timeDomainArray = new Uint8Array(bufferLength)
+    }
+    if (!timeDomainFresh) {
+      analyser.getByteTimeDomainData(timeDomainArray)
+      timeDomainFresh = true
+    }
+    return timeDomainArray
+  }
+
   function draw() {
+    timeDomainFresh = false // reset per-frame cache flag
     if (recorderStore.isRecording && document.hidden) {
       drawTimeoutId = setTimeout(draw, 16)
     } else {
@@ -328,11 +342,10 @@ export function useRenderLoop({
             layerCache.lastVisualizerId = layer.visualizerId
           }
 
-          if (visualizer.needsTimeData) {
-            activeAnalyser.getByteTimeDomainData(audioDataArray)
-          } else {
-            activeAnalyser.getByteFrequencyData(audioDataArray)
-          }
+          // Use cached frequency data; fetch time-domain data lazily (once per frame)
+          const layerAudioData = visualizer.needsTimeData
+            ? getTimeDomainData(activeAnalyser, bufferLength)
+            : audioDataArray
 
           layerCache.ctx.clearRect(0, 0, canvas.width, canvas.height)
           layerCache.ctx.save()
@@ -340,7 +353,7 @@ export function useRenderLoop({
           try {
             visualizer.draw(
               layerCache.ctx,
-              audioDataArray,
+              layerAudioData,
               bufferLength,
               canvas.width,
               canvas.height,
@@ -444,21 +457,18 @@ export function useRenderLoop({
           }
 
           const bufferLength = activeAnalyser.frequencyBinCount
-          if (!audioDataArray || audioDataArray.length !== bufferLength) {
-            audioDataArray = new Uint8Array(bufferLength)
-          }
 
-          if (visualizer.needsTimeData) {
-            activeAnalyser.getByteTimeDomainData(audioDataArray)
-          } else {
-            activeAnalyser.getByteFrequencyData(audioDataArray)
-          }
+          // audioDataArray already has fresh frequency data from the top of draw().
+          // For time-domain visualizers, fetch lazily into a separate buffer (once per frame).
+          const vizAudioData = visualizer.needsTimeData
+            ? getTimeDomainData(activeAnalyser, bufferLength)
+            : audioDataArray
 
           if (vizWorkerActive) {
             // Off-thread path: send audio data to worker, use previous frame's bitmap
             workerManager.renderVisualizerFrame({
               visualizerId,
-              audioData: audioDataArray,
+              audioData: vizAudioData,
               bufferLength,
               color: visualizerStore.visualizerColor,
               opacity: visualizerStore.visualizerOpacity,
@@ -514,7 +524,7 @@ export function useRenderLoop({
             try {
               visualizer.draw(
                 visualizerCacheCtx,
-                audioDataArray,
+                vizAudioData,
                 bufferLength,
                 canvas.width,
                 canvas.height,

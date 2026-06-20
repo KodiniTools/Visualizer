@@ -873,10 +873,13 @@ defineExpose({
   color: #f9f2d5;
 }
 
-.control-group select:hover,
-.control-group select:focus {
+.control-group select:hover {
   border-color: var(--accent-primary, #c9984d);
+}
+.control-group select:focus-visible {
   outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+  border-color: var(--accent-primary, #c9984d);
 }
 
 /* Range Slider Styling */
@@ -1065,8 +1068,9 @@ input[type='range']::-moz-range-thumb {
   font-family: 'Courier New', monospace;
 }
 
-.modern-color-text:focus {
+.modern-color-text:focus-visible {
   outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
   border-color: var(--image-section-accent, #6ea8fe);
 }
 
@@ -1332,8 +1336,10 @@ input[type='range']::-moz-range-thumb {
   color: #003971 !important;
 }
 
-[data-theme='light'] .control-group select:hover,
-[data-theme='light'] .control-group select:focus {
+[data-theme='light'] .control-group select:hover {
+  border-color: #014f99;
+}
+[data-theme='light'] .control-group select:focus-visible {
   border-color: #014f99;
 }
 

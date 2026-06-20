@@ -1625,9 +1625,10 @@ h3::before {
   color: var(--text-primary);
 }
 
-.marker-select:focus {
-  border-color: var(--accent-primary);
+.marker-select:focus-visible {
   outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+  border-color: var(--accent-primary);
 }
 
 .color-input-wrapper {
@@ -1671,9 +1672,10 @@ h3::before {
   color: var(--text-primary);
 }
 
-.marker-input:focus {
-  border-color: var(--accent-primary);
+.marker-input:focus-visible {
   outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+  border-color: var(--accent-primary);
 }
 
 /* Time Input */

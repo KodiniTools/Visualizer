@@ -710,8 +710,9 @@ defineExpose({
   border-color: rgba(139, 92, 246, 0.3);
 }
 
-.modern-select:focus {
+.modern-select:focus-visible {
   outline: none;
+  box-shadow: 0 0 0 3px rgb(139 92 246 / 35%);
   border-color: rgba(139, 92, 246, 0.5);
 }
 
@@ -912,8 +913,9 @@ defineExpose({
   border-color: rgba(139, 92, 246, 0.5);
 }
 
-.effect-source-select:focus {
+.effect-source-select:focus-visible {
   outline: none;
+  box-shadow: 0 0 0 3px rgb(139 92 246 / 35%);
   border-color: #8b5cf6;
 }
 
@@ -1103,7 +1105,7 @@ defineExpose({
   border-color: var(--accent-secondary);
 }
 
-[data-theme='light'] .modern-select:focus {
+[data-theme='light'] .modern-select:focus-visible {
   border-color: var(--accent-primary);
 }
 

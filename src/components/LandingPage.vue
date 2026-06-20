@@ -97,22 +97,12 @@
         <p class="section-subtitle">{{ t('video.subtitle') }}</p>
       </div>
       <div class="video-container">
-        <div class="video-placeholder">
-          <div class="video-placeholder-content">
-            <div class="play-button">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="48"
-                height="48"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-            </div>
-            <p class="video-placeholder-text">{{ t('video.placeholder') }}</p>
-          </div>
-        </div>
+        <img
+          src="/gallery/videos/podcast.gif"
+          alt="Visualizer Demo"
+          class="demo-gif"
+          loading="lazy"
+        />
       </div>
     </section>
 
@@ -734,6 +724,13 @@ function toggleFaq(index) {
 }
 
 /* Video Section */
+.demo-gif {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .video-section {
   padding: 100px 24px;
   max-width: 1000px;

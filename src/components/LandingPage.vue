@@ -31,7 +31,6 @@
     <!-- Hero Section -->
     <section class="hero">
       <div class="hero-content">
-        <div class="hero-badge">{{ t('hero.badge') }}</div>
         <h1 class="hero-title">
           {{ t('hero.title') }}
           <span class="gradient-text">{{ t('hero.titleHighlight') }}</span>

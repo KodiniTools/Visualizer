@@ -53,9 +53,9 @@
 
         <!-- Smoothing -->
         <div class="control-group">
-          <label
-            >{{ t('textManager.smoothing') }}: {{ selectedText.audioReactive.smoothing }}%</label
-          >
+          <label>
+            {{ t('textManager.smoothing') }}: {{ selectedText.audioReactive.smoothing }}%
+          </label>
           <input
             type="range"
             v-model.number="selectedText.audioReactive.smoothing"
@@ -64,9 +64,7 @@
             max="100"
             class="slider"
           />
-          <div class="hint-text">
-            {{ t('textManager.smoothingHint') }}
-          </div>
+          <div class="hint-text">{{ t('textManager.smoothingHint') }}</div>
         </div>
 
         <!-- ✨ Advanced Audio Settings -->
@@ -75,45 +73,25 @@
 
           <!-- Presets -->
           <div class="control-group">
-            <label>Presets:</label>
+            <label>{{ t('presets.title') }}:</label>
             <div class="preset-buttons">
               <button
-                @click="applyAudioPreset('punchy')"
+                v-for="preset in AUDIO_PRESETS"
+                :key="preset.id"
+                @click="applyAudioPreset(preset.id)"
                 class="btn-preset"
-                :title="t('textManager.presetPunchyTitle')"
+                :title="t(preset.titleKey)"
               >
-                ⚡ {{ t('textManager.presetPunchy') }}
-              </button>
-              <button
-                @click="applyAudioPreset('smooth')"
-                class="btn-preset"
-                :title="t('textManager.presetSmoothTitle')"
-              >
-                🌊 {{ t('textManager.presetSmooth') }}
-              </button>
-              <button
-                @click="applyAudioPreset('subtle')"
-                class="btn-preset"
-                :title="t('textManager.presetSubtleTitle')"
-              >
-                🎭 {{ t('textManager.presetSubtle') }}
-              </button>
-              <button
-                @click="applyAudioPreset('extreme')"
-                class="btn-preset"
-                :title="t('textManager.presetExtremeTitle')"
-              >
-                🔥 {{ t('textManager.presetExtreme') }}
+                {{ preset.icon }} {{ t(preset.labelKey) }}
               </button>
             </div>
           </div>
 
           <!-- Threshold -->
           <div class="control-group">
-            <label
-              >{{ t('textManager.threshold') }}:
-              {{ selectedText.audioReactive.threshold || 0 }}%</label
-            >
+            <label>
+              {{ t('textManager.threshold') }}: {{ selectedText.audioReactive.threshold || 0 }}%
+            </label>
             <input
               type="range"
               v-model.number="selectedText.audioReactive.threshold"
@@ -127,9 +105,9 @@
 
           <!-- Attack -->
           <div class="control-group">
-            <label
-              >{{ t('textManager.attack') }}: {{ selectedText.audioReactive.attack || 90 }}%</label
-            >
+            <label>
+              {{ t('textManager.attack') }}: {{ selectedText.audioReactive.attack || 90 }}%
+            </label>
             <input
               type="range"
               v-model.number="selectedText.audioReactive.attack"
@@ -143,10 +121,9 @@
 
           <!-- Release -->
           <div class="control-group">
-            <label
-              >{{ t('textManager.release') }}:
-              {{ selectedText.audioReactive.release || 50 }}%</label
-            >
+            <label>
+              {{ t('textManager.release') }}: {{ selectedText.audioReactive.release || 50 }}%
+            </label>
             <input
               type="range"
               v-model.number="selectedText.audioReactive.release"
@@ -168,213 +145,49 @@
 
         <h4>{{ t('textManager.selectEffects') }}</h4>
 
-        <!-- Effects List -->
+        <!-- Effects List (data-driven) -->
         <div class="effects-grid">
-          <!-- Hue (Color Rotation) -->
-          <div class="effect-item">
+          <div v-for="effect in EFFECTS" :key="effect.key" class="effect-item">
             <div class="effect-header">
               <label class="effect-checkbox">
                 <input
                   type="checkbox"
-                  v-model="selectedText.audioReactive.effects.hue.enabled"
+                  v-model="selectedText.audioReactive.effects[effect.key].enabled"
                   @change="updateText"
                 />
-                <span class="effect-icon">🎨</span> {{ t('textManager.colorRotation') }}
+                <span class="effect-icon">{{ effect.icon }}</span>
+                {{ t(effect.labelKey) }}
               </label>
+              <span v-if="effect.hintKey" class="effect-hint" :title="t(effect.hintKey)">ℹ️</span>
             </div>
-            <div v-if="selectedText.audioReactive.effects.hue.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.hue.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.hue.intensity }}%</span
-              >
-            </div>
-          </div>
 
-          <!-- Brightness -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.brightness.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">☀️</span> {{ t('textManager.brightness') }}
-              </label>
-            </div>
+            <!-- Standard intensity slider -->
             <div
-              v-if="selectedText.audioReactive.effects.brightness.enabled"
+              v-if="
+                selectedText.audioReactive.effects[effect.key].enabled && effect.key !== 'opacity'
+              "
               class="effect-intensity"
             >
               <input
                 type="range"
-                v-model.number="selectedText.audioReactive.effects.brightness.intensity"
+                v-model.number="selectedText.audioReactive.effects[effect.key].intensity"
                 @input="updateText"
-                min="10"
-                max="100"
+                :min="effect.min ?? 10"
+                :max="effect.max ?? 100"
                 class="slider-small"
               />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.brightness.intensity }}%</span
-              >
+              <span class="intensity-value">
+                {{ selectedText.audioReactive.effects[effect.key].intensity }}%
+              </span>
             </div>
-          </div>
 
-          <!-- Scale (Pulsate) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.scale.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">📐</span> {{ t('textManager.pulsate') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.scale.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.scale.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.scale.intensity }}%</span
-              >
-            </div>
-          </div>
-
-          <!-- Glow -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.glow.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">✨</span> {{ t('textManager.glow') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.glow.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.glow.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.glow.intensity }}%</span
-              >
-            </div>
-          </div>
-
-          <!-- Shake -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.shake.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🫨</span> {{ t('textManager.shake') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.shake.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.shake.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.shake.intensity }}%</span
-              >
-            </div>
-          </div>
-
-          <!-- Bounce -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.bounce.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">⬆️</span> {{ t('textManager.bounce') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.bounce.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.bounce.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.bounce.intensity }}%</span
-              >
-            </div>
-          </div>
-
-          <!-- Swing -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.swing.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">➡️</span> {{ t('textManager.swing') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.swing.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.swing.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.swing.intensity }}%</span
-              >
-            </div>
-          </div>
-
-          <!-- Opacity (Blink) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.opacity.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">👁️</span> {{ t('textManager.blink') }}
-              </label>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.opacity.enabled" class="effect-details">
+            <!-- Opacity: extra controls (minimum + ease curve) -->
+            <div
+              v-if="
+                selectedText.audioReactive.effects[effect.key].enabled && effect.key === 'opacity'
+              "
+              class="effect-details"
+            >
               <div class="effect-intensity">
                 <span class="effect-label">{{ t('textManager.intensity') }}:</span>
                 <input
@@ -385,9 +198,9 @@
                   max="100"
                   class="slider-small"
                 />
-                <span class="intensity-value"
-                  >{{ selectedText.audioReactive.effects.opacity.intensity }}%</span
-                >
+                <span class="intensity-value">
+                  {{ selectedText.audioReactive.effects.opacity.intensity }}%
+                </span>
               </div>
               <div class="effect-intensity">
                 <span class="effect-label">{{ t('textManager.minimum') }}:</span>
@@ -399,9 +212,9 @@
                   max="90"
                   class="slider-small"
                 />
-                <span class="intensity-value"
-                  >{{ selectedText.audioReactive.effects.opacity.minimum || 0 }}%</span
-                >
+                <span class="intensity-value">
+                  {{ selectedText.audioReactive.effects.opacity.minimum || 0 }}%
+                </span>
               </div>
               <label class="effect-checkbox-small">
                 <input
@@ -413,297 +226,28 @@
               </label>
             </div>
           </div>
-
-          <!-- Letter Spacing -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.letterSpacing.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">↔️</span> {{ t('textManager.spacing') }}
-              </label>
-            </div>
-            <div
-              v-if="selectedText.audioReactive.effects.letterSpacing.enabled"
-              class="effect-intensity"
-            >
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.letterSpacing.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.letterSpacing.intensity }}%</span
-              >
-            </div>
-          </div>
-
-          <!-- Stroke Width (Outline) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.strokeWidth.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🖼️</span> {{ t('textManager.outline') }}
-              </label>
-            </div>
-            <div
-              v-if="selectedText.audioReactive.effects.strokeWidth.enabled"
-              class="effect-intensity"
-            >
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.strokeWidth.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.strokeWidth.intensity }}%</span
-              >
-            </div>
-          </div>
-
-          <!-- ✨ NEU: Skew (Verzerrung) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.skew.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">📐</span> {{ t('textManager.skew') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.skewHint')">ℹ️</span>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.skew.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.skew.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.skew.intensity }}%</span
-              >
-            </div>
-          </div>
-
-          <!-- ✨ NEU: Strobe (Blitz-Effekt) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.strobe.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">⚡</span> {{ t('textManager.strobe') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.strobeHint')">ℹ️</span>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.strobe.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.strobe.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.strobe.intensity }}%</span
-              >
-            </div>
-          </div>
-
-          <!-- ✨ NEU: RGB-Glitch (Chromatische Aberration) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.rgbGlitch.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🌈</span> {{ t('textManager.rgbGlitch') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.rgbGlitchHint')">ℹ️</span>
-            </div>
-            <div
-              v-if="selectedText.audioReactive.effects.rgbGlitch.enabled"
-              class="effect-intensity"
-            >
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.rgbGlitch.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.rgbGlitch.intensity }}%</span
-              >
-            </div>
-          </div>
-
-          <!-- ✨ NEU: 3D-Perspektive -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.perspective3d.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🎲</span> {{ t('textManager.perspective3d') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.perspective3dHint')">ℹ️</span>
-            </div>
-            <div
-              v-if="selectedText.audioReactive.effects.perspective3d.enabled"
-              class="effect-intensity"
-            >
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.perspective3d.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.perspective3d.intensity }}%</span
-              >
-            </div>
-          </div>
-
-          <!-- ✨ NEU: Welle (Wave) -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.wave.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🌊</span> {{ t('textManager.wave') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.waveHint')">ℹ️</span>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.wave.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.wave.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.wave.intensity }}%</span
-              >
-            </div>
-          </div>
-
-          <!-- ✨ NEU: Rotation -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.rotation.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🔄</span> {{ t('textManager.rotation') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.rotationHint')">ℹ️</span>
-            </div>
-            <div
-              v-if="selectedText.audioReactive.effects.rotation.enabled"
-              class="effect-intensity"
-            >
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.rotation.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.rotation.intensity }}%</span
-              >
-            </div>
-          </div>
-
-          <!-- ✨ NEU: Elastic -->
-          <div class="effect-item">
-            <div class="effect-header">
-              <label class="effect-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedText.audioReactive.effects.elastic.enabled"
-                  @change="updateText"
-                />
-                <span class="effect-icon">🎈</span> {{ t('textManager.elastic') }}
-              </label>
-              <span class="effect-hint" :title="t('textManager.elasticHint')">ℹ️</span>
-            </div>
-            <div v-if="selectedText.audioReactive.effects.elastic.enabled" class="effect-intensity">
-              <input
-                type="range"
-                v-model.number="selectedText.audioReactive.effects.elastic.intensity"
-                @input="updateText"
-                min="10"
-                max="100"
-                class="slider-small"
-              />
-              <span class="intensity-value"
-                >{{ selectedText.audioReactive.effects.elastic.intensity }}%</span
-              >
-            </div>
-          </div>
         </div>
 
         <!-- Reset All Effects Button -->
         <button @click="resetAllAudioEffects" class="btn-reset-all-effects">
           <span class="reset-icon">🔄</span>
-          {{ t('textManager.resetAllEffects') || 'Alle Effekte zurücksetzen' }}
+          {{ t('textManager.resetAllEffects') }}
         </button>
 
         <!-- Save/Load Audio Effects Preset -->
         <div class="audio-preset-actions">
           <button @click="saveAudioEffectsPreset" class="btn-save-preset">
             <span class="preset-icon">💾</span>
-            {{ t('textManager.saveEffectsPreset') || 'Effekte speichern' }}
+            {{ t('textManager.saveEffectsPreset') }}
           </button>
           <button
             @click="loadAudioEffectsPreset"
             class="btn-load-preset"
             :disabled="!hasAudioEffectsPreset"
-            :title="
-              hasAudioEffectsPreset
-                ? ''
-                : t('textManager.noPresetSaved') || 'Kein Preset gespeichert'
-            "
+            :title="hasAudioEffectsPreset ? '' : t('textManager.noPresetSaved')"
           >
             <span class="preset-icon">📂</span>
-            {{ t('textManager.loadEffectsPreset') || 'Effekte laden' }}
+            {{ t('textManager.loadEffectsPreset') }}
           </button>
         </div>
 
@@ -732,7 +276,6 @@ const { t } = useI18n()
 const toastStore = useToastStore()
 const canvasManager = inject('canvasManager')
 
-// We pass a computed ref-like wrapper so composable can access the prop
 const selectedTextRef = { value: props.selectedText }
 
 const {
@@ -746,10 +289,77 @@ const {
 } = useAudioReactiveText(selectedTextRef, canvasManager, toastStore)
 
 function updateText() {
-  if (canvasManager.value && canvasManager.value.redrawCallback) {
+  if (canvasManager.value?.redrawCallback) {
     canvasManager.value.redrawCallback()
   }
 }
+
+const AUDIO_PRESETS = [
+  {
+    id: 'punchy',
+    icon: '⚡',
+    labelKey: 'textManager.presetPunchy',
+    titleKey: 'textManager.presetPunchyTitle',
+  },
+  {
+    id: 'smooth',
+    icon: '🌊',
+    labelKey: 'textManager.presetSmooth',
+    titleKey: 'textManager.presetSmoothTitle',
+  },
+  {
+    id: 'subtle',
+    icon: '🎭',
+    labelKey: 'textManager.presetSubtle',
+    titleKey: 'textManager.presetSubtleTitle',
+  },
+  {
+    id: 'extreme',
+    icon: '🔥',
+    labelKey: 'textManager.presetExtreme',
+    titleKey: 'textManager.presetExtremeTitle',
+  },
+]
+
+const EFFECTS = [
+  { key: 'hue', icon: '🎨', labelKey: 'textManager.colorRotation' },
+  { key: 'brightness', icon: '☀️', labelKey: 'textManager.brightness' },
+  { key: 'scale', icon: '📐', labelKey: 'textManager.pulsate' },
+  { key: 'glow', icon: '✨', labelKey: 'textManager.glow' },
+  { key: 'shake', icon: '🫨', labelKey: 'textManager.shake' },
+  { key: 'bounce', icon: '⬆️', labelKey: 'textManager.bounce' },
+  { key: 'swing', icon: '➡️', labelKey: 'textManager.swing' },
+  { key: 'opacity', icon: '👁️', labelKey: 'textManager.blink' },
+  { key: 'letterSpacing', icon: '↔️', labelKey: 'textManager.spacing' },
+  { key: 'strokeWidth', icon: '🖼️', labelKey: 'textManager.outline' },
+  { key: 'skew', icon: '📐', labelKey: 'textManager.skew', hintKey: 'textManager.skewHint' },
+  { key: 'strobe', icon: '⚡', labelKey: 'textManager.strobe', hintKey: 'textManager.strobeHint' },
+  {
+    key: 'rgbGlitch',
+    icon: '🌈',
+    labelKey: 'textManager.rgbGlitch',
+    hintKey: 'textManager.rgbGlitchHint',
+  },
+  {
+    key: 'perspective3d',
+    icon: '🎲',
+    labelKey: 'textManager.perspective3d',
+    hintKey: 'textManager.perspective3dHint',
+  },
+  { key: 'wave', icon: '🌊', labelKey: 'textManager.wave', hintKey: 'textManager.waveHint' },
+  {
+    key: 'rotation',
+    icon: '🔄',
+    labelKey: 'textManager.rotation',
+    hintKey: 'textManager.rotationHint',
+  },
+  {
+    key: 'elastic',
+    icon: '🎈',
+    labelKey: 'textManager.elastic',
+    hintKey: 'textManager.elasticHint',
+  },
+]
 </script>
 
 <style scoped>

@@ -301,19 +301,14 @@ export class FotoManager {
 
     const settings = imageObject.fotoSettings
 
-    // Erstelle CSS-Filter-String
-    const filters = [
-      `brightness(${settings.brightness}%)`,
-      `contrast(${settings.contrast}%)`,
-      `saturate(${settings.saturation}%)`,
-      `blur(${settings.blur}px)`,
-      `hue-rotate(${settings.hueRotate}deg)`,
-      `grayscale(${settings.grayscale}%)`,
-      `sepia(${settings.sepia}%)`,
-      `invert(${settings.invert}%)`,
-    ]
+    // Memoize CSS filter string — rebuild only when values change
+    const filterKey = `${settings.brightness},${settings.contrast},${settings.saturation},${settings.blur},${settings.hueRotate},${settings.grayscale},${settings.sepia},${settings.invert}`
+    if (settings._cachedFilterKey !== filterKey) {
+      settings._cachedFilterString = `brightness(${settings.brightness}%) contrast(${settings.contrast}%) saturate(${settings.saturation}%) blur(${settings.blur}px) hue-rotate(${settings.hueRotate}deg) grayscale(${settings.grayscale}%) sepia(${settings.sepia}%) invert(${settings.invert}%)`
+      settings._cachedFilterKey = filterKey
+    }
 
-    ctx.filter = filters.join(' ')
+    ctx.filter = settings._cachedFilterString
     ctx.globalAlpha = settings.opacity / 100
 
     // ✨ SCHATTEN anwenden

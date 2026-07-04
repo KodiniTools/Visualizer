@@ -139,6 +139,23 @@
         >
           <span>{{ sharedBanner.message }}</span>
         </div>
+        <div v-if="handoffPayload" class="handoff-banner">
+          <div class="handoff-banner__preview">
+            <img :src="handoffPayload.images[0].dataUrl" alt="" />
+          </div>
+          <div class="handoff-banner__body">
+            <strong>{{ t('handoff.title').replace('{source}', handoffPayload.source) }}</strong>
+            <span>{{ t('handoff.text') }}</span>
+          </div>
+          <div class="handoff-banner__actions">
+            <button class="handoff-banner__accept" @click="acceptHandoff">
+              {{ t('handoff.accept') }}
+            </button>
+            <button class="handoff-banner__dismiss" @click="rejectHandoff">
+              {{ t('handoff.dismiss') }}
+            </button>
+          </div>
+        </div>
         <FileUploadPanel />
         <PlayerPanel />
         <RecorderPanel />
@@ -208,6 +225,12 @@ import { GridManager } from './lib/gridManager.js'
 import { MultiImageManager } from './lib/multiImageManager.js'
 import { VideoManager } from './lib/videoManager.js'
 import { KeyboardShortcuts } from './lib/keyboardShortcuts.js'
+import {
+  checkHandoff,
+  consumeHandoff,
+  dismissHandoff,
+  handoffImageToElement,
+} from './lib/core/handoff.js'
 
 const { t } = useI18n()
 const playerStore = usePlayerStore()
@@ -227,6 +250,10 @@ const { start: startCapture, stop: stopCapture } = useFrameCapture()
 
 const sharedBanner = ref(null)
 let sharedFilesHandled = false
+
+// ── Handoff (Bild-Übernahme aus anderen Kodini-Tools, z. B. Bildkonverter) ──────
+const handoffPayload = ref(null)
+let handoffHandled = false
 
 const audioRef = ref(null)
 const canvasRef = ref(null)
@@ -539,8 +566,50 @@ async function loadSharedFiles() {
   }, 5000)
 }
 
+// ── Handoff: eingehendes Bild aus einem anderen Kodini-Tool ─────────────────────
+function checkForHandoff() {
+  if (handoffHandled) return
+  handoffHandled = true
+  handoffPayload.value = checkHandoff()
+}
+
+async function acceptHandoff() {
+  const images = consumeHandoff()
+  handoffPayload.value = null
+  if (!images || images.length === 0) return
+
+  const manager = canvasManagerInstance.value
+  if (!manager) {
+    sharedBanner.value = { type: 'error', message: t('handoff.error') }
+    setTimeout(() => {
+      sharedBanner.value = null
+    }, 5000)
+    return
+  }
+
+  try {
+    // Der Visualizer nutzt ein einzelnes Hintergrundbild — das erste übernehmen.
+    const img = await handoffImageToElement(images[0])
+    manager.setBackground(img)
+    sharedBanner.value = { type: 'success', message: t('handoff.success') }
+  } catch (error) {
+    console.error('[Handoff] Bild-Import fehlgeschlagen:', error)
+    sharedBanner.value = { type: 'error', message: t('handoff.error') }
+  }
+
+  setTimeout(() => {
+    sharedBanner.value = null
+  }, 5000)
+}
+
+function rejectHandoff() {
+  dismissHandoff()
+  handoffPayload.value = null
+}
+
 router.isReady().then(() => {
   if (route.query.source === 'audiokonverter') loadSharedFiles()
+  checkForHandoff()
 })
 
 watch(
@@ -884,6 +953,85 @@ canvas {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.handoff-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(201, 152, 77, 0.18), rgba(1, 79, 153, 0.16));
+  border: 1px solid rgba(201, 152, 77, 0.45);
+  animation: slideIn 0.3s ease-out;
+}
+
+.handoff-banner__preview {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.handoff-banner__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.handoff-banner__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.handoff-banner__body strong {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-primary, #fff);
+}
+.handoff-banner__body span {
+  font-size: 0.66rem;
+  opacity: 0.75;
+  color: var(--text-primary, #fff);
+}
+
+.handoff-banner__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.handoff-banner__accept,
+.handoff-banner__dismiss {
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.handoff-banner__accept {
+  background: var(--accent-primary, #c9984d);
+  color: #1a1a1a;
+}
+.handoff-banner__accept:hover {
+  filter: brightness(1.08);
+}
+.handoff-banner__dismiss {
+  background: transparent;
+  color: var(--text-primary, #fff);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  opacity: 0.8;
+}
+.handoff-banner__dismiss:hover {
+  opacity: 1;
 }
 
 .shared-banner-success {

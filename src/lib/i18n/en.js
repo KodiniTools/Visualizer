@@ -1397,4 +1397,14 @@ export default {
     bgLabel: 'Background',
     wsBgLabel: 'Workspace Background',
   },
+
+  // ========== HANDOFF (image handed off from other Kodini tools) ==========
+  handoff: {
+    title: 'Import image from {source}?',
+    text: 'Use it as a background in the Visualizer.',
+    accept: 'Set as background',
+    dismiss: 'Dismiss',
+    success: 'Image set as background',
+    error: 'Could not import the image',
+  },
 }

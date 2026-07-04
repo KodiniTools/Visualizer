@@ -225,12 +225,8 @@ import { GridManager } from './lib/gridManager.js'
 import { MultiImageManager } from './lib/multiImageManager.js'
 import { VideoManager } from './lib/videoManager.js'
 import { KeyboardShortcuts } from './lib/keyboardShortcuts.js'
-import {
-  checkHandoff,
-  consumeHandoff,
-  dismissHandoff,
-  handoffImageToElement,
-} from './lib/core/handoff.js'
+import { checkHandoff, consumeHandoff, dismissHandoff } from './lib/core/handoff.js'
+import { useImageGallery } from './composables/useImageGallery.js'
 
 const { t } = useI18n()
 const playerStore = usePlayerStore()
@@ -252,6 +248,9 @@ const sharedBanner = ref(null)
 let sharedFilesHandled = false
 
 // ── Handoff (Bild-Übernahme aus anderen Kodini-Tools, z. B. Bildkonverter) ──────
+// Dieselbe (geteilte) Galerie wie im FotoPanel – übernommene Bilder landen dort
+// wie normal hochgeladene Bilder.
+const { addImagesFromData } = useImageGallery()
 const handoffPayload = ref(null)
 let handoffHandled = false
 
@@ -578,20 +577,17 @@ async function acceptHandoff() {
   handoffPayload.value = null
   if (!images || images.length === 0) return
 
-  const manager = canvasManagerInstance.value
-  if (!manager) {
-    sharedBanner.value = { type: 'error', message: t('handoff.error') }
-    setTimeout(() => {
-      sharedBanner.value = null
-    }, 5000)
-    return
-  }
-
   try {
-    // Der Visualizer nutzt ein einzelnes Hintergrundbild — das erste übernehmen.
-    const img = await handoffImageToElement(images[0])
-    manager.setBackground(img)
-    sharedBanner.value = { type: 'success', message: t('handoff.success') }
+    // Bild(er) wie normal hochgeladene Bilder in die Galerie übernehmen.
+    // Der Nutzer entscheidet danach selbst, wie sie verwendet werden.
+    const added = await addImagesFromData(images)
+    if (added > 0) {
+      // Auf Mobilgeräten das Foto-/Galerie-Panel sichtbar machen.
+      mobilePanel.value = 'left'
+      sharedBanner.value = { type: 'success', message: t('handoff.success') }
+    } else {
+      sharedBanner.value = { type: 'error', message: t('handoff.error') }
+    }
   } catch (error) {
     console.error('[Handoff] Bild-Import fehlgeschlagen:', error)
     sharedBanner.value = { type: 'error', message: t('handoff.error') }
@@ -962,8 +958,10 @@ canvas {
   padding: 10px 12px;
   margin-bottom: 10px;
   border-radius: 10px;
-  background: linear-gradient(135deg, rgba(201, 152, 77, 0.18), rgba(1, 79, 153, 0.16));
-  border: 1px solid rgba(201, 152, 77, 0.45);
+  /* Dezenter Akzent-Tint auf Karten-Hintergrund – funktioniert in Hell & Dunkel */
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--card-bg));
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  box-shadow: var(--shadow-sm);
   animation: slideIn 0.3s ease-out;
 }
 
@@ -973,7 +971,7 @@ canvas {
   border-radius: 8px;
   overflow: hidden;
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--border-color);
 }
 .handoff-banner__preview img {
   width: 100%;
@@ -992,12 +990,11 @@ canvas {
 .handoff-banner__body strong {
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--text-primary, #fff);
+  color: var(--text-primary);
 }
 .handoff-banner__body span {
   font-size: 0.66rem;
-  opacity: 0.75;
-  color: var(--text-primary, #fff);
+  color: var(--text-muted);
 }
 
 .handoff-banner__actions {
@@ -1008,30 +1005,34 @@ canvas {
 }
 .handoff-banner__accept,
 .handoff-banner__dismiss {
-  border: none;
+  border: 1px solid transparent;
   border-radius: 6px;
-  padding: 5px 10px;
+  padding: 6px 10px;
   font-size: 0.66rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
 }
+/* Primär: Akzentfläche mit garantiert kontrastierendem Akzent-Text
+   (dunkel auf Gold im Dark-Mode, hell auf Blau im Light-Mode) */
 .handoff-banner__accept {
-  background: var(--accent-primary, #c9984d);
-  color: #1a1a1a;
+  background: var(--accent-primary);
+  color: var(--accent-text);
 }
 .handoff-banner__accept:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.06);
 }
+/* Sekundär: Umriss mit primärer Theme-Textfarbe für hohen Kontrast in beiden Modi */
 .handoff-banner__dismiss {
   background: transparent;
-  color: var(--text-primary, #fff);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  opacity: 0.8;
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--text-primary) 35%, transparent);
 }
 .handoff-banner__dismiss:hover {
-  opacity: 1;
+  background: var(--btn-hover);
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--accent-primary) 45%, transparent);
 }
 
 .shared-banner-success {

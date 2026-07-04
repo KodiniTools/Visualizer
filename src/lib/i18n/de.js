@@ -1400,10 +1400,10 @@ export default {
   // ========== HANDOFF (Bild-Übernahme aus anderen Kodini-Tools) ==========
   handoff: {
     title: 'Bild aus {source} übernehmen?',
-    text: 'Als Hintergrund im Visualizer verwenden.',
-    accept: 'Als Hintergrund setzen',
+    text: 'Wird zu deiner Bildergalerie hinzugefügt – du entscheidest dann selbst, wie du es verwendest.',
+    accept: 'Zur Galerie hinzufügen',
     dismiss: 'Verwerfen',
-    success: 'Bild als Hintergrund gesetzt',
+    success: 'Bild zur Galerie hinzugefügt',
     error: 'Bild konnte nicht übernommen werden',
   },
 }

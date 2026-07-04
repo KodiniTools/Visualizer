@@ -1401,10 +1401,10 @@ export default {
   // ========== HANDOFF (image handed off from other Kodini tools) ==========
   handoff: {
     title: 'Import image from {source}?',
-    text: 'Use it as a background in the Visualizer.',
-    accept: 'Set as background',
+    text: 'It will be added to your image gallery — you decide how to use it.',
+    accept: 'Add to gallery',
     dismiss: 'Dismiss',
-    success: 'Image set as background',
+    success: 'Image added to gallery',
     error: 'Could not import the image',
   },
 }

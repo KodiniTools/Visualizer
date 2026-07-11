@@ -333,7 +333,11 @@ const seekToPosition = (event) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
+  /* Hold a fixed comfortable width instead of stretching across the whole
+     screen. Grow is 0 so the space it no longer eats is absorbed by the
+     action cluster's auto margin (Rec etc. get pushed to the right edge);
+     shrink is 1 so it still condenses on narrow viewports. */
+  flex: 0 1 520px;
   min-width: 120px;
 }
 .time-display {
@@ -422,6 +426,9 @@ const seekToPosition = (event) => {
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
+  /* Pin the cluster to the right edge; absorbs the space freed by the capped
+     progress bar. */
+  margin-left: auto;
 }
 
 .spb-icon-btn {
@@ -508,11 +515,30 @@ const seekToPosition = (event) => {
 /* Light theme */
 [data-theme='light'] .spb-bar {
   background-color: #ffffff;
-  border-top-color: rgba(1, 79, 153, 0.15);
+  border-top-color: rgba(1, 79, 153, 0.18);
 }
 [data-theme='light'] .spb-ctrl,
 [data-theme='light'] .spb-icon-btn {
-  background-color: #f3f6fa;
+  background-color: #eef2f8;
+  /* Stronger, clearly visible outline + dark icon for contrast on white */
+  border-color: rgba(1, 79, 153, 0.4);
+  color: #003971;
+}
+[data-theme='light'] .spb-ctrl:hover:not(:disabled),
+[data-theme='light'] .spb-icon-btn:hover {
+  background-color: #dfe8f4;
+  border-color: var(--accent-primary, #014f99);
+}
+/* Keep the main play/pause button filled and prominent (the light .spb-ctrl
+   rule above has the same specificity and would otherwise wash it out). */
+[data-theme='light'] .spb-ctrl-main {
+  background-color: var(--accent-primary, #014f99);
+  border-color: var(--accent-primary, #014f99);
+  color: #ffffff;
+}
+[data-theme='light'] .spb-ctrl-main:hover:not(:disabled) {
+  background-color: #013a73;
+  border-color: #013a73;
 }
 
 /* Responsive */
@@ -532,6 +558,7 @@ const seekToPosition = (event) => {
   }
   .spb-progress {
     order: 3;
+    /* Full row width on small screens */
     flex-basis: 100%;
   }
   .spb-transport {

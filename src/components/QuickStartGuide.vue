@@ -550,7 +550,8 @@ defineExpose({ show, hide, toggleGuide })
 /* Floating Help Button */
 .help-button-container {
   position: fixed;
-  bottom: 24px;
+  /* Sit above the sticky player bar so it never overlaps its controls */
+  bottom: calc(24px + var(--sticky-player-bar-height, 58px));
   right: 24px;
   z-index: 9998;
 }
@@ -606,10 +607,10 @@ defineExpose({ show, hide, toggleGuide })
 /* Quick Start Panel */
 .quick-start-panel {
   position: fixed;
-  bottom: 90px;
+  bottom: calc(90px + var(--sticky-player-bar-height, 58px));
   right: 24px;
   width: 380px;
-  max-height: calc(100vh - 120px);
+  max-height: calc(100vh - 120px - var(--sticky-player-bar-height, 58px));
   background: linear-gradient(
     145deg,
     var(--primary-bg, #07111f) 0%,
@@ -998,12 +999,12 @@ defineExpose({ show, hide, toggleGuide })
     right: 10px;
     left: 10px;
     width: auto;
-    bottom: 78px;
+    bottom: calc(78px + var(--sticky-player-bar-height-mobile, 150px));
   }
 
   .help-button-container {
     right: 14px;
-    bottom: 14px;
+    bottom: calc(14px + var(--sticky-player-bar-height-mobile, 150px));
   }
 
   .shortcuts-grid {

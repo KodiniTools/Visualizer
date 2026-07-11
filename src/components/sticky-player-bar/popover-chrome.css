@@ -1,0 +1,132 @@
+/* Shared chrome for every sticky-player-bar popover (container, header, close
+   button, empty hint, section label, scrollbar, light theme + responsive).
+   Imported scoped into each popover component. */
+.spb-popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 12px;
+  width: 340px;
+  max-width: calc(100vw - 24px);
+  max-height: 60vh;
+  overflow-y: auto;
+  background-color: var(--card-bg, #142640);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: popIn 0.15s ease-out;
+}
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.spb-popover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.spb-popover-close {
+  background-color: transparent;
+  border: none;
+  color: var(--text-muted, #7a8da0);
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+.spb-popover-close:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+.spb-popover-close svg {
+  width: 15px;
+  height: 15px;
+}
+.spb-empty-hint {
+  font-size: 0.65rem;
+  color: var(--text-muted, #7a8da0);
+  font-style: italic;
+  text-align: center;
+  margin: 4px 0;
+}
+
+.section-label {
+  font-size: 0.6rem;
+  color: var(--text-muted, #7a8da0);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Header control cluster (shared by markers + playlist popovers) */
+.marker-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.btn-clear-markers {
+  background-color: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+.btn-clear-markers:hover {
+  background-color: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
+}
+.btn-clear-markers svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Scrollbar */
+.spb-popover::-webkit-scrollbar {
+  width: 6px;
+}
+.spb-popover::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+/* Light theme */
+[data-theme='light'] .spb-popover {
+  background-color: #ffffff;
+  border-color: rgba(1, 79, 153, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .spb-popover {
+    right: 50%;
+    transform: translateX(50%);
+    width: calc(100vw - 16px);
+  }
+  @keyframes popIn {
+    from {
+      opacity: 0;
+      transform: translateX(50%) translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(50%) translateY(0);
+    }
+  }
+}

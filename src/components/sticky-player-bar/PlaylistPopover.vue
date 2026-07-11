@@ -1,5 +1,5 @@
 <template>
-  <div class="spb-popover spb-popover-playlist">
+  <div v-popover-drag class="spb-popover spb-popover-playlist">
     <div class="spb-popover-header">
       <span class="section-label">{{ t('player.playlist') }}</span>
       <div class="marker-controls">
@@ -66,6 +66,7 @@
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { usePlayerStore } from '../../stores/playerStore.js'
+import { vPopoverDrag } from '../../directives/popoverDrag.js'
 
 const { t } = useI18n()
 const playerStore = usePlayerStore()

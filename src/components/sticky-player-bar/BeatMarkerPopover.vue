@@ -1,5 +1,5 @@
 <template>
-  <div class="spb-popover spb-popover-markers">
+  <div v-popover-drag class="spb-popover spb-popover-markers">
     <div class="spb-popover-header">
       <span class="section-label"
         >{{ t('player.beatMarkers') }} ({{ beatMarkerStore.markerCount }})</span
@@ -172,6 +172,7 @@ import { usePlayerStore } from '../../stores/playerStore.js'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
 import { useVisualizerStore } from '../../stores/visualizerStore.js'
 import { formatTime } from '../../utils/formatTime.js'
+import { vPopoverDrag } from '../../directives/popoverDrag.js'
 
 const { t, locale } = useI18n()
 const playerStore = usePlayerStore()

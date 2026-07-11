@@ -628,6 +628,14 @@ export default {
     editMarker: 'Edit marker',
     editMarkerTitle: 'Edit Marker',
     addMarkerTitle: 'New Marker',
+    // Sticky player bar
+    noTrackLoaded: 'No track loaded',
+    openPlaylist: 'Playlist',
+    openMarkers: 'Beat markers',
+    openAudioSource: 'Audio source',
+    openVolume: 'Volume & EQ',
+    openRecorder: 'Recording & export',
+    recording: 'Recording',
   },
 
   // ========== RECORDER PANEL ==========

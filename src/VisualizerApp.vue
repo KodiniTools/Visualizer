@@ -157,8 +157,6 @@
           </div>
         </div>
         <FileUploadPanel />
-        <PlayerPanel />
-        <RecorderPanel />
         <ScreenshotPanel />
         <PresetPanel />
         <VisualizerPanel />
@@ -168,6 +166,8 @@
     </div>
 
     <audio ref="audioRef" crossOrigin="anonymous" style="display: none"></audio>
+
+    <StickyPlayerBar />
 
     <QuickStartGuide ref="quickStartGuideRef" />
     <ToastContainer />
@@ -199,8 +199,7 @@ import { useAudioEngine } from './composables/useAudioEngine.js'
 import { useRenderLoop } from './composables/useRenderLoop.js'
 
 import FileUploadPanel from './components/FileUploadPanel.vue'
-import PlayerPanel from './components/PlayerPanel.vue'
-import RecorderPanel from './components/RecorderPanel.vue'
+import StickyPlayerBar from './components/StickyPlayerBar.vue'
 import ScreenshotPanel from './components/ScreenshotPanel.vue'
 import FotoPanel from './components/FotoPanel.vue'
 import VideoPanel from './components/VideoPanel.vue'
@@ -808,6 +807,10 @@ onUnmounted(() => {
 *::after {
   box-sizing: border-box;
 }
+:root {
+  --sticky-player-bar-height: 58px;
+  --sticky-player-bar-height-mobile: 150px;
+}
 html,
 body {
   margin: 0;
@@ -830,6 +833,14 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  /* Reserve space for the fixed sticky player bar at the bottom */
+  padding-bottom: var(--sticky-player-bar-height, 58px);
+}
+
+@media (max-width: 768px) {
+  #app-container {
+    padding-bottom: var(--sticky-player-bar-height-mobile, 150px);
+  }
 }
 
 .layout-grid {

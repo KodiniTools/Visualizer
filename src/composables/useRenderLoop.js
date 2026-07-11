@@ -203,6 +203,40 @@ export function useRenderLoop({
       }
     }
 
+    // Off-thread (OffscreenCanvas worker) path: the single-layer visualizer is
+    // rendered in a worker and its latest frame lives in vizWorkerBitmap, not in
+    // visualizerCacheCanvas. Recording/screenshots go through this callback, so
+    // they must draw the worker bitmap too — otherwise the captured video/image
+    // contains the static scene without the animated visualizer.
+    if (vizWorkerActive && vizWorkerBitmap) {
+      const bitmap = vizWorkerBitmap
+      return (targetCtx, width, height) => {
+        const scale = visualizerStore.visualizerScale
+        const posX = visualizerStore.visualizerX
+        const posY = visualizerStore.visualizerY
+        const scaledWidth = bitmap.width * scale
+        const scaledHeight = bitmap.height * scale
+        const destX = width * posX - scaledWidth / 2
+        const destY = height * posY - scaledHeight / 2
+
+        if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
+          targetCtx.drawImage(
+            bitmap,
+            0,
+            0,
+            bitmap.width,
+            bitmap.height,
+            destX,
+            destY,
+            scaledWidth,
+            scaledHeight,
+          )
+        } else {
+          targetCtx.drawImage(bitmap, 0, 0, width, height)
+        }
+      }
+    }
+
     if (visualizerCacheCanvas) {
       return (targetCtx, width, height) => {
         const scale = visualizerStore.visualizerScale

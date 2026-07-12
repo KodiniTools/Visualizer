@@ -1,0 +1,271 @@
+/* Shared control styles for the image-filters sub-sections.
+   Imported scoped into each sub-component that needs them. */
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.control-group.slider {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px;
+}
+.control-group.slider label {
+  grid-column: 1 / 3;
+  font-size: 0.55rem;
+  color: var(--text-muted, #7a8da0);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: 500;
+}
+.control-group.slider input {
+  width: 100%;
+}
+.control-group.slider span {
+  font-size: 0.5rem;
+  color: var(--text-muted, #7a8da0);
+  font-weight: 500;
+  font-family: monospace;
+  min-width: 35px;
+  text-align: right;
+}
+.control-group select {
+  display: block;
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: #0e1c32;
+  color: #f9f2d5;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.control-group select option {
+  background-color: #0e1c32;
+  color: #f9f2d5;
+}
+.control-group select:hover {
+  border-color: var(--accent-primary, #c9984d);
+}
+.control-group select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+  border-color: var(--accent-primary, #c9984d);
+}
+
+/* Range Slider Styling */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--text-muted, #7a8da0) 0%,
+    var(--accent-primary, #c9984d) 100%
+  );
+  outline: none;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent-tertiary, #f8e1a9);
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+input[type='range']::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent-tertiary, #f8e1a9);
+  cursor: pointer;
+  border: 2px solid #fff;
+}
+
+.modern-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.modern-section-header h4 {
+  margin: 0;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-muted, #7a8da0);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.modern-controls-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.modern-control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.modern-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.65rem;
+  color: var(--text-muted, #7a8da0);
+  font-weight: 500;
+}
+.label-text {
+  color: var(--text-primary, #e9e9eb);
+}
+.label-value {
+  color: var(--image-section-accent, #6ea8fe);
+  font-weight: 500;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  min-width: 35px;
+  text-align: right;
+}
+
+/* Modern Slider */
+.modern-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.modern-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent-tertiary, #f8e1a9);
+  cursor: pointer;
+  border: 2px solid #fff;
+}
+.modern-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent-tertiary, #f8e1a9);
+  cursor: pointer;
+  border: 2px solid #fff;
+}
+
+/* Color Picker */
+.modern-color-picker {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.modern-color-input {
+  width: 45px;
+  height: 45px;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  cursor: pointer;
+  background-color: var(--secondary-bg);
+}
+.modern-color-input:hover {
+  border-color: var(--image-section-accent, #6ea8fe);
+}
+.modern-color-text {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--secondary-bg);
+  color: #e0e0e0;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+}
+.modern-color-text:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+  border-color: var(--image-section-accent, #6ea8fe);
+}
+
+/* ═══ Light Theme Overrides ═══ */
+[data-theme='light'] .control-group.slider label {
+  color: #4d6d8e;
+}
+[data-theme='light'] .control-group.slider span {
+  color: #4d6d8e;
+}
+[data-theme='light'] .control-group select {
+  background-color: #ffffff !important;
+  color: #003971 !important;
+  border-color: rgba(1, 79, 153, 0.3);
+}
+[data-theme='light'] .control-group select option {
+  background-color: #ffffff !important;
+  color: #003971 !important;
+}
+[data-theme='light'] .control-group select:hover {
+  border-color: #014f99;
+}
+[data-theme='light'] .control-group select:focus-visible {
+  border-color: #014f99;
+}
+[data-theme='light'] input[type='range'] {
+  background: linear-gradient(90deg, #4d6d8e 0%, #014f99 100%);
+}
+[data-theme='light'] input[type='range']::-webkit-slider-thumb {
+  background: #c9984d;
+}
+[data-theme='light'] input[type='range']::-moz-range-thumb {
+  background: #c9984d;
+}
+[data-theme='light'] .modern-section-header h4 {
+  color: rgba(0, 57, 113, 0.6);
+}
+[data-theme='light'] .modern-controls-group {
+  background: rgba(1, 79, 153, 0.04);
+  border-color: rgba(1, 79, 153, 0.1);
+}
+[data-theme='light'] .modern-label {
+  color: rgba(0, 57, 113, 0.7);
+}
+[data-theme='light'] .label-text {
+  color: #003971;
+}
+[data-theme='light'] .label-value {
+  color: #014f99;
+}
+[data-theme='light'] .modern-slider::-webkit-slider-thumb {
+  background: #c9984d;
+}
+[data-theme='light'] .modern-slider::-moz-range-thumb {
+  background: #c9984d;
+}
+[data-theme='light'] .modern-color-input {
+  border-color: rgba(1, 79, 153, 0.3);
+  background-color: #ffffff;
+}
+[data-theme='light'] .modern-color-input:hover {
+  border-color: #014f99;
+}
+[data-theme='light'] .modern-color-text {
+  border-color: rgba(1, 79, 153, 0.3);
+  background-color: #ffffff;
+  color: #003971;
+}
+[data-theme='light'] .modern-color-text:focus {
+  border-color: #014f99;
+}

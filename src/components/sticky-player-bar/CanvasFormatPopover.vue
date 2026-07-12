@@ -1,0 +1,56 @@
+<template>
+  <div v-popover-drag="initOffset" class="spb-popover spb-popover-canvas-format">
+    <div class="spb-popover-header">
+      <span class="section-label">{{ t('player.openCanvasFormat') }}</span>
+      <button class="spb-popover-close" :title="t('common.close')" @click="close">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+          />
+        </svg>
+      </button>
+    </div>
+    <div class="spb-canvas-format-scroll">
+      <ControlsPanel />
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { inject } from 'vue'
+import { useI18n } from '../../lib/i18n.js'
+import ControlsPanel from '../ControlsPanel.vue'
+import { vPopoverDrag } from '../../directives/popoverDrag.js'
+
+const { t } = useI18n()
+
+const { popover } = inject('playerBar')
+const { closePopover, cascadeOffset } = popover
+const close = () => closePopover('canvasFormat')
+const initOffset = cascadeOffset('canvasFormat')
+</script>
+
+<style scoped src="./popover-chrome.css"></style>
+<style scoped>
+.spb-popover-canvas-format {
+  width: 320px;
+  padding: 0;
+}
+.spb-popover-canvas-format .spb-popover-header {
+  padding: 12px 12px 0;
+}
+.spb-canvas-format-scroll {
+  padding: 10px 12px 12px;
+}
+/* Neutralize the embedded ControlsPanel's own card chrome inside the popover */
+.spb-canvas-format-scroll :deep(.panel-container) {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+}
+/* The panel already carries its own "STEUERUNG" heading — hide it to avoid
+   a duplicate title next to the popover header. */
+.spb-canvas-format-scroll :deep(.panel-container > h4) {
+  display: none;
+}
+</style>

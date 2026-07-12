@@ -35,6 +35,15 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  /* The header doubles as the drag handle (see v-popover-drag) */
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+/* While dragging, disable the open animation and lift the popover */
+.spb-popover.spb-popover-dragging {
+  animation: none;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
 }
 .spb-popover-close {
   background-color: transparent;

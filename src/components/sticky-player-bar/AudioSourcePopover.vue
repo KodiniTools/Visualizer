@@ -1,5 +1,5 @@
 <template>
-  <div class="spb-popover spb-popover-audio">
+  <div v-popover-drag class="spb-popover spb-popover-audio">
     <div class="spb-popover-header">
       <span class="section-label">{{ t('player.audioSource') }}</span>
       <button class="spb-popover-close" :title="t('common.close')" @click="closePopover">
@@ -74,6 +74,7 @@
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useAudioSourceStore } from '../../stores/audioSourceStore.js'
+import { vPopoverDrag } from '../../directives/popoverDrag.js'
 
 const { t } = useI18n()
 const audioSourceStore = useAudioSourceStore()

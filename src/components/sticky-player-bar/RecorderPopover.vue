@@ -1,5 +1,5 @@
 <template>
-  <div class="spb-popover spb-popover-recorder">
+  <div v-popover-drag class="spb-popover spb-popover-recorder">
     <div class="spb-popover-header">
       <span class="section-label">{{ t('player.openRecorder') }}</span>
       <button class="spb-popover-close" :title="t('common.close')" @click="closePopover">
@@ -20,6 +20,7 @@
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import RecorderPanel from '../RecorderPanel.vue'
+import { vPopoverDrag } from '../../directives/popoverDrag.js'
 
 const { t } = useI18n()
 

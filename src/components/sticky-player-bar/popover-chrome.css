@@ -37,6 +37,14 @@
   cursor: move;
   user-select: none;
   touch-action: none;
+  /* Stay pinned (and grabbable) at the top while tall popover content scrolls. */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: var(--card-bg, #142640);
+}
+[data-theme='light'] .spb-popover-header {
+  background-color: #ffffff;
 }
 /* While dragging, disable the open animation and lift the popover */
 .spb-popover.spb-popover-dragging {

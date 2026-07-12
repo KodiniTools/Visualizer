@@ -75,7 +75,6 @@
     <div class="layout-grid">
       <aside class="left-toolbar" :class="{ 'mobile-visible': mobilePanel === 'left' }">
         <TextManagerPanel />
-        <FotoPanel />
         <VideoPanel />
       </aside>
 
@@ -198,7 +197,6 @@ import { useRenderLoop } from './composables/useRenderLoop.js'
 
 import FileUploadPanel from './components/FileUploadPanel.vue'
 import StickyPlayerBar from './components/StickyPlayerBar.vue'
-import FotoPanel from './components/FotoPanel.vue'
 import VideoPanel from './components/VideoPanel.vue'
 import TextManagerPanel from './components/TextManagerPanel.vue'
 import VisualizerPanel from './components/VisualizerPanel.vue'

@@ -637,6 +637,7 @@ export default {
     openRecorder: 'Recording & export',
     openScreenshot: 'Screenshot',
     openCanvasFormat: 'Canvas format',
+    openGallery: 'Gallery',
     recording: 'Recording',
   },
 

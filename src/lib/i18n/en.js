@@ -636,6 +636,7 @@ export default {
     openVolume: 'Volume & EQ',
     openRecorder: 'Recording & export',
     openScreenshot: 'Screenshot',
+    openCanvasFormat: 'Canvas format',
     recording: 'Recording',
   },
 

@@ -22,11 +22,9 @@
 @keyframes popIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -127,15 +125,5 @@
     right: 50%;
     transform: translateX(50%);
     width: calc(100vw - 16px);
-  }
-  @keyframes popIn {
-    from {
-      opacity: 0;
-      transform: translateX(50%) translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(50%) translateY(0);
-    }
   }
 }

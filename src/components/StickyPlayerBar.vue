@@ -1,11 +1,11 @@
 <template>
   <div ref="barRef" class="sticky-player-bar">
-    <!-- ══════════════ POPOVERS (open above the bar) ══════════════ -->
-    <AudioSourcePopover v-if="popover.activePopover.value === 'audio'" />
-    <VolumeEqPopover v-if="popover.activePopover.value === 'volume'" />
-    <BeatMarkerPopover v-if="popover.activePopover.value === 'markers'" />
-    <PlaylistPopover v-if="popover.activePopover.value === 'playlist'" />
-    <RecorderPopover v-if="popover.activePopover.value === 'recorder'" />
+    <!-- ══════════════ POPOVERS (open above the bar; several at once) ══════════════ -->
+    <AudioSourcePopover v-if="popover.isOpen('audio')" />
+    <VolumeEqPopover v-if="popover.isOpen('volume')" />
+    <BeatMarkerPopover v-if="popover.isOpen('markers')" />
+    <PlaylistPopover v-if="popover.isOpen('playlist')" />
+    <RecorderPopover v-if="popover.isOpen('recorder')" />
 
     <!-- ══════════════ THE BAR ══════════════ -->
     <PlayerBarControls />
@@ -32,11 +32,11 @@ const barRef = ref(null)
 // The bar owns all shared state via composables (so watchers and DOM listeners
 // register exactly once) and hands it to the child popovers/controls through a
 // single `provide` context.
-const popover = usePlayerPopover(barRef)
+const popover = usePlayerPopover()
 const volumeEq = usePlayerVolumeEq()
 const playMode = usePlayMode()
 const audioSource = useAudioSourceControls()
-const markers = useBeatMarkers(popover.activePopover)
+const markers = useBeatMarkers(() => popover.openPopover('markers'))
 const playlist = usePlaylistManager()
 
 provide('playerBar', { popover, volumeEq, playMode, audioSource, markers, playlist })

@@ -5,7 +5,7 @@
       <button
         class="spb-icon-btn spb-source-btn"
         :class="{
-          active: activePopover === 'audio',
+          active: isOpen('audio'),
           listening: audioSourceStore.isMicrophoneActive,
         }"
         :title="t('player.openAudioSource')"
@@ -143,7 +143,7 @@
     <div class="spb-actions">
       <button
         class="spb-icon-btn"
-        :class="{ active: activePopover === 'markers' }"
+        :class="{ active: isOpen('markers') }"
         :title="t('player.openMarkers')"
         @click="togglePopover('markers')"
       >
@@ -159,7 +159,7 @@
 
       <button
         class="spb-icon-btn"
-        :class="{ active: activePopover === 'volume' }"
+        :class="{ active: isOpen('volume') }"
         :title="t('player.openVolume')"
         @click="togglePopover('volume')"
       >
@@ -172,7 +172,7 @@
 
       <button
         class="spb-icon-btn"
-        :class="{ active: activePopover === 'playlist' }"
+        :class="{ active: isOpen('playlist') }"
         :title="t('player.openPlaylist')"
         @click="togglePopover('playlist')"
       >
@@ -186,7 +186,7 @@
 
       <button
         class="spb-icon-btn spb-record-btn"
-        :class="{ active: activePopover === 'recorder', recording: recorderStore.isRecording }"
+        :class="{ active: isOpen('recorder'), recording: recorderStore.isRecording }"
         :title="t('player.openRecorder')"
         @click="togglePopover('recorder')"
       >
@@ -215,7 +215,7 @@ const audioSourceStore = useAudioSourceStore()
 const recorderStore = useRecorderStore()
 
 const { popover, playMode, markers } = inject('playerBar')
-const { activePopover, togglePopover } = popover
+const { isOpen, togglePopover } = popover
 const { cyclePlayMode, playModeLabel } = playMode
 const { getMarkerPosition, seekToMarker } = markers
 

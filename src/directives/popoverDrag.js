@@ -4,15 +4,17 @@
  * accessible. The offset is applied as a `transform: translate(...)` relative
  * to the popover's normal anchored position and is clamped to the viewport.
  *
- * Usage: add `v-popover-drag` to the `.spb-popover` root element.
+ * Usage: add `v-popover-drag` to the `.spb-popover` root element. An optional
+ * binding value `{ x, y }` sets the initial offset (used to cascade several
+ * simultaneously open popovers).
  */
 export const vPopoverDrag = {
-  mounted(el) {
+  mounted(el, binding) {
     const header = el.querySelector('.spb-popover-header')
     if (!header) return
 
-    let dx = 0
-    let dy = 0
+    let dx = Number(binding.value?.x) || 0
+    let dy = Number(binding.value?.y) || 0
     let startX = 0
     let startY = 0
     let baseX = 0 // dx at drag start
@@ -39,6 +41,7 @@ export const vPopoverDrag = {
     const onUp = () => {
       dragging = false
       el.classList.remove('spb-popover-dragging')
+      document.body.style.userSelect = ''
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerup', onUp)
     }
@@ -55,10 +58,15 @@ export const vPopoverDrag = {
       startY = e.clientY
       dragging = true
       el.classList.add('spb-popover-dragging')
+      // Prevent text selection across the page while dragging.
+      document.body.style.userSelect = 'none'
       window.addEventListener('pointermove', onMove)
       window.addEventListener('pointerup', onUp)
       e.preventDefault()
     }
+
+    // Apply the initial cascade offset (if any) once mounted.
+    if (dx || dy) apply()
 
     header.addEventListener('pointerdown', onDown)
     el.__popoverDragCleanup = () => {

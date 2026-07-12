@@ -10,10 +10,10 @@ import { formatTime, parseTimeInput } from '../utils/formatTime.js'
  * marker CRUD, progress-bar positioning, and the watchers that trigger
  * visualizer/color changes as playback crosses markers.
  *
- * @param {import('vue').Ref<string|null>} activePopover - shared popover ref, so
- *   adding a marker (incl. via the "M" shortcut) can open the markers popover.
+ * @param {() => void} openMarkersPopover - opens the markers popover, so adding
+ *   a marker (incl. via the "M" shortcut) reveals the form.
  */
-export function useBeatMarkers(activePopover) {
+export function useBeatMarkers(openMarkersPopover) {
   const { t } = useI18n()
   const playerStore = usePlayerStore()
   const beatMarkerStore = useBeatMarkerStore()
@@ -48,7 +48,7 @@ export function useBeatMarkers(activePopover) {
     newMarkerVisualizer.value = ''
     newMarkerChangeColor.value = false
     showMarkerPanel.value = true
-    activePopover.value = 'markers'
+    openMarkersPopover()
   }
 
   const startEditMarker = (marker) => {

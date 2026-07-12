@@ -85,6 +85,21 @@ export const vPopoverDrag = {
       e.preventDefault()
     }
 
+    // Re-clamp the current offset (used when the popover's size or the viewport
+    // changes). Because a popover is anchored at its bottom and grows upward,
+    // content that expands *after* opening (e.g. the audio-reactive panel loads
+    // the active image's settings on the next tick) would otherwise push the
+    // header above the viewport.
+    const reclamp = () => {
+      if (dragging) return
+      const next = clamp(dx, dy)
+      if (next.dx !== dx || next.dy !== dy) {
+        dx = next.dx
+        dy = next.dy
+        apply()
+      }
+    }
+
     // Apply the initial cascade offset, clamped so the header stays visible even
     // when several popovers cascade upward or the anchored position of a tall
     // popover would otherwise land partly above the viewport.
@@ -95,9 +110,18 @@ export const vPopoverDrag = {
     dy = start.dy
     apply()
 
+    let resizeObserver = null
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(reclamp)
+      resizeObserver.observe(el)
+    }
+    window.addEventListener('resize', reclamp)
+
     header.addEventListener('pointerdown', onDown)
     el.__popoverDragCleanup = () => {
       header.removeEventListener('pointerdown', onDown)
+      window.removeEventListener('resize', reclamp)
+      if (resizeObserver) resizeObserver.disconnect()
       onUp()
     }
   },

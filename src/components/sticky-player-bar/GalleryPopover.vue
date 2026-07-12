@@ -11,7 +11,7 @@
       </button>
     </div>
     <div class="spb-gallery-scroll">
-      <FotoPanel />
+      <GalleryPanel />
     </div>
   </div>
 </template>
@@ -19,7 +19,7 @@
 <script setup>
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
-import FotoPanel from '../FotoPanel.vue'
+import GalleryPanel from '../GalleryPanel.vue'
 import { vPopoverDrag } from '../../directives/popoverDrag.js'
 
 const { t } = useI18n()

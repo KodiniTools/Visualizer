@@ -68,27 +68,6 @@
       @filter-change="onFilterChange"
       @reset-filters="resetFilters"
     />
-
-    <!-- Audio-Reaktiv Sektion -->
-    <AudioReactivePanel
-      ref="audioReactivePanelRef"
-      :hasActiveImage="!!currentActiveImage"
-      :hasSavedSettings="hasSavedAudioSettings"
-      :activeAudioPreset="activeAudioPreset"
-      @audio-reactive-toggle="onAudioReactiveToggle"
-      @source-change="onAudioReactiveSourceChange"
-      @smoothing-change="onAudioReactiveSmoothingChange"
-      @easing-change="onAudioReactiveEasingChange"
-      @beat-boost-change="onAudioReactiveBeatBoostChange"
-      @phase-change="onAudioReactivePhaseChange"
-      @gain-change="onAudioReactiveGainChange"
-      @toggle-preset="toggleAudioPreset"
-      @effect-toggle="onEffectToggle"
-      @effect-intensity-change="onEffectIntensityChange"
-      @effect-source-change="onEffectSourceChange"
-      @save-settings="saveAudioReactiveSettings"
-      @apply-settings="applyAudioReactiveSettings"
-    />
   </div>
 </template>
 
@@ -101,7 +80,6 @@ import { useToastStore } from '../stores/toastStore'
 import ImagePreviewOverlay from './foto-panel/ImagePreviewOverlay.vue'
 import ImageUploadSection from './foto-panel/ImageUploadSection.vue'
 import ImageFiltersPanel from './foto-panel/ImageFiltersPanel.vue'
-import AudioReactivePanel from './foto-panel/AudioReactivePanel.vue'
 import SlideshowPanel from './foto-panel/SlideshowPanel.vue'
 
 // Lib
@@ -109,6 +87,7 @@ import { SlideshowManager } from '../lib/slideshowManager.js'
 
 // Composables
 import { useImageGallery } from '../composables/useImageGallery.js'
+import { useImageAudioReactive } from '../composables/useImageAudioReactive.js'
 
 const { t } = useI18n()
 const toastStore = useToastStore()
@@ -120,10 +99,10 @@ const canvasManagerRef = inject('canvasManager')
 
 // Panel-Refs
 const imageFiltersPanelRef = ref(null)
-const audioReactivePanelRef = ref(null)
 
-// Aktuell aktives Bild (für Filter-UI)
-const currentActiveImage = ref(null)
+// Aktuell aktives Bild (für Filter-UI) – geteilter Zustand mit dem
+// Audio-Reaktiv-Panel in der Player-Leiste.
+const { currentActiveImage } = useImageAudioReactive()
 
 // Presets
 const presets = ref([])
@@ -156,10 +135,10 @@ const {
   clearAllImages: clearAllImagesComposable,
 } = useImageGallery()
 
-// Audio-Reaktiv State
-const activeAudioPreset = ref(null)
-const savedAudioReactiveSettings = ref(null)
-const hasSavedAudioSettings = computed(() => savedAudioReactiveSettings.value !== null)
+// Audio-Reaktiv State (der aktive-Bild-Zustand wird mit dem Audio-Reaktiv-Panel
+// in der Player-Leiste geteilt; savedAudioReactiveSettings/hasSavedAudioSettings
+// versorgen die Slideshow).
+const { savedAudioReactiveSettings, hasSavedAudioSettings } = useImageAudioReactive()
 
 // ═══════════════════════════════════════════════════════════════════
 // SLIDESHOW STATE
@@ -293,218 +272,6 @@ function resetFilters() {
 
   currentActiveImage.value.fotoSettings = { ...defaultSettings }
   console.log('🔄 Filter zurückgesetzt')
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// AUDIO-REAKTIV FUNKTIONEN
-// ═══════════════════════════════════════════════════════════════════
-
-function onAudioReactiveToggle(event) {
-  const enabled = event.target.checked
-  updateAudioReactiveSetting('enabled', enabled)
-  if (!enabled) activeAudioPreset.value = null
-}
-
-function onAudioReactiveSourceChange(event) {
-  updateAudioReactiveSetting('source', event.target.value)
-}
-
-function onAudioReactiveSmoothingChange(event) {
-  updateAudioReactiveSetting('smoothing', parseInt(event.target.value))
-}
-
-function onAudioReactiveEasingChange(event) {
-  updateAudioReactiveSetting('easing', event.target.value)
-}
-
-function onAudioReactiveBeatBoostChange(event) {
-  updateAudioReactiveSetting('beatBoost', parseFloat(event.target.value))
-}
-
-function onAudioReactivePhaseChange(event) {
-  updateAudioReactiveSetting('phase', parseInt(event.target.value))
-}
-
-function onAudioReactiveGainChange(event) {
-  updateAudioReactiveSetting('gain', parseFloat(event.target.value))
-}
-
-function updateAudioReactiveSetting(property, value) {
-  if (!currentActiveImage.value) return
-  const fotoManager = fotoManagerRef?.value
-  if (!fotoManager) return
-  fotoManager.initializeImageSettings(currentActiveImage.value)
-  currentActiveImage.value.fotoSettings.audioReactive[property] = value
-}
-
-function toggleAudioPreset(presetName) {
-  if (activeAudioPreset.value === presetName) {
-    deactivateAudioPreset()
-  } else {
-    applyAudioPreset(presetName)
-  }
-}
-
-function deactivateAudioPreset() {
-  if (!currentActiveImage.value) return
-  const fotoManager = fotoManagerRef?.value
-  if (!fotoManager) return
-  fotoManager.initializeImageSettings(currentActiveImage.value)
-  const ar = currentActiveImage.value.fotoSettings.audioReactive
-  for (const effectName of Object.keys(ar.effects)) {
-    ar.effects[effectName].enabled = false
-  }
-  ar.enabled = false
-  activeAudioPreset.value = null
-}
-
-function applyAudioPreset(presetName) {
-  if (!currentActiveImage.value) return
-  const fotoManager = fotoManagerRef?.value
-  if (!fotoManager) return
-  fotoManager.initializeImageSettings(currentActiveImage.value)
-  const ar = currentActiveImage.value.fotoSettings.audioReactive
-
-  const presets = {
-    pulse: {
-      effects: { scale: { enabled: true, intensity: 70 }, glow: { enabled: true, intensity: 80 } },
-      source: 'bass',
-      easing: 'easeOut',
-      beatBoost: 1.5,
-      smoothing: 60,
-    },
-    dance: {
-      effects: {
-        bounce: { enabled: true, intensity: 60 },
-        swing: { enabled: true, intensity: 50 },
-        rotation: { enabled: true, intensity: 30 },
-      },
-      source: 'mid',
-      easing: 'bounce',
-      beatBoost: 1.3,
-      smoothing: 40,
-    },
-    shake: {
-      effects: { shake: { enabled: true, intensity: 80 }, scale: { enabled: true, intensity: 40 } },
-      source: 'bass',
-      easing: 'punch',
-      beatBoost: 2.0,
-      smoothing: 20,
-    },
-    glow: {
-      effects: {
-        glow: { enabled: true, intensity: 90 },
-        brightness: { enabled: true, intensity: 50 },
-        hue: { enabled: true, intensity: 30 },
-      },
-      source: 'volume',
-      easing: 'easeInOut',
-      beatBoost: 1.0,
-      smoothing: 70,
-    },
-    strobe: {
-      effects: {
-        strobe: { enabled: true, intensity: 85 },
-        invert: { enabled: true, intensity: 60 },
-      },
-      source: 'bass',
-      easing: 'linear',
-      beatBoost: 2.5,
-      smoothing: 10,
-    },
-    glitch: {
-      effects: {
-        chromatic: { enabled: true, intensity: 75 },
-        skew: { enabled: true, intensity: 50 },
-        shake: { enabled: true, intensity: 40 },
-      },
-      source: 'bass',
-      easing: 'elastic',
-      beatBoost: 2.0,
-      smoothing: 25,
-    },
-  }
-
-  for (const effectName of Object.keys(ar.effects)) {
-    ar.effects[effectName].enabled = false
-  }
-
-  const preset = presets[presetName]
-  if (!preset) return
-
-  ar.enabled = true
-  ar.source = preset.source
-  ar.easing = preset.easing
-  ar.beatBoost = preset.beatBoost
-  ar.smoothing = preset.smoothing
-
-  for (const [effectName, config] of Object.entries(preset.effects)) {
-    if (ar.effects[effectName]) {
-      ar.effects[effectName].enabled = config.enabled
-      ar.effects[effectName].intensity = config.intensity
-    }
-  }
-
-  activeAudioPreset.value = presetName
-}
-
-function onEffectToggle(effectName, enabled) {
-  if (!currentActiveImage.value) return
-  const fotoManager = fotoManagerRef?.value
-  if (!fotoManager) return
-  fotoManager.initializeImageSettings(currentActiveImage.value)
-  const ar = currentActiveImage.value.fotoSettings.audioReactive
-  if (ar.effects && ar.effects[effectName]) {
-    ar.effects[effectName].enabled = enabled
-  }
-}
-
-function onEffectIntensityChange(effectName, value) {
-  if (!currentActiveImage.value) return
-  const fotoManager = fotoManagerRef?.value
-  if (!fotoManager) return
-  fotoManager.initializeImageSettings(currentActiveImage.value)
-  const ar = currentActiveImage.value.fotoSettings.audioReactive
-  if (ar.effects && ar.effects[effectName]) {
-    ar.effects[effectName].intensity = parseInt(value)
-  }
-}
-
-function onEffectSourceChange(effectName, value) {
-  if (!currentActiveImage.value) return
-  const fotoManager = fotoManagerRef?.value
-  if (!fotoManager) return
-  fotoManager.initializeImageSettings(currentActiveImage.value)
-  const ar = currentActiveImage.value.fotoSettings.audioReactive
-  if (ar.effects && ar.effects[effectName]) {
-    ar.effects[effectName].source = value === '' ? null : value
-  }
-}
-
-function saveAudioReactiveSettings() {
-  if (!currentActiveImage.value) return
-  const fotoManager = fotoManagerRef?.value
-  if (!fotoManager) return
-  fotoManager.initializeImageSettings(currentActiveImage.value)
-  const ar = currentActiveImage.value.fotoSettings.audioReactive
-  savedAudioReactiveSettings.value = JSON.parse(JSON.stringify(ar))
-  try {
-    localStorage.setItem('visualizer_audioReactivePreset', JSON.stringify(ar))
-    console.log('💾 Audio-Reaktiv Einstellungen gespeichert')
-  } catch (e) {
-    console.warn('⚠️ Konnte nicht in localStorage speichern:', e)
-  }
-}
-
-function applyAudioReactiveSettings() {
-  if (!currentActiveImage.value || !savedAudioReactiveSettings.value) return
-  const fotoManager = fotoManagerRef?.value
-  if (!fotoManager) return
-  fotoManager.initializeImageSettings(currentActiveImage.value)
-  currentActiveImage.value.fotoSettings.audioReactive = JSON.parse(
-    JSON.stringify(savedAudioReactiveSettings.value),
-  )
-  console.log('📋 Audio-Reaktiv Einstellungen angewendet')
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -846,27 +613,16 @@ onMounted(() => {
 
     presets.value = fotoManager.getAvailablePresets()
 
-    // Controls global verfügbar machen
+    // Controls global verfügbar machen. Die Audio-Reaktiv-Einstellungen des
+    // aktiven Bildes lädt das Audio-Reaktiv-Panel in der Player-Leiste selbst
+    // (über den geteilten currentActiveImage-Zustand).
     window.fotoPanelControls = {
       loadImageSettings: (imgData) => {
         if (imageFiltersPanelRef.value) {
           imageFiltersPanelRef.value.loadImageSettings(imgData?.fotoSettings || {})
         }
-        if (audioReactivePanelRef.value) {
-          audioReactivePanelRef.value.loadSettings(imgData)
-        }
       },
       currentActiveImage: currentActiveImage,
-    }
-
-    // Gespeicherte Audio-Reaktiv Einstellungen laden
-    try {
-      const savedPreset = localStorage.getItem('visualizer_audioReactivePreset')
-      if (savedPreset) {
-        savedAudioReactiveSettings.value = JSON.parse(savedPreset)
-      }
-    } catch (e) {
-      console.warn('⚠️ Konnte Audio-Reaktiv Preset nicht laden:', e)
     }
 
     console.log('✅ FotoPanel initialisiert')
@@ -888,10 +644,6 @@ watch(
       // Filter-Einstellungen laden
       if (imageFiltersPanelRef.value) {
         imageFiltersPanelRef.value.loadImageSettings(newImage.fotoSettings || {})
-      }
-      // Audio-Reaktiv Einstellungen laden
-      if (audioReactivePanelRef.value) {
-        audioReactivePanelRef.value.loadSettings(newImage)
       }
       console.log('🖼️ Aktives Bild geändert:', newImage.id || newImage)
     }

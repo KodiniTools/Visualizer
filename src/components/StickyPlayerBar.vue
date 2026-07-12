@@ -6,6 +6,7 @@
     <BeatMarkerPopover v-if="popover.isOpen('markers')" />
     <PlaylistPopover v-if="popover.isOpen('playlist')" />
     <GalleryPopover v-if="popover.isOpen('gallery')" />
+    <AudioReactivePopover v-if="popover.isOpen('audioReactive')" />
     <CanvasFormatPopover v-if="popover.isOpen('canvasFormat')" />
     <ScreenshotPopover v-if="popover.isOpen('screenshot')" />
     <RecorderPopover v-if="popover.isOpen('recorder')" />
@@ -28,6 +29,7 @@ import VolumeEqPopover from './sticky-player-bar/VolumeEqPopover.vue'
 import BeatMarkerPopover from './sticky-player-bar/BeatMarkerPopover.vue'
 import PlaylistPopover from './sticky-player-bar/PlaylistPopover.vue'
 import GalleryPopover from './sticky-player-bar/GalleryPopover.vue'
+import AudioReactivePopover from './sticky-player-bar/AudioReactivePopover.vue'
 import CanvasFormatPopover from './sticky-player-bar/CanvasFormatPopover.vue'
 import ScreenshotPopover from './sticky-player-bar/ScreenshotPopover.vue'
 import RecorderPopover from './sticky-player-bar/RecorderPopover.vue'

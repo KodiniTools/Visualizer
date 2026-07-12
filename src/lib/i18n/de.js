@@ -634,6 +634,7 @@ export default {
     openScreenshot: 'Screenshot',
     openCanvasFormat: 'Canvas-Format',
     openGallery: 'Galerie',
+    openAudioReactive: 'Audio-Reaktiv (Bild)',
     recording: 'Aufnahme läuft',
   },
 

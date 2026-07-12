@@ -1,0 +1,12 @@
+/* Shared label styles for the audio-reactive sub-sections. */
+.modern-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.label-text {
+  color: var(--text-muted);
+}

@@ -8,35 +8,6 @@
       @set-as-background="setPreviewAsBackground"
     />
 
-    <!-- Stock-Galerie Sektion -->
-    <StockGallerySection
-      :stockCategories="stockCategories"
-      :filteredStockImages="filteredStockImages"
-      :selectedStockCategory="selectedStockCategory"
-      :selectedStockImages="selectedStockImages"
-      :selectedStockCount="selectedStockCount"
-      :stockImagesLoading="stockImagesLoading"
-      :categoryLoading="categoryLoading"
-      :selectedAnimation="selectedAnimation"
-      :animationDuration="animationDuration"
-      :imageScale="imageScale"
-      :imageOffsetX="imageOffsetX"
-      :imageOffsetY="imageOffsetY"
-      :isInRangeSelectionMode="isInRangeSelectionMode"
-      @select-category="selectStockCategory"
-      @select-image="selectStockImage"
-      @open-preview="openStockPreview"
-      @select-all="selectAllStockImages"
-      @deselect-all="deselectAllStockImages"
-      @add-to-canvas="addStockImageToCanvas"
-      @set-as-background="setStockAsBackground"
-      @set-as-workspace-background="setStockAsWorkspaceBackground"
-      @start-range-selection="startStockImageRangeSelection"
-      @add-directly="addStockImageDirectly"
-      @retry-load="loadStockGallery"
-      @update:placement-settings="updatePlacementSettings"
-    />
-
     <!-- Upload-Bereich für eigene Bilder -->
     <ImageUploadSection
       :imageGallery="imageGallery"
@@ -128,7 +99,6 @@ import { useToastStore } from '../stores/toastStore'
 
 // Sub-Komponenten
 import ImagePreviewOverlay from './foto-panel/ImagePreviewOverlay.vue'
-import StockGallerySection from './foto-panel/StockGallerySection.vue'
 import ImageUploadSection from './foto-panel/ImageUploadSection.vue'
 import ImageFiltersPanel from './foto-panel/ImageFiltersPanel.vue'
 import AudioReactivePanel from './foto-panel/AudioReactivePanel.vue'
@@ -138,10 +108,9 @@ import SlideshowPanel from './foto-panel/SlideshowPanel.vue'
 import { SlideshowManager } from '../lib/slideshowManager.js'
 
 // Composables
-import { useStockGallery } from '../composables/useStockGallery.js'
 import { useImageGallery } from '../composables/useImageGallery.js'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const toastStore = useToastStore()
 
 // Injected Refs von App.vue
@@ -169,37 +138,14 @@ const imageOffsetY = ref(0)
 // Bereichsauswahl-Modus
 const isInRangeSelectionMode = ref(false)
 const pendingRangeSelectionImage = ref(null)
-const pendingRangeSelectionType = ref(null)
 
 // Bild-Vorschau
 const previewImage = ref(null)
 
-// Stock-Galerie Composable
-const {
-  stockCategories,
-  stockImages,
-  selectedStockCategory,
-  selectedStockImage,
-  selectedStockImages,
-  stockImagesLoading,
-  categoryLoading,
-  filteredStockImages,
-  selectedStockImagesList,
-  selectedStockCount,
-  loadStockGallery,
-  selectStockCategory,
-  selectStockImage,
-  selectAllStockImages,
-  deselectAllStockImages,
-  loadStockImageObject,
-} = useStockGallery()
-
 // Image-Galerie Composable
 const {
   imageGallery,
-  selectedImageIndex,
   selectedImageIndices,
-  selectedImage,
   selectedImages,
   selectedImageCount,
   handleImageUpload: handleImageUploadComposable,
@@ -755,67 +701,6 @@ function setAsWorkspaceBackground() {
   }
 }
 
-// Stock-Image Canvas-Operationen
-async function addStockImageToCanvas() {
-  const imagesToAdd = selectedStockImagesList.value
-  if (imagesToAdd.length === 0) return
-  const multiImageManager = multiImageManagerRef?.value
-  if (!multiImageManager) return
-
-  try {
-    for (const stockImg of imagesToAdd) {
-      const img = await loadStockImageObject(stockImg)
-      multiImageManager.addImage(img)
-    }
-    console.log(`✅ ${imagesToAdd.length} Stock-Bild(er) auf Canvas platziert`)
-    toastStore.success(t('toast.imagesAddedToCanvas').replace('{count}', imagesToAdd.length))
-    deselectAllStockImages()
-  } catch (error) {
-    console.error('❌ Fehler beim Laden der Stock-Bilder:', error)
-    toastStore.error(t('toast.imagesLoadError'))
-  }
-}
-
-async function setStockAsBackground() {
-  if (selectedStockCount.value !== 1) return
-  const stockImg = selectedStockImagesList.value[0]
-  if (!stockImg) return
-  const canvasManager = canvasManagerRef?.value
-  if (!canvasManager) return
-
-  try {
-    const img = await loadStockImageObject(stockImg)
-    canvasManager.setBackground(img)
-    console.log('✅ Stock-Bild als Hintergrund gesetzt:', stockImg.name)
-    deselectAllStockImages()
-  } catch (error) {
-    console.error('❌ Fehler beim Laden des Stock-Bildes:', error)
-    toastStore.error(t('toast.imageLoadError'))
-  }
-}
-
-async function setStockAsWorkspaceBackground() {
-  if (selectedStockCount.value !== 1) return
-  const stockImg = selectedStockImagesList.value[0]
-  if (!stockImg) return
-  const canvasManager = canvasManagerRef?.value
-  if (!canvasManager) return
-
-  try {
-    const img = await loadStockImageObject(stockImg)
-    const success = canvasManager.setWorkspaceBackground(img)
-    if (success) {
-      console.log('✅ Stock-Bild als Workspace-Hintergrund gesetzt:', stockImg.name)
-      deselectAllStockImages()
-    } else {
-      toastStore.warning(t('toast.selectWorkspaceFirst'))
-    }
-  } catch (error) {
-    console.error('❌ Fehler beim Laden des Stock-Bildes:', error)
-    toastStore.error(t('toast.imageLoadError'))
-  }
-}
-
 // ═══════════════════════════════════════════════════════════════════
 // BEREICHSAUSWAHL MIT ANIMATION
 // ═══════════════════════════════════════════════════════════════════
@@ -828,30 +713,6 @@ function updatePlacementSettings(settings) {
   imageOffsetY.value = settings.imageOffsetY
 }
 
-async function startStockImageRangeSelection() {
-  if (selectedStockCount.value !== 1) return
-  const stockImg = selectedStockImagesList.value[0]
-  if (!stockImg) return
-  const canvasManager = canvasManagerRef?.value
-  if (!canvasManager) return
-
-  try {
-    const img = await loadStockImageObject(stockImg)
-    pendingRangeSelectionImage.value = img
-    pendingRangeSelectionType.value = 'stock'
-    isInRangeSelectionMode.value = true
-    canvasManager.startImageSelectionMode(
-      (bounds) => handleRangeSelectionComplete(bounds),
-      selectedAnimation.value,
-    )
-    console.log('📐 Bereichsauswahl-Modus gestartet für Stock-Bild:', stockImg.name)
-  } catch (error) {
-    console.error('❌ Fehler beim Laden des Stock-Bildes:', error)
-    toastStore.error(t('toast.imageLoadError'))
-    isInRangeSelectionMode.value = false
-  }
-}
-
 function startUploadedImageRangeSelection() {
   if (selectedImageCount.value !== 1) return
   const imgData = selectedImages.value[0]
@@ -860,7 +721,6 @@ function startUploadedImageRangeSelection() {
   if (!canvasManager) return
 
   pendingRangeSelectionImage.value = imgData.img
-  pendingRangeSelectionType.value = 'uploaded'
   isInRangeSelectionMode.value = true
   canvasManager.startImageSelectionMode(
     (bounds) => handleRangeSelectionComplete(bounds),
@@ -873,7 +733,6 @@ function handleRangeSelectionComplete(bounds) {
   if (!bounds || !pendingRangeSelectionImage.value) {
     isInRangeSelectionMode.value = false
     pendingRangeSelectionImage.value = null
-    pendingRangeSelectionType.value = null
     return
   }
 
@@ -904,48 +763,10 @@ function handleRangeSelectionComplete(bounds) {
     { duration: animationDuration.value },
   )
 
-  if (pendingRangeSelectionType.value === 'stock') {
-    deselectAllStockImages()
-  } else {
-    deselectAllImages()
-  }
+  deselectAllImages()
 
   isInRangeSelectionMode.value = false
   pendingRangeSelectionImage.value = null
-  pendingRangeSelectionType.value = null
-}
-
-async function addStockImageDirectly() {
-  if (selectedStockCount.value !== 1) return
-  const stockImg = selectedStockImagesList.value[0]
-  if (!stockImg) return
-  const multiImageManager = multiImageManagerRef?.value
-  const canvasManager = canvasManagerRef?.value
-  if (!multiImageManager || !canvasManager) return
-
-  try {
-    const img = await loadStockImageObject(stockImg)
-    const canvas = canvasManager.canvas
-    const relX = 0.5 + imageOffsetX.value / canvas.width
-    const relY = 0.5 + imageOffsetY.value / canvas.height
-    const baseSize = 0.15
-    const relSize = baseSize * imageScale.value
-
-    const bounds = {
-      relX: relX - relSize / 2,
-      relY: relY - relSize / 2,
-      relWidth: relSize,
-      relHeight: relSize,
-    }
-
-    multiImageManager.addImageWithBounds(img, bounds, selectedAnimation.value, {
-      duration: animationDuration.value,
-    })
-    console.log('✅ Stock-Bild platziert')
-    deselectAllStockImages()
-  } catch (error) {
-    console.error('❌ Fehler beim Laden des Stock-Bildes:', error)
-  }
 }
 
 function addUploadedImageDirectly() {
@@ -980,20 +801,6 @@ function addUploadedImageDirectly() {
 // BILD-VORSCHAU
 // ═══════════════════════════════════════════════════════════════════
 
-async function openStockPreview(img) {
-  try {
-    const loadedImg = await loadStockImageObject(img)
-    previewImage.value = {
-      src: loadedImg.src,
-      name: img.name,
-      type: 'stock',
-      data: img,
-    }
-  } catch (error) {
-    console.error('❌ Fehler beim Laden der Vorschau:', error)
-  }
-}
-
 function openUploadedPreview(imgData) {
   previewImage.value = {
     src: imgData.img.src,
@@ -1007,31 +814,21 @@ function closePreview() {
   previewImage.value = null
 }
 
-async function addPreviewToCanvas() {
+function addPreviewToCanvas() {
   if (!previewImage.value) return
   const multiImageManager = multiImageManagerRef?.value
   if (!multiImageManager) return
 
-  if (previewImage.value.type === 'stock') {
-    const img = await loadStockImageObject(previewImage.value.data)
-    multiImageManager.addImage(img)
-  } else {
-    multiImageManager.addImage(previewImage.value.data.img)
-  }
+  multiImageManager.addImage(previewImage.value.data.img)
   closePreview()
 }
 
-async function setPreviewAsBackground() {
+function setPreviewAsBackground() {
   if (!previewImage.value) return
   const canvasManager = canvasManagerRef?.value
   if (!canvasManager) return
 
-  if (previewImage.value.type === 'stock') {
-    const img = await loadStockImageObject(previewImage.value.data)
-    canvasManager.setBackground(img)
-  } else {
-    canvasManager.setBackground(previewImage.value.data.img)
-  }
+  canvasManager.setBackground(previewImage.value.data.img)
   closePreview()
 }
 
@@ -1040,8 +837,6 @@ async function setPreviewAsBackground() {
 // ═══════════════════════════════════════════════════════════════════
 
 onMounted(() => {
-  loadStockGallery()
-
   const initializePanel = () => {
     const fotoManager = fotoManagerRef?.value
     if (!fotoManager) {

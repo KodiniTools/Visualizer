@@ -157,7 +157,6 @@
           </div>
         </div>
         <FileUploadPanel />
-        <ScreenshotPanel />
         <PresetPanel />
         <VisualizerPanel />
         <ControlsPanel />
@@ -200,7 +199,6 @@ import { useRenderLoop } from './composables/useRenderLoop.js'
 
 import FileUploadPanel from './components/FileUploadPanel.vue'
 import StickyPlayerBar from './components/StickyPlayerBar.vue'
-import ScreenshotPanel from './components/ScreenshotPanel.vue'
 import FotoPanel from './components/FotoPanel.vue'
 import VideoPanel from './components/VideoPanel.vue'
 import TextManagerPanel from './components/TextManagerPanel.vue'

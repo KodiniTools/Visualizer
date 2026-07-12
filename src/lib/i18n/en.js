@@ -635,6 +635,7 @@ export default {
     openAudioSource: 'Audio source',
     openVolume: 'Volume & EQ',
     openRecorder: 'Recording & export',
+    openScreenshot: 'Screenshot',
     recording: 'Recording',
   },
 

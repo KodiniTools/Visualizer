@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { Visualizers } from '../lib/visualizers/index.js'
 import { workerManager } from '../lib/workerManager.js'
+import { createPostProcessor, postFxActive, FrameMonitor } from '../lib/postfx/index.js'
 
 export function useRenderLoop({
   canvasRef,
@@ -48,6 +49,50 @@ export function useRenderLoop({
   let vizWorkerActive = false
   let vizWorkerBitmap = null // latest ImageBitmap from worker
   let vizWorkerInitialized = false
+
+  // Post-processing (Bloom / Trails) — main-thread processor for the fallback
+  // path and multi-layer mode. The worker owns its own processor.
+  let mainPostProcessor = null
+  const frameMonitor = new FrameMonitor()
+
+  // Hot-loop caches (avoid per-frame DOM query + getContext)
+  let cachedDomCanvas = null
+  let cachedCanvasEl = null
+  let cachedCtx = null
+
+  function resolveCanvas() {
+    if (!cachedDomCanvas || !cachedDomCanvas.isConnected) {
+      cachedDomCanvas = document.querySelector('.canvas-wrapper canvas')
+    }
+    return cachedDomCanvas || canvasRef.value
+  }
+
+  function getContext2D(canvas) {
+    if (cachedCanvasEl !== canvas) {
+      cachedCanvasEl = canvas
+      cachedCtx = canvas.getContext('2d', { desynchronized: true }) || canvas.getContext('2d')
+    }
+    return cachedCtx
+  }
+
+  function ensureMainPostProcessor(w, h) {
+    if (!mainPostProcessor) {
+      try {
+        mainPostProcessor = createPostProcessor(w, h)
+      } catch {
+        mainPostProcessor = null
+      }
+    } else if (mainPostProcessor.width !== w || mainPostProcessor.height !== h) {
+      try {
+        mainPostProcessor.resize(w, h)
+      } catch {}
+    }
+    return mainPostProcessor
+  }
+
+  function currentQuality() {
+    return visualizerStore.adaptiveQuality ? frameMonitor.qualityLevel : 1
+  }
 
   function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
     if (canvasManagerInstance.value) {
@@ -287,8 +332,10 @@ export function useRenderLoop({
       animationFrameId = requestAnimationFrame(draw)
     }
 
-    const domCanvas = document.querySelector('.canvas-wrapper canvas')
-    const canvas = domCanvas || canvasRef.value
+    // Adaptive-quality measurement (cheap; only applied when the toggle is on).
+    frameMonitor.tick(performance.now())
+
+    const canvas = resolveCanvas()
     if (!canvas) return
 
     if (canvasManagerInstance.value && canvasManagerInstance.value.canvas !== canvas) {
@@ -297,7 +344,7 @@ export function useRenderLoop({
 
     if (canvas.width <= 0 || canvas.height <= 0) return
 
-    const ctx = canvas.getContext('2d')
+    const ctx = getContext2D(canvas)
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     const isMicActive = audioSourceStore.isMicrophoneActive
@@ -434,6 +481,17 @@ export function useRenderLoop({
           multiLayerCompositeCtx.restore()
         }
 
+        // Post-processing (Bloom / Trails) über das gesamte Layer-Composite.
+        const mlPostFx = visualizerStore.postFxConfig
+        if (postFxActive(mlPostFx)) {
+          const proc = ensureMainPostProcessor(canvas.width, canvas.height)
+          if (proc) {
+            try {
+              proc.apply(multiLayerCompositeCanvas, mlPostFx, currentQuality())
+            } catch {}
+          }
+        }
+
         drawVisualizerCallback = (targetCtx, width, height) => {
           if (width === canvas.width && height === canvas.height) {
             targetCtx.drawImage(multiLayerCompositeCanvas, 0, 0)
@@ -485,6 +543,12 @@ export function useRenderLoop({
             }
             if (!vizWorkerActive) visualizer.init?.(canvas.width, canvas.height)
             if (canvasResized) workerManager.resizeVisualizerCanvas(canvas.width, canvas.height)
+            // Reset trail history so a new visualizer / size doesn't ghost.
+            if (mainPostProcessor) {
+              try {
+                mainPostProcessor.clearHistory()
+              } catch {}
+            }
             lastSelectedVisualizerId.value = visualizerId
             lastCanvasWidth.value = canvas.width
             lastCanvasHeight.value = canvas.height
@@ -507,6 +571,8 @@ export function useRenderLoop({
               color: visualizerStore.visualizerColor,
               opacity: visualizerStore.visualizerOpacity,
               colorOpacity: visualizerStore.colorOpacity,
+              postFx: visualizerStore.postFxConfig,
+              quality: currentQuality(),
             })
 
             if (vizWorkerBitmap) {
@@ -573,6 +639,18 @@ export function useRenderLoop({
               visualizerStore.fallbackToLastWorking()
             }
             visualizerCacheCtx.restore()
+
+            // Post-processing (Bloom / Trails) auf den Visualizer-Cache.
+            // Mutiert visualizerCacheCanvas in-place → Recording/Screenshot erben es.
+            const singlePostFx = visualizerStore.postFxConfig
+            if (postFxActive(singlePostFx)) {
+              const proc = ensureMainPostProcessor(canvas.width, canvas.height)
+              if (proc) {
+                try {
+                  proc.apply(visualizerCacheCanvas, singlePostFx, currentQuality())
+                } catch {}
+              }
+            }
 
             drawVisualizerCallback = (targetCtx, width, height) => {
               const scale = visualizerStore.visualizerScale
@@ -729,6 +807,12 @@ export function useRenderLoop({
     if (vizWorkerBitmap) {
       vizWorkerBitmap.close()
       vizWorkerBitmap = null
+    }
+    if (mainPostProcessor) {
+      try {
+        mainPostProcessor.dispose()
+      } catch {}
+      mainPostProcessor = null
     }
   }
 

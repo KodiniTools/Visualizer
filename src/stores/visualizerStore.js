@@ -437,6 +437,59 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     visualizerScale.value = 1.0
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ✨ POST-PROCESSING (Bloom / Trails / Adaptive Quality)
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Zentraler Nachbearbeitungs-Pass, der die Effekte aller Visualizer verstärkt,
+  // ohne pro-Form-Kosten (ersetzt teures shadowBlur durch einen einzigen Bloom).
+
+  const bloomEnabled = ref(true) // Glüh-/Bloom-Effekt aktiv
+  const bloomStrength = ref(0.55) // Intensität des additiven Glühens (0–2)
+  const bloomThreshold = ref(0.35) // Helligkeitsschwelle, ab der geglüht wird (0–1)
+  const bloomRadius = ref(8) // Weichzeichner-Radius des Glühens
+
+  const trailsEnabled = ref(false) // Bewegungs-Nachzieheffekt (Afterimages)
+  const trailsDecay = ref(0.85) // Lebensdauer der Spuren (0 = keine, 0.97 = sehr lang)
+
+  const adaptiveQuality = ref(true) // Automatische Qualitätsanpassung nach Frame-Zeit
+
+  // Kompaktes Config-Objekt für die PostFX-Pipeline (Worker & Main-Thread)
+  const postFxConfig = computed(() => ({
+    bloom: {
+      enabled: bloomEnabled.value,
+      strength: bloomStrength.value,
+      threshold: bloomThreshold.value,
+      radius: bloomRadius.value,
+    },
+    trails: {
+      enabled: trailsEnabled.value,
+      decay: trailsDecay.value,
+    },
+    adaptiveQuality: adaptiveQuality.value,
+  }))
+
+  function setBloomEnabled(v) {
+    bloomEnabled.value = !!v
+  }
+  function setBloomStrength(v) {
+    bloomStrength.value = Math.max(0, Math.min(2, v))
+  }
+  function setBloomThreshold(v) {
+    bloomThreshold.value = Math.max(0, Math.min(1, v))
+  }
+  function setBloomRadius(v) {
+    bloomRadius.value = Math.max(1, Math.min(32, v))
+  }
+  function setTrailsEnabled(v) {
+    trailsEnabled.value = !!v
+  }
+  function setTrailsDecay(v) {
+    trailsDecay.value = Math.max(0, Math.min(0.97, v))
+  }
+  function setAdaptiveQuality(v) {
+    adaptiveQuality.value = !!v
+  }
+
   return {
     availableVisualizers,
     categorizedVisualizers, // ✅ NEU: Kategorisierte Liste
@@ -485,5 +538,21 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     clearAllLayers,
     syncLayerFromSingleMode,
     syncSingleModeFromLayer,
+    // ✨ NEU: Post-Processing (Bloom / Trails / Adaptive Quality)
+    bloomEnabled,
+    bloomStrength,
+    bloomThreshold,
+    bloomRadius,
+    trailsEnabled,
+    trailsDecay,
+    adaptiveQuality,
+    postFxConfig,
+    setBloomEnabled,
+    setBloomStrength,
+    setBloomThreshold,
+    setBloomRadius,
+    setTrailsEnabled,
+    setTrailsDecay,
+    setAdaptiveQuality,
   }
 })

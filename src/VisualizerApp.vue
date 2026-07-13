@@ -426,9 +426,19 @@ function initializeCanvas(canvasParam) {
 // Wird vom CanvasManager nach dem Löschen aufgerufen. Registriert einen
 // History-Command (Strg+Z / Strg+Y) und zeigt einen Toast mit
 // "Rückgängig"-Button zur direkten Wiederherstellung.
+let deletionCommandCounter = 0
+
 function handleObjectDeleted({ type, undo, redo }) {
+  // Eindeutiges Token zum Wiedererkennen dieses Commands im History-Stack.
+  // WICHTIG: Kein Identitätsvergleich (===) mit dem Command-Objekt, da Pinia
+  // das Objekt beim Speichern in einen reaktiven Proxy einwickelt – die
+  // Referenz ist danach nicht mehr identisch. Primitive (das Token) werden
+  // vom Proxy dagegen unverändert durchgereicht.
+  const token = ++deletionCommandCounter
+
   const command = {
     name: `delete:${type}`,
+    token,
     execute: redo,
     undo,
     timestamp: Date.now(),
@@ -442,6 +452,8 @@ function handleObjectDeleted({ type, undo, redo }) {
         ? 'toast.videoDeleted'
         : 'toast.textDeleted'
 
+  let handled = false
+
   toastStore.addToast({
     type: 'info',
     message: t(messageKey),
@@ -449,11 +461,13 @@ function handleObjectDeleted({ type, undo, redo }) {
     action: {
       label: t('toast.undo'),
       handler: () => {
+        if (handled) return
         // Nur rückgängig machen, wenn diese Löschung noch die aktuelle
         // History-Aktion ist (sonst wurde sie z.B. bereits per Strg+Z
         // rückgängig gemacht) – verhindert versehentliches Über-Undo.
         const h = historyStore
-        if (h.currentIndex >= 0 && h.history[h.currentIndex] === command) {
+        if (h.currentIndex >= 0 && h.history[h.currentIndex]?.token === token) {
+          handled = true
           h.undo()
         }
       },

@@ -161,6 +161,26 @@ export class TextManager {
   }
 
   /**
+   * ↩️ Stellt ein zuvor gelöschtes Text-Objekt wieder her
+   * Fügt das Objekt an seiner ursprünglichen Ebenen-Position (Index) wieder ein
+   * @param {Object} textObject - Das wiederherzustellende Text-Objekt
+   * @param {number} [index] - Ursprünglicher Index in der Ebenen-Reihenfolge
+   * @returns {boolean} true wenn erfolgreich
+   */
+  restore(textObject, index) {
+    if (!textObject) return false
+    // Doppelte Wiederherstellung verhindern
+    if (this.textObjects.some((t) => t.id === textObject.id)) return false
+
+    if (typeof index === 'number' && index >= 0 && index <= this.textObjects.length) {
+      this.textObjects.splice(index, 0, textObject)
+    } else {
+      this.textObjects.push(textObject)
+    }
+    return true
+  }
+
+  /**
    * Findet ein Text-Objekt an einer bestimmten Position
    */
   findObjectAt(x, y, targetCanvas) {

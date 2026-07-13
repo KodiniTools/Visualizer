@@ -55,6 +55,9 @@
             <div v-if="toast.title" class="toast__title">{{ toast.title }}</div>
             <div class="toast__message">{{ toast.message }}</div>
           </div>
+          <button v-if="toast.action" class="toast__action" @click="handleAction(toast)">
+            {{ toast.action.label }}
+          </button>
           <button
             v-if="toast.dismissible"
             class="toast__close"
@@ -89,6 +92,14 @@ const toastCount = computed(() => toastStore.activeToasts.length)
 
 function removeToast(id) {
   toastStore.removeToast(id)
+}
+
+function handleAction(toast) {
+  try {
+    toast.action?.handler?.()
+  } finally {
+    toastStore.removeToast(toast.id)
+  }
 }
 </script>
 
@@ -257,6 +268,34 @@ function removeToast(id) {
 }
 [data-theme='light'] .toast__message {
   color: #4d6d8e;
+}
+
+.toast__action {
+  flex-shrink: 0;
+  align-self: center;
+  padding: 5px 12px;
+  border: 1px solid var(--accent-primary, #c9984d);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent-primary, #c9984d);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.toast__action:hover {
+  background: var(--accent-primary, #c9984d);
+  color: #000;
+}
+[data-theme='light'] .toast__action {
+  border-color: #014f99;
+  color: #014f99;
+}
+[data-theme='light'] .toast__action:hover {
+  background: #014f99;
+  color: #fff;
 }
 
 .toast__close {

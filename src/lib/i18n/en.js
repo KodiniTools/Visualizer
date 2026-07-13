@@ -1385,6 +1385,10 @@ export default {
     textAdded: 'Text added',
     textDeleted: 'Text deleted',
     textDuplicated: 'Text duplicated',
+    imageDeleted: 'Image deleted',
+    videoDeleted: 'Video deleted',
+    objectRestored: 'Restored',
+    undo: 'Undo',
     // Canvas operations
     canvasCleared: 'Canvas cleared',
     backgroundReset: 'Background reset',

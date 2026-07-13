@@ -187,6 +187,8 @@ import { useBackgroundTilesStore } from './stores/backgroundTilesStore.js'
 import { useAudioSourceStore } from './stores/audioSourceStore.js'
 import { useBeatDropStore } from './stores/beatDropStore.js'
 import { useAudioFxStore } from './stores/audioFxStore.js'
+import { useToastStore } from './stores/toastStore.js'
+import { useHistoryStore } from './stores/historyStore.js'
 import { BeatDropRenderer } from './lib/canvasManager/rendering/BeatDropRenderer.js'
 import { AudioFxRenderer } from './lib/canvasManager/rendering/AudioFxRenderer.js'
 import { useFrameCapture } from './composables/useFrameCapture.js'
@@ -234,6 +236,8 @@ const gridStore = useGridStore()
 const workspaceStore = useWorkspaceStore()
 const backgroundTilesStore = useBackgroundTilesStore()
 const audioSourceStore = useAudioSourceStore()
+const toastStore = useToastStore()
+const historyStore = useHistoryStore()
 const route = useRoute()
 const router = useRouter()
 
@@ -404,6 +408,7 @@ function initializeCanvas(canvasParam) {
     onObjectSelected,
     onStateChange: () => {},
     onTextDoubleClick: () => {},
+    onObjectDeleted: handleObjectDeleted,
     textManager: textManagerInstance,
     fotoManager: fotoManagerInstance.value,
     gridManager: gridManagerInstance.value,
@@ -415,6 +420,45 @@ function initializeCanvas(canvasParam) {
 
   canvasInitialized = true
   return true
+}
+
+// ↩️ Undo-fähige Löschung eines Canvas-Objekts (Text/Bild/Video)
+// Wird vom CanvasManager nach dem Löschen aufgerufen. Registriert einen
+// History-Command (Strg+Z / Strg+Y) und zeigt einen Toast mit
+// "Rückgängig"-Button zur direkten Wiederherstellung.
+function handleObjectDeleted({ type, undo, redo }) {
+  const command = {
+    name: `delete:${type}`,
+    execute: redo,
+    undo,
+    timestamp: Date.now(),
+  }
+  historyStore.addCommand(command)
+
+  const messageKey =
+    type === 'image'
+      ? 'toast.imageDeleted'
+      : type === 'video'
+        ? 'toast.videoDeleted'
+        : 'toast.textDeleted'
+
+  toastStore.addToast({
+    type: 'info',
+    message: t(messageKey),
+    duration: 6000,
+    action: {
+      label: t('toast.undo'),
+      handler: () => {
+        // Nur rückgängig machen, wenn diese Löschung noch die aktuelle
+        // History-Aktion ist (sonst wurde sie z.B. bereits per Strg+Z
+        // rückgängig gemacht) – verhindert versehentliches Über-Undo.
+        const h = historyStore
+        if (h.currentIndex >= 0 && h.history[h.currentIndex] === command) {
+          h.undo()
+        }
+      },
+    },
+  })
 }
 
 function onObjectSelected(selectedObject) {
@@ -708,7 +752,7 @@ onMounted(async () => {
     if (!canvasManagerInstance.value || !multiImageManagerInstance.value) return
 
     keyboardShortcutsInstance.value = new KeyboardShortcuts(
-      { playerStore, recorderStore, gridStore },
+      { playerStore, recorderStore, gridStore, historyStore },
       {
         canvasManager: canvasManagerInstance.value,
         multiImageManager: multiImageManagerInstance.value,

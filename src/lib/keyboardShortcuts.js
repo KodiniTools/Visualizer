@@ -17,6 +17,7 @@ export class KeyboardShortcuts {
     this.playerStore = stores.playerStore
     this.recorderStore = stores.recorderStore
     this.gridStore = stores.gridStore
+    this.historyStore = stores.historyStore || null
     this.canvasManager = managers.canvasManager
     this.multiImageManager = managers.multiImageManager
 
@@ -498,17 +499,25 @@ export class KeyboardShortcuts {
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // ↩️ UNDO/REDO ACTIONS (Placeholder)
+  // ↩️ UNDO/REDO ACTIONS
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   undo() {
-    console.log('↩️ [Shortcut] Undo (not implemented yet)')
-    // TODO: Implementiere Undo-System
+    if (!this.historyStore) {
+      console.warn('↩️ [Shortcut] Undo nicht verfügbar (kein History-Store)')
+      return
+    }
+    this.historyStore.undo()
+    console.log('↩️ [Shortcut] Undo')
   }
 
   redo() {
-    console.log('↪️ [Shortcut] Redo (not implemented yet)')
-    // TODO: Implementiere Redo-System
+    if (!this.historyStore) {
+      console.warn('↪️ [Shortcut] Redo nicht verfügbar (kein History-Store)')
+      return
+    }
+    this.historyStore.redo()
+    console.log('↪️ [Shortcut] Redo')
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -545,8 +554,8 @@ export class KeyboardShortcuts {
         '?': 'Show Keyboard Shortcuts Help',
       },
       Editing: {
-        'Ctrl+Z': 'Undo (coming soon)',
-        'Ctrl+Shift+Z': 'Redo (coming soon)',
+        'Ctrl+Z': 'Undo',
+        'Ctrl+Shift+Z / Ctrl+Y': 'Redo',
       },
     }
   }

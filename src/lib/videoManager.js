@@ -403,18 +403,26 @@ export class VideoManager {
 
   /**
    * Entfernt ein Video vom Canvas
+   * @param {string|number} videoId - ID des Videos
+   * @param {Object} [options]
+   * @param {boolean} [options.destroyElement=true] - Wenn false, bleibt das
+   *   HTMLVideoElement erhalten (nur pausiert), damit das Video später
+   *   wiederhergestellt werden kann (Undo). Wird für die Undo-fähige Löschung
+   *   verwendet.
    */
-  removeVideo(videoId) {
+  removeVideo(videoId, { destroyElement = true } = {}) {
     const index = this.videos.findIndex((v) => v.id === videoId)
     if (index === -1) return false
 
     const video = this.videos[index]
 
-    // Video-Element stoppen und aufräumen
+    // Video-Element stoppen (und optional vollständig aufräumen)
     if (video.videoElement) {
       video.videoElement.pause()
-      video.videoElement.src = ''
-      video.videoElement.load()
+      if (destroyElement) {
+        video.videoElement.src = ''
+        video.videoElement.load()
+      }
     }
 
     this.videos.splice(index, 1)
@@ -425,6 +433,38 @@ export class VideoManager {
     }
 
     console.log('🗑️ Video entfernt:', videoId, 'Verbleibende Videos:', this.videos.length)
+
+    this.redrawCallback()
+    this.onVideoChanged()
+
+    return true
+  }
+
+  /**
+   * ↩️ Stellt ein zuvor entferntes Video wieder her
+   * Voraussetzung: Das Video wurde mit `removeVideo(id, { destroyElement: false })`
+   * entfernt, sodass das HTMLVideoElement noch intakt ist.
+   * @param {Object} videoData - Das wiederherzustellende Video-Objekt
+   * @param {number} [index] - Ursprünglicher Index in der Ebenen-Reihenfolge
+   * @returns {boolean} true wenn erfolgreich
+   */
+  restoreVideo(videoData, index) {
+    if (!videoData) return false
+    // Doppelte Wiederherstellung verhindern
+    if (this.videos.some((v) => v.id === videoData.id)) return false
+
+    if (typeof index === 'number' && index >= 0 && index <= this.videos.length) {
+      this.videos.splice(index, 0, videoData)
+    } else {
+      this.videos.push(videoData)
+    }
+
+    // Wiedergabe fortsetzen, falls global gerade abgespielt wird
+    if (videoData.videoElement && this.isPlaying) {
+      videoData.videoElement.play().catch(() => {})
+    }
+
+    console.log('↩️ Video wiederhergestellt:', videoData.id, 'Videos gesamt:', this.videos.length)
 
     this.redrawCallback()
     this.onVideoChanged()

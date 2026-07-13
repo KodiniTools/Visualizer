@@ -34,6 +34,9 @@ export class CanvasManager {
     this.onSelectionChange = dependencies.onObjectSelected
     this.updateUICallback = dependencies.onStateChange
     this.onTextEditStart = dependencies.onTextDoubleClick
+    // Wird nach dem Löschen eines Canvas-Objekts (Text/Bild/Video) aufgerufen
+    // und stellt undo()/redo()-Hooks für die History + Undo-Toast bereit
+    this.onObjectDeleted = dependencies.onObjectDeleted
     this.textManager = dependencies.textManager
     this.gridManager = dependencies.gridManager
     this.fotoManager = dependencies.fotoManager
@@ -941,17 +944,77 @@ export class CanvasManager {
   deleteActiveObject() {
     if (!this.activeObject) return
 
-    if (this.activeObject.type === 'image' && this.multiImageManager) {
-      this.multiImageManager.removeImage(this.activeObject.id)
-    } else if (this.activeObject.type === 'video' && this.videoManager) {
-      this.videoManager.removeVideo(this.activeObject.id)
-    } else if (this.activeObject.type === 'text') {
-      if (this.textManager) {
-        this.textManager.delete(this.activeObject)
+    const obj = this.activeObject
+    const type = obj.type
+
+    // Baut Löschen/Wiederherstellen-Helfer für undo-fähige Objekt-Typen.
+    // remove() gibt den Index vor dem Entfernen zurück, restore() fügt an
+    // dieser Ebenen-Position wieder ein.
+    let helpers = null
+
+    if (type === 'image' && this.multiImageManager) {
+      const mgr = this.multiImageManager
+      helpers = {
+        remove: () => {
+          const index = mgr.images.findIndex((i) => i.id === obj.id)
+          mgr.removeImage(obj.id)
+          return index
+        },
+        restore: (index) => mgr.restoreImage(obj, index),
       }
-    } else if (this.activeObject.type === 'background') {
+    } else if (type === 'video' && this.videoManager) {
+      const mgr = this.videoManager
+      helpers = {
+        remove: () => {
+          const index = mgr.videos.findIndex((v) => v.id === obj.id)
+          // Video-Element erhalten, damit Undo möglich ist
+          mgr.removeVideo(obj.id, { destroyElement: false })
+          return index
+        },
+        restore: (index) => mgr.restoreVideo(obj, index),
+      }
+    } else if (type === 'text' && this.textManager) {
+      const mgr = this.textManager
+      helpers = {
+        remove: () => {
+          const index = mgr.textObjects.findIndex((t) => t.id === obj.id)
+          mgr.delete(obj)
+          return index
+        },
+        restore: (index) => mgr.restore(obj, index),
+      }
+    }
+
+    if (helpers) {
+      let lastIndex = helpers.remove()
+
+      this.setActiveObject(null)
+      this.redrawCallback()
+      this.updateUICallback()
+
+      // Undo/Redo-Hooks an die Anwendung geben (History + Toast)
+      this.onObjectDeleted?.({
+        type,
+        object: obj,
+        undo: () => {
+          helpers.restore(lastIndex)
+          this.redrawCallback()
+          this.updateUICallback()
+        },
+        redo: () => {
+          lastIndex = helpers.remove()
+          if (this.activeObject === obj) this.setActiveObject(null)
+          this.redrawCallback()
+          this.updateUICallback()
+        },
+      })
+      return
+    }
+
+    // Hintergrund-Typen: kein Undo-Command
+    if (type === 'background') {
       this.background = null
-    } else if (this.activeObject.type === 'workspace-background') {
+    } else if (type === 'workspace-background') {
       this.workspaceBackground = null
     }
 

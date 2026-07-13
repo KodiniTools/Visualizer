@@ -27,6 +27,7 @@ export const useToastStore = defineStore('toast', () => {
    * @param {number} options.duration - Anzeigedauer in ms (Standard: 3000)
    * @param {string} options.title - Optionaler Titel
    * @param {boolean} options.dismissible - Kann vom Benutzer geschlossen werden (Standard: true)
+   * @param {Object} options.action - Optionaler Aktions-Button { label, handler }
    * @returns {number} Die ID des erstellten Toasts
    */
   function addToast(options) {
@@ -39,6 +40,7 @@ export const useToastStore = defineStore('toast', () => {
       title: options.title || null,
       duration: options.duration ?? DEFAULT_DURATION,
       dismissible: options.dismissible ?? true,
+      action: options.action || null,
       createdAt: Date.now(),
     }
 

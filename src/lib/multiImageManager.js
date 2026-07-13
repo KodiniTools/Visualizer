@@ -398,6 +398,32 @@ export class MultiImageManager {
   }
 
   /**
+   * ↩️ Stellt ein zuvor entferntes Bild wieder her
+   * Fügt das Bild an seiner ursprünglichen Ebenen-Position (Index) wieder ein
+   * @param {Object} imageData - Das wiederherzustellende Bild-Objekt
+   * @param {number} [index] - Ursprünglicher Index in der Ebenen-Reihenfolge
+   * @returns {boolean} true wenn erfolgreich
+   */
+  restoreImage(imageData, index) {
+    if (!imageData) return false
+    // Doppelte Wiederherstellung verhindern
+    if (this.images.some((img) => img.id === imageData.id)) return false
+
+    if (typeof index === 'number' && index >= 0 && index <= this.images.length) {
+      this.images.splice(index, 0, imageData)
+    } else {
+      this.images.push(imageData)
+    }
+
+    console.log('↩️ Bild wiederhergestellt:', imageData.id, 'Bilder gesamt:', this.images.length)
+
+    this.redrawCallback()
+    this.onImageChanged()
+
+    return true
+  }
+
+  /**
    * Setzt das aktuell ausgewählte Bild
    */
   setSelectedImage(image) {

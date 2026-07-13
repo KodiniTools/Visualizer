@@ -192,6 +192,9 @@
       </div>
     </div>
 
+    <!-- ✨ NEU: Post-Processing Effekte (Bloom / Trails / Adaptive Qualität) -->
+    <VisualizerEffectsPanel />
+
     <!-- Multi-Layer Panel -->
     <VisualizerLayerPanel />
   </div>
@@ -203,6 +206,7 @@ import { useI18n } from '../lib/i18n.js'
 import { useVisualizerStore } from '../stores/visualizerStore.js'
 import HelpTooltip from './HelpTooltip.vue'
 import VisualizerLayerPanel from './VisualizerLayerPanel.vue'
+import VisualizerEffectsPanel from './VisualizerEffectsPanel.vue'
 
 const { t, locale } = useI18n()
 const store = useVisualizerStore()

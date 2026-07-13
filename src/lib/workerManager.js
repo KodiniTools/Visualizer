@@ -305,12 +305,31 @@ export class WorkerManager {
    * Sendet einen Render-Auftrag an den Visualizer Worker.
    * Das Ergebnis (ImageBitmap) wird asynchron via onVisualizerFrame-Callback geliefert.
    */
-  renderVisualizerFrame({ visualizerId, audioData, bufferLength, color, opacity, colorOpacity }) {
+  renderVisualizerFrame({
+    visualizerId,
+    audioData,
+    bufferLength,
+    color,
+    opacity,
+    colorOpacity,
+    postFx,
+    quality,
+  }) {
     if (!this.visualizerWorkerReady || !this.visualizerWorker) return false
 
     const copy = new Uint8Array(audioData)
     this.visualizerWorker.postMessage(
-      { type: 'render', visualizerId, audioData: copy, bufferLength, color, opacity, colorOpacity },
+      {
+        type: 'render',
+        visualizerId,
+        audioData: copy,
+        bufferLength,
+        color,
+        opacity,
+        colorOpacity,
+        postFx,
+        quality,
+      },
       [copy.buffer],
     )
     return true

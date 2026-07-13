@@ -960,6 +960,8 @@ export default {
     attackHint: 'How fast the effect responds',
     release: 'Release',
     releaseHint: 'How slowly the effect decays',
+    beatBoost: 'Beat Boost',
+    beatBoostHint: 'Amplifies the effect on detected beats',
     reset: 'Reset',
     selectEffects: 'Select Effects',
     colorRotation: 'Color Rotation',

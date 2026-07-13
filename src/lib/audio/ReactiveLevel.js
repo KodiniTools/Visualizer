@@ -61,18 +61,28 @@ export function applyEnvelope(prev, target, attack, release) {
   return prev + (target - prev) * coef
 }
 
+const clamp01 = (v) => Math.max(0, Math.min(1, v))
+
 /**
  * Computes a normalized (0–1) reactive level for one audio source, applying —
- * in order — beat boost, phase offset, attack/release smoothing, easing and
- * gain. The envelope for `source` advances once per call, so callers that need
- * several effects sharing a source should compute the level once per frame
- * (see makeLevelResolver).
+ * in order — beat boost, phase offset, optional continuous input pre-smoothing,
+ * a threshold gate, attack/release smoothing, easing and gain. The envelope for
+ * `source` advances once per call, so callers that need several effects sharing
+ * a source should compute the level once per frame (see makeLevelResolver).
+ *
+ * Envelope coefficients are taken either from explicit `attack`/`release`
+ * (0–1, used by the text path which exposes them directly) or, when neither is
+ * given, derived from the single `smoothing` slider (used by images).
  *
  * @param {object} owner - stable settings object used as envelope state key
  * @param {object} opts
  * @param {string} opts.source - 'bass' | 'mid' | 'treble' | 'volume' | 'dynamic'
  * @param {object} opts.audioData - window.audioAnalysisData
- * @param {number} [opts.smoothing=50]
+ * @param {number} [opts.smoothing=50] - used only when attack/release are absent
+ * @param {number} [opts.attack] - explicit rise coefficient 0–1
+ * @param {number} [opts.release] - explicit fall coefficient 0–1
+ * @param {number} [opts.threshold=0] - 0–1 gate; quieter input maps to 0
+ * @param {number} [opts.preSmoothing=0] - 0–1 continuous input low-pass
  * @param {number} [opts.beatBoost=1.0]
  * @param {number} [opts.phase=0]
  * @param {string} [opts.easing='linear']
@@ -85,6 +95,10 @@ export function computeReactiveLevel(owner, opts, time = Date.now()) {
     source = 'bass',
     audioData,
     smoothing = 50,
+    attack,
+    release,
+    threshold = 0,
+    preSmoothing = 0,
     beatBoost = 1.0,
     phase = 0,
     easing = 'linear',
@@ -92,19 +106,42 @@ export function computeReactiveLevel(owner, opts, time = Date.now()) {
   } = opts
   if (!audioData) return 0
 
-  // Read the RAW band value; our envelope is the single source of smoothing.
+  // Read the RAW band value; our envelope is the source of smoothing.
   let level = getAudioLevel(source, audioData, false)
   level = applyBeatBoost(level, audioData, beatBoost)
   level = applyPhaseOffset(level, phase, time)
+  let n = level / 255
 
   const env = getEnv(owner)
-  const { attack, release } = smoothingToEnvelope(smoothing)
-  const smoothed = applyEnvelope(env[source], level, attack, release)
+
+  // Optional continuous input pre-smoothing (symmetric one-pole) — turns the
+  // text "smoothing" slider into a real control instead of a binary switch.
+  if (preSmoothing > 0) {
+    const preKey = source + ':pre'
+    const coef = 1 - Math.min(0.95, preSmoothing)
+    n = applyEnvelope(env[preKey], n, coef, coef)
+    env[preKey] = n
+  }
+
+  // Threshold gate: ignore quiet signals, rescale the remainder to 0–1.
+  if (threshold > 0) {
+    n = n < threshold ? 0 : (n - threshold) / (1 - threshold)
+  }
+
+  // Attack/release envelope — explicit (text) or derived from smoothing (images).
+  let atk, rel
+  if (attack != null || release != null) {
+    atk = clamp01(attack ?? 1)
+    rel = clamp01(release ?? 1)
+  } else {
+    ;({ attack: atk, release: rel } = smoothingToEnvelope(smoothing))
+  }
+  const smoothed = applyEnvelope(env[source], n, atk, rel)
   env[source] = smoothed
 
-  let normalized = applyEasing(smoothed / 255, easing)
+  let normalized = applyEasing(smoothed, easing)
   if (gain != null && gain !== 1.0) normalized *= gain
-  return Math.max(0, Math.min(1, normalized))
+  return clamp01(normalized)
 }
 
 /**

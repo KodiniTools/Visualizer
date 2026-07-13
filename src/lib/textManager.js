@@ -3,6 +3,8 @@
  * Unterstützt: Schriftarten, Größen, Farben, Stile und SCHATTEN
  * ✅ FIXED: Präzise Textmarkierung mit Schatten-, Stroke- und letterSpacing-Unterstützung
  */
+import { makeLevelResolver } from './audio/ReactiveLevel.js'
+
 export class TextManager {
   constructor(textStore) {
     this.textStore = textStore
@@ -66,6 +68,7 @@ export class TextManager {
         threshold: 0, // ✨ NEU: Ignoriert leise Signale (0-50%)
         attack: 90, // ✨ NEU: Wie schnell der Effekt anspricht (10-100%)
         release: 50, // ✨ NEU: Wie langsam der Effekt abklingt (10-100%)
+        beatBoost: 1.0, // ✨ NEU: Verstärkung auf erkannten Beats (1.0 = aus, bis 3.0)
         effects: {
           hue: { enabled: false, intensity: 80 },
           brightness: { enabled: false, intensity: 80 },
@@ -1359,83 +1362,24 @@ export class TextManager {
     const audioData = window.audioAnalysisData
     if (!audioData) return null
 
-    // Audio-Level basierend auf gewählter Quelle holen
-    const source = audioSettings.source || 'bass'
-    const smoothing = audioSettings.smoothing || 50
-    let audioLevel = 0
+    const effects = audioSettings.effects
+    if (!effects) return null
 
-    // Wähle zwischen geglätteten und rohen Werten basierend auf Smoothing
-    const useSmooth = smoothing > 30
-
-    switch (source) {
-      case 'bass':
-        audioLevel = useSmooth ? audioData.smoothBass : audioData.bass
-        break
-      case 'mid':
-        audioLevel = useSmooth ? audioData.smoothMid : audioData.mid
-        break
-      case 'treble':
-        audioLevel = useSmooth ? audioData.smoothTreble : audioData.treble
-        break
-      case 'volume':
-        audioLevel = useSmooth ? audioData.smoothVolume : audioData.volume
-        break
-      case 'dynamic':
-        // ✨ Dynamischer Modus: Gewichtete Mischung aller Frequenzbänder
-        // basierend auf ihrer aktuellen Energie
-        const bass = useSmooth ? audioData.smoothBass : audioData.bass
-        const mid = useSmooth ? audioData.smoothMid : audioData.mid
-        const treble = useSmooth ? audioData.smoothTreble : audioData.treble
-
-        // Gesamtenergie berechnen (mit Minimum um Division durch 0 zu vermeiden)
-        const totalEnergy = Math.max(bass + mid + treble, 1)
-
-        // Gewichte basierend auf aktueller Energie jedes Bands
-        const bassWeight = bass / totalEnergy
-        const midWeight = mid / totalEnergy
-        const trebleWeight = treble / totalEnergy
-
-        // Gewichtete Mischung - die dominante Frequenz trägt am meisten bei
-        let rawLevel = bass * bassWeight + mid * midWeight + treble * trebleWeight
-
-        // ✨ Soft Compression: Verhindert konstantes Peaking bei lauter Musik (z.B. Techno)
-        // Wurzelkurve erweitert den dynamischen Bereich - leise Teile werden verstärkt,
-        // laute Teile werden komprimiert
-        const normalized = rawLevel / 255
-        const compressed = Math.pow(normalized, 0.7) // 0.7 = sanfte Kompression
-        audioLevel = compressed * 255 * 0.85 // 0.85 = leichte Dämpfung
-        break
-    }
-
-    // Basis Audio-Level normalisiert auf 0-1
-    let baseLevel = audioLevel / 255
-
-    // ✨ NEU: Threshold anwenden (ignoriert leise Signale)
-    const threshold = (audioSettings.threshold || 0) / 100
-    if (baseLevel < threshold) {
-      baseLevel = 0
-    } else {
-      // Skaliere den verbleibenden Bereich auf 0-1
-      baseLevel = (baseLevel - threshold) / (1 - threshold)
-    }
-
-    // ✨ NEU: Attack/Release für smoothere Übergänge
-    const attack = (audioSettings.attack || 90) / 100
-    const release = (audioSettings.release || 50) / 100
-
-    // Speichere letzten Level pro audioSettings (einfaches Caching)
-    if (!this._lastAudioLevels) this._lastAudioLevels = new WeakMap()
-    const lastLevel = this._lastAudioLevels.get(audioSettings) || 0
-
-    let smoothedLevel
-    if (baseLevel > lastLevel) {
-      // Attack: schneller Anstieg
-      smoothedLevel = lastLevel + (baseLevel - lastLevel) * attack
-    } else {
-      // Release: langsameres Abklingen
-      smoothedLevel = lastLevel + (baseLevel - lastLevel) * release
-    }
-    this._lastAudioLevels.set(audioSettings, smoothedLevel)
+    // ✨ Geteilte, kontinuierliche Reaktions-Berechnung (wie Bilder/Hintergründe):
+    //  - kontinuierliches Vor-Smoothing statt binärem useSmooth>30
+    //  - funktionierender Beat-Boost (nutzt jetzt vorhandene Beat-Daten)
+    //  - Threshold-Gate + explizites Attack/Release (Text-spezifisch)
+    //  - individuelle Audio-Quelle pro Effekt (Parität mit Bildern)
+    // Der Resolver berechnet jede Quelle nur einmal pro Frame.
+    const globalSource = audioSettings.source || 'bass'
+    const resolveLevel = makeLevelResolver(audioSettings, {
+      audioData,
+      preSmoothing: (audioSettings.smoothing ?? 50) / 100,
+      threshold: (audioSettings.threshold || 0) / 100,
+      attack: (audioSettings.attack ?? 90) / 100,
+      release: (audioSettings.release ?? 50) / 100,
+      beatBoost: audioSettings.beatBoost ?? 1.0,
+    })
 
     // Ergebnis-Objekt für alle aktivierten Effekte
     const result = {
@@ -1443,15 +1387,13 @@ export class TextManager {
       effects: {},
     }
 
-    // Prüfe welche Effekte aktiviert sind
-    const effects = audioSettings.effects
-    if (!effects) return null
-
     // Berechne Werte für jeden aktivierten Effekt
     for (const [effectName, effectConfig] of Object.entries(effects)) {
       if (effectConfig && effectConfig.enabled) {
+        const effectSource = effectConfig.source || globalSource
+        const baseLevel = resolveLevel(effectSource)
         const intensity = (effectConfig.intensity || 80) / 100
-        const normalizedLevel = smoothedLevel * intensity
+        const normalizedLevel = Math.min(1, baseLevel * intensity)
 
         result.hasEffects = true
         result.effects[effectName] = this._calculateTextEffectValue(

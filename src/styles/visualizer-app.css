@@ -1,0 +1,104 @@
+/* Global layout styles for the Visualizer app shell.
+   Imported (unscoped) from VisualizerApp.vue. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+:root {
+  --sticky-player-bar-height: 58px;
+  --sticky-player-bar-height-mobile: 150px;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+  font-family: var(--font-sans, 'Supreme', sans-serif);
+}
+#app {
+  height: 100%;
+  background-color: var(--primary-bg, #091428);
+  color: var(--text-primary, #e9e9eb);
+  font-family: var(--font-sans, 'Supreme', sans-serif);
+  font-size: 12px;
+}
+#app-container {
+  min-height: 100%;
+  background-color: var(--primary-bg, #091428);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  /* Reserve space for the fixed sticky player bar at the bottom */
+  padding-bottom: var(--sticky-player-bar-height, 58px);
+}
+
+@media (max-width: 768px) {
+  #app-container {
+    padding-bottom: var(--sticky-player-bar-height-mobile, 150px);
+  }
+}
+
+.layout-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr 340px;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 12px;
+  flex: 1;
+  padding: 12px;
+  min-height: 0;
+  background-color: var(--primary-bg, #091428);
+}
+.left-toolbar,
+.center-column,
+.right-panel {
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.left-toolbar,
+.right-panel {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.center-column {
+  min-width: 0;
+  overflow: hidden;
+  background-color: var(--primary-bg, #091428);
+}
+
+.left-toolbar::-webkit-scrollbar,
+.right-panel::-webkit-scrollbar {
+  width: 6px;
+}
+.left-toolbar::-webkit-scrollbar-track,
+.right-panel::-webkit-scrollbar-track {
+  background: rgba(201, 152, 77, 0.1);
+  border-radius: 3px;
+}
+.left-toolbar::-webkit-scrollbar-thumb,
+.right-panel::-webkit-scrollbar-thumb {
+  background: rgba(201, 152, 77, 0.4);
+  border-radius: 3px;
+}
+.left-toolbar::-webkit-scrollbar-thumb:hover,
+.right-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 152, 77, 0.6);
+}
+
+[data-theme='light'] .left-toolbar::-webkit-scrollbar-track,
+[data-theme='light'] .right-panel::-webkit-scrollbar-track {
+  background: rgba(1, 79, 153, 0.06);
+}
+[data-theme='light'] .left-toolbar::-webkit-scrollbar-thumb,
+[data-theme='light'] .right-panel::-webkit-scrollbar-thumb {
+  background: rgba(1, 79, 153, 0.25);
+}
+[data-theme='light'] .left-toolbar::-webkit-scrollbar-thumb:hover,
+[data-theme='light'] .right-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(1, 79, 153, 0.45);
+}

@@ -4,13 +4,8 @@
  * ✨ Verwendet modularisierte Audio-Verarbeitung
  */
 
-import {
-  applyEasing,
-  getAudioLevel,
-  applyBeatBoost,
-  applyPhaseOffset,
-  calculateEffectValue,
-} from './audio/index.js'
+import { calculateEffectValue } from './audio/index.js'
+import { makeLevelResolver } from './audio/ReactiveLevel.js'
 
 export class MultiImageManager {
   constructor(canvas, callbacks = {}) {
@@ -460,26 +455,6 @@ export class MultiImageManager {
   // ═══════════════════════════════════════════════════════════════════════════
 
   /**
-   * Wendet eine Easing-Funktion auf einen Wert an (0-1)
-   * ✅ Verwendet jetzt das modulare EasingFunctions-Modul
-   */
-  _applyEasing(value, easingType = 'linear') {
-    return applyEasing(value, easingType)
-  }
-
-  /**
-   * ✨ Berechnet den Audio-Level für eine bestimmte Quelle
-   * ✅ Verwendet jetzt das modulare AudioLevelCalculator-Modul
-   * @param {string} source - 'bass', 'mid', 'treble', 'volume', 'dynamic'
-   * @param {object} audioData - Die Audio-Analyse-Daten
-   * @param {boolean} useSmooth - Ob geglättete Werte verwendet werden sollen
-   * @returns {number} Audio-Level (0-255)
-   */
-  _getAudioLevelForSource(source, audioData, useSmooth) {
-    return getAudioLevel(source, audioData, useSmooth)
-  }
-
-  /**
    * ✨ Berechnet Audio-Reaktive Effekt-Werte basierend auf den aktuellen Audio-Daten
    * ✅ Unterstützt MEHRERE Effekte gleichzeitig
    * ✅ Easing-Funktionen für geschmeidigere Übergänge
@@ -498,11 +473,22 @@ export class MultiImageManager {
 
     // Globale Einstellungen
     const globalSource = audioSettings.source || 'bass'
-    const smoothing = audioSettings.smoothing || 50
+    const smoothing = audioSettings.smoothing ?? 50
     const easing = audioSettings.easing || 'linear'
     const phase = audioSettings.phase || 0
     const beatBoost = audioSettings.beatBoost ?? 1.0
-    const useSmooth = smoothing > 30
+    const gain = audioSettings.gain ?? 1.0
+
+    // ✨ Kontinuierliches Attack/Release-Smoothing + funktionierender Beat-Boost/Gain.
+    // Der Resolver berechnet jede Audio-Quelle nur einmal pro Frame (geteilte Hülle).
+    const resolveLevel = makeLevelResolver(audioSettings, {
+      audioData,
+      smoothing,
+      beatBoost,
+      phase,
+      easing,
+      gain,
+    })
 
     // Ergebnis-Objekt für alle aktivierten Effekte
     const result = {
@@ -514,45 +500,31 @@ export class MultiImageManager {
     const effects = audioSettings.effects
     if (!effects) {
       // Fallback für alte Struktur (einzelner Effekt)
-      let audioLevel = this._getAudioLevelForSource(globalSource, audioData, useSmooth)
-
-      // Beat-Boost anwenden (modulare Funktion)
-      audioLevel = applyBeatBoost(audioLevel, audioData, beatBoost)
-
-      // Phasenversatz anwenden (modulare Funktion)
-      audioLevel = applyPhaseOffset(audioLevel, phase)
-
-      let baseLevel = this._applyEasing(audioLevel / 255, easing)
+      const baseLevel = resolveLevel(globalSource)
       const effect = audioSettings.effect || 'hue'
       const intensity = (audioSettings.intensity || 80) / 100
 
       result.hasEffects = true
-      result.effects[effect] = this._calculateEffectValue(effect, baseLevel * intensity)
+      result.effects[effect] = this._calculateEffectValue(
+        effect,
+        Math.min(1, baseLevel * intensity),
+      )
       return result
     }
 
     // Berechne Werte für jeden aktivierten Effekt
     for (const [effectName, effectConfig] of Object.entries(effects)) {
       if (effectConfig && effectConfig.enabled) {
-        // ✨ NEU: Verwende individuelle Quelle oder globale Quelle
+        // ✨ Individuelle Quelle oder globale Quelle
         const effectSource = effectConfig.source || globalSource
-
-        // Audio-Level für diese spezifische Quelle berechnen
-        let audioLevel = this._getAudioLevelForSource(effectSource, audioData, useSmooth)
-
-        // Beat-Boost anwenden (modulare Funktion)
-        audioLevel = applyBeatBoost(audioLevel, audioData, beatBoost)
-
-        // Phasenversatz anwenden (modulare Funktion)
-        audioLevel = applyPhaseOffset(audioLevel, phase)
-
-        // Normalisieren, Easing anwenden, Intensität
-        let baseLevel = this._applyEasing(audioLevel / 255, easing)
+        const baseLevel = resolveLevel(effectSource)
         const intensity = (effectConfig.intensity || 80) / 100
-        const normalizedLevel = baseLevel * intensity
 
         result.hasEffects = true
-        result.effects[effectName] = this._calculateEffectValue(effectName, normalizedLevel)
+        result.effects[effectName] = this._calculateEffectValue(
+          effectName,
+          Math.min(1, baseLevel * intensity),
+        )
       }
     }
 

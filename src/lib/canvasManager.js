@@ -17,6 +17,7 @@ import {
   DragDropHandler,
 } from './canvasManager/interaction/index.js'
 import { RecordingRenderer } from './canvasManager/recording/index.js'
+import { makeLevelResolver } from './audio/ReactiveLevel.js'
 
 /**
  * CanvasManager - Orchestrator für alle Canvas-Operationen
@@ -652,60 +653,33 @@ export class CanvasManager {
     const audioData = window.audioAnalysisData
     if (!audioData) return null
 
-    const source = audioSettings.source || 'bass'
-    const smoothing = audioSettings.smoothing || 50
-    let audioLevel = 0
+    const effects = audioSettings.effects
+    if (!effects) return null
 
-    const useSmooth = smoothing > 30
-
-    switch (source) {
-      case 'bass':
-        audioLevel = useSmooth ? audioData.smoothBass : audioData.bass
-        break
-      case 'mid':
-        audioLevel = useSmooth ? audioData.smoothMid : audioData.mid
-        break
-      case 'treble':
-        audioLevel = useSmooth ? audioData.smoothTreble : audioData.treble
-        break
-      case 'volume':
-        audioLevel = useSmooth ? audioData.smoothVolume : audioData.volume
-        break
-      case 'dynamic':
-        const bass = useSmooth ? audioData.smoothBass : audioData.bass
-        const mid = useSmooth ? audioData.smoothMid : audioData.mid
-        const treble = useSmooth ? audioData.smoothTreble : audioData.treble
-
-        const totalEnergy = Math.max(bass + mid + treble, 1)
-
-        const bassWeight = bass / totalEnergy
-        const midWeight = mid / totalEnergy
-        const trebleWeight = treble / totalEnergy
-
-        let rawLevel = bass * bassWeight + mid * midWeight + treble * trebleWeight
-
-        const normalized = rawLevel / 255
-        const compressed = Math.pow(normalized, 0.7)
-        audioLevel = compressed * 255 * 0.85
-        break
-    }
-
-    const baseLevel = audioLevel / 255
+    // ✨ Parität mit Canvas-Bildern: kontinuierliches Attack/Release-Smoothing,
+    // funktionierender Beat-Boost/Gain, Phase, Easing und individuelle Quelle
+    // pro Effekt (vorher hatte der Hintergrund-Pfad nur binäres Smoothing/Gain).
+    const globalSource = audioSettings.source || 'bass'
+    const resolveLevel = makeLevelResolver(audioSettings, {
+      audioData,
+      smoothing: audioSettings.smoothing ?? 50,
+      beatBoost: audioSettings.beatBoost ?? 1.0,
+      phase: audioSettings.phase || 0,
+      easing: audioSettings.easing || 'linear',
+      gain: audioSettings.gain ?? 1.0,
+    })
 
     const result = {
       hasEffects: false,
       effects: {},
     }
 
-    const effects = audioSettings.effects
-    if (!effects) return null
-
-    const gain = audioSettings.gain ?? 1.0
-
     for (const [effectName, effectConfig] of Object.entries(effects)) {
       if (effectConfig && effectConfig.enabled) {
+        const effectSource = effectConfig.source || globalSource
+        const baseLevel = resolveLevel(effectSource)
         const intensity = (effectConfig.intensity || 80) / 100
-        const normalizedLevel = Math.min(baseLevel * intensity * gain, 1)
+        const normalizedLevel = Math.min(baseLevel * intensity, 1)
 
         result.hasEffects = true
         result.effects[effectName] = this._calculateEffectValue(effectName, normalizedLevel)

@@ -1,4 +1,5 @@
 import { workerManager } from '../lib/workerManager.js'
+import { BeatDetector } from '../lib/audio/BeatDetector.js'
 
 window.audioAnalysisData = {
   bass: 0,
@@ -9,7 +10,17 @@ window.audioAnalysisData = {
   smoothMid: 0,
   smoothTreble: 0,
   smoothVolume: 0,
+  // Beat info — consumed by audio-reactive images/backgrounds (beatBoost) and
+  // the beat-drop/audio-fx renderers. Previously never populated here, which
+  // silently disabled beatBoost everywhere.
+  isBeat: false,
+  beatIntensity: 0,
+  bpm: 0,
+  beatConfidence: 0,
 }
+
+// Beat detector for the main-thread fallback path (worker supplies its own).
+const fallbackBeatDetector = new BeatDetector()
 
 export function useGlobalAudioData() {
   let useAudioWorker = false
@@ -33,6 +44,15 @@ export function useGlobalAudioData() {
       d.smoothMid = Math.floor(d.smoothMid * (1 - s) + data.mid * s)
       d.smoothTreble = Math.floor(d.smoothTreble * (1 - ts) + data.treble * ts)
       d.smoothVolume = Math.floor(d.smoothVolume * (1 - s) + data.volume * s)
+    }
+
+    // Carry beat info through when present (worker result or fallback below).
+    if (data.isBeat !== undefined) {
+      const d = window.audioAnalysisData
+      d.isBeat = data.isBeat
+      d.beatIntensity = data.beatIntensity || 0
+      d.bpm = data.bpm || 0
+      d.beatConfidence = data.beatConfidence || 0
     }
   }
 
@@ -72,7 +92,10 @@ export function useGlobalAudioData() {
     const treble = Math.min(255, Math.floor((trebleAvg * 0.6 + treblePeak * 0.4) * 8.0))
     const volume = usableLength > 0 ? Math.min(255, Math.floor((totalSum / usableLength) * 1.5)) : 0
 
-    applyAudioData({ bass, mid, treble, volume })
+    // Beat detection on the bass band so beatBoost works without the worker.
+    const beat = fallbackBeatDetector.detect(bass)
+
+    applyAudioData({ bass, mid, treble, volume, ...beat })
   }
 
   function updateGlobalAudioData(audioDataArray, bufferLength) {

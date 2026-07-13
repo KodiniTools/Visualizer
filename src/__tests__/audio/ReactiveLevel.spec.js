@@ -103,6 +103,78 @@ describe('computeReactiveLevel', () => {
   })
 })
 
+describe('computeReactiveLevel — text options', () => {
+  it('gates quiet signals below the threshold to 0', () => {
+    const owner = {}
+    resetReactiveLevel(owner)
+    // 25% level with a 50% threshold → gated to 0.
+    const level = computeReactiveLevel(owner, {
+      source: 'bass',
+      audioData: { bass: 64 },
+      threshold: 0.5,
+      attack: 1,
+      release: 1,
+    })
+    expect(level).toBe(0)
+  })
+
+  it('rescales above-threshold signals to the full 0–1 range', () => {
+    const owner = {}
+    resetReactiveLevel(owner)
+    // Raw 0.75 with threshold 0.5 → (0.75-0.5)/0.5 = 0.5.
+    const level = computeReactiveLevel(owner, {
+      source: 'bass',
+      audioData: { bass: Math.round(0.75 * 255) },
+      threshold: 0.5,
+      attack: 1,
+      release: 1,
+    })
+    expect(level).toBeCloseTo(0.5, 2)
+  })
+
+  it('honors explicit attack/release over the smoothing slider', () => {
+    const owner = {}
+    resetReactiveLevel(owner)
+    // Seed at 0, then rise with attack 0.25 → 0.25 of the way to 1.0.
+    computeReactiveLevel(owner, {
+      source: 'bass',
+      audioData: { bass: 0 },
+      attack: 0.25,
+      release: 0.1,
+    })
+    const level = computeReactiveLevel(owner, {
+      source: 'bass',
+      audioData: { bass: 255 },
+      attack: 0.25,
+      release: 0.1,
+    })
+    expect(level).toBeCloseTo(0.25, 5)
+  })
+
+  it('preSmoothing dampens an instant jump on the first change', () => {
+    const owner = {}
+    resetReactiveLevel(owner)
+    // Seed low, then jump; with heavy preSmoothing and instant attack the output
+    // still lags because the input is low-passed first.
+    computeReactiveLevel(owner, {
+      source: 'bass',
+      audioData: { bass: 0 },
+      preSmoothing: 0.9,
+      attack: 1,
+      release: 1,
+    })
+    const level = computeReactiveLevel(owner, {
+      source: 'bass',
+      audioData: { bass: 255 },
+      preSmoothing: 0.9,
+      attack: 1,
+      release: 1,
+    })
+    expect(level).toBeGreaterThan(0)
+    expect(level).toBeLessThan(1)
+  })
+})
+
 describe('makeLevelResolver', () => {
   it('advances each source envelope only once per frame (memoized)', () => {
     const owner = {}

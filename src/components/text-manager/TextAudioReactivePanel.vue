@@ -135,6 +135,24 @@
             <div class="hint-text">{{ t('textManager.releaseHint') }}</div>
           </div>
 
+          <!-- Beat-Boost -->
+          <div class="control-group">
+            <label>
+              {{ t('textManager.beatBoost') }}:
+              {{ (selectedText.audioReactive.beatBoost ?? 1).toFixed(1) }}×
+            </label>
+            <input
+              type="range"
+              v-model.number="selectedText.audioReactive.beatBoost"
+              @input="updateText"
+              min="1"
+              max="3"
+              step="0.1"
+              class="slider"
+            />
+            <div class="hint-text">{{ t('textManager.beatBoostHint') }}</div>
+          </div>
+
           <!-- Reset Button -->
           <button @click="resetAudioSettings" class="btn-reset">
             🔄 {{ t('textManager.reset') }}

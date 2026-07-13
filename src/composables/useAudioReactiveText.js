@@ -23,6 +23,7 @@ export function useAudioReactiveText(selectedText, canvasManager, toastStore) {
           threshold: 0,
           attack: 90,
           release: 50,
+          beatBoost: 1.0,
           effects: {
             hue: { enabled: false, intensity: 80 },
             brightness: { enabled: false, intensity: 80 },
@@ -52,24 +53,28 @@ export function useAudioReactiveText(selectedText, canvasManager, toastStore) {
         attack: 95,
         release: 70,
         smoothing: 20,
+        beatBoost: 1.6,
       },
       smooth: {
         threshold: 5,
         attack: 50,
         release: 30,
         smoothing: 70,
+        beatBoost: 1.0,
       },
       subtle: {
         threshold: 15,
         attack: 60,
         release: 40,
         smoothing: 60,
+        beatBoost: 1.2,
       },
       extreme: {
         threshold: 0,
         attack: 100,
         release: 85,
         smoothing: 10,
+        beatBoost: 2.2,
       },
     }
 
@@ -79,6 +84,7 @@ export function useAudioReactiveText(selectedText, canvasManager, toastStore) {
       selectedText.value.audioReactive.attack = preset.attack
       selectedText.value.audioReactive.release = preset.release
       selectedText.value.audioReactive.smoothing = preset.smoothing
+      selectedText.value.audioReactive.beatBoost = preset.beatBoost
       updateText()
       console.log(`🎛️ Audio-Preset "${presetName}" angewendet`)
     }
@@ -92,6 +98,7 @@ export function useAudioReactiveText(selectedText, canvasManager, toastStore) {
     selectedText.value.audioReactive.attack = 90
     selectedText.value.audioReactive.release = 50
     selectedText.value.audioReactive.smoothing = 50
+    selectedText.value.audioReactive.beatBoost = 1.0
 
     // Auch Opacity-spezifische Einstellungen zurücksetzen
     if (selectedText.value.audioReactive.effects?.opacity) {

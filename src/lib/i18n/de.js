@@ -958,6 +958,8 @@ export default {
     attackHint: 'Wie schnell der Effekt anspricht',
     release: 'Release',
     releaseHint: 'Wie langsam der Effekt abklingt',
+    beatBoost: 'Beat-Boost',
+    beatBoostHint: 'Verstärkt den Effekt auf erkannten Beats',
     reset: 'Zurücksetzen',
     selectEffects: 'Effekte auswählen',
     colorRotation: 'Farbrotation',

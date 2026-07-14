@@ -1,28 +1,27 @@
-// recorder.js - FINAL FIX v2 - Behebt Preview-Video Problem
-
 /**
- * recorder.js - Optimierte Version mit VOLLSTÄNDIGER State-Reset
+ * recorder.js - Reine Aufnahme-Engine (Canvas + Audio → Blob).
  *
- * KRITISCHE FIXES v2:
- * ✅ State wird nach _processRecording korrekt zurückgesetzt
- * ✅ 2. Aufnahme ist jetzt möglich
- * ✅ Preview-Video wird korrekt erstellt
- * ✅ Keine Race Conditions mehr
+ * Verantwortung: Canvas-Capture-Stream aufsetzen, kontinuierlich Frames
+ * anfordern (rAF, mit setTimeout-Fallback bei verstecktem Tab → läuft
+ * unabhängig von Nutzer-Klicks), MediaRecorder steuern und am Ende einen
+ * Blob zurückgeben. Die gesamte Ergebnis-Verarbeitung (Vorschau, Download,
+ * Server-Konvertierung, GIF/HQ-Export) liegt in RecorderPanel.vue — die
+ * Engine fasst KEIN DOM an.
  *
- * ALLE VORHERIGEN FIXES:
+ * State-Handling:
  * ✅ recordedChunks wird sofort nach Blob-Erstellung geleert
  * ✅ Alle Event-Listener werden explizit entfernt
  * ✅ MediaRecorder wird vollständig nullifiziert
- * ✅ FormData-Referenzen werden sofort freigegeben
- * ✅ Blob-Referenzen werden explizit auf null gesetzt
  * ✅ Canvas Stream wird mit Timeout bereinigt
+ * ✅ Vollständiger reset() vor/nach jeder Aufnahme (Mehrfach-Aufnahme sicher)
  */
 class Recorder {
   constructor(recordingCanvas, audioElement, audioStream, uiElements, callbacks) {
     this.recordingCanvas = recordingCanvas
     this.audioElement = audioElement
     this.audioStream = audioStream
-    this.ui = uiElements
+    // uiElements is accepted for backwards-compatibility but no longer used;
+    // all UI/result handling lives in RecorderPanel.vue.
     this.onStateChange = callbacks.onStateChange
     this.onForceRedraw = callbacks.onForceRedraw
 
@@ -33,18 +32,10 @@ class Recorder {
     this.isActive = false
     this.isPaused = false
 
-    this.maxUploadSize = 50 * 1024 * 1024
-    this.forceDirectDownload = false
-    this.serverAvailable = null
-
     this.currentCanvasStream = null
     this.frameRequesterId = null // For requestAnimationFrame
     this.frameRequesterTimeout = null // For setTimeout fallback
     this.frameRequesterRunning = false
-
-    // Memory Management
-    this.currentObjectURL = null
-    this.previousBlob = null
 
     // ✅ NEW: Track event listeners for cleanup
     this._activeEventListeners = new Map()
@@ -96,9 +87,8 @@ class Recorder {
     // ✅ CRITICAL: Clear chunks BEFORE preparing
     this._clearChunks()
 
-    const qualitySelect = document.getElementById('qualitySelect')
-    const videoBitsPerSecond =
-      options?.videoBitsPerSecond || parseInt(qualitySelect?.value, 10) || 8_000_000
+    // Quality is always provided by the recorder store (options.videoBitsPerSecond).
+    const videoBitsPerSecond = options?.videoBitsPerSecond || 8_000_000
 
     const setupSuccess = await this._setupMediaRecorder(videoBitsPerSecond)
     if (setupSuccess) {
@@ -238,46 +228,11 @@ class Recorder {
   }
 
   /**
-   * ✅ NEW: Aggressive cleanup of all resources
+   * Memory cleanup hint. Result/preview DOM handling now lives in
+   * RecorderPanel.vue — the engine no longer touches the DOM.
    */
   _aggressiveCleanup() {
-    // Revoke old Object URL
-    if (this.currentObjectURL) {
-      try {
-        URL.revokeObjectURL(this.currentObjectURL)
-      } catch (e) {
-        // Ignore errors
-      }
-      this.currentObjectURL = null
-    }
-
-    // Clear blob reference
-    if (this.previousBlob) {
-      this.previousBlob = null
-    }
-
-    // Clear preview element
-    const preview = document.getElementById('preview')
-    if (preview && preview.src) {
-      preview.src = ''
-      preview.srcObject = null
-      try {
-        preview.load()
-      } catch (e) {
-        // Ignore errors
-      }
-    }
-
-    // Clear download link
-    const downloadLink = document.getElementById('downloadLink')
-    if (downloadLink) {
-      downloadLink.href = ''
-      downloadLink.download = ''
-      downloadLink.blob = null
-    }
-
-    // ✅ CRITICAL: Force garbage collection hint
-    // This helps browser prioritize memory cleanup
+    // Force garbage collection hint (only available in some dev builds).
     if (typeof window !== 'undefined' && window.gc) {
       try {
         window.gc()
@@ -314,12 +269,6 @@ class Recorder {
 
       // CRITICAL: Start continuous frame requesting
       this._startFrameRequester()
-
-      // Wait for first data chunk
-      const recordingVerified = await this._verifyRecordingStarted()
-      if (!recordingVerified) {
-        console.warn('[RECORDER] Recording verification failed')
-      }
 
       this.updateState()
       return true
@@ -505,32 +454,6 @@ class Recorder {
     return true
   }
 
-  async _verifyRecordingStarted() {
-    return new Promise((resolve) => {
-      const timeout = setTimeout(() => {
-        resolve(false)
-      }, 1000)
-
-      const checkChunks = () => {
-        if (this.recordedChunks.length > 0) {
-          clearTimeout(timeout)
-          resolve(true)
-        }
-      }
-
-      const interval = setInterval(() => {
-        checkChunks()
-        if (this.recordedChunks.length > 0) {
-          clearInterval(interval)
-        }
-      }, 100)
-
-      setTimeout(() => {
-        clearInterval(interval)
-      }, 1000)
-    })
-  }
-
   pause() {
     if (!this.isActive || this.isPaused) {
       return
@@ -565,9 +488,8 @@ class Recorder {
             const blob = new Blob(this.recordedChunks, { type: this.recordingMimeType })
             // ✅ CRITICAL: Clear chunks IMMEDIATELY after blob creation
             this._clearChunks()
-            this._processRecording(blob)
+            this.reset()
             resolve(blob)
-            // ✅ NOTE: reset() wird in _processRecording callbacks aufgerufen
           } else {
             this.reset() // Reset wenn keine Chunks
             resolve(null)
@@ -597,7 +519,10 @@ class Recorder {
               const blob = new Blob(this.recordedChunks, { type: this.recordingMimeType })
               // ✅ CRITICAL: Clear chunks IMMEDIATELY after blob creation
               this._clearChunks()
-              this._processRecording(blob)
+              // The blob is handed back to the caller (recorderStore → RecorderPanel),
+              // which owns preview, download, server conversion and export. The engine
+              // just cleans up its own resources here.
+              this.reset()
               resolve(blob)
             } else {
               console.warn('[RECORDER] No chunks recorded')
@@ -608,8 +533,6 @@ class Recorder {
             console.error('[RECORDER] Stop error:', e)
             reject(e)
           }
-          // ✅ NOTE: reset() wird in _offerDirectDownload oder _displayServerResults aufgerufen
-          // NICHT hier, weil _processRecording async ist
         }, 100)
       }
 
@@ -763,168 +686,20 @@ class Recorder {
     }
   }
 
-  async _processRecording(blob) {
-    const fileSizeMB = (blob.size / (1024 * 1024)).toFixed(2)
-
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-    const extension = this.recordingMimeType.includes('mp4') ? 'mp4' : 'webm'
-    const fileName = `recording_${this.recordingCanvas.width}x${this.recordingCanvas.height}_${timestamp}.${extension}`
-
-    if (
-      this.forceDirectDownload ||
-      blob.size > this.maxUploadSize ||
-      this.serverAvailable === false
-    ) {
-      this._offerDirectDownload(
-        blob,
-        fileName,
-        this.serverAvailable === false ? 'Server not available' : null,
-      )
-      return
-    }
-
-    this.ui.statusBox.textContent = `Uploading video (${fileSizeMB}MB)...`
-    this.ui.statusBox.className = 'status-box processing'
-
-    try {
-      const result = await this._attemptServerUpload(blob, fileName)
-      if (result.success && result.downloadUrl) {
-        this.serverAvailable = true
-        this._displayServerResults(result, fileName, blob)
-      } else {
-        throw new Error(result.message || 'Unknown server error')
-      }
-    } catch (error) {
-      if (error.message.includes('404') || error.message.includes('Not Found')) {
-        this.serverAvailable = false
-      }
-
-      this.ui.statusBox.textContent = 'Server upload failed, using direct download...'
-      this.ui.statusBox.className = 'status-box processing'
-      setTimeout(() => {
-        this._offerDirectDownload(blob, fileName, error.message)
-      }, 1000)
-    }
-  }
-
-  async _attemptServerUpload(blob, fileName) {
-    const formData = new FormData()
-    formData.append('file', blob, fileName)
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000)
-
-    try {
-      const response = await fetch('/visualizer/upload', {
-        method: 'POST',
-        body: formData,
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error')
-        throw new Error(`HTTP ${response.status}: ${errorText}`)
-      }
-
-      const result = await response.json()
-
-      // ✅ CRITICAL: Clear FormData reference immediately
-      formData.delete('file')
-
-      return result
-    } catch (error) {
-      clearTimeout(timeoutId)
-      // ✅ CRITICAL: Clear FormData even on error
-      formData.delete('file')
-      throw error
-    }
-  }
-
-  _displayServerResults(result, fileName, originalBlob) {
-    // ✅ CRITICAL: Cleanup old resources
-    this._aggressiveCleanup()
-
-    const resultsPanel = document.getElementById('results-panel')
-    document.getElementById('preview').src = result.downloadUrl
-    const downloadLink = document.getElementById('downloadLink')
-    downloadLink.href = result.downloadUrl
-    downloadLink.download = result.fileName || fileName
-    downloadLink.blob = null
-
-    const originalSizeMB = (originalBlob.size / (1024 * 1024)).toFixed(2)
-
-    document.getElementById('mimeInfo').textContent =
-      `Format: video/mp4 (AAC Audio) | Resolution: ${this.recordingCanvas.width}x${this.recordingCanvas.height} | Size: ${originalSizeMB}MB`
-    resultsPanel.style.display = 'block'
-    resultsPanel.scrollIntoView({ behavior: 'smooth' })
-
-    this.ui.statusBox.textContent = 'Server upload and conversion successful!'
-    this.ui.statusBox.className = 'status-box ready'
-
-    // ✅ CRITICAL: Reset recorder state so 2nd recording is possible
-    this.isPrepared = false
-    this.isActive = false
-    this.isPaused = false
-
-    this.updateState()
-  }
-
-  _offerDirectDownload(blob, fileName, reason = null) {
-    // ✅ CRITICAL: Cleanup old resources FIRST
-    this._aggressiveCleanup()
-
-    this.ui.statusBox.textContent = 'Preparing video for download...'
-    this.ui.statusBox.className = 'status-box processing'
-
-    // Create new Object URL
-    const url = URL.createObjectURL(blob)
-
-    // ✅ CRITICAL: Track new URL and blob
-    this.currentObjectURL = url
-    this.previousBlob = blob
-
-    document.getElementById('preview').src = url
-
-    const resultsPanel = document.getElementById('results-panel')
-    resultsPanel.style.display = 'block'
-    resultsPanel.scrollIntoView({ behavior: 'smooth' })
-
-    let statusMessage = 'Video ready for download!'
-    if (reason && reason.includes('large')) {
-      statusMessage = 'Video too large for server - direct download ready!'
-    } else if (reason && reason.includes('not available')) {
-      statusMessage = 'Server not available - direct download ready!'
-    } else if (reason) {
-      statusMessage = 'Server error - direct download ready!'
-    }
-
-    this.ui.statusBox.textContent = statusMessage
-    this.ui.statusBox.className = 'status-box ready download-mode'
-
-    // ✅ CRITICAL: Reset recorder state so 2nd recording is possible
-    this.isPrepared = false
-    this.isActive = false
-    this.isPaused = false
-
-    this.updateState()
-  }
-
   updateState() {
     if (this.onStateChange) this.onStateChange()
   }
 
-  resetServerAvailability() {
-    this.serverAvailable = null
-  }
+  // ── Upload-mode API ──────────────────────────────────────────────────
+  // Result handling (preview, download, server conversion, GIF/HQ export)
+  // now lives entirely in RecorderPanel.vue, which processes the blob
+  // returned by stop(). These methods are kept as no-ops so the existing
+  // recorderStore.setUploadMode() call chain stays intact.
+  resetServerAvailability() {}
 
-  enableDirectDownloadMode() {
-    this.forceDirectDownload = true
-  }
+  enableDirectDownloadMode() {}
 
-  enableServerUploadMode() {
-    this.forceDirectDownload = false
-    this.serverAvailable = null
-  }
+  enableServerUploadMode() {}
 }
 
 export { Recorder }

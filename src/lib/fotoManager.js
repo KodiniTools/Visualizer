@@ -73,6 +73,8 @@ export class FotoManager {
           strobe: { enabled: false, intensity: 70, source: null },
           chromatic: { enabled: false, intensity: 60, source: null },
           perspective: { enabled: false, intensity: 50, source: null },
+          // ✨ RHYTHMUS-EFFEKT (Beat-synchroner Puls)
+          beatPulse: { enabled: false, intensity: 70, source: null },
         },
         source: 'bass', // 'bass', 'mid', 'treble', 'volume', 'dynamic' (globale Standard-Quelle)
         smoothing: 50, // 0-100% Glättung (verhindert Flackern)
@@ -135,6 +137,8 @@ export class FotoManager {
         strobe: { ...defaultAR.effects.strobe },
         chromatic: { ...defaultAR.effects.chromatic },
         perspective: { ...defaultAR.effects.perspective },
+        // ✨ RHYTHMUS-EFFEKT
+        beatPulse: { ...defaultAR.effects.beatPulse },
       },
       source: defaultAR.source,
       smoothing: defaultAR.smoothing,
@@ -194,6 +198,8 @@ export class FotoManager {
           strobe: migrateEffect(oldSettings.effects.strobe, 70),
           chromatic: migrateEffect(oldSettings.effects.chromatic, 60),
           perspective: migrateEffect(oldSettings.effects.perspective, 50),
+          // ✨ RHYTHMUS-EFFEKT (mit Migration)
+          beatPulse: migrateEffect(oldSettings.effects.beatPulse, 70),
         },
         source: oldSettings.source || 'bass',
         smoothing: oldSettings.smoothing ?? 50,

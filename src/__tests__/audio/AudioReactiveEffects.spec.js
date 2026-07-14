@@ -1,17 +1,22 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import {
   EFFECT_NAMES,
   EFFECT_CATEGORIES,
   calculateEffectValue,
   getMotionOffset,
   getFilterString,
+  resetBeatPulseEnvelope,
   AudioReactiveEffects,
 } from '../../lib/audio/AudioReactiveEffects.js'
 
 describe('AudioReactiveEffects', () => {
   describe('EFFECT_NAMES', () => {
-    it('contains all 24 effects', () => {
-      expect(EFFECT_NAMES).toHaveLength(24)
+    it('contains all 25 effects', () => {
+      expect(EFFECT_NAMES).toHaveLength(25)
+    })
+
+    it('includes the rhythm effect', () => {
+      expect(EFFECT_NAMES).toContain('beatPulse')
     })
 
     it('includes filter effects', () => {
@@ -33,6 +38,7 @@ describe('AudioReactiveEffects', () => {
       expect(EFFECT_CATEGORIES.transform).toContain('scale')
       expect(EFFECT_CATEGORIES.visual).toContain('glow')
       expect(EFFECT_CATEGORIES.motion).toContain('bounce')
+      expect(EFFECT_CATEGORIES.rhythm).toContain('beatPulse')
     })
   })
 
@@ -94,6 +100,23 @@ describe('AudioReactiveEffects', () => {
         const result = calculateEffectValue('orbit', 0.5)
         expect(result).toHaveProperty('orbitX')
         expect(result).toHaveProperty('orbitY')
+      })
+    })
+
+    describe('rhythm effects', () => {
+      it('calculates beatPulse effect with scale and glow', () => {
+        resetBeatPulseEnvelope()
+        const result = calculateEffectValue('beatPulse', 0.5)
+        expect(result).toHaveProperty('scale')
+        expect(result).toHaveProperty('glowBlur')
+        expect(result).toHaveProperty('glowColor')
+      })
+
+      it('stays at rest (scale ~1) when there is no beat', () => {
+        resetBeatPulseEnvelope()
+        const result = calculateEffectValue('beatPulse', 0.5, 1000)
+        expect(result.scale).toBeCloseTo(1.0, 5)
+        expect(result.glowBlur).toBeCloseTo(0, 5)
       })
     })
 

@@ -1,42 +1,17 @@
 export function useVisualizerLoop({ getRecordingCanvasStream, setRecordingCanvasStream }) {
-  let visualizerAnimationId = null
-  let isVisualizerActive = false
-  let loopStartCount = 0
-
-  function startVisualizerLoopInternal() {
-    isVisualizerActive = true
-
-    const renderFrame = () => {
-      if (!isVisualizerActive) {
-        visualizerAnimationId = null
-        return
-      }
-      if (isVisualizerActive) {
-        visualizerAnimationId = requestAnimationFrame(renderFrame)
-      }
-    }
-
-    renderFrame()
-  }
+  // NOTE: Recording frames are driven by the Recorder's own frame requester
+  // (recorder.js → 'recorder:forceRedraw' → renderRecordingScene). A previous
+  // implementation ran an extra requestAnimationFrame loop here that rendered
+  // nothing — it only burned main-thread cycles during recording. That loop is
+  // gone; this composable now only owns tearing down the recording canvas
+  // stream when recording stops.
 
   function startVisualizerLoop() {
-    loopStartCount++
-    if (isVisualizerActive || visualizerAnimationId) {
-      stopVisualizerLoop()
-      setTimeout(startVisualizerLoopInternal, 50)
-      return
-    }
-    startVisualizerLoopInternal()
+    // No-op: kept so existing call sites (recorder setup / VisualizerApp) work.
+    // The recorder drives its own continuous frame requests.
   }
 
   function stopVisualizerLoop() {
-    isVisualizerActive = false
-
-    if (visualizerAnimationId) {
-      cancelAnimationFrame(visualizerAnimationId)
-      visualizerAnimationId = null
-    }
-
     const stream = getRecordingCanvasStream()
     if (stream) {
       try {

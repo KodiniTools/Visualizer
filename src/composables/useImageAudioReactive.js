@@ -161,6 +161,16 @@ export function useImageAudioReactive(fotoManagerRef) {
         beatBoost: 2.0,
         smoothing: 25,
       },
+      rhythm: {
+        effects: {
+          beatPulse: { enabled: true, intensity: 80 },
+          glow: { enabled: true, intensity: 55 },
+        },
+        source: 'bass',
+        easing: 'easeOut',
+        beatBoost: 1.2,
+        smoothing: 35,
+      },
     }
 
     for (const effectName of Object.keys(ar.effects)) {

@@ -1131,6 +1131,7 @@ export default {
     transformEffects: 'Transform-Effekte',
     movementEffects: 'Bewegungs-Effekte',
     specialEffects: 'Spezial-Effekte',
+    rhythmEffects: 'Rhythmus-Effekte',
     // Audio-reactive effect names
     effectNames: {
       hue: 'Farbton',
@@ -1157,6 +1158,7 @@ export default {
       blur: 'Unschärfe',
       strobe: 'Strobe',
       chromatic: 'Chromatisch',
+      beatPulse: 'Beat-Puls',
     },
     // Stock gallery categories
     stockCategories: {

@@ -72,6 +72,7 @@ const presetList = [
   { id: 'glow', name: 'Glow', icon: '✨' },
   { id: 'strobe', name: 'Strobe', icon: '⚡' },
   { id: 'glitch', name: 'Glitch', icon: '🔥' },
+  { id: 'rhythm', name: 'Rhythm', icon: '🥁' },
 ]
 
 // Effekt-Kategorien (mit i18n)
@@ -110,6 +111,8 @@ const specialEffects = computed(() => [
   { id: 'strobe', name: t('foto.effectNames.strobe') },
   { id: 'chromatic', name: t('foto.effectNames.chromatic') },
 ])
+
+const rhythmEffects = computed(() => [{ id: 'beatPulse', name: t('foto.effectNames.beatPulse') }])
 
 // Handlers
 function onAudioReactiveToggle(event) {
@@ -301,6 +304,7 @@ provide('audioReactiveControls', {
   transformEffects,
   movementEffects,
   specialEffects,
+  rhythmEffects,
   onAudioReactiveToggle,
   onAudioReactiveSourceChange,
   onAudioReactiveSmoothingChange,

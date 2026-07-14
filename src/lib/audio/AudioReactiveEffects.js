@@ -37,6 +37,8 @@ export const EFFECT_NAMES = [
   'wave',
   'spiral',
   'float',
+  // Rhythm effects
+  'beatPulse',
 ]
 
 /**
@@ -47,6 +49,52 @@ export const EFFECT_CATEGORIES = {
   transform: ['scale', 'rotation', 'skew', 'perspective'],
   visual: ['glow', 'border', 'strobe', 'chromatic'],
   motion: ['shake', 'bounce', 'swing', 'orbit', 'figure8', 'wave', 'spiral', 'float'],
+  rhythm: ['beatPulse'],
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RHYTHM / BEAT-PULSE ENVELOPE (module scope)
+//
+// The beat signal (window.audioAnalysisData.isBeat / beatIntensity) is GLOBAL,
+// so a single shared envelope is correct: every image pulses on the same beat.
+// The envelope snaps up on a detected beat (fast attack) and decays smoothly,
+// which visualises the RHYTHM (the beat grid) instead of continuous loudness.
+// ═══════════════════════════════════════════════════════════════════════════
+let _beatPulseEnv = 0
+let _beatPulseLastTime = 0
+const BEAT_PULSE_DECAY_TAU = 180 // ms — smaller = snappier decay
+
+/**
+ * Advances and returns the shared beat-pulse envelope (0-1).
+ * @param {object|null} beat - Global audio data with { isBeat, beatIntensity }
+ * @param {number} time - Current timestamp in ms
+ * @returns {number} Envelope value clamped to 0-1
+ */
+function updateBeatPulseEnvelope(beat, time) {
+  // Time-guarded decay so multiple images in the same frame don't over-decay:
+  // only the first call of a new frame advances the decay.
+  const dt = _beatPulseLastTime === 0 ? 0 : Math.max(0, time - _beatPulseLastTime)
+  if (dt > 0) {
+    _beatPulseEnv *= Math.exp(-dt / BEAT_PULSE_DECAY_TAU)
+    _beatPulseLastTime = time
+  } else if (_beatPulseLastTime === 0) {
+    _beatPulseLastTime = time
+  }
+  // Trigger on a fresh beat. Using max() keeps this idempotent when several
+  // images with beatPulse enabled are drawn within the same beat frame.
+  if (beat && beat.isBeat) {
+    const strength = beat.beatIntensity > 0 ? beat.beatIntensity : 1
+    _beatPulseEnv = Math.max(_beatPulseEnv, strength)
+  }
+  return Math.max(0, Math.min(1, _beatPulseEnv))
+}
+
+/**
+ * Resets the beat-pulse envelope state (e.g. when audio stops).
+ */
+export function resetBeatPulseEnvelope() {
+  _beatPulseEnv = 0
+  _beatPulseLastTime = 0
 }
 
 /**
@@ -244,6 +292,25 @@ export function calculateEffectValue(effectName, normalizedLevel, time = Date.no
       return { floatX, floatY }
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // RHYTHM EFFECTS
+    // ═══════════════════════════════════════════════════════════════
+
+    case 'beatPulse': {
+      // Beat-synced pulse: snaps up on each detected beat and eases out.
+      // Timing comes from the global beat envelope (the rhythm), while the
+      // effect's own level scales the amplitude so the intensity slider and
+      // chosen source still matter.
+      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const env = updateBeatPulseEnvelope(beat, time)
+      const amp = env * (0.35 + 0.65 * level)
+      return {
+        scale: 1.0 + amp * 0.45, // up to +45% on a strong beat
+        glowBlur: amp * 40,
+        glowColor: `rgba(139, 92, 246, ${0.35 + amp * 0.55})`,
+      }
+    }
+
     default:
       return {}
   }
@@ -395,5 +462,6 @@ export default {
   calculateEffectValue,
   getMotionOffset,
   getFilterString,
+  resetBeatPulseEnvelope,
   AudioReactiveEffects,
 }

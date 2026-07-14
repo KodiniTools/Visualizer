@@ -24,6 +24,11 @@
       :effects="specialEffects"
       :default-intensity="60"
     />
+    <AudioReactiveEffectCategory
+      :title="t('foto.rhythmEffects')"
+      :effects="rhythmEffects"
+      :default-intensity="70"
+    />
   </div>
 </template>
 
@@ -34,7 +39,7 @@ import AudioReactiveEffectCategory from './AudioReactiveEffectCategory.vue'
 
 const { t } = useI18n()
 const arc = inject('audioReactiveControls')
-const { colorEffects, transformEffects, movementEffects, specialEffects } = arc
+const { colorEffects, transformEffects, movementEffects, specialEffects, rhythmEffects } = arc
 </script>
 
 <style scoped src="./audio-reactive-shared.css"></style>

@@ -4,6 +4,7 @@
  * ✅ FIXED: Präzise Textmarkierung mit Schatten-, Stroke- und letterSpacing-Unterstützung
  */
 import { makeLevelResolver } from './audio/ReactiveLevel.js'
+import { calculateBeatPulse } from './audio/index.js'
 
 export class TextManager {
   constructor(textStore) {
@@ -88,6 +89,8 @@ export class TextManager {
           wave: { enabled: false, intensity: 80 }, // Welle: Buchstaben bewegen sich wellenförmig
           rotation: { enabled: false, intensity: 80 }, // Rotation: Text dreht sich oszillierend
           elastic: { enabled: false, intensity: 80 }, // Elastic: Gummiartige Verformung (Stretch)
+          // ✨ RHYTHMUS-EFFEKT: Beat-synchroner Puls (Scale + Glow auf dem Takt)
+          beatPulse: { enabled: false, intensity: 80 },
         },
       },
 
@@ -966,6 +969,11 @@ export class TextManager {
       scale = audioReactive.effects.scale.scale
     }
 
+    // ✨ AUDIO-REAKTIV: Beat-Puls (rhythmischer Puls, multipliziert die Skalierung)
+    if (audioReactive && audioReactive.hasEffects && audioReactive.effects.beatPulse) {
+      scale *= audioReactive.effects.beatPulse.scale || 1.0
+    }
+
     // ✨ SCALE-ANIMATION: Scale aus Animation anwenden
     const scaleResult = this._getScaleValue(textObj)
     scale = scale * scaleResult.scale
@@ -1061,8 +1069,13 @@ export class TextManager {
     }
 
     // ✨ AUDIO-REAKTIV: Glow-Effekt (überschreibt statischen Schatten temporär)
+    // Der Beat-Puls liefert ebenfalls Glow-Werte (glowBlur/glowColor).
     let useAudioGlow = false
-    if (audioReactive && audioReactive.hasEffects && audioReactive.effects.glow) {
+    if (
+      audioReactive &&
+      audioReactive.hasEffects &&
+      (audioReactive.effects.glow || audioReactive.effects.beatPulse)
+    ) {
       useAudioGlow = true
     }
 
@@ -1240,9 +1253,10 @@ export class TextManager {
     ctx.letterSpacing = `${letterSpacing}px`
 
     // ✨ SCHATTEN / GLOW
-    if (useAudioGlow && audioReactive.effects.glow) {
-      // Audio-reaktiver Glow überschreibt statischen Schatten
-      const glow = audioReactive.effects.glow
+    if (useAudioGlow && (audioReactive.effects.glow || audioReactive.effects.beatPulse)) {
+      // Audio-reaktiver Glow überschreibt statischen Schatten.
+      // Der explizite Glow-Effekt hat Vorrang, sonst liefert der Beat-Puls den Glow.
+      const glow = audioReactive.effects.glow || audioReactive.effects.beatPulse
       ctx.shadowColor = glow.glowColor
       ctx.shadowBlur = glow.glowBlur
       ctx.shadowOffsetX = 0
@@ -1524,6 +1538,11 @@ export class TextManager {
         const stretchX = 1.0 + Math.sin(elasticTime) * level * 0.3 // 0.7 - 1.3
         const stretchY = 1.0 + Math.sin(elasticTime + 1.5) * level * 0.2 // 0.8 - 1.2 (gegenläufig)
         return { stretchX, stretchY }
+
+      case 'beatPulse':
+        // Rhythmus: Beat-synchroner Puls (Scale + Glow), geteilte Hüllkurve mit
+        // den Bild-Effekten – schlägt auf jedem erkannten Beat an und klingt aus.
+        return calculateBeatPulse(level)
 
       default:
         return {}

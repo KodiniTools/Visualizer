@@ -377,6 +377,12 @@ const EFFECTS = [
     labelKey: 'textManager.elastic',
     hintKey: 'textManager.elasticHint',
   },
+  {
+    key: 'beatPulse',
+    icon: '🥁',
+    labelKey: 'textManager.beatPulse',
+    hintKey: 'textManager.beatPulseHint',
+  },
 ]
 </script>
 

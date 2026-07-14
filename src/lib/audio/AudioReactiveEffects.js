@@ -98,6 +98,25 @@ export function resetBeatPulseEnvelope() {
 }
 
 /**
+ * Computes the beat-pulse effect output (scale + glow) from the shared beat
+ * envelope. Exported so images AND text render through the exact same pulse,
+ * keeping a single source of truth for the rhythm effect.
+ * @param {number} level - Normalized effect level (0-1), scales the amplitude
+ * @param {number} time - Current timestamp in ms
+ * @returns {{ scale: number, glowBlur: number, glowColor: string }}
+ */
+export function calculateBeatPulse(level, time = Date.now()) {
+  const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+  const env = updateBeatPulseEnvelope(beat, time)
+  const amp = env * (0.35 + 0.65 * Math.max(0, Math.min(1, level)))
+  return {
+    scale: 1.0 + amp * 0.45, // up to +45% on a strong beat
+    glowBlur: amp * 40,
+    glowColor: `rgba(139, 92, 246, ${0.35 + amp * 0.55})`,
+  }
+}
+
+/**
  * Calculates effect value for a given effect name and normalized level
  * @param {string} effectName - Name of the effect
  * @param {number} normalizedLevel - Audio level normalized to 0-1 range
@@ -296,20 +315,12 @@ export function calculateEffectValue(effectName, normalizedLevel, time = Date.no
     // RHYTHM EFFECTS
     // ═══════════════════════════════════════════════════════════════
 
-    case 'beatPulse': {
+    case 'beatPulse':
       // Beat-synced pulse: snaps up on each detected beat and eases out.
       // Timing comes from the global beat envelope (the rhythm), while the
       // effect's own level scales the amplitude so the intensity slider and
-      // chosen source still matter.
-      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
-      const env = updateBeatPulseEnvelope(beat, time)
-      const amp = env * (0.35 + 0.65 * level)
-      return {
-        scale: 1.0 + amp * 0.45, // up to +45% on a strong beat
-        glowBlur: amp * 40,
-        glowColor: `rgba(139, 92, 246, ${0.35 + amp * 0.55})`,
-      }
-    }
+      // chosen source still matter. Shared with the text renderer.
+      return calculateBeatPulse(level, time)
 
     default:
       return {}

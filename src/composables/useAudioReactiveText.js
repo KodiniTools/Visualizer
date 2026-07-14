@@ -35,6 +35,7 @@ export function useAudioReactiveText(selectedText, canvasManager, toastStore) {
             opacity: { enabled: false, intensity: 80, minimum: 0, ease: false },
             letterSpacing: { enabled: false, intensity: 80 },
             strokeWidth: { enabled: false, intensity: 80 },
+            beatPulse: { enabled: false, intensity: 80 },
           },
         }
       }
@@ -135,6 +136,7 @@ export function useAudioReactiveText(selectedText, canvasManager, toastStore) {
       'wave',
       'rotation',
       'elastic',
+      'beatPulse',
     ]
 
     effectKeys.forEach((key) => {

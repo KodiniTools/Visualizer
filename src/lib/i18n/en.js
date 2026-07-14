@@ -992,6 +992,8 @@ export default {
     rotationHint: 'Text rotates oscillating based on audio',
     elastic: 'Elastic',
     elasticHint: 'Rubber-like deformation (stretch on X/Y)',
+    beatPulse: 'Beat Pulse',
+    beatPulseHint: 'Rhythmic pulse: snaps on each detected beat and eases out (scale + glow)',
     effectsTip: 'Tip: Enable multiple effects for complex animations!',
     // Audio source options
     bassKickDrums: 'Bass (Kick/Drums)',

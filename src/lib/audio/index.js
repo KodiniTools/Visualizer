@@ -54,6 +54,7 @@ export {
   getMotionOffset,
   getFilterString,
   resetBeatPulseEnvelope,
+  calculateBeatPulse,
   AudioReactiveEffects,
 } from './AudioReactiveEffects.js'
 

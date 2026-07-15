@@ -35,10 +35,12 @@ class Recorder {
     this.currentCanvasStream = null
     this.frameRequesterTimeout = null // setTimeout-driven redraw clock
     this.frameRequesterRunning = false
-    // Fixed capture rate, decoupled from main-thread rAF. 30 fps (not 60) keeps
-    // the encode + recording-scene redraw load roughly halved, which matters on
-    // weak GPUs: with the visualizer worker active (its own WebGL context) plus
-    // post-processing, 60 fps could exhaust the GPU and lose the WebGL context.
+    // Capture rate, decoupled from main-thread rAF. Default is 30 fps (not 60):
+    // it keeps the encode + recording-scene redraw load roughly halved, which
+    // matters on weak GPUs — with the visualizer worker active (its own WebGL
+    // context) plus post-processing, 60 fps could exhaust the GPU and lose the
+    // WebGL context. 60 fps is opt-in via setCaptureFrameRate() for users on
+    // modern hardware who want smoother motion (see prepare() options).
     this.captureFrameRate = 30
 
     // ✅ NEW: Track event listeners for cleanup
@@ -60,6 +62,19 @@ class Recorder {
   updateAudioStream(newStream) {
     if (!newStream) return false
     this.audioStream = newStream
+    return true
+  }
+
+  /**
+   * Set the canvas capture frame rate. Only 30 (default) and 60 fps are
+   * supported; 60 fps is intended for modern hardware and gives smoother
+   * motion at the cost of a heavier encode + redraw load. Ignored while a
+   * recording is active — the rate is applied on the next prepare()/start().
+   */
+  setCaptureFrameRate(fps) {
+    if (this.isActive) return false
+    const rate = Number(fps) === 60 ? 60 : 30
+    this.captureFrameRate = rate
     return true
   }
 
@@ -90,6 +105,11 @@ class Recorder {
 
     // ✅ CRITICAL: Clear chunks BEFORE preparing
     this._clearChunks()
+
+    // Capture frame rate is optional; the store passes 30 (default) or 60.
+    if (options?.captureFrameRate != null) {
+      this.setCaptureFrameRate(options.captureFrameRate)
+    }
 
     // Quality is always provided by the recorder store (options.videoBitsPerSecond).
     const videoBitsPerSecond = options?.videoBitsPerSecond || 8_000_000

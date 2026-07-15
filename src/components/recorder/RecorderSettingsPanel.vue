@@ -15,6 +15,27 @@
     </div>
   </div>
 
+  <!-- Recording Frame Rate -->
+  <div class="control-section">
+    <span class="section-label">{{ t('recorder.recordingFps') }}</span>
+    <div class="fps-buttons">
+      <button
+        v-for="preset in frameRatePresets"
+        :key="preset.value"
+        class="quality-btn"
+        :class="{ active: recordingFps === preset.value }"
+        @click="selectFrameRate(preset.value)"
+      >
+        {{ preset.label }} fps
+      </button>
+    </div>
+    <p class="extra-info">
+      {{
+        recordingFps === 60 ? t('recorder.recordingFps60Info') : t('recorder.recordingFps30Info')
+      }}
+    </p>
+  </div>
+
   <!-- Upload Mode -->
   <div class="control-section">
     <span class="section-label">{{ t('recorder.uploadMode') }}</span>
@@ -162,6 +183,9 @@ const {
   selectedQuality,
   qualityPresets,
   selectQuality,
+  recordingFps,
+  frameRatePresets,
+  selectFrameRate,
   uploadMode,
   selectUploadMode,
   serverAvailable,
@@ -261,6 +285,12 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 .upload-buttons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.fps-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 4px;
 }
 

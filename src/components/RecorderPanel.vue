@@ -301,6 +301,7 @@ const recorderStore = useRecorderStore()
 
 // ── Base State ───────────────────────────────────────────────────────
 const selectedQuality = ref(8_000_000)
+const recordingFps = ref(30) // 30 fps Standard, 60 fps zuschaltbar für moderne Hardware
 const uploadMode = ref('auto')
 const isProcessing = ref(false)
 const serverAvailable = ref(null)
@@ -366,6 +367,12 @@ const qualityPresets = [
   { value: 60_000_000, label: '4K+' },
   { value: 80_000_000, label: 'Max' },
 ]
+// ── Recording Frame Rate ─────────────────────────────────────────────
+// 30 fps ist der sichere Standard; 60 fps ist für moderne Hardware zuschaltbar.
+const frameRatePresets = [
+  { value: 30, label: '30' },
+  { value: 60, label: '60' },
+]
 const conversionPresets = computed(() => [
   { value: 'preview', label: 'Preview', desc: t('recorder.conversionPreviewDesc') },
   { value: 'medium', label: 'Medium', desc: t('recorder.conversionMediumDesc') },
@@ -379,6 +386,9 @@ provide('recorderSettings', {
   selectedQuality,
   qualityPresets,
   selectQuality,
+  recordingFps,
+  frameRatePresets,
+  selectFrameRate,
   uploadMode,
   selectUploadMode,
   serverAvailable,
@@ -417,12 +427,19 @@ function selectUploadMode(mode) {
   uploadMode.value = mode
   recorderStore.setUploadMode(mode)
 }
+function selectFrameRate(value) {
+  recordingFps.value = value
+  recorderStore.setRecordingFrameRate(value)
+}
 
 async function handlePrepare() {
   if (isProcessing.value) return
   isProcessing.value = true
   try {
-    await recorderStore.prepareRecording({ quality: selectedQuality.value })
+    await recorderStore.prepareRecording({
+      quality: selectedQuality.value,
+      frameRate: recordingFps.value,
+    })
   } finally {
     isProcessing.value = false
   }

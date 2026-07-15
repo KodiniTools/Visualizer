@@ -35,7 +35,11 @@ class Recorder {
     this.currentCanvasStream = null
     this.frameRequesterTimeout = null // setTimeout-driven redraw clock
     this.frameRequesterRunning = false
-    this.captureFrameRate = 60 // Fixed capture rate → decoupled from main-thread rAF
+    // Fixed capture rate, decoupled from main-thread rAF. 30 fps (not 60) keeps
+    // the encode + recording-scene redraw load roughly halved, which matters on
+    // weak GPUs: with the visualizer worker active (its own WebGL context) plus
+    // post-processing, 60 fps could exhaust the GPU and lose the WebGL context.
+    this.captureFrameRate = 30
 
     // ✅ NEW: Track event listeners for cleanup
     this._activeEventListeners = new Map()
@@ -300,7 +304,7 @@ class Recorder {
 
     let errorCount = 0
     const MAX_ERRORS = 3
-    const TARGET_INTERVAL = 16 // ~60 FPS
+    const TARGET_INTERVAL = Math.round(1000 / this.captureFrameRate) // match capture rate
     let lastFrameTime = 0
 
     this.frameRequesterRunning = true
@@ -386,8 +390,8 @@ class Recorder {
     }
 
     // Timer-based (not rAF) so redraws keep firing while the page is scrolled
-    // or the tab is backgrounded.
-    this.frameRequesterTimeout = setTimeout(frameLoop, 16)
+    // or the tab is backgrounded. Interval matches the capture frame rate.
+    this.frameRequesterTimeout = setTimeout(frameLoop, Math.round(1000 / this.captureFrameRate))
   }
 
   _stopFrameRequester() {

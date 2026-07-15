@@ -277,6 +277,11 @@ export class WebGLPostFX {
    */
   apply(source, config = {}, quality = 1) {
     const gl = this.gl
+    // Graceful degradation: if the GPU dropped the WebGL context (common on weak
+    // hardware under recording load), skip post-processing instead of issuing GL
+    // calls on a dead context. The caller then uses the un-post-processed frame,
+    // so the visualizer keeps rendering rather than freezing.
+    if (gl.isContextLost && gl.isContextLost()) return
     const trails = config.trails || {}
     const bloom = config.bloom || {}
     gl.disable(gl.BLEND)

@@ -466,6 +466,7 @@ async function handleStop() {
     const blob = await recorderStore.stopRecording()
     if (blob) {
       prepareWebmDownload(blob)
+      showResults(blob)
       if (enableHqExport.value && serverAvailable.value && hqSessionId.value) finishHqExport(blob)
       if (enableServerConversion.value && serverAvailable.value)
         await startServerConversion(blob, conversionQuality.value)
@@ -489,6 +490,21 @@ async function convertLastRecording() {
     await startServerConversion(recorderStore.lastRecording.blob, conversionQuality.value)
   }
 }
+// Own object URL for the preview <video>, independent of the WebM download
+// section's URL lifecycle (which gets revoked on download/dismiss).
+let previewObjectUrl = null
+
+function showResults(blob) {
+  const modal = document.getElementById('results-panel')
+  const video = document.getElementById('preview')
+  if (!modal || !video) return
+  if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl)
+  previewObjectUrl = URL.createObjectURL(blob)
+  video.src = previewObjectUrl
+  // .results-modal is a flex-centered overlay (inline style starts as none).
+  modal.style.display = 'flex'
+}
+
 function closeResults() {
   const modal = document.getElementById('results-panel')
   if (modal) {
@@ -498,6 +514,10 @@ function closeResults() {
       video.pause()
       video.src = ''
     }
+  }
+  if (previewObjectUrl) {
+    URL.revokeObjectURL(previewObjectUrl)
+    previewObjectUrl = null
   }
 }
 function handleKeydown(e) {
@@ -519,6 +539,10 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
   destroyTimer()
   dismissWebm()
+  if (previewObjectUrl) {
+    URL.revokeObjectURL(previewObjectUrl)
+    previewObjectUrl = null
+  }
 })
 </script>
 

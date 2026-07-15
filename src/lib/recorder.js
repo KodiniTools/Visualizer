@@ -33,9 +33,9 @@ class Recorder {
     this.isPaused = false
 
     this.currentCanvasStream = null
-    this.frameRequesterId = null // For requestAnimationFrame
-    this.frameRequesterTimeout = null // For setTimeout fallback
+    this.frameRequesterTimeout = null // setTimeout-driven redraw clock
     this.frameRequesterRunning = false
+    this.captureFrameRate = 60 // Fixed capture rate → decoupled from main-thread rAF
 
     // ✅ NEW: Track event listeners for cleanup
     this._activeEventListeners = new Map()
@@ -285,11 +285,6 @@ class Recorder {
       return
     }
 
-    if (this.frameRequesterId) {
-      cancelAnimationFrame(this.frameRequesterId)
-      this.frameRequesterId = null
-    }
-
     if (this.frameRequesterTimeout) {
       clearTimeout(this.frameRequesterTimeout)
       this.frameRequesterTimeout = null
@@ -310,10 +305,11 @@ class Recorder {
 
     this.frameRequesterRunning = true
 
-    // ✅ FIX: Hybrid approach using both rAF and setTimeout
-    // rAF provides smooth timing when tab is focused
-    // setTimeout ensures frames continue when tab is in background
-    const frameLoop = (useRAF = true) => {
+    // The content redraw is driven by a setTimeout clock, NOT requestAnimationFrame.
+    // rAF is throttled/paused by the browser during scrolling and when the tab is
+    // backgrounded, which would freeze the recording. A timer keeps firing in both
+    // cases, so recording stays continuous and independent of scroll/clicks.
+    const frameLoop = () => {
       if (!this.frameRequesterRunning) {
         return
       }
@@ -326,7 +322,7 @@ class Recorder {
           this._stopFrameRequester()
           return
         }
-        this._scheduleNextFrame(frameLoop, useRAF)
+        this._scheduleNextFrame(frameLoop)
         return
       }
 
@@ -336,12 +332,12 @@ class Recorder {
           this._stopFrameRequester()
           return
         }
-        this._scheduleNextFrame(frameLoop, useRAF)
+        this._scheduleNextFrame(frameLoop)
         return
       }
 
       if (!this.isActive || this.isPaused) {
-        this._scheduleNextFrame(frameLoop, useRAF)
+        this._scheduleNextFrame(frameLoop)
         return
       }
 
@@ -360,8 +356,8 @@ class Recorder {
             return
           }
 
-          // For captureStream(0), manually request frame
-          // For captureStream(60), this is a no-op but harmless
+          // Belt-and-suspenders: the stream now runs at a fixed capture rate
+          // (captureStream(FPS)), so requestFrame() is a harmless no-op here.
           if (typeof videoTrack.requestFrame === 'function') {
             videoTrack.requestFrame()
           }
@@ -378,37 +374,24 @@ class Recorder {
         }
       }
 
-      this._scheduleNextFrame(frameLoop, useRAF)
+      this._scheduleNextFrame(frameLoop)
     }
 
-    // Start the loop with rAF
-    this._scheduleNextFrame(frameLoop, true)
+    this._scheduleNextFrame(frameLoop)
   }
 
-  _scheduleNextFrame(frameLoop, preferRAF) {
+  _scheduleNextFrame(frameLoop) {
     if (!this.frameRequesterRunning) {
       return
     }
 
-    // Use rAF when document is visible for smooth timing
-    // Use setTimeout when hidden to ensure frames continue
-    const useRAF = preferRAF && !document.hidden
-
-    if (useRAF) {
-      this.frameRequesterId = requestAnimationFrame(() => frameLoop(true))
-    } else {
-      // setTimeout fallback - runs even when tab is hidden
-      this.frameRequesterTimeout = setTimeout(() => frameLoop(false), 16)
-    }
+    // Timer-based (not rAF) so redraws keep firing while the page is scrolled
+    // or the tab is backgrounded.
+    this.frameRequesterTimeout = setTimeout(frameLoop, 16)
   }
 
   _stopFrameRequester() {
     this.frameRequesterRunning = false
-
-    if (this.frameRequesterId) {
-      cancelAnimationFrame(this.frameRequesterId)
-      this.frameRequesterId = null
-    }
 
     if (this.frameRequesterTimeout) {
       clearTimeout(this.frameRequesterTimeout)
@@ -566,8 +549,12 @@ class Recorder {
         await new Promise((resolve) => setTimeout(resolve, 200))
       }
 
-      // IMPORTANT: Use 0 FPS (manual) - frames requested via requestFrame()
-      this.currentCanvasStream = this.recordingCanvas.captureStream(0)
+      // Fixed capture rate: the browser samples the canvas at this FPS on its
+      // own pipeline, so capture no longer depends on a main-thread rAF loop
+      // calling requestFrame(). This keeps the recording from freezing (and the
+      // audio/video from desyncing) while the page is scrolled or the main
+      // thread is busy.
+      this.currentCanvasStream = this.recordingCanvas.captureStream(this.captureFrameRate)
       console.log('[RECORDER] ✅ New canvas stream created')
 
       await new Promise((resolve) => setTimeout(resolve, 100))

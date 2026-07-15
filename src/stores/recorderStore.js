@@ -27,6 +27,7 @@ export const useRecorderStore = defineStore('recorder', {
 
     // UI Status
     recordingQuality: 8_000_000, // 8 Mbps default
+    recordingFrameRate: 30, // Capture fps: 30 (default) | 60 (modern hardware)
     statusMessage: '',
     statusType: 'idle', // 'idle' | 'recording' | 'paused' | 'processing' | 'ready'
 
@@ -212,6 +213,7 @@ export const useRecorderStore = defineStore('recorder', {
 
       const recordingOptions = {
         videoBitsPerSecond: options.quality || this.recordingQuality,
+        captureFrameRate: options.frameRate || this.recordingFrameRate,
       }
 
       // KRITISCH: await für async prepare()
@@ -403,6 +405,19 @@ export const useRecorderStore = defineStore('recorder', {
         (bitsPerSecond / 1_000_000).toFixed(1),
         'Mbps',
       )
+    },
+
+    /**
+     * Aufnahme-Bildrate setzen (30 fps Standard, 60 fps für moderne Hardware)
+     */
+    setRecordingFrameRate(fps) {
+      const rate = Number(fps) === 60 ? 60 : 30
+      this.recordingFrameRate = rate
+      // Auf den bereits initialisierten Recorder anwenden (wirkt ab prepare/start)
+      if (this.recorder) {
+        this.recorder.setCaptureFrameRate(rate)
+      }
+      console.log('[RecorderStore] Aufnahme-Bildrate gesetzt:', rate, 'fps')
     },
 
     /**

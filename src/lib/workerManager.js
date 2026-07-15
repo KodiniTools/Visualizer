@@ -4,6 +4,16 @@
  * Mit automatischem Fallback wenn Worker nicht verfügbar sind
  */
 
+// Inline (base64) workers: the worker code is embedded in the bundle and
+// instantiated from a blob URL as a CLASSIC worker. This avoids the module-worker
+// loading failures seen in production under the /visualizer/ subpath (strict MIME
+// checks on module workers, missing module-worker support, and any wrong
+// Content-Type / SPA-fallback served for a separate worker file). No separate
+// worker file needs to be fetched at all.
+import AudioAnalysisWorker from '../workers/audioAnalysisWorker.js?worker&inline'
+import VisualizerWorker from '../workers/visualizerWorker.js?worker&inline'
+import ImageFilterWorker from '../workers/imageFilterWorker.js?worker&inline'
+
 export class WorkerManager {
   constructor() {
     this.audioWorker = null
@@ -38,9 +48,7 @@ export class WorkerManager {
     }
 
     try {
-      this.audioWorker = new Worker(new URL('../workers/audioAnalysisWorker.js', import.meta.url), {
-        type: 'module',
-      })
+      this.audioWorker = new AudioAnalysisWorker()
 
       return new Promise((resolve) => {
         this.audioWorker.onmessage = (e) => {
@@ -92,10 +100,7 @@ export class WorkerManager {
     }
 
     try {
-      this.visualizerWorker = new Worker(
-        new URL('../workers/visualizerWorker.js', import.meta.url),
-        { type: 'module' },
-      )
+      this.visualizerWorker = new VisualizerWorker()
 
       return new Promise((resolve) => {
         this.visualizerWorker.onmessage = (e) => {
@@ -157,10 +162,7 @@ export class WorkerManager {
     }
 
     try {
-      this.imageFilterWorker = new Worker(
-        new URL('../workers/imageFilterWorker.js', import.meta.url),
-        { type: 'module' },
-      )
+      this.imageFilterWorker = new ImageFilterWorker()
 
       return new Promise((resolve) => {
         this.imageFilterWorker.onmessage = (e) => {

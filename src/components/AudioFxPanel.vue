@@ -79,6 +79,33 @@
             :max="100"
           />
         </FxEffect>
+
+        <div class="fx-group-label">Rhythmus & Kamera</div>
+
+        <!-- ZOOM-PUNCH (beat) -->
+        <FxEffect title="🥁 Zoom-Punch (Beat)" v-model="store.zoomPunchEnabled">
+          <FxRange label="Stärke" v-model.number="store.zoomPunchStrength" :min="0" :max="100" />
+        </FxEffect>
+
+        <!-- VIGNETTE-PULS (beat) -->
+        <FxEffect title="🌓 Vignette-Puls (Beat)" v-model="store.vignettePulseEnabled">
+          <FxRange
+            label="Intensität"
+            v-model.number="store.vignettePulseIntensity"
+            :min="0"
+            :max="100"
+          />
+        </FxEffect>
+
+        <!-- BPM-LOCK-PULS -->
+        <FxEffect title="⏱️ BPM-Puls" v-model="store.bpmPulseEnabled">
+          <FxRange label="Stärke" v-model.number="store.bpmPulseStrength" :min="0" :max="100" />
+        </FxEffect>
+
+        <!-- FREQUENZ-SPLIT -->
+        <FxEffect title="🎚️ Frequenz-Split" v-model="store.freqSplitEnabled">
+          <FxRange label="Stärke" v-model.number="store.freqSplitStrength" :min="0" :max="100" />
+        </FxEffect>
       </template>
     </template>
   </div>
@@ -175,5 +202,16 @@ const open = ref(false)
   cursor: pointer;
   padding: 0;
   background: none;
+}
+
+.fx-group-label {
+  margin: 10px 0 2px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #7a8da0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 8px;
 }
 </style>

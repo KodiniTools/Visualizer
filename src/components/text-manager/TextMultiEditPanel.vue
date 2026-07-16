@@ -189,13 +189,11 @@ function copyAudioReactive() {
 function deleteAll() {
   const cm = canvasManager.value
   if (!cm) return
-  for (const t of [...props.texts]) {
-    if (cm.textManager) cm.textManager.delete(t)
-  }
-  cm.clearMultiSelection()
-  cm.setActiveObject(null)
+  // Über die undo-fähige Sammel-Löschung: registriert einen History-Command
+  // und zeigt einen Toast mit "Rückgängig"-Button, damit ein versehentliches
+  // Löschen aller Texte wiederhergestellt werden kann.
+  cm.deleteTexts([...props.texts])
   emit('clear')
-  redraw()
 }
 
 function selectAll() {

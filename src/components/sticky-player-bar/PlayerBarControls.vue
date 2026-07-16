@@ -199,6 +199,19 @@
 
       <button
         class="spb-icon-btn"
+        :class="{ active: isOpen('presets') }"
+        :title="t('player.openPresets')"
+        @click="togglePopover('presets')"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M12 2l2.09 6.26H20.5l-5.2 3.78 1.99 6.26L12 14.52 6.71 18.3l1.99-6.26-5.2-3.78h6.41L12 2z"
+          />
+        </svg>
+      </button>
+
+      <button
+        class="spb-icon-btn"
         :class="{ active: isOpen('audioReactive') }"
         :title="t('player.openAudioReactive')"
         @click="togglePopover('audioReactive')"

@@ -1393,6 +1393,7 @@ export default {
     // Text operations
     textAdded: 'Text added',
     textDeleted: 'Text deleted',
+    textsDeleted: 'texts deleted',
     textDuplicated: 'Text duplicated',
     imageDeleted: 'Image deleted',
     videoDeleted: 'Video deleted',

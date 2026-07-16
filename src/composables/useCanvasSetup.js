@@ -119,7 +119,7 @@ export function useCanvasSetup({
   // Wird vom CanvasManager nach dem Löschen aufgerufen. Registriert einen
   // History-Command (Strg+Z / Strg+Y) und zeigt einen Toast mit
   // "Rückgängig"-Button zur direkten Wiederherstellung.
-  function handleObjectDeleted({ type, undo, redo }) {
+  function handleObjectDeleted({ type, undo, redo, count = 1 }) {
     // Eindeutiges Token zum Wiedererkennen dieses Commands im History-Stack.
     // WICHTIG: Kein Identitätsvergleich (===) mit dem Command-Objekt, da Pinia
     // das Objekt beim Speichern in einen reaktiven Proxy einwickelt – die
@@ -143,11 +143,16 @@ export function useCanvasSetup({
           ? 'toast.videoDeleted'
           : 'toast.textDeleted'
 
+    // Beim gemeinsamen Löschen mehrerer Texte einen Sammel-Text mit Anzahl
+    // anzeigen ("3 Texte gelöscht"), sonst die Einzel-Meldung.
+    const message =
+      type === 'text' && count > 1 ? `${count} ${t('toast.textsDeleted')}` : t(messageKey)
+
     let handled = false
 
     toastStore.addToast({
       type: 'info',
-      message: t(messageKey),
+      message,
       duration: 6000,
       action: {
         label: t('toast.undo'),

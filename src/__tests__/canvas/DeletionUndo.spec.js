@@ -51,6 +51,36 @@ describe('Deletion Undo – TextManager', () => {
     tm.restore(a)
     expect(tm.textObjects[tm.textObjects.length - 1]).toBe(a)
   })
+
+  it('stellt mehrere gemeinsam gelöschte Texte in ursprünglicher Reihenfolge wieder her', () => {
+    const a = tm.add('A')
+    const b = tm.add('B')
+    const c = tm.add('C')
+    const d = tm.add('D')
+
+    // Sammel-Löschung nicht-zusammenhängender Ebenen (A und C)
+    const removed = [a, c].map((obj) => ({
+      object: obj,
+      index: tm.textObjects.findIndex((t) => t.id === obj.id),
+    }))
+    // von hinten löschen, damit Indizes gültig bleiben
+    removed
+      .slice()
+      .sort((x, y) => y.index - x.index)
+      .forEach(({ object }) => tm.delete(object))
+    expect(tm.textObjects.map((t) => t.content)).toEqual(['B', 'D'])
+
+    // aufsteigend wiederherstellen
+    removed
+      .slice()
+      .sort((x, y) => x.index - y.index)
+      .forEach(({ object, index }) => tm.restore(object, index))
+    expect(tm.textObjects.map((t) => t.content)).toEqual(['A', 'B', 'C', 'D'])
+    expect(tm.textObjects[0]).toBe(a)
+    expect(tm.textObjects[2]).toBe(c)
+    expect(b).toBeDefined()
+    expect(d).toBeDefined()
+  })
 })
 
 describe('Deletion Undo – MultiImageManager', () => {

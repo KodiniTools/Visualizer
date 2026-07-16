@@ -997,6 +997,70 @@ export class CanvasManager {
     this.updateUICallback()
   }
 
+  // ↩️ Undo-fähiges Löschen mehrerer Text-Objekte in einem Schritt.
+  // Wird z.B. vom "Alle löschen"-Button im Mehrfach-Bearbeiten-Panel genutzt.
+  // Registriert EINEN gemeinsamen History-Command, sodass ein einziges
+  // Undo (Strg+Z bzw. Toast-Button) alle Texte gemeinsam wiederherstellt.
+  deleteTexts(textsToDelete) {
+    if (!this.textManager || !Array.isArray(textsToDelete) || textsToDelete.length === 0) {
+      return
+    }
+
+    // Nur tatsächlich vorhandene Text-Objekte berücksichtigen
+    const targets = textsToDelete.filter((obj) =>
+      this.textManager.textObjects.some((existing) => existing.id === obj.id),
+    )
+    if (targets.length === 0) return
+
+    // Entfernt alle Ziel-Texte und merkt sich ihre Ebenen-Positionen.
+    // Löschung von hinten (größter Index zuerst), damit die noch nicht
+    // gelöschten Indizes gültig bleiben. Rückgabe aufsteigend nach Index.
+    const removeAll = () => {
+      const removed = targets.map((obj) => ({
+        object: obj,
+        index: this.textManager.textObjects.findIndex((t) => t.id === obj.id),
+      }))
+      removed
+        .slice()
+        .sort((a, b) => b.index - a.index)
+        .forEach(({ object }) => this.textManager.delete(object))
+      return removed.sort((a, b) => a.index - b.index)
+    }
+
+    // Fügt alle Texte an ihren ursprünglichen Ebenen-Positionen wieder ein.
+    // Aufsteigend einfügen, damit jeder Index beim Einsetzen stimmt.
+    const restoreAll = (removed) => {
+      removed
+        .slice()
+        .sort((a, b) => a.index - b.index)
+        .forEach(({ object, index }) => this.textManager.restore(object, index))
+    }
+
+    let removed = removeAll()
+
+    this.clearMultiSelection()
+    this.setActiveObject(null)
+    this.redrawCallback()
+    this.updateUICallback()
+
+    this.onObjectDeleted?.({
+      type: 'text',
+      count: targets.length,
+      undo: () => {
+        restoreAll(removed)
+        this.redrawCallback()
+        this.updateUICallback()
+      },
+      redo: () => {
+        removed = removeAll()
+        this.clearMultiSelection()
+        this.setActiveObject(null)
+        this.redrawCallback()
+        this.updateUICallback()
+      },
+    })
+  }
+
   removeImageBySource(imageObjectToRemove) {
     if (!imageObjectToRemove) return
 

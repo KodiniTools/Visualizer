@@ -49,6 +49,28 @@ export const useAudioFxStore = defineStore('audioFx', () => {
   const vignetteSource = ref('volume')
   const vignetteIntensity = ref(50) // 0–100
 
+  // ── Rhythm / beat-synced camera effects ──────────────────────────────────
+
+  // Zoom-Punch — snappy scale punch that snaps on each detected beat and eases
+  // out (distinct from the continuous, loudness-driven "Pulse" above).
+  const zoomPunchEnabled = ref(false)
+  const zoomPunchStrength = ref(50) // 0–100 → up to ~0.18 scale delta on a strong beat
+
+  // Vignette-Puls — edge darkening that snaps on each beat and eases out.
+  const vignettePulseEnabled = ref(false)
+  const vignettePulseIntensity = ref(60) // 0–100
+
+  // BPM-Lock-Puls — whole-frame scale pulse locked to the detected BPM. Keeps
+  // pulsing on the beat grid even during quiet passages (predictive phase that
+  // re-syncs on every detected beat).
+  const bpmPulseEnabled = ref(false)
+  const bpmPulseStrength = ref(45) // 0–100
+
+  // Frequenz-Split — two bands at once: bass drives a subtle zoom, treble drives
+  // a hue shift + edge glow. Showcases the frequency spectrum in a single effect.
+  const freqSplitEnabled = ref(false)
+  const freqSplitStrength = ref(60) // 0–100
+
   return {
     enabled,
     brightnessEnabled,
@@ -80,5 +102,13 @@ export const useAudioFxStore = defineStore('audioFx', () => {
     vignetteEnabled,
     vignetteSource,
     vignetteIntensity,
+    zoomPunchEnabled,
+    zoomPunchStrength,
+    vignettePulseEnabled,
+    vignettePulseIntensity,
+    bpmPulseEnabled,
+    bpmPulseStrength,
+    freqSplitEnabled,
+    freqSplitStrength,
   }
 })

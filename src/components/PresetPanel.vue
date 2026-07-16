@@ -1,12 +1,12 @@
 <template>
-  <div class="panel">
-    <div class="panel-header" @click="collapsed = !collapsed">
+  <div class="panel" :class="{ embedded }">
+    <div v-if="!embedded" class="panel-header" @click="collapsed = !collapsed">
       <h3>🎨 {{ t('presets.title') }}</h3>
       <span class="collapse-icon" :class="{ rotated: !collapsed }">▼</span>
     </div>
 
     <Transition name="panel-collapse">
-      <div v-show="!collapsed" class="panel-body">
+      <div v-show="embedded || !collapsed" class="panel-body">
         <!-- Built-in Presets -->
         <div class="section-label">{{ t('presets.builtIn') }}</div>
         <div class="presets-grid">
@@ -83,6 +83,13 @@ import { useToastStore } from '../stores/toastStore.js'
 import { useI18n } from '../lib/i18n.js'
 
 const { t } = useI18n()
+
+// When embedded (e.g. inside the sticky-player-bar popover) the panel drops its
+// own collapse header and card chrome, since the popover already supplies them.
+defineProps({
+  embedded: { type: Boolean, default: false },
+})
+
 const canvasManager = inject('canvasManager')
 const presetStore = usePresetStore()
 const toastStore = useToastStore()
@@ -148,6 +155,17 @@ h3 {
 }
 .collapse-icon.rotated {
   transform: rotate(-90deg);
+}
+
+.panel.embedded {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.panel.embedded .panel-body {
+  margin-top: 0;
 }
 
 .panel-body {

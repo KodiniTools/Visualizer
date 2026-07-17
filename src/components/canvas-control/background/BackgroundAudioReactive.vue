@@ -1,6 +1,6 @@
 <template>
   <div class="audio-reactive-section">
-    <h5>🎵 {{ t('canvasControl.audioReactive') }}</h5>
+    <h5>{{ t('canvasControl.audioReactive') }}</h5>
 
     <div class="control-group">
       <label class="checkbox-label">
@@ -17,7 +17,7 @@
           <option value="mid">{{ t('canvasControl.mid') }}</option>
           <option value="treble">{{ t('canvasControl.trebleHiHats') }}</option>
           <option value="volume">{{ t('canvasControl.volumeTotal') }}</option>
-          <option value="dynamic">✨ {{ t('canvasControl.dynamic') }}</option>
+          <option value="dynamic">{{ t('canvasControl.dynamic') }}</option>
         </select>
       </div>
 
@@ -37,7 +37,7 @@
       <div class="effects-list">
         <label class="effect-item">
           <input type="checkbox" v-model="bgEffectHue" @change="updateBgAudioReactive" />
-          <span>🎨 {{ t('canvasControl.hue') }}</span>
+          <span>{{ t('canvasControl.hue') }}</span>
           <input
             type="range"
             v-model.number="bgEffectHueIntensity"
@@ -52,7 +52,7 @@
 
         <label class="effect-item">
           <input type="checkbox" v-model="bgEffectBrightness" @change="updateBgAudioReactive" />
-          <span>☀️ {{ t('canvasControl.brightness') }}</span>
+          <span>{{ t('canvasControl.brightness') }}</span>
           <input
             type="range"
             v-model.number="bgEffectBrightnessIntensity"
@@ -67,7 +67,7 @@
 
         <label class="effect-item">
           <input type="checkbox" v-model="bgEffectSaturation" @change="updateBgAudioReactive" />
-          <span>🌈 {{ t('canvasControl.saturation') }}</span>
+          <span>{{ t('canvasControl.saturation') }}</span>
           <input
             type="range"
             v-model.number="bgEffectSaturationIntensity"
@@ -82,7 +82,7 @@
 
         <label class="effect-item">
           <input type="checkbox" v-model="bgEffectGlow" @change="updateBgAudioReactive" />
-          <span>✨ {{ t('canvasControl.glow') }}</span>
+          <span>{{ t('canvasControl.glow') }}</span>
           <input
             type="range"
             v-model.number="bgEffectGlowIntensity"
@@ -97,7 +97,7 @@
 
         <label class="effect-item">
           <input type="checkbox" v-model="bgEffectStrobe" @change="updateBgAudioReactive" />
-          <span>⚡ {{ t('canvasControl.strobe') }}</span>
+          <span>{{ t('canvasControl.strobe') }}</span>
           <input
             type="range"
             v-model.number="bgEffectStrobeIntensity"
@@ -112,7 +112,7 @@
 
         <label class="effect-item">
           <input type="checkbox" v-model="bgEffectContrast" @change="updateBgAudioReactive" />
-          <span>🔲 {{ t('canvasControl.contrastEffect') }}</span>
+          <span>{{ t('canvasControl.contrastEffect') }}</span>
           <input
             type="range"
             v-model.number="bgEffectContrastIntensity"
@@ -132,7 +132,7 @@
               v-model="bgEffectGradientPulse"
               @change="updateBgAudioReactive"
             />
-            <span>💫 {{ t('canvasControl.gradientPulse') }}</span>
+            <span>{{ t('canvasControl.gradientPulse') }}</span>
             <input
               type="range"
               v-model.number="bgEffectGradientPulseIntensity"
@@ -151,7 +151,7 @@
               v-model="bgEffectGradientRotation"
               @change="updateBgAudioReactive"
             />
-            <span>🔄 {{ t('canvasControl.gradientRotation') }}</span>
+            <span>{{ t('canvasControl.gradientRotation') }}</span>
             <input
               type="range"
               v-model.number="bgEffectGradientRotationIntensity"

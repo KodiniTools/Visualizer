@@ -1,6 +1,6 @@
 <template>
   <div class="panel-section">
-    <h4>🎨 {{ t('canvasControl.presets') }}</h4>
+    <h4>{{ t('canvasControl.presets') }}</h4>
 
     <div class="control-group">
       <button @click="saveCurrentAsPreset" class="btn-primary full-width">
@@ -21,14 +21,14 @@
             class="btn-small btn-load"
             :title="t('canvasControl.load')"
           >
-            📥
+            {{ t('canvasControl.load') }}
           </button>
           <button
             @click="deletePreset(preset.id)"
             class="btn-small btn-delete"
             :title="t('common.delete')"
           >
-            🗑️
+            {{ t('common.delete') }}
           </button>
         </div>
       </div>

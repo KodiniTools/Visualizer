@@ -3,7 +3,6 @@
     <!-- Multi-Layer Toggle -->
     <div class="layer-header">
       <div class="header-left">
-        <span class="layer-icon">🎨</span>
         <span class="header-title">{{ t('visualizer.multiLayer') || 'Multi-Layer' }}</span>
       </div>
       <button
@@ -31,7 +30,6 @@
           </optgroup>
         </select>
         <button class="add-layer-btn" @click="addNewLayer">
-          <span class="btn-icon">+</span>
           {{ t('visualizer.addLayer') || 'Hinzufügen' }}
         </button>
       </div>
@@ -56,7 +54,7 @@
               @click.stop="store.toggleLayerVisibility(layer.id)"
               :title="layer.visible ? t('visualizer.hideLayer') : t('visualizer.showLayer')"
             >
-              {{ layer.visible ? '👁' : '👁‍🗨' }}
+              {{ layer.visible ? t('common.on') : t('common.off') }}
             </button>
 
             <span class="layer-color" :style="{ backgroundColor: layer.color }"></span>
@@ -70,7 +68,7 @@
                 :disabled="index === 0"
                 :title="t('common.moveUp')"
               >
-                ▲
+                <span class="caret-up" aria-hidden="true"></span>
               </button>
               <button
                 class="action-btn"
@@ -78,21 +76,21 @@
                 :disabled="index === reversedLayers.length - 1"
                 :title="t('common.moveDown')"
               >
-                ▼
+                <span class="caret-down" aria-hidden="true"></span>
               </button>
               <button
                 class="action-btn duplicate-btn"
                 @click.stop="store.duplicateLayer(layer.id)"
                 :title="t('common.duplicate')"
               >
-                ⧉
+                {{ t('common.duplicate') }}
               </button>
               <button
                 class="action-btn delete-btn"
                 @click.stop="store.removeLayer(layer.id)"
                 :title="t('common.delete')"
               >
-                ×
+                {{ t('common.delete') }}
               </button>
             </div>
           </div>
@@ -372,10 +370,6 @@ function updateProperty(layerId, property, value) {
   gap: 6px;
 }
 
-.layer-icon {
-  font-size: 0.9rem;
-}
-
 .header-title {
   font-size: 0.7rem;
   font-weight: 600;
@@ -467,11 +461,6 @@ function updateProperty(layerId, property, value) {
   background-color: var(--accent-tertiary, #f8e1a9);
 }
 
-.btn-icon {
-  font-size: 1rem;
-  font-weight: bold;
-}
-
 .layer-list {
   display: flex;
   flex-direction: column;
@@ -517,17 +506,23 @@ function updateProperty(layerId, property, value) {
 }
 
 .visibility-btn {
-  background: none;
-  border: none;
+  background-color: var(--card-bg, #142640);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border-radius: 3px;
   cursor: pointer;
-  font-size: 0.8rem;
-  padding: 2px;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
+  color: var(--text-muted, #7a8da0);
+  font-size: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+  padding: 2px 5px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .visibility-btn:hover {
-  opacity: 1;
+  border-color: var(--accent-primary, #c9984d);
+  color: var(--text-primary, #e9e9eb);
 }
 
 .layer-color {
@@ -557,14 +552,35 @@ function updateProperty(layerId, property, value) {
   color: var(--text-muted, #7a8da0);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 3px;
-  width: 18px;
+  min-width: 18px;
   height: 18px;
-  font-size: 0.55rem;
+  padding: 0 5px;
+  font-size: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Rein per CSS gezeichnete Pfeile (kein Glyph/Emoji) */
+.caret-up,
+.caret-down {
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+}
+.caret-up {
+  transform: rotate(-135deg);
+  margin-top: 2px;
+}
+.caret-down {
+  transform: rotate(45deg);
+  margin-bottom: 2px;
 }
 
 .action-btn:hover:not(:disabled) {

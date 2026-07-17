@@ -40,10 +40,10 @@
                 style="display: none"
               />
               <button class="btn-replace" @click="bgReplaceFileInput?.click()">
-                📁 {{ t('app.uploadImage') || 'Bild hochladen' }}
+                {{ t('app.uploadImage') || 'Bild hochladen' }}
               </button>
               <button class="btn-replace btn-gallery" @click="openBgReplaceGallery">
-                🖼️ {{ t('app.fromGallery') || 'Aus Galerie' }}
+                {{ t('app.fromGallery') || 'Aus Galerie' }}
               </button>
             </div>
 
@@ -64,7 +64,7 @@
 
               <div class="bg-gallery-content">
                 <div v-if="bgGalleryLoading" class="bg-gallery-loading">
-                  ⏳ {{ t('common.loading') || 'Laden...' }}
+                  {{ t('common.loading') || 'Laden...' }}
                 </div>
                 <div v-else-if="bgGalleryImages.length === 0" class="bg-gallery-empty">
                   {{ t('common.noResults') || 'Keine Ergebnisse' }}
@@ -95,7 +95,7 @@
                   :disabled="!selectedBgGalleryImage"
                   @click="confirmBgReplaceFromGallery"
                 >
-                  ✓ {{ t('app.selectImage') || 'Bild auswählen' }}
+                  {{ t('app.selectImage') || 'Bild auswählen' }}
                 </button>
               </div>
             </div>
@@ -116,10 +116,10 @@
               </div>
               <div class="pending-bg-replace-actions">
                 <button class="btn-cancel-replace" @click="cancelBackgroundReplace">
-                  ✕ {{ t('common.cancel') || 'Abbrechen' }}
+                  {{ t('common.cancel') || 'Abbrechen' }}
                 </button>
                 <button class="btn-confirm-replace" @click="confirmBackgroundReplace">
-                  ✓ {{ t('app.confirmReplace') || 'Ersetzen bestätigen' }}
+                  {{ t('app.confirmReplace') || 'Ersetzen bestätigen' }}
                 </button>
               </div>
             </div>

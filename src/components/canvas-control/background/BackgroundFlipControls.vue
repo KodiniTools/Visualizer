@@ -2,7 +2,7 @@
   <div>
     <!-- Bild-Hintergrund Spiegeln -->
     <div v-if="hasImageBackground" class="flip-section">
-      <h5>🔄 {{ t('canvasControl.flipBackground') }}</h5>
+      <h5>{{ t('canvasControl.flipBackground') }}</h5>
       <div class="flip-buttons">
         <button
           type="button"
@@ -11,7 +11,7 @@
           @click="toggleBgFlipH"
           :title="t('canvasControl.flipHorizontal')"
         >
-          ↔ {{ t('canvasControl.horizontal') }}
+          {{ t('canvasControl.horizontal') }}
         </button>
         <button
           type="button"
@@ -20,14 +20,14 @@
           @click="toggleBgFlipV"
           :title="t('canvasControl.flipVertical')"
         >
-          ↕ {{ t('canvasControl.vertical') }}
+          {{ t('canvasControl.vertical') }}
         </button>
       </div>
     </div>
 
     <!-- Workspace-Hintergrund Spiegeln -->
     <div v-if="hasWorkspaceBackground" class="flip-section">
-      <h5>🔄 {{ t('canvasControl.flipWorkspaceBackground') }}</h5>
+      <h5>{{ t('canvasControl.flipWorkspaceBackground') }}</h5>
       <div class="flip-buttons">
         <button
           type="button"
@@ -36,7 +36,7 @@
           @click="toggleWsBgFlipH"
           :title="t('canvasControl.flipHorizontal')"
         >
-          ↔ {{ t('canvasControl.horizontal') }}
+          {{ t('canvasControl.horizontal') }}
         </button>
         <button
           type="button"
@@ -45,7 +45,7 @@
           @click="toggleWsBgFlipV"
           :title="t('canvasControl.flipVertical')"
         >
-          ↕ {{ t('canvasControl.vertical') }}
+          {{ t('canvasControl.vertical') }}
         </button>
       </div>
     </div>

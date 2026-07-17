@@ -11,14 +11,17 @@ import {
 
 describe('AudioReactiveEffects', () => {
   describe('EFFECT_NAMES', () => {
-    it('contains all 29 effects', () => {
-      expect(EFFECT_NAMES).toHaveLength(29)
+    it('contains all 32 effects', () => {
+      expect(EFFECT_NAMES).toHaveLength(32)
     })
 
     it('includes the rhythm effects', () => {
       expect(EFFECT_NAMES).toContain('beatPulse')
       expect(EFFECT_NAMES).toContain('zoomPunch')
       expect(EFFECT_NAMES).toContain('bpmPulse')
+      expect(EFFECT_NAMES).toContain('beatFlip')
+      expect(EFFECT_NAMES).toContain('colorStrobe')
+      expect(EFFECT_NAMES).toContain('impulseShake')
     })
 
     it('includes the frequency-split and vignette-pulse effects', () => {
@@ -170,6 +173,40 @@ describe('AudioReactiveEffects', () => {
         expect(result).toHaveProperty('vignetteStrength')
         expect(result.vignetteStrength).toBeGreaterThanOrEqual(0)
         expect(result.vignetteStrength).toBeLessThanOrEqual(0.9)
+      })
+    })
+
+    describe('beat-flip, color-strobe & impulse-shake', () => {
+      const origWindow = globalThis.window
+      afterEach(() => {
+        globalThis.window = origWindow
+      })
+
+      it('beatFlip rests at scaleX ~1 without a beat', () => {
+        resetBeatPulseEnvelope()
+        globalThis.window = { audioAnalysisData: { isBeat: false } }
+        const r = calculateEffectValue('beatFlip', 0.8, 1000)
+        expect(r).toHaveProperty('flipScaleX')
+        expect(r.flipScaleX).toBeCloseTo(1, 5)
+      })
+
+      it('colorStrobe steps the hue on each detected beat', () => {
+        resetBeatPulseEnvelope()
+        globalThis.window = { audioAnalysisData: { isBeat: true } }
+        const a = calculateEffectValue('colorStrobe', 0.5, 1000)
+        const b = calculateEffectValue('colorStrobe', 0.5, 2000)
+        expect(a).toHaveProperty('hueRotate')
+        expect(a).toHaveProperty('saturate')
+        expect(b.hueRotate).not.toBe(a.hueRotate)
+      })
+
+      it('impulseShake rests at ~0 offset in silence', () => {
+        resetBeatPulseEnvelope()
+        globalThis.window = { audioAnalysisData: { isBeat: false } }
+        const r = calculateEffectValue('impulseShake', 0.8, 1000)
+        expect(r).toHaveProperty('shakeX')
+        expect(r).toHaveProperty('shakeY')
+        expect(Math.abs(r.shakeX) + Math.abs(r.shakeY)).toBeCloseTo(0, 5)
       })
     })
 

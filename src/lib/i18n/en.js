@@ -1171,6 +1171,9 @@ export default {
       bpmPulse: 'BPM Pulse',
       freqSplit: 'Frequency Split',
       vignettePulse: 'Vignette Pulse',
+      beatFlip: 'Beat Flip',
+      colorStrobe: 'Color Strobe',
+      impulseShake: 'Impulse Shake',
     },
     // Stock gallery categories
     stockCategories: {

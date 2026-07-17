@@ -43,6 +43,9 @@ export const EFFECT_NAMES = [
   'beatPulse',
   'zoomPunch',
   'bpmPulse',
+  'beatFlip',
+  'colorStrobe',
+  'impulseShake',
 ]
 
 /**
@@ -53,7 +56,7 @@ export const EFFECT_CATEGORIES = {
   transform: ['scale', 'rotation', 'skew', 'perspective', 'freqSplit'],
   visual: ['glow', 'border', 'strobe', 'chromatic', 'vignettePulse'],
   motion: ['shake', 'bounce', 'swing', 'orbit', 'figure8', 'wave', 'spiral', 'float'],
-  rhythm: ['beatPulse', 'zoomPunch', 'bpmPulse'],
+  rhythm: ['beatPulse', 'zoomPunch', 'bpmPulse', 'beatFlip', 'colorStrobe', 'impulseShake'],
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -123,6 +126,32 @@ function updateBpmPhase(beat, time) {
   return raised * raised
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// BEAT SEQUENCE COUNTER (module scope)
+//
+// A monotonically increasing counter that advances exactly ONCE per detected
+// beat, guarded against the beat frame being sampled by several images in the
+// same frame (same timestamp) and against the beat flag staying high. Used by
+// per-beat effects that must pick a fresh value on each beat (color, direction).
+// ═══════════════════════════════════════════════════════════════════════════
+let _beatSeq = 0
+let _beatSeqLastTime = 0
+const BEAT_SEQ_MIN_INTERVAL = 60 // ms — ignore re-triggers closer than this
+
+/**
+ * Advances (at most once per real beat) and returns the beat sequence counter.
+ * @param {object|null} beat - Global audio data with { isBeat }
+ * @param {number} time - Current timestamp in ms
+ * @returns {number} Current beat index
+ */
+function beatSequence(beat, time) {
+  if (beat && beat.isBeat && time - _beatSeqLastTime > BEAT_SEQ_MIN_INTERVAL) {
+    _beatSeq++
+    _beatSeqLastTime = time
+  }
+  return _beatSeq
+}
+
 /**
  * Resets the beat-pulse envelope state (e.g. when audio stops).
  */
@@ -131,6 +160,8 @@ export function resetBeatPulseEnvelope() {
   _beatPulseLastTime = 0
   _bpmPhase = 0
   _bpmLastTime = 0
+  _beatSeq = 0
+  _beatSeqLastTime = 0
 }
 
 /**
@@ -402,6 +433,39 @@ export function calculateEffectValue(effectName, normalizedLevel, time = Date.no
         glowBlur: amp * 30,
         glowColor: `rgba(139, 92, 246, ${0.3 + amp * 0.5})`,
       }
+    }
+
+    case 'beatFlip': {
+      // 180° card-flip on each beat: snaps to the flipped (mirrored) side on the
+      // beat and eases back to the front as the beat envelope decays. Rendered as
+      // a horizontal scale (1 → -1) around the image centre.
+      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const env = updateBeatPulseEnvelope(beat, time)
+      const p = env * (0.4 + 0.6 * level)
+      return { flipScaleX: Math.cos(p * Math.PI) }
+    }
+
+    case 'colorStrobe': {
+      // Musical color change: the hue steps to a fresh value on every beat and
+      // holds until the next one; saturation pops with the beat envelope.
+      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const env = updateBeatPulseEnvelope(beat, time)
+      const seq = beatSequence(beat, time)
+      return {
+        hueRotate: (seq * 47) % 360, // 47° step per beat → distinct colors
+        saturate: 100 + env * level * 180,
+      }
+    }
+
+    case 'impulseShake': {
+      // Single decaying jolt per beat (unlike the continuous `shake`): picks one
+      // random direction on the beat and eases the offset back to zero.
+      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const env = updateBeatPulseEnvelope(beat, time)
+      const seq = beatSequence(beat, time)
+      const angle = seq * 2.399963 // golden angle → well-spread directions
+      const dist = env * (0.4 + 0.6 * level) * 40 // up to ~40px on a strong beat
+      return { shakeX: Math.cos(angle) * dist, shakeY: Math.sin(angle) * dist }
     }
 
     default:

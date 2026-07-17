@@ -1114,6 +1114,8 @@ export default {
     removeImage: 'Bild entfernen',
     // Presets
     presets: 'Bild-Presets',
+    noPreset: 'Kein Preset',
+    noPresetHint: 'Preset abwählen und die eigenen Audio-Reaktiv-Effekte wiederherstellen',
     saveAsPreset: 'Als Preset speichern',
     noPresets: 'Keine Presets gespeichert',
     load: 'Laden',

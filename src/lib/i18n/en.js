@@ -1115,6 +1115,8 @@ export default {
     removeImage: 'Remove Image',
     // Presets
     presets: 'Image Presets',
+    noPreset: 'No preset',
+    noPresetHint: 'Deselect the preset and restore your own audio-reactive effects',
     saveAsPreset: 'Save as Preset',
     noPresets: 'No presets saved',
     load: 'Load',

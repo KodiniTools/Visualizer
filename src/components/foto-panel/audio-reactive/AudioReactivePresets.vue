@@ -13,6 +13,14 @@
       >
         {{ preset.icon }} {{ preset.name }}
       </button>
+      <button
+        class="preset-btn preset-btn-none"
+        :class="{ active: activeAudioPreset === null }"
+        :title="t('foto.noPresetHint')"
+        @click="clearPreset()"
+      >
+        ⊘ {{ t('foto.noPreset') }}
+      </button>
     </div>
   </div>
 </template>
@@ -23,7 +31,7 @@ import { useI18n } from '../../../lib/i18n.js'
 
 const { t } = useI18n()
 const arc = inject('audioReactiveControls')
-const { presetList, activeAudioPreset, togglePreset } = arc
+const { presetList, activeAudioPreset, togglePreset, clearPreset } = arc
 </script>
 
 <style scoped src="./audio-reactive-shared.css"></style>
@@ -76,9 +84,38 @@ const { presetList, activeAudioPreset, togglePreset } = arc
   }
 }
 
+/* "Kein Preset" – neutral gehalten (Reset), hebt sich von den Effekt-Presets ab */
+.preset-btn-none {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-color, rgba(255, 255, 255, 0.18));
+  color: var(--text-muted, #9aa7b4);
+}
+.preset-btn-none:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--accent-primary, #c9984d);
+  box-shadow: none;
+  color: var(--text-primary);
+}
+.preset-btn-none.active {
+  background: rgba(110, 200, 110, 0.16);
+  border-color: rgba(110, 200, 110, 0.6);
+  color: #6ec86e;
+  box-shadow: none;
+  animation: none;
+}
+
 [data-theme='light'] .preset-btn {
   background: #fdfbf2;
   border-color: var(--border-color);
+}
+[data-theme='light'] .preset-btn-none {
+  background: #eef2f8;
+  color: #5a6b7a;
+}
+[data-theme='light'] .preset-btn-none.active {
+  background: rgba(34, 139, 34, 0.12);
+  border-color: rgba(34, 139, 34, 0.5);
+  color: #1f7a1f;
 }
 [data-theme='light'] .preset-btn:hover {
   background: var(--btn-hover);

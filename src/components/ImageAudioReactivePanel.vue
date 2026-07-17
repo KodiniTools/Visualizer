@@ -12,6 +12,7 @@
     @phase-change="onAudioReactivePhaseChange"
     @gain-change="onAudioReactiveGainChange"
     @toggle-preset="toggleAudioPreset"
+    @clear-preset="clearAudioPreset"
     @effect-toggle="onEffectToggle"
     @effect-intensity-change="onEffectIntensityChange"
     @effect-source-change="onEffectSourceChange"
@@ -41,6 +42,7 @@ const {
   onAudioReactivePhaseChange,
   onAudioReactiveGainChange,
   toggleAudioPreset,
+  clearAudioPreset,
   onEffectToggle,
   onEffectIntensityChange,
   onEffectSourceChange,

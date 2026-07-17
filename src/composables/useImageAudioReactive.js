@@ -16,6 +16,11 @@ import { ref, computed } from 'vue'
 const currentActiveImage = ref(null)
 const activeAudioPreset = ref(null)
 
+// Snapshot of the user's own (non-preset) audio-reactive config per image id.
+// Taken right before the first preset is applied, so "Kein Preset" can restore
+// the user's custom effects instead of leaving the preset (or nothing) behind.
+const userEffectsBackups = new Map()
+
 function loadSavedPresetFromStorage() {
   try {
     const savedPreset = localStorage.getItem('visualizer_audioReactivePreset')
@@ -90,12 +95,43 @@ export function useImageAudioReactive(fotoManagerRef) {
     activeAudioPreset.value = null
   }
 
+  // Schreibt eine (einfache) Audio-Reaktiv-Konfiguration in-place auf das
+  // reaktive `ar`-Objekt zurück – für das Wiederherstellen der Nutzer-Effekte.
+  function assignArConfig(ar, cfg) {
+    if (!cfg) return
+    ar.enabled = cfg.enabled ?? false
+    if (cfg.source !== undefined) ar.source = cfg.source
+    if (cfg.easing !== undefined) ar.easing = cfg.easing
+    if (cfg.beatBoost !== undefined) ar.beatBoost = cfg.beatBoost
+    if (cfg.smoothing !== undefined) ar.smoothing = cfg.smoothing
+    if (cfg.phase !== undefined) ar.phase = cfg.phase
+    if (cfg.gain !== undefined) ar.gain = cfg.gain
+    for (const name of Object.keys(ar.effects)) {
+      const src = cfg.effects?.[name]
+      if (src) {
+        ar.effects[name].enabled = src.enabled ?? false
+        if (src.intensity !== undefined) ar.effects[name].intensity = src.intensity
+        ar.effects[name].source = src.source ?? null
+      } else {
+        ar.effects[name].enabled = false
+      }
+    }
+  }
+
   function applyAudioPreset(presetName) {
     if (!currentActiveImage.value) return
     const fotoManager = fotoManagerRef?.value
     if (!fotoManager) return
     fotoManager.initializeImageSettings(currentActiveImage.value)
     const ar = currentActiveImage.value.fotoSettings.audioReactive
+
+    // Vor dem ersten Preset die eigenen (benutzerdefinierten) Effekte sichern,
+    // damit "Kein Preset" sie später exakt wiederherstellen kann. Nur sichern,
+    // wenn gerade KEIN Preset aktiv ist (sonst würde ein Preset-Zustand als
+    // "eigene" Effekte gesichert werden).
+    if (activeAudioPreset.value === null) {
+      userEffectsBackups.set(currentActiveImage.value.id, JSON.parse(JSON.stringify(ar)))
+    }
 
     const presets = {
       pulse: {
@@ -196,6 +232,21 @@ export function useImageAudioReactive(fotoManagerRef) {
     activeAudioPreset.value = presetName
   }
 
+  // "Kein Preset": Preset-Auswahl aufheben und die zuvor gesicherten
+  // benutzerdefinierten Audio-Reaktiv-Effekte wieder übernehmen.
+  function clearAudioPreset() {
+    if (!currentActiveImage.value) return
+    const fotoManager = fotoManagerRef?.value
+    if (!fotoManager) return
+    fotoManager.initializeImageSettings(currentActiveImage.value)
+    const ar = currentActiveImage.value.fotoSettings.audioReactive
+    const backup = userEffectsBackups.get(currentActiveImage.value.id)
+    if (backup) {
+      assignArConfig(ar, backup)
+    }
+    activeAudioPreset.value = null
+  }
+
   function onEffectToggle(effectName, enabled) {
     if (!currentActiveImage.value) return
     const fotoManager = fotoManagerRef?.value
@@ -268,6 +319,7 @@ export function useImageAudioReactive(fotoManagerRef) {
     onAudioReactivePhaseChange,
     onAudioReactiveGainChange,
     toggleAudioPreset,
+    clearAudioPreset,
     onEffectToggle,
     onEffectIntensityChange,
     onEffectSourceChange,

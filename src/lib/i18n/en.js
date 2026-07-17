@@ -1167,6 +1167,10 @@ export default {
       strobe: 'Strobe',
       chromatic: 'Chromatic',
       beatPulse: 'Beat Pulse',
+      zoomPunch: 'Zoom Punch',
+      bpmPulse: 'BPM Pulse',
+      freqSplit: 'Frequency Split',
+      vignettePulse: 'Vignette Pulse',
     },
     // Stock gallery categories
     stockCategories: {

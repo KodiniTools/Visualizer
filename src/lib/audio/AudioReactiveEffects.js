@@ -23,11 +23,13 @@ export const EFFECT_NAMES = [
   'rotation',
   'skew',
   'perspective',
+  'freqSplit',
   // Visual effects
   'glow',
   'border',
   'strobe',
   'chromatic',
+  'vignettePulse',
   // Motion effects
   'shake',
   'bounce',
@@ -39,6 +41,8 @@ export const EFFECT_NAMES = [
   'float',
   // Rhythm effects
   'beatPulse',
+  'zoomPunch',
+  'bpmPulse',
 ]
 
 /**
@@ -46,10 +50,10 @@ export const EFFECT_NAMES = [
  */
 export const EFFECT_CATEGORIES = {
   filter: ['hue', 'brightness', 'saturation', 'contrast', 'grayscale', 'sepia', 'invert', 'blur'],
-  transform: ['scale', 'rotation', 'skew', 'perspective'],
-  visual: ['glow', 'border', 'strobe', 'chromatic'],
+  transform: ['scale', 'rotation', 'skew', 'perspective', 'freqSplit'],
+  visual: ['glow', 'border', 'strobe', 'chromatic', 'vignettePulse'],
   motion: ['shake', 'bounce', 'swing', 'orbit', 'figure8', 'wave', 'spiral', 'float'],
-  rhythm: ['beatPulse'],
+  rhythm: ['beatPulse', 'zoomPunch', 'bpmPulse'],
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -89,12 +93,44 @@ function updateBeatPulseEnvelope(beat, time) {
   return Math.max(0, Math.min(1, _beatPulseEnv))
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// BPM-LOCKED PHASE (module scope)
+//
+// A predictive phase that advances off the detected BPM so a pulse keeps
+// running on the beat grid even during quiet passages, and re-syncs to the
+// downbeat on every detected beat. Shared so all images pulse together.
+// ═══════════════════════════════════════════════════════════════════════════
+let _bpmPhase = 0
+let _bpmLastTime = 0
+
+/**
+ * Advances and returns a BPM-locked pulse envelope (0-1) that peaks on each
+ * beat of the grid.
+ * @param {object|null} beat - Global audio data with { bpm, isBeat }
+ * @param {number} time - Current timestamp in ms
+ * @returns {number} Envelope value (0-1)
+ */
+function updateBpmPhase(beat, time) {
+  const dt = _bpmLastTime === 0 ? 0 : Math.max(0, time - _bpmLastTime)
+  _bpmLastTime = time
+  const bpm = beat && beat.bpm > 0 ? beat.bpm : 120
+  const beatMs = 60000 / Math.max(30, Math.min(300, bpm))
+  if (dt > 0) _bpmPhase += dt / beatMs
+  // Re-sync to the downbeat on a real detected beat so we stay locked.
+  if (beat && beat.isBeat) _bpmPhase = 0
+  _bpmPhase -= Math.floor(_bpmPhase)
+  const raised = Math.cos(_bpmPhase * Math.PI * 2) * 0.5 + 0.5
+  return raised * raised
+}
+
 /**
  * Resets the beat-pulse envelope state (e.g. when audio stops).
  */
 export function resetBeatPulseEnvelope() {
   _beatPulseEnv = 0
   _beatPulseLastTime = 0
+  _bpmPhase = 0
+  _bpmLastTime = 0
 }
 
 /**
@@ -197,6 +233,21 @@ export function calculateEffectValue(effectName, normalizedLevel, time = Date.no
       return { perspectiveRotateX: rotateX, perspectiveRotateY: rotateY }
     }
 
+    case 'freqSplit': {
+      // Frequency-split: two bands drive two properties at once — bass grows the
+      // image (zoom), treble shifts its hue and adds an edge glow. Reads the raw
+      // bands directly; `level` acts as the intensity scaler (see getAudioReactiveValues).
+      const data = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const bass = data ? (data.smoothBass ?? 0) / 255 : 0
+      const treble = data ? (data.smoothTreble ?? 0) / 255 : 0
+      return {
+        scale: 1.0 + bass * level * 0.35,
+        hueRotate: treble * level * 180,
+        glowBlur: treble * level * 30,
+        glowColor: `rgba(99, 179, 237, ${0.3 + treble * 0.5})`,
+      }
+    }
+
     // ═══════════════════════════════════════════════════════════════
     // VISUAL EFFECTS
     // ═══════════════════════════════════════════════════════════════
@@ -235,6 +286,15 @@ export function calculateEffectValue(effectName, normalizedLevel, time = Date.no
         chromaticG: { x: 0, y: 0 },
         chromaticB: { x: -chromaticOffset, y: 0 },
       }
+
+    case 'vignettePulse': {
+      // Per-image edge darkening that snaps on each detected beat and eases out,
+      // using the shared beat envelope (in sync with beatPulse).
+      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const env = updateBeatPulseEnvelope(beat, time)
+      const strength = env * (0.4 + 0.6 * level)
+      return { vignetteStrength: Math.max(0, Math.min(0.9, strength)) }
+    }
 
     // ═══════════════════════════════════════════════════════════════
     // MOTION EFFECTS
@@ -321,6 +381,28 @@ export function calculateEffectValue(effectName, normalizedLevel, time = Date.no
       // effect's own level scales the amplitude so the intensity slider and
       // chosen source still matter. Shared with the text renderer.
       return calculateBeatPulse(level, time)
+
+    case 'zoomPunch': {
+      // Snappy zoom punch: harder, glow-free scale kick on each detected beat
+      // (shares the beat envelope with beatPulse, but zooms more aggressively).
+      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const env = updateBeatPulseEnvelope(beat, time)
+      const amp = env * (0.4 + 0.6 * Math.max(0, Math.min(1, level)))
+      return { scale: 1.0 + amp * 0.5 }
+    }
+
+    case 'bpmPulse': {
+      // BPM-locked pulse: scale + glow driven by a predictive BPM phase, so it
+      // keeps pulsing on the beat grid even in quiet passages.
+      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const env = updateBpmPhase(beat, time)
+      const amp = env * (0.35 + 0.65 * Math.max(0, Math.min(1, level)))
+      return {
+        scale: 1.0 + amp * 0.3,
+        glowBlur: amp * 30,
+        glowColor: `rgba(139, 92, 246, ${0.3 + amp * 0.5})`,
+      }
+    }
 
     default:
       return {}

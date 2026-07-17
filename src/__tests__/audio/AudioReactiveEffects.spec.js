@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
   EFFECT_NAMES,
   EFFECT_CATEGORIES,
@@ -11,12 +11,19 @@ import {
 
 describe('AudioReactiveEffects', () => {
   describe('EFFECT_NAMES', () => {
-    it('contains all 25 effects', () => {
-      expect(EFFECT_NAMES).toHaveLength(25)
+    it('contains all 29 effects', () => {
+      expect(EFFECT_NAMES).toHaveLength(29)
     })
 
-    it('includes the rhythm effect', () => {
+    it('includes the rhythm effects', () => {
       expect(EFFECT_NAMES).toContain('beatPulse')
+      expect(EFFECT_NAMES).toContain('zoomPunch')
+      expect(EFFECT_NAMES).toContain('bpmPulse')
+    })
+
+    it('includes the frequency-split and vignette-pulse effects', () => {
+      expect(EFFECT_NAMES).toContain('freqSplit')
+      expect(EFFECT_NAMES).toContain('vignettePulse')
     })
 
     it('includes filter effects', () => {
@@ -117,6 +124,52 @@ describe('AudioReactiveEffects', () => {
         const result = calculateEffectValue('beatPulse', 0.5, 1000)
         expect(result.scale).toBeCloseTo(1.0, 5)
         expect(result.glowBlur).toBeCloseTo(0, 5)
+      })
+
+      it('zoomPunch returns a scale and rests at ~1 without a beat', () => {
+        resetBeatPulseEnvelope()
+        const result = calculateEffectValue('zoomPunch', 0.5, 1000)
+        expect(result).toHaveProperty('scale')
+        expect(result.scale).toBeCloseTo(1.0, 5)
+      })
+
+      it('bpmPulse returns scale + glow', () => {
+        resetBeatPulseEnvelope()
+        const result = calculateEffectValue('bpmPulse', 0.5)
+        expect(result).toHaveProperty('scale')
+        expect(result).toHaveProperty('glowBlur')
+        expect(result).toHaveProperty('glowColor')
+      })
+    })
+
+    describe('frequency-split & vignette-pulse', () => {
+      const origWindow = globalThis.window
+
+      afterEach(() => {
+        globalThis.window = origWindow
+      })
+
+      it('freqSplit maps bass→scale and treble→hue/glow', () => {
+        globalThis.window = { audioAnalysisData: { smoothBass: 255, smoothTreble: 255 } }
+        const result = calculateEffectValue('freqSplit', 1)
+        expect(result.scale).toBeCloseTo(1.35, 3) // 1 + 1 * 1 * 0.35
+        expect(result.hueRotate).toBeCloseTo(180, 3) // 1 * 1 * 180
+        expect(result.glowBlur).toBeCloseTo(30, 3)
+      })
+
+      it('freqSplit rests (scale 1, no hue) in silence', () => {
+        globalThis.window = { audioAnalysisData: { smoothBass: 0, smoothTreble: 0 } }
+        const result = calculateEffectValue('freqSplit', 1)
+        expect(result.scale).toBeCloseTo(1.0, 5)
+        expect(result.hueRotate).toBeCloseTo(0, 5)
+      })
+
+      it('vignettePulse returns a clamped strength', () => {
+        resetBeatPulseEnvelope()
+        const result = calculateEffectValue('vignettePulse', 0.5, 1000)
+        expect(result).toHaveProperty('vignetteStrength')
+        expect(result.vignetteStrength).toBeGreaterThanOrEqual(0)
+        expect(result.vignetteStrength).toBeLessThanOrEqual(0.9)
       })
     })
 

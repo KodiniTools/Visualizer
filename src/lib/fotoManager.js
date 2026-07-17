@@ -75,6 +75,11 @@ export class FotoManager {
           perspective: { enabled: false, intensity: 50, source: null },
           // ✨ RHYTHMUS-EFFEKT (Beat-synchroner Puls)
           beatPulse: { enabled: false, intensity: 70, source: null },
+          zoomPunch: { enabled: false, intensity: 70, source: null },
+          bpmPulse: { enabled: false, intensity: 60, source: null },
+          // ✨ FREQUENZ-SPLIT & VIGNETTE-PULS
+          freqSplit: { enabled: false, intensity: 60, source: null },
+          vignettePulse: { enabled: false, intensity: 60, source: null },
         },
         source: 'bass', // 'bass', 'mid', 'treble', 'volume', 'dynamic' (globale Standard-Quelle)
         smoothing: 50, // 0-100% Glättung (verhindert Flackern)
@@ -139,6 +144,10 @@ export class FotoManager {
         perspective: { ...defaultAR.effects.perspective },
         // ✨ RHYTHMUS-EFFEKT
         beatPulse: { ...defaultAR.effects.beatPulse },
+        zoomPunch: { ...defaultAR.effects.zoomPunch },
+        bpmPulse: { ...defaultAR.effects.bpmPulse },
+        freqSplit: { ...defaultAR.effects.freqSplit },
+        vignettePulse: { ...defaultAR.effects.vignettePulse },
       },
       source: defaultAR.source,
       smoothing: defaultAR.smoothing,
@@ -200,6 +209,10 @@ export class FotoManager {
           perspective: migrateEffect(oldSettings.effects.perspective, 50),
           // ✨ RHYTHMUS-EFFEKT (mit Migration)
           beatPulse: migrateEffect(oldSettings.effects.beatPulse, 70),
+          zoomPunch: migrateEffect(oldSettings.effects.zoomPunch, 70),
+          bpmPulse: migrateEffect(oldSettings.effects.bpmPulse, 60),
+          freqSplit: migrateEffect(oldSettings.effects.freqSplit, 60),
+          vignettePulse: migrateEffect(oldSettings.effects.vignettePulse, 60),
         },
         source: oldSettings.source || 'bass',
         smoothing: oldSettings.smoothing ?? 50,

@@ -91,6 +91,7 @@ const transformEffects = computed(() => [
   { id: 'rotation', name: t('foto.effectNames.rotation') },
   { id: 'skew', name: t('foto.effectNames.skew') },
   { id: 'perspective', name: t('foto.effectNames.perspective') },
+  { id: 'freqSplit', name: t('foto.effectNames.freqSplit') },
 ])
 
 const movementEffects = computed(() => [
@@ -110,9 +111,14 @@ const specialEffects = computed(() => [
   { id: 'blur', name: t('foto.effectNames.blur') },
   { id: 'strobe', name: t('foto.effectNames.strobe') },
   { id: 'chromatic', name: t('foto.effectNames.chromatic') },
+  { id: 'vignettePulse', name: t('foto.effectNames.vignettePulse') },
 ])
 
-const rhythmEffects = computed(() => [{ id: 'beatPulse', name: t('foto.effectNames.beatPulse') }])
+const rhythmEffects = computed(() => [
+  { id: 'beatPulse', name: t('foto.effectNames.beatPulse') },
+  { id: 'zoomPunch', name: t('foto.effectNames.zoomPunch') },
+  { id: 'bpmPulse', name: t('foto.effectNames.bpmPulse') },
+])
 
 // Handlers
 function onAudioReactiveToggle(event) {

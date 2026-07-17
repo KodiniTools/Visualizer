@@ -520,11 +520,13 @@ export class MultiImageManager {
         const baseLevel = resolveLevel(effectSource)
         const intensity = (effectConfig.intensity || 80) / 100
 
+        // freqSplit liest Bass/Höhen selbst aus – hier zählt nur die Intensität
+        // als Amplituden-Skalierung (sonst würde eine Einzelquelle beide Bänder gaten).
+        const passLevel =
+          effectName === 'freqSplit' ? intensity : Math.min(1, baseLevel * intensity)
+
         result.hasEffects = true
-        result.effects[effectName] = this._calculateEffectValue(
-          effectName,
-          Math.min(1, baseLevel * intensity),
-        )
+        result.effects[effectName] = this._calculateEffectValue(effectName, passLevel)
       }
     }
 
@@ -614,6 +616,11 @@ export class MultiImageManager {
           currentFilter += ` hue-rotate(${effects.hue.hueRotate}deg)`
         }
 
+        // ✨ Frequenz-Split: Höhen verschieben den Farbton
+        if (effects.freqSplit && effects.freqSplit.hueRotate) {
+          currentFilter += ` hue-rotate(${effects.freqSplit.hueRotate}deg)`
+        }
+
         // Helligkeit
         if (effects.brightness) {
           currentFilter += ` brightness(${effects.brightness.brightness}%)`
@@ -654,10 +661,18 @@ export class MultiImageManager {
           currentFilter += ` brightness(${effects.strobe.strobeBrightness}%)`
         }
 
-        // Glow als Shadow-Effekt
-        if (effects.glow) {
-          ctx.shadowColor = effects.glow.glowColor
-          ctx.shadowBlur = effects.glow.glowBlur
+        // Glow als Shadow-Effekt — stärkstes Leuchten aus Glow/Beat-Puls/
+        // BPM-Puls/Frequenz-Split gewinnt (mehrere Rhythmus-Effekte liefern Glow).
+        const glowCandidates = [
+          effects.glow,
+          effects.beatPulse,
+          effects.bpmPulse,
+          effects.freqSplit,
+        ].filter((e) => e && e.glowBlur > 0)
+        if (glowCandidates.length > 0) {
+          const strongest = glowCandidates.reduce((a, b) => (b.glowBlur > a.glowBlur ? b : a))
+          ctx.shadowColor = strongest.glowColor
+          ctx.shadowBlur = strongest.glowBlur
           ctx.shadowOffsetX = 0
           ctx.shadowOffsetY = 0
         }
@@ -828,18 +843,28 @@ export class MultiImageManager {
         }
       }
 
-      // ✨ AUDIO-REAKTIV: Scale-Effekt (Pulsieren)
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.scale) {
-        const scaleFactor = audioReactive.effects.scale.scale || 1.0
-        // Skaliere vom Zentrum aus
-        const centerX = drawBounds.x + drawBounds.width / 2
-        const centerY = drawBounds.y + drawBounds.height / 2
-        const newWidth = drawBounds.width * scaleFactor
-        const newHeight = drawBounds.height * scaleFactor
-        drawBounds.x = centerX - newWidth / 2
-        drawBounds.y = centerY - newHeight / 2
-        drawBounds.width = newWidth
-        drawBounds.height = newHeight
+      // ✨ AUDIO-REAKTIV: Skalierung (Pulsieren) — alle scale-liefernden Effekte
+      // multiplikativ kombinieren: Scale, Beat-Puls, Zoom-Punch, BPM-Puls, Frequenz-Split.
+      if (audioReactive && audioReactive.hasEffects) {
+        const fx = audioReactive.effects
+        let scaleFactor = 1.0
+        if (fx.scale) scaleFactor *= fx.scale.scale || 1.0
+        if (fx.beatPulse) scaleFactor *= fx.beatPulse.scale || 1.0
+        if (fx.zoomPunch) scaleFactor *= fx.zoomPunch.scale || 1.0
+        if (fx.bpmPulse) scaleFactor *= fx.bpmPulse.scale || 1.0
+        if (fx.freqSplit) scaleFactor *= fx.freqSplit.scale || 1.0
+
+        if (scaleFactor !== 1.0) {
+          // Skaliere vom Zentrum aus
+          const centerX = drawBounds.x + drawBounds.width / 2
+          const centerY = drawBounds.y + drawBounds.height / 2
+          const newWidth = drawBounds.width * scaleFactor
+          const newHeight = drawBounds.height * scaleFactor
+          drawBounds.x = centerX - newWidth / 2
+          drawBounds.y = centerY - newHeight / 2
+          drawBounds.width = newWidth
+          drawBounds.height = newHeight
+        }
       }
 
       // ✨ BILDKONTUR: Prüfen ob Kontur gezeichnet werden soll
@@ -954,6 +979,33 @@ export class MultiImageManager {
           )
         } catch (e) {
           console.warn('[MultiImageManager] Image render error:', e)
+        }
+      }
+
+      // ✨ AUDIO-REAKTIV: Vignette-Puls — Ränder des Bildes im Takt abdunkeln.
+      // Nach dem Bild gezeichnet, damit die Abdunklung über dem Bild liegt.
+      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.vignettePulse) {
+        const strength = audioReactive.effects.vignettePulse.vignetteStrength || 0
+        if (strength > 0.01) {
+          const cx = drawBounds.x + drawBounds.width / 2
+          const cy = drawBounds.y + drawBounds.height / 2
+          const grad = ctx.createRadialGradient(
+            cx,
+            cy,
+            Math.min(drawBounds.width, drawBounds.height) * 0.3,
+            cx,
+            cy,
+            Math.max(drawBounds.width, drawBounds.height) * 0.7,
+          )
+          grad.addColorStop(0, 'rgba(0,0,0,0)')
+          grad.addColorStop(1, `rgba(0,0,0,${Math.min(0.85, strength).toFixed(3)})`)
+          ctx.save()
+          ctx.shadowBlur = 0
+          ctx.shadowColor = 'transparent'
+          ctx.globalCompositeOperation = 'source-over'
+          ctx.fillStyle = grad
+          ctx.fillRect(drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height)
+          ctx.restore()
         }
       }
 

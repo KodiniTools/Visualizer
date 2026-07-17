@@ -1,6 +1,6 @@
 <template>
   <div class="gradient-section">
-    <h5>🌈 {{ t('canvasControl.gradient') }}</h5>
+    <h5>{{ t('canvasControl.gradient') }}</h5>
 
     <div class="control-group">
       <label class="checkbox-label">
@@ -26,8 +26,8 @@
       <div class="control-group">
         <label>{{ t('canvasControl.type') }}:</label>
         <select v-model="gradientType" @change="updateGradientSettings" class="gradient-select">
-          <option value="radial">🔵 {{ t('canvasControl.radial') }}</option>
-          <option value="linear">📐 {{ t('canvasControl.linear') }}</option>
+          <option value="radial">{{ t('canvasControl.radial') }}</option>
+          <option value="linear">{{ t('canvasControl.linear') }}</option>
         </select>
       </div>
 

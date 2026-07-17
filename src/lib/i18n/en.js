@@ -739,6 +739,7 @@ export default {
     colorTransparency: 'Color Transparency',
     positionSize: 'Position & Size',
     resetToDefault: 'Reset to default',
+    reset: 'Reset',
     search: 'Search',
     searchPlaceholder: 'Search visualizers...',
     visualizerType: 'Visualizer Type',

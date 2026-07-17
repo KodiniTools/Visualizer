@@ -2,7 +2,7 @@
   <div class="panel">
     <div class="panel-header" @click="isExpanded = !isExpanded">
       <h3>{{ t('canvasControl.title') }}</h3>
-      <span class="chevron" :class="{ open: isExpanded }">▼</span>
+      <span class="chevron" :class="{ open: isExpanded }" aria-hidden="true"></span>
     </div>
     <div class="panel-content" v-show="isExpanded">
       <BackgroundColorSection />
@@ -73,15 +73,18 @@ const { undoHistory, canUndo, undoLastChange } = bg
 }
 
 .chevron {
-  font-size: 8px;
-  color: var(--accent-primary, #c9984d);
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--accent-primary, #c9984d);
+  border-bottom: 1.5px solid var(--accent-primary, #c9984d);
+  transform: rotate(45deg);
   transition: transform 0.2s;
   display: inline-block;
   margin-left: 6px;
 }
 
 .chevron.open {
-  transform: rotate(180deg);
+  transform: rotate(-135deg);
 }
 
 .panel-content {

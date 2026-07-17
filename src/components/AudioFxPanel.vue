@@ -1,8 +1,8 @@
 <template>
   <div class="audio-fx-section">
     <div class="fx-header" @click="open = !open">
-      <span>🎛️ Audio-Reaktive Effekte</span>
-      <span class="chevron">{{ open ? '▲' : '▼' }}</span>
+      <span>Audio-Reaktive Effekte</span>
+      <span class="chevron" :class="{ open }" aria-hidden="true"></span>
     </div>
 
     <template v-if="open">
@@ -17,40 +17,40 @@
 
       <template v-if="store.enabled">
         <!-- BRIGHTNESS -->
-        <FxEffect title="☀️ Helligkeit" v-model="store.brightnessEnabled">
+        <FxEffect title="Helligkeit" v-model="store.brightnessEnabled">
           <FxSource v-model="store.brightnessSource" />
           <FxRange label="Min" v-model.number="store.brightnessMin" :min="0" :max="200" />
           <FxRange label="Max" v-model.number="store.brightnessMax" :min="0" :max="300" />
         </FxEffect>
 
         <!-- SATURATION -->
-        <FxEffect title="🎨 Sättigung" v-model="store.saturationEnabled">
+        <FxEffect title="Sättigung" v-model="store.saturationEnabled">
           <FxSource v-model="store.saturationSource" />
           <FxRange label="Min" v-model.number="store.saturationMin" :min="0" :max="200" />
           <FxRange label="Max" v-model.number="store.saturationMax" :min="0" :max="400" />
         </FxEffect>
 
         <!-- CONTRAST -->
-        <FxEffect title="◑ Kontrast" v-model="store.contrastEnabled">
+        <FxEffect title="Kontrast" v-model="store.contrastEnabled">
           <FxSource v-model="store.contrastSource" />
           <FxRange label="Min" v-model.number="store.contrastMin" :min="0" :max="200" />
           <FxRange label="Max" v-model.number="store.contrastMax" :min="0" :max="300" />
         </FxEffect>
 
         <!-- HUE ROTATE -->
-        <FxEffect title="🌈 Farbton-Rotation" v-model="store.hueEnabled">
+        <FxEffect title="Farbton-Rotation" v-model="store.hueEnabled">
           <FxSource v-model="store.hueSource" />
           <FxRange label="Bereich" v-model.number="store.hueRange" :min="0" :max="360" unit="°" />
         </FxEffect>
 
         <!-- PULSE -->
-        <FxEffect title="💓 Pulsierung" v-model="store.pulseEnabled">
+        <FxEffect title="Pulsierung" v-model="store.pulseEnabled">
           <FxSource v-model="store.pulseSource" />
           <FxRange label="Stärke" v-model.number="store.pulseStrength" :min="0" :max="100" />
         </FxEffect>
 
         <!-- GLOW -->
-        <FxEffect title="✨ Glow" v-model="store.glowEnabled">
+        <FxEffect title="Glow" v-model="store.glowEnabled">
           <FxSource v-model="store.glowSource" />
           <div class="fx-row">
             <label>Farbe</label>
@@ -60,7 +60,7 @@
         </FxEffect>
 
         <!-- TINT -->
-        <FxEffect title="🔆 Farb-Tint" v-model="store.tintEnabled">
+        <FxEffect title="Farb-Tint" v-model="store.tintEnabled">
           <FxSource v-model="store.tintSource" />
           <div class="fx-row">
             <label>Farbe</label>
@@ -70,7 +70,7 @@
         </FxEffect>
 
         <!-- VIGNETTE -->
-        <FxEffect title="🔲 Vignette" v-model="store.vignetteEnabled">
+        <FxEffect title="Vignette" v-model="store.vignetteEnabled">
           <FxSource v-model="store.vignetteSource" />
           <FxRange
             label="Intensität"
@@ -83,12 +83,12 @@
         <div class="fx-group-label">Rhythmus & Kamera</div>
 
         <!-- ZOOM-PUNCH (beat) -->
-        <FxEffect title="🥁 Zoom-Punch (Beat)" v-model="store.zoomPunchEnabled">
+        <FxEffect title="Zoom-Punch (Beat)" v-model="store.zoomPunchEnabled">
           <FxRange label="Stärke" v-model.number="store.zoomPunchStrength" :min="0" :max="100" />
         </FxEffect>
 
         <!-- VIGNETTE-PULS (beat) -->
-        <FxEffect title="🌓 Vignette-Puls (Beat)" v-model="store.vignettePulseEnabled">
+        <FxEffect title="Vignette-Puls (Beat)" v-model="store.vignettePulseEnabled">
           <FxRange
             label="Intensität"
             v-model.number="store.vignettePulseIntensity"
@@ -98,12 +98,12 @@
         </FxEffect>
 
         <!-- BPM-LOCK-PULS -->
-        <FxEffect title="⏱️ BPM-Puls" v-model="store.bpmPulseEnabled">
+        <FxEffect title="BPM-Puls" v-model="store.bpmPulseEnabled">
           <FxRange label="Stärke" v-model.number="store.bpmPulseStrength" :min="0" :max="100" />
         </FxEffect>
 
         <!-- FREQUENZ-SPLIT -->
-        <FxEffect title="🎚️ Frequenz-Split" v-model="store.freqSplitEnabled">
+        <FxEffect title="Frequenz-Split" v-model="store.freqSplitEnabled">
           <FxRange label="Stärke" v-model.number="store.freqSplitStrength" :min="0" :max="100" />
         </FxEffect>
       </template>
@@ -143,8 +143,17 @@ const open = ref(false)
   color: #fff;
 }
 .chevron {
-  font-size: 0.7rem;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
   opacity: 0.6;
+  flex-shrink: 0;
+}
+.chevron.open {
+  transform: rotate(-135deg);
 }
 
 .fx-master {

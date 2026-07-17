@@ -1,7 +1,7 @@
 <template>
   <div class="panel-section">
     <div class="section-header-row">
-      <h4>⚡ {{ t('beatDrop.title') }}</h4>
+      <h4>{{ t('beatDrop.title') }}</h4>
       <label class="toggle-switch">
         <input type="checkbox" v-model="beatDropStore.enabled" />
         <span class="toggle-track"></span>
@@ -24,7 +24,7 @@
       <div class="beat-effect-row">
         <label class="checkbox-label">
           <input type="checkbox" v-model="beatDropStore.flashEnabled" />
-          <span>⚡ {{ t('beatDrop.flash') }}</span>
+          <span>{{ t('beatDrop.flash') }}</span>
         </label>
         <input type="color" v-model="beatDropStore.flashColor" class="color-input-sm" />
       </div>
@@ -55,7 +55,7 @@
       <div class="beat-effect-row">
         <label class="checkbox-label">
           <input type="checkbox" v-model="beatDropStore.colorBurstEnabled" />
-          <span>🌈 {{ t('beatDrop.colorBurst') }}</span>
+          <span>{{ t('beatDrop.colorBurst') }}</span>
         </label>
         <input type="color" v-model="beatDropStore.colorBurstColor" class="color-input-sm" />
       </div>
@@ -76,7 +76,7 @@
       <div class="beat-effect-row">
         <label class="checkbox-label">
           <input type="checkbox" v-model="beatDropStore.strobeEnabled" />
-          <span>🔦 {{ t('beatDrop.strobe') }}</span>
+          <span>{{ t('beatDrop.strobe') }}</span>
         </label>
       </div>
       <template v-if="beatDropStore.strobeEnabled">
@@ -106,7 +106,7 @@
       <div class="beat-effect-row">
         <label class="checkbox-label">
           <input type="checkbox" v-model="beatDropStore.vignettePulseEnabled" />
-          <span>🔴 {{ t('beatDrop.vignette') }}</span>
+          <span>{{ t('beatDrop.vignette') }}</span>
         </label>
         <input type="color" v-model="beatDropStore.vignettePulseColor" class="color-input-sm" />
       </div>

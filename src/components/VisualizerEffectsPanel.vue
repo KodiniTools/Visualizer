@@ -2,7 +2,6 @@
   <div class="fx-section">
     <div class="fx-header">
       <span class="section-label">{{ L.title }}</span>
-      <span class="fx-badge" :title="L.badgeHint">✨</span>
     </div>
 
     <!-- Bloom / Glow -->

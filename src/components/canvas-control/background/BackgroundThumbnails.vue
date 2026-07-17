@@ -2,7 +2,7 @@
   <div>
     <!-- Hintergrund-Thumbnail -->
     <div v-if="hasImageBackground" class="background-thumb-section">
-      <h5>🖼️ {{ t('canvasControl.backgroundImage') || 'Hintergrundbild' }}</h5>
+      <h5>{{ t('canvasControl.backgroundImage') || 'Hintergrundbild' }}</h5>
       <div
         class="background-thumb"
         @dblclick="openBackgroundReplaceModal('background')"
@@ -17,7 +17,7 @@
 
     <!-- Workspace-Hintergrund-Thumbnail -->
     <div v-if="hasWorkspaceBackground" class="background-thumb-section">
-      <h5>🖼️ {{ t('canvasControl.workspaceBackgroundImage') || 'Workspace-Hintergrundbild' }}</h5>
+      <h5>{{ t('canvasControl.workspaceBackgroundImage') || 'Workspace-Hintergrundbild' }}</h5>
       <div
         class="background-thumb"
         @dblclick="openBackgroundReplaceModal('workspace')"

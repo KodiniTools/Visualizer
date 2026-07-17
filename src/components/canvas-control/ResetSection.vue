@@ -12,7 +12,7 @@
         :disabled="!hasImageBackground && !hasVideoBackground"
         :title="t('canvasControl.resetNormalBg') || 'Normaler Hintergrund zurücksetzen'"
       >
-        🖼️ {{ t('canvasControl.normalBackground') || 'Hintergrund' }}
+        {{ t('canvasControl.normalBackground') || 'Hintergrund' }}
       </button>
       <button
         @click="resetWorkspaceBackgroundOnly"
@@ -20,11 +20,11 @@
         :disabled="!hasWorkspaceBackground && !hasWorkspaceVideoBackground"
         :title="t('canvasControl.resetWorkspaceBg') || 'Workspace-Hintergrund zurücksetzen'"
       >
-        📐 {{ t('canvasControl.workspaceBackground') || 'Workspace' }}
+        {{ t('canvasControl.workspaceBackground') || 'Workspace' }}
       </button>
     </div>
     <button @click="resetAllBackgrounds" class="btn-secondary full-width" style="margin-top: 8px">
-      🔄 {{ t('canvasControl.resetAll') || 'Alle zurücksetzen' }}
+      {{ t('canvasControl.resetAll') || 'Alle zurücksetzen' }}
     </button>
   </div>
 
@@ -33,7 +33,7 @@
   <!-- Canvas komplett zurücksetzen -->
   <div class="panel-section">
     <h4>{{ t('canvasControl.clearCanvas') }}</h4>
-    <p class="info-text warning">⚠️ {{ t('canvasControl.removesAll') }}</p>
+    <p class="info-text warning">{{ t('canvasControl.removesAll') }}</p>
     <button
       @click="showResetConfirm = true"
       class="btn-danger full-width"

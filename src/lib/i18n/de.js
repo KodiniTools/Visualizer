@@ -735,6 +735,7 @@ export default {
     colorTransparency: 'Farbtransparenz',
     positionSize: 'Position & Größe',
     resetToDefault: 'Auf Standard zurücksetzen',
+    reset: 'Reset',
     search: 'Suche',
     searchPlaceholder: 'Visualizer suchen...',
     visualizerType: 'Visualizer-Typ',

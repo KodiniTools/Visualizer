@@ -8,7 +8,6 @@
       <h4>{{ t('visualizer.title') }}</h4>
       <HelpTooltip
         :title="t('visualizer.helpTitle')"
-        icon="🎨"
         :text="t('visualizer.helpText')"
         :tip="t('visualizer.helpTip')"
         position="left"
@@ -16,28 +15,35 @@
       />
     </div>
 
-    <!-- Visualizer Ein/Aus -->
+    <!-- Visualizer Ein/Aus + Farbe (kompakte Zeilen) -->
     <div class="control-section status-toggle">
-      <span class="section-label">{{ t('visualizer.status') }}</span>
-      <button
-        class="toggle-btn"
-        :class="{ active: store.showVisualizer }"
-        @click="store.toggleVisualizer()"
-      >
-        <span class="btn-icon">{{ store.showVisualizer ? '✓' : '×' }}</span>
-        {{ store.showVisualizer ? t('common.on') : t('common.off') }}
-      </button>
+      <div class="inline-row">
+        <span class="section-label">{{ t('visualizer.status') }}</span>
+        <button
+          class="switch"
+          :class="{ on: store.showVisualizer }"
+          type="button"
+          role="switch"
+          :aria-checked="store.showVisualizer"
+          :title="store.showVisualizer ? t('common.on') : t('common.off')"
+          @click="store.toggleVisualizer()"
+        >
+          <span class="switch-knob"></span>
+        </button>
+      </div>
     </div>
 
-    <!-- Farbwähler -->
     <div class="control-section">
-      <span class="section-label">{{ t('visualizer.color') }}</span>
-      <input
-        type="color"
-        :value="store.visualizerColor"
-        @input="store.setColor($event.target.value)"
-        class="color-picker"
-      />
+      <div class="inline-row">
+        <span class="section-label">{{ t('visualizer.color') }}</span>
+        <input
+          type="color"
+          :value="store.visualizerColor"
+          @input="store.setColor($event.target.value)"
+          class="color-swatch"
+          :title="t('visualizer.color')"
+        />
+      </div>
     </div>
 
     <!-- Intensität-Regler -->
@@ -72,7 +78,7 @@
       />
     </div>
 
-    <!-- ✨ NEU: Position & Größe -->
+    <!-- Position & Größe -->
     <div class="control-section position-section">
       <div class="section-header">
         <span class="section-label">{{ t('visualizer.positionSize') }}</span>
@@ -81,7 +87,7 @@
           @click="store.resetVisualizerTransform()"
           :title="t('visualizer.resetToDefault')"
         >
-          ↺
+          {{ t('visualizer.reset') }}
         </button>
       </div>
 
@@ -171,11 +177,14 @@
           class="category"
           :open="isCategoryOpen(category)"
         >
-          <summary class="category-header" @click.prevent="toggleCategory(category)">
-            <span class="category-icon">{{ getCategoryIcon(category) }}</span>
+          <summary
+            class="category-header"
+            :class="{ open: openCategories[category] }"
+            @click.prevent="toggleCategory(category)"
+          >
             <span class="category-name">{{ getCategoryName(category) }}</span>
             <span class="category-count">{{ visualizers.length }}</span>
-            <span class="category-arrow">{{ openCategories[category] ? '▼' : '▶' }}</span>
+            <span class="category-caret" aria-hidden="true"></span>
           </summary>
           <div class="category-content">
             <button
@@ -192,7 +201,7 @@
       </div>
     </div>
 
-    <!-- ✨ NEU: Post-Processing Effekte (Bloom / Trails / Adaptive Qualität) -->
+    <!-- Post-Processing Effekte (Bloom / Trails / Adaptive Qualität) -->
     <VisualizerEffectsPanel />
 
     <!-- Multi-Layer Panel -->
@@ -208,25 +217,12 @@ import HelpTooltip from './HelpTooltip.vue'
 import VisualizerLayerPanel from './VisualizerLayerPanel.vue'
 import VisualizerEffectsPanel from './VisualizerEffectsPanel.vue'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const store = useVisualizerStore()
 const searchQuery = ref('')
 const openCategories = ref({
   'Balken & Spektrum': true, // Erste Kategorie standardmäßig offen
 })
-
-// Icons für Kategorien (keys are internal IDs)
-const categoryIcons = {
-  'Balken & Spektrum': '📊',
-  Wellen: '🌊',
-  'Kreise & Kugeln': '⭕',
-  Partikel: '✨',
-  Geometrie: '🔷',
-  Organisch: '🌿',
-  'Kristalle & Netze': '💎',
-  Blüten: '🌸',
-  '3D-Objekte': '🎲',
-}
 
 // Map German category keys to i18n translation keys
 const categoryTranslationKeys = {
@@ -239,10 +235,6 @@ const categoryTranslationKeys = {
   'Kristalle & Netze': 'visualizer.categories.crystalsNets',
   Blüten: 'visualizer.categories.blossoms',
   '3D-Objekte': 'visualizer.categories.objects3d',
-}
-
-function getCategoryIcon(category) {
-  return categoryIcons[category] || '🎨'
 }
 
 function getCategoryName(category) {
@@ -294,19 +286,6 @@ h4 {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-h4::before {
-  content: '';
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Cpath d='M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83'/%3E%3C/svg%3E");
-  background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 .control-section {
@@ -327,71 +306,85 @@ h4::before {
   letter-spacing: 0.3px;
 }
 
-/* Toggle Button */
-.toggle-btn {
-  width: 100%;
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 5px;
-  padding: 5px 8px;
-  font-size: 0.65rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+/* Kompakte Zeile: Label links, Steuerung rechts */
+.inline-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 5px;
-  font-weight: 500;
+  justify-content: space-between;
+  gap: 10px;
+}
+.inline-row .section-label {
+  margin-bottom: 0;
 }
 
-.toggle-btn:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
+/* Modern Toggle Switch (ersetzt den großen Status-Button) */
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 34px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--secondary-bg, #0e1c32);
+  box-shadow: inset 0 0 0 1px var(--border-color, rgba(201, 152, 77, 0.35));
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
-
-.toggle-btn.active {
+.switch .switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text-muted, #7a8da0);
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+.switch.on {
   background-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
-  border-color: var(--accent-primary, #c9984d);
+  box-shadow: inset 0 0 0 1px var(--accent-primary, #c9984d);
+}
+.switch.on .switch-knob {
+  transform: translateX(16px);
+  background: var(--accent-text, #091428);
+}
+.switch:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 1px var(--accent-primary, #c9984d),
+    0 0 0 3px var(--ring);
 }
 
-.toggle-btn.active:hover {
-  background-color: var(--accent-tertiary, #f8e1a9);
-}
-
-.btn-icon {
-  font-size: 0.75rem;
-  font-weight: bold;
-}
-
-/* Color Picker */
-.color-picker {
-  width: 100%;
-  height: 32px;
-  border: 2px solid var(--border-color, rgba(201, 152, 77, 0.3));
+/* Kompakter Farb-Swatch (ersetzt die große Farbleiste) */
+.color-swatch {
+  flex-shrink: 0;
+  width: 30px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.35));
   border-radius: 5px;
   cursor: pointer;
-  background-color: var(--secondary-bg, #0e1c32);
+  background-color: transparent;
   transition: border-color 0.2s ease;
 }
-
-.color-picker:hover {
+.color-swatch:hover {
   border-color: var(--accent-primary, #c9984d);
 }
-
-.color-picker::-webkit-color-swatch-wrapper {
+.color-swatch::-webkit-color-swatch-wrapper {
   padding: 2px;
 }
-
-.color-picker::-webkit-color-swatch {
+.color-swatch::-webkit-color-swatch {
   border: none;
-  border-radius: 4px;
+  border-radius: 3px;
 }
-
-.color-picker::-moz-color-swatch {
+.color-swatch::-moz-color-swatch {
   border: none;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 /* Slider Basis-Styling */
@@ -538,10 +531,6 @@ h4::before {
   background-color: var(--btn-hover, #1a2a42);
 }
 
-.category-icon {
-  font-size: 0.7rem;
-}
-
 .category-name {
   flex: 1;
   font-size: 0.65rem;
@@ -557,9 +546,18 @@ h4::before {
   border-radius: 8px;
 }
 
-.category-arrow {
-  font-size: 0.5rem;
-  color: var(--text-muted, #7a8da0);
+/* Rein per CSS gezeichneter Chevron (kein Glyph/Emoji) */
+.category-caret {
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--text-muted, #7a8da0);
+  border-bottom: 1.5px solid var(--text-muted, #7a8da0);
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+.category-header.open .category-caret {
+  transform: rotate(45deg);
 }
 
 .category-content {
@@ -616,7 +614,7 @@ h4::before {
   font-style: italic;
 }
 
-/* ✨ NEU: Position & Größe Styles */
+/* Position & Größe Styles */
 .position-section {
   background-color: rgba(201, 152, 77, 0.05);
   border-radius: 5px;
@@ -640,9 +638,12 @@ h4::before {
   color: var(--text-muted, #7a8da0);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 4px;
-  width: 24px;
-  height: 24px;
-  font-size: 0.8rem;
+  height: 22px;
+  padding: 0 8px;
+  font-size: 0.55rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -820,33 +821,25 @@ h4::before {
   color: #4d6d8e;
 }
 
-[data-theme='light'] .toggle-btn {
-  background-color: #f9f2d5;
-  color: #003971;
-  border-color: rgba(1, 79, 153, 0.3);
+[data-theme='light'] .switch {
+  background-color: #eef2f8;
+  box-shadow: inset 0 0 0 1px rgba(1, 79, 153, 0.3);
 }
-
-[data-theme='light'] .toggle-btn:hover {
-  background-color: #f8e1a9;
-  border-color: #014f99;
+[data-theme='light'] .switch .switch-knob {
+  background: #7a8da0;
 }
-
-[data-theme='light'] .toggle-btn.active {
+[data-theme='light'] .switch.on {
   background-color: #014f99;
-  color: #f5f4d6;
-  border-color: #014f99;
+  box-shadow: inset 0 0 0 1px #014f99;
+}
+[data-theme='light'] .switch.on .switch-knob {
+  background: #ffffff;
 }
 
-[data-theme='light'] .toggle-btn.active:hover {
-  background-color: #003971;
-}
-
-[data-theme='light'] .color-picker {
-  background-color: #f9f2d5;
+[data-theme='light'] .color-swatch {
   border-color: rgba(1, 79, 153, 0.3);
 }
-
-[data-theme='light'] .color-picker:hover {
+[data-theme='light'] .color-swatch:hover {
   border-color: #014f99;
 }
 
@@ -1003,24 +996,9 @@ h4::before {
 
 /* ═══ Responsive ═══ */
 @media (max-width: 768px) {
-  .color-picker {
-    height: 36px;
-  }
-
-  .reset-btn {
-    width: 32px;
-    height: 32px;
-  }
-}
-
-@media (max-width: 480px) {
-  .color-picker {
-    height: 40px;
-  }
-
-  .reset-btn {
-    width: 36px;
-    height: 36px;
+  .color-swatch {
+    width: 34px;
+    height: 26px;
   }
 }
 </style>

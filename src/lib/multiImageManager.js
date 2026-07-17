@@ -621,6 +621,11 @@ export class MultiImageManager {
           currentFilter += ` hue-rotate(${effects.freqSplit.hueRotate}deg)`
         }
 
+        // ✨ Beat-Color-Strobe: Farbton wechselt pro Beat, Sättigung pulst mit
+        if (effects.colorStrobe) {
+          currentFilter += ` hue-rotate(${effects.colorStrobe.hueRotate}deg) saturate(${effects.colorStrobe.saturate}%)`
+        }
+
         // Helligkeit
         if (effects.brightness) {
           currentFilter += ` brightness(${effects.brightness.brightness}%)`
@@ -715,6 +720,20 @@ export class MultiImageManager {
         ctx.translate(-centerX, -centerY)
       }
 
+      // ✨ AUDIO-REAKTIV: Beat-Flip (180°-Karten-Flip pro Beat)
+      // Horizontale Skalierung 1 → -1 um das Zentrum simuliert den Kartendreh.
+      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.beatFlip) {
+        const flipScaleX = audioReactive.effects.beatFlip.flipScaleX
+        if (typeof flipScaleX === 'number' && flipScaleX !== 1) {
+          const centerX = bounds.x + bounds.width / 2
+          const centerY = bounds.y + bounds.height / 2
+          ctx.translate(centerX, centerY)
+          // Nicht exakt 0 skalieren (unsichtbar + Matrix-Singularität vermeiden)
+          ctx.scale(Math.abs(flipScaleX) < 0.02 ? 0.02 * Math.sign(flipScaleX || 1) : flipScaleX, 1)
+          ctx.translate(-centerX, -centerY)
+        }
+      }
+
       // ✨ AUDIO-REAKTIV: Bewegungseffekte - drawBounds für Position
       let drawBounds = { ...bounds }
 
@@ -750,6 +769,13 @@ export class MultiImageManager {
         const shake = audioReactive.effects.shake
         drawBounds.x += shake.shakeX || 0
         drawBounds.y += shake.shakeY || 0
+      }
+
+      // ✨ AUDIO-REAKTIV: Impuls-Shake (einzelner abklingender Ruck pro Beat)
+      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.impulseShake) {
+        const imp = audioReactive.effects.impulseShake
+        drawBounds.x += imp.shakeX || 0
+        drawBounds.y += imp.shakeY || 0
       }
 
       // ✨ AUDIO-REAKTIV: Bounce-Effekt (Hüpfen)

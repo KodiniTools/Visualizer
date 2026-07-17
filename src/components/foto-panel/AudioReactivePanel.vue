@@ -118,6 +118,9 @@ const rhythmEffects = computed(() => [
   { id: 'beatPulse', name: t('foto.effectNames.beatPulse') },
   { id: 'zoomPunch', name: t('foto.effectNames.zoomPunch') },
   { id: 'bpmPulse', name: t('foto.effectNames.bpmPulse') },
+  { id: 'beatFlip', name: t('foto.effectNames.beatFlip') },
+  { id: 'colorStrobe', name: t('foto.effectNames.colorStrobe') },
+  { id: 'impulseShake', name: t('foto.effectNames.impulseShake') },
 ])
 
 // Handlers

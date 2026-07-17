@@ -80,6 +80,10 @@ export class FotoManager {
           // ✨ FREQUENZ-SPLIT & VIGNETTE-PULS
           freqSplit: { enabled: false, intensity: 60, source: null },
           vignettePulse: { enabled: false, intensity: 60, source: null },
+          // ✨ BEAT-FLIP / COLOR-STROBE / IMPULS-SHAKE
+          beatFlip: { enabled: false, intensity: 80, source: null },
+          colorStrobe: { enabled: false, intensity: 70, source: null },
+          impulseShake: { enabled: false, intensity: 70, source: null },
         },
         source: 'bass', // 'bass', 'mid', 'treble', 'volume', 'dynamic' (globale Standard-Quelle)
         smoothing: 50, // 0-100% Glättung (verhindert Flackern)
@@ -148,6 +152,9 @@ export class FotoManager {
         bpmPulse: { ...defaultAR.effects.bpmPulse },
         freqSplit: { ...defaultAR.effects.freqSplit },
         vignettePulse: { ...defaultAR.effects.vignettePulse },
+        beatFlip: { ...defaultAR.effects.beatFlip },
+        colorStrobe: { ...defaultAR.effects.colorStrobe },
+        impulseShake: { ...defaultAR.effects.impulseShake },
       },
       source: defaultAR.source,
       smoothing: defaultAR.smoothing,
@@ -213,6 +220,9 @@ export class FotoManager {
           bpmPulse: migrateEffect(oldSettings.effects.bpmPulse, 60),
           freqSplit: migrateEffect(oldSettings.effects.freqSplit, 60),
           vignettePulse: migrateEffect(oldSettings.effects.vignettePulse, 60),
+          beatFlip: migrateEffect(oldSettings.effects.beatFlip, 80),
+          colorStrobe: migrateEffect(oldSettings.effects.colorStrobe, 70),
+          impulseShake: migrateEffect(oldSettings.effects.impulseShake, 70),
         },
         source: oldSettings.source || 'bass',
         smoothing: oldSettings.smoothing ?? 50,

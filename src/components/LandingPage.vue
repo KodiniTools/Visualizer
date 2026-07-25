@@ -82,7 +82,7 @@
       </div>
       <div class="video-container">
         <img
-          src="/gallery/videos/podcast.gif"
+          :src="`${baseUrl}gallery/videos/podcast.gif`"
           alt="Visualizer Demo"
           class="demo-gif"
           loading="lazy"
@@ -163,6 +163,11 @@ import { useTheme } from '../lib/theme.js'
 
 const { t, locale, messages } = useI18n()
 const { isDark } = useTheme()
+
+// Reference the demo GIF as a runtime public-URL (base-aware) instead of a
+// build-time import, so Vite does not try to bundle the file. The asset lives
+// in the deployed web root (/<base>/gallery/videos/podcast.gif), not in the repo.
+const baseUrl = import.meta.env.BASE_URL
 
 const activeFaq = ref(null)
 const isScrolled = ref(false)

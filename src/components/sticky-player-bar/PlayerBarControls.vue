@@ -236,6 +236,17 @@
 
       <button
         class="spb-icon-btn"
+        :class="{ active: isOpen('visualizer') }"
+        :title="t('player.openVisualizer')"
+        @click="togglePopover('visualizer')"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 12h2v9H3v-9zm4-6h2v15H7V6zm4 3h2v12h-2V9zm4-6h2v18h-2V3zm4 9h2v9h-2v-9z" />
+        </svg>
+      </button>
+
+      <button
+        class="spb-icon-btn"
         :class="{ active: isOpen('screenshot') }"
         :title="t('player.openScreenshot')"
         @click="togglePopover('screenshot')"

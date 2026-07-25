@@ -636,6 +636,7 @@ export default {
     openVolume: 'Volume & EQ',
     openRecorder: 'Recording & export',
     openScreenshot: 'Screenshot',
+    openVisualizer: 'Visualizer',
     openCanvasFormat: 'Canvas format',
     openGallery: 'Gallery',
     openAudioReactive: 'Audio reactive (image)',

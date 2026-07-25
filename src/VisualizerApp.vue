@@ -72,7 +72,6 @@
           @reject="rejectHandoff"
         />
         <FileUploadPanel />
-        <VisualizerPanel />
         <CanvasControlPanel />
       </aside>
     </div>
@@ -122,7 +121,6 @@ import StickyPlayerBar from './components/StickyPlayerBar.vue'
 import FotoPanel from './components/FotoPanel.vue'
 import VideoPanel from './components/VideoPanel.vue'
 import TextManagerPanel from './components/TextManagerPanel.vue'
-import VisualizerPanel from './components/VisualizerPanel.vue'
 import CanvasControlPanel from './components/CanvasControlPanel.vue'
 import QuickStartGuide from './components/QuickStartGuide.vue'
 import ToastContainer from './components/ToastContainer.vue'

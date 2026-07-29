@@ -866,6 +866,11 @@ export default {
   // ========== TEXT MANAGER PANEL ==========
   textManager: {
     title: 'Text Manager',
+    textDirectory: 'Text Directory',
+    textItem: 'Text',
+    emptyTextLabel: '(empty)',
+    hiddenBadge: 'Hidden',
+    directoryHint: 'Select a text to mark it — including hidden texts',
     addText: 'Add Text',
     createNewText: 'Create New Text',
     enterText: 'Enter text (Enter for new line)',

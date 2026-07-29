@@ -13,6 +13,8 @@ export function useTextAnimations(selectedText, canvasManager) {
       startDelay: 0,
       loop: false,
       loopDelay: 1000,
+      permanent: true,
+      displayDuration: 5000,
       showCursor: true,
       cursorChar: '|',
     },
@@ -23,6 +25,8 @@ export function useTextAnimations(selectedText, canvasManager) {
       direction: 'in',
       loop: false,
       loopDelay: 1000,
+      permanent: true,
+      displayDuration: 5000,
       easing: 'ease',
     },
     scale: {
@@ -34,6 +38,8 @@ export function useTextAnimations(selectedText, canvasManager) {
       direction: 'in',
       loop: false,
       loopDelay: 1000,
+      permanent: true,
+      displayDuration: 5000,
       easing: 'ease',
     },
     slide: {
@@ -45,6 +51,8 @@ export function useTextAnimations(selectedText, canvasManager) {
       direction: 'in',
       loop: false,
       loopDelay: 1000,
+      permanent: true,
+      displayDuration: 5000,
       easing: 'ease',
     },
     _state: {
@@ -129,6 +137,8 @@ export function useTextAnimations(selectedText, canvasManager) {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
+        permanent: true,
+        displayDuration: 5000,
         easing: 'ease',
       }
     }
@@ -179,6 +189,8 @@ export function useTextAnimations(selectedText, canvasManager) {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
+        permanent: true,
+        displayDuration: 5000,
         easing: 'ease',
       }
     }
@@ -227,6 +239,8 @@ export function useTextAnimations(selectedText, canvasManager) {
         direction: 'in',
         loop: false,
         loopDelay: 1000,
+        permanent: true,
+        displayDuration: 5000,
         easing: 'ease',
       }
     }

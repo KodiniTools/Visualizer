@@ -122,6 +122,34 @@
             <option value="█">█ (Voller Block)</option>
           </select>
         </div>
+
+        <!-- Permanent anzeigen -->
+        <div class="control-group">
+          <label class="effect-checkbox">
+            <input
+              type="checkbox"
+              v-model="selectedText.animation.typewriter.permanent"
+              @change="updateText"
+            />
+            Permanent anzeigen
+          </label>
+          <div class="hint-text">Text bleibt dauerhaft sichtbar</div>
+        </div>
+
+        <!-- Anzeigedauer (nur wenn nicht permanent) -->
+        <div v-if="!selectedText.animation.typewriter.permanent" class="control-group">
+          <label>Anzeigedauer: {{ selectedText.animation.typewriter.displayDuration }}ms</label>
+          <input
+            type="range"
+            v-model.number="selectedText.animation.typewriter.displayDuration"
+            @input="updateText"
+            min="500"
+            max="30000"
+            step="100"
+            class="slider"
+          />
+          <div class="hint-text">Wie lange der Text sichtbar bleibt, bevor er verschwindet</div>
+        </div>
       </div>
 
       <!-- Trennlinie -->
@@ -241,6 +269,34 @@
             step="100"
             class="slider"
           />
+        </div>
+
+        <!-- Permanent anzeigen -->
+        <div class="control-group">
+          <label class="effect-checkbox">
+            <input
+              type="checkbox"
+              v-model="selectedText.animation.fade.permanent"
+              @change="updateText"
+            />
+            Permanent anzeigen
+          </label>
+          <div class="hint-text">Text bleibt dauerhaft sichtbar</div>
+        </div>
+
+        <!-- Anzeigedauer (nur wenn nicht permanent) -->
+        <div v-if="!selectedText.animation.fade.permanent" class="control-group">
+          <label>Anzeigedauer: {{ selectedText.animation.fade.displayDuration }}ms</label>
+          <input
+            type="range"
+            v-model.number="selectedText.animation.fade.displayDuration"
+            @input="updateText"
+            min="500"
+            max="30000"
+            step="100"
+            class="slider"
+          />
+          <div class="hint-text">Wie lange der Text sichtbar bleibt, bevor er verschwindet</div>
         </div>
       </div>
 
@@ -392,6 +448,34 @@
             class="slider"
           />
         </div>
+
+        <!-- Permanent anzeigen -->
+        <div class="control-group">
+          <label class="effect-checkbox">
+            <input
+              type="checkbox"
+              v-model="selectedText.animation.scale.permanent"
+              @change="updateText"
+            />
+            Permanent anzeigen
+          </label>
+          <div class="hint-text">Text bleibt dauerhaft sichtbar</div>
+        </div>
+
+        <!-- Anzeigedauer (nur wenn nicht permanent) -->
+        <div v-if="!selectedText.animation.scale.permanent" class="control-group">
+          <label>Anzeigedauer: {{ selectedText.animation.scale.displayDuration }}ms</label>
+          <input
+            type="range"
+            v-model.number="selectedText.animation.scale.displayDuration"
+            @input="updateText"
+            min="500"
+            max="30000"
+            step="100"
+            class="slider"
+          />
+          <div class="hint-text">Wie lange der Text sichtbar bleibt, bevor er verschwindet</div>
+        </div>
       </div>
 
       <!-- Trennlinie -->
@@ -540,13 +624,41 @@
             class="slider"
           />
         </div>
+
+        <!-- Permanent anzeigen -->
+        <div class="control-group">
+          <label class="effect-checkbox">
+            <input
+              type="checkbox"
+              v-model="selectedText.animation.slide.permanent"
+              @change="updateText"
+            />
+            Permanent anzeigen
+          </label>
+          <div class="hint-text">Text bleibt dauerhaft sichtbar</div>
+        </div>
+
+        <!-- Anzeigedauer (nur wenn nicht permanent) -->
+        <div v-if="!selectedText.animation.slide.permanent" class="control-group">
+          <label>Anzeigedauer: {{ selectedText.animation.slide.displayDuration }}ms</label>
+          <input
+            type="range"
+            v-model.number="selectedText.animation.slide.displayDuration"
+            @input="updateText"
+            min="500"
+            max="30000"
+            step="100"
+            class="slider"
+          />
+          <div class="hint-text">Wie lange der Text sichtbar bleibt, bevor er verschwindet</div>
+        </div>
       </div>
     </div>
   </details>
 </template>
 
 <script setup>
-import { inject } from 'vue'
+import { inject, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useTextAnimations } from '../../composables/useTextAnimations.js'
 
@@ -556,6 +668,21 @@ const props = defineProps({
     required: true,
   },
 })
+
+// ✨ Backfill: Ältere Text-Objekte kennen die neuen Felder (permanent / displayDuration)
+// noch nicht. Standard = permanent anzeigen, damit sich das Verhalten nicht ändert.
+function ensureDisplayDefaults(text) {
+  const anim = text?.animation
+  if (!anim) return
+  for (const key of ['typewriter', 'fade', 'scale', 'slide']) {
+    const eff = anim[key]
+    if (!eff) continue
+    if (eff.permanent === undefined) eff.permanent = true
+    if (eff.displayDuration === undefined) eff.displayDuration = 5000
+  }
+}
+
+watch(() => props.selectedText, ensureDisplayDefaults, { immediate: true })
 
 const { t } = useI18n()
 const canvasManager = inject('canvasManager')

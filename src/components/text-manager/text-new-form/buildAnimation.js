@@ -34,6 +34,8 @@ export function buildAnimationConfig({ typewriter, fade, scale, slide }) {
       startDelay: typewriter.startDelay,
       loop: typewriter.loop,
       loopDelay: typewriter.loopDelay,
+      permanent: typewriter.permanent !== false,
+      displayDuration: typewriter.displayDuration ?? 5000,
       showCursor: typewriter.showCursor,
       cursorChar: typewriter.cursorChar,
     },
@@ -44,6 +46,8 @@ export function buildAnimationConfig({ typewriter, fade, scale, slide }) {
       direction: fade.direction,
       loop: fade.loop,
       loopDelay: fade.loopDelay,
+      permanent: fade.permanent !== false,
+      displayDuration: fade.displayDuration ?? 5000,
       easing: fade.easing,
     },
     scale: {
@@ -55,6 +59,8 @@ export function buildAnimationConfig({ typewriter, fade, scale, slide }) {
       direction: scale.direction,
       loop: scale.loop,
       loopDelay: scale.loopDelay,
+      permanent: scale.permanent !== false,
+      displayDuration: scale.displayDuration ?? 5000,
       easing: scale.easing,
     },
     slide: {
@@ -66,6 +72,8 @@ export function buildAnimationConfig({ typewriter, fade, scale, slide }) {
       direction: slide.direction,
       loop: slide.loop,
       loopDelay: slide.loopDelay,
+      permanent: slide.permanent !== false,
+      displayDuration: slide.displayDuration ?? 5000,
       easing: slide.easing,
     },
     _state: {

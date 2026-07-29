@@ -103,6 +103,8 @@ function handleSelectionChange(obj) {
           startDelay: 0,
           loop: false,
           loopDelay: 1000,
+          permanent: true,
+          displayDuration: 5000,
           showCursor: true,
           cursorChar: '|',
         },

@@ -5,6 +5,13 @@
     <!-- Add new text — always visible (collapses to a button when not in use) -->
     <TextNewForm @created="onTextCreated" />
 
+    <!-- Text-Verzeichnis: alle Texte auflisten & einzeln markieren -->
+    <TextDirectoryPanel
+      :items="textList"
+      :active-id="selectedText?.id ?? null"
+      @select="selectTextFromDirectory"
+    />
+
     <!-- Multi-select edit mode -->
     <TextMultiEditPanel
       v-if="multiSelectedTexts.length > 1"
@@ -31,6 +38,7 @@ import { useI18n } from '../lib/i18n.js'
 import TextNewForm from './text-manager/TextNewForm.vue'
 import TextEditPanel from './text-manager/TextEditPanel.vue'
 import TextMultiEditPanel from './text-manager/TextMultiEditPanel.vue'
+import TextDirectoryPanel from './text-manager/TextDirectoryPanel.vue'
 
 const { t } = useI18n()
 const canvasManager = inject('canvasManager')
@@ -38,14 +46,42 @@ const fontManager = inject('fontManager')
 
 const selectedText = ref(null)
 const multiSelectedTexts = ref([])
+const textList = ref([])
 const canvasWidth = ref(1920)
 const canvasHeight = ref(1080)
 const editPanelRef = ref(null)
 
 let eventListenerRegistered = false
 
+// ✨ Text-Verzeichnis: Liste aller Texte (stabil nach Erstellungsreihenfolge sortiert)
+function refreshTextList() {
+  const objs = canvasManager.value?.textManager?.textObjects || []
+  const sorted = [...objs].sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0))
+  textList.value = sorted.map((o, i) => ({
+    id: o.id,
+    number: i + 1,
+    content: (o.content || '').replace(/\s+/g, ' ').trim().slice(0, 40),
+    animated: !!(o.animation && o.animation.type && o.animation.type !== 'none'),
+  }))
+}
+
+// ✨ Text aus dem Verzeichnis markieren (immer nur ein Text; Markierung erscheint
+// auf dem Canvas – auch wenn der Text gerade ausgeblendet ist)
+function selectTextFromDirectory(id) {
+  if (!canvasManager.value) return
+  const objs = canvasManager.value.textManager?.textObjects || []
+  const obj = objs.find((o) => o.id === id)
+  if (!obj) return
+
+  multiSelectedTexts.value = []
+  canvasManager.value.clearMultiSelection?.()
+  canvasManager.value.setActiveObject(obj)
+  canvasManager.value.redrawCallback?.()
+}
+
 // ✨ FIX: Verbesserte Callback-Funktion für Selection-Changes
 function handleSelectionChange(obj) {
+  refreshTextList()
   if (obj && obj.type === 'text') {
     // Sicherheitsprüfung: Initialisiere fehlende Properties
     if (!obj.letterSpacing && obj.letterSpacing !== 0) {
@@ -133,11 +169,13 @@ function onTextCreated(newTextObj) {
   if (newTextObj) {
     selectedText.value = newTextObj
   }
+  refreshTextList()
 }
 
 function deleteSelectedText() {
   // TextEditPanel already called deleteActiveObject(); just clear selection state
   selectedText.value = null
+  refreshTextList()
 }
 
 // ✨ NEU: Handler für Tastatureingabe zum Öffnen des Texteditors
@@ -214,7 +252,14 @@ function clearMultiSelection() {
   }
   multiSelectedTexts.value = []
   selectedText.value = null
+  refreshTextList()
 }
+
+// Vorschau im Verzeichnis aktualisieren, wenn der markierte Text bearbeitet wird
+watch(
+  () => selectedText.value?.content,
+  () => refreshTextList(),
+)
 
 // ✨ NEU: Watch für Canvas-Dimensionen Updates
 watch(
@@ -251,6 +296,9 @@ onMounted(() => {
   if (canvasManager.value.activeObject?.type === 'text') {
     handleSelectionChange(canvasManager.value.activeObject)
   }
+
+  // Text-Verzeichnis initial befüllen
+  refreshTextList()
 
   // Überwache FontManager und aktualisiere Dropdown wenn Fonts geladen werden
   if (fontManager?.value) {

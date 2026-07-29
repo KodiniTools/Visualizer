@@ -542,55 +542,81 @@ export class TextManager {
       }
     }
 
+    // ✨ ANZEIGEDAUER: "Halte"-Phase zwischen Ein- und Ausblenden.
+    // Bei permanenter Anzeige (Standard) ist hold = 0 → Verhalten wie bisher.
+    const hold =
+      fade.permanent === false ? (fade.displayDuration != null ? fade.displayDuration : 5000) : 0
+
     let opacity = 1
     let isComplete = false
 
     switch (fade.direction) {
-      case 'in':
-        // Einblenden: 0 → 1
-        if (elapsed >= duration) {
+      case 'in': {
+        // Einblenden: 0 → 1, danach halten (und ggf. nach Anzeigedauer ausblenden)
+        if (elapsed < duration) {
+          opacity = applyEasing(elapsed / duration, fade.easing)
+        } else if (hold === 0) {
           opacity = 1
           isComplete = true
         } else {
-          const progress = elapsed / duration
-          opacity = applyEasing(progress, fade.easing)
+          const t = elapsed - duration
+          if (t < hold) {
+            opacity = 1
+          } else if (t < hold + duration) {
+            opacity = 1 - applyEasing((t - hold) / duration, fade.easing)
+          } else {
+            opacity = 0
+            isComplete = true
+          }
         }
         break
+      }
 
-      case 'out':
-        // Ausblenden: 1 → 0
-        if (elapsed >= duration) {
-          opacity = 0
-          isComplete = true
+      case 'out': {
+        // Sichtbar halten (Anzeigedauer), danach ausblenden: 1 → 0
+        if (hold > 0 && elapsed < hold) {
+          opacity = 1
         } else {
-          const progress = elapsed / duration
-          opacity = 1 - applyEasing(progress, fade.easing)
+          const t = elapsed - hold
+          if (t >= duration) {
+            opacity = 0
+            isComplete = true
+          } else {
+            opacity = 1 - applyEasing(t / duration, fade.easing)
+          }
         }
         break
+      }
 
-      case 'inOut':
-        // Ein- und Ausblenden: 0 → 1 → 0
-        const totalDuration = duration * 2
-        if (elapsed >= totalDuration) {
-          opacity = 0
-          isComplete = true
-        } else if (elapsed < duration) {
-          // Einblenden
-          const progress = elapsed / duration
-          opacity = applyEasing(progress, fade.easing)
+      case 'inOut': {
+        // Ein- und Ausblenden mit "Halte"-Phase: 0 → 1 → (halten) → 0
+        if (elapsed < duration) {
+          opacity = applyEasing(elapsed / duration, fade.easing)
         } else {
-          // Ausblenden
-          const progress = (elapsed - duration) / duration
-          opacity = 1 - applyEasing(progress, fade.easing)
+          const t = elapsed - duration
+          if (t < hold) {
+            opacity = 1
+          } else if (t < hold + duration) {
+            opacity = 1 - applyEasing((t - hold) / duration, fade.easing)
+          } else {
+            opacity = 0
+            isComplete = true
+          }
         }
         break
+      }
     }
 
     // Loop-Handling
     if (isComplete && fade.loop) {
       const loopDelay = fade.loopDelay || 1000
-      const completionTime =
-        state.fadeStartTime + (fade.direction === 'inOut' ? duration * 2 : duration)
+      const cycle =
+        fade.direction === 'out'
+          ? duration + hold
+          : fade.direction === 'in' && hold === 0
+            ? duration
+            : duration * 2 + hold
+      const completionTime = state.fadeStartTime + cycle
       const timeSinceComplete = now - completionTime
 
       if (timeSinceComplete >= loopDelay) {
@@ -672,59 +698,91 @@ export class TextManager {
 
     const startScale = scaleAnim.startScale !== undefined ? scaleAnim.startScale : 0
     const endScale = scaleAnim.endScale !== undefined ? scaleAnim.endScale : 1
+
+    // ✨ ANZEIGEDAUER: "Halte"-Phase zwischen Rein- und Rauszoomen.
+    const hold =
+      scaleAnim.permanent === false
+        ? scaleAnim.displayDuration != null
+          ? scaleAnim.displayDuration
+          : 5000
+        : 0
+
     let scale = endScale
     let isComplete = false
 
     switch (scaleAnim.direction) {
-      case 'in':
-        // Reinzoomen: startScale → endScale
-        if (elapsed >= duration) {
+      case 'in': {
+        // Reinzoomen: startScale → endScale, danach halten (und ggf. rauszoomen)
+        if (elapsed < duration) {
+          scale =
+            startScale + (endScale - startScale) * applyEasing(elapsed / duration, scaleAnim.easing)
+        } else if (hold === 0) {
           scale = endScale
           isComplete = true
         } else {
-          const progress = elapsed / duration
-          const easedProgress = applyEasing(progress, scaleAnim.easing)
-          scale = startScale + (endScale - startScale) * easedProgress
+          const t = elapsed - duration
+          if (t < hold) {
+            scale = endScale
+          } else if (t < hold + duration) {
+            scale =
+              endScale -
+              (endScale - startScale) * applyEasing((t - hold) / duration, scaleAnim.easing)
+          } else {
+            scale = startScale
+            isComplete = true
+          }
         }
         break
+      }
 
-      case 'out':
-        // Rauszoomen: endScale → startScale
-        if (elapsed >= duration) {
-          scale = startScale
-          isComplete = true
+      case 'out': {
+        // Sichtbar halten (Anzeigedauer), danach rauszoomen: endScale → startScale
+        if (hold > 0 && elapsed < hold) {
+          scale = endScale
         } else {
-          const progress = elapsed / duration
-          const easedProgress = applyEasing(progress, scaleAnim.easing)
-          scale = endScale - (endScale - startScale) * easedProgress
+          const t = elapsed - hold
+          if (t >= duration) {
+            scale = startScale
+            isComplete = true
+          } else {
+            scale = endScale - (endScale - startScale) * applyEasing(t / duration, scaleAnim.easing)
+          }
         }
         break
+      }
 
-      case 'inOut':
-        // Rein und Raus: startScale → endScale → startScale
-        const totalDuration = duration * 2
-        if (elapsed >= totalDuration) {
-          scale = startScale
-          isComplete = true
-        } else if (elapsed < duration) {
-          // Reinzoomen
-          const progress = elapsed / duration
-          const easedProgress = applyEasing(progress, scaleAnim.easing)
-          scale = startScale + (endScale - startScale) * easedProgress
+      case 'inOut': {
+        // Rein und Raus mit "Halte"-Phase: startScale → endScale → (halten) → startScale
+        if (elapsed < duration) {
+          scale =
+            startScale + (endScale - startScale) * applyEasing(elapsed / duration, scaleAnim.easing)
         } else {
-          // Rauszoomen
-          const progress = (elapsed - duration) / duration
-          const easedProgress = applyEasing(progress, scaleAnim.easing)
-          scale = endScale - (endScale - startScale) * easedProgress
+          const t = elapsed - duration
+          if (t < hold) {
+            scale = endScale
+          } else if (t < hold + duration) {
+            scale =
+              endScale -
+              (endScale - startScale) * applyEasing((t - hold) / duration, scaleAnim.easing)
+          } else {
+            scale = startScale
+            isComplete = true
+          }
         }
         break
+      }
     }
 
     // Loop-Handling
     if (isComplete && scaleAnim.loop) {
       const loopDelay = scaleAnim.loopDelay || 1000
-      const completionTime =
-        state.scaleStartTime + (scaleAnim.direction === 'inOut' ? duration * 2 : duration)
+      const cycle =
+        scaleAnim.direction === 'out'
+          ? duration + hold
+          : scaleAnim.direction === 'in' && hold === 0
+            ? duration
+            : duration * 2 + hold
+      const completionTime = state.scaleStartTime + cycle
       const timeSinceComplete = now - completionTime
 
       if (timeSinceComplete >= loopDelay) {
@@ -821,67 +879,98 @@ export class TextManager {
       }
     }
 
+    // ✨ ANZEIGEDAUER: "Halte"-Phase zwischen Herein- und Herausfahren.
+    const hold =
+      slide.permanent === false ? (slide.displayDuration != null ? slide.displayDuration : 5000) : 0
+
     let offsetX = 0
     let offsetY = 0
     let isComplete = false
 
     switch (slide.direction) {
-      case 'in':
-        // Hereinfahren: von außen → zur Position
-        if (elapsed >= duration) {
+      case 'in': {
+        // Hereinfahren: von außen → zur Position, danach halten (und ggf. herausfahren)
+        if (elapsed < duration) {
+          const e = applyEasing(elapsed / duration, slide.easing)
+          offsetX = maxOffsetX * (1 - e)
+          offsetY = maxOffsetY * (1 - e)
+        } else if (hold === 0) {
           offsetX = 0
           offsetY = 0
           isComplete = true
         } else {
-          const progress = elapsed / duration
-          const easedProgress = applyEasing(progress, slide.easing)
-          offsetX = maxOffsetX * (1 - easedProgress)
-          offsetY = maxOffsetY * (1 - easedProgress)
+          const t = elapsed - duration
+          if (t < hold) {
+            offsetX = 0
+            offsetY = 0
+          } else if (t < hold + duration) {
+            const e = applyEasing((t - hold) / duration, slide.easing)
+            offsetX = maxOffsetX * e
+            offsetY = maxOffsetY * e
+          } else {
+            offsetX = maxOffsetX
+            offsetY = maxOffsetY
+            isComplete = true
+          }
         }
         break
+      }
 
-      case 'out':
-        // Herausfahren: von Position → nach außen
-        if (elapsed >= duration) {
-          offsetX = maxOffsetX
-          offsetY = maxOffsetY
-          isComplete = true
+      case 'out': {
+        // In Position halten (Anzeigedauer), danach herausfahren: Position → nach außen
+        if (hold > 0 && elapsed < hold) {
+          offsetX = 0
+          offsetY = 0
         } else {
-          const progress = elapsed / duration
-          const easedProgress = applyEasing(progress, slide.easing)
-          offsetX = maxOffsetX * easedProgress
-          offsetY = maxOffsetY * easedProgress
+          const t = elapsed - hold
+          if (t >= duration) {
+            offsetX = maxOffsetX
+            offsetY = maxOffsetY
+            isComplete = true
+          } else {
+            const e = applyEasing(t / duration, slide.easing)
+            offsetX = maxOffsetX * e
+            offsetY = maxOffsetY * e
+          }
         }
         break
+      }
 
-      case 'inOut':
-        // Rein und Raus: von außen → Position → nach außen
-        const totalDuration = duration * 2
-        if (elapsed >= totalDuration) {
-          offsetX = maxOffsetX
-          offsetY = maxOffsetY
-          isComplete = true
-        } else if (elapsed < duration) {
-          // Hereinfahren
-          const progress = elapsed / duration
-          const easedProgress = applyEasing(progress, slide.easing)
-          offsetX = maxOffsetX * (1 - easedProgress)
-          offsetY = maxOffsetY * (1 - easedProgress)
+      case 'inOut': {
+        // Rein und Raus mit "Halte"-Phase: außen → Position → (halten) → außen
+        if (elapsed < duration) {
+          const e = applyEasing(elapsed / duration, slide.easing)
+          offsetX = maxOffsetX * (1 - e)
+          offsetY = maxOffsetY * (1 - e)
         } else {
-          // Herausfahren
-          const progress = (elapsed - duration) / duration
-          const easedProgress = applyEasing(progress, slide.easing)
-          offsetX = maxOffsetX * easedProgress
-          offsetY = maxOffsetY * easedProgress
+          const t = elapsed - duration
+          if (t < hold) {
+            offsetX = 0
+            offsetY = 0
+          } else if (t < hold + duration) {
+            const e = applyEasing((t - hold) / duration, slide.easing)
+            offsetX = maxOffsetX * e
+            offsetY = maxOffsetY * e
+          } else {
+            offsetX = maxOffsetX
+            offsetY = maxOffsetY
+            isComplete = true
+          }
         }
         break
+      }
     }
 
     // Loop-Handling
     if (isComplete && slide.loop) {
       const loopDelay = slide.loopDelay || 1000
-      const completionTime =
-        state.slideStartTime + (slide.direction === 'inOut' ? duration * 2 : duration)
+      const cycle =
+        slide.direction === 'out'
+          ? duration + hold
+          : slide.direction === 'in' && hold === 0
+            ? duration
+            : duration * 2 + hold
+      const completionTime = state.slideStartTime + cycle
       const timeSinceComplete = now - completionTime
 
       if (timeSinceComplete >= loopDelay) {
@@ -908,15 +997,18 @@ export class TextManager {
   }
 
   /**
-   * ✨ NEU: Berechnet einen Sichtbarkeits-Multiplikator für die "Anzeigedauer".
+   * ✨ NEU: Garantiertes Ausblenden nach Ablauf der "Anzeigedauer".
    *
-   * Pro Animation lässt sich einstellen, wie lange der Text sichtbar bleibt,
-   * bevor er wieder verschwindet ("Anzeigedauer"). Ist stattdessen die Option
-   * "Permanent anzeigen" aktiv (Standard), bleibt der Text dauerhaft sichtbar.
+   * Ist "Permanent anzeigen" für eine Animation deaktiviert, wird zwischen
+   * Eingangs- und Ausgangs-Animation eine "Halte"-Phase (= Anzeigedauer)
+   * eingefügt (siehe _getFadeOpacity/_getScaleValue/_getSlideOffset). Fade,
+   * Scale und Slide blenden sich am Ende selbst aus; dieser Multiplikator
+   * stellt sicher, dass der Text nach dem vollständigen Zyklus verborgen
+   * bleibt – und übernimmt das Ausblenden für Effekte ohne eigenen Ausgang
+   * (z.B. Schreibmaschinen-Effekt).
    *
-   * Die Anzeigedauer wird ab dem Start der jeweiligen Animation gemessen
-   * (inkl. Start-Verzögerung). Sind mehrere Animationen aktiv, bleibt der Text
-   * sichtbar, solange mindestens eine davon permanent ist bzw. loopt.
+   * Ist "Permanent anzeigen" aktiv (Standard) oder loopt eine Animation,
+   * bleibt der Text sichtbar (Rückgabe 1).
    *
    * @returns {number} Multiplikator zwischen 0 (versteckt) und 1 (voll sichtbar)
    */
@@ -927,42 +1019,56 @@ export class TextManager {
     const state = animation._state
     const now = Date.now()
 
+    // Dauer der Tipp-Phase für den Schreibmaschinen-Effekt abschätzen
+    const typewriterInDuration = () => {
+      const tw = animation.typewriter
+      const chars = (textObj.content || '').length
+      return chars * (tw.speed || 50)
+    }
+
     const effects = [
-      { cfg: animation.typewriter, startTime: state.startTime },
-      { cfg: animation.fade, startTime: state.fadeStartTime },
-      { cfg: animation.scale, startTime: state.scaleStartTime },
-      { cfg: animation.slide, startTime: state.slideStartTime },
+      { cfg: animation.typewriter, startTime: state.startTime, inDuration: typewriterInDuration() },
+      { cfg: animation.fade, startTime: state.fadeStartTime, inDuration: null },
+      { cfg: animation.scale, startTime: state.scaleStartTime, inDuration: null },
+      { cfg: animation.slide, startTime: state.slideStartTime, inDuration: null },
     ]
 
-    let hasEnabled = false
-    let staysVisible = false
-    let maxHideStart = null
+    let hasTimed = false
+    let maxCycleEnd = null
 
-    for (const { cfg, startTime } of effects) {
+    for (const { cfg, startTime, inDuration } of effects) {
       if (!cfg || !cfg.enabled) continue
-      hasEnabled = true
 
-      // Permanent, Loop oder noch nicht gestartet => Text bleibt sichtbar
-      if (cfg.permanent !== false || cfg.loop || !startTime) {
-        staysVisible = true
-        continue
-      }
+      // Permanent, Loop oder noch nicht gestartet => kein zeitgesteuertes Ausblenden
+      if (cfg.permanent !== false || cfg.loop || !startTime) continue
+
+      hasTimed = true
 
       const displayDuration = cfg.displayDuration != null ? cfg.displayDuration : 5000
-      const hideStart = startTime + displayDuration
-      if (maxHideStart === null || hideStart > maxHideStart) {
-        maxHideStart = hideStart
+      const duration = inDuration != null ? inDuration : cfg.duration || 1000
+      // Voller Zyklus = Eingang + Anzeigedauer + Ausgang.
+      // Der Schreibmaschinen-Effekt hat keinen eigenen Ausgang (inDuration != null).
+      const cycle =
+        inDuration != null
+          ? duration + displayDuration
+          : cfg.direction === 'out'
+            ? duration + displayDuration
+            : duration * 2 + displayDuration
+      const cycleEnd = startTime + cycle
+      if (maxCycleEnd === null || cycleEnd > maxCycleEnd) {
+        maxCycleEnd = cycleEnd
       }
     }
 
-    // Keine aktive (nicht-permanente) Animation => voll sichtbar
-    if (!hasEnabled || staysVisible || maxHideStart === null) return 1
+    // Keine zeitgesteuerte Animation aktiv => voll sichtbar
+    if (!hasTimed || maxCycleEnd === null) return 1
 
-    if (now < maxHideStart) return 1
+    // Vor dem Zyklus-Ende blenden die Animationen selbst aus (Fade/Slide/Scale).
+    if (now < maxCycleEnd) return 1
 
-    // Sanftes Ausblenden am Ende der Anzeigedauer
+    // Nach dem Zyklus-Ende: garantiertes, sanftes Ausblenden (v.a. für Typewriter)
     const FADE_OUT_MS = 500
-    const elapsed = now - maxHideStart
+    const elapsed = now - maxCycleEnd
     if (elapsed >= FADE_OUT_MS) return 0
     return 1 - elapsed / FADE_OUT_MS
   }

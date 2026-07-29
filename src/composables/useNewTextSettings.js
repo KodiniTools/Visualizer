@@ -21,6 +21,8 @@ export function useNewTextSettings(canvasManager) {
     startDelay: 0,
     loop: false,
     loopDelay: 1000,
+    permanent: true,
+    displayDuration: 5000,
     showCursor: true,
     cursorChar: '|',
   })
@@ -32,6 +34,8 @@ export function useNewTextSettings(canvasManager) {
     direction: 'in',
     loop: false,
     loopDelay: 1000,
+    permanent: true,
+    displayDuration: 5000,
     easing: 'ease',
   })
 
@@ -44,6 +48,8 @@ export function useNewTextSettings(canvasManager) {
     direction: 'in',
     loop: false,
     loopDelay: 1000,
+    permanent: true,
+    displayDuration: 5000,
     easing: 'ease',
   })
 
@@ -56,6 +62,8 @@ export function useNewTextSettings(canvasManager) {
     direction: 'in',
     loop: false,
     loopDelay: 1000,
+    permanent: true,
+    displayDuration: 5000,
     easing: 'ease',
   })
 
@@ -122,6 +130,8 @@ export function useNewTextSettings(canvasManager) {
           startDelay: newTextTypewriter.value.startDelay,
           loop: newTextTypewriter.value.loop,
           loopDelay: newTextTypewriter.value.loopDelay,
+          permanent: newTextTypewriter.value.permanent,
+          displayDuration: newTextTypewriter.value.displayDuration,
           showCursor: newTextTypewriter.value.showCursor,
           cursorChar: newTextTypewriter.value.cursorChar,
         },
@@ -132,6 +142,8 @@ export function useNewTextSettings(canvasManager) {
           direction: newTextFade.value.direction,
           loop: newTextFade.value.loop,
           loopDelay: newTextFade.value.loopDelay,
+          permanent: newTextFade.value.permanent,
+          displayDuration: newTextFade.value.displayDuration,
           easing: newTextFade.value.easing,
         },
         scale: {
@@ -143,6 +155,8 @@ export function useNewTextSettings(canvasManager) {
           direction: newTextScale.value.direction,
           loop: newTextScale.value.loop,
           loopDelay: newTextScale.value.loopDelay,
+          permanent: newTextScale.value.permanent,
+          displayDuration: newTextScale.value.displayDuration,
           easing: newTextScale.value.easing,
         },
         slide: {
@@ -154,6 +168,8 @@ export function useNewTextSettings(canvasManager) {
           direction: newTextSlide.value.direction,
           loop: newTextSlide.value.loop,
           loopDelay: newTextSlide.value.loopDelay,
+          permanent: newTextSlide.value.permanent,
+          displayDuration: newTextSlide.value.displayDuration,
           easing: newTextSlide.value.easing,
         },
       }
@@ -190,6 +206,8 @@ export function useNewTextSettings(canvasManager) {
       startDelay: 0,
       loop: false,
       loopDelay: 1000,
+      permanent: true,
+      displayDuration: 5000,
       showCursor: true,
       cursorChar: '|',
     }
@@ -201,6 +219,8 @@ export function useNewTextSettings(canvasManager) {
       direction: 'in',
       loop: false,
       loopDelay: 1000,
+      permanent: true,
+      displayDuration: 5000,
       easing: 'ease',
     }
 
@@ -213,6 +233,8 @@ export function useNewTextSettings(canvasManager) {
       direction: 'in',
       loop: false,
       loopDelay: 1000,
+      permanent: true,
+      displayDuration: 5000,
       easing: 'ease',
     }
 
@@ -225,6 +247,8 @@ export function useNewTextSettings(canvasManager) {
       direction: 'in',
       loop: false,
       loopDelay: 1000,
+      permanent: true,
+      displayDuration: 5000,
       easing: 'ease',
     }
 

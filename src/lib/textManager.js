@@ -103,6 +103,8 @@ export class TextManager {
           startDelay: 0, // Verzögerung vor Start (ms)
           loop: false, // Animation wiederholen
           loopDelay: 1000, // Pause zwischen Wiederholungen (ms)
+          permanent: true, // Text nach Animation dauerhaft anzeigen
+          displayDuration: 5000, // Anzeigedauer vor dem Ausblenden (ms, wenn nicht permanent)
           showCursor: true, // Blinkender Cursor
           cursorChar: '|', // Cursor-Zeichen
         },
@@ -114,6 +116,8 @@ export class TextManager {
           direction: 'in', // 'in' = einblenden, 'out' = ausblenden, 'inOut' = ein- und ausblenden
           loop: false, // Animation wiederholen
           loopDelay: 1000, // Pause zwischen Wiederholungen (ms)
+          permanent: true, // Text nach Animation dauerhaft anzeigen
+          displayDuration: 5000, // Anzeigedauer vor dem Ausblenden (ms, wenn nicht permanent)
           easing: 'ease', // 'linear', 'ease', 'easeIn', 'easeOut'
         },
         // ✨ NEU: Scale-Animation (Eingangs-Skalierung)
@@ -126,6 +130,8 @@ export class TextManager {
           direction: 'in', // 'in' = reinzoomen, 'out' = rauszoomen, 'inOut' = rein und raus
           loop: false, // Animation wiederholen
           loopDelay: 1000, // Pause zwischen Wiederholungen (ms)
+          permanent: true, // Text nach Animation dauerhaft anzeigen
+          displayDuration: 5000, // Anzeigedauer vor dem Ausblenden (ms, wenn nicht permanent)
           easing: 'ease', // 'linear', 'ease', 'easeIn', 'easeOut'
         },
         // ✨ NEU: Slide-Animation (Hereingleiten)
@@ -138,6 +144,8 @@ export class TextManager {
           direction: 'in', // 'in' = hereinfahren, 'out' = herausfahren, 'inOut' = rein und raus
           loop: false, // Animation wiederholen
           loopDelay: 1000, // Pause zwischen Wiederholungen (ms)
+          permanent: true, // Text nach Animation dauerhaft anzeigen
+          displayDuration: 5000, // Anzeigedauer vor dem Ausblenden (ms, wenn nicht permanent)
           easing: 'ease', // 'linear', 'ease', 'easeIn', 'easeOut'
         },
         // Interner State (wird zur Laufzeit gesetzt)
@@ -900,6 +908,66 @@ export class TextManager {
   }
 
   /**
+   * ✨ NEU: Berechnet einen Sichtbarkeits-Multiplikator für die "Anzeigedauer".
+   *
+   * Pro Animation lässt sich einstellen, wie lange der Text sichtbar bleibt,
+   * bevor er wieder verschwindet ("Anzeigedauer"). Ist stattdessen die Option
+   * "Permanent anzeigen" aktiv (Standard), bleibt der Text dauerhaft sichtbar.
+   *
+   * Die Anzeigedauer wird ab dem Start der jeweiligen Animation gemessen
+   * (inkl. Start-Verzögerung). Sind mehrere Animationen aktiv, bleibt der Text
+   * sichtbar, solange mindestens eine davon permanent ist bzw. loopt.
+   *
+   * @returns {number} Multiplikator zwischen 0 (versteckt) und 1 (voll sichtbar)
+   */
+  _getDisplayOpacity(textObj) {
+    const animation = textObj.animation
+    if (!animation || !animation._state) return 1
+
+    const state = animation._state
+    const now = Date.now()
+
+    const effects = [
+      { cfg: animation.typewriter, startTime: state.startTime },
+      { cfg: animation.fade, startTime: state.fadeStartTime },
+      { cfg: animation.scale, startTime: state.scaleStartTime },
+      { cfg: animation.slide, startTime: state.slideStartTime },
+    ]
+
+    let hasEnabled = false
+    let staysVisible = false
+    let maxHideStart = null
+
+    for (const { cfg, startTime } of effects) {
+      if (!cfg || !cfg.enabled) continue
+      hasEnabled = true
+
+      // Permanent, Loop oder noch nicht gestartet => Text bleibt sichtbar
+      if (cfg.permanent !== false || cfg.loop || !startTime) {
+        staysVisible = true
+        continue
+      }
+
+      const displayDuration = cfg.displayDuration != null ? cfg.displayDuration : 5000
+      const hideStart = startTime + displayDuration
+      if (maxHideStart === null || hideStart > maxHideStart) {
+        maxHideStart = hideStart
+      }
+    }
+
+    // Keine aktive (nicht-permanente) Animation => voll sichtbar
+    if (!hasEnabled || staysVisible || maxHideStart === null) return 1
+
+    if (now < maxHideStart) return 1
+
+    // Sanftes Ausblenden am Ende der Anzeigedauer
+    const FADE_OUT_MS = 500
+    const elapsed = now - maxHideStart
+    if (elapsed >= FADE_OUT_MS) return 0
+    return 1 - elapsed / FADE_OUT_MS
+  }
+
+  /**
    * Zeichnet einen einzelnen Text (mit Unterstützung für mehrzeilige Texte)
    * ✨ ERWEITERT: Unterstützt jetzt Audio-Reaktive Effekte und Typewriter-Animation
    */
@@ -924,6 +992,9 @@ export class TextManager {
     // ✨ FADE-ANIMATION: Opacity aus Fade-Effekt anwenden
     const fadeResult = this._getFadeOpacity(textObj)
     baseOpacity = baseOpacity * fadeResult.opacity
+
+    // ✨ ANZEIGEDAUER: Text nach eingestellter Dauer ausblenden (falls nicht permanent)
+    baseOpacity = baseOpacity * this._getDisplayOpacity(textObj)
 
     // ✨ AUDIO-REAKTIV: Strobe-Effekt (Blitz bei Audio-Peaks)
     let strobeBrightnessMultiplier = 100

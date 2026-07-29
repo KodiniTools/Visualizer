@@ -115,6 +115,29 @@
             class="slider"
           />
         </div>
+
+        <!-- Permanent anzeigen -->
+        <div class="control-group">
+          <label class="effect-checkbox">
+            <input v-model="settings.permanent" type="checkbox" />
+            {{ t('textManager.permanentDisplay') }}
+          </label>
+          <div class="hint-text">{{ t('textManager.permanentDisplayHint') }}</div>
+        </div>
+
+        <!-- Anzeigedauer (nur wenn nicht permanent) -->
+        <div v-if="!settings.permanent" class="control-group">
+          <label>{{ t('textManager.displayDuration') }}: {{ settings.displayDuration }}ms</label>
+          <input
+            v-model.number="settings.displayDuration"
+            type="range"
+            min="500"
+            max="30000"
+            step="100"
+            class="slider"
+          />
+          <div class="hint-text">{{ t('textManager.displayDurationHint') }}</div>
+        </div>
       </div>
     </div>
   </details>

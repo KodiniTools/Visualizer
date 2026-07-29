@@ -658,7 +658,7 @@
 </template>
 
 <script setup>
-import { inject, watch } from 'vue'
+import { inject, toRef, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useTextAnimations } from '../../composables/useTextAnimations.js'
 
@@ -687,8 +687,9 @@ watch(() => props.selectedText, ensureDisplayDefaults, { immediate: true })
 const { t } = useI18n()
 const canvasManager = inject('canvasManager')
 
-// Wrap prop as ref-like for composable
-const selectedTextRef = { value: props.selectedText }
+// Reaktive Referenz auf den aktuell markierten Text, damit alle Aktionen
+// (Toggles, "Neu Starten") sich ausschließlich auf diesen Text beziehen.
+const selectedTextRef = toRef(props, 'selectedText')
 
 const {
   toggleTypewriter,

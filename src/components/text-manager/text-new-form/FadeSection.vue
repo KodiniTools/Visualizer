@@ -1,6 +1,6 @@
 <template>
   <!-- ✨ Fade-Einstellungen (klappbar) -->
-  <details class="collapsible-section">
+  <details class="collapsible-section" open>
     <summary class="section-header">
       <span class="section-icon">🌫️</span>
       <span>{{ t('textManager.fadeEffect') }}</span>
@@ -121,6 +121,13 @@
           <div class="hint-text">{{ t('textManager.displayDurationHint') }}</div>
         </div>
       </div>
+
+      <!-- Zum Canvas hinzufügen (nur diese Animation) -->
+      <div class="control-group add-animation-group">
+        <button class="btn-primary full-width" :disabled="!canAdd" @click="emit('add')">
+          {{ t('textManager.addToCanvasFade') }}
+        </button>
+      </div>
     </div>
   </details>
 </template>
@@ -132,6 +139,15 @@ const settings = defineModel('settings', {
   type: Object,
   required: true,
 })
+
+defineProps({
+  canAdd: {
+    type: Boolean,
+    default: true,
+  },
+})
+
+const emit = defineEmits(['add'])
 
 const { t, locale } = useI18n()
 </script>

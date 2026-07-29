@@ -264,6 +264,22 @@ h4 {
   width: 100%;
 }
 
+/* ===== "Zum Canvas hinzufügen" pro Animation ===== */
+.add-animation-group {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.add-animation-hint {
+  margin: 12px 0 8px;
+  text-align: center;
+}
+
+[data-theme='light'] .add-animation-group {
+  border-top-color: rgba(1, 79, 153, 0.12);
+}
+
 /* ===== COLLAPSIBLE SECTIONS ===== */
 .collapsible-section {
   background-color: var(--secondary-bg);

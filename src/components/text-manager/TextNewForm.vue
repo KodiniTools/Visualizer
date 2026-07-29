@@ -49,13 +49,29 @@ Zeile 3..."
       @reset="clearSavedSettings"
     />
 
-    <TypewriterSection v-model:settings="newTextTypewriter" />
+    <TypewriterSection
+      v-model:settings="newTextTypewriter"
+      :can-add="!!newTextContent.trim()"
+      @add="createNewText('typewriter')"
+    />
 
-    <FadeSection v-model:settings="newTextFade" />
+    <FadeSection
+      v-model:settings="newTextFade"
+      :can-add="!!newTextContent.trim()"
+      @add="createNewText('fade')"
+    />
 
-    <ScaleSection v-model:settings="newTextScale" />
+    <ScaleSection
+      v-model:settings="newTextScale"
+      :can-add="!!newTextContent.trim()"
+      @add="createNewText('scale')"
+    />
 
-    <SlideSection v-model:settings="newTextSlide" />
+    <SlideSection
+      v-model:settings="newTextSlide"
+      :can-add="!!newTextContent.trim()"
+      @add="createNewText('slide')"
+    />
 
     <PositionSection
       v-model:position="newTextPosition"
@@ -69,10 +85,15 @@ Zeile 3..."
       @quick-position="setQuickPosition"
     />
 
+    <div class="hint-text add-animation-hint">
+      {{
+        locale === 'de'
+          ? 'Text über den Button einer Animation oben zum Canvas hinzufügen'
+          : 'Add the text to the canvas via the button of an animation above'
+      }}
+    </div>
+
     <div class="button-row">
-      <button class="btn-primary" :disabled="!newTextContent.trim()" @click="createNewText">
-        {{ t('textManager.addToCanvas') }}
-      </button>
       <button
         v-if="newTextContent && !newTextContent.includes('\n') && newTextContent.length > 60"
         class="btn-secondary"
@@ -227,7 +248,22 @@ function startAddingTextWithSelection() {
   })
 }
 
-function createNewText() {
+// Baut eine Animations-Konfiguration mit NUR der angegebenen Animation.
+function buildSoloAnimation(animationKey) {
+  const settingsByKey = {
+    typewriter: newTextTypewriter,
+    fade: newTextFade,
+    scale: newTextScale,
+    slide: newTextSlide,
+  }
+  const payload = {}
+  for (const key of ['typewriter', 'fade', 'scale', 'slide']) {
+    payload[key] = { ...settingsByKey[key].value, enabled: key === animationKey }
+  }
+  return buildAnimationConfig(payload)
+}
+
+function createNewText(animationKey = null) {
   if (!canvasManager.value || !newTextContent.value.trim()) {
     return
   }
@@ -277,20 +313,23 @@ function createNewText() {
     newTextObj.fontStyle = newTextStyle.value.fontStyle
     newTextObj.textAlign = newTextStyle.value.textAlign
 
-    const animation = buildAnimationConfig({
-      typewriter: newTextTypewriter.value,
-      fade: newTextFade.value,
-      scale: newTextScale.value,
-      slide: newTextSlide.value,
-    })
+    // Nur die gewählte Animation anwenden (Button pro Animation)
+    const animation = animationKey
+      ? buildSoloAnimation(animationKey)
+      : buildAnimationConfig({
+          typewriter: newTextTypewriter.value,
+          fade: newTextFade.value,
+          scale: newTextScale.value,
+          slide: newTextSlide.value,
+        })
 
     if (animation) {
       newTextObj.animation = animation
 
-      if (newTextTypewriter.value.enabled) console.log('⌨️ Text mit Typewriter-Effekt erstellt')
-      if (newTextFade.value.enabled) console.log('🌫️ Text mit Fade-Effekt erstellt')
-      if (newTextScale.value.enabled) console.log('🔍 Text mit Scale-Effekt erstellt')
-      if (newTextSlide.value.enabled) console.log('➡️ Text mit Slide-Effekt erstellt')
+      if (animation.typewriter?.enabled) console.log('⌨️ Text mit Typewriter-Effekt erstellt')
+      if (animation.fade?.enabled) console.log('🌫️ Text mit Fade-Effekt erstellt')
+      if (animation.scale?.enabled) console.log('🔍 Text mit Scale-Effekt erstellt')
+      if (animation.slide?.enabled) console.log('➡️ Text mit Slide-Effekt erstellt')
     }
 
     console.log('✅ Text erstellt mit Stil:', newTextStyle.value)

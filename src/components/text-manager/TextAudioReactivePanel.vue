@@ -278,7 +278,7 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
+import { inject, toRef } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useToastStore } from '../../stores/toastStore.js'
 import { useAudioReactiveText } from '../../composables/useAudioReactiveText.js'
@@ -294,7 +294,8 @@ const { t } = useI18n()
 const toastStore = useToastStore()
 const canvasManager = inject('canvasManager')
 
-const selectedTextRef = { value: props.selectedText }
+// Reaktive Referenz auf den aktuell markierten Text (siehe TextAnimationsPanel)
+const selectedTextRef = toRef(props, 'selectedText')
 
 const {
   hasAudioEffectsPreset,

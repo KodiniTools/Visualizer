@@ -56,8 +56,9 @@ const fontManager = inject('fontManager')
 const editTextInput = ref(null)
 const fontSelect = ref(null)
 
-// Wrap props as ref-like for composable
-const selectedTextRef = { value: props.selectedText }
+// Reaktive Referenz auf den aktuell markierten Text, damit Font-Aktionen
+// sich ausschließlich auf diesen Text beziehen.
+const selectedTextRef = toRef(props, 'selectedText')
 
 const { populateFontDropdown } = useTextFonts(
   canvasManager,

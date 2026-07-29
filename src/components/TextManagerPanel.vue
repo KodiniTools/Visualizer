@@ -10,6 +10,7 @@
       :items="textList"
       :active-id="selectedText?.id ?? null"
       @select="selectTextFromDirectory"
+      @restart="restartTextFromDirectory"
     />
 
     <!-- Multi-select edit mode -->
@@ -76,6 +77,23 @@ function selectTextFromDirectory(id) {
   multiSelectedTexts.value = []
   canvasManager.value.clearMultiSelection?.()
   canvasManager.value.setActiveObject(obj)
+  canvasManager.value.redrawCallback?.()
+}
+
+// ✨ Play/Neu-Start aus dem Verzeichnis: entspricht dem "Neu starten"-Button und
+// setzt den Animations-Zustand des Textes zurück, sodass alle Animationen des
+// Textes von vorne abgespielt werden.
+function restartTextFromDirectory(id) {
+  if (!canvasManager.value) return
+  const objs = canvasManager.value.textManager?.textObjects || []
+  const obj = objs.find((o) => o.id === id)
+  if (!obj || !obj.animation) return
+
+  obj.animation._state = {
+    startTime: null,
+    isPlaying: false,
+    currentIndex: 0,
+  }
   canvasManager.value.redrawCallback?.()
 }
 

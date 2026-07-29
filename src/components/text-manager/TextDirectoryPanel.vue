@@ -9,7 +9,7 @@
       <div class="hint-text">{{ t('textManager.directoryHint') }}</div>
 
       <ul class="text-list">
-        <li v-for="item in items" :key="item.id">
+        <li v-for="item in items" :key="item.id" class="text-row">
           <button
             type="button"
             class="text-item"
@@ -21,6 +21,16 @@
               item.content || t('textManager.emptyTextLabel')
             }}</span>
             <span v-if="item.animated" class="text-item-icon" title="Animation">🎬</span>
+          </button>
+          <button
+            v-if="item.id === activeId && item.animated"
+            type="button"
+            class="play-btn"
+            :title="t('textManager.restartAnimation')"
+            :aria-label="t('textManager.restartAnimation')"
+            @click="$emit('restart', item.id)"
+          >
+            ▶
           </button>
         </li>
       </ul>
@@ -42,7 +52,7 @@ defineProps({
   },
 })
 
-defineEmits(['select'])
+defineEmits(['select', 'restart'])
 
 const { t } = useI18n()
 </script>
@@ -127,11 +137,18 @@ const { t } = useI18n()
   overflow-y: auto;
 }
 
+.text-row {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
 .text-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: 6px 8px;
   background-color: var(--secondary-bg, #0e1c32);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
@@ -177,6 +194,28 @@ const { t } = useI18n()
   font-size: 0.7rem;
 }
 
+.play-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  padding: 0;
+  background: rgba(110, 168, 254, 0.18);
+  border: 1px solid #6ea8fe;
+  border-radius: 5px;
+  color: #6ea8fe;
+  cursor: pointer;
+  font-size: 0.65rem;
+  transition: all 0.2s ease;
+}
+
+.play-btn:hover {
+  background: #6ea8fe;
+  color: #fff;
+  transform: scale(1.05);
+}
+
 /* ═══ Light Theme ═══ */
 [data-theme='light'] .collapsible-section {
   background-color: #ffffff;
@@ -191,5 +230,16 @@ const { t } = useI18n()
   background: rgba(1, 79, 153, 0.1);
   border-color: #014f99;
   color: #013a70;
+}
+
+[data-theme='light'] .play-btn {
+  background: rgba(1, 79, 153, 0.1);
+  border-color: #014f99;
+  color: #014f99;
+}
+
+[data-theme='light'] .play-btn:hover {
+  background: #014f99;
+  color: #fff;
 }
 </style>

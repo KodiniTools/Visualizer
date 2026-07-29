@@ -867,6 +867,7 @@ export default {
     emptyTextLabel: '(leer)',
     hiddenBadge: 'Ausgeblendet',
     directoryHint: 'Text auswählen, um ihn zu markieren – auch ausgeblendete Texte',
+    restartAnimation: 'Animation neu starten',
     addText: 'Text hinzufügen',
     createNewText: 'Neuen Text erstellen',
     enterText: 'Text eingeben (Enter für neue Zeile)',

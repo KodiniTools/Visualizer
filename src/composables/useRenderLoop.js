@@ -703,7 +703,13 @@ export function useRenderLoop({
       beatDropStore.$state,
     )
     if (tickerRenderer && tickerStore) {
-      tickerRenderer.render(ctx, canvas.width, canvas.height, tickerStore.$state)
+      tickerRenderer.render(
+        ctx,
+        canvas.width,
+        canvas.height,
+        window.audioAnalysisData,
+        tickerStore.$state,
+      )
     }
 
     if (canvasManagerInstance.value) {
@@ -757,6 +763,7 @@ export function useRenderLoop({
           recordingCtx,
           recordingCanvas.width,
           recordingCanvas.height,
+          window.audioAnalysisData,
           tickerStore.$state,
         )
       }
@@ -804,7 +811,13 @@ export function useRenderLoop({
         beatDropStore.$state,
       )
       if (tickerRenderer && tickerStore) {
-        tickerRenderer.render(ctx, targetWidth, targetHeight, tickerStore.$state)
+        tickerRenderer.render(
+          ctx,
+          targetWidth,
+          targetHeight,
+          window.audioAnalysisData,
+          tickerStore.$state,
+        )
       }
 
       return new Promise((resolve, reject) => {

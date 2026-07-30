@@ -58,13 +58,18 @@
           />
         </div>
 
-        <!-- Position -->
+        <!-- Vertikale Position (nach oben/unten schieben) -->
         <div class="control-group">
-          <label>{{ t('ticker.position') }}:</label>
-          <select v-model="ticker.position" class="select-input">
-            <option value="top">{{ t('ticker.top') }}</option>
-            <option value="bottom">{{ t('ticker.bottom') }}</option>
-          </select>
+          <label>{{ t('ticker.positionY') }}: {{ ticker.positionY }}%</label>
+          <input
+            v-model.number="ticker.positionY"
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            class="slider"
+          />
+          <div class="hint-text">{{ t('ticker.positionYHint') }}</div>
         </div>
 
         <!-- Laufrichtung -->
@@ -255,6 +260,13 @@ const fontOptions = computed(() => {
   text-transform: uppercase;
   letter-spacing: 0.3px;
   font-weight: 500;
+}
+
+.hint-text {
+  font-size: 0.5rem;
+  color: var(--text-muted, #7a8da0);
+  margin-top: 3px;
+  line-height: 1.4;
 }
 
 .text-input,

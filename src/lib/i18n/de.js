@@ -868,6 +868,8 @@ export default {
     position: 'Position',
     top: 'Oben',
     bottom: 'Unten',
+    positionY: 'Vertikale Position',
+    positionYHint: '0 % = oben, 100 % = unten',
     fontFamily: 'Schriftart',
     fontSize: 'Buchstabengröße',
     bold: 'Fett',

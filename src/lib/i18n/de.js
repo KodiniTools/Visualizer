@@ -860,6 +860,20 @@ export default {
   },
 
   // ========== TEXT MANAGER PANEL ==========
+  ticker: {
+    title: 'Lauftext (Ticker)',
+    on: 'Aktiviert',
+    off: 'Deaktiviert',
+    text: 'Text',
+    position: 'Position',
+    top: 'Oben',
+    bottom: 'Unten',
+    fontSize: 'Buchstabengröße',
+    color: 'Textfarbe',
+    bgColor: 'Hintergrundfarbe',
+    bgOpacity: 'Hintergrund-Transparenz',
+    speed: 'Laufgeschwindigkeit',
+  },
   textManager: {
     title: 'Text-Manager',
     textDirectory: 'Text-Verzeichnis',

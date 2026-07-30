@@ -29,12 +29,50 @@
           />
         </div>
 
+        <!-- Schriftart -->
+        <div class="control-group">
+          <label>{{ t('ticker.fontFamily') }}:</label>
+          <select v-model="ticker.fontFamily" class="select-input">
+            <option v-for="font in fontOptions" :key="font" :value="font">{{ font }}</option>
+          </select>
+        </div>
+
+        <!-- Fett -->
+        <div class="control-group">
+          <label class="checkbox-label">
+            <input v-model="ticker.bold" type="checkbox" />
+            {{ t('ticker.bold') }}
+          </label>
+        </div>
+
+        <!-- Buchstabenabstand -->
+        <div class="control-group">
+          <label>{{ t('ticker.letterSpacing') }}: {{ ticker.letterSpacing }}px</label>
+          <input
+            v-model.number="ticker.letterSpacing"
+            type="range"
+            min="-5"
+            max="40"
+            step="1"
+            class="slider"
+          />
+        </div>
+
         <!-- Position -->
         <div class="control-group">
           <label>{{ t('ticker.position') }}:</label>
           <select v-model="ticker.position" class="select-input">
             <option value="top">{{ t('ticker.top') }}</option>
             <option value="bottom">{{ t('ticker.bottom') }}</option>
+          </select>
+        </div>
+
+        <!-- Laufrichtung -->
+        <div class="control-group">
+          <label>{{ t('ticker.direction') }}:</label>
+          <select v-model="ticker.direction" class="select-input">
+            <option value="left">{{ t('ticker.left') }}</option>
+            <option value="right">{{ t('ticker.right') }}</option>
           </select>
         </div>
 
@@ -88,17 +126,52 @@
             class="slider"
           />
         </div>
+
+        <!-- Audio-Reaktivität (Tempo pulsiert zum Beat) -->
+        <div class="control-group">
+          <label class="checkbox-label">
+            <input v-model="ticker.audioReactive" type="checkbox" />
+            {{ t('ticker.audioReactive') }}
+          </label>
+        </div>
+
+        <!-- Beat-Stärke (nur wenn Audio-Reaktivität aktiv) -->
+        <div v-if="ticker.audioReactive" class="control-group">
+          <label>{{ t('ticker.beatIntensity') }}: {{ ticker.beatIntensity }}%</label>
+          <input
+            v-model.number="ticker.beatIntensity"
+            type="range"
+            min="0"
+            max="100"
+            step="5"
+            class="slider"
+          />
+        </div>
       </template>
     </div>
   </details>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useTickerStore } from '../stores/tickerStore.js'
+import { useFontStore } from '../stores/fontStore.js'
+import { SYSTEM_FONTS } from '../lib/fonts.js'
 
 const { t } = useI18n()
 const ticker = useTickerStore()
+const fontStore = useFontStore()
+
+const fontOptions = computed(() => {
+  const names = new Set(SYSTEM_FONTS.map((f) => f.name))
+  for (const f of fontStore.availableFonts || []) {
+    const name = typeof f === 'string' ? f : f?.name
+    if (name) names.add(name)
+  }
+  if (ticker.fontFamily) names.add(ticker.fontFamily)
+  return Array.from(names).sort((a, b) => a.localeCompare(b))
+})
 </script>
 
 <style scoped>
@@ -271,6 +344,23 @@ const ticker = useTickerStore()
 
 .full-width {
   width: 100%;
+}
+
+.checkbox-label {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  text-transform: none;
+  font-size: 0.62rem;
+  color: var(--text-primary, #e9e9eb);
+}
+
+.checkbox-label input[type='checkbox'] {
+  width: 13px;
+  height: 13px;
+  cursor: pointer;
+  accent-color: var(--accent-primary, #c9984d);
 }
 
 [data-theme='light'] .collapsible-section {

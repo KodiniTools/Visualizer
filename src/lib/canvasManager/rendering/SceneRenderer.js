@@ -97,52 +97,82 @@ export class SceneRenderer {
   drawFadedTextMarkers(ctx) {
     if (!this.manager.textManager || !this.manager.textManager.textObjects) return
 
-    const texts = this.manager.textManager.textObjects
+    const tm = this.manager.textManager
+    const texts = tm.textObjects
 
     for (const textObj of texts) {
-      // Prüfe ob der Text eine Fade-Animation hat und aktuell ausgeblendet ist
-      if (!textObj.animation || !textObj.animation.fade || !textObj.animation.fade.enabled) {
-        continue
+      const anim = textObj.animation
+      if (!anim) continue
+
+      // Aktives Objekt bekommt sowieso eine Markierung
+      if (this.manager.activeObject === textObj) continue
+
+      // Nur Texte mit einer (potenziell ausblendenden) Animation berücksichtigen
+      const hasAnim =
+        anim.fade?.enabled || anim.scale?.enabled || anim.slide?.enabled || anim.typewriter?.enabled
+      if (!hasAnim) continue
+
+      // Effektive Sichtbarkeit über alle Ausblend-Arten berechnen:
+      // Fade-Opacity × Anzeigedauer-Opacity × Basis-Deckkraft
+      const fadeOpacity = tm._getFadeOpacity(textObj).opacity
+      const displayOpacity = tm._getDisplayOpacity(textObj)
+      const baseOpacity = (textObj.opacity != null ? textObj.opacity : 100) / 100
+      const effectiveOpacity = fadeOpacity * displayOpacity * baseOpacity
+
+      // Scale: auf ~0 geschrumpft = unsichtbar
+      const scaleValue = anim.scale?.enabled ? tm._getScaleValue(textObj).scale : 1
+
+      let hidden = effectiveOpacity < 0.1 || scaleValue < 0.05
+      let bounds = null
+
+      // Slide: Text vollständig außerhalb des Canvas geschoben = nicht sichtbar
+      if (!hidden && anim.slide?.enabled) {
+        bounds = tm.getObjectBounds(textObj, ctx.canvas)
+        if (bounds) {
+          const slide = tm._getSlideOffset(textObj, ctx.canvas.width, ctx.canvas.height)
+          const ax = bounds.x + slide.offsetX
+          const ay = bounds.y + slide.offsetY
+          hidden =
+            ax + bounds.width < 0 ||
+            ax > ctx.canvas.width ||
+            ay + bounds.height < 0 ||
+            ay > ctx.canvas.height
+        }
       }
 
-      // Berechne die aktuelle Opacity
-      const fadeResult = this.manager.textManager._getFadeOpacity(textObj)
-      const currentOpacity = fadeResult.opacity * (textObj.opacity / 100)
+      if (!hidden) continue
 
-      // Zeichne Markierung nur wenn der Text fast unsichtbar ist (< 10% opacity)
-      // und nicht das aktive Objekt ist (das bekommt sowieso eine Markierung)
-      if (currentOpacity < 0.1 && this.manager.activeObject !== textObj) {
-        const bounds = this.manager.textManager.getObjectBounds(textObj, ctx.canvas)
-        if (!bounds) continue
+      // Bounds an Ruheposition (relX/relY) – zeigt, wo der Text hingehört
+      if (!bounds) bounds = tm.getObjectBounds(textObj, ctx.canvas)
+      if (!bounds) continue
 
-        ctx.save()
+      ctx.save()
 
-        // Gestrichelter Rahmen in Orange/Gelb für "versteckte" Texte
-        ctx.strokeStyle = 'rgba(255, 193, 7, 0.8)'
-        ctx.lineWidth = 2
-        ctx.setLineDash([6, 4])
-        ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height)
-        ctx.setLineDash([])
+      // Gestrichelter Rahmen in Orange/Gelb für "versteckte" Texte
+      ctx.strokeStyle = 'rgba(255, 193, 7, 0.8)'
+      ctx.lineWidth = 2
+      ctx.setLineDash([6, 4])
+      ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height)
+      ctx.setLineDash([])
 
-        // Kleines Label "Ausgeblendet"
-        ctx.fillStyle = 'rgba(255, 193, 7, 0.9)'
-        ctx.font = 'bold 10px Arial'
-        ctx.textAlign = 'left'
-        ctx.textBaseline = 'top'
+      // Kleines Label "Ausgeblendet"
+      ctx.fillStyle = 'rgba(255, 193, 7, 0.9)'
+      ctx.font = 'bold 10px Arial'
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'top'
 
-        const label = '👻 Ausgeblendet'
-        const labelMetrics = ctx.measureText(label)
-        const labelPadding = 4
-        const labelWidth = labelMetrics.width + labelPadding * 2
-        const labelHeight = 16
+      const label = '👻 Ausgeblendet'
+      const labelMetrics = ctx.measureText(label)
+      const labelPadding = 4
+      const labelWidth = labelMetrics.width + labelPadding * 2
+      const labelHeight = 16
 
-        // Label oben links am Rahmen
-        ctx.fillRect(bounds.x, bounds.y - labelHeight - 2, labelWidth, labelHeight)
-        ctx.fillStyle = '#000000'
-        ctx.fillText(label, bounds.x + labelPadding, bounds.y - labelHeight)
+      // Label oben links am Rahmen
+      ctx.fillRect(bounds.x, bounds.y - labelHeight - 2, labelWidth, labelHeight)
+      ctx.fillStyle = '#000000'
+      ctx.fillText(label, bounds.x + labelPadding, bounds.y - labelHeight)
 
-        ctx.restore()
-      }
+      ctx.restore()
     }
   }
 }

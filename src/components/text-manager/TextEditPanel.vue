@@ -13,6 +13,26 @@
     <!-- Animations Panel -->
     <TextAnimationsPanel :selected-text="selectedText" />
 
+    <!-- Einstellungen als Standard für neue Texte speichern -->
+    <div class="default-settings-row">
+      <button
+        type="button"
+        class="btn-save-default full-width"
+        :title="t('textManager.saveAsDefault')"
+        @click="saveAsDefault"
+      >
+        ⭐ {{ t('textManager.saveAsDefault') }}
+      </button>
+      <button
+        type="button"
+        class="btn-reset-default"
+        :title="t('textManager.resetDefault')"
+        @click="resetDefault"
+      >
+        ↺
+      </button>
+    </div>
+
     <!-- Löschen Button -->
     <button @click="deleteSelectedText" class="btn-danger full-width" style="margin-top: 16px">
       {{ t('textManager.deleteText') }}
@@ -24,6 +44,12 @@
 import { ref, toRef, inject, provide, nextTick, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useTextFonts } from '../../composables/useTextFonts.js'
+import { useToastStore } from '../../stores/toastStore.js'
+import {
+  serializeTextToDefaults,
+  saveTextDefaults,
+  clearTextDefaults,
+} from '../../lib/textDefaults.js'
 import TextAudioReactivePanel from './TextAudioReactivePanel.vue'
 import TextAnimationsPanel from './TextAnimationsPanel.vue'
 import TextContentSection from './text-edit/TextContentSection.vue'
@@ -50,6 +76,7 @@ const props = defineProps({
 const emit = defineEmits(['delete'])
 
 const { t } = useI18n()
+const toastStore = useToastStore()
 const canvasManager = inject('canvasManager')
 const fontManager = inject('fontManager')
 
@@ -149,6 +176,21 @@ function toggleStroke() {
   }
 }
 
+// Einstellungen des markierten Textes als Vorlage für neue Texte speichern
+function saveAsDefault() {
+  if (!props.selectedText) return
+  const settings = serializeTextToDefaults(props.selectedText)
+  if (settings && saveTextDefaults(settings)) {
+    toastStore.success(t('textManager.savedAsDefaultToast'))
+  }
+}
+
+// Gespeicherte Standard-Einstellungen für neue Texte zurücksetzen
+function resetDefault() {
+  clearTextDefaults()
+  toastStore.success(t('textManager.resetDefaultToast'))
+}
+
 function deleteSelectedText() {
   if (canvasManager.value && props.selectedText) {
     canvasManager.value.deleteActiveObject()
@@ -241,6 +283,59 @@ defineExpose({ editTextInput, populateFontDropdown })
 }
 .full-width {
   width: 100%;
+}
+
+.default-settings-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.btn-save-default {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: all 0.2s ease;
+  background: rgba(201, 152, 77, 0.18);
+  color: var(--accent-tertiary, #f8e1a9);
+  border: 1px solid var(--accent-primary, #c9984d);
+}
+
+.btn-save-default:hover {
+  background: rgba(201, 152, 77, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-reset-default {
+  flex-shrink: 0;
+  width: 34px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  background: var(--secondary-bg, #0e1c32);
+  color: var(--text-muted, #7a8da0);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+}
+
+.btn-reset-default:hover {
+  background: var(--btn-hover, #1a2a42);
+  color: var(--text-primary, #e9e9eb);
+}
+
+[data-theme='light'] .btn-save-default {
+  background: rgba(1, 79, 153, 0.1);
+  color: #014f99;
+  border-color: #014f99;
+}
+
+[data-theme='light'] .btn-save-default:hover {
+  background: rgba(1, 79, 153, 0.16);
 }
 
 [data-theme='light'] .btn-danger {

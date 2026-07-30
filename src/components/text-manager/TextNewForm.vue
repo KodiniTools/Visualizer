@@ -149,6 +149,8 @@ const styleSectionRef = ref(null)
 
 const {
   newTextStyle,
+  newTextShadow,
+  newTextStroke,
   newTextTypewriter,
   newTextFade,
   newTextScale,
@@ -297,15 +299,16 @@ function createNewText(animationKey = null) {
     fontStyle: newTextStyle.value.fontStyle,
     textAlign: newTextStyle.value.textAlign,
     opacity: newTextStyle.value.opacity,
-    letterSpacing: 0,
-    lineHeightMultiplier: 120,
-    strokeEnabled: false,
-    strokeColor: '#000000',
-    strokeWidth: 2,
-    shadowColor: '#000000',
-    shadowBlur: 0,
-    shadowOffsetX: 0,
-    shadowOffsetY: 0,
+    letterSpacing: newTextStyle.value.letterSpacing ?? 0,
+    lineHeightMultiplier: newTextStyle.value.lineHeightMultiplier ?? 120,
+    rotation: newTextStyle.value.rotation ?? 0,
+    strokeEnabled: newTextStroke.value.enabled,
+    strokeColor: newTextStroke.value.color,
+    strokeWidth: newTextStroke.value.width,
+    shadowColor: newTextShadow.value.color,
+    shadowBlur: newTextShadow.value.blur,
+    shadowOffsetX: newTextShadow.value.offsetX,
+    shadowOffsetY: newTextShadow.value.offsetY,
   })
 
   if (newTextObj) {

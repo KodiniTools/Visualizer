@@ -1,6 +1,11 @@
 import { ref, watch } from 'vue'
-
-const SAVED_SETTINGS_KEY = 'visualizer_text_settings'
+import {
+  defaultTextSettings,
+  loadTextDefaults,
+  saveTextDefaults,
+  clearTextDefaults,
+  hasTextDefaults,
+} from '../lib/textDefaults.js'
 
 export function useNewTextSettings(canvasManager) {
   const newTextStyle = ref({
@@ -11,9 +16,15 @@ export function useNewTextSettings(canvasManager) {
     fontStyle: 'normal',
     textAlign: 'center',
     opacity: 100,
+    letterSpacing: 0,
+    lineHeightMultiplier: 120,
+    rotation: 0,
     autoFit: false,
     autoFitPadding: 10,
   })
+
+  const newTextShadow = ref({ color: '#000000', blur: 0, offsetX: 0, offsetY: 0 })
+  const newTextStroke = ref({ enabled: false, color: '#000000', width: 2 })
 
   const newTextTypewriter = ref({
     enabled: false,
@@ -81,12 +92,16 @@ export function useNewTextSettings(canvasManager) {
 
   function loadSavedSettings() {
     try {
-      const saved = localStorage.getItem(SAVED_SETTINGS_KEY)
-      if (saved) {
-        const settings = JSON.parse(saved)
-
+      const settings = loadTextDefaults()
+      if (settings) {
         if (settings.style) {
           newTextStyle.value = { ...newTextStyle.value, ...settings.style }
+        }
+        if (settings.shadow) {
+          newTextShadow.value = { ...newTextShadow.value, ...settings.shadow }
+        }
+        if (settings.stroke) {
+          newTextStroke.value = { ...newTextStroke.value, ...settings.stroke }
         }
         if (settings.typewriter) {
           newTextTypewriter.value = { ...newTextTypewriter.value, ...settings.typewriter }
@@ -100,6 +115,10 @@ export function useNewTextSettings(canvasManager) {
         if (settings.slide) {
           newTextSlide.value = { ...newTextSlide.value, ...settings.slide }
         }
+        if (settings.position && typeof settings.position.x === 'number') {
+          newTextPosition.value.x = settings.position.x
+          newTextPosition.value.y = settings.position.y
+        }
 
         console.log('✅ Gespeicherte Text-Einstellungen geladen')
         return true
@@ -111,92 +130,44 @@ export function useNewTextSettings(canvasManager) {
   }
 
   function saveCurrentSettings() {
-    try {
-      const settings = {
-        style: {
-          fontSize: newTextStyle.value.fontSize,
-          fontFamily: newTextStyle.value.fontFamily,
-          color: newTextStyle.value.color,
-          fontWeight: newTextStyle.value.fontWeight,
-          fontStyle: newTextStyle.value.fontStyle,
-          textAlign: newTextStyle.value.textAlign,
-          opacity: newTextStyle.value.opacity,
-          autoFit: newTextStyle.value.autoFit,
-          autoFitPadding: newTextStyle.value.autoFitPadding,
-        },
-        typewriter: {
-          enabled: newTextTypewriter.value.enabled,
-          speed: newTextTypewriter.value.speed,
-          startDelay: newTextTypewriter.value.startDelay,
-          loop: newTextTypewriter.value.loop,
-          loopDelay: newTextTypewriter.value.loopDelay,
-          permanent: newTextTypewriter.value.permanent,
-          displayDuration: newTextTypewriter.value.displayDuration,
-          showCursor: newTextTypewriter.value.showCursor,
-          cursorChar: newTextTypewriter.value.cursorChar,
-        },
-        fade: {
-          enabled: newTextFade.value.enabled,
-          duration: newTextFade.value.duration,
-          startDelay: newTextFade.value.startDelay,
-          direction: newTextFade.value.direction,
-          loop: newTextFade.value.loop,
-          loopDelay: newTextFade.value.loopDelay,
-          permanent: newTextFade.value.permanent,
-          displayDuration: newTextFade.value.displayDuration,
-          easing: newTextFade.value.easing,
-        },
-        scale: {
-          enabled: newTextScale.value.enabled,
-          duration: newTextScale.value.duration,
-          startDelay: newTextScale.value.startDelay,
-          startScale: newTextScale.value.startScale,
-          endScale: newTextScale.value.endScale,
-          direction: newTextScale.value.direction,
-          loop: newTextScale.value.loop,
-          loopDelay: newTextScale.value.loopDelay,
-          permanent: newTextScale.value.permanent,
-          displayDuration: newTextScale.value.displayDuration,
-          easing: newTextScale.value.easing,
-        },
-        slide: {
-          enabled: newTextSlide.value.enabled,
-          duration: newTextSlide.value.duration,
-          startDelay: newTextSlide.value.startDelay,
-          from: newTextSlide.value.from,
-          distance: newTextSlide.value.distance,
-          direction: newTextSlide.value.direction,
-          loop: newTextSlide.value.loop,
-          loopDelay: newTextSlide.value.loopDelay,
-          permanent: newTextSlide.value.permanent,
-          displayDuration: newTextSlide.value.displayDuration,
-          easing: newTextSlide.value.easing,
-        },
-      }
-
-      localStorage.setItem(SAVED_SETTINGS_KEY, JSON.stringify(settings))
-      console.log('💾 Text-Einstellungen gespeichert')
-      return true
-    } catch (e) {
-      console.warn('⚠️ Fehler beim Speichern der Einstellungen:', e)
-      return false
+    const settings = {
+      style: {
+        fontSize: newTextStyle.value.fontSize,
+        fontFamily: newTextStyle.value.fontFamily,
+        color: newTextStyle.value.color,
+        fontWeight: newTextStyle.value.fontWeight,
+        fontStyle: newTextStyle.value.fontStyle,
+        textAlign: newTextStyle.value.textAlign,
+        opacity: newTextStyle.value.opacity,
+        letterSpacing: newTextStyle.value.letterSpacing,
+        lineHeightMultiplier: newTextStyle.value.lineHeightMultiplier,
+        rotation: newTextStyle.value.rotation,
+        autoFit: newTextStyle.value.autoFit,
+        autoFitPadding: newTextStyle.value.autoFitPadding,
+      },
+      shadow: { ...newTextShadow.value },
+      stroke: { ...newTextStroke.value },
+      position: { x: newTextPosition.value.x, y: newTextPosition.value.y },
+      typewriter: { ...newTextTypewriter.value },
+      fade: { ...newTextFade.value },
+      scale: { ...newTextScale.value },
+      slide: { ...newTextSlide.value },
     }
+
+    const ok = saveTextDefaults(settings)
+    if (ok) console.log('💾 Text-Einstellungen gespeichert')
+    return ok
   }
 
   function clearSavedSettings() {
-    try {
-      localStorage.removeItem(SAVED_SETTINGS_KEY)
-      resetNewTextSettings()
-      console.log('🗑️ Gespeicherte Einstellungen gelöscht')
-      return true
-    } catch (e) {
-      console.warn('⚠️ Fehler beim Löschen der Einstellungen:', e)
-      return false
-    }
+    const ok = clearTextDefaults()
+    resetNewTextSettings()
+    if (ok) console.log('🗑️ Gespeicherte Einstellungen gelöscht')
+    return ok
   }
 
   function hasSavedSettings() {
-    return localStorage.getItem(SAVED_SETTINGS_KEY) !== null
+    return hasTextDefaults()
   }
 
   function resetNewTextSettings() {
@@ -260,9 +231,16 @@ export function useNewTextSettings(canvasManager) {
       fontStyle: 'normal',
       textAlign: 'center',
       opacity: 100,
+      letterSpacing: 0,
+      lineHeightMultiplier: 120,
+      rotation: 0,
       autoFit: false,
       autoFitPadding: 10,
     }
+
+    const defaults = defaultTextSettings()
+    newTextShadow.value = { ...defaults.shadow }
+    newTextStroke.value = { ...defaults.stroke }
   }
 
   function calculateAutoFitFontSize(text, fontFamily, fontWeight, fontStyle, paddingPercent = 10) {
@@ -475,6 +453,8 @@ export function useNewTextSettings(canvasManager) {
 
   return {
     newTextStyle,
+    newTextShadow,
+    newTextStroke,
     newTextTypewriter,
     newTextFade,
     newTextScale,

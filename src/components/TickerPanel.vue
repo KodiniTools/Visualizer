@@ -181,6 +181,10 @@ const fontOptions = computed(() => {
   border-radius: 8px;
   margin-bottom: 10px;
   overflow: hidden;
+  /* Direktes Flex-Kind der linken Toolbar (flex-column): overflow:hidden setzt
+     die automatische Mindesthöhe auf 0, wodurch das Panel sonst auf ~2px
+     zusammengedrückt (unsichtbar) wird. flex-shrink:0 verhindert das. */
+  flex-shrink: 0;
 }
 
 .collapsible-section summary {

@@ -864,6 +864,20 @@ export default {
   },
 
   // ========== TEXT MANAGER PANEL ==========
+  ticker: {
+    title: 'Scrolling Text (Ticker)',
+    on: 'Enabled',
+    off: 'Disabled',
+    text: 'Text',
+    position: 'Position',
+    top: 'Top',
+    bottom: 'Bottom',
+    fontSize: 'Font Size',
+    color: 'Text Color',
+    bgColor: 'Background Color',
+    bgOpacity: 'Background Transparency',
+    speed: 'Scroll Speed',
+  },
   textManager: {
     title: 'Text Manager',
     textDirectory: 'Text Directory',

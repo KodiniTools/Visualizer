@@ -19,6 +19,8 @@ export function useRenderLoop({
   beatDropStore,
   beatDropRenderer,
   audioFxRenderer,
+  tickerStore,
+  tickerRenderer,
   getAnalyser,
   getMicrophoneAnalyser,
   getMicrophoneAudioContext,
@@ -700,6 +702,9 @@ export function useRenderLoop({
       window.audioAnalysisData,
       beatDropStore.$state,
     )
+    if (tickerRenderer && tickerStore) {
+      tickerRenderer.render(ctx, canvas.width, canvas.height, tickerStore.$state)
+    }
 
     if (canvasManagerInstance.value) {
       canvasManagerInstance.value.drawFadedTextMarkers(ctx)
@@ -747,6 +752,14 @@ export function useRenderLoop({
         window.audioAnalysisData,
         beatDropStore.$state,
       )
+      if (tickerRenderer && tickerStore) {
+        tickerRenderer.render(
+          recordingCtx,
+          recordingCanvas.width,
+          recordingCanvas.height,
+          tickerStore.$state,
+        )
+      }
     })
   }
 
@@ -790,6 +803,9 @@ export function useRenderLoop({
         window.audioAnalysisData,
         beatDropStore.$state,
       )
+      if (tickerRenderer && tickerStore) {
+        tickerRenderer.render(ctx, targetWidth, targetHeight, tickerStore.$state)
+      }
 
       return new Promise((resolve, reject) => {
         screenshotCanvas.toBlob(

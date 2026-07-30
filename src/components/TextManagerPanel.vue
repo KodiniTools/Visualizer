@@ -40,6 +40,7 @@ import TextNewForm from './text-manager/TextNewForm.vue'
 import TextEditPanel from './text-manager/TextEditPanel.vue'
 import TextMultiEditPanel from './text-manager/TextMultiEditPanel.vue'
 import TextDirectoryPanel from './text-manager/TextDirectoryPanel.vue'
+import { loadTextDefaults, settingsToAddTextOptions } from '../lib/textDefaults.js'
 
 const { t } = useI18n()
 const canvasManager = inject('canvasManager')
@@ -204,22 +205,28 @@ function handleOpenTextEditorWithChar(event) {
   // ✨ LÖSUNG: Sofort Text zum Canvas hinzufügen und Editor öffnen!
   if (!canvasManager.value) return
 
-  // Erstelle sofort einen neuen Text auf dem Canvas mit dem eingegebenen Zeichen
-  const newTextObj = canvasManager.value.addText(char, {
-    fontSize: 48,
-    fontFamily: 'Arial',
-    color: '#ff0000',
-    opacity: 100,
-    letterSpacing: 0,
-    lineHeightMultiplier: 120,
-    strokeEnabled: false,
-    strokeColor: '#000000',
-    strokeWidth: 2,
-    shadowColor: '#000000',
-    shadowBlur: 5,
-    shadowOffsetX: 2,
-    shadowOffsetY: 2,
-  })
+  // Erstelle sofort einen neuen Text auf dem Canvas mit dem eingegebenen Zeichen.
+  // Gespeicherte Standard-Stile (Schriftart, Farbe, Schatten, Kontur …) anwenden –
+  // ohne Animation, damit das gerade getippte Zeichen nicht sofort ausgeblendet wird.
+  const savedDefaults = loadTextDefaults()
+  const addOptions = savedDefaults
+    ? settingsToAddTextOptions(savedDefaults)
+    : {
+        fontSize: 48,
+        fontFamily: 'Arial',
+        color: '#ff0000',
+        opacity: 100,
+        letterSpacing: 0,
+        lineHeightMultiplier: 120,
+        strokeEnabled: false,
+        strokeColor: '#000000',
+        strokeWidth: 2,
+        shadowColor: '#000000',
+        shadowBlur: 5,
+        shadowOffsetX: 2,
+        shadowOffsetY: 2,
+      }
+  const newTextObj = canvasManager.value.addText(char, addOptions)
 
   // Der Text wird automatisch als activeObject gesetzt (durch addText)
   // Das triggert handleSelectionChange, was selectedText setzt und den Editor öffnet

@@ -55,7 +55,9 @@ export class TickerRenderer {
 
     const fontSize = Math.max(8, settings.fontSize || 48)
     const bandHeight = Math.round(fontSize * 1.6)
-    const y = settings.position === 'top' ? 0 : height - bandHeight
+    // Vertikale Position: 0 % = oben, 100 % = unten (Band bleibt vollständig sichtbar)
+    const posY = Math.max(0, Math.min(100, settings.positionY ?? 100)) / 100
+    const y = Math.round(posY * Math.max(0, height - bandHeight))
 
     ctx.save()
 

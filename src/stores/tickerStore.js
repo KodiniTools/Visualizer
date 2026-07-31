@@ -34,7 +34,9 @@ export const useTickerStore = defineStore('ticker', () => {
   const bgOpacity = ref(saved.bgOpacity ?? 70) // Transparenz des Hintergrunds (0–100 %)
   const speed = ref(saved.speed ?? 120) // Laufgeschwindigkeit (px/Sekunde)
   const direction = ref(saved.direction ?? 'left') // 'left' | 'right'
-  const position = ref(saved.position ?? 'bottom') // 'top' | 'bottom'
+  // Vertikale Position des Bandes (0 % = oben, 100 % = unten).
+  // Migration vom alten 'position'-Feld (top/bottom).
+  const positionY = ref(saved.positionY ?? (saved.position === 'top' ? 0 : 100))
   const audioReactive = ref(saved.audioReactive ?? false) // Tempo pulsiert zum Beat
   const beatIntensity = ref(saved.beatIntensity ?? 60) // Stärke des Beat-Pulses (0–100)
 
@@ -52,7 +54,7 @@ export const useTickerStore = defineStore('ticker', () => {
       bgOpacity,
       speed,
       direction,
-      position,
+      positionY,
       audioReactive,
       beatIntensity,
     ],
@@ -72,7 +74,7 @@ export const useTickerStore = defineStore('ticker', () => {
             bgOpacity: bgOpacity.value,
             speed: speed.value,
             direction: direction.value,
-            position: position.value,
+            positionY: positionY.value,
             audioReactive: audioReactive.value,
             beatIntensity: beatIntensity.value,
           }),
@@ -95,7 +97,7 @@ export const useTickerStore = defineStore('ticker', () => {
     bgOpacity,
     speed,
     direction,
-    position,
+    positionY,
     audioReactive,
     beatIntensity,
   }

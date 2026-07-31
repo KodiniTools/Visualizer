@@ -872,6 +872,8 @@ export default {
     position: 'Position',
     top: 'Top',
     bottom: 'Bottom',
+    positionY: 'Vertical Position',
+    positionYHint: '0% = top, 100% = bottom',
     fontFamily: 'Font',
     fontSize: 'Font Size',
     bold: 'Bold',

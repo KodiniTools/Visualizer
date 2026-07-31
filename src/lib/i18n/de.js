@@ -872,6 +872,8 @@ export default {
     positionYHint: '0 % = oben, 100 % = unten',
     positionX: 'Horizontale Position',
     positionXHint: '0 % = links, 100 % = rechts',
+    center: 'Zentrieren',
+    centerHint: 'Text mittig auf dem Canvas ausrichten (50 %)',
     fontFamily: 'Schriftart',
     fontSize: 'Buchstabengröße',
     bold: 'Fett',

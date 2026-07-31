@@ -78,7 +78,18 @@
 
         <!-- Position quer zur Laufrichtung (vertikal bzw. horizontal verschieben) -->
         <div class="control-group">
-          <label>{{ positionLabel }}: {{ ticker.positionY }}%</label>
+          <div class="label-row">
+            <label>{{ positionLabel }}: {{ ticker.positionY }}%</label>
+            <button
+              type="button"
+              class="btn-mini"
+              :class="{ active: ticker.positionY === 50 }"
+              :title="t('ticker.centerHint')"
+              @click="ticker.positionY = 50"
+            >
+              {{ t('ticker.center') }}
+            </button>
+          </div>
           <input
             v-model.number="ticker.positionY"
             type="range"
@@ -316,6 +327,50 @@ const missingFont = computed(() => {
   color: var(--text-muted, #7a8da0);
   margin-top: 3px;
   line-height: 1.4;
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.label-row label {
+  margin-bottom: 0;
+}
+
+.btn-mini {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  background-color: var(--secondary-bg, #0e1c32);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border-radius: 4px;
+  color: var(--text-muted, #7a8da0);
+  cursor: pointer;
+  font-size: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: all 0.2s ease;
+}
+
+.btn-mini:hover {
+  background-color: var(--btn-hover, #1a2a42);
+  border-color: var(--accent-primary, #c9984d);
+  color: var(--text-primary, #e9e9eb);
+}
+
+.btn-mini.active {
+  background: rgba(201, 152, 77, 0.25);
+  border-color: var(--accent-primary, #c9984d);
+  color: var(--accent-tertiary, #f8e1a9);
+}
+
+[data-theme='light'] .btn-mini.active {
+  background: rgba(1, 79, 153, 0.12);
+  border-color: #014f99;
+  color: #014f99;
 }
 
 .text-input,

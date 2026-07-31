@@ -76,9 +76,9 @@
           />
         </div>
 
-        <!-- Vertikale Position (nach oben/unten schieben) -->
+        <!-- Position quer zur Laufrichtung (vertikal bzw. horizontal verschieben) -->
         <div class="control-group">
-          <label>{{ t('ticker.positionY') }}: {{ ticker.positionY }}%</label>
+          <label>{{ positionLabel }}: {{ ticker.positionY }}%</label>
           <input
             v-model.number="ticker.positionY"
             type="range"
@@ -87,7 +87,7 @@
             step="1"
             class="slider"
           />
-          <div class="hint-text">{{ t('ticker.positionYHint') }}</div>
+          <div class="hint-text">{{ positionHint }}</div>
         </div>
 
         <!-- Laufrichtung -->
@@ -96,6 +96,8 @@
           <select v-model="ticker.direction" class="select-input">
             <option value="left">{{ t('ticker.left') }}</option>
             <option value="right">{{ t('ticker.right') }}</option>
+            <option value="up">{{ t('ticker.up') }}</option>
+            <option value="down">{{ t('ticker.down') }}</option>
           </select>
         </div>
 
@@ -208,6 +210,15 @@ const customFonts = computed(() => {
 })
 
 const systemFonts = computed(() => SYSTEM_FONT_NAMES)
+
+// Bei vertikalem Lauf verschiebt der Slider die Spalte nach links/rechts
+const isVertical = computed(() => ticker.direction === 'up' || ticker.direction === 'down')
+const positionLabel = computed(() =>
+  isVertical.value ? t('ticker.positionX') : t('ticker.positionY'),
+)
+const positionHint = computed(() =>
+  isVertical.value ? t('ticker.positionXHint') : t('ticker.positionYHint'),
+)
 
 // Falls die gewählte Schriftart (noch) nicht in den Listen steht, trotzdem anbieten
 const missingFont = computed(() => {

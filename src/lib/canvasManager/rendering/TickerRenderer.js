@@ -53,55 +53,87 @@ export class TickerRenderer {
 
     const currentSpeed = baseSpeed + this.speedBoost
 
+    // Laufachse: links/rechts = horizontal, oben/unten = vertikal (Abspann-Stil).
+    // In beiden Fällen bleibt die Schrift normal (waagerecht) ausgerichtet.
+    const isVertical = settings.direction === 'up' || settings.direction === 'down'
+
     const fontSize = Math.max(8, settings.fontSize || 48)
-    const bandHeight = Math.round(fontSize * 1.6)
-    // Vertikale Position: 0 % = oben, 100 % = unten (Band bleibt vollständig sichtbar)
-    const posY = Math.max(0, Math.min(100, settings.positionY ?? 100)) / 100
-    const y = Math.round(posY * Math.max(0, height - bandHeight))
+    const lineHeight = Math.round(fontSize * 1.6)
 
     ctx.save()
 
-    // Hintergrundband (mit einstellbarer Transparenz)
-    const bgOpacity = Math.max(0, Math.min(100, settings.bgOpacity ?? 70)) / 100
-    if (bgOpacity > 0) {
-      ctx.globalAlpha = bgOpacity
-      ctx.fillStyle = settings.bgColor || '#000000'
-      ctx.fillRect(0, y, width, bandHeight)
-    }
-
-    // Text-Stil
-    ctx.globalAlpha = 1
+    // Text-Stil zuerst setzen, damit measureText die echte Breite liefert
     const weight = settings.bold ? 'bold ' : ''
     const family = settings.fontFamily || 'Arial'
     ctx.font = `${weight}${fontSize}px "${family}", Arial, sans-serif`
-    ctx.fillStyle = settings.color || '#ffffff'
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
     // Buchstabenabstand (moderne Browser; measureText berücksichtigt ihn)
     const spacing = settings.letterSpacing || 0
     if ('letterSpacing' in ctx) ctx.letterSpacing = `${spacing}px`
 
-    const gap = fontSize * 2
-    const segWidth = ctx.measureText(text).width + gap
-    const centerY = y + bandHeight / 2
+    const textWidth = ctx.measureText(text).width
 
-    if (segWidth <= 0) {
+    // Bandgeometrie:
+    // - horizontal: volle Breite, Höhe = Zeilenhöhe
+    // - vertikal (Abspann): volle Höhe, Breite = Textbreite (+ Rand)
+    const bandThickness = isVertical
+      ? Math.min(width, Math.round(textWidth + fontSize))
+      : lineHeight
+    const crossExtent = isVertical ? width : height
+    // Position quer zur Laufrichtung (0 % = oben/links, 100 % = unten/rechts);
+    // das Band bleibt dabei immer vollständig sichtbar.
+    const crossPos = Math.max(0, Math.min(100, settings.positionY ?? 100)) / 100
+    const bandStart = Math.round(crossPos * Math.max(0, crossExtent - bandThickness))
+
+    // Hintergrundband (mit einstellbarer Transparenz)
+    const bgOpacity = Math.max(0, Math.min(100, settings.bgOpacity ?? 70)) / 100
+    if (bgOpacity > 0) {
+      ctx.globalAlpha = bgOpacity
+      ctx.fillStyle = settings.bgColor || '#000000'
+      if (isVertical) {
+        ctx.fillRect(bandStart, 0, bandThickness, height)
+      } else {
+        ctx.fillRect(0, bandStart, width, bandThickness)
+      }
+    }
+
+    ctx.globalAlpha = 1
+    ctx.fillStyle = settings.color || '#ffffff'
+
+    // Abstand zwischen den Wiederholungen entlang der Laufachse
+    const segLength = isVertical
+      ? lineHeight + Math.round(fontSize * 0.8) // Zeilenabstand im Abspann
+      : textWidth + fontSize * 2 // Lücke zwischen den Durchläufen
+
+    if (segLength <= 0) {
       ctx.restore()
       return
     }
 
-    // Offset akkumulieren; Richtung: links = nach links, rechts = nach rechts
-    const dir = settings.direction === 'right' ? -1 : 1
+    // Offset akkumulieren; links/oben laufen in negative Achsrichtung,
+    // rechts/unten in positive.
+    const dir = settings.direction === 'right' || settings.direction === 'down' ? -1 : 1
     this.offset += dir * currentSpeed * dt
-    // In [0, segWidth) normalisieren (nahtlose Kachelung)
-    this.offset = ((this.offset % segWidth) + segWidth) % segWidth
+    // In [0, segLength) normalisieren (nahtlose Kachelung)
+    this.offset = ((this.offset % segLength) + segLength) % segLength
 
-    // Segmente wiederholen, bis die gesamte Breite gefüllt ist
-    let x = -this.offset
+    const axisLength = isVertical ? height : width
+    // Textzeile im Band zentrieren (vertikal: waagerecht mittig im Band)
+    const textX = bandStart + (bandThickness - textWidth) / 2
+    const lineY = bandStart + bandThickness / 2
+
+    // Segmente wiederholen, bis die gesamte Laufachse gefüllt ist.
+    // Eine Länge Vorlauf/Nachlauf, damit an den Rändern keine Lücke entsteht.
+    let a = -this.offset - segLength
     let guard = 0
-    while (x < width && guard < 1000) {
-      ctx.fillText(text, x, centerY)
-      x += segWidth
+    while (a < axisLength + segLength && guard < 1000) {
+      if (isVertical) {
+        ctx.fillText(text, textX, a) // Schrift bleibt waagerecht, Zeile wandert
+      } else {
+        ctx.fillText(text, a, lineY)
+      }
+      a += segLength
       guard++
     }
 

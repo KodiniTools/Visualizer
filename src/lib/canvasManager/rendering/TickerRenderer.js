@@ -53,20 +53,33 @@ export class TickerRenderer {
 
     const currentSpeed = baseSpeed + this.speedBoost
 
+    // Laufachse: links/rechts = horizontal, oben/unten = vertikal
+    const isVertical = settings.direction === 'up' || settings.direction === 'down'
+
     const fontSize = Math.max(8, settings.fontSize || 48)
-    const bandHeight = Math.round(fontSize * 1.6)
-    // Vertikale Position: 0 % = oben, 100 % = unten (Band bleibt vollständig sichtbar)
-    const posY = Math.max(0, Math.min(100, settings.positionY ?? 100)) / 100
-    const y = Math.round(posY * Math.max(0, height - bandHeight))
+    // Banddicke (Höhe bei horizontalem, Breite bei vertikalem Lauf)
+    const thickness = Math.round(fontSize * 1.6)
+    // Länge der Laufachse und Ausdehnung quer dazu
+    const axisLength = isVertical ? height : width
+    const crossExtent = isVertical ? width : height
+    // Position quer zur Laufrichtung (0 % = oben/links, 100 % = unten/rechts);
+    // das Band bleibt dabei immer vollständig sichtbar.
+    const crossPos = Math.max(0, Math.min(100, settings.positionY ?? 100)) / 100
+    const bandStart = Math.round(crossPos * Math.max(0, crossExtent - thickness))
+    const bandCenter = bandStart + thickness / 2
 
     ctx.save()
 
-    // Hintergrundband (mit einstellbarer Transparenz)
+    // Hintergrundband (mit einstellbarer Transparenz) – im Bildschirm-Koordinatensystem
     const bgOpacity = Math.max(0, Math.min(100, settings.bgOpacity ?? 70)) / 100
     if (bgOpacity > 0) {
       ctx.globalAlpha = bgOpacity
       ctx.fillStyle = settings.bgColor || '#000000'
-      ctx.fillRect(0, y, width, bandHeight)
+      if (isVertical) {
+        ctx.fillRect(bandStart, 0, thickness, height)
+      } else {
+        ctx.fillRect(0, bandStart, width, thickness)
+      }
     }
 
     // Text-Stil
@@ -82,26 +95,33 @@ export class TickerRenderer {
     if ('letterSpacing' in ctx) ctx.letterSpacing = `${spacing}px`
 
     const gap = fontSize * 2
-    const segWidth = ctx.measureText(text).width + gap
-    const centerY = y + bandHeight / 2
+    const segLength = ctx.measureText(text).width + gap
 
-    if (segWidth <= 0) {
+    if (segLength <= 0) {
       ctx.restore()
       return
     }
 
-    // Offset akkumulieren; Richtung: links = nach links, rechts = nach rechts
-    const dir = settings.direction === 'right' ? -1 : 1
+    // Offset akkumulieren; links/oben laufen in negative Achsrichtung,
+    // rechts/unten in positive.
+    const dir = settings.direction === 'right' || settings.direction === 'down' ? -1 : 1
     this.offset += dir * currentSpeed * dt
-    // In [0, segWidth) normalisieren (nahtlose Kachelung)
-    this.offset = ((this.offset % segWidth) + segWidth) % segWidth
+    // In [0, segLength) normalisieren (nahtlose Kachelung)
+    this.offset = ((this.offset % segLength) + segLength) % segLength
 
-    // Segmente wiederholen, bis die gesamte Breite gefüllt ist
-    let x = -this.offset
+    // Bei vertikalem Lauf das Koordinatensystem um 90° drehen: die lokale
+    // x-Achse zeigt dann nach unten, die Schrift läuft entlang der Spalte.
+    if (isVertical) {
+      ctx.translate(bandCenter, 0)
+      ctx.rotate(Math.PI / 2)
+    }
+
+    // Segmente wiederholen, bis die gesamte Laufachse gefüllt ist
+    let a = -this.offset
     let guard = 0
-    while (x < width && guard < 1000) {
-      ctx.fillText(text, x, centerY)
-      x += segWidth
+    while (a < axisLength && guard < 1000) {
+      ctx.fillText(text, a, isVertical ? 0 : bandCenter)
+      a += segLength
       guard++
     }
 

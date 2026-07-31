@@ -29,11 +29,29 @@
           />
         </div>
 
-        <!-- Schriftart -->
+        <!-- Schriftart (gleiche Quelle wie normaler Text: System + Custom Fonts) -->
         <div class="control-group">
           <label>{{ t('ticker.fontFamily') }}:</label>
           <select v-model="ticker.fontFamily" class="select-input">
-            <option v-for="font in fontOptions" :key="font" :value="font">{{ font }}</option>
+            <option v-if="missingFont" :value="missingFont">{{ missingFont }}</option>
+            <option
+              v-for="font in systemFonts"
+              :key="font"
+              :value="font"
+              :style="{ fontFamily: font }"
+            >
+              {{ font }}
+            </option>
+            <optgroup v-if="customFonts.length > 0" label="── Custom Fonts ──">
+              <option
+                v-for="font in customFonts"
+                :key="font"
+                :value="font"
+                :style="{ fontFamily: font }"
+              >
+                {{ font }}
+              </option>
+            </optgroup>
           </select>
         </div>
 
@@ -158,24 +176,44 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useTickerStore } from '../stores/tickerStore.js'
-import { useFontStore } from '../stores/fontStore.js'
-import { SYSTEM_FONTS } from '../lib/fonts.js'
 
 const { t } = useI18n()
 const ticker = useTickerStore()
-const fontStore = useFontStore()
 
-const fontOptions = computed(() => {
-  const names = new Set(SYSTEM_FONTS.map((f) => f.name))
-  for (const f of fontStore.availableFonts || []) {
-    const name = typeof f === 'string' ? f : f?.name
-    if (name) names.add(name)
-  }
-  if (ticker.fontFamily) names.add(ticker.fontFamily)
-  return Array.from(names).sort((a, b) => a.localeCompare(b))
+// Gleiche Font-Quelle wie der normale Text: der per provide/inject
+// bereitgestellte FontManager (siehe useTextFonts.js).
+const fontManager = inject('fontManager', null)
+
+// Identische System-Font-Liste wie im Text-Manager
+const SYSTEM_FONT_NAMES = [
+  'Arial',
+  'Helvetica',
+  'Times New Roman',
+  'Georgia',
+  'Courier New',
+  'Verdana',
+  'Impact',
+  'Comic Sans MS',
+  'Trebuchet MS',
+]
+
+// Benutzerdefinierte Schriftarten (werden asynchron geladen → reaktiv)
+const customFonts = computed(() => {
+  const fm = fontManager?.value
+  if (!fm || !fm.isInitialized) return []
+  return Array.from(fm.loadedFonts).sort()
+})
+
+const systemFonts = computed(() => SYSTEM_FONT_NAMES)
+
+// Falls die gewählte Schriftart (noch) nicht in den Listen steht, trotzdem anbieten
+const missingFont = computed(() => {
+  const f = ticker.fontFamily
+  if (!f) return null
+  return systemFonts.value.includes(f) || customFonts.value.includes(f) ? null : f
 })
 </script>
 

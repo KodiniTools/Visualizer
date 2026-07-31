@@ -101,10 +101,11 @@ export class TickerRenderer {
     ctx.globalAlpha = 1
     ctx.fillStyle = settings.color || '#ffffff'
 
-    // Abstand zwischen den Wiederholungen entlang der Laufachse
-    const segLength = isVertical
-      ? lineHeight + Math.round(fontSize * 0.8) // Zeilenabstand im Abspann
-      : textWidth + fontSize * 2 // Lücke zwischen den Durchläufen
+    // Abstand zwischen den Wiederholungen entlang der Laufachse.
+    // Vertikal (Abspann): eine volle Bildschirmhöhe + Zeilenhöhe, damit immer
+    // nur EINE Zeile gleichzeitig auf dem Canvas zu sehen ist – sie läuft
+    // vollständig durch und erscheint danach wieder auf der anderen Seite.
+    const segLength = isVertical ? height + lineHeight : textWidth + fontSize * 2 // Lücke zwischen den Durchläufen
 
     if (segLength <= 0) {
       ctx.restore()

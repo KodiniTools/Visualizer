@@ -309,6 +309,7 @@
                   <option value="glow">{{ t('ticker.reactModeGlow') }}</option>
                   <option value="shake">{{ t('ticker.reactModeShake') }}</option>
                   <option value="opacity">{{ t('ticker.reactModeOpacity') }}</option>
+                  <option value="hue">{{ t('ticker.reactModeHue') }}</option>
                 </select>
               </div>
 

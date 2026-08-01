@@ -33,7 +33,8 @@ const DEFAULTS = {
   positionY: 100, // 0 % = oben/links, 100 % = unten/rechts
   audioReactive: false,
   reactMode: 'tempo', // 'tempo' | 'scale' | 'glow' | 'shake' | 'opacity'
-  beatIntensity: 60, // 0–100
+  beatIntensity: 60, // Stärke der Animation pro Beat (0–100)
+  audioLevel: 100, // Eingangs-Empfindlichkeit / Pegel-Gain (0–200 %)
 }
 
 // Zuordnung der Einstellungen zu den klappbaren Panel-Sektionen (für die
@@ -50,7 +51,7 @@ const SECTION_KEYS = {
   ],
   background: ['bgColor', 'bgOpacity'],
   motion: ['positionY', 'direction', 'speed'],
-  audio: ['audioReactive', 'reactMode', 'beatIntensity'],
+  audio: ['audioReactive', 'reactMode', 'beatIntensity', 'audioLevel'],
 }
 
 function loadSaved() {

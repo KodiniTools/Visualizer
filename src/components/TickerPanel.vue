@@ -312,17 +312,30 @@
                 </select>
               </div>
 
-              <!-- Beat-Stärke -->
-              <div class="control-group">
-                <label>{{ t('ticker.beatIntensity') }}: {{ ticker.beatIntensity }}%</label>
-                <input
-                  v-model.number="ticker.beatIntensity"
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="5"
-                  class="slider"
-                />
+              <!-- Beat-Stärke + Audio-Pegel nebeneinander -->
+              <div class="control-group slider-row">
+                <div class="slider-col">
+                  <label>{{ t('ticker.beatIntensity') }}: {{ ticker.beatIntensity }}%</label>
+                  <input
+                    v-model.number="ticker.beatIntensity"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    class="slider"
+                  />
+                </div>
+                <div class="slider-col">
+                  <label>{{ t('ticker.audioLevel') }}: {{ ticker.audioLevel }}%</label>
+                  <input
+                    v-model.number="ticker.audioLevel"
+                    type="range"
+                    min="0"
+                    max="200"
+                    step="5"
+                    class="slider"
+                  />
+                </div>
               </div>
             </template>
           </div>
@@ -533,6 +546,25 @@ const missingFont = computed(() => {
 }
 .sub-content .control-group:last-child {
   margin-bottom: 0;
+}
+
+/* Zwei Slider nebeneinander (Beat-Stärke + Audio-Pegel) */
+.slider-row {
+  display: flex;
+  gap: 10px;
+}
+.slider-col {
+  flex: 1;
+  min-width: 0;
+}
+.slider-col label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.6rem;
+  color: var(--text-muted, #7a8da0);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: 500;
 }
 
 [data-theme='light'] .sub-section {

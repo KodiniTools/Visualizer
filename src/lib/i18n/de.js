@@ -895,6 +895,7 @@ export default {
     reactModeShake: 'Wackeln',
     reactModeOpacity: 'Deckkraft (Blitzen)',
     beatIntensity: 'Beat-Stärke',
+    audioLevel: 'Audio-Pegel',
     stroke: 'Umrandung',
     strokeColor: 'Umrandungsfarbe',
     strokeWidth: 'Umrandungsdicke',

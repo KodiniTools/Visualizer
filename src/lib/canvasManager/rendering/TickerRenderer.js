@@ -45,7 +45,12 @@ export class TickerRenderer {
     const strength = Math.max(0, Math.min(100, settings.beatIntensity ?? 60)) / 100
 
     if (reactive && audioData) {
-      const level = (audioData.bass ?? audioData.smoothBass ?? 0) / 255
+      // Audio-Pegel (Gain): skaliert den erkannten Eingangspegel, damit auch
+      // leise Titel zuverlässig auslösen (>100 %) oder laute weniger stark
+      // reagieren (<100 %).
+      const gain = Math.max(0, (settings.audioLevel ?? 100) / 100)
+      const raw = (audioData.bass ?? audioData.smoothBass ?? 0) / 255
+      const level = Math.max(0, Math.min(1, raw * gain))
       const beat = this.beatDetector.detect(level * 255, now)
       if (beat.isBeat) {
         this.pulse = Math.min(1, 0.6 + beat.beatIntensity * 0.4)

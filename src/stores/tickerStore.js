@@ -23,7 +23,12 @@ function loadSaved() {
 export const useTickerStore = defineStore('ticker', () => {
   const saved = loadSaved() || {}
 
-  const enabled = ref(saved.enabled ?? false)
+  // Der Ein/Aus-Zustand wird bewusst NICHT aus dem localStorage
+  // wiederhergestellt: Der Ticker soll beim Öffnen der App immer deaktiviert
+  // sein und nicht stillschweigend wieder erscheinen, nur weil er in einer
+  // früheren Sitzung einmal aktiviert wurde. Alle übrigen Einstellungen
+  // (Text, Schrift, Farben, Geschwindigkeit …) bleiben erhalten.
+  const enabled = ref(false)
   const text = ref(saved.text ?? 'Willkommen beim KodiniTools Visualizer  •  ')
   const fontSize = ref(saved.fontSize ?? 48) // px
   const fontFamily = ref(saved.fontFamily ?? 'Arial') // Schriftart

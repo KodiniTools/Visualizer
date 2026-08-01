@@ -20,7 +20,17 @@
       <template v-if="ticker.enabled">
         <!-- ══════════ Text & Schrift ══════════ -->
         <details class="sub-section" open>
-          <summary class="sub-header">{{ t('ticker.sectionText') }}</summary>
+          <summary class="sub-header">
+            <span class="sub-title">{{ t('ticker.sectionText') }}</span>
+            <button
+              type="button"
+              class="reset-btn"
+              :title="t('ticker.reset')"
+              @click.stop.prevent="ticker.resetSection('text')"
+            >
+              ↺
+            </button>
+          </summary>
           <div class="sub-content">
             <!-- Text -->
             <div class="control-group">
@@ -103,7 +113,17 @@
 
         <!-- ══════════ Umrandung & Schatten ══════════ -->
         <details class="sub-section">
-          <summary class="sub-header">{{ t('ticker.sectionOutline') }}</summary>
+          <summary class="sub-header">
+            <span class="sub-title">{{ t('ticker.sectionOutline') }}</span>
+            <button
+              type="button"
+              class="reset-btn"
+              :title="t('ticker.reset')"
+              @click.stop.prevent="ticker.resetSection('outline')"
+            >
+              ↺
+            </button>
+          </summary>
           <div class="sub-content">
             <!-- Umrandung -->
             <div class="control-group">
@@ -159,7 +179,17 @@
 
         <!-- ══════════ Hintergrund ══════════ -->
         <details class="sub-section">
-          <summary class="sub-header">{{ t('ticker.sectionBackground') }}</summary>
+          <summary class="sub-header">
+            <span class="sub-title">{{ t('ticker.sectionBackground') }}</span>
+            <button
+              type="button"
+              class="reset-btn"
+              :title="t('ticker.reset')"
+              @click.stop.prevent="ticker.resetSection('background')"
+            >
+              ↺
+            </button>
+          </summary>
           <div class="sub-content">
             <!-- Hintergrundfarbe -->
             <div class="control-group">
@@ -184,7 +214,17 @@
 
         <!-- ══════════ Position & Bewegung ══════════ -->
         <details class="sub-section">
-          <summary class="sub-header">{{ t('ticker.sectionMotion') }}</summary>
+          <summary class="sub-header">
+            <span class="sub-title">{{ t('ticker.sectionMotion') }}</span>
+            <button
+              type="button"
+              class="reset-btn"
+              :title="t('ticker.reset')"
+              @click.stop.prevent="ticker.resetSection('motion')"
+            >
+              ↺
+            </button>
+          </summary>
           <div class="sub-content">
             <!-- Position quer zur Laufrichtung (vertikal bzw. horizontal verschieben) -->
             <div class="control-group">
@@ -239,7 +279,17 @@
 
         <!-- ══════════ Audio-Reaktivität ══════════ -->
         <details class="sub-section">
-          <summary class="sub-header">{{ t('ticker.sectionAudio') }}</summary>
+          <summary class="sub-header">
+            <span class="sub-title">{{ t('ticker.sectionAudio') }}</span>
+            <button
+              type="button"
+              class="reset-btn"
+              :title="t('ticker.reset')"
+              @click.stop.prevent="ticker.resetSection('audio')"
+            >
+              ↺
+            </button>
+          </summary>
           <div class="sub-content">
             <!-- Audio-Reaktivität ein/aus -->
             <div class="control-group">
@@ -440,6 +490,43 @@ const missingFont = computed(() => {
 }
 .sub-section[open] > .sub-header::before {
   transform: rotate(90deg);
+}
+.sub-title {
+  flex: 1;
+}
+.reset-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1;
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border-radius: 4px;
+  background-color: var(--card-bg, #142640);
+  color: var(--text-muted, #7a8da0);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.reset-btn:hover {
+  background-color: var(--btn-hover, #1a2a42);
+  border-color: var(--accent-primary, #c9984d);
+  color: var(--accent-tertiary, #f8e1a9);
+}
+.reset-btn:active {
+  transform: rotate(-90deg);
+}
+[data-theme='light'] .reset-btn {
+  background-color: #ffffff;
+  border-color: rgba(1, 79, 153, 0.25);
+  color: #4d6d8e;
+}
+[data-theme='light'] .reset-btn:hover {
+  border-color: #014f99;
+  color: #014f99;
 }
 .sub-content {
   padding: 10px;

@@ -906,6 +906,7 @@ export default {
     sectionBackground: 'Hintergrund',
     sectionMotion: 'Position & Bewegung',
     sectionAudio: 'Audio-Reaktivität',
+    reset: 'Diese Sektion zurücksetzen',
   },
   textManager: {
     title: 'Text-Manager',

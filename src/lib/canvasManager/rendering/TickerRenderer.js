@@ -124,15 +124,44 @@ export class TickerRenderer {
     const textX = bandStart + (bandThickness - textWidth) / 2
     const lineY = bandStart + bandThickness / 2
 
+    // Umrandung (Kontur) vorbereiten
+    const doStroke = settings.strokeEnabled && (settings.strokeWidth || 0) > 0
+    if (doStroke) {
+      ctx.lineWidth = settings.strokeWidth
+      ctx.strokeStyle = settings.strokeColor || '#000000'
+      ctx.lineJoin = 'round'
+      ctx.miterLimit = 2
+    }
+    // Schatten (Farbe + Dicke/Weichzeichnung) vorbereiten
+    const doShadow = settings.shadowEnabled && (settings.shadowBlur || 0) > 0
+
+    // Zeichnet eine Textinstanz inkl. Schatten und Umrandung. Der Schatten wird
+    // vom äußersten sichtbaren Rand geworfen (Umrandung, sonst Füllung); die
+    // Füllung darüber wirft keinen zweiten Schatten.
+    const paint = (x, y) => {
+      if (doShadow) {
+        ctx.shadowColor = settings.shadowColor || '#000000'
+        ctx.shadowBlur = settings.shadowBlur
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+      }
+      if (doStroke) {
+        ctx.strokeText(text, x, y)
+        ctx.shadowColor = 'transparent'
+        ctx.shadowBlur = 0
+      }
+      ctx.fillText(text, x, y)
+    }
+
     // Segmente wiederholen, bis die gesamte Laufachse gefüllt ist.
     // Eine Länge Vorlauf/Nachlauf, damit an den Rändern keine Lücke entsteht.
     let a = -this.offset - segLength
     let guard = 0
     while (a < axisLength + segLength && guard < 1000) {
       if (isVertical) {
-        ctx.fillText(text, textX, a) // Schrift bleibt waagerecht, Zeile wandert
+        paint(textX, a) // Schrift bleibt waagerecht, Zeile wandert
       } else {
-        ctx.fillText(text, a, lineY)
+        paint(a, lineY)
       }
       a += segLength
       guard++

@@ -35,6 +35,12 @@ export const useTickerStore = defineStore('ticker', () => {
   const bold = ref(saved.bold ?? true) // Textfett
   const letterSpacing = ref(saved.letterSpacing ?? 0) // Buchstabenabstand (px)
   const color = ref(saved.color ?? '#ffffff') // Textfarbe
+  const strokeEnabled = ref(saved.strokeEnabled ?? false) // Umrandung ein/aus
+  const strokeColor = ref(saved.strokeColor ?? '#000000') // Umrandungsfarbe
+  const strokeWidth = ref(saved.strokeWidth ?? 2) // Umrandungsdicke (px)
+  const shadowEnabled = ref(saved.shadowEnabled ?? false) // Schatten ein/aus
+  const shadowColor = ref(saved.shadowColor ?? '#000000') // Schattenfarbe
+  const shadowBlur = ref(saved.shadowBlur ?? 6) // Schattendicke / Weichzeichnung (px)
   const bgColor = ref(saved.bgColor ?? '#000000') // Hintergrundfarbe des Bandes
   const bgOpacity = ref(saved.bgOpacity ?? 70) // Transparenz des Hintergrunds (0–100 %)
   const speed = ref(saved.speed ?? 120) // Laufgeschwindigkeit (px/Sekunde)
@@ -55,6 +61,12 @@ export const useTickerStore = defineStore('ticker', () => {
       bold,
       letterSpacing,
       color,
+      strokeEnabled,
+      strokeColor,
+      strokeWidth,
+      shadowEnabled,
+      shadowColor,
+      shadowBlur,
       bgColor,
       bgOpacity,
       speed,
@@ -75,6 +87,12 @@ export const useTickerStore = defineStore('ticker', () => {
             bold: bold.value,
             letterSpacing: letterSpacing.value,
             color: color.value,
+            strokeEnabled: strokeEnabled.value,
+            strokeColor: strokeColor.value,
+            strokeWidth: strokeWidth.value,
+            shadowEnabled: shadowEnabled.value,
+            shadowColor: shadowColor.value,
+            shadowBlur: shadowBlur.value,
             bgColor: bgColor.value,
             bgOpacity: bgOpacity.value,
             speed: speed.value,
@@ -98,6 +116,12 @@ export const useTickerStore = defineStore('ticker', () => {
     bold,
     letterSpacing,
     color,
+    strokeEnabled,
+    strokeColor,
+    strokeWidth,
+    shadowEnabled,
+    shadowColor,
+    shadowBlur,
     bgColor,
     bgOpacity,
     speed,

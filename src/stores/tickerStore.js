@@ -5,11 +5,53 @@ import { ref, watch } from 'vue'
  * tickerStore — Lauftext (Ticker): ein horizontal scrollendes Textband.
  *
  * Der Nutzer kann Text, Schriftart, Buchstabengröße, Fett, Buchstabenabstand,
- * Textfarbe, Hintergrundfarbe und dessen Transparenz, Laufrichtung,
- * Laufgeschwindigkeit sowie Audio-Reaktivität (Tempo pulsiert zum Beat)
- * einstellen. Die Einstellungen werden dauerhaft im localStorage gespeichert.
+ * Textfarbe, Umrandung, Schatten, Hintergrundfarbe und dessen Transparenz,
+ * Laufrichtung, Laufgeschwindigkeit sowie Audio-Reaktivität (mehrere
+ * Animationsmodi) einstellen. Die Einstellungen werden dauerhaft im
+ * localStorage gespeichert.
  */
 const STORAGE_KEY = 'visualizer_ticker_settings'
+
+// Standardwerte aller Einstellungen (Basis für Persistenz-Fallback und Reset).
+const DEFAULTS = {
+  text: 'Willkommen beim KodiniTools Visualizer  •  ',
+  fontSize: 48, // px
+  fontFamily: 'Arial',
+  bold: true,
+  letterSpacing: 0, // px
+  color: '#ffffff',
+  strokeEnabled: false,
+  strokeColor: '#000000',
+  strokeWidth: 2, // px
+  shadowEnabled: false,
+  shadowColor: '#000000',
+  shadowBlur: 6, // px
+  bgColor: '#000000',
+  bgOpacity: 70, // 0–100 %
+  speed: 120, // px/Sekunde
+  direction: 'left', // 'left' | 'right' | 'up' | 'down'
+  positionY: 100, // 0 % = oben/links, 100 % = unten/rechts
+  audioReactive: false,
+  reactMode: 'tempo', // 'tempo' | 'scale' | 'glow' | 'shake' | 'opacity'
+  beatIntensity: 60, // 0–100
+}
+
+// Zuordnung der Einstellungen zu den klappbaren Panel-Sektionen (für die
+// sektionsweisen Reset-Buttons).
+const SECTION_KEYS = {
+  text: ['text', 'fontFamily', 'bold', 'letterSpacing', 'fontSize', 'color'],
+  outline: [
+    'strokeEnabled',
+    'strokeColor',
+    'strokeWidth',
+    'shadowEnabled',
+    'shadowColor',
+    'shadowBlur',
+  ],
+  background: ['bgColor', 'bgOpacity'],
+  motion: ['positionY', 'direction', 'speed'],
+  audio: ['audioReactive', 'reactMode', 'beatIntensity'],
+}
 
 function loadSaved() {
   try {
@@ -29,111 +71,39 @@ export const useTickerStore = defineStore('ticker', () => {
   // früheren Sitzung einmal aktiviert wurde. Alle übrigen Einstellungen
   // (Text, Schrift, Farben, Geschwindigkeit …) bleiben erhalten.
   const enabled = ref(false)
-  const text = ref(saved.text ?? 'Willkommen beim KodiniTools Visualizer  •  ')
-  const fontSize = ref(saved.fontSize ?? 48) // px
-  const fontFamily = ref(saved.fontFamily ?? 'Arial') // Schriftart
-  const bold = ref(saved.bold ?? true) // Textfett
-  const letterSpacing = ref(saved.letterSpacing ?? 0) // Buchstabenabstand (px)
-  const color = ref(saved.color ?? '#ffffff') // Textfarbe
-  const strokeEnabled = ref(saved.strokeEnabled ?? false) // Umrandung ein/aus
-  const strokeColor = ref(saved.strokeColor ?? '#000000') // Umrandungsfarbe
-  const strokeWidth = ref(saved.strokeWidth ?? 2) // Umrandungsdicke (px)
-  const shadowEnabled = ref(saved.shadowEnabled ?? false) // Schatten ein/aus
-  const shadowColor = ref(saved.shadowColor ?? '#000000') // Schattenfarbe
-  const shadowBlur = ref(saved.shadowBlur ?? 6) // Schattendicke / Weichzeichnung (px)
-  const bgColor = ref(saved.bgColor ?? '#000000') // Hintergrundfarbe des Bandes
-  const bgOpacity = ref(saved.bgOpacity ?? 70) // Transparenz des Hintergrunds (0–100 %)
-  const speed = ref(saved.speed ?? 120) // Laufgeschwindigkeit (px/Sekunde)
-  const direction = ref(saved.direction ?? 'left') // 'left' | 'right'
-  // Vertikale Position des Bandes (0 % = oben, 100 % = unten).
-  // Migration vom alten 'position'-Feld (top/bottom).
-  const positionY = ref(saved.positionY ?? (saved.position === 'top' ? 0 : 100))
-  const audioReactive = ref(saved.audioReactive ?? false) // Audio-Reaktivität ein/aus
-  // Animationsmodus der Audio-Reaktivität:
-  // 'tempo' | 'scale' | 'glow' | 'shake' | 'opacity'
-  const reactMode = ref(saved.reactMode ?? 'tempo')
-  const beatIntensity = ref(saved.beatIntensity ?? 60) // Stärke des Beat-Pulses (0–100)
+
+  // Alle persistierten Einstellungen als Ref, initialisiert aus dem Gespeicherten
+  // (Fallback = Standardwert).
+  const fields = {}
+  for (const key of Object.keys(DEFAULTS)) {
+    fields[key] = ref(saved[key] ?? DEFAULTS[key])
+  }
+  // Migration vom alten 'position'-Feld (top/bottom) auf positionY.
+  if (saved.positionY == null && saved.position === 'top') {
+    fields.positionY.value = 0
+  }
+
+  // Setzt alle Einstellungen einer Sektion auf ihre Standardwerte zurück.
+  function resetSection(name) {
+    const keys = SECTION_KEYS[name]
+    if (!keys) return
+    for (const key of keys) fields[key].value = DEFAULTS[key]
+  }
 
   // Persistenz: bei jeder Änderung speichern
-  watch(
-    [
-      enabled,
-      text,
-      fontSize,
-      fontFamily,
-      bold,
-      letterSpacing,
-      color,
-      strokeEnabled,
-      strokeColor,
-      strokeWidth,
-      shadowEnabled,
-      shadowColor,
-      shadowBlur,
-      bgColor,
-      bgOpacity,
-      speed,
-      direction,
-      positionY,
-      audioReactive,
-      reactMode,
-      beatIntensity,
-    ],
-    () => {
-      try {
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({
-            enabled: enabled.value,
-            text: text.value,
-            fontSize: fontSize.value,
-            fontFamily: fontFamily.value,
-            bold: bold.value,
-            letterSpacing: letterSpacing.value,
-            color: color.value,
-            strokeEnabled: strokeEnabled.value,
-            strokeColor: strokeColor.value,
-            strokeWidth: strokeWidth.value,
-            shadowEnabled: shadowEnabled.value,
-            shadowColor: shadowColor.value,
-            shadowBlur: shadowBlur.value,
-            bgColor: bgColor.value,
-            bgOpacity: bgOpacity.value,
-            speed: speed.value,
-            direction: direction.value,
-            positionY: positionY.value,
-            audioReactive: audioReactive.value,
-            reactMode: reactMode.value,
-            beatIntensity: beatIntensity.value,
-          }),
-        )
-      } catch {
-        /* localStorage nicht verfügbar – Einstellungen bleiben nur zur Laufzeit */
-      }
-    },
-  )
+  watch([enabled, ...Object.values(fields)], () => {
+    try {
+      const data = { enabled: enabled.value }
+      for (const [key, r] of Object.entries(fields)) data[key] = r.value
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    } catch {
+      /* localStorage nicht verfügbar – Einstellungen bleiben nur zur Laufzeit */
+    }
+  })
 
   return {
     enabled,
-    text,
-    fontSize,
-    fontFamily,
-    bold,
-    letterSpacing,
-    color,
-    strokeEnabled,
-    strokeColor,
-    strokeWidth,
-    shadowEnabled,
-    shadowColor,
-    shadowBlur,
-    bgColor,
-    bgOpacity,
-    speed,
-    direction,
-    positionY,
-    audioReactive,
-    reactMode,
-    beatIntensity,
+    ...fields,
+    resetSection,
   }
 })

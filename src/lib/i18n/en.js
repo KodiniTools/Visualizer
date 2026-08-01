@@ -898,6 +898,7 @@ export default {
     reactModeGlow: 'Glow',
     reactModeShake: 'Shake',
     reactModeOpacity: 'Opacity (flash)',
+    reactModeHue: 'Hue (to the beat)',
     beatIntensity: 'Beat Strength',
     audioLevel: 'Audio Level',
     stroke: 'Outline',

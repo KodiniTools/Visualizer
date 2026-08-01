@@ -894,6 +894,7 @@ export default {
     reactModeGlow: 'Glühen',
     reactModeShake: 'Wackeln',
     reactModeOpacity: 'Deckkraft (Blitzen)',
+    reactModeHue: 'Farbton (zum Beat)',
     beatIntensity: 'Beat-Stärke',
     audioLevel: 'Audio-Pegel',
     stroke: 'Umrandung',

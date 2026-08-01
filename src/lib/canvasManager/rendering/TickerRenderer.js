@@ -1,5 +1,46 @@
 import { BeatDetector } from '../../audio/BeatDetector.js'
 
+// #rrggbb → { h, s, l } (h in Grad, s/l in Prozent)
+function hexToHsl(hex) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '')
+  let r = 1
+  let g = 1
+  let b = 1
+  if (m) {
+    r = parseInt(m[1], 16) / 255
+    g = parseInt(m[2], 16) / 255
+    b = parseInt(m[3], 16) / 255
+  }
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  const l = (max + min) / 2
+  let h = 0
+  let s = 0
+  const d = max - min
+  if (d !== 0) {
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0)
+    else if (max === g) h = (b - r) / d + 2
+    else h = (r - g) / d + 4
+    h *= 60
+  }
+  return { h, s: s * 100, l: l * 100 }
+}
+
+// Verschiebt den Farbton einer Farbe abhängig von der Reaktionsstärke (0..1).
+// Sättigung und Helligkeit werden dabei in einen sichtbaren Bereich gezogen,
+// sodass auch weißer/grauer Text beim Beat den Farbton zeigt; bei react → 0
+// bleibt die Ausgangsfarbe erhalten (der Aufrufer ruft dies dann gar nicht auf).
+function beatHue(hex, react) {
+  const { h, s, l } = hexToHsl(hex)
+  const k = Math.min(1, react)
+  const hue = (((h + react * 180) % 360) + 360) % 360
+  const sat = s + (Math.max(s, 70) - s) * k
+  const targetL = Math.min(Math.max(l, 40), 60)
+  const lig = l + (targetL - l) * k
+  return `hsl(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${lig.toFixed(0)}%)`
+}
+
 /**
  * TickerRenderer — Lauftext (Ticker): ein horizontal scrollendes Textband,
  * das über der gesamten Szene liegt (oben oder unten).
@@ -155,16 +196,22 @@ export class TickerRenderer {
     // shake  : Text zittert kurz beim Beat
     // glow   : ein Leuchten pulsiert um den Text zum Beat
     // opacity: Text ist zwischen den Beats gedimmt und blitzt beim Beat auf
+    // hue    : der Textfarbton verschiebt sich zum Beat (kehrt dazwischen zurück)
     const doScale = reactMode === 'scale' && react > 0.001
     const doShake = reactMode === 'shake' && react > 0.001
     const doGlow = reactMode === 'glow' && react > 0.001
     const doOpacity = reactMode === 'opacity'
+    const doHue = reactMode === 'hue' && react > 0.001
 
     const scaleFactor = doScale ? 1 + react * 0.4 : 1
     const shakeOffset = doShake ? Math.sin(now / 24) * react * fontSize * 0.25 : 0
     // Zwischen den Beats gedimmt (bis −60 %), auf dem Beat wieder volle Deckkraft
     const textAlpha = doOpacity ? Math.max(0, Math.min(1, 1 - strength * 0.6 + react * 0.6)) : 1
     const glowColor = settings.shadowEnabled ? settings.shadowColor : settings.color || '#ffffff'
+
+    // Farbton-Modus: die Füllfarbe zum Beat verschieben. Bei react = 0 bleibt die
+    // gewählte Textfarbe exakt erhalten (doHue ist dann false).
+    if (doHue) ctx.fillStyle = beatHue(settings.color || '#ffffff', react)
 
     // Zeichnet eine Textinstanz inkl. Schatten/Glühen, Umrandung und der
     // aktiven Audio-Animation. Der Schatten wird vom äußersten sichtbaren Rand

@@ -14,12 +14,30 @@
  * binding value `{ x, y }` sets the initial offset (used to cascade several
  * simultaneously open popovers).
  */
+// Monotonic stacking counter shared by every popover. All popovers live in the
+// same stacking context (the sticky player bar), so raising an element's
+// z-index above the others reliably brings it to the front — regardless of the
+// fixed DOM/template order in which the popovers are rendered.
+let topZ = 1
+
 export const vPopoverDrag = {
   mounted(el, binding) {
     const header = el.querySelector('.spb-popover-header')
     if (!header) return
 
     const MARGIN = 8
+
+    // Bring this popover in front of all others (newest-opened wins, and any
+    // click on a popover raises it again).
+    const bringToFront = () => {
+      el.style.zIndex = String(++topZ)
+    }
+    // A freshly opened popover starts on top.
+    bringToFront()
+    // Raise on interaction anywhere within the popover (pointerdown bubbles up
+    // from child controls, so this covers the whole surface, not just the
+    // header). Capture phase so it fires before the drag handler.
+    el.addEventListener('pointerdown', bringToFront, true)
 
     let dx = 0
     let dy = 0
@@ -120,6 +138,7 @@ export const vPopoverDrag = {
     header.addEventListener('pointerdown', onDown)
     el.__popoverDragCleanup = () => {
       header.removeEventListener('pointerdown', onDown)
+      el.removeEventListener('pointerdown', bringToFront, true)
       window.removeEventListener('resize', reclamp)
       if (resizeObserver) resizeObserver.disconnect()
       onUp()

@@ -3,8 +3,8 @@ import { useI18n } from '../lib/i18n.js'
 import { usePlayerStore } from '../stores/playerStore.js'
 
 /**
- * Playlist interactions for the sticky player bar: loading a track without
- * autoplay, drag-and-drop reordering, and track/playlist removal.
+ * Playlist interactions for the sticky player bar: playing a selected track,
+ * drag-and-drop reordering, and track/playlist removal.
  */
 export function usePlaylistManager() {
   const { t } = useI18n()
@@ -13,9 +13,10 @@ export function usePlaylistManager() {
   const draggedTrackIndex = ref(null)
   const dragOverTrackIndex = ref(null)
 
-  const loadTrackOnly = (index) => {
-    playerStore.loadTrack(index)
-    console.log('[StickyPlayerBar] Track loaded (no autoplay):', playerStore.playlist[index].name)
+  // Selecting a track in the playlist plays it immediately.
+  const playTrackAt = (index) => {
+    playerStore.playTrack(index)
+    console.log('[StickyPlayerBar] Track selected and playing:', playerStore.playlist[index].name)
   }
 
   const handleDragStart = (event, index) => {
@@ -81,7 +82,7 @@ export function usePlaylistManager() {
   return {
     draggedTrackIndex,
     dragOverTrackIndex,
-    loadTrackOnly,
+    playTrackAt,
     handleDragStart,
     handleDragEnd,
     handleDragOver,

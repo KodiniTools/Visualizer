@@ -45,7 +45,7 @@
         @drop.prevent="handleDrop($event, index)"
       >
         <span class="drag-handle" :title="t('player.dragToReorder')">⠿</span>
-        <span class="track-name" @click="loadTrackOnly(index)">{{ track.name }}</span>
+        <span class="track-name" @click="playTrackAt(index)">{{ track.name }}</span>
         <button
           class="btn-delete"
           :title="t('player.removeTrack')"
@@ -78,7 +78,7 @@ const initOffset = cascadeOffset('playlist')
 const {
   draggedTrackIndex,
   dragOverTrackIndex,
-  loadTrackOnly,
+  playTrackAt,
   handleDragStart,
   handleDragEnd,
   handleDragOver,

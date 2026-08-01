@@ -241,7 +241,7 @@
         <details class="sub-section">
           <summary class="sub-header">{{ t('ticker.sectionAudio') }}</summary>
           <div class="sub-content">
-            <!-- Audio-Reaktivität (Tempo pulsiert zum Beat) -->
+            <!-- Audio-Reaktivität ein/aus -->
             <div class="control-group">
               <label class="checkbox-label">
                 <input v-model="ticker.audioReactive" type="checkbox" />
@@ -249,18 +249,32 @@
               </label>
             </div>
 
-            <!-- Beat-Stärke (nur wenn Audio-Reaktivität aktiv) -->
-            <div v-if="ticker.audioReactive" class="control-group">
-              <label>{{ t('ticker.beatIntensity') }}: {{ ticker.beatIntensity }}%</label>
-              <input
-                v-model.number="ticker.beatIntensity"
-                type="range"
-                min="0"
-                max="100"
-                step="5"
-                class="slider"
-              />
-            </div>
+            <template v-if="ticker.audioReactive">
+              <!-- Animationsmodus -->
+              <div class="control-group">
+                <label>{{ t('ticker.reactMode') }}:</label>
+                <select v-model="ticker.reactMode" class="select-input">
+                  <option value="tempo">{{ t('ticker.reactModeTempo') }}</option>
+                  <option value="scale">{{ t('ticker.reactModeScale') }}</option>
+                  <option value="glow">{{ t('ticker.reactModeGlow') }}</option>
+                  <option value="shake">{{ t('ticker.reactModeShake') }}</option>
+                  <option value="opacity">{{ t('ticker.reactModeOpacity') }}</option>
+                </select>
+              </div>
+
+              <!-- Beat-Stärke -->
+              <div class="control-group">
+                <label>{{ t('ticker.beatIntensity') }}: {{ ticker.beatIntensity }}%</label>
+                <input
+                  v-model.number="ticker.beatIntensity"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="5"
+                  class="slider"
+                />
+              </div>
+            </template>
           </div>
         </details>
       </template>

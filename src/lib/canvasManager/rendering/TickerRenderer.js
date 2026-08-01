@@ -13,7 +13,9 @@ export class TickerRenderer {
   constructor() {
     this.offset = 0
     this.lastTime = null
-    this.speedBoost = 0
+    // Beat-Puls (0..1): steigt bei einem Beat, klingt ab und treibt – je nach
+    // gewähltem Modus – die verschiedenen Audio-Animationen an.
+    this.pulse = 0
     this.beatDetector = new BeatDetector({ beatThreshold: 0.2, beatRiseThreshold: 0.05 })
   }
 
@@ -36,22 +38,30 @@ export class TickerRenderer {
 
     const baseSpeed = settings.speed || 0
 
-    // Audio-Reaktivität: bei einem Beat die Geschwindigkeit kurz anheben
-    if (settings.audioReactive && audioData) {
+    // Audio-Reaktivität: ein Beat erzeugt einen Puls (0..1), der abklingt und –
+    // je nach gewähltem Modus – eine andere Animation antreibt.
+    const reactive = !!settings.audioReactive
+    const reactMode = reactive ? settings.reactMode || 'tempo' : 'none'
+    const strength = Math.max(0, Math.min(100, settings.beatIntensity ?? 60)) / 100
+
+    if (reactive && audioData) {
       const level = (audioData.bass ?? audioData.smoothBass ?? 0) / 255
       const beat = this.beatDetector.detect(level * 255, now)
       if (beat.isBeat) {
-        const intensity = Math.max(0, Math.min(100, settings.beatIntensity ?? 60)) / 100
-        this.speedBoost = baseSpeed * intensity * 4 * (0.6 + beat.beatIntensity * 0.4)
+        this.pulse = Math.min(1, 0.6 + beat.beatIntensity * 0.4)
       }
     } else {
-      this.speedBoost = 0
+      this.pulse = 0
     }
-    // Boost abklingen lassen
-    this.speedBoost *= Math.max(0, 1 - dt * 3)
-    if (this.speedBoost < 0.01) this.speedBoost = 0
+    // Puls abklingen lassen
+    this.pulse *= Math.max(0, 1 - dt * 4)
+    if (this.pulse < 0.005) this.pulse = 0
 
-    const currentSpeed = baseSpeed + this.speedBoost
+    // Normalisierte Reaktionsstärke dieses Frames (0..1)
+    const react = this.pulse * strength
+
+    // Tempo-Modus: Geschwindigkeit pulsiert zum Beat
+    const currentSpeed = reactMode === 'tempo' ? baseSpeed * (1 + react * 3) : baseSpeed
 
     // Laufachse: links/rechts = horizontal, oben/unten = vertikal (Abspann-Stil).
     // In beiden Fällen bleibt die Schrift normal (waagerecht) ausgerichtet.
@@ -135,22 +145,61 @@ export class TickerRenderer {
     // Schatten (Farbe + Dicke/Weichzeichnung) vorbereiten
     const doShadow = settings.shadowEnabled && (settings.shadowBlur || 0) > 0
 
-    // Zeichnet eine Textinstanz inkl. Schatten und Umrandung. Der Schatten wird
-    // vom äußersten sichtbaren Rand geworfen (Umrandung, sonst Füllung); die
-    // Füllung darüber wirft keinen zweiten Schatten.
+    // ── Audio-Animationen dieses Frames (nur bei aktiver Reaktivität) ──
+    // scale  : Text pulsiert in der Größe zum Beat
+    // shake  : Text zittert kurz beim Beat
+    // glow   : ein Leuchten pulsiert um den Text zum Beat
+    // opacity: Text ist zwischen den Beats gedimmt und blitzt beim Beat auf
+    const doScale = reactMode === 'scale' && react > 0.001
+    const doShake = reactMode === 'shake' && react > 0.001
+    const doGlow = reactMode === 'glow' && react > 0.001
+    const doOpacity = reactMode === 'opacity'
+
+    const scaleFactor = doScale ? 1 + react * 0.4 : 1
+    const shakeOffset = doShake ? Math.sin(now / 24) * react * fontSize * 0.25 : 0
+    // Zwischen den Beats gedimmt (bis −60 %), auf dem Beat wieder volle Deckkraft
+    const textAlpha = doOpacity ? Math.max(0, Math.min(1, 1 - strength * 0.6 + react * 0.6)) : 1
+    const glowColor = settings.shadowEnabled ? settings.shadowColor : settings.color || '#ffffff'
+
+    // Zeichnet eine Textinstanz inkl. Schatten/Glühen, Umrandung und der
+    // aktiven Audio-Animation. Der Schatten wird vom äußersten sichtbaren Rand
+    // geworfen (Umrandung, sonst Füllung); die Füllung darüber wirft keinen
+    // zweiten Schatten.
     const paint = (x, y) => {
-      if (doShadow) {
+      const transform = scaleFactor !== 1 || shakeOffset !== 0
+      if (transform) {
+        ctx.save()
+        if (shakeOffset) ctx.translate(0, shakeOffset)
+        if (scaleFactor !== 1) {
+          const px = x + textWidth / 2
+          ctx.translate(px, y)
+          ctx.scale(scaleFactor, scaleFactor)
+          ctx.translate(-px, -y)
+        }
+      }
+      if (doOpacity) ctx.globalAlpha = textAlpha
+
+      if (doGlow) {
+        ctx.shadowColor = glowColor
+        ctx.shadowBlur = (doShadow ? settings.shadowBlur : 0) + react * 28
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+      } else if (doShadow) {
         ctx.shadowColor = settings.shadowColor || '#000000'
         ctx.shadowBlur = settings.shadowBlur
         ctx.shadowOffsetX = 0
         ctx.shadowOffsetY = 0
       }
+
       if (doStroke) {
         ctx.strokeText(text, x, y)
         ctx.shadowColor = 'transparent'
         ctx.shadowBlur = 0
       }
       ctx.fillText(text, x, y)
+
+      if (doOpacity) ctx.globalAlpha = 1
+      if (transform) ctx.restore()
     }
 
     // Segmente wiederholen, bis die gesamte Laufachse gefüllt ist.

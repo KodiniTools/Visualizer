@@ -48,7 +48,10 @@ export const useTickerStore = defineStore('ticker', () => {
   // Vertikale Position des Bandes (0 % = oben, 100 % = unten).
   // Migration vom alten 'position'-Feld (top/bottom).
   const positionY = ref(saved.positionY ?? (saved.position === 'top' ? 0 : 100))
-  const audioReactive = ref(saved.audioReactive ?? false) // Tempo pulsiert zum Beat
+  const audioReactive = ref(saved.audioReactive ?? false) // Audio-Reaktivität ein/aus
+  // Animationsmodus der Audio-Reaktivität:
+  // 'tempo' | 'scale' | 'glow' | 'shake' | 'opacity'
+  const reactMode = ref(saved.reactMode ?? 'tempo')
   const beatIntensity = ref(saved.beatIntensity ?? 60) // Stärke des Beat-Pulses (0–100)
 
   // Persistenz: bei jeder Änderung speichern
@@ -73,6 +76,7 @@ export const useTickerStore = defineStore('ticker', () => {
       direction,
       positionY,
       audioReactive,
+      reactMode,
       beatIntensity,
     ],
     () => {
@@ -99,6 +103,7 @@ export const useTickerStore = defineStore('ticker', () => {
             direction: direction.value,
             positionY: positionY.value,
             audioReactive: audioReactive.value,
+            reactMode: reactMode.value,
             beatIntensity: beatIntensity.value,
           }),
         )
@@ -128,6 +133,7 @@ export const useTickerStore = defineStore('ticker', () => {
     direction,
     positionY,
     audioReactive,
+    reactMode,
     beatIntensity,
   }
 })

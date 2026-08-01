@@ -18,171 +18,251 @@
       </div>
 
       <template v-if="ticker.enabled">
-        <!-- Text -->
-        <div class="control-group">
-          <label>{{ t('ticker.text') }}:</label>
-          <input
-            v-model="ticker.text"
-            type="text"
-            class="text-input"
-            :placeholder="t('ticker.text')"
-          />
-        </div>
+        <!-- ══════════ Text & Schrift ══════════ -->
+        <details class="sub-section" open>
+          <summary class="sub-header">{{ t('ticker.sectionText') }}</summary>
+          <div class="sub-content">
+            <!-- Text -->
+            <div class="control-group">
+              <label>{{ t('ticker.text') }}:</label>
+              <input
+                v-model="ticker.text"
+                type="text"
+                class="text-input"
+                :placeholder="t('ticker.text')"
+              />
+            </div>
 
-        <!-- Schriftart (gleiche Quelle wie normaler Text: System + Custom Fonts) -->
-        <div class="control-group">
-          <label>{{ t('ticker.fontFamily') }}:</label>
-          <select v-model="ticker.fontFamily" class="select-input">
-            <option v-if="missingFont" :value="missingFont">{{ missingFont }}</option>
-            <option
-              v-for="font in systemFonts"
-              :key="font"
-              :value="font"
-              :style="{ fontFamily: font }"
-            >
-              {{ font }}
-            </option>
-            <optgroup v-if="customFonts.length > 0" label="── Custom Fonts ──">
-              <option
-                v-for="font in customFonts"
-                :key="font"
-                :value="font"
-                :style="{ fontFamily: font }"
-              >
-                {{ font }}
-              </option>
-            </optgroup>
-          </select>
-        </div>
+            <!-- Schriftart (gleiche Quelle wie normaler Text: System + Custom Fonts) -->
+            <div class="control-group">
+              <label>{{ t('ticker.fontFamily') }}:</label>
+              <select v-model="ticker.fontFamily" class="select-input">
+                <option v-if="missingFont" :value="missingFont">{{ missingFont }}</option>
+                <option
+                  v-for="font in systemFonts"
+                  :key="font"
+                  :value="font"
+                  :style="{ fontFamily: font }"
+                >
+                  {{ font }}
+                </option>
+                <optgroup v-if="customFonts.length > 0" label="── Custom Fonts ──">
+                  <option
+                    v-for="font in customFonts"
+                    :key="font"
+                    :value="font"
+                    :style="{ fontFamily: font }"
+                  >
+                    {{ font }}
+                  </option>
+                </optgroup>
+              </select>
+            </div>
 
-        <!-- Fett -->
-        <div class="control-group">
-          <label class="checkbox-label">
-            <input v-model="ticker.bold" type="checkbox" />
-            {{ t('ticker.bold') }}
-          </label>
-        </div>
+            <!-- Fett -->
+            <div class="control-group">
+              <label class="checkbox-label">
+                <input v-model="ticker.bold" type="checkbox" />
+                {{ t('ticker.bold') }}
+              </label>
+            </div>
 
-        <!-- Buchstabenabstand -->
-        <div class="control-group">
-          <label>{{ t('ticker.letterSpacing') }}: {{ ticker.letterSpacing }}px</label>
-          <input
-            v-model.number="ticker.letterSpacing"
-            type="range"
-            min="-5"
-            max="40"
-            step="1"
-            class="slider"
-          />
-        </div>
+            <!-- Buchstabenabstand -->
+            <div class="control-group">
+              <label>{{ t('ticker.letterSpacing') }}: {{ ticker.letterSpacing }}px</label>
+              <input
+                v-model.number="ticker.letterSpacing"
+                type="range"
+                min="-5"
+                max="40"
+                step="1"
+                class="slider"
+              />
+            </div>
 
-        <!-- Position quer zur Laufrichtung (vertikal bzw. horizontal verschieben) -->
-        <div class="control-group">
-          <div class="label-row">
-            <label>{{ positionLabel }}: {{ ticker.positionY }}%</label>
-            <button
-              type="button"
-              class="btn-mini"
-              :class="{ active: ticker.positionY === 50 }"
-              :title="t('ticker.centerHint')"
-              @click="ticker.positionY = 50"
-            >
-              {{ t('ticker.center') }}
-            </button>
+            <!-- Buchstabengröße -->
+            <div class="control-group">
+              <label>{{ t('ticker.fontSize') }}: {{ ticker.fontSize }}px</label>
+              <input
+                v-model.number="ticker.fontSize"
+                type="range"
+                min="12"
+                max="200"
+                step="1"
+                class="slider"
+              />
+            </div>
+
+            <!-- Textfarbe -->
+            <div class="control-group">
+              <label>{{ t('ticker.color') }}:</label>
+              <input v-model="ticker.color" type="color" class="color-input" />
+            </div>
           </div>
-          <input
-            v-model.number="ticker.positionY"
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            class="slider"
-          />
-          <div class="hint-text">{{ positionHint }}</div>
-        </div>
+        </details>
 
-        <!-- Laufrichtung -->
-        <div class="control-group">
-          <label>{{ t('ticker.direction') }}:</label>
-          <select v-model="ticker.direction" class="select-input">
-            <option value="left">{{ t('ticker.left') }}</option>
-            <option value="right">{{ t('ticker.right') }}</option>
-            <option value="up">{{ t('ticker.up') }}</option>
-            <option value="down">{{ t('ticker.down') }}</option>
-          </select>
-        </div>
+        <!-- ══════════ Umrandung & Schatten ══════════ -->
+        <details class="sub-section">
+          <summary class="sub-header">{{ t('ticker.sectionOutline') }}</summary>
+          <div class="sub-content">
+            <!-- Umrandung -->
+            <div class="control-group">
+              <label class="checkbox-label">
+                <input v-model="ticker.strokeEnabled" type="checkbox" />
+                {{ t('ticker.stroke') }}
+              </label>
+            </div>
+            <template v-if="ticker.strokeEnabled">
+              <div class="control-group">
+                <label>{{ t('ticker.strokeColor') }}:</label>
+                <input v-model="ticker.strokeColor" type="color" class="color-input" />
+              </div>
+              <div class="control-group">
+                <label>{{ t('ticker.strokeWidth') }}: {{ ticker.strokeWidth }}px</label>
+                <input
+                  v-model.number="ticker.strokeWidth"
+                  type="range"
+                  min="1"
+                  max="20"
+                  step="1"
+                  class="slider"
+                />
+              </div>
+            </template>
 
-        <!-- Buchstabengröße -->
-        <div class="control-group">
-          <label>{{ t('ticker.fontSize') }}: {{ ticker.fontSize }}px</label>
-          <input
-            v-model.number="ticker.fontSize"
-            type="range"
-            min="12"
-            max="200"
-            step="1"
-            class="slider"
-          />
-        </div>
+            <!-- Schatten -->
+            <div class="control-group">
+              <label class="checkbox-label">
+                <input v-model="ticker.shadowEnabled" type="checkbox" />
+                {{ t('ticker.shadow') }}
+              </label>
+            </div>
+            <template v-if="ticker.shadowEnabled">
+              <div class="control-group">
+                <label>{{ t('ticker.shadowColor') }}:</label>
+                <input v-model="ticker.shadowColor" type="color" class="color-input" />
+              </div>
+              <div class="control-group">
+                <label>{{ t('ticker.shadowBlur') }}: {{ ticker.shadowBlur }}px</label>
+                <input
+                  v-model.number="ticker.shadowBlur"
+                  type="range"
+                  min="0"
+                  max="40"
+                  step="1"
+                  class="slider"
+                />
+              </div>
+            </template>
+          </div>
+        </details>
 
-        <!-- Textfarbe -->
-        <div class="control-group">
-          <label>{{ t('ticker.color') }}:</label>
-          <input v-model="ticker.color" type="color" class="color-input" />
-        </div>
+        <!-- ══════════ Hintergrund ══════════ -->
+        <details class="sub-section">
+          <summary class="sub-header">{{ t('ticker.sectionBackground') }}</summary>
+          <div class="sub-content">
+            <!-- Hintergrundfarbe -->
+            <div class="control-group">
+              <label>{{ t('ticker.bgColor') }}:</label>
+              <input v-model="ticker.bgColor" type="color" class="color-input" />
+            </div>
 
-        <!-- Hintergrundfarbe -->
-        <div class="control-group">
-          <label>{{ t('ticker.bgColor') }}:</label>
-          <input v-model="ticker.bgColor" type="color" class="color-input" />
-        </div>
+            <!-- Hintergrund-Transparenz -->
+            <div class="control-group">
+              <label>{{ t('ticker.bgOpacity') }}: {{ ticker.bgOpacity }}%</label>
+              <input
+                v-model.number="ticker.bgOpacity"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                class="slider"
+              />
+            </div>
+          </div>
+        </details>
 
-        <!-- Hintergrund-Transparenz -->
-        <div class="control-group">
-          <label>{{ t('ticker.bgOpacity') }}: {{ ticker.bgOpacity }}%</label>
-          <input
-            v-model.number="ticker.bgOpacity"
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            class="slider"
-          />
-        </div>
+        <!-- ══════════ Position & Bewegung ══════════ -->
+        <details class="sub-section">
+          <summary class="sub-header">{{ t('ticker.sectionMotion') }}</summary>
+          <div class="sub-content">
+            <!-- Position quer zur Laufrichtung (vertikal bzw. horizontal verschieben) -->
+            <div class="control-group">
+              <div class="label-row">
+                <label>{{ positionLabel }}: {{ ticker.positionY }}%</label>
+                <button
+                  type="button"
+                  class="btn-mini"
+                  :class="{ active: ticker.positionY === 50 }"
+                  :title="t('ticker.centerHint')"
+                  @click="ticker.positionY = 50"
+                >
+                  {{ t('ticker.center') }}
+                </button>
+              </div>
+              <input
+                v-model.number="ticker.positionY"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                class="slider"
+              />
+              <div class="hint-text">{{ positionHint }}</div>
+            </div>
 
-        <!-- Laufgeschwindigkeit -->
-        <div class="control-group">
-          <label>{{ t('ticker.speed') }}: {{ ticker.speed }} px/s</label>
-          <input
-            v-model.number="ticker.speed"
-            type="range"
-            min="10"
-            max="600"
-            step="10"
-            class="slider"
-          />
-        </div>
+            <!-- Laufrichtung -->
+            <div class="control-group">
+              <label>{{ t('ticker.direction') }}:</label>
+              <select v-model="ticker.direction" class="select-input">
+                <option value="left">{{ t('ticker.left') }}</option>
+                <option value="right">{{ t('ticker.right') }}</option>
+                <option value="up">{{ t('ticker.up') }}</option>
+                <option value="down">{{ t('ticker.down') }}</option>
+              </select>
+            </div>
 
-        <!-- Audio-Reaktivität (Tempo pulsiert zum Beat) -->
-        <div class="control-group">
-          <label class="checkbox-label">
-            <input v-model="ticker.audioReactive" type="checkbox" />
-            {{ t('ticker.audioReactive') }}
-          </label>
-        </div>
+            <!-- Laufgeschwindigkeit -->
+            <div class="control-group">
+              <label>{{ t('ticker.speed') }}: {{ ticker.speed }} px/s</label>
+              <input
+                v-model.number="ticker.speed"
+                type="range"
+                min="10"
+                max="600"
+                step="10"
+                class="slider"
+              />
+            </div>
+          </div>
+        </details>
 
-        <!-- Beat-Stärke (nur wenn Audio-Reaktivität aktiv) -->
-        <div v-if="ticker.audioReactive" class="control-group">
-          <label>{{ t('ticker.beatIntensity') }}: {{ ticker.beatIntensity }}%</label>
-          <input
-            v-model.number="ticker.beatIntensity"
-            type="range"
-            min="0"
-            max="100"
-            step="5"
-            class="slider"
-          />
-        </div>
+        <!-- ══════════ Audio-Reaktivität ══════════ -->
+        <details class="sub-section">
+          <summary class="sub-header">{{ t('ticker.sectionAudio') }}</summary>
+          <div class="sub-content">
+            <!-- Audio-Reaktivität (Tempo pulsiert zum Beat) -->
+            <div class="control-group">
+              <label class="checkbox-label">
+                <input v-model="ticker.audioReactive" type="checkbox" />
+                {{ t('ticker.audioReactive') }}
+              </label>
+            </div>
+
+            <!-- Beat-Stärke (nur wenn Audio-Reaktivität aktiv) -->
+            <div v-if="ticker.audioReactive" class="control-group">
+              <label>{{ t('ticker.beatIntensity') }}: {{ ticker.beatIntensity }}%</label>
+              <input
+                v-model.number="ticker.beatIntensity"
+                type="range"
+                min="0"
+                max="100"
+                step="5"
+                class="slider"
+              />
+            </div>
+          </div>
+        </details>
       </template>
     </div>
   </details>
@@ -306,6 +386,60 @@ const missingFont = computed(() => {
 
 .section-content {
   padding: 12px;
+}
+
+/* ══════════ Klappbare Unter-Sektionen ══════════ */
+.sub-section {
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.18));
+  border-radius: 6px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.sub-section:last-child {
+  margin-bottom: 0;
+}
+.sub-section > summary {
+  list-style: none;
+}
+.sub-section > summary::-webkit-details-marker {
+  display: none;
+}
+.sub-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-primary, #e9e9eb);
+  background-color: var(--secondary-bg, #0e1c32);
+}
+.sub-header::before {
+  content: '▶';
+  font-size: 7px;
+  color: var(--accent-primary, #c9984d);
+  transition: transform 0.2s ease;
+}
+.sub-section[open] > .sub-header::before {
+  transform: rotate(90deg);
+}
+.sub-content {
+  padding: 10px;
+}
+.sub-content .control-group:last-child {
+  margin-bottom: 0;
+}
+
+[data-theme='light'] .sub-section {
+  border-color: rgba(1, 79, 153, 0.15);
+}
+[data-theme='light'] .sub-header {
+  color: #003971;
+  background-color: #f2f6fb;
 }
 
 .control-group {

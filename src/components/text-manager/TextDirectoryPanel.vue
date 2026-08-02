@@ -4,6 +4,18 @@
       <span class="section-icon">📋</span>
       <span>{{ t('textManager.textDirectory') }}</span>
       <span class="count-badge">{{ items.length }}</span>
+      <button
+        type="button"
+        class="play-all-btn"
+        :class="{ playing: sequencePlaying }"
+        :title="sequencePlaying ? t('textManager.stopPlayback') : t('textManager.playAllTexts')"
+        :aria-label="
+          sequencePlaying ? t('textManager.stopPlayback') : t('textManager.playAllTexts')
+        "
+        @click.stop.prevent="$emit(sequencePlaying ? 'stop-all' : 'play-all')"
+      >
+        {{ sequencePlaying ? '⏹' : '▶' }}
+      </button>
     </summary>
     <div class="section-content">
       <div class="hint-text">{{ t('textManager.directoryHint') }}</div>
@@ -50,9 +62,13 @@ defineProps({
     type: [Number, String],
     default: null,
   },
+  sequencePlaying: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-defineEmits(['select', 'restart'])
+defineEmits(['select', 'restart', 'play-all', 'stop-all'])
 
 const { t } = useI18n()
 </script>
@@ -113,6 +129,45 @@ const { t } = useI18n()
   border-radius: 10px;
   background: rgba(110, 168, 254, 0.2);
   color: #6ea8fe;
+}
+
+.play-all-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid #6ea8fe;
+  border-radius: 5px;
+  background: rgba(110, 168, 254, 0.18);
+  color: #6ea8fe;
+  cursor: pointer;
+  font-size: 0.6rem;
+  transition: all 0.2s ease;
+}
+.play-all-btn:hover {
+  background: #6ea8fe;
+  color: #fff;
+}
+.play-all-btn.playing {
+  background: rgba(244, 67, 54, 0.2);
+  border-color: #f44336;
+  color: #f44336;
+}
+.play-all-btn.playing:hover {
+  background: #f44336;
+  color: #fff;
+}
+[data-theme='light'] .play-all-btn {
+  background: rgba(1, 79, 153, 0.1);
+  border-color: #014f99;
+  color: #014f99;
+}
+[data-theme='light'] .play-all-btn:hover {
+  background: #014f99;
+  color: #fff;
 }
 
 .section-content {

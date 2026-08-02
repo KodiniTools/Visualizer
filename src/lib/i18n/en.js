@@ -924,6 +924,8 @@ export default {
     restartAnimation: 'Restart animation',
     playAllTexts: 'Play all texts in sequence',
     stopPlayback: 'Stop playback',
+    globalDuration: 'Global display duration',
+    globalDurationHint: 'Applies to every text equally, instead of the individual display duration',
     saveAsDefault: 'Save as default for new texts',
     resetDefault: 'Reset default',
     savedAsDefaultToast: 'Settings saved as default for new texts',

@@ -20,6 +20,36 @@
     <div class="section-content">
       <div class="hint-text">{{ t('textManager.directoryHint') }}</div>
 
+      <!-- Globale Anzeigedauer für die Reihenwiedergabe -->
+      <div class="global-dur">
+        <label class="checkbox-label">
+          <input v-model="globalDurationEnabled" type="checkbox" />
+          {{ t('textManager.globalDuration') }}
+        </label>
+        <div v-if="globalDurationEnabled" class="dur-row">
+          <input
+            v-model.number="globalDuration"
+            type="range"
+            min="500"
+            max="30000"
+            step="100"
+            class="slider"
+          />
+          <input
+            v-model.number="globalDuration"
+            type="number"
+            min="500"
+            max="30000"
+            step="100"
+            class="dur-number"
+            aria-label="ms"
+          />
+        </div>
+        <div v-if="globalDurationEnabled" class="hint-text">
+          {{ t('textManager.globalDurationHint') }}
+        </div>
+      </div>
+
       <ul class="text-list">
         <li v-for="item in items" :key="item.id" class="text-row">
           <button
@@ -69,6 +99,13 @@ defineProps({
 })
 
 defineEmits(['select', 'restart', 'play-all', 'stop-all'])
+
+// Zwei-Wege-Bindung für die globale Anzeigedauer (vom TextManagerPanel gesteuert)
+const globalDurationEnabled = defineModel('globalDurationEnabled', {
+  type: Boolean,
+  default: false,
+})
+const globalDuration = defineModel('globalDuration', { type: Number, default: 5000 })
 
 const { t } = useI18n()
 </script>
@@ -179,6 +216,95 @@ const { t } = useI18n()
   color: var(--text-muted, #7a8da0);
   margin-bottom: 8px;
   line-height: 1.4;
+}
+
+/* Globale Anzeigedauer */
+.global-dur {
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.25));
+  border-radius: 5px;
+  background: rgba(110, 168, 254, 0.06);
+}
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.6rem;
+  color: var(--text-primary, #e9e9eb);
+}
+.checkbox-label input[type='checkbox'] {
+  width: 13px;
+  height: 13px;
+  cursor: pointer;
+  accent-color: #6ea8fe;
+}
+.dur-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.dur-row .slider {
+  flex: 1;
+  min-width: 0;
+}
+.slider {
+  height: 3px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(90deg, var(--text-muted, #7a8da0) 0%, #6ea8fe 100%);
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #6ea8fe;
+  border: 2px solid #fff;
+  cursor: pointer;
+}
+.slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #6ea8fe;
+  border: 2px solid #fff;
+  cursor: pointer;
+}
+.dur-number {
+  flex-shrink: 0;
+  width: 66px;
+  padding: 5px 6px;
+  background-color: var(--secondary-bg, #0e1c32);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border-radius: 4px;
+  color: var(--text-primary, #e9e9eb);
+  font-size: 11px;
+}
+.dur-number:focus {
+  border-color: #6ea8fe;
+  outline: none;
+}
+[data-theme='light'] .global-dur {
+  border-color: rgba(1, 79, 153, 0.15);
+  background: rgba(1, 79, 153, 0.05);
+}
+[data-theme='light'] .checkbox-label {
+  color: #013a70;
+}
+[data-theme='light'] .dur-number {
+  background-color: #ffffff;
+  border-color: rgba(1, 79, 153, 0.2);
+  color: #003971;
+}
+[data-theme='light'] .dur-number:focus {
+  border-color: #014f99;
 }
 
 .text-list {

@@ -839,6 +839,14 @@ function updateText() {
   border-color: #6ea8fe;
   outline: none;
 }
+[data-theme='light'] .dur-number {
+  background-color: #ffffff;
+  border-color: rgba(1, 79, 153, 0.2);
+  color: #003971;
+}
+[data-theme='light'] .dur-number:focus {
+  border-color: #014f99;
+}
 
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;

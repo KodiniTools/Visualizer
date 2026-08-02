@@ -10,6 +10,8 @@
       :items="textList"
       :active-id="selectedText?.id ?? null"
       :sequence-playing="sequencePlaying"
+      v-model:global-duration-enabled="globalDurationEnabled"
+      v-model:global-duration="globalDuration"
       @select="selectTextFromDirectory"
       @restart="restartTextFromDirectory"
       @play-all="startTextSequence"
@@ -110,6 +112,10 @@ function restartTextFromDirectory(id) {
 // das Zurücksetzen des Animations-Zustands.
 const DEFAULT_SLOT_MS = 4000 // Anzeigedauer für Texte ohne Animation
 const sequencePlaying = ref(false)
+// Optionale globale Anzeigedauer: gilt dann für JEDEN Text gleich (überschreibt
+// die textindividuelle Anzeigedauer während der Reihenwiedergabe).
+const globalDurationEnabled = ref(false)
+const globalDuration = ref(5000)
 let sequenceTimer = null
 let sequenceIndex = 0
 let savedOpacities = new Map()
@@ -122,6 +128,10 @@ function orderedTextObjects() {
 // Dauer, wie lange ein Text sichtbar bleibt: Einlauf-Dauer der aktiven
 // Animation + Anzeigedauer (Hold); ohne Animation ein Standardwert.
 function textSlotMs(obj) {
+  // Globale Dauer: gilt für jeden Text gleich (kleiner Puffer für den Übergang).
+  if (globalDurationEnabled.value) {
+    return Math.max(500, globalDuration.value) + 400
+  }
   const a = obj.animation
   if (!a || !a.type || a.type === 'none') return DEFAULT_SLOT_MS
   let hold = 0

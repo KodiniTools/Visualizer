@@ -767,10 +767,14 @@ h4 {
   color: #014f99;
 }
 
-[data-theme='light'] .number-input {
+[data-theme='light'] .number-input,
+[data-theme='light'] .dur-number {
   background-color: #ffffff;
   border: 1px solid rgba(1, 79, 153, 0.2);
   color: #003971;
+}
+[data-theme='light'] .dur-number:focus {
+  border-color: #014f99;
 }
 
 [data-theme='light'] .number-input:focus {

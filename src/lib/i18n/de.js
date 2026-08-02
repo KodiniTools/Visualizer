@@ -920,6 +920,8 @@ export default {
     restartAnimation: 'Animation neu starten',
     playAllTexts: 'Alle Texte nacheinander abspielen',
     stopPlayback: 'Wiedergabe stoppen',
+    globalDuration: 'Globale Anzeigedauer',
+    globalDurationHint: 'Gilt für jeden Text gleich, statt der individuellen Anzeigedauer',
     saveAsDefault: 'Als Standard für neue Texte speichern',
     resetDefault: 'Standard zurücksetzen',
     savedAsDefaultToast: 'Einstellungen als Standard für neue Texte gespeichert',

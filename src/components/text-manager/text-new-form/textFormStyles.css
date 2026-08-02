@@ -544,6 +544,31 @@ h4 {
   margin-left: 8px;
 }
 
+/* Anzeigedauer: Slider + ms-Zahlwerk nebeneinander */
+.dur-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dur-row .slider {
+  flex: 1;
+  min-width: 0;
+}
+.dur-number {
+  flex-shrink: 0;
+  width: 68px;
+  padding: 5px 6px;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 11px;
+}
+.dur-number:focus {
+  border-color: #6ea8fe;
+  outline: none;
+}
+
 .number-input:focus {
   border-color: #6ea8fe;
   outline: none;

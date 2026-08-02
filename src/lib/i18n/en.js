@@ -922,6 +922,8 @@ export default {
     hiddenBadge: 'Hidden',
     directoryHint: 'Select a text to mark it — including hidden texts',
     restartAnimation: 'Restart animation',
+    playAllTexts: 'Play all texts in sequence',
+    stopPlayback: 'Stop playback',
     saveAsDefault: 'Save as default for new texts',
     resetDefault: 'Reset default',
     savedAsDefaultToast: 'Settings saved as default for new texts',

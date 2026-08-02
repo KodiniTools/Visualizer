@@ -918,6 +918,8 @@ export default {
     hiddenBadge: 'Ausgeblendet',
     directoryHint: 'Text auswählen, um ihn zu markieren – auch ausgeblendete Texte',
     restartAnimation: 'Animation neu starten',
+    playAllTexts: 'Alle Texte nacheinander abspielen',
+    stopPlayback: 'Wiedergabe stoppen',
     saveAsDefault: 'Als Standard für neue Texte speichern',
     resetDefault: 'Standard zurücksetzen',
     savedAsDefaultToast: 'Einstellungen als Standard für neue Texte gespeichert',

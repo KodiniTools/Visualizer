@@ -132,14 +132,25 @@
         <!-- Anzeigedauer (nur wenn nicht permanent) -->
         <div v-if="!settings.permanent" class="control-group">
           <label>{{ t('textManager.displayDuration') }}: {{ settings.displayDuration }}ms</label>
-          <input
-            v-model.number="settings.displayDuration"
-            type="range"
-            min="500"
-            max="30000"
-            step="100"
-            class="slider"
-          />
+          <div class="dur-row">
+            <input
+              v-model.number="settings.displayDuration"
+              type="range"
+              min="500"
+              max="30000"
+              step="100"
+              class="slider"
+            />
+            <input
+              v-model.number="settings.displayDuration"
+              type="number"
+              min="500"
+              max="30000"
+              step="100"
+              class="dur-number"
+              aria-label="ms"
+            />
+          </div>
           <div class="hint-text">{{ t('textManager.displayDurationHint') }}</div>
         </div>
       </div>

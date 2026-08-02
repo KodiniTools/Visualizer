@@ -139,15 +139,27 @@
         <!-- Anzeigedauer (nur wenn nicht permanent) -->
         <div v-if="!selectedText.animation.typewriter.permanent" class="control-group">
           <label>Anzeigedauer: {{ selectedText.animation.typewriter.displayDuration }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.typewriter.displayDuration"
-            @input="updateText"
-            min="500"
-            max="30000"
-            step="100"
-            class="slider"
-          />
+          <div class="dur-row">
+            <input
+              type="range"
+              v-model.number="selectedText.animation.typewriter.displayDuration"
+              @input="updateText"
+              min="500"
+              max="30000"
+              step="100"
+              class="slider"
+            />
+            <input
+              type="number"
+              v-model.number="selectedText.animation.typewriter.displayDuration"
+              @input="updateText"
+              min="500"
+              max="30000"
+              step="100"
+              class="dur-number"
+              aria-label="ms"
+            />
+          </div>
           <div class="hint-text">Wie lange der Text sichtbar bleibt, bevor er verschwindet</div>
         </div>
       </div>
@@ -287,15 +299,27 @@
         <!-- Anzeigedauer (nur wenn nicht permanent) -->
         <div v-if="!selectedText.animation.fade.permanent" class="control-group">
           <label>Anzeigedauer: {{ selectedText.animation.fade.displayDuration }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.fade.displayDuration"
-            @input="updateText"
-            min="500"
-            max="30000"
-            step="100"
-            class="slider"
-          />
+          <div class="dur-row">
+            <input
+              type="range"
+              v-model.number="selectedText.animation.fade.displayDuration"
+              @input="updateText"
+              min="500"
+              max="30000"
+              step="100"
+              class="slider"
+            />
+            <input
+              type="number"
+              v-model.number="selectedText.animation.fade.displayDuration"
+              @input="updateText"
+              min="500"
+              max="30000"
+              step="100"
+              class="dur-number"
+              aria-label="ms"
+            />
+          </div>
           <div class="hint-text">Wie lange der Text sichtbar bleibt, bevor er verschwindet</div>
         </div>
       </div>
@@ -465,15 +489,27 @@
         <!-- Anzeigedauer (nur wenn nicht permanent) -->
         <div v-if="!selectedText.animation.scale.permanent" class="control-group">
           <label>Anzeigedauer: {{ selectedText.animation.scale.displayDuration }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.scale.displayDuration"
-            @input="updateText"
-            min="500"
-            max="30000"
-            step="100"
-            class="slider"
-          />
+          <div class="dur-row">
+            <input
+              type="range"
+              v-model.number="selectedText.animation.scale.displayDuration"
+              @input="updateText"
+              min="500"
+              max="30000"
+              step="100"
+              class="slider"
+            />
+            <input
+              type="number"
+              v-model.number="selectedText.animation.scale.displayDuration"
+              @input="updateText"
+              min="500"
+              max="30000"
+              step="100"
+              class="dur-number"
+              aria-label="ms"
+            />
+          </div>
           <div class="hint-text">Wie lange der Text sichtbar bleibt, bevor er verschwindet</div>
         </div>
       </div>
@@ -641,15 +677,27 @@
         <!-- Anzeigedauer (nur wenn nicht permanent) -->
         <div v-if="!selectedText.animation.slide.permanent" class="control-group">
           <label>Anzeigedauer: {{ selectedText.animation.slide.displayDuration }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.slide.displayDuration"
-            @input="updateText"
-            min="500"
-            max="30000"
-            step="100"
-            class="slider"
-          />
+          <div class="dur-row">
+            <input
+              type="range"
+              v-model.number="selectedText.animation.slide.displayDuration"
+              @input="updateText"
+              min="500"
+              max="30000"
+              step="100"
+              class="slider"
+            />
+            <input
+              type="number"
+              v-model.number="selectedText.animation.slide.displayDuration"
+              @input="updateText"
+              min="500"
+              max="30000"
+              step="100"
+              class="dur-number"
+              aria-label="ms"
+            />
+          </div>
           <div class="hint-text">Wie lange der Text sichtbar bleibt, bevor er verschwindet</div>
         </div>
       </div>
@@ -764,6 +812,32 @@ function updateText() {
   transition: all 0.2s ease;
   -webkit-appearance: none;
   appearance: none;
+}
+
+/* Anzeigedauer: Slider + ms-Zahlwerk nebeneinander */
+.dur-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dur-row .slider {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+.dur-number {
+  flex-shrink: 0;
+  width: 68px;
+  padding: 5px 6px;
+  background-color: var(--secondary-bg, #0e1c32);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border-radius: 4px;
+  color: var(--text-primary, #e9e9eb);
+  font-size: 11px;
+}
+.dur-number:focus {
+  border-color: #6ea8fe;
+  outline: none;
 }
 
 .slider::-webkit-slider-thumb {

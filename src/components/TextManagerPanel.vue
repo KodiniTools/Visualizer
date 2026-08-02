@@ -9,8 +9,11 @@
     <TextDirectoryPanel
       :items="textList"
       :active-id="selectedText?.id ?? null"
+      :sequence-playing="sequencePlaying"
       @select="selectTextFromDirectory"
       @restart="restartTextFromDirectory"
+      @play-all="startTextSequence"
+      @stop-all="stopTextSequence"
     />
 
     <!-- Multi-select edit mode -->
@@ -96,6 +99,97 @@ function restartTextFromDirectory(id) {
     currentIndex: 0,
   }
   canvasManager.value.redrawCallback?.()
+}
+
+// ══════════ Globale Wiedergabe: alle Texte der Reihe nach abspielen ══════════
+// Spielt die Texte aus dem Verzeichnis nacheinander ab – jeder mit seinen
+// eigenen Einstellungen/Animationen. Während der Wiedergabe ist jeweils nur der
+// aktuelle Text sichtbar (Opacity-Steuerung); danach wird der ursprüngliche
+// Zustand wiederhergestellt. Der laufende Render-Loop zeichnet die Änderungen
+// automatisch (auch für den Recorder), daher genügt das Setzen von Opacity und
+// das Zurücksetzen des Animations-Zustands.
+const DEFAULT_SLOT_MS = 4000 // Anzeigedauer für Texte ohne Animation
+const sequencePlaying = ref(false)
+let sequenceTimer = null
+let sequenceIndex = 0
+let savedOpacities = new Map()
+
+function orderedTextObjects() {
+  const objs = canvasManager.value?.textManager?.textObjects || []
+  return [...objs].sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0))
+}
+
+// Dauer, wie lange ein Text sichtbar bleibt: Einlauf-Dauer der aktiven
+// Animation + Anzeigedauer (Hold); ohne Animation ein Standardwert.
+function textSlotMs(obj) {
+  const a = obj.animation
+  if (!a || !a.type || a.type === 'none') return DEFAULT_SLOT_MS
+  let hold = 0
+  let lead = 0
+  for (const key of ['typewriter', 'fade', 'scale', 'slide']) {
+    const eff = a[key]
+    if (eff && eff.enabled) {
+      hold = Math.max(hold, eff.displayDuration ?? 5000)
+      if (typeof eff.duration === 'number') lead = Math.max(lead, eff.duration)
+    }
+  }
+  if (hold <= 0) hold = DEFAULT_SLOT_MS
+  return lead + hold + 400 // kleiner Puffer zwischen den Texten
+}
+
+function playSequenceStep() {
+  if (!sequencePlaying.value) return
+  const objs = orderedTextObjects()
+  if (sequenceIndex >= objs.length) {
+    stopTextSequence()
+    return
+  }
+  const current = objs[sequenceIndex]
+  // Nur den aktuellen Text zeigen, alle anderen ausblenden.
+  objs.forEach((o) => {
+    o.opacity = 0
+  })
+  current.opacity = savedOpacities.get(current.id) ?? 100
+  // Animation des aktuellen Textes von vorne starten.
+  if (current.animation) {
+    current.animation._state = { startTime: null, isPlaying: false, currentIndex: 0 }
+  }
+  canvasManager.value?.redrawCallback?.()
+
+  sequenceTimer = setTimeout(() => {
+    sequenceIndex += 1
+    playSequenceStep()
+  }, textSlotMs(current))
+}
+
+function startTextSequence() {
+  const objs = orderedTextObjects()
+  if (objs.length === 0) return
+  // Laufende Wiedergabe zunächst ohne Wiederherstellung beenden.
+  if (sequenceTimer) {
+    clearTimeout(sequenceTimer)
+    sequenceTimer = null
+  }
+  // Ursprüngliche Sichtbarkeit merken, um sie am Ende wiederherzustellen.
+  savedOpacities = new Map(objs.map((o) => [o.id, o.opacity ?? 100]))
+  sequencePlaying.value = true
+  sequenceIndex = 0
+  playSequenceStep()
+}
+
+function stopTextSequence() {
+  if (sequenceTimer) {
+    clearTimeout(sequenceTimer)
+    sequenceTimer = null
+  }
+  sequencePlaying.value = false
+  // Ursprüngliche Sichtbarkeit wiederherstellen.
+  if (savedOpacities.size) {
+    orderedTextObjects().forEach((o) => {
+      if (savedOpacities.has(o.id)) o.opacity = savedOpacities.get(o.id)
+    })
+    canvasManager.value?.redrawCallback?.()
+  }
 }
 
 // ✨ FIX: Verbesserte Callback-Funktion für Selection-Changes
@@ -348,6 +442,11 @@ onUnmounted(() => {
   eventListenerRegistered = false
   // ✨ NEU: Event-Listener entfernen
   window.removeEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar)
+  // Laufende Text-Sequenz stoppen (Timer aufräumen)
+  if (sequenceTimer) {
+    clearTimeout(sequenceTimer)
+    sequenceTimer = null
+  }
 })
 </script>
 

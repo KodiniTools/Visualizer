@@ -614,7 +614,7 @@ export default {
     captureBackgroundHint:
       'Aktuelle Hintergrund-Einstellungen (Farbe, Gradient, Audio-Reaktiv) für diesen Marker erfassen',
     backgroundMarkerHint:
-      'Der Hintergrund, den du gerade eingestellt hast, wird gespeichert und beim Abspielen automatisch aktiviert, sobald der Song diese Marker-Zeit erreicht.',
+      "So geht's: Hintergrund im Canvas-Panel wie gewünscht einstellen, dann „Aktuellen übernehmen“ klicken. Nach dem Speichern springt die Ansicht auf den Ausgangs-Hintergrund zurück – der erfasste Hintergrund erscheint erst beim Abspielen an dieser Marker-Zeit.",
     backgroundChanges: 'Ändert den Hintergrund',
     label: 'Label',
     time: 'Zeit',

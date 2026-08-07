@@ -30,6 +30,10 @@ export function useBeatMarkers(openMarkersPopover) {
   const newMarkerChangeColor = ref(false)
   const newMarkerChangeBackground = ref(false)
   const capturedBackground = ref(null)
+  // Live-Hintergrund vor dem Öffnen des Formulars – zum Zurücksetzen nach dem
+  // Speichern, damit das Einstellen nur eine Vorschau ist und der Wechsel
+  // erst beim Abspielen an der Marker-Zeit sichtbar wird.
+  const bgRestorePoint = ref(null)
   const newMarkerLabel = ref('')
 
   /**
@@ -40,6 +44,26 @@ export function useBeatMarkers(openMarkersPopover) {
       backgroundBridge.applySnapshot(action.background)
       console.log('🎨 Hintergrund via Beat-Marker gewechselt')
     }
+  }
+
+  /**
+   * Merkt sich den aktuellen Live-Hintergrund als Wiederherstellungspunkt,
+   * sobald das Marker-Formular geöffnet wird.
+   */
+  const snapshotBackgroundRestorePoint = () => {
+    bgRestorePoint.value = backgroundBridge.isReady() ? backgroundBridge.captureSnapshot() : null
+  }
+
+  /**
+   * Setzt den Live-Hintergrund auf den beim Öffnen gemerkten Zustand zurück.
+   * So bleibt das Einstellen des Marker-Hintergrunds nur eine Vorschau –
+   * der eigentliche Wechsel passiert erst beim Abspielen am Marker.
+   */
+  const restoreLiveBackground = () => {
+    if (bgRestorePoint.value) {
+      backgroundBridge.applySnapshot(bgRestorePoint.value)
+    }
+    bgRestorePoint.value = null
   }
 
   const updateMarkerTimeFromInput = () => {
@@ -63,6 +87,7 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerChangeColor.value = false
     newMarkerChangeBackground.value = false
     capturedBackground.value = null
+    snapshotBackgroundRestorePoint()
     showMarkerPanel.value = true
     openMarkersPopover()
   }
@@ -77,6 +102,7 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerChangeColor.value = !!marker.action?.color
     newMarkerChangeBackground.value = !!marker.action?.background
     capturedBackground.value = marker.action?.background || null
+    snapshotBackgroundRestorePoint()
     showMarkerPanel.value = true
   }
 
@@ -94,6 +120,10 @@ export function useBeatMarkers(openMarkersPopover) {
   }
 
   const confirmAddMarker = () => {
+    // Wurde der Hintergrund-Bereich genutzt? Nur dann die Live-Vorschau
+    // zurücksetzen – sonst bleiben unabhängige Panel-Änderungen erhalten.
+    const bgWasInvolved = newMarkerChangeBackground.value || !!capturedBackground.value
+
     let background = null
     if (newMarkerChangeBackground.value) {
       // Bereits erfassten Snapshot verwenden, sonst aktuellen Hintergrund erfassen
@@ -117,13 +147,21 @@ export function useBeatMarkers(openMarkersPopover) {
     }
     editingMarkerId.value = null
     showMarkerPanel.value = false
+    // Live-Hintergrund auf den Ausgangszustand zurücksetzen: Der erfasste
+    // Hintergrund ist im Marker gespeichert und erscheint erst beim Abspielen.
+    if (bgWasInvolved) restoreLiveBackground()
+    bgRestorePoint.value = null
     capturedBackground.value = null
     newMarkerChangeBackground.value = false
   }
 
   const cancelAddMarker = () => {
+    const bgWasInvolved = newMarkerChangeBackground.value || !!capturedBackground.value
     editingMarkerId.value = null
     showMarkerPanel.value = false
+    // Vorschau-Änderungen am Live-Hintergrund verwerfen (nur wenn genutzt)
+    if (bgWasInvolved) restoreLiveBackground()
+    bgRestorePoint.value = null
   }
 
   const seekToMarker = (time) => {

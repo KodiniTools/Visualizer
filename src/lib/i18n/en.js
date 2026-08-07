@@ -613,6 +613,12 @@ export default {
     noChange: '-- No change --',
     color: 'Color',
     change: 'Change',
+    background: 'Background',
+    captureBackground: 'Capture current',
+    captureBackgroundHint:
+      'Capture the current background settings (color, gradient, audio-reactive) for this marker',
+    backgroundMarkerHint: 'The current background is captured on save and applied at this point.',
+    backgroundChanges: 'Changes the background',
     label: 'Label',
     time: 'Time',
     volume: 'Volume',

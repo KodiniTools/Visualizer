@@ -99,6 +99,27 @@
         </div>
       </div>
       <div class="form-row">
+        <label>{{ t('player.background') }}:</label>
+        <div class="bg-input-wrapper">
+          <label class="color-checkbox">
+            <input v-model="newMarkerChangeBackground" type="checkbox" />
+            <span>{{ t('player.change') }}</span>
+          </label>
+          <button
+            type="button"
+            class="btn-capture-bg"
+            :class="{ captured: !!capturedBackground }"
+            :title="t('player.captureBackgroundHint')"
+            @click="captureCurrentBackground"
+          >
+            {{ capturedBackground ? '✓ ' : '' }}{{ t('player.captureBackground') }}
+          </button>
+        </div>
+      </div>
+      <div v-if="newMarkerChangeBackground" class="form-hint">
+        {{ t('player.backgroundMarkerHint') }}
+      </div>
+      <div class="form-row">
         <label>{{ t('player.label') }}:</label>
         <input
           v-model="newMarkerLabel"
@@ -135,6 +156,12 @@
         <span v-if="marker.action.visualizer" class="marker-action">{{
           getVisualizerName(marker.action.visualizer)
         }}</span>
+        <span
+          v-if="marker.action.background"
+          class="marker-action marker-action-bg"
+          :title="t('player.backgroundChanges')"
+          >🎨 BG</span
+        >
         <div class="marker-buttons">
           <button
             class="btn-edit-marker"
@@ -190,10 +217,13 @@ const {
   newMarkerVisualizer,
   newMarkerColor,
   newMarkerChangeColor,
+  newMarkerChangeBackground,
+  capturedBackground,
   newMarkerLabel,
   updateMarkerTimeFromInput,
   addMarkerAtCurrentTime,
   startEditMarker,
+  captureCurrentBackground,
   confirmAddMarker,
   cancelAddMarker,
   seekToMarker,
@@ -283,6 +313,44 @@ const {
 .color-checkbox input {
   width: 12px;
   height: 12px;
+}
+.bg-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.btn-capture-bg {
+  padding: 3px 8px;
+  font-size: 9px;
+  font-weight: 600;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-capture-bg:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+.btn-capture-bg.captured {
+  background-color: rgba(74, 222, 128, 0.2);
+  border-color: #4ade80;
+  color: #4ade80;
+}
+.form-hint {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: -2px 0 6px 0;
+  padding-left: 63px;
+}
+.marker-action-bg {
+  color: #4ade80;
+  background-color: rgba(74, 222, 128, 0.12);
 }
 .time-input-wrapper {
   display: flex;

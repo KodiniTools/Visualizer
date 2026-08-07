@@ -609,6 +609,13 @@ export default {
     noChange: '-- Kein Wechsel --',
     color: 'Farbe',
     change: 'Ändern',
+    background: 'Hintergrund',
+    captureBackground: 'Aktuellen übernehmen',
+    captureBackgroundHint:
+      'Aktuelle Hintergrund-Einstellungen (Farbe, Gradient, Audio-Reaktiv) für diesen Marker erfassen',
+    backgroundMarkerHint:
+      'Der aktuelle Hintergrund wird beim Speichern erfasst und an dieser Stelle angewendet.',
+    backgroundChanges: 'Ändert den Hintergrund',
     label: 'Label',
     time: 'Zeit',
     volume: 'Lautstärke',

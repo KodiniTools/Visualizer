@@ -1,7 +1,9 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick, inject } from 'vue'
+import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore.js'
 
 export function useBgSettings() {
   const canvasManager = inject('canvasManager')
+  const backgroundBridge = useBackgroundBridgeStore()
 
   const backgroundColor = ref('#ffffff')
   const backgroundOpacity = ref(1.0)
@@ -589,6 +591,106 @@ export function useBgSettings() {
     console.log('🗑️ Preset gelöscht')
   }
 
+  // ===== BACKGROUND SNAPSHOT (für Beat-Marker etc.) =====
+
+  /**
+   * Erfasst den kompletten aktuellen Hintergrund (Farbe, Deckkraft, Gradient
+   * und alle Audio-Reaktiven Effekte) als serialisierbaren Snapshot.
+   * Vollständiger als das Preset-Format – enthält auch Strobe & Contrast.
+   * @returns {object}
+   */
+  function buildBackgroundSnapshot() {
+    return {
+      backgroundColor: backgroundColor.value,
+      backgroundOpacity: backgroundOpacity.value,
+      gradientEnabled: Boolean(gradientEnabled.value),
+      gradientColor2: gradientColor2.value,
+      gradientType: gradientType.value,
+      gradientAngle: gradientAngle.value,
+      bgAudioEnabled: Boolean(bgAudioEnabled.value),
+      bgAudioSource: bgAudioSource.value,
+      bgAudioSmoothing: bgAudioSmoothing.value,
+      bgEffects: {
+        hue: { enabled: Boolean(bgEffectHue.value), intensity: bgEffectHueIntensity.value },
+        brightness: {
+          enabled: Boolean(bgEffectBrightness.value),
+          intensity: bgEffectBrightnessIntensity.value,
+        },
+        saturation: {
+          enabled: Boolean(bgEffectSaturation.value),
+          intensity: bgEffectSaturationIntensity.value,
+        },
+        glow: { enabled: Boolean(bgEffectGlow.value), intensity: bgEffectGlowIntensity.value },
+        strobe: {
+          enabled: Boolean(bgEffectStrobe.value),
+          intensity: bgEffectStrobeIntensity.value,
+        },
+        contrast: {
+          enabled: Boolean(bgEffectContrast.value),
+          intensity: bgEffectContrastIntensity.value,
+        },
+        gradientPulse: {
+          enabled: Boolean(bgEffectGradientPulse.value),
+          intensity: bgEffectGradientPulseIntensity.value,
+        },
+        gradientRotation: {
+          enabled: Boolean(bgEffectGradientRotation.value),
+          intensity: bgEffectGradientRotationIntensity.value,
+        },
+      },
+    }
+  }
+
+  /**
+   * Wendet einen zuvor erfassten Hintergrund-Snapshot an und aktualisiert
+   * Canvas + UI (Farbe, Gradient, Audio-Reaktiv).
+   * @param {object} snapshot
+   */
+  function applyBackgroundSnapshot(snapshot) {
+    if (!snapshot || !canvasManager.value) return
+
+    try {
+      if (snapshot.backgroundColor !== undefined) backgroundColor.value = snapshot.backgroundColor
+      if (snapshot.backgroundOpacity !== undefined)
+        backgroundOpacity.value = snapshot.backgroundOpacity
+
+      gradientEnabled.value = Boolean(snapshot.gradientEnabled)
+      gradientColor2.value = snapshot.gradientColor2 || '#0066ff'
+      gradientType.value = snapshot.gradientType || 'radial'
+      gradientAngle.value = snapshot.gradientAngle ?? 45
+
+      bgAudioEnabled.value = Boolean(snapshot.bgAudioEnabled)
+      bgAudioSource.value = snapshot.bgAudioSource || 'bass'
+      bgAudioSmoothing.value = snapshot.bgAudioSmoothing ?? 50
+
+      const fx = snapshot.bgEffects || {}
+      bgEffectHue.value = Boolean(fx.hue?.enabled)
+      bgEffectHueIntensity.value = fx.hue?.intensity ?? 80
+      bgEffectBrightness.value = Boolean(fx.brightness?.enabled)
+      bgEffectBrightnessIntensity.value = fx.brightness?.intensity ?? 80
+      bgEffectSaturation.value = Boolean(fx.saturation?.enabled)
+      bgEffectSaturationIntensity.value = fx.saturation?.intensity ?? 80
+      bgEffectGlow.value = Boolean(fx.glow?.enabled)
+      bgEffectGlowIntensity.value = fx.glow?.intensity ?? 80
+      bgEffectStrobe.value = Boolean(fx.strobe?.enabled)
+      bgEffectStrobeIntensity.value = fx.strobe?.intensity ?? 80
+      bgEffectContrast.value = Boolean(fx.contrast?.enabled)
+      bgEffectContrastIntensity.value = fx.contrast?.intensity ?? 70
+      bgEffectGradientPulse.value = Boolean(fx.gradientPulse?.enabled)
+      bgEffectGradientPulseIntensity.value = fx.gradientPulse?.intensity ?? 80
+      bgEffectGradientRotation.value = Boolean(fx.gradientRotation?.enabled)
+      bgEffectGradientRotationIntensity.value = fx.gradientRotation?.intensity ?? 80
+
+      updateFromColorPicker()
+      updateGradientSettings()
+      updateBgAudioReactive()
+
+      console.log('🎯 Hintergrund-Snapshot angewendet (Beat-Marker)')
+    } catch (error) {
+      console.error('❌ Fehler beim Anwenden des Hintergrund-Snapshots:', error)
+    }
+  }
+
   // ===== UNDO SYSTEM =====
 
   function saveCanvasState() {
@@ -869,6 +971,8 @@ export function useBgSettings() {
   onMounted(() => {
     loadPresets()
     window.addEventListener('preset:apply', handlePresetApply)
+    // Bridge registrieren, damit z.B. Beat-Marker den Hintergrund erfassen/anwenden können
+    backgroundBridge.register(buildBackgroundSnapshot, applyBackgroundSnapshot)
     if (!initializeCanvasSettings()) {
       console.log('⏳ CanvasControlPanel mounted - warte auf CanvasManager...')
     }
@@ -876,6 +980,7 @@ export function useBgSettings() {
 
   onUnmounted(() => {
     window.removeEventListener('preset:apply', handlePresetApply)
+    backgroundBridge.register(null, null)
   })
 
   return {
@@ -963,6 +1068,8 @@ export function useBgSettings() {
     saveCurrentAsPreset,
     loadPreset,
     deletePreset,
+    buildBackgroundSnapshot,
+    applyBackgroundSnapshot,
     saveCanvasState,
     undoLastChange,
     resetNormalBackground,

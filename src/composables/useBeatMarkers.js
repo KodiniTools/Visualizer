@@ -3,6 +3,7 @@ import { useI18n } from '../lib/i18n.js'
 import { usePlayerStore } from '../stores/playerStore.js'
 import { useBeatMarkerStore } from '../stores/beatMarkerStore.js'
 import { useVisualizerStore } from '../stores/visualizerStore.js'
+import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore.js'
 import { formatTime, parseTimeInput } from '../utils/formatTime.js'
 
 /**
@@ -18,6 +19,7 @@ export function useBeatMarkers(openMarkersPopover) {
   const playerStore = usePlayerStore()
   const beatMarkerStore = useBeatMarkerStore()
   const visualizerStore = useVisualizerStore()
+  const backgroundBridge = useBackgroundBridgeStore()
 
   const showMarkerPanel = ref(false)
   const editingMarkerId = ref(null)
@@ -26,7 +28,19 @@ export function useBeatMarkers(openMarkersPopover) {
   const newMarkerVisualizer = ref('')
   const newMarkerColor = ref('#6ea8fe')
   const newMarkerChangeColor = ref(false)
+  const newMarkerChangeBackground = ref(false)
+  const capturedBackground = ref(null)
   const newMarkerLabel = ref('')
+
+  /**
+   * Wendet die Hintergrund-Aktion eines ausgelösten Markers an (falls vorhanden).
+   */
+  const applyMarkerBackground = (action) => {
+    if (action?.background) {
+      backgroundBridge.applySnapshot(action.background)
+      console.log('🎨 Hintergrund via Beat-Marker gewechselt')
+    }
+  }
 
   const updateMarkerTimeFromInput = () => {
     const seconds = parseTimeInput(pendingMarkerTimeInput.value)
@@ -47,6 +61,8 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerLabel.value = `Drop ${beatMarkerStore.markerCount + 1}`
     newMarkerVisualizer.value = ''
     newMarkerChangeColor.value = false
+    newMarkerChangeBackground.value = false
+    capturedBackground.value = null
     showMarkerPanel.value = true
     openMarkersPopover()
   }
@@ -59,14 +75,36 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerVisualizer.value = marker.action?.visualizer || ''
     newMarkerColor.value = marker.action?.color || '#6ea8fe'
     newMarkerChangeColor.value = !!marker.action?.color
+    newMarkerChangeBackground.value = !!marker.action?.background
+    capturedBackground.value = marker.action?.background || null
     showMarkerPanel.value = true
   }
 
+  /**
+   * Erfasst den aktuellen Hintergrund und speichert ihn für den Marker.
+   * Aktiviert automatisch "Hintergrund ändern".
+   */
+  const captureCurrentBackground = () => {
+    const snapshot = backgroundBridge.captureSnapshot()
+    if (snapshot) {
+      capturedBackground.value = snapshot
+      newMarkerChangeBackground.value = true
+      console.log('🎨 Aktueller Hintergrund für Marker erfasst')
+    }
+  }
+
   const confirmAddMarker = () => {
+    let background = null
+    if (newMarkerChangeBackground.value) {
+      // Bereits erfassten Snapshot verwenden, sonst aktuellen Hintergrund erfassen
+      background = capturedBackground.value || backgroundBridge.captureSnapshot()
+    }
+
     const action = {
       type: 'combined',
       visualizer: newMarkerVisualizer.value || null,
       color: newMarkerChangeColor.value ? newMarkerColor.value : null,
+      background: background,
     }
     if (editingMarkerId.value !== null) {
       beatMarkerStore.updateMarker(editingMarkerId.value, {
@@ -79,6 +117,8 @@ export function useBeatMarkers(openMarkersPopover) {
     }
     editingMarkerId.value = null
     showMarkerPanel.value = false
+    capturedBackground.value = null
+    newMarkerChangeBackground.value = false
   }
 
   const cancelAddMarker = () => {
@@ -122,6 +162,7 @@ export function useBeatMarkers(openMarkersPopover) {
           visualizerStore.setColor(triggered.action.color)
           console.log('🎨 Farbe gewechselt zu:', triggered.action.color)
         }
+        applyMarkerBackground(triggered.action)
       }
     },
   )
@@ -152,6 +193,7 @@ export function useBeatMarkers(openMarkersPopover) {
             visualizerStore.setColor(triggered.action.color)
             console.log('🎨 Start-Marker: Farbe gewechselt zu:', triggered.action.color)
           }
+          applyMarkerBackground(triggered.action)
         }
       }
     },
@@ -183,11 +225,14 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerVisualizer,
     newMarkerColor,
     newMarkerChangeColor,
+    newMarkerChangeBackground,
+    capturedBackground,
     newMarkerLabel,
     updateMarkerTimeFromInput,
     getMarkerPosition,
     addMarkerAtCurrentTime,
     startEditMarker,
+    captureCurrentBackground,
     confirmAddMarker,
     cancelAddMarker,
     seekToMarker,

@@ -617,7 +617,8 @@ export default {
     captureBackground: 'Capture current',
     captureBackgroundHint:
       'Capture the current background settings (color, gradient, audio-reactive) for this marker',
-    backgroundMarkerHint: 'The current background is captured on save and applied at this point.',
+    backgroundMarkerHint:
+      'The background you have set right now is saved and automatically applied during playback when the song reaches this marker time.',
     backgroundChanges: 'Changes the background',
     label: 'Label',
     time: 'Time',

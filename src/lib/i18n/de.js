@@ -614,7 +614,7 @@ export default {
     captureBackgroundHint:
       'Aktuelle Hintergrund-Einstellungen (Farbe, Gradient, Audio-Reaktiv) für diesen Marker erfassen',
     backgroundMarkerHint:
-      'Der aktuelle Hintergrund wird beim Speichern erfasst und an dieser Stelle angewendet.',
+      'Der Hintergrund, den du gerade eingestellt hast, wird gespeichert und beim Abspielen automatisch aktiviert, sobald der Song diese Marker-Zeit erreicht.',
     backgroundChanges: 'Ändert den Hintergrund',
     label: 'Label',
     time: 'Zeit',

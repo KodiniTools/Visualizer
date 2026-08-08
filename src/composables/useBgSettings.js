@@ -583,6 +583,10 @@ export function useBgSettings() {
         updateGradientSettings()
         updateBgAudioReactive()
       } else {
+        // Farb-/Gradient-Preset: evtl. vorhandenes Workspace-Bild entfernen
+        if (canvasManager.value.workspaceBackground) {
+          canvasManager.value.workspaceBackground = null
+        }
         updateFromColorPicker()
         updateGradientSettings()
         updateBgAudioReactive()
@@ -604,14 +608,29 @@ export function useBgSettings() {
 
   /**
    * Erfasst einen aktuell gesetzten Bild-Hintergrund (z.B. Galeriebild) als
-   * serialisierbares Objekt: Bildquelle + Foto-Einstellungen inkl. des
-   * Bild-Audio-Reaktiv (fotoSettings.audioReactive).
-   * @returns {{ src: string, settings: object|null } | null}
+   * serialisierbares Objekt: Ziel (Haupt- oder Workspace-Hintergrund),
+   * Bildquelle + Foto-Einstellungen inkl. Bild-Audio-Reaktiv
+   * (fotoSettings.audioReactive).
+   * @returns {{ target: string, src: string, settings: object|null } | null}
    */
   function captureImageBackground() {
-    const bg = canvasManager.value?.background
+    const cm = canvasManager.value
+    if (!cm) return null
+
+    // Workspace-Hintergrund hat Vorrang, wenn ein Workspace aktiv ist
+    const wsBg = cm.workspaceBackground
+    if (wsBg && wsBg.imageObject?.src) {
+      return {
+        target: 'workspace',
+        src: wsBg.imageObject.src,
+        settings: wsBg.fotoSettings ? JSON.parse(JSON.stringify(wsBg.fotoSettings)) : null,
+      }
+    }
+
+    const bg = cm.background
     if (bg && typeof bg === 'object' && bg.imageObject?.src) {
       return {
+        target: 'background',
         src: bg.imageObject.src,
         settings: bg.fotoSettings ? JSON.parse(JSON.stringify(bg.fotoSettings)) : null,
       }
@@ -620,30 +639,55 @@ export function useBgSettings() {
   }
 
   /**
-   * Lädt ein Bild aus einer Quelle und setzt es als Hintergrund inkl. der
-   * gespeicherten Foto-Einstellungen (Audio-Reaktiv, Flip, Position, ...).
-   * @param {{ src: string, settings: object|null }} imageData
+   * Lädt ein Bild aus einer Quelle und setzt es als Haupt- oder Workspace-
+   * Hintergrund inkl. der gespeicherten Foto-Einstellungen (Audio-Reaktiv,
+   * Flip, Position, ...).
+   * @param {{ target?: string, src: string, settings: object|null }} imageData
    */
   function applyImageBackground(imageData) {
     if (!canvasManager.value || !imageData?.src) return
 
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      if (!canvasManager.value) return
-      canvasManager.value.setBackground(img)
-      const bg = canvasManager.value.background
-      if (imageData.settings && bg && typeof bg === 'object') {
-        bg.fotoSettings = JSON.parse(JSON.stringify(imageData.settings))
+    const setImage = (img) => {
+      const cm = canvasManager.value
+      if (!cm) return
+      if (imageData.target === 'workspace' && cm.workspacePreset) {
+        cm.setWorkspaceBackground(img)
+        const wsBg = cm.workspaceBackground
+        if (imageData.settings && wsBg) {
+          wsBg.fotoSettings = JSON.parse(JSON.stringify(imageData.settings))
+        }
+      } else {
+        cm.setBackground(img)
+        const bg = cm.background
+        if (imageData.settings && bg && typeof bg === 'object') {
+          bg.fotoSettings = JSON.parse(JSON.stringify(imageData.settings))
+        }
       }
-      canvasManager.value.redrawCallback?.()
-      canvasManager.value.updateUICallback?.()
-      console.log('🖼️ Bild-Hintergrund aus Preset angewendet:', imageData.src)
+      cm.redrawCallback?.()
+      cm.updateUICallback?.()
+      console.log(
+        `🖼️ Bild-Hintergrund aus Preset angewendet (${imageData.target || 'background'}):`,
+        imageData.src,
+      )
     }
-    img.onerror = () => {
-      console.error('❌ Hintergrundbild konnte nicht geladen werden:', imageData.src)
+
+    const load = (useCors) => {
+      const img = new Image()
+      if (useCors) img.crossOrigin = 'anonymous'
+      img.onload = () => setImage(img)
+      img.onerror = () => {
+        if (useCors) {
+          // Fallback: erneut ohne CORS versuchen (z.B. bei Cache-/CORS-Konflikt)
+          console.warn('⚠️ Hintergrundbild via CORS fehlgeschlagen – erneuter Versuch ohne CORS')
+          load(false)
+        } else {
+          console.error('❌ Hintergrundbild konnte nicht geladen werden:', imageData.src)
+        }
+      }
+      img.src = imageData.src
     }
-    img.src = imageData.src
+
+    load(true)
   }
 
   // ===== BACKGROUND SNAPSHOT (für Beat-Marker etc.) =====
@@ -744,6 +788,11 @@ export function useBgSettings() {
         updateGradientSettings()
         updateBgAudioReactive()
       } else {
+        // Farb-/Gradient-Hintergrund: evtl. vorhandenes Workspace-Bild entfernen,
+        // damit die Farbe sichtbar wird (setBackground ersetzt nur das Haupt-Bild).
+        if (canvasManager.value.workspaceBackground) {
+          canvasManager.value.workspaceBackground = null
+        }
         updateFromColorPicker()
         updateGradientSettings()
         updateBgAudioReactive()

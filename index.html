@@ -8,9 +8,13 @@
     <!-- Font Preload (verhindert FOUT) -->
     <link rel="preload" href="/fonts/Supreme-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <!-- Favicon (public/favicon.ico – base-aware für Dev '/' und Prod '/visualizer/') -->
-    <link rel="icon" href="%BASE_URL%favicon.ico" sizes="any">
-    <link rel="icon" href="%BASE_URL%icons/favicon-32x32.png" sizes="32x32" type="image/png">
+    <!-- Favicon: public/favicon.ico ist die maßgebliche Tab-Ikone.
+         base-aware via %BASE_URL% (Dev '/' bzw. Prod '/visualizer/').
+         Bewusst KEIN konkurrierender 32x32-PNG-<link rel="icon">: Browser würden
+         die exakt passende PNG-Größe der .ico vorziehen. Die .ico enthält bereits
+         16x16 und 32x32. ?v=3 erzwingt das Neuladen trotz Favicon-Cache. -->
+    <link rel="icon" type="image/x-icon" href="%BASE_URL%favicon.ico?v=3" sizes="any">
+    <link rel="shortcut icon" type="image/x-icon" href="%BASE_URL%favicon.ico?v=3">
     <link rel="apple-touch-icon" href="%BASE_URL%icons/icon-192x192.png">
 
     <!-- PWA -->

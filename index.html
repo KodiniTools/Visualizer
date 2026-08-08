@@ -8,13 +8,29 @@
     <!-- Font Preload (verhindert FOUT) -->
     <link rel="preload" href="/fonts/Supreme-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <!-- Favicon: public/favicon.ico ist die maßgebliche Tab-Ikone.
-         base-aware via %BASE_URL% (Dev '/' bzw. Prod '/visualizer/').
-         Bewusst KEIN konkurrierender 32x32-PNG-<link rel="icon">: Browser würden
-         die exakt passende PNG-Größe der .ico vorziehen. Die .ico enthält bereits
-         16x16 und 32x32. ?v=3 erzwingt das Neuladen trotz Favicon-Cache. -->
-    <link rel="icon" type="image/x-icon" href="%BASE_URL%favicon.ico?v=3" sizes="any">
-    <link rel="shortcut icon" type="image/x-icon" href="%BASE_URL%favicon.ico?v=3">
+    <!-- Favicon: die favicon.ico aus dem Domain-Web-Root
+         (/var/www/kodinitools.com/public/favicon.ico → https://kodinitools.com/favicon.ico).
+         Root-absolut "/favicon.ico", NICHT die App-Kopie unter /visualizer/.
+         Per Inline-Script injiziert, weil Vite statische <link href="/…"> beim Build
+         zwingend mit der Base "/visualizer/" präfixen würde – das String-Literal im
+         Script bleibt unangetastet. Kein konkurrierender 32x32-PNG-<link rel="icon">,
+         sonst zöge der Browser die PNG der .ico vor. ?v=4 bricht den Favicon-Cache. -->
+    <script>
+      (function () {
+        var href = '/favicon.ico?v=4'
+        ;[
+          { rel: 'icon', type: 'image/x-icon', sizes: 'any' },
+          { rel: 'shortcut icon', type: 'image/x-icon' },
+        ].forEach(function (spec) {
+          var link = document.createElement('link')
+          link.rel = spec.rel
+          link.type = spec.type
+          if (spec.sizes) link.setAttribute('sizes', spec.sizes)
+          link.href = href
+          document.head.appendChild(link)
+        })
+      })()
+    </script>
     <link rel="apple-touch-icon" href="%BASE_URL%icons/icon-192x192.png">
 
     <!-- PWA -->

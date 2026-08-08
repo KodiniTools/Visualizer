@@ -44,8 +44,16 @@ export function useBeatMarkers(openMarkersPopover) {
    * Wendet die Hintergrund-Aktion eines ausgelösten Markers an (falls vorhanden).
    */
   const applyMarkerBackground = (action) => {
-    if (action?.background) {
-      backgroundBridge.applySnapshot(action.background)
+    if (!action) return
+    // Preset bevorzugt frisch anhand des Keys auflösen (spiegelt aktuelle
+    // Presets wider); sonst den im Marker gespeicherten Snapshot verwenden.
+    let snapshot = action.background
+    if (action.backgroundKey) {
+      const resolved = resolveBackgroundPreset(action.backgroundKey)
+      if (resolved?.snapshot) snapshot = resolved.snapshot
+    }
+    if (snapshot) {
+      backgroundBridge.applySnapshot(snapshot)
       console.log('🎨 Hintergrund via Beat-Marker gewechselt')
     }
   }

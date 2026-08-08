@@ -5,23 +5,31 @@ import { ref, watch } from 'vue'
 const STORAGE_KEY = 'visualizer-marker-transition'
 
 /**
- * Marker-Übergang Store
+ * Marker-Übergang Store (Crossfade)
  *
- * Optionaler Aus-/Einblende-Übergang (Dip-to-Color) beim Wechsel durch einen
- * Beat-Marker. Der sichtbare Verlauf wird im Render-Loop über `overlayAlpha()`
- * berechnet; die eigentliche Änderung (Hintergrund/Visualizer/Farbe) wird vom
- * useBeatMarkers-Composable am Mittelpunkt (voll abgedunkelt) angewendet.
+ * Optionaler echter Crossfade beim Wechsel durch einen Beat-Marker: Der letzte
+ * Frame der alten Szene wird eingefroren, die Änderung angewendet, und der alte
+ * Frame über der neuen (live animierten) Szene ausgeblendet.
+ *
+ * Ablauf (orchestriert von useBeatMarkers + MarkerTransitionRenderer):
+ *  1. beginCapture() – kurze Fenster, in dem der Renderer pro Ziel (Live &
+ *     Aufnahme) den aktuellen (alten) Frame einfriert.
+ *  2. startFade() – nach Anwendung der Marker-Änderung; blendet den alten Frame
+ *     über `duration` Sekunden aus.
  */
 export const useMarkerTransitionStore = defineStore('markerTransition', () => {
   const enabled = ref(false)
-  // Dauer des gesamten Übergangs (Ausblenden + Einblenden) in Sekunden, 1–5.
+  // Dauer des Crossfades in Sekunden, 1–5.
   const duration = ref(1.5)
-  // Farbe, zu der abgeblendet wird (Standard: Schwarz).
-  const color = ref('#000000')
 
-  // Laufzeit-Status (nicht reaktiv – nur vom Render-Loop gelesen)
+  // Laufzeit-Status (nicht reaktiv – nur von Composable/Renderer genutzt)
+  let active = false
   let startTime = null
   let durationMs = 0
+
+  // Dauer des Capture-Fensters vor dem Fade (ms). Gibt Live- und Aufnahme-Ziel
+  // Zeit, ihren alten Frame einzufrieren, bevor die Änderung greift.
+  const captureMs = 40
 
   // ── Persistenz ────────────────────────────────────────────────────────
   function load() {
@@ -33,7 +41,6 @@ export const useMarkerTransitionStore = defineStore('markerTransition', () => {
         if (typeof data.duration === 'number') {
           duration.value = Math.max(1, Math.min(5, data.duration))
         }
-        if (typeof data.color === 'string') color.value = data.color
       }
     } catch (e) {
       console.warn('⚠️ [MarkerTransition] Laden fehlgeschlagen:', e)
@@ -44,14 +51,14 @@ export const useMarkerTransitionStore = defineStore('markerTransition', () => {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ enabled: enabled.value, duration: duration.value, color: color.value }),
+        JSON.stringify({ enabled: enabled.value, duration: duration.value }),
       )
     } catch (e) {
       console.warn('⚠️ [MarkerTransition] Speichern fehlgeschlagen:', e)
     }
   }
 
-  watch([enabled, duration, color], persist)
+  watch([enabled, duration], persist)
 
   // ── Übergang steuern ──────────────────────────────────────────────────
 
@@ -60,57 +67,62 @@ export const useMarkerTransitionStore = defineStore('markerTransition', () => {
   }
 
   /**
-   * Startet einen Übergang ab jetzt. `now` optional (Standard performance.now()).
+   * Startet das Capture-Fenster: Der Renderer friert nun den alten Frame ein.
    */
-  function start(now = performance.now()) {
+  function beginCapture() {
+    active = true
+    startTime = null
+  }
+
+  /**
+   * Startet den eigentlichen Ausblend-Verlauf (nach Anwenden der Änderung).
+   */
+  function startFade(now = performance.now()) {
     startTime = now
     durationMs = clampedDuration() * 1000
   }
 
-  /**
-   * Ob aktuell ein Übergang läuft.
-   */
-  function isActive() {
-    return startTime !== null
+  /** Capture-Phase aktiv (Frame einfrieren, alte Szene noch sichtbar). */
+  function isCapturing() {
+    return active && startTime === null
+  }
+
+  /** Fade-Phase aktiv (alten Frame ausblenden). */
+  function isFading() {
+    return active && startTime !== null
   }
 
   /**
-   * Zeit bis zum Mittelpunkt (voll abgedunkelt) in ms – dort soll die
-   * Marker-Änderung angewendet werden.
-   */
-  function midpointMs() {
-    return (clampedDuration() * 1000) / 2
-  }
-
-  /**
-   * Overlay-Deckkraft (0..1) für den aktuellen Frame. Dreieckverlauf:
-   * 0 → 1 (Ausblenden) in der ersten Hälfte, 1 → 0 (Einblenden) in der zweiten.
+   * Fortschritt der Fade-Phase 0..1, oder null wenn nicht im Fade.
    * @param {number} now
    */
-  function overlayAlpha(now = performance.now()) {
-    if (startTime === null) return 0
-    const elapsed = now - startTime
-    if (elapsed >= durationMs || durationMs <= 0) {
-      startTime = null
-      return 0
-    }
-    const progress = elapsed / durationMs
-    return progress < 0.5 ? progress * 2 : (1 - progress) * 2
+  function fadeProgress(now = performance.now()) {
+    if (!isFading()) return null
+    if (durationMs <= 0) return 1
+    return (now - startTime) / durationMs
+  }
+
+  /** Beendet den Übergang. */
+  function end() {
+    active = false
+    startTime = null
   }
 
   function cancel() {
-    startTime = null
+    end()
   }
 
   return {
     enabled,
     duration,
-    color,
+    captureMs,
     load,
-    start,
-    isActive,
-    midpointMs,
-    overlayAlpha,
+    beginCapture,
+    startFade,
+    isCapturing,
+    isFading,
+    fadeProgress,
+    end,
     cancel,
   }
 })

@@ -64,17 +64,22 @@ export function useBeatMarkers(openMarkersPopover) {
   }
 
   /**
-   * Führt einen ausgelösten Marker aus. Ist der Übergang aktiviert, wird die
-   * Änderung erst am Mittelpunkt (voll abgedunkelt) angewendet – so blendet der
-   * alte Zustand aus und der neue ein. Sonst wird sofort gewechselt.
+   * Führt einen ausgelösten Marker aus. Ist der Crossfade aktiviert, wird der
+   * aktuelle (alte) Frame kurz eingefroren, dann die Änderung angewendet und der
+   * alte Frame über der neuen Szene ausgeblendet. Sonst wird sofort gewechselt.
    * @param {object} action
    * @param {boolean} allowTransition - false z.B. für den Start-Marker (0:00)
    */
   const runMarkerTrigger = (action, allowTransition = true) => {
     if (!action) return
     if (allowTransition && markerTransition.enabled) {
-      markerTransition.start()
-      setTimeout(() => applyMarkerAction(action), markerTransition.midpointMs())
+      // 1) Capture-Fenster öffnen: Renderer friert den alten Frame ein
+      markerTransition.beginCapture()
+      // 2) Nach dem Capture-Fenster: Änderung anwenden und Ausblenden starten
+      setTimeout(() => {
+        applyMarkerAction(action)
+        markerTransition.startFade()
+      }, markerTransition.captureMs)
     } else {
       applyMarkerAction(action)
     }

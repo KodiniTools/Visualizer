@@ -609,6 +609,9 @@ export default {
     noChange: '-- Kein Wechsel --',
     color: 'Farbe',
     change: 'Ändern',
+    disableVisualizer: 'Visualizer deaktivieren',
+    disableVisualizerHint:
+      'An diesem Marker den Visualizer ausblenden – es läuft nur der Hintergrund (inkl. Audio-Reaktiv)',
     background: 'Hintergrund',
     myBackgrounds: 'Meine Hintergründe',
     backgroundTemplates: 'Vorlagen',

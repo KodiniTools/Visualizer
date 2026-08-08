@@ -610,11 +610,8 @@ export default {
     color: 'Farbe',
     change: 'Ändern',
     background: 'Hintergrund',
-    captureBackground: 'Aktuellen übernehmen',
-    captureBackgroundHint:
-      'Aktuelle Hintergrund-Einstellungen (Farbe, Gradient, Audio-Reaktiv) für diesen Marker erfassen',
-    backgroundMarkerHint:
-      "So geht's: Hintergrund im Canvas-Panel wie gewünscht einstellen, dann „Aktuellen übernehmen“ klicken. Nach dem Speichern springt die Ansicht auf den Ausgangs-Hintergrund zurück – der erfasste Hintergrund erscheint erst beim Abspielen an dieser Marker-Zeit.",
+    myBackgrounds: 'Meine Hintergründe',
+    backgroundTemplates: 'Vorlagen',
     backgroundChanges: 'Ändert den Hintergrund',
     label: 'Label',
     time: 'Zeit',

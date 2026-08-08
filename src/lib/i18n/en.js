@@ -614,11 +614,8 @@ export default {
     color: 'Color',
     change: 'Change',
     background: 'Background',
-    captureBackground: 'Capture current',
-    captureBackgroundHint:
-      'Capture the current background settings (color, gradient, audio-reactive) for this marker',
-    backgroundMarkerHint:
-      'How to: set the background in the canvas panel as desired, then click “Capture current”. After saving, the view returns to the starting background – the captured background only appears during playback at this marker time.',
+    myBackgrounds: 'My backgrounds',
+    backgroundTemplates: 'Templates',
     backgroundChanges: 'Changes the background',
     label: 'Label',
     time: 'Time',

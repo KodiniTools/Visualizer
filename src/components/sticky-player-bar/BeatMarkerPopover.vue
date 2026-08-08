@@ -100,24 +100,19 @@
       </div>
       <div class="form-row">
         <label>{{ t('player.background') }}:</label>
-        <div class="bg-input-wrapper">
-          <label class="color-checkbox">
-            <input v-model="newMarkerChangeBackground" type="checkbox" />
-            <span>{{ t('player.change') }}</span>
-          </label>
-          <button
-            type="button"
-            class="btn-capture-bg"
-            :class="{ captured: !!capturedBackground }"
-            :title="t('player.captureBackgroundHint')"
-            @click="captureCurrentBackground"
-          >
-            {{ capturedBackground ? '✓ ' : '' }}{{ t('player.captureBackground') }}
-          </button>
-        </div>
-      </div>
-      <div v-if="newMarkerChangeBackground" class="form-hint">
-        {{ t('player.backgroundMarkerHint') }}
+        <select v-model="newMarkerBackgroundKey" class="marker-select">
+          <option value="">{{ t('player.noChange') }}</option>
+          <optgroup v-if="backgroundPresetOptions.user.length" :label="t('player.myBackgrounds')">
+            <option v-for="bg in backgroundPresetOptions.user" :key="bg.key" :value="bg.key">
+              {{ bg.label }}
+            </option>
+          </optgroup>
+          <optgroup :label="t('player.backgroundTemplates')">
+            <option v-for="bg in backgroundPresetOptions.builtin" :key="bg.key" :value="bg.key">
+              {{ bg.label }}
+            </option>
+          </optgroup>
+        </select>
       </div>
       <div class="form-row">
         <label>{{ t('player.label') }}:</label>
@@ -160,7 +155,7 @@
           v-if="marker.action.background"
           class="marker-action marker-action-bg"
           :title="t('player.backgroundChanges')"
-          >🎨 BG</span
+          >🎨 {{ marker.action.backgroundLabel || 'BG' }}</span
         >
         <div class="marker-buttons">
           <button
@@ -193,12 +188,13 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
+import { inject, computed } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { usePlayerStore } from '../../stores/playerStore.js'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
 import { useVisualizerStore } from '../../stores/visualizerStore.js'
 import { formatTime } from '../../utils/formatTime.js'
+import { getBackgroundPresetOptions } from '../../utils/backgroundPresets.js'
 import { vPopoverDrag } from '../../directives/popoverDrag.js'
 
 const { t, locale } = useI18n()
@@ -217,13 +213,11 @@ const {
   newMarkerVisualizer,
   newMarkerColor,
   newMarkerChangeColor,
-  newMarkerChangeBackground,
-  capturedBackground,
+  newMarkerBackgroundKey,
   newMarkerLabel,
   updateMarkerTimeFromInput,
   addMarkerAtCurrentTime,
   startEditMarker,
-  captureCurrentBackground,
   confirmAddMarker,
   cancelAddMarker,
   seekToMarker,
@@ -231,6 +225,13 @@ const {
   clearAllMarkers,
   getVisualizerName,
 } = markers
+
+// Hintergrund-Auswahl (Vorlagen + gespeicherte Presets). Wird beim Öffnen des
+// Formulars neu geladen, damit frisch gespeicherte Presets sofort erscheinen.
+const backgroundPresetOptions = computed(() => {
+  void showMarkerPanel.value
+  return getBackgroundPresetOptions()
+})
 </script>
 
 <style scoped src="./popover-chrome.css"></style>
@@ -313,40 +314,6 @@ const {
 .color-checkbox input {
   width: 12px;
   height: 12px;
-}
-.bg-input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-.btn-capture-bg {
-  padding: 3px 8px;
-  font-size: 9px;
-  font-weight: 600;
-  background-color: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-.btn-capture-bg:hover {
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
-.btn-capture-bg.captured {
-  background-color: rgba(74, 222, 128, 0.2);
-  border-color: #4ade80;
-  color: #4ade80;
-}
-.form-hint {
-  font-size: 9px;
-  color: var(--text-muted);
-  font-style: italic;
-  margin: -2px 0 6px 0;
-  padding-left: 63px;
 }
 .marker-action-bg {
   color: #4ade80;

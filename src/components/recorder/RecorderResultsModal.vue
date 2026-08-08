@@ -161,14 +161,19 @@ defineEmits(['close'])
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  flex: 1;
+  flex: 0 1 auto;
   min-height: 0;
 }
 
 .preview-video {
-  width: 100%;
-  height: 100%;
+  /* Aspekterhaltend begrenzen (vh statt %-Höhe, damit auch quadratische
+     Workspace-Videos sicher passen und die Steuerung sichtbar bleibt). */
+  max-width: 100%;
+  max-height: 65vh;
+  width: auto;
+  height: auto;
   display: block;
+  margin: 0 auto;
   object-fit: contain;
 }
 

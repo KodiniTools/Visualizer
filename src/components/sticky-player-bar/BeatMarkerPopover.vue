@@ -53,6 +53,25 @@
       </div>
     </div>
 
+    <!-- Übergang zwischen Markern (Aus-/Einblenden) -->
+    <div class="marker-transition-row">
+      <label class="transition-toggle" :title="t('player.transitionHint')">
+        <input v-model="markerTransition.enabled" type="checkbox" />
+        <span>{{ t('player.transition') }}</span>
+      </label>
+      <div v-if="markerTransition.enabled" class="transition-duration">
+        <input
+          v-model.number="markerTransition.duration"
+          type="range"
+          min="1"
+          max="5"
+          step="0.5"
+          class="transition-slider"
+        />
+        <span class="transition-value">{{ markerTransition.duration }}s</span>
+      </div>
+    </div>
+
     <!-- Add/Edit Marker Form -->
     <div v-if="showMarkerPanel" class="marker-add-form">
       <div class="form-title">
@@ -193,6 +212,7 @@ import { useI18n } from '../../lib/i18n.js'
 import { usePlayerStore } from '../../stores/playerStore.js'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
 import { useVisualizerStore } from '../../stores/visualizerStore.js'
+import { useMarkerTransitionStore } from '../../stores/markerTransitionStore.js'
 import { formatTime } from '../../utils/formatTime.js'
 import { getBackgroundPresetOptions } from '../../utils/backgroundPresets.js'
 import { vPopoverDrag } from '../../directives/popoverDrag.js'
@@ -201,6 +221,7 @@ const { t, locale } = useI18n()
 const playerStore = usePlayerStore()
 const beatMarkerStore = useBeatMarkerStore()
 const visualizerStore = useVisualizerStore()
+const markerTransition = useMarkerTransitionStore()
 
 const { popover, markers } = inject('playerBar')
 const { closePopover, cascadeOffset } = popover
@@ -318,6 +339,48 @@ const backgroundPresetOptions = computed(() => {
 .marker-action-bg {
   color: #4ade80;
   background-color: rgba(74, 222, 128, 0.12);
+}
+.marker-transition-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+.transition-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.transition-toggle input {
+  width: 12px;
+  height: 12px;
+}
+.transition-duration {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.transition-slider {
+  flex: 1;
+  cursor: pointer;
+  accent-color: var(--accent-primary);
+}
+.transition-value {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  color: var(--accent-primary);
+  min-width: 26px;
+  text-align: right;
 }
 .time-input-wrapper {
   display: flex;

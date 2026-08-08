@@ -613,6 +613,8 @@ export default {
     myBackgrounds: 'Meine Hintergründe',
     backgroundTemplates: 'Vorlagen',
     backgroundChanges: 'Ändert den Hintergrund',
+    transition: 'Übergang',
+    transitionHint: 'Weicher Aus-/Einblende-Übergang beim Marker-Wechsel während der Wiedergabe',
     label: 'Label',
     time: 'Zeit',
     volume: 'Lautstärke',

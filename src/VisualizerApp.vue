@@ -99,6 +99,7 @@ import { useWorkspaceStore } from './stores/workspaceStore.js'
 import { useBackgroundTilesStore } from './stores/backgroundTilesStore.js'
 import { useAudioSourceStore } from './stores/audioSourceStore.js'
 import { useBeatDropStore } from './stores/beatDropStore.js'
+import { useMarkerTransitionStore } from './stores/markerTransitionStore.js'
 import { useAudioFxStore } from './stores/audioFxStore.js'
 import { useTickerStore } from './stores/tickerStore.js'
 import { useToastStore } from './stores/toastStore.js'
@@ -106,6 +107,7 @@ import { useHistoryStore } from './stores/historyStore.js'
 import { BeatDropRenderer } from './lib/canvasManager/rendering/BeatDropRenderer.js'
 import { AudioFxRenderer } from './lib/canvasManager/rendering/AudioFxRenderer.js'
 import { TickerRenderer } from './lib/canvasManager/rendering/TickerRenderer.js'
+import { MarkerTransitionRenderer } from './lib/canvasManager/rendering/MarkerTransitionRenderer.js'
 import { useFrameCapture } from './composables/useFrameCapture.js'
 import { useCanvasImages } from './composables/useCanvasImages.js'
 import { useGlobalAudioData } from './composables/useGlobalAudioData.js'
@@ -150,6 +152,8 @@ const visualizerStore = useVisualizerStore()
 const beatDropStore = useBeatDropStore()
 const audioFxStore = useAudioFxStore()
 const tickerStore = useTickerStore()
+const markerTransitionStore = useMarkerTransitionStore()
+markerTransitionStore.load()
 const gridStore = useGridStore()
 const workspaceStore = useWorkspaceStore()
 const backgroundTilesStore = useBackgroundTilesStore()
@@ -196,6 +200,7 @@ const setRecordingCanvasStream = (s) => {
 const beatDropRenderer = new BeatDropRenderer()
 const audioFxRenderer = new AudioFxRenderer()
 const tickerRenderer = new TickerRenderer()
+const markerTransitionRenderer = new MarkerTransitionRenderer(markerTransitionStore)
 
 // ── Composables ───────────────────────────────────────────────────────────────
 const globalAudioData = useGlobalAudioData()
@@ -281,6 +286,7 @@ const renderLoop = useRenderLoop({
   audioFxRenderer,
   tickerStore,
   tickerRenderer,
+  markerTransitionRenderer,
   getAnalyser: audioEngine.getAnalyser,
   getMicrophoneAnalyser: audioEngine.getMicrophoneAnalyser,
   getMicrophoneAudioContext: audioEngine.getMicrophoneAudioContext,

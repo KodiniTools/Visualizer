@@ -10,6 +10,7 @@ const USER_CANVAS_PRESETS_KEY = 'visualizer-canvas-presets'
  */
 function builtinToSnapshot(bg = {}) {
   return {
+    backgroundImage: null,
     backgroundColor: bg.color || '#ffffff',
     backgroundOpacity: bg.opacity ?? 1.0,
     gradientEnabled: Boolean(bg.gradientEnabled),
@@ -29,6 +30,8 @@ function builtinToSnapshot(bg = {}) {
  */
 function userPresetToSnapshot(p = {}) {
   return {
+    // Bild-Hintergrund (z.B. Galeriebild) inkl. Bild-Audio-Reaktiv durchreichen
+    backgroundImage: p.backgroundImage || null,
     backgroundColor: p.backgroundColor || '#ffffff',
     backgroundOpacity: p.backgroundOpacity ?? 1.0,
     gradientEnabled: Boolean(p.gradientEnabled),

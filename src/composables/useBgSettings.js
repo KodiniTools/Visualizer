@@ -507,6 +507,8 @@ export function useBgSettings() {
     const newPreset = {
       id: Date.now(),
       name: `Preset ${presetNumber}`,
+      // Bild-Hintergrund (z.B. Galeriebild) inkl. Bild-Audio-Reaktiv mitspeichern
+      backgroundImage: captureImageBackground(),
       backgroundColor: backgroundColor.value,
       backgroundOpacity: backgroundOpacity.value,
       gradientEnabled: Boolean(gradientEnabled.value),
@@ -575,9 +577,16 @@ export function useBgSettings() {
         bgEffectGradientRotationIntensity.value = preset.bgEffects.gradientRotation?.intensity || 80
       }
 
-      updateFromColorPicker()
-      updateGradientSettings()
-      updateBgAudioReactive()
+      if (preset.backgroundImage?.src) {
+        // Bild-Hintergrund inkl. Bild-Audio-Reaktiv wiederherstellen
+        applyImageBackground(preset.backgroundImage)
+        updateGradientSettings()
+        updateBgAudioReactive()
+      } else {
+        updateFromColorPicker()
+        updateGradientSettings()
+        updateBgAudioReactive()
+      }
 
       console.log('✅ Canvas-Preset erfolgreich geladen:', preset.name)
     } catch (error) {
@@ -591,6 +600,52 @@ export function useBgSettings() {
     console.log('🗑️ Preset gelöscht')
   }
 
+  // ===== BILD-HINTERGRUND (für Presets & Beat-Marker) =====
+
+  /**
+   * Erfasst einen aktuell gesetzten Bild-Hintergrund (z.B. Galeriebild) als
+   * serialisierbares Objekt: Bildquelle + Foto-Einstellungen inkl. des
+   * Bild-Audio-Reaktiv (fotoSettings.audioReactive).
+   * @returns {{ src: string, settings: object|null } | null}
+   */
+  function captureImageBackground() {
+    const bg = canvasManager.value?.background
+    if (bg && typeof bg === 'object' && bg.imageObject?.src) {
+      return {
+        src: bg.imageObject.src,
+        settings: bg.fotoSettings ? JSON.parse(JSON.stringify(bg.fotoSettings)) : null,
+      }
+    }
+    return null
+  }
+
+  /**
+   * Lädt ein Bild aus einer Quelle und setzt es als Hintergrund inkl. der
+   * gespeicherten Foto-Einstellungen (Audio-Reaktiv, Flip, Position, ...).
+   * @param {{ src: string, settings: object|null }} imageData
+   */
+  function applyImageBackground(imageData) {
+    if (!canvasManager.value || !imageData?.src) return
+
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      if (!canvasManager.value) return
+      canvasManager.value.setBackground(img)
+      const bg = canvasManager.value.background
+      if (imageData.settings && bg && typeof bg === 'object') {
+        bg.fotoSettings = JSON.parse(JSON.stringify(imageData.settings))
+      }
+      canvasManager.value.redrawCallback?.()
+      canvasManager.value.updateUICallback?.()
+      console.log('🖼️ Bild-Hintergrund aus Preset angewendet:', imageData.src)
+    }
+    img.onerror = () => {
+      console.error('❌ Hintergrundbild konnte nicht geladen werden:', imageData.src)
+    }
+    img.src = imageData.src
+  }
+
   // ===== BACKGROUND SNAPSHOT (für Beat-Marker etc.) =====
 
   /**
@@ -601,6 +656,7 @@ export function useBgSettings() {
    */
   function buildBackgroundSnapshot() {
     return {
+      backgroundImage: captureImageBackground(),
       backgroundColor: backgroundColor.value,
       backgroundOpacity: backgroundOpacity.value,
       gradientEnabled: Boolean(gradientEnabled.value),
@@ -681,9 +737,17 @@ export function useBgSettings() {
       bgEffectGradientRotation.value = Boolean(fx.gradientRotation?.enabled)
       bgEffectGradientRotationIntensity.value = fx.gradientRotation?.intensity ?? 80
 
-      updateFromColorPicker()
-      updateGradientSettings()
-      updateBgAudioReactive()
+      if (snapshot.backgroundImage?.src) {
+        // Bild-Hintergrund (z.B. Galeriebild) inkl. Bild-Audio-Reaktiv setzen.
+        // Kein updateFromColorPicker(), da setBackground(Farbe) das Bild ersetzen würde.
+        applyImageBackground(snapshot.backgroundImage)
+        updateGradientSettings()
+        updateBgAudioReactive()
+      } else {
+        updateFromColorPicker()
+        updateGradientSettings()
+        updateBgAudioReactive()
+      }
 
       console.log('🎯 Hintergrund-Snapshot angewendet (Beat-Marker)')
     } catch (error) {

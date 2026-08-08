@@ -613,6 +613,9 @@ export default {
     noChange: '-- No change --',
     color: 'Color',
     change: 'Change',
+    disableVisualizer: 'Disable visualizer',
+    disableVisualizerHint:
+      'Hide the visualizer at this marker – only the background runs (incl. audio-reactive)',
     background: 'Background',
     myBackgrounds: 'My backgrounds',
     backgroundTemplates: 'Templates',

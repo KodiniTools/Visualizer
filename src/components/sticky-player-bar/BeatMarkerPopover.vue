@@ -96,7 +96,11 @@
       </div>
       <div class="form-row">
         <label>{{ t('player.visualizer') }}:</label>
-        <select v-model="newMarkerVisualizer" class="marker-select">
+        <select
+          v-model="newMarkerVisualizer"
+          class="marker-select"
+          :disabled="newMarkerHideVisualizer"
+        >
           <option value="">{{ t('player.noChange') }}</option>
           <optgroup
             v-for="(items, category) in visualizerStore.categorizedVisualizers"
@@ -106,6 +110,13 @@
             <option v-for="viz in items" :key="viz.id" :value="viz.id">{{ viz.name }}</option>
           </optgroup>
         </select>
+      </div>
+      <div class="form-row">
+        <label></label>
+        <label class="color-checkbox" :title="t('player.disableVisualizerHint')">
+          <input v-model="newMarkerHideVisualizer" type="checkbox" />
+          <span>{{ t('player.disableVisualizer') }}</span>
+        </label>
       </div>
       <div class="form-row">
         <label>{{ t('player.color') }}:</label>
@@ -167,7 +178,13 @@
           @click="startEditMarker(marker)"
           >{{ marker.label }}</span
         >
-        <span v-if="marker.action.visualizer" class="marker-action">{{
+        <span
+          v-if="marker.action.hideVisualizer"
+          class="marker-action marker-action-off"
+          :title="t('player.disableVisualizer')"
+          >🚫 {{ t('player.visualizer') }}</span
+        >
+        <span v-else-if="marker.action.visualizer" class="marker-action">{{
           getVisualizerName(marker.action.visualizer)
         }}</span>
         <span
@@ -234,6 +251,7 @@ const {
   newMarkerVisualizer,
   newMarkerColor,
   newMarkerChangeColor,
+  newMarkerHideVisualizer,
   newMarkerBackgroundKey,
   newMarkerLabel,
   updateMarkerTimeFromInput,
@@ -339,6 +357,10 @@ const backgroundPresetOptions = computed(() => {
 .marker-action-bg {
   color: #4ade80;
   background-color: rgba(74, 222, 128, 0.12);
+}
+.marker-action-off {
+  color: #f87171;
+  background-color: rgba(248, 113, 113, 0.12);
 }
 .marker-transition-row {
   display: flex;

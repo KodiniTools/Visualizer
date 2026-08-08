@@ -1,10 +1,22 @@
 <template>
-  <router-view />
+  <!--
+    keep-alive caches the Visualizer app so navigating to the landing page /
+    functions ("Zur Startseite" / Hero-Navigation) and back does NOT destroy it.
+    Without this, all component-local state (uploaded audio, canvas images,
+    video, texts and settings held in the manager instances) would be lost on
+    every route change. Only 'VisualizerApp' is cached; the marketing/landing
+    pages are re-rendered normally.
+  -->
+  <router-view v-slot="{ Component }">
+    <keep-alive :include="['VisualizerApp']">
+      <component :is="Component" />
+    </keep-alive>
+  </router-view>
 </template>
 
 <script setup>
-// App.vue serves as a simple wrapper with router-view
-// All content is handled by LandingPage.vue and VisualizerApp.vue
+// App.vue serves as a simple wrapper with router-view.
+// All content is handled by LandingPage.vue and VisualizerApp.vue.
 </script>
 
 <style>

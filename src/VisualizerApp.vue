@@ -86,8 +86,14 @@
   </div>
 </template>
 
+<script>
+// Explicit name so <keep-alive include="['VisualizerApp']"> in App.vue matches
+// this component and preserves its state across route changes.
+export default { name: 'VisualizerApp' }
+</script>
+
 <script setup>
-import { ref, onMounted, onUnmounted, provide, watch } from 'vue'
+import { ref, onMounted, onUnmounted, onActivated, onDeactivated, provide, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from './lib/i18n.js'
 import { usePlayerStore } from './stores/playerStore.js'
@@ -479,6 +485,24 @@ onMounted(async () => {
     () => recorderStore.isRecording,
     (isRecording) => recorderSetup.handleRecordingStateChange(isRecording),
   )
+})
+
+// With keep-alive the component is deactivated (not unmounted) when leaving the
+// /app route. Pause the render loop to free the CPU/GPU while the user is on the
+// landing page, then resume it on return — all state stays intact.
+// On the very first mount Vue fires onActivated right after onMounted, which
+// already starts the loop; skip that first activation so we don't run two loops.
+let renderLoopStartedByMount = false
+onDeactivated(() => {
+  renderLoop.stop()
+})
+
+onActivated(() => {
+  if (!renderLoopStartedByMount) {
+    renderLoopStartedByMount = true
+    return
+  }
+  renderLoop.draw()
 })
 
 onUnmounted(() => {

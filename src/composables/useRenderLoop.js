@@ -846,9 +846,18 @@ export function useRenderLoop({
     }
   }
 
-  function cleanup() {
+  // Pause the render loop without tearing down GPU/worker resources, so it can
+  // be resumed instantly via draw() (used when the app is kept alive but
+  // deactivated by keep-alive during route changes).
+  function stop() {
     if (animationFrameId) cancelAnimationFrame(animationFrameId)
     if (drawTimeoutId) clearTimeout(drawTimeoutId)
+    animationFrameId = null
+    drawTimeoutId = null
+  }
+
+  function cleanup() {
+    stop()
     if (vizWorkerBitmap) {
       vizWorkerBitmap.close()
       vizWorkerBitmap = null
@@ -863,6 +872,7 @@ export function useRenderLoop({
 
   return {
     draw,
+    stop,
     renderScene,
     renderRecordingScene,
     buildVisualizerCallback,

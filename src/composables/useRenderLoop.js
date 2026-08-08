@@ -713,9 +713,9 @@ export function useRenderLoop({
       )
     }
 
-    // Marker-Übergang (Aus-/Einblenden) ganz oben, über allem Szeneninhalt
+    // Marker-Crossfade ganz oben, über allem Szeneninhalt (Live-Ziel)
     if (markerTransitionRenderer) {
-      markerTransitionRenderer.render(ctx, canvas.width, canvas.height)
+      markerTransitionRenderer.render(ctx, canvas.width, canvas.height, 'live')
     }
 
     if (canvasManagerInstance.value) {
@@ -774,9 +774,14 @@ export function useRenderLoop({
         )
       }
 
-      // Marker-Übergang auch in der Aufnahme rendern
+      // Marker-Crossfade auch in der Aufnahme rendern (eigenes Ziel)
       if (markerTransitionRenderer) {
-        markerTransitionRenderer.render(recordingCtx, recordingCanvas.width, recordingCanvas.height)
+        markerTransitionRenderer.render(
+          recordingCtx,
+          recordingCanvas.width,
+          recordingCanvas.height,
+          'rec',
+        )
       }
     })
   }

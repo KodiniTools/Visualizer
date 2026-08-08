@@ -4,6 +4,7 @@ import { usePlayerStore } from '../stores/playerStore.js'
 import { useBeatMarkerStore } from '../stores/beatMarkerStore.js'
 import { useVisualizerStore } from '../stores/visualizerStore.js'
 import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore.js'
+import { useMarkerTransitionStore } from '../stores/markerTransitionStore.js'
 import { formatTime, parseTimeInput } from '../utils/formatTime.js'
 import { resolveBackgroundPreset } from '../utils/backgroundPresets.js'
 
@@ -21,6 +22,7 @@ export function useBeatMarkers(openMarkersPopover) {
   const beatMarkerStore = useBeatMarkerStore()
   const visualizerStore = useVisualizerStore()
   const backgroundBridge = useBackgroundBridgeStore()
+  const markerTransition = useMarkerTransitionStore()
 
   const showMarkerPanel = ref(false)
   const editingMarkerId = ref(null)
@@ -42,6 +44,39 @@ export function useBeatMarkers(openMarkersPopover) {
     if (action?.background) {
       backgroundBridge.applySnapshot(action.background)
       console.log('🎨 Hintergrund via Beat-Marker gewechselt')
+    }
+  }
+
+  /**
+   * Wendet alle Änderungen eines Markers an (Visualizer, Farbe, Hintergrund).
+   */
+  const applyMarkerAction = (action) => {
+    if (!action) return
+    if (action.visualizer) {
+      visualizerStore.selectVisualizer(action.visualizer)
+      console.log('🎯 Visualizer gewechselt zu:', action.visualizer)
+    }
+    if (action.color) {
+      visualizerStore.setColor(action.color)
+      console.log('🎨 Farbe gewechselt zu:', action.color)
+    }
+    applyMarkerBackground(action)
+  }
+
+  /**
+   * Führt einen ausgelösten Marker aus. Ist der Übergang aktiviert, wird die
+   * Änderung erst am Mittelpunkt (voll abgedunkelt) angewendet – so blendet der
+   * alte Zustand aus und der neue ein. Sonst wird sofort gewechselt.
+   * @param {object} action
+   * @param {boolean} allowTransition - false z.B. für den Start-Marker (0:00)
+   */
+  const runMarkerTrigger = (action, allowTransition = true) => {
+    if (!action) return
+    if (allowTransition && markerTransition.enabled) {
+      markerTransition.start()
+      setTimeout(() => applyMarkerAction(action), markerTransition.midpointMs())
+    } else {
+      applyMarkerAction(action)
     }
   }
 
@@ -152,15 +187,7 @@ export function useBeatMarkers(openMarkersPopover) {
       if (!playerStore.isPlaying) return
       const triggered = beatMarkerStore.checkTrigger(newTime)
       if (triggered && triggered.action) {
-        if (triggered.action.visualizer) {
-          visualizerStore.selectVisualizer(triggered.action.visualizer)
-          console.log('🎯 Visualizer gewechselt zu:', triggered.action.visualizer)
-        }
-        if (triggered.action.color) {
-          visualizerStore.setColor(triggered.action.color)
-          console.log('🎨 Farbe gewechselt zu:', triggered.action.color)
-        }
-        applyMarkerBackground(triggered.action)
+        runMarkerTrigger(triggered.action, true)
       }
     },
   )
@@ -183,15 +210,8 @@ export function useBeatMarkers(openMarkersPopover) {
         beatMarkerStore.resetTriggers()
         const triggered = beatMarkerStore.checkTrigger(playerStore.currentTime)
         if (triggered && triggered.action) {
-          if (triggered.action.visualizer) {
-            visualizerStore.selectVisualizer(triggered.action.visualizer)
-            console.log('🎯 Start-Marker: Visualizer gewechselt zu:', triggered.action.visualizer)
-          }
-          if (triggered.action.color) {
-            visualizerStore.setColor(triggered.action.color)
-            console.log('🎨 Start-Marker: Farbe gewechselt zu:', triggered.action.color)
-          }
-          applyMarkerBackground(triggered.action)
+          // Start-Marker (0:00): sofort anwenden, ohne Übergang (nichts zum Ausblenden)
+          runMarkerTrigger(triggered.action, false)
         }
       }
     },

@@ -617,6 +617,8 @@ export default {
     myBackgrounds: 'My backgrounds',
     backgroundTemplates: 'Templates',
     backgroundChanges: 'Changes the background',
+    transition: 'Transition',
+    transitionHint: 'Smooth fade-out/fade-in when switching markers during playback',
     label: 'Label',
     time: 'Time',
     volume: 'Volume',

@@ -21,6 +21,7 @@ export function useRenderLoop({
   audioFxRenderer,
   tickerStore,
   tickerRenderer,
+  markerTransitionRenderer,
   getAnalyser,
   getMicrophoneAnalyser,
   getMicrophoneAudioContext,
@@ -712,6 +713,11 @@ export function useRenderLoop({
       )
     }
 
+    // Marker-Übergang (Aus-/Einblenden) ganz oben, über allem Szeneninhalt
+    if (markerTransitionRenderer) {
+      markerTransitionRenderer.render(ctx, canvas.width, canvas.height)
+    }
+
     if (canvasManagerInstance.value) {
       canvasManagerInstance.value.drawFadedTextMarkers(ctx)
       canvasManagerInstance.value.drawInteractiveElements(ctx)
@@ -766,6 +772,11 @@ export function useRenderLoop({
           window.audioAnalysisData,
           tickerStore.$state,
         )
+      }
+
+      // Marker-Übergang auch in der Aufnahme rendern
+      if (markerTransitionRenderer) {
+        markerTransitionRenderer.render(recordingCtx, recordingCanvas.width, recordingCanvas.height)
       }
     })
   }

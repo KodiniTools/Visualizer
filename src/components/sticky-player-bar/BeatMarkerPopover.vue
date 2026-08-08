@@ -99,7 +99,7 @@
         <select
           v-model="newMarkerVisualizer"
           class="marker-select"
-          :disabled="newMarkerHideVisualizer"
+          :disabled="!newMarkerShowVisualizer"
         >
           <option value="">{{ t('player.noChange') }}</option>
           <optgroup
@@ -113,9 +113,9 @@
       </div>
       <div class="form-row">
         <label></label>
-        <label class="color-checkbox" :title="t('player.disableVisualizerHint')">
-          <input v-model="newMarkerHideVisualizer" type="checkbox" />
-          <span>{{ t('player.disableVisualizer') }}</span>
+        <label class="color-checkbox" :title="t('player.visualizerVisibleHint')">
+          <input v-model="newMarkerShowVisualizer" type="checkbox" />
+          <span>{{ t('player.visualizerVisible') }}</span>
         </label>
       </div>
       <div class="form-row">
@@ -179,9 +179,9 @@
           >{{ marker.label }}</span
         >
         <span
-          v-if="marker.action.hideVisualizer"
+          v-if="marker.action.visualizerVisible === false || marker.action.hideVisualizer"
           class="marker-action marker-action-off"
-          :title="t('player.disableVisualizer')"
+          :title="t('player.visualizerHidden')"
           >🚫 {{ t('player.visualizer') }}</span
         >
         <span v-else-if="marker.action.visualizer" class="marker-action">{{
@@ -251,7 +251,7 @@ const {
   newMarkerVisualizer,
   newMarkerColor,
   newMarkerChangeColor,
-  newMarkerHideVisualizer,
+  newMarkerShowVisualizer,
   newMarkerBackgroundKey,
   newMarkerLabel,
   updateMarkerTimeFromInput,

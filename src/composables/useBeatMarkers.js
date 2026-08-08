@@ -31,8 +31,9 @@ export function useBeatMarkers(openMarkersPopover) {
   const newMarkerVisualizer = ref('')
   const newMarkerColor = ref('#6ea8fe')
   const newMarkerChangeColor = ref(false)
-  // Visualizer an diesem Marker ausblenden (nur Hintergrund + Audio-Reaktiv)
-  const newMarkerHideVisualizer = ref(false)
+  // Visualizer-Zustand, den dieser Marker erzwingt: true = anzeigen,
+  // false = ausblenden (nur Hintergrund + Audio-Reaktiv). Immer wirksam.
+  const newMarkerShowVisualizer = ref(true)
   // Ausgewählter Hintergrund pro Marker (Dropdown-Key, z.B. 'user:123' oder
   // 'builtin:neon-dark'; '' = kein Wechsel). Unabhängig vom Live-Hintergrund –
   // genau wie die Visualizer-Auswahl.
@@ -54,16 +55,24 @@ export function useBeatMarkers(openMarkersPopover) {
    */
   const applyMarkerAction = (action) => {
     if (!action) return
-    if (action.hideVisualizer) {
+
+    // Jeder Marker erzwingt den Visualizer-Zustand explizit.
+    // Rückwärtskompatibel zum alten Feld `hideVisualizer`.
+    const showVisualizer =
+      action.visualizerVisible !== undefined ? action.visualizerVisible : !action.hideVisualizer
+
+    if (showVisualizer) {
+      if (action.visualizer) {
+        visualizerStore.selectVisualizer(action.visualizer)
+        console.log('🎯 Visualizer gewechselt zu:', action.visualizer)
+      }
+      visualizerStore.showVisualizer = true
+    } else {
       // Visualizer ausblenden – an diesem Marker läuft nur der Hintergrund
       visualizerStore.showVisualizer = false
       console.log('🚫 Visualizer via Beat-Marker ausgeblendet')
-    } else if (action.visualizer) {
-      // Ein gewählter Visualizer wird angezeigt (überschreibt ein vorheriges Ausblenden)
-      visualizerStore.selectVisualizer(action.visualizer)
-      visualizerStore.showVisualizer = true
-      console.log('🎯 Visualizer gewechselt zu:', action.visualizer)
     }
+
     if (action.color) {
       visualizerStore.setColor(action.color)
       console.log('🎨 Farbe gewechselt zu:', action.color)
@@ -112,7 +121,7 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerLabel.value = `Drop ${beatMarkerStore.markerCount + 1}`
     newMarkerVisualizer.value = ''
     newMarkerChangeColor.value = false
-    newMarkerHideVisualizer.value = false
+    newMarkerShowVisualizer.value = true
     newMarkerBackgroundKey.value = ''
     showMarkerPanel.value = true
     openMarkersPopover()
@@ -126,7 +135,10 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerVisualizer.value = marker.action?.visualizer || ''
     newMarkerColor.value = marker.action?.color || '#6ea8fe'
     newMarkerChangeColor.value = !!marker.action?.color
-    newMarkerHideVisualizer.value = !!marker.action?.hideVisualizer
+    newMarkerShowVisualizer.value =
+      marker.action?.visualizerVisible !== undefined
+        ? marker.action.visualizerVisible
+        : !marker.action?.hideVisualizer
     newMarkerBackgroundKey.value = marker.action?.backgroundKey || ''
     showMarkerPanel.value = true
   }
@@ -151,7 +163,7 @@ export function useBeatMarkers(openMarkersPopover) {
       type: 'combined',
       visualizer: newMarkerVisualizer.value || null,
       color: newMarkerChangeColor.value ? newMarkerColor.value : null,
-      hideVisualizer: newMarkerHideVisualizer.value,
+      visualizerVisible: newMarkerShowVisualizer.value,
       background: background,
       backgroundKey: backgroundKey,
       backgroundLabel: backgroundLabel,
@@ -259,7 +271,7 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerVisualizer,
     newMarkerColor,
     newMarkerChangeColor,
-    newMarkerHideVisualizer,
+    newMarkerShowVisualizer,
     newMarkerBackgroundKey,
     newMarkerLabel,
     updateMarkerTimeFromInput,

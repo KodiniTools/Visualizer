@@ -5,6 +5,7 @@ import { useBeatMarkerStore } from '../stores/beatMarkerStore.js'
 import { useVisualizerStore } from '../stores/visualizerStore.js'
 import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore.js'
 import { formatTime, parseTimeInput } from '../utils/formatTime.js'
+import { resolveBackgroundPreset } from '../utils/backgroundPresets.js'
 
 /**
  * Beat-marker management for the sticky player bar: the add/edit form state,
@@ -28,8 +29,10 @@ export function useBeatMarkers(openMarkersPopover) {
   const newMarkerVisualizer = ref('')
   const newMarkerColor = ref('#6ea8fe')
   const newMarkerChangeColor = ref(false)
-  const newMarkerChangeBackground = ref(false)
-  const capturedBackground = ref(null)
+  // Ausgewählter Hintergrund pro Marker (Dropdown-Key, z.B. 'user:123' oder
+  // 'builtin:neon-dark'; '' = kein Wechsel). Unabhängig vom Live-Hintergrund –
+  // genau wie die Visualizer-Auswahl.
+  const newMarkerBackgroundKey = ref('')
   const newMarkerLabel = ref('')
 
   /**
@@ -61,8 +64,7 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerLabel.value = `Drop ${beatMarkerStore.markerCount + 1}`
     newMarkerVisualizer.value = ''
     newMarkerChangeColor.value = false
-    newMarkerChangeBackground.value = false
-    capturedBackground.value = null
+    newMarkerBackgroundKey.value = ''
     showMarkerPanel.value = true
     openMarkersPopover()
   }
@@ -75,29 +77,24 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerVisualizer.value = marker.action?.visualizer || ''
     newMarkerColor.value = marker.action?.color || '#6ea8fe'
     newMarkerChangeColor.value = !!marker.action?.color
-    newMarkerChangeBackground.value = !!marker.action?.background
-    capturedBackground.value = marker.action?.background || null
+    newMarkerBackgroundKey.value = marker.action?.backgroundKey || ''
     showMarkerPanel.value = true
   }
 
-  /**
-   * Erfasst den aktuellen Hintergrund und speichert ihn für den Marker.
-   * Aktiviert automatisch "Hintergrund ändern".
-   */
-  const captureCurrentBackground = () => {
-    const snapshot = backgroundBridge.captureSnapshot()
-    if (snapshot) {
-      capturedBackground.value = snapshot
-      newMarkerChangeBackground.value = true
-      console.log('🎨 Aktueller Hintergrund für Marker erfasst')
-    }
-  }
-
   const confirmAddMarker = () => {
+    // Hintergrund wird wie der Visualizer per Auswahl festgelegt und beim
+    // Speichern zu einem eigenständigen Snapshot aufgelöst. Die Live-Ansicht
+    // bleibt unberührt – der Wechsel passiert erst beim Abspielen am Marker.
     let background = null
-    if (newMarkerChangeBackground.value) {
-      // Bereits erfassten Snapshot verwenden, sonst aktuellen Hintergrund erfassen
-      background = capturedBackground.value || backgroundBridge.captureSnapshot()
+    let backgroundKey = null
+    let backgroundLabel = null
+    if (newMarkerBackgroundKey.value) {
+      const resolved = resolveBackgroundPreset(newMarkerBackgroundKey.value)
+      if (resolved) {
+        background = resolved.snapshot
+        backgroundKey = resolved.key
+        backgroundLabel = resolved.label
+      }
     }
 
     const action = {
@@ -105,6 +102,8 @@ export function useBeatMarkers(openMarkersPopover) {
       visualizer: newMarkerVisualizer.value || null,
       color: newMarkerChangeColor.value ? newMarkerColor.value : null,
       background: background,
+      backgroundKey: backgroundKey,
+      backgroundLabel: backgroundLabel,
     }
     if (editingMarkerId.value !== null) {
       beatMarkerStore.updateMarker(editingMarkerId.value, {
@@ -117,8 +116,7 @@ export function useBeatMarkers(openMarkersPopover) {
     }
     editingMarkerId.value = null
     showMarkerPanel.value = false
-    capturedBackground.value = null
-    newMarkerChangeBackground.value = false
+    newMarkerBackgroundKey.value = ''
   }
 
   const cancelAddMarker = () => {
@@ -225,14 +223,12 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerVisualizer,
     newMarkerColor,
     newMarkerChangeColor,
-    newMarkerChangeBackground,
-    capturedBackground,
+    newMarkerBackgroundKey,
     newMarkerLabel,
     updateMarkerTimeFromInput,
     getMarkerPosition,
     addMarkerAtCurrentTime,
     startEditMarker,
-    captureCurrentBackground,
     confirmAddMarker,
     cancelAddMarker,
     seekToMarker,

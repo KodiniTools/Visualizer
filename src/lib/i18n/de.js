@@ -610,11 +610,8 @@ export default {
     color: 'Farbe',
     change: 'Ändern',
     background: 'Hintergrund',
-    captureBackground: 'Aktuellen übernehmen',
-    captureBackgroundHint:
-      'Aktuelle Hintergrund-Einstellungen (Farbe, Gradient, Audio-Reaktiv) für diesen Marker erfassen',
-    backgroundMarkerHint:
-      'Der aktuelle Hintergrund wird beim Speichern erfasst und an dieser Stelle angewendet.',
+    myBackgrounds: 'Meine Hintergründe',
+    backgroundTemplates: 'Vorlagen',
     backgroundChanges: 'Ändert den Hintergrund',
     label: 'Label',
     time: 'Zeit',

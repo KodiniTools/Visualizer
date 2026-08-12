@@ -10,6 +10,12 @@
       <option value="mid">Mitten</option>
       <option value="treble">Höhen</option>
       <option value="volume">Lautstärke</option>
+      <optgroup label="Onset (Beat, auto-normalisiert)">
+        <option value="bassOnset">Bass-Onset</option>
+        <option value="midOnset">Mitten-Onset</option>
+        <option value="trebleOnset">Höhen-Onset</option>
+        <option value="allOnset">Alle-Onset</option>
+      </optgroup>
     </select>
   </div>
 </template>

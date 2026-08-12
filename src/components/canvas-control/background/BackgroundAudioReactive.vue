@@ -18,6 +18,12 @@
           <option value="treble">{{ t('canvasControl.trebleHiHats') }}</option>
           <option value="volume">{{ t('canvasControl.volumeTotal') }}</option>
           <option value="dynamic">{{ t('canvasControl.dynamic') }}</option>
+          <optgroup :label="t('canvasControl.onsetGroup')">
+            <option value="bassOnset">{{ t('canvasControl.bassOnset') }}</option>
+            <option value="midOnset">{{ t('canvasControl.midOnset') }}</option>
+            <option value="trebleOnset">{{ t('canvasControl.trebleOnset') }}</option>
+            <option value="allOnset">{{ t('canvasControl.allOnset') }}</option>
+          </optgroup>
         </select>
       </div>
 

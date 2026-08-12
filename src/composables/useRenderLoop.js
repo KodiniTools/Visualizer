@@ -2,6 +2,8 @@ import { ref } from 'vue'
 import { Visualizers } from '../lib/visualizers/index.js'
 import { workerManager } from '../lib/workerManager.js'
 import { createPostProcessor, postFxActive, FrameMonitor } from '../lib/postfx/index.js'
+import { onsetForSource, advancePunch, punchScale } from '../lib/visualizers/core/onsetReactive.js'
+import { visualizerState } from '../lib/visualizers/core/state.js'
 
 export function useRenderLoop({
   canvasRef,
@@ -52,6 +54,41 @@ export function useRenderLoop({
   let vizWorkerActive = false
   let vizWorkerBitmap = null // latest ImageBitmap from worker
   let vizWorkerInitialized = false
+
+  // Beat-Punch: onset-driven global zoom of the whole visualizer layer.
+  // Envelope advances once per frame; scale is read at each composite site.
+  let beatPunchEnv = 0
+  let beatPunchScaleValue = 1
+
+  // Advances the beat-punch envelope for this frame and caches the scale.
+  // Off (or no audio) → resets to a clean 1.0 so the wrapper is a no-op.
+  function updateBeatPunch() {
+    if (!visualizerStore.beatPunchEnabled) {
+      beatPunchEnv = 0
+      beatPunchScaleValue = 1
+      return
+    }
+    const onset = onsetForSource(window.audioAnalysisData, visualizerStore.beatPunchSource)
+    beatPunchEnv = advancePunch(beatPunchEnv, onset)
+    beatPunchScaleValue = punchScale(beatPunchEnv, visualizerStore.beatPunchStrength)
+  }
+
+  // Invokes a visualizer draw callback, applying the current beat-punch zoom
+  // around the canvas centre. Identity transform when the punch is ~1.0.
+  function drawVisualizerWithPunch(cb, ctx, width, height) {
+    if (!cb) return
+    const s = beatPunchScaleValue
+    if (s <= 1.0001) {
+      cb(ctx, width, height)
+      return
+    }
+    ctx.save()
+    ctx.translate(width / 2, height / 2)
+    ctx.scale(s, s)
+    ctx.translate(-width / 2, -height / 2)
+    cb(ctx, width, height)
+    ctx.restore()
+  }
 
   // Post-processing (Bloom / Trails) — main-thread processor for the fallback
   // path and multi-layer mode. The worker owns its own processor.
@@ -109,7 +146,7 @@ export function useRenderLoop({
       multiImageManagerInstance.value.drawImages(ctx, { behindVisualizer: true })
     }
 
-    if (drawVisualizerCallback) drawVisualizerCallback(ctx, canvasWidth, canvasHeight)
+    drawVisualizerWithPunch(drawVisualizerCallback, ctx, canvasWidth, canvasHeight)
 
     if (multiImageManagerInstance.value) {
       multiImageManagerInstance.value.drawImages(ctx, { behindVisualizer: false })
@@ -181,7 +218,12 @@ export function useRenderLoop({
         }
 
         recordingVizCtx.clearRect(0, 0, recordingVizCanvas.width, recordingVizCanvas.height)
-        drawVisualizerCallback(recordingVizCtx, recordingVizCanvas.width, recordingVizCanvas.height)
+        drawVisualizerWithPunch(
+          drawVisualizerCallback,
+          recordingVizCtx,
+          recordingVizCanvas.width,
+          recordingVizCanvas.height,
+        )
         tempCtx.drawImage(recordingVizCanvas, workspaceBounds.x, workspaceBounds.y)
         tempCtx.restore()
       }
@@ -222,7 +264,7 @@ export function useRenderLoop({
         multiImageManagerInstance.value.drawImages(ctx, { behindVisualizer: true })
       }
 
-      if (drawVisualizerCallback) drawVisualizerCallback(ctx, canvasWidth, canvasHeight)
+      drawVisualizerWithPunch(drawVisualizerCallback, ctx, canvasWidth, canvasHeight)
 
       if (multiImageManagerInstance.value) {
         multiImageManagerInstance.value.drawImages(ctx, { behindVisualizer: false })
@@ -367,6 +409,17 @@ export function useRenderLoop({
       }
       activeAnalyser.getByteFrequencyData(audioDataArray)
       updateGlobalAudioData(audioDataArray, bufferLength)
+    }
+
+    // Advance the beat-punch envelope once per frame from the fresh onset data
+    // (a no-op that resets to scale 1.0 while the feature is disabled).
+    updateBeatPunch()
+
+    // Bridge the spectrum auto-gain setting onto the shared visualizer state so
+    // the pure visualizer modules can read it without a store dependency.
+    visualizerState._autoGain = {
+      enabled: visualizerStore.spectrumAutoGainEnabled,
+      strength: visualizerStore.spectrumAutoGainStrength,
     }
 
     const shouldDrawVisualizer =

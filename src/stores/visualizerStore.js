@@ -453,6 +453,20 @@ export const useVisualizerStore = defineStore('visualizer', () => {
 
   const adaptiveQuality = ref(true) // Automatische Qualitätsanpassung nach Frame-Zeit
 
+  // Beat-Punch: globaler Onset-getriebener Zoom der GESAMTEN Visualizer-Ebene.
+  // Nutzt die selbst-normalisierten Onset-Werte (window.audioAnalysisData.onset*),
+  // wirkt daher für alle Visualizer gleich und friert bei „Wall of Sound" nicht
+  // ein. Standardmäßig aus → kein Verhaltenswechsel, bis der Nutzer es aktiviert.
+  const beatPunchEnabled = ref(false)
+  const beatPunchSource = ref('all') // 'bass' | 'mid' | 'treble' | 'all'
+  const beatPunchStrength = ref(50) // 0–100 → bis zu +12% Zoom bei 100%
+
+  // Spectrum Auto-Gain: selbst-normalisierende Balkenhöhen für die Spectrum-
+  // Visualizer. Leise Tracks füllen das Bild, laute clippen nicht. Opt-in →
+  // ändert nichts, bis der Nutzer es aktiviert.
+  const spectrumAutoGainEnabled = ref(false)
+  const spectrumAutoGainStrength = ref(80) // 0–100 → Wirkungsstärke der Normalisierung
+
   // Kompaktes Config-Objekt für die PostFX-Pipeline (Worker & Main-Thread)
   const postFxConfig = computed(() => ({
     bloom: {
@@ -488,6 +502,21 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   }
   function setAdaptiveQuality(v) {
     adaptiveQuality.value = !!v
+  }
+  function setBeatPunchEnabled(v) {
+    beatPunchEnabled.value = !!v
+  }
+  function setBeatPunchSource(v) {
+    if (['bass', 'mid', 'treble', 'all'].includes(v)) beatPunchSource.value = v
+  }
+  function setBeatPunchStrength(v) {
+    beatPunchStrength.value = Math.max(0, Math.min(100, Math.round(v)))
+  }
+  function setSpectrumAutoGainEnabled(v) {
+    spectrumAutoGainEnabled.value = !!v
+  }
+  function setSpectrumAutoGainStrength(v) {
+    spectrumAutoGainStrength.value = Math.max(0, Math.min(100, Math.round(v)))
   }
 
   return {
@@ -554,5 +583,17 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     setTrailsEnabled,
     setTrailsDecay,
     setAdaptiveQuality,
+    // ✨ NEU: Beat-Punch (globaler Onset-Zoom)
+    beatPunchEnabled,
+    beatPunchSource,
+    beatPunchStrength,
+    setBeatPunchEnabled,
+    setBeatPunchSource,
+    setBeatPunchStrength,
+    // ✨ NEU: Spectrum Auto-Gain (selbst-normalisierende Balkenhöhen)
+    spectrumAutoGainEnabled,
+    spectrumAutoGainStrength,
+    setSpectrumAutoGainEnabled,
+    setSpectrumAutoGainStrength,
   }
 })

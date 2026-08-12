@@ -49,6 +49,26 @@ export function averageRange(arr, start, end) {
 }
 
 /**
+ * Peak (maximum) value over a range of the frequency array. Used as the
+ * reference for auto-gain: the loudest band decides how far the whole
+ * spectrum is normalized.
+ * @param {Uint8Array|number[]} arr - frequency data
+ * @param {number} start - inclusive start index
+ * @param {number} end - exclusive end index
+ * @returns {number} peak value in the range (0–255 domain)
+ */
+export function peakRange(arr, start, end) {
+  const s = Math.max(0, start) | 0
+  const e = Math.max(s + 1, end) | 0
+  let peak = 0
+  for (let i = s; i < e; i++) {
+    const v = arr[i] || 0
+    if (v > peak) peak = v
+  }
+  return peak
+}
+
+/**
  * Calculate dynamic gain based on frequency position
  * @param {number} barIndex - Current bar index
  * @param {number} totalBars - Total number of bars

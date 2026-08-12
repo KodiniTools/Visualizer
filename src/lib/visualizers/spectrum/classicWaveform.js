@@ -4,7 +4,7 @@
  * @module visualizers/spectrum/classicWaveform
  */
 
-import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, averageRange, peakRange, autoGain, withSafeCanvasState } from '../core/index.js'
 
 export const classicWaveform = {
   name_de: 'Klassische Wellenform',
@@ -15,6 +15,14 @@ export const classicWaveform = {
     const cy = h / 2
     const energy = averageRange(dataArray, 0, Math.floor(bufferLength * 0.5)) / 255
 
+    // Auto-gain: time-domain reference is the peak deviation from the 128 centre,
+    // so quiet oscilloscope waveforms fill instead of flatlining (identity when
+    // disabled). Peak-referenced, so it self-limits and needs no clamp.
+    const agGain = autoGain(
+      Math.max(0, (peakRange(dataArray, 0, bufferLength) - 128) / 127),
+      'classicWaveform',
+    )
+
     ctx.clearRect(0, 0, w, h)
 
     withSafeCanvasState(ctx, () => {
@@ -23,7 +31,7 @@ export const classicWaveform = {
       // ── Build upper waveform path ──────────────────────────────────
       const pts = []
       for (let i = 0; i < bufferLength; i++) {
-        const v = dataArray[i] / 128.0 - 1.0 // -1..1
+        const v = (dataArray[i] / 128.0 - 1.0) * agGain // -1..1, auto-gained
         pts.push({ x: i * step, y: cy + v * cy * 0.85 * intensity })
       }
 

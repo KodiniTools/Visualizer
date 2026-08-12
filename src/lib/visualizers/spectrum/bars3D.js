@@ -7,6 +7,8 @@
 import {
   hexToHsl,
   averageRange,
+  peakRange,
+  autoGain,
   visualizerState,
   withSafeCanvasState,
   calculateDynamicGain,
@@ -23,6 +25,9 @@ export const bars3D = {
 
     const NUM_BARS = 48
     const maxFreqIndex = Math.floor(bufferLength * 0.75)
+
+    // Auto-gain against the loudest band (identity when disabled).
+    const agGain = autoGain(peakRange(dataArray, 0, maxFreqIndex) / 255, 'bars3D')
 
     // Smoothing
     const stateKey = 'bars3d'
@@ -53,7 +58,7 @@ export const bars3D = {
         const freqPerBar = maxFreqIndex / NUM_BARS
         const s = Math.floor(i * freqPerBar)
         const e = Math.max(s + 1, Math.floor((i + 1) * freqPerBar))
-        const rawVal = averageRange(dataArray, s, e) / 255
+        const rawVal = (averageRange(dataArray, s, e) / 255) * agGain
         const gain = calculateDynamicGain(i, NUM_BARS)
         const target = Math.min(1, rawVal * gain * 1.6 * intensity)
         const alpha = i < NUM_BARS * 0.15 ? 0.35 : 0.18

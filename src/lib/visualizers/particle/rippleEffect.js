@@ -3,7 +3,14 @@
  * @module visualizers/particle/rippleEffect
  */
 
-import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import {
+  visualizerState,
+  hexToHsl,
+  averageRange,
+  peakRange,
+  autoGain,
+  withSafeCanvasState,
+} from '../core/index.js'
 
 export const rippleEffect = {
   name_de: 'Wellen-Effekt (High-Freq-Bursts)',
@@ -22,6 +29,10 @@ export const rippleEffect = {
     const midEnergy =
       averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255
     const highEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.7), maxFreqIndex) / 255
+
+    // Auto-gain against the loudest band so quiet tracks still cross the ripple
+    // thresholds and spawn consistently-sized circles (identity when disabled).
+    const agGain = autoGain(peakRange(dataArray, 0, maxFreqIndex) / 255, 'rippleEffect')
 
     visualizerState.rippleTime = (visualizerState.rippleTime || 0) + 0.02
     const time = visualizerState.rippleTime
@@ -48,9 +59,9 @@ export const rippleEffect = {
     }
 
     const energyTypes = [
-      { energy: bassEnergy, threshold: 0.25, size: 200, speed: 4, hueShift: 0 },
-      { energy: midEnergy, threshold: 0.2, size: 150, speed: 5, hueShift: 30 },
-      { energy: highEnergy, threshold: 0.15, size: 100, speed: 6, hueShift: 60 },
+      { energy: bassEnergy * agGain, threshold: 0.25, size: 200, speed: 4, hueShift: 0 },
+      { energy: midEnergy * agGain, threshold: 0.2, size: 150, speed: 5, hueShift: 30 },
+      { energy: highEnergy * agGain, threshold: 0.15, size: 100, speed: 6, hueShift: 60 },
     ]
 
     energyTypes.forEach(({ energy, threshold, size, speed, hueShift }) => {

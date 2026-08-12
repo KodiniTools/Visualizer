@@ -17,6 +17,12 @@
           <option value="treble">Treble</option>
           <option value="volume">Volume</option>
           <option value="dynamic">Dynamic</option>
+          <optgroup label="Onset (beat, auto-normalized)">
+            <option value="bassOnset">Bass Onset</option>
+            <option value="midOnset">Mid Onset</option>
+            <option value="trebleOnset">Treble Onset</option>
+            <option value="allOnset">All Onset</option>
+          </optgroup>
         </select>
       </div>
 

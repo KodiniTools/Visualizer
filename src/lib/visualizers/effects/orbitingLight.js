@@ -3,7 +3,14 @@
  * @module visualizers/effects/orbitingLight
  */
 
-import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import {
+  visualizerState,
+  hexToHsl,
+  averageRange,
+  peakRange,
+  autoGain,
+  withSafeCanvasState,
+} from '../core/index.js'
 
 export const orbitingLight = {
   name_de: 'Kreisendes Licht',
@@ -53,10 +60,14 @@ export const orbitingLight = {
     const highEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.5), maxFreqIndex) / 255
     const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255
 
-    state.smoothedBass = state.smoothedBass * 0.85 + bassEnergy * 0.15
-    state.smoothedMid = state.smoothedMid * 0.85 + midEnergy * 0.15
-    state.smoothedHigh = state.smoothedHigh * 0.85 + highEnergy * 0.15
-    state.smoothedEnergy = state.smoothedEnergy * 0.9 + overallEnergy * 0.1
+    // Auto-gain against the loudest band so quiet tracks still drive visible
+    // orbits and glow (identity when disabled).
+    const agGain = autoGain(peakRange(dataArray, 0, maxFreqIndex) / 255, 'orbitingLight')
+
+    state.smoothedBass = state.smoothedBass * 0.85 + bassEnergy * agGain * 0.15
+    state.smoothedMid = state.smoothedMid * 0.85 + midEnergy * agGain * 0.15
+    state.smoothedHigh = state.smoothedHigh * 0.85 + highEnergy * agGain * 0.15
+    state.smoothedEnergy = state.smoothedEnergy * 0.9 + overallEnergy * agGain * 0.1
 
     withSafeCanvasState(ctx, () => {
       const centerGlow = ctx.createRadialGradient(

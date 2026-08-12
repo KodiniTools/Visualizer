@@ -6,6 +6,8 @@
 import {
   hexToHsl,
   averageRange,
+  peakRange,
+  autoGain,
   calculateDynamicGain,
   withSafeCanvasState,
   onsetFlourish,
@@ -21,13 +23,15 @@ export const pulsingOrbs = {
 
     // Onset flourish: orbs pop bigger on each beat (0 when disabled).
     const fx = onsetFlourish('all')
+    // Auto-gain against the loudest band (identity when disabled).
+    const agGain = autoGain(peakRange(dataArray, 0, maxFreqIndex) / 255, 'pulsingOrbs')
 
     for (let i = 0; i < numOrbs; i++) {
       const freqPerOrb = maxFreqIndex / numOrbs
       const s = Math.floor(i * freqPerOrb)
       const e = Math.max(s + 1, Math.floor((i + 1) * freqPerOrb))
 
-      const amplitude = averageRange(dataArray, s, e) / 255
+      const amplitude = (averageRange(dataArray, s, e) / 255) * agGain
       const dynamicGain = calculateDynamicGain(i, numOrbs)
       const x = (width / (numOrbs + 1)) * (i + 1)
       const y = height / 2

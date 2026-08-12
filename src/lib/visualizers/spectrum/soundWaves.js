@@ -7,6 +7,8 @@ import {
   visualizerState,
   hexToHsl,
   averageRange,
+  peakRange,
+  autoGain,
   calculateDynamicGain,
   withSafeCanvasState,
 } from '../core/index.js'
@@ -39,6 +41,9 @@ export const soundWaves = {
 
     const maxFreqIndex = Math.floor(bufferLength * 0.21)
     const now = Date.now()
+
+    // Auto-gain against the loudest band (identity when disabled).
+    const agGain = autoGain(peakRange(dataArray, 0, maxFreqIndex) / 255, 'soundWaves')
     const maxWaves = 15
 
     state.emitters.forEach((emitter, index) => {
@@ -46,7 +51,7 @@ export const soundWaves = {
       const s = Math.floor(index * freqPerEmitter)
       const e = Math.max(s + 1, Math.floor((index + 1) * freqPerEmitter))
 
-      const amplitude = averageRange(dataArray, s, e) / 255
+      const amplitude = (averageRange(dataArray, s, e) / 255) * agGain
       const dynamicGain = calculateDynamicGain(index, state.emitters.length)
       const energy = amplitude * dynamicGain
 
@@ -92,7 +97,7 @@ export const soundWaves = {
       const s = Math.floor(index * freqPerEmitter)
       const e = Math.max(s + 1, Math.floor((index + 1) * freqPerEmitter))
 
-      const amplitude = averageRange(dataArray, s, e) / 255
+      const amplitude = (averageRange(dataArray, s, e) / 255) * agGain
       const radius = (4 + amplitude * 10) * intensity
       const hue = (baseHsl.h + emitter.hue) % 360
 

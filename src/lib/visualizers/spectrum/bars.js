@@ -8,6 +8,8 @@ import {
   visualizerState,
   hexToHsl,
   averageRange,
+  peakRange,
+  autoGain,
   calculateDynamicGain,
   getFrequencyBasedSmoothing,
   applySmoothValue,
@@ -48,6 +50,10 @@ export const bars = {
     const masterGain = 0.35
     const cornerRadius = Math.max(2, actualBarWidth * 0.3)
 
+    // Auto-gain: normalize against the loudest band so quiet tracks fill and
+    // loud tracks don't clip (identity when the feature is off).
+    const agGain = autoGain(peakRange(dataArray, 0, maxFreqIndex) / 255, 'bars')
+
     for (let i = 0; i < numBars; i++) {
       const dynamicGain = calculateDynamicGain(i, numBars)
       const freqPerBar = maxFreqIndex / numBars
@@ -55,7 +61,7 @@ export const bars = {
       const e = Math.max(s + 1, Math.floor((i + 1) * freqPerBar))
 
       const rawValue = averageRange(dataArray, s, e)
-      const normalizedValue = rawValue / 255
+      const normalizedValue = (rawValue / 255) * agGain
 
       // Bass bars get the beat multiplier; higher freqs stay neutral
       const isBassBar = i < numBars * 0.2

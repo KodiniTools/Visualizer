@@ -3,6 +3,7 @@ import { Visualizers } from '../lib/visualizers/index.js'
 import { workerManager } from '../lib/workerManager.js'
 import { createPostProcessor, postFxActive, FrameMonitor } from '../lib/postfx/index.js'
 import { onsetForSource, advancePunch, punchScale } from '../lib/visualizers/core/onsetReactive.js'
+import { visualizerState } from '../lib/visualizers/core/state.js'
 
 export function useRenderLoop({
   canvasRef,
@@ -413,6 +414,13 @@ export function useRenderLoop({
     // Advance the beat-punch envelope once per frame from the fresh onset data
     // (a no-op that resets to scale 1.0 while the feature is disabled).
     updateBeatPunch()
+
+    // Bridge the spectrum auto-gain setting onto the shared visualizer state so
+    // the pure visualizer modules can read it without a store dependency.
+    visualizerState._autoGain = {
+      enabled: visualizerStore.spectrumAutoGainEnabled,
+      strength: visualizerStore.spectrumAutoGainStrength,
+    }
 
     const shouldDrawVisualizer =
       visualizerStore.showVisualizer &&

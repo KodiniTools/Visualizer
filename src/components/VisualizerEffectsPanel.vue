@@ -127,6 +127,34 @@
       </div>
     </div>
 
+    <!-- Spectrum auto-gain (self-normalizing bar heights) -->
+    <div class="fx-row">
+      <label class="fx-toggle">
+        <input
+          type="checkbox"
+          :checked="store.spectrumAutoGainEnabled"
+          @change="store.setSpectrumAutoGainEnabled($event.target.checked)"
+        />
+        <span>{{ L.autoGain }}</span>
+      </label>
+      <span class="fx-hint">{{ L.autoGainHint }}</span>
+    </div>
+
+    <div v-if="store.spectrumAutoGainEnabled" class="fx-sub">
+      <div class="fx-control">
+        <span class="control-label">{{ L.strength }}: {{ store.spectrumAutoGainStrength }}%</span>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          :value="store.spectrumAutoGainStrength"
+          @input="store.setSpectrumAutoGainStrength(parseInt($event.target.value))"
+          class="slider fx-slider"
+        />
+      </div>
+    </div>
+
     <!-- Adaptive quality -->
     <div class="fx-row">
       <label class="fx-toggle">
@@ -167,6 +195,8 @@ const LABELS = {
     mid: 'Mitten',
     treble: 'Höhen',
     all: 'Alle',
+    autoGain: 'Auto-Gain (Spektrum)',
+    autoGainHint: 'Normalisiert Balkenhöhen – leise Tracks füllen, laute clippen nicht',
     adaptive: 'Adaptive Qualität',
     adaptiveHint: 'hält die Bildrate stabil',
   },
@@ -186,6 +216,8 @@ const LABELS = {
     mid: 'Mid',
     treble: 'Treble',
     all: 'All',
+    autoGain: 'Auto-gain (spectrum)',
+    autoGainHint: 'Normalizes bar heights – quiet tracks fill, loud tracks don’t clip',
     adaptive: 'Adaptive quality',
     adaptiveHint: 'keeps the frame rate stable',
   },

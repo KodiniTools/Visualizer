@@ -3,7 +3,7 @@
  * @module visualizers/spectrum/waveform
  */
 
-import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, averageRange, peakRange, autoGain, withSafeCanvasState } from '../core/index.js'
 
 export const waveform = {
   name_de: 'Wellenform (Frequenz-Enhanced)',
@@ -13,6 +13,13 @@ export const waveform = {
     const baseHsl = hexToHsl(color)
     const centerY = h / 2
     const totalEnergy = averageRange(dataArray, 0, Math.floor(bufferLength * 0.3)) / 255
+
+    // Auto-gain: peak deviation from the 128 centre (time-domain), so quiet
+    // waveforms fill instead of flatlining. Self-limiting; identity when off.
+    const agGain = autoGain(
+      Math.max(0, (peakRange(dataArray, 0, bufferLength) - 128) / 127),
+      'waveform',
+    )
 
     ctx.clearRect(0, 0, w, h)
 
@@ -29,7 +36,7 @@ export const waveform = {
       const sliceWidth = w / bufferLength
 
       for (let i = 0; i < bufferLength; i++) {
-        const v = dataArray[i] / 128.0 - 1.0
+        const v = (dataArray[i] / 128.0 - 1.0) * agGain
         const x = i * sliceWidth
         const y = centerY + v * (h / 2.5)
         ctx.lineTo(x, y)
@@ -50,7 +57,7 @@ export const waveform = {
       ctx.beginPath()
       ctx.moveTo(0, centerY)
       for (let i = 0; i < bufferLength; i++) {
-        const v = dataArray[i] / 128.0 - 1.0
+        const v = (dataArray[i] / 128.0 - 1.0) * agGain
         const x = i * sliceWidth
         const y = centerY + v * (h / 2.5)
         ctx.lineTo(x, y)
@@ -65,7 +72,7 @@ export const waveform = {
       ctx.beginPath()
       ctx.moveTo(0, centerY)
       for (let i = 0; i < bufferLength; i++) {
-        const v = dataArray[i] / 128.0 - 1.0
+        const v = (dataArray[i] / 128.0 - 1.0) * agGain
         const x = i * sliceWidth
         const y = centerY - v * (h / 3)
         ctx.lineTo(x, y)

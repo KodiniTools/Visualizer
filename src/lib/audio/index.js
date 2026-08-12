@@ -14,6 +14,9 @@ export { FrequencyAnalyzer, DEFAULT_CONFIG as FREQUENCY_CONFIG } from './Frequen
 // Beat detection
 export { BeatDetector, DEFAULT_CONFIG as BEAT_CONFIG } from './BeatDetector.js'
 
+// Onset detection (per-band, change-based, auto-gained)
+export { OnsetDetector, DEFAULT_CONFIG as ONSET_CONFIG } from './OnsetDetector.js'
+
 // Easing functions
 export {
   linear,

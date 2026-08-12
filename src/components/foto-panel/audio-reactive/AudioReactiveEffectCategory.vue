@@ -19,6 +19,12 @@
         <option value="mid">{{ t('foto.mid') }}</option>
         <option value="treble">{{ t('foto.treble') }}</option>
         <option value="volume">{{ t('foto.volume') }}</option>
+        <optgroup :label="t('foto.onsetGroup')">
+          <option value="bassOnset">{{ t('foto.bassOnset') }}</option>
+          <option value="midOnset">{{ t('foto.midOnset') }}</option>
+          <option value="trebleOnset">{{ t('foto.trebleOnset') }}</option>
+          <option value="allOnset">{{ t('foto.allOnset') }}</option>
+        </optgroup>
       </select>
       <input
         type="range"

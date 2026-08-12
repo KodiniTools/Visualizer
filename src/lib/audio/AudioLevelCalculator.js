@@ -14,6 +14,13 @@ export const AUDIO_SOURCES = {
   TREBLE: 'treble',
   VOLUME: 'volume',
   DYNAMIC: 'dynamic',
+  // Onset (change-based, auto-gained) sources. See OnsetDetector.js. These
+  // react to beats rather than sustained loudness and self-normalize, so a
+  // loud wall of sound no longer freezes and quiet/loud tracks pulse alike.
+  BASS_ONSET: 'bassOnset',
+  MID_ONSET: 'midOnset',
+  TREBLE_ONSET: 'trebleOnset',
+  ALL_ONSET: 'allOnset',
 }
 
 /**
@@ -46,6 +53,20 @@ export function getAudioLevel(source, audioData, useSmooth = true) {
 
     case AUDIO_SOURCES.DYNAMIC:
       return calculateDynamicLevel(audioData, useSmooth)
+
+    // Onsets are stored normalized (0–1) and already auto-gained, so there is
+    // no separate smoothed variant — scale to the 0–255 pipeline convention.
+    case AUDIO_SOURCES.BASS_ONSET:
+      return (audioData.onsetBass || 0) * 255
+
+    case AUDIO_SOURCES.MID_ONSET:
+      return (audioData.onsetMid || 0) * 255
+
+    case AUDIO_SOURCES.TREBLE_ONSET:
+      return (audioData.onsetTreble || 0) * 255
+
+    case AUDIO_SOURCES.ALL_ONSET:
+      return (audioData.onsetAll || 0) * 255
 
     default:
       // Default to bass if unknown source

@@ -86,6 +86,47 @@
       </div>
     </div>
 
+    <!-- Beat-Punch (global onset zoom) -->
+    <div class="fx-row">
+      <label class="fx-toggle">
+        <input
+          type="checkbox"
+          :checked="store.beatPunchEnabled"
+          @change="store.setBeatPunchEnabled($event.target.checked)"
+        />
+        <span>{{ L.beatPunch }}</span>
+      </label>
+      <span class="fx-hint">{{ L.beatPunchHint }}</span>
+    </div>
+
+    <div v-if="store.beatPunchEnabled" class="fx-sub">
+      <div class="fx-control">
+        <span class="control-label">{{ L.punchSource }}</span>
+        <select
+          :value="store.beatPunchSource"
+          @change="store.setBeatPunchSource($event.target.value)"
+          class="fx-select"
+        >
+          <option value="bass">{{ L.bass }}</option>
+          <option value="mid">{{ L.mid }}</option>
+          <option value="treble">{{ L.treble }}</option>
+          <option value="all">{{ L.all }}</option>
+        </select>
+      </div>
+      <div class="fx-control">
+        <span class="control-label">{{ L.strength }}: {{ store.beatPunchStrength }}%</span>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          :value="store.beatPunchStrength"
+          @input="store.setBeatPunchStrength(parseInt($event.target.value))"
+          class="slider fx-slider"
+        />
+      </div>
+    </div>
+
     <!-- Adaptive quality -->
     <div class="fx-row">
       <label class="fx-toggle">
@@ -119,6 +160,13 @@ const LABELS = {
     radius: 'Radius',
     trails: 'Bewegungsspuren',
     trailLength: 'Länge',
+    beatPunch: 'Beat-Punch',
+    beatPunchHint: 'Onset-Zoom der ganzen Ebene – reagiert auf Beats, nicht auf Dauerlautstärke',
+    punchSource: 'Quelle',
+    bass: 'Bass',
+    mid: 'Mitten',
+    treble: 'Höhen',
+    all: 'Alle',
     adaptive: 'Adaptive Qualität',
     adaptiveHint: 'hält die Bildrate stabil',
   },
@@ -131,6 +179,13 @@ const LABELS = {
     radius: 'Radius',
     trails: 'Motion trails',
     trailLength: 'Length',
+    beatPunch: 'Beat punch',
+    beatPunchHint: 'Onset zoom of the whole layer – reacts to beats, not sustained loudness',
+    punchSource: 'Source',
+    bass: 'Bass',
+    mid: 'Mid',
+    treble: 'Treble',
+    all: 'All',
     adaptive: 'Adaptive quality',
     adaptiveHint: 'keeps the frame rate stable',
   },
@@ -215,6 +270,17 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
   color: var(--text-muted, #7a8da0);
   margin-bottom: 3px;
   font-weight: 500;
+}
+
+.fx-select {
+  width: 100%;
+  padding: 4px 6px;
+  font-size: 0.6rem;
+  color: var(--text-primary, #e9e9eb);
+  background: var(--secondary-bg, #0e1c32);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .slider {

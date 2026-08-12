@@ -42,8 +42,13 @@ function getEnv(owner) {
  */
 export function smoothingToEnvelope(smoothing) {
   const s = Math.max(0, Math.min(100, smoothing ?? 50)) / 100
-  const attack = 1 - 0.6 * s // 1.0 (instant) … 0.4 (still snappy)
-  const release = 1 - 0.93 * s // 1.0 (instant) … 0.07 (smooth decay)
+  // Attack floor lifted (0.4 → 0.5) and release floor lifted (0.07 → 0.15) so
+  // beats punch through and the decay isn't over-smoothed even at max
+  // smoothing. Matters especially for the onset sources, whose whole point is
+  // to be a visible transient — a heavy release would smear it back into a
+  // sustained glow.
+  const attack = 1 - 0.5 * s // 1.0 (instant) … 0.5 (snappy)
+  const release = 1 - 0.85 * s // 1.0 (instant) … 0.15 (smooth but not mushy)
   return { attack, release }
 }
 

@@ -1,5 +1,6 @@
 import { workerManager } from '../lib/workerManager.js'
 import { BeatDetector } from '../lib/audio/BeatDetector.js'
+import { OnsetDetector } from '../lib/audio/OnsetDetector.js'
 
 window.audioAnalysisData = {
   bass: 0,
@@ -17,10 +18,23 @@ window.audioAnalysisData = {
   beatIntensity: 0,
   bpm: 0,
   beatConfidence: 0,
+  // Per-band onsets (0–1): react to change instead of sustained loudness and
+  // are self-normalizing (auto-gain), so quiet and loud tracks pulse alike.
+  // Selectable as effect sources ('bassOnset', 'midOnset', 'trebleOnset',
+  // 'allOnset') via AudioLevelCalculator.getAudioLevel.
+  onsetBass: 0,
+  onsetMid: 0,
+  onsetTreble: 0,
+  onsetAll: 0,
 }
 
 // Beat detector for the main-thread fallback path (worker supplies its own).
 const fallbackBeatDetector = new BeatDetector()
+
+// Onset detector runs on the main thread for BOTH the worker and fallback
+// paths (both funnel through applyAudioData), keeping onset behaviour uniform
+// regardless of whether the worker is active.
+const onsetDetector = new OnsetDetector()
 
 export function useGlobalAudioData() {
   let useAudioWorker = false
@@ -30,6 +44,15 @@ export function useGlobalAudioData() {
     window.audioAnalysisData.mid = data.mid
     window.audioAnalysisData.treble = data.treble
     window.audioAnalysisData.volume = data.volume
+
+    // Per-band onsets from the RAW band energies (transients live in the raw
+    // signal, not the smoothed one). Computed here so worker- and fallback-fed
+    // data share one detector instance and identical behaviour.
+    const onset = onsetDetector.detect(data)
+    window.audioAnalysisData.onsetBass = onset.bass
+    window.audioAnalysisData.onsetMid = onset.mid
+    window.audioAnalysisData.onsetTreble = onset.treble
+    window.audioAnalysisData.onsetAll = onset.all
 
     if (data.smoothBass !== undefined) {
       window.audioAnalysisData.smoothBass = data.smoothBass

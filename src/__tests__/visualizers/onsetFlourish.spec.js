@@ -1,16 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { onsetFlourish } from '../../lib/visualizers/core/onsetFlourish.js'
 import { visualizerState } from '../../lib/visualizers/core/state.js'
 
 describe('onsetFlourish', () => {
   beforeEach(() => {
     delete visualizerState._onsetFx
-    globalThis.window = {
-      audioAnalysisData: { onsetBass: 0.8, onsetMid: 0.4, onsetTreble: 0.2, onsetAll: 0.6 },
-    }
-  })
-  afterEach(() => {
-    delete globalThis.window
+    visualizerState._onsetData = { bass: 0.8, mid: 0.4, treble: 0.2, all: 0.6 }
   })
 
   it('returns 0 when config is absent or disabled', () => {
@@ -34,17 +29,17 @@ describe('onsetFlourish', () => {
     expect(onsetFlourish('nope')).toBeCloseTo(0.6, 5)
   })
 
-  it('returns 0 when there is no audio data', () => {
+  it('returns 0 when there is no onset data', () => {
     visualizerState._onsetFx = { enabled: true, strength: 100 }
-    globalThis.window = {}
+    delete visualizerState._onsetData
     expect(onsetFlourish('all')).toBe(0)
   })
 
   it('clamps the onset value to 0–1', () => {
     visualizerState._onsetFx = { enabled: true, strength: 100 }
-    globalThis.window = { audioAnalysisData: { onsetAll: 5 } }
+    visualizerState._onsetData = { all: 5 }
     expect(onsetFlourish('all')).toBe(1)
-    globalThis.window = { audioAnalysisData: { onsetAll: -3 } }
+    visualizerState._onsetData = { all: -3 }
     expect(onsetFlourish('all')).toBe(0)
   })
 })

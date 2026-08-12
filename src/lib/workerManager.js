@@ -316,6 +316,9 @@ export class WorkerManager {
     colorOpacity,
     postFx,
     quality,
+    autoGain,
+    onsetFx,
+    onsetData,
   }) {
     if (!this.visualizerWorkerReady || !this.visualizerWorker) return false
 
@@ -331,6 +334,9 @@ export class WorkerManager {
         colorOpacity,
         postFx,
         quality,
+        autoGain,
+        onsetFx,
+        onsetData,
       },
       [copy.buffer],
     )

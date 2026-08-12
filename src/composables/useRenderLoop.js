@@ -60,6 +60,20 @@ export function useRenderLoop({
   let beatPunchEnv = 0
   let beatPunchScaleValue = 1
 
+  // Snapshot of the per-band onset (0–1) in the shape onsetFlourish expects.
+  // Used both to bridge onto the main-thread visualizerState and to send into
+  // the OffscreenCanvas worker (which has no window.audioAnalysisData).
+  function onsetDataSnapshot() {
+    const ad = window.audioAnalysisData
+    if (!ad) return null
+    return {
+      bass: ad.onsetBass ?? 0,
+      mid: ad.onsetMid ?? 0,
+      treble: ad.onsetTreble ?? 0,
+      all: ad.onsetAll ?? 0,
+    }
+  }
+
   // Advances the beat-punch envelope for this frame and caches the scale.
   // Off (or no audio) → resets to a clean 1.0 so the wrapper is a no-op.
   function updateBeatPunch() {
@@ -425,6 +439,7 @@ export function useRenderLoop({
       enabled: visualizerStore.onsetFlourishEnabled,
       strength: visualizerStore.onsetFlourishStrength,
     }
+    visualizerState._onsetData = onsetDataSnapshot()
 
     const shouldDrawVisualizer =
       visualizerStore.showVisualizer &&
@@ -633,6 +648,11 @@ export function useRenderLoop({
               colorOpacity: visualizerStore.colorOpacity,
               postFx: visualizerStore.postFxConfig,
               quality: currentQuality(),
+              // Auto-gain / onset config + onset values — the worker has its own
+              // visualizerState and no window, so these must travel per frame.
+              autoGain: visualizerState._autoGain,
+              onsetFx: visualizerState._onsetFx,
+              onsetData: visualizerState._onsetData,
             })
 
             if (vizWorkerBitmap) {

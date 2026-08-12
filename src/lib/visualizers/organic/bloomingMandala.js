@@ -3,7 +3,7 @@
  * @module visualizers/organic/bloomingMandala
  */
 
-import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, averageRange, withSafeCanvasState, onsetFlourish } from '../core/index.js'
 
 export const bloomingMandala = {
   name_de: 'Blühendes Mandala',
@@ -18,6 +18,8 @@ export const bloomingMandala = {
     withSafeCanvasState(ctx, () => {
       ctx.translate(centerX, centerY)
       const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255
+      // Onset flourish: petals bloom outward on each beat (0 when disabled).
+      const bloom = onsetFlourish('all') * (Math.min(width, height) * 0.22)
 
       // Pre-calculate segment data, NO save/restore inside loop
       const segmentAngle = (Math.PI * 2) / numSegments
@@ -27,7 +29,7 @@ export const bloomingMandala = {
 
         const freqIndex = Math.floor((i / numSegments) * maxFreqIndex)
         const amplitude = (dataArray[freqIndex] / 255) * 1.5 + 0.3
-        const petalLength = (80 + amplitude * (Math.min(width, height) * 0.35)) * intensity
+        const petalLength = (80 + amplitude * (Math.min(width, height) * 0.35)) * intensity + bloom
         const petalWidth = (20 + overallEnergy * 60) * intensity
         const hue = (baseHsl.h + i * (360 / numSegments)) % 360
 

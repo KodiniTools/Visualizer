@@ -3,7 +3,13 @@
  * @module visualizers/effects/pulsingOrbs
  */
 
-import { hexToHsl, averageRange, calculateDynamicGain, withSafeCanvasState } from '../core/index.js'
+import {
+  hexToHsl,
+  averageRange,
+  calculateDynamicGain,
+  withSafeCanvasState,
+  onsetFlourish,
+} from '../core/index.js'
 
 export const pulsingOrbs = {
   name_de: 'Pulsierende Kugeln',
@@ -12,6 +18,9 @@ export const pulsingOrbs = {
     const maxFreqIndex = Math.floor(bufferLength * 0.21)
     const numOrbs = Math.min(12, maxFreqIndex)
     const baseHsl = hexToHsl(color)
+
+    // Onset flourish: orbs pop bigger on each beat (0 when disabled).
+    const fx = onsetFlourish('all')
 
     for (let i = 0; i < numOrbs; i++) {
       const freqPerOrb = maxFreqIndex / numOrbs
@@ -23,7 +32,7 @@ export const pulsingOrbs = {
       const x = (width / (numOrbs + 1)) * (i + 1)
       const y = height / 2
       const baseRadius = Math.min(width, height) / 30
-      const radius = baseRadius + amplitude * dynamicGain * baseRadius * 2 * intensity
+      const radius = baseRadius + (amplitude * dynamicGain * 2 + fx * 1.6) * baseRadius * intensity
 
       withSafeCanvasState(ctx, () => {
         const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5)

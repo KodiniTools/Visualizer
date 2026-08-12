@@ -421,6 +421,10 @@ export function useRenderLoop({
       enabled: visualizerStore.spectrumAutoGainEnabled,
       strength: visualizerStore.spectrumAutoGainStrength,
     }
+    visualizerState._onsetFx = {
+      enabled: visualizerStore.onsetFlourishEnabled,
+      strength: visualizerStore.onsetFlourishStrength,
+    }
 
     const shouldDrawVisualizer =
       visualizerStore.showVisualizer &&

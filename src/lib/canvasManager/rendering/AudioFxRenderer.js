@@ -263,6 +263,17 @@ export class AudioFxRenderer {
         return (audioData.smoothTreble ?? 0) / 255
       case 'volume':
         return (audioData.smoothVolume ?? 0) / 255
+      // Onsets are already normalized 0–1 (auto-gained), so no /255. They make
+      // the global FX react to beats instead of sustained loudness and pulse
+      // equally across quiet and loud tracks.
+      case 'bassOnset':
+        return audioData.onsetBass ?? 0
+      case 'midOnset':
+        return audioData.onsetMid ?? 0
+      case 'trebleOnset':
+        return audioData.onsetTreble ?? 0
+      case 'allOnset':
+        return audioData.onsetAll ?? 0
       default:
         return (audioData.smoothVolume ?? 0) / 255
     }

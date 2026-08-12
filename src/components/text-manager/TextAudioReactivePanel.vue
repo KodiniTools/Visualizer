@@ -41,6 +41,12 @@
             <option value="treble">{{ t('textManager.trebleHiHatsHighs') }}</option>
             <option value="volume">{{ t('textManager.volumeOverall') }}</option>
             <option value="dynamic">✨ {{ t('textManager.dynamicAutoBlend') }}</option>
+            <optgroup :label="t('textManager.onsetGroup')">
+              <option value="bassOnset">{{ t('textManager.bassOnset') }}</option>
+              <option value="midOnset">{{ t('textManager.midOnset') }}</option>
+              <option value="trebleOnset">{{ t('textManager.trebleOnset') }}</option>
+              <option value="allOnset">{{ t('textManager.allOnset') }}</option>
+            </optgroup>
           </select>
           <div
             v-if="selectedText.audioReactive.source === 'dynamic'"

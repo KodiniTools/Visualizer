@@ -1093,6 +1093,11 @@ export default {
     trebleHiHatsHighs: 'Treble (Hi-Hats/Höhen)',
     volumeOverall: 'Volume (Gesamt)',
     dynamicAutoBlend: 'Dynamisch (Auto-Blend)',
+    onsetGroup: 'Onset (Beat, auto-normalisiert)',
+    bassOnset: 'Bass-Onset',
+    midOnset: 'Mitten-Onset',
+    trebleOnset: 'Höhen-Onset',
+    allOnset: 'Alle-Onset',
     dynamicHint: 'Kombiniert automatisch alle Frequenzen basierend auf ihrer aktuellen Energie',
     // Presets
     presetPunchy: 'Punchy',

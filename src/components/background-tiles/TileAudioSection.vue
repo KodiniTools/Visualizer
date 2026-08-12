@@ -25,6 +25,12 @@
           <option value="treble">{{ t('backgroundTiles.trebleHiHats') }}</option>
           <option value="volume">{{ t('backgroundTiles.volumeTotal') }}</option>
           <option value="dynamic">{{ t('backgroundTiles.dynamicAuto') }}</option>
+          <optgroup :label="t('backgroundTiles.onsetGroup')">
+            <option value="bassOnset">{{ t('backgroundTiles.bassOnset') }}</option>
+            <option value="midOnset">{{ t('backgroundTiles.midOnset') }}</option>
+            <option value="trebleOnset">{{ t('backgroundTiles.trebleOnset') }}</option>
+            <option value="allOnset">{{ t('backgroundTiles.allOnset') }}</option>
+          </optgroup>
         </select>
       </div>
 

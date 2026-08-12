@@ -101,6 +101,18 @@ export class BeatDropRenderer {
         const t = (audioData.treble ?? audioData.smoothTreble ?? 0) / 255
         return Math.max(b, m, t)
       }
+      // Onsets are already normalized 0–1 (auto-gained), so no /255. Feeding
+      // the onset into the beat detector makes drops fire consistently across
+      // quiet and loud tracks, since the absolute threshold now sees a
+      // self-normalized signal.
+      case 'bassOnset':
+        return audioData.onsetBass ?? 0
+      case 'midOnset':
+        return audioData.onsetMid ?? 0
+      case 'trebleOnset':
+        return audioData.onsetTreble ?? 0
+      case 'allOnset':
+        return audioData.onsetAll ?? 0
       default:
         return (audioData.bass ?? audioData.smoothBass ?? 0) / 255
     }

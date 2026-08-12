@@ -3,7 +3,13 @@
  * @module visualizers/geometric/neonGrid
  */
 
-import { hexToHsl, averageRange, withSafeCanvasState, energyRamp } from '../core/index.js'
+import {
+  hexToHsl,
+  averageRange,
+  withSafeCanvasState,
+  energyRamp,
+  onsetFlourish,
+} from '../core/index.js'
 
 export const neonGrid = {
   name_de: 'Neon-Gitter',
@@ -15,7 +21,9 @@ export const neonGrid = {
     const midEnergy =
       averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255
 
-    const horizon = height * 0.35 + bassEnergy * 50 * intensity
+    // Onset flourish: the horizon punches upward on each beat (0 when disabled).
+    const fx = onsetFlourish('all')
+    const horizon = height * 0.35 + bassEnergy * 50 * intensity - fx * 60 * intensity
     const vanishingPointX = width / 2
 
     const bgGradient = ctx.createLinearGradient(0, 0, 0, height)

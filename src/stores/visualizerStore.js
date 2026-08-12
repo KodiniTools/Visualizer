@@ -467,6 +467,11 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   const spectrumAutoGainEnabled = ref(false)
   const spectrumAutoGainStrength = ref(80) // 0–100 → Wirkungsstärke der Normalisierung
 
+  // Onset-Flourishes: beat-getriggerte Extra-Effekte in ausgewählten Flaggschiff-
+  // Visualizern (Partikel-Burst, Blüten-Pop, Grid-Punch, Orb-Pop). Opt-in.
+  const onsetFlourishEnabled = ref(false)
+  const onsetFlourishStrength = ref(70) // 0–100
+
   // Kompaktes Config-Objekt für die PostFX-Pipeline (Worker & Main-Thread)
   const postFxConfig = computed(() => ({
     bloom: {
@@ -517,6 +522,12 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   }
   function setSpectrumAutoGainStrength(v) {
     spectrumAutoGainStrength.value = Math.max(0, Math.min(100, Math.round(v)))
+  }
+  function setOnsetFlourishEnabled(v) {
+    onsetFlourishEnabled.value = !!v
+  }
+  function setOnsetFlourishStrength(v) {
+    onsetFlourishStrength.value = Math.max(0, Math.min(100, Math.round(v)))
   }
 
   return {
@@ -595,5 +606,10 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     spectrumAutoGainStrength,
     setSpectrumAutoGainEnabled,
     setSpectrumAutoGainStrength,
+    // ✨ NEU: Onset-Flourishes (beat-getriggerte Effekte in Flaggschiff-Visualizern)
+    onsetFlourishEnabled,
+    onsetFlourishStrength,
+    setOnsetFlourishEnabled,
+    setOnsetFlourishStrength,
   }
 })

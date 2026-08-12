@@ -155,6 +155,34 @@
       </div>
     </div>
 
+    <!-- Onset flourishes (beat-triggered effects in flagship visualizers) -->
+    <div class="fx-row">
+      <label class="fx-toggle">
+        <input
+          type="checkbox"
+          :checked="store.onsetFlourishEnabled"
+          @change="store.setOnsetFlourishEnabled($event.target.checked)"
+        />
+        <span>{{ L.onsetFx }}</span>
+      </label>
+      <span class="fx-hint">{{ L.onsetFxHint }}</span>
+    </div>
+
+    <div v-if="store.onsetFlourishEnabled" class="fx-sub">
+      <div class="fx-control">
+        <span class="control-label">{{ L.strength }}: {{ store.onsetFlourishStrength }}%</span>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          :value="store.onsetFlourishStrength"
+          @input="store.setOnsetFlourishStrength(parseInt($event.target.value))"
+          class="slider fx-slider"
+        />
+      </div>
+    </div>
+
     <!-- Adaptive quality -->
     <div class="fx-row">
       <label class="fx-toggle">
@@ -197,6 +225,8 @@ const LABELS = {
     all: 'Alle',
     autoGain: 'Auto-Gain (Spektrum)',
     autoGainHint: 'Normalisiert Balkenhöhen – leise Tracks füllen, laute clippen nicht',
+    onsetFx: 'Onset-Flourishes',
+    onsetFxHint: 'Beat-getriggerte Effekte (Partikel-Burst, Blüten-Pop, Grid-Punch, Orb-Pop)',
     adaptive: 'Adaptive Qualität',
     adaptiveHint: 'hält die Bildrate stabil',
   },
@@ -218,6 +248,8 @@ const LABELS = {
     all: 'All',
     autoGain: 'Auto-gain (spectrum)',
     autoGainHint: 'Normalizes bar heights – quiet tracks fill, loud tracks don’t clip',
+    onsetFx: 'Onset flourishes',
+    onsetFxHint: 'Beat-triggered effects (particle burst, bloom pop, grid punch, orb pop)',
     adaptive: 'Adaptive quality',
     adaptiveHint: 'keeps the frame rate stable',
   },

@@ -3,7 +3,7 @@
  * @module visualizers/particle/particleStorm
  */
 
-import { visualizerState, hexToHsl, averageRange } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, onsetFlourish } from '../core/index.js'
 
 export const particleStorm = {
   name_de: 'Partikel-Sturm',
@@ -33,13 +33,16 @@ export const particleStorm = {
       averageRange(dataArray, Math.floor(maxFreqIndex * 0.3), Math.floor(maxFreqIndex * 0.7)) / 255
     const highEnergy = averageRange(dataArray, Math.floor(maxFreqIndex * 0.7), maxFreqIndex) / 255
 
-    const speed = (15 + bassEnergy * 50) * intensity
+    // Onset flourish: beats surge the particles outward (0 when disabled).
+    const fx = onsetFlourish('all')
+    const speed = (15 + bassEnergy * 50 + fx * 90) * intensity
 
     ctx.clearRect(0, 0, width, height)
 
-    if (bassEnergy > 0.3) {
+    const centerGlow = Math.max(bassEnergy > 0.3 ? bassEnergy * 0.3 : 0, fx * 0.5)
+    if (centerGlow > 0.01) {
       const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 200)
-      gradient.addColorStop(0, `hsla(${baseHsl.h}, 100%, 60%, ${bassEnergy * 0.3})`)
+      gradient.addColorStop(0, `hsla(${baseHsl.h}, 100%, 60%, ${centerGlow})`)
       gradient.addColorStop(1, 'transparent')
       ctx.fillStyle = gradient
       ctx.fillRect(0, 0, width, height)

@@ -5,6 +5,7 @@
  */
 
 import { Visualizers } from '../lib/visualizers/index.js'
+import { visualizerState } from '../lib/visualizers/core/state.js'
 import { createPostProcessor, postFxActive } from '../lib/postfx/index.js'
 
 let offscreenCanvas = null
@@ -57,11 +58,21 @@ function renderFrame({
   colorOpacity,
   postFx,
   quality,
+  autoGain,
+  onsetFx,
+  onsetData,
 }) {
   if (!ctx || !offscreenCanvas) return
 
   const visualizer = Visualizers[visualizerId]
   if (!visualizer) return
+
+  // Bridge the auto-gain / onset config onto the worker's own visualizerState
+  // (a separate module instance from the main thread) so the auto-gain and
+  // onset-flourish helpers see the current settings and onset values.
+  visualizerState._autoGain = autoGain
+  visualizerState._onsetFx = onsetFx
+  visualizerState._onsetData = onsetData
 
   if (lastVisualizerId !== visualizerId) {
     if (lastVisualizerId && Visualizers[lastVisualizerId]) {

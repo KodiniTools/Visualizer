@@ -7,22 +7,20 @@
  * is auto-gained, the flourish fires equally on quiet and loud tracks and
  * reacts to hits rather than sustained loudness.
  *
- * OPT-IN: the render loop bridges the store setting onto
- * `visualizerState._onsetFx = { enabled, strength }` once per frame. When that
- * flag is absent or disabled, onsetFlourish() returns 0, so a visualizer that
- * calls it is unchanged until the user enables the feature.
+ * OPT-IN: the render loop bridges the store setting AND the current onset
+ * values onto the shared visualizer state once per frame —
+ * `visualizerState._onsetFx = { enabled, strength }` and
+ * `visualizerState._onsetData = { bass, mid, treble, all }`. Reading from
+ * visualizerState (rather than window.audioAnalysisData) means this works
+ * identically on the main thread and inside the OffscreenCanvas worker, which
+ * has no `window`; the worker path receives both via its render message. When
+ * the flag is absent or disabled, onsetFlourish() returns 0, so a visualizer
+ * that calls it is unchanged until the user enables the feature.
  *
  * @module visualizers/core/onsetFlourish
  */
 
 import { visualizerState } from './state.js'
-
-const FIELD = {
-  bass: 'onsetBass',
-  mid: 'onsetMid',
-  treble: 'onsetTreble',
-  all: 'onsetAll',
-}
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
 
@@ -35,9 +33,9 @@ const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
 export function onsetFlourish(source = 'all') {
   const cfg = visualizerState._onsetFx
   if (!cfg || !cfg.enabled) return 0
-  const ad = typeof window !== 'undefined' ? window.audioAnalysisData : null
-  if (!ad) return 0
-  const raw = ad[FIELD[source] || FIELD.all] ?? 0
+  const data = visualizerState._onsetData
+  if (!data) return 0
+  const raw = data[source] ?? data.all ?? 0
   const strength = Math.max(0, Math.min(100, cfg.strength ?? 100)) / 100
   return clamp01(raw) * strength
 }

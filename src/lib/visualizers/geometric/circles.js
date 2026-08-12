@@ -7,8 +7,6 @@ import {
   visualizerState,
   hexToHsl,
   averageRange,
-  peakRange,
-  autoGain,
   calculateDynamicGain,
   applySmoothValue,
   withSafeCanvasState,
@@ -29,16 +27,13 @@ export const circles = {
       visualizerState.smoothedCircles = new Array(numCircles).fill(0)
     }
 
-    // Auto-gain against the loudest band (identity when disabled).
-    const agGain = autoGain(peakRange(dataArray, 0, maxFreqIndex) / 255, 'circles')
-
     withSafeCanvasState(ctx, () => {
       for (let i = numCircles - 1; i >= 0; i--) {
         const freqPerCircle = maxFreqIndex / numCircles
         const s = Math.floor(i * freqPerCircle)
         const e = Math.max(s + 1, Math.floor((i + 1) * freqPerCircle))
 
-        const rawAmplitude = (averageRange(dataArray, s, e) / 255) * agGain
+        const rawAmplitude = averageRange(dataArray, s, e) / 255
         const dynamicGain = calculateDynamicGain(i, numCircles)
 
         const baseRadius = ((numCircles - i) / numCircles) * maxRadius

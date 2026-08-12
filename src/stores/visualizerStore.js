@@ -461,12 +461,6 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   const beatPunchSource = ref('all') // 'bass' | 'mid' | 'treble' | 'all'
   const beatPunchStrength = ref(50) // 0–100 → bis zu +12% Zoom bei 100%
 
-  // Spectrum Auto-Gain: selbst-normalisierende Balkenhöhen für die Spectrum-
-  // Visualizer. Leise Tracks füllen das Bild, laute clippen nicht. Opt-in →
-  // ändert nichts, bis der Nutzer es aktiviert.
-  const spectrumAutoGainEnabled = ref(false)
-  const spectrumAutoGainStrength = ref(80) // 0–100 → Wirkungsstärke der Normalisierung
-
   // Onset-Flourishes: beat-getriggerte Extra-Effekte in ausgewählten Flaggschiff-
   // Visualizern (Partikel-Burst, Blüten-Pop, Grid-Punch, Orb-Pop). Opt-in.
   const onsetFlourishEnabled = ref(false)
@@ -516,12 +510,6 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   }
   function setBeatPunchStrength(v) {
     beatPunchStrength.value = Math.max(0, Math.min(100, Math.round(v)))
-  }
-  function setSpectrumAutoGainEnabled(v) {
-    spectrumAutoGainEnabled.value = !!v
-  }
-  function setSpectrumAutoGainStrength(v) {
-    spectrumAutoGainStrength.value = Math.max(0, Math.min(100, Math.round(v)))
   }
   function setOnsetFlourishEnabled(v) {
     onsetFlourishEnabled.value = !!v
@@ -601,11 +589,6 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     setBeatPunchEnabled,
     setBeatPunchSource,
     setBeatPunchStrength,
-    // ✨ NEU: Spectrum Auto-Gain (selbst-normalisierende Balkenhöhen)
-    spectrumAutoGainEnabled,
-    spectrumAutoGainStrength,
-    setSpectrumAutoGainEnabled,
-    setSpectrumAutoGainStrength,
     // ✨ NEU: Onset-Flourishes (beat-getriggerte Effekte in Flaggschiff-Visualizern)
     onsetFlourishEnabled,
     onsetFlourishStrength,

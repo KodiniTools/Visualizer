@@ -3,7 +3,7 @@
  * @module visualizers/spectrum/waveformHorizon
  */
 
-import { hexToHsl, averageRange, peakRange, autoGain, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
 
 export const waveformHorizon = {
   name_de: 'Wellenform-Horizont',
@@ -20,13 +20,6 @@ export const waveformHorizon = {
     const shakeX = (Math.random() - 0.5) * bassEnergy * 15 * intensity
     const shakeY = (Math.random() - 0.5) * bassEnergy * 10 * intensity
 
-    // Auto-gain: peak deviation from the 128 centre (time-domain), so quiet
-    // tracks still form visible horizon waves. Self-limiting; identity when off.
-    const agGain = autoGain(
-      Math.max(0, (peakRange(dataArray, 0, bufferLength) - 128) / 127),
-      'waveformHorizon',
-    )
-
     withSafeCanvasState(ctx, () => {
       ctx.translate(shakeX, shakeY)
 
@@ -42,7 +35,7 @@ export const waveformHorizon = {
         const sliceWidth = width / (bufferLength / sampleStep)
 
         for (let j = 0; j < bufferLength; j += sampleStep) {
-          const amplitude = (dataArray[j] - 128) * agGain * 3.0 * perspective
+          const amplitude = (dataArray[j] - 128) * 3.0 * perspective
           const bassBoost = 1 + bassEnergy * 2
           const finalY = yOffset + amplitude * bassBoost * (0.5 + progress * 2) * intensity
           ctx.lineTo((j / sampleStep) * sliceWidth, finalY)

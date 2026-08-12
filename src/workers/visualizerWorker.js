@@ -58,7 +58,6 @@ function renderFrame({
   colorOpacity,
   postFx,
   quality,
-  autoGain,
   onsetFx,
   onsetData,
 }) {
@@ -67,10 +66,9 @@ function renderFrame({
   const visualizer = Visualizers[visualizerId]
   if (!visualizer) return
 
-  // Bridge the auto-gain / onset config onto the worker's own visualizerState
-  // (a separate module instance from the main thread) so the auto-gain and
-  // onset-flourish helpers see the current settings and onset values.
-  visualizerState._autoGain = autoGain
+  // Bridge the onset config onto the worker's own visualizerState (a separate
+  // module instance from the main thread) so the onset-flourish helper sees the
+  // current settings and onset values.
   visualizerState._onsetFx = onsetFx
   visualizerState._onsetData = onsetData
 

@@ -9,8 +9,6 @@ import {
   hexToHsl,
   rangeForBar,
   averageRange,
-  peakRange,
-  autoGain,
   calculateDynamicGain,
   getFrequencyBasedSmoothing,
   applySmoothValue,
@@ -33,14 +31,11 @@ export const mirroredBars = {
       visualizerState.smoothedMirroredBars = new Array(numBars).fill(0)
     }
 
-    // Auto-gain against the loudest band (identity when disabled).
-    const agGain = autoGain(peakRange(dataArray, 0, bufferLength) / 255, 'mirroredBars')
-
     for (let i = 0; i < numBars / 2; i++) {
       const dynamicGain = calculateDynamicGain(i, numBars)
       const [s, e] = rangeForBar(i, numBars, bufferLength)
       const rawValue = averageRange(dataArray, s, e)
-      const normalizedValue = (rawValue / 255) * agGain
+      const normalizedValue = rawValue / 255
       const targetHeight = normalizedValue * (h / 2) * dynamicGain * intensity
       const smoothingFactor = getFrequencyBasedSmoothing(i, numBars, CONSTANTS.SMOOTHING_BASE)
       visualizerState.smoothedMirroredBars[i] = applySmoothValue(

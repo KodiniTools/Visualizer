@@ -3,14 +3,7 @@
  * @module visualizers/spectrum/vibratingStrings
  */
 
-import {
-  visualizerState,
-  hexToHsl,
-  averageRange,
-  peakRange,
-  autoGain,
-  CONSTANTS,
-} from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, CONSTANTS } from '../core/index.js'
 
 export const vibratingStrings = {
   name_de: 'Vibrierende Saiten',
@@ -72,9 +65,6 @@ export const vibratingStrings = {
     const stringCount = state.strings.length
     const maxFreqIndex = Math.floor(bufferLength * 0.6)
 
-    // Auto-gain against the loudest band (identity when disabled).
-    const agGain = autoGain(peakRange(dataArray, 0, maxFreqIndex) / 255, 'vibratingStrings')
-
     // Calculate layout
     const margin = 80
     const stringSpacing = (height - margin * 2) / (stringCount - 1)
@@ -89,7 +79,7 @@ export const vibratingStrings = {
       // Get frequency data for this string's band
       const bandStart = Math.floor((i / stringCount) * maxFreqIndex)
       const bandEnd = Math.floor(((i + 1) / stringCount) * maxFreqIndex)
-      const bandEnergy = (averageRange(dataArray, bandStart, bandEnd) / 255) * agGain
+      const bandEnergy = averageRange(dataArray, bandStart, bandEnd) / 255
 
       // Smooth the energy
       state.smoothedEnergies[i] += (bandEnergy - state.smoothedEnergies[i]) * 0.3

@@ -17,10 +17,10 @@
     <section class="hero">
       <div class="hero-content">
         <h1 class="hero-title">
-          {{ t('hero.title') }}
-          <span class="gradient-text">{{ t('hero.titleHighlight') }}</span>
+          {{ content.hero.title }}
+          <span class="gradient-text">{{ content.hero.titleHighlight }}</span>
         </h1>
-        <p class="hero-subtitle">{{ t('hero.subtitle') }}</p>
+        <p class="hero-subtitle">{{ content.hero.subtitle }}</p>
         <div class="hero-actions">
           <router-link to="/app" class="btn-primary">
             <span class="btn-icon">
@@ -38,19 +38,19 @@
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
             </span>
-            {{ t('hero.cta') }}
+            {{ content.hero.cta }}
           </router-link>
           <a href="#features" class="btn-secondary">
-            {{ t('hero.learnMore') }}
+            {{ content.hero.learnMore }}
           </a>
         </div>
       </div>
       <div class="hero-visual">
         <div class="visualizer-preview">
           <div
-            class="wave-bar"
             v-for="n in 20"
             :key="n"
+            class="wave-bar"
             :style="{ animationDelay: `${n * 0.05}s` }"
           ></div>
         </div>
@@ -60,11 +60,11 @@
     <!-- Features Section -->
     <section id="features" class="features">
       <div class="section-header">
-        <h2 class="section-title">{{ t('features.title') }}</h2>
-        <p class="section-subtitle">{{ t('features.subtitle') }}</p>
+        <h2 class="section-title">{{ content.features.title }}</h2>
+        <p class="section-subtitle">{{ content.features.subtitle }}</p>
       </div>
       <div class="features-grid">
-        <div class="feature-card" v-for="(card, index) in featureCards" :key="index">
+        <div v-for="(card, index) in featureCards" :key="index" class="feature-card">
           <div class="feature-icon" :style="{ background: card.gradient }">
             <component :is="card.icon" />
           </div>
@@ -77,8 +77,8 @@
     <!-- Video Demo Section -->
     <section class="video-section">
       <div class="section-header">
-        <h2 class="section-title">{{ t('video.title') }}</h2>
-        <p class="section-subtitle">{{ t('video.subtitle') }}</p>
+        <h2 class="section-title">{{ content.video.title }}</h2>
+        <p class="section-subtitle">{{ content.video.subtitle }}</p>
       </div>
       <div class="video-container">
         <img
@@ -93,14 +93,14 @@
     <!-- FAQ Section -->
     <section class="faq-section">
       <div class="section-header">
-        <h2 class="section-title">{{ t('faq.title') }}</h2>
-        <p class="section-subtitle">{{ t('faq.subtitle') }}</p>
+        <h2 class="section-title">{{ content.faq.title }}</h2>
+        <p class="section-subtitle">{{ content.faq.subtitle }}</p>
       </div>
       <div class="faq-list">
         <div
-          class="faq-item"
           v-for="(faq, index) in faqItems"
           :key="index"
+          class="faq-item"
           :class="{ active: activeFaq === index }"
           @click="toggleFaq(index)"
         >
@@ -131,8 +131,8 @@
     <!-- CTA Section -->
     <section class="cta-section">
       <div class="cta-content">
-        <h2 class="cta-title">{{ t('cta.title') }}</h2>
-        <p class="cta-subtitle">{{ t('cta.subtitle') }}</p>
+        <h2 class="cta-title">{{ content.cta.title }}</h2>
+        <p class="cta-subtitle">{{ content.cta.subtitle }}</p>
         <router-link to="/app" class="btn-primary btn-large">
           <span class="btn-icon">
             <svg
@@ -149,20 +149,69 @@
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
           </span>
-          {{ t('cta.button') }}
+          {{ content.cta.button }}
         </router-link>
       </div>
     </section>
+
+    <!-- Admin: Login-/Bearbeiten-Button (dezent, unten rechts) -->
+    <div class="admin-fab">
+      <button
+        v-if="!authStore.isAuthenticated"
+        class="admin-fab-btn"
+        title="Adminbereich"
+        @click="showLogin = true"
+      >
+        🔐 Admin
+      </button>
+      <button v-else class="admin-fab-btn" @click="showAdmin = !showAdmin">
+        {{ showAdmin ? '✕ Schließen' : '🔧 Bearbeiten' }}
+      </button>
+    </div>
+
+    <!-- Admin: Login-Modal -->
+    <LoginModal v-if="showLogin" @close="showLogin = false" @success="showAdmin = true" />
+
+    <!-- Admin: Bearbeitungs-Drawer (nur eingeloggt) -->
+    <div v-if="authStore.isAuthenticated && showAdmin" class="admin-drawer">
+      <AdminPanel />
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, h, onMounted, onUnmounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useI18n } from '../lib/i18n.js'
 import { useTheme } from '../lib/theme.js'
+import { useAuthStore } from '../stores/auth'
+import { useLandingContentStore } from '../stores/landingContent'
+import AdminPanel from './admin/AdminPanel.vue'
+import LoginModal from './admin/LoginModal.vue'
 
-const { t, locale, messages } = useI18n()
+const { t } = useI18n()
 const { isDark } = useTheme()
+
+// Adminbereich: Login-Status + editierbare Landing-Texte (Overrides mit
+// i18n-Fallback). Die angezeigten Texte kommen aus `content` (= merged).
+const authStore = useAuthStore()
+const contentStore = useLandingContentStore()
+const { merged: content } = storeToRefs(contentStore)
+
+const showLogin = ref(false)
+const showAdmin = ref(false)
+
+// Polling: nicht eingeloggte Besucher übernehmen Admin-Änderungen (Broadcast).
+let contentPollInterval = null
+let lastContentUpdate = null
+async function checkContentChanges() {
+  if (authStore.isAuthenticated) return // Admin-Bearbeitung nicht überschreiben
+  const updatedAt = await contentStore.fetchVersion()
+  if (updatedAt && updatedAt !== lastContentUpdate) {
+    lastContentUpdate = updatedAt
+    await contentStore.fetchBroadcast()
+  }
+}
 
 // Reference the demo GIF as a runtime public-URL (base-aware) instead of a
 // build-time import, so Vite does not try to bundle the file. The asset lives
@@ -177,17 +226,27 @@ function handleScroll() {
   isScrolled.value = window.scrollY > 50
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
   handleScroll() // Check initial state
+
+  // Landing-Texte laden: zuerst lokaler Stand, dann Server-Broadcast (falls
+  // erreichbar) als maßgebliche Quelle.
+  contentStore.loadLocal()
+  const initial = await contentStore.fetchBroadcast()
+  if (initial) lastContentUpdate = initial.updatedAt
+
+  // Für Besucher regelmäßig auf Admin-Änderungen prüfen (günstiger Versions-Check).
+  contentPollInterval = setInterval(checkContentChanges, 15000)
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  if (contentPollInterval) {
+    clearInterval(contentPollInterval)
+    contentPollInterval = null
+  }
 })
-
-// Force reactivity by using computed that depends on locale
-const currentLocale = computed(() => locale.value)
 
 // Feature icons as render functions
 const MusicIcon = () =>
@@ -273,11 +332,10 @@ const EditIcon = () =>
     ],
   )
 
-// Computed feature cards with translations - depends on locale for reactivity
+// Computed feature cards - Texte aus dem Landing-Content-Store (Admin-Overrides
+// mit i18n-Fallback), Icons/Gradients bleiben fest.
 const featureCards = computed(() => {
-  // Access locale.value to ensure reactivity
-  const _ = locale.value
-  const cards = t('features.cards')
+  const cards = content.value.features.cards
   const icons = [MusicIcon, GridIcon, VideoIcon, EditIcon]
   const gradients = [
     'linear-gradient(135deg, #f8e1a9, #f8e1a9)',
@@ -293,12 +351,9 @@ const featureCards = computed(() => {
   }))
 })
 
-// Computed FAQ items with translations - depends on locale for reactivity
-const faqItems = computed(() => {
-  // Access locale.value to ensure reactivity
-  const _ = locale.value
-  return t('faq.items')
-})
+// Computed FAQ items - Texte aus dem Landing-Content-Store (Admin-Overrides
+// mit i18n-Fallback).
+const faqItems = computed(() => content.value.faq.items)
 
 function toggleFaq(index) {
   activeFaq.value = activeFaq.value === index ? null : index
@@ -1181,5 +1236,69 @@ function toggleFaq(index) {
 
 [data-theme='light'] .cta-subtitle {
   color: #4d6d8e;
+}
+
+/* ═══ Adminbereich (FAB + Drawer) ═══ */
+.admin-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2100;
+}
+
+.admin-fab-btn {
+  padding: 12px 18px;
+  border-radius: 30px;
+  border: 1px solid rgba(201, 152, 77, 0.4);
+  background: linear-gradient(135deg, #c9984d 0%, #f8e1a9 100%);
+  color: #091428;
+  font-family: var(--font-sans, 'Supreme', sans-serif);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s ease;
+}
+
+.admin-fab-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(201, 152, 77, 0.45);
+}
+
+.admin-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(92vw, 520px);
+  z-index: 1500;
+  overflow-y: auto;
+  padding: 24px 20px 96px;
+  background: linear-gradient(180deg, #050c1e 0%, #091428 100%);
+  border-left: 1px solid rgba(201, 152, 77, 0.25);
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.45);
+  animation: drawerSlideIn 0.28s ease;
+}
+
+[data-theme='light'] .admin-drawer {
+  background: linear-gradient(180deg, #f5f4d6 0%, #f9f2d5 100%);
+  border-left: 1px solid rgba(1, 79, 153, 0.2);
+}
+
+@keyframes drawerSlideIn {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-drawer {
+    animation: none;
+  }
 }
 </style>

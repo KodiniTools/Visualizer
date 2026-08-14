@@ -11,4 +11,5 @@ dist/
 # Server
 server/uploads/
 server/files/
+server/data/
 logs/

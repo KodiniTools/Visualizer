@@ -155,6 +155,22 @@ export class CanvasManager {
   }
 
   /**
+   * ✨ Wandelt ein Pointer-/Drag-Event in relative Canvas-Koordinaten (0..1) um.
+   * Nutzt exakt dieselbe Berechnung wie die Maus-Interaktion und berücksichtigt
+   * damit das CSS-Sizing (object-fit: contain / Letterboxing) korrekt.
+   * Nützlich z.B. für Drag & Drop aus der Galerie auf den Canvas.
+   * @param {MouseEvent|DragEvent} e - Event mit clientX/clientY
+   * @returns {{relX: number, relY: number}}
+   */
+  getRelativePositionFromEvent(e) {
+    const { x, y } = this.mouseHandler.getMousePos(e)
+    return {
+      relX: x / this.canvas.width,
+      relY: y / this.canvas.height,
+    }
+  }
+
+  /**
    * Selection Listener registrieren
    */
   onSelectionChanged(callback) {

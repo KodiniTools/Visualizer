@@ -1164,6 +1164,7 @@ export default {
     deselectAll: 'Auswahl aufheben',
     selected: 'ausgewählt',
     multiselectHint: 'Tipp: Strg+Klick für Mehrfachauswahl, Shift+Klick für Bereich',
+    dragToCanvasHint: 'Bild einfach auf den Canvas ziehen',
     placeOnCanvas: 'Auf Canvas platzieren',
     imagesOnCanvas: '{count} Bilder auf Canvas',
     noImagesUploaded: 'Keine Bilder hochgeladen',

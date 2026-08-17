@@ -40,20 +40,24 @@
         >
       </div>
       <p class="multiselect-hint">{{ t('foto.multiselectHint') }}</p>
+      <p class="drag-hint">{{ t('foto.dragToCanvasHint') }}</p>
       <div class="stock-gallery-grid">
         <div
           v-for="img in filteredStockImages"
           :key="img.id"
           class="stock-thumbnail-item"
           :class="{ selected: selectedStockImages.has(img.id) }"
+          draggable="true"
           @click="$emit('select-image', img, $event)"
           @dblclick="$emit('open-preview', img)"
+          @dragstart="$emit('image-dragstart', { img, event: $event })"
+          @dragend="$emit('image-dragend')"
         >
           <!-- Checkbox für Mehrfachauswahl -->
           <div class="selection-checkbox" :class="{ checked: selectedStockImages.has(img.id) }">
             <span v-if="selectedStockImages.has(img.id)">✓</span>
           </div>
-          <img :src="img.thumbnail" :alt="img.name" loading="lazy" />
+          <img :src="img.thumbnail" :alt="img.name" loading="lazy" draggable="false" />
           <div class="stock-thumbnail-info">
             <span class="stock-thumbnail-name">{{ img.name }}</span>
           </div>
@@ -202,6 +206,8 @@ defineEmits([
   'add-directly',
   'retry-load',
   'update:placement-settings',
+  'image-dragstart',
+  'image-dragend',
 ])
 
 // Function to get translated stock category name
@@ -346,10 +352,14 @@ function getStockCategoryName(category) {
   aspect-ratio: 1;
   border-radius: 6px;
   overflow: hidden;
-  cursor: pointer;
+  cursor: grab;
   border: 2px solid transparent;
   transition: all 0.2s ease;
   background-color: var(--secondary-bg);
+}
+
+.stock-thumbnail-item:active {
+  cursor: grabbing;
 }
 
 .stock-thumbnail-item:hover {
@@ -438,8 +448,24 @@ function getStockCategoryName(category) {
 .multiselect-hint {
   font-size: 10px;
   color: var(--text-muted);
+  margin: 0 0 2px 0;
+  font-style: italic;
+}
+
+.drag-hint {
+  font-size: 10px;
+  color: var(--accent-tertiary, #f8e1a9);
   margin: 0 0 8px 0;
   font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.drag-hint::before {
+  content: '↦';
+  font-style: normal;
+  font-size: 12px;
 }
 
 /* Selection Checkbox */

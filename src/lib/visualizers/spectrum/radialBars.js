@@ -7,8 +7,6 @@ import {
   visualizerState,
   hexToHsl,
   averageRange,
-  peakRange,
-  autoGain,
   withSafeCanvasState,
   getCachedRadialGradient,
   CONSTANTS,
@@ -34,8 +32,6 @@ export const radialBars = {
     }
 
     const overallEnergy = averageRange(dataArray, 0, maxFreqIndex) / 255
-    // Auto-gain against the loudest band (identity when disabled).
-    const agGain = autoGain(peakRange(dataArray, 0, maxFreqIndex) / 255, 'radialBars')
 
     withSafeCanvasState(ctx, () => {
       const glowGradient = getCachedRadialGradient(
@@ -64,9 +60,7 @@ export const radialBars = {
         const freqPos = (i % (numBars / 2)) / (numBars / 2)
         const freqIndex = Math.floor(freqPos * maxFreqIndex)
         const rawAmplitude =
-          (averageRange(dataArray, freqIndex, Math.min(maxFreqIndex, freqIndex + sampleSize)) /
-            255) *
-          agGain
+          averageRange(dataArray, freqIndex, Math.min(maxFreqIndex, freqIndex + sampleSize)) / 255
 
         const minLength = (maxRadius - minRadius) * 0.3
         const audioLength = rawAmplitude * (maxRadius - minRadius) * 0.7 * 1.5

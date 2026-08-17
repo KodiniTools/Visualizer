@@ -431,10 +431,6 @@ export function useRenderLoop({
 
     // Bridge the spectrum auto-gain setting onto the shared visualizer state so
     // the pure visualizer modules can read it without a store dependency.
-    visualizerState._autoGain = {
-      enabled: visualizerStore.spectrumAutoGainEnabled,
-      strength: visualizerStore.spectrumAutoGainStrength,
-    }
     visualizerState._onsetFx = {
       enabled: visualizerStore.onsetFlourishEnabled,
       strength: visualizerStore.onsetFlourishStrength,
@@ -648,9 +644,8 @@ export function useRenderLoop({
               colorOpacity: visualizerStore.colorOpacity,
               postFx: visualizerStore.postFxConfig,
               quality: currentQuality(),
-              // Auto-gain / onset config + onset values — the worker has its own
-              // visualizerState and no window, so these must travel per frame.
-              autoGain: visualizerState._autoGain,
+              // Onset config + values — the worker has its own visualizerState
+              // and no window, so these must travel per frame.
               onsetFx: visualizerState._onsetFx,
               onsetData: visualizerState._onsetData,
             })

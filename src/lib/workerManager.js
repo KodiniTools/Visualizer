@@ -316,7 +316,6 @@ export class WorkerManager {
     colorOpacity,
     postFx,
     quality,
-    autoGain,
     onsetFx,
     onsetData,
   }) {
@@ -334,7 +333,6 @@ export class WorkerManager {
         colorOpacity,
         postFx,
         quality,
-        autoGain,
         onsetFx,
         onsetData,
       },

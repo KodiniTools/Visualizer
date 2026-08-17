@@ -7,13 +7,11 @@ export { CONSTANTS } from './constants.js'
 export { visualizerState } from './state.js'
 export { hexToHsl } from './colorUtils.js'
 export { Particle } from './Particle.js'
-export { autoGain } from './autoGain.js'
 export { onsetFlourish } from './onsetFlourish.js'
 export {
   expo01,
   rangeForBar,
   averageRange,
-  peakRange,
   calculateDynamicGain,
   getFrequencyBasedSmoothing,
   applySmoothValue,

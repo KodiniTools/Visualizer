@@ -127,34 +127,6 @@
       </div>
     </div>
 
-    <!-- Spectrum auto-gain (self-normalizing bar heights) -->
-    <div class="fx-row">
-      <label class="fx-toggle">
-        <input
-          type="checkbox"
-          :checked="store.spectrumAutoGainEnabled"
-          @change="store.setSpectrumAutoGainEnabled($event.target.checked)"
-        />
-        <span>{{ L.autoGain }}</span>
-      </label>
-      <span class="fx-hint">{{ L.autoGainHint }}</span>
-    </div>
-
-    <div v-if="store.spectrumAutoGainEnabled" class="fx-sub">
-      <div class="fx-control">
-        <span class="control-label">{{ L.strength }}: {{ store.spectrumAutoGainStrength }}%</span>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          step="5"
-          :value="store.spectrumAutoGainStrength"
-          @input="store.setSpectrumAutoGainStrength(parseInt($event.target.value))"
-          class="slider fx-slider"
-        />
-      </div>
-    </div>
-
     <!-- Onset flourishes (beat-triggered effects in flagship visualizers) -->
     <div class="fx-row">
       <label class="fx-toggle">
@@ -223,8 +195,6 @@ const LABELS = {
     mid: 'Mitten',
     treble: 'Höhen',
     all: 'Alle',
-    autoGain: 'Auto-Gain',
-    autoGainHint: 'Normalisiert Balken- & Kreisgrößen – leise Tracks füllen, laute clippen nicht',
     onsetFx: 'Onset-Flourishes',
     onsetFxHint: 'Beat-getriggerte Effekte (Partikel-Burst, Blüten-Pop, Grid-Punch, Orb-Pop)',
     adaptive: 'Adaptive Qualität',
@@ -246,8 +216,6 @@ const LABELS = {
     mid: 'Mid',
     treble: 'Treble',
     all: 'All',
-    autoGain: 'Auto-gain',
-    autoGainHint: 'Normalizes bar & circle sizes – quiet tracks fill, loud tracks don’t clip',
     onsetFx: 'Onset flourishes',
     onsetFxHint: 'Beat-triggered effects (particle burst, bloom pop, grid punch, orb pop)',
     adaptive: 'Adaptive quality',

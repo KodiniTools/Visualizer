@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Favicon: Root-absolut, wie auf der Visualizer-Startseite -->
+    <script>
+      (function () {
+        var href = '/favicon.ico?v=4'
+        ;[
+          { rel: 'icon', type: 'image/x-icon', sizes: 'any' },
+          { rel: 'shortcut icon', type: 'image/x-icon' },
+        ].forEach(function (spec) {
+          var link = document.createElement('link')
+          link.rel = spec.rel
+          link.type = spec.type
+          if (spec.sizes) link.setAttribute('sizes', spec.sizes)
+          link.href = href
+          document.head.appendChild(link)
+        })
+      })()
+    </script>
+    <meta name="theme-color" content="#091428">
+
+    <!-- SEO -->
+    <title>Anleitung: Audioreaktive Bilder erstellen – Audio Visualizer Pro</title>
+    <meta name="description" content="Schritt-für-Schritt-Anleitung: So machst du deine Bilder im Audio Visualizer Pro audioreaktiv – Effekte, Beat-Boost, Phasenversatz und Export als MP4.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://kodinitools.com/visualizer/anleitung-audioreaktive-bild.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://kodinitools.com/visualizer/anleitung-audioreaktive-bild.html">
+    <meta property="og:title" content="Anleitung: Audioreaktive Bilder erstellen">
+    <meta property="og:description" content="So bringst du Bilder im Takt der Musik zum Leben – Effekte, Beat-Boost & Export.">
+    <meta property="og:image" content="https://kodinitools.com/visualizer/og-image.png">
+    <meta property="og:locale" content="de_DE">
+    <meta property="og:site_name" content="Kodini Tools">
+
+    <meta name="author" content="Kodini Tools">
+
+    <!-- JSON-LD: HowTo -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "Audioreaktive Bilder erstellen",
+      "description": "Bilder im Audio Visualizer Pro im Takt der Musik animieren und als MP4 exportieren.",
+      "inLanguage": "de",
+      "totalTime": "PT10M",
+      "tool": [{ "@type": "HowToTool", "name": "Audio Visualizer Pro" }],
+      "step": [
+        { "@type": "HowToStep", "position": 1, "name": "Audio laden", "text": "Lade eine Musikdatei (MP3, WAV) in den Player." },
+        { "@type": "HowToStep", "position": 2, "name": "Bild hinzufügen", "text": "Füge ein Bild auf dem Canvas hinzu und positioniere es." },
+        { "@type": "HowToStep", "position": 3, "name": "Audioreaktiv aktivieren", "text": "Öffne das Audioreaktiv-Panel des Bildes und wähle Effekte." },
+        { "@type": "HowToStep", "position": 4, "name": "Feinabstimmung", "text": "Passe Intensität, Beat-Boost und Phasenversatz an." },
+        { "@type": "HowToStep", "position": 5, "name": "Exportieren", "text": "Nimm das Ergebnis auf und exportiere es als MP4." }
+      ]
+    }
+    </script>
+
+    <style>
+        :root {
+            --bg-deep: #060f1e;
+            --bg: #091428;
+            --panel-bg: #0e1c33;
+            --panel-bg-2: #12233f;
+            --border-color: rgba(212, 164, 85, 0.18);
+            --text-primary: #f0e8cc;
+            --text-secondary: #f5dfa0;
+            --text-muted: #9fb0c4;
+            --accent: #d4a455;
+            --accent-strong: #f5dfa0;
+            --accent-blue: #1a6bc7;
+            --shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+        }
+
+        * { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-primary);
+            background:
+                radial-gradient(1200px 700px at 80% -10%, rgba(212, 164, 85, 0.12), transparent 60%),
+                radial-gradient(1000px 600px at -10% 20%, rgba(26, 107, 199, 0.14), transparent 55%),
+                var(--bg-deep);
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a { color: var(--accent-strong); }
+
+        .wrap { max-width: 920px; margin: 0 auto; padding: 0 20px; }
+
+        /* Hero */
+        .hero {
+            position: relative;
+            padding: 72px 0 56px;
+            text-align: center;
+            overflow: hidden;
+        }
+        .eyebrow {
+            display: inline-block;
+            font-size: 0.78rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--accent);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            padding: 6px 16px;
+            margin-bottom: 22px;
+            background: rgba(212, 164, 85, 0.06);
+        }
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.1rem);
+            line-height: 1.1;
+            margin: 0 0 18px;
+            background: linear-gradient(120deg, #ffffff 0%, var(--accent-strong) 55%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .hero p.lead {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            max-width: 640px;
+            margin: 0 auto 28px;
+        }
+        .hero-cta {
+            display: inline-flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+            color: #07111f;
+            box-shadow: 0 10px 26px rgba(212, 164, 85, 0.28);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(212, 164, 85, 0.38); }
+        .btn-ghost {
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .btn-ghost:hover { background: rgba(255, 255, 255, 0.07); transform: translateY(-2px); }
+
+        .hero-figure {
+            margin: 44px auto 0;
+            max-width: 760px;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            background: var(--panel-bg);
+        }
+        .hero-figure svg { display: block; width: 100%; height: auto; }
+
+        /* Sections */
+        section { padding: 40px 0; }
+        h2 {
+            font-size: clamp(1.5rem, 3.5vw, 2rem);
+            margin: 0 0 10px;
+            color: #fff;
+        }
+        h2 .num {
+            color: var(--accent);
+            font-variant-numeric: tabular-nums;
+            margin-right: 10px;
+        }
+        .section-intro { color: var(--text-muted); max-width: 700px; margin: 0 0 26px; }
+
+        h3 { font-size: 1.15rem; margin: 0 0 6px; color: var(--text-secondary); }
+
+        /* What-is grid */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            background: linear-gradient(180deg, var(--panel-bg), var(--panel-bg-2));
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 22px;
+        }
+        .card .ic {
+            width: 42px; height: 42px;
+            display: grid; place-items: center;
+            border-radius: 10px;
+            background: rgba(212, 164, 85, 0.12);
+            margin-bottom: 14px;
+            font-size: 1.3rem;
+        }
+        .card p { margin: 6px 0 0; color: var(--text-muted); font-size: 0.95rem; }
+
+        /* Steps */
+        .step {
+            display: grid;
+            grid-template-columns: 56px 1fr;
+            gap: 20px;
+            align-items: start;
+            padding: 22px;
+            margin-bottom: 16px;
+            background: linear-gradient(180deg, var(--panel-bg), var(--panel-bg-2));
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+        }
+        .step-num {
+            width: 48px; height: 48px;
+            display: grid; place-items: center;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: #07111f;
+            background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+        }
+        .step-body p { margin: 8px 0 0; color: var(--text-muted); }
+        .step-body figure { margin: 16px 0 0; }
+        .step-body figure svg,
+        .step-body figure img {
+            width: 100%; height: auto; display: block;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        figcaption { font-size: 0.82rem; color: var(--text-muted); margin-top: 8px; text-align: center; }
+        .tip {
+            margin-top: 14px;
+            padding: 12px 16px;
+            border-left: 3px solid var(--accent);
+            background: rgba(212, 164, 85, 0.08);
+            border-radius: 0 10px 10px 0;
+            font-size: 0.92rem;
+            color: var(--text-primary);
+        }
+        .tip strong { color: var(--accent-strong); }
+
+        /* Effect categories */
+        .effects {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+        .effect-cat {
+            background: linear-gradient(180deg, var(--panel-bg), var(--panel-bg-2));
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+        }
+        .effect-cat h3 { display: flex; align-items: center; gap: 10px; }
+        .effect-cat h3 .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+        .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .pill {
+            font-size: 0.82rem;
+            padding: 5px 11px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        /* Two-column media block */
+        .media-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+        .media-row img, .media-row svg {
+            width: 100%; height: auto; display: block;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+        .media-row ul { margin: 10px 0 0; padding-left: 20px; color: var(--text-muted); }
+        .media-row li { margin: 6px 0; }
+        .media-row li b { color: var(--text-primary); }
+
+        /* FAQ */
+        details {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        summary {
+            cursor: pointer;
+            padding: 16px 20px;
+            font-weight: 600;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: "+"; color: var(--accent); font-size: 1.4rem; line-height: 1; }
+        details[open] summary::after { content: "\2212"; }
+        details > div { padding: 0 20px 18px; color: var(--text-muted); }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 48px 20px 40px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 40px;
+            color: var(--text-muted);
+        }
+        footer a { text-decoration: none; margin: 0 8px; }
+        footer .brand { color: var(--text-primary); font-weight: 600; }
+
+        @media (max-width: 620px) {
+            .media-row { grid-template-columns: 1fr; }
+            .step { grid-template-columns: 44px 1fr; gap: 14px; }
+            .step-num { width: 40px; height: 40px; font-size: 1.05rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hero">
+        <div class="wrap">
+            <span class="eyebrow">Anleitung · Audio Visualizer Pro</span>
+            <h1>Audioreaktive Bilder erstellen</h1>
+            <p class="lead">
+                Lass deine Bilder im Takt der Musik pulsieren, wackeln und leuchten.
+                In wenigen Schritten verwandelst du ein statisches Foto in eine
+                lebendige, beatgesteuerte Animation – direkt im Browser, ohne Installation.
+            </p>
+            <div class="hero-cta">
+                <a class="btn btn-primary" href="https://kodinitools.com/visualizer/">Visualizer öffnen</a>
+                <a class="btn btn-ghost" href="#schritte">Zur Schritt-für-Schritt-Anleitung</a>
+            </div>
+
+            <figure class="hero-figure">
+                <!-- Illustration: Bild reagiert auf Audio-Wellenform -->
+                <svg viewBox="0 0 760 300" role="img" aria-label="Ein Bild pulsiert im Takt einer Audio-Wellenform">
+                    <defs>
+                        <linearGradient id="hgBg" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#0e1c33"/>
+                            <stop offset="1" stop-color="#12233f"/>
+                        </linearGradient>
+                        <linearGradient id="hgGold" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0" stop-color="#d4a455"/>
+                            <stop offset="1" stop-color="#f5dfa0"/>
+                        </linearGradient>
+                        <linearGradient id="hgPic" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#1a6bc7"/>
+                            <stop offset="1" stop-color="#d4a455"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="760" height="300" fill="url(#hgBg)"/>
+                    <!-- Wellenform -->
+                    <g stroke="url(#hgGold)" stroke-width="4" stroke-linecap="round" opacity="0.9">
+                        <line x1="60"  y1="150" x2="60"  y2="150"><animate attributeName="y1" values="150;110;150" dur="1.2s" repeatCount="indefinite"/><animate attributeName="y2" values="150;190;150" dur="1.2s" repeatCount="indefinite"/></line>
+                        <line x1="90"  y1="150" x2="90"  y2="150"><animate attributeName="y1" values="150;80;150"  dur="1.0s" repeatCount="indefinite"/><animate attributeName="y2" values="150;220;150" dur="1.0s" repeatCount="indefinite"/></line>
+                        <line x1="120" y1="150" x2="120" y2="150"><animate attributeName="y1" values="150;125;150" dur="0.8s" repeatCount="indefinite"/><animate attributeName="y2" values="150;175;150" dur="0.8s" repeatCount="indefinite"/></line>
+                        <line x1="150" y1="150" x2="150" y2="150"><animate attributeName="y1" values="150;95;150"  dur="1.1s" repeatCount="indefinite"/><animate attributeName="y2" values="150;205;150" dur="1.1s" repeatCount="indefinite"/></line>
+                        <line x1="180" y1="150" x2="180" y2="150"><animate attributeName="y1" values="150;120;150" dur="0.9s" repeatCount="indefinite"/><animate attributeName="y2" values="150;180;150" dur="0.9s" repeatCount="indefinite"/></line>
+                    </g>
+                    <!-- Pfeil -->
+                    <g fill="none" stroke="#9fb0c4" stroke-width="2">
+                        <path d="M230 150 H310" marker-end="url(#arrow)"/>
+                    </g>
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                            <path d="M0,0 L8,3 L0,6 Z" fill="#9fb0c4"/>
+                        </marker>
+                    </defs>
+                    <!-- Pulsierendes "Bild" -->
+                    <g transform="translate(500 150)">
+                        <rect x="-90" y="-90" width="180" height="180" rx="16" fill="url(#hgPic)" opacity="0.95">
+                            <animateTransform attributeName="transform" type="scale" values="1;1.08;0.98;1" dur="1.0s" repeatCount="indefinite"/>
+                        </rect>
+                        <circle cx="-40" cy="-40" r="20" fill="#f5dfa0" opacity="0.85"/>
+                        <path d="M-80 60 L-20 0 L20 40 L80 -10 L80 70 Z" fill="#07111f" opacity="0.35"/>
+                        <rect x="-90" y="-90" width="180" height="180" rx="16" fill="none" stroke="#f5dfa0" stroke-width="3" opacity="0.6">
+                            <animate attributeName="opacity" values="0.2;0.8;0.2" dur="1.0s" repeatCount="indefinite"/>
+                        </rect>
+                    </g>
+                    <text x="60" y="255" fill="#9fb0c4" font-family="system-ui" font-size="15">Audio-Frequenzen</text>
+                    <text x="440" y="255" fill="#9fb0c4" font-family="system-ui" font-size="15">Reagierendes Bild</text>
+                </svg>
+            </figure>
+        </div>
+    </header>
+
+    <main class="wrap">
+
+        <!-- Was ist das -->
+        <section>
+            <h2>Was sind audioreaktive Bilder?</h2>
+            <p class="section-intro">
+                Ein audioreaktives Bild verändert seine Darstellung live, je nach dem was in der
+                Musik passiert. Der Visualizer analysiert das Audiosignal in Echtzeit per FFT
+                (Fast-Fourier-Transformation) und übersetzt Lautstärke, Frequenzen und Beats in
+                sichtbare Effekte – von einem sanften Puls im Rhythmus bis zum harten Blitzen auf jedem Beat.
+            </p>
+            <div class="info-cards">
+                <div class="card">
+                    <div class="ic">🎵</div>
+                    <h3>Beat-Erkennung</h3>
+                    <p>Bass und Schläge werden erkannt und lösen einen Impuls im Bild aus.</p>
+                </div>
+                <div class="card">
+                    <div class="ic">📊</div>
+                    <h3>Frequenz-Analyse</h3>
+                    <p>Hohe und tiefe Frequenzen steuern getrennt Farbe, Größe oder Bewegung.</p>
+                </div>
+                <div class="card">
+                    <div class="ic">⚡</div>
+                    <h3>Echtzeit</h3>
+                    <p>Alles läuft mit bis zu 60 FPS flüssig im Browser – ganz ohne Upload.</p>
+                </div>
+                <div class="card">
+                    <div class="ic">🎬</div>
+                    <h3>Export</h3>
+                    <p>Nimm das Ergebnis auf und lade es als MP4 für Social Media herunter.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Schritte -->
+        <section id="schritte">
+            <h2>Schritt-für-Schritt-Anleitung</h2>
+            <p class="section-intro">In fünf Schritten von der leeren Leinwand zum fertigen, audioreaktiven Clip.</p>
+
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-body">
+                    <h3>Musik laden</h3>
+                    <p>
+                        Öffne den Visualizer und lade über den Player deine Audiodatei
+                        (MP3, WAV, OGG, FLAC, AAC). Der Track ist die Grundlage – ohne Audio
+                        gibt es keine Reaktion. Starte die Wiedergabe kurz, damit du die
+                        Beats hören kannst, während du die Effekte einstellst.
+                    </p>
+                    <div class="tip"><strong>Tipp:</strong> Wähle für den Anfang einen Song mit klarem, kräftigem Beat – so siehst du die Reaktion sofort.</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-body">
+                    <h3>Bild hinzufügen &amp; positionieren</h3>
+                    <p>
+                        Füge über das Bild-Panel ein oder mehrere Bilder hinzu (JPG, PNG, GIF, WebP).
+                        Positioniere sie per Drag &amp; Drop auf dem Canvas, skaliere und rotiere sie
+                        nach Bedarf. Wähle vorher ein Workspace-Preset (z. B. TikTok 1080×1920 oder
+                        Instagram Post 1080×1080), damit das Format zur Plattform passt.
+                    </p>
+                    <figure>
+                        <!-- Canvas-Layout-Illustration -->
+                        <svg viewBox="0 0 680 260" role="img" aria-label="Bild wird auf dem Canvas platziert und skaliert">
+                            <rect width="680" height="260" rx="12" fill="#0e1c33"/>
+                            <!-- Canvas Fläche -->
+                            <rect x="240" y="24" width="200" height="212" rx="8" fill="#12233f" stroke="#d4a455" stroke-dasharray="6 6" stroke-width="1.5"/>
+                            <text x="340" y="18" fill="#9fb0c4" font-family="system-ui" font-size="12" text-anchor="middle">Canvas 9:16</text>
+                            <!-- platziertes Bild -->
+                            <g transform="translate(300 90)">
+                                <rect width="100" height="90" rx="8" fill="url(#hgPic)"/>
+                                <circle cx="26" cy="26" r="12" fill="#f5dfa0"/>
+                                <path d="M6 78 L38 46 L58 66 L92 34 L92 82 Z" fill="#07111f" opacity="0.35"/>
+                                <!-- Griffe -->
+                                <g fill="#f5dfa0">
+                                    <rect x="-5" y="-5" width="10" height="10" rx="2"/>
+                                    <rect x="95" y="-5" width="10" height="10" rx="2"/>
+                                    <rect x="-5" y="85" width="10" height="10" rx="2"/>
+                                    <rect x="95" y="85" width="10" height="10" rx="2"/>
+                                </g>
+                            </g>
+                            <!-- Werkzeugleiste links -->
+                            <g transform="translate(30 40)">
+                                <rect width="150" height="180" rx="10" fill="#12233f" stroke="rgba(212,164,85,0.18)"/>
+                                <rect x="16" y="18" width="118" height="14" rx="7" fill="#d4a455" opacity="0.8"/>
+                                <rect x="16" y="46" width="90" height="10" rx="5" fill="#9fb0c4" opacity="0.5"/>
+                                <rect x="16" y="66" width="118" height="10" rx="5" fill="#9fb0c4" opacity="0.3"/>
+                                <rect x="16" y="86" width="70" height="10" rx="5" fill="#9fb0c4" opacity="0.3"/>
+                                <rect x="16" y="120" width="118" height="34" rx="8" fill="#d4a455" opacity="0.25" stroke="#d4a455"/>
+                                <text x="75" y="141" fill="#f5dfa0" font-family="system-ui" font-size="12" text-anchor="middle">+ Bild</text>
+                            </g>
+                            <text x="340" y="252" fill="#9fb0c4" font-family="system-ui" font-size="12" text-anchor="middle">Bild per Drag &amp; Drop platzieren, mit den Eckgriffen skalieren</text>
+                        </svg>
+                        <figcaption>Bild auf dem Canvas auswählen, verschieben und skalieren.</figcaption>
+                    </figure>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-body">
+                    <h3>Audioreaktiv-Panel öffnen &amp; Effekte wählen</h3>
+                    <p>
+                        Wähle das Bild an und öffne sein <b>Audioreaktiv-Panel</b>. Aktiviere den
+                        Master-Schalter und hake anschließend die gewünschten Effekte an. Du kannst
+                        mehrere Effekte gleichzeitig kombinieren – z. B. „Skalierung“ für den Puls
+                        plus „Glühen“ für die Beat-Akzente. Jeder Effekt hat einen eigenen
+                        Intensitäts-Regler.
+                    </p>
+                    <div class="tip"><strong>Weniger ist mehr:</strong> Starte mit einem oder zwei Effekten. Zu viele gleichzeitig lassen das Bild schnell unruhig wirken.</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-body">
+                    <h3>Intensität, Beat-Boost &amp; Phasenversatz feinjustieren</h3>
+                    <p>
+                        Jetzt kommt die Feinabstimmung, während die Musik läuft:
+                    </p>
+                    <div class="media-row" style="margin-top:16px;">
+                        <svg viewBox="0 0 320 220" role="img" aria-label="Regler für Intensität und Beat-Boost">
+                            <rect width="320" height="220" rx="12" fill="#0e1c33"/>
+                            <!-- slider 1 -->
+                            <text x="24" y="42" fill="#f0e8cc" font-family="system-ui" font-size="13">Intensität</text>
+                            <rect x="24" y="54" width="272" height="8" rx="4" fill="#12233f"/>
+                            <rect x="24" y="54" width="180" height="8" rx="4" fill="url(#hgGold)"/>
+                            <circle cx="204" cy="58" r="10" fill="#f5dfa0"/>
+                            <!-- slider 2 -->
+                            <text x="24" y="102" fill="#f0e8cc" font-family="system-ui" font-size="13">Beat-Boost</text>
+                            <rect x="24" y="114" width="272" height="8" rx="4" fill="#12233f"/>
+                            <rect x="24" y="114" width="120" height="8" rx="4" fill="url(#hgGold)"/>
+                            <circle cx="144" cy="118" r="10" fill="#f5dfa0"/>
+                            <!-- slider 3 -->
+                            <text x="24" y="162" fill="#f0e8cc" font-family="system-ui" font-size="13">Phasenversatz</text>
+                            <rect x="24" y="174" width="272" height="8" rx="4" fill="#12233f"/>
+                            <rect x="24" y="174" width="70" height="8" rx="4" fill="url(#hgGold)"/>
+                            <circle cx="94" cy="178" r="10" fill="#f5dfa0"/>
+                        </svg>
+                        <div>
+                            <ul>
+                                <li><b>Intensität</b> – wie stark der Effekt auf das Audio reagiert.</li>
+                                <li><b>Beat-Boost (1,0–3,0×)</b> – zusätzlicher Schub genau im Moment eines Beats.</li>
+                                <li><b>Phasenversatz</b> – verzögert den Effekt pro Bild, sodass mehrere Bilder wie eine Welle nacheinander reagieren.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tip"><strong>Kaskaden-Trick:</strong> Bei mehreren Bildern erzeugt ein kleiner Phasenversatz einen laufenden Welleneffekt über die ganze Szene.</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">5</div>
+                <div class="step-body">
+                    <h3>Aufnehmen &amp; als MP4 exportieren</h3>
+                    <p>
+                        Bist du zufrieden, bereite die Aufnahme vor, starte sie und lass den Track
+                        durchlaufen. Wähle Qualität und Auflösung (720p, 1080p oder 1440p/4K),
+                        binde optional das Audio ein und exportiere das Video. Die gesamte
+                        Verarbeitung passiert clientseitig im Browser – deine Dateien verlassen
+                        deinen Rechner nicht.
+                    </p>
+                    <div class="tip"><strong>Für Social Media:</strong> 1080p bei 30 FPS ist der beste Kompromiss aus Qualität und Dateigröße für TikTok, Reels und Shorts.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Effektkatalog -->
+        <section>
+            <h2>Die Effekt-Kategorien im Überblick</h2>
+            <p class="section-intro">
+                Über 20 audioreaktive Bild-Effekte sind in fünf Kategorien gruppiert. Kombiniere sie frei,
+                um deinen eigenen Look zu finden.
+            </p>
+            <div class="effects">
+                <div class="effect-cat">
+                    <h3><span class="dot"></span> Farbeffekte</h3>
+                    <div class="pills">
+                        <span class="pill">Farbton</span>
+                        <span class="pill">Helligkeit</span>
+                        <span class="pill">Sättigung</span>
+                        <span class="pill">Kontrast</span>
+                        <span class="pill">Graustufen</span>
+                        <span class="pill">Sepia</span>
+                        <span class="pill">Invertieren</span>
+                    </div>
+                </div>
+                <div class="effect-cat">
+                    <h3><span class="dot"></span> Transformationen</h3>
+                    <div class="pills">
+                        <span class="pill">Skalierung</span>
+                        <span class="pill">Rotation</span>
+                        <span class="pill">Verzerrung</span>
+                        <span class="pill">Perspektive</span>
+                    </div>
+                </div>
+                <div class="effect-cat">
+                    <h3><span class="dot"></span> Bewegung</h3>
+                    <div class="pills">
+                        <span class="pill">Schütteln</span>
+                        <span class="pill">Hüpfen</span>
+                        <span class="pill">Schwingen</span>
+                        <span class="pill">Orbit</span>
+                        <span class="pill">Achterbahn</span>
+                        <span class="pill">Welle</span>
+                        <span class="pill">Spirale</span>
+                        <span class="pill">Schweben</span>
+                    </div>
+                </div>
+                <div class="effect-cat">
+                    <h3><span class="dot"></span> Spezialeffekte</h3>
+                    <div class="pills">
+                        <span class="pill">Glühen</span>
+                        <span class="pill">Rahmen</span>
+                        <span class="pill">Unschärfe</span>
+                        <span class="pill">Stroboskop</span>
+                        <span class="pill">Chromatische Aberration</span>
+                    </div>
+                </div>
+                <div class="effect-cat">
+                    <h3><span class="dot"></span> Rhythmus &amp; Kontrolle</h3>
+                    <div class="pills">
+                        <span class="pill">Beat-Boost</span>
+                        <span class="pill">Phasenversatz</span>
+                        <span class="pill">Presets speichern</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Beispielbilder aus der Galerie -->
+        <section>
+            <h2>Passende Hintergründe aus der Galerie</h2>
+            <p class="section-intro">
+                Kombiniere deine audioreaktiven Bilder mit einem stimmigen Hintergrund.
+                Die integrierte Galerie liefert fertige Verläufe und Foto-Backgrounds,
+                die ebenfalls auf Audio reagieren können.
+            </p>
+            <div class="media-row">
+                <img src="public/gallery/backgrounds/sonnenuntergang1.jpg" alt="Sonnenuntergang-Hintergrund aus der Galerie" loading="lazy">
+                <img src="public/gallery/backgrounds/sonnenuntergang2.jpg" alt="Zweiter Sonnenuntergang-Hintergrund aus der Galerie" loading="lazy">
+            </div>
+            <p style="text-align:center; margin-top:14px; color:var(--text-muted); font-size:0.9rem;">
+                Beispiel-Hintergründe aus <code>public/gallery/backgrounds</code>. Weitere Verläufe, Elemente und Muster findest du direkt im Visualizer.
+            </p>
+        </section>
+
+        <!-- FAQ -->
+        <section>
+            <h2>Häufige Fragen</h2>
+            <details open>
+                <summary>Reagieren die Bilder nur auf den Beat oder auf die ganze Musik?</summary>
+                <div>
+                    Beides. Effekte wie „Skalierung“ oder „Helligkeit“ folgen dem gesamten
+                    Frequenzverlauf, während der <b>Beat-Boost</b> gezielt bei erkannten
+                    Schlägen einen zusätzlichen Impuls gibt.
+                </div>
+            </details>
+            <details>
+                <summary>Kann ich mehrere Bilder gleichzeitig audioreaktiv machen?</summary>
+                <div>
+                    Ja. Jedes Bild hat sein eigenes Audioreaktiv-Panel. Mit dem
+                    <b>Phasenversatz</b> lassen sich die Reaktionen zeitlich staffeln,
+                    sodass ein Welleneffekt über alle Bilder entsteht.
+                </div>
+            </details>
+            <details>
+                <summary>Werden meine Bilder oder Musik auf einen Server hochgeladen?</summary>
+                <div>
+                    Nein. Die gesamte Verarbeitung läuft clientseitig in deinem Browser.
+                    Es werden keine Dateien gespeichert oder hochgeladen.
+                </div>
+            </details>
+            <details>
+                <summary>In welchem Format kann ich exportieren?</summary>
+                <div>
+                    Direkt im Browser als WebM; über die integrierte Konvertierung
+                    zusätzlich als MP4 in 720p, 1080p oder 1440p/4K.
+                </div>
+            </details>
+            <details>
+                <summary>Welcher Browser wird empfohlen?</summary>
+                <div>
+                    Chromium-basierte Browser (Chrome, Edge, Brave) bieten die beste
+                    Performance und MediaRecorder-Kompatibilität. Firefox funktioniert ebenfalls;
+                    Safari hat Einschränkungen bei der Aufnahme.
+                </div>
+            </details>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>
+            <a href="https://kodinitools.com/visualizer/">Zum Audio Visualizer Pro</a> ·
+            <a href="https://kodinitools.com/">Kodini Tools</a>
+        </p>
+        <p style="margin-top:10px;">
+            Entwickelt von <span class="brand">Dinko Ramić</span> ·
+            <a href="https://kodinitools.com">kodinitools.com</a>
+        </p>
+    </footer>
+
+</body>
+</html>

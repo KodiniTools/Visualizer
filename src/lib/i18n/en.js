@@ -1165,6 +1165,7 @@ export default {
     deselectAll: 'Deselect all',
     selected: 'selected',
     multiselectHint: 'Tip: Ctrl+click for multi-select, Shift+click for range',
+    dragToCanvasHint: 'Simply drag an image onto the canvas',
     placeOnCanvas: 'Place on Canvas',
     imagesOnCanvas: '{count} images on Canvas',
     noImagesUploaded: 'No images uploaded',

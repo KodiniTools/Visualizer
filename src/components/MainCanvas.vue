@@ -162,4 +162,11 @@ canvas {
   height: auto;
   object-fit: contain;
 }
+
+/* Visuelles Feedback beim Drag & Drop eines Galerie-Bildes auf den Canvas.
+   Die Klasse wird während eines aktiven Drags dynamisch gesetzt/entfernt. */
+canvas.gallery-drop-active {
+  outline: 3px dashed var(--accent-primary, #c9984d);
+  outline-offset: -3px;
+}
 </style>

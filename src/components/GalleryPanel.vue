@@ -35,12 +35,14 @@
       @add-directly="addStockImageDirectly"
       @retry-load="loadStockGallery"
       @update:placement-settings="updatePlacementSettings"
+      @image-dragstart="handleGalleryImageDragStart"
+      @image-dragend="handleGalleryImageDragEnd"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted, onBeforeUnmount, inject } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useToastStore } from '../stores/toastStore'
 import ImagePreviewOverlay from './foto-panel/ImagePreviewOverlay.vue'
@@ -257,6 +259,125 @@ async function addStockImageDirectly() {
     console.error('❌ Fehler beim Laden des Stock-Bildes:', error)
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// DRAG & DROP: Galerie-Bild direkt auf den Canvas ziehen
+// ═══════════════════════════════════════════════════════════════════
+// Ergänzt die bestehenden Platzierungs-Buttons, ohne sie zu verändern.
+// Die Drop-Listener werden nur während eines aktiven Drags am Canvas
+// registriert und danach wieder entfernt – so bleibt der Canvas-Zustand
+// unangetastet und es entstehen keine Speicherlecks.
+
+const draggedStockImage = ref(null)
+let dropCanvasEl = null
+
+function getCanvasElement() {
+  return canvasManagerRef?.value?.canvas || document.querySelector('.canvas-wrapper canvas')
+}
+
+function attachCanvasDropHandlers() {
+  const canvasEl = getCanvasElement()
+  if (!canvasEl || dropCanvasEl === canvasEl) return
+  detachCanvasDropHandlers()
+  dropCanvasEl = canvasEl
+  canvasEl.addEventListener('dragover', onCanvasDragOver)
+  canvasEl.addEventListener('dragleave', onCanvasDragLeave)
+  canvasEl.addEventListener('drop', onCanvasDrop)
+}
+
+function detachCanvasDropHandlers() {
+  if (!dropCanvasEl) return
+  dropCanvasEl.removeEventListener('dragover', onCanvasDragOver)
+  dropCanvasEl.removeEventListener('dragleave', onCanvasDragLeave)
+  dropCanvasEl.removeEventListener('drop', onCanvasDrop)
+  dropCanvasEl.classList.remove('gallery-drop-active')
+  dropCanvasEl = null
+}
+
+function handleGalleryImageDragStart({ img, event }) {
+  draggedStockImage.value = img
+  if (event?.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'copy'
+    // Fallback-Nutzlast für Browser, die ohne gesetzte Daten kein Drag starten
+    try {
+      event.dataTransfer.setData('text/plain', img?.name || 'stock-image')
+    } catch {
+      // manche Browser erlauben setData im dragstart nicht – unkritisch
+    }
+  }
+  attachCanvasDropHandlers()
+}
+
+function handleGalleryImageDragEnd() {
+  // drop feuert vor dragend, daher ist das Aufräumen hier sicher
+  detachCanvasDropHandlers()
+  draggedStockImage.value = null
+}
+
+function onCanvasDragOver(event) {
+  if (!draggedStockImage.value) return
+  event.preventDefault()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy'
+  dropCanvasEl?.classList.add('gallery-drop-active')
+}
+
+function onCanvasDragLeave() {
+  dropCanvasEl?.classList.remove('gallery-drop-active')
+}
+
+async function onCanvasDrop(event) {
+  const stockImg = draggedStockImage.value
+  if (!stockImg) return
+  event.preventDefault()
+  dropCanvasEl?.classList.remove('gallery-drop-active')
+
+  const canvasManager = canvasManagerRef?.value
+  const multiImageManager = multiImageManagerRef?.value
+  if (!canvasManager || !multiImageManager) return
+
+  // Relative Drop-Position (0..1) – identische Mathematik wie die Maus-Interaktion
+  let relX = 0.5
+  let relY = 0.5
+  if (typeof canvasManager.getRelativePositionFromEvent === 'function') {
+    const pos = canvasManager.getRelativePositionFromEvent(event)
+    if (pos) {
+      relX = pos.relX
+      relY = pos.relY
+    }
+  }
+  // Auf den sichtbaren Bereich begrenzen
+  relX = Math.max(0, Math.min(1, relX))
+  relY = Math.max(0, Math.min(1, relY))
+
+  try {
+    const img = await loadStockImageObject(stockImg)
+
+    // Größe an die aktuellen Platzierungs-Einstellungen koppeln (wie "direkt platzieren")
+    const baseSize = 0.15
+    const relSize = baseSize * (imageScale.value || 1)
+
+    const bounds = {
+      relX: relX - relSize / 2,
+      relY: relY - relSize / 2,
+      relWidth: relSize,
+      relHeight: relSize,
+    }
+
+    multiImageManager.addImageWithBounds(img, bounds, selectedAnimation.value, {
+      duration: animationDuration.value,
+    })
+
+    console.log('✅ Galerie-Bild per Drag & Drop platziert:', stockImg.name)
+    toastStore.success(t('toast.imageAddedToCanvas'))
+  } catch (error) {
+    console.error('❌ Fehler beim Platzieren des Galerie-Bildes:', error)
+    toastStore.error(t('toast.imageLoadError'))
+  }
+}
+
+onBeforeUnmount(() => {
+  detachCanvasDropHandlers()
+})
 
 // ═══════════════════════════════════════════════════════════════════
 // BILD-VORSCHAU

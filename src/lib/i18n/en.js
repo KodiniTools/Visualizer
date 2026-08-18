@@ -783,6 +783,7 @@ export default {
     grid: 'Grid',
     gridColor: 'Grid color',
     gridOpacity: 'Grid opacity',
+    gridSize: 'Grid size',
     workspace: 'Workspace',
     free: 'Free',
   },

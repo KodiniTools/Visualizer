@@ -429,6 +429,15 @@ onMounted(async () => {
     { immediate: true },
   )
 
+  // Grid-Größe watcher – überträgt den Rastergröße-Slider auf den GridManager.
+  watch(
+    () => gridStore.gridSize,
+    (size) => {
+      if (gridManagerInstance.value) gridManagerInstance.value.setGridSize(size)
+    },
+    { immediate: true },
+  )
+
   // Workspace preset watcher
   watch(
     () => workspaceStore.selectedPresetKey,

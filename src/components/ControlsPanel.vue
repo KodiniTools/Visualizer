@@ -43,6 +43,21 @@
             :title="t('controls.gridOpacity')"
           />
         </div>
+        <div class="grid-color-row">
+          <span class="grid-sub-label"
+            >{{ t('controls.gridSize') }}: {{ gridStore.gridSize }} px</span
+          >
+          <input
+            class="grid-opacity-slider"
+            type="range"
+            min="10"
+            max="200"
+            step="5"
+            :value="gridStore.gridSize"
+            @input="gridStore.setSize(Number($event.target.value))"
+            :title="t('controls.gridSize')"
+          />
+        </div>
       </div>
     </div>
 

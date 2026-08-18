@@ -779,6 +779,7 @@ export default {
     grid: 'Raster',
     gridColor: 'Rasterfarbe',
     gridOpacity: 'Raster-Deckkraft',
+    gridSize: 'Rastergröße',
     workspace: 'Arbeitsbereich',
     free: 'Frei',
   },

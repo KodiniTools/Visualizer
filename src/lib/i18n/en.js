@@ -781,6 +781,8 @@ export default {
   controls: {
     title: 'Controls',
     grid: 'Grid',
+    gridColor: 'Grid color',
+    gridOpacity: 'Grid opacity',
     workspace: 'Workspace',
     free: 'Free',
   },

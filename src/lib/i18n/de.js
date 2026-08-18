@@ -777,6 +777,8 @@ export default {
   controls: {
     title: 'Steuerung',
     grid: 'Raster',
+    gridColor: 'Rasterfarbe',
+    gridOpacity: 'Raster-Deckkraft',
     workspace: 'Arbeitsbereich',
     free: 'Frei',
   },

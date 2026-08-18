@@ -417,6 +417,18 @@ onMounted(async () => {
     { immediate: true },
   )
 
+  // Grid-Farbe / Deckkraft watcher – überträgt die Auswahl aus dem
+  // Raster-Farbwähler auf den GridManager (der Render-Loop liest gridColor).
+  watch(
+    () => [gridStore.gridColor, gridStore.gridOpacity],
+    ([color, opacity]) => {
+      if (gridManagerInstance.value) {
+        gridManagerInstance.value.setGridColor(color, opacity)
+      }
+    },
+    { immediate: true },
+  )
+
   // Workspace preset watcher
   watch(
     () => workspaceStore.selectedPresetKey,

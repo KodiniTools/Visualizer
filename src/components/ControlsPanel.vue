@@ -12,6 +12,38 @@
         <span class="btn-icon">{{ gridStore.isVisible ? '✓' : '×' }}</span>
         {{ gridStore.isVisible ? t('common.on') : t('common.off') }}
       </button>
+
+      <!-- Rasterfarbe (nur sichtbar, wenn das Raster aktiv ist) -->
+      <div v-if="gridStore.isVisible" class="grid-color-controls">
+        <div class="grid-color-row">
+          <span class="grid-sub-label">{{ t('controls.gridColor') }}</span>
+          <div class="grid-color-input">
+            <input
+              type="color"
+              :value="gridStore.gridColor"
+              @input="gridStore.setColor($event.target.value)"
+              :title="t('controls.gridColor')"
+              :aria-label="t('controls.gridColor')"
+            />
+            <span class="grid-color-hex">{{ gridStore.gridColor }}</span>
+          </div>
+        </div>
+        <div class="grid-color-row">
+          <span class="grid-sub-label"
+            >{{ t('controls.gridOpacity') }}: {{ Math.round(gridStore.gridOpacity * 100) }}%</span
+          >
+          <input
+            class="grid-opacity-slider"
+            type="range"
+            min="10"
+            max="100"
+            step="1"
+            :value="Math.round(gridStore.gridOpacity * 100)"
+            @input="gridStore.setOpacity($event.target.value / 100)"
+            :title="t('controls.gridOpacity')"
+          />
+        </div>
+      </div>
     </div>
 
     <div class="control-section">
@@ -135,6 +167,55 @@ h4 {
 .btn-icon {
   font-size: 14px;
   font-weight: bold;
+}
+
+/* Rasterfarbe-Steuerung */
+.grid-color-controls {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.grid-color-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grid-sub-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.grid-color-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grid-color-input input[type='color'] {
+  width: 40px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+.grid-color-hex {
+  font-size: 11px;
+  color: var(--text-primary);
+  font-family: monospace;
+  text-transform: uppercase;
+}
+
+.grid-opacity-slider {
+  width: 100%;
+  cursor: pointer;
+  accent-color: #6ea8fe;
 }
 
 .preset-buttons {

@@ -164,9 +164,12 @@ canvas {
 }
 
 /* Visuelles Feedback beim Drag & Drop eines Galerie-Bildes auf den Canvas.
-   Die Klasse wird während eines aktiven Drags dynamisch gesetzt/entfernt. */
-canvas.gallery-drop-active {
+   Die Klasse wird während eines aktiven Drags dynamisch am Wrapper gesetzt. */
+.canvas-wrapper.gallery-drop-active {
   outline: 3px dashed var(--accent-primary, #c9984d);
   outline-offset: -3px;
+}
+.canvas-wrapper.gallery-drop-active canvas {
+  box-shadow: 0 0 0 3px rgba(201, 152, 77, 0.5);
 }
 </style>

@@ -264,34 +264,46 @@ async function addStockImageDirectly() {
 // DRAG & DROP: Galerie-Bild direkt auf den Canvas ziehen
 // ═══════════════════════════════════════════════════════════════════
 // Ergänzt die bestehenden Platzierungs-Buttons, ohne sie zu verändern.
-// Die Drop-Listener werden nur während eines aktiven Drags am Canvas
-// registriert und danach wieder entfernt – so bleibt der Canvas-Zustand
-// unangetastet und es entstehen keine Speicherlecks.
+// Robust: Die Listener hängen an der GESAMTEN Canvas-Fläche (.canvas-wrapper),
+// damit ein Drop auch dann ankommt, wenn ein Overlay (z.B. die "Bilder auf
+// Canvas"-Leiste, ein Popover oder der Workspace-Rahmen) über dem <canvas>
+// liegt. Sie werden nur während eines aktiven Drags registriert und danach
+// wieder entfernt – kein State-Leak, keine Beeinträchtigung anderer Funktionen.
 
 const draggedStockImage = ref(null)
-let dropCanvasEl = null
+let dropZoneEl = null
 
-function getCanvasElement() {
-  return canvasManagerRef?.value?.canvas || document.querySelector('.canvas-wrapper canvas')
+// Die Drop-Zone ist der Wrapper rund um den Canvas (fällt auf das
+// <canvas>-Element selbst zurück). So werden auch Drops über Kind-Overlays
+// erfasst, während die Koordinaten weiterhin exakt aus dem <canvas> stammen.
+function getDropZoneElement() {
+  return (
+    document.querySelector('.canvas-wrapper') ||
+    canvasManagerRef?.value?.canvas ||
+    document.querySelector('.canvas-wrapper canvas')
+  )
 }
 
 function attachCanvasDropHandlers() {
-  const canvasEl = getCanvasElement()
-  if (!canvasEl || dropCanvasEl === canvasEl) return
-  detachCanvasDropHandlers()
-  dropCanvasEl = canvasEl
-  canvasEl.addEventListener('dragover', onCanvasDragOver)
-  canvasEl.addEventListener('dragleave', onCanvasDragLeave)
-  canvasEl.addEventListener('drop', onCanvasDrop)
+  const zone = getDropZoneElement()
+  if (!zone) return
+  if (dropZoneEl && dropZoneEl !== zone) detachCanvasDropHandlers()
+  if (dropZoneEl === zone) return
+  dropZoneEl = zone
+  // capture:true stellt sicher, dass wir das Event auch dann erhalten, wenn ein
+  // Kind-Element (Overlay) darüber liegt.
+  dropZoneEl.addEventListener('dragover', onCanvasDragOver, true)
+  dropZoneEl.addEventListener('dragleave', onCanvasDragLeave, true)
+  dropZoneEl.addEventListener('drop', onCanvasDrop, true)
 }
 
 function detachCanvasDropHandlers() {
-  if (!dropCanvasEl) return
-  dropCanvasEl.removeEventListener('dragover', onCanvasDragOver)
-  dropCanvasEl.removeEventListener('dragleave', onCanvasDragLeave)
-  dropCanvasEl.removeEventListener('drop', onCanvasDrop)
-  dropCanvasEl.classList.remove('gallery-drop-active')
-  dropCanvasEl = null
+  if (!dropZoneEl) return
+  dropZoneEl.removeEventListener('dragover', onCanvasDragOver, true)
+  dropZoneEl.removeEventListener('dragleave', onCanvasDragLeave, true)
+  dropZoneEl.removeEventListener('drop', onCanvasDrop, true)
+  dropZoneEl.classList.remove('gallery-drop-active')
+  dropZoneEl = null
 }
 
 function handleGalleryImageDragStart({ img, event }) {
@@ -316,31 +328,35 @@ function handleGalleryImageDragEnd() {
 
 function onCanvasDragOver(event) {
   if (!draggedStockImage.value) return
+  // preventDefault ist zwingend, sonst feuert 'drop' nicht
   event.preventDefault()
   if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy'
-  dropCanvasEl?.classList.add('gallery-drop-active')
+  dropZoneEl?.classList.add('gallery-drop-active')
 }
 
-function onCanvasDragLeave() {
-  dropCanvasEl?.classList.remove('gallery-drop-active')
+function onCanvasDragLeave(event) {
+  // Nur ausblenden, wenn die Maus die Drop-Zone wirklich verlässt
+  if (event?.relatedTarget && dropZoneEl?.contains(event.relatedTarget)) return
+  dropZoneEl?.classList.remove('gallery-drop-active')
 }
 
 async function onCanvasDrop(event) {
   const stockImg = draggedStockImage.value
   if (!stockImg) return
   event.preventDefault()
-  dropCanvasEl?.classList.remove('gallery-drop-active')
+  dropZoneEl?.classList.remove('gallery-drop-active')
 
   const canvasManager = canvasManagerRef?.value
   const multiImageManager = multiImageManagerRef?.value
   if (!canvasManager || !multiImageManager) return
 
-  // Relative Drop-Position (0..1) – identische Mathematik wie die Maus-Interaktion
+  // Relative Drop-Position (0..1) – identische Mathematik wie die Maus-Interaktion.
+  // Fällt auf die Canvas-Mitte zurück, falls die Berechnung fehlschlägt (NaN).
   let relX = 0.5
   let relY = 0.5
   if (typeof canvasManager.getRelativePositionFromEvent === 'function') {
     const pos = canvasManager.getRelativePositionFromEvent(event)
-    if (pos) {
+    if (pos && Number.isFinite(pos.relX) && Number.isFinite(pos.relY)) {
       relX = pos.relX
       relY = pos.relY
     }

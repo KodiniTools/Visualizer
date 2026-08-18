@@ -50,6 +50,7 @@
         >
       </div>
       <p class="multiselect-hint">{{ t('foto.multiselectHint') }}</p>
+      <p class="drag-hint">{{ t('foto.dragToCanvasHint') }}</p>
 
       <div class="gallery-scroll">
         <div class="gallery-grid">
@@ -58,14 +59,17 @@
             :key="imgData.id"
             class="thumbnail-item"
             :class="{ selected: selectedImageIndices.has(index) }"
+            draggable="true"
             @click="$emit('select-image', index, $event)"
             @dblclick="$emit('open-preview', imgData)"
+            @dragstart="$emit('image-dragstart', { imgData, event: $event })"
+            @dragend="$emit('image-dragend')"
           >
             <!-- Checkbox für Mehrfachauswahl -->
             <div class="selection-checkbox" :class="{ checked: selectedImageIndices.has(index) }">
               <span v-if="selectedImageIndices.has(index)">✓</span>
             </div>
-            <img :src="imgData.img.src" :alt="imgData.name" />
+            <img :src="imgData.img.src" :alt="imgData.name" draggable="false" />
             <div class="thumbnail-overlay">
               <button @click.stop="$emit('delete-image', index)" class="btn-delete-thumb">✕</button>
             </div>
@@ -186,6 +190,8 @@ const emit = defineEmits([
   'start-range-selection',
   'add-directly',
   'update:placement-settings',
+  'image-dragstart',
+  'image-dragend',
 ])
 
 const fileInputRef = ref(null)
@@ -345,10 +351,14 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   aspect-ratio: 1;
   border-radius: 6px;
   overflow: hidden;
-  cursor: pointer;
+  cursor: grab;
   border: 2px solid transparent;
   transition: all 0.2s ease;
   background-color: var(--secondary-bg);
+}
+
+.thumbnail-item:active {
+  cursor: grabbing;
 }
 
 .thumbnail-item:hover {
@@ -478,8 +488,24 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 .multiselect-hint {
   font-size: 10px;
   color: var(--text-muted);
+  margin: 0 0 2px 0;
+  font-style: italic;
+}
+
+.drag-hint {
+  font-size: 10px;
+  color: var(--accent-tertiary, #f8e1a9);
   margin: 0 0 8px 0;
   font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.drag-hint::before {
+  content: '↦';
+  font-style: normal;
+  font-size: 12px;
 }
 
 /* Selection Checkbox */

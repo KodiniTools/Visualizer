@@ -32,6 +32,8 @@
       @start-range-selection="startUploadedImageRangeSelection"
       @add-directly="addUploadedImageDirectly"
       @update:placement-settings="updatePlacementSettings"
+      @image-dragstart="onGalleryImageDragStart"
+      @image-dragend="onGalleryImageDragEnd"
     />
 
     <!-- Slideshow-Panel (wenn 2+ Bilder ausgewählt oder aktiv) -->
@@ -72,7 +74,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, inject } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useToastStore } from '../stores/toastStore'
 
@@ -88,6 +90,7 @@ import { SlideshowManager } from '../lib/slideshowManager.js'
 // Composables
 import { useImageGallery } from '../composables/useImageGallery.js'
 import { useImageAudioReactive } from '../composables/useImageAudioReactive.js'
+import { useGalleryCanvasDrop } from '../composables/useGalleryCanvasDrop.js'
 
 const { t } = useI18n()
 const toastStore = useToastStore()
@@ -134,6 +137,37 @@ const {
   deleteImage,
   clearAllImages: clearAllImagesComposable,
 } = useImageGallery()
+
+// ═══════════════════════════════════════════════════════════════════
+// DRAG & DROP: Eigenes Galerie-Bild direkt auf den Canvas ziehen
+// ═══════════════════════════════════════════════════════════════════
+// Ergänzt die bestehenden Platzierungs-Buttons, ohne sie zu verändern.
+const {
+  startDrag: startGalleryDrag,
+  endDrag: endGalleryDrag,
+  teardown: teardownGalleryDrop,
+} = useGalleryCanvasDrop({
+  canvasManagerRef,
+  multiImageManagerRef,
+  placement: { selectedAnimation, animationDuration, imageScale },
+  // Eigene Bilder sind bereits als <img> geladen – direkt zurückgeben.
+  resolveImage: (payload) => payload?.imgData?.img || null,
+  onPlaced: (payload) => {
+    console.log('✅ Eigenes Bild per Drag & Drop platziert:', payload?.imgData?.name)
+    toastStore.success(t('toast.imageAddedToCanvas'))
+  },
+  onError: () => toastStore.error(t('toast.imageLoadError')),
+})
+
+function onGalleryImageDragStart(payload) {
+  startGalleryDrag(payload, payload?.event)
+}
+
+function onGalleryImageDragEnd() {
+  endGalleryDrag()
+}
+
+onBeforeUnmount(() => teardownGalleryDrop())
 
 // Audio-Reaktiv State (der aktive-Bild-Zustand wird mit dem Audio-Reaktiv-Panel
 // in der Player-Leiste geteilt; savedAudioReactiveSettings/hasSavedAudioSettings

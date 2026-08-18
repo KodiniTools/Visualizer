@@ -48,6 +48,7 @@ import { useToastStore } from '../stores/toastStore'
 import ImagePreviewOverlay from './foto-panel/ImagePreviewOverlay.vue'
 import StockGallerySection from './foto-panel/StockGallerySection.vue'
 import { useStockGallery } from '../composables/useStockGallery.js'
+import { useGalleryCanvasDrop } from '../composables/useGalleryCanvasDrop.js'
 
 const { t } = useI18n()
 const toastStore = useToastStore()
@@ -261,139 +262,35 @@ async function addStockImageDirectly() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// DRAG & DROP: Galerie-Bild direkt auf den Canvas ziehen
+// DRAG & DROP: Stock-Galerie-Bild direkt auf den Canvas ziehen
 // ═══════════════════════════════════════════════════════════════════
-// Ergänzt die bestehenden Platzierungs-Buttons, ohne sie zu verändern.
-// Robust: Die Listener hängen an der GESAMTEN Canvas-Fläche (.canvas-wrapper),
-// damit ein Drop auch dann ankommt, wenn ein Overlay (z.B. die "Bilder auf
-// Canvas"-Leiste, ein Popover oder der Workspace-Rahmen) über dem <canvas>
-// liegt. Sie werden nur während eines aktiven Drags registriert und danach
-// wieder entfernt – kein State-Leak, keine Beeinträchtigung anderer Funktionen.
-
-const draggedStockImage = ref(null)
-let dropZoneEl = null
-
-// Die Drop-Zone ist der Wrapper rund um den Canvas (fällt auf das
-// <canvas>-Element selbst zurück). So werden auch Drops über Kind-Overlays
-// erfasst, während die Koordinaten weiterhin exakt aus dem <canvas> stammen.
-function getDropZoneElement() {
-  return (
-    document.querySelector('.canvas-wrapper') ||
-    canvasManagerRef?.value?.canvas ||
-    document.querySelector('.canvas-wrapper canvas')
-  )
-}
-
-function attachCanvasDropHandlers() {
-  const zone = getDropZoneElement()
-  if (!zone) return
-  if (dropZoneEl && dropZoneEl !== zone) detachCanvasDropHandlers()
-  if (dropZoneEl === zone) return
-  dropZoneEl = zone
-  // capture:true stellt sicher, dass wir das Event auch dann erhalten, wenn ein
-  // Kind-Element (Overlay) darüber liegt.
-  dropZoneEl.addEventListener('dragover', onCanvasDragOver, true)
-  dropZoneEl.addEventListener('dragleave', onCanvasDragLeave, true)
-  dropZoneEl.addEventListener('drop', onCanvasDrop, true)
-}
-
-function detachCanvasDropHandlers() {
-  if (!dropZoneEl) return
-  dropZoneEl.removeEventListener('dragover', onCanvasDragOver, true)
-  dropZoneEl.removeEventListener('dragleave', onCanvasDragLeave, true)
-  dropZoneEl.removeEventListener('drop', onCanvasDrop, true)
-  dropZoneEl.classList.remove('gallery-drop-active')
-  dropZoneEl = null
-}
+// Nutzt dieselbe geteilte Logik wie die Galerie eigener Bilder (FotoPanel).
+const {
+  startDrag: startGalleryDrag,
+  endDrag: endGalleryDrag,
+  teardown: teardownGalleryDrop,
+} = useGalleryCanvasDrop({
+  canvasManagerRef,
+  multiImageManagerRef,
+  placement: { selectedAnimation, animationDuration, imageScale },
+  // Stock-Bilder werden bei Bedarf (asynchron, mit Caching) geladen.
+  resolveImage: (stockImg) => loadStockImageObject(stockImg),
+  onPlaced: (stockImg) => {
+    console.log('✅ Galerie-Bild per Drag & Drop platziert:', stockImg?.name)
+    toastStore.success(t('toast.imageAddedToCanvas'))
+  },
+  onError: () => toastStore.error(t('toast.imageLoadError')),
+})
 
 function handleGalleryImageDragStart({ img, event }) {
-  draggedStockImage.value = img
-  if (event?.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'copy'
-    // Fallback-Nutzlast für Browser, die ohne gesetzte Daten kein Drag starten
-    try {
-      event.dataTransfer.setData('text/plain', img?.name || 'stock-image')
-    } catch {
-      // manche Browser erlauben setData im dragstart nicht – unkritisch
-    }
-  }
-  attachCanvasDropHandlers()
+  startGalleryDrag(img, event)
 }
 
 function handleGalleryImageDragEnd() {
-  // drop feuert vor dragend, daher ist das Aufräumen hier sicher
-  detachCanvasDropHandlers()
-  draggedStockImage.value = null
+  endGalleryDrag()
 }
 
-function onCanvasDragOver(event) {
-  if (!draggedStockImage.value) return
-  // preventDefault ist zwingend, sonst feuert 'drop' nicht
-  event.preventDefault()
-  if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy'
-  dropZoneEl?.classList.add('gallery-drop-active')
-}
-
-function onCanvasDragLeave(event) {
-  // Nur ausblenden, wenn die Maus die Drop-Zone wirklich verlässt
-  if (event?.relatedTarget && dropZoneEl?.contains(event.relatedTarget)) return
-  dropZoneEl?.classList.remove('gallery-drop-active')
-}
-
-async function onCanvasDrop(event) {
-  const stockImg = draggedStockImage.value
-  if (!stockImg) return
-  event.preventDefault()
-  dropZoneEl?.classList.remove('gallery-drop-active')
-
-  const canvasManager = canvasManagerRef?.value
-  const multiImageManager = multiImageManagerRef?.value
-  if (!canvasManager || !multiImageManager) return
-
-  // Relative Drop-Position (0..1) – identische Mathematik wie die Maus-Interaktion.
-  // Fällt auf die Canvas-Mitte zurück, falls die Berechnung fehlschlägt (NaN).
-  let relX = 0.5
-  let relY = 0.5
-  if (typeof canvasManager.getRelativePositionFromEvent === 'function') {
-    const pos = canvasManager.getRelativePositionFromEvent(event)
-    if (pos && Number.isFinite(pos.relX) && Number.isFinite(pos.relY)) {
-      relX = pos.relX
-      relY = pos.relY
-    }
-  }
-  // Auf den sichtbaren Bereich begrenzen
-  relX = Math.max(0, Math.min(1, relX))
-  relY = Math.max(0, Math.min(1, relY))
-
-  try {
-    const img = await loadStockImageObject(stockImg)
-
-    // Größe an die aktuellen Platzierungs-Einstellungen koppeln (wie "direkt platzieren")
-    const baseSize = 0.15
-    const relSize = baseSize * (imageScale.value || 1)
-
-    const bounds = {
-      relX: relX - relSize / 2,
-      relY: relY - relSize / 2,
-      relWidth: relSize,
-      relHeight: relSize,
-    }
-
-    multiImageManager.addImageWithBounds(img, bounds, selectedAnimation.value, {
-      duration: animationDuration.value,
-    })
-
-    console.log('✅ Galerie-Bild per Drag & Drop platziert:', stockImg.name)
-    toastStore.success(t('toast.imageAddedToCanvas'))
-  } catch (error) {
-    console.error('❌ Fehler beim Platzieren des Galerie-Bildes:', error)
-    toastStore.error(t('toast.imageLoadError'))
-  }
-}
-
-onBeforeUnmount(() => {
-  detachCanvasDropHandlers()
-})
+onBeforeUnmount(() => teardownGalleryDrop())
 
 // ═══════════════════════════════════════════════════════════════════
 // BILD-VORSCHAU

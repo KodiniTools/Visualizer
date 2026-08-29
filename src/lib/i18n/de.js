@@ -617,6 +617,11 @@ export default {
     myBackgrounds: 'Meine Hintergründe',
     backgroundTemplates: 'Vorlagen',
     backgroundChanges: 'Ändert den Hintergrund',
+    currentBackground: 'Aktueller Hintergrund (Bild + Audio-Reaktiv)',
+    currentBackgroundShort: 'Aktuell',
+    backgroundImageLabel: 'Bild-HG',
+    currentBackgroundHint:
+      'Übernimmt beim Speichern das aktuell gesetzte Hintergrundbild (z.B. aus der hochgeladenen Galerie) inkl. seiner Audio-Reaktiven Einstellungen.',
     text: 'Text',
     noText: '-- Kein Text --',
     textAppears: 'Text erscheint zum Marker-Zeitpunkt auf dem Canvas',

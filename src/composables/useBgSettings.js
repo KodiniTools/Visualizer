@@ -509,6 +509,8 @@ export function useBgSettings() {
       name: `Preset ${presetNumber}`,
       // Bild-Hintergrund (z.B. Galeriebild) inkl. Bild-Audio-Reaktiv mitspeichern
       backgroundImage: captureImageBackground(),
+      // Video-Hintergrund (falls vorhanden) inkl. Bild-Audio-Reaktiv mitspeichern
+      backgroundVideo: captureVideoBackground(),
       backgroundColor: backgroundColor.value,
       backgroundOpacity: backgroundOpacity.value,
       gradientEnabled: Boolean(gradientEnabled.value),
@@ -577,13 +579,22 @@ export function useBgSettings() {
         bgEffectGradientRotationIntensity.value = preset.bgEffects.gradientRotation?.intensity || 80
       }
 
-      if (preset.backgroundImage?.src) {
-        // Bild-Hintergrund inkl. Bild-Audio-Reaktiv wiederherstellen
+      if (preset.backgroundVideo?.src) {
+        // Video-Hintergrund inkl. Bild-Audio-Reaktiv wiederherstellen
+        applyVideoBackground(preset.backgroundVideo)
+        updateGradientSettings()
+        updateBgAudioReactive()
+      } else if (preset.backgroundImage?.src) {
+        // Bild-Hintergrund inkl. Bild-Audio-Reaktiv wiederherstellen.
+        // Evtl. laufenden Video-Hintergrund entfernen.
+        clearCanvasVideoBackgrounds()
         applyImageBackground(preset.backgroundImage)
         updateGradientSettings()
         updateBgAudioReactive()
       } else {
-        // Farb-/Gradient-Preset: evtl. vorhandenes Workspace-Bild entfernen
+        // Farb-/Gradient-Preset: evtl. vorhandenes Workspace-Bild und
+        // laufende Video-Hintergründe entfernen.
+        clearCanvasVideoBackgrounds()
         if (canvasManager.value.workspaceBackground) {
           canvasManager.value.workspaceBackground = null
         }
@@ -690,6 +701,121 @@ export function useBgSettings() {
     load(true)
   }
 
+  // ===== VIDEO-HINTERGRUND (für Presets & Beat-Marker) =====
+
+  /**
+   * Erfasst einen aktuell gesetzten Video-Hintergrund als serialisierbares
+   * Objekt: Ziel (Haupt- oder Workspace-Hintergrund), Videoquelle, Wiedergabe-
+   * Optionen (muted/loop) sowie die Foto-Einstellungen inkl. Bild-Audio-Reaktiv
+   * (fotoSettings.audioReactive).
+   *
+   * Hinweis: `src` ist i.d.R. eine Blob-URL des hochgeladenen Videos und nur
+   * innerhalb der laufenden Sitzung gültig (nicht über einen Reload hinaus).
+   * @returns {{ target: string, src: string, muted: boolean, loop: boolean, settings: object|null } | null}
+   */
+  function captureVideoBackground() {
+    const cm = canvasManager.value
+    if (!cm) return null
+
+    // Workspace-Video-Hintergrund hat Vorrang, wenn ein Workspace aktiv ist
+    const wsVid = cm.workspaceVideoBackground
+    if (wsVid && wsVid.videoElement?.src) {
+      return {
+        target: 'workspace',
+        src: wsVid.videoElement.src,
+        muted: wsVid.videoElement.muted ?? true,
+        loop: wsVid.videoElement.loop ?? true,
+        settings: wsVid.fotoSettings ? JSON.parse(JSON.stringify(wsVid.fotoSettings)) : null,
+      }
+    }
+
+    const vid = cm.videoBackground
+    if (vid && vid.videoElement?.src) {
+      return {
+        target: 'background',
+        src: vid.videoElement.src,
+        muted: vid.videoElement.muted ?? true,
+        loop: vid.videoElement.loop ?? true,
+        settings: vid.fotoSettings ? JSON.parse(JSON.stringify(vid.fotoSettings)) : null,
+      }
+    }
+    return null
+  }
+
+  /**
+   * Entfernt evtl. vorhandene Video-Hintergründe vom Canvas (pausiert das Video
+   * und löst die Quelle). Wird beim Anwenden eines Presets ohne Video benötigt,
+   * damit ein laufendes Video nicht bestehen bleibt.
+   */
+  function clearCanvasVideoBackgrounds() {
+    const cm = canvasManager.value
+    if (!cm) return
+    for (const key of ['videoBackground', 'workspaceVideoBackground']) {
+      if (cm[key]) {
+        const v = cm[key].videoElement
+        if (v) {
+          try {
+            v.pause()
+          } catch {
+            /* ignore */
+          }
+          v.src = ''
+        }
+        cm[key] = null
+      }
+    }
+  }
+
+  /**
+   * Lädt ein Video aus einer Quelle und setzt es als Haupt- oder Workspace-
+   * Video-Hintergrund inkl. der gespeicherten Foto-Einstellungen (Audio-Reaktiv,
+   * Flip, Position, ...).
+   * @param {{ target?: string, src: string, muted?: boolean, loop?: boolean, settings: object|null }} videoData
+   */
+  function applyVideoBackground(videoData) {
+    if (!canvasManager.value || !videoData?.src) return
+
+    const video = document.createElement('video')
+    video.crossOrigin = 'anonymous'
+    video.preload = 'auto'
+    video.muted = videoData.muted ?? true
+    video.loop = videoData.loop ?? true
+    video.volume = 1
+
+    video.onloadeddata = () => {
+      const cm = canvasManager.value
+      if (!cm) return
+      if (videoData.target === 'workspace' && cm.workspacePreset) {
+        cm.setWorkspaceVideoBackground(video)
+        const wsVid = cm.workspaceVideoBackground
+        if (videoData.settings && wsVid) {
+          wsVid.fotoSettings = JSON.parse(JSON.stringify(videoData.settings))
+        }
+      } else {
+        cm.setVideoBackground(video)
+        const vid = cm.videoBackground
+        if (videoData.settings && vid) {
+          vid.fotoSettings = JSON.parse(JSON.stringify(videoData.settings))
+        }
+      }
+      // Video-Audio (falls nicht stumm) mit der Aufnahme verbinden
+      if (!video.muted && window.connectVideoToRecording) {
+        window.connectVideoToRecording(video, video.volume)
+      }
+      cm.redrawCallback?.()
+      cm.updateUICallback?.()
+      console.log(
+        `🎬 Video-Hintergrund aus Preset angewendet (${videoData.target || 'background'}):`,
+        videoData.src,
+      )
+    }
+    video.onerror = () => {
+      console.error('❌ Video-Hintergrund konnte nicht geladen werden:', videoData.src)
+    }
+    video.src = videoData.src
+    video.load()
+  }
+
   // ===== BACKGROUND SNAPSHOT (für Beat-Marker etc.) =====
 
   /**
@@ -701,6 +827,7 @@ export function useBgSettings() {
   function buildBackgroundSnapshot() {
     return {
       backgroundImage: captureImageBackground(),
+      backgroundVideo: captureVideoBackground(),
       backgroundColor: backgroundColor.value,
       backgroundOpacity: backgroundOpacity.value,
       gradientEnabled: Boolean(gradientEnabled.value),
@@ -781,15 +908,23 @@ export function useBgSettings() {
       bgEffectGradientRotation.value = Boolean(fx.gradientRotation?.enabled)
       bgEffectGradientRotationIntensity.value = fx.gradientRotation?.intensity ?? 80
 
-      if (snapshot.backgroundImage?.src) {
+      if (snapshot.backgroundVideo?.src) {
+        // Video-Hintergrund inkl. Bild-Audio-Reaktiv setzen.
+        applyVideoBackground(snapshot.backgroundVideo)
+        updateGradientSettings()
+        updateBgAudioReactive()
+      } else if (snapshot.backgroundImage?.src) {
         // Bild-Hintergrund (z.B. Galeriebild) inkl. Bild-Audio-Reaktiv setzen.
         // Kein updateFromColorPicker(), da setBackground(Farbe) das Bild ersetzen würde.
+        clearCanvasVideoBackgrounds()
         applyImageBackground(snapshot.backgroundImage)
         updateGradientSettings()
         updateBgAudioReactive()
       } else {
-        // Farb-/Gradient-Hintergrund: evtl. vorhandenes Workspace-Bild entfernen,
-        // damit die Farbe sichtbar wird (setBackground ersetzt nur das Haupt-Bild).
+        // Farb-/Gradient-Hintergrund: evtl. vorhandenes Workspace-Bild und
+        // laufende Video-Hintergründe entfernen, damit die Farbe sichtbar wird
+        // (setBackground ersetzt nur das Haupt-Bild).
+        clearCanvasVideoBackgrounds()
         if (canvasManager.value.workspaceBackground) {
           canvasManager.value.workspaceBackground = null
         }

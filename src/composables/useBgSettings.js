@@ -1,9 +1,13 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick, inject } from 'vue'
 import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore.js'
+import { useToastStore } from '../stores/toastStore.js'
+import { useI18n } from '../lib/i18n.js'
 
 export function useBgSettings() {
   const canvasManager = inject('canvasManager')
   const backgroundBridge = useBackgroundBridgeStore()
+  const toastStore = useToastStore()
+  const { t } = useI18n()
 
   const backgroundColor = ref('#ffffff')
   const backgroundOpacity = ref(1.0)
@@ -492,8 +496,12 @@ export function useBgSettings() {
   function persistPresets() {
     try {
       localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(savedPresets.value))
+      return true
     } catch (e) {
+      // Häufigste Ursache: localStorage-Kontingent überschritten (große Bild-
+      // Daten-URLs). Der Aufrufer kann darauf reagieren (z.B. Rollback).
       console.warn('Fehler beim Speichern der Presets:', e)
+      return false
     }
   }
 
@@ -511,6 +519,13 @@ export function useBgSettings() {
       backgroundImage: captureImageBackground(),
       // Video-Hintergrund (falls vorhanden) inkl. Bild-Audio-Reaktiv mitspeichern
       backgroundVideo: captureVideoBackground(),
+      // Alle Canvas-Elemente (Bilder, Videos, Texte) inkl. Position, Einstellungen
+      // und Audio-Reaktiv im Moment des Speicherns erfassen.
+      elements: {
+        images: captureCanvasImages(),
+        videos: captureCanvasVideos(),
+        texts: captureCanvasTexts(),
+      },
       backgroundColor: backgroundColor.value,
       backgroundOpacity: backgroundOpacity.value,
       gradientEnabled: Boolean(gradientEnabled.value),
@@ -543,8 +558,14 @@ export function useBgSettings() {
     }
 
     savedPresets.value.push(newPreset)
-    persistPresets()
-    console.log('✅ Canvas-Preset gespeichert:', newPreset)
+    if (persistPresets()) {
+      console.log('✅ Canvas-Preset gespeichert:', newPreset)
+      toastStore.success?.(t('canvasControl.presetSaved'))
+    } else {
+      // Speicher-Kontingent überschritten: Preset nicht dauerhaft speicherbar.
+      savedPresets.value.pop()
+      toastStore.error?.(t('canvasControl.presetSaveFailed'))
+    }
   }
 
   function loadPreset(preset) {
@@ -601,6 +622,13 @@ export function useBgSettings() {
         updateFromColorPicker()
         updateGradientSettings()
         updateBgAudioReactive()
+      }
+
+      // Canvas-Elemente (Bilder, Videos, Texte) wiederherstellen. Nur bei
+      // neuen Canvas-Presets vorhanden – alte (reine Hintergrund-)Presets
+      // lassen die Vordergrund-Elemente unangetastet (abwärtskompatibel).
+      if (preset.elements) {
+        restoreCanvasElements(preset.elements)
       }
 
       console.log('✅ Canvas-Preset erfolgreich geladen:', preset.name)
@@ -826,6 +854,199 @@ export function useBgSettings() {
     }
     video.src = videoData.src
     video.load()
+  }
+
+  // ===== CANVAS-ELEMENTE (Bilder, Videos, Texte) für Canvas-Presets =====
+
+  const deepClone = (obj) => (obj ? JSON.parse(JSON.stringify(obj)) : null)
+
+  /**
+   * Erfasst alle Vordergrund-Bilder (multiImageManager) als serialisierbare
+   * Liste: Bildquelle, Position/Größe/Rotation, Filter- und Foto-Einstellungen
+   * inkl. Bild-Audio-Reaktiv.
+   */
+  function captureCanvasImages() {
+    const mgr = canvasManager.value?.multiImageManager
+    if (!mgr?.getAllImages) return []
+    return mgr
+      .getAllImages()
+      .map((img) => ({
+        src: img.imageObject?.src || null,
+        relX: img.relX,
+        relY: img.relY,
+        relWidth: img.relWidth,
+        relHeight: img.relHeight,
+        rotation: img.rotation || 0,
+        settings: deepClone(img.settings),
+        fotoSettings: deepClone(img.fotoSettings),
+      }))
+      .filter((i) => i.src)
+  }
+
+  /**
+   * Erfasst alle Vordergrund-Videos (videoManager). Hinweis: `src` ist eine
+   * Blob-URL und nur innerhalb der laufenden Sitzung gültig.
+   */
+  function captureCanvasVideos() {
+    const mgr = canvasManager.value?.videoManager
+    if (!mgr?.getAllVideos) return []
+    return mgr
+      .getAllVideos()
+      .map((v) => ({
+        src: v.videoElement?.src || null,
+        relX: v.relX,
+        relY: v.relY,
+        relWidth: v.relWidth,
+        relHeight: v.relHeight,
+        rotation: v.rotation || 0,
+        loop: v.loop ?? true,
+        muted: v.muted ?? true,
+        playbackRate: v.playbackRate ?? 1.0,
+        startTime: v.startTime ?? 0,
+        endTime: v.endTime ?? 0,
+        settings: deepClone(v.settings),
+        fotoSettings: deepClone(v.fotoSettings),
+      }))
+      .filter((v) => v.src)
+  }
+
+  /**
+   * Erfasst alle Texte (textManager) als tiefe Kopie (inkl. Position, Stil,
+   * Animation und Text-Audio-Reaktiv). Texte enthalten keine DOM-Referenzen.
+   */
+  function captureCanvasTexts() {
+    const tm = canvasManager.value?.textManager
+    if (!tm?.textObjects) return []
+    return deepClone(tm.textObjects) || []
+  }
+
+  /** Lädt ein Bild (mit CORS-Fallback für Galerie-/Remote-Bilder). */
+  function loadImageElement(src, onload) {
+    const attempt = (useCors) => {
+      const img = new Image()
+      if (useCors) img.crossOrigin = 'anonymous'
+      img.onload = () => onload(img)
+      img.onerror = () => {
+        if (useCors) attempt(false)
+        else console.error('❌ Canvas-Preset: Bild konnte nicht geladen werden:', src)
+      }
+      img.src = src
+    }
+    attempt(!String(src).startsWith('data:'))
+  }
+
+  /** Entfernt alle Vordergrund-Elemente (Bilder, Videos, Texte) vom Canvas. */
+  function clearCanvasElements() {
+    const cm = canvasManager.value
+    if (!cm) return
+    cm.multiImageManager?.clear?.()
+    cm.videoManager?.clear?.()
+    if (cm.textManager) cm.textManager.textObjects = []
+    cm.setActiveObject?.(null)
+  }
+
+  function restoreCanvasImages(list) {
+    const mgr = canvasManager.value?.multiImageManager
+    if (!mgr?.restoreImage || !Array.isArray(list)) return
+    list.forEach((data, index) => {
+      if (!data?.src) return
+      loadImageElement(data.src, (img) => {
+        const imageData = {
+          id: Date.now() + Math.random(),
+          type: 'image',
+          imageObject: img,
+          relX: data.relX ?? 0.33,
+          relY: data.relY ?? 0.33,
+          relWidth: data.relWidth ?? 0.33,
+          relHeight: data.relHeight ?? 0.33,
+          rotation: data.rotation || 0,
+          settings: deepClone(data.settings) || {
+            brightness: 100,
+            contrast: 100,
+            saturation: 100,
+            opacity: 100,
+            blur: 0,
+            preset: null,
+          },
+        }
+        if (data.fotoSettings) {
+          imageData.fotoSettings = deepClone(data.fotoSettings)
+        } else if (mgr.fotoManager) {
+          mgr.fotoManager.initializeImageSettings(imageData)
+        }
+        // Ursprüngliche Ebenen-Reihenfolge möglichst erhalten (Index geklemmt).
+        mgr.restoreImage(imageData, index)
+      })
+    })
+  }
+
+  function restoreCanvasVideos(list) {
+    const mgr = canvasManager.value?.videoManager
+    if (!mgr?.addVideo || !Array.isArray(list)) return
+    for (const data of list) {
+      if (!data?.src) continue
+      const video = document.createElement('video')
+      video.crossOrigin = 'anonymous'
+      video.preload = 'auto'
+      video.muted = data.muted ?? true
+      video.loop = data.loop ?? true
+      video.playsInline = true
+      video.onloadedmetadata = async () => {
+        try {
+          const vid = await mgr.addVideo(video, {
+            relX: data.relX,
+            relY: data.relY,
+            relWidth: data.relWidth,
+            relHeight: data.relHeight,
+            loop: data.loop,
+            muted: data.muted,
+            playbackRate: data.playbackRate,
+            startTime: data.startTime,
+            endTime: data.endTime,
+          })
+          if (vid) {
+            if (data.rotation) vid.rotation = data.rotation
+            if (data.settings) vid.settings = deepClone(data.settings)
+            if (data.fotoSettings) vid.fotoSettings = deepClone(data.fotoSettings)
+          }
+          canvasManager.value?.redrawCallback?.()
+        } catch (e) {
+          console.error('❌ Canvas-Preset: Video konnte nicht wiederhergestellt werden:', e)
+        }
+      }
+      video.onerror = () => {
+        console.error('❌ Canvas-Preset: Video konnte nicht geladen werden:', data.src)
+      }
+      video.src = data.src
+      video.load()
+    }
+  }
+
+  function restoreCanvasTexts(list) {
+    const tm = canvasManager.value?.textManager
+    if (!tm || !Array.isArray(list)) return
+    const texts = deepClone(list) || []
+    // Animations-Zustand zurücksetzen, damit Animationen frisch abgespielt werden.
+    texts.forEach((t) => {
+      if (t.animation) {
+        t.animation._state = { startTime: null, isPlaying: false, currentIndex: 0 }
+      }
+    })
+    tm.textObjects = texts
+  }
+
+  /**
+   * Stellt alle Canvas-Elemente aus einem Preset wieder her. Vorhandene
+   * Vordergrund-Elemente werden zuvor entfernt (die Szene wird ersetzt).
+   */
+  function restoreCanvasElements(elements) {
+    if (!elements) return
+    clearCanvasElements()
+    restoreCanvasImages(elements.images)
+    restoreCanvasVideos(elements.videos)
+    restoreCanvasTexts(elements.texts)
+    canvasManager.value?.redrawCallback?.()
+    canvasManager.value?.updateUICallback?.()
   }
 
   // ===== BACKGROUND SNAPSHOT (für Beat-Marker etc.) =====

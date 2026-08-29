@@ -22,6 +22,8 @@ function builtinToSnapshot(bg = {}) {
     bgAudioSource: 'bass',
     bgAudioSmoothing: 50,
     bgEffects: {},
+    // Eingebaute Vorlagen haben keine Vordergrund-Elemente.
+    elements: null,
   }
 }
 
@@ -45,6 +47,9 @@ function userPresetToSnapshot(p = {}) {
     bgAudioSource: p.bgAudioSource || 'bass',
     bgAudioSmoothing: p.bgAudioSmoothing ?? 50,
     bgEffects: p.bgEffects || {},
+    // Vordergrund-Elemente (Bilder, Videos, Texte, Lauftext) durchreichen,
+    // damit ein Beat-Marker das komplette Canvas-Preset einsetzt.
+    elements: p.elements || null,
   }
 }
 

@@ -621,11 +621,6 @@ export default {
     myBackgrounds: 'My backgrounds',
     backgroundTemplates: 'Templates',
     backgroundChanges: 'Changes the background',
-    currentBackground: 'Current background (image + audio-reactive)',
-    currentBackgroundShort: 'Current',
-    backgroundImageLabel: 'Image BG',
-    currentBackgroundHint:
-      'On save, takes over the currently set background image (e.g. from your uploaded gallery) including its audio-reactive settings.',
     text: 'Text',
     noText: '-- No text --',
     textAppears: 'Text appears on the canvas at the marker time',

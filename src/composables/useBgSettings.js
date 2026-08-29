@@ -1,12 +1,14 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick, inject } from 'vue'
 import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore.js'
 import { useToastStore } from '../stores/toastStore.js'
+import { useTickerStore } from '../stores/tickerStore.js'
 import { useI18n } from '../lib/i18n.js'
 
 export function useBgSettings() {
   const canvasManager = inject('canvasManager')
   const backgroundBridge = useBackgroundBridgeStore()
   const toastStore = useToastStore()
+  const tickerStore = useTickerStore()
   const { t } = useI18n()
 
   const backgroundColor = ref('#ffffff')
@@ -519,13 +521,9 @@ export function useBgSettings() {
       backgroundImage: captureImageBackground(),
       // Video-Hintergrund (falls vorhanden) inkl. Bild-Audio-Reaktiv mitspeichern
       backgroundVideo: captureVideoBackground(),
-      // Alle Canvas-Elemente (Bilder, Videos, Texte) inkl. Position, Einstellungen
-      // und Audio-Reaktiv im Moment des Speicherns erfassen.
-      elements: {
-        images: captureCanvasImages(),
-        videos: captureCanvasVideos(),
-        texts: captureCanvasTexts(),
-      },
+      // Alle Canvas-Elemente (Bilder, Videos, Texte, Lauftext) inkl. Position,
+      // Einstellungen und Audio-Reaktiv im Moment des Speicherns erfassen.
+      elements: captureCanvasElements(),
       backgroundColor: backgroundColor.value,
       backgroundOpacity: backgroundOpacity.value,
       gradientEnabled: Boolean(gradientEnabled.value),
@@ -920,6 +918,28 @@ export function useBgSettings() {
     return deepClone(tm.textObjects) || []
   }
 
+  /** Erfasst den Lauftext (Ticker) inkl. aller Einstellungen und Audio-Reaktiv. */
+  function captureTicker() {
+    try {
+      return deepClone(tickerStore.$state)
+    } catch {
+      return null
+    }
+  }
+
+  /**
+   * Erfasst alle Vordergrund-Elemente (Bilder, Videos, Texte, Lauftext) im
+   * Moment des Speicherns – für Canvas-Presets und Beat-Marker.
+   */
+  function captureCanvasElements() {
+    return {
+      images: captureCanvasImages(),
+      videos: captureCanvasVideos(),
+      texts: captureCanvasTexts(),
+      ticker: captureTicker(),
+    }
+  }
+
   /** Lädt ein Bild (mit CORS-Fallback für Galerie-/Remote-Bilder). */
   function loadImageElement(src, onload) {
     const attempt = (useCors) => {
@@ -1035,6 +1055,16 @@ export function useBgSettings() {
     tm.textObjects = texts
   }
 
+  /** Stellt den Lauftext (Ticker) inkl. Ein/Aus-Zustand und Einstellungen wieder her. */
+  function restoreTicker(data) {
+    if (!data) return
+    try {
+      tickerStore.$patch(data)
+    } catch (e) {
+      console.warn('⚠️ Canvas-Preset: Lauftext konnte nicht wiederhergestellt werden:', e)
+    }
+  }
+
   /**
    * Stellt alle Canvas-Elemente aus einem Preset wieder her. Vorhandene
    * Vordergrund-Elemente werden zuvor entfernt (die Szene wird ersetzt).
@@ -1045,6 +1075,7 @@ export function useBgSettings() {
     restoreCanvasImages(elements.images)
     restoreCanvasVideos(elements.videos)
     restoreCanvasTexts(elements.texts)
+    restoreTicker(elements.ticker)
     canvasManager.value?.redrawCallback?.()
     canvasManager.value?.updateUICallback?.()
   }
@@ -1165,6 +1196,12 @@ export function useBgSettings() {
         updateFromColorPicker()
         updateGradientSettings()
         updateBgAudioReactive()
+      }
+
+      // Vordergrund-Elemente (Bilder, Videos, Texte, Lauftext) eines
+      // Canvas-Presets einsetzen, wenn ein Beat-Marker es anwendet.
+      if (snapshot.elements) {
+        restoreCanvasElements(snapshot.elements)
       }
 
       console.log('🎯 Hintergrund-Snapshot angewendet (Beat-Marker)')

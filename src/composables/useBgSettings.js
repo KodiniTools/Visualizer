@@ -771,8 +771,10 @@ export function useBgSettings() {
    * Video-Hintergrund inkl. der gespeicherten Foto-Einstellungen (Audio-Reaktiv,
    * Flip, Position, ...).
    * @param {{ target?: string, src: string, muted?: boolean, loop?: boolean, settings: object|null }} videoData
+   * @param {{ autoplay?: boolean }} [options] - autoplay: Video sofort von vorne
+   *   abspielen (z.B. wenn ein Beat-Marker das Preset anwendet).
    */
-  function applyVideoBackground(videoData) {
+  function applyVideoBackground(videoData, { autoplay = false } = {}) {
     if (!canvasManager.value || !videoData?.src) return
 
     const video = document.createElement('video')
@@ -781,6 +783,7 @@ export function useBgSettings() {
     video.muted = videoData.muted ?? true
     video.loop = videoData.loop ?? true
     video.volume = 1
+    video.playsInline = true
 
     video.onloadeddata = () => {
       const cm = canvasManager.value
@@ -801,6 +804,15 @@ export function useBgSettings() {
       // Video-Audio (falls nicht stumm) mit der Aufnahme verbinden
       if (!video.muted && window.connectVideoToRecording) {
         window.connectVideoToRecording(video, video.volume)
+      }
+      // Beim Anwenden über einen Beat-Marker: Video von vorne automatisch starten.
+      if (autoplay) {
+        try {
+          video.currentTime = 0
+        } catch {
+          /* ignore */
+        }
+        video.play().catch(() => {})
       }
       cm.redrawCallback?.()
       cm.updateUICallback?.()
@@ -909,8 +921,9 @@ export function useBgSettings() {
       bgEffectGradientRotationIntensity.value = fx.gradientRotation?.intensity ?? 80
 
       if (snapshot.backgroundVideo?.src) {
-        // Video-Hintergrund inkl. Bild-Audio-Reaktiv setzen.
-        applyVideoBackground(snapshot.backgroundVideo)
+        // Video-Hintergrund inkl. Bild-Audio-Reaktiv setzen. Über einen
+        // Beat-Marker angewendet, startet das Video automatisch von vorne.
+        applyVideoBackground(snapshot.backgroundVideo, { autoplay: true })
         updateGradientSettings()
         updateBgAudioReactive()
       } else if (snapshot.backgroundImage?.src) {

@@ -145,6 +145,15 @@
         </select>
       </div>
       <div class="form-row">
+        <label>{{ t('player.text') }}:</label>
+        <select v-model="newMarkerTextId" class="marker-select" :title="t('player.textAppears')">
+          <option value="">{{ t('player.noText') }}</option>
+          <option v-for="txt in textOptions" :key="txt.id" :value="txt.id">
+            {{ t('player.text') }} {{ txt.number }}{{ txt.content ? ' — ' + txt.content : '' }}
+          </option>
+        </select>
+      </div>
+      <div class="form-row">
         <label>{{ t('player.label') }}:</label>
         <input
           v-model="newMarkerLabel"
@@ -192,6 +201,16 @@
           class="marker-action marker-action-bg"
           :title="t('player.backgroundChanges')"
           >🎨 {{ marker.action.backgroundLabel || 'BG' }}</span
+        >
+        <span
+          v-if="
+            marker.action.textId !== undefined &&
+            marker.action.textId !== null &&
+            marker.action.textId !== ''
+          "
+          class="marker-action marker-action-text"
+          :title="t('player.textAppears')"
+          >📝 {{ marker.action.textLabel || t('player.text') }}</span
         >
         <div class="marker-buttons">
           <button
@@ -253,7 +272,9 @@ const {
   newMarkerChangeColor,
   newMarkerShowVisualizer,
   newMarkerBackgroundKey,
+  newMarkerTextId,
   newMarkerLabel,
+  getMarkerTexts,
   updateMarkerTimeFromInput,
   addMarkerAtCurrentTime,
   startEditMarker,
@@ -264,6 +285,13 @@ const {
   clearAllMarkers,
   getVisualizerName,
 } = markers
+
+// Text-Auswahl (Texte aus dem Text-Verzeichnis). Wird beim Öffnen des Formulars
+// neu geladen, damit gerade hinzugefügte Texte sofort erscheinen.
+const textOptions = computed(() => {
+  void showMarkerPanel.value
+  return getMarkerTexts()
+})
 
 // Hintergrund-Auswahl (Vorlagen + gespeicherte Presets). Wird beim Öffnen des
 // Formulars neu geladen, damit frisch gespeicherte Presets sofort erscheinen.
@@ -357,6 +385,10 @@ const backgroundPresetOptions = computed(() => {
 .marker-action-bg {
   color: #4ade80;
   background-color: rgba(74, 222, 128, 0.12);
+}
+.marker-action-text {
+  color: #6ea8fe;
+  background-color: rgba(110, 168, 254, 0.14);
 }
 .marker-action-off {
   color: #f87171;

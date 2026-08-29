@@ -132,6 +132,7 @@
         <label>{{ t('player.background') }}:</label>
         <select v-model="newMarkerBackgroundKey" class="marker-select">
           <option value="">{{ t('player.noChange') }}</option>
+          <option value="current">{{ t('player.currentBackground') }}</option>
           <optgroup v-if="backgroundPresetOptions.user.length" :label="t('player.myBackgrounds')">
             <option v-for="bg in backgroundPresetOptions.user" :key="bg.key" :value="bg.key">
               {{ bg.label }}
@@ -143,6 +144,10 @@
             </option>
           </optgroup>
         </select>
+      </div>
+      <div v-if="newMarkerBackgroundKey === 'current'" class="form-row form-hint-row">
+        <label></label>
+        <span class="form-hint">{{ t('player.currentBackgroundHint') }}</span>
       </div>
       <div class="form-row">
         <label>{{ t('player.text') }}:</label>
@@ -389,6 +394,16 @@ const backgroundPresetOptions = computed(() => {
 .marker-action-text {
   color: #6ea8fe;
   background-color: rgba(110, 168, 254, 0.14);
+}
+.form-hint-row {
+  margin-top: -2px;
+}
+.form-hint {
+  flex: 1;
+  font-size: 9px;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--text-muted);
 }
 .marker-action-off {
   color: #f87171;

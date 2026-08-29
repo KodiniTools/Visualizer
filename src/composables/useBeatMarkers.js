@@ -16,6 +16,10 @@ import { resolveBackgroundPreset } from '../utils/backgroundPresets.js'
  * @param {() => void} openMarkersPopover - opens the markers popover, so adding
  *   a marker (incl. via the "M" shortcut) reveals the form.
  */
+// Sentinel-Key für die Auswahl "Aktueller Hintergrund" im Marker-Dropdown.
+// Kein echter Preset-Key – wird beim Speichern zu einem Live-Snapshot erfasst.
+export const CURRENT_BG_KEY = 'current'
+
 export function useBeatMarkers(openMarkersPopover) {
   const { t } = useI18n()
   const playerStore = usePlayerStore()
@@ -299,7 +303,10 @@ export function useBeatMarkers(openMarkersPopover) {
       marker.action?.visualizerVisible !== undefined
         ? marker.action.visualizerVisible
         : !marker.action?.hideVisualizer
-    newMarkerBackgroundKey.value = marker.action?.backgroundKey || ''
+    // Ein erfasster Live-Hintergrund hat keinen Preset-Key, aber einen Snapshot.
+    // In diesem Fall im Dropdown "Aktueller Hintergrund" auswählen.
+    newMarkerBackgroundKey.value =
+      marker.action?.backgroundKey || (marker.action?.background ? CURRENT_BG_KEY : '')
     newMarkerTextId.value = marker.action?.textId ?? ''
     showMarkerPanel.value = true
   }
@@ -311,7 +318,28 @@ export function useBeatMarkers(openMarkersPopover) {
     let background = null
     let backgroundKey = null
     let backgroundLabel = null
-    if (newMarkerBackgroundKey.value) {
+    if (newMarkerBackgroundKey.value === CURRENT_BG_KEY) {
+      // Aktuellen Live-Hintergrund übernehmen: das vom Nutzer gesetzte
+      // Hintergrundbild (z.B. aus der hochgeladenen Galerie) inkl. seiner
+      // Audio-Reaktiven Einstellungen als eigenständigen Snapshot erfassen.
+      const snap = backgroundBridge.captureSnapshot()
+      if (snap) {
+        background = snap
+        backgroundKey = null
+        backgroundLabel = snap.backgroundImage?.src
+          ? t('player.backgroundImageLabel')
+          : t('player.currentBackgroundShort')
+      }
+      // Beim reinen Bearbeiten (Zeit/Label) den zuvor erfassten Hintergrund
+      // behalten, falls gerade kein Live-Hintergrund verfügbar ist.
+      if (!background && editingMarkerId.value !== null) {
+        const existing = beatMarkerStore.markers.find((m) => m.id === editingMarkerId.value)
+        if (existing?.action?.background) {
+          background = existing.action.background
+          backgroundLabel = existing.action.backgroundLabel || backgroundLabel
+        }
+      }
+    } else if (newMarkerBackgroundKey.value) {
       const resolved = resolveBackgroundPreset(newMarkerBackgroundKey.value)
       if (resolved) {
         background = resolved.snapshot

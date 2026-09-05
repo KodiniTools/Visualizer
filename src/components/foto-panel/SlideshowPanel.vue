@@ -43,7 +43,13 @@
       <div class="timing-control">
         <label>{{ t('slideshow.fadeIn') }}</label>
         <div class="slider-row">
-          <input type="range" v-model.number="fadeInDuration" min="100" max="5000" step="100" />
+          <SliderField
+            v-model="fadeInDuration"
+            :min="100"
+            :max="5000"
+            :step="100"
+            :default-value="1000"
+          />
           <span class="value">{{ (fadeInDuration / 1000).toFixed(1) }}s</span>
         </div>
       </div>
@@ -51,7 +57,13 @@
       <div class="timing-control">
         <label>{{ t('slideshow.display') }}</label>
         <div class="slider-row">
-          <input type="range" v-model.number="displayDuration" min="500" max="30000" step="500" />
+          <SliderField
+            v-model="displayDuration"
+            :min="500"
+            :max="30000"
+            :step="500"
+            :default-value="3000"
+          />
           <span class="value">{{ (displayDuration / 1000).toFixed(1) }}s</span>
         </div>
       </div>
@@ -59,7 +71,13 @@
       <div class="timing-control">
         <label>{{ t('slideshow.fadeOut') }}</label>
         <div class="slider-row">
-          <input type="range" v-model.number="fadeOutDuration" min="100" max="5000" step="100" />
+          <SliderField
+            v-model="fadeOutDuration"
+            :min="100"
+            :max="5000"
+            :step="100"
+            :default-value="1000"
+          />
           <span class="value">{{ (fadeOutDuration / 1000).toFixed(1) }}s</span>
         </div>
       </div>
@@ -103,7 +121,7 @@
         <div class="transform-control">
           <label>{{ t('slideshow.positionX') }}</label>
           <div class="slider-row">
-            <input type="range" v-model.number="transformX" min="0" max="100" step="1" />
+            <SliderField v-model="transformX" :min="0" :max="100" :step="1" :default-value="10" />
             <span class="value">{{ transformX }}%</span>
           </div>
         </div>
@@ -111,7 +129,7 @@
         <div class="transform-control">
           <label>{{ t('slideshow.positionY') }}</label>
           <div class="slider-row">
-            <input type="range" v-model.number="transformY" min="0" max="100" step="1" />
+            <SliderField v-model="transformY" :min="0" :max="100" :step="1" :default-value="10" />
             <span class="value">{{ transformY }}%</span>
           </div>
         </div>
@@ -119,7 +137,13 @@
         <div class="transform-control">
           <label>{{ t('slideshow.width') }}</label>
           <div class="slider-row">
-            <input type="range" v-model.number="transformWidth" min="10" max="100" step="1" />
+            <SliderField
+              v-model="transformWidth"
+              :min="10"
+              :max="100"
+              :step="1"
+              :default-value="80"
+            />
             <span class="value">{{ transformWidth }}%</span>
           </div>
         </div>
@@ -127,7 +151,13 @@
         <div class="transform-control">
           <label>{{ t('slideshow.height') }}</label>
           <div class="slider-row">
-            <input type="range" v-model.number="transformHeight" min="10" max="100" step="1" />
+            <SliderField
+              v-model="transformHeight"
+              :min="10"
+              :max="100"
+              :step="1"
+              :default-value="80"
+            />
             <span class="value">{{ transformHeight }}%</span>
           </div>
         </div>
@@ -173,6 +203,7 @@
 </template>
 
 <script setup>
+import SliderField from '../ui/SliderField.vue'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 
@@ -528,6 +559,11 @@ watch(
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.slider-row .slider-field {
+  flex: 1;
+  min-width: 0;
 }
 
 .slider-row input[type='range'] {

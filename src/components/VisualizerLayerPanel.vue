@@ -132,14 +132,14 @@
               <span class="detail-label"
                 >{{ t('visualizer.intensity') }}: {{ Math.round(layer.opacity * 100) }}%</span
               >
-              <input
-                type="range"
+              <SliderField
                 class="detail-slider"
-                min="0"
-                max="1"
-                step="0.01"
-                :value="layer.opacity"
-                @input="updateProperty(layer.id, 'opacity', parseFloat($event.target.value))"
+                :min="0"
+                :max="1"
+                :step="0.01"
+                :default-value="1"
+                :model-value="layer.opacity"
+                @update:model-value="updateProperty(layer.id, 'opacity', $event)"
               />
             </div>
 
@@ -149,14 +149,14 @@
                 >{{ t('visualizer.colorTransparency') }}:
                 {{ Math.round(layer.colorOpacity * 100) }}%</span
               >
-              <input
-                type="range"
+              <SliderField
                 class="detail-slider"
-                min="0"
-                max="1"
-                step="0.01"
-                :value="layer.colorOpacity"
-                @input="updateProperty(layer.id, 'colorOpacity', parseFloat($event.target.value))"
+                :min="0"
+                :max="1"
+                :step="0.01"
+                :default-value="1"
+                :model-value="layer.colorOpacity"
+                @update:model-value="updateProperty(layer.id, 'colorOpacity', $event)"
               />
             </div>
 
@@ -177,28 +177,28 @@
             <!-- Position X -->
             <div class="detail-row">
               <span class="detail-label">X: {{ Math.round(layer.x * 100) }}%</span>
-              <input
-                type="range"
+              <SliderField
                 class="detail-slider position-slider"
-                min="0"
-                max="1"
-                step="0.01"
-                :value="layer.x"
-                @input="updateProperty(layer.id, 'x', parseFloat($event.target.value))"
+                :min="0"
+                :max="1"
+                :step="0.01"
+                :default-value="0.5"
+                :model-value="layer.x"
+                @update:model-value="updateProperty(layer.id, 'x', $event)"
               />
             </div>
 
             <!-- Position Y -->
             <div class="detail-row">
               <span class="detail-label">Y: {{ Math.round(layer.y * 100) }}%</span>
-              <input
-                type="range"
+              <SliderField
                 class="detail-slider position-slider"
-                min="0"
-                max="1"
-                step="0.01"
-                :value="layer.y"
-                @input="updateProperty(layer.id, 'y', parseFloat($event.target.value))"
+                :min="0"
+                :max="1"
+                :step="0.01"
+                :default-value="0.5"
+                :model-value="layer.y"
+                @update:model-value="updateProperty(layer.id, 'y', $event)"
               />
             </div>
 
@@ -207,14 +207,14 @@
               <span class="detail-label"
                 >{{ t('foto.size') || 'Größe' }}: {{ Math.round(layer.scale * 100) }}%</span
               >
-              <input
-                type="range"
+              <SliderField
                 class="detail-slider scale-slider"
-                min="0.1"
-                max="3"
-                step="0.01"
-                :value="layer.scale"
-                @input="updateProperty(layer.id, 'scale', parseFloat($event.target.value))"
+                :min="0.1"
+                :max="3"
+                :step="0.01"
+                :default-value="1"
+                :model-value="layer.scale"
+                @update:model-value="updateProperty(layer.id, 'scale', $event)"
               />
             </div>
           </div>
@@ -230,6 +230,7 @@
 </template>
 
 <script setup>
+import SliderField from './ui/SliderField.vue'
 import ColorField from './ui/ColorField.vue'
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../lib/i18n.js'

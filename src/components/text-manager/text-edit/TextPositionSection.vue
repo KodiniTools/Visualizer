@@ -8,13 +8,13 @@
       <!-- Position X -->
       <div class="control-group">
         <label>Position X: {{ Math.round(selectedText.relX * 100) }}%</label>
-        <input
-          type="range"
-          v-model.number="selectedText.relX"
-          @input="updateText"
-          min="0"
-          max="1"
-          step="0.01"
+        <SliderField
+          v-model="selectedText.relX"
+          @update:model-value="updateText"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          :default-value="0.5"
           class="slider"
         />
         <input
@@ -30,13 +30,13 @@
       <!-- Position Y -->
       <div class="control-group">
         <label>Position Y: {{ Math.round(selectedText.relY * 100) }}%</label>
-        <input
-          type="range"
-          v-model.number="selectedText.relY"
-          @input="updateText"
-          min="0"
-          max="1"
-          step="0.01"
+        <SliderField
+          v-model="selectedText.relY"
+          @update:model-value="updateText"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          :default-value="0.5"
           class="slider"
         />
         <input
@@ -123,6 +123,7 @@
 </template>
 
 <script setup>
+import SliderField from '../../ui/SliderField.vue'
 import { inject } from 'vue'
 
 const tec = inject('textEditControls')

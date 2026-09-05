@@ -27,22 +27,13 @@
           {{ t('textManager.globalDuration') }}
         </label>
         <div v-if="globalDurationEnabled" class="dur-row">
-          <input
-            v-model.number="globalDuration"
-            type="range"
-            min="500"
-            max="30000"
-            step="100"
+          <SliderField
+            v-model="globalDuration"
+            :min="500"
+            :max="30000"
+            :step="100"
+            :default-value="5000"
             class="slider"
-          />
-          <input
-            v-model.number="globalDuration"
-            type="number"
-            min="500"
-            max="30000"
-            step="100"
-            class="dur-number"
-            aria-label="ms"
           />
         </div>
         <div v-if="globalDurationEnabled" class="hint-text">
@@ -81,6 +72,7 @@
 </template>
 
 <script setup>
+import SliderField from '../ui/SliderField.vue'
 import { useI18n } from '../../lib/i18n.js'
 
 defineProps({

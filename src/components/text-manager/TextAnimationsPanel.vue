@@ -42,12 +42,12 @@
         <!-- Geschwindigkeit -->
         <div class="control-group">
           <label>Geschwindigkeit: {{ selectedText.animation.typewriter.speed }}ms/Buchstabe</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.typewriter.speed"
-            @input="updateText"
-            min="10"
-            max="200"
+          <SliderField
+            v-model="selectedText.animation.typewriter.speed"
+            @update:model-value="updateText"
+            :min="10"
+            :max="200"
+            :default-value="50"
             class="slider"
           />
           <div class="hint-text">Niedrig = schneller, Hoch = langsamer</div>
@@ -56,13 +56,13 @@
         <!-- Start-Verzögerung -->
         <div class="control-group">
           <label>Start-Verzögerung: {{ selectedText.animation.typewriter.startDelay }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.typewriter.startDelay"
-            @input="updateText"
-            min="0"
-            max="3000"
-            step="100"
+          <SliderField
+            v-model="selectedText.animation.typewriter.startDelay"
+            @update:model-value="updateText"
+            :min="0"
+            :max="3000"
+            :step="100"
+            :default-value="0"
             class="slider"
           />
         </div>
@@ -85,13 +85,13 @@
             >Pause zwischen Wiederholungen:
             {{ selectedText.animation.typewriter.loopDelay }}ms</label
           >
-          <input
-            type="range"
-            v-model.number="selectedText.animation.typewriter.loopDelay"
-            @input="updateText"
-            min="0"
-            max="5000"
-            step="100"
+          <SliderField
+            v-model="selectedText.animation.typewriter.loopDelay"
+            @update:model-value="updateText"
+            :min="0"
+            :max="5000"
+            :step="100"
+            :default-value="1000"
             class="slider"
           />
         </div>
@@ -140,24 +140,14 @@
         <div v-if="!selectedText.animation.typewriter.permanent" class="control-group">
           <label>Anzeigedauer: {{ selectedText.animation.typewriter.displayDuration }}ms</label>
           <div class="dur-row">
-            <input
-              type="range"
-              v-model.number="selectedText.animation.typewriter.displayDuration"
-              @input="updateText"
-              min="500"
-              max="30000"
-              step="100"
+            <SliderField
+              v-model="selectedText.animation.typewriter.displayDuration"
+              @update:model-value="updateText"
+              :min="500"
+              :max="30000"
+              :step="100"
+              :default-value="5000"
               class="slider"
-            />
-            <input
-              type="number"
-              v-model.number="selectedText.animation.typewriter.displayDuration"
-              @input="updateText"
-              min="500"
-              max="30000"
-              step="100"
-              class="dur-number"
-              aria-label="ms"
             />
           </div>
           <div class="hint-text">Wie lange der Text sichtbar bleibt, bevor er verschwindet</div>
@@ -214,13 +204,13 @@
         <!-- Dauer -->
         <div class="control-group">
           <label>Dauer: {{ selectedText.animation.fade.duration }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.fade.duration"
-            @input="updateText"
-            min="100"
-            max="20000"
-            step="100"
+          <SliderField
+            v-model="selectedText.animation.fade.duration"
+            @update:model-value="updateText"
+            :min="100"
+            :max="20000"
+            :step="100"
+            :default-value="1000"
             class="slider"
           />
           <div class="hint-text">Wie lange das Ein-/Ausblenden dauert</div>
@@ -229,13 +219,13 @@
         <!-- Start-Verzögerung -->
         <div class="control-group">
           <label>Start-Verzögerung: {{ selectedText.animation.fade.startDelay }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.fade.startDelay"
-            @input="updateText"
-            min="0"
-            max="20000"
-            step="100"
+          <SliderField
+            v-model="selectedText.animation.fade.startDelay"
+            @update:model-value="updateText"
+            :min="0"
+            :max="20000"
+            :step="100"
+            :default-value="0"
             class="slider"
           />
         </div>
@@ -272,13 +262,13 @@
           <label
             >Pause zwischen Wiederholungen: {{ selectedText.animation.fade.loopDelay }}ms</label
           >
-          <input
-            type="range"
-            v-model.number="selectedText.animation.fade.loopDelay"
-            @input="updateText"
-            min="0"
-            max="20000"
-            step="100"
+          <SliderField
+            v-model="selectedText.animation.fade.loopDelay"
+            @update:model-value="updateText"
+            :min="0"
+            :max="20000"
+            :step="100"
+            :default-value="1000"
             class="slider"
           />
         </div>
@@ -300,24 +290,14 @@
         <div v-if="!selectedText.animation.fade.permanent" class="control-group">
           <label>Anzeigedauer: {{ selectedText.animation.fade.displayDuration }}ms</label>
           <div class="dur-row">
-            <input
-              type="range"
-              v-model.number="selectedText.animation.fade.displayDuration"
-              @input="updateText"
-              min="500"
-              max="30000"
-              step="100"
+            <SliderField
+              v-model="selectedText.animation.fade.displayDuration"
+              @update:model-value="updateText"
+              :min="500"
+              :max="30000"
+              :step="100"
+              :default-value="5000"
               class="slider"
-            />
-            <input
-              type="number"
-              v-model.number="selectedText.animation.fade.displayDuration"
-              @input="updateText"
-              min="500"
-              max="30000"
-              step="100"
-              class="dur-number"
-              aria-label="ms"
             />
           </div>
           <div class="hint-text">Wie lange der Text sichtbar bleibt, bevor er verschwindet</div>
@@ -376,13 +356,13 @@
           <label
             >Start-Größe: {{ Math.round(selectedText.animation.scale.startScale * 100) }}%</label
           >
-          <input
-            type="range"
-            v-model.number="selectedText.animation.scale.startScale"
-            @input="updateText"
-            min="0"
-            max="3"
-            step="0.1"
+          <SliderField
+            v-model="selectedText.animation.scale.startScale"
+            @update:model-value="updateText"
+            :min="0"
+            :max="3"
+            :step="0.1"
+            :default-value="0"
             class="slider"
           />
           <div class="hint-text">0% = unsichtbar, 100% = normal</div>
@@ -391,13 +371,13 @@
         <!-- End-Skalierung -->
         <div class="control-group">
           <label>End-Größe: {{ Math.round(selectedText.animation.scale.endScale * 100) }}%</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.scale.endScale"
-            @input="updateText"
-            min="0"
-            max="3"
-            step="0.1"
+          <SliderField
+            v-model="selectedText.animation.scale.endScale"
+            @update:model-value="updateText"
+            :min="0"
+            :max="3"
+            :step="0.1"
+            :default-value="1"
             class="slider"
           />
         </div>
@@ -405,13 +385,13 @@
         <!-- Dauer -->
         <div class="control-group">
           <label>Dauer: {{ selectedText.animation.scale.duration }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.scale.duration"
-            @input="updateText"
-            min="100"
-            max="20000"
-            step="100"
+          <SliderField
+            v-model="selectedText.animation.scale.duration"
+            @update:model-value="updateText"
+            :min="100"
+            :max="20000"
+            :step="100"
+            :default-value="1000"
             class="slider"
           />
         </div>
@@ -419,13 +399,13 @@
         <!-- Start-Verzögerung -->
         <div class="control-group">
           <label>Start-Verzögerung: {{ selectedText.animation.scale.startDelay }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.scale.startDelay"
-            @input="updateText"
-            min="0"
-            max="20000"
-            step="100"
+          <SliderField
+            v-model="selectedText.animation.scale.startDelay"
+            @update:model-value="updateText"
+            :min="0"
+            :max="20000"
+            :step="100"
+            :default-value="0"
             class="slider"
           />
         </div>
@@ -462,13 +442,13 @@
           <label
             >Pause zwischen Wiederholungen: {{ selectedText.animation.scale.loopDelay }}ms</label
           >
-          <input
-            type="range"
-            v-model.number="selectedText.animation.scale.loopDelay"
-            @input="updateText"
-            min="0"
-            max="20000"
-            step="100"
+          <SliderField
+            v-model="selectedText.animation.scale.loopDelay"
+            @update:model-value="updateText"
+            :min="0"
+            :max="20000"
+            :step="100"
+            :default-value="1000"
             class="slider"
           />
         </div>
@@ -490,24 +470,14 @@
         <div v-if="!selectedText.animation.scale.permanent" class="control-group">
           <label>Anzeigedauer: {{ selectedText.animation.scale.displayDuration }}ms</label>
           <div class="dur-row">
-            <input
-              type="range"
-              v-model.number="selectedText.animation.scale.displayDuration"
-              @input="updateText"
-              min="500"
-              max="30000"
-              step="100"
+            <SliderField
+              v-model="selectedText.animation.scale.displayDuration"
+              @update:model-value="updateText"
+              :min="500"
+              :max="30000"
+              :step="100"
+              :default-value="5000"
               class="slider"
-            />
-            <input
-              type="number"
-              v-model.number="selectedText.animation.scale.displayDuration"
-              @input="updateText"
-              min="500"
-              max="30000"
-              step="100"
-              class="dur-number"
-              aria-label="ms"
             />
           </div>
           <div class="hint-text">Wie lange der Text sichtbar bleibt, bevor er verschwindet</div>
@@ -579,13 +549,13 @@
         <!-- Distanz -->
         <div class="control-group">
           <label>Distanz: {{ selectedText.animation.slide.distance }}px</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.slide.distance"
-            @input="updateText"
-            min="10"
-            max="1000"
-            step="10"
+          <SliderField
+            v-model="selectedText.animation.slide.distance"
+            @update:model-value="updateText"
+            :min="10"
+            :max="1000"
+            :step="10"
+            :default-value="100"
             class="slider"
           />
         </div>
@@ -593,13 +563,13 @@
         <!-- Dauer -->
         <div class="control-group">
           <label>Dauer: {{ selectedText.animation.slide.duration }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.slide.duration"
-            @input="updateText"
-            min="100"
-            max="20000"
-            step="100"
+          <SliderField
+            v-model="selectedText.animation.slide.duration"
+            @update:model-value="updateText"
+            :min="100"
+            :max="20000"
+            :step="100"
+            :default-value="1000"
             class="slider"
           />
         </div>
@@ -607,13 +577,13 @@
         <!-- Start-Verzögerung -->
         <div class="control-group">
           <label>Start-Verzögerung: {{ selectedText.animation.slide.startDelay }}ms</label>
-          <input
-            type="range"
-            v-model.number="selectedText.animation.slide.startDelay"
-            @input="updateText"
-            min="0"
-            max="20000"
-            step="100"
+          <SliderField
+            v-model="selectedText.animation.slide.startDelay"
+            @update:model-value="updateText"
+            :min="0"
+            :max="20000"
+            :step="100"
+            :default-value="0"
             class="slider"
           />
         </div>
@@ -650,13 +620,13 @@
           <label
             >Pause zwischen Wiederholungen: {{ selectedText.animation.slide.loopDelay }}ms</label
           >
-          <input
-            type="range"
-            v-model.number="selectedText.animation.slide.loopDelay"
-            @input="updateText"
-            min="0"
-            max="20000"
-            step="100"
+          <SliderField
+            v-model="selectedText.animation.slide.loopDelay"
+            @update:model-value="updateText"
+            :min="0"
+            :max="20000"
+            :step="100"
+            :default-value="1000"
             class="slider"
           />
         </div>
@@ -678,24 +648,14 @@
         <div v-if="!selectedText.animation.slide.permanent" class="control-group">
           <label>Anzeigedauer: {{ selectedText.animation.slide.displayDuration }}ms</label>
           <div class="dur-row">
-            <input
-              type="range"
-              v-model.number="selectedText.animation.slide.displayDuration"
-              @input="updateText"
-              min="500"
-              max="30000"
-              step="100"
+            <SliderField
+              v-model="selectedText.animation.slide.displayDuration"
+              @update:model-value="updateText"
+              :min="500"
+              :max="30000"
+              :step="100"
+              :default-value="5000"
               class="slider"
-            />
-            <input
-              type="number"
-              v-model.number="selectedText.animation.slide.displayDuration"
-              @input="updateText"
-              min="500"
-              max="30000"
-              step="100"
-              class="dur-number"
-              aria-label="ms"
             />
           </div>
           <div class="hint-text">Wie lange der Text sichtbar bleibt, bevor er verschwindet</div>
@@ -706,6 +666,7 @@
 </template>
 
 <script setup>
+import SliderField from '../ui/SliderField.vue'
 import { inject, toRef, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useTextAnimations } from '../../composables/useTextAnimations.js'

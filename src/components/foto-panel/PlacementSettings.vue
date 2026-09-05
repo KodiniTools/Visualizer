@@ -27,14 +27,14 @@
       <div v-if="localAnimation !== 'none'" class="placement-row">
         <span class="placement-label">{{ locale === 'de' ? 'Dauer' : 'Duration' }}</span>
         <div class="placement-slider-wrap">
-          <input
-            type="range"
-            v-model.number="localDuration"
-            min="100"
-            max="5000"
-            step="100"
+          <SliderField
+            v-model="localDuration"
+            :min="100"
+            :max="5000"
+            :step="100"
+            :default-value="1000"
             class="placement-slider"
-            @input="emitUpdate"
+            @update:model-value="emitUpdate"
           />
           <span class="placement-value">{{ (localDuration / 1000).toFixed(1) }}s</span>
         </div>
@@ -44,14 +44,14 @@
       <div class="placement-row">
         <span class="placement-label">{{ locale === 'de' ? 'Größe' : 'Size' }}</span>
         <div class="placement-slider-wrap">
-          <input
-            type="range"
-            v-model.number="localScale"
-            min="1"
-            max="8"
-            step="1"
+          <SliderField
+            v-model="localScale"
+            :min="1"
+            :max="8"
+            :step="1"
+            :default-value="1"
             class="placement-slider"
-            @input="emitUpdate"
+            @update:model-value="emitUpdate"
           />
           <span class="placement-value">{{ localScale }}x</span>
         </div>
@@ -98,6 +98,7 @@
 </template>
 
 <script setup>
+import SliderField from '../ui/SliderField.vue'
 import { ref, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 
@@ -226,6 +227,11 @@ function emitUpdate() {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.placement-slider-wrap .slider-field {
+  flex: 1;
+  min-width: 0;
 }
 
 .placement-slider {

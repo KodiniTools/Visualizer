@@ -18,13 +18,13 @@
             d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"
           />
         </svg>
-        <input
+        <SliderField
           v-model="volume"
-          type="range"
-          min="0"
-          max="100"
+          :min="0"
+          :max="100"
+          :default-value="100"
           class="volume-slider"
-          @input="updateVolume"
+          @update:model-value="updateVolume"
         />
       </div>
     </div>
@@ -38,13 +38,13 @@
               d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
             />
           </svg>
-          <input
+          <SliderField
             v-model="bass"
-            type="range"
-            min="-12"
-            max="12"
+            :min="-12"
+            :max="12"
+            :default-value="0"
             class="eq-slider"
-            @input="updateBass"
+            @update:model-value="updateBass"
           />
         </div>
       </div>
@@ -58,13 +58,13 @@
               d="M12 3l.01 10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4c2.21 0 4-1.79 4-4V7h4V3H12zm-1.99 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"
             />
           </svg>
-          <input
+          <SliderField
             v-model="treble"
-            type="range"
-            min="-12"
-            max="12"
+            :min="-12"
+            :max="12"
+            :default-value="0"
             class="eq-slider"
-            @input="updateTreble"
+            @update:model-value="updateTreble"
           />
         </div>
       </div>
@@ -75,6 +75,7 @@
 <script setup>
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
+import SliderField from '../ui/SliderField.vue'
 import { vPopoverDrag } from '../../directives/popoverDrag.js'
 
 const { t } = useI18n()

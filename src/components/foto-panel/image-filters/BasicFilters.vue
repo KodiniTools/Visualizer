@@ -3,108 +3,104 @@
     <!-- Helligkeit -->
     <div class="control-group slider">
       <label>{{ t('foto.brightness') }}</label>
-      <input
-        type="range"
-        :ref="ifc.brightnessInputRef"
-        min="0"
-        max="200"
-        value="100"
-        @pointerdown="onSliderStart"
-        @pointerup="onSliderEnd"
-        @input="onBrightnessChange"
+      <SliderField
+        :model-value="filters.brightness"
+        :min="0"
+        :max="200"
+        :default-value="100"
+        @start="onSliderStart"
+        @update:model-value="onBrightnessChange"
+        @change="onSliderEnd"
       />
-      <span :ref="ifc.brightnessValueRef">100%</span>
+      <span>{{ filters.brightness }}%</span>
     </div>
 
     <!-- Kontrast -->
     <div class="control-group slider">
       <label>{{ t('foto.contrast') }}</label>
-      <input
-        type="range"
-        :ref="ifc.contrastInputRef"
-        min="0"
-        max="200"
-        value="100"
-        @pointerdown="onSliderStart"
-        @pointerup="onSliderEnd"
-        @input="onContrastChange"
+      <SliderField
+        :model-value="filters.contrast"
+        :min="0"
+        :max="200"
+        :default-value="100"
+        @start="onSliderStart"
+        @update:model-value="onContrastChange"
+        @change="onSliderEnd"
       />
-      <span :ref="ifc.contrastValueRef">100%</span>
+      <span>{{ filters.contrast }}%</span>
     </div>
 
     <!-- Sättigung -->
     <div class="control-group slider">
       <label>{{ t('foto.saturation') }}</label>
-      <input
-        type="range"
-        :ref="ifc.saturationInputRef"
-        min="0"
-        max="200"
-        value="100"
-        @pointerdown="onSliderStart"
-        @pointerup="onSliderEnd"
-        @input="onSaturationChange"
+      <SliderField
+        :model-value="filters.saturation"
+        :min="0"
+        :max="200"
+        :default-value="100"
+        @start="onSliderStart"
+        @update:model-value="onSaturationChange"
+        @change="onSliderEnd"
       />
-      <span :ref="ifc.saturationValueRef">100%</span>
+      <span>{{ filters.saturation }}%</span>
     </div>
 
     <!-- Deckkraft -->
     <div class="control-group slider">
       <label>{{ t('foto.opacity') }}</label>
-      <input
-        type="range"
-        :ref="ifc.opacityInputRef"
-        min="0"
-        max="100"
-        value="100"
-        @pointerdown="onSliderStart"
-        @pointerup="onSliderEnd"
-        @input="onOpacityChange"
+      <SliderField
+        :model-value="filters.opacity"
+        :min="0"
+        :max="100"
+        :default-value="100"
+        @start="onSliderStart"
+        @update:model-value="onOpacityChange"
+        @change="onSliderEnd"
       />
-      <span :ref="ifc.opacityValueRef">100%</span>
+      <span>{{ filters.opacity }}%</span>
     </div>
 
     <!-- Unschärfe -->
     <div class="control-group slider">
       <label>{{ t('foto.blur') }}</label>
-      <input
-        type="range"
-        :ref="ifc.blurInputRef"
-        min="0"
-        max="20"
-        value="0"
-        @pointerdown="onSliderStart"
-        @pointerup="onSliderEnd"
-        @input="onBlurChange"
+      <SliderField
+        :model-value="filters.blur"
+        :min="0"
+        :max="20"
+        :default-value="0"
+        @start="onSliderStart"
+        @update:model-value="onBlurChange"
+        @change="onSliderEnd"
       />
-      <span :ref="ifc.blurValueRef">0px</span>
+      <span>{{ filters.blur }}px</span>
     </div>
 
     <!-- Farbton -->
     <div class="control-group slider">
       <label>{{ t('foto.hue') }}</label>
-      <input
-        type="range"
-        :ref="ifc.hueRotateInputRef"
-        min="-180"
-        max="180"
-        value="0"
-        @pointerdown="onSliderStart"
-        @pointerup="onSliderEnd"
-        @input="onHueRotateChange"
+      <SliderField
+        :model-value="filters.hueRotate"
+        :min="-180"
+        :max="180"
+        :default-value="0"
+        @start="onSliderStart"
+        @update:model-value="onHueRotateChange"
+        @change="onSliderEnd"
       />
-      <span :ref="ifc.hueRotateValueRef">0°</span>
+      <span>{{ filters.hueRotate }}°</span>
     </div>
   </div>
 </template>
 
 <script setup>
+import SliderField from '../../ui/SliderField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 
 const { t } = useI18n()
 const ifc = inject('imageFilterControls')
 const {
+  filters,
   onSliderStart,
   onSliderEnd,
   onBrightnessChange,

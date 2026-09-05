@@ -33,13 +33,13 @@
 
       <div class="bg-video-seek">
         <span class="seek-time-small">{{ formatTime(videoBackgroundTime) }}</span>
-        <input
-          type="range"
-          :value="videoBackgroundTime"
-          @input="seekVideoBackground($event.target.value)"
+        <SliderField
+          :model-value="videoBackgroundTime"
+          @update:model-value="seekVideoBackground($event)"
           :max="videoBackgroundDuration"
-          min="0"
-          step="0.1"
+          :min="0"
+          :step="0.1"
+          :default-value="0"
           class="seek-slider"
         />
         <span class="seek-time-small">{{ formatTime(videoBackgroundDuration) }}</span>
@@ -60,13 +60,13 @@
           </svg>
           <span>{{ Math.round(videoBackgroundVolume * 100) }}%</span>
         </div>
-        <input
-          type="range"
-          :value="videoBackgroundVolume"
-          @input="updateBgVideoVolume($event.target.value)"
-          min="0"
-          max="1"
-          step="0.01"
+        <SliderField
+          :model-value="videoBackgroundVolume"
+          @update:model-value="updateBgVideoVolume($event)"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          :default-value="1"
           class="volume-slider-small"
         />
       </div>
@@ -102,13 +102,13 @@
 
       <div class="bg-video-seek">
         <span class="seek-time-small">{{ formatTime(wsVideoBackgroundTime) }}</span>
-        <input
-          type="range"
-          :value="wsVideoBackgroundTime"
-          @input="seekWsVideoBackground($event.target.value)"
+        <SliderField
+          :model-value="wsVideoBackgroundTime"
+          @update:model-value="seekWsVideoBackground($event)"
           :max="wsVideoBackgroundDuration"
-          min="0"
-          step="0.1"
+          :min="0"
+          :step="0.1"
+          :default-value="0"
           class="seek-slider"
         />
         <span class="seek-time-small">{{ formatTime(wsVideoBackgroundDuration) }}</span>
@@ -129,13 +129,13 @@
           </svg>
           <span>{{ Math.round(wsVideoBackgroundVolume * 100) }}%</span>
         </div>
-        <input
-          type="range"
-          :value="wsVideoBackgroundVolume"
-          @input="updateWsBgVideoVolume($event.target.value)"
-          min="0"
-          max="1"
-          step="0.01"
+        <SliderField
+          :model-value="wsVideoBackgroundVolume"
+          @update:model-value="updateWsBgVideoVolume($event)"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          :default-value="1"
           class="volume-slider-small"
         />
       </div>
@@ -144,13 +144,13 @@
 </template>
 
 <script setup>
+import SliderField from '../ui/SliderField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 
 const { t } = useI18n()
 
 const {
-  locale,
   hasVideoBackground,
   videoBackground,
   workspaceVideoBackground,

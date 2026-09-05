@@ -36,7 +36,13 @@
       <div class="control-row">
         <label>Deckkraft</label>
         <div class="size-row">
-          <input type="range" v-model.number="bulkOpacity" min="0" max="100" class="slider" />
+          <SliderField
+            v-model="bulkOpacity"
+            :min="0"
+            :max="100"
+            :default-value="100"
+            class="slider"
+          />
           <span class="val-label">{{ bulkOpacity }}%</span>
           <button class="btn-apply" @click="applyOpacity">▶</button>
         </div>
@@ -95,6 +101,7 @@
 </template>
 
 <script setup>
+import SliderField from '../ui/SliderField.vue'
 import ColorField from '../ui/ColorField.vue'
 import { ref, inject } from 'vue'
 

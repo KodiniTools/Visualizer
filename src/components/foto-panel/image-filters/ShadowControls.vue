@@ -30,54 +30,51 @@
       <div class="modern-control">
         <div class="modern-label">
           <span class="label-text">{{ t('foto.shadowBlur') }}</span>
-          <span class="label-value" :ref="ifc.shadowBlurValueRef">0px</span>
+          <span class="label-value">{{ filters.shadowBlur }}px</span>
         </div>
-        <input
-          type="range"
-          :ref="ifc.shadowBlurInputRef"
-          min="0"
-          max="50"
-          value="0"
+        <SliderField
+          :model-value="filters.shadowBlur"
+          :min="0"
+          :max="50"
+          :default-value="0"
           class="modern-slider shadow-slider"
-          @pointerdown="onSliderStart"
-          @pointerup="onSliderEnd"
-          @input="onShadowBlurChange"
+          @start="onSliderStart"
+          @update:model-value="onShadowBlurChange"
+          @change="onSliderEnd"
         />
       </div>
 
       <div class="modern-control">
         <div class="modern-label">
           <span class="label-text">{{ t('foto.shadowOffsetX') }}</span>
-          <span class="label-value" :ref="ifc.shadowOffsetXValueRef">0px</span>
+          <span class="label-value">{{ filters.shadowOffsetX }}px</span>
         </div>
-        <input
-          type="range"
-          :ref="ifc.shadowOffsetXInputRef"
-          min="-50"
-          max="50"
-          value="0"
+        <SliderField
+          :model-value="filters.shadowOffsetX"
+          :min="-50"
+          :max="50"
+          :default-value="0"
           class="modern-slider shadow-slider"
-          @pointerdown="onSliderStart"
-          @pointerup="onSliderEnd"
-          @input="onShadowOffsetXChange"
+          @start="onSliderStart"
+          @update:model-value="onShadowOffsetXChange"
+          @change="onSliderEnd"
         />
       </div>
 
       <div class="modern-control">
         <div class="modern-label">
           <span class="label-text">{{ t('foto.shadowOffsetY') }}</span>
-          <span class="label-value" :ref="ifc.shadowOffsetYValueRef">0px</span>
+          <span class="label-value">{{ filters.shadowOffsetY }}px</span>
         </div>
-        <input
-          type="range"
-          :ref="ifc.shadowOffsetYInputRef"
-          min="-50"
-          max="50"
-          value="0"
+        <SliderField
+          :model-value="filters.shadowOffsetY"
+          :min="-50"
+          :max="50"
+          :default-value="0"
           class="modern-slider shadow-slider"
-          @pointerdown="onSliderStart"
-          @pointerup="onSliderEnd"
-          @input="onShadowOffsetYChange"
+          @start="onSliderStart"
+          @update:model-value="onShadowOffsetYChange"
+          @change="onSliderEnd"
         />
       </div>
     </div>
@@ -85,6 +82,7 @@
 </template>
 
 <script setup>
+import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
@@ -92,6 +90,7 @@ import { useI18n } from '../../../lib/i18n.js'
 const { t } = useI18n()
 const ifc = inject('imageFilterControls')
 const {
+  filters,
   shadowColor,
   onSliderStart,
   onSliderEnd,

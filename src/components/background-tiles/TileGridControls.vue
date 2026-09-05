@@ -18,14 +18,14 @@
     <!-- Lücke zwischen Kacheln -->
     <div class="control-group">
       <label>{{ t('backgroundTiles.gap') }}: {{ tilesStore.tileGap }}px</label>
-      <input
-        type="range"
-        :value="tilesStore.tileGap"
-        min="0"
-        max="30"
-        step="1"
+      <SliderField
+        :model-value="tilesStore.tileGap"
+        :min="0"
+        :max="30"
+        :step="1"
+        :default-value="5"
         class="gap-slider"
-        @input="setTileGap($event.target.value)"
+        @update:model-value="setTileGap($event)"
       />
     </div>
 
@@ -61,6 +61,7 @@
 <script setup>
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
+import SliderField from '../ui/SliderField.vue'
 
 const { t } = useI18n()
 const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTile } =

@@ -34,7 +34,14 @@
         <span class="section-label">{{ t('screenshot.quality') }}</span>
         <span class="quality-value">{{ quality }}%</span>
       </div>
-      <input type="range" v-model="quality" min="10" max="100" step="5" class="quality-slider" />
+      <SliderField
+        v-model="quality"
+        :min="10"
+        :max="100"
+        :step="5"
+        :default-value="90"
+        class="quality-slider"
+      />
       <div class="quality-hints">
         <span>{{ t('screenshot.lowQuality') }}</span>
         <span>{{ t('screenshot.highQuality') }}</span>
@@ -158,6 +165,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useToastStore } from '../stores/toastStore.js'
 import HelpTooltip from './HelpTooltip.vue'
+import SliderField from './ui/SliderField.vue'
 
 const { t } = useI18n()
 const toastStore = useToastStore()

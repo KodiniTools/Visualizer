@@ -23,14 +23,14 @@
       <label>
         {{ t('canvasControl.backgroundOpacity') }}: {{ Math.round(backgroundOpacity * 100) }}%
       </label>
-      <input
-        type="range"
-        v-model.number="backgroundOpacity"
-        @input="updateFromOpacitySlider"
-        min="0"
-        max="1"
-        step="0.01"
+      <SliderField
+        v-model="backgroundOpacity"
+        :min="0"
+        :max="1"
+        :step="0.01"
+        :default-value="1"
         class="opacity-slider"
+        @update:model-value="updateFromOpacitySlider"
       />
     </div>
   </div>
@@ -38,6 +38,7 @@
 
 <script setup>
 import ColorField from '../../ui/ColorField.vue'
+import SliderField from '../../ui/SliderField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 

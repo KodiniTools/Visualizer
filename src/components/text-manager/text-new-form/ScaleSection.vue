@@ -38,12 +38,12 @@
           <label
             >{{ t('textManager.startSize') }}: {{ Math.round(settings.startScale * 100) }}%</label
           >
-          <input
-            v-model.number="settings.startScale"
-            type="range"
-            min="0"
-            max="3"
-            step="0.1"
+          <SliderField
+            v-model="settings.startScale"
+            :min="0"
+            :max="3"
+            :step="0.1"
+            :default-value="0"
             class="slider"
           />
           <div class="hint-text">{{ t('textManager.sizeHint') }}</div>
@@ -52,12 +52,12 @@
         <!-- End-Skalierung -->
         <div class="control-group">
           <label>{{ t('textManager.endSize') }}: {{ Math.round(settings.endScale * 100) }}%</label>
-          <input
-            v-model.number="settings.endScale"
-            type="range"
-            min="0"
-            max="3"
-            step="0.1"
+          <SliderField
+            v-model="settings.endScale"
+            :min="0"
+            :max="3"
+            :step="0.1"
+            :default-value="1"
             class="slider"
           />
         </div>
@@ -65,12 +65,12 @@
         <!-- Dauer -->
         <div class="control-group">
           <label>{{ t('textManager.duration') }}: {{ settings.duration }}ms</label>
-          <input
-            v-model.number="settings.duration"
-            type="range"
-            min="100"
-            max="20000"
-            step="100"
+          <SliderField
+            v-model="settings.duration"
+            :min="100"
+            :max="20000"
+            :step="100"
+            :default-value="1000"
             class="slider"
           />
         </div>
@@ -78,12 +78,12 @@
         <!-- Start-Verzögerung -->
         <div class="control-group">
           <label>{{ t('textManager.startDelay') }}: {{ settings.startDelay }}ms</label>
-          <input
-            v-model.number="settings.startDelay"
-            type="range"
-            min="0"
-            max="20000"
-            step="100"
+          <SliderField
+            v-model="settings.startDelay"
+            :min="0"
+            :max="20000"
+            :step="100"
+            :default-value="0"
             class="slider"
           />
         </div>
@@ -110,12 +110,12 @@
         <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
         <div v-if="settings.loop" class="control-group">
           <label>{{ t('textManager.loopDelay') }}: {{ settings.loopDelay }}ms</label>
-          <input
-            v-model.number="settings.loopDelay"
-            type="range"
-            min="0"
-            max="20000"
-            step="100"
+          <SliderField
+            v-model="settings.loopDelay"
+            :min="0"
+            :max="20000"
+            :step="100"
+            :default-value="1000"
             class="slider"
           />
         </div>
@@ -133,22 +133,13 @@
         <div v-if="!settings.permanent" class="control-group">
           <label>{{ t('textManager.displayDuration') }}: {{ settings.displayDuration }}ms</label>
           <div class="dur-row">
-            <input
-              v-model.number="settings.displayDuration"
-              type="range"
-              min="500"
-              max="30000"
-              step="100"
+            <SliderField
+              v-model="settings.displayDuration"
+              :min="500"
+              :max="30000"
+              :step="100"
+              :default-value="5000"
               class="slider"
-            />
-            <input
-              v-model.number="settings.displayDuration"
-              type="number"
-              min="500"
-              max="30000"
-              step="100"
-              class="dur-number"
-              aria-label="ms"
             />
           </div>
           <div class="hint-text">{{ t('textManager.displayDurationHint') }}</div>
@@ -166,6 +157,7 @@
 </template>
 
 <script setup>
+import SliderField from '../../ui/SliderField.vue'
 import { useI18n } from '../../../lib/i18n.js'
 
 const settings = defineModel('settings', {

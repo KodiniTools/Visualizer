@@ -60,12 +60,12 @@
         <span>{{ t('player.transition') }}</span>
       </label>
       <div v-if="markerTransition.enabled" class="transition-duration">
-        <input
-          v-model.number="markerTransition.duration"
-          type="range"
-          min="1"
-          max="5"
-          step="0.5"
+        <SliderField
+          v-model="markerTransition.duration"
+          :min="1"
+          :max="5"
+          :step="0.5"
+          :default-value="1.5"
           class="transition-slider"
         />
         <span class="transition-value">{{ markerTransition.duration }}s</span>
@@ -244,6 +244,7 @@
 
 <script setup>
 import ColorField from '../ui/ColorField.vue'
+import SliderField from '../ui/SliderField.vue'
 import { inject, computed } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { usePlayerStore } from '../../stores/playerStore.js'

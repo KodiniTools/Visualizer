@@ -8,18 +8,17 @@
       <div class="modern-control">
         <div class="modern-label">
           <span class="label-text">{{ t('foto.rotationAngle') }}</span>
-          <span class="label-value" :ref="ifc.rotationValueRef">0°</span>
+          <span class="label-value">{{ Math.round(filters.rotation) }}°</span>
         </div>
-        <input
-          type="range"
-          :ref="ifc.rotationInputRef"
-          min="0"
-          max="100"
-          value="50"
+        <SliderField
+          :model-value="filters.rotation"
+          :min="-180"
+          :max="180"
+          :default-value="0"
           class="modern-slider rotation-slider"
-          @pointerdown="onSliderStart"
-          @pointerup="onSliderEnd"
-          @input="onRotationChange"
+          @start="onSliderStart"
+          @update:model-value="onRotationChange"
+          @change="onSliderEnd"
         />
         <span class="rotation-hint">-180° ← → +180°</span>
       </div>
@@ -28,12 +27,13 @@
 </template>
 
 <script setup>
+import SliderField from '../../ui/SliderField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 
 const { t } = useI18n()
 const ifc = inject('imageFilterControls')
-const { onSliderStart, onSliderEnd, onRotationChange } = ifc
+const { filters, onSliderStart, onSliderEnd, onRotationChange } = ifc
 </script>
 
 <style scoped src="./image-filters-shared.css"></style>

@@ -553,6 +553,12 @@ export default {
     invalidHex: 'Ungültiger Hex-Wert (z. B. #ff8800)',
   },
 
+  // ========== SLIDER FIELD (Regler mit Spinner/Reset) ==========
+  sliderField: {
+    value: 'Wert',
+    reset: 'Auf Standard zurücksetzen',
+  },
+
   // ========== VISUALIZER APP ==========
   app: {
     imagesOnCanvas: 'Bilder auf Canvas',

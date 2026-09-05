@@ -36,12 +36,11 @@
     <div class="control-section">
       <div class="inline-row">
         <span class="section-label">{{ t('visualizer.color') }}</span>
-        <input
-          type="color"
-          :value="store.visualizerColor"
-          @input="store.setColor($event.target.value)"
+        <ColorField
+          :model-value="store.visualizerColor"
           class="color-swatch"
           :title="t('visualizer.color')"
+          @update:model-value="store.setColor($event)"
         />
       </div>
     </div>
@@ -210,6 +209,7 @@
 </template>
 
 <script setup>
+import ColorField from './ui/ColorField.vue'
 import { ref, computed } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useVisualizerStore } from '../stores/visualizerStore.js'

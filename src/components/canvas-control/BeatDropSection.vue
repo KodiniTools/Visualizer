@@ -32,7 +32,7 @@
           <input type="checkbox" v-model="beatDropStore.flashEnabled" />
           <span>{{ t('beatDrop.flash') }}</span>
         </label>
-        <input type="color" v-model="beatDropStore.flashColor" class="color-input-sm" />
+        <ColorField v-model="beatDropStore.flashColor" class="color-input-sm" />
       </div>
       <template v-if="beatDropStore.flashEnabled">
         <div class="control-group compact">
@@ -63,7 +63,7 @@
           <input type="checkbox" v-model="beatDropStore.colorBurstEnabled" />
           <span>{{ t('beatDrop.colorBurst') }}</span>
         </label>
-        <input type="color" v-model="beatDropStore.colorBurstColor" class="color-input-sm" />
+        <ColorField v-model="beatDropStore.colorBurstColor" class="color-input-sm" />
       </div>
       <template v-if="beatDropStore.colorBurstEnabled">
         <div class="control-group compact">
@@ -114,7 +114,7 @@
           <input type="checkbox" v-model="beatDropStore.vignettePulseEnabled" />
           <span>{{ t('beatDrop.vignette') }}</span>
         </label>
-        <input type="color" v-model="beatDropStore.vignettePulseColor" class="color-input-sm" />
+        <ColorField v-model="beatDropStore.vignettePulseColor" class="color-input-sm" />
       </div>
       <template v-if="beatDropStore.vignettePulseEnabled">
         <div class="control-group compact">
@@ -133,6 +133,7 @@
 </template>
 
 <script setup>
+import ColorField from '../ui/ColorField.vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useBeatDropStore } from '../../stores/beatDropStore.js'
 

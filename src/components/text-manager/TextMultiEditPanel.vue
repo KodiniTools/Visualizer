@@ -20,7 +20,7 @@
       <div class="control-row">
         <label>Farbe</label>
         <div class="color-row">
-          <input type="color" v-model="bulkColor" class="color-input" />
+          <ColorField v-model="bulkColor" class="color-input" />
           <button class="btn-apply" @click="applyColor">Anwenden</button>
         </div>
       </div>
@@ -95,6 +95,7 @@
 </template>
 
 <script setup>
+import ColorField from '../ui/ColorField.vue'
 import { ref, inject } from 'vue'
 
 const props = defineProps({

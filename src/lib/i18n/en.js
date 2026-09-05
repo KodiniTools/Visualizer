@@ -547,6 +547,16 @@ export default {
     duplicate: 'Duplicate',
   },
 
+  // ========== COLOR FIELD (color picker panel) ==========
+  colorField: {
+    pickColor: 'Pick color',
+    hue: 'Hue',
+    saturation: 'Saturation',
+    lightness: 'Lightness',
+    hex: 'Hex value',
+    invalidHex: 'Invalid hex value (e.g. #ff8800)',
+  },
+
   // ========== VISUALIZER APP ==========
   app: {
     imagesOnCanvas: 'Images on Canvas',

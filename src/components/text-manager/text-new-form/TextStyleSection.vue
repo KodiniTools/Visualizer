@@ -49,7 +49,7 @@
       <div class="control-group">
         <label>{{ t('textManager.textColor') }}:</label>
         <div class="color-picker-group">
-          <input v-model="settings.color" type="color" class="color-input" />
+          <ColorField v-model="settings.color" class="color-input" />
           <input
             v-model="settings.color"
             type="text"
@@ -137,6 +137,7 @@
 </template>
 
 <script setup>
+import ColorField from '../../ui/ColorField.vue'
 import { ref, inject, computed } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 import { useTextFonts } from '../../../composables/useTextFonts.js'

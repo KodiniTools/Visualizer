@@ -120,11 +120,10 @@
             <!-- Farbe -->
             <div class="detail-row">
               <span class="detail-label">{{ t('visualizer.color') }}</span>
-              <input
-                type="color"
+              <ColorField
                 class="detail-color"
-                :value="layer.color"
-                @input="updateProperty(layer.id, 'color', $event.target.value)"
+                :model-value="layer.color"
+                @update:model-value="updateProperty(layer.id, 'color', $event)"
               />
             </div>
 
@@ -231,6 +230,7 @@
 </template>
 
 <script setup>
+import ColorField from './ui/ColorField.vue'
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useVisualizerStore, BLEND_MODES } from '../stores/visualizerStore.js'

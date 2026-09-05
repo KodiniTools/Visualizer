@@ -18,12 +18,12 @@
         <div class="grid-color-row">
           <span class="grid-sub-label">{{ t('controls.gridColor') }}</span>
           <div class="grid-color-input">
-            <input
-              type="color"
-              :value="gridStore.gridColor"
-              @input="gridStore.setColor($event.target.value)"
+            <ColorField
+              class="grid-color-swatch"
+              :model-value="gridStore.gridColor"
               :title="t('controls.gridColor')"
               :aria-label="t('controls.gridColor')"
+              @update:model-value="gridStore.setColor($event)"
             />
             <span class="grid-color-hex">{{ gridStore.gridColor }}</span>
           </div>
@@ -72,6 +72,7 @@
 </template>
 
 <script setup>
+import ColorField from './ui/ColorField.vue'
 import { useI18n } from '../lib/i18n.js'
 import { useGridStore } from '../stores/gridStore.js'
 import { useWorkspaceStore } from '../stores/workspaceStore.js'
@@ -195,7 +196,7 @@ h4 {
   gap: 8px;
 }
 
-.grid-color-input input[type='color'] {
+.grid-color-input .grid-color-swatch {
   width: 40px;
   height: 28px;
   padding: 0;

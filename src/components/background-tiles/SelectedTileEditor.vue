@@ -15,11 +15,10 @@
     <div class="control-group">
       <label>{{ t('backgroundTiles.backgroundColor') }}:</label>
       <div class="color-picker-group">
-        <input
-          type="color"
-          :value="tilesStore.selectedTile.backgroundColor"
+        <ColorField
+          :model-value="tilesStore.selectedTile.backgroundColor"
           class="color-input"
-          @input="setTileColor($event.target.value)"
+          @update:model-value="setTileColor($event)"
         />
         <span class="color-hex">{{ tilesStore.selectedTile.backgroundColor }}</span>
       </div>
@@ -56,6 +55,7 @@
 </template>
 
 <script setup>
+import ColorField from '../ui/ColorField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import TileImageSection from './TileImageSection.vue'

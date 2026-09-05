@@ -39,12 +39,12 @@
       <!-- Manuelle Position X -->
       <div class="control-group">
         <label>Position X: {{ Math.round(position.x * 100) }}%</label>
-        <input
-          v-model.number="position.x"
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
+        <SliderField
+          v-model="position.x"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          :default-value="0.5"
           class="slider"
         />
         <input
@@ -60,12 +60,12 @@
       <!-- Manuelle Position Y -->
       <div class="control-group">
         <label>Position Y: {{ Math.round(position.y * 100) }}%</label>
-        <input
-          v-model.number="position.y"
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
+        <SliderField
+          v-model="position.y"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          :default-value="0.5"
           class="slider"
         />
         <input
@@ -136,6 +136,7 @@
 </template>
 
 <script setup>
+import SliderField from '../../ui/SliderField.vue'
 defineModel('position', {
   type: Object,
   required: true,

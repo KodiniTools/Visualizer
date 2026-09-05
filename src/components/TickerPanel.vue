@@ -80,12 +80,12 @@
             <!-- Buchstabenabstand -->
             <div class="control-group">
               <label>{{ t('ticker.letterSpacing') }}: {{ ticker.letterSpacing }}px</label>
-              <input
-                v-model.number="ticker.letterSpacing"
-                type="range"
-                min="-5"
-                max="40"
-                step="1"
+              <SliderField
+                v-model="ticker.letterSpacing"
+                :min="-5"
+                :max="40"
+                :step="1"
+                :default-value="0"
                 class="slider"
               />
             </div>
@@ -93,12 +93,12 @@
             <!-- Buchstabengröße -->
             <div class="control-group">
               <label>{{ t('ticker.fontSize') }}: {{ ticker.fontSize }}px</label>
-              <input
-                v-model.number="ticker.fontSize"
-                type="range"
-                min="12"
-                max="200"
-                step="1"
+              <SliderField
+                v-model="ticker.fontSize"
+                :min="12"
+                :max="200"
+                :step="1"
+                :default-value="48"
                 class="slider"
               />
             </div>
@@ -139,12 +139,12 @@
               </div>
               <div class="control-group">
                 <label>{{ t('ticker.strokeWidth') }}: {{ ticker.strokeWidth }}px</label>
-                <input
-                  v-model.number="ticker.strokeWidth"
-                  type="range"
-                  min="1"
-                  max="20"
-                  step="1"
+                <SliderField
+                  v-model="ticker.strokeWidth"
+                  :min="1"
+                  :max="20"
+                  :step="1"
+                  :default-value="2"
                   class="slider"
                 />
               </div>
@@ -164,12 +164,12 @@
               </div>
               <div class="control-group">
                 <label>{{ t('ticker.shadowBlur') }}: {{ ticker.shadowBlur }}px</label>
-                <input
-                  v-model.number="ticker.shadowBlur"
-                  type="range"
-                  min="0"
-                  max="40"
-                  step="1"
+                <SliderField
+                  v-model="ticker.shadowBlur"
+                  :min="0"
+                  :max="40"
+                  :step="1"
+                  :default-value="6"
                   class="slider"
                 />
               </div>
@@ -200,12 +200,12 @@
             <!-- Hintergrund-Transparenz -->
             <div class="control-group">
               <label>{{ t('ticker.bgOpacity') }}: {{ ticker.bgOpacity }}%</label>
-              <input
-                v-model.number="ticker.bgOpacity"
-                type="range"
-                min="0"
-                max="100"
-                step="1"
+              <SliderField
+                v-model="ticker.bgOpacity"
+                :min="0"
+                :max="100"
+                :step="1"
+                :default-value="70"
                 class="slider"
               />
             </div>
@@ -240,12 +240,12 @@
                   {{ t('ticker.center') }}
                 </button>
               </div>
-              <input
-                v-model.number="ticker.positionY"
-                type="range"
-                min="0"
-                max="100"
-                step="1"
+              <SliderField
+                v-model="ticker.positionY"
+                :min="0"
+                :max="100"
+                :step="1"
+                :default-value="100"
                 class="slider"
               />
               <div class="hint-text">{{ positionHint }}</div>
@@ -265,12 +265,12 @@
             <!-- Laufgeschwindigkeit -->
             <div class="control-group">
               <label>{{ t('ticker.speed') }}: {{ ticker.speed }} px/s</label>
-              <input
-                v-model.number="ticker.speed"
-                type="range"
-                min="10"
-                max="600"
-                step="10"
+              <SliderField
+                v-model="ticker.speed"
+                :min="10"
+                :max="600"
+                :step="10"
+                :default-value="120"
                 class="slider"
               />
             </div>
@@ -317,23 +317,23 @@
               <div class="control-group slider-row">
                 <div class="slider-col">
                   <label>{{ t('ticker.beatIntensity') }}: {{ ticker.beatIntensity }}%</label>
-                  <input
-                    v-model.number="ticker.beatIntensity"
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="5"
+                  <SliderField
+                    v-model="ticker.beatIntensity"
+                    :min="0"
+                    :max="100"
+                    :step="5"
+                    :default-value="60"
                     class="slider"
                   />
                 </div>
                 <div class="slider-col">
                   <label>{{ t('ticker.audioLevel') }}: {{ ticker.audioLevel }}%</label>
-                  <input
-                    v-model.number="ticker.audioLevel"
-                    type="range"
-                    min="0"
-                    max="200"
-                    step="5"
+                  <SliderField
+                    v-model="ticker.audioLevel"
+                    :min="0"
+                    :max="200"
+                    :step="5"
+                    :default-value="100"
                     class="slider"
                   />
                 </div>
@@ -347,6 +347,7 @@
 </template>
 
 <script setup>
+import SliderField from './ui/SliderField.vue'
 import ColorField from './ui/ColorField.vue'
 import { computed, inject } from 'vue'
 import { useI18n } from '../lib/i18n.js'

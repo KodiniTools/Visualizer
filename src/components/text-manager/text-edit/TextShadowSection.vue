@@ -36,12 +36,12 @@
       <!-- Schatten-Unschärfe -->
       <div class="control-group">
         <label>{{ t('textManager.shadowBlur') }}: {{ selectedText.shadow.blur }}px</label>
-        <input
-          type="range"
-          v-model.number="selectedText.shadow.blur"
-          @input="updateText"
-          min="0"
-          max="50"
+        <SliderField
+          v-model="selectedText.shadow.blur"
+          @update:model-value="updateText"
+          :min="0"
+          :max="50"
+          :default-value="0"
           class="slider"
         />
       </div>
@@ -49,12 +49,12 @@
       <!-- Schatten X-Offset -->
       <div class="control-group">
         <label>{{ t('textManager.shadowX') }}-Offset: {{ selectedText.shadow.offsetX }}px</label>
-        <input
-          type="range"
-          v-model.number="selectedText.shadow.offsetX"
-          @input="updateText"
-          min="-50"
-          max="50"
+        <SliderField
+          v-model="selectedText.shadow.offsetX"
+          @update:model-value="updateText"
+          :min="-50"
+          :max="50"
+          :default-value="0"
           class="slider"
         />
       </div>
@@ -62,12 +62,12 @@
       <!-- Schatten Y-Offset -->
       <div class="control-group">
         <label>{{ t('textManager.shadowY') }}-Offset: {{ selectedText.shadow.offsetY }}px</label>
-        <input
-          type="range"
-          v-model.number="selectedText.shadow.offsetY"
-          @input="updateText"
-          min="-50"
-          max="50"
+        <SliderField
+          v-model="selectedText.shadow.offsetY"
+          @update:model-value="updateText"
+          :min="-50"
+          :max="50"
+          :default-value="0"
           class="slider"
         />
       </div>
@@ -76,6 +76,7 @@
 </template>
 
 <script setup>
+import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'

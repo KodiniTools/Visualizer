@@ -557,6 +557,12 @@ export default {
     invalidHex: 'Invalid hex value (e.g. #ff8800)',
   },
 
+  // ========== SLIDER FIELD (slider with spinner/reset) ==========
+  sliderField: {
+    value: 'Value',
+    reset: 'Reset to default',
+  },
+
   // ========== VISUALIZER APP ==========
   app: {
     imagesOnCanvas: 'Images on Canvas',

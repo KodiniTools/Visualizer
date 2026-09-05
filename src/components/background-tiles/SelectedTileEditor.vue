@@ -30,14 +30,14 @@
         >{{ t('backgroundTiles.opacity') }}:
         {{ Math.round(tilesStore.selectedTile.backgroundOpacity * 100) }}%</label
       >
-      <input
-        type="range"
-        :value="tilesStore.selectedTile.backgroundOpacity"
-        min="0"
-        max="1"
-        step="0.05"
+      <SliderField
+        :model-value="tilesStore.selectedTile.backgroundOpacity"
+        :min="0"
+        :max="1"
+        :step="0.05"
+        :default-value="1"
         class="opacity-slider"
-        @input="setTileOpacity($event.target.value)"
+        @update:model-value="setTileOpacity($event)"
       />
     </div>
 
@@ -56,6 +56,7 @@
 
 <script setup>
 import ColorField from '../ui/ColorField.vue'
+import SliderField from '../ui/SliderField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import TileImageSection from './TileImageSection.vue'

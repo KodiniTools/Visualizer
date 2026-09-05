@@ -138,143 +138,143 @@
       <div class="filter-controls">
         <div class="filter-row">
           <label>{{ t('backgroundTiles.brightness') }}</label>
-          <input
-            type="range"
-            :value="tilesStore.selectedTile.imageSettings.brightness"
-            min="0"
-            max="200"
-            step="5"
-            @input="updateImageSetting('brightness', $event.target.value)"
+          <SliderField
+            :model-value="tilesStore.selectedTile.imageSettings.brightness"
+            :min="0"
+            :max="200"
+            :step="5"
+            :default-value="100"
+            @update:model-value="updateImageSetting('brightness', $event)"
           />
           <span>{{ tilesStore.selectedTile.imageSettings.brightness }}%</span>
         </div>
 
         <div class="filter-row">
           <label>{{ t('backgroundTiles.contrast') }}</label>
-          <input
-            type="range"
-            :value="tilesStore.selectedTile.imageSettings.contrast"
-            min="0"
-            max="200"
-            step="5"
-            @input="updateImageSetting('contrast', $event.target.value)"
+          <SliderField
+            :model-value="tilesStore.selectedTile.imageSettings.contrast"
+            :min="0"
+            :max="200"
+            :step="5"
+            :default-value="100"
+            @update:model-value="updateImageSetting('contrast', $event)"
           />
           <span>{{ tilesStore.selectedTile.imageSettings.contrast }}%</span>
         </div>
 
         <div class="filter-row">
           <label>{{ t('backgroundTiles.saturation') }}</label>
-          <input
-            type="range"
-            :value="tilesStore.selectedTile.imageSettings.saturation"
-            min="0"
-            max="200"
-            step="5"
-            @input="updateImageSetting('saturation', $event.target.value)"
+          <SliderField
+            :model-value="tilesStore.selectedTile.imageSettings.saturation"
+            :min="0"
+            :max="200"
+            :step="5"
+            :default-value="100"
+            @update:model-value="updateImageSetting('saturation', $event)"
           />
           <span>{{ tilesStore.selectedTile.imageSettings.saturation }}%</span>
         </div>
 
         <div class="filter-row">
           <label>{{ t('backgroundTiles.opacity') }}</label>
-          <input
-            type="range"
-            :value="tilesStore.selectedTile.imageSettings.opacity"
-            min="0"
-            max="100"
-            step="5"
-            @input="updateImageSetting('opacity', $event.target.value)"
+          <SliderField
+            :model-value="tilesStore.selectedTile.imageSettings.opacity"
+            :min="0"
+            :max="100"
+            :step="5"
+            :default-value="100"
+            @update:model-value="updateImageSetting('opacity', $event)"
           />
           <span>{{ tilesStore.selectedTile.imageSettings.opacity }}%</span>
         </div>
 
         <div class="filter-row">
           <label>{{ t('backgroundTiles.blur') }}</label>
-          <input
-            type="range"
-            :value="tilesStore.selectedTile.imageSettings.blur"
-            min="0"
-            max="20"
-            step="1"
-            @input="updateImageSetting('blur', $event.target.value)"
+          <SliderField
+            :model-value="tilesStore.selectedTile.imageSettings.blur"
+            :min="0"
+            :max="20"
+            :step="1"
+            :default-value="0"
+            @update:model-value="updateImageSetting('blur', $event)"
           />
           <span>{{ tilesStore.selectedTile.imageSettings.blur }}px</span>
         </div>
 
         <div class="filter-row">
           <label>{{ t('backgroundTiles.hueRotate') }}</label>
-          <input
-            type="range"
-            :value="tilesStore.selectedTile.imageSettings.hueRotate"
-            min="0"
-            max="360"
-            step="10"
-            @input="updateImageSetting('hueRotate', $event.target.value)"
+          <SliderField
+            :model-value="tilesStore.selectedTile.imageSettings.hueRotate"
+            :min="0"
+            :max="360"
+            :step="10"
+            :default-value="0"
+            @update:model-value="updateImageSetting('hueRotate', $event)"
           />
           <span>{{ tilesStore.selectedTile.imageSettings.hueRotate }}°</span>
         </div>
 
         <div class="filter-row">
           <label>{{ t('backgroundTiles.grayscale') }}</label>
-          <input
-            type="range"
-            :value="tilesStore.selectedTile.imageSettings.grayscale"
-            min="0"
-            max="100"
-            step="5"
-            @input="updateImageSetting('grayscale', $event.target.value)"
+          <SliderField
+            :model-value="tilesStore.selectedTile.imageSettings.grayscale"
+            :min="0"
+            :max="100"
+            :step="5"
+            :default-value="0"
+            @update:model-value="updateImageSetting('grayscale', $event)"
           />
           <span>{{ tilesStore.selectedTile.imageSettings.grayscale }}%</span>
         </div>
 
         <div class="filter-row">
           <label>{{ t('backgroundTiles.sepia') }}</label>
-          <input
-            type="range"
-            :value="tilesStore.selectedTile.imageSettings.sepia"
-            min="0"
-            max="100"
-            step="5"
-            @input="updateImageSetting('sepia', $event.target.value)"
+          <SliderField
+            :model-value="tilesStore.selectedTile.imageSettings.sepia"
+            :min="0"
+            :max="100"
+            :step="5"
+            :default-value="0"
+            @update:model-value="updateImageSetting('sepia', $event)"
           />
           <span>{{ tilesStore.selectedTile.imageSettings.sepia }}%</span>
         </div>
 
         <div class="filter-row">
           <label>{{ t('backgroundTiles.scale') }}</label>
-          <input
-            type="range"
-            :value="tilesStore.selectedTile.imageSettings.scale"
-            min="0.5"
-            max="2"
-            step="0.1"
-            @input="updateImageSetting('scale', $event.target.value)"
+          <SliderField
+            :model-value="tilesStore.selectedTile.imageSettings.scale"
+            :min="0.5"
+            :max="2"
+            :step="0.1"
+            :default-value="1"
+            @update:model-value="updateImageSetting('scale', $event)"
           />
           <span>{{ Math.round(tilesStore.selectedTile.imageSettings.scale * 100) }}%</span>
         </div>
 
         <div class="filter-row">
           <label>{{ t('backgroundTiles.offsetX') }}</label>
-          <input
-            type="range"
-            :value="tilesStore.selectedTile.imageSettings.offsetX"
-            min="-200"
-            max="200"
-            step="5"
-            @input="updateImageSetting('offsetX', $event.target.value)"
+          <SliderField
+            :model-value="tilesStore.selectedTile.imageSettings.offsetX"
+            :min="-200"
+            :max="200"
+            :step="5"
+            :default-value="0"
+            @update:model-value="updateImageSetting('offsetX', $event)"
           />
           <span>{{ tilesStore.selectedTile.imageSettings.offsetX }}px</span>
         </div>
 
         <div class="filter-row">
           <label>{{ t('backgroundTiles.offsetY') }}</label>
-          <input
-            type="range"
-            :value="tilesStore.selectedTile.imageSettings.offsetY"
-            min="-200"
-            max="200"
-            step="5"
-            @input="updateImageSetting('offsetY', $event.target.value)"
+          <SliderField
+            :model-value="tilesStore.selectedTile.imageSettings.offsetY"
+            :min="-200"
+            :max="200"
+            :step="5"
+            :default-value="0"
+            @update:model-value="updateImageSetting('offsetY', $event)"
           />
           <span>{{ tilesStore.selectedTile.imageSettings.offsetY }}px</span>
         </div>
@@ -290,6 +290,7 @@
 <script setup>
 import { ref, inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
+import SliderField from '../ui/SliderField.vue'
 
 const { t } = useI18n()
 const {

@@ -11,12 +11,12 @@
       <!-- Buchstabenabstand -->
       <div class="control-group">
         <label>Buchstabenabstand: {{ selectedText.letterSpacing }}px</label>
-        <input
-          type="range"
-          v-model.number="selectedText.letterSpacing"
-          @input="updateText"
-          min="-20"
-          max="50"
+        <SliderField
+          v-model="selectedText.letterSpacing"
+          @update:model-value="updateText"
+          :min="-20"
+          :max="50"
+          :default-value="0"
           class="slider"
         />
       </div>
@@ -24,12 +24,12 @@
       <!-- Zeilenabstand -->
       <div class="control-group">
         <label>Zeilenabstand: {{ selectedText.lineHeightMultiplier }}%</label>
-        <input
-          type="range"
-          v-model.number="selectedText.lineHeightMultiplier"
-          @input="updateText"
-          min="100"
-          max="300"
+        <SliderField
+          v-model="selectedText.lineHeightMultiplier"
+          @update:model-value="updateText"
+          :min="100"
+          :max="300"
+          :default-value="120"
           class="slider"
         />
       </div>
@@ -75,12 +75,12 @@
         <!-- Konturdicke -->
         <div class="control-group">
           <label>{{ t('textManager.outlineWidth') }}: {{ selectedText.stroke.width }}px</label>
-          <input
-            type="range"
-            v-model.number="selectedText.stroke.width"
-            @input="updateText"
-            min="1"
-            max="100"
+          <SliderField
+            v-model="selectedText.stroke.width"
+            @update:model-value="updateText"
+            :min="1"
+            :max="100"
+            :default-value="2"
             class="slider"
           />
         </div>
@@ -90,6 +90,7 @@
 </template>
 
 <script setup>
+import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'

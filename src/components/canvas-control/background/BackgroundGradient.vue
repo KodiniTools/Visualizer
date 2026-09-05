@@ -32,14 +32,14 @@
 
       <div v-if="gradientType === 'linear'" class="control-group">
         <label>{{ t('canvasControl.angle') }}: {{ gradientAngle }}°</label>
-        <input
-          type="range"
-          v-model.number="gradientAngle"
-          @input="updateGradientSettings"
-          min="0"
-          max="360"
-          step="5"
+        <SliderField
+          v-model="gradientAngle"
+          :min="0"
+          :max="360"
+          :step="5"
+          :default-value="45"
           class="angle-slider"
+          @update:model-value="updateGradientSettings"
         />
       </div>
     </div>
@@ -48,6 +48,7 @@
 
 <script setup>
 import ColorField from '../../ui/ColorField.vue'
+import SliderField from '../../ui/SliderField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 

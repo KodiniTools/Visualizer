@@ -73,13 +73,13 @@
         <button @click="seekBackward(selectedCanvasVideo, 5)" class="btn-seek" title="-5s">
           ⏪
         </button>
-        <input
-          type="range"
-          :value="selectedVideoCurrentTime"
-          @input="seekToTime(selectedCanvasVideo, $event.target.value)"
+        <SliderField
+          :model-value="selectedVideoCurrentTime"
+          @update:model-value="seekToTime(selectedCanvasVideo, $event)"
           :max="selectedVideoDuration"
-          min="0"
-          step="0.1"
+          :min="0"
+          :step="0.1"
+          :default-value="0"
           class="seek-slider"
         />
         <button @click="seekForward(selectedCanvasVideo, 5)" class="btn-seek" title="+5s">
@@ -102,13 +102,13 @@
           </svg>
           <span>{{ t('videoPanel.volume') }}: {{ Math.round(selectedVideoVolume * 100) }}%</span>
         </div>
-        <input
-          type="range"
-          :value="selectedVideoVolume"
-          @input="updateVideoVolume($event.target.value)"
-          min="0"
-          max="1"
-          step="0.01"
+        <SliderField
+          :model-value="selectedVideoVolume"
+          @update:model-value="updateVideoVolume($event)"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          :default-value="1"
           class="volume-slider"
         />
         <p class="volume-hint">{{ t('videoPanel.audioRecordHint') }}</p>
@@ -118,13 +118,13 @@
 </template>
 
 <script setup>
+import SliderField from '../ui/SliderField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 
 const { t } = useI18n()
 
 const {
-  locale,
   canvasVideos,
   selectedCanvasVideo,
   selectedVideoCurrentTime,

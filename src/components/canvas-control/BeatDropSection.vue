@@ -37,21 +37,21 @@
       <template v-if="beatDropStore.flashEnabled">
         <div class="control-group compact">
           <label>{{ t('beatDrop.intensity') }}: {{ beatDropStore.flashIntensity }}%</label>
-          <input
-            type="range"
-            v-model.number="beatDropStore.flashIntensity"
-            min="0"
-            max="100"
+          <SliderField
+            v-model="beatDropStore.flashIntensity"
+            :min="0"
+            :max="100"
+            :default-value="70"
             class="opacity-slider"
           />
         </div>
         <div class="control-group compact">
           <label>{{ t('beatDrop.decay') }}: {{ beatDropStore.flashDecay }}%</label>
-          <input
-            type="range"
-            v-model.number="beatDropStore.flashDecay"
-            min="1"
-            max="100"
+          <SliderField
+            v-model="beatDropStore.flashDecay"
+            :min="1"
+            :max="100"
+            :default-value="60"
             class="opacity-slider"
           />
         </div>
@@ -68,11 +68,11 @@
       <template v-if="beatDropStore.colorBurstEnabled">
         <div class="control-group compact">
           <label>{{ t('beatDrop.intensity') }}: {{ beatDropStore.colorBurstIntensity }}%</label>
-          <input
-            type="range"
-            v-model.number="beatDropStore.colorBurstIntensity"
-            min="0"
-            max="100"
+          <SliderField
+            v-model="beatDropStore.colorBurstIntensity"
+            :min="0"
+            :max="100"
+            :default-value="60"
             class="opacity-slider"
           />
         </div>
@@ -88,21 +88,21 @@
       <template v-if="beatDropStore.strobeEnabled">
         <div class="control-group compact">
           <label>{{ t('beatDrop.rate') }}: {{ beatDropStore.strobeRate }} Hz</label>
-          <input
-            type="range"
-            v-model.number="beatDropStore.strobeRate"
-            min="1"
-            max="30"
+          <SliderField
+            v-model="beatDropStore.strobeRate"
+            :min="1"
+            :max="30"
+            :default-value="8"
             class="opacity-slider"
           />
         </div>
         <div class="control-group compact">
           <label>{{ t('beatDrop.intensity') }}: {{ beatDropStore.strobeIntensity }}%</label>
-          <input
-            type="range"
-            v-model.number="beatDropStore.strobeIntensity"
-            min="0"
-            max="100"
+          <SliderField
+            v-model="beatDropStore.strobeIntensity"
+            :min="0"
+            :max="100"
+            :default-value="80"
             class="opacity-slider"
           />
         </div>
@@ -119,11 +119,11 @@
       <template v-if="beatDropStore.vignettePulseEnabled">
         <div class="control-group compact">
           <label>{{ t('beatDrop.intensity') }}: {{ beatDropStore.vignettePulseIntensity }}%</label>
-          <input
-            type="range"
-            v-model.number="beatDropStore.vignettePulseIntensity"
-            min="0"
-            max="100"
+          <SliderField
+            v-model="beatDropStore.vignettePulseIntensity"
+            :min="0"
+            :max="100"
+            :default-value="70"
             class="opacity-slider"
           />
         </div>
@@ -134,6 +134,7 @@
 
 <script setup>
 import ColorField from '../ui/ColorField.vue'
+import SliderField from '../ui/SliderField.vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useBeatDropStore } from '../../stores/beatDropStore.js'
 

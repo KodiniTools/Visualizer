@@ -10,12 +10,12 @@
     <div class="section-content">
       <div class="control-group">
         <label>Rotation: {{ selectedText.rotation }}°</label>
-        <input
-          type="range"
-          v-model.number="selectedText.rotation"
-          @input="updateText"
-          min="-180"
-          max="180"
+        <SliderField
+          v-model="selectedText.rotation"
+          @update:model-value="updateText"
+          :min="-180"
+          :max="180"
+          :default-value="0"
           class="slider"
         />
       </div>
@@ -24,6 +24,7 @@
 </template>
 
 <script setup>
+import SliderField from '../../ui/SliderField.vue'
 import { inject } from 'vue'
 
 const tec = inject('textEditControls')

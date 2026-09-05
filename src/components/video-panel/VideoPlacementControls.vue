@@ -27,12 +27,12 @@
       <div v-if="selectedAnimation !== 'none'" class="placement-row">
         <span class="placement-label">{{ locale === 'de' ? 'Dauer' : 'Duration' }}</span>
         <div class="placement-slider-wrap">
-          <input
-            type="range"
-            v-model.number="animationDuration"
-            min="100"
-            max="5000"
-            step="100"
+          <SliderField
+            v-model="animationDuration"
+            :min="100"
+            :max="5000"
+            :step="100"
+            :default-value="500"
             class="placement-slider"
           />
           <span class="placement-value">{{ (animationDuration / 1000).toFixed(1) }}s</span>
@@ -43,12 +43,12 @@
       <div class="placement-row">
         <span class="placement-label">{{ locale === 'de' ? 'Größe' : 'Size' }}</span>
         <div class="placement-slider-wrap">
-          <input
-            type="range"
-            v-model.number="videoScale"
-            min="1"
-            max="8"
-            step="1"
+          <SliderField
+            v-model="videoScale"
+            :min="1"
+            :max="8"
+            :step="1"
+            :default-value="3"
             class="placement-slider"
           />
           <span class="placement-value">{{ videoScale }}x</span>
@@ -78,6 +78,7 @@
 </template>
 
 <script setup>
+import SliderField from '../ui/SliderField.vue'
 import { inject } from 'vue'
 
 const {

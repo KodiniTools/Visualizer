@@ -19,13 +19,13 @@
     <div v-if="store.bloomEnabled" class="fx-sub">
       <div class="fx-control">
         <span class="control-label">{{ L.strength }}: {{ store.bloomStrength.toFixed(2) }}</span>
-        <input
-          type="range"
-          min="0"
-          max="2"
-          step="0.05"
-          :value="store.bloomStrength"
-          @input="store.setBloomStrength(parseFloat($event.target.value))"
+        <SliderField
+          :min="0"
+          :max="2"
+          :step="0.05"
+          :default-value="0.55"
+          :model-value="store.bloomStrength"
+          @update:model-value="store.setBloomStrength($event)"
           class="slider fx-slider"
         />
       </div>
@@ -33,25 +33,25 @@
         <span class="control-label"
           >{{ L.threshold }}: {{ Math.round(store.bloomThreshold * 100) }}%</span
         >
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          :value="store.bloomThreshold"
-          @input="store.setBloomThreshold(parseFloat($event.target.value))"
+        <SliderField
+          :min="0"
+          :max="1"
+          :step="0.01"
+          :default-value="0.35"
+          :model-value="store.bloomThreshold"
+          @update:model-value="store.setBloomThreshold($event)"
           class="slider fx-slider"
         />
       </div>
       <div class="fx-control">
         <span class="control-label">{{ L.radius }}: {{ store.bloomRadius }}px</span>
-        <input
-          type="range"
-          min="1"
-          max="32"
-          step="1"
-          :value="store.bloomRadius"
-          @input="store.setBloomRadius(parseInt($event.target.value))"
+        <SliderField
+          :min="1"
+          :max="32"
+          :step="1"
+          :default-value="8"
+          :model-value="store.bloomRadius"
+          @update:model-value="store.setBloomRadius($event)"
           class="slider fx-slider"
         />
       </div>
@@ -74,13 +74,13 @@
         <span class="control-label"
           >{{ L.trailLength }}: {{ Math.round(store.trailsDecay * 100) }}%</span
         >
-        <input
-          type="range"
-          min="0"
-          max="0.97"
-          step="0.01"
-          :value="store.trailsDecay"
-          @input="store.setTrailsDecay(parseFloat($event.target.value))"
+        <SliderField
+          :min="0"
+          :max="0.97"
+          :step="0.01"
+          :default-value="0.85"
+          :model-value="store.trailsDecay"
+          @update:model-value="store.setTrailsDecay($event)"
           class="slider fx-slider"
         />
       </div>
@@ -115,13 +115,13 @@
       </div>
       <div class="fx-control">
         <span class="control-label">{{ L.strength }}: {{ store.beatPunchStrength }}%</span>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          step="5"
-          :value="store.beatPunchStrength"
-          @input="store.setBeatPunchStrength(parseInt($event.target.value))"
+        <SliderField
+          :min="0"
+          :max="100"
+          :step="5"
+          :default-value="50"
+          :model-value="store.beatPunchStrength"
+          @update:model-value="store.setBeatPunchStrength($event)"
           class="slider fx-slider"
         />
       </div>
@@ -143,13 +143,13 @@
     <div v-if="store.onsetFlourishEnabled" class="fx-sub">
       <div class="fx-control">
         <span class="control-label">{{ L.strength }}: {{ store.onsetFlourishStrength }}%</span>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          step="5"
-          :value="store.onsetFlourishStrength"
-          @input="store.setOnsetFlourishStrength(parseInt($event.target.value))"
+        <SliderField
+          :min="0"
+          :max="100"
+          :step="5"
+          :default-value="70"
+          :model-value="store.onsetFlourishStrength"
+          @update:model-value="store.setOnsetFlourishStrength($event)"
           class="slider fx-slider"
         />
       </div>
@@ -171,6 +171,7 @@
 </template>
 
 <script setup>
+import SliderField from './ui/SliderField.vue'
 import { computed } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useVisualizerStore } from '../stores/visualizerStore.js'

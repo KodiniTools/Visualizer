@@ -50,13 +50,13 @@
       <span class="section-label">
         {{ t('visualizer.intensity') }}: {{ Math.round(store.visualizerOpacity * 100) }}%
       </span>
-      <input
-        type="range"
-        min="0"
-        max="1"
-        step="0.01"
-        :value="store.visualizerOpacity"
-        @input="store.setOpacity(parseFloat($event.target.value))"
+      <SliderField
+        :min="0"
+        :max="1"
+        :step="0.01"
+        :default-value="1"
+        :model-value="store.visualizerOpacity"
+        @update:model-value="store.setOpacity($event)"
         class="slider intensity-slider"
       />
     </div>
@@ -66,13 +66,13 @@
       <span class="section-label">
         {{ t('visualizer.colorTransparency') }}: {{ Math.round(store.colorOpacity * 100) }}%
       </span>
-      <input
-        type="range"
-        min="0"
-        max="1"
-        step="0.01"
-        :value="store.colorOpacity"
-        @input="store.setColorOpacity(parseFloat($event.target.value))"
+      <SliderField
+        :min="0"
+        :max="1"
+        :step="0.01"
+        :default-value="1"
+        :model-value="store.colorOpacity"
+        @update:model-value="store.setColorOpacity($event)"
         class="slider color-slider"
       />
     </div>
@@ -93,13 +93,13 @@
       <!-- X-Position -->
       <div class="position-control">
         <span class="control-label">X: {{ Math.round(store.visualizerX * 100) }}%</span>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          :value="store.visualizerX"
-          @input="store.setVisualizerX(parseFloat($event.target.value))"
+        <SliderField
+          :min="0"
+          :max="1"
+          :step="0.01"
+          :default-value="0.5"
+          :model-value="store.visualizerX"
+          @update:model-value="store.setVisualizerX($event)"
           class="slider position-slider"
         />
       </div>
@@ -107,13 +107,13 @@
       <!-- Y-Position -->
       <div class="position-control">
         <span class="control-label">Y: {{ Math.round(store.visualizerY * 100) }}%</span>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          :value="store.visualizerY"
-          @input="store.setVisualizerY(parseFloat($event.target.value))"
+        <SliderField
+          :min="0"
+          :max="1"
+          :step="0.01"
+          :default-value="0.5"
+          :model-value="store.visualizerY"
+          @update:model-value="store.setVisualizerY($event)"
           class="slider position-slider"
         />
       </div>
@@ -123,13 +123,13 @@
         <span class="control-label"
           >{{ t('foto.size') }}: {{ Math.round(store.visualizerScale * 100) }}%</span
         >
-        <input
-          type="range"
-          min="0.1"
-          max="2"
-          step="0.01"
-          :value="store.visualizerScale"
-          @input="store.setVisualizerScale(parseFloat($event.target.value))"
+        <SliderField
+          :min="0.1"
+          :max="2"
+          :step="0.01"
+          :default-value="1"
+          :model-value="store.visualizerScale"
+          @update:model-value="store.setVisualizerScale($event)"
           class="slider scale-slider"
         />
       </div>
@@ -209,6 +209,7 @@
 </template>
 
 <script setup>
+import SliderField from './ui/SliderField.vue'
 import ColorField from './ui/ColorField.vue'
 import { ref, computed } from 'vue'
 import { useI18n } from '../lib/i18n.js'

@@ -32,15 +32,15 @@
           <span class="grid-sub-label"
             >{{ t('controls.gridOpacity') }}: {{ Math.round(gridStore.gridOpacity * 100) }}%</span
           >
-          <input
+          <SliderField
             class="grid-opacity-slider"
-            type="range"
-            min="10"
-            max="100"
-            step="1"
-            :value="Math.round(gridStore.gridOpacity * 100)"
-            @input="gridStore.setOpacity($event.target.value / 100)"
+            :min="10"
+            :max="100"
+            :step="1"
+            :default-value="60"
+            :model-value="Math.round(gridStore.gridOpacity * 100)"
             :title="t('controls.gridOpacity')"
+            @update:model-value="gridStore.setOpacity($event / 100)"
           />
         </div>
       </div>
@@ -73,6 +73,7 @@
 
 <script setup>
 import ColorField from './ui/ColorField.vue'
+import SliderField from './ui/SliderField.vue'
 import { useI18n } from '../lib/i18n.js'
 import { useGridStore } from '../stores/gridStore.js'
 import { useWorkspaceStore } from '../stores/workspaceStore.js'

@@ -39,12 +39,12 @@
       <!-- Schriftgröße -->
       <div class="control-group">
         <label>Größe: {{ selectedText.fontSize }}px</label>
-        <input
-          type="range"
-          v-model.number="selectedText.fontSize"
-          @input="updateText"
-          min="12"
-          max="200"
+        <SliderField
+          v-model="selectedText.fontSize"
+          @update:model-value="updateText"
+          :min="12"
+          :max="200"
+          :default-value="48"
           class="slider"
         />
       </div>
@@ -52,12 +52,12 @@
       <!-- Deckkraft -->
       <div class="control-group">
         <label>Deckkraft: {{ selectedText.opacity }}%</label>
-        <input
-          type="range"
-          v-model.number="selectedText.opacity"
-          @input="updateText"
-          min="0"
-          max="100"
+        <SliderField
+          v-model="selectedText.opacity"
+          @update:model-value="updateText"
+          :min="0"
+          :max="100"
+          :default-value="100"
           class="slider"
         />
       </div>
@@ -129,6 +129,7 @@
 </template>
 
 <script setup>
+import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'

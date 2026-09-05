@@ -30,36 +30,34 @@
       <div class="modern-control">
         <div class="modern-label">
           <span class="label-text">{{ t('foto.borderWidth') }}</span>
-          <span class="label-value" :ref="ifc.borderWidthValueRef">0px</span>
+          <span class="label-value">{{ filters.borderWidth }}px</span>
         </div>
-        <input
-          type="range"
-          :ref="ifc.borderWidthInputRef"
-          min="0"
-          max="50"
-          value="0"
+        <SliderField
+          :model-value="filters.borderWidth"
+          :min="0"
+          :max="50"
+          :default-value="0"
           class="modern-slider border-slider"
-          @pointerdown="onSliderStart"
-          @pointerup="onSliderEnd"
-          @input="onBorderWidthChange"
+          @start="onSliderStart"
+          @update:model-value="onBorderWidthChange"
+          @change="onSliderEnd"
         />
       </div>
 
       <div class="modern-control">
         <div class="modern-label">
           <span class="label-text">{{ t('foto.borderOpacity') }}</span>
-          <span class="label-value" :ref="ifc.borderOpacityValueRef">100%</span>
+          <span class="label-value">{{ filters.borderOpacity }}%</span>
         </div>
-        <input
-          type="range"
-          :ref="ifc.borderOpacityInputRef"
-          min="0"
-          max="100"
-          value="100"
+        <SliderField
+          :model-value="filters.borderOpacity"
+          :min="0"
+          :max="100"
+          :default-value="100"
           class="modern-slider border-opacity-slider"
-          @pointerdown="onSliderStart"
-          @pointerup="onSliderEnd"
-          @input="onBorderOpacityChange"
+          @start="onSliderStart"
+          @update:model-value="onBorderOpacityChange"
+          @change="onSliderEnd"
         />
       </div>
     </div>
@@ -67,6 +65,7 @@
 </template>
 
 <script setup>
+import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
@@ -74,6 +73,7 @@ import { useI18n } from '../../../lib/i18n.js'
 const { t } = useI18n()
 const ifc = inject('imageFilterControls')
 const {
+  filters,
   borderColor,
   onSliderStart,
   onSliderEnd,

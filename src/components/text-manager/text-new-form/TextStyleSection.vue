@@ -17,11 +17,11 @@
       <!-- Schriftgröße -->
       <div class="control-group">
         <label>{{ t('textManager.fontSize') }}: {{ settings.fontSize }}px</label>
-        <input
-          v-model.number="settings.fontSize"
-          type="range"
-          min="12"
-          max="200"
+        <SliderField
+          v-model="settings.fontSize"
+          :min="12"
+          :max="200"
+          :default-value="48"
           class="slider"
           :disabled="settings.autoFit"
         />
@@ -35,11 +35,11 @@
         </label>
         <div v-if="settings.autoFit" class="auto-fit-settings">
           <label>{{ t('textManager.autoFitPadding') }}: {{ settings.autoFitPadding }}%</label>
-          <input
-            v-model.number="settings.autoFitPadding"
-            type="range"
-            min="0"
-            max="30"
+          <SliderField
+            v-model="settings.autoFitPadding"
+            :min="0"
+            :max="30"
+            :default-value="10"
             class="slider"
           />
         </div>
@@ -62,7 +62,13 @@
       <!-- Deckkraft -->
       <div class="control-group">
         <label>{{ t('textManager.opacity') }}: {{ settings.opacity }}%</label>
-        <input v-model.number="settings.opacity" type="range" min="0" max="100" class="slider" />
+        <SliderField
+          v-model="settings.opacity"
+          :min="0"
+          :max="100"
+          :default-value="100"
+          class="slider"
+        />
       </div>
 
       <!-- Schriftstil -->
@@ -137,6 +143,7 @@
 </template>
 
 <script setup>
+import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
 import { ref, inject, computed } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'

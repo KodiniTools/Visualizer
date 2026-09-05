@@ -1,4 +1,5 @@
 import { ref, computed, watch } from 'vue'
+import { normalizeHex } from '../lib/color.js'
 
 /**
  * All state + imperative logic for the image filters panel (ImageFiltersPanel).
@@ -30,14 +31,14 @@ export function useImageFilterControls(props, emit) {
       opacity: parseInt(opacityInputRef.value?.value ?? 100),
       blur: parseInt(blurInputRef.value?.value ?? 0),
       hueRotate: parseInt(hueRotateInputRef.value?.value ?? 0),
-      shadowColor: shadowColorInputRef.value?.value ?? '#000000',
+      shadowColor: shadowColor.value,
       shadowBlur: parseInt(shadowBlurInputRef.value?.value ?? 0),
       shadowOffsetX: parseInt(shadowOffsetXInputRef.value?.value ?? 0),
       shadowOffsetY: parseInt(shadowOffsetYInputRef.value?.value ?? 0),
       rotation: rotationInputRef.value ? (parseInt(rotationInputRef.value.value) - 50) * 3.6 : 0,
       flipH: flipHRef.value,
       flipV: flipVRef.value,
-      borderColor: borderColorInputRef.value?.value ?? '#ffffff',
+      borderColor: borderColor.value,
       borderWidth: parseInt(borderWidthInputRef.value?.value ?? 0),
       borderOpacity: parseInt(borderOpacityInputRef.value?.value ?? 100),
       preset: presetSelectRef.value?.value ?? '',
@@ -124,8 +125,8 @@ export function useImageFilterControls(props, emit) {
   const hueRotateValueRef = ref(null)
 
   // Shadow Refs
-  const shadowColorInputRef = ref(null)
-  const shadowColorTextRef = ref(null)
+  // Farben sind reaktive Werte (ColorField ist v-model-basiert, kein DOM-Ref)
+  const shadowColor = ref('#000000')
   const shadowBlurInputRef = ref(null)
   const shadowBlurValueRef = ref(null)
   const shadowOffsetXInputRef = ref(null)
@@ -143,8 +144,7 @@ export function useImageFilterControls(props, emit) {
   const renderBehindVisualizerRef = ref(false)
 
   // Border Refs
-  const borderColorInputRef = ref(null)
-  const borderColorTextRef = ref(null)
+  const borderColor = ref('#ffffff')
   const borderWidthInputRef = ref(null)
   const borderWidthValueRef = ref(null)
   const borderOpacityInputRef = ref(null)
@@ -196,16 +196,22 @@ export function useImageFilterControls(props, emit) {
     emitFilterChange('hueRotate', value)
   }
 
-  function onShadowColorChange(event) {
-    const value = event.target.value
-    if (shadowColorTextRef.value) shadowColorTextRef.value.value = value
-    emitFilterChange('shadowColor', value)
+  /** @param {string} hex - vom ColorField emittierter Hex-Wert */
+  function onShadowColorChange(hex) {
+    shadowColor.value = hex
+    emitFilterChange('shadowColor', hex)
   }
 
   function onShadowColorTextChange(event) {
-    const value = event.target.value
-    if (shadowColorInputRef.value) shadowColorInputRef.value.value = value
-    emitFilterChange('shadowColor', value)
+    const hex = normalizeHex(event.target.value)
+    if (!hex) {
+      event.target.value = shadowColor.value // ungültige Eingabe verwerfen
+      return
+    }
+    onSliderStart() // Undo-Snapshot vor der Änderung
+    shadowColor.value = hex
+    emitFilterChange('shadowColor', hex)
+    onSliderEnd()
   }
 
   function onShadowBlurChange(event) {
@@ -251,16 +257,22 @@ export function useImageFilterControls(props, emit) {
     emitFilterChange('renderBehindVisualizer', renderBehindVisualizerRef.value)
   }
 
-  function onBorderColorChange(event) {
-    const value = event.target.value
-    if (borderColorTextRef.value) borderColorTextRef.value.value = value
-    emitFilterChange('borderColor', value)
+  /** @param {string} hex - vom ColorField emittierter Hex-Wert */
+  function onBorderColorChange(hex) {
+    borderColor.value = hex
+    emitFilterChange('borderColor', hex)
   }
 
   function onBorderColorTextChange(event) {
-    const value = event.target.value
-    if (borderColorInputRef.value) borderColorInputRef.value.value = value
-    emitFilterChange('borderColor', value)
+    const hex = normalizeHex(event.target.value)
+    if (!hex) {
+      event.target.value = borderColor.value // ungültige Eingabe verwerfen
+      return
+    }
+    onSliderStart() // Undo-Snapshot vor der Änderung
+    borderColor.value = hex
+    emitFilterChange('borderColor', hex)
+    onSliderEnd()
   }
 
   function onBorderWidthChange(event) {
@@ -291,8 +303,7 @@ export function useImageFilterControls(props, emit) {
     if (hueRotateInputRef.value) hueRotateInputRef.value.value = 0
     if (hueRotateValueRef.value) hueRotateValueRef.value.textContent = '0°'
 
-    if (shadowColorInputRef.value) shadowColorInputRef.value.value = '#000000'
-    if (shadowColorTextRef.value) shadowColorTextRef.value.value = '#000000'
+    shadowColor.value = '#000000'
     if (shadowBlurInputRef.value) shadowBlurInputRef.value.value = 0
     if (shadowBlurValueRef.value) shadowBlurValueRef.value.textContent = '0px'
     if (shadowOffsetXInputRef.value) shadowOffsetXInputRef.value.value = 0
@@ -305,8 +316,7 @@ export function useImageFilterControls(props, emit) {
     flipHRef.value = false
     flipVRef.value = false
 
-    if (borderColorInputRef.value) borderColorInputRef.value.value = '#ffffff'
-    if (borderColorTextRef.value) borderColorTextRef.value.value = '#ffffff'
+    borderColor.value = '#ffffff'
     if (borderWidthInputRef.value) borderWidthInputRef.value.value = 0
     if (borderWidthValueRef.value) borderWidthValueRef.value.textContent = '0px'
     if (borderOpacityInputRef.value) borderOpacityInputRef.value.value = 100
@@ -333,8 +343,7 @@ export function useImageFilterControls(props, emit) {
     if (hueRotateInputRef.value) hueRotateInputRef.value.value = s.hueRotate || 0
     if (hueRotateValueRef.value) hueRotateValueRef.value.textContent = (s.hueRotate || 0) + '°'
 
-    if (shadowColorInputRef.value) shadowColorInputRef.value.value = s.shadowColor || '#000000'
-    if (shadowColorTextRef.value) shadowColorTextRef.value.value = s.shadowColor || '#000000'
+    shadowColor.value = s.shadowColor || '#000000'
     if (shadowBlurInputRef.value) shadowBlurInputRef.value.value = s.shadowBlur || 0
     if (shadowBlurValueRef.value) shadowBlurValueRef.value.textContent = (s.shadowBlur || 0) + 'px'
     if (shadowOffsetXInputRef.value) shadowOffsetXInputRef.value.value = s.shadowOffsetX || 0
@@ -353,8 +362,7 @@ export function useImageFilterControls(props, emit) {
     flipVRef.value = s.flipV || false
     renderBehindVisualizerRef.value = s.renderBehindVisualizer || false
 
-    if (borderColorInputRef.value) borderColorInputRef.value.value = s.borderColor || '#ffffff'
-    if (borderColorTextRef.value) borderColorTextRef.value.value = s.borderColor || '#ffffff'
+    borderColor.value = s.borderColor || '#ffffff'
     if (borderWidthInputRef.value) borderWidthInputRef.value.value = s.borderWidth || 0
     if (borderWidthValueRef.value)
       borderWidthValueRef.value.textContent = (s.borderWidth || 0) + 'px'
@@ -391,8 +399,7 @@ export function useImageFilterControls(props, emit) {
     blurValueRef,
     hueRotateInputRef,
     hueRotateValueRef,
-    shadowColorInputRef,
-    shadowColorTextRef,
+    shadowColor,
     shadowBlurInputRef,
     shadowBlurValueRef,
     shadowOffsetXInputRef,
@@ -404,8 +411,7 @@ export function useImageFilterControls(props, emit) {
     flipHRef,
     flipVRef,
     renderBehindVisualizerRef,
-    borderColorInputRef,
-    borderColorTextRef,
+    borderColor,
     borderWidthInputRef,
     borderWidthValueRef,
     borderOpacityInputRef,

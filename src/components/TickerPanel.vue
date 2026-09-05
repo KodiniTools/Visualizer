@@ -106,7 +106,7 @@
             <!-- Textfarbe -->
             <div class="control-group">
               <label>{{ t('ticker.color') }}:</label>
-              <input v-model="ticker.color" type="color" class="color-input" />
+              <ColorField v-model="ticker.color" class="color-input" />
             </div>
           </div>
         </details>
@@ -135,7 +135,7 @@
             <template v-if="ticker.strokeEnabled">
               <div class="control-group">
                 <label>{{ t('ticker.strokeColor') }}:</label>
-                <input v-model="ticker.strokeColor" type="color" class="color-input" />
+                <ColorField v-model="ticker.strokeColor" class="color-input" />
               </div>
               <div class="control-group">
                 <label>{{ t('ticker.strokeWidth') }}: {{ ticker.strokeWidth }}px</label>
@@ -160,7 +160,7 @@
             <template v-if="ticker.shadowEnabled">
               <div class="control-group">
                 <label>{{ t('ticker.shadowColor') }}:</label>
-                <input v-model="ticker.shadowColor" type="color" class="color-input" />
+                <ColorField v-model="ticker.shadowColor" class="color-input" />
               </div>
               <div class="control-group">
                 <label>{{ t('ticker.shadowBlur') }}: {{ ticker.shadowBlur }}px</label>
@@ -194,7 +194,7 @@
             <!-- Hintergrundfarbe -->
             <div class="control-group">
               <label>{{ t('ticker.bgColor') }}:</label>
-              <input v-model="ticker.bgColor" type="color" class="color-input" />
+              <ColorField v-model="ticker.bgColor" class="color-input" />
             </div>
 
             <!-- Hintergrund-Transparenz -->
@@ -347,6 +347,7 @@
 </template>
 
 <script setup>
+import ColorField from './ui/ColorField.vue'
 import { computed, inject } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useTickerStore } from '../stores/tickerStore.js'

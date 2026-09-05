@@ -121,7 +121,7 @@
       <div class="form-row">
         <label>{{ t('player.color') }}:</label>
         <div class="color-input-wrapper">
-          <input v-model="newMarkerColor" type="color" class="marker-color" />
+          <ColorField v-model="newMarkerColor" class="marker-color" />
           <label class="color-checkbox">
             <input v-model="newMarkerChangeColor" type="checkbox" />
             <span>{{ t('player.change') }}</span>
@@ -243,6 +243,7 @@
 </template>
 
 <script setup>
+import ColorField from '../ui/ColorField.vue'
 import { inject, computed } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { usePlayerStore } from '../../stores/playerStore.js'

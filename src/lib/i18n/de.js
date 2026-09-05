@@ -543,6 +543,16 @@ export default {
     duplicate: 'Duplizieren',
   },
 
+  // ========== COLOR FIELD (Farbwähler-Panel) ==========
+  colorField: {
+    pickColor: 'Farbe wählen',
+    hue: 'Farbton',
+    saturation: 'Sättigung',
+    lightness: 'Helligkeit',
+    hex: 'Hex-Wert',
+    invalidHex: 'Ungültiger Hex-Wert (z. B. #ff8800)',
+  },
+
   // ========== VISUALIZER APP ==========
   app: {
     imagesOnCanvas: 'Bilder auf Canvas',

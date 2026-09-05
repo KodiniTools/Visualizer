@@ -13,11 +13,10 @@
       <div class="control-group">
         <label>{{ t('canvasControl.secondColor') }}:</label>
         <div class="color-picker-group">
-          <input
-            type="color"
+          <ColorField
             v-model="gradientColor2"
-            @input="updateGradientSettings"
             class="color-input"
+            @update:model-value="updateGradientSettings"
           />
           <span class="color-hex">{{ gradientColor2 }}</span>
         </div>
@@ -48,6 +47,7 @@
 </template>
 
 <script setup>
+import ColorField from '../../ui/ColorField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 

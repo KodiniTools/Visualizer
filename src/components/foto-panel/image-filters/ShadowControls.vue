@@ -10,19 +10,17 @@
           <span class="label-text">{{ t('foto.shadowColor') }}</span>
         </div>
         <div class="modern-color-picker">
-          <input
-            type="color"
-            :ref="ifc.shadowColorInputRef"
-            value="#000000"
+          <ColorField
+            :model-value="shadowColor"
             class="modern-color-input"
-            @mousedown="onSliderStart"
+            :label="t('foto.shadowColor')"
+            @start="onSliderStart"
+            @update:model-value="onShadowColorChange"
             @change="onSliderEnd"
-            @input="onShadowColorChange"
           />
           <input
             type="text"
-            :ref="ifc.shadowColorTextRef"
-            value="#000000"
+            :value="shadowColor"
             class="modern-color-text"
             @change="onShadowColorTextChange"
           />
@@ -87,12 +85,14 @@
 </template>
 
 <script setup>
+import ColorField from '../../ui/ColorField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 
 const { t } = useI18n()
 const ifc = inject('imageFilterControls')
 const {
+  shadowColor,
   onSliderStart,
   onSliderEnd,
   onShadowColorChange,

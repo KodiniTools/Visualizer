@@ -18,11 +18,10 @@
       <div class="control-group">
         <label>{{ t('textManager.shadowColor') }}:</label>
         <div class="color-picker-group">
-          <input
-            type="color"
+          <ColorField
             v-model="selectedText.shadow.color"
-            @input="updateText"
             class="color-input"
+            @update:model-value="updateText"
           />
           <input
             type="text"
@@ -77,6 +76,7 @@
 </template>
 
 <script setup>
+import ColorField from '../../ui/ColorField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 

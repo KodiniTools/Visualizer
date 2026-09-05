@@ -54,7 +54,7 @@
           <FxSource v-model="store.glowSource" />
           <div class="fx-row">
             <label>Farbe</label>
-            <input type="color" v-model="store.glowColor" class="color-input-sm" />
+            <ColorField v-model="store.glowColor" class="color-input-sm" />
           </div>
           <FxRange label="Intensität" v-model.number="store.glowIntensity" :min="0" :max="100" />
         </FxEffect>
@@ -64,7 +64,7 @@
           <FxSource v-model="store.tintSource" />
           <div class="fx-row">
             <label>Farbe</label>
-            <input type="color" v-model="store.tintColor" class="color-input-sm" />
+            <ColorField v-model="store.tintColor" class="color-input-sm" />
           </div>
           <FxRange label="Intensität" v-model.number="store.tintIntensity" :min="0" :max="100" />
         </FxEffect>
@@ -112,6 +112,7 @@
 </template>
 
 <script setup>
+import ColorField from './ui/ColorField.vue'
 import { ref } from 'vue'
 import { useAudioFxStore } from '../stores/audioFxStore.js'
 import FxEffect from './audio-fx/FxEffect.vue'

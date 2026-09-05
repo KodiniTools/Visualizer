@@ -10,19 +10,17 @@
           <span class="label-text">{{ t('foto.borderColor') }}</span>
         </div>
         <div class="modern-color-picker">
-          <input
-            type="color"
-            :ref="ifc.borderColorInputRef"
-            value="#ffffff"
+          <ColorField
+            :model-value="borderColor"
             class="modern-color-input"
-            @mousedown="onSliderStart"
+            :label="t('foto.borderColor')"
+            @start="onSliderStart"
+            @update:model-value="onBorderColorChange"
             @change="onSliderEnd"
-            @input="onBorderColorChange"
           />
           <input
             type="text"
-            :ref="ifc.borderColorTextRef"
-            value="#ffffff"
+            :value="borderColor"
             class="modern-color-text"
             @change="onBorderColorTextChange"
           />
@@ -69,12 +67,14 @@
 </template>
 
 <script setup>
+import ColorField from '../../ui/ColorField.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 
 const { t } = useI18n()
 const ifc = inject('imageFilterControls')
 const {
+  borderColor,
   onSliderStart,
   onSliderEnd,
   onBorderColorChange,

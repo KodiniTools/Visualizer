@@ -1,4 +1,8 @@
 import { ref, computed } from 'vue'
+import {
+  applyAudioReactivePreset,
+  assignAudioReactiveConfig,
+} from '../lib/audio/audioReactiveConfig.js'
 
 /**
  * Shared (singleton) state + logic for the per-image audio-reactive controls.
@@ -95,28 +99,8 @@ export function useImageAudioReactive(fotoManagerRef) {
     activeAudioPreset.value = null
   }
 
-  // Schreibt eine (einfache) Audio-Reaktiv-Konfiguration in-place auf das
-  // reaktive `ar`-Objekt zurück – für das Wiederherstellen der Nutzer-Effekte.
-  function assignArConfig(ar, cfg) {
-    if (!cfg) return
-    ar.enabled = cfg.enabled ?? false
-    if (cfg.source !== undefined) ar.source = cfg.source
-    if (cfg.easing !== undefined) ar.easing = cfg.easing
-    if (cfg.beatBoost !== undefined) ar.beatBoost = cfg.beatBoost
-    if (cfg.smoothing !== undefined) ar.smoothing = cfg.smoothing
-    if (cfg.phase !== undefined) ar.phase = cfg.phase
-    if (cfg.gain !== undefined) ar.gain = cfg.gain
-    for (const name of Object.keys(ar.effects)) {
-      const src = cfg.effects?.[name]
-      if (src) {
-        ar.effects[name].enabled = src.enabled ?? false
-        if (src.intensity !== undefined) ar.effects[name].intensity = src.intensity
-        ar.effects[name].source = src.source ?? null
-      } else {
-        ar.effects[name].enabled = false
-      }
-    }
-  }
+  // Gemeinsame Implementierung (Bilder + Hintergrund) in audioReactiveConfig.js
+  const assignArConfig = assignAudioReactiveConfig
 
   function applyAudioPreset(presetName) {
     if (!currentActiveImage.value) return
@@ -133,101 +117,7 @@ export function useImageAudioReactive(fotoManagerRef) {
       userEffectsBackups.set(currentActiveImage.value.id, JSON.parse(JSON.stringify(ar)))
     }
 
-    const presets = {
-      pulse: {
-        effects: {
-          scale: { enabled: true, intensity: 70 },
-          glow: { enabled: true, intensity: 80 },
-        },
-        source: 'bass',
-        easing: 'easeOut',
-        beatBoost: 1.5,
-        smoothing: 60,
-      },
-      dance: {
-        effects: {
-          bounce: { enabled: true, intensity: 60 },
-          swing: { enabled: true, intensity: 50 },
-          rotation: { enabled: true, intensity: 30 },
-        },
-        source: 'mid',
-        easing: 'bounce',
-        beatBoost: 1.3,
-        smoothing: 40,
-      },
-      shake: {
-        effects: {
-          shake: { enabled: true, intensity: 80 },
-          scale: { enabled: true, intensity: 40 },
-        },
-        source: 'bass',
-        easing: 'punch',
-        beatBoost: 2.0,
-        smoothing: 20,
-      },
-      glow: {
-        effects: {
-          glow: { enabled: true, intensity: 90 },
-          brightness: { enabled: true, intensity: 50 },
-          hue: { enabled: true, intensity: 30 },
-        },
-        source: 'volume',
-        easing: 'easeInOut',
-        beatBoost: 1.0,
-        smoothing: 70,
-      },
-      strobe: {
-        effects: {
-          strobe: { enabled: true, intensity: 85 },
-          invert: { enabled: true, intensity: 60 },
-        },
-        source: 'bass',
-        easing: 'linear',
-        beatBoost: 2.5,
-        smoothing: 10,
-      },
-      glitch: {
-        effects: {
-          chromatic: { enabled: true, intensity: 75 },
-          skew: { enabled: true, intensity: 50 },
-          shake: { enabled: true, intensity: 40 },
-        },
-        source: 'bass',
-        easing: 'elastic',
-        beatBoost: 2.0,
-        smoothing: 25,
-      },
-      rhythm: {
-        effects: {
-          beatPulse: { enabled: true, intensity: 80 },
-          glow: { enabled: true, intensity: 55 },
-        },
-        source: 'bass',
-        easing: 'easeOut',
-        beatBoost: 1.2,
-        smoothing: 35,
-      },
-    }
-
-    for (const effectName of Object.keys(ar.effects)) {
-      ar.effects[effectName].enabled = false
-    }
-
-    const preset = presets[presetName]
-    if (!preset) return
-
-    ar.enabled = true
-    ar.source = preset.source
-    ar.easing = preset.easing
-    ar.beatBoost = preset.beatBoost
-    ar.smoothing = preset.smoothing
-
-    for (const [effectName, config] of Object.entries(preset.effects)) {
-      if (ar.effects[effectName]) {
-        ar.effects[effectName].enabled = config.enabled
-        ar.effects[effectName].intensity = config.intensity
-      }
-    }
+    if (!applyAudioReactivePreset(ar, presetName)) return
 
     activeAudioPreset.value = presetName
   }

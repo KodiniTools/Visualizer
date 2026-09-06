@@ -29,6 +29,13 @@
       :effects="rhythmEffects"
       :default-intensity="70"
     />
+    <AudioReactiveEffectCategory
+      v-for="cat in extraCategories"
+      :key="cat.title"
+      :title="cat.title"
+      :effects="cat.effects"
+      :default-intensity="cat.defaultIntensity ?? 80"
+    />
   </div>
 </template>
 
@@ -40,6 +47,7 @@ import AudioReactiveEffectCategory from './AudioReactiveEffectCategory.vue'
 const { t } = useI18n()
 const arc = inject('audioReactiveControls')
 const { colorEffects, transformEffects, movementEffects, specialEffects, rhythmEffects } = arc
+const extraCategories = arc.extraCategories ?? []
 </script>
 
 <style scoped src="./audio-reactive-shared.css"></style>

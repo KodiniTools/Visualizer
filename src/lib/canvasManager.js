@@ -18,6 +18,7 @@ import {
 } from './canvasManager/interaction/index.js'
 import { RecordingRenderer } from './canvasManager/recording/index.js'
 import { makeLevelResolver } from './audio/ReactiveLevel.js'
+import { calculateEffectValue } from './audio/AudioReactiveEffects.js'
 
 /**
  * CanvasManager - Orchestrator für alle Canvas-Operationen
@@ -706,77 +707,22 @@ export class CanvasManager {
   }
 
   /**
-   * Berechnet den Wert für einen einzelnen Effekt
+   * Berechnet den Wert für einen einzelnen Effekt.
+   *
+   * Nutzt dieselbe Engine wie Canvas-Bilder (AudioReactiveEffects.calculateEffectValue),
+   * damit Hintergrund und Kacheln alle Bild-Effekte (inkl. Bewegung/Rhythmus)
+   * verstehen. Nur die beiden Gradient-Effekte sind hintergrundspezifisch.
    */
   _calculateEffectValue(effectName, normalizedLevel) {
     switch (effectName) {
-      case 'hue':
-        return { hueRotate: normalizedLevel * 720 }
-      case 'brightness':
-        return { brightness: 60 + normalizedLevel * 120 }
-      case 'saturation':
-        return { saturation: 30 + normalizedLevel * 220 }
-      case 'scale':
-        return { scale: 1.0 + normalizedLevel * 0.5 }
-      case 'glow':
-        return {
-          glowBlur: normalizedLevel * 50,
-          glowColor: `rgba(139, 92, 246, ${0.5 + normalizedLevel * 0.5})`,
-        }
-      case 'border':
-        return {
-          borderWidth: normalizedLevel * 20,
-          borderOpacity: 0.5 + normalizedLevel * 0.5,
-          borderGlow: normalizedLevel * 30,
-        }
-      case 'blur':
-        return { blur: normalizedLevel * 15 }
       case 'gradientPulse':
         return { gradientRadius: 0.3 + normalizedLevel * 0.7 }
-      case 'gradientRotation':
+      case 'gradientRotation': {
         const timeGrad = Date.now() * 0.002
         return { gradientAngle: Math.sin(timeGrad) * normalizedLevel * 180 }
-      case 'contrast':
-        return { contrast: 80 + normalizedLevel * 120 }
-      case 'grayscale':
-        return { grayscale: normalizedLevel * 100 }
-      case 'sepia':
-        return { sepia: normalizedLevel * 100 }
-      case 'invert':
-        const invertLevel = Math.pow(normalizedLevel, 1.5) * 100
-        return { invert: invertLevel }
-      case 'skew':
-        const timeSkew = Date.now() * 0.004
-        const skewAmount = normalizedLevel * 15
-        return {
-          skewX: Math.sin(timeSkew) * skewAmount,
-          skewY: Math.cos(timeSkew * 0.7) * skewAmount * 0.5,
-        }
-      case 'strobe':
-        if (normalizedLevel > 0.6) {
-          const strobeFlash = 0.8 + Math.random() * 0.2
-          return { strobeOpacity: strobeFlash, strobeBrightness: 150 + normalizedLevel * 100 }
-        } else if (normalizedLevel > 0.3) {
-          return { strobeOpacity: 0.7 + normalizedLevel * 0.3, strobeBrightness: 100 }
-        }
-        return { strobeOpacity: 1, strobeBrightness: 100 }
-      case 'chromatic':
-        const chromaticOffset = normalizedLevel * 8
-        return {
-          chromaticOffset,
-          chromaticR: { x: chromaticOffset, y: 0 },
-          chromaticG: { x: 0, y: 0 },
-          chromaticB: { x: -chromaticOffset, y: 0 },
-        }
-      case 'perspective':
-        const timePerspective = Date.now() * 0.002
-        const perspectiveAmount = normalizedLevel * 25
-        return {
-          perspectiveRotateX: Math.sin(timePerspective) * perspectiveAmount,
-          perspectiveRotateY: Math.cos(timePerspective * 0.8) * perspectiveAmount * 0.7,
-        }
+      }
       default:
-        return {}
+        return calculateEffectValue(effectName, normalizedLevel)
     }
   }
 
@@ -803,11 +749,26 @@ export class CanvasManager {
     if (effects.blur) {
       currentFilter += ` blur(${effects.blur.blur}px)`
     }
-    if (effects.glow) {
-      ctx.shadowColor = effects.glow.glowColor
-      ctx.shadowBlur = effects.glow.glowBlur
+    // Glow als Shadow — stärkstes Leuchten aus Glow/Beat-Puls/BPM-Puls/Frequenz-Split
+    const glowCandidates = [
+      effects.glow,
+      effects.beatPulse,
+      effects.bpmPulse,
+      effects.freqSplit,
+    ].filter((e) => e && e.glowBlur > 0)
+    if (glowCandidates.length > 0) {
+      const strongest = glowCandidates.reduce((a, b) => (b.glowBlur > a.glowBlur ? b : a))
+      ctx.shadowColor = strongest.glowColor
+      ctx.shadowBlur = strongest.glowBlur
       ctx.shadowOffsetX = 0
       ctx.shadowOffsetY = 0
+    }
+    // Frequenz-Split (Höhen → Farbton) und Color-Strobe (Farbsprung pro Beat)
+    if (effects.freqSplit && effects.freqSplit.hueRotate) {
+      currentFilter += ` hue-rotate(${effects.freqSplit.hueRotate}deg)`
+    }
+    if (effects.colorStrobe) {
+      currentFilter += ` hue-rotate(${effects.colorStrobe.hueRotate}deg) saturate(${effects.colorStrobe.saturate}%)`
     }
 
     if (effects.contrast) {

@@ -4,6 +4,11 @@ import {
   BACKGROUND_EFFECT_NAMES,
   TILE_COLOR_ONLY_EFFECT_NAMES,
   tileEffectNames,
+  TEXT_SHARED_EFFECT_NAMES,
+  TEXT_ONLY_EFFECT_NAMES,
+  TEXT_EFFECT_NAMES,
+  createTextAudioReactiveConfig,
+  ensureTextAudioReactive,
   AUDIO_REACTIVE_PRESETS,
   AUDIO_REACTIVE_PRESET_LIST,
   DEFAULT_EFFECT_INTENSITIES,
@@ -53,6 +58,53 @@ describe('audioReactiveConfig – Struktur', () => {
       expect(TILE_COLOR_ONLY_EFFECT_NAMES).toContain(name)
       expect(EFFECT_NAMES).toContain(name)
     }
+  })
+
+  it('text config = shared effects (minus non-text ones) + text-only effects + reaction fields', () => {
+    for (const name of ['perspective', 'border', 'chromatic', 'vignettePulse']) {
+      expect(TEXT_SHARED_EFFECT_NAMES).not.toContain(name)
+    }
+    for (const name of TEXT_SHARED_EFFECT_NAMES) expect(EFFECT_NAMES).toContain(name)
+    const ar = createTextAudioReactiveConfig({ enabled: true, source: 'mid' })
+    expect(Object.keys(ar.effects)).toEqual([...TEXT_EFFECT_NAMES])
+    expect(ar).toMatchObject({
+      enabled: true,
+      source: 'mid',
+      threshold: 0,
+      attack: 90,
+      release: 50,
+    })
+    expect(ar.effects.opacity).toEqual({
+      enabled: false,
+      intensity: 80,
+      source: null,
+      minimum: 0,
+      ease: false,
+    })
+    for (const name of TEXT_ONLY_EFFECT_NAMES) expect(ar.effects[name].intensity).toBe(80)
+  })
+
+  it('ensureTextAudioReactive completes legacy text configs in place', () => {
+    const legacy = {
+      enabled: true,
+      source: 'treble',
+      smoothing: 20,
+      effects: { hue: { enabled: true, intensity: 42 }, opacity: { enabled: true, intensity: 60 } },
+    }
+    const out = ensureTextAudioReactive(legacy)
+    expect(out).toBe(legacy)
+    expect(legacy.easing).toBe('linear')
+    expect(legacy.threshold).toBe(0)
+    expect(legacy.effects.hue).toEqual({ enabled: true, intensity: 42, source: null })
+    expect(legacy.effects.opacity).toMatchObject({
+      enabled: true,
+      intensity: 60,
+      minimum: 0,
+      ease: false,
+    })
+    expect(legacy.effects.beatFlip).toEqual({ enabled: false, intensity: 80, source: null })
+    expect(Object.keys(legacy.effects).sort()).toEqual([...TEXT_EFFECT_NAMES].sort())
+    expect(ensureTextAudioReactive(null).enabled).toBe(false)
   })
 
   it('preset list matches preset definitions', () => {

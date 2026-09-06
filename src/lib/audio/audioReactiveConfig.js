@@ -81,6 +81,110 @@ export function tileEffectNames(hasMedia) {
   return hasMedia ? EFFECT_NAMES : TILE_COLOR_ONLY_EFFECT_NAMES
 }
 
+// ─── Texte ───────────────────────────────────────────────────────────────────
+
+/**
+ * Bild-Effekte, die der Text-Renderer beherrscht. Nicht enthalten, weil es
+ * dafür ein Text-Pendant gibt oder sie auf Text nicht wirken:
+ * perspective → perspective3d, border → strokeWidth, chromatic → rgbGlitch,
+ * vignettePulse (nur Flächen).
+ */
+export const TEXT_SHARED_EFFECT_NAMES = Object.freeze([
+  'hue',
+  'brightness',
+  'saturation',
+  'contrast',
+  'grayscale',
+  'sepia',
+  'invert',
+  'blur',
+  'scale',
+  'rotation',
+  'skew',
+  'freqSplit',
+  'glow',
+  'strobe',
+  'shake',
+  'bounce',
+  'swing',
+  'orbit',
+  'figure8',
+  'wave',
+  'spiral',
+  'float',
+  'beatPulse',
+  'zoomPunch',
+  'bpmPulse',
+  'beatFlip',
+  'colorStrobe',
+  'impulseShake',
+])
+
+/** Nur für Texte verfügbare Effekte (eigene Kategorie im Panel). */
+export const TEXT_ONLY_EFFECT_NAMES = Object.freeze([
+  'opacity',
+  'letterSpacing',
+  'strokeWidth',
+  'rgbGlitch',
+  'perspective3d',
+  'elastic',
+])
+
+export const TEXT_EFFECT_NAMES = Object.freeze([
+  ...TEXT_SHARED_EFFECT_NAMES,
+  ...TEXT_ONLY_EFFECT_NAMES,
+])
+
+/** Text-spezifische Reaktions-Presets (Master-Werte, keine Effekte). */
+export const TEXT_REACTION_PRESETS = Object.freeze({
+  punchy: { threshold: 10, attack: 95, release: 70, smoothing: 20, beatBoost: 1.6 },
+  smooth: { threshold: 5, attack: 50, release: 30, smoothing: 70, beatBoost: 1.0 },
+  subtle: { threshold: 15, attack: 60, release: 40, smoothing: 60, beatBoost: 1.2 },
+  extreme: { threshold: 0, attack: 100, release: 85, smoothing: 10, beatBoost: 2.2 },
+})
+
+/** Text-spezifische Master-Defaults (Threshold-Gate, explizites Attack/Release). */
+export const TEXT_REACTION_DEFAULTS = Object.freeze({ threshold: 0, attack: 90, release: 50 })
+
+/**
+ * Erzeugt eine Text-Audio-Reaktiv-Konfiguration: gemeinsame Struktur plus
+ * Text-Extras (threshold/attack/release, Blinken mit minimum/ease).
+ * @param {object} [overrides] - z. B. { enabled, source, smoothing }
+ */
+export function createTextAudioReactiveConfig(overrides = {}) {
+  const ar = createAudioReactiveConfig(TEXT_EFFECT_NAMES)
+  for (const name of TEXT_ONLY_EFFECT_NAMES) ar.effects[name].intensity = 80
+  ar.effects.opacity.minimum = 0
+  ar.effects.opacity.ease = false
+  return { ...ar, ...TEXT_REACTION_DEFAULTS, ...overrides }
+}
+
+/**
+ * Ergänzt eine (alte/unvollständige) Text-Konfiguration in-place um alle
+ * fehlenden Master-Felder und Effekte. Vorhandene Werte bleiben erhalten.
+ * @param {object|null|undefined} ar
+ * @returns {object} die vervollständigte Konfiguration (neu, falls `ar` leer war)
+ */
+export function ensureTextAudioReactive(ar) {
+  const base = createTextAudioReactiveConfig()
+  if (!ar || typeof ar !== 'object') return base
+  for (const [key, value] of Object.entries(base)) {
+    if (key === 'effects') continue
+    if (ar[key] === undefined) ar[key] = value
+  }
+  if (!ar.effects || typeof ar.effects !== 'object') ar.effects = {}
+  for (const [name, fx] of Object.entries(base.effects)) {
+    if (!ar.effects[name]) {
+      ar.effects[name] = { ...fx }
+    } else {
+      for (const [k, v] of Object.entries(fx)) {
+        if (ar.effects[name][k] === undefined) ar.effects[name][k] = v
+      }
+    }
+  }
+  return ar
+}
+
 /** Alle Effekte des Hintergrund-Panels: Bild-Effekte + Gradient-Effekte. */
 export const BACKGROUND_EFFECT_NAMES = Object.freeze([...EFFECT_NAMES, ...GRADIENT_EFFECT_NAMES])
 

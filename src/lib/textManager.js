@@ -4,7 +4,8 @@
  * ✅ FIXED: Präzise Textmarkierung mit Schatten-, Stroke- und letterSpacing-Unterstützung
  */
 import { makeLevelResolver } from './audio/ReactiveLevel.js'
-import { calculateBeatPulse } from './audio/index.js'
+import { calculateBeatPulse, calculateEffectValue, getMotionOffset } from './audio/index.js'
+import { createTextAudioReactiveConfig } from './audio/audioReactiveConfig.js'
 
 export class TextManager {
   constructor(textStore) {
@@ -61,38 +62,13 @@ export class TextManager {
       // Rotation
       rotation: options.rotation || 0,
 
-      // ✨ AUDIO-REAKTIVE EFFEKTE (standardmäßig aktiviert für bessere UX)
-      audioReactive: {
+      // ✨ AUDIO-REAKTIVE EFFEKTE (standardmäßig aktiviert für bessere UX) –
+      // gemeinsame Struktur mit Bildern/Hintergrund/Kacheln plus Text-Extras
+      audioReactive: createTextAudioReactiveConfig({
         enabled: options.audioReactiveEnabled !== undefined ? options.audioReactiveEnabled : true,
-        source: options.audioReactiveSource || 'bass', // 'bass', 'mid', 'treble', 'volume'
-        smoothing: options.audioReactiveSmoothing || 50, // 0-100%
-        threshold: 0, // ✨ NEU: Ignoriert leise Signale (0-50%)
-        attack: 90, // ✨ NEU: Wie schnell der Effekt anspricht (10-100%)
-        release: 50, // ✨ NEU: Wie langsam der Effekt abklingt (10-100%)
-        beatBoost: 1.0, // ✨ NEU: Verstärkung auf erkannten Beats (1.0 = aus, bis 3.0)
-        effects: {
-          hue: { enabled: false, intensity: 80 },
-          brightness: { enabled: false, intensity: 80 },
-          scale: { enabled: false, intensity: 80 },
-          glow: { enabled: false, intensity: 80 },
-          shake: { enabled: false, intensity: 80 },
-          bounce: { enabled: false, intensity: 80 },
-          swing: { enabled: false, intensity: 80 },
-          opacity: { enabled: false, intensity: 80, minimum: 0, ease: false },
-          letterSpacing: { enabled: false, intensity: 80 },
-          strokeWidth: { enabled: false, intensity: 80 },
-          // ✨ NEU: Erweiterte Audio-Reaktive Effekte
-          skew: { enabled: false, intensity: 80 }, // Verzerrung: Oszillierende Scheren-Transformation
-          strobe: { enabled: false, intensity: 80 }, // Strobe: Blitz-Effekt bei Audio-Peaks (>60%)
-          rgbGlitch: { enabled: false, intensity: 80 }, // RGB-Glitch: Chromatische Aberration
-          perspective3d: { enabled: false, intensity: 80 }, // 3D-Perspektive: Simulierter 3D-Kipp-Effekt
-          wave: { enabled: false, intensity: 80 }, // Welle: Buchstaben bewegen sich wellenförmig
-          rotation: { enabled: false, intensity: 80 }, // Rotation: Text dreht sich oszillierend
-          elastic: { enabled: false, intensity: 80 }, // Elastic: Gummiartige Verformung (Stretch)
-          // ✨ RHYTHMUS-EFFEKT: Beat-synchroner Puls (Scale + Glow auf dem Takt)
-          beatPulse: { enabled: false, intensity: 80 },
-        },
-      },
+        source: options.audioReactiveSource || 'bass',
+        smoothing: options.audioReactiveSmoothing || 50,
+      }),
 
       // ✨ TEXT-ANIMATION (Typewriter, Fade, Scale, etc.)
       animation: {
@@ -1140,6 +1116,17 @@ export class TextManager {
       pixelX += swing.swingX || 0
     }
 
+    // ✨ AUDIO-REAKTIV: Weitere Bewegungspfade (Orbit, Acht, Spirale, Schweben,
+    // Impuls-Shake) – gemeinsame Engine mit den Canvas-Bildern
+    if (audioReactive && audioReactive.hasEffects) {
+      const fx = audioReactive.effects
+      const extraMotion = getMotionOffset(
+        Object.assign({}, fx.orbit, fx.figure8, fx.spiral, fx.float, fx.impulseShake),
+      )
+      pixelX += extraMotion.x
+      pixelY += extraMotion.y
+    }
+
     // ✨ AUDIO-REAKTIV: Scale-Effekt (pulsieren)
     let scale = 1.0
     if (audioReactive && audioReactive.hasEffects && audioReactive.effects.scale) {
@@ -1149,6 +1136,19 @@ export class TextManager {
     // ✨ AUDIO-REAKTIV: Beat-Puls (rhythmischer Puls, multipliziert die Skalierung)
     if (audioReactive && audioReactive.hasEffects && audioReactive.effects.beatPulse) {
       scale *= audioReactive.effects.beatPulse.scale || 1.0
+    }
+
+    // ✨ AUDIO-REAKTIV: Zoom-Punch, BPM-Puls, Frequenz-Split (Skalierung) und Beat-Flip
+    let flipScaleX = 1
+    if (audioReactive && audioReactive.hasEffects) {
+      const fx = audioReactive.effects
+      for (const key of ['zoomPunch', 'bpmPulse', 'freqSplit']) {
+        if (fx[key] && typeof fx[key].scale === 'number') scale *= fx[key].scale
+      }
+      if (fx.beatFlip && typeof fx.beatFlip.flipScaleX === 'number') {
+        const f = fx.beatFlip.flipScaleX
+        flipScaleX = Math.abs(f) < 0.02 ? 0.02 * Math.sign(f || 1) : f
+      }
     }
 
     // ✨ SCALE-ANIMATION: Scale aus Animation anwenden
@@ -1193,7 +1193,12 @@ export class TextManager {
     const totalRotation = (textObj.rotation || 0) + audioRotation
     const hasElastic = stretchX !== 1.0 || stretchY !== 1.0
     const hasTransform =
-      totalRotation !== 0 || scale !== 1.0 || skewX !== 0 || skewY !== 0 || hasElastic
+      totalRotation !== 0 ||
+      scale !== 1.0 ||
+      skewX !== 0 ||
+      skewY !== 0 ||
+      hasElastic ||
+      flipScaleX !== 1
     if (hasTransform) {
       ctx.translate(pixelX, pixelY)
       if (totalRotation !== 0) {
@@ -1204,6 +1209,10 @@ export class TextManager {
         ctx.scale(stretchX * scale, stretchY * scale)
       } else if (scale !== 1.0) {
         ctx.scale(scale, scale)
+      }
+      // ✨ Beat-Flip: horizontale Spiegelung im Takt
+      if (flipScaleX !== 1) {
+        ctx.scale(flipScaleX, 1)
       }
       // ✨ Skew-Transformation anwenden (Scheren-Effekt)
       if (skewX !== 0 || skewY !== 0) {
@@ -1237,6 +1246,22 @@ export class TextManager {
       if (totalBrightness !== 100) {
         filterString += `brightness(${totalBrightness}%) `
       }
+
+      // Weitere Farbfilter (gemeinsame Engine): Sättigung, Kontrast, Graustufen,
+      // Sepia, Invertieren, Weichzeichnen, Farb-Strobe, Frequenz-Split
+      if (effects.saturation) filterString += `saturate(${effects.saturation.saturation}%) `
+      if (effects.contrast) filterString += `contrast(${effects.contrast.contrast}%) `
+      if (effects.grayscale && effects.grayscale.grayscale > 0)
+        filterString += `grayscale(${effects.grayscale.grayscale}%) `
+      if (effects.sepia && effects.sepia.sepia > 0)
+        filterString += `sepia(${effects.sepia.sepia}%) `
+      if (effects.invert && effects.invert.invert > 0)
+        filterString += `invert(${effects.invert.invert}%) `
+      if (effects.blur && effects.blur.blur > 0) filterString += `blur(${effects.blur.blur}px) `
+      if (effects.colorStrobe)
+        filterString += `hue-rotate(${effects.colorStrobe.hueRotate}deg) saturate(${effects.colorStrobe.saturate}%) `
+      if (effects.freqSplit && effects.freqSplit.hueRotate)
+        filterString += `hue-rotate(${effects.freqSplit.hueRotate}deg) `
     } else if (strobeBrightnessMultiplier !== 100) {
       // Strobe ohne andere Audio-Effekte
       filterString += `brightness(${strobeBrightnessMultiplier}%) `
@@ -1248,11 +1273,7 @@ export class TextManager {
     // ✨ AUDIO-REAKTIV: Glow-Effekt (überschreibt statischen Schatten temporär)
     // Der Beat-Puls liefert ebenfalls Glow-Werte (glowBlur/glowColor).
     let useAudioGlow = false
-    if (
-      audioReactive &&
-      audioReactive.hasEffects &&
-      (audioReactive.effects.glow || audioReactive.effects.beatPulse)
-    ) {
+    if (audioReactive && audioReactive.hasEffects && this._strongestGlow(audioReactive.effects)) {
       useAudioGlow = true
     }
 
@@ -1414,6 +1435,20 @@ export class TextManager {
   }
 
   /**
+   * Stärkstes Leuchten aus allen glow-liefernden Effekten (oder null).
+   */
+  _strongestGlow(effects) {
+    const candidates = [
+      effects.glow,
+      effects.beatPulse,
+      effects.bpmPulse,
+      effects.freqSplit,
+    ].filter((e) => e && e.glowBlur > 0)
+    if (candidates.length === 0) return null
+    return candidates.reduce((a, b) => (b.glowBlur > a.glowBlur ? b : a))
+  }
+
+  /**
    * ✨ NEU: Wendet Text-Stil mit Audio-Reaktiven Überschreibungen an
    */
   applyTextStyleWithAudio(ctx, textObj, audioReactive, useAudioGlow) {
@@ -1430,12 +1465,12 @@ export class TextManager {
     ctx.letterSpacing = `${letterSpacing}px`
 
     // ✨ SCHATTEN / GLOW
-    if (useAudioGlow && (audioReactive.effects.glow || audioReactive.effects.beatPulse)) {
-      // Audio-reaktiver Glow überschreibt statischen Schatten.
-      // Der explizite Glow-Effekt hat Vorrang, sonst liefert der Beat-Puls den Glow.
-      const glow = audioReactive.effects.glow || audioReactive.effects.beatPulse
-      ctx.shadowColor = glow.glowColor
-      ctx.shadowBlur = glow.glowBlur
+    const audioGlow = useAudioGlow ? this._strongestGlow(audioReactive.effects) : null
+    if (audioGlow) {
+      // Audio-reaktiver Glow überschreibt statischen Schatten (stärkstes Leuchten
+      // aus Glow/Beat-Puls/BPM-Puls/Frequenz-Split gewinnt).
+      ctx.shadowColor = audioGlow.glowColor
+      ctx.shadowBlur = audioGlow.glowBlur
       ctx.shadowOffsetX = 0
       ctx.shadowOffsetY = 0
     } else if (
@@ -1570,6 +1605,9 @@ export class TextManager {
       attack: (audioSettings.attack ?? 90) / 100,
       release: (audioSettings.release ?? 50) / 100,
       beatBoost: audioSettings.beatBoost ?? 1.0,
+      phase: audioSettings.phase || 0,
+      easing: audioSettings.easing || 'linear',
+      gain: audioSettings.gain ?? 1.0,
     })
 
     // Ergebnis-Objekt für alle aktivierten Effekte
@@ -1722,7 +1760,9 @@ export class TextManager {
         return calculateBeatPulse(level)
 
       default:
-        return {}
+        // Alle übrigen Effekte (Farbfilter, Bewegungspfade, Rhythmus, Frequenz-
+        // Split …) kommen aus der gemeinsamen Engine der Canvas-Bilder.
+        return calculateEffectValue(effectName, level)
     }
   }
 

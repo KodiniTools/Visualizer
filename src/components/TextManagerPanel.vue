@@ -39,6 +39,7 @@
 </template>
 
 <script setup>
+import { ensureTextAudioReactive } from '../lib/audio/audioReactiveConfig.js'
 import { ref, inject, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import TextNewForm from './text-manager/TextNewForm.vue'
@@ -228,29 +229,8 @@ function handleSelectionChange(obj) {
       }
     }
 
-    // ✨ Initialisiere audioReactive wenn nicht vorhanden (für ältere Text-Objekte)
-    if (!obj.audioReactive) {
-      obj.audioReactive = {
-        enabled: false,
-        source: 'bass',
-        smoothing: 50,
-        threshold: 0,
-        attack: 90,
-        release: 50,
-        effects: {
-          hue: { enabled: false, intensity: 80 },
-          brightness: { enabled: false, intensity: 80 },
-          scale: { enabled: false, intensity: 80 },
-          glow: { enabled: false, intensity: 80 },
-          shake: { enabled: false, intensity: 80 },
-          bounce: { enabled: false, intensity: 80 },
-          swing: { enabled: false, intensity: 80 },
-          opacity: { enabled: false, intensity: 80, minimum: 0, ease: false },
-          letterSpacing: { enabled: false, intensity: 80 },
-          strokeWidth: { enabled: false, intensity: 80 },
-        },
-      }
-    }
+    // ✨ audioReactive vervollständigen (ältere Text-Objekte kennen nur wenige Effekte)
+    obj.audioReactive = ensureTextAudioReactive(obj.audioReactive)
 
     // ✨ Initialisiere animation wenn nicht vorhanden (für ältere Text-Objekte)
     if (!obj.animation) {

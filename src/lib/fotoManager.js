@@ -1,3 +1,7 @@
+import {
+  createAudioReactiveConfig,
+  ensureAudioReactiveConfig,
+} from './audio/audioReactiveConfig.js'
 // fotoManager.js
 
 /**
@@ -41,58 +45,9 @@ export class FotoManager {
       // ✨ VISUALIZER-LAYER
       renderBehindVisualizer: false, // true = Bild wird hinter dem Visualizer gerendert
 
-      // ✨ AUDIO-REAKTIV (Musik-Synchronisierung) - MEHRERE EFFEKTE GLEICHZEITIG
-      audioReactive: {
-        enabled: false, // Audio-Reaktivität aktiviert
-        // Individuelle Effekte mit eigenem Toggle, Intensität und optionaler Quelle
-        // source: null = globale Quelle verwenden, sonst individuelle Quelle
-        effects: {
-          hue: { enabled: false, intensity: 80, source: null },
-          brightness: { enabled: false, intensity: 80, source: null },
-          saturation: { enabled: false, intensity: 80, source: null },
-          scale: { enabled: false, intensity: 80, source: null },
-          glow: { enabled: false, intensity: 80, source: null },
-          border: { enabled: false, intensity: 80, source: null },
-          blur: { enabled: false, intensity: 50, source: null },
-          rotation: { enabled: false, intensity: 50, source: null },
-          shake: { enabled: false, intensity: 50, source: null },
-          bounce: { enabled: false, intensity: 50, source: null },
-          swing: { enabled: false, intensity: 50, source: null },
-          orbit: { enabled: false, intensity: 50, source: null },
-          // ✨ NEUE BEWEGUNGSPFADE
-          figure8: { enabled: false, intensity: 50, source: null },
-          wave: { enabled: false, intensity: 50, source: null },
-          spiral: { enabled: false, intensity: 50, source: null },
-          float: { enabled: false, intensity: 50, source: null },
-          // ✨ NEUE EFFEKTE
-          contrast: { enabled: false, intensity: 60, source: null },
-          grayscale: { enabled: false, intensity: 80, source: null },
-          sepia: { enabled: false, intensity: 70, source: null },
-          invert: { enabled: false, intensity: 50, source: null },
-          skew: { enabled: false, intensity: 40, source: null },
-          strobe: { enabled: false, intensity: 70, source: null },
-          chromatic: { enabled: false, intensity: 60, source: null },
-          perspective: { enabled: false, intensity: 50, source: null },
-          // ✨ RHYTHMUS-EFFEKT (Beat-synchroner Puls)
-          beatPulse: { enabled: false, intensity: 70, source: null },
-          zoomPunch: { enabled: false, intensity: 70, source: null },
-          bpmPulse: { enabled: false, intensity: 60, source: null },
-          // ✨ FREQUENZ-SPLIT & VIGNETTE-PULS
-          freqSplit: { enabled: false, intensity: 60, source: null },
-          vignettePulse: { enabled: false, intensity: 60, source: null },
-          // ✨ BEAT-FLIP / COLOR-STROBE / IMPULS-SHAKE
-          beatFlip: { enabled: false, intensity: 80, source: null },
-          colorStrobe: { enabled: false, intensity: 70, source: null },
-          impulseShake: { enabled: false, intensity: 70, source: null },
-        },
-        source: 'bass', // 'bass', 'mid', 'treble', 'volume', 'dynamic' (globale Standard-Quelle)
-        smoothing: 50, // 0-100% Glättung (verhindert Flackern)
-        // ✨ NEU: Erweiterte Steuerung
-        easing: 'linear', // 'linear', 'easeIn', 'easeOut', 'easeInOut', 'bounce', 'elastic', 'punch'
-        phase: 0, // 0-360° Phasenversatz für Kaskaden-Effekte
-        beatBoost: 1.0, // 1.0-3.0 Beat-Verstärkung (1.0 = aus)
-        gain: 1.0, // 0.0-2.0 Audio-Pegel-Multiplikator
-      },
+      // ✨ AUDIO-REAKTIV – gemeinsame Struktur mit Hintergrund/Kacheln/Text/Video/Ticker
+      // (Master inkl. Easing/Beat-Boost/Phase/Gain, alle Effekte mit eigener Quelle)
+      audioReactive: createAudioReactiveConfig(),
     }
   }
 
@@ -113,145 +68,18 @@ export class FotoManager {
   }
 
   /**
-   * Erstellt eine tiefe Kopie der audioReactive-Einstellungen
+   * Frische Audio-Reaktiv-Konfiguration (jedes Bild bekommt eigene Einstellungen)
    */
   _deepCopyAudioReactive() {
-    const defaultAR = this.defaultSettings.audioReactive
-    return {
-      enabled: defaultAR.enabled,
-      effects: {
-        hue: { ...defaultAR.effects.hue },
-        brightness: { ...defaultAR.effects.brightness },
-        saturation: { ...defaultAR.effects.saturation },
-        scale: { ...defaultAR.effects.scale },
-        glow: { ...defaultAR.effects.glow },
-        border: { ...defaultAR.effects.border },
-        blur: { ...defaultAR.effects.blur },
-        rotation: { ...defaultAR.effects.rotation },
-        shake: { ...defaultAR.effects.shake },
-        bounce: { ...defaultAR.effects.bounce },
-        swing: { ...defaultAR.effects.swing },
-        orbit: { ...defaultAR.effects.orbit },
-        // ✨ BEWEGUNGSPFADE
-        figure8: { ...defaultAR.effects.figure8 },
-        wave: { ...defaultAR.effects.wave },
-        spiral: { ...defaultAR.effects.spiral },
-        float: { ...defaultAR.effects.float },
-        // ✨ NEUE EFFEKTE
-        contrast: { ...defaultAR.effects.contrast },
-        grayscale: { ...defaultAR.effects.grayscale },
-        sepia: { ...defaultAR.effects.sepia },
-        invert: { ...defaultAR.effects.invert },
-        skew: { ...defaultAR.effects.skew },
-        strobe: { ...defaultAR.effects.strobe },
-        chromatic: { ...defaultAR.effects.chromatic },
-        perspective: { ...defaultAR.effects.perspective },
-        // ✨ RHYTHMUS-EFFEKT
-        beatPulse: { ...defaultAR.effects.beatPulse },
-        zoomPunch: { ...defaultAR.effects.zoomPunch },
-        bpmPulse: { ...defaultAR.effects.bpmPulse },
-        freqSplit: { ...defaultAR.effects.freqSplit },
-        vignettePulse: { ...defaultAR.effects.vignettePulse },
-        beatFlip: { ...defaultAR.effects.beatFlip },
-        colorStrobe: { ...defaultAR.effects.colorStrobe },
-        impulseShake: { ...defaultAR.effects.impulseShake },
-      },
-      source: defaultAR.source,
-      smoothing: defaultAR.smoothing,
-      // ✨ NEU: Erweiterte Steuerung
-      easing: defaultAR.easing,
-      phase: defaultAR.phase,
-      beatBoost: defaultAR.beatBoost,
-    }
+    return createAudioReactiveConfig()
   }
 
   /**
-   * Migriert alte audioReactive-Struktur (einzelner Effekt) zur neuen (mehrere Effekte)
-   * ✨ NEU: Unterstützt individuelle Quellen pro Effekt
+   * Vervollständigt eine alte/unvollständige Konfiguration (fehlende Master-
+   * Felder, fehlende Effekte, fehlende `source`) – vorhandene Werte bleiben.
    */
   _migrateAudioReactiveSettings(oldSettings) {
-    if (!oldSettings) return this._deepCopyAudioReactive()
-
-    // Helper: Migriert einen einzelnen Effekt mit source-Unterstützung
-    const migrateEffect = (oldEffect, defaultIntensity = 80) => {
-      if (!oldEffect) return { enabled: false, intensity: defaultIntensity, source: null }
-      return {
-        enabled: oldEffect.enabled ?? false,
-        intensity: oldEffect.intensity ?? defaultIntensity,
-        source: oldEffect.source ?? null, // null = globale Quelle verwenden
-      }
-    }
-
-    // Falls bereits neue Struktur vorhanden
-    if (oldSettings.effects) {
-      // Deep copy der existierenden Struktur mit source-Migration
-      return {
-        enabled: oldSettings.enabled ?? false,
-        effects: {
-          hue: migrateEffect(oldSettings.effects.hue, 80),
-          brightness: migrateEffect(oldSettings.effects.brightness, 80),
-          saturation: migrateEffect(oldSettings.effects.saturation, 80),
-          scale: migrateEffect(oldSettings.effects.scale, 80),
-          glow: migrateEffect(oldSettings.effects.glow, 80),
-          border: migrateEffect(oldSettings.effects.border, 80),
-          blur: migrateEffect(oldSettings.effects.blur, 50),
-          rotation: migrateEffect(oldSettings.effects.rotation, 50),
-          shake: migrateEffect(oldSettings.effects.shake, 50),
-          bounce: migrateEffect(oldSettings.effects.bounce, 50),
-          swing: migrateEffect(oldSettings.effects.swing, 50),
-          orbit: migrateEffect(oldSettings.effects.orbit, 50),
-          // ✨ NEUE BEWEGUNGSPFADE (mit Migration)
-          figure8: migrateEffect(oldSettings.effects.figure8, 50),
-          wave: migrateEffect(oldSettings.effects.wave, 50),
-          spiral: migrateEffect(oldSettings.effects.spiral, 50),
-          float: migrateEffect(oldSettings.effects.float, 50),
-          // ✨ NEUE EFFEKTE (mit Migration)
-          contrast: migrateEffect(oldSettings.effects.contrast, 60),
-          grayscale: migrateEffect(oldSettings.effects.grayscale, 80),
-          sepia: migrateEffect(oldSettings.effects.sepia, 70),
-          invert: migrateEffect(oldSettings.effects.invert, 50),
-          skew: migrateEffect(oldSettings.effects.skew, 40),
-          strobe: migrateEffect(oldSettings.effects.strobe, 70),
-          chromatic: migrateEffect(oldSettings.effects.chromatic, 60),
-          perspective: migrateEffect(oldSettings.effects.perspective, 50),
-          // ✨ RHYTHMUS-EFFEKT (mit Migration)
-          beatPulse: migrateEffect(oldSettings.effects.beatPulse, 70),
-          zoomPunch: migrateEffect(oldSettings.effects.zoomPunch, 70),
-          bpmPulse: migrateEffect(oldSettings.effects.bpmPulse, 60),
-          freqSplit: migrateEffect(oldSettings.effects.freqSplit, 60),
-          vignettePulse: migrateEffect(oldSettings.effects.vignettePulse, 60),
-          beatFlip: migrateEffect(oldSettings.effects.beatFlip, 80),
-          colorStrobe: migrateEffect(oldSettings.effects.colorStrobe, 70),
-          impulseShake: migrateEffect(oldSettings.effects.impulseShake, 70),
-        },
-        source: oldSettings.source || 'bass',
-        smoothing: oldSettings.smoothing ?? 50,
-        // ✨ NEU: Erweiterte Steuerung (mit Migration)
-        easing: oldSettings.easing || 'linear',
-        phase: oldSettings.phase ?? 0,
-        beatBoost: oldSettings.beatBoost ?? 1.0,
-      }
-    }
-
-    // Migration von alter Struktur (einzelner Effekt)
-    const newSettings = this._deepCopyAudioReactive()
-    newSettings.enabled = oldSettings.enabled ?? false
-    newSettings.source = oldSettings.source || 'bass'
-    newSettings.smoothing = oldSettings.smoothing ?? 50
-    newSettings.easing = oldSettings.easing || 'linear'
-    newSettings.phase = oldSettings.phase ?? 0
-    newSettings.beatBoost = oldSettings.beatBoost ?? 1.0
-
-    // Alten einzelnen Effekt in neuer Struktur aktivieren
-    if (oldSettings.effect && oldSettings.enabled) {
-      const effectName = oldSettings.effect
-      if (newSettings.effects[effectName]) {
-        newSettings.effects[effectName].enabled = true
-        newSettings.effects[effectName].intensity = oldSettings.intensity ?? 80
-      }
-    }
-
-    return newSettings
+    return ensureAudioReactiveConfig(oldSettings)
   }
 
   /**
@@ -267,28 +95,13 @@ export class FotoManager {
         // Deep copy für audioReactive - jedes Bild bekommt eigene Einstellungen
         audioReactive: this._deepCopyAudioReactive(),
       }
-    } else if (!imageObject.fotoSettings.audioReactive) {
-      // Falls fotoSettings existiert aber audioReactive fehlt
-      imageObject.fotoSettings.audioReactive = this._deepCopyAudioReactive()
-    } else if (!imageObject.fotoSettings.audioReactive.effects) {
-      // Migration: Alte Struktur zu neuer Struktur
-      imageObject.fotoSettings.audioReactive = this._migrateAudioReactiveSettings(
-        imageObject.fotoSettings.audioReactive,
-      )
-    } else {
-      // ✅ FIX: Füge fehlende Effekte hinzu (für neue Effekte die später hinzugefügt wurden)
-      const defaultEffects = this._deepCopyAudioReactive().effects
-      const existingEffects = imageObject.fotoSettings.audioReactive.effects
-
-      for (const [effectName, defaultConfig] of Object.entries(defaultEffects)) {
-        if (!existingEffects[effectName]) {
-          existingEffects[effectName] = { ...defaultConfig }
-        } else if (existingEffects[effectName].source === undefined) {
-          // Füge source hinzu wenn es fehlt
-          existingEffects[effectName].source = null
-        }
-      }
+      return
     }
+    // Vorhandene (evtl. alte) Konfiguration vervollständigen – in-place, damit
+    // Referenzen (Panel, Renderer) erhalten bleiben
+    imageObject.fotoSettings.audioReactive = ensureAudioReactiveConfig(
+      imageObject.fotoSettings.audioReactive,
+    )
   }
 
   /**

@@ -52,6 +52,35 @@ export const DEFAULT_EFFECT_INTENSITIES = Object.freeze({
 /** Zusätzliche, nur für den Gradient-Hintergrund verfügbare Effekte. */
 export const GRADIENT_EFFECT_NAMES = Object.freeze(['gradientPulse', 'gradientRotation'])
 
+/**
+ * Effekte, die auf einer Kachel OHNE Bild/Video sichtbar wirken. Eine reine
+ * Farbkachel ist eine geclippte, gefüllte Fläche: Skalierung, Bewegung, Glow
+ * (Schatten außerhalb des Clips), Weichzeichnen und Chromatik bleiben dort
+ * unsichtbar – nur Farbfilter, Blitz, Rahmen, Vignette und Farb-Strobe wirken.
+ */
+export const TILE_COLOR_ONLY_EFFECT_NAMES = Object.freeze([
+  'hue',
+  'brightness',
+  'saturation',
+  'contrast',
+  'grayscale',
+  'sepia',
+  'invert',
+  'strobe',
+  'border',
+  'vignettePulse',
+  'colorStrobe',
+])
+
+/**
+ * Liefert die für eine Kachel sinnvollen Effekte.
+ * @param {boolean} hasMedia - Kachel enthält ein Bild oder Video
+ * @returns {readonly string[]}
+ */
+export function tileEffectNames(hasMedia) {
+  return hasMedia ? EFFECT_NAMES : TILE_COLOR_ONLY_EFFECT_NAMES
+}
+
 /** Alle Effekte des Hintergrund-Panels: Bild-Effekte + Gradient-Effekte. */
 export const BACKGROUND_EFFECT_NAMES = Object.freeze([...EFFECT_NAMES, ...GRADIENT_EFFECT_NAMES])
 

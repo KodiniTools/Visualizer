@@ -5,26 +5,31 @@
     </div>
 
     <AudioReactiveEffectCategory
+      v-if="colorEffects.length"
       :title="t('foto.colorEffects')"
       :effects="colorEffects"
       :default-intensity="80"
     />
     <AudioReactiveEffectCategory
+      v-if="transformEffects.length"
       :title="t('foto.transformEffects')"
       :effects="transformEffects"
       :default-intensity="50"
     />
     <AudioReactiveEffectCategory
+      v-if="movementEffects.length"
       :title="t('foto.movementEffects')"
       :effects="movementEffects"
       :default-intensity="50"
     />
     <AudioReactiveEffectCategory
+      v-if="specialEffects.length"
       :title="t('foto.specialEffects')"
       :effects="specialEffects"
       :default-intensity="60"
     />
     <AudioReactiveEffectCategory
+      v-if="rhythmEffects.length"
       :title="t('foto.rhythmEffects')"
       :effects="rhythmEffects"
       :default-intensity="70"

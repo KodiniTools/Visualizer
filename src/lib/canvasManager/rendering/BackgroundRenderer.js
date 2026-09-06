@@ -163,6 +163,34 @@ export class BackgroundRenderer {
   }
 
   /**
+   * Chromatische Aberration: Medium in drei verschobenen, eingefärbten Kanälen
+   * (Screen-Blend) plus Original – wie bei Canvas-Bildern.
+   */
+  _drawMediaChromatic(ctx, media, dx, dy, dw, dh, offset) {
+    const baseFilter = ctx.filter && ctx.filter !== 'none' ? ctx.filter : ''
+    const baseAlpha = ctx.globalAlpha
+    try {
+      ctx.globalCompositeOperation = 'screen'
+      ctx.globalAlpha = baseAlpha * 0.8
+      ctx.filter = `${baseFilter} saturate(0%) brightness(100%) sepia(100%) hue-rotate(-50deg) saturate(600%)`
+      ctx.drawImage(media, dx + offset, dy, dw, dh)
+      ctx.filter = `${baseFilter} saturate(0%) brightness(100%) sepia(100%) hue-rotate(50deg) saturate(600%)`
+      ctx.drawImage(media, dx, dy, dw, dh)
+      ctx.filter = `${baseFilter} saturate(0%) brightness(100%) sepia(100%) hue-rotate(170deg) saturate(600%)`
+      ctx.drawImage(media, dx - offset, dy, dw, dh)
+      ctx.globalCompositeOperation = 'source-over'
+      ctx.filter = baseFilter || 'none'
+      ctx.globalAlpha = baseAlpha * 0.4
+      ctx.drawImage(media, dx, dy, dw, dh)
+    } catch (e) {
+      console.warn('[BackgroundRenderer] Chromatic effect error:', e)
+    } finally {
+      ctx.globalAlpha = baseAlpha
+      ctx.globalCompositeOperation = 'source-over'
+    }
+  }
+
+  /**
    * Zeichnet einen Farbhintergrund mit optionalem Gradient
    */
   _drawColorBackground(ctx) {
@@ -555,31 +583,7 @@ export class BackgroundRenderer {
           const settings = tile.imageSettings || {}
 
           // Statische Filter anwenden
-          let filterString = store.getTileImageFilter(tileIndex)
-
-          // Audio-Reaktive Filter hinzufügen
-          if (audioReactive && audioReactive.hasEffects) {
-            const effects = audioReactive.effects
-            if (effects.hue) {
-              filterString += ` hue-rotate(${effects.hue.hueRotate}deg)`
-            }
-            if (effects.brightness) {
-              filterString += ` brightness(${effects.brightness.brightness}%)`
-            }
-            if (effects.saturation) {
-              filterString += ` saturate(${effects.saturation.saturation}%)`
-            }
-            if (effects.blur) {
-              filterString += ` blur(${effects.blur.blur}px)`
-            }
-            if (effects.glow) {
-              ctx.shadowColor = effects.glow.glowColor
-              ctx.shadowBlur = effects.glow.glowBlur
-              ctx.shadowOffsetX = 0
-              ctx.shadowOffsetY = 0
-            }
-          }
-
+          const filterString = store.getTileImageFilter(tileIndex)
           if (filterString.trim()) {
             ctx.filter = filterString.trim()
           }
@@ -587,11 +591,21 @@ export class BackgroundRenderer {
           // Deckkraft
           ctx.globalAlpha = (settings.opacity || 100) / 100
 
-          // Skalierung und Offset (inkl. Audio-reaktive Skalierung)
-          let scale = settings.scale || 1.0
-          if (audioReactive && audioReactive.effects.scale) {
-            scale *= audioReactive.effects.scale.scale
+          // Audio-Reaktive Effekte – derselbe Effektsatz wie bei Canvas-Bildern:
+          // Filter (inkl. Strobe/Farb-Strobe/Glow) + Geometrie (Skalierung,
+          // Rotation, Beat-Flip, Skew, Perspektive, Bewegung) um das Kachelzentrum.
+          if (audioReactive && audioReactive.hasEffects) {
+            this.manager._applyAudioReactiveFilters(ctx, audioReactive)
+            this._applyAudioReactiveTransform(
+              ctx,
+              audioReactive,
+              x + tileWidth / 2,
+              y + tileHeight / 2,
+            )
           }
+
+          // Skalierung und Offset (audio-reaktive Skalierung steckt in der Transformation)
+          const scale = settings.scale || 1.0
           const offsetX = settings.offsetX || 0
           const offsetY = settings.offsetY || 0
 
@@ -617,7 +631,20 @@ export class BackgroundRenderer {
           drawX = x + (tileWidth - drawWidth) / 2 + offsetX
           drawY = y + (tileHeight - drawHeight) / 2 + offsetY
 
-          ctx.drawImage(mediaElement, drawX, drawY, drawWidth, drawHeight)
+          const chromatic = audioReactive?.effects?.chromatic
+          if (chromatic && chromatic.chromaticOffset > 0.5) {
+            this._drawMediaChromatic(
+              ctx,
+              mediaElement,
+              drawX,
+              drawY,
+              drawWidth,
+              drawHeight,
+              chromatic.chromaticOffset,
+            )
+          } else {
+            ctx.drawImage(mediaElement, drawX, drawY, drawWidth, drawHeight)
+          }
 
           // Filter zurücksetzen
           ctx.filter = 'none'
@@ -626,6 +653,16 @@ export class BackgroundRenderer {
         }
 
         ctx.restore()
+
+        // Overlay-Effekte (audio-reaktive Kontur, Vignette-Puls) innerhalb der Kachel
+        if (audioReactive && audioReactive.hasEffects) {
+          ctx.save()
+          ctx.beginPath()
+          ctx.rect(x, y, tileWidth, tileHeight)
+          ctx.clip()
+          this._drawAudioReactiveOverlays(ctx, audioReactive, x, y, tileWidth, tileHeight)
+          ctx.restore()
+        }
 
         // Auswahlrahmen zeichnen wenn Kachel ausgewählt ist
         // NICHT während Recording zeichnen (UI-Element)

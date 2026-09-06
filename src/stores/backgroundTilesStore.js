@@ -1,5 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
+import { EFFECT_NAMES } from '../lib/audio/AudioReactiveEffects.js'
+import {
+  applyAudioReactivePreset,
+  assignAudioReactiveConfig,
+  createAudioReactiveConfig,
+} from '../lib/audio/audioReactiveConfig.js'
 
 const STORAGE_KEY = 'visualizer-background-tiles'
 
@@ -32,22 +38,9 @@ function createDefaultTile(index) {
       offsetX: 0,
       offsetY: 0,
     },
-    // ✨ NEU: Audio-Reaktiv Einstellungen pro Kachel
-    audioReactive: {
-      enabled: false,
-      source: 'bass', // 'bass', 'mid', 'treble', 'volume', 'dynamic'
-      smoothing: 50, // 0-100
-      effects: {
-        hue: { enabled: false, intensity: 80 },
-        brightness: { enabled: false, intensity: 80 },
-        saturation: { enabled: false, intensity: 80 },
-        glow: { enabled: false, intensity: 80 },
-        scale: { enabled: false, intensity: 50 },
-        blur: { enabled: false, intensity: 50 },
-        strobe: { enabled: false, intensity: 80 },
-        contrast: { enabled: false, intensity: 70 },
-      },
-    },
+    // Audio-Reaktiv pro Kachel – identische Struktur wie bei Canvas-Bildern
+    // (Master inkl. Easing/Beat-Boost/Phase/Gain, alle Effekte mit eigener Quelle)
+    audioReactive: createAudioReactiveConfig(EFFECT_NAMES),
   }
 }
 
@@ -333,6 +326,39 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
     }
   }
 
+  /** Master-Eigenschaft (easing, beatBoost, phase, gain, source, smoothing) setzen */
+  function setTileAudioProperty(index, property, value) {
+    const ar = tiles.value[index]?.audioReactive
+    if (!ar || property === 'effects' || !(property in ar)) return
+    ar[property] = value
+    persistSettings()
+  }
+
+  /** Individuelle Audio-Quelle eines Effekts setzen (null/'' = globale Quelle) */
+  function setTileAudioEffectSource(index, effectName, source) {
+    const fx = tiles.value[index]?.audioReactive?.effects?.[effectName]
+    if (!fx) return
+    fx.source = source ? source : null
+    persistSettings()
+  }
+
+  /** Preset auf eine Kachel anwenden (alle anderen Effekte aus) */
+  function applyTileAudioPreset(index, presetName) {
+    const ar = tiles.value[index]?.audioReactive
+    if (!ar) return false
+    const ok = applyAudioReactivePreset(ar, presetName)
+    if (ok) persistSettings()
+    return ok
+  }
+
+  /** (Teil-)Konfiguration in-place übernehmen; fehlende Effekte werden deaktiviert */
+  function assignTileAudioReactive(index, config) {
+    const ar = tiles.value[index]?.audioReactive
+    if (!ar) return
+    assignAudioReactiveConfig(ar, config)
+    persistSettings()
+  }
+
   // ✨ NEU: Audio-Effekt-Intensität für Kachel setzen
   function setTileAudioEffectIntensity(index, effectName, intensity) {
     if (tiles.value[index]?.audioReactive?.effects?.[effectName]) {
@@ -347,16 +373,25 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   // ✨ NEU: Alle Audio-Reaktiv-Einstellungen für Kachel auf einmal setzen
   function setTileAudioReactive(index, settings) {
     if (tiles.value[index]) {
-      tiles.value[index].audioReactive = {
-        ...createDefaultTile(index).audioReactive,
-        ...settings,
-        effects: {
-          ...createDefaultTile(index).audioReactive.effects,
-          ...(settings.effects || {}),
-        },
-      }
+      tiles.value[index].audioReactive = mergeAudioReactive(settings)
       persistSettings()
     }
+  }
+
+  /**
+   * Gespeicherte (evtl. alte, unvollständige) Audio-Einstellungen mit der
+   * vollständigen Default-Struktur zusammenführen.
+   */
+  function mergeAudioReactive(settings) {
+    const base = createAudioReactiveConfig(EFFECT_NAMES)
+    if (!settings) return base
+    const effects = { ...base.effects }
+    for (const [name, fx] of Object.entries(settings.effects || {})) {
+      if (effects[name] && fx) {
+        effects[name] = { ...effects[name], ...fx, source: fx.source ?? null }
+      }
+    }
+    return { ...base, ...settings, effects }
   }
 
   // Lücke zwischen Kacheln setzen
@@ -394,14 +429,7 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
         imageSrc: tile.imageSrc,
         imageSettings: { ...tile.imageSettings },
         // ✨ NEU: Audio-Reaktiv-Einstellungen speichern
-        audioReactive: tile.audioReactive
-          ? {
-              enabled: tile.audioReactive.enabled,
-              source: tile.audioReactive.source,
-              smoothing: tile.audioReactive.smoothing,
-              effects: { ...tile.audioReactive.effects },
-            }
-          : null,
+        audioReactive: tile.audioReactive ? JSON.parse(JSON.stringify(tile.audioReactive)) : null,
       })),
     }
     saveSettings(settingsToSave)
@@ -458,6 +486,8 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
     tiles.value = savedSettings.tiles.map((savedTile, i) => ({
       ...createDefaultTile(i),
       ...savedTile,
+      // Alte Speicherstände kennen nur wenige Effekte → mit voller Struktur mergen
+      audioReactive: mergeAudioReactive(savedTile.audioReactive),
       image: null, // Bilder müssen separat geladen werden
     }))
     // Bilder asynchron laden
@@ -503,6 +533,10 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
     setTileAudioSmoothing,
     setTileAudioEffect,
     setTileAudioEffectIntensity,
+    setTileAudioProperty,
+    setTileAudioEffectSource,
+    applyTileAudioPreset,
+    assignTileAudioReactive,
     setTileAudioReactive,
   }
 })

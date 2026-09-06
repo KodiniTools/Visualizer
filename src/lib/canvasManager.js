@@ -17,7 +17,7 @@ import {
   DragDropHandler,
 } from './canvasManager/interaction/index.js'
 import { RecordingRenderer } from './canvasManager/recording/index.js'
-import { makeLevelResolver } from './audio/ReactiveLevel.js'
+import { computeAudioReactiveValues } from './audio/audioReactiveEngine.js'
 import { calculateEffectValue } from './audio/AudioReactiveEffects.js'
 
 /**
@@ -663,47 +663,14 @@ export class CanvasManager {
    * Berechnet Audio-Reaktive Werte für Hintergründe
    */
   _getAudioReactiveValues(audioSettings) {
-    if (!audioSettings || !audioSettings.enabled) {
-      return null
-    }
-
-    const audioData = window.audioAnalysisData
-    if (!audioData) return null
-
-    const effects = audioSettings.effects
-    if (!effects) return null
-
-    // ✨ Parität mit Canvas-Bildern: kontinuierliches Attack/Release-Smoothing,
-    // funktionierender Beat-Boost/Gain, Phase, Easing und individuelle Quelle
-    // pro Effekt (vorher hatte der Hintergrund-Pfad nur binäres Smoothing/Gain).
-    const globalSource = audioSettings.source || 'bass'
-    const resolveLevel = makeLevelResolver(audioSettings, {
-      audioData,
-      smoothing: audioSettings.smoothing ?? 50,
-      beatBoost: audioSettings.beatBoost ?? 1.0,
-      phase: audioSettings.phase || 0,
-      easing: audioSettings.easing || 'linear',
-      gain: audioSettings.gain ?? 1.0,
-    })
-
-    const result = {
-      hasEffects: false,
-      effects: {},
-    }
-
-    for (const [effectName, effectConfig] of Object.entries(effects)) {
-      if (effectConfig && effectConfig.enabled) {
-        const effectSource = effectConfig.source || globalSource
-        const baseLevel = resolveLevel(effectSource)
-        const intensity = (effectConfig.intensity || 80) / 100
-        const normalizedLevel = Math.min(baseLevel * intensity, 1)
-
-        result.hasEffects = true
-        result.effects[effectName] = this._calculateEffectValue(effectName, normalizedLevel)
-      }
-    }
-
-    return result.hasEffects ? result : null
+    // Gemeinsame Engine (Bilder, Hintergrund, Kacheln, Lauftext); nur die
+    // Effektberechnung ist hier wegen der Gradient-Effekte überschrieben.
+    return computeAudioReactiveValues(
+      audioSettings,
+      audioSettings,
+      typeof window !== 'undefined' ? window.audioAnalysisData : null,
+      (name, level) => this._calculateEffectValue(name, level),
+    )
   }
 
   /**

@@ -1,44 +1,23 @@
-import { BeatDetector } from '../../audio/BeatDetector.js'
+import { calculateEffectValue, getMotionOffset } from '../../audio/AudioReactiveEffects.js'
+import {
+  buildFilterString,
+  combinedScale,
+  computeAudioReactiveValues,
+  strongestGlow,
+} from '../../audio/audioReactiveEngine.js'
 
-// #rrggbb → { h, s, l } (h in Grad, s/l in Prozent)
-function hexToHsl(hex) {
-  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '')
-  let r = 1
-  let g = 1
-  let b = 1
-  if (m) {
-    r = parseInt(m[1], 16) / 255
-    g = parseInt(m[2], 16) / 255
-    b = parseInt(m[3], 16) / 255
+// Lauftext-eigene Effekte; alles andere kommt aus der gemeinsamen Bild-Engine.
+function calculateTickerEffect(name, level) {
+  switch (name) {
+    case 'tempo':
+      // Laufgeschwindigkeit pulsiert mit dem Pegel (bis 4×)
+      return { speedFactor: 1 + level * 3 }
+    case 'opacity':
+      // Zwischen den Beats gedimmt (40 %), auf dem Beat volle Deckkraft
+      return { opacity: 0.4 + level * 0.6 }
+    default:
+      return calculateEffectValue(name, level)
   }
-  const max = Math.max(r, g, b)
-  const min = Math.min(r, g, b)
-  const l = (max + min) / 2
-  let h = 0
-  let s = 0
-  const d = max - min
-  if (d !== 0) {
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-    if (max === r) h = (g - b) / d + (g < b ? 6 : 0)
-    else if (max === g) h = (b - r) / d + 2
-    else h = (r - g) / d + 4
-    h *= 60
-  }
-  return { h, s: s * 100, l: l * 100 }
-}
-
-// Verschiebt den Farbton einer Farbe abhängig von der Reaktionsstärke (0..1).
-// Sättigung und Helligkeit werden dabei in einen sichtbaren Bereich gezogen,
-// sodass auch weißer/grauer Text beim Beat den Farbton zeigt; bei react → 0
-// bleibt die Ausgangsfarbe erhalten (der Aufrufer ruft dies dann gar nicht auf).
-function beatHue(hex, react) {
-  const { h, s, l } = hexToHsl(hex)
-  const k = Math.min(1, react)
-  const hue = (((h + react * 180) % 360) + 360) % 360
-  const sat = s + (Math.max(s, 70) - s) * k
-  const targetL = Math.min(Math.max(l, 40), 60)
-  const lig = l + (targetL - l) * k
-  return `hsl(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${lig.toFixed(0)}%)`
 }
 
 /**
@@ -54,10 +33,6 @@ export class TickerRenderer {
   constructor() {
     this.offset = 0
     this.lastTime = null
-    // Beat-Puls (0..1): steigt bei einem Beat, klingt ab und treibt – je nach
-    // gewähltem Modus – die verschiedenen Audio-Animationen an.
-    this.pulse = 0
-    this.beatDetector = new BeatDetector({ beatThreshold: 0.2, beatRiseThreshold: 0.05 })
   }
 
   render(ctx, width, height, audioData, settings) {
@@ -79,35 +54,14 @@ export class TickerRenderer {
 
     const baseSpeed = settings.speed || 0
 
-    // Audio-Reaktivität: ein Beat erzeugt einen Puls (0..1), der abklingt und –
-    // je nach gewähltem Modus – eine andere Animation antreibt.
-    const reactive = !!settings.audioReactive
-    const reactMode = reactive ? settings.reactMode || 'tempo' : 'none'
-    const strength = Math.max(0, Math.min(100, settings.beatIntensity ?? 60)) / 100
+    // Audio-Reaktivität: identische Konfiguration/Engine wie bei Canvas-Bildern
+    // (settings.audioFx) plus die Lauftext-Effekte Tempo und Deckkraft.
+    const audioFx = settings.audioReactive ? settings.audioFx : null
+    const reactive = computeAudioReactiveValues(audioFx, audioFx, audioData, calculateTickerEffect)
+    const fx = reactive ? reactive.effects : {}
 
-    if (reactive && audioData) {
-      // Audio-Pegel (Gain): skaliert den erkannten Eingangspegel, damit auch
-      // leise Titel zuverlässig auslösen (>100 %) oder laute weniger stark
-      // reagieren (<100 %).
-      const gain = Math.max(0, (settings.audioLevel ?? 100) / 100)
-      const raw = (audioData.bass ?? audioData.smoothBass ?? 0) / 255
-      const level = Math.max(0, Math.min(1, raw * gain))
-      const beat = this.beatDetector.detect(level * 255, now)
-      if (beat.isBeat) {
-        this.pulse = Math.min(1, 0.6 + beat.beatIntensity * 0.4)
-      }
-    } else {
-      this.pulse = 0
-    }
-    // Puls abklingen lassen
-    this.pulse *= Math.max(0, 1 - dt * 4)
-    if (this.pulse < 0.005) this.pulse = 0
-
-    // Normalisierte Reaktionsstärke dieses Frames (0..1)
-    const react = this.pulse * strength
-
-    // Tempo-Modus: Geschwindigkeit pulsiert zum Beat
-    const currentSpeed = reactMode === 'tempo' ? baseSpeed * (1 + react * 3) : baseSpeed
+    // Tempo-Effekt: Geschwindigkeit pulsiert mit dem Pegel
+    const currentSpeed = baseSpeed * (fx.tempo?.speedFactor ?? 1)
 
     // Laufachse: links/rechts = horizontal, oben/unten = vertikal (Abspann-Stil).
     // In beiden Fällen bleibt die Schrift normal (waagerecht) ausgerichtet.
@@ -192,48 +146,60 @@ export class TickerRenderer {
     const doShadow = settings.shadowEnabled && (settings.shadowBlur || 0) > 0
 
     // ── Audio-Animationen dieses Frames (nur bei aktiver Reaktivität) ──
-    // scale  : Text pulsiert in der Größe zum Beat
-    // shake  : Text zittert kurz beim Beat
-    // glow   : ein Leuchten pulsiert um den Text zum Beat
-    // opacity: Text ist zwischen den Beats gedimmt und blitzt beim Beat auf
-    // hue    : der Textfarbton verschiebt sich zum Beat (kehrt dazwischen zurück)
-    const doScale = reactMode === 'scale' && react > 0.001
-    const doShake = reactMode === 'shake' && react > 0.001
-    const doGlow = reactMode === 'glow' && react > 0.001
-    const doOpacity = reactMode === 'opacity'
-    const doHue = reactMode === 'hue' && react > 0.001
+    // Geometrie um das Zentrum jeder Textinstanz: Skalierung (alle scale-
+    // liefernden Effekte), Rotation, Beat-Flip, Skew, Bewegungspfade.
+    const scaleFactor = reactive ? combinedScale(fx) : 1
+    const rotationDeg = fx.rotation ? fx.rotation.rotation || 0 : 0
+    let flipScaleX = 1
+    if (fx.beatFlip && typeof fx.beatFlip.flipScaleX === 'number') {
+      const f = fx.beatFlip.flipScaleX
+      flipScaleX = Math.abs(f) < 0.02 ? 0.02 * Math.sign(f || 1) : f
+    }
+    const skew = fx.skew || null
+    const motion = reactive
+      ? getMotionOffset(Object.assign({}, ...Object.values(fx)))
+      : { x: 0, y: 0 }
+    const hasTransform =
+      scaleFactor !== 1 ||
+      rotationDeg !== 0 ||
+      flipScaleX !== 1 ||
+      !!skew ||
+      motion.x !== 0 ||
+      motion.y !== 0
 
-    const scaleFactor = doScale ? 1 + react * 0.4 : 1
-    const shakeOffset = doShake ? Math.sin(now / 24) * react * fontSize * 0.25 : 0
-    // Zwischen den Beats gedimmt (bis −60 %), auf dem Beat wieder volle Deckkraft
-    const textAlpha = doOpacity ? Math.max(0, Math.min(1, 1 - strength * 0.6 + react * 0.6)) : 1
-    const glowColor = settings.shadowEnabled ? settings.shadowColor : settings.color || '#ffffff'
-
-    // Farbton-Modus: die Füllfarbe zum Beat verschieben. Bei react = 0 bleibt die
-    // gewählte Textfarbe exakt erhalten (doHue ist dann false).
-    if (doHue) ctx.fillStyle = beatHue(settings.color || '#ffffff', react)
+    // Filter (Farbton, Helligkeit, Sättigung, …, Strobe-Helligkeit, Farb-Strobe)
+    const filterString = reactive ? buildFilterString(fx) : ''
+    // Deckkraft: Lauftext-Effekt "Blitzen" × Strobe
+    const textAlpha =
+      (fx.opacity?.opacity ?? 1) *
+      (fx.strobe?.strobeOpacity !== undefined ? fx.strobe.strobeOpacity : 1)
+    // Leuchten: stärkstes aus Glow/Beat-Puls/BPM-Puls/Frequenz-Split
+    const glow = reactive ? strongestGlow(fx) : null
 
     // Zeichnet eine Textinstanz inkl. Schatten/Glühen, Umrandung und der
-    // aktiven Audio-Animation. Der Schatten wird vom äußersten sichtbaren Rand
+    // aktiven Audio-Animationen. Der Schatten wird vom äußersten sichtbaren Rand
     // geworfen (Umrandung, sonst Füllung); die Füllung darüber wirft keinen
     // zweiten Schatten.
     const paint = (x, y) => {
-      const transform = scaleFactor !== 1 || shakeOffset !== 0
-      if (transform) {
-        ctx.save()
-        if (shakeOffset) ctx.translate(0, shakeOffset)
-        if (scaleFactor !== 1) {
-          const px = x + textWidth / 2
-          ctx.translate(px, y)
-          ctx.scale(scaleFactor, scaleFactor)
-          ctx.translate(-px, -y)
+      ctx.save()
+      if (hasTransform) {
+        const cx = x + textWidth / 2
+        ctx.translate(cx + motion.x, y + motion.y)
+        if (rotationDeg !== 0) ctx.rotate((rotationDeg * Math.PI) / 180)
+        if (scaleFactor !== 1 || flipScaleX !== 1) ctx.scale(scaleFactor * flipScaleX, scaleFactor)
+        if (skew) {
+          const skewXRad = ((skew.skewX || 0) * Math.PI) / 180
+          const skewYRad = ((skew.skewY || 0) * Math.PI) / 180
+          ctx.transform(1, Math.tan(skewYRad), Math.tan(skewXRad), 1, 0, 0)
         }
+        ctx.translate(-cx, -y)
       }
-      if (doOpacity) ctx.globalAlpha = textAlpha
+      if (filterString) ctx.filter = filterString
+      if (textAlpha !== 1) ctx.globalAlpha = Math.max(0, Math.min(1, textAlpha))
 
-      if (doGlow) {
-        ctx.shadowColor = glowColor
-        ctx.shadowBlur = (doShadow ? settings.shadowBlur : 0) + react * 28
+      if (glow) {
+        ctx.shadowColor = glow.glowColor
+        ctx.shadowBlur = (doShadow ? settings.shadowBlur : 0) + glow.glowBlur
         ctx.shadowOffsetX = 0
         ctx.shadowOffsetY = 0
       } else if (doShadow) {
@@ -249,9 +215,7 @@ export class TickerRenderer {
         ctx.shadowBlur = 0
       }
       ctx.fillText(text, x, y)
-
-      if (doOpacity) ctx.globalAlpha = 1
-      if (transform) ctx.restore()
+      ctx.restore()
     }
 
     // Segmente wiederholen, bis die gesamte Laufachse gefüllt ist.

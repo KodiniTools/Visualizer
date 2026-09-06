@@ -113,12 +113,16 @@
         />
         <p class="volume-hint">{{ t('videoPanel.audioRecordHint') }}</p>
       </div>
+
+      <!-- Audio-Reaktiv: identische Einstellungen wie bei Bildern -->
+      <VideoAudioReactive :video="selectedCanvasVideo" />
     </div>
   </div>
 </template>
 
 <script setup>
 import SliderField from '../ui/SliderField.vue'
+import VideoAudioReactive from './VideoAudioReactive.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 

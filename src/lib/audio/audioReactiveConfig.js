@@ -284,6 +284,34 @@ export function createAudioReactiveConfig(effectNames = EFFECT_NAMES) {
   }
 }
 
+/**
+ * Ergänzt eine (alte/unvollständige) Konfiguration in-place um alle fehlenden
+ * Master-Felder und Effekte der angegebenen Effektliste. Vorhandene Werte
+ * bleiben erhalten; Effekte ohne `source` erhalten `source: null`.
+ * @param {object|null|undefined} ar
+ * @param {readonly string[]} [effectNames=EFFECT_NAMES]
+ * @returns {object} die vervollständigte Konfiguration (neu, falls `ar` leer war)
+ */
+export function ensureAudioReactiveConfig(ar, effectNames = EFFECT_NAMES) {
+  const base = createAudioReactiveConfig(effectNames)
+  if (!ar || typeof ar !== 'object') return base
+  for (const [key, value] of Object.entries(base)) {
+    if (key === 'effects') continue
+    if (ar[key] === undefined) ar[key] = value
+  }
+  if (!ar.effects || typeof ar.effects !== 'object') ar.effects = {}
+  for (const [name, fx] of Object.entries(base.effects)) {
+    if (!ar.effects[name]) {
+      ar.effects[name] = { ...fx }
+    } else {
+      for (const [k, v] of Object.entries(fx)) {
+        if (ar.effects[name][k] === undefined) ar.effects[name][k] = v
+      }
+    }
+  }
+  return ar
+}
+
 /** Presets (identisch für Bilder und Hintergrund). */
 export const AUDIO_REACTIVE_PRESETS = Object.freeze({
   pulse: {

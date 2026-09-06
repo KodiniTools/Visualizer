@@ -70,6 +70,9 @@
           class="volume-slider-small"
         />
       </div>
+
+      <!-- Audio-Reaktiv: identische Einstellungen wie bei Bildern -->
+      <VideoAudioReactive :video="videoBackground" :label="t('videoPanel.bgLabel')" />
     </div>
 
     <!-- Workspace Video-Hintergrund -->
@@ -139,12 +142,16 @@
           class="volume-slider-small"
         />
       </div>
+
+      <!-- Audio-Reaktiv: identische Einstellungen wie bei Bildern -->
+      <VideoAudioReactive :video="workspaceVideoBackground" :label="t('videoPanel.wsBgLabel')" />
     </div>
   </div>
 </template>
 
 <script setup>
 import SliderField from '../ui/SliderField.vue'
+import VideoAudioReactive from './VideoAudioReactive.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 

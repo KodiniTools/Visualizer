@@ -18,6 +18,7 @@ import {
 } from './canvasManager/interaction/index.js'
 import { RecordingRenderer } from './canvasManager/recording/index.js'
 import { computeAudioReactiveValues } from './audio/audioReactiveEngine.js'
+import { applyAudioReactiveFilters } from './canvasManager/rendering/audioReactiveDraw.js'
 import { calculateEffectValue } from './audio/AudioReactiveEffects.js'
 
 /**
@@ -697,73 +698,7 @@ export class CanvasManager {
    * Wendet Audio-Reaktive Effekte auf Canvas-Filter an
    */
   _applyAudioReactiveFilters(ctx, audioReactive) {
-    if (!audioReactive || !audioReactive.hasEffects) return
-
-    let currentFilter = ctx.filter || 'none'
-    if (currentFilter === 'none') currentFilter = ''
-
-    const effects = audioReactive.effects
-
-    if (effects.hue) {
-      currentFilter += ` hue-rotate(${effects.hue.hueRotate}deg)`
-    }
-    if (effects.brightness) {
-      currentFilter += ` brightness(${effects.brightness.brightness}%)`
-    }
-    if (effects.saturation) {
-      currentFilter += ` saturate(${effects.saturation.saturation}%)`
-    }
-    if (effects.blur) {
-      currentFilter += ` blur(${effects.blur.blur}px)`
-    }
-    // Glow als Shadow — stärkstes Leuchten aus Glow/Beat-Puls/BPM-Puls/Frequenz-Split
-    const glowCandidates = [
-      effects.glow,
-      effects.beatPulse,
-      effects.bpmPulse,
-      effects.freqSplit,
-    ].filter((e) => e && e.glowBlur > 0)
-    if (glowCandidates.length > 0) {
-      const strongest = glowCandidates.reduce((a, b) => (b.glowBlur > a.glowBlur ? b : a))
-      ctx.shadowColor = strongest.glowColor
-      ctx.shadowBlur = strongest.glowBlur
-      ctx.shadowOffsetX = 0
-      ctx.shadowOffsetY = 0
-    }
-    // Frequenz-Split (Höhen → Farbton) und Color-Strobe (Farbsprung pro Beat)
-    if (effects.freqSplit && effects.freqSplit.hueRotate) {
-      currentFilter += ` hue-rotate(${effects.freqSplit.hueRotate}deg)`
-    }
-    if (effects.colorStrobe) {
-      currentFilter += ` hue-rotate(${effects.colorStrobe.hueRotate}deg) saturate(${effects.colorStrobe.saturate}%)`
-    }
-
-    if (effects.contrast) {
-      currentFilter += ` contrast(${effects.contrast.contrast}%)`
-    }
-    if (effects.grayscale) {
-      currentFilter += ` grayscale(${effects.grayscale.grayscale}%)`
-    }
-    if (effects.sepia) {
-      currentFilter += ` sepia(${effects.sepia.sepia}%)`
-    }
-    if (effects.invert) {
-      currentFilter += ` invert(${effects.invert.invert}%)`
-    }
-    if (effects.strobe && effects.strobe.strobeBrightness !== 100) {
-      currentFilter += ` brightness(${effects.strobe.strobeBrightness}%)`
-    }
-    if (
-      effects.strobe &&
-      effects.strobe.strobeOpacity !== undefined &&
-      effects.strobe.strobeOpacity !== 1
-    ) {
-      ctx.globalAlpha = ctx.globalAlpha * effects.strobe.strobeOpacity
-    }
-
-    if (currentFilter.trim()) {
-      ctx.filter = currentFilter.trim()
-    }
+    applyAudioReactiveFilters(ctx, audioReactive)
   }
 
   // ═══════════════════════════════════════════════════════════════════

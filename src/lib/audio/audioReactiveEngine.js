@@ -17,14 +17,19 @@ import { calculateEffectValue } from './AudioReactiveEffects.js'
  *   ({ enabled, source, smoothing, easing, beatBoost, phase, gain, effects })
  * @param {object|null|undefined} audioData - window.audioAnalysisData
  * @param {(name: string, level: number, config: object) => object} [calculate]
- *   Effektberechnung; Default: gemeinsame Bild-Engine
+ *   Effektberechnung; Default: gemeinsame Bild-Engine (erhält nur name/level)
  * @returns {{hasEffects: true, effects: Record<string, object>}|null}
  */
+// Standard-Berechnung: bewusst nur (name, level) weiterreichen – der dritte
+// Parameter von calculateEffectValue ist der Zeitstempel, NICHT die Effekt-
+// Konfiguration (sonst werden alle zeitbasierten Effekte zu NaN).
+const defaultCalculate = (name, level) => calculateEffectValue(name, level)
+
 export function computeAudioReactiveValues(
   owner,
   audioSettings,
   audioData,
-  calculate = calculateEffectValue,
+  calculate = defaultCalculate,
 ) {
   if (!audioSettings || !audioSettings.enabled || !audioData) return null
   const effects = audioSettings.effects

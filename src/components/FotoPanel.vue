@@ -304,7 +304,9 @@ function resetFilters() {
     borderOpacity: 100,
   }
 
-  currentActiveImage.value.fotoSettings = { ...defaultSettings }
+  // Nur die Filter zurücksetzen – Audio-Reaktiv-Einstellungen und Ebenen-
+  // Optionen (renderBehindVisualizer) bleiben erhalten.
+  Object.assign(currentActiveImage.value.fotoSettings, defaultSettings)
   console.log('🔄 Filter zurückgesetzt')
 }
 

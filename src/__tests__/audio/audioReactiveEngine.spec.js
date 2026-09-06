@@ -54,6 +54,38 @@ describe('audioReactiveEngine', () => {
     expect(out.effects.tempo.speedFactor).toBeGreaterThan(1)
   })
 
+  it('default calculator yields finite values for time-based effects (regression: config was passed as time)', () => {
+    const ar = createTickerAudioReactiveConfig()
+    ar.enabled = true
+    ar.smoothing = 0
+    for (const name of [
+      'bounce',
+      'orbit',
+      'swing',
+      'figure8',
+      'wave',
+      'spiral',
+      'float',
+      'rotation',
+      'skew',
+    ]) {
+      ar.effects[name].enabled = true
+      ar.effects[name].intensity = 100
+    }
+    const out = computeAudioReactiveValues(ar, ar, loudAudio)
+    expect(out).not.toBeNull()
+    for (const [name, values] of Object.entries(out.effects)) {
+      for (const [key, v] of Object.entries(values)) {
+        expect(Number.isFinite(v), `${name}.${key} should be finite`).toBe(true)
+      }
+    }
+    // Bewegungspfade liefern tatsächlich Verschiebungen (nicht nur Schütteln)
+    const moving = ['bounce', 'orbit', 'swing', 'figure8', 'wave', 'spiral', 'float'].filter((n) =>
+      Object.values(out.effects[n]).some((v) => Math.abs(v) > 0.001),
+    )
+    expect(moving.length).toBeGreaterThanOrEqual(5)
+  })
+
   it('helpers combine scale, pick the strongest glow and build filters', () => {
     const fx = {
       scale: { scale: 1.2 },

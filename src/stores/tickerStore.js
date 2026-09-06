@@ -1,5 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
+import {
+  assignAudioReactiveConfig,
+  createTickerAudioReactiveConfig,
+  migrateLegacyTickerAudio,
+} from '../lib/audio/audioReactiveConfig.js'
 
 /**
  * tickerStore — Lauftext (Ticker): ein horizontal scrollendes Textband.
@@ -32,6 +37,8 @@ const DEFAULTS = {
   direction: 'left', // 'left' | 'right' | 'up' | 'down'
   positionY: 100, // 0 % = oben/links, 100 % = unten/rechts
   audioReactive: false,
+  // Alt (bis zur gemeinsamen Audio-Reaktiv-Konfiguration); werden beim Laden
+  // nach `audioFx` migriert und nur noch zur Kompatibilität mitgeführt.
   reactMode: 'tempo', // 'tempo' | 'scale' | 'glow' | 'shake' | 'opacity'
   beatIntensity: 60, // Stärke der Animation pro Beat (0–100)
   audioLevel: 100, // Eingangs-Empfindlichkeit / Pegel-Gain (0–200 %)
@@ -84,27 +91,56 @@ export const useTickerStore = defineStore('ticker', () => {
     fields.positionY.value = 0
   }
 
+  // Audio-Reaktiv: identische Konfiguration wie Bilder/Text/Hintergrund
+  // (Master, Presets, alle Effekte mit eigener Quelle) plus Lauftext-Effekte.
+  // Alte Speicherstände (reactMode/beatIntensity/audioLevel) werden migriert.
+  const audioFx = ref(
+    saved.audioFx
+      ? mergeAudioFx(saved.audioFx)
+      : migrateLegacyTickerAudio({ ...saved, audioReactive: fields.audioReactive.value }),
+  )
+  function mergeAudioFx(savedFx) {
+    const base = createTickerAudioReactiveConfig()
+    assignAudioReactiveConfig(base, savedFx)
+    return base
+  }
+  // Der Ein/Aus-Schalter bleibt `audioReactive`; die Konfiguration spiegelt ihn.
+  audioFx.value.enabled = fields.audioReactive.value
+  watch(fields.audioReactive, (on) => {
+    audioFx.value.enabled = Boolean(on)
+  })
+
   // Setzt alle Einstellungen einer Sektion auf ihre Standardwerte zurück.
   function resetSection(name) {
     const keys = SECTION_KEYS[name]
     if (!keys) return
     for (const key of keys) fields[key].value = DEFAULTS[key]
+    if (name === 'audio') {
+      // In-place zurücksetzen, damit Renderer/Panel dieselbe Objektidentität behalten
+      assignAudioReactiveConfig(audioFx.value, createTickerAudioReactiveConfig())
+      audioFx.value.enabled = false
+    }
   }
 
   // Persistenz: bei jeder Änderung speichern
-  watch([enabled, ...Object.values(fields)], () => {
-    try {
-      const data = { enabled: enabled.value }
-      for (const [key, r] of Object.entries(fields)) data[key] = r.value
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-    } catch {
-      /* localStorage nicht verfügbar – Einstellungen bleiben nur zur Laufzeit */
-    }
-  })
+  watch(
+    [enabled, audioFx, ...Object.values(fields)],
+    () => {
+      try {
+        const data = { enabled: enabled.value, audioFx: audioFx.value }
+        for (const [key, r] of Object.entries(fields)) data[key] = r.value
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+      } catch {
+        /* localStorage nicht verfügbar – Einstellungen bleiben nur zur Laufzeit */
+      }
+    },
+    { deep: true },
+  )
 
   return {
     enabled,
     ...fields,
+    audioFx,
     resetSection,
   }
 })

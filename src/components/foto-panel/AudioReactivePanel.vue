@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import { ref, computed, toRef, provide } from 'vue'
+import { ref, computed, toRef, provide, nextTick } from 'vue'
 import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects.js'
 import {
   AUDIO_REACTIVE_PRESETS,
@@ -234,45 +234,49 @@ function loadSettings(imageData) {
     audioReactiveEnabledRef.value.checked = enabled
   }
 
-  if (audioReactiveSourceRef.value) {
-    audioReactiveSourceRef.value.value = audioReactive.source || 'bass'
-  }
-
-  if (audioReactiveSmoothingRef.value) {
-    const smoothing = audioReactive.smoothing ?? 50
-    audioReactiveSmoothingRef.value.value = smoothing
-    if (audioReactiveSmoothingValueRef.value) {
-      audioReactiveSmoothingValueRef.value.textContent = smoothing + '%'
+  // Die Master-Controls hängen an v-if="isEnabled" und existieren nach dem
+  // Einschalten erst im nächsten Tick – deshalb erst dann in den DOM schreiben.
+  const applyMasterControls = () => {
+    if (audioReactiveSourceRef.value) {
+      audioReactiveSourceRef.value.value = audioReactive.source || 'bass'
     }
-  }
 
-  if (audioReactiveEasingRef.value) {
-    audioReactiveEasingRef.value.value = audioReactive.easing || 'linear'
-  }
-
-  if (audioReactiveBeatBoostRef.value) {
-    const beatBoost = audioReactive.beatBoost ?? 1.0
-    audioReactiveBeatBoostRef.value.value = beatBoost
-    if (audioReactiveBeatBoostValueRef.value) {
-      const displayValue =
-        beatBoost <= 1.0 ? t('foto.beatBoostOff') : `${Math.round((beatBoost - 1) * 100)}%`
-      audioReactiveBeatBoostValueRef.value.textContent = displayValue
+    if (audioReactiveSmoothingRef.value) {
+      const smoothing = audioReactive.smoothing ?? 50
+      audioReactiveSmoothingRef.value.value = smoothing
+      if (audioReactiveSmoothingValueRef.value) {
+        audioReactiveSmoothingValueRef.value.textContent = smoothing + '%'
+      }
     }
-  }
 
-  if (audioReactivePhaseRef.value) {
-    const phase = audioReactive.phase ?? 0
-    audioReactivePhaseRef.value.value = phase
-    if (audioReactivePhaseValueRef.value) {
-      audioReactivePhaseValueRef.value.textContent = phase + '°'
+    if (audioReactiveEasingRef.value) {
+      audioReactiveEasingRef.value.value = audioReactive.easing || 'linear'
     }
-  }
 
-  if (audioReactiveGainRef.value) {
-    const gain = audioReactive.gain ?? 1.0
-    audioReactiveGainRef.value.value = gain
-    if (audioReactiveGainValueRef.value) {
-      audioReactiveGainValueRef.value.textContent = Math.round(gain * 100) + '%'
+    if (audioReactiveBeatBoostRef.value) {
+      const beatBoost = audioReactive.beatBoost ?? 1.0
+      audioReactiveBeatBoostRef.value.value = beatBoost
+      if (audioReactiveBeatBoostValueRef.value) {
+        const displayValue =
+          beatBoost <= 1.0 ? t('foto.beatBoostOff') : `${Math.round((beatBoost - 1) * 100)}%`
+        audioReactiveBeatBoostValueRef.value.textContent = displayValue
+      }
+    }
+
+    if (audioReactivePhaseRef.value) {
+      const phase = audioReactive.phase ?? 0
+      audioReactivePhaseRef.value.value = phase
+      if (audioReactivePhaseValueRef.value) {
+        audioReactivePhaseValueRef.value.textContent = phase + '°'
+      }
+    }
+
+    if (audioReactiveGainRef.value) {
+      const gain = audioReactive.gain ?? 1.0
+      audioReactiveGainRef.value.value = gain
+      if (audioReactiveGainValueRef.value) {
+        audioReactiveGainValueRef.value.textContent = Math.round(gain * 100) + '%'
+      }
     }
   }
 
@@ -285,7 +289,8 @@ function loadSettings(imageData) {
   ]
 
   // DOM-Elemente für Effekte suchen und aktualisieren (über data-effect-id)
-  setTimeout(() => {
+  nextTick(() => {
+    applyMasterControls()
     allEffectIds.forEach((effectId) => {
       const effectData = effects[effectId]
       const enabled = effectData?.enabled || false
@@ -308,7 +313,7 @@ function loadSettings(imageData) {
         if (sourceSelect) sourceSelect.value = source
       }
     })
-  }, 0)
+  })
 
   console.log('🔊 Audio-Reaktiv Einstellungen geladen:', audioReactive)
 }

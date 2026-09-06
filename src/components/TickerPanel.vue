@@ -291,54 +291,8 @@
             </button>
           </summary>
           <div class="sub-content">
-            <!-- Audio-Reaktivität ein/aus -->
-            <div class="control-group">
-              <label class="checkbox-label">
-                <input v-model="ticker.audioReactive" type="checkbox" />
-                {{ t('ticker.audioReactive') }}
-              </label>
-            </div>
-
-            <template v-if="ticker.audioReactive">
-              <!-- Animationsmodus -->
-              <div class="control-group">
-                <label>{{ t('ticker.reactMode') }}:</label>
-                <select v-model="ticker.reactMode" class="select-input">
-                  <option value="tempo">{{ t('ticker.reactModeTempo') }}</option>
-                  <option value="scale">{{ t('ticker.reactModeScale') }}</option>
-                  <option value="glow">{{ t('ticker.reactModeGlow') }}</option>
-                  <option value="shake">{{ t('ticker.reactModeShake') }}</option>
-                  <option value="opacity">{{ t('ticker.reactModeOpacity') }}</option>
-                  <option value="hue">{{ t('ticker.reactModeHue') }}</option>
-                </select>
-              </div>
-
-              <!-- Beat-Stärke + Audio-Pegel nebeneinander -->
-              <div class="control-group slider-row">
-                <div class="slider-col">
-                  <label>{{ t('ticker.beatIntensity') }}: {{ ticker.beatIntensity }}%</label>
-                  <SliderField
-                    v-model="ticker.beatIntensity"
-                    :min="0"
-                    :max="100"
-                    :step="5"
-                    :default-value="60"
-                    class="slider"
-                  />
-                </div>
-                <div class="slider-col">
-                  <label>{{ t('ticker.audioLevel') }}: {{ ticker.audioLevel }}%</label>
-                  <SliderField
-                    v-model="ticker.audioLevel"
-                    :min="0"
-                    :max="200"
-                    :step="5"
-                    :default-value="100"
-                    class="slider"
-                  />
-                </div>
-              </div>
-            </template>
+            <!-- Identische Einstellungen wie Bild-Audio-Reaktiv (+ Lauftext-Effekte) -->
+            <TickerAudioReactive />
           </div>
         </details>
       </template>
@@ -348,6 +302,7 @@
 
 <script setup>
 import SliderField from './ui/SliderField.vue'
+import TickerAudioReactive from './ticker/TickerAudioReactive.vue'
 import ColorField from './ui/ColorField.vue'
 import { computed, inject } from 'vue'
 import { useI18n } from '../lib/i18n.js'

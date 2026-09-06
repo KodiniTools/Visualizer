@@ -185,6 +185,76 @@ export function ensureTextAudioReactive(ar) {
   return ar
 }
 
+// ─── Lauftext (Ticker) ───────────────────────────────────────────────────────
+
+/** Bild-Effekte, die der Lauftext-Renderer darstellt (ohne Fläche-/Bild-Effekte). */
+export const TICKER_SHARED_EFFECT_NAMES = Object.freeze([
+  'hue',
+  'brightness',
+  'saturation',
+  'contrast',
+  'grayscale',
+  'sepia',
+  'invert',
+  'blur',
+  'scale',
+  'rotation',
+  'skew',
+  'freqSplit',
+  'glow',
+  'strobe',
+  'shake',
+  'bounce',
+  'swing',
+  'orbit',
+  'figure8',
+  'wave',
+  'spiral',
+  'float',
+  'beatPulse',
+  'zoomPunch',
+  'bpmPulse',
+  'beatFlip',
+  'colorStrobe',
+  'impulseShake',
+])
+
+/** Nur für den Lauftext: Tempo (Laufgeschwindigkeit pulsiert) und Deckkraft (Blitzen). */
+export const TICKER_ONLY_EFFECT_NAMES = Object.freeze(['tempo', 'opacity'])
+
+export const TICKER_EFFECT_NAMES = Object.freeze([
+  ...TICKER_SHARED_EFFECT_NAMES,
+  ...TICKER_ONLY_EFFECT_NAMES,
+])
+
+/** Erzeugt die Lauftext-Konfiguration (alles aus). */
+export function createTickerAudioReactiveConfig() {
+  const ar = createAudioReactiveConfig(TICKER_EFFECT_NAMES)
+  ar.effects.tempo.intensity = 60
+  ar.effects.opacity.intensity = 60
+  return ar
+}
+
+/**
+ * Überführt die alten Lauftext-Felder (reactMode, beatIntensity, audioLevel)
+ * in die gemeinsame Konfiguration: der gewählte Modus wird zum aktivierten
+ * Effekt, Beat-Stärke → Intensität, Audio-Pegel → Gain.
+ * @param {{reactMode?: string, beatIntensity?: number, audioLevel?: number, audioReactive?: boolean}} legacy
+ */
+export function migrateLegacyTickerAudio(legacy = {}) {
+  const ar = createTickerAudioReactiveConfig()
+  ar.enabled = Boolean(legacy.audioReactive)
+  ar.gain = Math.max(0, Math.min(2, (legacy.audioLevel ?? 100) / 100))
+  ar.source = 'bassOnset' // bisher: Beat-Erkennung auf dem Bass
+  const mode = legacy.reactMode || 'tempo'
+  const effect = ar.effects[mode]
+  if (effect) {
+    effect.enabled = true
+    effect.intensity = Math.max(0, Math.min(100, legacy.beatIntensity ?? 60))
+  }
+  return ar
+}
+
 /** Alle Effekte des Hintergrund-Panels: Bild-Effekte + Gradient-Effekte. */
 export const BACKGROUND_EFFECT_NAMES = Object.freeze([...EFFECT_NAMES, ...GRADIENT_EFFECT_NAMES])
 

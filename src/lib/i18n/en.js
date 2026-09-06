@@ -951,6 +951,7 @@ export default {
     sectionBackground: 'Background',
     sectionMotion: 'Position & Motion',
     sectionAudio: 'Audio Reactivity',
+    tickerEffects: 'Ticker effects',
     reset: 'Reset this section',
   },
   textManager: {

@@ -947,6 +947,7 @@ export default {
     sectionBackground: 'Hintergrund',
     sectionMotion: 'Position & Bewegung',
     sectionAudio: 'Audio-Reaktivität',
+    tickerEffects: 'Lauftext-Effekte',
     reset: 'Diese Sektion zurücksetzen',
   },
   textManager: {

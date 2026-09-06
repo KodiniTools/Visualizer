@@ -1564,6 +1564,9 @@ export default {
     audioRecordHint: '💡 Video-Ton wird mit aufgenommen',
     bgVideoTitle: 'Video-Hintergrund',
     bgLabel: 'Hintergrund',
+    videoLabel: 'Video',
+    audioTargetHint:
+      'Gilt für das erste Video. Ein anderes Video in der Liste anklicken, um es zu bearbeiten.',
     wsBgLabel: 'Workspace-Hintergrund',
   },
 

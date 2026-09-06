@@ -113,17 +113,28 @@
         />
         <p class="volume-hint">{{ t('videoPanel.audioRecordHint') }}</p>
       </div>
-
-      <!-- Audio-Reaktiv: identische Einstellungen wie bei Bildern -->
-      <VideoAudioReactive :video="selectedCanvasVideo" />
     </div>
+
+    <!--
+      Audio-Reaktiv: identische Einstellungen wie bei Bildern. Immer sichtbar,
+      sobald Videos auf dem Canvas liegen – gilt für das ausgewählte Video,
+      sonst für das erste in der Liste.
+    -->
+    <VideoAudioReactive
+      v-if="audioTargetVideo"
+      :video="audioTargetVideo"
+      :label="audioTargetLabel"
+    />
+    <p v-if="audioTargetVideo && !selectedCanvasVideo" class="audio-target-hint">
+      {{ t('videoPanel.audioTargetHint') }}
+    </p>
   </div>
 </template>
 
 <script setup>
 import SliderField from '../ui/SliderField.vue'
 import VideoAudioReactive from './VideoAudioReactive.vue'
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 
 const { t } = useI18n()
@@ -148,9 +159,24 @@ const {
   seekForward,
   updateVideoVolume,
 } = inject('videoPanel')
+
+// Ziel des Audio-Reaktiv-Panels: ausgewähltes Video, sonst das erste Canvas-Video
+const audioTargetVideo = computed(() => selectedCanvasVideo.value || canvasVideos.value[0] || null)
+const audioTargetLabel = computed(() => {
+  const v = audioTargetVideo.value
+  if (!v) return ''
+  const idx = canvasVideos.value.indexOf(v)
+  return `${t('videoPanel.videoLabel')} ${idx >= 0 ? idx + 1 : 1}`
+})
 </script>
 
 <style scoped>
+.audio-target-hint {
+  margin: 4px 0 0;
+  font-size: 0.55rem;
+  color: var(--text-muted, #7a8da0);
+}
+
 /* Canvas Videos Section */
 .canvas-videos-section {
   padding-top: 12px;

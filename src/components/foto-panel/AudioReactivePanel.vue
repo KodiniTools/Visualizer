@@ -10,7 +10,10 @@
 <script setup>
 import { ref, computed, toRef, provide } from 'vue'
 import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects.js'
-import { AUDIO_REACTIVE_PRESET_LIST } from '../../lib/audio/audioReactiveConfig.js'
+import {
+  AUDIO_REACTIVE_PRESETS,
+  AUDIO_REACTIVE_PRESET_LIST,
+} from '../../lib/audio/audioReactiveConfig.js'
 import { useI18n } from '../../lib/i18n.js'
 import AudioReactiveMaster from './audio-reactive/AudioReactiveMaster.vue'
 import AudioReactivePresets from './audio-reactive/AudioReactivePresets.vue'
@@ -39,6 +42,14 @@ const props = defineProps({
   extraCategories: {
     type: Array,
     default: () => [],
+  },
+  /**
+   * Nur diese Effekt-IDs anzeigen (null = alle). Kategorien ohne sichtbare
+   * Effekte und Presets, deren Effekte alle ausgeblendet sind, entfallen.
+   */
+  allowedEffects: {
+    type: Array,
+    default: null,
   },
 })
 
@@ -77,56 +88,76 @@ const audioReactiveGainValueRef = ref(null)
 
 const isEnabled = ref(false)
 
-// Preset-Liste (gemeinsam mit dem Hintergrund-Panel)
-const presetList = AUDIO_REACTIVE_PRESET_LIST
+function isAllowed(id) {
+  return props.allowedEffects === null || props.allowedEffects.includes(id)
+}
+const filterAllowed = (list) => list.filter((e) => isAllowed(e.id))
+
+// Preset-Liste (gemeinsam mit Hintergrund-/Kachel-Panel); Presets, deren
+// Effekte hier alle ausgeblendet sind, werden nicht angeboten.
+const presetList = computed(() =>
+  AUDIO_REACTIVE_PRESET_LIST.filter((p) =>
+    Object.keys(AUDIO_REACTIVE_PRESETS[p.id]?.effects || {}).some(isAllowed),
+  ),
+)
 
 // Effekt-Kategorien (mit i18n)
-const colorEffects = computed(() => [
-  { id: 'hue', name: t('foto.effectNames.hue') },
-  { id: 'brightness', name: t('foto.effectNames.brightness') },
-  { id: 'saturation', name: t('foto.effectNames.saturation') },
-  { id: 'contrast', name: t('foto.effectNames.contrast') },
-  { id: 'grayscale', name: t('foto.effectNames.grayscale') },
-  { id: 'sepia', name: t('foto.effectNames.sepia') },
-  { id: 'invert', name: t('foto.effectNames.invert') },
-])
+const colorEffects = computed(() =>
+  filterAllowed([
+    { id: 'hue', name: t('foto.effectNames.hue') },
+    { id: 'brightness', name: t('foto.effectNames.brightness') },
+    { id: 'saturation', name: t('foto.effectNames.saturation') },
+    { id: 'contrast', name: t('foto.effectNames.contrast') },
+    { id: 'grayscale', name: t('foto.effectNames.grayscale') },
+    { id: 'sepia', name: t('foto.effectNames.sepia') },
+    { id: 'invert', name: t('foto.effectNames.invert') },
+  ]),
+)
 
-const transformEffects = computed(() => [
-  { id: 'scale', name: t('foto.effectNames.scale') },
-  { id: 'rotation', name: t('foto.effectNames.rotation') },
-  { id: 'skew', name: t('foto.effectNames.skew') },
-  { id: 'perspective', name: t('foto.effectNames.perspective') },
-  { id: 'freqSplit', name: t('foto.effectNames.freqSplit') },
-])
+const transformEffects = computed(() =>
+  filterAllowed([
+    { id: 'scale', name: t('foto.effectNames.scale') },
+    { id: 'rotation', name: t('foto.effectNames.rotation') },
+    { id: 'skew', name: t('foto.effectNames.skew') },
+    { id: 'perspective', name: t('foto.effectNames.perspective') },
+    { id: 'freqSplit', name: t('foto.effectNames.freqSplit') },
+  ]),
+)
 
-const movementEffects = computed(() => [
-  { id: 'shake', name: t('foto.effectNames.shake') },
-  { id: 'bounce', name: t('foto.effectNames.bounce') },
-  { id: 'swing', name: t('foto.effectNames.swing') },
-  { id: 'orbit', name: t('foto.effectNames.orbit') },
-  { id: 'figure8', name: t('foto.effectNames.figure8') },
-  { id: 'wave', name: t('foto.effectNames.wave') },
-  { id: 'spiral', name: t('foto.effectNames.spiral') },
-  { id: 'float', name: t('foto.effectNames.float') },
-])
+const movementEffects = computed(() =>
+  filterAllowed([
+    { id: 'shake', name: t('foto.effectNames.shake') },
+    { id: 'bounce', name: t('foto.effectNames.bounce') },
+    { id: 'swing', name: t('foto.effectNames.swing') },
+    { id: 'orbit', name: t('foto.effectNames.orbit') },
+    { id: 'figure8', name: t('foto.effectNames.figure8') },
+    { id: 'wave', name: t('foto.effectNames.wave') },
+    { id: 'spiral', name: t('foto.effectNames.spiral') },
+    { id: 'float', name: t('foto.effectNames.float') },
+  ]),
+)
 
-const specialEffects = computed(() => [
-  { id: 'glow', name: t('foto.effectNames.glow') },
-  { id: 'border', name: t('foto.effectNames.border') },
-  { id: 'blur', name: t('foto.effectNames.blur') },
-  { id: 'strobe', name: t('foto.effectNames.strobe') },
-  { id: 'chromatic', name: t('foto.effectNames.chromatic') },
-  { id: 'vignettePulse', name: t('foto.effectNames.vignettePulse') },
-])
+const specialEffects = computed(() =>
+  filterAllowed([
+    { id: 'glow', name: t('foto.effectNames.glow') },
+    { id: 'border', name: t('foto.effectNames.border') },
+    { id: 'blur', name: t('foto.effectNames.blur') },
+    { id: 'strobe', name: t('foto.effectNames.strobe') },
+    { id: 'chromatic', name: t('foto.effectNames.chromatic') },
+    { id: 'vignettePulse', name: t('foto.effectNames.vignettePulse') },
+  ]),
+)
 
-const rhythmEffects = computed(() => [
-  { id: 'beatPulse', name: t('foto.effectNames.beatPulse') },
-  { id: 'zoomPunch', name: t('foto.effectNames.zoomPunch') },
-  { id: 'bpmPulse', name: t('foto.effectNames.bpmPulse') },
-  { id: 'beatFlip', name: t('foto.effectNames.beatFlip') },
-  { id: 'colorStrobe', name: t('foto.effectNames.colorStrobe') },
-  { id: 'impulseShake', name: t('foto.effectNames.impulseShake') },
-])
+const rhythmEffects = computed(() =>
+  filterAllowed([
+    { id: 'beatPulse', name: t('foto.effectNames.beatPulse') },
+    { id: 'zoomPunch', name: t('foto.effectNames.zoomPunch') },
+    { id: 'bpmPulse', name: t('foto.effectNames.bpmPulse') },
+    { id: 'beatFlip', name: t('foto.effectNames.beatFlip') },
+    { id: 'colorStrobe', name: t('foto.effectNames.colorStrobe') },
+    { id: 'impulseShake', name: t('foto.effectNames.impulseShake') },
+  ]),
+)
 
 // Handlers
 function onAudioReactiveToggle(event) {

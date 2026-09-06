@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects.js'
 import {
   BACKGROUND_EFFECT_NAMES,
+  TILE_COLOR_ONLY_EFFECT_NAMES,
+  tileEffectNames,
   AUDIO_REACTIVE_PRESETS,
   AUDIO_REACTIVE_PRESET_LIST,
   DEFAULT_EFFECT_INTENSITIES,
@@ -38,6 +40,19 @@ describe('audioReactiveConfig – Struktur', () => {
     const ar = createAudioReactiveConfig(BACKGROUND_EFFECT_NAMES)
     expect(Object.keys(ar.effects)).toEqual([...EFFECT_NAMES, 'gradientPulse', 'gradientRotation'])
     expect(ar.effects.gradientPulse.intensity).toBe(80)
+  })
+
+  it('tile effects: full set with media, only visible effects for color-only tiles', () => {
+    expect(tileEffectNames(true)).toBe(EFFECT_NAMES)
+    expect(tileEffectNames(false)).toBe(TILE_COLOR_ONLY_EFFECT_NAMES)
+    // Auf einer Farbkachel unsichtbar: Geometrie, Bewegung, Glow, Blur, Chromatik
+    for (const name of ['scale', 'rotation', 'shake', 'glow', 'blur', 'chromatic', 'beatPulse']) {
+      expect(TILE_COLOR_ONLY_EFFECT_NAMES).not.toContain(name)
+    }
+    for (const name of ['hue', 'invert', 'strobe', 'border', 'vignettePulse', 'colorStrobe']) {
+      expect(TILE_COLOR_ONLY_EFFECT_NAMES).toContain(name)
+      expect(EFFECT_NAMES).toContain(name)
+    }
   })
 
   it('preset list matches preset definitions', () => {

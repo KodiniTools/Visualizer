@@ -1,4 +1,4 @@
-import { computed, inject } from 'vue'
+import { computed, inject, reactive, ref } from 'vue'
 import { useBackgroundTilesStore } from '../stores/backgroundTilesStore'
 
 /**
@@ -240,6 +240,91 @@ export function useBackgroundTiles() {
     }
   }
 
+  // ── Erweiterte Audio-Reaktiv-Steuerung (Parität mit Bild-Panel) ──────────
+  /** @param {'easing'|'beatBoost'|'phase'|'gain'|'source'|'smoothing'} property */
+  function setAudioProperty(property, value) {
+    if (tilesStore.selectedTileIndex === null) return
+    tilesStore.setTileAudioProperty(tilesStore.selectedTileIndex, property, value)
+    redraw()
+  }
+
+  function setEffectSource(effectName, source) {
+    if (tilesStore.selectedTileIndex === null) return
+    tilesStore.setTileAudioEffectSource(tilesStore.selectedTileIndex, effectName, source)
+    redraw()
+  }
+
+  // Aktives Preset und Backup der Nutzer-Effekte pro Kachel-Index
+  const activeTileAudioPresets = reactive({})
+  const tileUserEffectsBackups = new Map()
+  // Zähler für externe Änderungen (Preset/Anwenden), damit das Panel neu einliest
+  const tileAudioRevision = ref(0)
+  const TILE_AUDIO_STORAGE_KEY = 'visualizer_tileAudioReactivePreset'
+  const savedTileAudioSettings = ref(loadSavedTileAudioSettings())
+  const hasSavedTileAudioSettings = computed(() => savedTileAudioSettings.value !== null)
+
+  function loadSavedTileAudioSettings() {
+    try {
+      const raw =
+        typeof localStorage !== 'undefined' && localStorage.getItem(TILE_AUDIO_STORAGE_KEY)
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
+    }
+  }
+
+  const activeTileAudioPreset = computed(() => {
+    const i = tilesStore.selectedTileIndex
+    return i === null ? null : (activeTileAudioPresets[i] ?? null)
+  })
+
+  function toggleTileAudioPreset(presetName) {
+    const i = tilesStore.selectedTileIndex
+    if (i === null) return
+    if (activeTileAudioPresets[i] === presetName) {
+      clearTileAudioPreset()
+      return
+    }
+    if (!activeTileAudioPresets[i]) {
+      tileUserEffectsBackups.set(i, JSON.parse(JSON.stringify(tilesStore.tiles[i].audioReactive)))
+    }
+    if (!tilesStore.applyTileAudioPreset(i, presetName)) return
+    activeTileAudioPresets[i] = presetName
+    tileAudioRevision.value++
+    redraw()
+  }
+
+  function clearTileAudioPreset() {
+    const i = tilesStore.selectedTileIndex
+    if (i === null) return
+    const backup = tileUserEffectsBackups.get(i)
+    if (backup) tilesStore.assignTileAudioReactive(i, backup)
+    activeTileAudioPresets[i] = null
+    tileAudioRevision.value++
+    redraw()
+  }
+
+  function saveTileAudioSettings() {
+    const tile = tilesStore.selectedTile
+    if (!tile?.audioReactive) return
+    const copy = JSON.parse(JSON.stringify(tile.audioReactive))
+    savedTileAudioSettings.value = copy
+    try {
+      localStorage.setItem(TILE_AUDIO_STORAGE_KEY, JSON.stringify(copy))
+    } catch (e) {
+      console.warn('⚠️ Kachel-Audio-Einstellungen konnten nicht gespeichert werden:', e)
+    }
+  }
+
+  function applyTileAudioSettings() {
+    const i = tilesStore.selectedTileIndex
+    if (i === null || !savedTileAudioSettings.value) return
+    tilesStore.assignTileAudioReactive(i, savedTileAudioSettings.value)
+    activeTileAudioPresets[i] = null
+    tileAudioRevision.value++
+    redraw()
+  }
+
   return {
     tilesStore,
     redraw,
@@ -265,5 +350,14 @@ export function useBackgroundTiles() {
     setAudioSmoothing,
     toggleEffect,
     setEffectIntensity,
+    setAudioProperty,
+    setEffectSource,
+    activeTileAudioPreset,
+    tileAudioRevision,
+    hasSavedTileAudioSettings,
+    toggleTileAudioPreset,
+    clearTileAudioPreset,
+    saveTileAudioSettings,
+    applyTileAudioSettings,
   }
 }

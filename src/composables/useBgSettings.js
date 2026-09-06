@@ -1,4 +1,13 @@
-import { ref, computed, watch, onMounted, onUnmounted, nextTick, inject } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick, inject } from 'vue'
+import {
+  BACKGROUND_EFFECT_NAMES,
+  applyAudioReactivePreset,
+  applyBackgroundAudioSnapshot,
+  assignAudioReactiveConfig,
+  cloneAudioReactiveConfig,
+  createAudioReactiveConfig,
+  serializeBackgroundAudio,
+} from '../lib/audio/audioReactiveConfig.js'
 import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore.js'
 import { useToastStore } from '../stores/toastStore.js'
 import { useTickerStore } from '../stores/tickerStore.js'
@@ -19,26 +28,27 @@ export function useBgSettings() {
   const undoHistory = ref([])
   const MAX_HISTORY = 10
 
-  // Audio-reactive
-  const bgAudioEnabled = ref(false)
-  const bgAudioSource = ref('bass')
-  const bgAudioSmoothing = ref(50)
-  const bgEffectHue = ref(false)
-  const bgEffectHueIntensity = ref(80)
-  const bgEffectBrightness = ref(false)
-  const bgEffectBrightnessIntensity = ref(80)
-  const bgEffectSaturation = ref(false)
-  const bgEffectSaturationIntensity = ref(80)
-  const bgEffectGlow = ref(false)
-  const bgEffectGlowIntensity = ref(80)
-  const bgEffectStrobe = ref(false)
-  const bgEffectStrobeIntensity = ref(80)
-  const bgEffectContrast = ref(false)
-  const bgEffectContrastIntensity = ref(70)
-  const bgEffectGradientPulse = ref(false)
-  const bgEffectGradientPulseIntensity = ref(80)
-  const bgEffectGradientRotation = ref(false)
-  const bgEffectGradientRotationIntensity = ref(80)
+  // Audio-reactive: identische Struktur/Einstellungen wie Bild-Audio-Reaktiv
+  // (Master, Presets, alle Effekte mit Intensität + eigener Quelle) plus die
+  // beiden Gradient-Effekte. Einzige Quelle der Wahrheit für das Panel.
+  const bgAudioReactive = reactive(createAudioReactiveConfig(BACKGROUND_EFFECT_NAMES))
+  const activeBgAudioPreset = ref(null)
+  // Wird bei externen Änderungen (Preset/Snapshot/Anwenden) erhöht, damit das
+  // Panel seine DOM-Controls neu einliest.
+  const bgAudioRevision = ref(0)
+  // Nutzer-Effekte vor dem ersten Preset sichern ("Kein Preset" stellt sie wieder her)
+  let bgUserEffectsBackup = null
+  const BG_AUDIO_STORAGE_KEY = 'visualizer_bgAudioReactivePreset'
+  const savedBgAudioSettings = ref(loadSavedBgAudioSettings())
+  const hasSavedBgAudioSettings = computed(() => savedBgAudioSettings.value !== null)
+  function loadSavedBgAudioSettings() {
+    try {
+      const raw = typeof localStorage !== 'undefined' && localStorage.getItem(BG_AUDIO_STORAGE_KEY)
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
+    }
+  }
 
   // Gradient
   const gradientEnabled = ref(false)
@@ -214,37 +224,95 @@ export function useBgSettings() {
 
   function updateBgAudioReactive() {
     if (!canvasManager.value) return
+    // Reaktivitätsfreie Kopie an den Renderer (wird pro Frame gelesen)
+    canvasManager.value.setBackgroundColorAudioReactive(cloneAudioReactiveConfig(bgAudioReactive))
+  }
 
-    const settings = {
-      enabled: bgAudioEnabled.value,
-      source: bgAudioSource.value,
-      smoothing: bgAudioSmoothing.value,
-      effects: {
-        hue: { enabled: bgEffectHue.value, intensity: bgEffectHueIntensity.value },
-        brightness: {
-          enabled: bgEffectBrightness.value,
-          intensity: bgEffectBrightnessIntensity.value,
-        },
-        saturation: {
-          enabled: bgEffectSaturation.value,
-          intensity: bgEffectSaturationIntensity.value,
-        },
-        glow: { enabled: bgEffectGlow.value, intensity: bgEffectGlowIntensity.value },
-        strobe: { enabled: bgEffectStrobe.value, intensity: bgEffectStrobeIntensity.value },
-        contrast: { enabled: bgEffectContrast.value, intensity: bgEffectContrastIntensity.value },
-        gradientPulse: {
-          enabled: bgEffectGradientPulse.value,
-          intensity: bgEffectGradientPulseIntensity.value,
-        },
-        gradientRotation: {
-          enabled: bgEffectGradientRotation.value,
-          intensity: bgEffectGradientRotationIntensity.value,
-        },
-      },
+  function bumpBgAudioRevision() {
+    bgAudioRevision.value++
+  }
+
+  // ── Handler für das Audio-Reaktiv-Panel (gleiche Semantik wie bei Bildern) ──
+  function setBgAudioEnabled(enabled) {
+    bgAudioReactive.enabled = Boolean(enabled)
+    if (!enabled) activeBgAudioPreset.value = null
+    updateBgAudioReactive()
+  }
+
+  /** @param {'source'|'smoothing'|'easing'|'beatBoost'|'phase'|'gain'} property */
+  function setBgAudioProperty(property, value) {
+    if (!(property in bgAudioReactive) || property === 'effects') return
+    bgAudioReactive[property] = value
+    updateBgAudioReactive()
+  }
+
+  function setBgEffectEnabled(effectName, enabled) {
+    const fx = bgAudioReactive.effects[effectName]
+    if (!fx) return
+    fx.enabled = Boolean(enabled)
+    updateBgAudioReactive()
+  }
+
+  function setBgEffectIntensity(effectName, intensity) {
+    const fx = bgAudioReactive.effects[effectName]
+    if (!fx) return
+    const n = parseInt(intensity)
+    if (!Number.isFinite(n)) return
+    fx.intensity = Math.max(0, Math.min(100, n))
+    updateBgAudioReactive()
+  }
+
+  function setBgEffectSource(effectName, source) {
+    const fx = bgAudioReactive.effects[effectName]
+    if (!fx) return
+    fx.source = source ? source : null
+    updateBgAudioReactive()
+  }
+
+  function toggleBgAudioPreset(presetName) {
+    if (activeBgAudioPreset.value === presetName) {
+      clearBgAudioPreset()
+      return
     }
+    if (activeBgAudioPreset.value === null) {
+      bgUserEffectsBackup = cloneAudioReactiveConfig(bgAudioReactive)
+    }
+    if (!applyAudioReactivePreset(bgAudioReactive, presetName)) return
+    activeBgAudioPreset.value = presetName
+    updateBgAudioReactive()
+    bumpBgAudioRevision()
+  }
 
-    canvasManager.value.setBackgroundColorAudioReactive(settings)
-    console.log('🎵 Hintergrund Audio-Reaktiv:', settings)
+  function clearBgAudioPreset() {
+    if (bgUserEffectsBackup) assignAudioReactiveConfig(bgAudioReactive, bgUserEffectsBackup)
+    activeBgAudioPreset.value = null
+    updateBgAudioReactive()
+    bumpBgAudioRevision()
+  }
+
+  function saveBgAudioSettings() {
+    const copy = cloneAudioReactiveConfig(bgAudioReactive)
+    savedBgAudioSettings.value = copy
+    try {
+      localStorage.setItem(BG_AUDIO_STORAGE_KEY, JSON.stringify(copy))
+    } catch (e) {
+      console.warn('⚠️ Hintergrund-Audio-Einstellungen konnten nicht gespeichert werden:', e)
+    }
+  }
+
+  function applyBgAudioSettings() {
+    if (!savedBgAudioSettings.value) return
+    assignAudioReactiveConfig(bgAudioReactive, savedBgAudioSettings.value)
+    activeBgAudioPreset.value = null
+    updateBgAudioReactive()
+    bumpBgAudioRevision()
+  }
+
+  /** Flache Snapshot-Felder (Preset/Beat-Marker) in die Konfiguration übernehmen. */
+  function restoreBgAudioFromSnapshot(snapshot) {
+    applyBackgroundAudioSnapshot(bgAudioReactive, snapshot)
+    activeBgAudioPreset.value = null
+    bumpBgAudioRevision()
   }
 
   function updateGradientSettings() {
@@ -511,7 +579,7 @@ export function useBgSettings() {
     console.log('🔍 Aktuelle Werte vor dem Speichern:')
     console.log('  - gradientEnabled:', gradientEnabled.value)
     console.log('  - backgroundColor:', backgroundColor.value)
-    console.log('  - bgAudioEnabled:', bgAudioEnabled.value)
+    console.log('  - bgAudioEnabled:', bgAudioReactive.enabled)
 
     const presetNumber = savedPresets.value.length + 1
     const newPreset = {
@@ -530,29 +598,8 @@ export function useBgSettings() {
       gradientColor2: gradientColor2.value,
       gradientType: gradientType.value,
       gradientAngle: gradientAngle.value,
-      bgAudioEnabled: Boolean(bgAudioEnabled.value),
-      bgAudioSource: bgAudioSource.value,
-      bgAudioSmoothing: bgAudioSmoothing.value,
-      bgEffects: {
-        hue: { enabled: Boolean(bgEffectHue.value), intensity: bgEffectHueIntensity.value },
-        brightness: {
-          enabled: Boolean(bgEffectBrightness.value),
-          intensity: bgEffectBrightnessIntensity.value,
-        },
-        saturation: {
-          enabled: Boolean(bgEffectSaturation.value),
-          intensity: bgEffectSaturationIntensity.value,
-        },
-        glow: { enabled: Boolean(bgEffectGlow.value), intensity: bgEffectGlowIntensity.value },
-        gradientPulse: {
-          enabled: Boolean(bgEffectGradientPulse.value),
-          intensity: bgEffectGradientPulseIntensity.value,
-        },
-        gradientRotation: {
-          enabled: Boolean(bgEffectGradientRotation.value),
-          intensity: bgEffectGradientRotationIntensity.value,
-        },
-      },
+      // Hintergrund-Audio-Reaktiv (flaches, rückwärtskompatibles Format)
+      ...serializeBackgroundAudio(bgAudioReactive),
     }
 
     savedPresets.value.push(newPreset)
@@ -579,24 +626,7 @@ export function useBgSettings() {
       gradientType.value = preset.gradientType || 'radial'
       gradientAngle.value = preset.gradientAngle || 45
 
-      bgAudioEnabled.value = preset.bgAudioEnabled || false
-      bgAudioSource.value = preset.bgAudioSource || 'bass'
-      bgAudioSmoothing.value = preset.bgAudioSmoothing || 50
-
-      if (preset.bgEffects) {
-        bgEffectHue.value = preset.bgEffects.hue?.enabled || false
-        bgEffectHueIntensity.value = preset.bgEffects.hue?.intensity || 80
-        bgEffectBrightness.value = preset.bgEffects.brightness?.enabled || false
-        bgEffectBrightnessIntensity.value = preset.bgEffects.brightness?.intensity || 80
-        bgEffectSaturation.value = preset.bgEffects.saturation?.enabled || false
-        bgEffectSaturationIntensity.value = preset.bgEffects.saturation?.intensity || 80
-        bgEffectGlow.value = preset.bgEffects.glow?.enabled || false
-        bgEffectGlowIntensity.value = preset.bgEffects.glow?.intensity || 80
-        bgEffectGradientPulse.value = preset.bgEffects.gradientPulse?.enabled || false
-        bgEffectGradientPulseIntensity.value = preset.bgEffects.gradientPulse?.intensity || 80
-        bgEffectGradientRotation.value = preset.bgEffects.gradientRotation?.enabled || false
-        bgEffectGradientRotationIntensity.value = preset.bgEffects.gradientRotation?.intensity || 80
-      }
+      restoreBgAudioFromSnapshot(preset)
 
       if (preset.backgroundVideo?.src) {
         // Video-Hintergrund inkl. Bild-Audio-Reaktiv wiederherstellen
@@ -1098,37 +1128,7 @@ export function useBgSettings() {
       gradientColor2: gradientColor2.value,
       gradientType: gradientType.value,
       gradientAngle: gradientAngle.value,
-      bgAudioEnabled: Boolean(bgAudioEnabled.value),
-      bgAudioSource: bgAudioSource.value,
-      bgAudioSmoothing: bgAudioSmoothing.value,
-      bgEffects: {
-        hue: { enabled: Boolean(bgEffectHue.value), intensity: bgEffectHueIntensity.value },
-        brightness: {
-          enabled: Boolean(bgEffectBrightness.value),
-          intensity: bgEffectBrightnessIntensity.value,
-        },
-        saturation: {
-          enabled: Boolean(bgEffectSaturation.value),
-          intensity: bgEffectSaturationIntensity.value,
-        },
-        glow: { enabled: Boolean(bgEffectGlow.value), intensity: bgEffectGlowIntensity.value },
-        strobe: {
-          enabled: Boolean(bgEffectStrobe.value),
-          intensity: bgEffectStrobeIntensity.value,
-        },
-        contrast: {
-          enabled: Boolean(bgEffectContrast.value),
-          intensity: bgEffectContrastIntensity.value,
-        },
-        gradientPulse: {
-          enabled: Boolean(bgEffectGradientPulse.value),
-          intensity: bgEffectGradientPulseIntensity.value,
-        },
-        gradientRotation: {
-          enabled: Boolean(bgEffectGradientRotation.value),
-          intensity: bgEffectGradientRotationIntensity.value,
-        },
-      },
+      ...serializeBackgroundAudio(bgAudioReactive),
     }
   }
 
@@ -1150,27 +1150,7 @@ export function useBgSettings() {
       gradientType.value = snapshot.gradientType || 'radial'
       gradientAngle.value = snapshot.gradientAngle ?? 45
 
-      bgAudioEnabled.value = Boolean(snapshot.bgAudioEnabled)
-      bgAudioSource.value = snapshot.bgAudioSource || 'bass'
-      bgAudioSmoothing.value = snapshot.bgAudioSmoothing ?? 50
-
-      const fx = snapshot.bgEffects || {}
-      bgEffectHue.value = Boolean(fx.hue?.enabled)
-      bgEffectHueIntensity.value = fx.hue?.intensity ?? 80
-      bgEffectBrightness.value = Boolean(fx.brightness?.enabled)
-      bgEffectBrightnessIntensity.value = fx.brightness?.intensity ?? 80
-      bgEffectSaturation.value = Boolean(fx.saturation?.enabled)
-      bgEffectSaturationIntensity.value = fx.saturation?.intensity ?? 80
-      bgEffectGlow.value = Boolean(fx.glow?.enabled)
-      bgEffectGlowIntensity.value = fx.glow?.intensity ?? 80
-      bgEffectStrobe.value = Boolean(fx.strobe?.enabled)
-      bgEffectStrobeIntensity.value = fx.strobe?.intensity ?? 80
-      bgEffectContrast.value = Boolean(fx.contrast?.enabled)
-      bgEffectContrastIntensity.value = fx.contrast?.intensity ?? 70
-      bgEffectGradientPulse.value = Boolean(fx.gradientPulse?.enabled)
-      bgEffectGradientPulseIntensity.value = fx.gradientPulse?.intensity ?? 80
-      bgEffectGradientRotation.value = Boolean(fx.gradientRotation?.enabled)
-      bgEffectGradientRotationIntensity.value = fx.gradientRotation?.intensity ?? 80
+      restoreBgAudioFromSnapshot(snapshot)
 
       if (snapshot.backgroundVideo?.src) {
         // Video-Hintergrund inkl. Bild-Audio-Reaktiv setzen. Über einen
@@ -1511,25 +1491,19 @@ export function useBgSettings() {
     gradientColor2,
     gradientType,
     gradientAngle,
-    bgAudioEnabled,
-    bgAudioSource,
-    bgAudioSmoothing,
-    bgEffectHue,
-    bgEffectHueIntensity,
-    bgEffectBrightness,
-    bgEffectBrightnessIntensity,
-    bgEffectSaturation,
-    bgEffectSaturationIntensity,
-    bgEffectGlow,
-    bgEffectGlowIntensity,
-    bgEffectStrobe,
-    bgEffectStrobeIntensity,
-    bgEffectContrast,
-    bgEffectContrastIntensity,
-    bgEffectGradientPulse,
-    bgEffectGradientPulseIntensity,
-    bgEffectGradientRotation,
-    bgEffectGradientRotationIntensity,
+    bgAudioReactive,
+    activeBgAudioPreset,
+    bgAudioRevision,
+    hasSavedBgAudioSettings,
+    setBgAudioEnabled,
+    setBgAudioProperty,
+    setBgEffectEnabled,
+    setBgEffectIntensity,
+    setBgEffectSource,
+    toggleBgAudioPreset,
+    clearBgAudioPreset,
+    saveBgAudioSettings,
+    applyBgAudioSettings,
     bgFlipH,
     bgFlipV,
     wsBgFlipH,

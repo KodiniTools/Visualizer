@@ -11,9 +11,117 @@
  * - Kachel-Hintergrund (Tiles)
  * - Audio-reaktive Effekte
  */
+import { getMotionOffset } from '../../audio/AudioReactiveEffects.js'
+
 export class BackgroundRenderer {
   constructor(canvasManager) {
     this.manager = canvasManager
+  }
+
+  /**
+   * Wendet die geometrischen Audio-Reaktiv-Effekte (Skalierung, Rotation,
+   * Beat-Flip, Skew, Perspektive, Bewegungspfade) um das Zentrum (cx, cy) auf
+   * den Kontext an – dieselbe Semantik wie bei Canvas-Bildern.
+   * @returns {boolean} true, wenn transformiert wurde
+   */
+  _applyAudioReactiveTransform(ctx, audioReactive, cx, cy) {
+    if (!audioReactive || !audioReactive.hasEffects) return false
+    const fx = audioReactive.effects
+
+    // Skalierung: alle scale-liefernden Effekte multiplizieren sich
+    let scale = 1
+    for (const key of ['scale', 'beatPulse', 'zoomPunch', 'bpmPulse', 'freqSplit']) {
+      if (fx[key] && typeof fx[key].scale === 'number') scale *= fx[key].scale
+    }
+    const rotationDeg = fx.rotation ? fx.rotation.rotation || 0 : 0
+    let flipScaleX = 1
+    if (fx.beatFlip && typeof fx.beatFlip.flipScaleX === 'number') {
+      const f = fx.beatFlip.flipScaleX
+      flipScaleX = Math.abs(f) < 0.02 ? 0.02 * Math.sign(f || 1) : f
+    }
+    const skew = fx.skew
+    const persp = fx.perspective
+    const merged = Object.assign({}, ...Object.values(fx))
+    const motion = getMotionOffset(merged)
+
+    const hasTransform =
+      scale !== 1 ||
+      rotationDeg !== 0 ||
+      flipScaleX !== 1 ||
+      skew ||
+      persp ||
+      motion.x !== 0 ||
+      motion.y !== 0
+    if (!hasTransform) return false
+
+    ctx.translate(cx + motion.x, cy + motion.y)
+    if (rotationDeg !== 0) ctx.rotate((rotationDeg * Math.PI) / 180)
+    if (scale !== 1 || flipScaleX !== 1) ctx.scale(scale * flipScaleX, scale)
+    if (skew) {
+      const skewXRad = ((skew.skewX || 0) * Math.PI) / 180
+      const skewYRad = ((skew.skewY || 0) * Math.PI) / 180
+      ctx.transform(1, Math.tan(skewYRad), Math.tan(skewXRad), 1, 0, 0)
+    }
+    if (persp) {
+      // Canvas 2D kennt keine echte Perspektive: Simulation über asymmetrische
+      // Skalierung + leichte Scherung (wie bei Canvas-Bildern).
+      const rotX = ((persp.perspectiveRotateX || 0) * Math.PI) / 180
+      const rotY = ((persp.perspectiveRotateY || 0) * Math.PI) / 180
+      ctx.scale(1 - Math.abs(Math.sin(rotY)) * 0.15, 1 - Math.abs(Math.sin(rotX)) * 0.15)
+      ctx.transform(1, Math.sin(rotX) * 0.1, Math.sin(rotY) * 0.1, 1, 0, 0)
+    }
+    ctx.translate(-cx, -cy)
+    return true
+  }
+
+  /**
+   * Zeichnet die Overlay-Effekte (audio-reaktive Kontur, Vignette-Puls) über
+   * einer rechteckigen Fläche.
+   */
+  _drawAudioReactiveOverlays(ctx, audioReactive, x, y, w, h) {
+    if (!audioReactive || !audioReactive.hasEffects) return
+    const fx = audioReactive.effects
+
+    if (fx.border && fx.border.borderWidth > 0.5) {
+      const bw = fx.border.borderWidth
+      ctx.save()
+      ctx.filter = 'none'
+      ctx.globalAlpha = Math.min(1, fx.border.borderOpacity ?? 1)
+      ctx.lineWidth = bw
+      ctx.strokeStyle = '#ffffff'
+      if (fx.border.borderGlow > 0) {
+        ctx.shadowColor = 'rgba(139, 92, 246, 0.9)'
+        ctx.shadowBlur = fx.border.borderGlow
+      }
+      ctx.strokeRect(x + bw / 2, y + bw / 2, w - bw, h - bw)
+      ctx.restore()
+    }
+
+    if (fx.vignettePulse) {
+      const strength = fx.vignettePulse.vignetteStrength || 0
+      if (strength > 0.01) {
+        const cx = x + w / 2
+        const cy = y + h / 2
+        const grad = ctx.createRadialGradient(
+          cx,
+          cy,
+          Math.min(w, h) * 0.3,
+          cx,
+          cy,
+          Math.max(w, h) * 0.7,
+        )
+        grad.addColorStop(0, 'rgba(0,0,0,0)')
+        grad.addColorStop(1, `rgba(0,0,0,${Math.min(0.85, strength).toFixed(3)})`)
+        ctx.save()
+        ctx.filter = 'none'
+        ctx.shadowBlur = 0
+        ctx.shadowColor = 'transparent'
+        ctx.globalCompositeOperation = 'source-over'
+        ctx.fillStyle = grad
+        ctx.fillRect(x, y, w, h)
+        ctx.restore()
+      }
+    }
   }
 
   /**
@@ -59,13 +167,23 @@ export class BackgroundRenderer {
    */
   _drawColorBackground(ctx) {
     ctx.save()
+    const canvasW = ctx.canvas.width
+    const canvasH = ctx.canvas.height
 
-    // Audio-Reaktive Effekte auf Hintergrundfarbe anwenden
+    // Audio-Reaktive Effekte auf Hintergrundfarbe anwenden (Filter + Geometrie,
+    // identischer Effektsatz wie bei Canvas-Bildern)
     const bgColorAudioReactive = this.manager._getAudioReactiveValues(
       this.manager.backgroundColorSettings,
     )
+    let transformed = false
     if (bgColorAudioReactive && bgColorAudioReactive.hasEffects) {
       this.manager._applyAudioReactiveFilters(ctx, bgColorAudioReactive)
+      transformed = this._applyAudioReactiveTransform(
+        ctx,
+        bgColorAudioReactive,
+        canvasW / 2,
+        canvasH / 2,
+      )
     }
 
     // GRADIENT: Prüfen ob Gradient aktiviert ist
@@ -114,8 +232,17 @@ export class BackgroundRenderer {
       ctx.fillStyle = this.manager.background
     }
 
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    if (transformed) {
+      // Bei Verschiebung/Rotation/Skalierung eine deutlich größere Fläche füllen,
+      // damit an den Rändern keine Lücken entstehen.
+      ctx.fillRect(-canvasW, -canvasH, canvasW * 3, canvasH * 3)
+    } else {
+      ctx.fillRect(0, 0, canvasW, canvasH)
+    }
     ctx.restore()
+
+    // Overlay-Effekte (Kontur, Vignette) in Canvas-Koordinaten über dem Hintergrund
+    this._drawAudioReactiveOverlays(ctx, bgColorAudioReactive, 0, 0, canvasW, canvasH)
   }
 
   /**

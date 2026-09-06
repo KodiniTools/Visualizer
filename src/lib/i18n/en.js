@@ -840,6 +840,7 @@ export default {
     contrastEffect: 'Contrast',
     gradientPulse: 'Gradient Pulse',
     gradientRotation: 'Gradient Rotation',
+    gradientEffects: 'Gradient Effects',
     undo: 'Undo',
     inHistory: 'in history',
     presets: 'Canvas Presets',

@@ -1,5 +1,5 @@
 <template>
-  <div class="audio-reactive-section">
+  <div ref="rootEl" class="audio-reactive-section">
     <AudioReactiveMaster />
     <AudioReactivePresets v-if="isEnabled" />
     <AudioReactiveEffects v-if="isEnabled" />
@@ -9,6 +9,8 @@
 
 <script setup>
 import { ref, computed, toRef, provide } from 'vue'
+import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects.js'
+import { AUDIO_REACTIVE_PRESET_LIST } from '../../lib/audio/audioReactiveConfig.js'
 import { useI18n } from '../../lib/i18n.js'
 import AudioReactiveMaster from './audio-reactive/AudioReactiveMaster.vue'
 import AudioReactivePresets from './audio-reactive/AudioReactivePresets.vue'
@@ -30,7 +32,17 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  /**
+   * Zusätzliche Effekt-Kategorien (z. B. Gradient-Effekte des Hintergrunds):
+   * [{ title, effects: [{ id, name }], defaultIntensity }]
+   */
+  extraCategories: {
+    type: Array,
+    default: () => [],
+  },
 })
+
+const rootEl = ref(null)
 
 const emit = defineEmits([
   'audio-reactive-toggle',
@@ -65,16 +77,8 @@ const audioReactiveGainValueRef = ref(null)
 
 const isEnabled = ref(false)
 
-// Preset-Liste
-const presetList = [
-  { id: 'pulse', name: 'Pulse', icon: '💓' },
-  { id: 'dance', name: 'Dance', icon: '💃' },
-  { id: 'shake', name: 'Shake', icon: '🎸' },
-  { id: 'glow', name: 'Glow', icon: '✨' },
-  { id: 'strobe', name: 'Strobe', icon: '⚡' },
-  { id: 'glitch', name: 'Glitch', icon: '🔥' },
-  { id: 'rhythm', name: 'Rhythm', icon: '🥁' },
-]
+// Preset-Liste (gemeinsam mit dem Hintergrund-Panel)
+const presetList = AUDIO_REACTIVE_PRESET_LIST
 
 // Effekt-Kategorien (mit i18n)
 const colorEffects = computed(() => [
@@ -172,7 +176,10 @@ function onAudioReactiveGainChange(event) {
 }
 
 /**
- * Lädt Audio-Reaktiv Einstellungen in die UI
+ * Lädt Audio-Reaktiv Einstellungen in die UI.
+ *
+ * Akzeptiert ein Bild (`{ fotoSettings: { audioReactive } }`), ein Objekt mit
+ * `audioReactive` oder direkt eine Konfiguration (`{ enabled, effects, … }`).
  */
 function loadSettings(imageData) {
   if (!imageData) {
@@ -184,7 +191,10 @@ function loadSettings(imageData) {
     return
   }
 
-  const audioReactive = imageData.fotoSettings?.audioReactive || {}
+  const audioReactive =
+    imageData.fotoSettings?.audioReactive ||
+    imageData.audioReactive ||
+    (imageData.effects ? imageData : {})
 
   // Master-Einstellungen
   const enabled = audioReactive.enabled || false
@@ -235,33 +245,12 @@ function loadSettings(imageData) {
     }
   }
 
-  // Effekte laden (alle Effekt-Checkboxen und Slider)
+  // Effekte laden (alle Effekt-Checkboxen und Slider) – inkl. Rhythmus-Effekte
+  // und zusätzlicher Kategorien (z. B. Gradient-Effekte des Hintergrunds)
   const effects = audioReactive.effects || {}
   const allEffectIds = [
-    'hue',
-    'brightness',
-    'saturation',
-    'contrast',
-    'grayscale',
-    'sepia',
-    'invert',
-    'scale',
-    'rotation',
-    'skew',
-    'perspective',
-    'shake',
-    'bounce',
-    'swing',
-    'orbit',
-    'figure8',
-    'wave',
-    'spiral',
-    'float',
-    'glow',
-    'border',
-    'blur',
-    'strobe',
-    'chromatic',
+    ...EFFECT_NAMES,
+    ...props.extraCategories.flatMap((cat) => (cat.effects || []).map((e) => e.id)),
   ]
 
   // DOM-Elemente für Effekte suchen und aktualisieren (über data-effect-id)
@@ -272,8 +261,10 @@ function loadSettings(imageData) {
       const intensity = effectData?.intensity ?? 80
       const source = effectData?.source || ''
 
-      // Finde die Effekt-Elemente im DOM über data-effect-id
-      const effectItem = document.querySelector(`.effect-item[data-effect-id="${effectId}"]`)
+      // Finde die Effekt-Elemente im DOM über data-effect-id – nur innerhalb dieses
+      // Panels, da mehrere Panels (Bild + Hintergrund) gleichzeitig gemountet sein können
+      const scope = rootEl.value || document
+      const effectItem = scope.querySelector(`.effect-item[data-effect-id="${effectId}"]`)
       if (effectItem) {
         const checkbox = effectItem.querySelector('.effect-checkbox')
         const slider = effectItem.querySelector('.effect-slider')
@@ -315,6 +306,7 @@ provide('audioReactiveControls', {
   movementEffects,
   specialEffects,
   rhythmEffects,
+  extraCategories: toRef(props, 'extraCategories'),
   onAudioReactiveToggle,
   onAudioReactiveSourceChange,
   onAudioReactiveSmoothingChange,

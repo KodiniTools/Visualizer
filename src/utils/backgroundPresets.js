@@ -21,6 +21,10 @@ function builtinToSnapshot(bg = {}) {
     bgAudioEnabled: false,
     bgAudioSource: 'bass',
     bgAudioSmoothing: 50,
+    bgAudioEasing: 'linear',
+    bgAudioBeatBoost: 1.0,
+    bgAudioPhase: 0,
+    bgAudioGain: 1.0,
     bgEffects: {},
     // Eingebaute Vorlagen haben keine Vordergrund-Elemente.
     elements: null,
@@ -46,6 +50,11 @@ function userPresetToSnapshot(p = {}) {
     bgAudioEnabled: Boolean(p.bgAudioEnabled),
     bgAudioSource: p.bgAudioSource || 'bass',
     bgAudioSmoothing: p.bgAudioSmoothing ?? 50,
+    // Erweiterte Master-Einstellungen (neuere Presets; alte haben sie nicht)
+    bgAudioEasing: p.bgAudioEasing || 'linear',
+    bgAudioBeatBoost: p.bgAudioBeatBoost ?? 1.0,
+    bgAudioPhase: p.bgAudioPhase ?? 0,
+    bgAudioGain: p.bgAudioGain ?? 1.0,
     bgEffects: p.bgEffects || {},
     // Vordergrund-Elemente (Bilder, Videos, Texte, Lauftext) durchreichen,
     // damit ein Beat-Marker das komplette Canvas-Preset einsetzt.

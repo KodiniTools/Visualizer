@@ -17,13 +17,13 @@
       @change="commitInteraction"
     />
     <input
+      ref="numEl"
       type="number"
       class="slider-field__num"
       inputmode="decimal"
       :min="min"
       :max="max"
       :step="step"
-      :value="displayValue"
       :disabled="disabled"
       :aria-label="
         $attrs['aria-label']
@@ -69,7 +69,7 @@
  * Damit deren *scoped* CSS auch den Range-Input trifft, erhält er zusätzlich die
  * Scope-Attribute des Elternkontexts (siehe `useParentScopeAttrs`).
  */
-import { computed, getCurrentInstance, ref, watch } from 'vue'
+import { computed, getCurrentInstance, onMounted, ref, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { clamp } from '../../lib/color.js'
 
@@ -154,12 +154,27 @@ function formatValue(n) {
   return roundTo(n).toFixed(decimals.value)
 }
 
-// Anzeige im Zahlenfeld; während der Nutzer tippt, wird sie nicht überschrieben.
-const numberEditing = ref(false)
-const displayValue = ref(formatValue(numericValue.value))
-watch(numericValue, (n) => {
-  if (!numberEditing.value) displayValue.value = formatValue(n)
-})
+// Das Zahlenfeld wird bewusst NICHT über ein reaktives `:value` gebunden:
+// Vue würde bei jedem Re-Render den (ggf. veralteten) gebundenen Wert in das
+// Feld zurückschreiben, während der Nutzer noch tippt bzw. den Spinner klickt –
+// der Wert springt dann hin und her. Stattdessen wird der DOM-Wert imperativ
+// synchronisiert, und nur dann, wenn die Änderung nicht aus dem Feld selbst kam.
+const numEl = ref(null)
+let lastNumberEmit = null // zuletzt vom Zahlenfeld emittierter Wert
+
+function syncNumberField(force = false) {
+  const el = numEl.value
+  if (!el) return
+  const n = numericValue.value
+  const cameFromThisField = lastNumberEmit !== null && lastNumberEmit === n
+  const focused = typeof document !== 'undefined' && document.activeElement === el
+  if (!force && focused && cameFromThisField) return // Nutzer tippt/klickt gerade
+  const formatted = formatValue(n)
+  if (el.value !== formatted) el.value = formatted
+}
+
+onMounted(() => syncNumberField(true))
+watch(numericValue, () => syncNumberField())
 
 // ── Interaktion (start/change für Undo-Gruppierung) ────────────────────────
 let interacting = false
@@ -197,19 +212,18 @@ function onRangeInput(event) {
 }
 
 function onNumberInput(event) {
-  numberEditing.value = true
   const raw = event.target.value
   if (raw === '' || raw === '-' || raw === '.' || raw === '-.') return // Nutzer tippt noch
   const n = Number(raw)
   if (!Number.isFinite(n)) return
   beginInteraction()
+  lastNumberEmit = roundTo(clamp(n, minNum.value, maxNum.value))
   applyValue(n)
 }
 
-function onNumberBlur(event) {
-  numberEditing.value = false
-  displayValue.value = formatValue(numericValue.value)
-  event.target.value = displayValue.value
+function onNumberBlur() {
+  lastNumberEmit = null
+  syncNumberField(true) // Anzeige auf den gültigen Modellwert normalisieren
   commitInteraction()
 }
 
@@ -246,8 +260,9 @@ function reset() {
 .slider-field__num {
   flex: none;
   box-sizing: border-box;
-  width: 58px;
-  padding: 2px 4px;
+  width: 62px;
+  height: 22px;
+  padding: 2px 2px 2px 4px;
   background: var(--secondary-bg, #0c1828);
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
   border-radius: 4px;
@@ -259,6 +274,14 @@ function reset() {
 .slider-field__num:focus {
   outline: none;
   border-color: var(--accent-primary, #c9984d);
+}
+/* Spinner-Pfeile dauerhaft sichtbar und gut klickbar (Chrome/Safari blenden sie sonst erst beim Hover ein). */
+.slider-field__num::-webkit-inner-spin-button,
+.slider-field__num::-webkit-outer-spin-button {
+  opacity: 1;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
 }
 
 .slider-field__reset {

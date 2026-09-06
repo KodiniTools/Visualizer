@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from 'vitest'
+import { nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import SliderField from '../../components/ui/SliderField.vue'
 import ScopedSliderHost from './fixtures/ScopedSliderHost.vue'
@@ -109,5 +110,34 @@ describe('SliderField', () => {
     setInput(range.element, '120')
     expect(wrapper.vm.value).toBe(120)
     expect(wrapper.vm.seen).toEqual([120])
+  })
+
+  it('spinner steps do not flutter: the typed/stepped value survives the re-render', async () => {
+    wrapper = mount(ScopedSliderHost, { attachTo: document.body })
+    const num = wrapper.find('input[type="number"]').element
+    num.focus()
+    expect(num.value).toBe('80')
+    // Zwei Spinner-Klicks (↑) hintereinander: 81, 82 – jeweils mit Re-Render dazwischen
+    setInput(num, '81')
+    await nextTick()
+    expect(wrapper.vm.value).toBe(81)
+    expect(num.value).toBe('81')
+    setInput(num, '82')
+    await nextTick()
+    expect(wrapper.vm.value).toBe(82)
+    expect(num.value).toBe('82')
+    // Tippen unterhalb von min wird nicht während der Eingabe zurückgeschrieben …
+    setInput(num, '-5')
+    await nextTick()
+    expect(wrapper.vm.value).toBe(0)
+    expect(num.value).toBe('-5')
+    // … erst beim Verlassen des Feldes normalisiert
+    num.dispatchEvent(new Event('blur'))
+    expect(num.value).toBe('0')
+    // Externe Änderung ohne Fokus wird übernommen
+    wrapper.vm.value = 33
+    await nextTick()
+    expect(num.value).toBe('33')
+    document.body.innerHTML = ''
   })
 })

@@ -9,6 +9,7 @@ import {
   TEXT_EFFECT_NAMES,
   createTextAudioReactiveConfig,
   ensureTextAudioReactive,
+  ensureAudioReactiveConfig,
   AUDIO_REACTIVE_PRESETS,
   AUDIO_REACTIVE_PRESET_LIST,
   DEFAULT_EFFECT_INTENSITIES,
@@ -105,6 +106,22 @@ describe('audioReactiveConfig – Struktur', () => {
     expect(legacy.effects.beatFlip).toEqual({ enabled: false, intensity: 80, source: null })
     expect(Object.keys(legacy.effects).sort()).toEqual([...TEXT_EFFECT_NAMES].sort())
     expect(ensureTextAudioReactive(null).enabled).toBe(false)
+  })
+
+  it('ensureAudioReactiveConfig completes a partial video/image config in place', () => {
+    const legacy = {
+      enabled: true,
+      source: 'mid',
+      smoothing: 50,
+      effects: { hue: { enabled: true, intensity: 80 }, orbit: { enabled: true, intensity: 50 } },
+    }
+    const out = ensureAudioReactiveConfig(legacy)
+    expect(out).toBe(legacy)
+    expect(legacy).toMatchObject({ easing: 'linear', beatBoost: 1, phase: 0, gain: 1 })
+    expect(legacy.effects.hue).toEqual({ enabled: true, intensity: 80, source: null })
+    expect(legacy.effects.vignettePulse).toEqual({ enabled: false, intensity: 60, source: null })
+    expect(Object.keys(legacy.effects).sort()).toEqual([...EFFECT_NAMES].sort())
+    expect(ensureAudioReactiveConfig(undefined).enabled).toBe(false)
   })
 
   it('preset list matches preset definitions', () => {

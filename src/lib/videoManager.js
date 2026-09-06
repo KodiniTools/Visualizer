@@ -4,6 +4,19 @@
  *
  * Videos werden als HTMLVideoElement gehalten und Frame-by-Frame auf Canvas gezeichnet
  */
+import { EFFECT_NAMES } from './audio/AudioReactiveEffects.js'
+import { computeAudioReactiveValues } from './audio/audioReactiveEngine.js'
+import {
+  createAudioReactiveConfig,
+  ensureAudioReactiveConfig,
+} from './audio/audioReactiveConfig.js'
+import {
+  applyAudioReactiveFilters,
+  applyAudioReactiveTransform,
+  drawAudioReactiveOverlays,
+  drawMediaWithAudioReactive,
+} from './canvasManager/rendering/audioReactiveDraw.js'
+
 export class VideoManager {
   constructor(canvas, callbacks = {}) {
     this.canvas = canvas
@@ -106,27 +119,16 @@ export class VideoManager {
         borderWidth: 0,
         borderColor: '#ffffff',
         borderOpacity: 100,
-        audioReactive: {
-          enabled: false,
-          effects: {
-            hue: { enabled: false, intensity: 80 },
-            brightness: { enabled: false, intensity: 80 },
-            saturation: { enabled: false, intensity: 80 },
-            scale: { enabled: false, intensity: 80 },
-            glow: { enabled: false, intensity: 80 },
-            border: { enabled: false, intensity: 80 },
-            blur: { enabled: false, intensity: 50 },
-            rotation: { enabled: false, intensity: 50 },
-            shake: { enabled: false, intensity: 50 },
-            bounce: { enabled: false, intensity: 50 },
-            swing: { enabled: false, intensity: 50 },
-            orbit: { enabled: false, intensity: 50 },
-          },
-          source: 'bass',
-          smoothing: 50,
-        },
+        // Identische Struktur wie bei Canvas-Bildern (Master inkl. Easing/Beat-
+        // Boost/Phase/Gain, alle Effekte mit eigener Quelle)
+        audioReactive: createAudioReactiveConfig(EFFECT_NAMES),
       }
     }
+
+    // Alte/unvollständige Audio-Konfigurationen (z. B. aus Presets) vervollständigen
+    videoData.fotoSettings.audioReactive = ensureAudioReactiveConfig(
+      videoData.fotoSettings.audioReactive,
+    )
 
     if (!videoData.settings) {
       videoData.settings = {
@@ -678,10 +680,8 @@ export class VideoManager {
     }
 
     // Rotation anwenden
-    let totalRotation = videoData.fotoSettings?.rotation || 0
-    if (audioReactive?.hasEffects && audioReactive.effects.rotation) {
-      totalRotation += audioReactive.effects.rotation.rotation
-    }
+    // (audio-reaktive Rotation wird weiter unten in der gemeinsamen Transformation angewendet)
+    const totalRotation = videoData.fotoSettings?.rotation || 0
 
     if (totalRotation !== 0) {
       const centerX = bounds.x + bounds.width / 2
@@ -723,38 +723,37 @@ export class VideoManager {
       drawBounds.height = newHeight
     }
 
-    // Audio-reaktive Bewegungseffekte
+    // Audio-reaktive Geometrie (Skalierung aller scale-Effekte, Beat-Flip, Skew,
+    // Perspektive, Bewegungspfade) um das Videozentrum – gemeinsamer Helfer
     if (audioReactive?.hasEffects) {
-      if (audioReactive.effects.shake) {
-        drawBounds.x += audioReactive.effects.shake.shakeX || 0
-        drawBounds.y += audioReactive.effects.shake.shakeY || 0
-      }
-      if (audioReactive.effects.bounce) {
-        drawBounds.y += audioReactive.effects.bounce.bounceY || 0
-      }
-      if (audioReactive.effects.swing) {
-        drawBounds.x += audioReactive.effects.swing.swingX || 0
-      }
-      if (audioReactive.effects.orbit) {
-        drawBounds.x += audioReactive.effects.orbit.orbitX || 0
-        drawBounds.y += audioReactive.effects.orbit.orbitY || 0
-      }
-      if (audioReactive.effects.scale) {
-        const scaleFactor = audioReactive.effects.scale.scale || 1.0
-        const centerX = drawBounds.x + drawBounds.width / 2
-        const centerY = drawBounds.y + drawBounds.height / 2
-        const newWidth = drawBounds.width * scaleFactor
-        const newHeight = drawBounds.height * scaleFactor
-        drawBounds.x = centerX - newWidth / 2
-        drawBounds.y = centerY - newHeight / 2
-        drawBounds.width = newWidth
-        drawBounds.height = newHeight
-      }
+      applyAudioReactiveTransform(
+        ctx,
+        audioReactive,
+        drawBounds.x + drawBounds.width / 2,
+        drawBounds.y + drawBounds.height / 2,
+      )
     }
 
-    // Video auf Canvas zeichnen
+    // Video auf Canvas zeichnen (mit chromatischer Aberration, falls aktiv)
     try {
-      ctx.drawImage(video, drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height)
+      drawMediaWithAudioReactive(
+        ctx,
+        audioReactive,
+        video,
+        drawBounds.x,
+        drawBounds.y,
+        drawBounds.width,
+        drawBounds.height,
+      )
+      // Overlay-Effekte (audio-reaktive Kontur, Vignette-Puls) über dem Video
+      drawAudioReactiveOverlays(
+        ctx,
+        audioReactive,
+        drawBounds.x,
+        drawBounds.y,
+        drawBounds.width,
+        drawBounds.height,
+      )
     } catch (e) {
       console.warn('[VideoManager] Video render error:', e)
     }
@@ -780,155 +779,21 @@ export class VideoManager {
   }
 
   /**
-   * Berechnet Audio-Reaktive Werte (kompatibel mit MultiImageManager)
+   * Berechnet Audio-Reaktive Werte – gemeinsame Engine mit Bildern/Hintergrund
    */
   _getAudioReactiveValues(audioSettings) {
-    if (!audioSettings || !audioSettings.enabled) {
-      return null
-    }
-
-    const audioData = window.audioAnalysisData
-    if (!audioData) return null
-
-    const source = audioSettings.source || 'bass'
-    const smoothing = audioSettings.smoothing || 50
-    let audioLevel = 0
-
-    const useSmooth = smoothing > 30
-
-    switch (source) {
-      case 'bass':
-        audioLevel = useSmooth ? audioData.smoothBass : audioData.bass
-        break
-      case 'mid':
-        audioLevel = useSmooth ? audioData.smoothMid : audioData.mid
-        break
-      case 'treble':
-        audioLevel = useSmooth ? audioData.smoothTreble : audioData.treble
-        break
-      case 'volume':
-        audioLevel = useSmooth ? audioData.smoothVolume : audioData.volume
-        break
-      case 'dynamic':
-        const bass = useSmooth ? audioData.smoothBass : audioData.bass
-        const mid = useSmooth ? audioData.smoothMid : audioData.mid
-        const treble = useSmooth ? audioData.smoothTreble : audioData.treble
-        const totalEnergy = Math.max(bass + mid + treble, 1)
-        let rawLevel =
-          (bass * bass) / totalEnergy + (mid * mid) / totalEnergy + (treble * treble) / totalEnergy
-        const normalized = rawLevel / 255
-        audioLevel = Math.pow(normalized, 0.7) * 255 * 0.85
-        break
-    }
-
-    const baseLevel = audioLevel / 255
-    const result = { hasEffects: false, effects: {} }
-
-    const effects = audioSettings.effects
-    if (!effects) return null
-
-    for (const [effectName, effectConfig] of Object.entries(effects)) {
-      if (effectConfig && effectConfig.enabled) {
-        const intensity = (effectConfig.intensity || 80) / 100
-        const normalizedLevel = baseLevel * intensity
-
-        result.hasEffects = true
-        result.effects[effectName] = this._calculateEffectValue(effectName, normalizedLevel)
-      }
-    }
-
-    return result.hasEffects ? result : null
+    return computeAudioReactiveValues(
+      audioSettings,
+      audioSettings,
+      typeof window !== 'undefined' ? window.audioAnalysisData : null,
+    )
   }
 
   /**
-   * Berechnet einzelne Effekt-Werte
-   */
-  _calculateEffectValue(effectName, normalizedLevel) {
-    switch (effectName) {
-      case 'hue':
-        return { hueRotate: normalizedLevel * 720 }
-      case 'brightness':
-        return { brightness: 60 + normalizedLevel * 120 }
-      case 'saturation':
-        return { saturation: 30 + normalizedLevel * 220 }
-      case 'scale':
-        return { scale: 1.0 + normalizedLevel * 0.5 }
-      case 'glow':
-        return {
-          glowBlur: normalizedLevel * 50,
-          glowColor: `rgba(139, 92, 246, ${0.5 + normalizedLevel * 0.5})`,
-        }
-      case 'border':
-        return {
-          borderWidth: normalizedLevel * 20,
-          borderOpacity: 0.5 + normalizedLevel * 0.5,
-          borderGlow: normalizedLevel * 30,
-        }
-      case 'blur':
-        return { blur: normalizedLevel * 10 }
-      case 'rotation':
-        const timeRot = Date.now() * 0.005
-        return { rotation: Math.sin(timeRot) * normalizedLevel * 15 }
-      case 'shake':
-        if (normalizedLevel > 0.2) {
-          const shakeIntensity = normalizedLevel * 15
-          return {
-            shakeX: (Math.random() - 0.5) * 2 * shakeIntensity,
-            shakeY: (Math.random() - 0.5) * 2 * shakeIntensity,
-          }
-        }
-        return { shakeX: 0, shakeY: 0 }
-      case 'bounce':
-        const timeBounce = Date.now() * 0.008
-        return { bounceY: -Math.abs(Math.sin(timeBounce)) * normalizedLevel * 30 }
-      case 'swing':
-        const timeSwing = Date.now() * 0.004
-        return { swingX: Math.sin(timeSwing) * normalizedLevel * 40 }
-      case 'orbit':
-        const timeOrbit = Date.now() * 0.003
-        const orbitRadius = normalizedLevel * 25
-        return {
-          orbitX: Math.cos(timeOrbit) * orbitRadius,
-          orbitY: Math.sin(timeOrbit) * orbitRadius,
-        }
-      default:
-        return {}
-    }
-  }
-
-  /**
-   * Wendet Audio-Reaktive Filter auf Context an
+   * Wendet Audio-Reaktive Filter/Glow/Strobe an – gemeinsamer Helfer
    */
   _applyAudioReactiveFilters(ctx, audioReactive) {
-    if (!audioReactive || !audioReactive.hasEffects) return
-
-    let currentFilter = ctx.filter || 'none'
-    if (currentFilter === 'none') currentFilter = ''
-
-    const effects = audioReactive.effects
-
-    if (effects.hue) {
-      currentFilter += ` hue-rotate(${effects.hue.hueRotate}deg)`
-    }
-    if (effects.brightness) {
-      currentFilter += ` brightness(${effects.brightness.brightness}%)`
-    }
-    if (effects.saturation) {
-      currentFilter += ` saturate(${effects.saturation.saturation}%)`
-    }
-    if (effects.blur) {
-      currentFilter += ` blur(${effects.blur.blur}px)`
-    }
-    if (effects.glow) {
-      ctx.shadowColor = effects.glow.glowColor
-      ctx.shadowBlur = effects.glow.glowBlur
-      ctx.shadowOffsetX = 0
-      ctx.shadowOffsetY = 0
-    }
-
-    if (currentFilter.trim()) {
-      ctx.filter = currentFilter.trim()
-    }
+    applyAudioReactiveFilters(ctx, audioReactive)
   }
 
   /**

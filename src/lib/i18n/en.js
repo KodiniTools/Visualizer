@@ -1564,6 +1564,8 @@ export default {
     audioRecordHint: '💡 Video audio will be recorded',
     bgVideoTitle: 'Video Background',
     bgLabel: 'Background',
+    videoLabel: 'Video',
+    audioTargetHint: 'Applies to the first video. Click another video in the list to edit it.',
     wsBgLabel: 'Workspace Background',
   },
 

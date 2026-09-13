@@ -1,5 +1,5 @@
 <template>
-  <div class="panel-container" :class="{ 'panel-disabled': !store.showVisualizer }">
+  <div class="panel-container">
     <!-- Disabled Overlay -->
     <div v-if="!store.showVisualizer" class="disabled-overlay">
       <span class="disabled-text">{{ t('visualizer.disabled') }}</span>
@@ -752,42 +752,20 @@ h4 {
   transform: scale(1.15);
 }
 
-/* ✅ NEU: Disabled State Styles */
 .panel-container {
   position: relative;
-  transition: opacity 0.3s ease;
 }
 
-.panel-disabled {
-  opacity: 0.6;
-}
-
-/* Alle Steuerungen außer dem Status-Toggle deaktivieren */
-.panel-disabled .control-section:not(.status-toggle) {
-  pointer-events: none;
-  opacity: 0.4;
-}
-
-/* Status-Toggle immer aktiv und sichtbar halten */
-.panel-disabled .status-toggle {
-  pointer-events: auto !important;
-  opacity: 1 !important;
-  position: relative;
-  z-index: 20;
-}
-
+/* Deaktivierter Visualizer wird nur vom Canvas ausgeblendet - die
+   Bearbeitung (Farbe, Position, Visualizer-Typ etc.) bleibt möglich, damit
+   der Nutzer neue Einstellungen vorbereiten kann, bevor er ihn wieder
+   einschaltet. Daher hier bewusst kein pointer-events/opacity auf den
+   control-sections. */
 .disabled-overlay {
   position: absolute;
-  top: 50px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 12px;
+  right: 12px;
   z-index: 10;
-  border-radius: 0 0 8px 8px;
   pointer-events: none;
 }
 
@@ -985,10 +963,6 @@ h4 {
 
 [data-theme='light'] .scale-slider::-moz-range-thumb {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .disabled-overlay {
-  background: rgba(255, 255, 255, 0.3);
 }
 
 [data-theme='light'] .disabled-text {

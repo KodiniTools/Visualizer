@@ -23,7 +23,7 @@ import { glRings as glRingsSpec } from './presets/glRings.js'
 import { glLightRays as glLightRaysSpec } from './presets/glLightRays.js'
 import { glFire as glFireSpec } from './presets/glFire.js'
 import { glRain as glRainSpec } from './presets/glRain.js'
-import { glSpectrogram as glSpectrogramSpec } from './presets/glSpectrogram.js'
+import { glShockwaves as glShockwavesSpec } from './presets/glShockwaves.js'
 import { glTerrain as glTerrainSpec } from './presets/glTerrain.js'
 import { glVoronoi as glVoronoiSpec } from './presets/glVoronoi.js'
 import { glSphere as glSphereSpec } from './presets/glSphere.js'
@@ -49,7 +49,7 @@ export const glPresetSpecs = {
   glParticles: glParticlesSpec,
   glFire: glFireSpec,
   glRain: glRainSpec,
-  glSpectrogram: glSpectrogramSpec,
+  glShockwaves: glShockwavesSpec,
   glTerrain: glTerrainSpec,
   glVoronoi: glVoronoiSpec,
   glSphere: glSphereSpec,

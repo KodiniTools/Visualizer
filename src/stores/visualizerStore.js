@@ -41,7 +41,7 @@ const VISUALIZER_CATEGORIES = {
     'glParticles',
     'glFire',
     'glRain',
-    'glSpectrogram',
+    'glShockwaves',
     'glTerrain',
     'glVoronoi',
     'glSphere',

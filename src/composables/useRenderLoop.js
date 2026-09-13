@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { Visualizers } from '../lib/visualizers/index.js'
 import { workerManager } from '../lib/workerManager.js'
-import { createPostProcessor, postFxActive, FrameMonitor } from '../lib/postfx/index.js'
+import { createPostProcessor, shouldRunPostFx, FrameMonitor } from '../lib/postfx/index.js'
 import { onsetForSource, advancePunch, punchScale } from '../lib/visualizers/core/onsetReactive.js'
 import { visualizerState } from '../lib/visualizers/core/state.js'
 import { REFERENCE_FRAME_MS } from '../lib/visualizers/core/helpers.js'
@@ -583,7 +583,7 @@ export function useRenderLoop({
 
         // Post-processing (Bloom / Trails) über das gesamte Layer-Composite.
         const mlPostFx = visualizerStore.postFxConfig
-        if (postFxActive(mlPostFx)) {
+        if (shouldRunPostFx(mlPostFx, currentQuality())) {
           const proc = ensureMainPostProcessor(canvas.width, canvas.height)
           if (proc) {
             try {
@@ -750,7 +750,7 @@ export function useRenderLoop({
             // Post-processing (Bloom / Trails) auf den Visualizer-Cache.
             // Mutiert visualizerCacheCanvas in-place → Recording/Screenshot erben es.
             const singlePostFx = visualizerStore.postFxConfig
-            if (postFxActive(singlePostFx)) {
+            if (shouldRunPostFx(singlePostFx, currentQuality())) {
               const proc = ensureMainPostProcessor(canvas.width, canvas.height)
               if (proc) {
                 try {

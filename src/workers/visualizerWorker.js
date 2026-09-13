@@ -6,7 +6,7 @@
 
 import { Visualizers } from '../lib/visualizers/index.js'
 import { visualizerState } from '../lib/visualizers/core/state.js'
-import { createPostProcessor, postFxActive } from '../lib/postfx/index.js'
+import { createPostProcessor, shouldRunPostFx } from '../lib/postfx/index.js'
 
 let offscreenCanvas = null
 let ctx = null
@@ -103,7 +103,7 @@ function renderFrame({
 
   // Zentraler Post-Processing-Pass (Bloom / Trails) — verstärkt alle Visualizer
   // ohne pro-Form-Kosten. Läuft im Worker, also off-thread.
-  if (postFxActive(postFx)) {
+  if (shouldRunPostFx(postFx, quality ?? 1)) {
     const proc = ensurePostProcessor()
     if (proc) {
       try {

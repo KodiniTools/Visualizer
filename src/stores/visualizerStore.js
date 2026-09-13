@@ -41,6 +41,12 @@ const VISUALIZER_CATEGORIES = {
     'glParticles',
     'glFire',
     'glRain',
+    'glSpectrogram',
+    'glTerrain',
+    'glVoronoi',
+    'glSphere',
+    'glCymatics',
+    'glLightning',
   ],
   'Balken & Spektrum': [
     'bars',

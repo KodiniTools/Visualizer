@@ -21,6 +21,8 @@ void main() {
   gl_Position = vec4(aPos, 0.0, 1.0);
 }`
 
+import { AUDIO_TEX_ROWS, AUDIO_HISTORY_ROWS } from './audioFeatures.js'
+
 export const FRAG_HEADER = `#version 300 es
 precision highp float;
 precision highp sampler2D;
@@ -37,15 +39,29 @@ uniform vec4  uBands;       // bass, mid, treble, volume (0–1)
 uniform vec4  uOnset;       // onset bass, mid, treble, all (0–1, self-normalised)
 uniform sampler2D uAudio;   // row 0 (y=.25): raw spectrum, row 1 (y=.75): smoothed log spectrum
 uniform float uAudioMode;   // 0 = spectrum rows, 1 = time-domain rows (needsTimeData presets)
+uniform float uHistoryHead; // ring index of the newest history row
+
+#define AUDIO_ROWS ${AUDIO_TEX_ROWS}.0
+#define HISTORY_ROWS ${AUDIO_HISTORY_ROWS}.0
 
 #define PI  3.14159265359
 #define TAU 6.28318530718
 
-float spectrumRaw(float x) { return texture(uAudio, vec2(clamp(x, 0.0, 1.0), 0.25)).r; }
-float spectrum(float x)    { return texture(uAudio, vec2(clamp(x, 0.0, 1.0), 0.75)).r; }
+float audioRow(float x, float row) { return texture(uAudio, vec2(clamp(x, 0.0, 1.0), (row + 0.5) / AUDIO_ROWS)).r; }
+float spectrumRaw(float x) { return audioRow(x, 0.0); }
+float spectrum(float x)    { return audioRow(x, 1.0); }
+// Smoothed spectrum 'age' frames ago, age in 0 (newest) .. 1 (oldest kept).
+float history(float x, float age) {
+  float back = clamp(age, 0.0, 1.0) * (HISTORY_ROWS - 1.0);
+  float r0 = floor(back);
+  float f = back - r0;
+  float row0 = 2.0 + mod(uHistoryHead - r0 + HISTORY_ROWS * 2.0, HISTORY_ROWS);
+  float row1 = 2.0 + mod(uHistoryHead - r0 - 1.0 + HISTORY_ROWS * 2.0, HISTORY_ROWS);
+  return mix(audioRow(x, row0), audioRow(x, row1), f);
+}
 // Time-domain presets only: waveform in -1..1 (row 0) and its smoothed envelope 0..1 (row 1).
-float waveform(float x)    { return texture(uAudio, vec2(clamp(x, 0.0, 1.0), 0.25)).r * 2.0 - 1.0; }
-float envelope(float x)    { return texture(uAudio, vec2(clamp(x, 0.0, 1.0), 0.75)).r; }
+float waveform(float x)    { return audioRow(x, 0.0) * 2.0 - 1.0; }
+float envelope(float x)    { return audioRow(x, 1.0); }
 
 vec3 hsl2rgb(vec3 c) {
   vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);

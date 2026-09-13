@@ -36,6 +36,7 @@ const STANDARD_UNIFORMS = [
   'uOnset',
   'uAudio',
   'uAudioMode',
+  'uHistoryHead',
 ]
 
 /**
@@ -326,6 +327,7 @@ export class GLVisualizerEngine {
     gl.activeTexture(gl.TEXTURE0)
     gl.uniform1i(u('uAudio'), 0)
     gl.uniform1f(u('uAudioMode'), timeDomain ? 1.0 : 0.0)
+    gl.uniform1f(u('uHistoryHead'), audioState.historyHead)
 
     if (typeof preset.uniforms === 'function') {
       const custom = preset.uniforms({ bands: b, onset, time: this.time, dt, intensity })

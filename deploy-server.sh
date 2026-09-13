@@ -100,7 +100,9 @@ cp package.json package-lock.json ecosystem.config.cjs "$BACKEND_DIR/"
 
 if [ ! -d "$BACKEND_DIR/node_modules" ] || [ "$BACKEND_DIR/package-lock.json" -nt "$BACKEND_DIR/node_modules" ]; then
   log "[BACKEND] Installing backend dependencies (npm ci)..."
-  (cd "$BACKEND_DIR" && npm ci --omit=dev)
+  # --ignore-scripts: verhindert "prepare": "husky" (Dev-Git-Hook-Setup, hier
+  # weder nötig noch möglich, da BACKEND_DIR kein Git-Repo ist)
+  (cd "$BACKEND_DIR" && npm ci --omit=dev --ignore-scripts)
 else
   log "[BACKEND] Backend dependencies up to date, skipping npm ci."
 fi

@@ -50,6 +50,17 @@ export function useRenderLoop({
   let recordingVizCanvas = null
   let recordingVizCtx = null
 
+  // Snapshot of the fully-composited live frame (content only — background,
+  // images, visualizer, videos, text, audio/beat/ticker/marker effects — no
+  // editor-only UI chrome), captured once per draw() tick while recording.
+  // The recording redraw reuses this via a cheap drawImage crop instead of
+  // re-running the entire render pipeline a second time; see
+  // setupRecordingRedrawListener() and renderRecordingScene() (kept as a
+  // fallback for the first tick, before any live frame has been captured).
+  let liveSnapshotCanvas = null
+  let liveSnapshotCtx = null
+  let liveSnapshotReady = false
+
   // OffscreenCanvas Worker state
   let vizWorkerActive = false
   let vizWorkerBitmap = null // latest ImageBitmap from worker
@@ -790,6 +801,27 @@ export function useRenderLoop({
       markerTransitionRenderer.render(ctx, canvas.width, canvas.height, 'live')
     }
 
+    // Content-only snapshot for the recording redraw (see
+    // setupRecordingRedrawListener) — taken here, BEFORE the editor-only UI
+    // chrome below (selection handles, grid, workspace outline) is drawn, so
+    // it never leaks into the exported video.
+    if (recorderStore.isRecording) {
+      if (
+        !liveSnapshotCanvas ||
+        liveSnapshotCanvas.width !== canvas.width ||
+        liveSnapshotCanvas.height !== canvas.height
+      ) {
+        liveSnapshotCanvas = document.createElement('canvas')
+        liveSnapshotCanvas.width = canvas.width
+        liveSnapshotCanvas.height = canvas.height
+        liveSnapshotCtx = liveSnapshotCanvas.getContext('2d')
+      }
+      liveSnapshotCtx.drawImage(canvas, 0, 0)
+      liveSnapshotReady = true
+    } else if (liveSnapshotReady) {
+      liveSnapshotReady = false
+    }
+
     if (canvasManagerInstance.value) {
       canvasManagerInstance.value.drawFadedTextMarkers(ctx)
       canvasManagerInstance.value.drawInteractiveElements(ctx)
@@ -814,6 +846,46 @@ export function useRenderLoop({
       const recordingCtx = recordingCanvas.getContext('2d')
       if (!recordingCtx) return
 
+      // Fast path: reuse the live frame draw() already fully rendered this
+      // tick (content only, see the snapshot capture above) via a cheap
+      // crop/scale drawImage, instead of re-running the entire scene/effects
+      // pipeline (background, images, videos, text, audio/beat/ticker/marker
+      // effects) a second time on every recording tick. That duplicate full
+      // render — on top of the live requestAnimationFrame loop already doing
+      // the same work every frame — is what made the canvas bog down during
+      // recording.
+      if (liveSnapshotReady && liveSnapshotCanvas) {
+        const workspaceBounds = canvasManagerInstance.value?.getWorkspaceBounds()
+        const hasWorkspace = workspaceBounds && canvasManagerInstance.value?.workspacePreset
+
+        recordingCtx.clearRect(0, 0, recordingCanvas.width, recordingCanvas.height)
+        if (hasWorkspace) {
+          recordingCtx.drawImage(
+            liveSnapshotCanvas,
+            workspaceBounds.x,
+            workspaceBounds.y,
+            workspaceBounds.width,
+            workspaceBounds.height,
+            0,
+            0,
+            recordingCanvas.width,
+            recordingCanvas.height,
+          )
+        } else {
+          recordingCtx.drawImage(
+            liveSnapshotCanvas,
+            0,
+            0,
+            recordingCanvas.width,
+            recordingCanvas.height,
+          )
+        }
+        return
+      }
+
+      // Fallback (only the first tick right after starting a recording,
+      // before draw() has captured a live snapshot yet): full independent
+      // render, exactly as before.
       const drawVisualizerCallback = buildVisualizerCallback(recordingCanvas)
       renderRecordingScene(
         recordingCtx,

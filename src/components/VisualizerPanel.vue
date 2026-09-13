@@ -1,9 +1,5 @@
 <template>
   <div class="panel-container">
-    <!-- Disabled Overlay -->
-    <div v-if="!store.showVisualizer" class="disabled-overlay">
-      <span class="disabled-text">{{ t('visualizer.disabled') }}</span>
-    </div>
     <div class="panel-header">
       <h4>{{ t('visualizer.title') }}</h4>
       <HelpTooltip
@@ -19,17 +15,22 @@
     <div class="control-section status-toggle">
       <div class="inline-row">
         <span class="section-label">{{ t('visualizer.status') }}</span>
-        <button
-          class="switch"
-          :class="{ on: store.showVisualizer }"
-          type="button"
-          role="switch"
-          :aria-checked="store.showVisualizer"
-          :title="store.showVisualizer ? t('common.on') : t('common.off')"
-          @click="store.toggleVisualizer()"
-        >
-          <span class="switch-knob"></span>
-        </button>
+        <div class="status-toggle-right">
+          <span v-if="!store.showVisualizer" class="status-hint">{{
+            t('visualizer.disabled')
+          }}</span>
+          <button
+            class="switch"
+            :class="{ on: store.showVisualizer }"
+            type="button"
+            role="switch"
+            :aria-checked="store.showVisualizer"
+            :title="store.showVisualizer ? t('common.on') : t('common.off')"
+            @click="store.toggleVisualizer()"
+          >
+            <span class="switch-knob"></span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -760,25 +761,24 @@ h4 {
    Bearbeitung (Farbe, Position, Visualizer-Typ etc.) bleibt möglich, damit
    der Nutzer neue Einstellungen vorbereiten kann, bevor er ihn wieder
    einschaltet. Daher hier bewusst kein pointer-events/opacity auf den
-   control-sections. */
-.disabled-overlay {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 10;
-  pointer-events: none;
+   control-sections. Der Status-Hinweis steht inline neben dem Toggle statt
+   als Overlay, damit er weder den Schalter noch das Hilfe-Icon verdeckt. */
+.status-toggle-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.disabled-text {
-  background: rgba(255, 107, 107, 0.9);
-  color: #fff;
-  padding: 8px 16px;
+.status-hint {
+  background: rgba(255, 107, 107, 0.15);
+  color: #ff6b6b;
+  padding: 3px 10px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.4px;
+  white-space: nowrap;
 }
 
 /* ═══ Light Theme Overrides ═══ */
@@ -963,10 +963,6 @@ h4 {
 
 [data-theme='light'] .scale-slider::-moz-range-thumb {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .disabled-text {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* ═══ Responsive ═══ */

@@ -23,6 +23,9 @@
         </div>
         <span class="conversion-percent">{{ progress }}%</span>
         <p class="conversion-hint">{{ t('recorder.dontCloseWindow') }}</p>
+        <button class="btn-cancel-conversion" @click="$emit('cancel')">
+          {{ t('common.cancel') }}
+        </button>
       </div>
     </div>
   </Teleport>
@@ -38,6 +41,8 @@ defineProps({
   status: { type: String, default: '' },
   progress: { type: Number, default: 0 },
 })
+
+defineEmits(['cancel'])
 </script>
 
 <style>
@@ -130,10 +135,33 @@ defineProps({
 }
 
 .conversion-hint {
-  margin: 0;
+  margin: 0 0 20px 0;
   font-size: 12px;
   color: var(--text-muted);
   font-style: italic;
+}
+
+.btn-cancel-conversion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(158, 158, 158, 0.15);
+  color: var(--text-muted);
+  border: 1px solid rgba(158, 158, 158, 0.3);
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel-conversion:hover {
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+  border-color: rgba(244, 67, 54, 0.3);
 }
 
 @keyframes convFadeIn {
@@ -220,5 +248,16 @@ defineProps({
 [data-theme='light'] .conversion-progress-fill {
   background: linear-gradient(90deg, #014f99 0%, #3a7cc6 50%, #014f99 100%);
   background-size: 200% 100%;
+}
+
+[data-theme='light'] .btn-cancel-conversion {
+  background: rgba(0, 0, 0, 0.05);
+  color: #4d6d8e;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme='light'] .btn-cancel-conversion:hover {
+  background: rgba(244, 67, 54, 0.1);
+  border-color: rgba(244, 67, 54, 0.2);
 }
 </style>

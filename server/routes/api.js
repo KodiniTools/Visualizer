@@ -34,6 +34,12 @@ const FILES_DIR = path.join(__dirname, '..', 'files')
 // Job-Tracking (in Produktion: Redis oder DB verwenden)
 const jobs = new Map()
 
+// Aktuell laufender FFmpeg-Prozess pro Job (für Abbrechen-Funktion). Nur die
+// lange laufende Re-Encoding-Konvertierung (convertToMP4) registriert sich
+// hier - das schnelle Remux/Thumbnail sind kurzlebig genug, dass ein Abbruch
+// dort keinen spürbaren Unterschied macht.
+const jobProcesses = new Map()
+
 // Multer Konfiguration für Video-Uploads
 const storage = multer.diskStorage({
   destination: UPLOADS_DIR,
@@ -245,6 +251,7 @@ async function doFullEncoding(
   await ffmpegService.convertToMP4(inputPath, outputPath, {
     quality,
     timeout: estimatedTimeout,
+    onProcess: (proc) => jobProcesses.set(jobId, proc),
     onProgress: (time) => {
       const currentTime = parseFFmpegTime(time)
       if (currentTime - lastProgressTime < 2) return
@@ -360,6 +367,16 @@ async function processConversion(jobId, inputPath, quality) {
       } catch {}
     }
 
+    // Falls währenddessen abgebrochen wurde (z.B. während des schnellen Remux,
+    // das keinen FFmpeg-Prozess zum Töten registriert) - Ergebnis verwerfen
+    // statt den 'cancelled'-Status zu überschreiben.
+    if (jobs.get(jobId)?.status === 'cancelled') {
+      console.log(`🛑 [Job ${jobId}] Abgebrochen, verwerfe fertiges Ergebnis`)
+      await fs.unlink(inputPath).catch(() => {})
+      await fs.unlink(outputPath).catch(() => {})
+      return
+    }
+
     // Job als COMPLETED markieren
     updateJob(jobId, {
       status: 'completed',
@@ -374,25 +391,34 @@ async function processConversion(jobId, inputPath, quality) {
     // Cleanup Input
     await fs.unlink(inputPath).catch(() => {})
   } catch (error) {
-    console.error(`❌ [Job ${jobId}] Konvertierung fehlgeschlagen:`, error.message)
+    // Vom Nutzer abgebrochen (siehe POST /convert/:jobId/cancel) - der Job-Status
+    // wurde dort bereits auf 'cancelled' gesetzt, hier nur noch aufräumen statt
+    // ihn mit 'failed' zu überschreiben.
+    if (jobs.get(jobId)?.status === 'cancelled') {
+      console.log(`🛑 [Job ${jobId}] Konvertierung abgebrochen`)
+    } else {
+      console.error(`❌ [Job ${jobId}] Konvertierung fehlgeschlagen:`, error.message)
 
-    // Bessere Fehlermeldung für den Benutzer
-    let userFriendlyError = error.message
-    if (error.message.includes('timeout') || error.message.includes('Timeout')) {
-      userFriendlyError =
-        'Konvertierung abgebrochen: Das Video ist zu komplex oder der Server ist überlastet. Versuche eine niedrigere Qualitätseinstellung.'
-    } else if (error.message.includes('SIGKILL')) {
-      userFriendlyError = 'Konvertierung wurde wegen Zeitüberschreitung abgebrochen.'
+      // Bessere Fehlermeldung für den Benutzer
+      let userFriendlyError = error.message
+      if (error.message.includes('timeout') || error.message.includes('Timeout')) {
+        userFriendlyError =
+          'Konvertierung abgebrochen: Das Video ist zu komplex oder der Server ist überlastet. Versuche eine niedrigere Qualitätseinstellung.'
+      } else if (error.message.includes('SIGKILL')) {
+        userFriendlyError = 'Konvertierung wurde wegen Zeitüberschreitung abgebrochen.'
+      }
+
+      updateJob(jobId, {
+        status: 'failed',
+        error: userFriendlyError,
+      })
     }
-
-    updateJob(jobId, {
-      status: 'failed',
-      error: userFriendlyError,
-    })
 
     // Cleanup input und ggf. partielles output
     await fs.unlink(inputPath).catch(() => {})
     await fs.unlink(outputPath).catch(() => {})
+  } finally {
+    jobProcesses.delete(jobId)
   }
 }
 
@@ -519,6 +545,35 @@ router.get('/status/:jobId', (req, res) => {
   }
 
   res.json(job)
+})
+
+/**
+ * POST /api/convert/:jobId/cancel
+ * Bricht eine laufende Konvertierung ab: tötet den FFmpeg-Prozess (falls
+ * schon gestartet) und markiert den Job sofort als 'cancelled', damit der
+ * Client nicht auf eine Antwort vom (gerade beendeten) Prozess warten muss.
+ */
+router.post('/convert/:jobId/cancel', (req, res) => {
+  const { jobId } = req.params
+  const job = jobs.get(jobId)
+
+  if (!job) {
+    return res.json({ success: true, message: 'Job bereits aufgeräumt' })
+  }
+
+  if (job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled') {
+    return res.json({ success: true, message: `Job bereits ${job.status}` })
+  }
+
+  updateJob(jobId, { status: 'cancelled', error: 'Vom Nutzer abgebrochen' })
+
+  const proc = jobProcesses.get(jobId)
+  if (proc && !proc.killed) {
+    proc.kill('SIGKILL')
+    console.log(`🛑 [Job ${jobId}] FFmpeg-Prozess auf Nutzerwunsch getötet`)
+  }
+
+  res.json({ success: true })
 })
 
 /**

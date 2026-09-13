@@ -274,6 +274,7 @@
     :is-converting="isConverting"
     :status="conversionStatus"
     :progress="conversionProgress"
+    @cancel="cancelConversion"
   />
 
   <RecorderResultsModal @close="closeResults" />
@@ -323,6 +324,7 @@ const {
   convertedFilename,
   startServerConversion,
   retryConversion,
+  cancelConversion,
   dismissConversion,
   handleDownloadClick,
 } = useServerConversion()

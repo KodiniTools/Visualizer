@@ -175,6 +175,12 @@ export async function waitForJob(jobId, options = {}) {
             reject(new Error(status.error || 'Conversion failed'))
             return
 
+          case 'cancelled':
+            reject(
+              Object.assign(new Error(status.error || 'Cancelled by user'), { cancelled: true }),
+            )
+            return
+
           case 'processing':
           case 'pending':
             // Weiter pollen
@@ -242,6 +248,25 @@ export function getFileUrl(filename) {
 }
 
 /**
+ * Bricht eine laufende MP4-Konvertierung ab (tötet den FFmpeg-Prozess auf
+ * dem Server, falls schon gestartet).
+ *
+ * @param {string} jobId - Die Job-ID
+ * @returns {Promise<Object>} Ergebnis
+ */
+export async function cancelConversion(jobId) {
+  try {
+    const response = await fetch(`${API_BASE}/convert/${jobId}/cancel`, {
+      method: 'POST',
+    })
+    return await response.json()
+  } catch (error) {
+    console.warn('[VideoAPI] Cancel error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
  * Kompletter Konvertierungs-Workflow
  *
  * @param {Blob} videoBlob - Das WebM Video-Blob
@@ -266,6 +291,9 @@ export async function convertAndWait(videoBlob, options = {}) {
   if (!uploadResult.success) {
     throw new Error('Upload failed')
   }
+
+  // Erlaubt dem Aufrufer, die jobId zu speichern (z.B. für einen Abbrechen-Button).
+  options.onJobId?.(uploadResult.jobId)
 
   // 2. Auf Konvertierung warten
   onStatusChange('converting')
@@ -396,6 +424,7 @@ export default {
   getDownloadUrl,
   getFileUrl,
   cleanupFile,
+  cancelConversion,
   convertAndWait,
   convertGifAndWait,
 }

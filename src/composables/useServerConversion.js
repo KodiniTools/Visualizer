@@ -1,5 +1,9 @@
 import { ref } from 'vue'
-import { convertAndWait, cleanupFile } from '../lib/videoApi.js'
+import {
+  convertAndWait,
+  cleanupFile,
+  cancelConversion as apiCancelConversion,
+} from '../lib/videoApi.js'
 import { useRecorderStore } from '../stores/recorderStore.js'
 
 export function useServerConversion() {
@@ -10,6 +14,8 @@ export function useServerConversion() {
   const conversionError = ref(null)
   const convertedVideoUrl = ref(null)
   const convertedFilename = ref(null)
+  let currentJobId = null
+  let wasCancelled = false
 
   async function startServerConversion(blob, quality) {
     if (!blob || isConverting.value) return
@@ -19,10 +25,15 @@ export function useServerConversion() {
     conversionError.value = null
     convertedVideoUrl.value = null
     convertedFilename.value = null
+    currentJobId = null
+    wasCancelled = false
 
     try {
       const result = await convertAndWait(blob, {
         quality,
+        onJobId: (jobId) => {
+          currentJobId = jobId
+        },
         onProgress: (p) => {
           conversionProgress.value = p
         },
@@ -37,11 +48,29 @@ export function useServerConversion() {
         conversionProgress.value = 100
       }
     } catch (error) {
+      // Vom Nutzer abgebrochen (siehe cancelConversion unten) - kein Fehlerzustand,
+      // dismissConversion() hat den State bereits zurückgesetzt.
+      if (error.cancelled || wasCancelled) return
+
       conversionStatus.value = 'error'
       conversionError.value = error.message || 'Verbindung zum Server fehlgeschlagen'
     } finally {
       isConverting.value = false
+      currentJobId = null
     }
+  }
+
+  /**
+   * Bricht die laufende Konvertierung ab: killt den FFmpeg-Prozess auf dem
+   * Server und setzt den lokalen Zustand sofort zurück (wartet nicht auf das
+   * nächste Polling-Intervall).
+   */
+  async function cancelConversion() {
+    if (!isConverting.value) return
+    wasCancelled = true
+    isConverting.value = false
+    if (currentJobId) await apiCancelConversion(currentJobId).catch(() => {})
+    await dismissConversion()
   }
 
   function retryConversion(quality) {
@@ -77,6 +106,7 @@ export function useServerConversion() {
     convertedFilename,
     startServerConversion,
     retryConversion,
+    cancelConversion,
     dismissConversion,
     handleDownloadClick,
   }

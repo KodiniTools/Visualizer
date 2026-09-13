@@ -221,6 +221,7 @@ export async function convertToMP4(inputPath, outputPath, options = {}) {
     console.log('🎬 FFmpeg Command:', FFMPEG_PATH, args.join(' '))
 
     const proc = spawn(FFMPEG_PATH, args)
+    options.onProcess?.(proc)
     let stderr = ''
     let lastOutputTime = Date.now()
     let isFinished = false

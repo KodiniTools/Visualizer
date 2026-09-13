@@ -772,6 +772,7 @@ export default {
     effects: 'Effekte',
     noResultsFor: 'Keine Ergebnisse für',
     categories: {
+      gpu: 'GPU-Presets',
       barsSpectrum: 'Balken & Spektrum',
       waves: 'Wellen',
       circlesSpheres: 'Kreise & Kugeln',

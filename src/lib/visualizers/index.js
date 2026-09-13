@@ -31,12 +31,13 @@ import { particleVisualizers } from './particle/index.js'
 import { techVisualizers } from './tech/index.js'
 import { retroVisualizers } from './retro/index.js'
 import { effectsVisualizers } from './effects/index.js'
+import { glVisualizers } from './gl/index.js'
 
 /**
  * All visualizers combined into a single object.
  * This maintains full backward compatibility with the original API.
  *
- * @type {Object.<string, {name_de: string, name_en: string, draw: Function, init?: Function, needsTimeData?: boolean}>}
+ * @type {Object.<string, {name_de: string, name_en: string, draw: Function, init?: Function, cleanup?: Function, needsTimeData?: boolean, kind?: 'gl'}>}
  */
 export const Visualizers = {
   // Spectrum visualizers (bars, waveforms)
@@ -59,6 +60,9 @@ export const Visualizers = {
 
   // Effects visualizers (special effects, ambient)
   ...effectsVisualizers,
+
+  // GPU visualizers (WebGL2 shader presets, Canvas2D fallback built in)
+  ...glVisualizers,
 }
 
 // Also export individual category collections for selective imports
@@ -70,6 +74,7 @@ export {
   techVisualizers,
   retroVisualizers,
   effectsVisualizers,
+  glVisualizers,
 }
 
 // Default export for convenience

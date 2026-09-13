@@ -277,6 +277,7 @@ const reversedLayers = computed(() => {
 
 // Kategorie-Namen (Übersetzung)
 const categoryTranslationKeys = {
+  'GPU-Presets': 'visualizer.categories.gpu',
   'Balken & Spektrum': 'visualizer.categories.barsSpectrum',
   Wellen: 'visualizer.categories.waves',
   'Kreise & Kugeln': 'visualizer.categories.circlesSpheres',

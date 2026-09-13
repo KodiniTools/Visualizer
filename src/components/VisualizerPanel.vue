@@ -223,11 +223,13 @@ const { t } = useI18n()
 const store = useVisualizerStore()
 const searchQuery = ref('')
 const openCategories = ref({
-  'Balken & Spektrum': true, // Erste Kategorie standardmäßig offen
+  'GPU-Presets': true, // Neue GPU-Presets standardmäßig offen
+  'Balken & Spektrum': true,
 })
 
 // Map German category keys to i18n translation keys
 const categoryTranslationKeys = {
+  'GPU-Presets': 'visualizer.categories.gpu',
   'Balken & Spektrum': 'visualizer.categories.barsSpectrum',
   Wellen: 'visualizer.categories.waves',
   'Kreise & Kugeln': 'visualizer.categories.circlesSpheres',

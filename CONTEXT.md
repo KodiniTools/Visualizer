@@ -94,6 +94,7 @@ Visualizer/
 │   │       ├── core/          # Kern-Utilities
 │   │       ├── effects/       # Effekt-Visualizer
 │   │       ├── geometric/     # Geometrische Visualizer
+│   │       ├── gl/            # GPU-Presets (WebGL2-Engine, Shader, Canvas2D-Fallback)
 │   │       ├── organic/       # Organische Visualizer
 │   │       ├── particle/      # Partikel-Visualizer
 │   │       ├── retro/         # Retro-Visualizer

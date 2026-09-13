@@ -26,6 +26,7 @@ export const BLEND_MODES = [
 
 // ✅ Visualizer-Kategorien für bessere UX
 const VISUALIZER_CATEGORIES = {
+  'GPU-Presets': ['glBars', 'glBarsMirrored', 'glMandala', 'glAurora'],
   'Balken & Spektrum': [
     'bars',
     'mirroredBars',

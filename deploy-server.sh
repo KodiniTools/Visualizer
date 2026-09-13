@@ -13,9 +13,17 @@
 #   /root/visualizer-build/deploy-server.sh
 #
 # Optionen (per Umgebungsvariable überschreibbar):
-#   TARGET_DIR   Ziel-Web-Root (Standard: /var/www/kodinitools.com/visualizer)
+#   TARGET_DIR   Ziel-Web-Root fürs Frontend (Standard: /var/www/kodinitools.com/visualizer)
+#   BACKEND_DIR  Ziel-Verzeichnis fürs Backend, AUSSERHALB des Web-Roots
+#                (Standard: /var/www/kodinitools.com/visualizer-backend)
+#   PM2_APP      PM2-Prozessname des Backends (Standard: visualizer-backend,
+#                siehe ecosystem.config.cjs)
 #   BRANCH       Zu deployender Branch (Standard: main)
 #   KEEP_BACKUPS Anzahl beizubehaltender Backups (Standard: 5)
+#
+# WICHTIG: TARGET_DIR wird bei jedem Deploy komplett ersetzt (Backup + Neuaufbau
+# nur aus dist/). Das Backend darf deshalb NIE unter TARGET_DIR liegen, sonst
+# wird es beim nächsten Frontend-Deploy stillschweigend gelöscht.
 
 set -euo pipefail
 
@@ -24,6 +32,8 @@ cd "$(dirname "$0")"
 
 # ── Konfiguration ───────────────────────────────────────────────────────────
 TARGET_DIR="${TARGET_DIR:-/var/www/kodinitools.com/visualizer}"
+BACKEND_DIR="${BACKEND_DIR:-/var/www/kodinitools.com/visualizer-backend}"
+PM2_APP="${PM2_APP:-visualizer-backend}"
 BRANCH="${BRANCH:-main}"
 KEEP_BACKUPS="${KEEP_BACKUPS:-5}"
 
@@ -80,6 +90,28 @@ if [ -n "$OLD_BACKUPS" ]; then
   warn "[CLEANUP] Removing old backups (keeping newest $KEEP_BACKUPS)..."
   echo "$OLD_BACKUPS" | xargs rm -rf
 fi
+
+# ── Backend deployen (eigenes Verzeichnis, NICHT im Web-Root) ───────────────
+log "[BACKEND] Deploying backend to $BACKEND_DIR ..."
+mkdir -p "$BACKEND_DIR"
+rm -rf "$BACKEND_DIR/server"
+cp -r server "$BACKEND_DIR/server"
+cp package.json package-lock.json ecosystem.config.cjs "$BACKEND_DIR/"
+
+if [ ! -d "$BACKEND_DIR/node_modules" ] || [ "$BACKEND_DIR/package-lock.json" -nt "$BACKEND_DIR/node_modules" ]; then
+  log "[BACKEND] Installing backend dependencies (npm ci)..."
+  (cd "$BACKEND_DIR" && npm ci --omit=dev)
+else
+  log "[BACKEND] Backend dependencies up to date, skipping npm ci."
+fi
+
+log "[BACKEND] (Re)Starting PM2 process '$PM2_APP' ..."
+if pm2 describe "$PM2_APP" > /dev/null 2>&1; then
+  pm2 reload "$BACKEND_DIR/ecosystem.config.cjs" --env production
+else
+  pm2 start "$BACKEND_DIR/ecosystem.config.cjs" --env production
+fi
+pm2 save
 
 ok "[SUCCESS] Deployment completed successfully!"
 log "[INFO] Visit: https://kodinitools.com/visualizer/"

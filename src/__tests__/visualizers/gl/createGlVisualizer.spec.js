@@ -80,6 +80,24 @@ describe('gl/createGlVisualizer (no WebGL2 available)', () => {
     expect(fallback.cleanup).toHaveBeenCalledTimes(1)
   })
 
+  it('forwards needsTimeData so the render loop hands over waveform data', () => {
+    const spectrumViz = createGlVisualizer({
+      id: 'a',
+      name_de: 'A',
+      name_en: 'A',
+      frag: 'void main(){}',
+    })
+    const timeViz = createGlVisualizer({
+      id: 'b',
+      name_de: 'B',
+      name_en: 'B',
+      frag: 'void main(){}',
+      needsTimeData: true,
+    })
+    expect(spectrumViz.needsTimeData).toBe(false)
+    expect(timeViz.needsTimeData).toBe(true)
+  })
+
   it('does not throw without a fallback', () => {
     const viz = createGlVisualizer({
       id: 'demo',

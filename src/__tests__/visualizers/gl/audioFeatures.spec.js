@@ -6,6 +6,7 @@ import {
   resetAudioFeatureState,
   computeBands,
   updateAudioFeatures,
+  updateAudioFeaturesFromTime,
 } from '../../../lib/visualizers/gl/audioFeatures.js'
 import { visualizerState } from '../../../lib/visualizers/core/state.js'
 
@@ -98,5 +99,66 @@ describe('gl/audioFeatures', () => {
     expect(state.rows.every((v) => v === 0)).toBe(true)
     expect(state.smooth.every((v) => v === 0)).toBe(true)
     expect(Array.from(state.bands)).toEqual([0, 0, 0, 0])
+  })
+
+  describe('time-domain path', () => {
+    function wave(len, fn) {
+      const arr = new Uint8Array(len)
+      for (let i = 0; i < len; i++) arr[i] = Math.max(0, Math.min(255, Math.round(128 + fn(i))))
+      return arr
+    }
+
+    it('keeps a silent waveform centred with an empty envelope and zero bands', () => {
+      const len = 1024
+      const state = createAudioFeatureState()
+      updateAudioFeaturesFromTime(
+        state,
+        wave(len, () => 0),
+        len,
+      )
+      for (let x = 0; x < AUDIO_TEX_WIDTH; x++) {
+        expect(state.rows[x]).toBe(128)
+        expect(state.rows[AUDIO_TEX_WIDTH + x]).toBe(0)
+      }
+      expect(Array.from(state.bands)).toEqual([0, 0, 0, 0])
+    })
+
+    it('writes the raw waveform into row 0 and a rising envelope into row 1', () => {
+      const len = 1024
+      const state = createAudioFeatureState()
+      const data = wave(len, (i) => 100 * Math.sin(i * 0.2))
+      for (let i = 0; i < 30; i++) updateAudioFeaturesFromTime(state, data, len)
+      let min = 255
+      let max = 0
+      let envMax = 0
+      for (let x = 0; x < AUDIO_TEX_WIDTH; x++) {
+        min = Math.min(min, state.rows[x])
+        max = Math.max(max, state.rows[x])
+        envMax = Math.max(envMax, state.rows[AUDIO_TEX_WIDTH + x])
+      }
+      expect(min).toBeLessThan(60)
+      expect(max).toBeGreaterThan(190)
+      expect(envMax).toBeGreaterThan(150)
+      expect(state.bands[3]).toBeGreaterThan(0.3) // volume
+      expect(state.bands[3]).toBeLessThanOrEqual(1)
+    })
+
+    it('reports a slow wave as bass and a fast wave as treble', () => {
+      const len = 2048
+      const slow = createAudioFeatureState()
+      updateAudioFeaturesFromTime(
+        slow,
+        wave(len, (i) => 100 * Math.sin(i * 0.02)),
+        len,
+      )
+      const fast = createAudioFeatureState()
+      updateAudioFeaturesFromTime(
+        fast,
+        wave(len, (i) => 100 * Math.sin(i * 2.5)),
+        len,
+      )
+      expect(slow.bands[0]).toBeGreaterThan(fast.bands[0])
+      expect(fast.bands[2]).toBeGreaterThan(slow.bands[2])
+    })
   })
 })

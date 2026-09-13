@@ -36,12 +36,16 @@ uniform float uIntensity;   // user intensity / opacity slider (0–1+)
 uniform vec4  uBands;       // bass, mid, treble, volume (0–1)
 uniform vec4  uOnset;       // onset bass, mid, treble, all (0–1, self-normalised)
 uniform sampler2D uAudio;   // row 0 (y=.25): raw spectrum, row 1 (y=.75): smoothed log spectrum
+uniform float uAudioMode;   // 0 = spectrum rows, 1 = time-domain rows (needsTimeData presets)
 
 #define PI  3.14159265359
 #define TAU 6.28318530718
 
 float spectrumRaw(float x) { return texture(uAudio, vec2(clamp(x, 0.0, 1.0), 0.25)).r; }
 float spectrum(float x)    { return texture(uAudio, vec2(clamp(x, 0.0, 1.0), 0.75)).r; }
+// Time-domain presets only: waveform in -1..1 (row 0) and its smoothed envelope 0..1 (row 1).
+float waveform(float x)    { return texture(uAudio, vec2(clamp(x, 0.0, 1.0), 0.25)).r * 2.0 - 1.0; }
+float envelope(float x)    { return texture(uAudio, vec2(clamp(x, 0.0, 1.0), 0.75)).r; }
 
 vec3 hsl2rgb(vec3 c) {
   vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
@@ -60,6 +64,18 @@ float vnoise(vec2 p) {
   vec2 u = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),
              mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);
+}
+
+// Value noise that tiles in x with the given integer period (for angular
+// coordinates: no seam at the atan() wrap).
+float vnoisePeriodicX(vec2 p, float period) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  float i0 = mod(i.x, period);
+  float i1 = mod(i.x + 1.0, period);
+  return mix(mix(hash12(vec2(i0, i.y)), hash12(vec2(i1, i.y)), u.x),
+             mix(hash12(vec2(i0, i.y + 1.0)), hash12(vec2(i1, i.y + 1.0)), u.x), u.y);
 }
 
 float fbm(vec2 p) {

@@ -17,7 +17,12 @@
 import { visualizerState } from '../core/state.js'
 import { hexToHsl } from '../core/colorUtils.js'
 import { REFERENCE_FRAME_MS } from '../core/helpers.js'
-import { AUDIO_TEX_WIDTH, AUDIO_TEX_ROWS, updateAudioFeatures } from './audioFeatures.js'
+import {
+  AUDIO_TEX_WIDTH,
+  AUDIO_TEX_ROWS,
+  updateAudioFeatures,
+  updateAudioFeaturesFromTime,
+} from './audioFeatures.js'
 import { VERT_SRC, buildFragmentSource } from './glsl.js'
 
 const STANDARD_UNIFORMS = [
@@ -30,6 +35,7 @@ const STANDARD_UNIFORMS = [
   'uBands',
   'uOnset',
   'uAudio',
+  'uAudioMode',
 ]
 
 /**
@@ -256,7 +262,7 @@ export class GLVisualizerEngine {
    * Render one frame of `preset` into the engine canvas.
    *
    * @param {{id: string, frag: string, uniforms?: Function}} preset
-   * @param {{dataArray: Uint8Array|number[], bufferLength: number, width: number, height: number, color: string, intensity?: number}} params
+   * @param {{dataArray: Uint8Array|number[], bufferLength: number, width: number, height: number, color: string, intensity?: number, timeDomain?: boolean}} params
    * @param {{rows: Uint8Array, smooth: Float32Array, bands: Float32Array}} audioState Per-visualizer feature state (see audioFeatures.js)
    * @returns {boolean} true when a frame was drawn, false when the caller should fall back
    */
@@ -266,7 +272,15 @@ export class GLVisualizerEngine {
     if (entry.broken || !entry.program) return false
 
     const gl = this.gl
-    const { dataArray, bufferLength, width, height, color, intensity = 1.0 } = params
+    const {
+      dataArray,
+      bufferLength,
+      width,
+      height,
+      color,
+      intensity = 1.0,
+      timeDomain = false,
+    } = params
     this.resize(width, height)
 
     // Real elapsed time (bridged into visualizerState by the render loop / worker).
@@ -274,7 +288,8 @@ export class GLVisualizerEngine {
     const dt = (dtMs > 0 && dtMs < 250 ? dtMs : REFERENCE_FRAME_MS) / 1000
     this.time += dt
 
-    updateAudioFeatures(audioState, dataArray, bufferLength)
+    if (timeDomain) updateAudioFeaturesFromTime(audioState, dataArray, bufferLength)
+    else updateAudioFeatures(audioState, dataArray, bufferLength)
 
     gl.bindTexture(gl.TEXTURE_2D, this._audioTex)
     gl.texSubImage2D(
@@ -310,6 +325,7 @@ export class GLVisualizerEngine {
     gl.uniform4f(u('uOnset'), onset.bass || 0, onset.mid || 0, onset.treble || 0, onset.all || 0)
     gl.activeTexture(gl.TEXTURE0)
     gl.uniform1i(u('uAudio'), 0)
+    gl.uniform1f(u('uAudioMode'), timeDomain ? 1.0 : 0.0)
 
     if (typeof preset.uniforms === 'function') {
       const custom = preset.uniforms({ bands: b, onset, time: this.time, dt, intensity })

@@ -26,6 +26,11 @@ describe('gl presets', () => {
     }
   })
 
+  it('marks time-domain presets so they receive waveform data', () => {
+    expect(glVisualizers.glWaveform.needsTimeData).toBe(true)
+    expect(glVisualizers.glBars.needsTimeData).toBe(false)
+  })
+
   it('is registered in the global Visualizers map', () => {
     for (const key of Object.keys(glVisualizers)) {
       expect(Visualizers[key]).toBe(glVisualizers[key])

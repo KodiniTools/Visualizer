@@ -4,6 +4,7 @@ import { workerManager } from '../lib/workerManager.js'
 import { createPostProcessor, postFxActive, FrameMonitor } from '../lib/postfx/index.js'
 import { onsetForSource, advancePunch, punchScale } from '../lib/visualizers/core/onsetReactive.js'
 import { visualizerState } from '../lib/visualizers/core/state.js'
+import { REFERENCE_FRAME_MS } from '../lib/visualizers/core/helpers.js'
 
 export function useRenderLoop({
   canvasRef,
@@ -31,6 +32,7 @@ export function useRenderLoop({
 }) {
   let animationFrameId = null
   let drawTimeoutId = null
+  let lastDrawTimestamp = null
 
   const lastSelectedVisualizerId = ref(null)
   const lastCanvasWidth = ref(0)
@@ -402,8 +404,24 @@ export function useRenderLoop({
       animationFrameId = requestAnimationFrame(draw)
     }
 
+    const now = performance.now()
+
     // Adaptive-quality measurement (cheap; only applied when the toggle is on).
-    frameMonitor.tick(performance.now())
+    frameMonitor.tick(now)
+
+    // Elapsed time since the last draw() call. Visualizer smoothing/decay
+    // (applySmoothValue, applyDecay) is normalized against this so it
+    // converges at the same real-world speed regardless of how often draw()
+    // actually runs — without it, anything that slows the render loop down
+    // (most notably real-time video encoding while recording) makes the
+    // visualizer visibly move in slow motion, since per-call-fixed smoothing
+    // factors then take proportionally longer in wall-clock time to converge.
+    const dtMs = lastDrawTimestamp !== null ? now - lastDrawTimestamp : REFERENCE_FRAME_MS
+    lastDrawTimestamp = now
+    // Ignore absurd gaps (tab was backgrounded, debugger paused, first frame
+    // after a long stall) so a single huge dt doesn't snap smoothed values
+    // straight to their targets.
+    visualizerState._dtMs = dtMs > 0 && dtMs < 250 ? dtMs : REFERENCE_FRAME_MS
 
     const canvas = resolveCanvas()
     if (!canvas) return
@@ -659,6 +677,9 @@ export function useRenderLoop({
               // and no window, so these must travel per frame.
               onsetFx: visualizerState._onsetFx,
               onsetData: visualizerState._onsetData,
+              // Elapsed time since the last draw() — see applySmoothValue/
+              // applyDecay in core/helpers.js for why this matters.
+              dtMs: visualizerState._dtMs,
             })
 
             if (vizWorkerBitmap) {

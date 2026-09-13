@@ -11,6 +11,7 @@ import {
   calculateDynamicGain,
   getFrequencyBasedSmoothing,
   applySmoothValue,
+  applyDecay,
   drawRoundedBar,
   detectBeat,
 } from '../core/index.js'
@@ -42,7 +43,7 @@ export const bars = {
     // Decay beat multiplier over frames for smooth spike
     visualizerState._barsBeatMult = isBeat
       ? 1.35
-      : Math.max(1.0, (visualizerState._barsBeatMult || 1.0) * 0.88)
+      : applyDecay(visualizerState._barsBeatMult || 1.0, 0.88, 1.0)
 
     const beatMult = visualizerState._barsBeatMult
     const masterGain = 0.35

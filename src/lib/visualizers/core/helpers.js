@@ -4,6 +4,26 @@
  */
 
 import { CONSTANTS } from './constants.js'
+import { visualizerState } from './state.js'
+
+// Smoothing/decay factors throughout the visualizer library were tuned by
+// feel while the render loop ran at ~60fps. They're applied PER CALL, not
+// per unit of time, so calling them fewer times per second (e.g. when
+// real-time video encoding during recording slows the render loop down)
+// makes every smoothed value/decay converge more slowly IN WALL-CLOCK TIME —
+// the visualizer visibly moves in slow motion during recording even though
+// audio keeps playing at normal speed. useRenderLoop.js writes the actual
+// elapsed time between draws into visualizerState._dtMs every frame (and
+// bridges it into the visualizer worker's own state); normalizing against it
+// here keeps convergence speed tied to real time regardless of frame rate.
+export const REFERENCE_FRAME_MS = 1000 / 60
+
+function frameRateIndependentFactor(perFrameFactor) {
+  const dtMs = visualizerState._dtMs
+  if (!dtMs || dtMs <= 0) return perFrameFactor
+  const remainder = Math.max(0, 1 - perFrameFactor)
+  return 1 - Math.pow(remainder, dtMs / REFERENCE_FRAME_MS)
+}
 
 /**
  * Exponential mapping from [0,1] to [0,1] with adjustable base
@@ -119,7 +139,24 @@ export function getFrequencyBasedSmoothing(
  * @returns {number} New smoothed value
  */
 export function applySmoothValue(current, target, factor) {
-  return current + (target - current) * factor
+  return current + (target - current) * frameRateIndependentFactor(factor)
+}
+
+/**
+ * Frame-rate-independent exponential decay, e.g. for a beat-flash multiplier
+ * cooling back down toward `floor` between beats: `current * decayFactor`,
+ * clamped at `floor`, scaled so the same decay happens per unit of real time
+ * regardless of how often this is called per second.
+ * @param {number} current - Current value
+ * @param {number} decayFactor - Per-frame decay factor (0-1, e.g. 0.88)
+ * @param {number} [floor=0] - Value decay approaches/clamps to
+ * @returns {number} New decayed value (never below floor)
+ */
+export function applyDecay(current, decayFactor, floor = 0) {
+  const dtMs = visualizerState._dtMs
+  const scaledDecayFactor =
+    dtMs && dtMs > 0 ? Math.pow(decayFactor, dtMs / REFERENCE_FRAME_MS) : decayFactor
+  return Math.max(floor, current * scaledDecayFactor)
 }
 
 /**

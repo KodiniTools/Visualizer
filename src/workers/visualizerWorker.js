@@ -60,6 +60,7 @@ function renderFrame({
   quality,
   onsetFx,
   onsetData,
+  dtMs,
 }) {
   if (!ctx || !offscreenCanvas) return
 
@@ -71,6 +72,10 @@ function renderFrame({
   // current settings and onset values.
   visualizerState._onsetFx = onsetFx
   visualizerState._onsetData = onsetData
+  // Same bridging for the elapsed time since the main thread's last draw() —
+  // applySmoothValue/applyDecay (core/helpers.js) use it to keep smoothing
+  // speed tied to real time instead of to how often this message arrives.
+  visualizerState._dtMs = dtMs
 
   if (lastVisualizerId !== visualizerId) {
     if (lastVisualizerId && Visualizers[lastVisualizerId]) {

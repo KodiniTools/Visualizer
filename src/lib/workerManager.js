@@ -318,6 +318,7 @@ export class WorkerManager {
     quality,
     onsetFx,
     onsetData,
+    dtMs,
   }) {
     if (!this.visualizerWorkerReady || !this.visualizerWorker) return false
 
@@ -335,6 +336,7 @@ export class WorkerManager {
         quality,
         onsetFx,
         onsetData,
+        dtMs,
       },
       [copy.buffer],
     )

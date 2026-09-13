@@ -15,6 +15,7 @@ export {
   calculateDynamicGain,
   getFrequencyBasedSmoothing,
   applySmoothValue,
+  applyDecay,
   withSafeCanvasState,
   drawRoundedBar,
   // ✨ Performance utilities

@@ -20,9 +20,21 @@
 
 import { Canvas2DPostFX } from './Canvas2DPostFX.js'
 import { WebGLPostFX } from './WebGLPostFX.js'
-import { FrameMonitor } from './FrameMonitor.js'
+import { FrameMonitor, QUALITY_STEPS } from './FrameMonitor.js'
 
 export { FrameMonitor } from './FrameMonitor.js'
+
+// Below this adaptive-quality level, the render loop is already struggling
+// to keep up (frame times ~45%+ over budget, sustained). Post-processing's
+// WebGLPostFX.apply() ends every call by drawImage()-ing its WebGL canvas
+// onto a 2D canvas, which forces a GPU→CPU readback ("GPU stall due to
+// ReadPixels" in Chrome's own GPU driver logs) — real, measured cost, not
+// just extra draw calls. At the worst quality step that stall is doing more
+// harm than the effect is worth, so post-processing is skipped entirely
+// until frame times recover. One step above the floor (QUALITY_STEPS[3])
+// so this only kicks in once adaptive quality has already given up on
+// reducing blur passes.
+export const MIN_QUALITY_FOR_POSTFX = QUALITY_STEPS[QUALITY_STEPS.length - 1] + 0.01
 
 /**
  * @param {number} width
@@ -58,4 +70,17 @@ export function postFxActive(config) {
   const bloomOn = config.bloom?.enabled && (config.bloom?.strength ?? 0) > 0
   const trailsOn = config.trails?.enabled
   return Boolean(bloomOn || trailsOn)
+}
+
+/**
+ * Whether post-processing should actually run this frame: the config
+ * requests it AND adaptive quality hasn't dropped to its worst step (see
+ * MIN_QUALITY_FOR_POSTFX for why that specifically disables it rather than
+ * just further reducing blur passes).
+ * @param {Object} config
+ * @param {number} [quality=1]
+ * @returns {boolean}
+ */
+export function shouldRunPostFx(config, quality = 1) {
+  return postFxActive(config) && quality >= MIN_QUALITY_FOR_POSTFX
 }

@@ -65,6 +65,7 @@ export function resetSharedEngine() {
  * @property {string} frag          Fragment shader body (compiled after FRAG_HEADER)
  * @property {(ctx: object) => Object<string, number|number[]>} [uniforms] Extra per-frame uniforms
  * @property {{draw: Function, init?: Function, cleanup?: Function}} [fallback] Canvas2D visualizer used when WebGL2 is unavailable
+ * @property {boolean} [needsTimeData] Receive the time-domain waveform instead of the spectrum
  */
 
 /**
@@ -97,6 +98,7 @@ export function createGlVisualizer(spec) {
     name_en: spec.name_en,
     kind: 'gl',
     glPreset: spec,
+    needsTimeData: spec.needsTimeData === true,
 
     init() {
       resetAudioFeatureState(audioState)
@@ -123,7 +125,15 @@ export function createGlVisualizer(spec) {
       }
       const ok = engine.render(
         spec,
-        { dataArray, bufferLength, width: w, height: h, color, intensity },
+        {
+          dataArray,
+          bufferLength,
+          width: w,
+          height: h,
+          color,
+          intensity,
+          timeDomain: spec.needsTimeData === true,
+        },
         audioState,
       )
       if (!ok) {

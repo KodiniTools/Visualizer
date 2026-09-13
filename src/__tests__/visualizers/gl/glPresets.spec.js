@@ -21,7 +21,7 @@ describe('gl presets', () => {
           intensity: 1,
         })
         for (const v of Object.values(u))
-          expect(typeof v === 'number' || Array.isArray(v)).toBe(true)
+          expect(typeof v === 'number' || Array.isArray(v) || ArrayBuffer.isView(v)).toBe(true)
       }
     }
   })

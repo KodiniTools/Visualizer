@@ -26,17 +26,21 @@ import {
 
 /** Width of the audio texture (texels per row). */
 export const AUDIO_TEX_WIDTH = 512
-/** Number of rows in the audio texture. */
-export const AUDIO_TEX_ROWS = 2
+/** Rows of spectrum history kept in the texture (newest overwrites oldest). */
+export const AUDIO_HISTORY_ROWS = 128
+/** Number of rows in the audio texture: raw, smoothed, then the history ring. */
+export const AUDIO_TEX_ROWS = 2 + AUDIO_HISTORY_ROWS
 
 /**
  * Per-visualizer feature state. Kept per adapter (not per engine) so several
  * GPU layers running in the same frame do not double-step each other's
  * smoothing.
- * @returns {{rows: Uint8Array, smooth: Float32Array, bands: Float32Array}}
+ * @returns {{rows: Uint8Array, smooth: Float32Array, bands: Float32Array, scratch: Float32Array, historyHead: number}}
  */
 export function createAudioFeatureState() {
   return {
+    // Index (0..AUDIO_HISTORY_ROWS-1) of the history row written last.
+    historyHead: 0,
     rows: new Uint8Array(AUDIO_TEX_WIDTH * AUDIO_TEX_ROWS),
     smooth: new Float32Array(AUDIO_TEX_WIDTH),
     bands: new Float32Array(4),
@@ -49,6 +53,19 @@ export function resetAudioFeatureState(state) {
   state.rows.fill(0)
   state.smooth.fill(0)
   state.bands.fill(0)
+  state.historyHead = 0
+}
+
+/**
+ * Push the smoothed row (row 1) into the history ring. Called once per frame
+ * by both feature paths after row 1 was written.
+ * @param {ReturnType<typeof createAudioFeatureState>} state
+ */
+function pushHistory(state) {
+  const W = AUDIO_TEX_WIDTH
+  state.historyHead = (state.historyHead + 1) % AUDIO_HISTORY_ROWS
+  const dst = (2 + state.historyHead) * W
+  state.rows.copyWithin(dst, W, W * 2)
 }
 
 /**
@@ -108,6 +125,7 @@ export function updateAudioFeatures(state, dataArray, bufferLength) {
   }
 
   computeBands(dataArray, len, state.bands)
+  pushHistory(state)
   return state
 }
 
@@ -179,5 +197,6 @@ export function updateAudioFeaturesFromTime(state, timeData, bufferLength) {
   b[2] = Math.min(1, rmsTreble * 4.0)
   b[1] = Math.min(1, Math.max(0, rmsAll * 2.5 - b[0] * 0.5 - b[2] * 0.3))
   b[3] = Math.min(1, rmsAll * 2.5)
+  pushHistory(state)
   return state
 }

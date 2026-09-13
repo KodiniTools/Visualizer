@@ -23,6 +23,12 @@ import { glRings as glRingsSpec } from './presets/glRings.js'
 import { glLightRays as glLightRaysSpec } from './presets/glLightRays.js'
 import { glFire as glFireSpec } from './presets/glFire.js'
 import { glRain as glRainSpec } from './presets/glRain.js'
+import { glSpectrogram as glSpectrogramSpec } from './presets/glSpectrogram.js'
+import { glTerrain as glTerrainSpec } from './presets/glTerrain.js'
+import { glVoronoi as glVoronoiSpec } from './presets/glVoronoi.js'
+import { glSphere as glSphereSpec } from './presets/glSphere.js'
+import { glCymatics as glCymaticsSpec } from './presets/glCymatics.js'
+import { glLightning as glLightningSpec } from './presets/glLightning.js'
 
 export { createGlVisualizer, getSharedEngine, resetSharedEngine } from './createGlVisualizer.js'
 export { GLVisualizerEngine } from './GLVisualizerEngine.js'
@@ -43,6 +49,12 @@ export const glPresetSpecs = {
   glParticles: glParticlesSpec,
   glFire: glFireSpec,
   glRain: glRainSpec,
+  glSpectrogram: glSpectrogramSpec,
+  glTerrain: glTerrainSpec,
+  glVoronoi: glVoronoiSpec,
+  glSphere: glSphereSpec,
+  glCymatics: glCymaticsSpec,
+  glLightning: glLightningSpec,
 }
 
 /** Registry-ready visualizers, keyed by preset id. */

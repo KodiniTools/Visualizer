@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import {
   AUDIO_TEX_WIDTH,
   AUDIO_TEX_ROWS,
+  AUDIO_HISTORY_ROWS,
   createAudioFeatureState,
   resetAudioFeatureState,
   computeBands,
@@ -99,6 +100,52 @@ describe('gl/audioFeatures', () => {
     expect(state.rows.every((v) => v === 0)).toBe(true)
     expect(state.smooth.every((v) => v === 0)).toBe(true)
     expect(Array.from(state.bands)).toEqual([0, 0, 0, 0])
+  })
+
+  describe('spectrum history ring', () => {
+    it('keeps the last smoothed rows and advances the head each frame', () => {
+      const len = 1024
+      const state = createAudioFeatureState()
+      expect(AUDIO_TEX_ROWS).toBe(2 + AUDIO_HISTORY_ROWS)
+
+      // 10 loud frames, then 10 silent frames.
+      for (let i = 0; i < 10; i++)
+        updateAudioFeatures(
+          state,
+          spectrum(len, () => 255),
+          len,
+        )
+      const headAfterLoud = state.historyHead
+      const loudRow = state.rows.slice(
+        (2 + headAfterLoud) * AUDIO_TEX_WIDTH,
+        (3 + headAfterLoud) * AUDIO_TEX_WIDTH,
+      )
+      expect(Math.max(...loudRow)).toBeGreaterThan(0)
+
+      for (let i = 0; i < 10; i++) updateAudioFeatures(state, new Uint8Array(len), len)
+      expect(state.historyHead).toBe((headAfterLoud + 10) % AUDIO_HISTORY_ROWS)
+      // The loud row is still in the ring, 10 frames back.
+      const kept = state.rows.slice(
+        (2 + headAfterLoud) * AUDIO_TEX_WIDTH,
+        (3 + headAfterLoud) * AUDIO_TEX_WIDTH,
+      )
+      expect(Array.from(kept)).toEqual(Array.from(loudRow))
+      // The newest row is (nearly) silent again after smoothing decays.
+      const newest = state.rows.slice(
+        (2 + state.historyHead) * AUDIO_TEX_WIDTH,
+        (3 + state.historyHead) * AUDIO_TEX_WIDTH,
+      )
+      expect(Math.max(...newest)).toBeLessThan(Math.max(...loudRow))
+    })
+
+    it('wraps around after AUDIO_HISTORY_ROWS frames', () => {
+      const len = 1024
+      const state = createAudioFeatureState()
+      for (let i = 0; i < AUDIO_HISTORY_ROWS + 3; i++)
+        updateAudioFeatures(state, new Uint8Array(len), len)
+      expect(state.historyHead).toBe(3)
+      expect(state.rows.length).toBe(AUDIO_TEX_WIDTH * AUDIO_TEX_ROWS)
+    })
   })
 
   describe('time-domain path', () => {

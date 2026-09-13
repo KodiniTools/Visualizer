@@ -12,10 +12,18 @@ const API_BASE = '/visualizer/api'
 
 /**
  * Prüft ob der Backend-Server verfügbar ist
+ *
+ * ⚠️ WICHTIG: Nutzt `${API_BASE}/info` (also `/visualizer/api/info`) statt
+ * dem Backend-eigenen `/health`-Root-Endpoint. NGINX proxied auf dem Server
+ * i.d.R. nur `/visualizer/api/*` zum Backend – ein direkter Aufruf von
+ * `/visualizer/health` läuft sonst ins SPA-Fallback (index.html), liefert
+ * HTTP 200 mit HTML statt JSON und lässt den Server dauerhaft als
+ * "nicht verfügbar" erscheinen, obwohl er läuft (Recorder-Checkboxen für
+ * MP4/GIF/HQ-Export bleiben dann fälschlich deaktiviert).
  */
 export async function checkServerHealth() {
   try {
-    const response = await fetch('/visualizer/health', {
+    const response = await fetch(`${API_BASE}/info`, {
       method: 'GET',
       signal: AbortSignal.timeout(5000),
     })
@@ -24,8 +32,8 @@ export async function checkServerHealth() {
       const data = await response.json()
       return {
         available: true,
-        status: data.status,
-        uptime: data.uptime,
+        status: data.ffmpeg?.available ? 'ok' : 'degraded',
+        ffmpeg: data.ffmpeg,
       }
     }
     return { available: false, error: 'Server not responding' }

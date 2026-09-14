@@ -68,6 +68,11 @@ const VISUALIZER_CATEGORIES = {
     'glMetaballs',
     'glFlowerOfLife',
     'glLedWall',
+    'glLedMatrix',
+    'glVuMeter',
+    'glLedRing',
+    'glLedStrips',
+    'glStageLights',
   ],
   // Klassische Canvas2D-Visualizer: bleiben als Fallback und für bestehende
   // Presets erhalten, sind im Picker aber eingeklappt (Stufe 1 der Migration).

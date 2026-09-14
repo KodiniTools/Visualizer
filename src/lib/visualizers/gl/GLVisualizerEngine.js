@@ -37,6 +37,9 @@ const STANDARD_UNIFORMS = [
   'uAudio',
   'uAudioMode',
   'uHistoryHead',
+  'uImage',
+  'uHasImage',
+  'uImageSize',
 ]
 
 /**
@@ -107,6 +110,9 @@ export class GLVisualizerEngine {
     this._vao = null
     this._vbo = null
     this._audioTex = null
+    this._imageTex = null
+    this._imageSource = null // identity of the uploaded image source
+    this._imageSize = [0, 0]
 
     this._onContextLost = (e) => {
       if (e && typeof e.preventDefault === 'function') e.preventDefault()
@@ -160,9 +166,61 @@ export class GLVisualizerEngine {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
     gl.bindTexture(gl.TEXTURE_2D, null)
 
+    // Image texture (portrait presets): uploaded lazily when a source is set.
+    this._imageTex = gl.createTexture()
+    gl.bindTexture(gl.TEXTURE_2D, this._imageTex)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4))
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+    gl.bindTexture(gl.TEXTURE_2D, null)
+    this._imageSource = null
+    this._imageSize = [0, 0]
+
     gl.disable(gl.BLEND)
     gl.disable(gl.DEPTH_TEST)
     gl.clearColor(0, 0, 0, 0)
+  }
+
+  /**
+   * Upload an image source (ImageBitmap / HTMLImageElement / canvas) when it
+   * differs from the one already on the GPU. Passing null keeps the texture
+   * but marks it as absent.
+   * @param {ImageBitmap|HTMLImageElement|HTMLCanvasElement|OffscreenCanvas|null} source
+   * @returns {boolean} true when an image is available
+   */
+  setImage(source) {
+    if (!source) {
+      this._imageSource = null
+      return false
+    }
+    if (source === this._imageSource) return true
+    const gl = this.gl
+    const w = source.naturalWidth || source.width || 0
+    const h = source.naturalHeight || source.height || 0
+    if (!(w > 0 && h > 0)) {
+      this._imageSource = null
+      return false
+    }
+    try {
+      gl.bindTexture(gl.TEXTURE_2D, this._imageTex)
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
+      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source)
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
+      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1)
+      gl.bindTexture(gl.TEXTURE_2D, null)
+      this._imageSource = source
+      this._imageSize = [w, h]
+      return true
+    } catch (err) {
+      if (typeof console !== 'undefined') {
+        console.warn('[GLVisualizer] Bild konnte nicht als Textur geladen werden:', err?.message)
+      }
+      this._imageSource = null
+      return false
+    }
   }
 
   /**
@@ -263,7 +321,7 @@ export class GLVisualizerEngine {
    * Render one frame of `preset` into the engine canvas.
    *
    * @param {{id: string, frag: string, uniforms?: Function}} preset
-   * @param {{dataArray: Uint8Array|number[], bufferLength: number, width: number, height: number, color: string, intensity?: number, timeDomain?: boolean}} params
+   * @param {{dataArray: Uint8Array|number[], bufferLength: number, width: number, height: number, color: string, intensity?: number, timeDomain?: boolean, image?: ImageBitmap|HTMLImageElement|null}} params
    * @param {{rows: Uint8Array, smooth: Float32Array, bands: Float32Array}} audioState Per-visualizer feature state (see audioFeatures.js)
    * @returns {boolean} true when a frame was drawn, false when the caller should fall back
    */
@@ -281,6 +339,7 @@ export class GLVisualizerEngine {
       color,
       intensity = 1.0,
       timeDomain = false,
+      image = null,
     } = params
     this.resize(width, height)
 
@@ -329,6 +388,14 @@ export class GLVisualizerEngine {
     gl.uniform1f(u('uAudioMode'), timeDomain ? 1.0 : 0.0)
     gl.uniform1f(u('uHistoryHead'), audioState.historyHead)
 
+    const hasImage = this.setImage(image)
+    gl.activeTexture(gl.TEXTURE1)
+    gl.bindTexture(gl.TEXTURE_2D, this._imageTex)
+    gl.uniform1i(u('uImage'), 1)
+    gl.uniform1f(u('uHasImage'), hasImage ? 1.0 : 0.0)
+    gl.uniform2f(u('uImageSize'), this._imageSize[0], this._imageSize[1])
+    gl.activeTexture(gl.TEXTURE0)
+
     if (typeof preset.uniforms === 'function') {
       const custom = preset.uniforms({ bands: b, onset, time: this.time, dt, intensity })
       if (custom) {
@@ -357,6 +424,9 @@ export class GLVisualizerEngine {
 
     gl.drawArrays(gl.TRIANGLES, 0, 3)
     gl.bindVertexArray(null)
+    gl.activeTexture(gl.TEXTURE1)
+    gl.bindTexture(gl.TEXTURE_2D, null)
+    gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, null)
     return true
   }
@@ -372,6 +442,9 @@ export class GLVisualizerEngine {
     }
     this.programs.clear()
     if (this._audioTex) gl.deleteTexture(this._audioTex)
+    if (this._imageTex) gl.deleteTexture(this._imageTex)
+    this._imageTex = null
+    this._imageSource = null
     if (this._vbo) gl.deleteBuffer(this._vbo)
     if (this._vao) gl.deleteVertexArray(this._vao)
     this._audioTex = null

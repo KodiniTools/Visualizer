@@ -344,6 +344,18 @@ export class WorkerManager {
   }
 
   /**
+   * Übergibt dem Visualizer Worker das Bild für Portrait-Presets (ImageBitmap,
+   * wird transferiert) oder null zum Entfernen.
+   */
+  setVisualizerImage(bitmap) {
+    if (!this.visualizerWorkerReady || !this.visualizerWorker) return false
+    const transfer =
+      bitmap && typeof ImageBitmap !== 'undefined' && bitmap instanceof ImageBitmap ? [bitmap] : []
+    this.visualizerWorker.postMessage({ type: 'image', bitmap: bitmap || null }, transfer)
+    return true
+  }
+
+  /**
    * Informiert den Visualizer Worker über eine Canvas-Größenänderung
    */
   resizeVisualizerCanvas(width, height) {

@@ -777,6 +777,7 @@ export default {
     noResultsFor: 'No results for',
     categories: {
       gpu: 'GPU Presets',
+      portrait: 'Portrait (image)',
       classic: 'Classic (Canvas2D)',
       barsSpectrum: 'Bars & Spectrum',
       waves: 'Waves',
@@ -796,6 +797,15 @@ export default {
     hideLayer: 'Hide layer',
     showLayer: 'Show layer',
     blendMode: 'Blend Mode',
+    image: {
+      label: 'Image',
+      none: 'No image selected',
+      upload: 'Load image…',
+      fromCanvas: 'Canvas images',
+      uploads: 'Loaded images',
+      hint: 'Portrait presets work on this image. Without one the layer only shows a frame.',
+      remove: 'Remove image',
+    },
     reactSource: {
       label: 'Reaction source',
       spectrum: 'Spectrum (default)',

@@ -207,6 +207,15 @@
               />
             </div>
 
+            <!-- Bild für Portrait-Presets -->
+            <div v-if="layerNeedsImage(layer)" class="detail-row">
+              <span class="detail-label">{{ t('visualizer.image.label') }}</span>
+              <VisualizerImagePicker
+                :model-value="layer.imageId || null"
+                @update:model-value="updateProperty(layer.id, 'imageId', $event)"
+              />
+            </div>
+
             <!-- Position X -->
             <div class="detail-row">
               <span class="detail-label">X: {{ Math.round(layer.x * 100) }}%</span>
@@ -264,6 +273,7 @@
 
 <script setup>
 import SliderField from './ui/SliderField.vue'
+import VisualizerImagePicker from './VisualizerImagePicker.vue'
 import ColorField from './ui/ColorField.vue'
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../lib/i18n.js'
@@ -294,6 +304,10 @@ function setLayerRef(layerId, el) {
 }
 
 // Layer auswählen und in Sicht scrollen
+function layerNeedsImage(layer) {
+  return !!Visualizers[layer.visualizerId]?.needsImage
+}
+
 function selectLayerAndScroll(layerId) {
   store.selectLayer(layerId)
   // Nach dem Rendern der Details in Sicht scrollen
@@ -313,6 +327,7 @@ const reversedLayers = computed(() => {
 // Kategorie-Namen (Übersetzung)
 const categoryTranslationKeys = {
   'GPU-Presets': 'visualizer.categories.gpu',
+  Portrait: 'visualizer.categories.portrait',
   Klassisch: 'visualizer.categories.classic',
 }
 

@@ -18,6 +18,7 @@
 
 import { GLVisualizerEngine } from './GLVisualizerEngine.js'
 import { createAudioFeatureState, resetAudioFeatureState } from './audioFeatures.js'
+import { visualizerState } from '../core/state.js'
 
 let sharedEngine = null
 let engineFailed = false
@@ -66,6 +67,7 @@ export function resetSharedEngine() {
  * @property {(ctx: object) => Object<string, number|number[]>} [uniforms] Extra per-frame uniforms
  * @property {{draw: Function, init?: Function, cleanup?: Function}} [fallback] Canvas2D visualizer used when WebGL2 is unavailable
  * @property {boolean} [needsTimeData] Receive the time-domain waveform instead of the spectrum
+ * @property {boolean} [needsImage] Uses the image texture (portrait presets); image comes from visualizerState._imageSource
  */
 
 /**
@@ -99,6 +101,7 @@ export function createGlVisualizer(spec) {
     kind: 'gl',
     glPreset: spec,
     needsTimeData: spec.needsTimeData === true,
+    needsImage: spec.needsImage === true,
 
     init() {
       resetAudioFeatureState(audioState)
@@ -133,6 +136,8 @@ export function createGlVisualizer(spec) {
           color,
           intensity,
           timeDomain: spec.needsTimeData === true,
+          // Bridged by the render loop / worker right before draw().
+          image: spec.needsImage === true ? visualizerState._imageSource || null : null,
         },
         audioState,
       )

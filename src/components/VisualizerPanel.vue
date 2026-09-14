@@ -112,6 +112,15 @@
       </template>
     </div>
 
+    <!-- Bild für Portrait-Presets -->
+    <div v-if="selectedNeedsImage" class="control-section">
+      <span class="section-label">{{ t('visualizer.image.label') }}</span>
+      <VisualizerImagePicker
+        :model-value="store.visualizerImageId"
+        @update:model-value="store.setVisualizerImageId($event)"
+      />
+    </div>
+
     <!-- Position & Größe -->
     <div class="control-section position-section">
       <div class="section-header">
@@ -252,10 +261,13 @@ import { useVisualizerStore, REACT_SOURCES } from '../stores/visualizerStore.js'
 import HelpTooltip from './HelpTooltip.vue'
 import VisualizerLayerPanel from './VisualizerLayerPanel.vue'
 import VisualizerEffectsPanel from './VisualizerEffectsPanel.vue'
+import VisualizerImagePicker from './VisualizerImagePicker.vue'
+import { Visualizers } from '../lib/visualizers/index.js'
 
 const { t } = useI18n()
 const store = useVisualizerStore()
 const searchQuery = ref('')
+const selectedNeedsImage = computed(() => !!Visualizers[store.selectedVisualizer]?.needsImage)
 const levelSources = REACT_SOURCES.filter((s) => !s.endsWith('Onset'))
 const onsetSources = REACT_SOURCES.filter((s) => s.endsWith('Onset'))
 const openCategories = ref({
@@ -265,6 +277,7 @@ const openCategories = ref({
 // Map German category keys to i18n translation keys
 const categoryTranslationKeys = {
   'GPU-Presets': 'visualizer.categories.gpu',
+  Portrait: 'visualizer.categories.portrait',
   Klassisch: 'visualizer.categories.classic',
 }
 

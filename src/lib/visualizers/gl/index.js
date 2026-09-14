@@ -40,6 +40,11 @@ import { glTruchet as glTruchetSpec } from './presets/glTruchet.js'
 import { glMetaballs as glMetaballsSpec } from './presets/glMetaballs.js'
 import { glFlowerOfLife as glFlowerOfLifeSpec } from './presets/glFlowerOfLife.js'
 import { glLedWall as glLedWallSpec } from './presets/glLedWall.js'
+import { glLedMatrix as glLedMatrixSpec } from './presets/glLedMatrix.js'
+import { glVuMeter as glVuMeterSpec } from './presets/glVuMeter.js'
+import { glLedRing as glLedRingSpec } from './presets/glLedRing.js'
+import { glLedStrips as glLedStripsSpec } from './presets/glLedStrips.js'
+import { glStageLights as glStageLightsSpec } from './presets/glStageLights.js'
 
 export { createGlVisualizer, getSharedEngine, resetSharedEngine } from './createGlVisualizer.js'
 export { GLVisualizerEngine } from './GLVisualizerEngine.js'
@@ -77,6 +82,11 @@ export const glPresetSpecs = {
   glMetaballs: glMetaballsSpec,
   glFlowerOfLife: glFlowerOfLifeSpec,
   glLedWall: glLedWallSpec,
+  glLedMatrix: glLedMatrixSpec,
+  glVuMeter: glVuMeterSpec,
+  glLedRing: glLedRingSpec,
+  glLedStrips: glLedStripsSpec,
+  glStageLights: glStageLightsSpec,
 }
 
 /** Registry-ready visualizers, keyed by preset id. */

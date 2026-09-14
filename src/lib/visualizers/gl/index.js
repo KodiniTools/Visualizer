@@ -39,6 +39,7 @@ import { glInterference as glInterferenceSpec } from './presets/glInterference.j
 import { glTruchet as glTruchetSpec } from './presets/glTruchet.js'
 import { glMetaballs as glMetaballsSpec } from './presets/glMetaballs.js'
 import { glFlowerOfLife as glFlowerOfLifeSpec } from './presets/glFlowerOfLife.js'
+import { glLedWall as glLedWallSpec } from './presets/glLedWall.js'
 
 export { createGlVisualizer, getSharedEngine, resetSharedEngine } from './createGlVisualizer.js'
 export { GLVisualizerEngine } from './GLVisualizerEngine.js'
@@ -75,6 +76,7 @@ export const glPresetSpecs = {
   glTruchet: glTruchetSpec,
   glMetaballs: glMetaballsSpec,
   glFlowerOfLife: glFlowerOfLifeSpec,
+  glLedWall: glLedWallSpec,
 }
 
 /** Registry-ready visualizers, keyed by preset id. */

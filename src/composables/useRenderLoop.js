@@ -5,6 +5,12 @@ import { createPostProcessor, shouldRunPostFx, FrameMonitor } from '../lib/postf
 import { onsetForSource, advancePunch, punchScale } from '../lib/visualizers/core/onsetReactive.js'
 import { visualizerState } from '../lib/visualizers/core/state.js'
 import { REFERENCE_FRAME_MS } from '../lib/visualizers/core/helpers.js'
+import {
+  reactDrive,
+  advanceReactEnvelope,
+  reactFactor,
+  applyReactFactor,
+} from '../lib/visualizers/core/reactSource.js'
 
 export function useRenderLoop({
   canvasRef,
@@ -66,6 +72,26 @@ export function useRenderLoop({
   // OffscreenCanvas Worker state
   let vizWorkerActive = false
   let vizWorkerBitmap = null // latest ImageBitmap from worker
+
+  // Reaktionsquelle (per Layer / Single): Hüllkurve + Scratch-Puffer für die
+  // gegateten Audiodaten. Läuft auf dem Main-Thread, damit Worker- und
+  // Fallback-Pfad identische Daten sehen.
+  let singleReactEnv = 0
+  let singleReactBuf = null
+
+  function gateAudioData(data, source, strength, envHolder, key, bufHolder, bufKey, timeDomain) {
+    const src = source || 'spectrum'
+    if (src === 'spectrum' || !(strength > 0)) {
+      envHolder[key] = 0
+      return data
+    }
+    const drive = reactDrive(src, window.audioAnalysisData)
+    const env = advanceReactEnvelope(envHolder[key] || 0, drive, src, visualizerState._dtMs)
+    envHolder[key] = env
+    const out = applyReactFactor(data, reactFactor(env, strength), bufHolder[bufKey], timeDomain)
+    if (out !== data) bufHolder[bufKey] = out
+    return out
+  }
   let vizWorkerInitialized = false
 
   // Beat-Punch: onset-driven global zoom of the whole visualizer layer.
@@ -524,9 +550,19 @@ export function useRenderLoop({
           }
 
           // Use cached frequency data; fetch time-domain data lazily (once per frame)
-          const layerAudioData = visualizer.needsTimeData
+          const rawLayerAudio = visualizer.needsTimeData
             ? getTimeDomainData(activeAnalyser, bufferLength)
             : audioDataArray
+          const layerAudioData = gateAudioData(
+            rawLayerAudio,
+            layer.reactSource,
+            layer.reactStrength,
+            layerCache,
+            'reactEnv',
+            layerCache,
+            'reactBuf',
+            !!visualizer.needsTimeData,
+          )
 
           layerCache.ctx.clearRect(0, 0, canvas.width, canvas.height)
           layerCache.ctx.save()
@@ -658,9 +694,22 @@ export function useRenderLoop({
 
           // audioDataArray already has fresh frequency data from the top of draw().
           // For time-domain visualizers, fetch lazily into a separate buffer (once per frame).
-          const vizAudioData = visualizer.needsTimeData
+          const rawVizAudio = visualizer.needsTimeData
             ? getTimeDomainData(activeAnalyser, bufferLength)
             : audioDataArray
+          const singleHolder = { env: singleReactEnv, buf: singleReactBuf }
+          const vizAudioData = gateAudioData(
+            rawVizAudio,
+            visualizerStore.reactSource,
+            visualizerStore.reactStrength,
+            singleHolder,
+            'env',
+            singleHolder,
+            'buf',
+            !!visualizer.needsTimeData,
+          )
+          singleReactEnv = singleHolder.env
+          singleReactBuf = singleHolder.buf
 
           if (vizWorkerActive) {
             // Off-thread path: send audio data to worker, use previous frame's bitmap

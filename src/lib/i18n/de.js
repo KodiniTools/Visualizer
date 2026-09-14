@@ -792,6 +792,21 @@ export default {
     hideLayer: 'Layer ausblenden',
     showLayer: 'Layer einblenden',
     blendMode: 'Mischmodus',
+    reactSource: {
+      label: 'Reaktionsquelle',
+      spectrum: 'Spektrum (Standard)',
+      bass: 'Bass',
+      mid: 'Mitten',
+      treble: 'Höhen',
+      volume: 'Lautstärke',
+      onsetGroup: 'Onset (Beat, auto-normalisiert)',
+      bassOnset: 'Bass-Onset',
+      midOnset: 'Mitten-Onset',
+      trebleOnset: 'Höhen-Onset',
+      allOnset: 'Alle-Onset',
+      strength: 'Reaktionsstärke',
+      hint: 'Onset: springt nur auf Beats an und fällt dazwischen zurück',
+    },
   },
 
   // ========== CONTROLS PANEL ==========

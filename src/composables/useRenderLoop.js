@@ -11,7 +11,11 @@ import {
   reactFactor,
   applyReactFactor,
 } from '../lib/visualizers/core/reactSource.js'
-import { getVisualizerImageSource } from '../lib/visualizers/imageRegistry.js'
+import {
+  getVisualizerImageSource,
+  resolveEffectiveImageId,
+} from '../lib/visualizers/imageRegistry.js'
+import { useImageGallery } from './useImageGallery.js'
 
 export function useRenderLoop({
   canvasRef,
@@ -84,6 +88,17 @@ export function useRenderLoop({
   // sent whenever the selected image changes.
   let workerImageKey = undefined
   let workerImageSeq = 0
+  const imageGallery = useImageGallery()
+
+  // Image for a portrait preset: the chosen one, else canvas image, else the
+  // gallery selection (see resolveEffectiveImageId).
+  function effectiveImageId(preferredId) {
+    return resolveEffectiveImageId(preferredId, {
+      canvasImages: multiImageManagerInstance.value?.getAllImages?.() || [],
+      selectedGalleryImage: imageGallery.selectedImage.value,
+      galleryImages: imageGallery.imageGallery.value,
+    })
+  }
 
   function syncWorkerImage(imageId) {
     const key = imageId || null
@@ -594,7 +609,7 @@ export function useRenderLoop({
           )
 
           visualizerState._imageSource = visualizer.needsImage
-            ? getVisualizerImageSource(layer.imageId)
+            ? getVisualizerImageSource(effectiveImageId(layer.imageId))
             : null
           layerCache.ctx.clearRect(0, 0, canvas.width, canvas.height)
           layerCache.ctx.save()
@@ -745,7 +760,8 @@ export function useRenderLoop({
 
           if (vizWorkerActive) {
             // Off-thread path: send audio data to worker, use previous frame's bitmap
-            if (visualizer.needsImage) syncWorkerImage(visualizerStore.visualizerImageId)
+            if (visualizer.needsImage)
+              syncWorkerImage(effectiveImageId(visualizerStore.visualizerImageId))
             workerManager.renderVisualizerFrame({
               visualizerId,
               audioData: vizAudioData,
@@ -808,7 +824,7 @@ export function useRenderLoop({
             }
 
             visualizerState._imageSource = visualizer.needsImage
-              ? getVisualizerImageSource(visualizerStore.visualizerImageId)
+              ? getVisualizerImageSource(effectiveImageId(visualizerStore.visualizerImageId))
               : null
             visualizerCacheCtx.clearRect(0, 0, canvas.width, canvas.height)
             visualizerCacheCtx.save()

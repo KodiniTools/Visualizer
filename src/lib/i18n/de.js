@@ -795,11 +795,13 @@ export default {
     blendMode: 'Mischmodus',
     image: {
       label: 'Bild',
+      auto: 'Automatisch (Leinwand, sonst Galerie)',
+      fromGallery: 'Galerie',
       none: 'Kein Bild gewählt',
       upload: 'Bild laden…',
       fromCanvas: 'Leinwand-Bilder',
       uploads: 'Geladene Bilder',
-      hint: 'Portrait-Presets arbeiten auf diesem Bild. Ohne Bild zeigt die Ebene nur einen Rahmen.',
+      hint: 'Ohne Auswahl nimmt das Preset das erste Bild auf der Leinwand, sonst das gewählte Galerie-Bild.',
       remove: 'Bild entfernen',
     },
     reactSource: {

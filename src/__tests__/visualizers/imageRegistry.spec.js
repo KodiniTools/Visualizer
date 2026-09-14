@@ -7,6 +7,8 @@ import {
   removeVisualizerImage,
   clearVisualizerImages,
   registerCanvasImage,
+  registerGalleryImage,
+  resolveEffectiveImageId,
 } from '../../lib/visualizers/imageRegistry.js'
 
 describe('imageRegistry', () => {
@@ -37,5 +39,28 @@ describe('imageRegistry', () => {
     expect(b).toBe(a)
     expect(visualizerImages.value.length).toBe(1)
     expect(visualizerImages.value[0].kind).toBe('canvas')
+  })
+
+  it('resolves the effective image: chosen → canvas → selected gallery → first gallery → null', () => {
+    const chosen = registerVisualizerImage({ name: 'chosen', source: { width: 1, height: 1 } })
+    const canvasImages = [{ id: 1, imageObject: { width: 1, height: 1 } }]
+    const selectedGalleryImage = { id: 'g1', img: { width: 1, height: 1 }, name: 'g1' }
+    const galleryImages = [
+      { id: 'g0', img: { width: 1, height: 1 }, name: 'g0' },
+      selectedGalleryImage,
+    ]
+
+    expect(
+      resolveEffectiveImageId(chosen, { canvasImages, selectedGalleryImage, galleryImages }),
+    ).toBe(chosen)
+    expect(
+      resolveEffectiveImageId('missing', { canvasImages, selectedGalleryImage, galleryImages }),
+    ).toBe('canvas:1')
+    expect(resolveEffectiveImageId(null, { selectedGalleryImage, galleryImages })).toBe(
+      'gallery:g1',
+    )
+    expect(resolveEffectiveImageId(null, { galleryImages })).toBe('gallery:g0')
+    expect(resolveEffectiveImageId(null, {})).toBeNull()
+    expect(registerGalleryImage(selectedGalleryImage)).toBe('gallery:g1')
   })
 })

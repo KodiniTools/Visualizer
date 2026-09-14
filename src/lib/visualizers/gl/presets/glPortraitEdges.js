@@ -39,9 +39,10 @@ void main() {
   vec3 base = img(vUv).rgb;
 
   float glowE = lines * (0.6 + band * 0.8 + bass * 0.4 + uOnset.w * 0.5) * shimmer;
-  vec3 rgb = base * 0.12 + mix(col, hot, min(glowE, 1.0) * 0.6) * glowE + col * sweep * lines;
-  float alpha = 0.12 + min(glowE, 1.0) + sweep * lines;
-  fragColor = outPremul(rgb, alpha);
+  // Opaque near-black backdrop so the contours glow on any canvas colour.
+  vec3 backdrop = hsl2rgb(vec3(uColorHsl.x, 0.3, 0.04));
+  vec3 rgb = backdrop + base * 0.14 + mix(col, hot, min(glowE, 1.0) * 0.6) * glowE + col * sweep * lines;
+  fragColor = vec4(clamp(rgb, 0.0, 1.0), 1.0);
 }
 `
 

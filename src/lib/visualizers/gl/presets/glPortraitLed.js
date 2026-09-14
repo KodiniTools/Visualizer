@@ -33,10 +33,11 @@ void main() {
 
   vec3 tint = hsl2rgb(vec3(uColorHsl.x, 0.6, 0.55));
   vec3 col = mix(c.rgb, c.rgb * tint * 1.6, 0.25) * (0.7 + boost * 0.5);
-  vec3 off = c.rgb * 0.08;
-  vec3 rgb = mix(off, col, led) + col * glow;
-  float alpha = max(led, 0.15) + glow;
-  fragColor = outPremul(rgb, alpha);
+  // Opaque dark panel behind the LEDs (a real LED wall is never transparent).
+  vec3 panel = hsl2rgb(vec3(uColorHsl.x, 0.2, 0.05));
+  vec3 off = mix(panel, c.rgb, 0.12);
+  vec3 rgb = mix(panel, mix(off, col, led), 1.0) + col * glow;
+  fragColor = vec4(clamp(rgb, 0.0, 1.0), 1.0);
 }
 `
 

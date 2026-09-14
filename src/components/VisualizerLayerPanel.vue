@@ -278,16 +278,7 @@ const reversedLayers = computed(() => {
 // Kategorie-Namen (Übersetzung)
 const categoryTranslationKeys = {
   'GPU-Presets': 'visualizer.categories.gpu',
-  'Balken & Spektrum': 'visualizer.categories.barsSpectrum',
-  Wellen: 'visualizer.categories.waves',
-  'Kreise & Kugeln': 'visualizer.categories.circlesSpheres',
-  Partikel: 'visualizer.categories.particles',
-  Geometrie: 'visualizer.categories.geometry',
-  Organisch: 'visualizer.categories.organic',
-  'Kristalle & Netze': 'visualizer.categories.crystalsNets',
-  Blüten: 'visualizer.categories.blossoms',
-  '3D-Objekte': 'visualizer.categories.objects3d',
-  'Retro & Pixel': 'visualizer.categories.retroPixel',
+  Klassisch: 'visualizer.categories.classic',
 }
 
 function getCategoryName(category) {

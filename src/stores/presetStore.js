@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useVisualizerStore } from './visualizerStore.js'
+import { resolveVisualizerId } from '../lib/visualizers/aliases.js'
 
 const USER_PRESETS_KEY = 'visualizer-user-presets'
 
@@ -12,7 +13,7 @@ export const BUILT_IN_PRESETS = [
     emoji: '💚',
     visualizer: {
       mode: 'single',
-      selectedVisualizer: 'neonGrid',
+      selectedVisualizer: 'glNeonGrid',
       color: '#00ff88',
       opacity: 1.0,
       colorOpacity: 1.0,
@@ -35,7 +36,7 @@ export const BUILT_IN_PRESETS = [
     emoji: '🌌',
     visualizer: {
       mode: 'single',
-      selectedVisualizer: 'spiralGalaxy',
+      selectedVisualizer: 'glTunnel',
       color: '#aa44ff',
       opacity: 1.0,
       colorOpacity: 1.0,
@@ -58,7 +59,7 @@ export const BUILT_IN_PRESETS = [
     emoji: '🌊',
     visualizer: {
       mode: 'single',
-      selectedVisualizer: 'fluidWaves',
+      selectedVisualizer: 'glAurora',
       color: '#00c8ff',
       opacity: 1.0,
       colorOpacity: 1.0,
@@ -81,7 +82,7 @@ export const BUILT_IN_PRESETS = [
     emoji: '🔥',
     visualizer: {
       mode: 'single',
-      selectedVisualizer: 'audioFire',
+      selectedVisualizer: 'glFire',
       color: '#ff4400',
       opacity: 1.0,
       colorOpacity: 1.0,
@@ -104,7 +105,7 @@ export const BUILT_IN_PRESETS = [
     emoji: '⬜',
     visualizer: {
       mode: 'single',
-      selectedVisualizer: 'bars',
+      selectedVisualizer: 'glBars',
       color: '#224488',
       opacity: 1.0,
       colorOpacity: 1.0,
@@ -127,7 +128,7 @@ export const BUILT_IN_PRESETS = [
     emoji: '💻',
     visualizer: {
       mode: 'single',
-      selectedVisualizer: 'digitalRain',
+      selectedVisualizer: 'glRain',
       color: '#00ff00',
       opacity: 1.0,
       colorOpacity: 1.0,
@@ -150,7 +151,7 @@ export const BUILT_IN_PRESETS = [
     emoji: '🕹️',
     visualizer: {
       mode: 'single',
-      selectedVisualizer: 'arcadeBlocks',
+      selectedVisualizer: 'glBarsMirrored',
       color: '#ffdd00',
       opacity: 1.0,
       colorOpacity: 1.0,
@@ -173,7 +174,7 @@ export const BUILT_IN_PRESETS = [
     emoji: '💎',
     visualizer: {
       mode: 'single',
-      selectedVisualizer: 'liquidCrystals',
+      selectedVisualizer: 'glVoronoi',
       color: '#00eeff',
       opacity: 1.0,
       colorOpacity: 1.0,
@@ -196,7 +197,7 @@ export const BUILT_IN_PRESETS = [
     emoji: '🌸',
     visualizer: {
       mode: 'single',
-      selectedVisualizer: 'bloomingMandala',
+      selectedVisualizer: 'glMandala',
       color: '#c9984d',
       opacity: 1.0,
       colorOpacity: 1.0,
@@ -219,7 +220,7 @@ export const BUILT_IN_PRESETS = [
     emoji: '❤️',
     visualizer: {
       mode: 'single',
-      selectedVisualizer: 'heartbeat',
+      selectedVisualizer: 'glRings',
       color: '#ff2244',
       opacity: 1.0,
       colorOpacity: 1.0,
@@ -242,7 +243,7 @@ export const BUILT_IN_PRESETS = [
     emoji: '✨',
     visualizer: {
       mode: 'single',
-      selectedVisualizer: 'particleStorm',
+      selectedVisualizer: 'glParticles',
       color: '#ff88ff',
       opacity: 1.0,
       colorOpacity: 1.0,
@@ -265,7 +266,7 @@ export const BUILT_IN_PRESETS = [
     emoji: '🔷',
     visualizer: {
       mode: 'single',
-      selectedVisualizer: 'hexagonGrid',
+      selectedVisualizer: 'glNeonGrid',
       color: '#44ff88',
       opacity: 1.0,
       colorOpacity: 1.0,
@@ -363,12 +364,17 @@ export const usePresetStore = defineStore('presets', () => {
     // Apply visualizer state
     if (v.mode === 'multi' && v.layers?.length) {
       vizStore.multiLayerMode = true
-      vizStore.visualizerLayers = v.layers.map((l) => ({ ...l }))
+      // Stored ids may point at retired classic visualizers → map to GPU preset.
+      vizStore.visualizerLayers = v.layers.map((l) => ({
+        ...l,
+        visualizerId: resolveVisualizerId(l.visualizerId) || vizStore.lastWorkingVisualizer,
+      }))
       if (v.layers.length > 0) vizStore.activeLayerId = v.layers[0].id
     } else {
       vizStore.multiLayerMode = false
       vizStore.visualizerLayers = []
-      vizStore.selectedVisualizer = v.selectedVisualizer
+      vizStore.selectedVisualizer =
+        resolveVisualizerId(v.selectedVisualizer) || vizStore.lastWorkingVisualizer
       vizStore.visualizerColor = v.color
       vizStore.visualizerOpacity = v.opacity ?? 1.0
       vizStore.colorOpacity = v.colorOpacity ?? 1.0

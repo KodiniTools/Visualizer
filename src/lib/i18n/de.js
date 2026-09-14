@@ -773,6 +773,7 @@ export default {
     noResultsFor: 'Keine Ergebnisse für',
     categories: {
       gpu: 'GPU-Presets',
+      classic: 'Klassisch (Canvas2D)',
       barsSpectrum: 'Balken & Spektrum',
       waves: 'Wellen',
       circlesSpheres: 'Kreise & Kugeln',

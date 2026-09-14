@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { Visualizers } from '../lib/visualizers/index.js'
+import { LEGACY_VISUALIZER_IDS, resolveVisualizerId } from '../lib/visualizers/aliases.js'
 import { localeRef } from '../lib/i18n.js'
 
 // ✅ Blend-Modi für Visualizer-Compositing
@@ -48,54 +49,9 @@ const VISUALIZER_CATEGORIES = {
     'glCymatics',
     'glLightning',
   ],
-  'Balken & Spektrum': [
-    'bars',
-    'mirroredBars',
-    'radialBars',
-    'vibratingCubes',
-    'vibratingStrings',
-    'bars3D',
-  ],
-  Wellen: [
-    'waveform',
-    'waveformHorizon',
-    'classicWaveform',
-    'texturedWave',
-    'fluidWaves',
-    'synthWave',
-  ],
-  'Kreise & Kugeln': ['circles', 'pulsingOrbs', 'rippleEffect', 'soundWaves', 'orbitingLight'],
-  Partikel: [
-    'particleStorm',
-    'networkPlexus',
-    'cosmicNebula',
-    'digitalRain',
-    'matrixRain',
-    'audioFire',
-  ],
-  Geometrie: [
-    'spiralGalaxy',
-    'bloomingMandala',
-    'geometricKaleidoscope',
-    'hexagonGrid',
-    'shardMosaic',
-    'lightBeams',
-    'neonGrid',
-    'vortexPortal',
-  ],
-  Organisch: ['heartbeat', 'neuralNetwork', 'cellGrowth', 'fractalTree'],
-  'Kristalle & Netze': ['liquidCrystals', 'electricWeb'],
-  Blüten: ['frequencyBlossoms', 'centralGlowBlossom'],
-  '3D-Objekte': ['rainbowCube'],
-  'Retro & Pixel': [
-    'pixelSpectrum',
-    'retroOscilloscope',
-    'arcadeBlocks',
-    'chiptunePulse',
-    'pixelFireworks',
-    'vinylRecord',
-  ],
-  Wetter: ['weatherStorm'],
+  // Klassische Canvas2D-Visualizer: bleiben als Fallback und für bestehende
+  // Presets erhalten, sind im Picker aber eingeklappt (Stufe 1 der Migration).
+  Klassisch: [...LEGACY_VISUALIZER_IDS],
 }
 
 export const useVisualizerStore = defineStore('visualizer', () => {
@@ -326,9 +282,12 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       case 'scale':
         value = Math.max(0.1, Math.min(3.0, value))
         break
-      case 'visualizerId':
-        if (!Visualizers[value]) return false
+      case 'visualizerId': {
+        const resolved = resolveVisualizerId(value)
+        if (!resolved) return false
+        value = resolved
         break
+      }
       case 'blendMode':
         if (!BLEND_MODES.find((m) => m.id === value)) return false
         break
@@ -394,8 +353,9 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   }
 
   function selectVisualizer(id) {
-    if (Visualizers[id]) {
-      selectedVisualizer.value = id
+    const resolved = resolveVisualizerId(id)
+    if (resolved) {
+      selectedVisualizer.value = resolved
     } else {
       console.warn(
         `⚠️ [VisualizerStore] Visualizer "${id}" nicht gefunden - Fallback zu "${lastWorkingVisualizer.value}"`,

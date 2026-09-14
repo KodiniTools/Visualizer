@@ -58,6 +58,7 @@ const VISUALIZER_CATEGORIES = {
     'glTruchet',
     'glMetaballs',
     'glFlowerOfLife',
+    'glLedWall',
   ],
   // Klassische Canvas2D-Visualizer: bleiben als Fallback und für bestehende
   // Presets erhalten, sind im Picker aber eingeklappt (Stufe 1 der Migration).

@@ -12,7 +12,7 @@
 
 import { ref } from 'vue'
 
-/** @typedef {{id: string, name: string, source: ImageBitmap|HTMLImageElement, url?: string, kind: 'upload'|'canvas'}} VisualizerImage */
+/** @typedef {{id: string, name: string, source: ImageBitmap|HTMLImageElement, url?: string, kind: 'upload'|'canvas'|'gallery'}} VisualizerImage */
 
 const images = new Map()
 /** Reactive list of registered images (for pickers). */
@@ -97,6 +97,53 @@ export function registerCanvasImage(canvasImage) {
     source: canvasImage.imageObject,
     kind: 'canvas',
   })
+}
+
+/**
+ * Register (or refresh) a gallery image ("Eigene Bilder"). Idempotent per
+ * gallery entry id.
+ * @param {{id: string|number, img: HTMLImageElement, name?: string}} galleryImage
+ * @returns {string|null}
+ */
+export function registerGalleryImage(galleryImage) {
+  if (!galleryImage || !galleryImage.img) return null
+  const id = `gallery:${galleryImage.id}`
+  const existing = images.get(id)
+  if (existing && existing.source === galleryImage.img) return id
+  return registerVisualizerImage({
+    id,
+    name: galleryImage.name || 'Galerie-Bild',
+    source: galleryImage.img,
+    kind: 'gallery',
+  })
+}
+
+/**
+ * Resolve the image a portrait preset should use: the explicitly chosen one
+ * when it exists, otherwise the first image on the canvas, otherwise the
+ * selected gallery image, otherwise the first gallery image. Registers the
+ * fallback on the fly so the id is stable. Returns null when nothing exists.
+ *
+ * @param {string|null|undefined} preferredId
+ * @param {{canvasImages?: Array, selectedGalleryImage?: object|null, galleryImages?: Array}} [sources]
+ * @returns {string|null}
+ */
+export function resolveEffectiveImageId(preferredId, sources = {}) {
+  if (preferredId && images.has(preferredId)) return preferredId
+  const canvas = sources.canvasImages || []
+  for (const c of canvas) {
+    const id = registerCanvasImage(c)
+    if (id) return id
+  }
+  if (sources.selectedGalleryImage) {
+    const id = registerGalleryImage(sources.selectedGalleryImage)
+    if (id) return id
+  }
+  for (const g of sources.galleryImages || []) {
+    const id = registerGalleryImage(g)
+    if (id) return id
+  }
+  return null
 }
 
 /**

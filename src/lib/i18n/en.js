@@ -799,11 +799,13 @@ export default {
     blendMode: 'Blend Mode',
     image: {
       label: 'Image',
+      auto: 'Automatic (canvas, else gallery)',
+      fromGallery: 'Gallery',
       none: 'No image selected',
       upload: 'Load image…',
       fromCanvas: 'Canvas images',
       uploads: 'Loaded images',
-      hint: 'Portrait presets work on this image. Without one the layer only shows a frame.',
+      hint: 'Without a selection the preset uses the first canvas image, else the selected gallery image.',
       remove: 'Remove image',
     },
     reactSource: {

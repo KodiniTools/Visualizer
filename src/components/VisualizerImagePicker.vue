@@ -1,12 +1,15 @@
 <template>
   <div class="image-picker">
     <select class="image-select" :value="modelValue || ''" @change="onSelect($event.target.value)">
-      <option value="">{{ t('visualizer.image.none') }}</option>
+      <option value="">{{ t('visualizer.image.auto') }}</option>
       <optgroup v-if="uploads.length" :label="t('visualizer.image.uploads')">
         <option v-for="img in uploads" :key="img.id" :value="img.id">{{ img.name }}</option>
       </optgroup>
       <optgroup v-if="canvasImages.length" :label="t('visualizer.image.fromCanvas')">
         <option v-for="img in canvasImages" :key="img.id" :value="img.id">{{ img.name }}</option>
+      </optgroup>
+      <optgroup v-if="galleryImages.length" :label="t('visualizer.image.fromGallery')">
+        <option v-for="img in galleryImages" :key="img.id" :value="img.id">{{ img.name }}</option>
       </optgroup>
     </select>
     <div class="image-actions">
@@ -34,13 +37,16 @@ import {
   visualizerImages,
   registerImageFile,
   registerCanvasImage,
+  registerGalleryImage,
 } from '../lib/visualizers/imageRegistry.js'
+import { useImageGallery } from '../composables/useImageGallery.js'
 
 defineProps({ modelValue: { type: String, default: null } })
 const emit = defineEmits(['update:modelValue'])
 const { t } = useI18n()
 const fileInput = ref(null)
 const multiImageManagerRef = inject('multiImageManager', null)
+const gallery = useImageGallery()
 
 const uploads = computed(() => visualizerImages.value.filter((img) => img.kind === 'upload'))
 
@@ -58,6 +64,15 @@ const canvasImages = computed(() => {
     })
     .filter(Boolean)
 })
+
+const galleryImages = computed(() =>
+  (gallery.imageGallery.value || [])
+    .map((img) => {
+      const id = registerGalleryImage(img)
+      return id ? { id, name: img.name } : null
+    })
+    .filter(Boolean),
+)
 
 function onSelect(id) {
   emit('update:modelValue', id || null)

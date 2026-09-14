@@ -82,4 +82,50 @@ describe('visualizer catalogue (migration stage 1)', () => {
     )
     expect(vizStore.visualizerLayers.map((l) => l.visualizerId)).toEqual(['glFire', 'glBars'])
   })
+
+  describe('reaction source per layer', () => {
+    it('new layers default to the spectrum source', () => {
+      const store = useVisualizerStore()
+      const layer = store.addLayer('glBars')
+      expect(layer.reactSource).toBe('spectrum')
+      expect(layer.reactStrength).toBe(70)
+    })
+
+    it('validates source and clamps strength on layer updates', () => {
+      const store = useVisualizerStore()
+      const layer = store.addLayer('glBars')
+      expect(store.updateLayerProperty(layer.id, 'reactSource', 'allOnset')).toBe(true)
+      expect(store.updateLayerProperty(layer.id, 'reactSource', 'bogus')).toBe(false)
+      expect(layer.reactSource).toBe('allOnset')
+      store.updateLayerProperty(layer.id, 'reactStrength', 250)
+      expect(layer.reactStrength).toBe(100)
+      store.updateLayerProperty(layer.id, 'reactStrength', -5)
+      expect(layer.reactStrength).toBe(0)
+    })
+
+    it('syncs the source between single mode and the active layer', () => {
+      const store = useVisualizerStore()
+      store.setReactSource('bassOnset')
+      store.setReactStrength(40)
+      store.setMultiLayerMode(true)
+      expect(store.activeLayer.reactSource).toBe('bassOnset')
+      expect(store.activeLayer.reactStrength).toBe(40)
+      store.updateLayerProperty(store.activeLayer.id, 'reactSource', 'treble')
+      store.syncSingleModeFromLayer()
+      expect(store.reactSource).toBe('treble')
+    })
+
+    it('round-trips the single-mode source through presets', () => {
+      const vizStore = useVisualizerStore()
+      const presets = usePresetStore()
+      vizStore.setReactSource('midOnset')
+      vizStore.setReactStrength(55)
+      const preset = presets.saveCurrentAsPreset('react', null)
+      expect(preset.visualizer.reactSource).toBe('midOnset')
+      vizStore.setReactSource('spectrum')
+      presets.applyPreset(preset, null)
+      expect(vizStore.reactSource).toBe('midOnset')
+      expect(vizStore.reactStrength).toBe(55)
+    })
+  })
 })

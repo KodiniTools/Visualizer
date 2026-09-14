@@ -174,6 +174,39 @@
               </select>
             </div>
 
+            <!-- Reaktionsquelle -->
+            <div class="detail-row">
+              <span class="detail-label">{{ t('visualizer.reactSource.label') }}</span>
+              <select
+                class="detail-select"
+                :value="layer.reactSource || 'spectrum'"
+                @change="updateProperty(layer.id, 'reactSource', $event.target.value)"
+              >
+                <option v-for="src in levelSources" :key="src" :value="src">
+                  {{ t(`visualizer.reactSource.${src}`) }}
+                </option>
+                <optgroup :label="t('visualizer.reactSource.onsetGroup')">
+                  <option v-for="src in onsetSources" :key="src" :value="src">
+                    {{ t(`visualizer.reactSource.${src}`) }}
+                  </option>
+                </optgroup>
+              </select>
+            </div>
+            <div v-if="(layer.reactSource || 'spectrum') !== 'spectrum'" class="detail-row">
+              <span class="detail-label"
+                >{{ t('visualizer.reactSource.strength') }}: {{ layer.reactStrength ?? 70 }}%</span
+              >
+              <SliderField
+                class="detail-slider"
+                :min="0"
+                :max="100"
+                :step="1"
+                :default-value="70"
+                :model-value="layer.reactStrength ?? 70"
+                @update:model-value="updateProperty(layer.id, 'reactStrength', $event)"
+              />
+            </div>
+
             <!-- Position X -->
             <div class="detail-row">
               <span class="detail-label">X: {{ Math.round(layer.x * 100) }}%</span>
@@ -234,7 +267,7 @@ import SliderField from './ui/SliderField.vue'
 import ColorField from './ui/ColorField.vue'
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../lib/i18n.js'
-import { useVisualizerStore, BLEND_MODES } from '../stores/visualizerStore.js'
+import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../stores/visualizerStore.js'
 import { Visualizers } from '../lib/visualizers/index.js'
 
 const { t, locale } = useI18n()
@@ -242,6 +275,8 @@ const store = useVisualizerStore()
 
 // Blend modes
 const blendModes = BLEND_MODES
+const levelSources = REACT_SOURCES.filter((s) => !s.endsWith('Onset'))
+const onsetSources = REACT_SOURCES.filter((s) => s.endsWith('Onset'))
 
 // Auswahl für neuen Layer (Standard: aktuell ausgewählter Visualizer)
 const newLayerVisualizerId = ref(store.selectedVisualizer || 'bars')

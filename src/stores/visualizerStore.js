@@ -3,6 +3,15 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { Visualizers } from '../lib/visualizers/index.js'
 import { LEGACY_VISUALIZER_IDS, resolveVisualizerId } from '../lib/visualizers/aliases.js'
+import {
+  REACT_SOURCES,
+  DEFAULT_REACT_SOURCE,
+  DEFAULT_REACT_STRENGTH,
+  isReactSource,
+} from '../lib/visualizers/core/reactSource.js'
+
+// Reaktionsquellen (Spektrum, Bandpegel, Onsets) für die UI
+export { REACT_SOURCES }
 import { localeRef } from '../lib/i18n.js'
 
 // ✅ Blend-Modi für Visualizer-Compositing
@@ -114,6 +123,11 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   const visualizerY = ref(0.5) // Y-Position (0.0 = oben, 0.5 = Mitte, 1.0 = unten)
   const visualizerScale = ref(1.0) // Skalierung (0.1 = 10%, 1.0 = 100%, 2.0 = 200%)
 
+  // Reaktionsquelle: womit der Visualizer angesteuert wird ('spectrum' = wie
+  // bisher, sonst Bandpegel oder auto-normalisierter Onset) und wie stark.
+  const reactSource = ref(DEFAULT_REACT_SOURCE)
+  const reactStrength = ref(DEFAULT_REACT_STRENGTH)
+
   // ✅ Letzter funktionierender Visualizer für Fallback
   const lastWorkingVisualizer = ref('bars')
 
@@ -145,6 +159,8 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       y: 0.5,
       scale: 1.0,
       blendMode: 'source-over',
+      reactSource: DEFAULT_REACT_SOURCE,
+      reactStrength: DEFAULT_REACT_STRENGTH,
       ...overrides,
     }
   }
@@ -186,6 +202,8 @@ export const useVisualizerStore = defineStore('visualizer', () => {
         x: visualizerX.value,
         y: visualizerY.value,
         scale: visualizerScale.value,
+        reactSource: reactSource.value,
+        reactStrength: reactStrength.value,
       })
       visualizerLayers.value.push(initialLayer)
       activeLayerId.value = initialLayer.id
@@ -302,6 +320,12 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       case 'blendMode':
         if (!BLEND_MODES.find((m) => m.id === value)) return false
         break
+      case 'reactSource':
+        if (!isReactSource(value)) return false
+        break
+      case 'reactStrength':
+        value = Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
+        break
     }
 
     layer[property] = value
@@ -346,6 +370,8 @@ export const useVisualizerStore = defineStore('visualizer', () => {
         x: visualizerX.value,
         y: visualizerY.value,
         scale: visualizerScale.value,
+        reactSource: reactSource.value,
+        reactStrength: reactStrength.value,
       })
     }
   }
@@ -360,6 +386,8 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       visualizerX.value = activeLayer.value.x
       visualizerY.value = activeLayer.value.y
       visualizerScale.value = activeLayer.value.scale
+      reactSource.value = activeLayer.value.reactSource || DEFAULT_REACT_SOURCE
+      reactStrength.value = activeLayer.value.reactStrength ?? DEFAULT_REACT_STRENGTH
     }
   }
 
@@ -421,6 +449,14 @@ export const useVisualizerStore = defineStore('visualizer', () => {
 
   function setVisualizerScale(newScale) {
     visualizerScale.value = Math.max(0.1, Math.min(2.0, newScale))
+  }
+
+  function setReactSource(source) {
+    if (isReactSource(source)) reactSource.value = source
+  }
+
+  function setReactStrength(v) {
+    reactStrength.value = Math.max(0, Math.min(100, Math.round(Number(v) || 0)))
   }
 
   // ✨ NEU: Reset Position und Größe auf Standard
@@ -532,6 +568,11 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     setVisualizerY,
     setVisualizerScale,
     resetVisualizerTransform,
+    // Reaktionsquelle
+    reactSource,
+    reactStrength,
+    setReactSource,
+    setReactStrength,
     // ✅ NEU: Fehlerbehandlung
     lastWorkingVisualizer,
     markVisualizerWorking,

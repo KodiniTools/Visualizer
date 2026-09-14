@@ -223,22 +223,13 @@ const { t } = useI18n()
 const store = useVisualizerStore()
 const searchQuery = ref('')
 const openCategories = ref({
-  'GPU-Presets': true, // Neue GPU-Presets standardmäßig offen
-  'Balken & Spektrum': true,
+  'GPU-Presets': true, // GPU-Presets offen, „Klassisch“ eingeklappt
 })
 
 // Map German category keys to i18n translation keys
 const categoryTranslationKeys = {
   'GPU-Presets': 'visualizer.categories.gpu',
-  'Balken & Spektrum': 'visualizer.categories.barsSpectrum',
-  Wellen: 'visualizer.categories.waves',
-  'Kreise & Kugeln': 'visualizer.categories.circlesSpheres',
-  Partikel: 'visualizer.categories.particles',
-  Geometrie: 'visualizer.categories.geometry',
-  Organisch: 'visualizer.categories.organic',
-  'Kristalle & Netze': 'visualizer.categories.crystalsNets',
-  Blüten: 'visualizer.categories.blossoms',
-  '3D-Objekte': 'visualizer.categories.objects3d',
+  Klassisch: 'visualizer.categories.classic',
 }
 
 function getCategoryName(category) {

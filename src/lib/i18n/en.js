@@ -777,6 +777,7 @@ export default {
     noResultsFor: 'No results for',
     categories: {
       gpu: 'GPU Presets',
+      classic: 'Classic (Canvas2D)',
       barsSpectrum: 'Bars & Spectrum',
       waves: 'Waves',
       circlesSpheres: 'Circles & Spheres',

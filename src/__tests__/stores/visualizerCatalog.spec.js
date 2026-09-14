@@ -16,7 +16,10 @@ describe('visualizer catalogue (migration stage 1)', () => {
     expect(categories[0]).toBe('GPU-Presets')
     expect(categories).toContain('Klassisch')
 
-    const gpuIds = store.categorizedVisualizers['GPU-Presets'].map((v) => v.id)
+    const gpuIds = [
+      ...store.categorizedVisualizers['GPU-Presets'],
+      ...store.categorizedVisualizers.Portrait,
+    ].map((v) => v.id)
     expect(gpuIds.sort()).toEqual(Object.keys(glVisualizers).sort())
 
     const classicIds = store.categorizedVisualizers.Klassisch.map((v) => v.id)
@@ -126,6 +129,37 @@ describe('visualizer catalogue (migration stage 1)', () => {
       presets.applyPreset(preset, null)
       expect(vizStore.reactSource).toBe('midOnset')
       expect(vizStore.reactStrength).toBe(55)
+    })
+  })
+
+  describe('portrait image per layer', () => {
+    it('defaults to no image and accepts ids', () => {
+      const store = useVisualizerStore()
+      const layer = store.addLayer('glPortraitLed')
+      expect(layer.imageId).toBeNull()
+      expect(store.updateLayerProperty(layer.id, 'imageId', 'img_1')).toBe(true)
+      expect(layer.imageId).toBe('img_1')
+      store.updateLayerProperty(layer.id, 'imageId', '')
+      expect(layer.imageId).toBeNull()
+    })
+
+    it('marks portrait presets as needing an image', () => {
+      expect(Visualizers.glPortraitLed.needsImage).toBe(true)
+      expect(Visualizers.glBars.needsImage).toBe(false)
+    })
+
+    it('round-trips the image id through single mode, layers and presets', () => {
+      const vizStore = useVisualizerStore()
+      const presets = usePresetStore()
+      vizStore.setVisualizerImageId('img_7')
+      vizStore.setMultiLayerMode(true)
+      expect(vizStore.activeLayer.imageId).toBe('img_7')
+      vizStore.setMultiLayerMode(false)
+      const preset = presets.saveCurrentAsPreset('portrait', null)
+      expect(preset.visualizer.imageId).toBe('img_7')
+      vizStore.setVisualizerImageId(null)
+      presets.applyPreset(preset, null)
+      expect(vizStore.visualizerImageId).toBe('img_7')
     })
   })
 })

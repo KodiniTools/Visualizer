@@ -74,6 +74,14 @@ const VISUALIZER_CATEGORIES = {
     'glLedStrips',
     'glStageLights',
   ],
+  // Portrait-Presets: arbeiten auf einem Bild (Upload oder Leinwand-Bild)
+  Portrait: [
+    'glPortraitLed',
+    'glPortraitGlitch',
+    'glPortraitWave',
+    'glPortraitEdges',
+    'glPortraitHalftone',
+  ],
   // Klassische Canvas2D-Visualizer: bleiben als Fallback und für bestehende
   // Presets erhalten, sind im Picker aber eingeklappt (Stufe 1 der Migration).
   Klassisch: [...LEGACY_VISUALIZER_IDS],
@@ -133,6 +141,9 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   const reactSource = ref(DEFAULT_REACT_SOURCE)
   const reactStrength = ref(DEFAULT_REACT_STRENGTH)
 
+  // Bild für Portrait-Presets (ID in der imageRegistry, null = keines)
+  const visualizerImageId = ref(null)
+
   // ✅ Letzter funktionierender Visualizer für Fallback
   const lastWorkingVisualizer = ref('bars')
 
@@ -166,6 +177,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       blendMode: 'source-over',
       reactSource: DEFAULT_REACT_SOURCE,
       reactStrength: DEFAULT_REACT_STRENGTH,
+      imageId: null,
       ...overrides,
     }
   }
@@ -209,6 +221,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
         scale: visualizerScale.value,
         reactSource: reactSource.value,
         reactStrength: reactStrength.value,
+        imageId: visualizerImageId.value,
       })
       visualizerLayers.value.push(initialLayer)
       activeLayerId.value = initialLayer.id
@@ -331,6 +344,9 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       case 'reactStrength':
         value = Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
         break
+      case 'imageId':
+        value = typeof value === 'string' && value ? value : null
+        break
     }
 
     layer[property] = value
@@ -377,6 +393,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
         scale: visualizerScale.value,
         reactSource: reactSource.value,
         reactStrength: reactStrength.value,
+        imageId: visualizerImageId.value,
       })
     }
   }
@@ -393,6 +410,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       visualizerScale.value = activeLayer.value.scale
       reactSource.value = activeLayer.value.reactSource || DEFAULT_REACT_SOURCE
       reactStrength.value = activeLayer.value.reactStrength ?? DEFAULT_REACT_STRENGTH
+      visualizerImageId.value = activeLayer.value.imageId || null
     }
   }
 
@@ -462,6 +480,10 @@ export const useVisualizerStore = defineStore('visualizer', () => {
 
   function setReactStrength(v) {
     reactStrength.value = Math.max(0, Math.min(100, Math.round(Number(v) || 0)))
+  }
+
+  function setVisualizerImageId(id) {
+    visualizerImageId.value = typeof id === 'string' && id ? id : null
   }
 
   // ✨ NEU: Reset Position und Größe auf Standard
@@ -578,6 +600,9 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     reactStrength,
     setReactSource,
     setReactStrength,
+    // Bild für Portrait-Presets
+    visualizerImageId,
+    setVisualizerImageId,
     // ✅ NEU: Fehlerbehandlung
     lastWorkingVisualizer,
     markVisualizerWorking,

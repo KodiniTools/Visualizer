@@ -45,6 +45,11 @@ import { glVuMeter as glVuMeterSpec } from './presets/glVuMeter.js'
 import { glLedRing as glLedRingSpec } from './presets/glLedRing.js'
 import { glLedStrips as glLedStripsSpec } from './presets/glLedStrips.js'
 import { glStageLights as glStageLightsSpec } from './presets/glStageLights.js'
+import { glPortraitLed as glPortraitLedSpec } from './presets/glPortraitLed.js'
+import { glPortraitGlitch as glPortraitGlitchSpec } from './presets/glPortraitGlitch.js'
+import { glPortraitWave as glPortraitWaveSpec } from './presets/glPortraitWave.js'
+import { glPortraitEdges as glPortraitEdgesSpec } from './presets/glPortraitEdges.js'
+import { glPortraitHalftone as glPortraitHalftoneSpec } from './presets/glPortraitHalftone.js'
 
 export { createGlVisualizer, getSharedEngine, resetSharedEngine } from './createGlVisualizer.js'
 export { GLVisualizerEngine } from './GLVisualizerEngine.js'
@@ -87,6 +92,11 @@ export const glPresetSpecs = {
   glLedRing: glLedRingSpec,
   glLedStrips: glLedStripsSpec,
   glStageLights: glStageLightsSpec,
+  glPortraitLed: glPortraitLedSpec,
+  glPortraitGlitch: glPortraitGlitchSpec,
+  glPortraitWave: glPortraitWaveSpec,
+  glPortraitEdges: glPortraitEdgesSpec,
+  glPortraitHalftone: glPortraitHalftoneSpec,
 }
 
 /** Registry-ready visualizers, keyed by preset id. */

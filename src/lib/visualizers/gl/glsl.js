@@ -40,6 +40,9 @@ uniform vec4  uOnset;       // onset bass, mid, treble, all (0–1, self-normali
 uniform sampler2D uAudio;   // row 0 (y=.25): raw spectrum, row 1 (y=.75): smoothed log spectrum
 uniform float uAudioMode;   // 0 = spectrum rows, 1 = time-domain rows (needsTimeData presets)
 uniform float uHistoryHead; // ring index of the newest history row
+uniform sampler2D uImage;   // portrait presets: user image (unit 1)
+uniform float uHasImage;    // 1 when uImage holds an image
+uniform vec2  uImageSize;   // image pixel size
 
 #define AUDIO_ROWS ${AUDIO_TEX_ROWS}.0
 #define HISTORY_ROWS ${AUDIO_HISTORY_ROWS}.0
@@ -111,6 +114,17 @@ mat2 rot2(float a) {
   return mat2(c, -s, s, c);
 }
 
+// Cover-fit image sampling: fills the canvas, centred, aspect preserved.
+vec2 imageUv(vec2 uv) {
+  float ca = uResolution.x / max(uResolution.y, 1.0);
+  float ia = uImageSize.x / max(uImageSize.y, 1.0);
+  vec2 s = ia > ca ? vec2(ca / ia, 1.0) : vec2(1.0, ia / ca);
+  return (uv - 0.5) * s + 0.5;
+}
+vec4 img(vec2 uv) { return texture(uImage, imageUv(uv)); }
+vec4 imgRaw(vec2 iuv) { return texture(uImage, clamp(iuv, 0.0, 1.0)); }
+float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+
 // Premultiplied output. Alpha is raised to cover the brightest channel so the
 // result is always a valid premultiplied colour (rgb <= a) and bright glows
 // never get clipped by the compositor.
@@ -118,6 +132,22 @@ vec4 outPremul(vec3 rgb, float a) {
   rgb = clamp(rgb, 0.0, 1.0);
   a = clamp(max(a, max(rgb.r, max(rgb.g, rgb.b))), 0.0, 1.0);
   return vec4(rgb, a);
+}
+
+// Shown by portrait presets while no image is selected: a dashed frame in
+// the base colour with a pulsing dot, so the layer is visibly "waiting".
+vec4 noImagePlaceholder() {
+  vec2 p = (vUv - 0.5) * vec2(uResolution.x / uResolution.y, 1.0);
+  float aaPx = 1.0 / uResolution.y;
+  vec2 q = abs(p) - vec2(0.42 * uResolution.x / uResolution.y, 0.36);
+  float box = abs(length(max(q, 0.0)) + min(max(q.x, q.y), 0.0));
+  float frame = 1.0 - smoothstep(1.5 * aaPx, 3.0 * aaPx, box);
+  float dash = step(0.5, fract((p.x + p.y) * 12.0 + uTime * 0.5));
+  float r = length(p);
+  float dot = exp(-r * r * (300.0 - uBands.x * 150.0)) * (0.4 + uBands.x);
+  vec3 col = hsl2rgb(vec3(uColorHsl.x, 0.7, 0.6));
+  float a = frame * dash * 0.6 + dot;
+  return outPremul(col * a, a);
 }
 `
 

@@ -11,6 +11,7 @@ import {
   reactFactor,
   applyReactFactor,
 } from '../lib/visualizers/core/reactSource.js'
+import { getVisualizerImageSource } from '../lib/visualizers/imageRegistry.js'
 
 export function useRenderLoop({
   canvasRef,
@@ -78,6 +79,34 @@ export function useRenderLoop({
   // Fallback-Pfad identische Daten sehen.
   let singleReactEnv = 0
   let singleReactBuf = null
+
+  // Portrait presets in the worker: the worker holds its own ImageBitmap copy,
+  // sent whenever the selected image changes.
+  let workerImageKey = undefined
+  let workerImageSeq = 0
+
+  function syncWorkerImage(imageId) {
+    const key = imageId || null
+    if (key === workerImageKey) return
+    workerImageKey = key
+    const seq = ++workerImageSeq
+    const source = getVisualizerImageSource(key)
+    if (!source) {
+      workerManager.setVisualizerImage(null)
+      return
+    }
+    createImageBitmap(source)
+      .then((bitmap) => {
+        if (seq !== workerImageSeq) {
+          bitmap.close()
+          return
+        }
+        workerManager.setVisualizerImage(bitmap)
+      })
+      .catch((err) => {
+        console.warn('[RenderLoop] Portrait-Bild konnte nicht an den Worker übergeben werden:', err)
+      })
+  }
 
   function gateAudioData(data, source, strength, envHolder, key, bufHolder, bufKey, timeDomain) {
     const src = source || 'spectrum'
@@ -564,6 +593,9 @@ export function useRenderLoop({
             !!visualizer.needsTimeData,
           )
 
+          visualizerState._imageSource = visualizer.needsImage
+            ? getVisualizerImageSource(layer.imageId)
+            : null
           layerCache.ctx.clearRect(0, 0, canvas.width, canvas.height)
           layerCache.ctx.save()
           layerCache.ctx.globalAlpha = layer.colorOpacity
@@ -713,6 +745,7 @@ export function useRenderLoop({
 
           if (vizWorkerActive) {
             // Off-thread path: send audio data to worker, use previous frame's bitmap
+            if (visualizer.needsImage) syncWorkerImage(visualizerStore.visualizerImageId)
             workerManager.renderVisualizerFrame({
               visualizerId,
               audioData: vizAudioData,
@@ -774,6 +807,9 @@ export function useRenderLoop({
               visualizerCacheCtx = visualizerCacheCanvas.getContext('2d')
             }
 
+            visualizerState._imageSource = visualizer.needsImage
+              ? getVisualizerImageSource(visualizerStore.visualizerImageId)
+              : null
             visualizerCacheCtx.clearRect(0, 0, canvas.width, canvas.height)
             visualizerCacheCtx.save()
             visualizerCacheCtx.globalAlpha = visualizerStore.colorOpacity

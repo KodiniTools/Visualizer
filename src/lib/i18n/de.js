@@ -773,6 +773,7 @@ export default {
     noResultsFor: 'Keine Ergebnisse für',
     categories: {
       gpu: 'GPU-Presets',
+      portrait: 'Portrait (Bild)',
       classic: 'Klassisch (Canvas2D)',
       barsSpectrum: 'Balken & Spektrum',
       waves: 'Wellen',
@@ -792,6 +793,15 @@ export default {
     hideLayer: 'Layer ausblenden',
     showLayer: 'Layer einblenden',
     blendMode: 'Mischmodus',
+    image: {
+      label: 'Bild',
+      none: 'Kein Bild gewählt',
+      upload: 'Bild laden…',
+      fromCanvas: 'Leinwand-Bilder',
+      uploads: 'Geladene Bilder',
+      hint: 'Portrait-Presets arbeiten auf diesem Bild. Ohne Bild zeigt die Ebene nur einen Rahmen.',
+      remove: 'Bild entfernen',
+    },
     reactSource: {
       label: 'Reaktionsquelle',
       spectrum: 'Spektrum (Standard)',

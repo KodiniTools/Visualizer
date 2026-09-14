@@ -327,6 +327,7 @@ export const usePresetStore = defineStore('presets', () => {
         showVisualizer: vizStore.showVisualizer,
         reactSource: vizStore.reactSource,
         reactStrength: vizStore.reactStrength,
+        imageId: vizStore.visualizerImageId,
         multiLayerMode: vizStore.multiLayerMode,
         layers: vizStore.multiLayerMode ? vizStore.visualizerLayers.map((l) => ({ ...l })) : [],
       },
@@ -386,6 +387,7 @@ export const usePresetStore = defineStore('presets', () => {
       vizStore.showVisualizer = v.showVisualizer ?? true
       vizStore.setReactSource(v.reactSource ?? 'spectrum')
       vizStore.setReactStrength(v.reactStrength ?? 70)
+      vizStore.setVisualizerImageId(v.imageId ?? null)
     }
 
     // Apply background via custom event (CanvasControlPanel listens)

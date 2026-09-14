@@ -11,7 +11,8 @@ describe('gl presets', () => {
       expect(typeof spec.name_en).toBe('string')
       expect(spec.frag).toMatch(/void\s+main\s*\(/)
       expect(spec.frag).toMatch(/fragColor/)
-      expect(typeof spec.fallback?.draw).toBe('function')
+      if (spec.needsImage) expect(spec.fallback).toBeUndefined()
+      else expect(typeof spec.fallback?.draw).toBe('function')
       if (spec.uniforms) {
         const u = spec.uniforms({
           bands: [0, 0, 0, 0],

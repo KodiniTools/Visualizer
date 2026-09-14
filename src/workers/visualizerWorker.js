@@ -133,6 +133,21 @@ self.onmessage = function (e) {
       renderFrame(e.data)
       break
 
+    case 'image':
+      // Portrait presets: ImageBitmap transferred from the main thread (or null).
+      if (
+        visualizerState._imageSource &&
+        typeof visualizerState._imageSource.close === 'function'
+      ) {
+        try {
+          visualizerState._imageSource.close()
+        } catch {
+          /* bewusst ignoriert */
+        }
+      }
+      visualizerState._imageSource = e.data.bitmap || null
+      break
+
     case 'cleanup':
       if (lastVisualizerId && Visualizers[lastVisualizerId]) {
         try {

@@ -34,7 +34,7 @@ describe('visualizer aliases', () => {
   it('maps a retired classic id to its GPU replacement', () => {
     const withoutClassic = { ...glVisualizers }
     expect(resolveVisualizerId('bars', withoutClassic)).toBe('glBars')
-    expect(resolveVisualizerId('spiralGalaxy', withoutClassic)).toBe('glTunnel')
+    expect(resolveVisualizerId('spiralGalaxy', withoutClassic)).toBe('glGalaxy')
   })
 
   it('returns null for unknown or empty ids', () => {

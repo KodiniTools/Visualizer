@@ -36,7 +36,7 @@ export const BUILT_IN_PRESETS = [
     emoji: '🌌',
     visualizer: {
       mode: 'single',
-      selectedVisualizer: 'glTunnel',
+      selectedVisualizer: 'glGalaxy',
       color: '#aa44ff',
       opacity: 1.0,
       colorOpacity: 1.0,

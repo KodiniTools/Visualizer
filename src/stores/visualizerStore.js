@@ -48,6 +48,11 @@ const VISUALIZER_CATEGORIES = {
     'glSphere',
     'glCymatics',
     'glLightning',
+    'glFractal',
+    'glGalaxy',
+    'glStargate',
+    'glHexTunnel',
+    'glPlasma',
   ],
   // Klassische Canvas2D-Visualizer: bleiben als Fallback und für bestehende
   // Presets erhalten, sind im Picker aber eingeklappt (Stufe 1 der Migration).

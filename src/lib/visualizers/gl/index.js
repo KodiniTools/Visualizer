@@ -29,6 +29,11 @@ import { glVoronoi as glVoronoiSpec } from './presets/glVoronoi.js'
 import { glSphere as glSphereSpec } from './presets/glSphere.js'
 import { glCymatics as glCymaticsSpec } from './presets/glCymatics.js'
 import { glLightning as glLightningSpec } from './presets/glLightning.js'
+import { glFractal as glFractalSpec } from './presets/glFractal.js'
+import { glGalaxy as glGalaxySpec } from './presets/glGalaxy.js'
+import { glStargate as glStargateSpec } from './presets/glStargate.js'
+import { glHexTunnel as glHexTunnelSpec } from './presets/glHexTunnel.js'
+import { glPlasma as glPlasmaSpec } from './presets/glPlasma.js'
 
 export { createGlVisualizer, getSharedEngine, resetSharedEngine } from './createGlVisualizer.js'
 export { GLVisualizerEngine } from './GLVisualizerEngine.js'
@@ -55,6 +60,11 @@ export const glPresetSpecs = {
   glSphere: glSphereSpec,
   glCymatics: glCymaticsSpec,
   glLightning: glLightningSpec,
+  glFractal: glFractalSpec,
+  glGalaxy: glGalaxySpec,
+  glStargate: glStargateSpec,
+  glHexTunnel: glHexTunnelSpec,
+  glPlasma: glPlasmaSpec,
 }
 
 /** Registry-ready visualizers, keyed by preset id. */

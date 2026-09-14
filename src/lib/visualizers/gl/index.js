@@ -34,6 +34,11 @@ import { glGalaxy as glGalaxySpec } from './presets/glGalaxy.js'
 import { glStargate as glStargateSpec } from './presets/glStargate.js'
 import { glHexTunnel as glHexTunnelSpec } from './presets/glHexTunnel.js'
 import { glPlasma as glPlasmaSpec } from './presets/glPlasma.js'
+import { glWarp as glWarpSpec } from './presets/glWarp.js'
+import { glInterference as glInterferenceSpec } from './presets/glInterference.js'
+import { glTruchet as glTruchetSpec } from './presets/glTruchet.js'
+import { glMetaballs as glMetaballsSpec } from './presets/glMetaballs.js'
+import { glFlowerOfLife as glFlowerOfLifeSpec } from './presets/glFlowerOfLife.js'
 
 export { createGlVisualizer, getSharedEngine, resetSharedEngine } from './createGlVisualizer.js'
 export { GLVisualizerEngine } from './GLVisualizerEngine.js'
@@ -65,6 +70,11 @@ export const glPresetSpecs = {
   glStargate: glStargateSpec,
   glHexTunnel: glHexTunnelSpec,
   glPlasma: glPlasmaSpec,
+  glWarp: glWarpSpec,
+  glInterference: glInterferenceSpec,
+  glTruchet: glTruchetSpec,
+  glMetaballs: glMetaballsSpec,
+  glFlowerOfLife: glFlowerOfLifeSpec,
 }
 
 /** Registry-ready visualizers, keyed by preset id. */

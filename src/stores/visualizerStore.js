@@ -53,6 +53,11 @@ const VISUALIZER_CATEGORIES = {
     'glStargate',
     'glHexTunnel',
     'glPlasma',
+    'glWarp',
+    'glInterference',
+    'glTruchet',
+    'glMetaballs',
+    'glFlowerOfLife',
   ],
   // Klassische Canvas2D-Visualizer: bleiben als Fallback und für bestehende
   // Presets erhalten, sind im Picker aber eingeklappt (Stufe 1 der Migration).

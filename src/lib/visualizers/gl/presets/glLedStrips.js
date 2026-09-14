@@ -70,7 +70,12 @@ void main() {
     vec3 off = hsl2rgb(vec3(hue, 0.5, 0.1));
     vec3 hot = hsl2rgb(vec3(hue, 0.45, 0.92));
     vec3 ledCol = mix(off, on, lit) + hot * comet * 0.6;
-    float glow = exp(-length(cf) / (ledH * 1.1)) * 0.55 * lit * (1.0 - led);
+    // Continuous glow along the strip (not per cell) so halos never look boxy.
+    float posC = xx / width;
+    float cometC = max(smoothstep(0.75, 1.0, fract(posC - t * speed)), smoothstep(0.8, 1.0, fract(posC - t * speed * 0.6 + 0.5)) * 0.7);
+    float fillC = 1.0 - smoothstep(level * 0.9 - 0.04, level * 0.9 + 0.04, abs(posC - 0.5) * 2.0);
+    float litC = clamp(cometC + fillC * 0.5 + onsetK * 0.5, 0.0, 1.0);
+    float glow = exp(-abs(sf) / (ledH * 1.3)) * 0.45 * litC * (1.0 - led);
 
     rgb += ledCol * led + on * glow;
     alpha += led + glow;

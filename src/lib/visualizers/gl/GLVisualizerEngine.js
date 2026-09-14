@@ -40,6 +40,7 @@ const STANDARD_UNIFORMS = [
   'uImage',
   'uHasImage',
   'uImageSize',
+  'uImageFlip',
 ]
 
 /**
@@ -113,6 +114,7 @@ export class GLVisualizerEngine {
     this._imageTex = null
     this._imageSource = null // identity of the uploaded image source
     this._imageSize = [0, 0]
+    this._imageFlip = 0 // 1 when the uploaded rows start at the image top (needs flip in the shader)
 
     this._onContextLost = (e) => {
       if (e && typeof e.preventDefault === 'function') e.preventDefault()
@@ -204,12 +206,16 @@ export class GLVisualizerEngine {
       return false
     }
     try {
+      // Upload without UNPACK_FLIP_Y_WEBGL: the flag is honoured for
+      // HTMLImageElement/canvas sources but ignored for ImageBitmap (per spec),
+      // which made the worker path render upside down. Orientation is handled
+      // uniformly in the shader instead (uImageFlip → imageUv()).
       gl.bindTexture(gl.TEXTURE_2D, this._imageTex)
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
       gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4)
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source)
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
       gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1)
+      this._imageFlip = 1
       gl.bindTexture(gl.TEXTURE_2D, null)
       this._imageSource = source
       this._imageSize = [w, h]
@@ -394,6 +400,7 @@ export class GLVisualizerEngine {
     gl.uniform1i(u('uImage'), 1)
     gl.uniform1f(u('uHasImage'), hasImage ? 1.0 : 0.0)
     gl.uniform2f(u('uImageSize'), this._imageSize[0], this._imageSize[1])
+    gl.uniform1f(u('uImageFlip'), hasImage ? this._imageFlip : 0)
     gl.activeTexture(gl.TEXTURE0)
 
     if (typeof preset.uniforms === 'function') {

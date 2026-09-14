@@ -43,6 +43,7 @@ uniform float uHistoryHead; // ring index of the newest history row
 uniform sampler2D uImage;   // portrait presets: user image (unit 1)
 uniform float uHasImage;    // 1 when uImage holds an image
 uniform vec2  uImageSize;   // image pixel size
+uniform float uImageFlip;   // 1 = texture rows start at the image top → flip v
 
 #define AUDIO_ROWS ${AUDIO_TEX_ROWS}.0
 #define HISTORY_ROWS ${AUDIO_HISTORY_ROWS}.0
@@ -119,7 +120,9 @@ vec2 imageUv(vec2 uv) {
   float ca = uResolution.x / max(uResolution.y, 1.0);
   float ia = uImageSize.x / max(uImageSize.y, 1.0);
   vec2 s = ia > ca ? vec2(ca / ia, 1.0) : vec2(1.0, ia / ca);
-  return (uv - 0.5) * s + 0.5;
+  vec2 iuv = (uv - 0.5) * s + 0.5;
+  iuv.y = mix(iuv.y, 1.0 - iuv.y, uImageFlip);
+  return iuv;
 }
 vec4 img(vec2 uv) { return texture(uImage, imageUv(uv)); }
 vec4 imgRaw(vec2 iuv) { return texture(uImage, clamp(iuv, 0.0, 1.0)); }

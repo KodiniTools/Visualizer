@@ -26,18 +26,22 @@ void main() {
   vec4 c = img(centreUv);
   float l = luma(c.rgb);
   float band = spectrum(clamp(centreUv.y, 0.0, 1.0) * 0.9);
-  float size = (0.1 + l * 0.42) * (0.9 + bass * 0.25 + band * 0.15 * uIntensity + uOnset.w * 0.15);
+  // Print logic: dark image areas get the big ink dots.
+  float ink = 1.0 - l;
+  float size = (0.04 + ink * 0.5) * (0.9 + bass * 0.25 + band * 0.15 * uIntensity + uOnset.w * 0.15);
   float d = length(cf);
   float aa = uCells / uResolution.y * 1.2;
   float dot = 1.0 - smoothstep(size - aa, size + aa, d);
 
-  vec3 ink = hsl2rgb(vec3(uColorHsl.x, 0.8, 0.55));
-  vec3 hot = hsl2rgb(vec3(uColorHsl.x, 0.35, 0.95));
-  vec3 col = mix(ink, hot, smoothstep(0.6, 1.0, l) * (0.5 + uOnset.w * 0.5)) * mix(0.8, 1.2, l);
+  vec3 inkCol = hsl2rgb(vec3(uColorHsl.x, 0.75, 0.32));
+  vec3 deep = hsl2rgb(vec3(uColorHsl.x, 0.8, 0.14));
+  vec3 col = mix(inkCol, deep, smoothstep(0.5, 1.0, ink));
   // A whisper of the original colour keeps skin tones alive.
-  col = mix(col, c.rgb * 1.1, 0.25);
-
-  fragColor = outPremul(col * dot, dot);
+  col = mix(col, c.rgb * 0.6, 0.2 * (1.0 - ink));
+  // Paper: opaque, slightly warm, pulsing a touch with the onset.
+  vec3 paper = vec3(0.96, 0.95, 0.92) * (1.0 - uOnset.w * 0.06);
+  vec3 rgb = mix(paper, col, dot);
+  fragColor = vec4(rgb, 1.0);
 }
 `
 

@@ -26,15 +26,15 @@ export const LEGACY_ALIASES = Object.freeze({
   bars3D: 'glTerrain',
   // Geometric
   circles: 'glRings',
-  hexagonGrid: 'glNeonGrid',
+  hexagonGrid: 'glHexTunnel',
   neonGrid: 'glNeonGrid',
   vibratingCubes: 'glTerrain',
-  geometricKaleidoscope: 'glMandala',
+  geometricKaleidoscope: 'glFractal',
   shardMosaic: 'glVoronoi',
   rainbowCube: 'glSphere',
   // Organic
   fluidWaves: 'glAurora',
-  spiralGalaxy: 'glTunnel',
+  spiralGalaxy: 'glGalaxy',
   bloomingMandala: 'glMandala',
   frequencyBlossoms: 'glMandala',
   centralGlowBlossom: 'glMandala',

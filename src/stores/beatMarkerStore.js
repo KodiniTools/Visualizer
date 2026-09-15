@@ -96,7 +96,11 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
       // Prüfe ob Zeit innerhalb der Toleranz liegt
       const timeDiff = Math.abs(currentTime - marker.time)
 
-      if (timeDiff <= triggerTolerance.value && marker.id !== lastTriggeredMarkerId.value) {
+      if (
+        timeDiff <= triggerTolerance.value &&
+        !marker.triggered &&
+        marker.id !== lastTriggeredMarkerId.value
+      ) {
         lastTriggeredMarkerId.value = marker.id
         marker.triggered = true
         console.log('🎯 [BeatMarker] TRIGGER!', marker.label, 'bei', currentTime.toFixed(2) + 's')
@@ -104,6 +108,35 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
       }
     }
     return null
+  }
+
+  /**
+   * Frame-genaue Prüfung: liefert alle noch nicht ausgelösten Marker, deren
+   * Zeit im Intervall (prevTime, currentTime] liegt – also zwischen zwei
+   * Frames überschritten wurde. Unabhängig von der Toleranz, damit ein Marker
+   * exakt beim Überschreiten seiner Zeit feuert (Hundertstel-genau).
+   * @param {number} prevTime - Position beim vorherigen Frame
+   * @param {number} currentTime - Position beim aktuellen Frame
+   * @returns {object[]} Ausgelöste Marker, nach Zeit sortiert (ggf. leer)
+   */
+  function checkCrossing(prevTime, currentTime) {
+    if (!markersEnabled.value || !(currentTime > prevTime)) return []
+
+    const crossed = sortedMarkers.value.filter(
+      (m) => !m.triggered && m.time > prevTime && m.time <= currentTime,
+    )
+    for (const marker of crossed) {
+      marker.triggered = true
+      lastTriggeredMarkerId.value = marker.id
+      console.log(
+        '🎯 [BeatMarker] TRIGGER (Frame)!',
+        marker.label,
+        'bei',
+        currentTime.toFixed(3) + 's',
+        '(Marker ' + marker.time.toFixed(2) + 's)',
+      )
+    }
+    return crossed
   }
 
   /**
@@ -182,6 +215,7 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
     removeMarker,
     updateMarker,
     checkTrigger,
+    checkCrossing,
     resetTriggers,
     clearAllMarkers,
     getNextMarker,

@@ -307,6 +307,43 @@ export const usePlayerStore = defineStore('player', () => {
     currentTime.value = time
   }
 
+  // ══════════════════ Frame-Takt (Render-Schleife) ══════════════════
+  // `currentTime` wird nur per timeupdate (~4x/s) aktualisiert, damit die
+  // Fortschrittsanzeige nicht 60x/s neu rendert. Für zeitkritische Logik
+  // (Beat-Drop-Marker) meldet die Render-Schleife jeden Frame mit der
+  // präzisen Position des Audio-Elements an registrierte Listener.
+  const frameListeners = new Set()
+
+  /** Präzise Wiedergabeposition direkt vom Audio-Element (Sekunden). */
+  function getPreciseTime() {
+    const t = audioRef.value?.currentTime
+    return typeof t === 'number' && !isNaN(t) ? t : currentTime.value
+  }
+
+  /**
+   * Registriert einen Listener, der pro Render-Frame während der Wiedergabe
+   * mit der präzisen Position aufgerufen wird.
+   * @param {(time: number) => void} listener
+   * @returns {() => void} Funktion zum Abmelden
+   */
+  function onFrame(listener) {
+    frameListeners.add(listener)
+    return () => frameListeners.delete(listener)
+  }
+
+  /** Wird von der Render-Schleife einmal pro Frame aufgerufen. */
+  function notifyFrame() {
+    if (!isPlaying.value || frameListeners.size === 0) return
+    const time = getPreciseTime()
+    for (const listener of frameListeners) {
+      try {
+        listener(time)
+      } catch (e) {
+        console.error('⚠️ [Player] Frame-Listener fehlgeschlagen:', e)
+      }
+    }
+  }
+
   function clearPlaylist() {
     stopPlayer()
     playlist.value.forEach((track) => URL.revokeObjectURL(track.url))
@@ -385,5 +422,8 @@ export const usePlayerStore = defineStore('player', () => {
     clearPlaylist,
     reorderPlaylist,
     cleanup,
+    getPreciseTime,
+    onFrame,
+    notifyFrame,
   }
 })

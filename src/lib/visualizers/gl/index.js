@@ -50,6 +50,11 @@ import { glLedCluster as glLedClusterSpec } from './presets/glLedCluster.js'
 import { glLedBlinder as glLedBlinderSpec } from './presets/glLedBlinder.js'
 import { glLedSunstrip as glLedSunstripSpec } from './presets/glLedSunstrip.js'
 import { glLedHexPanel as glLedHexPanelSpec } from './presets/glLedHexPanel.js'
+import { glFootlights as glFootlightsSpec } from './presets/glFootlights.js'
+import { glCornerBeams as glCornerBeamsSpec } from './presets/glCornerBeams.js'
+import { glSideLights as glSideLightsSpec } from './presets/glSideLights.js'
+import { glSearchlights as glSearchlightsSpec } from './presets/glSearchlights.js'
+import { glLaserFan as glLaserFanSpec } from './presets/glLaserFan.js'
 import { glPortraitLed as glPortraitLedSpec } from './presets/glPortraitLed.js'
 import { glPortraitGlitch as glPortraitGlitchSpec } from './presets/glPortraitGlitch.js'
 import { glPortraitWave as glPortraitWaveSpec } from './presets/glPortraitWave.js'
@@ -102,6 +107,11 @@ export const glPresetSpecs = {
   glLedBlinder: glLedBlinderSpec,
   glLedSunstrip: glLedSunstripSpec,
   glLedHexPanel: glLedHexPanelSpec,
+  glFootlights: glFootlightsSpec,
+  glCornerBeams: glCornerBeamsSpec,
+  glSideLights: glSideLightsSpec,
+  glSearchlights: glSearchlightsSpec,
+  glLaserFan: glLaserFanSpec,
   glPortraitLed: glPortraitLedSpec,
   glPortraitGlitch: glPortraitGlitchSpec,
   glPortraitWave: glPortraitWaveSpec,

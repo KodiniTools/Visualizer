@@ -88,6 +88,11 @@ const VISUALIZER_CATEGORIES = {
     'glLaserFigure',
     'glLaserWall',
     'glLaserBurst',
+    'glDiscoBall',
+    'glDiscoReflections',
+    'glDiscoFloor',
+    'glDiscoRays',
+    'glColorOrgan',
   ],
   // Portrait-Presets: arbeiten auf einem Bild (Upload oder Leinwand-Bild)
   Portrait: [

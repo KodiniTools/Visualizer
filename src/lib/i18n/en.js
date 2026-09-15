@@ -1086,6 +1086,8 @@ export default {
     addNewText: 'Add new text',
     addWithArea: 'Add with area selection',
     addToCanvas: 'Add to Canvas',
+    addToCanvasPlain: 'Add to canvas without effect',
+    addToCanvasPlainTitle: 'Add the text to the canvas plainly, without any animation',
     addToCanvasTypewriter: 'Add with typewriter effect',
     addToCanvasFade: 'Add with fade effect',
     addToCanvasScale: 'Add with scale effect',

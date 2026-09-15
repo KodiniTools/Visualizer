@@ -181,6 +181,11 @@ vec4 spotLamp(vec2 p, vec2 src, float power, vec3 hot, vec3 bodyCol) {
   return vec4(rgb, body + flare);
 }
 
+// Laser line profile from a distance in pixels: crisp core + soft halo.
+float laserGlow(float px) {
+  return (1.0 - smoothstep(0.5, 1.7, px)) + exp(-px * 0.14) * 0.35;
+}
+
 // Shown by portrait presets while no image is selected: a dashed frame in
 // the base colour with a pulsing dot, so the layer is visibly "waiting".
 vec4 noImagePlaceholder() {

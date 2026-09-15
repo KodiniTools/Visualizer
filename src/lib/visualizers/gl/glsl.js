@@ -186,6 +186,29 @@ float laserGlow(float px) {
   return (1.0 - smoothstep(0.5, 1.7, px)) + exp(-px * 0.14) * 0.35;
 }
 
+// Small mirror ball: shaded sphere with rotating lat/long facets and a hot
+// spot. lp: local coords centred on the ball, R: radius. Returns (rgb, disc).
+vec4 miniMirrorBall(vec2 lp, float R, float aaPx, float t, float sparkle) {
+  float r = length(lp);
+  float disc = 1.0 - smoothstep(R - aaPx, R + aaPx, r);
+  float d2 = dot(lp, lp) / (R * R);
+  vec3 n = vec3(lp / R, sqrt(max(1.0 - d2, 0.0)));
+  vec3 nr = n;
+  nr.xz = rot2(t * 0.5) * nr.xz;
+  nr.yz = rot2(0.3) * nr.yz;
+  float lon = atan(nr.x, nr.z);
+  float lat = asin(clamp(nr.y, -1.0, 1.0));
+  vec2 fid = floor(vec2(lon / TAU * 16.0, lat / PI * 8.0));
+  vec2 ff = fract(vec2(lon / TAU * 16.0, lat / PI * 8.0));
+  float h = hash12(fid + 5.0);
+  float grout = smoothstep(0.0, 0.12, ff.x) * smoothstep(0.0, 0.12, ff.y) * smoothstep(1.0, 0.88, ff.x) * smoothstep(1.0, 0.88, ff.y);
+  vec3 L = normalize(vec3(0.5, 0.7, 0.6));
+  float spec = pow(max(dot(reflect(-L, n), vec3(0.0, 0.0, 1.0)), 0.0), 30.0);
+  float flash = step(0.97 - sparkle * 0.03, hash12(fid + floor(t * 6.0))) * sparkle;
+  vec3 col = vec3(0.45, 0.48, 0.55) * (0.35 + 0.35 * n.z + h * 0.25) * (0.5 + 0.5 * grout) + vec3(1.0) * (spec * 0.8 + flash);
+  return vec4(col, disc);
+}
+
 // Shown by portrait presets while no image is selected: a dashed frame in
 // the base colour with a pulsing dot, so the layer is visibly "waiting".
 vec4 noImagePlaceholder() {

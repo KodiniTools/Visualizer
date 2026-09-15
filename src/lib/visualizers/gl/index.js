@@ -60,6 +60,11 @@ import { glLaserGrid as glLaserGridSpec } from './presets/glLaserGrid.js'
 import { glLaserFigure as glLaserFigureSpec } from './presets/glLaserFigure.js'
 import { glLaserWall as glLaserWallSpec } from './presets/glLaserWall.js'
 import { glLaserBurst as glLaserBurstSpec } from './presets/glLaserBurst.js'
+import { glDiscoBall as glDiscoBallSpec } from './presets/glDiscoBall.js'
+import { glDiscoReflections as glDiscoReflectionsSpec } from './presets/glDiscoReflections.js'
+import { glDiscoFloor as glDiscoFloorSpec } from './presets/glDiscoFloor.js'
+import { glDiscoRays as glDiscoRaysSpec } from './presets/glDiscoRays.js'
+import { glColorOrgan as glColorOrganSpec } from './presets/glColorOrgan.js'
 import { glPortraitLed as glPortraitLedSpec } from './presets/glPortraitLed.js'
 import { glPortraitGlitch as glPortraitGlitchSpec } from './presets/glPortraitGlitch.js'
 import { glPortraitWave as glPortraitWaveSpec } from './presets/glPortraitWave.js'
@@ -122,6 +127,11 @@ export const glPresetSpecs = {
   glLaserFigure: glLaserFigureSpec,
   glLaserWall: glLaserWallSpec,
   glLaserBurst: glLaserBurstSpec,
+  glDiscoBall: glDiscoBallSpec,
+  glDiscoReflections: glDiscoReflectionsSpec,
+  glDiscoFloor: glDiscoFloorSpec,
+  glDiscoRays: glDiscoRaysSpec,
+  glColorOrgan: glColorOrganSpec,
   glPortraitLed: glPortraitLedSpec,
   glPortraitGlitch: glPortraitGlitchSpec,
   glPortraitWave: glPortraitWaveSpec,

@@ -137,6 +137,24 @@ vec4 outPremul(vec3 rgb, float a) {
   return vec4(rgb, a);
 }
 
+// A round LED lamp with lens shading, specular dot, bezel and bloom.
+// lp: local coords centred on the lamp; R: lens radius; lit: 0..1.
+// Returns premultiplied-ish (rgb, coverage) to be accumulated by the caller.
+vec4 ledLamp(vec2 lp, float R, float aaPx, float lit, vec3 ledCol, vec3 ledDim, vec3 ledHot, float bloomMask) {
+  float d = length(lp);
+  float lens = 1.0 - smoothstep(R - aaPx, R + aaPx, d);
+  float shade = 1.0 - smoothstep(0.0, R, d) * 0.55;
+  float core = exp(-d * d / (R * R * 0.18)) * lit;
+  vec2 specPos = lp - vec2(-R * 0.4, R * 0.4);
+  float specular = exp(-dot(specPos, specPos) / (R * R * 0.012)) * 0.45;
+  float bezel = (1.0 - smoothstep(0.0, 1.5 * aaPx, abs(d - R - 1.5 * aaPx))) * 0.6;
+  float bloom = exp(-max(d - R, 0.0) / (R * 0.35)) * lit * 0.75 * step(R, d) * bloomMask;
+  vec3 lensCol = mix(ledDim, ledCol, lit) * shade + ledHot * core * 0.9 + vec3(1.0) * specular * (0.3 + lit * 0.5);
+  vec3 rgb = lensCol * lens + ledCol * bloom + ledDim * 0.5 * bezel;
+  float a = lens + bloom + bezel * 0.5;
+  return vec4(rgb, a);
+}
+
 // Shown by portrait presets while no image is selected: a dashed frame in
 // the base colour with a pulsing dot, so the layer is visibly "waiting".
 vec4 noImagePlaceholder() {

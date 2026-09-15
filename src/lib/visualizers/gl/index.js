@@ -45,6 +45,11 @@ import { glVuMeter as glVuMeterSpec } from './presets/glVuMeter.js'
 import { glLedRing as glLedRingSpec } from './presets/glLedRing.js'
 import { glLedStrips as glLedStripsSpec } from './presets/glLedStrips.js'
 import { glStageLights as glStageLightsSpec } from './presets/glStageLights.js'
+import { glLedWall5 as glLedWall5Spec } from './presets/glLedWall5.js'
+import { glLedCluster as glLedClusterSpec } from './presets/glLedCluster.js'
+import { glLedBlinder as glLedBlinderSpec } from './presets/glLedBlinder.js'
+import { glLedSunstrip as glLedSunstripSpec } from './presets/glLedSunstrip.js'
+import { glLedHexPanel as glLedHexPanelSpec } from './presets/glLedHexPanel.js'
 import { glPortraitLed as glPortraitLedSpec } from './presets/glPortraitLed.js'
 import { glPortraitGlitch as glPortraitGlitchSpec } from './presets/glPortraitGlitch.js'
 import { glPortraitWave as glPortraitWaveSpec } from './presets/glPortraitWave.js'
@@ -92,6 +97,11 @@ export const glPresetSpecs = {
   glLedRing: glLedRingSpec,
   glLedStrips: glLedStripsSpec,
   glStageLights: glStageLightsSpec,
+  glLedWall5: glLedWall5Spec,
+  glLedCluster: glLedClusterSpec,
+  glLedBlinder: glLedBlinderSpec,
+  glLedSunstrip: glLedSunstripSpec,
+  glLedHexPanel: glLedHexPanelSpec,
   glPortraitLed: glPortraitLedSpec,
   glPortraitGlitch: glPortraitGlitchSpec,
   glPortraitWave: glPortraitWaveSpec,

@@ -1,254 +1,261 @@
 <template>
   <div class="panel-container">
-    <div class="panel-header">
-      <h4>{{ t('visualizer.title') }}</h4>
-      <HelpTooltip
-        :title="t('visualizer.helpTitle')"
-        :text="t('visualizer.helpText')"
-        :tip="t('visualizer.helpTip')"
-        position="left"
-        :large="true"
-      />
-    </div>
-
-    <!-- Visualizer Ein/Aus + Farbe (kompakte Zeilen) -->
-    <div class="control-section status-toggle">
-      <div class="inline-row">
-        <span class="section-label">{{ t('visualizer.status') }}</span>
-        <div class="status-toggle-right">
-          <span v-if="!store.showVisualizer" class="status-hint">{{
-            t('visualizer.disabled')
-          }}</span>
-          <button
-            class="switch"
-            :class="{ on: store.showVisualizer }"
-            type="button"
-            role="switch"
-            :aria-checked="store.showVisualizer"
-            :title="store.showVisualizer ? t('common.on') : t('common.off')"
-            @click="store.toggleVisualizer()"
-          >
-            <span class="switch-knob"></span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="control-section">
-      <div class="inline-row">
-        <span class="section-label">{{ t('visualizer.color') }}</span>
-        <ColorField
-          :model-value="store.visualizerColor"
-          class="color-swatch"
-          :title="t('visualizer.color')"
-          @update:model-value="store.setColor($event)"
+    <!-- Fester Bereich: Regler und Suche bleiben immer sichtbar -->
+    <div class="panel-fixed">
+      <div class="panel-header">
+        <h4>{{ t('visualizer.title') }}</h4>
+        <HelpTooltip
+          :title="t('visualizer.helpTitle')"
+          :text="t('visualizer.helpText')"
+          :tip="t('visualizer.helpTip')"
+          position="left"
+          :large="true"
         />
       </div>
-    </div>
 
-    <!-- Intensität-Regler -->
-    <div class="control-section">
-      <span class="section-label">
-        {{ t('visualizer.intensity') }}: {{ Math.round(store.visualizerOpacity * 100) }}%
-      </span>
-      <SliderField
-        :min="0"
-        :max="1"
-        :step="0.01"
-        :default-value="1"
-        :model-value="store.visualizerOpacity"
-        @update:model-value="store.setOpacity($event)"
-        class="slider intensity-slider"
-      />
-    </div>
+      <!-- Visualizer Ein/Aus + Farbe (kompakte Zeilen) -->
+      <div class="control-section status-toggle">
+        <div class="inline-row">
+          <span class="section-label">{{ t('visualizer.status') }}</span>
+          <div class="status-toggle-right">
+            <span v-if="!store.showVisualizer" class="status-hint">{{
+              t('visualizer.disabled')
+            }}</span>
+            <button
+              class="switch"
+              :class="{ on: store.showVisualizer }"
+              type="button"
+              role="switch"
+              :aria-checked="store.showVisualizer"
+              :title="store.showVisualizer ? t('common.on') : t('common.off')"
+              @click="store.toggleVisualizer()"
+            >
+              <span class="switch-knob"></span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-    <!-- Farbtransparenz-Regler -->
-    <div class="control-section">
-      <span class="section-label">
-        {{ t('visualizer.colorTransparency') }}: {{ Math.round(store.colorOpacity * 100) }}%
-      </span>
-      <SliderField
-        :min="0"
-        :max="1"
-        :step="0.01"
-        :default-value="1"
-        :model-value="store.colorOpacity"
-        @update:model-value="store.setColorOpacity($event)"
-        class="slider color-slider"
-      />
-    </div>
+      <div class="control-section">
+        <div class="inline-row">
+          <span class="section-label">{{ t('visualizer.color') }}</span>
+          <ColorField
+            :model-value="store.visualizerColor"
+            class="color-swatch"
+            :title="t('visualizer.color')"
+            @update:model-value="store.setColor($event)"
+          />
+        </div>
+      </div>
 
-    <!-- Reaktionsquelle -->
-    <div class="control-section">
-      <span class="section-label">{{ t('visualizer.reactSource.label') }}</span>
-      <select
-        class="react-select"
-        :value="store.reactSource"
-        @change="store.setReactSource($event.target.value)"
-      >
-        <option v-for="src in levelSources" :key="src" :value="src">
-          {{ t(`visualizer.reactSource.${src}`) }}
-        </option>
-        <optgroup :label="t('visualizer.reactSource.onsetGroup')">
-          <option v-for="src in onsetSources" :key="src" :value="src">
-            {{ t(`visualizer.reactSource.${src}`) }}
-          </option>
-        </optgroup>
-      </select>
-      <template v-if="store.reactSource !== 'spectrum'">
+      <!-- Intensität-Regler -->
+      <div class="control-section">
         <span class="section-label">
-          {{ t('visualizer.reactSource.strength') }}: {{ store.reactStrength }}%
+          {{ t('visualizer.intensity') }}: {{ Math.round(store.visualizerOpacity * 100) }}%
         </span>
         <SliderField
           :min="0"
-          :max="100"
-          :step="1"
-          :default-value="70"
-          :model-value="store.reactStrength"
-          @update:model-value="store.setReactStrength($event)"
-          class="slider react-slider"
-        />
-        <span class="react-hint">{{ t('visualizer.reactSource.hint') }}</span>
-      </template>
-    </div>
-
-    <!-- Bild für Portrait-Presets -->
-    <div v-if="selectedNeedsImage" class="control-section">
-      <span class="section-label">{{ t('visualizer.image.label') }}</span>
-      <VisualizerImagePicker
-        :model-value="store.visualizerImageId"
-        @update:model-value="store.setVisualizerImageId($event)"
-      />
-    </div>
-
-    <!-- Position & Größe -->
-    <div class="control-section position-section">
-      <div class="section-header">
-        <span class="section-label">{{ t('visualizer.positionSize') }}</span>
-        <button
-          class="reset-btn"
-          @click="store.resetVisualizerTransform()"
-          :title="t('visualizer.resetToDefault')"
-        >
-          {{ t('visualizer.reset') }}
-        </button>
-      </div>
-
-      <!-- X-Position -->
-      <div class="position-control">
-        <span class="control-label">X: {{ Math.round(store.visualizerX * 100) }}%</span>
-        <SliderField
-          :min="0"
           :max="1"
-          :step="0.01"
-          :default-value="0.5"
-          :model-value="store.visualizerX"
-          @update:model-value="store.setVisualizerX($event)"
-          class="slider position-slider"
-        />
-      </div>
-
-      <!-- Y-Position -->
-      <div class="position-control">
-        <span class="control-label">Y: {{ Math.round(store.visualizerY * 100) }}%</span>
-        <SliderField
-          :min="0"
-          :max="1"
-          :step="0.01"
-          :default-value="0.5"
-          :model-value="store.visualizerY"
-          @update:model-value="store.setVisualizerY($event)"
-          class="slider position-slider"
-        />
-      </div>
-
-      <!-- Skalierung -->
-      <div class="position-control">
-        <span class="control-label"
-          >{{ t('foto.size') }}: {{ Math.round(store.visualizerScale * 100) }}%</span
-        >
-        <SliderField
-          :min="0.1"
-          :max="2"
           :step="0.01"
           :default-value="1"
-          :model-value="store.visualizerScale"
-          @update:model-value="store.setVisualizerScale($event)"
-          class="slider scale-slider"
+          :model-value="store.visualizerOpacity"
+          @update:model-value="store.setOpacity($event)"
+          class="slider intensity-slider"
         />
       </div>
-    </div>
 
-    <!-- Suchfeld -->
-    <div class="control-section">
-      <span class="section-label">{{ t('visualizer.search') }}</span>
-      <input
-        type="text"
-        v-model="searchQuery"
-        :placeholder="t('visualizer.searchPlaceholder')"
-        class="search-input"
-      />
-    </div>
+      <!-- Farbtransparenz-Regler -->
+      <div class="control-section">
+        <span class="section-label">
+          {{ t('visualizer.colorTransparency') }}: {{ Math.round(store.colorOpacity * 100) }}%
+        </span>
+        <SliderField
+          :min="0"
+          :max="1"
+          :step="0.01"
+          :default-value="1"
+          :model-value="store.colorOpacity"
+          @update:model-value="store.setColorOpacity($event)"
+          class="slider color-slider"
+        />
+      </div>
 
-    <!-- Kategorisierte Visualizer-Auswahl -->
-    <div class="control-section">
-      <span class="section-label"
-        >{{ t('visualizer.visualizerType') }} ({{ totalCount }} {{ t('visualizer.effects') }})</span
-      >
-
-      <!-- Suchergebnisse -->
-      <div v-if="searchQuery.trim()" class="visualizer-buttons">
-        <button
-          v-for="viz in filteredVisualizers"
-          :key="viz.id"
-          class="visualizer-btn"
-          :class="{ active: store.selectedVisualizer === viz.id }"
-          @click="store.selectVisualizer(viz.id)"
+      <!-- Reaktionsquelle -->
+      <div class="control-section">
+        <span class="section-label">{{ t('visualizer.reactSource.label') }}</span>
+        <select
+          class="react-select"
+          :value="store.reactSource"
+          @change="store.setReactSource($event.target.value)"
         >
-          {{ viz.name }}
-        </button>
-        <div v-if="filteredVisualizers.length === 0" class="no-results">
-          {{ t('visualizer.noResultsFor') }} "{{ searchQuery }}"
+          <option v-for="src in levelSources" :key="src" :value="src">
+            {{ t(`visualizer.reactSource.${src}`) }}
+          </option>
+          <optgroup :label="t('visualizer.reactSource.onsetGroup')">
+            <option v-for="src in onsetSources" :key="src" :value="src">
+              {{ t(`visualizer.reactSource.${src}`) }}
+            </option>
+          </optgroup>
+        </select>
+        <template v-if="store.reactSource !== 'spectrum'">
+          <span class="section-label">
+            {{ t('visualizer.reactSource.strength') }}: {{ store.reactStrength }}%
+          </span>
+          <SliderField
+            :min="0"
+            :max="100"
+            :step="1"
+            :default-value="70"
+            :model-value="store.reactStrength"
+            @update:model-value="store.setReactStrength($event)"
+            class="slider react-slider"
+          />
+          <span class="react-hint">{{ t('visualizer.reactSource.hint') }}</span>
+        </template>
+      </div>
+
+      <!-- Bild für Portrait-Presets -->
+      <div v-if="selectedNeedsImage" class="control-section">
+        <span class="section-label">{{ t('visualizer.image.label') }}</span>
+        <VisualizerImagePicker
+          :model-value="store.visualizerImageId"
+          @update:model-value="store.setVisualizerImageId($event)"
+        />
+      </div>
+
+      <!-- Position & Größe -->
+      <div class="control-section position-section">
+        <div class="section-header">
+          <span class="section-label">{{ t('visualizer.positionSize') }}</span>
+          <button
+            class="reset-btn"
+            @click="store.resetVisualizerTransform()"
+            :title="t('visualizer.resetToDefault')"
+          >
+            {{ t('visualizer.reset') }}
+          </button>
+        </div>
+
+        <!-- X-Position -->
+        <div class="position-control">
+          <span class="control-label">X: {{ Math.round(store.visualizerX * 100) }}%</span>
+          <SliderField
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :default-value="0.5"
+            :model-value="store.visualizerX"
+            @update:model-value="store.setVisualizerX($event)"
+            class="slider position-slider"
+          />
+        </div>
+
+        <!-- Y-Position -->
+        <div class="position-control">
+          <span class="control-label">Y: {{ Math.round(store.visualizerY * 100) }}%</span>
+          <SliderField
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :default-value="0.5"
+            :model-value="store.visualizerY"
+            @update:model-value="store.setVisualizerY($event)"
+            class="slider position-slider"
+          />
+        </div>
+
+        <!-- Skalierung -->
+        <div class="position-control">
+          <span class="control-label"
+            >{{ t('foto.size') }}: {{ Math.round(store.visualizerScale * 100) }}%</span
+          >
+          <SliderField
+            :min="0.1"
+            :max="2"
+            :step="0.01"
+            :default-value="1"
+            :model-value="store.visualizerScale"
+            @update:model-value="store.setVisualizerScale($event)"
+            class="slider scale-slider"
+          />
         </div>
       </div>
 
-      <!-- Kategorien (wenn keine Suche aktiv) -->
-      <div v-else class="category-list">
-        <details
-          v-for="(visualizers, category) in store.categorizedVisualizers"
-          :key="category"
-          class="category"
-          :open="isCategoryOpen(category)"
-        >
-          <summary
-            class="category-header"
-            :class="{ open: openCategories[category] }"
-            @click.prevent="toggleCategory(category)"
-          >
-            <span class="category-name">{{ getCategoryName(category) }}</span>
-            <span class="category-count">{{ visualizers.length }}</span>
-            <span class="category-caret" aria-hidden="true"></span>
-          </summary>
-          <div class="category-content">
-            <button
-              v-for="viz in visualizers"
-              :key="viz.id"
-              class="visualizer-btn"
-              :class="{ active: store.selectedVisualizer === viz.id }"
-              @click="store.selectVisualizer(viz.id)"
-            >
-              {{ viz.name }}
-            </button>
-          </div>
-        </details>
+      <!-- Suchfeld -->
+      <div class="control-section">
+        <span class="section-label">{{ t('visualizer.search') }}</span>
+        <input
+          type="text"
+          v-model="searchQuery"
+          :placeholder="t('visualizer.searchPlaceholder')"
+          class="search-input"
+        />
       </div>
     </div>
 
-    <!-- Post-Processing Effekte (Bloom / Trails / Adaptive Qualität) -->
-    <VisualizerEffectsPanel />
+    <!-- Scrollbereich: Liste, Effekte, Layer -->
+    <div class="panel-scroll">
+      <!-- Kategorisierte Visualizer-Auswahl -->
+      <div class="control-section">
+        <span class="section-label"
+          >{{ t('visualizer.visualizerType') }} ({{ totalCount }}
+          {{ t('visualizer.effects') }})</span
+        >
 
-    <!-- Multi-Layer Panel -->
-    <VisualizerLayerPanel />
+        <!-- Suchergebnisse -->
+        <div v-if="searchQuery.trim()" class="visualizer-buttons">
+          <button
+            v-for="viz in filteredVisualizers"
+            :key="viz.id"
+            class="visualizer-btn"
+            :class="{ active: store.selectedVisualizer === viz.id }"
+            @click="store.selectVisualizer(viz.id)"
+          >
+            {{ viz.name }}
+          </button>
+          <div v-if="filteredVisualizers.length === 0" class="no-results">
+            {{ t('visualizer.noResultsFor') }} "{{ searchQuery }}"
+          </div>
+        </div>
+
+        <!-- Kategorien (wenn keine Suche aktiv) -->
+        <div v-else class="category-list">
+          <details
+            v-for="(visualizers, category) in store.categorizedVisualizers"
+            :key="category"
+            class="category"
+            :open="isCategoryOpen(category)"
+          >
+            <summary
+              class="category-header"
+              :class="{ open: openCategories[category] }"
+              @click.prevent="toggleCategory(category)"
+            >
+              <span class="category-name">{{ getCategoryName(category) }}</span>
+              <span class="category-count">{{ visualizers.length }}</span>
+              <span class="category-caret" aria-hidden="true"></span>
+            </summary>
+            <div class="category-content">
+              <button
+                v-for="viz in visualizers"
+                :key="viz.id"
+                class="visualizer-btn"
+                :class="{ active: store.selectedVisualizer === viz.id }"
+                @click="store.selectVisualizer(viz.id)"
+              >
+                {{ viz.name }}
+              </button>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Post-Processing Effekte (Bloom / Trails / Adaptive Qualität) -->
+      <VisualizerEffectsPanel />
+
+      <!-- Multi-Layer Panel -->
+      <VisualizerLayerPanel />
+    </div>
   </div>
 </template>
 
@@ -314,6 +321,31 @@ const totalCount = computed(() => store.availableVisualizers.length)
   border-radius: 8px;
   padding: 10px;
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+}
+
+/* Zweigeteilt: der Kopf (Regler + Suche) bleibt stehen, nur der Bereich mit
+   der Visualizer-Liste scrollt. Wirkt, sobald der Container eine begrenzte
+   Höhe hat (z. B. im Player-Popover); ohne Begrenzung stapelt sich alles wie
+   bisher. */
+.panel-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.panel-fixed {
+  flex: 0 0 auto;
+}
+
+.panel-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  margin-top: 4px;
+  scrollbar-width: thin;
 }
 
 .panel-header {

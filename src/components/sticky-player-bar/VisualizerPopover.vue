@@ -35,17 +35,29 @@ const initOffset = cascadeOffset('visualizer')
 .spb-popover-visualizer {
   width: 380px;
   padding: 0;
+  /* Höher als die anderen Popover, damit unter den festen Reglern genug
+     Platz für die scrollbare Visualizer-Liste bleibt. Das Popover selbst
+     scrollt nicht mehr, nur der Listenbereich im Panel. */
+  max-height: calc(100vh - 110px);
+  overflow: hidden;
 }
 .spb-popover-visualizer .spb-popover-header {
   padding: 12px 12px 0;
 }
 .spb-visualizer-scroll {
   padding: 10px 12px 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 /* Neutralize the embedded VisualizerPanel's own card chrome inside the popover */
 .spb-visualizer-scroll :deep(.panel-container) {
   background-color: transparent;
   border: none;
   padding: 0;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 </style>

@@ -146,6 +146,18 @@
         >
           <option value="">{{ t('player.noChange') }}</option>
           <optgroup
+            v-if="layerPresetStore.layerPresets.length > 0"
+            :label="t('player.myLayerPresets')"
+          >
+            <option
+              v-for="preset in layerPresetStore.layerPresets"
+              :key="preset.id"
+              :value="toLayerPresetRef(preset.id)"
+            >
+              {{ preset.name }} ({{ preset.layers.length }})
+            </option>
+          </optgroup>
+          <optgroup
             v-for="(items, category) in visualizerStore.categorizedVisualizers"
             :key="category"
             :label="category"
@@ -294,6 +306,7 @@ import { usePlayerStore } from '../../stores/playerStore.js'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
 import { useVisualizerStore } from '../../stores/visualizerStore.js'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore.js'
+import { useLayerPresetStore, toLayerPresetRef } from '../../stores/layerPresetStore.js'
 import { formatTimePrecise } from '../../utils/formatTime.js'
 import { getBackgroundPresetOptions } from '../../utils/backgroundPresets.js'
 import { vPopoverDrag } from '../../directives/popoverDrag.js'
@@ -303,6 +316,7 @@ const playerStore = usePlayerStore()
 const beatMarkerStore = useBeatMarkerStore()
 const visualizerStore = useVisualizerStore()
 const markerTransition = useMarkerTransitionStore()
+const layerPresetStore = useLayerPresetStore()
 
 const { popover, markers } = inject('playerBar')
 const { closePopover, cascadeOffset } = popover

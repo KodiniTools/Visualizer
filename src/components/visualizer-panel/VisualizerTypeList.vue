@@ -8,6 +8,17 @@
     <!-- Suchergebnisse -->
     <div v-if="searchQuery.trim()" class="visualizer-buttons">
       <button
+        v-for="preset in filteredPresets"
+        :key="preset.id"
+        class="visualizer-btn preset-btn"
+        :class="{ active: layerPresetStore.isLayerPresetActive(preset) }"
+        :title="t('visualizer.applyPreset')"
+        @click="layerPresetStore.applyLayerPreset(preset)"
+      >
+        {{ preset.name }}
+        <span class="preset-badge">{{ preset.layers.length }}</span>
+      </button>
+      <button
         v-for="viz in filteredVisualizers"
         :key="viz.id"
         class="visualizer-btn"
@@ -16,13 +27,46 @@
       >
         {{ viz.name }}
       </button>
-      <div v-if="filteredVisualizers.length === 0" class="no-results">
+      <div
+        v-if="filteredVisualizers.length === 0 && filteredPresets.length === 0"
+        class="no-results"
+      >
         {{ t('visualizer.noResultsFor') }} "{{ searchQuery }}"
       </div>
     </div>
 
     <!-- Kategorien (wenn keine Suche aktiv) -->
     <div v-else class="category-list">
+      <!-- Eigene Presets (gespeicherte Multi-Layer-Konfigurationen) -->
+      <details
+        v-if="layerPresetStore.layerPresets.length > 0"
+        class="category category-presets"
+        :open="isCategoryOpen(USER_PRESETS_CATEGORY)"
+      >
+        <summary
+          class="category-header"
+          :class="{ open: openCategories[USER_PRESETS_CATEGORY] }"
+          @click.prevent="toggleCategory(USER_PRESETS_CATEGORY)"
+        >
+          <span class="category-name">{{ t('visualizer.categories.userPresets') }}</span>
+          <span class="category-count">{{ layerPresetStore.layerPresets.length }}</span>
+          <span class="category-caret" aria-hidden="true"></span>
+        </summary>
+        <div class="category-content">
+          <button
+            v-for="preset in layerPresetStore.layerPresets"
+            :key="preset.id"
+            class="visualizer-btn preset-btn"
+            :class="{ active: layerPresetStore.isLayerPresetActive(preset) }"
+            :title="t('visualizer.applyPreset')"
+            @click="layerPresetStore.applyLayerPreset(preset)"
+          >
+            {{ preset.name }}
+            <span class="preset-badge">{{ preset.layers.length }}</span>
+          </button>
+        </div>
+      </details>
+
       <details
         v-for="(visualizers, category) in store.categorizedVisualizers"
         :key="category"
@@ -58,6 +102,7 @@
 import { ref, computed } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useVisualizerStore } from '../../stores/visualizerStore.js'
+import { useLayerPresetStore } from '../../stores/layerPresetStore.js'
 
 const props = defineProps({
   /** Aktueller Suchbegriff; nicht-leer schaltet von Kategorien auf Trefferliste um. */
@@ -69,8 +114,13 @@ const props = defineProps({
 
 const { t } = useI18n()
 const store = useVisualizerStore()
+const layerPresetStore = useLayerPresetStore()
+
+// Schlüssel der Kategorie "Eigene Presets" (kein Visualizer-Kategorie-Key)
+const USER_PRESETS_CATEGORY = 'Eigene Presets'
 
 const openCategories = ref({
+  [USER_PRESETS_CATEGORY]: true,
   'GPU-Presets': true, // GPU-Presets offen, „Klassisch“ eingeklappt
 })
 
@@ -102,6 +152,13 @@ const filteredVisualizers = computed(() => {
   return store.availableVisualizers.filter(
     (viz) => viz.name.toLowerCase().includes(query) || viz.id.toLowerCase().includes(query),
   )
+})
+
+// Gespeicherte Layer-Presets, die zum Suchbegriff passen
+const filteredPresets = computed(() => {
+  const query = props.searchQuery.toLowerCase().trim()
+  if (!query) return []
+  return layerPresetStore.layerPresets.filter((p) => p.name.toLowerCase().includes(query))
 })
 
 // Gesamtanzahl der Visualizer
@@ -211,6 +268,27 @@ const totalCount = computed(() => store.availableVisualizers.length)
 
 .visualizer-btn.active:hover {
   background-color: var(--accent-tertiary, #f8e1a9);
+}
+
+.preset-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.preset-btn .preset-badge {
+  margin-left: auto;
+  font-size: 0.55rem;
+  color: var(--text-muted, #7a8da0);
+  background-color: rgba(201, 152, 77, 0.2);
+  padding: 1px 5px;
+  border-radius: 8px;
+}
+.preset-btn.active .preset-badge {
+  color: var(--accent-text, #091428);
+  background-color: rgba(9, 20, 40, 0.2);
+}
+.category-presets {
+  border-color: rgba(201, 152, 77, 0.45);
 }
 
 .no-results {

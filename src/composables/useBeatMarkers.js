@@ -5,6 +5,7 @@ import { useBeatMarkerStore } from '../stores/beatMarkerStore.js'
 import { useVisualizerStore } from '../stores/visualizerStore.js'
 import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore.js'
 import { useMarkerTransitionStore } from '../stores/markerTransitionStore.js'
+import { useLayerPresetStore, parseLayerPresetRef } from '../stores/layerPresetStore.js'
 import { formatTimePrecise, parseTimeInput, roundToHundredths } from '../utils/formatTime.js'
 import { resolveBackgroundPreset } from '../utils/backgroundPresets.js'
 
@@ -23,6 +24,7 @@ export function useBeatMarkers(openMarkersPopover) {
   const visualizerStore = useVisualizerStore()
   const backgroundBridge = useBackgroundBridgeStore()
   const markerTransition = useMarkerTransitionStore()
+  const layerPresetStore = useLayerPresetStore()
 
   // Canvas-Manager (bereitgestellt von VisualizerApp). Wird für die
   // Text-Steuerung der Marker benötigt: Texte werden zum Marker-Zeitpunkt
@@ -223,8 +225,23 @@ export function useBeatMarkers(openMarkersPopover) {
 
     if (showVisualizer) {
       if (action.visualizer) {
-        visualizerStore.selectVisualizer(action.visualizer)
-        console.log('🎯 Visualizer gewechselt zu:', action.visualizer)
+        const presetId = parseLayerPresetRef(action.visualizer)
+        if (presetId) {
+          // Eigenes Layer-Preset: frisch aus dem Store, sonst der im Marker
+          // gespeicherte Snapshot (Preset könnte inzwischen gelöscht sein).
+          const preset = layerPresetStore.findLayerPreset(presetId) || action.layerPreset
+          if (layerPresetStore.applyLayerPreset(preset)) {
+            console.log('🎛️ Layer-Preset via Beat-Marker angewendet:', preset.name)
+          } else {
+            console.warn('⚠️ Layer-Preset des Markers nicht gefunden:', action.visualizer)
+          }
+        } else {
+          // Einzelner Visualizer: Multi-Layer verlassen, sonst bliebe der
+          // Wechsel unsichtbar (im Multi-Layer-Modus werden nur Layer gerendert).
+          if (visualizerStore.multiLayerMode) visualizerStore.multiLayerMode = false
+          visualizerStore.selectVisualizer(action.visualizer)
+          console.log('🎯 Visualizer gewechselt zu:', action.visualizer)
+        }
       }
       visualizerStore.showVisualizer = true
     } else {
@@ -347,9 +364,25 @@ export function useBeatMarkers(openMarkersPopover) {
       if (txt) textLabel = txt.content ? txt.content : `#${txt.number}`
     }
 
+    // Eigenes Layer-Preset: Snapshot mitspeichern, damit der Marker auch nach
+    // dem Löschen des Presets noch funktioniert (analog zum Hintergrund).
+    let layerPreset = null
+    const presetId = parseLayerPresetRef(newMarkerVisualizer.value)
+    if (presetId) {
+      const found = layerPresetStore.findLayerPreset(presetId)
+      if (found) {
+        layerPreset = {
+          id: found.id,
+          name: found.name,
+          layers: found.layers.map((l) => ({ ...l })),
+        }
+      }
+    }
+
     const action = {
       type: 'combined',
       visualizer: newMarkerVisualizer.value || null,
+      layerPreset: layerPreset,
       color: newMarkerChangeColor.value ? newMarkerColor.value : null,
       visualizerVisible: newMarkerShowVisualizer.value,
       background: background,
@@ -399,6 +432,14 @@ export function useBeatMarkers(openMarkersPopover) {
   }
 
   const getVisualizerName = (id) => {
+    const presetId = parseLayerPresetRef(id)
+    if (presetId) {
+      const preset = layerPresetStore.findLayerPreset(presetId)
+      if (preset) return preset.name
+      // Gelöschtes Preset: Name aus dem Marker-Snapshot verwenden
+      const marker = beatMarkerStore.markers.find((m) => m.action?.visualizer === id)
+      return marker?.action?.layerPreset?.name || id
+    }
     const allViz = visualizerStore.availableVisualizers
     const found = allViz.find((v) => v.id === id)
     return found ? found.name : id

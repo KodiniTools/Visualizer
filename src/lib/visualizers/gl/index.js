@@ -65,6 +65,11 @@ import { glDiscoReflections as glDiscoReflectionsSpec } from './presets/glDiscoR
 import { glDiscoFloor as glDiscoFloorSpec } from './presets/glDiscoFloor.js'
 import { glDiscoRays as glDiscoRaysSpec } from './presets/glDiscoRays.js'
 import { glColorOrgan as glColorOrganSpec } from './presets/glColorOrgan.js'
+import { glFireworksPeony as glFireworksPeonySpec } from './presets/glFireworksPeony.js'
+import { glFireworksWillow as glFireworksWillowSpec } from './presets/glFireworksWillow.js'
+import { glFireworksRings as glFireworksRingsSpec } from './presets/glFireworksRings.js'
+import { glFireworksFountain as glFireworksFountainSpec } from './presets/glFireworksFountain.js'
+import { glFireworksFinale as glFireworksFinaleSpec } from './presets/glFireworksFinale.js'
 import { glPortraitLed as glPortraitLedSpec } from './presets/glPortraitLed.js'
 import { glPortraitGlitch as glPortraitGlitchSpec } from './presets/glPortraitGlitch.js'
 import { glPortraitWave as glPortraitWaveSpec } from './presets/glPortraitWave.js'
@@ -132,6 +137,11 @@ export const glPresetSpecs = {
   glDiscoFloor: glDiscoFloorSpec,
   glDiscoRays: glDiscoRaysSpec,
   glColorOrgan: glColorOrganSpec,
+  glFireworksPeony: glFireworksPeonySpec,
+  glFireworksWillow: glFireworksWillowSpec,
+  glFireworksRings: glFireworksRingsSpec,
+  glFireworksFountain: glFireworksFountainSpec,
+  glFireworksFinale: glFireworksFinaleSpec,
   glPortraitLed: glPortraitLedSpec,
   glPortraitGlitch: glPortraitGlitchSpec,
   glPortraitWave: glPortraitWaveSpec,

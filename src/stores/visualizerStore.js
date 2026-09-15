@@ -93,6 +93,11 @@ const VISUALIZER_CATEGORIES = {
     'glDiscoFloor',
     'glDiscoRays',
     'glColorOrgan',
+    'glFireworksPeony',
+    'glFireworksWillow',
+    'glFireworksRings',
+    'glFireworksFountain',
+    'glFireworksFinale',
   ],
   // Portrait-Presets: arbeiten auf einem Bild (Upload oder Leinwand-Bild)
   Portrait: [

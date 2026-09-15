@@ -410,7 +410,28 @@ export class GLVisualizerEngine {
           const loc = this._uniformLocation(entry, name)
           if (!loc) continue
           if (typeof value === 'number') gl.uniform1f(loc, value)
-          else if (Array.isArray(value) || ArrayBuffer.isView(value)) {
+          else if (
+            value &&
+            typeof value === 'object' &&
+            !Array.isArray(value) &&
+            !ArrayBuffer.isView(value) &&
+            value.data
+          ) {
+            // Uniform arrays: { size: 1|2|3|4, data: Float32Array } → uniform{size}fv
+            switch (value.size) {
+              case 2:
+                gl.uniform2fv(loc, value.data)
+                break
+              case 3:
+                gl.uniform3fv(loc, value.data)
+                break
+              case 4:
+                gl.uniform4fv(loc, value.data)
+                break
+              default:
+                gl.uniform1fv(loc, value.data)
+            }
+          } else if (Array.isArray(value) || ArrayBuffer.isView(value)) {
             switch (value.length) {
               case 2:
                 gl.uniform2fv(loc, value)

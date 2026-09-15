@@ -78,6 +78,11 @@ const VISUALIZER_CATEGORIES = {
     'glLedBlinder',
     'glLedSunstrip',
     'glLedHexPanel',
+    'glFootlights',
+    'glCornerBeams',
+    'glSideLights',
+    'glSearchlights',
+    'glLaserFan',
   ],
   // Portrait-Presets: arbeiten auf einem Bild (Upload oder Leinwand-Bild)
   Portrait: [

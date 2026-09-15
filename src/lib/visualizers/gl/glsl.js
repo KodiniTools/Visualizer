@@ -155,6 +155,32 @@ vec4 ledLamp(vec2 lp, float R, float aaPx, float lit, vec3 ledCol, vec3 ledDim, 
   return vec4(rgb, a);
 }
 
+// Volumetric-looking spotlight beam in fog. src: lamp position, dir: unit
+// direction, spread: half-width at unit distance, reach: fade distance,
+// fog: 0..1 density multiplier. Returns beam intensity 0..1.
+float spotBeam(vec2 p, vec2 src, vec2 dir, float spread, float reach, float fog) {
+  vec2 rel = p - src;
+  float along = dot(rel, dir);
+  if (along < 0.0) return 0.0;
+  float side = dot(rel, vec2(-dir.y, dir.x));
+  float w = 0.02 + along * spread;
+  float beam = 1.0 - smoothstep(w * 0.55, w, abs(side));
+  beam *= exp(-along / max(reach, 0.001));
+  // Brighter core along the axis.
+  beam *= 0.6 + 0.4 * (1.0 - smoothstep(0.0, w * 0.5, abs(side)));
+  return beam * fog;
+}
+
+// Lamp body + lens flare for a spotlight source.
+vec4 spotLamp(vec2 p, vec2 src, float power, vec3 hot, vec3 bodyCol) {
+  float d = length(p - src);
+  float lens = 1.0 - smoothstep(0.016, 0.019, d);
+  float body = 1.0 - smoothstep(0.027, 0.03, d);
+  float flare = exp(-d * d * 900.0) * power * 1.1 + exp(-d * 22.0) * power * 0.35;
+  vec3 rgb = bodyCol * body * (1.0 - lens) + hot * (lens * (0.35 + power * 0.65) + flare);
+  return vec4(rgb, body + flare);
+}
+
 // Shown by portrait presets while no image is selected: a dashed frame in
 // the base colour with a pulsing dot, so the layer is visibly "waiting".
 vec4 noImagePlaceholder() {

@@ -77,21 +77,64 @@
       <div class="form-title">
         {{ editingMarkerId !== null ? t('player.editMarkerTitle') : t('player.addMarkerTitle') }}
       </div>
-      <div class="form-row">
+      <div class="form-row form-row-time">
         <label>{{ t('player.time') }}:</label>
         <div class="time-input-wrapper">
-          <input
-            v-model="pendingMarkerTimeInput"
-            type="text"
-            class="marker-time-input"
-            :placeholder="locale === 'de' ? 'z.B. 1:30' : 'e.g. 1:30'"
-            @blur="updateMarkerTimeFromInput"
-            @keyup.enter="updateMarkerTimeFromInput"
-          />
-          <span class="time-hint">{{
-            locale === 'de' ? '(MM:SS oder Sek.)' : '(MM:SS or sec.)'
-          }}</span>
-          <span class="time-max">/ {{ formatTime(playerStore.duration) }}</span>
+          <div class="time-spinner">
+            <button
+              type="button"
+              class="btn-step"
+              :title="t('player.timeStepBack')"
+              @pointerdown.prevent="startStepRepeat(-1)"
+              @pointerup="stopStepRepeat"
+              @pointerleave="stopStepRepeat"
+              @pointercancel="stopStepRepeat"
+              @keydown.enter.prevent="stepMarkerTime(-1)"
+              @keydown.space.prevent="stepMarkerTime(-1)"
+            >
+              −
+            </button>
+            <input
+              v-model="pendingMarkerTimeInput"
+              type="text"
+              class="marker-time-input"
+              :placeholder="locale === 'de' ? 'z.B. 1:30.25' : 'e.g. 1:30.25'"
+              @blur="updateMarkerTimeFromInput"
+              @keyup.enter="updateMarkerTimeFromInput"
+              @keydown.up.prevent="stepMarkerTime(1)"
+              @keydown.down.prevent="stepMarkerTime(-1)"
+            />
+            <button
+              type="button"
+              class="btn-step"
+              :title="t('player.timeStepForward')"
+              @pointerdown.prevent="startStepRepeat(1)"
+              @pointerup="stopStepRepeat"
+              @pointerleave="stopStepRepeat"
+              @pointercancel="stopStepRepeat"
+              @keydown.enter.prevent="stepMarkerTime(1)"
+              @keydown.space.prevent="stepMarkerTime(1)"
+            >
+              +
+            </button>
+          </div>
+          <span class="time-max">/ {{ formatTimePrecise(playerStore.duration) }}</span>
+          <div class="time-step-options" role="radiogroup">
+            <button
+              v-for="opt in stepOptions"
+              :key="opt.value"
+              type="button"
+              class="btn-step-option"
+              :class="{ active: markerTimeStep === opt.value }"
+              role="radio"
+              :aria-checked="markerTimeStep === opt.value"
+              :title="t(opt.titleKey)"
+              @click="markerTimeStep = opt.value"
+            >
+              {{ opt.label }}
+            </button>
+          </div>
+          <span class="time-hint">{{ t('player.timeFormatHint') }}</span>
         </div>
       </div>
       <div class="form-row">
@@ -179,7 +222,7 @@
         :class="{ triggered: marker.triggered, editing: editingMarkerId === marker.id }"
       >
         <span class="marker-time" @click="seekToMarker(marker.time)">{{
-          formatTime(marker.time)
+          formatTimePrecise(marker.time)
         }}</span>
         <span
           class="marker-label"
@@ -245,13 +288,13 @@
 <script setup>
 import ColorField from '../ui/ColorField.vue'
 import SliderField from '../ui/SliderField.vue'
-import { inject, computed } from 'vue'
+import { inject, computed, onUnmounted } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { usePlayerStore } from '../../stores/playerStore.js'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
 import { useVisualizerStore } from '../../stores/visualizerStore.js'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore.js'
-import { formatTime } from '../../utils/formatTime.js'
+import { formatTimePrecise } from '../../utils/formatTime.js'
 import { getBackgroundPresetOptions } from '../../utils/backgroundPresets.js'
 import { vPopoverDrag } from '../../directives/popoverDrag.js'
 
@@ -269,6 +312,7 @@ const {
   showMarkerPanel,
   editingMarkerId,
   pendingMarkerTimeInput,
+  markerTimeStep,
   newMarkerVisualizer,
   newMarkerColor,
   newMarkerChangeColor,
@@ -278,6 +322,7 @@ const {
   newMarkerLabel,
   getMarkerTexts,
   updateMarkerTimeFromInput,
+  stepMarkerTime,
   addMarkerAtCurrentTime,
   startEditMarker,
   confirmAddMarker,
@@ -287,6 +332,40 @@ const {
   clearAllMarkers,
   getVisualizerName,
 } = markers
+
+// Schrittweiten des Zeit-Spinners: langsam (Hundertstel) bis schnell (Sekunden)
+const stepOptions = [
+  { value: 0.01, label: '0.01s', titleKey: 'player.timeStepSlow' },
+  { value: 0.1, label: '0.1s', titleKey: 'player.timeStepMedium' },
+  { value: 1, label: '1s', titleKey: 'player.timeStepFast' },
+]
+
+// Halten der +/−-Buttons wiederholt den Schritt (kurze Verzögerung, dann zügig)
+const STEP_REPEAT_DELAY_MS = 400
+const STEP_REPEAT_INTERVAL_MS = 60
+let stepRepeatTimeout = null
+let stepRepeatInterval = null
+
+function stopStepRepeat() {
+  if (stepRepeatTimeout !== null) {
+    clearTimeout(stepRepeatTimeout)
+    stepRepeatTimeout = null
+  }
+  if (stepRepeatInterval !== null) {
+    clearInterval(stepRepeatInterval)
+    stepRepeatInterval = null
+  }
+}
+
+function startStepRepeat(direction) {
+  stopStepRepeat()
+  stepMarkerTime(direction)
+  stepRepeatTimeout = setTimeout(() => {
+    stepRepeatInterval = setInterval(() => stepMarkerTime(direction), STEP_REPEAT_INTERVAL_MS)
+  }, STEP_REPEAT_DELAY_MS)
+}
+
+onUnmounted(stopStepRepeat)
 
 // Text-Auswahl (Texte aus dem Text-Verzeichnis). Wird beim Öffnen des Formulars
 // neu geladen, damit gerade hinzugefügte Texte sofort erscheinen.
@@ -438,14 +517,77 @@ const backgroundPresetOptions = computed(() => {
   min-width: 26px;
   text-align: right;
 }
+.form-row-time {
+  align-items: flex-start;
+}
+.form-row-time > label {
+  padding-top: 5px;
+}
 .time-input-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px 8px;
   flex: 1;
 }
+.time-spinner {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.btn-step {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  transition: all 0.15s ease;
+}
+.btn-step:hover {
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+.btn-step:active {
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
+}
+.time-step-options {
+  display: flex;
+  gap: 2px;
+  flex-basis: 100%;
+}
+.btn-step-option {
+  padding: 2px 7px;
+  font-size: 9px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-step-option:hover {
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+.btn-step-option.active {
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: var(--accent-text);
+}
 .marker-time-input {
-  width: 60px;
+  width: 72px;
   padding: 4px 6px;
   font-size: 11px;
   font-weight: 600;
@@ -529,9 +671,10 @@ const backgroundPresetOptions = computed(() => {
 }
 .marker-time {
   font-weight: 600;
+  font-family: 'Courier New', monospace;
   color: var(--accent-primary);
   cursor: pointer;
-  min-width: 36px;
+  min-width: 52px;
 }
 .marker-time:hover {
   text-decoration: underline;

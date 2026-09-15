@@ -127,7 +127,7 @@
             class="beat-marker-indicator"
             :class="{ triggered: marker.triggered }"
             :style="{ left: getMarkerPosition(marker.time) + '%' }"
-            :title="marker.label + ' (' + formatTime(marker.time) + ')'"
+            :title="marker.label + ' (' + formatTimePrecise(marker.time) + ')'"
             @click.stop="seekToMarker(marker.time)"
           ></div>
           <div
@@ -280,7 +280,7 @@ import { usePlayerStore } from '../../stores/playerStore.js'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
 import { useAudioSourceStore } from '../../stores/audioSourceStore.js'
 import { useRecorderStore } from '../../stores/recorderStore.js'
-import { formatTime } from '../../utils/formatTime.js'
+import { formatTime, formatTimePrecise } from '../../utils/formatTime.js'
 
 const { t } = useI18n()
 const playerStore = usePlayerStore()

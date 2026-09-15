@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import VisualizerPanel from '../../components/VisualizerPanel.vue'
 import { useVisualizerStore } from '../../stores/visualizerStore.js'
+import { useLayerPresetStore } from '../../stores/layerPresetStore.js'
 
 // Schwere Nachbar-Panels und das Bild-Picker-Widget werden gestubbt; getestet
 // wird das Zusammenspiel von VisualizerPanel mit seinen Sektionen.
@@ -92,6 +93,44 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
     await wrapper.find('.search-input').setValue('xyz-gibt-es-nicht')
     expect(wrapper.find('.no-results').exists()).toBe(true)
     expect(wrapper.findAll('.visualizer-buttons .visualizer-btn')).toHaveLength(0)
+  })
+
+  it('zeigt gespeicherte Layer-Presets als Kategorie "Eigene Presets" und wendet sie an', async () => {
+    expect(wrapper.find('.category-presets').exists()).toBe(false)
+
+    const presets = useLayerPresetStore()
+    store.addLayer('bars')
+    store.addLayer('waveform')
+    const preset = presets.saveCurrentLayersAsPreset('Drop-Set')
+    store.clearAllLayers()
+    await wrapper.vm.$nextTick()
+
+    const category = wrapper.find('.category-presets')
+    expect(category.exists()).toBe(true)
+    expect(category.find('.category-name').text()).toBe('Eigene Presets')
+    expect(category.find('.category-count').text()).toBe('1')
+
+    const btn = category.find('.preset-btn')
+    expect(btn.text()).toContain('Drop-Set')
+    expect(btn.classes()).not.toContain('active')
+    await btn.trigger('click')
+    expect(store.multiLayerMode).toBe(true)
+    expect(store.visualizerLayers).toHaveLength(2)
+    expect(presets.isLayerPresetActive(preset)).toBe(true)
+    expect(wrapper.find('.category-presets .preset-btn').classes()).toContain('active')
+  })
+
+  it('findet Layer-Presets auch über die Suche', async () => {
+    const presets = useLayerPresetStore()
+    store.addLayer('bars')
+    presets.saveCurrentLayersAsPreset('Sonnenaufgang')
+    store.clearAllLayers()
+
+    await wrapper.find('.search-input').setValue('sonnen')
+    const hits = wrapper.findAll('.visualizer-buttons .preset-btn')
+    expect(hits).toHaveLength(1)
+    expect(hits[0].text()).toContain('Sonnenaufgang')
+    expect(wrapper.find('.no-results').exists()).toBe(false)
   })
 
   it('setzt Position und Größe über den Reset-Button zurück', async () => {

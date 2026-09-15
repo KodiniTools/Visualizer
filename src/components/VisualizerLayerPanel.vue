@@ -267,6 +267,57 @@
       <div v-if="store.visualizerLayers.length === 0" class="no-layers">
         {{ t('visualizer.noLayers') || 'Keine Layer vorhanden' }}
       </div>
+
+      <!-- Layer-Presets: aktuelle Layer als eigenes Preset speichern -->
+      <div class="layer-presets">
+        <div class="layer-presets-header">
+          <span class="layer-presets-title">{{ t('visualizer.layerPresets') }}</span>
+          <span class="layer-presets-count">{{ layerPresetStore.layerPresets.length }}</span>
+        </div>
+        <div class="save-preset-row">
+          <input
+            v-model="presetName"
+            type="text"
+            class="preset-name-input"
+            :placeholder="t('visualizer.presetNamePlaceholder')"
+            maxlength="40"
+            @keyup.enter="saveLayerPreset"
+          />
+          <button
+            class="add-layer-btn save-preset-btn"
+            :disabled="store.visualizerLayers.length === 0"
+            :title="t('visualizer.savePresetHint')"
+            @click="saveLayerPreset"
+          >
+            {{ t('visualizer.savePreset') }}
+          </button>
+        </div>
+        <ul v-if="layerPresetStore.layerPresets.length > 0" class="preset-list">
+          <li
+            v-for="preset in layerPresetStore.layerPresets"
+            :key="preset.id"
+            class="preset-item"
+            :class="{ active: layerPresetStore.isLayerPresetActive(preset) }"
+          >
+            <button
+              class="preset-apply-btn"
+              :title="t('visualizer.applyPreset')"
+              @click="applyLayerPreset(preset)"
+            >
+              <span class="preset-name">{{ preset.name }}</span>
+              <span class="preset-layer-count">{{ preset.layers.length }}</span>
+            </button>
+            <button
+              class="action-btn delete-btn preset-delete-btn"
+              :title="t('visualizer.deletePreset')"
+              @click.stop="deleteLayerPreset(preset)"
+            >
+              {{ t('common.delete') }}
+            </button>
+          </li>
+        </ul>
+        <div v-else class="no-layers no-presets">{{ t('visualizer.noLayerPresets') }}</div>
+      </div>
     </div>
   </div>
 </template>
@@ -278,10 +329,39 @@ import ColorField from './ui/ColorField.vue'
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../stores/visualizerStore.js'
+import { useLayerPresetStore } from '../stores/layerPresetStore.js'
+import { useToastStore } from '../stores/toastStore.js'
 import { Visualizers } from '../lib/visualizers/index.js'
 
 const { t, locale } = useI18n()
 const store = useVisualizerStore()
+const layerPresetStore = useLayerPresetStore()
+const toastStore = useToastStore()
+
+// ══════════════════ Layer-Presets ══════════════════
+const presetName = ref('')
+
+function saveLayerPreset() {
+  if (store.visualizerLayers.length === 0) {
+    toastStore.warning(t('visualizer.layerPresetNoLayers'))
+    return
+  }
+  const preset = layerPresetStore.saveCurrentLayersAsPreset(presetName.value)
+  if (preset) {
+    presetName.value = ''
+    toastStore.success(`${t('visualizer.layerPresetSaved')}: ${preset.name}`)
+  }
+}
+
+function applyLayerPreset(preset) {
+  layerPresetStore.applyLayerPreset(preset)
+}
+
+function deleteLayerPreset(preset) {
+  if (confirm(`${t('visualizer.confirmDeletePreset')} (${preset.name})`)) {
+    layerPresetStore.deleteLayerPreset(preset.id)
+  }
+}
 
 // Blend modes
 const blendModes = BLEND_MODES
@@ -392,6 +472,144 @@ function updateProperty(layerId, property, value) {
 </script>
 
 <style scoped>
+/* ═══ Layer-Presets ═══ */
+.layer-presets {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+}
+.layer-presets-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.layer-presets-title {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--text-muted, #7a8da0);
+}
+.layer-presets-count {
+  font-size: 0.55rem;
+  color: var(--text-muted, #7a8da0);
+  background-color: rgba(201, 152, 77, 0.2);
+  padding: 1px 5px;
+  border-radius: 8px;
+}
+.save-preset-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.preset-name-input {
+  flex: 1;
+  min-width: 0;
+  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary, #e9e9eb);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border-radius: 5px;
+  padding: 6px 8px;
+  font-size: 0.6rem;
+}
+.preset-name-input:focus {
+  outline: none;
+  border-color: var(--accent-primary, #c9984d);
+}
+.preset-name-input::placeholder {
+  color: var(--text-muted, #7a8da0);
+}
+.save-preset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.save-preset-btn:disabled:hover {
+  background-color: var(--accent-primary, #c9984d);
+}
+.preset-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.preset-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border-radius: 5px;
+  background-color: var(--secondary-bg, #0e1c32);
+  padding: 2px 4px 2px 0;
+  transition: all 0.2s ease;
+}
+.preset-item:hover {
+  border-color: var(--accent-primary, #c9984d);
+}
+.preset-item.active {
+  border-color: var(--accent-primary, #c9984d);
+  background-color: rgba(201, 152, 77, 0.15);
+}
+.preset-apply-btn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary, #e9e9eb);
+  padding: 5px 8px;
+  font-size: 0.6rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.preset-item.active .preset-apply-btn {
+  color: var(--accent-tertiary, #f8e1a9);
+  font-weight: 600;
+}
+.preset-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.preset-layer-count {
+  font-size: 0.55rem;
+  color: var(--text-muted, #7a8da0);
+  background-color: rgba(201, 152, 77, 0.2);
+  padding: 1px 5px;
+  border-radius: 8px;
+}
+.no-presets {
+  padding: 8px;
+}
+[data-theme='light'] .layer-presets {
+  border-top-color: rgba(1, 79, 153, 0.15);
+}
+[data-theme='light'] .preset-name-input {
+  background-color: #f9f2d5;
+  color: #003971;
+  border-color: rgba(1, 79, 153, 0.3);
+}
+[data-theme='light'] .preset-item {
+  background-color: #f9f2d5;
+  border-color: rgba(1, 79, 153, 0.2);
+}
+[data-theme='light'] .preset-item.active {
+  border-color: #014f99;
+  background-color: rgba(1, 79, 153, 0.1);
+}
+[data-theme='light'] .preset-apply-btn {
+  color: #003971;
+}
+[data-theme='light'] .preset-item.active .preset-apply-btn {
+  color: #014f99;
+}
+
 .layer-panel {
   background-color: var(--card-bg, #142640);
   border-radius: 8px;

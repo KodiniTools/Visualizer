@@ -55,6 +55,11 @@ import { glCornerBeams as glCornerBeamsSpec } from './presets/glCornerBeams.js'
 import { glSideLights as glSideLightsSpec } from './presets/glSideLights.js'
 import { glSearchlights as glSearchlightsSpec } from './presets/glSearchlights.js'
 import { glLaserFan as glLaserFanSpec } from './presets/glLaserFan.js'
+import { glLaserTunnel as glLaserTunnelSpec } from './presets/glLaserTunnel.js'
+import { glLaserGrid as glLaserGridSpec } from './presets/glLaserGrid.js'
+import { glLaserFigure as glLaserFigureSpec } from './presets/glLaserFigure.js'
+import { glLaserWall as glLaserWallSpec } from './presets/glLaserWall.js'
+import { glLaserBurst as glLaserBurstSpec } from './presets/glLaserBurst.js'
 import { glPortraitLed as glPortraitLedSpec } from './presets/glPortraitLed.js'
 import { glPortraitGlitch as glPortraitGlitchSpec } from './presets/glPortraitGlitch.js'
 import { glPortraitWave as glPortraitWaveSpec } from './presets/glPortraitWave.js'
@@ -112,6 +117,11 @@ export const glPresetSpecs = {
   glSideLights: glSideLightsSpec,
   glSearchlights: glSearchlightsSpec,
   glLaserFan: glLaserFanSpec,
+  glLaserTunnel: glLaserTunnelSpec,
+  glLaserGrid: glLaserGridSpec,
+  glLaserFigure: glLaserFigureSpec,
+  glLaserWall: glLaserWallSpec,
+  glLaserBurst: glLaserBurstSpec,
   glPortraitLed: glPortraitLedSpec,
   glPortraitGlitch: glPortraitGlitchSpec,
   glPortraitWave: glPortraitWaveSpec,

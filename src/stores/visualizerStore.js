@@ -83,6 +83,11 @@ const VISUALIZER_CATEGORIES = {
     'glSideLights',
     'glSearchlights',
     'glLaserFan',
+    'glLaserTunnel',
+    'glLaserGrid',
+    'glLaserFigure',
+    'glLaserWall',
+    'glLaserBurst',
   ],
   // Portrait-Presets: arbeiten auf einem Bild (Upload oder Leinwand-Bild)
   Portrait: [

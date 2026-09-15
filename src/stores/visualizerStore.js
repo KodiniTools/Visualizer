@@ -98,6 +98,11 @@ const VISUALIZER_CATEGORIES = {
     'glFireworksRings',
     'glFireworksFountain',
     'glFireworksFinale',
+    'glAuroraCurtain',
+    'glAuroraBands',
+    'glAuroraCorona',
+    'glAuroraLake',
+    'glAuroraSwirl',
   ],
   // Portrait-Presets: arbeiten auf einem Bild (Upload oder Leinwand-Bild)
   Portrait: [

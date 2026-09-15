@@ -75,6 +75,11 @@ import { glAuroraBands as glAuroraBandsSpec } from './presets/glAuroraBands.js'
 import { glAuroraCorona as glAuroraCoronaSpec } from './presets/glAuroraCorona.js'
 import { glAuroraLake as glAuroraLakeSpec } from './presets/glAuroraLake.js'
 import { glAuroraSwirl as glAuroraSwirlSpec } from './presets/glAuroraSwirl.js'
+import { glLaserSpirograph as glLaserSpirographSpec } from './presets/glLaserSpirograph.js'
+import { glLaserRose as glLaserRoseSpec } from './presets/glLaserRose.js'
+import { glLaserHarmonograph as glLaserHarmonographSpec } from './presets/glLaserHarmonograph.js'
+import { glLaserStar as glLaserStarSpec } from './presets/glLaserStar.js'
+import { glLaserScope as glLaserScopeSpec } from './presets/glLaserScope.js'
 import { glPortraitLed as glPortraitLedSpec } from './presets/glPortraitLed.js'
 import { glPortraitGlitch as glPortraitGlitchSpec } from './presets/glPortraitGlitch.js'
 import { glPortraitWave as glPortraitWaveSpec } from './presets/glPortraitWave.js'
@@ -152,6 +157,11 @@ export const glPresetSpecs = {
   glAuroraCorona: glAuroraCoronaSpec,
   glAuroraLake: glAuroraLakeSpec,
   glAuroraSwirl: glAuroraSwirlSpec,
+  glLaserSpirograph: glLaserSpirographSpec,
+  glLaserRose: glLaserRoseSpec,
+  glLaserHarmonograph: glLaserHarmonographSpec,
+  glLaserStar: glLaserStarSpec,
+  glLaserScope: glLaserScopeSpec,
   glPortraitLed: glPortraitLedSpec,
   glPortraitGlitch: glPortraitGlitchSpec,
   glPortraitWave: glPortraitWaveSpec,

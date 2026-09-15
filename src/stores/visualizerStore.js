@@ -103,6 +103,11 @@ const VISUALIZER_CATEGORIES = {
     'glAuroraCorona',
     'glAuroraLake',
     'glAuroraSwirl',
+    'glLaserSpirograph',
+    'glLaserRose',
+    'glLaserHarmonograph',
+    'glLaserStar',
+    'glLaserScope',
   ],
   // Portrait-Presets: arbeiten auf einem Bild (Upload oder Leinwand-Bild)
   Portrait: [

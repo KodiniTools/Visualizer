@@ -70,6 +70,11 @@ import { glFireworksWillow as glFireworksWillowSpec } from './presets/glFirework
 import { glFireworksRings as glFireworksRingsSpec } from './presets/glFireworksRings.js'
 import { glFireworksFountain as glFireworksFountainSpec } from './presets/glFireworksFountain.js'
 import { glFireworksFinale as glFireworksFinaleSpec } from './presets/glFireworksFinale.js'
+import { glAuroraCurtain as glAuroraCurtainSpec } from './presets/glAuroraCurtain.js'
+import { glAuroraBands as glAuroraBandsSpec } from './presets/glAuroraBands.js'
+import { glAuroraCorona as glAuroraCoronaSpec } from './presets/glAuroraCorona.js'
+import { glAuroraLake as glAuroraLakeSpec } from './presets/glAuroraLake.js'
+import { glAuroraSwirl as glAuroraSwirlSpec } from './presets/glAuroraSwirl.js'
 import { glPortraitLed as glPortraitLedSpec } from './presets/glPortraitLed.js'
 import { glPortraitGlitch as glPortraitGlitchSpec } from './presets/glPortraitGlitch.js'
 import { glPortraitWave as glPortraitWaveSpec } from './presets/glPortraitWave.js'
@@ -142,6 +147,11 @@ export const glPresetSpecs = {
   glFireworksRings: glFireworksRingsSpec,
   glFireworksFountain: glFireworksFountainSpec,
   glFireworksFinale: glFireworksFinaleSpec,
+  glAuroraCurtain: glAuroraCurtainSpec,
+  glAuroraBands: glAuroraBandsSpec,
+  glAuroraCorona: glAuroraCoronaSpec,
+  glAuroraLake: glAuroraLakeSpec,
+  glAuroraSwirl: glAuroraSwirlSpec,
   glPortraitLed: glPortraitLedSpec,
   glPortraitGlitch: glPortraitGlitchSpec,
   glPortraitWave: glPortraitWaveSpec,

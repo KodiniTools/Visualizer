@@ -5,7 +5,7 @@ import { useBeatMarkerStore } from '../stores/beatMarkerStore.js'
 import { useVisualizerStore } from '../stores/visualizerStore.js'
 import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore.js'
 import { useMarkerTransitionStore } from '../stores/markerTransitionStore.js'
-import { formatTime, parseTimeInput } from '../utils/formatTime.js'
+import { formatTimePrecise, parseTimeInput, roundToHundredths } from '../utils/formatTime.js'
 import { resolveBackgroundPreset } from '../utils/backgroundPresets.js'
 
 /**
@@ -32,7 +32,9 @@ export function useBeatMarkers(openMarkersPopover) {
   const showMarkerPanel = ref(false)
   const editingMarkerId = ref(null)
   const pendingMarkerTime = ref(0)
-  const pendingMarkerTimeInput = ref('0:00')
+  const pendingMarkerTimeInput = ref('0:00.00')
+  // Schrittweite des Zeit-Spinners in Sekunden (0.01 = langsam/fein, 1 = schnell/grob)
+  const markerTimeStep = ref(0.01)
   const newMarkerVisualizer = ref('')
   const newMarkerColor = ref('#6ea8fe')
   const newMarkerChangeColor = ref(false)
@@ -261,11 +263,28 @@ export function useBeatMarkers(openMarkersPopover) {
     }
   }
 
-  const updateMarkerTimeFromInput = () => {
-    const seconds = parseTimeInput(pendingMarkerTimeInput.value)
+  /**
+   * Setzt die Marker-Zeit auf Hundertstel gerundet und auf [0, Trackdauer]
+   * begrenzt; hält das Textfeld synchron.
+   */
+  const setPendingMarkerTime = (seconds) => {
     const maxTime = playerStore.duration || 0
-    pendingMarkerTime.value = Math.max(0, Math.min(seconds, maxTime))
-    pendingMarkerTimeInput.value = formatTime(pendingMarkerTime.value)
+    const clamped = Math.max(0, Math.min(roundToHundredths(seconds), maxTime))
+    pendingMarkerTime.value = roundToHundredths(clamped)
+    pendingMarkerTimeInput.value = formatTimePrecise(pendingMarkerTime.value)
+  }
+
+  const updateMarkerTimeFromInput = () => {
+    setPendingMarkerTime(parseTimeInput(pendingMarkerTimeInput.value))
+  }
+
+  /**
+   * Verschiebt die Marker-Zeit um die aktuelle Schrittweite.
+   * @param {number} direction - +1 (vor) oder -1 (zurück)
+   */
+  const stepMarkerTime = (direction) => {
+    const sign = direction < 0 ? -1 : 1
+    setPendingMarkerTime(pendingMarkerTime.value + sign * markerTimeStep.value)
   }
 
   const getMarkerPosition = (time) => {
@@ -275,8 +294,7 @@ export function useBeatMarkers(openMarkersPopover) {
 
   const addMarkerAtCurrentTime = () => {
     editingMarkerId.value = null
-    pendingMarkerTime.value = playerStore.currentTime
-    pendingMarkerTimeInput.value = formatTime(playerStore.currentTime)
+    setPendingMarkerTime(playerStore.currentTime)
     newMarkerLabel.value = `Drop ${beatMarkerStore.markerCount + 1}`
     newMarkerVisualizer.value = ''
     newMarkerChangeColor.value = false
@@ -289,8 +307,7 @@ export function useBeatMarkers(openMarkersPopover) {
 
   const startEditMarker = (marker) => {
     editingMarkerId.value = marker.id
-    pendingMarkerTime.value = marker.time
-    pendingMarkerTimeInput.value = formatTime(marker.time)
+    setPendingMarkerTime(marker.time)
     newMarkerLabel.value = marker.label || ''
     newMarkerVisualizer.value = marker.action?.visualizer || ''
     newMarkerColor.value = marker.action?.color || '#6ea8fe'
@@ -463,6 +480,7 @@ export function useBeatMarkers(openMarkersPopover) {
     showMarkerPanel,
     editingMarkerId,
     pendingMarkerTimeInput,
+    markerTimeStep,
     newMarkerVisualizer,
     newMarkerColor,
     newMarkerChangeColor,
@@ -472,6 +490,7 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerLabel,
     getMarkerTexts,
     updateMarkerTimeFromInput,
+    stepMarkerTime,
     getMarkerPosition,
     addMarkerAtCurrentTime,
     startEditMarker,

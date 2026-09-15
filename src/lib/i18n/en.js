@@ -655,6 +655,12 @@ export default {
     confirmDeleteAll: 'Are you sure you want to remove all tracks from the playlist?',
     confirmDeleteMarkers: 'Delete all beat-drop markers?',
     editMarker: 'Edit marker',
+    timeFormatHint: '(M:SS.hh or sec.)',
+    timeStepBack: 'Time back (step size)',
+    timeStepForward: 'Time forward (step size)',
+    timeStepSlow: 'slow (0.01 s)',
+    timeStepMedium: 'medium (0.1 s)',
+    timeStepFast: 'fast (1 s)',
     editMarkerTitle: 'Edit Marker',
     addMarkerTitle: 'New Marker',
     // Sticky player bar

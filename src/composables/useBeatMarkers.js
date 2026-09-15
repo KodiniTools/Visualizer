@@ -404,14 +404,53 @@ export function useBeatMarkers(openMarkersPopover) {
     return found ? found.name : id
   }
 
-  // Watch for time changes to trigger markers
+  // ══════════════════ Frame-genaue Auslösung ══════════════════
+  // Primärer Pfad: Die Render-Schleife meldet jeden Frame die präzise
+  // Audio-Position. Ein Marker feuert genau dann, wenn seine Zeit zwischen
+  // zwei Frames überschritten wurde (Crossing) – unabhängig von der Toleranz.
+  // Sprünge (Seek) und Rückwärtsbewegungen setzen die Auslösung zurück.
+  const SEEK_JUMP_SECONDS = 1
+  // Solange in diesem Zeitfenster ein Frame kam, gilt die Schleife als aktiv
+  // und der timeupdate-Fallback bleibt stumm.
+  const FRAME_ALIVE_MS = 500
+  let lastFrameTime = null
+  let lastFrameAt = -Infinity
+
+  const handleFrame = (time) => {
+    lastFrameAt = performance.now()
+    if (lastFrameTime === null) {
+      lastFrameTime = time
+      return
+    }
+    if (time < lastFrameTime || time - lastFrameTime > SEEK_JUMP_SECONDS) {
+      // Rückwärts-Seek oder großer Sprung: nicht nachträglich feuern
+      beatMarkerStore.resetTriggers()
+      lastFrameTime = time
+      return
+    }
+    const crossed = beatMarkerStore.checkCrossing(lastFrameTime, time)
+    lastFrameTime = time
+    for (const marker of crossed) {
+      if (marker.action) runMarkerTrigger(marker.action, true)
+    }
+  }
+
+  const isFrameLoopAlive = () => performance.now() - lastFrameAt < FRAME_ALIVE_MS
+
+  // Fallback: timeupdate-basiert (~4x/s), nur wenn keine Frames ankommen
+  // (z.B. Tab im Hintergrund, requestAnimationFrame pausiert). Nutzt dieselbe
+  // Überschreitungs-Logik wie der Frame-Pfad, feuert also nie zu früh –
+  // schlimmstenfalls um ein timeupdate-Intervall verspätet.
   watch(
     () => playerStore.currentTime,
-    (newTime) => {
-      if (!playerStore.isPlaying) return
-      const triggered = beatMarkerStore.checkTrigger(newTime)
-      if (triggered && triggered.action) {
-        runMarkerTrigger(triggered.action, true)
+    (newTime, oldTime) => {
+      if (!playerStore.isPlaying || isFrameLoopAlive()) return
+      if (typeof oldTime !== 'number') return
+      // Sprünge übernimmt der Seek-Watcher unten (resetTriggers)
+      if (newTime < oldTime || newTime - oldTime > SEEK_JUMP_SECONDS) return
+      const crossed = beatMarkerStore.checkCrossing(oldTime, newTime)
+      for (const marker of crossed) {
+        if (marker.action) runMarkerTrigger(marker.action, true)
       }
     },
   )
@@ -433,6 +472,9 @@ export function useBeatMarkers(openMarkersPopover) {
   watch(
     () => playerStore.isPlaying,
     (isPlaying) => {
+      // Frame-Referenz auf die Startposition setzen, damit der erste Frame
+      // Marker direkt hinter dem Startpunkt korrekt als überschritten erkennt.
+      lastFrameTime = isPlaying ? playerStore.getPreciseTime() : null
       if (isPlaying && playerStore.currentTime < 0.5) {
         beatMarkerStore.resetTriggers()
         // Zugewiesene Texte ausblenden, damit sie erst zum jeweiligen
@@ -467,11 +509,16 @@ export function useBeatMarkers(openMarkersPopover) {
     }
   }
 
+  let unsubscribeFrame = null
+
   onMounted(() => {
     window.addEventListener('keydown', handleKeydown)
+    unsubscribeFrame = playerStore.onFrame(handleFrame)
   })
   onUnmounted(() => {
     window.removeEventListener('keydown', handleKeydown)
+    unsubscribeFrame?.()
+    unsubscribeFrame = null
     // Von Markern ausgeblendete Texte beim Verlassen wiederherstellen.
     restoreTextMarkers()
   })

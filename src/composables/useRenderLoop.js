@@ -476,6 +476,10 @@ export function useRenderLoop({
 
     const now = performance.now()
 
+    // Frame-Takt an den Player melden (präzise Position für Beat-Drop-Marker).
+    // Bewusst vor allen frühen Returns, damit Marker auch ohne Canvas laufen.
+    playerStore.notifyFrame?.()
+
     // Adaptive-quality measurement (cheap; only applied when the toggle is on).
     frameMonitor.tick(now)
 

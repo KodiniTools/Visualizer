@@ -49,6 +49,18 @@ Zeile 3..."
       @reset="clearSavedSettings"
     />
 
+    <!-- Einfach hinzufügen: Text ohne Animation/Effekt zum Canvas -->
+    <div class="control-group add-plain-group">
+      <button
+        class="btn-primary full-width"
+        :disabled="!newTextContent.trim()"
+        :title="t('textManager.addToCanvasPlainTitle')"
+        @click="createNewText(NO_ANIMATION)"
+      >
+        {{ t('textManager.addToCanvasPlain') }}
+      </button>
+    </div>
+
     <TypewriterSection
       v-model:settings="newTextTypewriter"
       :can-add="!!newTextContent.trim()"
@@ -88,12 +100,19 @@ Zeile 3..."
     <div class="hint-text add-animation-hint">
       {{
         locale === 'de'
-          ? 'Text über den Button einer Animation oben zum Canvas hinzufügen'
-          : 'Add the text to the canvas via the button of an animation above'
+          ? 'Text ohne Effekt über den Button unter dem Text-Stil oder mit Effekt über den Button einer Animation oben hinzufügen'
+          : 'Add the text without effect via the button below the text style, or with an effect via the button of an animation above'
       }}
     </div>
 
     <div class="button-row">
+      <button
+        class="btn-primary"
+        :disabled="!newTextContent.trim()"
+        @click="createNewText(NO_ANIMATION)"
+      >
+        {{ t('textManager.addToCanvasPlain') }}
+      </button>
       <button
         v-if="newTextContent && !newTextContent.includes('\n') && newTextContent.length > 60"
         class="btn-secondary"
@@ -250,6 +269,9 @@ function startAddingTextWithSelection() {
   })
 }
 
+// Kennung für "Text ohne Effekt hinzufügen" (keine Animation anwenden)
+const NO_ANIMATION = 'none'
+
 // Baut eine Animations-Konfiguration mit NUR der angegebenen Animation.
 function buildSoloAnimation(animationKey) {
   const settingsByKey = {
@@ -316,15 +338,19 @@ function createNewText(animationKey = null) {
     newTextObj.fontStyle = newTextStyle.value.fontStyle
     newTextObj.textAlign = newTextStyle.value.textAlign
 
-    // Nur die gewählte Animation anwenden (Button pro Animation)
-    const animation = animationKey
-      ? buildSoloAnimation(animationKey)
-      : buildAnimationConfig({
-          typewriter: newTextTypewriter.value,
-          fade: newTextFade.value,
-          scale: newTextScale.value,
-          slide: newTextSlide.value,
-        })
+    // 'none' → Text bewusst ohne Effekt hinzufügen (auch wenn Effekte aktiviert sind)
+    // Sonst: nur die gewählte Animation anwenden (Button pro Animation)
+    let animation = null
+    if (animationKey && animationKey !== NO_ANIMATION) {
+      animation = buildSoloAnimation(animationKey)
+    } else if (!animationKey) {
+      animation = buildAnimationConfig({
+        typewriter: newTextTypewriter.value,
+        fade: newTextFade.value,
+        scale: newTextScale.value,
+        slide: newTextSlide.value,
+      })
+    }
 
     if (animation) {
       newTextObj.animation = animation
@@ -333,6 +359,8 @@ function createNewText(animationKey = null) {
       if (animation.fade?.enabled) console.log('🌫️ Text mit Fade-Effekt erstellt')
       if (animation.scale?.enabled) console.log('🔍 Text mit Scale-Effekt erstellt')
       if (animation.slide?.enabled) console.log('➡️ Text mit Slide-Effekt erstellt')
+    } else {
+      console.log('📝 Text ohne Effekt erstellt')
     }
 
     console.log('✅ Text erstellt mit Stil:', newTextStyle.value)

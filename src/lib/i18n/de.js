@@ -93,6 +93,7 @@ export default {
     nav: {
       home: 'Startseite',
       features: 'Funktionen',
+      blog: 'Blog',
     },
     hero: {
       title: 'Audio Visualizer: Alle Funktionen im Uberblick',

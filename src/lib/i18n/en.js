@@ -92,6 +92,7 @@ export default {
     nav: {
       home: 'Home',
       features: 'Features',
+      blog: 'Blog',
     },
     hero: {
       title: 'Audio Visualizer: Complete Feature Overview',

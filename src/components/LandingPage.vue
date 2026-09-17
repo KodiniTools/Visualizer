@@ -9,6 +9,13 @@
         <nav class="header-nav">
           <router-link to="/" class="nav-link active">{{ t('blog.nav.home') }}</router-link>
           <router-link to="/blog" class="nav-link">{{ t('blog.nav.features') }}</router-link>
+          <a
+            href="https://kodinitools.com/blog/musik-video-tiktok/"
+            class="nav-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            >{{ t('blog.nav.blog') }}</a
+          >
         </nav>
       </div>
     </header>

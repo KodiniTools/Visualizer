@@ -247,6 +247,20 @@
 
       <button
         class="spb-icon-btn"
+        :class="{ active: isOpen('multiLayer') }"
+        :title="t('player.openMultiLayer')"
+        @click="togglePopover('multiLayer')"
+      >
+        <!-- Gestapelte Ebenen (Layer) -->
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M12 2L2 7l10 5 10-5-10-5zm0 11.5L4.21 9.62 2 10.73l10 5 10-5-2.21-1.11L12 13.5zm0 5L4.21 14.62 2 15.73l10 5 10-5-2.21-1.11L12 18.5z"
+          />
+        </svg>
+      </button>
+
+      <button
+        class="spb-icon-btn"
         :class="{ active: isOpen('screenshot') }"
         :title="t('player.openScreenshot')"
         @click="togglePopover('screenshot')"

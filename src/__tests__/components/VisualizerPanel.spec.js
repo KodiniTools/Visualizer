@@ -10,7 +10,6 @@ import { useLayerPresetStore } from '../../stores/layerPresetStore.js'
 const stubs = {
   HelpTooltip: true,
   VisualizerEffectsPanel: true,
-  VisualizerLayerPanel: true,
   VisualizerImagePicker: true,
 }
 
@@ -41,6 +40,11 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
     const categories = Object.keys(store.categorizedVisualizers)
     expect(scroll.findAll('.category')).toHaveLength(categories.length)
     expect(scroll.text()).toContain(`(${store.availableVisualizers.length}`)
+  })
+
+  it('enthält den Multi-Layer-Bereich nicht mehr (eigenes Popover)', () => {
+    expect(wrapper.find('.layer-panel').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('Multi-Layer')
   })
 
   it('schaltet den Visualizer über den Toggle um und zeigt den Status-Hinweis', async () => {

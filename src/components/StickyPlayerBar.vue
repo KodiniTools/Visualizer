@@ -11,6 +11,7 @@
     <CanvasFormatPopover v-if="popover.isOpen('canvasFormat')" />
     <ScreenshotPopover v-if="popover.isOpen('screenshot')" />
     <VisualizerPopover v-if="popover.isOpen('visualizer')" />
+    <MultiLayerPopover v-if="popover.isOpen('multiLayer')" />
     <RecorderPopover v-if="popover.isOpen('recorder')" />
 
     <!-- ══════════════ THE BAR ══════════════ -->
@@ -36,6 +37,7 @@ import AudioReactivePopover from './sticky-player-bar/AudioReactivePopover.vue'
 import CanvasFormatPopover from './sticky-player-bar/CanvasFormatPopover.vue'
 import ScreenshotPopover from './sticky-player-bar/ScreenshotPopover.vue'
 import VisualizerPopover from './sticky-player-bar/VisualizerPopover.vue'
+import MultiLayerPopover from './sticky-player-bar/MultiLayerPopover.vue'
 import RecorderPopover from './sticky-player-bar/RecorderPopover.vue'
 import PlayerBarControls from './sticky-player-bar/PlayerBarControls.vue'
 

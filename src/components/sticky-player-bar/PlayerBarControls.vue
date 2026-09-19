@@ -223,6 +223,18 @@
 
       <button
         class="spb-icon-btn"
+        :class="{ active: isOpen('textManager') }"
+        :title="t('player.openTextManager')"
+        @click="togglePopover('textManager')"
+      >
+        <!-- Großes „T“ (Text-Manager) -->
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5 4v3h5.5v12h3V7H19V4H5z" />
+        </svg>
+      </button>
+
+      <button
+        class="spb-icon-btn"
         :class="{ active: isOpen('textAudioReactive') }"
         :title="t('player.openTextAudioReactive')"
         @click="togglePopover('textAudioReactive')"

@@ -676,6 +676,7 @@ export default {
     openCanvasFormat: 'Canvas-Format',
     openGallery: 'Galerie',
     openAudioReactive: 'Audio-Reaktiv (Bild)',
+    openTextManager: 'Text-Manager',
     openTextAudioReactive: 'Audio-Reaktiv (Text)',
     openPresets: 'Presets',
     recording: 'Aufnahme läuft',

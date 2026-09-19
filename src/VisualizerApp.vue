@@ -6,7 +6,7 @@
 
     <div class="layout-grid">
       <aside class="left-toolbar" :class="{ 'mobile-visible': mobilePanel === 'left' }">
-        <TextManagerPanel />
+        <!-- Text-Manager liegt in einem eigenen Popover der Player-Leiste -->
         <TickerPanel />
         <FotoPanel />
         <VideoPanel />
@@ -131,7 +131,6 @@ import FileUploadPanel from './components/FileUploadPanel.vue'
 import StickyPlayerBar from './components/StickyPlayerBar.vue'
 import FotoPanel from './components/FotoPanel.vue'
 import VideoPanel from './components/VideoPanel.vue'
-import TextManagerPanel from './components/TextManagerPanel.vue'
 import TickerPanel from './components/TickerPanel.vue'
 import QuickStartGuide from './components/QuickStartGuide.vue'
 import ToastContainer from './components/ToastContainer.vue'

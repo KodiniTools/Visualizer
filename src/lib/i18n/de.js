@@ -673,6 +673,7 @@ export default {
     openMultiLayer: 'Multi-Layer (mehrere Effekte)',
     openEffects: 'Effekte (Post-Processing)',
     openCanvasControl: 'Canvas-Steuerung',
+    openVideo: 'Video',
     openCanvasFormat: 'Canvas-Format',
     openGallery: 'Galerie',
     openAudioReactive: 'Audio-Reaktiv (Bild)',

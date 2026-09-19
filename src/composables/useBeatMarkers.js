@@ -236,9 +236,7 @@ export function useBeatMarkers(openMarkersPopover) {
             console.warn('⚠️ Layer-Preset des Markers nicht gefunden:', action.visualizer)
           }
         } else {
-          // Einzelner Visualizer: Multi-Layer verlassen, sonst bliebe der
-          // Wechsel unsichtbar (im Multi-Layer-Modus werden nur Layer gerendert).
-          if (visualizerStore.multiLayerMode) visualizerStore.multiLayerMode = false
+          // Einzelner Visualizer (selectVisualizer verlässt den Multi-Layer-Modus)
           visualizerStore.selectVisualizer(action.visualizer)
           console.log('🎯 Visualizer gewechselt zu:', action.visualizer)
         }

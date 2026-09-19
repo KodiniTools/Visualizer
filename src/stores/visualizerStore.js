@@ -459,6 +459,13 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       )
       selectedVisualizer.value = lastWorkingVisualizer.value
     }
+    // Ein einzelner Visualizer wird nur im Single-Modus gerendert. Wer hier
+    // auswählt (Visualizer-Liste, Beat-Marker), will ihn auch sehen – also den
+    // Multi-Layer-Modus verlassen. Die Layer bleiben erhalten und sind beim
+    // erneuten Einschalten des Multi-Layer-Modus wieder da.
+    if (multiLayerMode.value) {
+      multiLayerMode.value = false
+    }
   }
 
   // ✅ Wird aufgerufen wenn ein Visualizer erfolgreich gezeichnet wurde

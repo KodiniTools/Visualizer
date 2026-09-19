@@ -670,6 +670,7 @@ export default {
     openRecorder: 'Aufnahme & Export',
     openScreenshot: 'Screenshot',
     openVisualizer: 'Visualizer',
+    openMultiLayer: 'Multi-Layer (mehrere Effekte)',
     openCanvasFormat: 'Canvas-Format',
     openGallery: 'Galerie',
     openAudioReactive: 'Audio-Reaktiv (Bild)',

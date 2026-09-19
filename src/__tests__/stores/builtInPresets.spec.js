@@ -81,11 +81,10 @@ describe('Multi-Layer-Vorlagen – Layer-Form', () => {
     }
   })
 
-  it('braucht keine Bilder (Portrait-Visualizer sind ausgenommen)', () => {
+  it('nutzt Bild-Visualizer nur in als solche gekennzeichneten Vorlagen', () => {
     for (const p of multiPresets) {
-      for (const l of p.visualizer.layers) {
-        expect(Visualizers[l.visualizerId].needsImage, `${p.name} → ${l.visualizerId}`).toBeFalsy()
-      }
+      const usesImage = p.visualizer.layers.some((l) => Visualizers[l.visualizerId].needsImage)
+      expect(Boolean(p.needsImage), p.name).toBe(usesImage)
     }
   })
 
@@ -100,6 +99,43 @@ describe('Multi-Layer-Vorlagen – Layer-Form', () => {
   it('legt den untersten Layer ohne Mischmodus an, damit der Hintergrund trägt', () => {
     for (const p of multiPresets) {
       expect(p.visualizer.layers[0].blendMode, p.name).toBe('source-over')
+    }
+  })
+})
+
+describe('Portrait-Vorlagen', () => {
+  const portraitPresets = multiPresets.filter((p) => p.needsImage)
+
+  it('gibt es und sie enthalten genau einen Portrait-Layer', () => {
+    expect(portraitPresets.length).toBeGreaterThanOrEqual(4)
+    for (const p of portraitPresets) {
+      const portraitLayers = p.visualizer.layers.filter(
+        (l) => Visualizers[l.visualizerId].needsImage,
+      )
+      expect(portraitLayers, p.name).toHaveLength(1)
+    }
+  })
+
+  it('lässt imageId offen, damit das geladene Bild verwendet wird', () => {
+    for (const p of portraitPresets) {
+      for (const l of p.visualizer.layers) {
+        expect(l.imageId, `${p.name} → ${l.visualizerId}`).toBeNull()
+      }
+    }
+  })
+
+  it('legt den Portrait-Layer nach unten (er füllt das Canvas deckend)', () => {
+    for (const p of portraitPresets) {
+      const index = p.visualizer.layers.findIndex((l) => Visualizers[l.visualizerId].needsImage)
+      expect(index, p.name).toBe(0)
+    }
+  })
+
+  it('nutzt darüber nur aufhellende oder abdunkelnde Mischmodi', () => {
+    for (const p of portraitPresets) {
+      for (const l of p.visualizer.layers.slice(1)) {
+        expect(['screen', 'multiply'], `${p.name} → ${l.visualizerId}`).toContain(l.blendMode)
+      }
     }
   })
 })

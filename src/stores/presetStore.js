@@ -42,12 +42,16 @@ function layer(id, visualizerId, overrides = {}) {
  * den prägenden Layer, damit Kachel und Single-Modus einen sinnvollen Wert
  * haben, wenn das Preset nur teilweise angewendet wird.
  */
-function multiPreset({ id, name, emoji, color, background, layers }) {
+function multiPreset({ id, name, emoji, color, background, layers, needsImage = false }) {
   return {
     id,
     name,
     builtIn: true,
     emoji,
+    // true = enthält einen Portrait-Visualizer und braucht ein Bild (Canvas-Bild
+    // oder Galerie-Auswahl); der Layer selbst lässt imageId offen, damit das
+    // gerade geladene Bild verwendet wird.
+    needsImage,
     visualizer: {
       mode: 'multi',
       multiLayerMode: true,
@@ -570,6 +574,133 @@ export const BUILT_IN_PRESETS = [
         opacity: 0.5,
         reactSource: 'treble',
         reactStrength: 45,
+      }),
+    ],
+  }),
+
+  // ═══════════════ Portrait-Vorlagen (brauchen ein Bild) ═══════════════
+  // Portrait-Visualizer füllen das Canvas deckend. Sie bilden deshalb den
+  // untersten Layer; darüber liegen nur aufhellende (screen) bzw. abdunkelnde
+  // (multiply) Akzente. imageId bleibt null – der Renderer greift dann auf das
+  // Canvas-Bild bzw. die Galerie-Auswahl zurück.
+  multiPreset({
+    id: 'builtin-portrait-neon',
+    name: 'Portrait Neon',
+    emoji: '💡',
+    color: '#31e6ff',
+    needsImage: true,
+    background: {
+      color: '#120020',
+      opacity: 1.0,
+      gradientEnabled: true,
+      gradientColor2: '#2e0047',
+    },
+    layers: [
+      layer('pneon-1', 'glPortraitLed', { color: '#31e6ff', reactSource: 'bass' }),
+      layer('pneon-2', 'glLightRays', {
+        color: '#7cf3ff',
+        blendMode: 'screen',
+        opacity: 0.35,
+        reactSource: 'bassOnset',
+        reactStrength: 80,
+      }),
+      layer('pneon-3', 'glNeonGrid', {
+        color: '#ff37c8',
+        blendMode: 'screen',
+        opacity: 0.3,
+        reactSource: 'mid',
+      }),
+    ],
+  }),
+  multiPreset({
+    id: 'builtin-portrait-glitch',
+    name: 'Portrait Glitch',
+    emoji: '📺',
+    color: '#39ff88',
+    needsImage: true,
+    background: {
+      color: '#000806',
+      opacity: 1.0,
+      gradientEnabled: false,
+      gradientColor2: '#001a12',
+    },
+    layers: [
+      layer('pglitch-1', 'glPortraitGlitch', {
+        color: '#39ff88',
+        reactSource: 'allOnset',
+        reactStrength: 85,
+      }),
+      layer('pglitch-2', 'glStrings', {
+        color: '#8fffd0',
+        blendMode: 'screen',
+        opacity: 0.3,
+        reactSource: 'treble',
+      }),
+      layer('pglitch-3', 'glRain', {
+        color: '#19d36a',
+        blendMode: 'screen',
+        opacity: 0.35,
+        reactSource: 'mid',
+      }),
+    ],
+  }),
+  multiPreset({
+    id: 'builtin-portrait-halftone',
+    name: 'Portrait Halftone',
+    emoji: '🗞️',
+    color: '#c96a1e',
+    needsImage: true,
+    background: {
+      color: '#151007',
+      opacity: 1.0,
+      gradientEnabled: true,
+      gradientColor2: '#3a2a10',
+    },
+    layers: [
+      // Das Halbton-Raster ist hell; die Akzente darüber müssen abdunkeln,
+      // sonst wären sie auf dem hellen Grund nicht zu sehen.
+      layer('phalf-1', 'glPortraitHalftone', { color: '#ffd9a0', reactSource: 'mid' }),
+      layer('phalf-2', 'glWaveform', {
+        color: '#5a3a10',
+        blendMode: 'multiply',
+        opacity: 0.75,
+        reactSource: 'mid',
+      }),
+      layer('phalf-3', 'glLightRays', {
+        color: '#7a4a12',
+        blendMode: 'multiply',
+        opacity: 0.4,
+        reactSource: 'bassOnset',
+        reactStrength: 70,
+      }),
+    ],
+  }),
+  multiPreset({
+    id: 'builtin-portrait-aura',
+    name: 'Portrait Aura',
+    emoji: '🌟',
+    color: '#4dffd2',
+    needsImage: true,
+    background: {
+      color: '#001418',
+      opacity: 1.0,
+      gradientEnabled: true,
+      gradientColor2: '#00303a',
+    },
+    layers: [
+      layer('paura-1', 'glPortraitEdges', { color: '#b8fff0', reactSource: 'mid' }),
+      layer('paura-2', 'glAuroraCurtain', {
+        color: '#4dffd2',
+        blendMode: 'screen',
+        opacity: 0.45,
+        reactSource: 'bass',
+      }),
+      layer('paura-3', 'glParticles', {
+        color: '#9ff7ff',
+        blendMode: 'screen',
+        opacity: 0.35,
+        reactSource: 'treble',
+        reactStrength: 55,
       }),
     ],
   }),

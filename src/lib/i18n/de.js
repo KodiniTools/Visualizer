@@ -937,6 +937,8 @@ export default {
     namePlaceholder: 'Preset-Name...',
     applied: 'Preset "{name}" angewendet',
     layers: 'Layer',
+    needsImage: 'Bild',
+    needsImageHint: 'braucht ein hochgeladenes Bild',
     saved: 'Preset gespeichert',
   },
 

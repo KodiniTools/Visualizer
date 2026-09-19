@@ -940,6 +940,8 @@ export default {
     namePlaceholder: 'Preset name...',
     applied: 'Preset "{name}" applied',
     layers: 'layers',
+    needsImage: 'Image',
+    needsImageHint: 'needs an uploaded image',
     saved: 'Preset saved',
   },
 

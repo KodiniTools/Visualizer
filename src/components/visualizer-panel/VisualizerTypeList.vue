@@ -22,7 +22,7 @@
         v-for="viz in filteredVisualizers"
         :key="viz.id"
         class="visualizer-btn"
-        :class="{ active: store.selectedVisualizer === viz.id }"
+        :class="{ active: !store.multiLayerMode && store.selectedVisualizer === viz.id }"
         @click="store.selectVisualizer(viz.id)"
       >
         {{ viz.name }}
@@ -87,7 +87,7 @@
             v-for="viz in visualizers"
             :key="viz.id"
             class="visualizer-btn"
-            :class="{ active: store.selectedVisualizer === viz.id }"
+            :class="{ active: !store.multiLayerMode && store.selectedVisualizer === viz.id }"
             @click="store.selectVisualizer(viz.id)"
           >
             {{ viz.name }}

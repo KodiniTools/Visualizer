@@ -120,6 +120,31 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
     expect(wrapper.find('.category-presets .preset-btn').classes()).toContain('active')
   })
 
+  it('kehrt vom eigenen Preset per Klick zu einem einzelnen Visualizer zurück', async () => {
+    const presets = useLayerPresetStore()
+    store.addLayer('bars')
+    store.addLayer('waveform')
+    const preset = presets.saveCurrentLayersAsPreset('Drop-Set')
+    await wrapper.vm.$nextTick()
+    expect(store.multiLayerMode).toBe(true)
+
+    // Im Multi-Layer-Modus ist kein einzelner Visualizer als aktiv markiert
+    const gpuButtons = wrapper.findAll('.category:not(.category-presets) .visualizer-btn')
+    expect(gpuButtons.some((b) => b.classes().includes('active'))).toBe(false)
+
+    const target = gpuButtons.find((b) => b.text() !== '')
+    await target.trigger('click')
+
+    expect(store.multiLayerMode).toBe(false)
+    expect(target.classes()).toContain('active')
+    expect(wrapper.find('.category-presets .preset-btn').classes()).not.toContain('active')
+    expect(presets.isLayerPresetActive(preset)).toBe(false)
+    // Layer bleiben erhalten: erneutes Anwenden des Presets funktioniert
+    await wrapper.find('.category-presets .preset-btn').trigger('click')
+    expect(store.multiLayerMode).toBe(true)
+    expect(store.visualizerLayers).toHaveLength(2)
+  })
+
   it('findet Layer-Presets auch über die Suche', async () => {
     const presets = useLayerPresetStore()
     store.addLayer('bars')

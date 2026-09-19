@@ -131,6 +131,24 @@ describe('layerPresetStore – anwenden', () => {
   })
 })
 
+describe('visualizerStore.selectVisualizer nach Preset', () => {
+  it('verlässt den Multi-Layer-Modus und behält die Layer', () => {
+    setupTwoLayers()
+    const preset = store.saveCurrentLayersAsPreset('Set')
+    expect(viz.multiLayerMode).toBe(true)
+
+    viz.selectVisualizer('glNeonGrid')
+    expect(viz.multiLayerMode).toBe(false)
+    expect(viz.selectedVisualizer).toBe('glNeonGrid')
+    expect(viz.visualizerLayers).toHaveLength(2)
+    expect(store.isLayerPresetActive(preset)).toBe(false)
+
+    // Zurück zum Preset
+    expect(store.applyLayerPreset(preset)).toBe(true)
+    expect(viz.multiLayerMode).toBe(true)
+  })
+})
+
 describe('layerPresetStore – löschen/umbenennen', () => {
   it('löscht und benennt um, mit Persistenz', () => {
     setupTwoLayers()

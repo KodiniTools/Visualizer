@@ -675,6 +675,7 @@ export default {
     openScreenshot: 'Screenshot',
     openVisualizer: 'Visualizer',
     openMultiLayer: 'Multi-Layer (multiple effects)',
+    openEffects: 'Effects (post-processing)',
     openCanvasFormat: 'Canvas format',
     openGallery: 'Gallery',
     openAudioReactive: 'Audio reactive (image)',

@@ -9,7 +9,6 @@ import { useLayerPresetStore } from '../../stores/layerPresetStore.js'
 // wird das Zusammenspiel von VisualizerPanel mit seinen Sektionen.
 const stubs = {
   HelpTooltip: true,
-  VisualizerEffectsPanel: true,
   VisualizerImagePicker: true,
 }
 
@@ -42,9 +41,11 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
     expect(scroll.text()).toContain(`(${store.availableVisualizers.length}`)
   })
 
-  it('enthält den Multi-Layer-Bereich nicht mehr (eigenes Popover)', () => {
+  it('enthält Multi-Layer und Effekte nicht mehr (eigene Popover)', () => {
     expect(wrapper.find('.layer-panel').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('Multi-Layer')
+    expect(wrapper.find('.fx-section').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('Post-Processing')
   })
 
   it('schaltet den Visualizer über den Toggle um und zeigt den Status-Hinweis', async () => {

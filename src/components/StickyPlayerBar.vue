@@ -21,6 +21,7 @@
     <MultiLayerPopover v-if="popover.isOpen('multiLayer')" />
     <EffectsPopover v-if="popover.isOpen('effects')" />
     <CanvasControlPopover v-if="popover.isOpen('canvasControl')" />
+    <VideoPopover v-if="popover.isOpen('video')" />
     <RecorderPopover v-if="popover.isOpen('recorder')" />
 
     <!-- ══════════════ THE BAR ══════════════ -->
@@ -37,6 +38,7 @@ import { useAudioSourceControls } from '../composables/useAudioSourceControls.js
 import { useBeatMarkers } from '../composables/useBeatMarkers.js'
 import { usePlaylistManager } from '../composables/usePlaylistManager.js'
 import { useBgSettings } from '../composables/useBgSettings.js'
+import { useVideoPanel } from '../composables/useVideoPanel.js'
 import TextManagerPopover from './sticky-player-bar/TextManagerPopover.vue'
 import AudioSourcePopover from './sticky-player-bar/AudioSourcePopover.vue'
 import VolumeEqPopover from './sticky-player-bar/VolumeEqPopover.vue'
@@ -52,6 +54,7 @@ import VisualizerPopover from './sticky-player-bar/VisualizerPopover.vue'
 import MultiLayerPopover from './sticky-player-bar/MultiLayerPopover.vue'
 import EffectsPopover from './sticky-player-bar/EffectsPopover.vue'
 import CanvasControlPopover from './sticky-player-bar/CanvasControlPopover.vue'
+import VideoPopover from './sticky-player-bar/VideoPopover.vue'
 import RecorderPopover from './sticky-player-bar/RecorderPopover.vue'
 import PlayerBarControls from './sticky-player-bar/PlayerBarControls.vue'
 
@@ -72,6 +75,10 @@ const playlist = usePlaylistManager()
 // überleben Undo-Verlauf, Gradient- und Audio-Reaktiv-Einstellungen sowie die
 // bei Beat-Markern genutzte Hintergrund-Bridge das Schließen des Popovers.
 provide('bgSettings', useBgSettings())
+
+// Ebenso der Video-Zustand: die hochgeladene Video-Liste und die
+// Platzierungs-Einstellungen sollen das Schließen des Popovers überleben.
+provide('videoPanel', useVideoPanel())
 
 provide('playerBar', { popover, volumeEq, playMode, audioSource, markers, playlist })
 

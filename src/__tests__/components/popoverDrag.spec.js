@@ -41,6 +41,16 @@ beforeEach(() => {
 
 afterEach(() => wrapper?.unmount())
 
+// Popover, dessen Rahmen selbst scrollt (wie die kleinen Standard-Popover).
+const ScrollingPopover = defineComponent({
+  directives: { popoverDrag: vPopoverDrag },
+  template: `
+    <div v-popover-drag class="spb-popover spb-popover-scrolly" style="overflow-y: auto">
+      <div class="spb-popover-header"><span>Kopf</span></div>
+      <div class="body">Inhalt</div>
+    </div>`,
+})
+
 describe('v-popover-drag – Größe per Rand ziehen', () => {
   it('erzeugt Griffe für linken, rechten, unteren Rand und untere Ecken mit Scope-Attribut', () => {
     const handles = el.querySelectorAll('.spb-resize-handle')
@@ -92,6 +102,13 @@ describe('v-popover-drag – Größe per Rand ziehen', () => {
     el.querySelector('.spb-resize-e').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
     expect(el.style.width).toBe('')
     expect(localStorage.getItem('spb-popover-size:testpop')).toBeNull()
+  })
+
+  it('legt keine Griffe an, wenn der Popover-Rahmen selbst scrollt', () => {
+    // Sonst lägen die Griffe über dem Inhalt und fingen dort Klicks ab.
+    const w = mount(ScrollingPopover, { attachTo: document.body })
+    expect(w.element.querySelectorAll('.spb-resize-handle')).toHaveLength(0)
+    w.unmount()
   })
 
   it('räumt Griffe und Body-Styles beim Unmount auf', () => {

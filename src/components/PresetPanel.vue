@@ -24,7 +24,7 @@
           >
             <span class="preset-emoji">{{ preset.emoji }}</span>
             <span class="preset-name">{{ preset.name }}</span>
-            <span class="preset-viz">{{ preset.visualizer.selectedVisualizer }}</span>
+            <span class="preset-viz">{{ presetSubtitle(preset) }}</span>
           </button>
         </div>
 
@@ -59,7 +59,7 @@
               <button class="preset-apply-area" @click="apply(preset)">
                 <span class="preset-emoji">{{ preset.emoji }}</span>
                 <span class="preset-name">{{ preset.name }}</span>
-                <span class="preset-viz">{{ preset.visualizer.selectedVisualizer }}</span>
+                <span class="preset-viz">{{ presetSubtitle(preset) }}</span>
               </button>
               <button
                 class="btn-delete"
@@ -97,6 +97,17 @@ const toastStore = useToastStore()
 const collapsed = ref(false)
 const newPresetName = ref('')
 const builtInPresets = BUILT_IN_PRESETS
+
+/**
+ * Untertitel der Preset-Kachel: bei Multi-Layer-Vorlagen die Anzahl der
+ * Ebenen, sonst der Visualizer-Name.
+ */
+function presetSubtitle(preset) {
+  const v = preset.visualizer
+  const count = v?.mode === 'multi' ? (v.layers?.length ?? 0) : 0
+  if (count > 0) return `${count} ${t('presets.layers')}`
+  return v?.selectedVisualizer || ''
+}
 const activePresetId = ref(null)
 
 onMounted(() => {

@@ -5,6 +5,68 @@ import { resolveVisualizerId } from '../lib/visualizers/aliases.js'
 
 const USER_PRESETS_KEY = 'visualizer-user-presets'
 
+/**
+ * Baut einen Layer für ein Multi-Layer-Preset. Ergänzt die Standardwerte, die
+ * createLayer() im Visualizer-Store ebenfalls setzt, damit gespeicherte und
+ * eingebaute Layer dieselbe Form haben.
+ * @param {string} id - eindeutige Layer-ID innerhalb des Presets
+ * @param {string} visualizerId
+ * @param {object} overrides - color, opacity, blendMode, scale, reactSource …
+ *
+ * Hinweis: `scale` unter 1.0 vermeiden. Ein verkleinerter Layer zeichnet seine
+ * eigene Fläche kleiner als das Canvas, wodurch deren Rand als sichtbares
+ * Rechteck über den darunter liegenden Layern erscheint. Werte über 1.0 sind
+ * unproblematisch (der Layer wird beschnitten).
+ */
+function layer(id, visualizerId, overrides = {}) {
+  return {
+    id,
+    visualizerId,
+    visible: true,
+    color: '#6ea8fe',
+    opacity: 1.0,
+    colorOpacity: 1.0,
+    x: 0.5,
+    y: 0.5,
+    scale: 1.0,
+    blendMode: 'source-over',
+    reactSource: 'spectrum',
+    reactStrength: 70,
+    imageId: null,
+    ...overrides,
+  }
+}
+
+/**
+ * Erzeugt ein eingebautes Multi-Layer-Preset. `selectedVisualizer` zeigt auf
+ * den prägenden Layer, damit Kachel und Single-Modus einen sinnvollen Wert
+ * haben, wenn das Preset nur teilweise angewendet wird.
+ */
+function multiPreset({ id, name, emoji, color, background, layers }) {
+  return {
+    id,
+    name,
+    builtIn: true,
+    emoji,
+    visualizer: {
+      mode: 'multi',
+      multiLayerMode: true,
+      selectedVisualizer: layers[0].visualizerId,
+      color,
+      opacity: 1.0,
+      colorOpacity: 1.0,
+      x: 0.5,
+      y: 0.5,
+      scale: 1.0,
+      showVisualizer: true,
+      reactSource: 'spectrum',
+      reactStrength: 70,
+      layers,
+    },
+    background,
+  }
+}
+
 export const BUILT_IN_PRESETS = [
   {
     id: 'builtin-neon-dark',
@@ -282,6 +344,235 @@ export const BUILT_IN_PRESETS = [
       gradientColor2: '#003318',
     },
   },
+
+  // ═══════════════ Multi-Layer-Vorlagen (mehrere Effekte übereinander) ═══════════════
+  // Reihenfolge der Layer: Index 0 liegt unten, weitere Layer darüber.
+  multiPreset({
+    id: 'builtin-nebula-drift',
+    name: 'Nebula Drift',
+    emoji: '🌠',
+    color: '#b488ff',
+    background: {
+      color: '#05001a',
+      opacity: 1.0,
+      gradientEnabled: true,
+      gradientColor2: '#1a0033',
+    },
+    layers: [
+      layer('nebula-1', 'glGalaxy', { color: '#8844ff', scale: 1.15 }),
+      layer('nebula-2', 'glParticles', {
+        color: '#66e0ff',
+        blendMode: 'screen',
+        opacity: 0.75,
+        reactSource: 'treble',
+      }),
+      layer('nebula-3', 'glLightRays', {
+        color: '#ffd0ff',
+        blendMode: 'screen',
+        opacity: 0.45,
+        reactSource: 'bassOnset',
+        reactStrength: 85,
+      }),
+    ],
+  }),
+  multiPreset({
+    id: 'builtin-laser-club',
+    name: 'Laser Club',
+    emoji: '🔺',
+    color: '#ff2fb0',
+    background: {
+      color: '#0a0012',
+      opacity: 1.0,
+      gradientEnabled: false,
+      gradientColor2: '#22003a',
+    },
+    layers: [
+      layer('laser-1', 'glLaserGrid', { color: '#ff2fb0', opacity: 0.9 }),
+      layer('laser-2', 'glLaserFan', {
+        color: '#28e7ff',
+        blendMode: 'screen',
+        reactSource: 'bassOnset',
+        reactStrength: 90,
+      }),
+      layer('laser-3', 'glStageLights', {
+        color: '#ffb347',
+        blendMode: 'screen',
+        opacity: 0.6,
+        reactSource: 'allOnset',
+        reactStrength: 80,
+      }),
+    ],
+  }),
+  multiPreset({
+    id: 'builtin-deep-ocean',
+    name: 'Deep Ocean',
+    emoji: '🐋',
+    color: '#19d3c5',
+    background: {
+      color: '#001522',
+      opacity: 1.0,
+      gradientEnabled: true,
+      gradientColor2: '#003a4d',
+    },
+    layers: [
+      layer('ocean-1', 'glAuroraLake', { color: '#19d3c5', scale: 1.1 }),
+      layer('ocean-2', 'glWaveform', {
+        color: '#8fe8ff',
+        blendMode: 'screen',
+        opacity: 0.8,
+        y: 0.62,
+        reactSource: 'mid',
+      }),
+      layer('ocean-3', 'glParticles', {
+        color: '#9fe8ff',
+        blendMode: 'screen',
+        opacity: 0.35,
+        reactSource: 'treble',
+        reactStrength: 55,
+      }),
+    ],
+  }),
+  multiPreset({
+    id: 'builtin-volcano',
+    name: 'Volcano',
+    emoji: '🌋',
+    color: '#ff6a00',
+    background: {
+      color: '#120000',
+      opacity: 1.0,
+      gradientEnabled: true,
+      gradientColor2: '#3d0d00',
+    },
+    layers: [
+      layer('volcano-1', 'glFire', { color: '#ff6a00' }),
+      layer('volcano-2', 'glLightRays', {
+        color: '#ff7a1e',
+        blendMode: 'screen',
+        opacity: 0.45,
+        reactSource: 'bassOnset',
+        reactStrength: 90,
+      }),
+      layer('volcano-3', 'glFireworksFountain', {
+        color: '#ffb347',
+        blendMode: 'screen',
+        opacity: 0.85,
+        reactSource: 'bassOnset',
+        reactStrength: 90,
+      }),
+    ],
+  }),
+  multiPreset({
+    id: 'builtin-synthwave',
+    name: 'Synthwave',
+    emoji: '🛸',
+    color: '#ff37c8',
+    background: {
+      color: '#1a0033',
+      opacity: 1.0,
+      gradientEnabled: true,
+      gradientColor2: '#4b0082',
+    },
+    layers: [
+      layer('synth-1', 'glNeonGrid', { color: '#ff37c8' }),
+      layer('synth-2', 'glRings', {
+        color: '#ff9a3c',
+        blendMode: 'screen',
+        opacity: 0.75,
+        y: 0.38,
+        reactSource: 'bass',
+      }),
+      layer('synth-3', 'glStrings', {
+        color: '#31e6ff',
+        blendMode: 'screen',
+        opacity: 0.55,
+        reactSource: 'mid',
+      }),
+    ],
+  }),
+  multiPreset({
+    id: 'builtin-crystal-cave',
+    name: 'Crystal Cave',
+    emoji: '💠',
+    color: '#31e6ff',
+    background: {
+      color: '#04121a',
+      opacity: 1.0,
+      gradientEnabled: true,
+      gradientColor2: '#0b2e3d',
+    },
+    layers: [
+      layer('crystal-1', 'glVoronoi', { color: '#31e6ff', opacity: 0.9 }),
+      layer('crystal-2', 'glFlowerOfLife', {
+        color: '#b07bff',
+        blendMode: 'screen',
+        opacity: 0.6,
+        reactSource: 'mid',
+      }),
+      layer('crystal-3', 'glParticles', {
+        color: '#bff5ff',
+        blendMode: 'screen',
+        opacity: 0.4,
+        reactSource: 'trebleOnset',
+        reactStrength: 60,
+      }),
+    ],
+  }),
+  multiPreset({
+    id: 'builtin-disco-night',
+    name: 'Disco Night',
+    emoji: '🪩',
+    color: '#ffd34a',
+    background: {
+      color: '#0c0010',
+      opacity: 1.0,
+      gradientEnabled: false,
+      gradientColor2: '#2a0030',
+    },
+    layers: [
+      layer('disco-1', 'glDiscoFloor', { color: '#ff4fd8' }),
+      layer('disco-2', 'glDiscoRays', {
+        color: '#7cf3ff',
+        blendMode: 'screen',
+        opacity: 0.7,
+        reactSource: 'bass',
+      }),
+      layer('disco-3', 'glDiscoBall', {
+        color: '#ffd34a',
+        blendMode: 'screen',
+        reactSource: 'allOnset',
+        reactStrength: 85,
+      }),
+    ],
+  }),
+  multiPreset({
+    id: 'builtin-aurora-sky',
+    name: 'Aurora Sky',
+    emoji: '🌌',
+    color: '#4dffa6',
+    background: {
+      color: '#00121a',
+      opacity: 1.0,
+      gradientEnabled: true,
+      gradientColor2: '#002438',
+    },
+    layers: [
+      layer('aurora-1', 'glAuroraCurtain', { color: '#4dffa6' }),
+      layer('aurora-2', 'glAuroraBands', {
+        color: '#39c6ff',
+        blendMode: 'screen',
+        opacity: 0.7,
+        scale: 1.05,
+        reactSource: 'mid',
+      }),
+      layer('aurora-3', 'glAuroraCorona', {
+        color: '#7cf3ff',
+        blendMode: 'screen',
+        opacity: 0.5,
+        reactSource: 'treble',
+        reactStrength: 45,
+      }),
+    ],
+  }),
 ]
 
 export const usePresetStore = defineStore('presets', () => {
@@ -373,6 +664,9 @@ export const usePresetStore = defineStore('presets', () => {
         visualizerId: resolveVisualizerId(l.visualizerId) || vizStore.lastWorkingVisualizer,
       }))
       if (v.layers.length > 0) vizStore.activeLayerId = v.layers[0].id
+      // Ohne das bliebe ein zuvor ausgeblendeter Visualizer unsichtbar und das
+      // Preset schiene wirkungslos.
+      vizStore.showVisualizer = v.showVisualizer ?? true
     } else {
       vizStore.multiLayerMode = false
       vizStore.visualizerLayers = []

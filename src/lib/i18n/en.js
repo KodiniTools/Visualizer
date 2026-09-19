@@ -939,6 +939,7 @@ export default {
     save: 'Save',
     namePlaceholder: 'Preset name...',
     applied: 'Preset "{name}" applied',
+    layers: 'layers',
     saved: 'Preset saved',
   },
 

@@ -8,6 +8,7 @@
     <GalleryPopover v-if="popover.isOpen('gallery')" />
     <PresetsPopover v-if="popover.isOpen('presets')" />
     <AudioReactivePopover v-if="popover.isOpen('audioReactive')" />
+    <TextAudioReactivePopover v-if="popover.isOpen('textAudioReactive')" />
     <CanvasFormatPopover v-if="popover.isOpen('canvasFormat')" />
     <ScreenshotPopover v-if="popover.isOpen('screenshot')" />
     <VisualizerPopover v-if="popover.isOpen('visualizer')" />
@@ -37,6 +38,7 @@ import PlaylistPopover from './sticky-player-bar/PlaylistPopover.vue'
 import GalleryPopover from './sticky-player-bar/GalleryPopover.vue'
 import PresetsPopover from './sticky-player-bar/PresetsPopover.vue'
 import AudioReactivePopover from './sticky-player-bar/AudioReactivePopover.vue'
+import TextAudioReactivePopover from './sticky-player-bar/TextAudioReactivePopover.vue'
 import CanvasFormatPopover from './sticky-player-bar/CanvasFormatPopover.vue'
 import ScreenshotPopover from './sticky-player-bar/ScreenshotPopover.vue'
 import VisualizerPopover from './sticky-player-bar/VisualizerPopover.vue'

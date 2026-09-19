@@ -7,8 +7,7 @@
     <TextShadowSection />
     <TextRotationSection />
 
-    <!-- Audio Reactive Panel -->
-    <TextAudioReactivePanel :selected-text="selectedText" />
+    <!-- Audio-Reaktiv liegt in einem eigenen Popover der Player-Leiste -->
 
     <!-- Animations Panel -->
     <TextAnimationsPanel :selected-text="selectedText" />
@@ -50,7 +49,6 @@ import {
   saveTextDefaults,
   clearTextDefaults,
 } from '../../lib/textDefaults.js'
-import TextAudioReactivePanel from './TextAudioReactivePanel.vue'
 import TextAnimationsPanel from './TextAnimationsPanel.vue'
 import TextContentSection from './text-edit/TextContentSection.vue'
 import TextPositionSection from './text-edit/TextPositionSection.vue'

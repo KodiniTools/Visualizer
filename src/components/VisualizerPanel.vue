@@ -48,9 +48,7 @@
       <!-- Kategorisierte Visualizer-Auswahl bzw. Suchergebnisse -->
       <VisualizerTypeList :search-query="searchQuery" />
 
-      <!-- Post-Processing Effekte (Bloom / Trails / Adaptive Qualität) -->
-      <VisualizerEffectsPanel />
-      <!-- Multi-Layer liegt in einem eigenen Popover der Player-Leiste -->
+      <!-- Effekte und Multi-Layer liegen in eigenen Popovern der Player-Leiste -->
     </div>
   </div>
 </template>
@@ -61,7 +59,6 @@ import { useI18n } from '../lib/i18n.js'
 import { useVisualizerStore } from '../stores/visualizerStore.js'
 import { Visualizers } from '../lib/visualizers/index.js'
 import HelpTooltip from './HelpTooltip.vue'
-import VisualizerEffectsPanel from './VisualizerEffectsPanel.vue'
 import VisualizerImagePicker from './VisualizerImagePicker.vue'
 import VisualizerBasicsSection from './visualizer-panel/VisualizerBasicsSection.vue'
 import VisualizerReactSourceSection from './visualizer-panel/VisualizerReactSourceSection.vue'

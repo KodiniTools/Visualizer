@@ -261,6 +261,20 @@
 
       <button
         class="spb-icon-btn"
+        :class="{ active: isOpen('effects') }"
+        :title="t('player.openEffects')"
+        @click="togglePopover('effects')"
+      >
+        <!-- Funkeln (Post-Processing-Effekte) -->
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-8.5.5L8 4 5.5 9.5 0 12l5.5 2.5L8 20l2.5-5.5L16 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"
+          />
+        </svg>
+      </button>
+
+      <button
+        class="spb-icon-btn"
         :class="{ active: isOpen('screenshot') }"
         :title="t('player.openScreenshot')"
         @click="togglePopover('screenshot')"

@@ -1,6 +1,12 @@
 <template>
   <div ref="barRef" class="sticky-player-bar">
     <!-- ══════════════ POPOVERS (open above the bar; several at once) ══════════════ -->
+    <!-- Der Text-Manager bleibt dauerhaft gemountet (v-show statt v-if): Er
+         registriert die Tastatureingabe zum Anlegen von Text, hält die
+         Auswahl-Rückmeldung des Canvas (die sich nicht abmelden lässt) und
+         den Timer der Text-Sequenz. Ein Ab- und Neuaufbau beim Schließen
+         würde diese verlieren bzw. Listener anhäufen. -->
+    <TextManagerPopover v-show="popover.isOpen('textManager')" />
     <AudioSourcePopover v-if="popover.isOpen('audio')" />
     <VolumeEqPopover v-if="popover.isOpen('volume')" />
     <BeatMarkerPopover v-if="popover.isOpen('markers')" />
@@ -23,7 +29,7 @@
 </template>
 
 <script setup>
-import { ref, provide } from 'vue'
+import { ref, provide, onMounted, onUnmounted } from 'vue'
 import { usePlayerPopover } from '../composables/usePlayerPopover.js'
 import { usePlayerVolumeEq } from '../composables/usePlayerVolumeEq.js'
 import { usePlayMode } from '../composables/usePlayMode.js'
@@ -31,6 +37,7 @@ import { useAudioSourceControls } from '../composables/useAudioSourceControls.js
 import { useBeatMarkers } from '../composables/useBeatMarkers.js'
 import { usePlaylistManager } from '../composables/usePlaylistManager.js'
 import { useBgSettings } from '../composables/useBgSettings.js'
+import TextManagerPopover from './sticky-player-bar/TextManagerPopover.vue'
 import AudioSourcePopover from './sticky-player-bar/AudioSourcePopover.vue'
 import VolumeEqPopover from './sticky-player-bar/VolumeEqPopover.vue'
 import BeatMarkerPopover from './sticky-player-bar/BeatMarkerPopover.vue'
@@ -67,6 +74,13 @@ const playlist = usePlaylistManager()
 provide('bgSettings', useBgSettings())
 
 provide('playerBar', { popover, volumeEq, playMode, audioSource, markers, playlist })
+
+// Tippen auf dem Canvas legt sofort einen Text an (TextManagerPanel reagiert
+// auf dieses Ereignis). Da der Text-Manager jetzt im Popover sitzt, wird es
+// dabei geöffnet, damit der Editor wie zuvor direkt sichtbar ist.
+const openTextManager = () => popover.openPopover('textManager')
+onMounted(() => window.addEventListener('openTextEditorWithChar', openTextManager))
+onUnmounted(() => window.removeEventListener('openTextEditorWithChar', openTextManager))
 </script>
 
 <style scoped>

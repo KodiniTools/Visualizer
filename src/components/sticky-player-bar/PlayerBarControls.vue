@@ -223,6 +223,19 @@
 
       <button
         class="spb-icon-btn"
+        :class="{ active: isOpen('textAudioReactive') }"
+        :title="t('player.openTextAudioReactive')"
+        @click="togglePopover('textAudioReactive')"
+      >
+        <!-- Schrift „T“ über Pegelbalken (Text-Audio-Reaktiv) -->
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M4 3h12v2.5h-4.75V15h-2.5V5.5H4V3z" />
+          <path d="M3 18h2v3H3v-3zm4-2h2v5H7v-5zm4 3h2v2h-2v-2zm4-4h2v6h-2v-6zm4 2h2v4h-2v-4z" />
+        </svg>
+      </button>
+
+      <button
+        class="spb-icon-btn"
         :class="{ active: isOpen('canvasFormat') }"
         :title="t('player.openCanvasFormat')"
         @click="togglePopover('canvasFormat')"

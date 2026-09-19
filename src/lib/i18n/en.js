@@ -680,6 +680,7 @@ export default {
     openCanvasFormat: 'Canvas format',
     openGallery: 'Gallery',
     openAudioReactive: 'Audio reactive (image)',
+    openTextAudioReactive: 'Audio reactive (text)',
     openPresets: 'Presets',
     recording: 'Recording',
   },

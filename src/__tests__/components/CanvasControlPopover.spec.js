@@ -19,6 +19,9 @@ function canvasManagerStub() {
     get(target, prop) {
       if (prop in target) return target[prop]
       if (typeof prop === 'symbol') return undefined
+      // Vue-interne Flags (__v_raw, __v_isReactive …) nicht abfangen – sonst
+      // hält Vue das Objekt für einen fertigen Proxy und verliert die Reaktivität.
+      if (String(prop).startsWith('__v_')) return undefined
       target[prop] = vi.fn()
       return target[prop]
     },

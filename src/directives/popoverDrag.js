@@ -303,10 +303,19 @@ export const vPopoverDrag = {
       reclamp()
     }
 
+    // Griffe nur an Popover hängen, die NICHT selbst scrollen. Scrollt der
+    // Popover-Rahmen selbst, liegen die Griffe über dem Inhalt am unteren bzw.
+    // seitlichen Rand und fangen dort Klicks ab (z.B. auf die letzte Reihe der
+    // Preset-Kacheln). Die großen Panel-Popover setzen stattdessen
+    // `overflow: hidden` und scrollen einen inneren Bereich – dort stören die
+    // Griffe nicht und die Größe lässt sich ändern.
+    const rootOverflowY = getComputedStyle(el).overflowY
+    const rootScrolls = rootOverflowY === 'auto' || rootOverflowY === 'scroll'
+
     // Handles are created dynamically; copy the component's scoped-style
     // attributes (data-v-*) so the scoped popover CSS applies to them.
     const scopeAttrs = Array.from(el.attributes).filter((a) => a.name.startsWith('data-v-'))
-    const handles = RESIZE_HANDLES.map((spec) => {
+    const handles = (rootScrolls ? [] : RESIZE_HANDLES).map((spec) => {
       const h = document.createElement('div')
       h.className = `spb-resize-handle spb-resize-${spec.dir}`
       h.setAttribute('aria-hidden', 'true')
@@ -320,7 +329,7 @@ export const vPopoverDrag = {
     })
 
     // Restore a persisted size (clamped to the current viewport).
-    const stored = readStoredSize(name)
+    const stored = rootScrolls ? null : readStoredSize(name)
     if (stored && (stored.width !== null || stored.height !== null)) {
       const next = clampSize(stored.width, stored.height)
       sizeW = next.width

@@ -936,6 +936,7 @@ export default {
     save: 'Speichern',
     namePlaceholder: 'Preset-Name...',
     applied: 'Preset "{name}" angewendet',
+    layers: 'Layer',
     saved: 'Preset gespeichert',
   },
 

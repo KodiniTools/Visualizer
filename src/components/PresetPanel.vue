@@ -20,11 +20,16 @@
               '--preset-bg': preset.background.color,
             }"
             @click="apply(preset)"
-            :title="preset.name"
+            :title="
+              preset.needsImage ? `${preset.name} — ${t('presets.needsImageHint')}` : preset.name
+            "
           >
             <span class="preset-emoji">{{ preset.emoji }}</span>
             <span class="preset-name">{{ preset.name }}</span>
             <span class="preset-viz">{{ presetSubtitle(preset) }}</span>
+            <span v-if="preset.needsImage" class="preset-needs-image">{{
+              t('presets.needsImage')
+            }}</span>
           </button>
         </div>
 
@@ -279,6 +284,21 @@ h3 {
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
+}
+
+.preset-needs-image {
+  font-size: 0.45rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--accent-tertiary, #f8e1a9);
+  background-color: rgba(201, 152, 77, 0.22);
+  border-radius: 6px;
+  padding: 0 5px;
+  margin-top: 2px;
+}
+[data-theme='light'] .preset-needs-image {
+  color: #014f99;
+  background-color: rgba(1, 79, 153, 0.12);
 }
 
 .preset-viz {

@@ -676,6 +676,7 @@ export default {
     openVisualizer: 'Visualizer',
     openMultiLayer: 'Multi-Layer (multiple effects)',
     openEffects: 'Effects (post-processing)',
+    openCanvasControl: 'Canvas control',
     openCanvasFormat: 'Canvas format',
     openGallery: 'Gallery',
     openAudioReactive: 'Audio reactive (image)',

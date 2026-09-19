@@ -73,7 +73,7 @@
           @reject="rejectHandoff"
         />
         <FileUploadPanel />
-        <CanvasControlPanel />
+        <!-- Canvas-Steuerung liegt in einem eigenen Popover der Player-Leiste -->
       </aside>
     </div>
 
@@ -133,7 +133,6 @@ import FotoPanel from './components/FotoPanel.vue'
 import VideoPanel from './components/VideoPanel.vue'
 import TextManagerPanel from './components/TextManagerPanel.vue'
 import TickerPanel from './components/TickerPanel.vue'
-import CanvasControlPanel from './components/CanvasControlPanel.vue'
 import QuickStartGuide from './components/QuickStartGuide.vue'
 import ToastContainer from './components/ToastContainer.vue'
 import AppHeader from './components/AppHeader.vue'

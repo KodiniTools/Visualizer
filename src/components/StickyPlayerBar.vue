@@ -13,6 +13,7 @@
     <VisualizerPopover v-if="popover.isOpen('visualizer')" />
     <MultiLayerPopover v-if="popover.isOpen('multiLayer')" />
     <EffectsPopover v-if="popover.isOpen('effects')" />
+    <CanvasControlPopover v-if="popover.isOpen('canvasControl')" />
     <RecorderPopover v-if="popover.isOpen('recorder')" />
 
     <!-- ══════════════ THE BAR ══════════════ -->
@@ -28,6 +29,7 @@ import { usePlayMode } from '../composables/usePlayMode.js'
 import { useAudioSourceControls } from '../composables/useAudioSourceControls.js'
 import { useBeatMarkers } from '../composables/useBeatMarkers.js'
 import { usePlaylistManager } from '../composables/usePlaylistManager.js'
+import { useBgSettings } from '../composables/useBgSettings.js'
 import AudioSourcePopover from './sticky-player-bar/AudioSourcePopover.vue'
 import VolumeEqPopover from './sticky-player-bar/VolumeEqPopover.vue'
 import BeatMarkerPopover from './sticky-player-bar/BeatMarkerPopover.vue'
@@ -40,6 +42,7 @@ import ScreenshotPopover from './sticky-player-bar/ScreenshotPopover.vue'
 import VisualizerPopover from './sticky-player-bar/VisualizerPopover.vue'
 import MultiLayerPopover from './sticky-player-bar/MultiLayerPopover.vue'
 import EffectsPopover from './sticky-player-bar/EffectsPopover.vue'
+import CanvasControlPopover from './sticky-player-bar/CanvasControlPopover.vue'
 import RecorderPopover from './sticky-player-bar/RecorderPopover.vue'
 import PlayerBarControls from './sticky-player-bar/PlayerBarControls.vue'
 
@@ -54,6 +57,12 @@ const playMode = usePlayMode()
 const audioSource = useAudioSourceControls()
 const markers = useBeatMarkers(() => popover.openPopover('markers'))
 const playlist = usePlaylistManager()
+
+// Hintergrund-/Canvas-Zustand hier erzeugen, nicht im Panel: die Leiste ist
+// immer gemountet, das Canvas-Steuerung-Popover dagegen nur bei Bedarf. So
+// überleben Undo-Verlauf, Gradient- und Audio-Reaktiv-Einstellungen sowie die
+// bei Beat-Markern genutzte Hintergrund-Bridge das Schließen des Popovers.
+provide('bgSettings', useBgSettings())
 
 provide('playerBar', { popover, volumeEq, playMode, audioSource, markers, playlist })
 </script>

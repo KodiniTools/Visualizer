@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { ref, provide } from 'vue'
+import { ref, provide, inject } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useBgSettings } from '../composables/useBgSettings.js'
 import BackgroundColorSection from './canvas-control/BackgroundColorSection.vue'
@@ -40,7 +40,13 @@ import AudioFxPanel from './AudioFxPanel.vue'
 
 const { t } = useI18n()
 const isExpanded = ref(true)
-const bg = useBgSettings()
+
+// Der Hintergrund-Zustand (Farbe, Gradient, Audio-Reaktiv, Undo-Verlauf) und
+// die Bridge für Beat-Marker leben in der Sticky-Player-Bar, die immer
+// gemountet ist. So bleibt alles erhalten, während dieses Panel in seinem
+// Popover geöffnet und geschlossen wird. Ohne bereitgestellten Zustand (z.B.
+// im Test oder bei eigenständiger Nutzung) erzeugt das Panel ihn selbst.
+const bg = inject('bgSettings', null) || useBgSettings()
 provide('bgSettings', bg)
 
 const { undoHistory, canUndo, undoLastChange } = bg

@@ -249,8 +249,8 @@ export class TextManager {
         // Versuche den Canvas-State wiederherzustellen falls ctx.save() aufgerufen wurde
         try {
           ctx.restore()
-        } catch (e) {
-          /* ignore */
+        } catch {
+          // Der Context war nicht im save()-Zustand – nichts zu tun
         }
       }
     })

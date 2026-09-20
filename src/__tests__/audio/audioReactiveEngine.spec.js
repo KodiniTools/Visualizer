@@ -132,3 +132,74 @@ describe('ticker audio config', () => {
     expect(def.effects.tempo).toMatchObject({ enabled: true, intensity: 60 })
   })
 })
+
+describe('computeAudioReactiveValues – levelOptions', () => {
+  /** Minimale Konfiguration mit einem Effekt, der den rohen Pegel durchreicht. */
+  function konfig(overrides = {}) {
+    return {
+      enabled: true,
+      source: 'bass',
+      smoothing: 50,
+      effects: { hue: { enabled: true, intensity: 100 } },
+      ...overrides,
+    }
+  }
+  const durchreichen = (_name, level) => ({ level })
+  const pegel = (ar, audio, levelOptions) =>
+    computeAudioReactiveValues(ar, ar, audio, durchreichen, levelOptions).effects.hue.level
+
+  it('ändert ohne levelOptions nichts am bisherigen Verhalten', () => {
+    const ohne = pegel(konfig(), loudAudio)
+    const leer = pegel(konfig(), loudAudio, null)
+    const leeresObjekt = pegel(konfig(), loudAudio, {})
+    expect(leer).toBe(ohne)
+    expect(leeresObjekt).toBe(ohne)
+  })
+
+  it('gated den Pegel über threshold', () => {
+    // bass 230/255 ≈ 0.9 – eine Schwelle darüber muss auf 0 gehen
+    expect(pegel(konfig(), loudAudio, { threshold: 0.95, attack: 1, release: 1 })).toBe(0)
+    expect(pegel(konfig(), loudAudio, { threshold: 0, attack: 1, release: 1 })).toBeGreaterThan(0.8)
+  })
+
+  it('lässt explizite attack/release das abgeleitete smoothing überstimmen', () => {
+    const still = { ...loudAudio, bass: 0 }
+
+    // Mit smoothing 100 wäre der Abfall träge; attack/release = 1 macht ihn sofort
+    const ar = konfig({ smoothing: 100 })
+    computeAudioReactiveValues(ar, ar, loudAudio, durchreichen, { attack: 1, release: 1 })
+    const sofort = computeAudioReactiveValues(ar, ar, still, durchreichen, {
+      attack: 1,
+      release: 1,
+    }).effects.hue.level
+    expect(sofort).toBe(0)
+
+    // Zum Vergleich: dieselbe Konfiguration ohne levelOptions klingt langsam aus
+    const traege = konfig({ smoothing: 100 })
+    computeAudioReactiveValues(traege, traege, loudAudio, durchreichen)
+    const nachher = computeAudioReactiveValues(traege, traege, still, durchreichen).effects.hue
+      .level
+    expect(nachher).toBeGreaterThan(0)
+  })
+
+  it('glättet den Eingang über preSmoothing', () => {
+    const still = { ...loudAudio, bass: 0 }
+
+    // Der erste Frame initialisiert die Hüllkurve mit dem Zielwert – die
+    // Glättung wird erst ab dem zweiten Frame sichtbar.
+    const geglaettet = konfig()
+    pegel(geglaettet, still, { preSmoothing: 0.9, attack: 1, release: 1 })
+    const mitGlaettung = pegel(geglaettet, loudAudio, {
+      preSmoothing: 0.9,
+      attack: 1,
+      release: 1,
+    })
+
+    const direkt = konfig()
+    pegel(direkt, still, { preSmoothing: 0, attack: 1, release: 1 })
+    const ohneGlaettung = pegel(direkt, loudAudio, { preSmoothing: 0, attack: 1, release: 1 })
+
+    expect(mitGlaettung).toBeLessThan(ohneGlaettung)
+    expect(mitGlaettung).toBeGreaterThan(0)
+  })
+})

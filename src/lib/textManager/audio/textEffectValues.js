@@ -1,14 +1,35 @@
 /**
  * Audio-reaktive Effektwerte für Text-Objekte.
  *
- * 1:1 aus textManager.js herausgelöst (getAudioReactiveValues,
- * _calculateTextEffectValue). Text-Sonderfälle werden hier berechnet, alle
- * übrigen Effekte kommen aus der gemeinsamen Engine der Canvas-Bilder.
+ * Aus textManager.js herausgelöst (getAudioReactiveValues,
+ * _calculateTextEffectValue). Die Auswertung der Konfiguration übernimmt die
+ * gemeinsame Engine (audio/audioReactiveEngine.js); hier bleiben nur die
+ * Text-Sonderfälle und die Text-eigene Hüllkurve.
  *
  * @module textManager/audio/textEffectValues
  */
-import { makeLevelResolver } from '../../audio/ReactiveLevel.js'
+import { computeAudioReactiveValues } from '../../audio/audioReactiveEngine.js'
 import { calculateBeatPulse, calculateEffectValue } from '../../audio/index.js'
+
+/**
+ * Text-spezifische Optionen für die Hüllkurve des Level-Resolvers.
+ *
+ * Der Text-Pfad steuert Vor-Smoothing, Schwelle und Attack/Release explizit,
+ * während Bilder und Kacheln sie aus dem einzelnen `smoothing`-Regler
+ * ableiten. Sind `attack`/`release` gesetzt, haben sie Vorrang (siehe
+ * computeReactiveLevel).
+ *
+ * @param {object} audioSettings - textObj.audioReactive
+ * @returns {object} Optionen für makeLevelResolver
+ */
+function textLevelOptions(audioSettings) {
+  return {
+    preSmoothing: (audioSettings.smoothing ?? 50) / 100,
+    threshold: (audioSettings.threshold || 0) / 100,
+    attack: (audioSettings.attack ?? 90) / 100,
+    release: (audioSettings.release ?? 50) / 100,
+  }
+}
 
 /**
  * Berechnet für alle aktivierten Effekte einer Text-Konfiguration die Werte.
@@ -17,59 +38,18 @@ import { calculateBeatPulse, calculateEffectValue } from '../../audio/index.js'
  * @returns {{hasEffects: true, effects: Record<string, object>}|null}
  */
 export function getAudioReactiveValues(audioSettings) {
-  if (!audioSettings || !audioSettings.enabled) {
-    return null
-  }
+  if (!audioSettings || !audioSettings.enabled) return null
 
-  const audioData = window.audioAnalysisData
-  if (!audioData) return null
-
-  const effects = audioSettings.effects
-  if (!effects) return null
-
-  // ✨ Geteilte, kontinuierliche Reaktions-Berechnung (wie Bilder/Hintergründe):
-  //  - kontinuierliches Vor-Smoothing statt binärem useSmooth>30
-  //  - funktionierender Beat-Boost (nutzt jetzt vorhandene Beat-Daten)
-  //  - Threshold-Gate + explizites Attack/Release (Text-spezifisch)
-  //  - individuelle Audio-Quelle pro Effekt (Parität mit Bildern)
-  // Der Resolver berechnet jede Quelle nur einmal pro Frame.
-  const globalSource = audioSettings.source || 'bass'
-  const resolveLevel = makeLevelResolver(audioSettings, {
-    audioData,
-    preSmoothing: (audioSettings.smoothing ?? 50) / 100,
-    threshold: (audioSettings.threshold || 0) / 100,
-    attack: (audioSettings.attack ?? 90) / 100,
-    release: (audioSettings.release ?? 50) / 100,
-    beatBoost: audioSettings.beatBoost ?? 1.0,
-    phase: audioSettings.phase || 0,
-    easing: audioSettings.easing || 'linear',
-    gain: audioSettings.gain ?? 1.0,
-  })
-
-  // Ergebnis-Objekt für alle aktivierten Effekte
-  const result = {
-    hasEffects: false,
-    effects: {},
-  }
-
-  // Berechne Werte für jeden aktivierten Effekt
-  for (const [effectName, effectConfig] of Object.entries(effects)) {
-    if (effectConfig && effectConfig.enabled) {
-      const effectSource = effectConfig.source || globalSource
-      const baseLevel = resolveLevel(effectSource)
-      const intensity = (effectConfig.intensity || 80) / 100
-      const normalizedLevel = Math.min(1, baseLevel * intensity)
-
-      result.hasEffects = true
-      result.effects[effectName] = calculateTextEffectValue(
-        effectName,
-        normalizedLevel,
-        effectConfig,
-      )
-    }
-  }
-
-  return result.hasEffects ? result : null
+  // ✨ Geteilte Engine mit Bildern/Hintergrund/Kacheln/Lauftext; der Text
+  // ergänzt nur seine eigene Hüllkurve (Vor-Smoothing, Schwelle,
+  // Attack/Release) und seine Effekt-Sonderfälle.
+  return computeAudioReactiveValues(
+    audioSettings,
+    audioSettings,
+    window.audioAnalysisData,
+    calculateTextEffectValue,
+    textLevelOptions(audioSettings),
+  )
 }
 
 /**

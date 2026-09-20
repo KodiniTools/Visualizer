@@ -40,7 +40,7 @@ export function getFadeOpacity(textObj, now = Date.now()) {
 export function restartFade(textObj) {
   if (!textObj || !textObj.animation) return
 
-  const state = textObj.animation._state
+  const state = ensureAnimationState(textObj.animation)
   state.fadeStartTime = null
   state.fadePhase = null
 }

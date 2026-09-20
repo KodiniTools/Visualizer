@@ -4,6 +4,7 @@
  * @module textManager/animation/scale
  */
 import { resolveTimeline } from './timeline.js'
+import { ensureAnimationState } from './state.js'
 
 /**
  * Berechnet den Skalierungsfaktor für die Scale-Animation.
@@ -35,5 +36,5 @@ export function getScaleValue(textObj, now = Date.now()) {
 export function restartScale(textObj) {
   if (!textObj || !textObj.animation) return
 
-  textObj.animation._state.scaleStartTime = null
+  ensureAnimationState(textObj.animation).scaleStartTime = null
 }

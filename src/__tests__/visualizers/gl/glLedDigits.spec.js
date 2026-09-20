@@ -8,9 +8,11 @@ import {
 } from '../../../lib/visualizers/gl/presets/glLedDigits.js'
 import { glPresetSpecs } from '../../../lib/visualizers/gl/index.js'
 
+const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
 describe('gl/presets/glLedDigits', () => {
-  it('hat für jede Ziffer 1–5 eine gültige 5×7-Bitmap', () => {
-    for (const d of [1, 2, 3, 4, 5]) {
+  it('hat für jede Ziffer 0–9 eine gültige 5×7-Bitmap', () => {
+    for (const d of DIGITS) {
       const bm = DIGIT_BITMAPS[d]
       expect(bm, `Ziffer ${d}`).toHaveLength(DIGIT_ROWS)
       for (const row of bm) {
@@ -20,9 +22,9 @@ describe('gl/presets/glLedDigits', () => {
     }
   })
 
-  it('unterscheidet alle fünf Ziffern', () => {
+  it('unterscheidet alle zehn Ziffern', () => {
     const keys = new Set(Object.values(DIGIT_BITMAPS).map((bm) => bm.join('')))
-    expect(keys.size).toBe(5)
+    expect(keys.size).toBe(10)
   })
 
   it('kodiert Zeilen mit der linken Spalte als höchstem Bit', () => {
@@ -41,8 +43,8 @@ describe('gl/presets/glLedDigits', () => {
     expect(frag).toContain('ledLamp(')
   })
 
-  it('ist unter glLedDigit1–5 registriert, mit Namen und Canvas2D-Fallback', () => {
-    for (const d of [1, 2, 3, 4, 5]) {
+  it('ist unter glLedDigit0–9 registriert, mit Namen und Canvas2D-Fallback', () => {
+    for (const d of DIGITS) {
       const spec = glPresetSpecs[`glLedDigit${d}`]
       expect(spec).toBeDefined()
       expect(spec.name_de).toBe(`LED-Ziffer ${d} (GPU)`)
@@ -52,7 +54,8 @@ describe('gl/presets/glLedDigits', () => {
   })
 
   it('lehnt unbekannte Ziffern ab', () => {
-    expect(() => makeLedDigitPreset(7)).toThrow(/Bitmap/)
+    expect(() => makeLedDigitPreset(10)).toThrow(/Bitmap/)
+    expect(() => makeLedDigitPreset(-1)).toThrow(/Bitmap/)
   })
 
   it('zeichnet den Fallback ohne Fehler auf einen 2D-Context', () => {

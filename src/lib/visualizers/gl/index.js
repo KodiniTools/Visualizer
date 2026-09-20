@@ -51,11 +51,16 @@ import { glLedBlinder as glLedBlinderSpec } from './presets/glLedBlinder.js'
 import { glLedSunstrip as glLedSunstripSpec } from './presets/glLedSunstrip.js'
 import { glLedHexPanel as glLedHexPanelSpec } from './presets/glLedHexPanel.js'
 import {
+  glLedDigit0 as glLedDigit0Spec,
   glLedDigit1 as glLedDigit1Spec,
   glLedDigit2 as glLedDigit2Spec,
   glLedDigit3 as glLedDigit3Spec,
   glLedDigit4 as glLedDigit4Spec,
   glLedDigit5 as glLedDigit5Spec,
+  glLedDigit6 as glLedDigit6Spec,
+  glLedDigit7 as glLedDigit7Spec,
+  glLedDigit8 as glLedDigit8Spec,
+  glLedDigit9 as glLedDigit9Spec,
 } from './presets/glLedDigits.js'
 import { glFootlights as glFootlightsSpec } from './presets/glFootlights.js'
 import { glCornerBeams as glCornerBeamsSpec } from './presets/glCornerBeams.js'
@@ -139,11 +144,16 @@ export const glPresetSpecs = {
   glLedBlinder: glLedBlinderSpec,
   glLedSunstrip: glLedSunstripSpec,
   glLedHexPanel: glLedHexPanelSpec,
+  glLedDigit0: glLedDigit0Spec,
   glLedDigit1: glLedDigit1Spec,
   glLedDigit2: glLedDigit2Spec,
   glLedDigit3: glLedDigit3Spec,
   glLedDigit4: glLedDigit4Spec,
   glLedDigit5: glLedDigit5Spec,
+  glLedDigit6: glLedDigit6Spec,
+  glLedDigit7: glLedDigit7Spec,
+  glLedDigit8: glLedDigit8Spec,
+  glLedDigit9: glLedDigit9Spec,
   glFootlights: glFootlightsSpec,
   glCornerBeams: glCornerBeamsSpec,
   glSideLights: glSideLightsSpec,

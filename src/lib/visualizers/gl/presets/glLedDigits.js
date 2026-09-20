@@ -1,11 +1,11 @@
 /**
- * GPU presets: LED-Ziffern 1–5 – eine 5×7-Punktmatrix aus runden LED-Lampen im
+ * GPU presets: LED-Ziffern 0–9 – eine 5×7-Punktmatrix aus runden LED-Lampen im
  * Stil des LED-Sunstrips (Linsen, Fassung, Bloom, dunkles Gehäuse, Lichtstreuung).
  * Die Lampen der Ziffer leuchten immer (Grundhelligkeit), das Spektrum je Spalte,
  * ein Lauflicht mit den Mitten und Onsets treiben sie an; die übrigen Lampen
  * glimmen wie beim Sunstrip unbeleuchtet mit.
  *
- * Eine Fabrik erzeugt alle fünf Presets aus je einer Bitmap; die Bitmap wird als
+ * Eine Fabrik erzeugt alle zehn Presets aus je einer Bitmap; die Bitmap wird als
  * Konstanten in den Shader gebacken (kein Uniform-Upload pro Frame).
  *
  * @module visualizers/gl/presets/glLedDigits
@@ -15,15 +15,20 @@ export const DIGIT_COLS = 5
 export const DIGIT_ROWS = 7
 
 /**
- * 5×7-Bitmaps, Zeile 0 = oben, '#' = Lampe an. Klassische Dot-Matrix-Schrift.
+ * 5×7-Bitmaps für 0–9, Zeile 0 = oben, '#' = Lampe an. Klassische Dot-Matrix-Schrift.
  * @type {Record<number, string[]>}
  */
 export const DIGIT_BITMAPS = {
+  0: ['.###.', '#...#', '#..##', '#.#.#', '##..#', '#...#', '.###.'],
   1: ['..#..', '.##..', '#.#..', '..#..', '..#..', '..#..', '#####'],
   2: ['.###.', '#...#', '....#', '...#.', '..#..', '.#...', '#####'],
   3: ['.###.', '#...#', '....#', '.###.', '....#', '#...#', '.###.'],
   4: ['...#.', '..##.', '.#.#.', '#..#.', '#####', '...#.', '...#.'],
   5: ['#####', '#....', '####.', '....#', '....#', '#...#', '.###.'],
+  6: ['..##.', '.#...', '#....', '####.', '#...#', '#...#', '.###.'],
+  7: ['#####', '....#', '...#.', '..#..', '.#...', '.#...', '.#...'],
+  8: ['.###.', '#...#', '#...#', '.###.', '#...#', '#...#', '.###.'],
+  9: ['.###.', '#...#', '#...#', '.####', '....#', '..#..', '.##..'],
 }
 
 /**
@@ -181,7 +186,7 @@ function buildFallback(bitmap) {
 
 /**
  * Erzeugt das Preset für eine Ziffer.
- * @param {1|2|3|4|5} digit
+ * @param {0|1|2|3|4|5|6|7|8|9} digit
  */
 export function makeLedDigitPreset(digit) {
   const bitmap = DIGIT_BITMAPS[digit]
@@ -196,8 +201,13 @@ export function makeLedDigitPreset(digit) {
   }
 }
 
+export const glLedDigit0 = makeLedDigitPreset(0)
 export const glLedDigit1 = makeLedDigitPreset(1)
 export const glLedDigit2 = makeLedDigitPreset(2)
 export const glLedDigit3 = makeLedDigitPreset(3)
 export const glLedDigit4 = makeLedDigitPreset(4)
 export const glLedDigit5 = makeLedDigitPreset(5)
+export const glLedDigit6 = makeLedDigitPreset(6)
+export const glLedDigit7 = makeLedDigitPreset(7)
+export const glLedDigit8 = makeLedDigitPreset(8)
+export const glLedDigit9 = makeLedDigitPreset(9)

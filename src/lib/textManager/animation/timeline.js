@@ -159,7 +159,9 @@ export function resolveTimeline(animation, cfg, stateKey, now = Date.now()) {
 
   // Loop-Handling: nach loopDelay von vorn beginnen
   if (isComplete && cfg.loop) {
-    const loopDelay = cfg.loopDelay || DEFAULT_LOOP_DELAY
+    // `??` statt `||`: eine bewusst eingestellte Pause von 0 ms bedeutet
+    // "nahtlos wiederholen" und darf nicht zum Default werden.
+    const loopDelay = cfg.loopDelay ?? DEFAULT_LOOP_DELAY
     const completionTime = startTime + cycleDuration(cfg, duration, hold)
 
     if (now - completionTime >= loopDelay) {

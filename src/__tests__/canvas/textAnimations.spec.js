@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { applyEasing } from '../../lib/textManager/animation/easing.js'
 import { ensureAnimationState } from '../../lib/textManager/animation/state.js'
+import { resolveTimeline } from '../../lib/textManager/animation/timeline.js'
+import { getFadeOpacity } from '../../lib/textManager/animation/fade.js'
+import { getScaleValue } from '../../lib/textManager/animation/scale.js'
+import { getSlideOffset } from '../../lib/textManager/animation/slide.js'
 import { easeIn as audioEaseIn, easeOut as audioEaseOut } from '../../lib/audio/EasingFunctions.js'
 
 /**
@@ -64,5 +68,177 @@ describe('ensureAnimationState', () => {
     const animation = { _state: vorhanden }
     expect(ensureAnimationState(animation)).toBe(vorhanden)
     expect(animation._state).toEqual(vorhanden)
+  })
+})
+
+describe('resolveTimeline', () => {
+  const T0 = 1_700_000_000_000
+
+  /** Minimale Animations-Hülle mit einer Konfiguration unter `key`. */
+  function anim(cfg) {
+    return { _state: { startTime: null, isPlaying: false, currentIndex: 0 }, cfg }
+  }
+
+  /** Fortschritt zum Zeitpunkt T0 + ms. */
+  function p(animation, cfg, ms) {
+    return resolveTimeline(animation, cfg, 'testStartTime', T0 + ms)
+  }
+
+  it('startet erst beim ERSTEN Aufruf, nicht beim Aktivieren', () => {
+    const animation = {}
+    const cfg = { direction: 'in', duration: 1000, easing: 'linear' }
+
+    // Quirk: wird die Animation erst nach 300ms zum ersten Mal abgefragt,
+    // beginnt sie dort – nicht rueckwirkend.
+    expect(resolveTimeline(animation, cfg, 'testStartTime', T0 + 300)).toEqual({
+      p: 0,
+      isComplete: false,
+    })
+    expect(animation._state.testStartTime).toBe(T0 + 300)
+  })
+
+  it('legt den Zustand an und merkt sich den Startzeitpunkt', () => {
+    const animation = {}
+    const cfg = { direction: 'in', duration: 1000, easing: 'linear' }
+
+    resolveTimeline(animation, cfg, 'testStartTime', T0)
+    expect(animation._state.testStartTime).toBe(T0)
+
+    // Der Startzeitpunkt bleibt über Frames hinweg stehen
+    resolveTimeline(animation, cfg, 'testStartTime', T0 + 500)
+    expect(animation._state.testStartTime).toBe(T0)
+  })
+
+  it('hält während der Start-Verzögerung den Ausgangswert', () => {
+    const ein = { direction: 'in', duration: 1000, startDelay: 300, easing: 'linear' }
+    const aus = { direction: 'out', duration: 1000, startDelay: 300, easing: 'linear' }
+
+    expect(p(anim(), ein, 0)).toEqual({ p: 0, isComplete: false })
+    expect(p(anim(), aus, 0)).toEqual({ p: 1, isComplete: false })
+  })
+
+  it('läuft bei "in" ohne Halte-Phase von 0 nach 1', () => {
+    const a = anim()
+    const cfg = { direction: 'in', duration: 1000, easing: 'linear' }
+
+    expect(p(a, cfg, 0).p).toBe(0)
+    expect(p(a, cfg, 250).p).toBeCloseTo(0.25, 10)
+    expect(p(a, cfg, 1000)).toEqual({ p: 1, isComplete: true })
+  })
+
+  it('hält bei "in" mit Anzeigedauer und läuft dann zurück auf 0', () => {
+    const a = anim()
+    const cfg = {
+      direction: 'in',
+      duration: 1000,
+      easing: 'linear',
+      permanent: false,
+      displayDuration: 2000,
+    }
+
+    p(a, cfg, 0) // startet die Timeline bei T0
+    expect(p(a, cfg, 500).p).toBeCloseTo(0.5, 10)
+    expect(p(a, cfg, 1500)).toEqual({ p: 1, isComplete: false }) // Halte-Phase
+    expect(p(a, cfg, 3500).p).toBeCloseTo(0.5, 10) // Ausgang
+    expect(p(a, cfg, 4000)).toEqual({ p: 0, isComplete: true })
+  })
+
+  it('hält bei "out" zuerst und läuft dann von 1 nach 0', () => {
+    const a = anim()
+    const cfg = {
+      direction: 'out',
+      duration: 1000,
+      easing: 'linear',
+      permanent: false,
+      displayDuration: 1000,
+    }
+
+    p(a, cfg, 0) // startet die Timeline bei T0
+    expect(p(a, cfg, 500)).toEqual({ p: 1, isComplete: false })
+    expect(p(a, cfg, 1500).p).toBeCloseTo(0.5, 10)
+    expect(p(a, cfg, 2000)).toEqual({ p: 0, isComplete: true })
+  })
+
+  it('durchläuft bei "inOut" auch ohne Anzeigedauer beide Phasen', () => {
+    const a = anim()
+    const cfg = { direction: 'inOut', duration: 1000, easing: 'linear' }
+
+    p(a, cfg, 0) // startet die Timeline bei T0
+    expect(p(a, cfg, 500).p).toBeCloseTo(0.5, 10)
+    expect(p(a, cfg, 1000)).toEqual({ p: 1, isComplete: false }) // Ausgang startet bei 1
+    expect(p(a, cfg, 1500).p).toBeCloseTo(0.5, 10)
+    expect(p(a, cfg, 2000)).toEqual({ p: 0, isComplete: true })
+  })
+
+  it('startet nach loopDelay neu und verschiebt den Startzeitpunkt', () => {
+    const a = anim()
+    const cfg = { direction: 'in', duration: 1000, easing: 'linear', loop: true, loopDelay: 500 }
+
+    p(a, cfg, 0) // startet die Timeline bei T0
+    expect(p(a, cfg, 1000)).toEqual({ p: 1, isComplete: true })
+    expect(p(a, cfg, 1499)).toEqual({ p: 1, isComplete: true })
+    expect(p(a, cfg, 1500)).toEqual({ p: 0, isComplete: false })
+    expect(a._state.testStartTime).toBe(T0 + 1500)
+    expect(p(a, cfg, 2000).p).toBeCloseTo(0.5, 10)
+  })
+
+  it('liefert für unbekannte Richtungen den Endwert', () => {
+    expect(p(anim(), { direction: 'unbekannt', duration: 1000 }, 100)).toEqual({
+      p: 1,
+      isComplete: false,
+    })
+  })
+})
+
+describe('Abbildung des Fortschritts auf die Animationswerte', () => {
+  const T0 = 1_700_000_000_000
+
+  /** Text-Objekt mit derselben Konfiguration für alle drei Animationen. */
+  function textObj(cfg) {
+    return {
+      animation: {
+        _state: { startTime: null, isPlaying: false, currentIndex: 0 },
+        fade: { enabled: true, ...cfg },
+        scale: { enabled: true, startScale: 0, endScale: 2, ...cfg },
+        slide: { enabled: true, from: 'left', distance: 100, ...cfg },
+      },
+    }
+  }
+
+  // Der Vertrag aus docs/REFACTORING-textManager.md: Fade, Scale und Slide
+  // sind dieselbe Timeline mit unterschiedlicher Wertabbildung.
+  it.each([0, 250, 500, 750, 1000, 1500, 2000])(
+    'Fade, Scale und Slide bilden bei t = %ims denselben Fortschritt ab',
+    (ms) => {
+      const cfg = { direction: 'inOut', duration: 1000, easing: 'ease' }
+      const now = T0 + ms
+
+      // Referenz-Fortschritt auf einem eigenen Objekt, damit der Zustand
+      // der drei Animationen unberührt bleibt
+      const { p } = resolveTimeline({}, cfg, 'refStartTime', now)
+
+      expect(getFadeOpacity(textObj(cfg), now).opacity).toBeCloseTo(p, 10)
+      expect(getScaleValue(textObj(cfg), now).scale).toBeCloseTo(0 + (2 - 0) * p, 10)
+      expect(getSlideOffset(textObj(cfg), 800, 600, now).offsetX).toBeCloseTo(-800 * (1 - p), 10)
+    },
+  )
+
+  it('liefert bei deaktivierter Animation neutrale Werte', () => {
+    const aus = { animation: { _state: {}, fade: {}, scale: {}, slide: {} } }
+    expect(getFadeOpacity(aus)).toEqual({ opacity: 1, isComplete: true })
+    expect(getScaleValue(aus)).toEqual({ scale: 1, isComplete: true })
+    expect(getSlideOffset(aus, 800, 600)).toEqual({ offsetX: 0, offsetY: 0, isComplete: true })
+  })
+
+  it('verschiebt Slide je nach Kante und Distanz', () => {
+    const now = T0
+    const kante = (from, distance = 100) =>
+      getSlideOffset(textObj({ direction: 'in', from, distance }), 800, 600, now)
+
+    expect(kante('left')).toMatchObject({ offsetX: -800, offsetY: 0 })
+    expect(kante('right')).toMatchObject({ offsetX: 800, offsetY: 0 })
+    expect(kante('top')).toMatchObject({ offsetX: 0, offsetY: -600 })
+    expect(kante('bottom')).toMatchObject({ offsetX: 0, offsetY: 600 })
+    expect(kante('right', 50)).toMatchObject({ offsetX: 400 })
   })
 })

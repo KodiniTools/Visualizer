@@ -573,6 +573,9 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   const beatPunchEnabled = ref(false)
   const beatPunchSource = ref('all') // 'bass' | 'mid' | 'treble' | 'all'
   const beatPunchStrength = ref(50) // 0–100 → bis zu +12% Zoom bei 100%
+  // Variation: 0 = ganze Ebene gleich; höher = Spalten der Ebene reagieren mit
+  // eigener Stärke und leichtem Versatz auf jeden Beat (core/beatPunchVariation.js)
+  const beatPunchVariation = ref(0) // 0–100
 
   // Onset-Flourishes: beat-getriggerte Extra-Effekte in ausgewählten Flaggschiff-
   // Visualizern (Partikel-Burst, Blüten-Pop, Grid-Punch, Orb-Pop). Opt-in.
@@ -623,6 +626,9 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   }
   function setBeatPunchStrength(v) {
     beatPunchStrength.value = Math.max(0, Math.min(100, Math.round(v)))
+  }
+  function setBeatPunchVariation(v) {
+    beatPunchVariation.value = Math.max(0, Math.min(100, Math.round(v)))
   }
   function setOnsetFlourishEnabled(v) {
     onsetFlourishEnabled.value = !!v
@@ -707,9 +713,11 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     beatPunchEnabled,
     beatPunchSource,
     beatPunchStrength,
+    beatPunchVariation,
     setBeatPunchEnabled,
     setBeatPunchSource,
     setBeatPunchStrength,
+    setBeatPunchVariation,
     // ✨ NEU: Onset-Flourishes (beat-getriggerte Effekte in Flaggschiff-Visualizern)
     onsetFlourishEnabled,
     onsetFlourishStrength,

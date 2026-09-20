@@ -104,6 +104,7 @@ void main() {
 
 export const glSphere = {
   id: 'glSphere',
+  edgeFade: 'radial',
   name_de: 'Audio-Kugel (GPU)',
   name_en: 'Audio Sphere (GPU)',
   frag,

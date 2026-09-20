@@ -11,6 +11,7 @@ describe('gl presets', () => {
       expect(typeof spec.name_en).toBe('string')
       expect(spec.frag).toMatch(/void\s+main\s*\(/)
       expect(spec.frag).toMatch(/fragColor/)
+      if (spec.edgeFade !== undefined) expect(['none', 'radial', 'rect']).toContain(spec.edgeFade)
       if (spec.needsImage) expect(spec.fallback).toBeUndefined()
       else expect(typeof spec.fallback?.draw).toBe('function')
       if (spec.uniforms) {

@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { drawScaledVisualizer } from '../lib/visualizers/core/edgeFade.js'
 import { Visualizers } from '../lib/visualizers/index.js'
 import { workerManager } from '../lib/workerManager.js'
 import { createPostProcessor, shouldRunPostFx, FrameMonitor } from '../lib/postfx/index.js'
@@ -398,57 +399,31 @@ export function useRenderLoop({
     if (vizWorkerActive && vizWorkerBitmap) {
       const bitmap = vizWorkerBitmap
       return (targetCtx, width, height) => {
-        const scale = visualizerStore.visualizerScale
-        const posX = visualizerStore.visualizerX
-        const posY = visualizerStore.visualizerY
-        const scaledWidth = bitmap.width * scale
-        const scaledHeight = bitmap.height * scale
-        const destX = width * posX - scaledWidth / 2
-        const destY = height * posY - scaledHeight / 2
-
-        if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
-          targetCtx.drawImage(
-            bitmap,
-            0,
-            0,
-            bitmap.width,
-            bitmap.height,
-            destX,
-            destY,
-            scaledWidth,
-            scaledHeight,
-          )
-        } else {
-          targetCtx.drawImage(bitmap, 0, 0, width, height)
-        }
+        drawScaledVisualizer(targetCtx, bitmap, bitmap.width, bitmap.height, width, height, {
+          scale: visualizerStore.visualizerScale,
+          posX: visualizerStore.visualizerX,
+          posY: visualizerStore.visualizerY,
+          edgeFade: Visualizers[visualizerStore.selectedVisualizer]?.edgeFade,
+        })
       }
     }
 
     if (visualizerCacheCanvas) {
       return (targetCtx, width, height) => {
-        const scale = visualizerStore.visualizerScale
-        const posX = visualizerStore.visualizerX
-        const posY = visualizerStore.visualizerY
-        const scaledWidth = visualizerCacheCanvas.width * scale
-        const scaledHeight = visualizerCacheCanvas.height * scale
-        const destX = width * posX - scaledWidth / 2
-        const destY = height * posY - scaledHeight / 2
-
-        if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
-          targetCtx.drawImage(
-            visualizerCacheCanvas,
-            0,
-            0,
-            visualizerCacheCanvas.width,
-            visualizerCacheCanvas.height,
-            destX,
-            destY,
-            scaledWidth,
-            scaledHeight,
-          )
-        } else {
-          targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height)
-        }
+        drawScaledVisualizer(
+          targetCtx,
+          visualizerCacheCanvas,
+          visualizerCacheCanvas.width,
+          visualizerCacheCanvas.height,
+          width,
+          height,
+          {
+            scale: visualizerStore.visualizerScale,
+            posX: visualizerStore.visualizerX,
+            posY: visualizerStore.visualizerY,
+            edgeFade: Visualizers[visualizerStore.selectedVisualizer]?.edgeFade,
+          },
+        )
       }
     }
 
@@ -642,29 +617,20 @@ export function useRenderLoop({
           multiLayerCompositeCtx.save()
           multiLayerCompositeCtx.globalCompositeOperation = layer.blendMode || 'source-over'
 
-          const scale = layer.scale
-          const posX = layer.x
-          const posY = layer.y
-          const scaledWidth = canvas.width * scale
-          const scaledHeight = canvas.height * scale
-          const destX = canvas.width * posX - scaledWidth / 2
-          const destY = canvas.height * posY - scaledHeight / 2
-
-          if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
-            multiLayerCompositeCtx.drawImage(
-              layerCache.canvas,
-              0,
-              0,
-              canvas.width,
-              canvas.height,
-              destX,
-              destY,
-              scaledWidth,
-              scaledHeight,
-            )
-          } else {
-            multiLayerCompositeCtx.drawImage(layerCache.canvas, 0, 0)
-          }
+          drawScaledVisualizer(
+            multiLayerCompositeCtx,
+            layerCache.canvas,
+            canvas.width,
+            canvas.height,
+            canvas.width,
+            canvas.height,
+            {
+              scale: layer.scale,
+              posX: layer.x,
+              posY: layer.y,
+              edgeFade: Visualizers[layer.visualizerId]?.edgeFade,
+            },
+          )
           multiLayerCompositeCtx.restore()
         }
 
@@ -787,31 +753,12 @@ export function useRenderLoop({
             if (vizWorkerBitmap) {
               const bitmap = vizWorkerBitmap
               drawVisualizerCallback = (targetCtx, w, h) => {
-                const scale = visualizerStore.visualizerScale
-                const posX = visualizerStore.visualizerX
-                const posY = visualizerStore.visualizerY
-                const scaledW = canvas.width * scale
-                const scaledH = canvas.height * scale
-                const destX = w * posX - scaledW / 2
-                const destY = h * posY - scaledH / 2
-
-                if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
-                  targetCtx.drawImage(
-                    bitmap,
-                    0,
-                    0,
-                    canvas.width,
-                    canvas.height,
-                    destX,
-                    destY,
-                    scaledW,
-                    scaledH,
-                  )
-                } else if (w === canvas.width && h === canvas.height) {
-                  targetCtx.drawImage(bitmap, 0, 0)
-                } else {
-                  targetCtx.drawImage(bitmap, 0, 0, w, h)
-                }
+                drawScaledVisualizer(targetCtx, bitmap, canvas.width, canvas.height, w, h, {
+                  scale: visualizerStore.visualizerScale,
+                  posX: visualizerStore.visualizerX,
+                  posY: visualizerStore.visualizerY,
+                  edgeFade: visualizer.edgeFade,
+                })
               }
             }
           } else {
@@ -865,31 +812,20 @@ export function useRenderLoop({
             }
 
             drawVisualizerCallback = (targetCtx, width, height) => {
-              const scale = visualizerStore.visualizerScale
-              const posX = visualizerStore.visualizerX
-              const posY = visualizerStore.visualizerY
-              const scaledWidth = canvas.width * scale
-              const scaledHeight = canvas.height * scale
-              const destX = width * posX - scaledWidth / 2
-              const destY = height * posY - scaledHeight / 2
-
-              if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
-                targetCtx.drawImage(
-                  visualizerCacheCanvas,
-                  0,
-                  0,
-                  canvas.width,
-                  canvas.height,
-                  destX,
-                  destY,
-                  scaledWidth,
-                  scaledHeight,
-                )
-              } else if (width === canvas.width && height === canvas.height) {
-                targetCtx.drawImage(visualizerCacheCanvas, 0, 0)
-              } else {
-                targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height)
-              }
+              drawScaledVisualizer(
+                targetCtx,
+                visualizerCacheCanvas,
+                canvas.width,
+                canvas.height,
+                width,
+                height,
+                {
+                  scale: visualizerStore.visualizerScale,
+                  posX: visualizerStore.visualizerX,
+                  posY: visualizerStore.visualizerY,
+                  edgeFade: visualizer.edgeFade,
+                },
+              )
             }
           }
         }

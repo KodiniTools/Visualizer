@@ -57,6 +57,7 @@ void main() {
 
 export const glPlasma = {
   id: 'glPlasma',
+  edgeFade: 'rect',
   name_de: 'Flüssiges Licht (GPU)',
   name_en: 'Liquid Light (GPU)',
   frag,

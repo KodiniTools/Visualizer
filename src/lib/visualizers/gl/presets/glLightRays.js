@@ -48,6 +48,7 @@ void main() {
 
 export const glLightRays = {
   id: 'glLightRays',
+  edgeFade: 'radial',
   name_de: 'Lichtstrahlen (GPU)',
   name_en: 'Light Rays (GPU)',
   frag,

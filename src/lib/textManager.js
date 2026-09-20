@@ -2,10 +2,24 @@
  * TextManager - Verwaltet Text-Objekte auf dem Canvas
  * Unterstützt: Schriftarten, Größen, Farben, Stile und SCHATTEN
  * ✅ FIXED: Präzise Textmarkierung mit Schatten-, Stroke- und letterSpacing-Unterstützung
+ *
+ * Die Klasse ist Orchestrator; fachliche Teile liegen in Modulen
+ * (siehe docs/REFACTORING-textManager.md):
+ * - textManager/createTextObject.js    - Defaults neuer Text-Objekte
+ * - textManager/geometry/textBounds.js - Bounds & Treffer-Erkennung
+ * - textManager/style/textStyle.js     - Canvas-Style, Schatten, Kontur, Glow
  */
 import { makeLevelResolver } from './audio/ReactiveLevel.js'
 import { calculateBeatPulse, calculateEffectValue, getMotionOffset } from './audio/index.js'
-import { createTextAudioReactiveConfig } from './audio/audioReactiveConfig.js'
+import { createTextObject } from './textManager/createTextObject.js'
+import { findObjectAt, getObjectBounds, isPointInRect } from './textManager/geometry/textBounds.js'
+import {
+  applyTextStyle,
+  applyTextStyleForMeasurement,
+  applyTextStyleWithAudio,
+  resetShadow,
+  strongestGlow,
+} from './textManager/style/textStyle.js'
 
 export class TextManager {
   constructor(textStore) {
@@ -17,124 +31,8 @@ export class TextManager {
    * Fügt ein neues Text-Objekt hinzu
    */
   add(text, options = {}) {
-    const newText = {
-      id: Date.now() + Math.random(),
-      type: 'text',
-      content: text || 'Neuer Text',
-
-      // Position (relativ zum Canvas)
-      relX: options.relX || 0.5,
-      relY: options.relY || 0.5,
-
-      // Schrift-Eigenschaften
-      fontSize: options.fontSize || 48,
-      fontFamily: options.fontFamily || 'Arial',
-      fontWeight: options.fontWeight || 'normal',
-      fontStyle: options.fontStyle || 'normal',
-      color: options.color || '#ff0000',
-      textAlign: options.textAlign || 'center',
-      textBaseline: options.textBaseline || 'middle',
-
-      // ✨ TRANSPARENZ/DECKKRAFT (0-100%)
-      opacity: options.opacity !== undefined ? options.opacity : 100,
-
-      // ✨ BUCHSTABENABSTAND (-20 bis +50px)
-      letterSpacing: options.letterSpacing || 0,
-
-      // ✨ ZEILENABSTAND (100% - 300%)
-      lineHeightMultiplier: options.lineHeightMultiplier || 120,
-
-      // ✨ SCHATTEN-EIGENSCHAFTEN
-      shadow: {
-        color: options.shadowColor || '#000000',
-        blur: options.shadowBlur || 0,
-        offsetX: options.shadowOffsetX || 0,
-        offsetY: options.shadowOffsetY || 0,
-      },
-
-      // ✨ KONTUR/OUTLINE
-      stroke: {
-        enabled: options.strokeEnabled || false,
-        color: options.strokeColor || '#000000',
-        width: options.strokeWidth || 2,
-      },
-
-      // Rotation
-      rotation: options.rotation || 0,
-
-      // ✨ AUDIO-REAKTIVE EFFEKTE (standardmäßig aktiviert für bessere UX) –
-      // gemeinsame Struktur mit Bildern/Hintergrund/Kacheln plus Text-Extras
-      audioReactive: createTextAudioReactiveConfig({
-        enabled: options.audioReactiveEnabled !== undefined ? options.audioReactiveEnabled : true,
-        source: options.audioReactiveSource || 'bass',
-        smoothing: options.audioReactiveSmoothing || 50,
-      }),
-
-      // ✨ TEXT-ANIMATION (Typewriter, Fade, Scale, etc.)
-      animation: {
-        type: 'none', // 'none', 'typewriter', 'fade', 'scale'
-        typewriter: {
-          enabled: false,
-          speed: 50, // ms pro Buchstabe
-          startDelay: 0, // Verzögerung vor Start (ms)
-          loop: false, // Animation wiederholen
-          loopDelay: 1000, // Pause zwischen Wiederholungen (ms)
-          permanent: true, // Text nach Animation dauerhaft anzeigen
-          displayDuration: 5000, // Anzeigedauer vor dem Ausblenden (ms, wenn nicht permanent)
-          showCursor: true, // Blinkender Cursor
-          cursorChar: '|', // Cursor-Zeichen
-        },
-        // ✨ Fade-Einblendung
-        fade: {
-          enabled: false,
-          duration: 1000, // Dauer der Einblendung (ms)
-          startDelay: 0, // Verzögerung vor Start (ms)
-          direction: 'in', // 'in' = einblenden, 'out' = ausblenden, 'inOut' = ein- und ausblenden
-          loop: false, // Animation wiederholen
-          loopDelay: 1000, // Pause zwischen Wiederholungen (ms)
-          permanent: true, // Text nach Animation dauerhaft anzeigen
-          displayDuration: 5000, // Anzeigedauer vor dem Ausblenden (ms, wenn nicht permanent)
-          easing: 'ease', // 'linear', 'ease', 'easeIn', 'easeOut'
-        },
-        // ✨ NEU: Scale-Animation (Eingangs-Skalierung)
-        scale: {
-          enabled: false,
-          duration: 1000, // Dauer der Animation (ms)
-          startDelay: 0, // Verzögerung vor Start (ms)
-          startScale: 0, // Start-Skalierung (0 = unsichtbar, 1 = normal, 2 = doppelt)
-          endScale: 1, // End-Skalierung
-          direction: 'in', // 'in' = reinzoomen, 'out' = rauszoomen, 'inOut' = rein und raus
-          loop: false, // Animation wiederholen
-          loopDelay: 1000, // Pause zwischen Wiederholungen (ms)
-          permanent: true, // Text nach Animation dauerhaft anzeigen
-          displayDuration: 5000, // Anzeigedauer vor dem Ausblenden (ms, wenn nicht permanent)
-          easing: 'ease', // 'linear', 'ease', 'easeIn', 'easeOut'
-        },
-        // ✨ NEU: Slide-Animation (Hereingleiten)
-        slide: {
-          enabled: false,
-          duration: 1000, // Dauer der Animation (ms)
-          startDelay: 0, // Verzögerung vor Start (ms)
-          from: 'left', // 'left', 'right', 'top', 'bottom'
-          distance: 100, // Distanz in Prozent des Canvas (100 = vom Rand)
-          direction: 'in', // 'in' = hereinfahren, 'out' = herausfahren, 'inOut' = rein und raus
-          loop: false, // Animation wiederholen
-          loopDelay: 1000, // Pause zwischen Wiederholungen (ms)
-          permanent: true, // Text nach Animation dauerhaft anzeigen
-          displayDuration: 5000, // Anzeigedauer vor dem Ausblenden (ms, wenn nicht permanent)
-          easing: 'ease', // 'linear', 'ease', 'easeIn', 'easeOut'
-        },
-        // Interner State (wird zur Laufzeit gesetzt)
-        _state: {
-          startTime: null, // Wann die Animation gestartet wurde
-          isPlaying: false, // Läuft die Animation gerade?
-          currentIndex: 0, // Aktueller Buchstaben-Index (für Typewriter)
-        },
-      },
-    }
-
+    const newText = createTextObject(text, options)
     this.textObjects.push(newText)
-
     return newText
   }
 
@@ -174,16 +72,7 @@ export class TextManager {
    * Findet ein Text-Objekt an einer bestimmten Position
    */
   findObjectAt(x, y, targetCanvas) {
-    // Von hinten nach vorne durchgehen (oberste Ebene zuerst)
-    for (let i = this.textObjects.length - 1; i >= 0; i--) {
-      const textObj = this.textObjects[i]
-      const bounds = this.getObjectBounds(textObj, targetCanvas)
-
-      if (bounds && this.isPointInRect(x, y, bounds)) {
-        return textObj
-      }
-    }
-    return null
+    return findObjectAt(this.textObjects, x, y, targetCanvas)
   }
 
   /**
@@ -191,173 +80,28 @@ export class TextManager {
    * Berücksichtigt: Schatten, Stroke, letterSpacing, mehrzeilige Texte
    */
   getObjectBounds(textObj, targetCanvas) {
-    if (!textObj || textObj.type !== 'text') return null
-
-    const ctx = targetCanvas.getContext('2d')
-
-    // Speichere original Context-State
-    ctx.save()
-
-    // Wende Text-Style an (ohne Schatten für saubere Messung)
-    this.applyTextStyleForMeasurement(ctx, textObj)
-
-    // Teile Text in Zeilen auf
-    const lines = textObj.content.split('\n')
-
-    // ✨ DYNAMISCHER ZEILENABSTAND
-    const lineHeightMultiplier = (textObj.lineHeightMultiplier || 120) / 100
-    const lineHeight = textObj.fontSize * lineHeightMultiplier
-
-    // Finde die breiteste Zeile
-    let maxWidth = 0
-    lines.forEach((line) => {
-      const metrics = ctx.measureText(line)
-      // ✅ FIX: letterSpacing addiert sich über alle Zeichen
-      // Bei positivem letterSpacing wird Text breiter, bei negativem schmaler
-      const letterSpacingExtra = (textObj.letterSpacing || 0) * Math.max(0, line.length - 1)
-      const totalWidth = metrics.width + letterSpacingExtra
-
-      if (totalWidth > maxWidth) {
-        maxWidth = totalWidth
-      }
-    })
-
-    // Restore Context
-    ctx.restore()
-
-    // Basis-Dimensionen
-    let textWidth = maxWidth
-    let textHeight = lineHeight * lines.length
-
-    // ✅ FIX: Stroke-Breite einrechnen (erweitert Text nach allen Seiten)
-    const strokeWidth = textObj.stroke.enabled ? textObj.stroke.width || 0 : 0
-    textWidth += strokeWidth * 2
-    textHeight += strokeWidth * 2
-
-    // ✅ FIX: Schatten-Ausdehnung berechnen
-    // Schatten kann den Text in alle Richtungen erweitern
-    const shadowBlur = textObj.shadow.blur || 0
-    const shadowOffsetX = textObj.shadow.offsetX || 0
-    const shadowOffsetY = textObj.shadow.offsetY || 0
-
-    // Schatten-Blur erzeugt eine Ausdehnung in alle Richtungen
-    // Schatten-Offset verschiebt den Schatten
-    const shadowLeft = Math.max(0, shadowBlur - shadowOffsetX)
-    const shadowRight = Math.max(0, shadowBlur + shadowOffsetX)
-    const shadowTop = Math.max(0, shadowBlur - shadowOffsetY)
-    const shadowBottom = Math.max(0, shadowBlur + shadowOffsetY)
-
-    // Position in Pixel umrechnen
-    const pixelX = textObj.relX * targetCanvas.width
-    const pixelY = textObj.relY * targetCanvas.height
-
-    // Bounds basierend auf Alignment berechnen (ohne Schatten/Stroke)
-    let baseX, baseY
-
-    switch (textObj.textAlign) {
-      case 'left':
-        baseX = pixelX
-        break
-      case 'right':
-        baseX = pixelX - maxWidth
-        break
-      case 'center':
-      default:
-        baseX = pixelX - maxWidth / 2
-        break
-    }
-
-    switch (textObj.textBaseline) {
-      case 'top':
-        baseY = pixelY
-        break
-      case 'bottom':
-        baseY = pixelY - lineHeight * lines.length
-        break
-      case 'middle':
-      default:
-        baseY = pixelY - (lineHeight * lines.length) / 2
-        break
-    }
-
-    // ✅ FIX: Minimales Padding für Klickbarkeit (relativ zur Schriftgröße)
-    // Kleiner als vorher (10px), aber immer noch nutzbar
-    const basePadding = Math.max(3, textObj.fontSize * 0.05)
-
-    // ✅ FIX: Finale Bounds mit Stroke, Schatten UND Padding
-    return {
-      x: baseX - strokeWidth - shadowLeft - basePadding,
-      y: baseY - strokeWidth - shadowTop - basePadding,
-      width: maxWidth + strokeWidth * 2 + shadowLeft + shadowRight + basePadding * 2,
-      height:
-        lineHeight * lines.length + strokeWidth * 2 + shadowTop + shadowBottom + basePadding * 2,
-    }
+    return getObjectBounds(textObj, targetCanvas)
   }
 
   /**
    * Prüft ob ein Punkt in einem Rechteck liegt
    */
   isPointInRect(x, y, rect) {
-    return x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height
+    return isPointInRect(x, y, rect)
   }
 
   /**
    * ✅ Wendet Text-Stil für MESSUNG an (OHNE Schatten)
    */
   applyTextStyleForMeasurement(ctx, textObj) {
-    ctx.font = `${textObj.fontStyle} ${textObj.fontWeight} ${textObj.fontSize}px ${textObj.fontFamily}`
-    ctx.textAlign = textObj.textAlign
-    ctx.textBaseline = textObj.textBaseline
-
-    // letterSpacing für Messung
-    if (textObj.letterSpacing !== undefined && textObj.letterSpacing !== 0) {
-      ctx.letterSpacing = `${textObj.letterSpacing}px`
-    } else {
-      ctx.letterSpacing = '0px'
-    }
-
-    // Schatten explizit NICHT setzen für saubere Messung
-    ctx.shadowColor = 'transparent'
-    ctx.shadowBlur = 0
-    ctx.shadowOffsetX = 0
-    ctx.shadowOffsetY = 0
+    applyTextStyleForMeasurement(ctx, textObj)
   }
 
   /**
    * Wendet Text-Stil auf den Context an (für Zeichnen)
    */
   applyTextStyle(ctx, textObj) {
-    ctx.font = `${textObj.fontStyle} ${textObj.fontWeight} ${textObj.fontSize}px ${textObj.fontFamily}`
-    ctx.fillStyle = textObj.color
-    ctx.textAlign = textObj.textAlign
-    ctx.textBaseline = textObj.textBaseline
-
-    // ✨ BUCHSTABENABSTAND anwenden
-    if (textObj.letterSpacing !== undefined && textObj.letterSpacing !== 0) {
-      ctx.letterSpacing = `${textObj.letterSpacing}px`
-    } else {
-      ctx.letterSpacing = '0px'
-    }
-
-    // ✨ SCHATTEN anwenden
-    if (textObj.shadow.blur > 0 || textObj.shadow.offsetX !== 0 || textObj.shadow.offsetY !== 0) {
-      ctx.shadowColor = textObj.shadow.color
-      ctx.shadowBlur = textObj.shadow.blur
-      ctx.shadowOffsetX = textObj.shadow.offsetX
-      ctx.shadowOffsetY = textObj.shadow.offsetY
-    } else {
-      ctx.shadowColor = 'transparent'
-      ctx.shadowBlur = 0
-      ctx.shadowOffsetX = 0
-      ctx.shadowOffsetY = 0
-    }
-
-    // Kontur vorbereiten
-    if (textObj.stroke.enabled) {
-      ctx.strokeStyle = textObj.stroke.color
-      ctx.lineWidth = textObj.stroke.width
-      ctx.lineJoin = 'round'
-    }
+    applyTextStyle(ctx, textObj)
   }
 
   /**
@@ -365,10 +109,7 @@ export class TextManager {
    * Verhindert "Schatten-Lecks" auf nachfolgende Canvas-Elemente
    */
   resetShadow(ctx) {
-    ctx.shadowColor = 'transparent'
-    ctx.shadowBlur = 0
-    ctx.shadowOffsetX = 0
-    ctx.shadowOffsetY = 0
+    resetShadow(ctx)
   }
 
   /**
@@ -1438,73 +1179,14 @@ export class TextManager {
    * Stärkstes Leuchten aus allen glow-liefernden Effekten (oder null).
    */
   _strongestGlow(effects) {
-    const candidates = [
-      effects.glow,
-      effects.beatPulse,
-      effects.bpmPulse,
-      effects.freqSplit,
-    ].filter((e) => e && e.glowBlur > 0)
-    if (candidates.length === 0) return null
-    return candidates.reduce((a, b) => (b.glowBlur > a.glowBlur ? b : a))
+    return strongestGlow(effects)
   }
 
   /**
    * ✨ NEU: Wendet Text-Stil mit Audio-Reaktiven Überschreibungen an
    */
   applyTextStyleWithAudio(ctx, textObj, audioReactive, useAudioGlow) {
-    ctx.font = `${textObj.fontStyle} ${textObj.fontWeight} ${textObj.fontSize}px ${textObj.fontFamily}`
-    ctx.fillStyle = textObj.color
-    ctx.textAlign = textObj.textAlign
-    ctx.textBaseline = textObj.textBaseline
-
-    // ✨ BUCHSTABENABSTAND (statisch + audio-reaktiv)
-    let letterSpacing = textObj.letterSpacing || 0
-    if (audioReactive && audioReactive.hasEffects && audioReactive.effects.letterSpacing) {
-      letterSpacing += audioReactive.effects.letterSpacing.letterSpacing
-    }
-    ctx.letterSpacing = `${letterSpacing}px`
-
-    // ✨ SCHATTEN / GLOW
-    const audioGlow = useAudioGlow ? this._strongestGlow(audioReactive.effects) : null
-    if (audioGlow) {
-      // Audio-reaktiver Glow überschreibt statischen Schatten (stärkstes Leuchten
-      // aus Glow/Beat-Puls/BPM-Puls/Frequenz-Split gewinnt).
-      ctx.shadowColor = audioGlow.glowColor
-      ctx.shadowBlur = audioGlow.glowBlur
-      ctx.shadowOffsetX = 0
-      ctx.shadowOffsetY = 0
-    } else if (
-      textObj.shadow.blur > 0 ||
-      textObj.shadow.offsetX !== 0 ||
-      textObj.shadow.offsetY !== 0
-    ) {
-      // Statischer Schatten
-      ctx.shadowColor = textObj.shadow.color
-      ctx.shadowBlur = textObj.shadow.blur
-      ctx.shadowOffsetX = textObj.shadow.offsetX
-      ctx.shadowOffsetY = textObj.shadow.offsetY
-    } else {
-      ctx.shadowColor = 'transparent'
-      ctx.shadowBlur = 0
-      ctx.shadowOffsetX = 0
-      ctx.shadowOffsetY = 0
-    }
-
-    // ✨ KONTUR (statisch + audio-reaktiv)
-    let strokeWidth = textObj.stroke.width || 2
-    let strokeEnabled = textObj.stroke.enabled
-
-    if (audioReactive && audioReactive.hasEffects && audioReactive.effects.strokeWidth) {
-      // Audio-reaktive Kontur aktivieren und Breite setzen
-      strokeEnabled = true
-      strokeWidth = Math.max(strokeWidth, audioReactive.effects.strokeWidth.strokeWidth)
-    }
-
-    if (strokeEnabled) {
-      ctx.strokeStyle = textObj.stroke.color
-      ctx.lineWidth = strokeWidth
-      ctx.lineJoin = 'round'
-    }
+    applyTextStyleWithAudio(ctx, textObj, audioReactive, useAudioGlow)
   }
 
   /**

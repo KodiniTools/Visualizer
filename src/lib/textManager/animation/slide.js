@@ -4,6 +4,7 @@
  * @module textManager/animation/slide
  */
 import { resolveTimeline } from './timeline.js'
+import { ensureAnimationState } from './state.js'
 
 /**
  * Maximaler Versatz in Pixeln, abhängig von Richtung und Canvas-Größe.
@@ -65,5 +66,5 @@ export function getSlideOffset(textObj, canvasWidth, canvasHeight, now = Date.no
 export function restartSlide(textObj) {
   if (!textObj || !textObj.animation) return
 
-  textObj.animation._state.slideStartTime = null
+  ensureAnimationState(textObj.animation).slideStartTime = null
 }

@@ -320,15 +320,13 @@ identisch. Der Vergleich war Wegwerf; dauerhaft bleiben 32 Unit-Tests in
 |                           | vorher        | nachher                                 |
 | ------------------------- | ------------- | --------------------------------------- |
 | `textManager.js`          | 1.785 Zeilen  | **333**                                 |
-| Module                    | 1 Datei       | 18 (zusammen 1.771 Zeilen, inkl. JSDoc) |
-| größte Datei im Bereich   | 1.785         | 203 (`render/transform.js`)             |
-| Tests für den TextManager | 0             | 137                                     |
+| Module                    | 1 Datei       | 22 (zusammen 1.851 Zeilen, inkl. JSDoc) |
+| größte Datei im Bereich   | 1.785         | 195 (`audio/textEffectValues.js`)       |
+| Tests für den TextManager | 0             | 147                                     |
 | eslint / oxlint           | 33 / 3 Fehler | 0 / 0                                   |
-| Tests gesamt              | 457           | 526                                     |
+| Tests gesamt              | 457           | 536                                     |
 
-`render/transform.js` liegt mit 203 Zeilen knapp über dem angepeilten Maximum
-von 200. Die Datei ist inhaltlich geschlossen (eine Transformations-Pipeline);
-ein weiterer Schnitt würde dort nur trennen, was zusammengehört.
+Jede Datei im Bereich liegt unter 200 Zeilen.
 
 ### ✅ Schritt 7 – Engine-Dedup
 
@@ -356,10 +354,67 @@ eslint).
   – jsdom kennt `scrollIntoView` nicht. Besteht unabhängig von diesen Änderungen.
 - ~~`eslint src/lib/textManager.js` meldet 33 × `no-case-declarations`~~ – in
   Schritt 6 behoben.
-- `oxlint` meldet in `textManager.js` ein leeres `catch (e) { /* ignore */ }` in
-  `draw()`. Bewusst leer (Recording darf nicht abbrechen), aber der Parameter
-  ließe sich entfernen.
-- `_getTypewriterText` hat **keine** defensive `_state`-Initialisierung, anders
-  als Fade/Scale/Slide: bei einem Text-Objekt ohne `animation._state` (etwa aus
-  einem alten Preset) wirft es. Bewusst unverändert übernommen – eigener Fix,
-  da es eine Verhaltensänderung wäre.
+- ~~`oxlint` meldet in `textManager.js` ein leeres `catch (e)`~~ – in Schritt 7
+  behoben (optional catch binding).
+- ~~`_getTypewriterText` hat **keine** defensive `_state`-Initialisierung~~ – im
+  Nacharbeits-Commit behoben, siehe unten.
+
+---
+
+## 9. Nacharbeit
+
+### ✅ Fehlender Animations-Zustand
+
+Der Befund war größer als notiert: nicht nur `getTypewriterText`, sondern **alle
+vier `restart*`-Funktionen** griffen ungeschützt auf `animation._state` zu.
+Alle Zugriffe laufen jetzt über `ensureAnimationState()`. Statt eines
+TypeError wird der Zustand angelegt und die Animation läuft normal.
+
+Dabei aufgefallen: die vier `restart*`-Methoden des `TextManager` werden
+derzeit **nur von Tests** aufgerufen. Die UI (`useTextAnimations.js`,
+`TextManagerPanel.vue`) baut ihren eigenen `_state`-Reset. Diese Duplikation
+besteht weiter – sie zu vereinheitlichen wäre ein eigener Schritt.
+
+### ✅ `render/transform.js` aufgeteilt
+
+Der Schnitt folgt der Sache: `computeTextTransform` bestand aus drei
+voneinander unabhängigen Teilen.
+
+```
+render/transform/opacity.js      Deckkraft + Strobe-Helligkeit    (48)
+render/transform/position.js     Position, Slide, Bewegungspfade  (52)
+render/transform/deformation.js  Skalierung, Drehung, Scherung    (77)
+render/transform/apply.js        Canvas-Transformation            (47)
+render/transform/index.js        Komposition + typedef            (65)
+```
+
+Die Reihenfolge-Abhängigkeit ist durch den Schnitt sichtbarer statt schwächer
+geworden: `computeOpacity` wertet über `getDisplayOpacity` die Startzeitpunkte
+aus, die `computePosition` und `computeDeformation` erst anlegen. Die
+Komposition hält die Reihenfolge ein und kommentiert sie.
+
+### ⚠️ Offener Befund: Text-Strobe blendet nie aus
+
+Beim Testen der Phasen aufgefallen, **vorbestehend** und nicht durch das
+Refactoring verursacht (der Golden-Master aus Schritt 5 bestätigt das):
+
+`render/transform/opacity.js` rechnet
+
+```js
+opacity = opacity * (fx.strobe.strobeOpacity || 1.0)
+```
+
+`calculateTextEffectValue('strobe', …)` liefert für den dunklen Blitz-Frame
+`strobeOpacity: 0` – und `0 || 1.0` ergibt `1.0`. **Der Text-Strobe blinkt
+daher nie dunkel**, nur seine Helligkeit schwankt.
+
+Alle anderen Renderer prüfen korrekt auf `!== undefined`:
+
+- `canvasManager/rendering/audioReactiveDraw.js:51`
+- `canvasManager/rendering/TickerRenderer.js:175`
+- `multiImageManager.js:867`
+
+Der Fix wäre einzeilig (`!== undefined` statt `||`), ändert aber sichtbar das
+Verhalten in der ausgelieferten App: Texte mit Strobe würden plötzlich
+blitzen. Deshalb bewusst nicht mitgemacht – ein Test in
+`textRender.spec.js` hält das Ist-Verhalten fest und verweist hierher.

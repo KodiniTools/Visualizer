@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { applyTextTransform, computeTextTransform } from '../../lib/textManager/render/transform.js'
+import {
+  applyTextTransform,
+  computeDeformation,
+  computeOpacity,
+  computePosition,
+  computeTextTransform,
+} from '../../lib/textManager/render/transform/index.js'
 import { buildFilterString } from '../../lib/textManager/render/filters.js'
 import { drawTextLines, drawTypewriterCursor } from '../../lib/textManager/render/textLines.js'
 import { drawText } from '../../lib/textManager/render/drawText.js'
@@ -469,5 +475,74 @@ describe('drawText', () => {
 
     const zeilen = ctx.calls.filter((c) => c[0] === 'fillText')
     expect(zeilen.map((c) => c[3])).toEqual([300, 420])
+  })
+})
+
+describe('Transform-Phasen einzeln', () => {
+  // Die drei Teile sind voneinander unabhängig und einzeln prüfbar.
+  const canvas = [800, 600]
+
+  it('computeOpacity liefert Deckkraft und Strobe-Helligkeit', () => {
+    const t = createTextObject('A', { opacity: 40 })
+    expect(computeOpacity(t, null, T0)).toEqual({
+      opacity: 0.4,
+      strobeBrightnessMultiplier: 100,
+    })
+
+    const mitStrobe = computeOpacity(
+      createTextObject('A'),
+      audio({ strobe: { strobeOpacity: 0.5, strobeBrightness: 250 } }),
+      T0,
+    )
+    expect(mitStrobe).toEqual({ opacity: 0.5, strobeBrightnessMultiplier: 250 })
+  })
+
+  it('neutralisiert strobeOpacity 0 – bekannte Abweichung zu den anderen Renderern', () => {
+    // `strobeOpacity || 1.0` macht aus dem dunklen Blitz-Frame einen sichtbaren:
+    // Der Text-Strobe blinkt daher nie dunkel, nur seine Helligkeit schwankt.
+    // Bilder, Kacheln und der Lauftext prüfen dagegen auf `!== undefined` und
+    // blenden korrekt aus. Vorbestehend, siehe docs/REFACTORING-textManager.md.
+    const dunkel = computeOpacity(
+      createTextObject('A'),
+      audio({ strobe: { strobeOpacity: 0, strobeBrightness: 100 } }),
+      T0,
+    )
+    expect(dunkel.opacity).toBe(1)
+  })
+
+  it('computePosition rechnet relative Koordinaten in Pixel um', () => {
+    const t = createTextObject('A', { relX: 0.25, relY: 0.75 })
+    expect(computePosition(t, null, ...canvas, T0)).toEqual({ pixelX: 200, pixelY: 450 })
+  })
+
+  it('computeDeformation lässt Deckkraft und Position unberührt', () => {
+    const t = createTextObject('A', { rotation: 45 })
+    const d = computeDeformation(t, audio({ elastic: { stretchX: 2, stretchY: 0.5 } }), T0)
+
+    expect(d.totalRotation).toBe(45)
+    expect(d.stretchX).toBe(2)
+    expect(d.stretchY).toBe(0.5)
+    expect(d).not.toHaveProperty('opacity')
+    expect(d).not.toHaveProperty('pixelX')
+  })
+
+  it('setzt sich in computeTextTransform aus genau diesen drei Teilen zusammen', () => {
+    const fx = audio({
+      strobe: { strobeOpacity: 0.5, strobeBrightness: 150 },
+      shake: { shakeX: 3, shakeY: 4 },
+      elastic: { stretchX: 1.5, stretchY: 0.8 },
+    })
+
+    // Referenzwerte auf eigenen Objekten, damit der Animations-Zustand
+    // der Gesamtberechnung nicht vorweggenommen wird
+    const o = computeOpacity(createTextObject('A'), fx, T0)
+    const p = computePosition(createTextObject('A'), fx, ...canvas, T0)
+    const d = computeDeformation(createTextObject('A'), fx, T0)
+
+    expect(computeTextTransform(createTextObject('A'), fx, ...canvas, T0)).toEqual({
+      ...o,
+      ...p,
+      ...d,
+    })
   })
 })

@@ -1,11 +1,9 @@
 /**
  * Schreibmaschinen-Animation: berechnet den sichtbaren Teiltext.
  *
- * 1:1 aus textManager.js herausgelöst; einzige Änderung ist der injizierbare
- * Zeitpunkt `now` (Default Date.now()), damit die Animation testbar ist.
- *
  * @module textManager/animation/typewriter
  */
+import { ensureAnimationState } from './state.js'
 
 /**
  * Berechnet den sichtbaren Text für die Typewriter-Animation.
@@ -23,7 +21,7 @@ export function getTypewriterText(textObj, now = Date.now()) {
   }
 
   const tw = animation.typewriter
-  const state = animation._state
+  const state = ensureAnimationState(animation)
   const fullText = textObj.content
 
   // Animation starten wenn noch nicht gestartet
@@ -98,7 +96,7 @@ export function getTypewriterText(textObj, now = Date.now()) {
 export function restartTypewriter(textObj) {
   if (!textObj || !textObj.animation) return
 
-  const state = textObj.animation._state
+  const state = ensureAnimationState(textObj.animation)
   state.startTime = null
   state.isPlaying = false
   state.currentIndex = 0

@@ -2,9 +2,10 @@ import { describe, it, expect } from 'vitest'
 import { applyEasing } from '../../lib/textManager/animation/easing.js'
 import { ensureAnimationState } from '../../lib/textManager/animation/state.js'
 import { resolveTimeline } from '../../lib/textManager/animation/timeline.js'
-import { getFadeOpacity } from '../../lib/textManager/animation/fade.js'
-import { getScaleValue } from '../../lib/textManager/animation/scale.js'
-import { getSlideOffset } from '../../lib/textManager/animation/slide.js'
+import { getFadeOpacity, restartFade } from '../../lib/textManager/animation/fade.js'
+import { getScaleValue, restartScale } from '../../lib/textManager/animation/scale.js'
+import { getSlideOffset, restartSlide } from '../../lib/textManager/animation/slide.js'
+import { getTypewriterText, restartTypewriter } from '../../lib/textManager/animation/typewriter.js'
 import { easeIn as audioEaseIn, easeOut as audioEaseOut } from '../../lib/audio/EasingFunctions.js'
 
 /**
@@ -240,5 +241,80 @@ describe('Abbildung des Fortschritts auf die Animationswerte', () => {
     expect(kante('top')).toMatchObject({ offsetX: 0, offsetY: -600 })
     expect(kante('bottom')).toMatchObject({ offsetX: 0, offsetY: 600 })
     expect(kante('right', 50)).toMatchObject({ offsetX: 400 })
+  })
+})
+
+describe('Robustheit gegen fehlenden _state', () => {
+  const T0 = 1_700_000_000_000
+
+  /**
+   * Text-Objekt mit aktivierter Animation, aber OHNE `animation._state` –
+   * so, wie es aus einer Quelle kommen kann, die `animation` selbst
+   * zusammenbaut (Preset, Handoff, manuell gesetzte Konfiguration).
+   */
+  function ohneState(name, cfg = {}) {
+    return {
+      content: 'Hallo',
+      animation: {
+        type: name,
+        [name]: { enabled: true, duration: 1000, easing: 'linear', ...cfg },
+      },
+    }
+  }
+
+  it('legt den Zustand beim Typewriter an, statt zu werfen', () => {
+    const t = ohneState('typewriter', { speed: 100 })
+
+    expect(() => getTypewriterText(t, T0)).not.toThrow()
+    expect(getTypewriterText(t, T0).text).toBe('H')
+    expect(t.animation._state).toMatchObject({ isPlaying: true, currentIndex: 0 })
+  })
+
+  it('legt den Zustand bei Fade, Scale und Slide an', () => {
+    const fade = ohneState('fade', { direction: 'in' })
+    const scale = ohneState('scale', { direction: 'in', startScale: 0, endScale: 2 })
+    const slide = ohneState('slide', { direction: 'in', from: 'left', distance: 100 })
+
+    expect(getFadeOpacity(fade, T0)).toEqual({ opacity: 0, isComplete: false })
+    expect(getScaleValue(scale, T0)).toEqual({ scale: 0, isComplete: false })
+    expect(getSlideOffset(slide, 800, 600, T0)).toEqual({
+      offsetX: -800,
+      offsetY: 0,
+      isComplete: false,
+    })
+  })
+
+  it('lässt alle vier restart-Funktionen ohne Zustand durchlaufen', () => {
+    for (const [name, restart] of [
+      ['typewriter', restartTypewriter],
+      ['fade', restartFade],
+      ['scale', restartScale],
+      ['slide', restartSlide],
+    ]) {
+      const t = ohneState(name)
+      expect(() => restart(t)).not.toThrow()
+      expect(t.animation._state).toBeDefined()
+    }
+  })
+
+  it('ignoriert weiterhin Objekte ganz ohne Animation', () => {
+    for (const restart of [restartTypewriter, restartFade, restartScale, restartSlide]) {
+      expect(() => restart(null)).not.toThrow()
+      expect(() => restart({})).not.toThrow()
+      expect(() => restart({ animation: null })).not.toThrow()
+    }
+  })
+
+  it('setzt einen vorhandenen Zustand nicht zurück', () => {
+    // Die restart-Funktionen leeren nur ihre eigenen Felder, nicht den Rest
+    const t = ohneState('fade', { direction: 'in' })
+    getFadeOpacity(t, T0)
+    t.animation._state.scaleStartTime = 4711
+    t.animation._state.currentIndex = 7
+
+    restartFade(t)
+    expect(t.animation._state.fadeStartTime).toBeNull()
+    expect(t.animation._state.scaleStartTime).toBe(4711)
+    expect(t.animation._state.currentIndex).toBe(7)
   })
 })

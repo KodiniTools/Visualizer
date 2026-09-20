@@ -5,6 +5,9 @@
  */
 import { ensureAnimationState } from './state.js'
 
+/** Default-Pause zwischen zwei Durchläufen (wie in ./timeline.js). */
+const DEFAULT_LOOP_DELAY = 1000
+
 /**
  * Berechnet den sichtbaren Text für die Typewriter-Animation.
  *
@@ -54,7 +57,9 @@ export function getTypewriterText(textObj, now = Date.now()) {
       const completionTime = state.startTime + fullText.length * speed
       const timeSinceComplete = now - completionTime
 
-      if (timeSinceComplete >= (tw.loopDelay || 1000)) {
+      // `??` statt `||`: eine bewusst eingestellte Pause von 0 ms bedeutet
+      // "nahtlos wiederholen" und darf nicht zum Default werden.
+      if (timeSinceComplete >= (tw.loopDelay ?? DEFAULT_LOOP_DELAY)) {
         // Neustart
         state.startTime = now
         state.currentIndex = 0

@@ -183,6 +183,29 @@ describe('resolveTimeline', () => {
     expect(p(a, cfg, 2000).p).toBeCloseTo(0.5, 10)
   })
 
+  it('wiederholt bei loopDelay 0 nahtlos', () => {
+    // Der Slider laesst 0 zu ("keine Pause"); ein `||`-Fallback wuerde daraus
+    // die Default-Pause von 1000ms machen.
+    const a = anim()
+    const cfg = { direction: 'in', duration: 1000, easing: 'linear', loop: true, loopDelay: 0 }
+
+    p(a, cfg, 0)
+    // Direkt am Ende des Durchlaufs beginnt der naechste
+    expect(p(a, cfg, 1000)).toEqual({ p: 0, isComplete: false })
+    expect(a._state.testStartTime).toBe(T0 + 1000)
+    expect(p(a, cfg, 1500).p).toBeCloseTo(0.5, 10)
+  })
+
+  it('nutzt ohne loopDelay weiterhin die Default-Pause von 1000ms', () => {
+    const a = anim()
+    const cfg = { direction: 'in', duration: 1000, easing: 'linear', loop: true }
+
+    p(a, cfg, 0)
+    expect(p(a, cfg, 1000)).toEqual({ p: 1, isComplete: true })
+    expect(p(a, cfg, 1999)).toEqual({ p: 1, isComplete: true })
+    expect(p(a, cfg, 2000)).toEqual({ p: 0, isComplete: false })
+  })
+
   it('liefert für unbekannte Richtungen den Endwert', () => {
     expect(p(anim(), { direction: 'unbekannt', duration: 1000 }, 100)).toEqual({
       p: 1,
@@ -241,6 +264,38 @@ describe('Abbildung des Fortschritts auf die Animationswerte', () => {
     expect(kante('top')).toMatchObject({ offsetX: 0, offsetY: -600 })
     expect(kante('bottom')).toMatchObject({ offsetX: 0, offsetY: 600 })
     expect(kante('right', 50)).toMatchObject({ offsetX: 400 })
+  })
+})
+
+describe('Typewriter-Loop', () => {
+  const T0 = 1_700_000_000_000
+
+  function getippt(overrides = {}) {
+    return {
+      content: 'ABC',
+      animation: {
+        _state: { startTime: null, isPlaying: false, currentIndex: 0 },
+        typewriter: { enabled: true, speed: 100, loop: true, ...overrides },
+      },
+    }
+  }
+
+  it('wiederholt bei loopDelay 0 nahtlos', () => {
+    const t = getippt({ loopDelay: 0 })
+
+    getTypewriterText(t, T0)
+    // Nach 3 Zeichen * 100ms beginnt sofort der naechste Durchlauf
+    expect(getTypewriterText(t, T0 + 300)).toMatchObject({ text: '', isComplete: false })
+    expect(getTypewriterText(t, T0 + 400).text).toBe('AB')
+  })
+
+  it('nutzt ohne loopDelay weiterhin die Default-Pause von 1000ms', () => {
+    const t = getippt()
+
+    getTypewriterText(t, T0)
+    expect(getTypewriterText(t, T0 + 300)).toMatchObject({ text: 'ABC', isComplete: true })
+    expect(getTypewriterText(t, T0 + 1299).text).toBe('ABC')
+    expect(getTypewriterText(t, T0 + 1300)).toMatchObject({ text: '', isComplete: false })
   })
 })
 

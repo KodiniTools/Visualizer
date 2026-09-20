@@ -1,5 +1,11 @@
 import { ref } from 'vue'
 import { drawScaledVisualizer } from '../lib/visualizers/core/edgeFade.js'
+import {
+  createPunchVariationState,
+  drawPunchedBands,
+  punchScalesUniform,
+  updatePunchVariation,
+} from '../lib/visualizers/core/beatPunchVariation.js'
 import { Visualizers } from '../lib/visualizers/index.js'
 import { workerManager } from '../lib/workerManager.js'
 import { createPostProcessor, shouldRunPostFx, FrameMonitor } from '../lib/postfx/index.js'
@@ -143,6 +149,9 @@ export function useRenderLoop({
   // Envelope advances once per frame; scale is read at each composite site.
   let beatPunchEnv = 0
   let beatPunchScaleValue = 1
+  // Variation: Zoom je Spalte (null = einheitlich, einfacher Zoom)
+  const beatPunchVariationState = createPunchVariationState()
+  let beatPunchBandScales = null
 
   // Snapshot of the per-band onset (0–1) in the shape onsetFlourish expects.
   // Used both to bridge onto the main-thread visualizerState and to send into
@@ -164,17 +173,35 @@ export function useRenderLoop({
     if (!visualizerStore.beatPunchEnabled) {
       beatPunchEnv = 0
       beatPunchScaleValue = 1
+      beatPunchBandScales = null
       return
     }
     const onset = onsetForSource(window.audioAnalysisData, visualizerStore.beatPunchSource)
     beatPunchEnv = advancePunch(beatPunchEnv, onset)
     beatPunchScaleValue = punchScale(beatPunchEnv, visualizerStore.beatPunchStrength)
+
+    const variation = visualizerStore.beatPunchVariation
+    if (variation > 0) {
+      const scales = updatePunchVariation(
+        beatPunchVariationState,
+        onset,
+        visualizerStore.beatPunchStrength,
+        variation,
+      )
+      beatPunchBandScales = punchScalesUniform(scales) ? null : scales
+    } else {
+      beatPunchBandScales = null
+    }
   }
 
   // Invokes a visualizer draw callback, applying the current beat-punch zoom
   // around the canvas centre. Identity transform when the punch is ~1.0.
   function drawVisualizerWithPunch(cb, ctx, width, height) {
     if (!cb) return
+    if (beatPunchBandScales) {
+      drawPunchedBands(ctx, cb, width, height, beatPunchBandScales)
+      return
+    }
     const s = beatPunchScaleValue
     if (s <= 1.0001) {
       cb(ctx, width, height)

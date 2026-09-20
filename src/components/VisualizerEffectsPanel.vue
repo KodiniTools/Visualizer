@@ -125,6 +125,19 @@
           class="slider fx-slider"
         />
       </div>
+      <div class="fx-control">
+        <span class="control-label">{{ L.variation }}: {{ store.beatPunchVariation }}%</span>
+        <SliderField
+          :min="0"
+          :max="100"
+          :step="5"
+          :default-value="0"
+          :model-value="store.beatPunchVariation"
+          @update:model-value="store.setBeatPunchVariation($event)"
+          class="slider fx-slider"
+        />
+        <span class="fx-hint">{{ L.variationHint }}</span>
+      </div>
     </div>
 
     <!-- Onset flourishes (beat-triggered effects in flagship visualizers) -->
@@ -192,6 +205,9 @@ const LABELS = {
     beatPunch: 'Beat-Punch',
     beatPunchHint: 'Onset-Zoom der ganzen Ebene – reagiert auf Beats, nicht auf Dauerlautstärke',
     punchSource: 'Quelle',
+    variation: 'Variation',
+    variationHint:
+      '0 = ganze Ebene gleich; höher = Bereiche der Ebene reagieren mit eigener Stärke und leichtem Versatz auf jeden Beat',
     bass: 'Bass',
     mid: 'Mitten',
     treble: 'Höhen',
@@ -213,6 +229,9 @@ const LABELS = {
     beatPunch: 'Beat punch',
     beatPunchHint: 'Onset zoom of the whole layer – reacts to beats, not sustained loudness',
     punchSource: 'Source',
+    variation: 'Variation',
+    variationHint:
+      '0 = whole layer moves as one; higher = regions of the layer react to each beat with their own strength and slight offset',
     bass: 'Bass',
     mid: 'Mid',
     treble: 'Treble',

@@ -742,6 +742,11 @@ function updateProperty(layerId, property, value) {
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 5px;
   overflow: hidden;
+  /* Die Liste ist eine Flex-Spalte mit max-height. Wegen overflow: hidden
+     faellt das implizite min-height: auto weg und die Karten wuerden
+     zusammengedrueckt statt die Liste ueberlaufen zu lassen: die aufgeklappte
+     Karte wird abgeschnitten und es erscheint kein Scrollbalken. */
+  flex-shrink: 0;
   cursor: pointer;
   transition: all 0.2s ease;
 }

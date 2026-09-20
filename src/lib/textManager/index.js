@@ -29,6 +29,6 @@ export { calculateTextEffectValue, getAudioReactiveValues } from './audio/textEf
 
 export { drawText } from './render/drawText.js'
 export { activeEffects } from './render/effects.js'
-export { applyTextTransform, computeTextTransform } from './render/transform.js'
+export { applyTextTransform, computeTextTransform } from './render/transform/index.js'
 export { buildFilterString } from './render/filters.js'
 export { drawTextLines, drawTypewriterCursor } from './render/textLines.js'

@@ -11,7 +11,7 @@ import { getAudioReactiveValues } from '../audio/textEffectValues.js'
 import { applyTextStyleWithAudio, resetShadow, strongestGlow } from '../style/textStyle.js'
 import { getTypewriterText } from '../animation/typewriter.js'
 import { activeEffects } from './effects.js'
-import { applyTextTransform, computeTextTransform } from './transform.js'
+import { applyTextTransform, computeTextTransform } from './transform/index.js'
 import { buildFilterString } from './filters.js'
 import { drawTextLines, drawTypewriterCursor } from './textLines.js'
 

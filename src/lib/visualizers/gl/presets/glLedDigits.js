@@ -1,9 +1,10 @@
 /**
  * GPU presets: LED-Ziffern 0–9 – eine 5×7-Punktmatrix aus runden LED-Lampen im
  * Stil des LED-Sunstrips (Linsen, Fassung, Bloom, dunkles Gehäuse, Lichtstreuung).
- * Die Lampen der Ziffer leuchten immer (Grundhelligkeit), das Spektrum je Spalte,
- * ein Lauflicht mit den Mitten und Onsets treiben sie an; die übrigen Lampen
- * glimmen wie beim Sunstrip unbeleuchtet mit.
+ * Jede Lampe der Ziffer hat ihr eigenes Frequenzband (Bass unten, Höhen oben),
+ * ein Lauflicht zirkuliert rund um die Ziffer, Onsets lassen zufällige Lampen
+ * aufblitzen; eine niedrige Grundhelligkeit hält die Ziffer bei Stille lesbar.
+ * Die übrigen Lampen glimmen wie beim Sunstrip unbeleuchtet mit.
  *
  * Eine Fabrik erzeugt alle zehn Presets aus je einer Bitmap; die Bitmap wird als
  * Konstanten in den Shader gebacken (kein Uniform-Upload pro Frame).
@@ -105,20 +106,39 @@ void main() {
     vec2 lp = (fract(g) - 0.5) * cell;
     float on = lampOn(row, col);
 
-    // Spektrum je Spalte (wie das Band je Lampe im Sunstrip).
-    float sx = (col + 0.5) / COLS * 0.85;
-    float e = (spectrum(sx - 0.01) + spectrum(sx) + spectrum(sx + 0.01)) / 3.0 * uIntensity;
-    // Lauflicht von unten nach oben, Tempo mit den Mitten.
-    float sweep = smoothstep(0.7, 1.0, fract((rowUp + 0.5) / ROWS - t * (0.25 + mid * 0.5)));
-    // Grundhelligkeit haelt die Ziffer immer lesbar; Audio legt drauf.
-    float lit = on * clamp(0.45 + smoothstep(0.04, 0.5, e) * 0.5 + sweep * 0.35 + uOnset.w * 0.4 + bass * 0.2, 0.0, 1.0);
+    // Jede Lampe hat ihr eigenes Frequenzband: Bass unten, Hoehen oben, leicht
+    // ueber die Spalten gespreizt - 35 verschiedene Baender statt eines je Spalte.
+    float band = (rowUp / (ROWS - 1.0)) * 0.72 + ((col + 0.5) / COLS) * 0.18;
+    float e = spectrum(band) * uIntensity;
+    // Kurzer Peak-Hold (~0.15 s) gegen nervoeses Flackern.
+    float hold = 0.0;
+    for (int i = 1; i <= 3; i++) hold = max(hold, history(band, float(i) * 0.03));
+    float energy = max(e, hold * uIntensity * 0.8);
 
-    float hue = fract(uColorHsl.x + row / ROWS * 0.35);
+    // Zirkulation: ein Lauflicht wandert rund um die Ziffer (Winkel um die
+    // Mitte), Tempo aus den Mitten; dazu ein langsames Hochlaufen.
+    float ang = atan(rowUp + 0.5 - ROWS * 0.5, col + 0.5 - COLS * 0.5) / TAU;
+    float chase = smoothstep(0.82, 1.0, fract(ang - t * (0.35 + mid * 0.6)));
+    float rise = smoothstep(0.85, 1.0, fract((rowUp + 0.5) / ROWS - t * 0.2)) * 0.5;
+    // Onset-Funken: bei Beats blitzen zufaellige Lampen kurz auf.
+    float spark = step(0.6, hash12(vec2(col, row) + floor(t * 8.0))) * uOnset.w;
+
+    // Grundhelligkeit haelt die Ziffer bei Stille dunkel lesbar; darauf legt
+    // sich das eigene Band der Lampe, das Lauflicht und die Funken.
+    float litOn = clamp(0.22 + smoothstep(0.05, 0.6, energy) * 0.75 + chase * 0.6 + rise + spark * 0.7 + bass * 0.1, 0.0, 1.0);
+    // Unbeleuchtete Lampen glimmen bei Onsets minimal mit.
+    float litOff = step(0.75, hash12(vec2(row, col) * 3.1 + floor(t * 6.0))) * uOnset.w * 0.14;
+    float lit = mix(litOff, litOn, on);
+
+    // Farbe je Band (Bass -> Hoehen), das Lauflicht zieht den Ton leicht weiter.
+    float hue = fract(uColorHsl.x + band * 0.4 + chase * 0.08 - t * 0.02);
     vec3 ledCol = hsl2rgb(vec3(hue, 0.95, 0.55));
     vec3 ledDim = hsl2rgb(vec3(hue, 0.7, 0.13));
     vec3 ledHot = hsl2rgb(vec3(hue, 0.45, 0.93));
     float edgeMask = 1.0 - smoothstep(cell * 0.38, cell * 0.49, max(abs(lp.x), abs(lp.y)));
-    vec4 lamp = ledLamp(lp, cell * uLensSize, aaPx, lit, ledCol, ledDim, ledHot, edgeMask);
+    // Beleuchtete Linsen atmen leicht mit dem Bass.
+    float R = cell * uLensSize * (1.0 + bass * 0.06 * on);
+    vec4 lamp = ledLamp(lp, R, aaPx, lit, ledCol, ledDim, ledHot, edgeMask);
     rgb += lamp.rgb;
     alpha += lamp.a;
   }

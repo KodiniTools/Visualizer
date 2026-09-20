@@ -68,6 +68,7 @@ void main() {
 
 export const glLaserWall = {
   id: 'glLaserWall',
+  edgeFade: 'rect',
   name_de: 'Laser-Wand (GPU)',
   name_en: 'Laser Wall (GPU)',
   frag,

@@ -68,6 +68,7 @@ void main() {
 
 export const glLaserBurst = {
   id: 'glLaserBurst',
+  edgeFade: 'radial',
   name_de: 'Laser-Burst (GPU)',
   name_en: 'Laser Burst (GPU)',
   frag,

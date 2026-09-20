@@ -64,6 +64,7 @@ void main() {
 
 export const glGalaxy = {
   id: 'glGalaxy',
+  edgeFade: 'radial',
   name_de: 'Galaxie (GPU)',
   name_en: 'Galaxy (GPU)',
   frag,

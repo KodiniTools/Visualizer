@@ -84,6 +84,7 @@ void main() {
 
 export const glParticles = {
   id: 'glParticles',
+  edgeFade: 'rect',
   name_de: 'Partikelsturm (GPU)',
   name_en: 'Particle Storm (GPU)',
   frag,

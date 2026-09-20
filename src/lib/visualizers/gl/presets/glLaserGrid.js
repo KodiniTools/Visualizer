@@ -77,6 +77,7 @@ void main() {
 
 export const glLaserGrid = {
   id: 'glLaserGrid',
+  edgeFade: 'rect',
   name_de: 'Laser-Gitter (GPU)',
   name_en: 'Laser Grid (GPU)',
   frag,

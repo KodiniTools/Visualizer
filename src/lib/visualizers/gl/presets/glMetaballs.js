@@ -70,6 +70,7 @@ void main() {
 
 export const glMetaballs = {
   id: 'glMetaballs',
+  edgeFade: 'rect',
   name_de: 'Blobs (GPU)',
   name_en: 'Blobs (GPU)',
   frag,

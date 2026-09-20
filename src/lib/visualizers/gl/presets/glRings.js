@@ -65,6 +65,7 @@ void main() {
 
 export const glRings = {
   id: 'glRings',
+  edgeFade: 'radial',
   name_de: 'Puls-Ringe (GPU)',
   name_en: 'Pulse Rings (GPU)',
   frag,

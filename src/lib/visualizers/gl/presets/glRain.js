@@ -74,6 +74,7 @@ void main() {
 
 export const glRain = {
   id: 'glRain',
+  edgeFade: 'rect',
   name_de: 'Matrix-Regen (GPU)',
   name_en: 'Matrix Rain (GPU)',
   frag,

@@ -56,6 +56,7 @@ void main() {
 
 export const glAuroraCorona = {
   id: 'glAuroraCorona',
+  edgeFade: 'radial',
   name_de: 'Nordlicht-Korona (GPU)',
   name_en: 'Aurora Corona (GPU)',
   frag,

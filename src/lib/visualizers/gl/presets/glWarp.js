@@ -84,6 +84,7 @@ void main() {
 
 export const glWarp = {
   id: 'glWarp',
+  edgeFade: 'radial',
   name_de: 'Warp-Sterne (GPU)',
   name_en: 'Warp Stars (GPU)',
   frag,

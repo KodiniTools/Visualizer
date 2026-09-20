@@ -70,6 +70,7 @@ void main() {
 
 export const glHexTunnel = {
   id: 'glHexTunnel',
+  edgeFade: 'radial',
   name_de: 'Waben-Tunnel (GPU)',
   name_en: 'Honeycomb Tunnel (GPU)',
   frag,

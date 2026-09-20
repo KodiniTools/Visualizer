@@ -1,6 +1,6 @@
 # Refactoring-Vorschlag: `src/lib/textManager.js`
 
-> Status: **Schritte 1–4 umgesetzt**, Schritte 5–7 offen. Nachfolge-Dokument zu
+> Status: **Schritte 1–6 umgesetzt**, Schritt 7 offen. Nachfolge-Dokument zu
 > `docs/REFACTORING-PLAN.md`, dort Zeile „`textManager.js` | 1.566 | Rendering/State trennen".
 > Die vier dort genannten Kritik-Dateien (`visualizers.js`, `canvasManager.js`,
 > `FotoPanel.vue`, `TextManagerPanel.vue`) sind inzwischen aufgeteilt –
@@ -277,23 +277,65 @@ Eine Präzisierung: bei `p === 1` liefert Slide exakt `0` statt der
 vorzeichenbehafteten `-0`, die `max * (1 - 1)` bei negativem `max` ergibt.
 Numerisch identisch, aber der Vorzustand gab dort explizit `0` zurück.
 
+### ✅ Schritt 6 – Audio-reaktive Effektwerte (vor Schritt 5 gezogen)
+
+`audio/textEffectValues.js` (215) mit `getAudioReactiveValues` und
+`calculateTextEffectValue`. Vorgezogen, weil `drawText` die Werte braucht – so
+importiert das Render-Modul direkt statt einen Callback durchzureichen, der
+gleich danach wieder verschwunden wäre.
+
+Die 33 `no-case-declarations` sind damit weg: zehn `case`-Zweige mit
+Deklarationen sind jetzt Blöcke. Verhaltensneutral, da jeder betroffene Zweig
+mit `return` endet – maschinell verifiziert, dass sich ohne Klammern und
+Einrückung wieder exakt der Vorzustand ergibt. `textManager.js` ist seither
+eslint-frei.
+
+### ✅ Schritt 5 – drawText aufgeteilt
+
+`render/effects.js` (19), `render/transform.js` (203), `render/filters.js` (58),
+`render/textLines.js` (173), `render/drawText.js` (85).
+
+`activeEffects()` ersetzt das 20-fach wiederholte
+`audioReactive && audioReactive.hasEffects && audioReactive.effects.X`.
+`computeTextTransform` ist eine reine Funktion und ohne Canvas testbar.
+
+Zwei Dinge sind dabei bewusst festgehalten:
+
+- **Reihenfolge der Animations-Aufrufe**: Fade und Anzeigedauer laufen VOR Slide
+  und Scale, weil `getDisplayOpacity` die Startzeitpunkte der anderen
+  Animationen liest. Im Modul kommentiert und durch einen Test abgesichert.
+- **Ein Zeitpunkt pro Frame**: `drawText` nimmt `now` als Parameter, statt
+  `Date.now()` an sechs Stellen einzeln zu lesen.
+
+Verifiziert per **Golden Master**: eine Kopie der alten Implementierung lief
+gegen dieselbe aufgezeichnete Canvas-Aufrufsequenz – 15 Szenarien über je sechs
+Frames, mit fixierter Zeit und fixiertem `Math.random`. Alle Sequenzen
+identisch. Der Vergleich war Wegwerf; dauerhaft bleiben 32 Unit-Tests in
+`textRender.spec.js`.
+
+### Ergebnis
+
+`textManager.js`: **1.785 → 333 Zeilen**, dazu 18 Module mit zusammen 1.791
+Zeilen (inklusive JSDoc, die es vorher nicht gab). Zwei Module liegen mit 215
+und 203 Zeilen knapp über dem angepeilten Maximum von 200 – beide sind
+inhaltlich geschlossen (Effekt-Wertetabelle bzw. Transformations-Pipeline), ein
+weiterer Schnitt würde dort nur trennen, was zusammengehört.
+
+Tests: 514 (Ausgangsstand 457, davon 0 für `textManager.js`).
+
 ### Offen
 
-Schritte 5–7:
-
-- **Schritt 5** – `drawText()` (384 Zeilen) in `render/transform.js`,
-  `render/filters.js` und `render/textLines.js` aufteilen.
-- **Schritt 6** – `audio/textEffectValues.js`; räumt zugleich die 33
-  `no-case-declarations` auf.
-- **Schritt 7** – Engine-Dedup, eigener PR (verhaltens-relevant).
+**Schritt 7** – `computeAudioReactiveValues` um einen `levelOptions`-Pass-Through
+erweitern und `getAudioReactiveValues` darauf umstellen. Verhaltens-relevant,
+gehört in einen eigenen PR.
 
 ### Vorbestehende Befunde (nicht Teil dieses Refactorings)
 
 - `src/__tests__/components/MultiLayerPopover.spec.js` erzeugt eine Unhandled
   Rejection (`el.scrollIntoView is not a function`, `VisualizerLayerPanel.vue:464`)
   – jsdom kennt `scrollIntoView` nicht. Besteht unabhängig von diesen Änderungen.
-- `eslint src/lib/textManager.js` meldet 33 × `no-case-declarations` – alle im
-  `switch` von `_calculateTextEffectValue`, also Schritt 6.
+- ~~`eslint src/lib/textManager.js` meldet 33 × `no-case-declarations`~~ – in
+  Schritt 6 behoben.
 - `oxlint` meldet in `textManager.js` ein leeres `catch (e) { /* ignore */ }` in
   `draw()`. Bewusst leer (Recording darf nicht abbrechen), aber der Parameter
   ließe sich entfernen.

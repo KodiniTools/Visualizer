@@ -15,3 +15,20 @@ export {
   resetShadow,
   strongestGlow,
 } from './style/textStyle.js'
+
+export { applyEasing } from './animation/easing.js'
+export { ensureAnimationState } from './animation/state.js'
+export { resolveTimeline } from './animation/timeline.js'
+export { getTypewriterText, restartTypewriter } from './animation/typewriter.js'
+export { getFadeOpacity, restartFade } from './animation/fade.js'
+export { getScaleValue, restartScale } from './animation/scale.js'
+export { getSlideOffset, restartSlide } from './animation/slide.js'
+export { getDisplayOpacity } from './animation/displayOpacity.js'
+
+export { calculateTextEffectValue, getAudioReactiveValues } from './audio/textEffectValues.js'
+
+export { drawText } from './render/drawText.js'
+export { activeEffects } from './render/effects.js'
+export { applyTextTransform, computeTextTransform } from './render/transform.js'
+export { buildFilterString } from './render/filters.js'
+export { drawTextLines, drawTypewriterCursor } from './render/textLines.js'

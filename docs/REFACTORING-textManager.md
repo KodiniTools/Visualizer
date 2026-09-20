@@ -419,22 +419,30 @@ Stroboskop-Effekt, wie er für die übrigen Elemente schon immer galt.
 Gegenprobe durchgeführt: mit dem alten Ausdruck schlägt der
 Dunkel-Frame-Test fehl, mit dem Fix ist er grün.
 
-### ⚠️ Offener Befund: `loopDelay` 0 wird zu 1000 ms
+### ✅ `loopDelay` 0 bedeutet wieder „keine Pause"
 
 Gleiche Bug-Klasse, bei der Suche nach weiteren `||`-Fallen gefunden:
 
 ```js
-const loopDelay = cfg.loopDelay || DEFAULT_LOOP_DELAY   // animation/timeline.js:162
-if (timeSinceComplete >= (tw.loopDelay || 1000))        // animation/typewriter.js:57
+const loopDelay = cfg.loopDelay || DEFAULT_LOOP_DELAY   // animation/timeline.js
+if (timeSinceComplete >= (tw.loopDelay || 1000))        // animation/typewriter.js
 ```
 
 Der Slider „Pause zwischen Wiederholungen" (`AnimationLoopControls.vue`) hat
-`:min="0"`. Wer 0 einstellt – also _keine_ Pause zwischen den Wiederholungen
-will – bekommt trotzdem 1000 ms. Der Fix wäre `?? ` statt `||`, ändert aber
-wieder sichtbar das Verhalten bestehender Loop-Animationen.
+`:min="0"`. Wer 0 einstellte – also _keine_ Pause zwischen den Wiederholungen
+wollte – bekam trotzdem 1000 ms. Beide Stellen nutzen jetzt `??`; der
+Typewriter hat dafür dieselbe benannte Konstante wie die Timeline bekommen.
 
-Alle übrigen `||`-Fallbacks im Text-Pfad sind unkritisch, weil die
-UI-Minimums 0 ausschließen: `slide.distance` (min 10), `duration` (min 100),
-`typewriter.speed` (min 10), `stroke.width` (min 1),
-`lineHeightMultiplier` (min 100). `displayDuration` prüft bereits korrekt
-auf `!= null`.
+**Sichtbare Änderung:** Loop-Animationen mit 0 ms Pause wiederholen sich ab
+jetzt nahtlos. Alle anderen Einstellungen bleiben unverändert.
+
+Gegenprobe durchgeführt: mit dem alten Ausdruck schlagen beide 0-ms-Tests
+fehl, mit dem Fix sind sie grün.
+
+### Geprüft und unkritisch
+
+Alle übrigen `||`-Fallbacks im Text-Pfad sind unbedenklich, weil die
+UI-Minimums den Wert 0 ausschließen: `slide.distance` (min 10), `duration`
+(min 100), `typewriter.speed` (min 10), `stroke.width` (min 1),
+`lineHeightMultiplier` (min 100). `displayDuration` prüft bereits korrekt auf
+`!= null`, `startDelay` hat 0 als Default.

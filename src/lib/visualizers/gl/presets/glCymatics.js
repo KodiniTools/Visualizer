@@ -38,7 +38,10 @@ void main() {
   float anti = smoothstep(0.7, 1.0, abs(f)) * treb * 0.25;
 
   float r = length(p) / uScale;
-  float vignette = smoothstep(0.8, 0.35, r);
+  // Die Platte endet an der kurzen Canvas-Kante (statt bei r = 0.8, was im
+  // Querformat oben/unten abgeschnitten wuerde); Liniendichte bleibt gleich.
+  float edge = halfShortSide();
+  float vignette = smoothstep(edge, edge * 0.44, r);
 
   float hue = fract(uColorHsl.x + f * 0.05);
   vec3 col = hsl2rgb(vec3(hue, 0.75, 0.55));

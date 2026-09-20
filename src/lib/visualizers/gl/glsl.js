@@ -128,6 +128,22 @@ vec4 img(vec2 uv) { return texture(uImage, imageUv(uv)); }
 vec4 imgRaw(vec2 iuv) { return texture(uImage, clamp(iuv, 0.0, 1.0)); }
 float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
 
+// Zentrierte, seitenverhältnis-korrigierte Koordinaten: y läuft von -0.5 (unten)
+// bis 0.5 (oben), x entsprechend dem Seitenverhältnis.
+vec2 centered() { return (vUv - 0.5) * vec2(uResolution.x / uResolution.y, 1.0); }
+
+// Halbe kürzere Canvas-Kante in centered()-Einheiten: 0.5 im Querformat,
+// 0.5 * Seitenverhältnis im Hochformat. Alles jenseits davon liegt außerhalb
+// des Canvas.
+float halfShortSide() { return 0.5 * min(uResolution.x / uResolution.y, 1.0); }
+
+// Wie centered(), aber so skaliert, dass designRadius genau die halbe KÜRZERE
+// Canvas-Kante erreicht. Für zentrierte Figuren (Mandala, Sternentor, …), die
+// bei jedem Seitenverhältnis vollständig sichtbar sein sollen: was über die
+// kurze Kante hinausläuft, wird nie gerendert und erscheint beim Verkleinern
+// des Visualizers als harter Anschnitt.
+vec2 centeredFit(float designRadius) { return centered() * (designRadius / halfShortSide()); }
+
 // Premultiplied output. Alpha is raised to cover the brightest channel so the
 // result is always a valid premultiplied colour (rgb <= a) and bright glows
 // never get clipped by the compositor.

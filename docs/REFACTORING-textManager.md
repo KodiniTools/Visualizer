@@ -1,6 +1,6 @@
 # Refactoring-Vorschlag: `src/lib/textManager.js`
 
-> Status: **Schritte 1–6 umgesetzt**, Schritt 7 offen. Nachfolge-Dokument zu
+> Status: **abgeschlossen** – alle sieben Schritte umgesetzt. Nachfolge-Dokument zu
 > `docs/REFACTORING-PLAN.md`, dort Zeile „`textManager.js` | 1.566 | Rendering/State trennen".
 > Die vier dort genannten Kritik-Dateien (`visualizers.js`, `canvasManager.js`,
 > `FotoPanel.vue`, `TextManagerPanel.vue`) sind inzwischen aufgeteilt –
@@ -315,19 +315,37 @@ identisch. Der Vergleich war Wegwerf; dauerhaft bleiben 32 Unit-Tests in
 
 ### Ergebnis
 
-`textManager.js`: **1.785 → 333 Zeilen**, dazu 18 Module mit zusammen 1.791
-Zeilen (inklusive JSDoc, die es vorher nicht gab). Zwei Module liegen mit 215
-und 203 Zeilen knapp über dem angepeilten Maximum von 200 – beide sind
-inhaltlich geschlossen (Effekt-Wertetabelle bzw. Transformations-Pipeline), ein
-weiterer Schnitt würde dort nur trennen, was zusammengehört.
+|                           | vorher        | nachher                                 |
+| ------------------------- | ------------- | --------------------------------------- |
+| `textManager.js`          | 1.785 Zeilen  | **333**                                 |
+| Module                    | 1 Datei       | 18 (zusammen 1.771 Zeilen, inkl. JSDoc) |
+| größte Datei im Bereich   | 1.785         | 203 (`render/transform.js`)             |
+| Tests für den TextManager | 0             | 137                                     |
+| eslint / oxlint           | 33 / 3 Fehler | 0 / 0                                   |
+| Tests gesamt              | 457           | 526                                     |
 
-Tests: 514 (Ausgangsstand 457, davon 0 für `textManager.js`).
+`render/transform.js` liegt mit 203 Zeilen knapp über dem angepeilten Maximum
+von 200. Die Datei ist inhaltlich geschlossen (eine Transformations-Pipeline);
+ein weiterer Schnitt würde dort nur trennen, was zusammengehört.
 
-### Offen
+### ✅ Schritt 7 – Engine-Dedup
 
-**Schritt 7** – `computeAudioReactiveValues` um einen `levelOptions`-Pass-Through
-erweitern und `getAudioReactiveValues` darauf umstellen. Verhaltens-relevant,
-gehört in einen eigenen PR.
+`computeAudioReactiveValues` nimmt einen optionalen fünften Parameter
+`levelOptions`, der in die Resolver-Optionen gespreadet wird. Der Text-Pfad
+besteht nur noch aus `textLevelOptions()` und dem Aufruf der Engine – 45 Zeilen
+weniger Duplikat. Die vier bestehenden Aufrufstellen (canvasManager,
+videoManager, TickerRenderer, Engine-Tests) bleiben unverändert; ohne
+`levelOptions` verhält sich die Engine exakt wie zuvor.
+
+Verifiziert per **Golden Master**: 18 Konfigurationen (Smoothing 0/50/100,
+Schwellen, Attack/Release-Varianten, Beat-Boost, Phase, Gain, Easing, Quelle
+global und je Effekt, Intensität, alle 18 Text-Sonderfälle) über je neun Frames
+eines Audio-Verlaufs (Anstieg, Halten, Abfall, Stille, Peak). Alle Werte
+identisch – inklusive der zustandsbehafteten Hüllkurve, deren Variation über
+die Frames eigens geprüft wurde, damit der Vergleich nicht trivial besteht.
+
+Damit ist der `textManager`-Bereich auch vollständig lint-frei (oxlint und
+eslint).
 
 ### Vorbestehende Befunde (nicht Teil dieses Refactorings)
 

@@ -1,12 +1,12 @@
 /**
- * GPU presets: LED-Ziffern 0–9 – eine 5×7-Punktmatrix aus runden LED-Lampen im
+ * GPU presets: LED-Ziffern 0–9 und LED-Buchstaben A–E – eine 5×7-Punktmatrix aus runden LED-Lampen im
  * Stil des LED-Sunstrips (Linsen, Fassung, Bloom, dunkles Gehäuse, Lichtstreuung).
  * Jede Lampe der Ziffer hat ihr eigenes Frequenzband (Bass unten, Höhen oben),
  * ein Lauflicht zirkuliert rund um die Ziffer, Onsets lassen zufällige Lampen
  * aufblitzen; eine niedrige Grundhelligkeit hält die Ziffer bei Stille lesbar.
  * Die übrigen Lampen glimmen wie beim Sunstrip unbeleuchtet mit.
  *
- * Eine Fabrik erzeugt alle zehn Presets aus je einer Bitmap; die Bitmap wird als
+ * Eine Fabrik erzeugt alle Presets aus je einer Bitmap; die Bitmap wird als
  * Konstanten in den Shader gebacken (kein Uniform-Upload pro Frame).
  *
  * @module visualizers/gl/presets/glLedDigits
@@ -30,6 +30,18 @@ export const DIGIT_BITMAPS = {
   7: ['#####', '....#', '...#.', '..#..', '.#...', '.#...', '.#...'],
   8: ['.###.', '#...#', '#...#', '.###.', '#...#', '#...#', '.###.'],
   9: ['.###.', '#...#', '#...#', '.####', '....#', '..#..', '.##..'],
+}
+
+/**
+ * 5×7-Bitmaps für Buchstaben, gleiche Schrift wie die Ziffern.
+ * @type {Record<string, string[]>}
+ */
+export const LETTER_BITMAPS = {
+  A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+  B: ['####.', '#...#', '#...#', '####.', '#...#', '#...#', '####.'],
+  C: ['.###.', '#...#', '#....', '#....', '#....', '#...#', '.###.'],
+  D: ['####.', '#...#', '#...#', '#...#', '#...#', '#...#', '####.'],
+  E: ['#####', '#....', '#....', '####.', '#....', '#....', '#####'],
 }
 
 /**
@@ -211,10 +223,38 @@ function buildFallback(bitmap) {
 export function makeLedDigitPreset(digit) {
   const bitmap = DIGIT_BITMAPS[digit]
   if (!bitmap) throw new Error(`Keine Bitmap für Ziffer ${digit}`)
-  return {
+  return buildGlyphPreset({
     id: `glLedDigit${digit}`,
     name_de: `LED-Ziffer ${digit} (GPU)`,
     name_en: `LED Digit ${digit} (GPU)`,
+    bitmap,
+  })
+}
+
+/**
+ * Erzeugt das Preset für einen Buchstaben.
+ * @param {'A'|'B'|'C'|'D'|'E'} letter
+ */
+export function makeLedLetterPreset(letter) {
+  const bitmap = LETTER_BITMAPS[letter]
+  if (!bitmap) throw new Error(`Keine Bitmap für Buchstabe ${letter}`)
+  return buildGlyphPreset({
+    id: `glLedLetter${letter}`,
+    name_de: `LED-Buchstabe ${letter} (GPU)`,
+    name_en: `LED Letter ${letter} (GPU)`,
+    bitmap,
+  })
+}
+
+/**
+ * Gemeinsamer Unterbau: Shader, Uniforms und Fallback aus einer Bitmap.
+ * @param {{id: string, name_de: string, name_en: string, bitmap: string[]}} glyph
+ */
+function buildGlyphPreset({ id, name_de, name_en, bitmap }) {
+  return {
+    id,
+    name_de,
+    name_en,
     frag: buildFrag(bitmap),
     uniforms: () => ({ uLensSize: 0.38 }),
     fallback: buildFallback(bitmap),
@@ -231,3 +271,9 @@ export const glLedDigit6 = makeLedDigitPreset(6)
 export const glLedDigit7 = makeLedDigitPreset(7)
 export const glLedDigit8 = makeLedDigitPreset(8)
 export const glLedDigit9 = makeLedDigitPreset(9)
+
+export const glLedLetterA = makeLedLetterPreset('A')
+export const glLedLetterB = makeLedLetterPreset('B')
+export const glLedLetterC = makeLedLetterPreset('C')
+export const glLedLetterD = makeLedLetterPreset('D')
+export const glLedLetterE = makeLedLetterPreset('E')

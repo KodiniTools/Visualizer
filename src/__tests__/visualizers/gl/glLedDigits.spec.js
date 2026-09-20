@@ -3,12 +3,15 @@ import {
   DIGIT_BITMAPS,
   DIGIT_COLS,
   DIGIT_ROWS,
+  LETTER_BITMAPS,
   makeLedDigitPreset,
+  makeLedLetterPreset,
   rowToBits,
 } from '../../../lib/visualizers/gl/presets/glLedDigits.js'
 import { glPresetSpecs } from '../../../lib/visualizers/gl/index.js'
 
 const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+const LETTERS = ['A', 'B', 'C', 'D', 'E']
 
 describe('gl/presets/glLedDigits', () => {
   it('hat für jede Ziffer 0–9 eine gültige 5×7-Bitmap', () => {
@@ -51,6 +54,37 @@ describe('gl/presets/glLedDigits', () => {
       expect(spec.name_en).toBe(`LED Digit ${d} (GPU)`)
       expect(typeof spec.fallback.draw).toBe('function')
     }
+  })
+
+  it('hat für jeden Buchstaben A–E eine gültige 5×7-Bitmap', () => {
+    for (const c of LETTERS) {
+      const bm = LETTER_BITMAPS[c]
+      expect(bm, `Buchstabe ${c}`).toHaveLength(DIGIT_ROWS)
+      for (const row of bm) expect(row).toMatch(/^[.#]{5}$/)
+    }
+  })
+
+  it('unterscheidet Buchstaben untereinander und von den Ziffern', () => {
+    const alle = [...Object.values(DIGIT_BITMAPS), ...Object.values(LETTER_BITMAPS)].map((bm) =>
+      bm.join(''),
+    )
+    expect(new Set(alle).size).toBe(alle.length)
+  })
+
+  it('ist unter glLedLetterA–E registriert, mit Namen und Canvas2D-Fallback', () => {
+    for (const c of LETTERS) {
+      const spec = glPresetSpecs[`glLedLetter${c}`]
+      expect(spec).toBeDefined()
+      expect(spec.name_de).toBe(`LED-Buchstabe ${c} (GPU)`)
+      expect(spec.name_en).toBe(`LED Letter ${c} (GPU)`)
+      expect(typeof spec.fallback.draw).toBe('function')
+      expect(spec.frag).toContain('ledLamp(')
+    }
+  })
+
+  it('lehnt unbekannte Buchstaben ab', () => {
+    expect(() => makeLedLetterPreset('Z')).toThrow(/Bitmap/)
+    expect(() => makeLedLetterPreset('a')).toThrow(/Bitmap/)
   })
 
   it('lehnt unbekannte Ziffern ab', () => {

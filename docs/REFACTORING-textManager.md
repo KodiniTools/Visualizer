@@ -167,11 +167,13 @@ Jeder Schritt ist für sich lauffähig, commit-bar und ohne Verhaltensänderung
   `1−(1−t)²`). Ein „Aufräumen" per Import würde jede bestehende Text-Animation
   sichtbar verändern. → Eigene `animation/easing.js` mit den **quadratischen**
   Kurven, Dedup-Frage separat entscheiden.
-- **Schritt 7 ist Verhaltens-relevant.** `makeLevelResolver` bevorzugt explizite
-  `attack`/`release` gegenüber `smoothing`; die Engine reicht diese Felder heute
-  nicht durch. Erst die Engine erweitern (`levelOptions`-Pass-Through, abgedeckt
-  durch `src/__tests__/audio/audioReactiveEngine.spec.js`), dann Text umstellen –
-  nicht in einem Commit mit den Verschiebungen.
+- ~~**Schritt 7 ist Verhaltens-relevant.**~~ Umgesetzt wie geplant: erst die
+  Engine um den `levelOptions`-Pass-Through erweitert, dann der Text umgestellt,
+  beides in einem eigenen Commit und abgesichert durch einen
+  Golden-Master-Vergleich gegen die alte Implementierung. Die Annahme hat
+  gehalten: `makeLevelResolver` bevorzugt explizite `attack`/`release`
+  gegenüber `smoothing`, weshalb die Basis-Option der Engine den Text-Pfad
+  nicht stört.
 - **`_state`-Mutation bleibt Nebeneffekt.** Die Animationsfunktionen schreiben
   `startTime`/`fadeStartTime`/… in das Objekt. Das ist gewollt (Render-Loop-State),
   muss aber in den extrahierten Funktionen erhalten bleiben – sonst starten

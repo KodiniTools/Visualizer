@@ -38,10 +38,17 @@ export function computeOpacity(textObj, audioReactive, now) {
   opacity = opacity * getDisplayOpacity(textObj, now)
 
   // ✨ AUDIO-REAKTIV: Strobe-Effekt (Blitz bei Audio-Peaks)
+  //
+  // Auf `!== undefined` prüfen, NICHT auf Truthiness: der dunkle Blitz-Frame
+  // liefert strobeOpacity 0, das ein `|| 1.0` zu voller Sichtbarkeit machen
+  // würde – der Text hätte dann nie ausgeblendet. Ebenso bei Bildern, Kacheln
+  // und dem Lauftext (audioReactiveDraw.js, multiImageManager.js,
+  // TickerRenderer.js).
   let strobeBrightnessMultiplier = 100
   if (fx && fx.strobe) {
-    opacity = opacity * (fx.strobe.strobeOpacity || 1.0)
-    strobeBrightnessMultiplier = fx.strobe.strobeBrightness || 100
+    const { strobeOpacity, strobeBrightness } = fx.strobe
+    if (strobeOpacity !== undefined) opacity = opacity * strobeOpacity
+    if (strobeBrightness !== undefined) strobeBrightnessMultiplier = strobeBrightness
   }
 
   return { opacity, strobeBrightnessMultiplier }

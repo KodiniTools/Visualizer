@@ -393,28 +393,48 @@ geworden: `computeOpacity` wertet über `getDisplayOpacity` die Startzeitpunkte
 aus, die `computePosition` und `computeDeformation` erst anlegen. Die
 Komposition hält die Reihenfolge ein und kommentiert sie.
 
-### ⚠️ Offener Befund: Text-Strobe blendet nie aus
+### ✅ Text-Strobe blendet wieder aus
 
 Beim Testen der Phasen aufgefallen, **vorbestehend** und nicht durch das
 Refactoring verursacht (der Golden-Master aus Schritt 5 bestätigt das):
-
-`render/transform/opacity.js` rechnet
 
 ```js
 opacity = opacity * (fx.strobe.strobeOpacity || 1.0)
 ```
 
-`calculateTextEffectValue('strobe', …)` liefert für den dunklen Blitz-Frame
-`strobeOpacity: 0` – und `0 || 1.0` ergibt `1.0`. **Der Text-Strobe blinkt
-daher nie dunkel**, nur seine Helligkeit schwankt.
+`calculateTextEffectValue('strobe', …)` liefert bei aktivem Strobe in rund 30%
+der Frames `strobeOpacity: 0` – und `0 || 1.0` ergibt `1.0`. Der Text-Strobe
+blinkte dadurch nie dunkel, nur seine Helligkeit schwankte.
 
-Alle anderen Renderer prüfen korrekt auf `!== undefined`:
+Die Prüfung ist jetzt `!== undefined`, wie bei allen anderen Renderern
+(`audioReactiveDraw.js:51`, `TickerRenderer.js:175`, `multiImageManager.js:867`).
+`strobeBrightness` ist gleich mit angeglichen – derselbe Fallstrick, derzeit
+ohne praktische Auswirkung, da der Effekt nie 0 liefert.
 
-- `canvasManager/rendering/audioReactiveDraw.js:51`
-- `canvasManager/rendering/TickerRenderer.js:175`
-- `multiImageManager.js:867`
+**Sichtbare Änderung:** Texte mit aktivem Strobe blitzen ab jetzt tatsächlich.
+Damit verhalten sie sich wie Bilder, Kacheln und der Lauftext. Bei ~60 fps sind
+das rund 18 dunkle Frames pro Sekunde, solange der Pegel über 60% liegt – ein
+Stroboskop-Effekt, wie er für die übrigen Elemente schon immer galt.
 
-Der Fix wäre einzeilig (`!== undefined` statt `||`), ändert aber sichtbar das
-Verhalten in der ausgelieferten App: Texte mit Strobe würden plötzlich
-blitzen. Deshalb bewusst nicht mitgemacht – ein Test in
-`textRender.spec.js` hält das Ist-Verhalten fest und verweist hierher.
+Gegenprobe durchgeführt: mit dem alten Ausdruck schlägt der
+Dunkel-Frame-Test fehl, mit dem Fix ist er grün.
+
+### ⚠️ Offener Befund: `loopDelay` 0 wird zu 1000 ms
+
+Gleiche Bug-Klasse, bei der Suche nach weiteren `||`-Fallen gefunden:
+
+```js
+const loopDelay = cfg.loopDelay || DEFAULT_LOOP_DELAY   // animation/timeline.js:162
+if (timeSinceComplete >= (tw.loopDelay || 1000))        // animation/typewriter.js:57
+```
+
+Der Slider „Pause zwischen Wiederholungen" (`AnimationLoopControls.vue`) hat
+`:min="0"`. Wer 0 einstellt – also _keine_ Pause zwischen den Wiederholungen
+will – bekommt trotzdem 1000 ms. Der Fix wäre `?? ` statt `||`, ändert aber
+wieder sichtbar das Verhalten bestehender Loop-Animationen.
+
+Alle übrigen `||`-Fallbacks im Text-Pfad sind unkritisch, weil die
+UI-Minimums 0 ausschließen: `slide.distance` (min 10), `duration` (min 100),
+`typewriter.speed` (min 10), `stroke.width` (min 1),
+`lineHeightMultiplier` (min 100). `displayDuration` prüft bereits korrekt
+auf `!= null`.

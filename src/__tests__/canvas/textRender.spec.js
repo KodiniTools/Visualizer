@@ -460,6 +460,38 @@ describe('drawText', () => {
     ])
   })
 
+  it('setzt globalAlpha im dunklen Strobe-Frame auf 0', () => {
+    // End-to-End: calculateTextEffectValue liefert bei Math.random() <= 0.3 und
+    // Pegel > 60% ein strobeOpacity von 0 – das muss bis zum Canvas durchschlagen.
+    const zufall = vi.spyOn(Math, 'random').mockReturnValue(0.1)
+    window.audioAnalysisData = { bass: 255, mid: 255, treble: 255, volume: 255 }
+
+    const t = createTextObject('Blitz')
+    Object.assign(t.audioReactive.effects.strobe, { enabled: true, intensity: 100 })
+    Object.assign(t.audioReactive, { threshold: 0, smoothing: 0 })
+
+    const ctx = recordingCtx()
+    drawText(ctx, t, 800, 600)
+
+    expect(ctx.calls).toContainEqual(['set:globalAlpha', 0])
+    zufall.mockRestore()
+  })
+
+  it('bleibt im hellen Strobe-Frame voll sichtbar', () => {
+    const zufall = vi.spyOn(Math, 'random').mockReturnValue(0.9)
+    window.audioAnalysisData = { bass: 255, mid: 255, treble: 255, volume: 255 }
+
+    const t = createTextObject('Blitz')
+    Object.assign(t.audioReactive.effects.strobe, { enabled: true, intensity: 100 })
+    Object.assign(t.audioReactive, { threshold: 0, smoothing: 0 })
+
+    const ctx = recordingCtx()
+    drawText(ctx, t, 800, 600)
+
+    expect(ctx.calls).toContainEqual(['set:globalAlpha', 1])
+    zufall.mockRestore()
+  })
+
   it('verschiebt mehrzeilige Texte bei textBaseline "middle" nach oben', () => {
     const ctx = recordingCtx()
     drawText(ctx, createTextObject('eins\nzwei', { fontSize: 100 }), 800, 600)
@@ -497,17 +529,34 @@ describe('Transform-Phasen einzeln', () => {
     expect(mitStrobe).toEqual({ opacity: 0.5, strobeBrightnessMultiplier: 250 })
   })
 
-  it('neutralisiert strobeOpacity 0 – bekannte Abweichung zu den anderen Renderern', () => {
-    // `strobeOpacity || 1.0` macht aus dem dunklen Blitz-Frame einen sichtbaren:
-    // Der Text-Strobe blinkt daher nie dunkel, nur seine Helligkeit schwankt.
-    // Bilder, Kacheln und der Lauftext prüfen dagegen auf `!== undefined` und
-    // blenden korrekt aus. Vorbestehend, siehe docs/REFACTORING-textManager.md.
+  it('blendet beim dunklen Blitz-Frame vollständig aus', () => {
+    // Regression: ein `strobeOpacity || 1.0` machte aus dem dunklen Frame
+    // (strobeOpacity 0) einen voll sichtbaren – der Text-Strobe blinkte nie
+    // dunkel. Gleiche Prüfung wie audioReactiveDraw.js, multiImageManager.js
+    // und TickerRenderer.js.
     const dunkel = computeOpacity(
       createTextObject('A'),
       audio({ strobe: { strobeOpacity: 0, strobeBrightness: 100 } }),
       T0,
     )
-    expect(dunkel.opacity).toBe(1)
+    expect(dunkel.opacity).toBe(0)
+  })
+
+  it('lässt fehlende Strobe-Felder neutral', () => {
+    const t = createTextObject('A')
+    expect(computeOpacity(t, audio({ strobe: {} }), T0)).toEqual({
+      opacity: 1,
+      strobeBrightnessMultiplier: 100,
+    })
+  })
+
+  it('übernimmt auch eine Strobe-Helligkeit von 0', () => {
+    const r = computeOpacity(
+      createTextObject('A'),
+      audio({ strobe: { strobeOpacity: 1, strobeBrightness: 0 } }),
+      T0,
+    )
+    expect(r.strobeBrightnessMultiplier).toBe(0)
   })
 
   it('computePosition rechnet relative Koordinaten in Pixel um', () => {

@@ -1,6 +1,6 @@
 # Refactoring-Vorschlag: `src/lib/textManager.js`
 
-> Status: **Schritte 1–2 umgesetzt**, Schritte 3–7 offen. Nachfolge-Dokument zu
+> Status: **Schritte 1–4 umgesetzt**, Schritte 5–7 offen. Nachfolge-Dokument zu
 > `docs/REFACTORING-PLAN.md`, dort Zeile „`textManager.js` | 1.566 | Rendering/State trennen".
 > Die vier dort genannten Kritik-Dateien (`visualizers.js`, `canvasManager.js`,
 > `FotoPanel.vue`, `TextManagerPanel.vue`) sind inzwischen aufgeteilt –
@@ -250,11 +250,42 @@ aber nie gelesen. Damit sind die neuen Module oxlint- und eslint-frei.
 
 Verifikation: 457 Unit-Tests grün, Prettier sauber, Produktions-Build ok.
 
+### ✅ Schritt 3 – Easing, Zustand, Typewriter, Anzeigedauer
+
+`animation/easing.js` (32), `animation/state.js` (22),
+`animation/typewriter.js` (105), `animation/displayOpacity.js` (76).
+Die Animationsfunktionen nehmen den Zeitpunkt jetzt als Parameter
+(`now = Date.now()`) statt ihn selbst zu lesen.
+
+`textAnimations.spec.js` prüft explizit, dass `applyEasing` **quadratisch**
+rechnet und sich von `audio/EasingFunctions.js` (kubisch) unterscheidet –
+damit ein späteres „Aufräumen" per Import nicht unbemerkt jede Text-Animation
+verändert.
+
+### ✅ Schritt 4 – Gemeinsame Timeline
+
+`animation/timeline.js` (172) berechnet den normalisierten Fortschritt,
+`fade.js` (46), `scale.js` (39) und `slide.js` (69) bilden ihn auf ihren Wert
+ab. **480 → 326 Zeilen**, der Timing-Ablauf existiert nur noch einmal.
+`textManager.js`: **1.785 → 876 Zeilen**.
+
+Ein parametrisierter Test prüft den Abbildungsvertrag über sieben Zeitpunkte
+für alle drei Animationen gemeinsam. Die 68 Characterization-Tests liefen
+unverändert durch.
+
+Eine Präzisierung: bei `p === 1` liefert Slide exakt `0` statt der
+vorzeichenbehafteten `-0`, die `max * (1 - 1)` bei negativem `max` ergibt.
+Numerisch identisch, aber der Vorzustand gab dort explizit `0` zurück.
+
 ### Offen
 
-Schritte 3–7. Der eigentliche Gewinn steckt in **Schritt 4** (gemeinsame
-Timeline, −250 Zeilen) und **Schritt 5** (`drawText`-Aufteilung); beide sind
-durch die Tests aus Schritt 1 abgesichert.
+Schritte 5–7:
+
+- **Schritt 5** – `drawText()` (384 Zeilen) in `render/transform.js`,
+  `render/filters.js` und `render/textLines.js` aufteilen.
+- **Schritt 6** – `audio/textEffectValues.js`; räumt zugleich die 33
+  `no-case-declarations` auf.
+- **Schritt 7** – Engine-Dedup, eigener PR (verhaltens-relevant).
 
 ### Vorbestehende Befunde (nicht Teil dieses Refactorings)
 
@@ -263,3 +294,10 @@ durch die Tests aus Schritt 1 abgesichert.
   – jsdom kennt `scrollIntoView` nicht. Besteht unabhängig von diesen Änderungen.
 - `eslint src/lib/textManager.js` meldet 33 × `no-case-declarations` – alle im
   `switch` von `_calculateTextEffectValue`, also Schritt 6.
+- `oxlint` meldet in `textManager.js` ein leeres `catch (e) { /* ignore */ }` in
+  `draw()`. Bewusst leer (Recording darf nicht abbrechen), aber der Parameter
+  ließe sich entfernen.
+- `_getTypewriterText` hat **keine** defensive `_state`-Initialisierung, anders
+  als Fade/Scale/Slide: bei einem Text-Objekt ohne `animation._state` (etwa aus
+  einem alten Preset) wirft es. Bewusst unverändert übernommen – eigener Fix,
+  da es eine Verhaltensänderung wäre.

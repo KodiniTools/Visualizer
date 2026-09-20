@@ -8,6 +8,8 @@
  * - textManager/createTextObject.js    - Defaults neuer Text-Objekte
  * - textManager/geometry/textBounds.js - Bounds & Treffer-Erkennung
  * - textManager/style/textStyle.js     - Canvas-Style, Schatten, Kontur, Glow
+ * - textManager/animation/*            - Typewriter, Fade, Scale, Slide,
+ *                                        gemeinsame Timeline und Easing
  */
 import { makeLevelResolver } from './audio/ReactiveLevel.js'
 import { calculateBeatPulse, calculateEffectValue, getMotionOffset } from './audio/index.js'
@@ -20,6 +22,11 @@ import {
   resetShadow,
   strongestGlow,
 } from './textManager/style/textStyle.js'
+import { getTypewriterText, restartTypewriter } from './textManager/animation/typewriter.js'
+import { getDisplayOpacity } from './textManager/animation/displayOpacity.js'
+import { getFadeOpacity, restartFade } from './textManager/animation/fade.js'
+import { getScaleValue, restartScale } from './textManager/animation/scale.js'
+import { getSlideOffset, restartSlide } from './textManager/animation/slide.js'
 
 export class TextManager {
   constructor(textStore) {
@@ -117,93 +124,14 @@ export class TextManager {
    * Gibt den anzuzeigenden Text und Cursor-Info zurück
    */
   _getTypewriterText(textObj) {
-    const animation = textObj.animation
-
-    // Wenn keine Animation oder Typewriter nicht aktiviert
-    if (!animation || !animation.typewriter || !animation.typewriter.enabled) {
-      return { text: textObj.content, showCursor: false, isComplete: true }
-    }
-
-    const tw = animation.typewriter
-    const state = animation._state
-    const fullText = textObj.content
-    const now = Date.now()
-
-    // Animation starten wenn noch nicht gestartet
-    if (!state.isPlaying && !state.startTime) {
-      state.startTime = now + (tw.startDelay || 0)
-      state.isPlaying = true
-      state.currentIndex = 0
-    }
-
-    // Noch in der Start-Verzögerung?
-    if (now < state.startTime) {
-      return {
-        text: '',
-        showCursor: tw.showCursor,
-        cursorChar: tw.cursorChar || '|',
-        isComplete: false,
-      }
-    }
-
-    // Berechne wie viele Buchstaben sichtbar sein sollten
-    const elapsed = now - state.startTime
-    const speed = tw.speed || 50
-    const targetIndex = Math.floor(elapsed / speed)
-
-    // Alle Buchstaben angezeigt?
-    if (targetIndex >= fullText.length) {
-      // Animation komplett
-      if (tw.loop) {
-        // Nach loopDelay neu starten
-        const completionTime = state.startTime + fullText.length * speed
-        const timeSinceComplete = now - completionTime
-
-        if (timeSinceComplete >= (tw.loopDelay || 1000)) {
-          // Neustart
-          state.startTime = now
-          state.currentIndex = 0
-          return {
-            text: '',
-            showCursor: tw.showCursor,
-            cursorChar: tw.cursorChar || '|',
-            isComplete: false,
-          }
-        }
-      }
-
-      // Fertig - zeige vollen Text
-      state.isPlaying = false
-      return {
-        text: fullText,
-        showCursor: tw.showCursor && tw.loop, // Cursor nur bei Loop weiter anzeigen
-        cursorChar: tw.cursorChar || '|',
-        isComplete: true,
-      }
-    }
-
-    // Teiltext anzeigen
-    state.currentIndex = targetIndex
-    const visibleText = fullText.substring(0, targetIndex + 1)
-
-    return {
-      text: visibleText,
-      showCursor: tw.showCursor,
-      cursorChar: tw.cursorChar || '|',
-      isComplete: false,
-    }
+    return getTypewriterText(textObj)
   }
 
   /**
    * ✨ NEU: Startet die Typewriter-Animation neu
    */
   restartTypewriter(textObj) {
-    if (!textObj || !textObj.animation) return
-
-    const state = textObj.animation._state
-    state.startTime = null
-    state.isPlaying = false
-    state.currentIndex = 0
+    restartTypewriter(textObj)
   }
 
   /**
@@ -211,153 +139,14 @@ export class TextManager {
    * Gibt einen Wert zwischen 0 und 1 zurück
    */
   _getFadeOpacity(textObj) {
-    const animation = textObj.animation
-
-    // Wenn keine Animation oder Fade nicht aktiviert
-    if (!animation || !animation.fade || !animation.fade.enabled) {
-      return { opacity: 1, isComplete: true }
-    }
-
-    const fade = animation.fade
-    // ✅ DEFENSIVE: _state initialisieren falls nicht vorhanden
-    if (!animation._state) {
-      animation._state = { startTime: null, isPlaying: false, currentIndex: 0 }
-    }
-    const state = animation._state
-    const now = Date.now()
-
-    // Animation starten wenn noch nicht gestartet
-    if (!state.fadeStartTime) {
-      state.fadeStartTime = now + (fade.startDelay || 0)
-      state.fadePhase = 'waiting' // 'waiting', 'fadeIn', 'visible', 'fadeOut', 'hidden'
-    }
-
-    // Noch in der Start-Verzögerung?
-    if (now < state.fadeStartTime) {
-      return {
-        opacity: fade.direction === 'out' ? 1 : 0,
-        isComplete: false,
-      }
-    }
-
-    const elapsed = now - state.fadeStartTime
-    const duration = fade.duration || 1000
-
-    // Easing-Funktion anwenden
-    const applyEasing = (t, easing) => {
-      switch (easing) {
-        case 'linear':
-          return t
-        case 'easeIn':
-          return t * t
-        case 'easeOut':
-          return 1 - (1 - t) * (1 - t)
-        case 'ease':
-        default:
-          // Ease-In-Out
-          return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
-      }
-    }
-
-    // ✨ ANZEIGEDAUER: "Halte"-Phase zwischen Ein- und Ausblenden.
-    // Bei permanenter Anzeige (Standard) ist hold = 0 → Verhalten wie bisher.
-    const hold =
-      fade.permanent === false ? (fade.displayDuration != null ? fade.displayDuration : 5000) : 0
-
-    let opacity = 1
-    let isComplete = false
-
-    switch (fade.direction) {
-      case 'in': {
-        // Einblenden: 0 → 1, danach halten (und ggf. nach Anzeigedauer ausblenden)
-        if (elapsed < duration) {
-          opacity = applyEasing(elapsed / duration, fade.easing)
-        } else if (hold === 0) {
-          opacity = 1
-          isComplete = true
-        } else {
-          const t = elapsed - duration
-          if (t < hold) {
-            opacity = 1
-          } else if (t < hold + duration) {
-            opacity = 1 - applyEasing((t - hold) / duration, fade.easing)
-          } else {
-            opacity = 0
-            isComplete = true
-          }
-        }
-        break
-      }
-
-      case 'out': {
-        // Sichtbar halten (Anzeigedauer), danach ausblenden: 1 → 0
-        if (hold > 0 && elapsed < hold) {
-          opacity = 1
-        } else {
-          const t = elapsed - hold
-          if (t >= duration) {
-            opacity = 0
-            isComplete = true
-          } else {
-            opacity = 1 - applyEasing(t / duration, fade.easing)
-          }
-        }
-        break
-      }
-
-      case 'inOut': {
-        // Ein- und Ausblenden mit "Halte"-Phase: 0 → 1 → (halten) → 0
-        if (elapsed < duration) {
-          opacity = applyEasing(elapsed / duration, fade.easing)
-        } else {
-          const t = elapsed - duration
-          if (t < hold) {
-            opacity = 1
-          } else if (t < hold + duration) {
-            opacity = 1 - applyEasing((t - hold) / duration, fade.easing)
-          } else {
-            opacity = 0
-            isComplete = true
-          }
-        }
-        break
-      }
-    }
-
-    // Loop-Handling
-    if (isComplete && fade.loop) {
-      const loopDelay = fade.loopDelay || 1000
-      const cycle =
-        fade.direction === 'out'
-          ? duration + hold
-          : fade.direction === 'in' && hold === 0
-            ? duration
-            : duration * 2 + hold
-      const completionTime = state.fadeStartTime + cycle
-      const timeSinceComplete = now - completionTime
-
-      if (timeSinceComplete >= loopDelay) {
-        // Neustart
-        state.fadeStartTime = now
-        return {
-          opacity: fade.direction === 'out' ? 1 : 0,
-          isComplete: false,
-        }
-      }
-    }
-
-    return { opacity, isComplete }
+    return getFadeOpacity(textObj)
   }
 
   /**
    * ✨ NEU: Startet die Fade-Animation neu
    */
   restartFade(textObj) {
-    if (!textObj || !textObj.animation) return
-
-    const state = textObj.animation._state
-    state.fadeStartTime = null
-    state.fadePhase = null
+    restartFade(textObj)
   }
 
   /**
@@ -365,164 +154,14 @@ export class TextManager {
    * Gibt einen Wert zurück (z.B. 0.5, 1.0, 2.0)
    */
   _getScaleValue(textObj) {
-    const animation = textObj.animation
-
-    // Wenn keine Animation oder Scale nicht aktiviert
-    if (!animation || !animation.scale || !animation.scale.enabled) {
-      return { scale: 1, isComplete: true }
-    }
-
-    const scaleAnim = animation.scale
-    // ✅ DEFENSIVE: _state initialisieren falls nicht vorhanden
-    if (!animation._state) {
-      animation._state = { startTime: null, isPlaying: false, currentIndex: 0 }
-    }
-    const state = animation._state
-    const now = Date.now()
-
-    // Animation starten wenn noch nicht gestartet
-    if (!state.scaleStartTime) {
-      state.scaleStartTime = now + (scaleAnim.startDelay || 0)
-    }
-
-    // Noch in der Start-Verzögerung?
-    if (now < state.scaleStartTime) {
-      const startScale = scaleAnim.direction === 'out' ? scaleAnim.endScale : scaleAnim.startScale
-      return {
-        scale: startScale,
-        isComplete: false,
-      }
-    }
-
-    const elapsed = now - state.scaleStartTime
-    const duration = scaleAnim.duration || 1000
-
-    // Easing-Funktion anwenden
-    const applyEasing = (t, easing) => {
-      switch (easing) {
-        case 'linear':
-          return t
-        case 'easeIn':
-          return t * t
-        case 'easeOut':
-          return 1 - (1 - t) * (1 - t)
-        case 'ease':
-        default:
-          // Ease-In-Out
-          return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
-      }
-    }
-
-    const startScale = scaleAnim.startScale !== undefined ? scaleAnim.startScale : 0
-    const endScale = scaleAnim.endScale !== undefined ? scaleAnim.endScale : 1
-
-    // ✨ ANZEIGEDAUER: "Halte"-Phase zwischen Rein- und Rauszoomen.
-    const hold =
-      scaleAnim.permanent === false
-        ? scaleAnim.displayDuration != null
-          ? scaleAnim.displayDuration
-          : 5000
-        : 0
-
-    let scale = endScale
-    let isComplete = false
-
-    switch (scaleAnim.direction) {
-      case 'in': {
-        // Reinzoomen: startScale → endScale, danach halten (und ggf. rauszoomen)
-        if (elapsed < duration) {
-          scale =
-            startScale + (endScale - startScale) * applyEasing(elapsed / duration, scaleAnim.easing)
-        } else if (hold === 0) {
-          scale = endScale
-          isComplete = true
-        } else {
-          const t = elapsed - duration
-          if (t < hold) {
-            scale = endScale
-          } else if (t < hold + duration) {
-            scale =
-              endScale -
-              (endScale - startScale) * applyEasing((t - hold) / duration, scaleAnim.easing)
-          } else {
-            scale = startScale
-            isComplete = true
-          }
-        }
-        break
-      }
-
-      case 'out': {
-        // Sichtbar halten (Anzeigedauer), danach rauszoomen: endScale → startScale
-        if (hold > 0 && elapsed < hold) {
-          scale = endScale
-        } else {
-          const t = elapsed - hold
-          if (t >= duration) {
-            scale = startScale
-            isComplete = true
-          } else {
-            scale = endScale - (endScale - startScale) * applyEasing(t / duration, scaleAnim.easing)
-          }
-        }
-        break
-      }
-
-      case 'inOut': {
-        // Rein und Raus mit "Halte"-Phase: startScale → endScale → (halten) → startScale
-        if (elapsed < duration) {
-          scale =
-            startScale + (endScale - startScale) * applyEasing(elapsed / duration, scaleAnim.easing)
-        } else {
-          const t = elapsed - duration
-          if (t < hold) {
-            scale = endScale
-          } else if (t < hold + duration) {
-            scale =
-              endScale -
-              (endScale - startScale) * applyEasing((t - hold) / duration, scaleAnim.easing)
-          } else {
-            scale = startScale
-            isComplete = true
-          }
-        }
-        break
-      }
-    }
-
-    // Loop-Handling
-    if (isComplete && scaleAnim.loop) {
-      const loopDelay = scaleAnim.loopDelay || 1000
-      const cycle =
-        scaleAnim.direction === 'out'
-          ? duration + hold
-          : scaleAnim.direction === 'in' && hold === 0
-            ? duration
-            : duration * 2 + hold
-      const completionTime = state.scaleStartTime + cycle
-      const timeSinceComplete = now - completionTime
-
-      if (timeSinceComplete >= loopDelay) {
-        // Neustart
-        state.scaleStartTime = now
-        return {
-          scale: scaleAnim.direction === 'out' ? endScale : startScale,
-          isComplete: false,
-        }
-      }
-    }
-
-    return { scale, isComplete }
+    return getScaleValue(textObj)
   }
 
   /**
    * ✨ NEU: Startet die Scale-Animation neu
    */
   restartScale(textObj) {
-    if (!textObj || !textObj.animation) return
-
-    const state = textObj.animation._state
-    state.scaleStartTime = null
+    restartScale(textObj)
   }
 
   /**
@@ -530,187 +169,14 @@ export class TextManager {
    * Gibt X und Y Offset in Pixeln zurück
    */
   _getSlideOffset(textObj, canvasWidth, canvasHeight) {
-    const animation = textObj.animation
-
-    // Wenn keine Animation oder Slide nicht aktiviert
-    if (!animation || !animation.slide || !animation.slide.enabled) {
-      return { offsetX: 0, offsetY: 0, isComplete: true }
-    }
-
-    const slide = animation.slide
-    // ✅ DEFENSIVE: _state initialisieren falls nicht vorhanden
-    if (!animation._state) {
-      animation._state = { startTime: null, isPlaying: false, currentIndex: 0 }
-    }
-    const state = animation._state
-    const now = Date.now()
-
-    // Animation starten wenn noch nicht gestartet
-    if (!state.slideStartTime) {
-      state.slideStartTime = now + (slide.startDelay || 0)
-    }
-
-    // Berechne die maximale Distanz basierend auf der Richtung
-    const distancePercent = slide.distance || 100
-    let maxOffsetX = 0
-    let maxOffsetY = 0
-
-    switch (slide.from) {
-      case 'left':
-        maxOffsetX = -((canvasWidth * distancePercent) / 100)
-        break
-      case 'right':
-        maxOffsetX = (canvasWidth * distancePercent) / 100
-        break
-      case 'top':
-        maxOffsetY = -((canvasHeight * distancePercent) / 100)
-        break
-      case 'bottom':
-        maxOffsetY = (canvasHeight * distancePercent) / 100
-        break
-    }
-
-    // Noch in der Start-Verzögerung?
-    if (now < state.slideStartTime) {
-      if (slide.direction === 'out') {
-        return { offsetX: 0, offsetY: 0, isComplete: false }
-      }
-      return { offsetX: maxOffsetX, offsetY: maxOffsetY, isComplete: false }
-    }
-
-    const elapsed = now - state.slideStartTime
-    const duration = slide.duration || 1000
-
-    // Easing-Funktion anwenden
-    const applyEasing = (t, easing) => {
-      switch (easing) {
-        case 'linear':
-          return t
-        case 'easeIn':
-          return t * t
-        case 'easeOut':
-          return 1 - (1 - t) * (1 - t)
-        case 'ease':
-        default:
-          return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
-      }
-    }
-
-    // ✨ ANZEIGEDAUER: "Halte"-Phase zwischen Herein- und Herausfahren.
-    const hold =
-      slide.permanent === false ? (slide.displayDuration != null ? slide.displayDuration : 5000) : 0
-
-    let offsetX = 0
-    let offsetY = 0
-    let isComplete = false
-
-    switch (slide.direction) {
-      case 'in': {
-        // Hereinfahren: von außen → zur Position, danach halten (und ggf. herausfahren)
-        if (elapsed < duration) {
-          const e = applyEasing(elapsed / duration, slide.easing)
-          offsetX = maxOffsetX * (1 - e)
-          offsetY = maxOffsetY * (1 - e)
-        } else if (hold === 0) {
-          offsetX = 0
-          offsetY = 0
-          isComplete = true
-        } else {
-          const t = elapsed - duration
-          if (t < hold) {
-            offsetX = 0
-            offsetY = 0
-          } else if (t < hold + duration) {
-            const e = applyEasing((t - hold) / duration, slide.easing)
-            offsetX = maxOffsetX * e
-            offsetY = maxOffsetY * e
-          } else {
-            offsetX = maxOffsetX
-            offsetY = maxOffsetY
-            isComplete = true
-          }
-        }
-        break
-      }
-
-      case 'out': {
-        // In Position halten (Anzeigedauer), danach herausfahren: Position → nach außen
-        if (hold > 0 && elapsed < hold) {
-          offsetX = 0
-          offsetY = 0
-        } else {
-          const t = elapsed - hold
-          if (t >= duration) {
-            offsetX = maxOffsetX
-            offsetY = maxOffsetY
-            isComplete = true
-          } else {
-            const e = applyEasing(t / duration, slide.easing)
-            offsetX = maxOffsetX * e
-            offsetY = maxOffsetY * e
-          }
-        }
-        break
-      }
-
-      case 'inOut': {
-        // Rein und Raus mit "Halte"-Phase: außen → Position → (halten) → außen
-        if (elapsed < duration) {
-          const e = applyEasing(elapsed / duration, slide.easing)
-          offsetX = maxOffsetX * (1 - e)
-          offsetY = maxOffsetY * (1 - e)
-        } else {
-          const t = elapsed - duration
-          if (t < hold) {
-            offsetX = 0
-            offsetY = 0
-          } else if (t < hold + duration) {
-            const e = applyEasing((t - hold) / duration, slide.easing)
-            offsetX = maxOffsetX * e
-            offsetY = maxOffsetY * e
-          } else {
-            offsetX = maxOffsetX
-            offsetY = maxOffsetY
-            isComplete = true
-          }
-        }
-        break
-      }
-    }
-
-    // Loop-Handling
-    if (isComplete && slide.loop) {
-      const loopDelay = slide.loopDelay || 1000
-      const cycle =
-        slide.direction === 'out'
-          ? duration + hold
-          : slide.direction === 'in' && hold === 0
-            ? duration
-            : duration * 2 + hold
-      const completionTime = state.slideStartTime + cycle
-      const timeSinceComplete = now - completionTime
-
-      if (timeSinceComplete >= loopDelay) {
-        // Neustart
-        state.slideStartTime = now
-        if (slide.direction === 'out') {
-          return { offsetX: 0, offsetY: 0, isComplete: false }
-        }
-        return { offsetX: maxOffsetX, offsetY: maxOffsetY, isComplete: false }
-      }
-    }
-
-    return { offsetX, offsetY, isComplete }
+    return getSlideOffset(textObj, canvasWidth, canvasHeight)
   }
 
   /**
    * ✨ NEU: Startet die Slide-Animation neu
    */
   restartSlide(textObj) {
-    if (!textObj || !textObj.animation) return
-
-    const state = textObj.animation._state
-    state.slideStartTime = null
+    restartSlide(textObj)
   }
 
   /**
@@ -730,64 +196,7 @@ export class TextManager {
    * @returns {number} Multiplikator zwischen 0 (versteckt) und 1 (voll sichtbar)
    */
   _getDisplayOpacity(textObj) {
-    const animation = textObj.animation
-    if (!animation || !animation._state) return 1
-
-    const state = animation._state
-    const now = Date.now()
-
-    // Dauer der Tipp-Phase für den Schreibmaschinen-Effekt abschätzen
-    const typewriterInDuration = () => {
-      const tw = animation.typewriter
-      const chars = (textObj.content || '').length
-      return chars * (tw.speed || 50)
-    }
-
-    const effects = [
-      { cfg: animation.typewriter, startTime: state.startTime, inDuration: typewriterInDuration() },
-      { cfg: animation.fade, startTime: state.fadeStartTime, inDuration: null },
-      { cfg: animation.scale, startTime: state.scaleStartTime, inDuration: null },
-      { cfg: animation.slide, startTime: state.slideStartTime, inDuration: null },
-    ]
-
-    let hasTimed = false
-    let maxCycleEnd = null
-
-    for (const { cfg, startTime, inDuration } of effects) {
-      if (!cfg || !cfg.enabled) continue
-
-      // Permanent, Loop oder noch nicht gestartet => kein zeitgesteuertes Ausblenden
-      if (cfg.permanent !== false || cfg.loop || !startTime) continue
-
-      hasTimed = true
-
-      const displayDuration = cfg.displayDuration != null ? cfg.displayDuration : 5000
-      const duration = inDuration != null ? inDuration : cfg.duration || 1000
-      // Voller Zyklus = Eingang + Anzeigedauer + Ausgang.
-      // Der Schreibmaschinen-Effekt hat keinen eigenen Ausgang (inDuration != null).
-      const cycle =
-        inDuration != null
-          ? duration + displayDuration
-          : cfg.direction === 'out'
-            ? duration + displayDuration
-            : duration * 2 + displayDuration
-      const cycleEnd = startTime + cycle
-      if (maxCycleEnd === null || cycleEnd > maxCycleEnd) {
-        maxCycleEnd = cycleEnd
-      }
-    }
-
-    // Keine zeitgesteuerte Animation aktiv => voll sichtbar
-    if (!hasTimed || maxCycleEnd === null) return 1
-
-    // Vor dem Zyklus-Ende blenden die Animationen selbst aus (Fade/Slide/Scale).
-    if (now < maxCycleEnd) return 1
-
-    // Nach dem Zyklus-Ende: garantiertes, sanftes Ausblenden (v.a. für Typewriter)
-    const FADE_OUT_MS = 500
-    const elapsed = now - maxCycleEnd
-    if (elapsed >= FADE_OUT_MS) return 0
-    return 1 - elapsed / FADE_OUT_MS
+    return getDisplayOpacity(textObj)
   }
 
   /**

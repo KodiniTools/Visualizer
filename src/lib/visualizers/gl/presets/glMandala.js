@@ -12,7 +12,8 @@ uniform float uSegments;  // kaleidoscope symmetry
 uniform float uHueSpread; // hue variation across the field
 
 void main() {
-  vec2 p = (vUv - 0.5) * vec2(uResolution.x / uResolution.y, 1.0);
+  // Die ganze Figur (Vignette endet bei r = 0.85) passt in die kurze Kante.
+  vec2 p = centeredFit(0.85);
   float bass = uBands.x;
   float mid = uBands.y;
   float treb = uBands.z;

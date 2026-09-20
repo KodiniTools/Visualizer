@@ -11,7 +11,7 @@ const frag = /* glsl */ `
 uniform float uRings;
 
 void main() {
-  vec2 p = (vUv - 0.5) * vec2(uResolution.x / uResolution.y, 1.0);
+  vec2 p = centeredFit(0.5); // Querformat: identisch, Hochformat: passt in die Breite
   float bass = uBands.x;
   float treb = uBands.z;
   float t = uTime;
@@ -22,7 +22,7 @@ void main() {
 
   float rings = clamp(uRings, 3.0, 12.0);
   float rIn = 0.07;
-  float rOut = 0.46 + bass * 0.03 + uOnset.x * 0.02;
+  float rOut = 0.45 + bass * 0.03 + uOnset.x * 0.02; // bleibt auch bei Bass-Peak <= 0.5
   float band = (r - rIn) / (rOut - rIn);          // 0 inner .. 1 outer
 
   vec3 rgb = vec3(0.0);
@@ -70,6 +70,7 @@ void main() {
 
   // Outer glow and inner reticle.
   float outerGlow = exp(-max(r - rOut, 0.0) * 14.0) * (0.15 + bass * 0.4) * step(rOut, r);
+  outerGlow *= 1.0 - smoothstep(rOut, 0.5, r); // Glow endet an der kurzen Kante
   float core = exp(-r * r / (rIn * rIn * 0.6)) * (0.3 + bass * 0.8);
   float reticle = (1.0 - smoothstep(0.0, 1.5 * aaPx, abs(r - rIn * 0.8))) * 0.6;
   reticle += (1.0 - smoothstep(0.0, 1.2 * aaPx, min(abs(p.x), abs(p.y)))) * step(r, rIn * 0.7) * 0.4 * (0.5 + treb);

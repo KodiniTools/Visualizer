@@ -8,6 +8,7 @@
  * - textManager/createTextObject.js    - Defaults neuer Text-Objekte
  * - textManager/geometry/textBounds.js - Bounds & Treffer-Erkennung
  * - textManager/style/textStyle.js     - Canvas-Style, Schatten, Kontur, Glow
+ * - textManager/animation/*            - Typewriter, Anzeigedauer, Easing
  */
 import { makeLevelResolver } from './audio/ReactiveLevel.js'
 import { calculateBeatPulse, calculateEffectValue, getMotionOffset } from './audio/index.js'
@@ -20,6 +21,8 @@ import {
   resetShadow,
   strongestGlow,
 } from './textManager/style/textStyle.js'
+import { getTypewriterText, restartTypewriter } from './textManager/animation/typewriter.js'
+import { getDisplayOpacity } from './textManager/animation/displayOpacity.js'
 
 export class TextManager {
   constructor(textStore) {
@@ -117,93 +120,14 @@ export class TextManager {
    * Gibt den anzuzeigenden Text und Cursor-Info zurück
    */
   _getTypewriterText(textObj) {
-    const animation = textObj.animation
-
-    // Wenn keine Animation oder Typewriter nicht aktiviert
-    if (!animation || !animation.typewriter || !animation.typewriter.enabled) {
-      return { text: textObj.content, showCursor: false, isComplete: true }
-    }
-
-    const tw = animation.typewriter
-    const state = animation._state
-    const fullText = textObj.content
-    const now = Date.now()
-
-    // Animation starten wenn noch nicht gestartet
-    if (!state.isPlaying && !state.startTime) {
-      state.startTime = now + (tw.startDelay || 0)
-      state.isPlaying = true
-      state.currentIndex = 0
-    }
-
-    // Noch in der Start-Verzögerung?
-    if (now < state.startTime) {
-      return {
-        text: '',
-        showCursor: tw.showCursor,
-        cursorChar: tw.cursorChar || '|',
-        isComplete: false,
-      }
-    }
-
-    // Berechne wie viele Buchstaben sichtbar sein sollten
-    const elapsed = now - state.startTime
-    const speed = tw.speed || 50
-    const targetIndex = Math.floor(elapsed / speed)
-
-    // Alle Buchstaben angezeigt?
-    if (targetIndex >= fullText.length) {
-      // Animation komplett
-      if (tw.loop) {
-        // Nach loopDelay neu starten
-        const completionTime = state.startTime + fullText.length * speed
-        const timeSinceComplete = now - completionTime
-
-        if (timeSinceComplete >= (tw.loopDelay || 1000)) {
-          // Neustart
-          state.startTime = now
-          state.currentIndex = 0
-          return {
-            text: '',
-            showCursor: tw.showCursor,
-            cursorChar: tw.cursorChar || '|',
-            isComplete: false,
-          }
-        }
-      }
-
-      // Fertig - zeige vollen Text
-      state.isPlaying = false
-      return {
-        text: fullText,
-        showCursor: tw.showCursor && tw.loop, // Cursor nur bei Loop weiter anzeigen
-        cursorChar: tw.cursorChar || '|',
-        isComplete: true,
-      }
-    }
-
-    // Teiltext anzeigen
-    state.currentIndex = targetIndex
-    const visibleText = fullText.substring(0, targetIndex + 1)
-
-    return {
-      text: visibleText,
-      showCursor: tw.showCursor,
-      cursorChar: tw.cursorChar || '|',
-      isComplete: false,
-    }
+    return getTypewriterText(textObj)
   }
 
   /**
    * ✨ NEU: Startet die Typewriter-Animation neu
    */
   restartTypewriter(textObj) {
-    if (!textObj || !textObj.animation) return
-
-    const state = textObj.animation._state
-    state.startTime = null
-    state.isPlaying = false
-    state.currentIndex = 0
+    restartTypewriter(textObj)
   }
 
   /**
@@ -730,64 +654,7 @@ export class TextManager {
    * @returns {number} Multiplikator zwischen 0 (versteckt) und 1 (voll sichtbar)
    */
   _getDisplayOpacity(textObj) {
-    const animation = textObj.animation
-    if (!animation || !animation._state) return 1
-
-    const state = animation._state
-    const now = Date.now()
-
-    // Dauer der Tipp-Phase für den Schreibmaschinen-Effekt abschätzen
-    const typewriterInDuration = () => {
-      const tw = animation.typewriter
-      const chars = (textObj.content || '').length
-      return chars * (tw.speed || 50)
-    }
-
-    const effects = [
-      { cfg: animation.typewriter, startTime: state.startTime, inDuration: typewriterInDuration() },
-      { cfg: animation.fade, startTime: state.fadeStartTime, inDuration: null },
-      { cfg: animation.scale, startTime: state.scaleStartTime, inDuration: null },
-      { cfg: animation.slide, startTime: state.slideStartTime, inDuration: null },
-    ]
-
-    let hasTimed = false
-    let maxCycleEnd = null
-
-    for (const { cfg, startTime, inDuration } of effects) {
-      if (!cfg || !cfg.enabled) continue
-
-      // Permanent, Loop oder noch nicht gestartet => kein zeitgesteuertes Ausblenden
-      if (cfg.permanent !== false || cfg.loop || !startTime) continue
-
-      hasTimed = true
-
-      const displayDuration = cfg.displayDuration != null ? cfg.displayDuration : 5000
-      const duration = inDuration != null ? inDuration : cfg.duration || 1000
-      // Voller Zyklus = Eingang + Anzeigedauer + Ausgang.
-      // Der Schreibmaschinen-Effekt hat keinen eigenen Ausgang (inDuration != null).
-      const cycle =
-        inDuration != null
-          ? duration + displayDuration
-          : cfg.direction === 'out'
-            ? duration + displayDuration
-            : duration * 2 + displayDuration
-      const cycleEnd = startTime + cycle
-      if (maxCycleEnd === null || cycleEnd > maxCycleEnd) {
-        maxCycleEnd = cycleEnd
-      }
-    }
-
-    // Keine zeitgesteuerte Animation aktiv => voll sichtbar
-    if (!hasTimed || maxCycleEnd === null) return 1
-
-    // Vor dem Zyklus-Ende blenden die Animationen selbst aus (Fade/Slide/Scale).
-    if (now < maxCycleEnd) return 1
-
-    // Nach dem Zyklus-Ende: garantiertes, sanftes Ausblenden (v.a. für Typewriter)
-    const FADE_OUT_MS = 500
-    const elapsed = now - maxCycleEnd
-    if (elapsed >= FADE_OUT_MS) return 0
-    return 1 - elapsed / FADE_OUT_MS
+    return getDisplayOpacity(textObj)
   }
 
   /**

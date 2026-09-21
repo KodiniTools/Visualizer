@@ -70,6 +70,32 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
     expect(wrapper.find('.react-slider').exists()).toBe(true)
   })
 
+  it('zeigt die Formungs-Regler (wie Audio-Reaktiv beim Bild) nur außerhalb von spectrum', async () => {
+    expect(wrapper.find('.react-shape').exists()).toBe(false)
+
+    await wrapper.find('.react-select').setValue('midOnset')
+    const shape = wrapper.find('.react-shape')
+    expect(shape.exists()).toBe(true)
+    expect(shape.findAll('.react-shape__slider')).toHaveLength(4)
+    expect(shape.find('.react-shape__select').exists()).toBe(true)
+    expect(shape.text()).toContain('Aus') // Beat-Verstärkung aus
+
+    await shape.find('.react-shape__slider--smoothing').setValue(80)
+    expect(store.reactSmoothing).toBe(80)
+    await shape.find('.react-shape__slider--gain').setValue(150)
+    expect(store.reactGain).toBe(150)
+    await shape.find('.react-shape__select').setValue('easeOut')
+    expect(store.reactEasing).toBe('easeOut')
+    await shape.find('.react-shape__slider--beat-boost').setValue(2)
+    expect(store.reactBeatBoost).toBe(2)
+    expect(shape.text()).toContain('×2.0')
+    await shape.find('.react-shape__slider--phase').setValue(90)
+    expect(store.reactPhase).toBe(90)
+
+    await wrapper.find('.react-select').setValue('spectrum')
+    expect(wrapper.find('.react-shape').exists()).toBe(false)
+  })
+
   it('klappt Kategorien per Klick auf und zu', async () => {
     const headers = wrapper.findAll('.category-header')
     const gpu = headers[0]

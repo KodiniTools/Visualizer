@@ -66,6 +66,11 @@ describe('Multi-Layer-Vorlagen – Layer-Form', () => {
       'blendMode',
       'reactSource',
       'reactStrength',
+      'reactSmoothing',
+      'reactGain',
+      'reactEasing',
+      'reactBeatBoost',
+      'reactPhase',
       'imageId',
     ]
     for (const p of multiPresets) {

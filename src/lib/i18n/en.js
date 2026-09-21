@@ -847,6 +847,13 @@ export default {
       allOnset: 'All onset',
       strength: 'Reaction strength',
       hint: 'Onset: only jumps on beats and settles in between',
+      // Shaping – the same controls as the image "Audio reactive" panel
+      smoothing: 'Smoothing',
+      gain: 'Audio level',
+      easing: 'Easing',
+      beatBoost: 'Beat boost',
+      beatBoostOff: 'Off',
+      phase: 'Phase',
     },
   },
 

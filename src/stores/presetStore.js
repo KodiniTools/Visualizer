@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useVisualizerStore } from './visualizerStore.js'
 import { resolveVisualizerId } from '../lib/visualizers/aliases.js'
+import { DEFAULT_REACT_SHAPE } from '../lib/visualizers/core/reactSource.js'
 
 const USER_PRESETS_KEY = 'visualizer-user-presets'
 
@@ -32,6 +33,7 @@ function layer(id, visualizerId, overrides = {}) {
     blendMode: 'source-over',
     reactSource: 'spectrum',
     reactStrength: 70,
+    ...DEFAULT_REACT_SHAPE,
     imageId: null,
     ...overrides,
   }
@@ -749,6 +751,11 @@ export const usePresetStore = defineStore('presets', () => {
         showVisualizer: vizStore.showVisualizer,
         reactSource: vizStore.reactSource,
         reactStrength: vizStore.reactStrength,
+        reactSmoothing: vizStore.reactSmoothing,
+        reactGain: vizStore.reactGain,
+        reactEasing: vizStore.reactEasing,
+        reactBeatBoost: vizStore.reactBeatBoost,
+        reactPhase: vizStore.reactPhase,
         imageId: vizStore.visualizerImageId,
         multiLayerMode: vizStore.multiLayerMode,
         layers: vizStore.multiLayerMode ? vizStore.visualizerLayers.map((l) => ({ ...l })) : [],
@@ -791,6 +798,8 @@ export const usePresetStore = defineStore('presets', () => {
       vizStore.multiLayerMode = true
       // Stored ids may point at retired classic visualizers → map to GPU preset.
       vizStore.visualizerLayers = v.layers.map((l) => ({
+        // Ältere Presets kennen die Formungs-Regler nicht → Standardwerte
+        ...DEFAULT_REACT_SHAPE,
         ...l,
         visualizerId: resolveVisualizerId(l.visualizerId) || vizStore.lastWorkingVisualizer,
       }))
@@ -812,6 +821,12 @@ export const usePresetStore = defineStore('presets', () => {
       vizStore.showVisualizer = v.showVisualizer ?? true
       vizStore.setReactSource(v.reactSource ?? 'spectrum')
       vizStore.setReactStrength(v.reactStrength ?? 70)
+      // Formungs-Regler: fehlende Felder (ältere Presets) → Standardwerte
+      vizStore.setReactSmoothing(v.reactSmoothing)
+      vizStore.setReactGain(v.reactGain)
+      vizStore.setReactEasing(v.reactEasing)
+      vizStore.setReactBeatBoost(v.reactBeatBoost)
+      vizStore.setReactPhase(v.reactPhase)
       vizStore.setVisualizerImageId(v.imageId ?? null)
     }
 

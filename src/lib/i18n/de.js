@@ -844,6 +844,13 @@ export default {
       allOnset: 'Alle-Onset',
       strength: 'Reaktionsstärke',
       hint: 'Onset: springt nur auf Beats an und fällt dazwischen zurück',
+      // Formung – dieselben Regler wie "Audio-Reaktiv" beim Bild
+      smoothing: 'Glättung',
+      gain: 'Audio-Pegel',
+      easing: 'Übergang',
+      beatBoost: 'Beat-Verstärkung',
+      beatBoostOff: 'Aus',
+      phase: 'Phase',
     },
   },
 

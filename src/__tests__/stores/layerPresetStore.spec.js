@@ -57,6 +57,28 @@ describe('layerPresetStore – speichern', () => {
     expect(store.layerPresets.map((p) => p.name)).toEqual(['Zweites', 'Layer-Preset 1'])
   })
 
+  it('speichert die Formungs-Regler je Layer und ergänzt fehlende beim Anwenden', () => {
+    viz.addLayer('bars', { reactSource: 'bass', reactSmoothing: 80, reactEasing: 'punch' })
+    const preset = store.saveCurrentLayersAsPreset('Shape')
+    expect(preset.layers[0]).toMatchObject({
+      reactSmoothing: 80,
+      reactGain: 100,
+      reactEasing: 'punch',
+      reactBeatBoost: 1,
+      reactPhase: 0,
+    })
+    // Ältere Presets ohne die Felder → Standardwerte beim Anwenden
+    const legacy = { ...preset, layers: [{ visualizerId: 'bars', color: '#111111' }] }
+    expect(store.applyLayerPreset(legacy)).toBe(true)
+    expect(viz.visualizerLayers[0]).toMatchObject({
+      reactSmoothing: 50,
+      reactGain: 100,
+      reactEasing: 'linear',
+      reactBeatBoost: 1,
+      reactPhase: 0,
+    })
+  })
+
   it('persistiert in localStorage und lädt beim nächsten Store neu', () => {
     setupTwoLayers()
     const saved = store.saveCurrentLayersAsPreset('Drop-Set')

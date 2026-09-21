@@ -5,13 +5,20 @@ import { Visualizers } from '../lib/visualizers/index.js'
 import { LEGACY_VISUALIZER_IDS, resolveVisualizerId } from '../lib/visualizers/aliases.js'
 import {
   REACT_SOURCES,
+  REACT_EASINGS,
   DEFAULT_REACT_SOURCE,
   DEFAULT_REACT_STRENGTH,
+  DEFAULT_REACT_SHAPE,
   isReactSource,
+  normalizeReactSmoothing,
+  normalizeReactGain,
+  normalizeReactEasing,
+  normalizeReactBeatBoost,
+  normalizeReactPhase,
 } from '../lib/visualizers/core/reactSource.js'
 
-// Reaktionsquellen (Spektrum, Bandpegel, Onsets) für die UI
-export { REACT_SOURCES }
+// Reaktionsquellen (Spektrum, Bandpegel, Onsets) und Übergänge für die UI
+export { REACT_SOURCES, REACT_EASINGS }
 import { localeRef } from '../lib/i18n.js'
 
 // ✅ Blend-Modi für Visualizer-Compositing
@@ -190,6 +197,14 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   // bisher, sonst Bandpegel oder auto-normalisierter Onset) und wie stark.
   const reactSource = ref(DEFAULT_REACT_SOURCE)
   const reactStrength = ref(DEFAULT_REACT_STRENGTH)
+  // Formung der Reaktion – dieselben Regler wie "Audio-Reaktiv" beim Bild:
+  // Glättung (0–100), Audio-Pegel (Gain 0–200 %), Übergang (Easing),
+  // Beat-Verstärkung (1.0 = aus … 3.0) und Phase (0–360°).
+  const reactSmoothing = ref(DEFAULT_REACT_SHAPE.reactSmoothing)
+  const reactGain = ref(DEFAULT_REACT_SHAPE.reactGain)
+  const reactEasing = ref(DEFAULT_REACT_SHAPE.reactEasing)
+  const reactBeatBoost = ref(DEFAULT_REACT_SHAPE.reactBeatBoost)
+  const reactPhase = ref(DEFAULT_REACT_SHAPE.reactPhase)
 
   // Bild für Portrait-Presets (ID in der imageRegistry, null = keines)
   const visualizerImageId = ref(null)
@@ -227,6 +242,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       blendMode: 'source-over',
       reactSource: DEFAULT_REACT_SOURCE,
       reactStrength: DEFAULT_REACT_STRENGTH,
+      ...DEFAULT_REACT_SHAPE,
       imageId: null,
       ...overrides,
     }
@@ -271,6 +287,11 @@ export const useVisualizerStore = defineStore('visualizer', () => {
         scale: visualizerScale.value,
         reactSource: reactSource.value,
         reactStrength: reactStrength.value,
+        reactSmoothing: reactSmoothing.value,
+        reactGain: reactGain.value,
+        reactEasing: reactEasing.value,
+        reactBeatBoost: reactBeatBoost.value,
+        reactPhase: reactPhase.value,
         imageId: visualizerImageId.value,
       })
       visualizerLayers.value.push(initialLayer)
@@ -394,6 +415,21 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       case 'reactStrength':
         value = Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
         break
+      case 'reactSmoothing':
+        value = normalizeReactSmoothing(value)
+        break
+      case 'reactGain':
+        value = normalizeReactGain(value)
+        break
+      case 'reactEasing':
+        value = normalizeReactEasing(value)
+        break
+      case 'reactBeatBoost':
+        value = normalizeReactBeatBoost(value)
+        break
+      case 'reactPhase':
+        value = normalizeReactPhase(value)
+        break
       case 'imageId':
         value = typeof value === 'string' && value ? value : null
         break
@@ -443,6 +479,11 @@ export const useVisualizerStore = defineStore('visualizer', () => {
         scale: visualizerScale.value,
         reactSource: reactSource.value,
         reactStrength: reactStrength.value,
+        reactSmoothing: reactSmoothing.value,
+        reactGain: reactGain.value,
+        reactEasing: reactEasing.value,
+        reactBeatBoost: reactBeatBoost.value,
+        reactPhase: reactPhase.value,
         imageId: visualizerImageId.value,
       })
     }
@@ -460,6 +501,11 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       visualizerScale.value = activeLayer.value.scale
       reactSource.value = activeLayer.value.reactSource || DEFAULT_REACT_SOURCE
       reactStrength.value = activeLayer.value.reactStrength ?? DEFAULT_REACT_STRENGTH
+      reactSmoothing.value = normalizeReactSmoothing(activeLayer.value.reactSmoothing)
+      reactGain.value = normalizeReactGain(activeLayer.value.reactGain)
+      reactEasing.value = normalizeReactEasing(activeLayer.value.reactEasing)
+      reactBeatBoost.value = normalizeReactBeatBoost(activeLayer.value.reactBeatBoost)
+      reactPhase.value = normalizeReactPhase(activeLayer.value.reactPhase)
       visualizerImageId.value = activeLayer.value.imageId || null
     }
   }
@@ -537,6 +583,35 @@ export const useVisualizerStore = defineStore('visualizer', () => {
 
   function setReactStrength(v) {
     reactStrength.value = Math.max(0, Math.min(100, Math.round(Number(v) || 0)))
+  }
+
+  function setReactSmoothing(v) {
+    reactSmoothing.value = normalizeReactSmoothing(v)
+  }
+
+  function setReactGain(v) {
+    reactGain.value = normalizeReactGain(v)
+  }
+
+  function setReactEasing(v) {
+    reactEasing.value = normalizeReactEasing(v)
+  }
+
+  function setReactBeatBoost(v) {
+    reactBeatBoost.value = normalizeReactBeatBoost(v)
+  }
+
+  function setReactPhase(v) {
+    reactPhase.value = normalizeReactPhase(v)
+  }
+
+  /** Setzt alle Formungs-Regler auf die Standardwerte zurück. */
+  function resetReactShape() {
+    reactSmoothing.value = DEFAULT_REACT_SHAPE.reactSmoothing
+    reactGain.value = DEFAULT_REACT_SHAPE.reactGain
+    reactEasing.value = DEFAULT_REACT_SHAPE.reactEasing
+    reactBeatBoost.value = DEFAULT_REACT_SHAPE.reactBeatBoost
+    reactPhase.value = DEFAULT_REACT_SHAPE.reactPhase
   }
 
   function setVisualizerImageId(id) {
@@ -661,8 +736,19 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     // Reaktionsquelle
     reactSource,
     reactStrength,
+    reactSmoothing,
+    reactGain,
+    reactEasing,
+    reactBeatBoost,
+    reactPhase,
     setReactSource,
     setReactStrength,
+    setReactSmoothing,
+    setReactGain,
+    setReactEasing,
+    setReactBeatBoost,
+    setReactPhase,
+    resetReactShape,
     // Bild für Portrait-Presets
     visualizerImageId,
     setVisualizerImageId,

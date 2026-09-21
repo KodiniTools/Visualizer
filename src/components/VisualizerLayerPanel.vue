@@ -205,6 +205,11 @@
                 :model-value="layer.reactStrength ?? 70"
                 @update:model-value="updateProperty(layer.id, 'reactStrength', $event)"
               />
+              <VisualizerReactShapeControls
+                :settings="layer"
+                compact
+                @update="(field, value) => updateProperty(layer.id, field, value)"
+              />
             </div>
 
             <!-- Bild für Portrait-Presets -->
@@ -324,6 +329,7 @@
 
 <script setup>
 import SliderField from './ui/SliderField.vue'
+import VisualizerReactShapeControls from './visualizer-panel/VisualizerReactShapeControls.vue'
 import VisualizerImagePicker from './VisualizerImagePicker.vue'
 import ColorField from './ui/ColorField.vue'
 import { ref, computed, nextTick } from 'vue'

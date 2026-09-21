@@ -1,5 +1,5 @@
 /**
- * GPU presets: LED-Ziffern 0–9 und LED-Buchstaben A–E – eine 5×7-Punktmatrix aus runden LED-Lampen im
+ * GPU presets: LED-Ziffern 0–9 und LED-Buchstaben A–Z – eine 5×7-Punktmatrix aus runden LED-Lampen im
  * Stil des LED-Sunstrips (Linsen, Fassung, Bloom, dunkles Gehäuse, Lichtstreuung).
  * Jede Lampe der Ziffer hat ihr eigenes Frequenzband (Bass unten, Höhen oben),
  * ein Lauflicht zirkuliert rund um die Ziffer, Onsets lassen zufällige Lampen
@@ -42,6 +42,27 @@ export const LETTER_BITMAPS = {
   C: ['.###.', '#...#', '#....', '#....', '#....', '#...#', '.###.'],
   D: ['####.', '#...#', '#...#', '#...#', '#...#', '#...#', '####.'],
   E: ['#####', '#....', '#....', '####.', '#....', '#....', '#####'],
+  F: ['#####', '#....', '#....', '####.', '#....', '#....', '#....'],
+  G: ['.###.', '#...#', '#....', '#.###', '#...#', '#...#', '.####'],
+  H: ['#...#', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+  I: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '#####'],
+  J: ['..###', '...#.', '...#.', '...#.', '...#.', '#..#.', '.##..'],
+  K: ['#...#', '#..#.', '#.#..', '##...', '#.#..', '#..#.', '#...#'],
+  L: ['#....', '#....', '#....', '#....', '#....', '#....', '#####'],
+  M: ['#...#', '##.##', '#.#.#', '#.#.#', '#...#', '#...#', '#...#'],
+  N: ['#...#', '#...#', '##..#', '#.#.#', '#..##', '#...#', '#...#'],
+  O: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+  P: ['####.', '#...#', '#...#', '####.', '#....', '#....', '#....'],
+  Q: ['.###.', '#...#', '#...#', '#...#', '#.#.#', '#..#.', '.##.#'],
+  R: ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'],
+  S: ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'],
+  T: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'],
+  U: ['#...#', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+  V: ['#...#', '#...#', '#...#', '#...#', '#...#', '.#.#.', '..#..'],
+  W: ['#...#', '#...#', '#...#', '#.#.#', '#.#.#', '#.#.#', '.#.#.'],
+  X: ['#...#', '#...#', '.#.#.', '..#..', '.#.#.', '#...#', '#...#'],
+  Y: ['#...#', '#...#', '.#.#.', '..#..', '..#..', '..#..', '..#..'],
+  Z: ['#####', '....#', '...#.', '..#..', '.#...', '#....', '#####'],
 }
 
 /**
@@ -233,7 +254,7 @@ export function makeLedDigitPreset(digit) {
 
 /**
  * Erzeugt das Preset für einen Buchstaben.
- * @param {'A'|'B'|'C'|'D'|'E'} letter
+ * @param {string} letter - Großbuchstabe A–Z
  */
 export function makeLedLetterPreset(letter) {
   const bitmap = LETTER_BITMAPS[letter]
@@ -277,3 +298,24 @@ export const glLedLetterB = makeLedLetterPreset('B')
 export const glLedLetterC = makeLedLetterPreset('C')
 export const glLedLetterD = makeLedLetterPreset('D')
 export const glLedLetterE = makeLedLetterPreset('E')
+export const glLedLetterF = makeLedLetterPreset('F')
+export const glLedLetterG = makeLedLetterPreset('G')
+export const glLedLetterH = makeLedLetterPreset('H')
+export const glLedLetterI = makeLedLetterPreset('I')
+export const glLedLetterJ = makeLedLetterPreset('J')
+export const glLedLetterK = makeLedLetterPreset('K')
+export const glLedLetterL = makeLedLetterPreset('L')
+export const glLedLetterM = makeLedLetterPreset('M')
+export const glLedLetterN = makeLedLetterPreset('N')
+export const glLedLetterO = makeLedLetterPreset('O')
+export const glLedLetterP = makeLedLetterPreset('P')
+export const glLedLetterQ = makeLedLetterPreset('Q')
+export const glLedLetterR = makeLedLetterPreset('R')
+export const glLedLetterS = makeLedLetterPreset('S')
+export const glLedLetterT = makeLedLetterPreset('T')
+export const glLedLetterU = makeLedLetterPreset('U')
+export const glLedLetterV = makeLedLetterPreset('V')
+export const glLedLetterW = makeLedLetterPreset('W')
+export const glLedLetterX = makeLedLetterPreset('X')
+export const glLedLetterY = makeLedLetterPreset('Y')
+export const glLedLetterZ = makeLedLetterPreset('Z')

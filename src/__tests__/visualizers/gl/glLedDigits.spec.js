@@ -11,7 +11,7 @@ import {
 import { glPresetSpecs } from '../../../lib/visualizers/gl/index.js'
 
 const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-const LETTERS = ['A', 'B', 'C', 'D', 'E']
+const LETTERS = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
 
 describe('gl/presets/glLedDigits', () => {
   it('hat für jede Ziffer 0–9 eine gültige 5×7-Bitmap', () => {
@@ -56,7 +56,8 @@ describe('gl/presets/glLedDigits', () => {
     }
   })
 
-  it('hat für jeden Buchstaben A–E eine gültige 5×7-Bitmap', () => {
+  it('hat für jeden Buchstaben A–Z eine gültige 5×7-Bitmap', () => {
+    expect(Object.keys(LETTER_BITMAPS)).toEqual(LETTERS)
     for (const c of LETTERS) {
       const bm = LETTER_BITMAPS[c]
       expect(bm, `Buchstabe ${c}`).toHaveLength(DIGIT_ROWS)
@@ -71,7 +72,7 @@ describe('gl/presets/glLedDigits', () => {
     expect(new Set(alle).size).toBe(alle.length)
   })
 
-  it('ist unter glLedLetterA–E registriert, mit Namen und Canvas2D-Fallback', () => {
+  it('ist unter glLedLetterA–Z registriert, mit Namen und Canvas2D-Fallback', () => {
     for (const c of LETTERS) {
       const spec = glPresetSpecs[`glLedLetter${c}`]
       expect(spec).toBeDefined()
@@ -83,8 +84,9 @@ describe('gl/presets/glLedDigits', () => {
   })
 
   it('lehnt unbekannte Buchstaben ab', () => {
-    expect(() => makeLedLetterPreset('Z')).toThrow(/Bitmap/)
+    expect(() => makeLedLetterPreset('Ä')).toThrow(/Bitmap/)
     expect(() => makeLedLetterPreset('a')).toThrow(/Bitmap/)
+    expect(() => makeLedLetterPreset('')).toThrow(/Bitmap/)
   })
 
   it('lehnt unbekannte Ziffern ab', () => {

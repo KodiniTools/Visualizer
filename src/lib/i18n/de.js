@@ -789,6 +789,7 @@ export default {
     noResultsFor: 'Keine Ergebnisse für',
     categories: {
       gpu: 'GPU-Presets',
+      ledLetters: 'LED-Buchstaben',
       userPresets: 'Eigene Presets',
       portrait: 'Portrait (Bild)',
       classic: 'Klassisch (Canvas2D)',

@@ -45,8 +45,8 @@
       >
         <summary
           class="category-header"
-          :class="{ open: openCategories[USER_PRESETS_CATEGORY] }"
-          @click.prevent="toggleCategory(USER_PRESETS_CATEGORY)"
+          :class="{ open: isCategoryOpen(USER_PRESETS_CATEGORY) }"
+          @click.prevent="toggleCategory(USER_PRESETS_CATEGORY, $event)"
         >
           <span class="category-name">{{ t('visualizer.categories.userPresets') }}</span>
           <span class="category-count">{{ layerPresetStore.layerPresets.length }}</span>
@@ -75,8 +75,8 @@
       >
         <summary
           class="category-header"
-          :class="{ open: openCategories[category] }"
-          @click.prevent="toggleCategory(category)"
+          :class="{ open: isCategoryOpen(category) }"
+          @click.prevent="toggleCategory(category, $event)"
         >
           <span class="category-name">{{ getCategoryName(category) }}</span>
           <span class="category-count">{{ visualizers.length }}</span>
@@ -99,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useVisualizerStore } from '../../stores/visualizerStore.js'
 import { useLayerPresetStore } from '../../stores/layerPresetStore.js'
@@ -119,14 +119,14 @@ const layerPresetStore = useLayerPresetStore()
 // Schlüssel der Kategorie "Eigene Presets" (kein Visualizer-Kategorie-Key)
 const USER_PRESETS_CATEGORY = 'Eigene Presets'
 
-const openCategories = ref({
-  [USER_PRESETS_CATEGORY]: true,
-  'GPU-Presets': true, // GPU-Presets offen; „LED-Buchstaben“ und „Klassisch“ eingeklappt
-})
+// Akkordeon: es ist immer höchstens eine Kategorie aufgeklappt. Wird eine
+// geöffnet, klappen alle anderen zu; ein Klick auf die offene schließt sie.
+const openCategory = ref('GPU-Presets')
 
 // Map German category keys to i18n translation keys
 const categoryTranslationKeys = {
   'GPU-Presets': 'visualizer.categories.gpu',
+  Laser: 'visualizer.categories.laser',
   'LED-Buchstaben': 'visualizer.categories.ledLetters',
   Portrait: 'visualizer.categories.portrait',
   Klassisch: 'visualizer.categories.classic',
@@ -138,11 +138,18 @@ function getCategoryName(category) {
 }
 
 function isCategoryOpen(category) {
-  return openCategories.value[category] || false
+  return openCategory.value === category
 }
 
-function toggleCategory(category) {
-  openCategories.value[category] = !openCategories.value[category]
+function toggleCategory(category, event) {
+  const opening = !isCategoryOpen(category)
+  openCategory.value = opening ? category : null
+  // Klappt eine größere Kategorie darüber zu, rutscht die angeklickte
+  // Überschrift nach oben – nach dem Rendern wieder in den sichtbaren Bereich holen.
+  const header = event?.currentTarget
+  if (opening && header) {
+    nextTick(() => header.scrollIntoView?.({ block: 'nearest' }))
+  }
 }
 
 // Gefilterte Visualizer für Suche

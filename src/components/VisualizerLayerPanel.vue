@@ -413,6 +413,7 @@ const reversedLayers = computed(() => {
 // Kategorie-Namen (Übersetzung)
 const categoryTranslationKeys = {
   'GPU-Presets': 'visualizer.categories.gpu',
+  Laser: 'visualizer.categories.laser',
   'LED-Buchstaben': 'visualizer.categories.ledLetters',
   Portrait: 'visualizer.categories.portrait',
   Klassisch: 'visualizer.categories.classic',

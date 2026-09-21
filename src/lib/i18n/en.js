@@ -801,6 +801,7 @@ export default {
     noResultsFor: 'No results for',
     categories: {
       gpu: 'GPU Presets',
+      ledLetters: 'LED letters',
       userPresets: 'My Presets',
       portrait: 'Portrait (image)',
       classic: 'Classic (Canvas2D)',

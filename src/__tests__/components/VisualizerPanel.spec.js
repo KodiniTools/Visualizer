@@ -70,6 +70,21 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
     solo.unmount()
   })
 
+  it('zeigt die LED-Buchstaben als eigene, standardmäßig eingeklappte Sektion', async () => {
+    const section = wrapper
+      .findAll('.category')
+      .find((c) => c.find('.category-name').text() === 'LED-Buchstaben')
+    expect(section).toBeDefined()
+    expect(section.attributes('open')).toBeUndefined()
+    expect(section.find('.category-count').text()).toBe('26')
+
+    await section.find('.category-header').trigger('click')
+    expect(section.attributes('open')).toBeDefined()
+    const names = section.findAll('.visualizer-btn').map((b) => b.text())
+    expect(names[0]).toBe('LED-Buchstabe A (GPU)')
+    expect(names[25]).toBe('LED-Buchstabe Z (GPU)')
+  })
+
   it('klappt Kategorien per Klick auf und zu', async () => {
     const headers = wrapper.findAll('.category-header')
     const gpu = headers[0]

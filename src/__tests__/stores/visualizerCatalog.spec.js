@@ -18,6 +18,7 @@ describe('visualizer catalogue (migration stage 1)', () => {
 
     const gpuIds = [
       ...store.categorizedVisualizers['GPU-Presets'],
+      ...store.categorizedVisualizers['LED-Buchstaben'],
       ...store.categorizedVisualizers.Portrait,
     ].map((v) => v.id)
     expect(gpuIds.sort()).toEqual(Object.keys(glVisualizers).sort())
@@ -25,6 +26,16 @@ describe('visualizer catalogue (migration stage 1)', () => {
     const classicIds = store.categorizedVisualizers.Klassisch.map((v) => v.id)
     const expectedClassic = Object.keys(Visualizers).filter((id) => !glVisualizers[id])
     expect(classicIds.sort()).toEqual(expectedClassic.sort())
+  })
+
+  it('keeps the LED letters A–Z in their own category, in alphabetical order', () => {
+    const store = useVisualizerStore()
+    const letters = store.categorizedVisualizers['LED-Buchstaben'].map((v) => v.id)
+    expect(letters).toEqual([...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map((c) => `glLedLetter${c}`))
+    const gpu = store.categorizedVisualizers['GPU-Presets'].map((v) => v.id)
+    expect(gpu.some((id) => id.startsWith('glLedLetter'))).toBe(false)
+    // Die Ziffern bleiben bei den GPU-Presets.
+    expect(gpu).toContain('glLedDigit0')
   })
 
   it('lists every registered visualizer in exactly one category', () => {

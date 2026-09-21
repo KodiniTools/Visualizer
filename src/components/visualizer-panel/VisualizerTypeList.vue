@@ -121,12 +121,13 @@ const USER_PRESETS_CATEGORY = 'Eigene Presets'
 
 const openCategories = ref({
   [USER_PRESETS_CATEGORY]: true,
-  'GPU-Presets': true, // GPU-Presets offen, „Klassisch“ eingeklappt
+  'GPU-Presets': true, // GPU-Presets offen; „LED-Buchstaben“ und „Klassisch“ eingeklappt
 })
 
 // Map German category keys to i18n translation keys
 const categoryTranslationKeys = {
   'GPU-Presets': 'visualizer.categories.gpu',
+  'LED-Buchstaben': 'visualizer.categories.ledLetters',
   Portrait: 'visualizer.categories.portrait',
   Klassisch: 'visualizer.categories.classic',
 }

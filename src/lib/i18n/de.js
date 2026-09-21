@@ -797,6 +797,7 @@ export default {
     noResultsFor: 'Keine Ergebnisse für',
     categories: {
       gpu: 'GPU-Presets',
+      laser: 'Laser',
       ledLetters: 'LED-Buchstaben',
       userPresets: 'Eigene Presets',
       portrait: 'Portrait (Bild)',

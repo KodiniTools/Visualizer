@@ -18,6 +18,7 @@ describe('visualizer catalogue (migration stage 1)', () => {
 
     const gpuIds = [
       ...store.categorizedVisualizers['GPU-Presets'],
+      ...store.categorizedVisualizers.Laser,
       ...store.categorizedVisualizers['LED-Buchstaben'],
       ...store.categorizedVisualizers.Portrait,
     ].map((v) => v.id)
@@ -26,6 +27,16 @@ describe('visualizer catalogue (migration stage 1)', () => {
     const classicIds = store.categorizedVisualizers.Klassisch.map((v) => v.id)
     const expectedClassic = Object.keys(Visualizers).filter((id) => !glVisualizers[id])
     expect(classicIds.sort()).toEqual(expectedClassic.sort())
+  })
+
+  it('keeps every laser preset in its own category', () => {
+    const store = useVisualizerStore()
+    const laser = store.categorizedVisualizers.Laser.map((v) => v.id)
+    const allLaserIds = Object.keys(glVisualizers).filter((id) => id.startsWith('glLaser'))
+    expect([...laser].sort()).toEqual(allLaserIds.sort())
+    expect(laser).toHaveLength(11)
+    const gpu = store.categorizedVisualizers['GPU-Presets'].map((v) => v.id)
+    expect(gpu.some((id) => id.startsWith('glLaser'))).toBe(false)
   })
 
   it('keeps the LED letters A–Z in their own category, in alphabetical order', () => {

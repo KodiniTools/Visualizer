@@ -85,6 +85,46 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
     expect(names[25]).toBe('LED-Buchstabe Z (GPU)')
   })
 
+  it('zeigt alle Laser-Effekte als eigene, eingeklappte Sektion', async () => {
+    const section = wrapper
+      .findAll('.category')
+      .find((c) => c.find('.category-name').text() === 'Laser')
+    expect(section).toBeDefined()
+    expect(section.attributes('open')).toBeUndefined()
+    expect(section.find('.category-count').text()).toBe('11')
+    const names = section.findAll('.visualizer-btn').map((b) => b.text())
+    expect(names).toContain('Laser-Tunnel (GPU)')
+    expect(names.every((n) => n.startsWith('Laser'))).toBe(true)
+  })
+
+  it('verhält sich als Akkordeon: nur eine Kategorie ist offen', async () => {
+    const byName = (name) =>
+      wrapper.findAll('.category').find((c) => c.find('.category-name').text() === name)
+    expect(byName('GPU-Presets').attributes('open')).toBeDefined()
+    expect(byName('Laser').attributes('open')).toBeUndefined()
+
+    await byName('Laser').find('.category-header').trigger('click')
+    expect(byName('Laser').attributes('open')).toBeDefined()
+    expect(byName('GPU-Presets').attributes('open')).toBeUndefined()
+    expect(wrapper.findAll('.category[open]')).toHaveLength(1)
+
+    await byName('LED-Buchstaben').find('.category-header').trigger('click')
+    expect(byName('LED-Buchstaben').attributes('open')).toBeDefined()
+    expect(byName('Laser').attributes('open')).toBeUndefined()
+    expect(wrapper.findAll('.category[open]')).toHaveLength(1)
+
+    // Eigene Presets gehören zum Akkordeon
+    const presets = useLayerPresetStore()
+    store.addLayer('bars')
+    presets.saveCurrentLayersAsPreset('Set')
+    store.clearAllLayers()
+    await wrapper.vm.$nextTick()
+    await wrapper.find('.category-presets .category-header').trigger('click')
+    expect(wrapper.find('.category-presets').attributes('open')).toBeDefined()
+    expect(byName('LED-Buchstaben').attributes('open')).toBeUndefined()
+    expect(wrapper.findAll('.category[open]')).toHaveLength(1)
+  })
+
   it('klappt Kategorien per Klick auf und zu', async () => {
     const headers = wrapper.findAll('.category-header')
     const gpu = headers[0]

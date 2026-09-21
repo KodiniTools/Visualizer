@@ -804,6 +804,7 @@ export default {
       laser: 'Laser',
       ledDigits: 'LED digits',
       ledLetters: 'LED letters',
+      ledFrames: 'LED frames',
       userPresets: 'My Presets',
       portrait: 'Portrait (image)',
       classic: 'Classic (Canvas2D)',

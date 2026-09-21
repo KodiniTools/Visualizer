@@ -21,6 +21,7 @@ describe('visualizer catalogue (migration stage 1)', () => {
       ...store.categorizedVisualizers.Laser,
       ...store.categorizedVisualizers['LED-Ziffern'],
       ...store.categorizedVisualizers['LED-Buchstaben'],
+      ...store.categorizedVisualizers['LED-Rahmen'],
       ...store.categorizedVisualizers.Portrait,
     ].map((v) => v.id)
     expect(gpuIds.sort()).toEqual(Object.keys(glVisualizers).sort())
@@ -60,8 +61,21 @@ describe('visualizer catalogue (migration stage 1)', () => {
       'Laser',
       'LED-Ziffern',
       'LED-Buchstaben',
+      'LED-Rahmen',
       'Portrait',
       'Klassisch',
+    ])
+  })
+
+  it('keeps the five LED frame presets in their own category', () => {
+    const store = useVisualizerStore()
+    const frames = store.categorizedVisualizers['LED-Rahmen'].map((v) => v.id)
+    expect(frames).toEqual([
+      'glLedFrameChase',
+      'glLedFrameSpectrum',
+      'glLedFrameVu',
+      'glLedFramePulse',
+      'glLedFrameRainbow',
     ])
   })
 

@@ -88,6 +88,13 @@ import {
   glLedLetterY as glLedLetterYSpec,
   glLedLetterZ as glLedLetterZSpec,
 } from './presets/glLedDigits.js'
+import {
+  glLedFrameChase as glLedFrameChaseSpec,
+  glLedFrameSpectrum as glLedFrameSpectrumSpec,
+  glLedFrameVu as glLedFrameVuSpec,
+  glLedFramePulse as glLedFramePulseSpec,
+  glLedFrameRainbow as glLedFrameRainbowSpec,
+} from './presets/glLedFrames.js'
 import { glFootlights as glFootlightsSpec } from './presets/glFootlights.js'
 import { glCornerBeams as glCornerBeamsSpec } from './presets/glCornerBeams.js'
 import { glSideLights as glSideLightsSpec } from './presets/glSideLights.js'
@@ -206,6 +213,11 @@ export const glPresetSpecs = {
   glLedLetterX: glLedLetterXSpec,
   glLedLetterY: glLedLetterYSpec,
   glLedLetterZ: glLedLetterZSpec,
+  glLedFrameChase: glLedFrameChaseSpec,
+  glLedFrameSpectrum: glLedFrameSpectrumSpec,
+  glLedFrameVu: glLedFrameVuSpec,
+  glLedFramePulse: glLedFramePulseSpec,
+  glLedFrameRainbow: glLedFrameRainbowSpec,
   glFootlights: glFootlightsSpec,
   glCornerBeams: glCornerBeamsSpec,
   glSideLights: glSideLightsSpec,

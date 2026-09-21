@@ -164,6 +164,14 @@ const VISUALIZER_CATEGORIES = {
     'glLedLetterY',
     'glLedLetterZ',
   ],
+  // LED-Rahmen: Lampenkranz entlang des Canvas-Randes, fuenf Verhaltensweisen.
+  'LED-Rahmen': [
+    'glLedFrameChase',
+    'glLedFrameSpectrum',
+    'glLedFrameVu',
+    'glLedFramePulse',
+    'glLedFrameRainbow',
+  ],
   // Portrait-Presets: arbeiten auf einem Bild (Upload oder Leinwand-Bild)
   Portrait: [
     'glPortraitLed',

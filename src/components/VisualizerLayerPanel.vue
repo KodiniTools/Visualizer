@@ -416,6 +416,7 @@ const categoryTranslationKeys = {
   Laser: 'visualizer.categories.laser',
   'LED-Ziffern': 'visualizer.categories.ledDigits',
   'LED-Buchstaben': 'visualizer.categories.ledLetters',
+  'LED-Rahmen': 'visualizer.categories.ledFrames',
   Portrait: 'visualizer.categories.portrait',
   Klassisch: 'visualizer.categories.classic',
 }

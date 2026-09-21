@@ -800,6 +800,7 @@ export default {
       laser: 'Laser',
       ledDigits: 'LED-Ziffern',
       ledLetters: 'LED-Buchstaben',
+      ledFrames: 'LED-Rahmen',
       userPresets: 'Eigene Presets',
       portrait: 'Portrait (Bild)',
       classic: 'Klassisch (Canvas2D)',

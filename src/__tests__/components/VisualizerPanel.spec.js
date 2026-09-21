@@ -109,6 +109,23 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
     expect(names[9]).toBe('LED-Ziffer 9 (GPU)')
   })
 
+  it('zeigt die LED-Rahmen als eigene, eingeklappte Sektion', () => {
+    const section = wrapper
+      .findAll('.category')
+      .find((c) => c.find('.category-name').text() === 'LED-Rahmen')
+    expect(section).toBeDefined()
+    expect(section.attributes('open')).toBeUndefined()
+    expect(section.find('.category-count').text()).toBe('5')
+    const names = section.findAll('.visualizer-btn').map((b) => b.text())
+    expect(names).toEqual([
+      'LED-Rahmen Lauflicht (GPU)',
+      'LED-Rahmen Spektrum (GPU)',
+      'LED-Rahmen VU-Meter (GPU)',
+      'LED-Rahmen Beat-Puls (GPU)',
+      'LED-Rahmen Regenbogen (GPU)',
+    ])
+  })
+
   it('verhält sich als Akkordeon: nur eine Kategorie ist offen', async () => {
     const byName = (name) =>
       wrapper.findAll('.category').find((c) => c.find('.category-name').text() === name)

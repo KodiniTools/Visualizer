@@ -67,12 +67,19 @@ export const FRAME_VARIANTS = {
     // Bei 16:9 beginnt die obere Leiste erst bei sym ≈ 0.66 – deshalb wird der
     // Pegel komprimiert (Wurzel), damit sie schon bei mittlerer Lautstärke
     // mitspielt (vol 0.3 → 0.66, 0.5 → 0.85, 0.7 → 1.0); Beats heben ihn kurz an.
-    float level = clamp(sqrt(max(vol * uIntensity, 0.0)) * 1.2 + uOnset.w * 0.12, 0.0, 1.0);
+    // Der Bass treibt den Pegel mit an – er ist perkussiver als die geglättete
+    // Lautstärke, so bewegt sich die Pegelgrenze sichtbar im Takt.
+    float drive = max(vol, bass * 0.9) * uIntensity;
+    float level = clamp(sqrt(max(drive, 0.0)) * 1.2 + uOnset.w * 0.12, 0.0, 1.0);
     float fill = 1.0 - smoothstep(level - 0.02, level + 0.02, sym);
     float peak = smoothstep(0.06, 0.0, abs(sym - level));
+    // Der gefüllte Teil steht nicht still: er atmet mit dem Bass, und ein
+    // Lauflicht steigt von der Mitte unten zur Pegelgrenze (Tempo aus den Mitten).
+    float flow = smoothstep(0.7, 1.0, fract(sym * 4.0 - t * (0.5 + mid * 0.8)));
+    float body = 0.35 + bass * 0.35 + flow * 0.35;
     // Über dem Pegel glimmt die Restskala leicht mit dem Pegel, statt tot zu bleiben.
     float rest = (1.0 - fill) * vol * 0.2;
-    lit = clamp(0.1 + fill * 0.9 + peak * 0.35 + rest + uOnset.w * 0.15, 0.0, 1.0);
+    lit = clamp(0.1 + fill * body + peak * 0.5 + rest + uOnset.w * 0.15, 0.0, 1.0);
     // Vom Grundton unten zu warmen Tönen oben, wie eine klassische VU-Skala.
     hue = fract(uColorHsl.x + sym * 0.55);`,
   },

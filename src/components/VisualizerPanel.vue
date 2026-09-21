@@ -13,23 +13,26 @@
         />
       </div>
 
-      <!-- Ein/Aus, Farbe, Intensität, Farbtransparenz -->
-      <VisualizerBasicsSection />
-
-      <!-- Reaktionsquelle + Stärke -->
-      <VisualizerReactSourceSection />
-
-      <!-- Bild für Portrait-Presets -->
-      <div v-if="selectedNeedsImage" class="control-section">
-        <span class="section-label">{{ t('visualizer.image.label') }}</span>
-        <VisualizerImagePicker
-          :model-value="store.visualizerImageId"
-          @update:model-value="store.setVisualizerImageId($event)"
-        />
+      <!-- Steuerung (Ein/Aus, Farbe, Intensität, Reaktion, Position & Größe)
+           liegt in einem eigenen Popover der Player-Leiste. Hier nur ein
+           Schnellzugriff darauf plus der Hinweis, wenn der Visualizer aus ist. -->
+      <div class="control-section controls-link-row">
+        <button
+          v-if="playerBar"
+          type="button"
+          class="controls-link"
+          :class="{ active: playerBar.popover.isOpen('visualizerControls') }"
+          @click="playerBar.popover.togglePopover('visualizerControls')"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"
+            />
+          </svg>
+          {{ t('visualizer.openControls') }}
+        </button>
+        <span v-if="!store.showVisualizer" class="status-hint">{{ t('visualizer.disabled') }}</span>
       </div>
-
-      <!-- Position & Größe -->
-      <VisualizerTransformSection />
 
       <!-- Suchfeld -->
       <div class="control-section">
@@ -54,21 +57,18 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, inject } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useVisualizerStore } from '../stores/visualizerStore.js'
-import { Visualizers } from '../lib/visualizers/index.js'
 import HelpTooltip from './HelpTooltip.vue'
-import VisualizerImagePicker from './VisualizerImagePicker.vue'
-import VisualizerBasicsSection from './visualizer-panel/VisualizerBasicsSection.vue'
-import VisualizerReactSourceSection from './visualizer-panel/VisualizerReactSourceSection.vue'
-import VisualizerTransformSection from './visualizer-panel/VisualizerTransformSection.vue'
 import VisualizerTypeList from './visualizer-panel/VisualizerTypeList.vue'
 
 const { t } = useI18n()
 const store = useVisualizerStore()
 const searchQuery = ref('')
-const selectedNeedsImage = computed(() => !!Visualizers[store.selectedVisualizer]?.needsImage)
+// Player-Leiste (Popover-Verwaltung); null, wenn das Panel außerhalb der
+// Leiste gemountet wird – dann entfällt nur der Schnellzugriff-Button.
+const playerBar = inject('playerBar', null)
 </script>
 
 <style scoped src="./visualizer-panel/visualizerPanelShared.css"></style>
@@ -119,6 +119,53 @@ h4 {
   letter-spacing: 0.4px;
 }
 
+/* Schnellzugriff auf das Steuerungs-Popover */
+.controls-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.controls-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background-color: var(--secondary-bg, #0e1c32);
+  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border-radius: 5px;
+  color: var(--text-primary, #e9e9eb);
+  font-size: 0.65rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.controls-link svg {
+  width: 14px;
+  height: 14px;
+}
+
+.controls-link:hover,
+.controls-link.active {
+  border-color: var(--accent-primary, #c9984d);
+  background-color: rgba(201, 152, 77, 0.15);
+}
+
+.controls-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.status-hint {
+  font-size: 0.6rem;
+  color: #ef4444;
+  font-weight: 500;
+}
+
 /* Search Input */
 .search-input {
   width: 100%;
@@ -155,6 +202,18 @@ h4 {
 
 [data-theme='light'] h4::before {
   filter: brightness(0);
+}
+
+[data-theme='light'] .controls-link {
+  background-color: #f9f2d5;
+  color: #003971;
+  border-color: rgba(1, 79, 153, 0.3);
+}
+
+[data-theme='light'] .controls-link:hover,
+[data-theme='light'] .controls-link.active {
+  border-color: #014f99;
+  background-color: rgba(1, 79, 153, 0.1);
 }
 
 [data-theme='light'] .search-input {

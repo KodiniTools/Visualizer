@@ -466,9 +466,8 @@ function addNewLayer() {
   // Nach dem Rendern zum neuen Layer scrollen (ist oben in der Liste)
   nextTick(() => {
     const el = layerRefs.value[newLayer.id]
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    }
+    // Optional-Call: jsdom (Tests) kennt scrollIntoView nicht.
+    el?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' })
   })
 }
 

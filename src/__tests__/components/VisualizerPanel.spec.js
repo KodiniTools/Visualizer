@@ -97,6 +97,18 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
     expect(names.every((n) => n.startsWith('Laser'))).toBe(true)
   })
 
+  it('zeigt die LED-Ziffern als eigene, eingeklappte Sektion', () => {
+    const section = wrapper
+      .findAll('.category')
+      .find((c) => c.find('.category-name').text() === 'LED-Ziffern')
+    expect(section).toBeDefined()
+    expect(section.attributes('open')).toBeUndefined()
+    expect(section.find('.category-count').text()).toBe('10')
+    const names = section.findAll('.visualizer-btn').map((b) => b.text())
+    expect(names[0]).toBe('LED-Ziffer 0 (GPU)')
+    expect(names[9]).toBe('LED-Ziffer 9 (GPU)')
+  })
+
   it('verhält sich als Akkordeon: nur eine Kategorie ist offen', async () => {
     const byName = (name) =>
       wrapper.findAll('.category').find((c) => c.find('.category-name').text() === name)

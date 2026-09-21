@@ -127,6 +127,7 @@ const openCategory = ref('GPU-Presets')
 const categoryTranslationKeys = {
   'GPU-Presets': 'visualizer.categories.gpu',
   Laser: 'visualizer.categories.laser',
+  'LED-Ziffern': 'visualizer.categories.ledDigits',
   'LED-Buchstaben': 'visualizer.categories.ledLetters',
   Portrait: 'visualizer.categories.portrait',
   Klassisch: 'visualizer.categories.classic',

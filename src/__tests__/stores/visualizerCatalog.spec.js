@@ -19,6 +19,7 @@ describe('visualizer catalogue (migration stage 1)', () => {
     const gpuIds = [
       ...store.categorizedVisualizers['GPU-Presets'],
       ...store.categorizedVisualizers.Laser,
+      ...store.categorizedVisualizers['LED-Ziffern'],
       ...store.categorizedVisualizers['LED-Buchstaben'],
       ...store.categorizedVisualizers.Portrait,
     ].map((v) => v.id)
@@ -45,8 +46,23 @@ describe('visualizer catalogue (migration stage 1)', () => {
     expect(letters).toEqual([...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map((c) => `glLedLetter${c}`))
     const gpu = store.categorizedVisualizers['GPU-Presets'].map((v) => v.id)
     expect(gpu.some((id) => id.startsWith('glLedLetter'))).toBe(false)
-    // Die Ziffern bleiben bei den GPU-Presets.
-    expect(gpu).toContain('glLedDigit0')
+  })
+
+  it('keeps the LED digits 0–9 in their own category, in numeric order', () => {
+    const store = useVisualizerStore()
+    const digits = store.categorizedVisualizers['LED-Ziffern'].map((v) => v.id)
+    expect(digits).toEqual([...Array(10).keys()].map((d) => `glLedDigit${d}`))
+    const gpu = store.categorizedVisualizers['GPU-Presets'].map((v) => v.id)
+    expect(gpu.some((id) => id.startsWith('glLedDigit'))).toBe(false)
+    // Reihenfolge der Sektionen im Picker
+    expect(Object.keys(store.categorizedVisualizers)).toEqual([
+      'GPU-Presets',
+      'Laser',
+      'LED-Ziffern',
+      'LED-Buchstaben',
+      'Portrait',
+      'Klassisch',
+    ])
   })
 
   it('lists every registered visualizer in exactly one category', () => {

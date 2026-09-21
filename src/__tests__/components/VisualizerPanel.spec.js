@@ -91,9 +91,10 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
       .find((c) => c.find('.category-name').text() === 'Laser')
     expect(section).toBeDefined()
     expect(section.attributes('open')).toBeUndefined()
-    expect(section.find('.category-count').text()).toBe('11')
+    expect(section.find('.category-count').text()).toBe('16')
     const names = section.findAll('.visualizer-btn').map((b) => b.text())
     expect(names).toContain('Laser-Tunnel (GPU)')
+    expect(names).toContain('Laser-Smiley Fröhlich (GPU)')
     expect(names.every((n) => n.startsWith('Laser'))).toBe(true)
   })
 

@@ -125,6 +125,13 @@ import { glLaserRose as glLaserRoseSpec } from './presets/glLaserRose.js'
 import { glLaserHarmonograph as glLaserHarmonographSpec } from './presets/glLaserHarmonograph.js'
 import { glLaserStar as glLaserStarSpec } from './presets/glLaserStar.js'
 import { glLaserScope as glLaserScopeSpec } from './presets/glLaserScope.js'
+import {
+  glLaserSmileHappy as glLaserSmileHappySpec,
+  glLaserSmileWink as glLaserSmileWinkSpec,
+  glLaserSmileLaugh as glLaserSmileLaughSpec,
+  glLaserSmileCool as glLaserSmileCoolSpec,
+  glLaserSmileSurprised as glLaserSmileSurprisedSpec,
+} from './presets/glLaserSmiles.js'
 import { glPortraitLed as glPortraitLedSpec } from './presets/glPortraitLed.js'
 import { glPortraitGlitch as glPortraitGlitchSpec } from './presets/glPortraitGlitch.js'
 import { glPortraitWave as glPortraitWaveSpec } from './presets/glPortraitWave.js'
@@ -248,6 +255,11 @@ export const glPresetSpecs = {
   glLaserHarmonograph: glLaserHarmonographSpec,
   glLaserStar: glLaserStarSpec,
   glLaserScope: glLaserScopeSpec,
+  glLaserSmileHappy: glLaserSmileHappySpec,
+  glLaserSmileWink: glLaserSmileWinkSpec,
+  glLaserSmileLaugh: glLaserSmileLaughSpec,
+  glLaserSmileCool: glLaserSmileCoolSpec,
+  glLaserSmileSurprised: glLaserSmileSurprisedSpec,
   glPortraitLed: glPortraitLedSpec,
   glPortraitGlitch: glPortraitGlitchSpec,
   glPortraitWave: glPortraitWaveSpec,

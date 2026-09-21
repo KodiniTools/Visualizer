@@ -794,6 +794,7 @@ export default {
     categories: {
       gpu: 'GPU Presets',
       laser: 'Laser',
+      ledDigits: 'LED digits',
       ledLetters: 'LED letters',
       userPresets: 'My Presets',
       portrait: 'Portrait (image)',

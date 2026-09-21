@@ -36,7 +36,7 @@ describe('visualizer catalogue (migration stage 1)', () => {
     const laser = store.categorizedVisualizers.Laser.map((v) => v.id)
     const allLaserIds = Object.keys(glVisualizers).filter((id) => id.startsWith('glLaser'))
     expect([...laser].sort()).toEqual(allLaserIds.sort())
-    expect(laser).toHaveLength(11)
+    expect(laser).toHaveLength(16)
     const gpu = store.categorizedVisualizers['GPU-Presets'].map((v) => v.id)
     expect(gpu.some((id) => id.startsWith('glLaser'))).toBe(false)
   })

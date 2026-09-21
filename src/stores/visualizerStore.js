@@ -119,6 +119,11 @@ const VISUALIZER_CATEGORIES = {
     'glLaserHarmonograph',
     'glLaserStar',
     'glLaserScope',
+    'glLaserSmileHappy',
+    'glLaserSmileWink',
+    'glLaserSmileLaugh',
+    'glLaserSmileCool',
+    'glLaserSmileSurprised',
   ],
   // LED-Ziffern 0–9 (5×7-Punktmatrix im Sunstrip-Stil) in einer eigenen,
   // klappbaren Sektion.

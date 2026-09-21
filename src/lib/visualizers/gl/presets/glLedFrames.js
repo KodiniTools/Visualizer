@@ -64,10 +64,15 @@ export const FRAME_VARIANTS = {
     rule: /* glsl */ `
     // Pegelanzeige: der Rahmen füllt sich von der Mitte unten über beide
     // Seiten bis zur Mitte oben; die Lampe an der Pegelgrenze leuchtet extra.
-    float level = clamp(vol * 1.25 * uIntensity, 0.0, 1.0);
+    // Bei 16:9 beginnt die obere Leiste erst bei sym ≈ 0.66 – deshalb wird der
+    // Pegel komprimiert (Wurzel), damit sie schon bei mittlerer Lautstärke
+    // mitspielt (vol 0.3 → 0.66, 0.5 → 0.85, 0.7 → 1.0); Beats heben ihn kurz an.
+    float level = clamp(sqrt(max(vol * uIntensity, 0.0)) * 1.2 + uOnset.w * 0.12, 0.0, 1.0);
     float fill = 1.0 - smoothstep(level - 0.02, level + 0.02, sym);
     float peak = smoothstep(0.06, 0.0, abs(sym - level));
-    lit = clamp(0.1 + fill * 0.9 + peak * 0.35 + uOnset.w * 0.15, 0.0, 1.0);
+    // Über dem Pegel glimmt die Restskala leicht mit dem Pegel, statt tot zu bleiben.
+    float rest = (1.0 - fill) * vol * 0.2;
+    lit = clamp(0.1 + fill * 0.9 + peak * 0.35 + rest + uOnset.w * 0.15, 0.0, 1.0);
     // Vom Grundton unten zu warmen Tönen oben, wie eine klassische VU-Skala.
     hue = fract(uColorHsl.x + sym * 0.55);`,
   },
@@ -158,9 +163,11 @@ void main() {
     float s = (k + 0.5) / P;
 
     // sym: 0 = Mitte unten, 1 = Mitte oben, links/rechts gespiegelt.
+    // (s - sBottom) ist der Umfangsabstand zur Mitte unten; +0.5 und fract
+    // legen die Mitte unten auf 0.5, der Betrag der Abweichung davon (x2)
+    // ergibt 0 unten und 1 gegenüber (Mitte oben).
     float sBottom = (nx * 0.5) / P;
-    float sym = 1.0 - abs(fract(s - sBottom + 0.5) * 2.0 - 1.0);
-    sym = clamp(sym, 0.0, 1.0);
+    float sym = clamp(abs(fract(s - sBottom + 0.5) * 2.0 - 1.0), 0.0, 1.0);
 
     // corn: Abstand zur naechsten Ecke entlang der Kante, 0 = Ecke, 1 = Kantenmitte.
     float ex = min(col, nx - 1.0 - col);

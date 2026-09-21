@@ -18,6 +18,7 @@
     <CanvasFormatPopover v-if="popover.isOpen('canvasFormat')" />
     <ScreenshotPopover v-if="popover.isOpen('screenshot')" />
     <VisualizerPopover v-if="popover.isOpen('visualizer')" />
+    <VisualizerControlsPopover v-if="popover.isOpen('visualizerControls')" />
     <MultiLayerPopover v-if="popover.isOpen('multiLayer')" />
     <EffectsPopover v-if="popover.isOpen('effects')" />
     <CanvasControlPopover v-if="popover.isOpen('canvasControl')" />
@@ -51,6 +52,7 @@ import TextAudioReactivePopover from './sticky-player-bar/TextAudioReactivePopov
 import CanvasFormatPopover from './sticky-player-bar/CanvasFormatPopover.vue'
 import ScreenshotPopover from './sticky-player-bar/ScreenshotPopover.vue'
 import VisualizerPopover from './sticky-player-bar/VisualizerPopover.vue'
+import VisualizerControlsPopover from './sticky-player-bar/VisualizerControlsPopover.vue'
 import MultiLayerPopover from './sticky-player-bar/MultiLayerPopover.vue'
 import EffectsPopover from './sticky-player-bar/EffectsPopover.vue'
 import CanvasControlPopover from './sticky-player-bar/CanvasControlPopover.vue'

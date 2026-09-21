@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import VisualizerPanel from '../../components/VisualizerPanel.vue'
@@ -14,26 +14,29 @@ const stubs = {
 
 let wrapper
 let store
+let popover
 
 beforeEach(() => {
   setActivePinia(createPinia())
   localStorage.clear()
   store = useVisualizerStore()
-  wrapper = mount(VisualizerPanel, { global: { stubs } })
+  popover = { isOpen: vi.fn(() => false), togglePopover: vi.fn() }
+  wrapper = mount(VisualizerPanel, { global: { stubs, provide: { playerBar: { popover } } } })
 })
 
 afterEach(() => wrapper?.unmount())
 
 describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
-  it('rendert alle Sektionen im festen und im scrollbaren Bereich', () => {
+  it('rendert Schnellzugriff und Suche im festen, die Liste im scrollbaren Bereich', () => {
     const fixed = wrapper.find('.panel-fixed')
-    expect(fixed.find('.switch').exists()).toBe(true)
-    expect(fixed.find('.color-swatch').exists()).toBe(true)
-    expect(fixed.find('.intensity-slider').exists()).toBe(true)
-    expect(fixed.find('.color-slider').exists()).toBe(true)
-    expect(fixed.find('.react-select').exists()).toBe(true)
-    expect(fixed.find('.position-section').exists()).toBe(true)
+    expect(fixed.find('.controls-link').exists()).toBe(true)
     expect(fixed.find('.search-input').exists()).toBe(true)
+    // Die Steuerung (Ein/Aus, Farbe, Regler, Reaktion, Position) liegt im
+    // eigenen Popover der Player-Leiste, nicht mehr im Visualizer-Panel.
+    expect(fixed.find('.switch').exists()).toBe(false)
+    expect(fixed.find('.intensity-slider').exists()).toBe(false)
+    expect(fixed.find('.react-select').exists()).toBe(false)
+    expect(fixed.find('.position-section').exists()).toBe(false)
 
     const scroll = wrapper.find('.panel-scroll')
     const categories = Object.keys(store.categorizedVisualizers)
@@ -48,52 +51,23 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
     expect(wrapper.text()).not.toContain('Post-Processing')
   })
 
-  it('schaltet den Visualizer über den Toggle um und zeigt den Status-Hinweis', async () => {
-    expect(store.showVisualizer).toBe(true)
-    expect(wrapper.find('.status-hint').exists()).toBe(false)
+  it('öffnet die Visualizer-Steuerung über den Schnellzugriff', async () => {
+    await wrapper.find('.controls-link').trigger('click')
+    expect(popover.togglePopover).toHaveBeenCalledWith('visualizerControls')
+  })
 
-    await wrapper.find('.switch').trigger('click')
-    expect(store.showVisualizer).toBe(false)
-    expect(wrapper.find('.switch').classes()).not.toContain('on')
+  it('zeigt den Status-Hinweis, wenn der Visualizer aus ist', async () => {
+    expect(wrapper.find('.status-hint').exists()).toBe(false)
+    store.toggleVisualizer()
+    await wrapper.vm.$nextTick()
     expect(wrapper.find('.status-hint').exists()).toBe(true)
   })
 
-  it('setzt die Reaktionsquelle und blendet die Stärke nur außerhalb von spectrum ein', async () => {
-    expect(store.reactSource).toBe('spectrum')
-    expect(wrapper.find('.react-slider').exists()).toBe(false)
-
-    const select = wrapper.find('.react-select')
-    const other = select.findAll('option').find((o) => o.element.value !== 'spectrum')
-    await select.setValue(other.element.value)
-
-    expect(store.reactSource).toBe(other.element.value)
-    expect(wrapper.find('.react-slider').exists()).toBe(true)
-  })
-
-  it('zeigt die Formungs-Regler (wie Audio-Reaktiv beim Bild) nur außerhalb von spectrum', async () => {
-    expect(wrapper.find('.react-shape').exists()).toBe(false)
-
-    await wrapper.find('.react-select').setValue('midOnset')
-    const shape = wrapper.find('.react-shape')
-    expect(shape.exists()).toBe(true)
-    expect(shape.findAll('.react-shape__slider')).toHaveLength(4)
-    expect(shape.find('.react-shape__select').exists()).toBe(true)
-    expect(shape.text()).toContain('Aus') // Beat-Verstärkung aus
-
-    await shape.find('.react-shape__slider--smoothing').setValue(80)
-    expect(store.reactSmoothing).toBe(80)
-    await shape.find('.react-shape__slider--gain').setValue(150)
-    expect(store.reactGain).toBe(150)
-    await shape.find('.react-shape__select').setValue('easeOut')
-    expect(store.reactEasing).toBe('easeOut')
-    await shape.find('.react-shape__slider--beat-boost').setValue(2)
-    expect(store.reactBeatBoost).toBe(2)
-    expect(shape.text()).toContain('×2.0')
-    await shape.find('.react-shape__slider--phase').setValue(90)
-    expect(store.reactPhase).toBe(90)
-
-    await wrapper.find('.react-select').setValue('spectrum')
-    expect(wrapper.find('.react-shape').exists()).toBe(false)
+  it('kommt ohne Player-Leiste aus (kein Schnellzugriff, Rest bleibt)', () => {
+    const solo = mount(VisualizerPanel, { global: { stubs } })
+    expect(solo.find('.controls-link').exists()).toBe(false)
+    expect(solo.find('.search-input').exists()).toBe(true)
+    solo.unmount()
   })
 
   it('klappt Kategorien per Klick auf und zu', async () => {
@@ -187,16 +161,5 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
     expect(hits).toHaveLength(1)
     expect(hits[0].text()).toContain('Sonnenaufgang')
     expect(wrapper.find('.no-results').exists()).toBe(false)
-  })
-
-  it('setzt Position und Größe über den Reset-Button zurück', async () => {
-    store.setVisualizerX(0.2)
-    store.setVisualizerScale(1.5)
-    await wrapper.vm.$nextTick()
-    expect(wrapper.find('.position-section').text()).toContain('X: 20%')
-
-    await wrapper.find('.reset-btn').trigger('click')
-    expect(store.visualizerX).toBe(0.5)
-    expect(store.visualizerScale).toBe(1)
   })
 })

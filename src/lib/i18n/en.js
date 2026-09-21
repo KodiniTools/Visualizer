@@ -87,6 +87,14 @@ export default {
     dark: 'Dark',
   },
 
+  // ========== LANDING: BLOG ARTICLES ==========
+  blogArticles: {
+    title: 'From the Blog',
+    subtitle: 'Tutorials and feature guides for the Audio Visualizer on kodinitools.com.',
+    readMore: 'Read article',
+    minutes: 'min',
+  },
+
   // ========== BLOG PAGE ==========
   blog: {
     nav: {

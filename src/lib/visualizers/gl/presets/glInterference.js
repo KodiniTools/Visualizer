@@ -58,6 +58,7 @@ void main() {
 
 export const glInterference = {
   id: 'glInterference',
+  edgeFade: 'rect',
   name_de: 'Interferenz (GPU)',
   name_en: 'Interference (GPU)',
   frag,

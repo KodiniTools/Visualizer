@@ -30,12 +30,14 @@
         @update:model-value="store.setReactStrength($event)"
       />
       <span class="react-hint">{{ t('visualizer.reactSource.hint') }}</span>
+      <VisualizerReactShapeControls :settings="store" @update="onShapeUpdate" />
     </template>
   </div>
 </template>
 
 <script setup>
 import SliderField from '../ui/SliderField.vue'
+import VisualizerReactShapeControls from './VisualizerReactShapeControls.vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useVisualizerStore, REACT_SOURCES } from '../../stores/visualizerStore.js'
 
@@ -43,6 +45,18 @@ const { t } = useI18n()
 const store = useVisualizerStore()
 const levelSources = REACT_SOURCES.filter((s) => !s.endsWith('Onset'))
 const onsetSources = REACT_SOURCES.filter((s) => s.endsWith('Onset'))
+
+const SHAPE_SETTERS = {
+  reactSmoothing: store.setReactSmoothing,
+  reactGain: store.setReactGain,
+  reactEasing: store.setReactEasing,
+  reactBeatBoost: store.setReactBeatBoost,
+  reactPhase: store.setReactPhase,
+}
+
+function onShapeUpdate(field, value) {
+  SHAPE_SETTERS[field]?.(value)
+}
 </script>
 
 <style scoped src="./visualizerPanelShared.css"></style>

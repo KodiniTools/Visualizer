@@ -205,6 +205,11 @@
                 :model-value="layer.reactStrength ?? 70"
                 @update:model-value="updateProperty(layer.id, 'reactStrength', $event)"
               />
+              <VisualizerReactShapeControls
+                :settings="layer"
+                compact
+                @update="(field, value) => updateProperty(layer.id, field, value)"
+              />
             </div>
 
             <!-- Bild für Portrait-Presets -->
@@ -348,6 +353,7 @@
 
 <script setup>
 import SliderField from './ui/SliderField.vue'
+import VisualizerReactShapeControls from './visualizer-panel/VisualizerReactShapeControls.vue'
 import VisualizerImagePicker from './VisualizerImagePicker.vue'
 import VisualizerEffectsPanel from './VisualizerEffectsPanel.vue'
 import ColorField from './ui/ColorField.vue'
@@ -447,6 +453,10 @@ const reversedLayers = computed(() => {
 // Kategorie-Namen (Übersetzung)
 const categoryTranslationKeys = {
   'GPU-Presets': 'visualizer.categories.gpu',
+  Laser: 'visualizer.categories.laser',
+  'LED-Ziffern': 'visualizer.categories.ledDigits',
+  'LED-Buchstaben': 'visualizer.categories.ledLetters',
+  'LED-Rahmen': 'visualizer.categories.ledFrames',
   Portrait: 'visualizer.categories.portrait',
   Klassisch: 'visualizer.categories.classic',
 }
@@ -500,9 +510,8 @@ function addNewLayer() {
   // Nach dem Rendern zum neuen Layer scrollen (ist oben in der Liste)
   nextTick(() => {
     const el = layerRefs.value[newLayer.id]
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    }
+    // Optional-Call: jsdom (Tests) kennt scrollIntoView nicht.
+    el?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' })
   })
 }
 
@@ -829,6 +838,11 @@ function updateProperty(layerId, property, value) {
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
   border-radius: 5px;
   overflow: hidden;
+  /* Die Liste ist eine Flex-Spalte mit max-height. Wegen overflow: hidden
+     faellt das implizite min-height: auto weg und die Karten wuerden
+     zusammengedrueckt statt die Liste ueberlaufen zu lassen: die aufgeklappte
+     Karte wird abgeschnitten und es erscheint kein Scrollbalken. */
+  flex-shrink: 0;
   cursor: pointer;
   transition: all 0.2s ease;
 }

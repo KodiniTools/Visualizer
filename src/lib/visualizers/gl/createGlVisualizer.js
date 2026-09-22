@@ -68,6 +68,7 @@ export function resetSharedEngine() {
  * @property {{draw: Function, init?: Function, cleanup?: Function}} [fallback] Canvas2D visualizer used when WebGL2 is unavailable
  * @property {boolean} [needsTimeData] Receive the time-domain waveform instead of the spectrum
  * @property {boolean} [needsImage] Uses the image texture (portrait presets); image comes from visualizerState._imageSource
+ * @property {'none'|'radial'|'rect'} [edgeFade] Weiche Kanten, wenn der Nutzer den Visualizer verkleinert/verschiebt (siehe core/edgeFade.js)
  */
 
 /**
@@ -102,6 +103,7 @@ export function createGlVisualizer(spec) {
     glPreset: spec,
     needsTimeData: spec.needsTimeData === true,
     needsImage: spec.needsImage === true,
+    edgeFade: spec.edgeFade || 'none',
 
     init() {
       resetAudioFeatureState(audioState)

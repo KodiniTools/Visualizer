@@ -64,6 +64,7 @@ void main() {
 
 export const glVoronoi = {
   id: 'glVoronoi',
+  edgeFade: 'rect',
   name_de: 'Kristallzellen (GPU)',
   name_en: 'Crystal Cells (GPU)',
   frag,

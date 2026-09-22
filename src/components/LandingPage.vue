@@ -9,13 +9,7 @@
         <nav class="header-nav">
           <router-link to="/" class="nav-link active">{{ t('blog.nav.home') }}</router-link>
           <router-link to="/blog" class="nav-link">{{ t('blog.nav.features') }}</router-link>
-          <a
-            href="https://kodinitools.com/blog/musik-video-tiktok/"
-            class="nav-link"
-            target="_blank"
-            rel="noopener noreferrer"
-            >{{ t('blog.nav.blog') }}</a
-          >
+          <a href="#blog" class="nav-link">{{ t('blog.nav.blog') }}</a>
         </nav>
       </div>
     </header>
@@ -135,6 +129,54 @@
       </div>
     </section>
 
+    <!-- Blog Section: Beiträge zum Visualizer auf kodinitools.com/blog -->
+    <section id="blog" class="blog-section">
+      <div class="section-header">
+        <h2 class="section-title">{{ t('blogArticles.title') }}</h2>
+        <p class="section-subtitle">{{ t('blogArticles.subtitle') }}</p>
+      </div>
+      <div class="blog-grid">
+        <a
+          v-for="article in blogCards"
+          :key="article.id"
+          :href="article.url"
+          class="blog-card"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <div class="blog-card-media">
+            <img :src="article.image" alt="" width="640" height="360" loading="lazy" />
+          </div>
+          <div class="blog-card-body">
+            <div class="blog-card-header">
+              <span class="blog-card-tag">{{ article.tag }}</span>
+              <span class="blog-card-meta">{{ article.meta }}</span>
+            </div>
+            <h3 class="blog-card-title">{{ article.title }}</h3>
+            <p class="blog-card-description">{{ article.description }}</p>
+            <span class="blog-card-link">
+              {{ t('blogArticles.readMore') }}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
+            </span>
+          </div>
+        </a>
+      </div>
+    </section>
+
     <!-- CTA Section -->
     <section class="cta-section">
       <div class="cta-content">
@@ -195,8 +237,9 @@ import { useAuthStore } from '../stores/auth'
 import { useLandingContentStore } from '../stores/landingContent'
 import AdminPanel from './admin/AdminPanel.vue'
 import LoginModal from './admin/LoginModal.vue'
+import { getBlogArticlesNewestFirst } from '../data/blogArticles.js'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { isDark } = useTheme()
 
 // Adminbereich: Login-Status + editierbare Landing-Texte (Overrides mit
@@ -361,6 +404,35 @@ const featureCards = computed(() => {
 // Computed FAQ items - Texte aus dem Landing-Content-Store (Admin-Overrides
 // mit i18n-Fallback).
 const faqItems = computed(() => content.value.faq.items)
+
+// Blog-Karten: Beiträge aus src/data/blogArticles.js in der aktiven Sprache,
+// neuester zuerst. Datum wird sprachabhängig formatiert (de: 21. September 2026,
+// en: September 21, 2026); fehlt eine Übersetzung, fällt der Text auf Deutsch zurück.
+const BLOG_DATE_LOCALES = { de: 'de-CH', en: 'en-US' }
+
+function formatBlogDate(isoDate, lang) {
+  const date = new Date(`${isoDate}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return isoDate
+  return date.toLocaleDateString(BLOG_DATE_LOCALES[lang] || BLOG_DATE_LOCALES.de, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+const blogCards = computed(() => {
+  const lang = locale.value
+  const pick = (field) => field?.[lang] ?? field?.de ?? ''
+  return getBlogArticlesNewestFirst().map((article) => ({
+    id: article.id,
+    url: pick(article.url),
+    image: pick(article.image),
+    tag: pick(article.tag),
+    title: pick(article.title),
+    description: pick(article.description),
+    meta: `${formatBlogDate(article.date, lang)} · ${article.minutes} ${t('blogArticles.minutes')}`,
+  }))
+})
 
 function toggleFaq(index) {
   activeFaq.value = activeFaq.value === index ? null : index
@@ -952,6 +1024,144 @@ function toggleFaq(index) {
   color: #4d6d8e;
 }
 
+/* Blog Section */
+.blog-section {
+  padding: 100px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  scroll-margin-top: 140px; /* Anker #blog: Platz für globale + lokale Navigation */
+}
+
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 28px;
+}
+
+.blog-card {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(20, 38, 64, 0.9) 0%, rgba(20, 38, 64, 0.6) 100%);
+  border: 1px solid rgba(201, 152, 77, 0.15);
+  border-radius: 20px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+.light-theme .blog-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 100%);
+  border-color: rgba(201, 152, 77, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 57, 113, 0.05);
+}
+
+.blog-card:hover,
+.blog-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: rgba(201, 152, 77, 0.4);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  outline: none;
+}
+
+.light-theme .blog-card:hover,
+.light-theme .blog-card:focus-visible {
+  border-color: rgba(201, 152, 77, 0.4);
+  box-shadow: 0 20px 40px rgba(201, 152, 77, 0.15);
+}
+
+.blog-card-media {
+  aspect-ratio: 16 / 9;
+  background: #050c1e;
+  overflow: hidden;
+}
+
+.blog-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.blog-card:hover .blog-card-media img {
+  transform: scale(1.03);
+}
+
+.blog-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 28px 28px;
+  flex: 1;
+}
+
+.blog-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.blog-card-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #091428;
+  background: linear-gradient(135deg, #f8e1a9, #c9984d);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.blog-card-meta {
+  font-size: 0.85rem;
+  color: #7a8da0;
+}
+
+.light-theme .blog-card-meta {
+  color: #4d6d8e;
+}
+
+.blog-card-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #e9e9eb;
+  margin: 0;
+}
+
+.light-theme .blog-card-title {
+  color: #003971;
+}
+
+.blog-card-description {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #f8e1a9;
+  margin: 0;
+  flex: 1;
+}
+
+.light-theme .blog-card-description {
+  color: #4d6d8e;
+}
+
+.blog-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f8e1a9;
+  margin-top: 4px;
+}
+
+.light-theme .blog-card-link {
+  color: #014f99;
+}
+
 /* CTA Section */
 .cta-section {
   padding: 120px 24px;
@@ -1058,8 +1268,13 @@ function toggleFaq(index) {
 
   .features,
   .video-section,
-  .faq-section {
+  .faq-section,
+  .blog-section {
     padding: 60px 20px;
+  }
+
+  .blog-card-body {
+    padding: 20px 22px 24px;
   }
 
   .feature-card {
@@ -1231,6 +1446,31 @@ function toggleFaq(index) {
 
 [data-theme='light'] .faq-answer p {
   color: #4d6d8e;
+}
+
+[data-theme='light'] .blog-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 100%);
+  border: 1px solid rgba(201, 152, 77, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 57, 113, 0.05);
+}
+
+[data-theme='light'] .blog-card:hover,
+[data-theme='light'] .blog-card:focus-visible {
+  border-color: rgba(201, 152, 77, 0.4);
+  box-shadow: 0 20px 40px rgba(201, 152, 77, 0.15);
+}
+
+[data-theme='light'] .blog-card-meta,
+[data-theme='light'] .blog-card-description {
+  color: #4d6d8e;
+}
+
+[data-theme='light'] .blog-card-title {
+  color: #003971;
+}
+
+[data-theme='light'] .blog-card-link {
+  color: #014f99;
 }
 
 [data-theme='light'] .cta-section {

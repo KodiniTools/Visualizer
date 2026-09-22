@@ -58,6 +58,7 @@ void main() {
 
 export const glStrings = {
   id: 'glStrings',
+  edgeFade: 'rect',
   name_de: 'Saiten (GPU)',
   name_en: 'Strings (GPU)',
   frag,

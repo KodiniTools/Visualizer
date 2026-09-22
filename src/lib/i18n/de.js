@@ -88,6 +88,14 @@ export default {
     dark: 'Dunkel',
   },
 
+  // ========== LANDING: BLOG-BEITRÄGE ==========
+  blogArticles: {
+    title: 'Aus dem Blog',
+    subtitle: 'Anleitungen und Feature-Guides zum Audio Visualizer auf kodinitools.com.',
+    readMore: 'Artikel lesen',
+    minutes: 'Min.',
+  },
+
   // ========== BLOG PAGE ==========
   blog: {
     nav: {
@@ -670,6 +678,7 @@ export default {
     openRecorder: 'Aufnahme & Export',
     openScreenshot: 'Screenshot',
     openVisualizer: 'Visualizer',
+    openVisualizerControls: 'Visualizer-Steuerung',
     openMultiLayer: 'Multi-Layer (mehrere Effekte)',
     openEffects: 'Effekte (Post-Processing)',
     openCanvasControl: 'Canvas-Steuerung',
@@ -770,10 +779,11 @@ export default {
     title: 'Visualizer',
     helpTitle: 'Audio Visualizer',
     helpText:
-      'Wählen Sie einen von 30+ Visualizer-Effekten. Die Visualisierung reagiert auf die Audiowiedergabe in Echtzeit.',
+      'Wählen Sie einen von 30+ Visualizer-Effekten. Die Visualisierung reagiert auf die Audiowiedergabe in Echtzeit. Farbe, Intensität, Reaktion sowie Position & Größe stellen Sie in der Visualizer-Steuerung (eigenes Popover der Player-Leiste) ein.',
     helpTip: 'Starten Sie die Musik, um die Effekte live zu sehen!',
     status: 'Status',
     disabled: 'Visualizer deaktiviert',
+    openControls: 'Steuerung',
     color: 'Farbe',
     intensity: 'Intensität',
     colorTransparency: 'Farbtransparenz',
@@ -787,6 +797,10 @@ export default {
     noResultsFor: 'Keine Ergebnisse für',
     categories: {
       gpu: 'GPU-Presets',
+      laser: 'Laser',
+      ledDigits: 'LED-Ziffern',
+      ledLetters: 'LED-Buchstaben',
+      ledFrames: 'LED-Rahmen',
       userPresets: 'Eigene Presets',
       portrait: 'Portrait (Bild)',
       classic: 'Klassisch (Canvas2D)',
@@ -847,6 +861,13 @@ export default {
       allOnset: 'Alle-Onset',
       strength: 'Reaktionsstärke',
       hint: 'Onset: springt nur auf Beats an und fällt dazwischen zurück',
+      // Formung – dieselben Regler wie "Audio-Reaktiv" beim Bild
+      smoothing: 'Glättung',
+      gain: 'Audio-Pegel',
+      easing: 'Übergang',
+      beatBoost: 'Beat-Verstärkung',
+      beatBoostOff: 'Aus',
+      phase: 'Phase',
     },
   },
 

@@ -72,6 +72,7 @@ void main() {
 
 export const glLaserTunnel = {
   id: 'glLaserTunnel',
+  edgeFade: 'radial',
   name_de: 'Laser-Tunnel (GPU)',
   name_en: 'Laser Tunnel (GPU)',
   frag,

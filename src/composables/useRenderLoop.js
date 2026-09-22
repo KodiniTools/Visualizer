@@ -1,16 +1,18 @@
 import { ref } from 'vue'
+import { drawScaledVisualizer } from '../lib/visualizers/core/edgeFade.js'
+import {
+  createPunchVariationState,
+  drawPunchedBands,
+  punchScalesUniform,
+  updatePunchVariation,
+} from '../lib/visualizers/core/beatPunchVariation.js'
 import { Visualizers } from '../lib/visualizers/index.js'
 import { workerManager } from '../lib/workerManager.js'
 import { createPostProcessor, shouldRunPostFx, FrameMonitor } from '../lib/postfx/index.js'
 import { onsetForSource, advancePunch, punchScale } from '../lib/visualizers/core/onsetReactive.js'
 import { visualizerState } from '../lib/visualizers/core/state.js'
 import { REFERENCE_FRAME_MS } from '../lib/visualizers/core/helpers.js'
-import {
-  reactDrive,
-  advanceReactEnvelope,
-  reactFactor,
-  applyReactFactor,
-} from '../lib/visualizers/core/reactSource.js'
+import { stepReactGate, applyReactFactor } from '../lib/visualizers/core/reactSource.js'
 import {
   getVisualizerImageSource,
   resolveEffectiveImageId,
@@ -128,16 +130,25 @@ export function useRenderLoop({
       })
   }
 
-  function gateAudioData(data, source, strength, envHolder, key, bufHolder, bufKey, timeDomain) {
-    const src = source || 'spectrum'
-    if (src === 'spectrum' || !(strength > 0)) {
+  // Reaktionsquelle: gate the audio data with the envelope described by
+  // `settings` (store or layer: reactSource, reactStrength, reactSmoothing,
+  // reactGain, reactEasing, reactBeatBoost, reactPhase). The whole chain
+  // lives in core/reactSource.js; this only keeps the per-target state.
+  function gateAudioData(data, settings, envHolder, key, bufHolder, bufKey, timeDomain) {
+    const src = settings.reactSource || 'spectrum'
+    if (src === 'spectrum' || !(settings.reactStrength > 0)) {
       envHolder[key] = 0
       return data
     }
-    const drive = reactDrive(src, window.audioAnalysisData)
-    const env = advanceReactEnvelope(envHolder[key] || 0, drive, src, visualizerState._dtMs)
+    const { env, factor } = stepReactGate(
+      envHolder[key] || 0,
+      settings,
+      window.audioAnalysisData,
+      visualizerState._dtMs,
+      Date.now(),
+    )
     envHolder[key] = env
-    const out = applyReactFactor(data, reactFactor(env, strength), bufHolder[bufKey], timeDomain)
+    const out = applyReactFactor(data, factor, bufHolder[bufKey], timeDomain)
     if (out !== data) bufHolder[bufKey] = out
     return out
   }
@@ -147,6 +158,9 @@ export function useRenderLoop({
   // Envelope advances once per frame; scale is read at each composite site.
   let beatPunchEnv = 0
   let beatPunchScaleValue = 1
+  // Variation: Zoom je Spalte (null = einheitlich, einfacher Zoom)
+  const beatPunchVariationState = createPunchVariationState()
+  let beatPunchBandScales = null
 
   // Snapshot of the per-band onset (0–1) in the shape onsetFlourish expects.
   // Used both to bridge onto the main-thread visualizerState and to send into
@@ -168,17 +182,35 @@ export function useRenderLoop({
     if (!visualizerStore.beatPunchEnabled) {
       beatPunchEnv = 0
       beatPunchScaleValue = 1
+      beatPunchBandScales = null
       return
     }
     const onset = onsetForSource(window.audioAnalysisData, visualizerStore.beatPunchSource)
     beatPunchEnv = advancePunch(beatPunchEnv, onset)
     beatPunchScaleValue = punchScale(beatPunchEnv, visualizerStore.beatPunchStrength)
+
+    const variation = visualizerStore.beatPunchVariation
+    if (variation > 0) {
+      const scales = updatePunchVariation(
+        beatPunchVariationState,
+        onset,
+        visualizerStore.beatPunchStrength,
+        variation,
+      )
+      beatPunchBandScales = punchScalesUniform(scales) ? null : scales
+    } else {
+      beatPunchBandScales = null
+    }
   }
 
   // Invokes a visualizer draw callback, applying the current beat-punch zoom
   // around the canvas centre. Identity transform when the punch is ~1.0.
   function drawVisualizerWithPunch(cb, ctx, width, height) {
     if (!cb) return
+    if (beatPunchBandScales) {
+      drawPunchedBands(ctx, cb, width, height, beatPunchBandScales)
+      return
+    }
     const s = beatPunchScaleValue
     if (s <= 1.0001) {
       cb(ctx, width, height)
@@ -424,57 +456,31 @@ export function useRenderLoop({
     if (vizWorkerActive && vizWorkerBitmap) {
       const bitmap = vizWorkerBitmap
       return (targetCtx, width, height) => {
-        const scale = visualizerStore.visualizerScale
-        const posX = visualizerStore.visualizerX
-        const posY = visualizerStore.visualizerY
-        const scaledWidth = bitmap.width * scale
-        const scaledHeight = bitmap.height * scale
-        const destX = width * posX - scaledWidth / 2
-        const destY = height * posY - scaledHeight / 2
-
-        if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
-          targetCtx.drawImage(
-            bitmap,
-            0,
-            0,
-            bitmap.width,
-            bitmap.height,
-            destX,
-            destY,
-            scaledWidth,
-            scaledHeight,
-          )
-        } else {
-          targetCtx.drawImage(bitmap, 0, 0, width, height)
-        }
+        drawScaledVisualizer(targetCtx, bitmap, bitmap.width, bitmap.height, width, height, {
+          scale: visualizerStore.visualizerScale,
+          posX: visualizerStore.visualizerX,
+          posY: visualizerStore.visualizerY,
+          edgeFade: Visualizers[visualizerStore.selectedVisualizer]?.edgeFade,
+        })
       }
     }
 
     if (visualizerCacheCanvas) {
       return (targetCtx, width, height) => {
-        const scale = visualizerStore.visualizerScale
-        const posX = visualizerStore.visualizerX
-        const posY = visualizerStore.visualizerY
-        const scaledWidth = visualizerCacheCanvas.width * scale
-        const scaledHeight = visualizerCacheCanvas.height * scale
-        const destX = width * posX - scaledWidth / 2
-        const destY = height * posY - scaledHeight / 2
-
-        if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
-          targetCtx.drawImage(
-            visualizerCacheCanvas,
-            0,
-            0,
-            visualizerCacheCanvas.width,
-            visualizerCacheCanvas.height,
-            destX,
-            destY,
-            scaledWidth,
-            scaledHeight,
-          )
-        } else {
-          targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height)
-        }
+        drawScaledVisualizer(
+          targetCtx,
+          visualizerCacheCanvas,
+          visualizerCacheCanvas.width,
+          visualizerCacheCanvas.height,
+          width,
+          height,
+          {
+            scale: visualizerStore.visualizerScale,
+            posX: visualizerStore.visualizerX,
+            posY: visualizerStore.visualizerY,
+            edgeFade: Visualizers[visualizerStore.selectedVisualizer]?.edgeFade,
+          },
+        )
       }
     }
 
@@ -629,8 +635,7 @@ export function useRenderLoop({
             : audioDataArray
           const layerAudioData = gateAudioData(
             rawLayerAudio,
-            layer.reactSource,
-            layer.reactStrength,
+            layer,
             layerCache,
             'reactEnv',
             layerCache,
@@ -707,30 +712,22 @@ export function useRenderLoop({
           multiLayerCompositeCtx.save()
           multiLayerCompositeCtx.globalCompositeOperation = layer.blendMode || 'source-over'
 
-          // Eigener Beat-Punch des Layers wirkt als zusätzlicher Zoom.
-          const scale = layer.scale * (layerCache.punchScale || 1)
-          const posX = layer.x
-          const posY = layer.y
-          const scaledWidth = canvas.width * scale
-          const scaledHeight = canvas.height * scale
-          const destX = canvas.width * posX - scaledWidth / 2
-          const destY = canvas.height * posY - scaledHeight / 2
-
-          if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
-            multiLayerCompositeCtx.drawImage(
-              layerCache.canvas,
-              0,
-              0,
-              canvas.width,
-              canvas.height,
-              destX,
-              destY,
-              scaledWidth,
-              scaledHeight,
-            )
-          } else {
-            multiLayerCompositeCtx.drawImage(layerCache.canvas, 0, 0)
-          }
+          // main zeichnet den Layer über drawScaledVisualizer (inkl. Randabblendung);
+          // der eigene Beat-Punch des Layers wirkt als zusätzlicher Zoom.
+          drawScaledVisualizer(
+            multiLayerCompositeCtx,
+            layerCache.canvas,
+            canvas.width,
+            canvas.height,
+            canvas.width,
+            canvas.height,
+            {
+              scale: layer.scale * (layerCache.punchScale || 1),
+              posX: layer.x,
+              posY: layer.y,
+              edgeFade: Visualizers[layer.visualizerId]?.edgeFade,
+            },
+          )
           multiLayerCompositeCtx.restore()
         }
 
@@ -831,8 +828,7 @@ export function useRenderLoop({
           const singleHolder = { env: singleReactEnv, buf: singleReactBuf }
           const vizAudioData = gateAudioData(
             rawVizAudio,
-            visualizerStore.reactSource,
-            visualizerStore.reactStrength,
+            visualizerStore,
             singleHolder,
             'env',
             singleHolder,
@@ -867,31 +863,12 @@ export function useRenderLoop({
             if (vizWorkerBitmap) {
               const bitmap = vizWorkerBitmap
               drawVisualizerCallback = (targetCtx, w, h) => {
-                const scale = visualizerStore.visualizerScale
-                const posX = visualizerStore.visualizerX
-                const posY = visualizerStore.visualizerY
-                const scaledW = canvas.width * scale
-                const scaledH = canvas.height * scale
-                const destX = w * posX - scaledW / 2
-                const destY = h * posY - scaledH / 2
-
-                if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
-                  targetCtx.drawImage(
-                    bitmap,
-                    0,
-                    0,
-                    canvas.width,
-                    canvas.height,
-                    destX,
-                    destY,
-                    scaledW,
-                    scaledH,
-                  )
-                } else if (w === canvas.width && h === canvas.height) {
-                  targetCtx.drawImage(bitmap, 0, 0)
-                } else {
-                  targetCtx.drawImage(bitmap, 0, 0, w, h)
-                }
+                drawScaledVisualizer(targetCtx, bitmap, canvas.width, canvas.height, w, h, {
+                  scale: visualizerStore.visualizerScale,
+                  posX: visualizerStore.visualizerX,
+                  posY: visualizerStore.visualizerY,
+                  edgeFade: visualizer.edgeFade,
+                })
               }
             }
           } else {
@@ -945,31 +922,20 @@ export function useRenderLoop({
             }
 
             drawVisualizerCallback = (targetCtx, width, height) => {
-              const scale = visualizerStore.visualizerScale
-              const posX = visualizerStore.visualizerX
-              const posY = visualizerStore.visualizerY
-              const scaledWidth = canvas.width * scale
-              const scaledHeight = canvas.height * scale
-              const destX = width * posX - scaledWidth / 2
-              const destY = height * posY - scaledHeight / 2
-
-              if (scale !== 1.0 || posX !== 0.5 || posY !== 0.5) {
-                targetCtx.drawImage(
-                  visualizerCacheCanvas,
-                  0,
-                  0,
-                  canvas.width,
-                  canvas.height,
-                  destX,
-                  destY,
-                  scaledWidth,
-                  scaledHeight,
-                )
-              } else if (width === canvas.width && height === canvas.height) {
-                targetCtx.drawImage(visualizerCacheCanvas, 0, 0)
-              } else {
-                targetCtx.drawImage(visualizerCacheCanvas, 0, 0, width, height)
-              }
+              drawScaledVisualizer(
+                targetCtx,
+                visualizerCacheCanvas,
+                canvas.width,
+                canvas.height,
+                width,
+                height,
+                {
+                  scale: visualizerStore.visualizerScale,
+                  posX: visualizerStore.visualizerX,
+                  posY: visualizerStore.visualizerY,
+                  edgeFade: visualizer.edgeFade,
+                },
+              )
             }
           }
         }

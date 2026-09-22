@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useVisualizerStore } from './visualizerStore.js'
 import { resolveVisualizerId } from '../lib/visualizers/aliases.js'
+import { normalizeReactShape } from '../lib/visualizers/core/reactSource.js'
 
 const LAYER_PRESETS_KEY = 'visualizer-layer-presets'
 
@@ -35,6 +36,7 @@ function snapshotLayer(layer) {
     blendMode: layer.blendMode || 'source-over',
     reactSource: layer.reactSource || 'spectrum',
     reactStrength: layer.reactStrength ?? 70,
+    ...normalizeReactShape(layer),
     imageId: layer.imageId ?? null,
   }
 }

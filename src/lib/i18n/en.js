@@ -87,6 +87,14 @@ export default {
     dark: 'Dark',
   },
 
+  // ========== LANDING: BLOG ARTICLES ==========
+  blogArticles: {
+    title: 'From the Blog',
+    subtitle: 'Tutorials and feature guides for the Audio Visualizer on kodinitools.com.',
+    readMore: 'Read article',
+    minutes: 'min',
+  },
+
   // ========== BLOG PAGE ==========
   blog: {
     nav: {
@@ -674,6 +682,7 @@ export default {
     openRecorder: 'Recording & export',
     openScreenshot: 'Screenshot',
     openVisualizer: 'Visualizer',
+    openVisualizerControls: 'Visualizer controls',
     openMultiLayer: 'Multi-Layer (multiple effects)',
     openEffects: 'Effects (post-processing)',
     openCanvasControl: 'Canvas control',
@@ -774,10 +783,11 @@ export default {
     title: 'Visualizer',
     helpTitle: 'Audio Visualizer',
     helpText:
-      'Choose from 30+ visualizer effects. The visualization reacts to audio playback in real-time.',
+      'Choose from 30+ visualizer effects. The visualization reacts to audio playback in real-time. Color, intensity, reaction and position & size live in the visualizer controls (its own popover in the player bar).',
     helpTip: 'Start the music to see the effects live!',
     status: 'Status',
     disabled: 'Visualizer disabled',
+    openControls: 'Controls',
     color: 'Color',
     intensity: 'Intensity',
     colorTransparency: 'Color Transparency',
@@ -791,6 +801,10 @@ export default {
     noResultsFor: 'No results for',
     categories: {
       gpu: 'GPU Presets',
+      laser: 'Laser',
+      ledDigits: 'LED digits',
+      ledLetters: 'LED letters',
+      ledFrames: 'LED frames',
       userPresets: 'My Presets',
       portrait: 'Portrait (image)',
       classic: 'Classic (Canvas2D)',
@@ -850,6 +864,13 @@ export default {
       allOnset: 'All onset',
       strength: 'Reaction strength',
       hint: 'Onset: only jumps on beats and settles in between',
+      // Shaping – the same controls as the image "Audio reactive" panel
+      smoothing: 'Smoothing',
+      gain: 'Audio level',
+      easing: 'Easing',
+      beatBoost: 'Beat boost',
+      beatBoostOff: 'Off',
+      phase: 'Phase',
     },
   },
 

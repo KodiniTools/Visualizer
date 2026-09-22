@@ -58,6 +58,7 @@ void main() {
 
 export const glAuroraSwirl = {
   id: 'glAuroraSwirl',
+  edgeFade: 'radial',
   name_de: 'Nordlicht-Wirbel (GPU)',
   name_en: 'Aurora Swirl (GPU)',
   frag,

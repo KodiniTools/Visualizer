@@ -11,7 +11,8 @@ const frag = /* glsl */ `
 uniform float uIterations;
 
 void main() {
-  vec2 p = (vUv - 0.5) * vec2(uResolution.x / uResolution.y, 1.0);
+  // Die ganze Bluete (Vignette endet bei r = 0.95) passt in die kurze Kante.
+  vec2 p = centeredFit(0.95);
   float bass = uBands.x;
   float mid = uBands.y;
   float treb = uBands.z;
@@ -52,7 +53,7 @@ void main() {
   // Petals: soft glow around the second trap, coloured by iteration depth.
   float petals = exp(-trapPetal * (16.0 - bass * 6.0)) * 1.2 + exp(-trapPetal * 5.0) * 0.35;
 
-  float r = length((vUv - 0.5) * vec2(uResolution.x / uResolution.y, 1.0));
+  float r = length(centeredFit(0.95));
   float vignette = smoothstep(0.95, 0.3, r);
 
   float hueP = fract(uColorHsl.x + trapIter / iters * 0.16 + t * 0.01);

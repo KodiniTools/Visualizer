@@ -86,6 +86,7 @@ void main() {
 
 export const glNeonGrid = {
   id: 'glNeonGrid',
+  edgeFade: 'rect',
   name_de: 'Neon-Grid (GPU)',
   name_en: 'Neon Grid (GPU)',
   frag,

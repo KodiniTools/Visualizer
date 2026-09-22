@@ -56,6 +56,7 @@ void main() {
 
 export const glTunnel = {
   id: 'glTunnel',
+  edgeFade: 'radial',
   name_de: 'Tunnel (GPU)',
   name_en: 'Tunnel (GPU)',
   frag,

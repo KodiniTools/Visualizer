@@ -72,6 +72,7 @@ void main() {
 
 export const glShockwaves = {
   id: 'glShockwaves',
+  edgeFade: 'radial',
   name_de: 'Zentrifugale Ringe (GPU)',
   name_en: 'Centrifugal Rings (GPU)',
   frag,

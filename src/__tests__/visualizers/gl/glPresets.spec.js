@@ -11,6 +11,7 @@ describe('gl presets', () => {
       expect(typeof spec.name_en).toBe('string')
       expect(spec.frag).toMatch(/void\s+main\s*\(/)
       expect(spec.frag).toMatch(/fragColor/)
+      if (spec.edgeFade !== undefined) expect(['none', 'radial', 'rect']).toContain(spec.edgeFade)
       if (spec.needsImage) expect(spec.fallback).toBeUndefined()
       else expect(typeof spec.fallback?.draw).toBe('function')
       if (spec.uniforms) {
@@ -49,6 +50,42 @@ describe('gl presets', () => {
     for (const key of Object.keys(Visualizers)) {
       if (glKeys.has(key)) continue
       expect(Visualizers[key].kind).toBeUndefined()
+    }
+  })
+
+  it('provides the fit helpers for centred figures in the shared header', () => {
+    // Zentrierte Figuren (Mandala, Sternentor, …) normieren ihre Koordinaten
+    // über diese Helfer auf die KÜRZERE Canvas-Kante. Sonst läuft die Figur im
+    // Querformat über die Ober-/Unterkante hinaus und wird beim Verkleinern des
+    // Visualizers hart abgeschnitten (Position & Größe → Größe < 100 %).
+    expect(FRAG_HEADER).toMatch(/vec2\s+centered\s*\(\s*\)/)
+    expect(FRAG_HEADER).toMatch(/float\s+halfShortSide\s*\(\s*\)/)
+    expect(FRAG_HEADER).toMatch(/vec2\s+centeredFit\s*\(\s*float\s+designRadius\s*\)/)
+  })
+
+  it('keeps centred figure presets inside the short canvas edge', () => {
+    // Per Kanten-Messung ermittelt (Alpha an Ober-/Unterkante bei 16:9 > 0,
+    // links/rechts 0): diese Presets zeichnen eine Figur, die vollständig
+    // sichtbar sein soll. Neue Figur-Presets bitte hier ergänzen.
+    const figures = ['glMandala', 'glFractal', 'glCymatics', 'glStargate']
+    for (const id of figures) {
+      const frag = glPresetSpecs[id].frag
+      // Entweder die Koordinaten werden eingepasst (centeredFit) oder die
+      // Vignette endet an der kurzen Kante (halfShortSide) – je nachdem, ob das
+      // Muster mitskalieren darf (Mandala, Fraktal) oder nicht (Cymatics).
+      expect(frag, id).toMatch(/centeredFit\(|halfShortSide\(/)
+    }
+  })
+
+  it('never redefines the shared header helpers in a preset', () => {
+    // Eine gleichnamige Funktion im Preset würde den Shader nicht kompilieren
+    const helpers = ['centered', 'halfShortSide', 'centeredFit']
+    for (const [id, spec] of Object.entries(glPresetSpecs)) {
+      for (const h of helpers) {
+        expect(spec.frag, `${id} definiert ${h}()`).not.toMatch(
+          new RegExp(`(vec2|float)\\s+${h}\\s*\\(`),
+        )
+      }
     }
   })
 

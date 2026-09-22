@@ -1,7 +1,10 @@
 /**
  * Gemeinsame Auswertung einer Audio-Reaktiv-Konfiguration zu Effektwerten –
- * genutzt von Canvas-Bildern/Hintergrund/Kacheln (über canvasManager) und dem
- * Lauftext (TickerRenderer).
+ * genutzt von Canvas-Bildern/Hintergrund/Kacheln (über canvasManager), Videos,
+ * dem Lauftext (TickerRenderer) und den Canvas-Texten (textManager).
+ *
+ * Der Text-Pfad steuert seine Hüllkurve über `levelOptions` selbst; alle
+ * anderen leiten sie aus dem einzelnen `smoothing`-Regler ab.
  *
  * @module audio/audioReactiveEngine
  */
@@ -18,6 +21,11 @@ import { calculateEffectValue } from './AudioReactiveEffects.js'
  * @param {object|null|undefined} audioData - window.audioAnalysisData
  * @param {(name: string, level: number, config: object) => object} [calculate]
  *   Effektberechnung; Default: gemeinsame Bild-Engine (erhält nur name/level)
+ * @param {object|null} [levelOptions] - zusätzliche bzw. überschreibende
+ *   Optionen für den Level-Resolver (siehe computeReactiveLevel), etwa
+ *   `preSmoothing`, `threshold`, `attack`, `release`. Der Text-Pfad steuert
+ *   seine Hüllkurve darüber explizit; sind `attack`/`release` gesetzt, hat
+ *   das Vorrang vor dem abgeleiteten `smoothing`.
  * @returns {{hasEffects: true, effects: Record<string, object>}|null}
  */
 // Standard-Berechnung: bewusst nur (name, level) weiterreichen – der dritte
@@ -30,6 +38,7 @@ export function computeAudioReactiveValues(
   audioSettings,
   audioData,
   calculate = defaultCalculate,
+  levelOptions = null,
 ) {
   if (!audioSettings || !audioSettings.enabled || !audioData) return null
   const effects = audioSettings.effects
@@ -43,6 +52,7 @@ export function computeAudioReactiveValues(
     phase: audioSettings.phase || 0,
     easing: audioSettings.easing || 'linear',
     gain: audioSettings.gain ?? 1.0,
+    ...levelOptions,
   })
 
   const result = { hasEffects: false, effects: {} }

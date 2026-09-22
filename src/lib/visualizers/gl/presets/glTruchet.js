@@ -58,6 +58,7 @@ void main() {
 
 export const glTruchet = {
   id: 'glTruchet',
+  edgeFade: 'rect',
   name_de: 'Neon-Labyrinth (GPU)',
   name_en: 'Neon Maze (GPU)',
   frag,

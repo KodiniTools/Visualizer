@@ -833,6 +833,9 @@ export default {
     hideLayer: 'Layer ausblenden',
     showLayer: 'Layer einblenden',
     blendMode: 'Mischmodus',
+    layerEffects: 'Effekte dieses Layers',
+    layerEffectsHint: 'Wirken zusätzlich zu den globalen Effekten – nur auf diesen Layer',
+    resetLayerEffects: 'Effekte dieses Layers zurücksetzen',
     image: {
       label: 'Bild',
       auto: 'Automatisch (Leinwand, sonst Galerie)',

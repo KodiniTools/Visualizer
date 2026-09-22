@@ -264,6 +264,30 @@
                 @update:model-value="updateProperty(layer.id, 'scale', $event)"
               />
             </div>
+
+            <!-- Effekte nur für diesen Layer (zusätzlich zu den globalen) -->
+            <details class="layer-effects" :open="openEffects[layer.id]">
+              <summary class="layer-effects-header" @click.prevent="toggleEffects(layer.id)">
+                <span class="layer-effects-title">{{ t('visualizer.layerEffects') }}</span>
+                <span v-if="activeEffectCount(layer) > 0" class="layer-effects-count">{{
+                  activeEffectCount(layer)
+                }}</span>
+                <button
+                  class="action-btn layer-effects-reset"
+                  :title="t('visualizer.resetLayerEffects')"
+                  @click.stop.prevent="store.resetLayerEffects(layer.id)"
+                >
+                  {{ t('visualizer.reset') }}
+                </button>
+                <span class="caret-down" aria-hidden="true"></span>
+              </summary>
+              <div class="layer-effects-body">
+                <div class="hint-text layer-effects-hint">
+                  {{ t('visualizer.layerEffectsHint') }}
+                </div>
+                <VisualizerEffectsPanel :layer-id="layer.id" />
+              </div>
+            </details>
           </div>
         </div>
       </div>
@@ -331,6 +355,7 @@
 import SliderField from './ui/SliderField.vue'
 import VisualizerReactShapeControls from './visualizer-panel/VisualizerReactShapeControls.vue'
 import VisualizerImagePicker from './VisualizerImagePicker.vue'
+import VisualizerEffectsPanel from './VisualizerEffectsPanel.vue'
 import ColorField from './ui/ColorField.vue'
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../lib/i18n.js'
@@ -376,6 +401,21 @@ const onsetSources = REACT_SOURCES.filter((s) => s.endsWith('Onset'))
 
 // Auswahl für neuen Layer (Standard: aktuell ausgewählter Visualizer)
 const newLayerVisualizerId = ref(store.selectedVisualizer || 'bars')
+
+// Aufgeklappte Effekt-Bereiche je Layer
+const openEffects = ref({})
+
+function toggleEffects(layerId) {
+  openEffects.value[layerId] = !openEffects.value[layerId]
+}
+
+/** Anzahl der aktiven Effekte eines Layers (für das Abzeichen im Kopf). */
+function activeEffectCount(layer) {
+  const fx = store.layerEffects(layer)
+  return [fx.bloomEnabled, fx.trailsEnabled, fx.beatPunchEnabled, fx.onsetFlourishEnabled].filter(
+    Boolean,
+  ).length
+}
 
 // Refs für Layer-Elemente (für Auto-Scroll)
 const layerListRef = ref(null)
@@ -481,6 +521,53 @@ function updateProperty(layerId, property, value) {
 </script>
 
 <style scoped>
+/* ═══ Effekte pro Layer ═══ */
+.layer-effects {
+  margin-top: 8px;
+  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  padding-top: 6px;
+}
+.layer-effects-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+.layer-effects-header::-webkit-details-marker {
+  display: none;
+}
+.layer-effects-title {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--text-muted, #7a8da0);
+}
+.layer-effects-count {
+  font-size: 0.55rem;
+  color: var(--accent-text, #091428);
+  background-color: var(--accent-primary, #c9984d);
+  padding: 0 5px;
+  border-radius: 8px;
+}
+.layer-effects-reset {
+  margin-left: auto;
+}
+.layer-effects[open] .caret-down {
+  transform: rotate(180deg);
+}
+.layer-effects-body {
+  padding-top: 6px;
+}
+.layer-effects-hint {
+  margin-bottom: 6px;
+}
+[data-theme='light'] .layer-effects {
+  border-top-color: rgba(1, 79, 153, 0.15);
+}
+
 /* ═══ Layer-Presets ═══ */
 .layer-presets {
   margin-top: 10px;

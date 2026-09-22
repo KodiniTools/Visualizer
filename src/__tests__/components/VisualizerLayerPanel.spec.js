@@ -22,6 +22,42 @@ beforeEach(() => {
 
 afterEach(() => wrapper?.unmount())
 
+describe('VisualizerLayerPanel – Effekte pro Layer', () => {
+  it('zeigt für den aktiven Layer einen eigenen Effekte-Bereich', async () => {
+    const item = wrapper.find('.layer-item')
+    expect(item.exists()).toBe(true)
+    const fx = item.find('.layer-effects')
+    expect(fx.exists()).toBe(true)
+    expect(fx.find('.layer-effects-title').text()).toBe('Effekte dieses Layers')
+    // Das eingebettete Panel blendet Überschrift und Adaptive Qualität aus
+    expect(fx.find('.fx-header').exists()).toBe(false)
+    expect(fx.text()).not.toContain('Adaptive')
+  })
+
+  it('schaltet einen Effekt nur für diesen Layer um', async () => {
+    const layerId = viz.visualizerLayers[0].id
+    const globalBloom = viz.bloomEnabled
+
+    const toggle = wrapper.find('.layer-effects .fx-toggle input[type="checkbox"]')
+    await toggle.setValue(!viz.layerEffects(viz.visualizerLayers[0]).bloomEnabled)
+
+    expect(viz.layerEffects(viz.visualizerLayers[0]).bloomEnabled).toBe(true)
+    expect(viz.bloomEnabled).toBe(globalBloom)
+  })
+
+  it('zählt aktive Effekte und setzt sie zurück', async () => {
+    const layerId = viz.visualizerLayers[0].id
+    viz.updateLayerEffect(layerId, 'bloomEnabled', true)
+    viz.updateLayerEffect(layerId, 'trailsEnabled', true)
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.layer-effects-count').text()).toBe('2')
+
+    await wrapper.find('.layer-effects-reset').trigger('click')
+    expect(viz.layerEffects(viz.visualizerLayers[0]).bloomEnabled).toBe(false)
+    expect(wrapper.find('.layer-effects-count').exists()).toBe(false)
+  })
+})
+
 describe('VisualizerLayerPanel – Preset speichern', () => {
   it('speichert die aktuellen Layer mit Namen und zeigt sie in der Liste', async () => {
     expect(wrapper.find('.layer-presets').exists()).toBe(true)

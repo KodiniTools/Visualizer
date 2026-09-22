@@ -1,6 +1,6 @@
 <template>
   <div class="fx-section">
-    <div class="fx-header">
+    <div v-if="!layerId" class="fx-header">
       <span class="section-label">{{ L.title }}</span>
     </div>
 
@@ -9,49 +9,49 @@
       <label class="fx-toggle">
         <input
           type="checkbox"
-          :checked="store.bloomEnabled"
-          @change="store.setBloomEnabled($event.target.checked)"
+          :checked="fx.bloomEnabled"
+          @change="set('bloomEnabled', $event.target.checked)"
         />
         <span>{{ L.bloom }}</span>
       </label>
     </div>
 
-    <div v-if="store.bloomEnabled" class="fx-sub">
+    <div v-if="fx.bloomEnabled" class="fx-sub">
       <div class="fx-control">
-        <span class="control-label">{{ L.strength }}: {{ store.bloomStrength.toFixed(2) }}</span>
+        <span class="control-label">{{ L.strength }}: {{ fx.bloomStrength.toFixed(2) }}</span>
         <SliderField
           :min="0"
           :max="2"
           :step="0.05"
           :default-value="0.55"
-          :model-value="store.bloomStrength"
-          @update:model-value="store.setBloomStrength($event)"
+          :model-value="fx.bloomStrength"
+          @update:model-value="set('bloomStrength', $event)"
           class="slider fx-slider"
         />
       </div>
       <div class="fx-control">
         <span class="control-label"
-          >{{ L.threshold }}: {{ Math.round(store.bloomThreshold * 100) }}%</span
+          >{{ L.threshold }}: {{ Math.round(fx.bloomThreshold * 100) }}%</span
         >
         <SliderField
           :min="0"
           :max="1"
           :step="0.01"
           :default-value="0.35"
-          :model-value="store.bloomThreshold"
-          @update:model-value="store.setBloomThreshold($event)"
+          :model-value="fx.bloomThreshold"
+          @update:model-value="set('bloomThreshold', $event)"
           class="slider fx-slider"
         />
       </div>
       <div class="fx-control">
-        <span class="control-label">{{ L.radius }}: {{ store.bloomRadius }}px</span>
+        <span class="control-label">{{ L.radius }}: {{ fx.bloomRadius }}px</span>
         <SliderField
           :min="1"
           :max="32"
           :step="1"
           :default-value="8"
-          :model-value="store.bloomRadius"
-          @update:model-value="store.setBloomRadius($event)"
+          :model-value="fx.bloomRadius"
+          @update:model-value="set('bloomRadius', $event)"
           class="slider fx-slider"
         />
       </div>
@@ -62,25 +62,25 @@
       <label class="fx-toggle">
         <input
           type="checkbox"
-          :checked="store.trailsEnabled"
-          @change="store.setTrailsEnabled($event.target.checked)"
+          :checked="fx.trailsEnabled"
+          @change="set('trailsEnabled', $event.target.checked)"
         />
         <span>{{ L.trails }}</span>
       </label>
     </div>
 
-    <div v-if="store.trailsEnabled" class="fx-sub">
+    <div v-if="fx.trailsEnabled" class="fx-sub">
       <div class="fx-control">
         <span class="control-label"
-          >{{ L.trailLength }}: {{ Math.round(store.trailsDecay * 100) }}%</span
+          >{{ L.trailLength }}: {{ Math.round(fx.trailsDecay * 100) }}%</span
         >
         <SliderField
           :min="0"
           :max="0.97"
           :step="0.01"
           :default-value="0.85"
-          :model-value="store.trailsDecay"
-          @update:model-value="store.setTrailsDecay($event)"
+          :model-value="fx.trailsDecay"
+          @update:model-value="set('trailsDecay', $event)"
           class="slider fx-slider"
         />
       </div>
@@ -91,20 +91,20 @@
       <label class="fx-toggle">
         <input
           type="checkbox"
-          :checked="store.beatPunchEnabled"
-          @change="store.setBeatPunchEnabled($event.target.checked)"
+          :checked="fx.beatPunchEnabled"
+          @change="set('beatPunchEnabled', $event.target.checked)"
         />
         <span>{{ L.beatPunch }}</span>
       </label>
       <span class="fx-hint">{{ L.beatPunchHint }}</span>
     </div>
 
-    <div v-if="store.beatPunchEnabled" class="fx-sub">
+    <div v-if="fx.beatPunchEnabled" class="fx-sub">
       <div class="fx-control">
         <span class="control-label">{{ L.punchSource }}</span>
         <select
-          :value="store.beatPunchSource"
-          @change="store.setBeatPunchSource($event.target.value)"
+          :value="fx.beatPunchSource"
+          @change="set('beatPunchSource', $event.target.value)"
           class="fx-select"
         >
           <option value="bass">{{ L.bass }}</option>
@@ -114,14 +114,14 @@
         </select>
       </div>
       <div class="fx-control">
-        <span class="control-label">{{ L.strength }}: {{ store.beatPunchStrength }}%</span>
+        <span class="control-label">{{ L.strength }}: {{ fx.beatPunchStrength }}%</span>
         <SliderField
           :min="0"
           :max="100"
           :step="5"
           :default-value="50"
-          :model-value="store.beatPunchStrength"
-          @update:model-value="store.setBeatPunchStrength($event)"
+          :model-value="fx.beatPunchStrength"
+          @update:model-value="set('beatPunchStrength', $event)"
           class="slider fx-slider"
         />
       </div>
@@ -145,31 +145,31 @@
       <label class="fx-toggle">
         <input
           type="checkbox"
-          :checked="store.onsetFlourishEnabled"
-          @change="store.setOnsetFlourishEnabled($event.target.checked)"
+          :checked="fx.onsetFlourishEnabled"
+          @change="set('onsetFlourishEnabled', $event.target.checked)"
         />
         <span>{{ L.onsetFx }}</span>
       </label>
       <span class="fx-hint">{{ L.onsetFxHint }}</span>
     </div>
 
-    <div v-if="store.onsetFlourishEnabled" class="fx-sub">
+    <div v-if="fx.onsetFlourishEnabled" class="fx-sub">
       <div class="fx-control">
-        <span class="control-label">{{ L.strength }}: {{ store.onsetFlourishStrength }}%</span>
+        <span class="control-label">{{ L.strength }}: {{ fx.onsetFlourishStrength }}%</span>
         <SliderField
           :min="0"
           :max="100"
           :step="5"
           :default-value="70"
-          :model-value="store.onsetFlourishStrength"
-          @update:model-value="store.setOnsetFlourishStrength($event)"
+          :model-value="fx.onsetFlourishStrength"
+          @update:model-value="set('onsetFlourishStrength', $event)"
           class="slider fx-slider"
         />
       </div>
     </div>
 
     <!-- Adaptive quality -->
-    <div class="fx-row">
+    <div v-if="!layerId" class="fx-row">
       <label class="fx-toggle">
         <input
           type="checkbox"
@@ -189,8 +189,64 @@ import { computed } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useVisualizerStore } from '../stores/visualizerStore.js'
 
+const props = defineProps({
+  /**
+   * Ohne layerId bedient das Panel die globalen Post-Processing-Einstellungen
+   * (bisheriges Verhalten). Mit layerId bearbeitet es die Effekte genau dieses
+   * Layers; sie wirken zusätzlich zu den globalen.
+   */
+  layerId: {
+    type: String,
+    default: null,
+  },
+})
+
 const store = useVisualizerStore()
 const { locale } = useI18n()
+
+const layer = computed(() =>
+  props.layerId ? store.visualizerLayers.find((l) => l.id === props.layerId) || null : null,
+)
+
+// Aktuelle Werte: entweder die Effekte des Layers oder die globalen Felder.
+const fx = computed(() => {
+  if (props.layerId) return store.layerEffects(layer.value)
+  return {
+    bloomEnabled: store.bloomEnabled,
+    bloomStrength: store.bloomStrength,
+    bloomThreshold: store.bloomThreshold,
+    bloomRadius: store.bloomRadius,
+    trailsEnabled: store.trailsEnabled,
+    trailsDecay: store.trailsDecay,
+    beatPunchEnabled: store.beatPunchEnabled,
+    beatPunchSource: store.beatPunchSource,
+    beatPunchStrength: store.beatPunchStrength,
+    onsetFlourishEnabled: store.onsetFlourishEnabled,
+    onsetFlourishStrength: store.onsetFlourishStrength,
+  }
+})
+
+const SETTERS = {
+  bloomEnabled: 'setBloomEnabled',
+  bloomStrength: 'setBloomStrength',
+  bloomThreshold: 'setBloomThreshold',
+  bloomRadius: 'setBloomRadius',
+  trailsEnabled: 'setTrailsEnabled',
+  trailsDecay: 'setTrailsDecay',
+  beatPunchEnabled: 'setBeatPunchEnabled',
+  beatPunchSource: 'setBeatPunchSource',
+  beatPunchStrength: 'setBeatPunchStrength',
+  onsetFlourishEnabled: 'setOnsetFlourishEnabled',
+  onsetFlourishStrength: 'setOnsetFlourishStrength',
+}
+
+function set(key, value) {
+  if (props.layerId) {
+    store.updateLayerEffect(props.layerId, key, value)
+    return
+  }
+  store[SETTERS[key]]?.(value)
+}
 
 const LABELS = {
   de: {

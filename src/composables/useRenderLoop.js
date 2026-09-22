@@ -55,6 +55,11 @@ export function useRenderLoop({
   let visualizerCacheCanvas = null
   let visualizerCacheCtx = null
   let layerCacheCanvases = null
+  // Post-Processing pro Layer: Bloom/Trails brauchen je Layer einen eigenen
+  // Prozessor, weil Bewegungsspuren einen eigenen Vorframe-Puffer führen.
+  let layerPostProcessors = null
+  // Beat-Punch-Hüllkurve pro Layer (Schlüssel: Layer-ID)
+  const layerPunchEnv = new Map()
   let multiLayerCompositeCanvas = null
   let multiLayerCompositeCtx = null
 
@@ -210,6 +215,27 @@ export function useRenderLoop({
       cachedCtx = canvas.getContext('2d', { desynchronized: true }) || canvas.getContext('2d')
     }
     return cachedCtx
+  }
+
+  /** Post-Prozessor für einen einzelnen Layer (eigener Trails-Puffer je Layer). */
+  function ensureLayerPostProcessor(layerId, w, h) {
+    if (!layerPostProcessors) layerPostProcessors = new Map()
+    let proc = layerPostProcessors.get(layerId)
+    if (!proc) {
+      try {
+        proc = createPostProcessor(w, h)
+      } catch {
+        proc = null
+      }
+      layerPostProcessors.set(layerId, proc)
+    } else if (proc.width !== w || proc.height !== h) {
+      try {
+        proc.resize(w, h)
+      } catch {
+        // Größenänderung fehlgeschlagen – der Prozessor bleibt nutzbar
+      }
+    }
+    return proc
   }
 
   function ensureMainPostProcessor(w, h) {
@@ -615,6 +641,19 @@ export function useRenderLoop({
           visualizerState._imageSource = visualizer.needsImage
             ? getVisualizerImageSource(effectiveImageId(layer.imageId))
             : null
+
+          // Onset-Flourishes je Layer: Der eigene Schalter wirkt zusätzlich zum
+          // globalen. Nach dem Zeichnen wird der globale Zustand wiederhergestellt,
+          // damit die übrigen Layer und der Single-Modus unberührt bleiben.
+          const layerFx = visualizerStore.layerEffects(layer)
+          const globalFlourish = visualizerState._onsetFlourish
+          if (layerFx.onsetFlourishEnabled) {
+            visualizerState._onsetFlourish = {
+              enabled: true,
+              strength: layerFx.onsetFlourishStrength,
+            }
+          }
+
           layerCache.ctx.clearRect(0, 0, canvas.width, canvas.height)
           layerCache.ctx.save()
           layerCache.ctx.globalAlpha = layer.colorOpacity
@@ -632,6 +671,32 @@ export function useRenderLoop({
             console.error(`Layer "${layer.id}" Visualizer Fehler:`, error)
           }
           layerCache.ctx.restore()
+          visualizerState._onsetFlourish = globalFlourish
+
+          // Bloom/Bewegungsspuren dieses Layers auf sein eigenes Canvas anwenden,
+          // bevor er in die Gesamtszene gemischt wird.
+          const layerFxConfig = visualizerStore.layerPostFxConfig(layer)
+          if (shouldRunPostFx(layerFxConfig, currentQuality())) {
+            const layerProc = ensureLayerPostProcessor(layer.id, canvas.width, canvas.height)
+            if (layerProc) {
+              try {
+                layerProc.apply(layerCache.canvas, layerFxConfig, currentQuality())
+              } catch {
+                // Post-Processing eines Layers darf den Frame nicht abbrechen
+              }
+            }
+          }
+
+          // Beat-Punch dieses Layers: Hüllkurve pro Layer fortschreiben.
+          if (layerFx.beatPunchEnabled) {
+            const onset = onsetForSource(window.audioAnalysisData, layerFx.beatPunchSource)
+            const env = advancePunch(layerPunchEnv.get(layer.id) || 0, onset)
+            layerPunchEnv.set(layer.id, env)
+            layerCache.punchScale = punchScale(env, layerFx.beatPunchStrength)
+          } else {
+            layerPunchEnv.delete(layer.id)
+            layerCache.punchScale = 1
+          }
         }
 
         multiLayerCompositeCtx.clearRect(0, 0, canvas.width, canvas.height)
@@ -642,7 +707,8 @@ export function useRenderLoop({
           multiLayerCompositeCtx.save()
           multiLayerCompositeCtx.globalCompositeOperation = layer.blendMode || 'source-over'
 
-          const scale = layer.scale
+          // Eigener Beat-Punch des Layers wirkt als zusätzlicher Zoom.
+          const scale = layer.scale * (layerCache.punchScale || 1)
           const posX = layer.x
           const posY = layer.y
           const scaledWidth = canvas.width * scale
@@ -690,6 +756,20 @@ export function useRenderLoop({
         const currentLayerIds = new Set(visualizerStore.visualizerLayers.map((l) => l.id))
         for (const layerId of layerCacheCanvases.keys()) {
           if (!currentLayerIds.has(layerId)) layerCacheCanvases.delete(layerId)
+        }
+        if (layerPostProcessors) {
+          for (const layerId of layerPostProcessors.keys()) {
+            if (currentLayerIds.has(layerId)) continue
+            try {
+              layerPostProcessors.get(layerId)?.dispose?.()
+            } catch {
+              // Aufräumen ist best effort
+            }
+            layerPostProcessors.delete(layerId)
+          }
+        }
+        for (const layerId of layerPunchEnv.keys()) {
+          if (!currentLayerIds.has(layerId)) layerPunchEnv.delete(layerId)
         }
       } else {
         const visualizerId = visualizerStore.selectedVisualizer

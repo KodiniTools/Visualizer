@@ -822,6 +822,9 @@ export default {
     hideLayer: 'Hide layer',
     showLayer: 'Show layer',
     blendMode: 'Blend Mode',
+    layerEffects: 'Effects for this layer',
+    layerEffectsHint: 'Applied on top of the global effects – to this layer only',
+    resetLayerEffects: 'Reset this layer\u2019s effects',
     image: {
       label: 'Image',
       auto: 'Automatic (canvas, else gallery)',

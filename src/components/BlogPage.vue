@@ -16,7 +16,6 @@
         property="og:description"
         content="30+ Visualizer, MP4-Export, Text-Overlay, Audio-reaktive Effekte – alles kostenlos im Browser."
       />
-      <link rel="canonical" href="/blog" />
     </teleport>
 
     <!-- Header -->

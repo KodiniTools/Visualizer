@@ -1663,4 +1663,32 @@ export default {
     success: 'Bild zur Galerie hinzugefügt',
     error: 'Bild konnte nicht übernommen werden',
   },
+
+  // ========== VERLAUF (globales Undo/Redo) ==========
+  history: {
+    undo: 'Rückgängig',
+    redo: 'Wiederholen',
+    undoShortcut: 'Strg+Z',
+    redoShortcut: 'Strg+Y',
+    segments: {
+      workspace: 'Canvas-Format',
+      background: 'Hintergrund',
+      backgroundTiles: 'Hintergrund-Kacheln',
+      grid: 'Raster',
+      images: 'Bilder',
+      videos: 'Videos',
+      texts: 'Texte',
+      visualizer: 'Visualizer',
+      audioFx: 'Audio-Effekte',
+      beatDrop: 'Beat-Drop',
+      ticker: 'Lauftext',
+      beatMarkers: 'Beat-Marker',
+      markerTransition: 'Marker-Übergang',
+    },
+    actions: {
+      delete_text: 'Text gelöscht',
+      delete_image: 'Bild gelöscht',
+      delete_video: 'Video gelöscht',
+    },
+  },
 }

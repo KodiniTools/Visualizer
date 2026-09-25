@@ -12,6 +12,9 @@ import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore.js'
 import { useToastStore } from '../stores/toastStore.js'
 import { useTickerStore } from '../stores/tickerStore.js'
 import { useI18n } from '../lib/i18n.js'
+import { useHistoryStore } from '../stores/historyStore.js'
+import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
+import { createBackgroundSegment } from '../lib/history/segments/backgroundSegment.js'
 
 export function useBgSettings() {
   const canvasManager = inject('canvasManager')
@@ -23,10 +26,6 @@ export function useBgSettings() {
   const backgroundColor = ref('#ffffff')
   const backgroundOpacity = ref(1.0)
   const colorDisplay = ref('rgba(255, 255, 255, 1)')
-
-  // Undo system
-  const undoHistory = ref([])
-  const MAX_HISTORY = 10
 
   // Audio-reactive: identische Struktur/Einstellungen wie Bild-Audio-Reaktiv
   // (Master, Presets, alle Effekte mit Intensität + eigener Quelle) plus die
@@ -127,8 +126,6 @@ export function useBgSettings() {
     return backgroundImageSrc.value
   })
 
-  const canUndo = computed(() => undoHistory.value.length > 0)
-
   const isCanvasEmpty = computed(() => {
     if (!canvasManager.value) return true
     return canvasManager.value.isCanvasEmpty()
@@ -214,8 +211,6 @@ export function useBgSettings() {
       console.warn('⚠️ CanvasManager nicht verfügbar')
       return
     }
-
-    saveCanvasState()
 
     const rgbaColor = hexToRGBA(backgroundColor.value, backgroundOpacity.value)
     console.log('🎨 Setze Hintergrundfarbe:', rgbaColor)
@@ -1190,87 +1185,6 @@ export function useBgSettings() {
     }
   }
 
-  // ===== UNDO SYSTEM =====
-
-  function saveCanvasState() {
-    if (!canvasManager.value) return
-
-    const state = {
-      background: canvasManager.value.background,
-      workspaceBackground: canvasManager.value.workspaceBackground,
-      backgroundColor: backgroundColor.value,
-      backgroundOpacity: backgroundOpacity.value,
-      images: canvasManager.value.multiImageManager
-        ? canvasManager.value.multiImageManager.getAllImages().map((img) => ({
-            id: img.id,
-            type: img.type,
-            relX: img.relX,
-            relY: img.relY,
-            relWidth: img.relWidth,
-            relHeight: img.relHeight,
-            rotation: img.rotation,
-            imageObject: img.imageObject,
-          }))
-        : [],
-      texts:
-        canvasManager.value.textManager && canvasManager.value.textManager.textObjects
-          ? JSON.parse(JSON.stringify(canvasManager.value.textManager.textObjects))
-          : [],
-      timestamp: Date.now(),
-    }
-
-    undoHistory.value.push(state)
-
-    if (undoHistory.value.length > MAX_HISTORY) {
-      undoHistory.value.shift()
-    }
-
-    console.log('💾 Canvas-Zustand gespeichert')
-  }
-
-  function undoLastChange() {
-    if (undoHistory.value.length === 0 || !canvasManager.value) {
-      console.warn('⚠️ Kein Verlauf vorhanden')
-      return
-    }
-
-    const lastState = undoHistory.value.pop()
-
-    if (lastState.background !== undefined) {
-      canvasManager.value.background = lastState.background
-    }
-
-    if (lastState.backgroundColor !== undefined) {
-      backgroundColor.value = lastState.backgroundColor
-    }
-    if (lastState.backgroundOpacity !== undefined) {
-      backgroundOpacity.value = lastState.backgroundOpacity
-    }
-    updateColorDisplay()
-
-    if (lastState.workspaceBackground !== undefined) {
-      canvasManager.value.workspaceBackground = lastState.workspaceBackground
-    }
-
-    if (canvasManager.value.multiImageManager && lastState.images) {
-      canvasManager.value.multiImageManager.images = [...lastState.images]
-    }
-
-    if (canvasManager.value.textManager && lastState.texts) {
-      canvasManager.value.textManager.textObjects = JSON.parse(JSON.stringify(lastState.texts))
-    }
-
-    if (canvasManager.value.redrawCallback) {
-      canvasManager.value.redrawCallback()
-    }
-
-    if (canvasManager.value.updateUICallback) {
-      canvasManager.value.updateUICallback()
-    }
-
-    console.log('✅ Zustand wiederhergestellt')
-  }
-
   // ===== RESET FUNCTIONS =====
 
   function resetNormalBackground() {
@@ -1278,8 +1192,6 @@ export function useBgSettings() {
       console.warn('⚠️ CanvasManager nicht verfügbar')
       return
     }
-
-    saveCanvasState()
 
     console.log('🔄 Setze normalen Hintergrund zurück')
     canvasManager.value.setBackground('#ffffff')
@@ -1310,8 +1222,6 @@ export function useBgSettings() {
       return
     }
 
-    saveCanvasState()
-
     console.log('🔄 Setze Workspace-Hintergrund zurück')
     canvasManager.value.workspaceBackground = null
 
@@ -1337,8 +1247,6 @@ export function useBgSettings() {
       console.warn('⚠️ CanvasManager nicht verfügbar')
       return
     }
-
-    saveCanvasState()
 
     console.log('🔄 Setze alle Hintergründe zurück')
 
@@ -1383,8 +1291,6 @@ export function useBgSettings() {
       console.warn('⚠️ CanvasManager nicht verfügbar')
       return
     }
-
-    saveCanvasState()
 
     console.log('🗑️ Setze Canvas komplett zurück')
     canvasManager.value.reset()
@@ -1467,7 +1373,31 @@ export function useBgSettings() {
 
   // ===== LIFECYCLE =====
 
+  // ↩️ Globaler Undo/Redo: Hintergrund als History-Segment
+  let unregisterHistorySegment = null
+
   onMounted(() => {
+    unregisterHistorySegment = getHistoryRecorder(useHistoryStore()).registerSegment(
+      'background',
+      createBackgroundSegment({
+        getCanvasManager: () => canvasManager.value,
+        refs: {
+          backgroundColor,
+          backgroundOpacity,
+          gradientEnabled,
+          gradientColor2,
+          gradientType,
+          gradientAngle,
+        },
+        bgAudioReactive,
+        afterApply() {
+          activeBgAudioPreset.value = null
+          updateColorDisplay()
+          updateBgAudioReactive()
+          bumpBgAudioRevision()
+        },
+      }),
+    )
     loadPresets()
     window.addEventListener('preset:apply', handlePresetApply)
     // Bridge registrieren, damit z.B. Beat-Marker den Hintergrund erfassen/anwenden können
@@ -1478,6 +1408,7 @@ export function useBgSettings() {
   })
 
   onUnmounted(() => {
+    unregisterHistorySegment?.()
     window.removeEventListener('preset:apply', handlePresetApply)
     backgroundBridge.register(null, null)
   })
@@ -1520,7 +1451,6 @@ export function useBgSettings() {
     bgGalleryLoading,
     bgGalleryCategoryCache,
     savedPresets,
-    undoHistory,
     // Computed
     hasImageBackground,
     hasWorkspaceBackground,
@@ -1529,7 +1459,6 @@ export function useBgSettings() {
     backgroundImageSrc,
     workspaceBackgroundImageSrc,
     currentBackgroundForReplace,
-    canUndo,
     isCanvasEmpty,
     // Functions
     hexToRGBA,
@@ -1563,8 +1492,6 @@ export function useBgSettings() {
     deletePreset,
     buildBackgroundSnapshot,
     applyBackgroundSnapshot,
-    saveCanvasState,
-    undoLastChange,
     resetNormalBackground,
     resetWorkspaceBackgroundOnly,
     resetAllBackgrounds,

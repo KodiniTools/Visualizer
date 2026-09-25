@@ -4,6 +4,7 @@ import { FotoManager } from '../lib/fotoManager.js'
 import { GridManager } from '../lib/gridManager.js'
 import { MultiImageManager } from '../lib/multiImageManager.js'
 import { VideoManager } from '../lib/videoManager.js'
+import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
 
 /**
  * Canvas pixel dimensions per social-media workspace preset.
@@ -120,21 +121,25 @@ export function useCanvasSetup({
   // History-Command (Strg+Z / Strg+Y) und zeigt einen Toast mit
   // "Rückgängig"-Button zur direkten Wiederherstellung.
   function handleObjectDeleted({ type, undo, redo, count = 1 }) {
-    // Eindeutiges Token zum Wiedererkennen dieses Commands im History-Stack.
+    // Bevorzugt als Snapshot-Schritt des globalen Verlaufs (Texte/Bilder/Videos
+    // sind History-Segmente). Das Token identifiziert den Schritt für den Toast.
     // WICHTIG: Kein Identitätsvergleich (===) mit dem Command-Objekt, da Pinia
     // das Objekt beim Speichern in einen reaktiven Proxy einwickelt – die
     // Referenz ist danach nicht mehr identisch. Primitive (das Token) werden
     // vom Proxy dagegen unverändert durchgereicht.
-    const token = ++deletionCommandCounter
+    let token = getHistoryRecorder(historyStore).checkpoint(`delete:${type}`)
 
-    const command = {
-      name: `delete:${type}`,
-      token,
-      execute: redo,
-      undo,
-      timestamp: Date.now(),
+    if (token === null) {
+      // Fallback (Segmente noch nicht registriert): closure-basiertes Command
+      token = `delete-${++deletionCommandCounter}`
+      historyStore.addCommand({
+        name: `delete:${type}`,
+        token,
+        execute: redo,
+        undo,
+        timestamp: Date.now(),
+      })
     }
-    historyStore.addCommand(command)
 
     const messageKey =
       type === 'image'

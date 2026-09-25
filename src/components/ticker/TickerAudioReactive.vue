@@ -35,6 +35,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useTickerStore } from '../../stores/tickerStore.js'
+import { historyApplyRevision } from '../../lib/history/historyRecorder.js'
 import {
   TICKER_SHARED_EFFECT_NAMES,
   applyAudioReactivePreset,
@@ -64,6 +65,8 @@ const extraCategories = computed(() => [
 const activePreset = ref(null)
 let userEffectsBackup = null
 const revision = ref(0)
+// Undo/Redo gilt als externe Änderung → Panel neu einlesen
+watch(historyApplyRevision, () => revision.value++)
 
 function loadSaved() {
   try {

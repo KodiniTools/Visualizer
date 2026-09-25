@@ -47,6 +47,8 @@ import TextEditPanel from './text-manager/TextEditPanel.vue'
 import TextMultiEditPanel from './text-manager/TextMultiEditPanel.vue'
 import TextDirectoryPanel from './text-manager/TextDirectoryPanel.vue'
 import { loadTextDefaults, settingsToAddTextOptions } from '../lib/textDefaults.js'
+import { useHistoryStore } from '../stores/historyStore.js'
+import { getHistoryRecorder, historyApplyRevision } from '../lib/history/historyRecorder.js'
 
 const { t } = useI18n()
 const canvasManager = inject('canvasManager')
@@ -60,6 +62,10 @@ const canvasHeight = ref(1080)
 const editPanelRef = ref(null)
 
 let eventListenerRegistered = false
+
+const historyRecorder = getHistoryRecorder(useHistoryStore())
+// Während der Sequenz-Wiedergabe animiert die Deckkraft – kein Verlaufsschritt
+let releaseTextsHistory = null
 
 // ✨ Text-Verzeichnis: Liste aller Texte (stabil nach Erstellungsreihenfolge sortiert)
 function refreshTextList() {
@@ -183,6 +189,7 @@ function startTextSequence() {
   }
   // Ursprüngliche Sichtbarkeit merken, um sie am Ende wiederherzustellen.
   savedOpacities = new Map(objs.map((o) => [o.id, o.opacity ?? 100]))
+  if (!releaseTextsHistory) releaseTextsHistory = historyRecorder.hold(['texts'])
   sequencePlaying.value = true
   sequenceIndex = 0
   playSequenceStep()
@@ -201,6 +208,8 @@ function stopTextSequence() {
     })
     canvasManager.value?.redrawCallback?.()
   }
+  releaseTextsHistory?.()
+  releaseTextsHistory = null
 }
 
 // ✨ FIX: Verbesserte Callback-Funktion für Selection-Changes
@@ -364,6 +373,9 @@ function clearMultiSelection() {
   refreshTextList()
 }
 
+// Nach Undo/Redo: Verzeichnis neu einlesen (Texte wurden ggf. entfernt/wiederhergestellt)
+watch(historyApplyRevision, () => refreshTextList())
+
 // Vorschau im Verzeichnis aktualisieren, wenn der markierte Text bearbeitet wird
 watch(
   () => selectedText.value?.content,
@@ -437,6 +449,8 @@ onUnmounted(() => {
     clearTimeout(sequenceTimer)
     sequenceTimer = null
   }
+  releaseTextsHistory?.()
+  releaseTextsHistory = null
 })
 </script>
 

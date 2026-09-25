@@ -141,6 +141,37 @@
 
     <!-- Right actions: popover toggles -->
     <div class="spb-actions">
+      <!-- Globaler Undo/Redo-Verlauf (alle Panels) -->
+      <button
+        class="spb-icon-btn spb-history-btn"
+        :disabled="!historyStore.canUndo"
+        :title="undoTitle"
+        :aria-label="t('history.undo')"
+        data-testid="history-undo"
+        @click="historyStore.undo()"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"
+          />
+        </svg>
+      </button>
+      <button
+        class="spb-icon-btn spb-history-btn"
+        :disabled="!historyStore.canRedo"
+        :title="redoTitle"
+        :aria-label="t('history.redo')"
+        data-testid="history-redo"
+        @click="historyStore.redo()"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"
+          />
+        </svg>
+      </button>
+      <span class="spb-divider" aria-hidden="true"></span>
+
       <button
         class="spb-icon-btn"
         :class="{ active: isOpen('markers') }"
@@ -369,8 +400,10 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
+import { useHistoryStore } from '../../stores/historyStore.js'
+import { historyStepLabel } from '../../lib/history/historyLabels.js'
 import { usePlayerStore } from '../../stores/playerStore.js'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
 import { useAudioSourceStore } from '../../stores/audioSourceStore.js'
@@ -382,6 +415,19 @@ const playerStore = usePlayerStore()
 const beatMarkerStore = useBeatMarkerStore()
 const audioSourceStore = useAudioSourceStore()
 const recorderStore = useRecorderStore()
+const historyStore = useHistoryStore()
+
+// Tooltip nennt den Schritt, der rückgängig gemacht / wiederholt würde.
+const undoTitle = computed(() => {
+  const cmd = historyStore.history[historyStore.currentIndex]
+  const base = `${t('history.undo')} (${t('history.undoShortcut')})`
+  return historyStore.canUndo && cmd ? `${base}: ${historyStepLabel(cmd, t)}` : base
+})
+const redoTitle = computed(() => {
+  const cmd = historyStore.history[historyStore.currentIndex + 1]
+  const base = `${t('history.redo')} (${t('history.redoShortcut')})`
+  return historyStore.canRedo && cmd ? `${base}: ${historyStepLabel(cmd, t)}` : base
+})
 
 const { popover, playMode, markers } = inject('playerBar')
 const { isOpen, togglePopover } = popover
@@ -618,6 +664,17 @@ const seekToPosition = (event) => {
 .spb-icon-btn:hover {
   background-color: var(--btn-hover, #1a2a42);
   border-color: var(--accent-primary, #c9984d);
+}
+.spb-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+.spb-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 2px;
+  background-color: var(--border-color, rgba(201, 152, 77, 0.3));
 }
 .spb-icon-btn.active {
   background-color: var(--accent-primary, #c9984d);

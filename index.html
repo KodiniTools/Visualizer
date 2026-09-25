@@ -41,12 +41,10 @@
     <title>Audio Visualizer Pro – Online Musik-Visualizer & MP4-Export</title>
     <meta name="description" content="Audio Visualizer Pro – Erstelle beeindruckende Musik-Visualisierungen direkt im Browser. Tracks hochladen, Visualisierung wählen, Text/Bild hinzufügen und als MP4 exportieren.">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://kodinitools.com/visualizer/">
-
-    <!-- hreflang: Sprachversionen -->
-    <link rel="alternate" hreflang="de" href="https://kodinitools.com/visualizer/">
-    <link rel="alternate" hreflang="en" href="https://kodinitools.com/visualizer/">
-    <link rel="alternate" hreflang="x-default" href="https://kodinitools.com/visualizer/">
+    <!-- Canonical & hreflang: bewusst NICHT statisch gesetzt. Die SPA liefert fuer
+         jede Route dieselbe index.html aus; ein statisches Canonical wuerde /blog
+         als Duplikat der Startseite markieren. src/router/index.js setzt beides
+         pro Route (Google rendert JavaScript). -->
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">

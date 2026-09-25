@@ -85,6 +85,7 @@ router.afterEach((to) => {
   setMeta('name', 'twitter:url', canonical)
 
   setCanonical(canonical)
+  for (const lang of ['de', 'en', 'x-default']) setAlternate(lang, canonical)
 })
 
 function setMeta(attr, key, content) {
@@ -104,6 +105,19 @@ function setCanonical(href) {
   if (!el) {
     el = document.createElement('link')
     el.setAttribute('rel', 'canonical')
+    document.head.appendChild(el)
+  }
+  el.setAttribute('href', href)
+}
+
+// Beide Sprachen teilen sich eine URL (Umschaltung clientseitig)
+function setAlternate(hreflang, href) {
+  if (!href) return
+  let el = document.querySelector(`link[rel="alternate"][hreflang="${hreflang}"]`)
+  if (!el) {
+    el = document.createElement('link')
+    el.setAttribute('rel', 'alternate')
+    el.setAttribute('hreflang', hreflang)
     document.head.appendChild(el)
   }
   el.setAttribute('href', href)

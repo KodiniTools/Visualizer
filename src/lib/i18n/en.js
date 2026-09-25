@@ -1661,4 +1661,32 @@ export default {
     success: 'Image added to gallery',
     error: 'Could not import the image',
   },
+
+  // ========== HISTORY (global undo/redo) ==========
+  history: {
+    undo: 'Undo',
+    redo: 'Redo',
+    undoShortcut: 'Ctrl+Z',
+    redoShortcut: 'Ctrl+Y',
+    segments: {
+      workspace: 'Canvas format',
+      background: 'Background',
+      backgroundTiles: 'Background tiles',
+      grid: 'Grid',
+      images: 'Images',
+      videos: 'Videos',
+      texts: 'Texts',
+      visualizer: 'Visualizer',
+      audioFx: 'Audio effects',
+      beatDrop: 'Beat drop',
+      ticker: 'Scrolling text',
+      beatMarkers: 'Beat markers',
+      markerTransition: 'Marker transition',
+    },
+    actions: {
+      delete_text: 'Text deleted',
+      delete_image: 'Image deleted',
+      delete_video: 'Video deleted',
+    },
+  },
 }

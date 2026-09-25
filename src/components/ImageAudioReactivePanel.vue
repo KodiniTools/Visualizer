@@ -25,6 +25,7 @@
 import { ref, inject, watch, onMounted, nextTick } from 'vue'
 import AudioReactivePanel from './foto-panel/AudioReactivePanel.vue'
 import { useImageAudioReactive } from '../composables/useImageAudioReactive.js'
+import { historyApplyRevision } from '../lib/history/historyRecorder.js'
 
 const fotoManagerRef = inject('fotoManager')
 
@@ -58,6 +59,12 @@ watch(
   },
   { immediate: false },
 )
+
+// Nach Undo/Redo: Einstellungen des aktiven Bildes neu einlesen
+watch(historyApplyRevision, async () => {
+  await nextTick()
+  audioReactivePanelRef.value?.loadSettings(currentActiveImage.value)
+})
 
 onMounted(async () => {
   // The panel mounts lazily (when the popover opens): sync it with whatever

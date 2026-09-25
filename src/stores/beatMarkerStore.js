@@ -193,6 +193,20 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
   }
 
   /**
+   * Stellt eine Marker-Liste wieder her (Undo/Redo). `nextId` wird nie
+   * gesenkt, damit neue Marker keine IDs bereits vergebener Marker erhalten.
+   * @param {Array} list
+   */
+  function restoreMarkers(list) {
+    markers.value = Array.isArray(list) ? list : []
+    const maxId = markers.value.reduce((max, m) => (m.id > max ? m.id : max), 0)
+    nextId.value = Math.max(nextId.value, maxId + 1)
+    if (!markers.value.some((m) => m.id === lastTriggeredMarkerId.value)) {
+      lastTriggeredMarkerId.value = null
+    }
+  }
+
+  /**
    * Togglet Marker-Aktivierung
    */
   function toggleEnabled() {
@@ -221,6 +235,7 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
     getNextMarker,
     exportMarkers,
     importMarkers,
+    restoreMarkers,
     toggleEnabled,
   }
 })

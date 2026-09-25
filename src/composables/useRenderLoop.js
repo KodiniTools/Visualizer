@@ -18,6 +18,8 @@ import {
   resolveEffectiveImageId,
 } from '../lib/visualizers/imageRegistry.js'
 import { useImageGallery } from './useImageGallery.js'
+import { useHistoryStore } from '../stores/historyStore.js'
+import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
 
 export function useRenderLoop({
   canvasRef,
@@ -905,7 +907,10 @@ export function useRenderLoop({
               console.error(`Visualizer "${visualizerId}" Fehler:`, error)
               visualizerCacheCtx.fillStyle = '#000'
               visualizerCacheCtx.fillRect(0, 0, canvas.width, canvas.height)
-              visualizerStore.fallbackToLastWorking()
+              // Automatischer Fallback ist keine Nutzer-Bearbeitung → nicht in den Verlauf
+              getHistoryRecorder(useHistoryStore()).absorb(() =>
+                visualizerStore.fallbackToLastWorking(),
+              )
             }
             visualizerCacheCtx.restore()
 

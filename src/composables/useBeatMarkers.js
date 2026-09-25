@@ -8,6 +8,12 @@ import { useMarkerTransitionStore } from '../stores/markerTransitionStore.js'
 import { useLayerPresetStore, parseLayerPresetRef } from '../stores/layerPresetStore.js'
 import { formatTimePrecise, parseTimeInput, roundToHundredths } from '../utils/formatTime.js'
 import { resolveBackgroundPreset } from '../utils/backgroundPresets.js'
+import { useHistoryStore } from '../stores/historyStore.js'
+import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
+
+// Marker-Hintergründe laden Bilder/Videos per Callback nach → Baseline nach
+// dieser Zeit erneut übernehmen, damit sie nicht im nächsten Nutzer-Schritt landen.
+const MARKER_MEDIA_SETTLE_MS = 3000
 
 /**
  * Beat-marker management for the sticky player bar: the add/edit form state,
@@ -25,6 +31,9 @@ export function useBeatMarkers(openMarkersPopover) {
   const backgroundBridge = useBackgroundBridgeStore()
   const markerTransition = useMarkerTransitionStore()
   const layerPresetStore = useLayerPresetStore()
+  // Marker-Aktionen während der Wiedergabe sind keine Nutzer-Bearbeitungen →
+  // am globalen Undo/Redo-Verlauf vorbei ausführen.
+  const historyRecorder = getHistoryRecorder(useHistoryStore())
 
   // Canvas-Manager (bereitgestellt von VisualizerApp). Wird für die
   // Text-Steuerung der Marker benötigt: Texte werden zum Marker-Zeitpunkt
@@ -112,7 +121,8 @@ export function useBeatMarkers(openMarkersPopover) {
    * damit sie erst zum jeweiligen Marker-Zeitpunkt erscheinen. Die
    * ursprüngliche Deckkraft wird gemerkt.
    */
-  const activateTextMarkers = () => {
+  const activateTextMarkers = () => historyRecorder.absorb(() => activateTextMarkersNow())
+  const activateTextMarkersNow = () => {
     const ids = referencedTextIds()
     if (ids.size === 0) return
     orderedTextObjects().forEach((o) => {
@@ -129,7 +139,8 @@ export function useBeatMarkers(openMarkersPopover) {
    * Stellt die ursprüngliche Deckkraft aller von Markern gesteuerten Texte
    * wieder her (z.B. beim Deaktivieren der Marker oder beim Zurückspulen).
    */
-  const restoreTextMarkers = () => {
+  const restoreTextMarkers = () => historyRecorder.absorb(() => restoreTextMarkersNow())
+  const restoreTextMarkersNow = () => {
     if (markerTextOriginalOpacity.size === 0) return
     const objs = orderedTextObjects()
     for (const [id, op] of markerTextOriginalOpacity.entries()) {
@@ -145,7 +156,8 @@ export function useBeatMarkers(openMarkersPopover) {
    * zugewiesen sind (z.B. nach dem Löschen eines Markers oder dem Entfernen
    * der Text-Zuweisung).
    */
-  const reconcileTextMarkers = () => {
+  const reconcileTextMarkers = () => historyRecorder.absorb(() => reconcileTextMarkersNow())
+  const reconcileTextMarkersNow = () => {
     if (markerTextOriginalOpacity.size === 0) return
     const ids = referencedTextIds()
     const objs = orderedTextObjects()
@@ -215,7 +227,12 @@ export function useBeatMarkers(openMarkersPopover) {
   /**
    * Wendet alle Änderungen eines Markers an (Visualizer, Farbe, Hintergrund).
    */
-  const applyMarkerAction = (action) => {
+  const applyMarkerAction = (action) =>
+    historyRecorder.absorb(() => applyMarkerActionNow(action), {
+      settleMs: MARKER_MEDIA_SETTLE_MS,
+    })
+
+  const applyMarkerActionNow = (action) => {
     if (!action) return
 
     // Jeder Marker erzwingt den Visualizer-Zustand explizit.

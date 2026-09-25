@@ -7,16 +7,6 @@
     <div class="panel-content" v-show="isExpanded">
       <BackgroundColorSection />
 
-      <!-- Undo -->
-      <div v-if="canUndo" class="panel-section undo-section">
-        <button @click="undoLastChange" class="btn-undo full-width">
-          {{ t('canvasControl.undo') }}
-        </button>
-        <div class="hint-text" style="text-align: center; margin-top: 6px">
-          {{ undoHistory.length }} {{ t('canvasControl.inHistory') }}
-        </div>
-      </div>
-
       <div class="divider"></div>
       <PresetsSection />
       <div class="divider"></div>
@@ -41,15 +31,14 @@ import AudioFxPanel from './AudioFxPanel.vue'
 const { t } = useI18n()
 const isExpanded = ref(true)
 
-// Der Hintergrund-Zustand (Farbe, Gradient, Audio-Reaktiv, Undo-Verlauf) und
+// Der Hintergrund-Zustand (Farbe, Gradient, Audio-Reaktiv) und
 // die Bridge für Beat-Marker leben in der Sticky-Player-Bar, die immer
 // gemountet ist. So bleibt alles erhalten, während dieses Panel in seinem
 // Popover geöffnet und geschlossen wird. Ohne bereitgestellten Zustand (z.B.
 // im Test oder bei eigenständiger Nutzung) erzeugt das Panel ihn selbst.
 const bg = inject('bgSettings', null) || useBgSettings()
 provide('bgSettings', bg)
-
-const { undoHistory, canUndo, undoLastChange } = bg
+// Undo/Redo läuft global über die Player-Leiste bzw. Strg+Z / Strg+Y.
 </script>
 
 <style scoped>

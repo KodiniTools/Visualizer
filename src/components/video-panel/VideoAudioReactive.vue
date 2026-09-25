@@ -40,6 +40,7 @@
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
+import { historyApplyRevision } from '../../lib/history/historyRecorder.js'
 import {
   applyAudioReactivePreset,
   assignAudioReactiveConfig,
@@ -60,6 +61,8 @@ const props = defineProps({
 const { t } = useI18n()
 const panelRef = ref(null)
 const revision = ref(0)
+// Undo/Redo gilt als externe Änderung → Panel neu einlesen
+watch(historyApplyRevision, () => revision.value++)
 
 // Aktives Preset + Backup der Nutzer-Effekte pro Video-Objekt
 const activePresets = new WeakMap()

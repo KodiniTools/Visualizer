@@ -1,5 +1,6 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { normalizeHex } from '../lib/color.js'
+import { useHistoryStore } from '../stores/historyStore.js'
 
 /** Werkseinstellungen aller numerischen Filter (Reset-Werte der SliderFields). */
 export const IMAGE_FILTER_DEFAULTS = Object.freeze({
@@ -24,91 +25,36 @@ export const IMAGE_FILTER_DEFAULTS = Object.freeze({
  * `borderColor`) bound to SliderField/ColorField components; only the preset
  * select and the container are still plain template refs. The sub-sections of
  * the panel consume this state and the handlers returned here through
- * provide/inject. Keeping the logic in one place preserves the cross-section
- * undo/redo history and the single `loadImageSettings` that writes every control.
+ * provide/inject. Keeping the logic in one place preserves the single
+ * `loadImageSettings` that writes every control. Undo/redo delegates to the
+ * global history store.
  *
  * @param {object} props - the panel props (currentActiveImage, ...).
  * @param {(event: string, payload?: any) => void} emit - the panel's emit.
  */
 export function useImageFilterControls(props, emit) {
   // ── Undo / Redo ────────────────────────────────────────────────────────────
-  const MAX_HISTORY = 30
-  const undoStack = ref([])
-  const redoStack = ref([])
-  const canUndo = computed(() => undoStack.value.length > 0)
-  const canRedo = computed(() => redoStack.value.length > 0)
-
-  let _beforeSnapshot = null
-
-  function _getCurrentSnapshot() {
-    return {
-      ...filters,
-      shadowColor: shadowColor.value,
-      flipH: flipHRef.value,
-      flipV: flipVRef.value,
-      borderColor: borderColor.value,
-      preset: presetSelectRef.value?.value ?? '',
-    }
-  }
-
-  function _pushToUndo(snapshot) {
-    undoStack.value.push(snapshot)
-    if (undoStack.value.length > MAX_HISTORY) undoStack.value.shift()
-    redoStack.value = []
-  }
-
-  function onSliderStart() {
-    _beforeSnapshot = _getCurrentSnapshot()
-  }
-
-  function onSliderEnd() {
-    if (_beforeSnapshot) {
-      _pushToUndo(_beforeSnapshot)
-      _beforeSnapshot = null
-    }
-  }
-
-  function _applySnapshot(snapshot) {
-    loadImageSettings(snapshot)
-    const propsToEmit = [
-      'brightness',
-      'contrast',
-      'saturation',
-      'opacity',
-      'blur',
-      'hueRotate',
-      'shadowColor',
-      'shadowBlur',
-      'shadowOffsetX',
-      'shadowOffsetY',
-      'rotation',
-      'flipH',
-      'flipV',
-      'borderColor',
-      'borderWidth',
-      'borderOpacity',
-    ]
-    propsToEmit.forEach((p) => emit('filter-change', { property: p, value: snapshot[p] }))
-    if (snapshot.preset !== undefined) emit('preset-change', snapshot.preset)
-  }
+  // Läuft über den globalen Verlauf: Filteränderungen landen in fotoSettings
+  // des Bildes/Hintergrunds und werden dort als History-Schritt erfasst
+  // (Slider-Zug = ein Schritt). Nach Undo/Redo aktualisiert der Deep-Watcher
+  // auf currentActiveImage die Regler.
+  const historyStore = useHistoryStore()
+  const canUndo = computed(() => historyStore.canUndo)
+  const canRedo = computed(() => historyStore.canRedo)
 
   function undo() {
-    if (!canUndo.value) return
-    const current = _getCurrentSnapshot()
-    redoStack.value.push(current)
-    const previous = undoStack.value.pop()
-    _applySnapshot(previous)
+    return historyStore.undo()
   }
 
   function redo() {
-    if (!canRedo.value) return
-    const current = _getCurrentSnapshot()
-    // Push to undo without clearing redo stack
-    undoStack.value.push(current)
-    if (undoStack.value.length > MAX_HISTORY) undoStack.value.shift()
-    const next = redoStack.value.pop()
-    _applySnapshot(next)
+    return historyStore.redo()
   }
+
+  // Beibehalten für die Slider-Events der Sektionen (@start/@change); die
+  // Gruppierung übernimmt der History-Recorder.
+  function onSliderStart() {}
+
+  function onSliderEnd() {}
 
   // Container Ref
   const containerRef = ref(null)
@@ -226,7 +172,6 @@ export function useImageFilterControls(props, emit) {
   const onBorderOpacityChange = numericHandler('borderOpacity')
 
   function resetFilters() {
-    _pushToUndo(_getCurrentSnapshot())
     // Reset all controls to default values
     Object.assign(filters, IMAGE_FILTER_DEFAULTS)
     shadowColor.value = '#000000'

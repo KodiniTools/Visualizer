@@ -110,6 +110,7 @@ import { useAudioFxStore } from './stores/audioFxStore.js'
 import { useTickerStore } from './stores/tickerStore.js'
 import { useToastStore } from './stores/toastStore.js'
 import { useHistoryStore } from './stores/historyStore.js'
+import { useBeatMarkerStore } from './stores/beatMarkerStore.js'
 import { BeatDropRenderer } from './lib/canvasManager/rendering/BeatDropRenderer.js'
 import { AudioFxRenderer } from './lib/canvasManager/rendering/AudioFxRenderer.js'
 import { TickerRenderer } from './lib/canvasManager/rendering/TickerRenderer.js'
@@ -126,6 +127,7 @@ import { useRecorderSetup } from './composables/useRecorderSetup.js'
 import { useStatusBanner } from './composables/useStatusBanner.js'
 import { useSharedFiles } from './composables/useSharedFiles.js'
 import { useHandoff } from './composables/useHandoff.js'
+import { useHistorySetup } from './composables/useHistorySetup.js'
 
 import FileUploadPanel from './components/FileUploadPanel.vue'
 import StickyPlayerBar from './components/StickyPlayerBar.vue'
@@ -163,6 +165,7 @@ const backgroundTilesStore = useBackgroundTilesStore()
 const audioSourceStore = useAudioSourceStore()
 const toastStore = useToastStore()
 const historyStore = useHistoryStore()
+const beatMarkerStore = useBeatMarkerStore()
 const route = useRoute()
 const router = useRouter()
 
@@ -264,6 +267,23 @@ const { SOCIAL_MEDIA_PRESETS, initializeCanvas, getTextManager } = useCanvasSetu
   t,
   getRecordingCanvas,
   selectedCanvasImageId,
+})
+
+// ── Globaler Undo/Redo-Verlauf (alle Panels) ────────────────────────────────────
+useHistorySetup({
+  historyStore,
+  canvasManagerInstance,
+  stores: {
+    workspaceStore,
+    backgroundTilesStore,
+    gridStore,
+    visualizerStore,
+    audioFxStore,
+    beatDropStore,
+    tickerStore,
+    beatMarkerStore,
+    markerTransitionStore,
+  },
 })
 
 const { startVisualizerLoop, stopVisualizerLoop } = useVisualizerLoop({

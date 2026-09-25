@@ -1,5 +1,6 @@
-import { computed, inject, reactive, ref } from 'vue'
+import { computed, inject, reactive, ref, watch } from 'vue'
 import { useBackgroundTilesStore } from '../stores/backgroundTilesStore'
+import { historyApplyRevision } from '../lib/history/historyRecorder.js'
 
 /**
  * Kapselt den Zugriff auf den Background-Tiles-Store sowie alle
@@ -259,6 +260,8 @@ export function useBackgroundTiles() {
   const tileUserEffectsBackups = new Map()
   // Zähler für externe Änderungen (Preset/Anwenden), damit das Panel neu einliest
   const tileAudioRevision = ref(0)
+  // Undo/Redo gilt als externe Änderung → Panel neu einlesen
+  watch(historyApplyRevision, () => tileAudioRevision.value++)
   const TILE_AUDIO_STORAGE_KEY = 'visualizer_tileAudioReactivePreset'
   const savedTileAudioSettings = ref(loadSavedTileAudioSettings())
   const hasSavedTileAudioSettings = computed(() => savedTileAudioSettings.value !== null)

@@ -1,4 +1,5 @@
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
+import { historyApplyRevision } from '../lib/history/historyRecorder.js'
 import {
   AUDIO_REACTIVE_PRESETS,
   TEXT_REACTION_DEFAULTS,
@@ -40,6 +41,8 @@ export function useAudioReactiveText(selectedText, canvasManager, toastStore) {
   const hasAudioEffectsPreset = computed(() => savedPreset.value !== null)
   // Zähler für externe Änderungen (Preset/Laden/Reset), damit das Panel neu einliest
   const revision = ref(0)
+  // Undo/Redo gilt als externe Änderung → Panel neu einlesen
+  watch(historyApplyRevision, () => revision.value++)
 
   function updateText() {
     if (canvasManager.value && canvasManager.value.redrawCallback) {

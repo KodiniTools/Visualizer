@@ -1,5 +1,17 @@
 import { defineStore } from 'pinia'
 
+// Undo/Redo werden seriell ausgeführt: Schnelles Mehrfach-Drücken von Strg+Z
+// darf nicht zweimal dasselbe (asynchrone) Command rückgängig machen, weil
+// currentIndex erst nach dem await angepasst wird.
+let operationQueue = Promise.resolve()
+
+function enqueue(task) {
+  const run = operationQueue.then(task, task)
+  // Fehler dürfen die Queue nicht dauerhaft blockieren.
+  operationQueue = run.catch(() => {})
+  return run
+}
+
 /**
  * 📜 History Store - Verwaltet Undo/Redo Commands
  *
@@ -86,7 +98,11 @@ export const useHistoryStore = defineStore('history', {
     /**
      * ↩️ Macht die letzte Aktion rückgängig
      */
-    async undo() {
+    undo() {
+      return enqueue(() => this._undoNow())
+    },
+
+    async _undoNow() {
       if (!this.canUndo) {
         console.warn('⚠️ Undo nicht möglich - am Anfang der History')
         return
@@ -112,7 +128,11 @@ export const useHistoryStore = defineStore('history', {
     /**
      * ↪️ Wiederholt die letzte rückgängig gemachte Aktion
      */
-    async redo() {
+    redo() {
+      return enqueue(() => this._redoNow())
+    },
+
+    async _redoNow() {
       if (!this.canRedo) {
         console.warn('⚠️ Redo nicht möglich - am Ende der History')
         return

@@ -399,6 +399,9 @@ export class SlideshowManager {
       this._applyAudioReactiveSettings(newImage, imageConfig)
     }
 
+    // Bei Wiederholung: während der Slideshow geänderte Einstellungen übernehmen
+    this._restoreImageSettings(newImage, imageConfig)
+
     // ✨ KRITISCH: Render-Layer setzen (vor oder hinter Visualizer)
     // Muss NACH allen anderen fotoSettings-Initialisierungen erfolgen
     if (!newImage.fotoSettings) {
@@ -428,18 +431,36 @@ export class SlideshowManager {
    * Wendet Audio-Reaktive Einstellungen auf ein Bild an
    */
   /**
-   * Übernimmt die aktuellen Audio-Reaktiv-Einstellungen eines ausgeblendeten
-   * Bildes in dessen Slideshow-Konfiguration. Bei „Endlos wiederholen“ wird das
-   * Bild im nächsten Durchlauf neu auf den Canvas gelegt – ohne diese Übernahme
-   * gingen während der Slideshow vorgenommene Änderungen verloren.
+   * Übernimmt die aktuellen Bild-Einstellungen (Filter, Schatten, Rotation,
+   * Spiegeln, Kontur, Audio-Reaktiv) eines ausgeblendeten Bildes in dessen
+   * Slideshow-Konfiguration. Bei „Endlos wiederholen“ wird das Bild im nächsten
+   * Durchlauf neu auf den Canvas gelegt – ohne diese Übernahme gingen während
+   * der Slideshow vorgenommene Änderungen verloren.
+   * Nicht übernommen: Render-Layer (steuert die Slideshow) und interne Caches.
    */
-  _rememberAudioReactive(imageData) {
+  _rememberImageSettings(imageData) {
     const index = imageData.slideshow?.imageIndex
     const imageConfig = Number.isInteger(index) ? this.config.images[index] : null
-    const ar = imageData.fotoSettings?.audioReactive
+    const settings = imageData.fotoSettings
     // Nur echte Konfigurations-Einträge ({ imageObject | img }), keine rohen Bildobjekte
-    if (!imageConfig || !(imageConfig.imageObject || imageConfig.img) || !ar) return
-    imageConfig.audioReactiveSettings = JSON.parse(JSON.stringify(ar))
+    if (!imageConfig || !(imageConfig.imageObject || imageConfig.img) || !settings) return
+
+    const copy = JSON.parse(JSON.stringify(settings))
+    delete copy.renderBehindVisualizer
+    for (const key of Object.keys(copy)) {
+      if (key.startsWith('_')) delete copy[key]
+    }
+    imageConfig.fotoSettings = copy
+    if (copy.audioReactive) imageConfig.audioReactiveSettings = copy.audioReactive
+  }
+
+  /** Stellt gemerkte Bild-Einstellungen (siehe _rememberImageSettings) wieder her. */
+  _restoreImageSettings(imageData, imageConfig) {
+    if (!imageConfig?.fotoSettings || typeof imageConfig.fotoSettings !== 'object') return
+    this.fotoManager.initializeImageSettings(imageData)
+    Object.assign(imageData.fotoSettings, JSON.parse(JSON.stringify(imageConfig.fotoSettings)))
+    // Alte/unvollständige Audio-Konfiguration vervollständigen
+    this.fotoManager.initializeImageSettings(imageData)
   }
 
   _applyAudioReactiveSettings(imageData, imageConfig) {
@@ -540,7 +561,7 @@ export class SlideshowManager {
 
     // Fertige Bilder entfernen
     for (const imageData of imagesToRemove) {
-      this._rememberAudioReactive(imageData)
+      this._rememberImageSettings(imageData)
       this.multiImageManager.removeImage(imageData.id)
       const idx = this.activeImages.indexOf(imageData)
       if (idx !== -1) {

@@ -197,6 +197,46 @@ describe('SlideshowManager – An Workspace anpassen', () => {
 })
 
 describe('SlideshowManager – Endlos wiederholen', () => {
+  it('behält auch Filter, Schatten, Rotation & Spiegeln – Render-Layer bleibt Slideshow-Sache', () => {
+    vi.useFakeTimers()
+    const m = createManager()
+    m.start([{ imageObject: img }, { imageObject: img }], {
+      fadeInDuration: 100,
+      displayDuration: 1000,
+      fadeOutDuration: 100,
+      loop: true,
+      renderBehindVisualizer: true,
+    })
+    const first = m.activeImages[0]
+    Object.assign(first.fotoSettings, {
+      brightness: 140,
+      sepia: 60,
+      shadowBlur: 12,
+      rotation: 45,
+      flipH: true,
+      renderBehindVisualizer: false, // darf nicht übernommen werden
+      _cachedFilterString: 'x',
+    })
+    for (let t = 0; t < 2600; t += 50) {
+      vi.advanceTimersByTime(50)
+      m._updateSlideshowState()
+    }
+    const again = m.activeImages.find((i) => i.slideshow.imageIndex === 0 && i !== first)
+    expect(again.fotoSettings).toMatchObject({
+      brightness: 140,
+      sepia: 60,
+      shadowBlur: 12,
+      rotation: 45,
+      flipH: true,
+      renderBehindVisualizer: true,
+    })
+    expect(again.fotoSettings._cachedFilterString).toBeUndefined()
+    // Bild 2 bleibt unverändert
+    expect(m.config.images[1].fotoSettings?.brightness ?? 100).toBe(100)
+    m.stop()
+    vi.useRealTimers()
+  })
+
   it('behält während der Slideshow geänderte Audio-Reaktiv-Einstellungen im nächsten Durchlauf', () => {
     vi.useFakeTimers()
     const m = createManager()

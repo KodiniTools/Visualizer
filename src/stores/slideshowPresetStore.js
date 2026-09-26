@@ -13,6 +13,7 @@ export const SLIDESHOW_DEFAULT_SETTINGS = Object.freeze({
   applyAudioReactive: true,
   loop: false,
   renderBehindVisualizer: false,
+  fitToWorkspace: false,
   transform: Object.freeze({ x: 10, y: 10, width: 80, height: 80 }),
 })
 
@@ -49,6 +50,7 @@ export function normalizeSlideshowPreset(raw) {
         typeof s.renderBehindVisualizer === 'boolean'
           ? s.renderBehindVisualizer
           : d.renderBehindVisualizer,
+      fitToWorkspace: typeof s.fitToWorkspace === 'boolean' ? s.fitToWorkspace : d.fitToWorkspace,
       transform: {
         x: clampNumber(t.x, 0, 100, d.transform.x),
         y: clampNumber(t.y, 0, 100, d.transform.y),

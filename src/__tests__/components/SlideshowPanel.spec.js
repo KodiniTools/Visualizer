@@ -136,6 +136,30 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(payload.images[0].audioMode).toBe('pulse')
   })
 
+  it('fit to workspace is disabled without a workspace format', () => {
+    const w = mountPanel({ hasWorkspace: false })
+    expect(w.find('.fit-workspace-checkbox').element.disabled).toBe(true)
+    expect(w.find('.fit-workspace-hint').classes()).toContain('warning')
+  })
+
+  it('fit to workspace: renders behind visualizer, hides transform, sends option', async () => {
+    const w = mountPanel({ hasWorkspace: true })
+    await w.find('.fit-workspace-checkbox').setValue(true)
+    expect(w.emitted('fit-workspace-change').at(-1)).toEqual([true])
+    expect(w.emitted('render-layer-change').at(-1)).toEqual([true])
+    expect(w.find('.transform-section').exists()).toBe(false)
+
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.fitToWorkspace).toBe(true)
+    expect(payload.renderBehindVisualizer).toBe(true)
+
+    // Workspace-Format entfernt → Option wirkungslos, Transform wieder sichtbar
+    await w.setProps({ hasWorkspace: false })
+    expect(w.emitted('fit-workspace-change').at(-1)).toEqual([false])
+    expect(w.find('.transform-section').exists()).toBe(true)
+  })
+
   it('reset in the transform section restores defaults and emits transform-change', async () => {
     const w = mountPanel()
     const xNum = w.findAll('.transform-control input[type="number"]')[0].element

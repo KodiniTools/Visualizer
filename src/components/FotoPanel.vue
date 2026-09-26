@@ -45,6 +45,7 @@
       :currentImageIndex="slideshowCurrentIndex"
       :totalImages="slideshowTotalImages"
       :currentPhase="slideshowCurrentPhase"
+      :has-workspace="hasWorkspace"
       @start="startSlideshow"
       @pause="pauseSlideshow"
       @resume="resumeSlideshow"
@@ -52,6 +53,7 @@
       @order-changed="onSlideshowOrderChanged"
       @render-layer-change="onSlideshowRenderLayerChange"
       @transform-change="onSlideshowTransformChange"
+      @fit-workspace-change="onSlideshowFitWorkspaceChange"
     />
 
     <!-- Filter-Bereich -->
@@ -77,6 +79,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useToastStore } from '../stores/toastStore'
+import { useWorkspaceStore } from '../stores/workspaceStore.js'
 
 // Sub-Komponenten
 import ImagePreviewOverlay from './foto-panel/ImagePreviewOverlay.vue'
@@ -185,6 +188,9 @@ const slideshowIsPaused = ref(false)
 const slideshowCurrentIndex = ref(0)
 const slideshowCurrentPhase = ref('fadeIn')
 const slideshowTotalImages = ref(0)
+// Workspace-Format gewählt? (Voraussetzung für „An Workspace anpassen“)
+const workspaceStore = useWorkspaceStore()
+const hasWorkspace = computed(() => workspaceStore.selectedPresetKey != null)
 
 // Kombinierte ausgewählte Bilder für Slideshow (hochgeladene + Stock)
 const slideshowImages = computed(() => {
@@ -342,6 +348,8 @@ function initSlideshowManager() {
       // ✨ Global entfernen wenn gestoppt
       window.slideshowManager = null
     },
+    // Lazy, damit ein späteres Workspace-Format berücksichtigt wird
+    getWorkspaceBounds: () => canvasManagerRef?.value?.getWorkspaceBounds?.() ?? null,
     onImageTransition: (index, total, phase) => {
       slideshowCurrentIndex.value = index
       slideshowCurrentPhase.value = phase
@@ -385,6 +393,7 @@ function startSlideshow(config) {
     autoApplyAudioReactive: true,
     audioReactiveSettings: null,
     renderBehindVisualizer: config.renderBehindVisualizer,
+    fitToWorkspace: config.fitToWorkspace,
     transform: config.transform,
   })
 
@@ -429,6 +438,11 @@ function stopSlideshow() {
 // ✨ NEU: Slideshow Bild-Reihenfolge geändert
 function onSlideshowOrderChanged(orderedImages) {
   console.log('[Slideshow] Reihenfolge geändert:', orderedImages.length, 'Bilder')
+}
+
+// Slideshow „An Workspace anpassen“ geändert (auch während laufender Slideshow)
+function onSlideshowFitWorkspaceChange(fitToWorkspace) {
+  slideshowManagerRef.value?.setFitToWorkspace(fitToWorkspace)
 }
 
 // ✨ NEU: Slideshow Render-Layer geändert

@@ -595,6 +595,19 @@ export class MultiImageManager {
         ctx.globalAlpha = ctx.globalAlpha * slideshowOpacity
       }
 
+      // ✨ SLIDESHOW: Auf Workspace-Bereich beschneiden („An Workspace anpassen“)
+      const clip = imgData.slideshow?.active ? imgData.slideshow.clipRect : null
+      if (clip) {
+        ctx.beginPath()
+        ctx.rect(
+          clip.relX * renderCanvas.width,
+          clip.relY * renderCanvas.height,
+          clip.relWidth * renderCanvas.width,
+          clip.relHeight * renderCanvas.height,
+        )
+        ctx.clip()
+      }
+
       // ✨ Nutze FotoManager für Filter + Schatten (wenn verfügbar)
       if (this.fotoManager && imgData.fotoSettings) {
         this.fotoManager.applyFilters(ctx, imgData)

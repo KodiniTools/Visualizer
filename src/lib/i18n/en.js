@@ -1442,6 +1442,10 @@ export default {
     presetSaved: 'Slideshow preset saved',
     presetLoaded: 'Slideshow preset loaded',
     presetSaveError: 'Slideshow preset could not be saved',
+    fitToWorkspace: 'Fit to workspace (like workspace background)',
+    fitToWorkspaceHint:
+      'Images fill the workspace area and follow the selected format. Position & size are fixed.',
+    fitToWorkspaceNoWorkspace: 'Select a workspace format first (e.g. TikTok 9:16).',
     dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.',
   },
 

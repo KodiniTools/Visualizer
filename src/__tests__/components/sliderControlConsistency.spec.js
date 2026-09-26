@@ -66,4 +66,36 @@ describe('Einheitliche Regler', () => {
       /\[data-theme='light'\] input\[type='range'\]::-webkit-slider-thumb \{[^}]*#c9984d/,
     )
   })
+
+  it('Regler-Stapel: aufeinanderfolgende Regler ohne Flex-gap (Abstand = 8 px wie Bild-Filter)', () => {
+    // Container, in denen Regler direkt aufeinander folgen
+    const stacks = {
+      [`${SLIDESHOW_DIR}/SlideshowTimingSettings.vue`]: ['slider-stack'],
+      [`${SLIDESHOW_DIR}/SlideshowTransformSettings.vue`]: ['transform-controls'],
+      [`${SLIDESHOW_DIR}/SlideshowFillAudio.vue`]: ['fill-audio-slider'],
+      [`${SLIDESHOW_DIR}/SlideshowBaseGradient.vue`]: ['base-gradient-slider'],
+      [`${SLIDESHOW_DIR}/SlideshowImageFill.vue`]: ['image-fill-slider'],
+      [`${SLIDESHOW_DIR}/SlideshowImageEditor.vue`]: [
+        'image-editor-bounds',
+        'image-editor-position',
+        'image-editor-size',
+      ],
+      'foto-panel/image-filters/PositionSizeControls.vue': ['slider-stack'],
+    }
+    for (const [file, classes] of Object.entries(stacks)) {
+      const src = read(file)
+      for (const cls of classes) {
+        expect(template(src), `${file}: .${cls}`).toMatch(new RegExp(`class="${cls}"`))
+        // keine Regel mit gap ≠ 0 für diesen Container
+        const rules = [...styles(src).matchAll(/([^{}]+)\{([^}]*)\}/g)].filter(([, sel]) =>
+          sel.split(',').some((x) => x.trim() === `.${cls}`),
+        )
+        for (const [, sel, body] of rules) {
+          expect(body, `${file}: ${sel.trim()}`).not.toMatch(/gap:\s*(?!0[;\s])/)
+        }
+      }
+    }
+    // Referenz: Zeilenabstand kommt allein aus .control-group { margin-bottom: 8px }
+    expect(read('ui/slider-control.css')).toMatch(/\.control-group \{[^}]*margin-bottom: 8px/)
+  })
 })

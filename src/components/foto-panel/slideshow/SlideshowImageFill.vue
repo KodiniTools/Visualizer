@@ -98,21 +98,22 @@
             @update:model-value="(v) => updateAudio({ source: v })"
           />
         </label>
-        <SliderControl
-          v-for="fx in audioEffects"
-          :key="fx.id"
-          class="image-fill-slider"
-          :input-class="`${prefix}-image-audio-${fx.id}`"
-          :label="t(fx.label)"
-          :model-value="fill.audio[fx.id]"
-          :min="0"
-          :max="100"
-          :step="1"
-          :default-value="SLIDESHOW_IMAGE_FILL_DEFAULT.audio[fx.id]"
-          :disabled="disabled"
-          :value-text="`${fill.audio[fx.id]} %`"
-          @update:model-value="(v) => updateAudio({ [fx.id]: v })"
-        />
+        <div class="image-fill-slider">
+          <SliderControl
+            v-for="fx in audioEffects"
+            :key="fx.id"
+            :input-class="`${prefix}-image-audio-${fx.id}`"
+            :label="t(fx.label)"
+            :model-value="fill.audio[fx.id]"
+            :min="0"
+            :max="100"
+            :step="1"
+            :default-value="SLIDESHOW_IMAGE_FILL_DEFAULT.audio[fx.id]"
+            :disabled="disabled"
+            :value-text="`${fill.audio[fx.id]} %`"
+            @update:model-value="(v) => updateAudio({ [fx.id]: v })"
+          />
+        </div>
       </template>
     </div>
   </div>

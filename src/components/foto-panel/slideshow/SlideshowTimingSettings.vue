@@ -13,38 +13,40 @@
         </select>
       </div>
 
-      <SliderControl
-        v-model="fadeInDuration"
-        class="timing-control"
-        :label="t('slideshow.fadeIn')"
-        :min="100"
-        :max="5000"
-        :step="100"
-        :default-value="1000"
-        :value-text="`${(fadeInDuration / 1000).toFixed(1)}s`"
-      />
+      <div class="slider-stack">
+        <SliderControl
+          v-model="fadeInDuration"
+          class="timing-control"
+          :label="t('slideshow.fadeIn')"
+          :min="100"
+          :max="5000"
+          :step="100"
+          :default-value="1000"
+          :value-text="`${(fadeInDuration / 1000).toFixed(1)}s`"
+        />
 
-      <SliderControl
-        v-model="displayDuration"
-        class="timing-control"
-        :label="t('slideshow.display')"
-        :min="500"
-        :max="30000"
-        :step="500"
-        :default-value="3000"
-        :value-text="`${(displayDuration / 1000).toFixed(1)}s`"
-      />
+        <SliderControl
+          v-model="displayDuration"
+          class="timing-control"
+          :label="t('slideshow.display')"
+          :min="500"
+          :max="30000"
+          :step="500"
+          :default-value="3000"
+          :value-text="`${(displayDuration / 1000).toFixed(1)}s`"
+        />
 
-      <SliderControl
-        v-model="fadeOutDuration"
-        class="timing-control"
-        :label="t('slideshow.fadeOut')"
-        :min="100"
-        :max="5000"
-        :step="100"
-        :default-value="1000"
-        :value-text="`${(fadeOutDuration / 1000).toFixed(1)}s`"
-      />
+        <SliderControl
+          v-model="fadeOutDuration"
+          class="timing-control"
+          :label="t('slideshow.fadeOut')"
+          :min="100"
+          :max="5000"
+          :step="100"
+          :default-value="1000"
+          :value-text="`${(fadeOutDuration / 1000).toFixed(1)}s`"
+        />
+      </div>
     </div>
 
     <!-- Audio-Reaktiv Option -->

@@ -44,6 +44,16 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.progress-section').exists()).toBe(false)
   })
 
+  it('slider rows sit in gap-free stacks (same spacing as the image filters)', () => {
+    const w = mountPanel()
+    const timing = w.findAll('.timing-control')
+    expect(new Set(timing.map((c) => c.element.parentElement)).size).toBe(1)
+    expect(timing[0].element.parentElement.classList.contains('slider-stack')).toBe(true)
+    const transform = w.findAll('.transform-control')
+    expect(new Set(transform.map((c) => c.element.parentElement)).size).toBe(1)
+    expect(transform[0].element.parentElement.classList.contains('transform-controls')).toBe(true)
+  })
+
   it('hides settings and shows pause/stop + progress while active', () => {
     const w = mountPanel({
       isActive: true,

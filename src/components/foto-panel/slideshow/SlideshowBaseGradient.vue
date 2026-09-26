@@ -70,36 +70,36 @@
             @update:model-value="(v) => updateAudio({ source: v })"
           />
         </label>
-        <SliderControl
-          class="base-gradient-slider"
-          :input-class="`${prefix}-gradient-audio-pulse`"
-          :label="t('slideshow.gradientAudioPulse')"
-          :model-value="gradient.audio.pulse"
-          :min="0"
-          :max="100"
-          :step="1"
-          :default-value="SLIDESHOW_GRADIENT_DEFAULT.audio.pulse"
-          :disabled="disabled"
-          :value-text="`${gradient.audio.pulse} %`"
-          @update:model-value="(v) => updateAudio({ pulse: v })"
-        />
-        <SliderControl
-          class="base-gradient-slider"
-          :input-class="`${prefix}-gradient-audio-rotation`"
-          :label="
-            gradient.type === 'radial'
-              ? t('slideshow.gradientAudioOrbit')
-              : t('slideshow.gradientAudioRotation')
-          "
-          :model-value="gradient.audio.rotation"
-          :min="0"
-          :max="100"
-          :step="1"
-          :default-value="SLIDESHOW_GRADIENT_DEFAULT.audio.rotation"
-          :disabled="disabled"
-          :value-text="`${gradient.audio.rotation} %`"
-          @update:model-value="(v) => updateAudio({ rotation: v })"
-        />
+        <div class="base-gradient-slider">
+          <SliderControl
+            :input-class="`${prefix}-gradient-audio-pulse`"
+            :label="t('slideshow.gradientAudioPulse')"
+            :model-value="gradient.audio.pulse"
+            :min="0"
+            :max="100"
+            :step="1"
+            :default-value="SLIDESHOW_GRADIENT_DEFAULT.audio.pulse"
+            :disabled="disabled"
+            :value-text="`${gradient.audio.pulse} %`"
+            @update:model-value="(v) => updateAudio({ pulse: v })"
+          />
+          <SliderControl
+            :input-class="`${prefix}-gradient-audio-rotation`"
+            :label="
+              gradient.type === 'radial'
+                ? t('slideshow.gradientAudioOrbit')
+                : t('slideshow.gradientAudioRotation')
+            "
+            :model-value="gradient.audio.rotation"
+            :min="0"
+            :max="100"
+            :step="1"
+            :default-value="SLIDESHOW_GRADIENT_DEFAULT.audio.rotation"
+            :disabled="disabled"
+            :value-text="`${gradient.audio.rotation} %`"
+            @update:model-value="(v) => updateAudio({ rotation: v })"
+          />
+        </div>
       </template>
     </div>
   </div>

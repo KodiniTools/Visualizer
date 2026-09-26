@@ -21,32 +21,32 @@
           @update:model-value="(v) => update({ source: v })"
         />
       </label>
-      <SliderControl
-        class="fill-audio-slider"
-        :input-class="`${prefix}-fill-audio-brightness`"
-        :label="t('slideshow.fillAudioBrightness')"
-        :model-value="audio.brightness"
-        :min="0"
-        :max="100"
-        :step="1"
-        :default-value="SLIDESHOW_FILL_AUDIO_DEFAULT.brightness"
-        :disabled="disabled"
-        :value-text="`${audio.brightness} %`"
-        @update:model-value="(v) => update({ brightness: v })"
-      />
-      <SliderControl
-        class="fill-audio-slider"
-        :input-class="`${prefix}-fill-audio-hue`"
-        :label="t('slideshow.fillAudioHue')"
-        :model-value="audio.hue"
-        :min="0"
-        :max="100"
-        :step="1"
-        :default-value="SLIDESHOW_FILL_AUDIO_DEFAULT.hue"
-        :disabled="disabled"
-        :value-text="`${audio.hue} %`"
-        @update:model-value="(v) => update({ hue: v })"
-      />
+      <div class="fill-audio-slider">
+        <SliderControl
+          :input-class="`${prefix}-fill-audio-brightness`"
+          :label="t('slideshow.fillAudioBrightness')"
+          :model-value="audio.brightness"
+          :min="0"
+          :max="100"
+          :step="1"
+          :default-value="SLIDESHOW_FILL_AUDIO_DEFAULT.brightness"
+          :disabled="disabled"
+          :value-text="`${audio.brightness} %`"
+          @update:model-value="(v) => update({ brightness: v })"
+        />
+        <SliderControl
+          :input-class="`${prefix}-fill-audio-hue`"
+          :label="t('slideshow.fillAudioHue')"
+          :model-value="audio.hue"
+          :min="0"
+          :max="100"
+          :step="1"
+          :default-value="SLIDESHOW_FILL_AUDIO_DEFAULT.hue"
+          :disabled="disabled"
+          :value-text="`${audio.hue} %`"
+          @update:model-value="(v) => update({ hue: v })"
+        />
+      </div>
     </div>
   </div>
 </template>

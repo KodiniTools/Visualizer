@@ -6,24 +6,25 @@
     </div>
 
     <div class="modern-controls-group">
-      <SliderControl
-        v-for="axis in AXES"
-        :key="axis"
-        :input-class="`image-${axis}-slider`"
-        :label="t(LABELS[axis])"
-        :model-value="percent(values[axis])"
-        :min="axis === 'x' || axis === 'y' ? 0 : 1"
-        :max="axis === 'x' || axis === 'y' ? 100 : 200"
-        :step="0.1"
-        :default-value="defaultPercent(axis)"
-        :value-text="`${percent(values[axis])}%`"
-        @update:model-value="(v) => onChange(axis, v)"
-      />
-
-      <label class="toggle-label">
-        <input v-model="keepAspect" class="image-keep-aspect" type="checkbox" />
-        <span class="toggle-text">{{ t('foto.keepAspect') }}</span>
-      </label>
+      <div class="slider-stack">
+        <SliderControl
+          v-for="axis in AXES"
+          :key="axis"
+          :input-class="`image-${axis}-slider`"
+          :label="t(LABELS[axis])"
+          :model-value="percent(values[axis])"
+          :min="axis === 'x' || axis === 'y' ? 0 : 1"
+          :max="axis === 'x' || axis === 'y' ? 100 : 200"
+          :step="0.1"
+          :default-value="defaultPercent(axis)"
+          :value-text="`${percent(values[axis])}%`"
+          @update:model-value="(v) => onChange(axis, v)"
+        />
+        <label class="toggle-label">
+          <input v-model="keepAspect" class="image-keep-aspect" type="checkbox" />
+          <span class="toggle-text">{{ t('foto.keepAspect') }}</span>
+        </label>
+      </div>
     </div>
   </div>
 </template>

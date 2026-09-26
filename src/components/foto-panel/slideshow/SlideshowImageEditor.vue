@@ -18,42 +18,45 @@
       </button>
     </div>
 
-    <!-- Position des Bildes auf der Canvas (Mittelpunkt in % der Canvas) -->
-    <div v-if="position" class="image-editor-position">
-      <SliderControl
-        v-for="axis in POSITION_AXES"
-        :key="axis"
-        :input-class="`editor-position-${axis}`"
-        :label="t(axis === 'x' ? 'slideshow.imagePositionX' : 'slideshow.imagePositionY')"
-        :model-value="percent(position[axis])"
-        :min="0"
-        :max="100"
-        :step="0.1"
-        :default-value="50"
-        :value-text="`${percent(position[axis])}%`"
-        @update:model-value="(v) => onPosition(axis, v)"
-      />
-    </div>
+    <!-- Position + Größe als ein Regler-Stapel (Abstände wie bei den Bild-Filtern) -->
+    <div v-if="position || size" class="image-editor-bounds">
+      <!-- Position des Bildes auf der Canvas (Mittelpunkt in % der Canvas) -->
+      <div v-if="position" class="image-editor-position">
+        <SliderControl
+          v-for="axis in POSITION_AXES"
+          :key="axis"
+          :input-class="`editor-position-${axis}`"
+          :label="t(axis === 'x' ? 'slideshow.imagePositionX' : 'slideshow.imagePositionY')"
+          :model-value="percent(position[axis])"
+          :min="0"
+          :max="100"
+          :step="0.1"
+          :default-value="50"
+          :value-text="`${percent(position[axis])}%`"
+          @update:model-value="(v) => onPosition(axis, v)"
+        />
+      </div>
 
-    <!-- Größe des Bildes (Breite × Höhe in % der Canvas) -->
-    <div v-if="size" class="image-editor-size">
-      <SliderControl
-        v-for="dim in SIZE_DIMS"
-        :key="dim"
-        :input-class="`editor-size-${dim}`"
-        :label="t(dim === 'width' ? 'slideshow.imageWidth' : 'slideshow.imageHeight')"
-        :model-value="sizePercent(size[dim])"
-        :min="1"
-        :max="200"
-        :step="0.1"
-        :default-value="sizePercent(size[dim === 'width' ? 'defaultWidth' : 'defaultHeight'])"
-        :value-text="`${sizePercent(size[dim])}%`"
-        @update:model-value="(v) => onSize(dim, v)"
-      />
-      <label class="checkbox-label">
-        <input v-model="keepAspect" class="editor-keep-aspect" type="checkbox" />
-        <span>{{ t('slideshow.keepAspect') }}</span>
-      </label>
+      <!-- Größe des Bildes (Breite × Höhe in % der Canvas) -->
+      <div v-if="size" class="image-editor-size">
+        <SliderControl
+          v-for="dim in SIZE_DIMS"
+          :key="dim"
+          :input-class="`editor-size-${dim}`"
+          :label="t(dim === 'width' ? 'slideshow.imageWidth' : 'slideshow.imageHeight')"
+          :model-value="sizePercent(size[dim])"
+          :min="1"
+          :max="200"
+          :step="0.1"
+          :default-value="sizePercent(size[dim === 'width' ? 'defaultWidth' : 'defaultHeight'])"
+          :value-text="`${sizePercent(size[dim])}%`"
+          @update:model-value="(v) => onSize(dim, v)"
+        />
+        <label class="checkbox-label">
+          <input v-model="keepAspect" class="editor-keep-aspect" type="checkbox" />
+          <span>{{ t('slideshow.keepAspect') }}</span>
+        </label>
+      </div>
     </div>
 
     <label class="image-editor-field">
@@ -350,9 +353,7 @@ onMounted(() => {
 }
 .image-editor-position,
 .image-editor-size {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  display: block;
 }
 .image-editor .hint {
   padding-left: 0;

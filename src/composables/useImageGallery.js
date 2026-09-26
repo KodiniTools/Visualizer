@@ -6,7 +6,7 @@
  * Speicher ist. So können sowohl das FotoPanel als auch die App-Shell
  * (z. B. für per Handoff übernommene Bilder) dieselbe Galerie befüllen.
  */
-import { ref, computed } from 'vue'
+import { ref, computed, toRaw } from 'vue'
 
 // ── Geteilter State (Singleton) ────────────────────────────────────────────────
 const imageGallery = ref([])
@@ -69,6 +69,32 @@ function pushGalleryImage(img, name, size) {
   }
 
   return imageData
+}
+
+/**
+ * Legt ein (z. B. aus einem Slideshow-Preset wiederhergestelltes) Bild in die
+ * Galerie, ohne die Auswahl zu verändern. Ist dasselbe Bild schon vorhanden
+ * (gleiches Objekt oder gleicher Name + gleiche Maße), wird dieser Eintrag
+ * zurückgegeben.
+ * @param {HTMLImageElement} img
+ * @param {string} name
+ * @returns {{ id:number, img:HTMLImageElement, name:string }}
+ */
+function ensureGalleryImage(img, name) {
+  const shortName = shortenName(name || 'Bild')
+  const dims = `${img.width}×${img.height}`
+  const rawImg = toRaw(img)
+  const existing = imageGallery.value.find(
+    (entry) =>
+      toRaw(entry.img) === rawImg || (entry.name === shortName && entry.dimensions === dims),
+  )
+  if (existing) return existing
+
+  const src = typeof img.src === 'string' ? img.src : ''
+  const size = src.startsWith('data:') ? formatFileSize(estimateDataUrlBytes(src)) : ''
+  const imageData = { id: Date.now() + Math.random(), img, name: shortName, dimensions: dims, size }
+  imageGallery.value.push(imageData)
+  return imageGallery.value[imageGallery.value.length - 1]
 }
 
 // Schätzt die Bytegröße einer Data-URL (base64) ab
@@ -263,6 +289,7 @@ export function useImageGallery() {
     formatFileSize,
     handleImageUpload,
     addImagesFromData,
+    ensureGalleryImage,
     selectImage,
     selectAllImages,
     deselectAllImages,

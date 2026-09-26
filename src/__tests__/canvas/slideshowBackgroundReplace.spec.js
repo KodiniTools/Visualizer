@@ -1,6 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
+import {
+  BackgroundRenderer,
+  createSlideshowBaseFill,
+} from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
 import { SelectionManager } from '../../lib/canvasManager/interaction/SelectionManager.js'
 import { MultiImageManager } from '../../lib/multiImageManager.js'
 import { FotoManager } from '../../lib/fotoManager.js'
@@ -140,6 +143,14 @@ describe('SlideshowManager – Farbe der Fläche', () => {
     expect(m.getBaseColor('canvas')).toBe('#445566')
     m.setWorkspaceColor('nope')
     expect(m.getWorkspaceColor()).toBe('#778899')
+    // Farbverläufe: Start/Live übernehmen, getrennt pro Fläche
+    expect(m.getBaseGradient('canvas').enabled).toBe(false)
+    m.applyLiveUpdate(imgs, { workspaceGradient: { enabled: true, color2: '#abcdef' } })
+    expect(m.getBaseGradient('workspace')).toMatchObject({ enabled: true, color2: '#abcdef' })
+    expect(m.getBaseGradient('canvas').enabled).toBe(false)
+    const copy = m.getBaseGradient('workspace')
+    copy.enabled = false
+    expect(m.getBaseGradient('workspace').enabled).toBe(true)
     m.stop()
   })
 })
@@ -176,7 +187,13 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     const m = Object.create(SlideshowManager.prototype)
     m.isActive = active
     m.activeImages = new Array(images).fill({})
-    m.config = { backgroundMode: mode, backgroundColor: '#000000', workspaceColor: '#000000' }
+    m.config = {
+      backgroundMode: mode,
+      backgroundColor: '#000000',
+      workspaceColor: '#000000',
+      backgroundGradient: { enabled: false, color2: '#333333', type: 'linear', angle: 90 },
+      workspaceGradient: { enabled: false, color2: '#333333', type: 'linear', angle: 90 },
+    }
     return m
   }
 
@@ -264,6 +281,69 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     expect(r._drawColorBackground).toHaveBeenCalled()
     expect(drawn).not.toContain('video')
     expect(fills).toEqual([['#00ff00', 0, 0, 10, 10]])
+  })
+
+  it('Farbverlauf: linear/radial über den Bereich, getrennt pro Fläche', () => {
+    const stops = []
+    const ctx = {
+      createLinearGradient: vi.fn((...a) => ({
+        kind: 'linear',
+        a,
+        addColorStop: (...s) => stops.push(s),
+      })),
+      createRadialGradient: vi.fn((...a) => ({
+        kind: 'radial',
+        a,
+        addColorStop: (...s) => stops.push(s),
+      })),
+    }
+    const area = { x: 0, y: 0, width: 6, height: 8 } // Diagonale 10 → halbe 5
+    expect(createSlideshowBaseFill(ctx, area, '#000000', null)).toBe('#000000')
+    const lin = createSlideshowBaseFill(ctx, area, '#000000', {
+      enabled: true,
+      color2: '#ffffff',
+      type: 'linear',
+      angle: 0,
+    })
+    expect(lin.kind).toBe('linear')
+    expect(lin.a).toEqual([-2, 4, 8, 4]) // links → rechts durch die Mitte
+    expect(stops).toEqual([
+      [0, '#000000'],
+      [1, '#ffffff'],
+    ])
+    const rad = createSlideshowBaseFill(ctx, area, '#000000', {
+      enabled: true,
+      color2: '#ffffff',
+      type: 'radial',
+      angle: 0,
+    })
+    expect(rad.a).toEqual([3, 4, 0, 3, 4, 5])
+
+    // Renderer nutzt den Verlauf der jeweiligen Fläche
+    const show = slideshowWith('workspace')
+    show.setWorkspaceColor('#112233')
+    show.setBaseGradient('workspace', { enabled: true, color2: '#445566', type: 'radial' })
+    show.setBaseGradient('canvas', { enabled: true, color2: '#999999' })
+    expect(show.getBaseGradient('canvas').color2).toBe('#999999')
+    window.slideshowManager = show
+    const setup = rendererSetup()
+    const fills = []
+    setup.ctx.createLinearGradient = () => ({ addColorStop() {} })
+    setup.ctx.createRadialGradient = (...a) => ({
+      a,
+      stops: [],
+      addColorStop(o, c) {
+        this.stops.push([o, c])
+      },
+    })
+    setup.ctx.fillRect = (...a) => fills.push([setup.ctx.fillStyle, ...a])
+    setup.manager.getWorkspaceBounds = () => ({ x: 0, y: 0, width: 6, height: 8 })
+    setup.r.drawBackground(setup.ctx)
+    expect(fills).toHaveLength(1)
+    expect(fills[0][0].stops).toEqual([
+      [0, '#112233'],
+      [1, '#445566'],
+    ])
   })
 
   it('Farbhintergrund bleibt auch im Canvas-Modus erhalten', () => {

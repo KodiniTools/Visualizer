@@ -297,6 +297,61 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.slideshow-workspace-color').element.value).toBe('#224466')
   })
 
+  it('gradient per area: live, persisted, preset, reset', async () => {
+    let w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-canvas').setValue(true)
+    expect(w.find('.base-gradient-color2').exists()).toBe(false)
+    await w.find('.base-gradient-toggle').setValue(true)
+    expect(w.emitted('base-gradient-change').at(-1)).toEqual([
+      'canvas',
+      { enabled: true, color2: '#333333', type: 'linear', angle: 90 },
+    ])
+    await w.find('.base-gradient-color2').setValue('#ff8800')
+    await w.find('.base-gradient-angle').setValue('45')
+    await w.find('.base-gradient-type').setValue('radial')
+    expect(w.find('.base-gradient-angle').exists()).toBe(false) // nur linear
+    const canvasGradient = { enabled: true, color2: '#ff8800', type: 'radial', angle: 45 }
+    expect(w.emitted('base-gradient-change').at(-1)).toEqual(['canvas', canvasGradient])
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-gradient'))).toEqual(
+      canvasGradient,
+    )
+
+    // Workspace hat einen eigenen Verlauf
+    await w.find('.bg-mode-workspace').setValue(true)
+    expect(w.find('.workspace-gradient-toggle').element.checked).toBe(false)
+    await w.find('.workspace-gradient-toggle').setValue(true)
+    expect(w.emitted('base-gradient-change').at(-1)[0]).toBe('workspace')
+
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0]).toMatchObject({
+      backgroundGradient: canvasGradient,
+      workspaceGradient: { enabled: true },
+    })
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+        .backgroundGradient,
+    ).toEqual(canvasGradient)
+    w.unmount()
+
+    // Neu öffnen: gemerkt; Zurücksetzen → Schwarz ohne Verlauf; Preset stellt her
+    w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-canvas').setValue(true)
+    expect(w.find('.base-gradient-toggle').element.checked).toBe(true)
+    await w.find('.btn-reset-base-color').trigger('click')
+    expect(w.find('.base-gradient-toggle').element.checked).toBe(false)
+    expect(localStorage.getItem('visualizer-slideshow-base-gradient')).toBeNull()
+    expect(w.find('.btn-reset-base-color').exists()).toBe(false)
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.emitted('base-gradient-change').at(-1)).toEqual(['canvas', canvasGradient])
+    // Preset wurde im Workspace-Modus gespeichert → Modus mit wiederhergestellt
+    expect(w.find('.bg-mode-workspace').element.checked).toBe(true)
+    await w.find('.bg-mode-canvas').setValue(true)
+    expect(w.find('.base-gradient-type').element.value).toBe('radial')
+  })
+
   it('emits reset-image-adjustments from the reset button', async () => {
     const w = mountPanel()
     await w.find('.btn-reset-adjustments').trigger('click')

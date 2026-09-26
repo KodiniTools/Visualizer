@@ -4,7 +4,11 @@ import {
   isValidTransition,
   resolveTransition,
 } from './slideshowTransitions.js'
-import { SLIDESHOW_BASE_COLOR_DEFAULT, normalizeSlideshowBaseColor } from './slideshowBaseColor.js'
+import {
+  SLIDESHOW_BASE_COLOR_DEFAULT,
+  normalizeSlideshowBaseColor,
+  normalizeSlideshowGradient,
+} from './slideshowBaseColor.js'
 
 /**
  * SlideshowManager - Orchestriert die Bild-Slideshow auf dem Canvas
@@ -67,6 +71,9 @@ export class SlideshowManager {
       backgroundColor: SLIDESHOW_BASE_COLOR_DEFAULT,
       // Eigene Farbe der Workspace-Fläche (Modus 'workspace')
       workspaceColor: SLIDESHOW_BASE_COLOR_DEFAULT,
+      // Farbverläufe der Flächen (siehe slideshowBaseColor.js)
+      backgroundGradient: normalizeSlideshowGradient(null),
+      workspaceGradient: normalizeSlideshowGradient(null),
     }
 
     // ✨ NEU: Slideshow Transform-Einstellungen (Position und Größe)
@@ -225,6 +232,27 @@ export class SlideshowManager {
    */
   getBaseColor(target) {
     return target === 'workspace' ? this.getWorkspaceColor() : this.getBackgroundColor()
+  }
+
+  /**
+   * Farbverlauf einer Fläche (auch während laufender Slideshow); fehlende
+   * Felder behalten ihren bisherigen Wert.
+   * @param {'canvas'|'workspace'} target
+   * @param {object} gradient - { enabled, color2, type, angle }
+   */
+  setBaseGradient(target, gradient) {
+    const key = target === 'workspace' ? 'workspaceGradient' : 'backgroundGradient'
+    this.config[key] = normalizeSlideshowGradient(gradient, this.config[key])
+  }
+
+  /**
+   * @param {'canvas'|'workspace'} target
+   * @returns {{ enabled:boolean, color2:string, type:string, angle:number }} (Kopie)
+   */
+  getBaseGradient(target) {
+    return {
+      ...(target === 'workspace' ? this.config.workspaceGradient : this.config.backgroundGradient),
+    }
   }
 
   /**
@@ -434,6 +462,14 @@ export class SlideshowManager {
       workspaceColor: normalizeSlideshowBaseColor(
         options.workspaceColor,
         this.config.workspaceColor,
+      ),
+      backgroundGradient: normalizeSlideshowGradient(
+        options.backgroundGradient,
+        this.config.backgroundGradient,
+      ),
+      workspaceGradient: normalizeSlideshowGradient(
+        options.workspaceGradient,
+        this.config.workspaceGradient,
       ),
       transition: isValidTransition(options.transition)
         ? options.transition
@@ -704,6 +740,12 @@ export class SlideshowManager {
     }
     if (options.backgroundColor !== undefined) this.setBackgroundColor(options.backgroundColor)
     if (options.workspaceColor !== undefined) this.setWorkspaceColor(options.workspaceColor)
+    if (options.backgroundGradient !== undefined) {
+      this.setBaseGradient('canvas', options.backgroundGradient)
+    }
+    if (options.workspaceGradient !== undefined) {
+      this.setBaseGradient('workspace', options.workspaceGradient)
+    }
     if (options.moveWholeSlideshow !== undefined) {
       this.setMoveWholeSlideshow(options.moveWholeSlideshow)
     }
@@ -1225,6 +1267,8 @@ export class SlideshowManager {
       backgroundMode: this.config.backgroundMode,
       backgroundColor: this.config.backgroundColor,
       workspaceColor: this.config.workspaceColor,
+      backgroundGradient: { ...this.config.backgroundGradient },
+      workspaceGradient: { ...this.config.workspaceGradient },
       fitToWorkspace: this.config.backgroundMode === 'workspace',
       renderBehindVisualizer: this.config.renderBehindVisualizer,
     }

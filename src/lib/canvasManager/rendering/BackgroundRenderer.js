@@ -42,6 +42,41 @@ function getSlideshowBaseColor(target) {
   return color || SLIDESHOW_BASE_COLOR_DEFAULT
 }
 
+/**
+ * Farbverlauf der Fläche oder null (aus).
+ * @param {'canvas'|'workspace'} target
+ */
+function getSlideshowBaseGradient(target) {
+  const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+  const gradient = slideshow?.getBaseGradient?.(target)
+  return gradient?.enabled ? gradient : null
+}
+
+/**
+ * Füllung für einen Bereich: Farbe oder Farbverlauf (color → color2).
+ * Linear: Winkel in Grad (0 = links→rechts, 90 = oben→unten), über die
+ * Diagonale des Bereichs; radial: vom Mittelpunkt bis in die Ecken.
+ * @returns {string|CanvasGradient}
+ */
+export function createSlideshowBaseFill(ctx, area, color, gradient) {
+  if (!gradient?.enabled || typeof ctx.createLinearGradient !== 'function') return color
+  const cx = area.x + area.width / 2
+  const cy = area.y + area.height / 2
+  const half = Math.hypot(area.width, area.height) / 2
+  let fill
+  if (gradient.type === 'radial') {
+    fill = ctx.createRadialGradient(cx, cy, 0, cx, cy, half)
+  } else {
+    const rad = ((Number(gradient.angle) || 0) * Math.PI) / 180
+    const dx = Math.cos(rad) * half
+    const dy = Math.sin(rad) * half
+    fill = ctx.createLinearGradient(cx - dx, cy - dy, cx + dx, cy + dy)
+  }
+  fill.addColorStop(0, color)
+  fill.addColorStop(1, gradient.color2)
+  return fill
+}
+
 export class BackgroundRenderer {
   constructor(canvasManager) {
     this.manager = canvasManager
@@ -140,7 +175,12 @@ export class BackgroundRenderer {
       rect === undefined ? { x: 0, y: 0, width: ctx.canvas.width, height: ctx.canvas.height } : rect
     if (!area) return
     ctx.save()
-    ctx.fillStyle = getSlideshowBaseColor(target)
+    ctx.fillStyle = createSlideshowBaseFill(
+      ctx,
+      area,
+      getSlideshowBaseColor(target),
+      getSlideshowBaseGradient(target),
+    )
     ctx.fillRect(area.x, area.y, area.width, area.height)
     ctx.restore()
   }

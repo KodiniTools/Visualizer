@@ -5,7 +5,9 @@ import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig.js'
 import { SLIDESHOW_TRANSITION_DEFAULT, isValidTransition } from '../lib/slideshowTransitions.js'
 import {
   SLIDESHOW_BASE_COLOR_DEFAULT,
+  SLIDESHOW_GRADIENT_DEFAULT,
   normalizeSlideshowBaseColor,
+  normalizeSlideshowGradient,
 } from '../lib/slideshowBaseColor.js'
 import {
   pruneImages,
@@ -42,6 +44,9 @@ export const SLIDESHOW_DEFAULT_SETTINGS = Object.freeze({
   backgroundColor: SLIDESHOW_BASE_COLOR_DEFAULT,
   // Eigene Farbe der Workspace-Fläche
   workspaceColor: SLIDESHOW_BASE_COLOR_DEFAULT,
+  // Farbverläufe der Flächen (aus = einfarbig)
+  backgroundGradient: SLIDESHOW_GRADIENT_DEFAULT,
+  workspaceGradient: SLIDESHOW_GRADIENT_DEFAULT,
   moveWholeSlideshow: false,
   transition: SLIDESHOW_TRANSITION_DEFAULT,
   transform: Object.freeze({ x: 10, y: 10, width: 80, height: 80 }),
@@ -218,6 +223,9 @@ export function normalizeSlideshowPreset(raw) {
       // Farbe der Fläche unter der Slideshow (ältere Presets: Schwarz)
       backgroundColor: normalizeSlideshowBaseColor(s.backgroundColor, d.backgroundColor),
       workspaceColor: normalizeSlideshowBaseColor(s.workspaceColor, d.workspaceColor),
+      // Farbverläufe (ältere Presets: aus)
+      backgroundGradient: normalizeSlideshowGradient(s.backgroundGradient),
+      workspaceGradient: normalizeSlideshowGradient(s.workspaceGradient),
       // Maus verschiebt ganze Slideshow (ältere Presets: aus)
       moveWholeSlideshow:
         typeof s.moveWholeSlideshow === 'boolean' ? s.moveWholeSlideshow : d.moveWholeSlideshow,

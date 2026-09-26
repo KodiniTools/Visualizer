@@ -1517,7 +1517,13 @@ export default {
     workspaceColor: 'Workspace-Fläche',
     workspaceColorHint:
       'Eigene Farbe des Workspace-Bereichs unter der Slideshow – ersetzt ein Workspace-Hintergrundbild und ist während der Übergänge sichtbar.',
-    baseColorReset: 'Standardfarbe (Schwarz)',
+    gradient: 'Farbverlauf',
+    gradientColor2: '2. Farbe',
+    gradientType: 'Art',
+    gradientLinear: 'Linear',
+    gradientRadial: 'Radial',
+    gradientAngle: 'Winkel',
+    baseColorReset: 'Standard (Schwarz, ohne Farbverlauf)',
     backgroundModeWorkspaceNeedsFormat:
       'Workspace-Hintergrund: zuerst ein Workspace-Format wählen (z. B. TikTok 9:16).',
     dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.',

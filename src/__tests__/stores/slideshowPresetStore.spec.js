@@ -171,6 +171,19 @@ describe('slideshowPresetStore', () => {
     // Fläche unter der Slideshow: ältere/ungültige Werte → Schwarz
     expect(p.settings.backgroundColor).toBe('#000000')
     expect(p.settings.workspaceColor).toBe('#000000')
+    expect(p.settings.backgroundGradient).toEqual({
+      enabled: false,
+      color2: '#333333',
+      type: 'linear',
+      angle: 90,
+    })
+    expect(
+      normalizeSlideshowPreset({
+        id: 6,
+        settings: { workspaceGradient: { enabled: true, type: 'radial', color2: '#ABCDEF' } },
+        slots: [],
+      }).settings.workspaceGradient,
+    ).toEqual({ enabled: true, color2: '#abcdef', type: 'radial', angle: 90 })
     expect(
       normalizeSlideshowPreset({ id: 5, settings: { workspaceColor: '#12AB34' }, slots: [] })
         .settings.workspaceColor,

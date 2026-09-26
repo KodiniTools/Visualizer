@@ -4,6 +4,11 @@ import {
   normalizeSlideshowBaseColor,
   loadStoredSlideshowBaseColor,
   storeSlideshowBaseColor,
+  SLIDESHOW_GRADIENT_DEFAULT,
+  normalizeSlideshowGradient,
+  isSameSlideshowGradient,
+  loadStoredSlideshowGradient,
+  storeSlideshowGradient,
 } from '../../lib/slideshowBaseColor.js'
 
 const KEY = 'visualizer-slideshow-base-color'
@@ -48,5 +53,31 @@ describe('slideshowBaseColor', () => {
       throw new Error('QuotaExceeded')
     })
     expect(() => storeSlideshowBaseColor('#111111')).not.toThrow()
+  })
+})
+
+describe('slideshowBaseColor – Farbverlauf', () => {
+  it('normalisiert Felder einzeln (Rest aus Fallback)', () => {
+    expect(normalizeSlideshowGradient(null)).toEqual({ ...SLIDESHOW_GRADIENT_DEFAULT })
+    expect(
+      normalizeSlideshowGradient({ enabled: true, color2: '#ABCDEF', type: 'radial', angle: -30 }),
+    ).toEqual({ enabled: true, color2: '#abcdef', type: 'radial', angle: 330 })
+    const prev = { enabled: true, color2: '#111111', type: 'radial', angle: 45 }
+    expect(normalizeSlideshowGradient({ type: 'spiral', color2: 'x', angle: 'y' }, prev)).toEqual(
+      prev,
+    )
+    expect(normalizeSlideshowGradient({ angle: 725 }).angle).toBe(5)
+    expect(isSameSlideshowGradient({ angle: 90 }, SLIDESHOW_GRADIENT_DEFAULT)).toBe(true)
+  })
+
+  it('getrennt gespeichert; Standard entfernt den Eintrag; defekter Wert → Standard', () => {
+    const g = { enabled: true, color2: '#ff0000', type: 'linear', angle: 10 }
+    storeSlideshowGradient(g, 'workspace')
+    expect(loadStoredSlideshowGradient('workspace')).toEqual(g)
+    expect(loadStoredSlideshowGradient('canvas')).toEqual({ ...SLIDESHOW_GRADIENT_DEFAULT })
+    storeSlideshowGradient(SLIDESHOW_GRADIENT_DEFAULT, 'workspace')
+    expect(localStorage.getItem('visualizer-slideshow-workspace-gradient')).toBeNull()
+    localStorage.setItem('visualizer-slideshow-base-gradient', '{kaputt')
+    expect(loadStoredSlideshowGradient('canvas')).toEqual({ ...SLIDESHOW_GRADIENT_DEFAULT })
   })
 })

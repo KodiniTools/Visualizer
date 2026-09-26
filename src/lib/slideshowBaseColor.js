@@ -56,3 +56,81 @@ export function storeSlideshowBaseColor(color, target = 'canvas') {
     console.warn('[SlideshowBaseColor] Speichern fehlgeschlagen:', e)
   }
 }
+
+// ─── Farbverlauf der Fläche ─────────────────────────────────────────────────
+// Verlauf von der Flächenfarbe (Farbe 1) zu color2; linear mit Winkel oder
+// radial vom Mittelpunkt des Bereichs.
+export const SLIDESHOW_GRADIENT_TYPES = Object.freeze(['linear', 'radial'])
+
+export const SLIDESHOW_GRADIENT_DEFAULT = Object.freeze({
+  enabled: false,
+  color2: '#333333',
+  type: 'linear',
+  angle: 90,
+})
+
+/**
+ * Bereinigt einen Farbverlauf; fehlende/ungültige Felder aus `fallback`.
+ * @param {unknown} value
+ * @param {typeof SLIDESHOW_GRADIENT_DEFAULT} [fallback]
+ * @returns {{ enabled:boolean, color2:string, type:'linear'|'radial', angle:number }} (Kopie)
+ */
+export function normalizeSlideshowGradient(value, fallback = SLIDESHOW_GRADIENT_DEFAULT) {
+  const base = { ...SLIDESHOW_GRADIENT_DEFAULT, ...(fallback || {}) }
+  const src = value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+  const angle = Number(src.angle)
+  return {
+    enabled: typeof src.enabled === 'boolean' ? src.enabled : Boolean(base.enabled),
+    color2: normalizeSlideshowBaseColor(src.color2, base.color2),
+    type: SLIDESHOW_GRADIENT_TYPES.includes(src.type) ? src.type : base.type,
+    angle: Number.isFinite(angle) ? Math.round(((angle % 360) + 360) % 360) : base.angle,
+  }
+}
+
+/** Gleicher Verlauf? (für „Zurücksetzen“-Anzeige und Änderungserkennung) */
+export function isSameSlideshowGradient(a, b) {
+  const x = normalizeSlideshowGradient(a)
+  const y = normalizeSlideshowGradient(b)
+  return (
+    x.enabled === y.enabled && x.color2 === y.color2 && x.type === y.type && x.angle === y.angle
+  )
+}
+
+const GRADIENT_STORAGE_KEYS = Object.freeze({
+  canvas: 'visualizer-slideshow-base-gradient',
+  workspace: 'visualizer-slideshow-workspace-gradient',
+})
+
+function gradientKey(target) {
+  return target === 'workspace' ? GRADIENT_STORAGE_KEYS.workspace : GRADIENT_STORAGE_KEYS.canvas
+}
+
+/**
+ * Zuletzt gewählter Farbverlauf (dauerhaft, unabhängig von Presets).
+ * @param {'canvas'|'workspace'} [target]
+ */
+export function loadStoredSlideshowGradient(target = 'canvas') {
+  try {
+    const raw = localStorage.getItem(gradientKey(target))
+    return normalizeSlideshowGradient(raw ? JSON.parse(raw) : null)
+  } catch {
+    return normalizeSlideshowGradient(null)
+  }
+}
+
+/**
+ * Merkt den Farbverlauf dauerhaft; der Standard entfernt den Eintrag.
+ * @param {object} gradient
+ * @param {'canvas'|'workspace'} [target]
+ */
+export function storeSlideshowGradient(gradient, target = 'canvas') {
+  const normalized = normalizeSlideshowGradient(gradient)
+  const key = gradientKey(target)
+  try {
+    if (isSameSlideshowGradient(normalized, SLIDESHOW_GRADIENT_DEFAULT))
+      localStorage.removeItem(key)
+    else localStorage.setItem(key, JSON.stringify(normalized))
+  } catch (e) {
+    console.warn('[SlideshowBaseColor] Speichern fehlgeschlagen:', e)
+  }
+}

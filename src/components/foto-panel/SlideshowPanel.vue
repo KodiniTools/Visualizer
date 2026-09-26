@@ -90,7 +90,7 @@
           @input="emit('background-color-change', backgroundColor)"
         />
         <button
-          v-if="backgroundColor !== D.backgroundColor"
+          v-if="backgroundColor !== D.backgroundColor || !isDefaultGradient(backgroundGradient)"
           type="button"
           class="btn-reset-base-color"
           :title="t('slideshow.baseColorReset')"
@@ -112,7 +112,7 @@
           @input="emit('workspace-color-change', workspaceColor)"
         />
         <button
-          v-if="workspaceColor !== D.workspaceColor"
+          v-if="workspaceColor !== D.workspaceColor || !isDefaultGradient(workspaceGradient)"
           type="button"
           class="btn-reset-workspace-color"
           :title="t('slideshow.baseColorReset')"
@@ -122,6 +122,17 @@
           ↺
         </button>
       </label>
+      <SlideshowBaseGradient
+        v-if="backgroundMode === 'canvas'"
+        v-model="backgroundGradient"
+        prefix="base"
+      />
+      <SlideshowBaseGradient
+        v-if="backgroundMode === 'workspace'"
+        v-model="workspaceGradient"
+        prefix="workspace"
+        :disabled="!hasWorkspace"
+      />
       <p v-if="backgroundMode !== 'none'" class="hint base-color-hint">
         {{
           backgroundMode === 'workspace'
@@ -243,9 +254,15 @@
  */
 import { ref, computed, watch } from 'vue'
 import {
+  SLIDESHOW_GRADIENT_DEFAULT,
+  isSameSlideshowGradient,
   loadStoredSlideshowBaseColor,
+  loadStoredSlideshowGradient,
+  normalizeSlideshowGradient,
   storeSlideshowBaseColor,
+  storeSlideshowGradient,
 } from '../../lib/slideshowBaseColor.js'
+import SlideshowBaseGradient from './slideshow/SlideshowBaseGradient.vue'
 import { useI18n } from '../../lib/i18n.js'
 import SlideshowOrderList from './slideshow/SlideshowOrderList.vue'
 import SlideshowTimingSettings from './slideshow/SlideshowTimingSettings.vue'
@@ -301,6 +318,7 @@ const emit = defineEmits([
   'background-mode-change',
   'background-color-change',
   'workspace-color-change',
+  'base-gradient-change',
   'reset-image-adjustments',
   'live-update',
   'move-mode-change',
@@ -333,6 +351,20 @@ watch(backgroundColor, (color) => storeSlideshowBaseColor(color))
 // Eigene Farbe der Workspace-Fläche – ebenfalls dauerhaft gemerkt
 const workspaceColor = ref(loadStoredSlideshowBaseColor('workspace'))
 watch(workspaceColor, (color) => storeSlideshowBaseColor(color, 'workspace'))
+// Farbverläufe der Flächen – dauerhaft gemerkt, Änderungen sofort an die Slideshow
+const backgroundGradient = ref(loadStoredSlideshowGradient('canvas'))
+const workspaceGradient = ref(loadStoredSlideshowGradient('workspace'))
+watch(backgroundGradient, (g) => {
+  storeSlideshowGradient(g, 'canvas')
+  emit('base-gradient-change', 'canvas', { ...g })
+})
+watch(workspaceGradient, (g) => {
+  storeSlideshowGradient(g, 'workspace')
+  emit('base-gradient-change', 'workspace', { ...g })
+})
+function isDefaultGradient(g) {
+  return isSameSlideshowGradient(g, SLIDESHOW_GRADIENT_DEFAULT)
+}
 // Workspace-Modus nur mit gewähltem Workspace-Format wirksam
 const effectiveBackgroundMode = computed(() =>
   backgroundMode.value === 'workspace' && !props.hasWorkspace ? 'none' : backgroundMode.value,
@@ -533,6 +565,8 @@ function buildPayload() {
     fitToWorkspace: effectiveBackgroundMode.value === 'workspace',
     backgroundColor: backgroundColor.value,
     workspaceColor: workspaceColor.value,
+    backgroundGradient: { ...backgroundGradient.value },
+    workspaceGradient: { ...workspaceGradient.value },
     moveWholeSlideshow: moveWholeSlideshow.value,
     transition: transition.value,
     transform: transformPayload(),
@@ -601,6 +635,8 @@ async function savePreset(name) {
       fitToWorkspace: backgroundMode.value === 'workspace',
       backgroundColor: backgroundColor.value,
       workspaceColor: workspaceColor.value,
+      backgroundGradient: { ...backgroundGradient.value },
+      workspaceGradient: { ...workspaceGradient.value },
       moveWholeSlideshow: moveWholeSlideshow.value,
       transition: transition.value,
       transform: {
@@ -702,6 +738,13 @@ async function loadPreset(preset) {
     workspaceColor.value = s.workspaceColor
     emit('workspace-color-change', workspaceColor.value)
   }
+  // Watcher übernehmen Speichern + Weitergabe an die Slideshow
+  if (!isSameSlideshowGradient(backgroundGradient.value, s.backgroundGradient)) {
+    backgroundGradient.value = normalizeSlideshowGradient(s.backgroundGradient)
+  }
+  if (!isSameSlideshowGradient(workspaceGradient.value, s.workspaceGradient)) {
+    workspaceGradient.value = normalizeSlideshowGradient(s.workspaceGradient)
+  }
   transformX.value = s.transform.x
   transformY.value = s.transform.y
   transformWidth.value = s.transform.width
@@ -768,11 +811,17 @@ function onBackgroundModeChange() {
 
 function resetBackgroundColor() {
   backgroundColor.value = D.backgroundColor
+  if (!isDefaultGradient(backgroundGradient.value)) {
+    backgroundGradient.value = normalizeSlideshowGradient(null)
+  }
   emit('background-color-change', backgroundColor.value)
 }
 
 function resetWorkspaceColor() {
   workspaceColor.value = D.workspaceColor
+  if (!isDefaultGradient(workspaceGradient.value)) {
+    workspaceGradient.value = normalizeSlideshowGradient(null)
+  }
   emit('workspace-color-change', workspaceColor.value)
 }
 

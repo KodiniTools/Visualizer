@@ -1448,7 +1448,7 @@ export default {
       'Images fill the workspace area and follow the selected format. Position & size are fixed.',
     fitToWorkspaceNoWorkspace: 'Select a workspace format first (e.g. TikTok 9:16).',
     adjustmentsKeptHint:
-      'Filters, audio settings and size/position changed on images during the slideshow are kept – even after stopping and restarting; filters etc. are also remembered permanently in the browser. Images with their own size ignore the shared area (position & size).',
+      'Filters, audio settings and size/position changed on images during the slideshow are kept – even after stopping, restarting and reloading the page (saved permanently in the browser). Images with their own size ignore the shared area (position & size).',
     resetAdjustments: 'Reset image adjustments',
     adjustmentsReset: 'Slideshow image adjustments reset',
     moveWhole: 'Mouse moves the whole slideshow',

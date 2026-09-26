@@ -373,7 +373,8 @@ watch(
   ([tr, fin, fout, dur, audio]) => {
     for (const img of orderedImages.value) {
       const key = slideshowImageKey(img)
-      imageSettingsStore.setImageSettings(slideshowStableKey(img), {
+      // nur diese Felder ändern – eigene Größe/Position bleibt erhalten
+      imageSettingsStore.updateImageSettings(slideshowStableKey(img), {
         transition: tr[key] ?? null,
         fadeIn: fin[key] ?? null,
         fadeOut: fout[key] ?? null,

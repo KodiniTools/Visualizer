@@ -4,7 +4,9 @@ import { useSlideshowImageAdjustmentsStore } from '../../stores/slideshowImageAd
 import {
   diffAdjustments,
   restorePersistedAdjustments,
+  restorePersistedBounds,
 } from '../../lib/slideshowAdjustmentsPersistence.js'
+import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore.js'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 
 const KEY = 'visualizer-slideshow-image-adjustments'
@@ -105,7 +107,7 @@ describe('restorePersistedAdjustments', () => {
 })
 
 describe('Ablauf: Filter ändern → stoppen → neue Sitzung → Start', () => {
-  function createManager(onImageAdjustmentsChange) {
+  function createManager(onImageAdjustmentsChange, onImageBoundsChange) {
     let nextId = 1
     const multiImageManager = {
       canvas: { width: 1000, height: 1000 },
@@ -125,7 +127,10 @@ describe('Ablauf: Filter ändern → stoppen → neue Sitzung → Start', () => 
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.stubGlobal('requestAnimationFrame', () => 1)
     vi.stubGlobal('cancelAnimationFrame', () => {})
-    return new SlideshowManager(multiImageManager, fotoManager, { onImageAdjustmentsChange })
+    return new SlideshowManager(multiImageManager, fotoManager, {
+      onImageAdjustmentsChange,
+      onImageBoundsChange,
+    })
   }
 
   it('Filter sind in der neuen Sitzung wieder da', async () => {
@@ -162,6 +167,63 @@ describe('Ablauf: Filter ändern → stoppen → neue Sitzung → Start', () => 
     })
     m2.start([...fresh, { name: 'c.png', imageObject: { width: 5, height: 5 } }])
     expect(m2.activeImages[0].fotoSettings.brightness).toBe(175)
+    m2.stop()
+  })
+})
+
+describe('Ablauf: Größe/Position ändern → neue Sitzung → Start', () => {
+  it('eigene Größe und Verschieben der ganzen Slideshow werden gemeldet und wiederhergestellt', async () => {
+    const { slideshowStableKey } = await import(
+      '../../components/foto-panel/slideshow/slideshowImageKey.js'
+    )
+    const settings = useSlideshowImageSettingsStore()
+    const onBounds = ({ imageConfig, imageObject, bounds }) =>
+      settings.updateImageSettings(slideshowStableKey({ ...imageConfig, imageObject }), { bounds })
+
+    let nextId = 1
+    const make = () => {
+      vi.spyOn(console, 'log').mockImplementation(() => {})
+      vi.stubGlobal('requestAnimationFrame', () => 1)
+      vi.stubGlobal('cancelAnimationFrame', () => {})
+      return new SlideshowManager(
+        {
+          canvas: { width: 1000, height: 1000 },
+          addImageWithBounds: vi.fn((imageObject, bounds) => ({
+            id: nextId++,
+            imageObject,
+            ...bounds,
+          })),
+          removeImage: vi.fn(),
+        },
+        { initializeImageSettings: (img) => (img.fotoSettings ??= { audioReactive: null }) },
+        { onImageBoundsChange: onBounds },
+      )
+    }
+    const imgA = { width: 10, height: 10 }
+    const m1 = make()
+    m1.start([
+      { name: 'a.png', imageObject: imgA },
+      { name: 'b.png', imageObject: { width: 20, height: 10 } },
+    ])
+    const a = m1.activeImages[0]
+    Object.assign(a, { relX: 0.05, relY: 0.05, relWidth: 0.3, relHeight: 0.3 })
+    m1.commitImageBounds(a)
+    expect(settings.getImageSettings('upload:a.png|10x10').bounds.relWidth).toBeCloseTo(0.3)
+    // ganze Slideshow verschieben → auch gemeldet
+    m1.moveSlideshow(0.1, 0)
+    expect(settings.getImageSettings('upload:a.png|10x10').bounds.relX).toBeCloseTo(0.15)
+    m1.stop()
+
+    const m2 = make()
+    const fresh = [{ name: 'a.png', imageObject: { width: 10, height: 10 } }]
+    const n = restorePersistedBounds(m2, fresh, {
+      resolveImageObject: (img) => img.imageObject,
+      getBounds: (k) => settings.getImageSettings(k)?.bounds ?? null,
+    })
+    expect(n).toBe(1)
+    m2.start([...fresh, { name: 'c.png', imageObject: { width: 5, height: 5 } }])
+    const again = m2.activeImages[0]
+    expect([again.relX, again.relWidth].map((v) => +v.toFixed(3))).toEqual([0.15, 0.3])
     m2.stop()
   })
 })

@@ -107,3 +107,29 @@ describe('slideshowImageSettingsStore – Anzeigedauer und Audio pro Bild', () =
     })
   })
 })
+
+describe('slideshowImageSettingsStore – Größe/Position pro Bild', () => {
+  const b = { relX: 0.1, relY: 0.2, relWidth: 0.3, relHeight: 0.25 }
+
+  it('updateImageSettings ändert nur einzelne Felder; Bounds bleiben bei anderen Änderungen', () => {
+    const store = useSlideshowImageSettingsStore()
+    store.updateImageSettings('k', { bounds: b })
+    store.updateImageSettings('k', { transition: 'wipe' })
+    expect(store.getImageSettings('k')).toEqual({ bounds: b, transition: 'wipe' })
+    store.updateImageSettings('k', { transition: null })
+    expect(store.getImageSettings('k')).toEqual({ bounds: b })
+    store.updateImageSettings('k', { bounds: { relX: 'x' } }) // ungültig → entfernt
+    expect(store.getImageSettings('k')).toBeNull()
+  })
+
+  it('clearField entfernt Bounds bei allen Bildern, übrige Werte bleiben', () => {
+    const store = useSlideshowImageSettingsStore()
+    store.updateImageSettings('a', { bounds: b, audioMode: 'pulse' })
+    store.updateImageSettings('c', { bounds: b })
+    store.clearField('bounds')
+    expect(store.getImageSettings('a')).toEqual({ audioMode: 'pulse' })
+    expect(store.getImageSettings('c')).toBeNull()
+    setActivePinia(createPinia())
+    expect(useSlideshowImageSettingsStore().getImageSettings('a')).toEqual({ audioMode: 'pulse' })
+  })
+})

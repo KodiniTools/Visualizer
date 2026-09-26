@@ -52,3 +52,25 @@ export function diffAdjustments(adjustments, defaults = {}, panelAudio = null) {
   }
   return Object.keys(diff).length > 0 ? diff : null
 }
+
+/**
+ * Übernimmt dauerhaft gemerkte eigene Größe/Position in die Slideshow – nur für
+ * Bilder ohne eigene Bounds in dieser Sitzung.
+ * @param {object} manager - SlideshowManager
+ * @param {Array<object>} images - Slideshow-Einträge
+ * @param {{ resolveImageObject: (img:object) => object|null, getBounds: (key:string|null) => object|null }} deps
+ * @returns {number} Anzahl übernommener Bilder
+ */
+export function restorePersistedBounds(manager, images, { resolveImageObject, getBounds }) {
+  if (!manager || !Array.isArray(images)) return 0
+  let restored = 0
+  for (const img of images) {
+    const obj = resolveImageObject(img)
+    if (!obj || manager.getImageBounds(obj)) continue
+    const bounds = getBounds(slideshowStableKey({ ...img, imageObject: obj }))
+    if (!bounds) continue
+    manager.setImageBounds(obj, bounds)
+    restored++
+  }
+  return restored
+}

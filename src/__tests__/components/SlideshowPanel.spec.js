@@ -129,6 +129,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       {
         displayDuration: null,
         audioMode: 'pulse',
+        audioSource: null,
         adjustments: null,
         bounds: null,
         transition: null,
@@ -140,6 +141,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       {
         displayDuration: 9000,
         audioMode: 'default',
+        audioSource: null,
         adjustments: null,
         bounds: null,
         transition: null,
@@ -371,15 +373,17 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.base-gradient-toggle').setValue(true)
     expect(w.find('.base-gradient-audio-source').exists()).toBe(false)
     await w.find('.base-gradient-audio-toggle').setValue(true)
-    await w.find('.base-gradient-audio-source').setValue('treble')
+    // Quelle wie beim Bild-Audio-Reaktiv, inkl. Onset
+    expect(w.findAll('.base-gradient-audio-source option')).toHaveLength(9)
+    await w.find('.base-gradient-audio-source').setValue('trebleOnset')
     await w.find('.base-gradient-audio-pulse').setValue('40')
     await w.find('.base-gradient-audio-rotation').setValue('0')
     const last = w.emitted('base-gradient-change').at(-1)
     expect(last[0]).toBe('canvas')
-    expect(last[1].audio).toEqual({ enabled: true, source: 'treble', pulse: 40, rotation: 0 })
+    expect(last[1].audio).toEqual({ enabled: true, source: 'trebleOnset', pulse: 40, rotation: 0 })
     expect(
       JSON.parse(localStorage.getItem('visualizer-slideshow-base-gradient')).audio.source,
-    ).toBe('treble')
+    ).toBe('trebleOnset')
     await w.find('.btn-start').trigger('click')
     expect(w.emitted('start')[0][0].backgroundGradient.audio.pulse).toBe(40)
   })
@@ -858,8 +862,181 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(live.images[1].audioMode).toBe('glitch')
     expect(live.images[0].audioMode).toBe('default')
 
+    // Eigene Audio-Quelle des Bildes (inkl. Onset)
+    const source = editor.find('.editor-audio-source')
+    expect(source.element.value).toBe('')
+    expect(source.findAll('option').map((o) => o.element.value)).toEqual([
+      '',
+      'bass',
+      'mid',
+      'treble',
+      'volume',
+      'dynamic',
+      'bassOnset',
+      'midOnset',
+      'trebleOnset',
+      'allOnset',
+    ])
+    await source.setValue('allOnset')
+    live = w.emitted('live-update').at(-1)[0]
+    expect(live.images[1].audioSource).toBe('allOnset')
+    expect(live.images[0].audioSource).toBeNull()
+    // Modus „Aus“ sperrt die Quelle; zurück auf „Wie Einstellung“ entfernt sie
+    await editor.find('.editor-audio').setValue('off')
+    expect(editor.find('.editor-audio-source').element.disabled).toBe(true)
+    await editor.find('.editor-audio').setValue('glitch')
+    await editor.find('.editor-audio-source').setValue('')
+    expect(w.emitted('live-update').at(-1)[0].images[1].audioSource).toBeNull()
+
     await w.setProps({ isPaused: false })
     expect(w.find('.image-editor').exists()).toBe(false)
+  })
+
+  it('order list: audio source per row (incl. onset), locked when audio is off', async () => {
+    const w = mountPanel()
+    const sources = w.findAll('.order-audio-source')
+    expect(sources).toHaveLength(2)
+    expect(sources[0].findAll('option')).toHaveLength(10) // „Wie Einstellung“ + 9 Quellen
+    expect(sources[0].find('optgroup').exists()).toBe(true)
+    expect(sources[0].element.value).toBe('')
+
+    await sources[1].setValue('bassOnset')
+    expect(w.findAll('.order-audio-source')[1].classes()).toContain('is-own')
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.images.map((i) => i.audioSource)).toEqual([null, 'bassOnset'])
+
+    await w.findAll('.order-audio')[1].setValue('off')
+    expect(w.findAll('.order-audio-source')[1].element.disabled).toBe(true)
+    await w.findAll('.order-audio')[1].setValue('pulse')
+    await w.findAll('.order-audio-source')[1].setValue('')
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start').at(-1)[0].images[1].audioSource).toBeNull()
+  })
+
+  it('workspace mode: area and per-image sources (incl. onset) reach the slideshow', async () => {
+    const w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    // Farbe der Workspace-Fläche
+    await w.find('.workspace-fill-audio-toggle').setValue(true)
+    const fillSource = w.find('.workspace-fill-audio-source')
+    expect(fillSource.findAll('option')).toHaveLength(9)
+    await fillSource.setValue('allOnset')
+    // Farbverlauf der Workspace-Fläche
+    await w.find('.workspace-gradient-toggle').setValue(true)
+    await w.find('.workspace-gradient-audio-toggle').setValue(true)
+    await w.find('.workspace-gradient-audio-source').setValue('bassOnset')
+    // Flächenbild (ohne Bild) – Quelle trotzdem einstellbar
+    await w.find('.workspace-image-toggle').setValue(true)
+    await w.find('.workspace-image-audio-toggle').setValue(true)
+    await w.find('.workspace-image-audio-source').setValue('dynamic')
+    // Canvas-Felder sind im Workspace-Modus ausgeblendet
+    expect(w.find('.base-fill-audio-source').exists()).toBe(false)
+    // eigene Quelle pro Bild
+    await w.findAll('.order-audio-source')[0].setValue('midOnset')
+
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.backgroundMode).toBe('workspace')
+    expect(payload.workspaceFillAudio.source).toBe('allOnset')
+    expect(payload.workspaceGradient.audio.source).toBe('bassOnset')
+    expect(payload.workspaceImageFill.audio.source).toBe('dynamic')
+    expect(payload.backgroundFillAudio.enabled).toBe(false) // Canvas unberührt
+    expect(payload.images.map((i) => i.audioSource)).toEqual(['midOnset', null])
+
+    // ohne Workspace-Format: Felder gesperrt, Modus wirkungslos
+    await w.setProps({ hasWorkspace: false })
+    expect(w.find('.workspace-fill-audio-source').element.disabled).toBe(true)
+    expect(w.emitted('background-mode-change').at(-1)).toEqual(['none'])
+  })
+
+  it('workspace mode: image editor source goes live and stays in the list', async () => {
+    const w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    await w.setProps({ isActive: true, isPaused: true })
+    await w.setProps({ editImageRequest: { index: 0, nonce: 7 } })
+    const editor = w.find('.image-editor')
+    expect(editor.text()).toContain('Eins')
+    const source = editor.find('.editor-audio-source')
+    expect(source.findAll('option')).toHaveLength(10)
+    await editor.find('.editor-audio').setValue('pulse')
+    await source.setValue('trebleOnset')
+
+    const live = w.emitted('live-update').at(-1)[0]
+    expect(live.preserveLive).toBe(true)
+    expect(live.backgroundMode).toBe('workspace')
+    expect(live.fitToWorkspace).toBe(true)
+    expect(live.images.map((i) => [i.audioMode, i.audioSource])).toEqual([
+      ['pulse', 'trebleOnset'],
+      ['default', null],
+    ])
+
+    // Editor schließt beim Fortsetzen; nach dem Stoppen zeigt die Liste die Quelle
+    await w.setProps({ isPaused: false })
+    expect(w.find('.image-editor').exists()).toBe(false)
+    await w.setProps({ isActive: false })
+    expect(w.findAll('.order-audio-source')[0].element.value).toBe('trebleOnset')
+    expect(w.findAll('.order-audio-source')[1].element.value).toBe('')
+  })
+
+  it('canvas mode: area image audio source (incl. onset) – start, live, preset, memory', async () => {
+    const w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-canvas').setValue(true)
+    await w.find('.base-image-toggle').setValue(true)
+    await w.find('.base-image-audio-toggle').setValue(true)
+    const source = w.find('.base-image-audio-source')
+    expect(source.findAll('option').map((o) => o.element.value)).toEqual([
+      'bass',
+      'mid',
+      'treble',
+      'volume',
+      'dynamic',
+      'bassOnset',
+      'midOnset',
+      'trebleOnset',
+      'allOnset',
+    ])
+    expect(source.find('optgroup').attributes('label')).toBe('Onset (Beat, auto-normalisiert)')
+    // Workspace-Felder sind im Canvas-Modus ausgeblendet
+    expect(w.find('.workspace-image-audio-source').exists()).toBe(false)
+
+    await source.setValue('trebleOnset')
+    expect(w.emitted('base-image-change').at(-1)[0]).toBe('canvas')
+    expect(w.emitted('base-image-change').at(-1)[1].audio.source).toBe('trebleOnset')
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-image')).audio.source).toBe(
+      'trebleOnset',
+    )
+    expect(localStorage.getItem('visualizer-slideshow-workspace-image')).toBeNull()
+
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.backgroundMode).toBe('canvas')
+    expect(payload.backgroundImageFill.audio).toMatchObject({
+      enabled: true,
+      source: 'trebleOnset',
+    })
+    expect(payload.workspaceImageFill.audio.enabled).toBe(false)
+
+    // während der Slideshow: Wechsel geht sofort an die Slideshow
+    await w.setProps({ isActive: true })
+    await w.find('.base-image-audio-source').setValue('allOnset')
+    expect(w.emitted('base-image-change').at(-1)).toEqual([
+      'canvas',
+      expect.objectContaining({ audio: expect.objectContaining({ source: 'allOnset' }) }),
+      null, // noch kein Bild gewählt
+    ])
+    await w.setProps({ isActive: false })
+
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+        .backgroundImageFill.audio.source,
+    ).toBe('allOnset')
+    await w.find('.base-image-audio-source').setValue('bass')
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.find('.base-image-audio-source').element.value).toBe('allOnset')
   })
 
   it('editor request is ignored while running', async () => {

@@ -129,6 +129,20 @@
               </option>
             </select>
           </label>
+          <!-- Eigene Audio-Quelle dieses Bildes (wie beim Bild-Audio-Reaktiv, inkl. Onset) -->
+          <label class="order-field">
+            <span class="order-field-label">{{ t('slideshow.fieldAudioSource') }}</span>
+            <SlideshowAudioSourceSelect
+              class="order-audio-source"
+              :class="{ 'is-own': audioSourceFor(img) !== null }"
+              :model-value="audioSourceFor(img)"
+              :inherit-label="t('slideshow.audioSourceInherit')"
+              :disabled="audioModeFor(img) === 'off'"
+              :title="t('slideshow.perImageAudioSource')"
+              @update:model-value="(v) => onAudioSourceChange(img, v)"
+              @mousedown.stop
+            />
+          </label>
         </div>
       </div>
     </div>
@@ -143,6 +157,7 @@
  * - Übergang (v-model:transitions), Ein-/Ausblenddauer (v-model:fade-ins/fade-outs, ms)
  * - eigene Anzeigedauer (v-model:durations, { [key]: ms }); leer = defaultDuration
  * - Audio-Reaktiv-Modus (v-model:audio-modes, { [key]: mode }); fehlt = 'default'
+ * - eigene Audio-Quelle (v-model:audio-sources, { [key]: source }); fehlt = wie Einstellung
  */
 import { ref } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
@@ -150,7 +165,9 @@ import {
   SLIDESHOW_AUDIO_DEFAULT,
   SLIDESHOW_AUDIO_PRESET_OPTIONS,
   isValidSlideshowAudioMode,
+  isValidSlideshowAudioSource,
 } from '../../../lib/slideshowAudio.js'
+import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 import { slideshowImageKey } from './slideshowImageKey.js'
 import { SLIDESHOW_TRANSITIONS, isValidTransition } from '../../../lib/slideshowTransitions.js'
 
@@ -166,6 +183,8 @@ defineProps({
 const orderedImages = defineModel({ type: Array, default: () => [] })
 const durations = defineModel('durations', { type: Object, default: () => ({}) })
 const audioModes = defineModel('audioModes', { type: Object, default: () => ({}) })
+// Eigene Audio-Quelle pro Bild ({ [key]: source }); fehlt = wie Einstellung
+const audioSources = defineModel('audioSources', { type: Object, default: () => ({}) })
 // Eigene Übergangsanimation pro Bild ({ [key]: transitionId }); fehlt = globaler Übergang
 const transitions = defineModel('transitions', { type: Object, default: () => ({}) })
 // Eigene Ein-/Ausblenddauer pro Bild ({ [key]: ms }); fehlt = Standard
@@ -224,6 +243,19 @@ function onMsInput(name, img, event, minMs, maxMs) {
 
 function audioModeFor(img) {
   return audioModes.value[slideshowImageKey(img)] ?? SLIDESHOW_AUDIO_DEFAULT
+}
+
+function audioSourceFor(img) {
+  return audioSources.value[slideshowImageKey(img)] ?? null
+}
+
+function onAudioSourceChange(img, source) {
+  const key = slideshowImageKey(img)
+  if (key === undefined) return
+  const next = { ...audioSources.value }
+  if (isValidSlideshowAudioSource(source)) next[key] = source
+  else delete next[key]
+  audioSources.value = next
 }
 
 function transitionFor(img) {

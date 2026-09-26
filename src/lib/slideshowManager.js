@@ -11,6 +11,7 @@ import {
 } from './slideshowBaseColor.js'
 import { normalizeSlideshowFillAudio } from './slideshowFillAudio.js'
 import { normalizeSlideshowImageFill } from './slideshowImageFill.js'
+import { applySlideshowAudioSource } from './slideshowAudio.js'
 
 /**
  * SlideshowManager - Orchestriert die Bild-Slideshow auf dem Canvas
@@ -798,6 +799,7 @@ export class SlideshowManager {
       ...cfg,
       displayDuration: images[i]?.displayDuration,
       audioMode: images[i]?.audioMode,
+      audioSource: images[i]?.audioSource,
       audioReactiveSettings: images[i]?.audioReactiveSettings ?? null,
       transition: images[i]?.transition,
       fadeInDuration: images[i]?.fadeInDuration,
@@ -933,6 +935,8 @@ export class SlideshowManager {
         ? memory.audioMode !== this.config.images[index]?.audioMode
         : memory.panelAr !== this._panelAr[index]
     if (panelChanged) delete copy.audioReactive
+    // Eigene Audio-Quelle des Bildes gilt auch für gemerkte Einstellungen
+    applySlideshowAudioSource(copy.audioReactive, this.config.images[index]?.audioSource)
     this.fotoManager.initializeImageSettings(imageData)
     Object.assign(imageData.fotoSettings, copy)
     // Alte/unvollständige Audio-Konfiguration vervollständigen

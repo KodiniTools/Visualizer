@@ -92,16 +92,12 @@
       <template v-if="fill.audio.enabled">
         <label class="image-fill-field">
           <span>{{ t('slideshow.gradientAudioSource') }}</span>
-          <select
-            :value="fill.audio.source"
+          <SlideshowAudioSourceSelect
+            :model-value="fill.audio.source"
             :class="`${prefix}-image-audio-source`"
             :disabled="disabled"
-            @change="updateAudio({ source: $event.target.value })"
-          >
-            <option v-for="src in sources" :key="src" :value="src">
-              {{ t(`slideshow.gradientAudioSources.${src}`) }}
-            </option>
-          </select>
+            @update:model-value="(v) => updateAudio({ source: v })"
+          />
         </label>
         <label v-for="fx in audioEffects" :key="fx.id" class="image-fill-field range">
           <span>{{ t(fx.label) }}</span>
@@ -131,7 +127,7 @@
  */
 import { computed, ref } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
-import { SLIDESHOW_GRADIENT_AUDIO_SOURCES } from '../../../lib/slideshowGradientAudio.js'
+import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 
 const props = defineProps({
   fill: { type: Object, required: true },
@@ -147,7 +143,6 @@ const props = defineProps({
 const emit = defineEmits(['update', 'select', 'clear'])
 const { t } = useI18n()
 
-const sources = SLIDESHOW_GRADIENT_AUDIO_SOURCES
 const audioEffects = [
   { id: 'brightness', label: 'slideshow.fillAudioBrightness' },
   { id: 'hue', label: 'slideshow.fillAudioHue' },

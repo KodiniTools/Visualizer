@@ -1493,6 +1493,9 @@ export default {
     },
     imageSettings: 'Bild-Einstellungen',
     closeImageSettings: 'Bild-Einstellungen schließen',
+    fieldAudioSource: 'Quelle',
+    perImageAudioSource: 'Audio-Quelle dieses Bildes',
+    audioSourceInherit: 'Wie Einstellung',
     imageSettingsHint: 'Änderungen gelten sofort und bleiben für dieses Bild erhalten.',
     pausedEditHint:
       'Pausiert: Bild in der Leiste „Bilder auf Canvas“ anklicken, um seine Einstellungen zu öffnen.',
@@ -1530,12 +1533,6 @@ export default {
     gradientAudioOrbit: 'Kreisen',
     gradientAudioHint:
       'Ohne Musik bleibt der Verlauf wie eingestellt; im Takt zieht er sich zusammen und dreht (radial: der Mittelpunkt kreist).',
-    gradientAudioSources: {
-      bass: 'Bass',
-      mid: 'Mitten',
-      treble: 'Höhen',
-      volume: 'Lautstärke',
-    },
     fillAudio: 'Farbe audio-reaktiv',
     fillAudioBrightness: 'Aufhellen',
     fillAudioHue: 'Farbton',

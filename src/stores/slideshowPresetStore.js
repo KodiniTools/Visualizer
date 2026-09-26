@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, markRaw } from 'vue'
-import { SLIDESHOW_AUDIO_DEFAULT, isValidSlideshowAudioMode } from '../lib/slideshowAudio.js'
+import {
+  SLIDESHOW_AUDIO_DEFAULT,
+  isValidSlideshowAudioMode,
+  isValidSlideshowAudioSource,
+} from '../lib/slideshowAudio.js'
 import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig.js'
 import { SLIDESHOW_TRANSITION_DEFAULT, isValidTransition } from '../lib/slideshowTransitions.js'
 import {
@@ -236,6 +240,8 @@ export function normalizeSlideshowPreset(raw) {
         audioMode: isValidSlideshowAudioMode(slot?.audioMode)
           ? slot.audioMode
           : SLIDESHOW_AUDIO_DEFAULT,
+        // Eigene Audio-Quelle (null = wie Einstellung/Preset)
+        audioSource: isValidSlideshowAudioSource(slot?.audioSource) ? slot.audioSource : null,
         // Eigene Übergangsanimation des Bildes (null = globaler Übergang)
         transition: isValidTransition(slot?.transition) ? slot.transition : null,
         // Eigene Ein-/Ausblenddauer (ms, null = Standard)

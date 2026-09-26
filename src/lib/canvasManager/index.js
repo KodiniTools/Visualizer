@@ -8,3 +8,6 @@ export { MouseHandler, SelectionManager, DragDropHandler } from './interaction/i
 
 // Recording-Module
 export { CanvasPool, RecordingRenderer } from './recording/index.js'
+
+// Methoden-Gruppen des CanvasManagers
+export * from './methods/index.js'

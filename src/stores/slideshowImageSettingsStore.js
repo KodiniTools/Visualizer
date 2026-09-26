@@ -1,7 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { isValidTransition } from '../lib/slideshowTransitions.js'
-import { isValidSlideshowAudioMode, SLIDESHOW_AUDIO_DEFAULT } from '../lib/slideshowAudio.js'
+import {
+  isValidSlideshowAudioMode,
+  isValidSlideshowAudioSource,
+  SLIDESHOW_AUDIO_DEFAULT,
+} from '../lib/slideshowAudio.js'
 import { normalizeImageBounds } from './slideshowPresetStore.js'
 
 const STORAGE_KEY = 'visualizer-slideshow-image-transitions'
@@ -44,6 +48,8 @@ function normalizeEntry(raw) {
   if (isValidSlideshowAudioMode(src.audioMode) && src.audioMode !== SLIDESHOW_AUDIO_DEFAULT) {
     entry.audioMode = src.audioMode
   }
+  // Eigene Audio-Quelle (inkl. Onset/Dynamisch); fehlt = wie Einstellung
+  if (isValidSlideshowAudioSource(src.audioSource)) entry.audioSource = src.audioSource
   // Eigene Größe/Position (relativ zum Canvas)
   const bounds = normalizeImageBounds(src.bounds)
   if (bounds) entry.bounds = bounds

@@ -1490,6 +1490,9 @@ export default {
     },
     imageSettings: 'Image settings',
     closeImageSettings: 'Close image settings',
+    fieldAudioSource: 'Source',
+    perImageAudioSource: 'Audio source of this image',
+    audioSourceInherit: 'As configured',
     imageSettingsHint: 'Changes apply immediately and are kept for this image.',
     pausedEditHint: 'Paused: click an image in the “Images on canvas” bar to open its settings.',
     timingHint: 'Applies to all images without their own value in the list above.',
@@ -1526,12 +1529,6 @@ export default {
     gradientAudioOrbit: 'Orbit',
     gradientAudioHint:
       'Without music the gradient stays as set; to the beat it contracts and turns (radial: the centre orbits).',
-    gradientAudioSources: {
-      bass: 'Bass',
-      mid: 'Mids',
-      treble: 'Highs',
-      volume: 'Volume',
-    },
     fillAudio: 'Audio-reactive colour',
     fillAudioBrightness: 'Brighten',
     fillAudioHue: 'Hue',

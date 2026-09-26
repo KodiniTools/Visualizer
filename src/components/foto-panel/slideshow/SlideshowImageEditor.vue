@@ -101,6 +101,18 @@
       </select>
     </label>
 
+    <!-- Eigene Audio-Quelle des Bildes (wie beim Bild-Audio-Reaktiv, inkl. Onset) -->
+    <label class="image-editor-field">
+      <span>{{ t('slideshow.perImageAudioSource') }}</span>
+      <SlideshowAudioSourceSelect
+        class="editor-audio-source"
+        :model-value="audioSource"
+        :inherit-label="t('slideshow.audioSourceInherit')"
+        :disabled="audioMode === 'off'"
+        @update:model-value="(v) => emit('update:audioSource', v)"
+      />
+    </label>
+
     <p class="hint">{{ t('slideshow.imageSettingsHint') }}</p>
   </div>
 </template>
@@ -119,6 +131,7 @@ import {
   SLIDESHOW_AUDIO_PRESET_OPTIONS,
   isValidSlideshowAudioMode,
 } from '../../../lib/slideshowAudio.js'
+import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 
 const props = defineProps({
   image: { type: Object, required: true },
@@ -133,6 +146,8 @@ const props = defineProps({
   defaultFadeOut: { type: Number, default: 1000 },
   defaultTransition: { type: String, default: 'fade' },
   audioMode: { type: String, default: 'default' },
+  // Eigene Audio-Quelle (null = wie Einstellung/Preset)
+  audioSource: { type: String, default: null },
   hasSavedSettings: { type: Boolean, default: false },
 })
 const emit = defineEmits([
@@ -141,6 +156,7 @@ const emit = defineEmits([
   'update:fadeIn',
   'update:fadeOut',
   'update:audioMode',
+  'update:audioSource',
   'close',
 ])
 const { t } = useI18n()

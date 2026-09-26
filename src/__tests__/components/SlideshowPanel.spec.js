@@ -1315,6 +1315,41 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.workspace-fill-audio-toggle').element.disabled).toBe(true)
   })
 
+  it.each([
+    ['canvas', 'base', 'backgroundFillAudio', 'backgroundGradient'],
+    ['workspace', 'workspace', 'workspaceFillAudio', 'workspaceGradient'],
+  ])(
+    '%s mode: fill color audio together with gradient – own sources, both sent',
+    async (mode, prefix, fillKey, gradientKey) => {
+      const w = mountPanel({ hasWorkspace: true })
+      await w.find(`.bg-mode-${mode}`).setValue(true)
+      await w.find(`.${prefix}-gradient-toggle`).setValue(true)
+      await w.find(`.${prefix}-gradient-audio-toggle`).setValue(true)
+      await w.find(`.${prefix}-gradient-audio-source`).setValue('trebleOnset')
+      await w.find(`.${prefix}-fill-audio-toggle`).setValue(true)
+      await w.find(`.${prefix}-fill-audio-source`).setValue('bassOnset')
+
+      // beide Bereiche sichtbar, Quellen unabhängig
+      expect(w.find(`.${prefix}-fill-audio-source`).element.value).toBe('bassOnset')
+      expect(w.find(`.${prefix}-gradient-audio-source`).element.value).toBe('trebleOnset')
+
+      await w.find('.btn-start').trigger('click')
+      const payload = w.emitted('start').at(-1)[0]
+      expect(payload[fillKey]).toMatchObject({ enabled: true, source: 'bassOnset' })
+      expect(payload[gradientKey]).toMatchObject({
+        enabled: true,
+        audio: { enabled: true, source: 'trebleOnset' },
+      })
+
+      // Verlauf aus → „Farbe audio-reaktiv“ bleibt erhalten
+      await w.find(`.${prefix}-gradient-toggle`).setValue(false)
+      await w.find('.btn-start').trigger('click')
+      const again = w.emitted('start').at(-1)[0]
+      expect(again[gradientKey].enabled).toBe(false)
+      expect(again[fillKey]).toMatchObject({ enabled: true, source: 'bassOnset' })
+    },
+  )
+
   it('editor request is ignored while running', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: false, editImageRequest: { index: 0, nonce: 2 } })

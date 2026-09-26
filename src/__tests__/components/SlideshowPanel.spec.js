@@ -1350,6 +1350,49 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     },
   )
 
+  it.each([
+    ['canvas', 'base', 'Gradient', 'backgroundGradient', 'backgroundImageFill', 'base'],
+    ['workspace', 'workspace', 'Gradient', 'workspaceGradient', 'workspaceImageFill', 'workspace'],
+  ])(
+    '%s mode: gradient source together with area image – own sources, stored separately',
+    async (mode, prefix, _g, gradientKey, imageKey, storeName) => {
+      const w = mountPanel({ hasWorkspace: true })
+      await w.find(`.bg-mode-${mode}`).setValue(true)
+      await w.find(`.${prefix}-gradient-toggle`).setValue(true)
+      await w.find(`.${prefix}-gradient-audio-toggle`).setValue(true)
+      await w.find(`.${prefix}-gradient-audio-source`).setValue('allOnset')
+      await w.find(`.${prefix}-image-toggle`).setValue(true)
+      await w.find(`.${prefix}-image-audio-toggle`).setValue(true)
+      await w.find(`.${prefix}-image-audio-source`).setValue('midOnset')
+
+      expect(w.find(`.${prefix}-gradient-audio-source`).element.value).toBe('allOnset')
+      expect(w.find(`.${prefix}-image-audio-source`).element.value).toBe('midOnset')
+
+      // getrennt dauerhaft gemerkt
+      const stored = (key) => JSON.parse(localStorage.getItem(key))
+      expect(stored(`visualizer-slideshow-${storeName}-gradient`).audio.source).toBe('allOnset')
+      expect(stored(`visualizer-slideshow-${storeName}-image`).audio.source).toBe('midOnset')
+
+      await w.find('.btn-start').trigger('click')
+      const payload = w.emitted('start').at(-1)[0]
+      expect(payload[gradientKey].audio).toMatchObject({ enabled: true, source: 'allOnset' })
+      expect(payload[imageKey]).toMatchObject({
+        enabled: true,
+        audio: { enabled: true, source: 'midOnset' },
+      })
+
+      // Quelle des Verlaufs ändern lässt die des Bildes unberührt (und umgekehrt)
+      await w.find(`.${prefix}-gradient-audio-source`).setValue('bassOnset')
+      expect(w.find(`.${prefix}-image-audio-source`).element.value).toBe('midOnset')
+      await w.find(`.${prefix}-image-audio-source`).setValue('dynamic')
+      expect(w.find(`.${prefix}-gradient-audio-source`).element.value).toBe('bassOnset')
+      await w.find('.btn-start').trigger('click')
+      const again = w.emitted('start').at(-1)[0]
+      expect(again[gradientKey].audio.source).toBe('bassOnset')
+      expect(again[imageKey].audio.source).toBe('dynamic')
+    },
+  )
+
   it('editor request is ignored while running', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: false, editImageRequest: { index: 0, nonce: 2 } })

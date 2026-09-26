@@ -904,6 +904,39 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.image-editor-size').exists()).toBe(false)
   })
 
+  it('paused editor, workspace mode: size/position sliders hide on switch and return on "none"', async () => {
+    // simuliert FotoPanel: im Workspace-Modus (Bild füllt den Workspace) nicht skalierbar
+    let fitted = false
+    const adjustmentsApi = {
+      get: () => null,
+      set: () => {},
+      getSize: vi.fn(() =>
+        fitted ? null : { width: 0.3, height: 0.15, defaultWidth: 0.8, defaultHeight: 0.4 },
+      ),
+      getPosition: vi.fn(() => (fitted ? null : { x: 0.25, y: 0.75 })),
+      setSize: vi.fn(),
+      setPosition: vi.fn(),
+    }
+    const w = mountPanel({ adjustmentsApi, hasWorkspace: true })
+    await w.setProps({ isActive: true, isPaused: true, editImageRequest: { index: 0, nonce: 8 } })
+    expect(Number(w.find('input.editor-size-width').element.value)).toBeCloseTo(30)
+
+    fitted = true
+    await w.find('.bg-mode-workspace').setValue(true)
+    expect(w.emitted('background-mode-change').at(-1)).toEqual(['workspace'])
+    expect(w.find('.image-editor').exists()).toBe(true)
+    expect(w.find('.image-editor-size').exists()).toBe(false)
+    expect(w.find('.image-editor-position').exists()).toBe(false)
+    expect(adjustmentsApi.setSize).not.toHaveBeenCalled()
+
+    // zurück auf „Aus“: gemerkte Größe/Position erscheinen wieder
+    fitted = false
+    await w.find('.bg-mode-none').setValue(true)
+    expect(Number(w.find('input.editor-size-width').element.value)).toBeCloseTo(30)
+    expect(Number(w.find('input.editor-size-height').element.value)).toBeCloseTo(15)
+    expect(Number(w.find('input.editor-position-y').element.value)).toBeCloseTo(75)
+  })
+
   it('paused: click request opens the image editor; edits go live and close on resume', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: true })

@@ -14,16 +14,12 @@
     <div v-if="audio.enabled" class="fill-audio-options">
       <label class="fill-audio-field">
         <span>{{ t('slideshow.gradientAudioSource') }}</span>
-        <select
-          :value="audio.source"
+        <SlideshowAudioSourceSelect
+          :model-value="audio.source"
           :class="`${prefix}-fill-audio-source`"
           :disabled="disabled"
-          @change="update({ source: $event.target.value })"
-        >
-          <option v-for="src in sources" :key="src" :value="src">
-            {{ t(`slideshow.gradientAudioSources.${src}`) }}
-          </option>
-        </select>
+          @update:model-value="(v) => update({ source: v })"
+        />
       </label>
       <label class="fill-audio-field range">
         <span>{{ t('slideshow.fillAudioBrightness') }}</span>
@@ -65,7 +61,7 @@
  */
 import { useI18n } from '../../../lib/i18n.js'
 import { normalizeSlideshowFillAudio } from '../../../lib/slideshowFillAudio.js'
-import { SLIDESHOW_GRADIENT_AUDIO_SOURCES } from '../../../lib/slideshowGradientAudio.js'
+import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 
 const audio = defineModel({ type: Object, required: true })
 defineProps({
@@ -74,7 +70,6 @@ defineProps({
   disabled: { type: Boolean, default: false },
 })
 const { t } = useI18n()
-const sources = SLIDESHOW_GRADIENT_AUDIO_SOURCES
 
 function update(partial) {
   audio.value = normalizeSlideshowFillAudio({ ...audio.value, ...partial }, audio.value)

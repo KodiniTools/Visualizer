@@ -1526,12 +1526,6 @@ export default {
     gradientAudioOrbit: 'Orbit',
     gradientAudioHint:
       'Without music the gradient stays as set; to the beat it contracts and turns (radial: the centre orbits).',
-    gradientAudioSources: {
-      bass: 'Bass',
-      mid: 'Mids',
-      treble: 'Highs',
-      volume: 'Volume',
-    },
     fillAudio: 'Audio-reactive colour',
     fillAudioBrightness: 'Brighten',
     fillAudioHue: 'Hue',

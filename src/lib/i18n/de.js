@@ -1530,12 +1530,6 @@ export default {
     gradientAudioOrbit: 'Kreisen',
     gradientAudioHint:
       'Ohne Musik bleibt der Verlauf wie eingestellt; im Takt zieht er sich zusammen und dreht (radial: der Mittelpunkt kreist).',
-    gradientAudioSources: {
-      bass: 'Bass',
-      mid: 'Mitten',
-      treble: 'Höhen',
-      volume: 'Lautstärke',
-    },
     fillAudio: 'Farbe audio-reaktiv',
     fillAudioBrightness: 'Aufhellen',
     fillAudioHue: 'Farbton',

@@ -371,15 +371,17 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.base-gradient-toggle').setValue(true)
     expect(w.find('.base-gradient-audio-source').exists()).toBe(false)
     await w.find('.base-gradient-audio-toggle').setValue(true)
-    await w.find('.base-gradient-audio-source').setValue('treble')
+    // Quelle wie beim Bild-Audio-Reaktiv, inkl. Onset
+    expect(w.findAll('.base-gradient-audio-source option')).toHaveLength(8)
+    await w.find('.base-gradient-audio-source').setValue('trebleOnset')
     await w.find('.base-gradient-audio-pulse').setValue('40')
     await w.find('.base-gradient-audio-rotation').setValue('0')
     const last = w.emitted('base-gradient-change').at(-1)
     expect(last[0]).toBe('canvas')
-    expect(last[1].audio).toEqual({ enabled: true, source: 'treble', pulse: 40, rotation: 0 })
+    expect(last[1].audio).toEqual({ enabled: true, source: 'trebleOnset', pulse: 40, rotation: 0 })
     expect(
       JSON.parse(localStorage.getItem('visualizer-slideshow-base-gradient')).audio.source,
-    ).toBe('treble')
+    ).toBe('trebleOnset')
     await w.find('.btn-start').trigger('click')
     expect(w.emitted('start')[0][0].backgroundGradient.audio.pulse).toBe(40)
   })

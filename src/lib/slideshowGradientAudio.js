@@ -10,7 +10,18 @@
  */
 import { computeAudioReactiveValues } from './audio/audioReactiveEngine.js'
 
-export const SLIDESHOW_GRADIENT_AUDIO_SOURCES = Object.freeze(['bass', 'mid', 'treble', 'volume'])
+/** Audio-Quellen wie beim Bild-Audio-Reaktiv (inkl. Onset, siehe AudioLevelCalculator). */
+export const SLIDESHOW_AUDIO_SOURCE_BANDS = Object.freeze(['bass', 'mid', 'treble', 'volume'])
+export const SLIDESHOW_AUDIO_SOURCE_ONSETS = Object.freeze([
+  'bassOnset',
+  'midOnset',
+  'trebleOnset',
+  'allOnset',
+])
+export const SLIDESHOW_GRADIENT_AUDIO_SOURCES = Object.freeze([
+  ...SLIDESHOW_AUDIO_SOURCE_BANDS,
+  ...SLIDESHOW_AUDIO_SOURCE_ONSETS,
+])
 
 export const SLIDESHOW_GRADIENT_AUDIO_DEFAULT = Object.freeze({
   enabled: false,

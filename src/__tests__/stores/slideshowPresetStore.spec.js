@@ -5,6 +5,8 @@ import {
   normalizeSlideshowPreset,
   normalizeImageBounds,
   normalizeStockRef,
+  normalizeUploadRef,
+  collectUploadKeys,
 } from '../../stores/slideshowPresetStore.js'
 
 const KEY = 'visualizer-slideshow-presets'
@@ -49,7 +51,13 @@ describe('slideshowPresetStore', () => {
     expect(preset.name).toBe('Mein Preset')
     expect(preset.settings.displayDuration).toBe(4000)
     expect(preset.slots).toEqual(
-      snapshot.slots.map((sl) => ({ ...sl, adjustments: null, bounds: null, stock: null })),
+      snapshot.slots.map((sl) => ({
+        ...sl,
+        adjustments: null,
+        bounds: null,
+        stock: null,
+        upload: null,
+      })),
     )
 
     // Neuer Store liest aus dem localStorage
@@ -63,6 +71,7 @@ describe('slideshowPresetStore', () => {
       adjustments: null,
       bounds: null,
       stock: null,
+      upload: null,
     })
     expect(reloaded.presets[0].settings.fitToWorkspace).toBe(true)
     expect(reloaded.presets[0].settings.moveWholeSlideshow).toBe(true)
@@ -147,8 +156,22 @@ describe('slideshowPresetStore', () => {
     expect(p.settings.moveWholeSlideshow).toBe(false)
     expect(p.settings.transform.width).toBe(10)
     expect(p.slots).toEqual([
-      { displayDuration: null, audioMode: 'default', adjustments: null, bounds: null, stock: null },
-      { displayDuration: null, audioMode: 'default', adjustments: null, bounds: null, stock: null },
+      {
+        displayDuration: null,
+        audioMode: 'default',
+        adjustments: null,
+        bounds: null,
+        stock: null,
+        upload: null,
+      },
+      {
+        displayDuration: null,
+        audioMode: 'default',
+        adjustments: null,
+        bounds: null,
+        stock: null,
+        upload: null,
+      },
     ])
     expect(normalizeSlideshowPreset(null)).toBeNull()
   })
@@ -230,5 +253,33 @@ describe('Stock-Verweise dauerhaft im Preset', () => {
     const again = reloaded.presets.find((x) => x.id === p.id)
     expect(again.slots[0].stock).toEqual(ref)
     expect(again.slots[1].stock).toBeNull()
+  })
+})
+
+describe('Upload-Verweise dauerhaft im Preset', () => {
+  it('normalizeUploadRef akzeptiert nur gültige Schlüssel', () => {
+    const key = 'f'.repeat(64)
+    expect(normalizeUploadRef({ key, name: ' foto.png ' })).toEqual({ key, name: 'foto.png' })
+    expect(normalizeUploadRef({ key: 'fnv-1a2b-1234', name: 'x' })).toEqual({
+      key: 'fnv-1a2b-1234',
+      name: 'x',
+    })
+    expect(normalizeUploadRef({ key: '../etc', name: 'x' })).toBeNull()
+    expect(normalizeUploadRef({ key: 123 })).toBeNull()
+    expect(normalizeUploadRef(null)).toBeNull()
+  })
+
+  it('bleibt nach „Neuladen“ erhalten; collectUploadKeys sammelt Schlüssel', () => {
+    const key = 'e'.repeat(64)
+    const store = useSlideshowPresetStore()
+    store.savePreset('Upload', {
+      settings: snapshot.settings,
+      slots: [{ upload: { key, name: 'foto.png' } }, { upload: null }],
+    })
+    setActivePinia(createPinia())
+    const reloaded = useSlideshowPresetStore()
+    reloaded.loadPresets()
+    expect(reloaded.presets[0].slots[0].upload).toEqual({ key, name: 'foto.png' })
+    expect([...collectUploadKeys(reloaded.presets)]).toEqual([key])
   })
 })

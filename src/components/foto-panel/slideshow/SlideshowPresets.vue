@@ -29,7 +29,7 @@
           >🖼</span
         >
         <span
-          v-else-if="preset.slots.some((slot) => slot.stock)"
+          v-else-if="preset.slots.some((slot) => slot.stock || slot.upload)"
           class="preset-images-badge"
           :title="t('slideshow.presetStockHint')"
           >🗂</span

@@ -63,21 +63,36 @@ describe('slideshowSources', () => {
 describe('restorePresetImages', () => {
   const ref = { id: 's1', name: 'Wald', file: 'gallery/bg/wald.png' }
 
-  it('ohne Stock-Verweise → null (bisheriges Verhalten)', () => {
-    expect(restorePresetImages([{ stock: null }, {}], [])).toBeNull()
+  it('ohne Bild-Verweise → null (bisheriges Verhalten)', async () => {
+    expect(await restorePresetImages([{ stock: null }, {}], [])).toBeNull()
   })
 
-  it('Stock-Positionen aus Verweis, Upload-Positionen aus aktueller Auswahl', () => {
+  it('Stock aus Verweis, Uploads aus IndexedDB, fehlende aus aktueller Auswahl', async () => {
     const current = [
       { id: 'u1', source: 'upload' },
       { id: 'stock:x', source: 'stock' },
-      { id: 'u2', source: 'upload' },
     ]
-    const slots = [{ stock: null }, { stock: ref }, { stock: null }, { stock: null }]
-    const pairs = restorePresetImages(slots, current, (id) => (id === 's1' ? { cached: 1 } : null))
-    expect(pairs.map((p) => p.img.id)).toEqual(['u1', 'stock:s1', 'u2'])
-    expect(pairs[1].slot).toBe(slots[1])
+    const stored = { imageObject: { stored: true }, name: 'foto.png' }
+    const loadUpload = vi.fn(async (key) => (key === 'k-ok' ? stored : null))
+    const slots = [
+      { upload: { key: 'k-ok', name: 'foto.png' } },
+      { stock: ref },
+      { upload: { key: 'k-weg', name: 'weg.png' } },
+      { stock: null },
+    ]
+    const { pairs, missing } = await restorePresetImages(slots, current, {
+      loadUpload,
+      getLoadedStock: (id) => (id === 's1' ? { cached: 1 } : null),
+    })
+    expect(pairs.map((p) => p.img.id)).toEqual(['preset:k-ok', 'stock:s1', 'u1'])
+    expect(pairs[0].img).toMatchObject({
+      source: 'upload',
+      name: 'foto.png',
+      imageObject: stored.imageObject,
+    })
     expect(pairs[1].img.imageObject).toEqual({ cached: 1 })
+    expect(pairs[2].slot).toBe(slots[2])
+    expect(missing).toEqual(['weg.png'])
     // 4. Position entfällt (kein weiteres hochgeladenes Bild)
     expect(pairs).toHaveLength(3)
   })

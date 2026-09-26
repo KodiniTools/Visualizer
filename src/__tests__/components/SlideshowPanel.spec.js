@@ -129,6 +129,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       {
         displayDuration: null,
         audioMode: 'pulse',
+        audioSource: null,
         adjustments: null,
         bounds: null,
         transition: null,
@@ -140,6 +141,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       {
         displayDuration: 9000,
         audioMode: 'default',
+        audioSource: null,
         adjustments: null,
         bounds: null,
         transition: null,
@@ -859,6 +861,32 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     live = w.emitted('live-update').at(-1)[0]
     expect(live.images[1].audioMode).toBe('glitch')
     expect(live.images[0].audioMode).toBe('default')
+
+    // Eigene Audio-Quelle des Bildes (inkl. Onset)
+    const source = editor.find('.editor-audio-source')
+    expect(source.element.value).toBe('')
+    expect(source.findAll('option').map((o) => o.element.value)).toEqual([
+      '',
+      'bass',
+      'mid',
+      'treble',
+      'volume',
+      'dynamic',
+      'bassOnset',
+      'midOnset',
+      'trebleOnset',
+      'allOnset',
+    ])
+    await source.setValue('allOnset')
+    live = w.emitted('live-update').at(-1)[0]
+    expect(live.images[1].audioSource).toBe('allOnset')
+    expect(live.images[0].audioSource).toBeNull()
+    // Modus „Aus“ sperrt die Quelle; zurück auf „Wie Einstellung“ entfernt sie
+    await editor.find('.editor-audio').setValue('off')
+    expect(editor.find('.editor-audio-source').element.disabled).toBe(true)
+    await editor.find('.editor-audio').setValue('glitch')
+    await editor.find('.editor-audio-source').setValue('')
+    expect(w.emitted('live-update').at(-1)[0].images[1].audioSource).toBeNull()
 
     await w.setProps({ isPaused: false })
     expect(w.find('.image-editor').exists()).toBe(false)

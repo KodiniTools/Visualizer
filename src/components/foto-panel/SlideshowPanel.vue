@@ -254,12 +254,14 @@
       :default-fade-out="fadeOutDuration"
       :default-transition="transition"
       :audio-mode="imageAudioModes[slideshowImageKey(editorImage)] ?? 'default'"
+      :audio-source="imageAudioSources[slideshowImageKey(editorImage)] ?? null"
       :has-saved-settings="hasSavedSettings"
       @update:transition="(v) => updateEditedImage('transition', v)"
       @update:duration="(v) => updateEditedImage('duration', v)"
       @update:fade-in="(v) => updateEditedImage('fadeIn', v)"
       @update:fade-out="(v) => updateEditedImage('fadeOut', v)"
       @update:audio-mode="(v) => updateEditedImage('audioMode', v === 'default' ? null : v)"
+      @update:audio-source="(v) => updateEditedImage('audioSource', v)"
       @close="editorIndex = null"
     />
 
@@ -503,6 +505,8 @@ const imageTransitions = ref({})
 // Optionale Ein-/Ausblenddauer pro Bild ({ [id]: ms }); fehlt = Standard (Timing unten)
 const imageFadeIns = ref({})
 const imageFadeOuts = ref({})
+// Eigene Audio-Quelle pro Bild (key → Quelle; fehlt = wie Einstellung)
+const imageAudioSources = ref({})
 // ─── Einstellungen eines Bildes bei pausierter Slideshow ──────────────────────
 const editorIndex = ref(null)
 const editorImage = computed(() =>
@@ -529,7 +533,7 @@ watch(
 
 /**
  * Setzt einen Wert pro Bild für das bearbeitete Bild und übernimmt ihn live.
- * @param {'transition'|'duration'|'audioMode'} field
+ * @param {'transition'|'duration'|'fadeIn'|'fadeOut'|'audioMode'|'audioSource'} field
  */
 function updateEditedImage(field, value) {
   const img = editorImage.value
@@ -540,6 +544,7 @@ function updateEditedImage(field, value) {
     fadeIn: imageFadeIns,
     fadeOut: imageFadeOuts,
     audioMode: imageAudioModes,
+    audioSource: imageAudioSources,
   }[field]
   const key = slideshowImageKey(img)
   const next = { ...mapRef.value }
@@ -582,6 +587,7 @@ const PERSISTED_MAPS = [
   ['fadeOut', imageFadeOuts],
   ['displayDuration', imageDurations],
   ['audioMode', imageAudioModes],
+  ['audioSource', imageAudioSources],
 ]
 watch(
   orderedImages,
@@ -606,8 +612,15 @@ watch(
 
 // Änderungen dauerhaft merken (Standard = nicht gespeichert)
 watch(
-  [imageTransitions, imageFadeIns, imageFadeOuts, imageDurations, imageAudioModes],
-  ([tr, fin, fout, dur, audio]) => {
+  [
+    imageTransitions,
+    imageFadeIns,
+    imageFadeOuts,
+    imageDurations,
+    imageAudioModes,
+    imageAudioSources,
+  ],
+  ([tr, fin, fout, dur, audio, audioSrc]) => {
     for (const img of orderedImages.value) {
       const key = slideshowImageKey(img)
       // nur diese Felder ändern – eigene Größe/Position bleibt erhalten
@@ -617,6 +630,7 @@ watch(
         fadeOut: fout[key] ?? null,
         displayDuration: dur[key] ?? null,
         audioMode: audio[key] ?? null,
+        audioSource: audioSrc[key] ?? null,
       })
     }
   },
@@ -651,6 +665,7 @@ function buildPayload() {
         ...img,
         displayDuration: Number.isFinite(own) ? own : undefined,
         audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
+        audioSource: imageAudioSources.value[key] ?? null,
         transition: imageTransitions.value[key],
         fadeInDuration: imageFadeIns.value[key],
         fadeOutDuration: imageFadeOuts.value[key],
@@ -760,6 +775,7 @@ async function savePreset(name) {
       return {
         displayDuration: imageDurations.value[key] ?? null,
         audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
+        audioSource: imageAudioSources.value[key] ?? null,
         transition: imageTransitions.value[key] ?? null,
         fadeIn: imageFadeIns.value[key] ?? null,
         fadeOut: imageFadeOuts.value[key] ?? null,
@@ -878,6 +894,7 @@ async function loadPreset(preset) {
   const ownTransitions = {}
   const ownFadeIns = {}
   const ownFadeOuts = {}
+  const ownSources = {}
   pairs.forEach(({ img, slot }) => {
     const key = slideshowImageKey(img)
     if (!slot || key === undefined) return
@@ -886,6 +903,7 @@ async function loadPreset(preset) {
     if (slot.transition) ownTransitions[key] = slot.transition
     if (Number.isFinite(slot.fadeIn)) ownFadeIns[key] = slot.fadeIn
     if (Number.isFinite(slot.fadeOut)) ownFadeOuts[key] = slot.fadeOut
+    if (slot.audioSource) ownSources[key] = slot.audioSource
   })
   // Bild-Anpassungen pro Position übernehmen (ohne Slot/Anpassung → verwerfen)
   pairs.forEach(({ img, slot }) => {
@@ -902,6 +920,7 @@ async function loadPreset(preset) {
   imageTransitions.value = ownTransitions
   imageFadeIns.value = ownFadeIns
   imageFadeOuts.value = ownFadeOuts
+  imageAudioSources.value = ownSources
   // Läuft die Slideshow, sofort übernehmen – bei anderen Bildern neu starten
   if (props.isActive) {
     if (imagesChanged) emit('start', buildPayload())

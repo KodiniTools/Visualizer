@@ -1490,6 +1490,8 @@ export default {
     },
     imageSettings: 'Image settings',
     closeImageSettings: 'Close image settings',
+    perImageAudioSource: 'Audio source of this image',
+    audioSourceInherit: 'As configured',
     imageSettingsHint: 'Changes apply immediately and are kept for this image.',
     pausedEditHint: 'Paused: click an image in the “Images on canvas” bar to open its settings.',
     timingHint: 'Applies to all images without their own value in the list above.',

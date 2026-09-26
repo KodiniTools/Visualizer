@@ -1,10 +1,12 @@
 <template>
   <!-- Audio-Quelle – gleiche Auswahl wie beim Bild-Audio-Reaktiv (inkl. Onset) -->
   <select
-    :value="modelValue"
+    :value="modelValue ?? ''"
     :disabled="disabled"
-    @change="emit('update:modelValue', $event.target.value)"
+    @change="emit('update:modelValue', $event.target.value || null)"
   >
+    <!-- optional: keine eigene Quelle (Wert '' → null) -->
+    <option v-if="inheritLabel" value="">{{ inheritLabel }}</option>
     <option v-for="src in bands" :key="src" :value="src">{{ labelOf(src) }}</option>
     <optgroup :label="t('foto.onsetGroup')">
       <option v-for="src in onsets" :key="src" :value="src">{{ t(`foto.${src}`) }}</option>
@@ -25,6 +27,8 @@ import {
 
 defineProps({
   modelValue: { type: String, default: 'bass' },
+  // Beschriftung für „keine eigene Quelle“ (z. B. „Wie Einstellung“); leer = aus
+  inheritLabel: { type: String, default: '' },
   disabled: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update:modelValue'])

@@ -1493,6 +1493,8 @@ export default {
     },
     imageSettings: 'Bild-Einstellungen',
     closeImageSettings: 'Bild-Einstellungen schließen',
+    perImageAudioSource: 'Audio-Quelle dieses Bildes',
+    audioSourceInherit: 'Wie Einstellung',
     imageSettingsHint: 'Änderungen gelten sofort und bleiben für dieses Bild erhalten.',
     pausedEditHint:
       'Pausiert: Bild in der Leiste „Bilder auf Canvas“ anklicken, um seine Einstellungen zu öffnen.',

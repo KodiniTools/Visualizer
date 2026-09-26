@@ -53,6 +53,7 @@ describe('slideshowPresetStore', () => {
     expect(preset.slots).toEqual(
       snapshot.slots.map((sl) => ({
         ...sl,
+        audioSource: null,
         adjustments: null,
         bounds: null,
         transition: null,
@@ -71,6 +72,7 @@ describe('slideshowPresetStore', () => {
     expect(reloaded.presets[0].slots[0]).toEqual({
       displayDuration: 7000,
       audioMode: 'pulse',
+      audioSource: null,
       transition: null,
       fadeIn: null,
       fadeOut: null,
@@ -236,6 +238,7 @@ describe('slideshowPresetStore', () => {
       {
         displayDuration: null,
         audioMode: 'default',
+        audioSource: null,
         adjustments: null,
         bounds: null,
         transition: null,
@@ -247,6 +250,7 @@ describe('slideshowPresetStore', () => {
       {
         displayDuration: null,
         audioMode: 'default',
+        audioSource: null,
         adjustments: null,
         bounds: null,
         transition: null,

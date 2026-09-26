@@ -483,6 +483,7 @@ function buildSlideshowRun(config) {
     stockImage: img.stockImage,
     displayDuration: img.displayDuration,
     audioMode: img.audioMode,
+    audioSource: img.audioSource,
     transition: img.transition,
     fadeInDuration: img.fadeInDuration,
     fadeOutDuration: img.fadeOutDuration,
@@ -490,6 +491,8 @@ function buildSlideshowRun(config) {
     audioReactiveSettings: resolveSlideshowAudioReactive(img.audioMode, {
       applyGlobal: config.applyAudioReactive,
       savedSettings: savedAudioReactiveSettings.value,
+      // Eigene Audio-Quelle des Bildes (z. B. Bass-Onset)
+      source: img.audioSource,
     }),
   }))
 

@@ -6,6 +6,20 @@
 
 import { calculateEffectValue } from './audio/index.js'
 import { makeLevelResolver } from './audio/ReactiveLevel.js'
+import {
+  mergeTransitionTransform,
+  clipToWorkspace,
+  clipToWipe,
+  applyAudioFilters,
+  applyTransitionBlur,
+  applyBaseTransforms,
+  applyEntryAnimation,
+  applyAudioGeometry,
+  resolveBorder,
+  drawChromatic,
+  drawPlain,
+  drawVignette,
+} from './multiImage/drawSteps.js'
 
 export class MultiImageManager {
   constructor(canvas, callbacks = {}) {
@@ -580,536 +594,98 @@ export class MultiImageManager {
 
     // ✨ Filter Bilder basierend auf Layer-Einstellung
     const { behindVisualizer = null } = options
-    let imagesToDraw = this.images
+    const imagesToDraw =
+      behindVisualizer === null
+        ? this.images
+        : this.images.filter(
+            (imgData) =>
+              (imgData.fotoSettings?.renderBehindVisualizer || false) === behindVisualizer,
+          )
 
-    if (behindVisualizer !== null) {
-      imagesToDraw = this.images.filter((imgData) => {
-        const renderBehind = imgData.fotoSettings?.renderBehindVisualizer || false
-        return renderBehind === behindVisualizer
-      })
+    imagesToDraw.forEach((imgData) => this._drawImage(ctx, imgData, renderCanvas))
+  }
+
+  /**
+   * Zeichnet ein einzelnes Bild inkl. Animation, Slideshow-Übergang und
+   * audio-reaktiven Effekten. Die Einzelschritte liegen in multiImage/drawSteps.js;
+   * ihre Reihenfolge ist Teil des Verhaltens.
+   */
+  _drawImage(ctx, imgData, renderCanvas) {
+    // ✨ forceImageBounds=true damit die tatsächlichen Bild-Koordinaten verwendet werden
+    const bounds = this.getImageBounds(imgData, renderCanvas, true)
+    if (!bounds) return
+
+    const fotoSettings = imgData.fotoSettings
+    const audioReactive = this.getAudioReactiveValues(fotoSettings?.audioReactive)
+    // Aktive audio-reaktive Effekte (null = keine)
+    const fx = audioReactive?.hasEffects ? audioReactive.effects || null : null
+
+    // ✨ SLIDESHOW: Übergangsanimation (siehe slideshowTransitions.js) in die
+    // Eintritts-Animation einrechnen; Deckkraft kommt über slideshow.opacity
+    const slideshow = imgData.slideshow?.active ? imgData.slideshow : null
+    const transition = slideshow ? slideshow.transitionState : null
+    const animTransform = mergeTransitionTransform(
+      this.getAnimationTransform(imgData),
+      transition,
+      bounds,
+    )
+
+    // ✅ FIX: IMMER save/restore für jedes Bild um Filter-Leakage zu verhindern
+    ctx.save()
+
+    // ✨ Deckkraft von Eintritts-Animation und Slideshow-Übergang. Wird NACH den
+    // Bild-Filtern eingerechnet, weil applyFilters() globalAlpha auf die
+    // Bild-Deckkraft setzt (sonst wären Ein-/Ausblendungen wirkungslos und ein
+    // neues Slideshow-Bild erschiene einen Frame lang voll sichtbar).
+    const layerAlpha = this._getLayerAlpha(imgData, animTransform)
+
+    clipToWorkspace(ctx, slideshow ? slideshow.clipRect : null, renderCanvas)
+    clipToWipe(ctx, transition?.wipe, bounds)
+
+    // ✨ Nutze FotoManager für Filter + Schatten (wenn verfügbar)
+    if (this.fotoManager && fotoSettings) {
+      this.fotoManager.applyFilters(ctx, imgData)
+    } else if (imgData.settings) {
+      // Fallback: Alte Filter-Methode
+      this.applyFilters(ctx, imgData)
+    }
+    ctx.globalAlpha = ctx.globalAlpha * layerAlpha
+
+    if (fx) applyAudioFilters(ctx, fx)
+    applyTransitionBlur(ctx, transition?.blur)
+    applyBaseTransforms(ctx, bounds, { transition, fotoSettings, fx })
+
+    let drawBounds = applyEntryAnimation(ctx, bounds, animTransform)
+
+    if (fx) drawBounds = applyAudioGeometry(ctx, drawBounds, fx)
+
+    const border = resolveBorder(fotoSettings, fx)
+    const chromaticOffset = fx?.chromatic?.chromaticOffset
+
+    if (chromaticOffset > 0.5 && border.width === 0) {
+      drawChromatic(ctx, imgData.imageObject, drawBounds, chromaticOffset)
+    } else if (border.width > 0) {
+      // _drawImageOutline zeichnet Kontur UND Bild (Filter auf das Originalbild)
+      this._drawImageOutline(
+        ctx,
+        imgData,
+        drawBounds,
+        border.width,
+        border.color,
+        border.opacity,
+        border.glow,
+        layerAlpha,
+      )
+    } else {
+      drawPlain(ctx, imgData.imageObject, drawBounds)
     }
 
-    // ✅ OPTIMIZATION: Batch-Rendering mit weniger save/restore calls
-    imagesToDraw.forEach((imgData) => {
-      // ✨ forceImageBounds=true damit die tatsächlichen Bild-Koordinaten verwendet werden
-      const bounds = this.getImageBounds(imgData, renderCanvas, true)
-      if (!bounds) return
-
-      // ✨ Audio-Reaktive Werte berechnen
-      const audioReactive = this.getAudioReactiveValues(imgData.fotoSettings?.audioReactive)
-
-      // ✨ Eintritts-Animation Transformation berechnen
-      let animTransform = this.getAnimationTransform(imgData)
-
-      // ✨ SLIDESHOW: Übergangsanimation (siehe slideshowTransitions.js) in die
-      // bestehende Animations-Kette einrechnen; Deckkraft kommt über slideshow.opacity
-      const transition = imgData.slideshow?.active ? imgData.slideshow.transitionState : null
-      if (transition) {
-        animTransform = {
-          ...animTransform,
-          translateX: animTransform.translateX + (transition.translateX || 0) * bounds.width,
-          translateY: animTransform.translateY + (transition.translateY || 0) * bounds.height,
-          scale: animTransform.scale * (transition.scale ?? 1),
-          rotation: animTransform.rotation + (transition.rotation || 0),
-        }
-      }
-
-      // ✅ FIX: IMMER save/restore für jedes Bild um Filter-Leakage zu verhindern
-      ctx.save()
-
-      // ✨ Deckkraft von Eintritts-Animation und Slideshow-Übergang. Wird NACH den
-      // Bild-Filtern eingerechnet, weil applyFilters() globalAlpha auf die
-      // Bild-Deckkraft setzt (sonst wären Ein-/Ausblendungen wirkungslos und ein
-      // neues Slideshow-Bild erschiene einen Frame lang voll sichtbar).
-      const layerAlpha = this._getLayerAlpha(imgData, animTransform)
-
-      // ✨ SLIDESHOW: Auf Workspace-Bereich beschneiden („An Workspace anpassen“)
-      const clip = imgData.slideshow?.active ? imgData.slideshow.clipRect : null
-      if (clip) {
-        ctx.beginPath()
-        ctx.rect(
-          clip.relX * renderCanvas.width,
-          clip.relY * renderCanvas.height,
-          clip.relWidth * renderCanvas.width,
-          clip.relHeight * renderCanvas.height,
-        )
-        ctx.clip()
-      }
-
-      // ✨ SLIDESHOW-Übergang „Wischen“: nur den aufgedeckten Teil des Bildes zeigen
-      if (transition?.wipe) {
-        const start = Math.max(0, Math.min(1, transition.wipe.start))
-        const end = Math.max(start, Math.min(1, transition.wipe.end))
-        ctx.beginPath()
-        ctx.rect(
-          bounds.x + start * bounds.width,
-          bounds.y,
-          (end - start) * bounds.width,
-          bounds.height,
-        )
-        ctx.clip()
-      }
-
-      // ✨ Nutze FotoManager für Filter + Schatten (wenn verfügbar)
-      if (this.fotoManager && imgData.fotoSettings) {
-        this.fotoManager.applyFilters(ctx, imgData)
-      } else if (imgData.settings) {
-        // Fallback: Alte Filter-Methode
-        this.applyFilters(ctx, imgData)
-      }
-      ctx.globalAlpha = ctx.globalAlpha * layerAlpha
-
-      // ✨ AUDIO-REAKTIV: Zusätzliche Filter basierend auf Audio (MEHRERE EFFEKTE)
-      if (audioReactive && audioReactive.hasEffects) {
-        // Hole aktuelle Filter-String
-        let currentFilter = ctx.filter || 'none'
-        if (currentFilter === 'none') currentFilter = ''
-
-        const effects = audioReactive.effects
-
-        // Hue-Rotation
-        if (effects.hue) {
-          currentFilter += ` hue-rotate(${effects.hue.hueRotate}deg)`
-        }
-
-        // ✨ Frequenz-Split: Höhen verschieben den Farbton
-        if (effects.freqSplit && effects.freqSplit.hueRotate) {
-          currentFilter += ` hue-rotate(${effects.freqSplit.hueRotate}deg)`
-        }
-
-        // ✨ Beat-Color-Strobe: Farbton wechselt pro Beat, Sättigung pulst mit
-        if (effects.colorStrobe) {
-          currentFilter += ` hue-rotate(${effects.colorStrobe.hueRotate}deg) saturate(${effects.colorStrobe.saturate}%)`
-        }
-
-        // Helligkeit
-        if (effects.brightness) {
-          currentFilter += ` brightness(${effects.brightness.brightness}%)`
-        }
-
-        // Sättigung
-        if (effects.saturation) {
-          currentFilter += ` saturate(${effects.saturation.saturation}%)`
-        }
-
-        // Blur (Unschärfe)
-        if (effects.blur) {
-          currentFilter += ` blur(${effects.blur.blur}px)`
-        }
-
-        // ✨ NEU: Kontrast
-        if (effects.contrast) {
-          currentFilter += ` contrast(${effects.contrast.contrast}%)`
-        }
-
-        // ✨ NEU: Graustufen
-        if (effects.grayscale) {
-          currentFilter += ` grayscale(${effects.grayscale.grayscale}%)`
-        }
-
-        // ✨ NEU: Sepia
-        if (effects.sepia) {
-          currentFilter += ` sepia(${effects.sepia.sepia}%)`
-        }
-
-        // ✨ NEU: Invertieren
-        if (effects.invert) {
-          currentFilter += ` invert(${effects.invert.invert}%)`
-        }
-
-        // ✨ NEU: Strobe Helligkeit (zusätzlicher Brightness-Boost bei Peaks)
-        if (effects.strobe && effects.strobe.strobeBrightness !== 100) {
-          currentFilter += ` brightness(${effects.strobe.strobeBrightness}%)`
-        }
-
-        // Glow als Shadow-Effekt — stärkstes Leuchten aus Glow/Beat-Puls/
-        // BPM-Puls/Frequenz-Split gewinnt (mehrere Rhythmus-Effekte liefern Glow).
-        const glowCandidates = [
-          effects.glow,
-          effects.beatPulse,
-          effects.bpmPulse,
-          effects.freqSplit,
-        ].filter((e) => e && e.glowBlur > 0)
-        if (glowCandidates.length > 0) {
-          const strongest = glowCandidates.reduce((a, b) => (b.glowBlur > a.glowBlur ? b : a))
-          ctx.shadowColor = strongest.glowColor
-          ctx.shadowBlur = strongest.glowBlur
-          ctx.shadowOffsetX = 0
-          ctx.shadowOffsetY = 0
-        }
-
-        if (currentFilter.trim()) {
-          ctx.filter = currentFilter.trim()
-        }
-      }
-
-      // ✨ SLIDESHOW-Übergang „Weichzeichnen“: Blur an die übrigen Filter anhängen
-      if (transition?.blur > 0) {
-        const base = ctx.filter && ctx.filter !== 'none' ? `${ctx.filter} ` : ''
-        ctx.filter = `${base}blur(${transition.blur.toFixed(2)}px)`
-      }
-
-      // ✨ SLIDESHOW-Übergang „Kippen“: horizontale Skalierung um das Zentrum
-      if (transition && transition.scaleX !== undefined && transition.scaleX !== 1) {
-        const centerX = bounds.x + bounds.width / 2
-        const centerY = bounds.y + bounds.height / 2
-        ctx.translate(centerX, centerY)
-        ctx.scale(Math.max(0.001, transition.scaleX), 1)
-        ctx.translate(-centerX, -centerY)
-      }
-
-      // ✨ ROTATION anwenden (statisch + audio-reaktiv)
-      let totalRotation = imgData.fotoSettings?.rotation || 0
-
-      // Audio-reaktive Rotation hinzufügen
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.rotation) {
-        totalRotation += audioReactive.effects.rotation.rotation
-      }
-
-      if (totalRotation !== 0) {
-        // Berechne Zentrum des Bildes
-        const centerX = bounds.x + bounds.width / 2
-        const centerY = bounds.y + bounds.height / 2
-
-        // Verschiebe zum Zentrum, rotiere, verschiebe zurück
-        ctx.translate(centerX, centerY)
-        ctx.rotate((totalRotation * Math.PI) / 180)
-        ctx.translate(-centerX, -centerY)
-      }
-
-      // ✨ FLIP anwenden (Horizontal und/oder Vertikal spiegeln)
-      const flipH = imgData.fotoSettings?.flipH || false
-      const flipV = imgData.fotoSettings?.flipV || false
-      if (flipH || flipV) {
-        // Berechne Zentrum des Bildes
-        const centerX = bounds.x + bounds.width / 2
-        const centerY = bounds.y + bounds.height / 2
-
-        // Verschiebe zum Zentrum, spiegeln, verschiebe zurück
-        ctx.translate(centerX, centerY)
-        ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1)
-        ctx.translate(-centerX, -centerY)
-      }
-
-      // ✨ AUDIO-REAKTIV: Beat-Flip (180°-Karten-Flip pro Beat)
-      // Horizontale Skalierung 1 → -1 um das Zentrum simuliert den Kartendreh.
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.beatFlip) {
-        const flipScaleX = audioReactive.effects.beatFlip.flipScaleX
-        if (typeof flipScaleX === 'number' && flipScaleX !== 1) {
-          const centerX = bounds.x + bounds.width / 2
-          const centerY = bounds.y + bounds.height / 2
-          ctx.translate(centerX, centerY)
-          // Nicht exakt 0 skalieren (unsichtbar + Matrix-Singularität vermeiden)
-          ctx.scale(Math.abs(flipScaleX) < 0.02 ? 0.02 * Math.sign(flipScaleX || 1) : flipScaleX, 1)
-          ctx.translate(-centerX, -centerY)
-        }
-      }
-
-      // ✨ AUDIO-REAKTIV: Bewegungseffekte - drawBounds für Position
-      let drawBounds = { ...bounds }
-
-      // ✨ EINTRITTS-ANIMATION: Translate-Effekte
-      if (animTransform.translateX !== 0 || animTransform.translateY !== 0) {
-        drawBounds.x += animTransform.translateX
-        drawBounds.y += animTransform.translateY
-      }
-
-      // ✨ EINTRITTS-ANIMATION: Scale-Effekt
-      if (animTransform.scale !== 1) {
-        const centerX = drawBounds.x + drawBounds.width / 2
-        const centerY = drawBounds.y + drawBounds.height / 2
-        const newWidth = drawBounds.width * animTransform.scale
-        const newHeight = drawBounds.height * animTransform.scale
-        drawBounds.x = centerX - newWidth / 2
-        drawBounds.y = centerY - newHeight / 2
-        drawBounds.width = newWidth
-        drawBounds.height = newHeight
-      }
-
-      // ✨ EINTRITTS-ANIMATION: Rotation-Effekt
-      if (animTransform.rotation !== 0) {
-        const centerX = drawBounds.x + drawBounds.width / 2
-        const centerY = drawBounds.y + drawBounds.height / 2
-        ctx.translate(centerX, centerY)
-        ctx.rotate((animTransform.rotation * Math.PI) / 180)
-        ctx.translate(-centerX, -centerY)
-      }
-
-      // ✨ AUDIO-REAKTIV: Shake-Effekt (Erschütterung)
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.shake) {
-        const shake = audioReactive.effects.shake
-        drawBounds.x += shake.shakeX || 0
-        drawBounds.y += shake.shakeY || 0
-      }
-
-      // ✨ AUDIO-REAKTIV: Impuls-Shake (einzelner abklingender Ruck pro Beat)
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.impulseShake) {
-        const imp = audioReactive.effects.impulseShake
-        drawBounds.x += imp.shakeX || 0
-        drawBounds.y += imp.shakeY || 0
-      }
-
-      // ✨ AUDIO-REAKTIV: Bounce-Effekt (Hüpfen)
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.bounce) {
-        const bounce = audioReactive.effects.bounce
-        drawBounds.y += bounce.bounceY || 0
-      }
-
-      // ✨ AUDIO-REAKTIV: Swing-Effekt (Horizontales Pendeln)
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.swing) {
-        const swing = audioReactive.effects.swing
-        drawBounds.x += swing.swingX || 0
-      }
-
-      // ✨ AUDIO-REAKTIV: Orbit-Effekt (Kreisbewegung)
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.orbit) {
-        const orbit = audioReactive.effects.orbit
-        drawBounds.x += orbit.orbitX || 0
-        drawBounds.y += orbit.orbitY || 0
-      }
-
-      // ✨ AUDIO-REAKTIV: Figure8-Effekt (Achter-Bewegung)
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.figure8) {
-        const figure8 = audioReactive.effects.figure8
-        drawBounds.x += figure8.figure8X || 0
-        drawBounds.y += figure8.figure8Y || 0
-      }
-
-      // ✨ AUDIO-REAKTIV: Wave-Effekt (Sinuswelle)
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.wave) {
-        const wave = audioReactive.effects.wave
-        drawBounds.x += wave.waveX || 0
-        drawBounds.y += wave.waveY || 0
-      }
-
-      // ✨ AUDIO-REAKTIV: Spiral-Effekt (Spirale)
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.spiral) {
-        const spiral = audioReactive.effects.spiral
-        drawBounds.x += spiral.spiralX || 0
-        drawBounds.y += spiral.spiralY || 0
-      }
-
-      // ✨ AUDIO-REAKTIV: Float-Effekt (Schweben)
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.float) {
-        const float = audioReactive.effects.float
-        drawBounds.x += float.floatX || 0
-        drawBounds.y += float.floatY || 0
-      }
-
-      // ✨ NEU: AUDIO-REAKTIV: Skew-Effekt (Verzerrung)
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.skew) {
-        const skew = audioReactive.effects.skew
-        const centerX = drawBounds.x + drawBounds.width / 2
-        const centerY = drawBounds.y + drawBounds.height / 2
-        ctx.translate(centerX, centerY)
-        // CSS skew in Radians: tan(angle) für die Transformationsmatrix
-        const skewXRad = ((skew.skewX || 0) * Math.PI) / 180
-        const skewYRad = ((skew.skewY || 0) * Math.PI) / 180
-        ctx.transform(1, Math.tan(skewYRad), Math.tan(skewXRad), 1, 0, 0)
-        ctx.translate(-centerX, -centerY)
-      }
-
-      // ✨ NEU: AUDIO-REAKTIV: Perspective-Effekt (3D-Kipp)
-      // Hinweis: Canvas 2D unterstützt keine echte 3D-Perspektive,
-      // daher simulieren wir den Effekt durch Kombination von Skalierung und Scherung
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.perspective) {
-        const persp = audioReactive.effects.perspective
-        const centerX = drawBounds.x + drawBounds.width / 2
-        const centerY = drawBounds.y + drawBounds.height / 2
-
-        // Simulierte Perspektive durch asymmetrische Skalierung
-        const rotX = ((persp.perspectiveRotateX || 0) * Math.PI) / 180
-        const rotY = ((persp.perspectiveRotateY || 0) * Math.PI) / 180
-
-        // Skalierungsfaktoren basierend auf "Neigung"
-        const scaleXFactor = 1 - Math.abs(Math.sin(rotY)) * 0.15
-        const scaleYFactor = 1 - Math.abs(Math.sin(rotX)) * 0.15
-
-        ctx.translate(centerX, centerY)
-        ctx.scale(scaleXFactor, scaleYFactor)
-        // Leichte Scherung für Pseudo-3D-Effekt
-        ctx.transform(1, Math.sin(rotX) * 0.1, Math.sin(rotY) * 0.1, 1, 0, 0)
-        ctx.translate(-centerX, -centerY)
-      }
-
-      // ✨ NEU: AUDIO-REAKTIV: Strobe-Opacity-Effekt
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.strobe) {
-        const strobe = audioReactive.effects.strobe
-        if (strobe.strobeOpacity !== undefined && strobe.strobeOpacity !== 1) {
-          ctx.globalAlpha = ctx.globalAlpha * strobe.strobeOpacity
-        }
-      }
-
-      // ✨ AUDIO-REAKTIV: Skalierung (Pulsieren) — alle scale-liefernden Effekte
-      // multiplikativ kombinieren: Scale, Beat-Puls, Zoom-Punch, BPM-Puls, Frequenz-Split.
-      if (audioReactive && audioReactive.hasEffects) {
-        const fx = audioReactive.effects
-        let scaleFactor = 1.0
-        if (fx.scale) scaleFactor *= fx.scale.scale || 1.0
-        if (fx.beatPulse) scaleFactor *= fx.beatPulse.scale || 1.0
-        if (fx.zoomPunch) scaleFactor *= fx.zoomPunch.scale || 1.0
-        if (fx.bpmPulse) scaleFactor *= fx.bpmPulse.scale || 1.0
-        if (fx.freqSplit) scaleFactor *= fx.freqSplit.scale || 1.0
-
-        if (scaleFactor !== 1.0) {
-          // Skaliere vom Zentrum aus
-          const centerX = drawBounds.x + drawBounds.width / 2
-          const centerY = drawBounds.y + drawBounds.height / 2
-          const newWidth = drawBounds.width * scaleFactor
-          const newHeight = drawBounds.height * scaleFactor
-          drawBounds.x = centerX - newWidth / 2
-          drawBounds.y = centerY - newHeight / 2
-          drawBounds.width = newWidth
-          drawBounds.height = newHeight
-        }
-      }
-
-      // ✨ BILDKONTUR: Prüfen ob Kontur gezeichnet werden soll
-      // Statische Kontur-Einstellungen
-      let borderWidth = imgData.fotoSettings?.borderWidth || 0
-      let borderColor = imgData.fotoSettings?.borderColor || '#ffffff'
-      let borderOpacity = (imgData.fotoSettings?.borderOpacity ?? 100) / 100
-      let borderGlow = 0
-
-      // ✨ AUDIO-REAKTIVE BILDKONTUR: Überschreibt/erweitert statische Werte
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.border) {
-        const audioBorder = audioReactive.effects.border
-        // Audio-reaktive Breite addieren zur statischen Breite (oder nur Audio wenn keine statische)
-        borderWidth = Math.max(borderWidth, audioBorder.borderWidth)
-        // Audio-reaktive Opazität überschreibt wenn aktiv
-        borderOpacity = Math.max(borderOpacity, audioBorder.borderOpacity)
-        // Leuchten um die Kontur
-        borderGlow = audioBorder.borderGlow
-      }
-
-      // ✨ NEU: Chromatische Aberration - zeichnet RGB-Kanäle mit Verschiebung
-      const hasChromaticEffect =
-        audioReactive &&
-        audioReactive.hasEffects &&
-        audioReactive.effects.chromatic &&
-        audioReactive.effects.chromatic.chromaticOffset > 0.5
-
-      if (hasChromaticEffect && borderWidth === 0) {
-        // Chromatische Aberration: Bild in RGB-Kanälen mit Offset zeichnen
-        const chromatic = audioReactive.effects.chromatic
-        const offset = chromatic.chromaticOffset
-
-        try {
-          // Speichere aktuellen Filter
-          const currentFilter = ctx.filter
-          const currentAlpha = ctx.globalAlpha
-
-          // Rot-Kanal (nach rechts verschoben)
-          ctx.globalCompositeOperation = 'screen'
-          ctx.filter = `${currentFilter} saturate(0%) brightness(100%) sepia(100%) hue-rotate(-50deg) saturate(600%)`
-          ctx.globalAlpha = currentAlpha * 0.8
-          ctx.drawImage(
-            imgData.imageObject,
-            drawBounds.x + offset,
-            drawBounds.y,
-            drawBounds.width,
-            drawBounds.height,
-          )
-
-          // Grün-Kanal (mittig)
-          ctx.filter = `${currentFilter} saturate(0%) brightness(100%) sepia(100%) hue-rotate(50deg) saturate(600%)`
-          ctx.globalAlpha = currentAlpha * 0.8
-          ctx.drawImage(
-            imgData.imageObject,
-            drawBounds.x,
-            drawBounds.y,
-            drawBounds.width,
-            drawBounds.height,
-          )
-
-          // Blau-Kanal (nach links verschoben)
-          ctx.filter = `${currentFilter} saturate(0%) brightness(100%) sepia(100%) hue-rotate(170deg) saturate(600%)`
-          ctx.globalAlpha = currentAlpha * 0.8
-          ctx.drawImage(
-            imgData.imageObject,
-            drawBounds.x - offset,
-            drawBounds.y,
-            drawBounds.width,
-            drawBounds.height,
-          )
-
-          // Original darüber für Farbtreue
-          ctx.globalCompositeOperation = 'source-over'
-          ctx.filter = currentFilter
-          ctx.globalAlpha = currentAlpha * 0.4
-          ctx.drawImage(
-            imgData.imageObject,
-            drawBounds.x,
-            drawBounds.y,
-            drawBounds.width,
-            drawBounds.height,
-          )
-
-          // Reset
-          ctx.globalAlpha = currentAlpha
-          ctx.globalCompositeOperation = 'source-over'
-        } catch (e) {
-          console.warn('[MultiImageManager] Chromatic effect error:', e)
-        }
-      } else if (borderWidth > 0) {
-        // Mit Kontur: _drawImageOutline zeichnet sowohl Kontur als auch Bild
-        // Zeichne Kontur um die sichtbare Form des Bildes (inklusive Bild darüber)
-        // Filter werden in _drawImageOutline auf das Originalbild angewendet
-        this._drawImageOutline(
-          ctx,
-          imgData,
-          drawBounds,
-          borderWidth,
-          borderColor,
-          borderOpacity,
-          borderGlow,
-          layerAlpha,
-        )
-      } else {
-        // Ohne Kontur: Bild normal zeichnen
-        try {
-          ctx.drawImage(
-            imgData.imageObject,
-            drawBounds.x,
-            drawBounds.y,
-            drawBounds.width,
-            drawBounds.height,
-          )
-        } catch (e) {
-          console.warn('[MultiImageManager] Image render error:', e)
-        }
-      }
-
-      // ✨ AUDIO-REAKTIV: Vignette-Puls — Ränder des Bildes im Takt abdunkeln.
-      // Nach dem Bild gezeichnet, damit die Abdunklung über dem Bild liegt.
-      if (audioReactive && audioReactive.hasEffects && audioReactive.effects.vignettePulse) {
-        const strength = audioReactive.effects.vignettePulse.vignetteStrength || 0
-        if (strength > 0.01) {
-          const cx = drawBounds.x + drawBounds.width / 2
-          const cy = drawBounds.y + drawBounds.height / 2
-          const grad = ctx.createRadialGradient(
-            cx,
-            cy,
-            Math.min(drawBounds.width, drawBounds.height) * 0.3,
-            cx,
-            cy,
-            Math.max(drawBounds.width, drawBounds.height) * 0.7,
-          )
-          grad.addColorStop(0, 'rgba(0,0,0,0)')
-          grad.addColorStop(1, `rgba(0,0,0,${Math.min(0.85, strength).toFixed(3)})`)
-          ctx.save()
-          ctx.shadowBlur = 0
-          ctx.shadowColor = 'transparent'
-          ctx.globalCompositeOperation = 'source-over'
-          ctx.fillStyle = grad
-          ctx.fillRect(drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height)
-          ctx.restore()
-        }
-      }
-
-      // ✅ FIX: ctx.restore() stellt alle Filter/Transformationen wieder her
-      ctx.restore()
-    })
+    if (fx?.vignettePulse) {
+      drawVignette(ctx, drawBounds, fx.vignettePulse.vignetteStrength || 0)
+    }
+
+    // ✅ FIX: ctx.restore() stellt alle Filter/Transformationen wieder her
+    ctx.restore()
   }
 
   /**

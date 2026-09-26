@@ -1,0 +1,241 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MultiImageManager.drawImages – Charakterisierung > Beat-Flip nahe 0 mit negativem Vorzeichen und exakt 0 > negativ 1`] = `
+[
+  "save()",
+  "globalAlpha = 1",
+  "translate(250, 400)",
+  "scale(-0.02, 1)",
+  "translate(-250, -400)",
+  "drawImage([img], 100, 200, 300, 400)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > Beat-Flip nahe 0 mit negativem Vorzeichen und exakt 0 > null 1`] = `
+[
+  "save()",
+  "globalAlpha = 1",
+  "translate(250, 400)",
+  "scale(0.02, 1)",
+  "translate(-250, -400)",
+  "drawImage([img], 100, 200, 300, 400)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > Eintritts-Animation (Translate, Scale, Rotation, Opacity) 1`] = `
+[
+  "save()",
+  "globalAlpha = 0.25",
+  "translate(260, 380)",
+  "rotate(0.523599)",
+  "translate(-260, -380)",
+  "drawImage([img], 185, 280, 150, 200)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > FotoManager-Filter haben Vorrang vor Legacy-Filtern 1`] = `
+[
+  "save()",
+  "filter = brightness(150%)",
+  "globalAlpha = 0.7",
+  "globalAlpha = 0.35",
+  "drawImage([img], 100, 200, 300, 400)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > Layer-Filter behindVisualizer > behind 1`] = `
+[
+  "save()",
+  "globalAlpha = 1",
+  "drawImage([img], 100, 200, 300, 400)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > Layer-Filter behindVisualizer > front 1`] = `
+[
+  "save()",
+  "globalAlpha = 1",
+  "drawImage([img], 500, 200, 300, 400)",
+  "restore()",
+  "save()",
+  "globalAlpha = 1",
+  "drawImage([img], 700, 200, 300, 400)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > Slideshow: Clip, Wischen, Blur, Kippen, Übergangs-Transform 1`] = `
+[
+  "save()",
+  "beginPath()",
+  "rect(0, 100, 900, 800)",
+  "clip()",
+  "beginPath()",
+  "rect(100, 200, 120, 400)",
+  "clip()",
+  "globalAlpha = 0.6",
+  "filter = blur(3.46px)",
+  "translate(250, 400)",
+  "scale(0.001, 1)",
+  "translate(-250, -400)",
+  "translate(285, 320)",
+  "rotate(0.174533)",
+  "translate(-285, -320)",
+  "drawImage([img], 60, 20, 450, 600)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > Strobe ohne Brightness-Änderung, Vignette unter Schwelle 1`] = `
+[
+  "save()",
+  "globalAlpha = 1",
+  "drawImage([img], 100, 200, 300, 400)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > alle audio-reaktiven Bewegungs-Effekte + Vignette 1`] = `
+[
+  "save()",
+  "globalAlpha = 1",
+  "translate(250, 400)",
+  "rotate(0.349066)",
+  "translate(-250, -400)",
+  "translate(250, 400)",
+  "scale(-1, 1)",
+  "translate(-250, -400)",
+  "translate(250, 400)",
+  "scale(0.02, 1)",
+  "translate(-250, -400)",
+  "translate(257, 403)",
+  "rotate(-0.20944)",
+  "translate(-257, -403)",
+  "translate(267.5, 398.25)",
+  "transform(1, -0.087489, 0.176327, 1, 0, 0)",
+  "translate(-267.5, -398.25)",
+  "translate(267.5, 398.25)",
+  "scale(0.925, 0.948697)",
+  "transform(1, 0.034202, -0.05, 1, 0, 0)",
+  "translate(-267.5, -398.25)",
+  "drawImage([img], 74.45, 140.85, 386.1, 514.8)",
+  "createRadialGradient(267.5, 398.25, 115.83, 267.5, 398.25, 360.36)",
+  "gradient.addColorStop(0, rgba(0,0,0,0))",
+  "gradient.addColorStop(1, rgba(0,0,0,0.850))",
+  "save()",
+  "shadowBlur = 0",
+  "shadowColor = transparent",
+  "globalCompositeOperation = source-over",
+  "fillStyle = [gradient]",
+  "fillRect(74.45, 140.85, 386.1, 514.8)",
+  "restore()",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > alle audio-reaktiven Filter-Effekte + stärkster Glow 1`] = `
+[
+  "save()",
+  "filter = contrast(105%)",
+  "globalAlpha = 1",
+  "shadowColor = #00f",
+  "shadowBlur = 12",
+  "shadowOffsetX = 0",
+  "shadowOffsetY = 0",
+  "filter = contrast(105%) hue-rotate(30deg) hue-rotate(15deg) hue-rotate(90deg) saturate(150%) brightness(120%) saturate(80%) blur(2px) contrast(110%) grayscale(50%) sepia(20%) invert(10%) brightness(140%)",
+  "globalAlpha = 0.5",
+  "drawImage([img], 42.1, 122.8, 415.8, 554.4)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > audio-reaktive Kontur erweitert statische Werte 1`] = `
+[
+  "save()",
+  "globalAlpha = 1",
+  "_drawImageOutline({"x":100,"y":200,"width":300,"height":400}, 5, #ffffff, 0.9, 7, 1)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > chromatische Aberration (ohne Kontur) 1`] = `
+[
+  "save()",
+  "globalAlpha = 1",
+  "globalCompositeOperation = screen",
+  "filter = none saturate(0%) brightness(100%) sepia(100%) hue-rotate(-50deg) saturate(600%)",
+  "globalAlpha = 0.8",
+  "drawImage([img], 106, 200, 300, 400)",
+  "filter = none saturate(0%) brightness(100%) sepia(100%) hue-rotate(50deg) saturate(600%)",
+  "globalAlpha = 0.8",
+  "drawImage([img], 100, 200, 300, 400)",
+  "filter = none saturate(0%) brightness(100%) sepia(100%) hue-rotate(170deg) saturate(600%)",
+  "globalAlpha = 0.8",
+  "drawImage([img], 94, 200, 300, 400)",
+  "globalCompositeOperation = source-over",
+  "filter = none",
+  "globalAlpha = 0.4",
+  "drawImage([img], 100, 200, 300, 400)",
+  "globalAlpha = 1",
+  "globalCompositeOperation = source-over",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > chromatische Aberration unter Schwelle zeichnet normal 1`] = `
+[
+  "save()",
+  "globalAlpha = 1",
+  "drawImage([img], 100, 200, 300, 400)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > einfaches Bild ohne Effekte 1`] = `
+[
+  "save()",
+  "globalAlpha = 1",
+  "drawImage([img], 100, 200, 300, 400)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > hasEffects=false ignoriert alle Effekte 1`] = `
+[
+  "save()",
+  "globalAlpha = 1",
+  "drawImage([img], 100, 200, 300, 400)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > statische Einstellungen: Legacy-Filter, Rotation, Flip 1`] = `
+[
+  "save()",
+  "filter = brightness(110%) contrast(90%) saturate(100%) blur(1px)",
+  "globalAlpha = 0.8",
+  "globalAlpha = 0.8",
+  "translate(250, 400)",
+  "rotate(0.785398)",
+  "translate(-250, -400)",
+  "translate(250, 400)",
+  "scale(-1, -1)",
+  "translate(-250, -400)",
+  "drawImage([img], 100, 200, 300, 400)",
+  "restore()",
+]
+`;
+
+exports[`MultiImageManager.drawImages – Charakterisierung > statische Kontur hat Vorrang vor chromatischer Aberration 1`] = `
+[
+  "save()",
+  "globalAlpha = 0.8",
+  "_drawImageOutline({"x":100,"y":200,"width":300,"height":400}, 4, #123456, 0.5, 0, 0.8)",
+  "restore()",
+]
+`;

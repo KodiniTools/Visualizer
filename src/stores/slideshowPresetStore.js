@@ -12,6 +12,8 @@ const STORAGE_KEY = 'visualizer-slideshow-presets'
 // Frisch gespeicherte Bilder beim Aufräumen schonen (laufendes Speichern,
 // auch in einem anderen Tab, darf nicht betroffen sein)
 export const IMAGE_CLEANUP_GRACE_MS = 5 * 60 * 1000
+// „Jetzt aufräumen“: nur ein gerade laufendes Speichern (Sekunden) schonen
+export const MANUAL_CLEANUP_GRACE_MS = 60 * 1000
 const AUTO_CLEANUP_DELAY_MS = 3000
 let autoCleanupScheduled = false
 

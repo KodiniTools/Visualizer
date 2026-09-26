@@ -1469,6 +1469,11 @@ export default {
     storageOf: 'von',
     storageNearlyFull:
       'Browser-Speicher fast voll – nicht mehr benötigte Presets löschen, um Platz zu schaffen.',
+    cleanupNow: 'Jetzt aufräumen',
+    cleaningUp: 'Räume auf …',
+    cleanupHint: 'Entfernt gespeicherte Bilder, die von keinem Preset mehr verwendet werden',
+    cleanupDone: 'Aufgeräumt',
+    cleanupNothing: 'Nichts aufzuräumen – alle gespeicherten Bilder werden verwendet.',
     dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.',
   },
 

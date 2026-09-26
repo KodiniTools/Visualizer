@@ -42,3 +42,20 @@ describe('SlideshowPresets – Speicherbelegung', () => {
     expect(mountWith({ available: false }).find('.storage-info').exists()).toBe(false)
   })
 })
+
+describe('SlideshowPresets – Jetzt aufräumen', () => {
+  const storage = { available: true, count: 2, bytes: 100, usage: null, quota: null }
+
+  it('Knopf emittiert cleanup', async () => {
+    wrapper = mount(SlideshowPresets, { props: { presets: [], storage } })
+    await wrapper.find('.btn-cleanup-storage').trigger('click')
+    expect(wrapper.emitted('cleanup')).toHaveLength(1)
+  })
+
+  it('während des Aufräumens gesperrt', () => {
+    wrapper = mount(SlideshowPresets, { props: { presets: [], storage, cleaning: true } })
+    const btn = wrapper.find('.btn-cleanup-storage')
+    expect(btn.element.disabled).toBe(true)
+    expect(btn.text()).toContain('Räume auf')
+  })
+})

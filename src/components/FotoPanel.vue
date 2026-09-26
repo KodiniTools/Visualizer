@@ -48,6 +48,7 @@
       :has-workspace="hasWorkspace"
       :adjustments-api="slideshowAdjustmentsApi"
       :external-transform="slideshowExternalTransform"
+      :edit-image-request="slideshowEditRequest"
       @start="startSlideshow"
       @pause="pauseSlideshow"
       @resume="resumeSlideshow"
@@ -208,6 +209,15 @@ const {
 } = useStockGallery()
 // Per Maus verschobener gemeinsamer Bereich (für die Regler im Slideshow-Panel)
 const slideshowExternalTransform = ref(null)
+// Klick auf ein Slideshow-Bild in der Leiste (pausiert) → dessen Einstellungen öffnen
+const slideshowEditRequest = ref(null)
+function onSlideshowEditImage(event) {
+  const index = event?.detail?.index
+  if (!Number.isInteger(index)) return
+  slideshowEditRequest.value = { index, nonce: Date.now() }
+}
+onMounted(() => window.addEventListener('slideshow:edit-image', onSlideshowEditImage))
+onBeforeUnmount(() => window.removeEventListener('slideshow:edit-image', onSlideshowEditImage))
 // Workspace-Format gewählt? (Voraussetzung für „An Workspace anpassen“)
 const workspaceStore = useWorkspaceStore()
 const hasWorkspace = computed(() => workspaceStore.selectedPresetKey != null)
@@ -450,6 +460,8 @@ function buildSlideshowRun(config) {
     moveWholeSlideshow: config.moveWholeSlideshow,
     transition: config.transition,
     transform: config.transform,
+    // Live-Bearbeitung eines Bildes: aktuelle Anpassungen vorher übernehmen
+    preserveLive: config.preserveLive === true,
   }
   return { images, options }
 }

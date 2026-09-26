@@ -217,3 +217,21 @@ describe('MultiImageManager – Übergänge beim Zeichnen', () => {
     expect(calls.some((c) => c[0] === 'scale' && c[1] === 0.5 && c[2] === 1)).toBe(true)
   })
 })
+
+describe('SlideshowManager – Live-Bearbeitung (pausiert)', () => {
+  it('preserveLive: aktuelle Anpassungen bleiben, neue Anzeigedauer gilt sofort', () => {
+    const img = { width: 100, height: 100 }
+    const m = createManager()
+    const imgs = [{ imageObject: img }, { imageObject: { width: 100, height: 100 } }]
+    m.start(imgs, { displayDuration: 3000 })
+    const shown = m.activeImages[0]
+    shown.fotoSettings.brightness = 160 // gerade eben geändert, noch nicht gemerkt
+    m.applyLiveUpdate([{ ...imgs[0], displayDuration: 8000, transition: 'wipe' }, imgs[1]], {
+      preserveLive: true,
+    })
+    expect(shown.fotoSettings.brightness).toBe(160)
+    expect(shown.slideshow.displayDuration).toBe(8000)
+    expect(shown.slideshow.transition).toBe('wipe')
+    m.stop()
+  })
+})

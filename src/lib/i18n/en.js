@@ -1488,6 +1488,10 @@ export default {
       flip: 'Flip',
       wipe: 'Wipe',
     },
+    imageSettings: 'Image settings',
+    closeImageSettings: 'Close image settings',
+    imageSettingsHint: 'Changes apply immediately and are kept for this image.',
+    pausedEditHint: 'Paused: click an image in the “Images on canvas” bar to open its settings.',
     dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.',
   },
 

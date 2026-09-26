@@ -1491,6 +1491,11 @@ export default {
       flip: 'Kippen',
       wipe: 'Wischen',
     },
+    imageSettings: 'Bild-Einstellungen',
+    closeImageSettings: 'Bild-Einstellungen schließen',
+    imageSettingsHint: 'Änderungen gelten sofort und bleiben für dieses Bild erhalten.',
+    pausedEditHint:
+      'Pausiert: Bild in der Leiste „Bilder auf Canvas“ anklicken, um seine Einstellungen zu öffnen.',
     dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.',
   },
 

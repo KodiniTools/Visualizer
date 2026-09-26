@@ -534,6 +534,8 @@ export class SlideshowManager {
    */
   applyLiveUpdate(images, options = {}) {
     if (!this.isActive || !Array.isArray(images)) return false
+    // Live-Bearbeitung: Änderungen der letzten Momente am angezeigten Bild nicht verlieren
+    if (options.preserveLive) this._syncLiveMemory(true)
     if (images.length !== this.config.images.length) {
       console.warn('[SlideshowManager] Live-Update: Bildanzahl passt nicht')
       return false
@@ -577,6 +579,13 @@ export class SlideshowManager {
       imageData.fotoSettings.renderBehindVisualizer = renderBehind
       if (imageData.slideshow) {
         imageData.slideshow.transition = resolveTransition(merged[index], this.config.transition)
+        // Live-Bearbeitung: neue Anzeigedauer gilt auch für das angezeigte Bild
+        if (options.preserveLive) {
+          imageData.slideshow.displayDuration = SlideshowManager.resolveDisplayDuration(
+            merged[index],
+            this.config.displayDuration,
+          )
+        }
       }
     }
     this._lastLiveSync = Date.now()

@@ -42,6 +42,12 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
     if (window.fotoPanelControls?.currentActiveImage) {
       window.fotoPanelControls.currentActiveImage.value = imgData
     }
+
+    // Pausierte Slideshow: Einstellungen dieses Bildes im Slideshow-Panel öffnen
+    const index = imgData.slideshow?.imageIndex
+    if (imgData.isSlideshowImage && window.slideshowManager?.isPaused && Number.isInteger(index)) {
+      window.dispatchEvent(new CustomEvent('slideshow:edit-image', { detail: { index } }))
+    }
   }
 
   function deleteCanvasImage(imageId) {

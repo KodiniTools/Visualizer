@@ -100,6 +100,28 @@
       </button>
     </div>
 
+    <p v-if="isActive && isPaused && !editorImage" class="hint paused-edit-hint">
+      {{ t('slideshow.pausedEditHint') }}
+    </p>
+
+    <!-- Einstellungen eines Bildes (pausiert; Klick auf das Bild in der Leiste) -->
+    <SlideshowImageEditor
+      v-if="editorImage"
+      :key="slideshowImageKey(editorImage)"
+      :image="editorImage"
+      :index="editorIndex"
+      :total="orderedImages.length"
+      :transition="imageTransitions[slideshowImageKey(editorImage)] ?? null"
+      :duration="imageDurations[slideshowImageKey(editorImage)]"
+      :default-duration="displayDuration"
+      :audio-mode="imageAudioModes[slideshowImageKey(editorImage)] ?? 'default'"
+      :has-saved-settings="hasSavedSettings"
+      @update:transition="(v) => updateEditedImage('transition', v)"
+      @update:duration="(v) => updateEditedImage('duration', v)"
+      @update:audio-mode="(v) => updateEditedImage('audioMode', v === 'default' ? null : v)"
+      @close="editorIndex = null"
+    />
+
     <!-- Steuerung + Fortschritt -->
     <SlideshowControls
       :is-active="isActive"
@@ -129,7 +151,9 @@ import SlideshowTimingSettings from './slideshow/SlideshowTimingSettings.vue'
 import SlideshowTransformSettings from './slideshow/SlideshowTransformSettings.vue'
 import SlideshowControls from './slideshow/SlideshowControls.vue'
 import SlideshowPresets from './slideshow/SlideshowPresets.vue'
-import { slideshowImageKey } from './slideshow/slideshowImageKey.js'
+import SlideshowImageEditor from './slideshow/SlideshowImageEditor.vue'
+import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore.js'
+import { slideshowImageKey, slideshowStableKey } from './slideshow/slideshowImageKey.js'
 import { restorePresetImages } from '../../lib/slideshowSources.js'
 import { persistUploadImage, restoreUploadImage } from '../../lib/slideshowImagePersistence.js'
 import { isQuotaError } from '../../utils/presetImageRepository.js'
@@ -161,6 +185,8 @@ const props = defineProps({
   adjustmentsApi: { type: Object, default: null },
   // Gemeinsamer Bereich wurde per Maus verschoben ({ relX, relY, relWidth, relHeight })
   externalTransform: { type: Object, default: null },
+  // Bild-Einstellungen öffnen: { index, nonce } (Klick auf ein Bild der Leiste, pausiert)
+  editImageRequest: { type: Object, default: null },
 })
 
 const emit = defineEmits([
@@ -225,6 +251,49 @@ const isVisible = computed(
 const imageAudioModes = ref({})
 // Optionale Übergangsanimation pro Bild ({ [id]: transitionId }); fehlt = globaler Übergang
 const imageTransitions = ref({})
+// ─── Einstellungen eines Bildes bei pausierter Slideshow ──────────────────────
+const editorIndex = ref(null)
+const editorImage = computed(() =>
+  props.isActive && props.isPaused && Number.isInteger(editorIndex.value)
+    ? (orderedImages.value[editorIndex.value] ?? null)
+    : null,
+)
+
+watch(
+  () => props.editImageRequest,
+  (req) => {
+    if (req && Number.isInteger(req.index) && props.isActive && props.isPaused) {
+      editorIndex.value = req.index
+    }
+  },
+)
+// Beim Fortsetzen/Stoppen schließen
+watch(
+  () => props.isActive && props.isPaused,
+  (paused) => {
+    if (!paused) editorIndex.value = null
+  },
+)
+
+/**
+ * Setzt einen Wert pro Bild für das bearbeitete Bild und übernimmt ihn live.
+ * @param {'transition'|'duration'|'audioMode'} field
+ */
+function updateEditedImage(field, value) {
+  const img = editorImage.value
+  if (!img) return
+  const mapRef = {
+    transition: imageTransitions,
+    duration: imageDurations,
+    audioMode: imageAudioModes,
+  }[field]
+  const key = slideshowImageKey(img)
+  const next = { ...mapRef.value }
+  if (value === null || value === undefined) delete next[key]
+  else next[key] = value
+  mapRef.value = next
+  emit('live-update', { ...buildPayload(), preserveLive: true })
+}
 
 watch(
   () => props.images,
@@ -248,6 +317,31 @@ watch(
     if (!active) orderedImages.value = [...props.images]
   },
 )
+
+const imageSettingsStore = useSlideshowImageSettingsStore()
+
+// Dauerhaft gemerkte Übergänge pro Bild übernehmen (für Bilder ohne eigenen Wert)
+watch(
+  orderedImages,
+  (list) => {
+    let next = null
+    for (const img of list) {
+      const key = slideshowImageKey(img)
+      if (key === undefined || imageTransitions.value[key]) continue
+      const stored = imageSettingsStore.getTransition(slideshowStableKey(img))
+      if (stored) (next ??= { ...imageTransitions.value })[key] = stored
+    }
+    if (next) imageTransitions.value = next
+  },
+  { immediate: true },
+)
+
+// Änderungen dauerhaft merken (auch „Standard“ = Eintrag entfernen)
+watch(imageTransitions, (map) => {
+  for (const img of orderedImages.value) {
+    imageSettingsStore.setTransition(slideshowStableKey(img), map[slideshowImageKey(img)] ?? null)
+  }
+})
 
 function sameImageKeys(a, b) {
   return (
@@ -586,6 +680,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   padding-top: 8px;
   border-top: 1px solid var(--card-bg);
 }
+.paused-edit-hint,
 .adjustments-section .hint {
   padding-left: 0;
 }

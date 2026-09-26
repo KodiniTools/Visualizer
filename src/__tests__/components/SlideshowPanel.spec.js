@@ -522,6 +522,62 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.findAll('.order-transition')[0].element.value).toBe('default')
   })
 
+  it('per-image transitions are remembered permanently (reload)', async () => {
+    const withObj = (img, w, h) => ({
+      ...img,
+      imageObject: { ...img.imageObject, width: w, height: h },
+    })
+    const imgs = [withObj(images[0], 10, 10), withObj(images[1], 20, 10)]
+    let w = mountPanel({ images: imgs })
+    await w.findAll('.order-transition')[1].setValue('rotate')
+    w.unmount()
+    pinia = createPinia()
+    setActivePinia(pinia)
+    // neue IDs (z. B. nach Neuladen), gleiche Namen + Maße
+    w = mountPanel({ images: imgs.map((i) => ({ ...i, id: `${i.id}-neu` })) })
+    wrapper = w
+    expect(w.findAll('.order-transition')[1].element.value).toBe('rotate')
+    expect(w.findAll('.order-transition')[0].element.value).toBe('default')
+    // zurück auf Standard → vergessen
+    await w.findAll('.order-transition')[1].setValue('default')
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-image-transitions'))).toEqual({})
+  })
+
+  it('paused: click request opens the image editor; edits go live and close on resume', async () => {
+    const w = mountPanel()
+    await w.setProps({ isActive: true, isPaused: true })
+    expect(w.find('.paused-edit-hint').exists()).toBe(true)
+    await w.setProps({ editImageRequest: { index: 1, nonce: 1 } })
+    const editor = w.find('.image-editor')
+    expect(editor.exists()).toBe(true)
+    expect(editor.text()).toContain('Zwei')
+
+    await editor.find('.editor-transition').setValue('slideUp')
+    let live = w.emitted('live-update').at(-1)[0]
+    expect(live.preserveLive).toBe(true)
+    expect(live.images[1].transition).toBe('slideUp')
+
+    const dur = editor.find('.editor-duration')
+    dur.element.value = '7'
+    await dur.trigger('input')
+    live = w.emitted('live-update').at(-1)[0]
+    expect(live.images[1].displayDuration).toBe(7000)
+
+    await editor.find('.editor-audio').setValue('glitch')
+    live = w.emitted('live-update').at(-1)[0]
+    expect(live.images[1].audioMode).toBe('glitch')
+    expect(live.images[0].audioMode).toBe('default')
+
+    await w.setProps({ isPaused: false })
+    expect(w.find('.image-editor').exists()).toBe(false)
+  })
+
+  it('editor request is ignored while running', async () => {
+    const w = mountPanel()
+    await w.setProps({ isActive: true, isPaused: false, editImageRequest: { index: 0, nonce: 2 } })
+    expect(w.find('.image-editor').exists()).toBe(false)
+  })
+
   it('reset in the transform section restores defaults and emits transform-change', async () => {
     const w = mountPanel()
     const xNum = w.findAll('.transform-control input[type="number"]')[0].element

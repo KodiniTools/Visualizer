@@ -1,0 +1,467 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`useBgSettings – Presets > speichert den kompletten Zustand 1`] = `
+{
+  "backgroundColor": "#112233",
+  "backgroundImage": {
+    "settings": {
+      "audioReactive": {
+        "enabled": true,
+      },
+      "flipH": false,
+    },
+    "src": "bg.png",
+    "target": "background",
+  },
+  "backgroundOpacity": 1,
+  "backgroundVideo": null,
+  "bgAudioBeatBoost": 1,
+  "bgAudioEasing": "linear",
+  "bgAudioEnabled": false,
+  "bgAudioGain": 1,
+  "bgAudioPhase": 0,
+  "bgAudioSmoothing": 50,
+  "bgAudioSource": "bass",
+  "bgEffects": {
+    "beatFlip": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "beatPulse": {
+      "enabled": false,
+      "intensity": 70,
+    },
+    "blur": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "border": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "bounce": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "bpmPulse": {
+      "enabled": false,
+      "intensity": 60,
+    },
+    "brightness": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "chromatic": {
+      "enabled": false,
+      "intensity": 60,
+    },
+    "colorStrobe": {
+      "enabled": false,
+      "intensity": 70,
+    },
+    "contrast": {
+      "enabled": false,
+      "intensity": 60,
+    },
+    "figure8": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "float": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "freqSplit": {
+      "enabled": false,
+      "intensity": 60,
+    },
+    "glow": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "gradientPulse": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "gradientRotation": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "grayscale": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "hue": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "impulseShake": {
+      "enabled": false,
+      "intensity": 70,
+    },
+    "invert": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "orbit": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "perspective": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "rotation": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "saturation": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "scale": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "sepia": {
+      "enabled": false,
+      "intensity": 70,
+    },
+    "shake": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "skew": {
+      "enabled": false,
+      "intensity": 40,
+    },
+    "spiral": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "strobe": {
+      "enabled": false,
+      "intensity": 70,
+    },
+    "swing": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "vignettePulse": {
+      "enabled": false,
+      "intensity": 60,
+    },
+    "wave": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "zoomPunch": {
+      "enabled": false,
+      "intensity": 70,
+    },
+  },
+  "elements": {
+    "images": [
+      {
+        "fotoSettings": {
+          "rotation": 3,
+        },
+        "relHeight": 0.4,
+        "relWidth": 0.3,
+        "relX": 0.1,
+        "relY": 0.2,
+        "rotation": 0,
+        "settings": {
+          "brightness": 90,
+        },
+        "src": "i1.png",
+      },
+    ],
+    "texts": [
+      {
+        "animation": {
+          "type": "fade",
+        },
+        "id": "t1",
+        "text": "Hi",
+      },
+    ],
+    "ticker": "[ticker]",
+    "videos": [
+      {
+        "endTime": 0,
+        "fotoSettings": null,
+        "loop": true,
+        "muted": true,
+        "playbackRate": 1,
+        "relHeight": 0.2,
+        "relWidth": 0.2,
+        "relX": 0.5,
+        "relY": 0.5,
+        "rotation": 0,
+        "settings": null,
+        "src": "blob:v1",
+        "startTime": 0,
+      },
+    ],
+  },
+  "gradientAngle": 45,
+  "gradientColor2": "#0066ff",
+  "gradientEnabled": true,
+  "gradientType": "radial",
+  "id": 1234,
+  "name": "Preset 1",
+}
+`;
+
+exports[`useBgSettings – Snapshot (Beat-Marker) > erfasst Hintergrund und registriert die Bridge 1`] = `
+{
+  "backgroundColor": "#ffffff",
+  "backgroundImage": null,
+  "backgroundOpacity": 1,
+  "backgroundVideo": {
+    "loop": false,
+    "muted": false,
+    "settings": {
+      "x": 1,
+    },
+    "src": "blob:ws",
+    "target": "workspace",
+  },
+  "bgAudioBeatBoost": 1,
+  "bgAudioEasing": "linear",
+  "bgAudioEnabled": false,
+  "bgAudioGain": 1,
+  "bgAudioPhase": 0,
+  "bgAudioSmoothing": 50,
+  "bgAudioSource": "bass",
+  "bgEffects": {
+    "beatFlip": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "beatPulse": {
+      "enabled": false,
+      "intensity": 70,
+    },
+    "blur": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "border": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "bounce": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "bpmPulse": {
+      "enabled": false,
+      "intensity": 60,
+    },
+    "brightness": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "chromatic": {
+      "enabled": false,
+      "intensity": 60,
+    },
+    "colorStrobe": {
+      "enabled": false,
+      "intensity": 70,
+    },
+    "contrast": {
+      "enabled": false,
+      "intensity": 60,
+    },
+    "figure8": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "float": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "freqSplit": {
+      "enabled": false,
+      "intensity": 60,
+    },
+    "glow": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "gradientPulse": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "gradientRotation": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "grayscale": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "hue": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "impulseShake": {
+      "enabled": false,
+      "intensity": 70,
+    },
+    "invert": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "orbit": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "perspective": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "rotation": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "saturation": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "scale": {
+      "enabled": false,
+      "intensity": 80,
+    },
+    "sepia": {
+      "enabled": false,
+      "intensity": 70,
+    },
+    "shake": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "skew": {
+      "enabled": false,
+      "intensity": 40,
+    },
+    "spiral": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "strobe": {
+      "enabled": false,
+      "intensity": 70,
+    },
+    "swing": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "vignettePulse": {
+      "enabled": false,
+      "intensity": 60,
+    },
+    "wave": {
+      "enabled": false,
+      "intensity": 50,
+    },
+    "zoomPunch": {
+      "enabled": false,
+      "intensity": 70,
+    },
+  },
+  "gradientAngle": 45,
+  "gradientColor2": "#0066ff",
+  "gradientEnabled": false,
+  "gradientType": "linear",
+}
+`;
+
+exports[`useBgSettings – öffentliche API > liefert unverändert alle Schlüssel 1`] = `
+[
+  "activeBgAudioPreset",
+  "applyBackgroundColor",
+  "applyBackgroundSnapshot",
+  "applyBgAudioSettings",
+  "backgroundColor",
+  "backgroundImageSrc",
+  "backgroundOpacity",
+  "bgAudioReactive",
+  "bgAudioRevision",
+  "bgFlipH",
+  "bgFlipV",
+  "bgGalleryCategories",
+  "bgGalleryCategoryCache",
+  "bgGalleryImages",
+  "bgGalleryLoading",
+  "buildBackgroundSnapshot",
+  "cancelBackgroundReplace",
+  "clearBgAudioPreset",
+  "closeBackgroundReplaceModal",
+  "closeBgReplaceGallery",
+  "colorDisplay",
+  "confirmBackgroundReplace",
+  "confirmBgReplaceFromGallery",
+  "confirmReset",
+  "currentBackgroundForReplace",
+  "deletePreset",
+  "formatColorDisplay",
+  "gradientAngle",
+  "gradientColor2",
+  "gradientEnabled",
+  "gradientType",
+  "handleBackgroundReplaceFile",
+  "handlePresetApply",
+  "hasImageBackground",
+  "hasSavedBgAudioSettings",
+  "hasVideoBackground",
+  "hasWorkspaceBackground",
+  "hasWorkspaceVideoBackground",
+  "hexToRGBA",
+  "initializeCanvasSettings",
+  "isCanvasEmpty",
+  "loadPreset",
+  "loadPresets",
+  "openBackgroundReplaceModal",
+  "openBgReplaceGallery",
+  "parseRGBA",
+  "pendingBackgroundReplaceImage",
+  "pendingBackgroundReplaceSrc",
+  "replaceType",
+  "resetAllBackgrounds",
+  "resetNormalBackground",
+  "resetWorkspaceBackgroundOnly",
+  "rgbToHex",
+  "saveBgAudioSettings",
+  "saveCurrentAsPreset",
+  "savedPresets",
+  "selectBgGalleryCategory",
+  "selectBgGalleryImage",
+  "selectedBgCategory",
+  "selectedBgGalleryImage",
+  "setBgAudioEnabled",
+  "setBgAudioProperty",
+  "setBgEffectEnabled",
+  "setBgEffectIntensity",
+  "setBgEffectSource",
+  "showBackgroundReplaceModal",
+  "showBgReplaceGallery",
+  "toggleBgAudioPreset",
+  "toggleBgFlipH",
+  "toggleBgFlipV",
+  "toggleWsBgFlipH",
+  "toggleWsBgFlipV",
+  "updateBgAudioReactive",
+  "updateColorDisplay",
+  "updateFromColorPicker",
+  "updateFromOpacitySlider",
+  "updateFromTextInput",
+  "updateGradientSettings",
+  "workspaceBackgroundImageSrc",
+  "wsBgFlipH",
+  "wsBgFlipV",
+]
+`;

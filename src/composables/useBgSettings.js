@@ -1,13 +1,15 @@
-import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick, inject } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick, inject } from 'vue'
+import { serializeBackgroundAudio } from '../lib/audio/audioReactiveConfig.js'
+import { hexToRGBA, rgbToHex, parseRGBA } from '../lib/background/bgColor.js'
 import {
-  BACKGROUND_EFFECT_NAMES,
-  applyAudioReactivePreset,
-  applyBackgroundAudioSnapshot,
-  assignAudioReactiveConfig,
-  cloneAudioReactiveConfig,
-  createAudioReactiveConfig,
-  serializeBackgroundAudio,
-} from '../lib/audio/audioReactiveConfig.js'
+  captureImageBackground,
+  applyImageBackground,
+  captureVideoBackground,
+  applyVideoBackground,
+  clearCanvasVideoBackgrounds,
+  removeVideoBackground,
+} from '../lib/background/backgroundMedia.js'
+import { captureCanvasElements, restoreCanvasElements } from '../lib/background/canvasElements.js'
 import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore.js'
 import { useToastStore } from '../stores/toastStore.js'
 import { useTickerStore } from '../stores/tickerStore.js'
@@ -15,9 +17,21 @@ import { useI18n } from '../lib/i18n.js'
 import { useHistoryStore } from '../stores/historyStore.js'
 import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
 import { createBackgroundSegment } from '../lib/history/segments/backgroundSegment.js'
+import { useBgAudioReactive } from './bg/useBgAudioReactive.js'
+import { useBgReplace } from './bg/useBgReplace.js'
+import { useBgPresets } from './bg/useBgPresets.js'
 
+/**
+ * Hintergrund-Steuerung des Canvas (Fassade).
+ *
+ * Bündelt Farbe/Gradient/Flip/Reset (hier) mit den Teilbereichen
+ * Audio-Reaktiv (bg/useBgAudioReactive), Ersetzen/Galerie (bg/useBgReplace)
+ * und Canvas-Presets (bg/useBgPresets). Die zurückgegebene API ist stabil –
+ * Komponenten nutzen sie über `provide('bgSettings', useBgSettings())`.
+ */
 export function useBgSettings() {
   const canvasManager = inject('canvasManager')
+  const getCm = () => canvasManager.value
   const backgroundBridge = useBackgroundBridgeStore()
   const toastStore = useToastStore()
   const tickerStore = useTickerStore()
@@ -26,28 +40,6 @@ export function useBgSettings() {
   const backgroundColor = ref('#ffffff')
   const backgroundOpacity = ref(1.0)
   const colorDisplay = ref('rgba(255, 255, 255, 1)')
-
-  // Audio-reactive: identische Struktur/Einstellungen wie Bild-Audio-Reaktiv
-  // (Master, Presets, alle Effekte mit Intensität + eigener Quelle) plus die
-  // beiden Gradient-Effekte. Einzige Quelle der Wahrheit für das Panel.
-  const bgAudioReactive = reactive(createAudioReactiveConfig(BACKGROUND_EFFECT_NAMES))
-  const activeBgAudioPreset = ref(null)
-  // Wird bei externen Änderungen (Preset/Snapshot/Anwenden) erhöht, damit das
-  // Panel seine DOM-Controls neu einliest.
-  const bgAudioRevision = ref(0)
-  // Nutzer-Effekte vor dem ersten Preset sichern ("Kein Preset" stellt sie wieder her)
-  let bgUserEffectsBackup = null
-  const BG_AUDIO_STORAGE_KEY = 'visualizer_bgAudioReactivePreset'
-  const savedBgAudioSettings = ref(loadSavedBgAudioSettings())
-  const hasSavedBgAudioSettings = computed(() => savedBgAudioSettings.value !== null)
-  function loadSavedBgAudioSettings() {
-    try {
-      const raw = typeof localStorage !== 'undefined' && localStorage.getItem(BG_AUDIO_STORAGE_KEY)
-      return raw ? JSON.parse(raw) : null
-    } catch {
-      return null
-    }
-  }
 
   // Gradient
   const gradientEnabled = ref(false)
@@ -60,24 +52,6 @@ export function useBgSettings() {
   const bgFlipV = ref(false)
   const wsBgFlipH = ref(false)
   const wsBgFlipV = ref(false)
-
-  // Modal/gallery
-  const showBackgroundReplaceModal = ref(false)
-  const replaceType = ref('background')
-  const pendingBackgroundReplaceImage = ref(null)
-  const pendingBackgroundReplaceSrc = ref(null)
-
-  const showBgReplaceGallery = ref(false)
-  const bgGalleryCategories = ref([])
-  const bgGalleryImages = ref([])
-  const selectedBgCategory = ref(null)
-  const selectedBgGalleryImage = ref(null)
-  const bgGalleryLoading = ref(false)
-  const bgGalleryCategoryCache = ref(new Map())
-
-  // Presets
-  const PRESETS_STORAGE_KEY = 'visualizer-canvas-presets'
-  const savedPresets = ref([])
 
   // ===== COMPUTED =====
 
@@ -119,56 +93,41 @@ export function useBgSettings() {
     return null
   })
 
-  const currentBackgroundForReplace = computed(() => {
-    if (replaceType.value === 'workspace') {
-      return workspaceBackgroundImageSrc.value
-    }
-    return backgroundImageSrc.value
-  })
-
   const isCanvasEmpty = computed(() => {
     if (!canvasManager.value) return true
     return canvasManager.value.isCanvasEmpty()
   })
 
-  // ===== COLOR HELPERS =====
+  // ===== TEILBEREICHE =====
 
-  function hexToRGBA(hex, alpha) {
-    hex = hex.replace('#', '')
-    const r = parseInt(hex.substring(0, 2), 16)
-    const g = parseInt(hex.substring(2, 4), 16)
-    const b = parseInt(hex.substring(4, 6), 16)
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
-  }
+  const audio = useBgAudioReactive(canvasManager)
+  const {
+    bgAudioReactive,
+    activeBgAudioPreset,
+    updateBgAudioReactive,
+    bumpBgAudioRevision,
+    restoreBgAudioFromSnapshot,
+  } = audio
 
-  function rgbToHex(r, g, b) {
-    return (
-      '#' +
-      [r, g, b]
-        .map((x) => {
-          const hex = Math.round(x).toString(16)
-          return hex.length === 1 ? '0' + hex : hex
-        })
-        .join('')
-    )
-  }
+  const replace = useBgReplace(canvasManager, { backgroundImageSrc, workspaceBackgroundImageSrc })
 
-  function parseRGBA(rgbaString) {
-    const match = rgbaString.match(
-      /rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/i,
-    )
-    if (match) {
-      return {
-        r: parseInt(match[1]),
-        g: parseInt(match[2]),
-        b: parseInt(match[3]),
-        a: match[4] !== undefined ? parseFloat(match[4]) : 1.0,
-      }
-    }
-    return null
-  }
+  const presets = useBgPresets({
+    createPreset: () => ({
+      // Bild-Hintergrund (z.B. Galeriebild) inkl. Bild-Audio-Reaktiv mitspeichern
+      backgroundImage: captureImageBackground(getCm()),
+      // Video-Hintergrund (falls vorhanden) inkl. Bild-Audio-Reaktiv mitspeichern
+      backgroundVideo: captureVideoBackground(getCm()),
+      // Alle Canvas-Elemente (Bilder, Videos, Texte, Lauftext) inkl. Position,
+      // Einstellungen und Audio-Reaktiv im Moment des Speicherns erfassen.
+      elements: captureCanvasElements(getCm(), tickerStore),
+      ...captureColorState(),
+    }),
+    applyPreset: applyPresetState,
+    toastStore,
+    t,
+  })
 
-  // ===== UPDATE FUNCTIONS =====
+  // ===== FARBE & GRADIENT =====
 
   function updateColorDisplay() {
     colorDisplay.value = hexToRGBA(backgroundColor.value, backgroundOpacity.value)
@@ -198,7 +157,6 @@ export function useBgSettings() {
     if (input.match(/^#[0-9A-Fa-f]{6}$/)) {
       backgroundColor.value = input
       applyBackgroundColor()
-      return
     }
   }
 
@@ -217,118 +175,20 @@ export function useBgSettings() {
     canvasManager.value.setBackground(rgbaColor)
   }
 
-  function updateBgAudioReactive() {
-    if (!canvasManager.value) return
-    // Reaktivitätsfreie Kopie an den Renderer (wird pro Frame gelesen)
-    canvasManager.value.setBackgroundColorAudioReactive(cloneAudioReactiveConfig(bgAudioReactive))
-  }
-
-  function bumpBgAudioRevision() {
-    bgAudioRevision.value++
-  }
-
-  // ── Handler für das Audio-Reaktiv-Panel (gleiche Semantik wie bei Bildern) ──
-  function setBgAudioEnabled(enabled) {
-    bgAudioReactive.enabled = Boolean(enabled)
-    if (!enabled) activeBgAudioPreset.value = null
-    updateBgAudioReactive()
-  }
-
-  /** @param {'source'|'smoothing'|'easing'|'beatBoost'|'phase'|'gain'} property */
-  function setBgAudioProperty(property, value) {
-    if (!(property in bgAudioReactive) || property === 'effects') return
-    bgAudioReactive[property] = value
-    updateBgAudioReactive()
-  }
-
-  function setBgEffectEnabled(effectName, enabled) {
-    const fx = bgAudioReactive.effects[effectName]
-    if (!fx) return
-    fx.enabled = Boolean(enabled)
-    updateBgAudioReactive()
-  }
-
-  function setBgEffectIntensity(effectName, intensity) {
-    const fx = bgAudioReactive.effects[effectName]
-    if (!fx) return
-    const n = parseInt(intensity)
-    if (!Number.isFinite(n)) return
-    fx.intensity = Math.max(0, Math.min(100, n))
-    updateBgAudioReactive()
-  }
-
-  function setBgEffectSource(effectName, source) {
-    const fx = bgAudioReactive.effects[effectName]
-    if (!fx) return
-    fx.source = source ? source : null
-    updateBgAudioReactive()
-  }
-
-  function toggleBgAudioPreset(presetName) {
-    if (activeBgAudioPreset.value === presetName) {
-      clearBgAudioPreset()
-      return
-    }
-    if (activeBgAudioPreset.value === null) {
-      bgUserEffectsBackup = cloneAudioReactiveConfig(bgAudioReactive)
-    }
-    if (!applyAudioReactivePreset(bgAudioReactive, presetName)) return
-    activeBgAudioPreset.value = presetName
-    updateBgAudioReactive()
-    bumpBgAudioRevision()
-  }
-
-  function clearBgAudioPreset() {
-    if (bgUserEffectsBackup) assignAudioReactiveConfig(bgAudioReactive, bgUserEffectsBackup)
-    activeBgAudioPreset.value = null
-    updateBgAudioReactive()
-    bumpBgAudioRevision()
-  }
-
-  function saveBgAudioSettings() {
-    const copy = cloneAudioReactiveConfig(bgAudioReactive)
-    savedBgAudioSettings.value = copy
-    try {
-      localStorage.setItem(BG_AUDIO_STORAGE_KEY, JSON.stringify(copy))
-    } catch (e) {
-      console.warn('⚠️ Hintergrund-Audio-Einstellungen konnten nicht gespeichert werden:', e)
-    }
-  }
-
-  function applyBgAudioSettings() {
-    if (!savedBgAudioSettings.value) return
-    assignAudioReactiveConfig(bgAudioReactive, savedBgAudioSettings.value)
-    activeBgAudioPreset.value = null
-    updateBgAudioReactive()
-    bumpBgAudioRevision()
-  }
-
-  /** Flache Snapshot-Felder (Preset/Beat-Marker) in die Konfiguration übernehmen. */
-  function restoreBgAudioFromSnapshot(snapshot) {
-    applyBackgroundAudioSnapshot(bgAudioReactive, snapshot)
-    activeBgAudioPreset.value = null
-    bumpBgAudioRevision()
-  }
-
   function updateGradientSettings() {
     if (!canvasManager.value) return
 
-    canvasManager.value.setGradientSettings({
+    const settings = {
       enabled: gradientEnabled.value,
       color2: gradientColor2.value,
       type: gradientType.value,
       angle: gradientAngle.value,
-    })
-
-    console.log('🌈 Gradient:', {
-      enabled: gradientEnabled.value,
-      color2: gradientColor2.value,
-      type: gradientType.value,
-      angle: gradientAngle.value,
-    })
+    }
+    canvasManager.value.setGradientSettings(settings)
+    console.log('🌈 Gradient:', settings)
   }
 
-  // ===== FLIP FUNCTIONS =====
+  // ===== FLIP =====
 
   function toggleBgFlipH() {
     if (!canvasManager.value || !hasImageBackground.value) return
@@ -358,235 +218,11 @@ export function useBgSettings() {
     console.log('🔄 Workspace-Hintergrund Flip V:', wsBgFlipV.value)
   }
 
-  // ===== MODAL FUNCTIONS =====
+  // ===== SZENE (gemeinsam für Presets & Beat-Marker-Snapshots) =====
 
-  function openBackgroundReplaceModal(type) {
-    replaceType.value = type
-    pendingBackgroundReplaceImage.value = null
-    pendingBackgroundReplaceSrc.value = null
-    showBackgroundReplaceModal.value = true
-    console.log(`🖼️ Hintergrund-Ersetzung Modal geöffnet für: ${type}`)
-  }
-
-  function closeBackgroundReplaceModal() {
-    showBackgroundReplaceModal.value = false
-    pendingBackgroundReplaceImage.value = null
-    pendingBackgroundReplaceSrc.value = null
-    showBgReplaceGallery.value = false
-    selectedBgGalleryImage.value = null
-  }
-
-  function handleBackgroundReplaceFile(event) {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const img = new Image()
-      img.onload = () => {
-        pendingBackgroundReplaceImage.value = img
-        pendingBackgroundReplaceSrc.value = e.target.result
-        console.log(
-          '🔍 Neues Hintergrundbild in Vorschau geladen:',
-          img.naturalWidth,
-          'x',
-          img.naturalHeight,
-        )
-      }
-      img.src = e.target.result
-    }
-    reader.readAsDataURL(file)
-
-    event.target.value = ''
-  }
-
-  function confirmBackgroundReplace() {
-    if (!pendingBackgroundReplaceImage.value || !canvasManager.value) return
-
-    let result
-    if (replaceType.value === 'workspace') {
-      result = canvasManager.value.replaceWorkspaceBackground(pendingBackgroundReplaceImage.value)
-    } else {
-      result = canvasManager.value.replaceBackground(pendingBackgroundReplaceImage.value)
-    }
-
-    if (result) {
-      console.log(
-        `✅ ${replaceType.value === 'workspace' ? 'Workspace-' : ''}Hintergrund erfolgreich ersetzt`,
-      )
-    }
-
-    closeBackgroundReplaceModal()
-  }
-
-  function cancelBackgroundReplace() {
-    pendingBackgroundReplaceImage.value = null
-    pendingBackgroundReplaceSrc.value = null
-    console.log('❌ Hintergrund-Ersetzen abgebrochen')
-  }
-
-  // ===== GALLERY FUNCTIONS =====
-
-  async function openBgReplaceGallery() {
-    showBgReplaceGallery.value = true
-    selectedBgGalleryImage.value = null
-
-    if (bgGalleryCategories.value.length === 0) {
-      await loadBgGalleryIndex()
-    }
-  }
-
-  function closeBgReplaceGallery() {
-    showBgReplaceGallery.value = false
-    selectedBgGalleryImage.value = null
-  }
-
-  async function loadBgGalleryIndex() {
-    bgGalleryLoading.value = true
-    try {
-      const paths = ['gallery/gallery.json', './gallery/gallery.json']
-      let response = null
-
-      for (const path of paths) {
-        try {
-          response = await fetch(path)
-          if (response.ok) break
-        } catch (e) {
-          // Try next path
-        }
-      }
-
-      if (!response || !response.ok) {
-        throw new Error('Galerie konnte nicht geladen werden')
-      }
-
-      const data = await response.json()
-
-      if (data._version === '2.0' && data.categories) {
-        bgGalleryCategories.value = data.categories
-
-        if (bgGalleryCategories.value.length > 0) {
-          await selectBgGalleryCategory(bgGalleryCategories.value[0].id)
-        }
-      }
-    } catch (error) {
-      console.error('❌ Fehler beim Laden der Galerie:', error)
-    } finally {
-      bgGalleryLoading.value = false
-    }
-  }
-
-  async function selectBgGalleryCategory(categoryId) {
-    if (selectedBgCategory.value === categoryId) return
-
-    selectedBgCategory.value = categoryId
-    selectedBgGalleryImage.value = null
-
-    if (bgGalleryCategoryCache.value.has(categoryId)) {
-      bgGalleryImages.value = bgGalleryCategoryCache.value.get(categoryId)
-      return
-    }
-
-    bgGalleryLoading.value = true
-    try {
-      const categoryInfo = bgGalleryCategories.value.find((c) => c.id === categoryId)
-      if (!categoryInfo || !categoryInfo.jsonFile) {
-        bgGalleryImages.value = []
-        return
-      }
-
-      const response = await fetch(categoryInfo.jsonFile)
-      if (!response.ok) {
-        throw new Error(`Kategorie ${categoryId} konnte nicht geladen werden`)
-      }
-
-      const data = await response.json()
-      const images = data.images || []
-
-      bgGalleryCategoryCache.value.set(categoryId, images)
-      bgGalleryImages.value = images
-    } catch (error) {
-      console.error('❌ Fehler beim Laden der Kategorie:', error)
-      bgGalleryImages.value = []
-    } finally {
-      bgGalleryLoading.value = false
-    }
-  }
-
-  function selectBgGalleryImage(image) {
-    selectedBgGalleryImage.value = image
-  }
-
-  async function confirmBgReplaceFromGallery() {
-    if (!selectedBgGalleryImage.value) {
-      closeBgReplaceGallery()
-      return
-    }
-
-    const imagePath = selectedBgGalleryImage.value.file
-
-    try {
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-
-      await new Promise((resolve, reject) => {
-        img.onload = resolve
-        img.onerror = reject
-        img.src = imagePath
-      })
-
-      pendingBackgroundReplaceImage.value = img
-      pendingBackgroundReplaceSrc.value = imagePath
-      console.log('🔍 Galeriebild in Vorschau geladen:', imagePath)
-
-      closeBgReplaceGallery()
-    } catch (error) {
-      console.error('❌ Fehler beim Laden des Galeriebildes:', error)
-    }
-  }
-
-  // ===== PRESET FUNCTIONS =====
-
-  function loadPresets() {
-    try {
-      const stored = localStorage.getItem(PRESETS_STORAGE_KEY)
-      if (stored) {
-        savedPresets.value = JSON.parse(stored)
-      }
-    } catch (e) {
-      console.warn('Fehler beim Laden der Presets:', e)
-    }
-  }
-
-  function persistPresets() {
-    try {
-      localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(savedPresets.value))
-      return true
-    } catch (e) {
-      // Häufigste Ursache: localStorage-Kontingent überschritten (große Bild-
-      // Daten-URLs). Der Aufrufer kann darauf reagieren (z.B. Rollback).
-      console.warn('Fehler beim Speichern der Presets:', e)
-      return false
-    }
-  }
-
-  function saveCurrentAsPreset() {
-    console.log('🔍 Aktuelle Werte vor dem Speichern:')
-    console.log('  - gradientEnabled:', gradientEnabled.value)
-    console.log('  - backgroundColor:', backgroundColor.value)
-    console.log('  - bgAudioEnabled:', bgAudioReactive.enabled)
-
-    const presetNumber = savedPresets.value.length + 1
-    const newPreset = {
-      id: Date.now(),
-      name: `Preset ${presetNumber}`,
-      // Bild-Hintergrund (z.B. Galeriebild) inkl. Bild-Audio-Reaktiv mitspeichern
-      backgroundImage: captureImageBackground(),
-      // Video-Hintergrund (falls vorhanden) inkl. Bild-Audio-Reaktiv mitspeichern
-      backgroundVideo: captureVideoBackground(),
-      // Alle Canvas-Elemente (Bilder, Videos, Texte, Lauftext) inkl. Position,
-      // Einstellungen und Audio-Reaktiv im Moment des Speicherns erfassen.
-      elements: captureCanvasElements(),
+  /** Farbe, Gradient und Hintergrund-Audio-Reaktiv als flaches Objekt. */
+  function captureColorState() {
+    return {
       backgroundColor: backgroundColor.value,
       backgroundOpacity: backgroundOpacity.value,
       gradientEnabled: Boolean(gradientEnabled.value),
@@ -596,540 +232,76 @@ export function useBgSettings() {
       // Hintergrund-Audio-Reaktiv (flaches, rückwärtskompatibles Format)
       ...serializeBackgroundAudio(bgAudioReactive),
     }
+  }
 
-    savedPresets.value.push(newPreset)
-    if (persistPresets()) {
-      console.log('✅ Canvas-Preset gespeichert:', newPreset)
-      toastStore.success?.(t('canvasControl.presetSaved'))
+  /**
+   * Setzt den Hintergrund (Video > Bild > Farbe/Gradient) und ersetzt ggf. die
+   * Vordergrund-Elemente. Farb-/Gradient-Refs müssen vorher gesetzt sein.
+   * Wirft, wenn der CanvasManager fehlt (Aufrufer fangen ab).
+   * @param {object} state - Preset oder Snapshot
+   * @param {{ autoplay?: boolean }} options - Video von vorne starten (Beat-Marker)
+   */
+  function applyScene(state, { autoplay = false } = {}) {
+    if (state.backgroundVideo?.src) {
+      // Video-Hintergrund inkl. Bild-Audio-Reaktiv
+      applyVideoBackground(getCm, state.backgroundVideo, { autoplay })
+    } else if (state.backgroundImage?.src) {
+      // Bild-Hintergrund (z.B. Galeriebild) inkl. Bild-Audio-Reaktiv. Kein
+      // updateFromColorPicker(), da setBackground(Farbe) das Bild ersetzen würde.
+      // Evtl. laufenden Video-Hintergrund entfernen.
+      clearCanvasVideoBackgrounds(getCm())
+      applyImageBackground(getCm, state.backgroundImage)
     } else {
-      // Speicher-Kontingent überschritten: Preset nicht dauerhaft speicherbar.
-      savedPresets.value.pop()
-      toastStore.error?.(t('canvasControl.presetSaveFailed'))
+      // Farb-/Gradient-Hintergrund: evtl. vorhandenes Workspace-Bild und
+      // laufende Video-Hintergründe entfernen, damit die Farbe sichtbar wird
+      // (setBackground ersetzt nur das Haupt-Bild).
+      clearCanvasVideoBackgrounds(getCm())
+      if (canvasManager.value.workspaceBackground) {
+        canvasManager.value.workspaceBackground = null
+      }
+      updateFromColorPicker()
+    }
+    updateGradientSettings()
+    updateBgAudioReactive()
+
+    // Vordergrund-Elemente (Bilder, Videos, Texte, Lauftext) eines Canvas-
+    // Presets einsetzen. Alte (reine Hintergrund-)Presets haben keine
+    // `elements` und lassen den Vordergrund unangetastet (abwärtskompatibel).
+    if (state.elements) {
+      restoreCanvasElements(getCm, state.elements, tickerStore)
     }
   }
 
-  function loadPreset(preset) {
-    console.log('📥 Lade Canvas-Preset:', preset)
+  /** Canvas-Preset anwenden (Standardwerte über `||`, wie seit jeher gespeichert). */
+  function applyPresetState(preset) {
+    backgroundColor.value = preset.backgroundColor
+    backgroundOpacity.value = preset.backgroundOpacity
 
-    try {
-      backgroundColor.value = preset.backgroundColor
-      backgroundOpacity.value = preset.backgroundOpacity
-      console.log('  → Farbe:', preset.backgroundColor, 'Deckkraft:', preset.backgroundOpacity)
+    gradientEnabled.value = preset.gradientEnabled || false
+    gradientColor2.value = preset.gradientColor2 || '#0066ff'
+    gradientType.value = preset.gradientType || 'radial'
+    gradientAngle.value = preset.gradientAngle || 45
 
-      gradientEnabled.value = preset.gradientEnabled || false
-      gradientColor2.value = preset.gradientColor2 || '#0066ff'
-      gradientType.value = preset.gradientType || 'radial'
-      gradientAngle.value = preset.gradientAngle || 45
-
-      restoreBgAudioFromSnapshot(preset)
-
-      if (preset.backgroundVideo?.src) {
-        // Video-Hintergrund inkl. Bild-Audio-Reaktiv wiederherstellen
-        applyVideoBackground(preset.backgroundVideo)
-        updateGradientSettings()
-        updateBgAudioReactive()
-      } else if (preset.backgroundImage?.src) {
-        // Bild-Hintergrund inkl. Bild-Audio-Reaktiv wiederherstellen.
-        // Evtl. laufenden Video-Hintergrund entfernen.
-        clearCanvasVideoBackgrounds()
-        applyImageBackground(preset.backgroundImage)
-        updateGradientSettings()
-        updateBgAudioReactive()
-      } else {
-        // Farb-/Gradient-Preset: evtl. vorhandenes Workspace-Bild und
-        // laufende Video-Hintergründe entfernen.
-        clearCanvasVideoBackgrounds()
-        if (canvasManager.value.workspaceBackground) {
-          canvasManager.value.workspaceBackground = null
-        }
-        updateFromColorPicker()
-        updateGradientSettings()
-        updateBgAudioReactive()
-      }
-
-      // Canvas-Elemente (Bilder, Videos, Texte) wiederherstellen. Nur bei
-      // neuen Canvas-Presets vorhanden – alte (reine Hintergrund-)Presets
-      // lassen die Vordergrund-Elemente unangetastet (abwärtskompatibel).
-      if (preset.elements) {
-        restoreCanvasElements(preset.elements)
-      }
-
-      console.log('✅ Canvas-Preset erfolgreich geladen:', preset.name)
-    } catch (error) {
-      console.error('❌ Fehler beim Laden des Canvas-Presets:', error)
-    }
-  }
-
-  function deletePreset(presetId) {
-    savedPresets.value = savedPresets.value.filter((p) => p.id !== presetId)
-    persistPresets()
-    console.log('🗑️ Preset gelöscht')
-  }
-
-  // ===== BILD-HINTERGRUND (für Presets & Beat-Marker) =====
-
-  /**
-   * Erfasst einen aktuell gesetzten Bild-Hintergrund (z.B. Galeriebild) als
-   * serialisierbares Objekt: Ziel (Haupt- oder Workspace-Hintergrund),
-   * Bildquelle + Foto-Einstellungen inkl. Bild-Audio-Reaktiv
-   * (fotoSettings.audioReactive).
-   * @returns {{ target: string, src: string, settings: object|null } | null}
-   */
-  function captureImageBackground() {
-    const cm = canvasManager.value
-    if (!cm) return null
-
-    // Workspace-Hintergrund hat Vorrang, wenn ein Workspace aktiv ist
-    const wsBg = cm.workspaceBackground
-    if (wsBg && wsBg.imageObject?.src) {
-      return {
-        target: 'workspace',
-        src: wsBg.imageObject.src,
-        settings: wsBg.fotoSettings ? JSON.parse(JSON.stringify(wsBg.fotoSettings)) : null,
-      }
-    }
-
-    const bg = cm.background
-    if (bg && typeof bg === 'object' && bg.imageObject?.src) {
-      return {
-        target: 'background',
-        src: bg.imageObject.src,
-        settings: bg.fotoSettings ? JSON.parse(JSON.stringify(bg.fotoSettings)) : null,
-      }
-    }
-    return null
+    restoreBgAudioFromSnapshot(preset)
+    applyScene(preset)
   }
 
   /**
-   * Lädt ein Bild aus einer Quelle und setzt es als Haupt- oder Workspace-
-   * Hintergrund inkl. der gespeicherten Foto-Einstellungen (Audio-Reaktiv,
-   * Flip, Position, ...).
-   * @param {{ target?: string, src: string, settings: object|null }} imageData
-   */
-  function applyImageBackground(imageData) {
-    if (!canvasManager.value || !imageData?.src) return
-
-    const setImage = (img) => {
-      const cm = canvasManager.value
-      if (!cm) return
-      if (imageData.target === 'workspace' && cm.workspacePreset) {
-        cm.setWorkspaceBackground(img)
-        const wsBg = cm.workspaceBackground
-        if (imageData.settings && wsBg) {
-          wsBg.fotoSettings = JSON.parse(JSON.stringify(imageData.settings))
-        }
-      } else {
-        cm.setBackground(img)
-        const bg = cm.background
-        if (imageData.settings && bg && typeof bg === 'object') {
-          bg.fotoSettings = JSON.parse(JSON.stringify(imageData.settings))
-        }
-      }
-      cm.redrawCallback?.()
-      cm.updateUICallback?.()
-      console.log(
-        `🖼️ Bild-Hintergrund aus Preset angewendet (${imageData.target || 'background'}):`,
-        imageData.src,
-      )
-    }
-
-    const load = (useCors) => {
-      const img = new Image()
-      if (useCors) img.crossOrigin = 'anonymous'
-      img.onload = () => setImage(img)
-      img.onerror = () => {
-        if (useCors) {
-          // Fallback: erneut ohne CORS versuchen (z.B. bei Cache-/CORS-Konflikt)
-          console.warn('⚠️ Hintergrundbild via CORS fehlgeschlagen – erneuter Versuch ohne CORS')
-          load(false)
-        } else {
-          console.error('❌ Hintergrundbild konnte nicht geladen werden:', imageData.src)
-        }
-      }
-      img.src = imageData.src
-    }
-
-    load(true)
-  }
-
-  // ===== VIDEO-HINTERGRUND (für Presets & Beat-Marker) =====
-
-  /**
-   * Erfasst einen aktuell gesetzten Video-Hintergrund als serialisierbares
-   * Objekt: Ziel (Haupt- oder Workspace-Hintergrund), Videoquelle, Wiedergabe-
-   * Optionen (muted/loop) sowie die Foto-Einstellungen inkl. Bild-Audio-Reaktiv
-   * (fotoSettings.audioReactive).
-   *
-   * Hinweis: `src` ist i.d.R. eine Blob-URL des hochgeladenen Videos und nur
-   * innerhalb der laufenden Sitzung gültig (nicht über einen Reload hinaus).
-   * @returns {{ target: string, src: string, muted: boolean, loop: boolean, settings: object|null } | null}
-   */
-  function captureVideoBackground() {
-    const cm = canvasManager.value
-    if (!cm) return null
-
-    // Workspace-Video-Hintergrund hat Vorrang, wenn ein Workspace aktiv ist
-    const wsVid = cm.workspaceVideoBackground
-    if (wsVid && wsVid.videoElement?.src) {
-      return {
-        target: 'workspace',
-        src: wsVid.videoElement.src,
-        muted: wsVid.videoElement.muted ?? true,
-        loop: wsVid.videoElement.loop ?? true,
-        settings: wsVid.fotoSettings ? JSON.parse(JSON.stringify(wsVid.fotoSettings)) : null,
-      }
-    }
-
-    const vid = cm.videoBackground
-    if (vid && vid.videoElement?.src) {
-      return {
-        target: 'background',
-        src: vid.videoElement.src,
-        muted: vid.videoElement.muted ?? true,
-        loop: vid.videoElement.loop ?? true,
-        settings: vid.fotoSettings ? JSON.parse(JSON.stringify(vid.fotoSettings)) : null,
-      }
-    }
-    return null
-  }
-
-  /**
-   * Entfernt evtl. vorhandene Video-Hintergründe vom Canvas (pausiert das Video
-   * und löst die Quelle). Wird beim Anwenden eines Presets ohne Video benötigt,
-   * damit ein laufendes Video nicht bestehen bleibt.
-   */
-  function clearCanvasVideoBackgrounds() {
-    const cm = canvasManager.value
-    if (!cm) return
-    for (const key of ['videoBackground', 'workspaceVideoBackground']) {
-      if (cm[key]) {
-        const v = cm[key].videoElement
-        if (v) {
-          try {
-            v.pause()
-          } catch {
-            /* ignore */
-          }
-          v.src = ''
-        }
-        cm[key] = null
-      }
-    }
-  }
-
-  /**
-   * Lädt ein Video aus einer Quelle und setzt es als Haupt- oder Workspace-
-   * Video-Hintergrund inkl. der gespeicherten Foto-Einstellungen (Audio-Reaktiv,
-   * Flip, Position, ...).
-   * @param {{ target?: string, src: string, muted?: boolean, loop?: boolean, settings: object|null }} videoData
-   * @param {{ autoplay?: boolean }} [options] - autoplay: Video sofort von vorne
-   *   abspielen (z.B. wenn ein Beat-Marker das Preset anwendet).
-   */
-  function applyVideoBackground(videoData, { autoplay = false } = {}) {
-    if (!canvasManager.value || !videoData?.src) return
-
-    const video = document.createElement('video')
-    video.crossOrigin = 'anonymous'
-    video.preload = 'auto'
-    video.muted = videoData.muted ?? true
-    video.loop = videoData.loop ?? true
-    video.volume = 1
-    video.playsInline = true
-
-    video.onloadeddata = () => {
-      const cm = canvasManager.value
-      if (!cm) return
-      if (videoData.target === 'workspace' && cm.workspacePreset) {
-        cm.setWorkspaceVideoBackground(video)
-        const wsVid = cm.workspaceVideoBackground
-        if (videoData.settings && wsVid) {
-          wsVid.fotoSettings = JSON.parse(JSON.stringify(videoData.settings))
-        }
-      } else {
-        cm.setVideoBackground(video)
-        const vid = cm.videoBackground
-        if (videoData.settings && vid) {
-          vid.fotoSettings = JSON.parse(JSON.stringify(videoData.settings))
-        }
-      }
-      // Video-Audio (falls nicht stumm) mit der Aufnahme verbinden
-      if (!video.muted && window.connectVideoToRecording) {
-        window.connectVideoToRecording(video, video.volume)
-      }
-      // Beim Anwenden über einen Beat-Marker: Video von vorne automatisch starten.
-      if (autoplay) {
-        try {
-          video.currentTime = 0
-        } catch {
-          /* ignore */
-        }
-        video.play().catch(() => {})
-      }
-      cm.redrawCallback?.()
-      cm.updateUICallback?.()
-      console.log(
-        `🎬 Video-Hintergrund aus Preset angewendet (${videoData.target || 'background'}):`,
-        videoData.src,
-      )
-    }
-    video.onerror = () => {
-      console.error('❌ Video-Hintergrund konnte nicht geladen werden:', videoData.src)
-    }
-    video.src = videoData.src
-    video.load()
-  }
-
-  // ===== CANVAS-ELEMENTE (Bilder, Videos, Texte) für Canvas-Presets =====
-
-  const deepClone = (obj) => (obj ? JSON.parse(JSON.stringify(obj)) : null)
-
-  /**
-   * Erfasst alle Vordergrund-Bilder (multiImageManager) als serialisierbare
-   * Liste: Bildquelle, Position/Größe/Rotation, Filter- und Foto-Einstellungen
-   * inkl. Bild-Audio-Reaktiv.
-   */
-  function captureCanvasImages() {
-    const mgr = canvasManager.value?.multiImageManager
-    if (!mgr?.getAllImages) return []
-    return mgr
-      .getAllImages()
-      .map((img) => ({
-        src: img.imageObject?.src || null,
-        relX: img.relX,
-        relY: img.relY,
-        relWidth: img.relWidth,
-        relHeight: img.relHeight,
-        rotation: img.rotation || 0,
-        settings: deepClone(img.settings),
-        fotoSettings: deepClone(img.fotoSettings),
-      }))
-      .filter((i) => i.src)
-  }
-
-  /**
-   * Erfasst alle Vordergrund-Videos (videoManager). Hinweis: `src` ist eine
-   * Blob-URL und nur innerhalb der laufenden Sitzung gültig.
-   */
-  function captureCanvasVideos() {
-    const mgr = canvasManager.value?.videoManager
-    if (!mgr?.getAllVideos) return []
-    return mgr
-      .getAllVideos()
-      .map((v) => ({
-        src: v.videoElement?.src || null,
-        relX: v.relX,
-        relY: v.relY,
-        relWidth: v.relWidth,
-        relHeight: v.relHeight,
-        rotation: v.rotation || 0,
-        loop: v.loop ?? true,
-        muted: v.muted ?? true,
-        playbackRate: v.playbackRate ?? 1.0,
-        startTime: v.startTime ?? 0,
-        endTime: v.endTime ?? 0,
-        settings: deepClone(v.settings),
-        fotoSettings: deepClone(v.fotoSettings),
-      }))
-      .filter((v) => v.src)
-  }
-
-  /**
-   * Erfasst alle Texte (textManager) als tiefe Kopie (inkl. Position, Stil,
-   * Animation und Text-Audio-Reaktiv). Texte enthalten keine DOM-Referenzen.
-   */
-  function captureCanvasTexts() {
-    const tm = canvasManager.value?.textManager
-    if (!tm?.textObjects) return []
-    return deepClone(tm.textObjects) || []
-  }
-
-  /** Erfasst den Lauftext (Ticker) inkl. aller Einstellungen und Audio-Reaktiv. */
-  function captureTicker() {
-    try {
-      return deepClone(tickerStore.$state)
-    } catch {
-      return null
-    }
-  }
-
-  /**
-   * Erfasst alle Vordergrund-Elemente (Bilder, Videos, Texte, Lauftext) im
-   * Moment des Speicherns – für Canvas-Presets und Beat-Marker.
-   */
-  function captureCanvasElements() {
-    return {
-      images: captureCanvasImages(),
-      videos: captureCanvasVideos(),
-      texts: captureCanvasTexts(),
-      ticker: captureTicker(),
-    }
-  }
-
-  /** Lädt ein Bild (mit CORS-Fallback für Galerie-/Remote-Bilder). */
-  function loadImageElement(src, onload) {
-    const attempt = (useCors) => {
-      const img = new Image()
-      if (useCors) img.crossOrigin = 'anonymous'
-      img.onload = () => onload(img)
-      img.onerror = () => {
-        if (useCors) attempt(false)
-        else console.error('❌ Canvas-Preset: Bild konnte nicht geladen werden:', src)
-      }
-      img.src = src
-    }
-    attempt(!String(src).startsWith('data:'))
-  }
-
-  /** Entfernt alle Vordergrund-Elemente (Bilder, Videos, Texte) vom Canvas. */
-  function clearCanvasElements() {
-    const cm = canvasManager.value
-    if (!cm) return
-    cm.multiImageManager?.clear?.()
-    cm.videoManager?.clear?.()
-    if (cm.textManager) cm.textManager.textObjects = []
-    cm.setActiveObject?.(null)
-  }
-
-  function restoreCanvasImages(list) {
-    const mgr = canvasManager.value?.multiImageManager
-    if (!mgr?.restoreImage || !Array.isArray(list)) return
-    list.forEach((data, index) => {
-      if (!data?.src) return
-      loadImageElement(data.src, (img) => {
-        const imageData = {
-          id: Date.now() + Math.random(),
-          type: 'image',
-          imageObject: img,
-          relX: data.relX ?? 0.33,
-          relY: data.relY ?? 0.33,
-          relWidth: data.relWidth ?? 0.33,
-          relHeight: data.relHeight ?? 0.33,
-          rotation: data.rotation || 0,
-          settings: deepClone(data.settings) || {
-            brightness: 100,
-            contrast: 100,
-            saturation: 100,
-            opacity: 100,
-            blur: 0,
-            preset: null,
-          },
-        }
-        if (data.fotoSettings) {
-          imageData.fotoSettings = deepClone(data.fotoSettings)
-        } else if (mgr.fotoManager) {
-          mgr.fotoManager.initializeImageSettings(imageData)
-        }
-        // Ursprüngliche Ebenen-Reihenfolge möglichst erhalten (Index geklemmt).
-        mgr.restoreImage(imageData, index)
-      })
-    })
-  }
-
-  function restoreCanvasVideos(list) {
-    const mgr = canvasManager.value?.videoManager
-    if (!mgr?.addVideo || !Array.isArray(list)) return
-    for (const data of list) {
-      if (!data?.src) continue
-      const video = document.createElement('video')
-      video.crossOrigin = 'anonymous'
-      video.preload = 'auto'
-      video.muted = data.muted ?? true
-      video.loop = data.loop ?? true
-      video.playsInline = true
-      video.onloadedmetadata = async () => {
-        try {
-          const vid = await mgr.addVideo(video, {
-            relX: data.relX,
-            relY: data.relY,
-            relWidth: data.relWidth,
-            relHeight: data.relHeight,
-            loop: data.loop,
-            muted: data.muted,
-            playbackRate: data.playbackRate,
-            startTime: data.startTime,
-            endTime: data.endTime,
-          })
-          if (vid) {
-            if (data.rotation) vid.rotation = data.rotation
-            if (data.settings) vid.settings = deepClone(data.settings)
-            if (data.fotoSettings) vid.fotoSettings = deepClone(data.fotoSettings)
-          }
-          canvasManager.value?.redrawCallback?.()
-        } catch (e) {
-          console.error('❌ Canvas-Preset: Video konnte nicht wiederhergestellt werden:', e)
-        }
-      }
-      video.onerror = () => {
-        console.error('❌ Canvas-Preset: Video konnte nicht geladen werden:', data.src)
-      }
-      video.src = data.src
-      video.load()
-    }
-  }
-
-  function restoreCanvasTexts(list) {
-    const tm = canvasManager.value?.textManager
-    if (!tm || !Array.isArray(list)) return
-    const texts = deepClone(list) || []
-    // Animations-Zustand zurücksetzen, damit Animationen frisch abgespielt werden.
-    texts.forEach((t) => {
-      if (t.animation) {
-        t.animation._state = { startTime: null, isPlaying: false, currentIndex: 0 }
-      }
-    })
-    tm.textObjects = texts
-  }
-
-  /** Stellt den Lauftext (Ticker) inkl. Ein/Aus-Zustand und Einstellungen wieder her. */
-  function restoreTicker(data) {
-    if (!data) return
-    try {
-      tickerStore.$patch(data)
-    } catch (e) {
-      console.warn('⚠️ Canvas-Preset: Lauftext konnte nicht wiederhergestellt werden:', e)
-    }
-  }
-
-  /**
-   * Stellt alle Canvas-Elemente aus einem Preset wieder her. Vorhandene
-   * Vordergrund-Elemente werden zuvor entfernt (die Szene wird ersetzt).
-   */
-  function restoreCanvasElements(elements) {
-    if (!elements) return
-    clearCanvasElements()
-    restoreCanvasImages(elements.images)
-    restoreCanvasVideos(elements.videos)
-    restoreCanvasTexts(elements.texts)
-    restoreTicker(elements.ticker)
-    canvasManager.value?.redrawCallback?.()
-    canvasManager.value?.updateUICallback?.()
-  }
-
-  // ===== BACKGROUND SNAPSHOT (für Beat-Marker etc.) =====
-
-  /**
-   * Erfasst den kompletten aktuellen Hintergrund (Farbe, Deckkraft, Gradient
-   * und alle Audio-Reaktiven Effekte) als serialisierbaren Snapshot.
-   * Vollständiger als das Preset-Format – enthält auch Strobe & Contrast.
+   * Erfasst den kompletten aktuellen Hintergrund (Bild/Video, Farbe, Deckkraft,
+   * Gradient und alle Audio-Reaktiven Effekte) als serialisierbaren Snapshot.
    * @returns {object}
    */
   function buildBackgroundSnapshot() {
     return {
-      backgroundImage: captureImageBackground(),
-      backgroundVideo: captureVideoBackground(),
-      backgroundColor: backgroundColor.value,
-      backgroundOpacity: backgroundOpacity.value,
-      gradientEnabled: Boolean(gradientEnabled.value),
-      gradientColor2: gradientColor2.value,
-      gradientType: gradientType.value,
-      gradientAngle: gradientAngle.value,
-      ...serializeBackgroundAudio(bgAudioReactive),
+      backgroundImage: captureImageBackground(getCm()),
+      backgroundVideo: captureVideoBackground(getCm()),
+      ...captureColorState(),
     }
   }
 
   /**
-   * Wendet einen zuvor erfassten Hintergrund-Snapshot an und aktualisiert
-   * Canvas + UI (Farbe, Gradient, Audio-Reaktiv).
+   * Wendet einen zuvor erfassten Hintergrund-Snapshot an (Beat-Marker) und
+   * aktualisiert Canvas + UI. Ein Video-Hintergrund startet von vorne.
    * @param {object} snapshot
    */
   function applyBackgroundSnapshot(snapshot) {
@@ -1146,38 +318,7 @@ export function useBgSettings() {
       gradientAngle.value = snapshot.gradientAngle ?? 45
 
       restoreBgAudioFromSnapshot(snapshot)
-
-      if (snapshot.backgroundVideo?.src) {
-        // Video-Hintergrund inkl. Bild-Audio-Reaktiv setzen. Über einen
-        // Beat-Marker angewendet, startet das Video automatisch von vorne.
-        applyVideoBackground(snapshot.backgroundVideo, { autoplay: true })
-        updateGradientSettings()
-        updateBgAudioReactive()
-      } else if (snapshot.backgroundImage?.src) {
-        // Bild-Hintergrund (z.B. Galeriebild) inkl. Bild-Audio-Reaktiv setzen.
-        // Kein updateFromColorPicker(), da setBackground(Farbe) das Bild ersetzen würde.
-        clearCanvasVideoBackgrounds()
-        applyImageBackground(snapshot.backgroundImage)
-        updateGradientSettings()
-        updateBgAudioReactive()
-      } else {
-        // Farb-/Gradient-Hintergrund: evtl. vorhandenes Workspace-Bild und
-        // laufende Video-Hintergründe entfernen, damit die Farbe sichtbar wird
-        // (setBackground ersetzt nur das Haupt-Bild).
-        clearCanvasVideoBackgrounds()
-        if (canvasManager.value.workspaceBackground) {
-          canvasManager.value.workspaceBackground = null
-        }
-        updateFromColorPicker()
-        updateGradientSettings()
-        updateBgAudioReactive()
-      }
-
-      // Vordergrund-Elemente (Bilder, Videos, Texte, Lauftext) eines
-      // Canvas-Presets einsetzen, wenn ein Beat-Marker es anwendet.
-      if (snapshot.elements) {
-        restoreCanvasElements(snapshot.elements)
-      }
+      applyScene(snapshot, { autoplay: true })
 
       console.log('🎯 Hintergrund-Snapshot angewendet (Beat-Marker)')
     } catch (error) {
@@ -1185,31 +326,40 @@ export function useBgSettings() {
     }
   }
 
-  // ===== RESET FUNCTIONS =====
+  // ===== RESET =====
 
-  function resetNormalBackground() {
-    if (!canvasManager.value) {
-      console.warn('⚠️ CanvasManager nicht verfügbar')
-      return
-    }
+  function requireCanvasManager() {
+    if (canvasManager.value) return true
+    console.warn('⚠️ CanvasManager nicht verfügbar')
+    return false
+  }
 
-    console.log('🔄 Setze normalen Hintergrund zurück')
+  function resetColor() {
     canvasManager.value.setBackground('#ffffff')
     backgroundColor.value = '#ffffff'
     backgroundOpacity.value = 1.0
+  }
 
-    bgFlipH.value = false
-    bgFlipV.value = false
-
-    if (canvasManager.value.videoBackground) {
-      const video = canvasManager.value.videoBackground.videoElement
-      if (video) {
-        video.pause()
-        video.src = ''
-      }
-      canvasManager.value.videoBackground = null
+  function resetMainVideo() {
+    if (removeVideoBackground(canvasManager.value, 'videoBackground')) {
       console.log('🗑️ Video-Hintergrund entfernt')
     }
+  }
+
+  function resetWorkspaceVideo() {
+    if (removeVideoBackground(canvasManager.value, 'workspaceVideoBackground')) {
+      console.log('🗑️ Workspace-Video-Hintergrund entfernt')
+    }
+  }
+
+  function resetNormalBackground() {
+    if (!requireCanvasManager()) return
+
+    console.log('🔄 Setze normalen Hintergrund zurück')
+    resetColor()
+    bgFlipH.value = false
+    bgFlipV.value = false
+    resetMainVideo()
 
     canvasManager.value.redrawCallback()
     updateColorDisplay()
@@ -1217,69 +367,30 @@ export function useBgSettings() {
   }
 
   function resetWorkspaceBackgroundOnly() {
-    if (!canvasManager.value) {
-      console.warn('⚠️ CanvasManager nicht verfügbar')
-      return
-    }
+    if (!requireCanvasManager()) return
 
     console.log('🔄 Setze Workspace-Hintergrund zurück')
     canvasManager.value.workspaceBackground = null
-
     wsBgFlipH.value = false
     wsBgFlipV.value = false
-
-    if (canvasManager.value.workspaceVideoBackground) {
-      const wsVideo = canvasManager.value.workspaceVideoBackground.videoElement
-      if (wsVideo) {
-        wsVideo.pause()
-        wsVideo.src = ''
-      }
-      canvasManager.value.workspaceVideoBackground = null
-      console.log('🗑️ Workspace-Video-Hintergrund entfernt')
-    }
+    resetWorkspaceVideo()
 
     canvasManager.value.redrawCallback()
     console.log('✅ Workspace-Hintergrund zurückgesetzt')
   }
 
   function resetAllBackgrounds() {
-    if (!canvasManager.value) {
-      console.warn('⚠️ CanvasManager nicht verfügbar')
-      return
-    }
+    if (!requireCanvasManager()) return
 
     console.log('🔄 Setze alle Hintergründe zurück')
-
-    canvasManager.value.setBackground('#ffffff')
-    backgroundColor.value = '#ffffff'
-    backgroundOpacity.value = 1.0
-
+    resetColor()
     canvasManager.value.workspaceBackground = null
-
     bgFlipH.value = false
     bgFlipV.value = false
     wsBgFlipH.value = false
     wsBgFlipV.value = false
-
-    if (canvasManager.value.videoBackground) {
-      const video = canvasManager.value.videoBackground.videoElement
-      if (video) {
-        video.pause()
-        video.src = ''
-      }
-      canvasManager.value.videoBackground = null
-      console.log('🗑️ Video-Hintergrund entfernt')
-    }
-
-    if (canvasManager.value.workspaceVideoBackground) {
-      const wsVideo = canvasManager.value.workspaceVideoBackground.videoElement
-      if (wsVideo) {
-        wsVideo.pause()
-        wsVideo.src = ''
-      }
-      canvasManager.value.workspaceVideoBackground = null
-      console.log('🗑️ Workspace-Video-Hintergrund entfernt')
-    }
+    resetMainVideo()
+    resetWorkspaceVideo()
 
     canvasManager.value.redrawCallback()
     updateColorDisplay()
@@ -1287,10 +398,7 @@ export function useBgSettings() {
   }
 
   function confirmReset() {
-    if (!canvasManager.value) {
-      console.warn('⚠️ CanvasManager nicht verfügbar')
-      return
-    }
+    if (!requireCanvasManager()) return
 
     console.log('🗑️ Setze Canvas komplett zurück')
     canvasManager.value.reset()
@@ -1305,9 +413,7 @@ export function useBgSettings() {
   function initializeCanvasSettings() {
     if (!canvasManager.value) return false
 
-    canvasManager.value.setBackground('#ffffff')
-    backgroundColor.value = '#ffffff'
-    backgroundOpacity.value = 1.0
+    resetColor()
     updateColorDisplay()
     console.log('✅ CanvasControlPanel initialisiert - Hintergrund auf Weiß gesetzt')
     return true
@@ -1330,31 +436,22 @@ export function useBgSettings() {
     updateColorDisplay()
   })
 
+  /** Flip-Refs aus den fotoSettings eines (Workspace-)Hintergrunds übernehmen. */
+  function syncFlip(bg, flipH, flipV) {
+    const fs = bg && typeof bg === 'object' ? bg.fotoSettings : null
+    flipH.value = fs?.flipH || false
+    flipV.value = fs?.flipV || false
+  }
+
   watch(
     () => canvasManager.value?.background,
-    (newBg) => {
-      if (newBg && typeof newBg === 'object' && newBg.fotoSettings) {
-        bgFlipH.value = newBg.fotoSettings.flipH || false
-        bgFlipV.value = newBg.fotoSettings.flipV || false
-      } else {
-        bgFlipH.value = false
-        bgFlipV.value = false
-      }
-    },
+    (newBg) => syncFlip(newBg, bgFlipH, bgFlipV),
     { deep: true },
   )
 
   watch(
     () => canvasManager.value?.workspaceBackground,
-    (newWsBg) => {
-      if (newWsBg && newWsBg.fotoSettings) {
-        wsBgFlipH.value = newWsBg.fotoSettings.flipH || false
-        wsBgFlipV.value = newWsBg.fotoSettings.flipV || false
-      } else {
-        wsBgFlipH.value = false
-        wsBgFlipV.value = false
-      }
-    },
+    (newWsBg) => syncFlip(newWsBg, wsBgFlipH, wsBgFlipV),
     { deep: true },
   )
 
@@ -1380,7 +477,7 @@ export function useBgSettings() {
     unregisterHistorySegment = getHistoryRecorder(useHistoryStore()).registerSegment(
       'background',
       createBackgroundSegment({
-        getCanvasManager: () => canvasManager.value,
+        getCanvasManager: getCm,
         refs: {
           backgroundColor,
           backgroundOpacity,
@@ -1398,7 +495,7 @@ export function useBgSettings() {
         },
       }),
     )
-    loadPresets()
+    presets.loadPresets()
     window.addEventListener('preset:apply', handlePresetApply)
     // Bridge registrieren, damit z.B. Beat-Marker den Hintergrund erfassen/anwenden können
     backgroundBridge.register(buildBackgroundSnapshot, applyBackgroundSnapshot)
@@ -1424,33 +521,33 @@ export function useBgSettings() {
     gradientAngle,
     bgAudioReactive,
     activeBgAudioPreset,
-    bgAudioRevision,
-    hasSavedBgAudioSettings,
-    setBgAudioEnabled,
-    setBgAudioProperty,
-    setBgEffectEnabled,
-    setBgEffectIntensity,
-    setBgEffectSource,
-    toggleBgAudioPreset,
-    clearBgAudioPreset,
-    saveBgAudioSettings,
-    applyBgAudioSettings,
+    bgAudioRevision: audio.bgAudioRevision,
+    hasSavedBgAudioSettings: audio.hasSavedBgAudioSettings,
+    setBgAudioEnabled: audio.setBgAudioEnabled,
+    setBgAudioProperty: audio.setBgAudioProperty,
+    setBgEffectEnabled: audio.setBgEffectEnabled,
+    setBgEffectIntensity: audio.setBgEffectIntensity,
+    setBgEffectSource: audio.setBgEffectSource,
+    toggleBgAudioPreset: audio.toggleBgAudioPreset,
+    clearBgAudioPreset: audio.clearBgAudioPreset,
+    saveBgAudioSettings: audio.saveBgAudioSettings,
+    applyBgAudioSettings: audio.applyBgAudioSettings,
     bgFlipH,
     bgFlipV,
     wsBgFlipH,
     wsBgFlipV,
-    showBackgroundReplaceModal,
-    replaceType,
-    pendingBackgroundReplaceImage,
-    pendingBackgroundReplaceSrc,
-    showBgReplaceGallery,
-    bgGalleryCategories,
-    bgGalleryImages,
-    selectedBgCategory,
-    selectedBgGalleryImage,
-    bgGalleryLoading,
-    bgGalleryCategoryCache,
-    savedPresets,
+    showBackgroundReplaceModal: replace.showBackgroundReplaceModal,
+    replaceType: replace.replaceType,
+    pendingBackgroundReplaceImage: replace.pendingBackgroundReplaceImage,
+    pendingBackgroundReplaceSrc: replace.pendingBackgroundReplaceSrc,
+    showBgReplaceGallery: replace.showBgReplaceGallery,
+    bgGalleryCategories: replace.bgGalleryCategories,
+    bgGalleryImages: replace.bgGalleryImages,
+    selectedBgCategory: replace.selectedBgCategory,
+    selectedBgGalleryImage: replace.selectedBgGalleryImage,
+    bgGalleryLoading: replace.bgGalleryLoading,
+    bgGalleryCategoryCache: replace.bgGalleryCategoryCache,
+    savedPresets: presets.savedPresets,
     // Computed
     hasImageBackground,
     hasWorkspaceBackground,
@@ -1458,7 +555,7 @@ export function useBgSettings() {
     hasWorkspaceVideoBackground,
     backgroundImageSrc,
     workspaceBackgroundImageSrc,
-    currentBackgroundForReplace,
+    currentBackgroundForReplace: replace.currentBackgroundForReplace,
     isCanvasEmpty,
     // Functions
     hexToRGBA,
@@ -1476,20 +573,20 @@ export function useBgSettings() {
     toggleBgFlipV,
     toggleWsBgFlipH,
     toggleWsBgFlipV,
-    openBackgroundReplaceModal,
-    closeBackgroundReplaceModal,
-    handleBackgroundReplaceFile,
-    confirmBackgroundReplace,
-    cancelBackgroundReplace,
-    openBgReplaceGallery,
-    closeBgReplaceGallery,
-    selectBgGalleryCategory,
-    selectBgGalleryImage,
-    confirmBgReplaceFromGallery,
-    loadPresets,
-    saveCurrentAsPreset,
-    loadPreset,
-    deletePreset,
+    openBackgroundReplaceModal: replace.openBackgroundReplaceModal,
+    closeBackgroundReplaceModal: replace.closeBackgroundReplaceModal,
+    handleBackgroundReplaceFile: replace.handleBackgroundReplaceFile,
+    confirmBackgroundReplace: replace.confirmBackgroundReplace,
+    cancelBackgroundReplace: replace.cancelBackgroundReplace,
+    openBgReplaceGallery: replace.openBgReplaceGallery,
+    closeBgReplaceGallery: replace.closeBgReplaceGallery,
+    selectBgGalleryCategory: replace.selectBgGalleryCategory,
+    selectBgGalleryImage: replace.selectBgGalleryImage,
+    confirmBgReplaceFromGallery: replace.confirmBgReplaceFromGallery,
+    loadPresets: presets.loadPresets,
+    saveCurrentAsPreset: presets.saveCurrentAsPreset,
+    loadPreset: presets.loadPreset,
+    deletePreset: presets.deletePreset,
     buildBackgroundSnapshot,
     applyBackgroundSnapshot,
     resetNormalBackground,

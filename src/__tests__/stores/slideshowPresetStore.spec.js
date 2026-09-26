@@ -30,6 +30,7 @@ const snapshot = {
     applyAudioReactive: false,
     loop: true,
     renderBehindVisualizer: true,
+    fitToWorkspace: true,
     transform: { x: 5, y: 15, width: 70, height: 60 },
   },
   slots: [
@@ -52,6 +53,7 @@ describe('slideshowPresetStore', () => {
     reloaded.loadPresets()
     expect(reloaded.presets).toHaveLength(1)
     expect(reloaded.presets[0].slots[0]).toEqual({ displayDuration: 7000, audioMode: 'pulse' })
+    expect(reloaded.presets[0].settings.fitToWorkspace).toBe(true)
     expect(reloaded.presets[0].settings.transform).toEqual({ x: 5, y: 15, width: 70, height: 60 })
   })
 
@@ -92,6 +94,7 @@ describe('slideshowPresetStore', () => {
     expect(p.name).toBe('Slideshow')
     expect(p.settings.displayDuration).toBe(3000)
     expect(p.settings.fadeInDuration).toBe(5000)
+    expect(p.settings.fitToWorkspace).toBe(false)
     expect(p.settings.transform.width).toBe(10)
     expect(p.slots).toEqual([
       { displayDuration: null, audioMode: 'default' },

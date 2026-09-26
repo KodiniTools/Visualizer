@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 
-function createManager() {
+function createManager(callbacks = {}, canvas = { width: 1000, height: 1000 }) {
   let nextId = 1
   const multiImageManager = {
-    canvas: { width: 1000, height: 1000 },
+    canvas,
     addImageWithBounds: vi.fn((imageObject, bounds) => ({ id: nextId++, imageObject, ...bounds })),
     removeImage: vi.fn(),
   }
@@ -16,7 +16,7 @@ function createManager() {
   vi.spyOn(console, 'log').mockImplementation(() => {})
   vi.stubGlobal('requestAnimationFrame', () => 1)
   vi.stubGlobal('cancelAnimationFrame', () => {})
-  return new SlideshowManager(multiImageManager, fotoManager)
+  return new SlideshowManager(multiImageManager, fotoManager, callbacks)
 }
 
 afterEach(() => {
@@ -123,5 +123,75 @@ describe('SlideshowManager – Pause/Fortsetzen', () => {
     expect(m.activeImages[0].slideshow.opacity).toBeGreaterThanOrEqual(0)
     m.stop()
     vi.useRealTimers()
+  })
+})
+
+describe('SlideshowManager – An Workspace anpassen', () => {
+  // Canvas 1600x900, Workspace 9:16 mittig (450x810, wie getWorkspaceBounds)
+  const canvas = { width: 1600, height: 900 }
+  const ws = { x: 575, y: 45, width: 450, height: 810 }
+  const wide = { width: 1600, height: 900 } // 16:9-Bild
+  const close = (a, b) => expect(a).toBeCloseTo(b, 6)
+
+  it('füllt den Workspace (Cover) und beschneidet auf ihn', () => {
+    let bounds = ws
+    const m = createManager({ getWorkspaceBounds: () => bounds }, canvas)
+    m.start([{ imageObject: wide }], { fitToWorkspace: true })
+    const imgData = m.activeImages[0]
+
+    const t = m.getTransform()
+    close(t.relX, 575 / 1600)
+    close(t.relWidth, 450 / 1600)
+    close(t.relHeight, 0.9)
+    expect(imgData.slideshow.clipRect).toEqual(t)
+
+    // Cover: volle Workspace-Höhe, Breite größer als Workspace, mittig
+    close(imgData.relHeight, 0.9)
+    close(imgData.relWidth * 1600, 810 * (16 / 9))
+    close(imgData.relX + imgData.relWidth / 2, 0.5)
+    expect(imgData.relWidth).toBeGreaterThan(t.relWidth)
+
+    // Freies Verschieben/Skalieren ist gesperrt
+    m.moveSlideshow(0.1, 0.1)
+    m.scaleSlideshow(0.5)
+    expect(m.getTransform()).toEqual(t)
+
+    // Formatwechsel während der Slideshow → Bilder folgen
+    bounds = { x: 350, y: 45, width: 900, height: 810 }
+    m._syncWorkspace()
+    close(imgData.slideshow.clipRect.relWidth, 900 / 1600)
+    m.stop()
+  })
+
+  it('ohne Workspace-Format: normales Verhalten (Transform, kein Clip)', () => {
+    const m = createManager({ getWorkspaceBounds: () => null }, canvas)
+    m.start([{ imageObject: wide }], { fitToWorkspace: true })
+    expect(m.isFittedToWorkspace()).toBe(false)
+    expect(m.activeImages[0].slideshow.clipRect).toBeNull()
+    expect(m.getTransform()).toEqual(m.transform)
+    m.stop()
+  })
+
+  it('lässt sich während der Slideshow umschalten', () => {
+    const m = createManager({ getWorkspaceBounds: () => ws }, canvas)
+    m.start([{ imageObject: wide }])
+    const imgData = m.activeImages[0]
+    expect(imgData.slideshow.clipRect).toBeNull()
+    m.setFitToWorkspace(true)
+    expect(imgData.slideshow.clipRect).not.toBeNull()
+    m.setFitToWorkspace(false)
+    expect(imgData.slideshow.clipRect).toBeNull()
+    m.stop()
+  })
+
+  it('Contain-Modus bleibt innerhalb des Transform-Bereichs', () => {
+    const m = createManager({}, { width: 1000, height: 1000 })
+    m.setTransform({ relX: 0.2, relY: 0.1, relWidth: 0.3, relHeight: 0.8 })
+    m.start([{ imageObject: { width: 100, height: 100 } }])
+    const imgData = m.activeImages[0]
+    expect(imgData.relWidth).toBeLessThanOrEqual(0.3 + 1e-9)
+    expect(imgData.relHeight).toBeLessThanOrEqual(0.8 + 1e-9)
+    close(imgData.relWidth, 0.3)
+    m.stop()
   })
 })

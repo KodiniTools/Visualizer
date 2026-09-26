@@ -37,11 +37,27 @@
         <input v-model="renderBehindVisualizer" type="checkbox" @change="onRenderLayerChange" />
         <span>{{ t('slideshow.renderBehind') }}</span>
       </label>
+      <label class="checkbox-label" :class="{ disabled: !hasWorkspace }">
+        <input
+          v-model="fitToWorkspace"
+          class="fit-workspace-checkbox"
+          type="checkbox"
+          :disabled="!hasWorkspace"
+          @change="onFitWorkspaceChange"
+        />
+        <span>{{ t('slideshow.fitToWorkspace') }}</span>
+      </label>
+      <p v-if="!hasWorkspace" class="hint warning fit-workspace-hint">
+        {{ t('slideshow.fitToWorkspaceNoWorkspace') }}
+      </p>
+      <p v-else-if="fitToWorkspace" class="hint fit-workspace-hint">
+        {{ t('slideshow.fitToWorkspaceHint') }}
+      </p>
     </div>
 
     <!-- Position & Größe (nur wenn nicht aktiv) -->
     <SlideshowTransformSettings
-      v-if="!isActive"
+      v-if="!isActive && !fitsWorkspace"
       v-model:transform-x="transformX"
       v-model:transform-y="transformY"
       v-model:transform-width="transformWidth"
@@ -79,7 +95,7 @@
  * das FotoPanel. Die Sektionen liegen in `slideshow/` (Reihenfolge, Timing,
  * Position/Größe, Steuerung) und sind per v-model angebunden.
  */
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import SlideshowOrderList from './slideshow/SlideshowOrderList.vue'
 import SlideshowTimingSettings from './slideshow/SlideshowTimingSettings.vue'
@@ -107,6 +123,7 @@ const props = defineProps({
   currentImageIndex: { type: Number, default: 0 },
   totalImages: { type: Number, default: 0 },
   currentPhase: { type: String, default: 'fadeIn' },
+  hasWorkspace: { type: Boolean, default: false },
 })
 
 const emit = defineEmits([
@@ -117,6 +134,7 @@ const emit = defineEmits([
   'order-changed',
   'render-layer-change',
   'transform-change',
+  'fit-workspace-change',
 ])
 
 const D = SLIDESHOW_DEFAULT_SETTINGS
@@ -130,6 +148,11 @@ const loopSlideshow = ref(D.loop)
 
 // Render Layer
 const renderBehindVisualizer = ref(D.renderBehindVisualizer)
+
+// Bilder füllen den Workspace-Bereich (wie „Als Workspace-Hintergrund“)
+const fitToWorkspace = ref(D.fitToWorkspace)
+// Nur wirksam, wenn ein Workspace-Format gewählt ist
+const fitsWorkspace = computed(() => fitToWorkspace.value && props.hasWorkspace)
 
 // Transform-Einstellungen (in Prozent für UI)
 const transformX = ref(D.transform.x)
@@ -178,6 +201,7 @@ function startSlideshow() {
     applyAudioReactive: applyAudioReactive.value,
     loop: loopSlideshow.value,
     renderBehindVisualizer: renderBehindVisualizer.value,
+    fitToWorkspace: fitsWorkspace.value,
     transform: transformPayload(),
   })
 }
@@ -192,6 +216,7 @@ function savePreset(name) {
       applyAudioReactive: applyAudioReactive.value,
       loop: loopSlideshow.value,
       renderBehindVisualizer: renderBehindVisualizer.value,
+      fitToWorkspace: fitToWorkspace.value,
       transform: {
         x: transformX.value,
         y: transformY.value,
@@ -223,6 +248,10 @@ function loadPreset(preset) {
     renderBehindVisualizer.value = s.renderBehindVisualizer
     onRenderLayerChange()
   }
+  if (fitToWorkspace.value !== s.fitToWorkspace) {
+    fitToWorkspace.value = s.fitToWorkspace
+    onFitWorkspaceChange()
+  }
   transformX.value = s.transform.x
   transformY.value = s.transform.y
   transformWidth.value = s.transform.width
@@ -248,6 +277,23 @@ function loadPreset(preset) {
 function onRenderLayerChange() {
   emit('render-layer-change', renderBehindVisualizer.value)
 }
+
+// „An Workspace anpassen“: wie ein Workspace-Hintergrund hinter dem Visualizer
+function onFitWorkspaceChange() {
+  if (fitToWorkspace.value && !renderBehindVisualizer.value) {
+    renderBehindVisualizer.value = true
+    onRenderLayerChange()
+  }
+  emit('fit-workspace-change', fitsWorkspace.value)
+}
+
+// Workspace-Format entfernt/gewählt → Manager informieren
+watch(
+  () => props.hasWorkspace,
+  () => {
+    if (fitToWorkspace.value) emit('fit-workspace-change', fitsWorkspace.value)
+  },
+)
 
 function emitTransformChange() {
   emit('transform-change', transformPayload())
@@ -308,6 +354,10 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 [data-theme='light'] .status-badge {
   background-color: #f0ead0;
   color: #4d6d8e;
+}
+.checkbox-label.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 [data-theme='light'] .layer-section {
   border-top-color: #d4c8a8;

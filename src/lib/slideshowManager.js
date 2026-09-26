@@ -17,6 +17,10 @@ export class SlideshowManager {
     this.redrawCallback = callbacks.redrawCallback || (() => {})
     this.onSlideshowComplete = callbacks.onSlideshowComplete || (() => {})
     this.onImageTransition = callbacks.onImageTransition || (() => {})
+    // Liefert die Workspace-Bounds in Canvas-Pixeln ({x,y,width,height}) oder null
+    this.getWorkspaceBounds = callbacks.getWorkspaceBounds || (() => null)
+    // Zuletzt angewendete Workspace-Bounds (erkennt Formatwechsel während der Slideshow)
+    this._lastWorkspaceKey = null
 
     // Slideshow State
     this.isActive = false
@@ -38,6 +42,7 @@ export class SlideshowManager {
       autoApplyAudioReactive: true,
       defaultAudioReactiveSettings: null, // Wird auf alle Bilder angewendet
       renderBehindVisualizer: false, // Slideshow hinter dem Visualizer rendern
+      fitToWorkspace: false, // Bilder füllen den Workspace-Bereich (wie Workspace-Hintergrund)
     }
 
     // ✨ NEU: Slideshow Transform-Einstellungen (Position und Größe)
@@ -91,7 +96,95 @@ export class SlideshowManager {
    * ✨ NEU: Gibt die aktuellen Transform-Einstellungen zurück
    */
   getTransform() {
-    return { ...this.transform }
+    return this._getWorkspaceTransform() ?? { ...this.transform }
+  }
+
+  /**
+   * Workspace-Bereich als relativer Transform, falls „An Workspace anpassen“
+   * aktiv ist und ein Workspace-Format gewählt wurde – sonst null.
+   * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
+   */
+  _getWorkspaceTransform() {
+    if (!this.config.fitToWorkspace) return null
+    const canvas = this.multiImageManager.canvas
+    if (!canvas || !canvas.width || !canvas.height) return null
+    let b = null
+    try {
+      b = this.getWorkspaceBounds()
+    } catch (e) {
+      console.warn('[SlideshowManager] Workspace-Bounds nicht verfügbar:', e)
+    }
+    if (!b || !(b.width > 0) || !(b.height > 0)) return null
+    return {
+      relX: b.x / canvas.width,
+      relY: b.y / canvas.height,
+      relWidth: b.width / canvas.width,
+      relHeight: b.height / canvas.height,
+    }
+  }
+
+  /** true, wenn die Slideshow gerade den Workspace-Bereich füllt. */
+  isFittedToWorkspace() {
+    return this._getWorkspaceTransform() !== null
+  }
+
+  /**
+   * Berechnet Bild-Bounds (relativ) und Clip-Bereich für ein Slideshow-Bild.
+   * - Normal: Bild wird seitenverhältnistreu in den Transform-Bereich eingepasst.
+   * - Workspace: Bild füllt den Workspace (Cover) und wird auf ihn beschnitten.
+   * @returns {{bounds:{relX:number,relY:number,relWidth:number,relHeight:number}, clipRect:Object|null}}
+   */
+  _computeImageLayout(imageObject) {
+    const canvas = this.multiImageManager.canvas
+    const imgAspectRatio = imageObject.height / imageObject.width
+    const canvasAspectRatio = canvas.height / canvas.width
+    const ws = this._getWorkspaceTransform()
+    const area = ws ?? this.transform
+
+    // Seitenverhältnis des Bereichs in relativen Einheiten
+    const areaAspect = (area.relHeight / area.relWidth) * canvasAspectRatio
+    // Contain: am „engeren“ Maß ausrichten; Cover (Workspace): am „weiteren“
+    const fitHeight = ws ? imgAspectRatio < areaAspect : imgAspectRatio > areaAspect
+
+    let relWidth, relHeight
+    if (fitHeight) {
+      relHeight = area.relHeight
+      relWidth = (relHeight * canvasAspectRatio) / imgAspectRatio
+    } else {
+      relWidth = area.relWidth
+      relHeight = (relWidth * imgAspectRatio) / canvasAspectRatio
+    }
+
+    return {
+      bounds: {
+        relX: area.relX + (area.relWidth - relWidth) / 2,
+        relY: area.relY + (area.relHeight - relHeight) / 2,
+        relWidth,
+        relHeight,
+      },
+      clipRect: ws ? { ...ws } : null,
+    }
+  }
+
+  /**
+   * Aktiviert/deaktiviert „An Workspace anpassen“ (auch während laufender Slideshow).
+   * @param {boolean} value
+   */
+  setFitToWorkspace(value) {
+    this.config.fitToWorkspace = !!value
+    this._lastWorkspaceKey = null
+    this._updateActiveImagesTransform()
+  }
+
+  /** Passt aktive Bilder an, wenn sich das Workspace-Format geändert hat. */
+  _syncWorkspace() {
+    if (!this.config.fitToWorkspace) return
+    const ws = this._getWorkspaceTransform()
+    const key = ws ? `${ws.relX}|${ws.relY}|${ws.relWidth}|${ws.relHeight}` : 'none'
+    if (key !== this._lastWorkspaceKey) {
+      this._lastWorkspaceKey = key
+      this._updateActiveImagesTransform()
+    }
   }
 
   /**
@@ -100,31 +193,11 @@ export class SlideshowManager {
   _updateActiveImagesTransform() {
     if (!this.isActive || this.activeImages.length === 0) return
 
-    const canvas = this.multiImageManager.canvas
-    const canvasAspectRatio = canvas.height / canvas.width
-
     for (const imageData of this.activeImages) {
       if (!imageData.imageObject) continue
-
-      const imgAspectRatio = imageData.imageObject.height / imageData.imageObject.width
-
-      // Berechne die Größe innerhalb der Transform-Bounds
-      let relWidth, relHeight
-      if (imgAspectRatio > canvasAspectRatio) {
-        // Bild ist höher - an Höhe anpassen
-        relHeight = this.transform.relHeight
-        relWidth = (relHeight * canvasAspectRatio) / imgAspectRatio
-      } else {
-        // Bild ist breiter - an Breite anpassen
-        relWidth = this.transform.relWidth
-        relHeight = (relWidth * imgAspectRatio) / canvasAspectRatio
-      }
-
-      // Zentriere das Bild innerhalb der Transform-Bounds
-      imageData.relX = this.transform.relX + (this.transform.relWidth - relWidth) / 2
-      imageData.relY = this.transform.relY + (this.transform.relHeight - relHeight) / 2
-      imageData.relWidth = relWidth
-      imageData.relHeight = relHeight
+      const { bounds, clipRect } = this._computeImageLayout(imageData.imageObject)
+      Object.assign(imageData, bounds)
+      if (imageData.slideshow) imageData.slideshow.clipRect = clipRect
     }
 
     this.redrawCallback()
@@ -157,7 +230,9 @@ export class SlideshowManager {
       defaultAudioReactiveSettings:
         options.audioReactiveSettings ?? this.config.defaultAudioReactiveSettings,
       renderBehindVisualizer: options.renderBehindVisualizer ?? this.config.renderBehindVisualizer,
+      fitToWorkspace: options.fitToWorkspace ?? this.config.fitToWorkspace,
     })
+    this._lastWorkspaceKey = null
 
     // ✨ Transform-Einstellungen aktualisieren wenn vorhanden
     if (options.transform) {
@@ -277,30 +352,8 @@ export class SlideshowManager {
     // ✨ Debug: Log transform values when adding new image
     console.log('[SlideshowManager] _addNextImage() mit Transform:', JSON.stringify(this.transform))
 
-    // ✨ Berechne Bounds basierend auf Transform-Einstellungen
-    const canvas = this.multiImageManager.canvas
-    const imgAspectRatio = imageObject.height / imageObject.width
-    const canvasAspectRatio = canvas.height / canvas.width
-
-    // Verwende die Transform-Einstellungen für Größe
-    let relWidth, relHeight
-    if (imgAspectRatio > canvasAspectRatio) {
-      // Bild ist höher - an Höhe anpassen
-      relHeight = this.transform.relHeight
-      relWidth = (relHeight * canvasAspectRatio) / imgAspectRatio
-    } else {
-      // Bild ist breiter - an Breite anpassen
-      relWidth = this.transform.relWidth
-      relHeight = (relWidth * imgAspectRatio) / canvasAspectRatio
-    }
-
-    // Zentriere das Bild innerhalb der Transform-Bounds
-    const bounds = {
-      relX: this.transform.relX + (this.transform.relWidth - relWidth) / 2,
-      relY: this.transform.relY + (this.transform.relHeight - relHeight) / 2,
-      relWidth: relWidth,
-      relHeight: relHeight,
-    }
+    // ✨ Bounds basierend auf Transform bzw. Workspace berechnen
+    const { bounds, clipRect } = this._computeImageLayout(imageObject)
 
     // ✨ FIX: Füge Bild mit benutzerdefinierten Optionen hinzu, einschließlich isSlideshowImage
     // WICHTIG: isSlideshowImage muss VOR dem redraw gesetzt werden, damit Selection-Marker
@@ -338,6 +391,7 @@ export class SlideshowManager {
       ),
       phase: 'fadeIn', // 'fadeIn' | 'display' | 'fadeOut' | 'done'
       opacity: 0,
+      clipRect, // relativer Clip-Bereich (Workspace) oder null
     }
 
     // Audio-Reaktive Einstellungen anwenden
@@ -406,6 +460,7 @@ export class SlideshowManager {
     const animate = () => {
       if (!this.isActive) return
 
+      this._syncWorkspace()
       if (!this.isPaused) {
         this._updateSlideshowState()
       }
@@ -597,11 +652,12 @@ export class SlideshowManager {
    * @returns {boolean}
    */
   isPointInTransformArea(relX, relY) {
+    const t = this.getTransform()
     return (
-      relX >= this.transform.relX &&
-      relX <= this.transform.relX + this.transform.relWidth &&
-      relY >= this.transform.relY &&
-      relY <= this.transform.relY + this.transform.relHeight
+      relX >= t.relX &&
+      relX <= t.relX + t.relWidth &&
+      relY >= t.relY &&
+      relY <= t.relY + t.relHeight
     )
   }
 
@@ -611,6 +667,8 @@ export class SlideshowManager {
    * @param {number} deltaRelY - Relative Y-Verschiebung
    */
   moveSlideshow(deltaRelX, deltaRelY) {
+    // An den Workspace gebunden → nicht frei verschiebbar
+    if (this.isFittedToWorkspace()) return
     // Neue Position berechnen mit Constraints
     let newRelX = this.transform.relX + deltaRelX
     let newRelY = this.transform.relY + deltaRelY
@@ -630,6 +688,7 @@ export class SlideshowManager {
    * @param {number} scaleMultiplier - Skalierungsfaktor (1 = keine Änderung)
    */
   scaleSlideshow(scaleMultiplier) {
+    if (this.isFittedToWorkspace()) return
     const currentWidth = this.transform.relWidth
     const currentHeight = this.transform.relHeight
 
@@ -674,7 +733,8 @@ export class SlideshowManager {
       totalImages: this.config.images.length,
       activeImagesCount: this.activeImages.length,
       config: { ...this.config, images: undefined }, // Ohne Bild-Daten
-      transform: { ...this.transform },
+      transform: this.getTransform(),
+      fitToWorkspace: this.config.fitToWorkspace,
       renderBehindVisualizer: this.config.renderBehindVisualizer,
     }
   }

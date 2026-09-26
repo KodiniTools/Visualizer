@@ -131,6 +131,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
         adjustments: null,
         bounds: null,
         transition: null,
+        fadeIn: null,
+        fadeOut: null,
         stock: null,
         upload: null,
       },
@@ -140,6 +142,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
         adjustments: null,
         bounds: null,
         transition: null,
+        fadeIn: null,
+        fadeOut: null,
         stock: null,
         upload: null,
       },
@@ -520,6 +524,109 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.transition-select').element.value).toBe('slideLeft')
     expect(w.findAll('.order-transition')[1].element.value).toBe('zoomIn')
     expect(w.findAll('.order-transition')[0].element.value).toBe('default')
+  })
+
+  it('per-image transitions are remembered permanently (reload)', async () => {
+    const withObj = (img, w, h) => ({
+      ...img,
+      imageObject: { ...img.imageObject, width: w, height: h },
+    })
+    const imgs = [withObj(images[0], 10, 10), withObj(images[1], 20, 10)]
+    let w = mountPanel({ images: imgs })
+    await w.findAll('.order-transition')[1].setValue('rotate')
+    w.unmount()
+    pinia = createPinia()
+    setActivePinia(pinia)
+    // neue IDs (z. B. nach Neuladen), gleiche Namen + Maße
+    w = mountPanel({ images: imgs.map((i) => ({ ...i, id: `${i.id}-neu` })) })
+    wrapper = w
+    expect(w.findAll('.order-transition')[1].element.value).toBe('rotate')
+    expect(w.findAll('.order-transition')[0].element.value).toBe('default')
+    // zurück auf Standard → vergessen
+    await w.findAll('.order-transition')[1].setValue('default')
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-image-transitions'))).toEqual({})
+  })
+
+  it('paused: click request opens the image editor; edits go live and close on resume', async () => {
+    const w = mountPanel()
+    await w.setProps({ isActive: true, isPaused: true })
+    expect(w.find('.paused-edit-hint').exists()).toBe(true)
+    await w.setProps({ editImageRequest: { index: 1, nonce: 1 } })
+    const editor = w.find('.image-editor')
+    expect(editor.exists()).toBe(true)
+    expect(editor.text()).toContain('Zwei')
+
+    await editor.find('.editor-transition').setValue('slideUp')
+    let live = w.emitted('live-update').at(-1)[0]
+    expect(live.preserveLive).toBe(true)
+    expect(live.images[1].transition).toBe('slideUp')
+
+    const dur = editor.find('.editor-duration')
+    dur.element.value = '7'
+    await dur.trigger('input')
+    live = w.emitted('live-update').at(-1)[0]
+    expect(live.images[1].displayDuration).toBe(7000)
+
+    await editor.find('.editor-audio').setValue('glitch')
+    live = w.emitted('live-update').at(-1)[0]
+    expect(live.images[1].audioMode).toBe('glitch')
+    expect(live.images[0].audioMode).toBe('default')
+
+    await w.setProps({ isPaused: false })
+    expect(w.find('.image-editor').exists()).toBe(false)
+  })
+
+  it('editor request is ignored while running', async () => {
+    const w = mountPanel()
+    await w.setProps({ isActive: true, isPaused: false, editImageRequest: { index: 0, nonce: 2 } })
+    expect(w.find('.image-editor').exists()).toBe(false)
+  })
+
+  it('per-image fade in/out: payload, permanent memory, presets; default label shows global', async () => {
+    const withObj = (img, w, h) => ({
+      ...img,
+      imageObject: { ...img.imageObject, width: w, height: h },
+    })
+    const imgs = [withObj(images[0], 10, 10), withObj(images[1], 20, 10)]
+    let w = mountPanel({ images: imgs })
+    // „Standard (Überblenden)“ zeigt den aktuellen Standard-Übergang
+    expect(w.findAll('.order-transition')[0].find('option').text()).toContain('Überblenden')
+    await w.find('.transition-select').setValue('blur')
+    expect(w.findAll('.order-transition')[0].find('option').text()).toContain('Weichzeichnen')
+
+    await w.findAll('.order-fadein')[1].setValue('0.4')
+    await w.findAll('.order-fadeout')[1].setValue('2.5')
+    expect(w.findAll('.order-fadein')[1].classes()).toContain('is-own')
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.images[1]).toMatchObject({ fadeInDuration: 400, fadeOutDuration: 2500 })
+    expect(payload.images[0].fadeInDuration).toBeUndefined()
+
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    expect(stored[0].slots[1]).toMatchObject({ fadeIn: 400, fadeOut: 2500 })
+    w.unmount()
+
+    // Neuladen: dauerhaft gemerkt (unabhängig vom Preset)
+    pinia = createPinia()
+    setActivePinia(pinia)
+    w = mountPanel({ images: imgs.map((i) => ({ ...i, id: `${i.id}-neu` })) })
+    wrapper = w
+    expect(w.findAll('.order-fadein')[1].element.value).toBe('0.4')
+    expect(w.findAll('.order-fadeout')[1].element.value).toBe('2.5')
+    expect(w.findAll('.order-fadein')[0].element.value).toBe('')
+  })
+
+  it('image editor: fade in/out fields go live', async () => {
+    const w = mountPanel()
+    await w.setProps({ isActive: true, isPaused: true, editImageRequest: { index: 0, nonce: 5 } })
+    const fin = w.find('.image-editor .editor-fadein')
+    fin.element.value = '0.8'
+    await fin.trigger('input')
+    const live = w.emitted('live-update').at(-1)[0]
+    expect(live.preserveLive).toBe(true)
+    expect(live.images[0].fadeInDuration).toBe(800)
   })
 
   it('reset in the transform section restores defaults and emits transform-change', async () => {

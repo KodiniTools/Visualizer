@@ -217,3 +217,46 @@ describe('MultiImageManager – Übergänge beim Zeichnen', () => {
     expect(calls.some((c) => c[0] === 'scale' && c[1] === 0.5 && c[2] === 1)).toBe(true)
   })
 })
+
+describe('SlideshowManager – Live-Bearbeitung (pausiert)', () => {
+  it('preserveLive: aktuelle Anpassungen bleiben, neue Anzeigedauer gilt sofort', () => {
+    const img = { width: 100, height: 100 }
+    const m = createManager()
+    const imgs = [{ imageObject: img }, { imageObject: { width: 100, height: 100 } }]
+    m.start(imgs, { displayDuration: 3000 })
+    const shown = m.activeImages[0]
+    shown.fotoSettings.brightness = 160 // gerade eben geändert, noch nicht gemerkt
+    m.applyLiveUpdate([{ ...imgs[0], displayDuration: 8000, transition: 'wipe' }, imgs[1]], {
+      preserveLive: true,
+    })
+    expect(shown.fotoSettings.brightness).toBe(160)
+    expect(shown.slideshow.displayDuration).toBe(8000)
+    expect(shown.slideshow.transition).toBe('wipe')
+    m.stop()
+  })
+})
+
+describe('SlideshowManager – Ein-/Ausblenddauer pro Bild', () => {
+  it('eigene Dauer pro Bild, sonst Standard; Live-Bearbeitung übernimmt sie sofort', () => {
+    const img = { width: 100, height: 100 }
+    const m = createManager()
+    const imgs = [
+      { imageObject: img, fadeInDuration: 300, fadeOutDuration: 2500 },
+      { imageObject: { width: 100, height: 100 } },
+    ]
+    m.start(imgs, { fadeInDuration: 1000, fadeOutDuration: 1000 })
+    const shown = m.activeImages[0]
+    expect(shown.slideshow.fadeInDuration).toBe(300)
+    expect(shown.slideshow.fadeOutDuration).toBe(2500)
+    m.currentIndex = 1
+    const second = m._addNextImage()
+    expect(second.slideshow.fadeInDuration).toBe(1000)
+
+    m.applyLiveUpdate([{ ...imgs[0], fadeInDuration: 4000, fadeOutDuration: undefined }, imgs[1]], {
+      preserveLive: true,
+    })
+    expect(shown.slideshow.fadeInDuration).toBe(4000)
+    expect(shown.slideshow.fadeOutDuration).toBe(1000) // eigener Wert entfernt → Standard
+    m.stop()
+  })
+})

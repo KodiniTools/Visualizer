@@ -1,4 +1,5 @@
 // MouseHandler.js - Maus-Event-Handling
+import { requestSlideshowImageEdit } from '../../slideshowEditRequest.js'
 
 /**
  * MouseHandler - Verantwortlich für alle Maus-Events
@@ -109,6 +110,8 @@ export class MouseHandler {
           // Reliability: Add window listeners for drag outside canvas
           this._startDragListeners()
           this.manager.canvas.style.cursor = 'grabbing'
+          // Pausierte Slideshow: Einstellungen des (bereits ausgewählten) Bildes öffnen
+          requestSlideshowImageEdit(this.manager.activeObject)
           return
         }
       }
@@ -127,6 +130,8 @@ export class MouseHandler {
         return
       }
       this.manager.setActiveObject(clickedObject)
+      // Pausierte Slideshow: Einstellungen des angeklickten Bildes öffnen
+      requestSlideshowImageEdit(clickedObject)
       this.manager.currentAction = 'move'
       this.manager.dragStartPos = { x, y }
       // Reliability: Add window listeners for drag outside canvas

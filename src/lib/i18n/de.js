@@ -1403,10 +1403,10 @@ export default {
   slideshow: {
     title: 'Bild-Slideshow',
     order: 'Reihenfolge (Drag & Drop)',
-    timing: 'Timing-Einstellungen',
-    fadeIn: 'Einblenden',
+    timing: 'Standard für alle Bilder',
+    fadeIn: 'Einblenden (Dauer)',
     display: 'Anzeigedauer',
-    fadeOut: 'Ausblenden',
+    fadeOut: 'Ausblenden (Dauer)',
     applyAudioReactive: 'Audio-Reaktive Effekte anwenden',
     audioReactiveHint: 'Gespeicherte Audio-Einstellungen werden auf alle Bilder angewendet',
     noSavedSettings:
@@ -1428,7 +1428,7 @@ export default {
     height: 'Höhe',
     resetPosition: 'Position zurücksetzen',
     perImageHint:
-      'Pro Bild: Audio-Reaktion und Anzeigedauer (s). Leer/Standard = globale Einstellung.',
+      'Pro Bild einstellbar: Übergang, Ein-/Ausblenddauer, Anzeigedauer und Audio-Reaktion. Leer bzw. „Standard“ = Einstellung „Standard für alle Bilder“ (unten). Blau umrandet = eigener Wert.',
     perImageDurationHint: 'Eigene Anzeigedauer in Sekunden',
     perImageAudioHint: 'Audio-Reaktion für dieses Bild',
     audioModeDefault: 'Standard',
@@ -1475,7 +1475,7 @@ export default {
     cleanupDone: 'Aufgeräumt',
     cleanupNothing: 'Nichts aufzuräumen – alle gespeicherten Bilder werden verwendet.',
     transition: 'Übergang',
-    transitionDefault: 'Übergang: Standard',
+    transitionDefault: 'Standard',
     perImageTransitionHint: 'Übergangsanimation für dieses Bild',
     transitions: {
       fade: 'Überblenden',
@@ -1491,6 +1491,20 @@ export default {
       flip: 'Kippen',
       wipe: 'Wischen',
     },
+    imageSettings: 'Bild-Einstellungen',
+    closeImageSettings: 'Bild-Einstellungen schließen',
+    imageSettingsHint: 'Änderungen gelten sofort und bleiben für dieses Bild erhalten.',
+    pausedEditHint:
+      'Pausiert: Bild in der Leiste „Bilder auf Canvas“ anklicken, um seine Einstellungen zu öffnen.',
+    timingHint: 'Gilt für alle Bilder ohne eigenen Wert in der Liste oben.',
+    defaultTransitionLabel: 'Standard-Übergang',
+    fieldTransition: 'Übergang',
+    fieldFadeIn: 'Ein',
+    fieldDisplay: 'Anzeige',
+    fieldFadeOut: 'Aus',
+    fieldAudio: 'Audio',
+    perImageFadeInHint: 'Einblenddauer dieses Bildes in Sekunden',
+    perImageFadeOutHint: 'Ausblenddauer dieses Bildes in Sekunden',
     dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.',
   },
 

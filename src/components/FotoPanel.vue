@@ -48,6 +48,7 @@
       :has-workspace="hasWorkspace"
       :adjustments-api="slideshowAdjustmentsApi"
       :external-transform="slideshowExternalTransform"
+      :edit-image-request="slideshowEditRequest"
       @start="startSlideshow"
       @pause="pauseSlideshow"
       @resume="resumeSlideshow"
@@ -95,6 +96,7 @@ import SlideshowPanel from './foto-panel/SlideshowPanel.vue'
 // Lib
 import { SlideshowManager } from '../lib/slideshowManager.js'
 import { resolveSlideshowAudioReactive } from '../lib/slideshowAudio.js'
+import { SLIDESHOW_EDIT_EVENT } from '../lib/slideshowEditRequest.js'
 import {
   buildSlideshowSourceImages,
   ensureSlideshowImagesLoaded,
@@ -208,6 +210,15 @@ const {
 } = useStockGallery()
 // Per Maus verschobener gemeinsamer Bereich (für die Regler im Slideshow-Panel)
 const slideshowExternalTransform = ref(null)
+// Klick auf ein Slideshow-Bild in der Leiste (pausiert) → dessen Einstellungen öffnen
+const slideshowEditRequest = ref(null)
+function onSlideshowEditImage(event) {
+  const index = event?.detail?.index
+  if (!Number.isInteger(index)) return
+  slideshowEditRequest.value = { index, nonce: Date.now() }
+}
+onMounted(() => window.addEventListener(SLIDESHOW_EDIT_EVENT, onSlideshowEditImage))
+onBeforeUnmount(() => window.removeEventListener(SLIDESHOW_EDIT_EVENT, onSlideshowEditImage))
 // Workspace-Format gewählt? (Voraussetzung für „An Workspace anpassen“)
 const workspaceStore = useWorkspaceStore()
 const hasWorkspace = computed(() => workspaceStore.selectedPresetKey != null)
@@ -430,6 +441,8 @@ function buildSlideshowRun(config) {
     displayDuration: img.displayDuration,
     audioMode: img.audioMode,
     transition: img.transition,
+    fadeInDuration: img.fadeInDuration,
+    fadeOutDuration: img.fadeOutDuration,
     // Pro Bild: Standard (globale Option), Aus, Gespeichert oder Preset
     audioReactiveSettings: resolveSlideshowAudioReactive(img.audioMode, {
       applyGlobal: config.applyAudioReactive,
@@ -450,6 +463,8 @@ function buildSlideshowRun(config) {
     moveWholeSlideshow: config.moveWholeSlideshow,
     transition: config.transition,
     transform: config.transform,
+    // Live-Bearbeitung eines Bildes: aktuelle Anpassungen vorher übernehmen
+    preserveLive: config.preserveLive === true,
   }
   return { images, options }
 }

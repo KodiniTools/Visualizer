@@ -159,6 +159,13 @@ export function normalizeImageBounds(raw) {
   }
 }
 
+function normalizeFade(value) {
+  const n = Number(value)
+  return value !== null && value !== undefined && Number.isFinite(n) && n > 0
+    ? Math.round(Math.min(5000, Math.max(100, n)))
+    : null
+}
+
 function clampNumber(value, min, max, fallback) {
   const n = Number(value)
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback
@@ -215,6 +222,9 @@ export function normalizeSlideshowPreset(raw) {
           : SLIDESHOW_AUDIO_DEFAULT,
         // Eigene Übergangsanimation des Bildes (null = globaler Übergang)
         transition: isValidTransition(slot?.transition) ? slot.transition : null,
+        // Eigene Ein-/Ausblenddauer (ms, null = Standard)
+        fadeIn: normalizeFade(slot?.fadeIn),
+        fadeOut: normalizeFade(slot?.fadeOut),
         // Während der Slideshow vorgenommene Bild-Anpassungen (Filter, Audio …)
         adjustments: normalizeImageAdjustments(slot?.adjustments),
         // Eigene Position/Größe des Bildes (relativ zum Canvas) oder null

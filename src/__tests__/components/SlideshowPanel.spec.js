@@ -227,9 +227,11 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const live = w.emitted('live-update').at(-1)[0]
     expect(live.images.map((i) => i.id)).toEqual(['a', 'b'])
 
-    // Nach dem Stoppen ohne Auswahl ist das Panel ausgeblendet …
+    // Nach dem Stoppen ohne Auswahl bleibt das Panel sichtbar, weil ein Preset
+    // mit Bildern (Sitzung) existiert – Start ist ohne Bilder gesperrt
     await w.setProps({ isActive: false })
-    expect(w.find('.slideshow-panel').exists()).toBe(false)
+    expect(w.find('.slideshow-panel').exists()).toBe(true)
+    expect(w.find('.btn-start').element.disabled).toBe(true)
     // … mit neuer Auswahl gilt wieder diese
     await w.setProps({ images: [images[1], images[0]] })
     expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Zwei', 'Eins'])
@@ -260,6 +262,45 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.emitted('move-mode-change').at(-1)).toEqual([true])
     await w.find('.btn-start').trigger('click')
     expect(w.emitted('start')[0][0].moveWholeSlideshow).toBe(true)
+  })
+
+  it('preset with session images restores the image list (also with stock images)', async () => {
+    const stockImg = { id: 'stock:s1', name: 'Wald', source: 'stock', thumbnail: 'wald.png' }
+    const w = mountPanel({ images: [images[0], stockImg] })
+    expect(w.find('.order-stock-badge').exists()).toBe(true)
+    await w.find('.btn-save-preset').trigger('click')
+    expect(w.find('.preset-images-badge').exists()).toBe(true)
+
+    // Auswahl wechseln → Preset laden stellt die gespeicherten Bilder her
+    await w.setProps({ images: [images[1], images[0]] })
+    await w.find('.btn-load-preset').trigger('click')
+    expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Eins', 'Stock Wald'])
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0].images.map((i) => i.id)).toEqual(['a', 'stock:s1'])
+  })
+
+  it('loading a preset with other images while running restarts the slideshow', async () => {
+    const w = mountPanel({ images: [images[1], images[0]] })
+    await w.find('.btn-save-preset').trigger('click') // Preset mit Bildern b, a
+    await w.setProps({ images })
+    await w.setProps({ isActive: true, images: [] }) // läuft mit a, b
+    await w.find('.btn-load-preset').trigger('click')
+    expect(w.emitted('live-update')).toBeUndefined()
+    expect(
+      w
+        .emitted('start')
+        .at(-1)[0]
+        .images.map((i) => i.id),
+    ).toEqual(['b', 'a'])
+  })
+
+  it('panel is visible with a session-image preset even without selection; start disabled', async () => {
+    const w = mountPanel()
+    await w.find('.btn-save-preset').trigger('click')
+    await w.setProps({ images: [] })
+    expect(w.find('.slideshow-panel').exists()).toBe(true)
+    await w.find('.btn-load-preset').trigger('click')
+    expect(w.find('.btn-start').element.disabled).toBe(false)
   })
 
   it('reset in the transform section restores defaults and emits transform-change', async () => {

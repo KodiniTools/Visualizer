@@ -2,7 +2,7 @@
   <div>
     <!-- Action Buttons -->
     <div class="action-buttons">
-      <button v-if="!isActive" class="btn-start" @click="emit('start')">
+      <button v-if="!isActive" class="btn-start" :disabled="!canStart" @click="emit('start')">
         {{ t('slideshow.start') }}
       </button>
 
@@ -36,6 +36,8 @@ import { useI18n } from '../../../lib/i18n.js'
 
 const props = defineProps({
   isActive: { type: Boolean, default: false },
+  // Start erst ab 2 Bildern möglich
+  canStart: { type: Boolean, default: true },
   isPaused: { type: Boolean, default: false },
   currentImageIndex: { type: Number, default: 0 },
   totalImages: { type: Number, default: 0 },
@@ -75,6 +77,10 @@ const phaseLabel = computed(() => {
 .btn-start {
   background: linear-gradient(135deg, #6ea8fe 0%, #5a9af8 100%);
   color: #fff;
+}
+.btn-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 .btn-start:hover {
   transform: translateY(-1px);

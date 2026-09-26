@@ -52,8 +52,6 @@
         {{ t('slideshow.resetPosition') }}
       </button>
     </div>
-
-    <p class="hint">{{ t('slideshow.dragHint') }}</p>
   </div>
 </template>
 

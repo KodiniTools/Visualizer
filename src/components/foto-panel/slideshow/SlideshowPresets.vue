@@ -2,7 +2,6 @@
   <!-- Slideshow-Presets: Speichern / Laden / Löschen -->
   <div class="presets-section">
     <label class="section-label">{{ t('slideshow.presets') }}</label>
-    <p class="hint">{{ t('slideshow.presetHint') }}</p>
 
     <div class="preset-save-row">
       <input
@@ -52,7 +51,6 @@
         type="button"
         class="btn-cleanup-storage"
         :disabled="cleaning"
-        :title="t('slideshow.cleanupHint')"
         @click="emit('cleanup')"
       >
         {{ cleaning ? t('slideshow.cleaningUp') : t('slideshow.cleanupNow') }}
@@ -66,13 +64,15 @@
         <span
           v-if="sessionImages[preset.id]"
           class="preset-images-badge"
-          :title="t('slideshow.presetImagesHint')"
+          role="img"
+          :aria-label="t('slideshow.presetImagesHint')"
           >🖼</span
         >
         <span
           v-else-if="preset.slots.some((slot) => slot.stock || slot.upload)"
           class="preset-images-badge"
-          :title="t('slideshow.presetStockHint')"
+          role="img"
+          :aria-label="t('slideshow.presetStockHint')"
           >🗂</span
         >
         <span class="preset-meta">{{ preset.slots.length }} × {{ t('slideshow.image') }}</span>

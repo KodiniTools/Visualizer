@@ -2,7 +2,6 @@
   <!-- Reihenfolge der Bilder per Drag & Drop -->
   <div class="order-section">
     <label class="section-label">{{ t('slideshow.order') }}</label>
-    <p class="hint">{{ t('slideshow.perImageHint') }}</p>
     <div class="image-order-list">
       <div
         v-for="(img, index) in orderedImages"
@@ -35,7 +34,6 @@
               class="order-transition"
               :class="{ 'is-own': transitionFor(img) !== 'default' }"
               :value="transitionFor(img)"
-              :title="t('slideshow.perImageTransitionHint')"
               @change="onTransitionChange(img, $event)"
               @mousedown.stop
             >
@@ -63,7 +61,6 @@
                 draggable="false"
                 :value="secondsFor('fadeIns', img)"
                 :placeholder="(defaultFadeIn / 1000).toFixed(1)"
-                :title="t('slideshow.perImageFadeInHint')"
                 @input="onMsInput('fadeIns', img, $event, 100, 5000)"
                 @dragstart.prevent.stop
                 @mousedown.stop
@@ -81,7 +78,6 @@
                 draggable="false"
                 :value="secondsFor('durations', img)"
                 :placeholder="(defaultDuration / 1000).toFixed(1)"
-                :title="t('slideshow.perImageDurationHint')"
                 :aria-label="t('slideshow.perImageDurationHint')"
                 @input="onMsInput('durations', img, $event, 500, 60000)"
                 @dragstart.prevent.stop
@@ -100,7 +96,6 @@
                 draggable="false"
                 :value="secondsFor('fadeOuts', img)"
                 :placeholder="(defaultFadeOut / 1000).toFixed(1)"
-                :title="t('slideshow.perImageFadeOutHint')"
                 @input="onMsInput('fadeOuts', img, $event, 100, 5000)"
                 @dragstart.prevent.stop
                 @mousedown.stop
@@ -115,7 +110,6 @@
               class="order-audio"
               :class="{ 'is-own': audioModeFor(img) !== 'default' }"
               :value="audioModeFor(img)"
-              :title="t('slideshow.perImageAudioHint')"
               @change="onAudioModeChange(img, $event)"
               @mousedown.stop
             >
@@ -138,7 +132,6 @@
               :model-value="audioSourceFor(img)"
               :inherit-label="t('slideshow.audioSourceInherit')"
               :disabled="audioModeFor(img) === 'off'"
-              :title="t('slideshow.perImageAudioSource')"
               @update:model-value="(v) => onAudioSourceChange(img, v)"
               @mousedown.stop
             />

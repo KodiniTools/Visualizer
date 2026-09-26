@@ -562,7 +562,9 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
   it('move-whole checkbox emits mode change; external transform updates sliders', async () => {
     const w = mountPanel()
-    expect(w.find('.move-whole-hint').text()).toContain('Shift')
+    // weder Hinweistext noch Tooltip
+    expect(w.find('.move-whole-hint').exists()).toBe(false)
+    expect(w.find('.move-whole-checkbox').element.closest('label').title).toBe('')
     await w.find('.move-whole-checkbox').setValue(true)
     expect(w.emitted('move-mode-change').at(-1)).toEqual([true])
     await w.setProps({
@@ -840,7 +842,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it('paused: click request opens the image editor; edits go live and close on resume', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: true })
-    expect(w.find('.paused-edit-hint').exists()).toBe(true)
+    expect(w.find('.paused-edit-hint').exists()).toBe(false) // keine Erklärtexte mehr
     await w.setProps({ editImageRequest: { index: 1, nonce: 1 } })
     const editor = w.find('.image-editor')
     expect(editor.exists()).toBe(true)
@@ -1392,6 +1394,53 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       expect(again[imageKey].audio.source).toBe('dynamic')
     },
   )
+
+  it('no explanatory hint texts – only status/warning messages remain', async () => {
+    // erlaubte Meldungen: Warnungen, leere Listen, fehlende Bilder
+    const texts = (w) =>
+      w
+        .findAll('.hint')
+        .filter((h) => !h.classes('warning') && !h.classes('empty'))
+        .map((h) => h.text())
+    const allowed = ['Keine Bilder vorhanden']
+    const onlyAllowed = (w) =>
+      expect(texts(w).filter((t) => !allowed.some((a) => t.startsWith(a)))).toEqual([])
+
+    const w = mountPanel({ hasWorkspace: false })
+    onlyAllowed(w)
+    for (const mode of ['canvas', 'workspace', 'none']) {
+      if (mode === 'workspace') await w.setProps({ hasWorkspace: true })
+      await w.find(`.bg-mode-${mode}`).setValue(true)
+      if (mode !== 'none') {
+        const p = mode === 'workspace' ? 'workspace' : 'base'
+        await w.find(`.${p}-fill-audio-toggle`).setValue(true)
+        await w.find(`.${p}-gradient-toggle`).setValue(true)
+        await w.find(`.${p}-gradient-audio-toggle`).setValue(true)
+        await w.find(`.${p}-image-toggle`).setValue(true)
+        await w.find(`.${p}-image-audio-toggle`).setValue(true)
+        await w.find(`.${p}-image-choose`).trigger('click')
+      }
+      onlyAllowed(w)
+    }
+    await w.setProps({ isActive: true, isPaused: true })
+    onlyAllowed(w)
+    await w.setProps({ editImageRequest: { index: 0, nonce: 99 } })
+    expect(w.find('.image-editor').exists()).toBe(true)
+    onlyAllowed(w)
+
+    // auch keine erklärenden Tooltips mehr – title nur an Symbol-Knöpfen
+    // (↺, ✕) und für volle Namen abgeschnittener Texte
+    await w.setProps({ isActive: false, hasWorkspace: false })
+    expect(w.find('.bg-mode-workspace').element.closest('label').title).toBe('')
+    const titled = w.findAll('[title]').filter((el) => el.attributes('title'))
+    expect(titled.length).toBeGreaterThan(0)
+    for (const el of titled) {
+      const isIconButton = el.element.tagName === 'BUTTON' && !/[a-zäöüß]{3,}/i.test(el.text())
+      const isName =
+        el.classes('preset-name') || el.classes().some((c) => c.endsWith('-image-option'))
+      expect(isIconButton || isName, `erklärender Tooltip: ${el.attributes('title')}`).toBe(true)
+    }
+  })
 
   it('editor request is ignored while running', async () => {
     const w = mountPanel()

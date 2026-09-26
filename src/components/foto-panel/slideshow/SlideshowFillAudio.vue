@@ -49,7 +49,6 @@
         />
         <span class="value">{{ audio.hue }} %</span>
       </label>
-      <p class="hint fill-audio-hint">{{ t('slideshow.fillAudioHint') }}</p>
     </div>
   </div>
 </template>
@@ -118,10 +117,6 @@ function update(partial) {
   min-width: 34px;
   text-align: right;
   color: #e0e0e0;
-}
-.fill-audio-hint {
-  flex-basis: 100%;
-  padding-left: 0;
 }
 [data-theme='light'] .fill-audio-field select {
   background: #f9f2d5;

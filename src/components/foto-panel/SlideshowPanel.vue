@@ -87,7 +87,6 @@
           v-model="backgroundColor"
           class="slideshow-base-color"
           type="color"
-          :title="t('slideshow.baseColorHint')"
           @input="emit('background-color-change', backgroundColor)"
         />
         <button
@@ -113,7 +112,6 @@
           class="slideshow-workspace-color"
           type="color"
           :disabled="!hasWorkspace"
-          :title="t('slideshow.workspaceColorHint')"
           @input="emit('workspace-color-change', workspaceColor)"
         />
         <button
@@ -167,13 +165,6 @@
         @select="(candidate) => imageFills.select(imageFillTarget, candidate)"
         @clear="imageFills.clear(imageFillTarget)"
       />
-      <p v-if="backgroundMode !== 'none'" class="hint base-color-hint">
-        {{
-          backgroundMode === 'workspace'
-            ? t('slideshow.workspaceColorHint')
-            : t('slideshow.baseColorHint')
-        }}
-      </p>
       <label class="checkbox-label" :class="{ disabled: fitsWorkspace }">
         <input
           v-model="moveWholeSlideshow"
@@ -184,24 +175,11 @@
         />
         <span>{{ t('slideshow.moveWhole') }}</span>
       </label>
-      <p v-if="!fitsWorkspace" class="hint move-whole-hint">
-        {{ moveWholeSlideshow ? t('slideshow.moveWholeHintOn') : t('slideshow.moveWholeHintOff') }}
-      </p>
       <p
         v-if="backgroundMode === 'workspace' && !hasWorkspace"
         class="hint warning fit-workspace-hint"
       >
         {{ t('slideshow.fitToWorkspaceNoWorkspace') }}
-      </p>
-      <p v-else-if="!hasWorkspace" class="hint fit-workspace-hint">
-        {{ t('slideshow.backgroundModeWorkspaceNeedsFormat') }}
-      </p>
-      <p v-if="effectiveBackgroundMode !== 'none'" class="hint fit-workspace-hint">
-        {{
-          effectiveBackgroundMode === 'canvas'
-            ? t('slideshow.backgroundModeCanvasHint')
-            : t('slideshow.fitToWorkspaceHint')
-        }}
       </p>
     </div>
 
@@ -229,15 +207,10 @@
 
     <!-- Während der Slideshow geänderte Bild-Anpassungen verwerfen (nur wenn nicht aktiv) -->
     <div v-if="!isActive" class="adjustments-section">
-      <p class="hint">{{ t('slideshow.adjustmentsKeptHint') }}</p>
       <button type="button" class="btn-reset-adjustments" @click="resetImageAdjustments">
         {{ t('slideshow.resetAdjustments') }}
       </button>
     </div>
-
-    <p v-if="isActive && isPaused && !editorImage" class="hint paused-edit-hint">
-      {{ t('slideshow.pausedEditHint') }}
-    </p>
 
     <!-- Einstellungen eines Bildes (pausiert; Klick auf das Bild in der Leiste) -->
     <SlideshowImageEditor
@@ -1058,10 +1031,6 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   gap: 6px;
   padding-top: 8px;
   border-top: 1px solid var(--card-bg);
-}
-.paused-edit-hint,
-.adjustments-section .hint {
-  padding-left: 0;
 }
 .btn-reset-adjustments {
   align-self: flex-start;

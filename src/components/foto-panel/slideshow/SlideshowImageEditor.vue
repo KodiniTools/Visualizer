@@ -112,8 +112,6 @@
         @update:model-value="(v) => emit('update:audioSource', v)"
       />
     </label>
-
-    <p class="hint">{{ t('slideshow.imageSettingsHint') }}</p>
   </div>
 </template>
 

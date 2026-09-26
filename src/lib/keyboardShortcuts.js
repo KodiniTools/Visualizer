@@ -12,6 +12,9 @@
  * - Smart context detection (ignores shortcuts when typing in inputs)
  */
 
+import { SHORTCUT_LIST, findShortcutRule, shortcutContext } from './keyboard/shortcutRules.js'
+import { moveObject, resizeImageObject } from './keyboard/objectTransforms.js'
+
 export class KeyboardShortcuts {
   constructor(stores, managers) {
     this.playerStore = stores.playerStore
@@ -73,185 +76,15 @@ export class KeyboardShortcuts {
   }
 
   /**
-   * Haupt-Event-Handler für Keyboard Events
+   * Haupt-Event-Handler: erste passende Regel aus SHORTCUT_RULES ausführen
+   * (Reihenfolge und Bedingungen siehe keyboard/shortcutRules.js).
    */
   handleKeyDown(event) {
     if (!this.isEnabled || this.shouldIgnoreShortcut(event)) {
       return
     }
-
-    const key = event.key.toLowerCase()
-    const ctrl = event.ctrlKey || event.metaKey // metaKey = Cmd auf Mac
-    const shift = event.shiftKey
-    const alt = event.altKey
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // ✨ TEXT INPUT: Öffne Texteditor bei Buchstabeneingabe
-    // WICHTIG: Muss VOR den Shortcut-Checks kommen!
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    // Shortcut-Buchstaben, die NICHT den Texteditor öffnen sollen
-    const shortcutKeys = ['m', 'r', 'p', 'g', '?', ' ']
-
-    // Wenn ein einzelnes druckbares Zeichen eingegeben wird (ohne Modifier)
-    // und kein Objekt ausgewählt ist UND es kein Shortcut-Buchstabe ist
-    if (
-      !ctrl &&
-      !alt &&
-      !shift &&
-      event.key.length === 1 &&
-      !this.canvasManager?.activeObject &&
-      !shortcutKeys.includes(key)
-    ) {
-      // Dispatch Event zum Öffnen des Texteditors mit dem eingegebenen Zeichen
-      window.dispatchEvent(
-        new CustomEvent('openTextEditorWithChar', {
-          detail: { char: event.key },
-        }),
-      )
-      event.preventDefault()
-      return
-    }
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🎵 PLAYER CONTROLS
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    // Space = Play/Pause
-    if (key === ' ') {
-      event.preventDefault()
-      this.togglePlayPause()
-      return
-    }
-
-    // M = Mute/Unmute
-    if (key === 'm' && !ctrl && !shift) {
-      event.preventDefault()
-      this.toggleMute()
-      return
-    }
-
-    // Arrow Left/Right = Previous/Next Track (wenn kein Objekt selektiert)
-    if ((key === 'arrowleft' || key === 'arrowright') && !this.canvasManager?.activeObject) {
-      if (key === 'arrowleft') {
-        event.preventDefault()
-        this.previousTrack()
-      } else {
-        event.preventDefault()
-        this.nextTrack()
-      }
-      return
-    }
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🎨 OBJECT MANIPULATION
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    // Delete/Backspace = Delete selected object
-    if ((key === 'delete' || key === 'backspace') && this.canvasManager?.activeObject) {
-      event.preventDefault()
-      this.deleteSelectedObject()
-      return
-    }
-
-    // Ctrl+D = Duplicate
-    if (key === 'd' && ctrl && this.canvasManager?.activeObject) {
-      event.preventDefault()
-      this.duplicateSelectedObject()
-      return
-    }
-
-    // Ctrl+C = Copy
-    if (key === 'c' && ctrl && this.canvasManager?.activeObject) {
-      event.preventDefault()
-      this.copySelectedObject()
-      return
-    }
-
-    // Ctrl+V = Paste
-    if (key === 'v' && ctrl && this.copiedObject) {
-      event.preventDefault()
-      this.pasteObject()
-      return
-    }
-
-    // Arrow Keys = Move selected object
-    if (
-      this.canvasManager?.activeObject &&
-      ['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)
-    ) {
-      event.preventDefault()
-
-      if (ctrl) {
-        // Ctrl+Arrow = Resize
-        this.resizeSelectedObject(key, shift)
-      } else {
-        // Arrow = Move
-        this.moveSelectedObject(key, shift)
-      }
-      return
-    }
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🎬 RECORDING CONTROLS
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    // R = Start/Stop Recording
-    if (key === 'r' && !ctrl && !shift) {
-      event.preventDefault()
-      this.toggleRecording()
-      return
-    }
-
-    // P = Prepare Recording
-    if (key === 'p' && !ctrl && !shift) {
-      event.preventDefault()
-      this.prepareRecording()
-      return
-    }
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 👁️ VIEW CONTROLS
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    // G = Toggle Grid
-    if (key === 'g' && !ctrl && !shift) {
-      event.preventDefault()
-      this.toggleGrid()
-      return
-    }
-
-    // Escape = Deselect all
-    if (key === 'escape') {
-      event.preventDefault()
-      this.deselectAll()
-      return
-    }
-
-    // ? = Show Shortcuts Help
-    if (key === '?' && !ctrl && !shift) {
-      event.preventDefault()
-      this.showHelp()
-      return
-    }
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // ↩️ UNDO/REDO (Placeholder für später)
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    // Ctrl+Z = Undo
-    if (key === 'z' && ctrl && !shift) {
-      event.preventDefault()
-      this.undo()
-      return
-    }
-
-    // Ctrl+Shift+Z or Ctrl+Y = Redo
-    if ((key === 'z' && ctrl && shift) || (key === 'y' && ctrl)) {
-      event.preventDefault()
-      this.redo()
-      return
-    }
+    const ctx = shortcutContext(event, this)
+    findShortcutRule(ctx)?.run(this, ctx, event)
   }
 
   handleKeyUp(event) {
@@ -304,7 +137,7 @@ export class KeyboardShortcuts {
 
     if (obj.type === 'text') {
       // Dupliziere Text
-      const newText = this.canvasManager.addText(obj.text, {
+      this.canvasManager.addText(obj.text, {
         relX: obj.relX + 0.05, // Leicht versetzt
         relY: obj.relY + 0.05,
         fontSize: obj.fontSize,
@@ -363,91 +196,23 @@ export class KeyboardShortcuts {
     const obj = this.canvasManager?.activeObject
     if (!obj || obj.type === 'background' || obj.type === 'workspace-background') return
 
-    // Canvas-Dimensionen holen
     const canvas = this.canvasManager?.canvas
     if (!canvas) return
 
-    // Bewegungsschritt in Pixel
-    const step = fast ? 20 : 5
-
-    // In relative Koordinaten umrechnen
-    const relStepX = step / canvas.width
-    const relStepY = step / canvas.height
-
-    switch (direction) {
-      case 'arrowup':
-        obj.relY -= relStepY
-        break
-      case 'arrowdown':
-        obj.relY += relStepY
-        break
-      case 'arrowleft':
-        obj.relX -= relStepX
-        break
-      case 'arrowright':
-        obj.relX += relStepX
-        break
-    }
-
-    // Redraw triggern
-    if (this.canvasManager.redrawCallback) {
-      this.canvasManager.redrawCallback()
-    }
-
+    moveObject(obj, direction, canvas, fast)
+    this.canvasManager.redrawCallback?.()
     console.log(`➡️ [Shortcut] Object moved ${direction} (${fast ? 'fast' : 'normal'})`)
   }
 
   resizeSelectedObject(direction, fast = false) {
     const obj = this.canvasManager?.activeObject
-    if (!obj || obj.type !== 'image') return // Nur Bilder resizen
+    if (!obj || obj.type !== 'image') return // Nur Bilder
 
-    // Canvas-Dimensionen holen
     const canvas = this.canvasManager?.canvas
     if (!canvas) return
 
-    // Größenänderung in Pixel
-    const step = fast ? 20 : 5
-
-    // In relative Koordinaten umrechnen
-    const relStepX = step / canvas.width
-    const relStepY = step / canvas.height
-
-    // Aspect Ratio beibehalten
-    const aspectRatio = obj.imageObject.width / obj.imageObject.height
-
-    switch (direction) {
-      case 'arrowup':
-        // Verkleinern (Höhe)
-        obj.relHeight -= relStepY
-        obj.relWidth = obj.relHeight * aspectRatio
-        break
-      case 'arrowdown':
-        // Vergrößern (Höhe)
-        obj.relHeight += relStepY
-        obj.relWidth = obj.relHeight * aspectRatio
-        break
-      case 'arrowleft':
-        // Verkleinern (Breite)
-        obj.relWidth -= relStepX
-        obj.relHeight = obj.relWidth / aspectRatio
-        break
-      case 'arrowright':
-        // Vergrößern (Breite)
-        obj.relWidth += relStepX
-        obj.relHeight = obj.relWidth / aspectRatio
-        break
-    }
-
-    // Minimale Größe (10px)
-    const minSize = 10 / Math.min(canvas.width, canvas.height)
-    if (obj.relWidth < minSize) obj.relWidth = minSize
-    if (obj.relHeight < minSize) obj.relHeight = minSize
-
-    // Redraw triggern
-    if (this.canvasManager.redrawCallback) {
-      this.canvasManager.redrawCallback()
-    }
-
+    resizeImageObject(obj, direction, canvas, fast)
+    this.canvasManager.redrawCallback?.()
     console.log(`🔲 [Shortcut] Object resized ${direction} (${fast ? 'fast' : 'normal'})`)
   }
 
@@ -528,36 +293,10 @@ export class KeyboardShortcuts {
    * Gibt Liste aller verfügbaren Shortcuts zurück
    */
   getShortcutList() {
-    return {
-      Player: {
-        Space: 'Play/Pause',
-        M: 'Mute/Unmute',
-        '←/→': 'Previous/Next Track (when no object selected)',
-      },
-      'Object Manipulation': {
-        'Delete/Backspace': 'Delete selected object',
-        'Ctrl+D': 'Duplicate selected object',
-        'Ctrl+C': 'Copy selected object',
-        'Ctrl+V': 'Paste copied object',
-        '↑/↓/←/→': 'Move selected object (5px)',
-        'Shift+↑/↓/←/→': 'Move selected object (20px)',
-        'Ctrl+↑/↓/←/→': 'Resize selected object (5px)',
-        'Ctrl+Shift+↑/↓/←/→': 'Resize selected object (20px)',
-      },
-      Recording: {
-        P: 'Prepare Recording',
-        R: 'Start/Stop Recording',
-      },
-      View: {
-        G: 'Toggle Grid',
-        Escape: 'Deselect all',
-        '?': 'Show Keyboard Shortcuts Help',
-      },
-      Editing: {
-        'Ctrl+Z': 'Undo',
-        'Ctrl+Shift+Z / Ctrl+Y': 'Redo',
-      },
-    }
+    // Eigene Kopie je Aufruf (Aufrufer dürfen sie verändern)
+    return Object.fromEntries(
+      Object.entries(SHORTCUT_LIST).map(([category, keys]) => [category, { ...keys }]),
+    )
   }
 
   /**

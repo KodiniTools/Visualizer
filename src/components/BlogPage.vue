@@ -7,20 +7,11 @@
   >
     <!-- SEO structured data -->
     <teleport to="head">
-      <title>Funktionen – Audio Visualizer Pro | Alle Features im Überblick</title>
-      <meta
-        name="description"
-        content="30+ Visualizer, MP4-Export, Text-Overlay, Audio-reaktive Effekte, Social-Media-Presets – alle Funktionen des Audio Visualizer Pro im Überblick."
-      />
-      <meta
-        name="keywords"
-        content="Audio Visualizer, Funktionen, Visualizer, MP4 Export, Beat Reaktiv, Musik Visualisierung, Browser Tool"
-      />
-      <meta property="og:title" content="Funktionen – Audio Visualizer Pro" />
-      <meta
-        property="og:description"
-        content="30+ Visualizer, MP4-Export, Text-Overlay, Audio-reaktive Effekte – alles kostenlos im Browser."
-      />
+      <title>{{ t('blog.meta.title') }}</title>
+      <meta name="description" :content="t('blog.meta.description')" />
+      <meta name="keywords" :content="t('blog.meta.keywords')" />
+      <meta property="og:title" :content="t('blog.meta.ogTitle')" />
+      <meta property="og:description" :content="t('blog.meta.ogDescription')" />
     </teleport>
 
     <!-- Header -->
@@ -303,37 +294,52 @@ const overviewCards = computed(() => {
   return Array.isArray(cards) ? cards : []
 })
 
-function handleScroll() {
-  const scrollTop = window.scrollY || document.documentElement.scrollTop || 0
-  isScrolled.value = scrollTop > 50
+/**
+ * Scroll-Container der Seite: Im App-Layout scrollt `.blog-page` selbst
+ * (overflow-x: hidden), als eigenständige Seite das Fenster.
+ * @returns {HTMLElement|null} null = Fenster
+ */
+function scrollContainer() {
+  const el = pageRef.value
+  return el && el.scrollHeight > el.clientHeight + 1 ? el : null
+}
 
-  // Determine active TOC section
+function currentScrollTop() {
+  const el = scrollContainer()
+  return el ? el.scrollTop : window.scrollY || document.documentElement.scrollTop || 0
+}
+
+function handleScroll() {
+  isScrolled.value = currentScrollTop() > 50
+
+  // Aktiven Abschnitt im Inhaltsverzeichnis bestimmen
   const sectionIds = tocSections.value.map((s) => s.id)
   for (let i = sectionIds.length - 1; i >= 0; i--) {
     const el = document.getElementById(sectionIds[i])
     if (el && el.getBoundingClientRect().top <= 140) {
       activeSection.value = sectionIds[i]
-      break
+      return
     }
   }
+  activeSection.value = ''
 }
 
 function scrollToSection(id) {
   const el = document.getElementById(id)
   if (!el) return
-  const rect = el.getBoundingClientRect()
-  const scrollTop = window.scrollY || document.documentElement.scrollTop || 0
-  const target = scrollTop + rect.top - 110
-  window.scrollTo({ top: target, behavior: 'smooth' })
+  const top = currentScrollTop() + el.getBoundingClientRect().top - 110
+  ;(scrollContainer() ?? window).scrollTo({ top, behavior: 'smooth' })
 }
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
+  pageRef.value?.addEventListener('scroll', handleScroll, { passive: true })
   handleScroll()
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  pageRef.value?.removeEventListener('scroll', handleScroll)
 })
 </script>
 

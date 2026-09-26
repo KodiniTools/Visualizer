@@ -37,7 +37,7 @@ const routes = [
     meta: {
       title: 'Funktionen – Audio Visualizer Pro',
       description:
-        'Alle Funktionen des Audio Visualizer Pro im Überblick: 30+ Visualizer, MP4-Export, Text-Overlay, Bildhintergrund, Audio-reaktive Effekte und mehr.',
+        'Alle Funktionen des Audio Visualizer Pro im Überblick: 169 Visualizer, Multi-Layer, Bild-Slideshow, Text- und Lauftext-Effekte, audio-reaktive Bilder und MP4-/GIF-Export.',
       canonical: `${BASE}/blog`,
       robots: 'index, follow',
     },

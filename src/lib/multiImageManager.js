@@ -195,7 +195,9 @@ export class MultiImageManager {
     }
 
     this.images.push(newImage)
-    this.setSelectedImage(newImage)
+    // options.select === false: nicht automatisch auswählen (z. B. Slideshow –
+    // sonst bekäme jedes eingeblendete Bild eine Auswahl-Markierung)
+    if (options.select !== false) this.setSelectedImage(newImage)
 
     console.log(
       '✅ Bild mit Bounds hinzugefügt:',

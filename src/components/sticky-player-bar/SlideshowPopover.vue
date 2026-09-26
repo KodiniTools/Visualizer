@@ -2,6 +2,12 @@
   <div v-popover-drag="initOffset" class="spb-popover spb-popover-slideshow">
     <div class="spb-popover-header">
       <span class="section-label">{{ t('player.openSlideshow') }}</span>
+      <SlideshowStatusBadge
+        v-if="slideshow.panelVisible"
+        class="spb-slideshow-status"
+        :is-active="slideshow.active"
+        :is-paused="slideshow.paused"
+      />
       <button class="spb-popover-close" :title="t('common.close')" @click="close">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path
@@ -24,6 +30,7 @@
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { vPopoverDrag } from '../../directives/popoverDrag.js'
+import SlideshowStatusBadge from '../foto-panel/slideshow/SlideshowStatusBadge.vue'
 import {
   SLIDESHOW_POPOVER_TARGET_ID,
   useSlideshowPopover,
@@ -65,10 +72,11 @@ const slideshow = useSlideshowPopover()
   padding: 0;
   margin: 0;
 }
-.spb-slideshow-scroll :deep(.slideshow-panel > .panel-header h4) {
+.spb-slideshow-scroll :deep(.slideshow-panel > .panel-header) {
   display: none;
 }
-.spb-slideshow-scroll :deep(.slideshow-panel > .panel-header) {
-  justify-content: flex-end;
+/* Status sitzt rechts in der Kopfzeile, direkt vor dem Schließen-Knopf */
+.spb-slideshow-status {
+  margin-left: auto;
 }
 </style>

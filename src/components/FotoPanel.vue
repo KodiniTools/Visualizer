@@ -271,11 +271,18 @@ const slideshowImages = computed(() =>
   ),
 )
 
-// Badge am Slideshow-Button: ausgewählte Bilder, während des Laufs alle Bilder
+// Badge am Slideshow-Button (ausgewählte Bilder, während des Laufs alle Bilder)
+// und Status in der Kopfzeile des Slideshow-Fensters
 watch(
-  () => [slideshowIsActive.value, slideshowTotalImages.value, slideshowImages.value.length],
-  ([active, total, selected]) => {
+  () => [
+    slideshowIsActive.value,
+    slideshowIsPaused.value,
+    slideshowTotalImages.value,
+    slideshowImages.value.length,
+  ],
+  ([active, paused, total, selected]) => {
     slideshowPopover.active = active
+    slideshowPopover.paused = active && paused
     slideshowPopover.imageCount = active ? total : selected
   },
   { immediate: true },

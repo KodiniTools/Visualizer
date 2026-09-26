@@ -18,6 +18,7 @@ import {
 } from './audioReactiveDraw.js'
 import { SLIDESHOW_BASE_COLOR_DEFAULT } from '../../slideshowBaseColor.js'
 import { computeSlideshowGradientAudio } from '../../slideshowGradientAudio.js'
+import { applySlideshowFillAudio, computeSlideshowFillAudio } from '../../slideshowFillAudio.js'
 
 /**
  * Ersetzt die laufende Slideshow gerade den Canvas- bzw. Workspace-Hintergrund?
@@ -51,6 +52,16 @@ function getSlideshowBaseGradient(target) {
   const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
   const gradient = slideshow?.getBaseGradient?.(target)
   return gradient?.enabled ? gradient : null
+}
+
+/**
+ * Audio-Reaktive Farbeinstellung der Fläche oder null (aus).
+ * @param {'canvas'|'workspace'} target
+ */
+function getSlideshowFillAudio(target) {
+  const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+  const audio = slideshow?.getBaseFillAudio?.(target)
+  return audio?.enabled ? audio : null
 }
 
 /**
@@ -186,21 +197,21 @@ export class BackgroundRenderer {
       rect === undefined ? { x: 0, y: 0, width: ctx.canvas.width, height: ctx.canvas.height } : rect
     if (!area) return
     ctx.save()
-    const gradient = getSlideshowBaseGradient(target)
+    const audioData = typeof window !== 'undefined' ? window.audioAnalysisData : null
+    let gradient = getSlideshowBaseGradient(target)
     const audio = gradient?.audio?.enabled
-      ? computeSlideshowGradientAudio(
-          gradient.audio,
-          target,
-          typeof window !== 'undefined' ? window.audioAnalysisData : null,
-        )
+      ? computeSlideshowGradientAudio(gradient.audio, target, audioData)
       : null
-    ctx.fillStyle = createSlideshowBaseFill(
-      ctx,
-      area,
-      getSlideshowBaseColor(target),
-      gradient,
-      audio,
-    )
+    // Audio-Reaktive Farbe: wirkt auf die Flächenfarbe (und die 2. Verlaufsfarbe)
+    let color = getSlideshowBaseColor(target)
+    const fillAudio = getSlideshowFillAudio(target)
+    if (fillAudio) {
+      const change = computeSlideshowFillAudio(fillAudio, target, audioData)
+      color = applySlideshowFillAudio(color, change)
+      if (gradient)
+        gradient = { ...gradient, color2: applySlideshowFillAudio(gradient.color2, change) }
+    }
+    ctx.fillStyle = createSlideshowBaseFill(ctx, area, color, gradient, audio)
     ctx.fillRect(area.x, area.y, area.width, area.height)
     ctx.restore()
   }

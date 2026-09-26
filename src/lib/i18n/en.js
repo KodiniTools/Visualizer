@@ -1532,7 +1532,12 @@ export default {
       treble: 'Highs',
       volume: 'Volume',
     },
-    baseColorReset: 'Default (black, no gradient)',
+    fillAudio: 'Audio-reactive colour',
+    fillAudioBrightness: 'Brighten',
+    fillAudioHue: 'Hue',
+    fillAudioHint:
+      'Without music the colour stays as set; to the beat the area brightens or shifts its hue (with a gradient: both colours).',
+    baseColorReset: 'Default (black, no gradient or audio)',
     backgroundModeWorkspaceNeedsFormat:
       'Workspace background: select a workspace format first (e.g. TikTok 9:16).',
     dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.',

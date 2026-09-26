@@ -90,7 +90,11 @@
           @input="emit('background-color-change', backgroundColor)"
         />
         <button
-          v-if="backgroundColor !== D.backgroundColor || !isDefaultGradient(backgroundGradient)"
+          v-if="
+            backgroundColor !== D.backgroundColor ||
+            !isDefaultGradient(backgroundGradient) ||
+            !isDefaultFillAudio(backgroundFillAudio)
+          "
           type="button"
           class="btn-reset-base-color"
           :title="t('slideshow.baseColorReset')"
@@ -112,7 +116,11 @@
           @input="emit('workspace-color-change', workspaceColor)"
         />
         <button
-          v-if="workspaceColor !== D.workspaceColor || !isDefaultGradient(workspaceGradient)"
+          v-if="
+            workspaceColor !== D.workspaceColor ||
+            !isDefaultGradient(workspaceGradient) ||
+            !isDefaultFillAudio(workspaceFillAudio)
+          "
           type="button"
           class="btn-reset-workspace-color"
           :title="t('slideshow.baseColorReset')"
@@ -122,6 +130,17 @@
           ↺
         </button>
       </label>
+      <SlideshowFillAudio
+        v-if="backgroundMode === 'canvas'"
+        v-model="backgroundFillAudio"
+        prefix="base"
+      />
+      <SlideshowFillAudio
+        v-if="backgroundMode === 'workspace'"
+        v-model="workspaceFillAudio"
+        prefix="workspace"
+        :disabled="!hasWorkspace"
+      />
       <SlideshowBaseGradient
         v-if="backgroundMode === 'canvas'"
         v-model="backgroundGradient"
@@ -263,6 +282,14 @@ import {
   storeSlideshowGradient,
 } from '../../lib/slideshowBaseColor.js'
 import SlideshowBaseGradient from './slideshow/SlideshowBaseGradient.vue'
+import SlideshowFillAudio from './slideshow/SlideshowFillAudio.vue'
+import {
+  SLIDESHOW_FILL_AUDIO_DEFAULT,
+  isSameSlideshowFillAudio,
+  loadStoredSlideshowFillAudio,
+  normalizeSlideshowFillAudio,
+  storeSlideshowFillAudio,
+} from '../../lib/slideshowFillAudio.js'
 import { useI18n } from '../../lib/i18n.js'
 import SlideshowOrderList from './slideshow/SlideshowOrderList.vue'
 import SlideshowTimingSettings from './slideshow/SlideshowTimingSettings.vue'
@@ -319,6 +346,7 @@ const emit = defineEmits([
   'background-color-change',
   'workspace-color-change',
   'base-gradient-change',
+  'base-fill-audio-change',
   'reset-image-adjustments',
   'live-update',
   'move-mode-change',
@@ -362,6 +390,20 @@ watch(workspaceGradient, (g) => {
   storeSlideshowGradient(g, 'workspace')
   emit('base-gradient-change', 'workspace', { ...g })
 })
+// Audio-Reaktive Flächenfarbe – dauerhaft gemerkt, Änderungen sofort an die Slideshow
+const backgroundFillAudio = ref(loadStoredSlideshowFillAudio('canvas'))
+const workspaceFillAudio = ref(loadStoredSlideshowFillAudio('workspace'))
+watch(backgroundFillAudio, (a) => {
+  storeSlideshowFillAudio(a, 'canvas')
+  emit('base-fill-audio-change', 'canvas', { ...a })
+})
+watch(workspaceFillAudio, (a) => {
+  storeSlideshowFillAudio(a, 'workspace')
+  emit('base-fill-audio-change', 'workspace', { ...a })
+})
+function isDefaultFillAudio(a) {
+  return isSameSlideshowFillAudio(a, SLIDESHOW_FILL_AUDIO_DEFAULT)
+}
 function isDefaultGradient(g) {
   return isSameSlideshowGradient(g, SLIDESHOW_GRADIENT_DEFAULT)
 }
@@ -567,6 +609,8 @@ function buildPayload() {
     workspaceColor: workspaceColor.value,
     backgroundGradient: { ...backgroundGradient.value },
     workspaceGradient: { ...workspaceGradient.value },
+    backgroundFillAudio: { ...backgroundFillAudio.value },
+    workspaceFillAudio: { ...workspaceFillAudio.value },
     moveWholeSlideshow: moveWholeSlideshow.value,
     transition: transition.value,
     transform: transformPayload(),
@@ -637,6 +681,8 @@ async function savePreset(name) {
       workspaceColor: workspaceColor.value,
       backgroundGradient: { ...backgroundGradient.value },
       workspaceGradient: { ...workspaceGradient.value },
+      backgroundFillAudio: { ...backgroundFillAudio.value },
+      workspaceFillAudio: { ...workspaceFillAudio.value },
       moveWholeSlideshow: moveWholeSlideshow.value,
       transition: transition.value,
       transform: {
@@ -745,6 +791,12 @@ async function loadPreset(preset) {
   if (!isSameSlideshowGradient(workspaceGradient.value, s.workspaceGradient)) {
     workspaceGradient.value = normalizeSlideshowGradient(s.workspaceGradient)
   }
+  if (!isSameSlideshowFillAudio(backgroundFillAudio.value, s.backgroundFillAudio)) {
+    backgroundFillAudio.value = normalizeSlideshowFillAudio(s.backgroundFillAudio)
+  }
+  if (!isSameSlideshowFillAudio(workspaceFillAudio.value, s.workspaceFillAudio)) {
+    workspaceFillAudio.value = normalizeSlideshowFillAudio(s.workspaceFillAudio)
+  }
   transformX.value = s.transform.x
   transformY.value = s.transform.y
   transformWidth.value = s.transform.width
@@ -814,6 +866,9 @@ function resetBackgroundColor() {
   if (!isDefaultGradient(backgroundGradient.value)) {
     backgroundGradient.value = normalizeSlideshowGradient(null)
   }
+  if (!isDefaultFillAudio(backgroundFillAudio.value)) {
+    backgroundFillAudio.value = normalizeSlideshowFillAudio(null)
+  }
   emit('background-color-change', backgroundColor.value)
 }
 
@@ -821,6 +876,9 @@ function resetWorkspaceColor() {
   workspaceColor.value = D.workspaceColor
   if (!isDefaultGradient(workspaceGradient.value)) {
     workspaceGradient.value = normalizeSlideshowGradient(null)
+  }
+  if (!isDefaultFillAudio(workspaceFillAudio.value)) {
+    workspaceFillAudio.value = normalizeSlideshowFillAudio(null)
   }
   emit('workspace-color-change', workspaceColor.value)
 }

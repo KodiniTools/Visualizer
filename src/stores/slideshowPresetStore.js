@@ -10,6 +10,10 @@ import {
   normalizeSlideshowGradient,
 } from '../lib/slideshowBaseColor.js'
 import {
+  SLIDESHOW_FILL_AUDIO_DEFAULT,
+  normalizeSlideshowFillAudio,
+} from '../lib/slideshowFillAudio.js'
+import {
   pruneImages,
   getImageStorageStats,
   getStorageEstimate,
@@ -47,6 +51,9 @@ export const SLIDESHOW_DEFAULT_SETTINGS = Object.freeze({
   // Farbverläufe der Flächen (aus = einfarbig)
   backgroundGradient: SLIDESHOW_GRADIENT_DEFAULT,
   workspaceGradient: SLIDESHOW_GRADIENT_DEFAULT,
+  // Audio-Reaktive Flächenfarbe (aus)
+  backgroundFillAudio: SLIDESHOW_FILL_AUDIO_DEFAULT,
+  workspaceFillAudio: SLIDESHOW_FILL_AUDIO_DEFAULT,
   moveWholeSlideshow: false,
   transition: SLIDESHOW_TRANSITION_DEFAULT,
   transform: Object.freeze({ x: 10, y: 10, width: 80, height: 80 }),
@@ -226,6 +233,9 @@ export function normalizeSlideshowPreset(raw) {
       // Farbverläufe (ältere Presets: aus)
       backgroundGradient: normalizeSlideshowGradient(s.backgroundGradient),
       workspaceGradient: normalizeSlideshowGradient(s.workspaceGradient),
+      // Audio-Reaktive Flächenfarbe (ältere Presets: aus)
+      backgroundFillAudio: normalizeSlideshowFillAudio(s.backgroundFillAudio),
+      workspaceFillAudio: normalizeSlideshowFillAudio(s.workspaceFillAudio),
       // Maus verschiebt ganze Slideshow (ältere Presets: aus)
       moveWholeSlideshow:
         typeof s.moveWholeSlideshow === 'boolean' ? s.moveWholeSlideshow : d.moveWholeSlideshow,

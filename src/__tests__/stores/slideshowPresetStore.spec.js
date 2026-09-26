@@ -171,6 +171,19 @@ describe('slideshowPresetStore', () => {
     // Fläche unter der Slideshow: ältere/ungültige Werte → Schwarz
     expect(p.settings.backgroundColor).toBe('#000000')
     expect(p.settings.workspaceColor).toBe('#000000')
+    expect(p.settings.backgroundFillAudio).toEqual({
+      enabled: false,
+      source: 'bass',
+      brightness: 80,
+      hue: 0,
+    })
+    expect(
+      normalizeSlideshowPreset({
+        id: 7,
+        settings: { workspaceFillAudio: { enabled: true, source: 'mid', hue: 999 } },
+        slots: [],
+      }).settings.workspaceFillAudio,
+    ).toEqual({ enabled: true, source: 'mid', brightness: 80, hue: 100 })
     expect(p.settings.backgroundGradient).toEqual({
       enabled: false,
       color2: '#333333',

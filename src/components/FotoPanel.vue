@@ -60,6 +60,7 @@
       @background-color-change="onSlideshowBackgroundColorChange"
       @workspace-color-change="onSlideshowWorkspaceColorChange"
       @base-gradient-change="onSlideshowBaseGradientChange"
+      @base-fill-audio-change="onSlideshowBaseFillAudioChange"
       @reset-image-adjustments="onSlideshowResetImageAdjustments"
       @live-update="onSlideshowLiveUpdate"
       @move-mode-change="onSlideshowMoveModeChange"
@@ -505,6 +506,8 @@ function buildSlideshowRun(config) {
     workspaceColor: config.workspaceColor,
     backgroundGradient: config.backgroundGradient,
     workspaceGradient: config.workspaceGradient,
+    backgroundFillAudio: config.backgroundFillAudio,
+    workspaceFillAudio: config.workspaceFillAudio,
     fitToWorkspace: config.fitToWorkspace,
     moveWholeSlideshow: config.moveWholeSlideshow,
     transition: config.transition,
@@ -683,6 +686,11 @@ function onSlideshowWorkspaceColorChange(color) {
 // Farbverlauf einer Fläche geändert (target: 'canvas' | 'workspace')
 function onSlideshowBaseGradientChange(target, gradient) {
   slideshowManagerRef.value?.setBaseGradient(target, gradient)
+}
+
+// Audio-Reaktive Flächenfarbe geändert (target: 'canvas' | 'workspace')
+function onSlideshowBaseFillAudioChange(target, audio) {
+  slideshowManagerRef.value?.setBaseFillAudio(target, audio)
 }
 
 // ✨ NEU: Slideshow Render-Layer geändert

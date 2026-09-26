@@ -9,6 +9,7 @@ import {
   normalizeSlideshowBaseColor,
   normalizeSlideshowGradient,
 } from './slideshowBaseColor.js'
+import { normalizeSlideshowFillAudio } from './slideshowFillAudio.js'
 
 /**
  * SlideshowManager - Orchestriert die Bild-Slideshow auf dem Canvas
@@ -74,6 +75,9 @@ export class SlideshowManager {
       // Farbverläufe der Flächen (siehe slideshowBaseColor.js)
       backgroundGradient: normalizeSlideshowGradient(null),
       workspaceGradient: normalizeSlideshowGradient(null),
+      // Audio-Reaktive Flächenfarbe (siehe slideshowFillAudio.js)
+      backgroundFillAudio: normalizeSlideshowFillAudio(null),
+      workspaceFillAudio: normalizeSlideshowFillAudio(null),
     }
 
     // ✨ NEU: Slideshow Transform-Einstellungen (Position und Größe)
@@ -243,6 +247,26 @@ export class SlideshowManager {
   setBaseGradient(target, gradient) {
     const key = target === 'workspace' ? 'workspaceGradient' : 'backgroundGradient'
     this.config[key] = normalizeSlideshowGradient(gradient, this.config[key])
+  }
+
+  /**
+   * Audio-Reaktive Flächenfarbe (auch während laufender Slideshow); fehlende
+   * Felder behalten ihren bisherigen Wert.
+   * @param {'canvas'|'workspace'} target
+   * @param {object} audio - { enabled, source, brightness, hue }
+   */
+  setBaseFillAudio(target, audio) {
+    const key = target === 'workspace' ? 'workspaceFillAudio' : 'backgroundFillAudio'
+    this.config[key] = normalizeSlideshowFillAudio(audio, this.config[key])
+  }
+
+  /** @param {'canvas'|'workspace'} target @returns {object} (Kopie) */
+  getBaseFillAudio(target) {
+    return {
+      ...(target === 'workspace'
+        ? this.config.workspaceFillAudio
+        : this.config.backgroundFillAudio),
+    }
   }
 
   /**
@@ -470,6 +494,14 @@ export class SlideshowManager {
       workspaceGradient: normalizeSlideshowGradient(
         options.workspaceGradient,
         this.config.workspaceGradient,
+      ),
+      backgroundFillAudio: normalizeSlideshowFillAudio(
+        options.backgroundFillAudio,
+        this.config.backgroundFillAudio,
+      ),
+      workspaceFillAudio: normalizeSlideshowFillAudio(
+        options.workspaceFillAudio,
+        this.config.workspaceFillAudio,
       ),
       transition: isValidTransition(options.transition)
         ? options.transition
@@ -745,6 +777,12 @@ export class SlideshowManager {
     }
     if (options.workspaceGradient !== undefined) {
       this.setBaseGradient('workspace', options.workspaceGradient)
+    }
+    if (options.backgroundFillAudio !== undefined) {
+      this.setBaseFillAudio('canvas', options.backgroundFillAudio)
+    }
+    if (options.workspaceFillAudio !== undefined) {
+      this.setBaseFillAudio('workspace', options.workspaceFillAudio)
     }
     if (options.moveWholeSlideshow !== undefined) {
       this.setMoveWholeSlideshow(options.moveWholeSlideshow)
@@ -1269,6 +1307,8 @@ export class SlideshowManager {
       workspaceColor: this.config.workspaceColor,
       backgroundGradient: { ...this.config.backgroundGradient },
       workspaceGradient: { ...this.config.workspaceGradient },
+      backgroundFillAudio: { ...this.config.backgroundFillAudio },
+      workspaceFillAudio: { ...this.config.workspaceFillAudio },
       fitToWorkspace: this.config.backgroundMode === 'workspace',
       renderBehindVisualizer: this.config.renderBehindVisualizer,
     }

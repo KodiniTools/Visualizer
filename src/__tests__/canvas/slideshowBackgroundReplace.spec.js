@@ -148,6 +148,10 @@ describe('SlideshowManager – Farbe der Fläche', () => {
     m.applyLiveUpdate(imgs, { workspaceGradient: { enabled: true, color2: '#abcdef' } })
     expect(m.getBaseGradient('workspace')).toMatchObject({ enabled: true, color2: '#abcdef' })
     expect(m.getBaseGradient('canvas').enabled).toBe(false)
+    // Audio-reaktive Flächenfarbe: Start/Live, getrennt pro Fläche
+    m.applyLiveUpdate(imgs, { backgroundFillAudio: { enabled: true, hue: 50 } })
+    expect(m.getBaseFillAudio('canvas')).toMatchObject({ enabled: true, hue: 50, brightness: 80 })
+    expect(m.getBaseFillAudio('workspace').enabled).toBe(false)
     const copy = m.getBaseGradient('workspace')
     copy.enabled = false
     expect(m.getBaseGradient('workspace').enabled).toBe(true)
@@ -193,6 +197,8 @@ describe('Slideshow ersetzt den Hintergrund', () => {
       workspaceColor: '#000000',
       backgroundGradient: { enabled: false, color2: '#333333', type: 'linear', angle: 90 },
       workspaceGradient: { enabled: false, color2: '#333333', type: 'linear', angle: 90 },
+      backgroundFillAudio: { enabled: false, source: 'bass', brightness: 80, hue: 0 },
+      workspaceFillAudio: { enabled: false, source: 'bass', brightness: 80, hue: 0 },
     }
     return m
   }
@@ -344,6 +350,24 @@ describe('Slideshow ersetzt den Hintergrund', () => {
       [0, '#112233'],
       [1, '#445566'],
     ])
+  })
+
+  it('Audio-reaktive Flächenfarbe: einfarbig aufgehellt, ohne Musik unverändert', () => {
+    const show = slideshowWith('canvas')
+    show.setBackgroundColor('#000000')
+    show.setBaseFillAudio('canvas', { enabled: true, brightness: 100, hue: 0 })
+    expect(show.getBaseFillAudio('workspace').enabled).toBe(false)
+    window.slideshowManager = show
+    window.audioAnalysisData = { bass: 0, mid: 0, treble: 0, volume: 0 }
+    let setup = rendererSetup()
+    setup.r.drawBackground(setup.ctx)
+    expect(setup.fills[0][0]).toBe('#000000')
+
+    window.audioAnalysisData = { bass: 255, mid: 0, treble: 0, volume: 0 }
+    setup = rendererSetup()
+    setup.r.drawBackground(setup.ctx)
+    expect(setup.fills[0][0]).toMatch(/^hsl\(0, 0%, (?!0%)/)
+    delete window.audioAnalysisData
   })
 
   it('Farbhintergrund bleibt auch im Canvas-Modus erhalten', () => {

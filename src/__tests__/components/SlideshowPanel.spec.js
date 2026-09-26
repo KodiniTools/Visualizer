@@ -383,6 +383,44 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.emitted('start')[0][0].backgroundGradient.audio.pulse).toBe(40)
   })
 
+  it('audio-reactive fill color: per area, persisted, preset, reset', async () => {
+    let w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    expect(w.find('.workspace-fill-audio-source').exists()).toBe(false)
+    await w.find('.workspace-fill-audio-toggle').setValue(true)
+    await w.find('.workspace-fill-audio-source').setValue('volume')
+    await w.find('.workspace-fill-audio-hue').setValue('60')
+    const fx = { enabled: true, source: 'volume', brightness: 80, hue: 60 }
+    expect(w.emitted('base-fill-audio-change').at(-1)).toEqual(['workspace', fx])
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-workspace-fill-audio'))).toEqual(
+      fx,
+    )
+    expect(localStorage.getItem('visualizer-slideshow-base-fill-audio')).toBeNull()
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0]).toMatchObject({
+      workspaceFillAudio: fx,
+      backgroundFillAudio: { enabled: false },
+    })
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+        .workspaceFillAudio,
+    ).toEqual(fx)
+    w.unmount()
+
+    w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    expect(w.find('.workspace-fill-audio-toggle').element.checked).toBe(true)
+    await w.find('.btn-reset-workspace-color').trigger('click')
+    expect(w.find('.workspace-fill-audio-toggle').element.checked).toBe(false)
+    expect(localStorage.getItem('visualizer-slideshow-workspace-fill-audio')).toBeNull()
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.find('.workspace-fill-audio-toggle').element.checked).toBe(true)
+    expect(w.emitted('base-fill-audio-change').at(-1)).toEqual(['workspace', fx])
+  })
+
   it('emits reset-image-adjustments from the reset button', async () => {
     const w = mountPanel()
     await w.find('.btn-reset-adjustments').trigger('click')

@@ -1536,7 +1536,12 @@ export default {
       treble: 'Höhen',
       volume: 'Lautstärke',
     },
-    baseColorReset: 'Standard (Schwarz, ohne Farbverlauf)',
+    fillAudio: 'Farbe audio-reaktiv',
+    fillAudioBrightness: 'Aufhellen',
+    fillAudioHue: 'Farbton',
+    fillAudioHint:
+      'Ohne Musik bleibt die Farbe wie eingestellt; im Takt hellt die Fläche auf bzw. verschiebt den Farbton (mit Farbverlauf: beide Farben).',
+    baseColorReset: 'Standard (Schwarz, ohne Farbverlauf und Audio)',
     backgroundModeWorkspaceNeedsFormat:
       'Workspace-Hintergrund: zuerst ein Workspace-Format wählen (z. B. TikTok 9:16).',
     dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.',

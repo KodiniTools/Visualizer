@@ -82,6 +82,7 @@
     <SlideshowPresets
       :presets="presetStore.presets"
       :session-images="presetStore.sessionImages"
+      :storage="presetStore.imageStats"
       @save="savePreset"
       @load="loadPreset"
       @delete="presetStore.deletePreset"

@@ -3,9 +3,13 @@ import { setActivePinia, createPinia } from 'pinia'
 
 vi.mock('../../utils/presetImageRepository.js', () => ({
   pruneImages: vi.fn(async () => 0),
+  getImageStorageStats: vi.fn(async () => ({ count: 0, bytes: 0 })),
+  getStorageEstimate: vi.fn(async () => null),
 }))
 
-const { pruneImages } = await import('../../utils/presetImageRepository.js')
+const { pruneImages, getImageStorageStats, getStorageEstimate } = await import(
+  '../../utils/presetImageRepository.js'
+)
 const { useSlideshowPresetStore, IMAGE_CLEANUP_GRACE_MS, _resetAutoCleanup } = await import(
   '../../stores/slideshowPresetStore.js'
 )
@@ -89,5 +93,38 @@ describe('slideshowPresetStore – automatisches Aufräumen', () => {
     await Promise.resolve()
     expect(pruneImages).toHaveBeenCalled()
     expect([...pruneImages.mock.calls.at(-1)[0]]).toEqual([])
+  })
+})
+
+describe('slideshowPresetStore – Speicherbelegung', () => {
+  it('refreshImageStats übernimmt Bildstatistik und Browser-Kontingent', async () => {
+    getImageStorageStats.mockResolvedValueOnce({ count: 3, bytes: 4096 })
+    getStorageEstimate.mockResolvedValueOnce({ usage: 10_000, quota: 100_000 })
+    const store = useSlideshowPresetStore()
+    await store.refreshImageStats()
+    expect(store.imageStats).toEqual({
+      available: true,
+      count: 3,
+      bytes: 4096,
+      usage: 10_000,
+      quota: 100_000,
+    })
+  })
+
+  it('ohne IndexedDB → nicht verfügbar', async () => {
+    getImageStorageStats.mockRejectedValueOnce(new Error('IndexedDB nicht verfügbar'))
+    const store = useSlideshowPresetStore()
+    await store.refreshImageStats()
+    expect(store.imageStats.available).toBe(false)
+  })
+
+  it('wird nach Speichern und Aufräumen aktualisiert', async () => {
+    const store = useSlideshowPresetStore()
+    getImageStorageStats.mockClear()
+    store.savePreset('A', { settings: {}, slots: [] })
+    expect(getImageStorageStats).toHaveBeenCalled()
+    getImageStorageStats.mockClear()
+    await store.cleanupImages()
+    expect(getImageStorageStats).toHaveBeenCalled()
   })
 })

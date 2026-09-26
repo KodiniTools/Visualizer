@@ -117,7 +117,14 @@ export async function blobFromImage(imageObject) {
 export async function saveImageBlob(blob, name) {
   const key = await hashBlob(blob)
   await withStore('readwrite', (store) =>
-    store.put({ key, blob, name: String(name || ''), type: blob.type, savedAt: Date.now() }),
+    store.put({
+      key,
+      blob,
+      name: String(name || ''),
+      type: blob.type,
+      size: blob.size,
+      savedAt: Date.now(),
+    }),
   )
   return key
 }
@@ -177,6 +184,26 @@ export async function pruneImages(keepKeys, { minAgeMs = 0 } = {}) {
   })
   for (const k of remove) imageCache.delete(k)
   return remove.length
+}
+
+/**
+ * Anzahl und Gesamtgröße der gespeicherten Preset-Bilder.
+ * @returns {Promise<{ count:number, bytes:number }>}
+ */
+export async function getImageStorageStats() {
+  return withStore('readonly', (store) => {
+    const stats = { count: 0, bytes: 0 }
+    const request = store.openCursor()
+    request.onsuccess = () => {
+      const cursor = request.result
+      if (!cursor) return
+      const record = cursor.value
+      stats.count++
+      stats.bytes += Number(record?.size ?? record?.blob?.size ?? 0) || 0
+      cursor.continue()
+    }
+    return stats
+  })
 }
 
 /**

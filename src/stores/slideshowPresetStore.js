@@ -2,7 +2,11 @@ import { defineStore } from 'pinia'
 import { ref, markRaw } from 'vue'
 import { SLIDESHOW_AUDIO_DEFAULT, isValidSlideshowAudioMode } from '../lib/slideshowAudio.js'
 import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig.js'
-import { pruneImages } from '../utils/presetImageRepository.js'
+import {
+  pruneImages,
+  getImageStorageStats,
+  getStorageEstimate,
+} from '../utils/presetImageRepository.js'
 
 const STORAGE_KEY = 'visualizer-slideshow-presets'
 // Frisch gespeicherte Bilder beim Aufräumen schonen (laufendes Speichern,
@@ -228,6 +232,26 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
   // Bilder pro Preset – nur für die laufende Sitzung (nicht im localStorage):
   // presetId → Array von Slideshow-Bildeinträgen ({ id, name, imageObject | stockImage, … })
   const sessionImages = ref({})
+  // Speicherbelegung der Preset-Bilder (IndexedDB) + Browser-Kontingent
+  // available=false: IndexedDB nicht nutzbar (Anzeige ausblenden)
+  const imageStats = ref({ available: false, count: 0, bytes: 0, usage: null, quota: null })
+
+  async function refreshImageStats() {
+    try {
+      const [stats, estimate] = await Promise.all([getImageStorageStats(), getStorageEstimate()])
+      imageStats.value = {
+        available: true,
+        count: stats?.count ?? 0,
+        bytes: stats?.bytes ?? 0,
+        usage: estimate?.usage ?? null,
+        quota: estimate?.quota ?? null,
+      }
+    } catch (e) {
+      console.warn('[SlideshowPresets] Speicherbelegung nicht ermittelbar:', e)
+      imageStats.value = { available: false, count: 0, bytes: 0, usage: null, quota: null }
+    }
+    return imageStats.value
+  }
 
   function loadPresets() {
     if (loaded) return
@@ -243,6 +267,7 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
       presets.value = []
       return // bei unlesbarem Speicher nicht automatisch aufräumen
     }
+    refreshImageStats()
     scheduleAutoCleanup()
   }
 
@@ -276,6 +301,7 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
     try {
       const removed = await pruneImages(keep, { minAgeMs })
       if (removed > 0) console.log(`[SlideshowPresets] ${removed} ungenutzte Bilder entfernt`)
+      refreshImageStats()
       return removed
     } catch (e) {
       console.warn('[SlideshowPresets] Aufräumen der Bilder fehlgeschlagen:', e)
@@ -317,6 +343,8 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
         [preset.id]: images.map((img) => markRaw({ ...img })),
       }
     }
+    // Bilder wurden ggf. gerade in IndexedDB gespeichert
+    refreshImageStats()
     return preset
   }
 
@@ -347,5 +375,7 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
     deletePreset,
     getSessionImages,
     cleanupImages,
+    imageStats,
+    refreshImageStats,
   }
 })

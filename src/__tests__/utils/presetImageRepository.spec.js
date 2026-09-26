@@ -7,6 +7,7 @@ import {
   pruneImages,
   blobFromImage,
   isQuotaError,
+  getImageStorageStats,
   _clearImageCache,
 } from '../../utils/presetImageRepository.js'
 
@@ -89,5 +90,16 @@ describe('presetImageRepository – automatisches Aufräumen', () => {
     expect(isQuotaError({ name: 'QuotaExceededError' })).toBe(true)
     expect(isQuotaError(new Error('Quota exceeded for origin'))).toBe(true)
     expect(isQuotaError(new Error('anderer Fehler'))).toBe(false)
+  })
+})
+
+describe('presetImageRepository – Speicherbelegung', () => {
+  it('zählt Bilder und summiert ihre Größe', async () => {
+    await pruneImages([])
+    expect(await getImageStorageStats()).toEqual({ count: 0, bytes: 0 })
+    await saveImageBlob(new Blob([new Uint8Array(10)]), 'a.png')
+    await saveImageBlob(new Blob([new Uint8Array(25).fill(1)]), 'b.png')
+    await saveImageBlob(new Blob([new Uint8Array(10)]), 'a-kopie.png') // gleicher Inhalt
+    expect(await getImageStorageStats()).toEqual({ count: 2, bytes: 35 })
   })
 })

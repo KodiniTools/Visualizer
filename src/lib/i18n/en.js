@@ -1459,6 +1459,13 @@ export default {
     presetStockHint: 'Contains permanently saved images',
     presetImagesNotPersisted: 'Not saved permanently',
     presetImagesMissing: 'Saved images not found',
+    storageLabel: 'Image storage',
+    storageImage: 'image',
+    storageImages: 'images',
+    storageBrowser: 'Browser storage',
+    storageOf: 'of',
+    storageNearlyFull:
+      'Browser storage nearly full – delete presets you no longer need to free up space.',
     dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.',
   },
 

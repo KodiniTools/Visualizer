@@ -14,7 +14,9 @@
       v-if="!isActive && images.length >= 2"
       v-model="orderedImages"
       v-model:durations="imageDurations"
+      v-model:audio-modes="imageAudioModes"
       :default-duration="displayDuration"
+      :has-saved-settings="hasSavedSettings"
       @order-changed="(list) => emit('order-changed', list)"
     />
 
@@ -47,6 +49,15 @@
       @reset="emitTransformChange"
     />
 
+    <!-- Presets (nur wenn nicht aktiv) -->
+    <SlideshowPresets
+      v-if="!isActive"
+      :presets="presetStore.presets"
+      @save="savePreset"
+      @load="loadPreset"
+      @delete="presetStore.deletePreset"
+    />
+
     <!-- Steuerung + Fortschritt -->
     <SlideshowControls
       :is-active="isActive"
@@ -74,8 +85,19 @@ import SlideshowOrderList from './slideshow/SlideshowOrderList.vue'
 import SlideshowTimingSettings from './slideshow/SlideshowTimingSettings.vue'
 import SlideshowTransformSettings from './slideshow/SlideshowTransformSettings.vue'
 import SlideshowControls from './slideshow/SlideshowControls.vue'
+import SlideshowPresets from './slideshow/SlideshowPresets.vue'
+import { slideshowImageKey } from './slideshow/slideshowImageKey.js'
+import {
+  useSlideshowPresetStore,
+  SLIDESHOW_DEFAULT_SETTINGS,
+} from '../../stores/slideshowPresetStore.js'
+import { useToastStore } from '../../stores/toastStore.js'
+import { SLIDESHOW_AUDIO_DEFAULT } from '../../lib/slideshowAudio.js'
 
 const { t } = useI18n()
+const presetStore = useSlideshowPresetStore()
+presetStore.loadPresets()
+const toastStore = useToastStore()
 
 const props = defineProps({
   images: { type: Array, required: true },
@@ -97,26 +119,30 @@ const emit = defineEmits([
   'transform-change',
 ])
 
+const D = SLIDESHOW_DEFAULT_SETTINGS
+
 // Timing-Einstellungen
-const fadeInDuration = ref(1000)
-const displayDuration = ref(3000)
-const fadeOutDuration = ref(1000)
-const applyAudioReactive = ref(true)
-const loopSlideshow = ref(false)
+const fadeInDuration = ref(D.fadeInDuration)
+const displayDuration = ref(D.displayDuration)
+const fadeOutDuration = ref(D.fadeOutDuration)
+const applyAudioReactive = ref(D.applyAudioReactive)
+const loopSlideshow = ref(D.loop)
 
 // Render Layer
-const renderBehindVisualizer = ref(false)
+const renderBehindVisualizer = ref(D.renderBehindVisualizer)
 
 // Transform-Einstellungen (in Prozent für UI)
-const transformX = ref(10)
-const transformY = ref(10)
-const transformWidth = ref(80)
-const transformHeight = ref(80)
+const transformX = ref(D.transform.x)
+const transformY = ref(D.transform.y)
+const transformWidth = ref(D.transform.width)
+const transformHeight = ref(D.transform.height)
 
 // Geordnete Bilder-Liste (Reihenfolge per Drag & Drop in SlideshowOrderList)
 const orderedImages = ref([])
 // Optionale Anzeigedauer pro Bild ({ [id]: ms }); fehlt ein Eintrag, gilt displayDuration
 const imageDurations = ref({})
+// Optionaler Audio-Reaktiv-Modus pro Bild ({ [id]: mode }); fehlt ein Eintrag, gilt 'default'
+const imageAudioModes = ref({})
 
 watch(
   () => props.images,
@@ -138,8 +164,13 @@ function transformPayload() {
 function startSlideshow() {
   emit('start', {
     images: orderedImages.value.map((img) => {
-      const own = imageDurations.value[img.id ?? img.name]
-      return Number.isFinite(own) ? { ...img, displayDuration: own } : img
+      const key = slideshowImageKey(img)
+      const own = imageDurations.value[key]
+      return {
+        ...img,
+        displayDuration: Number.isFinite(own) ? own : undefined,
+        audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
+      }
     }),
     fadeInDuration: fadeInDuration.value,
     displayDuration: displayDuration.value,
@@ -149,6 +180,68 @@ function startSlideshow() {
     renderBehindVisualizer: renderBehindVisualizer.value,
     transform: transformPayload(),
   })
+}
+
+// ─── Presets ───────────────────────────────────────────────────────────────
+function savePreset(name) {
+  const saved = presetStore.savePreset(name, {
+    settings: {
+      fadeInDuration: fadeInDuration.value,
+      displayDuration: displayDuration.value,
+      fadeOutDuration: fadeOutDuration.value,
+      applyAudioReactive: applyAudioReactive.value,
+      loop: loopSlideshow.value,
+      renderBehindVisualizer: renderBehindVisualizer.value,
+      transform: {
+        x: transformX.value,
+        y: transformY.value,
+        width: transformWidth.value,
+        height: transformHeight.value,
+      },
+    },
+    // Pro Position in der aktuellen Reihenfolge
+    slots: orderedImages.value.map((img) => {
+      const key = slideshowImageKey(img)
+      return {
+        displayDuration: imageDurations.value[key] ?? null,
+        audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
+      }
+    }),
+  })
+  if (saved) toastStore.success(t('slideshow.presetSaved'))
+  else toastStore.error(t('slideshow.presetSaveError'))
+}
+
+function loadPreset(preset) {
+  const s = preset.settings
+  fadeInDuration.value = s.fadeInDuration
+  displayDuration.value = s.displayDuration
+  fadeOutDuration.value = s.fadeOutDuration
+  applyAudioReactive.value = s.applyAudioReactive
+  loopSlideshow.value = s.loop
+  if (renderBehindVisualizer.value !== s.renderBehindVisualizer) {
+    renderBehindVisualizer.value = s.renderBehindVisualizer
+    onRenderLayerChange()
+  }
+  transformX.value = s.transform.x
+  transformY.value = s.transform.y
+  transformWidth.value = s.transform.width
+  transformHeight.value = s.transform.height
+
+  // Einstellungen pro Position auf die aktuelle Reihenfolge übertragen;
+  // Bilder ohne passende Position erhalten die Standardwerte.
+  const durations = {}
+  const modes = {}
+  orderedImages.value.forEach((img, index) => {
+    const slot = preset.slots[index]
+    const key = slideshowImageKey(img)
+    if (!slot || key === undefined) return
+    if (Number.isFinite(slot.displayDuration)) durations[key] = slot.displayDuration
+    if (slot.audioMode !== SLIDESHOW_AUDIO_DEFAULT) modes[key] = slot.audioMode
+  })
+  imageDurations.value = durations
+  imageAudioModes.value = modes
+  toastStore.success(t('slideshow.presetLoaded'))
 }
 
 // Render Layer geändert (auch während laufender Slideshow)

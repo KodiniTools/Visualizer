@@ -1462,6 +1462,13 @@ export default {
     presetStockHint: 'Enthält dauerhaft gespeicherte Bilder',
     presetImagesNotPersisted: 'Nicht dauerhaft gespeichert',
     presetImagesMissing: 'Gespeicherte Bilder nicht gefunden',
+    storageLabel: 'Bilder-Speicher',
+    storageImage: 'Bild',
+    storageImages: 'Bilder',
+    storageBrowser: 'Browser-Speicher',
+    storageOf: 'von',
+    storageNearlyFull:
+      'Browser-Speicher fast voll – nicht mehr benötigte Presets löschen, um Platz zu schaffen.',
     dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.',
   },
 

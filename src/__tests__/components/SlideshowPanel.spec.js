@@ -431,6 +431,28 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Eins', 'Zwei'])
   })
 
+  it('full storage: cleans up and retries saving the image once', async () => {
+    const quota = Object.assign(new Error('full'), { name: 'QuotaExceededError' })
+    let attemptsA = 0
+    persistence.persistUploadImage.mockImplementation(async (img) => {
+      if (img.id !== 'a') return null
+      attemptsA++
+      if (attemptsA === 1) throw quota
+      return { key: 'c'.repeat(64), name: 'Eins' }
+    })
+    const w = mountPanel()
+    const { useSlideshowPresetStore } = await import('../../stores/slideshowPresetStore.js')
+    const store = useSlideshowPresetStore()
+    const cleanup = vi.spyOn(store, 'cleanupImages').mockResolvedValue(2)
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(cleanup).toHaveBeenCalledTimes(1)
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    expect(stored[0].slots[0].upload).toEqual({ key: 'c'.repeat(64), name: 'Eins' })
+    expect(attemptsA).toBe(2)
+    persistence.persistUploadImage.mockImplementation(async () => null)
+  })
+
   it('saves the preset even if persisting an image fails', async () => {
     persistence.persistUploadImage.mockImplementationOnce(async () => {
       throw new Error('QuotaExceeded')

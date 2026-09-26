@@ -8,7 +8,9 @@
 
 const DB_NAME = 'visualizer-slideshow-images'
 const STORE_NAME = 'images'
-const DB_VERSION = 1
+// v2: Index auf savedAt (Schutzfrist beim automatischen Aufräumen)
+const DB_VERSION = 2
+const SAVED_AT_INDEX = 'savedAt'
 
 // Geladene Bilder pro Schlüssel (für die Sitzung) – dasselbe Image-Objekt bei
 // wiederholtem Laden, damit gemerkte Bild-Anpassungen gültig bleiben
@@ -25,8 +27,11 @@ function openDB() {
     const request = idb.open(DB_NAME, DB_VERSION)
     request.onupgradeneeded = (e) => {
       const db = e.target.result
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'key' })
+      const store = db.objectStoreNames.contains(STORE_NAME)
+        ? e.target.transaction.objectStore(STORE_NAME)
+        : db.createObjectStore(STORE_NAME, { keyPath: 'key' })
+      if (!store.indexNames.contains(SAVED_AT_INDEX)) {
+        store.createIndex(SAVED_AT_INDEX, 'savedAt', { unique: false })
       }
     }
     request.onsuccess = () => resolve(request.result)
@@ -112,7 +117,14 @@ export async function blobFromImage(imageObject) {
 export async function saveImageBlob(blob, name) {
   const key = await hashBlob(blob)
   await withStore('readwrite', (store) =>
-    store.put({ key, blob, name: String(name || ''), type: blob.type, savedAt: Date.now() }),
+    store.put({
+      key,
+      blob,
+      name: String(name || ''),
+      type: blob.type,
+      size: blob.size,
+      savedAt: Date.now(),
+    }),
   )
   return key
 }
@@ -145,18 +157,72 @@ export async function loadImage(key) {
 /**
  * Löscht alle gespeicherten Bilder, deren Schlüssel nicht in `keepKeys` steht.
  * @param {Iterable<string>} keepKeys - noch von Presets verwendete Schlüssel
+ * @param {{ minAgeMs?: number }} [options] - Bilder, die jünger sind, bleiben
+ *   erhalten (Schutz für gerade laufendes Speichern, auch in anderen Tabs)
  * @returns {Promise<number>} Anzahl gelöschter Bilder
  */
-export async function pruneImages(keepKeys) {
+export async function pruneImages(keepKeys, { minAgeMs = 0 } = {}) {
   const keep = new Set(keepKeys)
-  const keys = await withStore('readonly', (store) => store.getAllKeys())
-  const remove = (keys || []).filter((k) => !keep.has(k))
+  const cutoff = Date.now() - minAgeMs
+  // Nur Schlüssel + Speicherdatum lesen (Key-Cursor über den Index, ohne Blobs)
+  const candidates = await withStore('readonly', (store) => {
+    const found = []
+    const request = store.index(SAVED_AT_INDEX).openKeyCursor()
+    request.onsuccess = () => {
+      const cursor = request.result
+      if (!cursor) return
+      const savedAt = Number(cursor.key)
+      if (!keep.has(cursor.primaryKey) && !(savedAt > cutoff)) found.push(cursor.primaryKey)
+      cursor.continue()
+    }
+    return found
+  })
+  const remove = candidates || []
   if (remove.length === 0) return 0
   await withStore('readwrite', (store) => {
     for (const k of remove) store.delete(k)
   })
   for (const k of remove) imageCache.delete(k)
   return remove.length
+}
+
+/**
+ * Anzahl und Gesamtgröße der gespeicherten Preset-Bilder.
+ * @returns {Promise<{ count:number, bytes:number }>}
+ */
+export async function getImageStorageStats() {
+  return withStore('readonly', (store) => {
+    const stats = { count: 0, bytes: 0 }
+    const request = store.openCursor()
+    request.onsuccess = () => {
+      const cursor = request.result
+      if (!cursor) return
+      const record = cursor.value
+      stats.count++
+      stats.bytes += Number(record?.size ?? record?.blob?.size ?? 0) || 0
+      cursor.continue()
+    }
+    return stats
+  })
+}
+
+/**
+ * Belegter/verfügbarer Speicher des Browsers (falls unterstützt).
+ * @returns {Promise<{ usage:number, quota:number }|null>}
+ */
+export async function getStorageEstimate() {
+  try {
+    const est = await globalThis.navigator?.storage?.estimate?.()
+    return est ? { usage: est.usage ?? 0, quota: est.quota ?? 0 } : null
+  } catch {
+    return null
+  }
+}
+
+/** true, wenn der Fehler auf vollen Speicher hindeutet. */
+export function isQuotaError(error) {
+  const name = error?.name || error?.inner?.name || ''
+  return name === 'QuotaExceededError' || /quota/i.test(String(error?.message || ''))
 }
 
 /** Nur für Tests: Sitzungs-Cache leeren. */

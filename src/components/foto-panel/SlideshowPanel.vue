@@ -82,6 +82,7 @@
     <SlideshowPresets
       :presets="presetStore.presets"
       :session-images="presetStore.sessionImages"
+      :storage="presetStore.imageStats"
       @save="savePreset"
       @load="loadPreset"
       @delete="presetStore.deletePreset"
@@ -127,6 +128,7 @@ import SlideshowPresets from './slideshow/SlideshowPresets.vue'
 import { slideshowImageKey } from './slideshow/slideshowImageKey.js'
 import { restorePresetImages } from '../../lib/slideshowSources.js'
 import { persistUploadImage, restoreUploadImage } from '../../lib/slideshowImagePersistence.js'
+import { isQuotaError } from '../../utils/presetImageRepository.js'
 import {
   useSlideshowPresetStore,
   SLIDESHOW_DEFAULT_SETTINGS,
@@ -281,6 +283,21 @@ function buildPayload() {
 }
 
 // ─── Presets ───────────────────────────────────────────────────────────────
+/**
+ * Speichert ein hochgeladenes Bild dauerhaft; ist der Speicher voll, werden
+ * ungenutzte Bilder aufgeräumt und das Speichern einmal wiederholt.
+ */
+async function persistImageWithCleanup(img) {
+  try {
+    return await persistUploadImage(img)
+  } catch (e) {
+    if (!isQuotaError(e)) throw e
+    const removed = await presetStore.cleanupImages()
+    if (removed === 0) throw e
+    return persistUploadImage(img)
+  }
+}
+
 /** Dauerhaft speicherbarer Verweis auf ein Stock-Bild (sonst null). */
 function stockRefOf(img) {
   if (img?.source !== 'stock' || !img.stockImage) return null
@@ -329,7 +346,7 @@ async function savePreset(name) {
     images.map(async (img) => {
       if (img.source === 'stock') return null
       try {
-        return await persistUploadImage(img)
+        return await persistImageWithCleanup(img)
       } catch (e) {
         console.warn('[SlideshowPresets] Bild nicht dauerhaft gespeichert:', img.name, e)
         failed.push(img.name)

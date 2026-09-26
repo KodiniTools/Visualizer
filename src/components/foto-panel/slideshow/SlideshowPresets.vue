@@ -18,6 +18,38 @@
       </button>
     </div>
 
+    <!-- Speicherbelegung der dauerhaft gespeicherten Preset-Bilder -->
+    <div v-if="storage?.available" class="storage-info" :class="{ warning: nearlyFull }">
+      <div class="storage-line">
+        <span class="storage-label">{{ t('slideshow.storageLabel') }}</span>
+        <span class="storage-value">
+          {{ storage.count }}
+          {{ t(storage.count === 1 ? 'slideshow.storageImage' : 'slideshow.storageImages') }} ·
+          {{ formatBytes(storage.bytes, locale) }}
+        </span>
+      </div>
+      <template v-if="hasQuota">
+        <div
+          class="storage-bar"
+          role="meter"
+          :aria-valuenow="usagePercent"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-label="t('slideshow.storageBrowser')"
+        >
+          <div class="storage-bar-fill" :style="{ width: `${Math.max(usagePercent, 1)}%` }"></div>
+        </div>
+        <div class="storage-line storage-browser">
+          <span>{{ t('slideshow.storageBrowser') }}</span>
+          <span>
+            {{ formatBytes(storage.usage, locale) }} {{ t('slideshow.storageOf') }}
+            {{ formatBytes(storage.quota, locale) }} ({{ usagePercent }} %)
+          </span>
+        </div>
+        <p v-if="nearlyFull" class="hint warning">{{ t('slideshow.storageNearlyFull') }}</p>
+      </template>
+    </div>
+
     <p v-if="presets.length === 0" class="hint empty">{{ t('slideshow.noPresets') }}</p>
     <ul v-else class="preset-list">
       <li v-for="preset in presets" :key="preset.id" class="preset-item">
@@ -57,16 +89,28 @@
  * Liste der Slideshow-Presets. Rein darstellend: Speichern/Laden/Löschen
  * werden an das SlideshowPanel emittiert, das den Store bedient.
  */
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
+import { formatBytes } from '../../../utils/formatBytes.js'
 
-defineProps({
+const props = defineProps({
   presets: { type: Array, default: () => [] },
   // presetId → Bilder dieser Sitzung (siehe slideshowPresetStore.sessionImages)
   sessionImages: { type: Object, default: () => ({}) },
+  // Speicherbelegung: { available, count, bytes, usage, quota } (slideshowPresetStore.imageStats)
+  storage: { type: Object, default: null },
 })
 const emit = defineEmits(['save', 'load', 'delete'])
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+const hasQuota = computed(
+  () => Number.isFinite(props.storage?.usage) && Number(props.storage?.quota) > 0,
+)
+const usagePercent = computed(() =>
+  hasQuota.value ? Math.min(100, Math.round((props.storage.usage / props.storage.quota) * 100)) : 0,
+)
+// Ab 80 % Browser-Kontingent warnen
+const nearlyFull = computed(() => hasQuota.value && usagePercent.value >= 80)
 
 const newName = ref('')
 
@@ -87,6 +131,51 @@ function save() {
 }
 .presets-section .hint {
   padding-left: 0;
+}
+.storage-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background-color: var(--card-bg);
+  font-size: 11px;
+  color: #e0e0e0;
+}
+.storage-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.storage-label {
+  color: var(--text-muted);
+}
+.storage-browser {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.storage-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--secondary-bg);
+  overflow: hidden;
+}
+.storage-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6ea8fe 0%, #5a9af8 100%);
+}
+.storage-info.warning .storage-bar-fill {
+  background: #f1c40f;
+}
+.storage-info .hint {
+  padding-left: 0;
+}
+[data-theme='light'] .storage-info {
+  background-color: #f0ead0;
+  color: #003971;
+}
+[data-theme='light'] .storage-bar {
+  background: #d4c8a8;
 }
 .preset-save-row {
   display: flex;

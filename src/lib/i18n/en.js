@@ -1537,6 +1537,24 @@ export default {
     fillAudioHue: 'Hue',
     fillAudioHint:
       'Without music the colour stays as set; to the beat the area brightens or shifts its hue (with a gradient: both colours).',
+    imageFill: 'Own image as area',
+    imageFillChoose: 'Choose image',
+    imageFillRemove: 'Remove',
+    imageFillNone: 'No image selected',
+    imageFillLoading: 'Loading image …',
+    imageFillNoImages:
+      'No images available – upload images to the gallery or open a stock category.',
+    imageFillPickerHint:
+      'Uploaded images (⬆) and the open stock category (🗂). The image is stored permanently.',
+    imageFillFit: 'Display',
+    imageFillCover: 'Fill',
+    imageFillContain: 'Fit',
+    imageFillAudio: 'Audio-reactive image',
+    imageFillZoom: 'Pulse zoom',
+    imageFillAudioHint:
+      'Without music the image stays as set; to the beat it brightens, shifts its hue and pulses.',
+    imageFillMissing: 'Area image not found',
+    imageFillError: 'Image could not be used as area',
     baseColorReset: 'Default (black, no gradient or audio)',
     backgroundModeWorkspaceNeedsFormat:
       'Workspace background: select a workspace format first (e.g. TikTok 9:16).',

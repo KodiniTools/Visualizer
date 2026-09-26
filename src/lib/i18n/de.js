@@ -1541,6 +1541,24 @@ export default {
     fillAudioHue: 'Farbton',
     fillAudioHint:
       'Ohne Musik bleibt die Farbe wie eingestellt; im Takt hellt die Fläche auf bzw. verschiebt den Farbton (mit Farbverlauf: beide Farben).',
+    imageFill: 'Eigenes Bild als Fläche',
+    imageFillChoose: 'Bild wählen',
+    imageFillRemove: 'Entfernen',
+    imageFillNone: 'Kein Bild gewählt',
+    imageFillLoading: 'Bild wird geladen …',
+    imageFillNoImages:
+      'Keine Bilder vorhanden – lade Bilder in die Galerie hoch oder öffne eine Stock-Kategorie.',
+    imageFillPickerHint:
+      'Hochgeladene Bilder (⬆) und die geöffnete Stock-Kategorie (🗂). Das Bild wird dauerhaft gespeichert.',
+    imageFillFit: 'Darstellung',
+    imageFillCover: 'Füllen',
+    imageFillContain: 'Einpassen',
+    imageFillAudio: 'Bild audio-reaktiv',
+    imageFillZoom: 'Puls-Zoom',
+    imageFillAudioHint:
+      'Ohne Musik bleibt das Bild wie eingestellt; im Takt hellt es auf, verschiebt den Farbton und pulsiert.',
+    imageFillMissing: 'Flächenbild nicht gefunden',
+    imageFillError: 'Bild konnte nicht als Fläche übernommen werden',
     baseColorReset: 'Standard (Schwarz, ohne Farbverlauf und Audio)',
     backgroundModeWorkspaceNeedsFormat:
       'Workspace-Hintergrund: zuerst ein Workspace-Format wählen (z. B. TikTok 9:16).',

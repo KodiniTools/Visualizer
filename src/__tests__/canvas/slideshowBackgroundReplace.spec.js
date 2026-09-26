@@ -148,6 +148,16 @@ describe('SlideshowManager – Farbe der Fläche', () => {
     m.applyLiveUpdate(imgs, { workspaceGradient: { enabled: true, color2: '#abcdef' } })
     expect(m.getBaseGradient('workspace')).toMatchObject({ enabled: true, color2: '#abcdef' })
     expect(m.getBaseGradient('canvas').enabled).toBe(false)
+    // Flächenbild: Objekt kommt mit Start/Live, Einstellung getrennt je Fläche
+    const bg = { width: 5, height: 5 }
+    m.applyLiveUpdate(imgs, {
+      backgroundImageFill: { enabled: true, fit: 'contain' },
+      backgroundImageObject: bg,
+    })
+    expect(m.getBaseImage('canvas')).toMatchObject({ image: bg, fill: { fit: 'contain' } })
+    m.applyLiveUpdate(imgs, { backgroundImageFill: { fit: 'cover' } })
+    expect(m.getBaseImage('canvas').image).toBe(bg) // Objekt bleibt
+    expect(m.getBaseImage('workspace')).toBeNull()
     // Audio-reaktive Flächenfarbe: Start/Live, getrennt pro Fläche
     m.applyLiveUpdate(imgs, { backgroundFillAudio: { enabled: true, hue: 50 } })
     expect(m.getBaseFillAudio('canvas')).toMatchObject({ enabled: true, hue: 50, brightness: 80 })
@@ -199,7 +209,10 @@ describe('Slideshow ersetzt den Hintergrund', () => {
       workspaceGradient: { enabled: false, color2: '#333333', type: 'linear', angle: 90 },
       backgroundFillAudio: { enabled: false, source: 'bass', brightness: 80, hue: 0 },
       workspaceFillAudio: { enabled: false, source: 'bass', brightness: 80, hue: 0 },
+      backgroundImageFill: { enabled: false, stock: null, upload: null, fit: 'cover', audio: {} },
+      workspaceImageFill: { enabled: false, stock: null, upload: null, fit: 'cover', audio: {} },
     }
+    m._baseImages = { canvas: null, workspace: null }
     return m
   }
 
@@ -368,6 +381,69 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     setup.r.drawBackground(setup.ctx)
     expect(setup.fills[0][0]).toMatch(/^hsl\(0, 0%, (?!0%)/)
     delete window.audioAnalysisData
+  })
+
+  it('Eigenes Flächenbild wird über der Farbe gezeichnet (auf den Bereich beschnitten)', () => {
+    const show = slideshowWith('workspace')
+    const img = { width: 10, height: 10 }
+    // ohne Einschalten kein Bild
+    show.setBaseImage('workspace', { fit: 'contain' }, img)
+    expect(show.getBaseImage('workspace')).toBeNull()
+    show.setBaseImage('workspace', { enabled: true })
+    expect(show.getBaseImage('workspace').image).toBe(img)
+    expect(show.getBaseImage('canvas')).toBeNull()
+    window.slideshowManager = show
+
+    const setup = rendererSetup()
+    const order = []
+    Object.assign(setup.ctx, {
+      beginPath() {},
+      clip: () => order.push('clip'),
+      rect: (...a) => order.push(['rect', ...a]),
+      drawImage: (i, ...a) => order.push(['drawImage', i, ...a]),
+      filter: 'none',
+    })
+    setup.ctx.fillRect = (...a) => order.push(['fillRect', ...a])
+    setup.manager.getWorkspaceBounds = () => ({ x: 0, y: 0, width: 40, height: 20 })
+    setup.r.drawBackground(setup.ctx)
+    expect(order).toEqual([
+      ['fillRect', 0, 0, 40, 20],
+      ['rect', 0, 0, 40, 20],
+      'clip',
+      ['drawImage', img, 10, 0, 20, 20], // eingepasst, zentriert
+    ])
+
+    // Bild entfernen → nur noch Farbe
+    show.setBaseImage('workspace', undefined, null)
+    expect(show.getBaseImage('workspace')).toBeNull()
+  })
+
+  it('Canvas-Modus: Flächenbild ersetzt auch einen reinen Farbhintergrund', () => {
+    const show = slideshowWith('canvas')
+    const img = { width: 10, height: 10 }
+    show.setBaseImage('canvas', { enabled: true }, img)
+    window.slideshowManager = show
+    const { r, ctx, manager } = rendererSetup()
+    manager.background = '#123456'
+    manager.videoBackground = null
+    r._drawColorBackground = vi.fn()
+    const drawn = []
+    Object.assign(ctx, {
+      beginPath() {},
+      clip() {},
+      rect() {},
+      filter: 'none',
+      drawImage: (i) => drawn.push(i),
+    })
+    r.drawBackground(ctx)
+    expect(r._drawColorBackground).toHaveBeenCalled()
+    expect(drawn).toEqual([img])
+
+    // ohne Flächenbild bleibt der Farbhintergrund allein
+    show.setBaseImage('canvas', { enabled: false })
+    drawn.length = 0
+    r.drawBackground(ctx)
+    expect(drawn).toEqual([])
   })
 
   it('Farbhintergrund bleibt auch im Canvas-Modus erhalten', () => {

@@ -152,6 +152,20 @@
         prefix="workspace"
         :disabled="!hasWorkspace"
       />
+      <!-- Eigenes Bild als Fläche (über Farbe/Verlauf) -->
+      <SlideshowImageFill
+        v-if="backgroundMode === 'canvas' || backgroundMode === 'workspace'"
+        :key="imageFillTarget"
+        :fill="imageFills.fills[imageFillTarget].value"
+        :thumb="imageFills.thumbOf(imageFillTarget)"
+        :loading="imageFills.loading[imageFillTarget]"
+        :candidates="imageFillCandidates"
+        :prefix="imageFillTarget === 'workspace' ? 'workspace' : 'base'"
+        :disabled="imageFillTarget === 'workspace' && !hasWorkspace"
+        @update="(partial) => imageFills.update(imageFillTarget, partial)"
+        @select="(candidate) => imageFills.select(imageFillTarget, candidate)"
+        @clear="imageFills.clear(imageFillTarget)"
+      />
       <p v-if="backgroundMode !== 'none'" class="hint base-color-hint">
         {{
           backgroundMode === 'workspace'
@@ -271,7 +285,7 @@
  * das FotoPanel. Die Sektionen liegen in `slideshow/` (Reihenfolge, Timing,
  * Position/Größe, Steuerung) und sind per v-model angebunden.
  */
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, toRaw } from 'vue'
 import {
   SLIDESHOW_GRADIENT_DEFAULT,
   isSameSlideshowGradient,
@@ -283,6 +297,11 @@ import {
 } from '../../lib/slideshowBaseColor.js'
 import SlideshowBaseGradient from './slideshow/SlideshowBaseGradient.vue'
 import SlideshowFillAudio from './slideshow/SlideshowFillAudio.vue'
+import SlideshowImageFill from './slideshow/SlideshowImageFill.vue'
+import { useSlideshowImageFills } from './slideshow/useSlideshowImageFills.js'
+import { isSameSlideshowImageFill } from '../../lib/slideshowImageFill.js'
+import { useImageGallery } from '../../composables/useImageGallery.js'
+import { useStockGallery } from '../../composables/useStockGallery.js'
 import {
   SLIDESHOW_FILL_AUDIO_DEFAULT,
   isSameSlideshowFillAudio,
@@ -300,7 +319,11 @@ import SlideshowImageEditor from './slideshow/SlideshowImageEditor.vue'
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore.js'
 import { slideshowImageKey, slideshowStableKey } from './slideshow/slideshowImageKey.js'
 import { restorePresetImages } from '../../lib/slideshowSources.js'
-import { persistUploadImage, restoreUploadImage } from '../../lib/slideshowImagePersistence.js'
+import {
+  loadPersistedImage,
+  persistUploadImage,
+  restoreUploadImage,
+} from '../../lib/slideshowImagePersistence.js'
 import { isQuotaError } from '../../utils/presetImageRepository.js'
 import {
   useSlideshowPresetStore,
@@ -347,6 +370,7 @@ const emit = defineEmits([
   'workspace-color-change',
   'base-gradient-change',
   'base-fill-audio-change',
+  'base-image-change',
   'reset-image-adjustments',
   'live-update',
   'move-mode-change',
@@ -401,6 +425,41 @@ watch(workspaceFillAudio, (a) => {
   storeSlideshowFillAudio(a, 'workspace')
   emit('base-fill-audio-change', 'workspace', { ...a })
 })
+// Eigenes Flächenbild (Canvas/Workspace) – Zustand im Composable
+const { imageGallery } = useImageGallery()
+const { stockImages, loadStockImageObject } = useStockGallery()
+const imageFills = useSlideshowImageFills({
+  onChange: (target, fill, image) => emit('base-image-change', target, fill, image),
+  loadUpload: (key) => loadPersistedImage(key),
+  persistUpload: (entry) => persistImageWithCleanup(entry),
+  loadStock: (stock) => loadStockImageObject(stock),
+  onMissing: (name) => toastStore.warning(`${t('slideshow.imageFillMissing')}: ${name}`),
+  onError: () => toastStore.error(t('slideshow.imageFillError')),
+})
+const imageFillTarget = computed(() =>
+  backgroundMode.value === 'workspace' ? 'workspace' : 'canvas',
+)
+// Wählbar: alle hochgeladenen Bilder + die geöffnete Stock-Kategorie
+const imageFillCandidates = computed(() => [
+  ...imageGallery.value.map((g) => ({
+    id: `upload:${g.id}`,
+    name: g.name,
+    thumb: g.img?.src || '',
+    source: 'upload',
+    // Original-Objekt (kein reaktiver Proxy) – Slideshow vergleicht per ===
+    raw: { source: 'upload', name: g.name, img: toRaw(g.img) },
+  })),
+  ...(stockImages.value || [])
+    .filter((st) => st?.id && st.file)
+    .map((st) => ({
+      id: `stock:${st.id}`,
+      name: st.name,
+      thumb: st.thumbnail || st.file,
+      source: 'stock',
+      raw: { source: 'stock', name: st.name, stockImage: st },
+    })),
+])
+
 function isDefaultFillAudio(a) {
   return isSameSlideshowFillAudio(a, SLIDESHOW_FILL_AUDIO_DEFAULT)
 }
@@ -611,6 +670,7 @@ function buildPayload() {
     workspaceGradient: { ...workspaceGradient.value },
     backgroundFillAudio: { ...backgroundFillAudio.value },
     workspaceFillAudio: { ...workspaceFillAudio.value },
+    ...imageFills.payload(),
     moveWholeSlideshow: moveWholeSlideshow.value,
     transition: transition.value,
     transform: transformPayload(),
@@ -683,6 +743,8 @@ async function savePreset(name) {
       workspaceGradient: { ...workspaceGradient.value },
       backgroundFillAudio: { ...backgroundFillAudio.value },
       workspaceFillAudio: { ...workspaceFillAudio.value },
+      backgroundImageFill: { ...imageFills.fills.canvas.value },
+      workspaceImageFill: { ...imageFills.fills.workspace.value },
       moveWholeSlideshow: moveWholeSlideshow.value,
       transition: transition.value,
       transform: {
@@ -796,6 +858,13 @@ async function loadPreset(preset) {
   }
   if (!isSameSlideshowFillAudio(workspaceFillAudio.value, s.workspaceFillAudio)) {
     workspaceFillAudio.value = normalizeSlideshowFillAudio(s.workspaceFillAudio)
+  }
+  // Flächenbilder (werden bei Bedarf nachgeladen)
+  if (!isSameSlideshowImageFill(imageFills.fills.canvas.value, s.backgroundImageFill)) {
+    imageFills.apply('canvas', s.backgroundImageFill)
+  }
+  if (!isSameSlideshowImageFill(imageFills.fills.workspace.value, s.workspaceImageFill)) {
+    imageFills.apply('workspace', s.workspaceImageFill)
   }
   transformX.value = s.transform.x
   transformY.value = s.transform.y

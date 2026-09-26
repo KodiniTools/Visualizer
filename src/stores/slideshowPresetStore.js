@@ -9,6 +9,12 @@ import {
   normalizeSlideshowBaseColor,
   normalizeSlideshowGradient,
 } from '../lib/slideshowBaseColor.js'
+import { normalizeStockRef, normalizeUploadRef } from '../lib/slideshowImageRefs.js'
+import {
+  SLIDESHOW_IMAGE_FILL_DEFAULT,
+  collectStoredImageFillKeys,
+  normalizeSlideshowImageFill,
+} from '../lib/slideshowImageFill.js'
 import {
   SLIDESHOW_FILL_AUDIO_DEFAULT,
   normalizeSlideshowFillAudio,
@@ -54,6 +60,9 @@ export const SLIDESHOW_DEFAULT_SETTINGS = Object.freeze({
   // Audio-Reaktive Flächenfarbe (aus)
   backgroundFillAudio: SLIDESHOW_FILL_AUDIO_DEFAULT,
   workspaceFillAudio: SLIDESHOW_FILL_AUDIO_DEFAULT,
+  // Eigenes Bild als Fläche (aus)
+  backgroundImageFill: SLIDESHOW_IMAGE_FILL_DEFAULT,
+  workspaceImageFill: SLIDESHOW_IMAGE_FILL_DEFAULT,
   moveWholeSlideshow: false,
   transition: SLIDESHOW_TRANSITION_DEFAULT,
   transform: Object.freeze({ x: 10, y: 10, width: 80, height: 80 }),
@@ -107,47 +116,8 @@ export function normalizeImageAdjustments(raw) {
   return Object.keys(out).length > 0 ? out : null
 }
 
-// Stock-Pfade: nur relative Pfade innerhalb der Galerie (kein Schema, kein „..“)
-const STOCK_PATH_RE = /^(\.\/)?gallery\/[\w\-./ %äöüÄÖÜß]+$/
-const STOCK_ID_RE = /^[\w.-]{1,120}$/
-
-function isStockPath(value) {
-  return typeof value === 'string' && STOCK_PATH_RE.test(value) && !value.includes('..')
-}
-
-/**
- * Bereinigt einen dauerhaft gespeicherten Stock-Bild-Verweis.
- * @param {unknown} raw
- * @returns {{ id:string, name:string, file:string, thumbnail:string }|null}
- */
-export function normalizeStockRef(raw) {
-  if (!raw || typeof raw !== 'object') return null
-  if (typeof raw.id !== 'string' || !STOCK_ID_RE.test(raw.id)) return null
-  if (!isStockPath(raw.file)) return null
-  const name =
-    typeof raw.name === 'string' && raw.name.trim() ? raw.name.trim().slice(0, 100) : raw.id
-  return {
-    id: raw.id,
-    name,
-    file: raw.file,
-    thumbnail: isStockPath(raw.thumbnail) ? raw.thumbnail : raw.file,
-  }
-}
-
-const UPLOAD_KEY_RE = /^([0-9a-f]{64}|fnv-[0-9a-f]{1,8}-\d{1,12})$/
-
-/**
- * Bereinigt einen Verweis auf ein dauerhaft gespeichertes hochgeladenes Bild
- * (Schlüssel in IndexedDB, siehe presetImageRepository).
- * @param {unknown} raw
- * @returns {{ key:string, name:string }|null}
- */
-export function normalizeUploadRef(raw) {
-  if (!raw || typeof raw !== 'object') return null
-  if (typeof raw.key !== 'string' || !UPLOAD_KEY_RE.test(raw.key)) return null
-  const name = typeof raw.name === 'string' ? raw.name.trim().slice(0, 200) : ''
-  return { key: raw.key, name }
-}
+// Weiterhin hier exportiert (bestehende Aufrufer/Tests)
+export { normalizeStockRef, normalizeUploadRef }
 
 /** Alle von Presets verwendeten Bild-Schlüssel. */
 export function collectUploadKeys(presetList) {
@@ -155,6 +125,13 @@ export function collectUploadKeys(presetList) {
   for (const preset of presetList || []) {
     for (const slot of preset?.slots || []) {
       if (slot?.upload?.key) keys.add(slot.upload.key)
+    }
+    // Flächenbilder (Canvas/Workspace) des Presets
+    for (const fill of [
+      preset?.settings?.backgroundImageFill,
+      preset?.settings?.workspaceImageFill,
+    ]) {
+      if (fill?.upload?.key) keys.add(fill.upload.key)
     }
   }
   return keys
@@ -236,6 +213,9 @@ export function normalizeSlideshowPreset(raw) {
       // Audio-Reaktive Flächenfarbe (ältere Presets: aus)
       backgroundFillAudio: normalizeSlideshowFillAudio(s.backgroundFillAudio),
       workspaceFillAudio: normalizeSlideshowFillAudio(s.workspaceFillAudio),
+      // Eigenes Bild als Fläche (ältere Presets: aus)
+      backgroundImageFill: normalizeSlideshowImageFill(s.backgroundImageFill),
+      workspaceImageFill: normalizeSlideshowImageFill(s.workspaceImageFill),
       // Maus verschiebt ganze Slideshow (ältere Presets: aus)
       moveWholeSlideshow:
         typeof s.moveWholeSlideshow === 'boolean' ? s.moveWholeSlideshow : d.moveWholeSlideshow,
@@ -340,6 +320,8 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
    */
   async function cleanupImages({ minAgeMs = IMAGE_CLEANUP_GRACE_MS } = {}) {
     const keep = collectUploadKeys(presets.value)
+    // Auch ohne Preset dauerhaft gemerkte Flächenbilder behalten
+    for (const key of collectStoredImageFillKeys()) keep.add(key)
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
       if (Array.isArray(stored)) {

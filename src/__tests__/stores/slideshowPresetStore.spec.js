@@ -171,6 +171,19 @@ describe('slideshowPresetStore', () => {
     // Fläche unter der Slideshow: ältere/ungültige Werte → Schwarz
     expect(p.settings.backgroundColor).toBe('#000000')
     expect(p.settings.workspaceColor).toBe('#000000')
+    expect(p.settings.backgroundImageFill).toMatchObject({
+      enabled: false,
+      stock: null,
+      upload: null,
+    })
+    expect(
+      collectUploadKeys([
+        {
+          settings: { backgroundImageFill: { upload: { key: 'd'.repeat(64) } } },
+          slots: [],
+        },
+      ]),
+    ).toEqual(new Set(['d'.repeat(64)]))
     expect(p.settings.backgroundFillAudio).toEqual({
       enabled: false,
       source: 'bass',

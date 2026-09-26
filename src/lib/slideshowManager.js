@@ -10,6 +10,7 @@ import {
   normalizeSlideshowGradient,
 } from './slideshowBaseColor.js'
 import { normalizeSlideshowFillAudio } from './slideshowFillAudio.js'
+import { normalizeSlideshowImageFill } from './slideshowImageFill.js'
 
 /**
  * SlideshowManager - Orchestriert die Bild-Slideshow auf dem Canvas
@@ -78,7 +79,12 @@ export class SlideshowManager {
       // Audio-Reaktive Flächenfarbe (siehe slideshowFillAudio.js)
       backgroundFillAudio: normalizeSlideshowFillAudio(null),
       workspaceFillAudio: normalizeSlideshowFillAudio(null),
+      // Eigenes Bild als Fläche (siehe slideshowImageFill.js); Bild-Objekte in _baseImages
+      backgroundImageFill: normalizeSlideshowImageFill(null),
+      workspaceImageFill: normalizeSlideshowImageFill(null),
     }
+    // Geladene Flächenbilder (nicht serialisierbar)
+    this._baseImages = { canvas: null, workspace: null }
 
     // ✨ NEU: Slideshow Transform-Einstellungen (Position und Größe)
     // Diese werden auf alle Slideshow-Bilder angewendet
@@ -258,6 +264,33 @@ export class SlideshowManager {
   setBaseFillAudio(target, audio) {
     const key = target === 'workspace' ? 'workspaceFillAudio' : 'backgroundFillAudio'
     this.config[key] = normalizeSlideshowFillAudio(audio, this.config[key])
+  }
+
+  /**
+   * Eigenes Bild als Fläche (auch während laufender Slideshow).
+   * @param {'canvas'|'workspace'} target
+   * @param {object|null|undefined} fill - Einstellung; undefined = unverändert
+   * @param {HTMLImageElement|null|undefined} [imageObject] - undefined = unverändert, null = entfernen
+   */
+  setBaseImage(target, fill, imageObject) {
+    const area = target === 'workspace' ? 'workspace' : 'canvas'
+    const key = area === 'workspace' ? 'workspaceImageFill' : 'backgroundImageFill'
+    if (fill !== undefined) this.config[key] = normalizeSlideshowImageFill(fill, this.config[key])
+    if (imageObject !== undefined) this._baseImages[area] = imageObject || null
+  }
+
+  /**
+   * Aktives Flächenbild oder null (aus bzw. noch nicht geladen).
+   * @param {'canvas'|'workspace'} target
+   * @returns {{ fill: object, image: HTMLImageElement }|null}
+   */
+  getBaseImage(target) {
+    const area = target === 'workspace' ? 'workspace' : 'canvas'
+    const fill =
+      area === 'workspace' ? this.config.workspaceImageFill : this.config.backgroundImageFill
+    const image = this._baseImages?.[area]
+    if (!fill?.enabled || !image) return null
+    return { fill: { ...fill, audio: { ...fill.audio } }, image }
   }
 
   /** @param {'canvas'|'workspace'} target @returns {object} (Kopie) */
@@ -503,10 +536,24 @@ export class SlideshowManager {
         options.workspaceFillAudio,
         this.config.workspaceFillAudio,
       ),
+      backgroundImageFill: normalizeSlideshowImageFill(
+        options.backgroundImageFill,
+        this.config.backgroundImageFill,
+      ),
+      workspaceImageFill: normalizeSlideshowImageFill(
+        options.workspaceImageFill,
+        this.config.workspaceImageFill,
+      ),
       transition: isValidTransition(options.transition)
         ? options.transition
         : this.config.transition,
     })
+    if (options.backgroundImageObject !== undefined) {
+      this.setBaseImage('canvas', undefined, options.backgroundImageObject)
+    }
+    if (options.workspaceImageObject !== undefined) {
+      this.setBaseImage('workspace', undefined, options.workspaceImageObject)
+    }
     this._lastWorkspaceKey = null
     if (options.moveWholeSlideshow !== undefined) {
       this.setMoveWholeSlideshow(options.moveWholeSlideshow)
@@ -783,6 +830,12 @@ export class SlideshowManager {
     }
     if (options.workspaceFillAudio !== undefined) {
       this.setBaseFillAudio('workspace', options.workspaceFillAudio)
+    }
+    if (options.backgroundImageFill !== undefined || options.backgroundImageObject !== undefined) {
+      this.setBaseImage('canvas', options.backgroundImageFill, options.backgroundImageObject)
+    }
+    if (options.workspaceImageFill !== undefined || options.workspaceImageObject !== undefined) {
+      this.setBaseImage('workspace', options.workspaceImageFill, options.workspaceImageObject)
     }
     if (options.moveWholeSlideshow !== undefined) {
       this.setMoveWholeSlideshow(options.moveWholeSlideshow)
@@ -1309,6 +1362,8 @@ export class SlideshowManager {
       workspaceGradient: { ...this.config.workspaceGradient },
       backgroundFillAudio: { ...this.config.backgroundFillAudio },
       workspaceFillAudio: { ...this.config.workspaceFillAudio },
+      backgroundImageFill: { ...this.config.backgroundImageFill },
+      workspaceImageFill: { ...this.config.workspaceImageFill },
       fitToWorkspace: this.config.backgroundMode === 'workspace',
       renderBehindVisualizer: this.config.renderBehindVisualizer,
     }

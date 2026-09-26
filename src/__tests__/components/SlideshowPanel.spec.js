@@ -9,6 +9,7 @@ import * as persistence from '../../lib/slideshowImagePersistence.js'
 vi.mock('../../lib/slideshowImagePersistence.js', () => ({
   persistUploadImage: vi.fn(async () => null),
   restoreUploadImage: vi.fn(async () => null),
+  loadPersistedImage: vi.fn(async () => null),
 }))
 
 const images = [
@@ -419,6 +420,59 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await flushPromises()
     expect(w.find('.workspace-fill-audio-toggle').element.checked).toBe(true)
     expect(w.emitted('base-fill-audio-change').at(-1)).toEqual(['workspace', fx])
+  })
+
+  it('own area image: pick from upload gallery, persisted, audio, sent with start', async () => {
+    const { useImageGallery } = await import('../../composables/useImageGallery.js')
+    const gallery = useImageGallery()
+    gallery.clearAllImages()
+    const img = { src: 'data:,galerie' }
+    gallery.imageGallery.value.push({ id: 7, img, name: 'galerie.png' })
+    persistence.persistUploadImage.mockResolvedValueOnce({
+      key: 'b'.repeat(64),
+      name: 'galerie.png',
+    })
+
+    const w = mountPanel({ hasWorkspace: false })
+    await w.find('.bg-mode-canvas').setValue(true)
+    await w.find('.base-image-toggle').setValue(true)
+    await w.find('.base-image-choose').trigger('click')
+    const options = w.findAll('.base-image-option')
+    expect(options).toHaveLength(1)
+    await options[0].trigger('click')
+    await flushPromises()
+
+    expect(persistence.persistUploadImage).toHaveBeenCalledWith({
+      name: 'galerie.png',
+      imageObject: img,
+    })
+    const [target, fill, image] = w.emitted('base-image-change').at(-1)
+    expect(target).toBe('canvas')
+    expect(fill).toMatchObject({ enabled: true, upload: { key: 'b'.repeat(64) } })
+    expect(image).toBe(img)
+    expect(w.find('.base-image-current').attributes('src')).toBe('data:,galerie')
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-image')).upload.name).toBe(
+      'galerie.png',
+    )
+
+    await w.find('.base-image-fit').setValue('contain')
+    await w.find('.base-image-audio-toggle').setValue(true)
+    await w.find('.base-image-audio-zoom').setValue('90')
+    expect(w.emitted('base-image-change').at(-1)[1]).toMatchObject({
+      fit: 'contain',
+      audio: { enabled: true, zoom: 90 },
+    })
+
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.backgroundImageObject).toBe(img)
+    expect(payload.backgroundImageFill).toMatchObject({ enabled: true, fit: 'contain' })
+    expect(payload.workspaceImageFill.enabled).toBe(false)
+
+    await w.find('.base-image-clear').trigger('click')
+    await flushPromises()
+    expect(w.emitted('base-image-change').at(-1)[2]).toBeNull()
+    gallery.clearAllImages()
   })
 
   it('emits reset-image-adjustments from the reset button', async () => {

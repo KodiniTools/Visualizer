@@ -47,6 +47,29 @@ afterEach(() => {
 })
 
 describe('slideshowPresetStore – automatisches Aufräumen', () => {
+  it('behält Flächenbilder aus Presets und die dauerhaft gemerkten', async () => {
+    const k3 = 'c'.repeat(64)
+    localStorage.setItem(
+      KEY,
+      JSON.stringify([
+        {
+          id: 'p2',
+          name: 'p2',
+          settings: { workspaceImageFill: { enabled: true, upload: { key: k2, name: 'w' } } },
+          slots: [],
+        },
+      ]),
+    )
+    localStorage.setItem(
+      'visualizer-slideshow-base-image',
+      JSON.stringify({ enabled: true, upload: { key: k3, name: 'c' } }),
+    )
+    const store = useSlideshowPresetStore()
+    await store.cleanupImages()
+    const [keep] = pruneImages.mock.calls.at(-1)
+    expect([...keep].sort()).toEqual([k2, k3].sort())
+  })
+
   it('räumt nach dem Laden einmal verzögert auf (mit Schutzfrist)', async () => {
     vi.useFakeTimers()
     localStorage.setItem(KEY, JSON.stringify([preset('p1', k1)]))

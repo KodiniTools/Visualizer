@@ -19,6 +19,7 @@ import {
 import { SLIDESHOW_BASE_COLOR_DEFAULT } from '../../slideshowBaseColor.js'
 import { computeSlideshowGradientAudio } from '../../slideshowGradientAudio.js'
 import { applySlideshowFillAudio, computeSlideshowFillAudio } from '../../slideshowFillAudio.js'
+import { computeSlideshowImageFillAudio, drawSlideshowImageFill } from '../../slideshowImageFill.js'
 
 /**
  * Ersetzt die laufende Slideshow gerade den Canvas- bzw. Workspace-Hintergrund?
@@ -139,7 +140,11 @@ export class BackgroundRenderer {
     // (ein reiner Farbhintergrund ohne Video bleibt erhalten)
     const canvasBgIsMedia =
       hasCanvasVideo || (this.manager.background && typeof this.manager.background === 'object')
-    if (slideshowReplacesCanvas && canvasBgIsMedia) {
+    // Ein eigenes Flächenbild ersetzt auch einen reinen Farbhintergrund
+    const hasCanvasImageFill =
+      slideshowReplacesCanvas &&
+      Boolean(typeof window !== 'undefined' && window.slideshowManager?.getBaseImage?.('canvas'))
+    if (slideshowReplacesCanvas && (canvasBgIsMedia || hasCanvasImageFill)) {
       this._drawSlideshowBase(ctx)
     }
 
@@ -214,6 +219,16 @@ export class BackgroundRenderer {
     ctx.fillStyle = createSlideshowBaseFill(ctx, area, color, gradient, audio)
     ctx.fillRect(area.x, area.y, area.width, area.height)
     ctx.restore()
+
+    // Eigenes Bild über Farbe/Verlauf (Ränder bei „Einpassen“ in Flächenfarbe)
+    const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+    const baseImage = slideshow?.getBaseImage?.(target)
+    if (baseImage) {
+      const change = baseImage.fill.audio?.enabled
+        ? computeSlideshowImageFillAudio(baseImage.fill.audio, target, audioData)
+        : null
+      drawSlideshowImageFill(ctx, area, baseImage.image, baseImage.fill, change)
+    }
   }
 
   /**

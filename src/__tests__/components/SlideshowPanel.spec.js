@@ -453,6 +453,36 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     persistence.persistUploadImage.mockImplementation(async () => null)
   })
 
+  it('„Jetzt aufräumen“ entfernt ungenutzte Bilder und meldet den freigegebenen Platz', async () => {
+    const w = mountPanel()
+    const { useSlideshowPresetStore, MANUAL_CLEANUP_GRACE_MS } = await import(
+      '../../stores/slideshowPresetStore.js'
+    )
+    const { useToastStore } = await import('../../stores/toastStore.js')
+    const store = useSlideshowPresetStore()
+    const toasts = useToastStore()
+    const success = vi.spyOn(toasts, 'success')
+    const info = vi.spyOn(toasts, 'info')
+    store.imageStats = { available: true, count: 3, bytes: 3 * 1024 ** 2, usage: null, quota: null }
+    await flushPromises()
+    const cleanup = vi.spyOn(store, 'cleanupImages').mockResolvedValue(2)
+    vi.spyOn(store, 'refreshImageStats').mockImplementation(async () => {
+      store.imageStats = { ...store.imageStats, count: 1, bytes: 1024 ** 2 }
+      return store.imageStats
+    })
+
+    await w.find('.btn-cleanup-storage').trigger('click')
+    await flushPromises()
+    expect(cleanup).toHaveBeenCalledWith({ minAgeMs: MANUAL_CLEANUP_GRACE_MS })
+    expect(success.mock.calls.at(-1)[0]).toBe('Aufgeräumt: 2 Bilder · 2 MB')
+
+    cleanup.mockResolvedValue(0)
+    await w.find('.btn-cleanup-storage').trigger('click')
+    await flushPromises()
+    expect(info).toHaveBeenCalled()
+    expect(w.find('.btn-cleanup-storage').element.disabled).toBe(false)
+  })
+
   it('saves the preset even if persisting an image fails', async () => {
     persistence.persistUploadImage.mockImplementationOnce(async () => {
       throw new Error('QuotaExceeded')

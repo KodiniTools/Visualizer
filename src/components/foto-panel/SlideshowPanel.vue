@@ -83,6 +83,8 @@
       :presets="presetStore.presets"
       :session-images="presetStore.sessionImages"
       :storage="presetStore.imageStats"
+      :cleaning="cleaningImages"
+      @cleanup="cleanupPresetImages"
       @save="savePreset"
       @load="loadPreset"
       @delete="presetStore.deletePreset"
@@ -132,11 +134,13 @@ import { isQuotaError } from '../../utils/presetImageRepository.js'
 import {
   useSlideshowPresetStore,
   SLIDESHOW_DEFAULT_SETTINGS,
+  MANUAL_CLEANUP_GRACE_MS,
 } from '../../stores/slideshowPresetStore.js'
+import { formatBytes } from '../../utils/formatBytes.js'
 import { useToastStore } from '../../stores/toastStore.js'
 import { SLIDESHOW_AUDIO_DEFAULT } from '../../lib/slideshowAudio.js'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const presetStore = useSlideshowPresetStore()
 presetStore.loadPresets()
 const toastStore = useToastStore()
@@ -283,6 +287,29 @@ function buildPayload() {
 }
 
 // ─── Presets ───────────────────────────────────────────────────────────────
+// „Jetzt aufräumen“: nicht mehr verwendete Preset-Bilder sofort entfernen
+const cleaningImages = ref(false)
+
+async function cleanupPresetImages() {
+  if (cleaningImages.value) return
+  cleaningImages.value = true
+  try {
+    const before = presetStore.imageStats.bytes
+    const removed = await presetStore.cleanupImages({ minAgeMs: MANUAL_CLEANUP_GRACE_MS })
+    const stats = await presetStore.refreshImageStats()
+    if (removed > 0) {
+      const freed = Math.max(0, before - stats.bytes)
+      toastStore.success(
+        `${t('slideshow.cleanupDone')}: ${removed} ${t(removed === 1 ? 'slideshow.storageImage' : 'slideshow.storageImages')} · ${formatBytes(freed, locale.value)}`,
+      )
+    } else {
+      toastStore.info(t('slideshow.cleanupNothing'))
+    }
+  } finally {
+    cleaningImages.value = false
+  }
+}
+
 /**
  * Speichert ein hochgeladenes Bild dauerhaft; ist der Speicher voll, werden
  * ungenutzte Bilder aufgeräumt und das Speichern einmal wiederholt.

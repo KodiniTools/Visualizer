@@ -48,6 +48,15 @@
         </div>
         <p v-if="nearlyFull" class="hint warning">{{ t('slideshow.storageNearlyFull') }}</p>
       </template>
+      <button
+        type="button"
+        class="btn-cleanup-storage"
+        :disabled="cleaning"
+        :title="t('slideshow.cleanupHint')"
+        @click="emit('cleanup')"
+      >
+        {{ cleaning ? t('slideshow.cleaningUp') : t('slideshow.cleanupNow') }}
+      </button>
     </div>
 
     <p v-if="presets.length === 0" class="hint empty">{{ t('slideshow.noPresets') }}</p>
@@ -99,8 +108,10 @@ const props = defineProps({
   sessionImages: { type: Object, default: () => ({}) },
   // Speicherbelegung: { available, count, bytes, usage, quota } (slideshowPresetStore.imageStats)
   storage: { type: Object, default: null },
+  // Aufräumen läuft gerade (Knopf gesperrt)
+  cleaning: { type: Boolean, default: false },
 })
-const emit = defineEmits(['save', 'load', 'delete'])
+const emit = defineEmits(['save', 'load', 'delete', 'cleanup'])
 const { t, locale } = useI18n()
 
 const hasQuota = computed(
@@ -166,6 +177,29 @@ function save() {
 }
 .storage-info.warning .storage-bar-fill {
   background: #f1c40f;
+}
+.btn-cleanup-storage {
+  align-self: flex-end;
+  margin-top: 2px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--secondary-bg);
+  color: inherit;
+  cursor: pointer;
+}
+.btn-cleanup-storage:hover:not(:disabled) {
+  background: var(--btn-hover);
+}
+.btn-cleanup-storage:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+[data-theme='light'] .btn-cleanup-storage {
+  background: #f9f2d5;
+  border-color: #d4c8a8;
 }
 .storage-info .hint {
   padding-left: 0;

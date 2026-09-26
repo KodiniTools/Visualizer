@@ -90,3 +90,20 @@ describe('slideshowImageSettingsStore – Ein-/Ausblenddauer pro Bild', () => {
     expect(again.getImageSettings('k')).toBeNull()
   })
 })
+
+describe('slideshowImageSettingsStore – Anzeigedauer und Audio pro Bild', () => {
+  it('speichert Anzeigedauer (begrenzt) und Audio-Modus; „Standard“/ungültig wird nicht gespeichert', () => {
+    const store = useSlideshowImageSettingsStore()
+    store.setImageSettings('k', { displayDuration: 120000, audioMode: 'glitch' })
+    expect(store.getImageSettings('k')).toEqual({ displayDuration: 60000, audioMode: 'glitch' })
+    store.setImageSettings('k2', { displayDuration: 100, audioMode: 'default' })
+    expect(store.getImageSettings('k2')).toEqual({ displayDuration: 500 })
+    store.setImageSettings('k3', { audioMode: 'toString' })
+    expect(store.getImageSettings('k3')).toBeNull()
+    setActivePinia(createPinia())
+    expect(useSlideshowImageSettingsStore().getImageSettings('k')).toEqual({
+      displayDuration: 60000,
+      audioMode: 'glitch',
+    })
+  })
+})

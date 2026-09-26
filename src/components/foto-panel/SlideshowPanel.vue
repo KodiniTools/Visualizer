@@ -259,32 +259,28 @@
 /**
  * Slideshow-Panel: hält den Einstellungs-Zustand und emittiert die Aktionen an
  * das FotoPanel. Die Sektionen liegen in `slideshow/` (Reihenfolge, Timing,
- * Position/Größe, Steuerung) und sind per v-model angebunden.
+ * Position/Größe, Steuerung) und sind per v-model angebunden; Flächen,
+ * Einstellungen pro Bild, Bild-Editor und Presets sind eigene Composables.
  */
 import { ref, computed, watch, toRaw } from 'vue'
-import {
-  SLIDESHOW_GRADIENT_DEFAULT,
-  isSameSlideshowGradient,
-  loadStoredSlideshowBaseColor,
-  loadStoredSlideshowGradient,
-  normalizeSlideshowGradient,
-  storeSlideshowBaseColor,
-  storeSlideshowGradient,
-} from '../../lib/slideshowBaseColor.js'
 import SlideshowBaseGradient from './slideshow/SlideshowBaseGradient.vue'
 import SlideshowFillAudio from './slideshow/SlideshowFillAudio.vue'
 import SlideshowImageFill from './slideshow/SlideshowImageFill.vue'
 import { useSlideshowImageFills } from './slideshow/useSlideshowImageFills.js'
+import {
+  useSlideshowBaseFills,
+  isDefaultFillAudio,
+  isDefaultGradient,
+} from './slideshow/useSlideshowBaseFills.js'
+import { useSlideshowPerImageSettings } from './slideshow/useSlideshowPerImageSettings.js'
+import { useSlideshowImageEditor } from './slideshow/useSlideshowImageEditor.js'
+import {
+  useSlideshowPanelPresets,
+  persistImageWithCleanup,
+} from './slideshow/useSlideshowPanelPresets.js'
 import { isSameSlideshowImageFill } from '../../lib/slideshowImageFill.js'
 import { useImageGallery } from '../../composables/useImageGallery.js'
 import { useStockGallery } from '../../composables/useStockGallery.js'
-import {
-  SLIDESHOW_FILL_AUDIO_DEFAULT,
-  isSameSlideshowFillAudio,
-  loadStoredSlideshowFillAudio,
-  normalizeSlideshowFillAudio,
-  storeSlideshowFillAudio,
-} from '../../lib/slideshowFillAudio.js'
 import { useI18n } from '../../lib/i18n.js'
 import SlideshowOrderList from './slideshow/SlideshowOrderList.vue'
 import SlideshowTimingSettings from './slideshow/SlideshowTimingSettings.vue'
@@ -293,23 +289,13 @@ import SlideshowControls from './slideshow/SlideshowControls.vue'
 import SlideshowPresets from './slideshow/SlideshowPresets.vue'
 import SlideshowImageEditor from './slideshow/SlideshowImageEditor.vue'
 import SlideshowStatusBadge from './slideshow/SlideshowStatusBadge.vue'
-import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore.js'
-import { slideshowImageKey, slideshowStableKey } from './slideshow/slideshowImageKey.js'
-import { restorePresetImages } from '../../lib/slideshowSources.js'
-import {
-  loadPersistedImage,
-  persistUploadImage,
-  restoreUploadImage,
-} from '../../lib/slideshowImagePersistence.js'
-import { isQuotaError } from '../../utils/presetImageRepository.js'
+import { slideshowImageKey } from './slideshow/slideshowImageKey.js'
+import { loadPersistedImage } from '../../lib/slideshowImagePersistence.js'
 import {
   useSlideshowPresetStore,
   SLIDESHOW_DEFAULT_SETTINGS,
-  MANUAL_CLEANUP_GRACE_MS,
 } from '../../stores/slideshowPresetStore.js'
-import { formatBytes } from '../../utils/formatBytes.js'
 import { useToastStore } from '../../stores/toastStore.js'
-import { SLIDESHOW_AUDIO_DEFAULT } from '../../lib/slideshowAudio.js'
 
 const { t, locale } = useI18n()
 const presetStore = useSlideshowPresetStore()
@@ -373,45 +359,29 @@ const renderBehindVisualizer = ref(D.renderBehindVisualizer)
 // Maus verschiebt die ganze Slideshow statt eines einzelnen Bildes (Shift kehrt um)
 const moveWholeSlideshow = ref(D.moveWholeSlideshow)
 
-// Bilder füllen den Workspace-Bereich (wie „Als Workspace-Hintergrund“)
 // Slideshow als Hintergrund: 'none' | 'canvas' | 'workspace'
 const backgroundMode = ref(D.backgroundMode)
-// Farbe der Fläche unter der Slideshow (anstelle des ersetzten Hintergrundbildes)
-// – auch ohne Preset dauerhaft gemerkt
-const backgroundColor = ref(loadStoredSlideshowBaseColor())
-watch(backgroundColor, (color) => storeSlideshowBaseColor(color))
-// Eigene Farbe der Workspace-Fläche – ebenfalls dauerhaft gemerkt
-const workspaceColor = ref(loadStoredSlideshowBaseColor('workspace'))
-watch(workspaceColor, (color) => storeSlideshowBaseColor(color, 'workspace'))
-// Farbverläufe der Flächen – dauerhaft gemerkt, Änderungen sofort an die Slideshow
-const backgroundGradient = ref(loadStoredSlideshowGradient('canvas'))
-const workspaceGradient = ref(loadStoredSlideshowGradient('workspace'))
-watch(backgroundGradient, (g) => {
-  storeSlideshowGradient(g, 'canvas')
-  emit('base-gradient-change', 'canvas', { ...g })
-})
-watch(workspaceGradient, (g) => {
-  storeSlideshowGradient(g, 'workspace')
-  emit('base-gradient-change', 'workspace', { ...g })
-})
-// Audio-Reaktive Flächenfarbe – dauerhaft gemerkt, Änderungen sofort an die Slideshow
-const backgroundFillAudio = ref(loadStoredSlideshowFillAudio('canvas'))
-const workspaceFillAudio = ref(loadStoredSlideshowFillAudio('workspace'))
-watch(backgroundFillAudio, (a) => {
-  storeSlideshowFillAudio(a, 'canvas')
-  emit('base-fill-audio-change', 'canvas', { ...a })
-})
-watch(workspaceFillAudio, (a) => {
-  storeSlideshowFillAudio(a, 'workspace')
-  emit('base-fill-audio-change', 'workspace', { ...a })
-})
+
+// Flächen unter der Slideshow: Farbe, Verlauf, Audio-Farbe (dauerhaft gemerkt)
+const baseFills = useSlideshowBaseFills(emit)
+const {
+  backgroundColor,
+  workspaceColor,
+  backgroundGradient,
+  workspaceGradient,
+  backgroundFillAudio,
+  workspaceFillAudio,
+  resetBackgroundColor,
+  resetWorkspaceColor,
+} = baseFills
+
 // Eigenes Flächenbild (Canvas/Workspace) – Zustand im Composable
 const { imageGallery } = useImageGallery()
 const { stockImages, loadStockImageObject } = useStockGallery()
 const imageFills = useSlideshowImageFills({
   onChange: (target, fill, image) => emit('base-image-change', target, fill, image),
   loadUpload: (key) => loadPersistedImage(key),
-  persistUpload: (entry) => persistImageWithCleanup(entry),
+  persistUpload: (entry) => persistImageWithCleanup(presetStore, entry),
   loadStock: (stock) => loadStockImageObject(stock),
   onMissing: (name) => toastStore.warning(`${t('slideshow.imageFillMissing')}: ${name}`),
   onError: () => toastStore.error(t('slideshow.imageFillError')),
@@ -440,17 +410,10 @@ const imageFillCandidates = computed(() => [
     })),
 ])
 
-function isDefaultFillAudio(a) {
-  return isSameSlideshowFillAudio(a, SLIDESHOW_FILL_AUDIO_DEFAULT)
-}
-function isDefaultGradient(g) {
-  return isSameSlideshowGradient(g, SLIDESHOW_GRADIENT_DEFAULT)
-}
 // Workspace-Modus nur mit gewähltem Workspace-Format wirksam
 const effectiveBackgroundMode = computed(() =>
   backgroundMode.value === 'workspace' && !props.hasWorkspace ? 'none' : backgroundMode.value,
 )
-// Nur wirksam, wenn ein Workspace-Format gewählt ist
 // Als Hintergrund: Position & Größe sind fest (Bilder füllen den Bereich)
 const fitsWorkspace = computed(() => effectiveBackgroundMode.value !== 'none')
 
@@ -462,108 +425,6 @@ const transformHeight = ref(D.transform.height)
 
 // Geordnete Bilder-Liste (Reihenfolge per Drag & Drop in SlideshowOrderList)
 const orderedImages = ref([])
-// Optionale Anzeigedauer pro Bild ({ [id]: ms }); fehlt ein Eintrag, gilt displayDuration
-const imageDurations = ref({})
-// Sichtbar ab 2 ausgewählten Bildern, während der Slideshow, mit einer aus
-// einem Preset geladenen Bildliste oder wenn Presets mit Bildern existieren
-// (Sitzungsbilder oder dauerhaft gespeicherte Stock-Bilder)
-const isVisible = computed(
-  () =>
-    props.images.length >= 2 ||
-    props.isActive ||
-    orderedImages.value.length >= 2 ||
-    Object.keys(presetStore.sessionImages).length > 0 ||
-    presetStore.presets.some((preset) => preset.slots.some((slot) => slot.stock || slot.upload)),
-)
-// Fenster der Sticky-Bar zeigt ohne Inhalt einen Hinweis
-watch(isVisible, (visible) => emit('visibility-change', visible), { immediate: true })
-
-// Optionaler Audio-Reaktiv-Modus pro Bild ({ [id]: mode }); fehlt ein Eintrag, gilt 'default'
-const imageAudioModes = ref({})
-// Optionale Übergangsanimation pro Bild ({ [id]: transitionId }); fehlt = globaler Übergang
-const imageTransitions = ref({})
-// Optionale Ein-/Ausblenddauer pro Bild ({ [id]: ms }); fehlt = Standard (Timing unten)
-const imageFadeIns = ref({})
-const imageFadeOuts = ref({})
-// Eigene Audio-Quelle pro Bild (key → Quelle; fehlt = wie Einstellung)
-const imageAudioSources = ref({})
-// ─── Einstellungen eines Bildes bei pausierter Slideshow ──────────────────────
-const editorIndex = ref(null)
-const editorImage = computed(() =>
-  props.isActive && props.isPaused && Number.isInteger(editorIndex.value)
-    ? (orderedImages.value[editorIndex.value] ?? null)
-    : null,
-)
-
-watch(
-  () => props.editImageRequest,
-  (req) => {
-    if (req && Number.isInteger(req.index) && props.isActive && props.isPaused) {
-      editorIndex.value = req.index
-    }
-  },
-)
-// Beim Fortsetzen/Stoppen schließen
-watch(
-  () => props.isActive && props.isPaused,
-  (paused) => {
-    if (!paused) editorIndex.value = null
-  },
-)
-
-// Mittelpunkt des bearbeiteten Bildes (relativ 0–1); null = nicht positionierbar
-const editorPosition = computed(() => {
-  // Abhängigkeiten: Bounds per Maus/Regler, Slideshow-Bereich, Hintergrund-Modus
-  void props.boundsRevision
-  void props.externalTransform
-  void backgroundMode.value
-  const img = editorImage.value
-  return img ? (props.adjustmentsApi?.getPosition?.(img) ?? null) : null
-})
-
-// Größe des bearbeiteten Bildes { width, height, defaultWidth, defaultHeight }
-const editorSize = computed(() => {
-  void props.boundsRevision
-  void props.externalTransform
-  void backgroundMode.value
-  const img = editorImage.value
-  return img ? (props.adjustmentsApi?.getSize?.(img) ?? null) : null
-})
-
-/** Größenregler im Bild-Editor → Bild auf der Canvas skalieren. */
-function updateEditedImageSize(size) {
-  const img = editorImage.value
-  if (img && size) props.adjustmentsApi?.setSize?.(img, size)
-}
-
-/** Positionsregler im Bild-Editor → Bild auf der Canvas verschieben. */
-function updateEditedImagePosition(position) {
-  const img = editorImage.value
-  if (img && position) props.adjustmentsApi?.setPosition?.(img, position)
-}
-
-/**
- * Setzt einen Wert pro Bild für das bearbeitete Bild und übernimmt ihn live.
- * @param {'transition'|'duration'|'fadeIn'|'fadeOut'|'audioMode'|'audioSource'} field
- */
-function updateEditedImage(field, value) {
-  const img = editorImage.value
-  if (!img) return
-  const mapRef = {
-    transition: imageTransitions,
-    duration: imageDurations,
-    fadeIn: imageFadeIns,
-    fadeOut: imageFadeOuts,
-    audioMode: imageAudioModes,
-    audioSource: imageAudioSources,
-  }[field]
-  const key = slideshowImageKey(img)
-  const next = { ...mapRef.value }
-  if (value === null || value === undefined) delete next[key]
-  else next[key] = value
-  mapRef.value = next
-  emit('live-update', { ...buildPayload(), preserveLive: true })
-}
 
 watch(
   () => props.images,
@@ -588,70 +449,55 @@ watch(
   },
 )
 
-const imageSettingsStore = useSlideshowImageSettingsStore()
-
-// Dauerhaft gemerkte Einstellungen pro Bild übernehmen (Übergang, Ein-/Ausblend-
-// dauer, Anzeigedauer, Audio-Modus) – nur für Bilder ohne eigenen Wert
-const PERSISTED_MAPS = [
-  ['transition', imageTransitions],
-  ['fadeIn', imageFadeIns],
-  ['fadeOut', imageFadeOuts],
-  ['displayDuration', imageDurations],
-  ['audioMode', imageAudioModes],
-  ['audioSource', imageAudioSources],
-]
-watch(
-  orderedImages,
-  (list) => {
-    const next = {}
-    for (const img of list) {
-      const key = slideshowImageKey(img)
-      if (key === undefined) continue
-      const stored = imageSettingsStore.getImageSettings(slideshowStableKey(img))
-      if (!stored) continue
-      for (const [field, mapRef] of PERSISTED_MAPS) {
-        if (stored[field] === undefined || mapRef.value[key] !== undefined) continue
-        ;(next[field] ??= { ...mapRef.value })[key] = stored[field]
-      }
-    }
-    for (const [field, mapRef] of PERSISTED_MAPS) {
-      if (next[field]) mapRef.value = next[field]
-    }
-  },
-  { immediate: true },
-)
-
-// Änderungen dauerhaft merken (Standard = nicht gespeichert)
-watch(
-  [
-    imageTransitions,
-    imageFadeIns,
-    imageFadeOuts,
-    imageDurations,
-    imageAudioModes,
-    imageAudioSources,
-  ],
-  ([tr, fin, fout, dur, audio, audioSrc]) => {
-    for (const img of orderedImages.value) {
-      const key = slideshowImageKey(img)
-      // nur diese Felder ändern – eigene Größe/Position bleibt erhalten
-      imageSettingsStore.updateImageSettings(slideshowStableKey(img), {
-        transition: tr[key] ?? null,
-        fadeIn: fin[key] ?? null,
-        fadeOut: fout[key] ?? null,
-        displayDuration: dur[key] ?? null,
-        audioMode: audio[key] ?? null,
-        audioSource: audioSrc[key] ?? null,
-      })
-    }
-  },
-)
-
 function sameImageKeys(a, b) {
   return (
     a.length === b.length && a.every((img, i) => slideshowImageKey(img) === slideshowImageKey(b[i]))
   )
 }
+
+// Einstellungen pro Bild (nach dem Befüllen von orderedImages anlegen)
+const perImage = useSlideshowPerImageSettings(orderedImages)
+const {
+  imageDurations,
+  imageAudioModes,
+  imageTransitions,
+  imageFadeIns,
+  imageFadeOuts,
+  imageAudioSources,
+} = perImage
+
+// Sichtbar ab 2 ausgewählten Bildern, während der Slideshow, mit einer aus
+// einem Preset geladenen Bildliste oder wenn Presets mit Bildern existieren
+// (Sitzungsbilder oder dauerhaft gespeicherte Stock-Bilder)
+const isVisible = computed(
+  () =>
+    props.images.length >= 2 ||
+    props.isActive ||
+    orderedImages.value.length >= 2 ||
+    Object.keys(presetStore.sessionImages).length > 0 ||
+    presetStore.presets.some((preset) => preset.slots.some((slot) => slot.stock || slot.upload)),
+)
+// Fenster der Sticky-Bar zeigt ohne Inhalt einen Hinweis
+watch(isVisible, (visible) => emit('visibility-change', visible), { immediate: true })
+
+// Einstellungen eines Bildes bei pausierter Slideshow
+const {
+  editorIndex,
+  editorImage,
+  editorPosition,
+  editorSize,
+  updateEditedImageSize,
+  updateEditedImagePosition,
+  updateEditedImage,
+} = useSlideshowImageEditor({
+  props,
+  orderedImages,
+  backgroundMode,
+  setForImage: perImage.setForImage,
+  onLiveChange: () => emit('live-update', { ...buildPayload(), preserveLive: true }),
+})
+
+// ─── Start-Konfiguration ───────────────────────────────────────────────────
 
 function transformPayload() {
   return {
@@ -668,20 +514,9 @@ function startSlideshow() {
 
 /** Aktuelle Panel-Einstellungen als Start-/Live-Update-Konfiguration. */
 function buildPayload() {
+  const fills = baseFills.snapshot()
   return {
-    images: orderedImages.value.map((img) => {
-      const key = slideshowImageKey(img)
-      const own = imageDurations.value[key]
-      return {
-        ...img,
-        displayDuration: Number.isFinite(own) ? own : undefined,
-        audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
-        audioSource: imageAudioSources.value[key] ?? null,
-        transition: imageTransitions.value[key],
-        fadeInDuration: imageFadeIns.value[key],
-        fadeOutDuration: imageFadeOuts.value[key],
-      }
-    }),
+    images: orderedImages.value.map(perImage.payloadFor),
     fadeInDuration: fadeInDuration.value,
     displayDuration: displayDuration.value,
     fadeOutDuration: fadeOutDuration.value,
@@ -690,12 +525,7 @@ function buildPayload() {
     renderBehindVisualizer: renderBehindVisualizer.value,
     backgroundMode: effectiveBackgroundMode.value,
     fitToWorkspace: effectiveBackgroundMode.value === 'workspace',
-    backgroundColor: backgroundColor.value,
-    workspaceColor: workspaceColor.value,
-    backgroundGradient: { ...backgroundGradient.value },
-    workspaceGradient: { ...workspaceGradient.value },
-    backgroundFillAudio: { ...backgroundFillAudio.value },
-    workspaceFillAudio: { ...workspaceFillAudio.value },
+    ...fills,
     ...imageFills.payload(),
     moveWholeSlideshow: moveWholeSlideshow.value,
     transition: transition.value,
@@ -704,149 +534,34 @@ function buildPayload() {
 }
 
 // ─── Presets ───────────────────────────────────────────────────────────────
-// „Jetzt aufräumen“: nicht mehr verwendete Preset-Bilder sofort entfernen
-const cleaningImages = ref(false)
 
-async function cleanupPresetImages() {
-  if (cleaningImages.value) return
-  cleaningImages.value = true
-  try {
-    const before = presetStore.imageStats.bytes
-    const removed = await presetStore.cleanupImages({ minAgeMs: MANUAL_CLEANUP_GRACE_MS })
-    const stats = await presetStore.refreshImageStats()
-    if (removed > 0) {
-      const freed = Math.max(0, before - stats.bytes)
-      toastStore.success(
-        `${t('slideshow.cleanupDone')}: ${removed} ${t(removed === 1 ? 'slideshow.storageImage' : 'slideshow.storageImages')} · ${formatBytes(freed, locale.value)}`,
-      )
-    } else {
-      toastStore.info(t('slideshow.cleanupNothing'))
-    }
-  } finally {
-    cleaningImages.value = false
-  }
-}
-
-/**
- * Speichert ein hochgeladenes Bild dauerhaft; ist der Speicher voll, werden
- * ungenutzte Bilder aufgeräumt und das Speichern einmal wiederholt.
- */
-async function persistImageWithCleanup(img) {
-  try {
-    return await persistUploadImage(img)
-  } catch (e) {
-    if (!isQuotaError(e)) throw e
-    const removed = await presetStore.cleanupImages()
-    if (removed === 0) throw e
-    return persistUploadImage(img)
-  }
-}
-
-/** Dauerhaft speicherbarer Verweis auf ein Stock-Bild (sonst null). */
-function stockRefOf(img) {
-  if (img?.source !== 'stock' || !img.stockImage) return null
-  const { id, name, file, thumbnail } = img.stockImage
-  return { id, name, file, thumbnail }
-}
-
-async function savePreset(name) {
-  // Zustand sofort festhalten – während des Speicherns der Bilder kann sich
-  // die Liste ändern
-  const images = [...orderedImages.value]
-  const snapshot = {
-    settings: {
-      fadeInDuration: fadeInDuration.value,
-      displayDuration: displayDuration.value,
-      fadeOutDuration: fadeOutDuration.value,
-      applyAudioReactive: applyAudioReactive.value,
-      loop: loopSlideshow.value,
-      renderBehindVisualizer: renderBehindVisualizer.value,
-      backgroundMode: backgroundMode.value,
-      fitToWorkspace: backgroundMode.value === 'workspace',
-      backgroundColor: backgroundColor.value,
-      workspaceColor: workspaceColor.value,
-      backgroundGradient: { ...backgroundGradient.value },
-      workspaceGradient: { ...workspaceGradient.value },
-      backgroundFillAudio: { ...backgroundFillAudio.value },
-      workspaceFillAudio: { ...workspaceFillAudio.value },
-      backgroundImageFill: { ...imageFills.fills.canvas.value },
-      workspaceImageFill: { ...imageFills.fills.workspace.value },
-      moveWholeSlideshow: moveWholeSlideshow.value,
-      transition: transition.value,
-      transform: {
-        x: transformX.value,
-        y: transformY.value,
-        width: transformWidth.value,
-        height: transformHeight.value,
-      },
+/** Globale Panel-Einstellungen für ein Preset. */
+function captureSettings() {
+  return {
+    fadeInDuration: fadeInDuration.value,
+    displayDuration: displayDuration.value,
+    fadeOutDuration: fadeOutDuration.value,
+    applyAudioReactive: applyAudioReactive.value,
+    loop: loopSlideshow.value,
+    renderBehindVisualizer: renderBehindVisualizer.value,
+    backgroundMode: backgroundMode.value,
+    fitToWorkspace: backgroundMode.value === 'workspace',
+    ...baseFills.snapshot(),
+    backgroundImageFill: { ...imageFills.fills.canvas.value },
+    workspaceImageFill: { ...imageFills.fills.workspace.value },
+    moveWholeSlideshow: moveWholeSlideshow.value,
+    transition: transition.value,
+    transform: {
+      x: transformX.value,
+      y: transformY.value,
+      width: transformWidth.value,
+      height: transformHeight.value,
     },
-    // Pro Position in der aktuellen Reihenfolge
-    slots: images.map((img) => {
-      const key = slideshowImageKey(img)
-      return {
-        displayDuration: imageDurations.value[key] ?? null,
-        audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
-        audioSource: imageAudioSources.value[key] ?? null,
-        transition: imageTransitions.value[key] ?? null,
-        fadeIn: imageFadeIns.value[key] ?? null,
-        fadeOut: imageFadeOuts.value[key] ?? null,
-        adjustments: props.adjustmentsApi?.get(img) ?? null,
-        bounds: props.adjustmentsApi?.getBounds?.(img) ?? null,
-        // Stock-Bilder dauerhaft als Verweis (Galerie-Pfad) speichern
-        stock: stockRefOf(img),
-      }
-    }),
   }
-
-  // Hochgeladene Bilder dauerhaft in IndexedDB ablegen (Verweis im Preset)
-  const failed = []
-  const uploadRefs = await Promise.all(
-    images.map(async (img) => {
-      if (img.source === 'stock') return null
-      try {
-        return await persistImageWithCleanup(img)
-      } catch (e) {
-        console.warn('[SlideshowPresets] Bild nicht dauerhaft gespeichert:', img.name, e)
-        failed.push(img.name)
-        return null
-      }
-    }),
-  )
-  snapshot.slots.forEach((slot, i) => {
-    slot.upload = uploadRefs[i] ?? null
-  })
-
-  // Bilder zusätzlich für diese Sitzung merken (exakte Objekte)
-  const saved = presetStore.savePreset(name, snapshot, images)
-  if (!saved) toastStore.error(t('slideshow.presetSaveError'))
-  else if (failed.length > 0) {
-    toastStore.warning(t('slideshow.presetImagesNotPersisted') + ': ' + failed.join(', '))
-  } else toastStore.success(t('slideshow.presetSaved'))
 }
 
-async function loadPreset(preset) {
-  const s = preset.settings
-  // Bilder: 1. in dieser Sitzung gespeicherte Bilder, 2. dauerhaft gespeicherte
-  // Verweise (Stock-Pfade, hochgeladene Bilder aus IndexedDB; fehlende Positionen
-  // mit aktuell ausgewählten Uploads), 3. aktuelle Auswahl
-  const previousKeys = orderedImages.value.map(slideshowImageKey).join('|')
-  const sessionList = presetStore.getSessionImages(preset.id)
-  let pairs
-  if (sessionList && sessionList.length > 0) {
-    pairs = sessionList.map((img, i) => ({ img, slot: preset.slots[i] }))
-  } else {
-    const restored = await restorePresetImages(
-      preset.slots,
-      props.images.length > 0 ? props.images : orderedImages.value,
-      { loadUpload: restoreUploadImage },
-    )
-    if (restored?.missing.length > 0) {
-      toastStore.warning(t('slideshow.presetImagesMissing') + ': ' + restored.missing.join(', '))
-    }
-    pairs = restored?.pairs ?? orderedImages.value.map((img, i) => ({ img, slot: preset.slots[i] }))
-  }
-  orderedImages.value = pairs.map((p) => p.img)
-  const imagesChanged = orderedImages.value.map(slideshowImageKey).join('|') !== previousKeys
+/** Globale Einstellungen aus einem Preset übernehmen (Änderungen melden). */
+function applySettings(s) {
   fadeInDuration.value = s.fadeInDuration
   displayDuration.value = s.displayDuration
   fadeOutDuration.value = s.fadeOutDuration
@@ -865,27 +580,7 @@ async function loadPreset(preset) {
     backgroundMode.value = s.backgroundMode
     onBackgroundModeChange()
   }
-  if (backgroundColor.value !== s.backgroundColor) {
-    backgroundColor.value = s.backgroundColor
-    emit('background-color-change', backgroundColor.value)
-  }
-  if (workspaceColor.value !== s.workspaceColor) {
-    workspaceColor.value = s.workspaceColor
-    emit('workspace-color-change', workspaceColor.value)
-  }
-  // Watcher übernehmen Speichern + Weitergabe an die Slideshow
-  if (!isSameSlideshowGradient(backgroundGradient.value, s.backgroundGradient)) {
-    backgroundGradient.value = normalizeSlideshowGradient(s.backgroundGradient)
-  }
-  if (!isSameSlideshowGradient(workspaceGradient.value, s.workspaceGradient)) {
-    workspaceGradient.value = normalizeSlideshowGradient(s.workspaceGradient)
-  }
-  if (!isSameSlideshowFillAudio(backgroundFillAudio.value, s.backgroundFillAudio)) {
-    backgroundFillAudio.value = normalizeSlideshowFillAudio(s.backgroundFillAudio)
-  }
-  if (!isSameSlideshowFillAudio(workspaceFillAudio.value, s.workspaceFillAudio)) {
-    workspaceFillAudio.value = normalizeSlideshowFillAudio(s.workspaceFillAudio)
-  }
+  baseFills.applySettings(s)
   // Flächenbilder (werden bei Bedarf nachgeladen)
   if (!isSameSlideshowImageFill(imageFills.fills.canvas.value, s.backgroundImageFill)) {
     imageFills.apply('canvas', s.backgroundImageFill)
@@ -897,53 +592,28 @@ async function loadPreset(preset) {
   transformY.value = s.transform.y
   transformWidth.value = s.transform.width
   transformHeight.value = s.transform.height
-
-  // Einstellungen pro Position auf die aktuelle Reihenfolge übertragen;
-  // Bilder ohne passende Position erhalten die Standardwerte.
-  const durations = {}
-  const modes = {}
-  const ownTransitions = {}
-  const ownFadeIns = {}
-  const ownFadeOuts = {}
-  const ownSources = {}
-  pairs.forEach(({ img, slot }) => {
-    const key = slideshowImageKey(img)
-    if (!slot || key === undefined) return
-    if (Number.isFinite(slot.displayDuration)) durations[key] = slot.displayDuration
-    if (slot.audioMode !== SLIDESHOW_AUDIO_DEFAULT) modes[key] = slot.audioMode
-    if (slot.transition) ownTransitions[key] = slot.transition
-    if (Number.isFinite(slot.fadeIn)) ownFadeIns[key] = slot.fadeIn
-    if (Number.isFinite(slot.fadeOut)) ownFadeOuts[key] = slot.fadeOut
-    if (slot.audioSource) ownSources[key] = slot.audioSource
-  })
-  // Bild-Anpassungen pro Position übernehmen (ohne Slot/Anpassung → verwerfen)
-  pairs.forEach(({ img, slot }) => {
-    props.adjustmentsApi?.set(
-      img,
-      slot?.adjustments ?? null,
-      slot?.audioMode ?? SLIDESHOW_AUDIO_DEFAULT,
-    )
-    // Eigene Position/Größe des Bildes (ohne → gemeinsamer Bereich)
-    props.adjustmentsApi?.setBounds?.(img, slot?.bounds ?? null)
-  })
-  imageDurations.value = durations
-  imageAudioModes.value = modes
-  imageTransitions.value = ownTransitions
-  imageFadeIns.value = ownFadeIns
-  imageFadeOuts.value = ownFadeOuts
-  imageAudioSources.value = ownSources
-  // Läuft die Slideshow, sofort übernehmen – bei anderen Bildern neu starten
-  if (props.isActive) {
-    if (imagesChanged) emit('start', buildPayload())
-    else emit('live-update', buildPayload())
-  }
-  toastStore.success(t('slideshow.presetLoaded'))
 }
+
+const { cleaningImages, cleanupPresetImages, savePreset, loadPreset } = useSlideshowPanelPresets({
+  props,
+  emit,
+  presetStore,
+  toastStore,
+  t,
+  locale,
+  orderedImages,
+  perImage,
+  captureSettings,
+  applySettings,
+  buildPayload,
+})
 
 function resetImageAdjustments() {
   emit('reset-image-adjustments')
   toastStore.success(t('slideshow.adjustmentsReset'))
 }
+
+// ─── Layer, Hintergrund-Modus, Position ────────────────────────────────────
 
 // Render Layer geändert (auch während laufender Slideshow)
 function onRenderLayerChange() {
@@ -958,28 +628,6 @@ function onBackgroundModeChange() {
     onRenderLayerChange()
   }
   emit('background-mode-change', effectiveBackgroundMode.value)
-}
-
-function resetBackgroundColor() {
-  backgroundColor.value = D.backgroundColor
-  if (!isDefaultGradient(backgroundGradient.value)) {
-    backgroundGradient.value = normalizeSlideshowGradient(null)
-  }
-  if (!isDefaultFillAudio(backgroundFillAudio.value)) {
-    backgroundFillAudio.value = normalizeSlideshowFillAudio(null)
-  }
-  emit('background-color-change', backgroundColor.value)
-}
-
-function resetWorkspaceColor() {
-  workspaceColor.value = D.workspaceColor
-  if (!isDefaultGradient(workspaceGradient.value)) {
-    workspaceGradient.value = normalizeSlideshowGradient(null)
-  }
-  if (!isDefaultFillAudio(workspaceFillAudio.value)) {
-    workspaceFillAudio.value = normalizeSlideshowFillAudio(null)
-  }
-  emit('workspace-color-change', workspaceColor.value)
 }
 
 // Workspace-Format entfernt/gewählt → Manager informieren

@@ -56,7 +56,7 @@
       @order-changed="onSlideshowOrderChanged"
       @render-layer-change="onSlideshowRenderLayerChange"
       @transform-change="onSlideshowTransformChange"
-      @fit-workspace-change="onSlideshowFitWorkspaceChange"
+      @background-mode-change="onSlideshowBackgroundModeChange"
       @reset-image-adjustments="onSlideshowResetImageAdjustments"
       @live-update="onSlideshowLiveUpdate"
       @move-mode-change="onSlideshowMoveModeChange"
@@ -497,6 +497,7 @@ function buildSlideshowRun(config) {
     autoApplyAudioReactive: true,
     audioReactiveSettings: null,
     renderBehindVisualizer: config.renderBehindVisualizer,
+    backgroundMode: config.backgroundMode,
     fitToWorkspace: config.fitToWorkspace,
     moveWholeSlideshow: config.moveWholeSlideshow,
     transition: config.transition,
@@ -658,8 +659,8 @@ function restorePersistedAdjustments(images) {
 }
 
 // Slideshow „An Workspace anpassen“ geändert (auch während laufender Slideshow)
-function onSlideshowFitWorkspaceChange(fitToWorkspace) {
-  slideshowManagerRef.value?.setFitToWorkspace(fitToWorkspace)
+function onSlideshowBackgroundModeChange(mode) {
+  slideshowManagerRef.value?.setBackgroundMode(mode)
 }
 
 // ✨ NEU: Slideshow Render-Layer geändert

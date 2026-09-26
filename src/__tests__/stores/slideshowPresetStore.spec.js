@@ -162,6 +162,12 @@ describe('slideshowPresetStore', () => {
     expect(p.settings.displayDuration).toBe(3000)
     expect(p.settings.fadeInDuration).toBe(5000)
     expect(p.settings.fitToWorkspace).toBe(false)
+    expect(p.settings.backgroundMode).toBe('none')
+    // ältere Presets: fitToWorkspace → 'workspace'
+    expect(
+      normalizeSlideshowPreset({ id: 2, settings: { fitToWorkspace: true }, slots: [] }).settings
+        .backgroundMode,
+    ).toBe('workspace')
     expect(p.settings.moveWholeSlideshow).toBe(false)
     expect(p.settings.transition).toBe('fade')
     expect(p.settings.transform.width).toBe(10)

@@ -562,3 +562,75 @@ describe('SlideshowManager – ganze Slideshow verschieben', () => {
     m.stop()
   })
 })
+
+describe('SlideshowManager – Slideshow als Canvas-/Workspace-Hintergrund', () => {
+  function createWithImages(extra = {}) {
+    let nextId = 1
+    const images = []
+    const multiImageManager = {
+      canvas: { width: 1600, height: 900 },
+      images,
+      addImageWithBounds: vi.fn((imageObject, bounds) => {
+        const img = { id: nextId++, imageObject, ...bounds }
+        images.push(img)
+        return img
+      }),
+      removeImage: vi.fn((id) => {
+        const i = images.findIndex((x) => x.id === id)
+        if (i !== -1) images.splice(i, 1)
+      }),
+    }
+    const fotoManager = { initializeImageSettings: (img) => (img.fotoSettings ??= {}) }
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.stubGlobal('requestAnimationFrame', () => 1)
+    vi.stubGlobal('cancelAnimationFrame', () => {})
+    return { m: new SlideshowManager(multiImageManager, fotoManager, extra), images }
+  }
+  const wide = { width: 1600, height: 900 }
+  const tall = { width: 900, height: 1600 }
+
+  it('Canvas-Hintergrund: füllt den ganzen Canvas (Cover), liegt unter anderen Bildern', () => {
+    const { m, images } = createWithImages()
+    images.push({ id: 'fremd', isSlideshowImage: false })
+    m.start([{ imageObject: tall }, { imageObject: wide }], { backgroundMode: 'canvas' })
+    const a = m.activeImages[0]
+    expect(m.getTransform()).toEqual({ relX: 0, relY: 0, relWidth: 1, relHeight: 1 })
+    expect(a.relWidth).toBeCloseTo(1) // Cover: volle Breite, Höhe größer als der Canvas
+    expect(a.relHeight).toBeGreaterThan(1)
+    expect(images[0]).toBe(a) // unter dem fremden Bild
+    expect(images[1].id).toBe('fremd')
+    expect(m.isBackground()).toBe(true)
+    // Verschieben gesperrt
+    m.moveSlideshow(0.1, 0)
+    expect(m.getTransform().relX).toBe(0)
+    m.stop()
+  })
+
+  it('neue Slideshow-Bilder kommen über das vorherige Slideshow-Bild, aber unter fremde', () => {
+    const { m, images } = createWithImages()
+    images.push({ id: 'fremd', isSlideshowImage: false })
+    m.start([{ imageObject: wide }, { imageObject: wide }], { backgroundMode: 'canvas' })
+    const first = m.activeImages[0]
+    first.isSlideshowImage = true
+    m.currentIndex = 1
+    const second = m._addNextImage()
+    second.isSlideshowImage = true
+    expect(images.map((i) => i.id)).toEqual([first.id, second.id, 'fremd'])
+    m.stop()
+  })
+
+  it('Umschalten während der Slideshow und Kompatibilität mit fitToWorkspace', () => {
+    const { m } = createWithImages({
+      getWorkspaceBounds: () => ({ x: 575, y: 45, width: 450, height: 810 }),
+    })
+    m.start([{ imageObject: wide }, { imageObject: wide }], { fitToWorkspace: true })
+    expect(m.config.backgroundMode).toBe('workspace')
+    expect(m.getTransform().relWidth).toBeCloseTo(450 / 1600)
+    m.setBackgroundMode('canvas')
+    expect(m.getTransform().relWidth).toBe(1)
+    m.setBackgroundMode('none')
+    expect(m.isBackground()).toBe(false)
+    expect(m.getStatus().backgroundMode).toBe('none')
+    m.stop()
+  })
+})

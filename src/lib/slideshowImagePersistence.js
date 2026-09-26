@@ -3,6 +3,7 @@
  * Dünne Schicht über presetImageRepository (in Tests mockbar).
  */
 import { blobFromImage, saveImageBlob, loadImage } from '../utils/presetImageRepository.js'
+import { useImageGallery } from '../composables/useImageGallery.js'
 
 /**
  * Speichert ein hochgeladenes Slideshow-Bild dauerhaft.
@@ -17,10 +18,15 @@ export async function persistUploadImage(entry) {
 }
 
 /**
- * Lädt ein dauerhaft gespeichertes Bild.
+ * Lädt ein dauerhaft gespeichertes Bild und legt es in die Upload-Galerie
+ * (ohne die Auswahl zu ändern). Ist es dort schon vorhanden, wird der
+ * vorhandene Eintrag verwendet.
  * @param {string} key
- * @returns {Promise<{ imageObject:HTMLImageElement, name:string }|null>}
+ * @returns {Promise<{ imageObject:HTMLImageElement, name:string, galleryId?:number }|null>}
  */
-export function restoreUploadImage(key) {
-  return loadImage(key)
+export async function restoreUploadImage(key) {
+  const loaded = await loadImage(key)
+  if (!loaded?.imageObject) return null
+  const entry = useImageGallery().ensureGalleryImage(loaded.imageObject, loaded.name)
+  return { imageObject: entry.img, name: entry.name, galleryId: entry.id }
 }

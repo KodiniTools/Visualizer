@@ -97,6 +97,13 @@ describe('restorePresetImages', () => {
     expect(pairs).toHaveLength(3)
   })
 
+  it('nutzt die Galerie-ID, wenn das Bild in der Upload-Galerie liegt', async () => {
+    const { pairs } = await restorePresetImages([{ upload: { key: 'k', name: 'a.png' } }], [], {
+      loadUpload: async () => ({ imageObject: {}, name: 'a.png', galleryId: 42 }),
+    })
+    expect(pairs[0].img.id).toBe(42)
+  })
+
   it('stockEntryFromRef baut einen ladbaren Eintrag', () => {
     const e = stockEntryFromRef(ref)
     expect(e).toMatchObject({ id: 'stock:s1', source: 'stock', thumbnail: ref.file })

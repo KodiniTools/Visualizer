@@ -216,11 +216,15 @@ const imageAudioModes = ref({})
 
 watch(
   () => props.images,
-  (newImages) => {
+  (newImages, oldImages) => {
     // Während der Slideshow die gestartete Reihenfolge behalten: FotoPanel hebt
     // nach dem Start die Bildauswahl auf, Presets sollen aber weiter die
     // laufenden Bilder (Positionen) speichern können.
     if (props.isActive) return
+    // Nur bei echter Auswahländerung übernehmen – eine neu erzeugte Liste mit
+    // denselben Bildern (z. B. weil ein Bild zur Galerie hinzukam) soll eine
+    // aus einem Preset geladene Liste nicht überschreiben
+    if (oldImages && sameImageKeys(newImages, oldImages)) return
     orderedImages.value = [...newImages]
   },
   { immediate: true, deep: true },
@@ -232,6 +236,12 @@ watch(
     if (!active) orderedImages.value = [...props.images]
   },
 )
+
+function sameImageKeys(a, b) {
+  return (
+    a.length === b.length && a.every((img, i) => slideshowImageKey(img) === slideshowImageKey(b[i]))
+  )
+}
 
 function transformPayload() {
   return {

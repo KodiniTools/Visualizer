@@ -414,6 +414,23 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     persistence.restoreUploadImage.mockImplementation(async () => null)
   })
 
+  it('a new image list with the same images does not overwrite a loaded preset list', async () => {
+    const w = mountPanel({ images: [images[1], images[0]] })
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    await w.setProps({ images: [images[0], images[1]] })
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Zwei', 'Eins'])
+    // Galerie ändert sich (neues Array, gleiche Auswahl) → Liste bleibt
+    await w.setProps({ images: images.map((i) => ({ ...i })) })
+    expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Zwei', 'Eins'])
+    // echte Auswahländerung → Auswahl gilt
+    await w.setProps({ images: [images[0]] })
+    await w.setProps({ images })
+    expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Eins', 'Zwei'])
+  })
+
   it('saves the preset even if persisting an image fails', async () => {
     persistence.persistUploadImage.mockImplementationOnce(async () => {
       throw new Error('QuotaExceeded')

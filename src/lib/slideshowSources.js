@@ -131,7 +131,7 @@ export function stockEntryFromRef(ref, getLoadedStock = () => null) {
  * die Position.
  * @param {Array<object>} slots - Preset-Slots
  * @param {Array<object>} currentImages - aktuelle Auswahl (Slideshow-Einträge)
- * @param {{ getLoadedStock?: Function, loadUpload?: (key:string) => Promise<{imageObject:HTMLImageElement, name:string}|null> }} [deps]
+ * @param {{ getLoadedStock?: Function, loadUpload?: (key:string) => Promise<{imageObject:HTMLImageElement, name:string, galleryId?:number}|null> }} [deps]
  * @returns {Promise<{ pairs: Array<{ img:object, slot:object }>, missing: string[] }|null>}
  *   null, wenn das Preset keine Bild-Verweise hat
  */
@@ -164,7 +164,8 @@ export async function restorePresetImages(slots, currentImages = [], deps = {}) 
     if (stored?.imageObject) {
       pairs.push({
         img: {
-          id: `preset:${slot.upload.key}`,
+          // Galerie-ID, wenn das Bild in der Upload-Galerie liegt
+          id: stored.galleryId ?? `preset:${slot.upload.key}`,
           name: slot.upload.name || stored.name,
           source: 'upload',
           imageObject: stored.imageObject,

@@ -427,6 +427,21 @@ export class SlideshowManager {
   /**
    * Wendet Audio-Reaktive Einstellungen auf ein Bild an
    */
+  /**
+   * Übernimmt die aktuellen Audio-Reaktiv-Einstellungen eines ausgeblendeten
+   * Bildes in dessen Slideshow-Konfiguration. Bei „Endlos wiederholen“ wird das
+   * Bild im nächsten Durchlauf neu auf den Canvas gelegt – ohne diese Übernahme
+   * gingen während der Slideshow vorgenommene Änderungen verloren.
+   */
+  _rememberAudioReactive(imageData) {
+    const index = imageData.slideshow?.imageIndex
+    const imageConfig = Number.isInteger(index) ? this.config.images[index] : null
+    const ar = imageData.fotoSettings?.audioReactive
+    // Nur echte Konfigurations-Einträge ({ imageObject | img }), keine rohen Bildobjekte
+    if (!imageConfig || !(imageConfig.imageObject || imageConfig.img) || !ar) return
+    imageConfig.audioReactiveSettings = JSON.parse(JSON.stringify(ar))
+  }
+
   _applyAudioReactiveSettings(imageData, imageConfig) {
     // Prüfe ob das Bild bereits Audio-Reaktive Einstellungen hat
     const hasExistingSettings = imageConfig.audioReactiveSettings
@@ -525,6 +540,7 @@ export class SlideshowManager {
 
     // Fertige Bilder entfernen
     for (const imageData of imagesToRemove) {
+      this._rememberAudioReactive(imageData)
       this.multiImageManager.removeImage(imageData.id)
       const idx = this.activeImages.indexOf(imageData)
       if (idx !== -1) {

@@ -24,11 +24,9 @@ export class DragDropHandler {
     const relDx = dx / this.manager.canvas.width
     const relDy = dy / this.manager.canvas.height
 
-    // ✨ NEU: Slideshow-Bilder bewegen die gesamte Slideshow
-    if (obj.isSlideshowImage && window.slideshowManager) {
-      window.slideshowManager.moveSlideshow(relDx, relDy)
-      return
-    }
+    // Slideshow-Bilder: jedes Bild hat eigene Position (im Workspace-Modus fest)
+    const slideshow = obj.isSlideshowImage ? window.slideshowManager : null
+    if (slideshow?.isFittedToWorkspace()) return
 
     obj.relX += relDx
     obj.relY += relDy
@@ -41,6 +39,8 @@ export class DragDropHandler {
       obj.relY = Math.max(0, Math.min(obj.relY, 1 - obj.relHeight))
     }
     // Text wird nicht begrenzt - kann frei positioniert werden
+
+    slideshow?.commitImageBounds(obj)
 
     // When multiple texts are selected, move them all together
     if (this.manager.selectedObjects && this.manager.selectedObjects.length > 0) {
@@ -151,18 +151,10 @@ export class DragDropHandler {
    * Skaliert ein Bild oder Video
    */
   resizeImage(obj, dx, dy) {
-    // ✨ NEU: Slideshow-Bilder skalieren die gesamte Slideshow
-    if (obj.isSlideshowImage && window.slideshowManager) {
-      // Berechne Skalierungsfaktor basierend auf der Mausbewegung
-      const movement = Math.abs(dx) > Math.abs(dy) ? dx : dy
-      const direction =
-        this.manager.currentAction.includes('r') || this.manager.currentAction.includes('b')
-          ? 1
-          : -1
-      const scaleFactor = 1 + movement * direction * 0.002
-      window.slideshowManager.scaleSlideshow(scaleFactor)
-      return
-    }
+    // Slideshow-Bilder: wie normale Bilder skalieren (Griff folgt der Maus),
+    // Ergebnis als eigene Größe des Bildes merken. Im Workspace-Modus fest.
+    const slideshow = obj.isSlideshowImage ? window.slideshowManager : null
+    if (slideshow?.isFittedToWorkspace()) return
 
     // Unterstützung für Videos und Bilder
     let imgAspectRatio
@@ -251,5 +243,7 @@ export class DragDropHandler {
       obj.relWidth = oldRelWidth
       obj.relHeight = oldRelHeight
     }
+
+    slideshow?.commitImageBounds(obj)
   }
 }

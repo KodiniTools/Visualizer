@@ -3,6 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import {
   useSlideshowPresetStore,
   normalizeSlideshowPreset,
+  normalizeImageBounds,
 } from '../../stores/slideshowPresetStore.js'
 
 const KEY = 'visualizer-slideshow-presets'
@@ -45,7 +46,9 @@ describe('slideshowPresetStore', () => {
     const preset = store.savePreset('Mein Preset', snapshot)
     expect(preset.name).toBe('Mein Preset')
     expect(preset.settings.displayDuration).toBe(4000)
-    expect(preset.slots).toEqual(snapshot.slots.map((sl) => ({ ...sl, adjustments: null })))
+    expect(preset.slots).toEqual(
+      snapshot.slots.map((sl) => ({ ...sl, adjustments: null, bounds: null })),
+    )
 
     // Neuer Store liest aus dem localStorage
     setActivePinia(createPinia())
@@ -56,6 +59,7 @@ describe('slideshowPresetStore', () => {
       displayDuration: 7000,
       audioMode: 'pulse',
       adjustments: null,
+      bounds: null,
     })
     expect(reloaded.presets[0].settings.fitToWorkspace).toBe(true)
     expect(reloaded.presets[0].settings.transform).toEqual({ x: 5, y: 15, width: 70, height: 60 })
@@ -138,9 +142,21 @@ describe('slideshowPresetStore', () => {
     expect(p.settings.fitToWorkspace).toBe(false)
     expect(p.settings.transform.width).toBe(10)
     expect(p.slots).toEqual([
-      { displayDuration: null, audioMode: 'default', adjustments: null },
-      { displayDuration: null, audioMode: 'default', adjustments: null },
+      { displayDuration: null, audioMode: 'default', adjustments: null, bounds: null },
+      { displayDuration: null, audioMode: 'default', adjustments: null, bounds: null },
     ])
     expect(normalizeSlideshowPreset(null)).toBeNull()
+  })
+})
+
+describe('normalizeImageBounds', () => {
+  it('übernimmt gültige Bounds und verwirft ungültige', () => {
+    const b = { relX: 0.1, relY: 0.2, relWidth: 0.4, relHeight: 0.3 }
+    expect(normalizeImageBounds(b)).toEqual(b)
+    expect(normalizeImageBounds({ ...b, relWidth: 'x' })).toBeNull()
+    expect(normalizeImageBounds({ ...b, relWidth: 0 })).toBeNull()
+    expect(normalizeImageBounds(null)).toBeNull()
+    // Position so begrenzt, dass das Bild sichtbar bleibt
+    expect(normalizeImageBounds({ ...b, relX: 50 }).relX).toBe(1)
   })
 })

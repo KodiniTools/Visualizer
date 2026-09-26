@@ -56,6 +56,7 @@
       @transform-change="onSlideshowTransformChange"
       @fit-workspace-change="onSlideshowFitWorkspaceChange"
       @reset-image-adjustments="onSlideshowResetImageAdjustments"
+      @live-update="onSlideshowLiveUpdate"
     />
 
     <!-- Filter-Bereich -->
@@ -374,6 +375,26 @@ function startSlideshow(config) {
     return
   }
 
+  const { images, options } = buildSlideshowRun(config)
+  const success = slideshowManagerRef.value.start(images, options)
+
+  if (success) {
+    slideshowIsActive.value = true
+    slideshowIsPaused.value = false
+    slideshowTotalImages.value = images.length
+    // ✨ Global verfügbar machen für Maus-Interaktion
+    window.slideshowManager = slideshowManagerRef.value
+    toastStore.success(t('slideshow.title') + ' gestartet')
+    // Auswahl aufheben nach dem Start
+    deselectAllImages()
+  }
+}
+
+/**
+ * Baut Bilder + Optionen für den SlideshowManager aus der Panel-Konfiguration
+ * (für start() und applyLiveUpdate()).
+ */
+function buildSlideshowRun(config) {
   // Bilder aus der Konfiguration extrahieren
   const images = config.images.map((img) => ({
     imageObject: img.imageObject || img.img,
@@ -387,7 +408,7 @@ function startSlideshow(config) {
     }),
   }))
 
-  const success = slideshowManagerRef.value.start(images, {
+  const options = {
     fadeInDuration: config.fadeInDuration,
     displayDuration: config.displayDuration,
     fadeOutDuration: config.fadeOutDuration,
@@ -398,18 +419,16 @@ function startSlideshow(config) {
     renderBehindVisualizer: config.renderBehindVisualizer,
     fitToWorkspace: config.fitToWorkspace,
     transform: config.transform,
-  })
-
-  if (success) {
-    slideshowIsActive.value = true
-    slideshowIsPaused.value = false
-    slideshowTotalImages.value = images.length
-    // ✨ Global verfügbar machen für Maus-Interaktion
-    window.slideshowManager = slideshowManagerRef.value
-    toastStore.success(t('slideshow.title') + ' gestartet')
-    // Auswahl aufheben nach dem Start
-    deselectAllImages()
   }
+  return { images, options }
+}
+
+// Preset während laufender Slideshow geladen → in die laufende Slideshow übernehmen
+function onSlideshowLiveUpdate(config) {
+  const manager = slideshowManagerRef.value
+  if (!manager?.isActive) return
+  const { images, options } = buildSlideshowRun(config)
+  manager.applyLiveUpdate(images, options)
 }
 
 function pauseSlideshow() {
@@ -450,6 +469,12 @@ const slideshowAdjustmentsApi = {
   },
   set(img, settings, audioMode) {
     getSlideshowManager()?.setImageAdjustments(img.imageObject || img.img, settings, audioMode)
+  },
+  getBounds(img) {
+    return getSlideshowManager()?.getImageBounds(img.imageObject || img.img) ?? null
+  },
+  setBounds(img, bounds) {
+    getSlideshowManager()?.setImageBounds(img.imageObject || img.img, bounds)
   },
 }
 

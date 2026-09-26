@@ -65,10 +65,9 @@
       @reset="emitTransformChange"
     />
 
-    <!-- Presets (Speichern auch während der Slideshow; Laden nur wenn nicht aktiv) -->
+    <!-- Presets (Speichern und Laden auch während der Slideshow) -->
     <SlideshowPresets
       :presets="presetStore.presets"
-      :load-disabled="isActive"
       @save="savePreset"
       @load="loadPreset"
       @delete="presetStore.deletePreset"
@@ -132,7 +131,8 @@ const props = defineProps({
   totalImages: { type: Number, default: 0 },
   currentPhase: { type: String, default: 'fadeIn' },
   hasWorkspace: { type: Boolean, default: false },
-  // { get(img) → object|null, set(img, settings|null, audioMode) } – gemerkte Bild-Anpassungen
+  // Gemerkte Bild-Anpassungen/-Größen: { get(img), set(img, settings|null, audioMode),
+  // getBounds(img), setBounds(img, bounds|null) }
   adjustmentsApi: { type: Object, default: null },
 })
 
@@ -146,6 +146,7 @@ const emit = defineEmits([
   'transform-change',
   'fit-workspace-change',
   'reset-image-adjustments',
+  'live-update',
 ])
 
 const D = SLIDESHOW_DEFAULT_SETTINGS
@@ -207,7 +208,12 @@ function transformPayload() {
 }
 
 function startSlideshow() {
-  emit('start', {
+  emit('start', buildPayload())
+}
+
+/** Aktuelle Panel-Einstellungen als Start-/Live-Update-Konfiguration. */
+function buildPayload() {
+  return {
     images: orderedImages.value.map((img) => {
       const key = slideshowImageKey(img)
       const own = imageDurations.value[key]
@@ -225,7 +231,7 @@ function startSlideshow() {
     renderBehindVisualizer: renderBehindVisualizer.value,
     fitToWorkspace: fitsWorkspace.value,
     transform: transformPayload(),
-  })
+  }
 }
 
 // ─── Presets ───────────────────────────────────────────────────────────────
@@ -253,6 +259,7 @@ function savePreset(name) {
         displayDuration: imageDurations.value[key] ?? null,
         audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
         adjustments: props.adjustmentsApi?.get(img) ?? null,
+        bounds: props.adjustmentsApi?.getBounds?.(img) ?? null,
       }
     }),
   })
@@ -299,9 +306,13 @@ function loadPreset(preset) {
       slot?.adjustments ?? null,
       slot?.audioMode ?? SLIDESHOW_AUDIO_DEFAULT,
     )
+    // Eigene Position/Größe des Bildes (ohne → gemeinsamer Bereich)
+    props.adjustmentsApi?.setBounds?.(img, slot?.bounds ?? null)
   })
   imageDurations.value = durations
   imageAudioModes.value = modes
+  // Läuft die Slideshow, sofort übernehmen
+  if (props.isActive) emit('live-update', buildPayload())
   toastStore.success(t('slideshow.presetLoaded'))
 }
 

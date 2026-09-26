@@ -23,13 +23,7 @@
       <li v-for="preset in presets" :key="preset.id" class="preset-item">
         <span class="preset-name" :title="preset.name">{{ preset.name }}</span>
         <span class="preset-meta">{{ preset.slots.length }} × {{ t('slideshow.image') }}</span>
-        <button
-          type="button"
-          class="btn-load-preset"
-          :disabled="loadDisabled"
-          :title="loadDisabled ? t('slideshow.loadWhileRunning') : undefined"
-          @click="emit('load', preset)"
-        >
+        <button type="button" class="btn-load-preset" @click="emit('load', preset)">
           {{ t('slideshow.loadPreset') }}
         </button>
         <button
@@ -56,8 +50,6 @@ import { useI18n } from '../../../lib/i18n.js'
 
 defineProps({
   presets: { type: Array, default: () => [] },
-  // Laden während laufender Slideshow gesperrt (Timing/Reihenfolge sind dann fest)
-  loadDisabled: { type: Boolean, default: false },
 })
 const emit = defineEmits(['save', 'load', 'delete'])
 const { t } = useI18n()
@@ -149,11 +141,6 @@ function save() {
 .btn-save-preset:hover,
 .btn-load-preset:hover {
   filter: brightness(1.1);
-}
-.btn-load-preset:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  filter: none;
 }
 .btn-delete-preset:hover {
   background: rgba(231, 76, 60, 0.4);

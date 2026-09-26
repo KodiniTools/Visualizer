@@ -71,3 +71,57 @@ describe('SlideshowManager – Anzeigedauer pro Bild', () => {
     m.stop()
   })
 })
+
+describe('SlideshowManager – Pause/Fortsetzen', () => {
+  it('setzt nach einer Pause sofort fort – auch für später hinzugefügte Bilder', () => {
+    vi.useFakeTimers()
+    const m = createManager()
+    m.start([{ imageObject: img }, { imageObject: img }, { imageObject: img }], {
+      fadeInDuration: 1000,
+      displayDuration: 2000,
+      fadeOutDuration: 1000,
+    })
+
+    // Während Bild 1 angezeigt wird 20 s pausieren
+    vi.advanceTimersByTime(1500)
+    m._updateSlideshowState()
+    m.pause()
+    vi.advanceTimersByTime(20000)
+    m.resume()
+
+    // Bild 1 macht genau dort weiter, wo es pausiert wurde
+    m._updateSlideshowState()
+    expect(m.activeImages[0].slideshow.phase).toBe('display')
+
+    // Nach restlichen 1,5 s Anzeige beginnt FadeOut -> Bild 2 kommt dazu
+    vi.advanceTimersByTime(1600)
+    m._updateSlideshowState()
+    expect(m.activeImages).toHaveLength(2)
+    const second = m.activeImages[1]
+
+    // Bild 2 blendet sofort ein (nicht erst nach der Pausendauer)
+    vi.advanceTimersByTime(500)
+    m._updateSlideshowState()
+    expect(second.slideshow.opacity).toBeGreaterThan(0.4)
+
+    // Zweite Pause wirkt nur auf die dann aktiven Bilder
+    m.pause()
+    vi.advanceTimersByTime(30000)
+    m.resume()
+    vi.advanceTimersByTime(600)
+    m._updateSlideshowState()
+    expect(second.slideshow.phase).toBe('display')
+    m.stop()
+    vi.useRealTimers()
+  })
+
+  it('Opacity wird im FadeIn nie negativ', () => {
+    vi.useFakeTimers()
+    const m = createManager()
+    m.start([{ imageObject: img }], { fadeInDuration: 1000 })
+    m._updateSlideshowState()
+    expect(m.activeImages[0].slideshow.opacity).toBeGreaterThanOrEqual(0)
+    m.stop()
+    vi.useRealTimers()
+  })
+})

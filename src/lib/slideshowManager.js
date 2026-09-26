@@ -24,7 +24,6 @@ export class SlideshowManager {
     this.currentIndex = 0
     this.startTime = null
     this.pauseTime = null
-    this.pausedDuration = 0
 
     // Animation Frame ID für Cleanup
     this.animationFrameId = null
@@ -170,7 +169,7 @@ export class SlideshowManager {
     this.isActive = true
     this.isPaused = false
     this.startTime = Date.now()
-    this.pausedDuration = 0
+    this.pauseTime = null
     this.activeImages = []
 
     console.log(`[SlideshowManager] Starte Slideshow mit ${images.length} Bildern`)
@@ -207,7 +206,14 @@ export class SlideshowManager {
 
     this.isPaused = false
     if (this.pauseTime) {
-      this.pausedDuration += Date.now() - this.pauseTime
+      // Pause nur auf die aktuell aktiven Bilder anrechnen: deren Startzeit
+      // verschieben. Später hinzugefügte Bilder starten mit frischem addedAt.
+      // (Früher wurde die gesamte Pausendauer von JEDEM Bild abgezogen – neue
+      // Bilder blieben dadurch so lange unsichtbar, wie insgesamt pausiert wurde.)
+      const pausedFor = Date.now() - this.pauseTime
+      for (const imageData of this.activeImages) {
+        if (imageData.slideshow) imageData.slideshow.addedAt += pausedFor
+      }
       this.pauseTime = null
     }
 
@@ -423,7 +429,7 @@ export class SlideshowManager {
       if (!imageData.slideshow || !imageData.slideshow.active) continue
 
       const ss = imageData.slideshow
-      const elapsed = now - ss.addedAt - this.pausedDuration
+      const elapsed = Math.max(0, now - ss.addedAt)
 
       const fadeInEnd = ss.fadeInDuration
       const displayEnd = fadeInEnd + ss.displayDuration

@@ -65,14 +65,22 @@
       @reset="emitTransformChange"
     />
 
-    <!-- Presets (nur wenn nicht aktiv) -->
+    <!-- Presets (Speichern auch während der Slideshow; Laden nur wenn nicht aktiv) -->
     <SlideshowPresets
-      v-if="!isActive"
       :presets="presetStore.presets"
+      :load-disabled="isActive"
       @save="savePreset"
       @load="loadPreset"
       @delete="presetStore.deletePreset"
     />
+
+    <!-- Während der Slideshow geänderte Bild-Anpassungen verwerfen (nur wenn nicht aktiv) -->
+    <div v-if="!isActive" class="adjustments-section">
+      <p class="hint">{{ t('slideshow.adjustmentsKeptHint') }}</p>
+      <button type="button" class="btn-reset-adjustments" @click="resetImageAdjustments">
+        {{ t('slideshow.resetAdjustments') }}
+      </button>
+    </div>
 
     <!-- Steuerung + Fortschritt -->
     <SlideshowControls
@@ -124,6 +132,8 @@ const props = defineProps({
   totalImages: { type: Number, default: 0 },
   currentPhase: { type: String, default: 'fadeIn' },
   hasWorkspace: { type: Boolean, default: false },
+  // { get(img) → object|null, set(img, settings|null, audioMode) } – gemerkte Bild-Anpassungen
+  adjustmentsApi: { type: Object, default: null },
 })
 
 const emit = defineEmits([
@@ -135,6 +145,7 @@ const emit = defineEmits([
   'render-layer-change',
   'transform-change',
   'fit-workspace-change',
+  'reset-image-adjustments',
 ])
 
 const D = SLIDESHOW_DEFAULT_SETTINGS
@@ -170,9 +181,20 @@ const imageAudioModes = ref({})
 watch(
   () => props.images,
   (newImages) => {
+    // Während der Slideshow die gestartete Reihenfolge behalten: FotoPanel hebt
+    // nach dem Start die Bildauswahl auf, Presets sollen aber weiter die
+    // laufenden Bilder (Positionen) speichern können.
+    if (props.isActive) return
     orderedImages.value = [...newImages]
   },
   { immediate: true, deep: true },
+)
+// Nach dem Stoppen wieder die aktuelle Auswahl übernehmen
+watch(
+  () => props.isActive,
+  (active) => {
+    if (!active) orderedImages.value = [...props.images]
+  },
 )
 
 function transformPayload() {
@@ -230,6 +252,7 @@ function savePreset(name) {
       return {
         displayDuration: imageDurations.value[key] ?? null,
         audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
+        adjustments: props.adjustmentsApi?.get(img) ?? null,
       }
     }),
   })
@@ -268,9 +291,23 @@ function loadPreset(preset) {
     if (Number.isFinite(slot.displayDuration)) durations[key] = slot.displayDuration
     if (slot.audioMode !== SLIDESHOW_AUDIO_DEFAULT) modes[key] = slot.audioMode
   })
+  // Bild-Anpassungen pro Position übernehmen (ohne Slot/Anpassung → verwerfen)
+  orderedImages.value.forEach((img, index) => {
+    const slot = preset.slots[index]
+    props.adjustmentsApi?.set(
+      img,
+      slot?.adjustments ?? null,
+      slot?.audioMode ?? SLIDESHOW_AUDIO_DEFAULT,
+    )
+  })
   imageDurations.value = durations
   imageAudioModes.value = modes
   toastStore.success(t('slideshow.presetLoaded'))
+}
+
+function resetImageAdjustments() {
+  emit('reset-image-adjustments')
+  toastStore.success(t('slideshow.adjustmentsReset'))
 }
 
 // Render Layer geändert (auch während laufender Slideshow)
@@ -354,6 +391,35 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 [data-theme='light'] .status-badge {
   background-color: #f0ead0;
   color: #4d6d8e;
+}
+.adjustments-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--card-bg);
+}
+.adjustments-section .hint {
+  padding-left: 0;
+}
+.btn-reset-adjustments {
+  align-self: flex-start;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--secondary-bg);
+  color: #e0e0e0;
+  cursor: pointer;
+}
+.btn-reset-adjustments:hover {
+  background: var(--btn-hover);
+}
+[data-theme='light'] .btn-reset-adjustments {
+  background: #f0ead0;
+  color: #003971;
+  border-color: #d4c8a8;
 }
 .checkbox-label.disabled {
   opacity: 0.5;

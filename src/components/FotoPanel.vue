@@ -46,6 +46,7 @@
       :totalImages="slideshowTotalImages"
       :currentPhase="slideshowCurrentPhase"
       :has-workspace="hasWorkspace"
+      :adjustments-api="slideshowAdjustmentsApi"
       @start="startSlideshow"
       @pause="pauseSlideshow"
       @resume="resumeSlideshow"
@@ -54,6 +55,7 @@
       @render-layer-change="onSlideshowRenderLayerChange"
       @transform-change="onSlideshowTransformChange"
       @fit-workspace-change="onSlideshowFitWorkspaceChange"
+      @reset-image-adjustments="onSlideshowResetImageAdjustments"
     />
 
     <!-- Filter-Bereich -->
@@ -377,6 +379,7 @@ function startSlideshow(config) {
     imageObject: img.imageObject || img.img,
     name: img.name,
     displayDuration: img.displayDuration,
+    audioMode: img.audioMode,
     // Pro Bild: Standard (globale Option), Aus, Gespeichert oder Preset
     audioReactiveSettings: resolveSlideshowAudioReactive(img.audioMode, {
       applyGlobal: config.applyAudioReactive,
@@ -438,6 +441,26 @@ function stopSlideshow() {
 // ✨ NEU: Slideshow Bild-Reihenfolge geändert
 function onSlideshowOrderChanged(orderedImages) {
   console.log('[Slideshow] Reihenfolge geändert:', orderedImages.length, 'Bilder')
+}
+
+// Zugriff auf gemerkte Bild-Anpassungen für Slideshow-Presets (Speichern/Laden)
+const slideshowAdjustmentsApi = {
+  get(img) {
+    return getSlideshowManager()?.getImageAdjustments(img.imageObject || img.img) ?? null
+  },
+  set(img, settings, audioMode) {
+    getSlideshowManager()?.setImageAdjustments(img.imageObject || img.img, settings, audioMode)
+  },
+}
+
+function getSlideshowManager() {
+  if (!slideshowManagerRef.value) initSlideshowManager()
+  return slideshowManagerRef.value
+}
+
+// Gemerkte Bild-Anpassungen (Filter/Audio) der Slideshow verwerfen
+function onSlideshowResetImageAdjustments() {
+  slideshowManagerRef.value?.clearImageMemory()
 }
 
 // Slideshow „An Workspace anpassen“ geändert (auch während laufender Slideshow)

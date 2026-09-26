@@ -1438,7 +1438,7 @@ export default {
     deletePreset: 'Delete',
     noPresets: 'No slideshow presets saved yet.',
     presetHint:
-      'Saves timing, options, position/size and the display duration and audio reaction per image position (without images).',
+      'Saves timing, options, position/size and, per image position, display duration, audio reaction and image adjustments (filters etc.) – without images.',
     presetSaved: 'Slideshow preset saved',
     presetLoaded: 'Slideshow preset loaded',
     presetSaveError: 'Slideshow preset could not be saved',
@@ -1446,6 +1446,11 @@ export default {
     fitToWorkspaceHint:
       'Images fill the workspace area and follow the selected format. Position & size are fixed.',
     fitToWorkspaceNoWorkspace: 'Select a workspace format first (e.g. TikTok 9:16).',
+    adjustmentsKeptHint:
+      'Filter & audio settings changed on images during the slideshow are kept – even after stopping and restarting.',
+    resetAdjustments: 'Reset image adjustments',
+    adjustmentsReset: 'Slideshow image adjustments reset',
+    loadWhileRunning: 'Loading is possible after stopping the slideshow',
     dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.',
   },
 

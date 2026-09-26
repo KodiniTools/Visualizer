@@ -90,3 +90,46 @@ describe('slideshowImageSettingsStore – Ein-/Ausblenddauer pro Bild', () => {
     expect(again.getImageSettings('k')).toBeNull()
   })
 })
+
+describe('slideshowImageSettingsStore – Anzeigedauer und Audio pro Bild', () => {
+  it('speichert Anzeigedauer (begrenzt) und Audio-Modus; „Standard“/ungültig wird nicht gespeichert', () => {
+    const store = useSlideshowImageSettingsStore()
+    store.setImageSettings('k', { displayDuration: 120000, audioMode: 'glitch' })
+    expect(store.getImageSettings('k')).toEqual({ displayDuration: 60000, audioMode: 'glitch' })
+    store.setImageSettings('k2', { displayDuration: 100, audioMode: 'default' })
+    expect(store.getImageSettings('k2')).toEqual({ displayDuration: 500 })
+    store.setImageSettings('k3', { audioMode: 'toString' })
+    expect(store.getImageSettings('k3')).toBeNull()
+    setActivePinia(createPinia())
+    expect(useSlideshowImageSettingsStore().getImageSettings('k')).toEqual({
+      displayDuration: 60000,
+      audioMode: 'glitch',
+    })
+  })
+})
+
+describe('slideshowImageSettingsStore – Größe/Position pro Bild', () => {
+  const b = { relX: 0.1, relY: 0.2, relWidth: 0.3, relHeight: 0.25 }
+
+  it('updateImageSettings ändert nur einzelne Felder; Bounds bleiben bei anderen Änderungen', () => {
+    const store = useSlideshowImageSettingsStore()
+    store.updateImageSettings('k', { bounds: b })
+    store.updateImageSettings('k', { transition: 'wipe' })
+    expect(store.getImageSettings('k')).toEqual({ bounds: b, transition: 'wipe' })
+    store.updateImageSettings('k', { transition: null })
+    expect(store.getImageSettings('k')).toEqual({ bounds: b })
+    store.updateImageSettings('k', { bounds: { relX: 'x' } }) // ungültig → entfernt
+    expect(store.getImageSettings('k')).toBeNull()
+  })
+
+  it('clearField entfernt Bounds bei allen Bildern, übrige Werte bleiben', () => {
+    const store = useSlideshowImageSettingsStore()
+    store.updateImageSettings('a', { bounds: b, audioMode: 'pulse' })
+    store.updateImageSettings('c', { bounds: b })
+    store.clearField('bounds')
+    expect(store.getImageSettings('a')).toEqual({ audioMode: 'pulse' })
+    expect(store.getImageSettings('c')).toBeNull()
+    setActivePinia(createPinia())
+    expect(useSlideshowImageSettingsStore().getImageSettings('a')).toEqual({ audioMode: 'pulse' })
+  })
+})

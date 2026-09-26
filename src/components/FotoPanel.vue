@@ -97,6 +97,14 @@ import SlideshowPanel from './foto-panel/SlideshowPanel.vue'
 import { SlideshowManager } from '../lib/slideshowManager.js'
 import { resolveSlideshowAudioReactive } from '../lib/slideshowAudio.js'
 import { SLIDESHOW_EDIT_EVENT } from '../lib/slideshowEditRequest.js'
+import { slideshowStableKey } from './foto-panel/slideshow/slideshowImageKey.js'
+import { useSlideshowImageAdjustmentsStore } from '../stores/slideshowImageAdjustmentsStore.js'
+import { useSlideshowImageSettingsStore } from '../stores/slideshowImageSettingsStore.js'
+import {
+  diffAdjustments,
+  restorePersistedAdjustments as restorePersistedAdjustmentsInto,
+  restorePersistedBounds as restorePersistedBoundsInto,
+} from '../lib/slideshowAdjustmentsPersistence.js'
 import {
   buildSlideshowSourceImages,
   ensureSlideshowImagesLoaded,
@@ -210,6 +218,11 @@ const {
 } = useStockGallery()
 // Per Maus verschobener gemeinsamer Bereich (für die Regler im Slideshow-Panel)
 const slideshowExternalTransform = ref(null)
+// Dauerhaft gemerkte Bild-Anpassungen pro Slideshow-Bild
+const adjustmentsStore = useSlideshowImageAdjustmentsStore()
+// Dauerhaft gemerkte Einstellungen pro Bild (u. a. eigene Größe/Position)
+const imageSettingsStore = useSlideshowImageSettingsStore()
+
 // Klick auf ein Slideshow-Bild in der Leiste (pausiert) → dessen Einstellungen öffnen
 const slideshowEditRequest = ref(null)
 function onSlideshowEditImage(event) {
@@ -378,6 +391,23 @@ function initSlideshowManager() {
     onTransformChange: (transform) => {
       slideshowExternalTransform.value = transform
     },
+    // Bild-Anpassungen dauerhaft merken (Filter, Schatten, Rotation …)
+    // Eigene Größe/Position dauerhaft merken (gebündelt)
+    onImageBoundsChange: ({ imageConfig, imageObject, bounds }) => {
+      queueBoundsPersist(slideshowStableKey({ ...imageConfig, imageObject }), bounds)
+    },
+    // Nur Abweichungen vom Standard speichern (unveränderte Bilder → kein Eintrag)
+    onImageAdjustmentsChange: ({ imageConfig, imageObject, adjustments, audioMode }) => {
+      adjustmentsStore.setAdjustments(
+        slideshowStableKey({ ...imageConfig, imageObject }),
+        diffAdjustments(
+          adjustments,
+          fotoManager?.defaultSettings,
+          imageConfig?.audioReactiveSettings ?? null,
+        ),
+        audioMode,
+      )
+    },
     // Lazy, damit ein späteres Workspace-Format berücksichtigt wird
     getWorkspaceBounds: () => canvasManagerRef?.value?.getWorkspaceBounds?.() ?? null,
     onImageTransition: (index, total, phase) => {
@@ -413,6 +443,10 @@ async function startSlideshow(config) {
   }
   if (loaded.length === 0) return
 
+  // Dauerhaft gemerkte Anpassungen für Bilder ohne Anpassungen in dieser Sitzung
+  restorePersistedAdjustments(loaded)
+  restorePersistedBounds(loaded)
+
   const { images, options } = buildSlideshowRun({ ...config, images: loaded })
   const success = slideshowManagerRef.value.start(images, options)
 
@@ -438,6 +472,10 @@ function buildSlideshowRun(config) {
   const images = config.images.map((img) => ({
     imageObject: resolveSlideshowImageObject(img, getLoadedStockImage),
     name: img.name,
+    // für den dauerhaften Schlüssel (slideshowStableKey)
+    id: img.id,
+    source: img.source,
+    stockImage: img.stockImage,
     displayDuration: img.displayDuration,
     audioMode: img.audioMode,
     transition: img.transition,
@@ -511,20 +549,63 @@ function onSlideshowOrderChanged(orderedImages) {
 // Zugriff auf gemerkte Bild-Anpassungen für Slideshow-Presets (Speichern/Laden)
 const slideshowAdjustmentsApi = {
   get(img) {
-    return getSlideshowManager()?.getImageAdjustments(slideshowImageObject(img)) ?? null
+    // Sitzungsspeicher der Slideshow, sonst dauerhaft gemerkte Anpassungen
+    const live = getSlideshowManager()?.getImageAdjustments(slideshowImageObject(img))
+    return live ?? adjustmentsStore.getAdjustments(slideshowStableKey(img))?.adjustments ?? null
   },
   set(img, settings, audioMode) {
-    withSlideshowImageObject(img, (obj) =>
-      getSlideshowManager()?.setImageAdjustments(obj, settings, audioMode),
-    )
+    withSlideshowImageObject(img, (obj) => {
+      getSlideshowManager()?.setImageAdjustments(obj, settings, audioMode)
+      // Aus einem Preset übernommene Anpassungen ebenfalls dauerhaft merken
+      adjustmentsStore.setAdjustments(
+        slideshowStableKey({ ...img, imageObject: obj }),
+        diffAdjustments(settings, fotoManagerRef?.value?.defaultSettings),
+        audioMode,
+      )
+    })
   },
   getBounds(img) {
-    return getSlideshowManager()?.getImageBounds(slideshowImageObject(img)) ?? null
+    // Sitzungsspeicher der Slideshow, sonst dauerhaft gemerkte Größe/Position
+    const live = getSlideshowManager()?.getImageBounds(slideshowImageObject(img))
+    return live ?? imageSettingsStore.getImageSettings(slideshowStableKey(img))?.bounds ?? null
   },
   setBounds(img, bounds) {
-    withSlideshowImageObject(img, (obj) => getSlideshowManager()?.setImageBounds(obj, bounds))
+    withSlideshowImageObject(img, (obj) => {
+      getSlideshowManager()?.setImageBounds(obj, bounds)
+      // Aus einem Preset übernommene Größe/Position ebenfalls dauerhaft merken
+      imageSettingsStore.updateImageSettings(slideshowStableKey({ ...img, imageObject: obj }), {
+        bounds: bounds ?? null,
+      })
+    })
   },
 }
+
+// ─── Größe/Position pro Bild dauerhaft merken ──────────────────────────────
+// Beim Ziehen ändert sie sich bei jeder Mausbewegung → Schreiben bündeln
+const pendingBounds = new Map()
+let boundsFlushTimer = null
+
+function queueBoundsPersist(key, bounds) {
+  if (!key) return
+  pendingBounds.set(key, bounds)
+  clearTimeout(boundsFlushTimer)
+  boundsFlushTimer = setTimeout(flushPendingBounds, 300)
+}
+
+function flushPendingBounds() {
+  clearTimeout(boundsFlushTimer)
+  boundsFlushTimer = null
+  for (const [key, bounds] of pendingBounds) {
+    imageSettingsStore.updateImageSettings(key, { bounds: bounds ?? null })
+  }
+  pendingBounds.clear()
+}
+
+onMounted(() => window.addEventListener('pagehide', flushPendingBounds))
+onBeforeUnmount(() => {
+  window.removeEventListener('pagehide', flushPendingBounds)
+  flushPendingBounds()
+})
 
 function slideshowImageObject(img) {
   return resolveSlideshowImageObject(img, getLoadedStockImage)
@@ -555,6 +636,25 @@ function onSlideshowMoveModeChange(value) {
 // Gemerkte Bild-Anpassungen (Filter/Audio) der Slideshow verwerfen
 function onSlideshowResetImageAdjustments() {
   slideshowManagerRef.value?.clearImageMemory()
+  adjustmentsStore.clearAll()
+  pendingBounds.clear()
+  imageSettingsStore.clearField('bounds')
+}
+
+// Dauerhaft gemerkte Größe/Position für Bilder ohne eigene Bounds in dieser Sitzung
+function restorePersistedBounds(images) {
+  restorePersistedBoundsInto(slideshowManagerRef.value, images, {
+    resolveImageObject: slideshowImageObject,
+    getBounds: (key) => imageSettingsStore.getImageSettings(key)?.bounds ?? null,
+  })
+}
+
+// Dauerhaft gemerkte Anpassungen in den Sitzungsspeicher der Slideshow übernehmen
+function restorePersistedAdjustments(images) {
+  restorePersistedAdjustmentsInto(slideshowManagerRef.value, images, {
+    resolveImageObject: slideshowImageObject,
+    getAdjustments: (key) => adjustmentsStore.getAdjustments(key),
+  })
 }
 
 // Slideshow „An Workspace anpassen“ geändert (auch während laufender Slideshow)

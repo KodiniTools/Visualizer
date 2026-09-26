@@ -337,12 +337,14 @@ watch(
 
 const imageSettingsStore = useSlideshowImageSettingsStore()
 
-// Dauerhaft gemerkte Übergangs-Einstellungen pro Bild übernehmen
-// (Übergang, Ein-/Ausblenddauer) – nur für Bilder ohne eigenen Wert
+// Dauerhaft gemerkte Einstellungen pro Bild übernehmen (Übergang, Ein-/Ausblend-
+// dauer, Anzeigedauer, Audio-Modus) – nur für Bilder ohne eigenen Wert
 const PERSISTED_MAPS = [
   ['transition', imageTransitions],
   ['fadeIn', imageFadeIns],
   ['fadeOut', imageFadeOuts],
+  ['displayDuration', imageDurations],
+  ['audioMode', imageAudioModes],
 ]
 watch(
   orderedImages,
@@ -366,16 +368,22 @@ watch(
 )
 
 // Änderungen dauerhaft merken (Standard = nicht gespeichert)
-watch([imageTransitions, imageFadeIns, imageFadeOuts], ([tr, fin, fout]) => {
-  for (const img of orderedImages.value) {
-    const key = slideshowImageKey(img)
-    imageSettingsStore.setImageSettings(slideshowStableKey(img), {
-      transition: tr[key] ?? null,
-      fadeIn: fin[key] ?? null,
-      fadeOut: fout[key] ?? null,
-    })
-  }
-})
+watch(
+  [imageTransitions, imageFadeIns, imageFadeOuts, imageDurations, imageAudioModes],
+  ([tr, fin, fout, dur, audio]) => {
+    for (const img of orderedImages.value) {
+      const key = slideshowImageKey(img)
+      // nur diese Felder ändern – eigene Größe/Position bleibt erhalten
+      imageSettingsStore.updateImageSettings(slideshowStableKey(img), {
+        transition: tr[key] ?? null,
+        fadeIn: fin[key] ?? null,
+        fadeOut: fout[key] ?? null,
+        displayDuration: dur[key] ?? null,
+        audioMode: audio[key] ?? null,
+      })
+    }
+  },
+)
 
 function sameImageKeys(a, b) {
   return (

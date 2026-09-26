@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { isValidTransition } from '../lib/slideshowTransitions.js'
+import { isValidSlideshowAudioMode, SLIDESHOW_AUDIO_DEFAULT } from '../lib/slideshowAudio.js'
+import { normalizeImageBounds } from './slideshowPresetStore.js'
 
 const STORAGE_KEY = 'visualizer-slideshow-image-transitions'
 // Obergrenze, damit der Speicher nicht unbegrenzt wächst (älteste zuerst raus)
@@ -8,16 +10,24 @@ const MAX_ENTRIES = 500
 // Grenzen der Übergangsdauer (ms), identisch zur Eingabe im Panel
 const FADE_MIN = 100
 const FADE_MAX = 5000
+// Grenzen der Anzeigedauer (ms)
+const DISPLAY_MIN = 500
+const DISPLAY_MAX = 60000
+
+function normalizeMs(value, min, max) {
+  if (value === null || value === undefined) return null
+  const n = Number(value)
+  return Number.isFinite(n) && n > 0 ? Math.round(Math.min(max, Math.max(min, n))) : null
+}
 
 function normalizeFade(value) {
-  const n = Number(value)
-  return Number.isFinite(n) && n > 0 ? Math.round(Math.min(FADE_MAX, Math.max(FADE_MIN, n))) : null
+  return normalizeMs(value, FADE_MIN, FADE_MAX)
 }
 
 /**
  * Bereinigt einen gespeicherten Eintrag. Ältere Einträge waren nur die
  * Übergangs-ID (String) und werden übernommen.
- * @returns {{ transition?:string, fadeIn?:number, fadeOut?:number }|null}
+ * @returns {{ transition?:string, fadeIn?:number, fadeOut?:number, displayDuration?:number, audioMode?:string }|null}
  */
 function normalizeEntry(raw) {
   const src = typeof raw === 'string' ? { transition: raw } : raw
@@ -28,16 +38,27 @@ function normalizeEntry(raw) {
   const fadeOut = normalizeFade(src.fadeOut)
   if (fadeIn !== null) entry.fadeIn = fadeIn
   if (fadeOut !== null) entry.fadeOut = fadeOut
+  const displayDuration = normalizeMs(src.displayDuration, DISPLAY_MIN, DISPLAY_MAX)
+  if (displayDuration !== null) entry.displayDuration = displayDuration
+  // „Standard“ wird nicht gespeichert
+  if (isValidSlideshowAudioMode(src.audioMode) && src.audioMode !== SLIDESHOW_AUDIO_DEFAULT) {
+    entry.audioMode = src.audioMode
+  }
+  // Eigene Größe/Position (relativ zum Canvas)
+  const bounds = normalizeImageBounds(src.bounds)
+  if (bounds) entry.bounds = bounds
   return Object.keys(entry).length > 0 ? entry : null
 }
 
 /**
- * Dauerhaft gemerkte Übergangs-Einstellungen pro Bild (localStorage),
- * unabhängig von Presets: Übergang sowie Ein-/Ausblenddauer.
+ * Dauerhaft gemerkte Einstellungen pro Bild (localStorage), unabhängig von
+ * Presets: Übergang, Ein-/Ausblenddauer, Anzeigedauer, Audio-Modus und eigene
+ * Größe/Position.
  * Schlüssel: slideshowStableKey() (Stock-ID bzw. Name + Maße).
  */
 export const useSlideshowImageSettingsStore = defineStore('slideshowImageSettings', () => {
-  // { [stableKey]: { transition?, fadeIn?, fadeOut? } } – Einfügereihenfolge = Alter
+  // { [stableKey]: { transition?, fadeIn?, fadeOut?, displayDuration?, audioMode? } }
+  // – Einfügereihenfolge = Alter
   const entries = ref({})
   let loaded = false
 
@@ -79,7 +100,7 @@ export const useSlideshowImageSettingsStore = defineStore('slideshowImageSetting
    * Setzt die Einstellungen eines Bildes vollständig; leere Werte werden
    * nicht gespeichert (= Standard). Ohne Werte wird der Eintrag entfernt.
    * @param {string|null} key
-   * @param {{ transition?:string|null, fadeIn?:number|null, fadeOut?:number|null }} settings
+   * @param {{ transition?:string|null, fadeIn?:number|null, fadeOut?:number|null, displayDuration?:number|null, audioMode?:string|null }} settings
    */
   function setImageSettings(key, settings) {
     load()
@@ -96,14 +117,53 @@ export const useSlideshowImageSettingsStore = defineStore('slideshowImageSetting
     persist()
   }
 
+  /**
+   * Ändert nur die angegebenen Felder eines Bildes (null entfernt ein Feld),
+   * die übrigen bleiben erhalten.
+   * @param {string|null} key
+   * @param {object} partial
+   */
+  function updateImageSettings(key, partial) {
+    if (!key) return
+    setImageSettings(key, { ...(getImageSettings(key) || {}), ...partial })
+  }
+
+  /** Entfernt ein Feld (z. B. 'bounds') bei allen Bildern. */
+  function clearField(field) {
+    load()
+    let changed = false
+    const next = {}
+    for (const [key, entry] of Object.entries(entries.value)) {
+      if (field in entry) {
+        changed = true
+        const rest = { ...entry }
+        delete rest[field]
+        if (Object.keys(rest).length > 0) next[key] = rest
+      } else {
+        next[key] = entry
+      }
+    }
+    if (!changed) return
+    entries.value = next
+    persist()
+  }
+
   // Kurzformen für den Übergang allein
   function getTransition(key) {
     return getImageSettings(key)?.transition ?? null
   }
   function setTransition(key, transition) {
-    const current = getImageSettings(key) || {}
-    setImageSettings(key, { ...current, transition })
+    updateImageSettings(key, { transition })
   }
 
-  return { entries, load, getImageSettings, setImageSettings, getTransition, setTransition }
+  return {
+    entries,
+    load,
+    getImageSettings,
+    setImageSettings,
+    updateImageSettings,
+    clearField,
+    getTransition,
+    setTransition,
+  }
 })

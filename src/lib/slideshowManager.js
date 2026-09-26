@@ -28,6 +28,12 @@ export class SlideshowManager {
     this.getWorkspaceBounds = callbacks.getWorkspaceBounds || (() => null)
     // Gemeinsamer Bereich per Maus verschoben (für die Regler im Panel)
     this.onTransformChange = callbacks.onTransformChange || (() => {})
+    // Gemerkte Bild-Anpassungen haben sich geändert (für dauerhafte Speicherung)
+    // ({ imageConfig, imageObject, adjustments, audioMode }) => void
+    this.onImageAdjustmentsChange = callbacks.onImageAdjustmentsChange || (() => {})
+    // Eigene Größe/Position eines Bildes geändert (für dauerhafte Speicherung)
+    // ({ imageConfig, imageObject, bounds }) => void
+    this.onImageBoundsChange = callbacks.onImageBoundsChange || (() => {})
     // Zuletzt angewendete Workspace-Bounds (erkennt Formatwechsel während der Slideshow)
     this._lastWorkspaceKey = null
 
@@ -216,7 +222,21 @@ export class SlideshowManager {
     if (!imageData?.imageObject || this.isFittedToWorkspace()) return
     const { relX, relY, relWidth, relHeight } = imageData
     if (![relX, relY, relWidth, relHeight].every(Number.isFinite)) return
-    this._boundsMemory.set(imageData.imageObject, { relX, relY, relWidth, relHeight })
+    const bounds = { relX, relY, relWidth, relHeight }
+    this._boundsMemory.set(imageData.imageObject, bounds)
+    this._notifyBounds(imageData.imageObject, bounds)
+  }
+
+  /** Meldet geänderte eigene Bounds eines Bildes (dauerhafte Speicherung). */
+  _notifyBounds(imageObject, bounds) {
+    const imageConfig = this.config.images.find(
+      (cfg) => (cfg?.imageObject || cfg?.img) === imageObject,
+    )
+    try {
+      this.onImageBoundsChange({ imageConfig, imageObject, bounds: bounds ? { ...bounds } : null })
+    } catch (e) {
+      console.warn('[SlideshowManager] Speichern der Bild-Größe fehlgeschlagen:', e)
+    }
   }
 
   /** Eigene Bounds eines Bildes (Kopie) oder null. */
@@ -632,11 +652,22 @@ export class SlideshowManager {
     for (const key of Object.keys(copy)) {
       if (key.startsWith('_')) delete copy[key]
     }
+    const audioMode = this.config.images[index]?.audioMode
     this._imageMemory.set(imageObject, {
       fotoSettings: copy,
       panelAr: this._panelAr[index],
-      audioMode: this.config.images[index]?.audioMode,
+      audioMode,
     })
+    try {
+      this.onImageAdjustmentsChange({
+        imageConfig: this.config.images[index],
+        imageObject,
+        adjustments: copy,
+        audioMode,
+      })
+    } catch (e) {
+      console.warn('[SlideshowManager] Speichern der Bild-Anpassungen fehlgeschlagen:', e)
+    }
   }
 
   /**
@@ -996,11 +1027,9 @@ export class SlideshowManager {
       const imageObject = cfg?.imageObject || cfg?.img
       const own = imageObject ? this._boundsMemory.get(imageObject) : null
       if (own) {
-        this._boundsMemory.set(imageObject, {
-          ...own,
-          relX: own.relX + appliedX,
-          relY: own.relY + appliedY,
-        })
+        const moved = { ...own, relX: own.relX + appliedX, relY: own.relY + appliedY }
+        this._boundsMemory.set(imageObject, moved)
+        this._notifyBounds(imageObject, moved)
       }
     }
 

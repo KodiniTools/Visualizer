@@ -629,6 +629,33 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(live.images[0].fadeInDuration).toBe(800)
   })
 
+  it('per-image display duration and audio are remembered permanently (reload)', async () => {
+    const withObj = (img, w, h) => ({
+      ...img,
+      imageObject: { ...img.imageObject, width: w, height: h },
+    })
+    const imgs = [withObj(images[0], 10, 10), withObj(images[1], 20, 10)]
+    let w = mountPanel({ images: imgs })
+    await w.findAll('.order-duration')[0].setValue('8')
+    await w.findAll('.order-audio')[1].setValue('pulse')
+    w.unmount()
+    pinia = createPinia()
+    setActivePinia(pinia)
+    w = mountPanel({ images: imgs.map((i) => ({ ...i, id: `${i.id}-neu` })) })
+    wrapper = w
+    expect(w.findAll('.order-duration')[0].element.value).toBe('8')
+    expect(w.findAll('.order-audio')[1].element.value).toBe('pulse')
+    expect(w.findAll('.order-audio')[0].element.value).toBe('default')
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.images[0].displayDuration).toBe(8000)
+    expect(payload.images[1].audioMode).toBe('pulse')
+    // zurück auf Standard → vergessen
+    await w.findAll('.order-duration')[0].setValue('')
+    await w.findAll('.order-audio')[1].setValue('default')
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-image-transitions'))).toEqual({})
+  })
+
   it('reset in the transform section restores defaults and emits transform-change', async () => {
     const w = mountPanel()
     const xNum = w.findAll('.transform-control input[type="number"]')[0].element

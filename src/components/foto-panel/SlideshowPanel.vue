@@ -13,6 +13,8 @@
     <SlideshowOrderList
       v-if="!isActive && images.length >= 2"
       v-model="orderedImages"
+      v-model:durations="imageDurations"
+      :default-duration="displayDuration"
       @order-changed="(list) => emit('order-changed', list)"
     />
 
@@ -113,6 +115,8 @@ const transformHeight = ref(80)
 
 // Geordnete Bilder-Liste (Reihenfolge per Drag & Drop in SlideshowOrderList)
 const orderedImages = ref([])
+// Optionale Anzeigedauer pro Bild ({ [id]: ms }); fehlt ein Eintrag, gilt displayDuration
+const imageDurations = ref({})
 
 watch(
   () => props.images,
@@ -133,7 +137,10 @@ function transformPayload() {
 
 function startSlideshow() {
   emit('start', {
-    images: orderedImages.value,
+    images: orderedImages.value.map((img) => {
+      const own = imageDurations.value[img.id ?? img.name]
+      return Number.isFinite(own) ? { ...img, displayDuration: own } : img
+    }),
     fadeInDuration: fadeInDuration.value,
     displayDuration: displayDuration.value,
     fadeOutDuration: fadeOutDuration.value,

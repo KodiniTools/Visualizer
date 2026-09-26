@@ -260,6 +260,43 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(localStorage.getItem('visualizer-slideshow-base-color')).toBeNull()
   })
 
+  it('workspace color: own field, persisted, preset, reset', async () => {
+    let w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    expect(w.find('.slideshow-base-color').exists()).toBe(false)
+    const input = w.find('.slideshow-workspace-color')
+    expect(input.element.value).toBe('#000000')
+
+    await input.setValue('#224466')
+    expect(w.emitted('workspace-color-change').at(-1)).toEqual(['#224466'])
+    expect(localStorage.getItem('visualizer-slideshow-workspace-color')).toBe('#224466')
+    // Canvas-Farbe bleibt unberührt
+    expect(localStorage.getItem('visualizer-slideshow-base-color')).toBeNull()
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0]).toMatchObject({
+      workspaceColor: '#224466',
+      backgroundColor: '#000000',
+    })
+
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings.workspaceColor,
+    ).toBe('#224466')
+    w.unmount()
+
+    // Neu öffnen: gemerkt; Zurücksetzen entfernt den Eintrag, Preset stellt her
+    w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    expect(w.find('.slideshow-workspace-color').element.value).toBe('#224466')
+    await w.find('.btn-reset-workspace-color').trigger('click')
+    expect(w.emitted('workspace-color-change').at(-1)).toEqual(['#000000'])
+    expect(localStorage.getItem('visualizer-slideshow-workspace-color')).toBeNull()
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.find('.slideshow-workspace-color').element.value).toBe('#224466')
+  })
+
   it('emits reset-image-adjustments from the reset button', async () => {
     const w = mountPanel()
     await w.find('.btn-reset-adjustments').trigger('click')

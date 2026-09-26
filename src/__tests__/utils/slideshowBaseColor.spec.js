@@ -29,6 +29,17 @@ describe('slideshowBaseColor', () => {
     expect(localStorage.getItem(KEY)).toBeNull()
   })
 
+  it('Canvas- und Workspace-Farbe werden getrennt gespeichert', () => {
+    storeSlideshowBaseColor('#111111', 'canvas')
+    storeSlideshowBaseColor('#222222', 'workspace')
+    expect(loadStoredSlideshowBaseColor()).toBe('#111111')
+    expect(loadStoredSlideshowBaseColor('workspace')).toBe('#222222')
+    expect(localStorage.getItem('visualizer-slideshow-workspace-color')).toBe('#222222')
+    storeSlideshowBaseColor('#000000', 'workspace')
+    expect(localStorage.getItem('visualizer-slideshow-workspace-color')).toBeNull()
+    expect(loadStoredSlideshowBaseColor()).toBe('#111111')
+  })
+
   it('manipulierter Speicherwert → Standard; Speicherfehler werfen nicht', () => {
     localStorage.setItem(KEY, 'url(evil)')
     expect(loadStoredSlideshowBaseColor()).toBe('#000000')

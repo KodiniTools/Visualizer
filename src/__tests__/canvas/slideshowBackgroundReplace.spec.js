@@ -132,6 +132,14 @@ describe('SlideshowManager – Farbe der Fläche', () => {
     expect(m.getBackgroundColor()).toBe('#112233')
     m.applyLiveUpdate(imgs, { backgroundColor: '#445566' })
     expect(m.getBackgroundColor()).toBe('#445566')
+    // Workspace-Fläche getrennt
+    expect(m.getWorkspaceColor()).toBe('#000000')
+    m.applyLiveUpdate(imgs, { workspaceColor: '#778899' })
+    expect(m.getWorkspaceColor()).toBe('#778899')
+    expect(m.getBaseColor('workspace')).toBe('#778899')
+    expect(m.getBaseColor('canvas')).toBe('#445566')
+    m.setWorkspaceColor('nope')
+    expect(m.getWorkspaceColor()).toBe('#778899')
     m.stop()
   })
 })
@@ -168,7 +176,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     const m = Object.create(SlideshowManager.prototype)
     m.isActive = active
     m.activeImages = new Array(images).fill({})
-    m.config = { backgroundMode: mode, backgroundColor: '#000000' }
+    m.config = { backgroundMode: mode, backgroundColor: '#000000', workspaceColor: '#000000' }
     return m
   }
 
@@ -214,14 +222,35 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     setup.r.drawBackground(setup.ctx)
     expect(setup.fills).toEqual([['#336699', 0, 0, 10, 10]])
 
+    // Workspace: eigene Farbe, unabhängig von der Canvas-Farbe
     const wsShow = slideshowWith('workspace')
     wsShow.setBackgroundColor('#ff0000')
+    wsShow.setWorkspaceColor('#00aa00')
     window.slideshowManager = wsShow
     setup = rendererSetup()
     setup.manager.getWorkspaceBounds = () => ({ x: 2, y: 1, width: 4, height: 8 })
     setup.r.drawBackground(setup.ctx)
     expect(setup.drawn).toEqual(['image', 'video'])
-    expect(setup.fills).toEqual([['#ff0000', 2, 1, 4, 8]])
+    expect(setup.fills).toEqual([['#00aa00', 2, 1, 4, 8]])
+  })
+
+  it('Workspace-Fläche auch ohne Workspace-Hintergrundbild', () => {
+    const wsShow = slideshowWith('workspace')
+    wsShow.setWorkspaceColor('#abcdef')
+    window.slideshowManager = wsShow
+    const { r, ctx, drawn, fills, manager } = rendererSetup()
+    manager.workspaceBackground = null
+    manager.workspaceVideoBackground = null
+    manager.getWorkspaceBounds = () => ({ x: 1, y: 1, width: 3, height: 3 })
+    r.drawBackground(ctx)
+    expect(drawn).toEqual(['image', 'video'])
+    expect(fills).toEqual([['#abcdef', 1, 1, 3, 3]])
+
+    // ohne Workspace-Format: keine Fläche
+    manager.workspacePreset = null
+    fills.length = 0
+    r.drawBackground(ctx)
+    expect(fills).toEqual([])
   })
 
   it('Canvas-Modus mit Farbhintergrund + Video: Video wird durch die Fläche ersetzt', () => {

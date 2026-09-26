@@ -29,10 +29,17 @@ export function isBackgroundReplacedBySlideshow(target) {
   return Boolean(slideshow?.replacesBackground?.(target))
 }
 
-/** Farbe der Fläche unter der Slideshow (siehe slideshowBaseColor.js). */
-function getSlideshowBaseColor() {
+/**
+ * Farbe der Fläche unter der Slideshow (siehe slideshowBaseColor.js).
+ * @param {'canvas'|'workspace'} target
+ */
+function getSlideshowBaseColor(target) {
   const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
-  return slideshow?.getBackgroundColor?.() || SLIDESHOW_BASE_COLOR_DEFAULT
+  const color =
+    typeof slideshow?.getBaseColor === 'function'
+      ? slideshow.getBaseColor(target)
+      : slideshow?.getBackgroundColor?.()
+  return color || SLIDESHOW_BASE_COLOR_DEFAULT
 }
 
 export class BackgroundRenderer {
@@ -94,9 +101,10 @@ export class BackgroundRenderer {
       this.manager.workspaceVideoBackground?.videoElement && this.manager.workspacePreset,
     )
 
-    // 2. Workspace: ersetzter Hintergrund → Fläche im Workspace-Bereich
-    if (slideshowReplacesWorkspace && (hasWorkspaceImage || hasWorkspaceVideo)) {
-      this._drawSlideshowBase(ctx, this.manager.getWorkspaceBounds?.())
+    // 2. Workspace-Modus: eigene Fläche im Workspace-Bereich (ersetzt ein
+    // Workspace-Bild/-Video; auch ohne solches, damit die gewählte Farbe gilt)
+    if (slideshowReplacesWorkspace && this.manager.workspacePreset) {
+      this._drawSlideshowBase(ctx, this.manager.getWorkspaceBounds?.() ?? null, 'workspace')
     }
 
     // 2.1 WORKSPACE BACKGROUND
@@ -124,14 +132,15 @@ export class BackgroundRenderer {
    * Hintergrundbildes – sichtbar während der Übergänge und neben Bildern mit
    * abweichendem Seitenverhältnis.
    * @param {CanvasRenderingContext2D} ctx
-   * @param {{x:number,y:number,width:number,height:number}} [rect] - Standard: ganzer Canvas
+   * @param {{x:number,y:number,width:number,height:number}|null} [rect] - Standard: ganzer Canvas
+   * @param {'canvas'|'workspace'} [target] - bestimmt die Farbe
    */
-  _drawSlideshowBase(ctx, rect) {
+  _drawSlideshowBase(ctx, rect, target = 'canvas') {
     const area =
       rect === undefined ? { x: 0, y: 0, width: ctx.canvas.width, height: ctx.canvas.height } : rect
     if (!area) return
     ctx.save()
-    ctx.fillStyle = getSlideshowBaseColor()
+    ctx.fillStyle = getSlideshowBaseColor(target)
     ctx.fillRect(area.x, area.y, area.width, area.height)
     ctx.restore()
   }

@@ -58,6 +58,7 @@
       @transform-change="onSlideshowTransformChange"
       @background-mode-change="onSlideshowBackgroundModeChange"
       @background-color-change="onSlideshowBackgroundColorChange"
+      @workspace-color-change="onSlideshowWorkspaceColorChange"
       @reset-image-adjustments="onSlideshowResetImageAdjustments"
       @live-update="onSlideshowLiveUpdate"
       @move-mode-change="onSlideshowMoveModeChange"
@@ -500,6 +501,7 @@ function buildSlideshowRun(config) {
     renderBehindVisualizer: config.renderBehindVisualizer,
     backgroundMode: config.backgroundMode,
     backgroundColor: config.backgroundColor,
+    workspaceColor: config.workspaceColor,
     fitToWorkspace: config.fitToWorkspace,
     moveWholeSlideshow: config.moveWholeSlideshow,
     transition: config.transition,
@@ -668,6 +670,11 @@ function onSlideshowBackgroundModeChange(mode) {
 // Farbe der Fläche unter der Slideshow geändert (sofort sichtbar)
 function onSlideshowBackgroundColorChange(color) {
   slideshowManagerRef.value?.setBackgroundColor(color)
+}
+
+// Farbe der Workspace-Fläche geändert (sofort sichtbar)
+function onSlideshowWorkspaceColorChange(color) {
+  slideshowManagerRef.value?.setWorkspaceColor(color)
 }
 
 // ✨ NEU: Slideshow Render-Layer geändert

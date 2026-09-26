@@ -1510,6 +1510,9 @@ export default {
     baseColor: 'Area beneath',
     baseColorHint:
       'Colour shown instead of the replaced background image – visible during transitions and next to images with a different aspect ratio.',
+    workspaceColor: 'Workspace area',
+    workspaceColorHint:
+      'Own colour of the workspace area beneath the slideshow – replaces a workspace background image and shows during transitions.',
     baseColorReset: 'Default colour (black)',
     backgroundModeWorkspaceNeedsFormat:
       'Workspace background: select a workspace format first (e.g. TikTok 9:16).',

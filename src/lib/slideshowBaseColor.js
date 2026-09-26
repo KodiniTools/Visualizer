@@ -17,15 +17,24 @@ export function normalizeSlideshowBaseColor(value, fallback = SLIDESHOW_BASE_COL
   return fallback
 }
 
-const STORAGE_KEY = 'visualizer-slideshow-base-color'
+// Canvas- und Workspace-Fläche werden getrennt gemerkt
+const STORAGE_KEYS = Object.freeze({
+  canvas: 'visualizer-slideshow-base-color',
+  workspace: 'visualizer-slideshow-workspace-color',
+})
+
+function storageKey(target) {
+  return target === 'workspace' ? STORAGE_KEYS.workspace : STORAGE_KEYS.canvas
+}
 
 /**
  * Zuletzt gewählte Farbe (dauerhaft, unabhängig von Presets).
+ * @param {'canvas'|'workspace'} [target]
  * @returns {string} gespeicherte Farbe oder Standard
  */
-export function loadStoredSlideshowBaseColor() {
+export function loadStoredSlideshowBaseColor(target = 'canvas') {
   try {
-    return normalizeSlideshowBaseColor(localStorage.getItem(STORAGE_KEY))
+    return normalizeSlideshowBaseColor(localStorage.getItem(storageKey(target)))
   } catch {
     return SLIDESHOW_BASE_COLOR_DEFAULT
   }
@@ -34,13 +43,15 @@ export function loadStoredSlideshowBaseColor() {
 /**
  * Merkt die Farbe dauerhaft; die Standardfarbe entfernt den Eintrag.
  * @param {string} color
+ * @param {'canvas'|'workspace'} [target]
  */
-export function storeSlideshowBaseColor(color) {
+export function storeSlideshowBaseColor(color, target = 'canvas') {
   const normalized = normalizeSlideshowBaseColor(color, null)
   if (!normalized) return
+  const key = storageKey(target)
   try {
-    if (normalized === SLIDESHOW_BASE_COLOR_DEFAULT) localStorage.removeItem(STORAGE_KEY)
-    else localStorage.setItem(STORAGE_KEY, normalized)
+    if (normalized === SLIDESHOW_BASE_COLOR_DEFAULT) localStorage.removeItem(key)
+    else localStorage.setItem(key, normalized)
   } catch (e) {
     console.warn('[SlideshowBaseColor] Speichern fehlgeschlagen:', e)
   }

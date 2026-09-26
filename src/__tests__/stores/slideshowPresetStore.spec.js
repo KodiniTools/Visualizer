@@ -170,6 +170,11 @@ describe('slideshowPresetStore', () => {
     ).toBe('workspace')
     // Fläche unter der Slideshow: ältere/ungültige Werte → Schwarz
     expect(p.settings.backgroundColor).toBe('#000000')
+    expect(p.settings.workspaceColor).toBe('#000000')
+    expect(
+      normalizeSlideshowPreset({ id: 5, settings: { workspaceColor: '#12AB34' }, slots: [] })
+        .settings.workspaceColor,
+    ).toBe('#12ab34')
     expect(
       normalizeSlideshowPreset({ id: 3, settings: { backgroundColor: 'red' }, slots: [] }).settings
         .backgroundColor,

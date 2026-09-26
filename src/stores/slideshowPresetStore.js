@@ -40,6 +40,8 @@ export const SLIDESHOW_DEFAULT_SETTINGS = Object.freeze({
   backgroundMode: 'none',
   // Fläche unter der Slideshow, wenn sie ein Hintergrundbild ersetzt
   backgroundColor: SLIDESHOW_BASE_COLOR_DEFAULT,
+  // Eigene Farbe der Workspace-Fläche
+  workspaceColor: SLIDESHOW_BASE_COLOR_DEFAULT,
   moveWholeSlideshow: false,
   transition: SLIDESHOW_TRANSITION_DEFAULT,
   transform: Object.freeze({ x: 10, y: 10, width: 80, height: 80 }),
@@ -215,6 +217,7 @@ export function normalizeSlideshowPreset(raw) {
           : d.backgroundMode,
       // Farbe der Fläche unter der Slideshow (ältere Presets: Schwarz)
       backgroundColor: normalizeSlideshowBaseColor(s.backgroundColor, d.backgroundColor),
+      workspaceColor: normalizeSlideshowBaseColor(s.workspaceColor, d.workspaceColor),
       // Maus verschiebt ganze Slideshow (ältere Presets: aus)
       moveWholeSlideshow:
         typeof s.moveWholeSlideshow === 'boolean' ? s.moveWholeSlideshow : d.moveWholeSlideshow,

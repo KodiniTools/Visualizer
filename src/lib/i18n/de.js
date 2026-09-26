@@ -1514,6 +1514,9 @@ export default {
     baseColor: 'Fläche darunter',
     baseColorHint:
       'Farbe, die anstelle des ersetzten Hintergrundbildes erscheint – sichtbar während der Übergänge und neben Bildern mit anderem Seitenverhältnis.',
+    workspaceColor: 'Workspace-Fläche',
+    workspaceColorHint:
+      'Eigene Farbe des Workspace-Bereichs unter der Slideshow – ersetzt ein Workspace-Hintergrundbild und ist während der Übergänge sichtbar.',
     baseColorReset: 'Standardfarbe (Schwarz)',
     backgroundModeWorkspaceNeedsFormat:
       'Workspace-Hintergrund: zuerst ein Workspace-Format wählen (z. B. TikTok 9:16).',

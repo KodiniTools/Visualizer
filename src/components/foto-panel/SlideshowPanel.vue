@@ -80,7 +80,7 @@
         </label>
       </div>
       <!-- Farbe der Fläche unter der Slideshow (ersetzt das Hintergrundbild) -->
-      <label v-if="backgroundMode !== 'none'" class="base-color-label">
+      <label v-if="backgroundMode === 'canvas'" class="base-color-label">
         <span>{{ t('slideshow.baseColor') }}</span>
         <input
           v-model="backgroundColor"
@@ -100,8 +100,34 @@
           ↺
         </button>
       </label>
+      <!-- Eigene Farbe der Workspace-Fläche -->
+      <label v-if="backgroundMode === 'workspace'" class="base-color-label">
+        <span>{{ t('slideshow.workspaceColor') }}</span>
+        <input
+          v-model="workspaceColor"
+          class="slideshow-workspace-color"
+          type="color"
+          :disabled="!hasWorkspace"
+          :title="t('slideshow.workspaceColorHint')"
+          @input="emit('workspace-color-change', workspaceColor)"
+        />
+        <button
+          v-if="workspaceColor !== D.workspaceColor"
+          type="button"
+          class="btn-reset-workspace-color"
+          :title="t('slideshow.baseColorReset')"
+          :aria-label="t('slideshow.baseColorReset')"
+          @click="resetWorkspaceColor"
+        >
+          ↺
+        </button>
+      </label>
       <p v-if="backgroundMode !== 'none'" class="hint base-color-hint">
-        {{ t('slideshow.baseColorHint') }}
+        {{
+          backgroundMode === 'workspace'
+            ? t('slideshow.workspaceColorHint')
+            : t('slideshow.baseColorHint')
+        }}
       </p>
       <label class="checkbox-label" :class="{ disabled: fitsWorkspace }">
         <input
@@ -274,6 +300,7 @@ const emit = defineEmits([
   'transform-change',
   'background-mode-change',
   'background-color-change',
+  'workspace-color-change',
   'reset-image-adjustments',
   'live-update',
   'move-mode-change',
@@ -303,6 +330,9 @@ const backgroundMode = ref(D.backgroundMode)
 // – auch ohne Preset dauerhaft gemerkt
 const backgroundColor = ref(loadStoredSlideshowBaseColor())
 watch(backgroundColor, (color) => storeSlideshowBaseColor(color))
+// Eigene Farbe der Workspace-Fläche – ebenfalls dauerhaft gemerkt
+const workspaceColor = ref(loadStoredSlideshowBaseColor('workspace'))
+watch(workspaceColor, (color) => storeSlideshowBaseColor(color, 'workspace'))
 // Workspace-Modus nur mit gewähltem Workspace-Format wirksam
 const effectiveBackgroundMode = computed(() =>
   backgroundMode.value === 'workspace' && !props.hasWorkspace ? 'none' : backgroundMode.value,
@@ -502,6 +532,7 @@ function buildPayload() {
     backgroundMode: effectiveBackgroundMode.value,
     fitToWorkspace: effectiveBackgroundMode.value === 'workspace',
     backgroundColor: backgroundColor.value,
+    workspaceColor: workspaceColor.value,
     moveWholeSlideshow: moveWholeSlideshow.value,
     transition: transition.value,
     transform: transformPayload(),
@@ -569,6 +600,7 @@ async function savePreset(name) {
       backgroundMode: backgroundMode.value,
       fitToWorkspace: backgroundMode.value === 'workspace',
       backgroundColor: backgroundColor.value,
+      workspaceColor: workspaceColor.value,
       moveWholeSlideshow: moveWholeSlideshow.value,
       transition: transition.value,
       transform: {
@@ -666,6 +698,10 @@ async function loadPreset(preset) {
     backgroundColor.value = s.backgroundColor
     emit('background-color-change', backgroundColor.value)
   }
+  if (workspaceColor.value !== s.workspaceColor) {
+    workspaceColor.value = s.workspaceColor
+    emit('workspace-color-change', workspaceColor.value)
+  }
   transformX.value = s.transform.x
   transformY.value = s.transform.y
   transformWidth.value = s.transform.width
@@ -733,6 +769,11 @@ function onBackgroundModeChange() {
 function resetBackgroundColor() {
   backgroundColor.value = D.backgroundColor
   emit('background-color-change', backgroundColor.value)
+}
+
+function resetWorkspaceColor() {
+  workspaceColor.value = D.workspaceColor
+  emit('workspace-color-change', workspaceColor.value)
 }
 
 // Workspace-Format entfernt/gewählt → Manager informieren
@@ -881,7 +922,8 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   font-size: 12px;
   color: #e0e0e0;
 }
-.slideshow-base-color {
+.slideshow-base-color,
+.slideshow-workspace-color {
   width: 36px;
   height: 22px;
   padding: 0;
@@ -890,7 +932,8 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   background: none;
   cursor: pointer;
 }
-.btn-reset-base-color {
+.btn-reset-base-color,
+.btn-reset-workspace-color {
   border: none;
   background: transparent;
   color: var(--text-muted);

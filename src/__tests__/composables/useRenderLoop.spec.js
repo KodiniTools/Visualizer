@@ -538,3 +538,90 @@ describe('useRenderLoop – Charakterisierung', () => {
     expect(log).toMatchSnapshot()
   })
 })
+
+describe('useRenderLoop – Multi-Layer-Caches', () => {
+  function layer(id, visualizerId, extra = {}) {
+    return {
+      id,
+      visualizerId,
+      color: '#123',
+      opacity: 1,
+      colorOpacity: 1,
+      scale: 1,
+      x: 0.5,
+      y: 0.5,
+      ...extra,
+    }
+  }
+
+  function setupLayers(layers) {
+    const env = setup()
+    Object.assign(env.visualizerStore, {
+      multiLayerMode: true,
+      visibleLayers: layers,
+      visualizerLayers: layers,
+    })
+    return env
+  }
+
+  const drawTargets = (id) =>
+    log.filter((l) => l.startsWith(`viz.${id}.draw`)).map((l) => l.split(' ')[1])
+
+  it('bleiben über Frames erhalten: ein Canvas, init() nur einmal', () => {
+    const { loop } = setupLayers([layer('A', 'bars'), layer('B', 'wave')])
+    runFrames(loop, 4)
+    expect(log.filter((l) => l === 'viz.bars.init 400 200')).toHaveLength(1)
+    expect(log.filter((l) => l === 'viz.wave.init 400 200')).toHaveLength(1)
+    expect(new Set(drawTargets('bars')).size).toBe(1)
+    expect(new Set(drawTargets('wave')).size).toBe(1)
+    expect(drawTargets('bars')[0]).not.toBe(drawTargets('wave')[0])
+  })
+
+  it('Visualizer-Wechsel eines Layers: cleanup() des alten, init() des neuen', () => {
+    const env = setupLayers([layer('A', 'bars')])
+    runFrames(env.loop, 2)
+    log.length = 0
+    const switched = [layer('A', 'portrait')]
+    env.visualizerStore.visibleLayers = switched
+    env.visualizerStore.visualizerLayers = switched
+    runFrames(env.loop, 2)
+    const lifecycle = log.filter((l) => /\.(init|cleanup)/.test(l))
+    expect(lifecycle).toEqual(['viz.bars.cleanup', 'viz.portrait.init 400 200'])
+  })
+
+  it('Größenänderung legt den Cache neu an (neues Canvas, erneutes init)', () => {
+    const env = setupLayers([layer('A', 'bars')])
+    runFrames(env.loop, 1)
+    const before = drawTargets('bars')[0]
+    env.main.width = 600
+    runFrames(env.loop, 2)
+    const targets = drawTargets('bars')
+    expect(targets[1]).not.toBe(before)
+    expect(targets[2]).toBe(targets[1])
+    expect(log.filter((l) => l.startsWith('viz.bars.init'))).toEqual([
+      'viz.bars.init 400 200',
+      'viz.bars.init 600 200',
+    ])
+  })
+
+  it('Reaktions-Hüllkurve läuft über Frames weiter (kein Reset pro Frame)', () => {
+    const reactive = { reactSource: 'bass', reactStrength: 1, reactSmoothing: 90 }
+    // Durchgehend: Frames 1–3 mit einer Instanz
+    const a = setupLayers([layer('A', 'bars', reactive)])
+    runFrames(a.loop, 3)
+    const continuous = log
+      .filter((l) => l.startsWith('viz.bars.draw'))
+      .at(-1)
+      .split(' ')[2]
+    // Frisch: gleicher Frame 3, aber neue Instanz ohne Vorgeschichte
+    log.length = 0
+    frame = 2
+    const b = setupLayers([layer('A', 'bars', reactive)])
+    runFrames(b.loop, 1)
+    const fresh = log
+      .filter((l) => l.startsWith('viz.bars.draw'))
+      .at(-1)
+      .split(' ')[2]
+    expect(continuous).not.toBe(fresh)
+  })
+})

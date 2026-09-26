@@ -34,22 +34,14 @@ export function createMultiLayerRenderer({
   const layerPunch = createLayerPunch()
   let composite = null
 
-  // BEKANNTER FEHLER – bewusst unverändert übernommen: Der bisherige Code verglich
-  // `cache.width` (existiert nicht) statt `cache.canvas.width`. Dadurch wird jeder
-  // Layer-Cache in JEDEM Frame neu angelegt: neues Canvas, visualizer.init() pro
-  // Frame, Reaktions-Hüllkurve zurückgesetzt, kein cleanup() beim Visualizer-
-  // Wechsel. Die Korrektur (false) ändert das Bild im Multi-Layer-Modus und
-  // wird separat umgesetzt.
-  const RECREATE_LAYER_CACHE_EVERY_FRAME = true
-
+  /**
+   * Cache des Layers; neu nur beim ersten Zeichnen oder bei geänderter Größe.
+   * Bleibt über Frames erhalten → visualizer.init() nur bei Wechsel, die
+   * Reaktions-Hüllkurve läuft stetig weiter.
+   */
   function layerCacheFor(layer, width, height) {
     let cache = layerCaches.get(layer.id)
-    if (
-      RECREATE_LAYER_CACHE_EVERY_FRAME ||
-      !cache ||
-      cache.canvas.width !== width ||
-      cache.canvas.height !== height
-    ) {
+    if (!cache || cache.canvas.width !== width || cache.canvas.height !== height) {
       cache = { ...ensureSizedCanvas(null, width, height), lastVisualizerId: null, react: {} }
       layerCaches.set(layer.id, cache)
     }

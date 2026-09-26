@@ -1451,6 +1451,7 @@ export default {
       'Während der Slideshow geänderte Filter & Audio-Einstellungen der Bilder bleiben erhalten – auch nach Stoppen und Neustart.',
     resetAdjustments: 'Bild-Anpassungen zurücksetzen',
     adjustmentsReset: 'Bild-Anpassungen der Slideshow zurückgesetzt',
+    loadWhileRunning: 'Laden ist nach dem Stoppen der Slideshow möglich',
     dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.',
   },
 

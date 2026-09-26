@@ -1450,6 +1450,7 @@ export default {
       'Filter & audio settings changed on images during the slideshow are kept – even after stopping and restarting.',
     resetAdjustments: 'Reset image adjustments',
     adjustmentsReset: 'Slideshow image adjustments reset',
+    loadWhileRunning: 'Loading is possible after stopping the slideshow',
     dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.',
   },
 

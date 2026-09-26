@@ -380,3 +380,29 @@ describe('SlideshowManager – Anpassungen für Presets', () => {
     m.stop()
   })
 })
+
+describe('SlideshowManager – laufendes Bild sofort merken', () => {
+  it('getImageAdjustments liefert Änderungen am laufenden Bild sofort', () => {
+    const imgA = { width: 100, height: 100 }
+    const m = createManager()
+    m.start([{ imageObject: imgA }, { imageObject: { width: 100, height: 100 } }])
+    m.activeImages[0].fotoSettings.contrast = 175
+    expect(m.getImageAdjustments(imgA).contrast).toBe(175)
+    m.activeImages[0].fotoSettings.contrast = 60
+    expect(m.getImageAdjustments(imgA).contrast).toBe(60)
+    m.stop()
+  })
+
+  it('übernimmt laufende Bilder gedrosselt in den Speicher', () => {
+    vi.useFakeTimers()
+    const imgA = { width: 100, height: 100 }
+    const m = createManager()
+    m.start([{ imageObject: imgA }, { imageObject: { width: 100, height: 100 } }])
+    m.activeImages[0].fotoSettings.sepia = 33
+    vi.advanceTimersByTime(300)
+    m._syncLiveMemory()
+    expect(m._imageMemory.get(imgA).fotoSettings.sepia).toBe(33)
+    m.stop()
+    vi.useRealTimers()
+  })
+})

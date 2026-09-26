@@ -63,6 +63,8 @@ export class SlideshowManager {
     this._imageMemory = new WeakMap()
     // Audio-Vorgabe aus dem Panel pro Index für die aktuelle Slideshow (JSON)
     this._panelAr = []
+    // Zeitpunkt der letzten Übernahme laufender Bilder in den Speicher
+    this._lastLiveSync = 0
 
     console.log('[SlideshowManager] Initialisiert')
   }
@@ -487,11 +489,27 @@ export class SlideshowManager {
   }
 
   /**
+   * Übernimmt die Einstellungen der gerade angezeigten Bilder in den Speicher,
+   * damit Änderungen am laufenden Bild sofort gemerkt sind (gedrosselt).
+   * @param {boolean} [force=false] - ohne Drosselung
+   */
+  _syncLiveMemory(force = false) {
+    const now = Date.now()
+    if (!force && now - this._lastLiveSync < 250) return
+    this._lastLiveSync = now
+    for (const imageData of this.activeImages) {
+      if (imageData.slideshow?.active) this._rememberImageSettings(imageData)
+    }
+  }
+
+  /**
    * Gemerkte Anpassungen eines Bildes (Kopie) – z. B. zum Speichern im Preset.
+   * Läuft das Bild gerade, werden seine aktuellen Einstellungen geliefert.
    * @param {object} imageObject
    * @returns {object|null}
    */
   getImageAdjustments(imageObject) {
+    if (this.isActive) this._syncLiveMemory(true)
     const memory = imageObject ? this._imageMemory.get(imageObject) : null
     return memory ? JSON.parse(JSON.stringify(memory.fotoSettings)) : null
   }
@@ -557,6 +575,7 @@ export class SlideshowManager {
       if (!this.isActive) return
 
       this._syncWorkspace()
+      this._syncLiveMemory()
       if (!this.isPaused) {
         this._updateSlideshowState()
       }

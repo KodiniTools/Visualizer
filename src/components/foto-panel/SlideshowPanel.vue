@@ -65,10 +65,10 @@
       @reset="emitTransformChange"
     />
 
-    <!-- Presets (nur wenn nicht aktiv) -->
+    <!-- Presets (Speichern auch während der Slideshow; Laden nur wenn nicht aktiv) -->
     <SlideshowPresets
-      v-if="!isActive"
       :presets="presetStore.presets"
+      :load-disabled="isActive"
       @save="savePreset"
       @load="loadPreset"
       @delete="presetStore.deletePreset"
@@ -181,9 +181,20 @@ const imageAudioModes = ref({})
 watch(
   () => props.images,
   (newImages) => {
+    // Während der Slideshow die gestartete Reihenfolge behalten: FotoPanel hebt
+    // nach dem Start die Bildauswahl auf, Presets sollen aber weiter die
+    // laufenden Bilder (Positionen) speichern können.
+    if (props.isActive) return
     orderedImages.value = [...newImages]
   },
   { immediate: true, deep: true },
+)
+// Nach dem Stoppen wieder die aktuelle Auswahl übernehmen
+watch(
+  () => props.isActive,
+  (active) => {
+    if (!active) orderedImages.value = [...props.images]
+  },
 )
 
 function transformPayload() {

@@ -2,7 +2,7 @@
   <!-- Reihenfolge der Bilder per Drag & Drop -->
   <div class="order-section">
     <label class="section-label">{{ t('slideshow.order') }}</label>
-    <p class="hint">{{ t('slideshow.perImageDuration') }}</p>
+    <p class="hint">{{ t('slideshow.perImageHint') }}</p>
     <div class="image-order-list">
       <div
         v-for="(img, index) in orderedImages"
@@ -21,23 +21,44 @@
           :alt="img.name || 'Bild'"
           class="order-thumb"
         />
-        <span class="order-name">{{ img.name || `Bild ${index + 1}` }}</span>
-        <input
-          class="order-duration"
-          type="number"
-          min="0.5"
-          max="60"
-          step="0.5"
-          draggable="false"
-          :value="secondsFor(img)"
-          :placeholder="(defaultDuration / 1000).toFixed(1)"
-          :title="t('slideshow.perImageDurationHint')"
-          :aria-label="t('slideshow.perImageDurationHint')"
-          @input="onDurationInput(img, $event)"
-          @dragstart.prevent.stop
-          @mousedown.stop
-        />
-        <span class="order-duration-unit">s</span>
+        <div class="order-body">
+          <span class="order-name">{{ img.name || `Bild ${index + 1}` }}</span>
+          <div class="order-controls">
+            <select
+              class="order-audio"
+              :value="audioModeFor(img)"
+              :title="t('slideshow.perImageAudioHint')"
+              :aria-label="t('slideshow.perImageAudioHint')"
+              @change="onAudioModeChange(img, $event)"
+              @mousedown.stop
+            >
+              <option value="default">{{ t('slideshow.audioModeDefault') }}</option>
+              <option value="off">{{ t('slideshow.audioModeOff') }}</option>
+              <option value="saved" :disabled="!hasSavedSettings">
+                {{ t('slideshow.audioModeSaved') }}
+              </option>
+              <option v-for="p in presetOptions" :key="p.id" :value="p.id">
+                {{ p.icon }} {{ p.name }}
+              </option>
+            </select>
+            <input
+              class="order-duration"
+              type="number"
+              min="0.5"
+              max="60"
+              step="0.5"
+              draggable="false"
+              :value="secondsFor(img)"
+              :placeholder="(defaultDuration / 1000).toFixed(1)"
+              :title="t('slideshow.perImageDurationHint')"
+              :aria-label="t('slideshow.perImageDurationHint')"
+              @input="onDurationInput(img, $event)"
+              @dragstart.prevent.stop
+              @mousedown.stop
+            />
+            <span class="order-duration-unit">s</span>
+          </div>
+        </div>
         <span class="drag-handle">&#x2630;</span>
       </div>
     </div>
@@ -48,18 +69,28 @@
 /**
  * Bildreihenfolge der Slideshow (Drag & Drop). Die Liste wird per v-model
  * gehalten; nach einem Drop wird `order-changed` mit der neuen Reihenfolge emittiert.
- * Optional pro Bild eine eigene Anzeigedauer (v-model:durations, { [id]: ms }).
- * Leeres Feld = globale Anzeigedauer (defaultDuration).
+ * Pro Bild optional:
+ * - eigene Anzeigedauer (v-model:durations, { [key]: ms }); leer = defaultDuration
+ * - Audio-Reaktiv-Modus (v-model:audio-modes, { [key]: mode }); fehlt = 'default'
  */
 import { ref } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
+import {
+  SLIDESHOW_AUDIO_DEFAULT,
+  SLIDESHOW_AUDIO_PRESET_OPTIONS,
+  isValidSlideshowAudioMode,
+} from '../../../lib/slideshowAudio.js'
+import { slideshowImageKey } from './slideshowImageKey.js'
 
 defineProps({
   defaultDuration: { type: Number, default: 3000 },
+  hasSavedSettings: { type: Boolean, default: false },
 })
 
 const orderedImages = defineModel({ type: Array, default: () => [] })
 const durations = defineModel('durations', { type: Object, default: () => ({}) })
+const audioModes = defineModel('audioModes', { type: Object, default: () => ({}) })
+const presetOptions = SLIDESHOW_AUDIO_PRESET_OPTIONS
 const emit = defineEmits(['order-changed'])
 const { t } = useI18n()
 
@@ -85,17 +116,13 @@ function onDrop() {
   emit('order-changed', orderedImages.value)
 }
 
-function durationKey(img) {
-  return img.id ?? img.name
-}
-
 function secondsFor(img) {
-  const ms = durations.value[durationKey(img)]
+  const ms = durations.value[slideshowImageKey(img)]
   return Number.isFinite(ms) ? ms / 1000 : ''
 }
 
 function onDurationInput(img, event) {
-  const key = durationKey(img)
+  const key = slideshowImageKey(img)
   if (key === undefined) return
   const next = { ...durations.value }
   const seconds = parseFloat(event.target.value)
@@ -107,6 +134,23 @@ function onDurationInput(img, event) {
   durations.value = next
 }
 
+function audioModeFor(img) {
+  return audioModes.value[slideshowImageKey(img)] ?? SLIDESHOW_AUDIO_DEFAULT
+}
+
+function onAudioModeChange(img, event) {
+  const key = slideshowImageKey(img)
+  if (key === undefined) return
+  const mode = event.target.value
+  const next = { ...audioModes.value }
+  if (isValidSlideshowAudioMode(mode) && mode !== SLIDESHOW_AUDIO_DEFAULT) {
+    next[key] = mode
+  } else {
+    delete next[key]
+  }
+  audioModes.value = next
+}
+
 function onDragEnd() {
   dragIndex.value = null
 }
@@ -114,11 +158,15 @@ function onDragEnd() {
 
 <style scoped src="./slideshow-shared.css"></style>
 <style scoped>
+.order-section .hint {
+  padding-left: 0;
+  margin-bottom: 6px;
+}
 .image-order-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 180px;
+  max-height: 280px;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -172,8 +220,29 @@ function onDragEnd() {
   border-radius: 4px;
   flex-shrink: 0;
 }
-.order-name {
+.order-body {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.order-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.order-audio {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 4px;
+  font-size: 11px;
+  background: var(--secondary-bg);
+  color: #e0e0e0;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+.order-name {
   font-size: 12px;
   color: #e0e0e0;
   white-space: nowrap;
@@ -194,7 +263,7 @@ function onDragEnd() {
 .order-duration-unit {
   font-size: 11px;
   color: var(--text-muted);
-  margin-left: -6px;
+  margin-left: -4px;
 }
 .drag-handle {
   color: #666;
@@ -225,6 +294,7 @@ function onDragEnd() {
 [data-theme='light'] .order-name {
   color: #003971;
 }
+[data-theme='light'] .order-audio,
 [data-theme='light'] .order-duration {
   background: #f9f2d5;
   color: #003971;

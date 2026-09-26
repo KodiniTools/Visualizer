@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import SlideshowPanel from '../../components/foto-panel/SlideshowPanel.vue'
 
 const images = [
@@ -9,10 +10,19 @@ const images = [
 ]
 
 let wrapper
+let pinia
+beforeEach(() => {
+  localStorage.clear()
+  pinia = createPinia()
+  setActivePinia(pinia)
+})
 afterEach(() => wrapper?.unmount())
 
 function mountPanel(props = {}) {
-  wrapper = mount(SlideshowPanel, { props: { images, hasSavedSettings: true, ...props } })
+  wrapper = mount(SlideshowPanel, {
+    props: { images, hasSavedSettings: true, ...props },
+    global: { plugins: [pinia] },
+  })
   return wrapper
 }
 
@@ -84,6 +94,46 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.findAll('.order-duration')[0].setValue('')
     await w.find('.btn-start').trigger('click')
     expect(w.emitted('start')[1][0].images[0].displayDuration).toBeUndefined()
+  })
+
+  it('passes the per-image audio mode (default when unset)', async () => {
+    const w = mountPanel()
+    const selects = w.findAll('.order-audio')
+    expect(selects).toHaveLength(2)
+    await selects[1].setValue('glitch')
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.images.map((i) => i.audioMode)).toEqual(['default', 'glitch'])
+  })
+
+  it('saves a preset with per-image durations/audio and restores it on load', async () => {
+    const w = mountPanel()
+    await w.findAll('.order-duration')[1].setValue('9')
+    await w.findAll('.order-audio')[0].setValue('pulse')
+    await w.find('.loop-section input[type="checkbox"]').setValue(true)
+    await w.find('.preset-name-input').setValue('Party')
+    await w.find('.btn-save-preset').trigger('click')
+    expect(w.findAll('.preset-item')).toHaveLength(1)
+    expect(w.find('.preset-name').text()).toBe('Party')
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    expect(stored[0].slots).toEqual([
+      { displayDuration: null, audioMode: 'pulse' },
+      { displayDuration: 9000, audioMode: 'default' },
+    ])
+
+    // Werte ändern, dann Preset laden -> ursprünglicher Zustand
+    await w.findAll('.order-duration')[1].setValue('')
+    await w.findAll('.order-audio')[0].setValue('off')
+    await w.find('.loop-section input[type="checkbox"]').setValue(false)
+    await w.find('.btn-load-preset').trigger('click')
+
+    expect(w.findAll('.order-duration')[1].element.value).toBe('9')
+    expect(w.findAll('.order-audio')[0].element.value).toBe('pulse')
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.loop).toBe(true)
+    expect(payload.images[1].displayDuration).toBe(9000)
+    expect(payload.images[0].audioMode).toBe('pulse')
   })
 
   it('reset in the transform section restores defaults and emits transform-change', async () => {

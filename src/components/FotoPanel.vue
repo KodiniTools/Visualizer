@@ -86,6 +86,7 @@ import SlideshowPanel from './foto-panel/SlideshowPanel.vue'
 
 // Lib
 import { SlideshowManager } from '../lib/slideshowManager.js'
+import { resolveSlideshowAudioReactive } from '../lib/slideshowAudio.js'
 
 // Composables
 import { useImageGallery } from '../composables/useImageGallery.js'
@@ -368,10 +369,11 @@ function startSlideshow(config) {
     imageObject: img.imageObject || img.img,
     name: img.name,
     displayDuration: img.displayDuration,
-    audioReactiveSettings:
-      config.applyAudioReactive && savedAudioReactiveSettings.value
-        ? savedAudioReactiveSettings.value
-        : null,
+    // Pro Bild: Standard (globale Option), Aus, Gespeichert oder Preset
+    audioReactiveSettings: resolveSlideshowAudioReactive(img.audioMode, {
+      applyGlobal: config.applyAudioReactive,
+      savedSettings: savedAudioReactiveSettings.value,
+    }),
   }))
 
   const success = slideshowManagerRef.value.start(images, {
@@ -379,8 +381,9 @@ function startSlideshow(config) {
     displayDuration: config.displayDuration,
     fadeOutDuration: config.fadeOutDuration,
     loop: config.loop,
-    autoApplyAudioReactive: config.applyAudioReactive,
-    audioReactiveSettings: config.applyAudioReactive ? savedAudioReactiveSettings.value : null,
+    // Immer anwenden: die Auflösung pro Bild entscheidet (null = unverändert)
+    autoApplyAudioReactive: true,
+    audioReactiveSettings: null,
     renderBehindVisualizer: config.renderBehindVisualizer,
     transform: config.transform,
   })

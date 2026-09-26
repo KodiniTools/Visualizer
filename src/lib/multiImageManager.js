@@ -185,6 +185,9 @@ export class MultiImageManager {
       // Dies stellt sicher, dass Selection-Marker die korrekten Transform-Bounds verwenden
       isSlideshowImage: isSlideshowImage,
     }
+    // Slideshow-Zustand (Deckkraft/Übergang) vor dem ersten Zeichnen setzen,
+    // damit das Bild nicht einen Frame lang voll sichtbar erscheint
+    if (options.slideshow) newImage.slideshow = options.slideshow
 
     // Initialisiere fotoSettings
     if (this.fotoManager) {
@@ -542,6 +545,21 @@ export class MultiImageManager {
   }
 
   /**
+   * Deckkraft-Faktor aus Eintritts-Animation und Slideshow-Übergang (0–1).
+   * Ein aktives Slideshow-Bild ohne gültige Deckkraft gilt als unsichtbar.
+   */
+  _getLayerAlpha(imgData, animTransform) {
+    let alpha = Number.isFinite(animTransform?.opacity)
+      ? Math.max(0, Math.min(1, animTransform.opacity))
+      : 1
+    if (imgData.slideshow?.active) {
+      const o = Number(imgData.slideshow.opacity)
+      alpha *= Number.isFinite(o) ? Math.max(0, Math.min(1, o)) : 0
+    }
+    return alpha
+  }
+
+  /**
    * Zeichnet alle Bilder auf den Canvas
    * ✅ OPTIMIERT: Reduziert Canvas-Context Overhead für Recording
    * ✨ ERWEITERT: Unterstützt jetzt Filter, Schatten und Rotation vom FotoManager
@@ -597,16 +615,11 @@ export class MultiImageManager {
       // ✅ FIX: IMMER save/restore für jedes Bild um Filter-Leakage zu verhindern
       ctx.save()
 
-      // ✨ Eintritts-Animation anwenden (Opacity)
-      if (animTransform.opacity < 1) {
-        ctx.globalAlpha = animTransform.opacity
-      }
-
-      // ✨ SLIDESHOW: Slideshow-Opacity anwenden (für Ein-/Ausblend-Animationen)
-      if (imgData.slideshow && imgData.slideshow.active) {
-        const slideshowOpacity = Math.max(0, Math.min(1, imgData.slideshow.opacity))
-        ctx.globalAlpha = ctx.globalAlpha * slideshowOpacity
-      }
+      // ✨ Deckkraft von Eintritts-Animation und Slideshow-Übergang. Wird NACH den
+      // Bild-Filtern eingerechnet, weil applyFilters() globalAlpha auf die
+      // Bild-Deckkraft setzt (sonst wären Ein-/Ausblendungen wirkungslos und ein
+      // neues Slideshow-Bild erschiene einen Frame lang voll sichtbar).
+      const layerAlpha = this._getLayerAlpha(imgData, animTransform)
 
       // ✨ SLIDESHOW: Auf Workspace-Bereich beschneiden („An Workspace anpassen“)
       const clip = imgData.slideshow?.active ? imgData.slideshow.clipRect : null
@@ -642,6 +655,7 @@ export class MultiImageManager {
         // Fallback: Alte Filter-Methode
         this.applyFilters(ctx, imgData)
       }
+      ctx.globalAlpha = ctx.globalAlpha * layerAlpha
 
       // ✨ AUDIO-REAKTIV: Zusätzliche Filter basierend auf Audio (MEHRERE EFFEKTE)
       if (audioReactive && audioReactive.hasEffects) {
@@ -1047,6 +1061,7 @@ export class MultiImageManager {
           borderColor,
           borderOpacity,
           borderGlow,
+          layerAlpha,
         )
       } else {
         // Ohne Kontur: Bild normal zeichnen
@@ -1607,6 +1622,7 @@ export class MultiImageManager {
     borderColor,
     borderOpacity = 1,
     borderGlow = 0,
+    layerAlpha = 1,
   ) {
     const imageObject = imgData.imageObject
     if (!imageObject || borderWidth <= 0) return
@@ -1639,7 +1655,7 @@ export class MultiImageManager {
 
     // ✨ Filter zurücksetzen für saubere Kontur-Zeichnung
     ctx.filter = 'none'
-    ctx.globalAlpha = borderOpacity
+    ctx.globalAlpha = borderOpacity * layerAlpha
 
     // ✨ AUDIO-REAKTIVER GLOW: Leuchteffekt um die Kontur
     if (borderGlow > 0) {
@@ -1675,6 +1691,7 @@ export class MultiImageManager {
     if (this.fotoManager && imgData.fotoSettings) {
       this.fotoManager.applyFilters(ctx, imgData)
     }
+    ctx.globalAlpha = ctx.globalAlpha * layerAlpha
 
     // Original-Bild mit Filtern zeichnen (über der Kontur)
     ctx.drawImage(imageObject, bounds.x, bounds.y, bounds.width, bounds.height)

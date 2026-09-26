@@ -10,6 +10,8 @@
  * - Delete-Button Berechnung
  * - Text/Image Selection Bounds
  */
+import { isBackgroundReplacedBySlideshow } from '../rendering/BackgroundRenderer.js'
+
 export class SelectionManager {
   constructor(canvasManager) {
     this.manager = canvasManager
@@ -112,15 +114,23 @@ export class SelectionManager {
     }
 
     // Dann Workspace-Hintergrund prüfen
-    if (this.manager.workspaceBackground && this.manager.workspacePreset) {
+    if (
+      this.manager.workspaceBackground &&
+      this.manager.workspacePreset &&
+      !isBackgroundReplacedBySlideshow('workspace')
+    ) {
       const workspaceBounds = this.manager.getWorkspaceBounds()
       if (workspaceBounds && this.isPointInRect(x, y, workspaceBounds)) {
         return this.manager.workspaceBackground
       }
     }
 
-    // Zuletzt globaler Hintergrund
-    if (this.manager.background && typeof this.manager.background === 'object') {
+    // Zuletzt globaler Hintergrund (nicht, solange die Slideshow ihn ersetzt)
+    if (
+      this.manager.background &&
+      typeof this.manager.background === 'object' &&
+      !isBackgroundReplacedBySlideshow('canvas')
+    ) {
       return this.manager.background
     }
 

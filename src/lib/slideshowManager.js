@@ -448,6 +448,46 @@ export class SlideshowManager {
   }
 
   /**
+   * Tatsächliche Bounds eines Bildes: eigene Größe/Position oder die
+   * automatische Einpassung in den Slideshow-Bereich (Kopie).
+   * @param {object} imageObject
+   * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
+   */
+  getEffectiveImageBounds(imageObject) {
+    if (!imageObject || typeof imageObject !== 'object') return null
+    if (!(imageObject.width > 0) || !(imageObject.height > 0)) return null
+    if (!this.multiImageManager?.canvas?.width) return null
+    return { ...this._computeImageLayout(imageObject).bounds }
+  }
+
+  /**
+   * Positioniert ein Bild über seinen Mittelpunkt (relativ 0–1 zur Canvas);
+   * die Größe bleibt erhalten. Wird wie Verschieben mit der Maus als eigene
+   * Bounds gemerkt. Als Canvas-/Workspace-Hintergrund nicht möglich.
+   * @param {object} imageObject
+   * @param {{centerX?:number, centerY?:number}} position - fehlender Wert = unverändert
+   * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
+   */
+  setImagePosition(imageObject, { centerX, centerY } = {}) {
+    if (this.isFittedToWorkspace()) return null
+    const base = this.getEffectiveImageBounds(imageObject)
+    if (!base) return null
+    const clamp = (v) => Math.min(1, Math.max(0, v))
+    const cx = Number.isFinite(centerX) ? clamp(centerX) : base.relX + base.relWidth / 2
+    const cy = Number.isFinite(centerY) ? clamp(centerY) : base.relY + base.relHeight / 2
+    const bounds = {
+      relX: cx - base.relWidth / 2,
+      relY: cy - base.relHeight / 2,
+      relWidth: base.relWidth,
+      relHeight: base.relHeight,
+    }
+    this._boundsMemory.set(imageObject, bounds)
+    this._notifyBounds(imageObject, bounds)
+    this._updateActiveImagesTransform()
+    return { ...bounds }
+  }
+
+  /**
    * Setzt/entfernt eigene Bounds eines Bildes (z. B. aus einem Preset) und
    * aktualisiert ein gerade angezeigtes Bild sofort.
    * @param {object} imageObject

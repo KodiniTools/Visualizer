@@ -839,6 +839,43 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(JSON.parse(localStorage.getItem('visualizer-slideshow-image-transitions'))).toEqual({})
   })
 
+  it('paused editor: position sliders move the image via adjustmentsApi and follow mouse drags', async () => {
+    let pos = { x: 0.5, y: 0.5 }
+    const setPosition = vi.fn((img, p) => {
+      pos = { ...pos, ...p }
+    })
+    const adjustmentsApi = {
+      get: () => null,
+      set: () => {},
+      getPosition: vi.fn(() => pos),
+      setPosition,
+    }
+    const w = mountPanel({ adjustmentsApi })
+    await w.setProps({ isActive: true, isPaused: true, editImageRequest: { index: 1, nonce: 3 } })
+    const editor = w.find('.image-editor')
+    const x = editor.find('input.editor-position-x')
+    expect(Number(x.element.value)).toBeCloseTo(50)
+    expect(adjustmentsApi.getPosition.mock.calls.at(-1)[0].name).toBe(images[1].name)
+
+    x.element.value = '20'
+    await x.trigger('input')
+    expect(setPosition).toHaveBeenCalledTimes(1)
+    expect(setPosition.mock.calls[0][0].name).toBe(images[1].name)
+    expect(setPosition.mock.calls[0][1]).toEqual({ x: 0.2, y: 0.5 })
+
+    // Bild mit der Maus verschoben → Regler folgen nach boundsRevision
+    pos = { x: 0.9, y: 0.1 }
+    await w.setProps({ boundsRevision: 1 })
+    expect(Number(editor.find('input.editor-position-x').element.value)).toBeCloseTo(90)
+    expect(Number(editor.find('input.editor-position-y').element.value)).toBeCloseTo(10)
+
+    // nicht positionierbar (z. B. Canvas-Hintergrund) → keine Regler
+    adjustmentsApi.getPosition.mockReturnValue(null)
+    await w.setProps({ boundsRevision: 2 })
+    expect(w.find('.image-editor-position').exists()).toBe(false)
+    expect(w.find('.image-editor').exists()).toBe(true)
+  })
+
   it('paused: click request opens the image editor; edits go live and close on resume', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: true })

@@ -1479,6 +1479,8 @@ export default {
     closeImageSettings: 'Close image settings',
     fieldAudioSource: 'Source',
     perImageAudioSource: 'Audio source of this image',
+    imagePositionX: 'Position X (center)',
+    imagePositionY: 'Position Y (center)',
     audioSourceInherit: 'As configured',
     defaultTransitionLabel: 'Default transition',
     fieldTransition: 'Transition',

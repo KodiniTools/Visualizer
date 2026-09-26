@@ -1481,6 +1481,8 @@ export default {
     closeImageSettings: 'Bild-Einstellungen schließen',
     fieldAudioSource: 'Quelle',
     perImageAudioSource: 'Audio-Quelle dieses Bildes',
+    imagePositionX: 'Position X (Mitte)',
+    imagePositionY: 'Position Y (Mitte)',
     audioSourceInherit: 'Wie Einstellung',
     defaultTransitionLabel: 'Standard-Übergang',
     fieldTransition: 'Übergang',

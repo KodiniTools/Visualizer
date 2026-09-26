@@ -67,6 +67,25 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.emitted('transform-change').at(-1)[0].relWidth).toBe(0.6)
   })
 
+  it('passes per-image display durations; empty field falls back to the global value', async () => {
+    const w = mountPanel()
+    const inputs = w.findAll('.order-duration')
+    expect(inputs).toHaveLength(2)
+    await inputs[0].setValue('7.5')
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.images[0].displayDuration).toBe(7500)
+    expect(payload.images[1].displayDuration).toBeUndefined()
+    expect(payload.displayDuration).toBe(3000)
+    // Props-Objekte werden nicht mutiert
+    expect(images[0].displayDuration).toBeUndefined()
+
+    // Feld leeren -> eigener Wert entfernt
+    await w.findAll('.order-duration')[0].setValue('')
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[1][0].images[0].displayDuration).toBeUndefined()
+  })
+
   it('reset in the transform section restores defaults and emits transform-change', async () => {
     const w = mountPanel()
     const xNum = w.findAll('.transform-control input[type="number"]')[0].element

@@ -1425,6 +1425,8 @@ export default {
     width: 'Breite',
     height: 'Höhe',
     resetPosition: 'Position zurücksetzen',
+    perImageDuration: 'Anzeigedauer pro Bild (s), leer = Standard',
+    perImageDurationHint: 'Eigene Anzeigedauer in Sekunden',
     dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.',
   },
 

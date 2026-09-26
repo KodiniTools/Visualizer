@@ -31,7 +31,7 @@ export class SlideshowManager {
 
     // Aktuelle Slideshow-Konfiguration
     this.config = {
-      images: [], // Array von { imageObject, audioReactiveSettings }
+      images: [], // Array von { imageObject, audioReactiveSettings?, displayDuration? }
       fadeInDuration: 1000, // ms
       displayDuration: 3000, // ms
       fadeOutDuration: 1000, // ms
@@ -325,8 +325,11 @@ export class SlideshowManager {
       imageIndex: this.currentIndex,
       addedAt: now,
       fadeInDuration: this.config.fadeInDuration,
-      displayDuration: this.config.displayDuration,
       fadeOutDuration: this.config.fadeOutDuration,
+      displayDuration: SlideshowManager.resolveDisplayDuration(
+        imageConfig,
+        this.config.displayDuration,
+      ),
       phase: 'fadeIn', // 'fadeIn' | 'display' | 'fadeOut' | 'done'
       opacity: 0,
     }
@@ -495,6 +498,17 @@ export class SlideshowManager {
     }
 
     checkComplete()
+  }
+
+  /**
+   * Anzeigedauer eines Bildes: eigener Wert (ms) falls gültig, sonst globaler Wert.
+   * @param {Object} imageConfig - Eintrag aus config.images
+   * @param {number} fallback - Globale Anzeigedauer in ms
+   * @returns {number}
+   */
+  static resolveDisplayDuration(imageConfig, fallback) {
+    const own = imageConfig?.displayDuration
+    return Number.isFinite(own) && own > 0 ? own : fallback
   }
 
   /**

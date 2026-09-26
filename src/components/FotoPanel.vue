@@ -367,6 +367,7 @@ function startSlideshow(config) {
   const images = config.images.map((img) => ({
     imageObject: img.imageObject || img.img,
     name: img.name,
+    displayDuration: img.displayDuration,
     audioReactiveSettings:
       config.applyAudioReactive && savedAudioReactiveSettings.value
         ? savedAudioReactiveSettings.value

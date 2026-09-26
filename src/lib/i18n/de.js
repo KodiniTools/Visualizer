@@ -102,55 +102,63 @@ export default {
       home: 'Startseite',
       features: 'Funktionen',
       blog: 'Blog',
+      start: 'Jetzt starten',
     },
     hero: {
       title: 'Audio Visualizer: Alle Funktionen im Uberblick',
       subtitle:
         'Verwandle deine Musik in visuelle Kunst - direkt im Browser, ohne Installation, komplett kostenlos.',
+      badge: 'Alle Funktionen im Überblick',
     },
     intro:
       'Musik ist mehr als nur Klang - sie ist Emotion, Energie und Ausdruck. Der Audio Visualizer bringt diese unsichtbare Kraft auf den Bildschirm und verwandelt jeden Beat, jede Frequenz und jede Melodie in faszinierende visuelle Erlebnisse. Ob fur Social Media Content, Musikvideos, Live-Streams oder kunstlerische Projekte - dieses Tool bietet alles, was du brauchst.',
-    sections: {
-      audio: {
+    sections: [
+      {
+        id: 'audio',
+        nav: 'Audio-Steuerung',
         title: 'Audio-Steuerung und -Analyse',
-        player: {
-          title: 'Der vollwertige Audio-Player',
-          items: [
-            'Vollstandige Wiedergabesteuerung: Play, Pause, Stop, Vor- und Zuruckspulen',
-            'Lautstarke-Regler mit visuellem Feedback',
-            'Equalizer fur Bass und Hohen - passe den Sound perfekt an',
-            'Playlist-Verwaltung fur mehrere Tracks mit Drag-and-Drop Sortierung',
-          ],
-        },
-        microphone: {
-          title: 'Live-Mikrofon-Unterstutzung',
-          items: [
-            'Gerateauswahl fur verschiedene Audio-Eingange',
-            'Echo-Unterdruckung fur saubere Aufnahmen',
-            'Rauschunterdruckung fur professionelle Qualitat',
-            'Auto-Gain-Control fur konsistente Pegel',
-          ],
-        },
-        beatMarkers: {
-          title: 'Beat-Marker System',
-          items: [
-            'Benutzerdefinierte Beat-Marker an beliebigen Zeitpunkten',
-            'Farbcodierung und Beschriftungen fur jeden Marker',
-            'Visuelle Vorschau der Marker in der Wellenform',
-          ],
-        },
-        frequency: {
-          title: 'Professionelle Frequenzanalyse',
-          items: [
-            'Echtzeit-Analyse mit 1024-Punkt FFT (Fast Fourier Transform)',
-            'Bass-Erkennung fur Kick-Drums und tiefe Frequenzen',
-            'Mitten-Analyse fur Vocals und Melodien',
-            'Hohen-Tracking fur Hi-Hats und Cymbals',
-            'Dynamische Frequenzmischung fur optimale Reaktivitat',
-          ],
-        },
+        groups: [
+          {
+            title: 'Der vollwertige Audio-Player',
+            items: [
+              'Vollstandige Wiedergabesteuerung: Play, Pause, Stop, Vor- und Zuruckspulen',
+              'Lautstarke-Regler mit visuellem Feedback',
+              'Equalizer fur Bass und Hohen - passe den Sound perfekt an',
+              'Playlist-Verwaltung fur mehrere Tracks mit Drag-and-Drop Sortierung',
+            ],
+          },
+          {
+            title: 'Live-Mikrofon-Unterstutzung',
+            items: [
+              'Gerateauswahl fur verschiedene Audio-Eingange',
+              'Echo-Unterdruckung fur saubere Aufnahmen',
+              'Rauschunterdruckung fur professionelle Qualitat',
+              'Auto-Gain-Control fur konsistente Pegel',
+            ],
+          },
+          {
+            title: 'Beat-Marker System',
+            items: [
+              'Benutzerdefinierte Beat-Marker an beliebigen Zeitpunkten',
+              'Farbcodierung und Beschriftungen fur jeden Marker',
+              'Visuelle Vorschau der Marker in der Wellenform',
+            ],
+          },
+          {
+            title: 'Professionelle Frequenzanalyse',
+            items: [
+              'Echtzeit-Analyse mit 1024-Punkt FFT (Fast Fourier Transform)',
+              'Bass-Erkennung fur Kick-Drums und tiefe Frequenzen',
+              'Mitten-Analyse fur Vocals und Melodien',
+              'Hohen-Tracking fur Hi-Hats und Cymbals',
+              'Dynamische Frequenzmischung fur optimale Reaktivitat',
+            ],
+          },
+        ],
       },
-      visualizers: {
+      {
+        id: 'visualizers',
+        nav: 'Visualizer',
         title: 'Uber 30 professionelle Visualizer',
         intro:
           'Der Audio Visualizer bietet eine beeindruckende Sammlung von uber 30 verschiedenen Visualisierungen, organisiert in zehn Kategorien:',
@@ -197,7 +205,7 @@ export default {
             items: ['8-Bit Pixel-Spektrum', 'Retro-Oszilloskop', 'Arcade-Blocke', 'Chiptune-Puls'],
           },
         ],
-        features: {
+        highlight: {
           title: 'Visualizer-Funktionen',
           items: [
             'Multi-Layer-Unterstutzung: Staple mehrere Visualizer ubereinander',
@@ -210,31 +218,35 @@ export default {
           ],
         },
       },
-      text: {
+      {
+        id: 'text',
+        nav: 'Text & Effekte',
         title: 'Professionelle Text-Funktionen',
-        editor: {
-          title: 'Text-Editor',
-          items: [
-            'Mehrzeilige Texte mit voller Absatzunterstutzung',
-            '15+ professionelle Schriften: Satoshi, Switzer, Author, Alpino und mehr',
-            'Schriftstile: Fett, Kursiv, verschiedene Schriftgewichte',
-            'Dynamische Textgrosse mit automatischer Canvas-Anpassung',
-            'Volle Farbauswahl mit Transparenz',
-            'Textausrichtung: Links, Mitte, Rechts',
-            'Zeichenabstand und Zeilenhohe individuell einstellbar',
-          ],
-        },
-        effects: {
-          title: 'Text-Effekte',
-          items: [
-            'Anpassbare Schatten mit Unscharfe, Versatz und Farbe',
-            'Text-Umrandung mit Farb- und Breitenkontrolle',
-            'Schreibmaschinen-Effekt mit einstellbarer Geschwindigkeit',
-            'Uberblend-Effekt mit verschiedenen Richtungen',
-            'Skalierungs-Effekt mit Start- und Endgrosse',
-          ],
-        },
-        audioReactive: {
+        groups: [
+          {
+            title: 'Text-Editor',
+            items: [
+              'Mehrzeilige Texte mit voller Absatzunterstutzung',
+              '15+ professionelle Schriften: Satoshi, Switzer, Author, Alpino und mehr',
+              'Schriftstile: Fett, Kursiv, verschiedene Schriftgewichte',
+              'Dynamische Textgrosse mit automatischer Canvas-Anpassung',
+              'Volle Farbauswahl mit Transparenz',
+              'Textausrichtung: Links, Mitte, Rechts',
+              'Zeichenabstand und Zeilenhohe individuell einstellbar',
+            ],
+          },
+          {
+            title: 'Text-Effekte',
+            items: [
+              'Anpassbare Schatten mit Unscharfe, Versatz und Farbe',
+              'Text-Umrandung mit Farb- und Breitenkontrolle',
+              'Schreibmaschinen-Effekt mit einstellbarer Geschwindigkeit',
+              'Uberblend-Effekt mit verschiedenen Richtungen',
+              'Skalierungs-Effekt mit Start- und Endgrosse',
+            ],
+          },
+        ],
+        reactive: {
           title: 'Audio-reaktive Text-Effekte (15+ Effekte)',
           items: [
             'Farbeffekte: Farbton-Rotation, RGB-Glitch, Farbwechsel',
@@ -250,34 +262,38 @@ export default {
           ],
         },
       },
-      images: {
+      {
+        id: 'images',
+        nav: 'Bild-Ebenen',
         title: 'Umfangreiche Bild-Funktionen',
-        management: {
-          title: 'Bildverwaltung',
-          items: [
-            'Mehrere Bilder gleichzeitig auf dem Canvas',
-            'Bildgalerie mit eigenen Uploads',
-            'Format-Unterstutzung: JPG, PNG, GIF, WebP',
-            'Ebenen-Management: Ordne Bilder in Z-Reihenfolge',
-            'Position: Drag-and-Drop Platzierung',
-            'Skalierung: Grossenanderung mit Seitenverhaltnis-Kontrolle',
-            'Rotation: 0-360 Grad Drehung',
-          ],
-        },
-        filters: {
-          title: 'Bildfilter und Effekte',
-          items: [
-            'Helligkeit: -100% bis +200%',
-            'Kontrast: 0-200%',
-            'Sattigung: 0-200%',
-            'Unscharfe: 0-20px Gausssche Unscharfe',
-            'Farbton-Rotation: 0-360 Grad Farbverschiebung',
-            'Graustufen: 0-100% Entsattigung',
-            'Sepia: 0-100% Vintage-Ton',
-            'Invertieren: 0-100% Farbumkehrung',
-          ],
-        },
-        audioReactive: {
+        groups: [
+          {
+            title: 'Bildverwaltung',
+            items: [
+              'Mehrere Bilder gleichzeitig auf dem Canvas',
+              'Bildgalerie mit eigenen Uploads',
+              'Format-Unterstutzung: JPG, PNG, GIF, WebP',
+              'Ebenen-Management: Ordne Bilder in Z-Reihenfolge',
+              'Position: Drag-and-Drop Platzierung',
+              'Skalierung: Grossenanderung mit Seitenverhaltnis-Kontrolle',
+              'Rotation: 0-360 Grad Drehung',
+            ],
+          },
+          {
+            title: 'Bildfilter und Effekte',
+            items: [
+              'Helligkeit: -100% bis +200%',
+              'Kontrast: 0-200%',
+              'Sattigung: 0-200%',
+              'Unscharfe: 0-20px Gausssche Unscharfe',
+              'Farbton-Rotation: 0-360 Grad Farbverschiebung',
+              'Graustufen: 0-100% Entsattigung',
+              'Sepia: 0-100% Vintage-Ton',
+              'Invertieren: 0-100% Farbumkehrung',
+            ],
+          },
+        ],
+        reactive: {
           title: 'Audio-reaktive Bild-Effekte (23+ Effekte)',
           items: [
             'Farbeffekte: Farbton, Helligkeit, Sattigung, Kontrast',
@@ -289,12 +305,14 @@ export default {
           ],
         },
       },
-      background: {
+      {
+        id: 'background',
+        nav: 'Canvas & Hintergrund',
         title: 'Hintergrund und Canvas',
-        canvas: {
+        tags: {
           title: 'Canvas-Kontrolle',
           intro: 'Social Media Presets - optimierte Grossen fur alle Plattformen:',
-          presets: [
+          items: [
             'TikTok (1080x1920)',
             'Instagram Story (1080x1920)',
             'Instagram Post (1080x1080)',
@@ -307,63 +325,72 @@ export default {
             'Freie Canvas-Grosse fur individuelle Dimensionen',
           ],
         },
-        options: {
-          title: 'Hintergrund-Optionen',
-          items: [
-            'Vollfarben-Hintergrund mit Farbwahler',
-            'Transparenz-Kontrolle',
-            'Lineare Farbverlaufe mit Winkelkontrolle',
-            'Radiale Farbverlaufe mit Zentrumsausrichtung',
-            'Animierte Farbverlaufe mit Audio-Reaktion',
-            'Bilder als Hintergrund verwenden',
-            'Video-Hintergrunde mit Wiedergabekontrolle',
-          ],
-        },
-        tiles: {
-          title: 'Gekachelter Hintergrund',
-          items: [
-            'Kachel-Modi: 3, 6, 9 oder 12 Kacheln',
-            'Abstandskontrolle zwischen Kacheln',
-            'Individuelle Einstellungen pro Kachel',
-            'Eigene Hintergrundfarbe, Bild oder Video pro Kachel',
-            'Eigene Filter und Audio-Reaktivitat pro Kachel',
-            'Kachel-Presets speichern und laden',
-          ],
-        },
+        groups: [
+          {
+            title: 'Hintergrund-Optionen',
+            items: [
+              'Vollfarben-Hintergrund mit Farbwahler',
+              'Transparenz-Kontrolle',
+              'Lineare Farbverlaufe mit Winkelkontrolle',
+              'Radiale Farbverlaufe mit Zentrumsausrichtung',
+              'Animierte Farbverlaufe mit Audio-Reaktion',
+              'Bilder als Hintergrund verwenden',
+              'Video-Hintergrunde mit Wiedergabekontrolle',
+            ],
+          },
+          {
+            title: 'Gekachelter Hintergrund',
+            items: [
+              'Kachel-Modi: 3, 6, 9 oder 12 Kacheln',
+              'Abstandskontrolle zwischen Kacheln',
+              'Individuelle Einstellungen pro Kachel',
+              'Eigene Hintergrundfarbe, Bild oder Video pro Kachel',
+              'Eigene Filter und Audio-Reaktivitat pro Kachel',
+              'Kachel-Presets speichern und laden',
+            ],
+          },
+        ],
       },
-      recording: {
+      {
+        id: 'recording',
+        nav: 'Video-Export',
         title: 'Video-Aufnahme und Export',
-        controls: {
-          title: 'Aufnahme-Steuerung',
-          items: [
-            'Vorbereiten: Canvas-Stream einrichten',
-            'Start/Stop: Volle Aufnahmekontrolle',
-            'Pause/Fortsetzen: Aufnahme unterbrechen ohne zu stoppen',
-            'Zurucksetzen: Fur neue Aufnahme vorbereiten',
-            'Status-Anzeige: IDLE, READY, RECORDING, PAUSED',
-          ],
-        },
-        quality: {
-          title: 'Qualitatsoptionen',
-          items: [
-            'Qualitatsstufen: Niedrig, Mittel, Hoch',
-            'Auflosung: 720p, 1080p, 4K',
-            'Bildrate: 30-60 FPS konfigurierbar',
-            'Bitrate-Kontrolle: Adaptive Steuerung',
-          ],
-        },
-        export: {
-          title: 'Export-Formate',
-          items: [
-            'WebM: Standard Browser-Format',
-            'MP4-Konvertierung: Via integriertem Server',
-            'Automatische Konvertierung: Optional nach Aufnahme',
-            'Direkter Download: Video auf Computer speichern',
-            'Audio einbinden: Optional in Aufnahme',
-          ],
-        },
+        columns: 3,
+        groups: [
+          {
+            title: 'Aufnahme-Steuerung',
+            items: [
+              'Vorbereiten: Canvas-Stream einrichten',
+              'Start/Stop: Volle Aufnahmekontrolle',
+              'Pause/Fortsetzen: Aufnahme unterbrechen ohne zu stoppen',
+              'Zurucksetzen: Fur neue Aufnahme vorbereiten',
+              'Status-Anzeige: IDLE, READY, RECORDING, PAUSED',
+            ],
+          },
+          {
+            title: 'Qualitatsoptionen',
+            items: [
+              'Qualitatsstufen: Niedrig, Mittel, Hoch',
+              'Auflosung: 720p, 1080p, 4K',
+              'Bildrate: 30-60 FPS konfigurierbar',
+              'Bitrate-Kontrolle: Adaptive Steuerung',
+            ],
+          },
+          {
+            title: 'Export-Formate',
+            items: [
+              'WebM: Standard Browser-Format',
+              'MP4-Konvertierung: Via integriertem Server',
+              'Automatische Konvertierung: Optional nach Aufnahme',
+              'Direkter Download: Video auf Computer speichern',
+              'Audio einbinden: Optional in Aufnahme',
+            ],
+          },
+        ],
       },
-      screenshot: {
+      {
+        id: 'screenshot',
+        nav: 'Screenshot',
         title: 'Screenshot-Funktion',
         items: [
           'Format-Optionen: PNG, JPG, WebP',
@@ -373,23 +400,58 @@ export default {
           'Komprimiertes JPG fur kleinere Dateigrosse',
           'Modernes WebP fur optimale Kompression',
         ],
+        variant: 'grid',
       },
-      shortcuts: {
+      {
+        id: 'shortcuts',
+        nav: 'Tastaturkürzel',
         title: 'Tastaturkurzel',
-        items: [
-          { key: 'Leertaste', action: 'Play/Pause' },
-          { key: 'S', action: 'Stop' },
-          { key: 'R', action: 'Aufnahme' },
-          { key: 'Strg+Z', action: 'Ruckgangig' },
-          { key: 'Entf', action: 'Loschen' },
-          { key: 'Strg+A', action: 'Alles auswahlen' },
-          { key: 'Pfeiltasten', action: 'Objekt bewegen' },
-          { key: '+/-', action: 'Zoom' },
-          { key: 'G', action: 'Raster ein/aus' },
-          { key: 'M', action: 'Beat-Marker setzen' },
+        shortcuts: [
+          {
+            key: 'Leertaste',
+            action: 'Play/Pause',
+          },
+          {
+            key: 'S',
+            action: 'Stop',
+          },
+          {
+            key: 'R',
+            action: 'Aufnahme',
+          },
+          {
+            key: 'Strg+Z',
+            action: 'Ruckgangig',
+          },
+          {
+            key: 'Entf',
+            action: 'Loschen',
+          },
+          {
+            key: 'Strg+A',
+            action: 'Alles auswahlen',
+          },
+          {
+            key: 'Pfeiltasten',
+            action: 'Objekt bewegen',
+          },
+          {
+            key: '+/-',
+            action: 'Zoom',
+          },
+          {
+            key: 'G',
+            action: 'Raster ein/aus',
+          },
+          {
+            key: 'M',
+            action: 'Beat-Marker setzen',
+          },
         ],
       },
-      history: {
+      {
+        id: 'history',
+        nav: 'Rückgängig',
         title: 'Ruckgangig/Wiederholen',
         items: [
           '50 Schritte Verlauf',
@@ -398,61 +460,72 @@ export default {
           'Command-Pattern: Jede Aktion ist reversibel',
         ],
       },
-      audioReactivity: {
+      {
+        id: 'reactivity',
+        nav: 'Audio-Reaktivität',
         title: 'Erweiterte Audio-Reaktivitat',
-        frequency: {
-          title: 'Frequenzfilterung',
-          items: [
-            'Bass-Analyse: Kick-Drum-Erkennung',
-            'Mitten-Analyse: Vocals/Melodie',
-            'Hohen-Analyse: Hi-Hats/Cymbals',
-            'Gesamtlautstarke: Vollstandiger Audio-Level',
-            'Dynamische Mischung: Automatische Frequenzkombination',
-          ],
-        },
-        parameters: {
-          title: 'Audio-Effekt-Parameter',
-          items: [
-            'Glattung: Flussige Animationen (0-100%)',
-            'Schwellenwert: Minimaler Audio-Level fur Trigger',
-            'Attack: Reaktionsgeschwindigkeit (10-100%)',
-            'Release: Abklinggeschwindigkeit (10-100%)',
-            'Easing-Kurven: Linear, Ease, Bounce, Elastic, Punch',
-            'Phasenversatz: Verzogerte Effekte fur Kaskaden (0-360 Grad)',
-            'Beat-Boost: Verstarkung bei Beats (1.0-3.0x)',
-          ],
-        },
-        presets: {
-          title: 'Effekt-Presets',
-          items: [
-            'Punchy: Schnell und prazise',
-            'Smooth: Sanft und fliessend',
-            'Subtle: Zuruckhaltend und dezent',
-            'Extreme: Maximale Audio-Reaktion',
-          ],
-        },
+        columns: 3,
+        groups: [
+          {
+            title: 'Frequenzfilterung',
+            items: [
+              'Bass-Analyse: Kick-Drum-Erkennung',
+              'Mitten-Analyse: Vocals/Melodie',
+              'Hohen-Analyse: Hi-Hats/Cymbals',
+              'Gesamtlautstarke: Vollstandiger Audio-Level',
+              'Dynamische Mischung: Automatische Frequenzkombination',
+            ],
+          },
+          {
+            title: 'Audio-Effekt-Parameter',
+            items: [
+              'Glattung: Flussige Animationen (0-100%)',
+              'Schwellenwert: Minimaler Audio-Level fur Trigger',
+              'Attack: Reaktionsgeschwindigkeit (10-100%)',
+              'Release: Abklinggeschwindigkeit (10-100%)',
+              'Easing-Kurven: Linear, Ease, Bounce, Elastic, Punch',
+              'Phasenversatz: Verzogerte Effekte fur Kaskaden (0-360 Grad)',
+              'Beat-Boost: Verstarkung bei Beats (1.0-3.0x)',
+            ],
+          },
+          {
+            title: 'Effekt-Presets',
+            items: [
+              'Punchy: Schnell und prazise',
+              'Smooth: Sanft und fliessend',
+              'Subtle: Zuruckhaltend und dezent',
+              'Extreme: Maximale Audio-Reaktion',
+            ],
+          },
+        ],
       },
-      browser: {
+      {
+        id: 'browser',
+        nav: 'Browser-Support',
         title: 'Browser und Format-Unterstutzung',
-        browsers: {
-          title: 'Unterstutzte Browser',
-          items: [
-            'Chrome/Chromium: Vollstandig (empfohlen)',
-            'Firefox: Vollstandig',
-            'Edge: Vollstandig',
-            'Safari: Unterstutzt (mit MediaRecorder-Einschrankungen)',
-          ],
-        },
-        formats: {
-          title: 'Unterstutzte Formate',
-          items: [
-            'Audio: MP3, WAV, OGG, FLAC, AAC und mehr',
-            'Bilder: JPG, PNG, GIF, WebP',
-            'Video: MP4, WebM, MOV (browserabhangig)',
-          ],
-        },
+        groups: [
+          {
+            title: 'Unterstutzte Browser',
+            items: [
+              'Chrome/Chromium: Vollstandig (empfohlen)',
+              'Firefox: Vollstandig',
+              'Edge: Vollstandig',
+              'Safari: Unterstutzt (mit MediaRecorder-Einschrankungen)',
+            ],
+          },
+          {
+            title: 'Unterstutzte Formate',
+            items: [
+              'Audio: MP3, WAV, OGG, FLAC, AAC und mehr',
+              'Bilder: JPG, PNG, GIF, WebP',
+              'Video: MP4, WebM, MOV (browserabhangig)',
+            ],
+          },
+        ],
       },
-      unique: {
+      {
+        id: 'unique',
+        nav: 'Einzigartige Vorteile',
         title: 'Einzigartige Vorteile',
         items: [
           '100% browserbasiert: Keine Installation erforderlich',
@@ -463,8 +536,9 @@ export default {
           'Professionelle Qualitat: Geeignet fur echte Musikvideos',
           'Komplett kostenlos: Keine Wasserzeichen, keine Einschrankungen',
         ],
+        variant: 'unique',
       },
-    },
+    ],
     summary: {
       title: 'Zusammenfassung',
       text: 'Der Audio Visualizer ist ein umfassendes, funktionsreiches browserbasiertes Tool mit:',
@@ -487,6 +561,69 @@ export default {
       subtitle: 'Erstelle jetzt deine erste Audio-Visualisierung - kostenlos und ohne Anmeldung.',
       button: 'Visualizer starten',
     },
+    toc: 'Inhalt',
+    newBadge: 'Neu',
+    reactiveBadge: 'Audio-reaktiv',
+    stats: [
+      {
+        value: '30+',
+        label: 'Visualizer',
+      },
+      {
+        value: '15+',
+        label: 'Text-Effekte',
+      },
+      {
+        value: '23+',
+        label: 'Bild-Effekte',
+      },
+      {
+        value: '10',
+        label: 'Social-Presets',
+      },
+    ],
+    overview: [
+      {
+        id: 'audio',
+        title: 'Audio-Steuerung',
+        desc: 'Vollwertiger Player, Mikrofon-Unterstützung, Beat-Marker & 1024-Punkt FFT-Analyse',
+      },
+      {
+        id: 'visualizers',
+        title: '30+ Visualizer',
+        desc: 'Bars, Wellen, Partikel, Kosmische Effekte, Retro-Pixel und mehr – in 8 Kategorien',
+      },
+      {
+        id: 'text',
+        title: 'Text & Effekte',
+        desc: '15+ professionelle Schriften, Schatten, Umrandung & 15 audio-reaktive Animationen',
+      },
+      {
+        id: 'images',
+        title: 'Bild-Ebenen',
+        desc: 'Mehrere Bilder, 8 Filter, 23+ audio-reaktive Effekte, Rotation & Drag-and-Drop',
+      },
+      {
+        id: 'background',
+        title: 'Canvas & Hintergrund',
+        desc: '10 Social-Media-Presets, Farbverläufe, Video-Hintergründe & Kachel-System',
+      },
+      {
+        id: 'recording',
+        title: 'Video-Export',
+        desc: 'WebM & MP4, bis zu 4K 60 FPS, Screenshot in PNG/JPG/WebP, GIF-Export',
+      },
+      {
+        id: 'reactivity',
+        title: 'Audio-Reaktivität',
+        desc: 'Bass/Mitten/Höhen-Analyse, Attack/Release, Easing-Kurven & Beat-Boost bis 3x',
+      },
+      {
+        id: 'unique',
+        title: '100% Kostenlos',
+        desc: 'Browserbasiert, keine Installation, kein Konto, keine Wasserzeichen',
+      },
+    ],
   },
 
   // ========== INTERNAL LANDING PAGE ==========

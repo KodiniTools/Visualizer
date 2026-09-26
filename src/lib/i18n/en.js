@@ -101,55 +101,63 @@ export default {
       home: 'Home',
       features: 'Features',
       blog: 'Blog',
+      start: 'Get started',
     },
     hero: {
       title: 'Audio Visualizer: Complete Feature Overview',
       subtitle:
         'Transform your music into visual art - directly in your browser, no installation required, completely free.',
+      badge: 'All features at a glance',
     },
     intro:
       'Music is more than just sound - it is emotion, energy and expression. The Audio Visualizer brings this invisible force to the screen and transforms every beat, every frequency and every melody into fascinating visual experiences. Whether for social media content, music videos, live streams or artistic projects - this tool offers everything you need.',
-    sections: {
-      audio: {
+    sections: [
+      {
+        id: 'audio',
+        nav: 'Audio controls',
         title: 'Audio Control and Analysis',
-        player: {
-          title: 'Full-Featured Audio Player',
-          items: [
-            'Complete playback control: Play, Pause, Stop, Forward and Rewind',
-            'Volume control with visual feedback',
-            'Equalizer for bass and treble - adjust the sound perfectly',
-            'Playlist management for multiple tracks with drag-and-drop sorting',
-          ],
-        },
-        microphone: {
-          title: 'Live Microphone Support',
-          items: [
-            'Device selection for various audio inputs',
-            'Echo cancellation for clean recordings',
-            'Noise suppression for professional quality',
-            'Auto-gain control for consistent levels',
-          ],
-        },
-        beatMarkers: {
-          title: 'Beat Marker System',
-          items: [
-            'Custom beat markers at any timestamp',
-            'Color coding and labels for each marker',
-            'Visual preview of markers in the waveform',
-          ],
-        },
-        frequency: {
-          title: 'Professional Frequency Analysis',
-          items: [
-            'Real-time analysis with 1024-point FFT (Fast Fourier Transform)',
-            'Bass detection for kick drums and low frequencies',
-            'Mid-range analysis for vocals and melodies',
-            'Treble tracking for hi-hats and cymbals',
-            'Dynamic frequency mixing for optimal reactivity',
-          ],
-        },
+        groups: [
+          {
+            title: 'Full-Featured Audio Player',
+            items: [
+              'Complete playback control: Play, Pause, Stop, Forward and Rewind',
+              'Volume control with visual feedback',
+              'Equalizer for bass and treble - adjust the sound perfectly',
+              'Playlist management for multiple tracks with drag-and-drop sorting',
+            ],
+          },
+          {
+            title: 'Live Microphone Support',
+            items: [
+              'Device selection for various audio inputs',
+              'Echo cancellation for clean recordings',
+              'Noise suppression for professional quality',
+              'Auto-gain control for consistent levels',
+            ],
+          },
+          {
+            title: 'Beat Marker System',
+            items: [
+              'Custom beat markers at any timestamp',
+              'Color coding and labels for each marker',
+              'Visual preview of markers in the waveform',
+            ],
+          },
+          {
+            title: 'Professional Frequency Analysis',
+            items: [
+              'Real-time analysis with 1024-point FFT (Fast Fourier Transform)',
+              'Bass detection for kick drums and low frequencies',
+              'Mid-range analysis for vocals and melodies',
+              'Treble tracking for hi-hats and cymbals',
+              'Dynamic frequency mixing for optimal reactivity',
+            ],
+          },
+        ],
       },
-      visualizers: {
+      {
+        id: 'visualizers',
+        nav: 'Visualizers',
         title: 'Over 30 Professional Visualizers',
         intro:
           'The Audio Visualizer offers an impressive collection of over 30 different visualizations, organized into ten categories:',
@@ -201,7 +209,7 @@ export default {
             ],
           },
         ],
-        features: {
+        highlight: {
           title: 'Visualizer Features',
           items: [
             'Multi-layer support: Stack multiple visualizers on top of each other',
@@ -214,31 +222,35 @@ export default {
           ],
         },
       },
-      text: {
+      {
+        id: 'text',
+        nav: 'Text & effects',
         title: 'Professional Text Features',
-        editor: {
-          title: 'Text Editor',
-          items: [
-            'Multi-line texts with full paragraph support',
-            '15+ professional fonts: Satoshi, Switzer, Author, Alpino and more',
-            'Font styles: Bold, Italic, various font weights',
-            'Dynamic text size with automatic canvas adjustment',
-            'Full color selection with transparency',
-            'Text alignment: Left, Center, Right',
-            'Letter spacing and line height individually adjustable',
-          ],
-        },
-        effects: {
-          title: 'Text Effects',
-          items: [
-            'Customizable shadows with blur, offset and color',
-            'Text outline with color and width control',
-            'Typewriter effect with adjustable speed',
-            'Fade effect with various directions',
-            'Scale effect with start and end size',
-          ],
-        },
-        audioReactive: {
+        groups: [
+          {
+            title: 'Text Editor',
+            items: [
+              'Multi-line texts with full paragraph support',
+              '15+ professional fonts: Satoshi, Switzer, Author, Alpino and more',
+              'Font styles: Bold, Italic, various font weights',
+              'Dynamic text size with automatic canvas adjustment',
+              'Full color selection with transparency',
+              'Text alignment: Left, Center, Right',
+              'Letter spacing and line height individually adjustable',
+            ],
+          },
+          {
+            title: 'Text Effects',
+            items: [
+              'Customizable shadows with blur, offset and color',
+              'Text outline with color and width control',
+              'Typewriter effect with adjustable speed',
+              'Fade effect with various directions',
+              'Scale effect with start and end size',
+            ],
+          },
+        ],
+        reactive: {
           title: 'Audio-Reactive Text Effects (15+ Effects)',
           items: [
             'Color effects: Hue rotation, RGB glitch, color change',
@@ -254,34 +266,38 @@ export default {
           ],
         },
       },
-      images: {
+      {
+        id: 'images',
+        nav: 'Image layers',
         title: 'Comprehensive Image Features',
-        management: {
-          title: 'Image Management',
-          items: [
-            'Multiple images simultaneously on the canvas',
-            'Image gallery with your own uploads',
-            'Format support: JPG, PNG, GIF, WebP',
-            'Layer management: Arrange images in Z-order',
-            'Position: Drag-and-drop placement',
-            'Scaling: Resize with aspect ratio control',
-            'Rotation: 0-360 degree rotation',
-          ],
-        },
-        filters: {
-          title: 'Image Filters and Effects',
-          items: [
-            'Brightness: -100% to +200%',
-            'Contrast: 0-200%',
-            'Saturation: 0-200%',
-            'Blur: 0-20px Gaussian blur',
-            'Hue Rotation: 0-360 degree color shift',
-            'Grayscale: 0-100% desaturation',
-            'Sepia: 0-100% vintage tone',
-            'Invert: 0-100% color inversion',
-          ],
-        },
-        audioReactive: {
+        groups: [
+          {
+            title: 'Image Management',
+            items: [
+              'Multiple images simultaneously on the canvas',
+              'Image gallery with your own uploads',
+              'Format support: JPG, PNG, GIF, WebP',
+              'Layer management: Arrange images in Z-order',
+              'Position: Drag-and-drop placement',
+              'Scaling: Resize with aspect ratio control',
+              'Rotation: 0-360 degree rotation',
+            ],
+          },
+          {
+            title: 'Image Filters and Effects',
+            items: [
+              'Brightness: -100% to +200%',
+              'Contrast: 0-200%',
+              'Saturation: 0-200%',
+              'Blur: 0-20px Gaussian blur',
+              'Hue Rotation: 0-360 degree color shift',
+              'Grayscale: 0-100% desaturation',
+              'Sepia: 0-100% vintage tone',
+              'Invert: 0-100% color inversion',
+            ],
+          },
+        ],
+        reactive: {
           title: 'Audio-Reactive Image Effects (23+ Effects)',
           items: [
             'Color effects: Hue, brightness, saturation, contrast',
@@ -293,12 +309,14 @@ export default {
           ],
         },
       },
-      background: {
+      {
+        id: 'background',
+        nav: 'Canvas & background',
         title: 'Background and Canvas',
-        canvas: {
+        tags: {
           title: 'Canvas Control',
           intro: 'Social Media Presets - optimized sizes for all platforms:',
-          presets: [
+          items: [
             'TikTok (1080x1920)',
             'Instagram Story (1080x1920)',
             'Instagram Post (1080x1080)',
@@ -311,63 +329,72 @@ export default {
             'Free canvas size for custom dimensions',
           ],
         },
-        options: {
-          title: 'Background Options',
-          items: [
-            'Solid color background with color picker',
-            'Transparency control',
-            'Linear gradients with angle control',
-            'Radial gradients with center alignment',
-            'Animated gradients with audio reaction',
-            'Use images as background',
-            'Video backgrounds with playback control',
-          ],
-        },
-        tiles: {
-          title: 'Tiled Background',
-          items: [
-            'Tile modes: 3, 6, 9 or 12 tiles',
-            'Gap control between tiles',
-            'Individual settings per tile',
-            'Custom background color, image or video per tile',
-            'Custom filters and audio reactivity per tile',
-            'Save and load tile presets',
-          ],
-        },
+        groups: [
+          {
+            title: 'Background Options',
+            items: [
+              'Solid color background with color picker',
+              'Transparency control',
+              'Linear gradients with angle control',
+              'Radial gradients with center alignment',
+              'Animated gradients with audio reaction',
+              'Use images as background',
+              'Video backgrounds with playback control',
+            ],
+          },
+          {
+            title: 'Tiled Background',
+            items: [
+              'Tile modes: 3, 6, 9 or 12 tiles',
+              'Gap control between tiles',
+              'Individual settings per tile',
+              'Custom background color, image or video per tile',
+              'Custom filters and audio reactivity per tile',
+              'Save and load tile presets',
+            ],
+          },
+        ],
       },
-      recording: {
+      {
+        id: 'recording',
+        nav: 'Video export',
         title: 'Video Recording and Export',
-        controls: {
-          title: 'Recording Controls',
-          items: [
-            'Prepare: Set up canvas stream',
-            'Start/Stop: Full recording control',
-            'Pause/Resume: Pause recording without stopping',
-            'Reset: Prepare for new recording',
-            'Status display: IDLE, READY, RECORDING, PAUSED',
-          ],
-        },
-        quality: {
-          title: 'Quality Options',
-          items: [
-            'Quality levels: Low, Medium, High',
-            'Resolution: 720p, 1080p, 4K',
-            'Frame rate: 30-60 FPS configurable',
-            'Bitrate control: Adaptive management',
-          ],
-        },
-        export: {
-          title: 'Export Formats',
-          items: [
-            'WebM: Standard browser format',
-            'MP4 conversion: Via integrated server',
-            'Automatic conversion: Optional after recording',
-            'Direct download: Save video to computer',
-            'Include audio: Optional in recording',
-          ],
-        },
+        columns: 3,
+        groups: [
+          {
+            title: 'Recording Controls',
+            items: [
+              'Prepare: Set up canvas stream',
+              'Start/Stop: Full recording control',
+              'Pause/Resume: Pause recording without stopping',
+              'Reset: Prepare for new recording',
+              'Status display: IDLE, READY, RECORDING, PAUSED',
+            ],
+          },
+          {
+            title: 'Quality Options',
+            items: [
+              'Quality levels: Low, Medium, High',
+              'Resolution: 720p, 1080p, 4K',
+              'Frame rate: 30-60 FPS configurable',
+              'Bitrate control: Adaptive management',
+            ],
+          },
+          {
+            title: 'Export Formats',
+            items: [
+              'WebM: Standard browser format',
+              'MP4 conversion: Via integrated server',
+              'Automatic conversion: Optional after recording',
+              'Direct download: Save video to computer',
+              'Include audio: Optional in recording',
+            ],
+          },
+        ],
       },
-      screenshot: {
+      {
+        id: 'screenshot',
+        nav: 'Screenshot',
         title: 'Screenshot Feature',
         items: [
           'Format options: PNG, JPG, WebP',
@@ -377,23 +404,58 @@ export default {
           'Compressed JPG for smaller file size',
           'Modern WebP for optimal compression',
         ],
+        variant: 'grid',
       },
-      shortcuts: {
+      {
+        id: 'shortcuts',
+        nav: 'Keyboard shortcuts',
         title: 'Keyboard Shortcuts',
-        items: [
-          { key: 'Space', action: 'Play/Pause' },
-          { key: 'S', action: 'Stop' },
-          { key: 'R', action: 'Record' },
-          { key: 'Ctrl+Z', action: 'Undo' },
-          { key: 'Del', action: 'Delete' },
-          { key: 'Ctrl+A', action: 'Select all' },
-          { key: 'Arrow keys', action: 'Move object' },
-          { key: '+/-', action: 'Zoom' },
-          { key: 'G', action: 'Toggle grid' },
-          { key: 'M', action: 'Set beat marker' },
+        shortcuts: [
+          {
+            key: 'Space',
+            action: 'Play/Pause',
+          },
+          {
+            key: 'S',
+            action: 'Stop',
+          },
+          {
+            key: 'R',
+            action: 'Record',
+          },
+          {
+            key: 'Ctrl+Z',
+            action: 'Undo',
+          },
+          {
+            key: 'Del',
+            action: 'Delete',
+          },
+          {
+            key: 'Ctrl+A',
+            action: 'Select all',
+          },
+          {
+            key: 'Arrow keys',
+            action: 'Move object',
+          },
+          {
+            key: '+/-',
+            action: 'Zoom',
+          },
+          {
+            key: 'G',
+            action: 'Toggle grid',
+          },
+          {
+            key: 'M',
+            action: 'Set beat marker',
+          },
         ],
       },
-      history: {
+      {
+        id: 'history',
+        nav: 'Undo',
         title: 'Undo/Redo',
         items: [
           '50 steps history',
@@ -402,61 +464,72 @@ export default {
           'Command pattern: Every action is reversible',
         ],
       },
-      audioReactivity: {
+      {
+        id: 'reactivity',
+        nav: 'Audio reactivity',
         title: 'Advanced Audio Reactivity',
-        frequency: {
-          title: 'Frequency Filtering',
-          items: [
-            'Bass analysis: Kick drum detection',
-            'Mid-range analysis: Vocals/melody',
-            'Treble analysis: Hi-hats/cymbals',
-            'Overall volume: Complete audio level',
-            'Dynamic mixing: Automatic frequency combination',
-          ],
-        },
-        parameters: {
-          title: 'Audio Effect Parameters',
-          items: [
-            'Smoothing: Fluid animations (0-100%)',
-            'Threshold: Minimum audio level for trigger',
-            'Attack: Response speed (10-100%)',
-            'Release: Decay speed (10-100%)',
-            'Easing curves: Linear, Ease, Bounce, Elastic, Punch',
-            'Phase offset: Delayed effects for cascades (0-360 degrees)',
-            'Beat Boost: Amplification on beats (1.0-3.0x)',
-          ],
-        },
-        presets: {
-          title: 'Effect Presets',
-          items: [
-            'Punchy: Fast and precise',
-            'Smooth: Gentle and flowing',
-            'Subtle: Restrained and delicate',
-            'Extreme: Maximum audio reaction',
-          ],
-        },
+        columns: 3,
+        groups: [
+          {
+            title: 'Frequency Filtering',
+            items: [
+              'Bass analysis: Kick drum detection',
+              'Mid-range analysis: Vocals/melody',
+              'Treble analysis: Hi-hats/cymbals',
+              'Overall volume: Complete audio level',
+              'Dynamic mixing: Automatic frequency combination',
+            ],
+          },
+          {
+            title: 'Audio Effect Parameters',
+            items: [
+              'Smoothing: Fluid animations (0-100%)',
+              'Threshold: Minimum audio level for trigger',
+              'Attack: Response speed (10-100%)',
+              'Release: Decay speed (10-100%)',
+              'Easing curves: Linear, Ease, Bounce, Elastic, Punch',
+              'Phase offset: Delayed effects for cascades (0-360 degrees)',
+              'Beat Boost: Amplification on beats (1.0-3.0x)',
+            ],
+          },
+          {
+            title: 'Effect Presets',
+            items: [
+              'Punchy: Fast and precise',
+              'Smooth: Gentle and flowing',
+              'Subtle: Restrained and delicate',
+              'Extreme: Maximum audio reaction',
+            ],
+          },
+        ],
       },
-      browser: {
+      {
+        id: 'browser',
+        nav: 'Browser support',
         title: 'Browser and Format Support',
-        browsers: {
-          title: 'Supported Browsers',
-          items: [
-            'Chrome/Chromium: Full support (recommended)',
-            'Firefox: Full support',
-            'Edge: Full support',
-            'Safari: Supported (with MediaRecorder limitations)',
-          ],
-        },
-        formats: {
-          title: 'Supported Formats',
-          items: [
-            'Audio: MP3, WAV, OGG, FLAC, AAC and more',
-            'Images: JPG, PNG, GIF, WebP',
-            'Video: MP4, WebM, MOV (browser dependent)',
-          ],
-        },
+        groups: [
+          {
+            title: 'Supported Browsers',
+            items: [
+              'Chrome/Chromium: Full support (recommended)',
+              'Firefox: Full support',
+              'Edge: Full support',
+              'Safari: Supported (with MediaRecorder limitations)',
+            ],
+          },
+          {
+            title: 'Supported Formats',
+            items: [
+              'Audio: MP3, WAV, OGG, FLAC, AAC and more',
+              'Images: JPG, PNG, GIF, WebP',
+              'Video: MP4, WebM, MOV (browser dependent)',
+            ],
+          },
+        ],
       },
-      unique: {
+      {
+        id: 'unique',
+        nav: 'Unique benefits',
         title: 'Unique Advantages',
         items: [
           '100% browser-based: No installation required',
@@ -467,8 +540,9 @@ export default {
           'Professional quality: Suitable for real music videos',
           'Completely free: No watermarks, no restrictions',
         ],
+        variant: 'unique',
       },
-    },
+    ],
     summary: {
       title: 'Summary',
       text: 'The Audio Visualizer is a comprehensive, feature-rich browser-based tool with:',
@@ -491,6 +565,69 @@ export default {
       subtitle: 'Create your first audio visualization now - free and without registration.',
       button: 'Start Visualizer',
     },
+    toc: 'Contents',
+    newBadge: 'New',
+    reactiveBadge: 'Audio-reactive',
+    stats: [
+      {
+        value: '30+',
+        label: 'Visualizers',
+      },
+      {
+        value: '15+',
+        label: 'Text effects',
+      },
+      {
+        value: '23+',
+        label: 'Image effects',
+      },
+      {
+        value: '10',
+        label: 'Social presets',
+      },
+    ],
+    overview: [
+      {
+        id: 'audio',
+        title: 'Audio controls',
+        desc: 'Full-featured player, microphone support, beat markers & 1024-point FFT analysis',
+      },
+      {
+        id: 'visualizers',
+        title: '30+ visualizers',
+        desc: 'Bars, waves, particles, cosmic effects, retro pixels and more – in 8 categories',
+      },
+      {
+        id: 'text',
+        title: 'Text & effects',
+        desc: '15+ professional fonts, shadow, outline & 15 audio-reactive animations',
+      },
+      {
+        id: 'images',
+        title: 'Image layers',
+        desc: 'Multiple images, 8 filters, 23+ audio-reactive effects, rotation & drag-and-drop',
+      },
+      {
+        id: 'background',
+        title: 'Canvas & background',
+        desc: '10 social media presets, gradients, video backgrounds & tile system',
+      },
+      {
+        id: 'recording',
+        title: 'Video export',
+        desc: 'WebM & MP4, up to 4K 60 FPS, screenshots in PNG/JPG/WebP, GIF export',
+      },
+      {
+        id: 'reactivity',
+        title: 'Audio reactivity',
+        desc: 'Bass/mid/treble analysis, attack/release, easing curves & beat boost up to 3x',
+      },
+      {
+        id: 'unique',
+        title: '100% free',
+        desc: 'Browser-based, no installation, no account, no watermarks',
+      },
+    ],
   },
 
   // ========== INTERNAL LANDING PAGE ==========

@@ -15,8 +15,10 @@ export class DragDropHandler {
 
   /**
    * Verschiebt ein Objekt um dx/dy Pixel
+   * @param {{ shiftKey?: boolean }} [options] - Shift kehrt bei Slideshow-Bildern
+   *   den Modus um (einzelnes Bild ↔ ganze Slideshow)
    */
-  moveObject(obj, dx, dy) {
+  moveObject(obj, dx, dy, options = {}) {
     if (obj.type === 'background' || obj.type === 'workspace-background') {
       return
     }
@@ -27,6 +29,10 @@ export class DragDropHandler {
     // Slideshow-Bilder: jedes Bild hat eigene Position (im Workspace-Modus fest)
     const slideshow = obj.isSlideshowImage ? window.slideshowManager : null
     if (slideshow?.isFittedToWorkspace()) return
+    if (slideshow && Boolean(options.shiftKey) !== Boolean(slideshow.moveWholeSlideshow)) {
+      slideshow.moveSlideshow(relDx, relDy)
+      return
+    }
 
     obj.relX += relDx
     obj.relY += relDy

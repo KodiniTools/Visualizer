@@ -1451,6 +1451,10 @@ export default {
       'Während der Slideshow geänderte Filter, Audio-Einstellungen sowie Größe/Position der Bilder bleiben erhalten – auch nach Stoppen und Neustart. Bilder mit eigener Größe ignorieren den gemeinsamen Bereich (Position & Größe).',
     resetAdjustments: 'Bild-Anpassungen zurücksetzen',
     adjustmentsReset: 'Bild-Anpassungen der Slideshow zurückgesetzt',
+    moveWhole: 'Maus verschiebt ganze Slideshow',
+    moveWholeHintOn:
+      'Ziehen verschiebt alle Bilder gemeinsam. Shift + Ziehen: nur das angeklickte Bild.',
+    moveWholeHintOff: 'Ziehen verschiebt das angeklickte Bild. Shift + Ziehen: ganze Slideshow.',
     dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.',
   },
 

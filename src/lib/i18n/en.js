@@ -1450,6 +1450,9 @@ export default {
       'Filters, audio settings and size/position changed on images during the slideshow are kept – even after stopping and restarting. Images with their own size ignore the shared area (position & size).',
     resetAdjustments: 'Reset image adjustments',
     adjustmentsReset: 'Slideshow image adjustments reset',
+    moveWhole: 'Mouse moves the whole slideshow',
+    moveWholeHintOn: 'Dragging moves all images together. Shift + drag: only the clicked image.',
+    moveWholeHintOff: 'Dragging moves the clicked image. Shift + drag: whole slideshow.',
     dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.',
   },
 

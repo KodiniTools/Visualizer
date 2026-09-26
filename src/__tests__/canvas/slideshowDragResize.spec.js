@@ -1,11 +1,14 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { DragDropHandler } from '../../lib/canvasManager/interaction/DragDropHandler.js'
 
-function setup({ fitted = false } = {}) {
+function setup({ fitted = false, moveWhole = false } = {}) {
   const committed = []
+  const movedWhole = []
   window.slideshowManager = {
     isFittedToWorkspace: () => fitted,
     commitImageBounds: (obj) => committed.push({ ...obj }),
+    moveWholeSlideshow: moveWhole,
+    moveSlideshow: (dx, dy) => movedWhole.push([dx, dy]),
   }
   const manager = {
     canvas: { width: 1000, height: 1000 },
@@ -21,7 +24,7 @@ function setup({ fitted = false } = {}) {
     relWidth: 0.4,
     relHeight: 0.2,
   }
-  return { handler: new DragDropHandler(manager), manager, obj, committed }
+  return { handler: new DragDropHandler(manager), manager, obj, committed, movedWhole }
 }
 
 afterEach(() => {
@@ -63,5 +66,30 @@ describe('DragDropHandler – Slideshow-Bilder', () => {
     expect(obj.relWidth).toBe(0.4)
     expect(obj.relX).toBe(0.1)
     expect(committed).toHaveLength(0)
+  })
+})
+
+describe('DragDropHandler – ganze Slideshow verschieben', () => {
+  it('Shift + Ziehen verschiebt die ganze Slideshow', () => {
+    const { handler, obj, committed, movedWhole } = setup()
+    handler.moveObject(obj, 50, 100, { shiftKey: true })
+    expect(movedWhole).toEqual([[0.05, 0.1]])
+    expect(obj.relX).toBe(0.1)
+    expect(committed).toHaveLength(0)
+  })
+
+  it('Modus „ganze Slideshow“: Ziehen = alle, Shift = einzelnes Bild', () => {
+    const { handler, obj, movedWhole } = setup({ moveWhole: true })
+    handler.moveObject(obj, 50, 0)
+    expect(movedWhole).toHaveLength(1)
+    handler.moveObject(obj, 50, 0, { shiftKey: true })
+    expect(movedWhole).toHaveLength(1)
+    expect(obj.relX).toBeCloseTo(0.15)
+  })
+
+  it('Workspace-Modus: auch ganze Slideshow gesperrt', () => {
+    const { handler, obj, movedWhole } = setup({ fitted: true })
+    handler.moveObject(obj, 50, 0, { shiftKey: true })
+    expect(movedWhole).toHaveLength(0)
   })
 })

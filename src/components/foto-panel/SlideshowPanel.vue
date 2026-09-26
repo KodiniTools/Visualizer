@@ -47,6 +47,19 @@
         />
         <span>{{ t('slideshow.fitToWorkspace') }}</span>
       </label>
+      <label class="checkbox-label" :class="{ disabled: fitsWorkspace }">
+        <input
+          v-model="moveWholeSlideshow"
+          class="move-whole-checkbox"
+          type="checkbox"
+          :disabled="fitsWorkspace"
+          @change="emit('move-mode-change', moveWholeSlideshow)"
+        />
+        <span>{{ t('slideshow.moveWhole') }}</span>
+      </label>
+      <p class="hint move-whole-hint">
+        {{ moveWholeSlideshow ? t('slideshow.moveWholeHintOn') : t('slideshow.moveWholeHintOff') }}
+      </p>
       <p v-if="!hasWorkspace" class="hint warning fit-workspace-hint">
         {{ t('slideshow.fitToWorkspaceNoWorkspace') }}
       </p>
@@ -134,6 +147,8 @@ const props = defineProps({
   // Gemerkte Bild-Anpassungen/-Größen: { get(img), set(img, settings|null, audioMode),
   // getBounds(img), setBounds(img, bounds|null) }
   adjustmentsApi: { type: Object, default: null },
+  // Gemeinsamer Bereich wurde per Maus verschoben ({ relX, relY, relWidth, relHeight })
+  externalTransform: { type: Object, default: null },
 })
 
 const emit = defineEmits([
@@ -147,6 +162,7 @@ const emit = defineEmits([
   'fit-workspace-change',
   'reset-image-adjustments',
   'live-update',
+  'move-mode-change',
 ])
 
 const D = SLIDESHOW_DEFAULT_SETTINGS
@@ -160,6 +176,9 @@ const loopSlideshow = ref(D.loop)
 
 // Render Layer
 const renderBehindVisualizer = ref(D.renderBehindVisualizer)
+
+// Maus verschiebt die ganze Slideshow statt eines einzelnen Bildes (Shift kehrt um)
+const moveWholeSlideshow = ref(false)
 
 // Bilder füllen den Workspace-Bereich (wie „Als Workspace-Hintergrund“)
 const fitToWorkspace = ref(D.fitToWorkspace)
@@ -340,6 +359,16 @@ watch(
   () => props.hasWorkspace,
   () => {
     if (fitToWorkspace.value) emit('fit-workspace-change', fitsWorkspace.value)
+  },
+)
+
+// Per Maus verschobenen Bereich in die Regler übernehmen
+watch(
+  () => props.externalTransform,
+  (tf) => {
+    if (!tf) return
+    transformX.value = Math.round(tf.relX * 100)
+    transformY.value = Math.round(tf.relY * 100)
   },
 )
 

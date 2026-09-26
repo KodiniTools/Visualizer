@@ -519,3 +519,37 @@ describe('SlideshowManager – Preset live laden', () => {
     m.stop()
   })
 })
+
+describe('SlideshowManager – ganze Slideshow verschieben', () => {
+  it('verschiebt gemeinsamen Bereich und Bilder mit eigener Größe gleichermaßen', () => {
+    const imgA = { width: 100, height: 100 }
+    const imgB = { width: 100, height: 100 }
+    const changes = []
+    const m = createManager({ onTransformChange: (t) => changes.push(t) })
+    m.setTransform({ relX: 0.1, relY: 0.1, relWidth: 0.5, relHeight: 0.5 })
+    m.setImageBounds(imgB, { relX: 0.6, relY: 0.6, relWidth: 0.2, relHeight: 0.2 })
+    m.start([{ imageObject: imgA }, { imageObject: imgB }])
+    const a = m.activeImages[0]
+    const ax = a.relX
+
+    m.moveSlideshow(0.1, 0.05)
+    expect(m.transform.relX).toBeCloseTo(0.2)
+    expect(a.relX).toBeCloseTo(ax + 0.1)
+    expect(m.getImageBounds(imgB).relX).toBeCloseTo(0.7)
+    expect(m.getImageBounds(imgB).relY).toBeCloseTo(0.65)
+    expect(changes.at(-1).relX).toBeCloseTo(0.2)
+
+    // Am Rand begrenzt – eigene Bounds bewegen sich nur um den tatsächlichen Betrag
+    m.moveSlideshow(1, 0)
+    expect(m.transform.relX).toBeCloseTo(0.5)
+    expect(m.getImageBounds(imgB).relX).toBeCloseTo(1.0)
+    m.stop()
+  })
+
+  it('setMoveWholeSlideshow setzt den Modus', () => {
+    const m = createManager()
+    expect(m.moveWholeSlideshow).toBe(false)
+    m.setMoveWholeSlideshow(true)
+    expect(m.moveWholeSlideshow).toBe(true)
+  })
+})

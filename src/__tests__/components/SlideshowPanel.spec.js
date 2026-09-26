@@ -235,6 +235,18 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Zwei', 'Eins'])
   })
 
+  it('move-whole checkbox emits mode change; external transform updates sliders', async () => {
+    const w = mountPanel()
+    expect(w.find('.move-whole-hint').text()).toContain('Shift')
+    await w.find('.move-whole-checkbox').setValue(true)
+    expect(w.emitted('move-mode-change').at(-1)).toEqual([true])
+    await w.setProps({
+      externalTransform: { relX: 0.25, relY: 0.3, relWidth: 0.8, relHeight: 0.8 },
+    })
+    const values = w.findAll('.transform-control .value').map((v) => v.text())
+    expect(values.slice(0, 2)).toEqual(['25%', '30%'])
+  })
+
   it('reset in the transform section restores defaults and emits transform-change', async () => {
     const w = mountPanel()
     const xNum = w.findAll('.transform-control input[type="number"]')[0].element

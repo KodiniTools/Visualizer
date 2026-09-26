@@ -47,6 +47,7 @@
       :currentPhase="slideshowCurrentPhase"
       :has-workspace="hasWorkspace"
       :adjustments-api="slideshowAdjustmentsApi"
+      :external-transform="slideshowExternalTransform"
       @start="startSlideshow"
       @pause="pauseSlideshow"
       @resume="resumeSlideshow"
@@ -57,6 +58,7 @@
       @fit-workspace-change="onSlideshowFitWorkspaceChange"
       @reset-image-adjustments="onSlideshowResetImageAdjustments"
       @live-update="onSlideshowLiveUpdate"
+      @move-mode-change="onSlideshowMoveModeChange"
     />
 
     <!-- Filter-Bereich -->
@@ -191,6 +193,8 @@ const slideshowIsPaused = ref(false)
 const slideshowCurrentIndex = ref(0)
 const slideshowCurrentPhase = ref('fadeIn')
 const slideshowTotalImages = ref(0)
+// Per Maus verschobener gemeinsamer Bereich (für die Regler im Slideshow-Panel)
+const slideshowExternalTransform = ref(null)
 // Workspace-Format gewählt? (Voraussetzung für „An Workspace anpassen“)
 const workspaceStore = useWorkspaceStore()
 const hasWorkspace = computed(() => workspaceStore.selectedPresetKey != null)
@@ -351,6 +355,9 @@ function initSlideshowManager() {
       // ✨ Global entfernen wenn gestoppt
       window.slideshowManager = null
     },
+    onTransformChange: (transform) => {
+      slideshowExternalTransform.value = transform
+    },
     // Lazy, damit ein späteres Workspace-Format berücksichtigt wird
     getWorkspaceBounds: () => canvasManagerRef?.value?.getWorkspaceBounds?.() ?? null,
     onImageTransition: (index, total, phase) => {
@@ -481,6 +488,11 @@ const slideshowAdjustmentsApi = {
 function getSlideshowManager() {
   if (!slideshowManagerRef.value) initSlideshowManager()
   return slideshowManagerRef.value
+}
+
+// Maus: ganze Slideshow oder einzelnes Bild verschieben
+function onSlideshowMoveModeChange(value) {
+  getSlideshowManager()?.setMoveWholeSlideshow(value)
 }
 
 // Gemerkte Bild-Anpassungen (Filter/Audio) der Slideshow verwerfen

@@ -19,6 +19,8 @@ export class SlideshowManager {
     this.onImageTransition = callbacks.onImageTransition || (() => {})
     // Liefert die Workspace-Bounds in Canvas-Pixeln ({x,y,width,height}) oder null
     this.getWorkspaceBounds = callbacks.getWorkspaceBounds || (() => null)
+    // Gemeinsamer Bereich per Maus verschoben (für die Regler im Panel)
+    this.onTransformChange = callbacks.onTransformChange || (() => {})
     // Zuletzt angewendete Workspace-Bounds (erkennt Formatwechsel während der Slideshow)
     this._lastWorkspaceKey = null
 
@@ -64,6 +66,8 @@ export class SlideshowManager {
     // Eigene Position/Größe pro Bild (imageObject → relative Bild-Bounds);
     // ohne Eintrag gilt der gemeinsame Transform-Bereich der Slideshow.
     this._boundsMemory = new WeakMap()
+    // Maus-Verschieben: true = ganze Slideshow, false = einzelnes Bild (Shift kehrt um)
+    this.moveWholeSlideshow = false
     // Audio-Vorgabe aus dem Panel pro Index für die aktuelle Slideshow (JSON)
     this._panelAr = []
     // Zeitpunkt der letzten Übernahme laufender Bilder in den Speicher
@@ -904,18 +908,39 @@ export class SlideshowManager {
   moveSlideshow(deltaRelX, deltaRelY) {
     // An den Workspace gebunden → nicht frei verschiebbar
     if (this.isFittedToWorkspace()) return
-    // Neue Position berechnen mit Constraints
-    let newRelX = this.transform.relX + deltaRelX
-    let newRelY = this.transform.relY + deltaRelY
+    const oldX = this.transform.relX
+    const oldY = this.transform.relY
+    // Neue Position berechnen mit Constraints (gemeinsamer Bereich bleibt im Canvas)
+    const newRelX = Math.max(0, Math.min(oldX + deltaRelX, 1 - this.transform.relWidth))
+    const newRelY = Math.max(0, Math.min(oldY + deltaRelY, 1 - this.transform.relHeight))
+    const appliedX = newRelX - oldX
+    const appliedY = newRelY - oldY
+    if (appliedX === 0 && appliedY === 0) return
 
-    // Begrenze auf Canvas-Bereich
-    newRelX = Math.max(0, Math.min(newRelX, 1 - this.transform.relWidth))
-    newRelY = Math.max(0, Math.min(newRelY, 1 - this.transform.relHeight))
+    // Bilder mit eigener Größe/Position um denselben Betrag mitverschieben,
+    // damit die Anordnung der ganzen Slideshow erhalten bleibt
+    for (const cfg of this.config.images) {
+      const imageObject = cfg?.imageObject || cfg?.img
+      const own = imageObject ? this._boundsMemory.get(imageObject) : null
+      if (own) {
+        this._boundsMemory.set(imageObject, {
+          ...own,
+          relX: own.relX + appliedX,
+          relY: own.relY + appliedY,
+        })
+      }
+    }
 
-    this.setTransform({
-      relX: newRelX,
-      relY: newRelY,
-    })
+    this.setTransform({ relX: newRelX, relY: newRelY })
+    this.onTransformChange(this.getTransform())
+  }
+
+  /**
+   * Maus-Verschieben: ganze Slideshow (true) oder einzelnes Bild (false).
+   * @param {boolean} value
+   */
+  setMoveWholeSlideshow(value) {
+    this.moveWholeSlideshow = !!value
   }
 
   /**

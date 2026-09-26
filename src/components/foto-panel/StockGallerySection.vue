@@ -53,8 +53,16 @@
           @dragstart="$emit('image-dragstart', { img, event: $event })"
           @dragend="$emit('image-dragend')"
         >
-          <!-- Checkbox für Mehrfachauswahl -->
-          <div class="selection-checkbox" :class="{ checked: selectedStockImages.has(img.id) }">
+          <!-- Checkbox für Mehrfachauswahl: schaltet additiv um (wie Strg+Klick) -->
+          <div
+            class="selection-checkbox"
+            :class="{ checked: selectedStockImages.has(img.id) }"
+            role="checkbox"
+            :aria-checked="selectedStockImages.has(img.id)"
+            :aria-label="img.name"
+            @click.stop="$emit('select-image', img, { ctrlKey: true })"
+            @dblclick.stop
+          >
             <span v-if="selectedStockImages.has(img.id)">✓</span>
           </div>
           <img :src="img.thumbnail" :alt="img.name" loading="lazy" draggable="false" />
@@ -469,6 +477,12 @@ function getStockCategoryName(category) {
 }
 
 /* Selection Checkbox */
+/* Größere Klickfläche für die Checkbox, ohne das Aussehen zu ändern */
+.selection-checkbox::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
 .selection-checkbox {
   position: absolute;
   top: 6px;
@@ -482,6 +496,7 @@ function getStockCategoryName(category) {
   align-items: center;
   justify-content: center;
   z-index: 10;
+  cursor: pointer;
   transition: all 0.2s ease;
   font-size: 12px;
   color: white;

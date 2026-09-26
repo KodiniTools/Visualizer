@@ -9,6 +9,7 @@ import * as persistence from '../../lib/slideshowImagePersistence.js'
 vi.mock('../../lib/slideshowImagePersistence.js', () => ({
   persistUploadImage: vi.fn(async () => null),
   restoreUploadImage: vi.fn(async () => null),
+  loadPersistedImage: vi.fn(async () => null),
 }))
 
 const images = [
@@ -211,6 +212,267 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
     expect(w.find('.bg-mode-canvas').element.checked).toBe(true)
+  })
+
+  it('base color: only in background mode, live change, preset, reset', async () => {
+    const w = mountPanel({ hasWorkspace: false })
+    expect(w.find('.slideshow-base-color').exists()).toBe(false)
+    await w.find('.bg-mode-canvas').setValue(true)
+    const input = w.find('.slideshow-base-color')
+    expect(input.element.value).toBe('#000000')
+    expect(w.find('.btn-reset-base-color').exists()).toBe(false)
+
+    await input.setValue('#336699')
+    expect(w.emitted('background-color-change').at(-1)).toEqual(['#336699'])
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0].backgroundColor).toBe('#336699')
+
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings.backgroundColor,
+    ).toBe('#336699')
+
+    await w.find('.btn-reset-base-color').trigger('click')
+    expect(w.emitted('background-color-change').at(-1)).toEqual(['#000000'])
+    expect(w.find('.slideshow-base-color').element.value).toBe('#000000')
+
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.find('.slideshow-base-color').element.value).toBe('#336699')
+    expect(w.emitted('background-color-change').at(-1)).toEqual(['#336699'])
+  })
+
+  it('base color is remembered without a preset (after remount)', async () => {
+    let w = mountPanel({ hasWorkspace: false })
+    await w.find('.bg-mode-canvas').setValue(true)
+    await w.find('.slideshow-base-color').setValue('#aa5500')
+    expect(localStorage.getItem('visualizer-slideshow-base-color')).toBe('#aa5500')
+    w.unmount()
+
+    w = mountPanel({ hasWorkspace: false })
+    await w.find('.bg-mode-canvas').setValue(true)
+    expect(w.find('.slideshow-base-color').element.value).toBe('#aa5500')
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0].backgroundColor).toBe('#aa5500')
+
+    // Zurücksetzen entfernt den Eintrag
+    await w.find('.btn-reset-base-color').trigger('click')
+    expect(localStorage.getItem('visualizer-slideshow-base-color')).toBeNull()
+  })
+
+  it('workspace color: own field, persisted, preset, reset', async () => {
+    let w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    expect(w.find('.slideshow-base-color').exists()).toBe(false)
+    const input = w.find('.slideshow-workspace-color')
+    expect(input.element.value).toBe('#000000')
+
+    await input.setValue('#224466')
+    expect(w.emitted('workspace-color-change').at(-1)).toEqual(['#224466'])
+    expect(localStorage.getItem('visualizer-slideshow-workspace-color')).toBe('#224466')
+    // Canvas-Farbe bleibt unberührt
+    expect(localStorage.getItem('visualizer-slideshow-base-color')).toBeNull()
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0]).toMatchObject({
+      workspaceColor: '#224466',
+      backgroundColor: '#000000',
+    })
+
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings.workspaceColor,
+    ).toBe('#224466')
+    w.unmount()
+
+    // Neu öffnen: gemerkt; Zurücksetzen entfernt den Eintrag, Preset stellt her
+    w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    expect(w.find('.slideshow-workspace-color').element.value).toBe('#224466')
+    await w.find('.btn-reset-workspace-color').trigger('click')
+    expect(w.emitted('workspace-color-change').at(-1)).toEqual(['#000000'])
+    expect(localStorage.getItem('visualizer-slideshow-workspace-color')).toBeNull()
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.find('.slideshow-workspace-color').element.value).toBe('#224466')
+  })
+
+  it('gradient per area: live, persisted, preset, reset', async () => {
+    let w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-canvas').setValue(true)
+    expect(w.find('.base-gradient-color2').exists()).toBe(false)
+    await w.find('.base-gradient-toggle').setValue(true)
+    expect(w.emitted('base-gradient-change').at(-1)).toEqual([
+      'canvas',
+      {
+        enabled: true,
+        color2: '#333333',
+        type: 'linear',
+        angle: 90,
+        audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
+      },
+    ])
+    await w.find('.base-gradient-color2').setValue('#ff8800')
+    await w.find('.base-gradient-angle').setValue('45')
+    await w.find('.base-gradient-type').setValue('radial')
+    expect(w.find('.base-gradient-angle').exists()).toBe(false) // nur linear
+    const canvasGradient = {
+      enabled: true,
+      color2: '#ff8800',
+      type: 'radial',
+      angle: 45,
+      audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
+    }
+    expect(w.emitted('base-gradient-change').at(-1)).toEqual(['canvas', canvasGradient])
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-gradient'))).toEqual(
+      canvasGradient,
+    )
+
+    // Workspace hat einen eigenen Verlauf
+    await w.find('.bg-mode-workspace').setValue(true)
+    expect(w.find('.workspace-gradient-toggle').element.checked).toBe(false)
+    await w.find('.workspace-gradient-toggle').setValue(true)
+    expect(w.emitted('base-gradient-change').at(-1)[0]).toBe('workspace')
+
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0]).toMatchObject({
+      backgroundGradient: canvasGradient,
+      workspaceGradient: { enabled: true },
+    })
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+        .backgroundGradient,
+    ).toEqual(canvasGradient)
+    w.unmount()
+
+    // Neu öffnen: gemerkt; Zurücksetzen → Schwarz ohne Verlauf; Preset stellt her
+    w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-canvas').setValue(true)
+    expect(w.find('.base-gradient-toggle').element.checked).toBe(true)
+    await w.find('.btn-reset-base-color').trigger('click')
+    expect(w.find('.base-gradient-toggle').element.checked).toBe(false)
+    expect(localStorage.getItem('visualizer-slideshow-base-gradient')).toBeNull()
+    expect(w.find('.btn-reset-base-color').exists()).toBe(false)
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.emitted('base-gradient-change').at(-1)).toEqual(['canvas', canvasGradient])
+    // Preset wurde im Workspace-Modus gespeichert → Modus mit wiederhergestellt
+    expect(w.find('.bg-mode-workspace').element.checked).toBe(true)
+    await w.find('.bg-mode-canvas').setValue(true)
+    expect(w.find('.base-gradient-type').element.value).toBe('radial')
+  })
+
+  it('gradient audio-reactive: toggle, source, strengths reach the slideshow', async () => {
+    const w = mountPanel({ hasWorkspace: false })
+    await w.find('.bg-mode-canvas').setValue(true)
+    await w.find('.base-gradient-toggle').setValue(true)
+    expect(w.find('.base-gradient-audio-source').exists()).toBe(false)
+    await w.find('.base-gradient-audio-toggle').setValue(true)
+    await w.find('.base-gradient-audio-source').setValue('treble')
+    await w.find('.base-gradient-audio-pulse').setValue('40')
+    await w.find('.base-gradient-audio-rotation').setValue('0')
+    const last = w.emitted('base-gradient-change').at(-1)
+    expect(last[0]).toBe('canvas')
+    expect(last[1].audio).toEqual({ enabled: true, source: 'treble', pulse: 40, rotation: 0 })
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-base-gradient')).audio.source,
+    ).toBe('treble')
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0].backgroundGradient.audio.pulse).toBe(40)
+  })
+
+  it('audio-reactive fill color: per area, persisted, preset, reset', async () => {
+    let w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    expect(w.find('.workspace-fill-audio-source').exists()).toBe(false)
+    await w.find('.workspace-fill-audio-toggle').setValue(true)
+    await w.find('.workspace-fill-audio-source').setValue('volume')
+    await w.find('.workspace-fill-audio-hue').setValue('60')
+    const fx = { enabled: true, source: 'volume', brightness: 80, hue: 60 }
+    expect(w.emitted('base-fill-audio-change').at(-1)).toEqual(['workspace', fx])
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-workspace-fill-audio'))).toEqual(
+      fx,
+    )
+    expect(localStorage.getItem('visualizer-slideshow-base-fill-audio')).toBeNull()
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0]).toMatchObject({
+      workspaceFillAudio: fx,
+      backgroundFillAudio: { enabled: false },
+    })
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+        .workspaceFillAudio,
+    ).toEqual(fx)
+    w.unmount()
+
+    w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    expect(w.find('.workspace-fill-audio-toggle').element.checked).toBe(true)
+    await w.find('.btn-reset-workspace-color').trigger('click')
+    expect(w.find('.workspace-fill-audio-toggle').element.checked).toBe(false)
+    expect(localStorage.getItem('visualizer-slideshow-workspace-fill-audio')).toBeNull()
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.find('.workspace-fill-audio-toggle').element.checked).toBe(true)
+    expect(w.emitted('base-fill-audio-change').at(-1)).toEqual(['workspace', fx])
+  })
+
+  it('own area image: pick from upload gallery, persisted, audio, sent with start', async () => {
+    const { useImageGallery } = await import('../../composables/useImageGallery.js')
+    const gallery = useImageGallery()
+    gallery.clearAllImages()
+    const img = { src: 'data:,galerie' }
+    gallery.imageGallery.value.push({ id: 7, img, name: 'galerie.png' })
+    persistence.persistUploadImage.mockResolvedValueOnce({
+      key: 'b'.repeat(64),
+      name: 'galerie.png',
+    })
+
+    const w = mountPanel({ hasWorkspace: false })
+    await w.find('.bg-mode-canvas').setValue(true)
+    await w.find('.base-image-toggle').setValue(true)
+    await w.find('.base-image-choose').trigger('click')
+    const options = w.findAll('.base-image-option')
+    expect(options).toHaveLength(1)
+    await options[0].trigger('click')
+    await flushPromises()
+
+    expect(persistence.persistUploadImage).toHaveBeenCalledWith({
+      name: 'galerie.png',
+      imageObject: img,
+    })
+    const [target, fill, image] = w.emitted('base-image-change').at(-1)
+    expect(target).toBe('canvas')
+    expect(fill).toMatchObject({ enabled: true, upload: { key: 'b'.repeat(64) } })
+    expect(image).toBe(img)
+    expect(w.find('.base-image-current').attributes('src')).toBe('data:,galerie')
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-image')).upload.name).toBe(
+      'galerie.png',
+    )
+
+    await w.find('.base-image-fit').setValue('contain')
+    await w.find('.base-image-audio-toggle').setValue(true)
+    await w.find('.base-image-audio-zoom').setValue('90')
+    expect(w.emitted('base-image-change').at(-1)[1]).toMatchObject({
+      fit: 'contain',
+      audio: { enabled: true, zoom: 90 },
+    })
+
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.backgroundImageObject).toBe(img)
+    expect(payload.backgroundImageFill).toMatchObject({ enabled: true, fit: 'contain' })
+    expect(payload.workspaceImageFill.enabled).toBe(false)
+
+    await w.find('.base-image-clear').trigger('click')
+    await flushPromises()
+    expect(w.emitted('base-image-change').at(-1)[2]).toBeNull()
+    gallery.clearAllImages()
   })
 
   it('emits reset-image-adjustments from the reset button', async () => {

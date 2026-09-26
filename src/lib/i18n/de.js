@@ -1511,6 +1511,55 @@ export default {
     backgroundModeWorkspace: 'Workspace',
     backgroundModeCanvasHint:
       'Die Bilder füllen den ganzen Canvas und liegen unter den übrigen Bildern. Position & Größe sind dabei fest.',
+    baseColor: 'Fläche darunter',
+    baseColorHint:
+      'Farbe, die anstelle des ersetzten Hintergrundbildes erscheint – sichtbar während der Übergänge und neben Bildern mit anderem Seitenverhältnis.',
+    workspaceColor: 'Workspace-Fläche',
+    workspaceColorHint:
+      'Eigene Farbe des Workspace-Bereichs unter der Slideshow – ersetzt ein Workspace-Hintergrundbild und ist während der Übergänge sichtbar.',
+    gradient: 'Farbverlauf',
+    gradientColor2: '2. Farbe',
+    gradientType: 'Art',
+    gradientLinear: 'Linear',
+    gradientRadial: 'Radial',
+    gradientAngle: 'Winkel',
+    gradientAudio: 'Audio-Reaktiv',
+    gradientAudioSource: 'Quelle',
+    gradientAudioPulse: 'Puls',
+    gradientAudioRotation: 'Rotation',
+    gradientAudioOrbit: 'Kreisen',
+    gradientAudioHint:
+      'Ohne Musik bleibt der Verlauf wie eingestellt; im Takt zieht er sich zusammen und dreht (radial: der Mittelpunkt kreist).',
+    gradientAudioSources: {
+      bass: 'Bass',
+      mid: 'Mitten',
+      treble: 'Höhen',
+      volume: 'Lautstärke',
+    },
+    fillAudio: 'Farbe audio-reaktiv',
+    fillAudioBrightness: 'Aufhellen',
+    fillAudioHue: 'Farbton',
+    fillAudioHint:
+      'Ohne Musik bleibt die Farbe wie eingestellt; im Takt hellt die Fläche auf bzw. verschiebt den Farbton (mit Farbverlauf: beide Farben).',
+    imageFill: 'Eigenes Bild als Fläche',
+    imageFillChoose: 'Bild wählen',
+    imageFillRemove: 'Entfernen',
+    imageFillNone: 'Kein Bild gewählt',
+    imageFillLoading: 'Bild wird geladen …',
+    imageFillNoImages:
+      'Keine Bilder vorhanden – lade Bilder in die Galerie hoch oder öffne eine Stock-Kategorie.',
+    imageFillPickerHint:
+      'Hochgeladene Bilder (⬆) und die geöffnete Stock-Kategorie (🗂). Das Bild wird dauerhaft gespeichert.',
+    imageFillFit: 'Darstellung',
+    imageFillCover: 'Füllen',
+    imageFillContain: 'Einpassen',
+    imageFillAudio: 'Bild audio-reaktiv',
+    imageFillZoom: 'Puls-Zoom',
+    imageFillAudioHint:
+      'Ohne Musik bleibt das Bild wie eingestellt; im Takt hellt es auf, verschiebt den Farbton und pulsiert.',
+    imageFillMissing: 'Flächenbild nicht gefunden',
+    imageFillError: 'Bild konnte nicht als Fläche übernommen werden',
+    baseColorReset: 'Standard (Schwarz, ohne Farbverlauf und Audio)',
     backgroundModeWorkspaceNeedsFormat:
       'Workspace-Hintergrund: zuerst ein Workspace-Format wählen (z. B. TikTok 9:16).',
     dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.',

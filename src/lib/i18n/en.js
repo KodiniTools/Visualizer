@@ -1507,6 +1507,55 @@ export default {
     backgroundModeWorkspace: 'Workspace',
     backgroundModeCanvasHint:
       'Images fill the whole canvas and lie beneath the other images. Position & size are fixed.',
+    baseColor: 'Area beneath',
+    baseColorHint:
+      'Colour shown instead of the replaced background image – visible during transitions and next to images with a different aspect ratio.',
+    workspaceColor: 'Workspace area',
+    workspaceColorHint:
+      'Own colour of the workspace area beneath the slideshow – replaces a workspace background image and shows during transitions.',
+    gradient: 'Gradient',
+    gradientColor2: '2nd colour',
+    gradientType: 'Type',
+    gradientLinear: 'Linear',
+    gradientRadial: 'Radial',
+    gradientAngle: 'Angle',
+    gradientAudio: 'Audio-reactive',
+    gradientAudioSource: 'Source',
+    gradientAudioPulse: 'Pulse',
+    gradientAudioRotation: 'Rotation',
+    gradientAudioOrbit: 'Orbit',
+    gradientAudioHint:
+      'Without music the gradient stays as set; to the beat it contracts and turns (radial: the centre orbits).',
+    gradientAudioSources: {
+      bass: 'Bass',
+      mid: 'Mids',
+      treble: 'Highs',
+      volume: 'Volume',
+    },
+    fillAudio: 'Audio-reactive colour',
+    fillAudioBrightness: 'Brighten',
+    fillAudioHue: 'Hue',
+    fillAudioHint:
+      'Without music the colour stays as set; to the beat the area brightens or shifts its hue (with a gradient: both colours).',
+    imageFill: 'Own image as area',
+    imageFillChoose: 'Choose image',
+    imageFillRemove: 'Remove',
+    imageFillNone: 'No image selected',
+    imageFillLoading: 'Loading image …',
+    imageFillNoImages:
+      'No images available – upload images to the gallery or open a stock category.',
+    imageFillPickerHint:
+      'Uploaded images (⬆) and the open stock category (🗂). The image is stored permanently.',
+    imageFillFit: 'Display',
+    imageFillCover: 'Fill',
+    imageFillContain: 'Fit',
+    imageFillAudio: 'Audio-reactive image',
+    imageFillZoom: 'Pulse zoom',
+    imageFillAudioHint:
+      'Without music the image stays as set; to the beat it brightens, shifts its hue and pulses.',
+    imageFillMissing: 'Area image not found',
+    imageFillError: 'Image could not be used as area',
+    baseColorReset: 'Default (black, no gradient or audio)',
     backgroundModeWorkspaceNeedsFormat:
       'Workspace background: select a workspace format first (e.g. TikTok 9:16).',
     dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.',

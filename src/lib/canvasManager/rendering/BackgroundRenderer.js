@@ -16,6 +16,10 @@ import {
   drawAudioReactiveOverlays,
   drawMediaWithAudioReactive,
 } from './audioReactiveDraw.js'
+import { SLIDESHOW_BASE_COLOR_DEFAULT } from '../../slideshowBaseColor.js'
+import { computeSlideshowGradientAudio } from '../../slideshowGradientAudio.js'
+import { applySlideshowFillAudio, computeSlideshowFillAudio } from '../../slideshowFillAudio.js'
+import { computeSlideshowImageFillAudio, drawSlideshowImageFill } from '../../slideshowImageFill.js'
 
 /**
  * Ersetzt die laufende Slideshow gerade den Canvas- bzw. Workspace-Hintergrund?
@@ -26,6 +30,74 @@ import {
 export function isBackgroundReplacedBySlideshow(target) {
   const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
   return Boolean(slideshow?.replacesBackground?.(target))
+}
+
+/**
+ * Farbe der Fläche unter der Slideshow (siehe slideshowBaseColor.js).
+ * @param {'canvas'|'workspace'} target
+ */
+function getSlideshowBaseColor(target) {
+  const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+  const color =
+    typeof slideshow?.getBaseColor === 'function'
+      ? slideshow.getBaseColor(target)
+      : slideshow?.getBackgroundColor?.()
+  return color || SLIDESHOW_BASE_COLOR_DEFAULT
+}
+
+/**
+ * Farbverlauf der Fläche oder null (aus).
+ * @param {'canvas'|'workspace'} target
+ */
+function getSlideshowBaseGradient(target) {
+  const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+  const gradient = slideshow?.getBaseGradient?.(target)
+  return gradient?.enabled ? gradient : null
+}
+
+/**
+ * Audio-Reaktive Farbeinstellung der Fläche oder null (aus).
+ * @param {'canvas'|'workspace'} target
+ */
+function getSlideshowFillAudio(target) {
+  const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+  const audio = slideshow?.getBaseFillAudio?.(target)
+  return audio?.enabled ? audio : null
+}
+
+/**
+ * Füllung für einen Bereich: Farbe oder Farbverlauf (color → color2).
+ * Linear: Winkel in Grad (0 = links→rechts, 90 = oben→unten), über die
+ * Diagonale des Bereichs; radial: vom Mittelpunkt bis in die Ecken.
+ * Audio-Reaktiv (`audio`, siehe slideshowGradientAudio.js): `extent` skaliert
+ * die Ausdehnung, `angleOffset` dreht den linearen Verlauf, `centerShift`
+ * lässt den radialen Mittelpunkt kreisen.
+ * @returns {string|CanvasGradient}
+ */
+export function createSlideshowBaseFill(ctx, area, color, gradient, audio = null) {
+  if (!gradient?.enabled || typeof ctx.createLinearGradient !== 'function') return color
+  const half = Math.hypot(area.width, area.height) / 2
+  const extent = Math.max(0.05, audio?.extent ?? 1)
+  let cx = area.x + area.width / 2
+  let cy = area.y + area.height / 2
+  let fill
+  if (gradient.type === 'radial') {
+    const shift = (audio?.centerShift ?? 0) * half
+    if (shift) {
+      cx += Math.cos(audio.shiftAngle || 0) * shift
+      cy += Math.sin(audio.shiftAngle || 0) * shift
+    }
+    fill = ctx.createRadialGradient(cx, cy, 0, cx, cy, half * extent)
+  } else {
+    const deg = (Number(gradient.angle) || 0) + (audio?.angleOffset ?? 0)
+    const rad = (deg * Math.PI) / 180
+    const dx = Math.cos(rad) * half * extent
+    const dy = Math.sin(rad) * half * extent
+    fill = ctx.createLinearGradient(cx - dx, cy - dy, cx + dx, cy + dy)
+  }
+  fill.addColorStop(0, color)
+  fill.addColorStop(1, gradient.color2)
+  return fill
 }
 
 export class BackgroundRenderer {
@@ -51,50 +123,59 @@ export class BackgroundRenderer {
     // jeweilige Hintergrundbild/-video (statt es nur zu verdecken)
     const slideshowReplacesCanvas = this._slideshowReplacesBackground('canvas')
     const slideshowReplacesWorkspace = this._slideshowReplacesBackground('workspace')
+    const hasCanvasVideo = Boolean(this.manager.videoBackground?.videoElement)
 
     // 1. GLOBAL BACKGROUND (Color or Image with Filters)
     if (typeof this.manager.background === 'string') {
       this._drawColorBackground(ctx)
     } else if (this.manager.background && typeof this.manager.background === 'object') {
-      if (slideshowReplacesCanvas) {
-        this._drawSlideshowBase(ctx)
-      } else {
-        this._drawImageBackground(ctx)
-      }
+      if (!slideshowReplacesCanvas) this._drawImageBackground(ctx)
     } else {
       // Fallback: Weißer Hintergrund wenn nichts gesetzt
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
     }
 
+    // 1.1 Fläche unter der Slideshow anstelle des ersetzten Bildes/Videos
+    // (ein reiner Farbhintergrund ohne Video bleibt erhalten)
+    const canvasBgIsMedia =
+      hasCanvasVideo || (this.manager.background && typeof this.manager.background === 'object')
+    // Ein eigenes Flächenbild ersetzt auch einen reinen Farbhintergrund
+    const hasCanvasImageFill =
+      slideshowReplacesCanvas &&
+      Boolean(typeof window !== 'undefined' && window.slideshowManager?.getBaseImage?.('canvas'))
+    if (slideshowReplacesCanvas && (canvasBgIsMedia || hasCanvasImageFill)) {
+      this._drawSlideshowBase(ctx)
+    }
+
     // 1.2 VIDEO-HINTERGRUND zeichnen (über Farb-/Bild-Hintergrund)
-    if (
-      !slideshowReplacesCanvas &&
-      this.manager.videoBackground &&
-      this.manager.videoBackground.videoElement
-    ) {
+    if (!slideshowReplacesCanvas && hasCanvasVideo) {
       this._drawVideoBackground(ctx)
     }
 
     // 1.5 KACHELN über dem Haupthintergrund zeichnen (falls aktiviert)
     this.drawBackgroundTiles(ctx)
 
-    // 2. WORKSPACE BACKGROUND
-    if (
-      !slideshowReplacesWorkspace &&
-      this.manager.workspaceBackground &&
-      this.manager.workspacePreset
-    ) {
+    const hasWorkspaceImage = Boolean(
+      this.manager.workspaceBackground && this.manager.workspacePreset,
+    )
+    const hasWorkspaceVideo = Boolean(
+      this.manager.workspaceVideoBackground?.videoElement && this.manager.workspacePreset,
+    )
+
+    // 2. Workspace-Modus: eigene Fläche im Workspace-Bereich (ersetzt ein
+    // Workspace-Bild/-Video; auch ohne solches, damit die gewählte Farbe gilt)
+    if (slideshowReplacesWorkspace && this.manager.workspacePreset) {
+      this._drawSlideshowBase(ctx, this.manager.getWorkspaceBounds?.() ?? null, 'workspace')
+    }
+
+    // 2.1 WORKSPACE BACKGROUND
+    if (!slideshowReplacesWorkspace && hasWorkspaceImage) {
       this._drawWorkspaceImageBackground(ctx)
     }
 
     // 2.5 WORKSPACE-VIDEO-HINTERGRUND zeichnen
-    if (
-      !slideshowReplacesWorkspace &&
-      this.manager.workspaceVideoBackground &&
-      this.manager.workspaceVideoBackground.videoElement &&
-      this.manager.workspacePreset
-    ) {
+    if (!slideshowReplacesWorkspace && hasWorkspaceVideo) {
       this._drawWorkspaceVideoBackground(ctx)
     }
   }
@@ -109,14 +190,45 @@ export class BackgroundRenderer {
   }
 
   /**
-   * Neutrale Fläche anstelle des ersetzten Hintergrundbildes – sichtbar nur
-   * während der Übergänge und neben Bildern mit abweichendem Seitenverhältnis.
+   * Fläche (einstellbare Farbe der Slideshow) anstelle des ersetzten
+   * Hintergrundbildes – sichtbar während der Übergänge und neben Bildern mit
+   * abweichendem Seitenverhältnis.
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {{x:number,y:number,width:number,height:number}|null} [rect] - Standard: ganzer Canvas
+   * @param {'canvas'|'workspace'} [target] - bestimmt die Farbe
    */
-  _drawSlideshowBase(ctx) {
+  _drawSlideshowBase(ctx, rect, target = 'canvas') {
+    const area =
+      rect === undefined ? { x: 0, y: 0, width: ctx.canvas.width, height: ctx.canvas.height } : rect
+    if (!area) return
     ctx.save()
-    ctx.fillStyle = '#000000'
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    const audioData = typeof window !== 'undefined' ? window.audioAnalysisData : null
+    let gradient = getSlideshowBaseGradient(target)
+    const audio = gradient?.audio?.enabled
+      ? computeSlideshowGradientAudio(gradient.audio, target, audioData)
+      : null
+    // Audio-Reaktive Farbe: wirkt auf die Flächenfarbe (und die 2. Verlaufsfarbe)
+    let color = getSlideshowBaseColor(target)
+    const fillAudio = getSlideshowFillAudio(target)
+    if (fillAudio) {
+      const change = computeSlideshowFillAudio(fillAudio, target, audioData)
+      color = applySlideshowFillAudio(color, change)
+      if (gradient)
+        gradient = { ...gradient, color2: applySlideshowFillAudio(gradient.color2, change) }
+    }
+    ctx.fillStyle = createSlideshowBaseFill(ctx, area, color, gradient, audio)
+    ctx.fillRect(area.x, area.y, area.width, area.height)
     ctx.restore()
+
+    // Eigenes Bild über Farbe/Verlauf (Ränder bei „Einpassen“ in Flächenfarbe)
+    const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+    const baseImage = slideshow?.getBaseImage?.(target)
+    if (baseImage) {
+      const change = baseImage.fill.audio?.enabled
+        ? computeSlideshowImageFillAudio(baseImage.fill.audio, target, audioData)
+        : null
+      drawSlideshowImageFill(ctx, area, baseImage.image, baseImage.fill, change)
+    }
   }
 
   /**

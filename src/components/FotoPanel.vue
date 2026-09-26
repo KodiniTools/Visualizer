@@ -57,6 +57,11 @@
       @render-layer-change="onSlideshowRenderLayerChange"
       @transform-change="onSlideshowTransformChange"
       @background-mode-change="onSlideshowBackgroundModeChange"
+      @background-color-change="onSlideshowBackgroundColorChange"
+      @workspace-color-change="onSlideshowWorkspaceColorChange"
+      @base-gradient-change="onSlideshowBaseGradientChange"
+      @base-fill-audio-change="onSlideshowBaseFillAudioChange"
+      @base-image-change="onSlideshowBaseImageChange"
       @reset-image-adjustments="onSlideshowResetImageAdjustments"
       @live-update="onSlideshowLiveUpdate"
       @move-mode-change="onSlideshowMoveModeChange"
@@ -498,6 +503,16 @@ function buildSlideshowRun(config) {
     audioReactiveSettings: null,
     renderBehindVisualizer: config.renderBehindVisualizer,
     backgroundMode: config.backgroundMode,
+    backgroundColor: config.backgroundColor,
+    workspaceColor: config.workspaceColor,
+    backgroundGradient: config.backgroundGradient,
+    workspaceGradient: config.workspaceGradient,
+    backgroundFillAudio: config.backgroundFillAudio,
+    workspaceFillAudio: config.workspaceFillAudio,
+    backgroundImageFill: config.backgroundImageFill,
+    workspaceImageFill: config.workspaceImageFill,
+    backgroundImageObject: config.backgroundImageObject,
+    workspaceImageObject: config.workspaceImageObject,
     fitToWorkspace: config.fitToWorkspace,
     moveWholeSlideshow: config.moveWholeSlideshow,
     transition: config.transition,
@@ -661,6 +676,31 @@ function restorePersistedAdjustments(images) {
 // Slideshow „An Workspace anpassen“ geändert (auch während laufender Slideshow)
 function onSlideshowBackgroundModeChange(mode) {
   slideshowManagerRef.value?.setBackgroundMode(mode)
+}
+
+// Farbe der Fläche unter der Slideshow geändert (sofort sichtbar)
+function onSlideshowBackgroundColorChange(color) {
+  slideshowManagerRef.value?.setBackgroundColor(color)
+}
+
+// Farbe der Workspace-Fläche geändert (sofort sichtbar)
+function onSlideshowWorkspaceColorChange(color) {
+  slideshowManagerRef.value?.setWorkspaceColor(color)
+}
+
+// Farbverlauf einer Fläche geändert (target: 'canvas' | 'workspace')
+function onSlideshowBaseGradientChange(target, gradient) {
+  slideshowManagerRef.value?.setBaseGradient(target, gradient)
+}
+
+// Audio-Reaktive Flächenfarbe geändert (target: 'canvas' | 'workspace')
+function onSlideshowBaseFillAudioChange(target, audio) {
+  slideshowManagerRef.value?.setBaseFillAudio(target, audio)
+}
+
+// Eigenes Flächenbild geändert (Einstellung + geladenes Bild, null = keines)
+function onSlideshowBaseImageChange(target, fill, imageObject) {
+  slideshowManagerRef.value?.setBaseImage(target, fill, imageObject)
 }
 
 // ✨ NEU: Slideshow Render-Layer geändert

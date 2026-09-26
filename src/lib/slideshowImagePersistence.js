@@ -30,3 +30,14 @@ export async function restoreUploadImage(key) {
   const entry = useImageGallery().ensureGalleryImage(loaded.imageObject, loaded.name)
   return { imageObject: entry.img, name: entry.name, galleryId: entry.id }
 }
+
+/**
+ * Lädt ein dauerhaft gespeichertes Bild, OHNE es in die Upload-Galerie zu
+ * legen (z. B. für das Flächenbild unter der Slideshow).
+ * @param {string} key
+ * @returns {Promise<{ imageObject:HTMLImageElement, name:string }|null>}
+ */
+export async function loadPersistedImage(key) {
+  const loaded = await loadImage(key)
+  return loaded?.imageObject ? { imageObject: loaded.imageObject, name: loaded.name } : null
+}

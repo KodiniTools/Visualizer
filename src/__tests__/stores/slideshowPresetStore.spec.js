@@ -168,6 +168,67 @@ describe('slideshowPresetStore', () => {
       normalizeSlideshowPreset({ id: 2, settings: { fitToWorkspace: true }, slots: [] }).settings
         .backgroundMode,
     ).toBe('workspace')
+    // Fläche unter der Slideshow: ältere/ungültige Werte → Schwarz
+    expect(p.settings.backgroundColor).toBe('#000000')
+    expect(p.settings.workspaceColor).toBe('#000000')
+    expect(p.settings.backgroundImageFill).toMatchObject({
+      enabled: false,
+      stock: null,
+      upload: null,
+    })
+    expect(
+      collectUploadKeys([
+        {
+          settings: { backgroundImageFill: { upload: { key: 'd'.repeat(64) } } },
+          slots: [],
+        },
+      ]),
+    ).toEqual(new Set(['d'.repeat(64)]))
+    expect(p.settings.backgroundFillAudio).toEqual({
+      enabled: false,
+      source: 'bass',
+      brightness: 80,
+      hue: 0,
+    })
+    expect(
+      normalizeSlideshowPreset({
+        id: 7,
+        settings: { workspaceFillAudio: { enabled: true, source: 'mid', hue: 999 } },
+        slots: [],
+      }).settings.workspaceFillAudio,
+    ).toEqual({ enabled: true, source: 'mid', brightness: 80, hue: 100 })
+    expect(p.settings.backgroundGradient).toEqual({
+      enabled: false,
+      color2: '#333333',
+      type: 'linear',
+      angle: 90,
+      audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
+    })
+    expect(
+      normalizeSlideshowPreset({
+        id: 6,
+        settings: { workspaceGradient: { enabled: true, type: 'radial', color2: '#ABCDEF' } },
+        slots: [],
+      }).settings.workspaceGradient,
+    ).toEqual({
+      enabled: true,
+      color2: '#abcdef',
+      type: 'radial',
+      angle: 90,
+      audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
+    })
+    expect(
+      normalizeSlideshowPreset({ id: 5, settings: { workspaceColor: '#12AB34' }, slots: [] })
+        .settings.workspaceColor,
+    ).toBe('#12ab34')
+    expect(
+      normalizeSlideshowPreset({ id: 3, settings: { backgroundColor: 'red' }, slots: [] }).settings
+        .backgroundColor,
+    ).toBe('#000000')
+    expect(
+      normalizeSlideshowPreset({ id: 4, settings: { backgroundColor: '#AABBCC' }, slots: [] })
+        .settings.backgroundColor,
+    ).toBe('#aabbcc')
     expect(p.settings.moveWholeSlideshow).toBe(false)
     expect(p.settings.transition).toBe('fade')
     expect(p.settings.transform.width).toBe(10)

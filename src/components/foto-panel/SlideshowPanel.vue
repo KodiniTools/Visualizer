@@ -79,6 +79,100 @@
           <span>{{ t('slideshow.backgroundModeWorkspace') }}</span>
         </label>
       </div>
+      <!-- Farbe der Fläche unter der Slideshow (ersetzt das Hintergrundbild) -->
+      <label v-if="backgroundMode === 'canvas'" class="base-color-label">
+        <span>{{ t('slideshow.baseColor') }}</span>
+        <input
+          v-model="backgroundColor"
+          class="slideshow-base-color"
+          type="color"
+          :title="t('slideshow.baseColorHint')"
+          @input="emit('background-color-change', backgroundColor)"
+        />
+        <button
+          v-if="
+            backgroundColor !== D.backgroundColor ||
+            !isDefaultGradient(backgroundGradient) ||
+            !isDefaultFillAudio(backgroundFillAudio)
+          "
+          type="button"
+          class="btn-reset-base-color"
+          :title="t('slideshow.baseColorReset')"
+          :aria-label="t('slideshow.baseColorReset')"
+          @click="resetBackgroundColor"
+        >
+          ↺
+        </button>
+      </label>
+      <!-- Eigene Farbe der Workspace-Fläche -->
+      <label v-if="backgroundMode === 'workspace'" class="base-color-label">
+        <span>{{ t('slideshow.workspaceColor') }}</span>
+        <input
+          v-model="workspaceColor"
+          class="slideshow-workspace-color"
+          type="color"
+          :disabled="!hasWorkspace"
+          :title="t('slideshow.workspaceColorHint')"
+          @input="emit('workspace-color-change', workspaceColor)"
+        />
+        <button
+          v-if="
+            workspaceColor !== D.workspaceColor ||
+            !isDefaultGradient(workspaceGradient) ||
+            !isDefaultFillAudio(workspaceFillAudio)
+          "
+          type="button"
+          class="btn-reset-workspace-color"
+          :title="t('slideshow.baseColorReset')"
+          :aria-label="t('slideshow.baseColorReset')"
+          @click="resetWorkspaceColor"
+        >
+          ↺
+        </button>
+      </label>
+      <SlideshowFillAudio
+        v-if="backgroundMode === 'canvas'"
+        v-model="backgroundFillAudio"
+        prefix="base"
+      />
+      <SlideshowFillAudio
+        v-if="backgroundMode === 'workspace'"
+        v-model="workspaceFillAudio"
+        prefix="workspace"
+        :disabled="!hasWorkspace"
+      />
+      <SlideshowBaseGradient
+        v-if="backgroundMode === 'canvas'"
+        v-model="backgroundGradient"
+        prefix="base"
+      />
+      <SlideshowBaseGradient
+        v-if="backgroundMode === 'workspace'"
+        v-model="workspaceGradient"
+        prefix="workspace"
+        :disabled="!hasWorkspace"
+      />
+      <!-- Eigenes Bild als Fläche (über Farbe/Verlauf) -->
+      <SlideshowImageFill
+        v-if="backgroundMode === 'canvas' || backgroundMode === 'workspace'"
+        :key="imageFillTarget"
+        :fill="imageFills.fills[imageFillTarget].value"
+        :thumb="imageFills.thumbOf(imageFillTarget)"
+        :loading="imageFills.loading[imageFillTarget]"
+        :candidates="imageFillCandidates"
+        :prefix="imageFillTarget === 'workspace' ? 'workspace' : 'base'"
+        :disabled="imageFillTarget === 'workspace' && !hasWorkspace"
+        @update="(partial) => imageFills.update(imageFillTarget, partial)"
+        @select="(candidate) => imageFills.select(imageFillTarget, candidate)"
+        @clear="imageFills.clear(imageFillTarget)"
+      />
+      <p v-if="backgroundMode !== 'none'" class="hint base-color-hint">
+        {{
+          backgroundMode === 'workspace'
+            ? t('slideshow.workspaceColorHint')
+            : t('slideshow.baseColorHint')
+        }}
+      </p>
       <label class="checkbox-label" :class="{ disabled: fitsWorkspace }">
         <input
           v-model="moveWholeSlideshow"
@@ -191,7 +285,30 @@
  * das FotoPanel. Die Sektionen liegen in `slideshow/` (Reihenfolge, Timing,
  * Position/Größe, Steuerung) und sind per v-model angebunden.
  */
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, toRaw } from 'vue'
+import {
+  SLIDESHOW_GRADIENT_DEFAULT,
+  isSameSlideshowGradient,
+  loadStoredSlideshowBaseColor,
+  loadStoredSlideshowGradient,
+  normalizeSlideshowGradient,
+  storeSlideshowBaseColor,
+  storeSlideshowGradient,
+} from '../../lib/slideshowBaseColor.js'
+import SlideshowBaseGradient from './slideshow/SlideshowBaseGradient.vue'
+import SlideshowFillAudio from './slideshow/SlideshowFillAudio.vue'
+import SlideshowImageFill from './slideshow/SlideshowImageFill.vue'
+import { useSlideshowImageFills } from './slideshow/useSlideshowImageFills.js'
+import { isSameSlideshowImageFill } from '../../lib/slideshowImageFill.js'
+import { useImageGallery } from '../../composables/useImageGallery.js'
+import { useStockGallery } from '../../composables/useStockGallery.js'
+import {
+  SLIDESHOW_FILL_AUDIO_DEFAULT,
+  isSameSlideshowFillAudio,
+  loadStoredSlideshowFillAudio,
+  normalizeSlideshowFillAudio,
+  storeSlideshowFillAudio,
+} from '../../lib/slideshowFillAudio.js'
 import { useI18n } from '../../lib/i18n.js'
 import SlideshowOrderList from './slideshow/SlideshowOrderList.vue'
 import SlideshowTimingSettings from './slideshow/SlideshowTimingSettings.vue'
@@ -202,7 +319,11 @@ import SlideshowImageEditor from './slideshow/SlideshowImageEditor.vue'
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore.js'
 import { slideshowImageKey, slideshowStableKey } from './slideshow/slideshowImageKey.js'
 import { restorePresetImages } from '../../lib/slideshowSources.js'
-import { persistUploadImage, restoreUploadImage } from '../../lib/slideshowImagePersistence.js'
+import {
+  loadPersistedImage,
+  persistUploadImage,
+  restoreUploadImage,
+} from '../../lib/slideshowImagePersistence.js'
 import { isQuotaError } from '../../utils/presetImageRepository.js'
 import {
   useSlideshowPresetStore,
@@ -245,6 +366,11 @@ const emit = defineEmits([
   'render-layer-change',
   'transform-change',
   'background-mode-change',
+  'background-color-change',
+  'workspace-color-change',
+  'base-gradient-change',
+  'base-fill-audio-change',
+  'base-image-change',
   'reset-image-adjustments',
   'live-update',
   'move-mode-change',
@@ -270,6 +396,76 @@ const moveWholeSlideshow = ref(D.moveWholeSlideshow)
 // Bilder füllen den Workspace-Bereich (wie „Als Workspace-Hintergrund“)
 // Slideshow als Hintergrund: 'none' | 'canvas' | 'workspace'
 const backgroundMode = ref(D.backgroundMode)
+// Farbe der Fläche unter der Slideshow (anstelle des ersetzten Hintergrundbildes)
+// – auch ohne Preset dauerhaft gemerkt
+const backgroundColor = ref(loadStoredSlideshowBaseColor())
+watch(backgroundColor, (color) => storeSlideshowBaseColor(color))
+// Eigene Farbe der Workspace-Fläche – ebenfalls dauerhaft gemerkt
+const workspaceColor = ref(loadStoredSlideshowBaseColor('workspace'))
+watch(workspaceColor, (color) => storeSlideshowBaseColor(color, 'workspace'))
+// Farbverläufe der Flächen – dauerhaft gemerkt, Änderungen sofort an die Slideshow
+const backgroundGradient = ref(loadStoredSlideshowGradient('canvas'))
+const workspaceGradient = ref(loadStoredSlideshowGradient('workspace'))
+watch(backgroundGradient, (g) => {
+  storeSlideshowGradient(g, 'canvas')
+  emit('base-gradient-change', 'canvas', { ...g })
+})
+watch(workspaceGradient, (g) => {
+  storeSlideshowGradient(g, 'workspace')
+  emit('base-gradient-change', 'workspace', { ...g })
+})
+// Audio-Reaktive Flächenfarbe – dauerhaft gemerkt, Änderungen sofort an die Slideshow
+const backgroundFillAudio = ref(loadStoredSlideshowFillAudio('canvas'))
+const workspaceFillAudio = ref(loadStoredSlideshowFillAudio('workspace'))
+watch(backgroundFillAudio, (a) => {
+  storeSlideshowFillAudio(a, 'canvas')
+  emit('base-fill-audio-change', 'canvas', { ...a })
+})
+watch(workspaceFillAudio, (a) => {
+  storeSlideshowFillAudio(a, 'workspace')
+  emit('base-fill-audio-change', 'workspace', { ...a })
+})
+// Eigenes Flächenbild (Canvas/Workspace) – Zustand im Composable
+const { imageGallery } = useImageGallery()
+const { stockImages, loadStockImageObject } = useStockGallery()
+const imageFills = useSlideshowImageFills({
+  onChange: (target, fill, image) => emit('base-image-change', target, fill, image),
+  loadUpload: (key) => loadPersistedImage(key),
+  persistUpload: (entry) => persistImageWithCleanup(entry),
+  loadStock: (stock) => loadStockImageObject(stock),
+  onMissing: (name) => toastStore.warning(`${t('slideshow.imageFillMissing')}: ${name}`),
+  onError: () => toastStore.error(t('slideshow.imageFillError')),
+})
+const imageFillTarget = computed(() =>
+  backgroundMode.value === 'workspace' ? 'workspace' : 'canvas',
+)
+// Wählbar: alle hochgeladenen Bilder + die geöffnete Stock-Kategorie
+const imageFillCandidates = computed(() => [
+  ...imageGallery.value.map((g) => ({
+    id: `upload:${g.id}`,
+    name: g.name,
+    thumb: g.img?.src || '',
+    source: 'upload',
+    // Original-Objekt (kein reaktiver Proxy) – Slideshow vergleicht per ===
+    raw: { source: 'upload', name: g.name, img: toRaw(g.img) },
+  })),
+  ...(stockImages.value || [])
+    .filter((st) => st?.id && st.file)
+    .map((st) => ({
+      id: `stock:${st.id}`,
+      name: st.name,
+      thumb: st.thumbnail || st.file,
+      source: 'stock',
+      raw: { source: 'stock', name: st.name, stockImage: st },
+    })),
+])
+
+function isDefaultFillAudio(a) {
+  return isSameSlideshowFillAudio(a, SLIDESHOW_FILL_AUDIO_DEFAULT)
+}
+function isDefaultGradient(g) {
+  return isSameSlideshowGradient(g, SLIDESHOW_GRADIENT_DEFAULT)
+}
 // Workspace-Modus nur mit gewähltem Workspace-Format wirksam
 const effectiveBackgroundMode = computed(() =>
   backgroundMode.value === 'workspace' && !props.hasWorkspace ? 'none' : backgroundMode.value,
@@ -468,6 +664,13 @@ function buildPayload() {
     renderBehindVisualizer: renderBehindVisualizer.value,
     backgroundMode: effectiveBackgroundMode.value,
     fitToWorkspace: effectiveBackgroundMode.value === 'workspace',
+    backgroundColor: backgroundColor.value,
+    workspaceColor: workspaceColor.value,
+    backgroundGradient: { ...backgroundGradient.value },
+    workspaceGradient: { ...workspaceGradient.value },
+    backgroundFillAudio: { ...backgroundFillAudio.value },
+    workspaceFillAudio: { ...workspaceFillAudio.value },
+    ...imageFills.payload(),
     moveWholeSlideshow: moveWholeSlideshow.value,
     transition: transition.value,
     transform: transformPayload(),
@@ -534,6 +737,14 @@ async function savePreset(name) {
       renderBehindVisualizer: renderBehindVisualizer.value,
       backgroundMode: backgroundMode.value,
       fitToWorkspace: backgroundMode.value === 'workspace',
+      backgroundColor: backgroundColor.value,
+      workspaceColor: workspaceColor.value,
+      backgroundGradient: { ...backgroundGradient.value },
+      workspaceGradient: { ...workspaceGradient.value },
+      backgroundFillAudio: { ...backgroundFillAudio.value },
+      workspaceFillAudio: { ...workspaceFillAudio.value },
+      backgroundImageFill: { ...imageFills.fills.canvas.value },
+      workspaceImageFill: { ...imageFills.fills.workspace.value },
       moveWholeSlideshow: moveWholeSlideshow.value,
       transition: transition.value,
       transform: {
@@ -627,6 +838,34 @@ async function loadPreset(preset) {
     backgroundMode.value = s.backgroundMode
     onBackgroundModeChange()
   }
+  if (backgroundColor.value !== s.backgroundColor) {
+    backgroundColor.value = s.backgroundColor
+    emit('background-color-change', backgroundColor.value)
+  }
+  if (workspaceColor.value !== s.workspaceColor) {
+    workspaceColor.value = s.workspaceColor
+    emit('workspace-color-change', workspaceColor.value)
+  }
+  // Watcher übernehmen Speichern + Weitergabe an die Slideshow
+  if (!isSameSlideshowGradient(backgroundGradient.value, s.backgroundGradient)) {
+    backgroundGradient.value = normalizeSlideshowGradient(s.backgroundGradient)
+  }
+  if (!isSameSlideshowGradient(workspaceGradient.value, s.workspaceGradient)) {
+    workspaceGradient.value = normalizeSlideshowGradient(s.workspaceGradient)
+  }
+  if (!isSameSlideshowFillAudio(backgroundFillAudio.value, s.backgroundFillAudio)) {
+    backgroundFillAudio.value = normalizeSlideshowFillAudio(s.backgroundFillAudio)
+  }
+  if (!isSameSlideshowFillAudio(workspaceFillAudio.value, s.workspaceFillAudio)) {
+    workspaceFillAudio.value = normalizeSlideshowFillAudio(s.workspaceFillAudio)
+  }
+  // Flächenbilder (werden bei Bedarf nachgeladen)
+  if (!isSameSlideshowImageFill(imageFills.fills.canvas.value, s.backgroundImageFill)) {
+    imageFills.apply('canvas', s.backgroundImageFill)
+  }
+  if (!isSameSlideshowImageFill(imageFills.fills.workspace.value, s.workspaceImageFill)) {
+    imageFills.apply('workspace', s.workspaceImageFill)
+  }
   transformX.value = s.transform.x
   transformY.value = s.transform.y
   transformWidth.value = s.transform.width
@@ -689,6 +928,28 @@ function onBackgroundModeChange() {
     onRenderLayerChange()
   }
   emit('background-mode-change', effectiveBackgroundMode.value)
+}
+
+function resetBackgroundColor() {
+  backgroundColor.value = D.backgroundColor
+  if (!isDefaultGradient(backgroundGradient.value)) {
+    backgroundGradient.value = normalizeSlideshowGradient(null)
+  }
+  if (!isDefaultFillAudio(backgroundFillAudio.value)) {
+    backgroundFillAudio.value = normalizeSlideshowFillAudio(null)
+  }
+  emit('background-color-change', backgroundColor.value)
+}
+
+function resetWorkspaceColor() {
+  workspaceColor.value = D.workspaceColor
+  if (!isDefaultGradient(workspaceGradient.value)) {
+    workspaceGradient.value = normalizeSlideshowGradient(null)
+  }
+  if (!isDefaultFillAudio(workspaceFillAudio.value)) {
+    workspaceFillAudio.value = normalizeSlideshowFillAudio(null)
+  }
+  emit('workspace-color-change', workspaceColor.value)
 }
 
 // Workspace-Format entfernt/gewählt → Manager informieren
@@ -828,6 +1089,35 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   cursor: not-allowed;
 }
 [data-theme='light'] .radio-label {
+  color: #003971;
+}
+.base-color-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #e0e0e0;
+}
+.slideshow-base-color,
+.slideshow-workspace-color {
+  width: 36px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+.btn-reset-base-color,
+.btn-reset-workspace-color {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0 4px;
+}
+[data-theme='light'] .base-color-label {
   color: #003971;
 }
 .checkbox-label.disabled {

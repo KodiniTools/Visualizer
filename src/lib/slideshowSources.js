@@ -99,3 +99,50 @@ export async function ensureSlideshowImagesLoaded(entries, loadStock, getLoadedS
   )
   return { images: images.filter(Boolean), failed }
 }
+
+/**
+ * Slideshow-Eintrag aus einem gespeicherten Stock-Verweis (Preset).
+ * @param {{ id:string, name?:string, file:string, thumbnail?:string }} ref
+ * @param {(id:string) => HTMLImageElement|null} [getLoadedStock]
+ * @returns {object}
+ */
+export function stockEntryFromRef(ref, getLoadedStock = () => null) {
+  const stockImage = {
+    id: ref.id,
+    name: ref.name || ref.id,
+    file: ref.file,
+    thumbnail: ref.thumbnail || ref.file,
+  }
+  return {
+    id: `stock:${ref.id}`,
+    name: stockImage.name,
+    source: 'stock',
+    stockImage,
+    thumbnail: stockImage.thumbnail,
+    imageObject: getLoadedStock(ref.id) || undefined,
+  }
+}
+
+/**
+ * Stellt die Bildliste eines Presets aus dauerhaft gespeicherten Stock-Verweisen
+ * wieder her. Positionen ohne Stock-Verweis (hochgeladene Bilder – deren Dateien
+ * werden nicht gespeichert) werden der Reihe nach mit den aktuell ausgewählten
+ * hochgeladenen Bildern belegt; fehlen solche, entfällt die Position.
+ * @param {Array<object>} slots - Preset-Slots
+ * @param {Array<object>} currentImages - aktuelle Auswahl (Slideshow-Einträge)
+ * @param {(id:string) => HTMLImageElement|null} [getLoadedStock]
+ * @returns {Array<{ img:object, slot:object }>|null} null, wenn das Preset keine Stock-Verweise hat
+ */
+export function restorePresetImages(slots, currentImages = [], getLoadedStock = () => null) {
+  if (!Array.isArray(slots) || !slots.some((slot) => slot?.stock)) return null
+  const uploads = currentImages.filter((img) => img?.source !== 'stock')
+  const pairs = []
+  for (const slot of slots) {
+    if (slot?.stock) {
+      pairs.push({ img: stockEntryFromRef(slot.stock, getLoadedStock), slot })
+    } else if (uploads.length > 0) {
+      pairs.push({ img: uploads.shift(), slot })
+    }
+  }
+  return pairs
+}

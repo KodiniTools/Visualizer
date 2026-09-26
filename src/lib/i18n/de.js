@@ -1441,7 +1441,7 @@ export default {
     deletePreset: 'Löschen',
     noPresets: 'Noch keine Slideshow-Presets gespeichert.',
     presetHint:
-      'Gespeichert werden Timing, Optionen (inkl. Maus-Modus), Position/Größe sowie pro Bild-Position Anzeigedauer, Audio-Reaktion, Bild-Anpassungen und eigene Größe/Position. Die Bilder selbst (hochgeladen und Stock) werden nur für die aktuelle Sitzung mitgespeichert. Laden wirkt auch während der Slideshow.',
+      'Gespeichert werden Timing, Optionen (inkl. Maus-Modus), Position/Größe sowie pro Bild-Position Anzeigedauer, Audio-Reaktion, Bild-Anpassungen und eigene Größe/Position. Stock-Bilder werden dauerhaft mitgespeichert, hochgeladene Bilder nur für die aktuelle Sitzung. Laden wirkt auch während der Slideshow.',
     presetSaved: 'Slideshow-Preset gespeichert',
     presetLoaded: 'Slideshow-Preset geladen',
     presetSaveError: 'Slideshow-Preset konnte nicht gespeichert werden',
@@ -1459,6 +1459,7 @@ export default {
     moveWholeHintOff: 'Ziehen verschiebt das angeklickte Bild. Shift + Ziehen: ganze Slideshow.',
     imagesNotLoaded: 'Bilder konnten nicht geladen werden',
     presetImagesHint: 'Enthält die Bilder (nur in dieser Sitzung)',
+    presetStockHint: 'Enthält Stock-Bilder (dauerhaft gespeichert)',
     dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.',
   },
 

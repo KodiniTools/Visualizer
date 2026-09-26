@@ -117,8 +117,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.preset-name').text()).toBe('Party')
     const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
     expect(stored[0].slots).toEqual([
-      { displayDuration: null, audioMode: 'pulse', adjustments: null, bounds: null },
-      { displayDuration: 9000, audioMode: 'default', adjustments: null, bounds: null },
+      { displayDuration: null, audioMode: 'pulse', adjustments: null, bounds: null, stock: null },
+      { displayDuration: 9000, audioMode: 'default', adjustments: null, bounds: null, stock: null },
     ])
 
     // Werte ändern, dann Preset laden -> ursprünglicher Zustand
@@ -300,6 +300,41 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.setProps({ images: [] })
     expect(w.find('.slideshow-panel').exists()).toBe(true)
     await w.find('.btn-load-preset').trigger('click')
+    expect(w.find('.btn-start').element.disabled).toBe(false)
+  })
+
+  it('stock images are saved permanently and restored after reload (without session images)', async () => {
+    const stockImg = {
+      id: 'stock:s1',
+      name: 'Wald',
+      source: 'stock',
+      thumbnail: 'gallery/bg/wald.png',
+      stockImage: {
+        id: 's1',
+        name: 'Wald',
+        file: 'gallery/bg/wald.png',
+        thumbnail: 'gallery/bg/wald.png',
+      },
+    }
+    let w = mountPanel({ images: [stockImg, images[0]] })
+    await w.findAll('.order-duration')[0].setValue('6')
+    await w.find('.btn-save-preset').trigger('click')
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    expect(stored[0].slots[0].stock).toMatchObject({ id: 's1', file: 'gallery/bg/wald.png' })
+    expect(stored[0].slots[1].stock).toBeNull()
+    w.unmount()
+
+    // „Seite neu geladen“: neue Pinia, keine Sitzungsbilder; ein hochgeladenes Bild ausgewählt
+    pinia = createPinia()
+    setActivePinia(pinia)
+    w = mountPanel({ images: [images[1]] })
+    wrapper = w
+    // Panel sichtbar, obwohl nur 1 Bild gewählt ist – das Preset enthält Stock-Bilder
+    expect(w.find('.slideshow-panel').exists()).toBe(true)
+    expect(w.find('.preset-images-badge').text()).toBe('🗂')
+    await w.find('.btn-load-preset').trigger('click')
+    expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Stock Wald', 'Zwei'])
+    expect(w.findAll('.order-duration')[0].element.value).toBe('6')
     expect(w.find('.btn-start').element.disabled).toBe(false)
   })
 

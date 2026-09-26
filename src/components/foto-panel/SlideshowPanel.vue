@@ -125,6 +125,7 @@ import SlideshowTransformSettings from './slideshow/SlideshowTransformSettings.v
 import SlideshowControls from './slideshow/SlideshowControls.vue'
 import SlideshowPresets from './slideshow/SlideshowPresets.vue'
 import { slideshowImageKey } from './slideshow/slideshowImageKey.js'
+import { restorePresetImages } from '../../lib/slideshowSources.js'
 import {
   useSlideshowPresetStore,
   SLIDESHOW_DEFAULT_SETTINGS,
@@ -199,12 +200,14 @@ const orderedImages = ref([])
 const imageDurations = ref({})
 // Sichtbar ab 2 ausgewählten Bildern, während der Slideshow, mit einer aus
 // einem Preset geladenen Bildliste oder wenn Presets mit Bildern existieren
+// (Sitzungsbilder oder dauerhaft gespeicherte Stock-Bilder)
 const isVisible = computed(
   () =>
     props.images.length >= 2 ||
     props.isActive ||
     orderedImages.value.length >= 2 ||
-    Object.keys(presetStore.sessionImages).length > 0,
+    Object.keys(presetStore.sessionImages).length > 0 ||
+    presetStore.presets.some((preset) => preset.slots.some((slot) => slot.stock)),
 )
 
 // Optionaler Audio-Reaktiv-Modus pro Bild ({ [id]: mode }); fehlt ein Eintrag, gilt 'default'
@@ -267,6 +270,13 @@ function buildPayload() {
 }
 
 // ─── Presets ───────────────────────────────────────────────────────────────
+/** Dauerhaft speicherbarer Verweis auf ein Stock-Bild (sonst null). */
+function stockRefOf(img) {
+  if (img?.source !== 'stock' || !img.stockImage) return null
+  const { id, name, file, thumbnail } = img.stockImage
+  return { id, name, file, thumbnail }
+}
+
 function savePreset(name) {
   const saved = presetStore.savePreset(
     name,
@@ -295,6 +305,8 @@ function savePreset(name) {
           audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
           adjustments: props.adjustmentsApi?.get(img) ?? null,
           bounds: props.adjustmentsApi?.getBounds?.(img) ?? null,
+          // Stock-Bilder dauerhaft als Verweis (Galerie-Pfad) speichern
+          stock: stockRefOf(img),
         }
       }),
     },
@@ -307,10 +319,18 @@ function savePreset(name) {
 
 function loadPreset(preset) {
   const s = preset.settings
-  // In dieser Sitzung gespeicherte Bilder übernehmen (sonst aktuelle Auswahl)
-  const presetImages = presetStore.getSessionImages(preset.id)
+  // Bilder: 1. in dieser Sitzung gespeicherte Bilder, 2. dauerhaft gespeicherte
+  // Stock-Verweise (+ aktuell ausgewählte hochgeladene Bilder), 3. aktuelle Auswahl
   const previousKeys = orderedImages.value.map(slideshowImageKey).join('|')
-  if (presetImages && presetImages.length > 0) orderedImages.value = presetImages
+  const sessionList = presetStore.getSessionImages(preset.id)
+  const pairs =
+    sessionList && sessionList.length > 0
+      ? sessionList.map((img, i) => ({ img, slot: preset.slots[i] }))
+      : (restorePresetImages(
+          preset.slots,
+          props.images.length > 0 ? props.images : orderedImages.value,
+        ) ?? orderedImages.value.map((img, i) => ({ img, slot: preset.slots[i] })))
+  orderedImages.value = pairs.map((p) => p.img)
   const imagesChanged = orderedImages.value.map(slideshowImageKey).join('|') !== previousKeys
   fadeInDuration.value = s.fadeInDuration
   displayDuration.value = s.displayDuration
@@ -338,16 +358,14 @@ function loadPreset(preset) {
   // Bilder ohne passende Position erhalten die Standardwerte.
   const durations = {}
   const modes = {}
-  orderedImages.value.forEach((img, index) => {
-    const slot = preset.slots[index]
+  pairs.forEach(({ img, slot }) => {
     const key = slideshowImageKey(img)
     if (!slot || key === undefined) return
     if (Number.isFinite(slot.displayDuration)) durations[key] = slot.displayDuration
     if (slot.audioMode !== SLIDESHOW_AUDIO_DEFAULT) modes[key] = slot.audioMode
   })
   // Bild-Anpassungen pro Position übernehmen (ohne Slot/Anpassung → verwerfen)
-  orderedImages.value.forEach((img, index) => {
-    const slot = preset.slots[index]
+  pairs.forEach(({ img, slot }) => {
     props.adjustmentsApi?.set(
       img,
       slot?.adjustments ?? null,

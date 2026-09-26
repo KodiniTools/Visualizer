@@ -4,6 +4,8 @@ import {
   buildSlideshowSourceImages,
   resolveSlideshowImageObject,
   ensureSlideshowImagesLoaded,
+  restorePresetImages,
+  stockEntryFromRef,
 } from '../../lib/slideshowSources.js'
 
 const up = (id, name) => ({ id, name, img: { src: `data:${id}` } })
@@ -55,5 +57,34 @@ describe('slideshowSources', () => {
     expect(images.map((i) => i.imageObject)).toEqual([{ a: 1 }, { loaded: 's1' }])
     expect(failed).toEqual(['C'])
     expect(loadStock).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('restorePresetImages', () => {
+  const ref = { id: 's1', name: 'Wald', file: 'gallery/bg/wald.png' }
+
+  it('ohne Stock-Verweise → null (bisheriges Verhalten)', () => {
+    expect(restorePresetImages([{ stock: null }, {}], [])).toBeNull()
+  })
+
+  it('Stock-Positionen aus Verweis, Upload-Positionen aus aktueller Auswahl', () => {
+    const current = [
+      { id: 'u1', source: 'upload' },
+      { id: 'stock:x', source: 'stock' },
+      { id: 'u2', source: 'upload' },
+    ]
+    const slots = [{ stock: null }, { stock: ref }, { stock: null }, { stock: null }]
+    const pairs = restorePresetImages(slots, current, (id) => (id === 's1' ? { cached: 1 } : null))
+    expect(pairs.map((p) => p.img.id)).toEqual(['u1', 'stock:s1', 'u2'])
+    expect(pairs[1].slot).toBe(slots[1])
+    expect(pairs[1].img.imageObject).toEqual({ cached: 1 })
+    // 4. Position entfällt (kein weiteres hochgeladenes Bild)
+    expect(pairs).toHaveLength(3)
+  })
+
+  it('stockEntryFromRef baut einen ladbaren Eintrag', () => {
+    const e = stockEntryFromRef(ref)
+    expect(e).toMatchObject({ id: 'stock:s1', source: 'stock', thumbnail: ref.file })
+    expect(e.stockImage).toMatchObject({ id: 's1', file: ref.file })
   })
 })

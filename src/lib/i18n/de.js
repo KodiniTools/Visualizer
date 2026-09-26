@@ -1445,9 +1445,6 @@ export default {
     resetAdjustments: 'Bild-Anpassungen zurücksetzen',
     adjustmentsReset: 'Bild-Anpassungen der Slideshow zurückgesetzt',
     moveWhole: 'Maus verschiebt ganze Slideshow',
-    moveWholeHintOn:
-      'Ziehen verschiebt alle Bilder gemeinsam. Shift + Ziehen: nur das angeklickte Bild.',
-    moveWholeHintOff: 'Ziehen verschiebt das angeklickte Bild. Shift + Ziehen: ganze Slideshow.',
     imagesNotLoaded: 'Bilder konnten nicht geladen werden',
     presetImagesHint: 'Enthält die Bilder (nur in dieser Sitzung)',
     presetStockHint: 'Enthält dauerhaft gespeicherte Bilder',
@@ -1462,12 +1459,10 @@ export default {
       'Browser-Speicher fast voll – nicht mehr benötigte Presets löschen, um Platz zu schaffen.',
     cleanupNow: 'Jetzt aufräumen',
     cleaningUp: 'Räume auf …',
-    cleanupHint: 'Entfernt gespeicherte Bilder, die von keinem Preset mehr verwendet werden',
     cleanupDone: 'Aufgeräumt',
     cleanupNothing: 'Nichts aufzuräumen – alle gespeicherten Bilder werden verwendet.',
     transition: 'Übergang',
     transitionDefault: 'Standard',
-    perImageTransitionHint: 'Übergangsanimation für dieses Bild',
     transitions: {
       fade: 'Überblenden',
       none: 'Harter Schnitt',
@@ -1493,18 +1488,12 @@ export default {
     fieldDisplay: 'Anzeige',
     fieldFadeOut: 'Aus',
     fieldAudio: 'Audio',
-    perImageFadeInHint: 'Einblenddauer dieses Bildes in Sekunden',
-    perImageFadeOutHint: 'Ausblenddauer dieses Bildes in Sekunden',
     backgroundMode: 'Slideshow als Hintergrund',
     backgroundModeNone: 'Aus',
     backgroundModeCanvas: 'Canvas',
     backgroundModeWorkspace: 'Workspace',
     baseColor: 'Fläche darunter',
-    baseColorHint:
-      'Farbe, die anstelle des ersetzten Hintergrundbildes erscheint – sichtbar während der Übergänge und neben Bildern mit anderem Seitenverhältnis.',
     workspaceColor: 'Workspace-Fläche',
-    workspaceColorHint:
-      'Eigene Farbe des Workspace-Bereichs unter der Slideshow – ersetzt ein Workspace-Hintergrundbild und ist während der Übergänge sichtbar.',
     gradient: 'Farbverlauf',
     gradientColor2: '2. Farbe',
     gradientType: 'Art',
@@ -1534,8 +1523,6 @@ export default {
     imageFillMissing: 'Flächenbild nicht gefunden',
     imageFillError: 'Bild konnte nicht als Fläche übernommen werden',
     baseColorReset: 'Standard (Schwarz, ohne Farbverlauf und Audio)',
-    backgroundModeWorkspaceNeedsFormat:
-      'Workspace-Hintergrund: zuerst ein Workspace-Format wählen (z. B. TikTok 9:16).',
   },
 
   // ========== BACKGROUND TILES PANEL ==========

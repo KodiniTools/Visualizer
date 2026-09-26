@@ -1443,8 +1443,6 @@ export default {
     resetAdjustments: 'Reset image adjustments',
     adjustmentsReset: 'Slideshow image adjustments reset',
     moveWhole: 'Mouse moves the whole slideshow',
-    moveWholeHintOn: 'Dragging moves all images together. Shift + drag: only the clicked image.',
-    moveWholeHintOff: 'Dragging moves the clicked image. Shift + drag: whole slideshow.',
     imagesNotLoaded: 'Images could not be loaded',
     presetImagesHint: 'Contains the images (this session only)',
     presetStockHint: 'Contains permanently saved images',
@@ -1459,12 +1457,10 @@ export default {
       'Browser storage nearly full – delete presets you no longer need to free up space.',
     cleanupNow: 'Clean up now',
     cleaningUp: 'Cleaning up …',
-    cleanupHint: 'Removes saved images that are no longer used by any preset',
     cleanupDone: 'Cleaned up',
     cleanupNothing: 'Nothing to clean up – all saved images are in use.',
     transition: 'Transition',
     transitionDefault: 'Default',
-    perImageTransitionHint: 'Transition animation for this image',
     transitions: {
       fade: 'Crossfade',
       none: 'Hard cut',
@@ -1490,18 +1486,12 @@ export default {
     fieldDisplay: 'Show',
     fieldFadeOut: 'Out',
     fieldAudio: 'Audio',
-    perImageFadeInHint: 'Fade-in duration of this image in seconds',
-    perImageFadeOutHint: 'Fade-out duration of this image in seconds',
     backgroundMode: 'Slideshow as background',
     backgroundModeNone: 'Off',
     backgroundModeCanvas: 'Canvas',
     backgroundModeWorkspace: 'Workspace',
     baseColor: 'Area beneath',
-    baseColorHint:
-      'Colour shown instead of the replaced background image – visible during transitions and next to images with a different aspect ratio.',
     workspaceColor: 'Workspace area',
-    workspaceColorHint:
-      'Own colour of the workspace area beneath the slideshow – replaces a workspace background image and shows during transitions.',
     gradient: 'Gradient',
     gradientColor2: '2nd colour',
     gradientType: 'Type',
@@ -1531,8 +1521,6 @@ export default {
     imageFillMissing: 'Area image not found',
     imageFillError: 'Image could not be used as area',
     baseColorReset: 'Default (black, no gradient or audio)',
-    backgroundModeWorkspaceNeedsFormat:
-      'Workspace background: select a workspace format first (e.g. TikTok 9:16).',
   },
 
   // ========== BACKGROUND TILES PANEL ==========

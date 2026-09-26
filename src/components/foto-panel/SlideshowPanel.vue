@@ -68,11 +68,7 @@
           />
           <span>{{ t('slideshow.backgroundModeCanvas') }}</span>
         </label>
-        <label
-          class="radio-label"
-          :class="{ disabled: !hasWorkspace }"
-          :title="hasWorkspace ? '' : t('slideshow.backgroundModeWorkspaceNeedsFormat')"
-        >
+        <label class="radio-label" :class="{ disabled: !hasWorkspace }">
           <input
             v-model="backgroundMode"
             class="bg-mode-workspace"
@@ -91,7 +87,6 @@
           v-model="backgroundColor"
           class="slideshow-base-color"
           type="color"
-          :title="t('slideshow.baseColorHint')"
           @input="emit('background-color-change', backgroundColor)"
         />
         <button
@@ -117,7 +112,6 @@
           class="slideshow-workspace-color"
           type="color"
           :disabled="!hasWorkspace"
-          :title="t('slideshow.workspaceColorHint')"
           @input="emit('workspace-color-change', workspaceColor)"
         />
         <button
@@ -171,13 +165,7 @@
         @select="(candidate) => imageFills.select(imageFillTarget, candidate)"
         @clear="imageFills.clear(imageFillTarget)"
       />
-      <label
-        class="checkbox-label"
-        :class="{ disabled: fitsWorkspace }"
-        :title="
-          moveWholeSlideshow ? t('slideshow.moveWholeHintOn') : t('slideshow.moveWholeHintOff')
-        "
-      >
+      <label class="checkbox-label" :class="{ disabled: fitsWorkspace }">
         <input
           v-model="moveWholeSlideshow"
           class="move-whole-checkbox"

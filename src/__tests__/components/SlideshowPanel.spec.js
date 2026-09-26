@@ -562,9 +562,9 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
   it('move-whole checkbox emits mode change; external transform updates sliders', async () => {
     const w = mountPanel()
-    // Hinweis nur noch als Tooltip am Kontrollkästchen
+    // weder Hinweistext noch Tooltip
     expect(w.find('.move-whole-hint').exists()).toBe(false)
-    expect(w.find('.move-whole-checkbox').element.closest('label').title).toContain('Shift')
+    expect(w.find('.move-whole-checkbox').element.closest('label').title).toBe('')
     await w.find('.move-whole-checkbox').setValue(true)
     expect(w.emitted('move-mode-change').at(-1)).toEqual([true])
     await w.setProps({
@@ -1428,11 +1428,18 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.image-editor').exists()).toBe(true)
     onlyAllowed(w)
 
-    // Tooltip ersetzt den Hinweis „zuerst ein Workspace-Format wählen“
+    // auch keine erklärenden Tooltips mehr – title nur an Symbol-Knöpfen
+    // (↺, ✕) und für volle Namen abgeschnittener Texte
     await w.setProps({ isActive: false, hasWorkspace: false })
-    expect(w.find('.bg-mode-workspace').element.closest('label').title).toContain(
-      'Workspace-Format',
-    )
+    expect(w.find('.bg-mode-workspace').element.closest('label').title).toBe('')
+    const titled = w.findAll('[title]').filter((el) => el.attributes('title'))
+    expect(titled.length).toBeGreaterThan(0)
+    for (const el of titled) {
+      const isIconButton = el.element.tagName === 'BUTTON' && !/[a-zäöüß]{3,}/i.test(el.text())
+      const isName =
+        el.classes('preset-name') || el.classes().some((c) => c.endsWith('-image-option'))
+      expect(isIconButton || isName, `erklärender Tooltip: ${el.attributes('title')}`).toBe(true)
+    }
   })
 
   it('editor request is ignored while running', async () => {

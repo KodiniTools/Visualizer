@@ -339,7 +339,8 @@ async function setPreviewAsBackground() {
 // ═══════════════════════════════════════════════════════════════════
 
 onMounted(() => {
-  loadStockGallery()
+  // Stock-State ist geteilt: nur beim ersten Öffnen laden (Auswahl/Kategorie bleiben)
+  if (stockCategories.value.length === 0) loadStockGallery()
 })
 </script>
 

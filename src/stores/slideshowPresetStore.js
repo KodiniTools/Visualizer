@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, markRaw } from 'vue'
 import { SLIDESHOW_AUDIO_DEFAULT, isValidSlideshowAudioMode } from '../lib/slideshowAudio.js'
 import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig.js'
 
@@ -151,11 +151,15 @@ export function normalizeSlideshowPreset(raw) {
 /**
  * Slideshow-Presets: speichern Timing, Audio-Reaktiv-Option, Loop, Layer,
  * Position/Größe sowie pro Bild-Position die Anzeigedauer und den
- * Audio-Reaktiv-Modus. Bilder werden nicht gespeichert (wie bei Kachel-Presets).
+ * Audio-Reaktiv-Modus. Die Bilder selbst werden nur für die laufende Sitzung
+ * im Speicher gehalten (sessionImages), nicht im localStorage.
  */
 export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
   const presets = ref([])
   let loaded = false
+  // Bilder pro Preset – nur für die laufende Sitzung (nicht im localStorage):
+  // presetId → Array von Slideshow-Bildeinträgen ({ id, name, imageObject | stockImage, … })
+  const sessionImages = ref({})
 
   function loadPresets() {
     if (loaded) return
@@ -187,7 +191,7 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
    * @param {{ settings: object, slots: Array<{displayDuration:number|null, audioMode:string, adjustments?:object|null, bounds?:object|null}> }} snapshot
    * @returns {object|null} gespeichertes Preset oder null bei Speicherfehler
    */
-  function savePreset(name, snapshot) {
+  function savePreset(name, snapshot, images = null) {
     loadPresets()
     const preset = normalizeSlideshowPreset({
       id: `slideshow-${Date.now()}`,
@@ -199,6 +203,13 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
       presets.value = presets.value.slice(1)
       return null
     }
+    if (Array.isArray(images) && images.length > 0) {
+      // markRaw: Bildobjekte (HTMLImageElement) nicht reaktiv machen
+      sessionImages.value = {
+        ...sessionImages.value,
+        [preset.id]: images.map((img) => markRaw({ ...img })),
+      }
+    }
     return preset
   }
 
@@ -206,7 +217,18 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
     loadPresets()
     presets.value = presets.value.filter((p) => p.id !== id)
     persist()
+    if (sessionImages.value[id]) {
+      const next = { ...sessionImages.value }
+      delete next[id]
+      sessionImages.value = next
+    }
   }
 
-  return { presets, loadPresets, savePreset, deletePreset }
+  /** In dieser Sitzung zum Preset gespeicherte Bilder (Kopie der Liste) oder null. */
+  function getSessionImages(id) {
+    const list = sessionImages.value[id]
+    return list ? [...list] : null
+  }
+
+  return { presets, sessionImages, loadPresets, savePreset, deletePreset, getSessionImages }
 })

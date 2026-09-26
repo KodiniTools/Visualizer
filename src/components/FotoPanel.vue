@@ -95,6 +95,12 @@ import SlideshowPanel from './foto-panel/SlideshowPanel.vue'
 // Lib
 import { SlideshowManager } from '../lib/slideshowManager.js'
 import { resolveSlideshowAudioReactive } from '../lib/slideshowAudio.js'
+import {
+  buildSlideshowSourceImages,
+  ensureSlideshowImagesLoaded,
+  resolveSlideshowImageObject,
+} from '../lib/slideshowSources.js'
+import { useStockGallery } from '../composables/useStockGallery.js'
 
 // Composables
 import { useImageGallery } from '../composables/useImageGallery.js'
@@ -193,6 +199,13 @@ const slideshowIsPaused = ref(false)
 const slideshowCurrentIndex = ref(0)
 const slideshowCurrentPhase = ref('fadeIn')
 const slideshowTotalImages = ref(0)
+// Geteilte Stock-Galerie (Popover „Galerie“) – ausgewählte Stock-Bilder für die Slideshow
+const {
+  selectedStockImagesAll,
+  getLoadedStockImage,
+  loadStockImageObject,
+  deselectAllStockImages,
+} = useStockGallery()
 // Per Maus verschobener gemeinsamer Bereich (für die Regler im Slideshow-Panel)
 const slideshowExternalTransform = ref(null)
 // Workspace-Format gewählt? (Voraussetzung für „An Workspace anpassen“)
@@ -200,18 +213,14 @@ const workspaceStore = useWorkspaceStore()
 const hasWorkspace = computed(() => workspaceStore.selectedPresetKey != null)
 
 // Kombinierte ausgewählte Bilder für Slideshow (hochgeladene + Stock)
-const slideshowImages = computed(() => {
-  const images = []
-  // Hochgeladene Bilder
-  for (const imgData of selectedImages.value) {
-    images.push({
-      imageObject: imgData.img,
-      name: imgData.name,
-      id: imgData.id,
-    })
-  }
-  return images
-})
+const slideshowImages = computed(() =>
+  // Hochgeladene + Stock-Bilder; gleiches Motiv in beiden Galerien nur einmal
+  buildSlideshowSourceImages(
+    selectedImages.value,
+    selectedStockImagesAll.value,
+    getLoadedStockImage,
+  ),
+)
 
 // ═══════════════════════════════════════════════════════════════════
 // EBENEN-STEUERUNG (Z-Index)
@@ -372,7 +381,7 @@ function initSlideshowManager() {
   console.log('[Slideshow] SlideshowManager initialisiert')
 }
 
-function startSlideshow(config) {
+async function startSlideshow(config) {
   if (!slideshowManagerRef.value) {
     initSlideshowManager()
   }
@@ -382,7 +391,18 @@ function startSlideshow(config) {
     return
   }
 
-  const { images, options } = buildSlideshowRun(config)
+  // Stock-Bilder ggf. nachladen; nicht ladbare Bilder auslassen
+  const { images: loaded, failed } = await ensureSlideshowImagesLoaded(
+    config.images,
+    loadStockImageObject,
+    getLoadedStockImage,
+  )
+  if (failed.length > 0) {
+    toastStore.warning(t('slideshow.imagesNotLoaded') + ': ' + failed.join(', '))
+  }
+  if (loaded.length === 0) return
+
+  const { images, options } = buildSlideshowRun({ ...config, images: loaded })
   const success = slideshowManagerRef.value.start(images, options)
 
   if (success) {
@@ -392,8 +412,9 @@ function startSlideshow(config) {
     // ✨ Global verfügbar machen für Maus-Interaktion
     window.slideshowManager = slideshowManagerRef.value
     toastStore.success(t('slideshow.title') + ' gestartet')
-    // Auswahl aufheben nach dem Start
+    // Auswahl in beiden Galerien aufheben nach dem Start
     deselectAllImages()
+    deselectAllStockImages()
   }
 }
 
@@ -404,7 +425,7 @@ function startSlideshow(config) {
 function buildSlideshowRun(config) {
   // Bilder aus der Konfiguration extrahieren
   const images = config.images.map((img) => ({
-    imageObject: img.imageObject || img.img,
+    imageObject: resolveSlideshowImageObject(img, getLoadedStockImage),
     name: img.name,
     displayDuration: img.displayDuration,
     audioMode: img.audioMode,
@@ -473,17 +494,35 @@ function onSlideshowOrderChanged(orderedImages) {
 // Zugriff auf gemerkte Bild-Anpassungen für Slideshow-Presets (Speichern/Laden)
 const slideshowAdjustmentsApi = {
   get(img) {
-    return getSlideshowManager()?.getImageAdjustments(img.imageObject || img.img) ?? null
+    return getSlideshowManager()?.getImageAdjustments(slideshowImageObject(img)) ?? null
   },
   set(img, settings, audioMode) {
-    getSlideshowManager()?.setImageAdjustments(img.imageObject || img.img, settings, audioMode)
+    withSlideshowImageObject(img, (obj) =>
+      getSlideshowManager()?.setImageAdjustments(obj, settings, audioMode),
+    )
   },
   getBounds(img) {
-    return getSlideshowManager()?.getImageBounds(img.imageObject || img.img) ?? null
+    return getSlideshowManager()?.getImageBounds(slideshowImageObject(img)) ?? null
   },
   setBounds(img, bounds) {
-    getSlideshowManager()?.setImageBounds(img.imageObject || img.img, bounds)
+    withSlideshowImageObject(img, (obj) => getSlideshowManager()?.setImageBounds(obj, bounds))
   },
+}
+
+function slideshowImageObject(img) {
+  return resolveSlideshowImageObject(img, getLoadedStockImage)
+}
+
+// Führt fn mit dem Image-Objekt aus – noch nicht geladene Stock-Bilder werden
+// zuerst geladen (gleiches Objekt wie beim Start, siehe loadStockImageObject)
+function withSlideshowImageObject(img, fn) {
+  const obj = slideshowImageObject(img)
+  if (obj) return fn(obj)
+  if (img?.stockImage) {
+    loadStockImageObject(img.stockImage)
+      .then(fn)
+      .catch((e) => console.warn('[Slideshow] Stock-Bild nicht geladen:', e))
+  }
 }
 
 function getSlideshowManager() {

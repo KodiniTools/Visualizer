@@ -2,7 +2,7 @@
  * useStockGallery Composable
  * Verwaltet die Stock-Galerie: Laden, Kategorien, Auswahl, Caching
  */
-import { ref, computed } from 'vue'
+import { ref, computed, toRaw } from 'vue'
 
 // Fallback-Kategorien falls JSON nicht lädt
 const FALLBACK_CATEGORIES = [
@@ -36,19 +36,34 @@ const FALLBACK_CATEGORIES = [
   },
 ]
 
-export function useStockGallery() {
-  // Reaktive State
-  const stockCategories = ref([])
-  const stockImages = ref([])
-  const selectedStockCategory = ref('backgrounds')
-  const loadedCategoryData = ref(new Map())
-  const selectedStockImage = ref(null)
-  const selectedStockImages = ref(new Set())
-  const lastSelectedStockId = ref(null)
-  const stockImagesLoading = ref(true)
-  const categoryLoading = ref(false)
-  const loadedStockImages = ref(new Map())
+// ── Geteilter State (Singleton) ────────────────────────────────────────────────
+// Liegt auf Modulebene, damit Galerie-Popover und Foto-Panel (Slideshow)
+// dieselbe Stock-Auswahl sehen.
+const stockCategories = ref([])
+const stockImages = ref([])
+const selectedStockCategory = ref('backgrounds')
+const loadedCategoryData = ref(new Map())
+const selectedStockImage = ref(null)
+const selectedStockImages = ref(new Set())
+const lastSelectedStockId = ref(null)
+const stockImagesLoading = ref(true)
+const categoryLoading = ref(false)
+const loadedStockImages = ref(new Map())
 
+// Alle bisher geladenen Stock-Bilder (id → Eintrag), kategorieübergreifend –
+// damit ausgewählte Bilder auch nach einem Kategoriewechsel auffindbar bleiben
+const stockImageIndex = new Map()
+// Laufende Ladevorgänge (id → Promise<HTMLImageElement>)
+const pendingStockLoads = new Map()
+
+function setStockImages(list) {
+  stockImages.value = list
+  for (const img of list || []) {
+    if (img?.id) stockImageIndex.set(img.id, img)
+  }
+}
+
+export function useStockGallery() {
   // Computed
   const filteredStockImages = computed(() => stockImages.value)
 
@@ -57,6 +72,18 @@ export function useStockGallery() {
   })
 
   const selectedStockCount = computed(() => selectedStockImages.value.size)
+
+  // Ausgewählte Stock-Bilder aller Kategorien (für die Slideshow)
+  const selectedStockImagesAll = computed(() =>
+    Array.from(selectedStockImages.value)
+      .map((id) => stockImageIndex.get(id))
+      .filter(Boolean),
+  )
+
+  /** Bereits geladenes Image-Objekt eines Stock-Bildes (nicht reaktiv) oder null. */
+  function getLoadedStockImage(id) {
+    return toRaw(loadedStockImages.value).get(id) ?? null
+  }
 
   // Prüfen ob ein Stock-Bild ausgewählt ist
   const isStockImageSelected = (imgId) => {
@@ -98,7 +125,7 @@ export function useStockGallery() {
         console.log('✅ Stock-Galerie Index geladen (v2.0):', data.totalImages, 'Bilder total')
       } else {
         stockCategories.value = data.categories || FALLBACK_CATEGORIES
-        stockImages.value = data.images || []
+        setStockImages(data.images || [])
 
         if (stockCategories.value.length > 0) {
           selectedStockCategory.value = stockCategories.value[0].id
@@ -109,7 +136,7 @@ export function useStockGallery() {
     } catch (error) {
       console.error('❌ Fehler beim Laden der Stock-Galerie:', error)
       stockCategories.value = FALLBACK_CATEGORIES
-      stockImages.value = []
+      setStockImages([])
     } finally {
       stockImagesLoading.value = false
     }
@@ -118,7 +145,7 @@ export function useStockGallery() {
   // Lädt die Bilder einer Kategorie (aus category.json)
   async function loadCategoryImages(categoryId) {
     if (loadedCategoryData.value.has(categoryId)) {
-      stockImages.value = loadedCategoryData.value.get(categoryId)
+      setStockImages(loadedCategoryData.value.get(categoryId))
       console.log(
         `📁 Kategorie "${categoryId}" aus Cache geladen:`,
         stockImages.value.length,
@@ -132,7 +159,7 @@ export function useStockGallery() {
       const categoryInfo = stockCategories.value.find((c) => c.id === categoryId)
       if (!categoryInfo || !categoryInfo.jsonFile) {
         console.warn(`⚠️ Keine JSON-Datei für Kategorie "${categoryId}" gefunden`)
-        stockImages.value = []
+        setStockImages([])
         return
       }
 
@@ -145,12 +172,12 @@ export function useStockGallery() {
       const images = data.images || []
 
       loadedCategoryData.value.set(categoryId, images)
-      stockImages.value = images
+      setStockImages(images)
 
       console.log(`✅ Kategorie "${categoryId}" geladen:`, images.length, 'Bilder')
     } catch (error) {
       console.error(`❌ Fehler beim Laden der Kategorie "${categoryId}":`, error)
-      stockImages.value = []
+      setStockImages([])
     } finally {
       categoryLoading.value = false
     }
@@ -231,20 +258,27 @@ export function useStockGallery() {
   // Stock-Bild als Image-Objekt laden (mit Caching)
   async function loadStockImageObject(stockImg) {
     if (loadedStockImages.value.has(stockImg.id)) {
-      return loadedStockImages.value.get(stockImg.id)
+      return toRaw(loadedStockImages.value).get(stockImg.id)
     }
+    // Laufenden Ladevorgang wiederverwenden – sonst entstünden zwei
+    // Image-Objekte für dasselbe Stock-Bild
+    if (pendingStockLoads.has(stockImg.id)) return pendingStockLoads.get(stockImg.id)
 
-    return new Promise((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
       const img = new Image()
       img.onload = () => {
         loadedStockImages.value.set(stockImg.id, img)
+        pendingStockLoads.delete(stockImg.id)
         resolve(img)
       }
       img.onerror = () => {
+        pendingStockLoads.delete(stockImg.id)
         reject(new Error(`Bild konnte nicht geladen werden: ${stockImg.file}`))
       }
       img.src = stockImg.file
     })
+    pendingStockLoads.set(stockImg.id, promise)
+    return promise
   }
 
   return {
@@ -260,7 +294,9 @@ export function useStockGallery() {
     // Computed
     filteredStockImages,
     selectedStockImagesList,
+    selectedStockImagesAll,
     selectedStockCount,
+    getLoadedStockImage,
 
     // Methods
     isStockImageSelected,

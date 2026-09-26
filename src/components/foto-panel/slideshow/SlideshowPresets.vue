@@ -22,6 +22,12 @@
     <ul v-else class="preset-list">
       <li v-for="preset in presets" :key="preset.id" class="preset-item">
         <span class="preset-name" :title="preset.name">{{ preset.name }}</span>
+        <span
+          v-if="sessionImages[preset.id]"
+          class="preset-images-badge"
+          :title="t('slideshow.presetImagesHint')"
+          >🖼</span
+        >
         <span class="preset-meta">{{ preset.slots.length }} × {{ t('slideshow.image') }}</span>
         <button type="button" class="btn-load-preset" @click="emit('load', preset)">
           {{ t('slideshow.loadPreset') }}
@@ -50,6 +56,8 @@ import { useI18n } from '../../../lib/i18n.js'
 
 defineProps({
   presets: { type: Array, default: () => [] },
+  // presetId → Bilder dieser Sitzung (siehe slideshowPresetStore.sessionImages)
+  sessionImages: { type: Object, default: () => ({}) },
 })
 const emit = defineEmits(['save', 'load', 'delete'])
 const { t } = useI18n()
@@ -114,6 +122,10 @@ function save() {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.preset-images-badge {
+  font-size: 12px;
+  flex-shrink: 0;
 }
 .preset-meta {
   font-size: 10px;

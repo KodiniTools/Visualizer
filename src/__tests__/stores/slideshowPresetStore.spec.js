@@ -163,3 +163,34 @@ describe('normalizeImageBounds', () => {
     expect(normalizeImageBounds({ ...b, relX: 50 }).relX).toBe(1)
   })
 })
+
+describe('slideshowPresetStore – Bilder nur für die Sitzung', () => {
+  it('merkt Bilder im Speicher, nicht im localStorage; Löschen entfernt sie', () => {
+    const store = useSlideshowPresetStore()
+    const imgObj = { width: 10, height: 10 }
+    const p = store.savePreset('Mit Bildern', snapshot, [
+      { id: 'u1', name: 'A', source: 'upload', imageObject: imgObj },
+      { id: 'stock:s1', name: 'B', source: 'stock', stockImage: { id: 's1' } },
+    ])
+    const images = store.getSessionImages(p.id)
+    expect(images.map((i) => i.id)).toEqual(['u1', 'stock:s1'])
+    expect(images[0].imageObject).toBe(imgObj)
+    expect(localStorage.getItem('visualizer-slideshow-presets')).not.toContain('stock:s1')
+
+    // Neuer Store (≈ Seite neu geladen): Preset da, Bilder nicht
+    setActivePinia(createPinia())
+    const reloaded = useSlideshowPresetStore()
+    reloaded.loadPresets()
+    expect(reloaded.presets).toHaveLength(1)
+    expect(reloaded.getSessionImages(p.id)).toBeNull()
+
+    store.deletePreset(p.id)
+    expect(store.getSessionImages(p.id)).toBeNull()
+  })
+
+  it('ohne Bilder wird nichts gemerkt', () => {
+    const store = useSlideshowPresetStore()
+    const p = store.savePreset('Ohne', snapshot, [])
+    expect(store.getSessionImages(p.id)).toBeNull()
+  })
+})

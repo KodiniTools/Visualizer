@@ -1,5 +1,5 @@
 <template>
-  <div v-if="images.length >= 2 || isActive" class="slideshow-panel">
+  <div v-if="isVisible" class="slideshow-panel">
     <div class="panel-header">
       <h4>{{ t('slideshow.title') }}</h4>
       <div class="status-badge" :class="{ active: isActive, paused: isPaused }">
@@ -11,7 +11,7 @@
 
     <!-- Reihenfolge der Bilder (nur wenn nicht aktiv) -->
     <SlideshowOrderList
-      v-if="!isActive && images.length >= 2"
+      v-if="!isActive && orderedImages.length >= 2"
       v-model="orderedImages"
       v-model:durations="imageDurations"
       v-model:audio-modes="imageAudioModes"
@@ -81,6 +81,7 @@
     <!-- Presets (Speichern und Laden auch während der Slideshow) -->
     <SlideshowPresets
       :presets="presetStore.presets"
+      :session-images="presetStore.sessionImages"
       @save="savePreset"
       @load="loadPreset"
       @delete="presetStore.deletePreset"
@@ -99,8 +100,9 @@
       :is-active="isActive"
       :is-paused="isPaused"
       :current-image-index="currentImageIndex"
-      :total-images="totalImages || images.length"
+      :total-images="totalImages || orderedImages.length"
       :current-phase="currentPhase"
+      :can-start="orderedImages.length >= 2"
       @start="startSlideshow"
       @pause="emit('pause')"
       @resume="emit('resume')"
@@ -195,6 +197,16 @@ const transformHeight = ref(D.transform.height)
 const orderedImages = ref([])
 // Optionale Anzeigedauer pro Bild ({ [id]: ms }); fehlt ein Eintrag, gilt displayDuration
 const imageDurations = ref({})
+// Sichtbar ab 2 ausgewählten Bildern, während der Slideshow, mit einer aus
+// einem Preset geladenen Bildliste oder wenn Presets mit Bildern existieren
+const isVisible = computed(
+  () =>
+    props.images.length >= 2 ||
+    props.isActive ||
+    orderedImages.value.length >= 2 ||
+    Object.keys(presetStore.sessionImages).length > 0,
+)
+
 // Optionaler Audio-Reaktiv-Modus pro Bild ({ [id]: mode }); fehlt ein Eintrag, gilt 'default'
 const imageAudioModes = ref({})
 
@@ -256,40 +268,50 @@ function buildPayload() {
 
 // ─── Presets ───────────────────────────────────────────────────────────────
 function savePreset(name) {
-  const saved = presetStore.savePreset(name, {
-    settings: {
-      fadeInDuration: fadeInDuration.value,
-      displayDuration: displayDuration.value,
-      fadeOutDuration: fadeOutDuration.value,
-      applyAudioReactive: applyAudioReactive.value,
-      loop: loopSlideshow.value,
-      renderBehindVisualizer: renderBehindVisualizer.value,
-      fitToWorkspace: fitToWorkspace.value,
-      moveWholeSlideshow: moveWholeSlideshow.value,
-      transform: {
-        x: transformX.value,
-        y: transformY.value,
-        width: transformWidth.value,
-        height: transformHeight.value,
+  const saved = presetStore.savePreset(
+    name,
+    {
+      settings: {
+        fadeInDuration: fadeInDuration.value,
+        displayDuration: displayDuration.value,
+        fadeOutDuration: fadeOutDuration.value,
+        applyAudioReactive: applyAudioReactive.value,
+        loop: loopSlideshow.value,
+        renderBehindVisualizer: renderBehindVisualizer.value,
+        fitToWorkspace: fitToWorkspace.value,
+        moveWholeSlideshow: moveWholeSlideshow.value,
+        transform: {
+          x: transformX.value,
+          y: transformY.value,
+          width: transformWidth.value,
+          height: transformHeight.value,
+        },
       },
+      // Pro Position in der aktuellen Reihenfolge
+      slots: orderedImages.value.map((img) => {
+        const key = slideshowImageKey(img)
+        return {
+          displayDuration: imageDurations.value[key] ?? null,
+          audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
+          adjustments: props.adjustmentsApi?.get(img) ?? null,
+          bounds: props.adjustmentsApi?.getBounds?.(img) ?? null,
+        }
+      }),
     },
-    // Pro Position in der aktuellen Reihenfolge
-    slots: orderedImages.value.map((img) => {
-      const key = slideshowImageKey(img)
-      return {
-        displayDuration: imageDurations.value[key] ?? null,
-        audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
-        adjustments: props.adjustmentsApi?.get(img) ?? null,
-        bounds: props.adjustmentsApi?.getBounds?.(img) ?? null,
-      }
-    }),
-  })
+    // Bilder nur für diese Sitzung merken (nicht im localStorage)
+    orderedImages.value,
+  )
   if (saved) toastStore.success(t('slideshow.presetSaved'))
   else toastStore.error(t('slideshow.presetSaveError'))
 }
 
 function loadPreset(preset) {
   const s = preset.settings
+  // In dieser Sitzung gespeicherte Bilder übernehmen (sonst aktuelle Auswahl)
+  const presetImages = presetStore.getSessionImages(preset.id)
+  const previousKeys = orderedImages.value.map(slideshowImageKey).join('|')
+  if (presetImages && presetImages.length > 0) orderedImages.value = presetImages
+  const imagesChanged = orderedImages.value.map(slideshowImageKey).join('|') !== previousKeys
   fadeInDuration.value = s.fadeInDuration
   displayDuration.value = s.displayDuration
   fadeOutDuration.value = s.fadeOutDuration
@@ -336,8 +358,11 @@ function loadPreset(preset) {
   })
   imageDurations.value = durations
   imageAudioModes.value = modes
-  // Läuft die Slideshow, sofort übernehmen
-  if (props.isActive) emit('live-update', buildPayload())
+  // Läuft die Slideshow, sofort übernehmen – bei anderen Bildern neu starten
+  if (props.isActive) {
+    if (imagesChanged) emit('start', buildPayload())
+    else emit('live-update', buildPayload())
+  }
   toastStore.success(t('slideshow.presetLoaded'))
 }
 

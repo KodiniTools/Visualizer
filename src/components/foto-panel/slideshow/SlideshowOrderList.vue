@@ -17,12 +17,15 @@
       >
         <span class="order-number">{{ index + 1 }}</span>
         <img
-          :src="img.img?.src || img.imageObject?.src"
+          :src="img.thumbnail || img.img?.src || img.imageObject?.src"
           :alt="img.name || 'Bild'"
           class="order-thumb"
         />
         <div class="order-body">
-          <span class="order-name">{{ img.name || `Bild ${index + 1}` }}</span>
+          <span class="order-name">
+            <span v-if="img.source === 'stock'" class="order-stock-badge">Stock</span>
+            {{ img.name || `Bild ${index + 1}` }}
+          </span>
           <div class="order-controls">
             <select
               class="order-audio"
@@ -241,6 +244,17 @@ function onDragEnd() {
   color: #e0e0e0;
   border: 1px solid var(--border-color);
   border-radius: 4px;
+}
+.order-stock-badge {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: rgba(110, 168, 254, 0.25);
+  color: #6ea8fe;
 }
 .order-name {
   font-size: 12px;

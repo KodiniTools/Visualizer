@@ -15,6 +15,8 @@ const state = reactive({
   imageCount: 0,
   // Slideshow läuft (auch pausiert)
   active: false,
+  // Slideshow pausiert
+  paused: false,
 })
 
 export function useSlideshowPopover() {

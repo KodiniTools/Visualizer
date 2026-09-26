@@ -6,26 +6,25 @@
     </div>
 
     <div class="modern-controls-group">
-      <div v-for="axis in AXES" :key="axis" class="modern-control">
-        <div class="modern-label">
-          <span class="label-text">{{ t(LABELS[axis]) }}</span>
-        </div>
-        <SliderField
-          :class="`modern-slider image-${axis}-slider`"
+      <div class="slider-stack">
+        <SliderControl
+          v-for="axis in AXES"
+          :key="axis"
+          :input-class="`image-${axis}-slider`"
+          :label="t(LABELS[axis])"
           :model-value="percent(values[axis])"
           :min="axis === 'x' || axis === 'y' ? 0 : 1"
           :max="axis === 'x' || axis === 'y' ? 100 : 200"
           :step="0.1"
           :default-value="defaultPercent(axis)"
-          :aria-label="t(LABELS[axis])"
+          :value-text="`${percent(values[axis])}%`"
           @update:model-value="(v) => onChange(axis, v)"
         />
+        <label class="toggle-label">
+          <input v-model="keepAspect" class="image-keep-aspect" type="checkbox" />
+          <span class="toggle-text">{{ t('foto.keepAspect') }}</span>
+        </label>
       </div>
-
-      <label class="toggle-label">
-        <input v-model="keepAspect" class="image-keep-aspect" type="checkbox" />
-        <span class="toggle-text">{{ t('foto.keepAspect') }}</span>
-      </label>
     </div>
   </div>
 </template>
@@ -41,7 +40,7 @@
  */
 import { reactive, ref, toRaw, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
-import SliderField from '../../ui/SliderField.vue'
+import SliderControl from '../../ui/SliderControl.vue'
 import {
   getBoundsCenter,
   positionBounds,
@@ -141,6 +140,7 @@ onBeforeUnmount(() => {
 defineExpose({ sync })
 </script>
 
+<style scoped src="../../ui/slider-control.css"></style>
 <style scoped src="./image-filters-shared.css"></style>
 <style scoped>
 .toggle-label {

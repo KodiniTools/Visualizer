@@ -44,6 +44,16 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.progress-section').exists()).toBe(false)
   })
 
+  it('slider rows sit in gap-free stacks (same spacing as the image filters)', () => {
+    const w = mountPanel()
+    const timing = w.findAll('.timing-control')
+    expect(new Set(timing.map((c) => c.element.parentElement)).size).toBe(1)
+    expect(timing[0].element.parentElement.classList.contains('slider-stack')).toBe(true)
+    const transform = w.findAll('.transform-control')
+    expect(new Set(transform.map((c) => c.element.parentElement)).size).toBe(1)
+    expect(transform[0].element.parentElement.classList.contains('transform-controls')).toBe(true)
+  })
+
   it('hides settings and shows pause/stop + progress while active', () => {
     const w = mountPanel({
       isActive: true,
@@ -570,7 +580,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.setProps({
       externalTransform: { relX: 0.25, relY: 0.3, relWidth: 0.8, relHeight: 0.8 },
     })
-    const values = w.findAll('.transform-control .value').map((v) => v.text())
+    const values = w.findAll('.transform-control .slider-control__value').map((v) => v.text())
     expect(values.slice(0, 2)).toEqual(['25%', '30%'])
   })
 
@@ -1633,7 +1643,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       relWidth: 0.8,
       relHeight: 0.8,
     })
-    expect(w.find('.transform-control .value').text()).toBe('10%')
+    expect(w.find('.transform-control .slider-control__value').text()).toBe('10%')
   })
 
   it('forwards pause/resume/stop and render-layer changes', async () => {

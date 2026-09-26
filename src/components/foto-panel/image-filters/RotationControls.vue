@@ -36,6 +36,7 @@ const ifc = inject('imageFilterControls')
 const { filters, onSliderStart, onSliderEnd, onRotationChange } = ifc
 </script>
 
+<style scoped src="../../ui/slider-control.css"></style>
 <style scoped src="./image-filters-shared.css"></style>
 <style scoped>
 .rotation-slider {

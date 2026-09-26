@@ -4,49 +4,46 @@
     <label class="section-label">{{ t('slideshow.positionSize') }}</label>
 
     <div class="transform-controls">
-      <div class="transform-control">
-        <label>{{ t('slideshow.positionX') }}</label>
-        <div class="slider-row">
-          <SliderField v-model="transformX" :min="0" :max="100" :step="1" :default-value="10" />
-          <span class="value">{{ transformX }}%</span>
-        </div>
-      </div>
-
-      <div class="transform-control">
-        <label>{{ t('slideshow.positionY') }}</label>
-        <div class="slider-row">
-          <SliderField v-model="transformY" :min="0" :max="100" :step="1" :default-value="10" />
-          <span class="value">{{ transformY }}%</span>
-        </div>
-      </div>
-
-      <div class="transform-control">
-        <label>{{ t('slideshow.width') }}</label>
-        <div class="slider-row">
-          <SliderField
-            v-model="transformWidth"
-            :min="10"
-            :max="100"
-            :step="1"
-            :default-value="80"
-          />
-          <span class="value">{{ transformWidth }}%</span>
-        </div>
-      </div>
-
-      <div class="transform-control">
-        <label>{{ t('slideshow.height') }}</label>
-        <div class="slider-row">
-          <SliderField
-            v-model="transformHeight"
-            :min="10"
-            :max="100"
-            :step="1"
-            :default-value="80"
-          />
-          <span class="value">{{ transformHeight }}%</span>
-        </div>
-      </div>
+      <SliderControl
+        v-model="transformX"
+        class="transform-control"
+        :label="t('slideshow.positionX')"
+        :min="0"
+        :max="100"
+        :step="1"
+        :default-value="10"
+        :value-text="`${transformX}%`"
+      />
+      <SliderControl
+        v-model="transformY"
+        class="transform-control"
+        :label="t('slideshow.positionY')"
+        :min="0"
+        :max="100"
+        :step="1"
+        :default-value="10"
+        :value-text="`${transformY}%`"
+      />
+      <SliderControl
+        v-model="transformWidth"
+        class="transform-control"
+        :label="t('slideshow.width')"
+        :min="10"
+        :max="100"
+        :step="1"
+        :default-value="80"
+        :value-text="`${transformWidth}%`"
+      />
+      <SliderControl
+        v-model="transformHeight"
+        class="transform-control"
+        :label="t('slideshow.height')"
+        :min="10"
+        :max="100"
+        :step="1"
+        :default-value="80"
+        :value-text="`${transformHeight}%`"
+      />
 
       <button class="btn-reset-transform" @click="resetTransform">
         {{ t('slideshow.resetPosition') }}
@@ -57,7 +54,7 @@
 
 <script setup>
 /** Position und Größe der Slideshow (in Prozent des Canvas) mit Reset. */
-import SliderField from '../../ui/SliderField.vue'
+import SliderControl from '../../ui/SliderControl.vue'
 import { useI18n } from '../../../lib/i18n.js'
 
 const TRANSFORM_DEFAULTS = Object.freeze({ x: 10, y: 10, width: 80, height: 80 })
@@ -90,16 +87,6 @@ function resetTransform() {
 .transform-controls {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-.transform-control {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.transform-control label {
-  font-size: 11px;
-  color: var(--text-muted);
 }
 .btn-reset-transform {
   margin-top: 8px;
@@ -122,9 +109,6 @@ function resetTransform() {
 }
 [data-theme='light'] .transform-section {
   border-top-color: #d4c8a8;
-}
-[data-theme='light'] .transform-control label {
-  color: #4d6d8e;
 }
 [data-theme='light'] .btn-reset-transform {
   border-color: #d4c8a8;

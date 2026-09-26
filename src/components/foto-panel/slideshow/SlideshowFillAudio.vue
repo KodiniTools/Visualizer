@@ -21,34 +21,32 @@
           @update:model-value="(v) => update({ source: v })"
         />
       </label>
-      <label class="fill-audio-field range">
-        <span>{{ t('slideshow.fillAudioBrightness') }}</span>
-        <input
-          :value="audio.brightness"
-          :class="`${prefix}-fill-audio-brightness`"
-          type="range"
-          min="0"
-          max="100"
-          step="1"
+      <div class="fill-audio-slider">
+        <SliderControl
+          :input-class="`${prefix}-fill-audio-brightness`"
+          :label="t('slideshow.fillAudioBrightness')"
+          :model-value="audio.brightness"
+          :min="0"
+          :max="100"
+          :step="1"
+          :default-value="SLIDESHOW_FILL_AUDIO_DEFAULT.brightness"
           :disabled="disabled"
-          @input="update({ brightness: Number($event.target.value) })"
+          :value-text="`${audio.brightness} %`"
+          @update:model-value="(v) => update({ brightness: v })"
         />
-        <span class="value">{{ audio.brightness }} %</span>
-      </label>
-      <label class="fill-audio-field range">
-        <span>{{ t('slideshow.fillAudioHue') }}</span>
-        <input
-          :value="audio.hue"
-          :class="`${prefix}-fill-audio-hue`"
-          type="range"
-          min="0"
-          max="100"
-          step="1"
+        <SliderControl
+          :input-class="`${prefix}-fill-audio-hue`"
+          :label="t('slideshow.fillAudioHue')"
+          :model-value="audio.hue"
+          :min="0"
+          :max="100"
+          :step="1"
+          :default-value="SLIDESHOW_FILL_AUDIO_DEFAULT.hue"
           :disabled="disabled"
-          @input="update({ hue: Number($event.target.value) })"
+          :value-text="`${audio.hue} %`"
+          @update:model-value="(v) => update({ hue: v })"
         />
-        <span class="value">{{ audio.hue }} %</span>
-      </label>
+      </div>
     </div>
   </div>
 </template>
@@ -59,7 +57,11 @@
  * Rein darstellend: v-model liefert die bereinigte Einstellung.
  */
 import { useI18n } from '../../../lib/i18n.js'
-import { normalizeSlideshowFillAudio } from '../../../lib/slideshowFillAudio.js'
+import {
+  normalizeSlideshowFillAudio,
+  SLIDESHOW_FILL_AUDIO_DEFAULT,
+} from '../../../lib/slideshowFillAudio.js'
+import SliderControl from '../../ui/SliderControl.vue'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 
 const audio = defineModel({ type: Object, required: true })
@@ -97,13 +99,8 @@ function update(partial) {
   color: var(--text-muted);
   font-size: 11px;
 }
-.fill-audio-field.range {
+.fill-audio-slider {
   flex-basis: 100%;
-}
-.fill-audio-field.range input {
-  flex: 1;
-  min-width: 0;
-  accent-color: #6ea8fe;
 }
 .fill-audio-field select {
   padding: 3px 6px;
@@ -113,17 +110,9 @@ function update(partial) {
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
-.value {
-  min-width: 34px;
-  text-align: right;
-  color: #e0e0e0;
-}
 [data-theme='light'] .fill-audio-field select {
   background: #f9f2d5;
   color: #003971;
   border-color: #d4c8a8;
-}
-[data-theme='light'] .value {
-  color: #003971;
 }
 </style>

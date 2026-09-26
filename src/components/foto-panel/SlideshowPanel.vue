@@ -2,11 +2,7 @@
   <div v-if="isVisible" class="slideshow-panel">
     <div class="panel-header">
       <h4>{{ t('slideshow.title') }}</h4>
-      <div class="status-badge" :class="{ active: isActive, paused: isPaused }">
-        <span v-if="isActive && !isPaused">{{ t('slideshow.running') }}</span>
-        <span v-else-if="isPaused">{{ t('slideshow.paused') }}</span>
-        <span v-else>{{ t('slideshow.ready') }}</span>
-      </div>
+      <SlideshowStatusBadge :is-active="isActive" :is-paused="isPaused" />
     </div>
 
     <!-- Reihenfolge der Bilder (nur wenn nicht aktiv) -->
@@ -296,6 +292,7 @@ import SlideshowTransformSettings from './slideshow/SlideshowTransformSettings.v
 import SlideshowControls from './slideshow/SlideshowControls.vue'
 import SlideshowPresets from './slideshow/SlideshowPresets.vue'
 import SlideshowImageEditor from './slideshow/SlideshowImageEditor.vue'
+import SlideshowStatusBadge from './slideshow/SlideshowStatusBadge.vue'
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore.js'
 import { slideshowImageKey, slideshowStableKey } from './slideshow/slideshowImageKey.js'
 import { restorePresetImages } from '../../lib/slideshowSources.js'
@@ -1041,29 +1038,8 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-.status-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  background-color: var(--secondary-bg);
-  color: var(--text-muted);
-}
-.status-badge.active {
-  background-color: rgba(46, 204, 113, 0.2);
-  color: #2ecc71;
-}
-.status-badge.paused {
-  background-color: rgba(241, 196, 15, 0.2);
-  color: #f1c40f;
-}
 [data-theme='light'] .panel-header h4 {
   color: #003971;
-}
-[data-theme='light'] .status-badge {
-  background-color: #f0ead0;
-  color: #4d6d8e;
 }
 .adjustments-section {
   display: flex;

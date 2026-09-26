@@ -23,7 +23,7 @@ beforeEach(() => {
   pinia = createPinia()
   setActivePinia(pinia)
   const s = useSlideshowPopover()
-  Object.assign(s, { panelVisible: false, imageCount: 0, active: false })
+  Object.assign(s, { panelVisible: false, imageCount: 0, active: false, paused: false })
 })
 afterEach(() => {
   wrappers.forEach((w) => w.unmount())
@@ -100,6 +100,30 @@ describe('Sticky-Bar – Slideshow-Fenster', () => {
     useSlideshowPopover().panelVisible = true
     await nextTick()
     expect(w.find('.spb-empty-hint').exists()).toBe(false)
+  })
+
+  it('Status in der Kopfzeile: Bereit / Läuft / Pausiert, nur mit Inhalt', async () => {
+    const { w } = mountPopover()
+    const state = useSlideshowPopover()
+    const badge = () => w.find('.spb-popover-header .status-badge')
+    expect(badge().exists()).toBe(false) // leeres Fenster → kein Status
+    state.panelVisible = true
+    await nextTick()
+    expect(badge().text()).toBe('Bereit')
+    expect(badge().classes()).not.toContain('active')
+    state.active = true
+    await nextTick()
+    expect(badge().text()).toBe('Läuft')
+    expect(badge().classes()).toContain('active')
+    state.paused = true
+    await nextTick()
+    expect(badge().text()).toBe('Pausiert')
+    expect(badge().classes()).toContain('paused')
+    // Reihenfolge: Titel · Status · Schließen
+    const kids = [...w.find('.spb-popover-header').element.children].map((e) => e.className)
+    expect(kids[0]).toContain('section-label')
+    expect(kids[1]).toContain('status-badge')
+    expect(kids[2]).toContain('spb-popover-close')
   })
 
   it('Schließen-Knopf schließt nur dieses Fenster', async () => {

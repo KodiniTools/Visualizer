@@ -13,46 +13,39 @@
         </select>
       </div>
 
-      <div class="timing-control">
-        <label>{{ t('slideshow.fadeIn') }}</label>
-        <div class="slider-row">
-          <SliderField
-            v-model="fadeInDuration"
-            :min="100"
-            :max="5000"
-            :step="100"
-            :default-value="1000"
-          />
-          <span class="value">{{ (fadeInDuration / 1000).toFixed(1) }}s</span>
-        </div>
-      </div>
+      <div class="slider-stack">
+        <SliderControl
+          v-model="fadeInDuration"
+          class="timing-control"
+          :label="t('slideshow.fadeIn')"
+          :min="100"
+          :max="5000"
+          :step="100"
+          :default-value="1000"
+          :value-text="`${(fadeInDuration / 1000).toFixed(1)}s`"
+        />
 
-      <div class="timing-control">
-        <label>{{ t('slideshow.display') }}</label>
-        <div class="slider-row">
-          <SliderField
-            v-model="displayDuration"
-            :min="500"
-            :max="30000"
-            :step="500"
-            :default-value="3000"
-          />
-          <span class="value">{{ (displayDuration / 1000).toFixed(1) }}s</span>
-        </div>
-      </div>
+        <SliderControl
+          v-model="displayDuration"
+          class="timing-control"
+          :label="t('slideshow.display')"
+          :min="500"
+          :max="30000"
+          :step="500"
+          :default-value="3000"
+          :value-text="`${(displayDuration / 1000).toFixed(1)}s`"
+        />
 
-      <div class="timing-control">
-        <label>{{ t('slideshow.fadeOut') }}</label>
-        <div class="slider-row">
-          <SliderField
-            v-model="fadeOutDuration"
-            :min="100"
-            :max="5000"
-            :step="100"
-            :default-value="1000"
-          />
-          <span class="value">{{ (fadeOutDuration / 1000).toFixed(1) }}s</span>
-        </div>
+        <SliderControl
+          v-model="fadeOutDuration"
+          class="timing-control"
+          :label="t('slideshow.fadeOut')"
+          :min="100"
+          :max="5000"
+          :step="100"
+          :default-value="1000"
+          :value-text="`${(fadeOutDuration / 1000).toFixed(1)}s`"
+        />
       </div>
     </div>
 
@@ -79,7 +72,7 @@
 
 <script setup>
 /** Timing (Ein-/Ausblenden, Anzeigedauer), Audio-Reaktiv-Übernahme und Loop. */
-import SliderField from '../../ui/SliderField.vue'
+import SliderControl from '../../ui/SliderControl.vue'
 import { useI18n } from '../../../lib/i18n.js'
 import { SLIDESHOW_TRANSITIONS } from '../../../lib/slideshowTransitions.js'
 
@@ -122,17 +115,5 @@ const { t } = useI18n()
   background: #f9f2d5;
   color: #003971;
   border-color: #d4c8a8;
-}
-.timing-control {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.timing-control label {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-[data-theme='light'] .timing-control label {
-  color: #4d6d8e;
 }
 </style>

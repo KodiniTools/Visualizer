@@ -1,8 +1,15 @@
 // @vitest-environment jsdom
-import { describe, it, expect, afterEach, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
+import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import SlideshowPanel from '../../components/foto-panel/SlideshowPanel.vue'
+import * as persistence from '../../lib/slideshowImagePersistence.js'
+
+// Dauerhafte Bildablage (IndexedDB) im Panel-Test ersetzen
+vi.mock('../../lib/slideshowImagePersistence.js', () => ({
+  persistUploadImage: vi.fn(async () => null),
+  restoreUploadImage: vi.fn(async () => null),
+}))
 
 const images = [
   { id: 'a', name: 'Eins', imageObject: { src: 'data:,a' } },
@@ -113,12 +120,27 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.loop-section input[type="checkbox"]').setValue(true)
     await w.find('.preset-name-input').setValue('Party')
     await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
     expect(w.findAll('.preset-item')).toHaveLength(1)
     expect(w.find('.preset-name').text()).toBe('Party')
     const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
     expect(stored[0].slots).toEqual([
-      { displayDuration: null, audioMode: 'pulse', adjustments: null, bounds: null, stock: null },
-      { displayDuration: 9000, audioMode: 'default', adjustments: null, bounds: null, stock: null },
+      {
+        displayDuration: null,
+        audioMode: 'pulse',
+        adjustments: null,
+        bounds: null,
+        stock: null,
+        upload: null,
+      },
+      {
+        displayDuration: 9000,
+        audioMode: 'default',
+        adjustments: null,
+        bounds: null,
+        stock: null,
+        upload: null,
+      },
     ])
 
     // Werte ändern, dann Preset laden -> ursprünglicher Zustand
@@ -126,6 +148,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.findAll('.order-audio')[0].setValue('off')
     await w.find('.loop-section input[type="checkbox"]').setValue(false)
     await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
 
     expect(w.findAll('.order-duration')[1].element.value).toBe('9')
     expect(w.findAll('.order-audio')[0].element.value).toBe('pulse')
@@ -179,11 +202,13 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const w = mountPanel({ adjustmentsApi })
     await w.findAll('.order-audio')[0].setValue('glow')
     await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
     const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
     expect(stored[0].slots[0].adjustments).toEqual({ contrast: 120, sepia: 30 })
     expect(stored[0].slots[1].adjustments).toBeNull()
 
     await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
     expect(calls).toEqual([
       ['a', { contrast: 120, sepia: 30 }, 'glow'],
       ['b', null, 'default'],
@@ -204,6 +229,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.setProps({ isActive: true, images: [] })
     await w.find('.preset-name-input').setValue('Live')
     await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
     const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
     expect(stored[0].name).toBe('Live')
     expect(stored[0].slots).toHaveLength(2)
@@ -220,6 +246,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const loadBtn = w.find('.btn-load-preset')
     expect(loadBtn.element.disabled).toBe(false)
     await loadBtn.trigger('click')
+    await flushPromises()
     expect(setBounds).toEqual([
       ['a', { relX: 0.1, relY: 0.2, relWidth: 0.3, relHeight: 0.3 }],
       ['b', null],
@@ -253,11 +280,13 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const w = mountPanel()
     await w.find('.move-whole-checkbox').setValue(true)
     await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
     const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
     expect(stored[0].settings.moveWholeSlideshow).toBe(true)
 
     await w.find('.move-whole-checkbox').setValue(false)
     await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
     expect(w.find('.move-whole-checkbox').element.checked).toBe(true)
     expect(w.emitted('move-mode-change').at(-1)).toEqual([true])
     await w.find('.btn-start').trigger('click')
@@ -269,11 +298,13 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const w = mountPanel({ images: [images[0], stockImg] })
     expect(w.find('.order-stock-badge').exists()).toBe(true)
     await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
     expect(w.find('.preset-images-badge').exists()).toBe(true)
 
     // Auswahl wechseln → Preset laden stellt die gespeicherten Bilder her
     await w.setProps({ images: [images[1], images[0]] })
     await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
     expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Eins', 'Stock Wald'])
     await w.find('.btn-start').trigger('click')
     expect(w.emitted('start')[0][0].images.map((i) => i.id)).toEqual(['a', 'stock:s1'])
@@ -281,10 +312,12 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
   it('loading a preset with other images while running restarts the slideshow', async () => {
     const w = mountPanel({ images: [images[1], images[0]] })
-    await w.find('.btn-save-preset').trigger('click') // Preset mit Bildern b, a
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises() // Preset mit Bildern b, a
     await w.setProps({ images })
     await w.setProps({ isActive: true, images: [] }) // läuft mit a, b
     await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
     expect(w.emitted('live-update')).toBeUndefined()
     expect(
       w
@@ -297,9 +330,11 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it('panel is visible with a session-image preset even without selection; start disabled', async () => {
     const w = mountPanel()
     await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
     await w.setProps({ images: [] })
     expect(w.find('.slideshow-panel').exists()).toBe(true)
     await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
     expect(w.find('.btn-start').element.disabled).toBe(false)
   })
 
@@ -319,6 +354,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     let w = mountPanel({ images: [stockImg, images[0]] })
     await w.findAll('.order-duration')[0].setValue('6')
     await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
     const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
     expect(stored[0].slots[0].stock).toMatchObject({ id: 's1', file: 'gallery/bg/wald.png' })
     expect(stored[0].slots[1].stock).toBeNull()
@@ -333,9 +369,61 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.slideshow-panel').exists()).toBe(true)
     expect(w.find('.preset-images-badge').text()).toBe('🗂')
     await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
     expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Stock Wald', 'Zwei'])
     expect(w.findAll('.order-duration')[0].element.value).toBe('6')
     expect(w.find('.btn-start').element.disabled).toBe(false)
+  })
+
+  it('uploaded images are persisted and restored after reload (IndexedDB)', async () => {
+    const keyA = 'a'.repeat(64)
+    persistence.persistUploadImage.mockImplementation(async (img) =>
+      img.id === 'a' ? { key: keyA, name: 'Eins' } : null,
+    )
+    const restoredObj = { restored: true }
+    persistence.restoreUploadImage.mockImplementation(async (key) =>
+      key === keyA ? { imageObject: restoredObj, name: 'Eins' } : null,
+    )
+
+    let w = mountPanel()
+    await w.findAll('.order-duration')[0].setValue('4')
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    expect(stored[0].slots[0].upload).toEqual({ key: keyA, name: 'Eins' })
+    expect(stored[0].slots[1].upload).toBeNull()
+    w.unmount()
+
+    // „Seite neu geladen“: keine Sitzungsbilder, ein anderes Bild ausgewählt
+    pinia = createPinia()
+    setActivePinia(pinia)
+    w = mountPanel({ images: [images[1]] })
+    wrapper = w
+    expect(w.find('.slideshow-panel').exists()).toBe(true)
+    expect(w.find('.preset-images-badge').text()).toBe('🗂')
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    // Position 1 aus IndexedDB, Position 2 (nicht gespeichert) aus der Auswahl
+    expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Eins', 'Zwei'])
+    expect(w.findAll('.order-duration')[0].element.value).toBe('4')
+    await w.find('.btn-start').trigger('click')
+    const started = w.emitted('start')[0][0].images
+    expect(started[0]).toMatchObject({ id: `preset:${keyA}`, imageObject: restoredObj })
+    persistence.persistUploadImage.mockReset()
+    persistence.persistUploadImage.mockImplementation(async () => null)
+    persistence.restoreUploadImage.mockImplementation(async () => null)
+  })
+
+  it('saves the preset even if persisting an image fails', async () => {
+    persistence.persistUploadImage.mockImplementationOnce(async () => {
+      throw new Error('QuotaExceeded')
+    })
+    const w = mountPanel()
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    expect(stored).toHaveLength(1)
+    expect(stored[0].slots.every((slot) => slot.upload === null)).toBe(true)
   })
 
   it('reset in the transform section restores defaults and emits transform-change', async () => {

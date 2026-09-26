@@ -126,6 +126,7 @@ import SlideshowControls from './slideshow/SlideshowControls.vue'
 import SlideshowPresets from './slideshow/SlideshowPresets.vue'
 import { slideshowImageKey } from './slideshow/slideshowImageKey.js'
 import { restorePresetImages } from '../../lib/slideshowSources.js'
+import { persistUploadImage, restoreUploadImage } from '../../lib/slideshowImagePersistence.js'
 import {
   useSlideshowPresetStore,
   SLIDESHOW_DEFAULT_SETTINGS,
@@ -207,7 +208,7 @@ const isVisible = computed(
     props.isActive ||
     orderedImages.value.length >= 2 ||
     Object.keys(presetStore.sessionImages).length > 0 ||
-    presetStore.presets.some((preset) => preset.slots.some((slot) => slot.stock)),
+    presetStore.presets.some((preset) => preset.slots.some((slot) => slot.stock || slot.upload)),
 )
 
 // Optionaler Audio-Reaktiv-Modus pro Bild ({ [id]: mode }); fehlt ein Eintrag, gilt 'default'
@@ -277,59 +278,88 @@ function stockRefOf(img) {
   return { id, name, file, thumbnail }
 }
 
-function savePreset(name) {
-  const saved = presetStore.savePreset(
-    name,
-    {
-      settings: {
-        fadeInDuration: fadeInDuration.value,
-        displayDuration: displayDuration.value,
-        fadeOutDuration: fadeOutDuration.value,
-        applyAudioReactive: applyAudioReactive.value,
-        loop: loopSlideshow.value,
-        renderBehindVisualizer: renderBehindVisualizer.value,
-        fitToWorkspace: fitToWorkspace.value,
-        moveWholeSlideshow: moveWholeSlideshow.value,
-        transform: {
-          x: transformX.value,
-          y: transformY.value,
-          width: transformWidth.value,
-          height: transformHeight.value,
-        },
+async function savePreset(name) {
+  // Zustand sofort festhalten – während des Speicherns der Bilder kann sich
+  // die Liste ändern
+  const images = [...orderedImages.value]
+  const snapshot = {
+    settings: {
+      fadeInDuration: fadeInDuration.value,
+      displayDuration: displayDuration.value,
+      fadeOutDuration: fadeOutDuration.value,
+      applyAudioReactive: applyAudioReactive.value,
+      loop: loopSlideshow.value,
+      renderBehindVisualizer: renderBehindVisualizer.value,
+      fitToWorkspace: fitToWorkspace.value,
+      moveWholeSlideshow: moveWholeSlideshow.value,
+      transform: {
+        x: transformX.value,
+        y: transformY.value,
+        width: transformWidth.value,
+        height: transformHeight.value,
       },
-      // Pro Position in der aktuellen Reihenfolge
-      slots: orderedImages.value.map((img) => {
-        const key = slideshowImageKey(img)
-        return {
-          displayDuration: imageDurations.value[key] ?? null,
-          audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
-          adjustments: props.adjustmentsApi?.get(img) ?? null,
-          bounds: props.adjustmentsApi?.getBounds?.(img) ?? null,
-          // Stock-Bilder dauerhaft als Verweis (Galerie-Pfad) speichern
-          stock: stockRefOf(img),
-        }
-      }),
     },
-    // Bilder nur für diese Sitzung merken (nicht im localStorage)
-    orderedImages.value,
+    // Pro Position in der aktuellen Reihenfolge
+    slots: images.map((img) => {
+      const key = slideshowImageKey(img)
+      return {
+        displayDuration: imageDurations.value[key] ?? null,
+        audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
+        adjustments: props.adjustmentsApi?.get(img) ?? null,
+        bounds: props.adjustmentsApi?.getBounds?.(img) ?? null,
+        // Stock-Bilder dauerhaft als Verweis (Galerie-Pfad) speichern
+        stock: stockRefOf(img),
+      }
+    }),
+  }
+
+  // Hochgeladene Bilder dauerhaft in IndexedDB ablegen (Verweis im Preset)
+  const failed = []
+  const uploadRefs = await Promise.all(
+    images.map(async (img) => {
+      if (img.source === 'stock') return null
+      try {
+        return await persistUploadImage(img)
+      } catch (e) {
+        console.warn('[SlideshowPresets] Bild nicht dauerhaft gespeichert:', img.name, e)
+        failed.push(img.name)
+        return null
+      }
+    }),
   )
-  if (saved) toastStore.success(t('slideshow.presetSaved'))
-  else toastStore.error(t('slideshow.presetSaveError'))
+  snapshot.slots.forEach((slot, i) => {
+    slot.upload = uploadRefs[i] ?? null
+  })
+
+  // Bilder zusätzlich für diese Sitzung merken (exakte Objekte)
+  const saved = presetStore.savePreset(name, snapshot, images)
+  if (!saved) toastStore.error(t('slideshow.presetSaveError'))
+  else if (failed.length > 0) {
+    toastStore.warning(t('slideshow.presetImagesNotPersisted') + ': ' + failed.join(', '))
+  } else toastStore.success(t('slideshow.presetSaved'))
 }
 
-function loadPreset(preset) {
+async function loadPreset(preset) {
   const s = preset.settings
   // Bilder: 1. in dieser Sitzung gespeicherte Bilder, 2. dauerhaft gespeicherte
-  // Stock-Verweise (+ aktuell ausgewählte hochgeladene Bilder), 3. aktuelle Auswahl
+  // Verweise (Stock-Pfade, hochgeladene Bilder aus IndexedDB; fehlende Positionen
+  // mit aktuell ausgewählten Uploads), 3. aktuelle Auswahl
   const previousKeys = orderedImages.value.map(slideshowImageKey).join('|')
   const sessionList = presetStore.getSessionImages(preset.id)
-  const pairs =
-    sessionList && sessionList.length > 0
-      ? sessionList.map((img, i) => ({ img, slot: preset.slots[i] }))
-      : (restorePresetImages(
-          preset.slots,
-          props.images.length > 0 ? props.images : orderedImages.value,
-        ) ?? orderedImages.value.map((img, i) => ({ img, slot: preset.slots[i] })))
+  let pairs
+  if (sessionList && sessionList.length > 0) {
+    pairs = sessionList.map((img, i) => ({ img, slot: preset.slots[i] }))
+  } else {
+    const restored = await restorePresetImages(
+      preset.slots,
+      props.images.length > 0 ? props.images : orderedImages.value,
+      { loadUpload: restoreUploadImage },
+    )
+    if (restored?.missing.length > 0) {
+      toastStore.warning(t('slideshow.presetImagesMissing') + ': ' + restored.missing.join(', '))
+    }
+    pairs = restored?.pairs ?? orderedImages.value.map((img, i) => ({ img, slot: preset.slots[i] }))
+  }
   orderedImages.value = pairs.map((p) => p.img)
   const imagesChanged = orderedImages.value.map(slideshowImageKey).join('|') !== previousKeys
   fadeInDuration.value = s.fadeInDuration

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, markRaw } from 'vue'
 import { SLIDESHOW_AUDIO_DEFAULT, isValidSlideshowAudioMode } from '../lib/slideshowAudio.js'
 import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig.js'
+import { pruneImages } from '../utils/presetImageRepository.js'
 
 const STORAGE_KEY = 'visualizer-slideshow-presets'
 const PRESET_VERSION = 1
@@ -94,6 +95,32 @@ export function normalizeStockRef(raw) {
   }
 }
 
+const UPLOAD_KEY_RE = /^([0-9a-f]{64}|fnv-[0-9a-f]{1,8}-\d{1,12})$/
+
+/**
+ * Bereinigt einen Verweis auf ein dauerhaft gespeichertes hochgeladenes Bild
+ * (Schlüssel in IndexedDB, siehe presetImageRepository).
+ * @param {unknown} raw
+ * @returns {{ key:string, name:string }|null}
+ */
+export function normalizeUploadRef(raw) {
+  if (!raw || typeof raw !== 'object') return null
+  if (typeof raw.key !== 'string' || !UPLOAD_KEY_RE.test(raw.key)) return null
+  const name = typeof raw.name === 'string' ? raw.name.trim().slice(0, 200) : ''
+  return { key: raw.key, name }
+}
+
+/** Alle von Presets verwendeten Bild-Schlüssel. */
+export function collectUploadKeys(presetList) {
+  const keys = new Set()
+  for (const preset of presetList || []) {
+    for (const slot of preset?.slots || []) {
+      if (slot?.upload?.key) keys.add(slot.upload.key)
+    }
+  }
+  return keys
+}
+
 /**
  * Bereinigt eigene Bild-Bounds (relativ 0–1, Mindestgröße 1 %).
  * @param {unknown} raw
@@ -172,6 +199,8 @@ export function normalizeSlideshowPreset(raw) {
         bounds: normalizeImageBounds(slot?.bounds),
         // Stock-Bild an dieser Position (dauerhaft; hochgeladene Bilder nur per Sitzung)
         stock: normalizeStockRef(slot?.stock),
+        // Hochgeladenes Bild an dieser Position (dauerhaft in IndexedDB)
+        upload: normalizeUploadRef(slot?.upload),
       }
     }),
   }
@@ -217,7 +246,7 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
 
   /**
    * @param {string} name
-   * @param {{ settings: object, slots: Array<{displayDuration:number|null, audioMode:string, adjustments?:object|null, bounds?:object|null, stock?:object|null}> }} snapshot
+   * @param {{ settings: object, slots: Array<{displayDuration:number|null, audioMode:string, adjustments?:object|null, bounds?:object|null, stock?:object|null, upload?:object|null}> }} snapshot
    * @returns {object|null} gespeichertes Preset oder null bei Speicherfehler
    */
   function savePreset(name, snapshot, images = null) {
@@ -251,6 +280,10 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
       delete next[id]
       sessionImages.value = next
     }
+    // Nicht mehr verwendete Bilddateien aus IndexedDB entfernen
+    pruneImages(collectUploadKeys(presets.value)).catch((e) =>
+      console.warn('[SlideshowPresets] Aufräumen der Bilder fehlgeschlagen:', e),
+    )
   }
 
   /** In dieser Sitzung zum Preset gespeicherte Bilder (Kopie der Liste) oder null. */

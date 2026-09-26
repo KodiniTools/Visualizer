@@ -124,25 +124,57 @@ export function stockEntryFromRef(ref, getLoadedStock = () => null) {
 }
 
 /**
- * Stellt die Bildliste eines Presets aus dauerhaft gespeicherten Stock-Verweisen
- * wieder her. Positionen ohne Stock-Verweis (hochgeladene Bilder – deren Dateien
- * werden nicht gespeichert) werden der Reihe nach mit den aktuell ausgewählten
- * hochgeladenen Bildern belegt; fehlen solche, entfällt die Position.
+ * Stellt die Bildliste eines Presets aus dauerhaft gespeicherten Verweisen wieder
+ * her: Stock-Bilder aus dem Galerie-Pfad, hochgeladene Bilder aus IndexedDB
+ * (`loadUpload`). Positionen ohne (ladbaren) Verweis werden der Reihe nach mit
+ * den aktuell ausgewählten hochgeladenen Bildern belegt; fehlen solche, entfällt
+ * die Position.
  * @param {Array<object>} slots - Preset-Slots
  * @param {Array<object>} currentImages - aktuelle Auswahl (Slideshow-Einträge)
- * @param {(id:string) => HTMLImageElement|null} [getLoadedStock]
- * @returns {Array<{ img:object, slot:object }>|null} null, wenn das Preset keine Stock-Verweise hat
+ * @param {{ getLoadedStock?: Function, loadUpload?: (key:string) => Promise<{imageObject:HTMLImageElement, name:string}|null> }} [deps]
+ * @returns {Promise<{ pairs: Array<{ img:object, slot:object }>, missing: string[] }|null>}
+ *   null, wenn das Preset keine Bild-Verweise hat
  */
-export function restorePresetImages(slots, currentImages = [], getLoadedStock = () => null) {
-  if (!Array.isArray(slots) || !slots.some((slot) => slot?.stock)) return null
+export async function restorePresetImages(slots, currentImages = [], deps = {}) {
+  const { getLoadedStock = () => null, loadUpload = async () => null } = deps
+  if (!Array.isArray(slots) || !slots.some((slot) => slot?.stock || slot?.upload)) return null
+
+  // Gespeicherte Uploads parallel laden
+  const loadedUploads = await Promise.all(
+    slots.map(async (slot) => {
+      if (!slot?.upload?.key) return null
+      try {
+        return await loadUpload(slot.upload.key)
+      } catch (e) {
+        console.warn('[Slideshow] Gespeichertes Bild nicht ladbar:', slot.upload.name, e)
+        return null
+      }
+    }),
+  )
+
   const uploads = currentImages.filter((img) => img?.source !== 'stock')
   const pairs = []
-  for (const slot of slots) {
+  const missing = []
+  slots.forEach((slot, i) => {
     if (slot?.stock) {
       pairs.push({ img: stockEntryFromRef(slot.stock, getLoadedStock), slot })
-    } else if (uploads.length > 0) {
-      pairs.push({ img: uploads.shift(), slot })
+      return
     }
-  }
-  return pairs
+    const stored = loadedUploads[i]
+    if (stored?.imageObject) {
+      pairs.push({
+        img: {
+          id: `preset:${slot.upload.key}`,
+          name: slot.upload.name || stored.name,
+          source: 'upload',
+          imageObject: stored.imageObject,
+        },
+        slot,
+      })
+      return
+    }
+    if (slot?.upload) missing.push(slot.upload.name || slot.upload.key)
+    if (uploads.length > 0) pairs.push({ img: uploads.shift(), slot })
+  })
+  return { pairs, missing }
 }

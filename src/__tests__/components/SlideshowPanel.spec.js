@@ -914,6 +914,42 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.emitted('start').at(-1)[0].images[1].audioSource).toBeNull()
   })
 
+  it('workspace mode: area and per-image sources (incl. onset) reach the slideshow', async () => {
+    const w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    // Farbe der Workspace-Fläche
+    await w.find('.workspace-fill-audio-toggle').setValue(true)
+    const fillSource = w.find('.workspace-fill-audio-source')
+    expect(fillSource.findAll('option')).toHaveLength(9)
+    await fillSource.setValue('allOnset')
+    // Farbverlauf der Workspace-Fläche
+    await w.find('.workspace-gradient-toggle').setValue(true)
+    await w.find('.workspace-gradient-audio-toggle').setValue(true)
+    await w.find('.workspace-gradient-audio-source').setValue('bassOnset')
+    // Flächenbild (ohne Bild) – Quelle trotzdem einstellbar
+    await w.find('.workspace-image-toggle').setValue(true)
+    await w.find('.workspace-image-audio-toggle').setValue(true)
+    await w.find('.workspace-image-audio-source').setValue('dynamic')
+    // Canvas-Felder sind im Workspace-Modus ausgeblendet
+    expect(w.find('.base-fill-audio-source').exists()).toBe(false)
+    // eigene Quelle pro Bild
+    await w.findAll('.order-audio-source')[0].setValue('midOnset')
+
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.backgroundMode).toBe('workspace')
+    expect(payload.workspaceFillAudio.source).toBe('allOnset')
+    expect(payload.workspaceGradient.audio.source).toBe('bassOnset')
+    expect(payload.workspaceImageFill.audio.source).toBe('dynamic')
+    expect(payload.backgroundFillAudio.enabled).toBe(false) // Canvas unberührt
+    expect(payload.images.map((i) => i.audioSource)).toEqual(['midOnset', null])
+
+    // ohne Workspace-Format: Felder gesperrt, Modus wirkungslos
+    await w.setProps({ hasWorkspace: false })
+    expect(w.find('.workspace-fill-audio-source').element.disabled).toBe(true)
+    expect(w.emitted('background-mode-change').at(-1)).toEqual(['none'])
+  })
+
   it('editor request is ignored while running', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: false, editImageRequest: { index: 0, nonce: 2 } })

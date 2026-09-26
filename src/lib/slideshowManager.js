@@ -1,5 +1,6 @@
 import {
   SLIDESHOW_TRANSITION_DEFAULT,
+  applyTransitionToBounds,
   computeTransitionState,
   isValidTransition,
   resolveTransition,
@@ -397,6 +398,21 @@ export class SlideshowManager {
     if (!imageData) return { ...this.transform }
     const { relX, relY, relWidth, relHeight } = imageData
     return { relX, relY, relWidth, relHeight }
+  }
+
+  /**
+   * Bereich, in dem das Bild gerade TATSÄCHLICH zu sehen ist – für
+   * Auswahl-Markierung und Klick-Erkennung. Berücksichtigt den laufenden bzw.
+   * pausierten Übergang (Schieben, Zoomen, Kippen …). Als Canvas-/Workspace-
+   * Hintergrund bleibt es der feste Bereich (Bild wird dort beschnitten).
+   * Verschieben/Skalieren rechnet weiter mit getSelectionBounds().
+   * @param {object} imageData
+   */
+  getDisplayBounds(imageData) {
+    const bounds = this.getSelectionBounds(imageData)
+    if (this._getWorkspaceTransform()) return bounds
+    const ss = imageData?.slideshow
+    return applyTransitionToBounds(bounds, ss?.active ? ss.transitionState : null)
   }
 
   /**

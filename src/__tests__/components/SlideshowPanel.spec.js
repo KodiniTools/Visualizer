@@ -1202,6 +1202,119 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.workspace-gradient-audio-source').element.disabled).toBe(true)
   })
 
+  it('canvas mode: fill color audio source (incl. onset) – live, preset, memory, workspace untouched', async () => {
+    const w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-canvas').setValue(true)
+    await w.find('.base-fill-audio-toggle').setValue(true)
+    const source = w.find('.base-fill-audio-source')
+    expect(source.findAll('option').map((o) => o.element.value)).toEqual([
+      'bass',
+      'mid',
+      'treble',
+      'volume',
+      'dynamic',
+      'bassOnset',
+      'midOnset',
+      'trebleOnset',
+      'allOnset',
+    ])
+    expect(source.find('optgroup').attributes('label')).toBe('Onset (Beat, auto-normalisiert)')
+    expect(w.find('.workspace-fill-audio-source').exists()).toBe(false)
+
+    await source.setValue('bassOnset')
+    expect(w.emitted('base-fill-audio-change').at(-1)).toEqual([
+      'canvas',
+      { enabled: true, source: 'bassOnset', brightness: 80, hue: 0 },
+    ])
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-fill-audio')).source).toBe(
+      'bassOnset',
+    )
+    expect(localStorage.getItem('visualizer-slideshow-workspace-fill-audio')).toBeNull()
+
+    // während der Slideshow sofort weitergegeben
+    await w.setProps({ isActive: true })
+    await w.find('.base-fill-audio-source').setValue('allOnset')
+    expect(w.emitted('base-fill-audio-change').at(-1)[1].source).toBe('allOnset')
+    await w.setProps({ isActive: false })
+
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start').at(-1)[0]
+    expect(payload.backgroundMode).toBe('canvas')
+    expect(payload.backgroundFillAudio).toMatchObject({ enabled: true, source: 'allOnset' })
+    expect(payload.workspaceFillAudio.enabled).toBe(false)
+
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+        .backgroundFillAudio.source,
+    ).toBe('allOnset')
+    await w.find('.base-fill-audio-source').setValue('treble')
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.find('.base-fill-audio-source').element.value).toBe('allOnset')
+
+    // Zurücksetzen (↺) schaltet es ab und vergisst die Quelle
+    await w.find('.btn-reset-base-color').trigger('click')
+    expect(w.find('.base-fill-audio-toggle').element.checked).toBe(false)
+    expect(localStorage.getItem('visualizer-slideshow-base-fill-audio')).toBeNull()
+  })
+
+  it('workspace mode: fill color audio source (incl. onset) – live, preset, memory, canvas untouched', async () => {
+    const w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    await w.find('.workspace-fill-audio-toggle').setValue(true)
+    const source = w.find('.workspace-fill-audio-source')
+    expect(source.findAll('option')).toHaveLength(9)
+    expect(source.findAll('optgroup option').map((o) => o.element.value)).toEqual([
+      'bassOnset',
+      'midOnset',
+      'trebleOnset',
+      'allOnset',
+    ])
+    expect(w.find('.base-fill-audio-source').exists()).toBe(false)
+
+    await source.setValue('midOnset')
+    expect(w.emitted('base-fill-audio-change').at(-1)).toEqual([
+      'workspace',
+      { enabled: true, source: 'midOnset', brightness: 80, hue: 0 },
+    ])
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-workspace-fill-audio')).source,
+    ).toBe('midOnset')
+    expect(localStorage.getItem('visualizer-slideshow-base-fill-audio')).toBeNull()
+
+    await w.setProps({ isActive: true })
+    await w.find('.workspace-fill-audio-source').setValue('dynamic')
+    expect(w.emitted('base-fill-audio-change').at(-1)[1].source).toBe('dynamic')
+    await w.setProps({ isActive: false })
+
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start').at(-1)[0]
+    expect(payload.backgroundMode).toBe('workspace')
+    expect(payload.workspaceFillAudio).toMatchObject({ enabled: true, source: 'dynamic' })
+    expect(payload.backgroundFillAudio.enabled).toBe(false)
+
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+        .workspaceFillAudio.source,
+    ).toBe('dynamic')
+    await w.find('.workspace-fill-audio-source').setValue('bass')
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.find('.workspace-fill-audio-source').element.value).toBe('dynamic')
+
+    // ↺ setzt die Workspace-Fläche zurück (inkl. Audio), Canvas bleibt unberührt
+    await w.find('.btn-reset-workspace-color').trigger('click')
+    expect(w.find('.workspace-fill-audio-toggle').element.checked).toBe(false)
+    expect(localStorage.getItem('visualizer-slideshow-workspace-fill-audio')).toBeNull()
+
+    await w.setProps({ hasWorkspace: false })
+    expect(w.find('.workspace-fill-audio-toggle').element.disabled).toBe(true)
+  })
+
   it('editor request is ignored while running', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: false, editImageRequest: { index: 0, nonce: 2 } })

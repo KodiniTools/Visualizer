@@ -1121,7 +1121,11 @@ export class MultiImageManager {
     // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden
     let bounds
     if (this.selectedImage.isSlideshowImage && window.slideshowManager) {
-      const transform = window.slideshowManager.getSelectionBounds(this.selectedImage)
+      const sm = window.slideshowManager
+      // sichtbarer Bereich inkl. Übergang (Markierung liegt auf dem Bild)
+      const transform = sm.getDisplayBounds
+        ? sm.getDisplayBounds(this.selectedImage)
+        : sm.getSelectionBounds(this.selectedImage)
       bounds = {
         x: transform.relX * this.canvas.width,
         y: transform.relY * this.canvas.height,
@@ -1213,7 +1217,11 @@ export class MultiImageManager {
 
     // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden (für Selection)
     if (!forceImageBounds && imgData.isSlideshowImage && window.slideshowManager) {
-      const transform = window.slideshowManager.getSelectionBounds(imgData)
+      const sm = window.slideshowManager
+      // sichtbarer Bereich inkl. Übergang (Klick-Erkennung/Markierung)
+      const transform = sm.getDisplayBounds
+        ? sm.getDisplayBounds(imgData)
+        : sm.getSelectionBounds(imgData)
       return {
         x: transform.relX * targetCanvas.width,
         y: transform.relY * targetCanvas.height,

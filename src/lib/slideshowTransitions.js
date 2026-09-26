@@ -135,3 +135,35 @@ export function computeTransitionState(type, phase, progress) {
   }
   return state
 }
+
+/**
+ * Bereich, in dem ein Bild mit Übergangszustand tatsächlich gezeichnet wird –
+ * gleiche Rechnung wie MultiImageManager.drawImages(): Kippen (scaleX) um die
+ * Mitte, Verschiebung als Anteil der Bildgröße, Skalierung um die Mitte.
+ * Drehung wird nicht berücksichtigt (Rahmen bleibt achsparallel).
+ * @param {{ relX:number, relY:number, relWidth:number, relHeight:number }} bounds
+ * @param {ReturnType<typeof computeTransitionState>|null|undefined} state
+ * @returns {{ relX:number, relY:number, relWidth:number, relHeight:number }} neue Bounds
+ */
+export function applyTransitionToBounds(bounds, state) {
+  const b = { ...bounds }
+  if (!state) return b
+  const flip = Math.max(0.001, Math.abs(Number.isFinite(state.scaleX) ? state.scaleX : 1))
+  if (flip !== 1) {
+    const cx = b.relX + b.relWidth / 2
+    b.relWidth *= flip
+    b.relX = cx - b.relWidth / 2
+  }
+  b.relX += (state.translateX || 0) * bounds.relWidth
+  b.relY += (state.translateY || 0) * bounds.relHeight
+  const scale = Number.isFinite(state.scale) ? state.scale : 1
+  if (scale !== 1) {
+    const cx = b.relX + b.relWidth / 2
+    const cy = b.relY + b.relHeight / 2
+    b.relWidth *= scale
+    b.relHeight *= scale
+    b.relX = cx - b.relWidth / 2
+    b.relY = cy - b.relHeight / 2
+  }
+  return b
+}

@@ -40,4 +40,13 @@ const { t } = useI18n()
   background-color: #f0ead0;
   color: #4d6d8e;
 }
+/* Statusfarben auch im Hellmodus (dunklere Töne, Kontrast ≥ 5:1 auf hellem Grund) */
+[data-theme='light'] .status-badge.active {
+  background-color: rgba(22, 163, 74, 0.15);
+  color: #166534;
+}
+[data-theme='light'] .status-badge.paused {
+  background-color: rgba(234, 179, 8, 0.22);
+  color: #854d0e;
+}
 </style>

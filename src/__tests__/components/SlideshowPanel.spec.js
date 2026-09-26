@@ -570,7 +570,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.setProps({
       externalTransform: { relX: 0.25, relY: 0.3, relWidth: 0.8, relHeight: 0.8 },
     })
-    const values = w.findAll('.transform-control .value').map((v) => v.text())
+    const values = w.findAll('.transform-control .slider-control__value').map((v) => v.text())
     expect(values.slice(0, 2)).toEqual(['25%', '30%'])
   })
 
@@ -1633,7 +1633,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       relWidth: 0.8,
       relHeight: 0.8,
     })
-    expect(w.find('.transform-control .value').text()).toBe('10%')
+    expect(w.find('.transform-control .slider-control__value').text()).toBe('10%')
   })
 
   it('forwards pause/resume/stop and render-layer changes', async () => {

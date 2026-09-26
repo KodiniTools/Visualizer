@@ -20,36 +20,36 @@
 
     <!-- Position des Bildes auf der Canvas (Mittelpunkt in % der Canvas) -->
     <div v-if="position" class="image-editor-position">
-      <div v-for="axis in POSITION_AXES" :key="axis" class="image-editor-field">
-        <span>{{ t(axis === 'x' ? 'slideshow.imagePositionX' : 'slideshow.imagePositionY') }}</span>
-        <SliderField
-          :class="`editor-position-${axis}`"
-          :model-value="percent(position[axis])"
-          :min="0"
-          :max="100"
-          :step="0.1"
-          :default-value="50"
-          :aria-label="t(axis === 'x' ? 'slideshow.imagePositionX' : 'slideshow.imagePositionY')"
-          @update:model-value="(v) => onPosition(axis, v)"
-        />
-      </div>
+      <SliderControl
+        v-for="axis in POSITION_AXES"
+        :key="axis"
+        :input-class="`editor-position-${axis}`"
+        :label="t(axis === 'x' ? 'slideshow.imagePositionX' : 'slideshow.imagePositionY')"
+        :model-value="percent(position[axis])"
+        :min="0"
+        :max="100"
+        :step="0.1"
+        :default-value="50"
+        :value-text="`${percent(position[axis])}%`"
+        @update:model-value="(v) => onPosition(axis, v)"
+      />
     </div>
 
     <!-- Größe des Bildes (Breite × Höhe in % der Canvas) -->
     <div v-if="size" class="image-editor-size">
-      <div v-for="dim in SIZE_DIMS" :key="dim" class="image-editor-field">
-        <span>{{ t(dim === 'width' ? 'slideshow.imageWidth' : 'slideshow.imageHeight') }}</span>
-        <SliderField
-          :class="`editor-size-${dim}`"
-          :model-value="sizePercent(size[dim])"
-          :min="1"
-          :max="200"
-          :step="0.1"
-          :default-value="sizePercent(size[dim === 'width' ? 'defaultWidth' : 'defaultHeight'])"
-          :aria-label="t(dim === 'width' ? 'slideshow.imageWidth' : 'slideshow.imageHeight')"
-          @update:model-value="(v) => onSize(dim, v)"
-        />
-      </div>
+      <SliderControl
+        v-for="dim in SIZE_DIMS"
+        :key="dim"
+        :input-class="`editor-size-${dim}`"
+        :label="t(dim === 'width' ? 'slideshow.imageWidth' : 'slideshow.imageHeight')"
+        :model-value="sizePercent(size[dim])"
+        :min="1"
+        :max="200"
+        :step="0.1"
+        :default-value="sizePercent(size[dim === 'width' ? 'defaultWidth' : 'defaultHeight'])"
+        :value-text="`${sizePercent(size[dim])}%`"
+        @update:model-value="(v) => onSize(dim, v)"
+      />
       <label class="checkbox-label">
         <input v-model="keepAspect" class="editor-keep-aspect" type="checkbox" />
         <span>{{ t('slideshow.keepAspect') }}</span>
@@ -168,7 +168,7 @@ import {
   isValidSlideshowAudioMode,
 } from '../../../lib/slideshowAudio.js'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
-import SliderField from '../../ui/SliderField.vue'
+import SliderControl from '../../ui/SliderControl.vue'
 
 const props = defineProps({
   image: { type: Object, required: true },
@@ -327,7 +327,7 @@ onMounted(() => {
   color: var(--text-muted);
 }
 .image-editor-field select,
-.image-editor-field input:not([type='range']) {
+.image-editor-field input {
   padding: 4px 6px;
   font-size: 12px;
   background: var(--secondary-bg);
@@ -352,7 +352,7 @@ onMounted(() => {
 .image-editor-size {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
 }
 .image-editor .hint {
   padding-left: 0;
@@ -364,7 +364,7 @@ onMounted(() => {
   color: #003971;
 }
 [data-theme='light'] .image-editor-field select,
-[data-theme='light'] .image-editor-field input:not([type='range']) {
+[data-theme='light'] .image-editor-field input {
   background: #f9f2d5;
   color: #003971;
   border-color: #d4c8a8;

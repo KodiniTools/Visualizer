@@ -34,20 +34,20 @@
           <option value="radial">{{ t('slideshow.gradientRadial') }}</option>
         </select>
       </label>
-      <label v-if="gradient.type === 'linear'" class="base-gradient-field angle">
-        <span>{{ t('slideshow.gradientAngle') }}</span>
-        <input
-          :value="gradient.angle"
-          :class="`${prefix}-gradient-angle`"
-          type="range"
-          min="0"
-          max="359"
-          step="1"
-          :disabled="disabled"
-          @input="update({ angle: Number($event.target.value) })"
-        />
-        <span class="angle-value">{{ gradient.angle }}°</span>
-      </label>
+      <SliderControl
+        v-if="gradient.type === 'linear'"
+        class="base-gradient-slider"
+        :input-class="`${prefix}-gradient-angle`"
+        :label="t('slideshow.gradientAngle')"
+        :model-value="gradient.angle"
+        :min="0"
+        :max="359"
+        :step="1"
+        :default-value="SLIDESHOW_GRADIENT_DEFAULT.angle"
+        :disabled="disabled"
+        :value-text="`${gradient.angle}°`"
+        @update:model-value="(v) => update({ angle: v })"
+      />
 
       <!-- Audio-Reaktiv: Puls + Rotation/Kreisen im Takt -->
       <label class="checkbox-label audio-toggle">
@@ -70,38 +70,36 @@
             @update:model-value="(v) => updateAudio({ source: v })"
           />
         </label>
-        <label class="base-gradient-field angle">
-          <span>{{ t('slideshow.gradientAudioPulse') }}</span>
-          <input
-            :value="gradient.audio.pulse"
-            :class="`${prefix}-gradient-audio-pulse`"
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            :disabled="disabled"
-            @input="updateAudio({ pulse: Number($event.target.value) })"
-          />
-          <span class="angle-value">{{ gradient.audio.pulse }} %</span>
-        </label>
-        <label class="base-gradient-field angle">
-          <span>{{
+        <SliderControl
+          class="base-gradient-slider"
+          :input-class="`${prefix}-gradient-audio-pulse`"
+          :label="t('slideshow.gradientAudioPulse')"
+          :model-value="gradient.audio.pulse"
+          :min="0"
+          :max="100"
+          :step="1"
+          :default-value="SLIDESHOW_GRADIENT_DEFAULT.audio.pulse"
+          :disabled="disabled"
+          :value-text="`${gradient.audio.pulse} %`"
+          @update:model-value="(v) => updateAudio({ pulse: v })"
+        />
+        <SliderControl
+          class="base-gradient-slider"
+          :input-class="`${prefix}-gradient-audio-rotation`"
+          :label="
             gradient.type === 'radial'
               ? t('slideshow.gradientAudioOrbit')
               : t('slideshow.gradientAudioRotation')
-          }}</span>
-          <input
-            :value="gradient.audio.rotation"
-            :class="`${prefix}-gradient-audio-rotation`"
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            :disabled="disabled"
-            @input="updateAudio({ rotation: Number($event.target.value) })"
-          />
-          <span class="angle-value">{{ gradient.audio.rotation }} %</span>
-        </label>
+          "
+          :model-value="gradient.audio.rotation"
+          :min="0"
+          :max="100"
+          :step="1"
+          :default-value="SLIDESHOW_GRADIENT_DEFAULT.audio.rotation"
+          :disabled="disabled"
+          :value-text="`${gradient.audio.rotation} %`"
+          @update:model-value="(v) => updateAudio({ rotation: v })"
+        />
       </template>
     </div>
   </div>
@@ -113,7 +111,11 @@
  * Workspace). Rein darstellend: v-model liefert den bereinigten Verlauf.
  */
 import { useI18n } from '../../../lib/i18n.js'
-import { normalizeSlideshowGradient } from '../../../lib/slideshowBaseColor.js'
+import {
+  normalizeSlideshowGradient,
+  SLIDESHOW_GRADIENT_DEFAULT,
+} from '../../../lib/slideshowBaseColor.js'
+import SliderControl from '../../ui/SliderControl.vue'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 
 const gradient = defineModel({ type: Object, required: true })
@@ -155,14 +157,6 @@ function updateAudio(partial) {
   color: var(--text-muted);
   font-size: 11px;
 }
-.base-gradient-field.angle {
-  flex-basis: 100%;
-}
-.base-gradient-field.angle input {
-  flex: 1;
-  min-width: 0;
-  accent-color: #6ea8fe;
-}
 .base-gradient-field input[type='color'] {
   width: 36px;
   height: 22px;
@@ -180,20 +174,13 @@ function updateAudio(partial) {
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
-.audio-toggle {
+.audio-toggle,
+.base-gradient-slider {
   flex-basis: 100%;
-}
-.angle-value {
-  min-width: 34px;
-  text-align: right;
-  color: #e0e0e0;
 }
 [data-theme='light'] .base-gradient-field select {
   background: #f9f2d5;
   color: #003971;
   border-color: #d4c8a8;
-}
-[data-theme='light'] .angle-value {
-  color: #003971;
 }
 </style>

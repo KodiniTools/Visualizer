@@ -98,20 +98,21 @@
             @update:model-value="(v) => updateAudio({ source: v })"
           />
         </label>
-        <label v-for="fx in audioEffects" :key="fx.id" class="image-fill-field range">
-          <span>{{ t(fx.label) }}</span>
-          <input
-            :value="fill.audio[fx.id]"
-            :class="`${prefix}-image-audio-${fx.id}`"
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            :disabled="disabled"
-            @input="updateAudio({ [fx.id]: Number($event.target.value) })"
-          />
-          <span class="value">{{ fill.audio[fx.id] }} %</span>
-        </label>
+        <SliderControl
+          v-for="fx in audioEffects"
+          :key="fx.id"
+          class="image-fill-slider"
+          :input-class="`${prefix}-image-audio-${fx.id}`"
+          :label="t(fx.label)"
+          :model-value="fill.audio[fx.id]"
+          :min="0"
+          :max="100"
+          :step="1"
+          :default-value="SLIDESHOW_IMAGE_FILL_DEFAULT.audio[fx.id]"
+          :disabled="disabled"
+          :value-text="`${fill.audio[fx.id]} %`"
+          @update:model-value="(v) => updateAudio({ [fx.id]: v })"
+        />
       </template>
     </div>
   </div>
@@ -126,6 +127,8 @@
 import { computed, ref } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
+import SliderControl from '../../ui/SliderControl.vue'
+import { SLIDESHOW_IMAGE_FILL_DEFAULT } from '../../../lib/slideshowImageFill.js'
 
 const props = defineProps({
   fill: { type: Object, required: true },
@@ -264,13 +267,8 @@ function updateAudio(partial) {
   color: var(--text-muted);
   font-size: 11px;
 }
-.image-fill-field.range {
+.image-fill-slider {
   flex-basis: 100%;
-}
-.image-fill-field.range input {
-  flex: 1;
-  min-width: 0;
-  accent-color: #6ea8fe;
 }
 .image-fill-field select {
   padding: 3px 6px;
@@ -283,11 +281,6 @@ function updateAudio(partial) {
 .audio-toggle {
   flex-basis: 100%;
 }
-.value {
-  min-width: 34px;
-  text-align: right;
-  color: #e0e0e0;
-}
 [data-theme='light'] .image-fill-field select,
 [data-theme='light'] .btn-image-fill.secondary {
   background: #f9f2d5;
@@ -296,8 +289,5 @@ function updateAudio(partial) {
 }
 [data-theme='light'] .image-fill-picker {
   background-color: #f0ead0;
-}
-[data-theme='light'] .value {
-  color: #003971;
 }
 </style>

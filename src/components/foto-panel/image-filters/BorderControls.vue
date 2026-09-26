@@ -84,6 +84,7 @@ const {
 } = ifc
 </script>
 
+<style scoped src="../../ui/slider-control.css"></style>
 <style scoped src="./image-filters-shared.css"></style>
 <style scoped>
 .border-slider {

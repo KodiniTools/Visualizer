@@ -1490,6 +1490,7 @@ export default {
     },
     imageSettings: 'Image settings',
     closeImageSettings: 'Close image settings',
+    fieldAudioSource: 'Source',
     perImageAudioSource: 'Audio source of this image',
     audioSourceInherit: 'As configured',
     imageSettingsHint: 'Changes apply immediately and are kept for this image.',

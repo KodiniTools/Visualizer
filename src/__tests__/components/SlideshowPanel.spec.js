@@ -892,6 +892,28 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.image-editor').exists()).toBe(false)
   })
 
+  it('order list: audio source per row (incl. onset), locked when audio is off', async () => {
+    const w = mountPanel()
+    const sources = w.findAll('.order-audio-source')
+    expect(sources).toHaveLength(2)
+    expect(sources[0].findAll('option')).toHaveLength(10) // „Wie Einstellung“ + 9 Quellen
+    expect(sources[0].find('optgroup').exists()).toBe(true)
+    expect(sources[0].element.value).toBe('')
+
+    await sources[1].setValue('bassOnset')
+    expect(w.findAll('.order-audio-source')[1].classes()).toContain('is-own')
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.images.map((i) => i.audioSource)).toEqual([null, 'bassOnset'])
+
+    await w.findAll('.order-audio')[1].setValue('off')
+    expect(w.findAll('.order-audio-source')[1].element.disabled).toBe(true)
+    await w.findAll('.order-audio')[1].setValue('pulse')
+    await w.findAll('.order-audio-source')[1].setValue('')
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start').at(-1)[0].images[1].audioSource).toBeNull()
+  })
+
   it('editor request is ignored while running', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: false, editImageRequest: { index: 0, nonce: 2 } })

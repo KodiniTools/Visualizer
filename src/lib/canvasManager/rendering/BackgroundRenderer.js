@@ -126,26 +126,18 @@ export class BackgroundRenderer {
     const hasCanvasVideo = Boolean(this.manager.videoBackground?.videoElement)
 
     // 1. GLOBAL BACKGROUND (Color or Image with Filters)
-    if (typeof this.manager.background === 'string') {
+    if (slideshowReplacesCanvas) {
+      // Canvas-Modus: die Fläche der Slideshow (Farbe/Verlauf/Bild) ersetzt den
+      // ganzen Canvas-Hintergrund – Farbe, Farbverlauf, Bild und Video
+      this._drawSlideshowBase(ctx)
+    } else if (typeof this.manager.background === 'string') {
       this._drawColorBackground(ctx)
     } else if (this.manager.background && typeof this.manager.background === 'object') {
-      if (!slideshowReplacesCanvas) this._drawImageBackground(ctx)
+      this._drawImageBackground(ctx)
     } else {
       // Fallback: Weißer Hintergrund wenn nichts gesetzt
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-    }
-
-    // 1.1 Fläche unter der Slideshow anstelle des ersetzten Bildes/Videos
-    // (ein reiner Farbhintergrund ohne Video bleibt erhalten)
-    const canvasBgIsMedia =
-      hasCanvasVideo || (this.manager.background && typeof this.manager.background === 'object')
-    // Ein eigenes Flächenbild ersetzt auch einen reinen Farbhintergrund
-    const hasCanvasImageFill =
-      slideshowReplacesCanvas &&
-      Boolean(typeof window !== 'undefined' && window.slideshowManager?.getBaseImage?.('canvas'))
-    if (slideshowReplacesCanvas && (canvasBgIsMedia || hasCanvasImageFill)) {
-      this._drawSlideshowBase(ctx)
     }
 
     // 1.2 VIDEO-HINTERGRUND zeichnen (über Farb-/Bild-Hintergrund)

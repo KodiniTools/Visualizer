@@ -289,7 +289,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     expect(fills).toEqual([])
   })
 
-  it('Canvas-Modus mit Farbhintergrund + Video: Video wird durch die Fläche ersetzt', () => {
+  it('Canvas-Modus mit Farbhintergrund + Video: beides wird durch die Fläche ersetzt', () => {
     const show = slideshowWith('canvas')
     show.setBackgroundColor('#00ff00')
     window.slideshowManager = show
@@ -297,7 +297,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     manager.background = '#123456'
     r._drawColorBackground = vi.fn()
     r.drawBackground(ctx)
-    expect(r._drawColorBackground).toHaveBeenCalled()
+    expect(r._drawColorBackground).not.toHaveBeenCalled()
     expect(drawn).not.toContain('video')
     expect(fills).toEqual([['#00ff00', 0, 0, 10, 10]])
   })
@@ -418,7 +418,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     expect(show.getBaseImage('workspace')).toBeNull()
   })
 
-  it('Canvas-Modus: Flächenbild ersetzt auch einen reinen Farbhintergrund', () => {
+  it('Canvas-Modus: Flächenbild liegt über der Flächenfarbe (auch bei Farbhintergrund)', () => {
     const show = slideshowWith('canvas')
     const img = { width: 10, height: 10 }
     show.setBaseImage('canvas', { enabled: true }, img)
@@ -436,23 +436,32 @@ describe('Slideshow ersetzt den Hintergrund', () => {
       drawImage: (i) => drawn.push(i),
     })
     r.drawBackground(ctx)
-    expect(r._drawColorBackground).toHaveBeenCalled()
+    expect(r._drawColorBackground).not.toHaveBeenCalled()
     expect(drawn).toEqual([img])
 
-    // ohne Flächenbild bleibt der Farbhintergrund allein
+    // ohne Flächenbild bleibt nur die Flächenfarbe
     show.setBaseImage('canvas', { enabled: false })
     drawn.length = 0
     r.drawBackground(ctx)
     expect(drawn).toEqual([])
   })
 
-  it('Farbhintergrund bleibt auch im Canvas-Modus erhalten', () => {
-    window.slideshowManager = slideshowWith('canvas')
-    const { r, ctx, manager } = rendererSetup()
-    manager.background = '#123456'
+  it('Canvas-Modus: gewählte Farbe ersetzt auch einen Farbhintergrund', () => {
+    const show = slideshowWith('canvas')
+    show.setBackgroundColor('#ff0000')
+    window.slideshowManager = show
+    const { r, ctx, fills, manager } = rendererSetup()
+    manager.background = '#ffffff'
+    manager.videoBackground = null
     r._drawColorBackground = vi.fn()
     r.drawBackground(ctx)
-    expect(r._drawColorBackground).toHaveBeenCalled()
+    expect(r._drawColorBackground).not.toHaveBeenCalled()
+    expect(fills).toEqual([['#ff0000', 0, 0, 10, 10]])
+
+    // ohne Slideshow als Hintergrund: normaler Farbhintergrund
+    window.slideshowManager = slideshowWith('none')
+    r.drawBackground(ctx)
+    expect(r._drawColorBackground).toHaveBeenCalledTimes(1)
   })
 
   it('ersetzter Hintergrund ist per Klick nicht auswählbar', () => {

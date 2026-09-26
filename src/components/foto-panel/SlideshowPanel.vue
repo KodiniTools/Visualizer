@@ -15,6 +15,7 @@
       v-model="orderedImages"
       v-model:durations="imageDurations"
       v-model:audio-modes="imageAudioModes"
+      v-model:audio-sources="imageAudioSources"
       v-model:transitions="imageTransitions"
       v-model:fade-ins="imageFadeIns"
       v-model:fade-outs="imageFadeOuts"

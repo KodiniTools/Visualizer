@@ -303,6 +303,9 @@ export class SlideshowManager {
       fitToWorkspace: options.fitToWorkspace ?? this.config.fitToWorkspace,
     })
     this._lastWorkspaceKey = null
+    if (options.moveWholeSlideshow !== undefined) {
+      this.setMoveWholeSlideshow(options.moveWholeSlideshow)
+    }
     this._panelAr = images.map((cfg) => JSON.stringify(cfg?.audioReactiveSettings ?? null))
 
     // ✨ Transform-Einstellungen aktualisieren wenn vorhanden
@@ -540,6 +543,9 @@ export class SlideshowManager {
 
     if (options.transform) this.setTransform(options.transform)
     if (options.fitToWorkspace !== undefined) this.setFitToWorkspace(options.fitToWorkspace)
+    if (options.moveWholeSlideshow !== undefined) {
+      this.setMoveWholeSlideshow(options.moveWholeSlideshow)
+    }
     if (options.renderBehindVisualizer !== undefined) {
       this.config.renderBehindVisualizer = options.renderBehindVisualizer
     }

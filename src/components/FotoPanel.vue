@@ -425,6 +425,7 @@ function buildSlideshowRun(config) {
     audioReactiveSettings: null,
     renderBehindVisualizer: config.renderBehindVisualizer,
     fitToWorkspace: config.fitToWorkspace,
+    moveWholeSlideshow: config.moveWholeSlideshow,
     transform: config.transform,
   }
   return { images, options }

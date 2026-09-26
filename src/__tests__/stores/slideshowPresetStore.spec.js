@@ -32,6 +32,7 @@ const snapshot = {
     loop: true,
     renderBehindVisualizer: true,
     fitToWorkspace: true,
+    moveWholeSlideshow: true,
     transform: { x: 5, y: 15, width: 70, height: 60 },
   },
   slots: [
@@ -62,6 +63,7 @@ describe('slideshowPresetStore', () => {
       bounds: null,
     })
     expect(reloaded.presets[0].settings.fitToWorkspace).toBe(true)
+    expect(reloaded.presets[0].settings.moveWholeSlideshow).toBe(true)
     expect(reloaded.presets[0].settings.transform).toEqual({ x: 5, y: 15, width: 70, height: 60 })
   })
 
@@ -140,6 +142,7 @@ describe('slideshowPresetStore', () => {
     expect(p.settings.displayDuration).toBe(3000)
     expect(p.settings.fadeInDuration).toBe(5000)
     expect(p.settings.fitToWorkspace).toBe(false)
+    expect(p.settings.moveWholeSlideshow).toBe(false)
     expect(p.settings.transform.width).toBe(10)
     expect(p.slots).toEqual([
       { displayDuration: null, audioMode: 'default', adjustments: null, bounds: null },

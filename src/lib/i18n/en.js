@@ -1438,7 +1438,7 @@ export default {
     deletePreset: 'Delete',
     noPresets: 'No slideshow presets saved yet.',
     presetHint:
-      'Saves timing, options, position/size and, per image position, display duration, audio reaction, image adjustments (filters etc.) and own size/position – without images. Loading also works while the slideshow runs.',
+      'Saves timing, options (incl. mouse mode), position/size and, per image position, display duration, audio reaction, image adjustments (filters etc.) and own size/position – without images. Loading also works while the slideshow runs.',
     presetSaved: 'Slideshow preset saved',
     presetLoaded: 'Slideshow preset loaded',
     presetSaveError: 'Slideshow preset could not be saved',

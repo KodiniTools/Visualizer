@@ -15,6 +15,7 @@ export const SLIDESHOW_DEFAULT_SETTINGS = Object.freeze({
   loop: false,
   renderBehindVisualizer: false,
   fitToWorkspace: false,
+  moveWholeSlideshow: false,
   transform: Object.freeze({ x: 10, y: 10, width: 80, height: 80 }),
 })
 
@@ -120,6 +121,9 @@ export function normalizeSlideshowPreset(raw) {
           ? s.renderBehindVisualizer
           : d.renderBehindVisualizer,
       fitToWorkspace: typeof s.fitToWorkspace === 'boolean' ? s.fitToWorkspace : d.fitToWorkspace,
+      // Maus verschiebt ganze Slideshow (ältere Presets: aus)
+      moveWholeSlideshow:
+        typeof s.moveWholeSlideshow === 'boolean' ? s.moveWholeSlideshow : d.moveWholeSlideshow,
       transform: {
         x: clampNumber(t.x, 0, 100, d.transform.x),
         y: clampNumber(t.y, 0, 100, d.transform.y),

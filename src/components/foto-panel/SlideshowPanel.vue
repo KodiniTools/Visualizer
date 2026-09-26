@@ -178,7 +178,7 @@ const loopSlideshow = ref(D.loop)
 const renderBehindVisualizer = ref(D.renderBehindVisualizer)
 
 // Maus verschiebt die ganze Slideshow statt eines einzelnen Bildes (Shift kehrt um)
-const moveWholeSlideshow = ref(false)
+const moveWholeSlideshow = ref(D.moveWholeSlideshow)
 
 // Bilder füllen den Workspace-Bereich (wie „Als Workspace-Hintergrund“)
 const fitToWorkspace = ref(D.fitToWorkspace)
@@ -249,6 +249,7 @@ function buildPayload() {
     loop: loopSlideshow.value,
     renderBehindVisualizer: renderBehindVisualizer.value,
     fitToWorkspace: fitsWorkspace.value,
+    moveWholeSlideshow: moveWholeSlideshow.value,
     transform: transformPayload(),
   }
 }
@@ -264,6 +265,7 @@ function savePreset(name) {
       loop: loopSlideshow.value,
       renderBehindVisualizer: renderBehindVisualizer.value,
       fitToWorkspace: fitToWorkspace.value,
+      moveWholeSlideshow: moveWholeSlideshow.value,
       transform: {
         x: transformX.value,
         y: transformY.value,
@@ -296,6 +298,10 @@ function loadPreset(preset) {
   if (renderBehindVisualizer.value !== s.renderBehindVisualizer) {
     renderBehindVisualizer.value = s.renderBehindVisualizer
     onRenderLayerChange()
+  }
+  if (moveWholeSlideshow.value !== s.moveWholeSlideshow) {
+    moveWholeSlideshow.value = s.moveWholeSlideshow
+    emit('move-mode-change', moveWholeSlideshow.value)
   }
   if (fitToWorkspace.value !== s.fitToWorkspace) {
     fitToWorkspace.value = s.fitToWorkspace

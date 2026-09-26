@@ -247,6 +247,21 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(values.slice(0, 2)).toEqual(['25%', '30%'])
   })
 
+  it('saves the mouse move mode in presets and restores it on load', async () => {
+    const w = mountPanel()
+    await w.find('.move-whole-checkbox').setValue(true)
+    await w.find('.btn-save-preset').trigger('click')
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    expect(stored[0].settings.moveWholeSlideshow).toBe(true)
+
+    await w.find('.move-whole-checkbox').setValue(false)
+    await w.find('.btn-load-preset').trigger('click')
+    expect(w.find('.move-whole-checkbox').element.checked).toBe(true)
+    expect(w.emitted('move-mode-change').at(-1)).toEqual([true])
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0].moveWholeSlideshow).toBe(true)
+  })
+
   it('reset in the transform section restores defaults and emits transform-change', async () => {
     const w = mountPanel()
     const xNum = w.findAll('.transform-control input[type="number"]')[0].element

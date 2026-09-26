@@ -546,10 +546,19 @@ describe('SlideshowManager – ganze Slideshow verschieben', () => {
     m.stop()
   })
 
-  it('setMoveWholeSlideshow setzt den Modus', () => {
+  it('setMoveWholeSlideshow setzt den Modus; start()/applyLiveUpdate übernehmen ihn', () => {
     const m = createManager()
     expect(m.moveWholeSlideshow).toBe(false)
     m.setMoveWholeSlideshow(true)
     expect(m.moveWholeSlideshow).toBe(true)
+    const imgs = [
+      { imageObject: { width: 1, height: 1 } },
+      { imageObject: { width: 1, height: 1 } },
+    ]
+    m.start(imgs, { moveWholeSlideshow: false })
+    expect(m.moveWholeSlideshow).toBe(false)
+    m.applyLiveUpdate(imgs, { moveWholeSlideshow: true })
+    expect(m.moveWholeSlideshow).toBe(true)
+    m.stop()
   })
 })

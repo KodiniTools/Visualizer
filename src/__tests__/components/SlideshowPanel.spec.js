@@ -160,6 +160,15 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.transform-section').exists()).toBe(true)
   })
 
+  it('emits reset-image-adjustments from the reset button', async () => {
+    const w = mountPanel()
+    await w.find('.btn-reset-adjustments').trigger('click')
+    expect(w.emitted('reset-image-adjustments')).toHaveLength(1)
+    // Während der Slideshow ausgeblendet
+    await w.setProps({ isActive: true })
+    expect(w.find('.btn-reset-adjustments').exists()).toBe(false)
+  })
+
   it('reset in the transform section restores defaults and emits transform-change', async () => {
     const w = mountPanel()
     const xNum = w.findAll('.transform-control input[type="number"]')[0].element

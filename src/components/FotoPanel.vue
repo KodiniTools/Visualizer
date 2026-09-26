@@ -54,6 +54,7 @@
       @render-layer-change="onSlideshowRenderLayerChange"
       @transform-change="onSlideshowTransformChange"
       @fit-workspace-change="onSlideshowFitWorkspaceChange"
+      @reset-image-adjustments="onSlideshowResetImageAdjustments"
     />
 
     <!-- Filter-Bereich -->
@@ -438,6 +439,11 @@ function stopSlideshow() {
 // ✨ NEU: Slideshow Bild-Reihenfolge geändert
 function onSlideshowOrderChanged(orderedImages) {
   console.log('[Slideshow] Reihenfolge geändert:', orderedImages.length, 'Bilder')
+}
+
+// Gemerkte Bild-Anpassungen (Filter/Audio) der Slideshow verwerfen
+function onSlideshowResetImageAdjustments() {
+  slideshowManagerRef.value?.clearImageMemory()
 }
 
 // Slideshow „An Workspace anpassen“ geändert (auch während laufender Slideshow)

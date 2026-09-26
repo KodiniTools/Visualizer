@@ -231,8 +231,6 @@ describe('SlideshowManager – Endlos wiederholen', () => {
       renderBehindVisualizer: true,
     })
     expect(again.fotoSettings._cachedFilterString).toBeUndefined()
-    // Bild 2 bleibt unverändert
-    expect(m.config.images[1].fotoSettings?.brightness ?? 100).toBe(100)
     m.stop()
     vi.useRealTimers()
   })
@@ -269,10 +267,63 @@ describe('SlideshowManager – Endlos wiederholen', () => {
     // Kopie, keine geteilte Referenz
     expect(again.fotoSettings.audioReactive).not.toBe(first.fotoSettings.audioReactive)
     // Bild 2 unverändert
-    expect(m.config.images[1].audioReactiveSettings.source).toBe('bass')
+    const second = m.activeImages.find((i) => i.slideshow.imageIndex === 1)
+    expect(second?.fotoSettings.audioReactive.source ?? 'bass').toBe('bass')
     // Ursprüngliches Objekt aus dem Panel nicht mutiert
     expect(initial.source).toBe('bass')
     m.stop()
     vi.useRealTimers()
+  })
+})
+
+describe('SlideshowManager – Anpassungen über Stoppen/Neustart', () => {
+  const imgA = { width: 100, height: 100 }
+  const imgB = { width: 100, height: 100 }
+  const panelAr = { enabled: true, source: 'bass', effects: {} }
+  const images = (ar = panelAr) => [
+    { imageObject: imgA, audioReactiveSettings: ar },
+    { imageObject: imgB, audioReactiveSettings: ar },
+  ]
+
+  it('behält Filter + Audio nach Stoppen und Neustart', () => {
+    const m = createManager()
+    m.start(images())
+    const a = m.activeImages[0]
+    a.fotoSettings.brightness = 150
+    a.fotoSettings.audioReactive.source = 'treble'
+    m.stop()
+
+    m.start(images())
+    const again = m.activeImages[0]
+    expect(again).not.toBe(a)
+    expect(again.fotoSettings.brightness).toBe(150)
+    expect(again.fotoSettings.audioReactive.source).toBe('treble')
+    m.stop()
+  })
+
+  it('neue Audio-Vorgabe im Panel hat Vorrang, Filter bleiben', () => {
+    const m = createManager()
+    m.start(images())
+    const a = m.activeImages[0]
+    a.fotoSettings.brightness = 150
+    a.fotoSettings.audioReactive.source = 'treble'
+    m.stop()
+
+    m.start(images({ enabled: true, source: 'mid', effects: {} }))
+    const again = m.activeImages[0]
+    expect(again.fotoSettings.brightness).toBe(150)
+    expect(again.fotoSettings.audioReactive.source).toBe('mid')
+    m.stop()
+  })
+
+  it('clearImageMemory verwirft die gemerkten Anpassungen', () => {
+    const m = createManager()
+    m.start(images())
+    m.activeImages[0].fotoSettings.brightness = 150
+    m.stop()
+    m.clearImageMemory()
+    m.start(images())
+    expect(m.activeImages[0].fotoSettings.brightness).toBeUndefined()
+    m.stop()
   })
 })

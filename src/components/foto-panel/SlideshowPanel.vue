@@ -74,6 +74,14 @@
       @delete="presetStore.deletePreset"
     />
 
+    <!-- Während der Slideshow geänderte Bild-Anpassungen verwerfen (nur wenn nicht aktiv) -->
+    <div v-if="!isActive" class="adjustments-section">
+      <p class="hint">{{ t('slideshow.adjustmentsKeptHint') }}</p>
+      <button type="button" class="btn-reset-adjustments" @click="resetImageAdjustments">
+        {{ t('slideshow.resetAdjustments') }}
+      </button>
+    </div>
+
     <!-- Steuerung + Fortschritt -->
     <SlideshowControls
       :is-active="isActive"
@@ -135,6 +143,7 @@ const emit = defineEmits([
   'render-layer-change',
   'transform-change',
   'fit-workspace-change',
+  'reset-image-adjustments',
 ])
 
 const D = SLIDESHOW_DEFAULT_SETTINGS
@@ -273,6 +282,11 @@ function loadPreset(preset) {
   toastStore.success(t('slideshow.presetLoaded'))
 }
 
+function resetImageAdjustments() {
+  emit('reset-image-adjustments')
+  toastStore.success(t('slideshow.adjustmentsReset'))
+}
+
 // Render Layer geändert (auch während laufender Slideshow)
 function onRenderLayerChange() {
   emit('render-layer-change', renderBehindVisualizer.value)
@@ -354,6 +368,35 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 [data-theme='light'] .status-badge {
   background-color: #f0ead0;
   color: #4d6d8e;
+}
+.adjustments-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--card-bg);
+}
+.adjustments-section .hint {
+  padding-left: 0;
+}
+.btn-reset-adjustments {
+  align-self: flex-start;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--secondary-bg);
+  color: #e0e0e0;
+  cursor: pointer;
+}
+.btn-reset-adjustments:hover {
+  background: var(--btn-hover);
+}
+[data-theme='light'] .btn-reset-adjustments {
+  background: #f0ead0;
+  color: #003971;
+  border-color: #d4c8a8;
 }
 .checkbox-label.disabled {
   opacity: 0.5;

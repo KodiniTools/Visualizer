@@ -57,6 +57,13 @@ export class SlideshowManager {
     // Aktuell angezeigte Bilder auf dem Canvas (für Cleanup)
     this.activeImages = []
 
+    // Während der Slideshow geänderte Bild-Einstellungen, pro Bild (imageObject)
+    // gemerkt – bleiben über Wiederholung, Stoppen und Neustart erhalten.
+    // Wert: { fotoSettings, panelAr } (panelAr = Audio-Vorgabe aus dem Panel beim Merken)
+    this._imageMemory = new WeakMap()
+    // Audio-Vorgabe aus dem Panel pro Index für die aktuelle Slideshow (JSON)
+    this._panelAr = []
+
     console.log('[SlideshowManager] Initialisiert')
   }
 
@@ -233,6 +240,7 @@ export class SlideshowManager {
       fitToWorkspace: options.fitToWorkspace ?? this.config.fitToWorkspace,
     })
     this._lastWorkspaceKey = null
+    this._panelAr = images.map((cfg) => JSON.stringify(cfg?.audioReactiveSettings ?? null))
 
     // ✨ Transform-Einstellungen aktualisieren wenn vorhanden
     if (options.transform) {
@@ -320,6 +328,8 @@ export class SlideshowManager {
   _cleanupAllImages() {
     for (const imageData of this.activeImages) {
       if (imageData && imageData.id) {
+        // Änderungen auch beim Stoppen behalten
+        this._rememberImageSettings(imageData)
         this.multiImageManager.removeImage(imageData.id)
       }
     }
@@ -399,8 +409,8 @@ export class SlideshowManager {
       this._applyAudioReactiveSettings(newImage, imageConfig)
     }
 
-    // Bei Wiederholung: während der Slideshow geänderte Einstellungen übernehmen
-    this._restoreImageSettings(newImage, imageConfig)
+    // Während früherer Durchläufe/Slideshows geänderte Einstellungen übernehmen
+    this._restoreImageSettings(newImage, this.currentIndex)
 
     // ✨ KRITISCH: Render-Layer setzen (vor oder hinter Visualizer)
     // Muss NACH allen anderen fotoSettings-Initialisierungen erfolgen
@@ -428,41 +438,52 @@ export class SlideshowManager {
   }
 
   /**
-   * Wendet Audio-Reaktive Einstellungen auf ein Bild an
-   */
-  /**
-   * Übernimmt die aktuellen Bild-Einstellungen (Filter, Schatten, Rotation,
-   * Spiegeln, Kontur, Audio-Reaktiv) eines ausgeblendeten Bildes in dessen
-   * Slideshow-Konfiguration. Bei „Endlos wiederholen“ wird das Bild im nächsten
-   * Durchlauf neu auf den Canvas gelegt – ohne diese Übernahme gingen während
-   * der Slideshow vorgenommene Änderungen verloren.
+   * Merkt sich die aktuellen Bild-Einstellungen (Filter, Schatten, Rotation,
+   * Spiegeln, Kontur, Audio-Reaktiv) eines Slideshow-Bildes – beim Ausblenden
+   * und beim Stoppen. Bei Wiederholung und nach einem Neustart erscheint das
+   * Bild wieder mit diesen Einstellungen.
    * Nicht übernommen: Render-Layer (steuert die Slideshow) und interne Caches.
    */
   _rememberImageSettings(imageData) {
     const index = imageData.slideshow?.imageIndex
-    const imageConfig = Number.isInteger(index) ? this.config.images[index] : null
+    const imageObject = imageData.imageObject
     const settings = imageData.fotoSettings
-    // Nur echte Konfigurations-Einträge ({ imageObject | img }), keine rohen Bildobjekte
-    if (!imageConfig || !(imageConfig.imageObject || imageConfig.img) || !settings) return
+    if (!Number.isInteger(index) || !imageObject || typeof imageObject !== 'object' || !settings) {
+      return
+    }
 
     const copy = JSON.parse(JSON.stringify(settings))
     delete copy.renderBehindVisualizer
     for (const key of Object.keys(copy)) {
       if (key.startsWith('_')) delete copy[key]
     }
-    imageConfig.fotoSettings = copy
-    if (copy.audioReactive) imageConfig.audioReactiveSettings = copy.audioReactive
+    this._imageMemory.set(imageObject, { fotoSettings: copy, panelAr: this._panelAr[index] })
   }
 
-  /** Stellt gemerkte Bild-Einstellungen (siehe _rememberImageSettings) wieder her. */
-  _restoreImageSettings(imageData, imageConfig) {
-    if (!imageConfig?.fotoSettings || typeof imageConfig.fotoSettings !== 'object') return
+  /**
+   * Stellt gemerkte Bild-Einstellungen wieder her. Wurde die Audio-Reaktion des
+   * Bildes im Slideshow-Panel seitdem geändert, gilt die neue Panel-Vorgabe
+   * (die übrigen gemerkten Einstellungen bleiben).
+   */
+  _restoreImageSettings(imageData, index) {
+    const memory = this._imageMemory.get(imageData.imageObject)
+    if (!memory) return
+    const copy = JSON.parse(JSON.stringify(memory.fotoSettings))
+    if (memory.panelAr !== this._panelAr[index]) delete copy.audioReactive
     this.fotoManager.initializeImageSettings(imageData)
-    Object.assign(imageData.fotoSettings, JSON.parse(JSON.stringify(imageConfig.fotoSettings)))
+    Object.assign(imageData.fotoSettings, copy)
     // Alte/unvollständige Audio-Konfiguration vervollständigen
     this.fotoManager.initializeImageSettings(imageData)
   }
 
+  /** Verwirft alle gemerkten Bild-Anpassungen (z. B. per „Zurücksetzen“ im Panel). */
+  clearImageMemory() {
+    this._imageMemory = new WeakMap()
+  }
+
+  /**
+   * Wendet Audio-Reaktive Einstellungen auf ein Bild an
+   */
   _applyAudioReactiveSettings(imageData, imageConfig) {
     // Prüfe ob das Bild bereits Audio-Reaktive Einstellungen hat
     const hasExistingSettings = imageConfig.audioReactiveSettings

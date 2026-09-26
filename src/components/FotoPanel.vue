@@ -76,6 +76,7 @@
       :canMoveUp="canMoveUp"
       :canMoveDown="canMoveDown"
       :currentLayerInfo="currentLayerInfo"
+      :bounds-api="imageBoundsApi"
       @bring-to-front="onBringToFront"
       @move-up="onMoveUp"
       @move-down="onMoveDown"
@@ -567,6 +568,12 @@ function stopSlideshow() {
 // ✨ NEU: Slideshow Bild-Reihenfolge geändert
 function onSlideshowOrderChanged(orderedImages) {
   console.log('[Slideshow] Reihenfolge geändert:', orderedImages.length, 'Bilder')
+}
+
+// Position & Größe normaler Canvas-Bilder (ImageFiltersPanel → PositionSizeControls)
+const imageBoundsApi = {
+  getCanvas: () => multiImageManagerRef?.value?.canvas ?? null,
+  redraw: () => canvasManagerRef?.value?.redraw?.(),
 }
 
 // Zugriff auf gemerkte Bild-Anpassungen für Slideshow-Presets (Speichern/Laden)

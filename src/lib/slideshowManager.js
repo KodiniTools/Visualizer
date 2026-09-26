@@ -13,10 +13,7 @@ import {
 import { normalizeSlideshowFillAudio } from './slideshowFillAudio.js'
 import { normalizeSlideshowImageFill } from './slideshowImageFill.js'
 import { applySlideshowAudioSource } from './slideshowAudio.js'
-
-// Grenzen der Bildgröße pro Seite (relativ zur Canvas) für die Größenregler
-const SIZE_MIN = 0.01
-const SIZE_MAX = 2
+import { positionBounds, resizeBounds } from './imageBoundsControls.js'
 
 /**
  * SlideshowManager - Orchestriert die Bild-Slideshow auf dem Canvas
@@ -485,18 +482,12 @@ export class SlideshowManager {
   setImageSize(imageObject, { width, height, keepAspect = true } = {}) {
     if (this.isFittedToWorkspace()) return null
     const base = this.getEffectiveImageBounds(imageObject)
-    if (!base || !(base.relWidth > 0) || !(base.relHeight > 0)) return null
-    const clamp = (v) => Math.min(SIZE_MAX, Math.max(SIZE_MIN, v))
-    const ratio = base.relHeight / base.relWidth
-    let w = Number.isFinite(width) ? clamp(width) : base.relWidth
-    let h = Number.isFinite(height) ? clamp(height) : base.relHeight
-    if (keepAspect) {
-      if (Number.isFinite(width)) h = w * ratio
-      else if (Number.isFinite(height)) w = h / ratio
-    }
-    const cx = base.relX + base.relWidth / 2
-    const cy = base.relY + base.relHeight / 2
-    const bounds = { relX: cx - w / 2, relY: cy - h / 2, relWidth: w, relHeight: h }
+    const bounds = resizeBounds(base, { width, height, keepAspect })
+    return bounds ? this._applyOwnBounds(imageObject, bounds) : null
+  }
+
+  /** Merkt Bounds als eigene Größe/Position, meldet sie und zeigt sie sofort. */
+  _applyOwnBounds(imageObject, bounds) {
     this._boundsMemory.set(imageObject, bounds)
     this._notifyBounds(imageObject, bounds)
     this._updateActiveImagesTransform()
@@ -513,21 +504,8 @@ export class SlideshowManager {
    */
   setImagePosition(imageObject, { centerX, centerY } = {}) {
     if (this.isFittedToWorkspace()) return null
-    const base = this.getEffectiveImageBounds(imageObject)
-    if (!base) return null
-    const clamp = (v) => Math.min(1, Math.max(0, v))
-    const cx = Number.isFinite(centerX) ? clamp(centerX) : base.relX + base.relWidth / 2
-    const cy = Number.isFinite(centerY) ? clamp(centerY) : base.relY + base.relHeight / 2
-    const bounds = {
-      relX: cx - base.relWidth / 2,
-      relY: cy - base.relHeight / 2,
-      relWidth: base.relWidth,
-      relHeight: base.relHeight,
-    }
-    this._boundsMemory.set(imageObject, bounds)
-    this._notifyBounds(imageObject, bounds)
-    this._updateActiveImagesTransform()
-    return { ...bounds }
+    const bounds = positionBounds(this.getEffectiveImageBounds(imageObject), { centerX, centerY })
+    return bounds ? this._applyOwnBounds(imageObject, bounds) : null
   }
 
   /**

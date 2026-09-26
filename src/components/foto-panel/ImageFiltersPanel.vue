@@ -3,6 +3,14 @@
     <!-- Ebenen-Steuerung -->
     <LayerControls v-if="currentActiveImage" />
 
+    <!-- Position & Größe (nur normale Canvas-Bilder, nicht Hintergrund/Slideshow) -->
+    <PositionSizeControls
+      v-if="isPlaceableImage"
+      :key="currentActiveImage.id"
+      :image="currentActiveImage"
+      :api="boundsApi"
+    />
+
     <!-- Preset + Undo/Redo/Reset -->
     <PresetAndHistory />
 
@@ -40,6 +48,7 @@ import ShadowControls from './image-filters/ShadowControls.vue'
 import RotationControls from './image-filters/RotationControls.vue'
 import FlipControls from './image-filters/FlipControls.vue'
 import BorderControls from './image-filters/BorderControls.vue'
+import PositionSizeControls from './image-filters/PositionSizeControls.vue'
 
 const { locale } = useI18n()
 
@@ -64,6 +73,11 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  // Für Position & Größe: { getCanvas(), redraw() }
+  boundsApi: {
+    type: Object,
+    default: null,
+  },
 })
 
 const emit = defineEmits([
@@ -77,6 +91,12 @@ const emit = defineEmits([
 ])
 
 const controls = useImageFilterControls(props, emit)
+
+// Frei platzierbares Canvas-Bild (Hintergründe und Slideshow-Bilder haben eigene Regler)
+const isPlaceableImage = computed(() => {
+  const img = props.currentActiveImage
+  return !!img && img.type === 'image' && !img.isSlideshowImage
+})
 
 // The sub-sections consume everything through provide/inject: the DOM/reactive
 // refs and handlers from the composable, the (reactive) props they display, the

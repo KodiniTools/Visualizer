@@ -606,6 +606,27 @@ const slideshowAdjustmentsApi = {
     if (!obj) return
     getSlideshowManager()?.setImagePosition(obj, { centerX: x, centerY: y })
   },
+  // Größe (relativ 0–1) des Bildes + automatische Einpassung als Standard;
+  // null = nicht frei skalierbar (wie getPosition)
+  getSize(img) {
+    const manager = getSlideshowManager()
+    const obj = slideshowImageObject(img)
+    if (!manager?.isActive || !obj || manager.isFittedToWorkspace()) return null
+    const b = manager.getEffectiveImageBounds(obj)
+    const fit = manager.getFittedImageBounds(obj)
+    if (!b || !fit) return null
+    return {
+      width: b.relWidth,
+      height: b.relHeight,
+      defaultWidth: fit.relWidth,
+      defaultHeight: fit.relHeight,
+    }
+  },
+  setSize(img, { width, height, keepAspect } = {}) {
+    const obj = slideshowImageObject(img)
+    if (!obj) return
+    getSlideshowManager()?.setImageSize(obj, { width, height, keepAspect })
+  },
   setBounds(img, bounds) {
     withSlideshowImageObject(img, (obj) => {
       getSlideshowManager()?.setImageBounds(obj, bounds)

@@ -231,7 +231,9 @@
       :audio-source="imageAudioSources[slideshowImageKey(editorImage)] ?? null"
       :has-saved-settings="hasSavedSettings"
       :position="editorPosition"
+      :size="editorSize"
       @update:position="updateEditedImagePosition"
+      @update:size="updateEditedImageSize"
       @update:transition="(v) => updateEditedImage('transition', v)"
       @update:duration="(v) => updateEditedImage('duration', v)"
       @update:fade-in="(v) => updateEditedImage('fadeIn', v)"
@@ -518,6 +520,21 @@ const editorPosition = computed(() => {
   const img = editorImage.value
   return img ? (props.adjustmentsApi?.getPosition?.(img) ?? null) : null
 })
+
+// Größe des bearbeiteten Bildes { width, height, defaultWidth, defaultHeight }
+const editorSize = computed(() => {
+  void props.boundsRevision
+  void props.externalTransform
+  void backgroundMode.value
+  const img = editorImage.value
+  return img ? (props.adjustmentsApi?.getSize?.(img) ?? null) : null
+})
+
+/** Größenregler im Bild-Editor → Bild auf der Canvas skalieren. */
+function updateEditedImageSize(size) {
+  const img = editorImage.value
+  if (img && size) props.adjustmentsApi?.setSize?.(img, size)
+}
 
 /** Positionsregler im Bild-Editor → Bild auf der Canvas verschieben. */
 function updateEditedImagePosition(position) {

@@ -137,3 +137,114 @@ describe('SlideshowImageEditor – Positionsregler', () => {
     expect(w.emitted('update:position').at(-1)[0]).toEqual({ x: 0.5, y: 0.9 })
   })
 })
+
+describe('SlideshowManager – Bildgröße (B×H)', () => {
+  it('Breite mit Seitenverhältnis: Höhe folgt, Mittelpunkt bleibt, wird gemerkt', () => {
+    const onImageBoundsChange = vi.fn()
+    const m = createManager({ onImageBoundsChange })
+    m.start(imgs())
+    const a = m.activeImages[0]
+    const cx = a.relX + a.relWidth / 2
+    const cy = a.relY + a.relHeight / 2
+    const res = m.setImageSize(imgA, { width: 0.4 }) // 0.8×0.4 → 0.4×0.2
+    expect(res.relWidth).toBeCloseTo(0.4)
+    expect(res.relHeight).toBeCloseTo(0.2)
+    expect(a.relX + a.relWidth / 2).toBeCloseTo(cx)
+    expect(a.relY + a.relHeight / 2).toBeCloseTo(cy)
+    expect(m.getImageBounds(imgA)).toEqual(res)
+    expect(onImageBoundsChange).toHaveBeenCalledTimes(1)
+
+    // Höhe mit Seitenverhältnis: Breite folgt
+    m.setImageSize(imgA, { height: 0.5 })
+    expect(a.relWidth).toBeCloseTo(1)
+    expect(a.relHeight).toBeCloseTo(0.5)
+    m.stop()
+  })
+
+  it('ohne Seitenverhältnis nur die geänderte Seite; Grenzen 1–200 %', () => {
+    const m = createManager()
+    m.start(imgs())
+    const a = m.activeImages[0]
+    m.setImageSize(imgA, { width: 0.3, keepAspect: false })
+    expect(a.relWidth).toBeCloseTo(0.3)
+    expect(a.relHeight).toBeCloseTo(0.4)
+    m.setImageSize(imgA, { height: 9, keepAspect: false })
+    expect(a.relHeight).toBeCloseTo(2)
+    m.setImageSize(imgA, { width: 0, keepAspect: false })
+    expect(a.relWidth).toBeCloseTo(0.01)
+    m.stop()
+  })
+
+  it('getFittedImageBounds ignoriert eigene Größe (Standardwert der Regler)', () => {
+    const m = createManager()
+    m.start(imgs())
+    m.setImageSize(imgA, { width: 0.2 })
+    expect(m.getEffectiveImageBounds(imgA).relWidth).toBeCloseTo(0.2)
+    expect(m.getFittedImageBounds(imgA).relWidth).toBeCloseTo(0.8)
+    expect(m.getFittedImageBounds(imgA).relHeight).toBeCloseTo(0.4)
+    m.stop()
+  })
+
+  it('Position nach Größenänderung behält die neue Größe', () => {
+    const m = createManager()
+    m.start(imgs())
+    m.setImageSize(imgA, { width: 0.4 })
+    m.setImagePosition(imgA, { centerX: 0.2, centerY: 0.2 })
+    expect(m.getImageBounds(imgA)).toEqual({
+      relX: expect.closeTo(0, 6),
+      relY: expect.closeTo(0.1, 6),
+      relWidth: expect.closeTo(0.4, 6),
+      relHeight: expect.closeTo(0.2, 6),
+    })
+    m.stop()
+  })
+
+  it('als Canvas-Hintergrund nicht skalierbar', () => {
+    const m = createManager()
+    m.start(imgs(), { backgroundMode: 'canvas' })
+    expect(m.setImageSize(imgA, { width: 0.2 })).toBeNull()
+    expect(m.getImageBounds(imgA)).toBeNull()
+    m.stop()
+  })
+})
+
+describe('SlideshowImageEditor – Größenregler', () => {
+  const base = { image: { name: 'a.png' }, index: 0, total: 2 }
+  const size = { width: 0.8, height: 0.4, defaultWidth: 0.8, defaultHeight: 0.4 }
+
+  it('ohne Größe keine Regler', () => {
+    const w = mount(SlideshowImageEditor, { props: { ...base, size: null } })
+    expect(w.find('.image-editor-size').exists()).toBe(false)
+  })
+
+  it('zeigt B×H in % und meldet Änderungen mit Seitenverhältnis-Option', async () => {
+    const w = mount(SlideshowImageEditor, { props: { ...base, size } })
+    const width = w.find('input.editor-size-width')
+    expect(Number(width.element.value)).toBeCloseTo(80)
+    expect(Number(w.find('input.editor-size-height').element.value)).toBeCloseTo(40)
+    const lock = w.find('.editor-keep-aspect')
+    expect(lock.element.checked).toBe(true)
+
+    width.element.value = '50'
+    await width.trigger('input')
+    expect(w.emitted('update:size').at(-1)[0]).toEqual({ width: 0.5, keepAspect: true })
+
+    await lock.setValue(false)
+    const nums = w.findAll('.image-editor-size input[type="number"]')
+    nums[1].element.value = '300' // über Maximum
+    await nums[1].trigger('input')
+    const last = w.emitted('update:size').at(-1)[0]
+    expect(last.keepAspect).toBe(false)
+    expect(last.height).toBeCloseTo(2)
+  })
+
+  it('↺ setzt auf die automatische Einpassung zurück', async () => {
+    const w = mount(SlideshowImageEditor, {
+      props: { ...base, size: { ...size, width: 0.3, height: 0.15 } },
+    })
+    const resets = w.findAll('.image-editor-size .slider-field__reset')
+    expect(resets).toHaveLength(2)
+    await resets[0].trigger('click')
+    expect(w.emitted('update:size').at(-1)[0]).toEqual({ width: 0.8, keepAspect: true })
+  })
+})

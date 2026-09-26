@@ -35,6 +35,27 @@
       </div>
     </div>
 
+    <!-- Größe des Bildes (Breite × Höhe in % der Canvas) -->
+    <div v-if="size" class="image-editor-size">
+      <div v-for="dim in SIZE_DIMS" :key="dim" class="image-editor-field">
+        <span>{{ t(dim === 'width' ? 'slideshow.imageWidth' : 'slideshow.imageHeight') }}</span>
+        <SliderField
+          :class="`editor-size-${dim}`"
+          :model-value="sizePercent(size[dim])"
+          :min="1"
+          :max="200"
+          :step="0.1"
+          :default-value="sizePercent(size[dim === 'width' ? 'defaultWidth' : 'defaultHeight'])"
+          :aria-label="t(dim === 'width' ? 'slideshow.imageWidth' : 'slideshow.imageHeight')"
+          @update:model-value="(v) => onSize(dim, v)"
+        />
+      </div>
+      <label class="checkbox-label">
+        <input v-model="keepAspect" class="editor-keep-aspect" type="checkbox" />
+        <span>{{ t('slideshow.keepAspect') }}</span>
+      </label>
+    </div>
+
     <label class="image-editor-field">
       <span>{{ t('slideshow.transition') }}</span>
       <select
@@ -167,6 +188,8 @@ const props = defineProps({
   hasSavedSettings: { type: Boolean, default: false },
   // Mittelpunkt des Bildes { x, y } relativ 0–1; null = nicht positionierbar
   position: { type: Object, default: null },
+  // Größe { width, height, defaultWidth, defaultHeight } relativ 0–1; null = nicht skalierbar
+  size: { type: Object, default: null },
 })
 const emit = defineEmits([
   'update:transition',
@@ -176,6 +199,7 @@ const emit = defineEmits([
   'update:audioMode',
   'update:audioSource',
   'update:position',
+  'update:size',
   'close',
 ])
 const { t } = useI18n()
@@ -216,6 +240,23 @@ function onPosition(axis, value) {
   if (!Number.isFinite(p)) return
   const rel = Math.min(100, Math.max(0, p)) / 100
   emit('update:position', { ...props.position, [axis]: rel })
+}
+
+const SIZE_DIMS = ['width', 'height']
+// Seitenverhältnis beibehalten (Standard) – sonst wird das Bild verzerrt
+const keepAspect = ref(true)
+
+/** Relative Größe → Prozent mit einer Nachkommastelle; ungültig = 100. */
+function sizePercent(value) {
+  return Number.isFinite(value) && value > 0 ? Math.round(value * 1000) / 10 : 100
+}
+
+/** Prozent-Eingabe (begrenzt auf 1–200) → relative Größe; ungültig = ignoriert. */
+function onSize(dim, value) {
+  const p = parseFloat(value)
+  if (!Number.isFinite(p)) return
+  const rel = Math.min(200, Math.max(1, p)) / 100
+  emit('update:size', { [dim]: rel, keepAspect: keepAspect.value })
 }
 
 function onAudio(value) {
@@ -307,7 +348,8 @@ onMounted(() => {
   width: 56px;
   text-align: right;
 }
-.image-editor-position {
+.image-editor-position,
+.image-editor-size {
   display: flex;
   flex-direction: column;
   gap: 6px;

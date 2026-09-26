@@ -14,6 +14,10 @@ import { normalizeSlideshowFillAudio } from './slideshowFillAudio.js'
 import { normalizeSlideshowImageFill } from './slideshowImageFill.js'
 import { applySlideshowAudioSource } from './slideshowAudio.js'
 
+// Grenzen der Bildgröße pro Seite (relativ zur Canvas) für die Größenregler
+const SIZE_MIN = 0.01
+const SIZE_MAX = 2
+
 /**
  * SlideshowManager - Orchestriert die Bild-Slideshow auf dem Canvas
  *
@@ -351,12 +355,12 @@ export class SlideshowManager {
    * - Workspace: Bild füllt den Workspace (Cover) und wird auf ihn beschnitten.
    * @returns {{bounds:{relX:number,relY:number,relWidth:number,relHeight:number}, clipRect:Object|null}}
    */
-  _computeImageLayout(imageObject) {
+  _computeImageLayout(imageObject, { ignoreOwn = false } = {}) {
     const canvas = this.multiImageManager.canvas
     const imgAspectRatio = imageObject.height / imageObject.width
     const canvasAspectRatio = canvas.height / canvas.width
     const ws = this._getWorkspaceTransform()
-    const own = ws ? null : this._boundsMemory.get(imageObject)
+    const own = ws || ignoreOwn ? null : this._boundsMemory.get(imageObject)
     if (own) return { bounds: { ...own }, clipRect: null }
     const area = ws ?? this.transform
 
@@ -453,11 +457,50 @@ export class SlideshowManager {
    * @param {object} imageObject
    * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
    */
-  getEffectiveImageBounds(imageObject) {
+  getEffectiveImageBounds(imageObject, { ignoreOwn = false } = {}) {
     if (!imageObject || typeof imageObject !== 'object') return null
     if (!(imageObject.width > 0) || !(imageObject.height > 0)) return null
     if (!this.multiImageManager?.canvas?.width) return null
-    return { ...this._computeImageLayout(imageObject).bounds }
+    return { ...this._computeImageLayout(imageObject, { ignoreOwn }).bounds }
+  }
+
+  /**
+   * Automatische Einpassung eines Bildes in den Slideshow-Bereich – ohne eigene
+   * Größe/Position (Standardwert der Größenregler).
+   * @param {object} imageObject
+   */
+  getFittedImageBounds(imageObject) {
+    return this.getEffectiveImageBounds(imageObject, { ignoreOwn: true })
+  }
+
+  /**
+   * Setzt die Größe eines Bildes (relativ zur Canvas, 0.01–2) um seinen
+   * Mittelpunkt. Mit keepAspect folgt die andere Seite im aktuellen
+   * Seitenverhältnis (keine Verzerrung). Wird wie Skalieren mit der Maus als
+   * eigene Bounds gemerkt. Als Canvas-/Workspace-Hintergrund nicht möglich.
+   * @param {object} imageObject
+   * @param {{width?:number, height?:number, keepAspect?:boolean}} size - fehlender Wert = unverändert
+   * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
+   */
+  setImageSize(imageObject, { width, height, keepAspect = true } = {}) {
+    if (this.isFittedToWorkspace()) return null
+    const base = this.getEffectiveImageBounds(imageObject)
+    if (!base || !(base.relWidth > 0) || !(base.relHeight > 0)) return null
+    const clamp = (v) => Math.min(SIZE_MAX, Math.max(SIZE_MIN, v))
+    const ratio = base.relHeight / base.relWidth
+    let w = Number.isFinite(width) ? clamp(width) : base.relWidth
+    let h = Number.isFinite(height) ? clamp(height) : base.relHeight
+    if (keepAspect) {
+      if (Number.isFinite(width)) h = w * ratio
+      else if (Number.isFinite(height)) w = h / ratio
+    }
+    const cx = base.relX + base.relWidth / 2
+    const cy = base.relY + base.relHeight / 2
+    const bounds = { relX: cx - w / 2, relY: cy - h / 2, relWidth: w, relHeight: h }
+    this._boundsMemory.set(imageObject, bounds)
+    this._notifyBounds(imageObject, bounds)
+    this._updateActiveImagesTransform()
+    return { ...bounds }
   }
 
   /**

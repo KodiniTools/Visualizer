@@ -876,6 +876,34 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.image-editor').exists()).toBe(true)
   })
 
+  it('paused editor: size sliders scale the image via adjustmentsApi and follow mouse resizes', async () => {
+    let size = { width: 0.8, height: 0.4, defaultWidth: 0.8, defaultHeight: 0.4 }
+    const setSize = vi.fn()
+    const adjustmentsApi = {
+      get: () => null,
+      set: () => {},
+      getSize: vi.fn(() => size),
+      setSize,
+    }
+    const w = mountPanel({ adjustmentsApi })
+    await w.setProps({ isActive: true, isPaused: true, editImageRequest: { index: 0, nonce: 4 } })
+    const width = w.find('input.editor-size-width')
+    expect(Number(width.element.value)).toBeCloseTo(80)
+
+    width.element.value = '60'
+    await width.trigger('input')
+    expect(setSize.mock.calls[0][0].name).toBe(images[0].name)
+    expect(setSize.mock.calls[0][1]).toEqual({ width: 0.6, keepAspect: true })
+
+    size = { ...size, width: 0.5, height: 0.25 }
+    await w.setProps({ boundsRevision: 1 })
+    expect(Number(w.find('input.editor-size-height').element.value)).toBeCloseTo(25)
+
+    adjustmentsApi.getSize.mockReturnValue(null)
+    await w.setProps({ boundsRevision: 2 })
+    expect(w.find('.image-editor-size').exists()).toBe(false)
+  })
+
   it('paused: click request opens the image editor; edits go live and close on resume', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: true })

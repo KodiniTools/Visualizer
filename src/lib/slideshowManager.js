@@ -19,6 +19,8 @@ export class SlideshowManager {
     this.onImageTransition = callbacks.onImageTransition || (() => {})
     // Liefert die Workspace-Bounds in Canvas-Pixeln ({x,y,width,height}) oder null
     this.getWorkspaceBounds = callbacks.getWorkspaceBounds || (() => null)
+    // Gemeinsamer Bereich per Maus verschoben (für die Regler im Panel)
+    this.onTransformChange = callbacks.onTransformChange || (() => {})
     // Zuletzt angewendete Workspace-Bounds (erkennt Formatwechsel während der Slideshow)
     this._lastWorkspaceKey = null
 
@@ -61,6 +63,11 @@ export class SlideshowManager {
     // gemerkt – bleiben über Wiederholung, Stoppen und Neustart erhalten.
     // Wert: { fotoSettings, panelAr } (panelAr = Audio-Vorgabe aus dem Panel beim Merken)
     this._imageMemory = new WeakMap()
+    // Eigene Position/Größe pro Bild (imageObject → relative Bild-Bounds);
+    // ohne Eintrag gilt der gemeinsame Transform-Bereich der Slideshow.
+    this._boundsMemory = new WeakMap()
+    // Maus-Verschieben: true = ganze Slideshow, false = einzelnes Bild (Shift kehrt um)
+    this.moveWholeSlideshow = false
     // Audio-Vorgabe aus dem Panel pro Index für die aktuelle Slideshow (JSON)
     this._panelAr = []
     // Zeitpunkt der letzten Übernahme laufender Bilder in den Speicher
@@ -148,6 +155,8 @@ export class SlideshowManager {
     const imgAspectRatio = imageObject.height / imageObject.width
     const canvasAspectRatio = canvas.height / canvas.width
     const ws = this._getWorkspaceTransform()
+    const own = ws ? null : this._boundsMemory.get(imageObject)
+    if (own) return { bounds: { ...own }, clipRect: null }
     const area = ws ?? this.transform
 
     // Seitenverhältnis des Bereichs in relativen Einheiten
@@ -173,6 +182,58 @@ export class SlideshowManager {
       },
       clipRect: ws ? { ...ws } : null,
     }
+  }
+
+  /**
+   * Auswahl-/Griff-Bereich eines Slideshow-Bildes (relativ): im Workspace-Modus
+   * der Workspace, sonst die tatsächlichen Bild-Bounds – so sitzen die
+   * Skalierungsgriffe exakt auf dem Bild.
+   * @param {object} imageData
+   * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}}
+   */
+  getSelectionBounds(imageData) {
+    const ws = this._getWorkspaceTransform()
+    if (ws) return ws
+    if (!imageData) return { ...this.transform }
+    const { relX, relY, relWidth, relHeight } = imageData
+    return { relX, relY, relWidth, relHeight }
+  }
+
+  /**
+   * Übernimmt die aktuelle Position/Größe eines Slideshow-Bildes als dessen
+   * eigene Bounds (nach Verschieben/Skalieren mit der Maus).
+   * @param {object} imageData
+   */
+  commitImageBounds(imageData) {
+    if (!imageData?.imageObject || this.isFittedToWorkspace()) return
+    const { relX, relY, relWidth, relHeight } = imageData
+    if (![relX, relY, relWidth, relHeight].every(Number.isFinite)) return
+    this._boundsMemory.set(imageData.imageObject, { relX, relY, relWidth, relHeight })
+  }
+
+  /** Eigene Bounds eines Bildes (Kopie) oder null. */
+  getImageBounds(imageObject) {
+    const b = imageObject ? this._boundsMemory.get(imageObject) : null
+    return b ? { ...b } : null
+  }
+
+  /**
+   * Setzt/entfernt eigene Bounds eines Bildes (z. B. aus einem Preset) und
+   * aktualisiert ein gerade angezeigtes Bild sofort.
+   * @param {object} imageObject
+   * @param {{relX:number, relY:number, relWidth:number, relHeight:number}|null} bounds
+   */
+  setImageBounds(imageObject, bounds) {
+    if (!imageObject || typeof imageObject !== 'object') return
+    const valid =
+      bounds && ['relX', 'relY', 'relWidth', 'relHeight'].every((k) => Number.isFinite(bounds[k]))
+    if (valid) {
+      const { relX, relY, relWidth, relHeight } = bounds
+      this._boundsMemory.set(imageObject, { relX, relY, relWidth, relHeight })
+    } else {
+      this._boundsMemory.delete(imageObject)
+    }
+    this._updateActiveImagesTransform()
   }
 
   /**
@@ -242,6 +303,9 @@ export class SlideshowManager {
       fitToWorkspace: options.fitToWorkspace ?? this.config.fitToWorkspace,
     })
     this._lastWorkspaceKey = null
+    if (options.moveWholeSlideshow !== undefined) {
+      this.setMoveWholeSlideshow(options.moveWholeSlideshow)
+    }
     this._panelAr = images.map((cfg) => JSON.stringify(cfg?.audioReactiveSettings ?? null))
 
     // ✨ Transform-Einstellungen aktualisieren wenn vorhanden
@@ -406,21 +470,7 @@ export class SlideshowManager {
       clipRect, // relativer Clip-Bereich (Workspace) oder null
     }
 
-    // Audio-Reaktive Einstellungen anwenden
-    if (this.config.autoApplyAudioReactive) {
-      this._applyAudioReactiveSettings(newImage, imageConfig)
-    }
-
-    // Während früherer Durchläufe/Slideshows geänderte Einstellungen übernehmen
-    this._restoreImageSettings(newImage, this.currentIndex)
-
-    // ✨ KRITISCH: Render-Layer setzen (vor oder hinter Visualizer)
-    // Muss NACH allen anderen fotoSettings-Initialisierungen erfolgen
-    if (!newImage.fotoSettings) {
-      this.fotoManager.initializeImageSettings(newImage)
-    }
-    // Immer die aktuelle Konfiguration verwenden
-    newImage.fotoSettings.renderBehindVisualizer = this.config.renderBehindVisualizer
+    this._applyImageState(newImage, imageConfig, this.currentIndex)
 
     console.log(
       `[SlideshowManager] Bild ${this.currentIndex + 1} renderBehindVisualizer:`,
@@ -437,6 +487,83 @@ export class SlideshowManager {
 
     this.currentIndex++
     return newImage
+  }
+
+  /**
+   * Setzt Audio-Reaktiv (Panel-Vorgabe), gemerkte Anpassungen und Render-Layer
+   * auf ein Slideshow-Bild – beim Einblenden und beim Live-Laden eines Presets.
+   */
+  _applyImageState(imageData, imageConfig, index) {
+    // Audio-Reaktive Einstellungen anwenden
+    if (this.config.autoApplyAudioReactive) {
+      this._applyAudioReactiveSettings(imageData, imageConfig)
+    }
+
+    // Während früherer Durchläufe/Slideshows geänderte Einstellungen übernehmen
+    this._restoreImageSettings(imageData, index)
+
+    // ✨ KRITISCH: Render-Layer setzen (vor oder hinter Visualizer)
+    // Muss NACH allen anderen fotoSettings-Initialisierungen erfolgen
+    if (!imageData.fotoSettings) {
+      this.fotoManager.initializeImageSettings(imageData)
+    }
+    imageData.fotoSettings.renderBehindVisualizer = this.config.renderBehindVisualizer
+  }
+
+  /**
+   * Übernimmt geänderte Einstellungen (z. B. ein geladenes Preset) in die
+   * laufende Slideshow. Reihenfolge und Anzahl der Bilder bleiben; neue Timings
+   * gelten ab dem nächsten eingeblendeten Bild.
+   * @param {Array} images - wie bei start(), gleiche Reihenfolge
+   * @param {Object} options - wie bei start()
+   * @returns {boolean}
+   */
+  applyLiveUpdate(images, options = {}) {
+    if (!this.isActive || !Array.isArray(images)) return false
+    if (images.length !== this.config.images.length) {
+      console.warn('[SlideshowManager] Live-Update: Bildanzahl passt nicht')
+      return false
+    }
+
+    // Bildobjekte der laufenden Slideshow beibehalten, nur Vorgaben übernehmen
+    const merged = this.config.images.map((cfg, i) => ({
+      ...cfg,
+      displayDuration: images[i]?.displayDuration,
+      audioMode: images[i]?.audioMode,
+      audioReactiveSettings: images[i]?.audioReactiveSettings ?? null,
+    }))
+    this.configure({
+      images: merged,
+      fadeInDuration: options.fadeInDuration,
+      displayDuration: options.displayDuration,
+      fadeOutDuration: options.fadeOutDuration,
+      loop: options.loop,
+    })
+    this._panelAr = merged.map((cfg) => JSON.stringify(cfg.audioReactiveSettings ?? null))
+
+    if (options.transform) this.setTransform(options.transform)
+    if (options.fitToWorkspace !== undefined) this.setFitToWorkspace(options.fitToWorkspace)
+    if (options.moveWholeSlideshow !== undefined) {
+      this.setMoveWholeSlideshow(options.moveWholeSlideshow)
+    }
+    if (options.renderBehindVisualizer !== undefined) {
+      this.config.renderBehindVisualizer = options.renderBehindVisualizer
+    }
+
+    // Angezeigte Bilder sofort neu aufbauen (Filter/Audio/Größe aus dem Preset)
+    for (const imageData of this.activeImages) {
+      const index = imageData.slideshow?.imageIndex
+      if (!Number.isInteger(index)) continue
+      const renderBehind = this.config.renderBehindVisualizer
+      imageData.fotoSettings = undefined
+      this.fotoManager.initializeImageSettings(imageData)
+      this._applyImageState(imageData, merged[index], index)
+      imageData.fotoSettings.renderBehindVisualizer = renderBehind
+    }
+    this._lastLiveSync = Date.now()
+    this._updateActiveImagesTransform()
+    this.redrawCallback()
+    return true
   }
 
   /**
@@ -536,6 +663,8 @@ export class SlideshowManager {
   /** Verwirft alle gemerkten Bild-Anpassungen (z. B. per „Zurücksetzen“ im Panel). */
   clearImageMemory() {
     this._imageMemory = new WeakMap()
+    this._boundsMemory = new WeakMap()
+    this._updateActiveImagesTransform()
   }
 
   /**
@@ -785,18 +914,39 @@ export class SlideshowManager {
   moveSlideshow(deltaRelX, deltaRelY) {
     // An den Workspace gebunden → nicht frei verschiebbar
     if (this.isFittedToWorkspace()) return
-    // Neue Position berechnen mit Constraints
-    let newRelX = this.transform.relX + deltaRelX
-    let newRelY = this.transform.relY + deltaRelY
+    const oldX = this.transform.relX
+    const oldY = this.transform.relY
+    // Neue Position berechnen mit Constraints (gemeinsamer Bereich bleibt im Canvas)
+    const newRelX = Math.max(0, Math.min(oldX + deltaRelX, 1 - this.transform.relWidth))
+    const newRelY = Math.max(0, Math.min(oldY + deltaRelY, 1 - this.transform.relHeight))
+    const appliedX = newRelX - oldX
+    const appliedY = newRelY - oldY
+    if (appliedX === 0 && appliedY === 0) return
 
-    // Begrenze auf Canvas-Bereich
-    newRelX = Math.max(0, Math.min(newRelX, 1 - this.transform.relWidth))
-    newRelY = Math.max(0, Math.min(newRelY, 1 - this.transform.relHeight))
+    // Bilder mit eigener Größe/Position um denselben Betrag mitverschieben,
+    // damit die Anordnung der ganzen Slideshow erhalten bleibt
+    for (const cfg of this.config.images) {
+      const imageObject = cfg?.imageObject || cfg?.img
+      const own = imageObject ? this._boundsMemory.get(imageObject) : null
+      if (own) {
+        this._boundsMemory.set(imageObject, {
+          ...own,
+          relX: own.relX + appliedX,
+          relY: own.relY + appliedY,
+        })
+      }
+    }
 
-    this.setTransform({
-      relX: newRelX,
-      relY: newRelY,
-    })
+    this.setTransform({ relX: newRelX, relY: newRelY })
+    this.onTransformChange(this.getTransform())
+  }
+
+  /**
+   * Maus-Verschieben: ganze Slideshow (true) oder einzelnes Bild (false).
+   * @param {boolean} value
+   */
+  setMoveWholeSlideshow(value) {
+    this.moveWholeSlideshow = !!value
   }
 
   /**

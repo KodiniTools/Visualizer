@@ -117,8 +117,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.preset-name').text()).toBe('Party')
     const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
     expect(stored[0].slots).toEqual([
-      { displayDuration: null, audioMode: 'pulse', adjustments: null },
-      { displayDuration: 9000, audioMode: 'default', adjustments: null },
+      { displayDuration: null, audioMode: 'pulse', adjustments: null, bounds: null },
+      { displayDuration: 9000, audioMode: 'default', adjustments: null, bounds: null },
     ])
 
     // Werte ändern, dann Preset laden -> ursprünglicher Zustand
@@ -190,26 +190,76 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     ])
   })
 
-  it('can save a preset while running (load disabled), keeping the started positions', async () => {
-    const adjustmentsApi = { get: (img) => (img.id === 'b' ? { sepia: 50 } : null), set: () => {} }
+  it('saves and loads presets while running (live-update), keeping the started positions', async () => {
+    const setBounds = []
+    const adjustmentsApi = {
+      get: (img) => (img.id === 'b' ? { sepia: 50 } : null),
+      set: () => {},
+      getBounds: (img) =>
+        img.id === 'a' ? { relX: 0.1, relY: 0.2, relWidth: 0.3, relHeight: 0.3 } : null,
+      setBounds: (img, b) => setBounds.push([img.id, b]),
+    }
     const w = mountPanel({ adjustmentsApi })
-    await w.find('.btn-save-preset').trigger('click') // Preset vorhanden, damit Laden-Button existiert
     // Start → FotoPanel hebt die Auswahl auf (images = [])
     await w.setProps({ isActive: true, images: [] })
-    expect(w.find('.btn-load-preset').element.disabled).toBe(true)
     await w.find('.preset-name-input').setValue('Live')
     await w.find('.btn-save-preset').trigger('click')
     const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
     expect(stored[0].name).toBe('Live')
     expect(stored[0].slots).toHaveLength(2)
     expect(stored[0].slots[1].adjustments).toEqual({ sepia: 50 })
+    expect(stored[0].slots[0].bounds).toEqual({
+      relX: 0.1,
+      relY: 0.2,
+      relWidth: 0.3,
+      relHeight: 0.3,
+    })
+    expect(stored[0].slots[1].bounds).toBeNull()
+
+    // Laden während der Slideshow → Bounds gesetzt + live-update mit beiden Bildern
+    const loadBtn = w.find('.btn-load-preset')
+    expect(loadBtn.element.disabled).toBe(false)
+    await loadBtn.trigger('click')
+    expect(setBounds).toEqual([
+      ['a', { relX: 0.1, relY: 0.2, relWidth: 0.3, relHeight: 0.3 }],
+      ['b', null],
+    ])
+    const live = w.emitted('live-update').at(-1)[0]
+    expect(live.images.map((i) => i.id)).toEqual(['a', 'b'])
+
     // Nach dem Stoppen ohne Auswahl ist das Panel ausgeblendet …
     await w.setProps({ isActive: false })
     expect(w.find('.slideshow-panel').exists()).toBe(false)
-    // … mit neuer Auswahl gilt wieder diese, Laden ist möglich
+    // … mit neuer Auswahl gilt wieder diese
     await w.setProps({ images: [images[1], images[0]] })
     expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Zwei', 'Eins'])
-    expect(w.find('.btn-load-preset').element.disabled).toBe(false)
+  })
+
+  it('move-whole checkbox emits mode change; external transform updates sliders', async () => {
+    const w = mountPanel()
+    expect(w.find('.move-whole-hint').text()).toContain('Shift')
+    await w.find('.move-whole-checkbox').setValue(true)
+    expect(w.emitted('move-mode-change').at(-1)).toEqual([true])
+    await w.setProps({
+      externalTransform: { relX: 0.25, relY: 0.3, relWidth: 0.8, relHeight: 0.8 },
+    })
+    const values = w.findAll('.transform-control .value').map((v) => v.text())
+    expect(values.slice(0, 2)).toEqual(['25%', '30%'])
+  })
+
+  it('saves the mouse move mode in presets and restores it on load', async () => {
+    const w = mountPanel()
+    await w.find('.move-whole-checkbox').setValue(true)
+    await w.find('.btn-save-preset').trigger('click')
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    expect(stored[0].settings.moveWholeSlideshow).toBe(true)
+
+    await w.find('.move-whole-checkbox').setValue(false)
+    await w.find('.btn-load-preset').trigger('click')
+    expect(w.find('.move-whole-checkbox').element.checked).toBe(true)
+    expect(w.emitted('move-mode-change').at(-1)).toEqual([true])
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0].moveWholeSlideshow).toBe(true)
   })
 
   it('reset in the transform section restores defaults and emits transform-change', async () => {

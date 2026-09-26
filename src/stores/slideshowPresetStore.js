@@ -15,6 +15,7 @@ export const SLIDESHOW_DEFAULT_SETTINGS = Object.freeze({
   loop: false,
   renderBehindVisualizer: false,
   fitToWorkspace: false,
+  moveWholeSlideshow: false,
   transform: Object.freeze({ x: 10, y: 10, width: 80, height: 80 }),
 })
 
@@ -66,6 +67,26 @@ export function normalizeImageAdjustments(raw) {
   return Object.keys(out).length > 0 ? out : null
 }
 
+/**
+ * Bereinigt eigene Bild-Bounds (relativ 0–1, Mindestgröße 1 %).
+ * @param {unknown} raw
+ * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
+ */
+export function normalizeImageBounds(raw) {
+  if (!raw || typeof raw !== 'object') return null
+  const vals = ['relX', 'relY', 'relWidth', 'relHeight'].map((k) => Number(raw[k]))
+  if (!vals.every(Number.isFinite)) return null
+  const [relX, relY, relWidth, relHeight] = vals
+  if (relWidth < 0.01 || relHeight < 0.01 || relWidth > 5 || relHeight > 5) return null
+  // Position so begrenzen, dass das Bild zumindest teilweise sichtbar bleibt
+  return {
+    relX: Math.min(1, Math.max(-relWidth + 0.01, relX)),
+    relY: Math.min(1, Math.max(-relHeight + 0.01, relY)),
+    relWidth,
+    relHeight,
+  }
+}
+
 function clampNumber(value, min, max, fallback) {
   const n = Number(value)
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback
@@ -100,6 +121,9 @@ export function normalizeSlideshowPreset(raw) {
           ? s.renderBehindVisualizer
           : d.renderBehindVisualizer,
       fitToWorkspace: typeof s.fitToWorkspace === 'boolean' ? s.fitToWorkspace : d.fitToWorkspace,
+      // Maus verschiebt ganze Slideshow (ältere Presets: aus)
+      moveWholeSlideshow:
+        typeof s.moveWholeSlideshow === 'boolean' ? s.moveWholeSlideshow : d.moveWholeSlideshow,
       transform: {
         x: clampNumber(t.x, 0, 100, d.transform.x),
         y: clampNumber(t.y, 0, 100, d.transform.y),
@@ -117,6 +141,8 @@ export function normalizeSlideshowPreset(raw) {
           : SLIDESHOW_AUDIO_DEFAULT,
         // Während der Slideshow vorgenommene Bild-Anpassungen (Filter, Audio …)
         adjustments: normalizeImageAdjustments(slot?.adjustments),
+        // Eigene Position/Größe des Bildes (relativ zum Canvas) oder null
+        bounds: normalizeImageBounds(slot?.bounds),
       }
     }),
   }
@@ -158,7 +184,7 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
 
   /**
    * @param {string} name
-   * @param {{ settings: object, slots: Array<{displayDuration:number|null, audioMode:string, adjustments?:object|null}> }} snapshot
+   * @param {{ settings: object, slots: Array<{displayDuration:number|null, audioMode:string, adjustments?:object|null, bounds?:object|null}> }} snapshot
    * @returns {object|null} gespeichertes Preset oder null bei Speicherfehler
    */
   function savePreset(name, snapshot) {

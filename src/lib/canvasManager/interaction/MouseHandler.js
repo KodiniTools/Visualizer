@@ -186,7 +186,9 @@ export class MouseHandler {
       if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return
 
       if (this.manager.currentAction === 'move') {
-        this.manager.dragDropHandler.moveObject(this.manager.activeObject, dx, dy)
+        this.manager.dragDropHandler.moveObject(this.manager.activeObject, dx, dy, {
+          shiftKey: e.shiftKey,
+        })
       } else if (this.manager.currentAction.startsWith('resize-')) {
         if (this.manager.activeObject.type === 'text') {
           this.manager.dragDropHandler.resizeText(this.manager.activeObject, dx, dy)
@@ -362,7 +364,9 @@ export class MouseHandler {
     if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return
 
     if (this.manager.currentAction === 'move') {
-      this.manager.dragDropHandler.moveObject(this.manager.activeObject, dx, dy)
+      this.manager.dragDropHandler.moveObject(this.manager.activeObject, dx, dy, {
+        shiftKey: e.shiftKey,
+      })
     } else if (this.manager.currentAction.startsWith('resize-')) {
       if (this.manager.activeObject.type === 'text') {
         this.manager.dragDropHandler.resizeText(this.manager.activeObject, dx, dy)

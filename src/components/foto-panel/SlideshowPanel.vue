@@ -47,6 +47,19 @@
         />
         <span>{{ t('slideshow.fitToWorkspace') }}</span>
       </label>
+      <label class="checkbox-label" :class="{ disabled: fitsWorkspace }">
+        <input
+          v-model="moveWholeSlideshow"
+          class="move-whole-checkbox"
+          type="checkbox"
+          :disabled="fitsWorkspace"
+          @change="emit('move-mode-change', moveWholeSlideshow)"
+        />
+        <span>{{ t('slideshow.moveWhole') }}</span>
+      </label>
+      <p class="hint move-whole-hint">
+        {{ moveWholeSlideshow ? t('slideshow.moveWholeHintOn') : t('slideshow.moveWholeHintOff') }}
+      </p>
       <p v-if="!hasWorkspace" class="hint warning fit-workspace-hint">
         {{ t('slideshow.fitToWorkspaceNoWorkspace') }}
       </p>
@@ -65,10 +78,9 @@
       @reset="emitTransformChange"
     />
 
-    <!-- Presets (Speichern auch während der Slideshow; Laden nur wenn nicht aktiv) -->
+    <!-- Presets (Speichern und Laden auch während der Slideshow) -->
     <SlideshowPresets
       :presets="presetStore.presets"
-      :load-disabled="isActive"
       @save="savePreset"
       @load="loadPreset"
       @delete="presetStore.deletePreset"
@@ -132,8 +144,11 @@ const props = defineProps({
   totalImages: { type: Number, default: 0 },
   currentPhase: { type: String, default: 'fadeIn' },
   hasWorkspace: { type: Boolean, default: false },
-  // { get(img) → object|null, set(img, settings|null, audioMode) } – gemerkte Bild-Anpassungen
+  // Gemerkte Bild-Anpassungen/-Größen: { get(img), set(img, settings|null, audioMode),
+  // getBounds(img), setBounds(img, bounds|null) }
   adjustmentsApi: { type: Object, default: null },
+  // Gemeinsamer Bereich wurde per Maus verschoben ({ relX, relY, relWidth, relHeight })
+  externalTransform: { type: Object, default: null },
 })
 
 const emit = defineEmits([
@@ -146,6 +161,8 @@ const emit = defineEmits([
   'transform-change',
   'fit-workspace-change',
   'reset-image-adjustments',
+  'live-update',
+  'move-mode-change',
 ])
 
 const D = SLIDESHOW_DEFAULT_SETTINGS
@@ -159,6 +176,9 @@ const loopSlideshow = ref(D.loop)
 
 // Render Layer
 const renderBehindVisualizer = ref(D.renderBehindVisualizer)
+
+// Maus verschiebt die ganze Slideshow statt eines einzelnen Bildes (Shift kehrt um)
+const moveWholeSlideshow = ref(D.moveWholeSlideshow)
 
 // Bilder füllen den Workspace-Bereich (wie „Als Workspace-Hintergrund“)
 const fitToWorkspace = ref(D.fitToWorkspace)
@@ -207,7 +227,12 @@ function transformPayload() {
 }
 
 function startSlideshow() {
-  emit('start', {
+  emit('start', buildPayload())
+}
+
+/** Aktuelle Panel-Einstellungen als Start-/Live-Update-Konfiguration. */
+function buildPayload() {
+  return {
     images: orderedImages.value.map((img) => {
       const key = slideshowImageKey(img)
       const own = imageDurations.value[key]
@@ -224,8 +249,9 @@ function startSlideshow() {
     loop: loopSlideshow.value,
     renderBehindVisualizer: renderBehindVisualizer.value,
     fitToWorkspace: fitsWorkspace.value,
+    moveWholeSlideshow: moveWholeSlideshow.value,
     transform: transformPayload(),
-  })
+  }
 }
 
 // ─── Presets ───────────────────────────────────────────────────────────────
@@ -239,6 +265,7 @@ function savePreset(name) {
       loop: loopSlideshow.value,
       renderBehindVisualizer: renderBehindVisualizer.value,
       fitToWorkspace: fitToWorkspace.value,
+      moveWholeSlideshow: moveWholeSlideshow.value,
       transform: {
         x: transformX.value,
         y: transformY.value,
@@ -253,6 +280,7 @@ function savePreset(name) {
         displayDuration: imageDurations.value[key] ?? null,
         audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
         adjustments: props.adjustmentsApi?.get(img) ?? null,
+        bounds: props.adjustmentsApi?.getBounds?.(img) ?? null,
       }
     }),
   })
@@ -270,6 +298,10 @@ function loadPreset(preset) {
   if (renderBehindVisualizer.value !== s.renderBehindVisualizer) {
     renderBehindVisualizer.value = s.renderBehindVisualizer
     onRenderLayerChange()
+  }
+  if (moveWholeSlideshow.value !== s.moveWholeSlideshow) {
+    moveWholeSlideshow.value = s.moveWholeSlideshow
+    emit('move-mode-change', moveWholeSlideshow.value)
   }
   if (fitToWorkspace.value !== s.fitToWorkspace) {
     fitToWorkspace.value = s.fitToWorkspace
@@ -299,9 +331,13 @@ function loadPreset(preset) {
       slot?.adjustments ?? null,
       slot?.audioMode ?? SLIDESHOW_AUDIO_DEFAULT,
     )
+    // Eigene Position/Größe des Bildes (ohne → gemeinsamer Bereich)
+    props.adjustmentsApi?.setBounds?.(img, slot?.bounds ?? null)
   })
   imageDurations.value = durations
   imageAudioModes.value = modes
+  // Läuft die Slideshow, sofort übernehmen
+  if (props.isActive) emit('live-update', buildPayload())
   toastStore.success(t('slideshow.presetLoaded'))
 }
 
@@ -329,6 +365,16 @@ watch(
   () => props.hasWorkspace,
   () => {
     if (fitToWorkspace.value) emit('fit-workspace-change', fitsWorkspace.value)
+  },
+)
+
+// Per Maus verschobenen Bereich in die Regler übernehmen
+watch(
+  () => props.externalTransform,
+  (tf) => {
+    if (!tf) return
+    transformX.value = Math.round(tf.relX * 100)
+    transformY.value = Math.round(tf.relY * 100)
   },
 )
 

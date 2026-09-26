@@ -1062,7 +1062,7 @@ export class MultiImageManager {
     // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden
     let bounds
     if (this.selectedImage.isSlideshowImage && window.slideshowManager) {
-      const transform = window.slideshowManager.getTransform()
+      const transform = window.slideshowManager.getSelectionBounds(this.selectedImage)
       bounds = {
         x: transform.relX * this.canvas.width,
         y: transform.relY * this.canvas.height,
@@ -1154,7 +1154,7 @@ export class MultiImageManager {
 
     // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden (für Selection)
     if (!forceImageBounds && imgData.isSlideshowImage && window.slideshowManager) {
-      const transform = window.slideshowManager.getTransform()
+      const transform = window.slideshowManager.getSelectionBounds(imgData)
       return {
         x: transform.relX * targetCanvas.width,
         y: transform.relY * targetCanvas.height,

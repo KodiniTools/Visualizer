@@ -47,6 +47,7 @@
       :currentPhase="slideshowCurrentPhase"
       :has-workspace="hasWorkspace"
       :adjustments-api="slideshowAdjustmentsApi"
+      :external-transform="slideshowExternalTransform"
       @start="startSlideshow"
       @pause="pauseSlideshow"
       @resume="resumeSlideshow"
@@ -56,6 +57,8 @@
       @transform-change="onSlideshowTransformChange"
       @fit-workspace-change="onSlideshowFitWorkspaceChange"
       @reset-image-adjustments="onSlideshowResetImageAdjustments"
+      @live-update="onSlideshowLiveUpdate"
+      @move-mode-change="onSlideshowMoveModeChange"
     />
 
     <!-- Filter-Bereich -->
@@ -190,6 +193,8 @@ const slideshowIsPaused = ref(false)
 const slideshowCurrentIndex = ref(0)
 const slideshowCurrentPhase = ref('fadeIn')
 const slideshowTotalImages = ref(0)
+// Per Maus verschobener gemeinsamer Bereich (für die Regler im Slideshow-Panel)
+const slideshowExternalTransform = ref(null)
 // Workspace-Format gewählt? (Voraussetzung für „An Workspace anpassen“)
 const workspaceStore = useWorkspaceStore()
 const hasWorkspace = computed(() => workspaceStore.selectedPresetKey != null)
@@ -350,6 +355,9 @@ function initSlideshowManager() {
       // ✨ Global entfernen wenn gestoppt
       window.slideshowManager = null
     },
+    onTransformChange: (transform) => {
+      slideshowExternalTransform.value = transform
+    },
     // Lazy, damit ein späteres Workspace-Format berücksichtigt wird
     getWorkspaceBounds: () => canvasManagerRef?.value?.getWorkspaceBounds?.() ?? null,
     onImageTransition: (index, total, phase) => {
@@ -374,6 +382,26 @@ function startSlideshow(config) {
     return
   }
 
+  const { images, options } = buildSlideshowRun(config)
+  const success = slideshowManagerRef.value.start(images, options)
+
+  if (success) {
+    slideshowIsActive.value = true
+    slideshowIsPaused.value = false
+    slideshowTotalImages.value = images.length
+    // ✨ Global verfügbar machen für Maus-Interaktion
+    window.slideshowManager = slideshowManagerRef.value
+    toastStore.success(t('slideshow.title') + ' gestartet')
+    // Auswahl aufheben nach dem Start
+    deselectAllImages()
+  }
+}
+
+/**
+ * Baut Bilder + Optionen für den SlideshowManager aus der Panel-Konfiguration
+ * (für start() und applyLiveUpdate()).
+ */
+function buildSlideshowRun(config) {
   // Bilder aus der Konfiguration extrahieren
   const images = config.images.map((img) => ({
     imageObject: img.imageObject || img.img,
@@ -387,7 +415,7 @@ function startSlideshow(config) {
     }),
   }))
 
-  const success = slideshowManagerRef.value.start(images, {
+  const options = {
     fadeInDuration: config.fadeInDuration,
     displayDuration: config.displayDuration,
     fadeOutDuration: config.fadeOutDuration,
@@ -397,19 +425,18 @@ function startSlideshow(config) {
     audioReactiveSettings: null,
     renderBehindVisualizer: config.renderBehindVisualizer,
     fitToWorkspace: config.fitToWorkspace,
+    moveWholeSlideshow: config.moveWholeSlideshow,
     transform: config.transform,
-  })
-
-  if (success) {
-    slideshowIsActive.value = true
-    slideshowIsPaused.value = false
-    slideshowTotalImages.value = images.length
-    // ✨ Global verfügbar machen für Maus-Interaktion
-    window.slideshowManager = slideshowManagerRef.value
-    toastStore.success(t('slideshow.title') + ' gestartet')
-    // Auswahl aufheben nach dem Start
-    deselectAllImages()
   }
+  return { images, options }
+}
+
+// Preset während laufender Slideshow geladen → in die laufende Slideshow übernehmen
+function onSlideshowLiveUpdate(config) {
+  const manager = slideshowManagerRef.value
+  if (!manager?.isActive) return
+  const { images, options } = buildSlideshowRun(config)
+  manager.applyLiveUpdate(images, options)
 }
 
 function pauseSlideshow() {
@@ -451,11 +478,22 @@ const slideshowAdjustmentsApi = {
   set(img, settings, audioMode) {
     getSlideshowManager()?.setImageAdjustments(img.imageObject || img.img, settings, audioMode)
   },
+  getBounds(img) {
+    return getSlideshowManager()?.getImageBounds(img.imageObject || img.img) ?? null
+  },
+  setBounds(img, bounds) {
+    getSlideshowManager()?.setImageBounds(img.imageObject || img.img, bounds)
+  },
 }
 
 function getSlideshowManager() {
   if (!slideshowManagerRef.value) initSlideshowManager()
   return slideshowManagerRef.value
+}
+
+// Maus: ganze Slideshow oder einzelnes Bild verschieben
+function onSlideshowMoveModeChange(value) {
+  getSlideshowManager()?.setMoveWholeSlideshow(value)
 }
 
 // Gemerkte Bild-Anpassungen (Filter/Audio) der Slideshow verwerfen

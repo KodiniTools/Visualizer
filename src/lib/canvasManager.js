@@ -1075,9 +1075,9 @@ export class CanvasManager {
     }
 
     if (obj.type === 'image') {
-      // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden
+      // Slideshow-Bilder: Bild-Bounds bzw. Workspace (siehe getSelectionBounds)
       if (obj.isSlideshowImage && window.slideshowManager) {
-        const transform = window.slideshowManager.getTransform()
+        const transform = window.slideshowManager.getSelectionBounds(obj)
         return {
           x: transform.relX * this.canvas.width,
           y: transform.relY * this.canvas.height,

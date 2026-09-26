@@ -406,3 +406,159 @@ describe('SlideshowManager – laufendes Bild sofort merken', () => {
     vi.useRealTimers()
   })
 })
+
+describe('SlideshowManager – eigene Größe/Position pro Bild', () => {
+  const imgA = { width: 200, height: 100 }
+  const imgB = { width: 100, height: 100 }
+  const imgs = () => [{ imageObject: imgA }, { imageObject: imgB }]
+
+  it('Auswahl-Bounds = tatsächliche Bild-Bounds (Griffe sitzen auf dem Bild)', () => {
+    const m = createManager()
+    m.start(imgs())
+    const a = m.activeImages[0]
+    // 2:1-Bild im 0.8×0.8-Bereich → 0.8×0.4, nicht der ganze Bereich
+    expect(m.getSelectionBounds(a)).toEqual({
+      relX: a.relX,
+      relY: a.relY,
+      relWidth: a.relWidth,
+      relHeight: a.relHeight,
+    })
+    expect(a.relHeight).toBeCloseTo(0.4)
+    m.stop()
+  })
+
+  it('commitImageBounds merkt Größe pro Bild – über Stoppen/Neustart', () => {
+    const m = createManager()
+    m.start(imgs())
+    const a = m.activeImages[0]
+    Object.assign(a, { relX: 0.05, relY: 0.05, relWidth: 0.3, relHeight: 0.15 })
+    m.commitImageBounds(a)
+    m.stop()
+    m.start(imgs())
+    const again = m.activeImages[0]
+    expect([again.relX, again.relY, again.relWidth, again.relHeight]).toEqual([
+      0.05, 0.05, 0.3, 0.15,
+    ])
+    // Bild B unverändert (gemeinsamer Bereich)
+    m.currentIndex = 1
+    const b = m._addNextImage()
+    expect(b.relWidth).toBeCloseTo(0.8)
+    m.stop()
+  })
+
+  it('setImageBounds aktualisiert ein laufendes Bild sofort; clearImageMemory setzt zurück', () => {
+    const m = createManager()
+    m.start(imgs())
+    const a = m.activeImages[0]
+    m.setImageBounds(imgA, { relX: 0.5, relY: 0.5, relWidth: 0.2, relHeight: 0.1 })
+    expect(a.relX).toBe(0.5)
+    expect(m.getImageBounds(imgA)).toEqual({ relX: 0.5, relY: 0.5, relWidth: 0.2, relHeight: 0.1 })
+    m.clearImageMemory()
+    expect(m.getImageBounds(imgA)).toBeNull()
+    expect(a.relWidth).toBeCloseTo(0.8)
+    m.stop()
+  })
+
+  it('im Workspace-Modus gelten keine eigenen Bounds', () => {
+    const m = createManager({
+      getWorkspaceBounds: () => ({ x: 100, y: 0, width: 800, height: 1000 }),
+    })
+    m.setImageBounds(imgA, { relX: 0.5, relY: 0.5, relWidth: 0.2, relHeight: 0.1 })
+    m.start(imgs(), { fitToWorkspace: true })
+    const a = m.activeImages[0]
+    expect(a.relHeight).toBeCloseTo(1)
+    Object.assign(a, { relX: 0 })
+    m.commitImageBounds(a) // gesperrt
+    expect(m.getImageBounds(imgA)).toEqual({ relX: 0.5, relY: 0.5, relWidth: 0.2, relHeight: 0.1 })
+    m.stop()
+  })
+})
+
+describe('SlideshowManager – Preset live laden', () => {
+  it('applyLiveUpdate übernimmt Anpassungen/Audio sofort und Timing ab nächstem Bild', () => {
+    const imgA = { width: 100, height: 100 }
+    const imgB = { width: 100, height: 100 }
+    const m = createManager()
+    m.start([
+      { imageObject: imgA, audioMode: 'default' },
+      { imageObject: imgB, audioMode: 'default' },
+    ])
+    const a = m.activeImages[0]
+    a.fotoSettings.brightness = 170 // soll durch Preset (ohne Anpassung) verworfen werden
+    m.setImageAdjustments(imgA, null)
+    m.setImageAdjustments(imgB, { sepia: 80 }, 'default')
+
+    const ok = m.applyLiveUpdate(
+      [
+        {
+          imageObject: imgA,
+          audioMode: 'pulse',
+          audioReactiveSettings: { enabled: true, source: 'mid', effects: {} },
+        },
+        {
+          imageObject: imgB,
+          audioMode: 'default',
+          audioReactiveSettings: null,
+          displayDuration: 9000,
+        },
+      ],
+      { displayDuration: 4000, loop: true, renderBehindVisualizer: true },
+    )
+    expect(ok).toBe(true)
+    expect(a.fotoSettings.brightness).toBeUndefined()
+    expect(a.fotoSettings.audioReactive.source).toBe('mid')
+    expect(a.fotoSettings.renderBehindVisualizer).toBe(true)
+    expect(m.config.loop).toBe(true)
+    expect(m.config.displayDuration).toBe(4000)
+
+    m.currentIndex = 1
+    const b = m._addNextImage()
+    expect(b.fotoSettings.sepia).toBe(80)
+    expect(b.slideshow.displayDuration).toBe(9000)
+    expect(m.applyLiveUpdate([{ imageObject: imgA }], {})).toBe(false)
+    m.stop()
+  })
+})
+
+describe('SlideshowManager – ganze Slideshow verschieben', () => {
+  it('verschiebt gemeinsamen Bereich und Bilder mit eigener Größe gleichermaßen', () => {
+    const imgA = { width: 100, height: 100 }
+    const imgB = { width: 100, height: 100 }
+    const changes = []
+    const m = createManager({ onTransformChange: (t) => changes.push(t) })
+    m.setTransform({ relX: 0.1, relY: 0.1, relWidth: 0.5, relHeight: 0.5 })
+    m.setImageBounds(imgB, { relX: 0.6, relY: 0.6, relWidth: 0.2, relHeight: 0.2 })
+    m.start([{ imageObject: imgA }, { imageObject: imgB }])
+    const a = m.activeImages[0]
+    const ax = a.relX
+
+    m.moveSlideshow(0.1, 0.05)
+    expect(m.transform.relX).toBeCloseTo(0.2)
+    expect(a.relX).toBeCloseTo(ax + 0.1)
+    expect(m.getImageBounds(imgB).relX).toBeCloseTo(0.7)
+    expect(m.getImageBounds(imgB).relY).toBeCloseTo(0.65)
+    expect(changes.at(-1).relX).toBeCloseTo(0.2)
+
+    // Am Rand begrenzt – eigene Bounds bewegen sich nur um den tatsächlichen Betrag
+    m.moveSlideshow(1, 0)
+    expect(m.transform.relX).toBeCloseTo(0.5)
+    expect(m.getImageBounds(imgB).relX).toBeCloseTo(1.0)
+    m.stop()
+  })
+
+  it('setMoveWholeSlideshow setzt den Modus; start()/applyLiveUpdate übernehmen ihn', () => {
+    const m = createManager()
+    expect(m.moveWholeSlideshow).toBe(false)
+    m.setMoveWholeSlideshow(true)
+    expect(m.moveWholeSlideshow).toBe(true)
+    const imgs = [
+      { imageObject: { width: 1, height: 1 } },
+      { imageObject: { width: 1, height: 1 } },
+    ]
+    m.start(imgs, { moveWholeSlideshow: false })
+    expect(m.moveWholeSlideshow).toBe(false)
+    m.applyLiveUpdate(imgs, { moveWholeSlideshow: true })
+    expect(m.moveWholeSlideshow).toBe(true)
+    m.stop()
+  })
+})

@@ -195,3 +195,44 @@ describe('SlideshowManager – An Workspace anpassen', () => {
     m.stop()
   })
 })
+
+describe('SlideshowManager – Endlos wiederholen', () => {
+  it('behält während der Slideshow geänderte Audio-Reaktiv-Einstellungen im nächsten Durchlauf', () => {
+    vi.useFakeTimers()
+    const m = createManager()
+    const initial = { enabled: true, source: 'bass', effects: { scale: { enabled: true } } }
+    m.start(
+      [
+        { imageObject: img, audioReactiveSettings: initial },
+        { imageObject: img, audioReactiveSettings: initial },
+      ],
+      { fadeInDuration: 100, displayDuration: 1000, fadeOutDuration: 100, loop: true },
+    )
+
+    // Nutzer ändert die Einstellungen am laufenden Bild 1
+    const first = m.activeImages[0]
+    first.fotoSettings.audioReactive.source = 'treble'
+    first.fotoSettings.audioReactive.effects.glow = { enabled: true, intensity: 90 }
+
+    const tick = (ms) => {
+      for (let t = 0; t < ms; t += 50) {
+        vi.advanceTimersByTime(50)
+        m._updateSlideshowState()
+      }
+    }
+    // Bild 1 aus, Bild 2 durch, Bild 1 kommt erneut
+    tick(2600)
+    const again = m.activeImages.find((i) => i.slideshow.imageIndex === 0 && i !== first)
+    expect(again).toBeDefined()
+    expect(again.fotoSettings.audioReactive.source).toBe('treble')
+    expect(again.fotoSettings.audioReactive.effects.glow.enabled).toBe(true)
+    // Kopie, keine geteilte Referenz
+    expect(again.fotoSettings.audioReactive).not.toBe(first.fotoSettings.audioReactive)
+    // Bild 2 unverändert
+    expect(m.config.images[1].audioReactiveSettings.source).toBe('bass')
+    // Ursprüngliches Objekt aus dem Panel nicht mutiert
+    expect(initial.source).toBe('bass')
+    m.stop()
+    vi.useRealTimers()
+  })
+})

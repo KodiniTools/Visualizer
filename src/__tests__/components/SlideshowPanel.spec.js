@@ -242,6 +242,24 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.emitted('background-color-change').at(-1)).toEqual(['#336699'])
   })
 
+  it('base color is remembered without a preset (after remount)', async () => {
+    let w = mountPanel({ hasWorkspace: false })
+    await w.find('.bg-mode-canvas').setValue(true)
+    await w.find('.slideshow-base-color').setValue('#aa5500')
+    expect(localStorage.getItem('visualizer-slideshow-base-color')).toBe('#aa5500')
+    w.unmount()
+
+    w = mountPanel({ hasWorkspace: false })
+    await w.find('.bg-mode-canvas').setValue(true)
+    expect(w.find('.slideshow-base-color').element.value).toBe('#aa5500')
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0].backgroundColor).toBe('#aa5500')
+
+    // Zurücksetzen entfernt den Eintrag
+    await w.find('.btn-reset-base-color').trigger('click')
+    expect(localStorage.getItem('visualizer-slideshow-base-color')).toBeNull()
+  })
+
   it('emits reset-image-adjustments from the reset button', async () => {
     const w = mountPanel()
     await w.find('.btn-reset-adjustments').trigger('click')

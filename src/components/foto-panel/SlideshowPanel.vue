@@ -216,6 +216,10 @@
  * Position/Größe, Steuerung) und sind per v-model angebunden.
  */
 import { ref, computed, watch } from 'vue'
+import {
+  loadStoredSlideshowBaseColor,
+  storeSlideshowBaseColor,
+} from '../../lib/slideshowBaseColor.js'
 import { useI18n } from '../../lib/i18n.js'
 import SlideshowOrderList from './slideshow/SlideshowOrderList.vue'
 import SlideshowTimingSettings from './slideshow/SlideshowTimingSettings.vue'
@@ -296,7 +300,9 @@ const moveWholeSlideshow = ref(D.moveWholeSlideshow)
 // Slideshow als Hintergrund: 'none' | 'canvas' | 'workspace'
 const backgroundMode = ref(D.backgroundMode)
 // Farbe der Fläche unter der Slideshow (anstelle des ersetzten Hintergrundbildes)
-const backgroundColor = ref(D.backgroundColor)
+// – auch ohne Preset dauerhaft gemerkt
+const backgroundColor = ref(loadStoredSlideshowBaseColor())
+watch(backgroundColor, (color) => storeSlideshowBaseColor(color))
 // Workspace-Modus nur mit gewähltem Workspace-Format wirksam
 const effectiveBackgroundMode = computed(() =>
   backgroundMode.value === 'workspace' && !props.hasWorkspace ? 'none' : backgroundMode.value,

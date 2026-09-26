@@ -6,6 +6,7 @@ import {
   loadImage,
   pruneImages,
   blobFromImage,
+  isQuotaError,
   _clearImageCache,
 } from '../../utils/presetImageRepository.js'
 
@@ -69,5 +70,24 @@ describe('presetImageRepository (IndexedDB)', () => {
     const blob = await blobFromImage({ src: 'data:image/png;base64,AQID' })
     expect(blob.size).toBe(3)
     await expect(blobFromImage({})).rejects.toThrow()
+  })
+})
+
+describe('presetImageRepository – automatisches Aufräumen', () => {
+  it('Schutzfrist: frisch gespeicherte, ungenutzte Bilder bleiben erhalten', async () => {
+    const fresh = await saveImageBlob(new Blob([new Uint8Array([7, 7, 7, 1])]), 'neu.png')
+    expect(await pruneImages([], { minAgeMs: 60_000 })).toBe(0)
+    _clearImageCache()
+    expect(await loadImage(fresh)).not.toBeNull()
+    // ohne Schutzfrist wird es entfernt
+    expect(await pruneImages([])).toBeGreaterThanOrEqual(1)
+    _clearImageCache()
+    expect(await loadImage(fresh)).toBeNull()
+  })
+
+  it('isQuotaError erkennt vollen Speicher', () => {
+    expect(isQuotaError({ name: 'QuotaExceededError' })).toBe(true)
+    expect(isQuotaError(new Error('Quota exceeded for origin'))).toBe(true)
+    expect(isQuotaError(new Error('anderer Fehler'))).toBe(false)
   })
 })

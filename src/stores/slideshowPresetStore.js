@@ -5,6 +5,16 @@ import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig.js'
 import { pruneImages } from '../utils/presetImageRepository.js'
 
 const STORAGE_KEY = 'visualizer-slideshow-presets'
+// Frisch gespeicherte Bilder beim Aufräumen schonen (laufendes Speichern,
+// auch in einem anderen Tab, darf nicht betroffen sein)
+export const IMAGE_CLEANUP_GRACE_MS = 5 * 60 * 1000
+const AUTO_CLEANUP_DELAY_MS = 3000
+let autoCleanupScheduled = false
+
+/** Nur für Tests: automatisches Aufräumen wieder erlauben. */
+export function _resetAutoCleanup() {
+  autoCleanupScheduled = false
+}
 const PRESET_VERSION = 1
 
 /** Standardwerte der Slideshow-Einstellungen (identisch zu SlideshowPanel). */
@@ -231,6 +241,45 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
     } catch (e) {
       console.warn('[SlideshowPresets] Laden fehlgeschlagen:', e)
       presets.value = []
+      return // bei unlesbarem Speicher nicht automatisch aufräumen
+    }
+    scheduleAutoCleanup()
+  }
+
+  // Einmal pro Seitenaufruf, verzögert (blockiert den Start nicht)
+  function scheduleAutoCleanup() {
+    if (autoCleanupScheduled) return
+    autoCleanupScheduled = true
+    setTimeout(() => cleanupImages(), AUTO_CLEANUP_DELAY_MS)
+  }
+
+  /**
+   * Entfernt nicht mehr verwendete Bilddateien aus IndexedDB. Berücksichtigt
+   * auch Presets, die ein anderer Tab inzwischen im localStorage gespeichert hat.
+   * @param {{ minAgeMs?: number }} [options]
+   * @returns {Promise<number>} Anzahl entfernter Bilder (0 bei Fehler)
+   */
+  async function cleanupImages({ minAgeMs = IMAGE_CLEANUP_GRACE_MS } = {}) {
+    const keep = collectUploadKeys(presets.value)
+    try {
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
+      if (Array.isArray(stored)) {
+        for (const key of collectUploadKeys(stored.map(normalizeSlideshowPreset).filter(Boolean))) {
+          keep.add(key)
+        }
+      }
+    } catch (e) {
+      // Unlesbarer Preset-Speicher: lieber nichts löschen als Bilder verlieren
+      console.warn('[SlideshowPresets] Aufräumen übersprungen (Presets unlesbar):', e)
+      return 0
+    }
+    try {
+      const removed = await pruneImages(keep, { minAgeMs })
+      if (removed > 0) console.log(`[SlideshowPresets] ${removed} ungenutzte Bilder entfernt`)
+      return removed
+    } catch (e) {
+      console.warn('[SlideshowPresets] Aufräumen der Bilder fehlgeschlagen:', e)
+      return 0
     }
   }
 
@@ -281,9 +330,7 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
       sessionImages.value = next
     }
     // Nicht mehr verwendete Bilddateien aus IndexedDB entfernen
-    pruneImages(collectUploadKeys(presets.value)).catch((e) =>
-      console.warn('[SlideshowPresets] Aufräumen der Bilder fehlgeschlagen:', e),
-    )
+    cleanupImages()
   }
 
   /** In dieser Sitzung zum Preset gespeicherte Bilder (Kopie der Liste) oder null. */
@@ -292,5 +339,13 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
     return list ? [...list] : null
   }
 
-  return { presets, sessionImages, loadPresets, savePreset, deletePreset, getSessionImages }
+  return {
+    presets,
+    sessionImages,
+    loadPresets,
+    savePreset,
+    deletePreset,
+    getSessionImages,
+    cleanupImages,
+  }
 })

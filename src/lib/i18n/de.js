@@ -1450,7 +1450,7 @@ export default {
       'Die Bilder füllen den Workspace-Bereich und folgen dem gewählten Format. Position & Größe sind dabei fest.',
     fitToWorkspaceNoWorkspace: 'Wähle zuerst ein Workspace-Format (z. B. TikTok 9:16).',
     adjustmentsKeptHint:
-      'Während der Slideshow geänderte Filter, Audio-Einstellungen sowie Größe/Position der Bilder bleiben erhalten – auch nach Stoppen und Neustart. Bilder mit eigener Größe ignorieren den gemeinsamen Bereich (Position & Größe).',
+      'Während der Slideshow geänderte Filter, Audio-Einstellungen sowie Größe/Position der Bilder bleiben erhalten – auch nach Stoppen und Neustart; Filter & Co. werden zusätzlich dauerhaft im Browser gemerkt. Bilder mit eigener Größe ignorieren den gemeinsamen Bereich (Position & Größe).',
     resetAdjustments: 'Bild-Anpassungen zurücksetzen',
     adjustmentsReset: 'Bild-Anpassungen der Slideshow zurückgesetzt',
     moveWhole: 'Maus verschiebt ganze Slideshow',

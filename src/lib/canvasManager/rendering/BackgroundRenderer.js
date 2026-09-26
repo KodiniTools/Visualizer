@@ -17,6 +17,7 @@ import {
   drawMediaWithAudioReactive,
 } from './audioReactiveDraw.js'
 import { SLIDESHOW_BASE_COLOR_DEFAULT } from '../../slideshowBaseColor.js'
+import { computeSlideshowGradientAudio } from '../../slideshowGradientAudio.js'
 
 /**
  * Ersetzt die laufende Slideshow gerade den Canvas- bzw. Workspace-Hintergrund?
@@ -56,20 +57,30 @@ function getSlideshowBaseGradient(target) {
  * Füllung für einen Bereich: Farbe oder Farbverlauf (color → color2).
  * Linear: Winkel in Grad (0 = links→rechts, 90 = oben→unten), über die
  * Diagonale des Bereichs; radial: vom Mittelpunkt bis in die Ecken.
+ * Audio-Reaktiv (`audio`, siehe slideshowGradientAudio.js): `extent` skaliert
+ * die Ausdehnung, `angleOffset` dreht den linearen Verlauf, `centerShift`
+ * lässt den radialen Mittelpunkt kreisen.
  * @returns {string|CanvasGradient}
  */
-export function createSlideshowBaseFill(ctx, area, color, gradient) {
+export function createSlideshowBaseFill(ctx, area, color, gradient, audio = null) {
   if (!gradient?.enabled || typeof ctx.createLinearGradient !== 'function') return color
-  const cx = area.x + area.width / 2
-  const cy = area.y + area.height / 2
   const half = Math.hypot(area.width, area.height) / 2
+  const extent = Math.max(0.05, audio?.extent ?? 1)
+  let cx = area.x + area.width / 2
+  let cy = area.y + area.height / 2
   let fill
   if (gradient.type === 'radial') {
-    fill = ctx.createRadialGradient(cx, cy, 0, cx, cy, half)
+    const shift = (audio?.centerShift ?? 0) * half
+    if (shift) {
+      cx += Math.cos(audio.shiftAngle || 0) * shift
+      cy += Math.sin(audio.shiftAngle || 0) * shift
+    }
+    fill = ctx.createRadialGradient(cx, cy, 0, cx, cy, half * extent)
   } else {
-    const rad = ((Number(gradient.angle) || 0) * Math.PI) / 180
-    const dx = Math.cos(rad) * half
-    const dy = Math.sin(rad) * half
+    const deg = (Number(gradient.angle) || 0) + (audio?.angleOffset ?? 0)
+    const rad = (deg * Math.PI) / 180
+    const dx = Math.cos(rad) * half * extent
+    const dy = Math.sin(rad) * half * extent
     fill = ctx.createLinearGradient(cx - dx, cy - dy, cx + dx, cy + dy)
   }
   fill.addColorStop(0, color)
@@ -175,11 +186,20 @@ export class BackgroundRenderer {
       rect === undefined ? { x: 0, y: 0, width: ctx.canvas.width, height: ctx.canvas.height } : rect
     if (!area) return
     ctx.save()
+    const gradient = getSlideshowBaseGradient(target)
+    const audio = gradient?.audio?.enabled
+      ? computeSlideshowGradientAudio(
+          gradient.audio,
+          target,
+          typeof window !== 'undefined' ? window.audioAnalysisData : null,
+        )
+      : null
     ctx.fillStyle = createSlideshowBaseFill(
       ctx,
       area,
       getSlideshowBaseColor(target),
-      getSlideshowBaseGradient(target),
+      gradient,
+      audio,
     )
     ctx.fillRect(area.x, area.y, area.width, area.height)
     ctx.restore()

@@ -5,6 +5,8 @@
  */
 export const SLIDESHOW_BASE_COLOR_DEFAULT = '#000000'
 
+import { normalizeSlideshowGradientAudio } from './slideshowGradientAudio.js'
+
 const HEX_COLOR = /^#[0-9a-f]{6}$/i
 
 /**
@@ -67,13 +69,15 @@ export const SLIDESHOW_GRADIENT_DEFAULT = Object.freeze({
   color2: '#333333',
   type: 'linear',
   angle: 90,
+  // Audio-Reaktiv (siehe slideshowGradientAudio.js)
+  audio: Object.freeze({ enabled: false, source: 'bass', pulse: 80, rotation: 80 }),
 })
 
 /**
  * Bereinigt einen Farbverlauf; fehlende/ungültige Felder aus `fallback`.
  * @param {unknown} value
  * @param {typeof SLIDESHOW_GRADIENT_DEFAULT} [fallback]
- * @returns {{ enabled:boolean, color2:string, type:'linear'|'radial', angle:number }} (Kopie)
+ * @returns {{ enabled:boolean, color2:string, type:'linear'|'radial', angle:number, audio:object }} (Kopie)
  */
 export function normalizeSlideshowGradient(value, fallback = SLIDESHOW_GRADIENT_DEFAULT) {
   const base = { ...SLIDESHOW_GRADIENT_DEFAULT, ...(fallback || {}) }
@@ -84,6 +88,7 @@ export function normalizeSlideshowGradient(value, fallback = SLIDESHOW_GRADIENT_
     color2: normalizeSlideshowBaseColor(src.color2, base.color2),
     type: SLIDESHOW_GRADIENT_TYPES.includes(src.type) ? src.type : base.type,
     angle: Number.isFinite(angle) ? Math.round(((angle % 360) + 360) % 360) : base.angle,
+    audio: normalizeSlideshowGradientAudio(src.audio, base.audio),
   }
 }
 
@@ -92,7 +97,11 @@ export function isSameSlideshowGradient(a, b) {
   const x = normalizeSlideshowGradient(a)
   const y = normalizeSlideshowGradient(b)
   return (
-    x.enabled === y.enabled && x.color2 === y.color2 && x.type === y.type && x.angle === y.angle
+    x.enabled === y.enabled &&
+    x.color2 === y.color2 &&
+    x.type === y.type &&
+    x.angle === y.angle &&
+    JSON.stringify(x.audio) === JSON.stringify(y.audio)
   )
 }
 

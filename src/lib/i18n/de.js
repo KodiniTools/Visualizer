@@ -1523,6 +1523,19 @@ export default {
     gradientLinear: 'Linear',
     gradientRadial: 'Radial',
     gradientAngle: 'Winkel',
+    gradientAudio: 'Audio-Reaktiv',
+    gradientAudioSource: 'Quelle',
+    gradientAudioPulse: 'Puls',
+    gradientAudioRotation: 'Rotation',
+    gradientAudioOrbit: 'Kreisen',
+    gradientAudioHint:
+      'Ohne Musik bleibt der Verlauf wie eingestellt; im Takt zieht er sich zusammen und dreht (radial: der Mittelpunkt kreist).',
+    gradientAudioSources: {
+      bass: 'Bass',
+      mid: 'Mitten',
+      treble: 'Höhen',
+      volume: 'Lautstärke',
+    },
     baseColorReset: 'Standard (Schwarz, ohne Farbverlauf)',
     backgroundModeWorkspaceNeedsFormat:
       'Workspace-Hintergrund: zuerst ein Workspace-Format wählen (z. B. TikTok 9:16).',

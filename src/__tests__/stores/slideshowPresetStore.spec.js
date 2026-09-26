@@ -176,6 +176,7 @@ describe('slideshowPresetStore', () => {
       color2: '#333333',
       type: 'linear',
       angle: 90,
+      audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
     })
     expect(
       normalizeSlideshowPreset({
@@ -183,7 +184,13 @@ describe('slideshowPresetStore', () => {
         settings: { workspaceGradient: { enabled: true, type: 'radial', color2: '#ABCDEF' } },
         slots: [],
       }).settings.workspaceGradient,
-    ).toEqual({ enabled: true, color2: '#abcdef', type: 'radial', angle: 90 })
+    ).toEqual({
+      enabled: true,
+      color2: '#abcdef',
+      type: 'radial',
+      angle: 90,
+      audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
+    })
     expect(
       normalizeSlideshowPreset({ id: 5, settings: { workspaceColor: '#12AB34' }, slots: [] })
         .settings.workspaceColor,

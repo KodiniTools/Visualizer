@@ -61,8 +61,20 @@ describe('slideshowBaseColor – Farbverlauf', () => {
     expect(normalizeSlideshowGradient(null)).toEqual({ ...SLIDESHOW_GRADIENT_DEFAULT })
     expect(
       normalizeSlideshowGradient({ enabled: true, color2: '#ABCDEF', type: 'radial', angle: -30 }),
-    ).toEqual({ enabled: true, color2: '#abcdef', type: 'radial', angle: 330 })
-    const prev = { enabled: true, color2: '#111111', type: 'radial', angle: 45 }
+    ).toEqual({
+      enabled: true,
+      color2: '#abcdef',
+      type: 'radial',
+      angle: 330,
+      audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
+    })
+    const prev = {
+      enabled: true,
+      color2: '#111111',
+      type: 'radial',
+      angle: 45,
+      audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
+    }
     expect(normalizeSlideshowGradient({ type: 'spiral', color2: 'x', angle: 'y' }, prev)).toEqual(
       prev,
     )
@@ -71,7 +83,13 @@ describe('slideshowBaseColor – Farbverlauf', () => {
   })
 
   it('getrennt gespeichert; Standard entfernt den Eintrag; defekter Wert → Standard', () => {
-    const g = { enabled: true, color2: '#ff0000', type: 'linear', angle: 10 }
+    const g = {
+      enabled: true,
+      color2: '#ff0000',
+      type: 'linear',
+      angle: 10,
+      audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
+    }
     storeSlideshowGradient(g, 'workspace')
     expect(loadStoredSlideshowGradient('workspace')).toEqual(g)
     expect(loadStoredSlideshowGradient('canvas')).toEqual({ ...SLIDESHOW_GRADIENT_DEFAULT })
@@ -79,5 +97,23 @@ describe('slideshowBaseColor – Farbverlauf', () => {
     expect(localStorage.getItem('visualizer-slideshow-workspace-gradient')).toBeNull()
     localStorage.setItem('visualizer-slideshow-base-gradient', '{kaputt')
     expect(loadStoredSlideshowGradient('canvas')).toEqual({ ...SLIDESHOW_GRADIENT_DEFAULT })
+  })
+})
+
+describe('slideshowBaseColor – Audio-Reaktiv', () => {
+  it('normalisiert Audio-Einstellung, Standard aus', () => {
+    expect(
+      normalizeSlideshowGradient({
+        audio: { enabled: true, source: 'x', pulse: 150, rotation: -3 },
+      }).audio,
+    ).toEqual({
+      enabled: true,
+      source: 'bass',
+      pulse: 100,
+      rotation: 0,
+    })
+    expect(isSameSlideshowGradient({ audio: { enabled: true } }, SLIDESHOW_GRADIENT_DEFAULT)).toBe(
+      false,
+    )
   })
 })

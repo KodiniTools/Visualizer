@@ -48,6 +48,66 @@
         />
         <span class="angle-value">{{ gradient.angle }}°</span>
       </label>
+
+      <!-- Audio-Reaktiv: Puls + Rotation/Kreisen im Takt -->
+      <label class="checkbox-label audio-toggle">
+        <input
+          :checked="gradient.audio.enabled"
+          :class="`${prefix}-gradient-audio-toggle`"
+          type="checkbox"
+          :disabled="disabled"
+          @change="updateAudio({ enabled: $event.target.checked })"
+        />
+        <span>{{ t('slideshow.gradientAudio') }}</span>
+      </label>
+      <template v-if="gradient.audio.enabled">
+        <label class="base-gradient-field">
+          <span>{{ t('slideshow.gradientAudioSource') }}</span>
+          <select
+            :value="gradient.audio.source"
+            :class="`${prefix}-gradient-audio-source`"
+            :disabled="disabled"
+            @change="updateAudio({ source: $event.target.value })"
+          >
+            <option v-for="src in audioSources" :key="src" :value="src">
+              {{ t(`slideshow.gradientAudioSources.${src}`) }}
+            </option>
+          </select>
+        </label>
+        <label class="base-gradient-field angle">
+          <span>{{ t('slideshow.gradientAudioPulse') }}</span>
+          <input
+            :value="gradient.audio.pulse"
+            :class="`${prefix}-gradient-audio-pulse`"
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            :disabled="disabled"
+            @input="updateAudio({ pulse: Number($event.target.value) })"
+          />
+          <span class="angle-value">{{ gradient.audio.pulse }} %</span>
+        </label>
+        <label class="base-gradient-field angle">
+          <span>{{
+            gradient.type === 'radial'
+              ? t('slideshow.gradientAudioOrbit')
+              : t('slideshow.gradientAudioRotation')
+          }}</span>
+          <input
+            :value="gradient.audio.rotation"
+            :class="`${prefix}-gradient-audio-rotation`"
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            :disabled="disabled"
+            @input="updateAudio({ rotation: Number($event.target.value) })"
+          />
+          <span class="angle-value">{{ gradient.audio.rotation }} %</span>
+        </label>
+        <p class="hint audio-hint">{{ t('slideshow.gradientAudioHint') }}</p>
+      </template>
     </div>
   </div>
 </template>
@@ -59,6 +119,7 @@
  */
 import { useI18n } from '../../../lib/i18n.js'
 import { normalizeSlideshowGradient } from '../../../lib/slideshowBaseColor.js'
+import { SLIDESHOW_GRADIENT_AUDIO_SOURCES } from '../../../lib/slideshowGradientAudio.js'
 
 const gradient = defineModel({ type: Object, required: true })
 defineProps({
@@ -68,8 +129,14 @@ defineProps({
 })
 const { t } = useI18n()
 
+const audioSources = SLIDESHOW_GRADIENT_AUDIO_SOURCES
+
 function update(partial) {
   gradient.value = normalizeSlideshowGradient({ ...gradient.value, ...partial }, gradient.value)
+}
+
+function updateAudio(partial) {
+  update({ audio: { ...gradient.value.audio, ...partial } })
 }
 </script>
 
@@ -119,6 +186,13 @@ function update(partial) {
   color: #e0e0e0;
   border: 1px solid var(--border-color);
   border-radius: 4px;
+}
+.audio-toggle {
+  flex-basis: 100%;
+}
+.audio-hint {
+  flex-basis: 100%;
+  padding-left: 0;
 }
 .angle-value {
   min-width: 34px;

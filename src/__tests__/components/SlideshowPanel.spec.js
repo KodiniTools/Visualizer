@@ -304,13 +304,25 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.base-gradient-toggle').setValue(true)
     expect(w.emitted('base-gradient-change').at(-1)).toEqual([
       'canvas',
-      { enabled: true, color2: '#333333', type: 'linear', angle: 90 },
+      {
+        enabled: true,
+        color2: '#333333',
+        type: 'linear',
+        angle: 90,
+        audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
+      },
     ])
     await w.find('.base-gradient-color2').setValue('#ff8800')
     await w.find('.base-gradient-angle').setValue('45')
     await w.find('.base-gradient-type').setValue('radial')
     expect(w.find('.base-gradient-angle').exists()).toBe(false) // nur linear
-    const canvasGradient = { enabled: true, color2: '#ff8800', type: 'radial', angle: 45 }
+    const canvasGradient = {
+      enabled: true,
+      color2: '#ff8800',
+      type: 'radial',
+      angle: 45,
+      audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
+    }
     expect(w.emitted('base-gradient-change').at(-1)).toEqual(['canvas', canvasGradient])
     expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-gradient'))).toEqual(
       canvasGradient,
@@ -350,6 +362,25 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.bg-mode-workspace').element.checked).toBe(true)
     await w.find('.bg-mode-canvas').setValue(true)
     expect(w.find('.base-gradient-type').element.value).toBe('radial')
+  })
+
+  it('gradient audio-reactive: toggle, source, strengths reach the slideshow', async () => {
+    const w = mountPanel({ hasWorkspace: false })
+    await w.find('.bg-mode-canvas').setValue(true)
+    await w.find('.base-gradient-toggle').setValue(true)
+    expect(w.find('.base-gradient-audio-source').exists()).toBe(false)
+    await w.find('.base-gradient-audio-toggle').setValue(true)
+    await w.find('.base-gradient-audio-source').setValue('treble')
+    await w.find('.base-gradient-audio-pulse').setValue('40')
+    await w.find('.base-gradient-audio-rotation').setValue('0')
+    const last = w.emitted('base-gradient-change').at(-1)
+    expect(last[0]).toBe('canvas')
+    expect(last[1].audio).toEqual({ enabled: true, source: 'treble', pulse: 40, rotation: 0 })
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-base-gradient')).audio.source,
+    ).toBe('treble')
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0].backgroundGradient.audio.pulse).toBe(40)
   })
 
   it('emits reset-image-adjustments from the reset button', async () => {

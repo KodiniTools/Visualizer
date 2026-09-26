@@ -250,9 +250,9 @@ export class SlideshowManager {
    * @returns {{ enabled:boolean, color2:string, type:string, angle:number }} (Kopie)
    */
   getBaseGradient(target) {
-    return {
-      ...(target === 'workspace' ? this.config.workspaceGradient : this.config.backgroundGradient),
-    }
+    const g =
+      target === 'workspace' ? this.config.workspaceGradient : this.config.backgroundGradient
+    return { ...g, audio: { ...g.audio } }
   }
 
   /**

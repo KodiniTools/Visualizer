@@ -50,6 +50,9 @@
         >
       </div>
       <p class="multiselect-hint">{{ t('foto.multiselectHint') }}</p>
+      <p v-if="selectedImageCount === 1 && imageGallery.length > 1" class="slideshow-select-hint">
+        {{ t('foto.slideshowSelectHint') }}
+      </p>
       <p class="drag-hint">{{ t('foto.dragToCanvasHint') }}</p>
 
       <div class="gallery-scroll">
@@ -65,8 +68,16 @@
             @dragstart="$emit('image-dragstart', { imgData, event: $event })"
             @dragend="$emit('image-dragend')"
           >
-            <!-- Checkbox für Mehrfachauswahl -->
-            <div class="selection-checkbox" :class="{ checked: selectedImageIndices.has(index) }">
+            <!-- Checkbox für Mehrfachauswahl: schaltet additiv um (wie Strg+Klick) -->
+            <div
+              class="selection-checkbox"
+              :class="{ checked: selectedImageIndices.has(index) }"
+              role="checkbox"
+              :aria-checked="selectedImageIndices.has(index)"
+              :aria-label="imgData.name"
+              @click.stop="$emit('select-image', index, { ctrlKey: true })"
+              @dblclick.stop
+            >
               <span v-if="selectedImageIndices.has(index)">✓</span>
             </div>
             <img :src="imgData.img.src" :alt="imgData.name" draggable="false" />
@@ -509,6 +520,17 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 }
 
 /* Selection Checkbox */
+.slideshow-select-hint {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--image-section-accent, #6ea8fe);
+}
+/* Größere Klickfläche für die Checkbox, ohne das Aussehen zu ändern */
+.selection-checkbox::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
 .selection-checkbox {
   position: absolute;
   top: 6px;
@@ -522,6 +544,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   align-items: center;
   justify-content: center;
   z-index: 10;
+  cursor: pointer;
   transition: all 0.2s ease;
   font-size: 12px;
   color: white;

@@ -1275,7 +1275,9 @@ export default {
     selectAll: 'Alle auswählen',
     deselectAll: 'Auswahl aufheben',
     selected: 'ausgewählt',
-    multiselectHint: 'Tipp: Strg+Klick für Mehrfachauswahl, Shift+Klick für Bereich',
+    multiselectHint: 'Tipp: Checkbox oder Strg+Klick für Mehrfachauswahl, Shift+Klick für Bereich',
+    slideshowSelectHint:
+      'Für die Slideshow mindestens 2 Bilder auswählen – einfach die Checkboxen anklicken.',
     dragToCanvasHint: 'Bild einfach auf den Canvas ziehen',
     placeOnCanvas: 'Auf Canvas platzieren',
     imagesOnCanvas: '{count} Bilder auf Canvas',

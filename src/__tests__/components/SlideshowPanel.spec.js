@@ -950,6 +950,35 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.emitted('background-mode-change').at(-1)).toEqual(['none'])
   })
 
+  it('workspace mode: image editor source goes live and stays in the list', async () => {
+    const w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    await w.setProps({ isActive: true, isPaused: true })
+    await w.setProps({ editImageRequest: { index: 0, nonce: 7 } })
+    const editor = w.find('.image-editor')
+    expect(editor.text()).toContain('Eins')
+    const source = editor.find('.editor-audio-source')
+    expect(source.findAll('option')).toHaveLength(10)
+    await editor.find('.editor-audio').setValue('pulse')
+    await source.setValue('trebleOnset')
+
+    const live = w.emitted('live-update').at(-1)[0]
+    expect(live.preserveLive).toBe(true)
+    expect(live.backgroundMode).toBe('workspace')
+    expect(live.fitToWorkspace).toBe(true)
+    expect(live.images.map((i) => [i.audioMode, i.audioSource])).toEqual([
+      ['pulse', 'trebleOnset'],
+      ['default', null],
+    ])
+
+    // Editor schließt beim Fortsetzen; nach dem Stoppen zeigt die Liste die Quelle
+    await w.setProps({ isPaused: false })
+    expect(w.find('.image-editor').exists()).toBe(false)
+    await w.setProps({ isActive: false })
+    expect(w.findAll('.order-audio-source')[0].element.value).toBe('trebleOnset')
+    expect(w.findAll('.order-audio-source')[1].element.value).toBe('')
+  })
+
   it('editor request is ignored while running', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: false, editImageRequest: { index: 0, nonce: 2 } })

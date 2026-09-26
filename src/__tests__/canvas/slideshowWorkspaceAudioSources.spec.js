@@ -205,3 +205,81 @@ describe('Workspace-Modus – eigene Quelle pro Slideshow-Bild', () => {
     m.stop()
   })
 })
+
+describe('Workspace-Modus – Quelle aus dem Bild-Editor (pausiert, live)', () => {
+  function startedWorkspaceShow() {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.stubGlobal('requestAnimationFrame', () => 1)
+    vi.stubGlobal('cancelAnimationFrame', () => {})
+    const mim = new MultiImageManager({ width: 1000, height: 1000 })
+    mim.fotoManager = new FotoManager(() => {})
+    const m = new SlideshowManager(mim, mim.fotoManager, {
+      getWorkspaceBounds: () => ({ x: 100, y: 0, width: 400, height: 1000 }),
+    })
+    const imageObject = { width: 100, height: 100 }
+    const build = (sources) =>
+      sources.map((audioSource) => ({
+        imageObject,
+        audioMode: 'pulse',
+        audioSource,
+        audioReactiveSettings: resolveSlideshowAudioReactive('pulse', {
+          applyGlobal: false,
+          savedSettings: null,
+          source: audioSource,
+        }),
+      }))
+    m.start(build([null, null]), { backgroundMode: 'workspace' })
+    m.pause()
+    return { m, mim, build }
+  }
+
+  it('neue Quelle gilt sofort für das angezeigte Bild; Workspace-Modus bleibt', () => {
+    const { m, mim, build } = startedWorkspaceShow()
+    const shown = m.activeImages[0]
+    const presetSource = shown.fotoSettings.audioReactive.source
+    expect(presetSource).not.toBe('bassOnset')
+
+    // wie SlideshowPanel.updateEditedImage → live-update (preserveLive)
+    expect(
+      m.applyLiveUpdate(build(['bassOnset', null]), {
+        preserveLive: true,
+        backgroundMode: 'workspace',
+      }),
+    ).toBe(true)
+    expect(m.activeImages[0]).toBe(shown) // kein Neustart
+    expect(m.isPaused).toBe(true)
+    expect(m.config.backgroundMode).toBe('workspace')
+    expect(shown.slideshow.clipRect).toEqual({ relX: 0.1, relY: 0, relWidth: 0.4, relHeight: 1 })
+    expect(shown.fotoSettings.audioReactive.source).toBe('bassOnset')
+    expect(m.config.images[1].audioSource).toBeNull()
+
+    // reagiert jetzt auf Bass-Onset, nicht mehr auf andere Quellen
+    const scaleFor = (data) => {
+      window.audioAnalysisData = { ...SILENT, ...data }
+      return mim.getAudioReactiveValues(
+        JSON.parse(JSON.stringify(shown.fotoSettings.audioReactive)),
+      ).effects.scale.scale
+    }
+    expect(scaleFor({ onsetBass: 1 })).toBeGreaterThan(1)
+    expect(scaleFor({ onsetTreble: 1, onsetAll: 1 })).toBe(1)
+
+    // „Wie Einstellung“: zurück zur Quelle des Presets
+    m.applyLiveUpdate(build([null, null]), { preserveLive: true, backgroundMode: 'workspace' })
+    expect(shown.fotoSettings.audioReactive.source).toBe(presetSource)
+    m.stop()
+  })
+
+  it('beim nächsten Einblenden (nächster Durchlauf) behält das Bild die Quelle', () => {
+    const { m, build } = startedWorkspaceShow()
+    m.applyLiveUpdate(build(['allOnset', 'midOnset']), {
+      preserveLive: true,
+      backgroundMode: 'workspace',
+    })
+    m.resume()
+    // Bild 2 wird neu hinzugefügt → erhält seine eigene Quelle
+    const second = m._addNextImage()
+    expect(second.fotoSettings.audioReactive.source).toBe('midOnset')
+    expect(second.slideshow.clipRect).toEqual({ relX: 0.1, relY: 0, relWidth: 0.4, relHeight: 1 })
+    m.stop()
+  })
+})

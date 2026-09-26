@@ -1,0 +1,31 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`FotoPanel – Slideshow > Start baut Bilder + Optionen und aktualisiert den Zustand 1`] = `
+{
+  "audioReactiveSettings": null,
+  "autoApplyAudioReactive": true,
+  "backgroundColor": undefined,
+  "backgroundFillAudio": undefined,
+  "backgroundGradient": undefined,
+  "backgroundImageFill": undefined,
+  "backgroundImageObject": undefined,
+  "backgroundMode": "none",
+  "displayDuration": 3000,
+  "fadeInDuration": 100,
+  "fadeOutDuration": 200,
+  "fitToWorkspace": undefined,
+  "loop": true,
+  "moveWholeSlideshow": undefined,
+  "preserveLive": false,
+  "renderBehindVisualizer": true,
+  "transform": {
+    "relX": 0.1,
+  },
+  "transition": undefined,
+  "workspaceColor": undefined,
+  "workspaceFillAudio": undefined,
+  "workspaceGradient": undefined,
+  "workspaceImageFill": undefined,
+  "workspaceImageObject": undefined,
+}
+`;

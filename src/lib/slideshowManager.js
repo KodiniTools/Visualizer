@@ -722,6 +722,8 @@ export class SlideshowManager {
         duration: 0,
         isSlideshowImage: true,
         slideshow,
+        // Eingeblendete Bilder nicht auswählen – Markierungen nur nach Klick
+        select: false,
       },
     )
 

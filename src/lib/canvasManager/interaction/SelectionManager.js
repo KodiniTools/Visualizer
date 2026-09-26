@@ -22,6 +22,45 @@ export class SelectionManager {
   /**
    * Setzt das aktive Objekt
    */
+  /**
+   * Liegt ein Bild-Objekt noch auf dem Canvas? (Vergleich per ID – robust
+   * gegenüber reaktiven Proxys). Andere Objekt-Typen gelten als vorhanden.
+   */
+  isObjectOnCanvas(obj) {
+    if (!obj || obj.type !== 'image') return true
+    const images = this.manager.multiImageManager?.images
+    if (!Array.isArray(images)) return true
+    return images.some((img) => img.id === obj.id)
+  }
+
+  /**
+   * Entfernt Verweise auf Bilder, die nicht mehr auf dem Canvas liegen (z. B.
+   * ausgeblendete Slideshow-Bilder), aus aktiver, Hover- und Mehrfachauswahl –
+   * sonst bleiben ihre Markierungen an der alten Stelle stehen.
+   * @returns {boolean} true, wenn etwas entfernt wurde
+   */
+  pruneRemovedObjects() {
+    const m = this.manager
+    let changed = false
+    if (m.activeObject && !this.isObjectOnCanvas(m.activeObject)) {
+      m.activeObject = null
+      m._cachedBounds = null
+      changed = true
+    }
+    if (m.hoveredObject && !this.isObjectOnCanvas(m.hoveredObject)) {
+      m.hoveredObject = null
+      changed = true
+    }
+    if (m.selectedObjects?.length) {
+      const kept = m.selectedObjects.filter((obj) => this.isObjectOnCanvas(obj))
+      if (kept.length !== m.selectedObjects.length) {
+        m.selectedObjects = kept
+        changed = true
+      }
+    }
+    return changed
+  }
+
   setActiveObject(obj) {
     const previousActive = this.manager.activeObject
     this.manager.activeObject = obj

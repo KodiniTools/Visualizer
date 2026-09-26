@@ -21,6 +21,8 @@ export class UIRenderer {
    */
   drawInteractiveElements(ctx) {
     if (this.manager.isEditingText) return
+    // Keine Markierungen für inzwischen entfernte Bilder (z. B. Slideshow-Wechsel)
+    this.manager.selectionManager?.pruneRemovedObjects?.()
 
     // Draw dashed frames for all multi-selected objects (except activeObject)
     if (this.manager.selectedObjects && this.manager.selectedObjects.length > 0) {

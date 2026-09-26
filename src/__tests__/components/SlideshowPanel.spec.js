@@ -1145,6 +1145,63 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.base-gradient-audio-source').element.value).toBe('bassOnset')
   })
 
+  it('workspace mode: gradient audio source (incl. onset) – live, preset, memory, canvas untouched', async () => {
+    const w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    await w.find('.workspace-gradient-toggle').setValue(true)
+    await w.find('.workspace-gradient-type').setValue('linear')
+    await w.find('.workspace-gradient-audio-toggle').setValue(true)
+    const source = w.find('.workspace-gradient-audio-source')
+    expect(source.findAll('option')).toHaveLength(9)
+    expect(source.findAll('optgroup option').map((o) => o.element.value)).toEqual([
+      'bassOnset',
+      'midOnset',
+      'trebleOnset',
+      'allOnset',
+    ])
+    // linear: Regler heißt „Rotation“; Canvas-Felder ausgeblendet
+    expect(w.text()).toContain('Rotation')
+    expect(w.find('.base-gradient-audio-source').exists()).toBe(false)
+
+    await source.setValue('trebleOnset')
+    expect(w.emitted('base-gradient-change').at(-1)).toEqual([
+      'workspace',
+      expect.objectContaining({
+        type: 'linear',
+        audio: expect.objectContaining({ enabled: true, source: 'trebleOnset' }),
+      }),
+    ])
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-workspace-gradient')).audio.source,
+    ).toBe('trebleOnset')
+    expect(localStorage.getItem('visualizer-slideshow-base-gradient')).toBeNull()
+
+    await w.setProps({ isActive: true })
+    await w.find('.workspace-gradient-audio-source').setValue('dynamic')
+    expect(w.emitted('base-gradient-change').at(-1)[1].audio.source).toBe('dynamic')
+    await w.setProps({ isActive: false })
+
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start').at(-1)[0]
+    expect(payload.backgroundMode).toBe('workspace')
+    expect(payload.workspaceGradient.audio.source).toBe('dynamic')
+    expect(payload.backgroundGradient.audio.enabled).toBe(false)
+
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings.workspaceGradient
+        .audio.source,
+    ).toBe('dynamic')
+    await w.find('.workspace-gradient-audio-source').setValue('bass')
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.find('.workspace-gradient-audio-source').element.value).toBe('dynamic')
+
+    await w.setProps({ hasWorkspace: false })
+    expect(w.find('.workspace-gradient-audio-source').element.disabled).toBe(true)
+  })
+
   it('editor request is ignored while running', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: false, editImageRequest: { index: 0, nonce: 2 } })

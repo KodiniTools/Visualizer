@@ -418,7 +418,8 @@ function onDragEnd() {
   gap: 6px;
 }
 .order-transition,
-.order-audio {
+.order-audio,
+.order-audio-source {
   flex: 1;
   min-width: 0;
   padding: 3px 4px;
@@ -427,6 +428,11 @@ function onDragEnd() {
   color: #e0e0e0;
   border: 1px solid var(--border-color);
   border-radius: 4px;
+}
+/* Quelle gesperrt (Audio „Aus“) */
+.order-audio-source:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 .order-stock-badge {
   display: inline-block;
@@ -494,6 +500,7 @@ function onDragEnd() {
 }
 [data-theme='light'] .order-transition,
 [data-theme='light'] .order-audio,
+[data-theme='light'] .order-audio-source,
 [data-theme='light'] .order-duration {
   background: #f9f2d5;
   color: #003971;

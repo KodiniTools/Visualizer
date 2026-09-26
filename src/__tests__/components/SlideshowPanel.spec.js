@@ -562,7 +562,9 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
   it('move-whole checkbox emits mode change; external transform updates sliders', async () => {
     const w = mountPanel()
-    expect(w.find('.move-whole-hint').text()).toContain('Shift')
+    // Hinweis nur noch als Tooltip am Kontrollkästchen
+    expect(w.find('.move-whole-hint').exists()).toBe(false)
+    expect(w.find('.move-whole-checkbox').element.closest('label').title).toContain('Shift')
     await w.find('.move-whole-checkbox').setValue(true)
     expect(w.emitted('move-mode-change').at(-1)).toEqual([true])
     await w.setProps({
@@ -840,7 +842,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it('paused: click request opens the image editor; edits go live and close on resume', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: true })
-    expect(w.find('.paused-edit-hint').exists()).toBe(true)
+    expect(w.find('.paused-edit-hint').exists()).toBe(false) // keine Erklärtexte mehr
     await w.setProps({ editImageRequest: { index: 1, nonce: 1 } })
     const editor = w.find('.image-editor')
     expect(editor.exists()).toBe(true)
@@ -1392,6 +1394,46 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       expect(again[imageKey].audio.source).toBe('dynamic')
     },
   )
+
+  it('no explanatory hint texts – only status/warning messages remain', async () => {
+    // erlaubte Meldungen: Warnungen, leere Listen, fehlende Bilder
+    const texts = (w) =>
+      w
+        .findAll('.hint')
+        .filter((h) => !h.classes('warning') && !h.classes('empty'))
+        .map((h) => h.text())
+    const allowed = ['Keine Bilder vorhanden']
+    const onlyAllowed = (w) =>
+      expect(texts(w).filter((t) => !allowed.some((a) => t.startsWith(a)))).toEqual([])
+
+    const w = mountPanel({ hasWorkspace: false })
+    onlyAllowed(w)
+    for (const mode of ['canvas', 'workspace', 'none']) {
+      if (mode === 'workspace') await w.setProps({ hasWorkspace: true })
+      await w.find(`.bg-mode-${mode}`).setValue(true)
+      if (mode !== 'none') {
+        const p = mode === 'workspace' ? 'workspace' : 'base'
+        await w.find(`.${p}-fill-audio-toggle`).setValue(true)
+        await w.find(`.${p}-gradient-toggle`).setValue(true)
+        await w.find(`.${p}-gradient-audio-toggle`).setValue(true)
+        await w.find(`.${p}-image-toggle`).setValue(true)
+        await w.find(`.${p}-image-audio-toggle`).setValue(true)
+        await w.find(`.${p}-image-choose`).trigger('click')
+      }
+      onlyAllowed(w)
+    }
+    await w.setProps({ isActive: true, isPaused: true })
+    onlyAllowed(w)
+    await w.setProps({ editImageRequest: { index: 0, nonce: 99 } })
+    expect(w.find('.image-editor').exists()).toBe(true)
+    onlyAllowed(w)
+
+    // Tooltip ersetzt den Hinweis „zuerst ein Workspace-Format wählen“
+    await w.setProps({ isActive: false, hasWorkspace: false })
+    expect(w.find('.bg-mode-workspace').element.closest('label').title).toContain(
+      'Workspace-Format',
+    )
+  })
 
   it('editor request is ignored while running', async () => {
     const w = mountPanel()

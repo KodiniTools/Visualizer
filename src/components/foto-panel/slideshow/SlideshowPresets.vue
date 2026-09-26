@@ -2,7 +2,6 @@
   <!-- Slideshow-Presets: Speichern / Laden / Löschen -->
   <div class="presets-section">
     <label class="section-label">{{ t('slideshow.presets') }}</label>
-    <p class="hint">{{ t('slideshow.presetHint') }}</p>
 
     <div class="preset-save-row">
       <input

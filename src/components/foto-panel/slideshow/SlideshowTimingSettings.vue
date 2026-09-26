@@ -3,7 +3,6 @@
     <!-- Timing-Einstellungen -->
     <div class="timing-section">
       <label class="section-label">{{ t('slideshow.timing') }}</label>
-      <p class="hint timing-hint">{{ t('slideshow.timingHint') }}</p>
 
       <div class="transition-control">
         <label for="slideshow-transition">{{ t('slideshow.defaultTransitionLabel') }}</label>
@@ -63,9 +62,6 @@
         <input v-model="applyAudioReactive" type="checkbox" />
         <span>{{ t('slideshow.applyAudioReactive') }}</span>
       </label>
-      <p v-if="applyAudioReactive && hasSavedSettings" class="hint">
-        {{ t('slideshow.audioReactiveHint') }}
-      </p>
       <p v-if="applyAudioReactive && !hasSavedSettings" class="hint warning">
         {{ t('slideshow.noSavedSettings') }}
       </p>
@@ -105,10 +101,6 @@ const { t } = useI18n()
 
 <style scoped src="./slideshow-shared.css"></style>
 <style scoped>
-.timing-hint {
-  padding-left: 0;
-  margin-top: -6px;
-}
 .transition-control {
   display: flex;
   flex-direction: column;

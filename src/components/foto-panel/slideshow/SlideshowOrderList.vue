@@ -2,7 +2,6 @@
   <!-- Reihenfolge der Bilder per Drag & Drop -->
   <div class="order-section">
     <label class="section-label">{{ t('slideshow.order') }}</label>
-    <p class="hint">{{ t('slideshow.perImageHint') }}</p>
     <div class="image-order-list">
       <div
         v-for="(img, index) in orderedImages"

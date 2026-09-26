@@ -62,7 +62,6 @@
           <img :src="c.thumb" alt="" loading="lazy" />
           <span class="option-source">{{ c.source === 'stock' ? '🗂' : '⬆' }}</span>
         </button>
-        <p class="hint picker-hint">{{ t('slideshow.imageFillPickerHint') }}</p>
       </div>
 
       <label class="image-fill-field">
@@ -113,7 +112,6 @@
           />
           <span class="value">{{ fill.audio[fx.id] }} %</span>
         </label>
-        <p class="hint audio-hint">{{ t('slideshow.imageFillAudioHint') }}</p>
       </template>
     </div>
   </div>
@@ -259,10 +257,6 @@ function updateAudio(partial) {
   bottom: 0;
   font-size: 9px;
 }
-.picker-hint {
-  grid-column: 1 / -1;
-  padding-left: 0;
-}
 .image-fill-field {
   display: inline-flex;
   align-items: center;
@@ -286,12 +280,8 @@ function updateAudio(partial) {
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
-.audio-toggle,
-.audio-hint {
+.audio-toggle {
   flex-basis: 100%;
-}
-.audio-hint {
-  padding-left: 0;
 }
 .value {
   min-width: 34px;

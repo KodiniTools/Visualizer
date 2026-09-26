@@ -102,7 +102,6 @@
           />
           <span class="angle-value">{{ gradient.audio.rotation }} %</span>
         </label>
-        <p class="hint audio-hint">{{ t('slideshow.gradientAudioHint') }}</p>
       </template>
     </div>
   </div>
@@ -183,10 +182,6 @@ function updateAudio(partial) {
 }
 .audio-toggle {
   flex-basis: 100%;
-}
-.audio-hint {
-  flex-basis: 100%;
-  padding-left: 0;
 }
 .angle-value {
   min-width: 34px;

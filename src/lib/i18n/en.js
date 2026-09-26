@@ -1407,7 +1407,6 @@ export default {
     display: 'Display Duration',
     fadeOut: 'Fade out (duration)',
     applyAudioReactive: 'Apply Audio-Reactive Effects',
-    audioReactiveHint: 'Saved audio settings will be applied to all images',
     noSavedSettings: 'No audio settings saved. Save settings in the Audio-Reactive panel first.',
     loop: 'Loop Forever',
     start: 'Start Slideshow',
@@ -1425,8 +1424,6 @@ export default {
     width: 'Width',
     height: 'Height',
     resetPosition: 'Reset position',
-    perImageHint:
-      'Per image: transition, fade in/out duration, display duration and audio reaction. Empty or “Default” = “Default for all images” (below). Blue outline = own value.',
     perImageDurationHint: 'Custom display duration in seconds',
     perImageAudioHint: 'Audio reaction for this image',
     audioModeDefault: 'Default',
@@ -1438,17 +1435,11 @@ export default {
     loadPreset: 'Load',
     deletePreset: 'Delete',
     noPresets: 'No slideshow presets saved yet.',
-    presetHint:
-      'Saves timing, options (incl. mouse mode), position/size and, per image position, display duration, audio reaction, image adjustments and own size/position. The images (uploaded and stock) are saved permanently in the browser. Loading also works while the slideshow runs.',
     presetSaved: 'Slideshow preset saved',
     presetLoaded: 'Slideshow preset loaded',
     presetSaveError: 'Slideshow preset could not be saved',
     fitToWorkspace: 'Fit to workspace (like workspace background)',
-    fitToWorkspaceHint:
-      'Images fill the workspace area, follow the selected format and lie beneath the other images. Position & size are fixed.',
     fitToWorkspaceNoWorkspace: 'Select a workspace format first (e.g. TikTok 9:16).',
-    adjustmentsKeptHint:
-      'Filters, audio settings and size/position changed on images during the slideshow are kept – even after stopping, restarting and reloading the page (saved permanently in the browser). Images with their own size ignore the shared area (position & size).',
     resetAdjustments: 'Reset image adjustments',
     adjustmentsReset: 'Slideshow image adjustments reset',
     moveWhole: 'Mouse moves the whole slideshow',
@@ -1493,9 +1484,6 @@ export default {
     fieldAudioSource: 'Source',
     perImageAudioSource: 'Audio source of this image',
     audioSourceInherit: 'As configured',
-    imageSettingsHint: 'Changes apply immediately and are kept for this image.',
-    pausedEditHint: 'Paused: click an image in the “Images on canvas” bar to open its settings.',
-    timingHint: 'Applies to all images without their own value in the list above.',
     defaultTransitionLabel: 'Default transition',
     fieldTransition: 'Transition',
     fieldFadeIn: 'In',
@@ -1508,8 +1496,6 @@ export default {
     backgroundModeNone: 'Off',
     backgroundModeCanvas: 'Canvas',
     backgroundModeWorkspace: 'Workspace',
-    backgroundModeCanvasHint:
-      'Images fill the whole canvas and lie beneath the other images. Position & size are fixed.',
     baseColor: 'Area beneath',
     baseColorHint:
       'Colour shown instead of the replaced background image – visible during transitions and next to images with a different aspect ratio.',
@@ -1527,13 +1513,9 @@ export default {
     gradientAudioPulse: 'Pulse',
     gradientAudioRotation: 'Rotation',
     gradientAudioOrbit: 'Orbit',
-    gradientAudioHint:
-      'Without music the gradient stays as set; to the beat it contracts and turns (radial: the centre orbits).',
     fillAudio: 'Audio-reactive colour',
     fillAudioBrightness: 'Brighten',
     fillAudioHue: 'Hue',
-    fillAudioHint:
-      'Without music the colour stays as set; to the beat the area brightens or shifts its hue (with a gradient: both colours).',
     imageFill: 'Own image as area',
     imageFillChoose: 'Choose image',
     imageFillRemove: 'Remove',
@@ -1541,21 +1523,16 @@ export default {
     imageFillLoading: 'Loading image …',
     imageFillNoImages:
       'No images available – upload images to the gallery or open a stock category.',
-    imageFillPickerHint:
-      'Uploaded images (⬆) and the open stock category (🗂). The image is stored permanently.',
     imageFillFit: 'Display',
     imageFillCover: 'Fill',
     imageFillContain: 'Fit',
     imageFillAudio: 'Audio-reactive image',
     imageFillZoom: 'Pulse zoom',
-    imageFillAudioHint:
-      'Without music the image stays as set; to the beat it brightens, shifts its hue and pulses.',
     imageFillMissing: 'Area image not found',
     imageFillError: 'Image could not be used as area',
     baseColorReset: 'Default (black, no gradient or audio)',
     backgroundModeWorkspaceNeedsFormat:
       'Workspace background: select a workspace format first (e.g. TikTok 9:16).',
-    dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.',
   },
 
   // ========== BACKGROUND TILES PANEL ==========

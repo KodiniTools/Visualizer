@@ -168,6 +168,16 @@ describe('slideshowPresetStore', () => {
       normalizeSlideshowPreset({ id: 2, settings: { fitToWorkspace: true }, slots: [] }).settings
         .backgroundMode,
     ).toBe('workspace')
+    // Fläche unter der Slideshow: ältere/ungültige Werte → Schwarz
+    expect(p.settings.backgroundColor).toBe('#000000')
+    expect(
+      normalizeSlideshowPreset({ id: 3, settings: { backgroundColor: 'red' }, slots: [] }).settings
+        .backgroundColor,
+    ).toBe('#000000')
+    expect(
+      normalizeSlideshowPreset({ id: 4, settings: { backgroundColor: '#AABBCC' }, slots: [] })
+        .settings.backgroundColor,
+    ).toBe('#aabbcc')
     expect(p.settings.moveWholeSlideshow).toBe(false)
     expect(p.settings.transition).toBe('fade')
     expect(p.settings.transform.width).toBe(10)

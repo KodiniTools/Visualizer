@@ -4,6 +4,7 @@ import {
   isValidTransition,
   resolveTransition,
 } from './slideshowTransitions.js'
+import { SLIDESHOW_BASE_COLOR_DEFAULT, normalizeSlideshowBaseColor } from './slideshowBaseColor.js'
 
 /**
  * SlideshowManager - Orchestriert die Bild-Slideshow auf dem Canvas
@@ -62,6 +63,8 @@ export class SlideshowManager {
       // (Workspace-Bereich) – Bilder füllen den Bereich (Cover) und liegen unter
       // den übrigen Canvas-Bildern
       backgroundMode: 'none',
+      // Farbe der Fläche unter der Slideshow, wenn sie ein Hintergrundbild ersetzt
+      backgroundColor: SLIDESHOW_BASE_COLOR_DEFAULT,
     }
 
     // ✨ NEU: Slideshow Transform-Einstellungen (Position und Größe)
@@ -183,6 +186,20 @@ export class SlideshowManager {
       (target === 'canvas' || target === 'workspace') &&
       this.config.backgroundMode === target
     )
+  }
+
+  /**
+   * Farbe der Fläche unter der Slideshow (auch während laufender Slideshow).
+   * Ungültige Werte behalten die bisherige Farbe.
+   * @param {string} color - #rrggbb
+   */
+  setBackgroundColor(color) {
+    this.config.backgroundColor = normalizeSlideshowBaseColor(color, this.config.backgroundColor)
+  }
+
+  /** @returns {string} #rrggbb */
+  getBackgroundColor() {
+    return this.config.backgroundColor
   }
 
   /**
@@ -385,6 +402,10 @@ export class SlideshowManager {
         options.audioReactiveSettings ?? this.config.defaultAudioReactiveSettings,
       renderBehindVisualizer: options.renderBehindVisualizer ?? this.config.renderBehindVisualizer,
       backgroundMode: SlideshowManager.resolveBackgroundMode(options, this.config.backgroundMode),
+      backgroundColor: normalizeSlideshowBaseColor(
+        options.backgroundColor,
+        this.config.backgroundColor,
+      ),
       transition: isValidTransition(options.transition)
         ? options.transition
         : this.config.transition,
@@ -652,6 +673,7 @@ export class SlideshowManager {
     if (options.backgroundMode !== undefined || options.fitToWorkspace !== undefined) {
       this.setBackgroundMode(SlideshowManager.resolveBackgroundMode(options, 'none'))
     }
+    if (options.backgroundColor !== undefined) this.setBackgroundColor(options.backgroundColor)
     if (options.moveWholeSlideshow !== undefined) {
       this.setMoveWholeSlideshow(options.moveWholeSlideshow)
     }
@@ -1171,6 +1193,7 @@ export class SlideshowManager {
       config: { ...this.config, images: undefined }, // Ohne Bild-Daten
       transform: this.getTransform(),
       backgroundMode: this.config.backgroundMode,
+      backgroundColor: this.config.backgroundColor,
       fitToWorkspace: this.config.backgroundMode === 'workspace',
       renderBehindVisualizer: this.config.renderBehindVisualizer,
     }

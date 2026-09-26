@@ -1507,6 +1507,10 @@ export default {
     backgroundModeWorkspace: 'Workspace',
     backgroundModeCanvasHint:
       'Images fill the whole canvas and lie beneath the other images. Position & size are fixed.',
+    baseColor: 'Area beneath',
+    baseColorHint:
+      'Colour shown instead of the replaced background image – visible during transitions and next to images with a different aspect ratio.',
+    baseColorReset: 'Default colour (black)',
     backgroundModeWorkspaceNeedsFormat:
       'Workspace background: select a workspace format first (e.g. TikTok 9:16).',
     dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.',

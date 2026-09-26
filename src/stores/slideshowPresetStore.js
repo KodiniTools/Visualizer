@@ -4,6 +4,10 @@ import { SLIDESHOW_AUDIO_DEFAULT, isValidSlideshowAudioMode } from '../lib/slide
 import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig.js'
 import { SLIDESHOW_TRANSITION_DEFAULT, isValidTransition } from '../lib/slideshowTransitions.js'
 import {
+  SLIDESHOW_BASE_COLOR_DEFAULT,
+  normalizeSlideshowBaseColor,
+} from '../lib/slideshowBaseColor.js'
+import {
   pruneImages,
   getImageStorageStats,
   getStorageEstimate,
@@ -34,6 +38,8 @@ export const SLIDESHOW_DEFAULT_SETTINGS = Object.freeze({
   renderBehindVisualizer: false,
   fitToWorkspace: false,
   backgroundMode: 'none',
+  // Fläche unter der Slideshow, wenn sie ein Hintergrundbild ersetzt
+  backgroundColor: SLIDESHOW_BASE_COLOR_DEFAULT,
   moveWholeSlideshow: false,
   transition: SLIDESHOW_TRANSITION_DEFAULT,
   transform: Object.freeze({ x: 10, y: 10, width: 80, height: 80 }),
@@ -207,6 +213,8 @@ export function normalizeSlideshowPreset(raw) {
         : s.fitToWorkspace === true
           ? 'workspace'
           : d.backgroundMode,
+      // Farbe der Fläche unter der Slideshow (ältere Presets: Schwarz)
+      backgroundColor: normalizeSlideshowBaseColor(s.backgroundColor, d.backgroundColor),
       // Maus verschiebt ganze Slideshow (ältere Presets: aus)
       moveWholeSlideshow:
         typeof s.moveWholeSlideshow === 'boolean' ? s.moveWholeSlideshow : d.moveWholeSlideshow,

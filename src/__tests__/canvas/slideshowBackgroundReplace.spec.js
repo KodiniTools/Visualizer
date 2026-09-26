@@ -114,6 +114,28 @@ describe('Neues Slideshow-Bild ohne Aufblitzen', () => {
   })
 })
 
+describe('SlideshowManager – Farbe der Fläche', () => {
+  it('Standard Schwarz, gültige Farbe übernehmen, ungültige ignorieren; start/live', () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.stubGlobal('requestAnimationFrame', () => 1)
+    vi.stubGlobal('cancelAnimationFrame', () => {})
+    const mim = new MultiImageManager({ width: 1000, height: 1000 })
+    mim.fotoManager = new FotoManager(() => {})
+    const m = new SlideshowManager(mim, mim.fotoManager)
+    expect(m.getBackgroundColor()).toBe('#000000')
+    m.setBackgroundColor('#ABCDEF')
+    expect(m.getBackgroundColor()).toBe('#abcdef')
+    m.setBackgroundColor('url(javascript:x)')
+    expect(m.getBackgroundColor()).toBe('#abcdef')
+    const imgs = [{ imageObject: { width: 10, height: 10 } }]
+    m.start(imgs, { backgroundColor: '#112233' })
+    expect(m.getBackgroundColor()).toBe('#112233')
+    m.applyLiveUpdate(imgs, { backgroundColor: '#445566' })
+    expect(m.getBackgroundColor()).toBe('#445566')
+    m.stop()
+  })
+})
+
 describe('Slideshow ersetzt den Hintergrund', () => {
   function rendererSetup() {
     const drawn = []
@@ -146,7 +168,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     const m = Object.create(SlideshowManager.prototype)
     m.isActive = active
     m.activeImages = new Array(images).fill({})
-    m.config = { backgroundMode: mode }
+    m.config = { backgroundMode: mode, backgroundColor: '#000000' }
     return m
   }
 
@@ -182,6 +204,37 @@ describe('Slideshow ersetzt den Hintergrund', () => {
       r.drawBackground(ctx)
       expect(drawn).toEqual(['image', 'video', 'workspaceImage', 'workspaceVideo'])
     }
+  })
+
+  it('Fläche nimmt die eingestellte Farbe an (Canvas ganz, Workspace im Bereich)', () => {
+    const canvasShow = slideshowWith('canvas')
+    canvasShow.setBackgroundColor('#336699')
+    window.slideshowManager = canvasShow
+    let setup = rendererSetup()
+    setup.r.drawBackground(setup.ctx)
+    expect(setup.fills).toEqual([['#336699', 0, 0, 10, 10]])
+
+    const wsShow = slideshowWith('workspace')
+    wsShow.setBackgroundColor('#ff0000')
+    window.slideshowManager = wsShow
+    setup = rendererSetup()
+    setup.manager.getWorkspaceBounds = () => ({ x: 2, y: 1, width: 4, height: 8 })
+    setup.r.drawBackground(setup.ctx)
+    expect(setup.drawn).toEqual(['image', 'video'])
+    expect(setup.fills).toEqual([['#ff0000', 2, 1, 4, 8]])
+  })
+
+  it('Canvas-Modus mit Farbhintergrund + Video: Video wird durch die Fläche ersetzt', () => {
+    const show = slideshowWith('canvas')
+    show.setBackgroundColor('#00ff00')
+    window.slideshowManager = show
+    const { r, ctx, drawn, fills, manager } = rendererSetup()
+    manager.background = '#123456'
+    r._drawColorBackground = vi.fn()
+    r.drawBackground(ctx)
+    expect(r._drawColorBackground).toHaveBeenCalled()
+    expect(drawn).not.toContain('video')
+    expect(fills).toEqual([['#00ff00', 0, 0, 10, 10]])
   })
 
   it('Farbhintergrund bleibt auch im Canvas-Modus erhalten', () => {

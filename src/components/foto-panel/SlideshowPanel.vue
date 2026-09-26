@@ -79,6 +79,30 @@
           <span>{{ t('slideshow.backgroundModeWorkspace') }}</span>
         </label>
       </div>
+      <!-- Farbe der Fläche unter der Slideshow (ersetzt das Hintergrundbild) -->
+      <label v-if="backgroundMode !== 'none'" class="base-color-label">
+        <span>{{ t('slideshow.baseColor') }}</span>
+        <input
+          v-model="backgroundColor"
+          class="slideshow-base-color"
+          type="color"
+          :title="t('slideshow.baseColorHint')"
+          @input="emit('background-color-change', backgroundColor)"
+        />
+        <button
+          v-if="backgroundColor !== D.backgroundColor"
+          type="button"
+          class="btn-reset-base-color"
+          :title="t('slideshow.baseColorReset')"
+          :aria-label="t('slideshow.baseColorReset')"
+          @click="resetBackgroundColor"
+        >
+          ↺
+        </button>
+      </label>
+      <p v-if="backgroundMode !== 'none'" class="hint base-color-hint">
+        {{ t('slideshow.baseColorHint') }}
+      </p>
       <label class="checkbox-label" :class="{ disabled: fitsWorkspace }">
         <input
           v-model="moveWholeSlideshow"
@@ -245,6 +269,7 @@ const emit = defineEmits([
   'render-layer-change',
   'transform-change',
   'background-mode-change',
+  'background-color-change',
   'reset-image-adjustments',
   'live-update',
   'move-mode-change',
@@ -270,6 +295,8 @@ const moveWholeSlideshow = ref(D.moveWholeSlideshow)
 // Bilder füllen den Workspace-Bereich (wie „Als Workspace-Hintergrund“)
 // Slideshow als Hintergrund: 'none' | 'canvas' | 'workspace'
 const backgroundMode = ref(D.backgroundMode)
+// Farbe der Fläche unter der Slideshow (anstelle des ersetzten Hintergrundbildes)
+const backgroundColor = ref(D.backgroundColor)
 // Workspace-Modus nur mit gewähltem Workspace-Format wirksam
 const effectiveBackgroundMode = computed(() =>
   backgroundMode.value === 'workspace' && !props.hasWorkspace ? 'none' : backgroundMode.value,
@@ -468,6 +495,7 @@ function buildPayload() {
     renderBehindVisualizer: renderBehindVisualizer.value,
     backgroundMode: effectiveBackgroundMode.value,
     fitToWorkspace: effectiveBackgroundMode.value === 'workspace',
+    backgroundColor: backgroundColor.value,
     moveWholeSlideshow: moveWholeSlideshow.value,
     transition: transition.value,
     transform: transformPayload(),
@@ -534,6 +562,7 @@ async function savePreset(name) {
       renderBehindVisualizer: renderBehindVisualizer.value,
       backgroundMode: backgroundMode.value,
       fitToWorkspace: backgroundMode.value === 'workspace',
+      backgroundColor: backgroundColor.value,
       moveWholeSlideshow: moveWholeSlideshow.value,
       transition: transition.value,
       transform: {
@@ -627,6 +656,10 @@ async function loadPreset(preset) {
     backgroundMode.value = s.backgroundMode
     onBackgroundModeChange()
   }
+  if (backgroundColor.value !== s.backgroundColor) {
+    backgroundColor.value = s.backgroundColor
+    emit('background-color-change', backgroundColor.value)
+  }
   transformX.value = s.transform.x
   transformY.value = s.transform.y
   transformWidth.value = s.transform.width
@@ -689,6 +722,11 @@ function onBackgroundModeChange() {
     onRenderLayerChange()
   }
   emit('background-mode-change', effectiveBackgroundMode.value)
+}
+
+function resetBackgroundColor() {
+  backgroundColor.value = D.backgroundColor
+  emit('background-color-change', backgroundColor.value)
 }
 
 // Workspace-Format entfernt/gewählt → Manager informieren
@@ -828,6 +866,33 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   cursor: not-allowed;
 }
 [data-theme='light'] .radio-label {
+  color: #003971;
+}
+.base-color-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #e0e0e0;
+}
+.slideshow-base-color {
+  width: 36px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+.btn-reset-base-color {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0 4px;
+}
+[data-theme='light'] .base-color-label {
   color: #003971;
 }
 .checkbox-label.disabled {

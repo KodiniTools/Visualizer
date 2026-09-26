@@ -213,6 +213,35 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.bg-mode-canvas').element.checked).toBe(true)
   })
 
+  it('base color: only in background mode, live change, preset, reset', async () => {
+    const w = mountPanel({ hasWorkspace: false })
+    expect(w.find('.slideshow-base-color').exists()).toBe(false)
+    await w.find('.bg-mode-canvas').setValue(true)
+    const input = w.find('.slideshow-base-color')
+    expect(input.element.value).toBe('#000000')
+    expect(w.find('.btn-reset-base-color').exists()).toBe(false)
+
+    await input.setValue('#336699')
+    expect(w.emitted('background-color-change').at(-1)).toEqual(['#336699'])
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0].backgroundColor).toBe('#336699')
+
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings.backgroundColor,
+    ).toBe('#336699')
+
+    await w.find('.btn-reset-base-color').trigger('click')
+    expect(w.emitted('background-color-change').at(-1)).toEqual(['#000000'])
+    expect(w.find('.slideshow-base-color').element.value).toBe('#000000')
+
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.find('.slideshow-base-color').element.value).toBe('#336699')
+    expect(w.emitted('background-color-change').at(-1)).toEqual(['#336699'])
+  })
+
   it('emits reset-image-adjustments from the reset button', async () => {
     const w = mountPanel()
     await w.find('.btn-reset-adjustments').trigger('click')

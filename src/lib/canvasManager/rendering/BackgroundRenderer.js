@@ -16,6 +16,7 @@ import {
   drawAudioReactiveOverlays,
   drawMediaWithAudioReactive,
 } from './audioReactiveDraw.js'
+import { SLIDESHOW_BASE_COLOR_DEFAULT } from '../../slideshowBaseColor.js'
 
 /**
  * Ersetzt die laufende Slideshow gerade den Canvas- bzw. Workspace-Hintergrund?
@@ -26,6 +27,12 @@ import {
 export function isBackgroundReplacedBySlideshow(target) {
   const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
   return Boolean(slideshow?.replacesBackground?.(target))
+}
+
+/** Farbe der Fläche unter der Slideshow (siehe slideshowBaseColor.js). */
+function getSlideshowBaseColor() {
+  const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+  return slideshow?.getBackgroundColor?.() || SLIDESHOW_BASE_COLOR_DEFAULT
 }
 
 export class BackgroundRenderer {
@@ -51,50 +58,54 @@ export class BackgroundRenderer {
     // jeweilige Hintergrundbild/-video (statt es nur zu verdecken)
     const slideshowReplacesCanvas = this._slideshowReplacesBackground('canvas')
     const slideshowReplacesWorkspace = this._slideshowReplacesBackground('workspace')
+    const hasCanvasVideo = Boolean(this.manager.videoBackground?.videoElement)
 
     // 1. GLOBAL BACKGROUND (Color or Image with Filters)
     if (typeof this.manager.background === 'string') {
       this._drawColorBackground(ctx)
     } else if (this.manager.background && typeof this.manager.background === 'object') {
-      if (slideshowReplacesCanvas) {
-        this._drawSlideshowBase(ctx)
-      } else {
-        this._drawImageBackground(ctx)
-      }
+      if (!slideshowReplacesCanvas) this._drawImageBackground(ctx)
     } else {
       // Fallback: Weißer Hintergrund wenn nichts gesetzt
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
     }
 
+    // 1.1 Fläche unter der Slideshow anstelle des ersetzten Bildes/Videos
+    // (ein reiner Farbhintergrund ohne Video bleibt erhalten)
+    const canvasBgIsMedia =
+      hasCanvasVideo || (this.manager.background && typeof this.manager.background === 'object')
+    if (slideshowReplacesCanvas && canvasBgIsMedia) {
+      this._drawSlideshowBase(ctx)
+    }
+
     // 1.2 VIDEO-HINTERGRUND zeichnen (über Farb-/Bild-Hintergrund)
-    if (
-      !slideshowReplacesCanvas &&
-      this.manager.videoBackground &&
-      this.manager.videoBackground.videoElement
-    ) {
+    if (!slideshowReplacesCanvas && hasCanvasVideo) {
       this._drawVideoBackground(ctx)
     }
 
     // 1.5 KACHELN über dem Haupthintergrund zeichnen (falls aktiviert)
     this.drawBackgroundTiles(ctx)
 
-    // 2. WORKSPACE BACKGROUND
-    if (
-      !slideshowReplacesWorkspace &&
-      this.manager.workspaceBackground &&
-      this.manager.workspacePreset
-    ) {
+    const hasWorkspaceImage = Boolean(
+      this.manager.workspaceBackground && this.manager.workspacePreset,
+    )
+    const hasWorkspaceVideo = Boolean(
+      this.manager.workspaceVideoBackground?.videoElement && this.manager.workspacePreset,
+    )
+
+    // 2. Workspace: ersetzter Hintergrund → Fläche im Workspace-Bereich
+    if (slideshowReplacesWorkspace && (hasWorkspaceImage || hasWorkspaceVideo)) {
+      this._drawSlideshowBase(ctx, this.manager.getWorkspaceBounds?.())
+    }
+
+    // 2.1 WORKSPACE BACKGROUND
+    if (!slideshowReplacesWorkspace && hasWorkspaceImage) {
       this._drawWorkspaceImageBackground(ctx)
     }
 
     // 2.5 WORKSPACE-VIDEO-HINTERGRUND zeichnen
-    if (
-      !slideshowReplacesWorkspace &&
-      this.manager.workspaceVideoBackground &&
-      this.manager.workspaceVideoBackground.videoElement &&
-      this.manager.workspacePreset
-    ) {
+    if (!slideshowReplacesWorkspace && hasWorkspaceVideo) {
       this._drawWorkspaceVideoBackground(ctx)
     }
   }
@@ -109,13 +120,19 @@ export class BackgroundRenderer {
   }
 
   /**
-   * Neutrale Fläche anstelle des ersetzten Hintergrundbildes – sichtbar nur
-   * während der Übergänge und neben Bildern mit abweichendem Seitenverhältnis.
+   * Fläche (einstellbare Farbe der Slideshow) anstelle des ersetzten
+   * Hintergrundbildes – sichtbar während der Übergänge und neben Bildern mit
+   * abweichendem Seitenverhältnis.
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {{x:number,y:number,width:number,height:number}} [rect] - Standard: ganzer Canvas
    */
-  _drawSlideshowBase(ctx) {
+  _drawSlideshowBase(ctx, rect) {
+    const area =
+      rect === undefined ? { x: 0, y: 0, width: ctx.canvas.width, height: ctx.canvas.height } : rect
+    if (!area) return
     ctx.save()
-    ctx.fillStyle = '#000000'
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    ctx.fillStyle = getSlideshowBaseColor()
+    ctx.fillRect(area.x, area.y, area.width, area.height)
     ctx.restore()
   }
 

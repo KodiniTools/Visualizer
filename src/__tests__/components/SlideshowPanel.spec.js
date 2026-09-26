@@ -1039,6 +1039,62 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.base-image-audio-source').element.value).toBe('allOnset')
   })
 
+  it('workspace mode: area image audio source (incl. onset) – start, live, preset, memory', async () => {
+    const w = mountPanel({ hasWorkspace: true })
+    await w.find('.bg-mode-workspace').setValue(true)
+    await w.find('.workspace-image-toggle').setValue(true)
+    await w.find('.workspace-image-audio-toggle').setValue(true)
+    const source = w.find('.workspace-image-audio-source')
+    expect(source.findAll('option')).toHaveLength(9)
+    expect(source.findAll('optgroup option').map((o) => o.element.value)).toEqual([
+      'bassOnset',
+      'midOnset',
+      'trebleOnset',
+      'allOnset',
+    ])
+    // Canvas-Felder sind im Workspace-Modus ausgeblendet
+    expect(w.find('.base-image-audio-source').exists()).toBe(false)
+
+    await source.setValue('midOnset')
+    expect(w.emitted('base-image-change').at(-1)[0]).toBe('workspace')
+    expect(w.emitted('base-image-change').at(-1)[1].audio.source).toBe('midOnset')
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-workspace-image')).audio.source,
+    ).toBe('midOnset')
+    expect(localStorage.getItem('visualizer-slideshow-base-image')).toBeNull()
+
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.backgroundMode).toBe('workspace')
+    expect(payload.workspaceImageFill.audio).toMatchObject({ enabled: true, source: 'midOnset' })
+    expect(payload.backgroundImageFill.audio.enabled).toBe(false)
+
+    // während der Slideshow: Wechsel geht sofort an die Slideshow
+    await w.setProps({ isActive: true })
+    await w.find('.workspace-image-audio-source').setValue('dynamic')
+    expect(w.emitted('base-image-change').at(-1)).toEqual([
+      'workspace',
+      expect.objectContaining({ audio: expect.objectContaining({ source: 'dynamic' }) }),
+      null,
+    ])
+    await w.setProps({ isActive: false })
+
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+        .workspaceImageFill.audio.source,
+    ).toBe('dynamic')
+    await w.find('.workspace-image-audio-source').setValue('bass')
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.find('.workspace-image-audio-source').element.value).toBe('dynamic')
+
+    // ohne Workspace-Format gesperrt
+    await w.setProps({ hasWorkspace: false })
+    expect(w.find('.workspace-image-audio-source').element.disabled).toBe(true)
+  })
+
   it('editor request is ignored while running', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: false, editImageRequest: { index: 0, nonce: 2 } })

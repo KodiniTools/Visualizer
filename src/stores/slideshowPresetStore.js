@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { SLIDESHOW_AUDIO_DEFAULT, isValidSlideshowAudioMode } from '../lib/slideshowAudio.js'
+import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig.js'
 
 const STORAGE_KEY = 'visualizer-slideshow-presets'
 const PRESET_VERSION = 1
@@ -16,6 +17,54 @@ export const SLIDESHOW_DEFAULT_SETTINGS = Object.freeze({
   fitToWorkspace: false,
   transform: Object.freeze({ x: 10, y: 10, width: 80, height: 80 }),
 })
+
+// Erlaubte Bild-Anpassungen (fotoSettings) im Preset: [min, max] für Zahlen
+const ADJUSTMENT_NUMBERS = Object.freeze({
+  brightness: [0, 200],
+  contrast: [0, 200],
+  saturation: [0, 200],
+  opacity: [0, 100],
+  blur: [0, 20],
+  hueRotate: [0, 360],
+  grayscale: [0, 100],
+  sepia: [0, 100],
+  invert: [0, 100],
+  shadowBlur: [0, 50],
+  shadowOffsetX: [-50, 50],
+  shadowOffsetY: [-50, 50],
+  rotation: [-360, 360],
+  borderWidth: [0, 50],
+  borderOpacity: [0, 100],
+})
+const ADJUSTMENT_BOOLEANS = Object.freeze(['flipH', 'flipV'])
+const ADJUSTMENT_COLORS = Object.freeze(['shadowColor', 'borderColor'])
+const COLOR_RE = /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%]+\))$/i
+
+/**
+ * Bereinigt gespeicherte Bild-Anpassungen: nur bekannte Felder mit gültigen
+ * Werten; Audio-Reaktiv wird vervollständigt.
+ * @param {unknown} raw
+ * @returns {object|null}
+ */
+export function normalizeImageAdjustments(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const out = {}
+  for (const [key, [min, max]] of Object.entries(ADJUSTMENT_NUMBERS)) {
+    const n = Number(raw[key])
+    if (raw[key] !== undefined && Number.isFinite(n)) out[key] = Math.min(max, Math.max(min, n))
+  }
+  for (const key of ADJUSTMENT_BOOLEANS) {
+    if (typeof raw[key] === 'boolean') out[key] = raw[key]
+  }
+  for (const key of ADJUSTMENT_COLORS) {
+    if (typeof raw[key] === 'string' && COLOR_RE.test(raw[key].trim())) out[key] = raw[key].trim()
+  }
+  if (typeof raw.preset === 'string' && raw.preset.length <= 40) out.preset = raw.preset
+  if (raw.audioReactive && typeof raw.audioReactive === 'object') {
+    out.audioReactive = ensureAudioReactiveConfig(JSON.parse(JSON.stringify(raw.audioReactive)))
+  }
+  return Object.keys(out).length > 0 ? out : null
+}
 
 function clampNumber(value, min, max, fallback) {
   const n = Number(value)
@@ -66,6 +115,8 @@ export function normalizeSlideshowPreset(raw) {
         audioMode: isValidSlideshowAudioMode(slot?.audioMode)
           ? slot.audioMode
           : SLIDESHOW_AUDIO_DEFAULT,
+        // Während der Slideshow vorgenommene Bild-Anpassungen (Filter, Audio …)
+        adjustments: normalizeImageAdjustments(slot?.adjustments),
       }
     }),
   }
@@ -107,7 +158,7 @@ export const useSlideshowPresetStore = defineStore('slideshowPresets', () => {
 
   /**
    * @param {string} name
-   * @param {{ settings: object, slots: Array<{displayDuration:number|null, audioMode:string}> }} snapshot
+   * @param {{ settings: object, slots: Array<{displayDuration:number|null, audioMode:string, adjustments?:object|null}> }} snapshot
    * @returns {object|null} gespeichertes Preset oder null bei Speicherfehler
    */
   function savePreset(name, snapshot) {

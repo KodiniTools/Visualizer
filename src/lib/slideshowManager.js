@@ -457,7 +457,11 @@ export class SlideshowManager {
     for (const key of Object.keys(copy)) {
       if (key.startsWith('_')) delete copy[key]
     }
-    this._imageMemory.set(imageObject, { fotoSettings: copy, panelAr: this._panelAr[index] })
+    this._imageMemory.set(imageObject, {
+      fotoSettings: copy,
+      panelAr: this._panelAr[index],
+      audioMode: this.config.images[index]?.audioMode,
+    })
   }
 
   /**
@@ -469,11 +473,46 @@ export class SlideshowManager {
     const memory = this._imageMemory.get(imageData.imageObject)
     if (!memory) return
     const copy = JSON.parse(JSON.stringify(memory.fotoSettings))
-    if (memory.panelAr !== this._panelAr[index]) delete copy.audioReactive
+    // Aus einem Preset geladene Anpassungen (panelAr unbekannt) werden über den
+    // Audio-Modus des Panels verglichen, sonst über die aufgelöste Audio-Vorgabe.
+    const panelChanged =
+      memory.panelAr === undefined
+        ? memory.audioMode !== this.config.images[index]?.audioMode
+        : memory.panelAr !== this._panelAr[index]
+    if (panelChanged) delete copy.audioReactive
     this.fotoManager.initializeImageSettings(imageData)
     Object.assign(imageData.fotoSettings, copy)
     // Alte/unvollständige Audio-Konfiguration vervollständigen
     this.fotoManager.initializeImageSettings(imageData)
+  }
+
+  /**
+   * Gemerkte Anpassungen eines Bildes (Kopie) – z. B. zum Speichern im Preset.
+   * @param {object} imageObject
+   * @returns {object|null}
+   */
+  getImageAdjustments(imageObject) {
+    const memory = imageObject ? this._imageMemory.get(imageObject) : null
+    return memory ? JSON.parse(JSON.stringify(memory.fotoSettings)) : null
+  }
+
+  /**
+   * Setzt die Anpassungen eines Bildes (z. B. aus einem Preset); null entfernt sie.
+   * @param {object} imageObject
+   * @param {object|null} fotoSettings
+   * @param {string} [audioMode] - Audio-Modus des Panels, zu dem die Audio-Einstellung gehört
+   */
+  setImageAdjustments(imageObject, fotoSettings, audioMode) {
+    if (!imageObject || typeof imageObject !== 'object') return
+    if (!fotoSettings || typeof fotoSettings !== 'object') {
+      this._imageMemory.delete(imageObject)
+      return
+    }
+    this._imageMemory.set(imageObject, {
+      fotoSettings: JSON.parse(JSON.stringify(fotoSettings)),
+      panelAr: undefined,
+      audioMode,
+    })
   }
 
   /** Verwirft alle gemerkten Bild-Anpassungen (z. B. per „Zurücksetzen“ im Panel). */

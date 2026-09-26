@@ -327,3 +327,56 @@ describe('SlideshowManager – Anpassungen über Stoppen/Neustart', () => {
     m.stop()
   })
 })
+
+describe('SlideshowManager – Anpassungen für Presets', () => {
+  const imgA = { width: 100, height: 100 }
+  const imgB = { width: 100, height: 100 }
+  const ar = { enabled: true, source: 'bass', effects: {} }
+
+  it('get/set: gemerkte Anpassungen lesen und aus Preset setzen', () => {
+    const m = createManager()
+    m.start([
+      { imageObject: imgA, audioReactiveSettings: ar, audioMode: 'default' },
+      { imageObject: imgB, audioReactiveSettings: ar, audioMode: 'default' },
+    ])
+    m.activeImages[0].fotoSettings.contrast = 130
+    m.stop()
+    expect(m.getImageAdjustments(imgA).contrast).toBe(130)
+    expect(m.getImageAdjustments(imgB)).toBeNull()
+
+    // Aus Preset: Filter + Audio für Bild B (Audio-Modus passt → Audio gilt)
+    m.setImageAdjustments(
+      imgB,
+      { sepia: 70, audioReactive: { enabled: true, source: 'treble', effects: {} } },
+      'pulse',
+    )
+    m.setImageAdjustments(imgA, null)
+    m.start([
+      { imageObject: imgA, audioReactiveSettings: ar, audioMode: 'default' },
+      { imageObject: imgB, audioReactiveSettings: ar, audioMode: 'pulse' },
+    ])
+    expect(m.activeImages[0].fotoSettings.contrast).toBeUndefined()
+    m.currentIndex = 1
+    const b = m._addNextImage()
+    expect(b.fotoSettings.sepia).toBe(70)
+    expect(b.fotoSettings.audioReactive.source).toBe('treble')
+    m.stop()
+  })
+
+  it('aus Preset: geänderter Audio-Modus im Panel hat Vorrang', () => {
+    const m = createManager()
+    m.setImageAdjustments(
+      imgA,
+      { sepia: 70, audioReactive: { enabled: true, source: 'treble', effects: {} } },
+      'pulse',
+    )
+    m.start([
+      { imageObject: imgA, audioReactiveSettings: ar, audioMode: 'glitch' },
+      { imageObject: imgB, audioReactiveSettings: ar, audioMode: 'default' },
+    ])
+    const a = m.activeImages[0]
+    expect(a.fotoSettings.sepia).toBe(70)
+    expect(a.fotoSettings.audioReactive.source).toBe('bass')
+    m.stop()
+  })
+})

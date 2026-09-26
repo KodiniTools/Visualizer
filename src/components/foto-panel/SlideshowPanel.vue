@@ -132,6 +132,8 @@ const props = defineProps({
   totalImages: { type: Number, default: 0 },
   currentPhase: { type: String, default: 'fadeIn' },
   hasWorkspace: { type: Boolean, default: false },
+  // { get(img) → object|null, set(img, settings|null, audioMode) } – gemerkte Bild-Anpassungen
+  adjustmentsApi: { type: Object, default: null },
 })
 
 const emit = defineEmits([
@@ -239,6 +241,7 @@ function savePreset(name) {
       return {
         displayDuration: imageDurations.value[key] ?? null,
         audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
+        adjustments: props.adjustmentsApi?.get(img) ?? null,
       }
     }),
   })
@@ -276,6 +279,15 @@ function loadPreset(preset) {
     if (!slot || key === undefined) return
     if (Number.isFinite(slot.displayDuration)) durations[key] = slot.displayDuration
     if (slot.audioMode !== SLIDESHOW_AUDIO_DEFAULT) modes[key] = slot.audioMode
+  })
+  // Bild-Anpassungen pro Position übernehmen (ohne Slot/Anpassung → verwerfen)
+  orderedImages.value.forEach((img, index) => {
+    const slot = preset.slots[index]
+    props.adjustmentsApi?.set(
+      img,
+      slot?.adjustments ?? null,
+      slot?.audioMode ?? SLIDESHOW_AUDIO_DEFAULT,
+    )
   })
   imageDurations.value = durations
   imageAudioModes.value = modes

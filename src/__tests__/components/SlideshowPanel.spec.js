@@ -117,8 +117,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.preset-name').text()).toBe('Party')
     const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
     expect(stored[0].slots).toEqual([
-      { displayDuration: null, audioMode: 'pulse' },
-      { displayDuration: 9000, audioMode: 'default' },
+      { displayDuration: null, audioMode: 'pulse', adjustments: null },
+      { displayDuration: 9000, audioMode: 'default', adjustments: null },
     ])
 
     // Werte ändern, dann Preset laden -> ursprünglicher Zustand
@@ -167,6 +167,27 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     // Während der Slideshow ausgeblendet
     await w.setProps({ isActive: true })
     expect(w.find('.btn-reset-adjustments').exists()).toBe(false)
+  })
+
+  it('saves and restores image adjustments per position via adjustmentsApi', async () => {
+    const memory = new Map([['a', { contrast: 120, sepia: 30 }]])
+    const calls = []
+    const adjustmentsApi = {
+      get: (img) => memory.get(img.id) ?? null,
+      set: (img, settings, audioMode) => calls.push([img.id, settings, audioMode]),
+    }
+    const w = mountPanel({ adjustmentsApi })
+    await w.findAll('.order-audio')[0].setValue('glow')
+    await w.find('.btn-save-preset').trigger('click')
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    expect(stored[0].slots[0].adjustments).toEqual({ contrast: 120, sepia: 30 })
+    expect(stored[0].slots[1].adjustments).toBeNull()
+
+    await w.find('.btn-load-preset').trigger('click')
+    expect(calls).toEqual([
+      ['a', { contrast: 120, sepia: 30 }, 'glow'],
+      ['b', null, 'default'],
+    ])
   })
 
   it('reset in the transform section restores defaults and emits transform-change', async () => {

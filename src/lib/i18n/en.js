@@ -687,6 +687,8 @@ export default {
     openEffects: 'Effects (post-processing)',
     openCanvasControl: 'Canvas control',
     openVideo: 'Video',
+    openSlideshow: 'Image slideshow',
+    slideshowEmpty: 'Select at least 2 images from the gallery to create a slideshow.',
     openCanvasFormat: 'Canvas format',
     openGallery: 'Gallery',
     openAudioReactive: 'Audio reactive (image)',

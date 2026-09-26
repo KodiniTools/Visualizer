@@ -372,7 +372,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.base-gradient-audio-source').exists()).toBe(false)
     await w.find('.base-gradient-audio-toggle').setValue(true)
     // Quelle wie beim Bild-Audio-Reaktiv, inkl. Onset
-    expect(w.findAll('.base-gradient-audio-source option')).toHaveLength(8)
+    expect(w.findAll('.base-gradient-audio-source option')).toHaveLength(9)
     await w.find('.base-gradient-audio-source').setValue('trebleOnset')
     await w.find('.base-gradient-audio-pulse').setValue('40')
     await w.find('.base-gradient-audio-rotation').setValue('0')

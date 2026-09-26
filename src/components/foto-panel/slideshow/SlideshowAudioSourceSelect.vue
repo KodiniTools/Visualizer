@@ -5,7 +5,7 @@
     :disabled="disabled"
     @change="emit('update:modelValue', $event.target.value)"
   >
-    <option v-for="src in bands" :key="src" :value="src">{{ t(`foto.${src}`) }}</option>
+    <option v-for="src in bands" :key="src" :value="src">{{ labelOf(src) }}</option>
     <optgroup :label="t('foto.onsetGroup')">
       <option v-for="src in onsets" :key="src" :value="src">{{ t(`foto.${src}`) }}</option>
     </optgroup>
@@ -31,4 +31,9 @@ const emit = defineEmits(['update:modelValue'])
 const { t } = useI18n()
 const bands = SLIDESHOW_AUDIO_SOURCE_BANDS
 const onsets = SLIDESHOW_AUDIO_SOURCE_ONSETS
+
+// „Dynamisch (Auto-Blend)“ – Text wie beim Hintergrund-Audio-Reaktiv
+function labelOf(src) {
+  return src === 'dynamic' ? t('canvasControl.dynamic') : t(`foto.${src}`)
+}
 </script>

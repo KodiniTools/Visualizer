@@ -32,7 +32,14 @@ const onsetData = {
 
 describe('Slideshow-Fläche – Audio-Quellen wie beim Bild', () => {
   it('Quellen: Bänder + Onsets, alle der Engine bekannt', () => {
-    expect(SLIDESHOW_GRADIENT_AUDIO_SOURCES).toEqual(['bass', 'mid', 'treble', 'volume', ...ONSETS])
+    expect(SLIDESHOW_GRADIENT_AUDIO_SOURCES).toEqual([
+      'bass',
+      'mid',
+      'treble',
+      'volume',
+      'dynamic',
+      ...ONSETS,
+    ])
     for (const s of SLIDESHOW_GRADIENT_AUDIO_SOURCES) expect(sourceNames).toContain(s)
   })
 
@@ -42,7 +49,11 @@ describe('Slideshow-Fläche – Audio-Quellen wie beim Bild', () => {
       expect(normalizeSlideshowFillAudio({ source: s }).source).toBe(s)
       expect(normalizeSlideshowImageFill({ audio: { source: s } }).audio.source).toBe(s)
     }
-    expect(normalizeSlideshowFillAudio({ source: 'dynamic' }).source).toBe('bass')
+    expect(normalizeSlideshowFillAudio({ source: 'dynamic' }).source).toBe('dynamic')
+    expect(normalizeSlideshowImageFill({ audio: { source: 'dynamic' } }).audio.source).toBe(
+      'dynamic',
+    )
+    expect(normalizeSlideshowFillAudio({ source: 'foo' }).source).toBe('bass')
   })
 
   it('Alle-Onset reagiert, obwohl die Bänder still sind', () => {
@@ -79,13 +90,23 @@ describe('Slideshow-Fläche – Audio-Quellen wie beim Bild', () => {
     expect(quiet.lighten).toBe(0)
   })
 
+  it('Dynamisch (Auto-Blend) reagiert auf gemischte Bänder', () => {
+    const f = computeSlideshowFillAudio(
+      normalizeSlideshowFillAudio({ enabled: true, source: 'dynamic', brightness: 100 }),
+      'canvas',
+      { bass: 0, mid: 200, treble: 100, volume: 0 },
+    )
+    expect(f.lighten).toBeGreaterThan(0)
+  })
+
   it('Auswahl zeigt Bänder und Onset-Gruppe wie das Bild-Panel', async () => {
     const w = mount(SlideshowAudioSourceSelect, { props: { modelValue: 'midOnset' } })
     const values = w.findAll('option').map((o) => o.element.value)
-    expect(values).toEqual(['bass', 'mid', 'treble', 'volume', ...ONSETS])
+    expect(values).toEqual(['bass', 'mid', 'treble', 'volume', 'dynamic', ...ONSETS])
     expect(w.findAll('optgroup optgroup').length).toBe(0)
     expect(w.findAll('optgroup option').map((o) => o.element.value)).toEqual(ONSETS)
     expect(w.find('optgroup').attributes('label')).toBe('Onset (Beat, auto-normalisiert)')
+    expect(w.find('option[value="dynamic"]').text()).toBe('Dynamisch (Auto-Blend)')
     expect(w.find('select').element.value).toBe('midOnset')
     await w.find('select').setValue('trebleOnset')
     expect(w.emitted('update:modelValue').at(-1)).toEqual(['trebleOnset'])

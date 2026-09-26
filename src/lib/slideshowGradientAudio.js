@@ -11,7 +11,14 @@
 import { computeAudioReactiveValues } from './audio/audioReactiveEngine.js'
 
 /** Audio-Quellen wie beim Bild-Audio-Reaktiv (inkl. Onset, siehe AudioLevelCalculator). */
-export const SLIDESHOW_AUDIO_SOURCE_BANDS = Object.freeze(['bass', 'mid', 'treble', 'volume'])
+// 'dynamic' = Auto-Blend aus Bass/Mitten/Höhen (AudioLevelCalculator.calculateDynamicLevel)
+export const SLIDESHOW_AUDIO_SOURCE_BANDS = Object.freeze([
+  'bass',
+  'mid',
+  'treble',
+  'volume',
+  'dynamic',
+])
 export const SLIDESHOW_AUDIO_SOURCE_ONSETS = Object.freeze([
   'bassOnset',
   'midOnset',

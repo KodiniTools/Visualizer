@@ -1,3 +1,10 @@
+import {
+  SLIDESHOW_TRANSITION_DEFAULT,
+  computeTransitionState,
+  isValidTransition,
+  resolveTransition,
+} from './slideshowTransitions.js'
+
 /**
  * SlideshowManager - Orchestriert die Bild-Slideshow auf dem Canvas
  *
@@ -44,6 +51,7 @@ export class SlideshowManager {
       autoApplyAudioReactive: true,
       defaultAudioReactiveSettings: null, // Wird auf alle Bilder angewendet
       renderBehindVisualizer: false, // Slideshow hinter dem Visualizer rendern
+      transition: SLIDESHOW_TRANSITION_DEFAULT, // Übergangsanimation (siehe slideshowTransitions.js)
       fitToWorkspace: false, // Bilder füllen den Workspace-Bereich (wie Workspace-Hintergrund)
     }
 
@@ -301,6 +309,9 @@ export class SlideshowManager {
         options.audioReactiveSettings ?? this.config.defaultAudioReactiveSettings,
       renderBehindVisualizer: options.renderBehindVisualizer ?? this.config.renderBehindVisualizer,
       fitToWorkspace: options.fitToWorkspace ?? this.config.fitToWorkspace,
+      transition: isValidTransition(options.transition)
+        ? options.transition
+        : this.config.transition,
     })
     this._lastWorkspaceKey = null
     if (options.moveWholeSlideshow !== undefined) {
@@ -467,6 +478,9 @@ export class SlideshowManager {
       ),
       phase: 'fadeIn', // 'fadeIn' | 'display' | 'fadeOut' | 'done'
       opacity: 0,
+      // Übergangsanimation (eigene oder globale) und aktueller Zustand
+      transition: resolveTransition(imageConfig, this.config.transition),
+      transitionState: null,
       clipRect, // relativer Clip-Bereich (Workspace) oder null
     }
 
@@ -531,6 +545,7 @@ export class SlideshowManager {
       displayDuration: images[i]?.displayDuration,
       audioMode: images[i]?.audioMode,
       audioReactiveSettings: images[i]?.audioReactiveSettings ?? null,
+      transition: images[i]?.transition,
     }))
     this.configure({
       images: merged,
@@ -538,6 +553,7 @@ export class SlideshowManager {
       displayDuration: options.displayDuration,
       fadeOutDuration: options.fadeOutDuration,
       loop: options.loop,
+      transition: isValidTransition(options.transition) ? options.transition : undefined,
     })
     this._panelAr = merged.map((cfg) => JSON.stringify(cfg.audioReactiveSettings ?? null))
 
@@ -559,6 +575,9 @@ export class SlideshowManager {
       this.fotoManager.initializeImageSettings(imageData)
       this._applyImageState(imageData, merged[index], index)
       imageData.fotoSettings.renderBehindVisualizer = renderBehind
+      if (imageData.slideshow) {
+        imageData.slideshow.transition = resolveTransition(merged[index], this.config.transition)
+      }
     }
     this._lastLiveSync = Date.now()
     this._updateActiveImagesTransform()
@@ -737,31 +756,36 @@ export class SlideshowManager {
       if (elapsed < fadeInEnd) {
         // FadeIn Phase
         ss.phase = 'fadeIn'
-        ss.opacity = elapsed / ss.fadeInDuration
+        this._applyTransition(ss, 'in', elapsed / ss.fadeInDuration)
       } else if (elapsed < displayEnd) {
         // Display Phase
         if (ss.phase === 'fadeIn') {
           ss.phase = 'display'
           this.onImageTransition(ss.imageIndex, this.config.images.length, 'display')
         }
-        ss.opacity = 1
+        this._applyTransition(ss, 'display', 1)
 
         // Prüfe ob nächstes Bild gestartet werden soll
         // Starte nächstes Bild wenn aktuelles in Display-Phase ist und overlap gewünscht
         // Für einfacheren Flow: starte nächstes wenn dieses in fadeOut geht
       } else if (elapsed < fadeOutEnd) {
         // FadeOut Phase
-        if (ss.phase === 'display') {
+        // auch wenn die Anzeigephase in einem Frame übersprungen wurde
+        // (z. B. Tab im Hintergrund) – sonst würde nie ein nächstes Bild starten
+        if (ss.phase !== 'fadeOut') {
           ss.phase = 'fadeOut'
           this.onImageTransition(ss.imageIndex, this.config.images.length, 'fadeOut')
           // Nächstes Bild hinzufügen wenn fadeOut beginnt
           needsNextImage = true
         }
-        ss.opacity = 1 - (elapsed - displayEnd) / ss.fadeOutDuration
+        this._applyTransition(ss, 'out', (elapsed - displayEnd) / ss.fadeOutDuration)
       } else {
         // Animation fertig
+        // Falls die Ausblendphase komplett übersprungen wurde: nächstes Bild starten
+        if (ss.phase !== 'fadeOut') needsNextImage = true
         ss.phase = 'done'
         ss.opacity = 0
+        ss.transitionState = null
         ss.active = false
         imagesToRemove.push(imageData)
       }
@@ -781,6 +805,18 @@ export class SlideshowManager {
     if (needsNextImage && this.isActive) {
       this._addNextImage()
     }
+  }
+
+  /**
+   * Setzt Übergangszustand + Deckkraft eines Slideshow-Bildes.
+   * @param {object} ss - imageData.slideshow
+   * @param {'in'|'display'|'out'} phase
+   * @param {number} progress - 0–1
+   */
+  _applyTransition(ss, phase, progress) {
+    const state = computeTransitionState(ss.transition, phase, progress)
+    ss.transitionState = state
+    ss.opacity = state.opacity
   }
 
   /**

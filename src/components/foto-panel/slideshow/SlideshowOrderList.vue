@@ -28,6 +28,21 @@
           </span>
           <div class="order-controls">
             <select
+              class="order-transition"
+              :value="transitionFor(img)"
+              :title="t('slideshow.perImageTransitionHint')"
+              :aria-label="t('slideshow.perImageTransitionHint')"
+              @change="onTransitionChange(img, $event)"
+              @mousedown.stop
+            >
+              <option value="default">{{ t('slideshow.transitionDefault') }}</option>
+              <option v-for="tr in transitionOptions" :key="tr.id" :value="tr.id">
+                {{ tr.icon }} {{ t(`slideshow.transitions.${tr.id}`) }}
+              </option>
+            </select>
+          </div>
+          <div class="order-controls">
+            <select
               class="order-audio"
               :value="audioModeFor(img)"
               :title="t('slideshow.perImageAudioHint')"
@@ -84,6 +99,7 @@ import {
   isValidSlideshowAudioMode,
 } from '../../../lib/slideshowAudio.js'
 import { slideshowImageKey } from './slideshowImageKey.js'
+import { SLIDESHOW_TRANSITIONS, isValidTransition } from '../../../lib/slideshowTransitions.js'
 
 defineProps({
   defaultDuration: { type: Number, default: 3000 },
@@ -93,6 +109,9 @@ defineProps({
 const orderedImages = defineModel({ type: Array, default: () => [] })
 const durations = defineModel('durations', { type: Object, default: () => ({}) })
 const audioModes = defineModel('audioModes', { type: Object, default: () => ({}) })
+// Eigene Übergangsanimation pro Bild ({ [key]: transitionId }); fehlt = globaler Übergang
+const transitions = defineModel('transitions', { type: Object, default: () => ({}) })
+const transitionOptions = SLIDESHOW_TRANSITIONS
 const presetOptions = SLIDESHOW_AUDIO_PRESET_OPTIONS
 const emit = defineEmits(['order-changed'])
 const { t } = useI18n()
@@ -139,6 +158,20 @@ function onDurationInput(img, event) {
 
 function audioModeFor(img) {
   return audioModes.value[slideshowImageKey(img)] ?? SLIDESHOW_AUDIO_DEFAULT
+}
+
+function transitionFor(img) {
+  return transitions.value[slideshowImageKey(img)] ?? 'default'
+}
+
+function onTransitionChange(img, event) {
+  const key = slideshowImageKey(img)
+  if (key === undefined) return
+  const value = event.target.value
+  const next = { ...transitions.value }
+  if (isValidTransition(value)) next[key] = value
+  else delete next[key]
+  transitions.value = next
 }
 
 function onAudioModeChange(img, event) {
@@ -235,6 +268,7 @@ function onDragEnd() {
   align-items: center;
   gap: 6px;
 }
+.order-transition,
 .order-audio {
   flex: 1;
   min-width: 0;
@@ -308,6 +342,7 @@ function onDragEnd() {
 [data-theme='light'] .order-name {
   color: #003971;
 }
+[data-theme='light'] .order-transition,
 [data-theme='light'] .order-audio,
 [data-theme='light'] .order-duration {
   background: #f9f2d5;

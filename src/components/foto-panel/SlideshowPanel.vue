@@ -44,16 +44,41 @@
         <input v-model="renderBehindVisualizer" type="checkbox" @change="onRenderLayerChange" />
         <span>{{ t('slideshow.renderBehind') }}</span>
       </label>
-      <label class="checkbox-label" :class="{ disabled: !hasWorkspace }">
-        <input
-          v-model="fitToWorkspace"
-          class="fit-workspace-checkbox"
-          type="checkbox"
-          :disabled="!hasWorkspace"
-          @change="onFitWorkspaceChange"
-        />
-        <span>{{ t('slideshow.fitToWorkspace') }}</span>
-      </label>
+      <!-- Slideshow als Hintergrund: Aus / Canvas / Workspace -->
+      <div class="background-mode" role="radiogroup" :aria-label="t('slideshow.backgroundMode')">
+        <span class="background-mode-label">{{ t('slideshow.backgroundMode') }}</span>
+        <label class="radio-label">
+          <input
+            v-model="backgroundMode"
+            class="bg-mode-none"
+            type="radio"
+            value="none"
+            @change="onBackgroundModeChange"
+          />
+          <span>{{ t('slideshow.backgroundModeNone') }}</span>
+        </label>
+        <label class="radio-label">
+          <input
+            v-model="backgroundMode"
+            class="bg-mode-canvas"
+            type="radio"
+            value="canvas"
+            @change="onBackgroundModeChange"
+          />
+          <span>{{ t('slideshow.backgroundModeCanvas') }}</span>
+        </label>
+        <label class="radio-label" :class="{ disabled: !hasWorkspace }">
+          <input
+            v-model="backgroundMode"
+            class="bg-mode-workspace"
+            type="radio"
+            value="workspace"
+            :disabled="!hasWorkspace"
+            @change="onBackgroundModeChange"
+          />
+          <span>{{ t('slideshow.backgroundModeWorkspace') }}</span>
+        </label>
+      </div>
       <label class="checkbox-label" :class="{ disabled: fitsWorkspace }">
         <input
           v-model="moveWholeSlideshow"
@@ -64,14 +89,24 @@
         />
         <span>{{ t('slideshow.moveWhole') }}</span>
       </label>
-      <p class="hint move-whole-hint">
+      <p v-if="!fitsWorkspace" class="hint move-whole-hint">
         {{ moveWholeSlideshow ? t('slideshow.moveWholeHintOn') : t('slideshow.moveWholeHintOff') }}
       </p>
-      <p v-if="!hasWorkspace" class="hint warning fit-workspace-hint">
+      <p
+        v-if="backgroundMode === 'workspace' && !hasWorkspace"
+        class="hint warning fit-workspace-hint"
+      >
         {{ t('slideshow.fitToWorkspaceNoWorkspace') }}
       </p>
-      <p v-else-if="fitToWorkspace" class="hint fit-workspace-hint">
-        {{ t('slideshow.fitToWorkspaceHint') }}
+      <p v-else-if="!hasWorkspace" class="hint fit-workspace-hint">
+        {{ t('slideshow.backgroundModeWorkspaceNeedsFormat') }}
+      </p>
+      <p v-if="effectiveBackgroundMode !== 'none'" class="hint fit-workspace-hint">
+        {{
+          effectiveBackgroundMode === 'canvas'
+            ? t('slideshow.backgroundModeCanvasHint')
+            : t('slideshow.fitToWorkspaceHint')
+        }}
       </p>
     </div>
 
@@ -209,7 +244,7 @@ const emit = defineEmits([
   'order-changed',
   'render-layer-change',
   'transform-change',
-  'fit-workspace-change',
+  'background-mode-change',
   'reset-image-adjustments',
   'live-update',
   'move-mode-change',
@@ -233,9 +268,15 @@ const renderBehindVisualizer = ref(D.renderBehindVisualizer)
 const moveWholeSlideshow = ref(D.moveWholeSlideshow)
 
 // Bilder füllen den Workspace-Bereich (wie „Als Workspace-Hintergrund“)
-const fitToWorkspace = ref(D.fitToWorkspace)
+// Slideshow als Hintergrund: 'none' | 'canvas' | 'workspace'
+const backgroundMode = ref(D.backgroundMode)
+// Workspace-Modus nur mit gewähltem Workspace-Format wirksam
+const effectiveBackgroundMode = computed(() =>
+  backgroundMode.value === 'workspace' && !props.hasWorkspace ? 'none' : backgroundMode.value,
+)
 // Nur wirksam, wenn ein Workspace-Format gewählt ist
-const fitsWorkspace = computed(() => fitToWorkspace.value && props.hasWorkspace)
+// Als Hintergrund: Position & Größe sind fest (Bilder füllen den Bereich)
+const fitsWorkspace = computed(() => effectiveBackgroundMode.value !== 'none')
 
 // Transform-Einstellungen (in Prozent für UI)
 const transformX = ref(D.transform.x)
@@ -425,7 +466,8 @@ function buildPayload() {
     applyAudioReactive: applyAudioReactive.value,
     loop: loopSlideshow.value,
     renderBehindVisualizer: renderBehindVisualizer.value,
-    fitToWorkspace: fitsWorkspace.value,
+    backgroundMode: effectiveBackgroundMode.value,
+    fitToWorkspace: effectiveBackgroundMode.value === 'workspace',
     moveWholeSlideshow: moveWholeSlideshow.value,
     transition: transition.value,
     transform: transformPayload(),
@@ -490,7 +532,8 @@ async function savePreset(name) {
       applyAudioReactive: applyAudioReactive.value,
       loop: loopSlideshow.value,
       renderBehindVisualizer: renderBehindVisualizer.value,
-      fitToWorkspace: fitToWorkspace.value,
+      backgroundMode: backgroundMode.value,
+      fitToWorkspace: backgroundMode.value === 'workspace',
       moveWholeSlideshow: moveWholeSlideshow.value,
       transition: transition.value,
       transform: {
@@ -580,9 +623,9 @@ async function loadPreset(preset) {
     moveWholeSlideshow.value = s.moveWholeSlideshow
     emit('move-mode-change', moveWholeSlideshow.value)
   }
-  if (fitToWorkspace.value !== s.fitToWorkspace) {
-    fitToWorkspace.value = s.fitToWorkspace
-    onFitWorkspaceChange()
+  if (backgroundMode.value !== s.backgroundMode) {
+    backgroundMode.value = s.backgroundMode
+    onBackgroundModeChange()
   }
   transformX.value = s.transform.x
   transformY.value = s.transform.y
@@ -639,19 +682,22 @@ function onRenderLayerChange() {
 }
 
 // „An Workspace anpassen“: wie ein Workspace-Hintergrund hinter dem Visualizer
-function onFitWorkspaceChange() {
-  if (fitToWorkspace.value && !renderBehindVisualizer.value) {
+// Als Hintergrund automatisch hinter dem Visualizer rendern
+function onBackgroundModeChange() {
+  if (backgroundMode.value !== 'none' && !renderBehindVisualizer.value) {
     renderBehindVisualizer.value = true
     onRenderLayerChange()
   }
-  emit('fit-workspace-change', fitsWorkspace.value)
+  emit('background-mode-change', effectiveBackgroundMode.value)
 }
 
 // Workspace-Format entfernt/gewählt → Manager informieren
 watch(
   () => props.hasWorkspace,
   () => {
-    if (fitToWorkspace.value) emit('fit-workspace-change', fitsWorkspace.value)
+    if (backgroundMode.value === 'workspace') {
+      emit('background-mode-change', effectiveBackgroundMode.value)
+    }
   },
 )
 
@@ -754,6 +800,35 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   background: #f0ead0;
   color: #003971;
   border-color: #d4c8a8;
+}
+.background-mode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  font-size: 12px;
+}
+.background-mode-label {
+  flex-basis: 100%;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  color: #e0e0e0;
+}
+.radio-label input {
+  accent-color: #6ea8fe;
+}
+.radio-label.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+[data-theme='light'] .radio-label {
+  color: #003971;
 }
 .checkbox-label.disabled {
   opacity: 0.5;

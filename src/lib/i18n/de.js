@@ -1447,7 +1447,7 @@ export default {
     presetSaveError: 'Slideshow-Preset konnte nicht gespeichert werden',
     fitToWorkspace: 'An Workspace anpassen (wie Workspace-Hintergrund)',
     fitToWorkspaceHint:
-      'Die Bilder füllen den Workspace-Bereich und folgen dem gewählten Format. Position & Größe sind dabei fest.',
+      'Die Bilder füllen den Workspace-Bereich, folgen dem gewählten Format und liegen unter den übrigen Bildern. Position & Größe sind dabei fest.',
     fitToWorkspaceNoWorkspace: 'Wähle zuerst ein Workspace-Format (z. B. TikTok 9:16).',
     adjustmentsKeptHint:
       'Während der Slideshow geänderte Filter, Audio-Einstellungen sowie Größe/Position der Bilder bleiben erhalten – auch nach Stoppen, Neustart und Neuladen der Seite (dauerhaft im Browser). Bilder mit eigener Größe ignorieren den gemeinsamen Bereich (Position & Größe).',
@@ -1505,6 +1505,14 @@ export default {
     fieldAudio: 'Audio',
     perImageFadeInHint: 'Einblenddauer dieses Bildes in Sekunden',
     perImageFadeOutHint: 'Ausblenddauer dieses Bildes in Sekunden',
+    backgroundMode: 'Slideshow als Hintergrund',
+    backgroundModeNone: 'Aus',
+    backgroundModeCanvas: 'Canvas',
+    backgroundModeWorkspace: 'Workspace',
+    backgroundModeCanvasHint:
+      'Die Bilder füllen den ganzen Canvas und liegen unter den übrigen Bildern. Position & Größe sind dabei fest.',
+    backgroundModeWorkspaceNeedsFormat:
+      'Workspace-Hintergrund: zuerst ein Workspace-Format wählen (z. B. TikTok 9:16).',
     dragHint: 'Die Slideshow kann auch mit der Maus auf dem Canvas verschoben und skaliert werden.',
   },
 

@@ -33,6 +33,7 @@ export const SLIDESHOW_DEFAULT_SETTINGS = Object.freeze({
   loop: false,
   renderBehindVisualizer: false,
   fitToWorkspace: false,
+  backgroundMode: 'none',
   moveWholeSlideshow: false,
   transition: SLIDESHOW_TRANSITION_DEFAULT,
   transform: Object.freeze({ x: 10, y: 10, width: 80, height: 80 }),
@@ -200,6 +201,12 @@ export function normalizeSlideshowPreset(raw) {
           ? s.renderBehindVisualizer
           : d.renderBehindVisualizer,
       fitToWorkspace: typeof s.fitToWorkspace === 'boolean' ? s.fitToWorkspace : d.fitToWorkspace,
+      // Slideshow als Hintergrund; ältere Presets: fitToWorkspace → 'workspace'
+      backgroundMode: ['none', 'canvas', 'workspace'].includes(s.backgroundMode)
+        ? s.backgroundMode
+        : s.fitToWorkspace === true
+          ? 'workspace'
+          : d.backgroundMode,
       // Maus verschiebt ganze Slideshow (ältere Presets: aus)
       moveWholeSlideshow:
         typeof s.moveWholeSlideshow === 'boolean' ? s.moveWholeSlideshow : d.moveWholeSlideshow,

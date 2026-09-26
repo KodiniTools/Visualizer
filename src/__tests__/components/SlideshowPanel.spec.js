@@ -165,28 +165,52 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(payload.images[0].audioMode).toBe('pulse')
   })
 
-  it('fit to workspace is disabled without a workspace format', () => {
+  it('background mode: workspace option disabled without a workspace format', () => {
     const w = mountPanel({ hasWorkspace: false })
-    expect(w.find('.fit-workspace-checkbox').element.disabled).toBe(true)
-    expect(w.find('.fit-workspace-hint').classes()).toContain('warning')
+    expect(w.find('.bg-mode-workspace').element.disabled).toBe(true)
+    expect(w.find('.bg-mode-canvas').element.disabled).toBe(false)
+    expect(w.find('.bg-mode-none').element.checked).toBe(true)
   })
 
-  it('fit to workspace: renders behind visualizer, hides transform, sends option', async () => {
+  it('background mode workspace: behind visualizer, hides transform, sends option', async () => {
     const w = mountPanel({ hasWorkspace: true })
-    await w.find('.fit-workspace-checkbox').setValue(true)
-    expect(w.emitted('fit-workspace-change').at(-1)).toEqual([true])
+    await w.find('.bg-mode-workspace').setValue(true)
+    expect(w.emitted('background-mode-change').at(-1)).toEqual(['workspace'])
     expect(w.emitted('render-layer-change').at(-1)).toEqual([true])
     expect(w.find('.transform-section').exists()).toBe(false)
 
     await w.find('.btn-start').trigger('click')
     const payload = w.emitted('start')[0][0]
+    expect(payload.backgroundMode).toBe('workspace')
     expect(payload.fitToWorkspace).toBe(true)
     expect(payload.renderBehindVisualizer).toBe(true)
 
-    // Workspace-Format entfernt → Option wirkungslos, Transform wieder sichtbar
+    // Workspace-Format entfernt → wirkungslos, Transform wieder sichtbar
     await w.setProps({ hasWorkspace: false })
-    expect(w.emitted('fit-workspace-change').at(-1)).toEqual([false])
+    expect(w.emitted('background-mode-change').at(-1)).toEqual(['none'])
     expect(w.find('.transform-section').exists()).toBe(true)
+  })
+
+  it('background mode canvas: works without workspace, saved in presets', async () => {
+    const w = mountPanel({ hasWorkspace: false })
+    await w.find('.bg-mode-canvas').setValue(true)
+    expect(w.emitted('background-mode-change').at(-1)).toEqual(['canvas'])
+    expect(w.find('.transform-section').exists()).toBe(false)
+    await w.find('.btn-start').trigger('click')
+    expect(w.emitted('start')[0][0]).toMatchObject({
+      backgroundMode: 'canvas',
+      fitToWorkspace: false,
+    })
+
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings.backgroundMode,
+    ).toBe('canvas')
+    await w.find('.bg-mode-none').setValue(true)
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.find('.bg-mode-canvas').element.checked).toBe(true)
   })
 
   it('emits reset-image-adjustments from the reset button', async () => {

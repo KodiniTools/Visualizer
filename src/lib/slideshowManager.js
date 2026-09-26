@@ -58,7 +58,10 @@ export class SlideshowManager {
       defaultAudioReactiveSettings: null, // Wird auf alle Bilder angewendet
       renderBehindVisualizer: false, // Slideshow hinter dem Visualizer rendern
       transition: SLIDESHOW_TRANSITION_DEFAULT, // Übergangsanimation (siehe slideshowTransitions.js)
-      fitToWorkspace: false, // Bilder füllen den Workspace-Bereich (wie Workspace-Hintergrund)
+      // Slideshow als Hintergrund: 'none' | 'canvas' (ganzer Canvas) | 'workspace'
+      // (Workspace-Bereich) – Bilder füllen den Bereich (Cover) und liegen unter
+      // den übrigen Canvas-Bildern
+      backgroundMode: 'none',
     }
 
     // ✨ NEU: Slideshow Transform-Einstellungen (Position und Größe)
@@ -130,14 +133,17 @@ export class SlideshowManager {
   }
 
   /**
-   * Workspace-Bereich als relativer Transform, falls „An Workspace anpassen“
-   * aktiv ist und ein Workspace-Format gewählt wurde – sonst null.
+   * Hintergrund-Bereich als relativer Transform: ganzer Canvas (Modus 'canvas')
+   * bzw. Workspace-Bereich (Modus 'workspace', nur mit Workspace-Format) –
+   * sonst null (freie Position/Größe).
    * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
    */
   _getWorkspaceTransform() {
-    if (!this.config.fitToWorkspace) return null
+    const mode = this.config.backgroundMode
+    if (mode !== 'canvas' && mode !== 'workspace') return null
     const canvas = this.multiImageManager.canvas
     if (!canvas || !canvas.width || !canvas.height) return null
+    if (mode === 'canvas') return { relX: 0, relY: 0, relWidth: 1, relHeight: 1 }
     let b = null
     try {
       b = this.getWorkspaceBounds()
@@ -153,9 +159,45 @@ export class SlideshowManager {
     }
   }
 
-  /** true, wenn die Slideshow gerade den Workspace-Bereich füllt. */
+  /** true, wenn die Slideshow gerade als Hintergrund (Canvas/Workspace) läuft. */
   isFittedToWorkspace() {
     return this._getWorkspaceTransform() !== null
+  }
+
+  /** Alias mit sprechenderem Namen. */
+  isBackground() {
+    return this.isFittedToWorkspace()
+  }
+
+  /**
+   * Slideshow als Hintergrund einsetzen (auch während laufender Slideshow).
+   * @param {'none'|'canvas'|'workspace'} mode
+   */
+  setBackgroundMode(mode) {
+    this.config.backgroundMode = ['canvas', 'workspace'].includes(mode) ? mode : 'none'
+    this._lastWorkspaceKey = null
+    this._updateActiveImagesTransform()
+    this._arrangeBackgroundLayer()
+  }
+
+  /**
+   * Als Hintergrund: Slideshow-Bilder unter alle übrigen Canvas-Bilder legen
+   * (ihre Reihenfolge untereinander bleibt erhalten).
+   */
+  _arrangeBackgroundLayer(imageData = null) {
+    if (!this.isBackground()) return
+    const list = this.multiImageManager.images
+    if (!Array.isArray(list)) return
+    const targets = imageData ? [imageData] : [...this.activeImages]
+    for (const img of targets) {
+      const from = list.indexOf(img)
+      if (from === -1) continue
+      list.splice(from, 1)
+      // hinter das letzte Slideshow-Bild am unteren Ende einfügen
+      let to = 0
+      while (to < list.length && list[to]?.isSlideshowImage) to++
+      list.splice(to, 0, img)
+    }
   }
 
   /**
@@ -269,14 +311,12 @@ export class SlideshowManager {
    * @param {boolean} value
    */
   setFitToWorkspace(value) {
-    this.config.fitToWorkspace = !!value
-    this._lastWorkspaceKey = null
-    this._updateActiveImagesTransform()
+    this.setBackgroundMode(value ? 'workspace' : 'none')
   }
 
   /** Passt aktive Bilder an, wenn sich das Workspace-Format geändert hat. */
   _syncWorkspace() {
-    if (!this.config.fitToWorkspace) return
+    if (this.config.backgroundMode !== 'workspace') return
     const ws = this._getWorkspaceTransform()
     const key = ws ? `${ws.relX}|${ws.relY}|${ws.relWidth}|${ws.relHeight}` : 'none'
     if (key !== this._lastWorkspaceKey) {
@@ -328,7 +368,7 @@ export class SlideshowManager {
       defaultAudioReactiveSettings:
         options.audioReactiveSettings ?? this.config.defaultAudioReactiveSettings,
       renderBehindVisualizer: options.renderBehindVisualizer ?? this.config.renderBehindVisualizer,
-      fitToWorkspace: options.fitToWorkspace ?? this.config.fitToWorkspace,
+      backgroundMode: SlideshowManager.resolveBackgroundMode(options, this.config.backgroundMode),
       transition: isValidTransition(options.transition)
         ? options.transition
         : this.config.transition,
@@ -520,6 +560,8 @@ export class SlideshowManager {
 
     // Zur aktiven Liste hinzufügen
     this.activeImages.push(newImage)
+    // Als Hintergrund unter die übrigen Canvas-Bilder legen
+    this._arrangeBackgroundLayer(newImage)
 
     console.log(
       `[SlideshowManager] Bild ${this.currentIndex + 1}/${this.config.images.length} hinzugefügt`,
@@ -589,7 +631,9 @@ export class SlideshowManager {
     this._panelAr = merged.map((cfg) => JSON.stringify(cfg.audioReactiveSettings ?? null))
 
     if (options.transform) this.setTransform(options.transform)
-    if (options.fitToWorkspace !== undefined) this.setFitToWorkspace(options.fitToWorkspace)
+    if (options.backgroundMode !== undefined || options.fitToWorkspace !== undefined) {
+      this.setBackgroundMode(SlideshowManager.resolveBackgroundMode(options, 'none'))
+    }
     if (options.moveWholeSlideshow !== undefined) {
       this.setMoveWholeSlideshow(options.moveWholeSlideshow)
     }
@@ -906,6 +950,18 @@ export class SlideshowManager {
    * @param {number} fallback - Globale Anzeigedauer in ms
    * @returns {number}
    */
+  /**
+   * Hintergrund-Modus aus Optionen; `fitToWorkspace` (ältere Aufrufer) wird
+   * als 'workspace' verstanden.
+   */
+  static resolveBackgroundMode(options, fallback = 'none') {
+    const mode = options?.backgroundMode
+    if (['none', 'canvas', 'workspace'].includes(mode)) return mode
+    if (options?.fitToWorkspace === true) return 'workspace'
+    if (options?.fitToWorkspace === false) return 'none'
+    return fallback
+  }
+
   static resolvePhaseDuration(own, fallback) {
     return Number.isFinite(own) && own > 0 ? own : fallback
   }
@@ -1096,7 +1152,8 @@ export class SlideshowManager {
       activeImagesCount: this.activeImages.length,
       config: { ...this.config, images: undefined }, // Ohne Bild-Daten
       transform: this.getTransform(),
-      fitToWorkspace: this.config.fitToWorkspace,
+      backgroundMode: this.config.backgroundMode,
+      fitToWorkspace: this.config.backgroundMode === 'workspace',
       renderBehindVisualizer: this.config.renderBehindVisualizer,
     }
   }

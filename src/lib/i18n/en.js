@@ -1445,7 +1445,7 @@ export default {
     presetSaveError: 'Slideshow preset could not be saved',
     fitToWorkspace: 'Fit to workspace (like workspace background)',
     fitToWorkspaceHint:
-      'Images fill the workspace area and follow the selected format. Position & size are fixed.',
+      'Images fill the workspace area, follow the selected format and lie beneath the other images. Position & size are fixed.',
     fitToWorkspaceNoWorkspace: 'Select a workspace format first (e.g. TikTok 9:16).',
     adjustmentsKeptHint:
       'Filters, audio settings and size/position changed on images during the slideshow are kept – even after stopping, restarting and reloading the page (saved permanently in the browser). Images with their own size ignore the shared area (position & size).',
@@ -1501,6 +1501,14 @@ export default {
     fieldAudio: 'Audio',
     perImageFadeInHint: 'Fade-in duration of this image in seconds',
     perImageFadeOutHint: 'Fade-out duration of this image in seconds',
+    backgroundMode: 'Slideshow as background',
+    backgroundModeNone: 'Off',
+    backgroundModeCanvas: 'Canvas',
+    backgroundModeWorkspace: 'Workspace',
+    backgroundModeCanvasHint:
+      'Images fill the whole canvas and lie beneath the other images. Position & size are fixed.',
+    backgroundModeWorkspaceNeedsFormat:
+      'Workspace background: select a workspace format first (e.g. TikTok 9:16).',
     dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.',
   },
 

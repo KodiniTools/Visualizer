@@ -839,6 +839,104 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(JSON.parse(localStorage.getItem('visualizer-slideshow-image-transitions'))).toEqual({})
   })
 
+  it('paused editor: position sliders move the image via adjustmentsApi and follow mouse drags', async () => {
+    let pos = { x: 0.5, y: 0.5 }
+    const setPosition = vi.fn((img, p) => {
+      pos = { ...pos, ...p }
+    })
+    const adjustmentsApi = {
+      get: () => null,
+      set: () => {},
+      getPosition: vi.fn(() => pos),
+      setPosition,
+    }
+    const w = mountPanel({ adjustmentsApi })
+    await w.setProps({ isActive: true, isPaused: true, editImageRequest: { index: 1, nonce: 3 } })
+    const editor = w.find('.image-editor')
+    const x = editor.find('input.editor-position-x')
+    expect(Number(x.element.value)).toBeCloseTo(50)
+    expect(adjustmentsApi.getPosition.mock.calls.at(-1)[0].name).toBe(images[1].name)
+
+    x.element.value = '20'
+    await x.trigger('input')
+    expect(setPosition).toHaveBeenCalledTimes(1)
+    expect(setPosition.mock.calls[0][0].name).toBe(images[1].name)
+    expect(setPosition.mock.calls[0][1]).toEqual({ x: 0.2, y: 0.5 })
+
+    // Bild mit der Maus verschoben → Regler folgen nach boundsRevision
+    pos = { x: 0.9, y: 0.1 }
+    await w.setProps({ boundsRevision: 1 })
+    expect(Number(editor.find('input.editor-position-x').element.value)).toBeCloseTo(90)
+    expect(Number(editor.find('input.editor-position-y').element.value)).toBeCloseTo(10)
+
+    // nicht positionierbar (z. B. Canvas-Hintergrund) → keine Regler
+    adjustmentsApi.getPosition.mockReturnValue(null)
+    await w.setProps({ boundsRevision: 2 })
+    expect(w.find('.image-editor-position').exists()).toBe(false)
+    expect(w.find('.image-editor').exists()).toBe(true)
+  })
+
+  it('paused editor: size sliders scale the image via adjustmentsApi and follow mouse resizes', async () => {
+    let size = { width: 0.8, height: 0.4, defaultWidth: 0.8, defaultHeight: 0.4 }
+    const setSize = vi.fn()
+    const adjustmentsApi = {
+      get: () => null,
+      set: () => {},
+      getSize: vi.fn(() => size),
+      setSize,
+    }
+    const w = mountPanel({ adjustmentsApi })
+    await w.setProps({ isActive: true, isPaused: true, editImageRequest: { index: 0, nonce: 4 } })
+    const width = w.find('input.editor-size-width')
+    expect(Number(width.element.value)).toBeCloseTo(80)
+
+    width.element.value = '60'
+    await width.trigger('input')
+    expect(setSize.mock.calls[0][0].name).toBe(images[0].name)
+    expect(setSize.mock.calls[0][1]).toEqual({ width: 0.6, keepAspect: true })
+
+    size = { ...size, width: 0.5, height: 0.25 }
+    await w.setProps({ boundsRevision: 1 })
+    expect(Number(w.find('input.editor-size-height').element.value)).toBeCloseTo(25)
+
+    adjustmentsApi.getSize.mockReturnValue(null)
+    await w.setProps({ boundsRevision: 2 })
+    expect(w.find('.image-editor-size').exists()).toBe(false)
+  })
+
+  it('paused editor, workspace mode: size/position sliders hide on switch and return on "none"', async () => {
+    // simuliert FotoPanel: im Workspace-Modus (Bild füllt den Workspace) nicht skalierbar
+    let fitted = false
+    const adjustmentsApi = {
+      get: () => null,
+      set: () => {},
+      getSize: vi.fn(() =>
+        fitted ? null : { width: 0.3, height: 0.15, defaultWidth: 0.8, defaultHeight: 0.4 },
+      ),
+      getPosition: vi.fn(() => (fitted ? null : { x: 0.25, y: 0.75 })),
+      setSize: vi.fn(),
+      setPosition: vi.fn(),
+    }
+    const w = mountPanel({ adjustmentsApi, hasWorkspace: true })
+    await w.setProps({ isActive: true, isPaused: true, editImageRequest: { index: 0, nonce: 8 } })
+    expect(Number(w.find('input.editor-size-width').element.value)).toBeCloseTo(30)
+
+    fitted = true
+    await w.find('.bg-mode-workspace').setValue(true)
+    expect(w.emitted('background-mode-change').at(-1)).toEqual(['workspace'])
+    expect(w.find('.image-editor').exists()).toBe(true)
+    expect(w.find('.image-editor-size').exists()).toBe(false)
+    expect(w.find('.image-editor-position').exists()).toBe(false)
+    expect(adjustmentsApi.setSize).not.toHaveBeenCalled()
+
+    // zurück auf „Aus“: gemerkte Größe/Position erscheinen wieder
+    fitted = false
+    await w.find('.bg-mode-none').setValue(true)
+    expect(Number(w.find('input.editor-size-width').element.value)).toBeCloseTo(30)
+    expect(Number(w.find('input.editor-size-height').element.value)).toBeCloseTo(15)
+    expect(Number(w.find('input.editor-position-y').element.value)).toBeCloseTo(75)
+  })
+
   it('paused: click request opens the image editor; edits go live and close on resume', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: true })

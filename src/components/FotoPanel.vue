@@ -49,6 +49,7 @@
       :adjustments-api="slideshowAdjustmentsApi"
       :external-transform="slideshowExternalTransform"
       :edit-image-request="slideshowEditRequest"
+      :bounds-revision="slideshowBoundsRevision"
       @start="startSlideshow"
       @pause="pauseSlideshow"
       @resume="resumeSlideshow"
@@ -75,6 +76,7 @@
       :canMoveUp="canMoveUp"
       :canMoveDown="canMoveDown"
       :currentLayerInfo="currentLayerInfo"
+      :bounds-api="imageBoundsApi"
       @bring-to-front="onBringToFront"
       @move-up="onMoveUp"
       @move-down="onMoveDown"
@@ -223,6 +225,8 @@ const {
 } = useStockGallery()
 // Per Maus verschobener gemeinsamer Bereich (für die Regler im Slideshow-Panel)
 const slideshowExternalTransform = ref(null)
+// Zähler für geänderte Bild-Bounds (Maus/Positionsregler) → Anzeige im Bild-Editor
+const slideshowBoundsRevision = ref(0)
 // Dauerhaft gemerkte Bild-Anpassungen pro Slideshow-Bild
 const adjustmentsStore = useSlideshowImageAdjustmentsStore()
 // Dauerhaft gemerkte Einstellungen pro Bild (u. a. eigene Größe/Position)
@@ -399,6 +403,7 @@ function initSlideshowManager() {
     // Bild-Anpassungen dauerhaft merken (Filter, Schatten, Rotation …)
     // Eigene Größe/Position dauerhaft merken (gebündelt)
     onImageBoundsChange: ({ imageConfig, imageObject, bounds }) => {
+      slideshowBoundsRevision.value++
       queueBoundsPersist(slideshowStableKey({ ...imageConfig, imageObject }), bounds)
     },
     // Nur Abweichungen vom Standard speichern (unveränderte Bilder → kein Eintrag)
@@ -565,6 +570,12 @@ function onSlideshowOrderChanged(orderedImages) {
   console.log('[Slideshow] Reihenfolge geändert:', orderedImages.length, 'Bilder')
 }
 
+// Position & Größe normaler Canvas-Bilder (ImageFiltersPanel → PositionSizeControls)
+const imageBoundsApi = {
+  getCanvas: () => multiImageManagerRef?.value?.canvas ?? null,
+  redraw: () => canvasManagerRef?.value?.redraw?.(),
+}
+
 // Zugriff auf gemerkte Bild-Anpassungen für Slideshow-Presets (Speichern/Laden)
 const slideshowAdjustmentsApi = {
   get(img) {
@@ -587,6 +598,41 @@ const slideshowAdjustmentsApi = {
     // Sitzungsspeicher der Slideshow, sonst dauerhaft gemerkte Größe/Position
     const live = getSlideshowManager()?.getImageBounds(slideshowImageObject(img))
     return live ?? imageSettingsStore.getImageSettings(slideshowStableKey(img))?.bounds ?? null
+  },
+  // Mittelpunkt (relativ 0–1) des Bildes auf der Canvas; null = nicht frei
+  // positionierbar (Slideshow nicht aktiv oder Canvas-/Workspace-Hintergrund)
+  getPosition(img) {
+    const manager = getSlideshowManager()
+    const obj = slideshowImageObject(img)
+    if (!manager?.isActive || !obj || manager.isFittedToWorkspace()) return null
+    const b = manager.getEffectiveImageBounds(obj)
+    return b ? { x: b.relX + b.relWidth / 2, y: b.relY + b.relHeight / 2 } : null
+  },
+  setPosition(img, { x, y } = {}) {
+    const obj = slideshowImageObject(img)
+    if (!obj) return
+    getSlideshowManager()?.setImagePosition(obj, { centerX: x, centerY: y })
+  },
+  // Größe (relativ 0–1) des Bildes + automatische Einpassung als Standard;
+  // null = nicht frei skalierbar (wie getPosition)
+  getSize(img) {
+    const manager = getSlideshowManager()
+    const obj = slideshowImageObject(img)
+    if (!manager?.isActive || !obj || manager.isFittedToWorkspace()) return null
+    const b = manager.getEffectiveImageBounds(obj)
+    const fit = manager.getFittedImageBounds(obj)
+    if (!b || !fit) return null
+    return {
+      width: b.relWidth,
+      height: b.relHeight,
+      defaultWidth: fit.relWidth,
+      defaultHeight: fit.relHeight,
+    }
+  },
+  setSize(img, { width, height, keepAspect } = {}) {
+    const obj = slideshowImageObject(img)
+    if (!obj) return
+    getSlideshowManager()?.setImageSize(obj, { width, height, keepAspect })
   },
   setBounds(img, bounds) {
     withSlideshowImageObject(img, (obj) => {

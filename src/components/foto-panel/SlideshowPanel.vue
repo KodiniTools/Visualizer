@@ -230,6 +230,10 @@
       :audio-mode="imageAudioModes[slideshowImageKey(editorImage)] ?? 'default'"
       :audio-source="imageAudioSources[slideshowImageKey(editorImage)] ?? null"
       :has-saved-settings="hasSavedSettings"
+      :position="editorPosition"
+      :size="editorSize"
+      @update:position="updateEditedImagePosition"
+      @update:size="updateEditedImageSize"
       @update:transition="(v) => updateEditedImage('transition', v)"
       @update:duration="(v) => updateEditedImage('duration', v)"
       @update:fade-in="(v) => updateEditedImage('fadeIn', v)"
@@ -331,6 +335,8 @@ const props = defineProps({
   externalTransform: { type: Object, default: null },
   // Bild-Einstellungen öffnen: { index, nonce } (Klick auf ein Bild der Leiste, pausiert)
   editImageRequest: { type: Object, default: null },
+  // Erhöht sich bei jeder Änderung eigener Bild-Bounds (Maus, Positionsregler)
+  boundsRevision: { type: Number, default: 0 },
 })
 
 const emit = defineEmits([
@@ -504,6 +510,37 @@ watch(
     if (!paused) editorIndex.value = null
   },
 )
+
+// Mittelpunkt des bearbeiteten Bildes (relativ 0–1); null = nicht positionierbar
+const editorPosition = computed(() => {
+  // Abhängigkeiten: Bounds per Maus/Regler, Slideshow-Bereich, Hintergrund-Modus
+  void props.boundsRevision
+  void props.externalTransform
+  void backgroundMode.value
+  const img = editorImage.value
+  return img ? (props.adjustmentsApi?.getPosition?.(img) ?? null) : null
+})
+
+// Größe des bearbeiteten Bildes { width, height, defaultWidth, defaultHeight }
+const editorSize = computed(() => {
+  void props.boundsRevision
+  void props.externalTransform
+  void backgroundMode.value
+  const img = editorImage.value
+  return img ? (props.adjustmentsApi?.getSize?.(img) ?? null) : null
+})
+
+/** Größenregler im Bild-Editor → Bild auf der Canvas skalieren. */
+function updateEditedImageSize(size) {
+  const img = editorImage.value
+  if (img && size) props.adjustmentsApi?.setSize?.(img, size)
+}
+
+/** Positionsregler im Bild-Editor → Bild auf der Canvas verschieben. */
+function updateEditedImagePosition(position) {
+  const img = editorImage.value
+  if (img && position) props.adjustmentsApi?.setPosition?.(img, position)
+}
 
 /**
  * Setzt einen Wert pro Bild für das bearbeitete Bild und übernimmt ihn live.

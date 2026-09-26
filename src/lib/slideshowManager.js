@@ -13,6 +13,7 @@ import {
 import { normalizeSlideshowFillAudio } from './slideshowFillAudio.js'
 import { normalizeSlideshowImageFill } from './slideshowImageFill.js'
 import { applySlideshowAudioSource } from './slideshowAudio.js'
+import { positionBounds, resizeBounds } from './imageBoundsControls.js'
 
 /**
  * SlideshowManager - Orchestriert die Bild-Slideshow auf dem Canvas
@@ -351,12 +352,12 @@ export class SlideshowManager {
    * - Workspace: Bild füllt den Workspace (Cover) und wird auf ihn beschnitten.
    * @returns {{bounds:{relX:number,relY:number,relWidth:number,relHeight:number}, clipRect:Object|null}}
    */
-  _computeImageLayout(imageObject) {
+  _computeImageLayout(imageObject, { ignoreOwn = false } = {}) {
     const canvas = this.multiImageManager.canvas
     const imgAspectRatio = imageObject.height / imageObject.width
     const canvasAspectRatio = canvas.height / canvas.width
     const ws = this._getWorkspaceTransform()
-    const own = ws ? null : this._boundsMemory.get(imageObject)
+    const own = ws || ignoreOwn ? null : this._boundsMemory.get(imageObject)
     if (own) return { bounds: { ...own }, clipRect: null }
     const area = ws ?? this.transform
 
@@ -445,6 +446,66 @@ export class SlideshowManager {
   getImageBounds(imageObject) {
     const b = imageObject ? this._boundsMemory.get(imageObject) : null
     return b ? { ...b } : null
+  }
+
+  /**
+   * Tatsächliche Bounds eines Bildes: eigene Größe/Position oder die
+   * automatische Einpassung in den Slideshow-Bereich (Kopie).
+   * @param {object} imageObject
+   * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
+   */
+  getEffectiveImageBounds(imageObject, { ignoreOwn = false } = {}) {
+    if (!imageObject || typeof imageObject !== 'object') return null
+    if (!(imageObject.width > 0) || !(imageObject.height > 0)) return null
+    if (!this.multiImageManager?.canvas?.width) return null
+    return { ...this._computeImageLayout(imageObject, { ignoreOwn }).bounds }
+  }
+
+  /**
+   * Automatische Einpassung eines Bildes in den Slideshow-Bereich – ohne eigene
+   * Größe/Position (Standardwert der Größenregler).
+   * @param {object} imageObject
+   */
+  getFittedImageBounds(imageObject) {
+    return this.getEffectiveImageBounds(imageObject, { ignoreOwn: true })
+  }
+
+  /**
+   * Setzt die Größe eines Bildes (relativ zur Canvas, 0.01–2) um seinen
+   * Mittelpunkt. Mit keepAspect folgt die andere Seite im aktuellen
+   * Seitenverhältnis (keine Verzerrung). Wird wie Skalieren mit der Maus als
+   * eigene Bounds gemerkt. Als Canvas-/Workspace-Hintergrund nicht möglich.
+   * @param {object} imageObject
+   * @param {{width?:number, height?:number, keepAspect?:boolean}} size - fehlender Wert = unverändert
+   * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
+   */
+  setImageSize(imageObject, { width, height, keepAspect = true } = {}) {
+    if (this.isFittedToWorkspace()) return null
+    const base = this.getEffectiveImageBounds(imageObject)
+    const bounds = resizeBounds(base, { width, height, keepAspect })
+    return bounds ? this._applyOwnBounds(imageObject, bounds) : null
+  }
+
+  /** Merkt Bounds als eigene Größe/Position, meldet sie und zeigt sie sofort. */
+  _applyOwnBounds(imageObject, bounds) {
+    this._boundsMemory.set(imageObject, bounds)
+    this._notifyBounds(imageObject, bounds)
+    this._updateActiveImagesTransform()
+    return { ...bounds }
+  }
+
+  /**
+   * Positioniert ein Bild über seinen Mittelpunkt (relativ 0–1 zur Canvas);
+   * die Größe bleibt erhalten. Wird wie Verschieben mit der Maus als eigene
+   * Bounds gemerkt. Als Canvas-/Workspace-Hintergrund nicht möglich.
+   * @param {object} imageObject
+   * @param {{centerX?:number, centerY?:number}} position - fehlender Wert = unverändert
+   * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
+   */
+  setImagePosition(imageObject, { centerX, centerY } = {}) {
+    if (this.isFittedToWorkspace()) return null
+    const bounds = positionBounds(this.getEffectiveImageBounds(imageObject), { centerX, centerY })
+    return bounds ? this._applyOwnBounds(imageObject, bounds) : null
   }
 
   /**

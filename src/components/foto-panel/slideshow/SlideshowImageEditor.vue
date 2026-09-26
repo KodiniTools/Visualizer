@@ -18,6 +18,44 @@
       </button>
     </div>
 
+    <!-- Position des Bildes auf der Canvas (Mittelpunkt in % der Canvas) -->
+    <div v-if="position" class="image-editor-position">
+      <div v-for="axis in POSITION_AXES" :key="axis" class="image-editor-field">
+        <span>{{ t(axis === 'x' ? 'slideshow.imagePositionX' : 'slideshow.imagePositionY') }}</span>
+        <SliderField
+          :class="`editor-position-${axis}`"
+          :model-value="percent(position[axis])"
+          :min="0"
+          :max="100"
+          :step="0.1"
+          :default-value="50"
+          :aria-label="t(axis === 'x' ? 'slideshow.imagePositionX' : 'slideshow.imagePositionY')"
+          @update:model-value="(v) => onPosition(axis, v)"
+        />
+      </div>
+    </div>
+
+    <!-- Größe des Bildes (Breite × Höhe in % der Canvas) -->
+    <div v-if="size" class="image-editor-size">
+      <div v-for="dim in SIZE_DIMS" :key="dim" class="image-editor-field">
+        <span>{{ t(dim === 'width' ? 'slideshow.imageWidth' : 'slideshow.imageHeight') }}</span>
+        <SliderField
+          :class="`editor-size-${dim}`"
+          :model-value="sizePercent(size[dim])"
+          :min="1"
+          :max="200"
+          :step="0.1"
+          :default-value="sizePercent(size[dim === 'width' ? 'defaultWidth' : 'defaultHeight'])"
+          :aria-label="t(dim === 'width' ? 'slideshow.imageWidth' : 'slideshow.imageHeight')"
+          @update:model-value="(v) => onSize(dim, v)"
+        />
+      </div>
+      <label class="checkbox-label">
+        <input v-model="keepAspect" class="editor-keep-aspect" type="checkbox" />
+        <span>{{ t('slideshow.keepAspect') }}</span>
+      </label>
+    </div>
+
     <label class="image-editor-field">
       <span>{{ t('slideshow.transition') }}</span>
       <select
@@ -130,6 +168,7 @@ import {
   isValidSlideshowAudioMode,
 } from '../../../lib/slideshowAudio.js'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
+import SliderField from '../../ui/SliderField.vue'
 
 const props = defineProps({
   image: { type: Object, required: true },
@@ -147,6 +186,10 @@ const props = defineProps({
   // Eigene Audio-Quelle (null = wie Einstellung/Preset)
   audioSource: { type: String, default: null },
   hasSavedSettings: { type: Boolean, default: false },
+  // Mittelpunkt des Bildes { x, y } relativ 0–1; null = nicht positionierbar
+  position: { type: Object, default: null },
+  // Größe { width, height, defaultWidth, defaultHeight } relativ 0–1; null = nicht skalierbar
+  size: { type: Object, default: null },
 })
 const emit = defineEmits([
   'update:transition',
@@ -155,6 +198,8 @@ const emit = defineEmits([
   'update:fadeOut',
   'update:audioMode',
   'update:audioSource',
+  'update:position',
+  'update:size',
   'close',
 ])
 const { t } = useI18n()
@@ -180,6 +225,38 @@ function toMs(value, minMs, maxMs) {
   return Number.isFinite(seconds) && seconds > 0
     ? Math.round(Math.min(maxMs, Math.max(minMs, seconds * 1000)))
     : undefined
+}
+
+const POSITION_AXES = ['x', 'y']
+
+/** Relativ (0–1) → Prozent mit einer Nachkommastelle. */
+function percent(value) {
+  return Number.isFinite(value) ? Math.round(value * 1000) / 10 : 50
+}
+
+/** Prozent-Eingabe (begrenzt auf 0–100) → relative Position; ungültig = ignoriert. */
+function onPosition(axis, value) {
+  const p = parseFloat(value)
+  if (!Number.isFinite(p)) return
+  const rel = Math.min(100, Math.max(0, p)) / 100
+  emit('update:position', { ...props.position, [axis]: rel })
+}
+
+const SIZE_DIMS = ['width', 'height']
+// Seitenverhältnis beibehalten (Standard) – sonst wird das Bild verzerrt
+const keepAspect = ref(true)
+
+/** Relative Größe → Prozent mit einer Nachkommastelle; ungültig = 100. */
+function sizePercent(value) {
+  return Number.isFinite(value) && value > 0 ? Math.round(value * 1000) / 10 : 100
+}
+
+/** Prozent-Eingabe (begrenzt auf 1–200) → relative Größe; ungültig = ignoriert. */
+function onSize(dim, value) {
+  const p = parseFloat(value)
+  if (!Number.isFinite(p)) return
+  const rel = Math.min(200, Math.max(1, p)) / 100
+  emit('update:size', { [dim]: rel, keepAspect: keepAspect.value })
 }
 
 function onAudio(value) {
@@ -250,7 +327,7 @@ onMounted(() => {
   color: var(--text-muted);
 }
 .image-editor-field select,
-.image-editor-field input {
+.image-editor-field input:not([type='range']) {
   padding: 4px 6px;
   font-size: 12px;
   background: var(--secondary-bg);
@@ -271,6 +348,12 @@ onMounted(() => {
   width: 56px;
   text-align: right;
 }
+.image-editor-position,
+.image-editor-size {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 .image-editor .hint {
   padding-left: 0;
 }
@@ -281,7 +364,7 @@ onMounted(() => {
   color: #003971;
 }
 [data-theme='light'] .image-editor-field select,
-[data-theme='light'] .image-editor-field input {
+[data-theme='light'] .image-editor-field input:not([type='range']) {
   background: #f9f2d5;
   color: #003971;
   border-color: #d4c8a8;

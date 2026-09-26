@@ -579,7 +579,20 @@ export class MultiImageManager {
       const audioReactive = this.getAudioReactiveValues(imgData.fotoSettings?.audioReactive)
 
       // ✨ Eintritts-Animation Transformation berechnen
-      const animTransform = this.getAnimationTransform(imgData)
+      let animTransform = this.getAnimationTransform(imgData)
+
+      // ✨ SLIDESHOW: Übergangsanimation (siehe slideshowTransitions.js) in die
+      // bestehende Animations-Kette einrechnen; Deckkraft kommt über slideshow.opacity
+      const transition = imgData.slideshow?.active ? imgData.slideshow.transitionState : null
+      if (transition) {
+        animTransform = {
+          ...animTransform,
+          translateX: animTransform.translateX + (transition.translateX || 0) * bounds.width,
+          translateY: animTransform.translateY + (transition.translateY || 0) * bounds.height,
+          scale: animTransform.scale * (transition.scale ?? 1),
+          rotation: animTransform.rotation + (transition.rotation || 0),
+        }
+      }
 
       // ✅ FIX: IMMER save/restore für jedes Bild um Filter-Leakage zu verhindern
       ctx.save()
@@ -604,6 +617,20 @@ export class MultiImageManager {
           clip.relY * renderCanvas.height,
           clip.relWidth * renderCanvas.width,
           clip.relHeight * renderCanvas.height,
+        )
+        ctx.clip()
+      }
+
+      // ✨ SLIDESHOW-Übergang „Wischen“: nur den aufgedeckten Teil des Bildes zeigen
+      if (transition?.wipe) {
+        const start = Math.max(0, Math.min(1, transition.wipe.start))
+        const end = Math.max(start, Math.min(1, transition.wipe.end))
+        ctx.beginPath()
+        ctx.rect(
+          bounds.x + start * bounds.width,
+          bounds.y,
+          (end - start) * bounds.width,
+          bounds.height,
         )
         ctx.clip()
       }
@@ -698,6 +725,21 @@ export class MultiImageManager {
         if (currentFilter.trim()) {
           ctx.filter = currentFilter.trim()
         }
+      }
+
+      // ✨ SLIDESHOW-Übergang „Weichzeichnen“: Blur an die übrigen Filter anhängen
+      if (transition?.blur > 0) {
+        const base = ctx.filter && ctx.filter !== 'none' ? `${ctx.filter} ` : ''
+        ctx.filter = `${base}blur(${transition.blur.toFixed(2)}px)`
+      }
+
+      // ✨ SLIDESHOW-Übergang „Kippen“: horizontale Skalierung um das Zentrum
+      if (transition && transition.scaleX !== undefined && transition.scaleX !== 1) {
+        const centerX = bounds.x + bounds.width / 2
+        const centerY = bounds.y + bounds.height / 2
+        ctx.translate(centerX, centerY)
+        ctx.scale(Math.max(0.001, transition.scaleX), 1)
+        ctx.translate(-centerX, -centerY)
       }
 
       // ✨ ROTATION anwenden (statisch + audio-reaktiv)

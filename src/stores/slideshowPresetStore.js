@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, markRaw } from 'vue'
 import { SLIDESHOW_AUDIO_DEFAULT, isValidSlideshowAudioMode } from '../lib/slideshowAudio.js'
 import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig.js'
+import { SLIDESHOW_TRANSITION_DEFAULT, isValidTransition } from '../lib/slideshowTransitions.js'
 import {
   pruneImages,
   getImageStorageStats,
@@ -33,6 +34,7 @@ export const SLIDESHOW_DEFAULT_SETTINGS = Object.freeze({
   renderBehindVisualizer: false,
   fitToWorkspace: false,
   moveWholeSlideshow: false,
+  transition: SLIDESHOW_TRANSITION_DEFAULT,
   transform: Object.freeze({ x: 10, y: 10, width: 80, height: 80 }),
 })
 
@@ -194,6 +196,8 @@ export function normalizeSlideshowPreset(raw) {
       // Maus verschiebt ganze Slideshow (ältere Presets: aus)
       moveWholeSlideshow:
         typeof s.moveWholeSlideshow === 'boolean' ? s.moveWholeSlideshow : d.moveWholeSlideshow,
+      // Übergangsanimation (ältere Presets: Überblenden)
+      transition: isValidTransition(s.transition) ? s.transition : d.transition,
       transform: {
         x: clampNumber(t.x, 0, 100, d.transform.x),
         y: clampNumber(t.y, 0, 100, d.transform.y),
@@ -209,6 +213,8 @@ export function normalizeSlideshowPreset(raw) {
         audioMode: isValidSlideshowAudioMode(slot?.audioMode)
           ? slot.audioMode
           : SLIDESHOW_AUDIO_DEFAULT,
+        // Eigene Übergangsanimation des Bildes (null = globaler Übergang)
+        transition: isValidTransition(slot?.transition) ? slot.transition : null,
         // Während der Slideshow vorgenommene Bild-Anpassungen (Filter, Audio …)
         adjustments: normalizeImageAdjustments(slot?.adjustments),
         // Eigene Position/Größe des Bildes (relativ zum Canvas) oder null

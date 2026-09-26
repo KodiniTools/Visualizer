@@ -55,6 +55,7 @@ describe('slideshowPresetStore', () => {
         ...sl,
         adjustments: null,
         bounds: null,
+        transition: null,
         stock: null,
         upload: null,
       })),
@@ -68,8 +69,10 @@ describe('slideshowPresetStore', () => {
     expect(reloaded.presets[0].slots[0]).toEqual({
       displayDuration: 7000,
       audioMode: 'pulse',
+      transition: null,
       adjustments: null,
       bounds: null,
+      transition: null,
       stock: null,
       upload: null,
     })
@@ -147,13 +150,14 @@ describe('slideshowPresetStore', () => {
       id: 1,
       name: '  ',
       settings: { displayDuration: 'x', fadeInDuration: 999999, transform: { width: 1 } },
-      slots: [{ displayDuration: -5, audioMode: 'evil' }, null],
+      slots: [{ displayDuration: -5, audioMode: 'evil', transition: 'boom' }, null],
     })
     expect(p.name).toBe('Slideshow')
     expect(p.settings.displayDuration).toBe(3000)
     expect(p.settings.fadeInDuration).toBe(5000)
     expect(p.settings.fitToWorkspace).toBe(false)
     expect(p.settings.moveWholeSlideshow).toBe(false)
+    expect(p.settings.transition).toBe('fade')
     expect(p.settings.transform.width).toBe(10)
     expect(p.slots).toEqual([
       {
@@ -161,6 +165,7 @@ describe('slideshowPresetStore', () => {
         audioMode: 'default',
         adjustments: null,
         bounds: null,
+        transition: null,
         stock: null,
         upload: null,
       },
@@ -169,6 +174,7 @@ describe('slideshowPresetStore', () => {
         audioMode: 'default',
         adjustments: null,
         bounds: null,
+        transition: null,
         stock: null,
         upload: null,
       },

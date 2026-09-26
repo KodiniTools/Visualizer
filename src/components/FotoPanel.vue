@@ -429,6 +429,7 @@ function buildSlideshowRun(config) {
     name: img.name,
     displayDuration: img.displayDuration,
     audioMode: img.audioMode,
+    transition: img.transition,
     // Pro Bild: Standard (globale Option), Aus, Gespeichert oder Preset
     audioReactiveSettings: resolveSlideshowAudioReactive(img.audioMode, {
       applyGlobal: config.applyAudioReactive,
@@ -447,6 +448,7 @@ function buildSlideshowRun(config) {
     renderBehindVisualizer: config.renderBehindVisualizer,
     fitToWorkspace: config.fitToWorkspace,
     moveWholeSlideshow: config.moveWholeSlideshow,
+    transition: config.transition,
     transform: config.transform,
   }
   return { images, options }

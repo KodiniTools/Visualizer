@@ -4,6 +4,15 @@
     <div class="timing-section">
       <label class="section-label">{{ t('slideshow.timing') }}</label>
 
+      <div class="transition-control">
+        <label for="slideshow-transition">{{ t('slideshow.transition') }}</label>
+        <select id="slideshow-transition" v-model="transition" class="transition-select">
+          <option v-for="tr in transitions" :key="tr.id" :value="tr.id">
+            {{ tr.icon }} {{ t(`slideshow.transitions.${tr.id}`) }}
+          </option>
+        </select>
+      </div>
+
       <div class="timing-control">
         <label>{{ t('slideshow.fadeIn') }}</label>
         <div class="slider-row">
@@ -75,6 +84,7 @@
 /** Timing (Ein-/Ausblenden, Anzeigedauer), Audio-Reaktiv-Übernahme und Loop. */
 import SliderField from '../../ui/SliderField.vue'
 import { useI18n } from '../../../lib/i18n.js'
+import { SLIDESHOW_TRANSITIONS } from '../../../lib/slideshowTransitions.js'
 
 defineProps({
   hasSavedSettings: { type: Boolean, default: false },
@@ -85,12 +95,37 @@ const displayDuration = defineModel('displayDuration', { type: Number, default: 
 const fadeOutDuration = defineModel('fadeOutDuration', { type: Number, default: 1000 })
 const applyAudioReactive = defineModel('applyAudioReactive', { type: Boolean, default: true })
 const loopSlideshow = defineModel('loopSlideshow', { type: Boolean, default: false })
+// Übergangsanimation für alle Bilder (pro Bild überschreibbar in der Reihenfolge-Liste)
+const transition = defineModel('transition', { type: String, default: 'fade' })
+const transitions = SLIDESHOW_TRANSITIONS
 
 const { t } = useI18n()
 </script>
 
 <style scoped src="./slideshow-shared.css"></style>
 <style scoped>
+.transition-control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.transition-control label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.transition-select {
+  padding: 4px 6px;
+  font-size: 12px;
+  background: var(--secondary-bg);
+  color: #e0e0e0;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+[data-theme='light'] .transition-select {
+  background: #f9f2d5;
+  color: #003971;
+  border-color: #d4c8a8;
+}
 .timing-control {
   display: flex;
   flex-direction: column;

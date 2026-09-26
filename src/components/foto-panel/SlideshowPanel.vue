@@ -15,6 +15,7 @@
       v-model="orderedImages"
       v-model:durations="imageDurations"
       v-model:audio-modes="imageAudioModes"
+      v-model:transitions="imageTransitions"
       :default-duration="displayDuration"
       :has-saved-settings="hasSavedSettings"
       @order-changed="(list) => emit('order-changed', list)"
@@ -28,6 +29,7 @@
       v-model:fade-out-duration="fadeOutDuration"
       v-model:apply-audio-reactive="applyAudioReactive"
       v-model:loop-slideshow="loopSlideshow"
+      v-model:transition="transition"
       :has-saved-settings="hasSavedSettings"
     />
 
@@ -183,6 +185,8 @@ const displayDuration = ref(D.displayDuration)
 const fadeOutDuration = ref(D.fadeOutDuration)
 const applyAudioReactive = ref(D.applyAudioReactive)
 const loopSlideshow = ref(D.loop)
+// Übergangsanimation für alle Bilder
+const transition = ref(D.transition)
 
 // Render Layer
 const renderBehindVisualizer = ref(D.renderBehindVisualizer)
@@ -219,6 +223,8 @@ const isVisible = computed(
 
 // Optionaler Audio-Reaktiv-Modus pro Bild ({ [id]: mode }); fehlt ein Eintrag, gilt 'default'
 const imageAudioModes = ref({})
+// Optionale Übergangsanimation pro Bild ({ [id]: transitionId }); fehlt = globaler Übergang
+const imageTransitions = ref({})
 
 watch(
   () => props.images,
@@ -272,6 +278,7 @@ function buildPayload() {
         ...img,
         displayDuration: Number.isFinite(own) ? own : undefined,
         audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
+        transition: imageTransitions.value[key],
       }
     }),
     fadeInDuration: fadeInDuration.value,
@@ -282,6 +289,7 @@ function buildPayload() {
     renderBehindVisualizer: renderBehindVisualizer.value,
     fitToWorkspace: fitsWorkspace.value,
     moveWholeSlideshow: moveWholeSlideshow.value,
+    transition: transition.value,
     transform: transformPayload(),
   }
 }
@@ -346,6 +354,7 @@ async function savePreset(name) {
       renderBehindVisualizer: renderBehindVisualizer.value,
       fitToWorkspace: fitToWorkspace.value,
       moveWholeSlideshow: moveWholeSlideshow.value,
+      transition: transition.value,
       transform: {
         x: transformX.value,
         y: transformY.value,
@@ -359,6 +368,7 @@ async function savePreset(name) {
       return {
         displayDuration: imageDurations.value[key] ?? null,
         audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
+        transition: imageTransitions.value[key] ?? null,
         adjustments: props.adjustmentsApi?.get(img) ?? null,
         bounds: props.adjustmentsApi?.getBounds?.(img) ?? null,
         // Stock-Bilder dauerhaft als Verweis (Galerie-Pfad) speichern
@@ -421,6 +431,7 @@ async function loadPreset(preset) {
   fadeOutDuration.value = s.fadeOutDuration
   applyAudioReactive.value = s.applyAudioReactive
   loopSlideshow.value = s.loop
+  transition.value = s.transition
   if (renderBehindVisualizer.value !== s.renderBehindVisualizer) {
     renderBehindVisualizer.value = s.renderBehindVisualizer
     onRenderLayerChange()
@@ -442,11 +453,13 @@ async function loadPreset(preset) {
   // Bilder ohne passende Position erhalten die Standardwerte.
   const durations = {}
   const modes = {}
+  const ownTransitions = {}
   pairs.forEach(({ img, slot }) => {
     const key = slideshowImageKey(img)
     if (!slot || key === undefined) return
     if (Number.isFinite(slot.displayDuration)) durations[key] = slot.displayDuration
     if (slot.audioMode !== SLIDESHOW_AUDIO_DEFAULT) modes[key] = slot.audioMode
+    if (slot.transition) ownTransitions[key] = slot.transition
   })
   // Bild-Anpassungen pro Position übernehmen (ohne Slot/Anpassung → verwerfen)
   pairs.forEach(({ img, slot }) => {
@@ -460,6 +473,7 @@ async function loadPreset(preset) {
   })
   imageDurations.value = durations
   imageAudioModes.value = modes
+  imageTransitions.value = ownTransitions
   // Läuft die Slideshow, sofort übernehmen – bei anderen Bildern neu starten
   if (props.isActive) {
     if (imagesChanged) emit('start', buildPayload())

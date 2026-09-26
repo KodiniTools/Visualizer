@@ -130,6 +130,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
         audioMode: 'pulse',
         adjustments: null,
         bounds: null,
+        transition: null,
         stock: null,
         upload: null,
       },
@@ -138,6 +139,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
         audioMode: 'default',
         adjustments: null,
         bounds: null,
+        transition: null,
         stock: null,
         upload: null,
       },
@@ -493,6 +495,31 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
     expect(stored).toHaveLength(1)
     expect(stored[0].slots.every((slot) => slot.upload === null)).toBe(true)
+  })
+
+  it('transition: global select + per-image override go into payload and presets', async () => {
+    const w = mountPanel()
+    expect(w.find('.transition-select').element.value).toBe('fade')
+    await w.find('.transition-select').setValue('slideLeft')
+    await w.findAll('.order-transition')[1].setValue('zoomIn')
+    await w.find('.btn-start').trigger('click')
+    const payload = w.emitted('start')[0][0]
+    expect(payload.transition).toBe('slideLeft')
+    expect(payload.images.map((i) => i.transition)).toEqual([undefined, 'zoomIn'])
+
+    await w.find('.btn-save-preset').trigger('click')
+    await flushPromises()
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    expect(stored[0].settings.transition).toBe('slideLeft')
+    expect(stored[0].slots.map((sl) => sl.transition)).toEqual([null, 'zoomIn'])
+
+    await w.find('.transition-select').setValue('fade')
+    await w.findAll('.order-transition')[1].setValue('default')
+    await w.find('.btn-load-preset').trigger('click')
+    await flushPromises()
+    expect(w.find('.transition-select').element.value).toBe('slideLeft')
+    expect(w.findAll('.order-transition')[1].element.value).toBe('zoomIn')
+    expect(w.findAll('.order-transition')[0].element.value).toBe('default')
   })
 
   it('reset in the transform section restores defaults and emits transform-change', async () => {

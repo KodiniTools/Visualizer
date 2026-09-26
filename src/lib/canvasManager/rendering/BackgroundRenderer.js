@@ -17,6 +17,17 @@ import {
   drawMediaWithAudioReactive,
 } from './audioReactiveDraw.js'
 
+/**
+ * Ersetzt die laufende Slideshow gerade den Canvas- bzw. Workspace-Hintergrund?
+ * (Dann wird das Hintergrundbild/-video weder gezeichnet noch per Klick gewählt.)
+ * @param {'canvas'|'workspace'} target
+ * @returns {boolean}
+ */
+export function isBackgroundReplacedBySlideshow(target) {
+  const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+  return Boolean(slideshow?.replacesBackground?.(target))
+}
+
 export class BackgroundRenderer {
   constructor(canvasManager) {
     this.manager = canvasManager
@@ -36,11 +47,20 @@ export class BackgroundRenderer {
    * Zeichnet den kompletten Hintergrund (Farbe, Bild, Video, Tiles)
    */
   drawBackground(ctx) {
+    // Läuft die Slideshow als Canvas-/Workspace-Hintergrund, ERSETZT sie das
+    // jeweilige Hintergrundbild/-video (statt es nur zu verdecken)
+    const slideshowReplacesCanvas = this._slideshowReplacesBackground('canvas')
+    const slideshowReplacesWorkspace = this._slideshowReplacesBackground('workspace')
+
     // 1. GLOBAL BACKGROUND (Color or Image with Filters)
     if (typeof this.manager.background === 'string') {
       this._drawColorBackground(ctx)
     } else if (this.manager.background && typeof this.manager.background === 'object') {
-      this._drawImageBackground(ctx)
+      if (slideshowReplacesCanvas) {
+        this._drawSlideshowBase(ctx)
+      } else {
+        this._drawImageBackground(ctx)
+      }
     } else {
       // Fallback: Weißer Hintergrund wenn nichts gesetzt
       ctx.fillStyle = '#ffffff'
@@ -48,7 +68,11 @@ export class BackgroundRenderer {
     }
 
     // 1.2 VIDEO-HINTERGRUND zeichnen (über Farb-/Bild-Hintergrund)
-    if (this.manager.videoBackground && this.manager.videoBackground.videoElement) {
+    if (
+      !slideshowReplacesCanvas &&
+      this.manager.videoBackground &&
+      this.manager.videoBackground.videoElement
+    ) {
       this._drawVideoBackground(ctx)
     }
 
@@ -56,18 +80,43 @@ export class BackgroundRenderer {
     this.drawBackgroundTiles(ctx)
 
     // 2. WORKSPACE BACKGROUND
-    if (this.manager.workspaceBackground && this.manager.workspacePreset) {
+    if (
+      !slideshowReplacesWorkspace &&
+      this.manager.workspaceBackground &&
+      this.manager.workspacePreset
+    ) {
       this._drawWorkspaceImageBackground(ctx)
     }
 
     // 2.5 WORKSPACE-VIDEO-HINTERGRUND zeichnen
     if (
+      !slideshowReplacesWorkspace &&
       this.manager.workspaceVideoBackground &&
       this.manager.workspaceVideoBackground.videoElement &&
       this.manager.workspacePreset
     ) {
       this._drawWorkspaceVideoBackground(ctx)
     }
+  }
+
+  /**
+   * Ersetzt die laufende Slideshow gerade den Hintergrund dieses Bereichs?
+   * @param {'canvas'|'workspace'} target
+   * @returns {boolean}
+   */
+  _slideshowReplacesBackground(target) {
+    return isBackgroundReplacedBySlideshow(target)
+  }
+
+  /**
+   * Neutrale Fläche anstelle des ersetzten Hintergrundbildes – sichtbar nur
+   * während der Übergänge und neben Bildern mit abweichendem Seitenverhältnis.
+   */
+  _drawSlideshowBase(ctx) {
+    ctx.save()
+    ctx.fillStyle = '#000000'
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    ctx.restore()
   }
 
   /**

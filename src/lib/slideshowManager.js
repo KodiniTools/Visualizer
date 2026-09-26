@@ -170,6 +170,22 @@ export class SlideshowManager {
   }
 
   /**
+   * Ersetzt die Slideshow gerade das Hintergrundbild/-video des Bereichs?
+   * Nur solange sie läuft (auch pausiert) und Bilder zeigt – danach erscheint
+   * der normale Hintergrund wieder.
+   * @param {'canvas'|'workspace'} target
+   * @returns {boolean}
+   */
+  replacesBackground(target) {
+    return (
+      this.isActive &&
+      this.activeImages.length > 0 &&
+      (target === 'canvas' || target === 'workspace') &&
+      this.config.backgroundMode === target
+    )
+  }
+
+  /**
    * Slideshow als Hintergrund einsetzen (auch während laufender Slideshow).
    * @param {'none'|'canvas'|'workspace'} mode
    */
@@ -502,34 +518,12 @@ export class SlideshowManager {
     // ✨ Bounds basierend auf Transform bzw. Workspace berechnen
     const { bounds, clipRect } = this._computeImageLayout(imageObject)
 
-    // ✨ FIX: Füge Bild mit benutzerdefinierten Optionen hinzu, einschließlich isSlideshowImage
-    // WICHTIG: isSlideshowImage muss VOR dem redraw gesetzt werden, damit Selection-Marker
-    // sofort die korrekten Transform-Bounds verwenden
-    const newImage = this.multiImageManager.addImageWithBounds(
-      imageObject,
-      bounds,
-      'none', // Keine Standard-Animation, wir nutzen slideshow
-      {
-        duration: 0,
-        isSlideshowImage: true, // ✨ NEU: Flag direkt beim Hinzufügen setzen
-      },
-    )
-
-    if (!newImage) {
-      console.error('[SlideshowManager] Konnte Bild nicht hinzufügen')
-      this.currentIndex++
-      return this._addNextImage()
-    }
-
-    // ✨ Sicherstellen dass isSlideshowImage gesetzt ist (falls nicht von addImageWithBounds)
-    newImage.isSlideshowImage = true
-
-    // Slideshow-spezifische Eigenschaften setzen
-    const now = Date.now()
-    newImage.slideshow = {
+    // Slideshow-spezifische Eigenschaften – vor dem Hinzufügen erstellt, damit
+    // schon der erste Zeichen-Frame das Bild im Startzustand des Übergangs zeigt
+    const slideshow = {
       active: true,
       imageIndex: this.currentIndex,
-      addedAt: now,
+      addedAt: Date.now(),
       // Ein-/Ausblenddauer: eigener Wert des Bildes, sonst Standard
       fadeInDuration: SlideshowManager.resolvePhaseDuration(
         imageConfig?.fadeInDuration,
@@ -550,6 +544,30 @@ export class SlideshowManager {
       transitionState: null,
       clipRect, // relativer Clip-Bereich (Workspace) oder null
     }
+    this._applyTransition(slideshow, 'in', 0)
+
+    // isSlideshowImage + slideshow müssen VOR dem ersten redraw gesetzt sein
+    // (Selection-Marker, Deckkraft/Übergang)
+    const newImage = this.multiImageManager.addImageWithBounds(
+      imageObject,
+      bounds,
+      'none', // Keine Standard-Animation, wir nutzen slideshow
+      {
+        duration: 0,
+        isSlideshowImage: true,
+        slideshow,
+      },
+    )
+
+    if (!newImage) {
+      console.error('[SlideshowManager] Konnte Bild nicht hinzufügen')
+      this.currentIndex++
+      return this._addNextImage()
+    }
+
+    // Falls addImageWithBounds die Optionen nicht übernimmt (z. B. ältere Mocks)
+    newImage.isSlideshowImage = true
+    newImage.slideshow = slideshow
 
     this._applyImageState(newImage, imageConfig, this.currentIndex)
 

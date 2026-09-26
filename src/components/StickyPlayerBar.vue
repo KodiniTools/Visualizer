@@ -7,6 +7,9 @@
          den Timer der Text-Sequenz. Ein Ab- und Neuaufbau beim Schließen
          würde diese verlieren bzw. Listener anhäufen. -->
     <TextManagerPopover v-show="popover.isOpen('textManager')" />
+    <!-- Slideshow-Fenster ebenfalls dauerhaft gemountet: es ist das Teleport-
+         Ziel des Slideshow-Panels im FotoPanel (Zustand bleibt beim Schließen). -->
+    <SlideshowPopover v-show="popover.isOpen('slideshow')" />
     <AudioSourcePopover v-if="popover.isOpen('audio')" />
     <VolumeEqPopover v-if="popover.isOpen('volume')" />
     <BeatMarkerPopover v-if="popover.isOpen('markers')" />
@@ -59,6 +62,8 @@ import CanvasControlPopover from './sticky-player-bar/CanvasControlPopover.vue'
 import VideoPopover from './sticky-player-bar/VideoPopover.vue'
 import RecorderPopover from './sticky-player-bar/RecorderPopover.vue'
 import PlayerBarControls from './sticky-player-bar/PlayerBarControls.vue'
+import SlideshowPopover from './sticky-player-bar/SlideshowPopover.vue'
+import { SLIDESHOW_EDIT_EVENT } from '../lib/slideshowEditRequest.js'
 
 const barRef = ref(null)
 
@@ -88,8 +93,17 @@ provide('playerBar', { popover, volumeEq, playMode, audioSource, markers, playli
 // auf dieses Ereignis). Da der Text-Manager jetzt im Popover sitzt, wird es
 // dabei geöffnet, damit der Editor wie zuvor direkt sichtbar ist.
 const openTextManager = () => popover.openPopover('textManager')
-onMounted(() => window.addEventListener('openTextEditorWithChar', openTextManager))
-onUnmounted(() => window.removeEventListener('openTextEditorWithChar', openTextManager))
+// Klick auf ein Bild der pausierten Slideshow öffnet dessen Einstellungen im
+// Slideshow-Fenster – das Fenster dafür öffnen.
+const openSlideshow = () => popover.openPopover('slideshow')
+onMounted(() => {
+  window.addEventListener('openTextEditorWithChar', openTextManager)
+  window.addEventListener(SLIDESHOW_EDIT_EVENT, openSlideshow)
+})
+onUnmounted(() => {
+  window.removeEventListener('openTextEditorWithChar', openTextManager)
+  window.removeEventListener(SLIDESHOW_EDIT_EVENT, openSlideshow)
+})
 </script>
 
 <style scoped>

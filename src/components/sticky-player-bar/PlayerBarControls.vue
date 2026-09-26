@@ -173,6 +173,21 @@
       <span class="spb-divider" aria-hidden="true"></span>
 
       <button
+        class="spb-icon-btn spb-slideshow-btn"
+        :class="{ active: isOpen('slideshow') }"
+        :title="t('player.openSlideshow')"
+        data-testid="open-slideshow"
+        @click="togglePopover('slideshow')"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 12.5v-9l6 4.5-6 4.5z"
+          />
+        </svg>
+        <span v-if="slideshow.imageCount >= 2" class="spb-badge">{{ slideshow.imageCount }}</span>
+      </button>
+
+      <button
         class="spb-icon-btn"
         :class="{ active: isOpen('markers') }"
         :title="t('player.openMarkers')"
@@ -403,6 +418,7 @@
 import { computed, inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useHistoryStore } from '../../stores/historyStore.js'
+import { useSlideshowPopover } from '../../composables/useSlideshowPopover.js'
 import { historyStepLabel } from '../../lib/history/historyLabels.js'
 import { usePlayerStore } from '../../stores/playerStore.js'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
@@ -416,6 +432,7 @@ const beatMarkerStore = useBeatMarkerStore()
 const audioSourceStore = useAudioSourceStore()
 const recorderStore = useRecorderStore()
 const historyStore = useHistoryStore()
+const slideshow = useSlideshowPopover()
 
 // Tooltip nennt den Schritt, der rückgängig gemacht / wiederholt würde.
 const undoTitle = computed(() => {

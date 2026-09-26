@@ -36,37 +36,41 @@
       @image-dragend="onGalleryImageDragEnd"
     />
 
-    <!-- Slideshow-Panel (wenn 2+ Bilder ausgewählt oder aktiv) -->
-    <SlideshowPanel
-      :images="slideshowImages"
-      :hasSavedSettings="hasSavedAudioSettings"
-      :isActive="slideshowIsActive"
-      :isPaused="slideshowIsPaused"
-      :currentImageIndex="slideshowCurrentIndex"
-      :totalImages="slideshowTotalImages"
-      :currentPhase="slideshowCurrentPhase"
-      :has-workspace="hasWorkspace"
-      :adjustments-api="slideshowAdjustmentsApi"
-      :external-transform="slideshowExternalTransform"
-      :edit-image-request="slideshowEditRequest"
-      :bounds-revision="slideshowBoundsRevision"
-      @start="startSlideshow"
-      @pause="pauseSlideshow"
-      @resume="resumeSlideshow"
-      @stop="stopSlideshow"
-      @order-changed="onSlideshowOrderChanged"
-      @render-layer-change="onSlideshowRenderLayerChange"
-      @transform-change="onSlideshowTransformChange"
-      @background-mode-change="onSlideshowBackgroundModeChange"
-      @background-color-change="onSlideshowBackgroundColorChange"
-      @workspace-color-change="onSlideshowWorkspaceColorChange"
-      @base-gradient-change="onSlideshowBaseGradientChange"
-      @base-fill-audio-change="onSlideshowBaseFillAudioChange"
-      @base-image-change="onSlideshowBaseImageChange"
-      @reset-image-adjustments="onSlideshowResetImageAdjustments"
-      @live-update="onSlideshowLiveUpdate"
-      @move-mode-change="onSlideshowMoveModeChange"
-    />
+    <!-- Slideshow-Panel: bleibt hier gemountet (Verdrahtung mit dem Manager),
+         wird aber in das Slideshow-Fenster der Sticky-Bar teleportiert -->
+    <Teleport :to="slideshowTeleportTarget || 'body'" :disabled="!slideshowTeleportTarget">
+      <SlideshowPanel
+        :images="slideshowImages"
+        :hasSavedSettings="hasSavedAudioSettings"
+        :isActive="slideshowIsActive"
+        :isPaused="slideshowIsPaused"
+        :currentImageIndex="slideshowCurrentIndex"
+        :totalImages="slideshowTotalImages"
+        :currentPhase="slideshowCurrentPhase"
+        :has-workspace="hasWorkspace"
+        :adjustments-api="slideshowAdjustmentsApi"
+        :external-transform="slideshowExternalTransform"
+        :edit-image-request="slideshowEditRequest"
+        :bounds-revision="slideshowBoundsRevision"
+        @start="startSlideshow"
+        @pause="pauseSlideshow"
+        @resume="resumeSlideshow"
+        @stop="stopSlideshow"
+        @order-changed="onSlideshowOrderChanged"
+        @render-layer-change="onSlideshowRenderLayerChange"
+        @transform-change="onSlideshowTransformChange"
+        @background-mode-change="onSlideshowBackgroundModeChange"
+        @background-color-change="onSlideshowBackgroundColorChange"
+        @workspace-color-change="onSlideshowWorkspaceColorChange"
+        @base-gradient-change="onSlideshowBaseGradientChange"
+        @base-fill-audio-change="onSlideshowBaseFillAudioChange"
+        @base-image-change="onSlideshowBaseImageChange"
+        @reset-image-adjustments="onSlideshowResetImageAdjustments"
+        @live-update="onSlideshowLiveUpdate"
+        @move-mode-change="onSlideshowMoveModeChange"
+        @visibility-change="(v) => (slideshowPopover.panelVisible = v)"
+      />
+    </Teleport>
 
     <!-- Filter-Bereich -->
     <ImageFiltersPanel
@@ -104,6 +108,10 @@ import SlideshowPanel from './foto-panel/SlideshowPanel.vue'
 import { SlideshowManager } from '../lib/slideshowManager.js'
 import { resolveSlideshowAudioReactive } from '../lib/slideshowAudio.js'
 import { SLIDESHOW_EDIT_EVENT } from '../lib/slideshowEditRequest.js'
+import {
+  SLIDESHOW_POPOVER_TARGET_ID,
+  useSlideshowPopover,
+} from '../composables/useSlideshowPopover.js'
 import { slideshowStableKey } from './foto-panel/slideshow/slideshowImageKey.js'
 import { useSlideshowImageAdjustmentsStore } from '../stores/slideshowImageAdjustmentsStore.js'
 import { useSlideshowImageSettingsStore } from '../stores/slideshowImageSettingsStore.js'
@@ -232,6 +240,14 @@ const adjustmentsStore = useSlideshowImageAdjustmentsStore()
 // Dauerhaft gemerkte Einstellungen pro Bild (u. a. eigene Größe/Position)
 const imageSettingsStore = useSlideshowImageSettingsStore()
 
+// Slideshow-Fenster der Sticky-Bar (Teleport-Ziel + Badge/Zustand für den Button)
+const slideshowPopover = useSlideshowPopover()
+const slideshowTeleportTarget = ref(null)
+onMounted(() => {
+  // Die Sticky-Bar wird im selben Durchlauf gemountet; ihr Fenster ist dauerhaft da
+  slideshowTeleportTarget.value = document.getElementById(SLIDESHOW_POPOVER_TARGET_ID)
+})
+
 // Klick auf ein Slideshow-Bild in der Leiste (pausiert) → dessen Einstellungen öffnen
 const slideshowEditRequest = ref(null)
 function onSlideshowEditImage(event) {
@@ -253,6 +269,16 @@ const slideshowImages = computed(() =>
     selectedStockImagesAll.value,
     getLoadedStockImage,
   ),
+)
+
+// Badge am Slideshow-Button: ausgewählte Bilder, während des Laufs alle Bilder
+watch(
+  () => [slideshowIsActive.value, slideshowTotalImages.value, slideshowImages.value.length],
+  ([active, total, selected]) => {
+    slideshowPopover.active = active
+    slideshowPopover.imageCount = active ? total : selected
+  },
+  { immediate: true },
 )
 
 // ═══════════════════════════════════════════════════════════════════

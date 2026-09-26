@@ -356,6 +356,7 @@ const emit = defineEmits([
   'reset-image-adjustments',
   'live-update',
   'move-mode-change',
+  'visibility-change',
 ])
 
 const D = SLIDESHOW_DEFAULT_SETTINGS
@@ -477,6 +478,8 @@ const isVisible = computed(
     Object.keys(presetStore.sessionImages).length > 0 ||
     presetStore.presets.some((preset) => preset.slots.some((slot) => slot.stock || slot.upload)),
 )
+// Fenster der Sticky-Bar zeigt ohne Inhalt einen Hinweis
+watch(isVisible, (visible) => emit('visibility-change', visible), { immediate: true })
 
 // Optionaler Audio-Reaktiv-Modus pro Bild ({ [id]: mode }); fehlt ein Eintrag, gilt 'default'
 const imageAudioModes = ref({})

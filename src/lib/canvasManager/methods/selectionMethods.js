@@ -95,9 +95,12 @@ export class SelectionMethods {
     }
 
     if (obj.type === 'image') {
-      // Slideshow-Bilder: Bild-Bounds bzw. Workspace (siehe getSelectionBounds)
+      // Slideshow-Bilder: sichtbarer Bereich inkl. Übergang (siehe getDisplayBounds)
       if (obj.isSlideshowImage && window.slideshowManager) {
-        const transform = window.slideshowManager.getSelectionBounds(obj)
+        const sm = window.slideshowManager
+        const transform = sm.getDisplayBounds
+          ? sm.getDisplayBounds(obj)
+          : sm.getSelectionBounds(obj)
         return {
           x: transform.relX * this.canvas.width,
           y: transform.relY * this.canvas.height,

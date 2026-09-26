@@ -25,29 +25,67 @@
         :value="transition ?? 'default'"
         @change="onTransition($event.target.value)"
       >
-        <option value="default">{{ t('slideshow.transitionDefault') }}</option>
+        <option value="default">
+          {{ t('slideshow.transitionDefault') }} ({{
+            t(`slideshow.transitions.${defaultTransition}`)
+          }})
+        </option>
         <option v-for="tr in transitions" :key="tr.id" :value="tr.id">
           {{ tr.icon }} {{ t(`slideshow.transitions.${tr.id}`) }}
         </option>
       </select>
     </label>
 
-    <label class="image-editor-field">
-      <span>{{ t('slideshow.display') }}</span>
-      <span class="image-editor-duration">
-        <input
-          class="editor-duration"
-          type="number"
-          min="0.5"
-          max="60"
-          step="0.5"
-          :value="Number.isFinite(duration) ? duration / 1000 : ''"
-          :placeholder="(defaultDuration / 1000).toFixed(1)"
-          @input="onDuration($event.target.value)"
-        />
-        <span>s</span>
-      </span>
-    </label>
+    <div class="image-editor-times">
+      <label class="image-editor-field">
+        <span>{{ t('slideshow.fieldFadeIn') }}</span>
+        <span class="image-editor-duration">
+          <input
+            class="editor-fadein"
+            type="number"
+            min="0.1"
+            max="5"
+            step="0.1"
+            :value="Number.isFinite(fadeIn) ? fadeIn / 1000 : ''"
+            :placeholder="(defaultFadeIn / 1000).toFixed(1)"
+            @input="emit('update:fadeIn', toMs($event.target.value, 100, 5000))"
+          />
+          <span>s</span>
+        </span>
+      </label>
+      <label class="image-editor-field">
+        <span>{{ t('slideshow.fieldDisplay') }}</span>
+        <span class="image-editor-duration">
+          <input
+            class="editor-duration"
+            type="number"
+            min="0.5"
+            max="60"
+            step="0.5"
+            :value="Number.isFinite(duration) ? duration / 1000 : ''"
+            :placeholder="(defaultDuration / 1000).toFixed(1)"
+            @input="emit('update:duration', toMs($event.target.value, 500, 60000))"
+          />
+          <span>s</span>
+        </span>
+      </label>
+      <label class="image-editor-field">
+        <span>{{ t('slideshow.fieldFadeOut') }}</span>
+        <span class="image-editor-duration">
+          <input
+            class="editor-fadeout"
+            type="number"
+            min="0.1"
+            max="5"
+            step="0.1"
+            :value="Number.isFinite(fadeOut) ? fadeOut / 1000 : ''"
+            :placeholder="(defaultFadeOut / 1000).toFixed(1)"
+            @input="emit('update:fadeOut', toMs($event.target.value, 100, 5000))"
+          />
+          <span>s</span>
+        </span>
+      </label>
+    </div>
 
     <label class="image-editor-field">
       <span>{{ t('slideshow.perImageAudioHint') }}</span>
@@ -88,11 +126,23 @@ const props = defineProps({
   total: { type: Number, default: 0 },
   transition: { type: String, default: null },
   duration: { type: Number, default: undefined },
+  fadeIn: { type: Number, default: undefined },
+  fadeOut: { type: Number, default: undefined },
   defaultDuration: { type: Number, default: 3000 },
+  defaultFadeIn: { type: Number, default: 1000 },
+  defaultFadeOut: { type: Number, default: 1000 },
+  defaultTransition: { type: String, default: 'fade' },
   audioMode: { type: String, default: 'default' },
   hasSavedSettings: { type: Boolean, default: false },
 })
-const emit = defineEmits(['update:transition', 'update:duration', 'update:audioMode', 'close'])
+const emit = defineEmits([
+  'update:transition',
+  'update:duration',
+  'update:fadeIn',
+  'update:fadeOut',
+  'update:audioMode',
+  'close',
+])
 const { t } = useI18n()
 
 const transitions = SLIDESHOW_TRANSITIONS
@@ -110,12 +160,12 @@ function onTransition(value) {
   emit('update:transition', isValidTransition(value) ? value : null)
 }
 
-function onDuration(value) {
+/** Sekunden-Eingabe → ms (begrenzt); leer/ungültig = undefined (Standard). */
+function toMs(value, minMs, maxMs) {
   const seconds = parseFloat(value)
-  emit(
-    'update:duration',
-    Number.isFinite(seconds) && seconds > 0 ? Math.round(Math.min(seconds, 60) * 1000) : undefined,
-  )
+  return Number.isFinite(seconds) && seconds > 0
+    ? Math.round(Math.min(maxMs, Math.max(minMs, seconds * 1000)))
+    : undefined
 }
 
 function onAudio(value) {
@@ -194,13 +244,17 @@ onMounted(() => {
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
+.image-editor-times {
+  display: flex;
+  gap: 8px;
+}
 .image-editor-duration {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 .image-editor-duration input {
-  width: 70px;
+  width: 56px;
   text-align: right;
 }
 .image-editor .hint {

@@ -470,8 +470,15 @@ export class SlideshowManager {
       active: true,
       imageIndex: this.currentIndex,
       addedAt: now,
-      fadeInDuration: this.config.fadeInDuration,
-      fadeOutDuration: this.config.fadeOutDuration,
+      // Ein-/Ausblenddauer: eigener Wert des Bildes, sonst Standard
+      fadeInDuration: SlideshowManager.resolvePhaseDuration(
+        imageConfig?.fadeInDuration,
+        this.config.fadeInDuration,
+      ),
+      fadeOutDuration: SlideshowManager.resolvePhaseDuration(
+        imageConfig?.fadeOutDuration,
+        this.config.fadeOutDuration,
+      ),
       displayDuration: SlideshowManager.resolveDisplayDuration(
         imageConfig,
         this.config.displayDuration,
@@ -548,6 +555,8 @@ export class SlideshowManager {
       audioMode: images[i]?.audioMode,
       audioReactiveSettings: images[i]?.audioReactiveSettings ?? null,
       transition: images[i]?.transition,
+      fadeInDuration: images[i]?.fadeInDuration,
+      fadeOutDuration: images[i]?.fadeOutDuration,
     }))
     this.configure({
       images: merged,
@@ -581,9 +590,18 @@ export class SlideshowManager {
         imageData.slideshow.transition = resolveTransition(merged[index], this.config.transition)
         // Live-Bearbeitung: neue Anzeigedauer gilt auch für das angezeigte Bild
         if (options.preserveLive) {
-          imageData.slideshow.displayDuration = SlideshowManager.resolveDisplayDuration(
+          const ss = imageData.slideshow
+          ss.displayDuration = SlideshowManager.resolveDisplayDuration(
             merged[index],
             this.config.displayDuration,
+          )
+          ss.fadeInDuration = SlideshowManager.resolvePhaseDuration(
+            merged[index].fadeInDuration,
+            this.config.fadeInDuration,
+          )
+          ss.fadeOutDuration = SlideshowManager.resolvePhaseDuration(
+            merged[index].fadeOutDuration,
+            this.config.fadeOutDuration,
           )
         }
       }
@@ -857,6 +875,10 @@ export class SlideshowManager {
    * @param {number} fallback - Globale Anzeigedauer in ms
    * @returns {number}
    */
+  static resolvePhaseDuration(own, fallback) {
+    return Number.isFinite(own) && own > 0 ? own : fallback
+  }
+
   static resolveDisplayDuration(imageConfig, fallback) {
     const own = imageConfig?.displayDuration
     return Number.isFinite(own) && own > 0 ? own : fallback

@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { requestSlideshowImageEdit } from '../lib/slideshowEditRequest.js'
 
 export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstance, t }) {
   const selectedCanvasImageId = ref(null)
@@ -44,10 +45,7 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
     }
 
     // Pausierte Slideshow: Einstellungen dieses Bildes im Slideshow-Panel öffnen
-    const index = imgData.slideshow?.imageIndex
-    if (imgData.isSlideshowImage && window.slideshowManager?.isPaused && Number.isInteger(index)) {
-      window.dispatchEvent(new CustomEvent('slideshow:edit-image', { detail: { index } }))
-    }
+    requestSlideshowImageEdit(imgData)
   }
 
   function deleteCanvasImage(imageId) {

@@ -69,8 +69,24 @@ describe('slideshowImageSettingsStore – Übergänge pro Bild dauerhaft', () =>
   it('begrenzt die Anzahl (älteste Einträge fallen heraus)', () => {
     const store = useSlideshowImageSettingsStore()
     for (let i = 0; i < 505; i++) store.setTransition(`k${i}`, 'fade')
-    expect(Object.keys(store.transitions)).toHaveLength(500)
+    expect(Object.keys(store.entries)).toHaveLength(500)
     expect(store.getTransition('k0')).toBeNull()
     expect(store.getTransition('k504')).toBe('fade')
+  })
+})
+
+describe('slideshowImageSettingsStore – Ein-/Ausblenddauer pro Bild', () => {
+  it('speichert Übergang + Dauern, begrenzt Werte, übernimmt alte Einträge', () => {
+    localStorage.setItem(KEY, JSON.stringify({ alt: 'zoomIn' })) // älteres Format
+    const store = useSlideshowImageSettingsStore()
+    expect(store.getImageSettings('alt')).toEqual({ transition: 'zoomIn' })
+    store.setImageSettings('k', { transition: 'wipe', fadeIn: 50, fadeOut: 9000 })
+    expect(store.getImageSettings('k')).toEqual({ transition: 'wipe', fadeIn: 100, fadeOut: 5000 })
+    store.setImageSettings('k', { transition: null, fadeIn: 1500, fadeOut: null })
+    setActivePinia(createPinia())
+    const again = useSlideshowImageSettingsStore()
+    expect(again.getImageSettings('k')).toEqual({ fadeIn: 1500 })
+    again.setImageSettings('k', {})
+    expect(again.getImageSettings('k')).toBeNull()
   })
 })

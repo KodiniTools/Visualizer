@@ -3,9 +3,10 @@
     <!-- Timing-Einstellungen -->
     <div class="timing-section">
       <label class="section-label">{{ t('slideshow.timing') }}</label>
+      <p class="hint timing-hint">{{ t('slideshow.timingHint') }}</p>
 
       <div class="transition-control">
-        <label for="slideshow-transition">{{ t('slideshow.transition') }}</label>
+        <label for="slideshow-transition">{{ t('slideshow.defaultTransitionLabel') }}</label>
         <select id="slideshow-transition" v-model="transition" class="transition-select">
           <option v-for="tr in transitions" :key="tr.id" :value="tr.id">
             {{ tr.icon }} {{ t(`slideshow.transitions.${tr.id}`) }}
@@ -104,6 +105,10 @@ const { t } = useI18n()
 
 <style scoped src="./slideshow-shared.css"></style>
 <style scoped>
+.timing-hint {
+  padding-left: 0;
+  margin-top: -6px;
+}
 .transition-control {
   display: flex;
   flex-direction: column;

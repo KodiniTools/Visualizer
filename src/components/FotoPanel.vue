@@ -96,6 +96,7 @@ import SlideshowPanel from './foto-panel/SlideshowPanel.vue'
 // Lib
 import { SlideshowManager } from '../lib/slideshowManager.js'
 import { resolveSlideshowAudioReactive } from '../lib/slideshowAudio.js'
+import { SLIDESHOW_EDIT_EVENT } from '../lib/slideshowEditRequest.js'
 import {
   buildSlideshowSourceImages,
   ensureSlideshowImagesLoaded,
@@ -216,8 +217,8 @@ function onSlideshowEditImage(event) {
   if (!Number.isInteger(index)) return
   slideshowEditRequest.value = { index, nonce: Date.now() }
 }
-onMounted(() => window.addEventListener('slideshow:edit-image', onSlideshowEditImage))
-onBeforeUnmount(() => window.removeEventListener('slideshow:edit-image', onSlideshowEditImage))
+onMounted(() => window.addEventListener(SLIDESHOW_EDIT_EVENT, onSlideshowEditImage))
+onBeforeUnmount(() => window.removeEventListener(SLIDESHOW_EDIT_EVENT, onSlideshowEditImage))
 // Workspace-Format gewählt? (Voraussetzung für „An Workspace anpassen“)
 const workspaceStore = useWorkspaceStore()
 const hasWorkspace = computed(() => workspaceStore.selectedPresetKey != null)
@@ -440,6 +441,8 @@ function buildSlideshowRun(config) {
     displayDuration: img.displayDuration,
     audioMode: img.audioMode,
     transition: img.transition,
+    fadeInDuration: img.fadeInDuration,
+    fadeOutDuration: img.fadeOutDuration,
     // Pro Bild: Standard (globale Option), Aus, Gespeichert oder Preset
     audioReactiveSettings: resolveSlideshowAudioReactive(img.audioMode, {
       applyGlobal: config.applyAudioReactive,

@@ -4,6 +4,7 @@ import {
   useSlideshowPresetStore,
   normalizeSlideshowPreset,
   normalizeImageBounds,
+  normalizeStockRef,
 } from '../../stores/slideshowPresetStore.js'
 
 const KEY = 'visualizer-slideshow-presets'
@@ -48,7 +49,7 @@ describe('slideshowPresetStore', () => {
     expect(preset.name).toBe('Mein Preset')
     expect(preset.settings.displayDuration).toBe(4000)
     expect(preset.slots).toEqual(
-      snapshot.slots.map((sl) => ({ ...sl, adjustments: null, bounds: null })),
+      snapshot.slots.map((sl) => ({ ...sl, adjustments: null, bounds: null, stock: null })),
     )
 
     // Neuer Store liest aus dem localStorage
@@ -61,6 +62,7 @@ describe('slideshowPresetStore', () => {
       audioMode: 'pulse',
       adjustments: null,
       bounds: null,
+      stock: null,
     })
     expect(reloaded.presets[0].settings.fitToWorkspace).toBe(true)
     expect(reloaded.presets[0].settings.moveWholeSlideshow).toBe(true)
@@ -145,8 +147,8 @@ describe('slideshowPresetStore', () => {
     expect(p.settings.moveWholeSlideshow).toBe(false)
     expect(p.settings.transform.width).toBe(10)
     expect(p.slots).toEqual([
-      { displayDuration: null, audioMode: 'default', adjustments: null, bounds: null },
-      { displayDuration: null, audioMode: 'default', adjustments: null, bounds: null },
+      { displayDuration: null, audioMode: 'default', adjustments: null, bounds: null, stock: null },
+      { displayDuration: null, audioMode: 'default', adjustments: null, bounds: null, stock: null },
     ])
     expect(normalizeSlideshowPreset(null)).toBeNull()
   })
@@ -192,5 +194,41 @@ describe('slideshowPresetStore – Bilder nur für die Sitzung', () => {
     const store = useSlideshowPresetStore()
     const p = store.savePreset('Ohne', snapshot, [])
     expect(store.getSessionImages(p.id)).toBeNull()
+  })
+})
+
+describe('Stock-Verweise dauerhaft im Preset', () => {
+  const ref = {
+    id: 'ba-gradient-forest',
+    name: 'Gradient Forest',
+    file: 'gallery/backgrounds/gradient-forest.svg',
+    thumbnail: 'gallery/backgrounds/gradient-forest.svg',
+  }
+
+  it('normalizeStockRef erlaubt nur Galerie-Pfade', () => {
+    expect(normalizeStockRef(ref)).toEqual(ref)
+    expect(normalizeStockRef({ ...ref, file: 'https://evil.example/x.png' })).toBeNull()
+    expect(normalizeStockRef({ ...ref, file: 'gallery/../secret.png' })).toBeNull()
+    expect(normalizeStockRef({ ...ref, file: 'javascript:alert(1)' })).toBeNull()
+    expect(normalizeStockRef({ ...ref, id: '<script>' })).toBeNull()
+    expect(normalizeStockRef({ ...ref, thumbnail: 'data:x' }).thumbnail).toBe(ref.file)
+    expect(normalizeStockRef(null)).toBeNull()
+  })
+
+  it('bleibt nach „Neuladen“ im localStorage erhalten', () => {
+    const store = useSlideshowPresetStore()
+    const p = store.savePreset('Stock', {
+      settings: snapshot.settings,
+      slots: [
+        { displayDuration: 5000, audioMode: 'pulse', stock: ref },
+        { displayDuration: null, audioMode: 'default', stock: null },
+      ],
+    })
+    setActivePinia(createPinia())
+    const reloaded = useSlideshowPresetStore()
+    reloaded.loadPresets()
+    const again = reloaded.presets.find((x) => x.id === p.id)
+    expect(again.slots[0].stock).toEqual(ref)
+    expect(again.slots[1].stock).toBeNull()
   })
 })

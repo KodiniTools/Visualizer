@@ -28,6 +28,12 @@
           :title="t('slideshow.presetImagesHint')"
           >🖼</span
         >
+        <span
+          v-else-if="preset.slots.some((slot) => slot.stock)"
+          class="preset-images-badge"
+          :title="t('slideshow.presetStockHint')"
+          >🗂</span
+        >
         <span class="preset-meta">{{ preset.slots.length }} × {{ t('slideshow.image') }}</span>
         <button type="button" class="btn-load-preset" @click="emit('load', preset)">
           {{ t('slideshow.loadPreset') }}

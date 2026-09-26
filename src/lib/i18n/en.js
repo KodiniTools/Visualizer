@@ -1439,7 +1439,7 @@ export default {
     deletePreset: 'Delete',
     noPresets: 'No slideshow presets saved yet.',
     presetHint:
-      'Saves timing, options (incl. mouse mode), position/size and, per image position, display duration, audio reaction, image adjustments and own size/position. The images themselves (uploaded and stock) are kept for the current session only. Loading also works while the slideshow runs.',
+      'Saves timing, options (incl. mouse mode), position/size and, per image position, display duration, audio reaction, image adjustments and own size/position. Stock images are saved permanently, uploaded images for the current session only. Loading also works while the slideshow runs.',
     presetSaved: 'Slideshow preset saved',
     presetLoaded: 'Slideshow preset loaded',
     presetSaveError: 'Slideshow preset could not be saved',
@@ -1456,6 +1456,7 @@ export default {
     moveWholeHintOff: 'Dragging moves the clicked image. Shift + drag: whole slideshow.',
     imagesNotLoaded: 'Images could not be loaded',
     presetImagesHint: 'Contains the images (this session only)',
+    presetStockHint: 'Contains stock images (saved permanently)',
     dragHint: 'The slideshow can also be moved and scaled with the mouse on the canvas.',
   },
 

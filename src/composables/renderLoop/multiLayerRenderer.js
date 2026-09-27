@@ -6,6 +6,7 @@ import { ensureSizedCanvas } from './canvasCache.js'
 import { gateAudioData } from './reactGate.js'
 import { createLayerPunch } from './beatPunch.js'
 import { ensurePostProcessor, applyPostFx } from './postFx.js'
+import { normalizeLedConfig } from '../../lib/visualizers/gl/ledTextSettings.js'
 
 /**
  * Multi-Layer-Modus: jeder sichtbare Layer wird in ein eigenes Cache-Canvas
@@ -81,6 +82,10 @@ export function createMultiLayerRenderer({
 
     visualizerState._imageSource = visualizer.needsImage
       ? getVisualizerImageSource(effectiveImageId(layer.imageId))
+      : null
+    // LED-Text/-Zahlen: Text und Modus dieses Layers (eigene Glättung je Layer)
+    visualizerState._ledText = visualizer.ledText
+      ? { ...normalizeLedConfig(layer), key: layer.id }
       : null
 
     // Onset-Flourishes je Layer: Der eigene Schalter wirkt zusätzlich zum

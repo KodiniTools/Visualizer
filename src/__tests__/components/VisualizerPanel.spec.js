@@ -76,13 +76,15 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
       .find((c) => c.find('.category-name').text() === 'LED-Buchstaben')
     expect(section).toBeDefined()
     expect(section.attributes('open')).toBeUndefined()
-    expect(section.find('.category-count').text()).toBe('26')
+    // LED-Text (ganze Wörter) + A–Z
+    expect(section.find('.category-count').text()).toBe('27')
 
     await section.find('.category-header').trigger('click')
     expect(section.attributes('open')).toBeDefined()
     const names = section.findAll('.visualizer-btn').map((b) => b.text())
-    expect(names[0]).toBe('LED-Buchstabe A (GPU)')
-    expect(names[25]).toBe('LED-Buchstabe Z (GPU)')
+    expect(names[0]).toBe('LED-Text (Wörter)')
+    expect(names[1]).toBe('LED-Buchstabe A (GPU)')
+    expect(names[26]).toBe('LED-Buchstabe Z (GPU)')
   })
 
   it('zeigt alle Laser-Effekte als eigene, eingeklappte Sektion', async () => {
@@ -104,10 +106,12 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
       .find((c) => c.find('.category-name').text() === 'LED-Ziffern')
     expect(section).toBeDefined()
     expect(section.attributes('open')).toBeUndefined()
-    expect(section.find('.category-count').text()).toBe('10')
+    // LED-Zahlen (Zahl, Uhrzeit, Countdown) + 0–9
+    expect(section.find('.category-count').text()).toBe('11')
     const names = section.findAll('.visualizer-btn').map((b) => b.text())
-    expect(names[0]).toBe('LED-Ziffer 0 (GPU)')
-    expect(names[9]).toBe('LED-Ziffer 9 (GPU)')
+    expect(names[0]).toBe('LED-Zahlen (Uhr, Countdown)')
+    expect(names[1]).toBe('LED-Ziffer 0 (GPU)')
+    expect(names[10]).toBe('LED-Ziffer 9 (GPU)')
   })
 
   it('zeigt die LED-Rahmen als eigene, eingeklappte Sektion', () => {

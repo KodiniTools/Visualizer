@@ -17,6 +17,13 @@ import {
   normalizeReactPhase,
 } from '../lib/visualizers/core/reactSource.js'
 
+import {
+  LED_CONFIG_KEYS,
+  DEFAULT_LED_CONFIG,
+  normalizeLedField,
+  normalizeLedConfig,
+} from '../lib/visualizers/gl/ledTextSettings.js'
+
 // Reaktionsquellen (Spektrum, Bandpegel, Onsets) und Übergänge für die UI
 export { REACT_SOURCES, REACT_EASINGS }
 import { localeRef } from '../lib/i18n.js'
@@ -128,6 +135,8 @@ const VISUALIZER_CATEGORIES = {
   // LED-Ziffern 0–9 (5×7-Punktmatrix im Sunstrip-Stil) in einer eigenen,
   // klappbaren Sektion.
   'LED-Ziffern': [
+    // Mehrstellige Zahlen, Uhrzeit und Countdown in einem Visualizer
+    'glLedNumber',
     'glLedDigit0',
     'glLedDigit1',
     'glLedDigit2',
@@ -142,6 +151,8 @@ const VISUALIZER_CATEGORIES = {
   // LED-Buchstaben A–Z (gleiche Punktmatrix wie die LED-Ziffern) in einer
   // eigenen, klappbaren Sektion, damit die GPU-Liste übersichtlich bleibt.
   'LED-Buchstaben': [
+    // Ganze Wörter/Zeilen aus LED-Buchstaben in einem Visualizer
+    'glLedText',
     'glLedLetterA',
     'glLedLetterB',
     'glLedLetterC',
@@ -255,6 +266,41 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   // Bild für Portrait-Presets (ID in der imageRegistry, null = keines)
   const visualizerImageId = ref(null)
 
+  // LED-Text / LED-Zahlen (glLedText, glLedNumber): Text, Modus (fester
+  // Text, Uhrzeit, Countdown), Sekunden, Zeitzone und Countdown-Ziel.
+  const ledText = ref(DEFAULT_LED_CONFIG.ledText)
+  const ledNumberText = ref(DEFAULT_LED_CONFIG.ledNumberText)
+  const ledNumberMode = ref(DEFAULT_LED_CONFIG.ledNumberMode)
+  const ledNumberSeconds = ref(DEFAULT_LED_CONFIG.ledNumberSeconds)
+  const ledNumberTimeZone = ref(DEFAULT_LED_CONFIG.ledNumberTimeZone)
+  const ledCountdownTarget = ref(DEFAULT_LED_CONFIG.ledCountdownTarget)
+  const ledRefs = {
+    ledText,
+    ledNumberText,
+    ledNumberMode,
+    ledNumberSeconds,
+    ledNumberTimeZone,
+    ledCountdownTarget,
+  }
+
+  /** LED-Konfiguration des Single-Modus als Objekt. */
+  const ledConfig = computed(() =>
+    Object.fromEntries(LED_CONFIG_KEYS.map((k) => [k, ledRefs[k].value])),
+  )
+
+  /** Ein Feld der LED-Konfiguration setzen (validiert). */
+  function setLedConfig(key, value) {
+    if (!ledRefs[key]) return false
+    ledRefs[key].value = normalizeLedField(key, value)
+    return true
+  }
+
+  /** Mehrere/alle Felder setzen; fehlende → Standardwerte (ältere Presets). */
+  function applyLedConfig(src) {
+    const cfg = normalizeLedConfig(src)
+    for (const key of LED_CONFIG_KEYS) ledRefs[key].value = cfg[key]
+  }
+
   // ✅ Letzter funktionierender Visualizer für Fallback
   const lastWorkingVisualizer = ref('bars')
 
@@ -338,6 +384,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       reactStrength: DEFAULT_REACT_STRENGTH,
       ...DEFAULT_REACT_SHAPE,
       imageId: null,
+      ...DEFAULT_LED_CONFIG,
       ...overrides,
       effects: createLayerEffects(overrides.effects),
     }
@@ -388,6 +435,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
         reactBeatBoost: reactBeatBoost.value,
         reactPhase: reactPhase.value,
         imageId: visualizerImageId.value,
+        ...ledConfig.value,
       })
       visualizerLayers.value.push(initialLayer)
       activeLayerId.value = initialLayer.id
@@ -528,6 +576,14 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       case 'imageId':
         value = typeof value === 'string' && value ? value : null
         break
+      case 'ledText':
+      case 'ledNumberText':
+      case 'ledNumberMode':
+      case 'ledNumberSeconds':
+      case 'ledNumberTimeZone':
+      case 'ledCountdownTarget':
+        value = normalizeLedField(property, value)
+        break
     }
 
     layer[property] = value
@@ -631,6 +687,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
         reactBeatBoost: reactBeatBoost.value,
         reactPhase: reactPhase.value,
         imageId: visualizerImageId.value,
+        ...ledConfig.value,
       })
     }
   }
@@ -653,6 +710,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       reactBeatBoost.value = normalizeReactBeatBoost(activeLayer.value.reactBeatBoost)
       reactPhase.value = normalizeReactPhase(activeLayer.value.reactPhase)
       visualizerImageId.value = activeLayer.value.imageId || null
+      applyLedConfig(activeLayer.value)
     }
   }
 
@@ -898,6 +956,16 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     // Bild für Portrait-Presets
     visualizerImageId,
     setVisualizerImageId,
+    // LED-Text / LED-Zahlen
+    ledText,
+    ledNumberText,
+    ledNumberMode,
+    ledNumberSeconds,
+    ledNumberTimeZone,
+    ledCountdownTarget,
+    ledConfig,
+    setLedConfig,
+    applyLedConfig,
     // ✅ NEU: Fehlerbehandlung
     lastWorkingVisualizer,
     markVisualizerWorking,

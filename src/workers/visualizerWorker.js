@@ -61,6 +61,7 @@ function renderFrame({
   onsetFx,
   onsetData,
   dtMs,
+  ledText,
 }) {
   if (!ctx || !offscreenCanvas) return
 
@@ -76,6 +77,8 @@ function renderFrame({
   // applySmoothValue/applyDecay (core/helpers.js) use it to keep smoothing
   // speed tied to real time instead of to how often this message arrives.
   visualizerState._dtMs = dtMs
+  // LED-Text / LED-Zahlen: Text, Modus (Uhrzeit/Countdown …) des Frames
+  visualizerState._ledText = ledText || null
 
   if (lastVisualizerId !== visualizerId) {
     if (lastVisualizerId && Visualizers[lastVisualizerId]) {

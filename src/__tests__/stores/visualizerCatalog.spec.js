@@ -44,7 +44,11 @@ describe('visualizer catalogue (migration stage 1)', () => {
   it('keeps the LED letters A–Z in their own category, in alphabetical order', () => {
     const store = useVisualizerStore()
     const letters = store.categorizedVisualizers['LED-Buchstaben'].map((v) => v.id)
-    expect(letters).toEqual([...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map((c) => `glLedLetter${c}`))
+    // LED-Text (ganze Wörter) steht vorne, danach A–Z
+    expect(letters).toEqual([
+      'glLedText',
+      ...[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map((c) => `glLedLetter${c}`),
+    ])
     const gpu = store.categorizedVisualizers['GPU-Presets'].map((v) => v.id)
     expect(gpu.some((id) => id.startsWith('glLedLetter'))).toBe(false)
   })
@@ -52,7 +56,8 @@ describe('visualizer catalogue (migration stage 1)', () => {
   it('keeps the LED digits 0–9 in their own category, in numeric order', () => {
     const store = useVisualizerStore()
     const digits = store.categorizedVisualizers['LED-Ziffern'].map((v) => v.id)
-    expect(digits).toEqual([...Array(10).keys()].map((d) => `glLedDigit${d}`))
+    // LED-Zahlen (Zahl, Uhrzeit, Countdown) steht vorne, danach 0–9
+    expect(digits).toEqual(['glLedNumber', ...[...Array(10).keys()].map((d) => `glLedDigit${d}`)])
     const gpu = store.categorizedVisualizers['GPU-Presets'].map((v) => v.id)
     expect(gpu.some((id) => id.startsWith('glLedDigit'))).toBe(false)
     // Reihenfolge der Sektionen im Picker

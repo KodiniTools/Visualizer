@@ -50,6 +50,11 @@ export function createSingleVisualizerRenderer({
   // und Fallback-Pfad identische Daten sehen)
   const react = { env: 0, buf: null }
 
+  /** LED-Text/-Zahlen: Konfiguration des Frames (sonst null). */
+  function ledTextConfig(visualizer) {
+    return visualizer?.ledText ? { key: 'single', ...visualizerStore.ledConfig } : null
+  }
+
   function scaledDrawOptions(visualizer) {
     return {
       scale: visualizerStore.visualizerScale,
@@ -149,6 +154,8 @@ export function createSingleVisualizerRenderer({
       onsetData: visualizerState._onsetData,
       // Zeit seit dem letzten draw() – siehe applySmoothValue/applyDecay in core/helpers.js
       dtMs: visualizerState._dtMs,
+      // LED-Text/-Zahlen: Text und Modus – nur für diese Visualizer mitsenden
+      ...(visualizer.ledText ? { ledText: ledTextConfig(visualizer) } : {}),
     })
 
     if (!workerBitmap) return null
@@ -166,6 +173,7 @@ export function createSingleVisualizerRenderer({
     visualizerState._imageSource = visualizer.needsImage
       ? getVisualizerImageSource(effectiveImageId(visualizerStore.visualizerImageId))
       : null
+    visualizerState._ledText = ledTextConfig(visualizer)
     ctx.clearRect(0, 0, width, height)
     ctx.save()
     ctx.globalAlpha = visualizerStore.colorOpacity

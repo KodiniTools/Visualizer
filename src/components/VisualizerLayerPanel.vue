@@ -221,6 +221,17 @@
               />
             </div>
 
+            <!-- LED-Text / LED-Zahlen (Text, Uhrzeit, Countdown) -->
+            <div v-if="isLedTextVisualizer(layer.visualizerId)" class="detail-row">
+              <span class="detail-label">{{ t('visualizer.led.title') }}</span>
+              <VisualizerLedTextSection
+                :visualizer-id="layer.visualizerId"
+                :config="layer"
+                compact
+                @update="(field, value) => updateProperty(layer.id, field, value)"
+              />
+            </div>
+
             <!-- Position X -->
             <div class="detail-row">
               <span class="detail-label">X: {{ Math.round(layer.x * 100) }}%</span>
@@ -355,6 +366,8 @@
 import SliderField from './ui/SliderField.vue'
 import VisualizerReactShapeControls from './visualizer-panel/VisualizerReactShapeControls.vue'
 import VisualizerImagePicker from './VisualizerImagePicker.vue'
+import VisualizerLedTextSection from './visualizer-panel/VisualizerLedTextSection.vue'
+import { isLedTextVisualizer } from '../lib/visualizers/gl/ledTextSettings.js'
 import VisualizerEffectsPanel from './VisualizerEffectsPanel.vue'
 import ColorField from './ui/ColorField.vue'
 import { ref, computed, nextTick } from 'vue'

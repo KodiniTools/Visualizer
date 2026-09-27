@@ -22,6 +22,16 @@
       />
     </div>
 
+    <!-- LED-Text / LED-Zahlen (Text, Uhrzeit, Countdown) -->
+    <div v-if="selectedIsLedText" class="control-section">
+      <span class="section-label">{{ t('visualizer.led.title') }}</span>
+      <VisualizerLedTextSection
+        :visualizer-id="store.selectedVisualizer"
+        :config="store.ledConfig"
+        @update="(field, value) => store.setLedConfig(field, value)"
+      />
+    </div>
+
     <!-- Position & Größe -->
     <VisualizerTransformSection />
   </div>
@@ -36,10 +46,13 @@ import VisualizerImagePicker from './VisualizerImagePicker.vue'
 import VisualizerBasicsSection from './visualizer-panel/VisualizerBasicsSection.vue'
 import VisualizerReactSourceSection from './visualizer-panel/VisualizerReactSourceSection.vue'
 import VisualizerTransformSection from './visualizer-panel/VisualizerTransformSection.vue'
+import VisualizerLedTextSection from './visualizer-panel/VisualizerLedTextSection.vue'
+import { isLedTextVisualizer } from '../lib/visualizers/gl/ledTextSettings.js'
 
 const { t } = useI18n()
 const store = useVisualizerStore()
 const selectedNeedsImage = computed(() => !!Visualizers[store.selectedVisualizer]?.needsImage)
+const selectedIsLedText = computed(() => isLedTextVisualizer(store.selectedVisualizer))
 </script>
 
 <style scoped src="./visualizer-panel/visualizerPanelShared.css"></style>

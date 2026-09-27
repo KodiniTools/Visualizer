@@ -319,6 +319,7 @@ export class WorkerManager {
     onsetFx,
     onsetData,
     dtMs,
+    ledText = null,
   }) {
     if (!this.visualizerWorkerReady || !this.visualizerWorker) return false
 
@@ -337,6 +338,7 @@ export class WorkerManager {
         onsetFx,
         onsetData,
         dtMs,
+        ledText,
       },
       [copy.buffer],
     )

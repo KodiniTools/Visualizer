@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useVisualizerStore } from './visualizerStore.js'
 import { resolveVisualizerId } from '../lib/visualizers/aliases.js'
 import { DEFAULT_REACT_SHAPE } from '../lib/visualizers/core/reactSource.js'
+import { normalizeLedConfig } from '../lib/visualizers/gl/ledTextSettings.js'
 
 const USER_PRESETS_KEY = 'visualizer-user-presets'
 
@@ -757,6 +758,7 @@ export const usePresetStore = defineStore('presets', () => {
         reactBeatBoost: vizStore.reactBeatBoost,
         reactPhase: vizStore.reactPhase,
         imageId: vizStore.visualizerImageId,
+        ...vizStore.ledConfig,
         multiLayerMode: vizStore.multiLayerMode,
         layers: vizStore.multiLayerMode ? vizStore.visualizerLayers.map((l) => ({ ...l })) : [],
       },
@@ -801,6 +803,8 @@ export const usePresetStore = defineStore('presets', () => {
         // Ältere Presets kennen die Formungs-Regler nicht → Standardwerte
         ...DEFAULT_REACT_SHAPE,
         ...l,
+        // LED-Text/-Zahlen: fehlende Felder → Standardwerte, sonst validiert
+        ...normalizeLedConfig(l),
         visualizerId: resolveVisualizerId(l.visualizerId) || vizStore.lastWorkingVisualizer,
       }))
       if (v.layers.length > 0) vizStore.activeLayerId = v.layers[0].id
@@ -828,6 +832,7 @@ export const usePresetStore = defineStore('presets', () => {
       vizStore.setReactBeatBoost(v.reactBeatBoost)
       vizStore.setReactPhase(v.reactPhase)
       vizStore.setVisualizerImageId(v.imageId ?? null)
+      vizStore.applyLedConfig(v)
     }
 
     // Apply background via custom event (CanvasControlPanel listens)

@@ -138,6 +138,8 @@ import { glPortraitWave as glPortraitWaveSpec } from './presets/glPortraitWave.j
 import { glPortraitEdges as glPortraitEdgesSpec } from './presets/glPortraitEdges.js'
 import { glPortraitHalftone as glPortraitHalftoneSpec } from './presets/glPortraitHalftone.js'
 
+import { ledTextVisualizers } from './ledText.js'
+
 export { createGlVisualizer, getSharedEngine, resetSharedEngine } from './createGlVisualizer.js'
 export { GLVisualizerEngine } from './GLVisualizerEngine.js'
 
@@ -268,6 +270,11 @@ export const glPresetSpecs = {
 }
 
 /** Registry-ready visualizers, keyed by preset id. */
-export const glVisualizers = Object.fromEntries(
-  Object.entries(glPresetSpecs).map(([id, spec]) => [id, createGlVisualizer(spec)]),
-)
+export const glVisualizers = {
+  ...Object.fromEntries(
+    Object.entries(glPresetSpecs).map(([id, spec]) => [id, createGlVisualizer(spec)]),
+  ),
+  // LED-Text / LED-Zahlen: ganze Wörter, Zahlen, Uhrzeit und Countdown aus
+  // den LED-Glyphen in einem Visualizer (kein eigener Shader → keine Spec)
+  ...ledTextVisualizers,
+}

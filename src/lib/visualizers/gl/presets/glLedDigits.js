@@ -253,6 +253,22 @@ export function makeLedDigitPreset(digit) {
 }
 
 /**
+ * Doppelpunkt für Uhrzeit/Countdown (LED-Zahlen). Kein eigener Eintrag in
+ * der Visualizer-Liste – er wird nur innerhalb von glLedNumber gezeichnet.
+ */
+export const COLON_BITMAP = ['.....', '.....', '..#..', '.....', '..#..', '.....', '.....']
+
+/** Erzeugt das Preset für den LED-Doppelpunkt (gleiches Gehäuse wie die Ziffern). */
+export function makeLedColonPreset() {
+  return buildGlyphPreset({
+    id: 'glLedColon',
+    name_de: 'LED-Doppelpunkt (GPU)',
+    name_en: 'LED Colon (GPU)',
+    bitmap: COLON_BITMAP,
+  })
+}
+
+/**
  * Erzeugt das Preset für einen Buchstaben.
  * @param {string} letter - Großbuchstabe A–Z
  */

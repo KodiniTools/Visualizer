@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import { useVisualizerStore } from './visualizerStore.js'
 import { resolveVisualizerId } from '../lib/visualizers/aliases.js'
 import { normalizeReactShape } from '../lib/visualizers/core/reactSource.js'
+import { normalizeLedConfig } from '../lib/visualizers/gl/ledTextSettings.js'
 
 const LAYER_PRESETS_KEY = 'visualizer-layer-presets'
 
@@ -38,6 +39,7 @@ function snapshotLayer(layer) {
     reactStrength: layer.reactStrength ?? 70,
     ...normalizeReactShape(layer),
     imageId: layer.imageId ?? null,
+    ...normalizeLedConfig(layer),
   }
 }
 

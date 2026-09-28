@@ -71,9 +71,14 @@
     <!-- Author -->
     <meta name="author" content="Kodini Tools">
 
-    <!-- FontAwesome (lokal) -->
-    <link rel="stylesheet" href="/fontawesome/css/fontawesome.min.css">
-    <link rel="stylesheet" href="/fontawesome/css/solid.min.css">
+    <!-- FontAwesome (lokal) – nicht render-blockierend: media="print" lädt ohne
+         das erste Rendering zu blockieren, onload schaltet auf alle Medien um. -->
+    <link rel="stylesheet" href="/fontawesome/css/fontawesome.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/fontawesome/css/solid.min.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="/fontawesome/css/fontawesome.min.css">
+        <link rel="stylesheet" href="/fontawesome/css/solid.min.css">
+    </noscript>
 
     <!-- Google Tag Manager (async – kein Render-Blocking) -->
     <script>

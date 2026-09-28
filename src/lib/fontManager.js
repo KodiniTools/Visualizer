@@ -85,7 +85,11 @@ export class FontManager {
     const loadPromises = priorityFonts.map(async (font) => {
       try {
         const fontUrl = this.getFontUrl(font.file)
-        const fontFace = new FontFace(font.name, `url(${fontUrl})`)
+        // display: 'swap' – ohne Deskriptor gilt font-display: auto (Text unsichtbar
+        // bis der Font geladen ist); muss zur @font-face-Regel oben passen.
+        const fontFace = new FontFace(font.name, `url(${fontUrl}) format("woff2")`, {
+          display: 'swap',
+        })
         await fontFace.load()
         document.fonts.add(fontFace)
         console.log(`✅ Font geladen: ${font.name}`)

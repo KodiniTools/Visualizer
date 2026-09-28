@@ -372,20 +372,26 @@ onMounted(async () => {
   // Workers + Audio data
   await globalAudioData.init()
 
-  // Fonts – im Leerlauf laden statt den Start zu blockieren: die Custom-Fonts
-  // werden für das erste Rendering nicht gebraucht. Abhängige Komponenten
-  // reagieren über fontManager.isInitialized.
+  // Fonts – erst bei der ersten Interaktion (spätestens nach FONT_LOAD_FALLBACK_MS)
+  // laden: die Custom-Fonts werden für das erste Rendering nicht gebraucht und
+  // sollen den Seitenaufbau nicht mit ~10 Font-Downloads belasten. Abhängige
+  // Komponenten reagieren über fontManager.isInitialized.
   fontManagerInstance.value = new FontManager()
-  const loadFonts = () =>
+  const FONT_LOAD_EVENTS = ['pointerdown', 'keydown', 'touchstart']
+  const FONT_LOAD_FALLBACK_MS = 5000
+  let fontLoadTimer = null
+  const loadFonts = () => {
+    FONT_LOAD_EVENTS.forEach((type) => window.removeEventListener(type, loadFonts, true))
+    clearTimeout(fontLoadTimer)
     fontManagerInstance.value
       .initialize(CUSTOM_FONTS)
       .then((result) => console.log(`FontManager: ${result.loaded} Fonts geladen`))
       .catch((error) => console.error('FontManager Fehler:', error))
-  if (typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(loadFonts, { timeout: 2000 })
-  } else {
-    setTimeout(loadFonts, 200)
   }
+  FONT_LOAD_EVENTS.forEach((type) =>
+    window.addEventListener(type, loadFonts, { capture: true, passive: true, once: true }),
+  )
+  fontLoadTimer = setTimeout(loadFonts, FONT_LOAD_FALLBACK_MS)
 
   // Audio player events
   playerStore.setAudioRef(audioRef.value)

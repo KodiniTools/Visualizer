@@ -1,5 +1,7 @@
 // fontManager.js - Mit dynamischem Base-Path Support für Vite
 
+import { FONT_BASE_URL, fontUrl } from './fontUrl.js'
+
 export class FontManager {
   constructor() {
     this.loadedFonts = new Set()
@@ -18,10 +20,7 @@ export class FontManager {
    * ✨ NEU: Erstelle Font-URL mit korrektem Base-Path
    */
   getFontUrl(filename) {
-    const basePath = this.getBasePath()
-    // Entferne doppelte Slashes
-    const path = `${basePath}fonts/${filename}`.replace(/\/+/g, '/')
-    return path
+    return fontUrl(filename)
   }
 
   /**
@@ -61,7 +60,7 @@ export class FontManager {
     }
 
     console.log(`📤 Lade ${customFonts.length} Fonts via CSS...`)
-    console.log(`📍 Base-Path: ${this.getBasePath()}`)
+    console.log(`📍 Font-Pfad: ${FONT_BASE_URL}`)
 
     // Remove existing styles
     const existingStyle = document.getElementById('custom-fonts')

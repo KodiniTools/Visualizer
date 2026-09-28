@@ -9,6 +9,17 @@ export default defineConfig({
 
   plugins: [vue()],
 
+  // Font-Dateien aus public/fonts werden im Build auf den gemeinsamen
+  // Font-Ordner der Domain (/fonts/, nicht /visualizer/fonts/) verwiesen –
+  // betrifft url() in CSS und den Preload in index.html. JS nutzt fontUrl.js.
+  experimental: {
+    renderBuiltUrl(filename, { type }) {
+      if (type === 'public' && filename.replace(/^\//, '').startsWith('fonts/')) {
+        return '/' + filename.replace(/^\//, '')
+      }
+    },
+  },
+
   // Vitest: Komponententests brauchen eine DOM-Umgebung; Playwright-Specs in
   // e2e/ dürfen nicht von Vitest eingesammelt werden.
   test: {

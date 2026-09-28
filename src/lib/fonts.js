@@ -1,5 +1,7 @@
 // fonts.js - Zentrale Font-Konfiguration mit robustem Loading
 
+import { FONT_BASE_URL, fontUrl } from './fontUrl.js'
+
 export const CUSTOM_FONTS = [
   // Alpino Familie
   { name: 'Alpino Black', file: 'Alpino-Black.woff2' },
@@ -177,22 +179,10 @@ export const SYSTEM_FONTS = [
 const loadedFontsCache = new Set()
 
 /**
- * ✨ NEU: Ermittle den Base-Path aus import.meta.env
- * Das funktioniert sowohl in Dev als auch im Build
- */
-function getBasePath() {
-  // In Vite können wir import.meta.env.BASE_URL verwenden
-  // Das wird automatisch zur Build-Zeit ersetzt
-  return import.meta.env.BASE_URL || '/'
-}
-
-/**
  * ✨ NEU: Erstelle Font-URL mit korrektem Base-Path
  */
 function getFontUrl(filename) {
-  const basePath = getBasePath()
-  // Entferne doppelte Slashes
-  const path = `${basePath}fonts/${filename}`.replace(/\/+/g, '/')
+  const path = fontUrl(filename)
   console.log(`🔤 Font URL: ${path}`)
   return path
 }
@@ -208,7 +198,7 @@ export async function loadCustomFonts() {
   }
 
   console.log(`📤 Starte Laden von ${CUSTOM_FONTS.length} Custom Fonts...`)
-  console.log(`📍 Base-Path: ${getBasePath()}`)
+  console.log(`📍 Font-Pfad: ${FONT_BASE_URL}`)
 
   const loadedFonts = []
   const failedFonts = []

@@ -307,44 +307,57 @@ export const vPopoverDrag = {
       reclamp()
     }
 
-    // Griffe nur an Popover hängen, die NICHT selbst scrollen. Scrollt der
-    // Popover-Rahmen selbst, liegen die Griffe über dem Inhalt am unteren bzw.
-    // seitlichen Rand und fangen dort Klicks ab (z.B. auf die letzte Reihe der
-    // Preset-Kacheln). Die großen Panel-Popover setzen stattdessen
-    // `overflow: hidden` und scrollen einen inneren Bereich – dort stören die
-    // Griffe nicht und die Größe lässt sich ändern.
-    const rootOverflowY = getComputedStyle(el).overflowY
-    const rootScrolls = rootOverflowY === 'auto' || rootOverflowY === 'scroll'
+    // Griffe + gespeicherte Größe erst einrichten, wenn das Layout ohnehin steht
+    // (erster ResizeObserver-Callback): getComputedStyle direkt im mounted
+    // erzwingt sonst eine Stil-Neuberechnung der ganzen Seite (forced reflow).
+    let handles = []
+    let resizeReady = false
+    const initResize = () => {
+      resizeReady = true
+      // Griffe nur an Popover hängen, die NICHT selbst scrollen. Scrollt der
+      // Popover-Rahmen selbst, liegen die Griffe über dem Inhalt am unteren bzw.
+      // seitlichen Rand und fangen dort Klicks ab (z.B. auf die letzte Reihe der
+      // Preset-Kacheln). Die großen Panel-Popover setzen stattdessen
+      // `overflow: hidden` und scrollen einen inneren Bereich – dort stören die
+      // Griffe nicht und die Größe lässt sich ändern.
+      const rootOverflowY = getComputedStyle(el).overflowY
+      const rootScrolls = rootOverflowY === 'auto' || rootOverflowY === 'scroll'
 
-    // Handles are created dynamically; copy the component's scoped-style
-    // attributes (data-v-*) so the scoped popover CSS applies to them.
-    const scopeAttrs = Array.from(el.attributes).filter((a) => a.name.startsWith('data-v-'))
-    const handles = (rootScrolls ? [] : RESIZE_HANDLES).map((spec) => {
-      const h = document.createElement('div')
-      h.className = `spb-resize-handle spb-resize-${spec.dir}`
-      h.setAttribute('aria-hidden', 'true')
-      h.title = 'Ziehen: Größe ändern · Doppelklick: zurücksetzen'
-      for (const a of scopeAttrs) h.setAttribute(a.name, a.value)
-      h.__onDown = (e) => startResize(spec, e)
-      h.addEventListener('pointerdown', h.__onDown)
-      h.addEventListener('dblclick', resetSize)
-      el.appendChild(h)
-      return h
-    })
+      // Handles are created dynamically; copy the component's scoped-style
+      // attributes (data-v-*) so the scoped popover CSS applies to them.
+      const scopeAttrs = Array.from(el.attributes).filter((a) => a.name.startsWith('data-v-'))
+      handles = (rootScrolls ? [] : RESIZE_HANDLES).map((spec) => {
+        const h = document.createElement('div')
+        h.className = `spb-resize-handle spb-resize-${spec.dir}`
+        h.setAttribute('aria-hidden', 'true')
+        h.title = 'Ziehen: Größe ändern · Doppelklick: zurücksetzen'
+        for (const a of scopeAttrs) h.setAttribute(a.name, a.value)
+        h.__onDown = (e) => startResize(spec, e)
+        h.addEventListener('pointerdown', h.__onDown)
+        h.addEventListener('dblclick', resetSize)
+        el.appendChild(h)
+        return h
+      })
 
-    // Restore a persisted size (clamped to the current viewport).
-    const stored = rootScrolls ? null : readStoredSize(name)
-    if (stored && (stored.width !== null || stored.height !== null)) {
-      const next = clampSize(stored.width, stored.height)
-      sizeW = next.width
-      sizeH = next.height
-      applySize()
+      // Restore a persisted size (clamped to the current viewport).
+      const stored = rootScrolls ? null : readStoredSize(name)
+      if (stored && (stored.width !== null || stored.height !== null)) {
+        const next = clampSize(stored.width, stored.height)
+        sizeW = next.width
+        sizeH = next.height
+        applySize()
+      }
     }
 
     let resizeObserver = null
     if (typeof ResizeObserver !== 'undefined') {
-      resizeObserver = new ResizeObserver(reclamp)
+      resizeObserver = new ResizeObserver(() => {
+        if (!resizeReady) initResize()
+        reclamp()
+      })
       resizeObserver.observe(el)
+    } else {
+      initResize()
     }
     window.addEventListener('resize', reclamp)
 

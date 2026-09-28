@@ -324,11 +324,22 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     await new Promise((r) => setTimeout(r, duration))
   }
 
-  async function createCombinedAudioStream() {
+  /**
+   * Liefert den Audio-Stream für den Recorder.
+   * @param {{ withMic?: boolean }} [options] withMic=false verbindet das Mikrofon
+   *   nicht (kein getUserMedia) – für die Initialisierung beim Seitenaufruf. Jede
+   *   Aufnahme holt vor dem Start ohnehin einen frischen Stream mit Mikrofon.
+   */
+  async function createCombinedAudioStream({ withMic = true } = {}) {
     if (!recordingDest) return null
 
     if (audioContext.state === 'suspended') {
       audioContext.resume().catch(() => {})
+    }
+
+    if (!withMic) {
+      recordingGain.gain.value = ACTIVE_GAIN
+      return recordingDest.stream
     }
 
     const micConnected = await connectMicToRecordingChain()

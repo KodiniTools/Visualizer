@@ -5,6 +5,7 @@
       :class="{ active: modelValue === 'left' }"
       role="tab"
       :aria-selected="modelValue === 'left'"
+      :aria-label="t('app.mobileTabFoto')"
       @click="$emit('update:modelValue', 'left')"
     >
       <svg
@@ -27,6 +28,7 @@
       :class="{ active: modelValue === 'canvas' }"
       role="tab"
       :aria-selected="modelValue === 'canvas'"
+      aria-label="Canvas"
       @click="$emit('update:modelValue', 'canvas')"
     >
       <svg
@@ -48,6 +50,7 @@
       :class="{ active: modelValue === 'right' }"
       role="tab"
       :aria-selected="modelValue === 'right'"
+      :aria-label="t('app.mobileTabControls')"
       @click="$emit('update:modelValue', 'right')"
     >
       <svg

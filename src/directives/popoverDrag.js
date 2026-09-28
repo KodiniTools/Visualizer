@@ -183,9 +183,13 @@ export const vPopoverDrag = {
     // Apply the initial cascade offset, clamped so the header stays visible even
     // when several popovers cascade upward or the anchored position of a tall
     // popover would otherwise land partly above the viewport.
+    // With ResizeObserver the clamp is left to its initial callback (below),
+    // which runs after layout but before paint – measuring synchronously here
+    // would force a layout of the freshly mounted DOM (forced reflow).
     const initDx = Number(binding.value?.x) || 0
     const initDy = Number(binding.value?.y) || 0
-    const start = clamp(initDx, initDy)
+    const deferClamp = typeof ResizeObserver !== 'undefined'
+    const start = deferClamp ? { dx: initDx, dy: initDy } : clamp(initDx, initDy)
     dx = start.dx
     dy = start.dy
     apply()

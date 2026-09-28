@@ -372,13 +372,19 @@ onMounted(async () => {
   // Workers + Audio data
   await globalAudioData.init()
 
-  // Fonts
+  // Fonts – im Leerlauf laden statt den Start zu blockieren: die Custom-Fonts
+  // werden für das erste Rendering nicht gebraucht. Abhängige Komponenten
+  // reagieren über fontManager.isInitialized.
   fontManagerInstance.value = new FontManager()
-  try {
-    const result = await fontManagerInstance.value.initialize(CUSTOM_FONTS)
-    console.log(`FontManager: ${result.loaded} Fonts geladen`)
-  } catch (error) {
-    console.error('FontManager Fehler:', error)
+  const loadFonts = () =>
+    fontManagerInstance.value
+      .initialize(CUSTOM_FONTS)
+      .then((result) => console.log(`FontManager: ${result.loaded} Fonts geladen`))
+      .catch((error) => console.error('FontManager Fehler:', error))
+  if (typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(loadFonts, { timeout: 2000 })
+  } else {
+    setTimeout(loadFonts, 200)
   }
 
   // Audio player events

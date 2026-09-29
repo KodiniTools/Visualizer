@@ -458,6 +458,15 @@ onMounted(async () => {
     { immediate: true },
   )
 
+  // Am Raster einrasten (DragDropHandler fragt gridManager.isSnapActive())
+  watch(
+    () => gridStore.snapToGrid,
+    (v) => {
+      if (gridManagerInstance.value) gridManagerInstance.value.setSnapToGrid(v)
+    },
+    { immediate: true },
+  )
+
   // Workspace preset watcher
   watch(
     () => workspaceStore.selectedPresetKey,

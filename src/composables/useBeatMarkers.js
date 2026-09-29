@@ -553,10 +553,11 @@ export function useBeatMarkers(openMarkersPopover) {
     },
   )
 
-  // Keyboard shortcut for adding marker (M key)
+  // Taste M (ohne Zusatztasten) setzt einen Marker. Umschalt+M = Stummschalten
+  // (keyboardShortcuts), Strg/Cmd/Alt+M bleiben dem Browser/System überlassen.
   const handleKeydown = (e) => {
-    if (e.key === 'm' || e.key === 'M') {
-      if (!e.target.matches('input, textarea, select')) {
+    if (e.key?.toLowerCase() === 'm' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (!e.target?.matches?.('input, textarea, select, [contenteditable="true"]')) {
         e.preventDefault()
         if (playerStore.hasTracks) {
           addMarkerAtCurrentTime()

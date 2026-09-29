@@ -27,6 +27,11 @@ export const useGridStore = defineStore('grid', () => {
     gridColor.value = color
   }
 
+  /** Objekte beim Verschieben am Raster einrasten (wirkt nur bei sichtbarem Raster). */
+  function setSnapToGrid(enabled) {
+    snapToGrid.value = !!enabled
+  }
+
   function setOpacity(opacity) {
     // Auf gültigen Bereich begrenzen (0.1..1)
     gridOpacity.value = Math.max(0.1, Math.min(1, opacity))
@@ -38,6 +43,7 @@ export const useGridStore = defineStore('grid', () => {
     gridColor,
     gridOpacity,
     snapToGrid,
+    setSnapToGrid,
     toggleGrid,
     setGridVisibility,
     setSize,

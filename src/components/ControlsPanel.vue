@@ -43,6 +43,15 @@
             @update:model-value="gridStore.setOpacity($event / 100)"
           />
         </div>
+        <label class="grid-snap-toggle">
+          <input
+            type="checkbox"
+            class="grid-snap-checkbox"
+            :checked="gridStore.snapToGrid"
+            @change="gridStore.setSnapToGrid($event.target.checked)"
+          />
+          <span>{{ t('controls.snapToGrid') }}</span>
+        </label>
       </div>
     </div>
 
@@ -189,6 +198,21 @@ h4 {
   font-size: 10px;
   color: var(--text-muted);
   font-weight: 500;
+}
+.grid-snap-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.grid-snap-toggle input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent-primary);
+  cursor: pointer;
 }
 
 .grid-color-input {

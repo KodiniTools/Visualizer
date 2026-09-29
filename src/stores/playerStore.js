@@ -15,6 +15,10 @@ export const usePlayerStore = defineStore('player', () => {
   // Playlist-Modus: 'none' | 'sequence' | 'repeat-one' | 'repeat-all' | 'shuffle'
   const playMode = ref('none')
 
+  // Stumm: nur die Lautsprecher-Ausgabe (useAudioEngine) – Visualizer-Analyse
+  // und Aufnahme laufen weiter, die eingestellte Lautstärke bleibt erhalten
+  const isMuted = ref(false)
+
   // === GETTERS (Abgeleitete Daten, wie computed) ===
   const hasTracks = computed(() => playlist.value.length > 0)
   const currentTrack = computed(() =>
@@ -259,6 +263,14 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
+  function setMuted(muted) {
+    isMuted.value = !!muted
+  }
+
+  function toggleMute() {
+    isMuted.value = !isMuted.value
+  }
+
   function stopPlayer() {
     if (!audioRef.value) return
     audioRef.value.pause()
@@ -402,6 +414,7 @@ export const usePlayerStore = defineStore('player', () => {
     currentTime,
     duration,
     playMode,
+    isMuted,
 
     // Getters
     hasTracks,
@@ -415,6 +428,8 @@ export const usePlayerStore = defineStore('player', () => {
     loadTrack,
     playTrack,
     togglePlayPause,
+    setMuted,
+    toggleMute,
     stopPlayer,
     nextTrack,
     prevTrack,

@@ -11,13 +11,25 @@
       </button>
     </div>
     <div class="volume-section">
-      <span class="section-label">{{ t('player.volume') }}: {{ volume }}%</span>
+      <span class="section-label"
+        >{{ t('player.volume') }}: {{ volume }}%<template v-if="playerStore.isMuted">
+          · {{ t('player.muted') }}</template
+        ></span
+      >
       <div class="volume-control">
-        <svg class="volume-icon" viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"
-          />
-        </svg>
+        <button
+          type="button"
+          class="volume-mute-btn"
+          :class="{ muted: playerStore.isMuted }"
+          :title="playerStore.isMuted ? t('player.unmute') : t('player.mute')"
+          :aria-label="playerStore.isMuted ? t('player.unmute') : t('player.mute')"
+          :aria-pressed="playerStore.isMuted"
+          @click="playerStore.toggleMute()"
+        >
+          <svg class="volume-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path :d="playerStore.isMuted ? ICON_MUTED : ICON_VOLUME" />
+          </svg>
+        </button>
         <SliderField
           v-model="volume"
           :min="0"
@@ -76,6 +88,7 @@
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import SliderField from '../ui/SliderField.vue'
+import { usePlayerStore } from '../../stores/playerStore.js'
 import { vPopoverDrag } from '../../directives/popoverDrag.js'
 
 const { t } = useI18n()
@@ -85,6 +98,11 @@ const { closePopover, cascadeOffset } = popover
 const close = () => closePopover('volume')
 const initOffset = cascadeOffset('volume')
 const { volume, bass, treble, updateVolume, updateBass, updateTreble } = volumeEq
+const playerStore = usePlayerStore()
+const ICON_VOLUME =
+  'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z'
+const ICON_MUTED =
+  'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z'
 </script>
 
 <style scoped src="./popover-chrome.css"></style>
@@ -107,6 +125,23 @@ const { volume, bass, treble, updateVolume, updateBass, updateTreble } = volumeE
   height: 14px;
   color: var(--text-primary, #e9e9eb);
   flex-shrink: 0;
+}
+.volume-mute-btn {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 2px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+.volume-mute-btn:hover .volume-icon,
+.volume-mute-btn.muted .volume-icon {
+  color: var(--accent-primary, #c9984d);
+}
+.volume-mute-btn:focus-visible {
+  outline: 2px solid var(--accent-primary, #c9984d);
+  outline-offset: 1px;
 }
 .volume-slider {
   flex: 1;

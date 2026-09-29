@@ -81,6 +81,36 @@ export class GridManager {
   }
 
   /**
+   * Einrasten aktiv? Nur solange das Raster sichtbar ist – sonst würden
+   * Objekte an unsichtbaren Linien hängen bleiben.
+   */
+  isSnapActive() {
+    return this.isVisible && this.snapToGrid
+  }
+
+  /**
+   * Rastet eine Achse ein: Anfang, Mitte oder Ende des Objekts (in Pixeln)
+   * springt auf die nächste Rasterlinie, wenn sie innerhalb der Toleranz liegt.
+   * @param {number} pos - Anfang in Pixeln
+   * @param {number} size - Ausdehnung in Pixeln (0 = nur ein Punkt)
+   * @param {number} [tolerance=this.snapTolerance] - Toleranz in Pixeln
+   * @returns {number} eingerastete (oder unveränderte) Anfangsposition
+   */
+  snapAxis(pos, size = 0, tolerance = this.snapTolerance) {
+    if (!Number.isFinite(pos) || !(this.gridSize > 0)) return pos
+    const offsets = size > 0 ? [0, size / 2, size] : [0]
+    let best = null
+    for (const offset of offsets) {
+      const line = Math.round((pos + offset) / this.gridSize) * this.gridSize
+      const distance = Math.abs(pos + offset - line)
+      if (distance <= tolerance && (!best || distance < best.distance)) {
+        best = { distance, pos: line - offset }
+      }
+    }
+    return best ? best.pos : pos
+  }
+
+  /**
    * Relative Position für Objekte mit Grid-Snap
    * Konvertiert absolute Pixel zu relativen Canvas-Koordinaten
    */

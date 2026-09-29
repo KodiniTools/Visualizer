@@ -1,4 +1,5 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { loadPlacementSettings, savePlacementSettings } from '../../lib/imagePlacementSettings.js'
 
 /**
  * Eigene Galerie-Bilder auf den Canvas bringen: direkt, per Bereichsauswahl
@@ -21,12 +22,22 @@ export function useImagePlacement({
 }) {
   const { imageGallery, selectedImages, selectedImageCount, deselectAllImages } = gallery
 
-  // Platzierungs-Einstellungen
-  const selectedAnimation = ref('none')
-  const animationDuration = ref(1000)
-  const imageScale = ref(1)
-  const imageOffsetX = ref(0)
-  const imageOffsetY = ref(0)
+  // Platzierungs-Einstellungen (dauerhaft gespeichert)
+  const savedPlacement = loadPlacementSettings('uploads')
+  const selectedAnimation = ref(savedPlacement.selectedAnimation)
+  const animationDuration = ref(savedPlacement.animationDuration)
+  const imageScale = ref(savedPlacement.imageScale)
+  const imageOffsetX = ref(savedPlacement.imageOffsetX)
+  const imageOffsetY = ref(savedPlacement.imageOffsetY)
+  watch([selectedAnimation, animationDuration, imageScale, imageOffsetX, imageOffsetY], (v) =>
+    savePlacementSettings('uploads', {
+      selectedAnimation: v[0],
+      animationDuration: v[1],
+      imageScale: v[2],
+      imageOffsetX: v[3],
+      imageOffsetY: v[4],
+    }),
+  )
 
   // Bereichsauswahl-Modus
   const isInRangeSelectionMode = ref(false)

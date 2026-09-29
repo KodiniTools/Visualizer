@@ -39,6 +39,7 @@
  * der Maus oder per Undo werden pro Frame abgeglichen.
  */
 import { reactive, ref, toRaw, watch, onMounted, onBeforeUnmount } from 'vue'
+import { loadKeepAspect, saveKeepAspect } from '../../../lib/imagePlacementSettings.js'
 import { useI18n } from '../../../lib/i18n.js'
 import SliderControl from '../../ui/SliderControl.vue'
 import {
@@ -67,7 +68,8 @@ const LABELS = {
 }
 
 // Seitenverhältnis beibehalten (Standard) – sonst wird das Bild verzerrt
-const keepAspect = ref(true)
+const keepAspect = ref(loadKeepAspect()) // dauerhaft gespeichert
+watch(keepAspect, saveKeepAspect)
 // Angezeigte Werte (relativ 0–1)
 const values = reactive({ x: 0.5, y: 0.5, width: 1 / 3, height: 1 / 3 })
 

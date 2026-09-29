@@ -22,6 +22,7 @@ function createManager(callbacks = {}) {
 }
 
 afterEach(() => {
+  localStorage.clear() // „Seitenverhältnis beibehalten“ wird dauerhaft gespeichert
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })

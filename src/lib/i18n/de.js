@@ -652,7 +652,7 @@ export default {
               'Globales Rückgängig/Wiederholen mit 50 Schritten über alle Bereiche',
               'Einheitliche Regler mit Zahlenfeld und Zurücksetzen',
               'Schnellstart-Hilfe mit Workflow, Funktionen, Tastaturkürzeln und Tipps',
-              'Visualizer-, Audio- und Raster-Einstellungen bleiben dauerhaft gespeichert',
+              'Visualizer-, Audio-, Text- und Raster-Einstellungen bleiben dauerhaft gespeichert',
             ],
           },
           {

@@ -438,10 +438,11 @@ onMounted(async () => {
   if (canvasRef.value) initializeCanvas(canvasRef.value)
 
   // Grid visibility watcher
+  // (auch bei neu erzeugtem GridManager – gespeicherte Einstellungen übernehmen)
   watch(
-    () => gridStore.isVisible,
-    (v) => {
-      if (gridManagerInstance.value) gridManagerInstance.value.setVisibility(v)
+    () => [gridManagerInstance.value, gridStore.isVisible],
+    ([gm, v]) => {
+      if (gm) gm.setVisibility(v)
     },
     { immediate: true },
   )
@@ -449,20 +450,18 @@ onMounted(async () => {
   // Grid-Farbe / Deckkraft watcher – überträgt die Auswahl aus dem
   // Raster-Farbwähler auf den GridManager (der Render-Loop liest gridColor).
   watch(
-    () => [gridStore.gridColor, gridStore.gridOpacity],
-    ([color, opacity]) => {
-      if (gridManagerInstance.value) {
-        gridManagerInstance.value.setGridColor(color, opacity)
-      }
+    () => [gridManagerInstance.value, gridStore.gridColor, gridStore.gridOpacity],
+    ([gm, color, opacity]) => {
+      if (gm) gm.setGridColor(color, opacity)
     },
     { immediate: true },
   )
 
   // Am Raster einrasten (DragDropHandler fragt gridManager.isSnapActive())
   watch(
-    () => gridStore.snapToGrid,
-    (v) => {
-      if (gridManagerInstance.value) gridManagerInstance.value.setSnapToGrid(v)
+    () => [gridManagerInstance.value, gridStore.snapToGrid],
+    ([gm, v]) => {
+      if (gm) gm.setSnapToGrid(v)
     },
     { immediate: true },
   )

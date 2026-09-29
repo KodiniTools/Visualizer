@@ -112,7 +112,10 @@ describe('DragDropHandler – Einrasten beim Verschieben', () => {
 })
 
 describe('Raster-Einstellungen – Schalter „Am Raster ausrichten“', () => {
-  beforeEach(() => setActivePinia(createPinia()))
+  beforeEach(() => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+  })
 
   it('nur bei eingeschaltetem Raster sichtbar und schaltet den Store', async () => {
     const pinia = createPinia()

@@ -982,6 +982,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     // Layer-Funktionen
     setMultiLayerMode,
     addLayer,
+    createLayer,
     removeLayer,
     duplicateLayer,
     moveLayerUp,

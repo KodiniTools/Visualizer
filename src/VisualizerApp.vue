@@ -128,6 +128,7 @@ import { useStatusBanner } from './composables/useStatusBanner.js'
 import { useSharedFiles } from './composables/useSharedFiles.js'
 import { useHandoff } from './composables/useHandoff.js'
 import { useHistorySetup } from './composables/useHistorySetup.js'
+import { setupVisualizerPersistence } from './lib/visualizerPersistence.js'
 
 import FileUploadPanel from './components/FileUploadPanel.vue'
 import StickyPlayerBar from './components/StickyPlayerBar.vue'
@@ -270,6 +271,11 @@ const { SOCIAL_MEDIA_PRESETS, initializeCanvas, getTextManager } = useCanvasSetu
 })
 
 // ── Globaler Undo/Redo-Verlauf (alle Panels) ────────────────────────────────────
+// Visualizer-Einstellungen dauerhaft speichern – vor dem Undo-Verlauf laden,
+// damit das Wiederherstellen keinen Verlaufsschritt erzeugt
+const visualizerPersistence = setupVisualizerPersistence(visualizerStore)
+onUnmounted(() => visualizerPersistence.stop())
+
 useHistorySetup({
   historyStore,
   canvasManagerInstance,

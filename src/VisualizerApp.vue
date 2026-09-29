@@ -129,6 +129,7 @@ import { useSharedFiles } from './composables/useSharedFiles.js'
 import { useHandoff } from './composables/useHandoff.js'
 import { useHistorySetup } from './composables/useHistorySetup.js'
 import { setupVisualizerPersistence } from './lib/visualizerPersistence.js'
+import { setupAudioSettingsPersistence } from './lib/audioSettingsPersistence.js'
 
 import FileUploadPanel from './components/FileUploadPanel.vue'
 import StickyPlayerBar from './components/StickyPlayerBar.vue'
@@ -275,6 +276,13 @@ const { SOCIAL_MEDIA_PRESETS, initializeCanvas, getTextManager } = useCanvasSetu
 // damit das Wiederherstellen keinen Verlaufsschritt erzeugt
 const visualizerPersistence = setupVisualizerPersistence(visualizerStore)
 onUnmounted(() => visualizerPersistence.stop())
+const audioSettingsPersistence = setupAudioSettingsPersistence({
+  playerStore,
+  audioSourceStore,
+  audioFxStore,
+  beatDropStore,
+})
+onUnmounted(() => audioSettingsPersistence.stop())
 
 useHistorySetup({
   historyStore,

@@ -651,7 +651,7 @@ export default {
               'Global undo/redo with 50 steps across all areas',
               'Consistent sliders with number field and reset',
               'Quick start guide with workflow, features, shortcuts and tips',
-              'Visualizer and grid settings are saved permanently',
+              'Visualizer, audio and grid settings are saved permanently',
             ],
           },
           {

@@ -10,36 +10,12 @@
  * Typ, nur Visualizer-Typen, die es (ggf. über Alias) noch gibt – beschädigte
  * Daten fallen auf den Standard zurück.
  */
-import { createVisualizerSegment, clone } from './history/segments/storeSegments.js'
+import { createVisualizerSegment } from './history/segments/storeSegments.js'
+import { clone, isPlainObject, sanitizeLike } from './storePersistence.js'
 import { resolveVisualizerId } from './visualizers/aliases.js'
 
 export const VISUALIZER_STORAGE_KEY = 'visualizer-visualizer-settings'
 const SAVE_DELAY_MS = 400
-
-function isPlainObject(v) {
-  return v !== null && typeof v === 'object' && !Array.isArray(v)
-}
-
-/** Passt value zum Typ des Standardwerts? (null ist erlaubt, wo der Standard null ist) */
-function sameType(defaultValue, value) {
-  if (defaultValue === null) return value === null || typeof value === 'string'
-  if (Array.isArray(defaultValue)) return Array.isArray(value)
-  if (typeof defaultValue === 'number') return Number.isFinite(value)
-  if (isPlainObject(defaultValue)) return isPlainObject(value)
-  return typeof value === typeof defaultValue
-}
-
-/** Übernimmt nur Felder, die im Vorbild existieren und typgleich sind (rekursiv für Objekte). */
-function sanitizeLike(template, value) {
-  const out = {}
-  for (const [key, def] of Object.entries(template)) {
-    if (!(key in value) || !sameType(def, value[key])) continue
-    out[key] = isPlainObject(def)
-      ? { ...clone(def), ...sanitizeLike(def, value[key]) }
-      : clone(value[key])
-  }
-  return out
-}
 
 /** Bild-Verweise entfernen (Bilder überleben keinen Neustart). */
 function withoutImages(snapshot) {

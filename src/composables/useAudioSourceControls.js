@@ -9,7 +9,8 @@ import { useAudioSourceStore } from '../stores/audioSourceStore.js'
 export function useAudioSourceControls() {
   const audioSourceStore = useAudioSourceStore()
 
-  const selectedDevice = ref('default')
+  // Startwert aus dem Store (dauerhaft gemerktes Mikrofon)
+  const selectedDevice = ref(audioSourceStore.selectedDeviceId || 'default')
 
   const selectSource = async (sourceType) => {
     if (sourceType === audioSourceStore.sourceType) return

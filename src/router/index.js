@@ -3,6 +3,7 @@ import LandingPage from '../components/LandingPage.vue'
 import InternalLandingPage from '../components/InternalLandingPage.vue'
 import BlogPage from '../components/BlogPage.vue'
 import VisualizerApp from '../VisualizerApp.vue'
+import { applyRouteHead } from './seoHead.js'
 
 const BASE = 'https://kodinitools.com/visualizer'
 
@@ -17,6 +18,8 @@ const routes = [
         'Audio Visualizer Pro – Erstelle beeindruckende Musik-Visualisierungen direkt im Browser. Tracks hochladen, Visualisierung wählen, Text/Bild hinzufügen und als MP4 exportieren.',
       canonical: `${BASE}/`,
       robots: 'index, follow',
+      // FAQ ist nur hier sichtbar → FAQ-JSON-LD nur hier (siehe seoHead.js)
+      faq: true,
     },
   },
   {
@@ -74,59 +77,8 @@ const router = createRouter({
   },
 })
 
-// Update document.title, canonical, robots, og:url per route
-router.afterEach((to) => {
-  const { title, description, canonical, robots } = to.meta ?? {}
-
-  if (title) document.title = title
-
-  setMeta('name', 'description', description)
-  setMeta('name', 'robots', robots ?? 'index, follow')
-  setMeta('property', 'og:title', title)
-  setMeta('property', 'og:description', description)
-  setMeta('property', 'og:url', canonical)
-  setMeta('name', 'twitter:title', title)
-  setMeta('name', 'twitter:description', description)
-  setMeta('name', 'twitter:url', canonical)
-
-  setCanonical(canonical)
-  for (const lang of ['de', 'en', 'x-default']) setAlternate(lang, canonical)
-})
-
-function setMeta(attr, key, content) {
-  if (!content) return
-  let el = document.querySelector(`meta[${attr}="${key}"]`)
-  if (!el) {
-    el = document.createElement('meta')
-    el.setAttribute(attr, key)
-    document.head.appendChild(el)
-  }
-  el.setAttribute('content', content)
-}
-
-function setCanonical(href) {
-  if (!href) return
-  let el = document.querySelector('link[rel="canonical"]')
-  if (!el) {
-    el = document.createElement('link')
-    el.setAttribute('rel', 'canonical')
-    document.head.appendChild(el)
-  }
-  el.setAttribute('href', href)
-}
-
-// Beide Sprachen teilen sich eine URL (Umschaltung clientseitig)
-function setAlternate(hreflang, href) {
-  if (!href) return
-  let el = document.querySelector(`link[rel="alternate"][hreflang="${hreflang}"]`)
-  if (!el) {
-    el = document.createElement('link')
-    el.setAttribute('rel', 'alternate')
-    el.setAttribute('hreflang', hreflang)
-    document.head.appendChild(el)
-  }
-  el.setAttribute('href', href)
-}
+// Update document.title, canonical, robots, og:url, hreflang, FAQ-JSON-LD per route
+router.afterEach((to) => applyRouteHead(to.meta))
 
 // Redirect from landing to app when coming from audiokonverter
 router.beforeEach((to, from, next) => {

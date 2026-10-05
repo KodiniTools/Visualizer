@@ -424,7 +424,7 @@ const backgroundPresetOptions = computed(() => {
 .form-title {
   font-size: 11px;
   font-weight: 600;
-  color: var(--accent-primary);
+  color: var(--accent-ink);
   margin-bottom: 8px;
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border-color);
@@ -527,7 +527,7 @@ const backgroundPresetOptions = computed(() => {
   font-size: 10px;
   font-weight: 600;
   font-family: 'Courier New', monospace;
-  color: var(--accent-primary);
+  color: var(--accent-ink);
   min-width: 26px;
   text-align: right;
 }
@@ -568,7 +568,7 @@ const backgroundPresetOptions = computed(() => {
 .btn-step:hover {
   background-color: var(--btn-hover);
   border-color: var(--accent-primary);
-  color: var(--accent-primary);
+  color: var(--accent-ink);
 }
 .btn-step:active {
   background-color: var(--accent-primary);
@@ -609,7 +609,7 @@ const backgroundPresetOptions = computed(() => {
   background-color: var(--secondary-bg);
   border: 1px solid var(--accent-primary);
   border-radius: 4px;
-  color: var(--accent-primary);
+  color: var(--accent-ink);
   text-align: center;
 }
 .time-hint {
@@ -686,7 +686,7 @@ const backgroundPresetOptions = computed(() => {
 .marker-time {
   font-weight: 600;
   font-family: 'Courier New', monospace;
-  color: var(--accent-primary);
+  color: var(--accent-ink);
   cursor: pointer;
   min-width: 52px;
 }
@@ -702,11 +702,11 @@ const backgroundPresetOptions = computed(() => {
   cursor: pointer;
 }
 .marker-label:hover {
-  color: var(--accent-primary);
+  color: var(--accent-ink);
 }
 .marker-action {
   font-size: 9px;
-  color: var(--accent-primary);
+  color: var(--accent-ink);
   background-color: rgba(201, 152, 77, 0.1);
   padding: 2px 6px;
   border-radius: 3px;

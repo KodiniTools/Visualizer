@@ -208,7 +208,7 @@ const replaceCanvasImageInput = ref(null)
   margin: 0 0 16px 0;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }

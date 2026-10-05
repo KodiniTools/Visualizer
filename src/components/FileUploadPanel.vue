@@ -128,7 +128,10 @@ function onPaste(event) {
   if (!items) return
   const audioFiles = []
   for (const item of items) {
-    if (item.kind === 'file' && (item.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(item.type))) {
+    if (
+      item.kind === 'file' &&
+      (item.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(item.type))
+    ) {
       const file = item.getAsFile()
       if (file) audioFiles.push(file)
     }
@@ -368,7 +371,7 @@ h3::before {
 
 .format-item {
   font-size: 0.55rem;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
   background-color: rgba(201, 152, 77, 0.15);
   padding: 2px 5px;
   border-radius: 3px;
@@ -393,7 +396,7 @@ h3::before {
   border-radius: 5px;
   border: 1px solid var(--accent-primary, #c9984d);
   background-color: rgba(201, 152, 77, 0.15);
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
   cursor: pointer;
   transition: all 0.2s ease;
 }

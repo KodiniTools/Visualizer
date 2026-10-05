@@ -51,6 +51,8 @@
   --accent-secondary: #014f99;
   --accent-tertiary: #f8e1a9;
   --accent-text: #091428;
+  /* Akzent als Text oder Icon (Titel, Chips, Hover-Icons): im Dark Theme Gold. */
+  --accent-ink: #c9984d;
   --text-primary: #f9f2d5;
   --text-secondary: #f8e1a9;
   /* #8396a9: 5,0:1 auf --card-bg (WCAG AA ≥ 4,5:1); vorher #7a8da0 = 4,45:1 */
@@ -71,10 +73,17 @@
   --primary-bg: #f5f4d6;
   --secondary-bg: #f9f2d5;
   --card-bg: #ffffff;
-  --accent-primary: #014f99;
-  --accent-secondary: #c9984d;
-  --accent-tertiary: #c9984d;
-  --accent-text: #f5f4d6;
+  /* Gold bleibt auch im Light Theme der Akzent (Parität mit dem Design-System v2
+     von Collage Maker und Playlist Generator, Entscheidung 05.10.2026).
+     Gold nur als Fläche, nie als Text: 2,4:1 auf --primary-bg.
+     --accent-text #091428 hält 7,1:1 auf Gold; --accent-tertiary ist das
+     dunklere Hover-Gold aus v2 (ds-accent-hover). */
+  --accent-primary: #c9984d;
+  --accent-secondary: #014f99;
+  --accent-tertiary: #b8842f;
+  --accent-text: #091428;
+  /* Akzent als Text oder Icon auf heller Fläche: Navy statt Gold (4,5:1 statt 2,4:1). */
+  --accent-ink: #014f99;
   --text-primary: #003971;
   --text-secondary: #014f99;
   --text-muted: #4d6d8e;

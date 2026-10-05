@@ -155,7 +155,7 @@ const {
 .upload-icon {
   width: 32px;
   height: 32px;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
 }
 
 .upload-icon svg {

@@ -68,6 +68,6 @@ const save = () => store.save()
   margin: 0 0 12px 0;
   font-size: 0.9rem;
   font-weight: 700;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
 }
 </style>

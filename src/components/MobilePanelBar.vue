@@ -127,7 +127,7 @@ defineEmits(['update:modelValue'])
       var(--accent-primary, #c9984d) 12%,
       var(--secondary-bg, #0e1c32)
     );
-    color: var(--accent-primary, #c9984d);
+    color: var(--accent-ink, #c9984d);
     border-color: var(--accent-primary, #c9984d);
   }
 

@@ -713,7 +713,7 @@ const seekToPosition = (event) => {
 }
 /* Stumm: Lautstärke-Button hervorheben (Symbol mit Durchstreichung) */
 .spb-volume-btn.muted:not(.active) {
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
   border-color: var(--accent-primary, #c9984d);
 }
 .spb-source-btn.listening {

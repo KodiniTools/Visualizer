@@ -277,7 +277,7 @@ function handleAction(toast) {
   border: 1px solid var(--accent-primary, #c9984d);
   border-radius: 6px;
   background: transparent;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;

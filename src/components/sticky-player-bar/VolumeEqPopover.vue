@@ -137,7 +137,7 @@ const ICON_MUTED =
 }
 .volume-mute-btn:hover .volume-icon,
 .volume-mute-btn.muted .volume-icon {
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
 }
 .volume-mute-btn:focus-visible {
   outline: 2px solid var(--accent-primary, #c9984d);

@@ -137,7 +137,7 @@ onUnmounted(() => {
 .canvas-images-label {
   font-size: 0.65rem;
   font-weight: 600;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   white-space: nowrap;

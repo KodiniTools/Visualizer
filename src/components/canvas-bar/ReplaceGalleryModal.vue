@@ -139,7 +139,7 @@ defineProps({
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
 }
 
 .replace-gallery-close {
@@ -195,7 +195,7 @@ defineProps({
 .replace-category-tab.active {
   background: rgba(201, 152, 77, 0.25);
   border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
 }
 
 .category-icon {

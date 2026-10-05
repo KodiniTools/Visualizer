@@ -456,7 +456,7 @@ const missingFont = computed(() => {
 .sub-header::before {
   content: '▶';
   font-size: 7px;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
   transition: transform 0.2s ease;
 }
 .sub-section[open] > .sub-header::before {

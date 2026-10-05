@@ -50,7 +50,7 @@ const { t } = useI18n()
   align-items: center;
   gap: 7px;
   text-decoration: none;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.4px;
@@ -102,7 +102,7 @@ const { t } = useI18n()
 }
 
 [data-theme='light'] .app-logo {
-  color: var(--accent-primary, #014f99);
+  color: var(--accent-ink, #014f99);
 }
 
 [data-theme='light'] .app-logo:hover {

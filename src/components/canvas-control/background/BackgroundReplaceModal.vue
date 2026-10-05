@@ -234,7 +234,7 @@ const {
 }
 .bg-replace-hint {
   font-size: 0.55rem;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
   margin: 0 0 12px 0;
   padding: 6px 8px;
   background: rgba(201, 152, 77, 0.1);

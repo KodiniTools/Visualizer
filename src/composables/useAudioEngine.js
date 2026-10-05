@@ -1,3 +1,5 @@
+import { watch } from 'vue'
+
 const SILENT_GAIN = 0.0001
 const ACTIVE_GAIN = 1
 
@@ -43,6 +45,7 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     analyser.fftSize = 2048
     sourceNode = audioContext.createMediaElementSource(audioRef.value)
     outputGain = audioContext.createGain()
+    applyOutputMute()
 
     bassFilter = audioContext.createBiquadFilter()
     bassFilter.type = 'lowshelf'
@@ -76,6 +79,12 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     micRecordingGain.connect(recordingMixer)
     recordingMixer.connect(recordingDest)
   }
+
+  /** Stumm (playerStore.isMuted) nur auf den Lautsprecher-Ausgang anwenden. */
+  function applyOutputMute() {
+    if (outputGain) outputGain.gain.value = playerStore?.isMuted ? 0 : ACTIVE_GAIN
+  }
+  if (playerStore) watch(() => playerStore.isMuted, applyOutputMute)
 
   function setBassGain(gain) {
     if (bassFilter) bassFilter.gain.value = gain

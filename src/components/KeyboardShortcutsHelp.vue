@@ -16,6 +16,10 @@
           </div>
           <div class="shortcut-item">
             <kbd>M</kbd>
+            <span>Add beat marker</span>
+          </div>
+          <div class="shortcut-item">
+            <kbd>Shift</kbd> + <kbd>M</kbd>
             <span>Mute/Unmute</span>
           </div>
           <div class="shortcut-item">

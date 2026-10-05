@@ -1,11 +1,15 @@
-import { ref, watch } from 'vue'
+import { ref, watch, onBeforeUnmount, getCurrentInstance } from 'vue'
 import {
   defaultTextSettings,
   loadTextDefaults,
   saveTextDefaults,
   clearTextDefaults,
   hasTextDefaults,
+  TEXT_DEFAULTS_EVENT,
 } from '../lib/textDefaults.js'
+
+const FORM_SOURCE = 'new-text-form'
+const AUTOSAVE_DELAY_MS = 400
 
 export function useNewTextSettings(canvasManager) {
   const newTextStyle = ref({
@@ -85,6 +89,10 @@ export function useNewTextSettings(canvasManager) {
     yPixel: 0,
   })
 
+  // Zuletzt geladener/gespeicherter Formularstand (für das automatische Speichern)
+  let lastSynced = null
+  let autosaveTimer = null
+
   const isSelectingOnCanvas = ref(false)
   const textSelectionBounds = ref(null)
   const canvasWidth = ref(1920)
@@ -120,6 +128,7 @@ export function useNewTextSettings(canvasManager) {
           newTextPosition.value.y = settings.position.y
         }
 
+        lastSynced = formSnapshot()
         console.log('✅ Gespeicherte Text-Einstellungen geladen')
         return true
       }
@@ -154,14 +163,18 @@ export function useNewTextSettings(canvasManager) {
       slide: { ...newTextSlide.value },
     }
 
-    const ok = saveTextDefaults(settings)
-    if (ok) console.log('💾 Text-Einstellungen gespeichert')
+    const ok = saveTextDefaults(settings, { source: FORM_SOURCE })
+    if (ok) {
+      lastSynced = formSnapshot()
+      console.log('💾 Text-Einstellungen gespeichert')
+    }
     return ok
   }
 
   function clearSavedSettings() {
-    const ok = clearTextDefaults()
+    const ok = clearTextDefaults({ source: FORM_SOURCE })
     resetNewTextSettings()
+    lastSynced = formSnapshot() // Werkseinstellungen nicht sofort wieder speichern
     if (ok) console.log('🗑️ Gespeicherte Einstellungen gelöscht')
     return ok
   }
@@ -241,6 +254,78 @@ export function useNewTextSettings(canvasManager) {
     const defaults = defaultTextSettings()
     newTextShadow.value = { ...defaults.shadow }
     newTextStroke.value = { ...defaults.stroke }
+  }
+
+  // ── Automatisch speichern ────────────────────────────────────────────────
+  // Stil, Schatten, Kontur und Animationen des Formulars werden gemerkt, sobald
+  // sie geändert werden (ohne Klick auf „Als Standard speichern“). Die Position
+  // bleibt beim Knopf: das Formular setzt sie beim Öffnen auf die Mitte, sonst
+  // würde jedes Öffnen eine gespeicherte Position überschreiben.
+  function formSnapshot() {
+    return JSON.stringify([
+      newTextStyle.value,
+      newTextShadow.value,
+      newTextStroke.value,
+      newTextTypewriter.value,
+      newTextFade.value,
+      newTextScale.value,
+      newTextSlide.value,
+    ])
+  }
+
+  function autosave() {
+    autosaveTimer = null
+    const snap = formSnapshot()
+    if (snap === lastSynced) return // nur echte Änderungen speichern
+    const stored = loadTextDefaults() || {}
+    const ok = saveTextDefaults(
+      {
+        ...stored,
+        style: { ...newTextStyle.value },
+        shadow: { ...newTextShadow.value },
+        stroke: { ...newTextStroke.value },
+        typewriter: { ...newTextTypewriter.value },
+        fade: { ...newTextFade.value },
+        scale: { ...newTextScale.value },
+        slide: { ...newTextSlide.value },
+        position: stored.position ?? null,
+      },
+      { source: FORM_SOURCE },
+    )
+    if (ok) lastSynced = snap
+  }
+
+  lastSynced = formSnapshot()
+  watch(formSnapshot, (snap) => {
+    if (snap === lastSynced || autosaveTimer) return
+    autosaveTimer = setTimeout(autosave, AUTOSAVE_DELAY_MS)
+  })
+
+  // Vorlage von außen geändert („Als Standard speichern“/„Zurücksetzen“ beim
+  // markierten Text) → Formular übernimmt sie, statt sie zu überschreiben
+  function onDefaultsChanged(event) {
+    if (event?.detail?.source === FORM_SOURCE) return
+    clearTimeout(autosaveTimer)
+    autosaveTimer = null
+    if (!loadSavedSettings()) {
+      resetNewTextSettings()
+      lastSynced = formSnapshot()
+    }
+  }
+  if (typeof window !== 'undefined') {
+    window.addEventListener(TEXT_DEFAULTS_EVENT, onDefaultsChanged)
+    const flushOnHide = () => autosaveTimer && (clearTimeout(autosaveTimer), autosave())
+    window.addEventListener('pagehide', flushOnHide)
+    if (getCurrentInstance()) {
+      onBeforeUnmount(() => {
+        if (autosaveTimer) {
+          clearTimeout(autosaveTimer)
+          autosave()
+        }
+        window.removeEventListener(TEXT_DEFAULTS_EVENT, onDefaultsChanged)
+        window.removeEventListener('pagehide', flushOnHide)
+      })
+    }
   }
 
   function calculateAutoFitFontSize(text, fontFamily, fontWeight, fontStyle, paddingPercent = 10) {

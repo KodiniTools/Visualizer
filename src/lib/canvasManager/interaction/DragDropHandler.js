@@ -11,6 +11,8 @@
 export class DragDropHandler {
   constructor(canvasManager) {
     this.manager = canvasManager
+    // Ungerastete Position pro Objekt während des Ziehens (Einrasten am Raster)
+    this._snapState = new WeakMap()
   }
 
   /**
@@ -34,28 +36,79 @@ export class DragDropHandler {
       return
     }
 
-    obj.relX += relDx
-    obj.relY += relDy
+    const startX = obj.relX
+    const startY = obj.relY
+    const grid = this.manager.gridManager?.isSnapActive?.() ? this.manager.gridManager : null
 
-    // Text-Objekte haben kein relWidth/relHeight
-    // Sie können überall positioniert werden (auch außerhalb Canvas für Effekte)
-    if (obj.type !== 'text') {
-      // Nur Bilder auf Canvas begrenzen
-      obj.relX = Math.max(0, Math.min(obj.relX, 1 - obj.relWidth))
-      obj.relY = Math.max(0, Math.min(obj.relY, 1 - obj.relHeight))
+    if (grid) {
+      // Ungerastete Position mitführen: Mausdeltas kommen schrittweise – würde
+      // die eingerastete Position weitergeschoben, bliebe das Objekt an der
+      // Linie hängen. Wurde das Objekt anderweitig bewegt, neu beginnen.
+      let state = this._snapState.get(obj)
+      if (!state || state.x !== obj.relX || state.y !== obj.relY) {
+        state = { rawX: obj.relX, rawY: obj.relY }
+      }
+      state.rawX += relDx
+      state.rawY += relDy
+      if (obj.type !== 'text') {
+        state.rawX = Math.max(0, Math.min(state.rawX, 1 - obj.relWidth))
+        state.rawY = Math.max(0, Math.min(state.rawY, 1 - obj.relHeight))
+      }
+      obj.relX = state.rawX
+      obj.relY = state.rawY
+      this._snapToGrid(obj, grid)
+      state.x = obj.relX
+      state.y = obj.relY
+      this._snapState.set(obj, state)
+    } else {
+      obj.relX += relDx
+      obj.relY += relDy
+
+      // Text-Objekte haben kein relWidth/relHeight
+      // Sie können überall positioniert werden (auch außerhalb Canvas für Effekte)
+      if (obj.type !== 'text') {
+        // Nur Bilder auf Canvas begrenzen
+        obj.relX = Math.max(0, Math.min(obj.relX, 1 - obj.relWidth))
+        obj.relY = Math.max(0, Math.min(obj.relY, 1 - obj.relHeight))
+      }
+      // Text wird nicht begrenzt - kann frei positioniert werden
     }
-    // Text wird nicht begrenzt - kann frei positioniert werden
 
     slideshow?.commitImageBounds(obj)
 
-    // When multiple texts are selected, move them all together
+    // When multiple texts are selected, move them all together (um dieselbe
+    // tatsächliche Verschiebung – auch wenn das gezogene Objekt eingerastet ist)
+    const appliedDx = obj.relX - startX
+    const appliedDy = obj.relY - startY
     if (this.manager.selectedObjects && this.manager.selectedObjects.length > 0) {
       for (const other of this.manager.selectedObjects) {
         if (other !== obj && other.type === 'text') {
-          other.relX += relDx
-          other.relY += relDy
+          other.relX += appliedDx
+          other.relY += appliedDy
         }
       }
+    }
+  }
+
+  /**
+   * Rastet ein Objekt am Raster ein: Bilder/Videos mit linker/rechter bzw.
+   * oberer/unterer Kante oder Mitte, Texte mit ihrem Ankerpunkt. Die Toleranz
+   * gilt in Bildschirm-Pixeln (unabhängig von der Canvas-Skalierung).
+   */
+  _snapToGrid(obj, grid) {
+    const canvas = this.manager.canvas
+    const w = canvas.width
+    const h = canvas.height
+    const displayed = canvas.clientWidth || canvas.getBoundingClientRect?.().width || w
+    const tolerance = grid.snapTolerance * (w / displayed)
+    const hasBox = obj.type !== 'text' && obj.relWidth > 0 && obj.relHeight > 0
+    const bw = hasBox ? obj.relWidth * w : 0
+    const bh = hasBox ? obj.relHeight * h : 0
+    obj.relX = grid.snapAxis(obj.relX * w, bw, tolerance) / w
+    obj.relY = grid.snapAxis(obj.relY * h, bh, tolerance) / h
+    if (hasBox) {
+      obj.relX = Math.max(0, Math.min(obj.relX, 1 - obj.relWidth))
+      obj.relY = Math.max(0, Math.min(obj.relY, 1 - obj.relHeight))
     }
   }
 

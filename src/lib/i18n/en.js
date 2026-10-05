@@ -506,7 +506,7 @@ export default {
               'Save the complete scene as a preset: background, images, videos, texts, ticker and audio settings',
               'Reset background, workspace or everything',
               'Clear canvas with confirmation',
-              'Grid with color and opacity',
+              'Grid with color, opacity and snapping while moving',
             ],
           },
         ],
@@ -651,6 +651,7 @@ export default {
               'Global undo/redo with 50 steps across all areas',
               'Consistent sliders with number field and reset',
               'Quick start guide with workflow, features, shortcuts and tips',
+              'Visualizer, audio, text, image and grid settings are saved permanently',
             ],
           },
           {
@@ -672,6 +673,14 @@ export default {
           {
             key: 'Space',
             action: 'Play/pause',
+          },
+          {
+            key: 'M',
+            action: 'Add beat marker',
+          },
+          {
+            key: 'Shift+M',
+            action: 'Mute/unmute',
           },
           {
             key: '← / →',
@@ -986,6 +995,9 @@ export default {
     openMarkers: 'Beat markers',
     openAudioSource: 'Audio source',
     openVolume: 'Volume & EQ',
+    mute: 'Mute (Shift+M)',
+    unmute: 'Unmute (Shift+M)',
+    muted: 'muted',
     openRecorder: 'Recording & export',
     openScreenshot: 'Screenshot',
     openVisualizer: 'Visualizer',
@@ -1207,6 +1219,7 @@ export default {
     grid: 'Grid',
     gridColor: 'Grid color',
     gridOpacity: 'Grid opacity',
+    snapToGrid: 'Snap to grid',
     workspace: 'Workspace',
     free: 'Free',
   },

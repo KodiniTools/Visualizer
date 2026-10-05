@@ -96,13 +96,8 @@ export class KeyboardShortcuts {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   togglePlayPause() {
-    if (this.playerStore.isPlaying) {
-      this.playerStore.pause()
-      console.log('⏸️ [Shortcut] Pause')
-    } else {
-      this.playerStore.play()
-      console.log('▶️ [Shortcut] Play')
-    }
+    this.playerStore.togglePlayPause()
+    console.log('⏯️ [Shortcut] Play/Pause')
   }
 
   toggleMute() {
@@ -111,7 +106,7 @@ export class KeyboardShortcuts {
   }
 
   previousTrack() {
-    this.playerStore.previousTrack()
+    this.playerStore.prevTrack()
     console.log('⏮️ [Shortcut] Previous Track')
   }
 

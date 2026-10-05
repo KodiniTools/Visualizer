@@ -105,10 +105,9 @@ function makeShortcuts(canvasOverrides = {}) {
     playerStore: {
       isPlaying: false,
       isMuted: false,
-      play: rec('player.play'),
-      pause: rec('player.pause'),
+      togglePlayPause: rec('player.togglePlayPause'),
       toggleMute: rec('player.toggleMute'),
-      previousTrack: rec('player.previousTrack'),
+      prevTrack: rec('player.prevTrack'),
       nextTrack: rec('player.nextTrack'),
     },
     recorderStore: {
@@ -222,12 +221,28 @@ describe('KeyboardShortcuts – Aktionen', () => {
     ks.previousTrack()
     ks.nextTrack()
     expect(calls).toEqual([
-      'player.play()',
-      'player.pause()',
+      'player.togglePlayPause()',
+      'player.togglePlayPause()',
       'player.toggleMute()',
-      'player.previousTrack()',
+      'player.prevTrack()',
       'player.nextTrack()',
     ])
+  })
+
+  it('Player-Aktionen rufen nur Funktionen, die der echte Player-Store hat', async () => {
+    const { setActivePinia, createPinia } = await import('pinia')
+    const { usePlayerStore } = await import('../../stores/playerStore.js')
+    setActivePinia(createPinia())
+    const playerStore = usePlayerStore()
+    const ks = new KeyboardShortcuts({ playerStore, gridStore: {} }, { canvasManager: null })
+    // ohne Titel: kein Fehler (vorher: „play/previousTrack/toggleMute is not a function“)
+    expect(() => ks.togglePlayPause()).not.toThrow()
+    expect(() => ks.previousTrack()).not.toThrow()
+    expect(() => ks.nextTrack()).not.toThrow()
+    expect(() => ks.toggleMute()).not.toThrow()
+    expect(playerStore.isMuted).toBe(true)
+    ks.toggleMute()
+    expect(playerStore.isMuted).toBe(false)
   })
 
   it('Löschen, Auswahl aufheben (nur mit Auswahl)', () => {

@@ -507,7 +507,7 @@ export default {
               'Komplette Szene als Preset speichern: Hintergrund, Bilder, Videos, Texte, Lauftext und Audio-Einstellungen',
               'Hintergrund, Workspace oder alles zurücksetzen',
               'Canvas leeren mit Sicherheitsabfrage',
-              'Raster mit Farbe und Deckkraft',
+              'Raster mit Farbe, Deckkraft und Einrasten beim Verschieben',
             ],
           },
         ],
@@ -652,6 +652,7 @@ export default {
               'Globales Rückgängig/Wiederholen mit 50 Schritten über alle Bereiche',
               'Einheitliche Regler mit Zahlenfeld und Zurücksetzen',
               'Schnellstart-Hilfe mit Workflow, Funktionen, Tastaturkürzeln und Tipps',
+              'Visualizer-, Audio-, Text-, Bild- und Raster-Einstellungen bleiben dauerhaft gespeichert',
             ],
           },
           {
@@ -673,6 +674,14 @@ export default {
           {
             key: 'Leertaste',
             action: 'Play/Pause',
+          },
+          {
+            key: 'M',
+            action: 'Beat-Marker setzen',
+          },
+          {
+            key: 'Umschalt+M',
+            action: 'Stumm schalten',
           },
           {
             key: '← / →',
@@ -987,6 +996,9 @@ export default {
     openMarkers: 'Beat-Marker',
     openAudioSource: 'Audio-Quelle',
     openVolume: 'Lautstärke & EQ',
+    mute: 'Stumm schalten (Umschalt+M)',
+    unmute: 'Ton einschalten (Umschalt+M)',
+    muted: 'stumm',
     openRecorder: 'Aufnahme & Export',
     openScreenshot: 'Screenshot',
     openVisualizer: 'Visualizer',
@@ -1209,6 +1221,7 @@ export default {
     grid: 'Raster',
     gridColor: 'Rasterfarbe',
     gridOpacity: 'Raster-Deckkraft',
+    snapToGrid: 'Am Raster ausrichten',
     workspace: 'Arbeitsbereich',
     free: 'Frei',
   },

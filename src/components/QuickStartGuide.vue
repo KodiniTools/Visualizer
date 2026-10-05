@@ -255,6 +255,7 @@ const content = {
         items: [
           { keys: ['Space'], desc: 'Play / Pause' },
           { keys: ['M'], desc: 'Beat-Marker setzen' },
+          { keys: ['Shift', 'M'], desc: 'Stumm schalten' },
           { keys: ['←', '→'], desc: 'Vorheriger / Nächster Track' },
         ],
       },
@@ -437,6 +438,7 @@ const content = {
         items: [
           { keys: ['Space'], desc: 'Play / Pause' },
           { keys: ['M'], desc: 'Add beat marker' },
+          { keys: ['Shift', 'M'], desc: 'Mute / unmute' },
           { keys: ['←', '→'], desc: 'Previous / Next track' },
         ],
       },

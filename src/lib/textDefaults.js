@@ -146,18 +146,32 @@ export function loadTextDefaults() {
   }
 }
 
-export function saveTextDefaults(settings) {
+/** Ereignis nach jeder Änderung der Vorlage (Formular lädt dann neu). */
+export const TEXT_DEFAULTS_EVENT = 'visualizer:text-defaults-changed'
+
+function notifyChanged(source) {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent(TEXT_DEFAULTS_EVENT, { detail: { source } }))
+}
+
+/**
+ * @param {object} settings
+ * @param {{ source?: string }} [opts] - Absender (das Formular ignoriert eigene Meldungen)
+ */
+export function saveTextDefaults(settings, { source = 'external' } = {}) {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+    notifyChanged(source)
     return true
   } catch {
     return false
   }
 }
 
-export function clearTextDefaults() {
+export function clearTextDefaults({ source = 'external' } = {}) {
   try {
     localStorage.removeItem(SETTINGS_KEY)
+    notifyChanged(source)
     return true
   } catch {
     return false

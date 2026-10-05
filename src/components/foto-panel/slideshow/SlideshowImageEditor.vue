@@ -163,7 +163,8 @@
  * Rein darstellend: Änderungen werden emittiert, das SlideshowPanel übernimmt
  * sie live in die laufende Slideshow.
  */
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
+import { loadKeepAspect, saveKeepAspect } from '../../../lib/imagePlacementSettings.js'
 import { useI18n } from '../../../lib/i18n.js'
 import { SLIDESHOW_TRANSITIONS, isValidTransition } from '../../../lib/slideshowTransitions.js'
 import {
@@ -247,7 +248,8 @@ function onPosition(axis, value) {
 
 const SIZE_DIMS = ['width', 'height']
 // Seitenverhältnis beibehalten (Standard) – sonst wird das Bild verzerrt
-const keepAspect = ref(true)
+const keepAspect = ref(loadKeepAspect()) // dauerhaft gespeichert
+watch(keepAspect, saveKeepAspect)
 
 /** Relative Größe → Prozent mit einer Nachkommastelle; ungültig = 100. */
 function sizePercent(value) {

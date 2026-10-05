@@ -119,7 +119,21 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
         },
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      let stream
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints)
+      } catch (error) {
+        // Gemerktes Gerät nicht mehr vorhanden (abgesteckt/neu verbunden) →
+        // mit dem Standardgerät starten statt dauerhaft zu scheitern
+        const missing = ['OverconstrainedError', 'NotFoundError'].includes(error?.name)
+        if (!deviceId || !missing) throw error
+        console.warn('[AudioSourceStore] Gewähltes Mikrofon fehlt – Standardgerät', error)
+        deviceId = null
+        selectedDeviceId.value = 'default'
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: { ...constraints.audio, deviceId: undefined },
+        })
+      }
       microphoneStream.value = stream
       isMicrophoneActive.value = true
       microphonePermission.value = 'granted'

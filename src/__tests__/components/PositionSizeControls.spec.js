@@ -7,6 +7,7 @@ import { createPinia, setActivePinia } from 'pinia'
 
 let wrapper
 afterEach(() => {
+  localStorage.clear() // „Seitenverhältnis beibehalten“ wird dauerhaft gespeichert
   wrapper?.unmount()
   wrapper = null
 })

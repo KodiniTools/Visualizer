@@ -41,6 +41,7 @@
 <script setup>
 import { ensureTextAudioReactive } from '../lib/audio/audioReactiveConfig.js'
 import { ref, inject, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { loadTextSequenceSettings, saveTextSequenceSettings } from '../lib/textSequenceSettings.js'
 import { useI18n } from '../lib/i18n.js'
 import TextNewForm from './text-manager/TextNewForm.vue'
 import TextEditPanel from './text-manager/TextEditPanel.vue'
@@ -121,8 +122,13 @@ const DEFAULT_SLOT_MS = 4000 // Anzeigedauer für Texte ohne Animation
 const sequencePlaying = ref(false)
 // Optionale globale Anzeigedauer: gilt dann für JEDEN Text gleich (überschreibt
 // die textindividuelle Anzeigedauer während der Reihenwiedergabe).
-const globalDurationEnabled = ref(false)
-const globalDuration = ref(5000)
+// Wird dauerhaft gespeichert (lib/textSequenceSettings.js).
+const savedSequence = loadTextSequenceSettings()
+const globalDurationEnabled = ref(savedSequence.enabled)
+const globalDuration = ref(savedSequence.duration)
+watch([globalDurationEnabled, globalDuration], ([enabled, duration]) =>
+  saveTextSequenceSettings({ enabled, duration }),
+)
 let sequenceTimer = null
 let sequenceIndex = 0
 let savedOpacities = new Map()

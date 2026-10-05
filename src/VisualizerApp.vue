@@ -128,6 +128,8 @@ import { useStatusBanner } from './composables/useStatusBanner.js'
 import { useSharedFiles } from './composables/useSharedFiles.js'
 import { useHandoff } from './composables/useHandoff.js'
 import { useHistorySetup } from './composables/useHistorySetup.js'
+import { setupVisualizerPersistence } from './lib/visualizerPersistence.js'
+import { setupAudioSettingsPersistence } from './lib/audioSettingsPersistence.js'
 
 import FileUploadPanel from './components/FileUploadPanel.vue'
 import StickyPlayerBar from './components/StickyPlayerBar.vue'
@@ -270,6 +272,18 @@ const { SOCIAL_MEDIA_PRESETS, initializeCanvas, getTextManager } = useCanvasSetu
 })
 
 // ── Globaler Undo/Redo-Verlauf (alle Panels) ────────────────────────────────────
+// Visualizer-Einstellungen dauerhaft speichern – vor dem Undo-Verlauf laden,
+// damit das Wiederherstellen keinen Verlaufsschritt erzeugt
+const visualizerPersistence = setupVisualizerPersistence(visualizerStore)
+onUnmounted(() => visualizerPersistence.stop())
+const audioSettingsPersistence = setupAudioSettingsPersistence({
+  playerStore,
+  audioSourceStore,
+  audioFxStore,
+  beatDropStore,
+})
+onUnmounted(() => audioSettingsPersistence.stop())
+
 useHistorySetup({
   historyStore,
   canvasManagerInstance,
@@ -438,10 +452,11 @@ onMounted(async () => {
   if (canvasRef.value) initializeCanvas(canvasRef.value)
 
   // Grid visibility watcher
+  // (auch bei neu erzeugtem GridManager – gespeicherte Einstellungen übernehmen)
   watch(
-    () => gridStore.isVisible,
-    (v) => {
-      if (gridManagerInstance.value) gridManagerInstance.value.setVisibility(v)
+    () => [gridManagerInstance.value, gridStore.isVisible],
+    ([gm, v]) => {
+      if (gm) gm.setVisibility(v)
     },
     { immediate: true },
   )
@@ -449,11 +464,18 @@ onMounted(async () => {
   // Grid-Farbe / Deckkraft watcher – überträgt die Auswahl aus dem
   // Raster-Farbwähler auf den GridManager (der Render-Loop liest gridColor).
   watch(
-    () => [gridStore.gridColor, gridStore.gridOpacity],
-    ([color, opacity]) => {
-      if (gridManagerInstance.value) {
-        gridManagerInstance.value.setGridColor(color, opacity)
-      }
+    () => [gridManagerInstance.value, gridStore.gridColor, gridStore.gridOpacity],
+    ([gm, color, opacity]) => {
+      if (gm) gm.setGridColor(color, opacity)
+    },
+    { immediate: true },
+  )
+
+  // Am Raster einrasten (DragDropHandler fragt gridManager.isSnapActive())
+  watch(
+    () => [gridManagerInstance.value, gridStore.snapToGrid],
+    ([gm, v]) => {
+      if (gm) gm.setSnapToGrid(v)
     },
     { immediate: true },
   )

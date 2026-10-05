@@ -67,7 +67,12 @@ export const SHORTCUT_RULES = [
     (c) => c.key === ' ',
     (s) => s.togglePlayPause(),
   ),
-  rule(plain('m'), (s) => s.toggleMute()),
+  // M (ohne Zusatztaste) setzt einen Beat-Marker (useBeatMarkers) – daher hier
+  // nur Umschalt+M für Stummschalten, sonst lösten beide Aktionen gleichzeitig aus
+  rule(
+    (c) => c.key === 'm' && c.shift && !c.ctrl && !c.alt,
+    (s) => s.toggleMute(),
+  ),
   // Pfeil links/rechts ohne Auswahl = vorheriger/nächster Titel
   rule(
     (c) => c.key === 'arrowleft' && !c.hasSelection,
@@ -139,7 +144,8 @@ export function findShortcutRule(ctx) {
 export const SHORTCUT_LIST = Object.freeze({
   Player: {
     Space: 'Play/Pause',
-    M: 'Mute/Unmute',
+    M: 'Add beat marker',
+    'Shift+M': 'Mute/Unmute',
     '←/→': 'Previous/Next Track (when no object selected)',
   },
   'Object Manipulation': {

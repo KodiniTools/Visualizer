@@ -2,7 +2,7 @@ import { computed } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { usePlayerStore } from '../stores/playerStore.js'
 
-const PLAY_MODES = ['none', 'sequence', 'repeat-one', 'repeat-all', 'shuffle']
+export const PLAY_MODES = ['none', 'sequence', 'repeat-one', 'repeat-all', 'shuffle']
 
 /**
  * Cycling play-mode control (no autoplay / sequence / repeat-one / repeat-all /

@@ -282,19 +282,19 @@ button:disabled {
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .undo-redo-panel {
-  background: #ffffff;
+  background: var(--card-bg);
   border-color: #d4c8a8;
 }
 
 [data-theme='light'] button {
   background: #f0ead0;
   border-color: #d4c8a8;
-  color: #003971;
+  color: var(--text-primary);
 }
 
 [data-theme='light'] button:hover:not(:disabled) {
   background: #e8e0c0;
-  border-color: #c9984d;
+  border-color: var(--accent-primary);
 }
 
 [data-theme='light'] button:disabled {
@@ -302,24 +302,23 @@ button:disabled {
 }
 
 [data-theme='light'] .history-info {
-  color: #4d6d8e;
-  background: #f9f2d5;
+  background: var(--secondary-bg);
 }
 
 [data-theme='light'] .position {
-  color: #003971;
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .current-action {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .history-list {
-  background: #f9f2d5;
+  background: var(--secondary-bg);
 }
 
 [data-theme='light'] .history-list-header {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .history-item:hover {
@@ -327,28 +326,24 @@ button:disabled {
 }
 
 [data-theme='light'] .history-item.active {
-  background: #014f99;
-  color: #f5f4d6;
+  background: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 [data-theme='light'] .history-index {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .history-name {
-  color: #003971;
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .history-item.active .history-name {
-  color: #f5f4d6;
-}
-
-[data-theme='light'] .history-time {
-  color: #4d6d8e;
+  color: var(--accent-text);
 }
 
 [data-theme='light'] .history-item.active .history-time {
-  color: #c9984d;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .history-list::-webkit-scrollbar-track {
@@ -360,6 +355,6 @@ button:disabled {
 }
 
 [data-theme='light'] .history-list::-webkit-scrollbar-thumb:hover {
-  background: #c9984d;
+  background: var(--accent-primary);
 }
 </style>

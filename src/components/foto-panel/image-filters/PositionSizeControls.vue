@@ -159,7 +159,4 @@ defineExpose({ sync })
   accent-color: var(--accent-primary, #c9984d);
   cursor: pointer;
 }
-[data-theme='light'] .toggle-label {
-  color: #003971;
-}
 </style>

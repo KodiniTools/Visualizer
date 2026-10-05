@@ -494,10 +494,6 @@ defineExpose({ open: openPanel, close, isOpen: () => open.value })
   border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
 }
 
-[data-theme='light'] .color-field__panel {
-  background: var(--card-bg, #ffffff);
-  color: var(--text-primary, #00305e);
-}
 [data-theme='light'] .color-field__range::-webkit-slider-thumb,
 [data-theme='light'] .color-field__range::-moz-range-thumb {
   border-color: var(--accent-primary, #0d5cb4);

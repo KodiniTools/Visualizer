@@ -687,7 +687,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   letter-spacing: 0.5px;
 }
 [data-theme='light'] .panel-header h4 {
-  color: #003971;
+  color: var(--text-primary);
 }
 .adjustments-section {
   display: flex;
@@ -712,7 +712,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 }
 [data-theme='light'] .btn-reset-adjustments {
   background: #f0ead0;
-  color: #003971;
+  color: var(--text-primary);
   border-color: #d4c8a8;
 }
 .background-mode {
@@ -742,7 +742,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   cursor: not-allowed;
 }
 [data-theme='light'] .radio-label {
-  color: #003971;
+  color: var(--text-primary);
 }
 .base-color-label {
   display: flex;
@@ -771,7 +771,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   padding: 0 4px;
 }
 [data-theme='light'] .base-color-label {
-  color: #003971;
+  color: var(--text-primary);
 }
 .checkbox-label.disabled {
   opacity: 0.5;

@@ -120,25 +120,23 @@ const {
 }
 
 [data-theme='light'] .flip-section h5 {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 [data-theme='light'] .flip-section {
-  background: linear-gradient(180deg, #ffffff 0%, rgba(1, 79, 153, 0.06) 100%);
-  border-left-color: #014f99;
+  background: linear-gradient(
+    180deg,
+    var(--card-bg) 0%,
+    color-mix(in srgb, var(--accent-primary) 6%, transparent) 100%
+  );
+  border-left-color: var(--accent-primary);
 }
 [data-theme='light'] .flip-button {
   background: #fdfbf2;
   border-color: var(--border-color);
-  color: #003971;
-}
-[data-theme='light'] .flip-button:hover {
-  background: var(--btn-hover);
-  border-color: #014f99;
 }
 [data-theme='light'] .flip-button.active {
-  background: rgba(1, 79, 153, 0.15);
-  border-color: #014f99;
-  color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
+  color: var(--accent-ink);
 }
 
 @media (max-width: 480px) {

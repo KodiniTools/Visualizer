@@ -166,36 +166,33 @@ const activeBadges = computed(() =>
   border: 1px solid #4a7a4a;
 }
 [data-theme='light'] .collapsible-section {
-  background-color: #ffffff;
-  border: 1px solid rgba(1, 79, 153, 0.15);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
 }
 [data-theme='light'] .collapsible-section:hover {
-  border-color: rgba(1, 79, 153, 0.25);
+  border-color: var(--border-color);
 }
 [data-theme='light'] .collapsible-section[open] {
-  border-color: rgba(1, 79, 153, 0.25);
+  border-color: var(--border-color);
 }
 [data-theme='light'] .section-header {
-  background: linear-gradient(135deg, #f9f2d5 0%, #ffffff 100%);
-  color: #003971;
+  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--card-bg) 100%);
+  color: var(--text-primary);
 }
 [data-theme='light'] .section-header:hover {
-  background: linear-gradient(135deg, #ffffff 0%, #f9f2d5 100%);
-  color: #014f99;
+  color: var(--accent-ink);
 }
 [data-theme='light'] .collapsible-section[open] .section-header {
-  border-bottom: 1px solid rgba(1, 79, 153, 0.12);
-  background: linear-gradient(135deg, #ffffff 0%, #f9f2d5 100%);
+  border-bottom: 1px solid var(--border-color);
 }
 [data-theme='light'] .section-header::before {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 [data-theme='light'] .section-content {
-  background-color: #ffffff;
+  background-color: var(--card-bg);
 }
 [data-theme='light'] .status-badge {
   background-color: #e8e0c4;
-  color: #4d6d8e;
 }
 [data-theme='light'] .status-badge.active {
   background: linear-gradient(135deg, rgba(76, 175, 80, 0.12) 0%, rgba(76, 175, 80, 0.08) 100%);

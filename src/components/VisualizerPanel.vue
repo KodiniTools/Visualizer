@@ -192,12 +192,7 @@ h4 {
 /* ═══ Light Theme Overrides ═══ */
 
 [data-theme='light'] .panel-container {
-  background-color: #ffffff;
-  border-color: rgba(1, 79, 153, 0.2);
-}
-
-[data-theme='light'] h4 {
-  color: #003971;
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] h4::before {
@@ -205,28 +200,15 @@ h4 {
 }
 
 [data-theme='light'] .controls-link {
-  background-color: #f9f2d5;
-  color: #003971;
-  border-color: rgba(1, 79, 153, 0.3);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .controls-link:hover,
 [data-theme='light'] .controls-link.active {
-  border-color: #014f99;
-  background-color: rgba(1, 79, 153, 0.1);
+  background-color: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 [data-theme='light'] .search-input {
-  background-color: #f9f2d5;
-  color: #003971;
-  border-color: rgba(1, 79, 153, 0.3);
-}
-
-[data-theme='light'] .search-input:focus-visible {
-  border-color: #014f99;
-}
-
-[data-theme='light'] .search-input::placeholder {
-  color: #4d6d8e;
+  border-color: var(--border-color);
 }
 </style>

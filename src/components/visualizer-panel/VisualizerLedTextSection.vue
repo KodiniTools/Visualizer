@@ -248,23 +248,18 @@ function setTarget(local) {
 [data-theme='light'] .led-text__label,
 [data-theme='light'] .led-text__hint,
 [data-theme='light'] .led-text__check {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .led-text__input,
 [data-theme='light'] .led-text__seg-btn {
-  background-color: #f9f2d5;
-  color: #003971;
-  border-color: rgba(1, 79, 153, 0.25);
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
   color-scheme: light;
 }
 
 [data-theme='light'] .led-text__seg-btn.active {
-  border-color: #014f99;
-  background-color: rgba(1, 79, 153, 0.12);
-}
-
-[data-theme='light'] .led-text__preview {
-  color: #003971;
+  background-color: color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 </style>

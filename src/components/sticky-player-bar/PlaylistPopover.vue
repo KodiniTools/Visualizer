@@ -168,7 +168,7 @@ const {
 }
 .drag-handle:hover {
   opacity: 1;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
 }
 .drag-handle:active {
   cursor: grabbing;

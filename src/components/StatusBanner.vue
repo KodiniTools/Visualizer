@@ -71,8 +71,8 @@ defineProps({
   color: #f57c00;
 }
 [data-theme='light'] .shared-banner-info {
-  background-color: rgba(1, 79, 153, 0.1);
-  border-color: rgba(1, 79, 153, 0.3);
-  color: #014f99;
+  background-color: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border-color: var(--border-color);
+  color: var(--accent-ink);
 }
 </style>

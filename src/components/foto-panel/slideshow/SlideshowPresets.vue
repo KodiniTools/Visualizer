@@ -198,7 +198,6 @@ function save() {
   cursor: progress;
 }
 [data-theme='light'] .btn-cleanup-storage {
-  background: #f9f2d5;
   border-color: #d4c8a8;
 }
 .storage-info .hint {
@@ -206,7 +205,7 @@ function save() {
 }
 [data-theme='light'] .storage-info {
   background-color: #f0ead0;
-  color: #003971;
+  color: var(--text-primary);
 }
 [data-theme='light'] .storage-bar {
   background: #d4c8a8;
@@ -287,19 +286,18 @@ function save() {
   background: rgba(231, 76, 60, 0.4);
 }
 [data-theme='light'] .preset-name-input {
-  background: #f9f2d5;
-  color: #003971;
+  color: var(--text-primary);
   border-color: #d4c8a8;
 }
 [data-theme='light'] .preset-item {
   background-color: #f0ead0;
 }
 [data-theme='light'] .preset-name {
-  color: #003971;
+  color: var(--text-primary);
 }
 [data-theme='light'] .btn-save-preset,
 [data-theme='light'] .btn-load-preset {
-  background: linear-gradient(135deg, #014f99 0%, #003971 100%);
-  color: #f5f4d6;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+  color: var(--accent-text);
 }
 </style>

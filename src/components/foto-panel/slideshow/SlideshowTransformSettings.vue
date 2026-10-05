@@ -113,11 +113,11 @@ function resetTransform() {
 [data-theme='light'] .btn-reset-transform {
   border-color: #d4c8a8;
   background-color: #f0ead0;
-  color: #003971;
+  color: var(--text-primary);
 }
 [data-theme='light'] .btn-reset-transform:hover {
   background-color: #e8e0c0;
-  border-color: #014f99;
-  color: #014f99;
+  border-color: var(--accent-primary);
+  color: var(--accent-ink);
 }
 </style>

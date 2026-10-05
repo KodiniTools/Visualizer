@@ -51,6 +51,8 @@
   --accent-secondary: #014f99;
   --accent-tertiary: #f8e1a9;
   --accent-text: #091428;
+  /* Akzent als Text oder Icon (Titel, Chips, Hover-Icons): im Dark Theme Gold. */
+  --accent-ink: #c9984d;
   --text-primary: #f9f2d5;
   --text-secondary: #f8e1a9;
   /* #8396a9: 5,0:1 auf --card-bg (WCAG AA ≥ 4,5:1); vorher #7a8da0 = 4,45:1 */
@@ -68,25 +70,28 @@
 }
 
 [data-theme='light'] {
-  --primary-bg: #f5f4d6;
-  --secondary-bg: #f9f2d5;
-  --card-bg: #ffffff;
-  --accent-primary: #014f99;
-  --accent-secondary: #c9984d;
-  --accent-tertiary: #c9984d;
-  --accent-text: #f5f4d6;
-  --text-primary: #003971;
-  --text-secondary: #014f99;
-  --text-muted: #4d6d8e;
-  --btn-hover: #f8e1a9;
-  --ring: #c9984d;
+  --primary-bg: var(--primary-bg);
+  --secondary-bg: var(--secondary-bg);
+  --card-bg: var(--card-bg);
+  --accent-primary: var(--accent-primary);
+  --accent-secondary: var(--accent-primary);
+  --accent-tertiary: #b8842f;
+  --accent-text: #091428;
+  --accent-ink: var(--accent-primary);
+  --text-primary: var(--accent-primary);
+  --text-secondary: var(--accent-primary);
+  --text-muted: var(--text-muted);
+  --btn-hover: var(--btn-hover);
+  --ring: var(--accent-primary);
   --border-color: rgb(201 152 77 / 30%);
   --shadow-color: rgb(0 0 0 / 10%);
   --gradient-color: rgb(201 152 77 / 5%);
   --panel-highlight: rgb(201 152 77 / 8%);
   --progress-bg: rgb(1 79 153 / 15%);
   --success: #c5deb0;
-  --body-gradient: radial-gradient(1200px 600px at 80% -20%, #f8e1a9 0%, transparent 60%), #f5f4d6;
+  --body-gradient:
+    radial-gradient(1200px 600px at 80% -20%, var(--btn-hover) 0%, transparent 60%),
+    var(--primary-bg);
 }
 
 /* Global styles */
@@ -170,12 +175,12 @@ body {
 
 /* Light Theme Scrollbar */
 [data-theme='light'] ::-webkit-scrollbar-track {
-  background: rgba(1, 79, 153, 0.05);
+  background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
 }
 [data-theme='light'] ::-webkit-scrollbar-thumb {
-  background: rgba(1, 79, 153, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 [data-theme='light'] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(1, 79, 153, 0.4);
+  background: color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 </style>

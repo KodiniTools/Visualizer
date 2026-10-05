@@ -100,14 +100,19 @@ const {
   );
 }
 [data-theme='light'] .border-slider {
-  background: linear-gradient(90deg, #f9f2d5 0%, #003971 50%, #014f99 100%);
+  background: linear-gradient(
+    90deg,
+    var(--secondary-bg) 0%,
+    var(--accent-primary) 50%,
+    var(--accent-primary) 100%
+  );
 }
 [data-theme='light'] .border-opacity-slider {
   background: linear-gradient(
     90deg,
-    rgba(0, 57, 113, 0.1) 0%,
-    rgba(0, 57, 113, 0.4) 50%,
-    #003971 100%
+    color-mix(in srgb, var(--text-primary) 10%, transparent) 0%,
+    color-mix(in srgb, var(--text-primary) 40%, transparent) 50%,
+    var(--accent-primary) 100%
   );
 }
 </style>

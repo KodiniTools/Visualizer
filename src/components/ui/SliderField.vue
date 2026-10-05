@@ -334,7 +334,7 @@ function reset() {
     border-color 0.15s ease;
 }
 .slider-field__reset:hover:not(:disabled) {
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
   border-color: var(--accent-primary, #c9984d);
 }
 .slider-field__reset:focus-visible {

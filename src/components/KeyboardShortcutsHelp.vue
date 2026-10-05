@@ -329,33 +329,37 @@ kbd {
 
 /* ═══ Light Theme Overrides (accent colors only - backgrounds/text use CSS variables) ═══ */
 [data-theme='light'] .shortcuts-panel {
-  border-color: #014f99;
+  border-color: var(--accent-primary);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .panel-header {
-  background: linear-gradient(135deg, rgba(1, 79, 153, 0.1), rgba(1, 79, 153, 0.05));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-primary) 10%, transparent),
+    color-mix(in srgb, var(--accent-primary) 5%, transparent)
+  );
 }
 
 [data-theme='light'] .panel-header h3 {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .shortcut-section {
-  border-color: rgba(1, 79, 153, 0.2);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .shortcut-section h4 {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .shortcut-item:hover:not(.disabled) {
-  background: rgba(1, 79, 153, 0.1);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 [data-theme='light'] kbd {
-  color: #014f99;
-  border-color: rgba(1, 79, 153, 0.3);
+  color: var(--accent-ink);
+  border-color: var(--border-color);
   box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);

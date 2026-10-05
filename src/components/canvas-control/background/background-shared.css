@@ -39,5 +39,5 @@
   accent-color: #8b5cf6;
 }
 [data-theme='light'] .checkbox-label input[type='checkbox'] {
-  accent-color: #014f99;
+  accent-color: var(--accent-primary);
 }

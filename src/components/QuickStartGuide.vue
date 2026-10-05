@@ -1016,14 +1016,14 @@ defineExpose({ show, hide, toggleGuide })
 
 /* ═══ Light Theme ═══ */
 [data-theme='light'] .help-button {
-  background: linear-gradient(135deg, #014f99 0%, #003971 100%);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
   box-shadow:
-    0 4px 20px rgba(1, 79, 153, 0.4),
-    0 0 0 0 rgba(1, 79, 153, 0.4);
+    0 4px 20px color-mix(in srgb, var(--accent-primary) 40%, transparent),
+    0 0 0 0 color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 
 [data-theme='light'] .help-button:hover {
-  box-shadow: 0 6px 30px rgba(1, 79, 153, 0.5);
+  box-shadow: 0 6px 30px color-mix(in srgb, var(--accent-primary) 50%, transparent);
 }
 
 [data-theme='light'] .help-button.active {
@@ -1031,38 +1031,38 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 [data-theme='light'] .quick-start-panel {
-  background: linear-gradient(145deg, #ffffff 0%, #f5f0e8 100%);
+  background: linear-gradient(145deg, var(--card-bg) 0%, #f5f0e8 100%);
   border-color: #d4c8a8;
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(0, 57, 113, 0.08);
+    0 0 0 1px color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 [data-theme='light'] .panel-header {
   border-bottom-color: #d4c8a8;
-  background: rgba(1, 79, 153, 0.04);
+  background: color-mix(in srgb, var(--accent-primary) 4%, transparent);
 }
 
 [data-theme='light'] .panel-header h3 {
-  color: #003971;
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .lang-toggle {
-  background: rgba(1, 79, 153, 0.08);
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
 }
 
 [data-theme='light'] .lang-toggle button {
-  color: rgba(0, 57, 113, 0.45);
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .lang-toggle button.active {
-  background: #014f99;
-  color: #f5f4d6;
+  background: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 [data-theme='light'] .close-btn {
-  background: rgba(0, 57, 113, 0.08);
-  color: rgba(0, 57, 113, 0.5);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .close-btn:hover {
@@ -1071,89 +1071,89 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 [data-theme='light'] .tab-btn {
-  background: rgba(1, 79, 153, 0.04);
-  color: rgba(0, 57, 113, 0.45);
+  background: color-mix(in srgb, var(--accent-primary) 4%, transparent);
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .tab-btn:hover {
-  background: rgba(1, 79, 153, 0.1);
-  color: #003971;
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .tab-btn.active {
-  background: rgba(1, 79, 153, 0.12);
-  border-color: rgba(1, 79, 153, 0.35);
-  color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .workflow-step {
-  background: rgba(1, 79, 153, 0.04);
+  background: color-mix(in srgb, var(--accent-primary) 4%, transparent);
 }
 
 [data-theme='light'] .workflow-step:hover {
-  background: rgba(1, 79, 153, 0.09);
+  background: color-mix(in srgb, var(--accent-primary) 9%, transparent);
 }
 
 [data-theme='light'] .step-number {
-  background: linear-gradient(135deg, #014f99 0%, #003971 100%);
-  color: #f5f4d6;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+  color: var(--accent-text);
 }
 
 [data-theme='light'] .step-title {
-  color: #003971;
+  color: var(--text-primary);
 }
 [data-theme='light'] .step-desc {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .feature-item {
-  background: rgba(1, 79, 153, 0.04);
+  background: color-mix(in srgb, var(--accent-primary) 4%, transparent);
 }
 
 [data-theme='light'] .feature-title {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .feature-bullets li {
-  color: #3a5570;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .shortcut-item {
-  background: rgba(1, 79, 153, 0.03);
+  background: color-mix(in srgb, var(--accent-primary) 3%, transparent);
 }
 
 [data-theme='light'] .shortcut-group-title {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .shortcut-keys kbd {
-  background: rgba(1, 79, 153, 0.1);
-  border-color: rgba(1, 79, 153, 0.2);
-  color: #003971;
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border-color: var(--border-color);
+  color: var(--text-primary);
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 [data-theme='light'] .shortcut-desc {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .tip-item {
-  background: rgba(201, 152, 77, 0.09);
-  border-left-color: rgba(201, 152, 77, 0.55);
+  background: color-mix(in srgb, var(--accent-primary) 9%, transparent);
+  border-left-color: var(--accent-primary);
 }
 
 [data-theme='light'] .tip-title {
   color: #a07030;
 }
 [data-theme='light'] .tip-text {
-  color: #3a5570;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .panel-content::-webkit-scrollbar-thumb {
-  background: rgba(1, 79, 153, 0.18);
+  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 
 [data-theme='light'] .panel-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(1, 79, 153, 0.28);
+  background: color-mix(in srgb, var(--accent-primary) 28%, transparent);
 }
 </style>

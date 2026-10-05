@@ -360,13 +360,13 @@ const currentLabel = computed(() => {
 
 /* Light Theme */
 [data-theme='light'] .conversion-progress {
-  background: rgba(1, 79, 153, 0.05);
-  border-color: rgba(1, 79, 153, 0.18);
+  background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .progress-label,
 [data-theme='light'] .progress-percent {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .progress-bar {
@@ -374,7 +374,7 @@ const currentLabel = computed(() => {
 }
 
 [data-theme='light'] .progress-fill {
-  background: linear-gradient(90deg, #014f99, #3a7cc6);
+  background: linear-gradient(90deg, var(--accent-primary), #3a7cc6);
 }
 
 [data-theme='light'] .mp4-download-btn:hover {
@@ -383,7 +383,7 @@ const currentLabel = computed(() => {
 
 [data-theme='light'] .btn-close-conversion {
   background: rgba(0, 0, 0, 0.05);
-  color: #4d6d8e;
+  color: var(--text-muted);
   border-color: rgba(0, 0, 0, 0.12);
 }
 
@@ -407,7 +407,7 @@ const currentLabel = computed(() => {
 
 [data-theme='light'] .btn-dismiss {
   background: rgba(0, 0, 0, 0.05);
-  color: #4d6d8e;
+  color: var(--text-muted);
   border-color: rgba(0, 0, 0, 0.12);
 }
 

@@ -137,19 +137,13 @@ const phaseLabel = computed(() => {
   color: #e74c3c;
 }
 [data-theme='light'] .btn-start {
-  background: linear-gradient(135deg, #014f99 0%, #003971 100%);
-  color: #f5f4d6;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+  color: var(--accent-text);
 }
 [data-theme='light'] .btn-start:hover {
-  box-shadow: 0 4px 12px rgba(1, 79, 153, 0.4);
-}
-[data-theme='light'] .btn-pause {
-  color: #003971;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 [data-theme='light'] .progress-section {
   border-top-color: #d4c8a8;
-}
-[data-theme='light'] .progress-info {
-  color: #4d6d8e;
 }
 </style>

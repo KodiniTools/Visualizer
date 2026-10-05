@@ -207,37 +207,41 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .control-group label {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .tile-count-buttons button {
   background: #fdfbf2;
-  border-color: rgba(1, 79, 153, 0.2);
-  color: #003971;
+  border-color: var(--border-color);
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .tile-count-buttons button:hover {
   background: var(--btn-hover);
-  border-color: rgba(1, 79, 153, 0.4);
+  border-color: var(--accent-primary);
 }
 
 [data-theme='light'] .tile-count-buttons button.active {
-  background: rgba(1, 79, 153, 0.15);
-  border-color: #014f99;
-  color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .gap-slider {
-  background: linear-gradient(90deg, rgba(7, 63, 116, 0.25) 0%, rgba(1, 79, 153, 0.45) 100%);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent-primary) 25%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 45%, transparent) 100%
+  );
 }
 
 [data-theme='light'] .gap-slider::-webkit-slider-thumb {
-  background: #073f74;
+  background: var(--accent-primary);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .gap-slider::-moz-range-thumb {
-  background: #073f74;
+  background: var(--accent-primary);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
@@ -256,12 +260,12 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 }
 
 [data-theme='light'] .tile-preview:hover {
-  border-color: rgba(1, 79, 153, 0.4);
+  border-color: var(--accent-primary);
 }
 
 [data-theme='light'] .tile-preview.selected {
-  border-color: #014f99;
-  box-shadow: 0 0 10px rgba(1, 79, 153, 0.3);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 /* ═══ Responsive ═══ */

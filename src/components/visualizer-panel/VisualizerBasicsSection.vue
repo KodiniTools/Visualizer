@@ -268,46 +268,31 @@ const store = useVisualizerStore()
 
 [data-theme='light'] .switch {
   background-color: #eef2f8;
-  box-shadow: inset 0 0 0 1px rgba(1, 79, 153, 0.3);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 [data-theme='light'] .switch .switch-knob {
   background: #7a8da0;
 }
-[data-theme='light'] .switch.on {
-  background-color: #014f99;
-  box-shadow: inset 0 0 0 1px #014f99;
-}
 [data-theme='light'] .switch.on .switch-knob {
-  background: #ffffff;
+  background: var(--card-bg);
 }
 
 [data-theme='light'] .color-swatch {
-  border-color: rgba(1, 79, 153, 0.3);
-}
-[data-theme='light'] .color-swatch:hover {
-  border-color: #014f99;
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .intensity-slider {
-  background: linear-gradient(to right, #f9f2d5 0%, #014f99 100%);
+  background: linear-gradient(to right, var(--secondary-bg) 0%, var(--accent-primary) 100%);
 }
 
 [data-theme='light'] .intensity-slider::-webkit-slider-thumb {
-  background: #014f99;
+  background: var(--accent-primary);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .intensity-slider::-webkit-slider-thumb:hover {
-  background: #003971;
 }
 
 [data-theme='light'] .intensity-slider::-moz-range-thumb {
-  background: #014f99;
+  background: var(--accent-primary);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .intensity-slider::-moz-range-thumb:hover {
-  background: #003971;
 }
 
 [data-theme='light'] .color-slider::-webkit-slider-thumb {

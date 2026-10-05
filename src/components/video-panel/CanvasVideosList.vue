@@ -479,40 +479,31 @@ const audioTargetLabel = computed(() => {
   border-top-color: rgba(0, 0, 0, 0.1);
 }
 
-[data-theme='light'] .canvas-videos-section h4 {
-  color: #003971;
-}
-
 [data-theme='light'] .canvas-video-item {
-  background: rgba(1, 79, 153, 0.06);
-  border-color: rgba(1, 79, 153, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .canvas-video-item:hover {
-  background: rgba(1, 79, 153, 0.12);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
 [data-theme='light'] .canvas-video-item.active {
-  border-color: rgba(1, 79, 153, 0.5);
-  background: rgba(1, 79, 153, 0.15);
+  border-color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
 }
 
 [data-theme='light'] .video-index {
-  background: rgba(1, 79, 153, 0.2);
-  color: #014f99;
-}
-
-[data-theme='light'] .video-name {
-  color: #003971;
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .video-status {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .btn-control {
   background: rgba(0, 0, 0, 0.08);
-  color: #003971;
 }
 
 [data-theme='light'] .btn-control:hover {
@@ -520,84 +511,71 @@ const audioTargetLabel = computed(() => {
 }
 
 [data-theme='light'] .btn-global {
-  background: rgba(1, 79, 153, 0.12);
-  border-color: rgba(1, 79, 153, 0.25);
-  color: #003971;
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .btn-global:hover {
-  background: rgba(1, 79, 153, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
 [data-theme='light'] .global-video-settings {
-  background: rgba(1, 79, 153, 0.06);
-  border-color: rgba(1, 79, 153, 0.15);
-}
-
-[data-theme='light'] .checkbox-label {
-  color: #003971;
-}
-
-[data-theme='light'] .checkbox-label input[type='checkbox'] {
-  accent-color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .video-seek-section {
-  background: rgba(1, 79, 153, 0.06);
-  border-color: rgba(1, 79, 153, 0.15);
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .seek-header {
-  color: #014f99;
-}
-
-[data-theme='light'] .seek-time {
-  color: #003971;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .btn-seek {
-  background: rgba(1, 79, 153, 0.25);
-  color: #f5f4d6;
+  background: color-mix(in srgb, var(--accent-primary) 25%, transparent);
+  color: var(--accent-text);
 }
 
 [data-theme='light'] .btn-seek:hover {
-  background: rgba(1, 79, 153, 0.4);
+  background: color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 
 [data-theme='light'] .seek-slider {
-  background: rgba(1, 79, 153, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
 [data-theme='light'] .seek-slider::-webkit-slider-thumb {
-  background: #014f99;
+  background: var(--accent-primary);
 }
 
 [data-theme='light'] .video-volume-section {
-  border-top-color: rgba(1, 79, 153, 0.15);
+  border-top-color: var(--border-color);
 }
 
 [data-theme='light'] .volume-header {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .volume-header .volume-icon {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .volume-slider {
-  background: rgba(1, 79, 153, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
 [data-theme='light'] .volume-slider::-webkit-slider-thumb {
-  background: #014f99;
+  background: var(--accent-primary);
 }
 
 [data-theme='light'] .volume-slider::-moz-range-thumb {
-  background: #014f99;
+  background: var(--accent-primary);
 }
 
 [data-theme='light'] .volume-hint {
-  color: #c9984d;
-  background: rgba(201, 152, 77, 0.1);
+  color: var(--accent-ink);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 </style>

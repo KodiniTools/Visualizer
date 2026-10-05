@@ -270,10 +270,10 @@ onBeforeUnmount(stopLevelIndicator)
   color: var(--text-muted, #7a8da0);
 }
 [data-theme='light'] .var-title {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 [data-theme='light'] .video-audio-reactive {
-  border-left-color: #014f99;
-  background: rgba(1, 79, 153, 0.05);
+  border-left-color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
 }
 </style>

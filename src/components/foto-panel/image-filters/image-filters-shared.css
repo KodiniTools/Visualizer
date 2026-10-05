@@ -137,54 +137,39 @@
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .control-group select {
-  background-color: #ffffff !important;
-  color: #003971 !important;
-  border-color: rgba(1, 79, 153, 0.3);
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color);
 }
 [data-theme='light'] .control-group select option {
-  background-color: #ffffff !important;
-  color: #003971 !important;
-}
-[data-theme='light'] .control-group select:hover {
-  border-color: #014f99;
-}
-[data-theme='light'] .control-group select:focus-visible {
-  border-color: #014f99;
-}
-[data-theme='light'] .modern-section-header h4 {
-  color: rgba(0, 57, 113, 0.6);
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
 }
 [data-theme='light'] .modern-controls-group {
-  background: rgba(1, 79, 153, 0.04);
-  border-color: rgba(1, 79, 153, 0.1);
-}
-[data-theme='light'] .modern-label {
-  color: rgba(0, 57, 113, 0.7);
-}
-[data-theme='light'] .label-text {
-  color: #003971;
+  background: color-mix(in srgb, var(--accent-primary) 4%, transparent);
+  border-color: var(--border-color);
 }
 [data-theme='light'] .label-value {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 [data-theme='light'] .modern-slider::-webkit-slider-thumb {
-  background: #c9984d;
+  background: var(--accent-primary);
 }
 [data-theme='light'] .modern-slider::-moz-range-thumb {
-  background: #c9984d;
+  background: var(--accent-primary);
 }
 [data-theme='light'] .modern-color-input {
-  border-color: rgba(1, 79, 153, 0.3);
-  background-color: #ffffff;
+  border-color: var(--border-color);
+  background-color: var(--card-bg);
 }
 [data-theme='light'] .modern-color-input:hover {
-  border-color: #014f99;
+  border-color: var(--accent-primary);
 }
 [data-theme='light'] .modern-color-text {
-  border-color: rgba(1, 79, 153, 0.3);
-  background-color: #ffffff;
-  color: #003971;
+  border-color: var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-primary);
 }
 [data-theme='light'] .modern-color-text:focus {
-  border-color: #014f99;
+  border-color: var(--accent-primary);
 }

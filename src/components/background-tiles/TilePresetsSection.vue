@@ -148,16 +148,16 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
 }
 
 [data-theme='light'] .presets-section > label {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .btn-save-preset {
-  background: linear-gradient(135deg, #014f99 0%, #073f74 100%);
-  color: #f5f4d6;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+  color: var(--accent-text);
 }
 
 [data-theme='light'] .btn-save-preset:hover {
-  box-shadow: 0 4px 12px rgba(1, 79, 153, 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 [data-theme='light'] .preset-item {
@@ -166,23 +166,23 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
 }
 
 [data-theme='light'] .preset-item:hover {
-  border-color: #014f99;
+  border-color: var(--accent-primary);
 }
 
 [data-theme='light'] .preset-name {
-  color: #003971;
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .btn-load {
-  background: rgba(1, 79, 153, 0.1);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 [data-theme='light'] .btn-load:hover {
-  background: rgba(1, 79, 153, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
 [data-theme='light'] .hint-text {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 /* ═══ Responsive ═══ */

@@ -133,7 +133,7 @@ function onReset() {
 
 .btn-reset:hover {
   border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
 }
 
 .btn-logout {

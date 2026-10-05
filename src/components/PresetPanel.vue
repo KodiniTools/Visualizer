@@ -297,8 +297,8 @@ h3 {
   margin-top: 2px;
 }
 [data-theme='light'] .preset-needs-image {
-  color: #014f99;
-  background-color: rgba(1, 79, 153, 0.12);
+  color: var(--accent-ink);
+  background-color: color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
 .preset-viz {
@@ -386,15 +386,11 @@ h3 {
 }
 
 /* ═══ Light Theme ═══ */
-[data-theme='light'] .preset-name {
-  color: #1a2a3a;
-}
 [data-theme='light'] .preset-card {
   border-color: rgba(0, 0, 0, 0.1);
 }
 [data-theme='light'] .preset-name-input {
   background: #f0f4f8;
-  border-color: rgba(0, 57, 113, 0.2);
-  color: #1a2a3a;
+  border-color: var(--border-color);
 }
 </style>

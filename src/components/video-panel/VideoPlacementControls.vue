@@ -229,52 +229,31 @@ const {
 
 /* Light Theme */
 [data-theme='light'] .placement-section {
-  background: #ffffff;
-  border-color: rgba(1, 79, 153, 0.2);
-}
-
-[data-theme='light'] .placement-header {
-  color: #003971;
-}
-
-[data-theme='light'] .placement-label {
-  color: #4d6d8e;
+  background: var(--card-bg);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .placement-select {
-  background: #f9f2d5;
-  border-color: rgba(1, 79, 153, 0.3);
-  color: #003971;
+  background: var(--secondary-bg);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .placement-slider {
-  background: linear-gradient(90deg, #4d6d8e 0%, #014f99 100%);
+  background: linear-gradient(90deg, var(--text-muted) 0%, var(--accent-primary) 100%);
 }
 
 [data-theme='light'] .placement-slider::-webkit-slider-thumb {
-  background: #c9984d;
-  border-color: #ffffff;
-}
-
-[data-theme='light'] .placement-value {
-  color: #4d6d8e;
-}
-
-[data-theme='light'] .checkbox-label {
-  color: #003971;
-}
-
-[data-theme='light'] .checkbox-label input[type='checkbox'] {
-  accent-color: #014f99;
+  background: var(--accent-primary);
+  border-color: var(--card-bg);
 }
 
 [data-theme='light'] .btn-place {
-  background: rgba(1, 79, 153, 0.15);
-  border: 1px solid rgba(1, 79, 153, 0.3);
-  color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
+  border: 1px solid var(--border-color);
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .btn-place:hover {
-  background: rgba(1, 79, 153, 0.25);
+  background: color-mix(in srgb, var(--accent-primary) 25%, transparent);
 }
 </style>

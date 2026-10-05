@@ -179,8 +179,7 @@ function updateAudio(partial) {
   flex-basis: 100%;
 }
 [data-theme='light'] .base-gradient-field select {
-  background: #f9f2d5;
-  color: #003971;
+  color: var(--text-primary);
   border-color: #d4c8a8;
 }
 </style>

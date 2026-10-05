@@ -284,8 +284,8 @@ function updateAudio(partial) {
 }
 [data-theme='light'] .image-fill-field select,
 [data-theme='light'] .btn-image-fill.secondary {
-  background: #f9f2d5;
-  color: #003971;
+  background: var(--secondary-bg);
+  color: var(--text-primary);
   border-color: #d4c8a8;
 }
 [data-theme='light'] .image-fill-picker {

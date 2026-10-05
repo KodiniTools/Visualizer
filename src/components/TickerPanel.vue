@@ -456,7 +456,7 @@ const missingFont = computed(() => {
 .sub-header::before {
   content: '▶';
   font-size: 7px;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
   transition: transform 0.2s ease;
 }
 .sub-section[open] > .sub-header::before {
@@ -491,13 +491,10 @@ const missingFont = computed(() => {
   transform: rotate(-90deg);
 }
 [data-theme='light'] .reset-btn {
-  background-color: #ffffff;
-  border-color: rgba(1, 79, 153, 0.25);
-  color: #4d6d8e;
+  border-color: var(--border-color);
 }
 [data-theme='light'] .reset-btn:hover {
-  border-color: #014f99;
-  color: #014f99;
+  color: var(--accent-ink);
 }
 .sub-content {
   padding: 10px;
@@ -526,10 +523,9 @@ const missingFont = computed(() => {
 }
 
 [data-theme='light'] .sub-section {
-  border-color: rgba(1, 79, 153, 0.15);
+  border-color: var(--border-color);
 }
 [data-theme='light'] .sub-header {
-  color: #003971;
   background-color: #f2f6fb;
 }
 
@@ -593,9 +589,8 @@ const missingFont = computed(() => {
 }
 
 [data-theme='light'] .btn-mini.active {
-  background: rgba(1, 79, 153, 0.12);
-  border-color: #014f99;
-  color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  color: var(--accent-ink);
 }
 
 .text-input,
@@ -708,25 +703,20 @@ const missingFont = computed(() => {
   accent-color: var(--accent-primary, #c9984d);
 }
 
-[data-theme='light'] .collapsible-section {
-  background-color: #ffffff;
-  border: 1px solid rgba(1, 79, 153, 0.15);
-}
-
 [data-theme='light'] .section-header {
-  color: #003971;
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .text-input,
 [data-theme='light'] .select-input,
 [data-theme='light'] .color-input {
-  background-color: #ffffff;
-  border-color: rgba(1, 79, 153, 0.2);
-  color: #013a70;
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .btn-small.active {
-  background: rgba(1, 79, 153, 0.12);
-  color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  color: var(--accent-ink);
 }
 </style>

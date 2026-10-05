@@ -234,7 +234,7 @@ const {
 }
 .bg-replace-hint {
   font-size: 0.55rem;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
   margin: 0 0 12px 0;
   padding: 6px 8px;
   background: rgba(201, 152, 77, 0.1);
@@ -453,25 +453,23 @@ const {
 }
 
 [data-theme='light'] .btn-replace {
-  background: rgba(1, 79, 153, 0.1);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 [data-theme='light'] .btn-replace:hover {
-  background: rgba(1, 79, 153, 0.18);
+  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 [data-theme='light'] .bg-replace-hint {
-  background: rgba(1, 79, 153, 0.08);
-  color: #014f99;
-  border-left-color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  border-left-color: var(--accent-primary);
 }
 [data-theme='light'] .bg-category-tab.active {
-  background: rgba(1, 79, 153, 0.12);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 [data-theme='light'] .bg-replace-modal-overlay {
   background-color: rgba(0, 0, 0, 0.4);
 }
 [data-theme='light'] .bg-replace-modal {
-  background: #ffffff;
-  border-color: #014f99;
+  border-color: var(--accent-primary);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
 }
 

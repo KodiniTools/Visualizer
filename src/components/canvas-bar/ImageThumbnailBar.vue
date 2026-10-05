@@ -137,7 +137,7 @@ onUnmounted(() => {
 .canvas-images-label {
   font-size: 0.65rem;
   font-weight: 600;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   white-space: nowrap;
@@ -351,44 +351,38 @@ onUnmounted(() => {
 
 /* Light theme */
 [data-theme='light'] .canvas-images-bar {
-  background: linear-gradient(180deg, #ffffff 0%, rgba(1, 79, 153, 0.04) 100%);
-  border-color: rgba(201, 152, 77, 0.25);
-  border-left-color: #014f99;
-}
-[data-theme='light'] .canvas-images-label {
-  color: #014f99;
+  background: linear-gradient(
+    180deg,
+    var(--card-bg) 0%,
+    color-mix(in srgb, var(--accent-primary) 4%, transparent) 100%
+  );
+  border-color: var(--border-color);
+  border-left-color: var(--accent-primary);
 }
 [data-theme='light'] .canvas-thumb {
-  background-color: #f9f2d5;
-  border-color: rgba(201, 152, 77, 0.3);
+  border-color: var(--border-color);
 }
 [data-theme='light'] .canvas-thumb:hover {
-  border-color: #014f99;
-  box-shadow: 0 4px 12px rgba(1, 79, 153, 0.25);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 25%, transparent);
 }
 [data-theme='light'] .canvas-thumb.selected {
-  border-color: #014f99;
   box-shadow:
-    0 0 0 3px rgba(1, 79, 153, 0.45),
-    0 6px 16px rgba(1, 79, 153, 0.3);
+    0 0 0 3px color-mix(in srgb, var(--accent-primary) 45%, transparent),
+    0 6px 16px color-mix(in srgb, var(--accent-primary) 30%, transparent);
   transform: scale(1.1);
 }
 [data-theme='light'] .canvas-thumb.dragging {
-  border-color: #014f99;
-  box-shadow: 0 0 0 2px rgba(1, 79, 153, 0.25);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 25%, transparent);
 }
 [data-theme='light'] .canvas-thumb-layer {
-  background: rgba(1, 79, 153, 0.9);
-  color: #f5f4d6;
+  background: color-mix(in srgb, var(--accent-primary) 90%, transparent);
+  color: var(--accent-text);
 }
 [data-theme='light'] .canvas-thumb-delete {
-  border-color: #ffffff;
+  border-color: var(--card-bg);
 }
 [data-theme='light'] .canvas-images-scroll::-webkit-scrollbar-thumb {
-  background: #c9984d;
-}
-[data-theme='light'] .canvas-images-scroll::-webkit-scrollbar-thumb:hover {
-  background: #014f99;
+  background: var(--accent-primary);
 }
 
 /* Responsive */

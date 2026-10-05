@@ -110,6 +110,11 @@ const {
   background: linear-gradient(90deg, var(--primary-bg) 0%, #6ea8fe 50%, #a78bfa 100%);
 }
 [data-theme='light'] .shadow-slider {
-  background: linear-gradient(90deg, #f9f2d5 0%, #014f99 50%, #6a5acd 100%);
+  background: linear-gradient(
+    90deg,
+    var(--secondary-bg) 0%,
+    var(--accent-primary) 50%,
+    #6a5acd 100%
+  );
 }
 </style>

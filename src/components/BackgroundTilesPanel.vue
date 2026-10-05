@@ -125,16 +125,20 @@ provide('tilePresets', presets)
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .tiles-section {
-  background: linear-gradient(135deg, rgba(1, 79, 153, 0.06) 0%, rgba(7, 63, 116, 0.06) 100%);
-  border-color: rgba(1, 79, 153, 0.2);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-primary) 6%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 6%, transparent) 100%
+  );
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .tiles-section h5 {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .checkbox-label input[type='checkbox'] {
-  accent-color: #014f99;
+  accent-color: var(--accent-primary);
 }
 
 [data-theme='light'] .btn-reset-all {

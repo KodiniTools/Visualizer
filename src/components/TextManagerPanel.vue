@@ -520,7 +520,7 @@ h3::before {
 
 /* --- Muted Text --- */
 [data-theme='light'] .info-text {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 /* ═══ Responsive ═══ */

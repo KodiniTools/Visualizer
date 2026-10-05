@@ -155,7 +155,7 @@ const {
 .upload-icon {
   width: 32px;
   height: 32px;
-  color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink, #c9984d);
 }
 
 .upload-icon svg {
@@ -382,9 +382,6 @@ const {
 }
 
 /* Light Theme */
-[data-theme='light'] .upload-section h4 {
-  color: #003971;
-}
 
 [data-theme='light'] .upload-section h4::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23003971' stroke-width='1.5'%3E%3Cpolygon points='23 7 16 12 23 17 23 7'/%3E%3Crect x='1' y='5' width='15' height='14' rx='2' ry='2'/%3E%3C/svg%3E");
@@ -392,29 +389,12 @@ const {
 }
 
 [data-theme='light'] .upload-area {
-  border-color: rgba(1, 79, 153, 0.4);
-  background: #ffffff;
+  border-color: var(--accent-primary);
+  background: var(--card-bg);
 }
 
 [data-theme='light'] .upload-area:hover {
-  border-color: #014f99;
-  background: #f9f2d5;
-}
-
-[data-theme='light'] .upload-icon {
-  color: #014f99;
-}
-
-[data-theme='light'] .upload-placeholder p {
-  color: #003971;
-}
-
-[data-theme='light'] .upload-placeholder small {
-  color: #4d6d8e;
-}
-
-[data-theme='light'] .gallery-title {
-  color: #4d6d8e;
+  background: var(--secondary-bg);
 }
 
 [data-theme='light'] .thumbnail-info {
@@ -422,35 +402,33 @@ const {
 }
 
 [data-theme='light'] .btn-primary {
-  background: rgba(1, 79, 153, 0.15);
-  border: 1px solid rgba(1, 79, 153, 0.3);
-  color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
+  border: 1px solid var(--border-color);
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .btn-primary:hover {
-  background: rgba(1, 79, 153, 0.25);
+  background: color-mix(in srgb, var(--accent-primary) 25%, transparent);
 }
 
 [data-theme='light'] .btn-secondary {
-  background: #ffffff;
-  border-color: rgba(1, 79, 153, 0.3);
-  color: #003971;
+  background: var(--card-bg);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .btn-secondary:hover {
-  background: #f9f2d5;
-  border-color: #014f99;
+  background: var(--secondary-bg);
 }
 
 [data-theme='light'] .btn-workspace {
-  background: rgba(201, 152, 77, 0.1);
-  border-color: rgba(201, 152, 77, 0.3);
-  color: #c9984d;
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border-color: var(--border-color);
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .btn-workspace:hover {
-  background: rgba(201, 152, 77, 0.2);
-  border-color: rgba(201, 152, 77, 0.5);
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
+  border-color: var(--accent-primary);
 }
 
 /* Responsive */

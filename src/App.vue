@@ -53,7 +53,8 @@
   --accent-text: #091428;
   --text-primary: #f9f2d5;
   --text-secondary: #f8e1a9;
-  --text-muted: #7a8da0;
+  /* #8396a9: 5,0:1 auf --card-bg (WCAG AA ≥ 4,5:1); vorher #7a8da0 = 4,45:1 */
+  --text-muted: #8396a9;
   --btn-hover: #1a2a42;
   --ring: #c9984d;
   --border-color: rgb(201 152 77 / 20%);

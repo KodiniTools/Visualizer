@@ -22,6 +22,7 @@
             type="text"
             :value="borderColor"
             class="modern-color-text"
+            :aria-label="t('foto.borderColorHex')"
             @change="onBorderColorTextChange"
           />
         </div>

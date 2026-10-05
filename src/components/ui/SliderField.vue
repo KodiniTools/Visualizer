@@ -1,10 +1,11 @@
 <template>
-  <div class="slider-field" :class="{ 'slider-field--disabled': disabled }">
+  <div ref="rootEl" class="slider-field" :class="{ 'slider-field--disabled': disabled }">
     <input
       type="range"
       class="slider-field__range"
       :class="$attrs.class"
       :style="$attrs.style"
+      :aria-labelledby="autoLabelledby || undefined"
       v-bind="rangeAttrs($attrs)"
       :min="min"
       :max="max"
@@ -69,7 +70,7 @@
  * Damit deren *scoped* CSS auch den Range-Input trifft, erhält er zusätzlich die
  * Scope-Attribute des Elternkontexts (siehe `useParentScopeAttrs`).
  */
-import { computed, getCurrentInstance, onMounted, ref, watch } from 'vue'
+import { computed, getCurrentInstance, onMounted, ref, useAttrs, useId, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { clamp } from '../../lib/color.js'
 
@@ -120,6 +121,35 @@ function rangeAttrs(attrs) {
   )
   return { ...parentScopeAttrs, ...rest }
 }
+
+// ── Barrierefreiheit: Name des Reglers ─────────────────────────────────────
+/**
+ * Die meisten Aufrufer setzen die Beschriftung als Geschwister direkt vor den
+ * Regler (`<label>…</label><SliderField/>` bzw. `.modern-label > .label-text`),
+ * ohne sie mit dem Range-Input zu verknüpfen – Screenreader lesen dann nur
+ * „Schieberegler“. Gibt der Aufrufer selbst keinen Namen an (aria-label,
+ * aria-labelledby oder id für ein `<label for>`), wird diese Beschriftung per
+ * aria-labelledby verknüpft. Der Name folgt so auch einem Sprachwechsel.
+ */
+const attrs = useAttrs()
+const rootEl = ref(null)
+const autoLabelledby = ref(null)
+const generatedLabelId = `slider-label-${useId()}`
+
+function findPrecedingLabel(root) {
+  const prev = root?.previousElementSibling
+  if (!prev) return null
+  if (prev.tagName === 'LABEL') return prev
+  return prev.querySelector('.label-text, label')
+}
+
+onMounted(() => {
+  if (attrs['aria-label'] || attrs['aria-labelledby'] || attrs.id) return
+  const label = findPrecedingLabel(rootEl.value)
+  if (!label) return
+  if (!label.id) label.id = generatedLabelId
+  autoLabelledby.value = label.id
+})
 
 // ── Werte ──────────────────────────────────────────────────────────────────
 const decimals = computed(() => {

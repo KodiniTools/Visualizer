@@ -2,7 +2,12 @@
   <div>
     <!-- Preset Auswahl -->
     <div class="control-group">
-      <select :ref="ifc.presetSelectRef" @mousedown="onSliderStart" @change="onPresetChange">
+      <select
+        :ref="ifc.presetSelectRef"
+        :aria-label="t('foto.filterPreset')"
+        @mousedown="onSliderStart"
+        @change="onPresetChange"
+      >
         <option value="">{{ t('foto.noFilter') }}</option>
         <option v-for="preset in presets" :key="preset.id" :value="preset.id">
           {{ locale === 'de' ? preset.name_de || preset.name : preset.name_en || preset.name }}

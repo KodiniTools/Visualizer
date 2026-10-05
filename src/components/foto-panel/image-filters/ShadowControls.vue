@@ -22,6 +22,7 @@
             type="text"
             :value="shadowColor"
             class="modern-color-text"
+            :aria-label="t('foto.shadowColorHex')"
             @change="onShadowColorTextChange"
           />
         </div>

@@ -98,15 +98,11 @@ const { t } = useI18n()
 
 /* Light theme */
 [data-theme='light'] .app-header {
-  border-bottom-color: rgba(1, 79, 153, 0.12);
-}
-
-[data-theme='light'] .app-logo {
-  color: var(--accent-ink, #014f99);
+  border-bottom-color: var(--border-color);
 }
 
 [data-theme='light'] .app-logo:hover {
-  color: #003971;
+  color: var(--text-primary);
 }
 
 /* Mobile: Logo-Text verstecken, nur Icon zeigen */

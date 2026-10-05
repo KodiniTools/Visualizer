@@ -112,8 +112,7 @@ const { t } = useI18n()
   border-radius: 4px;
 }
 [data-theme='light'] .transition-select {
-  background: #f9f2d5;
-  color: #003971;
+  color: var(--text-primary);
   border-color: #d4c8a8;
 }
 </style>

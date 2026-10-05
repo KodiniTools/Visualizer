@@ -70,18 +70,12 @@ input[type='range']::-moz-range-thumb {
 }
 
 /* ═══ Light Theme ═══ */
-[data-theme='light'] .control-group.slider label {
-  color: #4d6d8e;
-}
-[data-theme='light'] .control-group.slider span {
-  color: #4d6d8e;
-}
 [data-theme='light'] input[type='range'] {
-  background: linear-gradient(90deg, #4d6d8e 0%, #014f99 100%);
+  background: linear-gradient(90deg, var(--text-muted) 0%, var(--accent-primary) 100%);
 }
 [data-theme='light'] input[type='range']::-webkit-slider-thumb {
-  background: #c9984d;
+  background: var(--accent-primary);
 }
 [data-theme='light'] input[type='range']::-moz-range-thumb {
-  background: #c9984d;
+  background: var(--accent-primary);
 }

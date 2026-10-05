@@ -327,13 +327,13 @@ defineExpose({ editTextInput, populateFontDropdown })
 }
 
 [data-theme='light'] .btn-save-default {
-  background: rgba(1, 79, 153, 0.1);
-  color: #014f99;
-  border-color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-ink);
+  border-color: var(--accent-primary);
 }
 
 [data-theme='light'] .btn-save-default:hover {
-  background: rgba(1, 79, 153, 0.16);
+  background: color-mix(in srgb, var(--accent-primary) 16%, transparent);
 }
 
 [data-theme='light'] .btn-danger {

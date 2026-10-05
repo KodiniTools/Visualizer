@@ -195,14 +195,14 @@ onUnmounted(() => {
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .tooltip-trigger {
-  background: rgba(1, 79, 153, 0.1);
-  color: rgba(0, 57, 113, 0.5);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .tooltip-trigger:hover,
 [data-theme='light'] .tooltip-trigger.active {
-  background: rgba(1, 79, 153, 0.2);
-  color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
+  color: var(--accent-ink);
 }
 </style>
 
@@ -368,7 +368,7 @@ onUnmounted(() => {
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .tooltip-tip {
-  background: rgba(201, 152, 77, 0.12);
-  color: #c9984d;
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  color: var(--accent-ink);
 }
 </style>

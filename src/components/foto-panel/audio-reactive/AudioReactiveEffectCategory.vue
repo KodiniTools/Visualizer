@@ -177,13 +177,17 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
   border-color: var(--accent-secondary);
 }
 [data-theme='light'] .effect-slider {
-  background: linear-gradient(90deg, rgba(7, 63, 116, 0.2) 0%, rgba(1, 79, 153, 0.4) 100%);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent-primary) 20%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 40%, transparent) 100%
+  );
 }
 [data-theme='light'] .effect-slider::-webkit-slider-thumb {
-  background: #073f74;
+  background: var(--accent-primary);
 }
 [data-theme='light'] .effect-slider::-moz-range-thumb {
-  background: #073f74;
+  background: var(--accent-primary);
 }
 
 @media (max-width: 768px) {

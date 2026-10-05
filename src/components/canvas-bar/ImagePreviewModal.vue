@@ -377,16 +377,16 @@ const replaceCanvasImageInput = ref(null)
 
 /* Light theme */
 [data-theme='light'] .image-preview-modal {
-  background: linear-gradient(180deg, #ffffff 0%, rgba(249, 242, 213, 0.98) 100%);
-  border-color: rgba(201, 152, 77, 0.3);
+  background: linear-gradient(180deg, var(--card-bg) 0%, rgba(249, 242, 213, 0.98) 100%);
+  border-color: var(--border-color);
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(201, 152, 77, 0.15);
+    0 0 0 1px color-mix(in srgb, var(--accent-primary) 15%, transparent);
 }
 [data-theme='light'] .preview-modal-close {
   background: rgba(0, 0, 0, 0.06);
   border-color: rgba(0, 0, 0, 0.15);
-  color: #003971;
+  color: var(--text-primary);
 }
 [data-theme='light'] .preview-modal-close:hover {
   background: rgba(255, 69, 58, 0.8);
@@ -396,10 +396,7 @@ const replaceCanvasImageInput = ref(null)
   background: rgba(0, 0, 0, 0.03);
 }
 [data-theme='light'] .preview-info-value {
-  color: #003971;
-}
-[data-theme='light'] .replace-with-label {
-  color: #4d6d8e;
+  color: var(--text-primary);
 }
 
 @media (max-width: 600px) {

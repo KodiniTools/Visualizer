@@ -180,61 +180,61 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .control-group label {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .selected-tile-editor h6 {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .selected-tile-editor {
   background: rgba(255, 255, 255, 0.5);
-  border-color: rgba(1, 79, 153, 0.2);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .editor-header {
-  border-bottom-color: rgba(1, 79, 153, 0.15);
-}
-
-[data-theme='light'] .btn-close {
-  color: #4d6d8e;
+  border-bottom-color: var(--border-color);
 }
 
 [data-theme='light'] .btn-close:hover {
-  color: #003971;
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .color-input {
-  background-color: #ffffff;
+  background-color: var(--card-bg);
   border-color: var(--border-color);
 }
 
 [data-theme='light'] .color-hex {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .opacity-slider {
-  background: linear-gradient(to right, rgba(7, 63, 116, 0.15) 0%, rgba(1, 79, 153, 0.5) 100%);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent-primary) 15%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 50%, transparent) 100%
+  );
 }
 
 [data-theme='light'] .opacity-slider::-webkit-slider-thumb {
-  background: #073f74;
+  background: var(--accent-primary);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .opacity-slider::-moz-range-thumb {
-  background: #073f74;
+  background: var(--accent-primary);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .btn-reset {
-  background: rgba(1, 79, 153, 0.08);
-  border-color: rgba(1, 79, 153, 0.2);
-  color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  border-color: var(--border-color);
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .btn-reset:hover {
-  background: rgba(1, 79, 153, 0.15);
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
 }
 
 /* ═══ Responsive ═══ */

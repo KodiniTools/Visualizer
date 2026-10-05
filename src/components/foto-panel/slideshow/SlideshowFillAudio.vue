@@ -111,8 +111,7 @@ function update(partial) {
   border-radius: 4px;
 }
 [data-theme='light'] .fill-audio-field select {
-  background: #f9f2d5;
-  color: #003971;
+  color: var(--text-primary);
   border-color: #d4c8a8;
 }
 </style>

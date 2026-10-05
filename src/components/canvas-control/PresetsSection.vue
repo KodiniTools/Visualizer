@@ -165,25 +165,21 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
 
 /* Light theme overrides */
 [data-theme='light'] .btn-primary {
-  background: rgba(1, 79, 153, 0.1);
-  border: 1px solid rgba(1, 79, 153, 0.3);
-  color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border: 1px solid var(--border-color);
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .btn-primary:hover {
-  background: rgba(1, 79, 153, 0.18);
+  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 
 [data-theme='light'] .btn-load {
-  background: rgba(1, 79, 153, 0.1);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 [data-theme='light'] .btn-load:hover {
-  background: rgba(1, 79, 153, 0.2);
-}
-
-[data-theme='light'] .preset-item:hover {
-  border-color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
 @media (max-width: 768px) {

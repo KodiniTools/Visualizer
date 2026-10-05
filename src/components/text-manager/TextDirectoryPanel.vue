@@ -190,13 +190,13 @@ const { t } = useI18n()
   color: #fff;
 }
 [data-theme='light'] .play-all-btn {
-  background: rgba(1, 79, 153, 0.1);
-  border-color: #014f99;
-  color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-ink);
 }
 [data-theme='light'] .play-all-btn:hover {
-  background: #014f99;
-  color: #fff;
+  background: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 .section-content {
@@ -284,19 +284,15 @@ const { t } = useI18n()
   outline: none;
 }
 [data-theme='light'] .global-dur {
-  border-color: rgba(1, 79, 153, 0.15);
-  background: rgba(1, 79, 153, 0.05);
-}
-[data-theme='light'] .checkbox-label {
-  color: #013a70;
+  border-color: var(--border-color);
+  background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
 }
 [data-theme='light'] .dur-number {
-  background-color: #ffffff;
-  border-color: rgba(1, 79, 153, 0.2);
-  color: #003971;
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
 }
 [data-theme='light'] .dur-number:focus {
-  border-color: #014f99;
+  border-color: var(--accent-primary);
 }
 
 .text-list {
@@ -391,28 +387,28 @@ const { t } = useI18n()
 
 /* ═══ Light Theme ═══ */
 [data-theme='light'] .collapsible-section {
-  background-color: #ffffff;
-  border: 1px solid rgba(1, 79, 153, 0.15);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
 }
 
 [data-theme='light'] .section-header {
-  color: #003971;
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .text-item.active {
-  background: rgba(1, 79, 153, 0.1);
-  border-color: #014f99;
-  color: #013a70;
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .play-btn {
-  background: rgba(1, 79, 153, 0.1);
-  border-color: #014f99;
-  color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .play-btn:hover {
-  background: #014f99;
-  color: #fff;
+  background: var(--accent-primary);
+  color: var(--accent-text);
 }
 </style>

@@ -105,17 +105,20 @@ const {
 }
 
 [data-theme='light'] .background-thumb-section h5 {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 [data-theme='light'] .background-thumb-section {
-  background: linear-gradient(180deg, #ffffff 0%, rgba(1, 79, 153, 0.06) 100%);
-  border-left-color: #014f99;
+  background: linear-gradient(
+    180deg,
+    var(--card-bg) 0%,
+    color-mix(in srgb, var(--accent-primary) 6%, transparent) 100%
+  );
+  border-left-color: var(--accent-primary);
 }
 [data-theme='light'] .background-thumb:hover {
-  box-shadow: 0 0 8px rgba(1, 79, 153, 0.2);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 [data-theme='light'] .background-thumb .thumb-hint {
   background: rgba(255, 255, 255, 0.85);
-  color: #003971;
 }
 </style>

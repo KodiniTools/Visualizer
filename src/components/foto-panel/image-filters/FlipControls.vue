@@ -80,22 +80,18 @@ const { flipHRef, flipVRef, onSliderStart, onFlipHorizontal, onFlipVertical } = 
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
-[data-theme='light'] .modern-section-header h4 {
-  color: rgba(0, 57, 113, 0.6);
-}
 [data-theme='light'] .flip-button {
-  background: linear-gradient(135deg, #ffffff 0%, #f9f2d5 100%);
-  border-color: rgba(1, 79, 153, 0.3);
-  color: #003971;
+  border-color: var(--border-color);
+  color: var(--text-primary);
 }
 [data-theme='light'] .flip-button:hover {
-  background: linear-gradient(135deg, #f9f2d5 0%, #ffffff 100%);
-  border-color: #014f99;
-  color: #014f99;
+  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--card-bg) 100%);
+  border-color: var(--accent-primary);
+  color: var(--accent-ink);
 }
 [data-theme='light'] .flip-button.active {
-  background: linear-gradient(135deg, #014f99 0%, #003971 100%);
-  border-color: #014f99;
-  color: #f5f4d6;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+  border-color: var(--accent-primary);
+  color: var(--accent-text);
 }
 </style>

@@ -206,9 +206,8 @@ function handleAction(toast) {
 
 /* Light theme */
 [data-theme='light'] .toast {
-  background-color: #ffffff;
-  border: 1px solid rgba(1, 79, 153, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 57, 113, 0.1);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--text-primary) 10%, transparent);
 }
 
 /* Toast type colors */
@@ -258,7 +257,7 @@ function handleAction(toast) {
   margin-bottom: 4px;
 }
 [data-theme='light'] .toast__title {
-  color: #003971;
+  color: var(--text-primary);
 }
 .toast__message {
   font-size: 13px;
@@ -267,7 +266,7 @@ function handleAction(toast) {
   word-wrap: break-word;
 }
 [data-theme='light'] .toast__message {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 .toast__action {
@@ -290,12 +289,10 @@ function handleAction(toast) {
   color: #000;
 }
 [data-theme='light'] .toast__action {
-  border-color: #014f99;
-  color: #014f99;
+  border-color: var(--accent-primary);
 }
 [data-theme='light'] .toast__action:hover {
-  background: #014f99;
-  color: #fff;
+  color: var(--accent-text);
 }
 
 .toast__close {
@@ -317,10 +314,10 @@ function handleAction(toast) {
   color: #e9e9eb;
 }
 [data-theme='light'] .toast__close {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 [data-theme='light'] .toast__close:hover {
-  color: #003971;
+  color: var(--text-primary);
 }
 .toast__close svg {
   width: 100%;
@@ -383,13 +380,13 @@ function handleAction(toast) {
 
 /* Light theme type overrides */
 [data-theme='light'] .toast--info {
-  border-left: 4px solid #014f99;
+  border-left: 4px solid var(--accent-primary);
 }
 [data-theme='light'] .toast--info .toast__icon {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 [data-theme='light'] .toast__progress {
-  background: #014f99;
+  background: var(--accent-primary);
 }
 
 /* Responsive */

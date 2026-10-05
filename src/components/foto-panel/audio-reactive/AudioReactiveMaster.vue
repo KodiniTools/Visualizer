@@ -293,16 +293,20 @@ const {
   border-color: var(--border-color);
 }
 [data-theme='light'] .audio-slider {
-  background: linear-gradient(90deg, rgba(7, 63, 116, 0.25) 0%, rgba(1, 79, 153, 0.45) 100%);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent-primary) 25%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 45%, transparent) 100%
+  );
 }
 [data-theme='light'] .audio-slider::-webkit-slider-thumb {
-  background: #073f74;
+  background: var(--accent-primary);
 }
 [data-theme='light'] .audio-slider::-moz-range-thumb {
-  background: #073f74;
+  background: var(--accent-primary);
 }
 [data-theme='light'] .label-value {
-  color: #073f74;
+  color: var(--accent-ink);
 }
 [data-theme='light'] .modern-select:hover {
   border-color: var(--accent-secondary);

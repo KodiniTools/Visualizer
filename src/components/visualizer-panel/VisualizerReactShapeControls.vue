@@ -225,17 +225,7 @@ const beatBoostLabel = computed(() =>
   border-color: var(--accent-primary, #c9984d);
 }
 
-[data-theme='light'] .react-shape__label {
-  color: #4d6d8e;
-}
-
 [data-theme='light'] .react-shape__select {
-  background-color: #f9f2d5;
-  color: #003971;
-  border-color: rgba(1, 79, 153, 0.25);
-}
-
-[data-theme='light'] .react-shape__select:focus {
-  border-color: #014f99;
+  border-color: var(--border-color);
 }
 </style>

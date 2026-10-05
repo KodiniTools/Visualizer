@@ -358,14 +358,10 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 }
 
 /* Light Theme */
-[data-theme='light'] .section-label {
-  color: #4d6d8e;
-}
 
 [data-theme='light'] .quality-btn,
 [data-theme='light'] .upload-btn {
   background-color: #f0f0f0;
-  color: #003971;
   border-color: #d0d0d0;
 }
 
@@ -377,21 +373,18 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 
 [data-theme='light'] .quality-btn.active,
 [data-theme='light'] .upload-btn.active {
-  background-color: #014f99;
-  color: #f5f4d6;
-  border-color: #014f99;
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
+  border-color: var(--accent-primary);
 }
 
 [data-theme='light'] .quality-btn.active:hover,
 [data-theme='light'] .upload-btn.active:hover {
-  background-color: #003971;
+  background-color: var(--accent-primary);
 }
 
 [data-theme='light'] .toggle-row input[type='checkbox'] {
-  accent-color: #014f99;
-}
-[data-theme='light'] .toggle-label {
-  color: #003971;
+  accent-color: var(--accent-primary);
 }
 [data-theme='light'] .extra-info {
   color: rgba(0, 0, 0, 0.4);

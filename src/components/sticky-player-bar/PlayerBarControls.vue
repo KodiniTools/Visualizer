@@ -564,9 +564,9 @@ const seekToPosition = (event) => {
   color: #4a9eff;
 }
 [data-theme='light'] .spb-ctrl-playmode.active {
-  background-color: rgba(1, 79, 153, 0.12);
-  border-color: #014f99;
-  color: #014f99;
+  background-color: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-ink);
 }
 
 /* Progress */
@@ -771,28 +771,21 @@ const seekToPosition = (event) => {
 
 /* Light theme */
 [data-theme='light'] .spb-bar {
-  background-color: #ffffff;
-  border-top-color: rgba(1, 79, 153, 0.18);
+  border-top-color: var(--border-color);
 }
 [data-theme='light'] .spb-ctrl,
 [data-theme='light'] .spb-icon-btn {
   background-color: #eef2f8;
-  /* Stronger, clearly visible outline + dark icon for contrast on white */
-  border-color: rgba(1, 79, 153, 0.4);
-  color: #003971;
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 [data-theme='light'] .spb-ctrl:hover:not(:disabled),
 [data-theme='light'] .spb-icon-btn:hover {
   background-color: #dfe8f4;
-  border-color: var(--accent-primary, #014f99);
+  border-color: var(--accent-primary, var(--accent-primary));
 }
 /* Keep the main play/pause button filled and prominent (the light .spb-ctrl
    rule above has the same specificity and would otherwise wash it out). */
-[data-theme='light'] .spb-ctrl-main {
-  background-color: var(--accent-primary, #014f99);
-  border-color: var(--accent-primary, #014f99);
-  color: #ffffff;
-}
 [data-theme='light'] .spb-ctrl-main:hover:not(:disabled) {
   background-color: #013a73;
   border-color: #013a73;

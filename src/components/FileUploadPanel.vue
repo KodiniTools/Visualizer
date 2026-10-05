@@ -462,13 +462,6 @@ h3::before {
 }
 
 /* ═══ Light Theme Overrides ═══ */
-[data-theme='light'] .panel {
-  background-color: #ffffff;
-}
-
-[data-theme='light'] h3 {
-  color: #003971;
-}
 
 [data-theme='light'] h3::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23003971' stroke-width='1.5'%3E%3Cpath d='M9 18V5l12-2v13'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Ccircle cx='18' cy='16' r='3'/%3E%3C/svg%3E");
@@ -476,54 +469,46 @@ h3::before {
 }
 
 [data-theme='light'] .upload-area {
-  background: linear-gradient(135deg, #f9f2d5 0%, rgba(1, 79, 153, 0.08) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--secondary-bg) 0%,
+    color-mix(in srgb, var(--accent-primary) 8%, transparent) 100%
+  );
 }
 
 [data-theme='light'] .upload-area:hover {
-  border-color: #014f99;
-  background: linear-gradient(135deg, rgba(1, 79, 153, 0.1) 0%, rgba(201, 152, 77, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-primary) 10%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 10%, transparent) 100%
+  );
 }
 
 [data-theme='light'] .upload-area.drag-over {
-  border-color: #c9984d;
-  background: linear-gradient(135deg, rgba(1, 79, 153, 0.15) 0%, rgba(201, 152, 77, 0.12) 100%);
+  border-color: var(--accent-primary);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-primary) 15%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 12%, transparent) 100%
+  );
 }
 
 [data-theme='light'] .upload-icon {
-  color: #c9984d;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .upload-icon svg {
-  stroke: #014f99;
+  stroke: var(--accent-ink);
   filter: none;
 }
 
-[data-theme='light'] .upload-main {
-  color: #003971;
-}
-
-[data-theme='light'] .upload-sub {
-  color: #4d6d8e;
-}
-
-[data-theme='light'] .format-label {
-  color: #4d6d8e;
-}
-
 [data-theme='light'] .format-item {
-  color: #014f99;
-  background-color: rgba(1, 79, 153, 0.1);
+  background-color: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 [data-theme='light'] .upload-btn {
-  border-color: #014f99;
-  background-color: rgba(1, 79, 153, 0.1);
-  color: #014f99;
-}
-
-[data-theme='light'] .upload-btn:hover {
-  background-color: #014f99;
-  color: #f5f4d6;
+  border-color: var(--accent-primary);
+  background-color: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 [data-theme='light'] .tracks-info {

@@ -213,8 +213,13 @@ const featureCards = computed(() => {
 
 /* Light Theme */
 .internal-landing.light-theme {
-  background: linear-gradient(180deg, #f5f4d6 0%, #f9f2d5 50%, #f5f4d6 100%);
-  color: #003971;
+  background: linear-gradient(
+    180deg,
+    var(--primary-bg) 0%,
+    var(--secondary-bg) 50%,
+    var(--primary-bg) 100%
+  );
+  color: var(--text-primary);
 }
 
 /* Header */
@@ -242,12 +247,12 @@ const featureCards = computed(() => {
 
 .light-theme .landing-header {
   background: rgba(249, 242, 213, 0.9);
-  border-bottom: 1px solid rgba(201, 152, 77, 0.2);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .light-theme .landing-header.scrolled {
   background: rgba(249, 242, 213, 0.98);
-  box-shadow: 0 4px 20px rgba(0, 57, 113, 0.08);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 .header-content {
@@ -268,7 +273,7 @@ const featureCards = computed(() => {
 }
 
 .light-theme .header-logo {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 /* Hero Section */
@@ -307,7 +312,7 @@ const featureCards = computed(() => {
 }
 
 .light-theme .hero-title {
-  color: #003971;
+  color: var(--text-primary);
 }
 
 .gradient-text {
@@ -319,7 +324,12 @@ const featureCards = computed(() => {
 }
 
 .light-theme .gradient-text {
-  background: linear-gradient(135deg, #c9984d 0%, #014f99 50%, #003971 100%);
+  background: linear-gradient(
+    135deg,
+    var(--accent-primary) 0%,
+    var(--accent-primary) 50%,
+    var(--accent-primary) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -333,7 +343,7 @@ const featureCards = computed(() => {
 }
 
 .light-theme .hero-subtitle {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 /* Features Grid */
@@ -357,8 +367,8 @@ const featureCards = computed(() => {
 
 .light-theme .feature-card {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 242, 213, 0.95) 100%);
-  border-color: rgba(201, 152, 77, 0.2);
-  box-shadow: 0 4px 24px rgba(0, 57, 113, 0.06);
+  border-color: var(--border-color);
+  box-shadow: 0 4px 24px color-mix(in srgb, var(--text-primary) 6%, transparent);
 }
 
 .feature-card:hover {
@@ -368,8 +378,8 @@ const featureCards = computed(() => {
 }
 
 .light-theme .feature-card:hover {
-  border-color: rgba(201, 152, 77, 0.4);
-  box-shadow: 0 20px 50px rgba(201, 152, 77, 0.15);
+  border-color: var(--accent-primary);
+  box-shadow: 0 20px 50px color-mix(in srgb, var(--accent-primary) 15%, transparent);
 }
 
 @keyframes fadeInUp {
@@ -403,7 +413,7 @@ const featureCards = computed(() => {
 }
 
 .light-theme .card-title {
-  color: #003971;
+  color: var(--text-primary);
 }
 
 .card-description {
@@ -414,7 +424,7 @@ const featureCards = computed(() => {
 }
 
 .light-theme .card-description {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 /* CTA Button */
@@ -443,13 +453,13 @@ const featureCards = computed(() => {
 }
 
 .light-theme .btn-primary {
-  background: linear-gradient(135deg, #014f99 0%, #3a7cc5 100%);
-  color: #f5f4d6;
-  box-shadow: 0 6px 28px rgba(1, 79, 153, 0.35);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-tertiary) 100%);
+  color: var(--accent-text);
+  box-shadow: 0 6px 28px color-mix(in srgb, var(--accent-primary) 35%, transparent);
 }
 
 .light-theme .btn-primary:hover {
-  box-shadow: 0 12px 40px rgba(1, 79, 153, 0.45);
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--accent-primary) 45%, transparent);
 }
 
 .btn-icon {
@@ -563,71 +573,81 @@ const featureCards = computed(() => {
 /* ═══ Light Theme Overrides ═══ */
 
 [data-theme='light'] .internal-landing {
-  background: linear-gradient(180deg, #f5f4d6 0%, #f9f2d5 50%, #f5f4d6 100%);
-  color: #003971;
+  background: linear-gradient(
+    180deg,
+    var(--primary-bg) 0%,
+    var(--secondary-bg) 50%,
+    var(--primary-bg) 100%
+  );
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .landing-header {
   background: rgba(249, 242, 213, 0.9);
-  border-bottom: 1px solid rgba(1, 79, 153, 0.1);
+  border-bottom: 1px solid var(--border-color);
 }
 
 [data-theme='light'] .landing-header.scrolled {
   background: rgba(249, 242, 213, 0.98);
-  box-shadow: 0 4px 20px rgba(0, 57, 113, 0.08);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 [data-theme='light'] .header-logo {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .hero-title {
-  color: #003971;
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .gradient-text {
-  background: linear-gradient(135deg, #c9984d 0%, #014f99 50%, #003971 100%);
+  background: linear-gradient(
+    135deg,
+    var(--accent-primary) 0%,
+    var(--accent-primary) 50%,
+    var(--accent-primary) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 [data-theme='light'] .hero-subtitle {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .feature-card {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 242, 213, 0.95) 100%);
-  border-color: rgba(1, 79, 153, 0.15);
-  box-shadow: 0 4px 24px rgba(0, 57, 113, 0.06);
+  border-color: var(--border-color);
+  box-shadow: 0 4px 24px color-mix(in srgb, var(--text-primary) 6%, transparent);
 }
 
 [data-theme='light'] .feature-card:hover {
-  border-color: rgba(1, 79, 153, 0.4);
-  box-shadow: 0 20px 50px rgba(0, 57, 113, 0.12);
+  border-color: var(--accent-primary);
+  box-shadow: 0 20px 50px color-mix(in srgb, var(--text-primary) 12%, transparent);
 }
 
 [data-theme='light'] .card-icon {
-  color: #ffffff;
-  box-shadow: 0 8px 24px rgba(1, 79, 153, 0.2);
+  color: var(--accent-text);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
 [data-theme='light'] .card-title {
-  color: #003971;
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .card-description {
-  color: #4d6d8e;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .btn-primary {
-  background: linear-gradient(135deg, #014f99 0%, #3a7cc5 100%);
-  color: #f5f4d6;
-  box-shadow: 0 6px 28px rgba(1, 79, 153, 0.35);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-tertiary) 100%);
+  color: var(--accent-text);
+  box-shadow: 0 6px 28px color-mix(in srgb, var(--accent-primary) 35%, transparent);
 }
 
 [data-theme='light'] .btn-primary:hover {
-  box-shadow: 0 12px 40px rgba(1, 79, 153, 0.45);
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--accent-primary) 45%, transparent);
 }
 
 [data-theme='light'] .hero-background {
@@ -635,6 +655,6 @@ const featureCards = computed(() => {
 }
 
 [data-theme='light'] .wave-bar {
-  background: linear-gradient(180deg, #014f99 0%, #3a7cc5 100%);
+  background: linear-gradient(180deg, var(--accent-primary) 0%, var(--accent-tertiary) 100%);
 }
 </style>

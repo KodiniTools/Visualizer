@@ -439,29 +439,25 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
 }
 
 [data-theme='light'] .fx-section {
-  background-color: rgba(1, 79, 153, 0.05);
-  border-color: rgba(1, 79, 153, 0.15);
+  background-color: color-mix(in srgb, var(--accent-primary) 5%, transparent);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .section-label,
 [data-theme='light'] .control-label,
 [data-theme='light'] .fx-hint {
-  color: #4d6d8e;
-}
-
-[data-theme='light'] .fx-toggle {
-  color: #003971;
+  color: var(--text-muted);
 }
 
 [data-theme='light'] .fx-slider {
-  background: linear-gradient(to right, #f9f2d5 0%, #014f99 100%);
+  background: linear-gradient(to right, var(--secondary-bg) 0%, var(--accent-primary) 100%);
 }
 
 [data-theme='light'] .fx-slider::-webkit-slider-thumb {
-  background: #014f99;
+  background: var(--accent-primary);
 }
 
 [data-theme='light'] .fx-slider::-moz-range-thumb {
-  background: #014f99;
+  background: var(--accent-primary);
 }
 </style>

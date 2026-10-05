@@ -164,10 +164,14 @@ onBeforeUnmount(stopLevelIndicator)
   letter-spacing: 0.3px;
 }
 [data-theme='light'] .audio-reactive-section h5 {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 [data-theme='light'] .audio-reactive-section {
-  background: linear-gradient(180deg, #ffffff 0%, rgba(1, 79, 153, 0.06) 100%);
-  border-left-color: #014f99;
+  background: linear-gradient(
+    180deg,
+    var(--card-bg) 0%,
+    color-mix(in srgb, var(--accent-primary) 6%, transparent) 100%
+  );
+  border-left-color: var(--accent-primary);
 }
 </style>

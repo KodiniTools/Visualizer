@@ -242,27 +242,27 @@ h4 {
 }
 
 [data-theme='light'] .btn-primary {
-  background: rgba(1, 79, 153, 0.1);
-  border: 1px solid rgba(1, 79, 153, 0.3);
-  color: #014f99;
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border: 1px solid var(--border-color);
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .btn-primary:hover {
-  background: rgba(1, 79, 153, 0.18);
+  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 
 [data-theme='light'] .btn-undo {
-  background: rgba(1, 79, 153, 0.1);
-  color: #014f99;
-  border-color: rgba(1, 79, 153, 0.3);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-ink);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .btn-undo:hover {
-  background: rgba(1, 79, 153, 0.18);
+  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 
 [data-theme='light'] .info-text.warning {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 /* Responsive */

@@ -38,7 +38,6 @@ const { t } = useI18n()
 }
 [data-theme='light'] .status-badge {
   background-color: #f0ead0;
-  color: #4d6d8e;
 }
 /* Statusfarben auch im Hellmodus (dunklere Töne, Kontrast ≥ 5:1 auf hellem Grund) */
 [data-theme='light'] .status-badge.active {

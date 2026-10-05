@@ -30,7 +30,3 @@
   -webkit-appearance: none;
   appearance: none;
 }
-
-[data-theme='light'] .section-label {
-  color: #4d6d8e;
-}

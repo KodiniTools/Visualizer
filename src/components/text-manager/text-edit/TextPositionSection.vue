@@ -189,30 +189,25 @@ const {
 }
 
 [data-theme='light'] .number-input {
-  background-color: #ffffff;
-  border: 1px solid rgba(1, 79, 153, 0.2);
-  color: #003971;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
 }
 [data-theme='light'] .number-input:focus {
-  border-color: #014f99;
-}
-[data-theme='light'] .unit-label {
-  color: #4d6d8e;
-}
-[data-theme='light'] .btn-pos {
-  background: linear-gradient(135deg, #ffffff 0%, #f9f2d5 100%);
-  border: 1px solid rgba(1, 79, 153, 0.15);
-  color: #4d6d8e;
+  border-color: var(--accent-primary);
 }
 [data-theme='light'] .btn-pos:hover {
-  background: linear-gradient(135deg, #f9f2d5 0%, #ffffff 100%);
-  border-color: #014f99;
-  color: #014f99;
+  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--card-bg) 100%);
+  border-color: var(--accent-primary);
+  color: var(--accent-ink);
 }
 [data-theme='light'] .btn-pos.active {
-  background: linear-gradient(135deg, rgba(1, 79, 153, 0.1) 0%, rgba(1, 79, 153, 0.06) 100%);
-  border-color: #014f99;
-  color: #014f99;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-primary) 10%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 6%, transparent) 100%
+  );
+  border-color: var(--accent-primary);
+  color: var(--accent-ink);
 }
 
 @media (max-width: 768px) {

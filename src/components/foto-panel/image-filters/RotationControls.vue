@@ -50,7 +50,4 @@ const { filters, onSliderStart, onSliderEnd, onRotationChange } = ifc
   font-family: 'Courier New', monospace;
   letter-spacing: 1px;
 }
-[data-theme='light'] .rotation-hint {
-  color: #4d6d8e;
-}
 </style>

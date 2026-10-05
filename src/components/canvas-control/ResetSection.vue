@@ -248,17 +248,14 @@ function handleConfirmReset() {
 [data-theme='light'] .btn-reset-option {
   background: #fdfbf2;
   border-color: var(--border-color);
-  color: #003971;
 }
 
 [data-theme='light'] .btn-reset-option:hover:not(:disabled) {
-  background: var(--btn-hover);
-  border-color: #014f99;
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .info-text.warning {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .confirm-overlay {
@@ -266,7 +263,6 @@ function handleConfirmReset() {
 }
 
 [data-theme='light'] .confirm-dialog {
-  background-color: #ffffff;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 

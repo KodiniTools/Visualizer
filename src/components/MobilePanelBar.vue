@@ -159,12 +159,7 @@ defineEmits(['update:modelValue'])
     border-color: var(--border-color);
   }
   [data-theme='light'] .mobile-panel-btn.active {
-    background: rgba(1, 79, 153, 0.08);
-    color: #014f99;
-    border-color: #014f99;
-  }
-  [data-theme='light'] .mobile-active-bar {
-    background: #014f99;
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
   }
 }
 

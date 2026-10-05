@@ -364,12 +364,11 @@ onMounted(() => {
   background-color: #f0ead0;
 }
 [data-theme='light'] .image-editor-name {
-  color: #003971;
+  color: var(--text-primary);
 }
 [data-theme='light'] .image-editor-field select,
 [data-theme='light'] .image-editor-field input {
-  background: #f9f2d5;
-  color: #003971;
+  color: var(--text-primary);
   border-color: #d4c8a8;
 }
 </style>

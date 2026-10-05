@@ -230,15 +230,15 @@ defineEmits(['cancel'])
 [data-theme='light'] .conversion-modal {
   box-shadow:
     0 25px 80px rgba(0, 0, 0, 0.25),
-    0 0 60px rgba(1, 79, 153, 0.1);
+    0 0 60px color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 [data-theme='light'] .conversion-icon svg {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .conversion-percent {
-  color: #014f99;
+  color: var(--accent-ink);
 }
 
 [data-theme='light'] .conversion-progress-bar {
@@ -246,13 +246,17 @@ defineEmits(['cancel'])
 }
 
 [data-theme='light'] .conversion-progress-fill {
-  background: linear-gradient(90deg, #014f99 0%, #3a7cc6 50%, #014f99 100%);
+  background: linear-gradient(
+    90deg,
+    var(--accent-primary) 0%,
+    #3a7cc6 50%,
+    var(--accent-primary) 100%
+  );
   background-size: 200% 100%;
 }
 
 [data-theme='light'] .btn-cancel-conversion {
   background: rgba(0, 0, 0, 0.05);
-  color: #4d6d8e;
   border-color: rgba(0, 0, 0, 0.12);
 }
 

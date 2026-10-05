@@ -150,28 +150,23 @@ const {
 }
 
 [data-theme='light'] .layer-controls-section {
-  background: rgba(1, 79, 153, 0.05);
-  border-color: rgba(1, 79, 153, 0.15);
+  background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
+  border-color: var(--border-color);
 }
 [data-theme='light'] .layer-info {
-  color: #014f99;
-  background: rgba(1, 79, 153, 0.1);
-  border-color: rgba(1, 79, 153, 0.25);
+  color: var(--accent-ink);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border-color: var(--border-color);
 }
 [data-theme='light'] .layer-btn {
-  background: #ffffff;
-  color: #003971;
-  border-color: rgba(1, 79, 153, 0.2);
+  background: var(--card-bg);
+  border-color: var(--border-color);
 }
 [data-theme='light'] .layer-btn:hover:not(:disabled) {
-  background: #f9f2d5;
-  border-color: #014f99;
-  color: #014f99;
+  background: var(--secondary-bg);
+  color: var(--accent-ink);
 }
 [data-theme='light'] .visualizer-layer-toggle {
-  border-top-color: rgba(1, 79, 153, 0.15);
-}
-[data-theme='light'] .visualizer-layer-toggle .toggle-label {
-  color: #003971;
+  border-top-color: var(--border-color);
 }
 </style>

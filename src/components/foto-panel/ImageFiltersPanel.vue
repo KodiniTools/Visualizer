@@ -153,9 +153,6 @@ defineExpose({ loadImageSettings: controls.loadImageSettings })
 }
 
 [data-theme='light'] .foto-panel-container {
-  border-top-color: rgba(1, 79, 153, 0.2);
-}
-[data-theme='light'] .foto-panel-container h4 {
-  color: #4d6d8e;
+  border-top-color: var(--border-color);
 }
 </style>

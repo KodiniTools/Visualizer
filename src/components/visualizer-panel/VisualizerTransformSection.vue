@@ -209,24 +209,12 @@ const store = useVisualizerStore()
 /* ═══ Light Theme Overrides ═══ */
 
 [data-theme='light'] .position-section {
-  background-color: rgba(1, 79, 153, 0.05);
-  border-color: rgba(1, 79, 153, 0.15);
+  background-color: color-mix(in srgb, var(--accent-primary) 5%, transparent);
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .reset-btn {
-  background-color: #f9f2d5;
-  color: #4d6d8e;
-  border-color: rgba(1, 79, 153, 0.3);
-}
-
-[data-theme='light'] .reset-btn:hover {
-  background-color: #014f99;
-  color: #f5f4d6;
-  border-color: #014f99;
-}
-
-[data-theme='light'] .control-label {
-  color: #4d6d8e;
+  border-color: var(--border-color);
 }
 
 [data-theme='light'] .position-slider {

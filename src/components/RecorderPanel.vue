@@ -1041,25 +1041,15 @@ h3::before {
 
 /* Light Theme */
 [data-theme='light'] .recorder-panel {
-  background-color: #ffffff;
-  border-color: rgba(1, 79, 153, 0.15);
-}
-[data-theme='light'] h3 {
-  color: #003971;
+  border-color: var(--border-color);
 }
 [data-theme='light'] h3::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23003971' stroke-width='1.5'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%23003971'/%3E%3C/svg%3E");
   filter: none;
 }
 [data-theme='light'] .status-indicator {
-  background: rgba(1, 79, 153, 0.05);
-  border-color: rgba(1, 79, 153, 0.15);
-}
-[data-theme='light'] .status-dot {
-  background: #4d6d8e;
-}
-[data-theme='light'] .status-text {
-  color: #4d6d8e;
+  background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
+  border-color: var(--border-color);
 }
 [data-theme='light'] .recording-timer {
   background: rgba(244, 67, 54, 0.1);
@@ -1083,12 +1073,12 @@ h3::before {
   background: rgba(255, 152, 0, 0.08);
 }
 [data-theme='light'] .btn-prepare {
-  background: rgba(1, 79, 153, 0.1);
-  color: #014f99;
-  border-color: rgba(1, 79, 153, 0.25);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-ink);
+  border-color: var(--border-color);
 }
 [data-theme='light'] .btn-prepare:hover:not(:disabled) {
-  background: rgba(1, 79, 153, 0.18);
+  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 [data-theme='light'] .btn-start {
   background: rgba(76, 175, 80, 0.1);
@@ -1150,10 +1140,7 @@ h3::before {
   border-color: rgba(139, 92, 246, 0.3);
 }
 [data-theme='light'] .mic-toggle-row input[type='checkbox'] {
-  accent-color: #014f99;
-}
-[data-theme='light'] .toggle-label {
-  color: #003971;
+  accent-color: var(--accent-primary);
 }
 [data-theme='light'] .toggle-label .icon {
   color: #7c3aed;
@@ -1161,9 +1148,6 @@ h3::before {
 [data-theme='light'] .source-hint.info {
   color: rgba(180, 130, 0, 0.9);
   background: rgba(255, 193, 7, 0.08);
-}
-[data-theme='light'] .section-label {
-  color: #4d6d8e;
 }
 [data-theme='light'] .webm-download-btn {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
@@ -1173,7 +1157,7 @@ h3::before {
 }
 [data-theme='light'] .btn-close-conversion {
   background: rgba(0, 0, 0, 0.05);
-  color: #4d6d8e;
+  color: var(--text-muted);
   border-color: rgba(0, 0, 0, 0.12);
 }
 [data-theme='light'] .btn-close-conversion:hover {

@@ -1635,6 +1635,8 @@ export default {
     sendToBackBottom: 'Nach hinten',
     filterPreset: 'Filter-Preset',
     noFilter: 'Kein Filter',
+    shadowColorHex: 'Schattenfarbe (Hex-Wert)',
+    borderColorHex: 'Rahmenfarbe (Hex-Wert)',
     shadowEffects: 'Schatten & Effekte',
     shadowColor: 'Farbe',
     shadowBlur: 'Unschärfe',

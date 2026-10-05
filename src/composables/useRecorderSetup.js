@@ -73,7 +73,10 @@ export function useRecorderSetup({
       return
     }
 
-    const combinedAudioStream = await audioEngine.createCombinedAudioStream()
+    // Ohne Mikrofon: sonst fragt die Seite schon beim Aufruf nach der
+    // Mikrofon-Berechtigung. recorderStore holt vor jeder Aufnahme einen
+    // frischen Stream inkl. Mikrofon (window.getAudioStreamForRecorder).
+    const combinedAudioStream = await audioEngine.createCombinedAudioStream({ withMic: false })
     if (!combinedAudioStream) {
       console.error('[App] Audio Stream fehlgeschlagen!')
       return

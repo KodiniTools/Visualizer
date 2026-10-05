@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from 'vitest'
-import { nextTick } from 'vue'
+import { defineComponent, h, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import SliderField from '../../components/ui/SliderField.vue'
 import ScopedSliderHost from './fixtures/ScopedSliderHost.vue'
@@ -139,5 +139,67 @@ describe('SliderField', () => {
     await nextTick()
     expect(num.value).toBe('33')
     document.body.innerHTML = ''
+  })
+})
+
+describe('SliderField – zugänglicher Name', () => {
+  const host = (labelNode, sliderAttrs = {}) =>
+    defineComponent({
+      render: () =>
+        h('div', { class: 'control-group' }, [
+          labelNode(),
+          h(SliderField, { modelValue: 5, ...sliderAttrs }),
+        ]),
+    })
+
+  it('verknüpft ein vorangestelltes <label> per aria-labelledby', async () => {
+    wrapper = mount(
+      host(() => h('label', 'Helligkeit')),
+      { attachTo: document.body },
+    )
+    await nextTick()
+    const range = wrapper.find('input[type="range"]').element
+    const label = wrapper.find('label').element
+    expect(label.id).toMatch(/^slider-label-/)
+    expect(range.getAttribute('aria-labelledby')).toBe(label.id)
+  })
+
+  it('nutzt .label-text aus einem vorangestellten .modern-label', async () => {
+    wrapper = mount(
+      host(() =>
+        h('div', { class: 'modern-label' }, [
+          h('span', { class: 'label-text' }, 'Unschärfe'),
+          h('span', { class: 'label-value' }, '3px'),
+        ]),
+      ),
+      { attachTo: document.body },
+    )
+    await nextTick()
+    const range = wrapper.find('input[type="range"]').element
+    const text = wrapper.find('.label-text').element
+    expect(range.getAttribute('aria-labelledby')).toBe(text.id)
+  })
+
+  it('lässt einen vom Aufrufer gesetzten Namen unverändert', async () => {
+    wrapper = mount(
+      host(() => h('label', 'Helligkeit'), { 'aria-label': 'Eigener Name' }),
+      {
+        attachTo: document.body,
+      },
+    )
+    await nextTick()
+    const range = wrapper.find('input[type="range"]').element
+    expect(range.getAttribute('aria-label')).toBe('Eigener Name')
+    expect(range.hasAttribute('aria-labelledby')).toBe(false)
+    expect(wrapper.find('label').element.id).toBe('')
+  })
+
+  it('setzt nichts ohne vorangestellte Beschriftung', async () => {
+    wrapper = mount(
+      host(() => h('div', 'kein Label')),
+      { attachTo: document.body },
+    )
+    await nextTick()
+    expect(wrapper.find('input[type="range"]').attributes('aria-labelledby')).toBeUndefined()
   })
 })

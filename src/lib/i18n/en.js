@@ -1629,6 +1629,8 @@ export default {
     sendToBackBottom: 'Send to back',
     filterPreset: 'Filter Preset',
     noFilter: 'No Filter',
+    shadowColorHex: 'Shadow color (hex value)',
+    borderColorHex: 'Border color (hex value)',
     shadowEffects: 'Shadow & Effects',
     shadowColor: 'Color',
     shadowBlur: 'Blur',

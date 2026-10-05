@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, START_LOCATION } from 'vue-router'
 import LandingPage from '../components/LandingPage.vue'
 import InternalLandingPage from '../components/InternalLandingPage.vue'
 import BlogPage from '../components/BlogPage.vue'
@@ -64,6 +64,11 @@ const router = createRouter({
     }
     if (savedPosition) {
       return savedPosition
+    }
+    // Erste Navigation: die Seite steht ohnehin oben. window.scrollTo würde
+    // direkt nach dem Mount ein synchrones Layout erzwingen (forced reflow).
+    if (from === START_LOCATION) {
+      return false
     }
     return { top: 0 }
   },

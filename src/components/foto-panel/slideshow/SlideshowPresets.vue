@@ -148,9 +148,9 @@ function save() {
   flex-direction: column;
   gap: 4px;
   padding: 6px 8px;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   background-color: var(--card-bg);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text);
 }
 .storage-line {
@@ -162,12 +162,12 @@ function save() {
   color: var(--text-muted);
 }
 .storage-browser {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 .storage-bar {
   height: 4px;
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
   background: var(--secondary-bg);
   overflow: hidden;
 }
@@ -182,10 +182,10 @@ function save() {
   align-self: flex-end;
   margin-top: 2px;
   padding: 3px 8px;
-  font-size: 10px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background: var(--secondary-bg);
   color: inherit;
   cursor: pointer;
@@ -218,11 +218,11 @@ function save() {
   flex: 1;
   min-width: 0;
   padding: 5px 8px;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   background: var(--secondary-bg);
   color: var(--ds-text);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 .preset-list {
   list-style: none;
@@ -240,23 +240,23 @@ function save() {
   gap: 6px;
   padding: 5px 8px;
   background-color: var(--card-bg);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
 }
 .preset-name {
   flex: 1;
   min-width: 0;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .preset-images-badge {
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   flex-shrink: 0;
 }
 .preset-meta {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   flex-shrink: 0;
 }
@@ -265,10 +265,10 @@ function save() {
 .btn-delete-preset {
   flex-shrink: 0;
   padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   color: #fff;
   background: var(--ds-link);
@@ -277,10 +277,6 @@ function save() {
   padding: 4px 7px;
   background: color-mix(in srgb, var(--ds-danger) 25%, transparent);
   color: var(--ds-danger);
-}
-.btn-save-preset:hover,
-.btn-load-preset:hover {
-  filter: brightness(1.1);
 }
 .btn-delete-preset:hover {
   background: color-mix(in srgb, var(--ds-danger) 40%, transparent);

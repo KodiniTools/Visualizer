@@ -153,12 +153,12 @@ onBeforeUnmount(stopLevelIndicator)
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-left: 2px solid var(--ds-link);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
 }
 .audio-reactive-section h5 {
   margin: 0 0 8px 0;
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-link);
   text-transform: uppercase;
   letter-spacing: 0.3px;

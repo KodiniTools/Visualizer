@@ -128,7 +128,7 @@ function formatTime(timestamp) {
   padding: 16px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
 }
 
 .button-group {
@@ -145,22 +145,17 @@ button {
   padding: 10px 16px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-text);
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-medium);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 button:hover:not(:disabled) {
   background: var(--card-bg);
   border-color: var(--border-color);
-  transform: translateY(-1px);
-}
-
-button:active:not(:disabled) {
-  transform: translateY(0);
 }
 
 button:disabled {
@@ -170,26 +165,26 @@ button:disabled {
 }
 
 .icon {
-  font-size: 16px;
+  font-size: var(--ds-text-lg);
 }
 
 .label {
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
 }
 
 .history-info {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   padding: 8px;
   background: var(--ds-surface-0);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .position {
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-muted);
 }
 
@@ -203,13 +198,13 @@ button:disabled {
   max-height: 300px;
   overflow-y: auto;
   background: var(--ds-surface-0);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   padding: 8px;
 }
 
 .history-list-header {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-text-3);
   text-transform: uppercase;
   margin-bottom: 8px;
@@ -221,10 +216,10 @@ button:disabled {
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  border-radius: 4px;
-  font-size: 12px;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--ds-duration) var(--ds-ease);
 }
 
 .history-item:hover {
@@ -238,7 +233,7 @@ button:disabled {
 
 .history-index {
   color: var(--ds-text-3);
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
   min-width: 20px;
 }
 
@@ -249,11 +244,11 @@ button:disabled {
 
 .history-item.active .history-name {
   color: white;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 .history-time {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 
@@ -268,12 +263,12 @@ button:disabled {
 
 .history-list::-webkit-scrollbar-track {
   background: var(--ds-surface-0);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .history-list::-webkit-scrollbar-thumb {
   background: var(--card-bg);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .history-list::-webkit-scrollbar-thumb:hover {

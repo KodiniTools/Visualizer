@@ -110,8 +110,8 @@ const {
 <style scoped>
 .upload-section h4 {
   margin: 0 0 8px 0;
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -127,16 +127,15 @@ const {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Cpolygon points='23 7 16 12 23 17 23 7'/%3E%3Crect x='1' y='5' width='15' height='14' rx='2' ry='2'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 .upload-area {
   border: 1px dashed var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   padding: 14px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   background: var(--secondary-bg);
 }
 
@@ -165,12 +164,12 @@ const {
 
 .upload-placeholder p {
   margin: 0;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
 }
 
 .upload-placeholder small {
-  font-size: 0.5rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 
@@ -187,14 +186,14 @@ const {
 }
 
 .gallery-title {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .btn-clear-all {
-  font-size: 0.5rem;
+  font-size: var(--ds-text-xs);
   color: var(--ds-danger);
   background: none;
   border: none;
@@ -220,11 +219,11 @@ const {
 .thumbnail-item {
   position: relative;
   aspect-ratio: 16/9;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .thumbnail-item:hover {
@@ -249,7 +248,7 @@ const {
   width: 24px;
   height: 24px;
   background: rgba(0, 0, 0, 0.6);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -268,7 +267,7 @@ const {
   top: 4px;
   right: 4px;
   opacity: 0.6;
-  transition: opacity 0.2s;
+  transition: opacity var(--ds-duration) var(--ds-ease);
 }
 
 .thumbnail-item:hover .thumbnail-overlay {
@@ -278,11 +277,11 @@ const {
 .btn-delete-thumb {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: color-mix(in srgb, var(--ds-danger) 90%, transparent);
   border: none;
   color: white;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -302,7 +301,7 @@ const {
 }
 
 .thumbnail-name {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: white;
   white-space: nowrap;
   overflow: hidden;
@@ -310,7 +309,7 @@ const {
 }
 
 .thumbnail-duration {
-  font-size: 9px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-2);
 }
 
@@ -328,18 +327,17 @@ const {
   padding: 6px 10px;
   background: var(--ds-accent-soft);
   border: 1px solid var(--ds-border);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--accent-tertiary);
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
   background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
 }
 
@@ -348,12 +346,12 @@ const {
   padding: 5px 8px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.55rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
 }
 
@@ -367,12 +365,12 @@ const {
   padding: 5px 8px;
   background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-warning) 30%, transparent);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-warning);
-  font-size: 0.55rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
 }
 

@@ -35,7 +35,7 @@ defineEmits(['update:modelValue'])
   align-items: center;
   gap: 5px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: var(--ds-text-sm);
   color: var(--ds-text-2);
 }
 .fx-check input {

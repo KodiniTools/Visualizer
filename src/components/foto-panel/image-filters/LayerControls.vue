@@ -65,7 +65,7 @@ const {
   gap: 12px;
   background: color-mix(in srgb, var(--ds-surface-2) 50%, transparent);
   padding: 16px;
-  border-radius: 12px;
+  border-radius: var(--ds-radius-lg);
   border: 1px solid color-mix(in srgb, var(--ds-link) 10%, transparent);
   margin-bottom: 8px;
 }
@@ -76,13 +76,13 @@ const {
   align-items: center;
 }
 .layer-info {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--image-section-accent);
-  font-family: 'Courier New', monospace;
+  font-family: var(--ds-font-mono);
   background: color-mix(in srgb, var(--ds-link) 15%, transparent);
   padding: 4px 10px;
-  border-radius: 12px;
+  border-radius: var(--ds-radius-lg);
   border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 .layer-buttons {
@@ -99,12 +99,12 @@ const {
   padding: 6px 4px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.55rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-align: center;
 }
 .layer-btn:hover:not(:disabled) {
@@ -117,11 +117,11 @@ const {
   cursor: not-allowed;
 }
 .layer-icon {
-  font-size: 0.7rem;
+  font-size: var(--ds-text-xs);
   line-height: 1;
 }
 .layer-text {
-  font-size: 0.5rem;
+  font-size: var(--ds-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   opacity: 0.8;
@@ -136,7 +136,7 @@ const {
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
 }
 .visualizer-layer-toggle input[type='checkbox'] {

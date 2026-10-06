@@ -127,7 +127,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 10px;
   background: var(--card-bg);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   padding: 6px 10px;
   margin-bottom: 6px;
   border: 1px solid var(--border-color);
@@ -135,8 +135,8 @@ onUnmounted(() => {
 }
 
 .canvas-images-label {
-  font-size: 0.65rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--accent-ink);
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -156,11 +156,11 @@ onUnmounted(() => {
 }
 .canvas-images-scroll::-webkit-scrollbar-track {
   background: var(--secondary-bg);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 .canvas-images-scroll::-webkit-scrollbar-thumb {
   background: var(--text-muted);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 .canvas-images-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--accent-primary);
@@ -187,26 +187,21 @@ onUnmounted(() => {
   position: relative;
   width: 44px;
   height: 44px;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
   cursor: pointer;
   border: 2px solid var(--border-color);
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   background-color: var(--secondary-bg);
   flex-shrink: 0;
 }
 
 .canvas-thumb:hover {
   border-color: var(--accent-primary);
-  transform: scale(1.08);
-  box-shadow: 0 4px 12px rgba(201, 152, 77, 0.4);
 }
 
 .canvas-thumb.selected {
   border-color: var(--accent-primary);
-  box-shadow:
-    0 0 0 3px rgba(201, 152, 77, 0.6),
-    0 6px 16px rgba(201, 152, 77, 0.5);
   transform: scale(1.1);
   z-index: 1;
 }
@@ -215,7 +210,7 @@ onUnmounted(() => {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   background: linear-gradient(to bottom, var(--ds-accent-soft) 0%, transparent 60%);
   pointer-events: none;
 }
@@ -231,14 +226,10 @@ onUnmounted(() => {
   opacity: 0.5;
   transform: scale(0.95);
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(201, 152, 77, 0.3);
 }
 
 .canvas-thumb.drag-over {
   border-color: var(--ds-success);
-  box-shadow:
-    0 0 0 2px rgba(74, 222, 128, 0.5),
-    0 4px 16px rgba(74, 222, 128, 0.4);
   transform: scale(1.1);
 }
 
@@ -247,7 +238,7 @@ onUnmounted(() => {
   position: absolute;
   inset: -3px;
   border: 2px dashed var(--ds-success);
-  border-radius: 7px;
+  border-radius: var(--ds-radius-sm);
   pointer-events: none;
   animation: dragPulse 0.8s ease-in-out infinite;
 }
@@ -275,10 +266,10 @@ onUnmounted(() => {
   left: 2px;
   background: var(--ds-accent);
   color: var(--ds-text);
-  font-size: 0.55rem;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   padding: 1px 4px;
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   min-width: 12px;
   text-align: center;
 }
@@ -289,17 +280,17 @@ onUnmounted(() => {
   right: -4px;
   width: 18px;
   height: 18px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-danger);
   border: 2px solid var(--card-bg);
   color: white;
-  font-size: 12px;
-  font-weight: bold;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   line-height: 1;
   cursor: pointer;
   opacity: 0;
   transform: scale(0.8);
-  transition: all 0.15s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -309,13 +300,10 @@ onUnmounted(() => {
 
 .canvas-thumb:hover .canvas-thumb-delete {
   opacity: 1;
-  transform: scale(1);
 }
 
 .canvas-thumb-delete:hover {
   background: var(--ds-danger);
-  transform: scale(1.15);
-  box-shadow: 0 2px 8px rgba(255, 69, 58, 0.5);
 }
 
 .canvas-images-clear-all {
@@ -325,14 +313,14 @@ onUnmounted(() => {
   padding: 4px 10px;
   background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-danger) 40%, transparent);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-danger);
-  font-size: 0.65rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -341,12 +329,10 @@ onUnmounted(() => {
   background: color-mix(in srgb, var(--ds-danger) 25%, transparent);
   border-color: color-mix(in srgb, var(--ds-danger) 60%, transparent);
   color: var(--ds-danger);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(255, 69, 58, 0.3);
 }
 
 .clear-all-icon {
-  font-size: 0.7rem;
+  font-size: var(--ds-text-xs);
 }
 
 /* Light theme */
@@ -356,17 +342,6 @@ onUnmounted(() => {
 }
 [data-theme='light'] .canvas-thumb {
   border-color: var(--border-color);
-}
-[data-theme='light'] .canvas-thumb:hover {
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 25%, transparent);
-}
-[data-theme='light'] .canvas-thumb.selected {
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--accent-primary) 45%, transparent),
-    0 6px 16px color-mix(in srgb, var(--accent-primary) 30%, transparent);
-}
-[data-theme='light'] .canvas-thumb.dragging {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 25%, transparent);
 }
 [data-theme='light'] .canvas-thumb-layer {
   background: color-mix(in srgb, var(--accent-primary) 90%, transparent);
@@ -386,7 +361,7 @@ onUnmounted(() => {
     gap: 6px;
   }
   .canvas-images-label {
-    font-size: 0.55rem;
+    font-size: var(--ds-text-xs);
   }
   .canvas-thumb {
     width: 36px;

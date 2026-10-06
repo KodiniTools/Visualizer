@@ -171,7 +171,7 @@ function updateAudio(partial) {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
 }
 .image-fill-options {
   display: flex;
@@ -191,14 +191,14 @@ function updateAudio(partial) {
   width: 36px;
   height: 36px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   flex-shrink: 0;
 }
 .image-fill-empty,
 .image-fill-name {
   flex: 1;
   min-width: 0;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -207,10 +207,10 @@ function updateAudio(partial) {
 .btn-image-fill {
   flex-shrink: 0;
   padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   color: #fff;
   background: var(--ds-link);
@@ -232,14 +232,14 @@ function updateAudio(partial) {
   max-height: 150px;
   overflow-y: auto;
   padding: 4px;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   background-color: var(--card-bg);
 }
 .image-fill-option {
   position: relative;
   padding: 0;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background: none;
   cursor: pointer;
   aspect-ratio: 1;
@@ -259,25 +259,25 @@ function updateAudio(partial) {
   position: absolute;
   right: 1px;
   bottom: 0;
-  font-size: 9px;
+  font-size: var(--ds-text-xs);
 }
 .image-fill-field {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
 }
 .image-fill-slider {
   flex-basis: 100%;
 }
 .image-fill-field select {
   padding: 3px 6px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   background: var(--secondary-bg);
   color: var(--ds-text);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 .audio-toggle {
   flex-basis: 100%;

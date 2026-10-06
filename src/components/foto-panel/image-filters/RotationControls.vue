@@ -43,11 +43,11 @@ const { filters, onSliderStart, onSliderEnd, onRotationChange } = ifc
   background: var(--ds-warning);
 }
 .rotation-hint {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   text-align: center;
   margin-top: 4px;
-  font-family: 'Courier New', monospace;
+  font-family: var(--ds-font-mono);
   letter-spacing: 1px;
 }
 </style>

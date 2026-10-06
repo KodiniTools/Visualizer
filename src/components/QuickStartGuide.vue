@@ -554,13 +554,13 @@ defineExpose({ show, hide, toggleGuide })
   position: fixed;
   bottom: calc(24px + var(--sticky-player-bar-height));
   right: 24px;
-  z-index: 9998;
+  z-index: calc(var(--ds-z-player) - 1);
 }
 
 .help-button {
   width: 52px;
   height: 52px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   border: none;
   background: var(--ds-link);
   color: #fff;
@@ -568,22 +568,13 @@ defineExpose({ show, hide, toggleGuide })
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow:
-    0 4px 20px rgba(110, 168, 254, 0.4),
-    0 0 0 0 rgba(110, 168, 254, 0.4);
-  transition: all 0.3s ease;
+  transition: all var(--ds-duration-slow) var(--ds-ease);
   animation: pulse-shadow 2s infinite;
-}
-
-.help-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 30px rgba(110, 168, 254, 0.5);
 }
 
 .help-button.active {
   background: var(--ds-danger);
   animation: none;
-  box-shadow: 0 4px 20px rgba(244, 67, 54, 0.4);
 }
 
 .help-button svg {
@@ -592,17 +583,6 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 @keyframes pulse-shadow {
-  0%,
-  100% {
-    box-shadow:
-      0 4px 20px rgba(110, 168, 254, 0.4),
-      0 0 0 0 rgba(110, 168, 254, 0.4);
-  }
-  50% {
-    box-shadow:
-      0 4px 20px rgba(110, 168, 254, 0.4),
-      0 0 0 12px rgba(110, 168, 254, 0);
-  }
 }
 
 /* Quick Start Panel */
@@ -614,11 +594,9 @@ defineExpose({ show, hide, toggleGuide })
   max-height: calc(100vh - 120px - var(--sticky-player-bar-height));
   background: var(--primary-bg);
   border: 1px solid var(--ds-border);
-  border-radius: 16px;
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
-  z-index: 9999;
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-overlay);
+  z-index: var(--ds-z-player);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -636,8 +614,8 @@ defineExpose({ show, hide, toggleGuide })
 
 .panel-header h3 {
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-text);
   flex: 1;
 }
@@ -652,21 +630,21 @@ defineExpose({ show, hide, toggleGuide })
 .lang-toggle {
   display: flex;
   background: rgba(255, 255, 255, 0.07);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   padding: 2px;
   gap: 2px;
 }
 
 .lang-toggle button {
   padding: 3px 8px;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background: transparent;
   color: var(--ds-text-3);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   letter-spacing: 0.5px;
 }
 
@@ -681,12 +659,12 @@ defineExpose({ show, hide, toggleGuide })
   border: none;
   background: rgba(255, 255, 255, 0.08);
   color: var(--ds-text-2);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   flex-shrink: 0;
 }
 
@@ -716,9 +694,9 @@ defineExpose({ show, hide, toggleGuide })
   padding: 7px 4px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   color: var(--ds-text-3);
 }
 
@@ -734,12 +712,12 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 .tab-icon {
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
 }
 
 .tab-label {
-  font-size: 9px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
@@ -768,23 +746,22 @@ defineExpose({ show, hide, toggleGuide })
   gap: 11px;
   padding: 9px 11px;
   background: rgba(255, 255, 255, 0.04);
-  border-radius: 10px;
-  transition: all 0.2s ease;
+  border-radius: var(--ds-radius-md);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .workflow-step:hover {
   background: color-mix(in srgb, var(--ds-link) 10%, transparent);
-  transform: translateX(3px);
 }
 
 .step-number {
   width: 22px;
   height: 22px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-link);
   color: var(--ds-on-accent);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -799,19 +776,19 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 .step-title {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-text);
 }
 
 .step-desc {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-3);
   line-height: 1.35;
 }
 
 .step-icon {
-  font-size: 16px;
+  font-size: var(--ds-text-lg);
   flex-shrink: 0;
 }
 
@@ -824,7 +801,7 @@ defineExpose({ show, hide, toggleGuide })
 
 .feature-item {
   background: rgba(255, 255, 255, 0.04);
-  border-radius: 10px;
+  border-radius: var(--ds-radius-md);
   padding: 10px 12px;
 }
 
@@ -836,12 +813,12 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 .feature-icon {
-  font-size: 15px;
+  font-size: var(--ds-text-lg);
 }
 
 .feature-title {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   color: var(--ds-link);
 }
 
@@ -854,7 +831,7 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 .feature-bullets li {
-  font-size: 10.5px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-2);
   line-height: 1.4;
 }
@@ -869,8 +846,8 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 .shortcut-group-title {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   color: var(--ds-link);
   text-transform: uppercase;
   letter-spacing: 0.8px;
@@ -889,7 +866,7 @@ defineExpose({ show, hide, toggleGuide })
   gap: 4px;
   padding: 7px 9px;
   background: rgba(255, 255, 255, 0.03);
-  border-radius: 7px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .shortcut-keys {
@@ -907,15 +884,14 @@ defineExpose({ show, hide, toggleGuide })
   padding: 0 5px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid var(--ds-border);
-  border-radius: 4px;
-  font-size: 9px;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
   font-family: inherit;
   color: var(--ds-text);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
 }
 
 .shortcut-desc {
-  font-size: 9.5px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-3);
 }
 
@@ -932,12 +908,12 @@ defineExpose({ show, hide, toggleGuide })
   gap: 9px;
   padding: 10px 11px;
   background: color-mix(in srgb, var(--ds-warning) 7%, transparent);
-  border-radius: 9px;
+  border-radius: var(--ds-radius-md);
   border-left: 3px solid color-mix(in srgb, var(--ds-warning) 45%, transparent);
 }
 
 .tip-icon {
-  font-size: 15px;
+  font-size: var(--ds-text-lg);
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -949,13 +925,13 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 .tip-title {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   color: var(--ds-warning);
 }
 
 .tip-text {
-  font-size: 10.5px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-2);
   line-height: 1.45;
 }
@@ -971,7 +947,7 @@ defineExpose({ show, hide, toggleGuide })
 
 .panel-content::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .panel-content::-webkit-scrollbar-thumb:hover {
@@ -981,7 +957,7 @@ defineExpose({ show, hide, toggleGuide })
 /* Transitions */
 .slide-panel-enter-active,
 .slide-panel-leave-active {
-  transition: all 0.28s ease;
+  transition: all var(--ds-duration-slow) var(--ds-ease);
 }
 
 .slide-panel-enter-from,
@@ -1012,21 +988,12 @@ defineExpose({ show, hide, toggleGuide })
 /* ═══ Light Theme ═══ */
 [data-theme='light'] .help-button {
   background: var(--accent-primary);
-  box-shadow:
-    0 4px 20px color-mix(in srgb, var(--accent-primary) 40%, transparent),
-    0 0 0 0 color-mix(in srgb, var(--accent-primary) 40%, transparent);
-}
-
-[data-theme='light'] .help-button:hover {
-  box-shadow: 0 6px 30px color-mix(in srgb, var(--accent-primary) 50%, transparent);
 }
 
 [data-theme='light'] .quick-start-panel {
   background: var(--card-bg);
   border-color: var(--ds-border);
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.12),
-    0 0 0 1px color-mix(in srgb, var(--text-primary) 8%, transparent);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 [data-theme='light'] .panel-header {
@@ -1120,7 +1087,6 @@ defineExpose({ show, hide, toggleGuide })
   background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
   border-color: var(--border-color);
   color: var(--text-primary);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 [data-theme='light'] .shortcut-desc {

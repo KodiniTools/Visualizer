@@ -207,7 +207,7 @@ const featureCards = computed(() => {
   flex-direction: column;
   background: var(--primary-bg);
   color: var(--text-primary);
-  font-family: 'Supreme', sans-serif;
+  font-family: var(--ds-font-sans);
   overflow-x: hidden;
 }
 
@@ -217,15 +217,13 @@ const featureCards = computed(() => {
 .landing-header {
   position: fixed;
   top: 60px;
-  /* Space for global navigation */
   left: 0;
   right: 0;
   z-index: 50;
-  /* Lower than global nav dropdown */
   padding: 16px 24px;
   background: var(--card-bg);
   border-bottom: 1px solid var(--border-color);
-  transition: top 0.3s ease;
+  transition: top var(--ds-duration-slow) var(--ds-ease);
 }
 
 .landing-header.scrolled {
@@ -245,8 +243,8 @@ const featureCards = computed(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-weight: 700;
-  font-size: 1.2rem;
+  font-weight: var(--ds-weight-bold);
+  font-size: var(--ds-text-xl);
   color: var(--text-primary);
 }
 
@@ -279,7 +277,7 @@ const featureCards = computed(() => {
 
 .hero-title {
   font-size: clamp(2.2rem, 5vw, 3.5rem);
-  font-weight: 800;
+  font-weight: var(--ds-weight-bold);
   line-height: 1.2;
   margin: 0 0 20px 0;
   color: var(--text-primary);
@@ -291,7 +289,7 @@ const featureCards = computed(() => {
 }
 
 .hero-subtitle {
-  font-size: 1.15rem;
+  font-size: var(--ds-text-xl);
   line-height: 1.7;
   color: var(--text-muted);
   margin: 0;
@@ -334,7 +332,7 @@ const featureCards = computed(() => {
 .card-icon {
   width: 72px;
   height: 72px;
-  border-radius: 18px;
+  border-radius: var(--ds-radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -343,14 +341,14 @@ const featureCards = computed(() => {
 }
 
 .card-title {
-  font-size: 1.3rem;
-  font-weight: 700;
+  font-size: var(--ds-text-xl);
+  font-weight: var(--ds-weight-bold);
   color: var(--text-primary);
   margin: 0 0 12px 0;
 }
 
 .card-description {
-  font-size: 0.95rem;
+  font-size: var(--ds-text-lg);
   line-height: 1.65;
   color: var(--text-secondary);
   margin: 0;
@@ -372,8 +370,8 @@ const featureCards = computed(() => {
   padding: 18px 40px;
   background: var(--accent-primary);
   color: var(--accent-text);
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: var(--ds-text-xl);
+  font-weight: var(--ds-weight-bold);
   border-radius: var(--ds-radius-md);
   text-decoration: none;
   transition: background-color var(--ds-duration) var(--ds-ease);
@@ -414,7 +412,7 @@ const featureCards = computed(() => {
   width: 12px;
   min-height: 20px;
   background: var(--accent-primary);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   animation: waveAnimation 1.4s ease-in-out infinite;
 }
 
@@ -460,11 +458,11 @@ const featureCards = computed(() => {
   }
 
   .hero-title {
-    font-size: 1.8rem;
+    font-size: var(--ds-text-3xl);
   }
 
   .hero-subtitle {
-    font-size: 1rem;
+    font-size: var(--ds-text-lg);
   }
 
   .features-grid {
@@ -481,7 +479,7 @@ const featureCards = computed(() => {
   }
 
   .card-title {
-    font-size: 1.15rem;
+    font-size: var(--ds-text-xl);
   }
 
   .btn-primary {
@@ -492,10 +490,6 @@ const featureCards = computed(() => {
 }
 
 /* ═══ Light Theme Overrides ═══ */
-
-[data-theme='light'] .card-icon {
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent-primary) 20%, transparent);
-}
 
 [data-theme='light'] .card-description {
   color: var(--text-muted);

@@ -150,15 +150,15 @@ const beatBoostLabel = computed(() =>
 
 .react-shape__label {
   display: block;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .react-shape--compact .react-shape__label {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   text-transform: none;
   letter-spacing: 0;
 }
@@ -166,7 +166,7 @@ const beatBoostLabel = computed(() =>
 .react-shape__slider {
   width: 100%;
   height: 5px;
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   outline: none;
   cursor: pointer;
   -webkit-appearance: none;
@@ -176,7 +176,7 @@ const beatBoostLabel = computed(() =>
 
 .react-shape--compact .react-shape__slider {
   height: 4px;
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .react-shape__slider::-webkit-slider-thumb {
@@ -184,21 +184,19 @@ const beatBoostLabel = computed(() =>
   appearance: none;
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--accent-tertiary);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .react-shape__slider::-moz-range-thumb {
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--accent-tertiary);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .react-shape__select {
@@ -206,14 +204,14 @@ const beatBoostLabel = computed(() =>
   background-color: var(--secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   padding: 4px 6px;
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 
 .react-shape--compact .react-shape__select {
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
 }
 
 .react-shape__select:focus {

@@ -33,11 +33,9 @@ defineEmits(['accept', 'reject'])
   gap: 10px;
   padding: 10px 12px;
   margin-bottom: 10px;
-  border-radius: 10px;
-  /* Dezenter Akzent-Tint auf Karten-Hintergrund – funktioniert in Hell & Dunkel */
+  border-radius: var(--ds-radius-md);
   background: color-mix(in srgb, var(--accent-primary) 8%, var(--card-bg));
   border: 1px solid color-mix(in srgb, var(--accent-primary) 55%, transparent);
-  box-shadow: var(--shadow-sm);
   animation: slideIn 0.3s ease-out;
 }
 
@@ -55,7 +53,7 @@ defineEmits(['accept', 'reject'])
 .handoff-banner__preview {
   width: 44px;
   height: 44px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   overflow: hidden;
   flex-shrink: 0;
   border: 1px solid var(--border-color);
@@ -75,12 +73,12 @@ defineEmits(['accept', 'reject'])
   min-width: 0;
 }
 .handoff-banner__body strong {
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   color: var(--text-primary);
 }
 .handoff-banner__body span {
-  font-size: 0.66rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 
@@ -93,22 +91,19 @@ defineEmits(['accept', 'reject'])
 .handoff-banner__accept,
 .handoff-banner__dismiss {
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   padding: 6px 10px;
-  font-size: 0.66rem;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 /* Primär: Akzentfläche mit garantiert kontrastierendem Akzent-Text
    (dunkel auf Gold im Dark-Mode, hell auf Blau im Light-Mode) */
 .handoff-banner__accept {
   background: var(--accent-primary);
   color: var(--accent-text);
-}
-.handoff-banner__accept:hover {
-  filter: brightness(1.06);
 }
 /* Sekundär: Umriss mit primärer Theme-Textfarbe für hohen Kontrast in beiden Modi */
 .handoff-banner__dismiss {

@@ -101,11 +101,11 @@ const { selectedDevice, selectSource, changeDevice } = audioSource
   padding: 8px;
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.6rem;
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-xs);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 .source-btn svg {
   width: 18px;
@@ -124,7 +124,7 @@ const { selectedDevice, selectSource, changeDevice } = audioSource
   border-color: var(--ds-success);
 }
 .mic-status {
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
 }
 .mic-active {
   display: flex;
@@ -135,7 +135,7 @@ const { selectedDevice, selectSource, changeDevice } = audioSource
 .mic-indicator {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-success);
   animation: recPulse 1s infinite;
 }
@@ -146,15 +146,15 @@ const { selectedDevice, selectSource, changeDevice } = audioSource
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 .device-select {
   padding: 5px 6px;
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
 }
 @keyframes recPulse {

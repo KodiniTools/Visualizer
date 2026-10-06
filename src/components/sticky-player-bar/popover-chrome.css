@@ -107,7 +107,7 @@
   height: 7px;
   border-right: 2px solid var(--ds-border-strong);
   border-bottom: 2px solid var(--ds-border-strong);
-  border-radius: 0 0 2px 0;
+  border-radius: 0 0 var(--ds-radius-sm) 0;
 }
 .spb-popover:hover .spb-resize-se::after {
   border-color: var(--ds-accent);

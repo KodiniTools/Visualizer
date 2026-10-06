@@ -30,7 +30,7 @@ defineEmits(['update:modelValue'])
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.78rem;
+  font-size: var(--ds-text-sm);
   color: var(--ds-text-2);
 }
 .fx-select {
@@ -38,8 +38,8 @@ defineEmits(['update:modelValue'])
   background: var(--ds-surface-2);
   color: var(--ds-text-2);
   border: 1px solid var(--ds-border-strong);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   padding: 2px 4px;
-  font-size: 0.75rem;
+  font-size: var(--ds-text-xs);
 }
 </style>

@@ -78,9 +78,9 @@ function onReset() {
   margin: 0 auto;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 20px;
+  border-radius: var(--ds-radius-lg);
   padding: 28px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 .admin-header {
@@ -96,7 +96,7 @@ function onReset() {
 
 .admin-header h3 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: var(--ds-text-xl);
   color: var(--text-primary);
 }
 
@@ -110,20 +110,20 @@ function onReset() {
 .user-badge {
   background: var(--panel-highlight);
   padding: 6px 12px;
-  border-radius: 20px;
+  border-radius: var(--ds-radius-lg);
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: var(--ds-text-sm);
 }
 
 .btn-reset,
 .btn-logout {
   border: 1px solid var(--border-color);
   padding: 6px 14px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   cursor: pointer;
-  font-size: 0.8rem;
-  font-family: var(--font-sans);
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-sm);
+  font-family: var(--ds-font-sans);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-reset {
@@ -142,10 +142,6 @@ function onReset() {
   color: #fff;
 }
 
-.btn-logout:hover {
-  filter: brightness(1.1);
-}
-
 .admin-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -158,11 +154,11 @@ function onReset() {
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
   padding: 8px 16px;
-  border-radius: 10px;
+  border-radius: var(--ds-radius-md);
   cursor: pointer;
-  font-size: 0.85rem;
-  font-family: var(--font-sans);
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-sm);
+  font-family: var(--ds-font-sans);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .tab-btn:hover {
@@ -173,12 +169,12 @@ function onReset() {
   background: var(--panel-highlight);
   border-color: var(--accent-primary);
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 
 .admin-footer {
   margin: 20px 0 0 0;
-  font-size: 0.78rem;
+  font-size: var(--ds-text-sm);
   color: var(--text-muted);
   text-align: center;
 }

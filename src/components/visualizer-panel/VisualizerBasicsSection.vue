@@ -96,13 +96,13 @@ const store = useVisualizerStore()
   height: 18px;
   padding: 0;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-full);
   background-color: var(--secondary-bg);
   box-shadow: inset 0 0 0 1px var(--border-color);
   cursor: pointer;
   transition:
-    background-color 0.2s ease,
-    box-shadow 0.2s ease;
+    background-color var(--ds-duration) var(--ds-ease),
+    box-shadow var(--ds-duration) var(--ds-ease);
 }
 .switch .switch-knob {
   position: absolute;
@@ -110,11 +110,11 @@ const store = useVisualizerStore()
   left: 2px;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--text-muted);
   transition:
-    transform 0.2s ease,
-    background-color 0.2s ease;
+    transform var(--ds-duration) var(--ds-ease),
+    background-color var(--ds-duration) var(--ds-ease);
 }
 .switch.on {
   background-color: var(--accent-primary);
@@ -126,9 +126,7 @@ const store = useVisualizerStore()
 }
 .switch:focus-visible {
   outline: none;
-  box-shadow:
-    inset 0 0 0 1px var(--accent-primary),
-    0 0 0 3px var(--ring);
+  box-shadow: inset 0 0 0 1px var(--accent-primary);
 }
 
 /* Deaktivierter Visualizer wird nur vom Canvas ausgeblendet - die
@@ -147,9 +145,9 @@ const store = useVisualizerStore()
   background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
   color: var(--ds-danger);
   padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 10px;
-  font-weight: 600;
+  border-radius: var(--ds-radius-lg);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   white-space: nowrap;
@@ -162,10 +160,10 @@ const store = useVisualizerStore()
   height: 22px;
   padding: 0;
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   background-color: transparent;
-  transition: border-color 0.2s ease;
+  transition: border-color var(--ds-duration) var(--ds-ease);
 }
 .color-swatch:hover {
   border-color: var(--accent-primary);
@@ -175,11 +173,11 @@ const store = useVisualizerStore()
 }
 .color-swatch::-webkit-color-swatch {
   border: none;
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 .color-swatch::-moz-color-swatch {
   border: none;
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 
 /* Intensität-Slider */
@@ -192,33 +190,29 @@ const store = useVisualizerStore()
   appearance: none;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--accent-tertiary);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .intensity-slider::-webkit-slider-thumb:hover {
   background: var(--accent-primary);
-  transform: scale(1.1);
 }
 
 .intensity-slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--accent-tertiary);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .intensity-slider::-moz-range-thumb:hover {
   background: var(--accent-primary);
-  transform: scale(1.1);
 }
 
 /* Farbtransparenz-Slider */
@@ -231,33 +225,29 @@ const store = useVisualizerStore()
   appearance: none;
   width: 16px;
   height: 16px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-success);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .color-slider::-webkit-slider-thumb:hover {
   background: var(--ds-success);
-  transform: scale(1.15);
 }
 
 .color-slider::-moz-range-thumb {
   width: 16px;
   height: 16px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-success);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .color-slider::-moz-range-thumb:hover {
   background: var(--ds-success);
-  transform: scale(1.15);
 }
 
 /* ═══ Light Theme Overrides ═══ */
@@ -279,20 +269,10 @@ const store = useVisualizerStore()
 
 [data-theme='light'] .intensity-slider::-webkit-slider-thumb {
   background: var(--accent-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .intensity-slider::-moz-range-thumb {
   background: var(--accent-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .color-slider::-webkit-slider-thumb {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .color-slider::-moz-range-thumb {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* ═══ Responsive ═══ */

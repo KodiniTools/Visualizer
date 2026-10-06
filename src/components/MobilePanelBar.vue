@@ -108,15 +108,15 @@ defineEmits(['update:modelValue'])
     min-height: 52px;
     background: var(--secondary-bg);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--ds-radius-md);
     color: var(--text-muted);
-    font-size: 0.65rem;
-    font-weight: 600;
+    font-size: var(--ds-text-xs);
+    font-weight: var(--ds-weight-semibold);
     cursor: pointer;
     transition:
-      color 0.18s ease,
-      background 0.18s ease,
-      border-color 0.18s ease;
+      color var(--ds-duration) var(--ds-ease),
+      background var(--ds-duration) var(--ds-ease),
+      border-color var(--ds-duration) var(--ds-ease);
     position: relative;
     overflow: hidden;
   }
@@ -140,10 +140,10 @@ defineEmits(['update:modelValue'])
     left: 10%;
     right: 10%;
     height: 2px;
-    border-radius: 2px 2px 0 0;
+    border-radius: var(--ds-radius-sm) var(--ds-radius-sm) 0 0;
     background: var(--accent-primary);
     transform: scaleX(0);
-    transition: transform 0.2s ease;
+    transition: transform var(--ds-duration) var(--ds-ease);
   }
   .mobile-panel-btn.active .mobile-active-bar {
     transform: scaleX(1);

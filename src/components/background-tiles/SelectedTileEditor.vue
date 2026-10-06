@@ -74,9 +74,9 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
 .control-group label {
   display: block;
   margin-bottom: 6px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-2);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 /* Ausgewählte Kachel Editor */
@@ -84,14 +84,14 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
   margin-top: 12px;
   padding: 12px;
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
 }
 
 .selected-tile-editor h6 {
   margin: 0;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-success);
 }
 
@@ -108,7 +108,7 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 18px;
+  font-size: var(--ds-text-xl);
   cursor: pointer;
   padding: 0;
   line-height: 1;
@@ -129,22 +129,22 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
   width: 40px;
   height: 30px;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   background-color: var(--secondary-bg);
 }
 
 .color-hex {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-2);
-  font-family: monospace;
+  font-family: var(--ds-font-mono);
 }
 
 /* Opacity Slider */
 .opacity-slider {
   width: 100%;
   height: 6px;
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   background: color-mix(in srgb, var(--ds-success) 20%, transparent);
   cursor: pointer;
   -webkit-appearance: none;
@@ -155,9 +155,9 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--ds-shadow-overlay);
   cursor: pointer;
 }
 
@@ -167,11 +167,11 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
   padding: 8px;
   background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-warning) 40%, transparent);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-warning);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-reset:hover {
@@ -215,12 +215,12 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
 
 [data-theme='light'] .opacity-slider::-webkit-slider-thumb {
   background: var(--accent-primary);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 [data-theme='light'] .opacity-slider::-moz-range-thumb {
   background: var(--accent-primary);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 [data-theme='light'] .btn-reset {
@@ -237,7 +237,7 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
 @media (max-width: 768px) {
   .btn-reset {
     padding: 8px;
-    font-size: 11px;
+    font-size: var(--ds-text-xs);
     min-height: 40px;
   }
 }

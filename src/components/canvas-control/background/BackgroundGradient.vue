@@ -65,12 +65,12 @@ const { gradientEnabled, gradientColor2, gradientType, gradientAngle, updateGrad
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-left: 2px solid var(--accent-primary);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
 }
 .gradient-section h5 {
   margin: 0 0 8px 0;
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--accent-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -86,9 +86,9 @@ const { gradientEnabled, gradientColor2, gradientType, gradientAngle, updateGrad
   padding: 5px 8px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 .gradient-select:hover {
@@ -102,7 +102,7 @@ const { gradientEnabled, gradientColor2, gradientType, gradientAngle, updateGrad
   width: 100%;
   height: 3px;
   background: var(--text-muted);
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
   -webkit-appearance: none;
   appearance: none;
   cursor: pointer;
@@ -113,14 +113,13 @@ const { gradientEnabled, gradientColor2, gradientType, gradientAngle, updateGrad
   height: 12px;
   background: var(--accent-tertiary);
   border: 2px solid var(--ds-surface-1);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 .color-hex {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
-  font-family: monospace;
+  font-family: var(--ds-font-mono);
 }
 
 [data-theme='light'] .gradient-section h5 {
@@ -135,13 +134,12 @@ const { gradientEnabled, gradientColor2, gradientType, gradientAngle, updateGrad
 [data-theme='light'] .angle-slider::-webkit-slider-thumb {
   background: var(--accent-primary);
   border-color: var(--accent-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 @media (max-width: 768px) {
   .gradient-select {
     min-height: 36px;
-    font-size: 0.65rem;
+    font-size: var(--ds-text-xs);
   }
 }
 </style>

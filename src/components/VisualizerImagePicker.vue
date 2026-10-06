@@ -103,9 +103,9 @@ async function onFile(event) {
   background-color: var(--secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   padding: 4px 6px;
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 .image-select:focus {
@@ -121,9 +121,9 @@ async function onFile(event) {
   background-color: var(--accent-primary);
   color: var(--accent-text);
   border: 1px solid var(--accent-primary);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   padding: 4px 6px;
-  font-size: 0.62rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 .image-btn-secondary {
@@ -135,7 +135,7 @@ async function onFile(event) {
   display: none;
 }
 .image-hint {
-  font-size: 0.58rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   line-height: 1.3;
 }

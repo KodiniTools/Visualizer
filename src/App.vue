@@ -98,14 +98,12 @@
   /* Gold als Text ist im Dark Theme erlaubt (8,0:1 auf ds-surface-0) */
   --accent-ink: var(--ds-accent);
   --text-secondary: var(--ds-accent);
-  --shadow-color: rgb(0 0 0 / 35%);
 }
 
 [data-theme='light'] {
   /* Gold ist im Light Theme nie Text (2,4:1): Akzent-Text wird Tinte, Hervorhebung Link-Blau */
   --accent-ink: var(--ds-text);
   --text-secondary: var(--ds-link);
-  --shadow-color: rgb(20 33 58 / 12%);
 }
 
 /* Global styles */
@@ -140,7 +138,7 @@ textarea,
 .section-title,
 .custom-file-upload,
 details summary {
-  font-family: var(--font-sans);
+  font-family: var(--ds-font-sans);
 }
 
 html {
@@ -153,7 +151,7 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  font-family: var(--font-sans);
+  font-family: var(--ds-font-sans);
   background-color: var(--primary-bg);
 }
 
@@ -163,8 +161,8 @@ body {
   flex-direction: column;
   background-color: var(--primary-bg);
   color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 12px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-md);
 }
 
 /* Fokus: ein Rezept für alle Bedienelemente (ds-focus-ring statt Outline),

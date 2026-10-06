@@ -47,41 +47,26 @@ const { presetList, activeAudioPreset, togglePreset, clearPreset } = arc
 }
 .preset-btn {
   padding: 6px 4px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   background: color-mix(in srgb, var(--ds-link) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   white-space: nowrap;
 }
 .preset-btn:hover {
   background: color-mix(in srgb, var(--ds-link) 30%, transparent);
   border-color: color-mix(in srgb, var(--ds-link) 50%, transparent);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
 }
 .preset-btn.active {
   background: color-mix(in srgb, var(--ds-link) 60%, transparent);
   border-color: color-mix(in srgb, var(--ds-danger) 80%, transparent);
-  box-shadow:
-    0 0 12px rgba(139, 92, 246, 0.5),
-    0 0 20px rgba(236, 72, 153, 0.3);
   color: var(--text-primary);
   animation: presetGlow 2s ease-in-out infinite alternate;
 }
 @keyframes presetGlow {
-  0% {
-    box-shadow:
-      0 0 8px rgba(139, 92, 246, 0.5),
-      0 0 16px rgba(236, 72, 153, 0.2);
-  }
-  100% {
-    box-shadow:
-      0 0 16px rgba(139, 92, 246, 0.7),
-      0 0 24px rgba(236, 72, 153, 0.4);
-  }
 }
 
 /* "Kein Preset" – neutral gehalten (Reset), hebt sich von den Effekt-Presets ab */
@@ -119,13 +104,13 @@ const { presetList, activeAudioPreset, togglePreset, clearPreset } = arc
 [data-theme='light'] .preset-btn:hover {
   background: var(--btn-hover);
   border-color: var(--accent-secondary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 @media (max-width: 768px) {
   .preset-btn {
     padding: 8px 6px;
-    font-size: 0.7rem;
+    font-size: var(--ds-text-xs);
     min-height: 40px;
   }
 }
@@ -135,7 +120,7 @@ const { presetList, activeAudioPreset, togglePreset, clearPreset } = arc
   }
   .preset-btn {
     padding: 10px 6px;
-    font-size: 0.75rem;
+    font-size: var(--ds-text-xs);
     min-height: 44px;
   }
 }

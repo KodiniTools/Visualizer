@@ -138,7 +138,7 @@ const currentLabel = computed(() => {
 .conversion-progress {
   background: color-mix(in srgb, var(--ds-link) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -152,29 +152,29 @@ const currentLabel = computed(() => {
 }
 
 .progress-label {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   color: var(--ds-link);
 }
 
 .progress-percent {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-link);
 }
 
 .progress-bar {
   height: 6px;
   background: var(--secondary-bg);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
   background: var(--ds-link);
-  border-radius: 3px;
-  transition: width 0.3s ease;
+  border-radius: var(--ds-radius-sm);
+  transition: width var(--ds-duration-slow) var(--ds-ease);
 }
 
 .progress-fill.completed {
@@ -195,10 +195,10 @@ const currentLabel = computed(() => {
   background: var(--ds-success);
   color: white;
   text-decoration: none;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -210,8 +210,6 @@ const currentLabel = computed(() => {
 
 .mp4-download-btn:hover {
   background: var(--ds-success);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
 .download-actions {
@@ -232,9 +230,9 @@ const currentLabel = computed(() => {
   color: var(--ds-text-2);
   border: 1px solid var(--ds-border-strong);
   padding: 8px;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   flex-shrink: 0;
 }
 
@@ -258,12 +256,12 @@ const currentLabel = computed(() => {
 }
 
 .error-message {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-danger);
   text-align: center;
   padding: 4px 8px;
   background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   max-width: 100%;
   word-break: break-word;
 }
@@ -274,11 +272,11 @@ const currentLabel = computed(() => {
   justify-content: center;
   gap: 5px;
   border: none;
-  border-radius: 5px;
-  font-size: 0.6rem;
-  font-weight: 600;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   padding: 6px 10px;
@@ -298,14 +296,13 @@ const currentLabel = computed(() => {
 
 .btn-retry:hover {
   background: color-mix(in srgb, var(--ds-warning) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-dismiss {
   background: var(--ds-surface-3);
   color: var(--ds-text-2);
   border: 1px solid var(--ds-border-strong);
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
 }
 
 .btn-dismiss:hover {
@@ -319,12 +316,7 @@ const currentLabel = computed(() => {
 }
 
 .gif-fill {
-  background: linear-gradient(
-    90deg,
-    var(--ds-success) 0%,
-    var(--ds-success) 50%,
-    var(--ds-success) 100%
-  ) !important;
+  background: var(--ds-success) !important;
   background-size: 200% 100% !important;
 }
 
@@ -334,11 +326,11 @@ const currentLabel = computed(() => {
 }
 
 .gif-download-btn {
-  background: linear-gradient(135deg, var(--ds-success) 0%, var(--ds-success) 100%) !important;
+  background: var(--ds-success) !important;
 }
 
 .gif-download-btn:hover {
-  background: linear-gradient(135deg, var(--ds-success) 0%, var(--ds-success) 100%) !important;
+  background: var(--ds-success) !important;
 }
 
 /* HQ variant */
@@ -348,19 +340,19 @@ const currentLabel = computed(() => {
 }
 
 .hq-fill {
-  background: linear-gradient(90deg, var(--ds-warning), var(--ds-warning)) !important;
+  background: var(--ds-warning) !important;
 }
 
 .hq-fill.completed {
-  background: linear-gradient(90deg, var(--ds-success), var(--ds-success)) !important;
+  background: var(--ds-success) !important;
 }
 
 .hq-download-btn {
-  background: linear-gradient(135deg, var(--ds-warning) 0%, var(--ds-warning) 100%) !important;
+  background: var(--ds-warning) !important;
 }
 
 .hq-download-btn:hover {
-  background: linear-gradient(135deg, var(--ds-warning) 0%, var(--ds-warning) 100%) !important;
+  background: var(--ds-warning) !important;
 }
 
 /* Light Theme */
@@ -380,10 +372,6 @@ const currentLabel = computed(() => {
 
 [data-theme='light'] .progress-fill {
   background: var(--accent-primary);
-}
-
-[data-theme='light'] .mp4-download-btn:hover {
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
 }
 
 [data-theme='light'] .btn-close-conversion {

@@ -246,7 +246,7 @@ function traverseEntry(entry, files) {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
   padding: 10px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -255,8 +255,8 @@ function traverseEntry(entry, files) {
 h3 {
   margin: 0;
   color: var(--text-primary);
-  font-weight: 600;
-  font-size: 0.7rem;
+  font-weight: var(--ds-weight-semibold);
+  font-size: var(--ds-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   display: flex;
@@ -271,17 +271,16 @@ h3::before {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Cpath d='M9 18V5l12-2v13'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Ccircle cx='18' cy='16' r='3'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 /* Upload Area */
 .upload-area {
   background: var(--secondary-bg);
   border: 2px dashed var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--ds-duration-slow) var(--ds-ease);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -293,7 +292,6 @@ h3::before {
 .upload-area:hover {
   border-color: var(--accent-primary);
   background: var(--ds-accent-soft);
-  transform: translateY(-1px);
 }
 
 .upload-area.drag-over {
@@ -308,7 +306,7 @@ h3::before {
   width: 36px;
   height: 36px;
   color: var(--accent-tertiary);
-  transition: all 0.3s ease;
+  transition: all var(--ds-duration-slow) var(--ds-ease);
 }
 
 .upload-icon svg {
@@ -316,11 +314,6 @@ h3::before {
   height: 100%;
   stroke: var(--ds-text);
   stroke-width: 1.5;
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
-}
-
-.upload-area:hover .upload-icon {
-  transform: translateY(-3px);
 }
 
 .upload-area.drag-over .upload-icon {
@@ -337,15 +330,15 @@ h3::before {
 }
 
 .upload-main {
-  font-size: 0.7rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 
 .upload-sub {
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 /* Supported Formats */
@@ -358,20 +351,20 @@ h3::before {
 }
 
 .format-label {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 
 .format-item {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--accent-ink);
   background-color: var(--ds-accent-soft);
   padding: 2px 5px;
-  border-radius: 3px;
-  font-weight: 500;
+  border-radius: var(--ds-radius-sm);
+  font-weight: var(--ds-weight-medium);
   border: 1px solid var(--ds-border);
 }
 
@@ -387,14 +380,14 @@ h3::before {
   align-items: center;
   gap: 5px;
   padding: 5px 12px;
-  font-size: 0.6rem;
-  font-weight: 600;
-  border-radius: 5px;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  border-radius: var(--ds-radius-sm);
   border: 1px solid var(--accent-primary);
   background-color: var(--ds-accent-soft);
   color: var(--accent-ink);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .upload-btn:hover {
@@ -406,7 +399,7 @@ h3::before {
 .tracks-info {
   background-color: color-mix(in srgb, var(--ds-success) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   padding: 6px 8px;
 }
 
@@ -424,9 +417,9 @@ h3::before {
 }
 
 .info-text {
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   color: var(--success);
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 
 /* ═══ Responsive ═══ */
@@ -437,11 +430,11 @@ h3::before {
   }
 
   .upload-main {
-    font-size: 0.75rem;
+    font-size: var(--ds-text-xs);
   }
 
   .upload-sub {
-    font-size: 0.65rem;
+    font-size: var(--ds-text-xs);
   }
 }
 

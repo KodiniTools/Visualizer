@@ -61,7 +61,7 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
 }
 
 .presets-list > label {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-bottom: 3px;
   text-transform: uppercase;
@@ -75,8 +75,8 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
   padding: 5px 7px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
-  transition: all 0.2s ease;
+  border-radius: var(--ds-radius-sm);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .preset-item:hover {
@@ -91,15 +91,15 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
 }
 
 .preset-name {
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 .preset-preview {
   width: 16px;
   height: 16px;
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   border: 1px solid var(--border-color);
 }
 
@@ -110,11 +110,11 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
 
 .btn-small {
   padding: 3px 6px;
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-load {
@@ -136,11 +136,11 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
 .btn-primary {
   padding: 6px 10px;
   border: none;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  font-size: 0.6rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   background: var(--ds-accent-soft);
@@ -150,7 +150,6 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
 
 .btn-primary:hover {
   background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .full-width {
@@ -158,7 +157,7 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
 }
 
 .hint-text {
-  font-size: 0.5rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   font-style: italic;
 }

@@ -17,14 +17,14 @@ body {
   height: 100%;
   width: 100%;
   overflow: auto;
-  font-family: var(--font-sans);
+  font-family: var(--ds-font-sans);
 }
 #app {
   height: 100%;
   background-color: var(--primary-bg);
   color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 12px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-md);
 }
 #app-container {
   min-height: 100%;

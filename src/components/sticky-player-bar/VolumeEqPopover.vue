@@ -118,7 +118,7 @@ const ICON_MUTED =
   gap: 6px;
   padding: 6px 8px;
   background-color: var(--secondary-bg);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
 }
 .volume-icon {
   width: 14px;
@@ -131,7 +131,7 @@ const ICON_MUTED =
   flex-shrink: 0;
   padding: 2px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background: transparent;
   cursor: pointer;
 }
@@ -146,7 +146,7 @@ const ICON_MUTED =
 .volume-slider {
   flex: 1;
   height: 3px;
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
   background: var(--text-muted);
   outline: none;
   -webkit-appearance: none;
@@ -157,16 +157,15 @@ const ICON_MUTED =
   appearance: none;
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--accent-tertiary);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 .volume-slider::-moz-range-thumb {
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--accent-tertiary);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
@@ -182,7 +181,7 @@ const ICON_MUTED =
   gap: 3px;
 }
 .eq-label {
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 .eq-slider-container {
@@ -191,7 +190,7 @@ const ICON_MUTED =
   gap: 6px;
   padding: 5px 7px;
   background-color: var(--secondary-bg);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
 }
 .eq-icon {
   width: 12px;
@@ -202,7 +201,7 @@ const ICON_MUTED =
 .eq-slider {
   flex: 1;
   height: 3px;
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
   background: var(--text-muted);
   outline: none;
   -webkit-appearance: none;
@@ -213,16 +212,15 @@ const ICON_MUTED =
   appearance: none;
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--accent-primary);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 .eq-slider::-moz-range-thumb {
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--accent-primary);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);

@@ -54,20 +54,20 @@ const save = () => store.save()
 }
 .admin-tab-hint {
   margin: 0 0 16px 0;
-  font-size: 0.8rem;
+  font-size: var(--ds-text-sm);
   color: var(--text-muted);
 }
 .admin-card-group {
   padding: 16px;
   margin-bottom: 16px;
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: var(--ds-radius-lg);
   background: var(--panel-highlight);
 }
 .admin-card-title {
   margin: 0 0 12px 0;
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-bold);
   color: var(--accent-ink);
 }
 </style>

@@ -72,7 +72,7 @@ const store = useVisualizerStore()
 /* Position & Größe Styles */
 .position-section {
   background-color: var(--ds-accent-soft);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   padding: 8px;
   border: 1px solid var(--border-color);
 }
@@ -92,15 +92,15 @@ const store = useVisualizerStore()
   background-color: var(--secondary-bg);
   color: var(--text-muted);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   height: 22px;
   padding: 0 8px;
-  font-size: 0.55rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -122,10 +122,10 @@ const store = useVisualizerStore()
 
 .control-label {
   display: block;
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-bottom: 3px;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 /* Position Slider */
@@ -138,33 +138,29 @@ const store = useVisualizerStore()
   appearance: none;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-warning);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .position-slider::-webkit-slider-thumb:hover {
   background: var(--ds-warning);
-  transform: scale(1.15);
 }
 
 .position-slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-warning);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .position-slider::-moz-range-thumb:hover {
   background: var(--ds-warning);
-  transform: scale(1.15);
 }
 
 /* Scale Slider */
@@ -177,33 +173,29 @@ const store = useVisualizerStore()
   appearance: none;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-success);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .scale-slider::-webkit-slider-thumb:hover {
   background: var(--ds-success);
-  transform: scale(1.15);
 }
 
 .scale-slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-success);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .scale-slider::-moz-range-thumb:hover {
   background: var(--ds-success);
-  transform: scale(1.15);
 }
 
 /* ═══ Light Theme Overrides ═══ */
@@ -215,21 +207,5 @@ const store = useVisualizerStore()
 
 [data-theme='light'] .reset-btn {
   border-color: var(--border-color);
-}
-
-[data-theme='light'] .position-slider::-webkit-slider-thumb {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .position-slider::-moz-range-thumb {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .scale-slider::-webkit-slider-thumb {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .scale-slider::-moz-range-thumb {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 </style>

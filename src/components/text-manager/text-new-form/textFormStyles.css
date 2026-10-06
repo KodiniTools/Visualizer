@@ -11,17 +11,17 @@
 .control-group label {
   display: block;
   margin-bottom: 4px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 h4 {
   margin: 8px 0 6px 0;
-  font-size: 0.6rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -36,12 +36,12 @@ h4 {
   padding: 5px 8px;
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   font-family: inherit;
   resize: vertical;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .font-select {
@@ -55,7 +55,7 @@ h4 {
 .text-area {
   min-height: 50px;
   line-height: 1.5;
-  font-family: 'Courier New', monospace;
+  font-family: var(--ds-font-mono);
 }
 
 .text-input:focus,
@@ -69,17 +69,17 @@ h4 {
 
 /* ===== HINT TEXT ===== */
 .hint-text {
-  font-size: 0.5rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-top: 3px;
   line-height: 1.4;
 }
 
 .success-hint {
-  font-size: 0.5rem;
+  font-size: var(--ds-text-xs);
   color: var(--ds-success);
   margin-top: 3px;
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -90,10 +90,10 @@ h4 {
   width: 100%;
   height: 3px;
   background: var(--text-muted);
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
   outline: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   -webkit-appearance: none;
   appearance: none;
 }
@@ -104,32 +104,28 @@ h4 {
   width: 12px;
   height: 12px;
   background: var(--accent-tertiary);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .slider::-webkit-slider-thumb:hover {
   background: var(--accent-primary);
-  transform: scale(1.1);
 }
 
 .slider::-moz-range-thumb {
   width: 12px;
   height: 12px;
   background: var(--accent-tertiary);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .slider::-moz-range-thumb:hover {
   background: var(--accent-primary);
-  transform: scale(1.1);
 }
 
 /* Disabled slider style */
@@ -154,10 +150,10 @@ h4 {
   width: 32px;
   height: 32px;
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   background-color: var(--secondary-bg);
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .color-input:hover {
@@ -166,7 +162,7 @@ h4 {
 
 .color-text-input {
   flex: 1;
-  font-family: 'Courier New', monospace;
+  font-family: var(--ds-font-mono);
 }
 
 /* ===== BUTTONS ===== */
@@ -190,12 +186,12 @@ h4 {
   padding: 5px 8px;
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
   cursor: pointer;
-  font-size: 0.6rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -203,25 +199,24 @@ h4 {
 .btn-small:hover {
   background-color: var(--btn-hover);
   border-color: var(--accent-primary);
-  transform: translateY(-1px);
 }
 
 .btn-small.active {
   background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
   border-color: var(--accent-primary);
   color: var(--accent-tertiary);
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 
 .btn-primary,
 .btn-secondary {
   padding: 6px 10px;
   border: none;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  font-size: 0.6rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -234,7 +229,6 @@ h4 {
 
 .btn-primary:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-primary:disabled {
@@ -253,7 +247,6 @@ h4 {
 .btn-secondary:hover {
   background-color: var(--btn-hover);
   border-color: var(--accent-primary);
-  transform: translateY(-1px);
 }
 
 .full-width {
@@ -284,10 +277,10 @@ h4 {
 .collapsible-section {
   background-color: var(--secondary-bg);
   border: 1px solid var(--card-bg);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   margin-bottom: 10px;
   overflow: hidden;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .collapsible-section:hover {
@@ -313,12 +306,12 @@ h4 {
   padding: 10px 12px;
   cursor: pointer;
   background: var(--secondary-bg);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   user-select: none;
 }
 
@@ -333,15 +326,15 @@ h4 {
 }
 
 .section-icon {
-  font-size: 14px;
+  font-size: var(--ds-text-md);
   flex-shrink: 0;
 }
 
 .section-header::before {
   content: '▶';
-  font-size: 8px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-link);
-  transition: transform 0.2s ease;
+  transition: transform var(--ds-duration) var(--ds-ease);
   margin-right: 4px;
 }
 
@@ -357,9 +350,9 @@ h4 {
 .status-badge {
   margin-left: auto;
   padding: 2px 8px;
-  font-size: 9px;
-  font-weight: 600;
-  border-radius: 10px;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  border-radius: var(--ds-radius-md);
   background-color: var(--secondary-bg);
   color: var(--text-muted);
   text-transform: uppercase;
@@ -377,7 +370,7 @@ h4 {
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
   user-select: none;
   text-transform: uppercase;
@@ -403,13 +396,13 @@ h4 {
 .btn-save {
   flex: 1;
   padding: 8px 12px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   background: var(--ds-surface-3);
   border: 1px solid var(--ds-border-strong);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-success);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-save:hover {
@@ -420,13 +413,13 @@ h4 {
 
 .btn-reset-small {
   padding: 8px 12px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-reset-small:hover {
@@ -440,13 +433,13 @@ h4 {
   margin-top: 8px;
   padding: 8px;
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .auto-fit-settings label {
   display: block;
   margin-bottom: 4px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 
@@ -456,10 +449,10 @@ h4 {
   border: 2px dashed var(--ds-link);
   color: var(--ds-link);
   padding: 10px 16px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
+  transition: all var(--ds-duration) var(--ds-ease);
+  font-weight: var(--ds-weight-medium);
 }
 
 .btn-selection:hover:not(:disabled) {
@@ -494,7 +487,7 @@ h4 {
 .selection-info {
   background: color-mix(in srgb, var(--ds-link) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 10px;
   margin-top: 8px;
   display: flex;
@@ -509,15 +502,15 @@ h4 {
 }
 
 .selection-label {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .selection-value {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-link);
 }
 
@@ -525,7 +518,7 @@ h4 {
   background: transparent;
   border: 1px solid var(--ds-danger);
   color: var(--ds-danger);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   padding: 4px 8px;
 }
 
@@ -538,9 +531,9 @@ h4 {
   padding: 6px 8px;
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-text);
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   margin-left: 8px;
 }
 
@@ -560,9 +553,9 @@ h4 {
   padding: 5px 6px;
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-text);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
 }
 .dur-number:focus {
   border-color: var(--ds-link);
@@ -576,7 +569,7 @@ h4 {
 
 .unit-label {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   margin-left: 4px;
 }
 
@@ -592,10 +585,10 @@ h4 {
   border: 1px solid var(--border-color);
   color: var(--text-muted);
   padding: 8px;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  font-size: 16px;
-  transition: all 0.15s ease;
+  font-size: var(--ds-text-lg);
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -614,14 +607,6 @@ h4 {
 }
 
 /* ═══ Light Theme Overrides ═══ */
-
-[data-theme='light'] .slider::-webkit-slider-thumb {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .slider::-moz-range-thumb {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
 
 [data-theme='light'] .btn-small.active {
   background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
@@ -772,7 +757,7 @@ h4 {
 @media (max-width: 768px) {
   .text-area {
     min-height: 44px;
-    font-size: 0.8rem;
+    font-size: var(--ds-text-sm);
   }
 
   .color-input {
@@ -799,6 +784,6 @@ h4 {
 
   .text-area {
     min-height: 50px;
-    font-size: 0.85rem;
+    font-size: var(--ds-text-sm);
   }
 }

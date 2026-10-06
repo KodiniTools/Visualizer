@@ -76,7 +76,7 @@ const playerBar = inject('playerBar', null)
 .panel-container {
   position: relative;
   background-color: var(--card-bg);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 10px;
   border: 1px solid var(--border-color);
   display: flex;
@@ -109,8 +109,8 @@ const playerBar = inject('playerBar', null)
 h4 {
   margin: 0;
   color: var(--text-primary);
-  font-weight: 600;
-  font-size: 0.7rem;
+  font-weight: var(--ds-weight-semibold);
+  font-size: var(--ds-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
@@ -130,14 +130,14 @@ h4 {
   padding: 5px 10px;
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.65rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   cursor: pointer;
   transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease;
+    border-color var(--ds-duration) var(--ds-ease),
+    background-color var(--ds-duration) var(--ds-ease);
 }
 
 .controls-link svg {
@@ -153,13 +153,12 @@ h4 {
 
 .controls-link:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--ring);
 }
 
 .status-hint {
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--ds-danger);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 /* Search Input */
@@ -168,16 +167,15 @@ h4 {
   padding: 6px 10px;
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color var(--ds-duration) var(--ds-ease);
 }
 
 .search-input:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--ring);
   border-color: var(--accent-primary);
 }
 
@@ -189,10 +187,6 @@ h4 {
 
 [data-theme='light'] .panel-container {
   border-color: var(--border-color);
-}
-
-[data-theme='light'] h4::before {
-  filter: brightness(0);
 }
 
 [data-theme='light'] .controls-link {

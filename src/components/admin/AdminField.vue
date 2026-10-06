@@ -48,8 +48,8 @@ function onInput(event) {
 }
 
 .admin-field-label {
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-secondary);
 }
 
@@ -57,14 +57,14 @@ function onInput(event) {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   background: var(--secondary-bg);
   color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 0.9rem;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-md);
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color var(--ds-duration) var(--ds-ease),
+    box-shadow var(--ds-duration) var(--ds-ease);
   box-sizing: border-box;
 }
 
@@ -76,7 +76,6 @@ function onInput(event) {
 .admin-input:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(201, 152, 77, 0.2);
 }
 
 .admin-input::placeholder {
@@ -85,7 +84,7 @@ function onInput(event) {
 }
 
 .admin-field-hint {
-  font-size: 0.75rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 </style>

@@ -186,7 +186,7 @@ const totalCount = computed(() => store.availableVisualizers.length)
 
 .category {
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
 }
 
@@ -198,7 +198,7 @@ const totalCount = computed(() => store.availableVisualizers.length)
   background-color: var(--secondary-bg);
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--ds-duration) var(--ds-ease);
 }
 
 .category-header:hover {
@@ -207,17 +207,17 @@ const totalCount = computed(() => store.availableVisualizers.length)
 
 .category-name {
   flex: 1;
-  font-size: 0.65rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   color: var(--text-primary);
 }
 
 .category-count {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   background-color: var(--ds-accent-soft);
   padding: 1px 5px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
 }
 
 /* Rein per CSS gezeichneter Chevron (kein Glyph/Emoji) */
@@ -227,7 +227,7 @@ const totalCount = computed(() => store.availableVisualizers.length)
   border-right: 1.5px solid var(--text-muted);
   border-bottom: 1.5px solid var(--text-muted);
   transform: rotate(-45deg);
-  transition: transform 0.2s ease;
+  transition: transform var(--ds-duration) var(--ds-ease);
   flex-shrink: 0;
 }
 .category-header.open .category-caret {
@@ -254,26 +254,25 @@ const totalCount = computed(() => store.availableVisualizers.length)
   background-color: var(--secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   padding: 6px 10px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-align: left;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 .visualizer-btn:hover {
   background-color: var(--btn-hover);
   border-color: var(--accent-primary);
-  transform: translateX(2px);
 }
 
 .visualizer-btn.active {
   background-color: var(--accent-primary);
   color: var(--accent-text);
   border-color: var(--accent-primary);
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 
 .visualizer-btn.active:hover {
@@ -287,11 +286,11 @@ const totalCount = computed(() => store.availableVisualizers.length)
 }
 .preset-btn .preset-badge {
   margin-left: auto;
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   background-color: var(--ds-accent-soft);
   padding: 1px 5px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
 }
 .preset-btn.active .preset-badge {
   color: var(--accent-text);
@@ -305,7 +304,7 @@ const totalCount = computed(() => store.availableVisualizers.length)
   padding: 10px;
   text-align: center;
   color: var(--text-muted);
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   font-style: italic;
 }
 

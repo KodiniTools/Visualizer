@@ -173,7 +173,7 @@ const audioTargetLabel = computed(() => {
 <style scoped>
 .audio-target-hint {
   margin: 4px 0 0;
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 
@@ -185,8 +185,8 @@ const audioTargetLabel = computed(() => {
 
 .canvas-videos-section h4 {
   margin: 0 0 8px 0;
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -208,9 +208,9 @@ const audioTargetLabel = computed(() => {
   padding: 8px 10px;
   background: color-mix(in srgb, var(--ds-link) 8%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .canvas-video-item:hover {
@@ -232,21 +232,21 @@ const audioTargetLabel = computed(() => {
   width: 20px;
   height: 20px;
   background: color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
 }
 
 .video-name {
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
 }
 
 .video-status {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-secondary);
 }
 
@@ -263,15 +263,15 @@ const audioTargetLabel = computed(() => {
   width: 24px;
   height: 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-control:hover {
@@ -294,11 +294,11 @@ const audioTargetLabel = computed(() => {
   padding: 8px 12px;
   background: color-mix(in srgb, var(--ds-link) 20%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-global:hover {
@@ -311,7 +311,7 @@ const audioTargetLabel = computed(() => {
   padding: 8px 10px;
   background: color-mix(in srgb, var(--ds-link) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .global-video-settings .settings-row {
@@ -324,7 +324,7 @@ const audioTargetLabel = computed(() => {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
   cursor: pointer;
 }
@@ -340,7 +340,7 @@ const audioTargetLabel = computed(() => {
   margin-top: 12px;
   padding: 10px;
   background: color-mix(in srgb, var(--ds-link) 10%, transparent);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
 }
 
@@ -349,12 +349,12 @@ const audioTargetLabel = computed(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-secondary);
 }
 
 .seek-time {
-  font-family: monospace;
+  font-family: var(--ds-font-mono);
   color: var(--text-primary);
 }
 
@@ -368,15 +368,15 @@ const audioTargetLabel = computed(() => {
   width: 28px;
   height: 28px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background: color-mix(in srgb, var(--ds-link) 30%, transparent);
   color: white;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-seek:hover {
@@ -389,7 +389,7 @@ const audioTargetLabel = computed(() => {
   -webkit-appearance: none;
   appearance: none;
   background: color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   outline: none;
   cursor: pointer;
 }
@@ -399,13 +399,9 @@ const audioTargetLabel = computed(() => {
   width: 14px;
   height: 14px;
   background: var(--ds-link);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
   transition: transform 0.1s;
-}
-
-.seek-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
 }
 
 /* Video Volume Section */
@@ -420,7 +416,7 @@ const audioTargetLabel = computed(() => {
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-secondary);
 }
 
@@ -436,7 +432,7 @@ const audioTargetLabel = computed(() => {
   -webkit-appearance: none;
   appearance: none;
   background: color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   outline: none;
   cursor: pointer;
 }
@@ -446,31 +442,27 @@ const audioTargetLabel = computed(() => {
   width: 14px;
   height: 14px;
   background: var(--ds-link);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
   transition: transform 0.1s;
-}
-
-.volume-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
 }
 
 .volume-slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
   background: var(--ds-link);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   border: none;
   cursor: pointer;
 }
 
 .volume-hint {
   margin: 8px 0 0 0;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-warning);
   background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   text-align: center;
 }
 

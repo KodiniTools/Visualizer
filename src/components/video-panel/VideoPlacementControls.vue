@@ -99,13 +99,13 @@ const {
   margin-top: 8px;
   padding: 8px;
   background: var(--secondary-bg);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   border: 1px solid var(--border-color);
 }
 
 .placement-header {
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-primary);
   margin-bottom: 6px;
   text-transform: uppercase;
@@ -125,7 +125,7 @@ const {
 }
 
 .placement-label {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   min-width: 40px;
   text-transform: uppercase;
@@ -136,9 +136,9 @@ const {
   padding: 4px 6px;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
 }
 
 .placement-slider-wrap {
@@ -154,7 +154,7 @@ const {
   -webkit-appearance: none;
   appearance: none;
   background: var(--text-muted);
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
   outline: none;
 }
 
@@ -164,12 +164,12 @@ const {
   height: 10px;
   background: var(--accent-tertiary);
   border: 2px solid var(--ds-surface-1);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
 }
 
 .placement-value {
-  font-size: 0.5rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   min-width: 28px;
   text-align: right;
@@ -183,7 +183,7 @@ const {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
   cursor: pointer;
 }
@@ -204,11 +204,11 @@ const {
   flex: 1;
   padding: 5px 8px;
   border: none;
-  border-radius: 5px;
-  font-size: 0.55rem;
-  font-weight: 600;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
 }
 
@@ -219,7 +219,6 @@ const {
 }
 
 .btn-place:hover {
-  transform: translateY(-1px);
   background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
 }
 

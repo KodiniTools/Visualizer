@@ -142,7 +142,7 @@ function deletePreset(id) {
 .panel {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 10px;
   color: var(--text-primary);
 }
@@ -157,17 +157,17 @@ function deletePreset(id) {
 
 h3 {
   margin: 0;
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   color: var(--text-primary);
 }
 
 .collapse-icon {
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
-  transition: transform 0.2s ease;
+  transition: transform var(--ds-duration) var(--ds-ease);
 }
 .collapse-icon.rotated {
   transform: rotate(-90deg);
@@ -192,8 +192,8 @@ h3 {
 }
 
 .section-label {
-  font-size: 0.55rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   color: var(--text-muted);
@@ -213,11 +213,11 @@ h3 {
   align-items: center;
   gap: 2px;
   padding: 8px 4px 6px;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   border: 1.5px solid transparent;
   background: var(--preset-bg);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   overflow: hidden;
   min-height: 62px;
 }
@@ -236,13 +236,10 @@ h3 {
 
 .preset-card:hover {
   border-color: var(--preset-color);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--preset-color) 30%, transparent);
 }
 
 .preset-card.active {
   border-color: var(--preset-color);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--preset-color) 40%, transparent);
 }
 
 .preset-card.user-preset {
@@ -266,13 +263,13 @@ h3 {
 }
 
 .preset-emoji {
-  font-size: 1.1rem;
+  font-size: var(--ds-text-xl);
   line-height: 1;
 }
 
 .preset-name {
-  font-size: 0.55rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-primary);
   text-align: center;
   max-width: 100%;
@@ -283,12 +280,12 @@ h3 {
 }
 
 .preset-needs-image {
-  font-size: 0.45rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   letter-spacing: 0.3px;
   color: var(--accent-tertiary);
   background-color: var(--ds-accent-soft);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   padding: 0 5px;
   margin-top: 2px;
 }
@@ -298,7 +295,7 @@ h3 {
 }
 
 .preset-viz {
-  font-size: 0.5rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   text-align: center;
   max-width: 100%;
@@ -317,12 +314,12 @@ h3 {
   border: none;
   border-left: 1px solid var(--border-color);
   color: var(--text-muted);
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
   transition:
-    color 0.15s,
-    background 0.15s;
-  border-radius: 0 6px 6px 0;
+    color var(--ds-duration) var(--ds-ease),
+    background var(--ds-duration) var(--ds-ease);
+  border-radius: 0 var(--ds-radius-sm) var(--ds-radius-sm) 0;
   flex-shrink: 0;
 }
 
@@ -343,15 +340,14 @@ h3 {
   padding: 5px 8px;
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   font-family: inherit;
 }
 
 .preset-name-input:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--ring);
   border-color: var(--accent-primary);
 }
 
@@ -363,13 +359,13 @@ h3 {
   padding: 5px 10px;
   background: var(--accent-primary);
   border: none;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-on-accent);
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
   white-space: nowrap;
-  transition: opacity 0.15s;
+  transition: opacity var(--ds-duration) var(--ds-ease);
 }
 
 .btn-save:hover:not(:disabled) {

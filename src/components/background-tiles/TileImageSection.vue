@@ -323,9 +323,9 @@ const replaceVideoFromVideoInput = ref(null)
 .image-section > label {
   display: block;
   margin-bottom: 6px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-2);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 .checkbox-label {
@@ -333,7 +333,7 @@ const replaceVideoFromVideoInput = ref(null)
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
 }
 
 .checkbox-label input[type='checkbox'] {
@@ -349,7 +349,7 @@ const replaceVideoFromVideoInput = ref(null)
   padding: 20px;
   background: rgba(0, 0, 0, 0.2);
   border: 2px dashed color-mix(in srgb, var(--ds-success) 30%, transparent);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   margin-top: 8px;
 }
 
@@ -357,11 +357,11 @@ const replaceVideoFromVideoInput = ref(null)
   padding: 8px 16px;
   background: color-mix(in srgb, var(--ds-success) 20%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-success) 50%, transparent);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-success);
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-upload:hover {
@@ -369,7 +369,7 @@ const replaceVideoFromVideoInput = ref(null)
 }
 
 .hint {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-top: 8px;
 }
@@ -382,7 +382,7 @@ const replaceVideoFromVideoInput = ref(null)
   width: 100%;
   height: 60px;
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
   margin-bottom: 10px;
 }
@@ -406,7 +406,7 @@ const replaceVideoFromVideoInput = ref(null)
   grid-template-columns: 80px 1fr 45px;
   align-items: center;
   gap: 8px;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
 }
 
 .filter-row label {
@@ -417,7 +417,7 @@ const replaceVideoFromVideoInput = ref(null)
 .filter-row input[type='range'] {
   width: 100%;
   height: 4px;
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
   background: color-mix(in srgb, var(--ds-success) 30%, transparent);
   cursor: pointer;
   -webkit-appearance: none;
@@ -428,7 +428,7 @@ const replaceVideoFromVideoInput = ref(null)
   -webkit-appearance: none;
   width: 10px;
   height: 10px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-success);
   cursor: pointer;
 }
@@ -436,7 +436,7 @@ const replaceVideoFromVideoInput = ref(null)
 .filter-row span {
   color: var(--text-muted);
   text-align: right;
-  font-family: monospace;
+  font-family: var(--ds-font-mono);
 }
 
 .btn-remove {
@@ -444,11 +444,11 @@ const replaceVideoFromVideoInput = ref(null)
   padding: 6px;
   background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-danger) 40%, transparent);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-danger);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-remove:hover {
@@ -459,10 +459,10 @@ const replaceVideoFromVideoInput = ref(null)
 .btn-video {
   flex: 1;
   padding: 8px 12px;
-  font-size: 11px;
-  border-radius: 6px;
+  font-size: var(--ds-text-xs);
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -475,7 +475,6 @@ const replaceVideoFromVideoInput = ref(null)
 .btn-video:hover {
   background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
   border-color: color-mix(in srgb, var(--ds-danger) 60%, transparent);
-  transform: translateY(-1px);
 }
 
 .video-controls {
@@ -487,7 +486,7 @@ const replaceVideoFromVideoInput = ref(null)
 .video-preview {
   position: relative;
   width: 100%;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
   background: #000;
 }
@@ -507,9 +506,9 @@ const replaceVideoFromVideoInput = ref(null)
   padding: 3px 8px;
   background: color-mix(in srgb, var(--ds-danger) 90%, transparent);
   color: #fff;
-  font-size: 9px;
-  font-weight: 600;
-  border-radius: 4px;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  border-radius: var(--ds-radius-sm);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -520,14 +519,14 @@ const replaceVideoFromVideoInput = ref(null)
   gap: 12px;
   padding: 8px;
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .video-settings .checkbox-label {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-2);
   cursor: pointer;
 }
@@ -549,10 +548,10 @@ const replaceVideoFromVideoInput = ref(null)
 .image-source-buttons .btn-gallery {
   flex: 1;
   padding: 8px 12px;
-  font-size: 11px;
-  border-radius: 6px;
+  font-size: var(--ds-text-xs);
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -568,7 +567,6 @@ const replaceVideoFromVideoInput = ref(null)
 .btn-gallery:hover {
   background: color-mix(in srgb, var(--ds-link) 30%, transparent);
   border-color: color-mix(in srgb, var(--ds-link) 60%, transparent);
-  transform: translateY(-1px);
 }
 
 /* ═══ Ersetzen-Buttons ═══ */
@@ -577,12 +575,12 @@ const replaceVideoFromVideoInput = ref(null)
   padding: 10px;
   background: rgba(0, 0, 0, 0.2);
   border: 1px dashed color-mix(in srgb, var(--ds-success) 30%, transparent);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .replace-label {
   display: block;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-bottom: 8px;
 }
@@ -597,10 +595,10 @@ const replaceVideoFromVideoInput = ref(null)
   flex: 1;
   min-width: 80px;
   padding: 6px 10px;
-  font-size: 10px;
-  border-radius: 5px;
+  font-size: var(--ds-text-xs);
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -613,7 +611,6 @@ const replaceVideoFromVideoInput = ref(null)
 .btn-replace:hover {
   background: color-mix(in srgb, var(--ds-success) 25%, transparent);
   border-color: color-mix(in srgb, var(--ds-success) 50%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-replace-gallery {
@@ -760,18 +757,18 @@ const replaceVideoFromVideoInput = ref(null)
   .btn-gallery,
   .btn-video {
     padding: 8px 12px;
-    font-size: 12px;
+    font-size: var(--ds-text-xs);
     min-height: 40px;
   }
 
   .btn-replace {
     min-height: 40px;
-    font-size: 11px;
+    font-size: var(--ds-text-xs);
   }
 
   .btn-remove {
     padding: 8px;
-    font-size: 11px;
+    font-size: var(--ds-text-xs);
     min-height: 40px;
   }
 }

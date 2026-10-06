@@ -157,19 +157,19 @@ const {
 .text-area {
   min-height: 50px;
   line-height: 1.5;
-  font-family: 'Courier New', monospace;
+  font-family: var(--ds-font-mono);
 }
 .hint-text {
-  font-size: 0.5rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-top: 3px;
   line-height: 1.4;
 }
 .success-hint {
-  font-size: 0.5rem;
+  font-size: var(--ds-text-xs);
   color: var(--ds-success);
   margin-top: 3px;
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -178,13 +178,13 @@ const {
 @media (max-width: 768px) {
   .text-area {
     min-height: 44px;
-    font-size: 0.8rem;
+    font-size: var(--ds-text-sm);
   }
 }
 @media (max-width: 480px) {
   .text-area {
     min-height: 50px;
-    font-size: 0.85rem;
+    font-size: var(--ds-text-sm);
   }
 }
 </style>

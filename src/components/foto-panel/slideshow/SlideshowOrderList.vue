@@ -302,11 +302,11 @@ function onDragEnd() {
 }
 .image-order-list::-webkit-scrollbar-track {
   background: var(--secondary-bg);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 .image-order-list::-webkit-scrollbar-thumb {
   background: var(--btn-hover);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 .order-item {
   display: flex;
@@ -314,10 +314,10 @@ function onDragEnd() {
   align-items: center;
   gap: 6px 10px;
   background-color: var(--card-bg);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   padding: 8px 10px;
   cursor: grab;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   border: 1px solid transparent;
 }
 .order-item:hover {
@@ -333,19 +333,19 @@ function onDragEnd() {
   height: 22px;
   background: var(--ds-link);
   color: #fff;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   flex-shrink: 0;
 }
 .order-thumb {
   width: 36px;
   height: 36px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   flex-shrink: 0;
 }
 .order-body {
@@ -364,7 +364,7 @@ function onDragEnd() {
 .order-field-label {
   flex-shrink: 0;
   width: 58px;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 .order-times {
@@ -387,17 +387,16 @@ function onDragEnd() {
   width: 48px;
   flex-shrink: 0;
   padding: 3px 4px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   text-align: right;
   background: var(--secondary-bg);
   color: var(--ds-text);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 /* Eigener Wert (≠ Standard) hervorheben */
 .order-item .is-own {
   border-color: var(--image-section-accent);
-  box-shadow: 0 0 0 1px rgba(110, 168, 254, 0.35);
 }
 [data-theme='light'] .order-fadein,
 [data-theme='light'] .order-fadeout {
@@ -416,11 +415,11 @@ function onDragEnd() {
   flex: 1;
   min-width: 0;
   padding: 3px 4px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   background: var(--secondary-bg);
   color: var(--ds-text);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 /* Quelle gesperrt (Audio „Aus“) */
 .order-audio-source:disabled {
@@ -431,15 +430,15 @@ function onDragEnd() {
   display: inline-block;
   margin-right: 4px;
   padding: 0 4px;
-  border-radius: 3px;
-  font-size: 9px;
-  font-weight: 700;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   text-transform: uppercase;
   background: color-mix(in srgb, var(--ds-link) 25%, transparent);
   color: var(--ds-link);
 }
 .order-name {
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text);
   white-space: nowrap;
   overflow: hidden;
@@ -449,22 +448,22 @@ function onDragEnd() {
   width: 52px;
   flex-shrink: 0;
   padding: 3px 4px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   text-align: right;
   background: var(--secondary-bg);
   color: var(--ds-text);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 .order-duration-unit {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-left: -4px;
 }
 .drag-handle {
   margin-left: auto;
   color: var(--ds-text-3);
-  font-size: 14px;
+  font-size: var(--ds-text-md);
   cursor: grab;
   padding: 4px;
 }

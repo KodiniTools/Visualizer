@@ -45,7 +45,7 @@ provide('bgSettings', bg)
 .panel {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 10px;
   color: var(--text-primary);
   display: flex;
@@ -60,7 +60,7 @@ provide('bgSettings', bg)
   cursor: pointer;
   padding: 0;
   user-select: none;
-  transition: all 0.2s;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .panel-header:hover h3 {
@@ -73,7 +73,7 @@ provide('bgSettings', bg)
   border-right: 1.5px solid var(--accent-primary);
   border-bottom: 1.5px solid var(--accent-primary);
   transform: rotate(45deg);
-  transition: transform 0.2s;
+  transition: transform var(--ds-duration) var(--ds-ease);
   display: inline-block;
   margin-left: 6px;
 }
@@ -99,12 +99,12 @@ provide('bgSettings', bg)
 
 h3 {
   margin: 0;
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  transition: color 0.2s;
+  transition: color var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -117,13 +117,12 @@ h3::before {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M9 3v18M15 3v18M3 9h18M3 15h18'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 h4 {
   margin: 0 0 5px 0;
-  font-size: 0.6rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -136,7 +135,7 @@ h4 {
 .undo-section {
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   padding: 8px;
 }
 
@@ -146,11 +145,11 @@ h4 {
 .btn-undo {
   padding: 6px 10px;
   border: none;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  font-size: 0.6rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -163,7 +162,6 @@ h4 {
 
 .btn-undo:hover {
   background: color-mix(in srgb, var(--ds-warning) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-primary {
@@ -174,7 +172,6 @@ h4 {
 
 .btn-primary:hover {
   background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-secondary {
@@ -186,7 +183,6 @@ h4 {
 .btn-secondary:hover {
   background-color: var(--btn-hover);
   border-color: var(--accent-primary);
-  transform: translateY(-1px);
 }
 
 .btn-danger {
@@ -197,7 +193,6 @@ h4 {
 
 .btn-danger:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-danger:disabled {
@@ -218,13 +213,13 @@ h4 {
 }
 
 .hint-text {
-  font-size: 0.5rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   font-style: italic;
 }
 
 .info-text {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   line-height: 1.3;
   margin: 0 0 6px 0;
@@ -232,13 +227,12 @@ h4 {
 
 .info-text.warning {
   color: var(--ds-warning);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 /* Light theme overrides */
 [data-theme='light'] h3::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23003971' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M9 3v18M15 3v18M3 9h18M3 15h18'/%3E%3C/svg%3E");
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.15));
 }
 
 [data-theme='light'] .btn-primary {
@@ -273,11 +267,11 @@ h4 {
   }
 
   h3 {
-    font-size: 0.75rem;
+    font-size: var(--ds-text-xs);
   }
 
   h4 {
-    font-size: 0.65rem;
+    font-size: var(--ds-text-xs);
   }
 
   .btn-primary,
@@ -285,7 +279,7 @@ h4 {
   .btn-danger,
   .btn-undo {
     padding: 8px 12px;
-    font-size: 0.65rem;
+    font-size: var(--ds-text-xs);
     min-height: 40px;
   }
 }
@@ -296,7 +290,7 @@ h4 {
   .btn-danger,
   .btn-undo {
     min-height: 44px;
-    font-size: 0.7rem;
+    font-size: var(--ds-text-xs);
   }
 }
 </style>

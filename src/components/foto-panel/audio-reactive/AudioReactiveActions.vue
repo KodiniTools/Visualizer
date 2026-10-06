@@ -33,12 +33,12 @@ const { hasActiveImage, hasSavedSettings, saveSettings, applySettings } = arc
 .btn-preset-action {
   flex: 1;
   padding: 5px 8px;
-  font-size: 0.65rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;

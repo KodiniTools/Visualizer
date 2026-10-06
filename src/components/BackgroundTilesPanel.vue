@@ -69,13 +69,13 @@ provide('tilePresets', presets)
   padding: 12px;
   background: color-mix(in srgb, var(--ds-success) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
 }
 
 .tiles-section h5 {
   margin: 0 0 12px 0;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-success);
 }
 
@@ -88,7 +88,7 @@ provide('tilePresets', presets)
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
 }
 
 .checkbox-label input[type='checkbox'] {
@@ -112,11 +112,11 @@ provide('tilePresets', presets)
   padding: 8px;
   background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-danger);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-reset-all:hover {
@@ -148,12 +148,12 @@ provide('tilePresets', presets)
   }
 
   .tiles-section h5 {
-    font-size: 12px;
+    font-size: var(--ds-text-xs);
   }
 
   .btn-reset-all {
     padding: 8px;
-    font-size: 11px;
+    font-size: var(--ds-text-xs);
     min-height: 40px;
   }
 }

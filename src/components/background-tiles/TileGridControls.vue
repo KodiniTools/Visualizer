@@ -76,9 +76,9 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 .control-group label {
   display: block;
   margin-bottom: 6px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-2);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 /* Kachelanzahl-Buttons */
@@ -92,12 +92,12 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
   padding: 8px 12px;
   background: color-mix(in srgb, var(--ds-surface-2) 80%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-text);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .tile-count-buttons button:hover {
@@ -115,7 +115,7 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 .gap-slider {
   width: 100%;
   height: 6px;
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   background: var(--ds-success);
   cursor: pointer;
   -webkit-appearance: none;
@@ -126,23 +126,23 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--ds-shadow-overlay);
   cursor: pointer;
 }
 
 /* Kachel-Vorschau Grid */
 .tiles-preview {
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   padding: 6px;
   min-height: 80px;
 }
 
 .tile-preview {
   aspect-ratio: 16/9;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -150,32 +150,29 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
   justify-content: center;
   position: relative;
   border: 2px solid transparent;
-  transition: all 0.2s;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .tile-preview:hover {
   border-color: color-mix(in srgb, var(--ds-success) 50%, transparent);
-  transform: scale(1.02);
 }
 
 .tile-preview.selected {
   border-color: var(--ds-success);
-  box-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
 }
 
 .tile-number {
-  font-size: 12px;
-  font-weight: bold;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   color: var(--ds-text-2);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .tile-has-image {
-  font-size: 8px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-2);
   background: rgba(0, 0, 0, 0.5);
   padding: 2px 4px;
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
   margin-top: 2px;
 }
 
@@ -183,16 +180,12 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
   position: absolute;
   top: 2px;
   right: 2px;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-link);
   background: color-mix(in srgb, var(--ds-link) 40%, transparent);
   padding: 1px 3px;
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
   animation: pulse-audio 1.5s ease-in-out infinite;
-}
-
-.tile-preview.has-audio {
-  box-shadow: 0 0 8px rgba(139, 92, 246, 0.3);
 }
 
 @keyframes pulse-audio {
@@ -233,20 +226,16 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 
 [data-theme='light'] .gap-slider::-webkit-slider-thumb {
   background: var(--accent-primary);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 [data-theme='light'] .gap-slider::-moz-range-thumb {
   background: var(--accent-primary);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 [data-theme='light'] .tiles-preview {
   background: rgba(0, 0, 0, 0.05);
-}
-
-[data-theme='light'] .tile-number {
-  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.5);
 }
 
 [data-theme='light'] .tile-has-image {
@@ -259,14 +248,13 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 
 [data-theme='light'] .tile-preview.selected {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 /* ═══ Responsive ═══ */
 @media (max-width: 768px) {
   .tile-count-buttons button {
     padding: 8px 10px;
-    font-size: 12px;
+    font-size: var(--ds-text-xs);
     min-height: 40px;
   }
 

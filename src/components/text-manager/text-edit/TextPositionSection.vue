@@ -144,9 +144,9 @@ const {
   padding: 6px 8px;
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-text);
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   margin-left: 8px;
 }
 .number-input:focus {
@@ -155,7 +155,7 @@ const {
 }
 .unit-label {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   margin-left: 4px;
 }
 .position-grid {
@@ -169,10 +169,10 @@ const {
   border: 1px solid var(--border-color);
   color: var(--text-muted);
   padding: 8px;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  font-size: 16px;
-  transition: all 0.15s ease;
+  font-size: var(--ds-text-lg);
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;

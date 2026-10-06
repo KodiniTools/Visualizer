@@ -227,13 +227,13 @@ function redraw() {
   align-items: center;
   background: color-mix(in srgb, var(--ds-success) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   padding: 6px 10px;
 }
 
 .multi-count {
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   color: var(--ds-success);
 }
 
@@ -243,7 +243,7 @@ function redraw() {
 }
 
 .hint {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin: 0;
 }
@@ -257,8 +257,8 @@ function redraw() {
 }
 
 .section-title {
-  font-size: 0.6rem;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   color: var(--text-muted);
@@ -271,7 +271,7 @@ function redraw() {
 }
 
 .control-row label {
-  font-size: 0.58rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
 }
 
@@ -286,7 +286,7 @@ function redraw() {
   width: 32px;
   height: 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   padding: 0;
 }
@@ -296,9 +296,9 @@ function redraw() {
   padding: 3px 6px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
 }
 
 .slider {
@@ -306,7 +306,7 @@ function redraw() {
 }
 
 .val-label {
-  font-size: 0.58rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   min-width: 32px;
 }
@@ -316,19 +316,19 @@ function redraw() {
   padding: 3px 6px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
 }
 
 .btn-apply {
   padding: 3px 8px;
   background: var(--accent-primary);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-on-accent);
-  font-size: 0.58rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -342,9 +342,9 @@ function redraw() {
   padding: 3px 7px;
   background: color-mix(in srgb, var(--ds-success) 20%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-success) 40%, transparent);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-success);
-  font-size: 0.58rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 
@@ -352,9 +352,9 @@ function redraw() {
   padding: 3px 7px;
   background: none;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-muted);
-  font-size: 0.58rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 
@@ -374,9 +374,9 @@ function redraw() {
   height: 28px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.7rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -390,7 +390,7 @@ function redraw() {
 }
 
 .nudge-hint {
-  font-size: 0.52rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-left: 4px;
 }
@@ -405,9 +405,9 @@ function redraw() {
   padding: 3px 6px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 
@@ -420,13 +420,13 @@ function redraw() {
   padding: 6px 10px;
   background: color-mix(in srgb, var(--ds-link) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-link) 35%, transparent);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-link);
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
   width: 100%;
-  transition: background 0.15s;
+  transition: background var(--ds-duration) var(--ds-ease);
 }
 
 .btn-copy-audio:hover:not(:disabled) {
@@ -443,12 +443,12 @@ function redraw() {
   width: 100%;
   background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--ds-danger);
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--ds-duration) var(--ds-ease);
 }
 
 .btn-delete-all:hover {

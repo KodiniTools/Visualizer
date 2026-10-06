@@ -250,7 +250,7 @@ onBeforeUnmount(stopLevelIndicator)
   background: color-mix(in srgb, var(--ds-link) 6%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
   border-left: 2px solid var(--ds-link);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
 }
 .var-header {
   display: flex;
@@ -259,14 +259,14 @@ onBeforeUnmount(stopLevelIndicator)
   margin-bottom: 6px;
 }
 .var-title {
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-link);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 .var-label {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 [data-theme='light'] .var-title {

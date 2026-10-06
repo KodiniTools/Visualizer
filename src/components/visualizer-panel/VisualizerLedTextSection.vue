@@ -163,15 +163,15 @@ function setTarget(local) {
 
 .led-text__label {
   display: block;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .led-text--compact .led-text__label {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   text-transform: none;
   letter-spacing: 0;
 }
@@ -182,15 +182,15 @@ function setTarget(local) {
   background-color: var(--secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   padding: 4px 6px;
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   color-scheme: dark;
 }
 
 .led-text__textarea {
   resize: vertical;
-  font-family: monospace;
+  font-family: var(--ds-font-mono);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -211,9 +211,9 @@ function setTarget(local) {
   background-color: var(--secondary-bg);
   color: var(--text-muted);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   padding: 3px 6px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 
@@ -221,26 +221,26 @@ function setTarget(local) {
   color: var(--text-primary);
   border-color: var(--accent-primary);
   background-color: var(--ds-accent-soft);
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 
 .led-text__check {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.62rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   cursor: pointer;
 }
 
 .led-text__hint {
-  font-size: 0.58rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   opacity: 0.85;
 }
 
 .led-text__preview {
-  font-family: monospace;
+  font-family: var(--ds-font-mono);
   color: var(--text-primary);
   letter-spacing: 0.05em;
 }

@@ -134,8 +134,8 @@ const open = ref(false)
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-text-2);
   padding: 4px 2px;
   user-select: none;
@@ -149,7 +149,7 @@ const open = ref(false)
   border-right: 1.5px solid currentColor;
   border-bottom: 1.5px solid currentColor;
   transform: rotate(45deg);
-  transition: transform 0.2s ease;
+  transition: transform var(--ds-duration) var(--ds-ease);
   opacity: 0.6;
   flex-shrink: 0;
 }
@@ -160,14 +160,14 @@ const open = ref(false)
 .fx-master {
   margin: 6px 0 4px;
   gap: 8px;
-  font-size: 0.82rem;
+  font-size: var(--ds-text-sm);
   color: var(--ds-text-2);
 }
 .fx-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.78rem;
+  font-size: var(--ds-text-sm);
   color: var(--ds-text-2);
 }
 .toggle-switch {
@@ -182,9 +182,9 @@ const open = ref(false)
   width: 28px;
   height: 15px;
   background: var(--ds-surface-3);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   position: relative;
-  transition: background 0.2s;
+  transition: background var(--ds-duration) var(--ds-ease);
 }
 .toggle-switch input:checked + .toggle-track {
   background: var(--ds-link);
@@ -195,10 +195,10 @@ const open = ref(false)
   width: 11px;
   height: 11px;
   background: #fff;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   top: 2px;
   left: 2px;
-  transition: left 0.2s;
+  transition: left var(--ds-duration) var(--ds-ease);
 }
 .toggle-switch input:checked + .toggle-track::after {
   left: 15px;
@@ -208,7 +208,7 @@ const open = ref(false)
   width: 28px;
   height: 22px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   padding: 0;
   background: none;
@@ -216,8 +216,8 @@ const open = ref(false)
 
 .fx-group-label {
   margin: 10px 0 2px;
-  font-size: 0.62rem;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   color: var(--ds-text-2);

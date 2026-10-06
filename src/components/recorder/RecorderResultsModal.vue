@@ -51,8 +51,7 @@ defineEmits(['close'])
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.95);
-  backdrop-filter: blur(10px);
-  z-index: 9999;
+  z-index: var(--ds-z-player);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -73,8 +72,8 @@ defineEmits(['close'])
 
 .modal-content {
   background: var(--secondary-bg);
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-overlay);
   max-width: 800px;
   max-height: 85vh;
   width: 90%;
@@ -108,8 +107,8 @@ defineEmits(['close'])
 
 .modal-header h2 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 700;
+  font-size: var(--ds-text-xl);
+  font-weight: var(--ds-weight-bold);
   color: var(--text-primary);
   display: flex;
   align-items: center;
@@ -123,12 +122,12 @@ defineEmits(['close'])
   border: none;
   background: var(--btn-hover);
   color: var(--text-muted);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   padding: 0;
 }
 
@@ -140,7 +139,6 @@ defineEmits(['close'])
 .modal-close-btn:hover {
   background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
   color: var(--ds-danger);
-  transform: rotate(90deg);
 }
 
 .modal-body {
@@ -158,9 +156,9 @@ defineEmits(['close'])
   justify-content: center;
   align-items: center;
   background: #000;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--ds-shadow-overlay);
   flex: 0 1 auto;
   min-height: 0;
 }
@@ -192,11 +190,11 @@ defineEmits(['close'])
   background: var(--secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
+  border-radius: var(--ds-radius-md);
+  font-weight: var(--ds-weight-semibold);
+  font-size: var(--ds-text-md);
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   cursor: pointer;
 }
 
@@ -215,7 +213,7 @@ defineEmits(['close'])
     padding: 16px 20px;
   }
   .modal-header h2 {
-    font-size: 16px;
+    font-size: var(--ds-text-lg);
   }
   .modal-body {
     padding: 16px 20px;
@@ -231,7 +229,7 @@ defineEmits(['close'])
   .cancel-btn {
     width: 100%;
     justify-content: center;
-    font-size: 14px;
+    font-size: var(--ds-text-md);
   }
 }
 
@@ -246,6 +244,6 @@ defineEmits(['close'])
 }
 
 [data-theme='light'] .modal-content {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--ds-shadow-overlay);
 }
 </style>

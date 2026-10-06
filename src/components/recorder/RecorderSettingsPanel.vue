@@ -216,16 +216,16 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 }
 
 .section-label {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .server-status {
-  font-size: 12px;
-  transition: color 0.3s ease;
+  font-size: var(--ds-text-xs);
+  transition: color var(--ds-duration-slow) var(--ds-ease);
 }
 
 .server-status.available {
@@ -247,12 +247,12 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
   background-color: var(--secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   padding: 6px 8px;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
+  transition: all var(--ds-duration) var(--ds-ease);
+  font-weight: var(--ds-weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -260,7 +260,6 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 .quality-btn:hover,
 .upload-btn:hover {
   background-color: var(--btn-hover);
-  transform: translateY(-1px);
 }
 
 .quality-btn.active,
@@ -268,7 +267,7 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
   background-color: var(--ds-link);
   color: #fff;
   border-color: var(--ds-link);
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 
 .quality-btn.active:hover,
@@ -320,7 +319,7 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 }
 
 .toggle-label {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
 }
 
@@ -332,7 +331,7 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
   margin-top: 6px;
   padding: 6px 8px;
   background: var(--secondary-bg);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   border: 1px solid var(--border-color);
 }
 
@@ -343,7 +342,7 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 }
 
 .gif-option-label {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -351,7 +350,7 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 }
 
 .extra-info {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-3);
   margin: 4px 0 0 0;
   text-align: center;

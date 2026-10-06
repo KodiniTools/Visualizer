@@ -90,7 +90,7 @@ defineProps({
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10001;
+  z-index: calc(var(--ds-z-toast) + 1);
   animation: fadeIn 0.2s ease;
 }
 
@@ -105,9 +105,9 @@ defineProps({
 
 .replace-gallery-modal {
   background: var(--card-bg);
-  border-radius: 12px;
+  border-radius: var(--ds-radius-lg);
   border: 1px solid var(--border-color);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--ds-shadow-overlay);
   width: 90vw;
   max-width: 800px;
   max-height: 80vh;
@@ -137,24 +137,24 @@ defineProps({
 
 .replace-gallery-header h3 {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: var(--ds-text-lg);
+  font-weight: var(--ds-weight-semibold);
   color: var(--accent-ink);
 }
 
 .replace-gallery-close {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid var(--ds-border);
   color: var(--ds-text);
-  font-size: 18px;
+  font-size: var(--ds-text-xl);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .replace-gallery-close:hover {
@@ -176,15 +176,15 @@ defineProps({
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  border-radius: 20px;
+  border-radius: var(--ds-radius-lg);
   border: 1px solid var(--ds-border);
   background: rgba(0, 0, 0, 0.2);
   color: var(--text-muted);
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .replace-category-tab:hover {
@@ -199,10 +199,10 @@ defineProps({
 }
 
 .category-icon {
-  font-size: 1rem;
+  font-size: var(--ds-text-lg);
 }
 .category-name {
-  font-size: 0.75rem;
+  font-size: var(--ds-text-xs);
 }
 
 .replace-gallery-content {
@@ -219,7 +219,7 @@ defineProps({
   justify-content: center;
   height: 150px;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--ds-text-md);
 }
 
 .replace-gallery-grid {
@@ -230,23 +230,21 @@ defineProps({
 
 .replace-gallery-item {
   aspect-ratio: 1;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   overflow: hidden;
   cursor: pointer;
   border: 2px solid transparent;
   background: rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   position: relative;
 }
 
 .replace-gallery-item:hover {
   border-color: var(--ds-accent);
-  transform: scale(1.03);
 }
 
 .replace-gallery-item.selected {
   border-color: var(--ds-success);
-  box-shadow: 0 0 12px rgba(74, 222, 128, 0.3);
 }
 
 .replace-gallery-item img {
@@ -263,7 +261,7 @@ defineProps({
   padding: 4px 6px;
   background: rgba(0, 0, 0, 0.7);
   color: var(--ds-text);
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -280,13 +278,13 @@ defineProps({
 
 .btn-cancel {
   padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   border: 1px solid var(--ds-border);
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: var(--ds-text-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-cancel:hover {
@@ -296,19 +294,18 @@ defineProps({
 
 .btn-confirm {
   padding: 8px 20px;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   border: 1px solid color-mix(in srgb, var(--ds-success) 40%, transparent);
   background: color-mix(in srgb, var(--ds-success) 15%, transparent);
   color: var(--ds-success);
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-confirm:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ds-success) 25%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-confirm:disabled {
@@ -318,7 +315,7 @@ defineProps({
 
 /* Light theme */
 [data-theme='light'] .replace-gallery-modal {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--ds-shadow-overlay);
 }
 [data-theme='light'] .replace-gallery-close {
   background: rgba(0, 0, 0, 0.06);

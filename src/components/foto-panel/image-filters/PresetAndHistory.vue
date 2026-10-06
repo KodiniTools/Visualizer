@@ -64,32 +64,35 @@ const {
 <style scoped src="../../ui/slider-control.css"></style>
 <style scoped src="./image-filters-shared.css"></style>
 <style scoped>
+/* Drei Buttons in Größe sm (UiButton secondary); bei schmalem Panel bricht die Zeile um */
 .history-actions {
   display: flex;
-  gap: 4px;
-  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: var(--ds-space-1);
+  margin-top: var(--ds-space-4);
 }
 .btn-history {
-  flex: 1;
-  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 6px 8px;
-  border-radius: 5px;
-  border: 1px solid var(--border-color);
+  gap: var(--ds-space-1);
+  height: var(--ds-control-sm);
+  padding: 0 var(--ds-space-2);
+  border-radius: var(--ds-radius-sm);
+  border: 1px solid var(--ds-border-strong);
   background-color: var(--secondary-bg);
   color: var(--text-primary);
-  font-size: 0.55rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  white-space: nowrap;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 .btn-history svg {
-  width: 11px;
-  height: 11px;
+  width: var(--ds-icon-sm);
+  height: var(--ds-icon-sm);
   flex-shrink: 0;
 }
 .btn-history:hover:not(:disabled) {

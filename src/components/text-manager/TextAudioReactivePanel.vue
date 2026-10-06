@@ -323,21 +323,21 @@ onBeforeUnmount(stopLevelIndicator)
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-secondary);
   padding: 6px 0;
   list-style: none;
 }
 .section-icon {
-  font-size: 0.8rem;
+  font-size: var(--ds-text-sm);
 }
 .status-badge {
   margin-left: auto;
   padding: 1px 6px;
-  border-radius: 8px;
-  font-size: 0.5rem;
-  font-weight: 600;
+  border-radius: var(--ds-radius-md);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
 }
 .status-badge.active {
@@ -352,12 +352,12 @@ onBeforeUnmount(stopLevelIndicator)
   padding: 8px;
   background: color-mix(in srgb, var(--ds-link) 6%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
 }
 .advanced-settings summary {
   cursor: pointer;
-  font-size: 0.65rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-secondary);
   list-style: none;
 }
@@ -372,10 +372,10 @@ onBeforeUnmount(stopLevelIndicator)
 }
 .btn-preset {
   padding: 5px 6px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   background: color-mix(in srgb, var(--ds-link) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
   cursor: pointer;
   white-space: nowrap;
@@ -387,7 +387,7 @@ onBeforeUnmount(stopLevelIndicator)
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 .button-group {
@@ -398,10 +398,10 @@ onBeforeUnmount(stopLevelIndicator)
 .btn-reset {
   flex: 1;
   padding: 5px 6px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
   cursor: pointer;
 }
@@ -409,7 +409,7 @@ onBeforeUnmount(stopLevelIndicator)
   border-color: var(--accent-primary);
 }
 .hint-text {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-top: 3px;
   line-height: 1.4;

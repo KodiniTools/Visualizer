@@ -93,7 +93,7 @@ function handleConfirmReset() {
 
 <style scoped>
 .info-text {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   line-height: 1.3;
   margin: 0 0 6px 0;
@@ -101,11 +101,11 @@ function handleConfirmReset() {
 
 .info-text.warning {
   color: var(--ds-warning);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 .hint-text {
-  font-size: 0.5rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   font-style: italic;
 }
@@ -125,12 +125,12 @@ function handleConfirmReset() {
   padding: 8px 10px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.55rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-reset-option:hover:not(:disabled) {
@@ -148,11 +148,11 @@ function handleConfirmReset() {
 .btn-danger {
   padding: 6px 10px;
   border: none;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  font-size: 0.6rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -166,7 +166,6 @@ function handleConfirmReset() {
 .btn-secondary:hover {
   background-color: var(--btn-hover);
   border-color: var(--accent-primary);
-  transform: translateY(-1px);
 }
 
 .btn-danger {
@@ -177,7 +176,6 @@ function handleConfirmReset() {
 
 .btn-danger:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-danger:disabled {
@@ -207,22 +205,22 @@ function handleConfirmReset() {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: var(--ds-z-backdrop);
 }
 
 .confirm-dialog {
   background-color: var(--card-bg);
   border: 1px solid color-mix(in srgb, var(--ds-danger) 50%, transparent);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 12px;
   max-width: 300px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 .confirm-dialog h4 {
   margin: 0 0 8px 0;
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-danger);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -230,7 +228,7 @@ function handleConfirmReset() {
 
 .confirm-dialog p {
   margin: 0 0 12px 0;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   line-height: 1.5;
   color: var(--text-primary);
 }
@@ -263,20 +261,20 @@ function handleConfirmReset() {
 }
 
 [data-theme='light'] .confirm-dialog {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 @media (max-width: 768px) {
   .btn-secondary,
   .btn-danger {
     padding: 8px 12px;
-    font-size: 0.65rem;
+    font-size: var(--ds-text-xs);
     min-height: 40px;
   }
 
   .btn-reset-option {
     padding: 8px 10px;
-    font-size: 0.6rem;
+    font-size: var(--ds-text-xs);
     min-height: 40px;
   }
 
@@ -293,12 +291,12 @@ function handleConfirmReset() {
   .btn-secondary,
   .btn-danger {
     min-height: 44px;
-    font-size: 0.7rem;
+    font-size: var(--ds-text-xs);
   }
 
   .btn-reset-option {
     min-height: 44px;
-    font-size: 0.65rem;
+    font-size: var(--ds-text-xs);
   }
 }
 </style>

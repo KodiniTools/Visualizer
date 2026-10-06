@@ -604,7 +604,7 @@ onUnmounted(() => {
 .canvas-wrapper {
   flex-grow: 1;
   background-color: var(--card-bg);
-  border-radius: 12px;
+  border-radius: var(--ds-radius-lg);
   overflow: auto;
   min-height: 0;
   display: flex;

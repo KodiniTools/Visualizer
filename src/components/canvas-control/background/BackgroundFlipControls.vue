@@ -79,12 +79,12 @@ const {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-left: 2px solid var(--accent-primary);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
 }
 .flip-section h5 {
   margin: 0 0 8px 0;
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--accent-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -102,12 +102,12 @@ const {
   padding: 6px 8px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.55rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 .flip-button:hover {
   background: var(--btn-hover);

@@ -47,12 +47,12 @@ const { flipHRef, flipVRef, onSliderStart, onFlipHorizontal, onFlipVertical } = 
   padding: 10px 12px;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--ds-duration-slow) var(--ds-ease);
   text-align: center;
 }
 .flip-button:hover {
@@ -74,8 +74,8 @@ const { flipHRef, flipVRef, onSliderStart, onFlipHorizontal, onFlipVertical } = 
 }
 .modern-section-header h4 {
   margin: 0;
-  font-size: 0.65rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-muted);
   letter-spacing: 0.5px;
   text-transform: uppercase;

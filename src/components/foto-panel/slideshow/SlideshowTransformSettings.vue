@@ -91,13 +91,13 @@ function resetTransform() {
 .btn-reset-transform {
   margin-top: 8px;
   padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   border: 1px solid var(--border-color);
   background-color: var(--card-bg);
   color: var(--ds-text);

@@ -150,7 +150,7 @@ defineExpose({ sync })
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
 }
 .toggle-label input[type='checkbox'] {

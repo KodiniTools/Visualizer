@@ -1,6 +1,6 @@
 /* Gemeinsame Styles der Slideshow-Sektionen (SlideshowPanel + slideshow/*) */
 .section-label {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -30,7 +30,7 @@
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text);
 }
 .checkbox-label input[type='checkbox'] {
@@ -40,7 +40,7 @@
   cursor: pointer;
 }
 .hint {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin: 0;
   padding-left: 26px;
@@ -96,7 +96,7 @@
   .order-number {
     width: 24px;
     height: 24px;
-    font-size: 10px;
+    font-size: var(--ds-text-xs);
   }
 
   .image-order-list {

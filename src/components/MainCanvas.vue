@@ -146,7 +146,7 @@ defineExpose({
 .canvas-wrapper {
   flex-grow: 1;
   background-color: var(--card-bg);
-  border-radius: 12px;
+  border-radius: var(--ds-radius-lg);
   overflow: auto;
   min-height: 0;
   display: flex;
@@ -168,8 +168,5 @@ canvas {
 .canvas-wrapper.gallery-drop-active {
   outline: 3px dashed var(--accent-primary);
   outline-offset: -3px;
-}
-.canvas-wrapper.gallery-drop-active canvas {
-  box-shadow: 0 0 0 3px rgba(201, 152, 77, 0.5);
 }
 </style>

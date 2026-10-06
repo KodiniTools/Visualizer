@@ -280,7 +280,7 @@ onMounted(() => {
   flex-direction: column;
   gap: 8px;
   padding: 10px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   border: 1px solid var(--image-section-accent);
   background-color: var(--card-bg);
 }
@@ -293,7 +293,7 @@ onMounted(() => {
   width: 36px;
   height: 36px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   flex-shrink: 0;
 }
 .image-editor-title {
@@ -303,13 +303,13 @@ onMounted(() => {
   flex-direction: column;
 }
 .image-editor-label {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-muted);
 }
 .image-editor-name {
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text);
   white-space: nowrap;
   overflow: hidden;
@@ -321,24 +321,24 @@ onMounted(() => {
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--ds-text-md);
   padding: 2px 6px;
 }
 .image-editor-field {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 .image-editor-field select,
 .image-editor-field input {
   padding: 4px 6px;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   background: var(--secondary-bg);
   color: var(--ds-text);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 .image-editor-times {
   display: flex;

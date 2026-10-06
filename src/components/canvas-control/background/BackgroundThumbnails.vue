@@ -58,12 +58,12 @@ const {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-left: 2px solid var(--accent-primary);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
 }
 .background-thumb-section h5 {
   margin: 0 0 8px 0;
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--accent-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -73,14 +73,13 @@ const {
   width: 100%;
   height: 60px;
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 .background-thumb:hover {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 8px rgba(201, 152, 77, 0.3);
 }
 .background-thumb img {
   width: 100%;
@@ -95,10 +94,10 @@ const {
   padding: 4px 6px;
   background: rgba(0, 0, 0, 0.7);
   color: var(--text-primary);
-  font-size: 0.5rem;
+  font-size: var(--ds-text-xs);
   text-align: center;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--ds-duration) var(--ds-ease);
 }
 .background-thumb:hover .thumb-hint {
   opacity: 1;
@@ -109,9 +108,6 @@ const {
 }
 [data-theme='light'] .background-thumb-section {
   border-left-color: var(--accent-primary);
-}
-[data-theme='light'] .background-thumb:hover {
-  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 [data-theme='light'] .background-thumb .thumb-hint {
   background: rgba(255, 255, 255, 0.85);

@@ -49,12 +49,12 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
   padding: 12px;
   background: color-mix(in srgb, var(--ds-surface-1) 60%, transparent);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
 }
 
 .presets-section > label {
   display: block;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-2);
   margin-bottom: 8px;
 }
@@ -64,17 +64,12 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
   padding: 8px 12px;
   background: var(--ds-link);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   color: white;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn-save-preset:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(110, 168, 254, 0.3);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .presets-list {
@@ -91,8 +86,8 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
   padding: 6px 10px;
   background: color-mix(in srgb, var(--ds-surface-2) 80%, transparent);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
-  transition: all 0.15s ease;
+  border-radius: var(--ds-radius-sm);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .preset-item:hover {
@@ -100,7 +95,7 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
 }
 
 .preset-name {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text);
 }
 
@@ -111,11 +106,11 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
 
 .btn-small {
   padding: 3px 6px;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   border: none;
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-load {
@@ -135,7 +130,7 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
 }
 
 .hint-text {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-3);
   text-align: center;
   margin-top: 8px;
@@ -154,10 +149,6 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
 [data-theme='light'] .btn-save-preset {
   background: var(--accent-primary);
   color: var(--accent-text);
-}
-
-[data-theme='light'] .btn-save-preset:hover {
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 [data-theme='light'] .preset-item {

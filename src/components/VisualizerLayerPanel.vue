@@ -552,18 +552,18 @@ function updateProperty(layerId, property, value) {
   display: none;
 }
 .layer-effects-title {
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   color: var(--text-muted);
 }
 .layer-effects-count {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--accent-text);
   background-color: var(--accent-primary);
   padding: 0 5px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
 }
 .layer-effects-reset {
   margin-left: auto;
@@ -594,18 +594,18 @@ function updateProperty(layerId, property, value) {
   margin-bottom: 6px;
 }
 .layer-presets-title {
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   color: var(--text-muted);
 }
 .layer-presets-count {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   background-color: var(--ds-accent-soft);
   padding: 1px 5px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
 }
 .save-preset-row {
   display: flex;
@@ -618,9 +618,9 @@ function updateProperty(layerId, property, value) {
   background-color: var(--secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   padding: 6px 8px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
 }
 .preset-name-input:focus {
   outline: none;
@@ -649,10 +649,10 @@ function updateProperty(layerId, property, value) {
   align-items: center;
   gap: 4px;
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   background-color: var(--secondary-bg);
   padding: 2px 4px 2px 0;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 .preset-item:hover {
   border-color: var(--accent-primary);
@@ -671,14 +671,14 @@ function updateProperty(layerId, property, value) {
   border: none;
   color: var(--text-primary);
   padding: 5px 8px;
-  font-size: 0.6rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   text-align: left;
   cursor: pointer;
 }
 .preset-item.active .preset-apply-btn {
   color: var(--accent-tertiary);
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 .preset-name {
   flex: 1;
@@ -687,11 +687,11 @@ function updateProperty(layerId, property, value) {
   white-space: nowrap;
 }
 .preset-layer-count {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   background-color: var(--ds-accent-soft);
   padding: 1px 5px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
 }
 .no-presets {
   padding: 8px;
@@ -714,7 +714,7 @@ function updateProperty(layerId, property, value) {
 
 .layer-panel {
   background-color: var(--card-bg);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 10px;
   border: 1px solid var(--border-color);
   margin-top: 10px;
@@ -734,8 +734,8 @@ function updateProperty(layerId, property, value) {
 }
 
 .header-title {
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -745,12 +745,12 @@ function updateProperty(layerId, property, value) {
   background-color: var(--secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   padding: 4px 10px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
+  transition: all var(--ds-duration) var(--ds-ease);
+  font-weight: var(--ds-weight-medium);
 }
 
 .toggle-btn:hover {
@@ -781,9 +781,9 @@ function updateProperty(layerId, property, value) {
   background-color: var(--secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   padding: 6px 8px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
   min-width: 0;
 }
@@ -794,7 +794,7 @@ function updateProperty(layerId, property, value) {
 }
 
 .add-layer-select optgroup {
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-muted);
 }
 
@@ -807,12 +807,12 @@ function updateProperty(layerId, property, value) {
   background-color: var(--accent-primary);
   color: var(--accent-text);
   border: none;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   padding: 6px 12px;
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -842,11 +842,11 @@ function updateProperty(layerId, property, value) {
 .layer-item {
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
   flex-shrink: 0;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .layer-item:hover {
@@ -872,15 +872,15 @@ function updateProperty(layerId, property, value) {
 .visibility-btn {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   color: var(--text-muted);
-  font-size: 0.5rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.2px;
   padding: 2px 5px;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   flex-shrink: 0;
 }
 
@@ -892,14 +892,14 @@ function updateProperty(layerId, property, value) {
 .layer-color {
   width: 14px;
   height: 14px;
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   border: 1px solid var(--ds-border);
   flex-shrink: 0;
 }
 
 .layer-name {
   flex: 1;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -915,16 +915,16 @@ function updateProperty(layerId, property, value) {
   background-color: var(--card-bg);
   color: var(--text-muted);
   border: 1px solid var(--border-color);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  font-size: 0.5rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.2px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -979,18 +979,18 @@ function updateProperty(layerId, property, value) {
 }
 
 .detail-label {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 .detail-select {
   background-color: var(--secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   padding: 4px 6px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 
@@ -1003,7 +1003,7 @@ function updateProperty(layerId, property, value) {
   width: 100%;
   height: 24px;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   background-color: var(--secondary-bg);
 }
@@ -1014,13 +1014,13 @@ function updateProperty(layerId, property, value) {
 
 .detail-color::-webkit-color-swatch {
   border: none;
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .detail-slider {
   width: 100%;
   height: 4px;
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
   outline: none;
   cursor: pointer;
   -webkit-appearance: none;
@@ -1033,21 +1033,19 @@ function updateProperty(layerId, property, value) {
   appearance: none;
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--accent-tertiary);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .detail-slider::-moz-range-thumb {
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--accent-tertiary);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .position-slider {
@@ -1078,7 +1076,7 @@ function updateProperty(layerId, property, value) {
   text-align: center;
   padding: 15px;
   color: var(--text-muted);
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   font-style: italic;
 }
 
@@ -1089,12 +1087,12 @@ function updateProperty(layerId, property, value) {
 
 .layer-list::-webkit-scrollbar-track {
   background: var(--card-bg);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .layer-list::-webkit-scrollbar-thumb {
   background: var(--border-color);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .layer-list::-webkit-scrollbar-thumb:hover {
@@ -1146,13 +1144,11 @@ function updateProperty(layerId, property, value) {
 [data-theme='light'] .detail-slider::-webkit-slider-thumb {
   background: var(--accent-primary);
   border-color: var(--card-bg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .detail-slider::-moz-range-thumb {
   background: var(--accent-primary);
   border-color: var(--card-bg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .position-slider {

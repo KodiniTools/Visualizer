@@ -132,8 +132,8 @@ defineExpose({ loadImageSettings: controls.loadImageSettings })
 }
 .foto-panel-container h4 {
   margin: 0 0 6px 0;
-  font-size: 0.6rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -144,7 +144,7 @@ defineExpose({ loadImageSettings: controls.loadImageSettings })
   height: 2px;
   background: linear-gradient(90deg, transparent, var(--image-section-accent), transparent);
   margin: 24px 0 20px 0;
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
 }
 
 [data-theme='light'] .foto-panel-container {

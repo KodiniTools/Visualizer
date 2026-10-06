@@ -447,7 +447,7 @@ function toggleFaq(index) {
   flex-direction: column;
   background: var(--primary-bg);
   color: var(--text-primary);
-  font-family: var(--font-sans);
+  font-family: var(--ds-font-sans);
   overflow-x: hidden;
 }
 
@@ -457,15 +457,13 @@ function toggleFaq(index) {
 .landing-header {
   position: fixed;
   top: 60px;
-  /* Space for global navigation */
   left: 0;
   right: 0;
   z-index: 50;
-  /* Lower than global nav dropdown */
   padding: 16px 24px;
   background: var(--card-bg);
   border-bottom: 1px solid var(--border-color);
-  transition: top 0.3s ease;
+  transition: top var(--ds-duration-slow) var(--ds-ease);
 }
 
 .landing-header.scrolled {
@@ -485,8 +483,8 @@ function toggleFaq(index) {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 700;
-  font-size: 1.1rem;
+  font-weight: var(--ds-weight-bold);
+  font-size: var(--ds-text-xl);
   color: var(--text-primary);
 }
 
@@ -499,9 +497,9 @@ function toggleFaq(index) {
 .nav-link {
   color: var(--text-muted);
   text-decoration: none;
-  font-weight: 500;
-  font-size: 0.95rem;
-  transition: color 0.2s ease;
+  font-weight: var(--ds-weight-medium);
+  font-size: var(--ds-text-lg);
+  transition: color var(--ds-duration) var(--ds-ease);
 }
 
 .nav-link:hover,
@@ -532,8 +530,8 @@ function toggleFaq(index) {
   background: var(--ds-accent-soft);
   border: 1px solid var(--accent-primary);
   border-radius: var(--ds-radius-full);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -542,7 +540,7 @@ function toggleFaq(index) {
 
 .hero-title {
   font-size: clamp(1.8rem, 4vw, 2.8rem);
-  font-weight: 700;
+  font-weight: var(--ds-weight-bold);
   line-height: 1.15;
   margin: 0 0 24px 0;
   color: var(--text-primary);
@@ -553,7 +551,7 @@ function toggleFaq(index) {
 }
 
 .hero-subtitle {
-  font-size: 1.15rem;
+  font-size: var(--ds-text-xl);
   line-height: 1.7;
   color: var(--text-muted);
   margin: 0 0 40px 0;
@@ -576,8 +574,8 @@ function toggleFaq(index) {
   padding: 16px 32px;
   background: var(--accent-primary);
   color: var(--accent-text);
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: var(--ds-text-lg);
+  font-weight: var(--ds-weight-semibold);
   border-radius: var(--ds-radius-md);
   text-decoration: none;
   transition: background-color var(--ds-duration) var(--ds-ease);
@@ -594,8 +592,8 @@ function toggleFaq(index) {
   padding: 16px 32px;
   background: var(--secondary-bg);
   color: var(--text-primary);
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: var(--ds-text-lg);
+  font-weight: var(--ds-weight-semibold);
   border: 1px solid var(--ds-border-strong);
   border-radius: var(--ds-radius-md);
   text-decoration: none;
@@ -609,7 +607,7 @@ function toggleFaq(index) {
 
 .btn-large {
   padding: 20px 44px;
-  font-size: 1.1rem;
+  font-size: var(--ds-text-xl);
 }
 
 .btn-icon {
@@ -634,7 +632,7 @@ function toggleFaq(index) {
 .wave-bar {
   width: 8px;
   background: var(--accent-primary);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   animation: wave 1.2s ease-in-out infinite;
 }
 
@@ -656,13 +654,13 @@ function toggleFaq(index) {
 
 .section-title {
   font-size: clamp(1.8rem, 4vw, 2.5rem);
-  font-weight: 700;
+  font-weight: var(--ds-weight-bold);
   color: var(--text-primary);
   margin: 0 0 16px 0;
 }
 
 .section-subtitle {
-  font-size: 1.1rem;
+  font-size: var(--ds-text-xl);
   color: var(--text-muted);
   margin: 0;
   max-width: 500px;
@@ -698,7 +696,7 @@ function toggleFaq(index) {
 .feature-icon {
   width: 60px;
   height: 60px;
-  border-radius: 16px;
+  border-radius: var(--ds-radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -707,14 +705,14 @@ function toggleFaq(index) {
 }
 
 .feature-title {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xl);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-primary);
   margin: 0 0 12px 0;
 }
 
 .feature-description {
-  font-size: 0.95rem;
+  font-size: var(--ds-text-lg);
   line-height: 1.7;
   color: var(--text-secondary);
   margin: 0;
@@ -741,7 +739,7 @@ function toggleFaq(index) {
 .video-container {
   position: relative;
   aspect-ratio: 16 / 9;
-  border-radius: 20px;
+  border-radius: var(--ds-radius-lg);
   overflow: hidden;
 }
 
@@ -764,7 +762,7 @@ function toggleFaq(index) {
   width: 90px;
   height: 90px;
   background: var(--accent-primary);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -784,7 +782,7 @@ function toggleFaq(index) {
 
 .video-placeholder-text {
   color: var(--text-muted);
-  font-size: 1rem;
+  font-size: var(--ds-text-lg);
   margin: 0;
 }
 
@@ -804,10 +802,10 @@ function toggleFaq(index) {
 .faq-item {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: var(--ds-radius-lg);
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--ds-duration-slow) var(--ds-ease);
 }
 
 .light-theme .faq-item {
@@ -828,14 +826,14 @@ function toggleFaq(index) {
   align-items: center;
   justify-content: space-between;
   padding: 24px 28px;
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xl);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-primary);
 }
 
 .faq-icon {
   color: var(--accent-ink);
-  transition: transform 0.3s ease;
+  transition: transform var(--ds-duration-slow) var(--ds-ease);
   flex-shrink: 0;
   margin-left: 16px;
 }
@@ -848,8 +846,8 @@ function toggleFaq(index) {
   max-height: 0;
   overflow: hidden;
   transition:
-    max-height 0.3s ease,
-    padding 0.3s ease;
+    max-height var(--ds-duration-slow) var(--ds-ease),
+    padding var(--ds-duration-slow) var(--ds-ease);
 }
 
 .faq-item.active .faq-answer {
@@ -859,7 +857,7 @@ function toggleFaq(index) {
 .faq-answer p {
   padding: 0 28px 24px;
   margin: 0;
-  font-size: 0.95rem;
+  font-size: var(--ds-text-lg);
   line-height: 1.7;
   color: var(--text-secondary);
 }
@@ -911,7 +909,7 @@ function toggleFaq(index) {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.4s ease;
+  transition: transform var(--ds-duration-slow) var(--ds-ease);
 }
 
 .blog-card:hover .blog-card-media img {
@@ -934,31 +932,31 @@ function toggleFaq(index) {
 }
 
 .blog-card-tag {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--accent-text);
   background: var(--accent-tertiary);
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-full);
 }
 
 .blog-card-meta {
-  font-size: 0.85rem;
+  font-size: var(--ds-text-sm);
   color: var(--text-muted);
 }
 
 .blog-card-title {
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xl);
+  font-weight: var(--ds-weight-semibold);
   line-height: 1.4;
   color: var(--text-primary);
   margin: 0;
 }
 
 .blog-card-description {
-  font-size: 0.95rem;
+  font-size: var(--ds-text-lg);
   line-height: 1.7;
   color: var(--text-secondary);
   margin: 0;
@@ -973,8 +971,8 @@ function toggleFaq(index) {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-secondary);
   margin-top: 4px;
 }
@@ -996,13 +994,13 @@ function toggleFaq(index) {
 
 .cta-title {
   font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 700;
+  font-weight: var(--ds-weight-bold);
   color: var(--text-primary);
   margin: 0 0 20px 0;
 }
 
 .cta-subtitle {
-  font-size: 1.15rem;
+  font-size: var(--ds-text-xl);
   color: var(--text-muted);
   margin: 0 0 40px 0;
   line-height: 1.7;
@@ -1061,11 +1059,11 @@ function toggleFaq(index) {
   }
 
   .hero-title {
-    font-size: 2rem;
+    font-size: var(--ds-text-3xl);
   }
 
   .hero-subtitle {
-    font-size: 1rem;
+    font-size: var(--ds-text-lg);
   }
 
   .btn-primary,
@@ -1091,12 +1089,12 @@ function toggleFaq(index) {
 
   .faq-question {
     padding: 20px 22px;
-    font-size: 0.95rem;
+    font-size: var(--ds-text-lg);
   }
 
   .faq-answer p {
     padding: 0 22px 20px;
-    font-size: 0.9rem;
+    font-size: var(--ds-text-md);
   }
 }
 
@@ -1132,21 +1130,21 @@ function toggleFaq(index) {
   position: fixed;
   right: 20px;
   bottom: 20px;
-  z-index: 2100;
+  z-index: var(--ds-z-dialog);
 }
 
 .admin-fab-btn {
   padding: 12px 18px;
-  border-radius: 30px;
+  border-radius: var(--ds-radius-full);
   border: 1px solid var(--accent-primary);
   background: var(--accent-primary);
   color: var(--accent-text);
-  font-family: var(--font-sans);
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-bold);
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  transition: all 0.2s ease;
+  box-shadow: var(--ds-shadow-overlay);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .admin-fab-btn:hover {
@@ -1158,12 +1156,12 @@ function toggleFaq(index) {
   right: 0;
   bottom: 0;
   width: min(92vw, 520px);
-  z-index: 1500;
+  z-index: var(--ds-z-backdrop);
   overflow-y: auto;
   padding: 24px 20px 96px;
   background: var(--primary-bg);
   border-left: 1px solid var(--border-color);
-  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--ds-shadow-overlay);
   animation: drawerSlideIn 0.28s ease;
 }
 

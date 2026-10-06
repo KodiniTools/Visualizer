@@ -111,7 +111,7 @@ function getPresetShortName(name) {
 <style scoped>
 .panel-container {
   background-color: var(--secondary-bg);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 12px;
   border: 1px solid var(--border-color);
 }
@@ -119,8 +119,8 @@ function getPresetShortName(name) {
 h4 {
   margin: 0 0 12px 0;
   color: var(--ds-text);
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: var(--ds-weight-semibold);
+  font-size: var(--ds-text-sm);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -135,10 +135,10 @@ h4 {
 
 .section-label {
   display: block;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-bottom: 6px;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -148,16 +148,16 @@ h4 {
   background-color: var(--secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   padding: 6px 10px;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 .toggle-btn:hover {
@@ -176,8 +176,8 @@ h4 {
 }
 
 .btn-icon {
-  font-size: 14px;
-  font-weight: bold;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-bold);
 }
 
 /* Rasterfarbe-Steuerung */
@@ -195,15 +195,15 @@ h4 {
 }
 
 .grid-sub-label {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 .grid-snap-toggle {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
   cursor: pointer;
 }
@@ -226,15 +226,15 @@ h4 {
   height: 28px;
   padding: 0;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   background: none;
   cursor: pointer;
 }
 
 .grid-color-hex {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
-  font-family: monospace;
+  font-family: var(--ds-font-mono);
   text-transform: uppercase;
 }
 
@@ -254,28 +254,27 @@ h4 {
   background-color: var(--secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   padding: 5px 8px;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 .preset-btn:hover {
   background-color: var(--ds-surface-3);
   border-color: var(--ds-border-strong);
-  transform: translateY(-1px);
 }
 
 .preset-btn.active {
   background-color: var(--ds-link);
   color: #fff;
   border-color: var(--ds-link);
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 
 .preset-btn.active:hover {
@@ -344,18 +343,18 @@ h4 {
   }
 
   h4 {
-    font-size: 14px;
+    font-size: var(--ds-text-md);
     margin: 0 0 10px 0;
   }
 
   .section-label {
-    font-size: 11px;
+    font-size: var(--ds-text-xs);
   }
 
   .toggle-btn,
   .preset-btn {
     padding: 8px 10px;
-    font-size: 12px;
+    font-size: var(--ds-text-xs);
     min-height: 40px;
   }
 }
@@ -368,7 +367,7 @@ h4 {
   .toggle-btn,
   .preset-btn {
     padding: 10px 8px;
-    font-size: 11px;
+    font-size: var(--ds-text-xs);
     min-height: 44px;
   }
 }

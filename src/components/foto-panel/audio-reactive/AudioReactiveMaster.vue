@@ -161,7 +161,7 @@ const {
 .audio-reactive-group {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid color-mix(in srgb, var(--ds-link) 15%, transparent);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 10px;
 }
 .checkbox-control {
@@ -175,8 +175,8 @@ const {
   cursor: pointer;
   padding: 5px 8px;
   background: color-mix(in srgb, var(--ds-link) 10%, transparent);
-  border-radius: 4px;
-  transition: all 0.15s ease;
+  border-radius: var(--ds-radius-sm);
+  transition: all var(--ds-duration) var(--ds-ease);
   width: 100%;
 }
 .modern-checkbox-label:hover {
@@ -189,8 +189,8 @@ const {
   cursor: pointer;
 }
 .checkbox-text {
-  font-size: 0.7rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   color: var(--text-secondary);
 }
 .modern-control {
@@ -201,9 +201,9 @@ const {
 }
 .label-value {
   color: var(--ds-link);
-  font-weight: 500;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
+  font-weight: var(--ds-weight-medium);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
   min-width: 35px;
   text-align: right;
 }
@@ -212,9 +212,9 @@ const {
   padding: 4px 8px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
-  font-size: 0.7rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 .modern-select:hover {
@@ -222,7 +222,6 @@ const {
 }
 .modern-select:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgb(139 92 246 / 35%);
   border-color: color-mix(in srgb, var(--ds-link) 50%, transparent);
 }
 .modern-select option {
@@ -231,7 +230,7 @@ const {
 }
 .audio-slider {
   height: 3px;
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
   background: color-mix(in srgb, var(--ds-link) 40%, transparent);
   -webkit-appearance: none;
   appearance: none;
@@ -240,7 +239,7 @@ const {
   -webkit-appearance: none;
   width: 10px;
   height: 10px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-link);
   cursor: pointer;
   border: none;
@@ -248,7 +247,7 @@ const {
 .audio-slider::-moz-range-thumb {
   width: 10px;
   height: 10px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-link);
   cursor: pointer;
   border: none;
@@ -260,7 +259,7 @@ const {
   padding: 8px 0;
 }
 .level-label {
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-2);
   min-width: 80px;
 }
@@ -268,7 +267,7 @@ const {
   flex: 1;
   height: 8px;
   background: var(--secondary-bg);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
 }
@@ -276,7 +275,7 @@ const {
   height: 100%;
   width: 0%;
   background: var(--ds-success);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   transition: width 0.05s ease-out;
 }
 
@@ -325,7 +324,7 @@ const {
   }
   .modern-select {
     min-height: 36px;
-    font-size: 0.75rem;
+    font-size: var(--ds-text-xs);
   }
 }
 </style>

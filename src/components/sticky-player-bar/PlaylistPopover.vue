@@ -98,18 +98,18 @@ const {
   max-height: 240px;
   overflow-y: auto;
   background-color: var(--secondary-bg);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   border: 1px solid var(--border-color);
 }
 .playlist-item {
   position: relative;
   padding: 6px 8px;
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 5px;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   border-bottom: 1px solid var(--border-color);
 }
 .playlist-item:last-child {
@@ -121,7 +121,7 @@ const {
 .playlist-item.active {
   background-color: var(--accent-primary);
   color: var(--accent-text);
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 .track-name {
   flex: 1;
@@ -139,8 +139,8 @@ const {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
-  transition: all 0.2s ease;
+  border-radius: var(--ds-radius-sm);
+  transition: all var(--ds-duration) var(--ds-ease);
   opacity: 0.6;
   flex-shrink: 0;
 }
@@ -160,7 +160,7 @@ const {
 .drag-handle {
   cursor: grab;
   color: var(--text-muted);
-  font-size: 0.7rem;
+  font-size: var(--ds-text-xs);
   user-select: none;
   opacity: 0.5;
   flex-shrink: 0;
@@ -177,12 +177,10 @@ const {
   opacity: 0.5;
   transform: scale(0.98);
   background-color: var(--accent-primary) !important;
-  box-shadow: 0 0 0 2px rgba(201, 152, 77, 0.3);
 }
 .playlist-item.drag-over {
   border-color: var(--ds-success);
   background-color: color-mix(in srgb, var(--ds-success) 15%, transparent) !important;
-  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.4);
   transform: scale(1.02);
 }
 .playlist-item-empty {
@@ -190,13 +188,13 @@ const {
   color: var(--text-muted);
   font-style: italic;
   text-align: center;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
 }
 .playlist-container::-webkit-scrollbar {
   width: 6px;
 }
 .playlist-container::-webkit-scrollbar-thumb {
   background: var(--border-color);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 </style>

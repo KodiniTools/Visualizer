@@ -264,11 +264,11 @@ defineExpose({ editTextInput, populateFontDropdown })
 .btn-danger {
   padding: 6px 10px;
   border: none;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  font-size: 0.6rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
@@ -277,7 +277,6 @@ defineExpose({ editTextInput, populateFontDropdown })
 }
 .btn-danger:hover {
   background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
-  transform: translateY(-1px);
 }
 .full-width {
   width: 100%;
@@ -292,13 +291,13 @@ defineExpose({ editTextInput, populateFontDropdown })
 .btn-save-default {
   flex: 1;
   padding: 6px 10px;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   background: var(--ds-accent-soft);
   color: var(--accent-tertiary);
   border: 1px solid var(--accent-primary);
@@ -306,16 +305,15 @@ defineExpose({ editTextInput, populateFontDropdown })
 
 .btn-save-default:hover {
   background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-reset-default {
   flex-shrink: 0;
   width: 34px;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  font-size: 0.8rem;
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-sm);
+  transition: all var(--ds-duration) var(--ds-ease);
   background: var(--secondary-bg);
   color: var(--text-muted);
   border: 1px solid var(--border-color);

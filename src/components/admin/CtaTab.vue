@@ -42,7 +42,7 @@ const save = () => store.save()
 }
 .admin-tab-hint {
   margin: 0 0 16px 0;
-  font-size: 0.8rem;
+  font-size: var(--ds-text-sm);
   color: var(--text-muted);
 }
 </style>

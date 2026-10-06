@@ -57,11 +57,11 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
 <style scoped>
 .effect-category {
   background: rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   padding: 8px;
 }
 .category-title {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   color: var(--text-muted);
@@ -76,8 +76,8 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
   padding: 5px 8px;
   background: rgba(0, 0, 0, 0.15);
   border: 1px solid color-mix(in srgb, var(--ds-link) 10%, transparent);
-  border-radius: 4px;
-  transition: all 0.15s ease;
+  border-radius: var(--ds-radius-sm);
+  transition: all var(--ds-duration) var(--ds-ease);
   margin-bottom: 4px;
 }
 .effect-item:hover {
@@ -97,17 +97,17 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
   cursor: pointer;
 }
 .effect-name {
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-secondary);
   white-space: nowrap;
 }
 .effect-source-select {
   width: 100%;
   padding: 2px 4px;
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   background: color-mix(in srgb, var(--ds-link) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
   cursor: pointer;
   appearance: none;
@@ -120,7 +120,6 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
 }
 .effect-source-select:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgb(139 92 246 / 35%);
   border-color: var(--ds-link);
 }
 .effect-source-select option {
@@ -130,7 +129,7 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
 .effect-slider {
   width: 100%;
   height: 3px;
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
   background: color-mix(in srgb, var(--ds-link) 20%, transparent);
   cursor: pointer;
   -webkit-appearance: none;
@@ -140,7 +139,7 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
   -webkit-appearance: none;
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-link);
   cursor: pointer;
   border: none;
@@ -148,16 +147,16 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
 .effect-slider::-moz-range-thumb {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-link);
   cursor: pointer;
   border: none;
 }
 .effect-value {
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   text-align: right;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--ds-font-mono);
 }
 
 [data-theme='light'] .effect-item {
@@ -192,7 +191,7 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
     padding: 6px 8px;
   }
   .effect-source-select {
-    font-size: 0.6rem;
+    font-size: var(--ds-text-xs);
     padding: 4px 6px;
     min-height: 32px;
   }

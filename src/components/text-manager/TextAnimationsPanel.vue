@@ -91,10 +91,10 @@ const activeBadges = computed(() =>
 .collapsible-section {
   background-color: var(--secondary-bg);
   border: 1px solid var(--card-bg);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   margin-bottom: 10px;
   overflow: hidden;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 .collapsible-section:hover {
   border-color: var(--btn-hover);
@@ -115,12 +115,12 @@ const activeBadges = computed(() =>
   padding: 10px 12px;
   cursor: pointer;
   background: var(--secondary-bg);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   user-select: none;
 }
 .section-header:hover {
@@ -132,14 +132,14 @@ const activeBadges = computed(() =>
   background: var(--card-bg);
 }
 .section-icon {
-  font-size: 14px;
+  font-size: var(--ds-text-md);
   flex-shrink: 0;
 }
 .section-header::before {
   content: '▶';
-  font-size: 8px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-link);
-  transition: transform 0.2s ease;
+  transition: transform var(--ds-duration) var(--ds-ease);
   margin-right: 4px;
 }
 .collapsible-section[open] .section-header::before {
@@ -152,9 +152,9 @@ const activeBadges = computed(() =>
 .status-badge {
   margin-left: auto;
   padding: 2px 8px;
-  font-size: 9px;
-  font-weight: 600;
-  border-radius: 10px;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  border-radius: var(--ds-radius-md);
   background-color: var(--secondary-bg);
   color: var(--text-muted);
   text-transform: uppercase;

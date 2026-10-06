@@ -66,9 +66,9 @@ function onShapeUpdate(field, value) {
   background-color: var(--secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   padding: 4px 6px;
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
   margin-bottom: 8px;
 }
@@ -80,7 +80,7 @@ function onShapeUpdate(field, value) {
 
 .react-hint {
   display: block;
-  font-size: 0.58rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-top: 4px;
   line-height: 1.3;

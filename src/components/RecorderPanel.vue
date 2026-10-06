@@ -568,7 +568,7 @@ onUnmounted(() => {
 <style scoped>
 .recorder-panel {
   background-color: var(--card-bg);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 10px;
   border: 1px solid var(--border-color);
   display: flex;
@@ -585,8 +585,8 @@ onUnmounted(() => {
 h3 {
   margin: 0;
   color: var(--text-primary);
-  font-weight: 600;
-  font-size: 0.7rem;
+  font-weight: var(--ds-weight-semibold);
+  font-size: var(--ds-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   display: flex;
@@ -601,7 +601,6 @@ h3::before {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='3' fill='white'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 /* Status */
@@ -610,36 +609,36 @@ h3::before {
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   background: var(--ds-accent-soft);
   border: 1px solid var(--border-color);
-  transition: all 0.3s ease;
+  transition: all var(--ds-duration-slow) var(--ds-ease);
 }
 
 .status-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--text-muted);
   animation: pulse 2s infinite;
 }
 
 .status-text {
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   letter-spacing: 0.4px;
   color: var(--text-muted);
 }
 
 .recording-timer {
-  font-size: 0.75rem;
-  font-weight: 700;
-  font-family: 'Courier New', monospace;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
+  font-family: var(--ds-font-mono);
   color: var(--ds-danger);
   margin-left: auto;
   padding: 2px 8px;
   background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   letter-spacing: 1px;
   min-width: 50px;
   text-align: center;
@@ -749,11 +748,11 @@ h3::before {
   gap: 5px;
   padding: 6px 10px;
   border: none;
-  border-radius: 5px;
-  font-size: 0.6rem;
-  font-weight: 600;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -774,7 +773,6 @@ h3::before {
 }
 .btn-prepare:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-start {
@@ -784,7 +782,6 @@ h3::before {
 }
 .btn-start:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ds-success) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-pause {
@@ -794,7 +791,6 @@ h3::before {
 }
 .btn-pause:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ds-warning) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-resume {
@@ -804,7 +800,6 @@ h3::before {
 }
 .btn-resume:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ds-link) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-stop {
@@ -814,7 +809,6 @@ h3::before {
 }
 .btn-stop:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .btn-reset {
@@ -824,7 +818,6 @@ h3::before {
 }
 .btn-reset:hover:not(:disabled) {
   background: var(--ds-surface-3);
-  transform: translateY(-1px);
 }
 
 .btn-convert {
@@ -835,14 +828,13 @@ h3::before {
 }
 .btn-convert:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ds-link) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 /* Audio source (mic) section */
 .audio-source-section {
   background: color-mix(in srgb, var(--ds-link) 8%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   padding: 8px 10px;
 }
 
@@ -859,17 +851,17 @@ h3::before {
 }
 
 .section-label {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .source-indicator {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background: color-mix(in srgb, var(--ds-success) 20%, transparent);
   color: var(--ds-success);
 }
@@ -882,8 +874,8 @@ h3::before {
   padding: 8px 10px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  transition: all 0.2s ease;
+  border-radius: var(--ds-radius-sm);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .mic-toggle-row:hover {
@@ -902,9 +894,9 @@ h3::before {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 .toggle-label .icon {
@@ -915,7 +907,7 @@ h3::before {
 
 .source-hint {
   margin: 6px 0 0 0;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-link);
   text-align: center;
   animation: pulse 1s ease-in-out infinite;
@@ -926,7 +918,7 @@ h3::before {
   animation: none;
   background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 
 /* HQ indicator */
@@ -934,18 +926,18 @@ h3::before {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-warning);
   padding: 4px 8px;
   background: color-mix(in srgb, var(--ds-warning) 8%, transparent);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   margin: 4px 0;
 }
 
 .hq-dot {
   width: 7px;
   height: 7px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: var(--ds-warning);
   animation: pulse 1s infinite;
   flex-shrink: 0;
@@ -973,10 +965,10 @@ h3::before {
   background: var(--ds-success);
   color: white;
   text-decoration: none;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -985,21 +977,17 @@ h3::before {
   width: 14px;
   height: 14px;
 }
-.mp4-download-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-}
 
 .webm-download-btn {
-  background: linear-gradient(135deg, var(--ds-link) 0%, var(--ds-link) 100%) !important;
+  background: var(--ds-link) !important;
   margin-top: 6px;
 }
 .webm-download-btn:hover {
-  background: linear-gradient(135deg, var(--ds-link) 0%, var(--ds-link) 100%) !important;
+  background: var(--ds-link) !important;
 }
 
 .webm-info {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-3);
   margin: 4px 0 0 0;
   text-align: center;
@@ -1013,9 +1001,9 @@ h3::before {
   color: var(--ds-text-2);
   border: 1px solid var(--ds-border-strong);
   padding: 8px;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   flex-shrink: 0;
 }
 

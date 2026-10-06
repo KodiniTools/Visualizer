@@ -195,8 +195,8 @@ const {
 
 .background-video-section h4 {
   margin: 0 0 12px 0;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
   color: var(--ds-link);
 }
 
@@ -204,7 +204,7 @@ const {
   padding: 12px;
   background: color-mix(in srgb, var(--ds-link) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   margin-bottom: 10px;
 }
 
@@ -221,17 +221,17 @@ const {
 }
 
 .bg-video-label {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   color: var(--text-primary);
 }
 
 .bg-video-status {
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   color: var(--text-secondary);
   padding: 2px 8px;
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .bg-video-status.playing {
@@ -249,15 +249,15 @@ const {
   width: 36px;
   height: 28px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background: color-mix(in srgb, var(--ds-link) 30%, transparent);
   color: white;
-  font-size: 14px;
+  font-size: var(--ds-text-md);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-control-lg:hover {
@@ -268,15 +268,15 @@ const {
   width: 24px;
   height: 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-control:hover {
@@ -295,8 +295,8 @@ const {
 }
 
 .seek-time-small {
-  font-size: 10px;
-  font-family: monospace;
+  font-size: var(--ds-text-xs);
+  font-family: var(--ds-font-mono);
   color: var(--text-secondary);
   min-width: 35px;
 }
@@ -307,7 +307,7 @@ const {
   -webkit-appearance: none;
   appearance: none;
   background: color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
   outline: none;
   cursor: pointer;
 }
@@ -317,13 +317,9 @@ const {
   width: 14px;
   height: 14px;
   background: var(--ds-link);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
   transition: transform 0.1s;
-}
-
-.seek-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
 }
 
 /* Hintergrund-Video Lautstärke */
@@ -338,7 +334,7 @@ const {
   align-items: center;
   gap: 6px;
   margin-bottom: 6px;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-secondary);
 }
 
@@ -354,7 +350,7 @@ const {
   -webkit-appearance: none;
   appearance: none;
   background: color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
   outline: none;
   cursor: pointer;
 }
@@ -364,7 +360,7 @@ const {
   width: 12px;
   height: 12px;
   background: var(--ds-link);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
 }
 
@@ -372,7 +368,7 @@ const {
   width: 12px;
   height: 12px;
   background: var(--ds-link);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   border: none;
   cursor: pointer;
 }

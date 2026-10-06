@@ -28,7 +28,7 @@ defineEmits(['update:modelValue'])
   display: flex;
   flex-direction: column;
   gap: 1px;
-  font-size: 0.75rem;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-2);
 }
 .fx-slider {

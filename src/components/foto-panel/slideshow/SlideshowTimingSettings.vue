@@ -100,16 +100,16 @@ const { t } = useI18n()
   gap: 4px;
 }
 .transition-control label {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 .transition-select {
   padding: 4px 6px;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   background: var(--secondary-bg);
   color: var(--ds-text);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 [data-theme='light'] .transition-select {
   color: var(--text-primary);

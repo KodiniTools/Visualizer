@@ -167,34 +167,36 @@ body {
   font-size: 12px;
 }
 
-/* Scrollbar Styling */
+/* Fokus: ein Rezept für alle Bedienelemente (ds-focus-ring statt Outline),
+   wie in den Ui-Komponenten des Collage Makers. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[role='button']:focus-visible,
+[tabindex]:not([tabindex='-1']):focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+/* Scrollbar: neutral, kein Gold (Gold bleibt der einen Primärfläche vorbehalten) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(201, 152, 77, 0.1);
-  border-radius: 4px;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(201, 152, 77, 0.4);
-  border-radius: 4px;
+  background: var(--ds-border-strong);
+  border-radius: var(--ds-radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(201, 152, 77, 0.6);
-}
-
-/* Light Theme Scrollbar */
-[data-theme='light'] ::-webkit-scrollbar-track {
-  background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
-}
-[data-theme='light'] ::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-}
-[data-theme='light'] ::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--accent-primary) 40%, transparent);
+  background: var(--ds-text-3);
 }
 </style>

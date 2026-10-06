@@ -8,12 +8,12 @@
       <router-link to="/" class="back-link">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="13"
-          height="13"
+          width="16"
+          height="16"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2.5"
+          stroke-width="1.75"
           stroke-linecap="round"
           stroke-linejoin="round"
           aria-hidden="true"
@@ -33,33 +33,40 @@ const { t } = useI18n()
 </script>
 
 <style scoped>
+/* Topbar nach Design-System v2: ds-topbar-height, ds-surface-1, 1 px Rand unten.
+   Der Name steht in Textfarbe (ds-title), nicht in Gold; „Zur Startseite“ ist
+   ein Ghost-Button in Größe sm. */
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 36px;
-  padding: 0 14px;
-  background-color: var(--primary-bg, #091428);
-  border-bottom: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
+  gap: var(--ds-space-3);
+  height: var(--ds-topbar-height);
+  padding: 0 var(--ds-space-4);
+  background-color: var(--ds-surface-1);
+  border-bottom: var(--ds-border-width) solid var(--ds-border);
   flex-shrink: 0;
-  gap: 12px;
 }
 
 .app-logo {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--ds-space-2);
   text-decoration: none;
-  color: var(--accent-ink, #c9984d);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  transition: color 0.2s;
+  color: var(--ds-text);
+  font-size: var(--ds-text-lg);
+  font-weight: var(--ds-weight-semibold);
+  border-radius: var(--ds-radius-sm);
+  transition: color var(--ds-duration) var(--ds-ease);
 }
 
 .app-logo:hover {
-  color: var(--accent-tertiary, #f8e1a9);
+  color: var(--ds-text-2);
+}
+
+.app-logo:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 
 .app-logo svg {
@@ -76,40 +83,36 @@ const { t } = useI18n()
 }
 
 .back-link {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--ds-space-1);
+  height: var(--ds-control-sm);
+  padding: 0 var(--ds-space-3);
   text-decoration: none;
-  color: var(--text-muted, #7a8da0);
-  font-size: 0.6rem;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-  padding: 4px 8px;
-  border-radius: 5px;
-  border: 1px solid transparent;
-  transition: all 0.2s;
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-sm);
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 }
 
 .back-link:hover {
-  color: var(--text-primary, #e9e9eb);
-  border-color: var(--border-color, rgba(201, 152, 77, 0.2));
-  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--ds-text);
+  background-color: var(--ds-surface-2);
 }
 
-/* Light theme */
-[data-theme='light'] .app-header {
-  border-bottom-color: var(--border-color);
+.back-link:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 
-[data-theme='light'] .app-logo:hover {
-  color: var(--text-primary);
-}
-
-/* Mobile: Logo-Text verstecken, nur Icon zeigen */
+/* Mobile: Logo-Text verstecken */
 @media (max-width: 768px) {
   .app-header {
-    height: 38px;
-    padding: 0 10px;
+    padding: 0 var(--ds-space-3);
   }
 
   .logo-text {

@@ -57,15 +57,14 @@ describe('Einheitliche Regler', () => {
     expect(filtersCss).not.toMatch(/\.control-group\.slider/)
     const css = read('ui/slider-control.css')
     expect(css).toMatch(/\.control-group\.slider \{[^}]*grid-template-columns: 1fr auto/)
-    expect(css).toMatch(/input\[type='range'\] \{[^}]*height: 3px/)
-    expect(css).toMatch(/::-webkit-slider-thumb \{[^}]*width: 12px/)
-    // Light Theme färbt nur über Tokens (Spur text-muted → accent-primary, Daumen accent-primary)
-    expect(css).toMatch(
-      /\[data-theme='light'\] input\[type='range'\] \{[^}]*var\(--text-muted\) 0%, var\(--accent-primary\) 100%/,
-    )
-    expect(css).toMatch(
-      /\[data-theme='light'\] input\[type='range'\]::-webkit-slider-thumb \{[^}]*var\(--accent-primary\)/,
-    )
+    // Anatomie des Design-Systems v2 (Collage Maker): Spur 6 px ds-border-strong,
+    // Daumen 14 px ds-accent. Farben nur über Tokens, daher kein Light-Override.
+    expect(css).toMatch(/input\[type='range'\] \{[^}]*height: 6px/)
+    expect(css).toMatch(/input\[type='range'\] \{[^}]*background: var\(--ds-border-strong\)/)
+    expect(css).toMatch(/::-webkit-slider-thumb \{[^}]*width: 14px/)
+    expect(css).toMatch(/::-webkit-slider-thumb \{[^}]*background: var\(--ds-accent\)/)
+    expect(css).toMatch(/input\[type='range'\]:focus-visible \{[^}]*var\(--ds-focus-ring\)/)
+    expect(css).not.toMatch(/\[data-theme='light'\]/)
   })
 
   it('Regler-Stapel: aufeinanderfolgende Regler ohne Flex-gap (Abstand = 8 px wie Bild-Filter)', () => {
@@ -96,7 +95,9 @@ describe('Einheitliche Regler', () => {
         }
       }
     }
-    // Referenz: Zeilenabstand kommt allein aus .control-group { margin-bottom: 8px }
-    expect(read('ui/slider-control.css')).toMatch(/\.control-group \{[^}]*margin-bottom: 8px/)
+    // Referenz: Zeilenabstand kommt allein aus .control-group { margin-bottom: ds-space-2 (8 px) }
+    expect(read('ui/slider-control.css')).toMatch(
+      /\.control-group \{[^}]*margin-bottom: var\(--ds-space-2\)/,
+    )
   })
 })

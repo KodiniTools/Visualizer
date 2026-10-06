@@ -47,86 +47,70 @@ const { presetList, activeAudioPreset, togglePreset, clearPreset } = arc
 }
 .preset-btn {
   padding: 6px 4px;
-  font-size: 0.6rem;
-  background: rgba(139, 92, 246, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 4px;
+  font-size: var(--ds-text-xs);
+  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   white-space: nowrap;
 }
 .preset-btn:hover {
-  background: rgba(139, 92, 246, 0.3);
-  border-color: rgba(139, 92, 246, 0.5);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 50%, transparent);
 }
 .preset-btn.active {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.6) 0%, rgba(236, 72, 153, 0.5) 100%);
-  border-color: rgba(236, 72, 153, 0.8);
-  box-shadow:
-    0 0 12px rgba(139, 92, 246, 0.5),
-    0 0 20px rgba(236, 72, 153, 0.3);
+  background: color-mix(in srgb, var(--ds-link) 60%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 80%, transparent);
   color: var(--text-primary);
   animation: presetGlow 2s ease-in-out infinite alternate;
 }
 @keyframes presetGlow {
-  0% {
-    box-shadow:
-      0 0 8px rgba(139, 92, 246, 0.5),
-      0 0 16px rgba(236, 72, 153, 0.2);
-  }
-  100% {
-    box-shadow:
-      0 0 16px rgba(139, 92, 246, 0.7),
-      0 0 24px rgba(236, 72, 153, 0.4);
-  }
 }
 
 /* "Kein Preset" – neutral gehalten (Reset), hebt sich von den Effekt-Presets ab */
 .preset-btn-none {
   background: rgba(255, 255, 255, 0.06);
-  border-color: var(--border-color, rgba(255, 255, 255, 0.18));
-  color: var(--text-muted, #9aa7b4);
+  border-color: var(--border-color);
+  color: var(--text-muted);
 }
 .preset-btn-none:hover {
   background: rgba(255, 255, 255, 0.12);
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
   box-shadow: none;
   color: var(--text-primary);
 }
 .preset-btn-none.active {
-  background: rgba(110, 200, 110, 0.16);
-  border-color: rgba(110, 200, 110, 0.6);
-  color: #6ec86e;
+  background: color-mix(in srgb, var(--ds-success) 16%, transparent);
+  border-color: color-mix(in srgb, var(--ds-success) 60%, transparent);
+  color: var(--ds-success);
   box-shadow: none;
   animation: none;
 }
 
 [data-theme='light'] .preset-btn {
-  background: #fdfbf2;
+  background: var(--ds-surface-2);
   border-color: var(--border-color);
 }
 [data-theme='light'] .preset-btn-none {
-  background: #eef2f8;
-  color: #5a6b7a;
+  background: var(--ds-surface-2);
+  color: var(--ds-text-3);
 }
 [data-theme='light'] .preset-btn-none.active {
-  background: rgba(34, 139, 34, 0.12);
-  border-color: rgba(34, 139, 34, 0.5);
-  color: #1f7a1f;
+  background: color-mix(in srgb, var(--ds-success) 12%, transparent);
+  border-color: color-mix(in srgb, var(--ds-success) 50%, transparent);
 }
 [data-theme='light'] .preset-btn:hover {
   background: var(--btn-hover);
   border-color: var(--accent-secondary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 @media (max-width: 768px) {
   .preset-btn {
     padding: 8px 6px;
-    font-size: 0.7rem;
+    font-size: var(--ds-text-xs);
     min-height: 40px;
   }
 }
@@ -136,7 +120,7 @@ const { presetList, activeAudioPreset, togglePreset, clearPreset } = arc
   }
   .preset-btn {
     padding: 10px 6px;
-    font-size: 0.75rem;
+    font-size: var(--ds-text-xs);
     min-height: 44px;
   }
 }

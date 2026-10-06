@@ -91,32 +91,32 @@ function resetTransform() {
 .btn-reset-transform {
   margin-top: 8px;
   padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   border: 1px solid var(--border-color);
   background-color: var(--card-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
 }
 .btn-reset-transform:hover {
   background-color: var(--secondary-bg);
-  border-color: #6ea8fe;
-  color: #6ea8fe;
+  border-color: var(--ds-link);
+  color: var(--ds-link);
 }
 [data-theme='light'] .transform-section {
-  border-top-color: #d4c8a8;
+  border-top-color: var(--ds-border);
 }
 [data-theme='light'] .btn-reset-transform {
-  border-color: #d4c8a8;
-  background-color: #f0ead0;
+  border-color: var(--ds-border);
+  background-color: var(--ds-surface-3);
   color: var(--text-primary);
 }
 [data-theme='light'] .btn-reset-transform:hover {
-  background-color: #e8e0c0;
+  background-color: var(--ds-surface-3);
   border-color: var(--accent-primary);
   color: var(--accent-ink);
 }

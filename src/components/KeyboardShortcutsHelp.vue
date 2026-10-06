@@ -132,15 +132,14 @@ defineEmits(['close'])
   left: 50%;
   transform: translate(-50%, -50%);
   background: var(--card-bg);
-  border: 2px solid #6ea8fe;
-  border-radius: 16px;
+  border: 2px solid var(--ds-link);
+  border-radius: var(--ds-radius-lg);
   padding: 0;
   max-width: 800px;
   max-height: 85vh;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-  z-index: 10000;
-  backdrop-filter: blur(10px);
+  box-shadow: var(--ds-shadow-overlay);
+  z-index: var(--ds-z-toast);
 }
 
 .panel-header {
@@ -149,35 +148,34 @@ defineEmits(['close'])
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid var(--border-color);
-  background: linear-gradient(135deg, rgba(110, 168, 254, 0.1), rgba(110, 168, 254, 0.05));
+  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
 }
 
 .panel-header h3 {
   margin: 0;
-  font-size: 24px;
-  color: #6ea8fe;
-  font-weight: 600;
+  font-size: var(--ds-text-2xl);
+  color: var(--ds-link);
+  font-weight: var(--ds-weight-semibold);
 }
 
 .close-btn {
-  background: rgba(255, 69, 58, 0.2);
-  border: 1px solid rgba(255, 69, 58, 0.5);
-  color: #ff453a;
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 50%, transparent);
+  color: var(--ds-danger);
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   cursor: pointer;
-  font-size: 18px;
+  font-size: var(--ds-text-xl);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .close-btn:hover {
-  background: rgba(255, 69, 58, 0.3);
-  border-color: #ff453a;
-  transform: scale(1.1);
+  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
+  border-color: var(--ds-danger);
 }
 
 .shortcuts-content {
@@ -195,30 +193,30 @@ defineEmits(['close'])
 
 .shortcuts-content::-webkit-scrollbar-track {
   background: var(--secondary-bg);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .shortcuts-content::-webkit-scrollbar-thumb {
-  background: #6ea8fe;
-  border-radius: 4px;
+  background: var(--ds-link);
+  border-radius: var(--ds-radius-sm);
 }
 
 .shortcuts-content::-webkit-scrollbar-thumb:hover {
-  background: #5a96de;
+  background: var(--ds-link);
 }
 
 .shortcut-section {
   background: var(--secondary-bg);
-  border-radius: 12px;
+  border-radius: var(--ds-radius-lg);
   padding: 16px;
-  border: 1px solid rgba(110, 168, 254, 0.2);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
 }
 
 .shortcut-section h4 {
   margin: 0 0 12px 0;
-  font-size: 16px;
-  color: #6ea8fe;
-  font-weight: 600;
+  font-size: var(--ds-text-lg);
+  color: var(--ds-link);
+  font-weight: var(--ds-weight-semibold);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -236,13 +234,12 @@ defineEmits(['close'])
   align-items: center;
   padding: 8px 12px;
   background: var(--btn-hover);
-  border-radius: 8px;
-  transition: all 0.2s;
+  border-radius: var(--ds-radius-md);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .shortcut-item:hover:not(.disabled) {
-  background: rgba(110, 168, 254, 0.1);
-  transform: translateX(4px);
+  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
 }
 
 .shortcut-item.disabled {
@@ -251,7 +248,7 @@ defineEmits(['close'])
 
 .shortcut-item span {
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: var(--ds-text-md);
 }
 
 .shortcut-item.disabled span {
@@ -259,17 +256,14 @@ defineEmits(['close'])
 }
 
 kbd {
-  background: linear-gradient(135deg, var(--card-bg), var(--secondary-bg));
-  color: #6ea8fe;
+  background: var(--card-bg);
+  color: var(--ds-link);
   padding: 4px 10px;
-  border-radius: 6px;
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  font-weight: 600;
-  border: 1px solid rgba(110, 168, 254, 0.3);
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: var(--ds-radius-sm);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
   display: inline-block;
   min-width: 32px;
   text-align: center;
@@ -284,13 +278,13 @@ kbd {
 
 .tip {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
   color: var(--text-muted);
   text-align: center;
 }
 
 .tip kbd {
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   padding: 2px 8px;
 }
 
@@ -323,22 +317,18 @@ kbd {
   }
 
   .panel-header h3 {
-    font-size: 20px;
+    font-size: var(--ds-text-xl);
   }
 }
 
 /* ═══ Light Theme Overrides (accent colors only - backgrounds/text use CSS variables) ═══ */
 [data-theme='light'] .shortcuts-panel {
   border-color: var(--accent-primary);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 [data-theme='light'] .panel-header {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent-primary) 10%, transparent),
-    color-mix(in srgb, var(--accent-primary) 5%, transparent)
-  );
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 [data-theme='light'] .panel-header h3 {
@@ -360,8 +350,5 @@ kbd {
 [data-theme='light'] kbd {
   color: var(--accent-ink);
   border-color: var(--border-color);
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 </style>

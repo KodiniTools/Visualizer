@@ -173,16 +173,16 @@ function emitUpdate() {
 
 <style scoped>
 .placement-section {
-  background: rgba(34, 197, 94, 0.05);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-  border-radius: 8px;
+  background: color-mix(in srgb, var(--ds-success) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 20%, transparent);
+  border-radius: var(--ds-radius-md);
   padding: 10px;
   margin-top: 8px;
 }
 
 .placement-header {
-  font-size: 0.65rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -202,7 +202,7 @@ function emitUpdate() {
 }
 
 .placement-label {
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   min-width: 40px;
 }
@@ -210,16 +210,16 @@ function emitUpdate() {
 .placement-select {
   flex: 1;
   padding: 4px 8px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
   cursor: pointer;
 }
 
 .placement-select:hover {
-  border-color: rgba(34, 197, 94, 0.4);
+  border-color: color-mix(in srgb, var(--ds-success) 40%, transparent);
 }
 
 .placement-slider-wrap {
@@ -239,8 +239,8 @@ function emitUpdate() {
   height: 3px;
   -webkit-appearance: none;
   appearance: none;
-  background: linear-gradient(90deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.6) 100%);
-  border-radius: 2px;
+  background: color-mix(in srgb, var(--ds-success) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
 }
 
@@ -248,16 +248,16 @@ function emitUpdate() {
   -webkit-appearance: none;
   width: 12px;
   height: 12px;
-  border-radius: 50%;
-  background: #22c55e;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-success);
   cursor: pointer;
   border: 2px solid var(--text-primary);
 }
 
 .placement-value {
-  font-size: 0.55rem;
-  color: #22c55e;
-  font-family: monospace;
+  font-size: var(--ds-text-xs);
+  color: var(--ds-success);
+  font-family: var(--ds-font-mono);
   min-width: 35px;
   text-align: right;
 }
@@ -272,18 +272,17 @@ function emitUpdate() {
 .placement-input {
   width: 100%;
   padding: 4px 6px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
   text-align: center;
 }
 
 .placement-input:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgb(34 197 94 / 25%);
-  border-color: rgba(34, 197, 94, 0.5);
+  border-color: color-mix(in srgb, var(--ds-success) 50%, transparent);
 }
 
 .placement-buttons {
@@ -295,39 +294,39 @@ function emitUpdate() {
 .btn-placement {
   flex: 1;
   padding: 6px 10px;
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .btn-draw {
-  background: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
-  border: 1px solid rgba(34, 197, 94, 0.4);
+  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
+  color: var(--ds-success);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 40%, transparent);
 }
 
 .btn-draw:hover {
-  background: rgba(34, 197, 94, 0.3);
+  background: color-mix(in srgb, var(--ds-success) 30%, transparent);
 }
 
 .btn-place {
-  background: rgba(59, 130, 246, 0.2);
-  color: #3b82f6;
-  border: 1px solid rgba(59, 130, 246, 0.4);
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
+  color: var(--ds-link);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 40%, transparent);
 }
 
 .btn-place:hover {
-  background: rgba(59, 130, 246, 0.3);
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 
 .placement-hint {
-  font-size: 0.55rem;
-  color: #22c55e;
+  font-size: var(--ds-text-xs);
+  color: var(--ds-success);
   margin: 6px 0 0 0;
   font-style: italic;
   text-align: center;

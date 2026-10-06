@@ -83,7 +83,7 @@ function update(partial) {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
 }
 .fill-audio-options {
   display: flex;
@@ -97,21 +97,21 @@ function update(partial) {
   align-items: center;
   gap: 6px;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
 }
 .fill-audio-slider {
   flex-basis: 100%;
 }
 .fill-audio-field select {
   padding: 3px 6px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   background: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 [data-theme='light'] .fill-audio-field select {
   color: var(--text-primary);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 </style>

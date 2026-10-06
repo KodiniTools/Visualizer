@@ -141,7 +141,7 @@ function updateAudio(partial) {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
 }
 .base-gradient-options {
   display: flex;
@@ -155,24 +155,24 @@ function updateAudio(partial) {
   align-items: center;
   gap: 6px;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
 }
 .base-gradient-field input[type='color'] {
   width: 36px;
   height: 22px;
   padding: 0;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background: none;
   cursor: pointer;
 }
 .base-gradient-field select {
   padding: 3px 6px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   background: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 .audio-toggle,
 .base-gradient-slider {
@@ -180,6 +180,6 @@ function updateAudio(partial) {
 }
 [data-theme='light'] .base-gradient-field select {
   color: var(--text-primary);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 </style>

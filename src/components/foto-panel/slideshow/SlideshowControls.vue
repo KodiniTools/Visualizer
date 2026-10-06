@@ -65,85 +65,66 @@ const phaseLabel = computed(() => {
 .action-buttons button {
   flex: 1;
   padding: 10px 16px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   border: none;
 }
 .btn-start {
-  background: linear-gradient(135deg, #6ea8fe 0%, #5a9af8 100%);
+  background: var(--ds-link);
   color: #fff;
 }
 .btn-start:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.btn-start:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(110, 168, 254, 0.4);
-}
 .btn-pause {
-  background: linear-gradient(135deg, #f1c40f 0%, #e2b70e 100%);
+  background: var(--ds-warning);
   color: var(--text-primary);
 }
-.btn-pause:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(241, 196, 15, 0.4);
-}
 .btn-resume {
-  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  background: var(--ds-success);
   color: #fff;
-}
-.btn-resume:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
 }
 .btn-stop {
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  background: var(--ds-danger);
   color: #fff;
-}
-.btn-stop:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
 }
 .progress-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 .phase-indicator {
   padding: 3px 8px;
-  border-radius: 4px;
-  font-weight: 600;
+  border-radius: var(--ds-radius-sm);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
-  font-size: 9px;
+  font-size: var(--ds-text-xs);
 }
 .phase-indicator.fadeIn {
-  background-color: rgba(46, 204, 113, 0.2);
-  color: #2ecc71;
+  background-color: color-mix(in srgb, var(--ds-success) 20%, transparent);
+  color: var(--ds-success);
 }
 .phase-indicator.display {
-  background-color: rgba(110, 168, 254, 0.2);
-  color: #6ea8fe;
+  background-color: color-mix(in srgb, var(--ds-link) 20%, transparent);
+  color: var(--ds-link);
 }
 .phase-indicator.fadeOut {
-  background-color: rgba(231, 76, 60, 0.2);
-  color: #e74c3c;
+  background-color: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  color: var(--ds-danger);
 }
 [data-theme='light'] .btn-start {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+  background: var(--accent-primary);
   color: var(--accent-text);
 }
-[data-theme='light'] .btn-start:hover {
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 40%, transparent);
-}
 [data-theme='light'] .progress-section {
-  border-top-color: #d4c8a8;
+  border-top-color: var(--ds-border);
 }
 </style>

@@ -127,14 +127,14 @@ defineExpose({ loadImageSettings: controls.loadImageSettings })
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border-top: 1px solid var(--border-color);
   padding-top: 10px;
 }
 .foto-panel-container h4 {
   margin: 0 0 6px 0;
-  font-size: 0.6rem;
-  font-weight: 500;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -142,14 +142,9 @@ defineExpose({ loadImageSettings: controls.loadImageSettings })
 /* Modern Divider */
 .modern-divider {
   height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--image-section-accent, #6ea8fe),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, var(--image-section-accent), transparent);
   margin: 24px 0 20px 0;
-  border-radius: 2px;
+  border-radius: var(--ds-radius-sm);
 }
 
 [data-theme='light'] .foto-panel-container {

@@ -112,9 +112,6 @@ onUnmounted(() => {
   bottom: 0;
   left: 0;
   right: 0;
-  /* Above the floating help button (z-index 9998) so open popovers are never
-     covered by it. The bar row itself sits below the help button, which floats
-     just above the bar, so they never overlap spatially. */
-  z-index: 9999;
+  z-index: var(--ds-z-player);
 }
 </style>

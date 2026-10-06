@@ -225,16 +225,16 @@ function redraw() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(110, 200, 110, 0.12);
-  border: 1px solid rgba(110, 200, 110, 0.3);
-  border-radius: 6px;
+  background: color-mix(in srgb, var(--ds-success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
   padding: 6px 10px;
 }
 
 .multi-count {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #6ec86e;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
+  color: var(--ds-success);
 }
 
 .multi-header-actions {
@@ -243,13 +243,13 @@ function redraw() {
 }
 
 .hint {
-  font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
   margin: 0;
 }
 
 .section {
-  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-top: 1px solid var(--border-color);
   padding-top: 8px;
   display: flex;
   flex-direction: column;
@@ -257,11 +257,11 @@ function redraw() {
 }
 
 .section-title {
-  font-size: 0.6rem;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
 }
 
 .control-row {
@@ -271,8 +271,8 @@ function redraw() {
 }
 
 .control-row label {
-  font-size: 0.58rem;
-  color: var(--text-primary, #e9e9eb);
+  font-size: var(--ds-text-xs);
+  color: var(--text-primary);
 }
 
 .color-row,
@@ -286,7 +286,7 @@ function redraw() {
   width: 32px;
   height: 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   padding: 0;
 }
@@ -294,11 +294,11 @@ function redraw() {
 .num-input {
   width: 64px;
   padding: 3px 6px;
-  background: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
-  border-radius: 4px;
-  color: var(--text-primary, #e9e9eb);
-  font-size: 0.6rem;
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
 }
 
 .slider {
@@ -306,29 +306,29 @@ function redraw() {
 }
 
 .val-label {
-  font-size: 0.58rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
   min-width: 32px;
 }
 
 .font-select {
   flex: 1;
   padding: 3px 6px;
-  background: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
-  border-radius: 4px;
-  color: var(--text-primary, #e9e9eb);
-  font-size: 0.6rem;
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
 }
 
 .btn-apply {
   padding: 3px 8px;
-  background: var(--accent-primary, #c9984d);
+  background: var(--accent-primary);
   border: none;
-  border-radius: 4px;
-  color: #fff;
-  font-size: 0.58rem;
-  font-weight: 600;
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-on-accent);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -340,27 +340,27 @@ function redraw() {
 
 .btn-select-all {
   padding: 3px 7px;
-  background: rgba(110, 200, 110, 0.2);
-  border: 1px solid rgba(110, 200, 110, 0.4);
-  border-radius: 4px;
-  color: #6ec86e;
-  font-size: 0.58rem;
+  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 40%, transparent);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-success);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 
 .btn-clear {
   padding: 3px 7px;
   background: none;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
-  border-radius: 4px;
-  color: var(--text-muted, #7a8da0);
-  font-size: 0.58rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-muted);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 
 .btn-clear:hover {
-  color: #ff4444;
-  border-color: #ff4444;
+  color: var(--ds-danger);
+  border-color: var(--ds-danger);
 }
 
 .nudge-row {
@@ -372,11 +372,11 @@ function redraw() {
 .btn-nudge {
   width: 28px;
   height: 28px;
-  background: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
-  border-radius: 4px;
-  color: var(--text-primary, #e9e9eb);
-  font-size: 0.7rem;
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -384,14 +384,14 @@ function redraw() {
 }
 
 .btn-nudge:hover {
-  background: var(--accent-primary, #c9984d);
-  color: #fff;
+  background: var(--accent-primary);
+  color: var(--ds-on-accent);
   border-color: transparent;
 }
 
 .nudge-hint {
-  font-size: 0.52rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
   margin-left: 4px;
 }
 
@@ -403,34 +403,34 @@ function redraw() {
 
 .btn-align {
   padding: 3px 6px;
-  background: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
-  border-radius: 4px;
-  color: var(--text-primary, #e9e9eb);
-  font-size: 0.6rem;
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 
 .btn-align:hover {
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-ink, #c9984d);
+  border-color: var(--accent-primary);
+  color: var(--accent-ink);
 }
 
 .btn-copy-audio {
   padding: 6px 10px;
-  background: rgba(100, 150, 255, 0.15);
-  border: 1px solid rgba(100, 150, 255, 0.35);
-  border-radius: 5px;
-  color: #88aaff;
-  font-size: 0.6rem;
-  font-weight: 600;
+  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 35%, transparent);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-link);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
   width: 100%;
-  transition: background 0.15s;
+  transition: background var(--ds-duration) var(--ds-ease);
 }
 
 .btn-copy-audio:hover:not(:disabled) {
-  background: rgba(100, 150, 255, 0.25);
+  background: color-mix(in srgb, var(--ds-link) 25%, transparent);
 }
 
 .btn-copy-audio:disabled {
@@ -441,17 +441,17 @@ function redraw() {
 .btn-delete-all {
   padding: 6px;
   width: 100%;
-  background: rgba(255, 50, 50, 0.1);
-  border: 1px solid rgba(255, 50, 50, 0.3);
-  border-radius: 5px;
-  color: #ff6666;
-  font-size: 0.6rem;
-  font-weight: 600;
+  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-danger);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--ds-duration) var(--ds-ease);
 }
 
 .btn-delete-all:hover {
-  background: rgba(255, 50, 50, 0.2);
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
 }
 </style>

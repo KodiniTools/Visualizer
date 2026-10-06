@@ -173,21 +173,21 @@ const audioTargetLabel = computed(() => {
 <style scoped>
 .audio-target-hint {
   margin: 4px 0 0;
-  font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
 }
 
 /* Canvas Videos Section */
 .canvas-videos-section {
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--ds-border);
 }
 
 .canvas-videos-section h4 {
   margin: 0 0 8px 0;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-primary, #e9e9eb);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   display: flex;
@@ -206,20 +206,20 @@ const audioTargetLabel = computed(() => {
   justify-content: space-between;
   align-items: center;
   padding: 8px 10px;
-  background: rgba(139, 92, 246, 0.08);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  border-radius: 6px;
+  background: color-mix(in srgb, var(--ds-link) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .canvas-video-item:hover {
-  background: rgba(139, 92, 246, 0.15);
+  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
 }
 
 .canvas-video-item.active {
-  border-color: rgba(139, 92, 246, 0.6);
-  background: rgba(139, 92, 246, 0.2);
+  border-color: color-mix(in srgb, var(--ds-link) 60%, transparent);
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
 }
 
 .video-info {
@@ -231,27 +231,27 @@ const audioTargetLabel = computed(() => {
 .video-index {
   width: 20px;
   height: 20px;
-  background: rgba(139, 92, 246, 0.3);
-  border-radius: 4px;
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
 }
 
 .video-name {
-  font-size: 12px;
-  color: var(--text-primary, #e9e9eb);
+  font-size: var(--ds-text-xs);
+  color: var(--text-primary);
 }
 
 .video-status {
-  font-size: 10px;
-  color: var(--text-secondary, #f8e1a9);
+  font-size: var(--ds-text-xs);
+  color: var(--text-secondary);
 }
 
 .video-status.playing {
-  color: #4ade80;
+  color: var(--ds-success);
 }
 
 .video-controls {
@@ -263,15 +263,15 @@ const audioTargetLabel = computed(() => {
   width: 24px;
   height: 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background: rgba(255, 255, 255, 0.1);
-  color: var(--text-primary, #e9e9eb);
-  font-size: 10px;
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-control:hover {
@@ -279,8 +279,8 @@ const audioTargetLabel = computed(() => {
 }
 
 .btn-control.btn-delete:hover {
-  background: rgba(255, 69, 58, 0.3);
-  color: #ff6b6b;
+  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
+  color: var(--ds-danger);
 }
 
 .global-video-controls {
@@ -292,26 +292,26 @@ const audioTargetLabel = computed(() => {
 .btn-global {
   flex: 1;
   padding: 8px 12px;
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 4px;
-  color: var(--text-primary, #e9e9eb);
-  font-size: 11px;
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-global:hover {
-  background: rgba(139, 92, 246, 0.3);
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 
 /* Globale Video-Einstellungen */
 .global-video-settings {
   margin-top: 10px;
   padding: 8px 10px;
-  background: rgba(139, 92, 246, 0.1);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  border-radius: 6px;
+  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
+  border-radius: var(--ds-radius-sm);
 }
 
 .global-video-settings .settings-row {
@@ -324,13 +324,13 @@ const audioTargetLabel = computed(() => {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.55rem;
-  color: var(--text-primary, #e9e9eb);
+  font-size: var(--ds-text-xs);
+  color: var(--text-primary);
   cursor: pointer;
 }
 
 .checkbox-label input[type='checkbox'] {
-  accent-color: var(--accent-primary, #c9984d);
+  accent-color: var(--accent-primary);
   width: 12px;
   height: 12px;
 }
@@ -339,9 +339,9 @@ const audioTargetLabel = computed(() => {
 .video-seek-section {
   margin-top: 12px;
   padding: 10px;
-  background: rgba(139, 92, 246, 0.1);
-  border-radius: 6px;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
+  border-radius: var(--ds-radius-sm);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
 }
 
 .seek-header {
@@ -349,13 +349,13 @@ const audioTargetLabel = computed(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
-  font-size: 11px;
-  color: var(--text-secondary, #f8e1a9);
+  font-size: var(--ds-text-xs);
+  color: var(--text-secondary);
 }
 
 .seek-time {
-  font-family: monospace;
-  color: var(--text-primary, #e9e9eb);
+  font-family: var(--ds-font-mono);
+  color: var(--text-primary);
 }
 
 .seek-controls {
@@ -368,19 +368,19 @@ const audioTargetLabel = computed(() => {
   width: 28px;
   height: 28px;
   border: none;
-  border-radius: 4px;
-  background: rgba(139, 92, 246, 0.3);
+  border-radius: var(--ds-radius-sm);
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
   color: white;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-seek:hover {
-  background: rgba(139, 92, 246, 0.5);
+  background: color-mix(in srgb, var(--ds-link) 50%, transparent);
 }
 
 .seek-slider {
@@ -388,8 +388,8 @@ const audioTargetLabel = computed(() => {
   height: 6px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(139, 92, 246, 0.3);
-  border-radius: 3px;
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
   outline: none;
   cursor: pointer;
 }
@@ -398,21 +398,17 @@ const audioTargetLabel = computed(() => {
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
-  background: #8b5cf6;
-  border-radius: 50%;
+  background: var(--ds-link);
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
   transition: transform 0.1s;
-}
-
-.seek-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
 }
 
 /* Video Volume Section */
 .video-volume-section {
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 1px solid rgba(139, 92, 246, 0.2);
+  border-top: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
 }
 
 .volume-header {
@@ -420,14 +416,14 @@ const audioTargetLabel = computed(() => {
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
-  font-size: 11px;
-  color: var(--text-secondary, #f8e1a9);
+  font-size: var(--ds-text-xs);
+  color: var(--text-secondary);
 }
 
 .volume-header .volume-icon {
   width: 16px;
   height: 16px;
-  color: #8b5cf6;
+  color: var(--ds-link);
 }
 
 .volume-slider {
@@ -435,8 +431,8 @@ const audioTargetLabel = computed(() => {
   height: 6px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(139, 92, 246, 0.3);
-  border-radius: 3px;
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
   outline: none;
   cursor: pointer;
 }
@@ -445,38 +441,34 @@ const audioTargetLabel = computed(() => {
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
-  background: #8b5cf6;
-  border-radius: 50%;
+  background: var(--ds-link);
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
   transition: transform 0.1s;
-}
-
-.volume-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
 }
 
 .volume-slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
-  background: #8b5cf6;
-  border-radius: 50%;
+  background: var(--ds-link);
+  border-radius: var(--ds-radius-full);
   border: none;
   cursor: pointer;
 }
 
 .volume-hint {
   margin: 8px 0 0 0;
-  font-size: 10px;
-  color: rgba(255, 193, 7, 0.9);
-  background: rgba(255, 193, 7, 0.1);
+  font-size: var(--ds-text-xs);
+  color: var(--ds-warning);
+  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   text-align: center;
 }
 
 /* Light Theme */
 [data-theme='light'] .canvas-videos-section {
-  border-top-color: rgba(0, 0, 0, 0.1);
+  border-top-color: var(--ds-border);
 }
 
 [data-theme='light'] .canvas-video-item {

@@ -106,11 +106,10 @@ const replaceCanvasImageInput = ref(null)
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: var(--ds-z-toast);
   animation: fadeIn 0.2s ease;
 }
 
@@ -124,12 +123,10 @@ const replaceCanvasImageInput = ref(null)
 }
 
 .image-preview-modal {
-  background: linear-gradient(180deg, var(--card-bg, #142640) 0%, rgba(20, 38, 64, 0.98) 100%);
-  border-radius: 12px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(201, 152, 77, 0.2);
+  background: var(--card-bg);
+  border-radius: var(--ds-radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--ds-shadow-overlay);
   max-width: 90vw;
   max-height: 90vh;
   overflow: hidden;
@@ -154,14 +151,14 @@ const replaceCanvasImageInput = ref(null)
   right: 12px;
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  font-size: 20px;
+  border: 1px solid var(--ds-border);
+  color: var(--ds-text);
+  font-size: var(--ds-text-xl);
   line-height: 1;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -169,9 +166,8 @@ const replaceCanvasImageInput = ref(null)
 }
 
 .preview-modal-close:hover {
-  background: rgba(255, 69, 58, 0.8);
-  border-color: rgba(255, 69, 58, 0.9);
-  transform: rotate(90deg);
+  background: color-mix(in srgb, var(--ds-danger) 80%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 90%, transparent);
 }
 
 .preview-modal-content {
@@ -195,20 +191,20 @@ const replaceCanvasImageInput = ref(null)
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  border-radius: 6px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border-radius: var(--ds-radius-sm);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 .preview-modal-info {
   padding: 20px 24px;
-  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border-top: 1px solid var(--border-color);
 }
 
 .preview-modal-info h3 {
   margin: 0 0 16px 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--accent-ink, #c9984d);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--accent-ink);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -226,31 +222,31 @@ const replaceCanvasImageInput = ref(null)
 }
 
 .preview-info-label {
-  font-size: 0.65rem;
-  font-weight: 500;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .preview-info-value {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #e9e9eb;
-  font-family: 'SF Mono', 'Monaco', monospace;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-text);
+  font-family: var(--ds-font-mono);
 }
 
 .preview-modal-actions {
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: center;
 }
 
 .replace-with-label {
   display: block;
-  font-size: 0.7rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-bottom: 10px;
   text-transform: uppercase;
@@ -269,41 +265,38 @@ const replaceCanvasImageInput = ref(null)
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #4ade80;
-  background: rgba(74, 222, 128, 0.12);
-  border: 1px solid rgba(74, 222, 128, 0.3);
-  border-radius: 8px;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-success);
+  background: color-mix(in srgb, var(--ds-success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
+  border-radius: var(--ds-radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-replace-canvas-image:hover {
-  background: rgba(74, 222, 128, 0.2);
-  border-color: rgba(74, 222, 128, 0.5);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);
+  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
+  border-color: color-mix(in srgb, var(--ds-success) 50%, transparent);
 }
 
 .btn-replace-canvas-image.btn-gallery {
-  color: #c4b5fd;
-  background: rgba(139, 92, 246, 0.12);
-  border-color: rgba(139, 92, 246, 0.3);
+  color: var(--ds-link);
+  background: color-mix(in srgb, var(--ds-link) 12%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 
 .btn-replace-canvas-image.btn-gallery:hover {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 50%, transparent);
 }
 
 .pending-replace-preview {
   margin-top: 20px;
   padding: 15px;
-  background: rgba(34, 197, 94, 0.08);
-  border: 1px dashed rgba(34, 197, 94, 0.4);
-  border-radius: 12px;
+  background: color-mix(in srgb, var(--ds-success) 8%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--ds-success) 40%, transparent);
+  border-radius: var(--ds-radius-lg);
 }
 
 .pending-replace-header {
@@ -311,9 +304,9 @@ const replaceCanvasImageInput = ref(null)
 }
 
 .pending-replace-label {
-  font-size: 0.75rem;
-  color: #22c55e;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  color: var(--ds-success);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -328,9 +321,9 @@ const replaceCanvasImageInput = ref(null)
   max-width: 100%;
   max-height: 150px;
   object-fit: contain;
-  border-radius: 8px;
-  border: 2px solid rgba(34, 197, 94, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-radius: var(--ds-radius-md);
+  border: 2px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 .pending-replace-actions {
@@ -341,55 +334,48 @@ const replaceCanvasImageInput = ref(null)
 
 .btn-cancel-replace {
   padding: 8px 16px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 8px;
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
+  border-radius: var(--ds-radius-md);
+  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
+  color: var(--ds-danger);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-cancel-replace:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.5);
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 50%, transparent);
 }
 
 .btn-confirm-replace {
   padding: 8px 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
   border: none;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-success);
   color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-confirm-replace:hover {
-  background: linear-gradient(135deg, #16a34a, #15803d);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
-  transform: translateY(-1px);
+  background: var(--ds-success);
 }
 
 /* Light theme */
 [data-theme='light'] .image-preview-modal {
-  background: linear-gradient(180deg, var(--card-bg) 0%, rgba(249, 242, 213, 0.98) 100%);
   border-color: var(--border-color);
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.12),
-    0 0 0 1px color-mix(in srgb, var(--accent-primary) 15%, transparent);
+  box-shadow: var(--ds-shadow-overlay);
 }
 [data-theme='light'] .preview-modal-close {
   background: rgba(0, 0, 0, 0.06);
-  border-color: rgba(0, 0, 0, 0.15);
+  border-color: var(--ds-border);
   color: var(--text-primary);
 }
 [data-theme='light'] .preview-modal-close:hover {
-  background: rgba(255, 69, 58, 0.8);
   color: #fff;
 }
 [data-theme='light'] .preview-modal-image-container {
@@ -406,7 +392,7 @@ const replaceCanvasImageInput = ref(null)
   .image-preview-modal {
     max-width: 95vw;
     max-height: 95vh;
-    border-radius: 8px;
+    border-radius: var(--ds-radius-md);
   }
   .preview-modal-image-container {
     padding: 10px;

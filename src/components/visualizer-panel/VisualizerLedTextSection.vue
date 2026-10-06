@@ -163,15 +163,15 @@ function setTarget(local) {
 
 .led-text__label {
   display: block;
-  font-size: 0.6rem;
-  color: var(--text-muted, #7a8da0);
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
+  font-weight: var(--ds-weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .led-text--compact .led-text__label {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   text-transform: none;
   letter-spacing: 0;
 }
@@ -179,25 +179,25 @@ function setTarget(local) {
 .led-text__input {
   width: 100%;
   box-sizing: border-box;
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 4px;
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
   padding: 4px 6px;
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   color-scheme: dark;
 }
 
 .led-text__textarea {
   resize: vertical;
-  font-family: monospace;
+  font-family: var(--ds-font-mono);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
 .led-text__input:focus {
   outline: none;
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 
 .led-text__seg {
@@ -208,40 +208,40 @@ function setTarget(local) {
 
 .led-text__seg-btn {
   flex: 1 1 auto;
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-muted, #7a8da0);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 4px;
+  background-color: var(--secondary-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
   padding: 3px 6px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 
 .led-text__seg-btn.active {
-  color: var(--text-primary, #e9e9eb);
-  border-color: var(--accent-primary, #c9984d);
-  background-color: rgba(201, 152, 77, 0.18);
-  font-weight: 600;
+  color: var(--text-primary);
+  border-color: var(--accent-primary);
+  background-color: var(--ds-accent-soft);
+  font-weight: var(--ds-weight-semibold);
 }
 
 .led-text__check {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.62rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
   cursor: pointer;
 }
 
 .led-text__hint {
-  font-size: 0.58rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
   opacity: 0.85;
 }
 
 .led-text__preview {
-  font-family: monospace;
-  color: var(--text-primary, #e9e9eb);
+  font-family: var(--ds-font-mono);
+  color: var(--text-primary);
   letter-spacing: 0.05em;
 }
 

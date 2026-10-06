@@ -471,101 +471,101 @@ const seekToPosition = (event) => {
 </script>
 
 <style scoped>
+/* Player-Leiste nach Design-System v2: ds-surface-1, 1 px Rand oben, kein
+   Schatten, Höhe ds-player-height. Transport = runde Icon-Buttons (secondary),
+   Play/Pause = die eine Primärfläche in Gold. Hover ändert nur Farbe. */
 .spb-bar {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 8px 16px;
-  background-color: var(--card-bg, #142640);
-  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.25));
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+  gap: var(--ds-space-3);
+  min-height: var(--ds-player-height);
+  padding: 0 var(--ds-space-4);
+  background-color: var(--ds-surface-1);
+  border-top: var(--ds-border-width) solid var(--ds-border);
 }
 
 /* Track info */
 .spb-track {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ds-space-2);
   min-width: 140px;
   max-width: 240px;
   flex-shrink: 0;
 }
 
 .spb-track-name {
-  font-size: 0.7rem;
-  color: var(--accent-tertiary, #f8e1a9);
-  font-weight: 600;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  color: var(--ds-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .spb-track-name.muted {
-  color: var(--text-muted, #7a8da0);
-  font-weight: 500;
+  color: var(--ds-text-2);
+  font-weight: var(--ds-weight-regular);
 }
 
 /* Transport */
 .spb-transport {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--ds-space-1);
   flex-shrink: 0;
 }
 
 .spb-ctrl {
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  color: var(--text-primary, #e9e9eb);
-  transition: all 0.2s ease;
+  width: var(--ds-control-md);
+  height: var(--ds-control-md);
   padding: 0;
   flex-shrink: 0;
+  background-color: var(--ds-surface-2);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-full);
+  color: var(--ds-text);
+  cursor: pointer;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 }
 .spb-ctrl:hover:not(:disabled) {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
-  transform: scale(1.05);
+  background-color: var(--ds-surface-3);
 }
-.spb-ctrl:active:not(:disabled) {
-  transform: scale(0.95);
+.spb-ctrl:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 .spb-ctrl:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 .spb-ctrl svg {
-  width: 14px;
-  height: 14px;
+  width: var(--ds-icon-sm);
+  height: var(--ds-icon-sm);
 }
 .spb-ctrl-main {
-  width: 38px;
-  height: 38px;
-  background-color: var(--accent-primary, #c9984d);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
+  width: var(--ds-control-lg);
+  height: var(--ds-control-lg);
+  background-color: var(--ds-accent);
+  border-color: var(--ds-accent);
+  color: var(--ds-on-accent);
 }
 .spb-ctrl-main:hover:not(:disabled) {
-  background-color: var(--accent-tertiary, #f8e1a9);
-  border-color: var(--accent-tertiary, #f8e1a9);
+  background-color: var(--ds-accent-hover);
+  border-color: var(--ds-accent-hover);
 }
 .spb-ctrl-main svg {
-  width: 18px;
-  height: 18px;
+  width: var(--ds-icon-md);
+  height: var(--ds-icon-md);
 }
+/* Umschalter „an“: pressed-Rezept (Rand Akzent, Tinte accent-ink: Gold im Dark, Text im Light) */
 .spb-ctrl-playmode.active {
-  background-color: rgba(74, 158, 255, 0.2);
-  border-color: #4a9eff;
-  color: #4a9eff;
-}
-[data-theme='light'] .spb-ctrl-playmode.active {
-  background-color: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  border-color: var(--accent-primary);
+  border-color: var(--ds-accent);
   color: var(--accent-ink);
 }
 
@@ -573,7 +573,7 @@ const seekToPosition = (event) => {
 .spb-progress {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ds-space-2);
   /* Hold a fixed comfortable width instead of stretching across the whole
      screen. Grow is 0 so the space it no longer eats is absorbed by the
      action cluster's auto margin (Rec etc. get pushed to the right edge);
@@ -582,50 +582,46 @@ const seekToPosition = (event) => {
   min-width: 120px;
 }
 .time-display {
-  font-size: 0.6rem;
-  color: var(--text-muted, #7a8da0);
-  min-width: 30px;
-  text-align: center;
-  font-weight: 500;
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
   font-variant-numeric: tabular-nums;
+  color: var(--ds-text-2);
+  min-width: 36px;
+  text-align: center;
 }
 .progress-bar-container {
   flex: 1;
   cursor: pointer;
-  padding: 8px 0;
+  padding: var(--ds-space-2) 0;
 }
 .progress-bar-background {
   position: relative;
-  height: 4px;
-  background-color: var(--secondary-bg, #0e1c32);
-  border-radius: 2px;
+  height: 6px;
+  background-color: var(--ds-border-strong);
+  border-radius: var(--ds-radius-full);
   overflow: visible;
 }
 .progress-bar-fill {
   position: absolute;
   height: 100%;
-  background-color: var(--accent-primary, #c9984d);
-  border-radius: 2px;
+  background-color: var(--ds-accent);
+  border-radius: var(--ds-radius-full);
   transition: width 0.1s linear;
 }
 .progress-bar-handle {
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 10px;
-  height: 10px;
-  background-color: var(--accent-tertiary, #f8e1a9);
-  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  background-color: var(--ds-accent);
+  border: 2px solid var(--ds-surface-1);
+  border-radius: var(--ds-radius-full);
   transition: left 0.1s linear;
-  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
 }
-.progress-bar-container:hover .progress-bar-background {
-  height: 6px;
-}
+.progress-bar-container:hover .progress-bar-fill,
 .progress-bar-container:hover .progress-bar-handle {
-  width: 12px;
-  height: 12px;
-  background-color: var(--accent-primary, #c9984d);
+  background-color: var(--ds-accent-hover);
 }
 .beat-marker-indicator {
   position: absolute;
@@ -634,19 +630,17 @@ const seekToPosition = (event) => {
   height: 0;
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-top: 8px solid var(--accent-primary);
+  border-top: 8px solid var(--ds-accent);
   transform: translateX(-50%);
   cursor: pointer;
   z-index: 10;
-  transition: all 0.2s ease;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+  transition: border-color var(--ds-duration) var(--ds-ease);
 }
 .beat-marker-indicator:hover {
-  border-top-color: var(--accent-tertiary);
-  transform: translateX(-50%) scale(1.3);
+  border-top-color: var(--ds-accent-hover);
 }
 .beat-marker-indicator.triggered {
-  border-top-color: #4ade80;
+  border-top-color: var(--ds-success);
   animation: markerPulse 0.3s ease-out;
 }
 @keyframes markerPulse {
@@ -665,34 +659,41 @@ const seekToPosition = (event) => {
 .spb-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--ds-space-2);
   flex-shrink: 0;
   /* Pin the cluster to the right edge; absorbs the space freed by the capped
      progress bar. */
   margin-left: auto;
 }
 
+/* Icon-Buttons (UiIconButton variant="secondary") */
 .spb-icon-btn {
   position: relative;
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  color: var(--text-primary, #e9e9eb);
-  transition: all 0.2s ease;
+  width: var(--ds-control-md);
+  height: var(--ds-control-md);
   padding: 0;
+  background-color: var(--ds-surface-2);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-text);
+  cursor: pointer;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 }
 .spb-icon-btn:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
+  background-color: var(--ds-surface-3);
+}
+.spb-icon-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 .spb-icon-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
   cursor: default;
   pointer-events: none;
 }
@@ -700,53 +701,56 @@ const seekToPosition = (event) => {
   width: 1px;
   height: 20px;
   margin: 0 2px;
-  background-color: var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--ds-border-strong);
 }
+/* Umschalter „an“ zeigt sich als primär */
 .spb-icon-btn.active {
-  background-color: var(--accent-primary, #c9984d);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
+  background-color: var(--ds-accent);
+  border-color: var(--ds-accent);
+  color: var(--ds-on-accent);
 }
 .spb-icon-btn svg {
-  width: 16px;
-  height: 16px;
+  width: var(--ds-icon-md);
+  height: var(--ds-icon-md);
 }
 /* Stumm: Lautstärke-Button hervorheben (Symbol mit Durchstreichung) */
 .spb-volume-btn.muted:not(.active) {
-  color: var(--accent-ink, #c9984d);
-  border-color: var(--accent-primary, #c9984d);
+  color: var(--accent-ink);
+  border-color: var(--ds-accent);
 }
 .spb-source-btn.listening {
-  border-color: #4ade80;
-  color: #4ade80;
+  border-color: var(--ds-success);
+  color: var(--ds-success);
 }
+/* Zähler (ds-kbd) */
 .spb-badge {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  min-width: 15px;
-  height: 15px;
-  padding: 0 3px;
-  border-radius: 8px;
-  background-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
-  font-size: 8px;
-  font-weight: 700;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--ds-space-1);
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-accent);
+  color: var(--ds-on-accent);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  font-variant-numeric: tabular-nums;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
 }
+/* Danger ist textbasiert, nie Vollfläche */
 .spb-record-btn {
-  color: #f44336;
+  color: var(--ds-danger);
 }
-.spb-record-btn.recording {
-  background-color: rgba(244, 67, 54, 0.2);
-  border-color: #f44336;
-  animation: recPulse 1.4s ease-in-out infinite;
-}
+.spb-record-btn.recording,
 .spb-record-btn.recording.active {
-  color: #f44336;
+  background-color: var(--ds-surface-2);
+  border-color: var(--ds-danger);
+  color: var(--ds-danger);
+  animation: recPulse 1.4s ease-in-out infinite;
 }
 .spb-rec-dot {
   position: absolute;
@@ -754,9 +758,9 @@ const seekToPosition = (event) => {
   right: -4px;
   width: 9px;
   height: 9px;
-  border-radius: 50%;
-  background: #f44336;
-  border: 1.5px solid var(--card-bg, #142640);
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-danger);
+  border: 1.5px solid var(--ds-surface-1);
   animation: recPulse 1s ease-in-out infinite;
 }
 @keyframes recPulse {
@@ -769,34 +773,12 @@ const seekToPosition = (event) => {
   }
 }
 
-/* Light theme */
-[data-theme='light'] .spb-bar {
-  border-top-color: var(--border-color);
-}
-[data-theme='light'] .spb-ctrl,
-[data-theme='light'] .spb-icon-btn {
-  background-color: #eef2f8;
-  border-color: var(--accent-primary);
-  color: var(--text-primary);
-}
-[data-theme='light'] .spb-ctrl:hover:not(:disabled),
-[data-theme='light'] .spb-icon-btn:hover {
-  background-color: #dfe8f4;
-  border-color: var(--accent-primary, var(--accent-primary));
-}
-/* Keep the main play/pause button filled and prominent (the light .spb-ctrl
-   rule above has the same specificity and would otherwise wash it out). */
-[data-theme='light'] .spb-ctrl-main:hover:not(:disabled) {
-  background-color: #013a73;
-  border-color: #013a73;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .spb-bar {
     flex-wrap: wrap;
-    gap: 8px;
-    padding: 8px 10px;
+    gap: var(--ds-space-2);
+    padding: var(--ds-space-2) var(--ds-space-3);
   }
   .spb-track {
     order: 1;

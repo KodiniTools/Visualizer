@@ -280,8 +280,8 @@ onMounted(() => {
   flex-direction: column;
   gap: 8px;
   padding: 10px;
-  border-radius: 8px;
-  border: 1px solid var(--image-section-accent, #6ea8fe);
+  border-radius: var(--ds-radius-md);
+  border: 1px solid var(--image-section-accent);
   background-color: var(--card-bg);
 }
 .image-editor-header {
@@ -293,7 +293,7 @@ onMounted(() => {
   width: 36px;
   height: 36px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   flex-shrink: 0;
 }
 .image-editor-title {
@@ -303,14 +303,14 @@ onMounted(() => {
   flex-direction: column;
 }
 .image-editor-label {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-muted);
 }
 .image-editor-name {
-  font-size: 12px;
-  color: #e0e0e0;
+  font-size: var(--ds-text-xs);
+  color: var(--ds-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -321,24 +321,24 @@ onMounted(() => {
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--ds-text-md);
   padding: 2px 6px;
 }
 .image-editor-field {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 .image-editor-field select,
 .image-editor-field input {
   padding: 4px 6px;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   background: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 .image-editor-times {
   display: flex;
@@ -361,7 +361,7 @@ onMounted(() => {
   padding-left: 0;
 }
 [data-theme='light'] .image-editor {
-  background-color: #f0ead0;
+  background-color: var(--ds-surface-3);
 }
 [data-theme='light'] .image-editor-name {
   color: var(--text-primary);
@@ -369,6 +369,6 @@ onMounted(() => {
 [data-theme='light'] .image-editor-field select,
 [data-theme='light'] .image-editor-field input {
   color: var(--text-primary);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 </style>

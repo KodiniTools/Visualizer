@@ -145,9 +145,9 @@ defineExpose({
 }
 .canvas-wrapper {
   flex-grow: 1;
-  background-color: var(--card-bg, #142640); /* Dunkler Hintergrund passend zu den Sidebars */
-  border-radius: 12px;
-  overflow: auto; /* ← ÄNDERN: hidden → auto */
+  background-color: var(--card-bg);
+  border-radius: var(--ds-radius-lg);
+  overflow: auto;
   min-height: 0;
   display: flex;
   align-items: center;
@@ -166,10 +166,7 @@ canvas {
 /* Visuelles Feedback beim Drag & Drop eines Galerie-Bildes auf den Canvas.
    Die Klasse wird während eines aktiven Drags dynamisch am Wrapper gesetzt. */
 .canvas-wrapper.gallery-drop-active {
-  outline: 3px dashed var(--accent-primary, #c9984d);
+  outline: 3px dashed var(--accent-primary);
   outline-offset: -3px;
-}
-.canvas-wrapper.gallery-drop-active canvas {
-  box-shadow: 0 0 0 3px rgba(201, 152, 77, 0.5);
 }
 </style>

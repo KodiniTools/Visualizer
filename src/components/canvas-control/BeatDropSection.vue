@@ -171,10 +171,10 @@ const beatDropStore = useBeatDropStore()
 .toggle-track {
   width: 32px;
   height: 18px;
-  background: var(--border-color, rgba(255, 255, 255, 0.15));
-  border-radius: 9px;
+  background: var(--border-color);
+  border-radius: var(--ds-radius-md);
   position: relative;
-  transition: background 0.2s;
+  transition: background var(--ds-duration) var(--ds-ease);
 }
 
 .toggle-track::after {
@@ -184,13 +184,13 @@ const beatDropStore = useBeatDropStore()
   left: 2px;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background: #fff;
-  transition: transform 0.2s;
+  transition: transform var(--ds-duration) var(--ds-ease);
 }
 
 .toggle-switch input:checked + .toggle-track {
-  background: var(--accent-primary, #c9984d);
+  background: var(--accent-primary);
 }
 
 .toggle-switch input:checked + .toggle-track::after {
@@ -209,7 +209,7 @@ const beatDropStore = useBeatDropStore()
   width: 28px;
   height: 22px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   padding: 0;
   background: none;
@@ -222,9 +222,9 @@ const beatDropStore = useBeatDropStore()
 .control-group label {
   display: block;
   margin-bottom: 4px;
-  font-size: 0.6rem;
-  color: var(--text-muted, #7a8da0);
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
+  font-weight: var(--ds-weight-medium);
 }
 
 .control-group.compact {
@@ -237,30 +237,26 @@ const beatDropStore = useBeatDropStore()
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  font-size: 0.6rem;
-  color: var(--text-primary, #e9e9eb);
+  font-size: var(--ds-text-xs);
+  color: var(--text-primary);
 }
 
 .gradient-select {
   width: 100%;
   padding: 5px 8px;
-  background: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 5px;
-  color: var(--text-primary, #e9e9eb);
-  font-size: 0.6rem;
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
 }
 
 .opacity-slider {
   width: 100%;
   height: 3px;
-  background: linear-gradient(
-    to right,
-    var(--text-muted, #7a8da0) 0%,
-    var(--accent-primary, #c9984d) 100%
-  );
-  border-radius: 2px;
+  background: var(--text-muted);
+  border-radius: var(--ds-radius-sm);
   outline: none;
   -webkit-appearance: none;
   appearance: none;
@@ -272,18 +268,17 @@ const beatDropStore = useBeatDropStore()
   appearance: none;
   width: 12px;
   height: 12px;
-  background-color: var(--accent-tertiary, #f8e1a9);
-  border: 2px solid #fff;
-  border-radius: 50%;
+  background-color: var(--accent-tertiary);
+  border: 2px solid var(--ds-surface-1);
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 @media (max-width: 768px) {
   .gradient-select {
     min-height: 36px;
-    font-size: 0.65rem;
+    font-size: var(--ds-text-xs);
   }
 
   .opacity-slider::-webkit-slider-thumb {

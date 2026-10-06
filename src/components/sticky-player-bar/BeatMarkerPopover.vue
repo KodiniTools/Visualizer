@@ -400,30 +400,30 @@ const backgroundPresetOptions = computed(() => {
 <style scoped>
 .btn-toggle {
   padding: 3px 8px;
-  font-size: 9px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background-color: var(--secondary-bg);
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   min-width: 22px;
 }
 .btn-toggle.active {
-  background-color: #4ade80;
-  border-color: #4ade80;
+  background-color: var(--ds-success);
+  border-color: var(--ds-success);
   color: var(--accent-text);
 }
 .marker-add-form {
   background-color: var(--secondary-bg);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   padding: 8px;
   border: 1px solid var(--accent-primary);
 }
 .form-title {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--accent-ink);
   margin-bottom: 8px;
   padding-bottom: 4px;
@@ -436,7 +436,7 @@ const backgroundPresetOptions = computed(() => {
   margin-bottom: 6px;
 }
 .form-row label {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   min-width: 55px;
 }
@@ -444,10 +444,10 @@ const backgroundPresetOptions = computed(() => {
 .marker-input {
   flex: 1;
   padding: 4px 6px;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
 }
 .color-input-wrapper {
@@ -461,7 +461,7 @@ const backgroundPresetOptions = computed(() => {
   height: 22px;
   padding: 0;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   background: transparent;
 }
@@ -469,7 +469,7 @@ const backgroundPresetOptions = computed(() => {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   cursor: pointer;
 }
@@ -478,16 +478,16 @@ const backgroundPresetOptions = computed(() => {
   height: 12px;
 }
 .marker-action-bg {
-  color: #4ade80;
-  background-color: rgba(74, 222, 128, 0.12);
+  color: var(--ds-success);
+  background-color: color-mix(in srgb, var(--ds-success) 12%, transparent);
 }
 .marker-action-text {
-  color: #6ea8fe;
-  background-color: rgba(110, 168, 254, 0.14);
+  color: var(--ds-link);
+  background-color: color-mix(in srgb, var(--ds-link) 14%, transparent);
 }
 .marker-action-off {
-  color: #f87171;
-  background-color: rgba(248, 113, 113, 0.12);
+  color: var(--ds-danger);
+  background-color: color-mix(in srgb, var(--ds-danger) 12%, transparent);
 }
 .marker-transition-row {
   display: flex;
@@ -497,13 +497,13 @@ const backgroundPresetOptions = computed(() => {
   margin-bottom: 6px;
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 .transition-toggle {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
   cursor: pointer;
   white-space: nowrap;
@@ -524,9 +524,9 @@ const backgroundPresetOptions = computed(() => {
   accent-color: var(--accent-primary);
 }
 .transition-value {
-  font-size: 10px;
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  font-family: var(--ds-font-mono);
   color: var(--accent-ink);
   min-width: 26px;
   text-align: right;
@@ -553,17 +553,17 @@ const backgroundPresetOptions = computed(() => {
   width: 22px;
   height: 22px;
   padding: 0;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-bold);
   line-height: 1;
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-muted);
   cursor: pointer;
   user-select: none;
   touch-action: none;
-  transition: all 0.15s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 .btn-step:hover {
   background-color: var(--btn-hover);
@@ -581,15 +581,15 @@ const backgroundPresetOptions = computed(() => {
 }
 .btn-step-option {
   padding: 2px 7px;
-  font-size: 9px;
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  font-family: var(--ds-font-mono);
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 .btn-step-option:hover {
   border-color: var(--accent-primary);
@@ -603,24 +603,24 @@ const backgroundPresetOptions = computed(() => {
 .marker-time-input {
   width: 72px;
   padding: 4px 6px;
-  font-size: 11px;
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  font-family: var(--ds-font-mono);
   background-color: var(--secondary-bg);
   border: 1px solid var(--accent-primary);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--accent-ink);
   text-align: center;
 }
 .time-hint {
-  font-size: 9px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   font-style: italic;
 }
 .time-max {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
-  font-family: 'Courier New', monospace;
+  font-family: var(--ds-font-mono);
 }
 .form-buttons {
   display: flex;
@@ -630,23 +630,23 @@ const backgroundPresetOptions = computed(() => {
 }
 .btn-confirm {
   padding: 4px 12px;
-  font-size: 10px;
-  font-weight: 600;
-  background-color: #4ade80;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  background-color: var(--ds-success);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--accent-text);
   cursor: pointer;
 }
 .btn-confirm:hover {
-  background-color: #22c55e;
+  background-color: var(--ds-success);
 }
 .btn-cancel {
   padding: 4px 12px;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-muted);
   cursor: pointer;
 }
@@ -667,25 +667,25 @@ const backgroundPresetOptions = computed(() => {
   align-items: center;
   gap: 6px;
   padding: 4px 6px;
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   background-color: var(--secondary-bg);
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  border-radius: var(--ds-radius-sm);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 .marker-item:hover {
   background-color: var(--btn-hover);
 }
 .marker-item.triggered {
-  background-color: rgba(74, 222, 128, 0.2);
-  border-left: 2px solid #4ade80;
+  background-color: color-mix(in srgb, var(--ds-success) 20%, transparent);
+  border-left: 2px solid var(--ds-success);
 }
 .marker-item.editing {
-  background-color: rgba(201, 152, 77, 0.15);
+  background-color: var(--ds-accent-soft);
   border-left: 2px solid var(--accent-primary);
 }
 .marker-time {
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
+  font-weight: var(--ds-weight-semibold);
+  font-family: var(--ds-font-mono);
   color: var(--accent-ink);
   cursor: pointer;
   min-width: 52px;
@@ -705,11 +705,11 @@ const backgroundPresetOptions = computed(() => {
   color: var(--accent-ink);
 }
 .marker-action {
-  font-size: 9px;
+  font-size: var(--ds-text-xs);
   color: var(--accent-ink);
-  background-color: rgba(201, 152, 77, 0.1);
+  background-color: var(--ds-accent-soft);
   padding: 2px 6px;
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 .marker-buttons {
   display: flex;
@@ -725,17 +725,17 @@ const backgroundPresetOptions = computed(() => {
   padding: 2px;
   display: flex;
   align-items: center;
-  border-radius: 3px;
-  transition: all 0.2s ease;
+  border-radius: var(--ds-radius-sm);
+  transition: all var(--ds-duration) var(--ds-ease);
   opacity: 0.5;
 }
 .btn-edit-marker:hover {
-  background-color: rgba(201, 152, 77, 0.8);
+  background-color: color-mix(in srgb, var(--ds-accent) 80%, transparent);
   color: var(--accent-text);
   opacity: 1;
 }
 .btn-delete-marker:hover {
-  background-color: rgba(255, 68, 68, 0.8);
+  background-color: color-mix(in srgb, var(--ds-danger) 80%, transparent);
   color: #fff;
   opacity: 1;
 }

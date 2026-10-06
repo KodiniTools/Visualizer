@@ -67,16 +67,16 @@ provide('tilePresets', presets)
 .tiles-section {
   margin-top: 16px;
   padding: 12px;
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  border-radius: 8px;
+  background: color-mix(in srgb, var(--ds-success) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
+  border-radius: var(--ds-radius-md);
 }
 
 .tiles-section h5 {
   margin: 0 0 12px 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #4ade80;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-success);
 }
 
 .control-group {
@@ -88,13 +88,13 @@ provide('tilePresets', presets)
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
 }
 
 .checkbox-label input[type='checkbox'] {
   width: 16px;
   height: 16px;
-  accent-color: #4ade80;
+  accent-color: var(--ds-success);
 }
 
 .tiles-controls {
@@ -104,32 +104,28 @@ provide('tilePresets', presets)
 .reset-all {
   margin-top: 8px;
   padding-top: 12px;
-  border-top: 1px solid rgba(74, 222, 128, 0.2);
+  border-top: 1px solid color-mix(in srgb, var(--ds-success) 20%, transparent);
 }
 
 .btn-reset-all {
   width: 100%;
   padding: 8px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 4px;
-  color: #f87171;
-  font-size: 11px;
+  background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-danger);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-reset-all:hover {
-  background: rgba(239, 68, 68, 0.25);
+  background: color-mix(in srgb, var(--ds-danger) 25%, transparent);
 }
 
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .tiles-section {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent-primary) 6%, transparent) 0%,
-    color-mix(in srgb, var(--accent-primary) 6%, transparent) 100%
-  );
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
   border-color: var(--border-color);
 }
 
@@ -142,7 +138,7 @@ provide('tilePresets', presets)
 }
 
 [data-theme='light'] .btn-reset-all {
-  background: rgba(239, 68, 68, 0.08);
+  background: color-mix(in srgb, var(--ds-danger) 8%, transparent);
 }
 
 /* ═══ Responsive ═══ */
@@ -152,12 +148,12 @@ provide('tilePresets', presets)
   }
 
   .tiles-section h5 {
-    font-size: 12px;
+    font-size: var(--ds-text-xs);
   }
 
   .btn-reset-all {
     padding: 8px;
-    font-size: 11px;
+    font-size: var(--ds-text-xs);
     min-height: 40px;
   }
 }

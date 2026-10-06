@@ -90,8 +90,8 @@ defineEmits(['update:modelValue'])
     display: flex;
     gap: 4px;
     padding: 6px 8px;
-    background: var(--card-bg, #142640);
-    border-bottom: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -106,29 +106,25 @@ defineEmits(['update:modelValue'])
     gap: 4px;
     padding: 8px 6px 6px;
     min-height: 52px;
-    background: var(--secondary-bg, #0e1c32);
-    border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
-    border-radius: 8px;
-    color: var(--text-muted, #7a8da0);
-    font-size: 0.65rem;
-    font-weight: 600;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--ds-radius-md);
+    color: var(--text-muted);
+    font-size: var(--ds-text-xs);
+    font-weight: var(--ds-weight-semibold);
     cursor: pointer;
     transition:
-      color 0.18s ease,
-      background 0.18s ease,
-      border-color 0.18s ease;
+      color var(--ds-duration) var(--ds-ease),
+      background var(--ds-duration) var(--ds-ease),
+      border-color var(--ds-duration) var(--ds-ease);
     position: relative;
     overflow: hidden;
   }
 
   .mobile-panel-btn.active {
-    background: color-mix(
-      in srgb,
-      var(--accent-primary, #c9984d) 12%,
-      var(--secondary-bg, #0e1c32)
-    );
-    color: var(--accent-ink, #c9984d);
-    border-color: var(--accent-primary, #c9984d);
+    background: color-mix(in srgb, var(--accent-primary) 12%, var(--secondary-bg));
+    color: var(--accent-ink);
+    border-color: var(--accent-primary);
   }
 
   .mobile-panel-icon {
@@ -144,18 +140,18 @@ defineEmits(['update:modelValue'])
     left: 10%;
     right: 10%;
     height: 2px;
-    border-radius: 2px 2px 0 0;
-    background: var(--accent-primary, #c9984d);
+    border-radius: var(--ds-radius-sm) var(--ds-radius-sm) 0 0;
+    background: var(--accent-primary);
     transform: scaleX(0);
-    transition: transform 0.2s ease;
+    transition: transform var(--ds-duration) var(--ds-ease);
   }
   .mobile-panel-btn.active .mobile-active-bar {
     transform: scaleX(1);
   }
 
   [data-theme='light'] .mobile-panel-btn {
-    background: #fdfbf2;
-    color: #5a7b9a;
+    background: var(--ds-surface-2);
+    color: var(--ds-text-3);
     border-color: var(--border-color);
   }
   [data-theme='light'] .mobile-panel-btn.active {

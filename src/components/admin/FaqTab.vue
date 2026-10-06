@@ -54,20 +54,20 @@ const save = () => store.save()
 }
 .admin-tab-hint {
   margin: 0 0 16px 0;
-  font-size: 0.8rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-sm);
+  color: var(--text-muted);
 }
 .admin-card-group {
   padding: 16px;
   margin-bottom: 16px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
-  border-radius: 12px;
-  background: var(--panel-highlight, rgba(201, 152, 77, 0.05));
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-lg);
+  background: var(--panel-highlight);
 }
 .admin-card-title {
   margin: 0 0 12px 0;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--accent-ink, #c9984d);
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-bold);
+  color: var(--accent-ink);
 }
 </style>

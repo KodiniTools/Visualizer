@@ -173,19 +173,19 @@ onUnmounted(() => {
   padding: 0;
   border: none;
   background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
+  color: var(--ds-text-2);
+  border-radius: var(--ds-radius-full);
   cursor: help;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .tooltip-trigger:hover,
 .tooltip-trigger.active {
-  background: rgba(110, 168, 254, 0.2);
-  color: #6ea8fe;
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
+  color: var(--ds-link);
 }
 
 .tooltip-trigger svg {
@@ -210,15 +210,13 @@ onUnmounted(() => {
 /* Global styles for teleported tooltip */
 .tooltip-content {
   position: fixed;
-  z-index: 10001;
-  background: linear-gradient(145deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+  z-index: calc(var(--ds-z-toast) + 1);
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: var(--ds-radius-lg);
   padding: 12px 16px;
   max-width: 280px;
-  box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.4),
-    0 0 0 1px var(--border-color);
+  box-shadow: var(--ds-shadow-overlay);
   pointer-events: none;
 }
 
@@ -280,18 +278,18 @@ onUnmounted(() => {
 }
 
 .tooltip-icon {
-  font-size: 16px;
+  font-size: var(--ds-text-lg);
 }
 
 .tooltip-title {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-primary);
 }
 
 /* Body */
 .tooltip-body {
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   color: var(--text-primary);
   line-height: 1.5;
 }
@@ -314,11 +312,10 @@ onUnmounted(() => {
   padding: 0 6px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-size: 11px;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
   font-family: inherit;
   color: var(--text-primary);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
 }
 
 /* Tip */
@@ -328,21 +325,21 @@ onUnmounted(() => {
   gap: 6px;
   margin-top: 10px;
   padding: 8px 10px;
-  background: rgba(255, 193, 7, 0.1);
-  border-radius: 6px;
-  font-size: 11px;
-  color: rgba(255, 193, 7, 0.9);
+  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
+  color: var(--ds-warning);
 }
 
 .tooltip-tip .tip-icon {
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   flex-shrink: 0;
 }
 
 /* Transitions */
 .tooltip-enter-active,
 .tooltip-leave-active {
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .tooltip-enter-from,

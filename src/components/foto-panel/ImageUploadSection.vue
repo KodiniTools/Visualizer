@@ -237,15 +237,15 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   flex-direction: column;
   gap: 16px;
   background-color: var(--secondary-bg);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 16px;
   border: 1px solid var(--border-color);
 }
 
 .upload-section h4 {
   margin: 0 0 14px 0;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -253,16 +253,16 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 
 .upload-area {
   border: 2px dashed var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 24px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--ds-duration-slow) var(--ds-ease);
   background-color: var(--secondary-bg);
 }
 
 .upload-area:hover {
-  border-color: var(--image-section-accent, #6ea8fe);
+  border-color: var(--image-section-accent);
   background-color: var(--secondary-bg);
 }
 
@@ -275,13 +275,13 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 
 .upload-placeholder p {
   margin: 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: #e0e0e0;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-medium);
+  color: var(--ds-text);
 }
 
 .upload-placeholder small {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 
@@ -291,7 +291,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   flex-direction: column;
   gap: 8px;
   background-color: var(--secondary-bg);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 12px;
 }
 
@@ -303,24 +303,24 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 }
 
 .gallery-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #e0e0e0;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-text);
 }
 
 .btn-clear-all {
   padding: 4px 10px;
-  font-size: 11px;
-  border-radius: 4px;
+  font-size: var(--ds-text-xs);
+  border-radius: var(--ds-radius-sm);
   border: 1px solid var(--border-color);
-  background-color: #ff6b6b;
+  background-color: var(--ds-danger);
   color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-clear-all:hover {
-  background-color: #ff5252;
+  background-color: var(--ds-danger);
 }
 
 /* Scrollbarer Galerie-Bereich */
@@ -338,16 +338,16 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 
 .gallery-scroll::-webkit-scrollbar-track {
   background: var(--secondary-bg);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .gallery-scroll::-webkit-scrollbar-thumb {
   background: var(--border-color);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .gallery-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--image-section-accent, #6ea8fe);
+  background: var(--image-section-accent);
 }
 
 /* Thumbnail-Grid */
@@ -360,11 +360,11 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 .thumbnail-item {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
   cursor: grab;
   border: 2px solid transparent;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   background-color: var(--secondary-bg);
 }
 
@@ -373,13 +373,11 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 }
 
 .thumbnail-item:hover {
-  border-color: var(--image-section-accent, #6ea8fe);
-  transform: scale(1.02);
+  border-color: var(--image-section-accent);
 }
 
 .thumbnail-item.selected {
-  border-color: var(--image-section-accent, #6ea8fe);
-  box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.3);
+  border-color: var(--image-section-accent);
 }
 
 .thumbnail-item img {
@@ -395,7 +393,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   right: 0;
   padding: 4px;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--ds-duration) var(--ds-ease);
 }
 
 .thumbnail-item:hover .thumbnail-overlay {
@@ -405,22 +403,21 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 .btn-delete-thumb {
   width: 22px;
   height: 22px;
-  border-radius: 50%;
-  background-color: rgba(255, 69, 58, 0.95);
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-danger);
   color: white;
   border: 1.5px solid white;
-  font-size: 12px;
-  font-weight: bold;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-delete-thumb:hover {
-  background-color: rgba(255, 69, 58, 1);
-  transform: scale(1.1);
+  background-color: var(--ds-danger);
 }
 
 .thumbnail-info {
@@ -436,16 +433,16 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 }
 
 .thumbnail-name {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: white;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .thumbnail-size {
-  font-size: 9px;
+  font-size: var(--ds-text-xs);
   color: var(--text-secondary);
 }
 
@@ -461,23 +458,23 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 .btn-select-all,
 .btn-deselect-all {
   padding: 5px 10px;
-  font-size: 11px;
-  border-radius: 4px;
+  font-size: var(--ds-text-xs);
+  border-radius: var(--ds-radius-sm);
   border: 1px solid var(--border-color);
   background-color: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 .btn-select-all:hover:not(:disabled),
 .btn-deselect-all:hover:not(:disabled) {
   background-color: var(--secondary-bg);
-  border-color: var(--image-section-accent, #6ea8fe);
-  color: var(--image-section-accent, #6ea8fe);
+  border-color: var(--image-section-accent);
+  color: var(--image-section-accent);
 }
 
 .btn-select-all:disabled,
@@ -487,25 +484,25 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 }
 
 .selection-count {
-  font-size: 11px;
-  color: var(--image-section-accent, #6ea8fe);
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  color: var(--image-section-accent);
+  font-weight: var(--ds-weight-semibold);
   padding: 4px 8px;
-  background-color: rgba(110, 168, 254, 0.15);
-  border-radius: 4px;
+  background-color: color-mix(in srgb, var(--ds-link) 15%, transparent);
+  border-radius: var(--ds-radius-sm);
   margin-left: auto;
 }
 
 .multiselect-hint {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin: 0 0 2px 0;
   font-style: italic;
 }
 
 .drag-hint {
-  font-size: 10px;
-  color: var(--accent-tertiary, #f8e1a9);
+  font-size: var(--ds-text-xs);
+  color: var(--accent-tertiary);
   margin: 0 0 8px 0;
   font-style: italic;
   display: flex;
@@ -516,14 +513,14 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 .drag-hint::before {
   content: '↦';
   font-style: normal;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
 }
 
 /* Selection Checkbox */
 .slideshow-select-hint {
   margin: 4px 0 0;
-  font-size: 11px;
-  color: var(--image-section-accent, #6ea8fe);
+  font-size: var(--ds-text-xs);
+  color: var(--image-section-accent);
 }
 /* Größere Klickfläche für die Checkbox, ohne das Aussehen zu ändern */
 .selection-checkbox::before {
@@ -537,29 +534,28 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   left: 6px;
   width: 20px;
   height: 20px;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background-color: rgba(0, 0, 0, 0.5);
-  border: 2px solid rgba(255, 255, 255, 0.6);
+  border: 2px solid var(--ds-border);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 12px;
+  transition: all var(--ds-duration) var(--ds-ease);
+  font-size: var(--ds-text-xs);
   color: white;
-  font-weight: bold;
+  font-weight: var(--ds-weight-bold);
 }
 
 .selection-checkbox.checked {
-  background-color: var(--image-section-accent, #6ea8fe);
-  border-color: var(--image-section-accent, #6ea8fe);
-  box-shadow: 0 2px 6px rgba(110, 168, 254, 0.4);
+  background-color: var(--image-section-accent);
+  border-color: var(--image-section-accent);
 }
 
 .thumbnail-item:hover .selection-checkbox:not(.checked) {
-  border-color: var(--image-section-accent, #6ea8fe);
-  background-color: rgba(110, 168, 254, 0.3);
+  border-color: var(--image-section-accent);
+  background-color: color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 
 /* Action-Buttons */
@@ -571,49 +567,46 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 
 .action-buttons button {
   padding: 6px 10px;
-  border-radius: 5px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  font-size: 0.6rem;
+  border-radius: var(--ds-radius-sm);
+  border: 1px solid var(--border-color);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 
 .btn-primary {
-  background: rgba(201, 152, 77, 0.2);
-  color: var(--accent-tertiary, #f8e1a9);
-  border: 1px solid rgba(201, 152, 77, 0.3);
+  background: var(--ds-accent-soft);
+  color: var(--accent-tertiary);
+  border: 1px solid var(--ds-border);
 }
 
 .btn-primary:hover {
-  background: rgba(201, 152, 77, 0.3);
-  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
 }
 
 .btn-secondary {
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
-  transform: translateY(-1px);
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
 }
 
 .btn-workspace {
-  background: rgba(255, 193, 7, 0.1);
-  color: #ffc107;
-  border: 1px solid rgba(255, 193, 7, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
+  color: var(--ds-warning);
+  border: 1px solid color-mix(in srgb, var(--ds-warning) 30%, transparent);
 }
 
 .btn-workspace:hover {
-  background: rgba(255, 193, 7, 0.2);
-  border-color: rgba(255, 193, 7, 0.5);
-  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
+  border-color: color-mix(in srgb, var(--ds-warning) 50%, transparent);
 }
 
 /* Empty State */
@@ -625,7 +618,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 
 .empty-state p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
 }
 
 /* ═══ Light Theme Overrides ═══ */
@@ -656,11 +649,11 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 }
 
 [data-theme='light'] .btn-clear-all {
-  border-color: rgba(255, 69, 58, 0.5);
+  border-color: color-mix(in srgb, var(--ds-danger) 50%, transparent);
 }
 
 [data-theme='light'] .gallery-scroll::-webkit-scrollbar-thumb {
-  background: #b0c4de;
+  background: var(--ds-link);
 }
 
 [data-theme='light'] .gallery-scroll::-webkit-scrollbar-thumb:hover {
@@ -673,7 +666,6 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 
 [data-theme='light'] .thumbnail-item.selected {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 [data-theme='light'] .btn-select-all,
@@ -697,7 +689,6 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 [data-theme='light'] .selection-checkbox.checked {
   background-color: var(--accent-primary);
   border-color: var(--accent-primary);
-  box-shadow: 0 2px 6px color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 
 [data-theme='light'] .thumbnail-item:hover .selection-checkbox:not(.checked) {

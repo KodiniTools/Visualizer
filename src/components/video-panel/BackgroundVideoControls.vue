@@ -190,27 +190,27 @@ const {
 .background-video-section {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--ds-border);
 }
 
 .background-video-section h4 {
   margin: 0 0 12px 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #6ea8fe;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-link);
 }
 
 .bg-video-item {
   padding: 12px;
-  background: rgba(110, 168, 254, 0.1);
-  border: 1px solid rgba(110, 168, 254, 0.3);
-  border-radius: 8px;
+  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
+  border-radius: var(--ds-radius-md);
   margin-bottom: 10px;
 }
 
 .bg-video-item.workspace {
-  background: rgba(255, 215, 0, 0.08);
-  border-color: rgba(255, 215, 0, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 8%, transparent);
+  border-color: color-mix(in srgb, var(--ds-warning) 30%, transparent);
 }
 
 .bg-video-header {
@@ -221,22 +221,22 @@ const {
 }
 
 .bg-video-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-primary, #e9e9eb);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
+  color: var(--text-primary);
 }
 
 .bg-video-status {
-  font-size: 12px;
-  color: var(--text-secondary, #f8e1a9);
+  font-size: var(--ds-text-xs);
+  color: var(--text-secondary);
   padding: 2px 8px;
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .bg-video-status.playing {
-  color: #4ade80;
-  background: rgba(74, 222, 128, 0.15);
+  color: var(--ds-success);
+  background: color-mix(in srgb, var(--ds-success) 15%, transparent);
 }
 
 .bg-video-controls {
@@ -249,34 +249,34 @@ const {
   width: 36px;
   height: 28px;
   border: none;
-  border-radius: 4px;
-  background: rgba(110, 168, 254, 0.3);
+  border-radius: var(--ds-radius-sm);
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
   color: white;
-  font-size: 14px;
+  font-size: var(--ds-text-md);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-control-lg:hover {
-  background: rgba(110, 168, 254, 0.5);
+  background: color-mix(in srgb, var(--ds-link) 50%, transparent);
 }
 
 .btn-control {
   width: 24px;
   height: 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background: rgba(255, 255, 255, 0.1);
-  color: var(--text-primary, #e9e9eb);
-  font-size: 10px;
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-control:hover {
@@ -284,8 +284,8 @@ const {
 }
 
 .btn-control.btn-delete:hover {
-  background: rgba(255, 69, 58, 0.3);
-  color: #ff6b6b;
+  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
+  color: var(--ds-danger);
 }
 
 .bg-video-seek {
@@ -295,9 +295,9 @@ const {
 }
 
 .seek-time-small {
-  font-size: 10px;
-  font-family: monospace;
-  color: var(--text-secondary, #f8e1a9);
+  font-size: var(--ds-text-xs);
+  font-family: var(--ds-font-mono);
+  color: var(--text-secondary);
   min-width: 35px;
 }
 
@@ -306,8 +306,8 @@ const {
   height: 6px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(139, 92, 246, 0.3);
-  border-radius: 3px;
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
   outline: none;
   cursor: pointer;
 }
@@ -316,21 +316,17 @@ const {
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
-  background: #8b5cf6;
-  border-radius: 50%;
+  background: var(--ds-link);
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
   transition: transform 0.1s;
-}
-
-.seek-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
 }
 
 /* Hintergrund-Video Lautstärke */
 .bg-video-volume {
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid rgba(110, 168, 254, 0.2);
+  border-top: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
 }
 
 .volume-header-small {
@@ -338,14 +334,14 @@ const {
   align-items: center;
   gap: 6px;
   margin-bottom: 6px;
-  font-size: 10px;
-  color: var(--text-secondary, #f8e1a9);
+  font-size: var(--ds-text-xs);
+  color: var(--text-secondary);
 }
 
 .volume-icon-small {
   width: 14px;
   height: 14px;
-  color: #6ea8fe;
+  color: var(--ds-link);
 }
 
 .volume-slider-small {
@@ -353,8 +349,8 @@ const {
   height: 4px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(110, 168, 254, 0.3);
-  border-radius: 2px;
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
   outline: none;
   cursor: pointer;
 }
@@ -363,43 +359,43 @@ const {
   -webkit-appearance: none;
   width: 12px;
   height: 12px;
-  background: #6ea8fe;
-  border-radius: 50%;
+  background: var(--ds-link);
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
 }
 
 .volume-slider-small::-moz-range-thumb {
   width: 12px;
   height: 12px;
-  background: #6ea8fe;
-  border-radius: 50%;
+  background: var(--ds-link);
+  border-radius: var(--ds-radius-full);
   border: none;
   cursor: pointer;
 }
 
 .bg-video-item.workspace .bg-video-volume {
-  border-top-color: rgba(255, 215, 0, 0.2);
+  border-top-color: color-mix(in srgb, var(--ds-warning) 20%, transparent);
 }
 
 .bg-video-item.workspace .volume-icon-small {
-  color: #ffd700;
+  color: var(--ds-warning);
 }
 
 .bg-video-item.workspace .volume-slider-small {
-  background: rgba(255, 215, 0, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 30%, transparent);
 }
 
 .bg-video-item.workspace .volume-slider-small::-webkit-slider-thumb {
-  background: #ffd700;
+  background: var(--ds-warning);
 }
 
 .bg-video-item.workspace .volume-slider-small::-moz-range-thumb {
-  background: #ffd700;
+  background: var(--ds-warning);
 }
 
 /* Light Theme */
 [data-theme='light'] .background-video-section {
-  border-top-color: rgba(0, 0, 0, 0.1);
+  border-top-color: var(--ds-border);
 }
 
 [data-theme='light'] .background-video-section h4 {

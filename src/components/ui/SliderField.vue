@@ -44,7 +44,18 @@
       :disabled="disabled || isAtDefault"
       @click="reset"
     >
-      ↺
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+        <path d="M3 3v5h5" />
+      </svg>
     </button>
   </div>
 </template>
@@ -267,10 +278,12 @@ function reset() {
 </script>
 
 <style scoped>
+/* Anatomie wie ControlSlider + ResetButton im Collage Maker: Regler, Zahlenfeld
+   (ds-control-sm, mono) und Reset als Ghost-Icon-Button (UiIconButton size="sm"). */
 .slider-field {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--ds-space-2);
   width: 100%;
   /* In Flex-Zeilen der Eltern (Slider + Wert-Anzeige) den Restplatz einnehmen. */
   flex: 1 1 auto;
@@ -278,7 +291,7 @@ function reset() {
   box-sizing: border-box;
 }
 .slider-field--disabled {
-  opacity: 0.55;
+  opacity: 0.45;
 }
 
 /* Der Range-Input trägt zusätzlich die Klasse(n) der Elternkomponente. */
@@ -290,72 +303,65 @@ function reset() {
 .slider-field__num {
   flex: none;
   box-sizing: border-box;
-  width: 62px;
-  height: 22px;
-  padding: 2px 2px 2px 4px;
-  background: var(--secondary-bg, #0c1828);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 4px;
-  color: var(--text-primary, #f0e8cc);
-  font-size: 0.66rem;
-  font-family: 'Courier New', monospace;
-  line-height: 1.3;
+  width: 64px;
+  height: var(--ds-control-sm);
+  padding: 0 var(--ds-space-1) 0 var(--ds-space-2);
+  background: var(--ds-surface-2);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-text);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transition:
+    border-color var(--ds-duration) var(--ds-ease),
+    box-shadow var(--ds-duration) var(--ds-ease);
 }
-.slider-field__num:focus {
+.slider-field__num:focus-visible {
   outline: none;
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--ds-accent);
+  box-shadow: var(--ds-focus-ring);
 }
-/* Spinner-Pfeile dauerhaft sichtbar und gut klickbar (Chrome/Safari blenden sie sonst erst beim Hover ein). */
+/* Spinner-Pfeile dauerhaft sichtbar (Chrome/Safari blenden sie sonst erst beim Hover ein). */
 .slider-field__num::-webkit-inner-spin-button,
 .slider-field__num::-webkit-outer-spin-button {
   opacity: 1;
-  height: 18px;
   margin: 0;
   cursor: pointer;
 }
 
 .slider-field__reset {
   flex: none;
-  width: 22px;
-  height: 22px;
-  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--secondary-bg, #0c1828);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 4px;
-  color: var(--text-muted, #7a8da0);
-  font-size: 0.8rem;
-  line-height: 1;
+  width: var(--ds-control-sm);
+  height: var(--ds-control-sm);
+  padding: 0;
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+  color: var(--ds-text-2);
   cursor: pointer;
   transition:
-    color 0.15s ease,
-    border-color 0.15s ease;
+    background-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
+}
+.slider-field__reset svg {
+  width: var(--ds-icon-sm);
+  height: var(--ds-icon-sm);
 }
 .slider-field__reset:hover:not(:disabled) {
-  color: var(--accent-ink, #c9984d);
-  border-color: var(--accent-primary, #c9984d);
+  background: var(--ds-surface-2);
+  color: var(--ds-text);
 }
 .slider-field__reset:focus-visible {
-  outline: 2px solid var(--accent-primary, #c9984d);
-  outline-offset: 1px;
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 .slider-field__reset:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-@media (max-width: 768px) {
-  .slider-field__num {
-    width: 64px;
-    font-size: 0.75rem;
-    padding: 4px;
-  }
-  .slider-field__reset {
-    width: 28px;
-    height: 28px;
-    font-size: 0.95rem;
-  }
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 </style>

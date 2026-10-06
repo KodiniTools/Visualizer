@@ -28,12 +28,12 @@ defineEmits(['update:modelValue'])
   display: flex;
   flex-direction: column;
   gap: 1px;
-  font-size: 0.75rem;
-  color: #999;
+  font-size: var(--ds-text-xs);
+  color: var(--ds-text-2);
 }
 .fx-slider {
   width: 100%;
-  accent-color: #4a9eff;
+  accent-color: var(--ds-link);
   height: 14px;
 }
 </style>

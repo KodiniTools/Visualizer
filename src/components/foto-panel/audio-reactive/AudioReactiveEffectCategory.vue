@@ -57,11 +57,11 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
 <style scoped>
 .effect-category {
   background: rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   padding: 8px;
 }
 .category-title {
-  font-size: 0.55rem;
+  font-size: var(--ds-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   color: var(--text-muted);
@@ -75,14 +75,14 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
   gap: 4px;
   padding: 5px 8px;
   background: rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.1);
-  border-radius: 4px;
-  transition: all 0.15s ease;
+  border: 1px solid color-mix(in srgb, var(--ds-link) 10%, transparent);
+  border-radius: var(--ds-radius-sm);
+  transition: all var(--ds-duration) var(--ds-ease);
   margin-bottom: 4px;
 }
 .effect-item:hover {
-  background: rgba(139, 92, 246, 0.08);
-  border-color: rgba(139, 92, 246, 0.2);
+  background: color-mix(in srgb, var(--ds-link) 8%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 20%, transparent);
 }
 .effect-checkbox-label {
   display: flex;
@@ -93,21 +93,21 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
 .effect-checkbox {
   width: 12px;
   height: 12px;
-  accent-color: #8b5cf6;
+  accent-color: var(--ds-link);
   cursor: pointer;
 }
 .effect-name {
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-secondary);
   white-space: nowrap;
 }
 .effect-source-select {
   width: 100%;
   padding: 2px 4px;
-  font-size: 0.55rem;
-  background: rgba(139, 92, 246, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 3px;
+  font-size: var(--ds-text-xs);
+  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
   cursor: pointer;
   appearance: none;
@@ -115,13 +115,12 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
   text-align: center;
 }
 .effect-source-select:hover {
-  background: rgba(139, 92, 246, 0.25);
-  border-color: rgba(139, 92, 246, 0.5);
+  background: color-mix(in srgb, var(--ds-link) 25%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 50%, transparent);
 }
 .effect-source-select:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgb(139 92 246 / 35%);
-  border-color: #8b5cf6;
+  border-color: var(--ds-link);
 }
 .effect-source-select option {
   background: var(--card-bg);
@@ -130,8 +129,8 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
 .effect-slider {
   width: 100%;
   height: 3px;
-  border-radius: 2px;
-  background: rgba(139, 92, 246, 0.2);
+  border-radius: var(--ds-radius-sm);
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
@@ -140,28 +139,28 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
   -webkit-appearance: none;
   width: 8px;
   height: 8px;
-  border-radius: 50%;
-  background: #8b5cf6;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-link);
   cursor: pointer;
   border: none;
 }
 .effect-slider::-moz-range-thumb {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
-  background: #8b5cf6;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-link);
   cursor: pointer;
   border: none;
 }
 .effect-value {
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   text-align: right;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--ds-font-mono);
 }
 
 [data-theme='light'] .effect-item {
-  background: #fdfbf2;
+  background: var(--ds-surface-2);
   border-color: var(--border-color);
 }
 [data-theme='light'] .effect-item:hover {
@@ -169,7 +168,7 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
   border-color: var(--accent-secondary);
 }
 [data-theme='light'] .effect-source-select {
-  background: #fdfbf2;
+  background: var(--ds-surface-2);
   border-color: var(--border-color);
 }
 [data-theme='light'] .effect-source-select:hover {
@@ -177,11 +176,7 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
   border-color: var(--accent-secondary);
 }
 [data-theme='light'] .effect-slider {
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--accent-primary) 20%, transparent) 0%,
-    color-mix(in srgb, var(--accent-primary) 40%, transparent) 100%
-  );
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 [data-theme='light'] .effect-slider::-webkit-slider-thumb {
   background: var(--accent-primary);
@@ -196,7 +191,7 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
     padding: 6px 8px;
   }
   .effect-source-select {
-    font-size: 0.6rem;
+    font-size: var(--ds-text-xs);
     padding: 4px 6px;
     min-height: 32px;
   }

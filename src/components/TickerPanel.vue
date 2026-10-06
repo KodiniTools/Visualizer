@@ -356,14 +356,11 @@ const missingFont = computed(() => {
 
 <style scoped>
 .collapsible-section {
-  background-color: var(--card-bg, #142640);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
-  border-radius: 8px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-md);
   margin-bottom: 10px;
   overflow: hidden;
-  /* Direktes Flex-Kind der linken Toolbar (flex-column): overflow:hidden setzt
-     die automatische Mindesthöhe auf 0, wodurch das Panel sonst auf ~2px
-     zusammengedrückt (unsichtbar) wird. flex-shrink:0 verhindert das. */
   flex-shrink: 0;
 }
 
@@ -381,9 +378,9 @@ const missingFont = computed(() => {
   gap: 8px;
   padding: 10px 12px;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  color: #e0e0e0;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   user-select: none;
@@ -391,9 +388,9 @@ const missingFont = computed(() => {
 
 .section-header::before {
   content: '▶';
-  font-size: 8px;
-  color: #6ea8fe;
-  transition: transform 0.2s ease;
+  font-size: var(--ds-text-xs);
+  color: var(--ds-link);
+  transition: transform var(--ds-duration) var(--ds-ease);
   margin-right: 4px;
 }
 
@@ -402,19 +399,19 @@ const missingFont = computed(() => {
 }
 
 .section-icon {
-  font-size: 14px;
+  font-size: var(--ds-text-md);
   flex-shrink: 0;
 }
 
 .status-badge {
   margin-left: auto;
   padding: 2px 8px;
-  font-size: 9px;
-  font-weight: 600;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #2a5a2a 0%, #3a6a3a 100%);
-  color: #8fdf8f;
-  border: 1px solid #4a7a4a;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-success);
+  color: var(--ds-success);
+  border: 1px solid var(--ds-border-strong);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -425,8 +422,8 @@ const missingFont = computed(() => {
 
 /* ══════════ Klappbare Unter-Sektionen ══════════ */
 .sub-section {
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.18));
-  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
   margin-bottom: 8px;
   overflow: hidden;
 }
@@ -446,18 +443,18 @@ const missingFont = computed(() => {
   padding: 8px 10px;
   cursor: pointer;
   user-select: none;
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  color: var(--text-primary, #e9e9eb);
-  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary);
+  background-color: var(--secondary-bg);
 }
 .sub-header::before {
   content: '▶';
-  font-size: 7px;
-  color: var(--accent-ink, #c9984d);
-  transition: transform 0.2s ease;
+  font-size: var(--ds-text-xs);
+  color: var(--accent-ink);
+  transition: transform var(--ds-duration) var(--ds-ease);
 }
 .sub-section[open] > .sub-header::before {
   transform: rotate(90deg);
@@ -473,22 +470,19 @@ const missingFont = computed(() => {
   width: 20px;
   height: 20px;
   padding: 0;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   line-height: 1;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 4px;
-  background-color: var(--card-bg, #142640);
-  color: var(--text-muted, #7a8da0);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  background-color: var(--card-bg);
+  color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 .reset-btn:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-tertiary, #f8e1a9);
-}
-.reset-btn:active {
-  transform: rotate(-90deg);
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
+  color: var(--accent-tertiary);
 }
 [data-theme='light'] .reset-btn {
   border-color: var(--border-color);
@@ -515,18 +509,18 @@ const missingFont = computed(() => {
 .slider-col label {
   display: block;
   margin-bottom: 4px;
-  font-size: 0.6rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 [data-theme='light'] .sub-section {
   border-color: var(--border-color);
 }
 [data-theme='light'] .sub-header {
-  background-color: #f2f6fb;
+  background-color: var(--ds-surface-2);
 }
 
 .control-group {
@@ -536,16 +530,16 @@ const missingFont = computed(() => {
 .control-group label {
   display: block;
   margin-bottom: 4px;
-  font-size: 0.6rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 .hint-text {
-  font-size: 0.5rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
   margin-top: 3px;
   line-height: 1.4;
 }
@@ -564,28 +558,28 @@ const missingFont = computed(() => {
 .btn-mini {
   flex-shrink: 0;
   padding: 2px 8px;
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 4px;
-  color: var(--text-muted, #7a8da0);
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.5rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-mini:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--text-primary, #e9e9eb);
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 .btn-mini.active {
-  background: rgba(201, 152, 77, 0.25);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-tertiary, #f8e1a9);
+  background: var(--ds-accent-soft);
+  border-color: var(--accent-primary);
+  color: var(--accent-tertiary);
 }
 
 [data-theme='light'] .btn-mini.active {
@@ -597,39 +591,35 @@ const missingFont = computed(() => {
 .select-input {
   width: 100%;
   padding: 6px 8px;
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 5px;
-  color: var(--text-primary, #e9e9eb);
-  font-size: 0.65rem;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
   font-family: inherit;
 }
 
 .text-input:focus,
 .select-input:focus {
   outline: none;
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 
 .color-input {
   width: 100%;
   height: 30px;
   padding: 2px;
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 5px;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
 }
 
 .slider {
   width: 100%;
   height: 3px;
-  background: linear-gradient(
-    90deg,
-    var(--text-muted, #7a8da0) 0%,
-    var(--accent-primary, #c9984d) 100%
-  );
-  border-radius: 2px;
+  background: var(--text-muted);
+  border-radius: var(--ds-radius-sm);
   outline: none;
   cursor: pointer;
   -webkit-appearance: none;
@@ -641,45 +631,45 @@ const missingFont = computed(() => {
   appearance: none;
   width: 12px;
   height: 12px;
-  background: var(--accent-tertiary, #f8e1a9);
-  border-radius: 50%;
+  background: var(--accent-tertiary);
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
-  border: 2px solid #fff;
+  border: 2px solid var(--ds-surface-1);
 }
 
 .slider::-moz-range-thumb {
   width: 12px;
   height: 12px;
-  background: var(--accent-tertiary, #f8e1a9);
-  border-radius: 50%;
+  background: var(--accent-tertiary);
+  border-radius: var(--ds-radius-full);
   cursor: pointer;
-  border: 2px solid #fff;
+  border: 2px solid var(--ds-surface-1);
 }
 
 .btn-small {
   padding: 6px 8px;
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 5px;
-  color: var(--text-primary, #e9e9eb);
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-primary);
   cursor: pointer;
-  font-size: 0.6rem;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-small:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
 }
 
 .btn-small.active {
-  background: rgba(201, 152, 77, 0.3);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-tertiary, #f8e1a9);
-  font-weight: 600;
+  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-tertiary);
+  font-weight: var(--ds-weight-semibold);
 }
 
 .full-width {
@@ -692,15 +682,15 @@ const missingFont = computed(() => {
   gap: 6px;
   cursor: pointer;
   text-transform: none;
-  font-size: 0.62rem;
-  color: var(--text-primary, #e9e9eb);
+  font-size: var(--ds-text-xs);
+  color: var(--text-primary);
 }
 
 .checkbox-label input[type='checkbox'] {
   width: 13px;
   height: 13px;
   cursor: pointer;
-  accent-color: var(--accent-primary, #c9984d);
+  accent-color: var(--accent-primary);
 }
 
 [data-theme='light'] .section-header {

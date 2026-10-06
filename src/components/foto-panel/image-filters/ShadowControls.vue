@@ -107,14 +107,9 @@ const {
 <style scoped src="./image-filters-shared.css"></style>
 <style scoped>
 .shadow-slider {
-  background: linear-gradient(90deg, var(--primary-bg) 0%, #6ea8fe 50%, #a78bfa 100%);
+  background: var(--primary-bg);
 }
 [data-theme='light'] .shadow-slider {
-  background: linear-gradient(
-    90deg,
-    var(--secondary-bg) 0%,
-    var(--accent-primary) 50%,
-    #6a5acd 100%
-  );
+  background: var(--secondary-bg);
 }
 </style>

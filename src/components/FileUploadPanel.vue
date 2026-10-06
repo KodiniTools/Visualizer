@@ -243,10 +243,10 @@ function traverseEntry(entry, files) {
 
 <style scoped>
 .panel {
-  background-color: var(--card-bg, #142640);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
   padding: 10px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -254,9 +254,9 @@ function traverseEntry(entry, files) {
 
 h3 {
   margin: 0;
-  color: var(--text-primary, #e9e9eb);
-  font-weight: 600;
-  font-size: 0.7rem;
+  color: var(--text-primary);
+  font-weight: var(--ds-weight-semibold);
+  font-size: var(--ds-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   display: flex;
@@ -271,21 +271,16 @@ h3::before {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Cpath d='M9 18V5l12-2v13'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Ccircle cx='18' cy='16' r='3'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 /* Upload Area */
 .upload-area {
-  background: linear-gradient(
-    135deg,
-    var(--secondary-bg, #0e1c32) 0%,
-    rgba(201, 152, 77, 0.1) 100%
-  );
-  border: 2px dashed var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 8px;
+  background: var(--secondary-bg);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--ds-radius-md);
   padding: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--ds-duration-slow) var(--ds-ease);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -295,14 +290,13 @@ h3::before {
 }
 
 .upload-area:hover {
-  border-color: var(--accent-primary, #c9984d);
-  background: linear-gradient(135deg, rgba(201, 152, 77, 0.15) 0%, rgba(248, 225, 169, 0.1) 100%);
-  transform: translateY(-1px);
+  border-color: var(--accent-primary);
+  background: var(--ds-accent-soft);
 }
 
 .upload-area.drag-over {
-  border-color: var(--accent-tertiary, #f8e1a9);
-  background: linear-gradient(135deg, rgba(201, 152, 77, 0.2) 0%, rgba(248, 225, 169, 0.15) 100%);
+  border-color: var(--accent-tertiary);
+  background: var(--ds-accent-soft);
   border-style: solid;
   transform: scale(1.01);
 }
@@ -311,20 +305,15 @@ h3::before {
 .upload-icon {
   width: 36px;
   height: 36px;
-  color: var(--accent-tertiary, #f8e1a9);
-  transition: all 0.3s ease;
+  color: var(--accent-tertiary);
+  transition: all var(--ds-duration-slow) var(--ds-ease);
 }
 
 .upload-icon svg {
   width: 100%;
   height: 100%;
-  stroke: #ffffff;
+  stroke: var(--ds-text);
   stroke-width: 1.5;
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
-}
-
-.upload-area:hover .upload-icon {
-  transform: translateY(-3px);
 }
 
 .upload-area.drag-over .upload-icon {
@@ -341,15 +330,15 @@ h3::before {
 }
 
 .upload-main {
-  font-size: 0.7rem;
-  color: var(--text-primary, #e9e9eb);
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  color: var(--text-primary);
+  font-weight: var(--ds-weight-semibold);
 }
 
 .upload-sub {
-  font-size: 0.6rem;
-  color: var(--text-muted, #7a8da0);
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
+  font-weight: var(--ds-weight-medium);
 }
 
 /* Supported Formats */
@@ -362,21 +351,21 @@ h3::before {
 }
 
 .format-label {
-  font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 
 .format-item {
-  font-size: 0.55rem;
-  color: var(--accent-ink, #c9984d);
-  background-color: rgba(201, 152, 77, 0.15);
+  font-size: var(--ds-text-xs);
+  color: var(--accent-ink);
+  background-color: var(--ds-accent-soft);
   padding: 2px 5px;
-  border-radius: 3px;
-  font-weight: 500;
-  border: 1px solid rgba(201, 152, 77, 0.25);
+  border-radius: var(--ds-radius-sm);
+  font-weight: var(--ds-weight-medium);
+  border: 1px solid var(--ds-border);
 }
 
 /* Upload Buttons */
@@ -391,26 +380,26 @@ h3::before {
   align-items: center;
   gap: 5px;
   padding: 5px 12px;
-  font-size: 0.6rem;
-  font-weight: 600;
-  border-radius: 5px;
-  border: 1px solid var(--accent-primary, #c9984d);
-  background-color: rgba(201, 152, 77, 0.15);
-  color: var(--accent-ink, #c9984d);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  border-radius: var(--ds-radius-sm);
+  border: 1px solid var(--accent-primary);
+  background-color: var(--ds-accent-soft);
+  color: var(--accent-ink);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .upload-btn:hover {
-  background-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 /* Tracks Info */
 .tracks-info {
-  background-color: rgba(197, 222, 176, 0.1);
-  border: 1px solid rgba(197, 222, 176, 0.3);
-  border-radius: 5px;
+  background-color: color-mix(in srgb, var(--ds-success) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
   padding: 6px 8px;
 }
 
@@ -423,14 +412,14 @@ h3::before {
 .info-icon {
   width: 14px;
   height: 14px;
-  color: var(--success, #c5deb0);
+  color: var(--success);
   flex-shrink: 0;
 }
 
 .info-text {
-  font-size: 0.65rem;
-  color: var(--success, #c5deb0);
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  color: var(--success);
+  font-weight: var(--ds-weight-semibold);
 }
 
 /* ═══ Responsive ═══ */
@@ -441,11 +430,11 @@ h3::before {
   }
 
   .upload-main {
-    font-size: 0.75rem;
+    font-size: var(--ds-text-xs);
   }
 
   .upload-sub {
-    font-size: 0.65rem;
+    font-size: var(--ds-text-xs);
   }
 }
 
@@ -468,29 +457,13 @@ h3::before {
   filter: none;
 }
 
-[data-theme='light'] .upload-area {
-  background: linear-gradient(
-    135deg,
-    var(--secondary-bg) 0%,
-    color-mix(in srgb, var(--accent-primary) 8%, transparent) 100%
-  );
-}
-
 [data-theme='light'] .upload-area:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent-primary) 10%, transparent) 0%,
-    color-mix(in srgb, var(--accent-primary) 10%, transparent) 100%
-  );
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 [data-theme='light'] .upload-area.drag-over {
   border-color: var(--accent-primary);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent-primary) 15%, transparent) 0%,
-    color-mix(in srgb, var(--accent-primary) 12%, transparent) 100%
-  );
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
 }
 
 [data-theme='light'] .upload-icon {
@@ -512,15 +485,15 @@ h3::before {
 }
 
 [data-theme='light'] .tracks-info {
-  background-color: rgba(56, 142, 60, 0.08);
-  border-color: rgba(56, 142, 60, 0.25);
+  background-color: color-mix(in srgb, var(--ds-success) 8%, transparent);
+  border-color: color-mix(in srgb, var(--ds-success) 25%, transparent);
 }
 
 [data-theme='light'] .info-icon {
-  color: #388e3c;
+  color: var(--ds-success);
 }
 
 [data-theme='light'] .info-text {
-  color: #388e3c;
+  color: var(--ds-success);
 }
 </style>

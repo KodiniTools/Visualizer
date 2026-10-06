@@ -125,7 +125,7 @@ const open = ref(false)
 
 <style scoped>
 .audio-fx-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--ds-border);
   padding-top: 8px;
   margin-top: 4px;
 }
@@ -134,14 +134,14 @@ const open = ref(false)
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #ccc;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-text-2);
   padding: 4px 2px;
   user-select: none;
 }
 .fx-header:hover {
-  color: #fff;
+  color: var(--ds-text);
 }
 .chevron {
   width: 7px;
@@ -149,7 +149,7 @@ const open = ref(false)
   border-right: 1.5px solid currentColor;
   border-bottom: 1.5px solid currentColor;
   transform: rotate(45deg);
-  transition: transform 0.2s ease;
+  transition: transform var(--ds-duration) var(--ds-ease);
   opacity: 0.6;
   flex-shrink: 0;
 }
@@ -160,15 +160,15 @@ const open = ref(false)
 .fx-master {
   margin: 6px 0 4px;
   gap: 8px;
-  font-size: 0.82rem;
-  color: #bbb;
+  font-size: var(--ds-text-sm);
+  color: var(--ds-text-2);
 }
 .fx-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.78rem;
-  color: #aaa;
+  font-size: var(--ds-text-sm);
+  color: var(--ds-text-2);
 }
 .toggle-switch {
   display: flex;
@@ -181,13 +181,13 @@ const open = ref(false)
 .toggle-track {
   width: 28px;
   height: 15px;
-  background: #444;
-  border-radius: 8px;
+  background: var(--ds-surface-3);
+  border-radius: var(--ds-radius-md);
   position: relative;
-  transition: background 0.2s;
+  transition: background var(--ds-duration) var(--ds-ease);
 }
 .toggle-switch input:checked + .toggle-track {
-  background: #4a9eff;
+  background: var(--ds-link);
 }
 .toggle-track::after {
   content: '';
@@ -195,10 +195,10 @@ const open = ref(false)
   width: 11px;
   height: 11px;
   background: #fff;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   top: 2px;
   left: 2px;
-  transition: left 0.2s;
+  transition: left var(--ds-duration) var(--ds-ease);
 }
 .toggle-switch input:checked + .toggle-track::after {
   left: 15px;
@@ -208,7 +208,7 @@ const open = ref(false)
   width: 28px;
   height: 22px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   padding: 0;
   background: none;
@@ -216,12 +216,12 @@ const open = ref(false)
 
 .fx-group-label {
   margin: 10px 0 2px;
-  font-size: 0.62rem;
-  font-weight: 700;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  color: #7a8da0;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--ds-text-2);
+  border-top: 1px solid var(--ds-border);
   padding-top: 8px;
 }
 </style>

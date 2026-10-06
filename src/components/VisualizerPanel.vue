@@ -75,14 +75,10 @@ const playerBar = inject('playerBar', null)
 <style scoped>
 .panel-container {
   position: relative;
-  background-color: var(--card-bg, #142640);
-  border-radius: 8px;
+  background-color: var(--card-bg);
+  border-radius: var(--ds-radius-md);
   padding: 10px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
-  /* Zweigeteilt: der Kopf (Regler + Suche) bleibt stehen, nur der Bereich mit
-     der Visualizer-Liste scrollt. Wirkt, sobald der Container eine begrenzte
-     Höhe hat (z. B. im Player-Popover); ohne Begrenzung stapelt sich alles wie
-     bisher. */
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -98,7 +94,7 @@ const playerBar = inject('playerBar', null)
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-top: 4px;
-  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border-top: 1px solid var(--border-color);
   margin-top: 4px;
   scrollbar-width: thin;
 }
@@ -112,9 +108,9 @@ const playerBar = inject('playerBar', null)
 
 h4 {
   margin: 0;
-  color: var(--text-primary, #e9e9eb);
-  font-weight: 600;
-  font-size: 0.7rem;
+  color: var(--text-primary);
+  font-weight: var(--ds-weight-semibold);
+  font-size: var(--ds-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
@@ -132,16 +128,16 @@ h4 {
   align-items: center;
   gap: 6px;
   padding: 5px 10px;
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 5px;
-  color: var(--text-primary, #e9e9eb);
-  font-size: 0.65rem;
-  font-weight: 500;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   cursor: pointer;
   transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease;
+    border-color var(--ds-duration) var(--ds-ease),
+    background-color var(--ds-duration) var(--ds-ease);
 }
 
 .controls-link svg {
@@ -151,52 +147,46 @@ h4 {
 
 .controls-link:hover,
 .controls-link.active {
-  border-color: var(--accent-primary, #c9984d);
-  background-color: rgba(201, 152, 77, 0.15);
+  border-color: var(--accent-primary);
+  background-color: var(--ds-accent-soft);
 }
 
 .controls-link:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--ring);
 }
 
 .status-hint {
-  font-size: 0.6rem;
-  color: #ef4444;
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  color: var(--ds-danger);
+  font-weight: var(--ds-weight-medium);
 }
 
 /* Search Input */
 .search-input {
   width: 100%;
   padding: 6px 10px;
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 5px;
-  color: var(--text-primary, #e9e9eb);
-  font-size: 0.65rem;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color var(--ds-duration) var(--ds-ease);
 }
 
 .search-input:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--ring);
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 
 .search-input::placeholder {
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
 }
 
 /* ═══ Light Theme Overrides ═══ */
 
 [data-theme='light'] .panel-container {
   border-color: var(--border-color);
-}
-
-[data-theme='light'] h4::before {
-  filter: brightness(0);
 }
 
 [data-theme='light'] .controls-link {

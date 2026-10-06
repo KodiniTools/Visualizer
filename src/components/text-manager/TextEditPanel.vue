@@ -264,20 +264,19 @@ defineExpose({ editTextInput, populateFontDropdown })
 .btn-danger {
   padding: 6px 10px;
   border: none;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  font-size: 0.6rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  border: 1px solid rgba(244, 67, 54, 0.3);
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  color: var(--ds-danger);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
 }
 .btn-danger:hover {
-  background: rgba(244, 67, 54, 0.3);
-  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
 }
 .full-width {
   width: 100%;
@@ -292,38 +291,37 @@ defineExpose({ editTextInput, populateFontDropdown })
 .btn-save-default {
   flex: 1;
   padding: 6px 10px;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  transition: all 0.2s ease;
-  background: rgba(201, 152, 77, 0.18);
-  color: var(--accent-tertiary, #f8e1a9);
-  border: 1px solid var(--accent-primary, #c9984d);
+  transition: all var(--ds-duration) var(--ds-ease);
+  background: var(--ds-accent-soft);
+  color: var(--accent-tertiary);
+  border: 1px solid var(--accent-primary);
 }
 
 .btn-save-default:hover {
-  background: rgba(201, 152, 77, 0.3);
-  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
 }
 
 .btn-reset-default {
   flex-shrink: 0;
   width: 34px;
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  font-size: 0.8rem;
-  transition: all 0.2s ease;
-  background: var(--secondary-bg, #0e1c32);
-  color: var(--text-muted, #7a8da0);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  font-size: var(--ds-text-sm);
+  transition: all var(--ds-duration) var(--ds-ease);
+  background: var(--secondary-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
 }
 
 .btn-reset-default:hover {
-  background: var(--btn-hover, #1a2a42);
-  color: var(--text-primary, #e9e9eb);
+  background: var(--btn-hover);
+  color: var(--text-primary);
 }
 
 [data-theme='light'] .btn-save-default {
@@ -337,10 +335,9 @@ defineExpose({ editTextInput, populateFontDropdown })
 }
 
 [data-theme='light'] .btn-danger {
-  background: rgba(244, 67, 54, 0.08);
-  color: #c62828;
+  background: color-mix(in srgb, var(--ds-danger) 8%, transparent);
 }
 [data-theme='light'] .btn-danger:hover {
-  background: rgba(244, 67, 54, 0.12);
+  background: color-mix(in srgb, var(--ds-danger) 12%, transparent);
 }
 </style>

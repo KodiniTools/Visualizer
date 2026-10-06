@@ -351,7 +351,7 @@ defineExpose({ open: openPanel, close, isOpen: () => open.value })
   line-height: 0;
 }
 .color-field--disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   pointer-events: none;
 }
 
@@ -361,18 +361,16 @@ defineExpose({ open: openPanel, close, isOpen: () => open.value })
   height: 100%;
   margin: 0;
   padding: 0;
-  border: 0;
+  border: var(--ds-border-width) solid var(--ds-border-strong);
   border-radius: inherit;
   cursor: pointer;
   background-clip: padding-box;
-  transition: box-shadow 0.15s ease;
+  transition: box-shadow var(--ds-duration) var(--ds-ease);
 }
-.color-field__swatch:focus-visible {
-  outline: 2px solid var(--accent-primary, #c9984d);
-  outline-offset: 1px;
-}
+.color-field__swatch:focus-visible,
 .color-field--open .color-field__swatch {
-  box-shadow: 0 0 0 2px var(--accent-primary, #c9984d);
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 
 .color-field__sr {
@@ -385,127 +383,121 @@ defineExpose({ open: openPanel, close, isOpen: () => open.value })
   white-space: nowrap;
 }
 
-/* Panel (nach <body> teleportiert) */
+/* Panel (nach <body> teleportiert): Overlay-Rezept wie UiDialog/UiToast */
 .color-field__panel {
   position: fixed;
-  z-index: 10000;
+  z-index: var(--ds-z-toast);
   box-sizing: border-box;
-  width: 236px;
-  padding: 10px;
+  width: 260px;
+  padding: var(--ds-space-3);
   display: grid;
-  gap: 8px;
-  background: var(--card-bg, #112036);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 8px;
-  box-shadow: var(--shadow-lg, 0 8px 28px rgba(0, 0, 0, 0.6));
-  color: var(--text-primary, #f0e8cc);
-  font-size: 0.68rem;
-  line-height: 1.2;
+  gap: var(--ds-space-2);
+  background: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-shadow-overlay);
+  color: var(--ds-text);
+  font-size: var(--ds-text-xs);
+  line-height: var(--ds-leading-tight);
 }
 
 .color-field__row {
   display: grid;
-  grid-template-columns: 16px 1fr 50px 12px;
-  gap: 6px;
+  grid-template-columns: 16px 1fr 56px 12px;
+  gap: var(--ds-space-2);
   align-items: center;
 }
 .color-field__row--hex {
-  grid-template-columns: 16px 1fr 22px;
+  grid-template-columns: 16px 1fr var(--ds-control-sm);
 }
 
 .color-field__label {
-  color: var(--text-muted, #7a8da0);
-  font-weight: 600;
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
-  font-size: 0.6rem;
-}
-.color-field__label {
   cursor: help;
 }
 
+/* Die Spur zeigt den Farbverlauf des Kanals (inline gesetzt) */
 .color-field__range {
   width: 100%;
   height: 8px;
   margin: 0;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-full);
+  border: var(--ds-border-width) solid var(--ds-border);
   outline: none;
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
-  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
 }
 .color-field__range::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
-  background: #fff;
-  border: 2px solid var(--accent-primary, #c9984d);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-surface-1);
+  border: 2px solid var(--ds-accent);
   cursor: pointer;
 }
 .color-field__range::-moz-range-thumb {
   width: 14px;
   height: 14px;
-  border-radius: 50%;
-  background: #fff;
-  border: 2px solid var(--accent-primary, #c9984d);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-surface-1);
+  border: 2px solid var(--ds-accent);
   cursor: pointer;
 }
 .color-field__range:focus-visible {
-  box-shadow: 0 0 0 2px var(--ring, rgba(212, 164, 85, 0.6));
+  box-shadow: var(--ds-focus-ring);
 }
 
 .color-field__num,
 .color-field__hex {
   box-sizing: border-box;
   width: 100%;
-  padding: 3px 4px;
-  background: var(--secondary-bg, #0c1828);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 4px;
-  color: var(--text-primary, #f0e8cc);
-  font-size: 0.66rem;
-  font-family: 'Courier New', monospace;
+  height: var(--ds-control-sm);
+  padding: 0 var(--ds-space-1) 0 var(--ds-space-2);
+  background: var(--ds-surface-2);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-text);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+  font-variant-numeric: tabular-nums;
+  transition:
+    border-color var(--ds-duration) var(--ds-ease),
+    box-shadow var(--ds-duration) var(--ds-ease);
 }
-.color-field__num:focus,
-.color-field__hex:focus {
+.color-field__num:focus-visible,
+.color-field__hex:focus-visible {
   outline: none;
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--ds-accent);
+  box-shadow: var(--ds-focus-ring);
 }
 .color-field__hex--invalid,
-.color-field__hex--invalid:focus {
-  border-color: #e5484d;
-  color: #e5484d;
+.color-field__hex--invalid:focus-visible {
+  border-color: var(--ds-danger);
+  color: var(--ds-danger);
 }
 
 .color-field__unit {
-  color: var(--text-muted, #7a8da0);
-  font-size: 0.6rem;
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-xs);
 }
 
 .color-field__preview {
   display: block;
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-}
-
-[data-theme='light'] .color-field__range::-webkit-slider-thumb,
-[data-theme='light'] .color-field__range::-moz-range-thumb {
-  border-color: var(--accent-primary, #0d5cb4);
+  width: var(--ds-control-sm);
+  height: var(--ds-control-sm);
+  border-radius: var(--ds-radius-sm);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
 }
 
 @media (max-width: 768px) {
   .color-field__panel {
-    width: min(280px, calc(100vw - 16px));
-    font-size: 0.75rem;
-  }
-  .color-field__range {
-    height: 10px;
+    width: min(300px, calc(100vw - 16px));
   }
   .color-field__range::-webkit-slider-thumb,
   .color-field__range::-moz-range-thumb {

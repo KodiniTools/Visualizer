@@ -1,23 +1,26 @@
 /* Shared chrome for every sticky-player-bar popover (container, header, close
-   button, empty hint, section label, scrollbar, light theme + responsive).
-   Imported scoped into each popover component. */
+   button, empty hint, section label, scrollbar + responsive).
+   Imported scoped into each popover component.
+   Overlay-Rezept des Design-Systems v2: ds-surface-1, 1 px ds-border,
+   ds-radius-lg, ds-shadow-overlay (der einzige Schatten neben Dialog/Toast). */
 .spb-popover {
   position: absolute;
-  bottom: calc(100% + 8px);
-  right: 12px;
+  bottom: calc(100% + var(--ds-space-2));
+  right: var(--ds-space-3);
   width: 340px;
   max-width: calc(100vw - 24px);
   max-height: 60vh;
   overflow-y: auto;
-  background-color: var(--card-bg, #142640);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 10px;
-  padding: 12px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  background-color: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  padding: var(--ds-space-3);
+  box-shadow: var(--ds-shadow-overlay);
+  color: var(--ds-text);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  animation: popIn 0.15s ease-out;
+  gap: var(--ds-space-3);
+  animation: popIn var(--ds-duration) var(--ds-ease);
 }
 @keyframes popIn {
   from {
@@ -32,7 +35,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: var(--ds-space-2);
   /* The header doubles as the drag handle (see v-popover-drag) */
   cursor: move;
   user-select: none;
@@ -41,12 +44,11 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background-color: var(--card-bg, #142640);
+  background-color: var(--ds-surface-1);
 }
-/* While dragging, disable the open animation and lift the popover */
+/* While dragging, disable the open animation */
 .spb-popover.spb-popover-dragging {
   animation: none;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
 }
 
 /* Resize handles (created by v-popover-drag): thin grab zones on the left,
@@ -103,73 +105,68 @@
   bottom: 5px;
   width: 7px;
   height: 7px;
-  border-right: 2px solid var(--border-color, rgba(201, 152, 77, 0.5));
-  border-bottom: 2px solid var(--border-color, rgba(201, 152, 77, 0.5));
-  border-radius: 0 0 2px 0;
-  opacity: 0.8;
+  border-right: 2px solid var(--ds-border-strong);
+  border-bottom: 2px solid var(--ds-border-strong);
+  border-radius: 0 0 var(--ds-radius-sm) 0;
 }
 .spb-popover:hover .spb-resize-se::after {
-  border-color: var(--accent-primary, #c9984d);
-}
-.spb-popover-close {
-  background-color: transparent;
-  border: none;
-  color: var(--text-muted, #7a8da0);
-  cursor: pointer;
-  padding: 3px;
-  display: flex;
-  align-items: center;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-.spb-popover-close:hover {
-  background-color: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-}
-.spb-popover-close svg {
-  width: 15px;
-  height: 15px;
-}
-.spb-empty-hint {
-  font-size: 0.65rem;
-  color: var(--text-muted, #7a8da0);
-  font-style: italic;
-  text-align: center;
-  margin: 4px 0;
+  border-color: var(--ds-accent);
 }
 
+/* Schließen und Leeren: Ghost-Icon-Buttons (UiIconButton size="sm") */
+.spb-popover-close,
+.btn-clear-markers {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ds-control-sm);
+  height: var(--ds-control-sm);
+  padding: 0;
+  flex-shrink: 0;
+  background-color: transparent;
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-text-2);
+  cursor: pointer;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
+}
+.spb-popover-close:hover {
+  background-color: var(--ds-surface-2);
+  color: var(--ds-text);
+}
+.spb-popover-close svg,
+.btn-clear-markers svg {
+  width: var(--ds-icon-sm);
+  height: var(--ds-icon-sm);
+}
+.spb-empty-hint {
+  font-size: var(--ds-text-sm);
+  color: var(--ds-text-3);
+  text-align: center;
+  margin: var(--ds-space-1) 0;
+}
+
+/* ds-eyebrow */
 .section-label {
-  font-size: 0.6rem;
-  color: var(--text-muted, #7a8da0);
-  font-weight: 500;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  letter-spacing: 0.025em;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  color: var(--ds-text-2);
 }
 
 /* Header control cluster (shared by markers + playlist popovers) */
 .marker-controls {
   display: flex;
-  gap: 6px;
+  gap: var(--ds-space-2);
   align-items: center;
 }
-.btn-clear-markers {
-  background-color: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 2px;
-  display: flex;
-  align-items: center;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
+/* Danger ist textbasiert, nie Vollfläche */
 .btn-clear-markers:hover {
-  background-color: rgba(255, 68, 68, 0.2);
-  color: #ff4444;
-}
-.btn-clear-markers svg {
-  width: 14px;
-  height: 14px;
+  background-color: var(--ds-surface-2);
+  color: var(--ds-danger);
 }
 
 /* Scrollbar */
@@ -177,13 +174,8 @@
   width: 6px;
 }
 .spb-popover::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
-}
-
-/* Light theme */
-[data-theme='light'] .spb-popover {
-  border-color: var(--border-color);
+  background: var(--ds-border-strong);
+  border-radius: var(--ds-radius-full);
 }
 
 /* Responsive */

@@ -234,17 +234,17 @@ function getStockCategoryName(category) {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background-color: var(--card-bg, #142640);
-  border-radius: 6px;
+  background-color: var(--card-bg);
+  border-radius: var(--ds-radius-sm);
   padding: 10px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border: 1px solid var(--border-color);
 }
 
 .stock-gallery-section h4 {
   margin: 0 0 6px 0;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-primary, #e9e9eb);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   display: flex;
@@ -259,7 +259,6 @@ function getStockCategoryName(category) {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpath d='M21 15l-5-5L5 21'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 /* Kategorie-Tabs */
@@ -274,52 +273,51 @@ function getStockCategoryName(category) {
   align-items: center;
   gap: 4px;
   padding: 5px 8px;
-  border-radius: 5px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  font-size: 0.55rem;
+  border-radius: var(--ds-radius-sm);
+  border: 1px solid var(--border-color);
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .category-tab:hover {
-  border-color: var(--accent-primary, #c9984d);
-  background-color: var(--btn-hover, #1a2a42);
-  transform: translateY(-1px);
+  border-color: var(--accent-primary);
+  background-color: var(--btn-hover);
 }
 
 .category-tab.active {
-  background: rgba(201, 152, 77, 0.3);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-tertiary, #f8e1a9);
-  font-weight: 600;
+  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-tertiary);
+  font-weight: var(--ds-weight-semibold);
 }
 
 .category-icon {
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
 }
 
 .category-name {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .category-count {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   background-color: rgba(255, 255, 255, 0.15);
   color: var(--text-secondary);
   padding: 2px 6px;
-  border-radius: 10px;
-  font-weight: 600;
+  border-radius: var(--ds-radius-md);
+  font-weight: var(--ds-weight-semibold);
   min-width: 20px;
   text-align: center;
 }
 
 .category-tab.active .category-count {
   background-color: rgba(0, 0, 0, 0.2);
-  color: #121212;
+  color: var(--ds-text-3);
 }
 
 /* Stock-Galerie Scroll-Container */
@@ -336,16 +334,16 @@ function getStockCategoryName(category) {
 
 .stock-gallery-scroll::-webkit-scrollbar-track {
   background: var(--secondary-bg);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .stock-gallery-scroll::-webkit-scrollbar-thumb {
   background: var(--border-color);
-  border-radius: 3px;
+  border-radius: var(--ds-radius-sm);
 }
 
 .stock-gallery-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--image-section-accent, #6ea8fe);
+  background: var(--image-section-accent);
 }
 
 /* Stock-Galerie Grid */
@@ -358,11 +356,11 @@ function getStockCategoryName(category) {
 .stock-thumbnail-item {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
   cursor: grab;
   border: 2px solid transparent;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   background-color: var(--secondary-bg);
 }
 
@@ -371,13 +369,11 @@ function getStockCategoryName(category) {
 }
 
 .stock-thumbnail-item:hover {
-  border-color: var(--image-section-accent, #6ea8fe);
-  transform: scale(1.03);
+  border-color: var(--image-section-accent);
 }
 
 .stock-thumbnail-item.selected {
-  border-color: var(--image-section-accent, #6ea8fe);
-  box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.3);
+  border-color: var(--image-section-accent);
 }
 
 .stock-thumbnail-item img {
@@ -397,9 +393,9 @@ function getStockCategoryName(category) {
 }
 
 .stock-thumbnail-name {
-  font-size: 9px;
+  font-size: var(--ds-text-xs);
   color: white;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -418,23 +414,23 @@ function getStockCategoryName(category) {
 .btn-select-all,
 .btn-deselect-all {
   padding: 5px 10px;
-  font-size: 11px;
-  border-radius: 4px;
+  font-size: var(--ds-text-xs);
+  border-radius: var(--ds-radius-sm);
   border: 1px solid var(--border-color);
   background-color: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 .btn-select-all:hover:not(:disabled),
 .btn-deselect-all:hover:not(:disabled) {
   background-color: var(--secondary-bg);
-  border-color: var(--image-section-accent, #6ea8fe);
-  color: var(--image-section-accent, #6ea8fe);
+  border-color: var(--image-section-accent);
+  color: var(--image-section-accent);
 }
 
 .btn-select-all:disabled,
@@ -444,25 +440,25 @@ function getStockCategoryName(category) {
 }
 
 .selection-count {
-  font-size: 11px;
-  color: var(--image-section-accent, #6ea8fe);
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  color: var(--image-section-accent);
+  font-weight: var(--ds-weight-semibold);
   padding: 4px 8px;
-  background-color: rgba(110, 168, 254, 0.15);
-  border-radius: 4px;
+  background-color: color-mix(in srgb, var(--ds-link) 15%, transparent);
+  border-radius: var(--ds-radius-sm);
   margin-left: auto;
 }
 
 .multiselect-hint {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin: 0 0 2px 0;
   font-style: italic;
 }
 
 .drag-hint {
-  font-size: 10px;
-  color: var(--accent-tertiary, #f8e1a9);
+  font-size: var(--ds-text-xs);
+  color: var(--accent-tertiary);
   margin: 0 0 8px 0;
   font-style: italic;
   display: flex;
@@ -473,7 +469,7 @@ function getStockCategoryName(category) {
 .drag-hint::before {
   content: '↦';
   font-style: normal;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
 }
 
 /* Selection Checkbox */
@@ -489,29 +485,28 @@ function getStockCategoryName(category) {
   left: 6px;
   width: 20px;
   height: 20px;
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   background-color: rgba(0, 0, 0, 0.5);
-  border: 2px solid rgba(255, 255, 255, 0.6);
+  border: 2px solid var(--ds-border);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 12px;
+  transition: all var(--ds-duration) var(--ds-ease);
+  font-size: var(--ds-text-xs);
   color: white;
-  font-weight: bold;
+  font-weight: var(--ds-weight-bold);
 }
 
 .selection-checkbox.checked {
-  background-color: var(--image-section-accent, #6ea8fe);
-  border-color: var(--image-section-accent, #6ea8fe);
-  box-shadow: 0 2px 6px rgba(110, 168, 254, 0.4);
+  background-color: var(--image-section-accent);
+  border-color: var(--image-section-accent);
 }
 
 .stock-thumbnail-item:hover .selection-checkbox:not(.checked) {
-  border-color: var(--image-section-accent, #6ea8fe);
-  background-color: rgba(110, 168, 254, 0.3);
+  border-color: var(--image-section-accent);
+  background-color: color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 
 /* Stock Action-Buttons */
@@ -527,49 +522,46 @@ function getStockCategoryName(category) {
 
 .action-buttons button {
   padding: 6px 10px;
-  border-radius: 5px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  font-size: 0.6rem;
+  border-radius: var(--ds-radius-sm);
+  border: 1px solid var(--border-color);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
 }
 
 .btn-primary {
-  background: rgba(201, 152, 77, 0.2);
-  color: var(--accent-tertiary, #f8e1a9);
-  border: 1px solid rgba(201, 152, 77, 0.3);
+  background: var(--ds-accent-soft);
+  color: var(--accent-tertiary);
+  border: 1px solid var(--ds-border);
 }
 
 .btn-primary:hover {
-  background: rgba(201, 152, 77, 0.3);
-  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
 }
 
 .btn-secondary {
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
-  transform: translateY(-1px);
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
 }
 
 .btn-workspace {
-  background: rgba(255, 193, 7, 0.1);
-  color: #ffc107;
-  border: 1px solid rgba(255, 193, 7, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
+  color: var(--ds-warning);
+  border: 1px solid color-mix(in srgb, var(--ds-warning) 30%, transparent);
 }
 
 .btn-workspace:hover {
-  background: rgba(255, 193, 7, 0.2);
-  border-color: rgba(255, 193, 7, 0.5);
-  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
+  border-color: color-mix(in srgb, var(--ds-warning) 50%, transparent);
 }
 
 /* Ladeanzeige */
@@ -581,14 +573,14 @@ function getStockCategoryName(category) {
 
 .loading-state p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
 }
 
 /* Fehleranzeige */
 .error-state {
   text-align: center;
   padding: 20px;
-  color: #ff6b6b;
+  color: var(--ds-danger);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -597,23 +589,23 @@ function getStockCategoryName(category) {
 
 .error-state p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
 }
 
 .btn-retry {
   padding: 8px 16px;
-  border-radius: 6px;
-  border: 1px solid var(--image-section-accent, #6ea8fe);
+  border-radius: var(--ds-radius-sm);
+  border: 1px solid var(--image-section-accent);
   background-color: var(--secondary-bg);
-  color: var(--image-section-accent, #6ea8fe);
-  font-size: 12px;
+  color: var(--image-section-accent);
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-retry:hover {
-  background-color: var(--image-section-accent, #6ea8fe);
-  color: #121212;
+  background-color: var(--image-section-accent);
+  color: var(--ds-text-3);
 }
 
 /* Empty State */
@@ -625,7 +617,7 @@ function getStockCategoryName(category) {
 
 .empty-state p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
 }
 
 /* ═══ Light Theme Overrides ═══ */
@@ -658,7 +650,7 @@ function getStockCategoryName(category) {
 }
 
 [data-theme='light'] .stock-gallery-scroll::-webkit-scrollbar-thumb {
-  background: #b0c4de;
+  background: var(--ds-link);
 }
 
 [data-theme='light'] .stock-gallery-scroll::-webkit-scrollbar-thumb:hover {
@@ -671,7 +663,6 @@ function getStockCategoryName(category) {
 
 [data-theme='light'] .stock-thumbnail-item.selected {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 [data-theme='light'] .btn-select-all,
@@ -695,7 +686,6 @@ function getStockCategoryName(category) {
 [data-theme='light'] .selection-checkbox.checked {
   background-color: var(--accent-primary);
   border-color: var(--accent-primary);
-  box-shadow: 0 2px 6px color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 
 [data-theme='light'] .stock-thumbnail-item:hover .selection-checkbox:not(.checked) {
@@ -735,9 +725,5 @@ function getStockCategoryName(category) {
 [data-theme='light'] .btn-retry:hover {
   background-color: var(--accent-primary);
   color: var(--accent-text);
-}
-
-[data-theme='light'] .error-state {
-  color: #cc3333;
 }
 </style>

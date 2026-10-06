@@ -185,8 +185,8 @@ const totalCount = computed(() => store.availableVisualizers.length)
 }
 
 .category {
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
-  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
 }
 
@@ -195,39 +195,39 @@ const totalCount = computed(() => store.availableVisualizers.length)
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  background-color: var(--secondary-bg, #0e1c32);
+  background-color: var(--secondary-bg);
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--ds-duration) var(--ds-ease);
 }
 
 .category-header:hover {
-  background-color: var(--btn-hover, #1a2a42);
+  background-color: var(--btn-hover);
 }
 
 .category-name {
   flex: 1;
-  font-size: 0.65rem;
-  font-weight: 500;
-  color: var(--text-primary, #e9e9eb);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
+  color: var(--text-primary);
 }
 
 .category-count {
-  font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
-  background-color: rgba(201, 152, 77, 0.2);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
+  background-color: var(--ds-accent-soft);
   padding: 1px 5px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
 }
 
 /* Rein per CSS gezeichneter Chevron (kein Glyph/Emoji) */
 .category-caret {
   width: 6px;
   height: 6px;
-  border-right: 1.5px solid var(--text-muted, #7a8da0);
-  border-bottom: 1.5px solid var(--text-muted, #7a8da0);
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
   transform: rotate(-45deg);
-  transition: transform 0.2s ease;
+  transition: transform var(--ds-duration) var(--ds-ease);
   flex-shrink: 0;
 }
 .category-header.open .category-caret {
@@ -239,7 +239,7 @@ const totalCount = computed(() => store.availableVisualizers.length)
   flex-direction: column;
   gap: 2px;
   padding: 3px;
-  background-color: var(--card-bg, #142640);
+  background-color: var(--card-bg);
 }
 
 /* Visualizer Buttons */
@@ -251,33 +251,32 @@ const totalCount = computed(() => store.availableVisualizers.length)
 
 .visualizer-btn {
   width: 100%;
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
-  border-radius: 5px;
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
   padding: 6px 10px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-align: left;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 .visualizer-btn:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
-  transform: translateX(2px);
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
 }
 
 .visualizer-btn.active {
-  background-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
-  border-color: var(--accent-primary, #c9984d);
-  font-weight: 600;
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
+  border-color: var(--accent-primary);
+  font-weight: var(--ds-weight-semibold);
 }
 
 .visualizer-btn.active:hover {
-  background-color: var(--accent-tertiary, #f8e1a9);
+  background-color: var(--accent-tertiary);
 }
 
 .preset-btn {
@@ -287,25 +286,25 @@ const totalCount = computed(() => store.availableVisualizers.length)
 }
 .preset-btn .preset-badge {
   margin-left: auto;
-  font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
-  background-color: rgba(201, 152, 77, 0.2);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
+  background-color: var(--ds-accent-soft);
   padding: 1px 5px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
 }
 .preset-btn.active .preset-badge {
-  color: var(--accent-text, #091428);
-  background-color: rgba(9, 20, 40, 0.2);
+  color: var(--accent-text);
+  background-color: color-mix(in srgb, var(--ds-surface-1) 20%, transparent);
 }
 .category-presets {
-  border-color: rgba(201, 152, 77, 0.45);
+  border-color: var(--ds-accent);
 }
 
 .no-results {
   padding: 10px;
   text-align: center;
-  color: var(--text-muted, #7a8da0);
-  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-size: var(--ds-text-xs);
   font-style: italic;
 }
 

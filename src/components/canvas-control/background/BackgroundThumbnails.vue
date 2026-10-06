@@ -55,16 +55,16 @@ const {
 .background-thumb-section {
   margin-top: 10px;
   padding: 8px;
-  background: linear-gradient(180deg, var(--card-bg, #142640) 0%, rgba(201, 152, 77, 0.08) 100%);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
-  border-left: 2px solid var(--accent-primary, #c9984d);
-  border-radius: 6px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-left: 2px solid var(--accent-primary);
+  border-radius: var(--ds-radius-sm);
 }
 .background-thumb-section h5 {
   margin: 0 0 8px 0;
-  font-size: 0.6rem;
-  font-weight: 600;
-  color: var(--accent-tertiary, #f8e1a9);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--accent-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -72,15 +72,14 @@ const {
   position: relative;
   width: 100%;
   height: 60px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 .background-thumb:hover {
-  border-color: var(--accent-primary, #c9984d);
-  box-shadow: 0 0 8px rgba(201, 152, 77, 0.3);
+  border-color: var(--accent-primary);
 }
 .background-thumb img {
   width: 100%;
@@ -94,11 +93,11 @@ const {
   right: 0;
   padding: 4px 6px;
   background: rgba(0, 0, 0, 0.7);
-  color: var(--text-primary, #e9e9eb);
-  font-size: 0.5rem;
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
   text-align: center;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--ds-duration) var(--ds-ease);
 }
 .background-thumb:hover .thumb-hint {
   opacity: 1;
@@ -108,15 +107,7 @@ const {
   color: var(--accent-ink);
 }
 [data-theme='light'] .background-thumb-section {
-  background: linear-gradient(
-    180deg,
-    var(--card-bg) 0%,
-    color-mix(in srgb, var(--accent-primary) 6%, transparent) 100%
-  );
   border-left-color: var(--accent-primary);
-}
-[data-theme='light'] .background-thumb:hover {
-  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 [data-theme='light'] .background-thumb .thumb-hint {
   background: rgba(255, 255, 255, 0.85);

@@ -58,7 +58,7 @@ const save = () => store.save()
 }
 .admin-tab-hint {
   margin: 0 0 16px 0;
-  font-size: 0.8rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-sm);
+  color: var(--text-muted);
 }
 </style>

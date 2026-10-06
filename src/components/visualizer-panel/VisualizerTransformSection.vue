@@ -71,10 +71,10 @@ const store = useVisualizerStore()
 <style scoped>
 /* Position & Größe Styles */
 .position-section {
-  background-color: rgba(201, 152, 77, 0.05);
-  border-radius: 5px;
+  background-color: var(--ds-accent-soft);
+  border-radius: var(--ds-radius-sm);
   padding: 8px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
+  border: 1px solid var(--border-color);
 }
 
 .section-header {
@@ -89,27 +89,27 @@ const store = useVisualizerStore()
 }
 
 .reset-btn {
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-muted, #7a8da0);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 4px;
+  background-color: var(--secondary-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
   height: 22px;
   padding: 0 8px;
-  font-size: 0.55rem;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .reset-btn:hover {
-  background-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
-  border-color: var(--accent-primary, #c9984d);
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
+  border-color: var(--accent-primary);
 }
 
 .position-control {
@@ -122,15 +122,15 @@ const store = useVisualizerStore()
 
 .control-label {
   display: block;
-  font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
   margin-bottom: 3px;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
 }
 
 /* Position Slider */
 .position-slider {
-  background: linear-gradient(to right, #444 0%, #6ea8fe 50%, #444 100%);
+  background: var(--ds-surface-3);
 }
 
 .position-slider::-webkit-slider-thumb {
@@ -138,38 +138,34 @@ const store = useVisualizerStore()
   appearance: none;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
-  background: #ff9800;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-warning);
   cursor: pointer;
-  border: 2px solid #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  border: 2px solid var(--ds-surface-1);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .position-slider::-webkit-slider-thumb:hover {
-  background: #f57c00;
-  transform: scale(1.15);
+  background: var(--ds-warning);
 }
 
 .position-slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
-  border-radius: 50%;
-  background: #ff9800;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-warning);
   cursor: pointer;
-  border: 2px solid #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  border: 2px solid var(--ds-surface-1);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .position-slider::-moz-range-thumb:hover {
-  background: #f57c00;
-  transform: scale(1.15);
+  background: var(--ds-warning);
 }
 
 /* Scale Slider */
 .scale-slider {
-  background: linear-gradient(to right, #333 0%, #4caf50 50%, #8bc34a 100%);
+  background: var(--ds-surface-3);
 }
 
 .scale-slider::-webkit-slider-thumb {
@@ -177,33 +173,29 @@ const store = useVisualizerStore()
   appearance: none;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
-  background: #4caf50;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-success);
   cursor: pointer;
-  border: 2px solid #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  border: 2px solid var(--ds-surface-1);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .scale-slider::-webkit-slider-thumb:hover {
-  background: #388e3c;
-  transform: scale(1.15);
+  background: var(--ds-success);
 }
 
 .scale-slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
-  border-radius: 50%;
-  background: #4caf50;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-success);
   cursor: pointer;
-  border: 2px solid #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  border: 2px solid var(--ds-surface-1);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .scale-slider::-moz-range-thumb:hover {
-  background: #388e3c;
-  transform: scale(1.15);
+  background: var(--ds-success);
 }
 
 /* ═══ Light Theme Overrides ═══ */
@@ -215,29 +207,5 @@ const store = useVisualizerStore()
 
 [data-theme='light'] .reset-btn {
   border-color: var(--border-color);
-}
-
-[data-theme='light'] .position-slider {
-  background: linear-gradient(to right, #c9c4a8 0%, #6ea8fe 50%, #c9c4a8 100%);
-}
-
-[data-theme='light'] .position-slider::-webkit-slider-thumb {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .position-slider::-moz-range-thumb {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .scale-slider {
-  background: linear-gradient(to right, #c9c4a8 0%, #4caf50 50%, #8bc34a 100%);
-}
-
-[data-theme='light'] .scale-slider::-webkit-slider-thumb {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .scale-slider::-moz-range-thumb {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 </style>

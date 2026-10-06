@@ -44,7 +44,7 @@ defineEmits(['close', 'add-to-canvas', 'set-as-background'])
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: var(--ds-z-toast);
   animation: fadeIn 0.2s ease;
 }
 
@@ -85,29 +85,28 @@ defineEmits(['close', 'add-to-canvas', 'set-as-background'])
   right: -40px;
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   background-color: var(--btn-hover);
   border: 2px solid var(--border-color);
   color: var(--text-primary);
-  font-size: 18px;
+  font-size: var(--ds-text-xl);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .preview-close:hover {
-  background-color: #ff6b6b;
-  border-color: #ff6b6b;
-  transform: scale(1.1);
+  background-color: var(--ds-danger);
+  border-color: var(--ds-danger);
 }
 
 .preview-image {
   max-width: 100%;
   max-height: 70vh;
-  border-radius: 8px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-shadow-overlay);
   object-fit: contain;
 }
 
@@ -116,8 +115,8 @@ defineEmits(['close', 'add-to-canvas', 'set-as-background'])
 }
 
 .preview-name {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--ds-text-lg);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-primary);
 }
 
@@ -130,22 +129,17 @@ defineEmits(['close', 'add-to-canvas', 'set-as-background'])
 .preview-actions .btn-primary,
 .preview-actions .btn-secondary {
   padding: 12px 24px;
-  font-size: 13px;
-  border-radius: 8px;
+  font-size: var(--ds-text-sm);
+  border-radius: var(--ds-radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .preview-actions .btn-primary {
-  background: var(--image-section-gradient, linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%));
+  background: var(--image-section-gradient);
   color: var(--accent-text);
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
   border: none;
-}
-
-.preview-actions .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(110, 168, 254, 0.4);
 }
 
 .preview-actions .btn-secondary {
@@ -156,6 +150,5 @@ defineEmits(['close', 'add-to-canvas', 'set-as-background'])
 
 .preview-actions .btn-secondary:hover {
   background-color: var(--btn-hover);
-  transform: translateY(-2px);
 }
 </style>

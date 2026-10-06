@@ -62,11 +62,11 @@ function toggleCollapse() {
 
 <style scoped>
 .workflow-section {
-  background: linear-gradient(145deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: var(--ds-radius-lg);
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all var(--ds-duration-slow) var(--ds-ease);
 }
 
 .workflow-section:hover {
@@ -85,7 +85,7 @@ function toggleCollapse() {
   padding: 14px 16px;
   cursor: pointer;
   user-select: none;
-  transition: background 0.2s ease;
+  transition: background var(--ds-duration) var(--ds-ease);
 }
 
 .section-header:hover {
@@ -101,15 +101,15 @@ function toggleCollapse() {
 .step-badge {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-bold);
   color: var(--accent-text);
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 .header-info {
@@ -120,14 +120,14 @@ function toggleCollapse() {
 
 .section-title {
   margin: 0;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
   color: var(--text-primary);
   letter-spacing: 0.3px;
 }
 
 .section-subtitle {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 
@@ -137,12 +137,12 @@ function toggleCollapse() {
   border: none;
   background: var(--btn-hover);
   color: var(--text-muted);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all var(--ds-duration-slow) var(--ds-ease);
 }
 
 .collapse-btn:hover {
@@ -153,7 +153,7 @@ function toggleCollapse() {
 .collapse-btn svg {
   width: 16px;
   height: 16px;
-  transition: transform 0.3s ease;
+  transition: transform var(--ds-duration-slow) var(--ds-ease);
 }
 
 .collapse-btn.rotated svg {

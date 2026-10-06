@@ -19,33 +19,40 @@ const { t } = useI18n()
 </script>
 
 <style scoped>
+/* Status als Punkt (ds-success / ds-warning), Text neutral: so bleibt der Badge
+   in beiden Themes lesbar (im Light Theme erreicht Statusfarbe als Text auf
+   getönter Fläche keine 4,5:1) und folgt dem v2-Muster „Status nur im Icon“. */
 .status-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  padding: 0 var(--ds-space-2);
+  height: 20px;
+  border-radius: var(--ds-radius-full);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
-  background-color: var(--secondary-bg);
-  color: var(--text-muted);
+  background-color: var(--ds-surface-2);
+  color: var(--ds-text-2);
+}
+.status-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-text-3);
+  flex-shrink: 0;
 }
 .status-badge.active {
-  background-color: rgba(46, 204, 113, 0.2);
-  color: #2ecc71;
+  color: var(--ds-text);
+}
+.status-badge.active::before {
+  background-color: var(--ds-success);
 }
 .status-badge.paused {
-  background-color: rgba(241, 196, 15, 0.2);
-  color: #f1c40f;
+  color: var(--ds-text);
 }
-[data-theme='light'] .status-badge {
-  background-color: #f0ead0;
-}
-/* Statusfarben auch im Hellmodus (dunklere Töne, Kontrast ≥ 5:1 auf hellem Grund) */
-[data-theme='light'] .status-badge.active {
-  background-color: rgba(22, 163, 74, 0.15);
-  color: #166534;
-}
-[data-theme='light'] .status-badge.paused {
-  background-color: rgba(234, 179, 8, 0.22);
-  color: #854d0e;
+.status-badge.paused::before {
+  background-color: var(--ds-warning);
 }
 </style>

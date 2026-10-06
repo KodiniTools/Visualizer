@@ -99,62 +99,62 @@ const { selectedDevice, selectSource, changeDevice } = audioSource
   align-items: center;
   gap: 4px;
   padding: 8px;
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
-  border-radius: 6px;
-  color: var(--text-muted, #7a8da0);
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.6rem;
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-xs);
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 .source-btn svg {
   width: 18px;
   height: 18px;
 }
 .source-btn:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  color: var(--text-primary, #e9e9eb);
+  background-color: var(--btn-hover);
+  color: var(--text-primary);
 }
 .source-btn.active {
-  background-color: var(--accent-primary, #c9984d);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: var(--accent-text);
 }
 .source-btn.listening {
-  border-color: #4ade80;
+  border-color: var(--ds-success);
 }
 .mic-status {
-  font-size: 0.65rem;
+  font-size: var(--ds-text-xs);
 }
 .mic-active {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #4ade80;
+  color: var(--ds-success);
 }
 .mic-indicator {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
-  background: #4ade80;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-success);
   animation: recPulse 1s infinite;
 }
 .mic-error {
-  color: #ef4444;
+  color: var(--ds-danger);
 }
 .device-selector {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 0.6rem;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
 .device-select {
   padding: 5px 6px;
-  font-size: 0.65rem;
-  background-color: var(--secondary-bg, #0e1c32);
+  font-size: var(--ds-text-xs);
+  background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-sm);
   color: var(--text-primary);
 }
 @keyframes recPulse {

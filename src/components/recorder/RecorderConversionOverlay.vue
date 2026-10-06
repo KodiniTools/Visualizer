@@ -53,8 +53,7 @@ defineEmits(['cancel'])
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.92);
-  backdrop-filter: blur(12px);
-  z-index: 10000;
+  z-index: var(--ds-z-toast);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -62,13 +61,11 @@ defineEmits(['cancel'])
 }
 
 .conversion-modal {
-  background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
-  border-radius: 20px;
+  background: var(--card-bg);
+  border-radius: var(--ds-radius-lg);
   padding: 40px 50px;
   text-align: center;
-  box-shadow:
-    0 25px 80px rgba(0, 0, 0, 0.6),
-    0 0 60px rgba(110, 168, 254, 0.15);
+  box-shadow: var(--ds-shadow-overlay);
   border: 1px solid var(--border-color);
   max-width: 420px;
   width: 90%;
@@ -79,8 +76,8 @@ defineEmits(['cancel'])
   width: 80px;
   height: 80px;
   margin: 0 auto 24px;
-  background: linear-gradient(135deg, rgba(110, 168, 254, 0.2) 0%, rgba(79, 195, 247, 0.2) 100%);
-  border-radius: 50%;
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
+  border-radius: var(--ds-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -90,53 +87,52 @@ defineEmits(['cancel'])
 .conversion-icon svg {
   width: 40px;
   height: 40px;
-  color: #6ea8fe;
+  color: var(--ds-link);
 }
 
 .conversion-title {
   margin: 0 0 12px 0;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: var(--ds-text-2xl);
+  font-weight: var(--ds-weight-bold);
   color: var(--text-primary);
   letter-spacing: 0.3px;
 }
 
 .conversion-subtitle {
   margin: 0 0 28px 0;
-  font-size: 14px;
+  font-size: var(--ds-text-md);
   color: var(--text-muted);
 }
 
 .conversion-progress-bar {
   height: 10px;
   background: var(--secondary-bg);
-  border-radius: 5px;
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
   margin-bottom: 12px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .conversion-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6ea8fe 0%, #4fc3f7 50%, #6ea8fe 100%);
+  background: var(--ds-link);
   background-size: 200% 100%;
-  border-radius: 5px;
-  transition: width 0.4s ease;
+  border-radius: var(--ds-radius-sm);
+  transition: width var(--ds-duration-slow) var(--ds-ease);
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
 .conversion-percent {
   display: block;
-  font-size: 28px;
-  font-weight: 700;
-  color: #6ea8fe;
+  font-size: var(--ds-text-3xl);
+  font-weight: var(--ds-weight-bold);
+  color: var(--ds-link);
   margin-bottom: 20px;
-  font-family: 'Courier New', monospace;
+  font-family: var(--ds-font-mono);
 }
 
 .conversion-hint {
   margin: 0 0 20px 0;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   color: var(--text-muted);
   font-style: italic;
 }
@@ -145,23 +141,23 @@ defineEmits(['cancel'])
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(158, 158, 158, 0.15);
+  background: var(--ds-surface-3);
   color: var(--text-muted);
-  border: 1px solid rgba(158, 158, 158, 0.3);
+  border: 1px solid var(--ds-border-strong);
   padding: 8px 20px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .btn-cancel-conversion:hover {
-  background: rgba(244, 67, 54, 0.15);
-  color: #f44336;
-  border-color: rgba(244, 67, 54, 0.3);
+  background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
+  color: var(--ds-danger);
+  border-color: color-mix(in srgb, var(--ds-danger) 30%, transparent);
 }
 
 @keyframes convFadeIn {
@@ -216,10 +212,10 @@ defineEmits(['cancel'])
     height: 30px;
   }
   .conversion-title {
-    font-size: 18px;
+    font-size: var(--ds-text-xl);
   }
   .conversion-percent {
-    font-size: 24px;
+    font-size: var(--ds-text-2xl);
   }
 }
 
@@ -228,9 +224,7 @@ defineEmits(['cancel'])
 }
 
 [data-theme='light'] .conversion-modal {
-  box-shadow:
-    0 25px 80px rgba(0, 0, 0, 0.25),
-    0 0 60px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  box-shadow: var(--ds-shadow-overlay);
 }
 
 [data-theme='light'] .conversion-icon svg {
@@ -241,27 +235,17 @@ defineEmits(['cancel'])
   color: var(--accent-ink);
 }
 
-[data-theme='light'] .conversion-progress-bar {
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
 [data-theme='light'] .conversion-progress-fill {
-  background: linear-gradient(
-    90deg,
-    var(--accent-primary) 0%,
-    #3a7cc6 50%,
-    var(--accent-primary) 100%
-  );
-  background-size: 200% 100%;
+  background: var(--accent-primary);
 }
 
 [data-theme='light'] .btn-cancel-conversion {
   background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.12);
+  border-color: var(--ds-border);
 }
 
 [data-theme='light'] .btn-cancel-conversion:hover {
-  background: rgba(244, 67, 54, 0.1);
-  border-color: rgba(244, 67, 54, 0.2);
+  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 20%, transparent);
 }
 </style>

@@ -247,10 +247,10 @@ onBeforeUnmount(stopLevelIndicator)
 .video-audio-reactive {
   margin-top: 10px;
   padding: 8px;
-  background: rgba(139, 92, 246, 0.06);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  border-left: 2px solid #8b5cf6;
-  border-radius: 6px;
+  background: color-mix(in srgb, var(--ds-link) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
+  border-left: 2px solid var(--ds-link);
+  border-radius: var(--ds-radius-sm);
 }
 .var-header {
   display: flex;
@@ -259,15 +259,15 @@ onBeforeUnmount(stopLevelIndicator)
   margin-bottom: 6px;
 }
 .var-title {
-  font-size: 0.6rem;
-  font-weight: 600;
-  color: #a78bfa;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-link);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 .var-label {
-  font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
 }
 [data-theme='light'] .var-title {
   color: var(--accent-ink);

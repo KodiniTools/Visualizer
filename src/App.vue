@@ -20,85 +20,90 @@
 </script>
 
 <style>
-/* --- CUSTOM FONT --- */
+/* --- SCHRIFT: Supreme in den drei genutzten Gewichten (400/500/700),
+   wie im Collage Maker. font-semibold (600) fällt auf Supreme Bold. --- */
 @font-face {
   font-family: 'Supreme';
   src: url('/fonts/Supreme-Regular.woff2') format('woff2');
-  font-weight: normal;
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Supreme';
+  src: url('/fonts/Supreme-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Supreme';
+  src: url('/fonts/Supreme-Bold.woff2') format('woff2');
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
-/* --- THEME VARIABLE DEFINITIONS --- */
+/* --- DESIGN-TOKENS ---
+   Die Werte kommen aus src/design-system/tokens-v2.css (--ds-*): der mit dem
+   Collage Maker und dem Playlist Generator geteilten Token-Datei (Dark auf
+   :root, Light auf :root[data-theme='light'], eingebunden in main.js).
+   Die Visualizer-Namen bleiben als Aliase, damit die Komponenten unverändert
+   weiterlesen. Hier stehen nur Aliase auf --ds-*, nie Literale und nie ein
+   Token, das auf sich selbst zeigt (Zyklus = Variable ungültig = Light Theme
+   kaputt, 05.10.2026). themeTokenBlocks.spec.js prüft das. */
 :root {
-  --font-sans: 'Supreme', sans-serif;
-  --green: #c5deb0;
-  --red: #ef4444;
-  --yellow: #eab308;
-  --palette-cyan: #f8e1a9;
-  --palette-beige: #7a8da0;
-  --palette-grayblue: #f8e1a9;
-  --palette-lightgray: #e9e9eb;
-  --palette-lightgreen: #c5deb0;
-  --palette-teal: #c9984d;
+  --font-sans: var(--ds-font-sans);
+
+  /* Flächen: Seite, Eingabe, Karte, Hover */
+  --primary-bg: var(--ds-surface-0);
+  --secondary-bg: var(--ds-surface-2);
+  --card-bg: var(--ds-surface-1);
+  --btn-hover: var(--ds-surface-3);
+
+  /* Akzent: Gold als Fläche, Text darauf ds-on-accent; Blau nur Link/Info */
+  --accent-primary: var(--ds-accent);
+  --accent-secondary: var(--ds-link);
+  --accent-tertiary: var(--ds-accent-hover);
+  --accent-text: var(--ds-on-accent);
+  --ring: var(--ds-accent);
+
+  /* Text und Rahmen */
+  --text-primary: var(--ds-text);
+  --text-muted: var(--ds-text-2);
+  --border-color: var(--ds-border);
+  --progress-bg: var(--ds-border-strong);
+
+  /* v2 kennt keine Verläufe, Innenkanten oder Glow */
+  --gradient-color: transparent;
+  --panel-highlight: transparent;
+  --body-gradient: var(--ds-surface-0);
+
+  /* Status */
+  --success: var(--ds-success);
+  --green: var(--ds-success);
+  --red: var(--ds-danger);
+  --yellow: var(--ds-warning);
+
+  /* Legacy-Aliase (nicht mehr verwenden) */
+  --palette-cyan: var(--ds-accent-hover);
+  --palette-beige: var(--ds-text-2);
+  --palette-grayblue: var(--ds-accent-hover);
+  --palette-lightgray: var(--ds-text);
+  --palette-lightgreen: var(--ds-success);
+  --palette-teal: var(--ds-accent);
 }
 
 [data-theme='dark'] {
-  --primary-bg: #091428;
-  --secondary-bg: #0e1c32;
-  --card-bg: #142640;
-  --accent-primary: #c9984d;
-  --accent-secondary: #014f99;
-  --accent-tertiary: #f8e1a9;
-  --accent-text: #091428;
-  /* Akzent als Text oder Icon (Titel, Chips, Hover-Icons): im Dark Theme Gold. */
-  --accent-ink: #c9984d;
-  --text-primary: #f9f2d5;
-  --text-secondary: #f8e1a9;
-  /* #8396a9: 5,0:1 auf --card-bg (WCAG AA ≥ 4,5:1); vorher #7a8da0 = 4,45:1 */
-  --text-muted: #8396a9;
-  --btn-hover: #1a2a42;
-  --ring: #c9984d;
-  --border-color: rgb(201 152 77 / 20%);
-  --shadow-color: rgb(0 0 0 / 50%);
-  --gradient-color: rgb(201 152 77 / 3%);
-  --panel-highlight: rgb(201 152 77 / 5%);
-  --progress-bg: rgb(1 79 153 / 20%);
-  --success: #c5deb0;
-  --body-gradient:
-    radial-gradient(1200px 600px at 80% -20%, #0a2850 0%, transparent 60%), var(--primary-bg);
+  /* Gold als Text ist im Dark Theme erlaubt (8,0:1 auf ds-surface-0) */
+  --accent-ink: var(--ds-accent);
+  --text-secondary: var(--ds-accent);
 }
 
 [data-theme='light'] {
-  /* Token-Definitionen bleiben Literale: ein var(--x) auf sich selbst wäre
-     ein Zyklus, die Variable ungültig, und alle Komponenten fielen auf ihre
-     Dark-Fallbacks zurück (Regression vom 05.10.2026, Test themeTokenBlocks.spec.js). */
-  --primary-bg: #f5f4d6;
-  --secondary-bg: #f9f2d5;
-  --card-bg: #ffffff;
-  /* Gold bleibt auch im Light Theme der Akzent (Parität mit dem Design-System v2
-     von Collage Maker und Playlist Generator, Entscheidung 05.10.2026).
-     Gold nur als Fläche, nie als Text: 2,4:1 auf --primary-bg.
-     --accent-text #091428 hält 7,1:1 auf Gold; --accent-tertiary ist das
-     dunklere Hover-Gold aus v2 (ds-accent-hover). */
-  --accent-primary: #c9984d;
-  --accent-secondary: #014f99;
-  --accent-tertiary: #b8842f;
-  --accent-text: #091428;
-  /* Akzent als Text oder Icon auf heller Fläche: Navy statt Gold (4,5:1 statt 2,4:1). */
-  --accent-ink: #014f99;
-  --text-primary: #003971;
-  --text-secondary: #014f99;
-  --text-muted: #4d6d8e;
-  --btn-hover: #f8e1a9;
-  --ring: #c9984d;
-  --border-color: rgb(201 152 77 / 30%);
-  --shadow-color: rgb(0 0 0 / 10%);
-  --gradient-color: rgb(201 152 77 / 5%);
-  --panel-highlight: rgb(201 152 77 / 8%);
-  --progress-bg: rgb(1 79 153 / 15%);
-  --success: #c5deb0;
-  --body-gradient: radial-gradient(1200px 600px at 80% -20%, #f8e1a9 0%, transparent 60%), #f5f4d6;
+  /* Gold ist im Light Theme nie Text (2,4:1): Akzent-Text wird Tinte, Hervorhebung Link-Blau */
+  --accent-ink: var(--ds-text);
+  --text-secondary: var(--ds-link);
 }
 
 /* Global styles */
@@ -133,7 +138,7 @@ textarea,
 .section-title,
 .custom-file-upload,
 details summary {
-  font-family: var(--font-sans);
+  font-family: var(--ds-font-sans);
 }
 
 html {
@@ -146,48 +151,50 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  font-family: var(--font-sans);
-  background-color: var(--primary-bg, #091428);
+  font-family: var(--ds-font-sans);
+  background-color: var(--primary-bg);
 }
 
 #app {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--primary-bg, #091428);
-  color: var(--text-primary, #e9e9eb);
-  font-family: var(--font-sans, 'Supreme', sans-serif);
-  font-size: 12px;
+  background-color: var(--primary-bg);
+  color: var(--text-primary);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-md);
 }
 
-/* Scrollbar Styling */
+/* Fokus: ein Rezept für alle Bedienelemente (ds-focus-ring statt Outline),
+   wie in den Ui-Komponenten des Collage Makers. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[role='button']:focus-visible,
+[tabindex]:not([tabindex='-1']):focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+/* Scrollbar: neutral, kein Gold (Gold bleibt der einen Primärfläche vorbehalten) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(201, 152, 77, 0.1);
-  border-radius: 4px;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(201, 152, 77, 0.4);
-  border-radius: 4px;
+  background: var(--ds-border-strong);
+  border-radius: var(--ds-radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(201, 152, 77, 0.6);
-}
-
-/* Light Theme Scrollbar */
-[data-theme='light'] ::-webkit-scrollbar-track {
-  background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
-}
-[data-theme='light'] ::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-}
-[data-theme='light'] ::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--accent-primary) 40%, transparent);
+  background: var(--ds-text-3);
 }
 </style>

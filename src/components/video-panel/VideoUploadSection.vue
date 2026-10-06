@@ -110,9 +110,9 @@ const {
 <style scoped>
 .upload-section h4 {
   margin: 0 0 8px 0;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-primary, #e9e9eb);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   display: flex;
@@ -127,22 +127,21 @@ const {
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Cpolygon points='23 7 16 12 23 17 23 7'/%3E%3Crect x='1' y='5' width='15' height='14' rx='2' ry='2'/%3E%3C/svg%3E");
   background-size: contain;
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
 }
 
 .upload-area {
-  border: 1px dashed var(--border-color, rgba(201, 152, 77, 0.4));
-  border-radius: 6px;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--ds-radius-sm);
   padding: 14px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-  background: var(--secondary-bg, #0e1c32);
+  transition: all var(--ds-duration) var(--ds-ease);
+  background: var(--secondary-bg);
 }
 
 .upload-area:hover {
-  border-color: var(--accent-primary, #c9984d);
-  background: var(--btn-hover, #1a2a42);
+  border-color: var(--accent-primary);
+  background: var(--btn-hover);
 }
 
 .upload-placeholder {
@@ -155,7 +154,7 @@ const {
 .upload-icon {
   width: 32px;
   height: 32px;
-  color: var(--accent-ink, #c9984d);
+  color: var(--accent-ink);
 }
 
 .upload-icon svg {
@@ -165,13 +164,13 @@ const {
 
 .upload-placeholder p {
   margin: 0;
-  font-size: 0.6rem;
-  color: var(--text-primary, #e9e9eb);
+  font-size: var(--ds-text-xs);
+  color: var(--text-primary);
 }
 
 .upload-placeholder small {
-  font-size: 0.5rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
 }
 
 /* Gallery */
@@ -187,15 +186,15 @@ const {
 }
 
 .gallery-title {
-  font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .btn-clear-all {
-  font-size: 0.5rem;
-  color: #f44336;
+  font-size: var(--ds-text-xs);
+  color: var(--ds-danger);
   background: none;
   border: none;
   cursor: pointer;
@@ -220,19 +219,19 @@ const {
 .thumbnail-item {
   position: relative;
   aspect-ratio: 16/9;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-sm);
   overflow: hidden;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
 }
 
 .thumbnail-item:hover {
-  border-color: rgba(139, 92, 246, 0.5);
+  border-color: color-mix(in srgb, var(--ds-link) 50%, transparent);
 }
 
 .thumbnail-item.selected {
-  border-color: rgba(139, 92, 246, 0.9);
+  border-color: color-mix(in srgb, var(--ds-link) 90%, transparent);
 }
 
 .video-thumb {
@@ -249,7 +248,7 @@ const {
   width: 24px;
   height: 24px;
   background: rgba(0, 0, 0, 0.6);
-  border-radius: 50%;
+  border-radius: var(--ds-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -268,7 +267,7 @@ const {
   top: 4px;
   right: 4px;
   opacity: 0.6;
-  transition: opacity 0.2s;
+  transition: opacity var(--ds-duration) var(--ds-ease);
 }
 
 .thumbnail-item:hover .thumbnail-overlay {
@@ -278,11 +277,11 @@ const {
 .btn-delete-thumb {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
-  background: rgba(255, 69, 58, 0.9);
+  border-radius: var(--ds-radius-full);
+  background: color-mix(in srgb, var(--ds-danger) 90%, transparent);
   border: none;
   color: white;
-  font-size: 12px;
+  font-size: var(--ds-text-xs);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -302,7 +301,7 @@ const {
 }
 
 .thumbnail-name {
-  font-size: 10px;
+  font-size: var(--ds-text-xs);
   color: white;
   white-space: nowrap;
   overflow: hidden;
@@ -310,8 +309,8 @@ const {
 }
 
 .thumbnail-duration {
-  font-size: 9px;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: var(--ds-text-xs);
+  color: var(--ds-text-2);
 }
 
 /* Action Buttons */
@@ -326,59 +325,58 @@ const {
   flex: 1;
   min-width: 100%;
   padding: 6px 10px;
-  background: rgba(201, 152, 77, 0.2);
-  border: 1px solid rgba(201, 152, 77, 0.3);
-  border-radius: 5px;
-  color: var(--accent-tertiary, #f8e1a9);
-  font-size: 0.6rem;
-  font-weight: 600;
+  background: var(--ds-accent-soft);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-sm);
+  color: var(--accent-tertiary);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  background: rgba(201, 152, 77, 0.3);
+  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
 }
 
 .btn-secondary {
   flex: 1;
   padding: 5px 8px;
-  background: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  border-radius: 5px;
-  color: var(--text-primary, #e9e9eb);
-  font-size: 0.55rem;
-  font-weight: 500;
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  color: var(--text-primary);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
 }
 
 .btn-secondary:hover {
-  background: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
+  background: var(--btn-hover);
+  border-color: var(--accent-primary);
 }
 
 .btn-workspace {
   flex: 1;
   padding: 5px 8px;
-  background: rgba(255, 193, 7, 0.1);
-  border: 1px solid rgba(255, 193, 7, 0.3);
-  border-radius: 5px;
-  color: #ffc107;
-  font-size: 0.55rem;
-  font-weight: 500;
+  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-warning) 30%, transparent);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-warning);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
 }
 
 .btn-workspace:hover {
-  background: rgba(255, 193, 7, 0.2);
-  border-color: rgba(255, 193, 7, 0.5);
+  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
+  border-color: color-mix(in srgb, var(--ds-warning) 50%, transparent);
 }
 
 /* Light Theme */

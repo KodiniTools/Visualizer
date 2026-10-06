@@ -15,16 +15,16 @@
 <style scoped>
 .empty-panel {
   background-color: var(--secondary-bg);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   padding: 16px;
   border: 1px solid var(--border-color);
 }
 
 .panel-title {
   margin: 0 0 12px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #e0e0e0;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -37,7 +37,7 @@
 
 .placeholder-text {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
   margin: 0;
   font-style: italic;
 }
@@ -45,7 +45,7 @@
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .empty-panel {
   background-color: var(--card-bg);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 
 [data-theme='light'] .panel-title {

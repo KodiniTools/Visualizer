@@ -100,9 +100,9 @@ async function onFile(event) {
 }
 .image-select {
   width: 100%;
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 4px 6px;
   font-size: 0.65rem;
@@ -110,7 +110,7 @@ async function onFile(event) {
 }
 .image-select:focus {
   outline: none;
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 .image-actions {
   display: flex;
@@ -118,9 +118,9 @@ async function onFile(event) {
 }
 .image-btn {
   flex: 1;
-  background-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
-  border: 1px solid var(--accent-primary, #c9984d);
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-primary);
   border-radius: 4px;
   padding: 4px 6px;
   font-size: 0.62rem;
@@ -128,15 +128,15 @@ async function onFile(event) {
 }
 .image-btn-secondary {
   background-color: transparent;
-  color: var(--text-primary, #e9e9eb);
-  border-color: var(--border-color, rgba(201, 152, 77, 0.3));
+  color: var(--text-primary);
+  border-color: var(--border-color);
 }
 .image-file {
   display: none;
 }
 .image-hint {
   font-size: 0.58rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   line-height: 1.3;
 }
 </style>

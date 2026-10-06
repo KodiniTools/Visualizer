@@ -124,9 +124,9 @@ const replaceCanvasImageInput = ref(null)
 }
 
 .image-preview-modal {
-  background: linear-gradient(180deg, var(--card-bg, #142640) 0%, rgba(20, 38, 64, 0.98) 100%);
+  background: var(--card-bg);
   border-radius: 12px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border: 1px solid var(--border-color);
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.5),
     0 0 0 1px rgba(201, 152, 77, 0.2);
@@ -156,8 +156,8 @@ const replaceCanvasImageInput = ref(null)
   height: 32px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
+  border: 1px solid var(--ds-border);
+  color: var(--ds-text);
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
@@ -169,8 +169,8 @@ const replaceCanvasImageInput = ref(null)
 }
 
 .preview-modal-close:hover {
-  background: rgba(255, 69, 58, 0.8);
-  border-color: rgba(255, 69, 58, 0.9);
+  background: color-mix(in srgb, var(--ds-danger) 80%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 90%, transparent);
   transform: rotate(90deg);
 }
 
@@ -201,14 +201,14 @@ const replaceCanvasImageInput = ref(null)
 
 .preview-modal-info {
   padding: 20px 24px;
-  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border-top: 1px solid var(--border-color);
 }
 
 .preview-modal-info h3 {
   margin: 0 0 16px 0;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--accent-ink, #c9984d);
+  color: var(--accent-ink);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -228,7 +228,7 @@ const replaceCanvasImageInput = ref(null)
 .preview-info-label {
   font-size: 0.65rem;
   font-weight: 500;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -236,14 +236,14 @@ const replaceCanvasImageInput = ref(null)
 .preview-info-value {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #e9e9eb;
+  color: var(--ds-text);
   font-family: 'SF Mono', 'Monaco', monospace;
 }
 
 .preview-modal-actions {
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: center;
 }
@@ -271,38 +271,38 @@ const replaceCanvasImageInput = ref(null)
   padding: 10px 20px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #4ade80;
-  background: rgba(74, 222, 128, 0.12);
-  border: 1px solid rgba(74, 222, 128, 0.3);
+  color: var(--ds-success);
+  background: color-mix(in srgb, var(--ds-success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-replace-canvas-image:hover {
-  background: rgba(74, 222, 128, 0.2);
-  border-color: rgba(74, 222, 128, 0.5);
+  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
+  border-color: color-mix(in srgb, var(--ds-success) 50%, transparent);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);
 }
 
 .btn-replace-canvas-image.btn-gallery {
-  color: #c4b5fd;
-  background: rgba(139, 92, 246, 0.12);
-  border-color: rgba(139, 92, 246, 0.3);
+  color: var(--ds-link);
+  background: color-mix(in srgb, var(--ds-link) 12%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 
 .btn-replace-canvas-image.btn-gallery:hover {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: rgba(139, 92, 246, 0.5);
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 50%, transparent);
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
 }
 
 .pending-replace-preview {
   margin-top: 20px;
   padding: 15px;
-  background: rgba(34, 197, 94, 0.08);
-  border: 1px dashed rgba(34, 197, 94, 0.4);
+  background: color-mix(in srgb, var(--ds-success) 8%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--ds-success) 40%, transparent);
   border-radius: 12px;
 }
 
@@ -312,7 +312,7 @@ const replaceCanvasImageInput = ref(null)
 
 .pending-replace-label {
   font-size: 0.75rem;
-  color: #22c55e;
+  color: var(--ds-success);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -329,7 +329,7 @@ const replaceCanvasImageInput = ref(null)
   max-height: 150px;
   object-fit: contain;
   border-radius: 8px;
-  border: 2px solid rgba(34, 197, 94, 0.3);
+  border: 2px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
@@ -343,17 +343,17 @@ const replaceCanvasImageInput = ref(null)
   padding: 8px 16px;
   font-size: 0.8rem;
   font-weight: 500;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
   border-radius: 8px;
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
+  color: var(--ds-danger);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-cancel-replace:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.5);
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 50%, transparent);
 }
 
 .btn-confirm-replace {
@@ -362,7 +362,7 @@ const replaceCanvasImageInput = ref(null)
   font-weight: 600;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: var(--ds-success);
   color: white;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -370,14 +370,13 @@ const replaceCanvasImageInput = ref(null)
 }
 
 .btn-confirm-replace:hover {
-  background: linear-gradient(135deg, #16a34a, #15803d);
+  background: var(--ds-success);
   box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
   transform: translateY(-1px);
 }
 
 /* Light theme */
 [data-theme='light'] .image-preview-modal {
-  background: linear-gradient(180deg, var(--card-bg) 0%, rgba(249, 242, 213, 0.98) 100%);
   border-color: var(--border-color);
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.12),
@@ -385,11 +384,10 @@ const replaceCanvasImageInput = ref(null)
 }
 [data-theme='light'] .preview-modal-close {
   background: rgba(0, 0, 0, 0.06);
-  border-color: rgba(0, 0, 0, 0.15);
+  border-color: var(--ds-border);
   color: var(--text-primary);
 }
 [data-theme='light'] .preview-modal-close:hover {
-  background: rgba(255, 69, 58, 0.8);
   color: #fff;
 }
 [data-theme='light'] .preview-modal-image-container {

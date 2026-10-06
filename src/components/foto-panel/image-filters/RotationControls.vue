@@ -40,7 +40,7 @@ const { filters, onSliderStart, onSliderEnd, onRotationChange } = ifc
 <style scoped src="./image-filters-shared.css"></style>
 <style scoped>
 .rotation-slider {
-  background: linear-gradient(90deg, #f97316 0%, #6ea8fe 50%, #3b82f6 100%);
+  background: var(--ds-warning);
 }
 .rotation-hint {
   font-size: 10px;

@@ -43,11 +43,11 @@ provide('bgSettings', bg)
 
 <style scoped>
 .panel {
-  background-color: var(--card-bg, #142640);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 10px;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -64,14 +64,14 @@ provide('bgSettings', bg)
 }
 
 .panel-header:hover h3 {
-  color: var(--accent-tertiary, #f8e1a9);
+  color: var(--accent-tertiary);
 }
 
 .chevron {
   width: 7px;
   height: 7px;
-  border-right: 1.5px solid var(--accent-primary, #c9984d);
-  border-bottom: 1.5px solid var(--accent-primary, #c9984d);
+  border-right: 1.5px solid var(--accent-primary);
+  border-bottom: 1.5px solid var(--accent-primary);
   transform: rotate(45deg);
   transition: transform 0.2s;
   display: inline-block;
@@ -101,7 +101,7 @@ h3 {
   margin: 0;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   transition: color 0.2s;
@@ -124,7 +124,7 @@ h4 {
   margin: 0 0 5px 0;
   font-size: 0.6rem;
   font-weight: 500;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -134,8 +134,8 @@ h4 {
 }
 
 .undo-section {
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
   padding: 8px;
 }
@@ -156,53 +156,53 @@ h4 {
 }
 
 .btn-undo {
-  background: rgba(255, 152, 0, 0.2);
-  color: #ff9800;
-  border: 1px solid rgba(255, 152, 0, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
+  color: var(--ds-warning);
+  border: 1px solid color-mix(in srgb, var(--ds-warning) 30%, transparent);
 }
 
 .btn-undo:hover {
-  background: rgba(255, 152, 0, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 30%, transparent);
   transform: translateY(-1px);
 }
 
 .btn-primary {
-  background: rgba(201, 152, 77, 0.2);
-  color: var(--accent-tertiary, #f8e1a9);
-  border: 1px solid rgba(201, 152, 77, 0.3);
+  background: var(--ds-accent-soft);
+  color: var(--accent-tertiary);
+  border: 1px solid var(--ds-border);
 }
 
 .btn-primary:hover {
-  background: rgba(201, 152, 77, 0.3);
+  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
   transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
   transform: translateY(-1px);
 }
 
 .btn-danger {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  border: 1px solid rgba(244, 67, 54, 0.3);
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  color: var(--ds-danger);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: rgba(244, 67, 54, 0.3);
+  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
   transform: translateY(-1px);
 }
 
 .btn-danger:disabled {
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-muted, #7a8da0);
+  background-color: var(--secondary-bg);
+  color: var(--text-muted);
   cursor: not-allowed;
   opacity: 0.5;
 }
@@ -213,25 +213,25 @@ h4 {
 
 .divider {
   height: 1px;
-  background-color: var(--border-color, rgba(201, 152, 77, 0.2));
+  background-color: var(--border-color);
   margin: 8px 0;
 }
 
 .hint-text {
   font-size: 0.5rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   font-style: italic;
 }
 
 .info-text {
   font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   line-height: 1.3;
   margin: 0 0 6px 0;
 }
 
 .info-text.warning {
-  color: #ff9800;
+  color: var(--ds-warning);
   font-weight: 500;
 }
 

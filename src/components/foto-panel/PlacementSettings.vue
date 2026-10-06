@@ -173,8 +173,8 @@ function emitUpdate() {
 
 <style scoped>
 .placement-section {
-  background: rgba(34, 197, 94, 0.05);
-  border: 1px solid rgba(34, 197, 94, 0.2);
+  background: color-mix(in srgb, var(--ds-success) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 20%, transparent);
   border-radius: 8px;
   padding: 10px;
   margin-top: 8px;
@@ -219,7 +219,7 @@ function emitUpdate() {
 }
 
 .placement-select:hover {
-  border-color: rgba(34, 197, 94, 0.4);
+  border-color: color-mix(in srgb, var(--ds-success) 40%, transparent);
 }
 
 .placement-slider-wrap {
@@ -239,7 +239,7 @@ function emitUpdate() {
   height: 3px;
   -webkit-appearance: none;
   appearance: none;
-  background: linear-gradient(90deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.6) 100%);
+  background: color-mix(in srgb, var(--ds-success) 30%, transparent);
   border-radius: 2px;
   cursor: pointer;
 }
@@ -249,14 +249,14 @@ function emitUpdate() {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #22c55e;
+  background: var(--ds-success);
   cursor: pointer;
   border: 2px solid var(--text-primary);
 }
 
 .placement-value {
   font-size: 0.55rem;
-  color: #22c55e;
+  color: var(--ds-success);
   font-family: monospace;
   min-width: 35px;
   text-align: right;
@@ -283,7 +283,7 @@ function emitUpdate() {
 .placement-input:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px rgb(34 197 94 / 25%);
-  border-color: rgba(34, 197, 94, 0.5);
+  border-color: color-mix(in srgb, var(--ds-success) 50%, transparent);
 }
 
 .placement-buttons {
@@ -306,28 +306,28 @@ function emitUpdate() {
 }
 
 .btn-draw {
-  background: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
-  border: 1px solid rgba(34, 197, 94, 0.4);
+  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
+  color: var(--ds-success);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 40%, transparent);
 }
 
 .btn-draw:hover {
-  background: rgba(34, 197, 94, 0.3);
+  background: color-mix(in srgb, var(--ds-success) 30%, transparent);
 }
 
 .btn-place {
-  background: rgba(59, 130, 246, 0.2);
-  color: #3b82f6;
-  border: 1px solid rgba(59, 130, 246, 0.4);
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
+  color: var(--ds-link);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 40%, transparent);
 }
 
 .btn-place:hover {
-  background: rgba(59, 130, 246, 0.3);
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 
 .placement-hint {
   font-size: 0.55rem;
-  color: #22c55e;
+  color: var(--ds-success);
   margin: 6px 0 0 0;
   font-style: italic;
   text-align: center;

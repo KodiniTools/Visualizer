@@ -305,10 +305,10 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
 <style scoped>
 .fx-section {
   margin-bottom: 10px;
-  background-color: rgba(201, 152, 77, 0.05);
+  background-color: var(--ds-accent-soft);
   border-radius: 5px;
   padding: 8px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
+  border: 1px solid var(--border-color);
 }
 
 .fx-header {
@@ -321,7 +321,7 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
 .section-label {
   display: block;
   font-size: 0.6rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -342,19 +342,19 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
   gap: 6px;
   cursor: pointer;
   font-size: 0.65rem;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .fx-toggle input {
-  accent-color: var(--accent-primary, #c9984d);
+  accent-color: var(--accent-primary);
   cursor: pointer;
 }
 
 .fx-hint {
   display: block;
   font-size: 0.5rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   margin-top: 2px;
   margin-left: 22px;
   font-style: italic;
@@ -375,7 +375,7 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
 .control-label {
   display: block;
   font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   margin-bottom: 3px;
   font-weight: 500;
 }
@@ -384,9 +384,9 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
   width: 100%;
   padding: 4px 6px;
   font-size: 0.6rem;
-  color: var(--text-primary, #e9e9eb);
-  background: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  color: var(--text-primary);
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   cursor: pointer;
 }
@@ -402,11 +402,7 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
 }
 
 .fx-slider {
-  background: linear-gradient(
-    to right,
-    var(--secondary-bg, #0e1c32) 0%,
-    var(--accent-primary, #c9984d) 100%
-  );
+  background: var(--secondary-bg);
 }
 
 .fx-slider::-webkit-slider-thumb {
@@ -415,15 +411,15 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--accent-tertiary, #f8e1a9);
+  background: var(--accent-tertiary);
   cursor: pointer;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--ds-surface-1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
 .fx-slider::-webkit-slider-thumb:hover {
-  background: var(--accent-primary, #c9984d);
+  background: var(--accent-primary);
   transform: scale(1.1);
 }
 
@@ -431,9 +427,9 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--accent-tertiary, #f8e1a9);
+  background: var(--accent-tertiary);
   cursor: pointer;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--ds-surface-1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
@@ -447,10 +443,6 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
 [data-theme='light'] .control-label,
 [data-theme='light'] .fx-hint {
   color: var(--text-muted);
-}
-
-[data-theme='light'] .fx-slider {
-  background: linear-gradient(to right, var(--secondary-bg) 0%, var(--accent-primary) 100%);
 }
 
 [data-theme='light'] .fx-slider::-webkit-slider-thumb {

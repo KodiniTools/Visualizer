@@ -281,7 +281,7 @@ onMounted(() => {
   gap: 8px;
   padding: 10px;
   border-radius: 8px;
-  border: 1px solid var(--image-section-accent, #6ea8fe);
+  border: 1px solid var(--image-section-accent);
   background-color: var(--card-bg);
 }
 .image-editor-header {
@@ -310,7 +310,7 @@ onMounted(() => {
 }
 .image-editor-name {
   font-size: 12px;
-  color: #e0e0e0;
+  color: var(--ds-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -336,7 +336,7 @@ onMounted(() => {
   padding: 4px 6px;
   font-size: 12px;
   background: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
@@ -361,7 +361,7 @@ onMounted(() => {
   padding-left: 0;
 }
 [data-theme='light'] .image-editor {
-  background-color: #f0ead0;
+  background-color: var(--ds-surface-3);
 }
 [data-theme='light'] .image-editor-name {
   color: var(--text-primary);
@@ -369,6 +369,6 @@ onMounted(() => {
 [data-theme='light'] .image-editor-field select,
 [data-theme='light'] .image-editor-field input {
   color: var(--text-primary);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 </style>

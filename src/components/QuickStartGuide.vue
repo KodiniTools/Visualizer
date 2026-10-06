@@ -552,8 +552,7 @@ defineExpose({ show, hide, toggleGuide })
 /* Floating Help Button */
 .help-button-container {
   position: fixed;
-  /* Sit above the sticky player bar so it never overlaps its controls */
-  bottom: calc(24px + var(--sticky-player-bar-height, 58px));
+  bottom: calc(24px + var(--sticky-player-bar-height));
   right: 24px;
   z-index: 9998;
 }
@@ -563,7 +562,7 @@ defineExpose({ show, hide, toggleGuide })
   height: 52px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, #6ea8fe 0%, #5a96e5 100%);
+  background: var(--ds-link);
   color: #fff;
   cursor: pointer;
   display: flex;
@@ -582,7 +581,7 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 .help-button.active {
-  background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
+  background: var(--ds-danger);
   animation: none;
   box-shadow: 0 4px 20px rgba(244, 67, 54, 0.4);
 }
@@ -609,16 +608,12 @@ defineExpose({ show, hide, toggleGuide })
 /* Quick Start Panel */
 .quick-start-panel {
   position: fixed;
-  bottom: calc(90px + var(--sticky-player-bar-height, 58px));
+  bottom: calc(90px + var(--sticky-player-bar-height));
   right: 24px;
   width: 380px;
-  max-height: calc(100vh - 120px - var(--sticky-player-bar-height, 58px));
-  background: linear-gradient(
-    145deg,
-    var(--primary-bg, #07111f) 0%,
-    var(--secondary-bg, #0e1c32) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: calc(100vh - 120px - var(--sticky-player-bar-height));
+  background: var(--primary-bg);
+  border: 1px solid var(--ds-border);
   border-radius: 16px;
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.5),
@@ -634,7 +629,7 @@ defineExpose({ show, hide, toggleGuide })
   justify-content: space-between;
   align-items: center;
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--ds-border);
   background: rgba(0, 0, 0, 0.2);
   gap: 10px;
 }
@@ -643,7 +638,7 @@ defineExpose({ show, hide, toggleGuide })
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--ds-text);
   flex: 1;
 }
 
@@ -669,15 +664,15 @@ defineExpose({ show, hide, toggleGuide })
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--ds-text-3);
   cursor: pointer;
   transition: all 0.15s ease;
   letter-spacing: 0.5px;
 }
 
 .lang-toggle button.active {
-  background: #6ea8fe;
-  color: #0a1628;
+  background: var(--ds-link);
+  color: var(--ds-on-accent);
 }
 
 .close-btn {
@@ -685,7 +680,7 @@ defineExpose({ show, hide, toggleGuide })
   height: 26px;
   border: none;
   background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--ds-text-2);
   border-radius: 50%;
   cursor: pointer;
   display: flex;
@@ -696,8 +691,8 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 .close-btn:hover {
-  background: rgba(244, 67, 54, 0.25);
-  color: #f44336;
+  background: color-mix(in srgb, var(--ds-danger) 25%, transparent);
+  color: var(--ds-danger);
 }
 
 .close-btn svg {
@@ -724,18 +719,18 @@ defineExpose({ show, hide, toggleGuide })
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--ds-text-3);
 }
 
 .tab-btn:hover {
-  background: rgba(110, 168, 254, 0.1);
-  color: rgba(255, 255, 255, 0.7);
+  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
+  color: var(--ds-text-2);
 }
 
 .tab-btn.active {
-  background: rgba(110, 168, 254, 0.15);
-  border-color: rgba(110, 168, 254, 0.4);
-  color: #6ea8fe;
+  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 40%, transparent);
+  color: var(--ds-link);
 }
 
 .tab-icon {
@@ -778,7 +773,7 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 .workflow-step:hover {
-  background: rgba(110, 168, 254, 0.1);
+  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
   transform: translateX(3px);
 }
 
@@ -786,8 +781,8 @@ defineExpose({ show, hide, toggleGuide })
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6ea8fe 0%, #5a96e5 100%);
-  color: #0a1628;
+  background: var(--ds-link);
+  color: var(--ds-on-accent);
   font-size: 11px;
   font-weight: 700;
   display: flex;
@@ -806,12 +801,12 @@ defineExpose({ show, hide, toggleGuide })
 .step-title {
   font-size: 12px;
   font-weight: 600;
-  color: #fff;
+  color: var(--ds-text);
 }
 
 .step-desc {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--ds-text-3);
   line-height: 1.35;
 }
 
@@ -847,7 +842,7 @@ defineExpose({ show, hide, toggleGuide })
 .feature-title {
   font-size: 12px;
   font-weight: 700;
-  color: #6ea8fe;
+  color: var(--ds-link);
 }
 
 .feature-bullets {
@@ -860,7 +855,7 @@ defineExpose({ show, hide, toggleGuide })
 
 .feature-bullets li {
   font-size: 10.5px;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--ds-text-2);
   line-height: 1.4;
 }
 
@@ -876,7 +871,7 @@ defineExpose({ show, hide, toggleGuide })
 .shortcut-group-title {
   font-size: 10px;
   font-weight: 700;
-  color: #6ea8fe;
+  color: var(--ds-link);
   text-transform: uppercase;
   letter-spacing: 0.8px;
   margin-bottom: 7px;
@@ -911,17 +906,17 @@ defineExpose({ show, hide, toggleGuide })
   height: 18px;
   padding: 0 5px;
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--ds-border);
   border-radius: 4px;
   font-size: 9px;
   font-family: inherit;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--ds-text);
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
 }
 
 .shortcut-desc {
   font-size: 9.5px;
-  color: rgba(255, 255, 255, 0.48);
+  color: var(--ds-text-3);
 }
 
 /* Tips */
@@ -936,9 +931,9 @@ defineExpose({ show, hide, toggleGuide })
   align-items: flex-start;
   gap: 9px;
   padding: 10px 11px;
-  background: rgba(255, 193, 7, 0.07);
+  background: color-mix(in srgb, var(--ds-warning) 7%, transparent);
   border-radius: 9px;
-  border-left: 3px solid rgba(255, 193, 7, 0.45);
+  border-left: 3px solid color-mix(in srgb, var(--ds-warning) 45%, transparent);
 }
 
 .tip-icon {
@@ -956,12 +951,12 @@ defineExpose({ show, hide, toggleGuide })
 .tip-title {
   font-size: 11px;
   font-weight: 700;
-  color: rgba(255, 193, 7, 0.9);
+  color: var(--ds-warning);
 }
 
 .tip-text {
   font-size: 10.5px;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--ds-text-2);
   line-height: 1.45;
 }
 
@@ -1001,12 +996,12 @@ defineExpose({ show, hide, toggleGuide })
     right: 10px;
     left: 10px;
     width: auto;
-    bottom: calc(78px + var(--sticky-player-bar-height-mobile, 150px));
+    bottom: calc(78px + var(--sticky-player-bar-height-mobile));
   }
 
   .help-button-container {
     right: 14px;
-    bottom: calc(14px + var(--sticky-player-bar-height-mobile, 150px));
+    bottom: calc(14px + var(--sticky-player-bar-height-mobile));
   }
 
   .shortcuts-grid {
@@ -1016,7 +1011,7 @@ defineExpose({ show, hide, toggleGuide })
 
 /* ═══ Light Theme ═══ */
 [data-theme='light'] .help-button {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+  background: var(--accent-primary);
   box-shadow:
     0 4px 20px color-mix(in srgb, var(--accent-primary) 40%, transparent),
     0 0 0 0 color-mix(in srgb, var(--accent-primary) 40%, transparent);
@@ -1026,20 +1021,16 @@ defineExpose({ show, hide, toggleGuide })
   box-shadow: 0 6px 30px color-mix(in srgb, var(--accent-primary) 50%, transparent);
 }
 
-[data-theme='light'] .help-button.active {
-  box-shadow: 0 4px 20px rgba(244, 67, 54, 0.4);
-}
-
 [data-theme='light'] .quick-start-panel {
-  background: linear-gradient(145deg, var(--card-bg) 0%, #f5f0e8 100%);
-  border-color: #d4c8a8;
+  background: var(--card-bg);
+  border-color: var(--ds-border);
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.12),
     0 0 0 1px color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 [data-theme='light'] .panel-header {
-  border-bottom-color: #d4c8a8;
+  border-bottom-color: var(--ds-border);
   background: color-mix(in srgb, var(--accent-primary) 4%, transparent);
 }
 
@@ -1066,8 +1057,7 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 [data-theme='light'] .close-btn:hover {
-  background: rgba(244, 67, 54, 0.12);
-  color: #f44336;
+  background: color-mix(in srgb, var(--ds-danger) 12%, transparent);
 }
 
 [data-theme='light'] .tab-btn {
@@ -1095,7 +1085,7 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 [data-theme='light'] .step-number {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+  background: var(--accent-primary);
   color: var(--accent-text);
 }
 
@@ -1143,7 +1133,7 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 [data-theme='light'] .tip-title {
-  color: #a07030;
+  color: var(--accent-ink);
 }
 [data-theme='light'] .tip-text {
   color: var(--text-muted);

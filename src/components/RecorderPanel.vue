@@ -567,10 +567,10 @@ onUnmounted(() => {
 
 <style scoped>
 .recorder-panel {
-  background-color: var(--card-bg, #142640);
+  background-color: var(--card-bg);
   border-radius: 8px;
   padding: 10px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -584,7 +584,7 @@ onUnmounted(() => {
 
 h3 {
   margin: 0;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -611,8 +611,8 @@ h3::before {
   gap: 6px;
   padding: 6px 10px;
   border-radius: 5px;
-  background: rgba(201, 152, 77, 0.05);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
+  background: var(--ds-accent-soft);
+  border: 1px solid var(--border-color);
   transition: all 0.3s ease;
 }
 
@@ -620,7 +620,7 @@ h3::before {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--text-muted, #7a8da0);
+  background: var(--text-muted);
   animation: pulse 2s infinite;
 }
 
@@ -628,17 +628,17 @@ h3::before {
   font-size: 0.6rem;
   font-weight: 600;
   letter-spacing: 0.4px;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
 }
 
 .recording-timer {
   font-size: 0.75rem;
   font-weight: 700;
   font-family: 'Courier New', monospace;
-  color: #f44336;
+  color: var(--ds-danger);
   margin-left: auto;
   padding: 2px 8px;
-  background: rgba(244, 67, 54, 0.15);
+  background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
   border-radius: 4px;
   letter-spacing: 1px;
   min-width: 50px;
@@ -646,8 +646,8 @@ h3::before {
 }
 
 .recording-timer.paused {
-  color: #ff9800;
-  background: rgba(255, 152, 0, 0.15);
+  color: var(--ds-warning);
+  background: color-mix(in srgb, var(--ds-warning) 15%, transparent);
   animation: timerBlink 1s ease-in-out infinite;
 }
 
@@ -662,16 +662,16 @@ h3::before {
 }
 
 .status-indicator.idle .status-dot {
-  background: #666;
+  background: var(--ds-surface-3);
   animation: none;
 }
 
 .status-indicator.processing {
-  background-color: rgba(255, 193, 7, 0.15);
-  border-color: rgba(255, 193, 7, 0.4);
+  background-color: color-mix(in srgb, var(--ds-warning) 15%, transparent);
+  border-color: color-mix(in srgb, var(--ds-warning) 40%, transparent);
 }
 .status-indicator.processing .status-dot {
-  background-color: #ffc107;
+  background-color: var(--ds-warning);
   animation: processingPulse 1.5s ease-in-out infinite;
 }
 
@@ -688,37 +688,37 @@ h3::before {
 }
 
 .status-indicator.ready {
-  background: rgba(76, 175, 80, 0.1);
-  border-color: rgba(76, 175, 80, 0.3);
+  background: color-mix(in srgb, var(--ds-success) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-success) 30%, transparent);
 }
 .status-indicator.ready .status-dot {
-  background: #4caf50;
+  background: var(--ds-success);
 }
 .status-indicator.ready .status-text {
-  color: #4caf50;
+  color: var(--ds-success);
 }
 
 .status-indicator.recording {
-  background: rgba(244, 67, 54, 0.1);
-  border-color: rgba(244, 67, 54, 0.3);
+  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 30%, transparent);
 }
 .status-indicator.recording .status-dot {
-  background: #f44336;
+  background: var(--ds-danger);
 }
 .status-indicator.recording .status-text {
-  color: #f44336;
+  color: var(--ds-danger);
 }
 
 .status-indicator.paused {
-  background: rgba(255, 152, 0, 0.1);
-  border-color: rgba(255, 152, 0, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-warning) 30%, transparent);
 }
 .status-indicator.paused .status-dot {
-  background: #ff9800;
+  background: var(--ds-warning);
   animation: none;
 }
 .status-indicator.paused .status-text {
-  color: #ff9800;
+  color: var(--ds-warning);
 }
 
 @keyframes pulse {
@@ -768,80 +768,80 @@ h3::before {
 }
 
 .btn-prepare {
-  background: rgba(201, 152, 77, 0.2);
-  color: var(--accent-tertiary, #f8e1a9);
-  border: 1px solid rgba(201, 152, 77, 0.3);
+  background: var(--ds-accent-soft);
+  color: var(--accent-tertiary);
+  border: 1px solid var(--ds-border);
 }
 .btn-prepare:hover:not(:disabled) {
-  background: rgba(201, 152, 77, 0.3);
+  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
   transform: translateY(-1px);
 }
 
 .btn-start {
-  background: rgba(76, 175, 80, 0.2);
-  color: #4caf50;
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
+  color: var(--ds-success);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
 }
 .btn-start:hover:not(:disabled) {
-  background: rgba(76, 175, 80, 0.3);
+  background: color-mix(in srgb, var(--ds-success) 30%, transparent);
   transform: translateY(-1px);
 }
 
 .btn-pause {
-  background: rgba(255, 152, 0, 0.2);
-  color: #ff9800;
-  border: 1px solid rgba(255, 152, 0, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
+  color: var(--ds-warning);
+  border: 1px solid color-mix(in srgb, var(--ds-warning) 30%, transparent);
 }
 .btn-pause:hover:not(:disabled) {
-  background: rgba(255, 152, 0, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 30%, transparent);
   transform: translateY(-1px);
 }
 
 .btn-resume {
-  background: rgba(33, 150, 243, 0.2);
-  color: #2196f3;
-  border: 1px solid rgba(33, 150, 243, 0.3);
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
+  color: var(--ds-link);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 .btn-resume:hover:not(:disabled) {
-  background: rgba(33, 150, 243, 0.3);
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
   transform: translateY(-1px);
 }
 
 .btn-stop {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  border: 1px solid rgba(244, 67, 54, 0.3);
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  color: var(--ds-danger);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
 }
 .btn-stop:hover:not(:disabled) {
-  background: rgba(244, 67, 54, 0.3);
+  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
   transform: translateY(-1px);
 }
 
 .btn-reset {
-  background: rgba(158, 158, 158, 0.2);
-  color: #9e9e9e;
-  border: 1px solid rgba(158, 158, 158, 0.3);
+  background: var(--ds-surface-3);
+  color: var(--ds-text-2);
+  border: 1px solid var(--ds-border-strong);
 }
 .btn-reset:hover:not(:disabled) {
-  background: rgba(158, 158, 158, 0.3);
+  background: var(--ds-surface-3);
   transform: translateY(-1px);
 }
 
 .btn-convert {
-  background: rgba(156, 39, 176, 0.2);
-  color: #ce93d8;
-  border: 1px solid rgba(156, 39, 176, 0.3);
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
+  color: var(--ds-link);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
   width: 100%;
 }
 .btn-convert:hover:not(:disabled) {
-  background: rgba(156, 39, 176, 0.3);
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
   transform: translateY(-1px);
 }
 
 /* Audio source (mic) section */
 .audio-source-section {
-  background: rgba(139, 92, 246, 0.08);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: color-mix(in srgb, var(--ds-link) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
   border-radius: 6px;
   padding: 8px 10px;
 }
@@ -870,8 +870,8 @@ h3::before {
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(76, 175, 80, 0.2);
-  color: #4caf50;
+  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
+  color: var(--ds-success);
 }
 
 .mic-toggle-row {
@@ -888,13 +888,13 @@ h3::before {
 
 .mic-toggle-row:hover {
   background: var(--btn-hover);
-  border-color: rgba(139, 92, 246, 0.3);
+  border-color: color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 
 .mic-toggle-row input[type='checkbox'] {
   width: 18px;
   height: 18px;
-  accent-color: #8b5cf6;
+  accent-color: var(--ds-link);
   cursor: pointer;
 }
 
@@ -903,28 +903,28 @@ h3::before {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .toggle-label .icon {
   width: 16px;
   height: 16px;
-  color: #8b5cf6;
+  color: var(--ds-link);
 }
 
 .source-hint {
   margin: 6px 0 0 0;
   font-size: 10px;
-  color: rgba(139, 92, 246, 0.8);
+  color: var(--ds-link);
   text-align: center;
   animation: pulse 1s ease-in-out infinite;
 }
 
 .source-hint.info {
-  color: rgba(255, 193, 7, 0.9);
+  color: var(--ds-warning);
   animation: none;
-  background: rgba(255, 193, 7, 0.1);
+  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
   padding: 4px 8px;
   border-radius: 4px;
 }
@@ -935,9 +935,9 @@ h3::before {
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: rgba(255, 200, 0, 0.85);
+  color: var(--ds-warning);
   padding: 4px 8px;
-  background: rgba(255, 200, 0, 0.08);
+  background: color-mix(in srgb, var(--ds-warning) 8%, transparent);
   border-radius: 6px;
   margin: 4px 0;
 }
@@ -946,14 +946,14 @@ h3::before {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #ffc800;
+  background: var(--ds-warning);
   animation: pulse 1s infinite;
   flex-shrink: 0;
 }
 
 /* WebM section */
 .webm-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--ds-border);
   padding-top: 10px;
 }
 
@@ -970,7 +970,7 @@ h3::before {
   justify-content: center;
   gap: 6px;
   padding: 8px 12px;
-  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  background: var(--ds-success);
   color: white;
   text-decoration: none;
   border-radius: 6px;
@@ -991,16 +991,16 @@ h3::before {
 }
 
 .webm-download-btn {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  background: linear-gradient(135deg, var(--ds-link) 0%, var(--ds-link) 100%) !important;
   margin-top: 6px;
 }
 .webm-download-btn:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  background: linear-gradient(135deg, var(--ds-link) 0%, var(--ds-link) 100%) !important;
 }
 
 .webm-info {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--ds-text-3);
   margin: 4px 0 0 0;
   text-align: center;
 }
@@ -1009,9 +1009,9 @@ h3::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(158, 158, 158, 0.2);
-  color: #9e9e9e;
-  border: 1px solid rgba(158, 158, 158, 0.3);
+  background: var(--ds-surface-3);
+  color: var(--ds-text-2);
+  border: 1px solid var(--ds-border-strong);
   padding: 8px;
   border-radius: 5px;
   cursor: pointer;
@@ -1020,9 +1020,9 @@ h3::before {
 }
 
 .btn-close-conversion:hover {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  border-color: rgba(244, 67, 54, 0.3);
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  color: var(--ds-danger);
+  border-color: color-mix(in srgb, var(--ds-danger) 30%, transparent);
 }
 
 .icon {
@@ -1052,25 +1052,22 @@ h3::before {
   border-color: var(--border-color);
 }
 [data-theme='light'] .recording-timer {
-  background: rgba(244, 67, 54, 0.1);
+  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
 }
 [data-theme='light'] .recording-timer.paused {
-  background: rgba(255, 152, 0, 0.1);
-}
-[data-theme='light'] .status-indicator.idle .status-dot {
-  background: #aab4be;
+  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
 }
 [data-theme='light'] .status-indicator.processing {
-  background-color: rgba(255, 193, 7, 0.1);
+  background-color: color-mix(in srgb, var(--ds-warning) 10%, transparent);
 }
 [data-theme='light'] .status-indicator.ready {
-  background: rgba(76, 175, 80, 0.08);
+  background: color-mix(in srgb, var(--ds-success) 8%, transparent);
 }
 [data-theme='light'] .status-indicator.recording {
-  background: rgba(244, 67, 54, 0.08);
+  background: color-mix(in srgb, var(--ds-danger) 8%, transparent);
 }
 [data-theme='light'] .status-indicator.paused {
-  background: rgba(255, 152, 0, 0.08);
+  background: color-mix(in srgb, var(--ds-warning) 8%, transparent);
 }
 [data-theme='light'] .btn-prepare {
   background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
@@ -1081,87 +1078,78 @@ h3::before {
   background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 [data-theme='light'] .btn-start {
-  background: rgba(76, 175, 80, 0.1);
-  border-color: rgba(76, 175, 80, 0.25);
+  background: color-mix(in srgb, var(--ds-success) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-success) 25%, transparent);
 }
 [data-theme='light'] .btn-start:hover:not(:disabled) {
-  background: rgba(76, 175, 80, 0.2);
+  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
 }
 [data-theme='light'] .btn-pause {
-  background: rgba(255, 152, 0, 0.1);
-  border-color: rgba(255, 152, 0, 0.25);
+  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-warning) 25%, transparent);
 }
 [data-theme='light'] .btn-pause:hover:not(:disabled) {
-  background: rgba(255, 152, 0, 0.2);
+  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
 }
 [data-theme='light'] .btn-resume {
-  background: rgba(33, 150, 243, 0.1);
-  border-color: rgba(33, 150, 243, 0.25);
+  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 25%, transparent);
 }
 [data-theme='light'] .btn-resume:hover:not(:disabled) {
-  background: rgba(33, 150, 243, 0.2);
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
 }
 [data-theme='light'] .btn-stop {
-  background: rgba(244, 67, 54, 0.1);
-  border-color: rgba(244, 67, 54, 0.25);
+  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 25%, transparent);
 }
 [data-theme='light'] .btn-stop:hover:not(:disabled) {
-  background: rgba(244, 67, 54, 0.2);
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
 }
 [data-theme='light'] .btn-reset {
   background: rgba(0, 0, 0, 0.05);
-  color: #6b7280;
-  border-color: rgba(0, 0, 0, 0.12);
+  color: var(--ds-text-3);
+  border-color: var(--ds-border);
 }
 [data-theme='light'] .btn-reset:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.1);
 }
 [data-theme='light'] .btn-convert {
-  background: rgba(156, 39, 176, 0.08);
-  color: #9c27b0;
-  border-color: rgba(156, 39, 176, 0.2);
+  background: color-mix(in srgb, var(--ds-link) 8%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 20%, transparent);
 }
 [data-theme='light'] .btn-convert:hover:not(:disabled) {
-  background: rgba(156, 39, 176, 0.15);
+  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
 }
 [data-theme='light'] .audio-source-section {
-  background: rgba(139, 92, 246, 0.05);
-  border-color: rgba(139, 92, 246, 0.15);
+  background: color-mix(in srgb, var(--ds-link) 5%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 15%, transparent);
 }
 [data-theme='light'] .source-indicator {
-  background: rgba(76, 175, 80, 0.12);
+  background: color-mix(in srgb, var(--ds-success) 12%, transparent);
 }
 [data-theme='light'] .mic-toggle-row {
   background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.1);
+  border-color: var(--ds-border);
 }
 [data-theme='light'] .mic-toggle-row:hover {
   background: rgba(0, 0, 0, 0.06);
-  border-color: rgba(139, 92, 246, 0.3);
 }
 [data-theme='light'] .mic-toggle-row input[type='checkbox'] {
   accent-color: var(--accent-primary);
 }
-[data-theme='light'] .toggle-label .icon {
-  color: #7c3aed;
-}
 [data-theme='light'] .source-hint.info {
-  color: rgba(180, 130, 0, 0.9);
-  background: rgba(255, 193, 7, 0.08);
-}
-[data-theme='light'] .webm-download-btn {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  background: color-mix(in srgb, var(--ds-warning) 8%, transparent);
 }
 [data-theme='light'] .webm-info {
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--ds-text-2);
 }
 [data-theme='light'] .btn-close-conversion {
   background: rgba(0, 0, 0, 0.05);
   color: var(--text-muted);
-  border-color: rgba(0, 0, 0, 0.12);
+  border-color: var(--ds-border);
 }
 [data-theme='light'] .btn-close-conversion:hover {
-  background: rgba(244, 67, 54, 0.1);
-  border-color: rgba(244, 67, 54, 0.2);
+  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 20%, transparent);
 }
 </style>

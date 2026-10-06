@@ -75,7 +75,7 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
   display: block;
   margin-bottom: 6px;
   font-size: 11px;
-  color: #bbb;
+  color: var(--ds-text-2);
   font-weight: 500;
 }
 
@@ -85,14 +85,14 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
   padding: 12px;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 6px;
-  border: 1px solid rgba(74, 222, 128, 0.3);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
 }
 
 .selected-tile-editor h6 {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: #4ade80;
+  color: var(--ds-success);
 }
 
 .editor-header {
@@ -101,7 +101,7 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
   align-items: center;
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(74, 222, 128, 0.2);
+  border-bottom: 1px solid color-mix(in srgb, var(--ds-success) 20%, transparent);
 }
 
 .btn-close {
@@ -115,7 +115,7 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
 }
 
 .btn-close:hover {
-  color: #fff;
+  color: var(--ds-text);
 }
 
 /* Farbauswahl */
@@ -136,7 +136,7 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
 
 .color-hex {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--ds-text-2);
   font-family: monospace;
 }
 
@@ -145,7 +145,7 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
   width: 100%;
   height: 6px;
   border-radius: 3px;
-  background: linear-gradient(to right, rgba(74, 222, 128, 0.2) 0%, rgba(74, 222, 128, 1) 100%);
+  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
@@ -165,17 +165,17 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
   width: 100%;
   margin-top: 12px;
   padding: 8px;
-  background: rgba(251, 146, 60, 0.2);
-  border: 1px solid rgba(251, 146, 60, 0.4);
+  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-warning) 40%, transparent);
   border-radius: 4px;
-  color: #fb923c;
+  color: var(--ds-warning);
   font-size: 11px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-reset:hover {
-  background: rgba(251, 146, 60, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 30%, transparent);
 }
 
 /* ═══ Light Theme Overrides ═══ */
@@ -210,11 +210,7 @@ const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = in
 }
 
 [data-theme='light'] .opacity-slider {
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--accent-primary) 15%, transparent) 0%,
-    color-mix(in srgb, var(--accent-primary) 50%, transparent) 100%
-  );
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
 }
 
 [data-theme='light'] .opacity-slider::-webkit-slider-thumb {

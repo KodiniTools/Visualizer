@@ -62,7 +62,7 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
 
 .presets-list > label {
   font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   margin-bottom: 3px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -73,15 +73,15 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
   justify-content: space-between;
   align-items: center;
   padding: 5px 7px;
-  background: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
   transition: all 0.2s ease;
 }
 
 .preset-item:hover {
-  border-color: var(--accent-primary, #c9984d);
-  background: var(--btn-hover, #1a2a42);
+  border-color: var(--accent-primary);
+  background: var(--btn-hover);
 }
 
 .preset-info {
@@ -92,7 +92,7 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
 
 .preset-name {
   font-size: 0.6rem;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -100,7 +100,7 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
   width: 16px;
   height: 16px;
   border-radius: 3px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border: 1px solid var(--border-color);
 }
 
 .preset-actions {
@@ -118,19 +118,19 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
 }
 
 .btn-load {
-  background: rgba(201, 152, 77, 0.2);
+  background: var(--ds-accent-soft);
 }
 
 .btn-load:hover {
-  background: rgba(201, 152, 77, 0.4);
+  background: color-mix(in srgb, var(--ds-accent) 40%, transparent);
 }
 
 .btn-delete {
-  background: rgba(244, 67, 54, 0.2);
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
 }
 
 .btn-delete:hover {
-  background: rgba(244, 67, 54, 0.4);
+  background: color-mix(in srgb, var(--ds-danger) 40%, transparent);
 }
 
 .btn-primary {
@@ -143,13 +143,13 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
   transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  background: rgba(201, 152, 77, 0.2);
-  color: var(--accent-tertiary, #f8e1a9);
-  border: 1px solid rgba(201, 152, 77, 0.3);
+  background: var(--ds-accent-soft);
+  color: var(--accent-tertiary);
+  border: 1px solid var(--ds-border);
 }
 
 .btn-primary:hover {
-  background: rgba(201, 152, 77, 0.3);
+  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
   transform: translateY(-1px);
 }
 
@@ -159,7 +159,7 @@ const { savedPresets, saveCurrentAsPreset, loadPreset, deletePreset } = bg
 
 .hint-text {
   font-size: 0.5rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   font-style: italic;
 }
 

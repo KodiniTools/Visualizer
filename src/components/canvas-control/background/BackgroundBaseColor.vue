@@ -60,26 +60,22 @@ const {
 .color-text-input {
   flex: 1;
   padding: 5px 7px;
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   font-size: 0.6rem;
   font-family: 'Courier New', monospace;
 }
 .color-text-input:focus {
   outline: none;
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 
 .opacity-slider {
   width: 100%;
   height: 3px;
-  background: linear-gradient(
-    to right,
-    var(--text-muted, #7a8da0) 0%,
-    var(--accent-primary, #c9984d) 100%
-  );
+  background: var(--text-muted);
   border-radius: 2px;
   outline: none;
   -webkit-appearance: none;
@@ -91,38 +87,34 @@ const {
   appearance: none;
   width: 12px;
   height: 12px;
-  background-color: var(--accent-tertiary, #f8e1a9);
-  border: 2px solid #fff;
+  background-color: var(--accent-tertiary);
+  border: 2px solid var(--ds-surface-1);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 .opacity-slider::-webkit-slider-thumb:hover {
-  background-color: var(--accent-primary, #c9984d);
+  background-color: var(--accent-primary);
   transform: scale(1.1);
 }
 .opacity-slider::-moz-range-thumb {
   width: 12px;
   height: 12px;
-  background-color: var(--accent-tertiary, #f8e1a9);
-  border: 2px solid #fff;
+  background-color: var(--accent-tertiary);
+  border: 2px solid var(--ds-surface-1);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 .opacity-slider::-moz-range-thumb:hover {
-  background-color: var(--accent-primary, #c9984d);
+  background-color: var(--accent-primary);
   transform: scale(1.1);
 }
 
 [data-theme='light'] .opacity-slider {
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--accent-primary) 20%, transparent) 0%,
-    color-mix(in srgb, var(--accent-primary) 50%, transparent) 100%
-  );
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 [data-theme='light'] .opacity-slider::-webkit-slider-thumb {
   background: var(--accent-primary);

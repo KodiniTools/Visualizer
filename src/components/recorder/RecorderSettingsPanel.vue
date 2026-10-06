@@ -229,7 +229,7 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 }
 
 .server-status.available {
-  color: #4caf50;
+  color: var(--ds-success);
 }
 .server-status.unavailable {
   color: var(--text-muted);
@@ -265,15 +265,15 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 
 .quality-btn.active,
 .upload-btn.active {
-  background-color: #6ea8fe;
+  background-color: var(--ds-link);
   color: #fff;
-  border-color: #6ea8fe;
+  border-color: var(--ds-link);
   font-weight: 600;
 }
 
 .quality-btn.active:hover,
 .upload-btn.active:hover {
-  background-color: #5a96e8;
+  background-color: var(--ds-link);
 }
 
 .quality-btn:disabled,
@@ -310,7 +310,7 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 .toggle-row input[type='checkbox'] {
   width: 16px;
   height: 16px;
-  accent-color: #6ea8fe;
+  accent-color: var(--ds-link);
   cursor: pointer;
 }
 
@@ -331,9 +331,9 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
   gap: 6px;
   margin-top: 6px;
   padding: 6px 8px;
-  background: var(--secondary-bg, #0e1c32);
+  background: var(--secondary-bg);
   border-radius: 5px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
+  border: 1px solid var(--border-color);
 }
 
 .gif-option-row {
@@ -344,7 +344,7 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 
 .gif-option-label {
   font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   min-width: 38px;
@@ -352,7 +352,7 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 
 .extra-info {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--ds-text-3);
   margin: 4px 0 0 0;
   text-align: center;
 }
@@ -361,14 +361,14 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 
 [data-theme='light'] .quality-btn,
 [data-theme='light'] .upload-btn {
-  background-color: #f0f0f0;
-  border-color: #d0d0d0;
+  background-color: var(--ds-surface-2);
+  border-color: var(--ds-border-strong);
 }
 
 [data-theme='light'] .quality-btn:hover,
 [data-theme='light'] .upload-btn:hover {
-  background-color: #e4e4e4;
-  border-color: #bbb;
+  background-color: var(--ds-surface-2);
+  border-color: var(--ds-border-strong);
 }
 
 [data-theme='light'] .quality-btn.active,
@@ -387,6 +387,6 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
   accent-color: var(--accent-primary);
 }
 [data-theme='light'] .extra-info {
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--ds-text-2);
 }
 </style>

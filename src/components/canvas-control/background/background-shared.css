@@ -7,7 +7,7 @@
   display: block;
   margin-bottom: 4px;
   font-size: 0.6rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   font-weight: 500;
 }
 
@@ -19,10 +19,10 @@
 .color-input {
   width: 40px;
   height: 28px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   cursor: pointer;
-  background-color: var(--secondary-bg, #0e1c32);
+  background-color: var(--secondary-bg);
 }
 
 .checkbox-label {
@@ -31,12 +31,12 @@
   gap: 6px;
   cursor: pointer;
   font-size: 0.6rem;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
 }
 .checkbox-label input[type='checkbox'] {
   width: 14px;
   height: 14px;
-  accent-color: #8b5cf6;
+  accent-color: var(--ds-link);
 }
 [data-theme='light'] .checkbox-label input[type='checkbox'] {
   accent-color: var(--accent-primary);

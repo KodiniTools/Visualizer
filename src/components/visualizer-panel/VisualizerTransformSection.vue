@@ -71,10 +71,10 @@ const store = useVisualizerStore()
 <style scoped>
 /* Position & Größe Styles */
 .position-section {
-  background-color: rgba(201, 152, 77, 0.05);
+  background-color: var(--ds-accent-soft);
   border-radius: 5px;
   padding: 8px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.15));
+  border: 1px solid var(--border-color);
 }
 
 .section-header {
@@ -89,9 +89,9 @@ const store = useVisualizerStore()
 }
 
 .reset-btn {
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-muted, #7a8da0);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   height: 22px;
   padding: 0 8px;
@@ -107,9 +107,9 @@ const store = useVisualizerStore()
 }
 
 .reset-btn:hover {
-  background-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
-  border-color: var(--accent-primary, #c9984d);
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
+  border-color: var(--accent-primary);
 }
 
 .position-control {
@@ -123,14 +123,14 @@ const store = useVisualizerStore()
 .control-label {
   display: block;
   font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   margin-bottom: 3px;
   font-weight: 500;
 }
 
 /* Position Slider */
 .position-slider {
-  background: linear-gradient(to right, #444 0%, #6ea8fe 50%, #444 100%);
+  background: var(--ds-surface-3);
 }
 
 .position-slider::-webkit-slider-thumb {
@@ -139,15 +139,15 @@ const store = useVisualizerStore()
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #ff9800;
+  background: var(--ds-warning);
   cursor: pointer;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--ds-surface-1);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
 .position-slider::-webkit-slider-thumb:hover {
-  background: #f57c00;
+  background: var(--ds-warning);
   transform: scale(1.15);
 }
 
@@ -155,21 +155,21 @@ const store = useVisualizerStore()
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #ff9800;
+  background: var(--ds-warning);
   cursor: pointer;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--ds-surface-1);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
 .position-slider::-moz-range-thumb:hover {
-  background: #f57c00;
+  background: var(--ds-warning);
   transform: scale(1.15);
 }
 
 /* Scale Slider */
 .scale-slider {
-  background: linear-gradient(to right, #333 0%, #4caf50 50%, #8bc34a 100%);
+  background: var(--ds-surface-3);
 }
 
 .scale-slider::-webkit-slider-thumb {
@@ -178,15 +178,15 @@ const store = useVisualizerStore()
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #4caf50;
+  background: var(--ds-success);
   cursor: pointer;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--ds-surface-1);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
 .scale-slider::-webkit-slider-thumb:hover {
-  background: #388e3c;
+  background: var(--ds-success);
   transform: scale(1.15);
 }
 
@@ -194,15 +194,15 @@ const store = useVisualizerStore()
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #4caf50;
+  background: var(--ds-success);
   cursor: pointer;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--ds-surface-1);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
 .scale-slider::-moz-range-thumb:hover {
-  background: #388e3c;
+  background: var(--ds-success);
   transform: scale(1.15);
 }
 
@@ -217,20 +217,12 @@ const store = useVisualizerStore()
   border-color: var(--border-color);
 }
 
-[data-theme='light'] .position-slider {
-  background: linear-gradient(to right, #c9c4a8 0%, #6ea8fe 50%, #c9c4a8 100%);
-}
-
 [data-theme='light'] .position-slider::-webkit-slider-thumb {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .position-slider::-moz-range-thumb {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .scale-slider {
-  background: linear-gradient(to right, #c9c4a8 0%, #4caf50 50%, #8bc34a 100%);
 }
 
 [data-theme='light'] .scale-slider::-webkit-slider-thumb {

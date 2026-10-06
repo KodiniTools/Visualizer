@@ -118,7 +118,7 @@ function getPresetShortName(name) {
 
 h4 {
   margin: 0 0 12px 0;
-  color: #e0e0e0;
+  color: var(--ds-text);
   font-weight: 600;
   font-size: 13px;
   text-transform: uppercase;
@@ -161,18 +161,18 @@ h4 {
 }
 
 .toggle-btn:hover {
-  background-color: #454545;
-  border-color: #666;
+  background-color: var(--ds-surface-3);
+  border-color: var(--ds-border-strong);
 }
 
 .toggle-btn.active {
-  background-color: #6ea8fe;
+  background-color: var(--ds-link);
   color: #fff;
-  border-color: #6ea8fe;
+  border-color: var(--ds-link);
 }
 
 .toggle-btn.active:hover {
-  background-color: #5a96e8;
+  background-color: var(--ds-link);
 }
 
 .btn-icon {
@@ -241,7 +241,7 @@ h4 {
 .grid-opacity-slider {
   width: 100%;
   cursor: pointer;
-  accent-color: #6ea8fe;
+  accent-color: var(--ds-link);
 }
 
 .preset-buttons {
@@ -266,20 +266,20 @@ h4 {
 }
 
 .preset-btn:hover {
-  background-color: #454545;
-  border-color: #666;
+  background-color: var(--ds-surface-3);
+  border-color: var(--ds-border-strong);
   transform: translateY(-1px);
 }
 
 .preset-btn.active {
-  background-color: #6ea8fe;
+  background-color: var(--ds-link);
   color: #fff;
-  border-color: #6ea8fe;
+  border-color: var(--ds-link);
   font-weight: 600;
 }
 
 .preset-btn.active:hover {
-  background-color: #5a96e8;
+  background-color: var(--ds-link);
 }
 
 /* Responsive Anpassung für kleine Bildschirme */
@@ -292,7 +292,7 @@ h4 {
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .panel-container {
   background-color: var(--card-bg);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 
 [data-theme='light'] h4 {
@@ -300,12 +300,11 @@ h4 {
 }
 
 [data-theme='light'] .toggle-btn {
-  background-color: #fdfbf2;
-  border-color: #d4c8a8;
+  background-color: var(--ds-surface-2);
+  border-color: var(--ds-border);
 }
 
 [data-theme='light'] .toggle-btn:hover {
-  background-color: #e8e0c0;
   border-color: var(--accent-primary);
 }
 
@@ -320,12 +319,11 @@ h4 {
 }
 
 [data-theme='light'] .preset-btn {
-  background-color: #fdfbf2;
-  border-color: #d4c8a8;
+  background-color: var(--ds-surface-2);
+  border-color: var(--ds-border);
 }
 
 [data-theme='light'] .preset-btn:hover {
-  background-color: #e8e0c0;
   border-color: var(--accent-primary);
 }
 

@@ -77,7 +77,7 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
   display: block;
   margin-bottom: 6px;
   font-size: 11px;
-  color: #bbb;
+  color: var(--ds-text-2);
   font-weight: 500;
 }
 
@@ -90,10 +90,10 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 .tile-count-buttons button {
   flex: 1;
   padding: 8px 12px;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(74, 222, 128, 0.3);
+  background: color-mix(in srgb, var(--ds-surface-2) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
   border-radius: 6px;
-  color: #e2e8f0;
+  color: var(--ds-text);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -101,14 +101,14 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 }
 
 .tile-count-buttons button:hover {
-  background: rgba(74, 222, 128, 0.2);
-  border-color: rgba(74, 222, 128, 0.5);
+  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
+  border-color: color-mix(in srgb, var(--ds-success) 50%, transparent);
 }
 
 .tile-count-buttons button.active {
-  background: rgba(74, 222, 128, 0.3);
-  border-color: #4ade80;
-  color: #4ade80;
+  background: color-mix(in srgb, var(--ds-success) 30%, transparent);
+  border-color: var(--ds-success);
+  color: var(--ds-success);
 }
 
 /* Gap Slider */
@@ -116,7 +116,7 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
   width: 100%;
   height: 6px;
   border-radius: 3px;
-  background: linear-gradient(90deg, #4ade80 0%, #10b981 100%);
+  background: var(--ds-success);
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
@@ -154,25 +154,25 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 }
 
 .tile-preview:hover {
-  border-color: rgba(74, 222, 128, 0.5);
+  border-color: color-mix(in srgb, var(--ds-success) 50%, transparent);
   transform: scale(1.02);
 }
 
 .tile-preview.selected {
-  border-color: #4ade80;
+  border-color: var(--ds-success);
   box-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
 }
 
 .tile-number {
   font-size: 12px;
   font-weight: bold;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--ds-text-2);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .tile-has-image {
   font-size: 8px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--ds-text-2);
   background: rgba(0, 0, 0, 0.5);
   padding: 2px 4px;
   border-radius: 2px;
@@ -184,8 +184,8 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
   top: 2px;
   right: 2px;
   font-size: 10px;
-  color: #a78bfa;
-  background: rgba(139, 92, 246, 0.4);
+  color: var(--ds-link);
+  background: color-mix(in srgb, var(--ds-link) 40%, transparent);
   padding: 1px 3px;
   border-radius: 2px;
   animation: pulse-audio 1.5s ease-in-out infinite;
@@ -211,7 +211,7 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 }
 
 [data-theme='light'] .tile-count-buttons button {
-  background: #fdfbf2;
+  background: var(--ds-surface-2);
   border-color: var(--border-color);
   color: var(--text-primary);
 }
@@ -228,11 +228,7 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 }
 
 [data-theme='light'] .gap-slider {
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--accent-primary) 25%, transparent) 0%,
-    color-mix(in srgb, var(--accent-primary) 45%, transparent) 100%
-  );
+  background: color-mix(in srgb, var(--accent-primary) 25%, transparent);
 }
 
 [data-theme='light'] .gap-slider::-webkit-slider-thumb {
@@ -250,12 +246,10 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 }
 
 [data-theme='light'] .tile-number {
-  color: rgba(0, 0, 0, 0.7);
   text-shadow: 0 1px 3px rgba(255, 255, 255, 0.5);
 }
 
 [data-theme='light'] .tile-has-image {
-  color: rgba(0, 0, 0, 0.6);
   background: rgba(255, 255, 255, 0.7);
 }
 

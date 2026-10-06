@@ -97,9 +97,9 @@ const {
   margin: 0;
   max-height: 240px;
   overflow-y: auto;
-  background-color: var(--secondary-bg, #0e1c32);
+  background-color: var(--secondary-bg);
   border-radius: 5px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border: 1px solid var(--border-color);
 }
 .playlist-item {
   position: relative;
@@ -110,17 +110,17 @@ const {
   align-items: center;
   gap: 5px;
   transition: all 0.2s ease;
-  border-bottom: 1px solid var(--border-color, rgba(201, 152, 77, 0.1));
+  border-bottom: 1px solid var(--border-color);
 }
 .playlist-item:last-child {
   border-bottom: none;
 }
 .playlist-item:hover {
-  background-color: var(--btn-hover, #1a2a42);
+  background-color: var(--btn-hover);
 }
 .playlist-item.active {
-  background-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
   font-weight: 600;
 }
 .track-name {
@@ -145,7 +145,7 @@ const {
   flex-shrink: 0;
 }
 .btn-delete:hover {
-  background-color: rgba(255, 68, 68, 0.8);
+  background-color: color-mix(in srgb, var(--ds-danger) 80%, transparent);
   color: #fff;
   opacity: 1;
 }
@@ -168,7 +168,7 @@ const {
 }
 .drag-handle:hover {
   opacity: 1;
-  color: var(--accent-ink, #c9984d);
+  color: var(--accent-ink);
 }
 .drag-handle:active {
   cursor: grabbing;
@@ -176,12 +176,12 @@ const {
 .playlist-item.dragging {
   opacity: 0.5;
   transform: scale(0.98);
-  background-color: var(--accent-primary, #c9984d) !important;
+  background-color: var(--accent-primary) !important;
   box-shadow: 0 0 0 2px rgba(201, 152, 77, 0.3);
 }
 .playlist-item.drag-over {
-  border-color: #4ade80;
-  background-color: rgba(74, 222, 128, 0.15) !important;
+  border-color: var(--ds-success);
+  background-color: color-mix(in srgb, var(--ds-success) 15%, transparent) !important;
   box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.4);
   transform: scale(1.02);
 }

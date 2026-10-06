@@ -77,9 +77,9 @@ const {
   gap: 4px;
   padding: 6px 8px;
   border-radius: 5px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
+  border: 1px solid var(--border-color);
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
   font-size: 0.55rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -93,16 +93,16 @@ const {
   flex-shrink: 0;
 }
 .btn-history:hover:not(:disabled) {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--image-section-accent, #6ea8fe);
-  color: var(--image-section-accent, #6ea8fe);
+  background-color: var(--btn-hover);
+  border-color: var(--image-section-accent);
+  color: var(--image-section-accent);
 }
 .btn-history:disabled {
   opacity: 0.3;
   cursor: not-allowed;
 }
 .btn-reset:hover:not(:disabled) {
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-tertiary, #f8e1a9);
+  border-color: var(--accent-primary);
+  color: var(--accent-tertiary);
 }
 </style>

@@ -98,8 +98,8 @@ defineEmits(['close', 'add-to-canvas', 'set-as-background'])
 }
 
 .preview-close:hover {
-  background-color: #ff6b6b;
-  border-color: #ff6b6b;
+  background-color: var(--ds-danger);
+  border-color: var(--ds-danger);
   transform: scale(1.1);
 }
 
@@ -137,7 +137,7 @@ defineEmits(['close', 'add-to-canvas', 'set-as-background'])
 }
 
 .preview-actions .btn-primary {
-  background: var(--image-section-gradient, linear-gradient(135deg, #6ea8fe 0%, #5a8fe6 100%));
+  background: var(--image-section-gradient);
   color: var(--accent-text);
   font-weight: 600;
   border: none;

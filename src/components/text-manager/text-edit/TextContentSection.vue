@@ -161,21 +161,18 @@ const {
 }
 .hint-text {
   font-size: 0.5rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   margin-top: 3px;
   line-height: 1.4;
 }
 .success-hint {
   font-size: 0.5rem;
-  color: #4ade80;
+  color: var(--ds-success);
   margin-top: 3px;
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 4px;
-}
-[data-theme='light'] .success-hint {
-  color: #16a34a;
 }
 
 @media (max-width: 768px) {

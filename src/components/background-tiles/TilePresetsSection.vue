@@ -47,7 +47,7 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
 .presets-section {
   margin-top: 16px;
   padding: 12px;
-  background: rgba(30, 30, 30, 0.6);
+  background: color-mix(in srgb, var(--ds-surface-1) 60%, transparent);
   border: 1px solid var(--border-color);
   border-radius: 8px;
 }
@@ -55,14 +55,14 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
 .presets-section > label {
   display: block;
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--ds-text-2);
   margin-bottom: 8px;
 }
 
 .btn-save-preset {
   width: 100%;
   padding: 8px 12px;
-  background: linear-gradient(135deg, #6ea8fe 0%, #8b5cf6 100%);
+  background: var(--ds-link);
   border: none;
   border-radius: 6px;
   color: white;
@@ -89,19 +89,19 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
   justify-content: space-between;
   align-items: center;
   padding: 6px 10px;
-  background: rgba(40, 40, 40, 0.8);
+  background: color-mix(in srgb, var(--ds-surface-2) 80%, transparent);
   border: 1px solid var(--border-color);
   border-radius: 4px;
   transition: all 0.15s ease;
 }
 
 .preset-item:hover {
-  border-color: #6ea8fe;
+  border-color: var(--ds-link);
 }
 
 .preset-name {
   font-size: 11px;
-  color: #e0e0e0;
+  color: var(--ds-text);
 }
 
 .preset-actions {
@@ -119,24 +119,24 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
 }
 
 .btn-load {
-  background: rgba(110, 168, 254, 0.2);
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
 }
 
 .btn-load:hover {
-  background: rgba(110, 168, 254, 0.4);
+  background: color-mix(in srgb, var(--ds-link) 40%, transparent);
 }
 
 .btn-delete {
-  background: rgba(239, 68, 68, 0.2);
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
 }
 
 .btn-delete:hover {
-  background: rgba(239, 68, 68, 0.4);
+  background: color-mix(in srgb, var(--ds-danger) 40%, transparent);
 }
 
 .hint-text {
   font-size: 10px;
-  color: #666;
+  color: var(--ds-text-3);
   text-align: center;
   margin-top: 8px;
 }
@@ -152,7 +152,7 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
 }
 
 [data-theme='light'] .btn-save-preset {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+  background: var(--accent-primary);
   color: var(--accent-text);
 }
 
@@ -161,7 +161,7 @@ const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject
 }
 
 [data-theme='light'] .preset-item {
-  background: #fdfbf2;
+  background: var(--ds-surface-2);
   border-color: var(--border-color);
 }
 

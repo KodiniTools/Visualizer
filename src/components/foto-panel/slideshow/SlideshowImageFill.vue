@@ -213,7 +213,7 @@ function updateAudio(partial) {
   border-radius: 4px;
   cursor: pointer;
   color: #fff;
-  background: linear-gradient(135deg, #6ea8fe 0%, #5a9af8 100%);
+  background: var(--ds-link);
 }
 .btn-image-fill.secondary {
   background: var(--secondary-bg);
@@ -253,7 +253,7 @@ function updateAudio(partial) {
 }
 .image-fill-option:hover,
 .image-fill-option:focus-visible {
-  border-color: #6ea8fe;
+  border-color: var(--ds-link);
 }
 .option-source {
   position: absolute;
@@ -275,7 +275,7 @@ function updateAudio(partial) {
   padding: 3px 6px;
   font-size: 11px;
   background: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
@@ -286,9 +286,9 @@ function updateAudio(partial) {
 [data-theme='light'] .btn-image-fill.secondary {
   background: var(--secondary-bg);
   color: var(--text-primary);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 [data-theme='light'] .image-fill-picker {
-  background-color: #f0ead0;
+  background-color: var(--ds-surface-3);
 }
 </style>

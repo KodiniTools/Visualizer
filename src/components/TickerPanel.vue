@@ -356,14 +356,11 @@ const missingFont = computed(() => {
 
 <style scoped>
 .collapsible-section {
-  background-color: var(--card-bg, #142640);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   margin-bottom: 10px;
   overflow: hidden;
-  /* Direktes Flex-Kind der linken Toolbar (flex-column): overflow:hidden setzt
-     die automatische Mindesthöhe auf 0, wodurch das Panel sonst auf ~2px
-     zusammengedrückt (unsichtbar) wird. flex-shrink:0 verhindert das. */
   flex-shrink: 0;
 }
 
@@ -383,7 +380,7 @@ const missingFont = computed(() => {
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: var(--ds-text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   user-select: none;
@@ -392,7 +389,7 @@ const missingFont = computed(() => {
 .section-header::before {
   content: '▶';
   font-size: 8px;
-  color: #6ea8fe;
+  color: var(--ds-link);
   transition: transform 0.2s ease;
   margin-right: 4px;
 }
@@ -412,9 +409,9 @@ const missingFont = computed(() => {
   font-size: 9px;
   font-weight: 600;
   border-radius: 10px;
-  background: linear-gradient(135deg, #2a5a2a 0%, #3a6a3a 100%);
-  color: #8fdf8f;
-  border: 1px solid #4a7a4a;
+  background: var(--ds-success);
+  color: var(--ds-success);
+  border: 1px solid var(--ds-border-strong);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -425,7 +422,7 @@ const missingFont = computed(() => {
 
 /* ══════════ Klappbare Unter-Sektionen ══════════ */
 .sub-section {
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.18));
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   margin-bottom: 8px;
   overflow: hidden;
@@ -450,13 +447,13 @@ const missingFont = computed(() => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  color: var(--text-primary, #e9e9eb);
-  background-color: var(--secondary-bg, #0e1c32);
+  color: var(--text-primary);
+  background-color: var(--secondary-bg);
 }
 .sub-header::before {
   content: '▶';
   font-size: 7px;
-  color: var(--accent-ink, #c9984d);
+  color: var(--accent-ink);
   transition: transform 0.2s ease;
 }
 .sub-section[open] > .sub-header::before {
@@ -475,17 +472,17 @@ const missingFont = computed(() => {
   padding: 0;
   font-size: 12px;
   line-height: 1;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background-color: var(--card-bg, #142640);
-  color: var(--text-muted, #7a8da0);
+  background-color: var(--card-bg);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 .reset-btn:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-tertiary, #f8e1a9);
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
+  color: var(--accent-tertiary);
 }
 .reset-btn:active {
   transform: rotate(-90deg);
@@ -516,7 +513,7 @@ const missingFont = computed(() => {
   display: block;
   margin-bottom: 4px;
   font-size: 0.6rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   font-weight: 500;
@@ -526,7 +523,7 @@ const missingFont = computed(() => {
   border-color: var(--border-color);
 }
 [data-theme='light'] .sub-header {
-  background-color: #f2f6fb;
+  background-color: var(--ds-surface-2);
 }
 
 .control-group {
@@ -537,7 +534,7 @@ const missingFont = computed(() => {
   display: block;
   margin-bottom: 4px;
   font-size: 0.6rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   font-weight: 500;
@@ -545,7 +542,7 @@ const missingFont = computed(() => {
 
 .hint-text {
   font-size: 0.5rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   margin-top: 3px;
   line-height: 1.4;
 }
@@ -564,10 +561,10 @@ const missingFont = computed(() => {
 .btn-mini {
   flex-shrink: 0;
   padding: 2px 8px;
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 0.5rem;
   font-weight: 600;
@@ -577,15 +574,15 @@ const missingFont = computed(() => {
 }
 
 .btn-mini:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--text-primary, #e9e9eb);
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 .btn-mini.active {
-  background: rgba(201, 152, 77, 0.25);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-tertiary, #f8e1a9);
+  background: var(--ds-accent-soft);
+  border-color: var(--accent-primary);
+  color: var(--accent-tertiary);
 }
 
 [data-theme='light'] .btn-mini.active {
@@ -597,10 +594,10 @@ const missingFont = computed(() => {
 .select-input {
   width: 100%;
   padding: 6px 8px;
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   font-size: 0.65rem;
   font-family: inherit;
 }
@@ -608,15 +605,15 @@ const missingFont = computed(() => {
 .text-input:focus,
 .select-input:focus {
   outline: none;
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 
 .color-input {
   width: 100%;
   height: 30px;
   padding: 2px;
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
   cursor: pointer;
 }
@@ -624,11 +621,7 @@ const missingFont = computed(() => {
 .slider {
   width: 100%;
   height: 3px;
-  background: linear-gradient(
-    90deg,
-    var(--text-muted, #7a8da0) 0%,
-    var(--accent-primary, #c9984d) 100%
-  );
+  background: var(--text-muted);
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -641,27 +634,27 @@ const missingFont = computed(() => {
   appearance: none;
   width: 12px;
   height: 12px;
-  background: var(--accent-tertiary, #f8e1a9);
+  background: var(--accent-tertiary);
   border-radius: 50%;
   cursor: pointer;
-  border: 2px solid #fff;
+  border: 2px solid var(--ds-surface-1);
 }
 
 .slider::-moz-range-thumb {
   width: 12px;
   height: 12px;
-  background: var(--accent-tertiary, #f8e1a9);
+  background: var(--accent-tertiary);
   border-radius: 50%;
   cursor: pointer;
-  border: 2px solid #fff;
+  border: 2px solid var(--ds-surface-1);
 }
 
 .btn-small {
   padding: 6px 8px;
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   cursor: pointer;
   font-size: 0.6rem;
   font-weight: 500;
@@ -671,14 +664,14 @@ const missingFont = computed(() => {
 }
 
 .btn-small:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
 }
 
 .btn-small.active {
-  background: rgba(201, 152, 77, 0.3);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-tertiary, #f8e1a9);
+  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-tertiary);
   font-weight: 600;
 }
 
@@ -693,14 +686,14 @@ const missingFont = computed(() => {
   cursor: pointer;
   text-transform: none;
   font-size: 0.62rem;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
 }
 
 .checkbox-label input[type='checkbox'] {
   width: 13px;
   height: 13px;
   cursor: pointer;
-  accent-color: var(--accent-primary, #c9984d);
+  accent-color: var(--accent-primary);
 }
 
 [data-theme='light'] .section-header {

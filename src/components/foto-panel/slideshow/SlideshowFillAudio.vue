@@ -106,12 +106,12 @@ function update(partial) {
   padding: 3px 6px;
   font-size: 11px;
   background: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
 [data-theme='light'] .fill-audio-field select {
   color: var(--text-primary);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 </style>

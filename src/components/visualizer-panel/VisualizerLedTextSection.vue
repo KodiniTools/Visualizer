@@ -164,7 +164,7 @@ function setTarget(local) {
 .led-text__label {
   display: block;
   font-size: 0.6rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -179,9 +179,9 @@ function setTarget(local) {
 .led-text__input {
   width: 100%;
   box-sizing: border-box;
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 4px 6px;
   font-size: 0.65rem;
@@ -197,7 +197,7 @@ function setTarget(local) {
 
 .led-text__input:focus {
   outline: none;
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 
 .led-text__seg {
@@ -208,9 +208,9 @@ function setTarget(local) {
 
 .led-text__seg-btn {
   flex: 1 1 auto;
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-muted, #7a8da0);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 3px 6px;
   font-size: 0.6rem;
@@ -218,9 +218,9 @@ function setTarget(local) {
 }
 
 .led-text__seg-btn.active {
-  color: var(--text-primary, #e9e9eb);
-  border-color: var(--accent-primary, #c9984d);
-  background-color: rgba(201, 152, 77, 0.18);
+  color: var(--text-primary);
+  border-color: var(--accent-primary);
+  background-color: var(--ds-accent-soft);
   font-weight: 600;
 }
 
@@ -229,19 +229,19 @@ function setTarget(local) {
   align-items: center;
   gap: 6px;
   font-size: 0.62rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   cursor: pointer;
 }
 
 .led-text__hint {
   font-size: 0.58rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   opacity: 0.85;
 }
 
 .led-text__preview {
   font-family: monospace;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   letter-spacing: 0.05em;
 }
 

@@ -112,7 +112,7 @@ const {
   margin: 0 0 8px 0;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   display: flex;
@@ -131,18 +131,18 @@ const {
 }
 
 .upload-area {
-  border: 1px dashed var(--border-color, rgba(201, 152, 77, 0.4));
+  border: 1px dashed var(--border-color);
   border-radius: 6px;
   padding: 14px;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: var(--secondary-bg, #0e1c32);
+  background: var(--secondary-bg);
 }
 
 .upload-area:hover {
-  border-color: var(--accent-primary, #c9984d);
-  background: var(--btn-hover, #1a2a42);
+  border-color: var(--accent-primary);
+  background: var(--btn-hover);
 }
 
 .upload-placeholder {
@@ -155,7 +155,7 @@ const {
 .upload-icon {
   width: 32px;
   height: 32px;
-  color: var(--accent-ink, #c9984d);
+  color: var(--accent-ink);
 }
 
 .upload-icon svg {
@@ -166,12 +166,12 @@ const {
 .upload-placeholder p {
   margin: 0;
   font-size: 0.6rem;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
 }
 
 .upload-placeholder small {
   font-size: 0.5rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
 }
 
 /* Gallery */
@@ -188,14 +188,14 @@ const {
 
 .gallery-title {
   font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .btn-clear-all {
   font-size: 0.5rem;
-  color: #f44336;
+  color: var(--ds-danger);
   background: none;
   border: none;
   cursor: pointer;
@@ -228,11 +228,11 @@ const {
 }
 
 .thumbnail-item:hover {
-  border-color: rgba(139, 92, 246, 0.5);
+  border-color: color-mix(in srgb, var(--ds-link) 50%, transparent);
 }
 
 .thumbnail-item.selected {
-  border-color: rgba(139, 92, 246, 0.9);
+  border-color: color-mix(in srgb, var(--ds-link) 90%, transparent);
 }
 
 .video-thumb {
@@ -279,7 +279,7 @@ const {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: rgba(255, 69, 58, 0.9);
+  background: color-mix(in srgb, var(--ds-danger) 90%, transparent);
   border: none;
   color: white;
   font-size: 12px;
@@ -311,7 +311,7 @@ const {
 
 .thumbnail-duration {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--ds-text-2);
 }
 
 /* Action Buttons */
@@ -326,10 +326,10 @@ const {
   flex: 1;
   min-width: 100%;
   padding: 6px 10px;
-  background: rgba(201, 152, 77, 0.2);
-  border: 1px solid rgba(201, 152, 77, 0.3);
+  background: var(--ds-accent-soft);
+  border: 1px solid var(--ds-border);
   border-radius: 5px;
-  color: var(--accent-tertiary, #f8e1a9);
+  color: var(--accent-tertiary);
   font-size: 0.6rem;
   font-weight: 600;
   cursor: pointer;
@@ -340,16 +340,16 @@ const {
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  background: rgba(201, 152, 77, 0.3);
+  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
 }
 
 .btn-secondary {
   flex: 1;
   padding: 5px 8px;
-  background: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   font-size: 0.55rem;
   font-weight: 500;
   cursor: pointer;
@@ -358,17 +358,17 @@ const {
 }
 
 .btn-secondary:hover {
-  background: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
+  background: var(--btn-hover);
+  border-color: var(--accent-primary);
 }
 
 .btn-workspace {
   flex: 1;
   padding: 5px 8px;
-  background: rgba(255, 193, 7, 0.1);
-  border: 1px solid rgba(255, 193, 7, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-warning) 30%, transparent);
   border-radius: 5px;
-  color: #ffc107;
+  color: var(--ds-warning);
   font-size: 0.55rem;
   font-weight: 500;
   cursor: pointer;
@@ -377,8 +377,8 @@ const {
 }
 
 .btn-workspace:hover {
-  background: rgba(255, 193, 7, 0.2);
-  border-color: rgba(255, 193, 7, 0.5);
+  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
+  border-color: color-mix(in srgb, var(--ds-warning) 50%, transparent);
 }
 
 /* Light Theme */

@@ -76,8 +76,8 @@ function onReset() {
 .admin-panel {
   max-width: 800px;
   margin: 0 auto;
-  background: var(--card-bg, rgba(20, 38, 64, 0.9));
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.25));
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 20px;
   padding: 28px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
@@ -91,13 +91,13 @@ function onReset() {
   flex-wrap: wrap;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border-bottom: 1px solid var(--border-color);
 }
 
 .admin-header h3 {
   margin: 0;
   font-size: 1.25rem;
-  color: var(--text-primary, #f9f2d5);
+  color: var(--text-primary);
 }
 
 .admin-user {
@@ -108,37 +108,37 @@ function onReset() {
 }
 
 .user-badge {
-  background: var(--panel-highlight, rgba(201, 152, 77, 0.1));
+  background: var(--panel-highlight);
   padding: 6px 12px;
   border-radius: 20px;
-  color: var(--text-secondary, #f8e1a9);
+  color: var(--text-secondary);
   font-size: 0.8rem;
 }
 
 .btn-reset,
 .btn-logout {
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border: 1px solid var(--border-color);
   padding: 6px 14px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.8rem;
-  font-family: var(--font-sans, 'Supreme', sans-serif);
+  font-family: var(--font-sans);
   transition: all 0.2s ease;
 }
 
 .btn-reset {
   background: transparent;
-  color: var(--text-secondary, #f8e1a9);
+  color: var(--text-secondary);
 }
 
 .btn-reset:hover {
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-ink, #c9984d);
+  border-color: var(--accent-primary);
+  color: var(--accent-ink);
 }
 
 .btn-logout {
-  background: var(--red, #ef4444);
-  border-color: var(--red, #ef4444);
+  background: var(--red);
+  border-color: var(--red);
   color: #fff;
 }
 
@@ -154,32 +154,32 @@ function onReset() {
 }
 
 .tab-btn {
-  background: var(--secondary-bg, rgba(14, 28, 50, 0.6));
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
-  color: var(--text-secondary, #f8e1a9);
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
   padding: 8px 16px;
   border-radius: 10px;
   cursor: pointer;
   font-size: 0.85rem;
-  font-family: var(--font-sans, 'Supreme', sans-serif);
+  font-family: var(--font-sans);
   transition: all 0.2s ease;
 }
 
 .tab-btn:hover {
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 
 .tab-btn.active {
-  background: var(--panel-highlight, rgba(201, 152, 77, 0.15));
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--text-primary, #f9f2d5);
+  background: var(--panel-highlight);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .admin-footer {
   margin: 20px 0 0 0;
   font-size: 0.78rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   text-align: center;
 }
 

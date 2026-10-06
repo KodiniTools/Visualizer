@@ -62,16 +62,16 @@ const { gradientEnabled, gradientColor2, gradientType, gradientAngle, updateGrad
 .gradient-section {
   margin-top: 10px;
   padding: 8px;
-  background: linear-gradient(180deg, var(--card-bg, #142640) 0%, rgba(201, 152, 77, 0.08) 100%);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
-  border-left: 2px solid var(--accent-primary, #c9984d);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-left: 2px solid var(--accent-primary);
   border-radius: 6px;
 }
 .gradient-section h5 {
   margin: 0 0 8px 0;
   font-size: 0.6rem;
   font-weight: 600;
-  color: var(--accent-tertiary, #f8e1a9);
+  color: var(--accent-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -84,28 +84,24 @@ const { gradientEnabled, gradientColor2, gradientType, gradientAngle, updateGrad
 .gradient-select {
   width: 100%;
   padding: 5px 8px;
-  background: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   font-size: 0.6rem;
   cursor: pointer;
 }
 .gradient-select:hover {
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 .gradient-select:focus {
   outline: none;
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 .angle-slider {
   width: 100%;
   height: 3px;
-  background: linear-gradient(
-    to right,
-    var(--text-muted, #7a8da0) 0%,
-    var(--accent-primary, #c9984d) 100%
-  );
+  background: var(--text-muted);
   border-radius: 2px;
   -webkit-appearance: none;
   appearance: none;
@@ -115,15 +111,15 @@ const { gradientEnabled, gradientColor2, gradientType, gradientAngle, updateGrad
   -webkit-appearance: none;
   width: 12px;
   height: 12px;
-  background: var(--accent-tertiary, #f8e1a9);
-  border: 2px solid #fff;
+  background: var(--accent-tertiary);
+  border: 2px solid var(--ds-surface-1);
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 .color-hex {
   font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   font-family: monospace;
 }
 
@@ -131,19 +127,10 @@ const { gradientEnabled, gradientColor2, gradientType, gradientAngle, updateGrad
   color: var(--accent-ink);
 }
 [data-theme='light'] .gradient-section {
-  background: linear-gradient(
-    180deg,
-    var(--card-bg) 0%,
-    color-mix(in srgb, var(--accent-primary) 6%, transparent) 100%
-  );
   border-left-color: var(--accent-primary);
 }
 [data-theme='light'] .angle-slider {
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--accent-primary) 20%, transparent) 0%,
-    color-mix(in srgb, var(--accent-primary) 50%, transparent) 100%
-  );
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 [data-theme='light'] .angle-slider::-webkit-slider-thumb {
   background: var(--accent-primary);

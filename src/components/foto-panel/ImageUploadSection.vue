@@ -262,7 +262,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 }
 
 .upload-area:hover {
-  border-color: var(--image-section-accent, #6ea8fe);
+  border-color: var(--image-section-accent);
   background-color: var(--secondary-bg);
 }
 
@@ -277,7 +277,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   margin: 0;
   font-size: 14px;
   font-weight: 500;
-  color: #e0e0e0;
+  color: var(--ds-text);
 }
 
 .upload-placeholder small {
@@ -305,7 +305,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 .gallery-title {
   font-size: 13px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: var(--ds-text);
 }
 
 .btn-clear-all {
@@ -313,14 +313,14 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   font-size: 11px;
   border-radius: 4px;
   border: 1px solid var(--border-color);
-  background-color: #ff6b6b;
+  background-color: var(--ds-danger);
   color: white;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-clear-all:hover {
-  background-color: #ff5252;
+  background-color: var(--ds-danger);
 }
 
 /* Scrollbarer Galerie-Bereich */
@@ -347,7 +347,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 }
 
 .gallery-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--image-section-accent, #6ea8fe);
+  background: var(--image-section-accent);
 }
 
 /* Thumbnail-Grid */
@@ -373,12 +373,12 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 }
 
 .thumbnail-item:hover {
-  border-color: var(--image-section-accent, #6ea8fe);
+  border-color: var(--image-section-accent);
   transform: scale(1.02);
 }
 
 .thumbnail-item.selected {
-  border-color: var(--image-section-accent, #6ea8fe);
+  border-color: var(--image-section-accent);
   box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.3);
 }
 
@@ -406,7 +406,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background-color: rgba(255, 69, 58, 0.95);
+  background-color: var(--ds-danger);
   color: white;
   border: 1.5px solid white;
   font-size: 12px;
@@ -419,7 +419,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 }
 
 .btn-delete-thumb:hover {
-  background-color: rgba(255, 69, 58, 1);
+  background-color: var(--ds-danger);
   transform: scale(1.1);
 }
 
@@ -465,7 +465,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   border-radius: 4px;
   border: 1px solid var(--border-color);
   background-color: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   cursor: pointer;
   transition: all 0.2s ease;
   text-transform: uppercase;
@@ -476,8 +476,8 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 .btn-select-all:hover:not(:disabled),
 .btn-deselect-all:hover:not(:disabled) {
   background-color: var(--secondary-bg);
-  border-color: var(--image-section-accent, #6ea8fe);
-  color: var(--image-section-accent, #6ea8fe);
+  border-color: var(--image-section-accent);
+  color: var(--image-section-accent);
 }
 
 .btn-select-all:disabled,
@@ -488,10 +488,10 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 
 .selection-count {
   font-size: 11px;
-  color: var(--image-section-accent, #6ea8fe);
+  color: var(--image-section-accent);
   font-weight: 600;
   padding: 4px 8px;
-  background-color: rgba(110, 168, 254, 0.15);
+  background-color: color-mix(in srgb, var(--ds-link) 15%, transparent);
   border-radius: 4px;
   margin-left: auto;
 }
@@ -505,7 +505,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 
 .drag-hint {
   font-size: 10px;
-  color: var(--accent-tertiary, #f8e1a9);
+  color: var(--accent-tertiary);
   margin: 0 0 8px 0;
   font-style: italic;
   display: flex;
@@ -523,7 +523,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 .slideshow-select-hint {
   margin: 4px 0 0;
   font-size: 11px;
-  color: var(--image-section-accent, #6ea8fe);
+  color: var(--image-section-accent);
 }
 /* Größere Klickfläche für die Checkbox, ohne das Aussehen zu ändern */
 .selection-checkbox::before {
@@ -539,7 +539,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   height: 20px;
   border-radius: 4px;
   background-color: rgba(0, 0, 0, 0.5);
-  border: 2px solid rgba(255, 255, 255, 0.6);
+  border: 2px solid var(--ds-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -552,14 +552,14 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 }
 
 .selection-checkbox.checked {
-  background-color: var(--image-section-accent, #6ea8fe);
-  border-color: var(--image-section-accent, #6ea8fe);
+  background-color: var(--image-section-accent);
+  border-color: var(--image-section-accent);
   box-shadow: 0 2px 6px rgba(110, 168, 254, 0.4);
 }
 
 .thumbnail-item:hover .selection-checkbox:not(.checked) {
-  border-color: var(--image-section-accent, #6ea8fe);
-  background-color: rgba(110, 168, 254, 0.3);
+  border-color: var(--image-section-accent);
+  background-color: color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 
 /* Action-Buttons */
@@ -572,7 +572,7 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 .action-buttons button {
   padding: 6px 10px;
   border-radius: 5px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border: 1px solid var(--border-color);
   font-size: 0.6rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -582,37 +582,37 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 }
 
 .btn-primary {
-  background: rgba(201, 152, 77, 0.2);
-  color: var(--accent-tertiary, #f8e1a9);
-  border: 1px solid rgba(201, 152, 77, 0.3);
+  background: var(--ds-accent-soft);
+  color: var(--accent-tertiary);
+  border: 1px solid var(--ds-border);
 }
 
 .btn-primary:hover {
-  background: rgba(201, 152, 77, 0.3);
+  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
   transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
   transform: translateY(-1px);
 }
 
 .btn-workspace {
-  background: rgba(255, 193, 7, 0.1);
-  color: #ffc107;
-  border: 1px solid rgba(255, 193, 7, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
+  color: var(--ds-warning);
+  border: 1px solid color-mix(in srgb, var(--ds-warning) 30%, transparent);
 }
 
 .btn-workspace:hover {
-  background: rgba(255, 193, 7, 0.2);
-  border-color: rgba(255, 193, 7, 0.5);
+  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
+  border-color: color-mix(in srgb, var(--ds-warning) 50%, transparent);
   transform: translateY(-1px);
 }
 
@@ -656,11 +656,11 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 }
 
 [data-theme='light'] .btn-clear-all {
-  border-color: rgba(255, 69, 58, 0.5);
+  border-color: color-mix(in srgb, var(--ds-danger) 50%, transparent);
 }
 
 [data-theme='light'] .gallery-scroll::-webkit-scrollbar-thumb {
-  background: #b0c4de;
+  background: var(--ds-link);
 }
 
 [data-theme='light'] .gallery-scroll::-webkit-scrollbar-thumb:hover {

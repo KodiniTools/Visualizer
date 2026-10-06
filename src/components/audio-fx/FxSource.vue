@@ -31,13 +31,13 @@ defineEmits(['update:modelValue'])
   align-items: center;
   gap: 6px;
   font-size: 0.78rem;
-  color: #aaa;
+  color: var(--ds-text-2);
 }
 .fx-select {
   flex: 1;
-  background: #2a2a2a;
-  color: #ccc;
-  border: 1px solid #444;
+  background: var(--ds-surface-2);
+  color: var(--ds-text-2);
+  border: 1px solid var(--ds-border-strong);
   border-radius: 4px;
   padding: 2px 4px;
   font-size: 0.75rem;

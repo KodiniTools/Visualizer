@@ -62,7 +62,7 @@ defineEmits(['cancel'])
 }
 
 .conversion-modal {
-  background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+  background: var(--card-bg);
   border-radius: 20px;
   padding: 40px 50px;
   text-align: center;
@@ -79,7 +79,7 @@ defineEmits(['cancel'])
   width: 80px;
   height: 80px;
   margin: 0 auto 24px;
-  background: linear-gradient(135deg, rgba(110, 168, 254, 0.2) 0%, rgba(79, 195, 247, 0.2) 100%);
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -90,7 +90,7 @@ defineEmits(['cancel'])
 .conversion-icon svg {
   width: 40px;
   height: 40px;
-  color: #6ea8fe;
+  color: var(--ds-link);
 }
 
 .conversion-title {
@@ -118,7 +118,7 @@ defineEmits(['cancel'])
 
 .conversion-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6ea8fe 0%, #4fc3f7 50%, #6ea8fe 100%);
+  background: var(--ds-link);
   background-size: 200% 100%;
   border-radius: 5px;
   transition: width 0.4s ease;
@@ -129,7 +129,7 @@ defineEmits(['cancel'])
   display: block;
   font-size: 28px;
   font-weight: 700;
-  color: #6ea8fe;
+  color: var(--ds-link);
   margin-bottom: 20px;
   font-family: 'Courier New', monospace;
 }
@@ -145,9 +145,9 @@ defineEmits(['cancel'])
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(158, 158, 158, 0.15);
+  background: var(--ds-surface-3);
   color: var(--text-muted);
-  border: 1px solid rgba(158, 158, 158, 0.3);
+  border: 1px solid var(--ds-border-strong);
   padding: 8px 20px;
   border-radius: 6px;
   font-size: 12px;
@@ -159,9 +159,9 @@ defineEmits(['cancel'])
 }
 
 .btn-cancel-conversion:hover {
-  background: rgba(244, 67, 54, 0.15);
-  color: #f44336;
-  border-color: rgba(244, 67, 54, 0.3);
+  background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
+  color: var(--ds-danger);
+  border-color: color-mix(in srgb, var(--ds-danger) 30%, transparent);
 }
 
 @keyframes convFadeIn {
@@ -246,22 +246,16 @@ defineEmits(['cancel'])
 }
 
 [data-theme='light'] .conversion-progress-fill {
-  background: linear-gradient(
-    90deg,
-    var(--accent-primary) 0%,
-    #3a7cc6 50%,
-    var(--accent-primary) 100%
-  );
-  background-size: 200% 100%;
+  background: var(--accent-primary);
 }
 
 [data-theme='light'] .btn-cancel-conversion {
   background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.12);
+  border-color: var(--ds-border);
 }
 
 [data-theme='light'] .btn-cancel-conversion:hover {
-  background: rgba(244, 67, 54, 0.1);
-  border-color: rgba(244, 67, 54, 0.2);
+  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 20%, transparent);
 }
 </style>

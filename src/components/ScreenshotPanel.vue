@@ -317,10 +317,10 @@ function handleEscKey(e) {
 
 <style scoped>
 .screenshot-panel {
-  background-color: var(--card-bg, #142640);
+  background-color: var(--card-bg);
   border-radius: 8px;
   padding: 10px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -334,7 +334,7 @@ function handleEscKey(e) {
 
 h3 {
   margin: 0;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -403,21 +403,21 @@ h3::before {
 }
 
 .format-btn.active {
-  background-color: #6ea8fe;
+  background-color: var(--ds-link);
   color: #fff;
-  border-color: #6ea8fe;
+  border-color: var(--ds-link);
   font-weight: 600;
 }
 
 .format-btn.active:hover {
-  background-color: #5a96e8;
+  background-color: var(--ds-link);
 }
 
 /* Quality Slider */
 .quality-value {
   font-size: 11px;
   font-weight: 600;
-  color: #6ea8fe;
+  color: var(--ds-link);
 }
 
 .quality-slider {
@@ -437,20 +437,20 @@ h3::before {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #6ea8fe;
+  background: var(--ds-link);
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
 .quality-slider::-webkit-slider-thumb:hover {
-  background: #5a96e8;
+  background: var(--ds-link);
 }
 
 .quality-slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #6ea8fe;
+  background: var(--ds-link);
   cursor: pointer;
   border: none;
 }
@@ -464,8 +464,8 @@ h3::before {
 
 /* Info Section */
 .info-section {
-  background: rgba(110, 168, 254, 0.1);
-  border: 1px solid rgba(110, 168, 254, 0.2);
+  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
   border-radius: 6px;
   padding: 8px;
 }
@@ -511,13 +511,13 @@ h3::before {
 }
 
 .btn-screenshot {
-  background: linear-gradient(135deg, #6ea8fe 0%, #4fc3f7 100%);
+  background: var(--ds-link);
   color: white;
-  border: 1px solid rgba(110, 168, 254, 0.3);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 
 .btn-screenshot:hover:not(:disabled) {
-  background: linear-gradient(135deg, #5a96e8 0%, #40b0e0 100%);
+  background: var(--ds-link);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(110, 168, 254, 0.3);
 }
@@ -560,8 +560,8 @@ h3::before {
 }
 
 .btn-close-preview:hover {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  color: var(--ds-danger);
 }
 
 .preview-container {
@@ -588,13 +588,13 @@ h3::before {
 }
 
 .btn-download {
-  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  background: var(--ds-success);
   color: white;
   text-decoration: none;
 }
 
 .btn-download:hover {
-  background: linear-gradient(135deg, #45a049 0%, #4caf50 100%);
+  background: var(--ds-success);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
@@ -629,7 +629,7 @@ h3::before {
 .preview-zoom-hint svg {
   width: 14px;
   height: 14px;
-  color: #fff;
+  color: var(--ds-text);
 }
 
 .preview-container:hover .preview-zoom-hint {
@@ -674,9 +674,9 @@ h3::before {
   border: 1px solid var(--border-color);
   overflow: hidden;
   animation: scaleIn 0.2s ease;
-  font-family: var(--font-sans, 'Supreme', sans-serif);
+  font-family: var(--font-sans);
   font-size: 12px;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
 }
 
 @keyframes scaleIn {
@@ -716,7 +716,7 @@ h3::before {
 }
 
 .btn-close-floating:hover {
-  background: rgba(244, 67, 54, 0.8);
+  background: color-mix(in srgb, var(--ds-danger) 80%, transparent);
   color: #fff;
 }
 
@@ -759,7 +759,7 @@ h3::before {
 
 .metadata-tag {
   display: inline-block;
-  background: linear-gradient(135deg, #6ea8fe 0%, #4fc3f7 100%);
+  background: var(--ds-link);
   color: #fff;
   padding: 2px 6px;
   border-radius: 3px;
@@ -783,7 +783,7 @@ h3::before {
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  background: var(--ds-success);
   color: white;
   text-decoration: none;
   border: none;
@@ -793,7 +793,7 @@ h3::before {
 }
 
 .btn-download-icon:hover {
-  background: linear-gradient(135deg, #45a049 0%, #4caf50 100%);
+  background: var(--ds-success);
   transform: scale(1.05);
 }
 
@@ -854,52 +854,52 @@ h3::before {
 }
 
 [data-theme='light'] .btn-screenshot {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-tertiary) 100%);
+  background: var(--accent-primary);
   color: var(--accent-text);
   border-color: var(--border-color);
 }
 
 [data-theme='light'] .btn-screenshot:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+  background: var(--accent-primary);
   box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 [data-theme='light'] .preview-section {
   background: color-mix(in srgb, var(--text-primary) 3%, transparent);
-  border-color: rgba(0, 0, 0, 0.1);
+  border-color: var(--ds-border);
 }
 
 [data-theme='light'] .btn-close-preview {
   background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--ds-text-2);
 }
 
 [data-theme='light'] .fullscreen-modal {
   background: var(--card-bg);
-  border-color: rgba(0, 0, 0, 0.15);
+  border-color: var(--ds-border);
 }
 
 [data-theme='light'] .btn-close-floating {
   background: rgba(0, 0, 0, 0.08);
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--ds-text-2);
 }
 
 [data-theme='light'] .modal-footer {
   background: rgba(0, 0, 0, 0.04);
-  border-top-color: rgba(0, 0, 0, 0.1);
+  border-top-color: var(--ds-border);
 }
 
 [data-theme='light'] .metadata-tag {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-tertiary) 100%);
+  background: var(--accent-primary);
   color: var(--accent-text);
 }
 
 [data-theme='light'] .metadata-text {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--ds-text-2);
 }
 
 [data-theme='light'] .metadata-divider {
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--ds-text-2);
 }
 
 /* ═══ Responsive ═══ */

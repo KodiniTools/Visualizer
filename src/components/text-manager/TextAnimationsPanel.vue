@@ -114,22 +114,22 @@ const activeBadges = computed(() =>
   gap: 8px;
   padding: 10px 12px;
   cursor: pointer;
-  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--secondary-bg) 100%);
+  background: var(--secondary-bg);
   font-size: 12px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: var(--ds-text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   transition: all 0.2s ease;
   user-select: none;
 }
 .section-header:hover {
-  background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
-  color: #fff;
+  background: var(--card-bg);
+  color: var(--ds-text);
 }
 .collapsible-section[open] .section-header {
   border-bottom: 1px solid var(--card-bg);
-  background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+  background: var(--card-bg);
 }
 .section-icon {
   font-size: 14px;
@@ -138,7 +138,7 @@ const activeBadges = computed(() =>
 .section-header::before {
   content: '▶';
   font-size: 8px;
-  color: #6ea8fe;
+  color: var(--ds-link);
   transition: transform 0.2s ease;
   margin-right: 4px;
 }
@@ -161,9 +161,9 @@ const activeBadges = computed(() =>
   letter-spacing: 0.3px;
 }
 .status-badge.active {
-  background: linear-gradient(135deg, #2a5a2a 0%, #3a6a3a 100%);
-  color: #8fdf8f;
-  border: 1px solid #4a7a4a;
+  background: var(--ds-success);
+  color: var(--ds-success);
+  border: 1px solid var(--ds-border-strong);
 }
 [data-theme='light'] .collapsible-section {
   background-color: var(--card-bg);
@@ -176,7 +176,6 @@ const activeBadges = computed(() =>
   border-color: var(--border-color);
 }
 [data-theme='light'] .section-header {
-  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--card-bg) 100%);
   color: var(--text-primary);
 }
 [data-theme='light'] .section-header:hover {
@@ -192,20 +191,19 @@ const activeBadges = computed(() =>
   background-color: var(--card-bg);
 }
 [data-theme='light'] .status-badge {
-  background-color: #e8e0c4;
+  background-color: var(--ds-surface-3);
 }
 [data-theme='light'] .status-badge.active {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.12) 0%, rgba(76, 175, 80, 0.08) 100%);
-  color: #2e7d32;
-  border: 1px solid rgba(76, 175, 80, 0.35);
+  background: color-mix(in srgb, var(--ds-success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 35%, transparent);
 }
 
 .section-divider {
   margin: 12px 0;
   border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--ds-border);
 }
 [data-theme='light'] .section-divider {
-  border-top-color: rgba(0, 0, 0, 0.08);
+  border-top-color: var(--ds-border);
 }
 </style>

@@ -45,7 +45,7 @@ const { flipHRef, flipVRef, onSliderStart, onFlipHorizontal, onFlipVertical } = 
 .flip-button {
   flex: 1;
   padding: 10px 12px;
-  background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   color: var(--text-secondary);
@@ -56,14 +56,14 @@ const { flipHRef, flipVRef, onSliderStart, onFlipHorizontal, onFlipVertical } = 
   text-align: center;
 }
 .flip-button:hover {
-  background: linear-gradient(135deg, var(--btn-hover) 0%, var(--card-bg) 100%);
-  border-color: var(--image-section-accent, #6ea8fe);
-  color: #fff;
+  background: var(--btn-hover);
+  border-color: var(--image-section-accent);
+  color: var(--ds-text);
 }
 .flip-button.active {
-  background: var(--image-section-gradient, linear-gradient(135deg, #6ea8fe 0%, #5090e0 100%));
-  border-color: var(--image-section-accent, #6ea8fe);
-  color: #fff;
+  background: var(--image-section-gradient);
+  border-color: var(--image-section-accent);
+  color: var(--ds-text);
 }
 
 .modern-section-header {
@@ -76,7 +76,7 @@ const { flipHRef, flipVRef, onSliderStart, onFlipHorizontal, onFlipVertical } = 
   margin: 0;
   font-size: 0.65rem;
   font-weight: 600;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
@@ -85,12 +85,12 @@ const { flipHRef, flipVRef, onSliderStart, onFlipHorizontal, onFlipVertical } = 
   color: var(--text-primary);
 }
 [data-theme='light'] .flip-button:hover {
-  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--card-bg) 100%);
+  background: var(--secondary-bg);
   border-color: var(--accent-primary);
   color: var(--accent-ink);
 }
 [data-theme='light'] .flip-button.active {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+  background: var(--accent-primary);
   border-color: var(--accent-primary);
   color: var(--accent-text);
 }

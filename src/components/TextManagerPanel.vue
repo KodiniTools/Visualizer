@@ -463,11 +463,11 @@ onUnmounted(() => {
 <style scoped>
 /* ===== MAIN PANEL ===== */
 .panel {
-  background-color: var(--card-bg, #142640);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 10px;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -478,7 +478,7 @@ h3 {
   margin: 0 0 8px 0;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   letter-spacing: 0.4px;
   text-transform: uppercase;
   display: flex;
@@ -503,7 +503,7 @@ h3::before {
 
 /* ===== INFO TEXT ===== */
 .info-text {
-  color: #777;
+  color: var(--ds-text-3);
   font-size: 11px;
   line-height: 1.6;
   margin: 0;

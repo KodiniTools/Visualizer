@@ -89,7 +89,7 @@ const {
 <style scoped src="./image-filters-shared.css"></style>
 <style scoped>
 .border-slider {
-  background: linear-gradient(90deg, var(--primary-bg) 0%, #ffffff 50%, #6ea8fe 100%);
+  background: var(--primary-bg);
 }
 .border-opacity-slider {
   background: linear-gradient(
@@ -100,19 +100,9 @@ const {
   );
 }
 [data-theme='light'] .border-slider {
-  background: linear-gradient(
-    90deg,
-    var(--secondary-bg) 0%,
-    var(--accent-primary) 50%,
-    var(--accent-primary) 100%
-  );
+  background: var(--secondary-bg);
 }
 [data-theme='light'] .border-opacity-slider {
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--text-primary) 10%, transparent) 0%,
-    color-mix(in srgb, var(--text-primary) 40%, transparent) 50%,
-    var(--accent-primary) 100%
-  );
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
 }
 </style>

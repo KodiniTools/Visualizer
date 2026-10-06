@@ -132,7 +132,7 @@ defineEmits(['close'])
   left: 50%;
   transform: translate(-50%, -50%);
   background: var(--card-bg);
-  border: 2px solid #6ea8fe;
+  border: 2px solid var(--ds-link);
   border-radius: 16px;
   padding: 0;
   max-width: 800px;
@@ -149,20 +149,20 @@ defineEmits(['close'])
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid var(--border-color);
-  background: linear-gradient(135deg, rgba(110, 168, 254, 0.1), rgba(110, 168, 254, 0.05));
+  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
 }
 
 .panel-header h3 {
   margin: 0;
   font-size: 24px;
-  color: #6ea8fe;
+  color: var(--ds-link);
   font-weight: 600;
 }
 
 .close-btn {
-  background: rgba(255, 69, 58, 0.2);
-  border: 1px solid rgba(255, 69, 58, 0.5);
-  color: #ff453a;
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 50%, transparent);
+  color: var(--ds-danger);
   width: 32px;
   height: 32px;
   border-radius: 8px;
@@ -175,8 +175,8 @@ defineEmits(['close'])
 }
 
 .close-btn:hover {
-  background: rgba(255, 69, 58, 0.3);
-  border-color: #ff453a;
+  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
+  border-color: var(--ds-danger);
   transform: scale(1.1);
 }
 
@@ -199,25 +199,25 @@ defineEmits(['close'])
 }
 
 .shortcuts-content::-webkit-scrollbar-thumb {
-  background: #6ea8fe;
+  background: var(--ds-link);
   border-radius: 4px;
 }
 
 .shortcuts-content::-webkit-scrollbar-thumb:hover {
-  background: #5a96de;
+  background: var(--ds-link);
 }
 
 .shortcut-section {
   background: var(--secondary-bg);
   border-radius: 12px;
   padding: 16px;
-  border: 1px solid rgba(110, 168, 254, 0.2);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
 }
 
 .shortcut-section h4 {
   margin: 0 0 12px 0;
   font-size: 16px;
-  color: #6ea8fe;
+  color: var(--ds-link);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -241,7 +241,7 @@ defineEmits(['close'])
 }
 
 .shortcut-item:hover:not(.disabled) {
-  background: rgba(110, 168, 254, 0.1);
+  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
   transform: translateX(4px);
 }
 
@@ -259,14 +259,14 @@ defineEmits(['close'])
 }
 
 kbd {
-  background: linear-gradient(135deg, var(--card-bg), var(--secondary-bg));
-  color: #6ea8fe;
+  background: var(--card-bg);
+  color: var(--ds-link);
   padding: 4px 10px;
   border-radius: 6px;
   font-family: 'Courier New', monospace;
   font-size: 13px;
   font-weight: 600;
-  border: 1px solid rgba(110, 168, 254, 0.3);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
   box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -334,11 +334,7 @@ kbd {
 }
 
 [data-theme='light'] .panel-header {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent-primary) 10%, transparent),
-    color-mix(in srgb, var(--accent-primary) 5%, transparent)
-  );
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 [data-theme='light'] .panel-header h3 {

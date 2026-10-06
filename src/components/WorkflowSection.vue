@@ -62,7 +62,7 @@ function toggleCollapse() {
 
 <style scoped>
 .workflow-section {
-  background: linear-gradient(145deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   overflow: hidden;

@@ -317,14 +317,14 @@ const replaceVideoFromVideoInput = ref(null)
 .image-section {
   margin: 12px 0;
   padding-top: 12px;
-  border-top: 1px solid rgba(74, 222, 128, 0.2);
+  border-top: 1px solid color-mix(in srgb, var(--ds-success) 20%, transparent);
 }
 
 .image-section > label {
   display: block;
   margin-bottom: 6px;
   font-size: 11px;
-  color: #bbb;
+  color: var(--ds-text-2);
   font-weight: 500;
 }
 
@@ -339,7 +339,7 @@ const replaceVideoFromVideoInput = ref(null)
 .checkbox-label input[type='checkbox'] {
   width: 16px;
   height: 16px;
-  accent-color: #4ade80;
+  accent-color: var(--ds-success);
 }
 
 .image-upload-area {
@@ -348,24 +348,24 @@ const replaceVideoFromVideoInput = ref(null)
   align-items: center;
   padding: 20px;
   background: rgba(0, 0, 0, 0.2);
-  border: 2px dashed rgba(74, 222, 128, 0.3);
+  border: 2px dashed color-mix(in srgb, var(--ds-success) 30%, transparent);
   border-radius: 6px;
   margin-top: 8px;
 }
 
 .btn-upload {
   padding: 8px 16px;
-  background: rgba(74, 222, 128, 0.2);
-  border: 1px solid rgba(74, 222, 128, 0.5);
+  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 50%, transparent);
   border-radius: 6px;
-  color: #4ade80;
+  color: var(--ds-success);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-upload:hover {
-  background: rgba(74, 222, 128, 0.3);
+  background: color-mix(in srgb, var(--ds-success) 30%, transparent);
 }
 
 .hint {
@@ -418,7 +418,7 @@ const replaceVideoFromVideoInput = ref(null)
   width: 100%;
   height: 4px;
   border-radius: 2px;
-  background: rgba(74, 222, 128, 0.3);
+  background: color-mix(in srgb, var(--ds-success) 30%, transparent);
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
@@ -429,7 +429,7 @@ const replaceVideoFromVideoInput = ref(null)
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #4ade80;
+  background: var(--ds-success);
   cursor: pointer;
 }
 
@@ -442,17 +442,17 @@ const replaceVideoFromVideoInput = ref(null)
 .btn-remove {
   width: 100%;
   padding: 6px;
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 40%, transparent);
   border-radius: 4px;
-  color: #ef4444;
+  color: var(--ds-danger);
   font-size: 11px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-remove:hover {
-  background: rgba(239, 68, 68, 0.3);
+  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
 }
 
 /* ═══ Video Styles ═══ */
@@ -467,14 +467,14 @@ const replaceVideoFromVideoInput = ref(null)
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
-  border: 1px solid rgba(236, 72, 153, 0.4);
-  color: #f9a8d4;
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 40%, transparent);
+  color: var(--ds-link);
 }
 
 .btn-video:hover {
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
-  border-color: rgba(236, 72, 153, 0.6);
+  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 60%, transparent);
   transform: translateY(-1px);
 }
 
@@ -505,7 +505,7 @@ const replaceVideoFromVideoInput = ref(null)
   top: 6px;
   left: 6px;
   padding: 3px 8px;
-  background: rgba(236, 72, 153, 0.9);
+  background: color-mix(in srgb, var(--ds-danger) 90%, transparent);
   color: #fff;
   font-size: 9px;
   font-weight: 600;
@@ -528,14 +528,14 @@ const replaceVideoFromVideoInput = ref(null)
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #7a8da0;
+  color: var(--ds-text-2);
   cursor: pointer;
 }
 
 .video-settings .checkbox-label input[type='checkbox'] {
   width: 14px;
   height: 14px;
-  accent-color: #ec4899;
+  accent-color: var(--ds-danger);
 }
 
 /* ═══ Bildquellen-Buttons / Galerie ═══ */
@@ -560,14 +560,14 @@ const replaceVideoFromVideoInput = ref(null)
 }
 
 .btn-gallery {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(201, 152, 77, 0.2) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.4);
-  color: #c4b5fd;
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 40%, transparent);
+  color: var(--ds-link);
 }
 
 .btn-gallery:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(201, 152, 77, 0.3) 100%);
-  border-color: rgba(139, 92, 246, 0.6);
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 60%, transparent);
   transform: translateY(-1px);
 }
 
@@ -576,7 +576,7 @@ const replaceVideoFromVideoInput = ref(null)
   margin: 10px 0;
   padding: 10px;
   background: rgba(0, 0, 0, 0.2);
-  border: 1px dashed rgba(74, 222, 128, 0.3);
+  border: 1px dashed color-mix(in srgb, var(--ds-success) 30%, transparent);
   border-radius: 6px;
 }
 
@@ -605,37 +605,37 @@ const replaceVideoFromVideoInput = ref(null)
   align-items: center;
   justify-content: center;
   gap: 4px;
-  background: rgba(74, 222, 128, 0.15);
-  border: 1px solid rgba(74, 222, 128, 0.3);
-  color: #4ade80;
+  background: color-mix(in srgb, var(--ds-success) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
+  color: var(--ds-success);
 }
 
 .btn-replace:hover {
-  background: rgba(74, 222, 128, 0.25);
-  border-color: rgba(74, 222, 128, 0.5);
+  background: color-mix(in srgb, var(--ds-success) 25%, transparent);
+  border-color: color-mix(in srgb, var(--ds-success) 50%, transparent);
   transform: translateY(-1px);
 }
 
 .btn-replace-gallery {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.3);
-  color: #c4b5fd;
+  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 30%, transparent);
+  color: var(--ds-link);
 }
 
 .btn-replace-gallery:hover {
-  background: rgba(139, 92, 246, 0.25);
-  border-color: rgba(139, 92, 246, 0.5);
+  background: color-mix(in srgb, var(--ds-link) 25%, transparent);
+  border-color: color-mix(in srgb, var(--ds-link) 50%, transparent);
 }
 
 .btn-replace-video {
-  background: rgba(236, 72, 153, 0.15);
-  border-color: rgba(236, 72, 153, 0.3);
-  color: #f9a8d4;
+  background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 30%, transparent);
+  color: var(--ds-link);
 }
 
 .btn-replace-video:hover {
-  background: rgba(236, 72, 153, 0.25);
-  border-color: rgba(236, 72, 153, 0.5);
+  background: color-mix(in srgb, var(--ds-danger) 25%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 50%, transparent);
 }
 
 /* ═══ Light Theme Overrides ═══ */
@@ -675,11 +675,11 @@ const replaceVideoFromVideoInput = ref(null)
 }
 
 [data-theme='light'] .btn-remove {
-  background: rgba(239, 68, 68, 0.08);
+  background: color-mix(in srgb, var(--ds-danger) 8%, transparent);
 }
 
 [data-theme='light'] .video-preview {
-  background: #fdfbf2;
+  background: var(--ds-surface-2);
 }
 
 [data-theme='light'] .video-settings {
@@ -695,40 +695,24 @@ const replaceVideoFromVideoInput = ref(null)
 }
 
 [data-theme='light'] .btn-gallery {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent-primary) 10%, transparent) 0%,
-    color-mix(in srgb, var(--accent-primary) 10%, transparent) 100%
-  );
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
   border-color: var(--border-color);
   color: var(--accent-ink);
 }
 
 [data-theme='light'] .btn-gallery:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent-primary) 20%, transparent) 0%,
-    color-mix(in srgb, var(--accent-primary) 20%, transparent) 100%
-  );
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
   border-color: var(--accent-primary);
 }
 
 [data-theme='light'] .btn-video {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent-primary) 10%, transparent) 0%,
-    color-mix(in srgb, var(--accent-primary) 10%, transparent) 100%
-  );
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
   border-color: var(--border-color);
   color: var(--accent-ink);
 }
 
 [data-theme='light'] .btn-video:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent-primary) 18%, transparent) 0%,
-    color-mix(in srgb, var(--accent-primary) 18%, transparent) 100%
-  );
+  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
   border-color: var(--accent-primary);
 }
 

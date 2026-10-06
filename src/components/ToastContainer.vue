@@ -331,7 +331,7 @@ function handleAction(toast) {
 @media (max-width: 768px) {
   .toast-container {
     top: auto;
-    bottom: calc(var(--sticky-player-bar-height-mobile, 150px) + var(--ds-space-3));
+    bottom: calc(var(--sticky-player-bar-height-mobile) + var(--ds-space-3));
     right: var(--ds-space-3);
     left: var(--ds-space-3);
     align-items: stretch;

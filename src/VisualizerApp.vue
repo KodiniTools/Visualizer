@@ -591,8 +591,8 @@ onUnmounted(() => {
 <style scoped>
 .left-toolbar,
 .right-panel {
-  background-color: var(--card-bg, #142640);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
   padding: 10px;
   gap: 10px;
 }
@@ -603,7 +603,7 @@ onUnmounted(() => {
 
 .canvas-wrapper {
   flex-grow: 1;
-  background-color: var(--card-bg, #142640);
+  background-color: var(--card-bg);
   border-radius: 12px;
   overflow: auto;
   min-height: 0;

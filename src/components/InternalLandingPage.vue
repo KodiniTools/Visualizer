@@ -205,26 +205,13 @@ const featureCards = computed(() => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(
-    180deg,
-    var(--primary-bg) 0%,
-    var(--primary-bg) 50%,
-    var(--primary-bg) 100%
-  );
+  background: var(--primary-bg);
   color: var(--text-primary);
   font-family: 'Supreme', sans-serif;
   overflow-x: hidden;
 }
 
 /* Light Theme */
-.internal-landing.light-theme {
-  background: linear-gradient(
-    180deg,
-    var(--primary-bg) 0%,
-    var(--secondary-bg) 50%,
-    var(--primary-bg) 100%
-  );
-}
 
 /* Header */
 .landing-header {
@@ -426,7 +413,7 @@ const featureCards = computed(() => {
 .wave-bar {
   width: 12px;
   min-height: 20px;
-  background: linear-gradient(180deg, var(--accent-primary) 0%, var(--accent-tertiary) 100%);
+  background: var(--accent-primary);
   border-radius: 6px;
   animation: waveAnimation 1.4s ease-in-out infinite;
 }
@@ -505,15 +492,6 @@ const featureCards = computed(() => {
 }
 
 /* ═══ Light Theme Overrides ═══ */
-
-[data-theme='light'] .internal-landing {
-  background: linear-gradient(
-    180deg,
-    var(--primary-bg) 0%,
-    var(--secondary-bg) 50%,
-    var(--primary-bg) 100%
-  );
-}
 
 [data-theme='light'] .card-icon {
   box-shadow: 0 8px 24px color-mix(in srgb, var(--accent-primary) 20%, transparent);

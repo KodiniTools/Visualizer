@@ -28,7 +28,7 @@ const { hasActiveImage, hasSavedSettings, saveSettings, applySettings } = arc
   gap: 6px;
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid rgba(139, 92, 246, 0.1);
+  border-top: 1px solid color-mix(in srgb, var(--ds-link) 10%, transparent);
 }
 .btn-preset-action {
   flex: 1;
@@ -49,29 +49,29 @@ const { hasActiveImage, hasSavedSettings, saveSettings, applySettings } = arc
   cursor: not-allowed;
 }
 .btn-save {
-  background: rgba(139, 92, 246, 0.15);
-  color: #a78bfa;
+  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
+  color: var(--ds-link);
 }
 .btn-save:not(:disabled):hover {
-  background: rgba(139, 92, 246, 0.25);
+  background: color-mix(in srgb, var(--ds-link) 25%, transparent);
 }
 .btn-apply {
-  background: rgba(236, 72, 153, 0.15);
-  color: #f472b6;
+  background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
+  color: var(--ds-link);
 }
 .btn-apply:not(:disabled):hover {
-  background: rgba(236, 72, 153, 0.25);
+  background: color-mix(in srgb, var(--ds-danger) 25%, transparent);
 }
 
 [data-theme='light'] .btn-save {
-  background: #fdfbf2;
+  background: var(--ds-surface-2);
   color: var(--text-primary);
 }
 [data-theme='light'] .btn-save:not(:disabled):hover {
   background: var(--btn-hover);
 }
 [data-theme='light'] .btn-apply {
-  background: #fdfbf2;
+  background: var(--ds-surface-2);
   color: var(--text-primary);
 }
 [data-theme='light'] .btn-apply:not(:disabled):hover {

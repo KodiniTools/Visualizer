@@ -326,12 +326,12 @@ function onDragEnd() {
 }
 .order-item.dragging {
   opacity: 0.5;
-  border-color: var(--image-section-accent, #6ea8fe);
+  border-color: var(--image-section-accent);
 }
 .order-number {
   width: 22px;
   height: 22px;
-  background: linear-gradient(135deg, #6ea8fe 0%, #5a9af8 100%);
+  background: var(--ds-link);
   color: #fff;
   border-radius: 50%;
   display: flex;
@@ -390,20 +390,20 @@ function onDragEnd() {
   font-size: 11px;
   text-align: right;
   background: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
 /* Eigener Wert (≠ Standard) hervorheben */
 .order-item .is-own {
-  border-color: var(--image-section-accent, #6ea8fe);
+  border-color: var(--image-section-accent);
   box-shadow: 0 0 0 1px rgba(110, 168, 254, 0.35);
 }
 [data-theme='light'] .order-fadein,
 [data-theme='light'] .order-fadeout {
   background: var(--secondary-bg);
   color: var(--text-primary);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 .order-controls {
   display: flex;
@@ -418,7 +418,7 @@ function onDragEnd() {
   padding: 3px 4px;
   font-size: 11px;
   background: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
@@ -435,12 +435,12 @@ function onDragEnd() {
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  background: rgba(110, 168, 254, 0.25);
-  color: #6ea8fe;
+  background: color-mix(in srgb, var(--ds-link) 25%, transparent);
+  color: var(--ds-link);
 }
 .order-name {
   font-size: 12px;
-  color: #e0e0e0;
+  color: var(--ds-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -452,7 +452,7 @@ function onDragEnd() {
   font-size: 11px;
   text-align: right;
   background: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
@@ -463,7 +463,7 @@ function onDragEnd() {
 }
 .drag-handle {
   margin-left: auto;
-  color: #666;
+  color: var(--ds-text-3);
   font-size: 14px;
   cursor: grab;
   padding: 4px;
@@ -472,17 +472,17 @@ function onDragEnd() {
   color: var(--text-muted);
 }
 [data-theme='light'] .image-order-list::-webkit-scrollbar-thumb {
-  background: #d4c8a8;
+  background: var(--ds-surface-3);
 }
 [data-theme='light'] .order-item {
-  background-color: #f0ead0;
+  background-color: var(--ds-surface-3);
 }
 [data-theme='light'] .order-item:hover {
-  background-color: #e8e0c0;
-  border-color: #d4c8a8;
+  background-color: var(--ds-surface-3);
+  border-color: var(--ds-border);
 }
 [data-theme='light'] .order-number {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+  background: var(--accent-primary);
   color: var(--accent-text);
 }
 [data-theme='light'] .order-name {
@@ -494,7 +494,7 @@ function onDragEnd() {
 [data-theme='light'] .order-duration {
   background: var(--secondary-bg);
   color: var(--text-primary);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 [data-theme='light'] .drag-handle {
   color: var(--text-muted);

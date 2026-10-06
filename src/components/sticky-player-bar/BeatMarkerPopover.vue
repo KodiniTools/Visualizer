@@ -411,8 +411,8 @@ const backgroundPresetOptions = computed(() => {
   min-width: 22px;
 }
 .btn-toggle.active {
-  background-color: #4ade80;
-  border-color: #4ade80;
+  background-color: var(--ds-success);
+  border-color: var(--ds-success);
   color: var(--accent-text);
 }
 .marker-add-form {
@@ -478,16 +478,16 @@ const backgroundPresetOptions = computed(() => {
   height: 12px;
 }
 .marker-action-bg {
-  color: #4ade80;
-  background-color: rgba(74, 222, 128, 0.12);
+  color: var(--ds-success);
+  background-color: color-mix(in srgb, var(--ds-success) 12%, transparent);
 }
 .marker-action-text {
-  color: #6ea8fe;
-  background-color: rgba(110, 168, 254, 0.14);
+  color: var(--ds-link);
+  background-color: color-mix(in srgb, var(--ds-link) 14%, transparent);
 }
 .marker-action-off {
-  color: #f87171;
-  background-color: rgba(248, 113, 113, 0.12);
+  color: var(--ds-danger);
+  background-color: color-mix(in srgb, var(--ds-danger) 12%, transparent);
 }
 .marker-transition-row {
   display: flex;
@@ -632,14 +632,14 @@ const backgroundPresetOptions = computed(() => {
   padding: 4px 12px;
   font-size: 10px;
   font-weight: 600;
-  background-color: #4ade80;
+  background-color: var(--ds-success);
   border: none;
   border-radius: 4px;
   color: var(--accent-text);
   cursor: pointer;
 }
 .btn-confirm:hover {
-  background-color: #22c55e;
+  background-color: var(--ds-success);
 }
 .btn-cancel {
   padding: 4px 12px;
@@ -676,11 +676,11 @@ const backgroundPresetOptions = computed(() => {
   background-color: var(--btn-hover);
 }
 .marker-item.triggered {
-  background-color: rgba(74, 222, 128, 0.2);
-  border-left: 2px solid #4ade80;
+  background-color: color-mix(in srgb, var(--ds-success) 20%, transparent);
+  border-left: 2px solid var(--ds-success);
 }
 .marker-item.editing {
-  background-color: rgba(201, 152, 77, 0.15);
+  background-color: var(--ds-accent-soft);
   border-left: 2px solid var(--accent-primary);
 }
 .marker-time {
@@ -707,7 +707,7 @@ const backgroundPresetOptions = computed(() => {
 .marker-action {
   font-size: 9px;
   color: var(--accent-ink);
-  background-color: rgba(201, 152, 77, 0.1);
+  background-color: var(--ds-accent-soft);
   padding: 2px 6px;
   border-radius: 3px;
 }
@@ -730,12 +730,12 @@ const backgroundPresetOptions = computed(() => {
   opacity: 0.5;
 }
 .btn-edit-marker:hover {
-  background-color: rgba(201, 152, 77, 0.8);
+  background-color: color-mix(in srgb, var(--ds-accent) 80%, transparent);
   color: var(--accent-text);
   opacity: 1;
 }
 .btn-delete-marker:hover {
-  background-color: rgba(255, 68, 68, 0.8);
+  background-color: color-mix(in srgb, var(--ds-danger) 80%, transparent);
   color: #fff;
   opacity: 1;
 }

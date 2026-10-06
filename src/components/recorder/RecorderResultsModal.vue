@@ -72,7 +72,7 @@ defineEmits(['close'])
 }
 
 .modal-content {
-  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--card-bg) 100%);
+  background: var(--secondary-bg);
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   max-width: 800px;
@@ -138,8 +138,8 @@ defineEmits(['close'])
 }
 
 .modal-close-btn:hover {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  color: var(--ds-danger);
   transform: rotate(90deg);
 }
 

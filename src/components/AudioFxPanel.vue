@@ -125,7 +125,7 @@ const open = ref(false)
 
 <style scoped>
 .audio-fx-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--ds-border);
   padding-top: 8px;
   margin-top: 4px;
 }
@@ -136,12 +136,12 @@ const open = ref(false)
   cursor: pointer;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #ccc;
+  color: var(--ds-text-2);
   padding: 4px 2px;
   user-select: none;
 }
 .fx-header:hover {
-  color: #fff;
+  color: var(--ds-text);
 }
 .chevron {
   width: 7px;
@@ -161,14 +161,14 @@ const open = ref(false)
   margin: 6px 0 4px;
   gap: 8px;
   font-size: 0.82rem;
-  color: #bbb;
+  color: var(--ds-text-2);
 }
 .fx-row {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 0.78rem;
-  color: #aaa;
+  color: var(--ds-text-2);
 }
 .toggle-switch {
   display: flex;
@@ -181,13 +181,13 @@ const open = ref(false)
 .toggle-track {
   width: 28px;
   height: 15px;
-  background: #444;
+  background: var(--ds-surface-3);
   border-radius: 8px;
   position: relative;
   transition: background 0.2s;
 }
 .toggle-switch input:checked + .toggle-track {
-  background: #4a9eff;
+  background: var(--ds-link);
 }
 .toggle-track::after {
   content: '';
@@ -220,8 +220,8 @@ const open = ref(false)
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  color: #7a8da0;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--ds-text-2);
+  border-top: 1px solid var(--ds-border);
   padding-top: 8px;
 }
 </style>

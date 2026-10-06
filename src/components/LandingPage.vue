@@ -633,7 +633,7 @@ function toggleFaq(index) {
 
 .wave-bar {
   width: 8px;
-  background: linear-gradient(180deg, var(--accent-primary) 0%, var(--accent-tertiary) 100%);
+  background: var(--accent-primary);
   border-radius: 4px;
   animation: wave 1.2s ease-in-out infinite;
 }
@@ -939,7 +939,7 @@ function toggleFaq(index) {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--accent-text);
-  background: linear-gradient(135deg, var(--accent-tertiary), var(--accent-primary));
+  background: var(--accent-tertiary);
   padding: 4px 10px;
   border-radius: 999px;
 }
@@ -1102,10 +1102,6 @@ function toggleFaq(index) {
 
 /* ═══ Light Theme Overrides ═══ */
 
-[data-theme='light'] .wave-bar {
-  background: linear-gradient(180deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
-}
-
 [data-theme='light'] .feature-icon {
   color: var(--text-primary);
 }
@@ -1143,9 +1139,9 @@ function toggleFaq(index) {
   padding: 12px 18px;
   border-radius: 30px;
   border: 1px solid var(--accent-primary);
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-tertiary) 100%);
+  background: var(--accent-primary);
   color: var(--accent-text);
-  font-family: var(--font-sans, 'Supreme', sans-serif);
+  font-family: var(--font-sans);
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
@@ -1165,14 +1161,10 @@ function toggleFaq(index) {
   z-index: 1500;
   overflow-y: auto;
   padding: 24px 20px 96px;
-  background: linear-gradient(180deg, var(--primary-bg) 0%, var(--primary-bg) 100%);
+  background: var(--primary-bg);
   border-left: 1px solid var(--border-color);
   box-shadow: -12px 0 40px rgba(0, 0, 0, 0.45);
   animation: drawerSlideIn 0.28s ease;
-}
-
-[data-theme='light'] .admin-drawer {
-  background: linear-gradient(180deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
 }
 
 @keyframes drawerSlideIn {

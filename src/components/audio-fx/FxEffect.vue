@@ -23,7 +23,7 @@ defineEmits(['update:modelValue'])
 
 <style scoped>
 .fx-effect {
-  border-left: 2px solid rgba(74, 158, 255, 0.2);
+  border-left: 2px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
   margin: 4px 0;
   padding-left: 6px;
 }
@@ -36,10 +36,10 @@ defineEmits(['update:modelValue'])
   gap: 5px;
   cursor: pointer;
   font-size: 0.8rem;
-  color: #ccc;
+  color: var(--ds-text-2);
 }
 .fx-check input {
-  accent-color: #4a9eff;
+  accent-color: var(--ds-link);
 }
 .fx-effect-body {
   display: flex;

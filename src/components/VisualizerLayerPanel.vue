@@ -537,7 +537,7 @@ function updateProperty(layerId, property, value) {
 /* ═══ Effekte pro Layer ═══ */
 .layer-effects {
   margin-top: 8px;
-  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border-top: 1px solid var(--border-color);
   padding-top: 6px;
 }
 .layer-effects-header {
@@ -556,12 +556,12 @@ function updateProperty(layerId, property, value) {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
 }
 .layer-effects-count {
   font-size: 0.55rem;
-  color: var(--accent-text, #091428);
-  background-color: var(--accent-primary, #c9984d);
+  color: var(--accent-text);
+  background-color: var(--accent-primary);
   padding: 0 5px;
   border-radius: 8px;
 }
@@ -585,7 +585,7 @@ function updateProperty(layerId, property, value) {
 .layer-presets {
   margin-top: 10px;
   padding-top: 8px;
-  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border-top: 1px solid var(--border-color);
 }
 .layer-presets-header {
   display: flex;
@@ -598,12 +598,12 @@ function updateProperty(layerId, property, value) {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
 }
 .layer-presets-count {
   font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
-  background-color: rgba(201, 152, 77, 0.2);
+  color: var(--text-muted);
+  background-color: var(--ds-accent-soft);
   padding: 1px 5px;
   border-radius: 8px;
 }
@@ -615,26 +615,26 @@ function updateProperty(layerId, property, value) {
 .preset-name-input {
   flex: 1;
   min-width: 0;
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
   padding: 6px 8px;
   font-size: 0.6rem;
 }
 .preset-name-input:focus {
   outline: none;
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 .preset-name-input::placeholder {
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
 }
 .save-preset-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .save-preset-btn:disabled:hover {
-  background-color: var(--accent-primary, #c9984d);
+  background-color: var(--accent-primary);
 }
 .preset-list {
   list-style: none;
@@ -648,18 +648,18 @@ function updateProperty(layerId, property, value) {
   display: flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border: 1px solid var(--border-color);
   border-radius: 5px;
-  background-color: var(--secondary-bg, #0e1c32);
+  background-color: var(--secondary-bg);
   padding: 2px 4px 2px 0;
   transition: all 0.2s ease;
 }
 .preset-item:hover {
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 .preset-item.active {
-  border-color: var(--accent-primary, #c9984d);
-  background-color: rgba(201, 152, 77, 0.15);
+  border-color: var(--accent-primary);
+  background-color: var(--ds-accent-soft);
 }
 .preset-apply-btn {
   flex: 1;
@@ -669,7 +669,7 @@ function updateProperty(layerId, property, value) {
   gap: 6px;
   background: transparent;
   border: none;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   padding: 5px 8px;
   font-size: 0.6rem;
   font-weight: 500;
@@ -677,7 +677,7 @@ function updateProperty(layerId, property, value) {
   cursor: pointer;
 }
 .preset-item.active .preset-apply-btn {
-  color: var(--accent-tertiary, #f8e1a9);
+  color: var(--accent-tertiary);
   font-weight: 600;
 }
 .preset-name {
@@ -688,8 +688,8 @@ function updateProperty(layerId, property, value) {
 }
 .preset-layer-count {
   font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
-  background-color: rgba(201, 152, 77, 0.2);
+  color: var(--text-muted);
+  background-color: var(--ds-accent-soft);
   padding: 1px 5px;
   border-radius: 8px;
 }
@@ -713,10 +713,10 @@ function updateProperty(layerId, property, value) {
 }
 
 .layer-panel {
-  background-color: var(--card-bg, #142640);
+  background-color: var(--card-bg);
   border-radius: 8px;
   padding: 10px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border: 1px solid var(--border-color);
   margin-top: 10px;
 }
 
@@ -736,15 +736,15 @@ function updateProperty(layerId, property, value) {
 .header-title {
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
 
 .toggle-btn {
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
   padding: 4px 10px;
   font-size: 0.6rem;
@@ -754,14 +754,14 @@ function updateProperty(layerId, property, value) {
 }
 
 .toggle-btn:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
 }
 
 .toggle-btn.active {
-  background-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
-  border-color: var(--accent-primary, #c9984d);
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
+  border-color: var(--accent-primary);
 }
 
 .layer-content {
@@ -778,9 +778,9 @@ function updateProperty(layerId, property, value) {
 
 .add-layer-select {
   flex: 1;
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
   padding: 6px 8px;
   font-size: 0.6rem;
@@ -790,22 +790,22 @@ function updateProperty(layerId, property, value) {
 
 .add-layer-select:focus {
   outline: none;
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 
 .add-layer-select optgroup {
   font-weight: 600;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
 }
 
 .add-layer-select option {
-  background-color: var(--card-bg, #142640);
-  color: var(--text-primary, #e9e9eb);
+  background-color: var(--card-bg);
+  color: var(--text-primary);
 }
 
 .add-layer-btn {
-  background-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
   border: none;
   border-radius: 5px;
   padding: 6px 12px;
@@ -821,7 +821,7 @@ function updateProperty(layerId, property, value) {
 }
 
 .add-layer-btn:hover {
-  background-color: var(--accent-tertiary, #f8e1a9);
+  background-color: var(--accent-tertiary);
 }
 
 .layer-list {
@@ -840,25 +840,21 @@ function updateProperty(layerId, property, value) {
 }
 
 .layer-item {
-  background-color: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
   overflow: hidden;
-  /* Die Liste ist eine Flex-Spalte mit max-height. Wegen overflow: hidden
-     faellt das implizite min-height: auto weg und die Karten wuerden
-     zusammengedrueckt statt die Liste ueberlaufen zu lassen: die aufgeklappte
-     Karte wird abgeschnitten und es erscheint kein Scrollbalken. */
   flex-shrink: 0;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .layer-item:hover {
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 
 .layer-item.active {
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
   border-width: 2px;
 }
 
@@ -874,11 +870,11 @@ function updateProperty(layerId, property, value) {
 }
 
 .visibility-btn {
-  background-color: var(--card-bg, #142640);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 3px;
   cursor: pointer;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   font-size: 0.5rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -889,22 +885,22 @@ function updateProperty(layerId, property, value) {
 }
 
 .visibility-btn:hover {
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--text-primary, #e9e9eb);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 .layer-color {
   width: 14px;
   height: 14px;
   border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--ds-border);
   flex-shrink: 0;
 }
 
 .layer-name {
   flex: 1;
   font-size: 0.6rem;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -916,9 +912,9 @@ function updateProperty(layerId, property, value) {
 }
 
 .action-btn {
-  background-color: var(--card-bg, #142640);
-  color: var(--text-muted, #7a8da0);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  background-color: var(--card-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
   border-radius: 3px;
   min-width: 18px;
   height: 18px;
@@ -952,9 +948,9 @@ function updateProperty(layerId, property, value) {
 }
 
 .action-btn:hover:not(:disabled) {
-  background-color: var(--accent-primary, #c9984d);
-  color: var(--accent-text, #091428);
-  border-color: var(--accent-primary, #c9984d);
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
+  border-color: var(--accent-primary);
 }
 
 .action-btn:disabled {
@@ -963,17 +959,17 @@ function updateProperty(layerId, property, value) {
 }
 
 .delete-btn:hover:not(:disabled) {
-  background-color: #ff6b6b;
-  border-color: #ff6b6b;
+  background-color: var(--ds-danger);
+  border-color: var(--ds-danger);
 }
 
 .layer-details {
-  background-color: var(--card-bg, #142640);
+  background-color: var(--card-bg);
   padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  border-top: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border-top: 1px solid var(--border-color);
 }
 
 .detail-row {
@@ -984,14 +980,14 @@ function updateProperty(layerId, property, value) {
 
 .detail-label {
   font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .detail-select {
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 4px 6px;
   font-size: 0.6rem;
@@ -1000,16 +996,16 @@ function updateProperty(layerId, property, value) {
 
 .detail-select:focus {
   outline: none;
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 
 .detail-color {
   width: 100%;
   height: 24px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   cursor: pointer;
-  background-color: var(--secondary-bg, #0e1c32);
+  background-color: var(--secondary-bg);
 }
 
 .detail-color::-webkit-color-swatch-wrapper {
@@ -1029,11 +1025,7 @@ function updateProperty(layerId, property, value) {
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
-  background: linear-gradient(
-    to right,
-    var(--secondary-bg, #0e1c32) 0%,
-    var(--accent-primary, #c9984d) 100%
-  );
+  background: var(--secondary-bg);
 }
 
 .detail-slider::-webkit-slider-thumb {
@@ -1042,9 +1034,9 @@ function updateProperty(layerId, property, value) {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--accent-tertiary, #f8e1a9);
+  background: var(--accent-tertiary);
   cursor: pointer;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--ds-surface-1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -1052,40 +1044,40 @@ function updateProperty(layerId, property, value) {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--accent-tertiary, #f8e1a9);
+  background: var(--accent-tertiary);
   cursor: pointer;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--ds-surface-1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .position-slider {
-  background: linear-gradient(to right, #444 0%, #6ea8fe 50%, #444 100%);
+  background: var(--ds-surface-3);
 }
 
 .position-slider::-webkit-slider-thumb {
-  background: #ff9800;
+  background: var(--ds-warning);
 }
 
 .position-slider::-moz-range-thumb {
-  background: #ff9800;
+  background: var(--ds-warning);
 }
 
 .scale-slider {
-  background: linear-gradient(to right, #333 0%, #4caf50 50%, #8bc34a 100%);
+  background: var(--ds-surface-3);
 }
 
 .scale-slider::-webkit-slider-thumb {
-  background: #4caf50;
+  background: var(--ds-success);
 }
 
 .scale-slider::-moz-range-thumb {
-  background: #4caf50;
+  background: var(--ds-success);
 }
 
 .no-layers {
   text-align: center;
   padding: 15px;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   font-size: 0.65rem;
   font-style: italic;
 }
@@ -1096,17 +1088,17 @@ function updateProperty(layerId, property, value) {
 }
 
 .layer-list::-webkit-scrollbar-track {
-  background: var(--card-bg, #142640);
+  background: var(--card-bg);
   border-radius: 3px;
 }
 
 .layer-list::-webkit-scrollbar-thumb {
-  background: var(--border-color, rgba(201, 152, 77, 0.3));
+  background: var(--border-color);
   border-radius: 3px;
 }
 
 .layer-list::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-primary, #c9984d);
+  background: var(--accent-primary);
 }
 
 /* ═══ Light Theme Overrides ═══ */
@@ -1132,16 +1124,11 @@ function updateProperty(layerId, property, value) {
 }
 
 [data-theme='light'] .layer-color {
-  border-color: rgba(0, 0, 0, 0.2);
+  border-color: var(--ds-border);
 }
 
 [data-theme='light'] .action-btn {
   border-color: var(--border-color);
-}
-
-[data-theme='light'] .delete-btn:hover:not(:disabled) {
-  background-color: #ff6b6b;
-  border-color: #ff6b6b;
 }
 
 [data-theme='light'] .layer-details {
@@ -1154,10 +1141,6 @@ function updateProperty(layerId, property, value) {
 
 [data-theme='light'] .detail-color {
   border-color: var(--border-color);
-}
-
-[data-theme='light'] .detail-slider {
-  background: linear-gradient(to right, var(--secondary-bg) 0%, var(--accent-primary) 100%);
 }
 
 [data-theme='light'] .detail-slider::-webkit-slider-thumb {
@@ -1173,11 +1156,11 @@ function updateProperty(layerId, property, value) {
 }
 
 [data-theme='light'] .position-slider {
-  background: linear-gradient(to right, #e0e0e0 0%, #6ea8fe 50%, #e0e0e0 100%);
+  background: var(--ds-surface-2);
 }
 
 [data-theme='light'] .scale-slider {
-  background: linear-gradient(to right, #e0e0e0 0%, #4caf50 50%, #8bc34a 100%);
+  background: var(--ds-surface-2);
 }
 
 [data-theme='light'] .layer-list::-webkit-scrollbar-thumb {

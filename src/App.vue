@@ -154,16 +154,16 @@ body {
   display: flex;
   flex-direction: column;
   font-family: var(--font-sans);
-  background-color: var(--primary-bg, #091428);
+  background-color: var(--primary-bg);
 }
 
 #app {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--primary-bg, #091428);
-  color: var(--text-primary, #e9e9eb);
-  font-family: var(--font-sans, 'Supreme', sans-serif);
+  background-color: var(--primary-bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
   font-size: 12px;
 }
 

@@ -151,7 +151,7 @@ const beatBoostLabel = computed(() =>
 .react-shape__label {
   display: block;
   font-size: 0.6rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -171,11 +171,7 @@ const beatBoostLabel = computed(() =>
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
-  background: linear-gradient(
-    90deg,
-    var(--accent-primary, #c9984d) 0%,
-    var(--accent-secondary, #d4b483) 100%
-  );
+  background: var(--accent-primary);
 }
 
 .react-shape--compact .react-shape__slider {
@@ -189,9 +185,9 @@ const beatBoostLabel = computed(() =>
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--accent-tertiary, #f8e1a9);
+  background: var(--accent-tertiary);
   cursor: pointer;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--ds-surface-1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -199,17 +195,17 @@ const beatBoostLabel = computed(() =>
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--accent-tertiary, #f8e1a9);
+  background: var(--accent-tertiary);
   cursor: pointer;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--ds-surface-1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .react-shape__select {
   width: 100%;
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 4px 6px;
   font-size: 0.65rem;
@@ -222,7 +218,7 @@ const beatBoostLabel = computed(() =>
 
 .react-shape__select:focus {
   outline: none;
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 
 [data-theme='light'] .react-shape__select {

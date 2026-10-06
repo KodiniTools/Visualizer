@@ -667,7 +667,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--primary-bg) 100%);
+  background: var(--secondary-bg);
   border-radius: 10px;
   padding: 16px;
   border: 1px solid var(--card-bg);
@@ -682,7 +682,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: var(--ds-text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -704,16 +704,16 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   cursor: pointer;
 }
 .btn-reset-adjustments:hover {
   background: var(--btn-hover);
 }
 [data-theme='light'] .btn-reset-adjustments {
-  background: #f0ead0;
+  background: var(--ds-surface-3);
   color: var(--text-primary);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 .background-mode {
   display: flex;
@@ -732,10 +732,10 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   align-items: center;
   gap: 5px;
   cursor: pointer;
-  color: #e0e0e0;
+  color: var(--ds-text);
 }
 .radio-label input {
-  accent-color: #6ea8fe;
+  accent-color: var(--ds-link);
 }
 .radio-label.disabled {
   opacity: 0.5;
@@ -749,7 +749,7 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: #e0e0e0;
+  color: var(--ds-text);
 }
 .slideshow-base-color,
 .slideshow-workspace-color {
@@ -778,6 +778,6 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   cursor: not-allowed;
 }
 [data-theme='light'] .layer-section {
-  border-top-color: #d4c8a8;
+  border-top-color: var(--ds-border);
 }
 </style>

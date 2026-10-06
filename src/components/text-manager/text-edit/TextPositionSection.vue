@@ -145,12 +145,12 @@ const {
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #fff;
+  color: var(--ds-text);
   font-size: 12px;
   margin-left: 8px;
 }
 .number-input:focus {
-  border-color: #6ea8fe;
+  border-color: var(--ds-link);
   outline: none;
 }
 .unit-label {
@@ -165,7 +165,7 @@ const {
   margin-top: 8px;
 }
 .btn-pos {
-  background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   color: var(--text-muted);
   padding: 8px;
@@ -178,14 +178,14 @@ const {
   justify-content: center;
 }
 .btn-pos:hover {
-  background: linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg) 100%);
-  border-color: #6ea8fe;
-  color: #6ea8fe;
+  background: var(--card-bg);
+  border-color: var(--ds-link);
+  color: var(--ds-link);
 }
 .btn-pos.active {
-  background: linear-gradient(135deg, #3a5a8a 0%, #2a4a7a 100%);
-  border-color: #6ea8fe;
-  color: #6ea8fe;
+  background: var(--ds-surface-3);
+  border-color: var(--ds-link);
+  color: var(--ds-link);
 }
 
 [data-theme='light'] .number-input {
@@ -196,16 +196,12 @@ const {
   border-color: var(--accent-primary);
 }
 [data-theme='light'] .btn-pos:hover {
-  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--card-bg) 100%);
+  background: var(--secondary-bg);
   border-color: var(--accent-primary);
   color: var(--accent-ink);
 }
 [data-theme='light'] .btn-pos.active {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent-primary) 10%, transparent) 0%,
-    color-mix(in srgb, var(--accent-primary) 6%, transparent) 100%
-  );
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
   border-color: var(--accent-primary);
   color: var(--accent-ink);
 }

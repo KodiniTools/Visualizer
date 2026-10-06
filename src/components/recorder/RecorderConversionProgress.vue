@@ -136,8 +136,8 @@ const currentLabel = computed(() => {
 
 <style scoped>
 .conversion-progress {
-  background: rgba(110, 168, 254, 0.1);
-  border: 1px solid rgba(110, 168, 254, 0.3);
+  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
   border-radius: 6px;
   padding: 10px;
   display: flex;
@@ -154,13 +154,13 @@ const currentLabel = computed(() => {
 .progress-label {
   font-size: 11px;
   font-weight: 500;
-  color: #6ea8fe;
+  color: var(--ds-link);
 }
 
 .progress-percent {
   font-size: 11px;
   font-weight: 600;
-  color: #6ea8fe;
+  color: var(--ds-link);
 }
 
 .progress-bar {
@@ -172,17 +172,17 @@ const currentLabel = computed(() => {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6ea8fe, #4fc3f7);
+  background: var(--ds-link);
   border-radius: 3px;
   transition: width 0.3s ease;
 }
 
 .progress-fill.completed {
-  background: linear-gradient(90deg, #4caf50, #66bb6a);
+  background: var(--ds-success);
 }
 
 .progress-fill.error {
-  background: linear-gradient(90deg, #f44336, #e57373);
+  background: var(--ds-danger);
 }
 
 /* Download */
@@ -192,7 +192,7 @@ const currentLabel = computed(() => {
   justify-content: center;
   gap: 6px;
   padding: 8px 12px;
-  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  background: var(--ds-success);
   color: white;
   text-decoration: none;
   border-radius: 6px;
@@ -209,7 +209,7 @@ const currentLabel = computed(() => {
 }
 
 .mp4-download-btn:hover {
-  background: linear-gradient(135deg, #45a049 0%, #4caf50 100%);
+  background: var(--ds-success);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
@@ -228,9 +228,9 @@ const currentLabel = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(158, 158, 158, 0.2);
-  color: #9e9e9e;
-  border: 1px solid rgba(158, 158, 158, 0.3);
+  background: var(--ds-surface-3);
+  color: var(--ds-text-2);
+  border: 1px solid var(--ds-border-strong);
   padding: 8px;
   border-radius: 5px;
   cursor: pointer;
@@ -239,9 +239,9 @@ const currentLabel = computed(() => {
 }
 
 .btn-close-conversion:hover {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  border-color: rgba(244, 67, 54, 0.3);
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  color: var(--ds-danger);
+  border-color: color-mix(in srgb, var(--ds-danger) 30%, transparent);
 }
 
 .icon {
@@ -259,10 +259,10 @@ const currentLabel = computed(() => {
 
 .error-message {
   font-size: 11px;
-  color: #f44336;
+  color: var(--ds-danger);
   text-align: center;
   padding: 4px 8px;
-  background: rgba(244, 67, 54, 0.1);
+  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
   border-radius: 4px;
   max-width: 100%;
   word-break: break-word;
@@ -291,71 +291,76 @@ const currentLabel = computed(() => {
 }
 
 .btn-retry {
-  background: rgba(255, 152, 0, 0.2);
-  color: #ff9800;
-  border: 1px solid rgba(255, 152, 0, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
+  color: var(--ds-warning);
+  border: 1px solid color-mix(in srgb, var(--ds-warning) 30%, transparent);
 }
 
 .btn-retry:hover {
-  background: rgba(255, 152, 0, 0.3);
+  background: color-mix(in srgb, var(--ds-warning) 30%, transparent);
   transform: translateY(-1px);
 }
 
 .btn-dismiss {
-  background: rgba(158, 158, 158, 0.2);
-  color: #9e9e9e;
-  border: 1px solid rgba(158, 158, 158, 0.3);
+  background: var(--ds-surface-3);
+  color: var(--ds-text-2);
+  border: 1px solid var(--ds-border-strong);
   font-size: 10px;
 }
 
 .btn-dismiss:hover {
-  background: rgba(158, 158, 158, 0.3);
+  background: var(--ds-surface-3);
 }
 
 /* GIF variant */
 .gif-conversion-progress {
-  border-color: rgba(74, 222, 128, 0.25);
-  background-color: rgba(74, 222, 128, 0.04);
+  border-color: color-mix(in srgb, var(--ds-success) 25%, transparent);
+  background-color: color-mix(in srgb, var(--ds-success) 4%, transparent);
 }
 
 .gif-fill {
-  background: linear-gradient(90deg, #22c55e 0%, #4ade80 50%, #22c55e 100%) !important;
+  background: linear-gradient(
+    90deg,
+    var(--ds-success) 0%,
+    var(--ds-success) 50%,
+    var(--ds-success) 100%
+  ) !important;
   background-size: 200% 100% !important;
 }
 
 .gif-fill.completed {
-  background: #22c55e !important;
+  background: var(--ds-success) !important;
   animation: none !important;
 }
 
 .gif-download-btn {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  background: linear-gradient(135deg, var(--ds-success) 0%, var(--ds-success) 100%) !important;
 }
 
 .gif-download-btn:hover {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+  background: linear-gradient(135deg, var(--ds-success) 0%, var(--ds-success) 100%) !important;
 }
 
 /* HQ variant */
 .hq-conversion-progress {
-  border: 1px solid rgba(234, 179, 8, 0.2);
-  background: rgba(234, 179, 8, 0.05);
+  border: 1px solid color-mix(in srgb, var(--ds-warning) 20%, transparent);
+  background: color-mix(in srgb, var(--ds-warning) 5%, transparent);
 }
 
 .hq-fill {
-  background: linear-gradient(90deg, #ca8a04, #eab308) !important;
+  background: linear-gradient(90deg, var(--ds-warning), var(--ds-warning)) !important;
 }
 
 .hq-fill.completed {
-  background: linear-gradient(90deg, #16a34a, #22c55e) !important;
+  background: linear-gradient(90deg, var(--ds-success), var(--ds-success)) !important;
 }
 
 .hq-download-btn {
-  background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%) !important;
+  background: linear-gradient(135deg, var(--ds-warning) 0%, var(--ds-warning) 100%) !important;
 }
 
 .hq-download-btn:hover {
-  background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;
+  background: linear-gradient(135deg, var(--ds-warning) 0%, var(--ds-warning) 100%) !important;
 }
 
 /* Light Theme */
@@ -374,7 +379,7 @@ const currentLabel = computed(() => {
 }
 
 [data-theme='light'] .progress-fill {
-  background: linear-gradient(90deg, var(--accent-primary), #3a7cc6);
+  background: var(--accent-primary);
 }
 
 [data-theme='light'] .mp4-download-btn:hover {
@@ -384,31 +389,31 @@ const currentLabel = computed(() => {
 [data-theme='light'] .btn-close-conversion {
   background: rgba(0, 0, 0, 0.05);
   color: var(--text-muted);
-  border-color: rgba(0, 0, 0, 0.12);
+  border-color: var(--ds-border);
 }
 
 [data-theme='light'] .btn-close-conversion:hover {
-  background: rgba(244, 67, 54, 0.1);
-  border-color: rgba(244, 67, 54, 0.2);
+  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 20%, transparent);
 }
 
 [data-theme='light'] .error-message {
-  background: rgba(244, 67, 54, 0.08);
+  background: color-mix(in srgb, var(--ds-danger) 8%, transparent);
 }
 
 [data-theme='light'] .btn-retry {
-  background: rgba(255, 152, 0, 0.1);
-  border-color: rgba(255, 152, 0, 0.25);
+  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-warning) 25%, transparent);
 }
 
 [data-theme='light'] .btn-retry:hover {
-  background: rgba(255, 152, 0, 0.2);
+  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
 }
 
 [data-theme='light'] .btn-dismiss {
   background: rgba(0, 0, 0, 0.05);
   color: var(--text-muted);
-  border-color: rgba(0, 0, 0, 0.12);
+  border-color: var(--ds-border);
 }
 
 [data-theme='light'] .btn-dismiss:hover {
@@ -416,20 +421,12 @@ const currentLabel = computed(() => {
 }
 
 [data-theme='light'] .gif-conversion-progress {
-  border-color: rgba(34, 197, 94, 0.3);
-  background-color: rgba(34, 197, 94, 0.05);
-}
-
-[data-theme='light'] .gif-download-btn {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+  border-color: color-mix(in srgb, var(--ds-success) 30%, transparent);
+  background-color: color-mix(in srgb, var(--ds-success) 5%, transparent);
 }
 
 [data-theme='light'] .hq-conversion-progress {
-  border-color: rgba(202, 138, 4, 0.3);
-  background: rgba(202, 138, 4, 0.06);
-}
-
-[data-theme='light'] .hq-download-btn {
-  background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%) !important;
+  border-color: color-mix(in srgb, var(--ds-warning) 30%, transparent);
+  background: color-mix(in srgb, var(--ds-warning) 6%, transparent);
 }
 </style>

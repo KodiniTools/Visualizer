@@ -94,19 +94,19 @@ function handleConfirmReset() {
 <style scoped>
 .info-text {
   font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   line-height: 1.3;
   margin: 0 0 6px 0;
 }
 
 .info-text.warning {
-  color: #ff9800;
+  color: var(--ds-warning);
   font-weight: 500;
 }
 
 .hint-text {
   font-size: 0.5rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   font-style: italic;
 }
 
@@ -123,10 +123,10 @@ function handleConfirmReset() {
   justify-content: center;
   gap: 4px;
   padding: 8px 10px;
-  background: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   font-size: 0.55rem;
   font-weight: 500;
   cursor: pointer;
@@ -134,9 +134,9 @@ function handleConfirmReset() {
 }
 
 .btn-reset-option:hover:not(:disabled) {
-  background: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-tertiary, #f8e1a9);
+  background: var(--btn-hover);
+  border-color: var(--accent-primary);
+  color: var(--accent-tertiary);
 }
 
 .btn-reset-option:disabled {
@@ -158,31 +158,31 @@ function handleConfirmReset() {
 }
 
 .btn-secondary {
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-primary, #e9e9eb);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover {
-  background-color: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
   transform: translateY(-1px);
 }
 
 .btn-danger {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  border: 1px solid rgba(244, 67, 54, 0.3);
+  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
+  color: var(--ds-danger);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: rgba(244, 67, 54, 0.3);
+  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
   transform: translateY(-1px);
 }
 
 .btn-danger:disabled {
-  background-color: var(--secondary-bg, #0e1c32);
-  color: var(--text-muted, #7a8da0);
+  background-color: var(--secondary-bg);
+  color: var(--text-muted);
   cursor: not-allowed;
   opacity: 0.5;
 }
@@ -193,7 +193,7 @@ function handleConfirmReset() {
 
 .divider {
   height: 1px;
-  background-color: var(--border-color, rgba(201, 152, 77, 0.2));
+  background-color: var(--border-color);
   margin: 8px 0;
 }
 
@@ -211,8 +211,8 @@ function handleConfirmReset() {
 }
 
 .confirm-dialog {
-  background-color: var(--card-bg, #142640);
-  border: 1px solid rgba(244, 67, 54, 0.5);
+  background-color: var(--card-bg);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 50%, transparent);
   border-radius: 8px;
   padding: 12px;
   max-width: 300px;
@@ -223,7 +223,7 @@ function handleConfirmReset() {
   margin: 0 0 8px 0;
   font-size: 0.7rem;
   font-weight: 600;
-  color: #f44336;
+  color: var(--ds-danger);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -232,7 +232,7 @@ function handleConfirmReset() {
   margin: 0 0 12px 0;
   font-size: 0.6rem;
   line-height: 1.5;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
 }
 
 .confirm-actions {
@@ -246,7 +246,7 @@ function handleConfirmReset() {
 
 /* Light theme overrides */
 [data-theme='light'] .btn-reset-option {
-  background: #fdfbf2;
+  background: var(--ds-surface-2);
   border-color: var(--border-color);
 }
 

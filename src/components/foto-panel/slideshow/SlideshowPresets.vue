@@ -151,7 +151,7 @@ function save() {
   border-radius: 6px;
   background-color: var(--card-bg);
   font-size: 11px;
-  color: #e0e0e0;
+  color: var(--ds-text);
 }
 .storage-line {
   display: flex;
@@ -173,10 +173,10 @@ function save() {
 }
 .storage-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6ea8fe 0%, #5a9af8 100%);
+  background: var(--ds-link);
 }
 .storage-info.warning .storage-bar-fill {
-  background: #f1c40f;
+  background: var(--ds-warning);
 }
 .btn-cleanup-storage {
   align-self: flex-end;
@@ -198,17 +198,17 @@ function save() {
   cursor: progress;
 }
 [data-theme='light'] .btn-cleanup-storage {
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 .storage-info .hint {
   padding-left: 0;
 }
 [data-theme='light'] .storage-info {
-  background-color: #f0ead0;
+  background-color: var(--ds-surface-3);
   color: var(--text-primary);
 }
 [data-theme='light'] .storage-bar {
-  background: #d4c8a8;
+  background: var(--ds-surface-3);
 }
 .preset-save-row {
   display: flex;
@@ -220,7 +220,7 @@ function save() {
   padding: 5px 8px;
   font-size: 12px;
   background: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
@@ -246,7 +246,7 @@ function save() {
   flex: 1;
   min-width: 0;
   font-size: 12px;
-  color: #e0e0e0;
+  color: var(--ds-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -271,33 +271,33 @@ function save() {
   border-radius: 4px;
   cursor: pointer;
   color: #fff;
-  background: linear-gradient(135deg, #6ea8fe 0%, #5a9af8 100%);
+  background: var(--ds-link);
 }
 .btn-delete-preset {
   padding: 4px 7px;
-  background: rgba(231, 76, 60, 0.25);
-  color: #e74c3c;
+  background: color-mix(in srgb, var(--ds-danger) 25%, transparent);
+  color: var(--ds-danger);
 }
 .btn-save-preset:hover,
 .btn-load-preset:hover {
   filter: brightness(1.1);
 }
 .btn-delete-preset:hover {
-  background: rgba(231, 76, 60, 0.4);
+  background: color-mix(in srgb, var(--ds-danger) 40%, transparent);
 }
 [data-theme='light'] .preset-name-input {
   color: var(--text-primary);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 [data-theme='light'] .preset-item {
-  background-color: #f0ead0;
+  background-color: var(--ds-surface-3);
 }
 [data-theme='light'] .preset-name {
   color: var(--text-primary);
 }
 [data-theme='light'] .btn-save-preset,
 [data-theme='light'] .btn-load-preset {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+  background: var(--accent-primary);
   color: var(--accent-text);
 }
 </style>

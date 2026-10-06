@@ -146,7 +146,7 @@ button {
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  color: #e0e0e0;
+  color: var(--ds-text);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -166,7 +166,7 @@ button:active:not(:disabled) {
 button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  background: #1a1a1a;
+  background: var(--ds-surface-1);
 }
 
 .icon {
@@ -184,7 +184,7 @@ button:disabled {
   font-size: 12px;
   color: var(--text-muted);
   padding: 8px;
-  background: #151515;
+  background: var(--ds-surface-0);
   border-radius: 4px;
 }
 
@@ -194,7 +194,7 @@ button:disabled {
 }
 
 .current-action {
-  color: #666;
+  color: var(--ds-text-3);
   font-style: italic;
 }
 
@@ -202,7 +202,7 @@ button:disabled {
 .history-list {
   max-height: 300px;
   overflow-y: auto;
-  background: #151515;
+  background: var(--ds-surface-0);
   border-radius: 4px;
   padding: 8px;
 }
@@ -210,7 +210,7 @@ button:disabled {
 .history-list-header {
   font-size: 11px;
   font-weight: 600;
-  color: #666;
+  color: var(--ds-text-3);
   text-transform: uppercase;
   margin-bottom: 8px;
   padding: 4px 8px;
@@ -232,12 +232,12 @@ button:disabled {
 }
 
 .history-item.active {
-  background: #2d5a8d;
+  background: var(--ds-link);
   color: white;
 }
 
 .history-index {
-  color: #666;
+  color: var(--ds-text-3);
   font-weight: 600;
   min-width: 20px;
 }
@@ -267,7 +267,7 @@ button:disabled {
 }
 
 .history-list::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: var(--ds-surface-0);
   border-radius: 3px;
 }
 
@@ -283,22 +283,22 @@ button:disabled {
 /* ═══ Light Theme Overrides ═══ */
 [data-theme='light'] .undo-redo-panel {
   background: var(--card-bg);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 
 [data-theme='light'] button {
-  background: #f0ead0;
-  border-color: #d4c8a8;
+  background: var(--ds-surface-3);
+  border-color: var(--ds-border);
   color: var(--text-primary);
 }
 
 [data-theme='light'] button:hover:not(:disabled) {
-  background: #e8e0c0;
+  background: var(--ds-surface-3);
   border-color: var(--accent-primary);
 }
 
 [data-theme='light'] button:disabled {
-  background: #f5f0dc;
+  background: var(--ds-surface-2);
 }
 
 [data-theme='light'] .history-info {
@@ -322,7 +322,7 @@ button:disabled {
 }
 
 [data-theme='light'] .history-item:hover {
-  background: #e8e0c0;
+  background: var(--ds-surface-3);
 }
 
 [data-theme='light'] .history-item.active {
@@ -347,11 +347,11 @@ button:disabled {
 }
 
 [data-theme='light'] .history-list::-webkit-scrollbar-track {
-  background: #f5f0dc;
+  background: var(--ds-surface-2);
 }
 
 [data-theme='light'] .history-list::-webkit-scrollbar-thumb {
-  background: #d4c8a8;
+  background: var(--ds-surface-3);
 }
 
 [data-theme='light'] .history-list::-webkit-scrollbar-thumb:hover {

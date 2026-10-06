@@ -55,19 +55,19 @@ const save = () => store.save()
 .admin-tab-hint {
   margin: 0 0 16px 0;
   font-size: 0.8rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
 }
 .admin-card-group {
   padding: 16px;
   margin-bottom: 16px;
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  background: var(--panel-highlight, rgba(201, 152, 77, 0.05));
+  background: var(--panel-highlight);
 }
 .admin-card-title {
   margin: 0 0 12px 0;
   font-size: 0.9rem;
   font-weight: 700;
-  color: var(--accent-ink, #c9984d);
+  color: var(--accent-ink);
 }
 </style>

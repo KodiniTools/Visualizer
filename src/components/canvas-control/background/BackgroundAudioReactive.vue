@@ -150,16 +150,16 @@ onBeforeUnmount(stopLevelIndicator)
 .audio-reactive-section {
   margin-top: 10px;
   padding: 8px;
-  background: linear-gradient(180deg, var(--card-bg, #142640) 0%, rgba(139, 92, 246, 0.08) 100%);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
-  border-left: 2px solid #8b5cf6;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-left: 2px solid var(--ds-link);
   border-radius: 6px;
 }
 .audio-reactive-section h5 {
   margin: 0 0 8px 0;
   font-size: 0.6rem;
   font-weight: 600;
-  color: #a78bfa;
+  color: var(--ds-link);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -167,11 +167,6 @@ onBeforeUnmount(stopLevelIndicator)
   color: var(--accent-ink);
 }
 [data-theme='light'] .audio-reactive-section {
-  background: linear-gradient(
-    180deg,
-    var(--card-bg) 0%,
-    color-mix(in srgb, var(--accent-primary) 6%, transparent) 100%
-  );
   border-left-color: var(--accent-primary);
 }
 </style>

@@ -63,10 +63,10 @@ const {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: rgba(42, 42, 42, 0.5);
+  background: color-mix(in srgb, var(--ds-surface-2) 50%, transparent);
   padding: 16px;
   border-radius: 12px;
-  border: 1px solid rgba(110, 168, 254, 0.1);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 10%, transparent);
   margin-bottom: 8px;
 }
 .layer-controls-section .modern-section-header {
@@ -78,12 +78,12 @@ const {
 .layer-info {
   font-size: 12px;
   font-weight: 600;
-  color: var(--image-section-accent, #6ea8fe);
+  color: var(--image-section-accent);
   font-family: 'Courier New', monospace;
-  background: rgba(110, 168, 254, 0.15);
+  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
   padding: 4px 10px;
   border-radius: 12px;
-  border: 1px solid rgba(110, 168, 254, 0.3);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 .layer-buttons {
   display: grid;
@@ -97,10 +97,10 @@ const {
   justify-content: center;
   gap: 2px;
   padding: 6px 4px;
-  background: var(--secondary-bg, #0e1c32);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.2));
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
   font-size: 0.55rem;
   font-weight: 500;
   cursor: pointer;
@@ -108,9 +108,9 @@ const {
   text-align: center;
 }
 .layer-btn:hover:not(:disabled) {
-  background: var(--btn-hover, #1a2a42);
-  border-color: var(--accent-primary, #c9984d);
-  color: var(--accent-tertiary, #f8e1a9);
+  background: var(--btn-hover);
+  border-color: var(--accent-primary);
+  color: var(--accent-tertiary);
 }
 .layer-btn:disabled {
   opacity: 0.4;
@@ -129,7 +129,7 @@ const {
 .visualizer-layer-toggle {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid rgba(110, 168, 254, 0.15);
+  border-top: 1px solid color-mix(in srgb, var(--ds-link) 15%, transparent);
 }
 .visualizer-layer-toggle .toggle-label {
   display: flex;
@@ -137,12 +137,12 @@ const {
   gap: 8px;
   cursor: pointer;
   font-size: 0.75rem;
-  color: var(--text-primary, #e9e9eb);
+  color: var(--text-primary);
 }
 .visualizer-layer-toggle input[type='checkbox'] {
   width: 16px;
   height: 16px;
-  accent-color: var(--image-section-accent, #6ea8fe);
+  accent-color: var(--image-section-accent);
   cursor: pointer;
 }
 .visualizer-layer-toggle .toggle-text {

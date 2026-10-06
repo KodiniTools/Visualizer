@@ -107,12 +107,12 @@ const { t } = useI18n()
   padding: 4px 6px;
   font-size: 12px;
   background: var(--secondary-bg);
-  color: #e0e0e0;
+  color: var(--ds-text);
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
 [data-theme='light'] .transition-select {
   color: var(--text-primary);
-  border-color: #d4c8a8;
+  border-color: var(--ds-border);
 }
 </style>

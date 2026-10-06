@@ -173,7 +173,7 @@ onUnmounted(() => {
   padding: 0;
   border: none;
   background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--ds-text-2);
   border-radius: 50%;
   cursor: help;
   display: flex;
@@ -184,8 +184,8 @@ onUnmounted(() => {
 
 .tooltip-trigger:hover,
 .tooltip-trigger.active {
-  background: rgba(110, 168, 254, 0.2);
-  color: #6ea8fe;
+  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
+  color: var(--ds-link);
 }
 
 .tooltip-trigger svg {
@@ -211,7 +211,7 @@ onUnmounted(() => {
 .tooltip-content {
   position: fixed;
   z-index: 10001;
-  background: linear-gradient(145deg, var(--card-bg) 0%, var(--secondary-bg) 100%);
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 12px 16px;
@@ -328,10 +328,10 @@ onUnmounted(() => {
   gap: 6px;
   margin-top: 10px;
   padding: 8px 10px;
-  background: rgba(255, 193, 7, 0.1);
+  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
   border-radius: 6px;
   font-size: 11px;
-  color: rgba(255, 193, 7, 0.9);
+  color: var(--ds-warning);
 }
 
 .tooltip-tip .tip-icon {

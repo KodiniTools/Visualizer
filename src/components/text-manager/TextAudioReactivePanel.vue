@@ -325,7 +325,7 @@ onBeforeUnmount(stopLevelIndicator)
   cursor: pointer;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--text-secondary, #f5dfa0);
+  color: var(--text-secondary);
   padding: 6px 0;
   list-style: none;
 }
@@ -341,8 +341,8 @@ onBeforeUnmount(stopLevelIndicator)
   text-transform: uppercase;
 }
 .status-badge.active {
-  background: rgba(74, 222, 128, 0.15);
-  color: #4ade80;
+  background: color-mix(in srgb, var(--ds-success) 15%, transparent);
+  color: var(--ds-success);
 }
 .section-content {
   padding: 4px 0 8px;
@@ -350,15 +350,15 @@ onBeforeUnmount(stopLevelIndicator)
 .advanced-settings {
   margin-top: 10px;
   padding: 8px;
-  background: rgba(139, 92, 246, 0.06);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: color-mix(in srgb, var(--ds-link) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
   border-radius: 6px;
 }
 .advanced-settings summary {
   cursor: pointer;
   font-size: 0.65rem;
   font-weight: 600;
-  color: var(--text-secondary, #f5dfa0);
+  color: var(--text-secondary);
   list-style: none;
 }
 .advanced-settings .control-group {
@@ -373,15 +373,15 @@ onBeforeUnmount(stopLevelIndicator)
 .btn-preset {
   padding: 5px 6px;
   font-size: 0.6rem;
-  background: rgba(139, 92, 246, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
   border-radius: 4px;
   color: var(--text-primary);
   cursor: pointer;
   white-space: nowrap;
 }
 .btn-preset:hover {
-  background: rgba(139, 92, 246, 0.3);
+  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 .effect-checkbox-small {
   display: flex;
@@ -399,18 +399,18 @@ onBeforeUnmount(stopLevelIndicator)
   flex: 1;
   padding: 5px 6px;
   font-size: 0.6rem;
-  background: var(--secondary-bg, #0c1828);
-  border: 1px solid var(--border-color, rgba(201, 152, 77, 0.3));
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   color: var(--text-primary);
   cursor: pointer;
 }
 .btn-reset:hover {
-  border-color: var(--accent-primary, #c9984d);
+  border-color: var(--accent-primary);
 }
 .hint-text {
   font-size: 0.55rem;
-  color: var(--text-muted, #7a8da0);
+  color: var(--text-muted);
   margin-top: 3px;
   line-height: 1.4;
 }

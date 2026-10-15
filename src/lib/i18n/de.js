@@ -8,6 +8,8 @@ export default {
       'Bringe deine Tracks, Podcasts und Audio-Aufnahmen auf das nächste Level. Erstelle im Handumdrehen beeindruckende Audio-Visualisierungen für Social Media, YouTube und Musikvideos – 100 % kostenlos, ohne Anmeldung und direkt in deinem Browser.',
     cta: 'Visualizer starten',
     learnMore: 'Mehr erfahren',
+    imageAlt:
+      'Läufer zwischen leuchtenden pink- und türkisfarbenen Lichtwellen als Symbol für Audio-Visualisierung',
   },
   features: {
     title: 'Leistungsstarke Funktionen',

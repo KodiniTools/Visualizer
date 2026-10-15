@@ -204,26 +204,17 @@
       </div>
     </section>
 
-    <!-- Admin: Login-/Bearbeiten-Button (dezent, unten rechts) -->
-    <div class="admin-fab">
-      <button
-        v-if="!authStore.isAuthenticated"
-        class="admin-fab-btn"
-        title="Adminbereich"
-        @click="showLogin = true"
-      >
-        🔐 Admin
-      </button>
-      <button v-else class="admin-fab-btn" @click="showAdmin = !showAdmin">
-        {{ showAdmin ? '✕ Schließen' : '🔧 Bearbeiten' }}
-      </button>
-    </div>
-
     <!-- Admin: Login-Modal -->
     <LoginModal v-if="showLogin" @close="showLogin = false" @success="showAdmin = true" />
 
     <!-- Admin: Bearbeitungs-Drawer (nur eingeloggt) -->
+    <!-- Öffnen/Schließen per Tastenkürzel Ctrl+Alt+Shift+V (siehe handleAdminShortcut) -->
     <div v-if="authStore.isAuthenticated && showAdmin" class="admin-drawer">
+      <div class="admin-drawer-bar">
+        <UiIconButton label="Adminbereich schließen" size="sm" @click="showAdmin = false">
+          ✕
+        </UiIconButton>
+      </div>
       <AdminPanel />
     </div>
   </div>
@@ -238,6 +229,7 @@ import { useAuthStore } from '../stores/auth'
 import { useLandingContentStore } from '../stores/landingContent'
 import AdminPanel from './admin/AdminPanel.vue'
 import LoginModal from './admin/LoginModal.vue'
+import { UiIconButton } from './ui'
 import { getBlogArticlesNewestFirst } from '../data/blogArticles.js'
 
 const { t, locale } = useI18n()
@@ -272,6 +264,21 @@ const baseUrl = import.meta.env.BASE_URL
 const activeFaq = ref(null)
 const isScrolled = ref(false)
 
+/**
+ * Versteckter Admin-Zugang: Ctrl+Alt+Shift+V öffnet den Login bzw. schaltet
+ * den Bearbeitungs-Drawer um, wenn bereits eingeloggt. `code` statt `key`,
+ * weil Alt/Option das Zeichen je nach Layout verändert (z. B. macOS).
+ */
+function handleAdminShortcut(e) {
+  if (e.repeat || e.code !== 'KeyV' || !e.ctrlKey || !e.altKey || !e.shiftKey || e.metaKey) return
+  e.preventDefault()
+  if (authStore.isAuthenticated) {
+    showAdmin.value = !showAdmin.value
+  } else {
+    showLogin.value = true
+  }
+}
+
 // Scroll listener for header styling
 function handleScroll() {
   isScrolled.value = window.scrollY > 50
@@ -279,6 +286,7 @@ function handleScroll() {
 
 onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
+  window.addEventListener('keydown', handleAdminShortcut)
   handleScroll() // Check initial state
 
   // Landing-Texte laden: zuerst lokaler Stand, dann Server-Broadcast (falls
@@ -293,6 +301,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('keydown', handleAdminShortcut)
   if (contentPollInterval) {
     clearInterval(contentPollInterval)
     contentPollInterval = null
@@ -1107,31 +1116,7 @@ function toggleFaq(index) {
   color: var(--accent-ink);
 }
 
-/* ═══ Adminbereich (FAB + Drawer) ═══ */
-.admin-fab {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: var(--ds-z-dialog);
-}
-
-.admin-fab-btn {
-  padding: 12px 18px;
-  border-radius: var(--ds-radius-full);
-  border: 1px solid var(--accent-primary);
-  background: var(--accent-primary);
-  color: var(--accent-text);
-  font-family: var(--ds-font-sans);
-  font-size: var(--ds-text-md);
-  font-weight: var(--ds-weight-bold);
-  cursor: pointer;
-  box-shadow: var(--ds-shadow-overlay);
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.admin-fab-btn:hover {
-}
-
+/* ═══ Adminbereich (Drawer) ═══ */
 .admin-drawer {
   position: fixed;
   top: 0;
@@ -1145,6 +1130,12 @@ function toggleFaq(index) {
   border-left: 1px solid var(--border-color);
   box-shadow: var(--ds-shadow-overlay);
   animation: drawerSlideIn 0.28s ease;
+}
+
+.admin-drawer-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin: -12px -8px 8px 0;
 }
 
 @keyframes drawerSlideIn {

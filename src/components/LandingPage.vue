@@ -47,14 +47,15 @@
         </div>
       </div>
       <div class="hero-visual">
-        <div class="visualizer-preview">
-          <div
-            v-for="n in 20"
-            :key="n"
-            class="wave-bar"
-            :style="{ animationDelay: `${n * 0.05}s` }"
-          ></div>
-        </div>
+        <img
+          :src="`${baseUrl}visualizer.webp`"
+          :alt="t('hero.imageAlt')"
+          class="hero-image"
+          width="1200"
+          height="670"
+          fetchpriority="high"
+          decoding="async"
+        />
       </div>
     </section>
 
@@ -620,30 +621,11 @@ function toggleFaq(index) {
   display: none;
 }
 
-.visualizer-preview {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  height: 200px;
-  gap: 4px;
-  padding: 20px;
-}
-
-.wave-bar {
-  width: 8px;
-  background: var(--accent-primary);
-  border-radius: var(--ds-radius-sm);
-  animation: wave 1.2s ease-in-out infinite;
-}
-
-@keyframes wave {
-  0%,
-  100% {
-    height: 20px;
-  }
-  50% {
-    height: 100px;
-  }
+.hero-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--ds-radius-lg);
 }
 
 /* Section Styling */
@@ -1030,7 +1012,7 @@ function toggleFaq(index) {
   .hero-visual {
     display: block;
     flex: 1;
-    max-width: 400px;
+    max-width: 520px;
   }
 }
 

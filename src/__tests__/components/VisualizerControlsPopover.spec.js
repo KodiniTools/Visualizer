@@ -45,6 +45,19 @@ describe('VisualizerControlsPopover', () => {
     expect(wrapper.find('.search-input').exists()).toBe(false)
   })
 
+  it('wählt die Form des Visualizers (frei, 1:1, 16:9, 2:3, Kreis)', async () => {
+    const options = wrapper.findAll('.shape-control [role="radio"]')
+    expect(options.map((o) => o.text())).toEqual(['Frei', '1:1', '16:9', '2:3', 'Kreis'])
+    expect(options[0].attributes('aria-checked')).toBe('true')
+
+    await options[4].trigger('click')
+    expect(store.visualizerShape).toBe('circle')
+    expect(options[4].attributes('aria-checked')).toBe('true')
+
+    await options[2].trigger('click')
+    expect(store.visualizerShape).toBe('16:9')
+  })
+
   it('schließt sich über den Schließen-Knopf unter eigenem Namen', async () => {
     await wrapper.find('.spb-popover-close').trigger('click')
     expect(closePopover).toHaveBeenCalledWith('visualizerControls')

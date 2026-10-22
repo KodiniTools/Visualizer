@@ -13,6 +13,7 @@
 import { createVisualizerSegment } from './history/segments/storeSegments.js'
 import { clone, isPlainObject, sanitizeLike } from './storePersistence.js'
 import { resolveVisualizerId } from './visualizers/aliases.js'
+import { normalizeVisualizerShape } from './visualizers/core/visualizerShape.js'
 
 export const VISUALIZER_STORAGE_KEY = 'visualizer-visualizer-settings'
 const SAVE_DELAY_MS = 400
@@ -46,6 +47,9 @@ export function sanitizeVisualizerSettings(raw, current, registry) {
     else delete out.selectedVisualizer
   }
 
+  // Form: unbekannte Werte → 'free'
+  if ('visualizerShape' in out) out.visualizerShape = normalizeVisualizerShape(out.visualizerShape)
+
   // Layer: Vorlage = Standard-Layer (erster vorhandener oder übergebener)
   if (Array.isArray(layersRaw)) {
     const template = current.layerTemplate
@@ -60,6 +64,7 @@ export function sanitizeVisualizerSettings(raw, current, registry) {
       clean.id = layer.id
       clean.visualizerId = visualizerId
       clean.imageId = null
+      if ('shape' in clean) clean.shape = normalizeVisualizerShape(clean.shape)
       layers.push(clean)
     }
     out.visualizerLayers = layers

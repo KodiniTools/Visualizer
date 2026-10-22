@@ -160,6 +160,19 @@
               />
             </div>
 
+            <!-- Form -->
+            <div class="detail-row">
+              <span class="detail-label">{{ t('visualizer.shape.label') }}</span>
+              <UiSegmentedControl
+                class="detail-shape"
+                size="sm"
+                :label="t('visualizer.shape.label')"
+                :options="shapeOptions"
+                :model-value="layer.shape || 'free'"
+                @update:model-value="updateProperty(layer.id, 'shape', $event)"
+              />
+            </div>
+
             <!-- Blend Mode -->
             <div class="detail-row">
               <span class="detail-label">{{ t('visualizer.blendMode') || 'Mischmodus' }}</span>
@@ -370,6 +383,8 @@ import VisualizerLedTextSection from './visualizer-panel/VisualizerLedTextSectio
 import { isLedTextVisualizer } from '../lib/visualizers/gl/ledTextSettings.js'
 import VisualizerEffectsPanel from './VisualizerEffectsPanel.vue'
 import ColorField from './ui/ColorField.vue'
+import UiSegmentedControl from './ui/UiSegmentedControl.vue'
+import { visualizerShapeOptions } from '../lib/visualizers/core/visualizerShape.js'
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../stores/visualizerStore.js'
@@ -409,6 +424,7 @@ function deleteLayerPreset(preset) {
 
 // Blend modes
 const blendModes = BLEND_MODES
+const shapeOptions = computed(() => visualizerShapeOptions(t))
 const levelSources = REACT_SOURCES.filter((s) => !s.endsWith('Onset'))
 const onsetSources = REACT_SOURCES.filter((s) => s.endsWith('Onset'))
 
@@ -982,6 +998,15 @@ function updateProperty(layerId, property, value) {
   font-size: var(--ds-text-xs);
   color: var(--text-muted);
   font-weight: var(--ds-weight-medium);
+}
+
+.detail-shape {
+  display: flex;
+  width: 100%;
+}
+.detail-shape :deep(.ui-segmented__option) {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .detail-select {

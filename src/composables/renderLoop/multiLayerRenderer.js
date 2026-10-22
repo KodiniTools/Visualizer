@@ -149,6 +149,7 @@ export function createMultiLayerRenderer({
         posX: layer.x,
         posY: layer.y,
         edgeFade: Visualizers[layer.visualizerId]?.edgeFade,
+        shape: layer.shape,
       })
       ctx.restore()
     }

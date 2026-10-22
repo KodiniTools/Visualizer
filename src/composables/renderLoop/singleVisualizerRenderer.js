@@ -61,6 +61,7 @@ export function createSingleVisualizerRenderer({
       posX: visualizerStore.visualizerX,
       posY: visualizerStore.visualizerY,
       edgeFade: visualizer?.edgeFade,
+      shape: visualizerStore.visualizerShape,
     }
   }
 

@@ -4,6 +4,7 @@ import { useVisualizerStore } from './visualizerStore.js'
 import { resolveVisualizerId } from '../lib/visualizers/aliases.js'
 import { DEFAULT_REACT_SHAPE } from '../lib/visualizers/core/reactSource.js'
 import { normalizeLedConfig } from '../lib/visualizers/gl/ledTextSettings.js'
+import { normalizeVisualizerShape } from '../lib/visualizers/core/visualizerShape.js'
 
 const USER_PRESETS_KEY = 'visualizer-user-presets'
 
@@ -749,6 +750,7 @@ export const usePresetStore = defineStore('presets', () => {
         x: vizStore.visualizerX,
         y: vizStore.visualizerY,
         scale: vizStore.visualizerScale,
+        shape: vizStore.visualizerShape,
         showVisualizer: vizStore.showVisualizer,
         reactSource: vizStore.reactSource,
         reactStrength: vizStore.reactStrength,
@@ -805,6 +807,8 @@ export const usePresetStore = defineStore('presets', () => {
         ...l,
         // LED-Text/-Zahlen: fehlende Felder → Standardwerte, sonst validiert
         ...normalizeLedConfig(l),
+        // Form: fehlt in älteren Presets → 'free'
+        shape: normalizeVisualizerShape(l.shape),
         visualizerId: resolveVisualizerId(l.visualizerId) || vizStore.lastWorkingVisualizer,
       }))
       if (v.layers.length > 0) vizStore.activeLayerId = v.layers[0].id
@@ -822,6 +826,7 @@ export const usePresetStore = defineStore('presets', () => {
       vizStore.visualizerX = v.x ?? 0.5
       vizStore.visualizerY = v.y ?? 0.5
       vizStore.visualizerScale = v.scale ?? 1.0
+      vizStore.setVisualizerShape(v.shape)
       vizStore.showVisualizer = v.showVisualizer ?? true
       vizStore.setReactSource(v.reactSource ?? 'spectrum')
       vizStore.setReactStrength(v.reactStrength ?? 70)

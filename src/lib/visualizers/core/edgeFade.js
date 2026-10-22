@@ -20,6 +20,8 @@
  * @module visualizers/core/edgeFade
  */
 
+import { shapeCropRect } from './visualizerShape.js'
+
 /** Zulässige Werte für `visualizer.edgeFade`. */
 export const EDGE_FADE = Object.freeze({ NONE: 'none', RADIAL: 'radial', RECT: 'rect' })
 
@@ -145,8 +147,43 @@ function applyRectMask(ctx, w, h, strength) {
 }
 
 /**
+ * Zeichnet nur den Ausschnitt der gewählten Form (siehe visualizerShape.js):
+ * das mittige Rechteck im Seitenverhältnis, beim Kreis zusätzlich rund
+ * geclippt. Die Form ist selbst der Rand, daher keine Randabblendung.
+ *
+ * @returns {boolean} false bei 'free' (nichts gezeichnet)
+ */
+function drawShaped(targetCtx, source, srcW, srcH, destW, destH, view) {
+  const crop = shapeCropRect(srcW, srcH, view.shape)
+  if (!crop) return false
+
+  const centered = view.scale === 1.0 && view.posX === 0.5 && view.posY === 0.5
+  // Volles Zielrechteck wie im ungeformten Fall, dann den Ausschnitt darin
+  const full = centered
+    ? { x: 0, y: 0, w: destW, h: destH }
+    : scaledDestRect(srcW, srcH, destW, destH, view)
+  const kx = full.w / srcW
+  const ky = full.h / srcH
+  const x = full.x + crop.x * kx
+  const y = full.y + crop.y * ky
+  const w = crop.w * kx
+  const h = crop.h * ky
+
+  targetCtx.save()
+  if (view.shape === 'circle') {
+    targetCtx.beginPath()
+    targetCtx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2)
+    targetCtx.clip()
+  }
+  targetCtx.drawImage(source, crop.x, crop.y, crop.w, crop.h, x, y, w, h)
+  targetCtx.restore()
+  return true
+}
+
+/**
  * Zeichnet ein Visualizer-Bitmap gemäß "Position & Größe" auf den Ziel-Context
- * und blendet dabei den Rand weich aus, wenn er sichtbar würde.
+ * und blendet dabei den Rand weich aus, wenn er sichtbar würde. Mit `shape`
+ * (≠ 'free') wird nur der Ausschnitt der Form gezeichnet.
  *
  * @param {CanvasRenderingContext2D} targetCtx
  * @param {CanvasImageSource} source - Bitmap oder Canvas in Render-Größe
@@ -154,9 +191,11 @@ function applyRectMask(ctx, w, h, strength) {
  * @param {number} srcH - Render-Höhe
  * @param {number} destW - Ziel-Breite (Canvas)
  * @param {number} destH - Ziel-Höhe (Canvas)
- * @param {{scale: number, posX: number, posY: number, edgeFade?: string}} view
+ * @param {{scale: number, posX: number, posY: number, edgeFade?: string, shape?: string}} view
  */
 export function drawScaledVisualizer(targetCtx, source, srcW, srcH, destW, destH, view) {
+  if (view.shape && drawShaped(targetCtx, source, srcW, srcH, destW, destH, view)) return
+
   const { scale, posX, posY, edgeFade = EDGE_FADE.NONE } = view
 
   // Unverändertes Verhalten für den Normalfall: 100 %, mittig

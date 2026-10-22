@@ -32,6 +32,19 @@
     </div>
   </div>
 
+  <!-- Form: sichtbarer Ausschnitt (frei, Seitenverhältnis oder Kreis) -->
+  <div class="control-section">
+    <span class="section-label">{{ t('visualizer.shape.label') }}</span>
+    <UiSegmentedControl
+      class="shape-control"
+      size="sm"
+      :label="t('visualizer.shape.label')"
+      :options="shapeOptions"
+      :model-value="store.visualizerShape"
+      @update:model-value="store.setVisualizerShape($event)"
+    />
+  </div>
+
   <!-- Intensität-Regler -->
   <div class="control-section">
     <span class="section-label">
@@ -68,11 +81,16 @@
 <script setup>
 import SliderField from '../ui/SliderField.vue'
 import ColorField from '../ui/ColorField.vue'
+import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
+import { computed } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useVisualizerStore } from '../../stores/visualizerStore.js'
+import { visualizerShapeOptions } from '../../lib/visualizers/core/visualizerShape.js'
 
 const { t } = useI18n()
 const store = useVisualizerStore()
+
+const shapeOptions = computed(() => visualizerShapeOptions(t))
 </script>
 
 <style scoped src="./visualizerPanelShared.css"></style>
@@ -248,6 +266,16 @@ const store = useVisualizerStore()
 
 .color-slider::-moz-range-thumb:hover {
   background: var(--ds-success);
+}
+
+/* Form-Auswahl über die ganze Breite, Optionen gleich breit */
+.shape-control {
+  display: flex;
+  width: 100%;
+}
+.shape-control :deep(.ui-segmented__option) {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 /* ═══ Light Theme Overrides ═══ */

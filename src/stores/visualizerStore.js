@@ -23,9 +23,16 @@ import {
   normalizeLedField,
   normalizeLedConfig,
 } from '../lib/visualizers/gl/ledTextSettings.js'
+import {
+  VISUALIZER_SHAPES,
+  DEFAULT_VISUALIZER_SHAPE,
+  normalizeVisualizerShape,
+} from '../lib/visualizers/core/visualizerShape.js'
 
 // Reaktionsquellen (Spektrum, Bandpegel, Onsets) und Übergänge für die UI
 export { REACT_SOURCES, REACT_EASINGS }
+// Formen (frei, 1:1, 16:9, 2:3, Kreis) für die UI
+export { VISUALIZER_SHAPES }
 import { localeRef } from '../lib/i18n.js'
 
 // ✅ Blend-Modi für Visualizer-Compositing
@@ -250,6 +257,10 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   const visualizerY = ref(0.5) // Y-Position (0.0 = oben, 0.5 = Mitte, 1.0 = unten)
   const visualizerScale = ref(1.0) // Skalierung (0.1 = 10%, 1.0 = 100%, 2.0 = 200%)
 
+  // Form: sichtbarer Ausschnitt ('free' = ganze Fläche, sonst Seitenverhältnis
+  // bzw. Kreis) – siehe lib/visualizers/core/visualizerShape.js
+  const visualizerShape = ref(DEFAULT_VISUALIZER_SHAPE)
+
   // Reaktionsquelle: womit der Visualizer angesteuert wird ('spectrum' = wie
   // bisher, sonst Bandpegel oder auto-normalisierter Onset) und wie stark.
   const reactSource = ref(DEFAULT_REACT_SOURCE)
@@ -379,6 +390,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       x: 0.5,
       y: 0.5,
       scale: 1.0,
+      shape: DEFAULT_VISUALIZER_SHAPE,
       blendMode: 'source-over',
       reactSource: DEFAULT_REACT_SOURCE,
       reactStrength: DEFAULT_REACT_STRENGTH,
@@ -427,6 +439,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
         x: visualizerX.value,
         y: visualizerY.value,
         scale: visualizerScale.value,
+        shape: visualizerShape.value,
         reactSource: reactSource.value,
         reactStrength: reactStrength.value,
         reactSmoothing: reactSmoothing.value,
@@ -549,6 +562,9 @@ export const useVisualizerStore = defineStore('visualizer', () => {
         value = resolved
         break
       }
+      case 'shape':
+        value = normalizeVisualizerShape(value)
+        break
       case 'blendMode':
         if (!BLEND_MODES.find((m) => m.id === value)) return false
         break
@@ -679,6 +695,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
         x: visualizerX.value,
         y: visualizerY.value,
         scale: visualizerScale.value,
+        shape: visualizerShape.value,
         reactSource: reactSource.value,
         reactStrength: reactStrength.value,
         reactSmoothing: reactSmoothing.value,
@@ -702,6 +719,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
       visualizerX.value = activeLayer.value.x
       visualizerY.value = activeLayer.value.y
       visualizerScale.value = activeLayer.value.scale
+      visualizerShape.value = normalizeVisualizerShape(activeLayer.value.shape)
       reactSource.value = activeLayer.value.reactSource || DEFAULT_REACT_SOURCE
       reactStrength.value = activeLayer.value.reactStrength ?? DEFAULT_REACT_STRENGTH
       reactSmoothing.value = normalizeReactSmoothing(activeLayer.value.reactSmoothing)
@@ -779,6 +797,10 @@ export const useVisualizerStore = defineStore('visualizer', () => {
 
   function setVisualizerScale(newScale) {
     visualizerScale.value = Math.max(0.1, Math.min(2.0, newScale))
+  }
+
+  function setVisualizerShape(shape) {
+    visualizerShape.value = normalizeVisualizerShape(shape)
   }
 
   function setReactSource(source) {
@@ -933,9 +955,11 @@ export const useVisualizerStore = defineStore('visualizer', () => {
     visualizerX,
     visualizerY,
     visualizerScale,
+    visualizerShape,
     setVisualizerX,
     setVisualizerY,
     setVisualizerScale,
+    setVisualizerShape,
     resetVisualizerTransform,
     // Reaktionsquelle
     reactSource,

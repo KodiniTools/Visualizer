@@ -16,6 +16,7 @@ import {
   createTextsSegment,
   createVideosSegment,
 } from '../lib/history/segments/canvasSegments.js'
+import { createShapesSegment } from '../lib/history/segments/shapesSegment.js'
 
 /**
  * ↩️ Richtet den globalen Undo/Redo-Verlauf über alle Panels ein.
@@ -30,7 +31,7 @@ import {
  * @param {import('vue').Ref} deps.canvasManagerInstance
  * @param {Object} deps.stores - { workspaceStore, backgroundTilesStore, gridStore,
  *   visualizerStore, audioFxStore, beatDropStore, tickerStore, beatMarkerStore,
- *   markerTransitionStore }
+ *   markerTransitionStore, shapeStore? }
  * @returns {{ recorder: ReturnType<typeof getHistoryRecorder> }}
  */
 export function useHistorySetup({ historyStore, canvasManagerInstance, stores }) {
@@ -48,6 +49,8 @@ export function useHistorySetup({ historyStore, canvasManagerInstance, stores })
     beatMarkers: createBeatMarkerSegment(stores.beatMarkerStore),
     markerTransition: createMarkerTransitionSegment(stores.markerTransitionStore),
   }
+  // Formen & Symbole (optional, damit bestehende Aufrufer ohne shapeStore laufen)
+  if (stores.shapeStore) storeSegments.shapes = createShapesSegment(stores.shapeStore)
   for (const [id, adapter] of Object.entries(storeSegments)) {
     unregister.push(recorder.registerSegment(id, adapter))
   }

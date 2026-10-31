@@ -24,6 +24,7 @@ export function useRenderLoop({
   videoManagerInstance,
   gridManagerInstance,
   getTextManager,
+  shapeLayer = null,
   getRecordingCanvas,
   visualizerStore,
   recorderStore,
@@ -139,6 +140,7 @@ export function useRenderLoop({
     multiImageManagerInstance,
     videoManagerInstance,
     getTextManager,
+    drawShapes: shapeLayer?.drawShapes ?? null,
     drawWithPunch: beatPunch.drawWithPunch,
     effects: {
       audioFxRenderer,
@@ -280,6 +282,8 @@ export function useRenderLoop({
     if (multiImageManagerInstance.value?.getSelectedImage()) {
       multiImageManagerInstance.value.drawInteractiveElements(ctx)
     }
+
+    shapeLayer?.drawSelection(ctx)
   }
 
   function draw() {

@@ -1,5 +1,9 @@
 <template>
-  <div :class="['ui-segmented', `ui-segmented--${size}`]" role="radiogroup" :aria-label="label">
+  <div
+    :class="['ui-segmented', `ui-segmented--${size}`, { 'ui-segmented--wrap': wrap }]"
+    role="radiogroup"
+    :aria-label="label"
+  >
     <button
       v-for="(option, index) in options"
       :key="option.value"
@@ -33,6 +37,8 @@ const props = defineProps({
   label: { type: String, required: true },
   /** 'sm' | 'md' */
   size: { type: String, default: 'md', validator: (v) => ['sm', 'md'].includes(v) },
+  /** Volle Breite; Optionen brechen bei Platzmangel in weitere Zeilen um (z. B. 3 + 3 + 1) */
+  wrap: { type: Boolean, default: false },
 })
 
 const model = defineModel({ type: String, required: true })
@@ -155,5 +161,20 @@ function onKeydown(event, index) {
   padding: 0 var(--ds-space-2);
   border-radius: calc(var(--ds-radius-sm) - 2px);
   font-size: var(--ds-text-xs);
+}
+.ui-segmented--wrap {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  height: auto;
+  min-height: var(--ds-control-md);
+}
+
+.ui-segmented--wrap .ui-segmented__option {
+  flex: 1 1 30%;
+  min-width: 0;
+  min-height: calc(var(--ds-control-md) - 6px);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

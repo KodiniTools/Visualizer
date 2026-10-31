@@ -18,6 +18,7 @@
     <PresetsPopover v-if="popover.isOpen('presets')" />
     <AudioReactivePopover v-if="popover.isOpen('audioReactive')" />
     <TextAudioReactivePopover v-if="popover.isOpen('textAudioReactive')" />
+    <ShapesPopover v-if="popover.isOpen('shapes')" />
     <CanvasFormatPopover v-if="popover.isOpen('canvasFormat')" />
     <ScreenshotPopover v-if="popover.isOpen('screenshot')" />
     <VisualizerPopover v-if="popover.isOpen('visualizer')" />
@@ -52,6 +53,7 @@ import GalleryPopover from './sticky-player-bar/GalleryPopover.vue'
 import PresetsPopover from './sticky-player-bar/PresetsPopover.vue'
 import AudioReactivePopover from './sticky-player-bar/AudioReactivePopover.vue'
 import TextAudioReactivePopover from './sticky-player-bar/TextAudioReactivePopover.vue'
+import ShapesPopover from './sticky-player-bar/ShapesPopover.vue'
 import CanvasFormatPopover from './sticky-player-bar/CanvasFormatPopover.vue'
 import ScreenshotPopover from './sticky-player-bar/ScreenshotPopover.vue'
 import VisualizerPopover from './sticky-player-bar/VisualizerPopover.vue'
@@ -64,6 +66,7 @@ import RecorderPopover from './sticky-player-bar/RecorderPopover.vue'
 import PlayerBarControls from './sticky-player-bar/PlayerBarControls.vue'
 import SlideshowPopover from './sticky-player-bar/SlideshowPopover.vue'
 import { SLIDESHOW_EDIT_EVENT } from '../lib/slideshowEditRequest.js'
+import { SHAPES_OPEN_EVENT } from '../lib/shapes/shapeInteraction.js'
 
 const barRef = ref(null)
 
@@ -96,11 +99,15 @@ const openTextManager = () => popover.openPopover('textManager')
 // Klick auf ein Bild der pausierten Slideshow öffnet dessen Einstellungen im
 // Slideshow-Fenster – das Fenster dafür öffnen.
 const openSlideshow = () => popover.openPopover('slideshow')
+// Klick auf eine Form im Canvas öffnet die Formen-Galerie zum Bearbeiten.
+const openShapes = () => popover.openPopover('shapes')
 onMounted(() => {
+  window.addEventListener(SHAPES_OPEN_EVENT, openShapes)
   window.addEventListener('openTextEditorWithChar', openTextManager)
   window.addEventListener(SLIDESHOW_EDIT_EVENT, openSlideshow)
 })
 onUnmounted(() => {
+  window.removeEventListener(SHAPES_OPEN_EVENT, openShapes)
   window.removeEventListener('openTextEditorWithChar', openTextManager)
   window.removeEventListener(SLIDESHOW_EDIT_EVENT, openSlideshow)
 })

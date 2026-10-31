@@ -128,6 +128,8 @@ import { useStatusBanner } from './composables/useStatusBanner.js'
 import { useSharedFiles } from './composables/useSharedFiles.js'
 import { useHandoff } from './composables/useHandoff.js'
 import { useHistorySetup } from './composables/useHistorySetup.js'
+import { useShapeLayer } from './composables/useShapeLayer.js'
+import { useShapeStore } from './stores/shapeStore.js'
 import { setupVisualizerPersistence } from './lib/visualizerPersistence.js'
 import { setupAudioSettingsPersistence } from './lib/audioSettingsPersistence.js'
 
@@ -168,6 +170,7 @@ const audioSourceStore = useAudioSourceStore()
 const toastStore = useToastStore()
 const historyStore = useHistoryStore()
 const beatMarkerStore = useBeatMarkerStore()
+const shapeStore = useShapeStore()
 const route = useRoute()
 const router = useRouter()
 
@@ -297,8 +300,12 @@ useHistorySetup({
     tickerStore,
     beatMarkerStore,
     markerTransitionStore,
+    shapeStore,
   },
 })
+
+// ── Formen & Symbole (Zeichnen, Auswahl, Interaktion) ───────────────────────────
+const shapeLayer = useShapeLayer({ canvasRef, canvasManagerInstance, shapeStore, historyStore })
 
 const { startVisualizerLoop, stopVisualizerLoop } = useVisualizerLoop({
   getRecordingCanvasStream,
@@ -312,6 +319,7 @@ const renderLoop = useRenderLoop({
   videoManagerInstance,
   gridManagerInstance,
   getTextManager,
+  shapeLayer,
   getRecordingCanvas,
   visualizerStore,
   recorderStore,

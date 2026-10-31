@@ -1,5 +1,5 @@
 import { onUnmounted, watch } from 'vue'
-import { drawShape } from '../lib/shapes/shapes.js'
+import { drawShapeWithAudio, getShapeAudioFx } from '../lib/shapes/shapeAudio.js'
 import {
   createShapeInteraction,
   drawShapeSelection,
@@ -36,20 +36,25 @@ export function useShapeLayer({ canvasRef, canvasManagerInstance, shapeStore, hi
     }
   }
 
-  /** Alle Formen in die Szene zeichnen (Live, Aufnahme, Screenshot). */
+  /** Alle Formen in die Szene zeichnen (Live, Aufnahme, Screenshot), inkl. Audio-Reaktiv. */
   function drawShapes(ctx) {
     const canvas = ctx?.canvas
     if (!canvas || shapeStore.shapes.length === 0) return
     // Live-Canvas bestimmt die Bezugsgröße (Workspace-Wechsel skaliert mit)
     const live = canvasRef.value
     if (live?.width && live?.height) shapeStore.syncCanvasSize(live.width, live.height)
-    for (const shape of shapeStore.shapes) drawShape(ctx, shape)
+    const audioData = typeof window !== 'undefined' ? window.audioAnalysisData : null
+    for (const shape of shapeStore.shapes) {
+      // Beat-Marker: zugewiesene Formen erscheinen erst zum Marker-Zeitpunkt
+      if (shapeStore.isMarkerHidden(shape.id)) continue
+      drawShapeWithAudio(ctx, shape, getShapeAudioFx(shape.audioReactive, audioData))
+    }
   }
 
   /** Auswahlrahmen der ausgewählten Form (nur Editor-Overlay). */
   function drawSelection(ctx) {
     const shape = shapeStore.selectedShape
-    if (!shape) return
+    if (!shape || shapeStore.isMarkerHidden(shape.id)) return
     drawShapeSelection(ctx, shape, getCanvasDisplayScale(ctx.canvas), accentColor())
   }
 

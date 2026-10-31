@@ -114,3 +114,50 @@ describe('History-Segment shapes', () => {
     expect(store.shapes).toHaveLength(1)
   })
 })
+
+describe('shapeStore – Audio-Reaktiv und Beat-Marker', () => {
+  let store
+
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    store = useShapeStore()
+  })
+
+  it('Audio-Reaktiv: legt die Konfiguration erst bei Bedarf an (nicht für Effekt-Bereiche)', () => {
+    const star = store.addShape('star', 800, 600)
+    expect(star.audioReactive).toBeUndefined()
+    const ar = store.ensureAudioReactive(star.id)
+    expect(ar.enabled).toBe(false)
+    expect(ar.effects.beatPulse).toBeTruthy()
+    expect(ar.effects.border).toBeUndefined()
+    expect(store.ensureAudioReactive(star.id)).toBe(store.shapes[0].audioReactive)
+
+    const blur = store.addShape('blur', 800, 600)
+    expect(store.ensureAudioReactive(blur.id)).toBeNull()
+    expect(store.ensureAudioReactive('unknown')).toBeNull()
+  })
+
+  it('Audio-Reaktiv wird beim Duplizieren und im Verlaufs-Snapshot mitgenommen', () => {
+    const star = store.addShape('star', 800, 600)
+    store.ensureAudioReactive(star.id).enabled = true
+    const copy = store.duplicateShape(star.id)
+    expect(copy.audioReactive.enabled).toBe(true)
+    expect(copy.audioReactive).not.toBe(store.shapes[0].audioReactive)
+    const snap = store.captureSnapshot()
+    store.applySnapshot({ shapes: [], canvasSize: snap.canvasSize })
+    store.applySnapshot(snap)
+    expect(store.shapes[0].audioReactive.enabled).toBe(true)
+  })
+
+  it('Beat-Marker: Ausblenden ist Laufzeit-Zustand und wird bei clearShapes zurückgesetzt', () => {
+    const star = store.addShape('star', 800, 600)
+    store.setMarkerHidden(star.id, true)
+    expect(store.isMarkerHidden(star.id)).toBe(true)
+    expect(store.captureSnapshot()).not.toHaveProperty('markerHiddenIds')
+    store.setMarkerHidden(star.id, false)
+    expect(store.isMarkerHidden(star.id)).toBe(false)
+    store.setMarkerHidden(star.id, true)
+    store.clearShapes()
+    expect(store.isMarkerHidden(star.id)).toBe(false)
+  })
+})

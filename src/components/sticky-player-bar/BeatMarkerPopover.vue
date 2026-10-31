@@ -209,6 +209,20 @@
         </select>
       </div>
       <div class="form-row">
+        <label>{{ t('player.shape') }}:</label>
+        <select
+          v-model="newMarkerShapeId"
+          class="marker-select"
+          data-marker-shape
+          :title="t('player.shapeAppears')"
+        >
+          <option value="">{{ t('player.noShape') }}</option>
+          <option v-for="sh in shapeOptions" :key="sh.id" :value="sh.id">
+            {{ sh.number }}. {{ sh.name }}{{ sh.extra ? ' — ' + sh.extra : '' }}
+          </option>
+        </select>
+      </div>
+      <div class="form-row">
         <label>{{ t('player.label') }}:</label>
         <input
           v-model="newMarkerLabel"
@@ -266,6 +280,16 @@
           class="marker-action marker-action-text"
           :title="t('player.textAppears')"
           >📝 {{ marker.action.textLabel || t('player.text') }}</span
+        >
+        <span
+          v-if="
+            marker.action.shapeId !== undefined &&
+            marker.action.shapeId !== null &&
+            marker.action.shapeId !== ''
+          "
+          class="marker-action marker-action-shape"
+          :title="t('player.shapeAppears')"
+          >◆ {{ marker.action.shapeLabel || t('player.shape') }}</span
         >
         <div class="marker-buttons">
           <button
@@ -333,8 +357,10 @@ const {
   newMarkerShowVisualizer,
   newMarkerBackgroundKey,
   newMarkerTextId,
+  newMarkerShapeId,
   newMarkerLabel,
   getMarkerTexts,
+  getMarkerShapes,
   updateMarkerTimeFromInput,
   stepMarkerTime,
   addMarkerAtCurrentTime,
@@ -386,6 +412,13 @@ onUnmounted(stopStepRepeat)
 const textOptions = computed(() => {
   void showMarkerPanel.value
   return getMarkerTexts()
+})
+
+// Formen-Auswahl (Formen & Symbole). Reaktiv auf den shapeStore, damit neu
+// eingefügte Formen sofort erscheinen.
+const shapeOptions = computed(() => {
+  void showMarkerPanel.value
+  return getMarkerShapes()
 })
 
 // Hintergrund-Auswahl (Vorlagen + gespeicherte Presets). Wird beim Öffnen des
@@ -484,6 +517,10 @@ const backgroundPresetOptions = computed(() => {
 .marker-action-text {
   color: var(--ds-link);
   background-color: color-mix(in srgb, var(--ds-link) 14%, transparent);
+}
+.marker-action-shape {
+  color: var(--accent-text);
+  background-color: color-mix(in srgb, var(--ds-accent) 14%, transparent);
 }
 .marker-action-off {
   color: var(--ds-danger);

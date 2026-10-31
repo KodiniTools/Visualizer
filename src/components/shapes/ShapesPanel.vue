@@ -425,6 +425,12 @@
         />
       </div>
 
+      <!-- Audio-Reaktiv (wie bei Bildern) -->
+      <div v-if="!isEffect" class="control-block shape-audio">
+        <span class="section-title">{{ t('shapes.edit.audioReactive') }}</span>
+        <ShapeAudioReactive :shape="selectedShape" />
+      </div>
+
       <!-- Ebene & Aktionen -->
       <div class="action-grid">
         <UiButton size="sm" :disabled="isTop" data-action="forward" @click="reorder('up')">
@@ -479,6 +485,7 @@ import UiTile from '../ui/UiTile.vue'
 import SliderControl from '../ui/SliderControl.vue'
 import ShapeIcon from './ShapeIcon.vue'
 import ShapeColorField from './ShapeColorField.vue'
+import ShapeAudioReactive from './ShapeAudioReactive.vue'
 import {
   CENSOR_EFFECTS,
   CENSOR_REGIONS,

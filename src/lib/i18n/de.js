@@ -969,6 +969,9 @@ export default {
     text: 'Text',
     noText: '-- Kein Text --',
     textAppears: 'Text erscheint zum Marker-Zeitpunkt auf dem Canvas',
+    shape: 'Form',
+    noShape: '-- Keine Form --',
+    shapeAppears: 'Form oder Symbol erscheint zum Marker-Zeitpunkt auf dem Canvas',
     transition: 'Crossfade',
     transitionHint: 'Weiche Überblendung (Crossfade) beim Marker-Wechsel während der Wiedergabe',
     label: 'Label',
@@ -1565,6 +1568,7 @@ export default {
       gradientSwap: 'Farben tauschen',
       gradientAngle: 'Verlaufswinkel',
       emoji: 'Emoji',
+      audioReactive: 'Audio-Reaktiv',
     },
   },
   textManager: {

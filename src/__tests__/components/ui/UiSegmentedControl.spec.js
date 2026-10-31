@@ -58,4 +58,13 @@ describe('UiSegmentedControl', () => {
     await wrapper.get('[data-value="alpha"]').trigger('keydown', { key: 'Enter' })
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
   })
+
+  it('wrap: volle Breite mit Zeilenumbruch, ohne wrap unverändert', () => {
+    expect(mountControl().classes()).not.toContain('ui-segmented--wrap')
+    const wrapper = mount(UiSegmentedControl, {
+      props: { options, label: 'Kategorien', modelValue: 'alpha', wrap: true },
+    })
+    expect(wrapper.classes()).toContain('ui-segmented--wrap')
+    expect(wrapper.attributes('role')).toBe('radiogroup')
+  })
 })

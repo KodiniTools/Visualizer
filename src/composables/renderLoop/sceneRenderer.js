@@ -3,7 +3,7 @@ import { ensureSizedCanvas } from './canvasCache.js'
 /**
  * Szenenaufbau für Live-Bild, Aufnahme und Screenshot:
  * Hintergrund → Bilder hinter dem Visualizer → Visualizer → Bilder davor →
- * Videos → Texte, danach die Effekt-Ebenen (Audio-FX, Beat-Drop, Lauftext).
+ * Videos → Formen & Symbole → Texte, danach die Effekt-Ebenen (Audio-FX, Beat-Drop, Lauftext).
  *
  * @param {object} deps
  * @param {import('vue').Ref<HTMLCanvasElement|null>} deps.canvasRef
@@ -11,6 +11,7 @@ import { ensureSizedCanvas } from './canvasCache.js'
  * @param {import('vue').Ref} deps.multiImageManagerInstance
  * @param {import('vue').Ref} deps.videoManagerInstance
  * @param {() => object|null} deps.getTextManager
+ * @param {(ctx: CanvasRenderingContext2D) => void} [deps.drawShapes] - Formen-Ebene (unter den Texten)
  * @param {(cb: Function|null, ctx: CanvasRenderingContext2D, w: number, h: number) => void} deps.drawWithPunch
  * @param {object} deps.effects - { audioFxRenderer, audioFxStore, beatDropRenderer, beatDropStore, tickerRenderer, tickerStore }
  */
@@ -20,6 +21,7 @@ export function createSceneRenderer({
   multiImageManagerInstance,
   videoManagerInstance,
   getTextManager,
+  drawShapes = null,
   drawWithPunch,
   effects,
 }) {
@@ -46,6 +48,7 @@ export function createSceneRenderer({
     drawVisualizer()
     multiImageManagerInstance.value?.drawImages(ctx, { behindVisualizer: false })
     videoManagerInstance.value?.drawVideos(ctx)
+    drawShapes?.(ctx)
 
     const textManager = getTextManager()
     if (textManager) textManager.draw(ctx, width, height)

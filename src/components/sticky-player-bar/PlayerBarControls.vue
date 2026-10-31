@@ -290,6 +290,21 @@
 
       <button
         class="spb-icon-btn"
+        :class="{ active: isOpen('shapes') }"
+        :title="t('player.openShapes')"
+        data-popover="shapes"
+        @click="togglePopover('shapes')"
+      >
+        <!-- Kreis, Quadrat und Dreieck (Formen & Symbole) -->
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M7 2a5 5 0 1 1 0 10A5 5 0 0 1 7 2zm6 11h9v9h-9v-9zM6.5 13.5l5 8.5h-10l5-8.5zM17.5 2.5l4.5 8h-9l4.5-8z"
+          />
+        </svg>
+      </button>
+
+      <button
+        class="spb-icon-btn"
         :class="{ active: isOpen('textAudioReactive') }"
         :title="t('player.openTextAudioReactive')"
         @click="togglePopover('textAudioReactive')"

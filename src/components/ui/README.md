@@ -37,6 +37,21 @@ Abweichungen zum Collage Maker (bewusst, minimal):
 - `UiToast` kennt zusätzlich `type="warning"` (der Toast-Store des Visualizers nutzt ihn).
 - `closeLabel` (UiDialog) und `dismissLabel` (UiToast) fallen auf i18n `common.close` zurück.
 
+## Visualizer-eigene Bausteine (Formen & Symbole)
+
+Für die aus dem Bildkonverter übernommene Galerie „Formen & Symbole“ (`src/components/shapes/`).
+Gleiche Regeln wie oben: nur `--ds-*` Tokens, native Elemente, Fokus-Ring, je ein Spec.
+
+| Komponente        | Zweck                                                | Wichtige Props / Events                                                                                               |
+| ----------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `UiTile`          | Quadratische Galerie-Kachel (Form, Sticker, Emoji)   | `label` (Pflicht, aria-label und title), `size` sm · md, `pressed` (Umschalter, aria-pressed), `active` (nur optisch) |
+| `UiSwitch`        | Schiebeschalter An/Aus (32 × 18), `role="switch"`    | `v-model` (boolean), `label` (Pflicht; sichtbar rechts oder `labelHidden`), `disabled`                                |
+| `UiTextArea`      | Mehrzeiliges Textfeld, Anatomie wie `UiTextField`    | `v-model`, `label`, `rows`, `placeholder`, `hint`, `disabled`, Attrs → textarea                                       |
+| `UiColorSwatches` | Reihe kleiner Farbfelder (z. B. „Zuletzt verwendet“) | `colors` (Hex), `label` (Pflicht), `modelValue` (markiert); Event `pick`                                              |
+
+Erweiterung: `UiSegmentedControl` hat zusätzlich `wrap` (volle Breite, Optionen brechen in
+weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
+
 ## Visualizer-eigene Primitive auf derselben Anatomie
 
 | Komponente                           | Entsprechung im Collage Maker                                                                                                                                                             |
@@ -47,13 +62,14 @@ Abweichungen zum Collage Maker (bewusst, minimal):
 
 ## Einsatz im Visualizer
 
-| Stelle                         | Komponente                                                                                |
-| ------------------------------ | ----------------------------------------------------------------------------------------- |
-| Statushinweis im rechten Panel | `StatusBanner` → `UiCallout`                                                              |
-| Admin-Login                    | `LoginModal` → `UiDialog` + `UiTextField` + `UiButton`                                    |
-| Toasts                         | `ToastContainer` auf dem `UiToast`-Rezept, Aktion/Schließen als `UiButton`/`UiIconButton` |
-| Popover der Player-Leiste      | `popover-chrome.css` auf dem Overlay-Rezept, Schließen als Ghost-Icon-Button              |
-| Player-Leiste                  | Transport = runde Icon-Buttons (secondary), Play/Pause = primär                           |
+| Stelle                         | Komponente                                                                                                                                                 |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Statushinweis im rechten Panel | `StatusBanner` → `UiCallout`                                                                                                                               |
+| Admin-Login                    | `LoginModal` → `UiDialog` + `UiTextField` + `UiButton`                                                                                                     |
+| Toasts                         | `ToastContainer` auf dem `UiToast`-Rezept, Aktion/Schließen als `UiButton`/`UiIconButton`                                                                  |
+| Popover der Player-Leiste      | `popover-chrome.css` auf dem Overlay-Rezept, Schließen als Ghost-Icon-Button                                                                               |
+| Player-Leiste                  | Transport = runde Icon-Buttons (secondary), Play/Pause = primär                                                                                            |
+| Formen & Symbole (Popover)     | `UiSegmentedControl` (wrap), `UiTile`, `UiSwitch`, `UiTextArea`, `UiSelect`, `UiButton`, `UiIconButton`, `SliderControl`, `ColorField` + `UiColorSwatches` |
 
 ## Regeln
 

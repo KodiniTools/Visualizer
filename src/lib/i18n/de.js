@@ -966,6 +966,11 @@ export default {
     myBackgrounds: 'Meine Hintergründe',
     backgroundTemplates: 'Vorlagen',
     backgroundChanges: 'Ändert den Hintergrund',
+    backgroundImage: 'Hintergrund-Bild',
+    noBackgroundImage: '-- Kein Bild --',
+    emptyImageGallery: 'Galerie ist leer – Bilder unter „Eigene Bilder“ hochladen',
+    backgroundImageHint:
+      'Bild aus deiner Galerie wird Hintergrund. Audio-Reaktiv und Format (Workspace oder Normal) übernimmt es vom vorherigen Hintergrund-Bild.',
     text: 'Text',
     noText: '-- Kein Text --',
     textAppears: 'Text erscheint zum Marker-Zeitpunkt auf dem Canvas',

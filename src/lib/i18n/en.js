@@ -965,6 +965,11 @@ export default {
     myBackgrounds: 'My backgrounds',
     backgroundTemplates: 'Templates',
     backgroundChanges: 'Changes the background',
+    backgroundImage: 'Background image',
+    noBackgroundImage: '-- No image --',
+    emptyImageGallery: 'Gallery is empty – upload images under “My Images”',
+    backgroundImageHint:
+      'An image from your gallery becomes the background. It takes audio-reactive settings and format (workspace or normal) from the previous background image.',
     text: 'Text',
     noText: '-- No text --',
     textAppears: 'Text appears on the canvas at the marker time',

@@ -7,6 +7,7 @@ import {
   nextMarkerNumber,
   scaleShapesToCanvas,
 } from '../lib/shapes/shapes.js'
+import { ensureShapeAudioReactive, supportsShapeAudio } from '../lib/shapes/shapeAudio.js'
 
 /**
  * Formen & Symbole (Galerie aus dem Bildkonverter): Overlay-Ebene über Bildern
@@ -16,6 +17,11 @@ import {
  * Gezeichnet wird in der Render-Schleife (renderLoop/sceneRenderer.js), die
  * Auswahl im Editor-Overlay; Zeiger-Interaktion in lib/shapes/shapeInteraction.js.
  * Undo/Redo über das History-Segment `shapes` (shapes + canvasSize).
+ *
+ * Audio-Reaktiv: `shape.audioReactive` (gleiche Struktur wie bei Bildern,
+ * lib/shapes/shapeAudio.js), wird beim ersten Öffnen des Panels angelegt.
+ * Beat-Marker: `markerHiddenIds` blendet zugewiesene Formen bis zu ihrem
+ * Marker-Zeitpunkt aus. Reiner Laufzeit-Zustand, nicht Teil des Verlaufs.
  */
 export const useShapeStore = defineStore('shapes', () => {
   const shapes = ref([])
@@ -29,6 +35,9 @@ export const useShapeStore = defineStore('shapes', () => {
     pen: { color: '#e53935', width: null, opacity: 100 },
     highlighter: { color: '#ffeb3b', width: null, opacity: 60 },
   })
+
+  /** Von Beat-Markern bis zu ihrem Zeitpunkt ausgeblendete Formen (Laufzeit) */
+  const markerHiddenIds = ref(new Set())
 
   const selectedShape = computed(
     () => shapes.value.find((s) => s.id === selectedShapeId.value) || null,
@@ -121,6 +130,7 @@ export const useShapeStore = defineStore('shapes', () => {
     shapes.value = []
     selectedShapeId.value = null
     drawTool.value = null
+    clearMarkerHidden()
   }
 
   /** Zeichenwerkzeug ein-/ausschalten; beim Einschalten wird die Auswahl aufgehoben */
@@ -145,6 +155,35 @@ export const useShapeStore = defineStore('shapes', () => {
     if (!shape) return null
     shapes.value.push(shape)
     return shapes.value[shapes.value.length - 1]
+  }
+
+  /**
+   * Audio-Reaktiv-Konfiguration einer Form anlegen bzw. vervollständigen.
+   * @returns {object|null} die Konfiguration (null bei unbekannter Form oder
+   *   Effekt-Bereichen, die kein Audio-Reaktiv unterstützen)
+   */
+  function ensureAudioReactive(shapeId) {
+    const shape = shapes.value.find((s) => s.id === shapeId)
+    if (!shape || !supportsShapeAudio(shape)) return null
+    if (!shape.audioReactive) shape.audioReactive = ensureShapeAudioReactive(null)
+    else ensureShapeAudioReactive(shape.audioReactive)
+    return shape.audioReactive
+  }
+
+  function isMarkerHidden(shapeId) {
+    return markerHiddenIds.value.has(shapeId)
+  }
+
+  /** Beat-Marker: Formen aus-/einblenden (true = ausblenden) */
+  function setMarkerHidden(shapeId, hidden) {
+    const next = new Set(markerHiddenIds.value)
+    if (hidden) next.add(shapeId)
+    else next.delete(shapeId)
+    if (next.size !== markerHiddenIds.value.size) markerHiddenIds.value = next
+  }
+
+  function clearMarkerHidden() {
+    if (markerHiddenIds.value.size > 0) markerHiddenIds.value = new Set()
   }
 
   /** Snapshot für den Verlauf (JSON-fähig) */
@@ -174,6 +213,7 @@ export const useShapeStore = defineStore('shapes', () => {
     canvasSize,
     drawTool,
     drawSettings,
+    markerHiddenIds,
     syncCanvasSize,
     addShape,
     updateShape,
@@ -185,6 +225,10 @@ export const useShapeStore = defineStore('shapes', () => {
     setDrawTool,
     updateDrawSettings,
     addFreehandShape,
+    ensureAudioReactive,
+    isMarkerHidden,
+    setMarkerHidden,
+    clearMarkerHidden,
     captureSnapshot,
     applySnapshot,
   }

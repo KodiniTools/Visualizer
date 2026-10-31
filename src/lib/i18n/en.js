@@ -968,6 +968,9 @@ export default {
     text: 'Text',
     noText: '-- No text --',
     textAppears: 'Text appears on the canvas at the marker time',
+    shape: 'Shape',
+    noShape: '-- No shape --',
+    shapeAppears: 'Shape or symbol appears on the canvas at the marker time',
     transition: 'Crossfade',
     transitionHint: 'Smooth crossfade when switching markers during playback',
     label: 'Label',
@@ -1563,6 +1566,7 @@ export default {
       gradientSwap: 'Swap colors',
       gradientAngle: 'Gradient angle',
       emoji: 'Emoji',
+      audioReactive: 'Audio-Reactive',
     },
   },
   textManager: {

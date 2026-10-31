@@ -10,6 +10,8 @@ import { formatTimePrecise, parseTimeInput, roundToHundredths } from '../utils/f
 import { resolveBackgroundPreset } from '../utils/backgroundPresets.js'
 import { useHistoryStore } from '../stores/historyStore.js'
 import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
+import { useShapeStore } from '../stores/shapeStore.js'
+import { SHAPE_GALLERY } from '../lib/shapes/shapes.js'
 
 // Marker-Hintergründe laden Bilder/Videos per Callback nach → Baseline nach
 // dieser Zeit erneut übernehmen, damit sie nicht im nächsten Nutzer-Schritt landen.
@@ -31,6 +33,7 @@ export function useBeatMarkers(openMarkersPopover) {
   const backgroundBridge = useBackgroundBridgeStore()
   const markerTransition = useMarkerTransitionStore()
   const layerPresetStore = useLayerPresetStore()
+  const shapeStore = useShapeStore()
   // Marker-Aktionen während der Wiedergabe sind keine Nutzer-Bearbeitungen →
   // am globalen Undo/Redo-Verlauf vorbei ausführen.
   const historyRecorder = getHistoryRecorder(useHistoryStore())
@@ -59,6 +62,9 @@ export function useBeatMarkers(openMarkersPopover) {
   // Ausgewählter Text pro Marker (Text-ID aus dem Text-Verzeichnis; '' = kein
   // Text). Der zugewiesene Text erscheint zum Marker-Zeitpunkt auf dem Canvas.
   const newMarkerTextId = ref('')
+  // Ausgewählte Form pro Marker (Form-ID aus „Formen & Symbole“; '' = keine).
+  // Die Form erscheint zum Marker-Zeitpunkt auf dem Canvas.
+  const newMarkerShapeId = ref('')
   const newMarkerLabel = ref('')
 
   // ══════════════════ Text-Steuerung über Marker ══════════════════
@@ -206,6 +212,74 @@ export function useBeatMarkers(openMarkersPopover) {
     canvasManager.value?.redrawCallback?.()
   }
 
+  // ══════════════════ Formen-Steuerung über Marker ══════════════════
+  // Wie bei Texten: Zugewiesene Formen (Formen & Symbole) werden beim Start der
+  // Wiedergabe ausgeblendet und erscheinen erst zum jeweiligen Marker-Zeitpunkt.
+  // Das Ausblenden ist reiner Laufzeit-Zustand im shapeStore (markerHiddenIds)
+  // und gehört nicht zum Undo/Redo-Verlauf.
+
+  /** Anzeigename einer Form (Galerie-Eintrag, sonst Formtyp) */
+  const shapeDisplayName = (shape) =>
+    SHAPE_GALLERY.some((g) => g.id === shape.galleryId)
+      ? t(`shapes.items.${shape.galleryId}`)
+      : shape.type
+
+  /**
+   * Liste der Formen für das Marker-Dropdown (Nummer in Einfüge-Reihenfolge
+   * der Ebenen + Name; Emojis mit Zeichen, Formen mit Text mit Vorschau).
+   */
+  const getMarkerShapes = () =>
+    shapeStore.shapes.map((s, i) => {
+      const extra =
+        s.type === 'emoji'
+          ? String(s.emoji ?? '')
+          : String(s.text ?? '')
+              .replace(/\s+/g, ' ')
+              .trim()
+              .slice(0, 20)
+      return { id: s.id, number: i + 1, name: shapeDisplayName(s), extra }
+    })
+
+  /** IDs aller Formen, die aktuell irgendeinem Marker zugewiesen sind. */
+  const referencedShapeIds = () => {
+    const ids = new Set()
+    for (const m of beatMarkerStore.markers) {
+      const sid = m.action?.shapeId
+      if (sid !== undefined && sid !== null && sid !== '') ids.add(sid)
+    }
+    return ids
+  }
+
+  /** Wiedergabe-Start: zugewiesene Formen bis zu ihrem Marker ausblenden. */
+  const activateShapeMarkers = () => {
+    for (const id of referencedShapeIds()) shapeStore.setMarkerHidden(id, true)
+  }
+
+  /** Alle von Markern ausgeblendeten Formen wieder einblenden. */
+  const restoreShapeMarkers = () => shapeStore.clearMarkerHidden()
+
+  /** Formen einblenden, die keinem Marker mehr zugewiesen sind. */
+  const reconcileShapeMarkers = () => {
+    const ids = referencedShapeIds()
+    for (const id of shapeStore.markerHiddenIds) {
+      if (!ids.has(id)) shapeStore.setMarkerHidden(id, false)
+    }
+  }
+
+  /**
+   * Form-Aktion eines ausgelösten Markers: Die zugewiesene Form erscheint,
+   * alle anderen von Markern gesteuerten Formen werden ausgeblendet.
+   */
+  const applyShapeAction = (action) => {
+    const sid = action?.shapeId
+    if (sid === undefined || sid === null || sid === '') return
+    if (!shapeStore.shapes.some((s) => s.id === sid)) return
+    for (const id of referencedShapeIds()) {
+      shapeStore.setMarkerHidden(id, id !== sid)
+    }
+    shapeStore.setMarkerHidden(sid, false)
+  }
+
   /**
    * Wendet die Hintergrund-Aktion eines ausgelösten Markers an (falls vorhanden).
    */
@@ -271,6 +345,7 @@ export function useBeatMarkers(openMarkersPopover) {
     }
     applyMarkerBackground(action)
     applyTextAction(action)
+    applyShapeAction(action)
   }
 
   /**
@@ -333,6 +408,7 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerShowVisualizer.value = true
     newMarkerBackgroundKey.value = ''
     newMarkerTextId.value = ''
+    newMarkerShapeId.value = ''
     showMarkerPanel.value = true
     openMarkersPopover()
   }
@@ -350,6 +426,7 @@ export function useBeatMarkers(openMarkersPopover) {
         : !marker.action?.hideVisualizer
     newMarkerBackgroundKey.value = marker.action?.backgroundKey || ''
     newMarkerTextId.value = marker.action?.textId ?? ''
+    newMarkerShapeId.value = marker.action?.shapeId ?? ''
     showMarkerPanel.value = true
   }
 
@@ -379,6 +456,15 @@ export function useBeatMarkers(openMarkersPopover) {
       if (txt) textLabel = txt.content ? txt.content : `#${txt.number}`
     }
 
+    // Zugewiesene Form (Formen & Symbole) – erscheint zum Marker-Zeitpunkt.
+    let shapeId = null
+    let shapeLabel = null
+    if (newMarkerShapeId.value !== '' && newMarkerShapeId.value !== null) {
+      shapeId = newMarkerShapeId.value
+      const sh = getMarkerShapes().find((s) => s.id === shapeId)
+      if (sh) shapeLabel = sh.extra ? `${sh.name} ${sh.extra}` : sh.name
+    }
+
     // Eigenes Layer-Preset: Snapshot mitspeichern, damit der Marker auch nach
     // dem Löschen des Presets noch funktioniert (analog zum Hintergrund).
     let layerPreset = null
@@ -405,6 +491,8 @@ export function useBeatMarkers(openMarkersPopover) {
       backgroundLabel: backgroundLabel,
       textId: textId,
       textLabel: textLabel,
+      shapeId: shapeId,
+      shapeLabel: shapeLabel,
     }
     if (editingMarkerId.value !== null) {
       beatMarkerStore.updateMarker(editingMarkerId.value, {
@@ -419,8 +507,10 @@ export function useBeatMarkers(openMarkersPopover) {
     showMarkerPanel.value = false
     newMarkerBackgroundKey.value = ''
     newMarkerTextId.value = ''
-    // Texte, die keinem Marker mehr zugewiesen sind, wieder einblenden.
+    newMarkerShapeId.value = ''
+    // Texte und Formen, die keinem Marker mehr zugewiesen sind, wieder einblenden.
     reconcileTextMarkers()
+    reconcileShapeMarkers()
   }
 
   const cancelAddMarker = () => {
@@ -435,14 +525,16 @@ export function useBeatMarkers(openMarkersPopover) {
 
   const removeMarker = (id) => {
     beatMarkerStore.removeMarker(id)
-    // Text des gelöschten Markers ggf. wieder einblenden.
+    // Text bzw. Form des gelöschten Markers ggf. wieder einblenden.
     reconcileTextMarkers()
+    reconcileShapeMarkers()
   }
 
   const clearAllMarkers = () => {
     if (confirm(t('player.confirmDeleteMarkers'))) {
       beatMarkerStore.clearAllMarkers()
       restoreTextMarkers()
+      restoreShapeMarkers()
     }
   }
 
@@ -519,7 +611,10 @@ export function useBeatMarkers(openMarkersPopover) {
         beatMarkerStore.resetTriggers()
         // Beim Zurückspulen an den Anfang die von Markern gesteuerten Texte
         // wieder einblenden (Marker blenden sie beim nächsten Start erneut aus).
-        if (newTime < 0.5) restoreTextMarkers()
+        if (newTime < 0.5) {
+          restoreTextMarkers()
+          restoreShapeMarkers()
+        }
       }
     },
   )
@@ -536,6 +631,7 @@ export function useBeatMarkers(openMarkersPopover) {
         // Zugewiesene Texte ausblenden, damit sie erst zum jeweiligen
         // Marker-Zeitpunkt erscheinen.
         activateTextMarkers()
+        activateShapeMarkers()
         const triggered = beatMarkerStore.checkTrigger(playerStore.currentTime)
         if (triggered && triggered.action) {
           // Start-Marker (0:00): sofort anwenden, ohne Übergang (nichts zum Ausblenden)
@@ -545,11 +641,14 @@ export function useBeatMarkers(openMarkersPopover) {
     },
   )
 
-  // Marker deaktiviert → von Markern gesteuerte Texte wieder einblenden.
+  // Marker deaktiviert → von Markern gesteuerte Texte und Formen wieder einblenden.
   watch(
     () => beatMarkerStore.markersEnabled,
     (enabled) => {
-      if (!enabled) restoreTextMarkers()
+      if (!enabled) {
+        restoreTextMarkers()
+        restoreShapeMarkers()
+      }
     },
   )
 
@@ -576,8 +675,9 @@ export function useBeatMarkers(openMarkersPopover) {
     window.removeEventListener('keydown', handleKeydown)
     unsubscribeFrame?.()
     unsubscribeFrame = null
-    // Von Markern ausgeblendete Texte beim Verlassen wiederherstellen.
+    // Von Markern ausgeblendete Texte und Formen beim Verlassen wiederherstellen.
     restoreTextMarkers()
+    restoreShapeMarkers()
   })
 
   return {
@@ -591,8 +691,10 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerShowVisualizer,
     newMarkerBackgroundKey,
     newMarkerTextId,
+    newMarkerShapeId,
     newMarkerLabel,
     getMarkerTexts,
+    getMarkerShapes,
     updateMarkerTimeFromInput,
     stepMarkerTime,
     getMarkerPosition,

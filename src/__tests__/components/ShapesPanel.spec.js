@@ -146,4 +146,31 @@ describe('ShapesPanel', () => {
     expect(w.find('.shape-edit').exists()).toBe(false)
     w.unmount()
   })
+  it('zeigt Audio-Reaktiv für die ausgewählte Form und schreibt in deren Konfiguration', async () => {
+    const shape = store.addShape('star', 1920, 1080)
+    const w = mountPanel()
+    await w.vm.$nextTick()
+    const section = w.find('[data-shape-audio]')
+    expect(section.exists()).toBe(true)
+    expect(w.text()).toContain(de.shapes.edit.audioReactive)
+    // Bild-only-Effekte werden bei Formen nicht angeboten
+    expect(w.find('.effect-item[data-effect-id="border"]').exists()).toBe(false)
+
+    const toggle = section.find('input[type="checkbox"]')
+    toggle.element.checked = true
+    await toggle.trigger('change')
+    expect(store.shapes[0].audioReactive.enabled).toBe(true)
+    expect(store.shapes[0].id).toBe(shape.id)
+    await w.vm.$nextTick()
+    expect(w.find('.effect-item[data-effect-id="beatPulse"]').exists()).toBe(true)
+    w.unmount()
+  })
+
+  it('Effekt-Bereiche (Weichzeichnen) bieten kein Audio-Reaktiv an', async () => {
+    store.addShape('blur', 1920, 1080)
+    const w = mountPanel()
+    await w.vm.$nextTick()
+    expect(w.find('[data-shape-audio]').exists()).toBe(false)
+    w.unmount()
+  })
 })

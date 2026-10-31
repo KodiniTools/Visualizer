@@ -161,7 +161,12 @@ export function createShapeInteraction({
     })
   }
 
-  const shapeAt = (pos) => findShapeAt(store.shapes, pos.x, pos.y, HIT_SLOP * unit())
+  // Von Beat-Markern ausgeblendete Formen sind nicht anklickbar
+  const visibleShapes = () =>
+    typeof store.isMarkerHidden === 'function'
+      ? store.shapes.filter((s) => !store.isMarkerHidden(s.id))
+      : store.shapes
+  const shapeAt = (pos) => findShapeAt(visibleShapes(), pos.x, pos.y, HIT_SLOP * unit())
 
   /** Text über der Position? Texte liegen über den Formen. */
   function textAt(pos) {

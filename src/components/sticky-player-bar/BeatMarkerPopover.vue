@@ -200,6 +200,26 @@
         </select>
       </div>
       <div class="form-row">
+        <label>{{ t('player.backgroundImage') }}:</label>
+        <select
+          v-model="newMarkerBgImageId"
+          class="marker-select"
+          data-marker-bg-image
+          :title="t('player.backgroundImageHint')"
+        >
+          <option value="">{{ t('player.noBackgroundImage') }}</option>
+          <option v-if="galleryImageOptions.length === 0" value="" disabled>
+            {{ t('player.emptyImageGallery') }}
+          </option>
+          <option v-for="img in galleryImageOptions" :key="img.id" :value="img.id">
+            {{ img.number }}. {{ img.name }}
+          </option>
+        </select>
+      </div>
+      <p v-if="newMarkerBgImageId !== ''" class="marker-form-hint">
+        {{ t('player.backgroundImageHint') }}
+      </p>
+      <div class="form-row">
         <label>{{ t('player.text') }}:</label>
         <select v-model="newMarkerTextId" class="marker-select" :title="t('player.textAppears')">
           <option value="">{{ t('player.noText') }}</option>
@@ -270,6 +290,12 @@
           class="marker-action marker-action-bg"
           :title="t('player.backgroundChanges')"
           >🎨 {{ marker.action.backgroundLabel || 'BG' }}</span
+        >
+        <span
+          v-if="marker.action.backgroundImage"
+          class="marker-action marker-action-bgimage"
+          :title="t('player.backgroundImageHint')"
+          >🖼️ {{ marker.action.backgroundImage.name }}</span
         >
         <span
           v-if="
@@ -358,9 +384,11 @@ const {
   newMarkerBackgroundKey,
   newMarkerTextId,
   newMarkerShapeId,
+  newMarkerBgImageId,
   newMarkerLabel,
   getMarkerTexts,
   getMarkerShapes,
+  getMarkerGalleryImages,
   updateMarkerTimeFromInput,
   stepMarkerTime,
   addMarkerAtCurrentTime,
@@ -419,6 +447,12 @@ const textOptions = computed(() => {
 const shapeOptions = computed(() => {
   void showMarkerPanel.value
   return getMarkerShapes()
+})
+
+// Hintergrund-Bilder aus der eigenen Bildgalerie (reaktiv auf die Galerie)
+const galleryImageOptions = computed(() => {
+  void showMarkerPanel.value
+  return getMarkerGalleryImages()
 })
 
 // Hintergrund-Auswahl (Vorlagen + gespeicherte Presets). Wird beim Öffnen des
@@ -517,6 +551,16 @@ const backgroundPresetOptions = computed(() => {
 .marker-action-text {
   color: var(--ds-link);
   background-color: color-mix(in srgb, var(--ds-link) 14%, transparent);
+}
+.marker-action-bgimage {
+  color: var(--ds-success);
+  background-color: color-mix(in srgb, var(--ds-success) 12%, transparent);
+}
+.marker-form-hint {
+  margin: -2px 0 6px;
+  font-size: var(--ds-text-xs);
+  line-height: var(--ds-leading);
+  color: var(--text-muted);
 }
 .marker-action-shape {
   color: var(--accent-text);

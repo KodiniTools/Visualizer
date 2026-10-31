@@ -1,4 +1,4 @@
-import { ref, watch, onMounted, onUnmounted, inject } from 'vue'
+import { ref, watch, onMounted, onUnmounted, inject, toRaw } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { usePlayerStore } from '../stores/playerStore.js'
 import { useBeatMarkerStore } from '../stores/beatMarkerStore.js'
@@ -12,6 +12,13 @@ import { useHistoryStore } from '../stores/historyStore.js'
 import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
 import { useShapeStore } from '../stores/shapeStore.js'
 import { SHAPE_GALLERY } from '../lib/shapes/shapes.js'
+import { useImageGallery } from './useImageGallery.js'
+import {
+  captureBackgroundImageDefaults,
+  findGalleryImage,
+  resolveBackgroundImageDefaults,
+  setBackgroundImageWithDefaults,
+} from '../lib/background/markerBackgroundImage.js'
 
 // Marker-Hintergründe laden Bilder/Videos per Callback nach → Baseline nach
 // dieser Zeit erneut übernehmen, damit sie nicht im nächsten Nutzer-Schritt landen.
@@ -34,6 +41,7 @@ export function useBeatMarkers(openMarkersPopover) {
   const markerTransition = useMarkerTransitionStore()
   const layerPresetStore = useLayerPresetStore()
   const shapeStore = useShapeStore()
+  const { imageGallery } = useImageGallery()
   // Marker-Aktionen während der Wiedergabe sind keine Nutzer-Bearbeitungen →
   // am globalen Undo/Redo-Verlauf vorbei ausführen.
   const historyRecorder = getHistoryRecorder(useHistoryStore())
@@ -65,6 +73,10 @@ export function useBeatMarkers(openMarkersPopover) {
   // Ausgewählte Form pro Marker (Form-ID aus „Formen & Symbole“; '' = keine).
   // Die Form erscheint zum Marker-Zeitpunkt auf dem Canvas.
   const newMarkerShapeId = ref('')
+  // Hintergrund-Bild pro Marker (Galerie-Bild-ID; '' = kein Wechsel). Übernimmt
+  // beim Auslösen Audio-Reaktiv und Format (Workspace/Normal) vom vorherigen
+  // Hintergrund-Bild.
+  const newMarkerBgImageId = ref('')
   const newMarkerLabel = ref('')
 
   // ══════════════════ Text-Steuerung über Marker ══════════════════
@@ -280,6 +292,32 @@ export function useBeatMarkers(openMarkersPopover) {
     shapeStore.setMarkerHidden(sid, false)
   }
 
+  // ══════════════════ Hintergrund-Bild aus der Galerie ══════════════════
+
+  /** Bilder der eigenen Bildgalerie für das Marker-Dropdown */
+  const getMarkerGalleryImages = () =>
+    imageGallery.value.map((g, i) => ({ id: g.id, number: i + 1, name: g.name }))
+
+  /**
+   * Setzt das Galerie-Bild eines Markers als Hintergrund. Format und
+   * Audio-Reaktiv stammen vom vorherigen (beim Auslösen sichtbaren)
+   * Hintergrund-Bild, ersatzweise aus den beim Speichern gemerkten Vorgaben.
+   * @param {object} action
+   * @param {object|null} previous - vor allen Marker-Änderungen erfasste Vorgaben
+   */
+  const applyBackgroundImageAction = (action, previous) => {
+    const ref = action?.backgroundImage
+    if (!ref) return
+    const entry = findGalleryImage(imageGallery.value, ref)
+    if (!entry?.img) {
+      console.warn('⚠️ Hintergrund-Bild des Markers nicht mehr in der Galerie:', ref.name)
+      return
+    }
+    const defaults = previous || resolveBackgroundImageDefaults(null, ref.defaults)
+    const target = setBackgroundImageWithDefaults(canvasManager.value, toRaw(entry.img), defaults)
+    console.log('🖼️ Hintergrund-Bild via Beat-Marker:', ref.name, `(${target})`)
+  }
+
   /**
    * Wendet die Hintergrund-Aktion eines ausgelösten Markers an (falls vorhanden).
    */
@@ -291,6 +329,12 @@ export function useBeatMarkers(openMarkersPopover) {
     if (action.backgroundKey) {
       const resolved = resolveBackgroundPreset(action.backgroundKey)
       if (resolved?.snapshot) snapshot = resolved.snapshot
+    }
+    // Mit Hintergrund-Bild aus der Galerie liefert das Preset nur Farbe,
+    // Gradient, Audio-Reaktiv und Elemente – sein (asynchron geladenes) Bild
+    // bzw. Video würde das Galerie-Bild sonst wieder überdecken.
+    if (snapshot && action.backgroundImage) {
+      snapshot = { ...snapshot, backgroundImage: null, backgroundVideo: null }
     }
     if (snapshot) {
       backgroundBridge.applySnapshot(snapshot)
@@ -308,6 +352,11 @@ export function useBeatMarkers(openMarkersPopover) {
 
   const applyMarkerActionNow = (action) => {
     if (!action) return
+    // Vorgaben des vorherigen Hintergrund-Bildes erfassen, bevor ein
+    // Hintergrund-Preset dieses Markers den Hintergrund ändert.
+    const previousBgImage = action.backgroundImage
+      ? resolveBackgroundImageDefaults(canvasManager.value, action.backgroundImage.defaults)
+      : null
 
     // Jeder Marker erzwingt den Visualizer-Zustand explizit.
     // Rückwärtskompatibel zum alten Feld `hideVisualizer`.
@@ -344,6 +393,7 @@ export function useBeatMarkers(openMarkersPopover) {
       console.log('🎨 Farbe gewechselt zu:', action.color)
     }
     applyMarkerBackground(action)
+    applyBackgroundImageAction(action, previousBgImage)
     applyTextAction(action)
     applyShapeAction(action)
   }
@@ -409,6 +459,7 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerBackgroundKey.value = ''
     newMarkerTextId.value = ''
     newMarkerShapeId.value = ''
+    newMarkerBgImageId.value = ''
     showMarkerPanel.value = true
     openMarkersPopover()
   }
@@ -427,6 +478,9 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerBackgroundKey.value = marker.action?.backgroundKey || ''
     newMarkerTextId.value = marker.action?.textId ?? ''
     newMarkerShapeId.value = marker.action?.shapeId ?? ''
+    newMarkerBgImageId.value = marker.action?.backgroundImage
+      ? (findGalleryImage(imageGallery.value, marker.action.backgroundImage)?.id ?? '')
+      : ''
     showMarkerPanel.value = true
   }
 
@@ -465,6 +519,21 @@ export function useBeatMarkers(openMarkersPopover) {
       if (sh) shapeLabel = sh.extra ? `${sh.name} ${sh.extra}` : sh.name
     }
 
+    // Hintergrund-Bild aus der Galerie: nur Verweis (id + Name) speichern, kein
+    // Bildinhalt. Vorgaben des aktuellen Hintergrund-Bildes als Ersatz merken,
+    // falls beim Auslösen kein Hintergrund-Bild zu sehen ist.
+    let backgroundImage = null
+    if (newMarkerBgImageId.value !== '' && newMarkerBgImageId.value !== null) {
+      const entry = imageGallery.value.find((g) => g.id === newMarkerBgImageId.value)
+      if (entry) {
+        backgroundImage = {
+          galleryId: entry.id,
+          name: entry.name,
+          defaults: captureBackgroundImageDefaults(canvasManager.value),
+        }
+      }
+    }
+
     // Eigenes Layer-Preset: Snapshot mitspeichern, damit der Marker auch nach
     // dem Löschen des Presets noch funktioniert (analog zum Hintergrund).
     let layerPreset = null
@@ -493,6 +562,7 @@ export function useBeatMarkers(openMarkersPopover) {
       textLabel: textLabel,
       shapeId: shapeId,
       shapeLabel: shapeLabel,
+      backgroundImage: backgroundImage,
     }
     if (editingMarkerId.value !== null) {
       beatMarkerStore.updateMarker(editingMarkerId.value, {
@@ -508,6 +578,7 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerBackgroundKey.value = ''
     newMarkerTextId.value = ''
     newMarkerShapeId.value = ''
+    newMarkerBgImageId.value = ''
     // Texte und Formen, die keinem Marker mehr zugewiesen sind, wieder einblenden.
     reconcileTextMarkers()
     reconcileShapeMarkers()
@@ -692,9 +763,11 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerBackgroundKey,
     newMarkerTextId,
     newMarkerShapeId,
+    newMarkerBgImageId,
     newMarkerLabel,
     getMarkerTexts,
     getMarkerShapes,
+    getMarkerGalleryImages,
     updateMarkerTimeFromInput,
     stepMarkerTime,
     getMarkerPosition,

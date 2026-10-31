@@ -329,16 +329,19 @@ export function useBeatMarkers(openMarkersPopover) {
 
   /**
    * Form-Aktion eines ausgelösten Markers: Die zugewiesene Form erscheint,
-   * alle anderen von Markern gesteuerten Formen werden ausgeblendet.
+   * alle anderen von Markern gesteuerten Formen werden ausgeblendet. Ein
+   * Marker ohne Form („Keine Form“) blendet alle Marker-Formen aus; Formen
+   * ohne Marker-Zuweisung bleiben unberührt.
    */
   const applyShapeAction = (action) => {
-    const sid = action?.shapeId
-    if (sid === undefined || sid === null || sid === '') return
-    if (!shapeStore.shapes.some((s) => s.id === sid)) return
+    const raw = action?.shapeId
+    const sid =
+      raw !== undefined && raw !== null && raw !== '' && shapeStore.shapes.some((s) => s.id === raw)
+        ? raw
+        : null
     for (const id of referencedShapeIds()) {
       shapeStore.setMarkerHidden(id, id !== sid)
     }
-    shapeStore.setMarkerHidden(sid, false)
   }
 
   // ══════════════════ Hintergrund-Bild aus der Galerie ══════════════════

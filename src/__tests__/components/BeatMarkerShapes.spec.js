@@ -97,6 +97,21 @@ describe('Beat-Marker mit Formen & Symbolen', () => {
     expect(shapes.isMarkerHidden(heart.id)).toBe(false)
   })
 
+  it('ein Marker ohne Form blendet die Form des vorherigen Markers aus', async () => {
+    markerStore.addMarker(5, { shapeId: star.id })
+    markerStore.addMarker(8, { visualizer: null })
+    await startPlaybackAtZero()
+    frame(4.99)
+    frame(5.01)
+    expect(shapes.isMarkerHidden(star.id)).toBe(false)
+
+    frame(7.99)
+    frame(8.01)
+    expect(shapes.isMarkerHidden(star.id)).toBe(true)
+    // Formen ohne Marker-Zuweisung bleiben sichtbar
+    expect(shapes.isMarkerHidden(heart.id)).toBe(false)
+  })
+
   it('lässt Formen ohne Marker unberührt', async () => {
     markerStore.addMarker(5, { shapeId: star.id })
     await startPlaybackAtZero()

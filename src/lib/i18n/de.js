@@ -977,6 +977,9 @@ export default {
     shape: 'Form',
     noShape: '-- Keine Form --',
     shapeAppears: 'Form oder Symbol erscheint zum Marker-Zeitpunkt auf dem Canvas',
+    insertedShapes: 'Eingefügte Formen',
+    newShapeHint:
+      'Die Form wird beim Hinzufügen mittig auf dem Canvas angelegt (unter „Formen & Symbole“ bearbeitbar) und erscheint zum Marker-Zeitpunkt.',
     transition: 'Crossfade',
     transitionHint: 'Weiche Überblendung (Crossfade) beim Marker-Wechsel während der Wiedergabe',
     label: 'Label',

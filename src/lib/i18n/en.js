@@ -976,6 +976,9 @@ export default {
     shape: 'Shape',
     noShape: '-- No shape --',
     shapeAppears: 'Shape or symbol appears on the canvas at the marker time',
+    insertedShapes: 'Inserted shapes',
+    newShapeHint:
+      'The shape is placed in the center of the canvas when you add the marker (editable under “Shapes & Symbols”) and appears at the marker time.',
     transition: 'Crossfade',
     transitionHint: 'Smooth crossfade when switching markers during playback',
     label: 'Label',

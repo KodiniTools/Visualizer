@@ -11,7 +11,7 @@ import { resolveBackgroundPreset } from '../utils/backgroundPresets.js'
 import { useHistoryStore } from '../stores/historyStore.js'
 import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
 import { useShapeStore } from '../stores/shapeStore.js'
-import { SHAPE_GALLERY } from '../lib/shapes/shapes.js'
+import { SHAPE_CATEGORIES, SHAPE_GALLERY } from '../lib/shapes/shapes.js'
 import { useImageGallery } from './useImageGallery.js'
 import {
   captureBackgroundImageDefaults,
@@ -251,6 +251,55 @@ export function useBeatMarkers(openMarkersPopover) {
               .slice(0, 20)
       return { id: s.id, number: i + 1, name: shapeDisplayName(s), extra }
     })
+
+  // Galerie-Einträge im Dropdown: Wert `gallery:<id>`; beim Speichern des
+  // Markers wird daraus eine neue Form auf dem Canvas (Zeichenwerkzeuge
+  // ausgenommen – sie fügen keine Form ein).
+  const GALLERY_PREFIX = 'gallery:'
+
+  /**
+   * Galerie „Formen & Symbole“ für das Marker-Dropdown, nach Kategorien.
+   * @returns {{ category: string, label: string, items: { value: string, name: string }[] }[]}
+   */
+  const getMarkerShapeGallery = () =>
+    SHAPE_CATEGORIES.filter((c) => c !== 'draw')
+      .map((category) => ({
+        category,
+        label: t(`shapes.categories.${category}`),
+        items: SHAPE_GALLERY.filter((g) => g.category === category).map((g) => ({
+          value: GALLERY_PREFIX + g.id,
+          name:
+            g.type === 'emoji' && g.preset?.emoji
+              ? `${g.preset.emoji} ${t(`shapes.items.${g.id}`)}`
+              : t(`shapes.items.${g.id}`),
+        })),
+      }))
+      .filter((group) => group.items.length > 0)
+
+  /** Canvas-Größe für neue Formen (Live-Canvas, sonst Bezugsgröße der Formen) */
+  const shapeCanvasSize = () => {
+    const c = canvasManager.value?.canvas
+    if (c?.width && c?.height) return { width: c.width, height: c.height }
+    const s = shapeStore.canvasSize
+    return s.width && s.height ? s : { width: 1920, height: 1080 }
+  }
+
+  /**
+   * Löst die Dropdown-Auswahl zu einer Form-ID auf. Ein Galerie-Eintrag legt
+   * eine neue Form an (mittig, Standard-Stil; danach im Formen-Panel
+   * bearbeitbar). @returns {string|null}
+   */
+  const resolveMarkerShapeSelection = (value) => {
+    if (value === '' || value === null || value === undefined) return null
+    if (typeof value === 'string' && value.startsWith(GALLERY_PREFIX)) {
+      const { width, height } = shapeCanvasSize()
+      const shape = shapeStore.addShape(value.slice(GALLERY_PREFIX.length), width, height)
+      if (!shape) return null
+      shapeStore.selectShape(null)
+      return shape.id
+    }
+    return value
+  }
 
   /** IDs aller Formen, die aktuell irgendeinem Marker zugewiesen sind. */
   const referencedShapeIds = () => {
@@ -514,7 +563,7 @@ export function useBeatMarkers(openMarkersPopover) {
     let shapeId = null
     let shapeLabel = null
     if (newMarkerShapeId.value !== '' && newMarkerShapeId.value !== null) {
-      shapeId = newMarkerShapeId.value
+      shapeId = resolveMarkerShapeSelection(newMarkerShapeId.value)
       const sh = getMarkerShapes().find((s) => s.id === shapeId)
       if (sh) shapeLabel = sh.extra ? `${sh.name} ${sh.extra}` : sh.name
     }
@@ -581,7 +630,11 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerBgImageId.value = ''
     // Texte und Formen, die keinem Marker mehr zugewiesen sind, wieder einblenden.
     reconcileTextMarkers()
-    reconcileShapeMarkers()
+    reconcileShapeMarkers() // Läuft die Wiedergabe schon und liegt der Marker noch vor uns, erscheint
+    // die Form erst zum Marker-Zeitpunkt (wie beim Start ab 0:00).
+    if (shapeId && playerStore.isPlaying && pendingMarkerTime.value > playerStore.currentTime) {
+      shapeStore.setMarkerHidden(shapeId, true)
+    }
   }
 
   const cancelAddMarker = () => {
@@ -767,6 +820,7 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerLabel,
     getMarkerTexts,
     getMarkerShapes,
+    getMarkerShapeGallery,
     getMarkerGalleryImages,
     updateMarkerTimeFromInput,
     stepMarkerTime,

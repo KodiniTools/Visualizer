@@ -126,4 +126,50 @@ describe('Beat-Marker mit Formen & Symbolen', () => {
     expect(JSON.stringify(snap)).not.toContain('markerHidden')
     expect(snap.shapes).toHaveLength(2)
   })
+  it('bietet die ganze Galerie (ohne Zeichenwerkzeuge) nach Kategorien an', () => {
+    const groups = vm.getMarkerShapeGallery()
+    expect(groups.map((g) => g.category)).toEqual([
+      'basic',
+      'arrows',
+      'lines',
+      'symbols',
+      'annotate',
+      'stickers',
+    ])
+    const stickers = groups.find((g) => g.category === 'stickers')
+    expect(stickers.label).toBe('Sticker')
+    expect(stickers.items.find((i) => i.value === 'gallery:emojiFire').name).toContain('🔥')
+    expect(groups.flatMap((g) => g.items).every((i) => i.value.startsWith('gallery:'))).toBe(true)
+  })
+
+  it('ein Galerie-Eintrag legt beim Speichern eine neue Form an und weist sie zu', () => {
+    vm.addMarkerAtCurrentTime()
+    vm.newMarkerShapeId = 'gallery:arrow'
+    vm.confirmAddMarker()
+    expect(shapes.shapes).toHaveLength(3)
+    const created = shapes.shapes.at(-1)
+    expect(created.galleryId).toBe('arrow')
+    expect(created).toMatchObject({ x: 400, y: 300 })
+    expect(shapes.selectedShapeId).toBeNull()
+    const marker = markerStore.markers.at(-1)
+    expect(marker.action.shapeId).toBe(created.id)
+    expect(marker.action.shapeLabel).toBe('Pfeil')
+  })
+
+  it('während der Wiedergabe erscheint die neue Form erst zum Marker-Zeitpunkt', async () => {
+    playerStore.audioRef.currentTime = 2
+    playerStore.currentTime = 2
+    playerStore.isPlaying = true
+    await nextTick()
+    vm.addMarkerAtCurrentTime()
+    vm.pendingMarkerTimeInput = '0:06.00'
+    vm.updateMarkerTimeFromInput()
+    vm.newMarkerShapeId = 'gallery:emojiFire'
+    vm.confirmAddMarker()
+    const created = shapes.shapes.at(-1)
+    expect(shapes.isMarkerHidden(created.id)).toBe(true)
+    frame(5.99)
+    frame(6.01)
+    expect(shapes.isMarkerHidden(created.id)).toBe(false)
+  })
 })

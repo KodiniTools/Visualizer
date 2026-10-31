@@ -237,11 +237,21 @@
           :title="t('player.shapeAppears')"
         >
           <option value="">{{ t('player.noShape') }}</option>
-          <option v-for="sh in shapeOptions" :key="sh.id" :value="sh.id">
-            {{ sh.number }}. {{ sh.name }}{{ sh.extra ? ' — ' + sh.extra : '' }}
-          </option>
+          <optgroup v-if="shapeOptions.length" :label="t('player.insertedShapes')">
+            <option v-for="sh in shapeOptions" :key="sh.id" :value="sh.id">
+              {{ sh.number }}. {{ sh.name }}{{ sh.extra ? ' — ' + sh.extra : '' }}
+            </option>
+          </optgroup>
+          <optgroup v-for="group in shapeGalleryOptions" :key="group.category" :label="group.label">
+            <option v-for="item in group.items" :key="item.value" :value="item.value">
+              {{ item.name }}
+            </option>
+          </optgroup>
         </select>
       </div>
+      <p v-if="String(newMarkerShapeId).startsWith('gallery:')" class="marker-form-hint">
+        {{ t('player.newShapeHint') }}
+      </p>
       <div class="form-row">
         <label>{{ t('player.label') }}:</label>
         <input
@@ -388,6 +398,7 @@ const {
   newMarkerLabel,
   getMarkerTexts,
   getMarkerShapes,
+  getMarkerShapeGallery,
   getMarkerGalleryImages,
   updateMarkerTimeFromInput,
   stepMarkerTime,
@@ -448,6 +459,9 @@ const shapeOptions = computed(() => {
   void showMarkerPanel.value
   return getMarkerShapes()
 })
+
+// Galerie „Formen & Symbole“ (neue Form wird beim Speichern angelegt)
+const shapeGalleryOptions = computed(() => getMarkerShapeGallery())
 
 // Hintergrund-Bilder aus der eigenen Bildgalerie (reaktiv auf die Galerie)
 const galleryImageOptions = computed(() => {
@@ -510,6 +524,9 @@ const backgroundPresetOptions = computed(() => {
 .marker-select,
 .marker-input {
   flex: 1;
+  /* Lange Optionen (z. B. Visualizer-Namen) dürfen das Formular nicht verbreitern */
+  min-width: 0;
+  max-width: 100%;
   padding: 4px 6px;
   font-size: var(--ds-text-xs);
   background-color: var(--secondary-bg);

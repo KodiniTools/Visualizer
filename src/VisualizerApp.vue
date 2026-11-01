@@ -353,7 +353,6 @@ const recorderSetup = useRecorderSetup({
   getRecordingCanvasStream,
   setRecordingCanvasStream,
 })
-recorderSetup.exposeRecorderGlobals()
 
 // ── Status banner + shared-file import + handoff ────────────────────────────────
 const { banner, showBanner } = useStatusBanner()

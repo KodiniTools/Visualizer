@@ -164,6 +164,7 @@
 import { ref, computed } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useToastStore } from '../stores/toastStore.js'
+import { getCanvasScreenshot } from '../lib/canvasScreenshotBridge.js'
 import HelpTooltip from './HelpTooltip.vue'
 import SliderField from './ui/SliderField.vue'
 
@@ -208,11 +209,12 @@ function formatFileSize(bytes) {
 
 /**
  * Take a screenshot of the canvas (pure content without UI elements)
- * Uses the global takeCanvasScreenshot function from VisualizerApp.vue
+ * Uses the render loop's screenshot function (lib/canvasScreenshotBridge.js)
  */
 async function takeScreenshot() {
   // Check if the screenshot function is available
-  if (typeof window.takeCanvasScreenshot !== 'function') {
+  const takeCanvasScreenshot = getCanvasScreenshot()
+  if (!takeCanvasScreenshot) {
     console.error('[ScreenshotPanel] takeCanvasScreenshot function not available')
     toastStore.error(t('screenshot.canvasNotFound'))
     return
@@ -231,8 +233,8 @@ async function takeScreenshot() {
     const mimeType = `image/${selectedFormat.value}`
     const qualityValue = quality.value / 100
 
-    // Create screenshot using the global function (renders without UI elements)
-    const blob = await window.takeCanvasScreenshot(mimeType, qualityValue)
+    // Create screenshot via the render loop (renders without UI elements)
+    const blob = await takeCanvasScreenshot(mimeType, qualityValue)
 
     if (!blob) {
       throw new Error('Failed to create screenshot')

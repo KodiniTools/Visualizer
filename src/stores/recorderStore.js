@@ -96,10 +96,6 @@ export const useRecorderStore = defineStore('recorder', {
 
         console.log('✅ [RecorderStore] Recorder erfolgreich initialisiert')
 
-        // ✅ PERFORMANCE FIX: Exponiere Store global für dynamische FPS
-        window.recorderStore = this
-        console.log('✅ [RecorderStore] Store global verfügbar gemacht')
-
         this.syncRecorderState()
         return true
       } catch (error) {

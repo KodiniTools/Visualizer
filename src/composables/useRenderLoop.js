@@ -9,6 +9,7 @@ import { createBeatPunch } from './renderLoop/beatPunch.js'
 import { createMultiLayerRenderer } from './renderLoop/multiLayerRenderer.js'
 import { createSingleVisualizerRenderer } from './renderLoop/singleVisualizerRenderer.js'
 import { createSceneRenderer } from './renderLoop/sceneRenderer.js'
+import { registerCanvasScreenshot } from '../lib/canvasScreenshotBridge.js'
 
 /**
  * Render-Schleife des Canvas: pro Frame Audio analysieren, Visualizer rendern
@@ -383,8 +384,14 @@ export function useRenderLoop({
 
   // ─── Screenshot ─────────────────────────────────────────────────────────
 
+  let unregisterScreenshot = null
+
+  /**
+   * Meldet die Screenshot-Funktion bei lib/canvasScreenshotBridge.js an.
+   * window.takeCanvasScreenshot bleibt als Übergangs-Alias erhalten.
+   */
   function exposeGlobals(canvasManagerInst) {
-    window.takeCanvasScreenshot = async function (mimeType = 'image/png', quality = 0.9) {
+    const takeCanvasScreenshot = async function (mimeType = 'image/png', quality = 0.9) {
       const canvas = canvasRef.value
       if (!canvas) return null
 
@@ -415,6 +422,9 @@ export function useRenderLoop({
         )
       })
     }
+    unregisterScreenshot?.()
+    unregisterScreenshot = registerCanvasScreenshot(takeCanvasScreenshot)
+    window.takeCanvasScreenshot = takeCanvasScreenshot
   }
 
   // ─── Lebenszyklus ───────────────────────────────────────────────────────
@@ -430,6 +440,8 @@ export function useRenderLoop({
 
   function cleanup() {
     stop()
+    unregisterScreenshot?.()
+    unregisterScreenshot = null
     single.dispose()
     if (mainPostProcessor) {
       try {

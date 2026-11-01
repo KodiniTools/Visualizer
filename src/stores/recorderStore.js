@@ -9,6 +9,7 @@
  */
 import { defineStore } from 'pinia'
 import { Recorder } from '../lib/recorder.js'
+import { getAudioEngine } from '../lib/audioEngineBridge.js'
 
 export const useRecorderStore = defineStore('recorder', {
   state: () => ({
@@ -194,9 +195,10 @@ export const useRecorderStore = defineStore('recorder', {
 
       // KRITISCH: Hole FRISCHEN Audio-Stream bei jedem Prepare
       // Dies verhindert "tote" Audio-Tracks nach dem ersten Stop
-      if (typeof window.getAudioStreamForRecorder === 'function') {
+      const audioEngine = getAudioEngine()
+      if (audioEngine) {
         try {
-          const freshAudioStream = await window.getAudioStreamForRecorder()
+          const freshAudioStream = await audioEngine.getAudioStreamForRecorder()
           if (freshAudioStream) {
             this.recorder.updateAudioStream(freshAudioStream)
             console.log('✅ [RecorderStore] Frischer Audio-Stream gesetzt')

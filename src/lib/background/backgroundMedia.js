@@ -6,6 +6,8 @@
  * Lade-Callbacks erneut abgefragt, weil sich der Manager bis dahin ändern kann.
  */
 
+import { getAudioEngine } from '../audioEngineBridge.js'
+
 const cloneJson = (obj) => JSON.parse(JSON.stringify(obj))
 
 /**
@@ -206,8 +208,8 @@ export function applyVideoBackground(getCm, videoData, { autoplay = false } = {}
       }
     }
     // Video-Audio (falls nicht stumm) mit der Aufnahme verbinden
-    if (!video.muted && window.connectVideoToRecording) {
-      window.connectVideoToRecording(video, video.volume)
+    if (!video.muted) {
+      getAudioEngine()?.connectVideoToRecording(video, video.volume)
     }
     // Beim Anwenden über einen Beat-Marker: Video von vorne automatisch starten.
     if (autoplay) {

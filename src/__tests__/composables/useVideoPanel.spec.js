@@ -4,11 +4,12 @@ import { defineComponent, h, ref, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useVideoPanel } from '../../composables/useVideoPanel.js'
+import { registerAudioEngine } from '../../lib/audioEngineBridge.js'
 
 /**
  * Verhaltenstest für useVideoPanel: protokolliert alle Zugriffe auf
  * Video-Elemente (Property-Zuweisungen + Methoden), Manager und die
- * Aufnahme-Anbindung (window.connectVideoToRecording …) in exakter Reihenfolge.
+ * Aufnahme-Anbindung (Audio-Engine connectVideoToRecording …) in exakter Reihenfolge.
  */
 
 const log = []
@@ -28,6 +29,7 @@ function fmt(v) {
 }
 
 let videoSeq = 0
+let unregisterEngine = () => {}
 /** Video-Element-Attrappe: protokolliert Zuweisungen und Aufrufe. */
 function fakeVideo(label = `v${++videoSeq}`, init = {}) {
   const state = {
@@ -158,9 +160,11 @@ beforeEach(() => {
     L('createVideo', el)
     return el
   })
-  window.connectVideoToRecording = (el, vol) => L('rec.connect', el, vol)
-  window.disconnectVideoFromRecording = (el) => L('rec.disconnect', el)
-  window.setVideoVolume = (el, vol) => L('rec.setVolume', el, vol)
+  unregisterEngine = registerAudioEngine({
+    connectVideoToRecording: (el, vol) => L('rec.connect', el, vol),
+    disconnectVideoFromRecording: (el) => L('rec.disconnect', el),
+    setVideoVolume: (el, vol) => L('rec.setVolume', el, vol),
+  })
 })
 
 afterEach(() => {
@@ -169,9 +173,7 @@ afterEach(() => {
   vi.useRealTimers()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
-  delete window.connectVideoToRecording
-  delete window.disconnectVideoFromRecording
-  delete window.setVideoVolume
+  unregisterEngine()
 })
 
 describe('useVideoPanel – API', () => {

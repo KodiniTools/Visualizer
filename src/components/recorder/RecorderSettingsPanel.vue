@@ -65,20 +65,20 @@
       </span>
     </div>
     <label class="toggle-row">
-      <input type="checkbox" v-model="enableServerConversion" :disabled="!serverAvailable" />
+      <input v-model="enableServerConversion" type="checkbox" :disabled="!serverAvailable" />
       <span class="toggle-label">{{ t('recorder.autoConvert') }}</span>
     </label>
     <div
-      class="quality-buttons conversion-quality"
       v-if="enableServerConversion && serverAvailable"
+      class="quality-buttons conversion-quality"
     >
       <button
         v-for="preset in conversionPresets"
         :key="preset.value"
         class="quality-btn"
         :class="{ active: conversionQuality === preset.value }"
-        @click="conversionQuality = preset.value"
         :title="preset.desc"
+        @click="conversionQuality = preset.value"
       >
         {{ preset.label }}
       </button>
@@ -98,10 +98,10 @@
       </span>
     </div>
     <label class="toggle-row">
-      <input type="checkbox" v-model="enableGifExport" :disabled="!serverAvailable" />
+      <input v-model="enableGifExport" type="checkbox" :disabled="!serverAvailable" />
       <span class="toggle-label">{{ t('recorder.gifAutoCreate') }}</span>
     </label>
-    <div class="gif-options" v-if="enableGifExport && serverAvailable">
+    <div v-if="enableGifExport && serverAvailable" class="gif-options">
       <div class="gif-option-row">
         <span class="gif-option-label">{{ t('recorder.gifFps') }}:</span>
         <div class="quality-buttons">
@@ -150,10 +150,10 @@
       </span>
     </div>
     <label class="toggle-row">
-      <input type="checkbox" v-model="enableHqExport" :disabled="!serverAvailable" />
+      <input v-model="enableHqExport" type="checkbox" :disabled="!serverAvailable" />
       <span class="toggle-label">{{ t('recorder.hqAutoCreate') }}</span>
     </label>
-    <div class="gif-options" v-if="enableHqExport && serverAvailable">
+    <div v-if="enableHqExport && serverAvailable" class="gif-options">
       <div class="gif-option-row">
         <span class="gif-option-label">{{ t('recorder.hqFps') }}:</span>
         <div class="quality-buttons">
@@ -202,27 +202,9 @@ const {
 const UPLOAD_MODES = ['auto', 'server', 'direct']
 </script>
 
+<style scoped src="./recorder-section.css"></style>
+
 <style scoped>
-.control-section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.section-label {
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-  font-weight: var(--ds-weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
 .server-status {
   font-size: var(--ds-text-xs);
   transition: color var(--ds-duration-slow) var(--ds-ease);
@@ -231,11 +213,13 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 .server-status.available {
   color: var(--ds-success);
 }
+
 .server-status.unavailable {
   color: var(--text-muted);
 }
 
 /* Quality / Upload buttons */
+
 .quality-buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -298,6 +282,7 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 }
 
 /* Toggle */
+
 .toggle-row {
   display: flex;
   align-items: center;
@@ -324,6 +309,7 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 }
 
 /* GIF / HQ options */
+
 .gif-options {
   display: flex;
   flex-direction: column;
@@ -385,6 +371,7 @@ const UPLOAD_MODES = ['auto', 'server', 'direct']
 [data-theme='light'] .toggle-row input[type='checkbox'] {
   accent-color: var(--accent-primary);
 }
+
 [data-theme='light'] .extra-info {
   color: var(--ds-text-2);
 }

@@ -1,0 +1,20 @@
+/* Gemeinsame Abschnitts-Optik der Recorder-Bausteine (scoped eingebunden). */
+.control-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-label {
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
+  font-weight: var(--ds-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}

@@ -1,0 +1,34 @@
+/* Basis der Recorder-Aktionsknöpfe (scoped eingebunden). */
+.btn {
+  flex: 1;
+  min-width: 70px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  cursor: pointer;
+  transition: all var(--ds-duration) var(--ds-ease);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.btn .icon {
+  width: 12px;
+  height: 12px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .btn {
+    min-width: auto;
+  }
+}

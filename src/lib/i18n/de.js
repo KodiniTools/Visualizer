@@ -2413,6 +2413,14 @@ export default {
     audioTargetHint:
       'Gilt für das erste Video. Ein anderes Video in der Liste anklicken, um es zu bearbeiten.',
     wsBgLabel: 'Workspace-Hintergrund',
+    videosTitle: 'Videos',
+    uploadVideo: 'Video hochladen',
+    uploadFormats: 'MP4, WebM, MOV',
+    deleteAllVideos: 'Alle löschen',
+    deleteVideo: 'Video löschen',
+    placeOnCanvas: 'Auf Canvas platzieren',
+    asBackground: 'Als Hintergrund',
+    asWorkspaceBackground: 'Workspace-Hintergrund',
   },
 
   // ========== HANDOFF (Bild-Übernahme aus anderen Kodini-Tools) ==========

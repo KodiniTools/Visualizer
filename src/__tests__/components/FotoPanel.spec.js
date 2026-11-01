@@ -68,6 +68,7 @@ import { useToastStore } from '../../stores/toastStore.js'
 import { useSlideshowImageAdjustmentsStore } from '../../stores/slideshowImageAdjustmentsStore.js'
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore.js'
 import { SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest.js'
+import { getFotoPanel } from '../../lib/fotoPanelBridge.js'
 
 function img(name, w = 100, h = 50) {
   return { src: `data:,${name}`, naturalWidth: w, naturalHeight: h, tag: name }
@@ -187,12 +188,13 @@ afterEach(() => {
 })
 
 describe('FotoPanel – Galerie & Platzierung', () => {
-  it('initialisiert Presets und window.fotoPanelControls', async () => {
+  it('initialisiert Presets und meldet das Panel an (Bridge + window-Alias)', async () => {
     await mountPanel()
     expect(filters().props('presets')).toEqual([{ id: 'vintage' }])
-    expect(window.fotoPanelControls.currentActiveImage).toBe(
-      useImageAudioReactive().currentActiveImage,
-    )
+    const panel = getFotoPanel()
+    expect(panel.currentActiveImage).toBe(useImageAudioReactive().currentActiveImage)
+    expect(typeof panel.loadImageSettings).toBe('function')
+    expect(window.fotoPanelControls).toBe(panel)
   })
 
   it('fügt ausgewählte Bilder zum Canvas hinzu und hebt die Auswahl auf', async () => {

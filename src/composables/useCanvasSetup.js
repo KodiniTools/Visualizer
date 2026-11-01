@@ -5,6 +5,7 @@ import { GridManager } from '../lib/gridManager.js'
 import { MultiImageManager } from '../lib/multiImageManager.js'
 import { VideoManager } from '../lib/videoManager.js'
 import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
+import { getFotoPanel } from '../lib/fotoPanelBridge.js'
 
 /**
  * Canvas pixel dimensions per social-media workspace preset.
@@ -177,7 +178,8 @@ export function useCanvasSetup({
   }
 
   function onObjectSelected(selectedObject) {
-    if (!window.fotoPanelControls) {
+    const fotoPanel = getFotoPanel()
+    if (!fotoPanel) {
       setTimeout(() => onObjectSelected(selectedObject), 100)
       return
     }
@@ -198,28 +200,17 @@ export function useCanvasSetup({
       selectedObject &&
       (selectedObject.type === 'workspace-background' || selectedObject.type === 'background')
 
-    if (window.fotoPanelControls.currentActiveImage) {
-      if (isBackgroundType) {
-        window.fotoPanelControls.currentActiveImage.value = null
-        setTimeout(() => {
-          if (window.fotoPanelControls?.currentActiveImage) {
-            window.fotoPanelControls.currentActiveImage.value = selectedObject
-          }
-        }, 0)
-      } else {
-        window.fotoPanelControls.currentActiveImage.value = isImageSelected ? selectedObject : null
-      }
+    if (isBackgroundType) {
+      fotoPanel.currentActiveImage.value = null
+      setTimeout(() => {
+        const panel = getFotoPanel()
+        if (panel) panel.currentActiveImage.value = selectedObject
+      }, 0)
+    } else {
+      fotoPanel.currentActiveImage.value = isImageSelected ? selectedObject : null
     }
 
-    if (window.fotoPanelControls.container) {
-      window.fotoPanelControls.container.style.display = isImageSelected ? 'block' : 'none'
-    }
-
-    if (isImageSelected && window.fotoPanelControls.loadImageSettings) {
-      window.fotoPanelControls.loadImageSettings(selectedObject)
-    } else if (isImageSelected && fotoManagerInstance.value) {
-      fotoManagerInstance.value.updateUIFromSettings(window.fotoPanelControls, selectedObject)
-    }
+    if (isImageSelected) fotoPanel.loadImageSettings(selectedObject)
   }
 
   return {

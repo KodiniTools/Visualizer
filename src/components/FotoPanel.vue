@@ -116,6 +116,7 @@ import { useGalleryCanvasDrop } from '../composables/useGalleryCanvasDrop.js'
 import { useFotoSlideshow } from './foto-panel/useFotoSlideshow.js'
 import { useImagePlacement } from './foto-panel/useImagePlacement.js'
 import { useActiveImageEditing } from './foto-panel/useActiveImageEditing.js'
+import { registerFotoPanel } from '../lib/fotoPanelBridge.js'
 
 const { t } = useI18n()
 const toastStore = useToastStore()
@@ -296,13 +297,16 @@ onMounted(() => {
 
     presets.value = fotoManager.getAvailablePresets()
 
-    // Controls global verfügbar machen. Die Audio-Reaktiv-Einstellungen des
-    // aktiven Bildes lädt das Audio-Reaktiv-Panel in der Player-Leiste selbst
-    // (über den geteilten currentActiveImage-Zustand).
-    window.fotoPanelControls = {
+    // Panel für die Canvas-Auswahl anmelden (lib/fotoPanelBridge.js). Die
+    // Audio-Reaktiv-Einstellungen des aktiven Bildes lädt das Audio-Reaktiv-Panel
+    // in der Player-Leiste selbst (über den geteilten currentActiveImage-Zustand).
+    // window.fotoPanelControls bleibt als Übergangs-Alias erhalten.
+    const panelApi = {
       loadImageSettings: loadActiveImageSettings,
       currentActiveImage: currentActiveImage,
     }
+    registerFotoPanel(panelApi)
+    window.fotoPanelControls = panelApi
 
     console.log('✅ FotoPanel initialisiert')
   }

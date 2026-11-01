@@ -13,132 +13,29 @@
     </div>
 
     <!-- Status -->
-    <div class="status-indicator" :class="statusClass">
-      <div class="status-dot"></div>
-      <span class="status-text">{{ statusText }}</span>
-      <span
-        v-if="recorderStore.isRecording"
-        class="recording-timer"
-        :class="{ paused: recorderStore.isPaused }"
-      >
-        {{ recordingDisplayTime }}
-      </span>
-    </div>
+    <RecorderStatusIndicator :display-time="recordingDisplayTime" />
 
     <!-- Controls -->
-    <div class="recorder-controls">
-      <button
-        v-if="!recorderStore.isPrepared && !recorderStore.isRecording"
-        class="btn btn-prepare"
-        @click="handlePrepare"
-        :disabled="isProcessing"
-      >
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M8 12h8M12 8v8" />
-        </svg>
-        {{ t('recorder.prepare') }}
-      </button>
-
-      <button
-        v-if="recorderStore.isPrepared && !recorderStore.isRecording"
-        class="btn btn-start"
-        @click="handleStart"
-        :disabled="isProcessing"
-      >
-        <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="12" cy="12" r="8" />
-        </svg>
-        {{ t('recorder.start') }}
-      </button>
-
-      <button
-        v-if="recorderStore.isRecording && !recorderStore.isPaused"
-        class="btn btn-pause"
-        @click="handlePause"
-        :disabled="isProcessing"
-      >
-        <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="6" y="4" width="4" height="16" rx="1" />
-          <rect x="14" y="4" width="4" height="16" rx="1" />
-        </svg>
-        {{ t('recorder.pause') }}
-      </button>
-
-      <button
-        v-if="recorderStore.isRecording && recorderStore.isPaused"
-        class="btn btn-resume"
-        @click="handleResume"
-        :disabled="isProcessing"
-      >
-        <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8 5v14l11-7z" />
-        </svg>
-        {{ t('recorder.resume') }}
-      </button>
-
-      <button
-        v-if="recorderStore.isRecording"
-        class="btn btn-stop"
-        @click="handleStop"
-        :disabled="isProcessing"
-      >
-        <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="6" y="6" width="12" height="12" rx="2" />
-        </svg>
-        {{ t('recorder.stop') }}
-      </button>
-
-      <button
-        v-if="recorderStore.isPrepared && !recorderStore.isRecording"
-        class="btn btn-reset"
-        @click="handleReset"
-        :disabled="isProcessing"
-      >
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-          <path d="M3 3v5h5" />
-        </svg>
-        {{ t('recorder.reset') }}
-      </button>
-    </div>
+    <RecorderTransportControls
+      :disabled="isProcessing"
+      @prepare="handlePrepare"
+      @start="handleStart"
+      @pause="handlePause"
+      @resume="handleResume"
+      @stop="handleStop"
+      @reset="handleReset"
+    />
 
     <!-- Microphone toggle (during recording) -->
-    <div class="control-section audio-source-section" v-if="recorderStore.isRecording">
-      <div class="section-header">
-        <span class="section-label">{{ t('recorder.audioSource') }}</span>
-        <span class="source-indicator active">
-          🎵 Player {{ microphoneEnabled ? '+ 🎤 Mic' : '' }}
-        </span>
-      </div>
-      <label class="mic-toggle-row">
-        <input
-          type="checkbox"
-          v-model="microphoneEnabled"
-          @change="toggleMicrophone"
-          :disabled="isSwitchingSource"
-        />
-        <span class="toggle-label">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-            <line x1="12" y1="19" x2="12" y2="23" />
-            <line x1="8" y1="23" x2="16" y2="23" />
-          </svg>
-          {{ t('recorder.addMicrophone') }}
-        </span>
-      </label>
-      <p class="source-hint" v-if="isSwitchingSource">{{ t('recorder.activatingMicrophone') }}</p>
-      <p class="source-hint info" v-else-if="microphoneEnabled">{{ t('recorder.micOnlyHint') }}</p>
-    </div>
+    <RecorderMicSource v-if="recorderStore.isRecording" />
 
     <!-- Settings (hidden while recording) -->
     <RecorderSettingsPanel v-if="!recorderStore.isRecording" />
 
     <!-- HQ capturing indicator -->
     <div
-      class="hq-capturing-indicator"
       v-if="enableHqExport && recorderStore.isRecording && serverAvailable"
+      class="hq-capturing-indicator"
     >
       <span class="hq-dot"></span>
       {{ t('recorder.hqCapturing') }}: {{ capturedFrameCount }} frames
@@ -190,8 +87,8 @@
         gifConversionStatus !== 'completed'
       "
       class="btn btn-convert"
-      @click="startGifConversion(recorderStore.lastRecording.blob)"
       :disabled="isProcessing"
+      @click="startGifConversion(recorderStore.lastRecording.blob)"
     >
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -201,30 +98,17 @@
     </button>
 
     <!-- WebM Download -->
-    <div class="control-section webm-section" v-if="webmBlobUrl && !recorderStore.isRecording">
+    <div v-if="webmBlobUrl && !recorderStore.isRecording" class="control-section webm-section">
       <div class="section-header">
         <span class="section-label">{{ t('recorder.webmExport') }}</span>
       </div>
-      <div class="download-actions">
-        <button
-          type="button"
-          class="mp4-download-btn webm-download-btn"
-          @click="saveExport('webm')"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          {{ t('recorder.downloadWebm') }}
-        </button>
-        <button class="btn-close-conversion" @click="dismissWebm" :title="t('common.close')">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-      </div>
+      <RecorderDownloadActions
+        variant="webm"
+        :label="t('recorder.downloadWebm')"
+        :close-title="t('common.close')"
+        @download="saveExport('webm')"
+        @dismiss="dismissWebm"
+      />
       <p class="webm-info">{{ t('recorder.webmInfo') }}</p>
     </div>
 
@@ -253,8 +137,8 @@
         conversionStatus !== 'completed'
       "
       class="btn btn-convert"
-      @click="convertLastRecording"
       :disabled="isProcessing"
+      @click="convertLastRecording"
     >
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path d="M23 4v6h-6" />
@@ -285,59 +169,53 @@
 </template>
 
 <script setup>
-import { ref, computed, provide, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useRecorderStore } from '../stores/recorderStore.js'
 import HelpTooltip from './HelpTooltip.vue'
+import RecorderStatusIndicator from './recorder/RecorderStatusIndicator.vue'
+import RecorderTransportControls from './recorder/RecorderTransportControls.vue'
+import RecorderMicSource from './recorder/RecorderMicSource.vue'
+import RecorderDownloadActions from './recorder/RecorderDownloadActions.vue'
 import RecorderSettingsPanel from './recorder/RecorderSettingsPanel.vue'
 import RecorderConversionProgress from './recorder/RecorderConversionProgress.vue'
 import RecorderConversionOverlay from './recorder/RecorderConversionOverlay.vue'
 import RecorderResultsModal from './recorder/RecorderResultsModal.vue'
 import RecorderSaveDialog from './recorder/RecorderSaveDialog.vue'
-import { checkServerHealth } from '../lib/videoApi.js'
 import { useRecordingTimer } from '../composables/useRecordingTimer.js'
-import { useMicrophoneToggle } from '../composables/useMicrophoneToggle.js'
 import { useWebmExport } from '../composables/useWebmExport.js'
 import { useServerConversion } from '../composables/useServerConversion.js'
 import { useGifConversion } from '../composables/useGifConversion.js'
 import { useHqExport } from '../composables/useHqExport.js'
 import { useSaveDialog } from '../composables/useSaveDialog.js'
-import { timestampedFilename } from '../lib/saveFile.js'
-import { useToastStore } from '../stores/toastStore.js'
+import { useRecorderSettings } from '../composables/recorder/useRecorderSettings.js'
+import { useRecorderActions } from '../composables/recorder/useRecorderActions.js'
+import { useRecorderExportSave } from '../composables/recorder/useRecorderExportSave.js'
+import { useRecordingPreview } from '../composables/recorder/useRecordingPreview.js'
 
 const { t } = useI18n()
 const recorderStore = useRecorderStore()
 
-// ── Base State ───────────────────────────────────────────────────────
-const selectedQuality = ref(8_000_000)
-const recordingFps = ref(30) // 30 fps Standard, 60 fps zuschaltbar für moderne Hardware
-const uploadMode = ref('auto')
-const isProcessing = ref(false)
-const serverAvailable = ref(null)
-const enableServerConversion = ref(true)
-const conversionQuality = ref('social')
-
-// ── Composables ──────────────────────────────────────────────────────
-const { recordingDisplayTime, startTimer, pauseTimer, resumeTimer, stopTimer, destroyTimer } =
-  useRecordingTimer()
-const { microphoneEnabled, isSwitchingSource, toggleMicrophone } = useMicrophoneToggle()
-const { webmBlobUrl, prepareWebmDownload, handleWebmDownloadClick, dismissWebm } = useWebmExport()
+// ── Export-Pipelines ─────────────────────────────────────────────────
+const timer = useRecordingTimer()
+const webm = useWebmExport()
+const conversion = useServerConversion()
+const gif = useGifConversion()
+const hq = useHqExport()
+const { recordingDisplayTime } = timer
+const { webmBlobUrl, dismissWebm } = webm
 const {
   isConverting,
   conversionProgress,
   conversionStatus,
   conversionError,
   convertedVideoUrl,
-  startServerConversion,
   retryConversion,
   cancelConversion,
   dismissConversion,
-  handleDownloadClick,
-} = useServerConversion()
+} = conversion
 const {
   enableGifExport,
-  gifFps,
-  gifWidth,
   isConvertingGif,
   gifConversionProgress,
   gifConversionStatus,
@@ -345,295 +223,86 @@ const {
   convertedGifUrl,
   startGifConversion,
   dismissGifConversion,
-  handleGifDownloadClick,
-} = useGifConversion()
+} = gif
 const {
   enableHqExport,
-  hqFps,
-  hqSessionId,
   hqStatus,
   hqProgress,
   hqError,
   hqVideoUrl,
   capturedFrameCount,
-  startHqCapture,
-  finishHqExport,
   dismissHqExport,
-  handleHqDownloadClick,
-} = useHqExport()
+} = hq
+
+// ── Einstellungen, Vorschau, Aktionen ────────────────────────────────
+const settings = useRecorderSettings({
+  enableGifExport: gif.enableGifExport,
+  gifFps: gif.gifFps,
+  gifWidth: gif.gifWidth,
+  enableHqExport: hq.enableHqExport,
+  hqFps: hq.hqFps,
+})
+const { serverAvailable, enableServerConversion } = settings
+const { showResults, closeResults } = useRecordingPreview()
+const {
+  isProcessing,
+  handlePrepare,
+  handleStart,
+  handlePause,
+  handleResume,
+  handleStop,
+  handleReset,
+  convertLastRecording,
+} = useRecorderActions({ settings, timer, webm, conversion, gif, hq, showResults })
+
+// ── Speichern (Dialog mit Speicherort + Dateiname) ──────────────────
 const {
   dialog: saveDialog,
   requestSave,
   confirm: confirmSave,
   cancel: cancelSave,
 } = useSaveDialog()
-const toastStore = useToastStore()
-
-// ── Speichern (Dialog mit Speicherort + Dateiname) ──────────────────
-/**
- * Je Exportart: Datei-URL, Endung, Namenszusatz und der bisherige
- * Abschluss-Handler (räumt Server-Datei/Blob-URL nach 2 s auf).
- */
-const exportTargets = {
-  webm: () => ({
-    url: webmBlobUrl.value,
-    extension: 'webm',
-    suffix: '',
-    done: handleWebmDownloadClick,
-  }),
-  mp4: () => ({
-    url: convertedVideoUrl.value,
-    extension: 'mp4',
-    suffix: '',
-    done: handleDownloadClick,
-  }),
-  gif: () => ({
-    url: convertedGifUrl.value,
-    extension: 'gif',
-    suffix: '',
-    done: handleGifDownloadClick,
-  }),
-  hq: () => ({
-    url: hqVideoUrl.value,
-    extension: 'mp4',
-    suffix: '_hq',
-    done: handleHqDownloadClick,
-  }),
-}
-
-/**
- * Öffnet den Speichern-Dialog für einen Export. Muss direkt aus dem Klick
- * aufgerufen werden, damit der Browser den nativen Dialog zulässt.
- * Abbruch lässt die Datei bestehen, sodass erneut gespeichert werden kann.
- * @param {'webm' | 'mp4' | 'gif' | 'hq'} kind
- */
-async function saveExport(kind) {
-  const target = exportTargets[kind]?.()
-  if (!target?.url) return
-  try {
-    const result = await requestSave({
-      url: target.url,
-      extension: target.extension,
-      suggestedName: timestampedFilename(target.extension, target.suffix),
-      description: target.extension.toUpperCase(),
-    })
-    if (result === 'cancelled') return
-    if (result === 'saved') toastStore.success(t('recorder.saveDialog.saved'))
-    target.done()
-  } catch (error) {
-    console.error('[Recorder] Speichern fehlgeschlagen:', error)
-    toastStore.error(
-      t('recorder.saveDialog.saveFailed').replace('{message}', error?.message || String(error)),
-    )
-  }
-}
-
-// ── Quality Presets ──────────────────────────────────────────────────
-const qualityPresets = [
-  { value: 2_000_000, label: 'Low' },
-  { value: 5_000_000, label: 'Med' },
-  { value: 8_000_000, label: 'High' },
-  { value: 15_000_000, label: 'V.High' },
-  { value: 25_000_000, label: 'Ultra' },
-  { value: 40_000_000, label: '4K' },
-  { value: 60_000_000, label: '4K+' },
-  { value: 80_000_000, label: 'Max' },
-]
-// ── Recording Frame Rate ─────────────────────────────────────────────
-// 30 fps ist der sichere Standard; 60 fps ist für moderne Hardware zuschaltbar.
-const frameRatePresets = [
-  { value: 30, label: '30' },
-  { value: 60, label: '60' },
-]
-const conversionPresets = computed(() => [
-  { value: 'preview', label: 'Preview', desc: t('recorder.conversionPreviewDesc') },
-  { value: 'medium', label: 'Medium', desc: t('recorder.conversionMediumDesc') },
-  { value: 'social', label: 'Social', desc: t('recorder.conversionSocialDesc') },
-  { value: 'high', label: 'High', desc: t('recorder.conversionHighDesc') },
-  { value: 'highest', label: 'Highest', desc: t('recorder.conversionHighestDesc') },
-])
-
-// ── Provide settings to RecorderSettingsPanel ────────────────────────
-provide('recorderSettings', {
-  selectedQuality,
-  qualityPresets,
-  selectQuality,
-  recordingFps,
-  frameRatePresets,
-  selectFrameRate,
-  uploadMode,
-  selectUploadMode,
-  serverAvailable,
-  enableServerConversion,
-  conversionQuality,
-  conversionPresets,
-  enableGifExport,
-  gifFps,
-  gifWidth,
-  enableHqExport,
-  hqFps,
-})
-
-// ── Computed ─────────────────────────────────────────────────────────
-const statusClass = computed(() => {
-  if (recorderStore.statusType === 'processing') return 'status-indicator processing'
-  if (recorderStore.isPaused) return 'status-indicator paused'
-  if (recorderStore.isRecording) return 'status-indicator recording'
-  if (recorderStore.isPrepared) return 'status-indicator ready'
-  return 'status-indicator idle'
-})
-const statusText = computed(() => {
-  if (recorderStore.statusType === 'processing') return t('recorder.status.processing')
-  if (recorderStore.isPaused) return t('recorder.status.paused')
-  if (recorderStore.isRecording) return t('recorder.status.recording')
-  if (recorderStore.isPrepared) return t('recorder.status.ready')
-  return t('recorder.status.idle')
-})
-
-// ── Actions ───────────────────────────────────────────────────────────
-function selectQuality(value) {
-  selectedQuality.value = value
-  recorderStore.setRecordingQuality(value)
-}
-function selectUploadMode(mode) {
-  uploadMode.value = mode
-  recorderStore.setUploadMode(mode)
-}
-function selectFrameRate(value) {
-  recordingFps.value = value
-  recorderStore.setRecordingFrameRate(value)
-}
-
-async function handlePrepare() {
-  if (isProcessing.value) return
-  isProcessing.value = true
-  try {
-    await recorderStore.prepareRecording({
-      quality: selectedQuality.value,
-      frameRate: recordingFps.value,
-    })
-  } finally {
-    isProcessing.value = false
-  }
-}
-async function handleStart() {
-  if (isProcessing.value) return
-  isProcessing.value = true
-  try {
-    const success = await recorderStore.startRecording()
-    if (success) {
-      startTimer()
-      if (enableHqExport.value && serverAvailable.value) startHqCapture()
-    }
-  } finally {
-    isProcessing.value = false
-  }
-}
-function handlePause() {
-  if (isProcessing.value) return
-  isProcessing.value = true
-  try {
-    if (recorderStore.pauseRecording()) pauseTimer()
-  } finally {
-    isProcessing.value = false
-  }
-}
-function handleResume() {
-  if (isProcessing.value) return
-  isProcessing.value = true
-  try {
-    if (recorderStore.resumeRecording()) resumeTimer()
-  } finally {
-    isProcessing.value = false
-  }
-}
-async function handleStop() {
-  if (isProcessing.value) return
-  isProcessing.value = true
-  try {
-    stopTimer()
-    const blob = await recorderStore.stopRecording()
-    if (blob) {
-      prepareWebmDownload(blob)
-      showResults(blob)
-      if (enableHqExport.value && serverAvailable.value && hqSessionId.value) finishHqExport(blob)
-      if (enableServerConversion.value && serverAvailable.value)
-        await startServerConversion(blob, conversionQuality.value)
-      if (enableGifExport.value && serverAvailable.value) startGifConversion(blob)
-    }
-  } finally {
-    isProcessing.value = false
-  }
-}
-function handleReset() {
-  if (isProcessing.value) return
-  isProcessing.value = true
-  try {
-    recorderStore.resetRecorder()
-  } finally {
-    isProcessing.value = false
-  }
-}
-async function convertLastRecording() {
-  if (recorderStore.lastRecording?.blob) {
-    await startServerConversion(recorderStore.lastRecording.blob, conversionQuality.value)
-  }
-}
-// Own object URL for the preview <video>, independent of the WebM download
-// section's URL lifecycle (which gets revoked on download/dismiss).
-let previewObjectUrl = null
-
-function showResults(blob) {
-  const modal = document.getElementById('results-panel')
-  const video = document.getElementById('preview')
-  if (!modal || !video) return
-  if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl)
-  previewObjectUrl = URL.createObjectURL(blob)
-  video.src = previewObjectUrl
-  // .results-modal is a flex-centered overlay (inline style starts as none).
-  modal.style.display = 'flex'
-}
-
-function closeResults() {
-  const modal = document.getElementById('results-panel')
-  if (modal) {
-    modal.style.display = 'none'
-    const video = document.getElementById('preview')
-    if (video) {
-      video.pause()
-      video.src = ''
-    }
-  }
-  if (previewObjectUrl) {
-    URL.revokeObjectURL(previewObjectUrl)
-    previewObjectUrl = null
-  }
-}
-function handleKeydown(e) {
-  if (e.key === 'Escape') closeResults()
-}
+const { saveExport } = useRecorderExportSave(
+  {
+    webm: () => ({
+      url: webmBlobUrl.value,
+      extension: 'webm',
+      suffix: '',
+      done: webm.handleWebmDownloadClick,
+    }),
+    mp4: () => ({
+      url: convertedVideoUrl.value,
+      extension: 'mp4',
+      suffix: '',
+      done: conversion.handleDownloadClick,
+    }),
+    gif: () => ({
+      url: convertedGifUrl.value,
+      extension: 'gif',
+      suffix: '',
+      done: gif.handleGifDownloadClick,
+    }),
+    hq: () => ({
+      url: hqVideoUrl.value,
+      extension: 'mp4',
+      suffix: '_hq',
+      done: hq.handleHqDownloadClick,
+    }),
+  },
+  requestSave,
+)
 
 // ── Lifecycle ─────────────────────────────────────────────────────────
-onMounted(async () => {
-  document.addEventListener('keydown', handleKeydown)
-  try {
-    const health = await checkServerHealth()
-    serverAvailable.value = health.available
-    if (health.available) console.log('✅ [Panel] FFmpeg Backend verfügbar')
-  } catch {
-    serverAvailable.value = false
-  }
-})
+onMounted(settings.refreshServerAvailability)
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown)
-  destroyTimer()
+  timer.destroyTimer()
   dismissWebm()
-  if (previewObjectUrl) {
-    URL.revokeObjectURL(previewObjectUrl)
-    previewObjectUrl = null
-  }
 })
 </script>
+
+<style scoped src="./recorder/recorder-section.css"></style>
+
+<style scoped src="./recorder/recorder-buttons.css"></style>
 
 <style scoped>
 .recorder-panel {
@@ -673,325 +342,17 @@ h3::before {
   background-size: contain;
 }
 
-/* Status */
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: var(--ds-radius-sm);
-  background: var(--ds-accent-soft);
-  border: 1px solid var(--border-color);
-  transition: all var(--ds-duration-slow) var(--ds-ease);
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--ds-radius-full);
-  background: var(--text-muted);
-  animation: pulse 2s infinite;
-}
-
-.status-text {
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  letter-spacing: 0.4px;
-  color: var(--text-muted);
-}
-
-.recording-timer {
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-bold);
-  font-family: var(--ds-font-mono);
-  color: var(--ds-danger);
-  margin-left: auto;
-  padding: 2px 8px;
-  background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
-  border-radius: var(--ds-radius-sm);
-  letter-spacing: 1px;
-  min-width: 50px;
-  text-align: center;
-}
-
-.recording-timer.paused {
-  color: var(--ds-warning);
-  background: color-mix(in srgb, var(--ds-warning) 15%, transparent);
-  animation: timerBlink 1s ease-in-out infinite;
-}
-
-@keyframes timerBlink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.status-indicator.idle .status-dot {
-  background: var(--ds-surface-3);
-  animation: none;
-}
-
-.status-indicator.processing {
-  background-color: color-mix(in srgb, var(--ds-warning) 15%, transparent);
-  border-color: color-mix(in srgb, var(--ds-warning) 40%, transparent);
-}
-.status-indicator.processing .status-dot {
-  background-color: var(--ds-warning);
-  animation: processingPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes processingPulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(1.1);
-  }
-}
-
-.status-indicator.ready {
-  background: color-mix(in srgb, var(--ds-success) 10%, transparent);
-  border-color: color-mix(in srgb, var(--ds-success) 30%, transparent);
-}
-.status-indicator.ready .status-dot {
-  background: var(--ds-success);
-}
-.status-indicator.ready .status-text {
-  color: var(--ds-success);
-}
-
-.status-indicator.recording {
-  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
-  border-color: color-mix(in srgb, var(--ds-danger) 30%, transparent);
-}
-.status-indicator.recording .status-dot {
-  background: var(--ds-danger);
-}
-.status-indicator.recording .status-text {
-  color: var(--ds-danger);
-}
-
-.status-indicator.paused {
-  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
-  border-color: color-mix(in srgb, var(--ds-warning) 30%, transparent);
-}
-.status-indicator.paused .status-dot {
-  background: var(--ds-warning);
-  animation: none;
-}
-.status-indicator.paused .status-text {
-  color: var(--ds-warning);
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.1);
-  }
-}
-
-/* Controls */
-.recorder-controls {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-
-.btn {
-  flex: 1;
-  min-width: 70px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 6px 10px;
-  border: none;
-  border-radius: var(--ds-radius-sm);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.btn .icon {
-  width: 12px;
-  height: 12px;
-}
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-prepare {
-  background: var(--ds-accent-soft);
-  color: var(--accent-tertiary);
-  border: 1px solid var(--ds-border);
-}
-.btn-prepare:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
-}
-
-.btn-start {
-  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
-  color: var(--ds-success);
-  border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
-}
-.btn-start:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ds-success) 30%, transparent);
-}
-
-.btn-pause {
-  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
-  color: var(--ds-warning);
-  border: 1px solid color-mix(in srgb, var(--ds-warning) 30%, transparent);
-}
-.btn-pause:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ds-warning) 30%, transparent);
-}
-
-.btn-resume {
-  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
-  color: var(--ds-link);
-  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
-}
-.btn-resume:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
-}
-
-.btn-stop {
-  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
-  color: var(--ds-danger);
-  border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
-}
-.btn-stop:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
-}
-
-.btn-reset {
-  background: var(--ds-surface-3);
-  color: var(--ds-text-2);
-  border: 1px solid var(--ds-border-strong);
-}
-.btn-reset:hover:not(:disabled) {
-  background: var(--ds-surface-3);
-}
-
 .btn-convert {
   background: color-mix(in srgb, var(--ds-link) 20%, transparent);
   color: var(--ds-link);
   border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
   width: 100%;
 }
+
 .btn-convert:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 
-/* Audio source (mic) section */
-.audio-source-section {
-  background: color-mix(in srgb, var(--ds-link) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
-  border-radius: var(--ds-radius-sm);
-  padding: 8px 10px;
-}
-
-.control-section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.section-label {
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-  font-weight: var(--ds-weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.source-indicator {
-  font-size: var(--ds-text-xs);
-  padding: 2px 6px;
-  border-radius: var(--ds-radius-sm);
-  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
-  color: var(--ds-success);
-}
-
-.mic-toggle-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  padding: 8px 10px;
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.mic-toggle-row:hover {
-  background: var(--btn-hover);
-  border-color: color-mix(in srgb, var(--ds-link) 30%, transparent);
-}
-
-.mic-toggle-row input[type='checkbox'] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--ds-link);
-  cursor: pointer;
-}
-
-.toggle-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--ds-text-xs);
-  color: var(--text-primary);
-  font-weight: var(--ds-weight-medium);
-}
-
-.toggle-label .icon {
-  width: 16px;
-  height: 16px;
-  color: var(--ds-link);
-}
-
-.source-hint {
-  margin: 6px 0 0 0;
-  font-size: var(--ds-text-xs);
-  color: var(--ds-link);
-  text-align: center;
-  animation: pulse 1s ease-in-out infinite;
-}
-
-.source-hint.info {
-  color: var(--ds-warning);
-  animation: none;
-  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
-  padding: 4px 8px;
-  border-radius: var(--ds-radius-sm);
-}
-
-/* HQ indicator */
 .hq-capturing-indicator {
   display: flex;
   align-items: center;
@@ -1013,55 +374,9 @@ h3::before {
   flex-shrink: 0;
 }
 
-/* WebM section */
 .webm-section {
   border-top: 1px solid var(--ds-border);
   padding-top: 10px;
-}
-
-.download-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.mp4-download-btn {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: var(--ds-success);
-  color: white;
-  text-decoration: none;
-  border-radius: var(--ds-radius-sm);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  transition: all var(--ds-duration) var(--ds-ease);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.mp4-download-btn:focus-visible {
-  outline: none;
-  box-shadow: var(--ds-focus-ring);
-}
-
-.mp4-download-btn svg {
-  width: 14px;
-  height: 14px;
-}
-
-.webm-download-btn {
-  background: var(--ds-link) !important;
-  margin-top: 6px;
-}
-.webm-download-btn:hover {
-  background: var(--ds-link) !important;
 }
 
 .webm-info {
@@ -1071,151 +386,25 @@ h3::before {
   text-align: center;
 }
 
-.btn-close-conversion {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--ds-surface-3);
-  color: var(--ds-text-2);
-  border: 1px solid var(--ds-border-strong);
-  padding: 8px;
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  flex-shrink: 0;
-}
-
-.btn-close-conversion:hover {
-  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
-  color: var(--ds-danger);
-  border-color: color-mix(in srgb, var(--ds-danger) 30%, transparent);
-}
-
-.icon {
-  width: 12px;
-  height: 12px;
-}
-
-@media (max-width: 768px) {
-  .recorder-controls {
-    flex-direction: column;
-  }
-  .btn {
-    min-width: auto;
-  }
-}
-
-/* Light Theme */
 [data-theme='light'] .recorder-panel {
   border-color: var(--border-color);
 }
+
 [data-theme='light'] h3::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23003971' stroke-width='1.5'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%23003971'/%3E%3C/svg%3E");
   filter: none;
 }
-[data-theme='light'] .status-indicator {
-  background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
-  border-color: var(--border-color);
-}
-[data-theme='light'] .recording-timer {
-  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
-}
-[data-theme='light'] .recording-timer.paused {
-  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
-}
-[data-theme='light'] .status-indicator.processing {
-  background-color: color-mix(in srgb, var(--ds-warning) 10%, transparent);
-}
-[data-theme='light'] .status-indicator.ready {
-  background: color-mix(in srgb, var(--ds-success) 8%, transparent);
-}
-[data-theme='light'] .status-indicator.recording {
-  background: color-mix(in srgb, var(--ds-danger) 8%, transparent);
-}
-[data-theme='light'] .status-indicator.paused {
-  background: color-mix(in srgb, var(--ds-warning) 8%, transparent);
-}
-[data-theme='light'] .btn-prepare {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  color: var(--accent-ink);
-  border-color: var(--border-color);
-}
-[data-theme='light'] .btn-prepare:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
-}
-[data-theme='light'] .btn-start {
-  background: color-mix(in srgb, var(--ds-success) 10%, transparent);
-  border-color: color-mix(in srgb, var(--ds-success) 25%, transparent);
-}
-[data-theme='light'] .btn-start:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
-}
-[data-theme='light'] .btn-pause {
-  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
-  border-color: color-mix(in srgb, var(--ds-warning) 25%, transparent);
-}
-[data-theme='light'] .btn-pause:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
-}
-[data-theme='light'] .btn-resume {
-  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
-  border-color: color-mix(in srgb, var(--ds-link) 25%, transparent);
-}
-[data-theme='light'] .btn-resume:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
-}
-[data-theme='light'] .btn-stop {
-  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
-  border-color: color-mix(in srgb, var(--ds-danger) 25%, transparent);
-}
-[data-theme='light'] .btn-stop:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
-}
-[data-theme='light'] .btn-reset {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--ds-text-3);
-  border-color: var(--ds-border);
-}
-[data-theme='light'] .btn-reset:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.1);
-}
+
 [data-theme='light'] .btn-convert {
   background: color-mix(in srgb, var(--ds-link) 8%, transparent);
   border-color: color-mix(in srgb, var(--ds-link) 20%, transparent);
 }
+
 [data-theme='light'] .btn-convert:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ds-link) 15%, transparent);
 }
-[data-theme='light'] .audio-source-section {
-  background: color-mix(in srgb, var(--ds-link) 5%, transparent);
-  border-color: color-mix(in srgb, var(--ds-link) 15%, transparent);
-}
-[data-theme='light'] .source-indicator {
-  background: color-mix(in srgb, var(--ds-success) 12%, transparent);
-}
-[data-theme='light'] .mic-toggle-row {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: var(--ds-border);
-}
-[data-theme='light'] .mic-toggle-row:hover {
-  background: rgba(0, 0, 0, 0.06);
-}
-[data-theme='light'] .mic-toggle-row input[type='checkbox'] {
-  accent-color: var(--accent-primary);
-}
-[data-theme='light'] .source-hint.info {
-  background: color-mix(in srgb, var(--ds-warning) 8%, transparent);
-}
+
 [data-theme='light'] .webm-info {
   color: var(--ds-text-2);
-}
-[data-theme='light'] .btn-close-conversion {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--text-muted);
-  border-color: var(--ds-border);
-}
-[data-theme='light'] .btn-close-conversion:hover {
-  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
-  border-color: color-mix(in srgb, var(--ds-danger) 20%, transparent);
 }
 </style>

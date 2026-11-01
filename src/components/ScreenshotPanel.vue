@@ -29,7 +29,7 @@
     </div>
 
     <!-- Quality Slider (for JPG and WebP) -->
-    <div class="control-section" v-if="selectedFormat !== 'png'">
+    <div v-if="selectedFormat !== 'png'" class="control-section">
       <div class="section-header">
         <span class="section-label">{{ t('screenshot.quality') }}</span>
         <span class="quality-value">{{ quality }}%</span>
@@ -49,7 +49,7 @@
     </div>
 
     <!-- PNG Info -->
-    <div class="control-section info-section" v-if="selectedFormat === 'png'">
+    <div v-if="selectedFormat === 'png'" class="control-section info-section">
       <p class="format-info">
         <span class="info-icon">ℹ️</span>
         {{ t('screenshot.pngInfo') }}
@@ -57,7 +57,7 @@
     </div>
 
     <!-- Screenshot Button -->
-    <button class="btn btn-screenshot" @click="takeScreenshot" :disabled="isProcessing">
+    <button class="btn btn-screenshot" :disabled="isProcessing" @click="takeScreenshot">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
         <circle cx="8.5" cy="8.5" r="1.5" />
@@ -67,10 +67,10 @@
     </button>
 
     <!-- Preview & Download (after screenshot taken) -->
-    <div class="preview-section" v-if="previewUrl">
+    <div v-if="previewUrl" class="preview-section">
       <div class="preview-header">
         <span class="section-label">{{ t('screenshot.preview') }}</span>
-        <button class="btn-close-preview" @click="clearPreview" :title="t('common.close')">
+        <button class="btn-close-preview" :title="t('common.close')" @click="clearPreview">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
@@ -79,8 +79,8 @@
       </div>
       <div
         class="preview-container"
-        @dblclick="openFullscreenPreview"
         :title="t('screenshot.doubleClickHint')"
+        @dblclick="openFullscreenPreview"
       >
         <img :src="previewUrl" alt="Screenshot Preview" class="preview-image" />
         <div class="preview-zoom-hint">
@@ -107,214 +107,44 @@
     </div>
 
     <!-- Fullscreen Preview Modal -->
-    <Teleport to="body">
-      <div
-        v-if="showFullscreenPreview"
-        class="fullscreen-modal-overlay"
-        @click="closeFullscreenPreview"
-        @keydown.esc="closeFullscreenPreview"
-      >
-        <div class="fullscreen-modal" @click.stop>
-          <!-- Close Button (floating) -->
-          <button
-            class="btn-close-floating"
-            @click="closeFullscreenPreview"
-            :title="t('common.close')"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-
-          <!-- Modal Image -->
-          <div class="modal-image-container">
-            <img :src="previewUrl" alt="Screenshot" class="modal-image" />
-          </div>
-
-          <!-- Compact Footer with Metadata + Download -->
-          <div class="modal-footer">
-            <div class="metadata-inline">
-              <span class="metadata-tag">{{ formatLabel }}</span>
-              <span class="metadata-text">{{ fileDimensions }}</span>
-              <span class="metadata-divider">•</span>
-              <span class="metadata-text">{{ fileSize }}</span>
-            </div>
-            <a
-              :href="previewUrl"
-              :download="fileName"
-              class="btn-download-icon"
-              @click="handleDownload"
-              :title="t('screenshot.download')"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <ScreenshotFullscreenModal
+      v-if="showFullscreenPreview && previewUrl"
+      :url="previewUrl"
+      :file-name="fileName"
+      :format-label="formatLabel"
+      :dimensions="fileDimensions"
+      :size="fileSize"
+      @close="closeFullscreenPreview"
+      @download="handleDownload"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useI18n } from '../lib/i18n.js'
-import { useToastStore } from '../stores/toastStore.js'
-import { getCanvasScreenshot } from '../lib/canvasScreenshotBridge.js'
 import HelpTooltip from './HelpTooltip.vue'
 import SliderField from './ui/SliderField.vue'
+import ScreenshotFullscreenModal from './screenshot/ScreenshotFullscreenModal.vue'
+import { useI18n } from '../lib/i18n.js'
+import { useCanvasScreenshot } from '../composables/screenshot/useCanvasScreenshot.js'
 
 const { t } = useI18n()
-const toastStore = useToastStore()
-
-// State
-const selectedFormat = ref('png')
-const quality = ref(90)
-const isProcessing = ref(false)
-const previewUrl = ref(null)
-const fileName = ref('')
-const fileSize = ref('')
-const fileDimensions = ref('')
-const showFullscreenPreview = ref(false)
-
-// Computed
-const formatLabel = computed(() => {
-  const format = formats.find((f) => f.value === selectedFormat.value)
-  return format ? format.label : selectedFormat.value.toUpperCase()
-})
-
-// Format options
-const formats = [
-  { value: 'png', label: 'PNG' },
-  { value: 'jpeg', label: 'JPG' },
-  { value: 'webp', label: 'WebP' },
-]
-
-/**
- * Format file size for display
- */
-function formatFileSize(bytes) {
-  if (bytes < 1024) {
-    return bytes + ' B'
-  } else if (bytes < 1024 * 1024) {
-    return (bytes / 1024).toFixed(1) + ' KB'
-  } else {
-    return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
-  }
-}
-
-/**
- * Take a screenshot of the canvas (pure content without UI elements)
- * Uses the render loop's screenshot function (lib/canvasScreenshotBridge.js)
- */
-async function takeScreenshot() {
-  // Check if the screenshot function is available
-  const takeCanvasScreenshot = getCanvasScreenshot()
-  if (!takeCanvasScreenshot) {
-    console.error('[ScreenshotPanel] takeCanvasScreenshot function not available')
-    toastStore.error(t('screenshot.canvasNotFound'))
-    return
-  }
-
-  isProcessing.value = true
-
-  try {
-    // Clear previous preview
-    if (previewUrl.value) {
-      URL.revokeObjectURL(previewUrl.value)
-      previewUrl.value = null
-    }
-
-    // Determine MIME type and quality
-    const mimeType = `image/${selectedFormat.value}`
-    const qualityValue = quality.value / 100
-
-    // Create screenshot via the render loop (renders without UI elements)
-    const blob = await takeCanvasScreenshot(mimeType, qualityValue)
-
-    if (!blob) {
-      throw new Error('Failed to create screenshot')
-    }
-
-    // Create preview URL
-    previewUrl.value = URL.createObjectURL(blob)
-
-    // Get dimensions from the blob by loading it as an image
-    const img = new Image()
-    img.src = previewUrl.value
-    await new Promise((resolve) => {
-      img.onload = resolve
-    })
-
-    // Generate filename
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-    const extension = selectedFormat.value === 'jpeg' ? 'jpg' : selectedFormat.value
-    fileName.value = `screenshot_${img.width}x${img.height}_${timestamp}.${extension}`
-
-    // Set file info
-    fileSize.value = formatFileSize(blob.size)
-    fileDimensions.value = `${img.width} x ${img.height}`
-
-    toastStore.success(t('screenshot.captureSuccess'))
-  } catch (error) {
-    console.error('[ScreenshotPanel] Error taking screenshot:', error)
-    toastStore.error(t('screenshot.captureError'))
-  } finally {
-    isProcessing.value = false
-  }
-}
-
-/**
- * Handle download click
- */
-function handleDownload() {
-  toastStore.success(t('screenshot.downloadStarted'))
-}
-
-/**
- * Clear the preview
- */
-function clearPreview() {
-  if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value)
-    previewUrl.value = null
-  }
-  fileName.value = ''
-  fileSize.value = ''
-  fileDimensions.value = ''
-  showFullscreenPreview.value = false
-}
-
-/**
- * Open fullscreen preview modal
- */
-function openFullscreenPreview() {
-  showFullscreenPreview.value = true
-  // Add ESC key listener
-  document.addEventListener('keydown', handleEscKey)
-}
-
-/**
- * Close fullscreen preview modal
- */
-function closeFullscreenPreview() {
-  showFullscreenPreview.value = false
-  // Remove ESC key listener
-  document.removeEventListener('keydown', handleEscKey)
-}
-
-/**
- * Handle ESC key to close modal
- */
-function handleEscKey(e) {
-  if (e.key === 'Escape') {
-    closeFullscreenPreview()
-  }
-}
+const {
+  formats,
+  selectedFormat,
+  quality,
+  isProcessing,
+  previewUrl,
+  fileName,
+  fileSize,
+  fileDimensions,
+  formatLabel,
+  showFullscreenPreview,
+  takeScreenshot,
+  handleDownload,
+  clearPreview,
+  openFullscreenPreview,
+  closeFullscreenPreview,
+} = useCanvasScreenshot()
 </script>
 
 <style scoped>
@@ -632,171 +462,6 @@ h3::before {
   opacity: 1;
 }
 
-/* Fullscreen Modal Overlay */
-.fullscreen-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: var(--ds-z-toast);
-  padding: 20px;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Fullscreen Modal */
-.fullscreen-modal {
-  position: relative;
-  background: var(--primary-bg);
-  border-radius: var(--ds-radius-lg);
-  max-width: 90vw;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--ds-shadow-overlay);
-  border: 1px solid var(--border-color);
-  overflow: hidden;
-  animation: scaleIn 0.2s ease;
-  font-family: var(--ds-font-sans);
-  font-size: var(--ds-text-xs);
-  color: var(--text-primary);
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* Floating Close Button */
-.btn-close-floating {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 10;
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: rgba(0, 0, 0, 0.6);
-  color: var(--text-primary);
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.btn-close-floating svg {
-  width: 16px;
-  height: 16px;
-}
-
-.btn-close-floating:hover {
-  background: color-mix(in srgb, var(--ds-danger) 80%, transparent);
-  color: #fff;
-}
-
-/* Modal Image Container */
-.modal-image-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-  background: #000;
-  overflow: hidden;
-  max-height: calc(85vh - 48px);
-}
-
-.modal-image {
-  max-width: 100%;
-  max-height: calc(85vh - 72px);
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: var(--ds-radius-sm);
-}
-
-/* Compact Modal Footer */
-.modal-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--secondary-bg);
-  border-top: 1px solid var(--border-color);
-  flex-shrink: 0;
-}
-
-.metadata-inline {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.metadata-tag {
-  display: inline-block;
-  background: var(--ds-link);
-  color: #fff;
-  padding: 2px 6px;
-  border-radius: var(--ds-radius-sm);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-}
-
-.metadata-text {
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-}
-
-.metadata-divider {
-  color: var(--text-muted);
-  font-size: var(--ds-text-xs);
-}
-
-.btn-download-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: var(--ds-success);
-  color: white;
-  text-decoration: none;
-  border: none;
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.btn-download-icon:hover {
-  background: var(--ds-success);
-}
-
-.btn-download-icon svg {
-  width: 16px;
-  height: 16px;
-}
-
 /* ═══ Light Theme Overrides ═══ */
 
 [data-theme='light'] h3::before {
@@ -868,48 +533,9 @@ h3::before {
   color: var(--ds-text-2);
 }
 
-[data-theme='light'] .fullscreen-modal {
-  background: var(--card-bg);
-  border-color: var(--ds-border);
-}
-
-[data-theme='light'] .btn-close-floating {
-  background: rgba(0, 0, 0, 0.08);
-  color: var(--ds-text-2);
-}
-
-[data-theme='light'] .modal-footer {
-  background: rgba(0, 0, 0, 0.04);
-  border-top-color: var(--ds-border);
-}
-
-[data-theme='light'] .metadata-tag {
-  background: var(--accent-primary);
-  color: var(--accent-text);
-}
-
-[data-theme='light'] .metadata-text {
-  color: var(--ds-text-2);
-}
-
-[data-theme='light'] .metadata-divider {
-  color: var(--ds-text-2);
-}
-
 /* ═══ Responsive ═══ */
 @media (max-width: 768px) {
-  .screenshot-buttons {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .screenshot-btn {
-    padding: 8px;
-    font-size: var(--ds-text-xs);
-    min-height: 40px;
-  }
-
-  .btn-close-preview,
-  .btn-close-floating {
+  .btn-close-preview {
     width: 32px;
     height: 32px;
   }
@@ -920,17 +546,7 @@ h3::before {
 }
 
 @media (max-width: 480px) {
-  .screenshot-buttons {
-    grid-template-columns: 1fr;
-  }
-
-  .screenshot-btn {
-    min-height: 44px;
-    font-size: var(--ds-text-xs);
-  }
-
-  .btn-close-preview,
-  .btn-close-floating {
+  .btn-close-preview {
     width: 36px;
     height: 36px;
   }

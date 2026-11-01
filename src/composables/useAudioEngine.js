@@ -313,27 +313,6 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     if (nodes?.gainNode) nodes.gainNode.gain.value = volume
   }
 
-  async function fadeOutRecordingAudio(duration = 50) {
-    if (!recordingMixer || !audioContext) return
-    const now = audioContext.currentTime
-    const fadeTime = duration / 1000
-    recordingMixer.gain.cancelScheduledValues(now)
-    recordingMixer.gain.setValueAtTime(recordingMixer.gain.value, now)
-    recordingMixer.gain.exponentialRampToValueAtTime(0.001, now + fadeTime)
-    await new Promise((r) => setTimeout(r, duration))
-    recordingMixer.gain.setValueAtTime(0, audioContext.currentTime)
-  }
-
-  async function fadeInRecordingAudio(duration = 50) {
-    if (!recordingMixer || !audioContext) return
-    const now = audioContext.currentTime
-    const fadeTime = duration / 1000
-    recordingMixer.gain.cancelScheduledValues(now)
-    recordingMixer.gain.setValueAtTime(0.001, now)
-    recordingMixer.gain.exponentialRampToValueAtTime(1, now + fadeTime)
-    await new Promise((r) => setTimeout(r, duration))
-  }
-
   /**
    * Liefert den Audio-Stream für den Recorder.
    * @param {{ withMic?: boolean }} [options] withMic=false verbindet das Mikrofon
@@ -381,12 +360,8 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     }
   }
 
-  /**
-   * Meldet die Engine bei lib/audioEngineBridge.js an. Die window-Hooks
-   * bleiben als Übergangs-Aliase erhalten (z.B. für Konsole/Debugging);
-   * App-Code nutzt nur noch getAudioEngine().
-   */
-  function exposeGlobals() {
+  /** Meldet die Engine bei lib/audioEngineBridge.js an (Zugriff über getAudioEngine()). */
+  function registerEngine() {
     /** @type {import('../lib/audioEngineBridge.js').AudioEngineApi} */
     const api = {
       switchAudioSource,
@@ -394,15 +369,12 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
       connectVideoToRecording,
       disconnectVideoFromRecording,
       setVideoVolume,
-      fadeOutRecordingAudio,
-      fadeInRecordingAudio,
       getAudioStreamForRecorder: createCombinedAudioStream,
       setBassGain,
       setTrebleGain,
     }
     unregisterEngine?.()
     unregisterEngine = registerAudioEngine(api)
-    Object.assign(window, api)
   }
 
   return {
@@ -414,7 +386,7 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     disconnectMicFromRecordingChain,
     createCombinedAudioStream,
     cleanup,
-    exposeGlobals,
+    registerEngine,
     getAnalyser,
     getMicrophoneAnalyser,
     getMicrophoneAudioContext,

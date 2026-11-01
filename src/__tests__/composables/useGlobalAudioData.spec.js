@@ -11,15 +11,17 @@ vi.mock('../../lib/workerManager.js', () => ({
 }))
 
 import { useGlobalAudioData } from '../../composables/useGlobalAudioData.js'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 /**
  * Verhaltenstest: Der globale Audio-Datensatz (Pegel, Glättung, Beat, Onsets)
  * wird pro Frame in dasselbe Objekt geschrieben, das alle Leser sehen.
- * Geprüft über window.audioAnalysisData (vor und nach dem Umbau gültig).
+ * Geprüft über getAudioAnalysisData().
  */
 describe('useGlobalAudioData – globaler Audio-Datensatz', () => {
-  it('stellt das Objekt beim Import mit allen Feldern auf 0 bereit', () => {
-    const d = window.audioAnalysisData
+  it('stellt das Objekt beim Import mit allen Feldern auf 0 bereit (ohne window-Global)', () => {
+    expect(window.audioAnalysisData).toBeUndefined()
+    const d = getAudioAnalysisData()
     expect(Object.keys(d).sort()).toEqual(
       [
         'bass',
@@ -43,7 +45,7 @@ describe('useGlobalAudioData – globaler Audio-Datensatz', () => {
   })
 
   it('applyAudioData schreibt Pegel, Worker-Glättung und Beat in dasselbe Objekt', () => {
-    const before = window.audioAnalysisData
+    const before = getAudioAnalysisData()
     const { applyAudioData } = useGlobalAudioData()
     applyAudioData({
       bass: 200,
@@ -59,7 +61,7 @@ describe('useGlobalAudioData – globaler Audio-Datensatz', () => {
       bpm: 120,
       beatConfidence: 0.9,
     })
-    const d = window.audioAnalysisData
+    const d = getAudioAnalysisData()
     expect(d).toBe(before)
     expect([d.bass, d.mid, d.treble, d.volume]).toEqual([200, 100, 50, 150])
     expect([d.smoothBass, d.smoothMid, d.smoothTreble, d.smoothVolume]).toEqual([180, 90, 40, 140])
@@ -83,7 +85,7 @@ describe('useGlobalAudioData – globaler Audio-Datensatz', () => {
       isBeat: false,
     })
     applyAudioData({ bass: 100, mid: 50, treble: 200, volume: 80 })
-    const d = window.audioAnalysisData
+    const d = getAudioAnalysisData()
     expect([d.smoothBass, d.smoothMid, d.smoothTreble, d.smoothVolume]).toEqual([40, 20, 100, 32])
     expect(d.isBeat).toBe(false)
   })
@@ -92,7 +94,7 @@ describe('useGlobalAudioData – globaler Audio-Datensatz', () => {
     const { updateGlobalAudioData } = useGlobalAudioData()
     const arr = new Uint8Array(1024).fill(100)
     updateGlobalAudioData(arr, 1024)
-    const d = window.audioAnalysisData
+    const d = getAudioAnalysisData()
     expect(d.bass).toBe(150)
     expect(d.mid).toBe(200)
     expect(d.treble).toBe(255)

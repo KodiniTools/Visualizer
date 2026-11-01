@@ -14,8 +14,6 @@ import { useAudioSourceStore } from '../../stores/audioSourceStore.js'
 const ENGINE_KEYS = [
   'connectVideoToRecording',
   'disconnectVideoFromRecording',
-  'fadeInRecordingAudio',
-  'fadeOutRecordingAudio',
   'getAudioStreamForRecorder',
   'setBassGain',
   'setTrebleGain',
@@ -59,7 +57,6 @@ afterEach(() => {
   unregister()
   unregister = () => {}
   vi.restoreAllMocks()
-  for (const k of ENGINE_KEYS) delete window[k]
 })
 
 describe('audioEngineBridge', () => {
@@ -82,21 +79,21 @@ describe('audioEngineBridge', () => {
   })
 })
 
-describe('useAudioEngine.exposeGlobals', () => {
-  it('meldet alle Funktionen an der Bridge an und setzt die window-Aliase', () => {
+describe('useAudioEngine.registerEngine', () => {
+  it('meldet alle Funktionen an der Bridge an, ohne window-Globals', () => {
     const engine = useAudioEngine({
       audioRef: ref(null),
       audioSourceStore: { stopMicrophone: vi.fn() },
       playerStore: null,
     })
-    engine.exposeGlobals()
+    engine.registerEngine()
     unregister = () => engine.cleanup()
 
     const api = getAudioEngine()
     expect(Object.keys(api).sort()).toEqual(ENGINE_KEYS)
     for (const k of ENGINE_KEYS) {
       expect(typeof api[k]).toBe('function')
-      expect(window[k]).toBe(api[k])
+      expect(window[k]).toBeUndefined()
     }
     expect(api.getAudioStreamForRecorder).toBe(engine.createCombinedAudioStream)
   })
@@ -107,7 +104,7 @@ describe('useAudioEngine.exposeGlobals', () => {
       audioSourceStore: { stopMicrophone: vi.fn() },
       playerStore: null,
     })
-    engine.exposeGlobals()
+    engine.registerEngine()
     engine.cleanup()
     expect(getAudioEngine()).toBeNull()
   })
@@ -118,7 +115,7 @@ describe('useAudioEngine.exposeGlobals', () => {
       audioSourceStore: { stopMicrophone: vi.fn() },
       playerStore: null,
     })
-    engine.exposeGlobals()
+    engine.registerEngine()
     unregister = () => engine.cleanup()
     expect(await getAudioEngine().getAudioStreamForRecorder()).toBeNull()
   })

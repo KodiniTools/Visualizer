@@ -2,39 +2,56 @@
   <div class="multi-edit-panel">
     <!-- Header -->
     <div class="multi-header">
-      <span class="multi-count">{{ texts.length }} Texte ausgewählt</span>
+      <span class="multi-count">{{
+        t('textManager.multi.selectedCount').replace('{count}', texts.length)
+      }}</span>
       <div class="multi-header-actions">
-        <button class="btn-select-all" @click="selectAll" title="Alle Texte auswählen">
-          ⊞ Alle
-        </button>
-        <button class="btn-clear" @click="$emit('clear')" title="Auswahl aufheben">✕</button>
+        <UiButton size="sm" :title="t('textManager.multi.selectAllTitle')" @click="selectAll">
+          {{ t('textManager.multi.selectAll') }}
+        </UiButton>
+        <UiIconButton
+          size="sm"
+          :label="t('textManager.multi.clearSelection')"
+          @click="emit('clear')"
+        >
+          <svg v-bind="ICON_ATTRS">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </UiIconButton>
       </div>
     </div>
 
-    <p class="hint">Shift+Klick zum Hinzufügen · Ziehen bewegt alle</p>
+    <p class="hint">{{ t('textManager.multi.hint') }}</p>
 
-    <!-- Bulk Style -->
+    <!-- Stil für alle -->
     <div class="section">
-      <div class="section-title">Stil für alle</div>
+      <div class="section-title">{{ t('textManager.multi.styleTitle') }}</div>
 
       <div class="control-row">
-        <label>Farbe</label>
-        <div class="color-row">
-          <ColorField v-model="bulkColor" class="color-input" />
-          <button class="btn-apply" @click="applyColor">Anwenden</button>
-        </div>
-      </div>
-
-      <div class="control-row">
-        <label>Schriftgröße</label>
+        <span class="row-label">{{ t('textManager.multi.color') }}</span>
         <div class="size-row">
-          <input type="number" v-model.number="bulkFontSize" min="4" max="400" class="num-input" />
-          <button class="btn-apply" @click="applyFontSize">Anwenden</button>
+          <ColorField v-model="bulkColor" class="color-input" />
+          <UiButton size="sm" @click="applyColor">{{ t('textManager.multi.apply') }}</UiButton>
         </div>
       </div>
 
       <div class="control-row">
-        <label>Deckkraft</label>
+        <span class="row-label">{{ t('textManager.multi.fontSize') }}</span>
+        <div class="size-row">
+          <SliderField
+            v-model="bulkFontSize"
+            :min="4"
+            :max="400"
+            :default-value="48"
+            class="slider"
+          />
+          <UiButton size="sm" @click="applyFontSize">{{ t('textManager.multi.apply') }}</UiButton>
+        </div>
+      </div>
+
+      <div class="control-row">
+        <span class="row-label">{{ t('textManager.multi.opacity') }}</span>
         <div class="size-row">
           <SliderField
             v-model="bulkOpacity"
@@ -43,67 +60,90 @@
             :default-value="100"
             class="slider"
           />
-          <span class="val-label">{{ bulkOpacity }}%</span>
-          <button class="btn-apply" @click="applyOpacity">▶</button>
+          <UiButton size="sm" @click="applyOpacity">{{ t('textManager.multi.apply') }}</UiButton>
         </div>
       </div>
 
       <div class="control-row">
-        <label>Schriftart</label>
         <div class="size-row">
-          <select v-model="bulkFont" class="font-select">
-            <option value="">— wählen —</option>
-            <option v-for="f in commonFonts" :key="f" :value="f">{{ f }}</option>
-          </select>
-          <button class="btn-apply" @click="applyFont" :disabled="!bulkFont">Anwenden</button>
+          <div class="grow">
+            <UiSelect
+              v-model="bulkFont"
+              :options="fontOptions"
+              :label="t('textManager.multi.font')"
+              size="sm"
+            />
+          </div>
+          <UiButton size="sm" class="align-end" :disabled="!bulkFont" @click="applyFont">
+            {{ t('textManager.multi.apply') }}
+          </UiButton>
         </div>
       </div>
     </div>
 
-    <!-- Bulk Move -->
+    <!-- Position (alle) -->
     <div class="section">
-      <div class="section-title">Position (alle)</div>
+      <div class="section-title">{{ t('textManager.multi.positionTitle') }}</div>
       <div class="nudge-row">
-        <button class="btn-nudge" @click="nudge(0, -0.01)">▲</button>
-        <button class="btn-nudge" @click="nudge(-0.01, 0)">◀</button>
-        <button class="btn-nudge" @click="nudge(0.01, 0)">▶</button>
-        <button class="btn-nudge" @click="nudge(0, 0.01)">▼</button>
-        <span class="nudge-hint">Fein-Verschieben</span>
+        <UiIconButton
+          v-for="n in NUDGES"
+          :key="n.key"
+          size="sm"
+          variant="secondary"
+          :label="t(`textManager.multi.${n.key}`)"
+          @click="nudge(n.dx, n.dy)"
+        >
+          <svg v-bind="ICON_ATTRS"><path :d="n.path" /></svg>
+        </UiIconButton>
+        <span class="nudge-hint">{{ t('textManager.multi.nudgeHint') }}</span>
       </div>
       <div class="align-row">
-        <button class="btn-align" @click="alignAll('left')" title="Linksbündig">⬛⬜⬜</button>
-        <button class="btn-align" @click="alignAll('center')" title="Zentriert">⬜⬛⬜</button>
-        <button class="btn-align" @click="alignAll('right')" title="Rechtsbündig">⬜⬜⬛</button>
-        <button class="btn-align" @click="alignAll('top')" title="Oben">⬆</button>
-        <button class="btn-align" @click="alignAll('middle')" title="Mitte (V)">↕</button>
-        <button class="btn-align" @click="alignAll('bottom')" title="Unten">⬇</button>
+        <UiIconButton
+          v-for="a in ALIGNS"
+          :key="a.direction"
+          size="sm"
+          variant="secondary"
+          :label="t(`textManager.multi.${a.key}`)"
+          @click="alignAll(a.direction)"
+        >
+          <svg v-bind="ICON_ATTRS">
+            <component :is="el.tag" v-for="(el, i) in a.icon" :key="i" v-bind="el.attrs" />
+          </svg>
+        </UiIconButton>
       </div>
     </div>
 
-    <!-- Bulk Audio-Reactive -->
+    <!-- Audio-Reaktiv (alle) -->
     <div class="section">
-      <div class="section-title">Audio-Reaktiv (alle)</div>
-      <p class="hint">Einstellungen vom aktiven Text auf alle anderen übertragen</p>
-      <button
-        class="btn-copy-audio"
-        @click="copyAudioReactive"
+      <div class="section-title">{{ t('textManager.multi.audioTitle') }}</div>
+      <p class="hint">{{ t('textManager.multi.audioHint') }}</p>
+      <UiButton
+        size="sm"
+        block
         :disabled="!activeText?.audioReactive?.enabled"
+        @click="copyAudioReactive"
       >
-        🎵 Audio-Einstellungen kopieren
-      </button>
+        {{ t('textManager.multi.copyAudio') }}
+      </UiButton>
     </div>
 
-    <!-- Bulk Delete -->
+    <!-- Alle löschen -->
     <div class="section">
-      <button class="btn-delete-all" @click="deleteAll">🗑 Alle {{ texts.length }} löschen</button>
+      <UiButton size="sm" variant="danger" block @click="deleteAll">
+        {{ t('textManager.multi.deleteAll').replace('{count}', texts.length) }}
+      </UiButton>
     </div>
   </div>
 </template>
 
 <script setup>
+import { computed, inject, ref } from 'vue'
 import SliderField from '../ui/SliderField.vue'
 import ColorField from '../ui/ColorField.vue'
-import { ref, inject } from 'vue'
+import UiButton from '../ui/UiButton.vue'
+import UiIconButton from '../ui/UiIconButton.vue'
+import UiSelect from '../ui/UiSelect.vue'
+import { useI18n } from '../../lib/i18n.js'
 
 const props = defineProps({
   texts: { type: Array, required: true },
@@ -112,6 +152,7 @@ const props = defineProps({
 
 const emit = defineEmits(['clear'])
 
+const { t } = useI18n()
 const canvasManager = inject('canvasManager')
 
 const bulkColor = ref('#ffffff')
@@ -131,31 +172,92 @@ const commonFonts = [
   'Arial Black',
 ]
 
+const fontOptions = computed(() => [
+  { value: '', label: t('textManager.multi.fontPlaceholder') },
+  ...commonFonts.map((f) => ({ value: f, label: f })),
+])
+
+/** Lucide-Stil: 24er-ViewBox, Stroke 1.75 (siehe components/ui/README.md) */
+const ICON_ATTRS = {
+  viewBox: '0 0 24 24',
+  width: 16,
+  height: 16,
+  fill: 'none',
+  stroke: 'currentColor',
+  'stroke-width': 1.75,
+  'stroke-linecap': 'round',
+  'stroke-linejoin': 'round',
+  'aria-hidden': 'true',
+}
+
+const NUDGES = [
+  { key: 'nudgeUp', dx: 0, dy: -0.01, path: 'm18 15-6-6-6 6' },
+  { key: 'nudgeLeft', dx: -0.01, dy: 0, path: 'm15 18-6-6 6-6' },
+  { key: 'nudgeRight', dx: 0.01, dy: 0, path: 'm9 18 6-6-6-6' },
+  { key: 'nudgeDown', dx: 0, dy: 0.01, path: 'm6 9 6 6 6-6' },
+]
+
+const rect = (x, y, width, height) => ({ tag: 'rect', attrs: { x, y, width, height, rx: 2 } })
+const path = (d) => ({ tag: 'path', attrs: { d } })
+
+const ALIGNS = [
+  {
+    direction: 'left',
+    key: 'alignLeft',
+    icon: [rect(6, 14, 9, 6), rect(6, 4, 16, 6), path('M2 2v20')],
+  },
+  {
+    direction: 'center',
+    key: 'alignCenter',
+    icon: [path('M12 2v20'), rect(4, 4, 16, 6), rect(7, 14, 10, 6)],
+  },
+  {
+    direction: 'right',
+    key: 'alignRight',
+    icon: [rect(2, 4, 16, 6), rect(9, 14, 9, 6), path('M22 22V2')],
+  },
+  {
+    direction: 'top',
+    key: 'alignTop',
+    icon: [rect(4, 6, 6, 16), rect(14, 6, 6, 9), path('M22 2H2')],
+  },
+  {
+    direction: 'middle',
+    key: 'alignMiddle',
+    icon: [path('M2 12h20'), rect(4, 4, 6, 16), rect(14, 7, 6, 10)],
+  },
+  {
+    direction: 'bottom',
+    key: 'alignBottom',
+    icon: [rect(4, 2, 6, 16), rect(14, 9, 6, 9), path('M22 22H2')],
+  },
+]
+
 function applyColor() {
-  for (const t of props.texts) t.color = bulkColor.value
+  for (const text of props.texts) text.color = bulkColor.value
   redraw()
 }
 
 function applyFontSize() {
-  for (const t of props.texts) t.fontSize = bulkFontSize.value
+  for (const text of props.texts) text.fontSize = bulkFontSize.value
   redraw()
 }
 
 function applyOpacity() {
-  for (const t of props.texts) t.opacity = bulkOpacity.value
+  for (const text of props.texts) text.opacity = bulkOpacity.value
   redraw()
 }
 
 function applyFont() {
   if (!bulkFont.value) return
-  for (const t of props.texts) t.fontFamily = bulkFont.value
+  for (const text of props.texts) text.fontFamily = bulkFont.value
   redraw()
 }
 
 function nudge(dx, dy) {
-  for (const t of props.texts) {
-    t.relX += dx
-    t.relY += dy
+  for (const text of props.texts) {
+    text.relX += dx
+    text.relY += dy
   }
   redraw()
 }
@@ -163,23 +265,23 @@ function nudge(dx, dy) {
 function alignAll(direction) {
   if (props.texts.length === 0) return
   if (direction === 'left') {
-    const minX = Math.min(...props.texts.map((t) => t.relX))
-    for (const t of props.texts) t.relX = minX
+    const minX = Math.min(...props.texts.map((text) => text.relX))
+    for (const text of props.texts) text.relX = minX
   } else if (direction === 'right') {
-    const maxX = Math.max(...props.texts.map((t) => t.relX))
-    for (const t of props.texts) t.relX = maxX
+    const maxX = Math.max(...props.texts.map((text) => text.relX))
+    for (const text of props.texts) text.relX = maxX
   } else if (direction === 'center') {
-    const avgX = props.texts.reduce((s, t) => s + t.relX, 0) / props.texts.length
-    for (const t of props.texts) t.relX = avgX
+    const avgX = props.texts.reduce((sum, text) => sum + text.relX, 0) / props.texts.length
+    for (const text of props.texts) text.relX = avgX
   } else if (direction === 'top') {
-    const minY = Math.min(...props.texts.map((t) => t.relY))
-    for (const t of props.texts) t.relY = minY
+    const minY = Math.min(...props.texts.map((text) => text.relY))
+    for (const text of props.texts) text.relY = minY
   } else if (direction === 'bottom') {
-    const maxY = Math.max(...props.texts.map((t) => t.relY))
-    for (const t of props.texts) t.relY = maxY
+    const maxY = Math.max(...props.texts.map((text) => text.relY))
+    for (const text of props.texts) text.relY = maxY
   } else if (direction === 'middle') {
-    const avgY = props.texts.reduce((s, t) => s + t.relY, 0) / props.texts.length
-    for (const t of props.texts) t.relY = avgY
+    const avgY = props.texts.reduce((sum, text) => sum + text.relY, 0) / props.texts.length
+    for (const text of props.texts) text.relY = avgY
   }
   redraw()
 }
@@ -187,9 +289,9 @@ function alignAll(direction) {
 function copyAudioReactive() {
   if (!props.activeText?.audioReactive) return
   const src = props.activeText.audioReactive
-  for (const t of props.texts) {
-    if (t === props.activeText) continue
-    t.audioReactive = JSON.parse(JSON.stringify(src))
+  for (const text of props.texts) {
+    if (text === props.activeText) continue
+    text.audioReactive = JSON.parse(JSON.stringify(src))
   }
   redraw()
 }
@@ -239,6 +341,7 @@ function redraw() {
 
 .multi-header-actions {
   display: flex;
+  align-items: center;
   gap: 4px;
 }
 
@@ -270,16 +373,25 @@ function redraw() {
   gap: 3px;
 }
 
-.control-row label {
+.row-label {
   font-size: var(--ds-text-xs);
   color: var(--text-primary);
 }
 
-.color-row,
 .size-row {
   display: flex;
   gap: 6px;
   align-items: center;
+}
+
+.slider,
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.align-end {
+  align-self: flex-end;
 }
 
 .color-input {
@@ -291,167 +403,17 @@ function redraw() {
   padding: 0;
 }
 
-.num-input {
-  width: 64px;
-  padding: 3px 6px;
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  font-size: var(--ds-text-xs);
-}
-
-.slider {
-  flex: 1;
-}
-
-.val-label {
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-  min-width: 32px;
-}
-
-.font-select {
-  flex: 1;
-  padding: 3px 6px;
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  font-size: var(--ds-text-xs);
-}
-
-.btn-apply {
-  padding: 3px 8px;
-  background: var(--accent-primary);
-  border: none;
-  border-radius: var(--ds-radius-sm);
-  color: var(--ds-on-accent);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.btn-apply:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn-select-all {
-  padding: 3px 7px;
-  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-success) 40%, transparent);
-  border-radius: var(--ds-radius-sm);
-  color: var(--ds-success);
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-}
-
-.btn-clear {
-  padding: 3px 7px;
-  background: none;
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-muted);
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-}
-
-.btn-clear:hover {
-  color: var(--ds-danger);
-  border-color: var(--ds-danger);
-}
-
-.nudge-row {
+.nudge-row,
+.align-row {
   display: flex;
+  align-items: center;
   gap: 4px;
-  align-items: center;
-}
-
-.btn-nudge {
-  width: 28px;
-  height: 28px;
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-nudge:hover {
-  background: var(--accent-primary);
-  color: var(--ds-on-accent);
-  border-color: transparent;
+  flex-wrap: wrap;
 }
 
 .nudge-hint {
   font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-left: 4px;
-}
-
-.align-row {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.btn-align {
-  padding: 3px 6px;
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-}
-
-.btn-align:hover {
-  border-color: var(--accent-primary);
-  color: var(--accent-ink);
-}
-
-.btn-copy-audio {
-  padding: 6px 10px;
-  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-link) 35%, transparent);
-  border-radius: var(--ds-radius-sm);
-  color: var(--ds-link);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  cursor: pointer;
-  width: 100%;
-  transition: background var(--ds-duration) var(--ds-ease);
-}
-
-.btn-copy-audio:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ds-link) 25%, transparent);
-}
-
-.btn-copy-audio:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn-delete-all {
-  padding: 6px;
-  width: 100%;
-  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
-  border-radius: var(--ds-radius-sm);
-  color: var(--ds-danger);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  cursor: pointer;
-  transition: background var(--ds-duration) var(--ds-ease);
-}
-
-.btn-delete-all:hover {
-  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
 }
 </style>

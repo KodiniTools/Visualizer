@@ -149,7 +149,15 @@ import ReplaceGalleryModal from './components/canvas-bar/ReplaceGalleryModal.vue
 
 import { CUSTOM_FONTS } from './lib/fonts.js'
 import { FontManager } from './lib/fontManager.js'
-import { KeyboardShortcuts } from './lib/keyboardShortcuts.js'
+import { startLazyFontLoading } from './composables/visualizerApp/lazyFonts.js'
+import { bindAudioElementEvents } from './composables/visualizerApp/audioElementEvents.js'
+import {
+  watchGridSettings,
+  watchWorkspacePreset,
+  watchRecordingCanvasSize,
+} from './composables/visualizerApp/canvasSync.js'
+import { setupKeyboardShortcuts } from './composables/visualizerApp/keyboardShortcutsSetup.js'
+import { bindHqCaptureEvents } from './composables/visualizerApp/hqCaptureEvents.js'
 
 import './styles/visualizer-app.css'
 
@@ -393,49 +401,13 @@ onMounted(async () => {
   // Workers + Audio data
   await globalAudioData.init()
 
-  // Fonts – erst bei der ersten Interaktion (spätestens nach FONT_LOAD_FALLBACK_MS)
-  // laden: die Custom-Fonts werden für das erste Rendering nicht gebraucht und
-  // sollen den Seitenaufbau nicht mit ~10 Font-Downloads belasten. Abhängige
-  // Komponenten reagieren über fontManager.isInitialized.
+  // Fonts – erst bei der ersten Interaktion laden (siehe lazyFonts.js)
   fontManagerInstance.value = new FontManager()
-  const FONT_LOAD_EVENTS = ['pointerdown', 'keydown', 'touchstart']
-  const FONT_LOAD_FALLBACK_MS = 5000
-  let fontLoadTimer = null
-  const loadFonts = () => {
-    FONT_LOAD_EVENTS.forEach((type) => window.removeEventListener(type, loadFonts, true))
-    clearTimeout(fontLoadTimer)
-    fontManagerInstance.value
-      .initialize(CUSTOM_FONTS)
-      .then((result) => console.log(`FontManager: ${result.loaded} Fonts geladen`))
-      .catch((error) => console.error('FontManager Fehler:', error))
-  }
-  FONT_LOAD_EVENTS.forEach((type) =>
-    window.addEventListener(type, loadFonts, { capture: true, passive: true, once: true }),
-  )
-  fontLoadTimer = setTimeout(loadFonts, FONT_LOAD_FALLBACK_MS)
+  startLazyFontLoading(fontManagerInstance.value, CUSTOM_FONTS)
 
   // Audio player events
   playerStore.setAudioRef(audioRef.value)
-  if (audioRef.value) {
-    audioRef.value.addEventListener('play', () => {
-      playerStore.isPlaying = true
-      const ctx = audioEngine.getAudioContext()
-      if (ctx?.state === 'suspended') ctx.resume()
-      audioEngine.enableRecorderAudio()
-    })
-    audioRef.value.addEventListener('pause', () => {
-      playerStore.isPlaying = false
-      audioEngine.disableRecorderAudio()
-    })
-    audioRef.value.addEventListener('ended', () => {
-      // Do NOT advance the track here: the player store's own `ended` handler
-      // (registered via setAudioRef) owns the play-mode logic (repeat-one,
-      // sequence, repeat-all, shuffle, none). Calling nextTrack() here as well
-      // would override it — e.g. skipping to the next track instead of
-      // repeating the current one in repeat-one mode.
-      audioEngine.disableRecorderAudio()
-    })
-  }
+  bindAudioElementEvents(audioRef.value, { playerStore, audioEngine })
 
   audioEngine.setupAudioContext()
   audioEngine.registerEngine()
@@ -445,107 +417,32 @@ onMounted(async () => {
   renderLoop.registerScreenshot(canvasManagerInstance)
 
   // HQ Frame Capture
-  window.addEventListener('hq:startCapture', (e) => {
-    const { fps, onBatch } = e.detail
-    if (!recordingCanvas) return
-    startCapture(recordingCanvas, fps, onBatch)
-  })
-  window.addEventListener('hq:stopCapture', async () => {
-    const remaining = await stopCapture()
-    window.dispatchEvent(new CustomEvent('hq:captureRemaining', { detail: remaining }))
-  })
+  bindHqCaptureEvents({ getRecordingCanvas, startCapture, stopCapture })
 
   // Canvas init fallback
   if (canvasRef.value) initializeCanvas(canvasRef.value)
 
-  // Grid visibility watcher
-  // (auch bei neu erzeugtem GridManager – gespeicherte Einstellungen übernehmen)
-  watch(
-    () => [gridManagerInstance.value, gridStore.isVisible],
-    ([gm, v]) => {
-      if (gm) gm.setVisibility(v)
-    },
-    { immediate: true },
-  )
+  watchGridSettings({ gridManagerInstance, gridStore })
+  watchWorkspacePreset({
+    workspaceStore,
+    canvasRef,
+    canvasManagerInstance,
+    presets: SOCIAL_MEDIA_PRESETS,
+    getRecordingCanvas,
+  })
 
-  // Grid-Farbe / Deckkraft watcher – überträgt die Auswahl aus dem
-  // Raster-Farbwähler auf den GridManager (der Render-Loop liest gridColor).
-  watch(
-    () => [gridManagerInstance.value, gridStore.gridColor, gridStore.gridOpacity],
-    ([gm, color, opacity]) => {
-      if (gm) gm.setGridColor(color, opacity)
-    },
-    { immediate: true },
-  )
-
-  // Am Raster einrasten (DragDropHandler fragt gridManager.isSnapActive())
-  watch(
-    () => [gridManagerInstance.value, gridStore.snapToGrid],
-    ([gm, v]) => {
-      if (gm) gm.setSnapToGrid(v)
-    },
-    { immediate: true },
-  )
-
-  // Workspace preset watcher
-  watch(
-    () => workspaceStore.selectedPresetKey,
-    (newKey) => {
-      const canvas = canvasRef.value
-      if (!canvas || !canvasManagerInstance.value) return
-
-      canvasManagerInstance.value.setWorkspacePreset(newKey)
-      const preset = newKey ? SOCIAL_MEDIA_PRESETS[newKey] : null
-
-      canvas.width = preset?.width ?? 1920
-      canvas.height = preset?.height ?? 1080
-      const rec = getRecordingCanvas()
-      if (rec) {
-        rec.width = canvas.width
-        rec.height = canvas.height
-      }
-    },
-    { immediate: true },
-  )
-
-  // Keyboard shortcuts
-  function initKeyboardShortcuts() {
-    if (keyboardShortcutsInstance.value) return
-    if (!canvasManagerInstance.value || !multiImageManagerInstance.value) return
-
-    keyboardShortcutsInstance.value = new KeyboardShortcuts(
-      { playerStore, recorderStore, gridStore, historyStore },
-      {
-        canvasManager: canvasManagerInstance.value,
-        multiImageManager: multiImageManagerInstance.value,
-      },
-    )
-    keyboardShortcutsInstance.value.enable()
-  }
-
-  initKeyboardShortcuts()
-  if (!keyboardShortcutsInstance.value) {
-    watch(
-      () => [canvasManagerInstance.value, multiImageManagerInstance.value],
-      () => {
-        if (!keyboardShortcutsInstance.value) initKeyboardShortcuts()
-      },
-    )
-  }
+  // Keyboard shortcuts (warten ggf. auf Canvas- und MultiImageManager)
+  setupKeyboardShortcuts({
+    instanceRef: keyboardShortcutsInstance,
+    canvasManagerInstance,
+    multiImageManagerInstance,
+    stores: { playerStore, recorderStore, gridStore, historyStore },
+  })
 
   await recorderSetup.initializeRecorder()
 
   // Sync recording canvas size with display canvas
-  watch(
-    () => [canvasRef.value?.width, canvasRef.value?.height],
-    ([width, height]) => {
-      if (width && height) {
-        const rec = getRecordingCanvas()
-        rec.width = width
-        rec.height = height
-      }
-    },
-  )
+  watchRecordingCanvasSize({ canvasRef, getRecordingCanvas })
 
   // Start render loop
   renderLoop.draw()

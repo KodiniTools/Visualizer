@@ -1,5 +1,6 @@
 import { ref, computed, reactive } from 'vue'
 import de from './i18n/de.js'
+import { resolveInitialLocale } from './localeSeo.js'
 
 // de is always available synchronously; other locales are loaded on demand
 const translations = reactive({ de })
@@ -10,9 +11,23 @@ async function loadLocale(locale) {
   translations[locale] = mod.default
 }
 
-// Start with de (available immediately), then switch if a different locale is stored
-const initialLocale =
-  (typeof localStorage !== 'undefined' && localStorage.getItem('locale')) || 'de'
+function readStoredLocale() {
+  try {
+    return localStorage.getItem('locale')
+  } catch {
+    return null
+  }
+}
+
+// Start with de (available immediately), then switch if ?lang=en (hreflang target)
+// or the stored locale asks for another language. ?lang wins and is persisted
+// so the SSI navigation and other components agree.
+const initialLocale = resolveInitialLocale(globalThis.location?.search ?? '', readStoredLocale())
+try {
+  localStorage.setItem('locale', initialLocale)
+} catch {
+  // storage blocked: the language applies to this visit only
+}
 const currentLocale = ref('de')
 
 if (initialLocale !== 'de') {

@@ -47,6 +47,24 @@ describe('applyRouteHead', () => {
     expect(alternates()).toHaveLength(3)
   })
 
+  it('Englisch: Canonical ?lang=en, englische Texte, hreflang zeigt auf beide Sprachen', () => {
+    const page = { ...landing, en: { title: 'Start EN', description: 'EN' } }
+    applyRouteHead(page, 'en')
+    expect(document.title).toBe('Start EN')
+    expect(document.querySelector('link[rel="canonical"]').getAttribute('href')).toBe(
+      `${BASE}/?lang=en`,
+    )
+    expect([...alternates()].map((l) => l.getAttribute('href'))).toEqual([
+      `${BASE}/`,
+      `${BASE}/?lang=en`,
+      `${BASE}/`,
+    ])
+    applyRouteHead(page, 'de')
+    expect(document.title).toBe('Start')
+    expect(document.querySelector('link[rel="canonical"]').getAttribute('href')).toBe(`${BASE}/`)
+    expect(alternates()).toHaveLength(3)
+  })
+
   it('ohne robots-Angabe gilt index, follow', () => {
     applyRouteHead({ title: 'X' })
     expect(robots()).toBe('index, follow')

@@ -18,19 +18,19 @@ Alle Komponenten:
 import { UiButton, UiPanel, UiTextField } from '@/components/ui'
 ```
 
-| Komponente           | Zweck                                      | Wichtige Props / Events                                                                                                         |
-| -------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| `UiButton`           | Textbutton; `to` = RouterLink, `href` = a  | `variant` primary · secondary · ghost · danger, `size` sm · md · lg, `block`, Slot `icon`                                       |
-| `UiIconButton`       | Quadratischer Icon-Button                  | `label` (Pflicht, wird aria-label und title), `variant` ghost · secondary · primary, `size` sm · md, `round`, `pressed`         |
-| `UiPanel`            | Flache Fläche mit Kopfzeile                | `title`, `headingLevel` 2 · 3, `count`, `padded`, Slot `actions`                                                                |
-| `UiCallout`          | Ruhiger Hinweis im Textfluss               | `type` info · success · warning · danger, `title`, Slot default                                                                 |
-| `UiEmptyState`       | Leerzustand                                | `title`, `text`, Slots `icon` · `action`                                                                                        |
-| `UiSegmentedControl` | Eine Option aus wenigen, Radiogroup-Muster | `v-model` (string), `options` `{ value, label, disabled? }`, `label`, `size`; Pfeiltasten wechseln                              |
-| `UiSelect`           | Natives Select im System-Look              | `v-model` (string), `options`, `label` (Pflicht), `inline`, `labelHidden`, `size`; Attrs → select                               |
-| `UiTextField`        | Einzeiliges Textfeld mit Label             | `v-model`, `label`, `hint`, `error` (aria-invalid, role=alert), `required`, `disabled`, Attrs → input                           |
-| `UiDialog`           | Modaler Dialog (Teleport nach `body`)      | `open`, `title`, `description`, `closeLabel`, `size` md · lg, `teleportTo`, `id`, Slots default · `footer`; Event `close`       |
-| `UiToast`            | Benachrichtigung                           | `message`, `type` success · error · warning · info, `actionLabel`, `dismissLabel`, `dismissOnClick`; Events `action`, `dismiss` |
-| `UiKbd`              | Tastenkombination                          | `keys: string[]`                                                                                                                |
+| Komponente           | Zweck                                      | Wichtige Props / Events                                                                                                                                       |
+| -------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `UiButton`           | Textbutton; `to` = RouterLink, `href` = a  | `variant` primary · secondary · ghost · danger, `size` sm · md · lg, `block`, Slot `icon`                                                                     |
+| `UiIconButton`       | Quadratischer Icon-Button                  | `label` (Pflicht, wird aria-label und title), `variant` ghost · secondary · primary, `size` sm · md, `round`, `pressed`                                       |
+| `UiPanel`            | Flache Fläche mit Kopfzeile                | `title`, `headingLevel` 2 · 3, `count`, `padded`, Slot `actions`                                                                                              |
+| `UiCallout`          | Ruhiger Hinweis im Textfluss               | `type` info · success · warning · danger, `title`, Slot default                                                                                               |
+| `UiEmptyState`       | Leerzustand                                | `title`, `text`, Slots `icon` · `action`                                                                                                                      |
+| `UiSegmentedControl` | Eine Option aus wenigen, Radiogroup-Muster | `v-model` (string), `options` `{ value, label, disabled? }`, `label`, `size`; Pfeiltasten wechseln                                                            |
+| `UiSelect`           | Natives Select im System-Look              | `v-model` (string · number), `options` (Eintrag mit `options` → `<optgroup>`), `label` (Pflicht), `inline`, `labelHidden`, `size`, `disabled`; Attrs → select |
+| `UiTextField`        | Einzeiliges Textfeld mit Label             | `v-model`, `label`, `hint`, `error` (aria-invalid, role=alert), `required`, `disabled`, Attrs → input                                                         |
+| `UiDialog`           | Modaler Dialog (Teleport nach `body`)      | `open`, `title`, `description`, `closeLabel`, `size` md · lg, `teleportTo`, `id`, Slots default · `footer`; Event `close`                                     |
+| `UiToast`            | Benachrichtigung                           | `message`, `type` success · error · warning · info, `actionLabel`, `dismissLabel`, `dismissOnClick`; Events `action`, `dismiss`                               |
+| `UiKbd`              | Tastenkombination                          | `keys: string[]`                                                                                                                                              |
 
 Abweichungen zum Collage Maker (bewusst, minimal):
 
@@ -62,14 +62,15 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 
 ## Einsatz im Visualizer
 
-| Stelle                         | Komponente                                                                                                                                                 |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Statushinweis im rechten Panel | `StatusBanner` → `UiCallout`                                                                                                                               |
-| Admin-Login                    | `LoginModal` → `UiDialog` + `UiTextField` + `UiButton`                                                                                                     |
-| Toasts                         | `ToastContainer` auf dem `UiToast`-Rezept, Aktion/Schließen als `UiButton`/`UiIconButton`                                                                  |
-| Popover der Player-Leiste      | `popover-chrome.css` auf dem Overlay-Rezept, Schließen als Ghost-Icon-Button                                                                               |
-| Player-Leiste                  | Transport = runde Icon-Buttons (secondary), Play/Pause = primär                                                                                            |
-| Formen & Symbole (Popover)     | `UiSegmentedControl` (wrap), `UiTile`, `UiSwitch`, `UiTextArea`, `UiSelect`, `UiButton`, `UiIconButton`, `SliderControl`, `ColorField` + `UiColorSwatches` |
+| Stelle                         | Komponente                                                                                                                                                                       |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Statushinweis im rechten Panel | `StatusBanner` → `UiCallout`                                                                                                                                                     |
+| Admin-Login                    | `LoginModal` → `UiDialog` + `UiTextField` + `UiButton`                                                                                                                           |
+| Toasts                         | `ToastContainer` auf dem `UiToast`-Rezept, Aktion/Schließen als `UiButton`/`UiIconButton`                                                                                        |
+| Popover der Player-Leiste      | `popover-chrome.css` auf dem Overlay-Rezept, Schließen als Ghost-Icon-Button                                                                                                     |
+| Player-Leiste                  | Transport = runde Icon-Buttons (secondary), Play/Pause = primär                                                                                                                  |
+| Formen & Symbole (Popover)     | `UiSegmentedControl` (wrap), `UiTile`, `UiSwitch`, `UiTextArea`, `UiSelect`, `UiButton`, `UiIconButton`, `SliderControl`, `ColorField` + `UiColorSwatches`                       |
+| Beat-Marker (Popover)          | Kopfzeile `UiSwitch` + `UiIconButton` (pressed), Formular `UiSelect` (Gruppen), `UiSwitch`, `UiSegmentedControl` (Schrittweite), `UiTextField`, `UiButton`; Liste `UiIconButton` |
 
 ## Regeln
 

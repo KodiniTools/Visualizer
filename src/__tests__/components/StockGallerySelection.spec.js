@@ -37,7 +37,7 @@ describe('Stock-Galerie – Mehrfachauswahl per Checkbox', () => {
 
   it('Klick aufs Bild bleibt Einzelauswahl (normales Event)', async () => {
     const w = mountSection()
-    await w.findAll('.stock-thumbnail-item')[2].trigger('click')
+    await w.findAll('.thumbnail-item')[2].trigger('click')
     const [img, event] = w.emitted('select-image')[0]
     expect(img.id).toBe('s3')
     expect(event.ctrlKey).toBe(false)

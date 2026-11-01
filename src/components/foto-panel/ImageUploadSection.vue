@@ -230,6 +230,8 @@ onMounted(() => document.addEventListener('paste', onPaste))
 onUnmounted(() => document.removeEventListener('paste', onPaste))
 </script>
 
+<style scoped src="./image-grid-shared.css"></style>
+
 <style scoped>
 /* Upload-Bereich Styles */
 .upload-section {
@@ -336,55 +338,11 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   width: 6px;
 }
 
-.gallery-scroll::-webkit-scrollbar-track {
-  background: var(--secondary-bg);
-  border-radius: var(--ds-radius-sm);
-}
-
-.gallery-scroll::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: var(--ds-radius-sm);
-}
-
-.gallery-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--image-section-accent);
-}
-
 /* Thumbnail-Grid */
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
-}
-
-.thumbnail-item {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: var(--ds-radius-sm);
-  overflow: hidden;
-  cursor: grab;
-  border: 2px solid transparent;
-  transition: all var(--ds-duration) var(--ds-ease);
-  background-color: var(--secondary-bg);
-}
-
-.thumbnail-item:active {
-  cursor: grabbing;
-}
-
-.thumbnail-item:hover {
-  border-color: var(--image-section-accent);
-}
-
-.thumbnail-item.selected {
-  border-color: var(--image-section-accent);
-}
-
-.thumbnail-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
 }
 
 .thumbnail-overlay {
@@ -455,107 +413,18 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   flex-wrap: wrap;
 }
 
-.btn-select-all,
-.btn-deselect-all {
-  padding: 5px 10px;
-  font-size: var(--ds-text-xs);
-  border-radius: var(--ds-radius-sm);
-  border: 1px solid var(--border-color);
-  background-color: var(--secondary-bg);
-  color: var(--ds-text);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  font-weight: var(--ds-weight-medium);
-}
-
-.btn-select-all:hover:not(:disabled),
-.btn-deselect-all:hover:not(:disabled) {
-  background-color: var(--secondary-bg);
-  border-color: var(--image-section-accent);
-  color: var(--image-section-accent);
-}
-
-.btn-select-all:disabled,
-.btn-deselect-all:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.selection-count {
-  font-size: var(--ds-text-xs);
-  color: var(--image-section-accent);
-  font-weight: var(--ds-weight-semibold);
-  padding: 4px 8px;
-  background-color: color-mix(in srgb, var(--ds-link) 15%, transparent);
-  border-radius: var(--ds-radius-sm);
-  margin-left: auto;
-}
-
-.multiselect-hint {
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-  margin: 0 0 2px 0;
-  font-style: italic;
-}
-
-.drag-hint {
-  font-size: var(--ds-text-xs);
-  color: var(--accent-tertiary);
-  margin: 0 0 8px 0;
-  font-style: italic;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.drag-hint::before {
-  content: '↦';
-  font-style: normal;
-  font-size: var(--ds-text-xs);
-}
-
 /* Selection Checkbox */
 .slideshow-select-hint {
   margin: 4px 0 0;
   font-size: var(--ds-text-xs);
   color: var(--image-section-accent);
 }
+
 /* Größere Klickfläche für die Checkbox, ohne das Aussehen zu ändern */
 .selection-checkbox::before {
   content: '';
   position: absolute;
   inset: -8px;
-}
-.selection-checkbox {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  width: 20px;
-  height: 20px;
-  border-radius: var(--ds-radius-sm);
-  background-color: rgba(0, 0, 0, 0.5);
-  border: 2px solid var(--ds-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  font-size: var(--ds-text-xs);
-  color: white;
-  font-weight: var(--ds-weight-bold);
-}
-
-.selection-checkbox.checked {
-  background-color: var(--image-section-accent);
-  border-color: var(--image-section-accent);
-}
-
-.thumbnail-item:hover .selection-checkbox:not(.checked) {
-  border-color: var(--image-section-accent);
-  background-color: color-mix(in srgb, var(--ds-link) 30%, transparent);
 }
 
 /* Action-Buttons */
@@ -563,62 +432,6 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   display: flex;
   flex-direction: column;
   gap: 4px;
-}
-
-.action-buttons button {
-  padding: 6px 10px;
-  border-radius: var(--ds-radius-sm);
-  border: 1px solid var(--border-color);
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  font-weight: var(--ds-weight-semibold);
-}
-
-.btn-primary {
-  background: var(--ds-accent-soft);
-  color: var(--accent-tertiary);
-  border: 1px solid var(--ds-border);
-}
-
-.btn-primary:hover {
-  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
-}
-
-.btn-secondary {
-  background-color: var(--secondary-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-  background-color: var(--btn-hover);
-  border-color: var(--accent-primary);
-}
-
-.btn-workspace {
-  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
-  color: var(--ds-warning);
-  border: 1px solid color-mix(in srgb, var(--ds-warning) 30%, transparent);
-}
-
-.btn-workspace:hover {
-  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
-  border-color: color-mix(in srgb, var(--ds-warning) 50%, transparent);
-}
-
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 20px;
-  color: var(--text-muted);
-}
-
-.empty-state p {
-  margin: 0;
-  font-size: var(--ds-text-sm);
 }
 
 /* ═══ Light Theme Overrides ═══ */
@@ -650,72 +463,5 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
 
 [data-theme='light'] .btn-clear-all {
   border-color: color-mix(in srgb, var(--ds-danger) 50%, transparent);
-}
-
-[data-theme='light'] .gallery-scroll::-webkit-scrollbar-thumb {
-  background: var(--ds-link);
-}
-
-[data-theme='light'] .gallery-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-primary);
-}
-
-[data-theme='light'] .thumbnail-item:hover {
-  border-color: var(--accent-primary);
-}
-
-[data-theme='light'] .thumbnail-item.selected {
-  border-color: var(--accent-primary);
-}
-
-[data-theme='light'] .btn-select-all,
-[data-theme='light'] .btn-deselect-all {
-  border-color: var(--border-color);
-  background-color: var(--card-bg);
-  color: var(--text-primary);
-}
-
-[data-theme='light'] .btn-select-all:hover:not(:disabled),
-[data-theme='light'] .btn-deselect-all:hover:not(:disabled) {
-  border-color: var(--accent-primary);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .selection-count {
-  color: var(--accent-ink);
-  background-color: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-}
-
-[data-theme='light'] .selection-checkbox.checked {
-  background-color: var(--accent-primary);
-  border-color: var(--accent-primary);
-}
-
-[data-theme='light'] .thumbnail-item:hover .selection-checkbox:not(.checked) {
-  border-color: var(--accent-primary);
-  background-color: color-mix(in srgb, var(--accent-primary) 30%, transparent);
-}
-
-[data-theme='light'] .action-buttons button {
-  border-color: var(--border-color);
-}
-
-[data-theme='light'] .btn-primary {
-  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
-  color: var(--accent-ink);
-  border-color: var(--border-color);
-}
-
-[data-theme='light'] .btn-primary:hover {
-  background: color-mix(in srgb, var(--accent-primary) 25%, transparent);
-}
-
-[data-theme='light'] .btn-secondary {
-  background-color: var(--card-bg);
-  border-color: var(--border-color);
-}
-
-[data-theme='light'] .btn-secondary:hover {
-  background-color: var(--secondary-bg);
 }
 </style>

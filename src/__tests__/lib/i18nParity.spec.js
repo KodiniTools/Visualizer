@@ -102,7 +102,11 @@ describe('i18n – DE/EN-Parität', () => {
 /** Sichtbarer Text im Template, der nicht über t() läuft. */
 function hardcodedTemplateText(source) {
   const tpl = (source.match(/<template>([\s\S]*)<\/template>/) || [])[1] || ''
-  const clean = tpl.replace(/<!--[\s\S]*?-->/g, '')
+  // HTML-Kommentare ohne Regex-Ersetzung entfernen (alles ab `<!--` bis `-->`)
+  const clean = tpl
+    .split('<!--')
+    .map((part, i) => (i === 0 ? part : part.slice(part.indexOf('-->') + 3)))
+    .join('')
   const hits = []
   for (const m of clean.matchAll(/>([^<>]*)</g)) {
     const txt = m[1]

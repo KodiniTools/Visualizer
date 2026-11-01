@@ -1,44 +1,43 @@
 <template>
-  <template v-if="effect">
-    <!-- Permanent anzeigen -->
-    <div class="control-group">
-      <label class="effect-checkbox">
-        <input v-model="effect.permanent" type="checkbox" @change="updateText" />
-        Permanent anzeigen
-      </label>
-      <div class="hint-text">Text bleibt dauerhaft sichtbar</div>
-    </div>
+  <!-- Permanent anzeigen -->
+  <div class="control-group">
+    <UiSwitch
+      :model-value="Boolean(effect.permanent)"
+      :label="t('textManager.permanentDisplay')"
+      @update:model-value="(v) => set('permanent', v)"
+    />
+    <div class="hint-text">{{ t('textManager.permanentDisplayHint') }}</div>
+  </div>
 
-    <!-- Anzeigedauer (nur wenn nicht permanent) -->
-    <div v-if="!effect.permanent" class="control-group">
-      <label>Anzeigedauer: {{ effect.displayDuration }}ms</label>
-      <div class="dur-row">
-        <SliderField
-          v-model="effect.displayDuration"
-          :min="500"
-          :max="30000"
-          :step="100"
-          :default-value="5000"
-          class="slider"
-          @update:model-value="updateText"
-        />
-      </div>
-      <div class="hint-text">Wie lange der Text sichtbar bleibt, bevor er verschwindet</div>
+  <!-- Anzeigedauer (nur wenn nicht permanent) -->
+  <div v-if="!effect.permanent" class="control-group">
+    <label>{{ t('textManager.displayDuration') }}: {{ effect.displayDuration }}ms</label>
+    <div class="dur-row">
+      <SliderField
+        :model-value="effect.displayDuration"
+        :min="500"
+        :max="30000"
+        :step="100"
+        :default-value="5000"
+        class="slider"
+        @update:model-value="(v) => set('displayDuration', v)"
+      />
     </div>
-  </template>
+    <div class="hint-text">{{ t('textManager.displayDurationHint') }}</div>
+  </div>
 </template>
 
 <script setup>
 /** Permanent anzeigen / Anzeigedauer einer Animation. */
-import { computed, inject } from 'vue'
 import SliderField from '../../ui/SliderField.vue'
+import UiSwitch from '../../ui/UiSwitch.vue'
+import { useI18n } from '../../../lib/i18n.js'
+import { useEffectField } from './useEffectField.js'
 
-const props = defineProps({
-  effectKey: { type: String, required: true },
-})
-
-const { selectedText, updateText } = inject('textAnimationControls')
-const effect = computed(() => selectedText.value?.animation?.[props.effectKey] ?? null)
+const effect = defineModel('effect', { type: Object, required: true })
+const emit = defineEmits(['change'])
+const set = useEffectField(effect, emit)
+const { t } = useI18n()
 </script>
 
 <style scoped src="./text-animations-shared.css"></style>

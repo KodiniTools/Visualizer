@@ -1,163 +1,20 @@
 <template>
-  <!-- ✨ Scale-Einstellungen (klappbar) -->
-  <details class="collapsible-section" open>
-    <summary class="section-header">
-      <span class="section-icon">🔍</span>
-      <span>{{ t('textManager.scaleEffect') }}</span>
-      <span v-if="settings.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
-    </summary>
-    <div class="section-content">
-      <!-- Scale aktivieren -->
-      <div class="control-group">
-        <div class="button-group">
-          <button
-            :class="['btn-small', 'full-width', { active: settings.enabled }]"
-            @click="settings.enabled = !settings.enabled"
-          >
-            {{
-              settings.enabled ? '✓ ' + t('textManager.activated') : t('textManager.deactivated')
-            }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Scale-Einstellungen (nur wenn aktiviert) -->
-      <div v-if="settings.enabled">
-        <!-- Richtung -->
-        <div class="control-group">
-          <label>{{ t('textManager.direction') }}:</label>
-          <select v-model="settings.direction" class="select-input">
-            <option value="in">{{ t('textManager.zoomIn') }}</option>
-            <option value="out">{{ t('textManager.zoomOut') }}</option>
-            <option value="inOut">{{ t('textManager.zoomInOut') }}</option>
-          </select>
-        </div>
-
-        <!-- Start-Skalierung -->
-        <div class="control-group">
-          <label
-            >{{ t('textManager.startSize') }}: {{ Math.round(settings.startScale * 100) }}%</label
-          >
-          <SliderField
-            v-model="settings.startScale"
-            :min="0"
-            :max="3"
-            :step="0.1"
-            :default-value="0"
-            class="slider"
-          />
-          <div class="hint-text">{{ t('textManager.sizeHint') }}</div>
-        </div>
-
-        <!-- End-Skalierung -->
-        <div class="control-group">
-          <label>{{ t('textManager.endSize') }}: {{ Math.round(settings.endScale * 100) }}%</label>
-          <SliderField
-            v-model="settings.endScale"
-            :min="0"
-            :max="3"
-            :step="0.1"
-            :default-value="1"
-            class="slider"
-          />
-        </div>
-
-        <!-- Dauer -->
-        <div class="control-group">
-          <label>{{ t('textManager.duration') }}: {{ settings.duration }}ms</label>
-          <SliderField
-            v-model="settings.duration"
-            :min="100"
-            :max="20000"
-            :step="100"
-            :default-value="1000"
-            class="slider"
-          />
-        </div>
-
-        <!-- Start-Verzögerung -->
-        <div class="control-group">
-          <label>{{ t('textManager.startDelay') }}: {{ settings.startDelay }}ms</label>
-          <SliderField
-            v-model="settings.startDelay"
-            :min="0"
-            :max="20000"
-            :step="100"
-            :default-value="0"
-            class="slider"
-          />
-        </div>
-
-        <!-- Easing -->
-        <div class="control-group">
-          <label>{{ t('textManager.animation') }}:</label>
-          <select v-model="settings.easing" class="select-input">
-            <option value="linear">{{ t('textManager.linear') }}</option>
-            <option value="ease">{{ t('textManager.ease') }}</option>
-            <option value="easeIn">{{ t('textManager.easeIn') }}</option>
-            <option value="easeOut">{{ t('textManager.easeOut') }}</option>
-          </select>
-        </div>
-
-        <!-- Loop -->
-        <div class="control-group">
-          <label class="effect-checkbox">
-            <input v-model="settings.loop" type="checkbox" />
-            {{ t('textManager.loop') }}
-          </label>
-        </div>
-
-        <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
-        <div v-if="settings.loop" class="control-group">
-          <label>{{ t('textManager.loopDelay') }}: {{ settings.loopDelay }}ms</label>
-          <SliderField
-            v-model="settings.loopDelay"
-            :min="0"
-            :max="20000"
-            :step="100"
-            :default-value="1000"
-            class="slider"
-          />
-        </div>
-
-        <!-- Permanent anzeigen -->
-        <div class="control-group">
-          <label class="effect-checkbox">
-            <input v-model="settings.permanent" type="checkbox" />
-            {{ t('textManager.permanentDisplay') }}
-          </label>
-          <div class="hint-text">{{ t('textManager.permanentDisplayHint') }}</div>
-        </div>
-
-        <!-- Anzeigedauer (nur wenn nicht permanent) -->
-        <div v-if="!settings.permanent" class="control-group">
-          <label>{{ t('textManager.displayDuration') }}: {{ settings.displayDuration }}ms</label>
-          <div class="dur-row">
-            <SliderField
-              v-model="settings.displayDuration"
-              :min="500"
-              :max="30000"
-              :step="100"
-              :default-value="5000"
-              class="slider"
-            />
-          </div>
-          <div class="hint-text">{{ t('textManager.displayDurationHint') }}</div>
-        </div>
-      </div>
-
-      <!-- Zum Canvas hinzufügen (nur diese Animation) -->
-      <div class="control-group add-animation-group">
-        <button class="btn-primary full-width" :disabled="!canAdd" @click="emit('add')">
-          {{ t('textManager.addToCanvasScale') }}
-        </button>
-      </div>
-    </div>
-  </details>
+  <AnimationNewSection
+    :effect="settings"
+    icon="🔍"
+    :title="t('textManager.scaleEffect')"
+    :add-label="t('textManager.addToCanvasScale')"
+    :can-add="canAdd"
+    @add="emit('add')"
+  >
+    <ScaleControls :effect="settings" />
+  </AnimationNewSection>
 </template>
 
 <script setup>
-import SliderField from '../../ui/SliderField.vue'
+/** Scale-Effekt im Neu-Text-Formular; die Einstellungen teilt es mit dem Edit-Panel. */
+import AnimationNewSection from './AnimationNewSection.vue'
+import ScaleControls from '../text-animations/ScaleControls.vue'
 import { useI18n } from '../../../lib/i18n.js'
 
 const settings = defineModel('settings', {
@@ -176,5 +33,3 @@ const emit = defineEmits(['add'])
 
 const { t } = useI18n()
 </script>
-
-<style scoped src="./textFormStyles.css"></style>

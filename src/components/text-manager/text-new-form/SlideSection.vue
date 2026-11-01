@@ -1,159 +1,20 @@
 <template>
-  <!-- ✨ Slide-Einstellungen (klappbar) -->
-  <details class="collapsible-section" open>
-    <summary class="section-header">
-      <span class="section-icon">↔️</span>
-      <span>Hereingleit-Effekt (Slide)</span>
-      <span v-if="settings.enabled" class="status-badge active">{{ t('textManager.active') }}</span>
-    </summary>
-    <div class="section-content">
-      <!-- Slide aktivieren -->
-      <div class="control-group">
-        <div class="button-group">
-          <button
-            :class="['btn-small', 'full-width', { active: settings.enabled }]"
-            @click="settings.enabled = !settings.enabled"
-          >
-            {{
-              settings.enabled ? '✓ ' + t('textManager.activated') : t('textManager.deactivated')
-            }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Slide-Einstellungen (nur wenn aktiviert) -->
-      <div v-if="settings.enabled">
-        <!-- Richtung (von wo) -->
-        <div class="control-group">
-          <label>Einfahren von:</label>
-          <select v-model="settings.from" class="select-input">
-            <option value="left">Links</option>
-            <option value="right">Rechts</option>
-            <option value="top">Oben</option>
-            <option value="bottom">Unten</option>
-          </select>
-        </div>
-
-        <!-- Animation-Richtung -->
-        <div class="control-group">
-          <label>Animation:</label>
-          <select v-model="settings.direction" class="select-input">
-            <option value="in">Hereinfahren</option>
-            <option value="out">Herausfahren</option>
-            <option value="inOut">Herein und Heraus</option>
-          </select>
-        </div>
-
-        <!-- Distanz -->
-        <div class="control-group">
-          <label>Distanz: {{ settings.distance }}%</label>
-          <SliderField
-            v-model="settings.distance"
-            :min="10"
-            :max="200"
-            :step="10"
-            :default-value="100"
-            class="slider"
-          />
-          <div class="hint-text">100% = vom Rand des Canvas</div>
-        </div>
-
-        <!-- Dauer -->
-        <div class="control-group">
-          <label>Dauer: {{ settings.duration }}ms</label>
-          <SliderField
-            v-model="settings.duration"
-            :min="100"
-            :max="20000"
-            :step="100"
-            :default-value="1000"
-            class="slider"
-          />
-        </div>
-
-        <!-- Start-Verzögerung -->
-        <div class="control-group">
-          <label>Start-Verzögerung: {{ settings.startDelay }}ms</label>
-          <SliderField
-            v-model="settings.startDelay"
-            :min="0"
-            :max="20000"
-            :step="100"
-            :default-value="0"
-            class="slider"
-          />
-        </div>
-
-        <!-- Easing -->
-        <div class="control-group">
-          <label>Bewegung:</label>
-          <select v-model="settings.easing" class="select-input">
-            <option value="linear">Linear (gleichmäßig)</option>
-            <option value="ease">Ease (natürlich)</option>
-            <option value="easeIn">Ease In (langsamer Start)</option>
-            <option value="easeOut">Ease Out (langsames Ende)</option>
-          </select>
-        </div>
-
-        <!-- Loop -->
-        <div class="control-group">
-          <label class="effect-checkbox">
-            <input v-model="settings.loop" type="checkbox" />
-            Animation wiederholen (Loop)
-          </label>
-        </div>
-
-        <!-- Loop-Verzögerung (nur wenn Loop aktiv) -->
-        <div v-if="settings.loop" class="control-group">
-          <label>Pause zwischen Wiederholungen: {{ settings.loopDelay }}ms</label>
-          <SliderField
-            v-model="settings.loopDelay"
-            :min="0"
-            :max="20000"
-            :step="100"
-            :default-value="1000"
-            class="slider"
-          />
-        </div>
-
-        <!-- Permanent anzeigen -->
-        <div class="control-group">
-          <label class="effect-checkbox">
-            <input v-model="settings.permanent" type="checkbox" />
-            {{ t('textManager.permanentDisplay') }}
-          </label>
-          <div class="hint-text">{{ t('textManager.permanentDisplayHint') }}</div>
-        </div>
-
-        <!-- Anzeigedauer (nur wenn nicht permanent) -->
-        <div v-if="!settings.permanent" class="control-group">
-          <label>{{ t('textManager.displayDuration') }}: {{ settings.displayDuration }}ms</label>
-          <div class="dur-row">
-            <SliderField
-              v-model="settings.displayDuration"
-              :min="500"
-              :max="30000"
-              :step="100"
-              :default-value="5000"
-              class="slider"
-            />
-          </div>
-          <div class="hint-text">{{ t('textManager.displayDurationHint') }}</div>
-        </div>
-      </div>
-
-      <!-- Zum Canvas hinzufügen (nur diese Animation) -->
-      <div class="control-group add-animation-group">
-        <button class="btn-primary full-width" :disabled="!canAdd" @click="emit('add')">
-          {{ t('textManager.addToCanvasSlide') }}
-        </button>
-      </div>
-    </div>
-  </details>
+  <AnimationNewSection
+    :effect="settings"
+    icon="↔️"
+    :title="t('textManager.slideEffect')"
+    :add-label="t('textManager.addToCanvasSlide')"
+    :can-add="canAdd"
+    @add="emit('add')"
+  >
+    <SlideControls :effect="settings" />
+  </AnimationNewSection>
 </template>
 
 <script setup>
-import SliderField from '../../ui/SliderField.vue'
+/** Slide-Effekt im Neu-Text-Formular; die Einstellungen teilt es mit dem Edit-Panel. */
+import AnimationNewSection from './AnimationNewSection.vue'
+import SlideControls from '../text-animations/SlideControls.vue'
 import { useI18n } from '../../../lib/i18n.js'
 
 const settings = defineModel('settings', {
@@ -172,5 +33,3 @@ const emit = defineEmits(['add'])
 
 const { t } = useI18n()
 </script>
-
-<style scoped src="./textFormStyles.css"></style>

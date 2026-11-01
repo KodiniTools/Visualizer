@@ -1,8 +1,10 @@
 /**
  * Helfer für HTML-Video-Elemente im Video-Panel: Anlegen, Zeitsprünge,
  * Lautstärke und Anbindung an den Aufnahme-Audiograph
- * (window.connectVideoToRecording / window.setVideoVolume).
+ * (Audio-Engine über lib/audioEngineBridge.js).
  */
+
+import { getAudioEngine } from '../../lib/audioEngineBridge.js'
 
 /** Sekunden → 'm:ss' ('0:00' für 0, NaN, Infinity). */
 export function formatTime(seconds) {
@@ -53,16 +55,12 @@ export function displayVolume(video) {
 
 /** Mit dem Aufnahme-Audiograph verbinden (falls verfügbar). */
 export function connectToRecording(video, volume) {
-  if (window.connectVideoToRecording) {
-    window.connectVideoToRecording(video, volume)
-  }
+  getAudioEngine()?.connectVideoToRecording(video, volume)
 }
 
 /** Lautstärke im Aufnahme-Audiograph nachziehen (falls verfügbar). */
 function syncRecordingVolume(video, volume) {
-  if (window.setVideoVolume) {
-    window.setVideoVolume(video, volume)
-  }
+  getAudioEngine()?.setVideoVolume(video, volume)
 }
 
 /**

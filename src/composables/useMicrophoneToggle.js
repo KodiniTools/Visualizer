@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue'
 import { useRecorderStore } from '../stores/recorderStore.js'
+import { getAudioEngine } from '../lib/audioEngineBridge.js'
 
 export function useMicrophoneToggle() {
   const recorderStore = useRecorderStore()
@@ -16,8 +17,9 @@ export function useMicrophoneToggle() {
   async function toggleMicrophone() {
     isSwitchingSource.value = true
     try {
-      if (window.toggleRecordingMicrophone) {
-        const success = await window.toggleRecordingMicrophone(microphoneEnabled.value)
+      const engine = getAudioEngine()
+      if (engine) {
+        const success = await engine.toggleRecordingMicrophone(microphoneEnabled.value)
         if (!success) microphoneEnabled.value = !microphoneEnabled.value
       } else {
         microphoneEnabled.value = !microphoneEnabled.value

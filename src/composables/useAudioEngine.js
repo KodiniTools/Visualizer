@@ -1,4 +1,5 @@
 import { watch } from 'vue'
+import { registerAudioEngine } from '../lib/audioEngineBridge.js'
 
 const SILENT_GAIN = 0.0001
 const ACTIVE_GAIN = 1
@@ -366,7 +367,11 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     return recordingDest.stream
   }
 
+  let unregisterEngine = null
+
   function cleanup() {
+    unregisterEngine?.()
+    unregisterEngine = null
     disconnectMicFromRecordingChain()
     disconnectMicrophoneSource()
     if (audioContext) {
@@ -376,17 +381,28 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     }
   }
 
+  /**
+   * Meldet die Engine bei lib/audioEngineBridge.js an. Die window-Hooks
+   * bleiben als Übergangs-Aliase erhalten (z.B. für Konsole/Debugging);
+   * App-Code nutzt nur noch getAudioEngine().
+   */
   function exposeGlobals() {
-    window.switchAudioSource = switchAudioSource
-    window.toggleRecordingMicrophone = toggleRecordingMicrophone
-    window.connectVideoToRecording = connectVideoToRecording
-    window.disconnectVideoFromRecording = disconnectVideoFromRecording
-    window.setVideoVolume = setVideoVolume
-    window.fadeOutRecordingAudio = fadeOutRecordingAudio
-    window.fadeInRecordingAudio = fadeInRecordingAudio
-    window.getAudioStreamForRecorder = createCombinedAudioStream
-    window.setBassGain = setBassGain
-    window.setTrebleGain = setTrebleGain
+    /** @type {import('../lib/audioEngineBridge.js').AudioEngineApi} */
+    const api = {
+      switchAudioSource,
+      toggleRecordingMicrophone,
+      connectVideoToRecording,
+      disconnectVideoFromRecording,
+      setVideoVolume,
+      fadeOutRecordingAudio,
+      fadeInRecordingAudio,
+      getAudioStreamForRecorder: createCombinedAudioStream,
+      setBassGain,
+      setTrebleGain,
+    }
+    unregisterEngine?.()
+    unregisterEngine = registerAudioEngine(api)
+    Object.assign(window, api)
   }
 
   return {

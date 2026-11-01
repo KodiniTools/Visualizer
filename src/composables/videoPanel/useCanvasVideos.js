@@ -1,4 +1,5 @@
 import { computed } from 'vue'
+import { getAudioEngine } from '../../lib/audioEngineBridge.js'
 import {
   seekTo,
   seekBackwardBy,
@@ -74,8 +75,8 @@ export function useCanvasVideos(canvasManager, videoManager, tick) {
 
   function removeCanvasVideo(video) {
     // Video-Audio vom Recording trennen
-    if (video && video.videoElement && window.disconnectVideoFromRecording) {
-      window.disconnectVideoFromRecording(video.videoElement)
+    if (video && video.videoElement) {
+      getAudioEngine()?.disconnectVideoFromRecording(video.videoElement)
     }
     videoManager.value?.removeVideo(video.id)
     // Auswahl im CanvasManager zurücksetzen, um die Markierung zu entfernen

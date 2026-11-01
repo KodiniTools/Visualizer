@@ -1,10 +1,11 @@
 import { ref, onMounted, watch } from 'vue'
 import { usePlayerStore } from '../stores/playerStore.js'
+import { getAudioEngine } from '../lib/audioEngineBridge.js'
 
 /**
  * Volume + bass/treble EQ state for the sticky player bar. Persists values to
- * localStorage and keeps the audio element in sync (via the global EQ hooks
- * installed by the audio engine).
+ * localStorage and keeps the audio element in sync (via the audio engine's EQ,
+ * lib/audioEngineBridge.js).
  */
 export function usePlayerVolumeEq() {
   const playerStore = usePlayerStore()
@@ -20,14 +21,16 @@ export function usePlayerVolumeEq() {
     }
   }
   const updateBass = () => {
-    if (window.setBassGain) {
-      window.setBassGain(parseFloat(bass.value))
+    const engine = getAudioEngine()
+    if (engine) {
+      engine.setBassGain(parseFloat(bass.value))
       localStorage.setItem('playerBass', bass.value)
     }
   }
   const updateTreble = () => {
-    if (window.setTrebleGain) {
-      window.setTrebleGain(parseFloat(treble.value))
+    const engine = getAudioEngine()
+    if (engine) {
+      engine.setTrebleGain(parseFloat(treble.value))
       localStorage.setItem('playerTreble', treble.value)
     }
   }

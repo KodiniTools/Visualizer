@@ -2,14 +2,14 @@
   <details class="collapsible-section">
     <summary class="section-header">
       <span class="section-icon">🔄</span>
-      <span>Rotation</span>
+      <span>{{ t('textManager.rotation') }}</span>
       <span v-if="selectedText.rotation !== 0" class="status-badge"
         >{{ selectedText.rotation }}°</span
       >
     </summary>
     <div class="section-content">
       <div class="control-group">
-        <label>Rotation: {{ selectedText.rotation }}°</label>
+        <label>{{ t('textManager.rotation') }}: {{ selectedText.rotation }}°</label>
         <SliderField
           v-model="selectedText.rotation"
           @update:model-value="updateText"
@@ -24,8 +24,11 @@
 </template>
 
 <script setup>
+import { useI18n } from '../../../lib/i18n.js'
 import SliderField from '../../ui/SliderField.vue'
 import { inject } from 'vue'
+
+const { t } = useI18n()
 
 const tec = inject('textEditControls')
 const { selectedText, updateText } = tec

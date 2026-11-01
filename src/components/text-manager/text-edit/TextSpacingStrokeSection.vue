@@ -2,7 +2,7 @@
   <details class="collapsible-section">
     <summary class="section-header">
       <span class="section-icon">↔️</span>
-      <span>Abstände &amp; Kontur</span>
+      <span>{{ t('textManager.layout.spacingAndOutline') }}</span>
       <span v-if="selectedText.stroke.enabled" class="status-badge active">{{
         t('textManager.outline')
       }}</span>
@@ -10,7 +10,9 @@
     <div class="section-content">
       <!-- Buchstabenabstand -->
       <div class="control-group">
-        <label>Buchstabenabstand: {{ selectedText.letterSpacing }}px</label>
+        <label
+          >{{ t('textManager.layout.letterSpacing') }}: {{ selectedText.letterSpacing }}px</label
+        >
         <SliderField
           v-model="selectedText.letterSpacing"
           @update:model-value="updateText"
@@ -23,7 +25,9 @@
 
       <!-- Zeilenabstand -->
       <div class="control-group">
-        <label>Zeilenabstand: {{ selectedText.lineHeightMultiplier }}%</label>
+        <label
+          >{{ t('textManager.layout.lineHeight') }}: {{ selectedText.lineHeightMultiplier }}%</label
+        >
         <SliderField
           v-model="selectedText.lineHeightMultiplier"
           @update:model-value="updateText"
@@ -36,7 +40,7 @@
 
       <!-- Text-Kontur -->
       <div class="control-group">
-        <label>Text-Kontur:</label>
+        <label>{{ t('textManager.layout.textOutline') }}:</label>
         <div class="button-group">
           <button
             @click="toggleStroke"

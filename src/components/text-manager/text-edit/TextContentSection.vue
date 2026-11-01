@@ -7,19 +7,24 @@
     <div class="section-content">
       <!-- Text-Inhalt -->
       <div class="control-group">
-        <label>Text:</label>
+        <label>{{ t('textManager.layout.textLabel') }}:</label>
         <textarea
           :ref="tec.editTextInput"
           v-model="selectedText.content"
           @input="updateText"
           @paste="handleEditPaste"
           class="text-area"
-          placeholder="Mehrzeiliger Text wird unterstützt..."
+          :placeholder="t('textManager.layout.multilinePlaceholder')"
           rows="5"
         ></textarea>
-        <div class="hint-text">Enter für Zeilenumbrüche oder mehrzeiligen Text einfügen</div>
+        <div class="hint-text">{{ t('textManager.layout.multilineHint') }}</div>
         <div v-if="selectedText.content.includes('\n')" class="success-hint">
-          {{ selectedText.content.split('\n').length }} Zeilen
+          {{
+            t('textManager.layout.lineCount').replace(
+              '{n}',
+              selectedText.content.split('\n').length,
+            )
+          }}
         </div>
       </div>
 
@@ -38,7 +43,7 @@
 
       <!-- Schriftgröße -->
       <div class="control-group">
-        <label>Größe: {{ selectedText.fontSize }}px</label>
+        <label>{{ t('textManager.fontSize') }}: {{ selectedText.fontSize }}px</label>
         <SliderField
           v-model="selectedText.fontSize"
           @update:model-value="updateText"
@@ -51,7 +56,7 @@
 
       <!-- Deckkraft -->
       <div class="control-group">
-        <label>Deckkraft: {{ selectedText.opacity }}%</label>
+        <label>{{ t('textManager.opacity') }}: {{ selectedText.opacity }}%</label>
         <SliderField
           v-model="selectedText.opacity"
           @update:model-value="updateText"

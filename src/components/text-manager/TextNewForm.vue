@@ -9,36 +9,19 @@
         ref="newTextInput"
         v-model="newTextContent"
         class="text-area"
-        placeholder="Mehrzeiliger Text wird unterstützt!
-Zeile 1
-Zeile 2
-Zeile 3..."
+        :placeholder="t('textManager.textPlaceholder')"
         rows="8"
         @keydown.esc="cancelNewText"
         @paste="handlePasteForNewText"
       ></textarea>
       <div class="hint-text">
-        <strong>{{ t('textManager.browserTextTip') }}:</strong>
-        {{
-          locale === 'de'
-            ? 'Nach dem Einfügen drücken Sie Enter, um Zeilenumbrüche hinzuzufügen'
-            : 'After pasting, press Enter to add line breaks'
-        }}
+        {{ t('textManager.browserTextTip') }}
       </div>
       <div class="hint-text" style="margin-top: 4px">
-        <strong>{{ t('textManager.notepadTip') }}:</strong>
-        {{
-          locale === 'de'
-            ? 'Zeilenumbrüche werden automatisch erkannt'
-            : 'Line breaks are automatically detected'
-        }}
+        {{ t('textManager.notepadTip') }}
       </div>
       <div v-if="newTextContent.includes('\n')" class="success-hint">
-        {{
-          locale === 'de'
-            ? newTextContent.split('\n').length + ' Zeilen erkannt'
-            : newTextContent.split('\n').length + ' lines detected'
-        }}
+        {{ t('textManager.linesDetected').replace('{n}', newTextContent.split('\n').length) }}
       </div>
     </div>
 
@@ -98,11 +81,7 @@ Zeile 3..."
     />
 
     <div class="hint-text add-animation-hint">
-      {{
-        locale === 'de'
-          ? 'Text ohne Effekt über den Button unter dem Text-Stil oder mit Effekt über den Button einer Animation oben hinzufügen'
-          : 'Add the text without effect via the button below the text style, or with an effect via the button of an animation above'
-      }}
+      {{ t('textManager.layout.addTextHint') }}
     </div>
 
     <div class="button-row">
@@ -155,7 +134,7 @@ import ScaleSection from './text-new-form/ScaleSection.vue'
 import SlideSection from './text-new-form/SlideSection.vue'
 import PositionSection from './text-new-form/PositionSection.vue'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const toastStore = useToastStore()
 const canvasManager = inject('canvasManager')
 

@@ -2,24 +2,31 @@
   <div class="control-group">
     <label>{{ label }}</label>
     <div class="button-group">
-      <button type="button" :class="['btn-small', { active: enabled }]" @click="emit('toggle')">
+      <UiButton
+        size="sm"
+        :variant="enabled ? 'primary' : 'secondary'"
+        :aria-pressed="enabled ? 'true' : 'false'"
+        block
+        @click="emit('toggle')"
+      >
         {{ enabled ? t('textManager.activated') : t('textManager.deactivated') }}
-      </button>
-      <button
+      </UiButton>
+      <UiButton
         v-if="enabled"
-        type="button"
-        class="btn-small"
-        title="Animation neu starten"
+        size="sm"
+        block
+        :title="t('textManager.restartAnimation')"
         @click="emit('restart')"
       >
-        🔄 Neustart
-      </button>
+        {{ t('textManager.restart') }}
+      </UiButton>
     </div>
   </div>
 </template>
 
 <script setup>
-/** Kopfzeile einer Animations-Sektion: Aktivieren/Deaktivieren + Neustart. */
+/** Kopfzeile einer Animations-Sektion im Edit-Panel: Aktivieren/Deaktivieren + Neustart. */
+import UiButton from '../../ui/UiButton.vue'
 import { useI18n } from '../../../lib/i18n.js'
 
 defineProps({

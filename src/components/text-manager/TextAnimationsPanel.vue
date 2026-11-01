@@ -3,19 +3,27 @@
   <details class="collapsible-section">
     <summary class="section-header">
       <span class="section-icon">⌨️</span>
-      <span>Text-Animation</span>
+      <span>{{ t('textManager.textAnimation') }}</span>
       <span v-for="badge in activeBadges" :key="badge" class="status-badge active">{{
         badge
       }}</span>
     </summary>
     <div class="section-content">
-      <TypewriterAnimationSection />
-      <hr class="section-divider" />
-      <FadeAnimationSection />
-      <hr class="section-divider" />
-      <ScaleAnimationSection />
-      <hr class="section-divider" />
-      <SlideAnimationSection />
+      <template v-for="(section, index) in SECTIONS" :key="section.key">
+        <hr v-if="index > 0" class="section-divider" />
+        <AnimationEditSection
+          :label="`${t(section.label)}:`"
+          :effect="selectedText.animation?.[section.key] ?? null"
+          @toggle="section.toggle"
+          @restart="section.restart"
+        >
+          <component
+            :is="section.controls"
+            :effect="selectedText.animation[section.key]"
+            @change="updateText"
+          />
+        </AnimationEditSection>
+      </template>
     </div>
   </details>
 </template>
@@ -24,17 +32,19 @@
 /**
  * Text-Animationen des markierten Textes (Typewriter, Fade, Scale, Slide).
  *
- * Die vier Sektionen liegen in `text-animations/` und beziehen Text, Redraw
- * und Toggle/Neustart-Aktionen über provide/inject (`textAnimationControls`);
- * gemeinsame Teil-Controls (Dauer/Delay/Easing, Loop, Anzeigedauer) sind dort
- * ebenfalls als eigene Komponenten abgelegt.
+ * Die Einstellungen je Effekt liegen in `text-animations/*Controls.vue` und
+ * werden auch vom Neu-Text-Formular (`text-new-form/`) genutzt. Das Panel
+ * reicht das Effekt-Objekt des markierten Textes hinein und zeichnet bei
+ * jeder Änderung (`change`) den Canvas neu.
  */
-import { computed, inject, provide, toRef, watch } from 'vue'
+import { computed, inject, toRef, watch } from 'vue'
+import { useI18n } from '../../lib/i18n.js'
 import { useTextAnimations } from '../../composables/useTextAnimations.js'
-import TypewriterAnimationSection from './text-animations/TypewriterAnimationSection.vue'
-import FadeAnimationSection from './text-animations/FadeAnimationSection.vue'
-import ScaleAnimationSection from './text-animations/ScaleAnimationSection.vue'
-import SlideAnimationSection from './text-animations/SlideAnimationSection.vue'
+import AnimationEditSection from './text-animations/AnimationEditSection.vue'
+import TypewriterControls from './text-animations/TypewriterControls.vue'
+import FadeControls from './text-animations/FadeControls.vue'
+import ScaleControls from './text-animations/ScaleControls.vue'
+import SlideControls from './text-animations/SlideControls.vue'
 
 const props = defineProps({
   selectedText: {
@@ -72,7 +82,38 @@ function updateText() {
   }
 }
 
-provide('textAnimationControls', { selectedText, updateText, ...animations })
+const { t } = useI18n()
+
+const SECTIONS = [
+  {
+    key: 'typewriter',
+    label: 'textManager.typewriterEffect',
+    controls: TypewriterControls,
+    toggle: animations.toggleTypewriter,
+    restart: animations.restartTypewriter,
+  },
+  {
+    key: 'fade',
+    label: 'textManager.fadeEffect',
+    controls: FadeControls,
+    toggle: animations.toggleFade,
+    restart: animations.restartFade,
+  },
+  {
+    key: 'scale',
+    label: 'textManager.scaleEffect',
+    controls: ScaleControls,
+    toggle: animations.toggleScale,
+    restart: animations.restartScale,
+  },
+  {
+    key: 'slide',
+    label: 'textManager.slideEffect',
+    controls: SlideControls,
+    toggle: animations.toggleSlide,
+    restart: animations.restartSlide,
+  },
+]
 
 const BADGES = [
   ['typewriter', 'Typewriter'],
@@ -162,7 +203,7 @@ const activeBadges = computed(() =>
 }
 .status-badge.active {
   background: var(--ds-success);
-  color: var(--ds-success);
+  color: var(--ds-on-success);
   border: 1px solid var(--ds-border-strong);
 }
 [data-theme='light'] .collapsible-section {
@@ -195,6 +236,7 @@ const activeBadges = computed(() =>
 }
 [data-theme='light'] .status-badge.active {
   background: color-mix(in srgb, var(--ds-success) 12%, transparent);
+  color: var(--ds-success);
   border: 1px solid color-mix(in srgb, var(--ds-success) 35%, transparent);
 }
 

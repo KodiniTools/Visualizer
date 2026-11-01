@@ -361,7 +361,7 @@ h4 {
 
 .status-badge.active {
   background: var(--ds-success);
-  color: var(--ds-success);
+  color: var(--ds-on-success);
   border: 1px solid var(--ds-border-strong);
 }
 
@@ -689,6 +689,7 @@ h4 {
 [data-theme='light'] .status-badge.active {
   background: color-mix(in srgb, var(--ds-success) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--ds-success) 35%, transparent);
+  color: var(--ds-success);
 }
 
 [data-theme='light'] .btn-selection {

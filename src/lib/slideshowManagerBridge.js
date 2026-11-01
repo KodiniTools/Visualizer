@@ -6,9 +6,6 @@
  * und null beim Stoppen. Canvas-Rendering, Auswahl, Drag & Drop und der
  * MultiImageManager lesen ihn über getSlideshowManager() und bekommen null,
  * solange keine Slideshow aktiv ist.
- *
- * Übergang: window.slideshowManager wird als Alias mitgeführt (z.B. für
- * Debugging in der Konsole); App-Code liest ihn nicht mehr.
  */
 
 /** @type {import('./slideshowManager.js').SlideshowManager|null} */
@@ -20,7 +17,6 @@ let current = null
  */
 export function setSlideshowManager(manager) {
   current = manager ?? null
-  if (typeof window !== 'undefined') window.slideshowManager = current
 }
 
 /** @returns {object|null} der aktive SlideshowManager oder null */

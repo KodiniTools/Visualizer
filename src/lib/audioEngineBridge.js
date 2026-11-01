@@ -12,8 +12,6 @@
  * @property {(video: HTMLVideoElement, volume?: number) => void} connectVideoToRecording
  * @property {(video: HTMLVideoElement) => void} disconnectVideoFromRecording
  * @property {(video: HTMLVideoElement, volume: number) => void} setVideoVolume
- * @property {(duration?: number) => Promise<void>} fadeOutRecordingAudio
- * @property {(duration?: number) => Promise<void>} fadeInRecordingAudio
  * @property {(options?: { withMic?: boolean }) => Promise<MediaStream|null>} getAudioStreamForRecorder
  * @property {(gain: number) => void} setBassGain
  * @property {(gain: number) => void} setTrebleGain

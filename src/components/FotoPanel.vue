@@ -300,13 +300,10 @@ onMounted(() => {
     // Panel für die Canvas-Auswahl anmelden (lib/fotoPanelBridge.js). Die
     // Audio-Reaktiv-Einstellungen des aktiven Bildes lädt das Audio-Reaktiv-Panel
     // in der Player-Leiste selbst (über den geteilten currentActiveImage-Zustand).
-    // window.fotoPanelControls bleibt als Übergangs-Alias erhalten.
-    const panelApi = {
+    registerFotoPanel({
       loadImageSettings: loadActiveImageSettings,
       currentActiveImage: currentActiveImage,
-    }
-    registerFotoPanel(panelApi)
-    window.fotoPanelControls = panelApi
+    })
 
     console.log('✅ FotoPanel initialisiert')
   }

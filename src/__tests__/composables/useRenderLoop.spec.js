@@ -328,7 +328,6 @@ afterEach(() => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
   setAudioAnalysisData(null)
-  delete window.takeCanvasScreenshot
 })
 
 describe('useRenderLoop – Charakterisierung', () => {
@@ -525,8 +524,8 @@ describe('useRenderLoop – Charakterisierung', () => {
   it('Screenshot mit Workspace-Format', async () => {
     const { loop, canvasManager } = setup({ workspace: true })
     runFrames(loop, 1)
-    loop.exposeGlobals({ value: canvasManager })
-    expect(getCanvasScreenshot()).toBe(window.takeCanvasScreenshot)
+    loop.registerScreenshot({ value: canvasManager })
+    expect(window.takeCanvasScreenshot).toBeUndefined()
     const blob = await getCanvasScreenshot()('image/jpeg', 0.8)
     expect(blob).toEqual({ tag: 'blob' })
     expect(log).toMatchSnapshot()

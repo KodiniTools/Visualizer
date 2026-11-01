@@ -9,17 +9,16 @@ describe('slideshowManagerBridge', () => {
     expect(getSlideshowManager()).toBeNull()
   })
 
-  it('setzt den Manager und führt window.slideshowManager als Alias mit', () => {
+  it('setzt den Manager ohne window-Global', () => {
     const mgr = { isPaused: false }
     setSlideshowManager(mgr)
     expect(getSlideshowManager()).toBe(mgr)
-    expect(window.slideshowManager).toBe(mgr)
+    expect(window.slideshowManager).toBeUndefined()
   })
 
   it('null und undefined setzen zurück', () => {
     setSlideshowManager({})
     setSlideshowManager(undefined)
     expect(getSlideshowManager()).toBeNull()
-    expect(window.slideshowManager).toBeNull()
   })
 })

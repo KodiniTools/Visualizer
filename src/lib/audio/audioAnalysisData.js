@@ -7,9 +7,6 @@
  * getAudioAnalysisData(). Bis zum Anlegen ist er null (wie zuvor der noch
  * nicht gesetzte window-Global).
  *
- * Übergang: window.audioAnalysisData zeigt auf dasselbe Objekt (Alias, z.B.
- * für Debugging in der Konsole); App-Code liest ihn nicht mehr.
- *
  * @typedef {object} AudioAnalysisData
  * @property {number} bass
  * @property {number} mid
@@ -33,12 +30,11 @@
 let current = null
 
 /**
- * Setzt den aktiven Datensatz (null = keiner) und führt den window-Alias mit.
+ * Setzt den aktiven Datensatz (null = keiner).
  * @param {AudioAnalysisData|null|undefined} data
  */
 export function setAudioAnalysisData(data) {
   current = data ?? null
-  if (typeof window !== 'undefined') window.audioAnalysisData = current ?? undefined
 }
 
 /** @returns {AudioAnalysisData|null} */

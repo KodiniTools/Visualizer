@@ -387,11 +387,8 @@ export function useRenderLoop({
 
   let unregisterScreenshot = null
 
-  /**
-   * Meldet die Screenshot-Funktion bei lib/canvasScreenshotBridge.js an.
-   * window.takeCanvasScreenshot bleibt als Übergangs-Alias erhalten.
-   */
-  function exposeGlobals(canvasManagerInst) {
+  /** Meldet die Screenshot-Funktion bei lib/canvasScreenshotBridge.js an. */
+  function registerScreenshot(canvasManagerInst) {
     const takeCanvasScreenshot = async function (mimeType = 'image/png', quality = 0.9) {
       const canvas = canvasRef.value
       if (!canvas) return null
@@ -425,7 +422,6 @@ export function useRenderLoop({
     }
     unregisterScreenshot?.()
     unregisterScreenshot = registerCanvasScreenshot(takeCanvasScreenshot)
-    window.takeCanvasScreenshot = takeCanvasScreenshot
   }
 
   // ─── Lebenszyklus ───────────────────────────────────────────────────────
@@ -461,7 +457,7 @@ export function useRenderLoop({
     renderRecordingScene,
     buildVisualizerCallback,
     setupRecordingRedrawListener,
-    exposeGlobals,
+    registerScreenshot,
     cleanup,
   }
 }

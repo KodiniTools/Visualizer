@@ -438,11 +438,11 @@ onMounted(async () => {
   }
 
   audioEngine.setupAudioContext()
-  audioEngine.exposeGlobals()
+  audioEngine.registerEngine()
 
   // Recording redraw listener
   renderLoop.setupRecordingRedrawListener(gridManagerInstance)
-  renderLoop.exposeGlobals(canvasManagerInstance)
+  renderLoop.registerScreenshot(canvasManagerInstance)
 
   // HQ Frame Capture
   window.addEventListener('hq:startCapture', (e) => {

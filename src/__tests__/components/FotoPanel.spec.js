@@ -183,19 +183,18 @@ afterEach(() => {
   wrapper?.unmount()
   wrapper = null
   setSlideshowManager(null)
-  window.fotoPanelControls = undefined
   vi.useRealTimers()
   vi.restoreAllMocks()
 })
 
 describe('FotoPanel – Galerie & Platzierung', () => {
-  it('initialisiert Presets und meldet das Panel an (Bridge + window-Alias)', async () => {
+  it('initialisiert Presets und meldet das Panel an (ohne window-Global)', async () => {
     await mountPanel()
     expect(filters().props('presets')).toEqual([{ id: 'vintage' }])
     const panel = getFotoPanel()
     expect(panel.currentActiveImage).toBe(useImageAudioReactive().currentActiveImage)
     expect(typeof panel.loadImageSettings).toBe('function')
-    expect(window.fotoPanelControls).toBe(panel)
+    expect(window.fotoPanelControls).toBeUndefined()
   })
 
   it('fügt ausgewählte Bilder zum Canvas hinzu und hebt die Auswahl auf', async () => {
@@ -453,7 +452,7 @@ describe('FotoPanel – Slideshow', () => {
     vi.advanceTimersByTime(1000)
     expect(managers).toHaveLength(1)
     expect(toRaw(getSlideshowManager())).toBe(latestManager())
-    expect(window.slideshowManager).toBe(getSlideshowManager())
+    expect(window.slideshowManager).toBeUndefined()
     expect(latestManager().args).toEqual({
       multiImageManager: m.multiImageManager,
       fotoManager: m.fotoManager,

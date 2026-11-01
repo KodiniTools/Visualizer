@@ -15,8 +15,10 @@ import { SHAPE_CATEGORIES, SHAPE_GALLERY } from '../lib/shapes/shapes.js'
 import { useImageGallery } from './useImageGallery.js'
 import {
   captureBackgroundImageDefaults,
+  captureBaseBackground,
   findGalleryImage,
   resolveBackgroundImageDefaults,
+  restoreBaseBackground,
   setBackgroundImageWithDefaults,
 } from '../lib/background/markerBackgroundImage.js'
 
@@ -357,24 +359,50 @@ export function useBeatMarkers(openMarkersPopover) {
    * @param {object} action
    * @param {object|null} previous - vor allen Marker-Änderungen erfasste Vorgaben
    */
-  const applyBackgroundImageAction = (action, previous) => {
+  // Hintergrund vor dem ersten Hintergrund-Bild-Marker eines Durchlaufs. Ein
+  // späterer Marker ohne Hintergrund-Bild (und ohne Hintergrund-Preset) stellt
+  // ihn wieder her, statt das Marker-Bild stehen zu lassen. Reiner
+  // Laufzeit-Zustand, nicht im Verlauf.
+  let bgImageBase = null
+
+  const applyBackgroundImageAction = (action, previous, presetApplied = false) => {
     const ref = action?.backgroundImage
-    if (!ref) return
+    if (!ref) {
+      if (presetApplied) {
+        // Das Preset dieses Markers bestimmt den Hintergrund.
+        bgImageBase = null
+      } else if (bgImageBase) {
+        restoreBaseBackground(canvasManager.value, bgImageBase)
+        bgImageBase = null
+        console.log('🖼️ Hintergrund-Bild via Beat-Marker zurückgesetzt')
+      }
+      return
+    }
     const entry = findGalleryImage(imageGallery.value, ref)
     if (!entry?.img) {
       console.warn('⚠️ Hintergrund-Bild des Markers nicht mehr in der Galerie:', ref.name)
       return
     }
+    // Mit Preset gilt der Preset-Hintergrund als neue Basis, sonst bleibt die
+    // Basis vom ersten Bild-Marker dieses Durchlaufs erhalten.
+    if (presetApplied || !bgImageBase) bgImageBase = captureBaseBackground(canvasManager.value)
     const defaults = previous || resolveBackgroundImageDefaults(null, ref.defaults)
     const target = setBackgroundImageWithDefaults(canvasManager.value, toRaw(entry.img), defaults)
     console.log('🖼️ Hintergrund-Bild via Beat-Marker:', ref.name, `(${target})`)
   }
 
+  /** Wiedergabe-Ende/Neustart: Hintergrund von vor den Bild-Markern zurück. */
+  const restoreBackgroundImageMarkers = () =>
+    historyRecorder.absorb(() => {
+      if (bgImageBase) restoreBaseBackground(canvasManager.value, bgImageBase)
+      bgImageBase = null
+    })
+
   /**
    * Wendet die Hintergrund-Aktion eines ausgelösten Markers an (falls vorhanden).
    */
   const applyMarkerBackground = (action) => {
-    if (!action) return
+    if (!action) return false
     // Preset bevorzugt frisch anhand des Keys auflösen (spiegelt aktuelle
     // Presets wider); sonst den im Marker gespeicherten Snapshot verwenden.
     let snapshot = action.background
@@ -391,7 +419,9 @@ export function useBeatMarkers(openMarkersPopover) {
     if (snapshot) {
       backgroundBridge.applySnapshot(snapshot)
       console.log('🎨 Hintergrund via Beat-Marker gewechselt')
+      return true
     }
+    return false
   }
 
   /**
@@ -444,8 +474,8 @@ export function useBeatMarkers(openMarkersPopover) {
       visualizerStore.setColor(action.color)
       console.log('🎨 Farbe gewechselt zu:', action.color)
     }
-    applyMarkerBackground(action)
-    applyBackgroundImageAction(action, previousBgImage)
+    const presetApplied = applyMarkerBackground(action)
+    applyBackgroundImageAction(action, previousBgImage, presetApplied)
     applyTextAction(action)
     applyShapeAction(action)
   }
@@ -662,6 +692,7 @@ export function useBeatMarkers(openMarkersPopover) {
       beatMarkerStore.clearAllMarkers()
       restoreTextMarkers()
       restoreShapeMarkers()
+      restoreBackgroundImageMarkers()
     }
   }
 
@@ -741,6 +772,7 @@ export function useBeatMarkers(openMarkersPopover) {
         if (newTime < 0.5) {
           restoreTextMarkers()
           restoreShapeMarkers()
+          restoreBackgroundImageMarkers()
         }
       }
     },
@@ -775,6 +807,7 @@ export function useBeatMarkers(openMarkersPopover) {
       if (!enabled) {
         restoreTextMarkers()
         restoreShapeMarkers()
+        restoreBackgroundImageMarkers()
       }
     },
   )
@@ -805,6 +838,7 @@ export function useBeatMarkers(openMarkersPopover) {
     // Von Markern ausgeblendete Texte und Formen beim Verlassen wiederherstellen.
     restoreTextMarkers()
     restoreShapeMarkers()
+    restoreBackgroundImageMarkers()
   })
 
   return {

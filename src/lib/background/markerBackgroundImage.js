@@ -94,3 +94,33 @@ export function findGalleryImage(gallery, ref) {
     null
   )
 }
+
+/**
+ * Merkt sich den Hintergrund, der vor dem ersten Hintergrund-Bild-Marker zu
+ * sehen war (Bild-Objekte bzw. Farb-String unverändert, inkl. Foto-Settings).
+ * @param {object|null} cm - CanvasManager
+ * @returns {{ background: any, workspaceBackground: any } | null}
+ */
+export function captureBaseBackground(cm) {
+  if (!cm) return null
+  return {
+    background: cm.background ?? null,
+    workspaceBackground: cm.workspaceBackground ?? null,
+  }
+}
+
+/**
+ * Stellt den mit captureBaseBackground gemerkten Hintergrund wieder her.
+ * @param {object|null} cm - CanvasManager
+ * @param {{ background: any, workspaceBackground: any } | null} base
+ * @returns {boolean} true, wenn etwas wiederhergestellt wurde
+ */
+export function restoreBaseBackground(cm, base) {
+  if (!cm || !base) return false
+  cm.background = base.background
+  cm.workspaceBackground = base.workspaceBackground
+  cm.activeObject = null
+  cm.redrawCallback?.()
+  cm.updateUICallback?.()
+  return true
+}

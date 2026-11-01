@@ -2,12 +2,15 @@
   <details class="collapsible-section">
     <summary class="section-header">
       <span class="section-icon">📍</span>
-      <span>Position</span>
+      <span>{{ t('textManager.layout.position') }}</span>
     </summary>
     <div class="section-content">
       <!-- Position X -->
       <div class="control-group">
-        <label>Position X: {{ Math.round(selectedText.relX * 100) }}%</label>
+        <label
+          >{{ t('textManager.layout.positionX') }}:
+          {{ Math.round(selectedText.relX * 100) }}%</label
+        >
         <SliderField
           v-model="selectedText.relX"
           @update:model-value="updateText"
@@ -29,7 +32,10 @@
 
       <!-- Position Y -->
       <div class="control-group">
-        <label>Position Y: {{ Math.round(selectedText.relY * 100) }}%</label>
+        <label
+          >{{ t('textManager.layout.positionY') }}:
+          {{ Math.round(selectedText.relY * 100) }}%</label
+        >
         <SliderField
           v-model="selectedText.relY"
           @update:model-value="updateText"
@@ -51,68 +57,68 @@
 
       <!-- Schnellauswahl-Buttons -->
       <div class="control-group">
-        <label>Schnellauswahl:</label>
+        <label>{{ t('textManager.layout.quickSelect') }}:</label>
         <div class="position-grid">
           <button
             @click="handleSetSelectedTextQuickPosition('top-left')"
             class="btn-pos"
-            title="Oben Links"
+            :title="t('textManager.quickPos.topLeft')"
           >
             ↖
           </button>
           <button
             @click="handleSetSelectedTextQuickPosition('top-center')"
             class="btn-pos"
-            title="Oben Mitte"
+            :title="t('textManager.quickPos.topCenter')"
           >
             ↑
           </button>
           <button
             @click="handleSetSelectedTextQuickPosition('top-right')"
             class="btn-pos"
-            title="Oben Rechts"
+            :title="t('textManager.quickPos.topRight')"
           >
             ↗
           </button>
           <button
             @click="handleSetSelectedTextQuickPosition('middle-left')"
             class="btn-pos"
-            title="Mitte Links"
+            :title="t('textManager.quickPos.middleLeft')"
           >
             ←
           </button>
           <button
             @click="handleSetSelectedTextQuickPosition('center')"
             class="btn-pos"
-            title="Zentrum"
+            :title="t('textManager.quickPos.center')"
           >
             ⊙
           </button>
           <button
             @click="handleSetSelectedTextQuickPosition('middle-right')"
             class="btn-pos"
-            title="Mitte Rechts"
+            :title="t('textManager.quickPos.middleRight')"
           >
             →
           </button>
           <button
             @click="handleSetSelectedTextQuickPosition('bottom-left')"
             class="btn-pos"
-            title="Unten Links"
+            :title="t('textManager.quickPos.bottomLeft')"
           >
             ↙
           </button>
           <button
             @click="handleSetSelectedTextQuickPosition('bottom-center')"
             class="btn-pos"
-            title="Unten Mitte"
+            :title="t('textManager.quickPos.bottomCenter')"
           >
             ↓
           </button>
           <button
             @click="handleSetSelectedTextQuickPosition('bottom-right')"
             class="btn-pos"
-            title="Unten Rechts"
+            :title="t('textManager.quickPos.bottomRight')"
           >
             ↘
           </button>
@@ -123,8 +129,11 @@
 </template>
 
 <script setup>
+import { useI18n } from '../../../lib/i18n.js'
 import SliderField from '../../ui/SliderField.vue'
 import { inject } from 'vue'
+
+const { t } = useI18n()
 
 const tec = inject('textEditControls')
 const {

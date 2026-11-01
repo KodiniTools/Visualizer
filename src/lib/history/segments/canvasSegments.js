@@ -93,6 +93,9 @@ function captureText(textObj) {
   const snap = clone(textObj)
   for (const key of TEXT_RUNTIME_KEYS) delete snap[key]
   if (snap.animation) delete snap.animation._state
+  // Immer festschreiben: apply() übernimmt nur vorhandene Schlüssel – ein
+  // fehlendes Flag würde „vom Canvas entfernt“ beim Undo nicht zurücksetzen.
+  snap.offCanvas = !!textObj.offCanvas
   return snap
 }
 
@@ -149,7 +152,9 @@ export function createTextsSegment(getCanvasManager, { createText } = {}) {
       const next = tm.textObjects.filter((t) => wanted.has(t.id)).concat(restored)
       tm.textObjects.splice(0, tm.textObjects.length, ...next)
 
-      dropStaleSelection(cm, 'text', wanted)
+      // Vom Canvas entfernte Texte (nur im Verzeichnis) nicht markiert lassen
+      const onCanvas = new Set(snapshot.filter((snap) => !snap.offCanvas).map((snap) => snap.id))
+      dropStaleSelection(cm, 'text', onCanvas)
     },
   }
 }

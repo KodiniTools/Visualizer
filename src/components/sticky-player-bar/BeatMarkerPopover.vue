@@ -224,7 +224,8 @@
         <select v-model="newMarkerTextId" class="marker-select" :title="t('player.textAppears')">
           <option value="">{{ t('player.noText') }}</option>
           <option v-for="txt in textOptions" :key="txt.id" :value="txt.id">
-            {{ t('player.text') }} {{ txt.number }}{{ txt.content ? ' — ' + txt.content : '' }}
+            {{ t('player.text') }} {{ txt.number }}{{ txt.content ? ' — ' + txt.content : ''
+            }}{{ txt.offCanvas ? ' ' + t('player.textOffCanvas') : '' }}
           </option>
         </select>
       </div>

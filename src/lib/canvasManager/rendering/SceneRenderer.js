@@ -101,6 +101,8 @@ export class SceneRenderer {
     const texts = tm.textObjects
 
     for (const textObj of texts) {
+      // Vom Canvas entfernte Texte bekommen keine Markierung
+      if (textObj.offCanvas) continue
       const anim = textObj.animation
       if (!anim) continue
 

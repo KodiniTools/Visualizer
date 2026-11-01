@@ -42,8 +42,22 @@
       </div>
 
       <ul class="text-list">
-        <li v-for="item in items" :key="item.id" class="text-row">
+        <li
+          v-for="item in items"
+          :key="item.id"
+          class="text-row"
+          :class="{ 'text-row--off-canvas': item.offCanvas }"
+        >
+          <!-- Vom Canvas entfernt: bleibt im Verzeichnis (für Beat-Marker), nicht markierbar -->
+          <div v-if="item.offCanvas" class="text-item text-item--off-canvas">
+            <span class="text-item-name">{{ t('textManager.textItem') }} {{ item.number }}</span>
+            <span class="text-item-preview">{{
+              item.content || t('textManager.emptyTextLabel')
+            }}</span>
+            <span class="off-canvas-badge">{{ t('textManager.offCanvasBadge') }}</span>
+          </div>
           <button
+            v-else
             type="button"
             class="text-item"
             :class="{ active: item.id === activeId }"
@@ -56,7 +70,7 @@
             <span v-if="item.animated" class="text-item-icon" title="Animation">🎬</span>
           </button>
           <button
-            v-if="item.id === activeId && item.animated"
+            v-if="!item.offCanvas && item.id === activeId && item.animated"
             type="button"
             class="play-btn"
             :title="t('textManager.restartAnimation')"
@@ -65,6 +79,27 @@
           >
             ▶
           </button>
+          <UiIconButton
+            v-if="item.offCanvas"
+            size="sm"
+            variant="secondary"
+            class="row-action"
+            data-test="return-to-canvas"
+            :label="t('textManager.returnToCanvas')"
+            @click="$emit('return-to-canvas', item.id)"
+          >
+            ↩
+          </UiIconButton>
+          <UiIconButton
+            size="sm"
+            variant="secondary"
+            class="row-action row-action--danger"
+            data-test="delete-from-directory"
+            :label="t('textManager.deleteFromDirectory')"
+            @click="$emit('delete', item.id)"
+          >
+            🗑
+          </UiIconButton>
         </li>
       </ul>
     </div>
@@ -73,6 +108,7 @@
 
 <script setup>
 import SliderField from '../ui/SliderField.vue'
+import UiIconButton from '../ui/UiIconButton.vue'
 import { useI18n } from '../../lib/i18n.js'
 
 defineProps({
@@ -90,7 +126,7 @@ defineProps({
   },
 })
 
-defineEmits(['select', 'restart', 'play-all', 'stop-all'])
+defineEmits(['select', 'restart', 'play-all', 'stop-all', 'return-to-canvas', 'delete'])
 
 // Zwei-Wege-Bindung für die globale Anzeigedauer (vom TextManagerPanel gesteuert)
 const globalDurationEnabled = defineModel('globalDurationEnabled', {
@@ -361,6 +397,38 @@ const { t } = useI18n()
 .text-item-icon {
   flex-shrink: 0;
   font-size: var(--ds-text-xs);
+}
+
+/* Vom Canvas entfernter Text: nur im Verzeichnis */
+.text-item--off-canvas {
+  cursor: default;
+  border-style: dashed;
+  background-color: transparent;
+}
+.text-item--off-canvas:hover {
+  background-color: transparent;
+  border-color: var(--border-color);
+}
+.text-item--off-canvas .text-item-name,
+.text-item--off-canvas .text-item-preview {
+  color: var(--text-muted);
+}
+.off-canvas-badge {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-full);
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.row-action {
+  align-self: center;
+}
+.row-action--danger:hover:not(:disabled) {
+  border-color: var(--ds-danger);
+  color: var(--ds-danger);
 }
 
 .play-btn {

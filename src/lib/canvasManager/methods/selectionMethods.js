@@ -58,7 +58,7 @@ export class SelectionMethods {
 
   selectAllTexts() {
     if (!this.textManager) return
-    const texts = this.textManager.textObjects
+    const texts = this.textManager.textObjects.filter((t) => !t.offCanvas)
     if (!texts || texts.length === 0) return
     this.activeObject = texts[texts.length - 1]
     this.selectedObjects = [...texts]

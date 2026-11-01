@@ -10,8 +10,8 @@ import {
  * The "active image" is the image currently selected on the canvas. It is the
  * single source of truth shared between the FotoPanel filter/layer controls
  * (left sidebar) and the audio-reactive panel (sticky player bar), and it is
- * driven externally through `window.fotoPanelControls.currentActiveImage`
- * (set by VisualizerApp when an image is selected on the canvas).
+ * driven externally through the foto panel bridge (lib/fotoPanelBridge.js),
+ * set by the canvas selection when an image is selected on the canvas.
  *
  * State lives at module scope so every consumer works on the same refs.
  */

@@ -41,18 +41,20 @@
 </template>
 
 <script setup>
-import { ensureTextAudioReactive } from '../lib/audio/audioReactiveConfig.js'
-import { ref, inject, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { loadTextSequenceSettings, saveTextSequenceSettings } from '../lib/textSequenceSettings.js'
+import { ref, inject } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import TextNewForm from './text-manager/TextNewForm.vue'
 import TextEditPanel from './text-manager/TextEditPanel.vue'
 import TextMultiEditPanel from './text-manager/TextMultiEditPanel.vue'
 import TextDirectoryPanel from './text-manager/TextDirectoryPanel.vue'
-import { loadTextDefaults, settingsToAddTextOptions } from '../lib/textDefaults.js'
 import { useHistoryStore } from '../stores/historyStore.js'
 import { useBeatMarkerStore } from '../stores/beatMarkerStore.js'
-import { getHistoryRecorder, historyApplyRevision } from '../lib/history/historyRecorder.js'
+import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
+import { useTextDirectory } from '../composables/textManager/useTextDirectory.js'
+import { useTextSequence } from '../composables/textManager/useTextSequence.js'
+import { useTextSelectionSync } from '../composables/textManager/useTextSelectionSync.js'
+import { useCanvasSize } from '../composables/textManager/useCanvasSize.js'
+import { useTextEditorWithChar } from '../composables/textManager/useTextEditorWithChar.js'
 
 const { t } = useI18n()
 const canvasManager = inject('canvasManager')
@@ -60,276 +62,46 @@ const fontManager = inject('fontManager')
 
 const selectedText = ref(null)
 const multiSelectedTexts = ref([])
-const textList = ref([])
-const canvasWidth = ref(1920)
-const canvasHeight = ref(1080)
 const editPanelRef = ref(null)
-
-let eventListenerRegistered = false
 
 const historyRecorder = getHistoryRecorder(useHistoryStore())
 const beatMarkerStore = useBeatMarkerStore()
-// Während der Sequenz-Wiedergabe animiert die Deckkraft – kein Verlaufsschritt
-let releaseTextsHistory = null
 
-// ✨ Text-Verzeichnis: Liste aller Texte (stabil nach Erstellungsreihenfolge sortiert)
-function refreshTextList() {
-  const objs = canvasManager.value?.textManager?.textObjects || []
-  const sorted = [...objs].sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0))
-  textList.value = sorted.map((o, i) => ({
-    id: o.id,
-    number: i + 1,
-    content: (o.content || '').replace(/\s+/g, ' ').trim().slice(0, 40),
-    animated: !!(o.animation && o.animation.type && o.animation.type !== 'none'),
-    offCanvas: !!o.offCanvas,
-  }))
-}
+const {
+  textList,
+  refreshTextList,
+  returnTextToCanvas,
+  deleteTextFromDirectory,
+  selectTextFromDirectory,
+  restartTextFromDirectory,
+} = useTextDirectory({
+  canvasManager,
+  historyRecorder,
+  beatMarkerStore,
+  selectedText,
+  multiSelectedTexts,
+})
 
-function findTextById(id) {
-  const objs = canvasManager.value?.textManager?.textObjects || []
-  return objs.find((o) => o.id === id) || null
-}
+const {
+  sequencePlaying,
+  globalDurationEnabled,
+  globalDuration,
+  startTextSequence,
+  stopTextSequence,
+} = useTextSequence({ canvasManager, historyRecorder })
 
-// ✨ Vom Canvas entfernten Text aus dem Verzeichnis zurück auf den Canvas holen
-// (mit allen Einstellungen) und markieren.
-function returnTextToCanvas(id) {
-  const cm = canvasManager.value
-  const obj = findTextById(id)
-  if (!cm || !obj) return
-  cm.textManager.returnToCanvas(obj)
-  multiSelectedTexts.value = []
-  cm.clearMultiSelection?.()
-  cm.setActiveObject(obj)
-  cm.redrawCallback?.()
-  refreshTextList()
-  historyRecorder.checkpoint('restore:text')
-}
+useTextEditorWithChar({ canvasManager, selectedText, editPanelRef })
 
-// ✨ Text endgültig löschen: entfernt ihn aus dem Verzeichnis (und ggf. vom
-// Canvas) und setzt alle Beat-Marker zurück, die ihn verwenden. Ein Schritt
-// im Verlauf (Texte + Marker) – Strg+Z holt beides zurück.
-function deleteTextFromDirectory(id) {
-  const cm = canvasManager.value
-  const obj = findTextById(id)
-  if (!cm || !obj) return
-  if (cm.activeObject === obj || cm.isInMultiSelection?.(obj)) {
-    cm.clearMultiSelection?.()
-    cm.setActiveObject(null)
-    multiSelectedTexts.value = []
-    selectedText.value = null
-  }
-  cm.textManager.delete(obj)
-  beatMarkerStore.clearTextReference(id)
-  cm.redrawCallback?.()
-  refreshTextList()
-  historyRecorder.checkpoint('delete:text')
-}
+useTextSelectionSync({
+  canvasManager,
+  fontManager,
+  selectedText,
+  multiSelectedTexts,
+  editPanelRef,
+  refreshTextList,
+})
 
-// ✨ Text aus dem Verzeichnis markieren (immer nur ein Text; Markierung erscheint
-// auf dem Canvas – auch wenn der Text gerade ausgeblendet ist)
-function selectTextFromDirectory(id) {
-  if (!canvasManager.value) return
-  const objs = canvasManager.value.textManager?.textObjects || []
-  const obj = objs.find((o) => o.id === id)
-  // Vom Canvas entfernte Texte lassen sich nicht markieren (erst zurückholen)
-  if (!obj || obj.offCanvas) return
-
-  multiSelectedTexts.value = []
-  canvasManager.value.clearMultiSelection?.()
-  canvasManager.value.setActiveObject(obj)
-  canvasManager.value.redrawCallback?.()
-}
-
-// ✨ Play/Neu-Start aus dem Verzeichnis: entspricht dem "Neu starten"-Button und
-// setzt den Animations-Zustand des Textes zurück, sodass alle Animationen des
-// Textes von vorne abgespielt werden.
-function restartTextFromDirectory(id) {
-  if (!canvasManager.value) return
-  const objs = canvasManager.value.textManager?.textObjects || []
-  const obj = objs.find((o) => o.id === id)
-  if (!obj || !obj.animation) return
-
-  obj.animation._state = {
-    startTime: null,
-    isPlaying: false,
-    currentIndex: 0,
-  }
-  canvasManager.value.redrawCallback?.()
-}
-
-// ══════════ Globale Wiedergabe: alle Texte der Reihe nach abspielen ══════════
-// Spielt die Texte aus dem Verzeichnis nacheinander ab – jeder mit seinen
-// eigenen Einstellungen/Animationen. Während der Wiedergabe ist jeweils nur der
-// aktuelle Text sichtbar (Opacity-Steuerung); danach wird der ursprüngliche
-// Zustand wiederhergestellt. Der laufende Render-Loop zeichnet die Änderungen
-// automatisch (auch für den Recorder), daher genügt das Setzen von Opacity und
-// das Zurücksetzen des Animations-Zustands.
-const DEFAULT_SLOT_MS = 4000 // Anzeigedauer für Texte ohne Animation
-const sequencePlaying = ref(false)
-// Optionale globale Anzeigedauer: gilt dann für JEDEN Text gleich (überschreibt
-// die textindividuelle Anzeigedauer während der Reihenwiedergabe).
-// Wird dauerhaft gespeichert (lib/textSequenceSettings.js).
-const savedSequence = loadTextSequenceSettings()
-const globalDurationEnabled = ref(savedSequence.enabled)
-const globalDuration = ref(savedSequence.duration)
-watch([globalDurationEnabled, globalDuration], ([enabled, duration]) =>
-  saveTextSequenceSettings({ enabled, duration }),
-)
-let sequenceTimer = null
-let sequenceIndex = 0
-let savedOpacities = new Map()
-
-// Reihenwiedergabe: nur Texte, die auf dem Canvas liegen
-function orderedTextObjects() {
-  const objs = (canvasManager.value?.textManager?.textObjects || []).filter((o) => !o.offCanvas)
-  return [...objs].sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0))
-}
-
-// Dauer, wie lange ein Text sichtbar bleibt: Einlauf-Dauer der aktiven
-// Animation + Anzeigedauer (Hold); ohne Animation ein Standardwert.
-function textSlotMs(obj) {
-  // Globale Dauer: gilt für jeden Text gleich (kleiner Puffer für den Übergang).
-  if (globalDurationEnabled.value) {
-    return Math.max(500, globalDuration.value) + 400
-  }
-  const a = obj.animation
-  if (!a || !a.type || a.type === 'none') return DEFAULT_SLOT_MS
-  let hold = 0
-  let lead = 0
-  for (const key of ['typewriter', 'fade', 'scale', 'slide']) {
-    const eff = a[key]
-    if (eff && eff.enabled) {
-      hold = Math.max(hold, eff.displayDuration ?? 5000)
-      if (typeof eff.duration === 'number') lead = Math.max(lead, eff.duration)
-    }
-  }
-  if (hold <= 0) hold = DEFAULT_SLOT_MS
-  return lead + hold + 400 // kleiner Puffer zwischen den Texten
-}
-
-function playSequenceStep() {
-  if (!sequencePlaying.value) return
-  const objs = orderedTextObjects()
-  if (sequenceIndex >= objs.length) {
-    stopTextSequence()
-    return
-  }
-  const current = objs[sequenceIndex]
-  // Nur den aktuellen Text zeigen, alle anderen ausblenden.
-  objs.forEach((o) => {
-    o.opacity = 0
-  })
-  current.opacity = savedOpacities.get(current.id) ?? 100
-  // Animation des aktuellen Textes von vorne starten.
-  if (current.animation) {
-    current.animation._state = { startTime: null, isPlaying: false, currentIndex: 0 }
-  }
-  canvasManager.value?.redrawCallback?.()
-
-  sequenceTimer = setTimeout(() => {
-    sequenceIndex += 1
-    playSequenceStep()
-  }, textSlotMs(current))
-}
-
-function startTextSequence() {
-  const objs = orderedTextObjects()
-  if (objs.length === 0) return
-  // Laufende Wiedergabe zunächst ohne Wiederherstellung beenden.
-  if (sequenceTimer) {
-    clearTimeout(sequenceTimer)
-    sequenceTimer = null
-  }
-  // Ursprüngliche Sichtbarkeit merken, um sie am Ende wiederherzustellen.
-  savedOpacities = new Map(objs.map((o) => [o.id, o.opacity ?? 100]))
-  if (!releaseTextsHistory) releaseTextsHistory = historyRecorder.hold(['texts'])
-  sequencePlaying.value = true
-  sequenceIndex = 0
-  playSequenceStep()
-}
-
-function stopTextSequence() {
-  if (sequenceTimer) {
-    clearTimeout(sequenceTimer)
-    sequenceTimer = null
-  }
-  sequencePlaying.value = false
-  // Ursprüngliche Sichtbarkeit wiederherstellen.
-  if (savedOpacities.size) {
-    // Alle Texte (auch inzwischen vom Canvas entfernte) zurücksetzen
-    ;(canvasManager.value?.textManager?.textObjects || []).forEach((o) => {
-      if (savedOpacities.has(o.id)) o.opacity = savedOpacities.get(o.id)
-    })
-    canvasManager.value?.redrawCallback?.()
-  }
-  releaseTextsHistory?.()
-  releaseTextsHistory = null
-}
-
-// ✨ FIX: Verbesserte Callback-Funktion für Selection-Changes
-function handleSelectionChange(obj) {
-  refreshTextList()
-  if (obj && obj.type === 'text') {
-    // Sicherheitsprüfung: Initialisiere fehlende Properties
-    if (!obj.letterSpacing && obj.letterSpacing !== 0) {
-      obj.letterSpacing = 0
-    }
-    if (!obj.lineHeightMultiplier) {
-      obj.lineHeightMultiplier = 120
-    }
-    if (!obj.stroke) {
-      obj.stroke = { enabled: false, color: '#000000', width: 2 }
-    }
-    if (obj.stroke && obj.stroke.enabled === undefined) {
-      obj.stroke.enabled = false
-    }
-    if (!obj.shadow) {
-      obj.shadow = {
-        color: '#000000',
-        blur: 0,
-        offsetX: 0,
-        offsetY: 0,
-      }
-    }
-
-    // ✨ audioReactive vervollständigen (ältere Text-Objekte kennen nur wenige Effekte)
-    obj.audioReactive = ensureTextAudioReactive(obj.audioReactive)
-
-    // ✨ Initialisiere animation wenn nicht vorhanden (für ältere Text-Objekte)
-    if (!obj.animation) {
-      obj.animation = {
-        type: 'none',
-        typewriter: {
-          enabled: false,
-          speed: 50,
-          startDelay: 0,
-          loop: false,
-          loopDelay: 1000,
-          permanent: true,
-          displayDuration: 5000,
-          showCursor: true,
-          cursorChar: '|',
-        },
-        _state: {
-          startTime: null,
-          isPlaying: false,
-          currentIndex: 0,
-        },
-      }
-    }
-
-    selectedText.value = obj
-
-    // ✨ FIX: Font-Dropdown befüllen
-    nextTick(() => {
-      if (editPanelRef.value?.populateFontDropdown) {
-        editPanelRef.value.populateFontDropdown()
-      }
-    })
-  } else {
-    selectedText.value = null
-  }
-}
+const { canvasWidth, canvasHeight } = useCanvasSize(canvasManager)
 
 function onTextCreated(newTextObj) {
   if (newTextObj) {
@@ -339,83 +111,10 @@ function onTextCreated(newTextObj) {
 }
 
 function deleteSelectedText() {
-  // TextEditPanel already called deleteActiveObject(); just clear selection state
+  // TextEditPanel hat deleteActiveObject() bereits aufgerufen; nur Auswahl leeren
   selectedText.value = null
   refreshTextList()
 }
-
-// ✨ NEU: Handler für Tastatureingabe zum Öffnen des Texteditors
-function handleOpenTextEditorWithChar(event) {
-  const char = event.detail?.char
-  if (!char) return
-
-  // ✨ LÖSUNG: Sofort Text zum Canvas hinzufügen und Editor öffnen!
-  if (!canvasManager.value) return
-
-  // Erstelle sofort einen neuen Text auf dem Canvas mit dem eingegebenen Zeichen.
-  // Gespeicherte Standard-Stile (Schriftart, Farbe, Schatten, Kontur …) anwenden –
-  // ohne Animation, damit das gerade getippte Zeichen nicht sofort ausgeblendet wird.
-  const savedDefaults = loadTextDefaults()
-  const addOptions = savedDefaults
-    ? settingsToAddTextOptions(savedDefaults)
-    : {
-        fontSize: 48,
-        fontFamily: 'Arial',
-        color: '#ff0000',
-        opacity: 100,
-        letterSpacing: 0,
-        lineHeightMultiplier: 120,
-        strokeEnabled: false,
-        strokeColor: '#000000',
-        strokeWidth: 2,
-        shadowColor: '#000000',
-        shadowBlur: 5,
-        shadowOffsetX: 2,
-        shadowOffsetY: 2,
-      }
-  const newTextObj = canvasManager.value.addText(char, addOptions)
-
-  // Der Text wird automatisch als activeObject gesetzt (durch addText)
-  // Das triggert handleSelectionChange, was selectedText setzt und den Editor öffnet
-  if (newTextObj) {
-    selectedText.value = newTextObj
-
-    // Fokussiere das Editor-Textarea, damit der Benutzer weiter tippen kann
-    nextTick(() => {
-      if (editPanelRef.value?.editTextInput) {
-        editPanelRef.value.editTextInput.focus()
-        // Setze Cursor ans Ende des Textes
-        editPanelRef.value.editTextInput.selectionStart =
-          editPanelRef.value.editTextInput.selectionEnd = char.length
-      }
-    })
-  }
-}
-
-// ✨ FIX: Überwache canvasManager.activeObject direkt
-watch(
-  () => canvasManager.value?.activeObject,
-  (newObj) => {
-    handleSelectionChange(newObj)
-  },
-  { deep: true },
-)
-
-// Watch multi-selection array
-watch(
-  () => canvasManager.value?.selectedObjects,
-  (arr) => {
-    if (arr && arr.length > 1) {
-      multiSelectedTexts.value = [...arr]
-      // Keep selectedText pointing at activeObject for audio-reactive copy button
-      const active = canvasManager.value?.activeObject
-      if (active?.type === 'text') handleSelectionChange(active)
-    } else {
-      multiSelectedTexts.value = []
-    }
-  },
-  { deep: true },
-)
 
 function clearMultiSelection() {
   if (canvasManager.value) {
@@ -426,86 +125,6 @@ function clearMultiSelection() {
   selectedText.value = null
   refreshTextList()
 }
-
-// Nach Undo/Redo: Verzeichnis neu einlesen (Texte wurden ggf. entfernt/wiederhergestellt)
-watch(historyApplyRevision, () => refreshTextList())
-
-// Vorschau im Verzeichnis aktualisieren, wenn der markierte Text bearbeitet wird
-watch(
-  () => selectedText.value?.content,
-  () => refreshTextList(),
-)
-
-// ✨ NEU: Watch für Canvas-Dimensionen Updates
-watch(
-  () => canvasManager.value?.canvas,
-  (canvas) => {
-    if (canvas) {
-      canvasWidth.value = canvas.width
-      canvasHeight.value = canvas.height
-    }
-  },
-  { immediate: true },
-)
-
-// Setup beim Mounting
-onMounted(() => {
-  // ✨ WICHTIG: Event-Listener für Tastatureingabe IMMER registrieren (unabhängig von canvasManager)
-  window.addEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar)
-
-  if (!canvasManager.value) return
-
-  // ✨ NEU: Canvas-Dimensionen initialisieren
-  if (canvasManager.value.canvas) {
-    canvasWidth.value = canvasManager.value.canvas.width
-    canvasHeight.value = canvasManager.value.canvas.height
-  }
-
-  // ✨ FIX: Registriere Event-Listener wenn verfügbar
-  if (canvasManager.value.onSelectionChanged && !eventListenerRegistered) {
-    canvasManager.value.onSelectionChanged(handleSelectionChange)
-    eventListenerRegistered = true
-  }
-
-  // Prüfe ob bereits ein Text ausgewählt ist
-  if (canvasManager.value.activeObject?.type === 'text') {
-    handleSelectionChange(canvasManager.value.activeObject)
-  }
-
-  // Text-Verzeichnis initial befüllen
-  refreshTextList()
-
-  // Überwache FontManager und aktualisiere Dropdown wenn Fonts geladen werden
-  if (fontManager?.value) {
-    watch(
-      () => fontManager.value?.isInitialized,
-      (isInitialized) => {
-        if (isInitialized) {
-          nextTick(() => {
-            if (editPanelRef.value?.populateFontDropdown) {
-              editPanelRef.value.populateFontDropdown()
-            }
-          })
-        }
-      },
-      { immediate: true },
-    )
-  }
-})
-
-// Cleanup beim Unmounting
-onUnmounted(() => {
-  eventListenerRegistered = false
-  // ✨ NEU: Event-Listener entfernen
-  window.removeEventListener('openTextEditorWithChar', handleOpenTextEditorWithChar)
-  // Laufende Text-Sequenz stoppen (Timer aufräumen)
-  if (sequenceTimer) {
-    clearTimeout(sequenceTimer)
-    sequenceTimer = null
-  }
-  releaseTextsHistory?.()
-  releaseTextsHistory = null
-})
 </script>
 
 <style scoped>

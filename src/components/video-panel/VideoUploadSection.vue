@@ -1,38 +1,59 @@
 <template>
   <div class="upload-section">
-    <h4>{{ locale === 'de' ? 'Videos' : 'Videos' }}</h4>
+    <h4 class="section-title">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        aria-hidden="true"
+      >
+        <polygon points="23 7 16 12 23 17 23 7" />
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+      </svg>
+      {{ t('videoPanel.videosTitle') }}
+    </h4>
 
-    <div class="upload-area" @click="triggerFileInput" @drop.prevent="handleDrop" @dragover.prevent>
-      <input
-        type="file"
-        ref="fileInputRef"
-        @change="handleVideoUpload"
-        accept="video/mp4,video/webm,video/ogg,video/quicktime"
-        style="display: none"
-      />
-      <div class="upload-placeholder">
-        <div class="upload-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="23 7 16 12 23 17 23 7" />
-            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-          </svg>
-        </div>
-        <p>{{ locale === 'de' ? 'MP4-Video hochladen' : 'Upload MP4 video' }}</p>
-        <small>{{ locale === 'de' ? 'MP4, WebM, MOV' : 'MP4, WebM, MOV' }}</small>
-      </div>
-    </div>
+    <input
+      ref="fileInputRef"
+      type="file"
+      accept="video/mp4,video/webm,video/ogg,video/quicktime"
+      hidden
+      @change="handleVideoUpload"
+    />
+
+    <!-- Upload-Fläche: Klick öffnet die Dateiauswahl, Dateien können abgelegt werden -->
+    <button
+      type="button"
+      class="upload-area"
+      @click="triggerFileInput"
+      @drop.prevent="handleDrop"
+      @dragover.prevent
+    >
+      <svg
+        class="upload-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        aria-hidden="true"
+      >
+        <polygon points="23 7 16 12 23 17 23 7" />
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+      </svg>
+      <span class="upload-label">{{ t('videoPanel.uploadVideo') }}</span>
+      <span class="upload-formats">{{ t('videoPanel.uploadFormats') }}</span>
+    </button>
 
     <!-- Video-Galerie -->
     <div v-if="videoGallery.length > 0" class="gallery-container">
       <div class="gallery-header">
-        <span class="gallery-title">{{
-          locale === 'de'
-            ? 'Videos (' + videoGallery.length + ')'
-            : 'Videos (' + videoGallery.length + ')'
-        }}</span>
-        <button @click="clearAllVideos" class="btn-clear-all">
-          {{ locale === 'de' ? 'Alle löschen' : 'Delete all' }}
-        </button>
+        <span class="gallery-title"
+          >{{ t('videoPanel.videosTitle') }} ({{ videoGallery.length }})</span
+        >
+        <UiButton variant="danger" size="sm" @click="clearAllVideos">
+          {{ t('videoPanel.deleteAllVideos') }}
+        </UiButton>
       </div>
 
       <div class="gallery-scroll">
@@ -40,11 +61,16 @@
           <div
             v-for="(videoData, index) in videoGallery"
             :key="videoData.id"
-            class="thumbnail-item video-thumbnail"
+            class="thumbnail-item"
             :class="{ selected: selectedVideoIndex === index }"
+            role="button"
+            tabindex="0"
+            :aria-pressed="selectedVideoIndex === index"
+            :aria-label="videoData.name"
             @click="selectVideo(index)"
+            @keydown.enter.prevent="selectVideo(index)"
+            @keydown.space.prevent="selectVideo(index)"
           >
-            <!-- Video-Thumbnail -->
             <video
               :src="videoData.src"
               muted
@@ -52,44 +78,56 @@
               class="video-thumb"
               @loadedmetadata="generateThumbnail($event, index)"
             />
-            <!-- Play-Icon Overlay -->
-            <div class="video-play-icon">
+            <span class="video-play-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="5 3 19 12 5 21 5 3" />
               </svg>
-            </div>
-            <div class="thumbnail-overlay">
-              <button @click.stop="deleteVideo(index)" class="btn-delete-thumb">✕</button>
-            </div>
-            <div class="thumbnail-info">
+            </span>
+            <UiIconButton
+              :label="t('videoPanel.deleteVideo')"
+              size="sm"
+              round
+              class="btn-delete-thumb"
+              @click.stop="deleteVideo(index)"
+              @keydown.stop
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M18 6 6 18M6 6l12 12" stroke-linecap="round" />
+              </svg>
+            </UiIconButton>
+            <span class="thumbnail-info">
               <span class="thumbnail-name">{{ videoData.name }}</span>
               <span class="thumbnail-duration">{{ formatDuration(videoData.duration) }}</span>
-            </div>
+            </span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Action-Buttons -->
+    <!-- Aktionen für das gewählte Video -->
     <div v-if="selectedVideoIndex !== null" class="action-buttons">
-      <button @click="addVideoToCanvas" class="btn-primary">
-        {{ locale === 'de' ? 'Auf Canvas platzieren' : 'Place on Canvas' }}
-      </button>
-      <button @click="setVideoAsBackground" class="btn-secondary">
-        {{ locale === 'de' ? 'Als Hintergrund' : 'As Background' }}
-      </button>
-      <button @click="setVideoAsWorkspaceBackground" class="btn-workspace">
-        {{ locale === 'de' ? 'Workspace-Hintergrund' : 'Workspace Background' }}
-      </button>
+      <UiButton variant="primary" size="sm" block class="action-main" @click="addVideoToCanvas">
+        {{ t('videoPanel.placeOnCanvas') }}
+      </UiButton>
+      <UiButton variant="secondary" size="sm" @click="setVideoAsBackground">
+        {{ t('videoPanel.asBackground') }}
+      </UiButton>
+      <UiButton variant="secondary" size="sm" @click="setVideoAsWorkspaceBackground">
+        {{ t('videoPanel.asWorkspaceBackground') }}
+      </UiButton>
     </div>
   </div>
 </template>
 
 <script setup>
 import { inject } from 'vue'
+import { useI18n } from '../../lib/i18n.js'
+import UiButton from '../ui/UiButton.vue'
+import UiIconButton from '../ui/UiIconButton.vue'
+
+const { t } = useI18n()
 
 const {
-  locale,
   fileInputRef,
   videoGallery,
   selectedVideoIndex,
@@ -108,101 +146,89 @@ const {
 </script>
 
 <style scoped>
-.upload-section h4 {
-  margin: 0 0 8px 0;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+.upload-section {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: var(--ds-space-2);
 }
 
-.upload-section h4::before {
-  content: '';
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Cpolygon points='23 7 16 12 23 17 23 7'/%3E%3Crect x='1' y='5' width='15' height='14' rx='2' ry='2'/%3E%3C/svg%3E");
-  background-size: contain;
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  margin: 0;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  color: var(--ds-text-2);
+}
+
+.section-title svg {
+  width: var(--ds-icon-sm);
+  height: var(--ds-icon-sm);
 }
 
 .upload-area {
-  border: 1px dashed var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  padding: 14px;
-  text-align: center;
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  background: var(--secondary-bg);
-}
-
-.upload-area:hover {
-  border-color: var(--accent-primary);
-  background: var(--btn-hover);
-}
-
-.upload-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: var(--ds-space-1);
+  width: 100%;
+  padding: var(--ds-space-4) var(--ds-space-3);
+  background: var(--ds-surface-2);
+  border: var(--ds-border-width) dashed var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-text);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color var(--ds-duration) var(--ds-ease);
+}
+
+.upload-area:hover {
+  border-color: var(--ds-accent);
+}
+
+.upload-area:focus-visible {
+  outline: none;
+  border-color: var(--ds-accent);
+  box-shadow: var(--ds-focus-ring);
 }
 
 .upload-icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   color: var(--accent-ink);
 }
 
-.upload-icon svg {
-  width: 100%;
-  height: 100%;
+.upload-label {
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
 }
 
-.upload-placeholder p {
-  margin: 0;
+.upload-formats {
   font-size: var(--ds-text-xs);
-  color: var(--text-primary);
+  color: var(--ds-text-3);
 }
 
-.upload-placeholder small {
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-}
-
-/* Gallery */
 .gallery-container {
-  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
 }
 
 .gallery-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
 }
 
 .gallery-title {
   font-size: var(--ds-text-xs);
-  color: var(--text-muted);
+  font-weight: var(--ds-weight-semibold);
+  letter-spacing: 0.025em;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.btn-clear-all {
-  font-size: var(--ds-text-xs);
-  color: var(--ds-danger);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 2px 4px;
-}
-
-.btn-clear-all:hover {
-  text-decoration: underline;
+  color: var(--ds-text-3);
 }
 
 .gallery-scroll {
@@ -213,28 +239,35 @@ const {
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 8px;
+  gap: var(--ds-space-2);
 }
 
 .thumbnail-item {
   position: relative;
-  aspect-ratio: 16/9;
-  border-radius: var(--ds-radius-sm);
+  aspect-ratio: 16 / 9;
   overflow: hidden;
-  cursor: pointer;
   border: 2px solid transparent;
-  transition: all var(--ds-duration) var(--ds-ease);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-2);
+  cursor: pointer;
+  transition: border-color var(--ds-duration) var(--ds-ease);
 }
 
 .thumbnail-item:hover {
-  border-color: color-mix(in srgb, var(--ds-link) 50%, transparent);
+  border-color: var(--ds-border-strong);
 }
 
 .thumbnail-item.selected {
-  border-color: color-mix(in srgb, var(--ds-link) 90%, transparent);
+  border-color: var(--ds-accent);
+}
+
+.thumbnail-item:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 
 .video-thumb {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -244,15 +277,15 @@ const {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 24px;
-  height: 24px;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: var(--ds-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+  border-radius: var(--ds-radius-full);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
   pointer-events: none;
 }
 
@@ -262,204 +295,63 @@ const {
   margin-left: 2px;
 }
 
-.thumbnail-overlay {
+/* Löschen-Knopf über dem Video: dunkle Fläche, damit er auf jedem Bild lesbar ist */
+.btn-delete-thumb {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  opacity: 0.6;
-  transition: opacity var(--ds-duration) var(--ds-ease);
+  top: 2px;
+  right: 2px;
+  width: 22px;
+  height: 22px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  opacity: 0.8;
 }
 
-.thumbnail-item:hover .thumbnail-overlay {
+.btn-delete-thumb:hover,
+.btn-delete-thumb:focus-visible {
+  background: var(--ds-danger);
+  color: #fff;
   opacity: 1;
 }
 
-.btn-delete-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: var(--ds-radius-full);
-  background: color-mix(in srgb, var(--ds-danger) 90%, transparent);
-  border: none;
-  color: white;
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.btn-delete-thumb svg {
+  width: 12px;
+  height: 12px;
 }
 
 .thumbnail-info {
   position: absolute;
+  right: 0;
   bottom: 0;
   left: 0;
-  right: 0;
-  padding: 4px 6px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  padding: 2px 6px 4px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+  pointer-events: none;
 }
 
-.thumbnail-name {
+.thumbnail-name,
+.thumbnail-duration {
   font-size: var(--ds-text-xs);
-  color: white;
+  color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .thumbnail-duration {
-  font-size: var(--ds-text-xs);
-  color: var(--ds-text-2);
+  opacity: 0.8;
+  font-family: var(--ds-font-mono);
 }
 
-/* Action Buttons */
 .action-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ds-space-2);
 }
 
-.btn-primary {
-  flex: 1;
-  min-width: 100%;
-  padding: 6px 10px;
-  background: var(--ds-accent-soft);
-  border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-sm);
-  color: var(--accent-tertiary);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.btn-primary:hover {
-  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
-}
-
-.btn-secondary {
-  flex: 1;
-  padding: 5px 8px;
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-medium);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  text-transform: uppercase;
-}
-
-.btn-secondary:hover {
-  background: var(--btn-hover);
-  border-color: var(--accent-primary);
-}
-
-.btn-workspace {
-  flex: 1;
-  padding: 5px 8px;
-  background: color-mix(in srgb, var(--ds-warning) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-warning) 30%, transparent);
-  border-radius: var(--ds-radius-sm);
-  color: var(--ds-warning);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-medium);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  text-transform: uppercase;
-}
-
-.btn-workspace:hover {
-  background: color-mix(in srgb, var(--ds-warning) 20%, transparent);
-  border-color: color-mix(in srgb, var(--ds-warning) 50%, transparent);
-}
-
-/* Light Theme */
-
-[data-theme='light'] .upload-section h4::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23003971' stroke-width='1.5'%3E%3Cpolygon points='23 7 16 12 23 17 23 7'/%3E%3Crect x='1' y='5' width='15' height='14' rx='2' ry='2'/%3E%3C/svg%3E");
-  filter: none;
-}
-
-[data-theme='light'] .upload-area {
-  border-color: var(--accent-primary);
-  background: var(--card-bg);
-}
-
-[data-theme='light'] .upload-area:hover {
-  background: var(--secondary-bg);
-}
-
-[data-theme='light'] .thumbnail-info {
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.5));
-}
-
-[data-theme='light'] .btn-primary {
-  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
-  border: 1px solid var(--border-color);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .btn-primary:hover {
-  background: color-mix(in srgb, var(--accent-primary) 25%, transparent);
-}
-
-[data-theme='light'] .btn-secondary {
-  background: var(--card-bg);
-  border-color: var(--border-color);
-}
-
-[data-theme='light'] .btn-secondary:hover {
-  background: var(--secondary-bg);
-}
-
-[data-theme='light'] .btn-workspace {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--border-color);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .btn-workspace:hover {
-  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-  border-color: var(--accent-primary);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .gallery-scroll {
-    max-height: 250px;
-  }
-
-  .video-play-icon {
-    width: 32px;
-    height: 32px;
-  }
-
-  .btn-delete-thumb {
-    width: 24px;
-    height: 24px;
-  }
-
-  .upload-icon {
-    width: 28px;
-    height: 28px;
-  }
-}
-
-@media (max-width: 480px) {
-  .video-play-icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .btn-delete-thumb {
-    width: 28px;
-    height: 28px;
-  }
+.action-main {
+  grid-column: 1 / -1;
 }
 </style>

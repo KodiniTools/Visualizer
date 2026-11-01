@@ -1,8 +1,9 @@
 // Setzt die SEO-relevanten <head>-Elemente pro Route (Title, Description,
 // Robots, Open Graph/Twitter, Canonical, hreflang, FAQ-JSON-LD).
 // Alle Routen teilen sich dieselbe index.html – deshalb clientseitig.
+// Deutsch hat die URL ohne Parameter, Englisch dieselbe URL mit ?lang=en.
 
-const HREFLANGS = ['de', 'en', 'x-default']
+import { localeUrls } from '../lib/localeSeo.js'
 
 // FAQ-Markup gehört nur auf die Seite, die die FAQ sichtbar zeigt (Landingpage).
 // Das statische <script id="ld-faq"> aus index.html wird auf anderen Routen
@@ -11,11 +12,17 @@ let faqScript = null
 
 /**
  * @param {{ title?: string, description?: string, canonical?: string,
- *   robots?: string, faq?: boolean }} meta Route-Meta
+ *   robots?: string, faq?: boolean, en?: { title?: string, description?: string } }} meta Route-Meta
+ * @param {'de' | 'en'} [locale] aktive Sprache
  */
-export function applyRouteHead(meta = {}) {
-  const { title, description, canonical, robots = 'index, follow', faq = false } = meta
+export function applyRouteHead(meta = {}, locale = 'de') {
+  const lang = locale === 'en' ? 'en' : 'de'
+  const texts = lang === 'en' && meta.en ? { ...meta, ...meta.en } : meta
+  const { title, description } = texts
+  const { robots = 'index, follow', faq = false } = meta
   const indexable = !/\bnoindex\b/i.test(robots)
+  const urls = meta.canonical ? localeUrls(meta.canonical, lang) : null
+  const canonical = urls?.canonical
 
   if (title) document.title = title
 
@@ -30,7 +37,9 @@ export function applyRouteHead(meta = {}) {
 
   setCanonical(canonical)
   // hreflang nur auf indexierbaren Seiten – auf noindex-Seiten ohne Wirkung.
-  for (const lang of HREFLANGS) setAlternate(lang, indexable ? canonical : null)
+  for (const { hreflang, href } of urls?.alternates ?? []) {
+    setAlternate(hreflang, indexable ? href : null)
+  }
 
   setFaqMarkup(faq)
 }
@@ -57,7 +66,6 @@ function setCanonical(href) {
   el.setAttribute('href', href)
 }
 
-// Beide Sprachen teilen sich eine URL (Umschaltung clientseitig).
 // href = null entfernt den Link.
 function setAlternate(hreflang, href) {
   let el = document.querySelector(`link[rel="alternate"][hreflang="${hreflang}"]`)

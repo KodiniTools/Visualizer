@@ -157,3 +157,9 @@ describe('i18n – Beat-Marker-Popover ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/locale\s*===/)
   })
 })
+
+describe('i18n – Canvas-Videoliste ohne fest verdrahtete Texte', () => {
+  it('Vorlage enthält keine festen Texte', () => {
+    expect(hardcodedTemplateText(read('components/video-panel/CanvasVideosList.vue'))).toEqual([])
+  })
+})

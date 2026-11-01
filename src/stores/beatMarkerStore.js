@@ -85,6 +85,24 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
   }
 
   /**
+   * Entfernt die Text-Zuweisung aller Marker, die den Text verwenden (z.B.
+   * nachdem er endgültig aus dem Text-Verzeichnis gelöscht wurde).
+   * @param {number|string} textId
+   * @returns {number} Anzahl der zurückgesetzten Marker
+   */
+  function clearTextReference(textId) {
+    if (textId === undefined || textId === null || textId === '') return 0
+    let count = 0
+    for (const marker of markers.value) {
+      if (marker.action?.textId !== textId) continue
+      marker.action.textId = null
+      marker.action.textLabel = null
+      count++
+    }
+    return count
+  }
+
+  /**
    * Prüft ob ein Marker ausgelöst werden soll
    * @param {number} currentTime - Aktuelle Wiedergabezeit
    * @returns {object|null} - Ausgelöster Marker oder null
@@ -228,6 +246,7 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
     addMarker,
     removeMarker,
     updateMarker,
+    clearTextReference,
     checkTrigger,
     checkCrossing,
     resetTriggers,

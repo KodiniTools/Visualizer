@@ -21,6 +21,8 @@ export function findObjectAt(textObjects, x, y, targetCanvas) {
   // Von hinten nach vorne durchgehen (oberste Ebene zuerst)
   for (let i = textObjects.length - 1; i >= 0; i--) {
     const textObj = textObjects[i]
+    // Vom Canvas entfernte Texte (nur noch im Verzeichnis) sind nicht anklickbar.
+    if (textObj?.offCanvas) continue
     const bounds = getObjectBounds(textObj, targetCanvas)
 
     if (bounds && isPointInRect(x, y, bounds)) {

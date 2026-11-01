@@ -94,15 +94,20 @@ export function useBeatMarkers(openMarkersPopover) {
     return [...objs].sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0))
   }
 
+  /** Runtime-Set der vom Canvas entfernten Texte, die ein Marker anzeigt. */
+  const revealedTextIds = () => canvasManager.value?.textManager?.markerRevealedIds ?? null
+
   /**
    * Liste der Texte für das Marker-Dropdown (Nummer + Vorschau des Inhalts).
-   * Spiegelt die Nummerierung des Text-Verzeichnisses wider.
+   * Spiegelt die Nummerierung des Text-Verzeichnisses wider – inklusive der
+   * vom Canvas entfernten Texte (`offCanvas`), die im Verzeichnis bleiben.
    */
   const getMarkerTexts = () => {
     return orderedTextObjects().map((o, i) => ({
       id: o.id,
       number: i + 1,
       content: (o.content || '').replace(/\s+/g, ' ').trim().slice(0, 30),
+      offCanvas: !!o.offCanvas,
     }))
   }
 
@@ -161,6 +166,11 @@ export function useBeatMarkers(openMarkersPopover) {
    */
   const restoreTextMarkers = () => historyRecorder.absorb(() => restoreTextMarkersNow())
   const restoreTextMarkersNow = () => {
+    const revealed = revealedTextIds()
+    if (revealed?.size) {
+      revealed.clear()
+      canvasManager.value?.redrawCallback?.()
+    }
     if (markerTextOriginalOpacity.size === 0) return
     const objs = orderedTextObjects()
     for (const [id, op] of markerTextOriginalOpacity.entries()) {
@@ -178,6 +188,11 @@ export function useBeatMarkers(openMarkersPopover) {
    */
   const reconcileTextMarkers = () => historyRecorder.absorb(() => reconcileTextMarkersNow())
   const reconcileTextMarkersNow = () => {
+    const revealed = revealedTextIds()
+    if (revealed?.size) {
+      const refs = referencedTextIds()
+      for (const id of revealed) if (!refs.has(id)) revealed.delete(id)
+    }
     if (markerTextOriginalOpacity.size === 0) return
     const ids = referencedTextIds()
     const objs = orderedTextObjects()
@@ -205,13 +220,18 @@ export function useBeatMarkers(openMarkersPopover) {
     if (!target) return
 
     const ids = referencedTextIds()
+    const revealed = revealedTextIds()
     orderedTextObjects().forEach((o) => {
       if (o.id === tid || !ids.has(o.id)) return
       if (!markerTextOriginalOpacity.has(o.id)) {
         markerTextOriginalOpacity.set(o.id, o.opacity ?? 100)
       }
       o.opacity = 0
+      revealed?.delete(o.id)
     })
+    // Vom Canvas entfernter Text (nur noch im Verzeichnis): für die Wiedergabe
+    // einblenden, ohne ihn dauerhaft auf den Canvas zurückzuholen.
+    if (target.offCanvas) revealed?.add(tid)
 
     // Zieltext sichtbar machen: gemerkte Original-Deckkraft bevorzugen, sonst
     // die aktuelle (falls > 0) bzw. voll sichtbar.

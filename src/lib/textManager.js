@@ -38,6 +38,56 @@ export class TextManager {
   constructor(textStore) {
     this.textStore = textStore
     this.textObjects = []
+    // Laufzeit-Zustand (nicht im Verlauf): IDs vom Canvas entfernter Texte,
+    // die ein Beat-Marker gerade wieder anzeigt.
+    this.markerRevealedIds = new Set()
+  }
+
+  /**
+   * true, wenn der Text auf dem Canvas liegt (nicht nur im Text-Verzeichnis).
+   * @param {object} textObj
+   */
+  isOnCanvas(textObj) {
+    return !!textObj && !textObj.offCanvas
+  }
+
+  /**
+   * true, wenn der Text gezeichnet wird: auf dem Canvas oder (vom Canvas
+   * entfernt) gerade von einem Beat-Marker eingeblendet.
+   * @param {object} textObj
+   */
+  isDrawable(textObj) {
+    return this.isOnCanvas(textObj) || (!!textObj && this.markerRevealedIds.has(textObj.id))
+  }
+
+  /** Alle Texte, die auf dem Canvas liegen (Ebenen-Reihenfolge). */
+  getCanvasTexts() {
+    return this.textObjects.filter((t) => this.isOnCanvas(t))
+  }
+
+  /**
+   * Entfernt einen Text vom Canvas, behält ihn aber mit allen Einstellungen im
+   * Text-Verzeichnis (für Beat-Marker weiter verfügbar). Endgültig entfernt
+   * erst delete().
+   * @returns {boolean} true, wenn der Text vorher auf dem Canvas lag
+   */
+  removeFromCanvas(textObject) {
+    const obj = this.textObjects.find((t) => t.id === textObject?.id)
+    if (!obj || obj.offCanvas) return false
+    obj.offCanvas = true
+    return true
+  }
+
+  /**
+   * Holt einen vom Canvas entfernten Text aus dem Verzeichnis zurück.
+   * @returns {boolean} true, wenn der Text vorher nicht auf dem Canvas lag
+   */
+  returnToCanvas(textObject) {
+    const obj = this.textObjects.find((t) => t.id === textObject?.id)
+    if (!obj || !obj.offCanvas) return false
+    obj.offCanvas = false
+    this.markerRevealedIds.delete(obj.id)
+    return true
   }
 
   /**
@@ -50,12 +100,13 @@ export class TextManager {
   }
 
   /**
-   * Löscht ein Text-Objekt
+   * Löscht ein Text-Objekt endgültig (auch aus dem Text-Verzeichnis)
    */
   delete(textObject) {
     const index = this.textObjects.findIndex((t) => t.id === textObject.id)
     if (index !== -1) {
       this.textObjects.splice(index, 1)
+      this.markerRevealedIds.delete(textObject.id)
       return true
     }
     return false
@@ -232,6 +283,7 @@ export class TextManager {
    */
   drawAll(ctx) {
     this.textObjects.forEach((textObj) => {
+      if (!this.isDrawable(textObj)) return
       this.drawText(ctx, textObj, ctx.canvas.width, ctx.canvas.height)
     })
   }
@@ -242,6 +294,7 @@ export class TextManager {
    */
   draw(ctx, canvasWidth, canvasHeight) {
     this.textObjects.forEach((textObj) => {
+      if (!this.isDrawable(textObj)) return
       try {
         this.drawText(ctx, textObj, canvasWidth, canvasHeight)
       } catch (error) {
@@ -290,6 +343,7 @@ export class TextManager {
    */
   clear() {
     this.textObjects = []
+    this.markerRevealedIds.clear()
   }
 
   // ═══════════════════════════════════════════════════════════════════

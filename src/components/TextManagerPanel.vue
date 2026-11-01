@@ -14,6 +14,8 @@
       v-model:global-duration="globalDuration"
       @select="selectTextFromDirectory"
       @restart="restartTextFromDirectory"
+      @return-to-canvas="returnTextToCanvas"
+      @delete="deleteTextFromDirectory"
       @play-all="startTextSequence"
       @stop-all="stopTextSequence"
     />
@@ -49,6 +51,7 @@ import TextMultiEditPanel from './text-manager/TextMultiEditPanel.vue'
 import TextDirectoryPanel from './text-manager/TextDirectoryPanel.vue'
 import { loadTextDefaults, settingsToAddTextOptions } from '../lib/textDefaults.js'
 import { useHistoryStore } from '../stores/historyStore.js'
+import { useBeatMarkerStore } from '../stores/beatMarkerStore.js'
 import { getHistoryRecorder, historyApplyRevision } from '../lib/history/historyRecorder.js'
 
 const { t } = useI18n()
@@ -65,6 +68,7 @@ const editPanelRef = ref(null)
 let eventListenerRegistered = false
 
 const historyRecorder = getHistoryRecorder(useHistoryStore())
+const beatMarkerStore = useBeatMarkerStore()
 // Während der Sequenz-Wiedergabe animiert die Deckkraft – kein Verlaufsschritt
 let releaseTextsHistory = null
 
@@ -77,7 +81,48 @@ function refreshTextList() {
     number: i + 1,
     content: (o.content || '').replace(/\s+/g, ' ').trim().slice(0, 40),
     animated: !!(o.animation && o.animation.type && o.animation.type !== 'none'),
+    offCanvas: !!o.offCanvas,
   }))
+}
+
+function findTextById(id) {
+  const objs = canvasManager.value?.textManager?.textObjects || []
+  return objs.find((o) => o.id === id) || null
+}
+
+// ✨ Vom Canvas entfernten Text aus dem Verzeichnis zurück auf den Canvas holen
+// (mit allen Einstellungen) und markieren.
+function returnTextToCanvas(id) {
+  const cm = canvasManager.value
+  const obj = findTextById(id)
+  if (!cm || !obj) return
+  cm.textManager.returnToCanvas(obj)
+  multiSelectedTexts.value = []
+  cm.clearMultiSelection?.()
+  cm.setActiveObject(obj)
+  cm.redrawCallback?.()
+  refreshTextList()
+  historyRecorder.checkpoint('restore:text')
+}
+
+// ✨ Text endgültig löschen: entfernt ihn aus dem Verzeichnis (und ggf. vom
+// Canvas) und setzt alle Beat-Marker zurück, die ihn verwenden. Ein Schritt
+// im Verlauf (Texte + Marker) – Strg+Z holt beides zurück.
+function deleteTextFromDirectory(id) {
+  const cm = canvasManager.value
+  const obj = findTextById(id)
+  if (!cm || !obj) return
+  if (cm.activeObject === obj || cm.isInMultiSelection?.(obj)) {
+    cm.clearMultiSelection?.()
+    cm.setActiveObject(null)
+    multiSelectedTexts.value = []
+    selectedText.value = null
+  }
+  cm.textManager.delete(obj)
+  beatMarkerStore.clearTextReference(id)
+  cm.redrawCallback?.()
+  refreshTextList()
+  historyRecorder.checkpoint('delete:text')
 }
 
 // ✨ Text aus dem Verzeichnis markieren (immer nur ein Text; Markierung erscheint
@@ -86,7 +131,8 @@ function selectTextFromDirectory(id) {
   if (!canvasManager.value) return
   const objs = canvasManager.value.textManager?.textObjects || []
   const obj = objs.find((o) => o.id === id)
-  if (!obj) return
+  // Vom Canvas entfernte Texte lassen sich nicht markieren (erst zurückholen)
+  if (!obj || obj.offCanvas) return
 
   multiSelectedTexts.value = []
   canvasManager.value.clearMultiSelection?.()
@@ -133,8 +179,9 @@ let sequenceTimer = null
 let sequenceIndex = 0
 let savedOpacities = new Map()
 
+// Reihenwiedergabe: nur Texte, die auf dem Canvas liegen
 function orderedTextObjects() {
-  const objs = canvasManager.value?.textManager?.textObjects || []
+  const objs = (canvasManager.value?.textManager?.textObjects || []).filter((o) => !o.offCanvas)
   return [...objs].sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0))
 }
 
@@ -209,7 +256,8 @@ function stopTextSequence() {
   sequencePlaying.value = false
   // Ursprüngliche Sichtbarkeit wiederherstellen.
   if (savedOpacities.size) {
-    orderedTextObjects().forEach((o) => {
+    // Alle Texte (auch inzwischen vom Canvas entfernte) zurücksetzen
+    ;(canvasManager.value?.textManager?.textObjects || []).forEach((o) => {
       if (savedOpacities.has(o.id)) o.opacity = savedOpacities.get(o.id)
     })
     canvasManager.value?.redrawCallback?.()

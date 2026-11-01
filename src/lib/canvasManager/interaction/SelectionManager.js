@@ -104,6 +104,7 @@ export class SelectionManager {
     if (this.manager.textManager && this.manager.textManager.textObjects) {
       for (let i = this.manager.textManager.textObjects.length - 1; i >= 0; i--) {
         const textObj = this.manager.textManager.textObjects[i]
+        if (textObj.offCanvas) continue
         const bounds = this.manager.getObjectBounds(textObj)
         if (bounds && this.isPointInRect(x, y, bounds)) {
           return textObj
@@ -121,6 +122,7 @@ export class SelectionManager {
     if (this.manager.textManager && this.manager.textManager.textObjects) {
       for (let i = this.manager.textManager.textObjects.length - 1; i >= 0; i--) {
         const textObj = this.manager.textManager.textObjects[i]
+        if (textObj.offCanvas) continue
         const bounds = this.manager.getObjectBounds(textObj)
         if (bounds && this.isPointInRect(x, y, bounds)) {
           return textObj

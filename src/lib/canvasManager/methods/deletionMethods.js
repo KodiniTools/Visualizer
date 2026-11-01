@@ -40,14 +40,20 @@ export class DeletionMethods {
         restore: (index) => mgr.restoreVideo(obj, index),
       }
     } else if (type === 'text' && this.textManager) {
+      // Texte werden nur vom Canvas entfernt: Sie bleiben mit allen
+      // Einstellungen im Text-Verzeichnis (und für Beat-Marker verfügbar),
+      // bis sie dort endgültig gelöscht werden.
       const mgr = this.textManager
       helpers = {
         remove: () => {
           const index = mgr.textObjects.findIndex((t) => t.id === obj.id)
-          mgr.delete(obj)
+          mgr.removeFromCanvas(obj)
           return index
         },
-        restore: (index) => mgr.restore(obj, index),
+        restore: (index) => {
+          // Endgültig gelöscht (Fallback-Pfad) → wieder einfügen
+          if (!mgr.returnToCanvas(obj)) mgr.restore(obj, index)
+        },
       }
     }
 
@@ -89,7 +95,8 @@ export class DeletionMethods {
     this.updateUICallback()
   }
 
-  // ↩️ Undo-fähiges Löschen mehrerer Text-Objekte in einem Schritt.
+  // ↩️ Undo-fähiges Entfernen mehrerer Text-Objekte vom Canvas in einem Schritt.
+  // Wie beim Einzel-Löschen bleiben die Texte im Text-Verzeichnis.
   // Wird z.B. vom "Alle löschen"-Button im Mehrfach-Bearbeiten-Panel genutzt.
   // Registriert EINEN gemeinsamen History-Command, sodass ein einziges
   // Undo (Strg+Z bzw. Toast-Button) alle Texte gemeinsam wiederherstellt.
@@ -98,9 +105,11 @@ export class DeletionMethods {
       return
     }
 
-    // Nur tatsächlich vorhandene Text-Objekte berücksichtigen
+    // Nur tatsächlich vorhandene Text-Objekte auf dem Canvas berücksichtigen
     const targets = textsToDelete.filter((obj) =>
-      this.textManager.textObjects.some((existing) => existing.id === obj.id),
+      this.textManager.textObjects.some(
+        (existing) => existing.id === obj.id && !existing.offCanvas,
+      ),
     )
     if (targets.length === 0) return
 
@@ -115,7 +124,7 @@ export class DeletionMethods {
       removed
         .slice()
         .sort((a, b) => b.index - a.index)
-        .forEach(({ object }) => this.textManager.delete(object))
+        .forEach(({ object }) => this.textManager.removeFromCanvas(object))
       return removed.sort((a, b) => a.index - b.index)
     }
 
@@ -125,7 +134,9 @@ export class DeletionMethods {
       removed
         .slice()
         .sort((a, b) => a.index - b.index)
-        .forEach(({ object, index }) => this.textManager.restore(object, index))
+        .forEach(({ object, index }) => {
+          if (!this.textManager.returnToCanvas(object)) this.textManager.restore(object, index)
+        })
     }
 
     let removed = removeAll()

@@ -28,6 +28,7 @@ import {
 } from './canvasObjects/geometry.js'
 import { getEntranceTransform } from './canvasObjects/entranceAnimation.js'
 import { moveToBack, moveToFront } from './canvasObjects/zOrder.js'
+import { getSlideshowManager } from './slideshowManagerBridge.js'
 
 export class MultiImageManager {
   constructor(canvas, callbacks = {}) {
@@ -592,8 +593,8 @@ export class MultiImageManager {
 
     // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden
     let bounds
-    if (this.selectedImage.isSlideshowImage && window.slideshowManager) {
-      const sm = window.slideshowManager
+    const sm = this.selectedImage.isSlideshowImage ? getSlideshowManager() : null
+    if (sm) {
       // sichtbarer Bereich inkl. Übergang (Markierung liegt auf dem Bild)
       const transform = sm.getDisplayBounds
         ? sm.getDisplayBounds(this.selectedImage)
@@ -688,8 +689,8 @@ export class MultiImageManager {
     }
 
     // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden (für Selection)
-    if (!forceImageBounds && imgData.isSlideshowImage && window.slideshowManager) {
-      const sm = window.slideshowManager
+    const sm = !forceImageBounds && imgData.isSlideshowImage ? getSlideshowManager() : null
+    if (sm) {
       // sichtbarer Bereich inkl. Übergang (Klick-Erkennung/Markierung)
       const transform = sm.getDisplayBounds
         ? sm.getDisplayBounds(imgData)

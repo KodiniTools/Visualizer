@@ -20,6 +20,7 @@ import { SLIDESHOW_BASE_COLOR_DEFAULT } from '../../slideshowBaseColor.js'
 import { computeSlideshowGradientAudio } from '../../slideshowGradientAudio.js'
 import { applySlideshowFillAudio, computeSlideshowFillAudio } from '../../slideshowFillAudio.js'
 import { computeSlideshowImageFillAudio, drawSlideshowImageFill } from '../../slideshowImageFill.js'
+import { getSlideshowManager } from '../../slideshowManagerBridge.js'
 
 /**
  * Ersetzt die laufende Slideshow gerade den Canvas- bzw. Workspace-Hintergrund?
@@ -28,7 +29,7 @@ import { computeSlideshowImageFillAudio, drawSlideshowImageFill } from '../../sl
  * @returns {boolean}
  */
 export function isBackgroundReplacedBySlideshow(target) {
-  const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+  const slideshow = getSlideshowManager()
   return Boolean(slideshow?.replacesBackground?.(target))
 }
 
@@ -37,7 +38,7 @@ export function isBackgroundReplacedBySlideshow(target) {
  * @param {'canvas'|'workspace'} target
  */
 function getSlideshowBaseColor(target) {
-  const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+  const slideshow = getSlideshowManager()
   const color =
     typeof slideshow?.getBaseColor === 'function'
       ? slideshow.getBaseColor(target)
@@ -50,7 +51,7 @@ function getSlideshowBaseColor(target) {
  * @param {'canvas'|'workspace'} target
  */
 function getSlideshowBaseGradient(target) {
-  const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+  const slideshow = getSlideshowManager()
   const gradient = slideshow?.getBaseGradient?.(target)
   return gradient?.enabled ? gradient : null
 }
@@ -60,7 +61,7 @@ function getSlideshowBaseGradient(target) {
  * @param {'canvas'|'workspace'} target
  */
 function getSlideshowFillAudio(target) {
-  const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+  const slideshow = getSlideshowManager()
   const audio = slideshow?.getBaseFillAudio?.(target)
   return audio?.enabled ? audio : null
 }
@@ -213,7 +214,7 @@ export class BackgroundRenderer {
     ctx.restore()
 
     // Eigenes Bild über Farbe/Verlauf (Ränder bei „Einpassen“ in Flächenfarbe)
-    const slideshow = typeof window !== 'undefined' ? window.slideshowManager : null
+    const slideshow = getSlideshowManager()
     const baseImage = slideshow?.getBaseImage?.(target)
     if (baseImage) {
       const change = baseImage.fill.audio?.enabled

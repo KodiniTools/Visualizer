@@ -1,15 +1,16 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { DragDropHandler } from '../../lib/canvasManager/interaction/DragDropHandler.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
 
 function setup({ fitted = false, moveWhole = false } = {}) {
   const committed = []
   const movedWhole = []
-  window.slideshowManager = {
+  setSlideshowManager({
     isFittedToWorkspace: () => fitted,
     commitImageBounds: (obj) => committed.push({ ...obj }),
     moveWholeSlideshow: moveWhole,
     moveSlideshow: (dx, dy) => movedWhole.push([dx, dy]),
-  }
+  })
   const manager = {
     canvas: { width: 1000, height: 1000 },
     currentAction: 'resize-br',
@@ -28,7 +29,7 @@ function setup({ fitted = false, moveWhole = false } = {}) {
 }
 
 afterEach(() => {
-  delete window.slideshowManager
+  setSlideshowManager(null)
 })
 
 describe('DragDropHandler – Slideshow-Bilder', () => {

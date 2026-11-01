@@ -7,6 +7,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
 
 const SILENT = {
   bass: 0,
@@ -41,7 +42,7 @@ const ALL_BUT = (source) =>
 const IMG = { width: 50, height: 100 }
 
 afterEach(() => {
-  delete window.slideshowManager
+  setSlideshowManager(null)
   delete window.audioAnalysisData
   vi.restoreAllMocks()
 })
@@ -54,7 +55,7 @@ function canvasShow(fill) {
   m.setBackgroundMode('canvas')
   m.setBackgroundColor('#224466')
   m.setBaseImage('canvas', fill, IMG)
-  window.slideshowManager = m
+  setSlideshowManager(m)
   return m
 }
 

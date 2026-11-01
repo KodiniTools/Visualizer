@@ -6,6 +6,9 @@
  * `this` ist die CanvasManager-Instanz (Methoden werden per applyMethods()
  * auf CanvasManager.prototype übertragen).
  */
+
+import { getSlideshowManager } from '../../slideshowManagerBridge.js'
+
 export class SelectionMethods {
   /**
    * Selection Listener registrieren
@@ -96,8 +99,8 @@ export class SelectionMethods {
 
     if (obj.type === 'image') {
       // Slideshow-Bilder: sichtbarer Bereich inkl. Übergang (siehe getDisplayBounds)
-      if (obj.isSlideshowImage && window.slideshowManager) {
-        const sm = window.slideshowManager
+      const sm = obj.isSlideshowImage ? getSlideshowManager() : null
+      if (sm) {
         const transform = sm.getDisplayBounds
           ? sm.getDisplayBounds(obj)
           : sm.getSelectionBounds(obj)

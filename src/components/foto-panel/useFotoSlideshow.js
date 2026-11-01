@@ -22,6 +22,7 @@ import {
   createSlideshowAdjustmentsApi,
   createBoundsPersistQueue,
 } from './slideshowAdjustmentsApi.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
 
 /**
  * Slideshow-Verdrahtung des FotoPanels: SlideshowManager erzeugen, Start/
@@ -121,8 +122,7 @@ export function useFotoSlideshow({
     slideshowIsPaused.value = false
     slideshowCurrentIndex.value = 0
     slideshowTotalImages.value = 0
-    // ✨ Global entfernen wenn gestoppt
-    window.slideshowManager = null
+    setSlideshowManager(null)
   }
 
   function initSlideshowManager() {
@@ -176,8 +176,8 @@ export function useFotoSlideshow({
       },
     })
 
-    // ✨ Global verfügbar machen für Maus-Interaktion
-    window.slideshowManager = slideshowManagerRef.value
+    // Für Canvas-Rendering und Maus-Interaktion anmelden
+    setSlideshowManager(slideshowManagerRef.value)
 
     console.log('[Slideshow] SlideshowManager initialisiert')
   }
@@ -247,8 +247,8 @@ export function useFotoSlideshow({
       slideshowIsActive.value = true
       slideshowIsPaused.value = false
       slideshowTotalImages.value = images.length
-      // ✨ Global verfügbar machen für Maus-Interaktion
-      window.slideshowManager = slideshowManagerRef.value
+      // Für Canvas-Rendering und Maus-Interaktion anmelden
+      setSlideshowManager(slideshowManagerRef.value)
       toastStore.success(t('slideshow.title') + ' gestartet')
       // Auswahl in beiden Galerien aufheben nach dem Start
       deselectAllImages()

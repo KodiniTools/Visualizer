@@ -11,6 +11,7 @@ import { SlideshowManager } from '../../lib/slideshowManager.js'
 import { MultiImageManager } from '../../lib/multiImageManager.js'
 import { FotoManager } from '../../lib/fotoManager.js'
 import { resolveSlideshowAudioReactive } from '../../lib/slideshowAudio.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
 
 const WS = { x: 20, y: 10, width: 40, height: 80 }
 const SILENT = {
@@ -37,7 +38,7 @@ const HIT = {
 }
 
 afterEach(() => {
-  delete window.slideshowManager
+  setSlideshowManager(null)
   delete window.audioAnalysisData
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
@@ -89,7 +90,7 @@ describe('Workspace-Modus – Quelle der Fläche', () => {
   it('Canvas-Farbhintergrund bleibt, Fläche liegt im Workspace-Bereich', () => {
     const show = workspaceShow()
     show.setWorkspaceColor('#102030')
-    window.slideshowManager = show
+    setSlideshowManager(show)
     const { fills } = renderWorkspace()
     expect(fills).toEqual([['canvas-color'], ['#102030', 20, 10, 40, 80]])
   })
@@ -99,7 +100,7 @@ describe('Workspace-Modus – Quelle der Fläche', () => {
     const show = workspaceShow()
     show.setWorkspaceColor('#000000')
     show.setBaseFillAudio('workspace', { enabled: true, source: 'midOnset', brightness: 100 })
-    window.slideshowManager = show
+    setSlideshowManager(show)
     window.audioAnalysisData = { ...SILENT, bass: 255, onsetAll: 1, onsetBass: 1 }
     expect(renderWorkspace().fills[1]).toEqual(['#000000', 20, 10, 40, 80])
   })
@@ -112,7 +113,7 @@ describe('Workspace-Modus – Quelle der Fläche', () => {
       show.setBaseFillAudio('workspace', { enabled: true, source, brightness: 100 })
       // Canvas-Fläche hat eine andere Quelle – darf den Workspace nicht beeinflussen
       show.setBaseFillAudio('canvas', { enabled: true, source: 'bass', brightness: 100 })
-      window.slideshowManager = show
+      setSlideshowManager(show)
       window.audioAnalysisData = { ...SILENT, ...HIT[source] }
       const [color, ...rect] = renderWorkspace().fills[1]
       expect(rect).toEqual([20, 10, 40, 80])
@@ -130,7 +131,7 @@ describe('Workspace-Modus – Quelle der Fläche', () => {
         type: 'radial',
         audio: { enabled: true, source, pulse: 100, rotation: 0 },
       })
-      window.slideshowManager = show
+      setSlideshowManager(show)
       window.audioAnalysisData = { ...SILENT, ...HIT[source] }
       const fill = renderWorkspace().fills[1][0]
       expect(fill.kind).toBe('radial')
@@ -148,7 +149,7 @@ describe('Workspace-Modus – Quelle der Fläche', () => {
       { enabled: true, fit: 'contain', audio: { enabled: true, source, zoom: 100, brightness: 0 } },
       img,
     )
-    window.slideshowManager = show
+    setSlideshowManager(show)
     window.audioAnalysisData = { ...SILENT, ...HIT[source] }
     const { images } = renderWorkspace()
     expect(images).toHaveLength(1)

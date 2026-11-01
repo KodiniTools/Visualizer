@@ -69,6 +69,7 @@ import { useSlideshowImageAdjustmentsStore } from '../../stores/slideshowImageAd
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore.js'
 import { SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest.js'
 import { getFotoPanel } from '../../lib/fotoPanelBridge.js'
+import { getSlideshowManager, setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
 
 function img(name, w = 100, h = 50) {
   return { src: `data:,${name}`, naturalWidth: w, naturalHeight: h, tag: name }
@@ -181,7 +182,7 @@ beforeEach(() => {
 afterEach(() => {
   wrapper?.unmount()
   wrapper = null
-  window.slideshowManager = null
+  setSlideshowManager(null)
   window.fotoPanelControls = undefined
   vi.useRealTimers()
   vi.restoreAllMocks()
@@ -451,7 +452,8 @@ describe('FotoPanel – Slideshow', () => {
     expect(managers).toHaveLength(0)
     vi.advanceTimersByTime(1000)
     expect(managers).toHaveLength(1)
-    expect(toRaw(window.slideshowManager)).toBe(latestManager())
+    expect(toRaw(getSlideshowManager())).toBe(latestManager())
+    expect(window.slideshowManager).toBe(getSlideshowManager())
     expect(latestManager().args).toEqual({
       multiImageManager: m.multiImageManager,
       fotoManager: m.fotoManager,
@@ -478,7 +480,7 @@ describe('FotoPanel – Slideshow', () => {
     await nextTick()
     expect(slideshow().props()).toMatchObject({ isActive: true, totalImages: 2 })
     expect(useSlideshowPopover()).toMatchObject({ active: true, imageCount: 2 })
-    expect(toRaw(window.slideshowManager)).toBe(mgr)
+    expect(toRaw(getSlideshowManager())).toBe(mgr)
     expect(useImageGallery().selectedImageCount.value).toBe(0)
     expect(toast.success).toHaveBeenCalled()
   })
@@ -513,13 +515,13 @@ describe('FotoPanel – Slideshow', () => {
     await nextTick()
     expect(mgr.stop).toHaveBeenCalled()
     expect(slideshow().props()).toMatchObject({ isActive: false, currentImageIndex: 0 })
-    expect(window.slideshowManager).toBeNull()
+    expect(getSlideshowManager()).toBeNull()
 
     await startWith()
     mgr.callbacks.onSlideshowComplete()
     await nextTick()
     expect(slideshow().props()).toMatchObject({ isActive: false, totalImages: 0 })
-    expect(window.slideshowManager).toBeNull()
+    expect(getSlideshowManager()).toBeNull()
   })
 
   it('Einstellungs-Events gehen an den Manager', async () => {

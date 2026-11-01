@@ -13,9 +13,10 @@ import {
   computeTransitionState,
   SLIDESHOW_TRANSITIONS,
 } from '../../lib/slideshowTransitions.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
 
 afterEach(() => {
-  delete window.slideshowManager
+  setSlideshowManager(null)
   vi.useRealTimers()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
@@ -65,7 +66,7 @@ function setup() {
     multiImageManager: mim,
   })
   const slideshow = new SlideshowManager(mim, fotoManager)
-  window.slideshowManager = slideshow
+  setSlideshowManager(slideshow)
   return { cm, mim, slideshow, canvas }
 }
 

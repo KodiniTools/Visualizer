@@ -8,6 +8,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
 
 const SILENT = {
   bass: 0,
@@ -46,7 +47,7 @@ const PEAK_TIME = Math.PI / 2 / 0.002
 const HALF_SWING_TIME = Math.PI / 6 / 0.002
 
 afterEach(() => {
-  delete window.slideshowManager
+  setSlideshowManager(null)
   delete window.audioAnalysisData
   vi.useRealTimers()
   vi.restoreAllMocks()
@@ -60,7 +61,7 @@ function canvasShow(gradient) {
   m.setBackgroundMode('canvas')
   m.setBackgroundColor('#112233')
   m.setBaseGradient('canvas', { enabled: true, color2: '#ddeeff', ...gradient })
-  window.slideshowManager = m
+  setSlideshowManager(m)
   return m
 }
 

@@ -1,5 +1,7 @@
 // DragDropHandler.js - Drag & Drop und Resize-Operationen
 
+import { getSlideshowManager } from '../../slideshowManagerBridge.js'
+
 /**
  * DragDropHandler - Verantwortlich für Drag & Drop und Resize-Operationen
  *
@@ -29,7 +31,7 @@ export class DragDropHandler {
     const relDy = dy / this.manager.canvas.height
 
     // Slideshow-Bilder: jedes Bild hat eigene Position (im Workspace-Modus fest)
-    const slideshow = obj.isSlideshowImage ? window.slideshowManager : null
+    const slideshow = obj.isSlideshowImage ? getSlideshowManager() : null
     if (slideshow?.isFittedToWorkspace()) return
     if (slideshow && Boolean(options.shiftKey) !== Boolean(slideshow.moveWholeSlideshow)) {
       slideshow.moveSlideshow(relDx, relDy)
@@ -212,7 +214,7 @@ export class DragDropHandler {
   resizeImage(obj, dx, dy) {
     // Slideshow-Bilder: wie normale Bilder skalieren (Griff folgt der Maus),
     // Ergebnis als eigene Größe des Bildes merken. Im Workspace-Modus fest.
-    const slideshow = obj.isSlideshowImage ? window.slideshowManager : null
+    const slideshow = obj.isSlideshowImage ? getSlideshowManager() : null
     if (slideshow?.isFittedToWorkspace()) return
 
     // Unterstützung für Videos und Bilder

@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { ref } from 'vue'
 import { useCanvasImages } from '../../composables/useCanvasImages.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
 
 afterEach(() => {
-  delete window.slideshowManager
+  setSlideshowManager(null)
   vi.restoreAllMocks()
 })
 
@@ -20,7 +21,7 @@ describe('Leiste „Bilder auf Canvas“ – Slideshow-Bild anklicken', () => {
   const img = { id: 7, isSlideshowImage: true, slideshow: { imageIndex: 2 } }
 
   it('pausiert → Einstellungen des Bildes öffnen (Event mit Index)', () => {
-    window.slideshowManager = { isPaused: true }
+    setSlideshowManager({ isPaused: true })
     const handler = vi.fn()
     window.addEventListener('slideshow:edit-image', handler)
     setup().selectCanvasImage(img)
@@ -32,9 +33,9 @@ describe('Leiste „Bilder auf Canvas“ – Slideshow-Bild anklicken', () => {
   it('läuft oder normales Bild → kein Event', () => {
     const handler = vi.fn()
     window.addEventListener('slideshow:edit-image', handler)
-    window.slideshowManager = { isPaused: false }
+    setSlideshowManager({ isPaused: false })
     setup().selectCanvasImage(img)
-    window.slideshowManager = { isPaused: true }
+    setSlideshowManager({ isPaused: true })
     setup().selectCanvasImage({ id: 8 })
     window.removeEventListener('slideshow:edit-image', handler)
     expect(handler).not.toHaveBeenCalled()

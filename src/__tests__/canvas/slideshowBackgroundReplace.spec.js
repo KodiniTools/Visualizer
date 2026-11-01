@@ -8,9 +8,10 @@ import { SelectionManager } from '../../lib/canvasManager/interaction/SelectionM
 import { MultiImageManager } from '../../lib/multiImageManager.js'
 import { FotoManager } from '../../lib/fotoManager.js'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
 
 afterEach(() => {
-  delete window.slideshowManager
+  setSlideshowManager(null)
   vi.useRealTimers()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
@@ -223,7 +224,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
   })
 
   it('Canvas-Modus: Hintergrundbild/-video werden ersetzt, Workspace bleibt', () => {
-    window.slideshowManager = slideshowWith('canvas')
+    setSlideshowManager(slideshowWith('canvas'))
     const { r, ctx, drawn, fills } = rendererSetup()
     r.drawBackground(ctx)
     expect(drawn).toEqual(['workspaceImage', 'workspaceVideo'])
@@ -231,7 +232,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
   })
 
   it('Workspace-Modus: nur Workspace-Hintergrund wird ersetzt', () => {
-    window.slideshowManager = slideshowWith('workspace')
+    setSlideshowManager(slideshowWith('workspace'))
     const { r, ctx, drawn } = rendererSetup()
     r.drawBackground(ctx)
     expect(drawn).toEqual(['image', 'video'])
@@ -243,7 +244,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
       slideshowWith('canvas', { active: false }),
       slideshowWith('workspace', { images: 0 }),
     ]) {
-      window.slideshowManager = s
+      setSlideshowManager(s)
       const { r, ctx, drawn } = rendererSetup()
       r.drawBackground(ctx)
       expect(drawn).toEqual(['image', 'video', 'workspaceImage', 'workspaceVideo'])
@@ -253,7 +254,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
   it('Fläche nimmt die eingestellte Farbe an (Canvas ganz, Workspace im Bereich)', () => {
     const canvasShow = slideshowWith('canvas')
     canvasShow.setBackgroundColor('#336699')
-    window.slideshowManager = canvasShow
+    setSlideshowManager(canvasShow)
     let setup = rendererSetup()
     setup.r.drawBackground(setup.ctx)
     expect(setup.fills).toEqual([['#336699', 0, 0, 10, 10]])
@@ -262,7 +263,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     const wsShow = slideshowWith('workspace')
     wsShow.setBackgroundColor('#ff0000')
     wsShow.setWorkspaceColor('#00aa00')
-    window.slideshowManager = wsShow
+    setSlideshowManager(wsShow)
     setup = rendererSetup()
     setup.manager.getWorkspaceBounds = () => ({ x: 2, y: 1, width: 4, height: 8 })
     setup.r.drawBackground(setup.ctx)
@@ -273,7 +274,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
   it('Workspace-Fläche auch ohne Workspace-Hintergrundbild', () => {
     const wsShow = slideshowWith('workspace')
     wsShow.setWorkspaceColor('#abcdef')
-    window.slideshowManager = wsShow
+    setSlideshowManager(wsShow)
     const { r, ctx, drawn, fills, manager } = rendererSetup()
     manager.workspaceBackground = null
     manager.workspaceVideoBackground = null
@@ -292,7 +293,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
   it('Canvas-Modus mit Farbhintergrund + Video: beides wird durch die Fläche ersetzt', () => {
     const show = slideshowWith('canvas')
     show.setBackgroundColor('#00ff00')
-    window.slideshowManager = show
+    setSlideshowManager(show)
     const { r, ctx, drawn, fills, manager } = rendererSetup()
     manager.background = '#123456'
     r._drawColorBackground = vi.fn()
@@ -344,7 +345,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     show.setBaseGradient('workspace', { enabled: true, color2: '#445566', type: 'radial' })
     show.setBaseGradient('canvas', { enabled: true, color2: '#999999' })
     expect(show.getBaseGradient('canvas').color2).toBe('#999999')
-    window.slideshowManager = show
+    setSlideshowManager(show)
     const setup = rendererSetup()
     const fills = []
     setup.ctx.createLinearGradient = () => ({ addColorStop() {} })
@@ -370,7 +371,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     show.setBackgroundColor('#000000')
     show.setBaseFillAudio('canvas', { enabled: true, brightness: 100, hue: 0 })
     expect(show.getBaseFillAudio('workspace').enabled).toBe(false)
-    window.slideshowManager = show
+    setSlideshowManager(show)
     window.audioAnalysisData = { bass: 0, mid: 0, treble: 0, volume: 0 }
     let setup = rendererSetup()
     setup.r.drawBackground(setup.ctx)
@@ -392,7 +393,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     show.setBaseImage('workspace', { enabled: true })
     expect(show.getBaseImage('workspace').image).toBe(img)
     expect(show.getBaseImage('canvas')).toBeNull()
-    window.slideshowManager = show
+    setSlideshowManager(show)
 
     const setup = rendererSetup()
     const order = []
@@ -422,7 +423,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     const show = slideshowWith('canvas')
     const img = { width: 10, height: 10 }
     show.setBaseImage('canvas', { enabled: true }, img)
-    window.slideshowManager = show
+    setSlideshowManager(show)
     const { r, ctx, manager } = rendererSetup()
     manager.background = '#123456'
     manager.videoBackground = null
@@ -449,7 +450,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
   it('Canvas-Modus: gewählte Farbe ersetzt auch einen Farbhintergrund', () => {
     const show = slideshowWith('canvas')
     show.setBackgroundColor('#ff0000')
-    window.slideshowManager = show
+    setSlideshowManager(show)
     const { r, ctx, fills, manager } = rendererSetup()
     manager.background = '#ffffff'
     manager.videoBackground = null
@@ -459,7 +460,7 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     expect(fills).toEqual([['#ff0000', 0, 0, 10, 10]])
 
     // ohne Slideshow als Hintergrund: normaler Farbhintergrund
-    window.slideshowManager = slideshowWith('none')
+    setSlideshowManager(slideshowWith('none'))
     r.drawBackground(ctx)
     expect(r._drawColorBackground).toHaveBeenCalledTimes(1)
   })
@@ -474,9 +475,9 @@ describe('Slideshow ersetzt den Hintergrund', () => {
       getWorkspaceBounds: () => ({ x: 0, y: 0, width: 100, height: 100 }),
     })
     expect(sel.getObjectAtPos(5, 5)).toBe(workspaceBackground)
-    window.slideshowManager = slideshowWith('workspace')
+    setSlideshowManager(slideshowWith('workspace'))
     expect(sel.getObjectAtPos(5, 5)).toBe(background)
-    window.slideshowManager = slideshowWith('canvas')
+    setSlideshowManager(slideshowWith('canvas'))
     expect(sel.getObjectAtPos(5, 5)).toBe(workspaceBackground)
   })
 })

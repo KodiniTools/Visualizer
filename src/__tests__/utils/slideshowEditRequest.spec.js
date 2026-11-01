@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { requestSlideshowImageEdit, SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
 
 afterEach(() => {
-  delete window.slideshowManager
+  setSlideshowManager(null)
 })
 
 describe('requestSlideshowImageEdit (Leiste + Canvas-Klick)', () => {
@@ -11,9 +12,9 @@ describe('requestSlideshowImageEdit (Leiste + Canvas-Klick)', () => {
   it('nur bei pausierter Slideshow und Slideshow-Bildern', () => {
     const handler = vi.fn()
     window.addEventListener(SLIDESHOW_EDIT_EVENT, handler)
-    window.slideshowManager = { isPaused: false }
+    setSlideshowManager({ isPaused: false })
     expect(requestSlideshowImageEdit(img)).toBe(false)
-    window.slideshowManager = { isPaused: true }
+    setSlideshowManager({ isPaused: true })
     expect(requestSlideshowImageEdit({ id: 1 })).toBe(false)
     expect(requestSlideshowImageEdit(null)).toBe(false)
     expect(requestSlideshowImageEdit(img)).toBe(true)

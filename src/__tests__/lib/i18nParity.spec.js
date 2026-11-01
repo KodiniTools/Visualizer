@@ -136,3 +136,16 @@ describe('i18n – Text-Manager ohne fest verdrahtete Texte', () => {
     expect(hardcodedTemplateText(read(f))).toEqual([])
   })
 })
+
+describe('i18n – Kachel-Hintergrund ohne fest verdrahtete Texte', () => {
+  it.each([
+    'components/BackgroundTilesPanel.vue',
+    'components/background-tiles/SelectedTileEditor.vue',
+    'components/background-tiles/TileGridControls.vue',
+    'components/background-tiles/TileImageSection.vue',
+    'components/background-tiles/TilePresetsSection.vue',
+    'components/background-tiles/TileGalleryModal.vue',
+  ])('%s', (f) => {
+    expect(hardcodedTemplateText(read(f))).toEqual([])
+  })
+})

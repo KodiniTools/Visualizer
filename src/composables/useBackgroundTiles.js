@@ -49,8 +49,9 @@ export function useBackgroundTiles() {
   }
 
   // Kachel-Modus aktivieren/deaktivieren
-  function toggleTiles(event) {
-    tilesStore.setTilesEnabled(event.target.checked)
+  /** @param {boolean} enabled */
+  function setTilesEnabled(enabled) {
+    tilesStore.setTilesEnabled(enabled)
     redraw()
   }
 
@@ -333,7 +334,7 @@ export function useBackgroundTiles() {
     redraw,
     gridStyle,
     getTileStyle,
-    toggleTiles,
+    setTilesEnabled,
     setTileCount,
     setTileGap,
     selectTile,

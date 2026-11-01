@@ -154,6 +154,7 @@ vi.mock('../../lib/visualizers/imageRegistry.js', () => ({
   resolveEffectiveImageId: (id) => id ?? 'auto-img',
 }))
 
+import { getCanvasScreenshot } from '../../lib/canvasScreenshotBridge.js'
 import { useRenderLoop } from '../../composables/useRenderLoop.js'
 
 // ─── Test-Umgebung ──────────────────────────────────────────────────────────
@@ -524,9 +525,12 @@ describe('useRenderLoop – Charakterisierung', () => {
     const { loop, canvasManager } = setup({ workspace: true })
     runFrames(loop, 1)
     loop.exposeGlobals({ value: canvasManager })
-    const blob = await window.takeCanvasScreenshot('image/jpeg', 0.8)
+    expect(getCanvasScreenshot()).toBe(window.takeCanvasScreenshot)
+    const blob = await getCanvasScreenshot()('image/jpeg', 0.8)
     expect(blob).toEqual({ tag: 'blob' })
     expect(log).toMatchSnapshot()
+    loop.cleanup()
+    expect(getCanvasScreenshot()).toBeNull()
   })
 
   it('stop und cleanup', () => {

@@ -91,18 +91,6 @@ export function useRecorderSetup({
     recorderStore.setRecorderRefs(recordingCanvas, audio, combinedMediaStream, null)
   }
 
-  function exposeRecorderGlobals() {
-    window.getCanvasStreamForRecorder = function () {
-      const existingStream = getRecordingCanvasStream()
-      if (existingStream) {
-        existingStream.getTracks().forEach((track) => track.stop())
-      }
-      const stream = getRecordingCanvas().captureStream(0)
-      setRecordingCanvasStream(stream)
-      return stream
-    }
-  }
-
   function handleRecordingStateChange(isRecording) {
     if (isRecording) {
       setTimeout(() => startVisualizerLoop(), 100)
@@ -139,7 +127,6 @@ export function useRecorderSetup({
   return {
     applyRecordingCanvasMonkeyPatch,
     initializeRecorder,
-    exposeRecorderGlobals,
     handleRecordingStateChange,
   }
 }

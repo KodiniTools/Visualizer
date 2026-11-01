@@ -1328,6 +1328,7 @@ export default {
     replaceBackground: 'Hintergrund ersetzen',
     replaceWorkspaceBackground: 'Workspace-Hintergrund ersetzen',
     audioReactiveKept: 'Audio-Reactive Einstellungen werden übernommen',
+    currentBackground: 'Aktueller Hintergrund',
     selectWhatToReset: 'Wählen Sie, was zurückgesetzt werden soll',
     normalBackground: 'Hintergrund',
     workspaceBackground: 'Workspace',

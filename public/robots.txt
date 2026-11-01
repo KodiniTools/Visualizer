@@ -2,4 +2,4 @@ User-agent: *
 Allow: /visualizer/
 Disallow: /visualizer/internal
 
-Sitemap: https://kodinitools.com/visualizer/sitemap.xml
+Sitemap: https://kodinitools.com/sitemap.xml

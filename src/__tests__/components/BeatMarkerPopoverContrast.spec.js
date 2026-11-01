@@ -17,9 +17,11 @@ const css = readFileSync(
 ).split('<style scoped>')[1]
 const tokensCss = readFileSync(join(SRC, 'design-system/tokens-v2.css'), 'utf8')
 
+const escapeRe = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
 /** Deklarationen `--name: value` des Top-Level-Blocks mit genau diesem Selektor. */
 function block(src, selector) {
-  const re = new RegExp(`(?:^|\\n)${selector.replace(/[[\]'.]/g, '\\$&')}\\s*\\{([^}]*)\\}`)
+  const re = new RegExp(`(?:^|\\n)${escapeRe(selector)}\\s*\\{([^}]*)\\}`)
   const body = src.match(re)[1].replace(/\/\*[\s\S]*?\*\//g, '')
   const map = new Map()
   for (const d of body.split(';')) {
@@ -42,8 +44,7 @@ function resolveHex(value, theme) {
 }
 
 const rule = (sel) => {
-  const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return css.match(new RegExp(`(^|\\n)${esc} \\{([^}]*)\\}`))?.[2] ?? null
+  return css.match(new RegExp(`(^|\\n)${escapeRe(sel)} \\{([^}]*)\\}`))?.[2] ?? null
 }
 const decl = (body, prop) => body?.match(new RegExp(`(?:^|\\s)${prop}: ([^;]+);`))?.[1]
 

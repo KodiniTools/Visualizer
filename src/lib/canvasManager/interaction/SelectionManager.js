@@ -11,6 +11,7 @@
  * - Text/Image Selection Bounds
  */
 import { isBackgroundReplacedBySlideshow } from '../rendering/BackgroundRenderer.js'
+import { getResizeHandles, isPointInRect } from '../../canvasObjects/geometry.js'
 
 export class SelectionManager {
   constructor(canvasManager) {
@@ -182,28 +183,14 @@ export class SelectionManager {
    * Prüft ob ein Punkt innerhalb eines Rechtecks liegt
    */
   isPointInRect(x, y, rect) {
-    return x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height
+    return isPointInRect(x, y, rect)
   }
 
   /**
    * Berechnet alle Resize-Handles für ein Objekt
    */
   getResizeHandles(bounds) {
-    const { x, y, width, height } = bounds
-    const hs = this.HANDLE_SIZE
-    const centerX = x + width / 2
-    const centerY = y + height / 2
-
-    return {
-      'resize-tl': { x: x - hs / 2, y: y - hs / 2, width: hs, height: hs },
-      'resize-tr': { x: x + width - hs / 2, y: y - hs / 2, width: hs, height: hs },
-      'resize-bl': { x: x - hs / 2, y: y + height - hs / 2, width: hs, height: hs },
-      'resize-br': { x: x + width - hs / 2, y: y + height - hs / 2, width: hs, height: hs },
-      'resize-t': { x: centerX - hs / 2, y: y - hs / 2, width: hs, height: hs },
-      'resize-b': { x: centerX - hs / 2, y: y + height - hs / 2, width: hs, height: hs },
-      'resize-l': { x: x - hs / 2, y: centerY - hs / 2, width: hs, height: hs },
-      'resize-r': { x: x + width - hs / 2, y: centerY - hs / 2, width: hs, height: hs },
-    }
+    return getResizeHandles(bounds, this.HANDLE_SIZE)
   }
 
   /**

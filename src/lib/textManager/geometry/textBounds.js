@@ -8,6 +8,7 @@
  * @module textManager/geometry/textBounds
  */
 import { applyTextStyleForMeasurement } from '../style/textStyle.js'
+import { isPointInRect } from '../../canvasObjects/geometry.js'
 
 /**
  * Findet das oberste Text-Objekt an einer bestimmten Position
@@ -137,13 +138,5 @@ export function getObjectBounds(textObj, targetCanvas) {
   }
 }
 
-/**
- * Prüft ob ein Punkt in einem Rechteck liegt (Ränder inklusive)
- * @param {number} x
- * @param {number} y
- * @param {{x: number, y: number, width: number, height: number}} rect
- * @returns {boolean}
- */
-export function isPointInRect(x, y, rect) {
-  return x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height
-}
+/** Hit-Test Punkt in Rechteck (gemeinsam mit Bild/Video, siehe canvasObjects/geometry.js) */
+export { isPointInRect }

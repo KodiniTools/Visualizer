@@ -16,6 +16,14 @@ import {
   drawAudioReactiveOverlays,
   drawMediaWithAudioReactive,
 } from './canvasManager/rendering/audioReactiveDraw.js'
+import {
+  findResizeHandleAt,
+  getDeleteButtonBounds,
+  getResizeHandles,
+  isPointInRect,
+} from './canvasObjects/geometry.js'
+import { getEntranceTransform } from './canvasObjects/entranceAnimation.js'
+import { moveToBack, moveToFront } from './canvasObjects/zOrder.js'
 
 export class VideoManager {
   constructor(canvas, callbacks = {}) {
@@ -306,101 +314,10 @@ export class VideoManager {
   }
 
   /**
-   * Berechnet die Animations-Transformation
+   * Transform der Einblend-Animation (siehe canvasObjects/entranceAnimation.js)
    */
   getAnimationTransform(videoData) {
-    if (!videoData.animation || !videoData.animation.active) {
-      return { opacity: 1, translateX: 0, translateY: 0, scale: 1, rotation: 0 }
-    }
-
-    const progress = videoData.animation.progress
-    const eased = this._easeOutCubic(progress)
-    const type = videoData.animation.type
-
-    switch (type) {
-      case 'fade':
-        return { opacity: progress, translateX: 0, translateY: 0, scale: 1, rotation: 0 }
-      case 'slideLeft':
-        return {
-          opacity: eased,
-          translateX: (1 - eased) * this.canvas.width * 0.3,
-          translateY: 0,
-          scale: 1,
-          rotation: 0,
-        }
-      case 'slideRight':
-        return {
-          opacity: eased,
-          translateX: (eased - 1) * this.canvas.width * 0.3,
-          translateY: 0,
-          scale: 1,
-          rotation: 0,
-        }
-      case 'slideUp':
-        return {
-          opacity: eased,
-          translateX: 0,
-          translateY: (1 - eased) * this.canvas.height * 0.3,
-          scale: 1,
-          rotation: 0,
-        }
-      case 'slideDown':
-        return {
-          opacity: eased,
-          translateX: 0,
-          translateY: (eased - 1) * this.canvas.height * 0.3,
-          scale: 1,
-          rotation: 0,
-        }
-      case 'zoom':
-        return {
-          opacity: eased,
-          translateX: 0,
-          translateY: 0,
-          scale: 0.3 + eased * 0.7,
-          rotation: 0,
-        }
-      case 'bounce':
-        const bounceEase = this._easeOutBounce(progress)
-        return {
-          opacity: 1,
-          translateX: 0,
-          translateY: (1 - bounceEase) * -this.canvas.height * 0.2,
-          scale: 1,
-          rotation: 0,
-        }
-      case 'spin':
-        return {
-          opacity: eased,
-          translateX: 0,
-          translateY: 0,
-          scale: eased,
-          rotation: (1 - eased) * 360,
-        }
-      case 'elastic':
-        const elasticEase = this._easeOutElastic(progress)
-        return { opacity: 1, translateX: 0, translateY: 0, scale: elasticEase, rotation: 0 }
-      default:
-        return { opacity: 1, translateX: 0, translateY: 0, scale: 1, rotation: 0 }
-    }
-  }
-
-  _easeOutCubic(t) {
-    return 1 - Math.pow(1 - t, 3)
-  }
-
-  _easeOutBounce(t) {
-    const n1 = 7.5625
-    const d1 = 2.75
-    if (t < 1 / d1) return n1 * t * t
-    if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75
-    if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375
-    return n1 * (t -= 2.625 / d1) * t + 0.984375
-  }
-
-  _easeOutElastic(t) {
-    const c4 = (2 * Math.PI) / 3
-    return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1
+    return getEntranceTransform(videoData.animation, this.canvas)
   }
 
   /**
@@ -866,39 +783,15 @@ export class VideoManager {
     ctx.restore()
   }
 
-  /**
-   * Berechnet Resize-Handles
-   */
   getResizeHandles(bounds) {
-    const hs = 10
-    const { x, y, width, height } = bounds
-    const centerX = x + width / 2
-    const centerY = y + height / 2
-
-    return {
-      'resize-tl': { x: x - hs / 2, y: y - hs / 2, width: hs, height: hs },
-      'resize-tr': { x: x + width - hs / 2, y: y - hs / 2, width: hs, height: hs },
-      'resize-bl': { x: x - hs / 2, y: y + height - hs / 2, width: hs, height: hs },
-      'resize-br': { x: x + width - hs / 2, y: y + height - hs / 2, width: hs, height: hs },
-      'resize-t': { x: centerX - hs / 2, y: y - hs / 2, width: hs, height: hs },
-      'resize-b': { x: centerX - hs / 2, y: y + height - hs / 2, width: hs, height: hs },
-      'resize-l': { x: x - hs / 2, y: centerY - hs / 2, width: hs, height: hs },
-      'resize-r': { x: x + width - hs / 2, y: centerY - hs / 2, width: hs, height: hs },
-    }
+    return getResizeHandles(bounds)
   }
 
   /**
-   * Berechnet Löschbutton-Position
+   * Berechnet die Position des Löschbuttons
    */
   getDeleteButtonBounds(objectBounds) {
-    const size = 20
-    const offset = size / 2
-    return {
-      x: objectBounds.x + objectBounds.width - offset,
-      y: objectBounds.y - offset,
-      width: size,
-      height: size,
-    }
+    return getDeleteButtonBounds(objectBounds)
   }
 
   /**
@@ -917,30 +810,20 @@ export class VideoManager {
   }
 
   /**
-   * Prüft ob Punkt in Rechteck liegt
+   * Prüft ob ein Punkt in einem Rechteck liegt
    */
   isPointInRect(x, y, rect) {
-    return x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height
+    return isPointInRect(x, y, rect)
   }
 
   /**
-   * Findet Handle an Position
+   * Findet ein Handle an einer bestimmten Position
    */
   findHandleAt(x, y) {
     if (!this.selectedVideo || this.selectedVideo.type !== 'video') return null
 
     const bounds = this.getVideoBounds(this.selectedVideo)
-    if (!bounds) return null
-
-    const handles = this.getResizeHandles(bounds)
-
-    for (const key in handles) {
-      if (this.isPointInRect(x, y, handles[key])) {
-        return key
-      }
-    }
-
-    return null
+    return bounds ? findResizeHandleAt(x, y, bounds) : null
   }
 
   /**
@@ -1006,31 +889,29 @@ export class VideoManager {
   getVideoCount() {
     return this.videos.length
   }
-
+  /**
+   * Bringt ein Video ganz nach vorne
+   * @returns {boolean} true wenn erfolgreich
+   */
   bringToFront(video) {
     if (!video) video = this.selectedVideo
     if (!video) return false
 
-    const index = this.getVideoIndex(video)
-    if (index === -1 || index === this.videos.length - 1) return false
-
-    this.videos.splice(index, 1)
-    this.videos.push(video)
+    if (!moveToFront(this.videos, this.getVideoIndex(video), video)) return false
 
     this.redrawCallback()
     this.onVideoChanged()
     return true
   }
-
+  /**
+   * Bringt ein Video ganz nach hinten
+   * @returns {boolean} true wenn erfolgreich
+   */
   sendToBack(video) {
     if (!video) video = this.selectedVideo
     if (!video) return false
 
-    const index = this.getVideoIndex(video)
-    if (index === -1 || index === 0) return false
-
-    this.videos.splice(index, 1)
-    this.videos.unshift(video)
+    if (!moveToBack(this.videos, this.getVideoIndex(video), video)) return false
 
     this.redrawCallback()
     this.onVideoChanged()

@@ -20,6 +20,14 @@ import {
   drawPlain,
   drawVignette,
 } from './multiImage/drawSteps.js'
+import {
+  findResizeHandleAt,
+  getDeleteButtonBounds,
+  getResizeHandles,
+  isPointInRect,
+} from './canvasObjects/geometry.js'
+import { getEntranceTransform } from './canvasObjects/entranceAnimation.js'
+import { moveToBack, moveToFront } from './canvasObjects/zOrder.js'
 
 export class MultiImageManager {
   constructor(canvas, callbacks = {}) {
@@ -271,122 +279,10 @@ export class MultiImageManager {
   }
 
   /**
-   * ✨ NEU: Berechnet die Animations-Transformation für ein Bild
-   * Gibt { opacity, translateX, translateY, scale, rotation } zurück
+   * Transform der Einblend-Animation (siehe canvasObjects/entranceAnimation.js)
    */
   getAnimationTransform(imageData) {
-    if (!imageData.animation || !imageData.animation.active) {
-      return { opacity: 1, translateX: 0, translateY: 0, scale: 1, rotation: 0 }
-    }
-
-    const progress = imageData.animation.progress
-    const eased = this._easeOutCubic(progress)
-    const type = imageData.animation.type
-
-    switch (type) {
-      case 'fade':
-        // Linear für gleichmäßiges Einblenden über die gesamte Dauer
-        return { opacity: progress, translateX: 0, translateY: 0, scale: 1, rotation: 0 }
-
-      case 'slideLeft':
-        return {
-          opacity: eased,
-          translateX: (1 - eased) * this.canvas.width * 0.3,
-          translateY: 0,
-          scale: 1,
-          rotation: 0,
-        }
-
-      case 'slideRight':
-        return {
-          opacity: eased,
-          translateX: (eased - 1) * this.canvas.width * 0.3,
-          translateY: 0,
-          scale: 1,
-          rotation: 0,
-        }
-
-      case 'slideUp':
-        return {
-          opacity: eased,
-          translateX: 0,
-          translateY: (1 - eased) * this.canvas.height * 0.3,
-          scale: 1,
-          rotation: 0,
-        }
-
-      case 'slideDown':
-        return {
-          opacity: eased,
-          translateX: 0,
-          translateY: (eased - 1) * this.canvas.height * 0.3,
-          scale: 1,
-          rotation: 0,
-        }
-
-      case 'zoom':
-        return {
-          opacity: eased,
-          translateX: 0,
-          translateY: 0,
-          scale: 0.3 + eased * 0.7,
-          rotation: 0,
-        }
-
-      case 'bounce':
-        const bounceEase = this._easeOutBounce(progress)
-        return {
-          opacity: 1,
-          translateX: 0,
-          translateY: (1 - bounceEase) * -this.canvas.height * 0.2,
-          scale: 1,
-          rotation: 0,
-        }
-
-      case 'spin':
-        return {
-          opacity: eased,
-          translateX: 0,
-          translateY: 0,
-          scale: eased,
-          rotation: (1 - eased) * 360,
-        }
-
-      case 'elastic':
-        const elasticEase = this._easeOutElastic(progress)
-        return { opacity: 1, translateX: 0, translateY: 0, scale: elasticEase, rotation: 0 }
-
-      default:
-        return { opacity: 1, translateX: 0, translateY: 0, scale: 1, rotation: 0 }
-    }
-  }
-
-  /**
-   * ✨ Easing-Funktionen für sanfte Animationen
-   */
-  _easeOutCubic(t) {
-    return 1 - Math.pow(1 - t, 3)
-  }
-
-  _easeOutBounce(t) {
-    const n1 = 7.5625
-    const d1 = 2.75
-
-    if (t < 1 / d1) {
-      return n1 * t * t
-    } else if (t < 2 / d1) {
-      return n1 * (t -= 1.5 / d1) * t + 0.75
-    } else if (t < 2.5 / d1) {
-      return n1 * (t -= 2.25 / d1) * t + 0.9375
-    } else {
-      return n1 * (t -= 2.625 / d1) * t + 0.984375
-    }
-  }
-
-  _easeOutElastic(t) {
-    const c4 = (2 * Math.PI) / 3
-
-    return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1
+    return getEntranceTransform(imageData.animation, this.canvas)
   }
 
   /**
@@ -814,39 +710,15 @@ export class MultiImageManager {
     }
   }
 
-  /**
-   * Berechnet die Skalierungs-Handles
-   */
   getResizeHandles(bounds) {
-    const hs = 10 // Handle size
-    const { x, y, width, height } = bounds
-    const centerX = x + width / 2
-    const centerY = y + height / 2
-
-    return {
-      'resize-tl': { x: x - hs / 2, y: y - hs / 2, width: hs, height: hs },
-      'resize-tr': { x: x + width - hs / 2, y: y - hs / 2, width: hs, height: hs },
-      'resize-bl': { x: x - hs / 2, y: y + height - hs / 2, width: hs, height: hs },
-      'resize-br': { x: x + width - hs / 2, y: y + height - hs / 2, width: hs, height: hs },
-      'resize-t': { x: centerX - hs / 2, y: y - hs / 2, width: hs, height: hs },
-      'resize-b': { x: centerX - hs / 2, y: y + height - hs / 2, width: hs, height: hs },
-      'resize-l': { x: x - hs / 2, y: centerY - hs / 2, width: hs, height: hs },
-      'resize-r': { x: x + width - hs / 2, y: centerY - hs / 2, width: hs, height: hs },
-    }
+    return getResizeHandles(bounds)
   }
 
   /**
    * Berechnet die Position des Löschbuttons
    */
   getDeleteButtonBounds(objectBounds) {
-    const size = 20
-    const offset = size / 2
-    return {
-      x: objectBounds.x + objectBounds.width - offset,
-      y: objectBounds.y - offset,
-      width: size,
-      height: size,
-    }
+    return getDeleteButtonBounds(objectBounds)
   }
 
   /**
@@ -870,7 +742,7 @@ export class MultiImageManager {
    * Prüft ob ein Punkt in einem Rechteck liegt
    */
   isPointInRect(x, y, rect) {
-    return x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height
+    return isPointInRect(x, y, rect)
   }
 
   /**
@@ -880,17 +752,7 @@ export class MultiImageManager {
     if (!this.selectedImage || this.selectedImage.type !== 'image') return null
 
     const bounds = this.getImageBounds(this.selectedImage)
-    if (!bounds) return null
-
-    const handles = this.getResizeHandles(bounds)
-
-    for (const key in handles) {
-      if (this.isPointInRect(x, y, handles[key])) {
-        return key
-      }
-    }
-
-    return null
+    return bounds ? findResizeHandleAt(x, y, bounds) : null
   }
 
   /**
@@ -1026,50 +888,30 @@ export class MultiImageManager {
   }
 
   /**
-   * Bringt ein Bild ganz nach vorne (oberste Ebene)
-   * @param {Object} image - Das Bild-Objekt
+   * Bringt ein Bild ganz nach vorne
    * @returns {boolean} true wenn erfolgreich
    */
   bringToFront(image) {
     if (!image) image = this.selectedImage
     if (!image) return false
 
-    const index = this.getImageIndex(image)
-    if (index === -1) return false
+    if (!moveToFront(this.images, this.getImageIndex(image), image)) return false
 
-    // Bereits ganz vorne?
-    if (index === this.images.length - 1) return false
-
-    // Entferne und füge am Ende hinzu
-    this.images.splice(index, 1)
-    this.images.push(image)
-
-    console.log('⬆️ Bild nach ganz vorne gebracht:', image.id)
     this.redrawCallback()
     this.onImageChanged()
     return true
   }
 
   /**
-   * Schickt ein Bild ganz nach hinten (unterste Ebene)
-   * @param {Object} image - Das Bild-Objekt
+   * Bringt ein Bild ganz nach hinten
    * @returns {boolean} true wenn erfolgreich
    */
   sendToBack(image) {
     if (!image) image = this.selectedImage
     if (!image) return false
 
-    const index = this.getImageIndex(image)
-    if (index === -1) return false
+    if (!moveToBack(this.images, this.getImageIndex(image), image)) return false
 
-    // Bereits ganz hinten?
-    if (index === 0) return false
-
-    // Entferne und füge am Anfang hinzu
-    this.images.splice(index, 1)
-    this.images.unshift(image)
-
-    console.log('⬇️ Bild nach ganz hinten geschickt:', image.id)
     this.redrawCallback()
     this.onImageChanged()
     return true

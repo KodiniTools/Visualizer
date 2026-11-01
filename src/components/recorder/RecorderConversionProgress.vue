@@ -25,9 +25,8 @@
 
     <!-- Download -->
     <div v-if="downloadUrl && status === 'completed'" class="download-actions">
-      <a
-        :href="downloadUrl"
-        :download="downloadFilename"
+      <button
+        type="button"
         class="mp4-download-btn"
         :class="{
           'gif-download-btn': variant === 'gif',
@@ -41,7 +40,7 @@
           <line x1="12" y1="15" x2="12" y2="3" />
         </svg>
         {{ downloadLabel }}
-      </a>
+      </button>
       <button
         class="btn-close-conversion"
         @click="$emit('dismiss')"
@@ -84,7 +83,6 @@ const props = defineProps({
   status: { type: String, required: true },
   progress: { type: Number, default: 0 },
   downloadUrl: { type: String, default: null },
-  downloadFilename: { type: String, default: null },
   errorMessage: { type: String, default: null },
   hasRetry: { type: Boolean, default: false },
 })
@@ -201,6 +199,14 @@ const currentLabel = computed(() => {
   transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.mp4-download-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 
 .mp4-download-btn svg {

@@ -1092,6 +1092,17 @@ export default {
     webmExport: 'WebM Export',
     downloadWebm: 'WebM Download',
     webmInfo: 'Smallest file size – ideal for web & landing pages',
+    // Save dialog
+    saveDialog: {
+      title: 'Save file',
+      description: 'Choose a file name. The extension is added automatically.',
+      filename: 'File name',
+      filenameRequired: 'Please enter a file name.',
+      locationHint:
+        'Your browser does not support choosing a folder. The file goes to your downloads folder, or the browser asks where to save it if that is enabled in its settings.',
+      saved: 'File saved',
+      saveFailed: 'Saving failed: {message}',
+    },
     // HQ Frame Export
     hqExport: 'HQ Frame Export',
     hqAutoCreate: 'HQ Export after recording',

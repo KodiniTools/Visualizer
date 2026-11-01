@@ -156,9 +156,8 @@
       :status="hqStatus"
       :progress="hqProgress"
       :download-url="hqVideoUrl"
-      :download-filename="hqFilename"
       :error-message="hqError"
-      @download="handleHqDownloadClick"
+      @download="saveExport('hq')"
       @dismiss="dismissHqExport(true)"
       @dismiss-error="dismissHqExport()"
     />
@@ -172,10 +171,9 @@
       :status="gifConversionStatus"
       :progress="gifConversionProgress"
       :download-url="convertedGifUrl"
-      :download-filename="convertedGifFilename"
       :error-message="gifConversionError"
       :has-retry="true"
-      @download="handleGifDownloadClick"
+      @download="saveExport('gif')"
       @dismiss="dismissGifConversion(true)"
       @dismiss-error="dismissGifConversion()"
       @retry="startGifConversion(recorderStore.lastRecording?.blob)"
@@ -208,11 +206,10 @@
         <span class="section-label">{{ t('recorder.webmExport') }}</span>
       </div>
       <div class="download-actions">
-        <a
-          :href="webmBlobUrl"
-          :download="webmFilename"
+        <button
+          type="button"
           class="mp4-download-btn webm-download-btn"
-          @click="handleWebmDownloadClick"
+          @click="saveExport('webm')"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -220,7 +217,7 @@
             <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
           {{ t('recorder.downloadWebm') }}
-        </a>
+        </button>
         <button class="btn-close-conversion" @click="dismissWebm" :title="t('common.close')">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -238,10 +235,9 @@
       :status="conversionStatus"
       :progress="conversionProgress"
       :download-url="convertedVideoUrl"
-      :download-filename="convertedFilename"
       :error-message="conversionError"
       :has-retry="true"
-      @download="handleDownloadClick"
+      @download="saveExport('mp4')"
       @dismiss="dismissConversion(true)"
       @dismiss-error="dismissConversion()"
       @retry="retryConversion"
@@ -278,6 +274,14 @@
   />
 
   <RecorderResultsModal @close="closeResults" />
+
+  <RecorderSaveDialog
+    :open="saveDialog.open"
+    :filename="saveDialog.filename"
+    :extension="saveDialog.extension || 'mp4'"
+    @confirm="confirmSave"
+    @cancel="cancelSave"
+  />
 </template>
 
 <script setup>
@@ -289,6 +293,7 @@ import RecorderSettingsPanel from './recorder/RecorderSettingsPanel.vue'
 import RecorderConversionProgress from './recorder/RecorderConversionProgress.vue'
 import RecorderConversionOverlay from './recorder/RecorderConversionOverlay.vue'
 import RecorderResultsModal from './recorder/RecorderResultsModal.vue'
+import RecorderSaveDialog from './recorder/RecorderSaveDialog.vue'
 import { checkServerHealth } from '../lib/videoApi.js'
 import { useRecordingTimer } from '../composables/useRecordingTimer.js'
 import { useMicrophoneToggle } from '../composables/useMicrophoneToggle.js'
@@ -296,6 +301,9 @@ import { useWebmExport } from '../composables/useWebmExport.js'
 import { useServerConversion } from '../composables/useServerConversion.js'
 import { useGifConversion } from '../composables/useGifConversion.js'
 import { useHqExport } from '../composables/useHqExport.js'
+import { useSaveDialog } from '../composables/useSaveDialog.js'
+import { timestampedFilename } from '../lib/saveFile.js'
+import { useToastStore } from '../stores/toastStore.js'
 
 const { t } = useI18n()
 const recorderStore = useRecorderStore()
@@ -313,15 +321,13 @@ const conversionQuality = ref('social')
 const { recordingDisplayTime, startTimer, pauseTimer, resumeTimer, stopTimer, destroyTimer } =
   useRecordingTimer()
 const { microphoneEnabled, isSwitchingSource, toggleMicrophone } = useMicrophoneToggle()
-const { webmBlobUrl, webmFilename, prepareWebmDownload, handleWebmDownloadClick, dismissWebm } =
-  useWebmExport()
+const { webmBlobUrl, prepareWebmDownload, handleWebmDownloadClick, dismissWebm } = useWebmExport()
 const {
   isConverting,
   conversionProgress,
   conversionStatus,
   conversionError,
   convertedVideoUrl,
-  convertedFilename,
   startServerConversion,
   retryConversion,
   cancelConversion,
@@ -337,7 +343,6 @@ const {
   gifConversionStatus,
   gifConversionError,
   convertedGifUrl,
-  convertedGifFilename,
   startGifConversion,
   dismissGifConversion,
   handleGifDownloadClick,
@@ -350,13 +355,78 @@ const {
   hqProgress,
   hqError,
   hqVideoUrl,
-  hqFilename,
   capturedFrameCount,
   startHqCapture,
   finishHqExport,
   dismissHqExport,
   handleHqDownloadClick,
 } = useHqExport()
+const {
+  dialog: saveDialog,
+  requestSave,
+  confirm: confirmSave,
+  cancel: cancelSave,
+} = useSaveDialog()
+const toastStore = useToastStore()
+
+// ── Speichern (Dialog mit Speicherort + Dateiname) ──────────────────
+/**
+ * Je Exportart: Datei-URL, Endung, Namenszusatz und der bisherige
+ * Abschluss-Handler (räumt Server-Datei/Blob-URL nach 2 s auf).
+ */
+const exportTargets = {
+  webm: () => ({
+    url: webmBlobUrl.value,
+    extension: 'webm',
+    suffix: '',
+    done: handleWebmDownloadClick,
+  }),
+  mp4: () => ({
+    url: convertedVideoUrl.value,
+    extension: 'mp4',
+    suffix: '',
+    done: handleDownloadClick,
+  }),
+  gif: () => ({
+    url: convertedGifUrl.value,
+    extension: 'gif',
+    suffix: '',
+    done: handleGifDownloadClick,
+  }),
+  hq: () => ({
+    url: hqVideoUrl.value,
+    extension: 'mp4',
+    suffix: '_hq',
+    done: handleHqDownloadClick,
+  }),
+}
+
+/**
+ * Öffnet den Speichern-Dialog für einen Export. Muss direkt aus dem Klick
+ * aufgerufen werden, damit der Browser den nativen Dialog zulässt.
+ * Abbruch lässt die Datei bestehen, sodass erneut gespeichert werden kann.
+ * @param {'webm' | 'mp4' | 'gif' | 'hq'} kind
+ */
+async function saveExport(kind) {
+  const target = exportTargets[kind]?.()
+  if (!target?.url) return
+  try {
+    const result = await requestSave({
+      url: target.url,
+      extension: target.extension,
+      suggestedName: timestampedFilename(target.extension, target.suffix),
+      description: target.extension.toUpperCase(),
+    })
+    if (result === 'cancelled') return
+    if (result === 'saved') toastStore.success(t('recorder.saveDialog.saved'))
+    target.done()
+  } catch (error) {
+    console.error('[Recorder] Speichern fehlgeschlagen:', error)
+    toastStore.error(
+      t('recorder.saveDialog.saveFailed').replace('{message}', error?.message || String(error)),
+    )
+  }
+}
 
 // ── Quality Presets ──────────────────────────────────────────────────
 const qualityPresets = [
@@ -971,6 +1041,14 @@ h3::before {
   transition: all var(--ds-duration) var(--ds-ease);
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.mp4-download-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 
 .mp4-download-btn svg {

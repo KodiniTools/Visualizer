@@ -2,36 +2,32 @@
   <div>
     <!-- Kachelanzahl -->
     <div class="control-group">
-      <label>{{ t('backgroundTiles.tileCount') }}:</label>
-      <div class="tile-count-buttons">
-        <button
-          v-for="count in [3, 6, 9, 12]"
-          :key="count"
-          :class="{ active: tilesStore.tileCount === count }"
-          @click="setTileCount(count)"
-        >
-          {{ count }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Lücke zwischen Kacheln -->
-    <div class="control-group">
-      <label>{{ t('backgroundTiles.gap') }}: {{ tilesStore.tileGap }}px</label>
-      <SliderField
-        :model-value="tilesStore.tileGap"
-        :min="0"
-        :max="30"
-        :step="1"
-        :default-value="5"
-        class="gap-slider"
-        @update:model-value="setTileGap($event)"
+      <label>{{ t('backgroundTiles.tileCount') }}</label>
+      <UiSegmentedControl
+        :model-value="String(tilesStore.tileCount)"
+        class="tile-count"
+        size="sm"
+        :label="t('backgroundTiles.tileCount')"
+        :options="TILE_COUNT_OPTIONS"
+        @update:model-value="setTileCount(Number($event))"
       />
     </div>
 
+    <!-- Lücke zwischen Kacheln -->
+    <SliderControl
+      :label="t('backgroundTiles.gap')"
+      :model-value="tilesStore.tileGap"
+      :min="0"
+      :max="30"
+      :step="1"
+      :default-value="5"
+      :value-text="`${tilesStore.tileGap}px`"
+      @update:model-value="setTileGap($event)"
+    />
+
     <!-- Kachel-Vorschau/Auswahl -->
     <div class="control-group">
-      <label>{{ t('backgroundTiles.selectTile') }}:</label>
+      <label>{{ t('backgroundTiles.selectTile') }}</label>
       <div class="tiles-preview" :style="gridStyle">
         <div
           v-for="(tile, index) in tilesStore.tiles"
@@ -61,7 +57,10 @@
 <script setup>
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
-import SliderField from '../ui/SliderField.vue'
+import SliderControl from '../ui/SliderControl.vue'
+import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
+
+const TILE_COUNT_OPTIONS = [3, 6, 9, 12].map((n) => ({ value: String(n), label: String(n) }))
 
 const { t } = useI18n()
 const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTile } =
@@ -77,62 +76,24 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
   display: block;
   margin-bottom: 6px;
   font-size: var(--ds-text-xs);
-  color: var(--ds-text-2);
-  font-weight: var(--ds-weight-medium);
-}
-
-/* Kachelanzahl-Buttons */
-.tile-count-buttons {
-  display: flex;
-  gap: 6px;
-}
-
-.tile-count-buttons button {
-  flex: 1;
-  padding: 8px 12px;
-  background: color-mix(in srgb, var(--ds-surface-2) 80%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
-  border-radius: var(--ds-radius-sm);
-  color: var(--ds-text);
-  font-size: var(--ds-text-sm);
   font-weight: var(--ds-weight-semibold);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  color: var(--ds-text-2);
 }
 
-.tile-count-buttons button:hover {
-  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
-  border-color: color-mix(in srgb, var(--ds-success) 50%, transparent);
-}
-
-.tile-count-buttons button.active {
-  background: color-mix(in srgb, var(--ds-success) 30%, transparent);
-  border-color: var(--ds-success);
-  color: var(--ds-success);
-}
-
-/* Gap Slider */
-.gap-slider {
+/* Kachelanzahl über die volle Breite */
+.tile-count {
+  display: flex;
   width: 100%;
-  height: 6px;
-  border-radius: var(--ds-radius-sm);
-  background: var(--ds-success);
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
 }
 
-.gap-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: var(--ds-radius-full);
-  background: #ffffff;
-  box-shadow: var(--ds-shadow-overlay);
-  cursor: pointer;
+.tile-count :deep(.ui-segmented__option) {
+  flex: 1;
 }
 
 /* Kachel-Vorschau Grid */
+
 .tiles-preview {
   background: rgba(0, 0, 0, 0.3);
   border-radius: var(--ds-radius-sm);
@@ -199,40 +160,6 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 }
 
 /* ═══ Light Theme Overrides ═══ */
-[data-theme='light'] .control-group label {
-  color: var(--text-muted);
-}
-
-[data-theme='light'] .tile-count-buttons button {
-  background: var(--ds-surface-2);
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-[data-theme='light'] .tile-count-buttons button:hover {
-  background: var(--btn-hover);
-  border-color: var(--accent-primary);
-}
-
-[data-theme='light'] .tile-count-buttons button.active {
-  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .gap-slider {
-  background: color-mix(in srgb, var(--accent-primary) 25%, transparent);
-}
-
-[data-theme='light'] .gap-slider::-webkit-slider-thumb {
-  background: var(--accent-primary);
-  box-shadow: var(--ds-shadow-overlay);
-}
-
-[data-theme='light'] .gap-slider::-moz-range-thumb {
-  background: var(--accent-primary);
-  box-shadow: var(--ds-shadow-overlay);
-}
 
 [data-theme='light'] .tiles-preview {
   background: rgba(0, 0, 0, 0.05);
@@ -248,30 +175,5 @@ const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTil
 
 [data-theme='light'] .tile-preview.selected {
   border-color: var(--accent-primary);
-}
-
-/* ═══ Responsive ═══ */
-@media (max-width: 768px) {
-  .tile-count-buttons button {
-    padding: 8px 10px;
-    font-size: var(--ds-text-xs);
-    min-height: 40px;
-  }
-
-  .gap-slider::-webkit-slider-thumb {
-    width: 18px;
-    height: 18px;
-  }
-}
-
-@media (max-width: 480px) {
-  .tile-count-buttons {
-    flex-wrap: wrap;
-  }
-
-  .tile-count-buttons button {
-    flex: 1 1 40%;
-    min-height: 44px;
-  }
 }
 </style>

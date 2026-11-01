@@ -1,6 +1,6 @@
 <template>
   <div class="image-section">
-    <label>{{ t('backgroundTiles.tileImage') }}:</label>
+    <label>{{ t('backgroundTiles.tileImage') }}</label>
 
     <div
       v-if="!tilesStore.selectedTile.image && !tilesStore.selectedTile.video"
@@ -20,18 +20,57 @@
         style="display: none"
         @change="handleVideoUpload"
       />
-      <div class="image-source-buttons">
-        <button class="btn-upload" @click="fileInput.click()">
-          📁 {{ t('backgroundTiles.uploadImage') }}
-        </button>
-        <button class="btn-gallery" @click="openGalleryModal">
-          🖼️ {{ t('backgroundTiles.fromGallery') }}
-        </button>
-      </div>
-      <div class="image-source-buttons" style="margin-top: 6px">
-        <button class="btn-video" @click="videoInput.click()">
-          🎬 {{ t('backgroundTiles.uploadVideo') }}
-        </button>
+      <div class="source-buttons">
+        <UiButton size="sm" @click="fileInput.click()">
+          <template #icon>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+          </template>
+          {{ t('backgroundTiles.uploadImage') }}
+        </UiButton>
+        <UiButton size="sm" @click="openGalleryModal">
+          <template #icon>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="9" cy="9" r="2" />
+              <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
+            </svg>
+          </template>
+          {{ t('backgroundTiles.fromGallery') }}
+        </UiButton>
+        <UiButton size="sm" @click="videoInput.click()">
+          <template #icon>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="2" y="6" width="14" height="12" rx="2" />
+              <path d="m22 8-6 4 6 4V8z" />
+            </svg>
+          </template>
+          {{ t('backgroundTiles.uploadVideo') }}
+        </UiButton>
       </div>
       <p class="hint">{{ t('backgroundTiles.orDragDrop') }}</p>
     </div>
@@ -45,28 +84,22 @@
 
       <!-- Video-Einstellungen -->
       <div class="video-settings">
-        <label class="checkbox-label">
-          <input
-            type="checkbox"
-            :checked="tilesStore.selectedTile.videoSettings?.muted !== false"
-            @change="updateVideoSetting('muted', $event.target.checked)"
-          />
-          <span>{{ t('backgroundTiles.videoMuted') }}</span>
-        </label>
-        <label class="checkbox-label">
-          <input
-            type="checkbox"
-            :checked="tilesStore.selectedTile.videoSettings?.loop !== false"
-            @change="updateVideoSetting('loop', $event.target.checked)"
-          />
-          <span>{{ t('backgroundTiles.videoLoop') }}</span>
-        </label>
+        <UiSwitch
+          :model-value="tilesStore.selectedTile.videoSettings?.muted !== false"
+          :label="t('backgroundTiles.videoMuted')"
+          @update:model-value="updateVideoSetting('muted', $event)"
+        />
+        <UiSwitch
+          :model-value="tilesStore.selectedTile.videoSettings?.loop !== false"
+          :label="t('backgroundTiles.videoLoop')"
+          @update:model-value="updateVideoSetting('loop', $event)"
+        />
       </div>
 
       <!-- Ersetzen-Buttons für Video -->
       <div class="replace-section">
-        <span class="replace-label">{{ t('backgroundTiles.replaceWith') }}:</span>
-        <div class="replace-buttons">
+        <span class="replace-label">{{ t('backgroundTiles.replaceWith') }}</span>
+        <div class="source-buttons">
           <input
             ref="replaceImageFromVideoInput"
             type="file"
@@ -81,33 +114,74 @@
             style="display: none"
             @change="handleVideoUpload"
           />
-          <button class="btn-replace" @click="replaceImageFromVideoInput.click()">
-            📁 {{ t('backgroundTiles.uploadImage') }}
-          </button>
-          <button class="btn-replace btn-replace-gallery" @click="openGalleryModal">
-            🖼️ {{ t('backgroundTiles.fromGallery') }}
-          </button>
-          <button class="btn-replace btn-replace-video" @click="replaceVideoFromVideoInput.click()">
-            🎬 {{ t('backgroundTiles.uploadVideo') }}
-          </button>
+          <UiButton size="sm" @click="replaceImageFromVideoInput.click()">
+            <template #icon>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </template>
+            {{ t('backgroundTiles.uploadImage') }}
+          </UiButton>
+          <UiButton size="sm" @click="openGalleryModal">
+            <template #icon>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="9" cy="9" r="2" />
+                <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
+              </svg>
+            </template>
+            {{ t('backgroundTiles.fromGallery') }}
+          </UiButton>
+          <UiButton size="sm" @click="replaceVideoFromVideoInput.click()">
+            <template #icon>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="2" y="6" width="14" height="12" rx="2" />
+                <path d="m22 8-6 4 6 4V8z" />
+              </svg>
+            </template>
+            {{ t('backgroundTiles.uploadVideo') }}
+          </UiButton>
         </div>
       </div>
 
-      <button class="btn-remove" @click="removeVideo">
+      <UiButton variant="danger" size="sm" block class="btn-remove" @click="removeVideo">
         {{ t('backgroundTiles.removeVideo') }}
-      </button>
+      </UiButton>
     </div>
 
     <!-- Bild-Vorschau und Filter -->
     <div v-else class="image-controls">
       <div class="image-preview">
-        <img :src="tilesStore.selectedTile.imageSrc" alt="Kachel-Bild" />
+        <img :src="tilesStore.selectedTile.imageSrc" :alt="t('backgroundTiles.tileImage')" />
       </div>
 
       <!-- Ersetzen-Buttons -->
       <div class="replace-section">
-        <span class="replace-label">{{ t('backgroundTiles.replaceWith') }}:</span>
-        <div class="replace-buttons">
+        <span class="replace-label">{{ t('backgroundTiles.replaceWith') }}</span>
+        <div class="source-buttons">
           <input
             ref="replaceImageInput"
             type="file"
@@ -122,167 +196,78 @@
             style="display: none"
             @change="handleVideoUpload"
           />
-          <button class="btn-replace" @click="replaceImageInput.click()">
-            📁 {{ t('backgroundTiles.uploadImage') }}
-          </button>
-          <button class="btn-replace btn-replace-gallery" @click="openGalleryModal">
-            🖼️ {{ t('backgroundTiles.fromGallery') }}
-          </button>
-          <button class="btn-replace btn-replace-video" @click="replaceVideoInput.click()">
-            🎬 {{ t('backgroundTiles.uploadVideo') }}
-          </button>
+          <UiButton size="sm" @click="replaceImageInput.click()">
+            <template #icon>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </template>
+            {{ t('backgroundTiles.uploadImage') }}
+          </UiButton>
+          <UiButton size="sm" @click="openGalleryModal">
+            <template #icon>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="9" cy="9" r="2" />
+                <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
+              </svg>
+            </template>
+            {{ t('backgroundTiles.fromGallery') }}
+          </UiButton>
+          <UiButton size="sm" @click="replaceVideoInput.click()">
+            <template #icon>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="2" y="6" width="14" height="12" rx="2" />
+                <path d="m22 8-6 4 6 4V8z" />
+              </svg>
+            </template>
+            {{ t('backgroundTiles.uploadVideo') }}
+          </UiButton>
         </div>
       </div>
 
       <!-- Bild-Filter -->
       <div class="filter-controls">
-        <div class="filter-row">
-          <label>{{ t('backgroundTiles.brightness') }}</label>
-          <SliderField
-            :model-value="tilesStore.selectedTile.imageSettings.brightness"
-            :min="0"
-            :max="200"
-            :step="5"
-            :default-value="100"
-            @update:model-value="updateImageSetting('brightness', $event)"
-          />
-          <span>{{ tilesStore.selectedTile.imageSettings.brightness }}%</span>
-        </div>
-
-        <div class="filter-row">
-          <label>{{ t('backgroundTiles.contrast') }}</label>
-          <SliderField
-            :model-value="tilesStore.selectedTile.imageSettings.contrast"
-            :min="0"
-            :max="200"
-            :step="5"
-            :default-value="100"
-            @update:model-value="updateImageSetting('contrast', $event)"
-          />
-          <span>{{ tilesStore.selectedTile.imageSettings.contrast }}%</span>
-        </div>
-
-        <div class="filter-row">
-          <label>{{ t('backgroundTiles.saturation') }}</label>
-          <SliderField
-            :model-value="tilesStore.selectedTile.imageSettings.saturation"
-            :min="0"
-            :max="200"
-            :step="5"
-            :default-value="100"
-            @update:model-value="updateImageSetting('saturation', $event)"
-          />
-          <span>{{ tilesStore.selectedTile.imageSettings.saturation }}%</span>
-        </div>
-
-        <div class="filter-row">
-          <label>{{ t('backgroundTiles.opacity') }}</label>
-          <SliderField
-            :model-value="tilesStore.selectedTile.imageSettings.opacity"
-            :min="0"
-            :max="100"
-            :step="5"
-            :default-value="100"
-            @update:model-value="updateImageSetting('opacity', $event)"
-          />
-          <span>{{ tilesStore.selectedTile.imageSettings.opacity }}%</span>
-        </div>
-
-        <div class="filter-row">
-          <label>{{ t('backgroundTiles.blur') }}</label>
-          <SliderField
-            :model-value="tilesStore.selectedTile.imageSettings.blur"
-            :min="0"
-            :max="20"
-            :step="1"
-            :default-value="0"
-            @update:model-value="updateImageSetting('blur', $event)"
-          />
-          <span>{{ tilesStore.selectedTile.imageSettings.blur }}px</span>
-        </div>
-
-        <div class="filter-row">
-          <label>{{ t('backgroundTiles.hueRotate') }}</label>
-          <SliderField
-            :model-value="tilesStore.selectedTile.imageSettings.hueRotate"
-            :min="0"
-            :max="360"
-            :step="10"
-            :default-value="0"
-            @update:model-value="updateImageSetting('hueRotate', $event)"
-          />
-          <span>{{ tilesStore.selectedTile.imageSettings.hueRotate }}°</span>
-        </div>
-
-        <div class="filter-row">
-          <label>{{ t('backgroundTiles.grayscale') }}</label>
-          <SliderField
-            :model-value="tilesStore.selectedTile.imageSettings.grayscale"
-            :min="0"
-            :max="100"
-            :step="5"
-            :default-value="0"
-            @update:model-value="updateImageSetting('grayscale', $event)"
-          />
-          <span>{{ tilesStore.selectedTile.imageSettings.grayscale }}%</span>
-        </div>
-
-        <div class="filter-row">
-          <label>{{ t('backgroundTiles.sepia') }}</label>
-          <SliderField
-            :model-value="tilesStore.selectedTile.imageSettings.sepia"
-            :min="0"
-            :max="100"
-            :step="5"
-            :default-value="0"
-            @update:model-value="updateImageSetting('sepia', $event)"
-          />
-          <span>{{ tilesStore.selectedTile.imageSettings.sepia }}%</span>
-        </div>
-
-        <div class="filter-row">
-          <label>{{ t('backgroundTiles.scale') }}</label>
-          <SliderField
-            :model-value="tilesStore.selectedTile.imageSettings.scale"
-            :min="0.5"
-            :max="2"
-            :step="0.1"
-            :default-value="1"
-            @update:model-value="updateImageSetting('scale', $event)"
-          />
-          <span>{{ Math.round(tilesStore.selectedTile.imageSettings.scale * 100) }}%</span>
-        </div>
-
-        <div class="filter-row">
-          <label>{{ t('backgroundTiles.offsetX') }}</label>
-          <SliderField
-            :model-value="tilesStore.selectedTile.imageSettings.offsetX"
-            :min="-200"
-            :max="200"
-            :step="5"
-            :default-value="0"
-            @update:model-value="updateImageSetting('offsetX', $event)"
-          />
-          <span>{{ tilesStore.selectedTile.imageSettings.offsetX }}px</span>
-        </div>
-
-        <div class="filter-row">
-          <label>{{ t('backgroundTiles.offsetY') }}</label>
-          <SliderField
-            :model-value="tilesStore.selectedTile.imageSettings.offsetY"
-            :min="-200"
-            :max="200"
-            :step="5"
-            :default-value="0"
-            @update:model-value="updateImageSetting('offsetY', $event)"
-          />
-          <span>{{ tilesStore.selectedTile.imageSettings.offsetY }}px</span>
-        </div>
+        <SliderControl
+          v-for="filter in IMAGE_FILTERS"
+          :key="filter.key"
+          :label="t(`backgroundTiles.${filter.key}`)"
+          :model-value="tilesStore.selectedTile.imageSettings[filter.key]"
+          :min="filter.min"
+          :max="filter.max"
+          :step="filter.step"
+          :default-value="filter.default"
+          :value-text="filter.format(tilesStore.selectedTile.imageSettings[filter.key])"
+          @update:model-value="updateImageSetting(filter.key, $event)"
+        />
       </div>
 
-      <button class="btn-remove" @click="removeImage">
+      <UiButton variant="danger" size="sm" block class="btn-remove" @click="removeImage">
         {{ t('backgroundTiles.removeImage') }}
-      </button>
+      </UiButton>
     </div>
   </div>
 </template>
@@ -290,7 +275,34 @@
 <script setup>
 import { ref, inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
-import SliderField from '../ui/SliderField.vue'
+import SliderControl from '../ui/SliderControl.vue'
+import UiButton from '../ui/UiButton.vue'
+import UiSwitch from '../ui/UiSwitch.vue'
+
+const percent = (v) => `${v}%`
+const px = (v) => `${v}px`
+
+/** Bild-Filter der Kachel: Schlüssel in imageSettings, Bereich, Standard, Anzeige */
+const IMAGE_FILTERS = [
+  { key: 'brightness', min: 0, max: 200, step: 5, default: 100, format: percent },
+  { key: 'contrast', min: 0, max: 200, step: 5, default: 100, format: percent },
+  { key: 'saturation', min: 0, max: 200, step: 5, default: 100, format: percent },
+  { key: 'opacity', min: 0, max: 100, step: 5, default: 100, format: percent },
+  { key: 'blur', min: 0, max: 20, step: 1, default: 0, format: px },
+  { key: 'hueRotate', min: 0, max: 360, step: 10, default: 0, format: (v) => `${v}°` },
+  { key: 'grayscale', min: 0, max: 100, step: 5, default: 0, format: percent },
+  { key: 'sepia', min: 0, max: 100, step: 5, default: 0, format: percent },
+  {
+    key: 'scale',
+    min: 0.5,
+    max: 2,
+    step: 0.1,
+    default: 1,
+    format: (v) => `${Math.round(v * 100)}%`,
+  },
+  { key: 'offsetX', min: -200, max: 200, step: 5, default: 0, format: px },
+  { key: 'offsetY', min: -200, max: 200, step: 5, default: 0, format: px },
+]
 
 const { t } = useI18n()
 const {
@@ -314,6 +326,7 @@ const replaceVideoFromVideoInput = ref(null)
 
 <style scoped>
 /* Bild-Bereich */
+
 .image-section {
   margin: 12px 0;
   padding-top: 12px;
@@ -324,22 +337,10 @@ const replaceVideoFromVideoInput = ref(null)
   display: block;
   margin-bottom: 6px;
   font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
   color: var(--ds-text-2);
-  font-weight: var(--ds-weight-medium);
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: var(--ds-text-sm);
-}
-
-.checkbox-label input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--ds-success);
 }
 
 .image-upload-area {
@@ -351,21 +352,6 @@ const replaceVideoFromVideoInput = ref(null)
   border: 2px dashed color-mix(in srgb, var(--ds-success) 30%, transparent);
   border-radius: var(--ds-radius-sm);
   margin-top: 8px;
-}
-
-.btn-upload {
-  padding: 8px 16px;
-  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-success) 50%, transparent);
-  border-radius: var(--ds-radius-sm);
-  color: var(--ds-success);
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.btn-upload:hover {
-  background: color-mix(in srgb, var(--ds-success) 30%, transparent);
 }
 
 .hint {
@@ -394,6 +380,7 @@ const replaceVideoFromVideoInput = ref(null)
 }
 
 /* Filter-Steuerungen */
+
 .filter-controls {
   display: flex;
   flex-direction: column;
@@ -401,81 +388,7 @@ const replaceVideoFromVideoInput = ref(null)
   margin-bottom: 10px;
 }
 
-.filter-row {
-  display: grid;
-  grid-template-columns: 80px 1fr 45px;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--ds-text-xs);
-}
-
-.filter-row label {
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.filter-row input[type='range'] {
-  width: 100%;
-  height: 4px;
-  border-radius: var(--ds-radius-sm);
-  background: color-mix(in srgb, var(--ds-success) 30%, transparent);
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.filter-row input[type='range']::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 10px;
-  height: 10px;
-  border-radius: var(--ds-radius-full);
-  background: var(--ds-success);
-  cursor: pointer;
-}
-
-.filter-row span {
-  color: var(--text-muted);
-  text-align: right;
-  font-family: var(--ds-font-mono);
-}
-
-.btn-remove {
-  width: 100%;
-  padding: 6px;
-  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-danger) 40%, transparent);
-  border-radius: var(--ds-radius-sm);
-  color: var(--ds-danger);
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.btn-remove:hover {
-  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
-}
-
 /* ═══ Video Styles ═══ */
-.btn-video {
-  flex: 1;
-  padding: 8px 12px;
-  font-size: var(--ds-text-xs);
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-danger) 40%, transparent);
-  color: var(--ds-link);
-}
-
-.btn-video:hover {
-  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
-  border-color: color-mix(in srgb, var(--ds-danger) 60%, transparent);
-}
 
 .video-controls {
   display: flex;
@@ -516,60 +429,15 @@ const replaceVideoFromVideoInput = ref(null)
 
 .video-settings {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 8px;
   background: rgba(0, 0, 0, 0.2);
   border-radius: var(--ds-radius-sm);
 }
 
-.video-settings .checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--ds-text-xs);
-  color: var(--ds-text-2);
-  cursor: pointer;
-}
-
-.video-settings .checkbox-label input[type='checkbox'] {
-  width: 14px;
-  height: 14px;
-  accent-color: var(--ds-danger);
-}
-
-/* ═══ Bildquellen-Buttons / Galerie ═══ */
-.image-source-buttons {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.image-source-buttons .btn-upload,
-.image-source-buttons .btn-gallery {
-  flex: 1;
-  padding: 8px 12px;
-  font-size: var(--ds-text-xs);
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.btn-gallery {
-  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-link) 40%, transparent);
-  color: var(--ds-link);
-}
-
-.btn-gallery:hover {
-  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-color: color-mix(in srgb, var(--ds-link) 60%, transparent);
-}
-
 /* ═══ Ersetzen-Buttons ═══ */
+
 .replace-section {
   margin: 10px 0;
   padding: 10px;
@@ -580,72 +448,18 @@ const replaceVideoFromVideoInput = ref(null)
 
 .replace-label {
   display: block;
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
   margin-bottom: 8px;
-}
-
-.replace-buttons {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.btn-replace {
-  flex: 1;
-  min-width: 80px;
-  padding: 6px 10px;
   font-size: var(--ds-text-xs);
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background: color-mix(in srgb, var(--ds-success) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-success) 30%, transparent);
-  color: var(--ds-success);
-}
-
-.btn-replace:hover {
-  background: color-mix(in srgb, var(--ds-success) 25%, transparent);
-  border-color: color-mix(in srgb, var(--ds-success) 50%, transparent);
-}
-
-.btn-replace-gallery {
-  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
-  border-color: color-mix(in srgb, var(--ds-link) 30%, transparent);
-  color: var(--ds-link);
-}
-
-.btn-replace-gallery:hover {
-  background: color-mix(in srgb, var(--ds-link) 25%, transparent);
-  border-color: color-mix(in srgb, var(--ds-link) 50%, transparent);
-}
-
-.btn-replace-video {
-  background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
-  border-color: color-mix(in srgb, var(--ds-danger) 30%, transparent);
-  color: var(--ds-link);
-}
-
-.btn-replace-video:hover {
-  background: color-mix(in srgb, var(--ds-danger) 25%, transparent);
-  border-color: color-mix(in srgb, var(--ds-danger) 50%, transparent);
+  font-weight: var(--ds-weight-semibold);
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  color: var(--ds-text-2);
 }
 
 /* ═══ Light Theme Overrides ═══ */
-[data-theme='light'] .image-section > label {
-  color: var(--text-muted);
-}
 
 [data-theme='light'] .image-section {
   border-top-color: var(--border-color);
-}
-
-[data-theme='light'] .checkbox-label input[type='checkbox'] {
-  accent-color: var(--accent-primary);
 }
 
 [data-theme='light'] .image-upload-area {
@@ -653,26 +467,8 @@ const replaceVideoFromVideoInput = ref(null)
   border-color: var(--border-color);
 }
 
-[data-theme='light'] .btn-upload {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--border-color);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .btn-upload:hover {
-  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-}
-
 [data-theme='light'] .image-preview {
   background: rgba(0, 0, 0, 0.05);
-}
-
-[data-theme='light'] .filter-row input[type='range'] {
-  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-}
-
-[data-theme='light'] .btn-remove {
-  background: color-mix(in srgb, var(--ds-danger) 8%, transparent);
 }
 
 [data-theme='light'] .video-preview {
@@ -683,107 +479,31 @@ const replaceVideoFromVideoInput = ref(null)
   background: rgba(0, 0, 0, 0.04);
 }
 
-[data-theme='light'] .video-settings .checkbox-label {
-  color: var(--text-muted);
-}
-
-[data-theme='light'] .video-settings .checkbox-label input[type='checkbox'] {
-  accent-color: var(--accent-primary);
-}
-
-[data-theme='light'] .btn-gallery {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--border-color);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .btn-gallery:hover {
-  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-  border-color: var(--accent-primary);
-}
-
-[data-theme='light'] .btn-video {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--border-color);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .btn-video:hover {
-  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
-  border-color: var(--accent-primary);
-}
-
 [data-theme='light'] .replace-section {
   background: rgba(255, 255, 255, 0.4);
   border-color: var(--border-color);
 }
 
-[data-theme='light'] .btn-replace {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--border-color);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .btn-replace:hover {
-  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-  border-color: var(--accent-primary);
-}
-
-[data-theme='light'] .btn-replace-gallery {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--border-color);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .btn-replace-gallery:hover {
-  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-  border-color: var(--accent-primary);
-}
-
-[data-theme='light'] .btn-replace-video {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--border-color);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .btn-replace-video:hover {
-  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-  border-color: var(--accent-primary);
-}
-
 /* ═══ Responsive ═══ */
-@media (max-width: 768px) {
-  .btn-upload,
-  .btn-gallery,
-  .btn-video {
-    padding: 8px 12px;
-    font-size: var(--ds-text-xs);
-    min-height: 40px;
-  }
 
-  .btn-replace {
-    min-height: 40px;
-    font-size: var(--ds-text-xs);
-  }
+.source-buttons {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
 
-  .btn-remove {
-    padding: 8px;
-    font-size: var(--ds-text-xs);
-    min-height: 40px;
-  }
+.source-buttons > * {
+  flex: 1 1 auto;
+}
+
+.btn-remove {
+  margin-top: 4px;
 }
 
 @media (max-width: 480px) {
-  .image-source-buttons {
+  .source-buttons {
     flex-direction: column;
-  }
-
-  .replace-buttons {
-    flex-direction: column;
-  }
-
-  .btn-replace {
-    min-height: 44px;
   }
 }
 </style>

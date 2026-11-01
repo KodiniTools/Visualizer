@@ -4,10 +4,11 @@
 
     <!-- Aktivierung -->
     <div class="control-group">
-      <label class="checkbox-label">
-        <input type="checkbox" :checked="tilesStore.tilesEnabled" @change="toggleTiles" />
-        <span>{{ t('backgroundTiles.enableTiles') }}</span>
-      </label>
+      <UiSwitch
+        :model-value="tilesStore.tilesEnabled"
+        :label="t('backgroundTiles.enableTiles')"
+        @update:model-value="setTilesEnabled"
+      />
     </div>
 
     <Transition name="panel-collapse">
@@ -23,9 +24,9 @@
 
         <!-- Alle Kacheln zurücksetzen -->
         <div class="control-group reset-all">
-          <button class="btn-reset-all" @click="resetAllTiles">
+          <UiButton variant="danger" size="sm" block @click="resetAllTiles">
             {{ t('backgroundTiles.resetAllTiles') }}
-          </button>
+          </UiButton>
         </div>
       </div>
     </Transition>
@@ -41,6 +42,8 @@ import { useI18n } from '../lib/i18n.js'
 import { useBackgroundTiles } from '../composables/useBackgroundTiles.js'
 import { useTilePresets } from '../composables/useTilePresets.js'
 import { useTileGallery } from '../composables/useTileGallery.js'
+import UiSwitch from './ui/UiSwitch.vue'
+import UiButton from './ui/UiButton.vue'
 
 import TileGridControls from './background-tiles/TileGridControls.vue'
 import SelectedTileEditor from './background-tiles/SelectedTileEditor.vue'
@@ -51,7 +54,7 @@ const { t } = useI18n()
 
 // Kern-Logik: Store-Aktionen + Canvas-Redraw
 const controls = useBackgroundTiles()
-const { tilesStore, redraw, toggleTiles, resetAllTiles } = controls
+const { tilesStore, redraw, setTilesEnabled, resetAllTiles } = controls
 
 // Galerie-Modal & Presets
 const gallery = useTileGallery(tilesStore, redraw)
@@ -83,20 +86,6 @@ provide('tilePresets', presets)
   margin-bottom: 12px;
 }
 
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: var(--ds-text-sm);
-}
-
-.checkbox-label input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--ds-success);
-}
-
 .tiles-controls {
   margin-top: 12px;
 }
@@ -105,22 +94,6 @@ provide('tilePresets', presets)
   margin-top: 8px;
   padding-top: 12px;
   border-top: 1px solid color-mix(in srgb, var(--ds-success) 20%, transparent);
-}
-
-.btn-reset-all {
-  width: 100%;
-  padding: 8px;
-  background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
-  border-radius: var(--ds-radius-sm);
-  color: var(--ds-danger);
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.btn-reset-all:hover {
-  background: color-mix(in srgb, var(--ds-danger) 25%, transparent);
 }
 
 /* ═══ Light Theme Overrides ═══ */
@@ -133,14 +106,6 @@ provide('tilePresets', presets)
   color: var(--accent-ink);
 }
 
-[data-theme='light'] .checkbox-label input[type='checkbox'] {
-  accent-color: var(--accent-primary);
-}
-
-[data-theme='light'] .btn-reset-all {
-  background: color-mix(in srgb, var(--ds-danger) 8%, transparent);
-}
-
 /* ═══ Responsive ═══ */
 @media (max-width: 768px) {
   .tiles-section {
@@ -149,12 +114,6 @@ provide('tilePresets', presets)
 
   .tiles-section h5 {
     font-size: var(--ds-text-xs);
-  }
-
-  .btn-reset-all {
-    padding: 8px;
-    font-size: var(--ds-text-xs);
-    min-height: 40px;
   }
 }
 </style>

@@ -41,4 +41,19 @@ describe('UiSelect', () => {
     })
     expect(wrapper.get('label').classes()).toContain('ui-select__label--hidden')
   })
+
+  it('rendert Gruppen als optgroup und liefert Zahlenwerte zurück', async () => {
+    const grouped = [
+      { value: '', label: '— Keine —' },
+      { label: 'Gruppe A', options: [{ value: 1, label: 'Eins' }] },
+      { label: 'Gruppe B', options: [{ value: 2, label: 'Zwei', disabled: true }] },
+    ]
+    const wrapper = mount(UiSelect, { props: { options: grouped, label: 'Wahl', modelValue: '' } })
+    const groups = wrapper.findAll('optgroup')
+    expect(groups.map((g) => g.attributes('label'))).toEqual(['Gruppe A', 'Gruppe B'])
+    expect(groups[0].findAll('option').map((o) => o.text())).toEqual(['Eins'])
+    expect(groups[1].get('option').attributes('disabled')).toBeDefined()
+    await wrapper.get('select').setValue('1')
+    expect(wrapper.emitted('update:modelValue')).toEqual([[1]])
+  })
 })

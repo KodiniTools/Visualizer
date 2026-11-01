@@ -1001,6 +1001,10 @@ export default {
     timeStepSlow: 'slow (0.01 s)',
     timeStepMedium: 'medium (0.1 s)',
     timeStepFast: 'fast (1 s)',
+    timeStepLabel: 'Step size',
+    markersActive: 'Markers active',
+    timePlaceholder: 'e.g. 1:30.25',
+    labelPlaceholder: 'e.g. Bass Drop',
     editMarkerTitle: 'Edit Marker',
     addMarkerTitle: 'New Marker',
     // Sticky player bar

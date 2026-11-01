@@ -149,3 +149,11 @@ describe('i18n – Kachel-Hintergrund ohne fest verdrahtete Texte', () => {
     expect(hardcodedTemplateText(read(f))).toEqual([])
   })
 })
+
+describe('i18n – Beat-Marker-Popover ohne fest verdrahtete Texte', () => {
+  it('Vorlage enthält keine festen Texte und keine Sprachweichen', () => {
+    const src = read('components/sticky-player-bar/BeatMarkerPopover.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/locale\s*===/)
+  })
+})

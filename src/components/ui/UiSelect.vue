@@ -14,14 +14,24 @@
         :disabled="disabled"
         v-bind="$attrs"
       >
-        <option
-          v-for="option in options"
-          :key="option.value"
-          :value="option.value"
-          :disabled="option.disabled"
+        <template
+          v-for="(entry, index) in options"
+          :key="isGroup(entry) ? `g${index}` : entry.value"
         >
-          {{ option.label }}
-        </option>
+          <optgroup v-if="isGroup(entry)" :label="entry.label">
+            <option
+              v-for="option in entry.options"
+              :key="option.value"
+              :value="option.value"
+              :disabled="option.disabled"
+            >
+              {{ option.label }}
+            </option>
+          </optgroup>
+          <option v-else :value="entry.value" :disabled="entry.disabled">
+            {{ entry.label }}
+          </option>
+        </template>
       </select>
       <svg
         class="ui-select__chevron"
@@ -45,11 +55,16 @@ import { computed, useId } from 'vue'
 /**
  * Natives <select> im Look des Systems. Das Label ist Pflicht; `labelHidden`
  * versteckt es visuell, `inline` stellt es links neben das Feld.
+ * Ein Eintrag mit `options` wird zur <optgroup>. Werte dürfen Zahlen sein;
+ * v-model liefert dann die Zahl zurück (wie beim nativen select).
  */
 defineOptions({ inheritAttrs: false })
 
 const props = defineProps({
-  /** Array<{ value: string, label: string, disabled?: boolean }> */
+  /**
+   * Array<{ value: string|number, label: string, disabled?: boolean }
+   *     | { label: string, options: Array<{ value, label, disabled? }> }>
+   */
   options: { type: Array, required: true },
   label: { type: String, required: true },
   id: { type: String, default: undefined },
@@ -60,7 +75,10 @@ const props = defineProps({
   disabled: { type: Boolean, default: false },
 })
 
-const model = defineModel({ type: String, required: true })
+const model = defineModel({ type: [String, Number], required: true })
+
+/** Gruppe = Eintrag mit eigener Optionsliste (wird zu <optgroup>) */
+const isGroup = (entry) => Array.isArray(entry?.options)
 
 const generatedId = useId()
 const selectId = computed(() => props.id ?? `ui-select-${generatedId}`)

@@ -494,7 +494,7 @@ const backgroundPresetOptions = computed(() => {
 .btn-toggle.active {
   background-color: var(--ds-success);
   border-color: var(--ds-success);
-  color: var(--accent-text);
+  color: var(--ds-on-success);
 }
 .marker-add-form {
   background-color: var(--secondary-bg);
@@ -733,7 +733,7 @@ const backgroundPresetOptions = computed(() => {
   background-color: var(--ds-success);
   border: none;
   border-radius: var(--ds-radius-sm);
-  color: var(--accent-text);
+  color: var(--ds-on-success);
   cursor: pointer;
 }
 .btn-confirm:hover {

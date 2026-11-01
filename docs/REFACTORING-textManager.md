@@ -83,14 +83,14 @@ Ergebnis: ~1.785 → ~1.500 Zeilen verteilt auf 15 Module, keine Datei > 200 Zei
 
 Extern verwendet werden (alle Aufrufstellen geprüft):
 
-| Methode                                       | Aufrufer                                                                                              |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `add`, `delete`, `restore`, `getObjectBounds` | `lib/canvasManager.js`                                                                                |
-| `moveToTop`                                   | `canvasManager/interaction/SelectionManager.js`                                                       |
-| `draw`                                        | `composables/useRenderLoop.js`, `canvasManager/rendering/SceneRenderer.js`                            |
-| `_getDisplayOpacity`                          | `canvasManager/rendering/SceneRenderer.js:118`                                                        |
-| `restartTypewriter/Fade/Scale/Slide`          | `composables/useTextAnimations.js` (eigene State-Resets)                                              |
-| Konstruktor                                   | `components/MainCanvas.vue`, `composables/useCanvasSetup.js`, `__tests__/canvas/DeletionUndo.spec.js` |
+| Methode                                       | Aufrufer                                                                   |
+| --------------------------------------------- | -------------------------------------------------------------------------- |
+| `add`, `delete`, `restore`, `getObjectBounds` | `lib/canvasManager.js`                                                     |
+| `moveToTop`                                   | `canvasManager/interaction/SelectionManager.js`                            |
+| `draw`                                        | `composables/useRenderLoop.js`, `canvasManager/rendering/SceneRenderer.js` |
+| `_getDisplayOpacity`                          | `canvasManager/rendering/SceneRenderer.js:118`                             |
+| `restartTypewriter/Fade/Scale/Slide`          | `composables/useTextAnimations.js` (eigene State-Resets)                   |
+| Konstruktor                                   | `composables/useCanvasSetup.js`, `__tests__/canvas/DeletionUndo.spec.js`   |
 
 `_getDisplayOpacity` wird bei der Gelegenheit zu `getDisplayOpacity` umbenannt
 (Alias auf den alten Namen beibehalten, damit `SceneRenderer` in einem separaten

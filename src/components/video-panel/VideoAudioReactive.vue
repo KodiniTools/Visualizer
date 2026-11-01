@@ -14,43 +14,22 @@
       :has-active-image="!!video"
       :has-saved-settings="hasSavedSettings"
       :active-audio-preset="activePreset"
-      @audio-reactive-toggle="(e) => setEnabled(e.target.checked)"
-      @source-change="(e) => setProperty('source', e.target.value)"
-      @smoothing-change="(e) => setProperty('smoothing', parseInt(e.target.value))"
-      @easing-change="(e) => setProperty('easing', e.target.value)"
-      @beat-boost-change="(e) => setProperty('beatBoost', parseFloat(e.target.value))"
-      @phase-change="(e) => setProperty('phase', parseInt(e.target.value))"
-      @gain-change="(e) => setProperty('gain', parseFloat(e.target.value))"
-      @toggle-preset="togglePreset"
-      @clear-preset="clearPreset"
-      @effect-toggle="setEffectEnabled"
-      @effect-intensity-change="setEffectIntensity"
-      @effect-source-change="setEffectSource"
-      @save-settings="saveSettings"
-      @apply-settings="applySettings"
+      v-on="panelListeners"
     />
   </div>
 </template>
 
 <script setup>
-import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 /**
  * Audio-Reaktiv-Panel für ein Video-Objekt (Canvas-Video, Video-Hintergrund,
  * Workspace-Video-Hintergrund). Arbeitet direkt auf
  * `video.fotoSettings.audioReactive` (Struktur wie bei Canvas-Bildern).
  */
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
-import { historyApplyRevision } from '../../lib/history/historyRecorder.js'
-import {
-  applyAudioReactivePreset,
-  assignAudioReactiveConfig,
-  cloneAudioReactiveConfig,
-  ensureAudioReactiveConfig,
-} from '../../lib/audio/audioReactiveConfig.js'
+import { ensureAudioReactiveConfig } from '../../lib/audio/audioReactiveConfig.js'
+import { useAudioReactiveTarget } from '../../composables/audioReactive/useAudioReactiveTarget.js'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
-
-const STORAGE_KEY = 'visualizer_videoAudioReactivePreset'
 
 const props = defineProps({
   /** Video-Datenobjekt mit `fotoSettings` (wird in-place bearbeitet) */
@@ -61,29 +40,6 @@ const props = defineProps({
 
 const { t } = useI18n()
 const panelRef = ref(null)
-const revision = ref(0)
-// Undo/Redo gilt als externe Änderung → Panel neu einlesen
-watch(historyApplyRevision, () => revision.value++)
-
-// Aktives Preset + Backup der Nutzer-Effekte pro Video-Objekt
-const activePresets = new WeakMap()
-const userBackups = new WeakMap()
-const activePresetTick = ref(0)
-const activePreset = computed(() => {
-  activePresetTick.value
-  return props.video ? (activePresets.get(props.video) ?? null) : null
-})
-
-function loadSaved() {
-  try {
-    const raw = typeof localStorage !== 'undefined' && localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
-const savedSettings = ref(loadSaved())
-const hasSavedSettings = computed(() => savedSettings.value !== null)
 
 /** Stellt die vollständige Konfiguration des Videos sicher. */
 function cfg() {
@@ -94,154 +50,22 @@ function cfg() {
   return v.fotoSettings.audioReactive
 }
 
-function setActivePreset(name) {
-  if (!props.video) return
-  activePresets.set(props.video, name)
-  activePresetTick.value++
-}
-
-function setEnabled(enabled) {
-  const c = cfg()
-  if (!c) return
-  c.enabled = Boolean(enabled)
-  if (!enabled) setActivePreset(null)
-  // Video-Objekte sind nicht reaktiv → Pegelanzeige explizit steuern
-  nextTick(() => (c.enabled ? startLevelIndicator() : stopLevelIndicator()))
-}
-
-function setProperty(property, value) {
-  const c = cfg()
-  if (!c || property === 'effects' || !(property in c)) return
-  c[property] = value
-}
-
-function setEffectEnabled(name, enabled) {
-  const fx = cfg()?.effects?.[name]
-  if (fx) fx.enabled = Boolean(enabled)
-}
-
-function setEffectIntensity(name, value) {
-  const fx = cfg()?.effects?.[name]
-  const n = parseInt(value)
-  if (fx && Number.isFinite(n)) fx.intensity = Math.max(0, Math.min(100, n))
-}
-
-function setEffectSource(name, source) {
-  const fx = cfg()?.effects?.[name]
-  if (fx) fx.source = source ? source : null
-}
-
-function togglePreset(name) {
-  const c = cfg()
-  if (!c) return
-  if (activePreset.value === name) {
-    clearPreset()
-    return
-  }
-  if (activePreset.value === null) userBackups.set(props.video, cloneAudioReactiveConfig(c))
-  if (!applyAudioReactivePreset(c, name)) return
-  setActivePreset(name)
-  revision.value++
-}
-
-function clearPreset() {
-  const c = cfg()
-  if (!c) return
-  const backup = userBackups.get(props.video)
-  if (backup) assignAudioReactiveConfig(c, backup)
-  setActivePreset(null)
-  revision.value++
-}
-
-function saveSettings() {
-  const c = cfg()
-  if (!c) return
-  const copy = cloneAudioReactiveConfig(c)
-  savedSettings.value = copy
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(copy))
-  } catch (e) {
-    console.warn('⚠️ Video-Audio-Einstellungen konnten nicht gespeichert werden:', e)
-  }
-}
-
-function applySettings() {
-  const c = cfg()
-  if (!c || !savedSettings.value) return
-  assignAudioReactiveConfig(c, savedSettings.value)
-  setActivePreset(null)
-  revision.value++
-}
-
-function syncPanel() {
-  panelRef.value?.loadSettings(cfg())
-}
-
-// Video gewechselt oder externe Änderung → Panel neu einlesen
-watch([() => props.video, revision], async () => {
-  await nextTick()
-  syncPanel()
+// Video-Objekte sind nicht reaktiv: Preset/Backup je Objekt (WeakMap im Composable)
+const { activePreset, hasSavedSettings, panelListeners } = useAudioReactiveTarget({
+  panelRef,
+  storageKey: 'visualizer_videoAudioReactivePreset',
+  saveWarning: '⚠️ Video-Audio-Einstellungen konnten nicht gespeichert werden:',
+  getConfig: cfg,
+  peekConfig: () => props.video?.fotoSettings?.audioReactive ?? null,
+  panelConfig: cfg,
+  targetKey: () => props.video,
+  setEnabled(enabled) {
+    const c = cfg()
+    if (!c) return false
+    c.enabled = enabled
+  },
+  syncSources: [() => props.video],
 })
-
-// ── Audio-Pegel-Anzeige ──
-let levelAnimationId = null
-
-function levelFor(audioData, source) {
-  switch (source) {
-    case 'mid':
-      return audioData.smoothMid ?? 0
-    case 'treble':
-      return audioData.smoothTreble ?? 0
-    case 'volume':
-      return audioData.smoothVolume ?? 0
-    case 'bass':
-    default:
-      return audioData.smoothBass ?? 0
-  }
-}
-
-function updateLevel() {
-  levelAnimationId = null
-  const bar = panelRef.value?.audioLevelBarRef
-  const c = props.video?.fotoSettings?.audioReactive
-  if (!bar || !c?.enabled) return
-  const audioData = getAudioAnalysisData()
-  if (audioData) {
-    const percent = Math.min(100, (levelFor(audioData, c.source) / 255) * 100)
-    bar.style.width = percent + '%'
-    bar.style.background =
-      percent > 70
-        ? 'linear-gradient(90deg, #4ade80, #fbbf24, #ef4444)'
-        : percent > 40
-          ? 'linear-gradient(90deg, #4ade80, #fbbf24)'
-          : '#4ade80'
-  }
-  levelAnimationId = requestAnimationFrame(updateLevel)
-}
-
-function startLevelIndicator() {
-  if (levelAnimationId === null) levelAnimationId = requestAnimationFrame(updateLevel)
-}
-
-function stopLevelIndicator() {
-  if (levelAnimationId !== null) cancelAnimationFrame(levelAnimationId)
-  levelAnimationId = null
-}
-
-// Nach externen Änderungen (Preset/Anwenden) Pegelanzeige neu bewerten
-watch(revision, () => {
-  const c = props.video?.fotoSettings?.audioReactive
-  if (c?.enabled) startLevelIndicator()
-  else stopLevelIndicator()
-})
-
-onMounted(async () => {
-  await nextTick()
-  syncPanel()
-  if (props.video?.fotoSettings?.audioReactive?.enabled) startLevelIndicator()
-})
-
-onBeforeUnmount(stopLevelIndicator)
 </script>
 
 <style scoped>

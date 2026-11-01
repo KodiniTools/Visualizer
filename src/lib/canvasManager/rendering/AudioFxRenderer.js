@@ -21,7 +21,7 @@ export class AudioFxRenderer {
    * @param {CanvasRenderingContext2D} ctx
    * @param {number} width
    * @param {number} height
-   * @param {object} audioData  — window.audioAnalysisData
+   * @param {object} audioData  — getAudioAnalysisData()
    * @param {object} settings   — audioFxStore.$state
    */
   render(ctx, width, height, audioData, settings) {

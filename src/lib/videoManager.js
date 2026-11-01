@@ -24,6 +24,7 @@ import {
 } from './canvasObjects/geometry.js'
 import { getEntranceTransform } from './canvasObjects/entranceAnimation.js'
 import { moveToBack, moveToFront } from './canvasObjects/zOrder.js'
+import { getAudioAnalysisData } from './audio/audioAnalysisData.js'
 
 export class VideoManager {
   constructor(canvas, callbacks = {}) {
@@ -699,11 +700,7 @@ export class VideoManager {
    * Berechnet Audio-Reaktive Werte – gemeinsame Engine mit Bildern/Hintergrund
    */
   _getAudioReactiveValues(audioSettings) {
-    return computeAudioReactiveValues(
-      audioSettings,
-      audioSettings,
-      typeof window !== 'undefined' ? window.audioAnalysisData : null,
-    )
+    return computeAudioReactiveValues(audioSettings, audioSettings, getAudioAnalysisData())
   }
 
   /**

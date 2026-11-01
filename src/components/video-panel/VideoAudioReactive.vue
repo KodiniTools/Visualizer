@@ -33,6 +33,7 @@
 </template>
 
 <script setup>
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 /**
  * Audio-Reaktiv-Panel für ein Video-Objekt (Canvas-Video, Video-Hintergrund,
  * Workspace-Video-Hintergrund). Arbeitet direkt auf
@@ -204,7 +205,7 @@ function updateLevel() {
   const bar = panelRef.value?.audioLevelBarRef
   const c = props.video?.fotoSettings?.audioReactive
   if (!bar || !c?.enabled) return
-  const audioData = typeof window !== 'undefined' ? window.audioAnalysisData : null
+  const audioData = getAudioAnalysisData()
   if (audioData) {
     const percent = Math.min(100, (levelFor(audioData, c.source) / 255) * 100)
     bar.style.width = percent + '%'

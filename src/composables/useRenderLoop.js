@@ -10,6 +10,7 @@ import { createMultiLayerRenderer } from './renderLoop/multiLayerRenderer.js'
 import { createSingleVisualizerRenderer } from './renderLoop/singleVisualizerRenderer.js'
 import { createSceneRenderer } from './renderLoop/sceneRenderer.js'
 import { registerCanvasScreenshot } from '../lib/canvasScreenshotBridge.js'
+import { getAudioAnalysisData } from '../lib/audio/audioAnalysisData.js'
 
 /**
  * Render-Schleife des Canvas: pro Frame Audio analysieren, Visualizer rendern
@@ -78,9 +79,9 @@ export function useRenderLoop({
 
   // Momentaufnahme der Onsets pro Band (0–1) in der Form, die onsetFlourish
   // erwartet. Für den visualizerState des Main-Threads und für den Worker
-  // (der kein window.audioAnalysisData hat).
+  // (der kein getAudioAnalysisData() hat).
   function onsetDataSnapshot() {
-    const ad = window.audioAnalysisData
+    const ad = getAudioAnalysisData()
     if (!ad) return null
     return {
       bass: ad.onsetBass ?? 0,

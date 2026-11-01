@@ -10,6 +10,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 const SILENT = {
   bass: 0,
@@ -48,7 +49,7 @@ const MODES = {
 
 afterEach(() => {
   setSlideshowManager(null)
-  delete window.audioAnalysisData
+  setAudioAnalysisData(null)
   vi.restoreAllMocks()
 })
 
@@ -128,7 +129,7 @@ describe.each(Object.keys(MODES))('%s-Modus – Farbe audio-reaktiv auf dem Farb
   // Nicht gewählte Quelle zuerst: Hüllkurve noch leer → exakt unverändert
   it('reagiert nicht auf andere Quellen (alles außer Höhen-Onset angeschlagen)', () => {
     show(mode, { fill: fx('trebleOnset', { brightness: 100 }) })
-    window.audioAnalysisData = { ...SILENT, ...ALL_BUT('trebleOnset') }
+    setAudioAnalysisData({ ...SILENT, ...ALL_BUT('trebleOnset') })
     expect(render(mode).fill.stops).toEqual(['#ff0000', '#0000ff'])
   })
 
@@ -138,7 +139,7 @@ describe.each(Object.keys(MODES))('%s-Modus – Farbe audio-reaktiv auf dem Farb
       fill: fx('bassOnset'),
       gradientAudio: { enabled: true, source: 'midOnset', pulse: 100, rotation: 0 },
     })
-    window.audioAnalysisData = { ...SILENT, onsetBass: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetBass: 1 })
     let out = render(mode)
     expect(out.fill.stops.every((c) => c.startsWith('hsl('))).toBe(true) // Farbe reagiert
     expect(out.fill.a[5]).toBe(half) // Puls nicht
@@ -148,7 +149,7 @@ describe.each(Object.keys(MODES))('%s-Modus – Farbe audio-reaktiv auf dem Farb
       fill: fx('allOnset'),
       gradientAudio: { enabled: true, source: 'dynamic', pulse: 100, rotation: 0 },
     })
-    window.audioAnalysisData = { ...SILENT, mid: 200, treble: 100 }
+    setAudioAnalysisData({ ...SILENT, mid: 200, treble: 100 })
     out = render(mode)
     expect(out.fill.stops).toEqual(['#ff0000', '#0000ff']) // Farbe nicht
     expect(out.fill.a[5]).toBeLessThan(half) // Puls reagiert
@@ -157,10 +158,10 @@ describe.each(Object.keys(MODES))('%s-Modus – Farbe audio-reaktiv auf dem Farb
   // vor den Schleifen-Tests: Lautstärke/Bass hier noch unbenutzt (Hüllkurve leer)
   it('Stille und Stärke 0: Farben unverändert', () => {
     show(mode, { fill: fx('bass', { hue: 0, brightness: 0 }) })
-    window.audioAnalysisData = { ...SILENT, bass: 255 }
+    setAudioAnalysisData({ ...SILENT, bass: 255 })
     expect(render(mode).fill.stops).toEqual(['#ff0000', '#0000ff'])
     show(mode, { fill: fx('volume') })
-    window.audioAnalysisData = { ...SILENT }
+    setAudioAnalysisData({ ...SILENT })
     expect(render(mode).fill.stops).toEqual(['#ff0000', '#0000ff'])
   })
 
@@ -168,7 +169,7 @@ describe.each(Object.keys(MODES))('%s-Modus – Farbe audio-reaktiv auf dem Farb
     'Farbton: beide Verlaufsfarben verschieben sich gleich (%s)',
     (source) => {
       show(mode, { fill: fx(source) })
-      window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+      setAudioAnalysisData({ ...SILENT, ...HIT[source] })
       const [c1, c2] = render(mode).fill.stops.map(hsl)
       const shift1 = c1[0] // Rot: 0°
       const shift2 = (c2[0] - 240 + 360) % 360 // Blau: 240°
@@ -185,7 +186,7 @@ describe.each(Object.keys(MODES))('%s-Modus – Farbe audio-reaktiv auf dem Farb
       color2: '#333333',
       fill: fx(source, { brightness: 100, hue: 0 }),
     })
-    window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
     const [c1, c2] = render(mode).fill.stops.map(hsl)
     expect(c1[2]).toBeGreaterThan(0)
     expect(c1[2]).toBeLessThanOrEqual(50)
@@ -199,7 +200,7 @@ describe.each(Object.keys(MODES))('%s-Modus – Farbe audio-reaktiv auf dem Farb
   it('Farbe-Audio der anderen Fläche wirkt nicht', () => {
     const m = show(mode)
     m.setBaseFillAudio(mode === 'canvas' ? 'workspace' : 'canvas', fx('bass', { brightness: 100 }))
-    window.audioAnalysisData = { ...SILENT, bass: 255, onsetAll: 1 }
+    setAudioAnalysisData({ ...SILENT, bass: 255, onsetAll: 1 })
     expect(render(mode).fill.stops).toEqual(['#ff0000', '#0000ff'])
   })
 })

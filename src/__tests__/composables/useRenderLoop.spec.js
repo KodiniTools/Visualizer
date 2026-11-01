@@ -156,6 +156,7 @@ vi.mock('../../lib/visualizers/imageRegistry.js', () => ({
 
 import { getCanvasScreenshot } from '../../lib/canvasScreenshotBridge.js'
 import { useRenderLoop } from '../../composables/useRenderLoop.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 // ─── Test-Umgebung ──────────────────────────────────────────────────────────
 
@@ -277,7 +278,7 @@ function setup(opts = {}) {
 function runFrames(loop, n) {
   for (let i = 0; i < n; i++) {
     frame++
-    window.audioAnalysisData = {
+    setAudioAnalysisData({
       onsetBass: (frame % 3) / 2,
       onsetMid: 0.25,
       onsetTreble: 0.1,
@@ -286,7 +287,7 @@ function runFrames(loop, n) {
       mid: 0.4,
       treble: 0.2,
       beat: frame % 2 === 0,
-    }
+    })
     L(`--- frame ${frame}`)
     loop.draw()
   }
@@ -326,7 +327,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
-  delete window.audioAnalysisData
+  setAudioAnalysisData(null)
   delete window.takeCanvasScreenshot
 })
 

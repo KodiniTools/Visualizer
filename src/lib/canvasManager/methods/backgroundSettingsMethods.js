@@ -2,6 +2,7 @@
 import { computeAudioReactiveValues } from '../../audio/audioReactiveEngine.js'
 import { applyAudioReactiveFilters } from '../rendering/audioReactiveDraw.js'
 import { calculateEffectValue } from '../../audio/AudioReactiveEffects.js'
+import { getAudioAnalysisData } from '../../audio/audioAnalysisData.js'
 
 /**
  * Einstellungen des Farb-Hintergrunds (Audio-Reaktiv, Farbverlauf, Kacheln)
@@ -48,7 +49,7 @@ export class BackgroundSettingsMethods {
     return computeAudioReactiveValues(
       audioSettings,
       audioSettings,
-      typeof window !== 'undefined' ? window.audioAnalysisData : null,
+      getAudioAnalysisData(),
       (name, level) => this._calculateEffectValue(name, level),
     )
   }

@@ -1,5 +1,6 @@
 import { visualizerState } from '../../lib/visualizers/core/state.js'
 import { stepReactGate, applyReactFactor } from '../../lib/visualizers/core/reactSource.js'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 /**
  * Reaktionsquelle: gatet die Audiodaten mit der Hüllkurve aus `settings`
@@ -22,7 +23,7 @@ export function gateAudioData(data, settings, state, timeDomain) {
   const { env, factor } = stepReactGate(
     state.env || 0,
     settings,
-    window.audioAnalysisData,
+    getAudioAnalysisData(),
     visualizerState._dtMs,
     Date.now(),
   )

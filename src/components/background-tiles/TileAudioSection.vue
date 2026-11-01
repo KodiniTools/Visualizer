@@ -33,6 +33,7 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
 import { tileEffectNames } from '../../lib/audio/audioReactiveConfig.js'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 const {
   tilesStore,
@@ -95,7 +96,7 @@ function updateLevel() {
   const bar = panelRef.value?.audioLevelBarRef
   const ar = tilesStore.selectedTile?.audioReactive
   if (!bar || !ar?.enabled) return
-  const audioData = typeof window !== 'undefined' ? window.audioAnalysisData : null
+  const audioData = getAudioAnalysisData()
   if (audioData) {
     const percent = Math.min(100, (levelFor(audioData, ar.source) / 255) * 100)
     bar.style.width = percent + '%'

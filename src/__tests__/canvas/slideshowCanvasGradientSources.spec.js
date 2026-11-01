@@ -9,6 +9,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 const SILENT = {
   bass: 0,
@@ -48,7 +49,7 @@ const HALF_SWING_TIME = Math.PI / 6 / 0.002
 
 afterEach(() => {
   setSlideshowManager(null)
-  delete window.audioAnalysisData
+  setAudioAnalysisData(null)
   vi.useRealTimers()
   vi.restoreAllMocks()
 })
@@ -133,14 +134,14 @@ describe('Canvas-Modus – Farbverlauf', () => {
   it('reagiert nicht auf andere Quellen (alles außer Bass-Onset angeschlagen)', () => {
     vi.useFakeTimers({ now: PEAK_TIME })
     canvasShow({ type: 'radial', audio: audio('bassOnset') })
-    window.audioAnalysisData = { ...SILENT, ...ALL_BUT('bassOnset') }
+    setAudioAnalysisData({ ...SILENT, ...ALL_BUT('bassOnset') })
     expect(fillOf(renderCanvas()).a).toEqual([100, 50, 0, 100, 50, HALF])
   })
 
   // vor den Schleifen-Tests: Höhen-Onset hier noch unbenutzt (Hüllkurve leer)
   it('Quelle live ändern: gilt beim nächsten Frame', () => {
     const m = canvasShow({ type: 'radial', audio: audio('trebleOnset', { rotation: 0 }) })
-    window.audioAnalysisData = { ...SILENT, onsetMid: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetMid: 1 })
     expect(fillOf(renderCanvas()).a[5]).toBe(HALF) // Höhen-Onset still
     m.setBaseGradient('canvas', { audio: audio('midOnset', { rotation: 0 }) })
     expect(m.getBaseGradient('canvas')).toMatchObject({ enabled: true, type: 'radial' })
@@ -151,7 +152,7 @@ describe('Canvas-Modus – Farbverlauf', () => {
     'Puls reagiert im Canvas auf %s (Radius zieht sich zusammen)',
     (source) => {
       canvasShow({ type: 'radial', audio: audio(source, { rotation: 0 }) })
-      window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+      setAudioAnalysisData({ ...SILENT, ...HIT[source] })
       const fill = fillOf(renderCanvas())
       expect(fill.a.slice(0, 2)).toEqual([100, 50]) // ohne Kreisen: Mitte bleibt
       expect(fill.a[5]).toBeLessThan(HALF)
@@ -162,7 +163,7 @@ describe('Canvas-Modus – Farbverlauf', () => {
   it.each(Object.keys(HIT))('Rotation (linear) reagiert im Canvas auf %s', (source) => {
     vi.useFakeTimers({ now: HALF_SWING_TIME })
     canvasShow({ type: 'linear', angle: 0, audio: audio(source, { pulse: 0 }) })
-    window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
     const [x0, y0, x1, y1] = fillOf(renderCanvas()).a
     // Winkel dreht sich (0° < Winkel ≤ 90°), Verlauf weiterhin durch die Mitte
     const deg = (Math.atan2(y1 - y0, x1 - x0) * 180) / Math.PI
@@ -176,7 +177,7 @@ describe('Canvas-Modus – Farbverlauf', () => {
   it('volle Rotation bei vollem Pegel = 180° (Richtung umgekehrt)', () => {
     vi.useFakeTimers({ now: PEAK_TIME })
     canvasShow({ type: 'linear', angle: 0, audio: audio('bassOnset', { pulse: 0 }) })
-    window.audioAnalysisData = { ...SILENT, onsetBass: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetBass: 1 })
     const [x0, , x1] = fillOf(renderCanvas()).a
     expect(x0).toBeGreaterThan(x1) // Farbe 1 jetzt rechts
   })
@@ -184,7 +185,7 @@ describe('Canvas-Modus – Farbverlauf', () => {
   it('Kreisen (radial): Mittelpunkt wandert, Radius bleibt ohne Puls', () => {
     vi.useFakeTimers({ now: 1000 })
     canvasShow({ type: 'radial', audio: audio('allOnset', { pulse: 0 }) })
-    window.audioAnalysisData = { ...SILENT, onsetAll: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetAll: 1 })
     const [cx, cy, , , , radius] = fillOf(renderCanvas()).a
     expect(Math.hypot(cx - 100, cy - 50)).toBeGreaterThan(0)
     expect(Math.hypot(cx - 100, cy - 50)).toBeLessThanOrEqual(HALF * 0.25 + 1e-9)
@@ -194,7 +195,7 @@ describe('Canvas-Modus – Farbverlauf', () => {
   it('„Farbe audio-reaktiv“ wirkt auf beide Verlaufsfarben', () => {
     const m = canvasShow({ type: 'radial' })
     m.setBaseFillAudio('canvas', { enabled: true, source: 'allOnset', brightness: 100 })
-    window.audioAnalysisData = { ...SILENT, onsetAll: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetAll: 1 })
     const stops = fillOf(renderCanvas()).stops
     expect(stops[0][1]).toMatch(/^hsl\(/)
     expect(stops[1][1]).toMatch(/^hsl\(/)
@@ -207,7 +208,7 @@ describe('Canvas-Modus – Farbverlauf', () => {
       type: 'linear',
       audio: audio('bass'),
     })
-    window.audioAnalysisData = { ...SILENT, bass: 255, onsetAll: 1 }
+    setAudioAnalysisData({ ...SILENT, bass: 255, onsetAll: 1 })
     const fill = fillOf(renderCanvas())
     expect(fill.kind).toBe('radial')
     expect(fill.a).toEqual([100, 50, 0, 100, 50, HALF])

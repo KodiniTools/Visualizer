@@ -4,7 +4,7 @@
  * The visualizers render on the raw FFT array and never touch the
  * audio-reactive overlay pipeline. This module lets them tap the per-band
  * onset signal (fast envelope vs slow baseline + auto-gain) that
- * useGlobalAudioData already publishes on window.audioAnalysisData, without
+ * useGlobalAudioData already publishes on getAudioAnalysisData(), without
  * changing any visualizer's draw signature.
  *
  * The first consumer is the global "beat punch": a short zoom of the whole
@@ -14,7 +14,7 @@
  * @module visualizers/core/onsetReactive
  */
 
-/** Maps a punch source key to its onset field on window.audioAnalysisData. */
+/** Maps a punch source key to its onset field on getAudioAnalysisData(). */
 const ONSET_FIELD = {
   bass: 'onsetBass',
   mid: 'onsetMid',
@@ -26,7 +26,7 @@ const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
 
 /**
  * Reads the current onset (0–1) for a band from an audio-analysis snapshot.
- * @param {object} audioData - window.audioAnalysisData (or any object with onset* fields)
+ * @param {object} audioData - getAudioAnalysisData() (or any object with onset* fields)
  * @param {string} source - 'bass' | 'mid' | 'treble' | 'all' (default 'all')
  * @returns {number} onset level 0–1 (0 when data or field is missing)
  */

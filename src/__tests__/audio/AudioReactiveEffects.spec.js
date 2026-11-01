@@ -8,6 +8,7 @@ import {
   resetBeatPulseEnvelope,
   AudioReactiveEffects,
 } from '../../lib/audio/AudioReactiveEffects.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 describe('AudioReactiveEffects', () => {
   describe('EFFECT_NAMES', () => {
@@ -146,14 +147,12 @@ describe('AudioReactiveEffects', () => {
     })
 
     describe('frequency-split & vignette-pulse', () => {
-      const origWindow = globalThis.window
-
       afterEach(() => {
-        globalThis.window = origWindow
+        setAudioAnalysisData(null)
       })
 
       it('freqSplit maps bass→scale and treble→hue/glow', () => {
-        globalThis.window = { audioAnalysisData: { smoothBass: 255, smoothTreble: 255 } }
+        setAudioAnalysisData({ smoothBass: 255, smoothTreble: 255 })
         const result = calculateEffectValue('freqSplit', 1)
         expect(result.scale).toBeCloseTo(1.35, 3) // 1 + 1 * 1 * 0.35
         expect(result.hueRotate).toBeCloseTo(180, 3) // 1 * 1 * 180
@@ -161,7 +160,7 @@ describe('AudioReactiveEffects', () => {
       })
 
       it('freqSplit rests (scale 1, no hue) in silence', () => {
-        globalThis.window = { audioAnalysisData: { smoothBass: 0, smoothTreble: 0 } }
+        setAudioAnalysisData({ smoothBass: 0, smoothTreble: 0 })
         const result = calculateEffectValue('freqSplit', 1)
         expect(result.scale).toBeCloseTo(1.0, 5)
         expect(result.hueRotate).toBeCloseTo(0, 5)
@@ -177,14 +176,13 @@ describe('AudioReactiveEffects', () => {
     })
 
     describe('beat-flip, color-strobe & impulse-shake', () => {
-      const origWindow = globalThis.window
       afterEach(() => {
-        globalThis.window = origWindow
+        setAudioAnalysisData(null)
       })
 
       it('beatFlip rests at scaleX ~1 without a beat', () => {
         resetBeatPulseEnvelope()
-        globalThis.window = { audioAnalysisData: { isBeat: false } }
+        setAudioAnalysisData({ isBeat: false })
         const r = calculateEffectValue('beatFlip', 0.8, 1000)
         expect(r).toHaveProperty('flipScaleX')
         expect(r.flipScaleX).toBeCloseTo(1, 5)
@@ -192,7 +190,7 @@ describe('AudioReactiveEffects', () => {
 
       it('colorStrobe steps the hue on each detected beat', () => {
         resetBeatPulseEnvelope()
-        globalThis.window = { audioAnalysisData: { isBeat: true } }
+        setAudioAnalysisData({ isBeat: true })
         const a = calculateEffectValue('colorStrobe', 0.5, 1000)
         const b = calculateEffectValue('colorStrobe', 0.5, 2000)
         expect(a).toHaveProperty('hueRotate')
@@ -202,7 +200,7 @@ describe('AudioReactiveEffects', () => {
 
       it('impulseShake rests at ~0 offset in silence', () => {
         resetBeatPulseEnvelope()
-        globalThis.window = { audioAnalysisData: { isBeat: false } }
+        setAudioAnalysisData({ isBeat: false })
         const r = calculateEffectValue('impulseShake', 0.8, 1000)
         expect(r).toHaveProperty('shakeX')
         expect(r).toHaveProperty('shakeY')

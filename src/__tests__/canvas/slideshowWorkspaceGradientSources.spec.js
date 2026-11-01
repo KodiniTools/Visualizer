@@ -9,6 +9,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 const SILENT = {
   bass: 0,
@@ -49,7 +50,7 @@ const HALF_SWING_TIME = Math.PI / 6 / 0.002
 
 afterEach(() => {
   setSlideshowManager(null)
-  delete window.audioAnalysisData
+  setAudioAnalysisData(null)
   vi.useRealTimers()
   vi.restoreAllMocks()
 })
@@ -137,14 +138,14 @@ describe('Workspace-Modus – Farbverlauf', () => {
   it('reagiert nicht auf andere Quellen (alles außer Mitten-Onset angeschlagen)', () => {
     vi.useFakeTimers({ now: HALF_SWING_TIME })
     workspaceShow({ type: 'radial', audio: audio('midOnset') })
-    window.audioAnalysisData = { ...SILENT, ...ALL_BUT('midOnset') }
+    setAudioAnalysisData({ ...SILENT, ...ALL_BUT('midOnset') })
     expect(fillOf(renderWorkspace()).a).toEqual([CX, CY, 0, CX, CY, HALF])
   })
 
   // vor den Schleifen-Tests: Alle-Onset hier noch unbenutzt (Hüllkurve leer)
   it('Quelle live ändern: gilt beim nächsten Frame', () => {
     const m = workspaceShow({ type: 'radial', audio: audio('allOnset', { rotation: 0 }) })
-    window.audioAnalysisData = { ...SILENT, onsetBass: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetBass: 1 })
     expect(fillOf(renderWorkspace()).a[5]).toBe(HALF)
     m.setBaseGradient('workspace', { audio: audio('bassOnset', { rotation: 0 }) })
     expect(fillOf(renderWorkspace()).a[5]).toBeLessThan(HALF)
@@ -152,7 +153,7 @@ describe('Workspace-Modus – Farbverlauf', () => {
 
   it.each(Object.keys(HIT))('Puls reagiert im Workspace auf %s', (source) => {
     workspaceShow({ type: 'radial', audio: audio(source, { rotation: 0 }) })
-    window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
     const calls = renderWorkspace()
     expect(wsFill(calls).slice(2)).toEqual([20, 10, 40, 80])
     const fill = fillOf(calls)
@@ -164,7 +165,7 @@ describe('Workspace-Modus – Farbverlauf', () => {
   it.each(Object.keys(HIT))('Rotation (linear) reagiert im Workspace auf %s', (source) => {
     vi.useFakeTimers({ now: HALF_SWING_TIME })
     workspaceShow({ type: 'linear', angle: 0, audio: audio(source, { pulse: 0 }) })
-    window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
     const [x0, y0, x1, y1] = fillOf(renderWorkspace()).a
     const deg = (Math.atan2(y1 - y0, x1 - x0) * 180) / Math.PI
     expect(deg).toBeGreaterThan(0.5)
@@ -177,7 +178,7 @@ describe('Workspace-Modus – Farbverlauf', () => {
   it('Kreisen (radial): Mitte wandert um höchstens 25 % der halben Workspace-Diagonale', () => {
     vi.useFakeTimers({ now: 1000 })
     workspaceShow({ type: 'radial', audio: audio('trebleOnset', { pulse: 0 }) })
-    window.audioAnalysisData = { ...SILENT, onsetTreble: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetTreble: 1 })
     const [cx, cy, , , , radius] = fillOf(renderWorkspace()).a
     const shift = Math.hypot(cx - CX, cy - CY)
     expect(shift).toBeGreaterThan(0)
@@ -188,7 +189,7 @@ describe('Workspace-Modus – Farbverlauf', () => {
   it('„Farbe audio-reaktiv“ (Workspace) wirkt auf beide Verlaufsfarben', () => {
     const m = workspaceShow({ type: 'radial' })
     m.setBaseFillAudio('workspace', { enabled: true, source: 'allOnset', brightness: 100 })
-    window.audioAnalysisData = { ...SILENT, onsetAll: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetAll: 1 })
     const stops = fillOf(renderWorkspace()).stops
     expect(stops[0][1]).toMatch(/^hsl\(/)
     expect(stops[1][1]).toMatch(/^hsl\(/)
@@ -197,7 +198,7 @@ describe('Workspace-Modus – Farbverlauf', () => {
   it('Canvas-Verlauf und dessen Quelle wirken im Workspace-Modus nicht', () => {
     const m = workspaceShow({ type: 'radial' }) // Workspace: ohne Audio
     m.setBaseGradient('canvas', { enabled: true, type: 'linear', audio: audio('bass') })
-    window.audioAnalysisData = { ...SILENT, bass: 255, onsetAll: 1 }
+    setAudioAnalysisData({ ...SILENT, bass: 255, onsetAll: 1 })
     const calls = renderWorkspace()
     expect(calls[0]).toEqual(['canvas-color'])
     expect(calls.filter((c) => c[0] === 'fill')).toHaveLength(1)

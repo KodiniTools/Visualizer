@@ -8,6 +8,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 const SILENT = {
   bass: 0,
@@ -42,7 +43,7 @@ const WS = { x: 20, y: 10, width: 40, height: 80 }
 
 afterEach(() => {
   setSlideshowManager(null)
-  delete window.audioAnalysisData
+  setAudioAnalysisData(null)
   vi.restoreAllMocks()
 })
 
@@ -100,27 +101,27 @@ describe('Workspace-Modus – Farbe audio-reaktiv', () => {
 
   it('ohne Workspace-Format: keine Workspace-Fläche', () => {
     workspaceShow('#336699', fx('bass'))
-    window.audioAnalysisData = { ...SILENT, bass: 255 }
+    setAudioAnalysisData({ ...SILENT, bass: 255 })
     expect(renderWorkspace({ preset: null })).toEqual([['canvas-color']])
   })
 
   it('eingeschaltet, aber Stille: Farbe unverändert', () => {
     workspaceShow('#336699', fx('volume'))
-    window.audioAnalysisData = { ...SILENT }
+    setAudioAnalysisData({ ...SILENT })
     expect(colorOf(renderWorkspace())).toBe('#336699')
   })
 
   // Nicht gewählte Quelle zuerst: Hüllkurve noch leer → exakt unverändert
   it('reagiert nicht auf andere Quellen (alles außer Mitten-Onset angeschlagen)', () => {
     workspaceShow('#336699', fx('midOnset'))
-    window.audioAnalysisData = { ...SILENT, ...ALL_BUT('midOnset') }
+    setAudioAnalysisData({ ...SILENT, ...ALL_BUT('midOnset') })
     expect(colorOf(renderWorkspace())).toBe('#336699')
   })
 
   // vor den Schleifen-Tests: Höhen-Onset hier noch unbenutzt (Hüllkurve leer)
   it('Quelle live ändern: gilt beim nächsten Frame', () => {
     const m = workspaceShow('#000000', fx('trebleOnset', { hue: 0 }))
-    window.audioAnalysisData = { ...SILENT, onsetBass: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetBass: 1 })
     expect(colorOf(renderWorkspace())).toBe('#000000')
     m.setBaseFillAudio('workspace', { source: 'bassOnset' })
     const [, , l] = hsl(colorOf(renderWorkspace()))
@@ -129,7 +130,7 @@ describe('Workspace-Modus – Farbe audio-reaktiv', () => {
 
   it.each(Object.keys(HIT))('Aufhellen reagiert im Workspace auf %s (Schwarz → Grau)', (source) => {
     workspaceShow('#000000', fx(source, { hue: 0 }))
-    window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
     const calls = renderWorkspace()
     expect(calls[0]).toEqual(['canvas-color'])
     expect(wsFill(calls).slice(2)).toEqual([20, 10, 40, 80])
@@ -143,7 +144,7 @@ describe('Workspace-Modus – Farbe audio-reaktiv', () => {
     'Farbton reagiert im Workspace auf %s (Rot verschiebt sich)',
     (source) => {
       workspaceShow('#ff0000', fx(source, { brightness: 0 }))
-      window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+      setAudioAnalysisData({ ...SILENT, ...HIT[source] })
       const [h, s, l] = hsl(colorOf(renderWorkspace()))
       expect(h).toBeGreaterThan(0)
       expect(h).toBeLessThanOrEqual(180)
@@ -153,7 +154,7 @@ describe('Workspace-Modus – Farbe audio-reaktiv', () => {
 
   it('Stärke 0 schaltet beide Effekte ab = unverändert', () => {
     workspaceShow('#ff0000', fx('allOnset', { brightness: 0, hue: 0 }))
-    window.audioAnalysisData = { ...SILENT, onsetAll: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetAll: 1 })
     expect(colorOf(renderWorkspace())).toBe('#ff0000')
   })
 
@@ -161,7 +162,7 @@ describe('Workspace-Modus – Farbe audio-reaktiv', () => {
     const m = workspaceShow('#336699') // Workspace: aus
     m.setBackgroundColor('#000000')
     m.setBaseFillAudio('canvas', fx('bass'))
-    window.audioAnalysisData = { ...SILENT, bass: 255, onsetAll: 1 }
+    setAudioAnalysisData({ ...SILENT, bass: 255, onsetAll: 1 })
     expect(renderWorkspace()).toEqual([['canvas-color'], ['fill', '#336699', 20, 10, 40, 80]])
   })
 })

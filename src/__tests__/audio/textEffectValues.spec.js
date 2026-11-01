@@ -5,6 +5,7 @@ import {
   getAudioReactiveValues,
 } from '../../lib/textManager/audio/textEffectValues.js'
 import { createTextAudioReactiveConfig } from '../../lib/audio/audioReactiveConfig.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 /**
  * Tests für den Text-Audio-Pfad (docs/REFACTORING-textManager.md, Schritte 6–7).
@@ -22,22 +23,22 @@ function konfig(master = {}, effekte = {}) {
 
 describe('getAudioReactiveValues', () => {
   afterEach(() => {
-    delete window.audioAnalysisData
+    setAudioAnalysisData(null)
   })
 
   it('gibt null zurück ohne Konfiguration, ohne enabled, ohne Audio oder ohne Effekte', () => {
-    window.audioAnalysisData = LAUT
+    setAudioAnalysisData(LAUT)
     expect(getAudioReactiveValues(null)).toBeNull()
     expect(getAudioReactiveValues(undefined)).toBeNull()
     expect(getAudioReactiveValues({ enabled: false })).toBeNull()
     expect(getAudioReactiveValues(konfig())).toBeNull() // kein Effekt aktiv
 
-    delete window.audioAnalysisData
+    setAudioAnalysisData(null)
     expect(getAudioReactiveValues(konfig({}, { hue: {} }))).toBeNull()
   })
 
   it('berechnet nur aktivierte Effekte', () => {
-    window.audioAnalysisData = LAUT
+    setAudioAnalysisData(LAUT)
     const out = getAudioReactiveValues(konfig({}, { hue: {}, brightness: {} }))
 
     expect(out.hasEffects).toBe(true)
@@ -45,7 +46,7 @@ describe('getAudioReactiveValues', () => {
   })
 
   it('nutzt die Text-eigene Hüllkurve: threshold gated den Pegel', () => {
-    window.audioAnalysisData = { bass: 60, mid: 0, treble: 0, volume: 60 }
+    setAudioAnalysisData({ bass: 60, mid: 0, treble: 0, volume: 60 })
 
     // bass 60/255 ≈ 0.24 – eine Schwelle von 50% schneidet das weg
     const gated = getAudioReactiveValues(konfig({ threshold: 50 }, { hue: {} }))
@@ -56,7 +57,7 @@ describe('getAudioReactiveValues', () => {
   })
 
   it('respektiert die Audio-Quelle je Effekt', () => {
-    window.audioAnalysisData = { bass: 255, mid: 0, treble: 0, volume: 255 }
+    setAudioAnalysisData({ bass: 255, mid: 0, treble: 0, volume: 255 })
     const out = getAudioReactiveValues(
       konfig({ source: 'bass', threshold: 0 }, { hue: {}, brightness: { source: 'mid' } }),
     )
@@ -67,7 +68,7 @@ describe('getAudioReactiveValues', () => {
   })
 
   it('skaliert mit der Intensität des Effekts', () => {
-    window.audioAnalysisData = LAUT
+    setAudioAnalysisData(LAUT)
     const voll = getAudioReactiveValues(konfig({ threshold: 0 }, { hue: { intensity: 100 } }))
     const schwach = getAudioReactiveValues(konfig({ threshold: 0 }, { hue: { intensity: 20 } }))
 
@@ -78,10 +79,10 @@ describe('getAudioReactiveValues', () => {
     const a = konfig({ attack: 100, release: 0 }, { hue: {} })
     const b = konfig({ attack: 100, release: 0 }, { hue: {} })
 
-    window.audioAnalysisData = LAUT
+    setAudioAnalysisData(LAUT)
     getAudioReactiveValues(a) // nur a sieht den lauten Frame
 
-    window.audioAnalysisData = { bass: 0, mid: 0, treble: 0, volume: 0 }
+    setAudioAnalysisData({ bass: 0, mid: 0, treble: 0, volume: 0 })
     // a klingt aus (release 0 ⇒ haelt den Wert), b startet bei still
     expect(getAudioReactiveValues(a).effects.hue.hueRotate).toBeGreaterThan(0)
     expect(getAudioReactiveValues(b).effects.hue.hueRotate).toBe(0)

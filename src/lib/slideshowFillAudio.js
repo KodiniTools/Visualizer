@@ -55,7 +55,7 @@ const OWNERS = { canvas: {}, workspace: {} }
  * Aktuelle Farbveränderung durch Audio.
  * @param {object|null|undefined} audio - normalisierte Einstellung
  * @param {'canvas'|'workspace'} target
- * @param {object|null|undefined} audioData - window.audioAnalysisData
+ * @param {object|null|undefined} audioData - getAudioAnalysisData()
  * @returns {{ lighten:number, hueShift:number }} lighten 0–0,5; hueShift in Grad
  */
 export function computeSlideshowFillAudio(audio, target, audioData) {

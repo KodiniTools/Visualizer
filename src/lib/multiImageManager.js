@@ -29,6 +29,7 @@ import {
 import { getEntranceTransform } from './canvasObjects/entranceAnimation.js'
 import { moveToBack, moveToFront } from './canvasObjects/zOrder.js'
 import { getSlideshowManager } from './slideshowManagerBridge.js'
+import { getAudioAnalysisData } from './audio/audioAnalysisData.js'
 
 export class MultiImageManager {
   constructor(canvas, callbacks = {}) {
@@ -384,7 +385,7 @@ export class MultiImageManager {
       return null
     }
 
-    const audioData = window.audioAnalysisData
+    const audioData = getAudioAnalysisData()
     if (!audioData) return null
 
     // Globale Einstellungen

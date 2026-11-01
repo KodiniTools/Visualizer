@@ -30,6 +30,7 @@
 </template>
 
 <script setup>
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 /**
  * Audio-Reaktiv für die ausgewählte Form (Formen & Symbole). Arbeitet auf
  * `shape.audioReactive` im shapeStore – gleiche Struktur, Presets und Effekte
@@ -193,7 +194,7 @@ function updateLevel() {
   const bar = panelRef.value?.audioLevelBarRef
   const c = props.shape?.audioReactive
   if (!bar || !c?.enabled) return
-  const audioData = typeof window !== 'undefined' ? window.audioAnalysisData : null
+  const audioData = getAudioAnalysisData()
   if (audioData) {
     const percent = Math.min(100, (levelFor(audioData, c.source) / 255) * 100)
     bar.style.width = percent + '%'

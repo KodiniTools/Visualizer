@@ -9,6 +9,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 const SILENT = {
   bass: 0,
@@ -41,7 +42,7 @@ const ALL_BUT = (source) =>
 
 afterEach(() => {
   setSlideshowManager(null)
-  delete window.audioAnalysisData
+  setAudioAnalysisData(null)
   vi.restoreAllMocks()
 })
 
@@ -97,21 +98,21 @@ describe('Canvas-Modus – Farbe audio-reaktiv', () => {
 
   it('eingeschaltet, aber Stille: Farbe unverändert', () => {
     canvasShow('#336699', fx('bass'))
-    window.audioAnalysisData = { ...SILENT }
+    setAudioAnalysisData({ ...SILENT })
     expect(colorOf(renderCanvas())).toBe('#336699')
   })
 
   // Nicht gewählte Quelle zuerst: Hüllkurve noch leer → exakt unverändert
   it('reagiert nicht auf andere Quellen (alles außer Höhen-Onset angeschlagen)', () => {
     canvasShow('#336699', fx('trebleOnset'))
-    window.audioAnalysisData = { ...SILENT, ...ALL_BUT('trebleOnset') }
+    setAudioAnalysisData({ ...SILENT, ...ALL_BUT('trebleOnset') })
     expect(colorOf(renderCanvas())).toBe('#336699')
   })
 
   // vor den Schleifen-Tests: Mitten-Onset hier noch unbenutzt (Hüllkurve leer)
   it('Quelle live ändern: gilt beim nächsten Frame', () => {
     const m = canvasShow('#000000', fx('midOnset', { hue: 0 }))
-    window.audioAnalysisData = { ...SILENT, onsetAll: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetAll: 1 })
     expect(colorOf(renderCanvas())).toBe('#000000')
     m.setBaseFillAudio('canvas', { source: 'allOnset' })
     expect(m.getBaseFillAudio('canvas')).toMatchObject({ enabled: true, brightness: 100 })
@@ -121,7 +122,7 @@ describe('Canvas-Modus – Farbe audio-reaktiv', () => {
 
   it.each(Object.keys(HIT))('Aufhellen reagiert im Canvas auf %s (Schwarz → Grau)', (source) => {
     canvasShow('#000000', fx(source, { hue: 0 }))
-    window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
     const calls = renderCanvas()
     expect(calls).toHaveLength(1)
     expect(calls[0].slice(2)).toEqual([0, 0, 200, 100])
@@ -133,7 +134,7 @@ describe('Canvas-Modus – Farbe audio-reaktiv', () => {
 
   it.each(Object.keys(HIT))('Farbton reagiert im Canvas auf %s (Rot verschiebt sich)', (source) => {
     canvasShow('#ff0000', fx(source, { brightness: 0 }))
-    window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
     const [h, s, l] = hsl(colorOf(renderCanvas()))
     expect(h).toBeGreaterThan(0)
     expect(h).toBeLessThanOrEqual(180)
@@ -142,7 +143,7 @@ describe('Canvas-Modus – Farbe audio-reaktiv', () => {
 
   it('Stärke 0 schaltet einzelne Effekte ab; beide 0 = unverändert', () => {
     canvasShow('#ff0000', fx('bassOnset', { brightness: 0, hue: 0 }))
-    window.audioAnalysisData = { ...SILENT, onsetBass: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetBass: 1 })
     expect(colorOf(renderCanvas())).toBe('#ff0000')
   })
 
@@ -150,14 +151,14 @@ describe('Canvas-Modus – Farbe audio-reaktiv', () => {
     const m = canvasShow('#336699') // Canvas: aus
     m.setWorkspaceColor('#000000')
     m.setBaseFillAudio('workspace', fx('bass'))
-    window.audioAnalysisData = { ...SILENT, bass: 255, onsetAll: 1 }
+    setAudioAnalysisData({ ...SILENT, bass: 255, onsetAll: 1 })
     expect(renderCanvas()).toEqual([['fill', '#336699', 0, 0, 200, 100]])
   })
 
   it('ohne Slideshow als Hintergrund: normaler Farbhintergrund, keine Fläche', () => {
     const m = canvasShow('#000000', fx('bass'))
     m.setBackgroundMode('none')
-    window.audioAnalysisData = { ...SILENT, bass: 255 }
+    setAudioAnalysisData({ ...SILENT, bass: 255 })
     expect(renderCanvas()).toEqual([['canvas-color']])
   })
 })

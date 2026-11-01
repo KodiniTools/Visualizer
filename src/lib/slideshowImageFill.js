@@ -99,7 +99,7 @@ const OWNERS = { canvas: {}, workspace: {} }
  * Aktuelle Audio-Veränderung des Bildes.
  * @param {object|null|undefined} audio - normalisierte Audio-Einstellung
  * @param {'canvas'|'workspace'} target
- * @param {object|null|undefined} audioData - window.audioAnalysisData
+ * @param {object|null|undefined} audioData - getAudioAnalysisData()
  * @returns {{ brightness:number, hueShift:number, zoom:number }} brightness in % (100 = neutral)
  */
 export function computeSlideshowImageFillAudio(audio, target, audioData) {

@@ -5,6 +5,8 @@
  * @module audio/AudioReactiveEffects
  */
 
+import { getAudioAnalysisData } from './audioAnalysisData.js'
+
 /**
  * List of all available effect names
  */
@@ -62,7 +64,7 @@ export const EFFECT_CATEGORIES = {
 // ═══════════════════════════════════════════════════════════════════════════
 // RHYTHM / BEAT-PULSE ENVELOPE (module scope)
 //
-// The beat signal (window.audioAnalysisData.isBeat / beatIntensity) is GLOBAL,
+// The beat signal (getAudioAnalysisData().isBeat / beatIntensity) is GLOBAL,
 // so a single shared envelope is correct: every image pulses on the same beat.
 // The envelope snaps up on a detected beat (fast attack) and decays smoothly,
 // which visualises the RHYTHM (the beat grid) instead of continuous loudness.
@@ -173,7 +175,7 @@ export function resetBeatPulseEnvelope() {
  * @returns {{ scale: number, glowBlur: number, glowColor: string }}
  */
 export function calculateBeatPulse(level, time = Date.now()) {
-  const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+  const beat = getAudioAnalysisData()
   const env = updateBeatPulseEnvelope(beat, time)
   const amp = env * (0.35 + 0.65 * Math.max(0, Math.min(1, level)))
   return {
@@ -268,7 +270,7 @@ export function calculateEffectValue(effectName, normalizedLevel, time = Date.no
       // Frequency-split: two bands drive two properties at once — bass grows the
       // image (zoom), treble shifts its hue and adds an edge glow. Reads the raw
       // bands directly; `level` acts as the intensity scaler (see getAudioReactiveValues).
-      const data = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const data = getAudioAnalysisData()
       const bass = data ? (data.smoothBass ?? 0) / 255 : 0
       const treble = data ? (data.smoothTreble ?? 0) / 255 : 0
       return {
@@ -321,7 +323,7 @@ export function calculateEffectValue(effectName, normalizedLevel, time = Date.no
     case 'vignettePulse': {
       // Per-image edge darkening that snaps on each detected beat and eases out,
       // using the shared beat envelope (in sync with beatPulse).
-      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const beat = getAudioAnalysisData()
       const env = updateBeatPulseEnvelope(beat, time)
       const strength = env * (0.4 + 0.6 * level)
       return { vignetteStrength: Math.max(0, Math.min(0.9, strength)) }
@@ -416,7 +418,7 @@ export function calculateEffectValue(effectName, normalizedLevel, time = Date.no
     case 'zoomPunch': {
       // Snappy zoom punch: harder, glow-free scale kick on each detected beat
       // (shares the beat envelope with beatPulse, but zooms more aggressively).
-      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const beat = getAudioAnalysisData()
       const env = updateBeatPulseEnvelope(beat, time)
       const amp = env * (0.4 + 0.6 * Math.max(0, Math.min(1, level)))
       return { scale: 1.0 + amp * 0.5 }
@@ -425,7 +427,7 @@ export function calculateEffectValue(effectName, normalizedLevel, time = Date.no
     case 'bpmPulse': {
       // BPM-locked pulse: scale + glow driven by a predictive BPM phase, so it
       // keeps pulsing on the beat grid even in quiet passages.
-      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const beat = getAudioAnalysisData()
       const env = updateBpmPhase(beat, time)
       const amp = env * (0.35 + 0.65 * Math.max(0, Math.min(1, level)))
       return {
@@ -439,7 +441,7 @@ export function calculateEffectValue(effectName, normalizedLevel, time = Date.no
       // 180° card-flip on each beat: snaps to the flipped (mirrored) side on the
       // beat and eases back to the front as the beat envelope decays. Rendered as
       // a horizontal scale (1 → -1) around the image centre.
-      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const beat = getAudioAnalysisData()
       const env = updateBeatPulseEnvelope(beat, time)
       const p = env * (0.4 + 0.6 * level)
       return { flipScaleX: Math.cos(p * Math.PI) }
@@ -448,7 +450,7 @@ export function calculateEffectValue(effectName, normalizedLevel, time = Date.no
     case 'colorStrobe': {
       // Musical color change: the hue steps to a fresh value on every beat and
       // holds until the next one; saturation pops with the beat envelope.
-      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const beat = getAudioAnalysisData()
       const env = updateBeatPulseEnvelope(beat, time)
       const seq = beatSequence(beat, time)
       return {
@@ -460,7 +462,7 @@ export function calculateEffectValue(effectName, normalizedLevel, time = Date.no
     case 'impulseShake': {
       // Single decaying jolt per beat (unlike the continuous `shake`): picks one
       // random direction on the beat and eases the offset back to zero.
-      const beat = (typeof window !== 'undefined' && window.audioAnalysisData) || null
+      const beat = getAudioAnalysisData()
       const env = updateBeatPulseEnvelope(beat, time)
       const seq = beatSequence(beat, time)
       const angle = seq * 2.399963 // golden angle → well-spread directions

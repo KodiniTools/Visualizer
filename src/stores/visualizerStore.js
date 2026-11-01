@@ -868,7 +868,7 @@ export const useVisualizerStore = defineStore('visualizer', () => {
   const adaptiveQuality = ref(true) // Automatische Qualitätsanpassung nach Frame-Zeit
 
   // Beat-Punch: globaler Onset-getriebener Zoom der GESAMTEN Visualizer-Ebene.
-  // Nutzt die selbst-normalisierten Onset-Werte (window.audioAnalysisData.onset*),
+  // Nutzt die selbst-normalisierten Onset-Werte (getAudioAnalysisData().onset*),
   // wirkt daher für alle Visualizer gleich und friert bei „Wall of Sound" nicht
   // ein. Standardmäßig aus → kein Verhaltenswechsel, bis der Nutzer es aktiviert.
   const beatPunchEnabled = ref(false)

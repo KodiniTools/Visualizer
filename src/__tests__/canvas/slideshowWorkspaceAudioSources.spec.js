@@ -12,6 +12,7 @@ import { MultiImageManager } from '../../lib/multiImageManager.js'
 import { FotoManager } from '../../lib/fotoManager.js'
 import { resolveSlideshowAudioReactive } from '../../lib/slideshowAudio.js'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 const WS = { x: 20, y: 10, width: 40, height: 80 }
 const SILENT = {
@@ -39,7 +40,7 @@ const HIT = {
 
 afterEach(() => {
   setSlideshowManager(null)
-  delete window.audioAnalysisData
+  setAudioAnalysisData(null)
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
@@ -101,7 +102,7 @@ describe('Workspace-Modus – Quelle der Fläche', () => {
     show.setWorkspaceColor('#000000')
     show.setBaseFillAudio('workspace', { enabled: true, source: 'midOnset', brightness: 100 })
     setSlideshowManager(show)
-    window.audioAnalysisData = { ...SILENT, bass: 255, onsetAll: 1, onsetBass: 1 }
+    setAudioAnalysisData({ ...SILENT, bass: 255, onsetAll: 1, onsetBass: 1 })
     expect(renderWorkspace().fills[1]).toEqual(['#000000', 20, 10, 40, 80])
   })
 
@@ -114,7 +115,7 @@ describe('Workspace-Modus – Quelle der Fläche', () => {
       // Canvas-Fläche hat eine andere Quelle – darf den Workspace nicht beeinflussen
       show.setBaseFillAudio('canvas', { enabled: true, source: 'bass', brightness: 100 })
       setSlideshowManager(show)
-      window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+      setAudioAnalysisData({ ...SILENT, ...HIT[source] })
       const [color, ...rect] = renderWorkspace().fills[1]
       expect(rect).toEqual([20, 10, 40, 80])
       expect(color).toMatch(/^hsl\(0, 0%, /)
@@ -132,7 +133,7 @@ describe('Workspace-Modus – Quelle der Fläche', () => {
         audio: { enabled: true, source, pulse: 100, rotation: 0 },
       })
       setSlideshowManager(show)
-      window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+      setAudioAnalysisData({ ...SILENT, ...HIT[source] })
       const fill = renderWorkspace().fills[1][0]
       expect(fill.kind).toBe('radial')
       const half = Math.hypot(WS.width, WS.height) / 2
@@ -150,7 +151,7 @@ describe('Workspace-Modus – Quelle der Fläche', () => {
       img,
     )
     setSlideshowManager(show)
-    window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
     const { images } = renderWorkspace()
     expect(images).toHaveLength(1)
     // eingepasst wären es 40×40; mit Puls-Zoom größer
@@ -191,7 +192,7 @@ describe('Workspace-Modus – eigene Quelle pro Slideshow-Bild', () => {
     // nur Bass-Onset → neutral; nur Höhen-Onset (eigene Quelle) → Bild pulsiert
     // (frische Kopien: jede Auswertung startet ohne Hüllkurven-Zustand)
     const valuesFor = (data) => {
-      window.audioAnalysisData = { ...SILENT, ...data }
+      setAudioAnalysisData({ ...SILENT, ...data })
       return mim.getAudioReactiveValues(JSON.parse(JSON.stringify(ar))).effects
     }
     const bassHit = valuesFor({ onsetBass: 1 })
@@ -256,7 +257,7 @@ describe('Workspace-Modus – Quelle aus dem Bild-Editor (pausiert, live)', () =
 
     // reagiert jetzt auf Bass-Onset, nicht mehr auf andere Quellen
     const scaleFor = (data) => {
-      window.audioAnalysisData = { ...SILENT, ...data }
+      setAudioAnalysisData({ ...SILENT, ...data })
       return mim.getAudioReactiveValues(
         JSON.parse(JSON.stringify(shown.fotoSettings.audioReactive)),
       ).effects.scale.scale

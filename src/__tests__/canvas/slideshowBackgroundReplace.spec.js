@@ -9,6 +9,7 @@ import { MultiImageManager } from '../../lib/multiImageManager.js'
 import { FotoManager } from '../../lib/fotoManager.js'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 afterEach(() => {
   setSlideshowManager(null)
@@ -372,16 +373,16 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     show.setBaseFillAudio('canvas', { enabled: true, brightness: 100, hue: 0 })
     expect(show.getBaseFillAudio('workspace').enabled).toBe(false)
     setSlideshowManager(show)
-    window.audioAnalysisData = { bass: 0, mid: 0, treble: 0, volume: 0 }
+    setAudioAnalysisData({ bass: 0, mid: 0, treble: 0, volume: 0 })
     let setup = rendererSetup()
     setup.r.drawBackground(setup.ctx)
     expect(setup.fills[0][0]).toBe('#000000')
 
-    window.audioAnalysisData = { bass: 255, mid: 0, treble: 0, volume: 0 }
+    setAudioAnalysisData({ bass: 255, mid: 0, treble: 0, volume: 0 })
     setup = rendererSetup()
     setup.r.drawBackground(setup.ctx)
     expect(setup.fills[0][0]).toMatch(/^hsl\(0, 0%, (?!0%)/)
-    delete window.audioAnalysisData
+    setAudioAnalysisData(null)
   })
 
   it('Eigenes Flächenbild wird über der Farbe gezeichnet (auf den Bereich beschnitten)', () => {

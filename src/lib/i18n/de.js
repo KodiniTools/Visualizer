@@ -1093,6 +1093,17 @@ export default {
     webmExport: 'WebM Export',
     downloadWebm: 'WebM Download',
     webmInfo: 'Kleinste Dateigröße – ideal für Web & Landingpages',
+    // Speichern-Dialog
+    saveDialog: {
+      title: 'Datei speichern',
+      description: 'Lege den Dateinamen fest. Die Endung wird automatisch ergänzt.',
+      filename: 'Dateiname',
+      filenameRequired: 'Bitte einen Dateinamen eingeben.',
+      locationHint:
+        'Dein Browser erlaubt keine Ordnerauswahl. Die Datei landet im Download-Ordner, oder der Browser fragt nach dem Speicherort, wenn das in seinen Einstellungen aktiviert ist.',
+      saved: 'Datei gespeichert',
+      saveFailed: 'Speichern fehlgeschlagen: {message}',
+    },
     // HQ Frame Export
     hqExport: 'HQ Frame Export',
     hqAutoCreate: 'HQ Export nach Aufnahme',

@@ -34,6 +34,7 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 import AudioReactivePanel from '../../foto-panel/AudioReactivePanel.vue'
+import { getAudioAnalysisData } from '../../../lib/audio/audioAnalysisData.js'
 
 const { t } = useI18n()
 const bg = inject('bgSettings')
@@ -104,7 +105,7 @@ function updateLevel() {
   levelAnimationId = null
   const bar = panelRef.value?.audioLevelBarRef
   if (!bar || !bgAudioReactive.enabled) return
-  const audioData = typeof window !== 'undefined' ? window.audioAnalysisData : null
+  const audioData = getAudioAnalysisData()
   if (audioData) {
     const percent = Math.min(100, (levelFor(audioData, bgAudioReactive.source) / 255) * 100)
     bar.style.width = percent + '%'

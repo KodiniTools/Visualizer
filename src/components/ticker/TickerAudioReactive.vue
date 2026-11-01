@@ -43,6 +43,7 @@ import {
   cloneAudioReactiveConfig,
 } from '../../lib/audio/audioReactiveConfig.js'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 const STORAGE_KEY = 'visualizer_tickerAudioReactivePreset'
 
@@ -180,7 +181,7 @@ function updateLevel() {
   levelAnimationId = null
   const bar = panelRef.value?.audioLevelBarRef
   if (!bar || !ticker.audioReactive) return
-  const audioData = typeof window !== 'undefined' ? window.audioAnalysisData : null
+  const audioData = getAudioAnalysisData()
   if (audioData) {
     const percent = Math.min(100, (levelFor(audioData, cfg().source) / 255) * 100)
     bar.style.width = percent + '%'

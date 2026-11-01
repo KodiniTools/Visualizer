@@ -82,7 +82,7 @@ const clamp01 = (v) => Math.max(0, Math.min(1, v))
  * @param {object} owner - stable settings object used as envelope state key
  * @param {object} opts
  * @param {string} opts.source - 'bass' | 'mid' | 'treble' | 'volume' | 'dynamic'
- * @param {object} opts.audioData - window.audioAnalysisData
+ * @param {object} opts.audioData - getAudioAnalysisData()
  * @param {number} [opts.smoothing=50] - used only when attack/release are absent
  * @param {number} [opts.attack] - explicit rise coefficient 0–1
  * @param {number} [opts.release] - explicit fall coefficient 0–1

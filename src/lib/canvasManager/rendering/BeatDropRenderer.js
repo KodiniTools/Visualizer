@@ -26,7 +26,7 @@ export class BeatDropRenderer {
    * @param {CanvasRenderingContext2D} ctx
    * @param {number} width
    * @param {number} height
-   * @param {object} audioData — window.audioAnalysisData
+   * @param {object} audioData — getAudioAnalysisData()
    * @param {object} settings — from beatDropStore.$state
    */
   render(ctx, width, height, audioData, settings) {

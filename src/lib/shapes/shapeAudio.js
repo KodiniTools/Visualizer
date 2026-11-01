@@ -61,7 +61,7 @@ const calculateShapeEffect = (name, level, config) =>
 /**
  * Effektwerte der aktivierten Effekte einer Form (null = keine).
  * @param {object|null|undefined} ar - shape.audioReactive
- * @param {object|null|undefined} audioData - window.audioAnalysisData
+ * @param {object|null|undefined} audioData - getAudioAnalysisData()
  * @returns {Record<string, object>|null}
  */
 export function getShapeAudioFx(ar, audioData) {

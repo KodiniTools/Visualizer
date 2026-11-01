@@ -3,7 +3,7 @@
  *
  * Lets a visualizer add a discrete "flourish" on each beat — a particle surge,
  * a bloom pop, a grid punch — driven by the self-normalized onset signal that
- * useGlobalAudioData publishes on window.audioAnalysisData. Because the onset
+ * useGlobalAudioData publishes on getAudioAnalysisData(). Because the onset
  * is auto-gained, the flourish fires equally on quiet and loud tracks and
  * reacts to hits rather than sustained loudness.
  *
@@ -11,7 +11,7 @@
  * values onto the shared visualizer state once per frame —
  * `visualizerState._onsetFx = { enabled, strength }` and
  * `visualizerState._onsetData = { bass, mid, treble, all }`. Reading from
- * visualizerState (rather than window.audioAnalysisData) means this works
+ * visualizerState (rather than getAudioAnalysisData()) means this works
  * identically on the main thread and inside the OffscreenCanvas worker, which
  * has no `window`; the worker path receives both via its render message. When
  * the flag is absent or disabled, onsetFlourish() returns 0, so a visualizer

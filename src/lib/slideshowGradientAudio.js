@@ -70,7 +70,7 @@ const OWNERS = { canvas: {}, workspace: {} }
  * Aktuelle Audio-Verformung des Verlaufs.
  * @param {object|null|undefined} audio - normalisierte Audio-Einstellung
  * @param {'canvas'|'workspace'} target
- * @param {object|null|undefined} audioData - window.audioAnalysisData
+ * @param {object|null|undefined} audioData - getAudioAnalysisData()
  * @param {number} [now] - Zeit in ms (für die Rotation)
  * @returns {{ extent:number, angleOffset:number, centerShift:number, shiftAngle:number }}
  */

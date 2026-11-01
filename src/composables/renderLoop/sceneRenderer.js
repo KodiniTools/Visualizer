@@ -1,4 +1,5 @@
 import { ensureSizedCanvas } from './canvasCache.js'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 /**
  * Szenenaufbau für Live-Bild, Aufnahme und Screenshot:
@@ -136,7 +137,7 @@ export function createSceneRenderer({
       tickerRenderer,
       tickerStore,
     } = effects
-    const audioData = window.audioAnalysisData
+    const audioData = getAudioAnalysisData()
     audioFxRenderer.render(ctx, width, height, audioData, audioFxStore.$state)
     beatDropRenderer.render(ctx, width, height, audioData, beatDropStore.$state)
     if (tickerRenderer && tickerStore) {

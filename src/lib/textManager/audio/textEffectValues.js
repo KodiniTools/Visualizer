@@ -10,6 +10,7 @@
  */
 import { computeAudioReactiveValues } from '../../audio/audioReactiveEngine.js'
 import { calculateBeatPulse, calculateEffectValue } from '../../audio/index.js'
+import { getAudioAnalysisData } from '../../audio/audioAnalysisData.js'
 
 /**
  * Text-spezifische Optionen für die Hüllkurve des Level-Resolvers.
@@ -46,7 +47,7 @@ export function getAudioReactiveValues(audioSettings) {
   return computeAudioReactiveValues(
     audioSettings,
     audioSettings,
-    window.audioAnalysisData,
+    getAudioAnalysisData(),
     calculateTextEffectValue,
     textLevelOptions(audioSettings),
   )

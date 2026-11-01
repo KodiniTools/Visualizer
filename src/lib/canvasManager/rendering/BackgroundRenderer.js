@@ -21,6 +21,7 @@ import { computeSlideshowGradientAudio } from '../../slideshowGradientAudio.js'
 import { applySlideshowFillAudio, computeSlideshowFillAudio } from '../../slideshowFillAudio.js'
 import { computeSlideshowImageFillAudio, drawSlideshowImageFill } from '../../slideshowImageFill.js'
 import { getSlideshowManager } from '../../slideshowManagerBridge.js'
+import { getAudioAnalysisData } from '../../audio/audioAnalysisData.js'
 
 /**
  * Ersetzt die laufende Slideshow gerade den Canvas- bzw. Workspace-Hintergrund?
@@ -195,7 +196,7 @@ export class BackgroundRenderer {
       rect === undefined ? { x: 0, y: 0, width: ctx.canvas.width, height: ctx.canvas.height } : rect
     if (!area) return
     ctx.save()
-    const audioData = typeof window !== 'undefined' ? window.audioAnalysisData : null
+    const audioData = getAudioAnalysisData()
     let gradient = getSlideshowBaseGradient(target)
     const audio = gradient?.audio?.enabled
       ? computeSlideshowGradientAudio(gradient.audio, target, audioData)

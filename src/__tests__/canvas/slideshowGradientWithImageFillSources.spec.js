@@ -8,6 +8,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 const SILENT = {
   bass: 0,
@@ -59,7 +60,7 @@ const MODES = {
 
 afterEach(() => {
   setSlideshowManager(null)
-  delete window.audioAnalysisData
+  setAudioAnalysisData(null)
   vi.restoreAllMocks()
 })
 
@@ -160,7 +161,7 @@ describe.each(Object.keys(MODES))('%s-Modus – Farbverlauf-Quelle mit Flächenb
   // Nicht gewählte Quellen zuerst: Hüllkurven noch leer → exakt neutral
   it('Verlauf (Höhen-Onset) und Bild (Mitten-Onset) reagieren nicht auf andere Quellen', () => {
     show(mode, { gradientSource: 'trebleOnset', imageSource: 'midOnset' })
-    window.audioAnalysisData = { ...SILENT, ...ALL_BUT('trebleOnset', 'midOnset') }
+    setAudioAnalysisData({ ...SILENT, ...ALL_BUT('trebleOnset', 'midOnset') })
     const out = render(mode)
     expect(out.radius).toBe(half)
     expect(out.image).toEqual({ img: image, filter: 'none', rect: contain })
@@ -168,14 +169,14 @@ describe.each(Object.keys(MODES))('%s-Modus – Farbverlauf-Quelle mit Flächenb
 
   it('Quellen sind unabhängig: nur Verlauf-Quelle → nur Puls; nur Bild-Quelle → nur Bild', () => {
     show(mode, { gradientSource: 'bassOnset', imageSource: 'allOnset' })
-    window.audioAnalysisData = { ...SILENT, onsetBass: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetBass: 1 })
     let out = render(mode)
     expect(out.radius).toBeLessThan(half)
     expect(out.image.rect).toEqual(contain)
     expect(out.image.filter).toBe('none')
 
     show(mode, { gradientSource: 'volume', imageSource: 'mid' })
-    window.audioAnalysisData = { ...SILENT, mid: 255 }
+    setAudioAnalysisData({ ...SILENT, mid: 255 })
     out = render(mode)
     expect(out.radius).toBe(half)
     expect(out.image.rect[2]).toBeGreaterThan(contain[2]) // Puls-Zoom
@@ -184,7 +185,7 @@ describe.each(Object.keys(MODES))('%s-Modus – Farbverlauf-Quelle mit Flächenb
 
   it.each(Object.keys(HIT))('Verlauf-Puls reagiert unter dem Bild auf %s', (source) => {
     show(mode, { gradientSource: source })
-    window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
     const out = render(mode)
     expect(out.radius).toBeLessThan(half)
     expect(out.radius).toBeGreaterThanOrEqual(half * 0.4 - 1e-9)
@@ -196,7 +197,7 @@ describe.each(Object.keys(MODES))('%s-Modus – Farbverlauf-Quelle mit Flächenb
   it('Bild ausgeschaltet: nur der (reagierende) Verlauf', () => {
     const m = show(mode, { gradientSource: 'allOnset' })
     m.setBaseImage(mode, { enabled: false })
-    window.audioAnalysisData = { ...SILENT, onsetAll: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetAll: 1 })
     const out = render(mode)
     expect(out.image).toBeUndefined()
     expect(out.radius).toBeLessThan(half)

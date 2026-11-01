@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { TextManager } from '../../lib/textManager.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 /**
  * Characterization-Tests für den TextManager.
@@ -768,26 +769,26 @@ describe('TextManager', () => {
 
   describe('getAudioReactiveValues()', () => {
     afterEach(() => {
-      delete window.audioAnalysisData
+      setAudioAnalysisData(null)
     })
 
     it('gibt ohne Konfiguration, ohne enabled oder ohne Audio-Daten null zurück', () => {
-      window.audioAnalysisData = { bass: 255, mid: 0, treble: 0, volume: 255 }
+      setAudioAnalysisData({ bass: 255, mid: 0, treble: 0, volume: 255 })
       expect(tm.getAudioReactiveValues(null)).toBeNull()
       expect(tm.getAudioReactiveValues({ enabled: false })).toBeNull()
 
-      delete window.audioAnalysisData
+      setAudioAnalysisData(null)
       expect(tm.getAudioReactiveValues({ enabled: true, effects: {} })).toBeNull()
     })
 
     it('gibt null zurück, wenn kein Effekt aktiviert ist', () => {
-      window.audioAnalysisData = { bass: 255, mid: 0, treble: 0, volume: 255 }
+      setAudioAnalysisData({ bass: 255, mid: 0, treble: 0, volume: 255 })
       const t = tm.add('A')
       expect(tm.getAudioReactiveValues(t.audioReactive)).toBeNull()
     })
 
     it('berechnet Werte für aktivierte Effekte', () => {
-      window.audioAnalysisData = { bass: 255, mid: 0, treble: 0, volume: 255 }
+      setAudioAnalysisData({ bass: 255, mid: 0, treble: 0, volume: 255 })
       const t = tm.add('A')
       Object.assign(t.audioReactive.effects.hue, { enabled: true, intensity: 100 })
 

@@ -153,6 +153,7 @@ import { useToastStore } from '../../stores/toastStore.js'
 import { useAudioReactiveText } from '../../composables/useAudioReactiveText.js'
 import { TEXT_SHARED_EFFECT_NAMES } from '../../lib/audio/audioReactiveConfig.js'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 const props = defineProps({
   selectedText: {
@@ -272,7 +273,7 @@ function updateLevel() {
   const bar = panelRef.value?.audioLevelBarRef
   const cfg = props.selectedText?.audioReactive
   if (!bar || !cfg?.enabled) return
-  const audioData = typeof window !== 'undefined' ? window.audioAnalysisData : null
+  const audioData = getAudioAnalysisData()
   if (audioData) {
     const percent = Math.min(100, (levelFor(audioData, cfg.source) / 255) * 100)
     bar.style.width = percent + '%'

@@ -6,6 +6,7 @@ import {
   getCanvasDisplayScale,
 } from '../lib/shapes/shapeInteraction.js'
 import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
+import { getAudioAnalysisData } from '../lib/audio/audioAnalysisData.js'
 
 /** Akzentfarbe des aktuellen Themes für den Auswahlrahmen */
 function accentColor() {
@@ -43,7 +44,7 @@ export function useShapeLayer({ canvasRef, canvasManagerInstance, shapeStore, hi
     // Live-Canvas bestimmt die Bezugsgröße (Workspace-Wechsel skaliert mit)
     const live = canvasRef.value
     if (live?.width && live?.height) shapeStore.syncCanvasSize(live.width, live.height)
-    const audioData = typeof window !== 'undefined' ? window.audioAnalysisData : null
+    const audioData = getAudioAnalysisData()
     for (const shape of shapeStore.shapes) {
       // Beat-Marker: zugewiesene Formen erscheinen erst zum Marker-Zeitpunkt
       if (shapeStore.isMarkerHidden(shape.id)) continue

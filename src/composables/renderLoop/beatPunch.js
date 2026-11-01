@@ -9,6 +9,7 @@ import {
   advancePunch,
   punchScale,
 } from '../../lib/visualizers/core/onsetReactive.js'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 /**
  * Beat-Punch: onset-gesteuerter Zoom der gesamten Visualizer-Ebene. Die
@@ -31,7 +32,7 @@ export function createBeatPunch(visualizerStore) {
       bandScales = null
       return
     }
-    const onset = onsetForSource(window.audioAnalysisData, visualizerStore.beatPunchSource)
+    const onset = onsetForSource(getAudioAnalysisData(), visualizerStore.beatPunchSource)
     env = advancePunch(env, onset)
     scale = punchScale(env, visualizerStore.beatPunchStrength)
 
@@ -88,7 +89,7 @@ export function createLayerPunch() {
         envs.delete(layerId)
         return 1
       }
-      const onset = onsetForSource(window.audioAnalysisData, fx.beatPunchSource)
+      const onset = onsetForSource(getAudioAnalysisData(), fx.beatPunchSource)
       const env = advancePunch(envs.get(layerId) || 0, onset)
       envs.set(layerId, env)
       return punchScale(env, fx.beatPunchStrength)

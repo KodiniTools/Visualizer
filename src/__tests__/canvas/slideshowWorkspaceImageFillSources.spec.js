@@ -9,6 +9,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 const SILENT = {
   bass: 0,
@@ -47,7 +48,7 @@ const CONTAIN = [20, 30, 40, 40]
 
 afterEach(() => {
   setSlideshowManager(null)
-  delete window.audioAnalysisData
+  setAudioAnalysisData(null)
   vi.restoreAllMocks()
 })
 
@@ -129,14 +130,14 @@ describe('Workspace-Modus – Flächenbild', () => {
   // Nicht gewählte Quelle zuerst: Hüllkurve noch leer → exakt neutral
   it('reagiert nicht auf andere Quellen (alles außer Bass-Onset angeschlagen)', () => {
     workspaceShow({ enabled: true, fit: 'contain', audio: audio('bassOnset') })
-    window.audioAnalysisData = { ...SILENT, ...ALL_BUT('bassOnset') }
+    setAudioAnalysisData({ ...SILENT, ...ALL_BUT('bassOnset') })
     expect(imageCall(renderWorkspace()).slice(2)).toEqual(['none', ...CONTAIN])
   })
 
   // vor den Schleifen-Tests: Höhen-Onset hier noch unbenutzt (Hüllkurve leer)
   it('Quelle live ändern: gilt beim nächsten Frame, Bild bleibt', () => {
     const m = workspaceShow({ enabled: true, fit: 'contain', audio: audio('trebleOnset') })
-    window.audioAnalysisData = { ...SILENT, onsetMid: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetMid: 1 })
     expect(imageCall(renderWorkspace())[2]).toBe('none') // Höhen-Onset still
     m.setBaseImage('workspace', { audio: audio('midOnset') })
     expect(m.getBaseImage('workspace').image).toBe(IMG)
@@ -145,7 +146,7 @@ describe('Workspace-Modus – Flächenbild', () => {
 
   it.each(Object.keys(HIT))('reagiert im Workspace auf %s (Aufhellen, Farbton, Zoom)', (source) => {
     workspaceShow({ enabled: true, fit: 'contain', audio: audio(source) })
-    window.audioAnalysisData = { ...SILENT, ...HIT[source] }
+    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
     const calls = renderWorkspace()
     // weiterhin auf den Workspace beschnitten
     expect(calls).toContainEqual(['rect', 20, 10, 40, 80])
@@ -166,7 +167,7 @@ describe('Workspace-Modus – Flächenbild', () => {
       fit: 'contain',
       audio: audio('allOnset', { brightness: 0, hue: 0 }),
     })
-    window.audioAnalysisData = { ...SILENT, onsetAll: 1 }
+    setAudioAnalysisData({ ...SILENT, onsetAll: 1 })
     const [, , filter, , , w] = imageCall(renderWorkspace())
     expect(filter).toBe('none')
     expect(w).toBeGreaterThan(40) // nur Zoom
@@ -175,7 +176,7 @@ describe('Workspace-Modus – Flächenbild', () => {
   it('Canvas-Flächenbild und dessen Quelle wirken im Workspace-Modus nicht', () => {
     const m = workspaceShow({ enabled: true, fit: 'contain' }) // Workspace: ohne Audio
     m.setBaseImage('canvas', { enabled: true, audio: audio('bass') }, { width: 1, height: 1 })
-    window.audioAnalysisData = { ...SILENT, bass: 255, onsetAll: 1 }
+    setAudioAnalysisData({ ...SILENT, bass: 255, onsetAll: 1 })
     const calls = renderWorkspace()
     expect(calls[0]).toEqual(['canvas-color']) // Canvas-Hintergrund unverändert
     expect(calls.filter((c) => c[0] === 'image')).toHaveLength(1)

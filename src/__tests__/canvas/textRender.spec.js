@@ -11,6 +11,7 @@ import { buildFilterString } from '../../lib/textManager/render/filters.js'
 import { drawTextLines, drawTypewriterCursor } from '../../lib/textManager/render/textLines.js'
 import { drawText } from '../../lib/textManager/render/drawText.js'
 import { createTextObject } from '../../lib/textManager/createTextObject.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 /**
  * Tests für die Render-Module (docs/REFACTORING-textManager.md, Schritt 5).
@@ -425,7 +426,7 @@ describe('drawText', () => {
   })
   afterEach(() => {
     vi.useRealTimers()
-    delete window.audioAnalysisData
+    setAudioAnalysisData(null)
   })
 
   it('zeichnet nichts für leeren Inhalt', () => {
@@ -435,7 +436,7 @@ describe('drawText', () => {
   })
 
   it('hält save/restore im Gleichgewicht und setzt Schatten und Filter zurück', () => {
-    window.audioAnalysisData = { bass: 255, mid: 200, treble: 100, volume: 255 }
+    setAudioAnalysisData({ bass: 255, mid: 200, treble: 100, volume: 255 })
     const t = createTextObject('Hallo\nWelt')
     for (const name of ['hue', 'strobe', 'shake', 'glow']) {
       t.audioReactive.effects[name].enabled = true
@@ -464,7 +465,7 @@ describe('drawText', () => {
     // End-to-End: calculateTextEffectValue liefert bei Math.random() <= 0.3 und
     // Pegel > 60% ein strobeOpacity von 0 – das muss bis zum Canvas durchschlagen.
     const zufall = vi.spyOn(Math, 'random').mockReturnValue(0.1)
-    window.audioAnalysisData = { bass: 255, mid: 255, treble: 255, volume: 255 }
+    setAudioAnalysisData({ bass: 255, mid: 255, treble: 255, volume: 255 })
 
     const t = createTextObject('Blitz')
     Object.assign(t.audioReactive.effects.strobe, { enabled: true, intensity: 100 })
@@ -479,7 +480,7 @@ describe('drawText', () => {
 
   it('bleibt im hellen Strobe-Frame voll sichtbar', () => {
     const zufall = vi.spyOn(Math, 'random').mockReturnValue(0.9)
-    window.audioAnalysisData = { bass: 255, mid: 255, treble: 255, volume: 255 }
+    setAudioAnalysisData({ bass: 255, mid: 255, treble: 255, volume: 255 })
 
     const t = createTextObject('Blitz')
     Object.assign(t.audioReactive.effects.strobe, { enabled: true, intensity: 100 })

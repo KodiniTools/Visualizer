@@ -156,7 +156,7 @@ export function normalizeReactShape(settings) {
 
 /**
  * Raw drive value (0–1) of a source from an audio-analysis snapshot
- * (window.audioAnalysisData or the same shape). Levels may arrive on a 0–255
+ * (getAudioAnalysisData() or the same shape). Levels may arrive on a 0–255
  * scale; anything above 1 is treated as such.
  * @param {string} source
  * @param {object|null|undefined} audioData
@@ -279,7 +279,7 @@ export function reactFactor(env, strength) {
  * oder Layer mit den Feldern reactSource/reactStrength/reactSmoothing/…).
  * @param {number} prevEnv - Hüllkurve des Vorframes (0–1)
  * @param {object} settings - Objekt mit react*-Feldern
- * @param {object|null|undefined} audioData - window.audioAnalysisData
+ * @param {object|null|undefined} audioData - getAudioAnalysisData()
  * @param {number} [dtMs]
  * @param {number} [time=Date.now()]
  * @returns {{env:number, factor:number}} neue Hüllkurve (zu speichern) und Gate-Faktor

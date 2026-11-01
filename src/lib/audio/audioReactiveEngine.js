@@ -18,7 +18,7 @@ import { calculateEffectValue } from './AudioReactiveEffects.js'
  *   (in der Regel die Konfiguration selbst)
  * @param {object|null|undefined} audioSettings - Konfiguration
  *   ({ enabled, source, smoothing, easing, beatBoost, phase, gain, effects })
- * @param {object|null|undefined} audioData - window.audioAnalysisData
+ * @param {object|null|undefined} audioData - getAudioAnalysisData()
  * @param {(name: string, level: number, config: object) => object} [calculate]
  *   Effektberechnung; Default: gemeinsame Bild-Engine (erhält nur name/level)
  * @param {object|null} [levelOptions] - zusätzliche bzw. überschreibende

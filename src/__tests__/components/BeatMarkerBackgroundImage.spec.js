@@ -169,4 +169,66 @@ describe('Beat-Marker mit Hintergrund-Bild aus der Galerie', () => {
     expect(applied[0].backgroundColor).toBe('#000000')
     expect(cm.background.imageObject).toBe(imgA)
   })
+
+  it('ein Marker ohne Hintergrund-Bild stellt den Hintergrund von vorher wieder her', () => {
+    const before = { imageObject: { src: 'vorher.png' }, fotoSettings: { audioReactive: AR } }
+    cm.background = before
+    markerStore.addMarker(5, { backgroundImage: { galleryId: 11, name: 'wald.jpg' } })
+    markerStore.addMarker(8, { backgroundImage: { galleryId: 22, name: 'stadt.jpg' } })
+    markerStore.addMarker(12, { visualizer: null })
+    frame(4.99)
+    frame(5.01)
+    expect(cm.background.imageObject).toBe(imgA)
+    frame(7.99)
+    frame(8.01)
+    expect(cm.background.imageObject).toBe(imgB)
+    frame(11.99)
+    frame(12.01)
+    expect(cm.background).toBe(before)
+  })
+
+  it('ohne vorheriges Bild wird der Hintergrund wieder geleert', () => {
+    cm.background = '#123456'
+    markerStore.addMarker(5, { backgroundImage: { galleryId: 11, name: 'wald.jpg' } })
+    markerStore.addMarker(8, { visualizer: null })
+    frame(4.99)
+    frame(5.01)
+    expect(cm.background.imageObject).toBe(imgA)
+    frame(7.99)
+    frame(8.01)
+    expect(cm.background).toBe('#123456')
+  })
+
+  it('ein Marker mit Hintergrund-Preset ersetzt das Bild ohne Zurücksetzen', () => {
+    const bridge = useBackgroundBridgeStore()
+    bridge.register(
+      () => ({}),
+      () => {
+        cm.background = '#00ff00'
+      },
+    )
+    cm.background = null
+    markerStore.addMarker(5, { backgroundImage: { galleryId: 11, name: 'wald.jpg' } })
+    markerStore.addMarker(8, { background: { backgroundColor: '#00ff00' } })
+    markerStore.addMarker(10, { visualizer: null })
+    frame(4.99)
+    frame(5.01)
+    frame(7.99)
+    frame(8.01)
+    expect(cm.background).toBe('#00ff00')
+    frame(9.99)
+    frame(10.01)
+    expect(cm.background).toBe('#00ff00')
+  })
+
+  it('Zurückspulen an den Anfang stellt den Hintergrund von vorher wieder her', async () => {
+    cm.background = null
+    markerStore.addMarker(5, { backgroundImage: { galleryId: 11, name: 'wald.jpg' } })
+    frame(4.99)
+    frame(5.01)
+    expect(cm.background.imageObject).toBe(imgA)
+    playerStore.currentTime = 0
+    await nextTick()
+    expect(cm.background).toBeNull()
+  })
 })

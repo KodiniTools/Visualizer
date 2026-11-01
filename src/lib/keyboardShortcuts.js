@@ -241,7 +241,7 @@ export class KeyboardShortcuts {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   toggleGrid() {
-    this.gridStore.toggle()
+    this.gridStore.toggleGrid()
     console.log('📐 [Shortcut] Grid toggled:', this.gridStore.isVisible)
   }
 

@@ -117,7 +117,7 @@ function makeShortcuts(canvasOverrides = {}) {
       startRecording: vi.fn(async () => calls.push('recorder.start')),
       stopRecording: vi.fn(async () => calls.push('recorder.stop')),
     },
-    gridStore: { isVisible: false, toggle: rec('grid.toggle') },
+    gridStore: { isVisible: false, toggleGrid: rec('grid.toggleGrid') },
     historyStore: { undo: rec('history.undo'), redo: rec('history.redo') },
   }
   const canvasManager = {
@@ -203,11 +203,11 @@ describe('KeyboardShortcuts – Zuordnung Taste → Aktion', () => {
     const { ks, calls } = makeShortcuts()
     ks.enable()
     document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'g', bubbles: true }))
-    expect(calls).toEqual(['grid.toggle()'])
+    expect(calls).toEqual(['grid.toggleGrid()'])
     ks.destroy()
     expect(ks.isEnabled).toBe(false)
     document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'g', bubbles: true }))
-    expect(calls).toEqual(['grid.toggle()'])
+    expect(calls).toEqual(['grid.toggleGrid()'])
   })
 })
 
@@ -361,6 +361,20 @@ describe('KeyboardShortcuts – Aktionen', () => {
     expect(calls).toEqual(['recorder.prepare', 'recorder.start', 'recorder.stop'])
   })
 
+  it('Taste G schaltet das Raster des echten Grid-Stores um', async () => {
+    const { setActivePinia, createPinia } = await import('pinia')
+    const { useGridStore } = await import('../../stores/gridStore.js')
+    setActivePinia(createPinia())
+    const gridStore = useGridStore()
+    const before = gridStore.isVisible
+    const ks = new KeyboardShortcuts({ gridStore }, { canvasManager: null })
+    // vorher: „this.gridStore.toggle is not a function“
+    ks.handleKeyDown(makeEvent('g'))
+    expect(gridStore.isVisible).toBe(!before)
+    ks.handleKeyDown(makeEvent('g'))
+    expect(gridStore.isVisible).toBe(before)
+  })
+
   it('Raster, Hilfe, Undo/Redo (auch ohne History-Store)', () => {
     const { ks, calls } = makeShortcuts()
     const help = vi.fn()
@@ -371,7 +385,7 @@ describe('KeyboardShortcuts – Aktionen', () => {
     ks.redo()
     window.removeEventListener('toggleKeyboardHelp', help)
     expect(help).toHaveBeenCalledTimes(1)
-    expect(calls).toEqual(['grid.toggle()', 'history.undo()', 'history.redo()'])
+    expect(calls).toEqual(['grid.toggleGrid()', 'history.undo()', 'history.redo()'])
 
     ks.historyStore = null
     ks.undo()

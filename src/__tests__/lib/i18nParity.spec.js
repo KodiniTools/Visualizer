@@ -163,3 +163,11 @@ describe('i18n – Canvas-Videoliste ohne fest verdrahtete Texte', () => {
     expect(hardcodedTemplateText(read('components/video-panel/CanvasVideosList.vue'))).toEqual([])
   })
 })
+
+describe('i18n – Hintergrund-ersetzen-Dialog ohne fest verdrahtete Texte', () => {
+  it('Vorlage enthält keine festen Texte und keine Fallback-Strings', () => {
+    const src = read('components/canvas-control/background/BackgroundReplaceModal.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/\)\s*\|\|\s*'/)
+  })
+})

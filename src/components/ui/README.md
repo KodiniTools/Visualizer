@@ -72,6 +72,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Formen & Symbole (Popover)      | `UiSegmentedControl` (wrap), `UiTile`, `UiSwitch`, `UiTextArea`, `UiSelect`, `UiButton`, `UiIconButton`, `SliderControl`, `ColorField` + `UiColorSwatches`                                |
 | Beat-Marker (Popover)           | Kopfzeile `UiSwitch` + `UiIconButton` (pressed), Formular `UiSelect` (Gruppen), `UiSwitch`, `UiSegmentedControl` (Schrittweite), `UiTextField`, `UiButton`; Liste `UiIconButton`          |
 | Canvas-Videoliste (Video-Panel) | Zeilen-Aktionen `UiIconButton` sm, „Alle abspielen/pausieren“ `UiButton` secondary block, Wiederholen/Stumm `UiSwitch`, Spulen `UiIconButton` + `SliderField`, Lautstärke `SliderControl` |
+| Hintergrund ersetzen (Dialog)   | `UiDialog` lg (Titel, Beschreibung, Escape), `UiButton`, Galerie-Kategorien `UiSegmentedControl`, Bilder als Knöpfe mit `aria-pressed`                                                    |
 
 ## Regeln
 

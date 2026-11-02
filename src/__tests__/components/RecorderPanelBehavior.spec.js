@@ -39,6 +39,21 @@ function setState(patch) {
   store.$patch({ isPrepared: false, isRecording: false, isPaused: false, ...patch })
 }
 
+/** Optionen einer Auswahlgruppe der Einstellungen (Radiogroup mit Namen). */
+const radios = (name) =>
+  wrapper.find(`[role="radiogroup"][aria-label="${name}"]`).exists()
+    ? wrapper.find(`[role="radiogroup"][aria-label="${name}"]`).findAll('[role="radio"]')
+    : []
+
+/** Schalter der Einstellungen über seine sichtbare Beschriftung. */
+const settingSwitch = (name) =>
+  wrapper.find(
+    `#${wrapper
+      .findAll('label')
+      .find((l) => l.text() === name)
+      .attributes('for')}`,
+  )
+
 const visibleButtons = () =>
   wrapper
     .findAll('.recorder-controls .btn')
@@ -100,7 +115,7 @@ describe('RecorderPanel – Status und Steuerknöpfe', () => {
     expect(wrapper.find('.status-indicator').classes()).toContain('idle')
     expect(wrapper.find('.status-text').text()).toBe(de.recorder.status.idle)
     expect(wrapper.find('.recording-timer').exists()).toBe(false)
-    expect(wrapper.find('.quality-buttons').exists()).toBe(true)
+    expect(radios(de.recorder.videoQuality)).toHaveLength(8)
   })
 
   it('Vorbereiten übergibt Qualität und Bildrate an den Store', async () => {
@@ -145,7 +160,7 @@ describe('RecorderPanel – Status und Steuerknöpfe', () => {
     await flushPromises()
     expect(wrapper.find('.recording-timer').text()).toBe('00:02')
     expect(wrapper.find('.audio-source-section').exists()).toBe(true)
-    expect(wrapper.find('.quality-buttons').exists()).toBe(false)
+    expect(radios(de.recorder.videoQuality)).toHaveLength(0)
   })
 
   it('Pause und Fortsetzen schalten Knöpfe, Status und Timer-Klasse', async () => {
@@ -189,18 +204,17 @@ describe('RecorderPanel – Einstellungen', () => {
   it('Qualität, Bildrate und Upload-Modus gehen an den Store', async () => {
     mountPanel()
     await flushPromises()
-    const qualityBtns = wrapper.findAll('.quality-buttons')[0].findAll('.quality-btn')
+    const qualityBtns = radios(de.recorder.videoQuality)
     expect(qualityBtns).toHaveLength(8)
-    expect(qualityBtns[2].classes()).toContain('active')
+    expect(qualityBtns[2].attributes('aria-checked')).toBe('true')
     await qualityBtns[4].trigger('click')
     expect(store.setRecordingQuality).toHaveBeenCalledWith(25_000_000)
-    expect(qualityBtns[4].classes()).toContain('active')
+    expect(qualityBtns[4].attributes('aria-checked')).toBe('true')
 
-    const fpsBtns = wrapper.find('.fps-buttons').findAll('.quality-btn')
-    await fpsBtns[1].trigger('click')
+    await radios(de.recorder.recordingFps)[1].trigger('click')
     expect(store.setRecordingFrameRate).toHaveBeenCalledWith(60)
 
-    await wrapper.findAll('.upload-btn')[1].trigger('click')
+    await radios(de.recorder.uploadMode)[1].trigger('click')
     expect(store.setUploadMode).toHaveBeenCalledTimes(1)
 
     await wrapper.find('.btn-prepare').trigger('click')
@@ -213,9 +227,9 @@ describe('RecorderPanel – Einstellungen', () => {
     mountPanel()
     await flushPromises()
     expect(wrapper.find('.server-status').classes()).toContain('available')
-    const presets = wrapper.find('.conversion-quality').findAll('.quality-btn')
+    const presets = radios(de.recorder.mp4Conversion)
     expect(presets.map((b) => b.text())).toEqual(['Preview', 'Medium', 'Social', 'High', 'Highest'])
-    expect(presets[2].classes()).toContain('active')
+    expect(presets[2].attributes('aria-checked')).toBe('true')
   })
 
   it('fehlgeschlagene Health-Abfrage gilt als „Server nicht erreichbar“', async () => {
@@ -223,7 +237,7 @@ describe('RecorderPanel – Einstellungen', () => {
     mountPanel()
     await flushPromises()
     expect(wrapper.find('.server-status').classes()).toContain('unavailable')
-    expect(wrapper.find('.conversion-quality').exists()).toBe(false)
+    expect(radios(de.recorder.mp4Conversion)).toHaveLength(0)
   })
 })
 
@@ -283,7 +297,7 @@ describe('RecorderPanel – Stopp-Ablauf', () => {
     setState({ isPrepared: true, statusType: 'ready' })
     mountPanel()
     await flushPromises()
-    await wrapper.find('.toggle-row input').setValue(false)
+    await settingSwitch(de.recorder.autoConvert).trigger('click')
     await wrapper.find('.btn-start').trigger('click')
     await flushPromises()
     await wrapper.find('.btn-stop').trigger('click')

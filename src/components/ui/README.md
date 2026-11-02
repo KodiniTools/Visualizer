@@ -84,6 +84,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Hintergrund-Video (Video-Panel) | je Video `BackgroundVideoItem`: Abspielen/Spulen/Entfernen `UiIconButton` sm, Zeit `SliderField`, Lautstärke `SliderControl`, Status als Text-Abzeichen                                                                                              |
 | Slideshow-Steuerung (Foto)      | Start `UiButton` primary block, Pause/Fortsetzen secondary, Stoppen danger; Phase als Abzeichen mit Farbpunkt, Texte `slideshow.phases.*`                                                                                                            |
 | Ebenen (Foto-Bearbeitung)       | Reihenfolge `UiButton` sm block mit SVG-Symbol (2 × 2), „Hinter Visualizer rendern“ `UiSwitch`, Ebenen-Info als neutrales Abzeichen                                                                                                                  |
+| Recorder-Einstellungen          | Qualität/Bildrate/Upload/MP4/GIF/HQ `UiSegmentedControl` sm (Zahlen als Strings), Exporte `UiSwitch`, Server-Status als Punkt mit Namen                                                                                                              |
 
 ## Regeln
 

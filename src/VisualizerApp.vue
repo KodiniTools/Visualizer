@@ -37,6 +37,7 @@
           :preview-image-index="previewImageIndex"
           :canvas-images-count="canvasImages.length"
           :pending-replace-image-src="pendingReplaceImageSrc"
+          :replace-gallery-open="showReplaceGallery"
           :t="t"
           :close-image-preview="closeImagePreview"
           :handle-replace-canvas-image="handleReplaceCanvasImage"

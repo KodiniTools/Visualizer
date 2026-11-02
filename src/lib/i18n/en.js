@@ -2412,6 +2412,23 @@ export default {
     placeOnCanvas: 'Place on Canvas',
     asBackground: 'As Background',
     asWorkspaceBackground: 'Workspace Background',
+    placementTitle: 'Placement',
+    effect: 'Effect',
+    duration: 'Duration',
+    size: 'Size',
+    place: 'Place',
+    animations: {
+      none: 'None',
+      fade: 'Fade',
+      slideLeft: '← Slide',
+      slideRight: '→ Slide',
+      slideUp: '↑ Slide',
+      slideDown: '↓ Slide',
+      zoom: 'Zoom',
+      bounce: 'Bounce',
+      spin: 'Spin',
+      elastic: 'Elastic',
+    },
   },
 
   // ========== HANDOFF (image handed off from other Kodini tools) ==========

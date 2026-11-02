@@ -2421,6 +2421,23 @@ export default {
     placeOnCanvas: 'Auf Canvas platzieren',
     asBackground: 'Als Hintergrund',
     asWorkspaceBackground: 'Workspace-Hintergrund',
+    placementTitle: 'Platzierung',
+    effect: 'Effekt',
+    duration: 'Dauer',
+    size: 'Größe',
+    place: 'Platzieren',
+    animations: {
+      none: 'Keiner',
+      fade: 'Einblenden',
+      slideLeft: '← Schieben',
+      slideRight: '→ Schieben',
+      slideUp: '↑ Schieben',
+      slideDown: '↓ Schieben',
+      zoom: 'Zoom',
+      bounce: 'Hüpfen',
+      spin: 'Drehen',
+      elastic: 'Elastisch',
+    },
   },
 
   // ========== HANDOFF (Bild-Übernahme aus anderen Kodini-Tools) ==========

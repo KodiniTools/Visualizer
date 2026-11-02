@@ -179,3 +179,11 @@ describe('i18n – Video-Upload ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/locale\s*===/)
   })
 })
+
+describe('i18n – Video-Platzierung ohne fest verdrahtete Texte', () => {
+  it('Vorlage enthält keine festen Texte und keine Sprachweichen', () => {
+    const src = read('components/video-panel/VideoPlacementControls.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/locale\s*===/)
+  })
+})

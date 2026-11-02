@@ -74,6 +74,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Canvas-Videoliste (Video-Panel) | Zeilen-Aktionen `UiIconButton` sm, „Alle abspielen/pausieren“ `UiButton` secondary block, Wiederholen/Stumm `UiSwitch`, Spulen `UiIconButton` + `SliderField`, Lautstärke `SliderControl`        |
 | Hintergrund ersetzen (Dialog)   | `UiDialog` lg (Titel, Beschreibung, Escape), `UiButton`, Galerie-Kategorien `UiSegmentedControl`, Bilder als Knöpfe mit `aria-pressed`                                                           |
 | Video-Upload (Video-Panel)      | Upload-Fläche als `<button>` (Drop bleibt), „Alle löschen“ `UiButton` danger, Kachel-Löschen `UiIconButton` round, Aktionen `UiButton` primary/secondary; Kacheln `role=button` + `aria-pressed` |
+| Video-Platzierung (Video-Panel) | Effekt `UiSelect` sm inline, Dauer/Größe `SliderControl`, Wiederholen/Stumm `UiSwitch`, Platzieren `UiButton` primary block                                                                      |
 
 ## Regeln
 

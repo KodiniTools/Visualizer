@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import de from '../../lib/i18n/de.js'
 import en from '../../lib/i18n/en.js'
+import { PLACEMENT_ANIMATIONS } from '../../lib/placementAnimations.js'
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const read = (rel) => readFileSync(join(SRC, rel), 'utf8')
@@ -180,10 +181,23 @@ describe('i18n – Video-Upload ohne fest verdrahtete Texte', () => {
   })
 })
 
-describe('i18n – Video-Platzierung ohne fest verdrahtete Texte', () => {
+describe('i18n – Platzierung (Video und Bild) ohne fest verdrahtete Texte', () => {
   it('Vorlage enthält keine festen Texte und keine Sprachweichen', () => {
     const src = read('components/video-panel/VideoPlacementControls.vue')
     expect(hardcodedTemplateText(src)).toEqual([])
     expect(src).not.toMatch(/locale\s*===/)
+  })
+
+  it('Bild-Platzierung (Foto-Panel) ebenso', () => {
+    const src = read('components/foto-panel/PlacementSettings.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/locale\s*===/)
+  })
+
+  it('jede Platzierungs-Animation hat einen Namen in DE und EN', () => {
+    for (const key of PLACEMENT_ANIMATIONS) {
+      expect(de.placement.animations[key], key).toBeTruthy()
+      expect(en.placement.animations[key], key).toBeTruthy()
+    }
   })
 })

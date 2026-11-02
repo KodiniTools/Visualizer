@@ -75,6 +75,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Hintergrund ersetzen (Dialog)   | `UiDialog` lg (Titel, Beschreibung, Escape), `UiButton`, Galerie-Kategorien `UiSegmentedControl`, Bilder als Knöpfe mit `aria-pressed`                                                           |
 | Video-Upload (Video-Panel)      | Upload-Fläche als `<button>` (Drop bleibt), „Alle löschen“ `UiButton` danger, Kachel-Löschen `UiIconButton` round, Aktionen `UiButton` primary/secondary; Kacheln `role=button` + `aria-pressed` |
 | Video-Platzierung (Video-Panel) | Effekt `UiSelect` sm inline, Dauer/Größe `SliderControl`, Wiederholen/Stumm `UiSwitch`, Platzieren `UiButton` primary block                                                                      |
+| Bild-Platzierung (Foto-Panel)   | wie Video-Platzierung, dazu X/Y als `SliderControl`, Zeichnen `UiButton` secondary; Effektliste aus `lib/placementAnimations.js`, Texte `placement.*`                                            |
 
 ## Regeln
 

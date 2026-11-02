@@ -1,10 +1,10 @@
 <template>
   <div v-if="selectedVideoIndex !== null" class="placement-section">
-    <h4 class="placement-header">{{ t('videoPanel.placementTitle') }}</h4>
+    <h4 class="placement-header">{{ t('placement.title') }}</h4>
 
     <UiSelect
       v-model="selectedAnimation"
-      :label="t('videoPanel.effect')"
+      :label="t('placement.effect')"
       :options="animationOptions"
       size="sm"
       inline
@@ -13,7 +13,7 @@
     <SliderControl
       v-if="selectedAnimation !== 'none'"
       v-model="animationDuration"
-      :label="t('videoPanel.duration')"
+      :label="t('placement.duration')"
       :min="100"
       :max="5000"
       :step="100"
@@ -23,7 +23,7 @@
 
     <SliderControl
       v-model="videoScale"
-      :label="t('videoPanel.size')"
+      :label="t('placement.size')"
       :min="1"
       :max="8"
       :step="1"
@@ -37,7 +37,7 @@
     </div>
 
     <UiButton variant="primary" size="sm" block class="btn-place" @click="addVideoDirectly">
-      {{ t('videoPanel.place') }}
+      {{ t('placement.place') }}
     </UiButton>
   </div>
 </template>
@@ -49,6 +49,7 @@ import SliderControl from '../ui/SliderControl.vue'
 import UiButton from '../ui/UiButton.vue'
 import UiSelect from '../ui/UiSelect.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
+import { placementAnimationOptions } from '../../lib/placementAnimations.js'
 
 const { t } = useI18n()
 
@@ -62,23 +63,7 @@ const {
   addVideoDirectly,
 } = inject('videoPanel')
 
-/** Einblend-Effekte beim Platzieren (Werte wie im VideoManager) */
-const ANIMATIONS = [
-  'none',
-  'fade',
-  'slideLeft',
-  'slideRight',
-  'slideUp',
-  'slideDown',
-  'zoom',
-  'bounce',
-  'spin',
-  'elastic',
-]
-
-const animationOptions = computed(() =>
-  ANIMATIONS.map((value) => ({ value, label: t(`videoPanel.animations.${value}`) })),
-)
+const animationOptions = computed(() => placementAnimationOptions(t))
 </script>
 
 <style scoped>

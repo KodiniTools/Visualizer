@@ -2421,7 +2421,11 @@ export default {
     placeOnCanvas: 'Auf Canvas platzieren',
     asBackground: 'Als Hintergrund',
     asWorkspaceBackground: 'Workspace-Hintergrund',
-    placementTitle: 'Platzierung',
+  },
+
+  // ========== PLATZIERUNG (Bilder und Videos) ==========
+  placement: {
+    title: 'Platzierung',
     effect: 'Effekt',
     duration: 'Dauer',
     size: 'Größe',
@@ -2438,6 +2442,8 @@ export default {
       spin: 'Drehen',
       elastic: 'Elastisch',
     },
+    draw: 'Zeichnen',
+    drawHint: 'Bereich auf Canvas ziehen...',
   },
 
   // ========== HANDOFF (Bild-Übernahme aus anderen Kodini-Tools) ==========

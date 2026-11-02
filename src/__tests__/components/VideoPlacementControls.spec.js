@@ -134,10 +134,10 @@ describe('Video-Platzierung – Ui-Bausteine', () => {
     await mountControls()
     const select = body().querySelector('select')
     expect(body().querySelector(`label[for="${select.id}"]`).textContent.trim()).toBe(
-      de.videoPanel.effect,
+      de.placement.effect,
     )
     expect([...select.options].map((o) => o.textContent.trim())).toEqual(
-      ANIMATIONS.map((a) => de.videoPanel.animations[a]),
+      ANIMATIONS.map((a) => de.placement.animations[a]),
     )
     expect(body().querySelectorAll('[role="switch"]')).toHaveLength(2)
     expect(body().querySelectorAll('input[type="checkbox"]')).toHaveLength(0)

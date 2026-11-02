@@ -83,6 +83,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Lauftext (Seitenleiste)         | Aktivieren/Fett/Umrandung/Schatten `UiSwitch`, Text `UiTextField`, Schriftart `UiSelect` (Option-`style` als Schriftvorschau), Richtung `UiSelect`, Regler `SliderControl`, Zurücksetzen `UiIconButton` sm, Zentrieren `UiButton` mit `aria-pressed` |
 | Hintergrund-Video (Video-Panel) | je Video `BackgroundVideoItem`: Abspielen/Spulen/Entfernen `UiIconButton` sm, Zeit `SliderField`, Lautstärke `SliderControl`, Status als Text-Abzeichen                                                                                              |
 | Slideshow-Steuerung (Foto)      | Start `UiButton` primary block, Pause/Fortsetzen secondary, Stoppen danger; Phase als Abzeichen mit Farbpunkt, Texte `slideshow.phases.*`                                                                                                            |
+| Ebenen (Foto-Bearbeitung)       | Reihenfolge `UiButton` sm block mit SVG-Symbol (2 × 2), „Hinter Visualizer rendern“ `UiSwitch`, Ebenen-Info als neutrales Abzeichen                                                                                                                  |
 
 ## Regeln
 

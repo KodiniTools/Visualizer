@@ -2,44 +2,57 @@
   <div class="layer-controls-section">
     <div class="modern-section-header">
       <h4>{{ t('foto.layers') }}</h4>
-      <span v-if="currentLayerInfo" class="layer-info">{{ currentLayerInfo }}</span>
-    </div>
-    <div class="layer-buttons">
-      <button @click="bringToFront" :disabled="!canMoveUp" class="layer-btn">
-        <span class="layer-icon">⬆</span>
-        <span class="layer-text">{{ t('foto.bringToFront') }}</span>
-      </button>
-      <button @click="moveUp" :disabled="!canMoveUp" class="layer-btn">
-        <span class="layer-icon">↑</span>
-        <span class="layer-text">{{ t('foto.moveUp') }}</span>
-      </button>
-      <button @click="moveDown" :disabled="!canMoveDown" class="layer-btn">
-        <span class="layer-icon">↓</span>
-        <span class="layer-text">{{ t('foto.moveDown') }}</span>
-      </button>
-      <button @click="sendToBack" :disabled="!canMoveDown" class="layer-btn">
-        <span class="layer-icon">⬇</span>
-        <span class="layer-text">{{ t('foto.sendToBack') }}</span>
-      </button>
+      <span
+        v-if="currentLayerInfo"
+        class="layer-info"
+        :aria-label="`${t('foto.layers')} ${currentLayerInfo}`"
+        >{{ currentLayerInfo }}</span
+      >
     </div>
 
-    <!-- Visualizer Layer Toggle -->
+    <div class="layer-buttons">
+      <UiButton
+        v-for="action in LAYER_ACTIONS"
+        :key="action.key"
+        size="sm"
+        block
+        :disabled="action.up ? !canMoveUp : !canMoveDown"
+        @click="action.run"
+      >
+        <template #icon>
+          <svg
+            viewBox="0 0 16 16"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path :d="action.path" />
+          </svg>
+        </template>
+        {{ t(`foto.${action.key}`) }}
+      </UiButton>
+    </div>
+
     <div class="visualizer-layer-toggle">
-      <label class="toggle-label">
-        <input
-          type="checkbox"
-          :checked="renderBehindVisualizerRef"
-          @change="onRenderBehindVisualizerChange"
-        />
-        <span class="toggle-text">{{ t('foto.renderBehindVisualizer') }}</span>
-      </label>
+      <UiSwitch
+        :model-value="renderBehindVisualizerRef"
+        :label="t('foto.renderBehindVisualizer')"
+        @update:model-value="onRenderBehindVisualizerChange"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
+/** Ebenen-Reihenfolge des aktiven Bildes und „Hinter Visualizer rendern“. */
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
+import UiButton from '../../ui/UiButton.vue'
+import UiSwitch from '../../ui/UiSwitch.vue'
 
 const { t } = useI18n()
 const ifc = inject('imageFilterControls')
@@ -54,119 +67,59 @@ const {
   moveDown,
   sendToBack,
 } = ifc
+
+/** Reihenfolge wie bisher: ganz nach vorne, eins hoch, eins runter, ganz nach hinten. */
+const LAYER_ACTIONS = [
+  {
+    key: 'bringToFront',
+    up: true,
+    run: bringToFront,
+    path: 'M3 2.5h10M8 13.5V6M4.5 9.5 8 6l3.5 3.5',
+  },
+  { key: 'moveUp', up: true, run: moveUp, path: 'M8 13V3M4 7l4-4 4 4' },
+  { key: 'moveDown', up: false, run: moveDown, path: 'M8 3v10M4 9l4 4 4-4' },
+  {
+    key: 'sendToBack',
+    up: false,
+    run: sendToBack,
+    path: 'M3 13.5h10M8 2.5V10M4.5 6.5 8 10l3.5-3.5',
+  },
+]
 </script>
 
-<style scoped src="../../ui/slider-control.css"></style>
 <style scoped src="./image-filters-shared.css"></style>
 <style scoped>
 .layer-controls-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: color-mix(in srgb, var(--ds-surface-2) 50%, transparent);
-  padding: 16px;
+  gap: var(--ds-space-3);
+  background: var(--ds-surface-1);
+  padding: var(--ds-space-4);
   border-radius: var(--ds-radius-lg);
-  border: 1px solid color-mix(in srgb, var(--ds-link) 10%, transparent);
-  margin-bottom: 8px;
+  border: var(--ds-border-width) solid var(--ds-border);
+  margin-bottom: var(--ds-space-2);
 }
 .layer-controls-section .modern-section-header {
-  margin-bottom: 8px;
-  display: flex;
+  margin-bottom: 0;
   justify-content: space-between;
-  align-items: center;
 }
+/* Neutrales Abzeichen: in beiden Themes lesbar */
 .layer-info {
   font-size: var(--ds-text-xs);
   font-weight: var(--ds-weight-semibold);
-  color: var(--image-section-accent);
   font-family: var(--ds-font-mono);
-  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
-  padding: 4px 10px;
-  border-radius: var(--ds-radius-lg);
-  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
+  color: var(--ds-text);
+  background: var(--ds-surface-2);
+  padding: 2px var(--ds-space-2);
+  border-radius: var(--ds-radius-full);
 }
 .layer-buttons {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 4px;
-}
-.layer-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 6px 4px;
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-medium);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  text-align: center;
-}
-.layer-btn:hover:not(:disabled) {
-  background: var(--btn-hover);
-  border-color: var(--accent-primary);
-  color: var(--accent-tertiary);
-}
-.layer-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.layer-icon {
-  font-size: var(--ds-text-xs);
-  line-height: 1;
-}
-.layer-text {
-  font-size: var(--ds-text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  opacity: 0.8;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ds-space-1);
 }
 .visualizer-layer-toggle {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid color-mix(in srgb, var(--ds-link) 15%, transparent);
-}
-.visualizer-layer-toggle .toggle-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: var(--ds-text-xs);
-  color: var(--text-primary);
-}
-.visualizer-layer-toggle input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--image-section-accent);
-  cursor: pointer;
-}
-.visualizer-layer-toggle .toggle-text {
-  opacity: 0.9;
-}
-
-[data-theme='light'] .layer-controls-section {
-  background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
-  border-color: var(--border-color);
-}
-[data-theme='light'] .layer-info {
-  color: var(--accent-ink);
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--border-color);
-}
-[data-theme='light'] .layer-btn {
-  background: var(--card-bg);
-  border-color: var(--border-color);
-}
-[data-theme='light'] .layer-btn:hover:not(:disabled) {
-  background: var(--secondary-bg);
-  color: var(--accent-ink);
-}
-[data-theme='light'] .visualizer-layer-toggle {
-  border-top-color: var(--border-color);
+  padding-top: var(--ds-space-3);
+  border-top: var(--ds-border-width) solid var(--ds-border);
 }
 </style>

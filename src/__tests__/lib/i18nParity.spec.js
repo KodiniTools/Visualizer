@@ -262,3 +262,11 @@ describe('i18n – Slideshow-Steuerung ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/Einblenden|Fading/)
   })
 })
+
+describe('i18n – Ebenen-Steuerung ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte und Pfeil-Glyphen', () => {
+    const src = read('components/foto-panel/image-filters/LayerControls.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/[⬆⬇↑↓]/u)
+  })
+})

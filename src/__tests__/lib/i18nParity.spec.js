@@ -209,3 +209,11 @@ describe('i18n – Bildvorschau ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/\)\s*\|\|\s*'/)
   })
 })
+
+describe('i18n – Ersatz-Galerie ohne fest verdrahtete Texte', () => {
+  it('Vorlage enthält keine festen Texte und keine Fallback-Strings', () => {
+    const src = read('components/canvas-bar/ReplaceGalleryModal.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/\|\|\s*'/)
+  })
+})

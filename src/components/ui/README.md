@@ -77,6 +77,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Video-Platzierung (Video-Panel) | Effekt `UiSelect` sm inline, Dauer/Größe `SliderControl`, Wiederholen/Stumm `UiSwitch`, Platzieren `UiButton` primary block                                                                      |
 | Bild-Platzierung (Foto-Panel)   | wie Video-Platzierung, dazu X/Y als `SliderControl`, Zeichnen `UiButton` secondary; Effektliste aus `lib/placementAnimations.js`, Texte `placement.*`                                            |
 | Bildvorschau (Canvas-Leiste)    | `UiDialog` lg (Titel, Escape), Bildinformationen als `dl`, Ersetzen/Bestätigen `UiButton`; schließt nicht, solange die Ersatz-Galerie offen ist                                                  |
+| Ersatz-Galerie (Canvas-Leiste)  | wie Hintergrund ersetzen: `UiDialog` lg mit Footer-`UiButton`s, Kategorien `UiSegmentedControl` (Namen DE/EN), Bilder als Knöpfe mit `aria-pressed`                                              |
 
 ## Regeln
 

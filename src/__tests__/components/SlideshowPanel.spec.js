@@ -34,6 +34,12 @@ function mountPanel(props = {}) {
   return wrapper
 }
 
+/** Schaltet „Endlos wiederholen“ (Switch) auf den gewünschten Zustand. */
+async function setLoop(w, on) {
+  const sw = w.find('.loop-section [role="switch"]')
+  if ((sw.attributes('aria-checked') === 'true') !== on) await sw.trigger('click')
+}
+
 describe('SlideshowPanel (aufgeteilt)', () => {
   it('renders order list, timing, transform and start button when idle', () => {
     const w = mountPanel()
@@ -78,7 +84,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     displayNum.value = '4500'
     displayNum.dispatchEvent(new Event('input', { bubbles: true }))
     // Loop aktivieren
-    await w.find('.loop-section input[type="checkbox"]').setValue(true)
+    await setLoop(w, true)
     // Breite über die Transform-Sektion ändern
     const widthNum = w.findAll('.transform-control input[type="number"]')[2].element
     widthNum.value = '60'
@@ -128,7 +134,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const w = mountPanel()
     await w.findAll('.order-duration')[1].setValue('9')
     await w.findAll('.order-audio')[0].setValue('pulse')
-    await w.find('.loop-section input[type="checkbox"]').setValue(true)
+    await setLoop(w, true)
     await w.find('.preset-name-input').setValue('Party')
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
@@ -165,7 +171,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     // Werte ändern, dann Preset laden -> ursprünglicher Zustand
     await w.findAll('.order-duration')[1].setValue('')
     await w.findAll('.order-audio')[0].setValue('off')
-    await w.find('.loop-section input[type="checkbox"]').setValue(false)
+    await setLoop(w, false)
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
 

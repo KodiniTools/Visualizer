@@ -79,6 +79,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Bildvorschau (Canvas-Leiste)    | `UiDialog` lg (Titel, Escape), Bildinformationen als `dl`, Ersetzen/Bestätigen `UiButton`; schließt nicht, solange die Ersatz-Galerie offen ist                                                  |
 | Ersatz-Galerie (Canvas-Leiste)  | wie Hintergrund ersetzen: `UiDialog` lg mit Footer-`UiButton`s, Kategorien `UiSegmentedControl` (Namen DE/EN), Bilder als Knöpfe mit `aria-pressed`                                              |
 | Bildleiste (Canvas-Leiste)      | Vorschaubilder als Knöpfe (`aria-pressed`, Ebene als Name), Löschen `UiIconButton` sm round, „Alle löschen“ `UiButton` danger sm                                                                 |
+| Beat-Drop (Canvas-Steuerung)    | Hauptschalter `UiSwitch` (label-hidden), Quelle `UiSelect` sm inline mit Onset-Gruppe, Effekte `UiSwitch` + `ColorField`, Regler `SliderControl` (Wert mit Einheit)                              |
 
 ## Regeln
 

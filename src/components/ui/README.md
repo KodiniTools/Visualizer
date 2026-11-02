@@ -81,6 +81,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Bildleiste (Canvas-Leiste)      | Vorschaubilder als Knöpfe (`aria-pressed`, Ebene als Name), Löschen `UiIconButton` sm round, „Alle löschen“ `UiButton` danger sm                                                                                                                     |
 | Beat-Drop (Canvas-Steuerung)    | Hauptschalter `UiSwitch` (label-hidden), Quelle `UiSelect` sm inline mit Onset-Gruppe, Effekte `UiSwitch` + `ColorField`, Regler `SliderControl` (Wert mit Einheit)                                                                                  |
 | Lauftext (Seitenleiste)         | Aktivieren/Fett/Umrandung/Schatten `UiSwitch`, Text `UiTextField`, Schriftart `UiSelect` (Option-`style` als Schriftvorschau), Richtung `UiSelect`, Regler `SliderControl`, Zurücksetzen `UiIconButton` sm, Zentrieren `UiButton` mit `aria-pressed` |
+| Hintergrund-Video (Video-Panel) | je Video `BackgroundVideoItem`: Abspielen/Spulen/Entfernen `UiIconButton` sm, Zeit `SliderField`, Lautstärke `SliderControl`, Status als Text-Abzeichen                                                                                              |
 
 ## Regeln
 

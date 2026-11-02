@@ -254,3 +254,11 @@ describe('i18n – Hintergrund-Video ohne fest verdrahtete Texte', () => {
     }
   })
 })
+
+describe('i18n – Slideshow-Steuerung ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte, Phasen kommen aus i18n', () => {
+    const src = read('components/foto-panel/slideshow/SlideshowControls.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/Einblenden|Fading/)
+  })
+})

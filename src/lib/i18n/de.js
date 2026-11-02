@@ -2085,6 +2085,7 @@ export default {
     paused: 'Pausiert',
     ready: 'Bereit',
     image: 'Bild',
+    phases: { fadeIn: 'Einblenden', display: 'Anzeige', fadeOut: 'Ausblenden' },
     renderBehind: 'Hinter Visualizer rendern',
     positionSize: 'Position & Größe',
     positionX: 'X-Position',

@@ -1,29 +1,38 @@
 <template>
   <div>
-    <!-- Action Buttons -->
+    <!-- Aktionen; die btn-*-Klassen sind nur Test-Anker -->
     <div class="action-buttons">
-      <button v-if="!isActive" class="btn-start" :disabled="!canStart" @click="emit('start')">
+      <UiButton
+        v-if="!isActive"
+        class="btn-start"
+        variant="primary"
+        block
+        :disabled="!canStart"
+        @click="emit('start')"
+      >
         {{ t('slideshow.start') }}
-      </button>
+      </UiButton>
 
       <template v-else>
-        <button v-if="!isPaused" class="btn-pause" @click="emit('pause')">
+        <UiButton v-if="!isPaused" class="btn-pause" block @click="emit('pause')">
           {{ t('slideshow.pause') }}
-        </button>
-        <button v-else class="btn-resume" @click="emit('resume')">
+        </UiButton>
+        <UiButton v-else class="btn-resume" block @click="emit('resume')">
           {{ t('slideshow.resume') }}
-        </button>
-        <button class="btn-stop" @click="emit('stop')">
+        </UiButton>
+        <UiButton class="btn-stop" variant="danger" block @click="emit('stop')">
           {{ t('slideshow.stop') }}
-        </button>
+        </UiButton>
       </template>
     </div>
 
-    <!-- Progress Indicator -->
+    <!-- Fortschritt -->
     <div v-if="isActive" class="progress-section">
       <div class="progress-info">
         <span>{{ t('slideshow.image') }} {{ currentImageIndex + 1 }} / {{ totalImages }}</span>
-        <span class="phase-indicator" :class="currentPhase">{{ phaseLabel }}</span>
+        <span v-if="phaseLabel" class="phase-indicator" :class="currentPhase">{{
+          phaseLabel
+        }}</span>
       </div>
     </div>
   </div>
@@ -33,6 +42,9 @@
 /** Start/Pause/Fortsetzen/Stopp und Fortschrittsanzeige der Slideshow. */
 import { computed } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
+import UiButton from '../../ui/UiButton.vue'
+
+const PHASES = ['fadeIn', 'display', 'fadeOut']
 
 const props = defineProps({
   isActive: { type: Boolean, default: false },
@@ -44,87 +56,57 @@ const props = defineProps({
   currentPhase: { type: String, default: 'fadeIn' },
 })
 const emit = defineEmits(['start', 'pause', 'resume', 'stop'])
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
-const phaseLabel = computed(() => {
-  switch (props.currentPhase) {
-    case 'fadeIn':
-      return locale.value === 'de' ? 'Einblenden' : 'Fading In'
-    case 'display':
-      return locale.value === 'de' ? 'Anzeige' : 'Displaying'
-    case 'fadeOut':
-      return locale.value === 'de' ? 'Ausblenden' : 'Fading Out'
-    default:
-      return ''
-  }
-})
+/** Übersetzte Phase; unbekannte Phasen bleiben leer. */
+const phaseLabel = computed(() =>
+  PHASES.includes(props.currentPhase) ? t(`slideshow.phases.${props.currentPhase}`) : '',
+)
 </script>
 
 <style scoped src="./slideshow-shared.css"></style>
 <style scoped>
-.action-buttons button {
-  flex: 1;
-  padding: 10px 16px;
-  border-radius: var(--ds-radius-sm);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  border: none;
-}
-.btn-start {
-  background: var(--ds-link);
-  color: #fff;
-}
-.btn-start:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.btn-pause {
-  background: var(--ds-warning);
-  color: var(--text-primary);
-}
-.btn-resume {
-  background: var(--ds-success);
-  color: #fff;
-}
-.btn-stop {
-  background: var(--ds-danger);
-  color: #fff;
-}
 .progress-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: var(--ds-text-xs);
-  color: var(--text-muted);
+  color: var(--ds-text-2);
 }
+/* Phase wie der Status-Badge: neutraler Text, Farbe nur im Punkt, damit sie in
+   beiden Themes lesbar bleibt. */
 .phase-indicator {
-  padding: 3px 8px;
-  border-radius: var(--ds-radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  padding: 0 var(--ds-space-2);
+  height: 20px;
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-surface-2);
+  color: var(--ds-text);
   font-weight: var(--ds-weight-semibold);
   text-transform: uppercase;
   font-size: var(--ds-text-xs);
 }
-.phase-indicator.fadeIn {
-  background-color: color-mix(in srgb, var(--ds-success) 20%, transparent);
-  color: var(--ds-success);
+.phase-indicator::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-text-3);
+  flex-shrink: 0;
 }
-.phase-indicator.display {
-  background-color: color-mix(in srgb, var(--ds-link) 20%, transparent);
-  color: var(--ds-link);
+.phase-indicator.fadeIn::before {
+  background-color: var(--ds-success);
 }
-.phase-indicator.fadeOut {
-  background-color: color-mix(in srgb, var(--ds-danger) 20%, transparent);
-  color: var(--ds-danger);
+.phase-indicator.display::before {
+  background-color: var(--ds-link);
 }
-[data-theme='light'] .btn-start {
-  background: var(--accent-primary);
-  color: var(--accent-text);
+.phase-indicator.fadeOut::before {
+  background-color: var(--ds-danger);
 }
-[data-theme='light'] .progress-section {
+.progress-section {
+  margin-top: var(--ds-space-3);
   border-top-color: var(--ds-border);
 }
 </style>

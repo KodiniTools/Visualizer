@@ -302,3 +302,11 @@ describe('i18n – Bild-Upload ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/locale === 'de'|[✕✓]/u)
   })
 })
+
+describe('i18n – Bild-Vorschau ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte und Schließen-Glyphe', () => {
+    const src = read('components/foto-panel/ImagePreviewOverlay.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/✕/u)
+  })
+})

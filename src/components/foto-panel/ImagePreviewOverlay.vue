@@ -1,25 +1,28 @@
 <template>
-  <div v-if="previewImage" class="image-preview-overlay" @click="$emit('close')">
-    <div class="preview-container" @click.stop>
-      <button class="preview-close" @click="$emit('close')">✕</button>
-      <img :src="previewImage.src" :alt="previewImage.name" class="preview-image" />
-      <div class="preview-info">
-        <span class="preview-name">{{ previewImage.name }}</span>
-      </div>
-      <div class="preview-actions">
-        <button @click="$emit('add-to-canvas')" class="btn-primary">
-          {{ t('foto.placeOnCanvas') }}
-        </button>
-        <button @click="$emit('set-as-background')" class="btn-secondary">
-          {{ t('foto.asBackground') }}
-        </button>
-      </div>
-    </div>
-  </div>
+  <UiDialog
+    :open="!!previewImage"
+    size="lg"
+    :title="previewImage?.name || t('app.imagePreview')"
+    @close="$emit('close')"
+  >
+    <figure v-if="previewImage" class="preview-stage">
+      <img :src="previewImage.src" :alt="previewImage.name" />
+    </figure>
+
+    <template #footer>
+      <UiButton @click="$emit('set-as-background')">{{ t('foto.asBackground') }}</UiButton>
+      <UiButton variant="primary" @click="$emit('add-to-canvas')">
+        {{ t('foto.placeOnCanvas') }}
+      </UiButton>
+    </template>
+  </UiDialog>
 </template>
 
 <script setup>
+/** Großansicht eines Galerie-Bildes mit Platzieren / Als Hintergrund (Foto-Panel, Galerie). */
 import { useI18n } from '../../lib/i18n.js'
+import UiButton from '../ui/UiButton.vue'
+import UiDialog from '../ui/UiDialog.vue'
 
 const { t } = useI18n()
 
@@ -34,121 +37,22 @@ defineEmits(['close', 'add-to-canvas', 'set-as-background'])
 </script>
 
 <style scoped>
-.image-preview-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.9);
+/* Bild auf neutraler Fläche, nie höher als das Fenster erlaubt */
+.preview-stage {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: var(--ds-z-toast);
-  animation: fadeIn 0.2s ease;
+  margin: 0;
+  padding: var(--ds-space-2);
+  background: var(--ds-surface-2);
+  border-radius: var(--ds-radius-md);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.preview-container {
-  position: relative;
-  max-width: 90vw;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  animation: scaleIn 0.2s ease;
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0.9);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.preview-close {
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--ds-radius-full);
-  background-color: var(--btn-hover);
-  border: 2px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: var(--ds-text-xl);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.preview-close:hover {
-  background-color: var(--ds-danger);
-  border-color: var(--ds-danger);
-}
-
-.preview-image {
+.preview-stage img {
+  display: block;
   max-width: 100%;
-  max-height: 70vh;
-  border-radius: var(--ds-radius-md);
-  box-shadow: var(--ds-shadow-overlay);
+  max-height: 60vh;
   object-fit: contain;
-}
-
-.preview-info {
-  text-align: center;
-}
-
-.preview-name {
-  font-size: var(--ds-text-lg);
-  font-weight: var(--ds-weight-semibold);
-  color: var(--text-primary);
-}
-
-.preview-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.preview-actions .btn-primary,
-.preview-actions .btn-secondary {
-  padding: 12px 24px;
-  font-size: var(--ds-text-sm);
-  border-radius: var(--ds-radius-md);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.preview-actions .btn-primary {
-  background: var(--image-section-gradient);
-  color: var(--accent-text);
-  font-weight: var(--ds-weight-semibold);
-  border: none;
-}
-
-.preview-actions .btn-secondary {
-  background-color: var(--btn-hover);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-}
-
-.preview-actions .btn-secondary:hover {
-  background-color: var(--btn-hover);
+  border-radius: var(--ds-radius-sm);
 }
 </style>

@@ -2,16 +2,16 @@
   <div>
     <!-- Timing-Einstellungen -->
     <div class="timing-section">
-      <label class="section-label">{{ t('slideshow.timing') }}</label>
+      <span class="section-label">{{ t('slideshow.timing') }}</span>
 
-      <div class="transition-control">
-        <label for="slideshow-transition">{{ t('slideshow.defaultTransitionLabel') }}</label>
-        <select id="slideshow-transition" v-model="transition" class="transition-select">
-          <option v-for="tr in transitions" :key="tr.id" :value="tr.id">
-            {{ tr.icon }} {{ t(`slideshow.transitions.${tr.id}`) }}
-          </option>
-        </select>
-      </div>
+      <!-- class landet auf dem nativen select (Test-Anker im SlideshowPanel-Spec) -->
+      <UiSelect
+        v-model="transition"
+        class="transition-select"
+        :options="transitionOptions"
+        :label="t('slideshow.defaultTransitionLabel')"
+        size="sm"
+      />
 
       <div class="slider-stack">
         <SliderControl
@@ -51,28 +51,26 @@
 
     <!-- Audio-Reaktiv Option -->
     <div class="audio-reactive-section">
-      <label class="checkbox-label">
-        <input v-model="applyAudioReactive" type="checkbox" />
-        <span>{{ t('slideshow.applyAudioReactive') }}</span>
-      </label>
-      <p v-if="applyAudioReactive && !hasSavedSettings" class="hint warning">
+      <UiSwitch v-model="applyAudioReactive" :label="t('slideshow.applyAudioReactive')" />
+      <UiCallout v-if="applyAudioReactive && !hasSavedSettings" type="warning">
         {{ t('slideshow.noSavedSettings') }}
-      </p>
+      </UiCallout>
     </div>
 
     <!-- Loop Option -->
     <div class="loop-section">
-      <label class="checkbox-label">
-        <input v-model="loopSlideshow" type="checkbox" />
-        <span>{{ t('slideshow.loop') }}</span>
-      </label>
+      <UiSwitch v-model="loopSlideshow" :label="t('slideshow.loop')" />
     </div>
   </div>
 </template>
 
 <script setup>
 /** Timing (Ein-/Ausblenden, Anzeigedauer), Audio-Reaktiv-Übernahme und Loop. */
+import { computed } from 'vue'
 import SliderControl from '../../ui/SliderControl.vue'
+import UiCallout from '../../ui/UiCallout.vue'
+import UiSelect from '../../ui/UiSelect.vue'
+import UiSwitch from '../../ui/UiSwitch.vue'
 import { useI18n } from '../../../lib/i18n.js'
 import { SLIDESHOW_TRANSITIONS } from '../../../lib/slideshowTransitions.js'
 
@@ -87,32 +85,20 @@ const applyAudioReactive = defineModel('applyAudioReactive', { type: Boolean, de
 const loopSlideshow = defineModel('loopSlideshow', { type: Boolean, default: false })
 // Übergangsanimation für alle Bilder (pro Bild überschreibbar in der Reihenfolge-Liste)
 const transition = defineModel('transition', { type: String, default: 'fade' })
-const transitions = SLIDESHOW_TRANSITIONS
-
 const { t } = useI18n()
+
+/** Symbol + übersetzter Name, wie in Reihenfolge-Liste und Bild-Editor. */
+const transitionOptions = computed(() =>
+  SLIDESHOW_TRANSITIONS.map((tr) => ({
+    value: tr.id,
+    label: `${tr.icon} ${t(`slideshow.transitions.${tr.id}`)}`,
+  })),
+)
 </script>
 
 <style scoped src="./slideshow-shared.css"></style>
 <style scoped>
-.transition-control {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.transition-control label {
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-}
-.transition-select {
-  padding: 4px 6px;
-  font-size: var(--ds-text-xs);
-  background: var(--secondary-bg);
-  color: var(--ds-text);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-}
-[data-theme='light'] .transition-select {
-  color: var(--text-primary);
-  border-color: var(--ds-border);
+.timing-section > .section-label {
+  margin-bottom: 0;
 }
 </style>

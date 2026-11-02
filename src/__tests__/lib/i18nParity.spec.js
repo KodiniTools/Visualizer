@@ -278,3 +278,11 @@ describe('i18n – Recorder-Einstellungen ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/[●○]|\{\{ mode \}\}/u)
   })
 })
+
+describe('i18n – Slideshow-Zeiten ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte und native Optionen', () => {
+    const src = read('components/foto-panel/slideshow/SlideshowTimingSettings.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/<option|type="checkbox"/)
+  })
+})

@@ -85,6 +85,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Slideshow-Steuerung (Foto)      | Start `UiButton` primary block, Pause/Fortsetzen secondary, Stoppen danger; Phase als Abzeichen mit Farbpunkt, Texte `slideshow.phases.*`                                                                                                            |
 | Ebenen (Foto-Bearbeitung)       | Reihenfolge `UiButton` sm block mit SVG-Symbol (2 × 2), „Hinter Visualizer rendern“ `UiSwitch`, Ebenen-Info als neutrales Abzeichen                                                                                                                  |
 | Recorder-Einstellungen          | Qualität/Bildrate/Upload/MP4/GIF/HQ `UiSegmentedControl` sm (Zahlen als Strings), Exporte `UiSwitch`, Server-Status als Punkt mit Namen                                                                                                              |
+| Slideshow-Zeiten (Foto)         | Übergang `UiSelect` sm, Dauern `SliderControl`, Audio-Reaktiv/Endlos `UiSwitch`, fehlende Audio-Einstellungen `UiCallout` warning                                                                                                                    |
 
 ## Regeln
 

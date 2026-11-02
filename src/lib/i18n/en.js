@@ -1929,6 +1929,7 @@ export default {
     ownImages: 'My Images',
     clickToUpload: 'Click to upload',
     multipleImagesHint: 'Multiple images allowed (JPG, PNG, GIF, WebP)',
+    pasteHint: 'or Ctrl+V to paste',
     galleryCount: 'Gallery ({count})',
     deleteAll: 'Delete all',
     selectAll: 'Select all',

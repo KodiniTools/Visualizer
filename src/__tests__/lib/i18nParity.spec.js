@@ -294,3 +294,11 @@ describe('i18n – Preset & Verlauf ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/<option|locale === 'de' \?/)
   })
 })
+
+describe('i18n – Bild-Upload ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte, Sprachweichen und Glyphen', () => {
+    const src = read('components/foto-panel/ImageUploadSection.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/locale === 'de'|[✕✓]/u)
+  })
+})

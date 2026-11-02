@@ -1935,6 +1935,7 @@ export default {
     ownImages: 'Eigene Bilder',
     clickToUpload: 'Klicken zum Hochladen',
     multipleImagesHint: 'Mehrere Bilder möglich (JPG, PNG, GIF, WebP)',
+    pasteHint: 'oder Strg+V zum Einfügen',
     galleryCount: 'Galerie ({count})',
     deleteAll: 'Alle löschen',
     selectAll: 'Alle auswählen',

@@ -1,4 +1,4 @@
-/* Gemeinsame Styles der Bild-Raster in foto-panel (ImageUploadSection, StockGallerySection):
+/* Styles des Bild-Rasters der Stock-Galerie (StockGallerySection); ImageUploadSection hat eigene Ui-Styles:
    Scroll-Bereich, Kachel-Raster, Auswahl-Steuerung und Aktions-Buttons. */
 
 .gallery-scroll::-webkit-scrollbar-track {

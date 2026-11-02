@@ -87,6 +87,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Recorder-Einstellungen          | Qualität/Bildrate/Upload/MP4/GIF/HQ `UiSegmentedControl` sm (Zahlen als Strings), Exporte `UiSwitch`, Server-Status als Punkt mit Namen                                                                                                              |
 | Slideshow-Zeiten (Foto)         | Übergang `UiSelect` sm, Dauern `SliderControl`, Audio-Reaktiv/Endlos `UiSwitch`, fehlende Audio-Einstellungen `UiCallout` warning                                                                                                                    |
 | Preset & Verlauf (Foto)         | Filter-Preset `UiSelect` sm (label-hidden, Zustand `selectedPreset`), Rückgängig/Wiederholen/Zurücksetzen `UiButton` sm mit Symbol                                                                                                                   |
+| Bild-Upload (Foto-Panel)        | wie Video-Upload: Fläche als `<button>`, Auswahl-Knöpfe `UiButton` sm, „Alle löschen“ danger, Kacheln `role=button` + Checkbox per Tastatur, Löschen `UiIconButton` round                                                                            |
 
 ## Regeln
 

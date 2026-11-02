@@ -286,3 +286,11 @@ describe('i18n – Slideshow-Zeiten ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/<option|type="checkbox"/)
   })
 })
+
+describe('i18n – Preset & Verlauf ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte und native Optionen', () => {
+    const src = read('components/foto-panel/image-filters/PresetAndHistory.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/<option|locale === 'de' \?/)
+  })
+})

@@ -4,154 +4,46 @@
     <h4>{{ t('videoPanel.bgVideoTitle') }}</h4>
 
     <!-- Globaler Video-Hintergrund -->
-    <div v-if="videoBackground" class="bg-video-item">
-      <div class="bg-video-header">
-        <span class="bg-video-label">{{ t('videoPanel.bgLabel') }}</span>
-        <span class="bg-video-status" :class="{ playing: isVideoBackgroundPlaying }">
-          {{ isVideoBackgroundPlaying ? '▶' : '⏸' }}
-        </span>
-      </div>
-
-      <div class="bg-video-controls">
-        <button
-          @click="toggleVideoBackground"
-          class="btn-control-lg"
-          :title="isVideoBackgroundPlaying ? 'Pause' : 'Play'"
-        >
-          {{ isVideoBackgroundPlaying ? '⏸' : '▶' }}
-        </button>
-        <button @click="seekBackwardBg(5)" class="btn-control" title="-5s">⏪</button>
-        <button @click="seekForwardBg(5)" class="btn-control" title="+5s">⏩</button>
-        <button
-          @click="removeVideoBackground"
-          class="btn-control btn-delete"
-          :title="t('common.remove')"
-        >
-          ✕
-        </button>
-      </div>
-
-      <div class="bg-video-seek">
-        <span class="seek-time-small">{{ formatTime(videoBackgroundTime) }}</span>
-        <SliderField
-          :model-value="videoBackgroundTime"
-          @update:model-value="seekVideoBackground($event)"
-          :max="videoBackgroundDuration"
-          :min="0"
-          :step="0.1"
-          :default-value="0"
-          class="seek-slider"
-        />
-        <span class="seek-time-small">{{ formatTime(videoBackgroundDuration) }}</span>
-      </div>
-
-      <!-- Lautstärke für Hintergrund-Video -->
-      <div class="bg-video-volume">
-        <div class="volume-header-small">
-          <svg class="volume-icon-small" viewBox="0 0 24 24" fill="currentColor">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-            <path
-              v-if="videoBackgroundVolume > 0"
-              d="M15.54 8.46a5 5 0 0 1 0 7.07"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            />
-          </svg>
-          <span>{{ Math.round(videoBackgroundVolume * 100) }}%</span>
-        </div>
-        <SliderField
-          :model-value="videoBackgroundVolume"
-          @update:model-value="updateBgVideoVolume($event)"
-          :min="0"
-          :max="1"
-          :step="0.01"
-          :default-value="1"
-          class="volume-slider-small"
-        />
-      </div>
-
-      <!-- Audio-Reaktiv: identische Einstellungen wie bei Bildern -->
-      <VideoAudioReactive :video="videoBackground" :label="t('videoPanel.bgLabel')" />
-    </div>
+    <BackgroundVideoItem
+      v-if="videoBackground"
+      :label="t('videoPanel.bgLabel')"
+      :video="videoBackground"
+      :playing="isVideoBackgroundPlaying"
+      :time="videoBackgroundTime"
+      :duration="videoBackgroundDuration"
+      :volume="videoBackgroundVolume"
+      :format-time="formatTime"
+      @toggle="toggleVideoBackground"
+      @seek-back="seekBackwardBg"
+      @seek-forward="seekForwardBg"
+      @remove="removeVideoBackground"
+      @seek="seekVideoBackground"
+      @volume="updateBgVideoVolume"
+    />
 
     <!-- Workspace Video-Hintergrund -->
-    <div v-if="workspaceVideoBackground" class="bg-video-item workspace">
-      <div class="bg-video-header">
-        <span class="bg-video-label">{{ t('videoPanel.wsBgLabel') }}</span>
-        <span class="bg-video-status" :class="{ playing: isWsVideoBackgroundPlaying }">
-          {{ isWsVideoBackgroundPlaying ? '▶' : '⏸' }}
-        </span>
-      </div>
-
-      <div class="bg-video-controls">
-        <button
-          @click="toggleWsVideoBackground"
-          class="btn-control-lg"
-          :title="isWsVideoBackgroundPlaying ? 'Pause' : 'Play'"
-        >
-          {{ isWsVideoBackgroundPlaying ? '⏸' : '▶' }}
-        </button>
-        <button @click="seekBackwardWsBg(5)" class="btn-control" title="-5s">⏪</button>
-        <button @click="seekForwardWsBg(5)" class="btn-control" title="+5s">⏩</button>
-        <button
-          @click="removeWsVideoBackground"
-          class="btn-control btn-delete"
-          :title="t('common.remove')"
-        >
-          ✕
-        </button>
-      </div>
-
-      <div class="bg-video-seek">
-        <span class="seek-time-small">{{ formatTime(wsVideoBackgroundTime) }}</span>
-        <SliderField
-          :model-value="wsVideoBackgroundTime"
-          @update:model-value="seekWsVideoBackground($event)"
-          :max="wsVideoBackgroundDuration"
-          :min="0"
-          :step="0.1"
-          :default-value="0"
-          class="seek-slider"
-        />
-        <span class="seek-time-small">{{ formatTime(wsVideoBackgroundDuration) }}</span>
-      </div>
-
-      <!-- Lautstärke für Workspace-Video-Hintergrund -->
-      <div class="bg-video-volume">
-        <div class="volume-header-small">
-          <svg class="volume-icon-small" viewBox="0 0 24 24" fill="currentColor">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-            <path
-              v-if="wsVideoBackgroundVolume > 0"
-              d="M15.54 8.46a5 5 0 0 1 0 7.07"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            />
-          </svg>
-          <span>{{ Math.round(wsVideoBackgroundVolume * 100) }}%</span>
-        </div>
-        <SliderField
-          :model-value="wsVideoBackgroundVolume"
-          @update:model-value="updateWsBgVideoVolume($event)"
-          :min="0"
-          :max="1"
-          :step="0.01"
-          :default-value="1"
-          class="volume-slider-small"
-        />
-      </div>
-
-      <!-- Audio-Reaktiv: identische Einstellungen wie bei Bildern -->
-      <VideoAudioReactive :video="workspaceVideoBackground" :label="t('videoPanel.wsBgLabel')" />
-    </div>
+    <BackgroundVideoItem
+      v-if="workspaceVideoBackground"
+      :label="t('videoPanel.wsBgLabel')"
+      :video="workspaceVideoBackground"
+      :playing="isWsVideoBackgroundPlaying"
+      :time="wsVideoBackgroundTime"
+      :duration="wsVideoBackgroundDuration"
+      :volume="wsVideoBackgroundVolume"
+      :format-time="formatTime"
+      workspace
+      @toggle="toggleWsVideoBackground"
+      @seek-back="seekBackwardWsBg"
+      @seek-forward="seekForwardWsBg"
+      @remove="removeWsVideoBackground"
+      @seek="seekWsVideoBackground"
+      @volume="updateWsBgVideoVolume"
+    />
   </div>
 </template>
 
 <script setup>
-import SliderField from '../ui/SliderField.vue'
-import VideoAudioReactive from './VideoAudioReactive.vue'
+import BackgroundVideoItem from './BackgroundVideoItem.vue'
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 
@@ -186,307 +78,19 @@ const {
 </script>
 
 <style scoped>
-/* Hintergrund-Video Section */
 .background-video-section {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--ds-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-4);
+  padding-top: var(--ds-space-4);
+  border-top: var(--ds-border-width) solid var(--ds-border);
 }
 
 .background-video-section h4 {
-  margin: 0 0 12px 0;
+  margin: 0;
   font-size: var(--ds-text-sm);
   font-weight: var(--ds-weight-semibold);
-  color: var(--ds-link);
-}
-
-.bg-video-item {
-  padding: 12px;
-  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: var(--ds-radius-md);
-  margin-bottom: 10px;
-}
-
-.bg-video-item.workspace {
-  background: color-mix(in srgb, var(--ds-warning) 8%, transparent);
-  border-color: color-mix(in srgb, var(--ds-warning) 30%, transparent);
-}
-
-.bg-video-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.bg-video-label {
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-medium);
-  color: var(--text-primary);
-}
-
-.bg-video-status {
-  font-size: var(--ds-text-xs);
-  color: var(--text-secondary);
-  padding: 2px 8px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: var(--ds-radius-sm);
-}
-
-.bg-video-status.playing {
-  color: var(--ds-success);
-  background: color-mix(in srgb, var(--ds-success) 15%, transparent);
-}
-
-.bg-video-controls {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.btn-control-lg {
-  width: 36px;
-  height: 28px;
-  border: none;
-  border-radius: var(--ds-radius-sm);
-  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
-  color: white;
-  font-size: var(--ds-text-md);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.btn-control-lg:hover {
-  background: color-mix(in srgb, var(--ds-link) 50%, transparent);
-}
-
-.btn-control {
-  width: 24px;
-  height: 24px;
-  border: none;
-  border-radius: var(--ds-radius-sm);
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-primary);
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.btn-control:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.btn-control.btn-delete:hover {
-  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
-  color: var(--ds-danger);
-}
-
-.bg-video-seek {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.seek-time-small {
-  font-size: var(--ds-text-xs);
-  font-family: var(--ds-font-mono);
-  color: var(--text-secondary);
-  min-width: 35px;
-}
-
-.seek-slider {
-  flex: 1;
-  height: 6px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: var(--ds-radius-sm);
-  outline: none;
-  cursor: pointer;
-}
-
-.seek-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  background: var(--ds-link);
-  border-radius: var(--ds-radius-full);
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-/* Hintergrund-Video Lautstärke */
-.bg-video-volume {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
-}
-
-.volume-header-small {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
-  font-size: var(--ds-text-xs);
-  color: var(--text-secondary);
-}
-
-.volume-icon-small {
-  width: 14px;
-  height: 14px;
-  color: var(--ds-link);
-}
-
-.volume-slider-small {
-  width: 100%;
-  height: 4px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: var(--ds-radius-sm);
-  outline: none;
-  cursor: pointer;
-}
-
-.volume-slider-small::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  background: var(--ds-link);
-  border-radius: var(--ds-radius-full);
-  cursor: pointer;
-}
-
-.volume-slider-small::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  background: var(--ds-link);
-  border-radius: var(--ds-radius-full);
-  border: none;
-  cursor: pointer;
-}
-
-.bg-video-item.workspace .bg-video-volume {
-  border-top-color: color-mix(in srgb, var(--ds-warning) 20%, transparent);
-}
-
-.bg-video-item.workspace .volume-icon-small {
-  color: var(--ds-warning);
-}
-
-.bg-video-item.workspace .volume-slider-small {
-  background: color-mix(in srgb, var(--ds-warning) 30%, transparent);
-}
-
-.bg-video-item.workspace .volume-slider-small::-webkit-slider-thumb {
-  background: var(--ds-warning);
-}
-
-.bg-video-item.workspace .volume-slider-small::-moz-range-thumb {
-  background: var(--ds-warning);
-}
-
-/* Light Theme */
-[data-theme='light'] .background-video-section {
-  border-top-color: var(--ds-border);
-}
-
-[data-theme='light'] .background-video-section h4 {
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .bg-video-item {
-  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
-  border-color: var(--border-color);
-}
-
-[data-theme='light'] .bg-video-item.workspace {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-  border-color: var(--border-color);
-}
-
-[data-theme='light'] .bg-video-status {
-  color: var(--accent-ink);
-  background: rgba(0, 0, 0, 0.06);
-}
-
-[data-theme='light'] .btn-control-lg {
-  background: color-mix(in srgb, var(--accent-primary) 25%, transparent);
-  color: var(--accent-text);
-}
-
-[data-theme='light'] .btn-control-lg:hover {
-  background: color-mix(in srgb, var(--accent-primary) 40%, transparent);
-}
-
-[data-theme='light'] .btn-control {
-  background: rgba(0, 0, 0, 0.08);
-}
-
-[data-theme='light'] .btn-control:hover {
-  background: rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .seek-time-small {
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .seek-slider {
-  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-}
-
-[data-theme='light'] .seek-slider::-webkit-slider-thumb {
-  background: var(--accent-primary);
-}
-
-[data-theme='light'] .bg-video-volume {
-  border-top-color: var(--border-color);
-}
-
-[data-theme='light'] .volume-header-small {
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .volume-icon-small {
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .volume-slider-small {
-  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-}
-
-[data-theme='light'] .volume-slider-small::-webkit-slider-thumb {
-  background: var(--accent-primary);
-}
-
-[data-theme='light'] .volume-slider-small::-moz-range-thumb {
-  background: var(--accent-primary);
-}
-
-[data-theme='light'] .bg-video-item.workspace .bg-video-volume {
-  border-top-color: var(--border-color);
-}
-
-[data-theme='light'] .bg-video-item.workspace .volume-icon-small {
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .bg-video-item.workspace .volume-slider-small {
-  background: color-mix(in srgb, var(--accent-primary) 25%, transparent);
-}
-
-[data-theme='light'] .bg-video-item.workspace .volume-slider-small::-webkit-slider-thumb {
-  background: var(--accent-primary);
-}
-
-[data-theme='light'] .bg-video-item.workspace .volume-slider-small::-moz-range-thumb {
-  background: var(--accent-primary);
+  color: var(--ds-text);
 }
 </style>

@@ -241,3 +241,16 @@ describe('i18n – Lauftext-Panel ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/<option|Custom Fonts/)
   })
 })
+
+describe('i18n – Hintergrund-Video ohne fest verdrahtete Texte', () => {
+  it('Vorlagen enthalten keine festen Texte und Titel', () => {
+    for (const f of [
+      'components/video-panel/BackgroundVideoControls.vue',
+      'components/video-panel/BackgroundVideoItem.vue',
+    ]) {
+      const src = read(f)
+      expect(hardcodedTemplateText(src), f).toEqual([])
+      expect(src, f).not.toMatch(/title="[^"]+"/)
+    }
+  })
+})

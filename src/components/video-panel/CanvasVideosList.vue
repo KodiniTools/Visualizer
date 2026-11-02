@@ -352,3 +352,6 @@ const audioTargetLabel = computed(() => {
   color: var(--ds-text-3);
 }
 </style>
+
+<!-- Spur und Daumen des Zeit-Reglers wie bei allen Standard-Reglern -->
+<style scoped src="../ui/slider-control.css"></style>

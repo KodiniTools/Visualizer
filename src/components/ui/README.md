@@ -62,17 +62,18 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 
 ## Einsatz im Visualizer
 
-| Stelle                          | Komponente                                                                                                                                                                                |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Statushinweis im rechten Panel  | `StatusBanner` → `UiCallout`                                                                                                                                                              |
-| Admin-Login                     | `LoginModal` → `UiDialog` + `UiTextField` + `UiButton`                                                                                                                                    |
-| Toasts                          | `ToastContainer` auf dem `UiToast`-Rezept, Aktion/Schließen als `UiButton`/`UiIconButton`                                                                                                 |
-| Popover der Player-Leiste       | `popover-chrome.css` auf dem Overlay-Rezept, Schließen als Ghost-Icon-Button                                                                                                              |
-| Player-Leiste                   | Transport = runde Icon-Buttons (secondary), Play/Pause = primär                                                                                                                           |
-| Formen & Symbole (Popover)      | `UiSegmentedControl` (wrap), `UiTile`, `UiSwitch`, `UiTextArea`, `UiSelect`, `UiButton`, `UiIconButton`, `SliderControl`, `ColorField` + `UiColorSwatches`                                |
-| Beat-Marker (Popover)           | Kopfzeile `UiSwitch` + `UiIconButton` (pressed), Formular `UiSelect` (Gruppen), `UiSwitch`, `UiSegmentedControl` (Schrittweite), `UiTextField`, `UiButton`; Liste `UiIconButton`          |
-| Canvas-Videoliste (Video-Panel) | Zeilen-Aktionen `UiIconButton` sm, „Alle abspielen/pausieren“ `UiButton` secondary block, Wiederholen/Stumm `UiSwitch`, Spulen `UiIconButton` + `SliderField`, Lautstärke `SliderControl` |
-| Hintergrund ersetzen (Dialog)   | `UiDialog` lg (Titel, Beschreibung, Escape), `UiButton`, Galerie-Kategorien `UiSegmentedControl`, Bilder als Knöpfe mit `aria-pressed`                                                    |
+| Stelle                          | Komponente                                                                                                                                                                                       |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Statushinweis im rechten Panel  | `StatusBanner` → `UiCallout`                                                                                                                                                                     |
+| Admin-Login                     | `LoginModal` → `UiDialog` + `UiTextField` + `UiButton`                                                                                                                                           |
+| Toasts                          | `ToastContainer` auf dem `UiToast`-Rezept, Aktion/Schließen als `UiButton`/`UiIconButton`                                                                                                        |
+| Popover der Player-Leiste       | `popover-chrome.css` auf dem Overlay-Rezept, Schließen als Ghost-Icon-Button                                                                                                                     |
+| Player-Leiste                   | Transport = runde Icon-Buttons (secondary), Play/Pause = primär                                                                                                                                  |
+| Formen & Symbole (Popover)      | `UiSegmentedControl` (wrap), `UiTile`, `UiSwitch`, `UiTextArea`, `UiSelect`, `UiButton`, `UiIconButton`, `SliderControl`, `ColorField` + `UiColorSwatches`                                       |
+| Beat-Marker (Popover)           | Kopfzeile `UiSwitch` + `UiIconButton` (pressed), Formular `UiSelect` (Gruppen), `UiSwitch`, `UiSegmentedControl` (Schrittweite), `UiTextField`, `UiButton`; Liste `UiIconButton`                 |
+| Canvas-Videoliste (Video-Panel) | Zeilen-Aktionen `UiIconButton` sm, „Alle abspielen/pausieren“ `UiButton` secondary block, Wiederholen/Stumm `UiSwitch`, Spulen `UiIconButton` + `SliderField`, Lautstärke `SliderControl`        |
+| Hintergrund ersetzen (Dialog)   | `UiDialog` lg (Titel, Beschreibung, Escape), `UiButton`, Galerie-Kategorien `UiSegmentedControl`, Bilder als Knöpfe mit `aria-pressed`                                                           |
+| Video-Upload (Video-Panel)      | Upload-Fläche als `<button>` (Drop bleibt), „Alle löschen“ `UiButton` danger, Kachel-Löschen `UiIconButton` round, Aktionen `UiButton` primary/secondary; Kacheln `role=button` + `aria-pressed` |
 
 ## Regeln
 

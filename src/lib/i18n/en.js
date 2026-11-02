@@ -2404,6 +2404,14 @@ export default {
     seekForward5: 'Forward 5 s',
     audioTargetHint: 'Applies to the first video. Click another video in the list to edit it.',
     wsBgLabel: 'Workspace Background',
+    videosTitle: 'Videos',
+    uploadVideo: 'Upload video',
+    uploadFormats: 'MP4, WebM, MOV',
+    deleteAllVideos: 'Delete all',
+    deleteVideo: 'Delete video',
+    placeOnCanvas: 'Place on Canvas',
+    asBackground: 'As Background',
+    asWorkspaceBackground: 'Workspace Background',
   },
 
   // ========== HANDOFF (image handed off from other Kodini tools) ==========

@@ -310,3 +310,11 @@ describe('i18n – Bild-Vorschau ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/✕/u)
   })
 })
+
+describe('i18n – Zurücksetzen-Bereich ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte und ohne deutsche Rückfall-Texte', () => {
+    const src = read('components/canvas-control/ResetSection.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/\)\s*\|\|\s*'/)
+  })
+})

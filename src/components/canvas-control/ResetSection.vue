@@ -2,30 +2,28 @@
   <!-- Hintergrund zurücksetzen -->
   <div class="panel-section">
     <h4>{{ t('canvasControl.resetBackground') }}</h4>
-    <p class="info-text">
-      {{ t('canvasControl.selectWhatToReset') || 'Wählen Sie, was zurückgesetzt werden soll' }}
-    </p>
+    <p class="info-text">{{ t('canvasControl.selectWhatToReset') }}</p>
     <div class="reset-options">
-      <button
-        @click="resetNormalBackground"
-        class="btn-reset-option"
+      <UiButton
+        size="sm"
         :disabled="!hasImageBackground && !hasVideoBackground"
-        :title="t('canvasControl.resetNormalBg') || 'Normaler Hintergrund zurücksetzen'"
+        :title="t('canvasControl.resetNormalBg')"
+        @click="resetNormalBackground"
       >
-        {{ t('canvasControl.normalBackground') || 'Hintergrund' }}
-      </button>
-      <button
-        @click="resetWorkspaceBackgroundOnly"
-        class="btn-reset-option"
+        {{ t('canvasControl.normalBackground') }}
+      </UiButton>
+      <UiButton
+        size="sm"
         :disabled="!hasWorkspaceBackground && !hasWorkspaceVideoBackground"
-        :title="t('canvasControl.resetWorkspaceBg') || 'Workspace-Hintergrund zurücksetzen'"
+        :title="t('canvasControl.resetWorkspaceBg')"
+        @click="resetWorkspaceBackgroundOnly"
       >
-        {{ t('canvasControl.workspaceBackground') || 'Workspace' }}
-      </button>
+        {{ t('canvasControl.workspaceBackground') }}
+      </UiButton>
     </div>
-    <button @click="resetAllBackgrounds" class="btn-secondary full-width" style="margin-top: 8px">
-      {{ t('canvasControl.resetAll') || 'Alle zurücksetzen' }}
-    </button>
+    <UiButton size="sm" block @click="resetAllBackgrounds">
+      {{ t('canvasControl.resetAll') }}
+    </UiButton>
   </div>
 
   <div class="divider"></div>
@@ -34,40 +32,36 @@
   <div class="panel-section">
     <h4>{{ t('canvasControl.clearCanvas') }}</h4>
     <p class="info-text warning">{{ t('canvasControl.removesAll') }}</p>
-    <button
-      @click="showResetConfirm = true"
-      class="btn-danger full-width"
+    <UiButton
+      variant="danger"
+      size="sm"
+      block
       :disabled="isCanvasEmpty"
+      @click="showResetConfirm = true"
     >
       {{ t('canvasControl.deleteAll') }}
-    </button>
-    <div v-if="isCanvasEmpty" class="hint-text" style="margin-top: 8px; text-align: center">
-      {{ t('canvasControl.canvasEmpty') }}
-    </div>
+    </UiButton>
+    <p v-if="isCanvasEmpty" class="hint-text">{{ t('canvasControl.canvasEmpty') }}</p>
   </div>
 
-  <!-- Bestätigungs-Dialog für Canvas-Reset -->
-  <div v-if="showResetConfirm" class="confirm-overlay" @click="showResetConfirm = false">
-    <div class="confirm-dialog" @click.stop>
-      <h4>{{ t('canvasControl.confirmClear') }}</h4>
-      <p>
-        {{ t('canvasControl.confirmClearText') }}
-      </p>
-      <div class="confirm-actions">
-        <button @click="handleConfirmReset" class="btn-danger">
-          {{ t('common.delete') }}
-        </button>
-        <button @click="showResetConfirm = false" class="btn-secondary">
-          {{ t('common.cancel') }}
-        </button>
-      </div>
-    </div>
-  </div>
+  <!-- Bestätigung für Canvas-Reset -->
+  <UiDialog
+    :open="showResetConfirm"
+    :title="t('canvasControl.confirmClear')"
+    :description="t('canvasControl.confirmClearText')"
+    @close="showResetConfirm = false"
+  >
+    <template #footer>
+      <UiButton @click="showResetConfirm = false">{{ t('common.cancel') }}</UiButton>
+      <UiButton variant="danger" @click="handleConfirmReset">{{ t('common.delete') }}</UiButton>
+    </template>
+  </UiDialog>
 </template>
 
 <script setup>
 import { ref, inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
+import { UiButton, UiDialog } from '../ui/index.js'
 
 const { t } = useI18n()
 const bg = inject('bgSettings')
@@ -104,10 +98,16 @@ function handleConfirmReset() {
   font-weight: var(--ds-weight-medium);
 }
 
+[data-theme='light'] .info-text.warning {
+  color: var(--accent-ink);
+}
+
 .hint-text {
+  margin: 8px 0 0;
   font-size: var(--ds-text-xs);
   color: var(--text-muted);
   font-style: italic;
+  text-align: center;
 }
 
 .reset-options {
@@ -116,77 +116,8 @@ function handleConfirmReset() {
   margin-bottom: 6px;
 }
 
-.btn-reset-option {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 8px 10px;
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-medium);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.btn-reset-option:hover:not(:disabled) {
-  background: var(--btn-hover);
-  border-color: var(--accent-primary);
-  color: var(--accent-tertiary);
-}
-
-.btn-reset-option:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn-secondary,
-.btn-danger {
-  padding: 6px 10px;
-  border: none;
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  transition: all var(--ds-duration) var(--ds-ease);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.btn-secondary {
-  background-color: var(--secondary-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-  background-color: var(--btn-hover);
-  border-color: var(--accent-primary);
-}
-
-.btn-danger {
-  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
-  color: var(--ds-danger);
-  border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
-}
-
-.btn-danger:disabled {
-  background-color: var(--secondary-bg);
-  color: var(--text-muted);
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.full-width {
-  width: 100%;
+.reset-options > * {
+  flex: 1 1 0;
 }
 
 .divider {
@@ -195,108 +126,9 @@ function handleConfirmReset() {
   margin: 8px 0;
 }
 
-.confirm-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: var(--ds-z-backdrop);
-}
-
-.confirm-dialog {
-  background-color: var(--card-bg);
-  border: 1px solid color-mix(in srgb, var(--ds-danger) 50%, transparent);
-  border-radius: var(--ds-radius-md);
-  padding: 12px;
-  max-width: 300px;
-  box-shadow: var(--ds-shadow-overlay);
-}
-
-.confirm-dialog h4 {
-  margin: 0 0 8px 0;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  color: var(--ds-danger);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.confirm-dialog p {
-  margin: 0 0 12px 0;
-  font-size: var(--ds-text-xs);
-  line-height: 1.5;
-  color: var(--text-primary);
-}
-
-.confirm-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.confirm-actions button {
-  flex: 1;
-}
-
-/* Light theme overrides */
-[data-theme='light'] .btn-reset-option {
-  background: var(--ds-surface-2);
-  border-color: var(--border-color);
-}
-
-[data-theme='light'] .btn-reset-option:hover:not(:disabled) {
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .info-text.warning {
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .confirm-overlay {
-  background-color: rgba(0, 0, 0, 0.4);
-}
-
-[data-theme='light'] .confirm-dialog {
-  box-shadow: var(--ds-shadow-overlay);
-}
-
-@media (max-width: 768px) {
-  .btn-secondary,
-  .btn-danger {
-    padding: 8px 12px;
-    font-size: var(--ds-text-xs);
-    min-height: 40px;
-  }
-
-  .btn-reset-option {
-    padding: 8px 10px;
-    font-size: var(--ds-text-xs);
-    min-height: 40px;
-  }
-
-  .confirm-dialog {
-    max-width: 90vw;
-  }
-}
-
 @media (max-width: 480px) {
   .reset-options {
     flex-direction: column;
-  }
-
-  .btn-secondary,
-  .btn-danger {
-    min-height: 44px;
-    font-size: var(--ds-text-xs);
-  }
-
-  .btn-reset-option {
-    min-height: 44px;
-    font-size: var(--ds-text-xs);
   }
 }
 </style>

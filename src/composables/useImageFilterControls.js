@@ -60,7 +60,8 @@ export function useImageFilterControls(props, emit) {
   const containerRef = ref(null)
 
   // Preset Ref
-  const presetSelectRef = ref(null)
+  /** Gewählte Preset-ID ('' = kein Filter); Quelle für das Preset-Select. */
+  const selectedPreset = ref('')
 
   // Numerische Filterwerte (SliderField ist v-model-basiert, kein DOM-Ref)
   const filters = reactive({ ...IMAGE_FILTER_DEFAULTS })
@@ -84,8 +85,11 @@ export function useImageFilterControls(props, emit) {
   }
 
   // Handlers
-  function onPresetChange(event) {
-    emit('preset-change', event.target.value)
+  /** @param {string|Event} value - Preset-ID (UiSelect) oder change-Event (natives select) */
+  function onPresetChange(value) {
+    const id = typeof value === 'string' ? value : (value?.target?.value ?? '')
+    selectedPreset.value = id
+    emit('preset-change', id)
   }
 
   /**
@@ -181,7 +185,7 @@ export function useImageFilterControls(props, emit) {
     flipVRef.value = false
     borderColor.value = '#ffffff'
 
-    if (presetSelectRef.value) presetSelectRef.value.value = ''
+    selectedPreset.value = ''
 
     emit('reset-filters')
   }
@@ -212,7 +216,7 @@ export function useImageFilterControls(props, emit) {
     filters.borderWidth = s.borderWidth || 0
     filters.borderOpacity = s.borderOpacity ?? IMAGE_FILTER_DEFAULTS.borderOpacity
 
-    if (presetSelectRef.value) presetSelectRef.value.value = s.preset || ''
+    selectedPreset.value = s.preset || ''
   }
 
   // Watch for active image changes and update UI
@@ -228,7 +232,7 @@ export function useImageFilterControls(props, emit) {
 
   return {
     containerRef,
-    presetSelectRef,
+    selectedPreset,
     filters,
     shadowColor,
     flipHRef,

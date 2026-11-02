@@ -217,3 +217,11 @@ describe('i18n – Ersatz-Galerie ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/\|\|\s*'/)
   })
 })
+
+describe('i18n – Bildleiste über dem Canvas ohne fest verdrahtete Texte', () => {
+  it('Vorlage enthält keine festen Texte', () => {
+    const src = read('components/canvas-bar/ImageThumbnailBar.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/alt="[^"]+"/)
+  })
+})

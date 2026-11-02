@@ -1360,6 +1360,18 @@ export default {
     intensity: 'Intensity',
     decay: 'Decay',
     rate: 'Rate',
+    sources: {
+      bass: 'Bass',
+      mid: 'Mid',
+      treble: 'Treble',
+      volume: 'Volume',
+      dynamic: 'Dynamic',
+      onsetGroup: 'Onset (beat, auto-normalized)',
+      bassOnset: 'Bass Onset',
+      midOnset: 'Mid Onset',
+      trebleOnset: 'Treble Onset',
+      allOnset: 'All Onset',
+    },
   },
 
   // ========== TEXT MANAGER PANEL ==========

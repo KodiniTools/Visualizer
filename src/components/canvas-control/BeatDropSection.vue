@@ -2,288 +2,146 @@
   <div class="panel-section">
     <div class="section-header-row">
       <h4>{{ t('beatDrop.title') }}</h4>
-      <label class="toggle-switch">
-        <input type="checkbox" v-model="beatDropStore.enabled" />
-        <span class="toggle-track"></span>
-      </label>
+      <UiSwitch v-model="beatDropStore.enabled" :label="t('beatDrop.title')" label-hidden />
     </div>
 
-    <template v-if="beatDropStore.enabled">
-      <div class="control-group">
-        <label>{{ t('beatDrop.source') }}:</label>
-        <select v-model="beatDropStore.source" class="gradient-select">
-          <option value="bass">Bass</option>
-          <option value="mid">Mid</option>
-          <option value="treble">Treble</option>
-          <option value="volume">Volume</option>
-          <option value="dynamic">Dynamic</option>
-          <optgroup label="Onset (beat, auto-normalized)">
-            <option value="bassOnset">Bass Onset</option>
-            <option value="midOnset">Mid Onset</option>
-            <option value="trebleOnset">Treble Onset</option>
-            <option value="allOnset">All Onset</option>
-          </optgroup>
-        </select>
-      </div>
+    <div v-if="beatDropStore.enabled" class="beat-drop-body">
+      <UiSelect
+        v-model="beatDropStore.source"
+        :label="t('beatDrop.source')"
+        :options="sourceOptions"
+        size="sm"
+        inline
+        class="beat-drop-source"
+      />
 
-      <!-- Flash -->
-      <div class="beat-effect-row">
-        <label class="checkbox-label">
-          <input type="checkbox" v-model="beatDropStore.flashEnabled" />
-          <span>{{ t('beatDrop.flash') }}</span>
-        </label>
-        <ColorField v-model="beatDropStore.flashColor" class="color-input-sm" />
-      </div>
-      <template v-if="beatDropStore.flashEnabled">
-        <div class="control-group compact">
-          <label>{{ t('beatDrop.intensity') }}: {{ beatDropStore.flashIntensity }}%</label>
-          <SliderField
-            v-model="beatDropStore.flashIntensity"
-            :min="0"
-            :max="100"
-            :default-value="70"
-            class="opacity-slider"
+      <section v-for="effect in BEAT_DROP_EFFECTS" :key="effect.key" class="beat-effect">
+        <div class="beat-effect-row">
+          <UiSwitch
+            v-model="beatDropStore[effect.enabledKey]"
+            :label="t(`beatDrop.${effect.key}`)"
+          />
+          <ColorField
+            v-if="effect.colorKey"
+            v-model="beatDropStore[effect.colorKey]"
+            :label="t(`beatDrop.${effect.key}`)"
           />
         </div>
-        <div class="control-group compact">
-          <label>{{ t('beatDrop.decay') }}: {{ beatDropStore.flashDecay }}%</label>
-          <SliderField
-            v-model="beatDropStore.flashDecay"
-            :min="1"
-            :max="100"
-            :default-value="60"
-            class="opacity-slider"
+        <template v-if="beatDropStore[effect.enabledKey]">
+          <SliderControl
+            v-for="slider in effect.sliders"
+            :key="slider.storeKey"
+            v-model="beatDropStore[slider.storeKey]"
+            :label="t(`beatDrop.${slider.label}`)"
+            :min="slider.min"
+            :max="slider.max"
+            :default-value="slider.defaultValue"
+            :value-text="`${beatDropStore[slider.storeKey]}${slider.unit}`"
           />
-        </div>
-      </template>
-
-      <!-- Color Burst -->
-      <div class="beat-effect-row">
-        <label class="checkbox-label">
-          <input type="checkbox" v-model="beatDropStore.colorBurstEnabled" />
-          <span>{{ t('beatDrop.colorBurst') }}</span>
-        </label>
-        <ColorField v-model="beatDropStore.colorBurstColor" class="color-input-sm" />
-      </div>
-      <template v-if="beatDropStore.colorBurstEnabled">
-        <div class="control-group compact">
-          <label>{{ t('beatDrop.intensity') }}: {{ beatDropStore.colorBurstIntensity }}%</label>
-          <SliderField
-            v-model="beatDropStore.colorBurstIntensity"
-            :min="0"
-            :max="100"
-            :default-value="60"
-            class="opacity-slider"
-          />
-        </div>
-      </template>
-
-      <!-- Strobe -->
-      <div class="beat-effect-row">
-        <label class="checkbox-label">
-          <input type="checkbox" v-model="beatDropStore.strobeEnabled" />
-          <span>{{ t('beatDrop.strobe') }}</span>
-        </label>
-      </div>
-      <template v-if="beatDropStore.strobeEnabled">
-        <div class="control-group compact">
-          <label>{{ t('beatDrop.rate') }}: {{ beatDropStore.strobeRate }} Hz</label>
-          <SliderField
-            v-model="beatDropStore.strobeRate"
-            :min="1"
-            :max="30"
-            :default-value="8"
-            class="opacity-slider"
-          />
-        </div>
-        <div class="control-group compact">
-          <label>{{ t('beatDrop.intensity') }}: {{ beatDropStore.strobeIntensity }}%</label>
-          <SliderField
-            v-model="beatDropStore.strobeIntensity"
-            :min="0"
-            :max="100"
-            :default-value="80"
-            class="opacity-slider"
-          />
-        </div>
-      </template>
-
-      <!-- Vignette Pulse -->
-      <div class="beat-effect-row">
-        <label class="checkbox-label">
-          <input type="checkbox" v-model="beatDropStore.vignettePulseEnabled" />
-          <span>{{ t('beatDrop.vignette') }}</span>
-        </label>
-        <ColorField v-model="beatDropStore.vignettePulseColor" class="color-input-sm" />
-      </div>
-      <template v-if="beatDropStore.vignettePulseEnabled">
-        <div class="control-group compact">
-          <label>{{ t('beatDrop.intensity') }}: {{ beatDropStore.vignettePulseIntensity }}%</label>
-          <SliderField
-            v-model="beatDropStore.vignettePulseIntensity"
-            :min="0"
-            :max="100"
-            :default-value="70"
-            class="opacity-slider"
-          />
-        </div>
-      </template>
-    </template>
+        </template>
+      </section>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import ColorField from '../ui/ColorField.vue'
-import SliderField from '../ui/SliderField.vue'
+import SliderControl from '../ui/SliderControl.vue'
+import UiSelect from '../ui/UiSelect.vue'
+import UiSwitch from '../ui/UiSwitch.vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useBeatDropStore } from '../../stores/beatDropStore.js'
 
 const { t } = useI18n()
 const beatDropStore = useBeatDropStore()
+
+const LEVEL_SOURCES = ['bass', 'mid', 'treble', 'volume', 'dynamic']
+const ONSET_SOURCES = ['bassOnset', 'midOnset', 'trebleOnset', 'allOnset']
+
+const sourceOptions = computed(() => [
+  ...LEVEL_SOURCES.map((value) => ({ value, label: t(`beatDrop.sources.${value}`) })),
+  {
+    label: t('beatDrop.sources.onsetGroup'),
+    options: ONSET_SOURCES.map((value) => ({ value, label: t(`beatDrop.sources.${value}`) })),
+  },
+])
+
+const percent = (storeKey, defaultValue, label = 'intensity', min = 0) => ({
+  storeKey,
+  label,
+  min,
+  max: 100,
+  defaultValue,
+  unit: '%',
+})
+
+/** Effekte in Anzeige-Reihenfolge; Schlüssel = Felder im beatDropStore. */
+const BEAT_DROP_EFFECTS = [
+  {
+    key: 'flash',
+    enabledKey: 'flashEnabled',
+    colorKey: 'flashColor',
+    sliders: [percent('flashIntensity', 70), percent('flashDecay', 60, 'decay', 1)],
+  },
+  {
+    key: 'colorBurst',
+    enabledKey: 'colorBurstEnabled',
+    colorKey: 'colorBurstColor',
+    sliders: [percent('colorBurstIntensity', 60)],
+  },
+  {
+    key: 'strobe',
+    enabledKey: 'strobeEnabled',
+    colorKey: null,
+    sliders: [
+      { storeKey: 'strobeRate', label: 'rate', min: 1, max: 30, defaultValue: 8, unit: ' Hz' },
+      percent('strobeIntensity', 80),
+    ],
+  },
+  {
+    key: 'vignette',
+    enabledKey: 'vignettePulseEnabled',
+    colorKey: 'vignettePulseColor',
+    sliders: [percent('vignettePulseIntensity', 70)],
+  },
+]
 </script>
 
 <style scoped>
 .section-header-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  justify-content: space-between;
+  margin-bottom: var(--ds-space-2);
 }
 
 .section-header-row h4 {
   margin: 0;
 }
 
-.toggle-switch {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
+.beat-drop-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
 }
 
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-  position: absolute;
+/* Auswahl füllt die Zeile */
+.beat-drop-body > .ui-select :deep(.ui-select__control) {
+  flex: 1;
 }
 
-.toggle-track {
-  width: 32px;
-  height: 18px;
-  background: var(--border-color);
-  border-radius: var(--ds-radius-md);
-  position: relative;
-  transition: background var(--ds-duration) var(--ds-ease);
-}
-
-.toggle-track::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
-  border-radius: var(--ds-radius-full);
-  background: #fff;
-  transition: transform var(--ds-duration) var(--ds-ease);
-}
-
-.toggle-switch input:checked + .toggle-track {
-  background: var(--accent-primary);
-}
-
-.toggle-switch input:checked + .toggle-track::after {
-  transform: translateX(14px);
+.beat-effect {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
 }
 
 .beat-effect-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 8px;
-  margin-bottom: 2px;
-}
-
-.color-input-sm {
-  width: 28px;
-  height: 22px;
-  border: none;
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  padding: 0;
-  background: none;
-}
-
-.control-group {
-  margin-bottom: 6px;
-}
-
-.control-group label {
-  display: block;
-  margin-bottom: 4px;
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-  font-weight: var(--ds-weight-medium);
-}
-
-.control-group.compact {
-  margin-top: 4px;
-  margin-bottom: 4px;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  font-size: var(--ds-text-xs);
-  color: var(--text-primary);
-}
-
-.gradient-select {
-  width: 100%;
-  padding: 5px 8px;
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-}
-
-.opacity-slider {
-  width: 100%;
-  height: 3px;
-  background: var(--text-muted);
-  border-radius: var(--ds-radius-sm);
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-  cursor: pointer;
-}
-
-.opacity-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 12px;
-  height: 12px;
-  background-color: var(--accent-tertiary);
-  border: 2px solid var(--ds-surface-1);
-  border-radius: var(--ds-radius-full);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-@media (max-width: 768px) {
-  .gradient-select {
-    min-height: 36px;
-    font-size: var(--ds-text-xs);
-  }
-
-  .opacity-slider::-webkit-slider-thumb {
-    width: 16px;
-    height: 16px;
-  }
+  gap: var(--ds-space-2);
+  min-height: var(--ds-control-sm);
 }
 </style>

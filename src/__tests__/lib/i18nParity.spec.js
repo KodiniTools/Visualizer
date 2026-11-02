@@ -225,3 +225,11 @@ describe('i18n – Bildleiste über dem Canvas ohne fest verdrahtete Texte', () 
     expect(src).not.toMatch(/alt="[^"]+"/)
   })
 })
+
+describe('i18n – Beat-Drop ohne fest verdrahtete Texte', () => {
+  it('Vorlage enthält keine festen Texte, Quellen kommen aus i18n', () => {
+    const src = read('components/canvas-control/BeatDropSection.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/<option/)
+  })
+})

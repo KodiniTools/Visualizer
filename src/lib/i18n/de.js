@@ -1362,6 +1362,18 @@ export default {
     intensity: 'Intensität',
     decay: 'Abklingen',
     rate: 'Frequenz',
+    sources: {
+      bass: 'Bass',
+      mid: 'Mitten',
+      treble: 'Höhen',
+      volume: 'Lautstärke',
+      dynamic: 'Dynamisch',
+      onsetGroup: 'Onset (Beat, auto-normalisiert)',
+      bassOnset: 'Bass-Onset',
+      midOnset: 'Mitten-Onset',
+      trebleOnset: 'Höhen-Onset',
+      allOnset: 'Alle-Onset',
+    },
   },
 
   // ========== TEXT MANAGER PANEL ==========

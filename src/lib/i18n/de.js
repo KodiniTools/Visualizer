@@ -1062,6 +1062,7 @@ export default {
     recordingFps30Info: '30 fps – empfohlener Standard, läuft auf jeder Hardware',
     recordingFps60Info: '60 fps – flüssigere Bewegung, benötigt moderne Hardware',
     uploadMode: 'Upload-Modus',
+    uploadModes: { auto: 'Automatisch', server: 'Server', direct: 'Direkt' },
     mp4Conversion: 'MP4 Konvertierung',
     serverAvailable: 'FFmpeg Server verfügbar',
     serverUnavailable: 'FFmpeg Server nicht erreichbar',

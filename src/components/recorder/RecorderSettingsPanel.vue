@@ -1,34 +1,26 @@
 <template>
-  <!-- Video Quality -->
+  <!-- Video-Qualität -->
   <div class="control-section">
     <span class="section-label">{{ t('recorder.videoQuality') }}</span>
-    <div class="quality-buttons">
-      <button
-        v-for="quality in qualityPresets"
-        :key="quality.value"
-        class="quality-btn"
-        :class="{ active: selectedQuality === quality.value }"
-        @click="selectQuality(quality.value)"
-      >
-        {{ quality.label }}
-      </button>
-    </div>
+    <UiSegmentedControl
+      v-model="qualityModel"
+      :options="qualityOptions"
+      :label="t('recorder.videoQuality')"
+      class="quality-grid"
+      size="sm"
+      wrap
+    />
   </div>
 
-  <!-- Recording Frame Rate -->
+  <!-- Aufnahme-Bildrate -->
   <div class="control-section">
     <span class="section-label">{{ t('recorder.recordingFps') }}</span>
-    <div class="fps-buttons">
-      <button
-        v-for="preset in frameRatePresets"
-        :key="preset.value"
-        class="quality-btn"
-        :class="{ active: recordingFps === preset.value }"
-        @click="selectFrameRate(preset.value)"
-      >
-        {{ preset.label }} fps
-      </button>
-    </div>
+    <UiSegmentedControl
+      v-model="fpsModel"
+      :options="fpsOptions"
+      :label="t('recorder.recordingFps')"
+      size="sm"
+    />
     <p class="extra-info">
       {{
         recordingFps === 60 ? t('recorder.recordingFps60Info') : t('recorder.recordingFps30Info')
@@ -36,137 +28,92 @@
     </p>
   </div>
 
-  <!-- Upload Mode -->
+  <!-- Upload-Modus -->
   <div class="control-section">
     <span class="section-label">{{ t('recorder.uploadMode') }}</span>
-    <div class="upload-buttons">
-      <button
-        v-for="mode in UPLOAD_MODES"
-        :key="mode"
-        class="upload-btn"
-        :class="{ active: uploadMode === mode }"
-        @click="selectUploadMode(mode)"
-      >
-        {{ mode }}
-      </button>
-    </div>
+    <UiSegmentedControl
+      v-model="uploadModel"
+      :options="uploadOptions"
+      :label="t('recorder.uploadMode')"
+      size="sm"
+    />
   </div>
 
-  <!-- MP4 Conversion -->
+  <!-- MP4-Konvertierung -->
   <div class="control-section">
     <div class="section-header">
       <span class="section-label">{{ t('recorder.mp4Conversion') }}</span>
-      <span
-        class="server-status"
-        :class="{ available: serverAvailable, unavailable: serverAvailable === false }"
-        :title="serverAvailable ? t('recorder.serverAvailable') : t('recorder.serverUnavailable')"
-      >
-        {{ serverAvailable ? '●' : '○' }}
-      </span>
+      <span v-bind="statusAttrs" />
     </div>
-    <label class="toggle-row">
-      <input v-model="enableServerConversion" type="checkbox" :disabled="!serverAvailable" />
-      <span class="toggle-label">{{ t('recorder.autoConvert') }}</span>
-    </label>
-    <div
-      v-if="enableServerConversion && serverAvailable"
-      class="quality-buttons conversion-quality"
-    >
-      <button
-        v-for="preset in conversionPresets"
-        :key="preset.value"
-        class="quality-btn"
-        :class="{ active: conversionQuality === preset.value }"
-        :title="preset.desc"
-        @click="conversionQuality = preset.value"
-      >
-        {{ preset.label }}
-      </button>
-    </div>
+    <UiSwitch
+      v-model="enableServerConversion"
+      :label="t('recorder.autoConvert')"
+      :disabled="!serverAvailable"
+    />
+    <template v-if="enableServerConversion && serverAvailable">
+      <UiSegmentedControl
+        v-model="conversionQuality"
+        :options="conversionOptions"
+        :label="t('recorder.mp4Conversion')"
+        size="sm"
+      />
+      <p v-if="conversionDesc" class="extra-info">{{ conversionDesc }}</p>
+    </template>
   </div>
 
-  <!-- GIF Export -->
+  <!-- GIF-Export -->
   <div class="control-section">
     <div class="section-header">
       <span class="section-label">{{ t('recorder.gifExport') }}</span>
-      <span
-        class="server-status"
-        :class="{ available: serverAvailable, unavailable: serverAvailable === false }"
-        :title="serverAvailable ? t('recorder.serverAvailable') : t('recorder.serverUnavailable')"
-      >
-        {{ serverAvailable ? '●' : '○' }}
-      </span>
+      <span v-bind="statusAttrs" />
     </div>
-    <label class="toggle-row">
-      <input v-model="enableGifExport" type="checkbox" :disabled="!serverAvailable" />
-      <span class="toggle-label">{{ t('recorder.gifAutoCreate') }}</span>
-    </label>
-    <div v-if="enableGifExport && serverAvailable" class="gif-options">
-      <div class="gif-option-row">
-        <span class="gif-option-label">{{ t('recorder.gifFps') }}:</span>
-        <div class="quality-buttons">
-          <button
-            v-for="fps in [10, 15, 20]"
-            :key="fps"
-            class="quality-btn"
-            :class="{ active: gifFps === fps }"
-            @click="gifFps = fps"
-          >
-            {{ fps }}
-          </button>
-        </div>
+    <UiSwitch
+      v-model="enableGifExport"
+      :label="t('recorder.gifAutoCreate')"
+      :disabled="!serverAvailable"
+    />
+    <div v-if="enableGifExport && serverAvailable" class="export-options">
+      <div class="export-option-row">
+        <span class="export-option-label">{{ t('recorder.gifFps') }}</span>
+        <UiSegmentedControl
+          v-model="gifFpsModel"
+          :options="GIF_FPS_OPTIONS"
+          :label="t('recorder.gifFps')"
+          size="sm"
+        />
       </div>
-      <div class="gif-option-row">
-        <span class="gif-option-label">{{ t('recorder.gifWidth') }}:</span>
-        <div class="quality-buttons">
-          <button
-            v-for="w in [
-              { v: 320, l: '320' },
-              { v: 480, l: '480' },
-              { v: 640, l: '640' },
-            ]"
-            :key="w.v"
-            class="quality-btn"
-            :class="{ active: gifWidth === w.v }"
-            @click="gifWidth = w.v"
-          >
-            {{ w.l }}
-          </button>
-        </div>
+      <div class="export-option-row">
+        <span class="export-option-label">{{ t('recorder.gifWidth') }}</span>
+        <UiSegmentedControl
+          v-model="gifWidthModel"
+          :options="GIF_WIDTH_OPTIONS"
+          :label="t('recorder.gifWidth')"
+          size="sm"
+        />
       </div>
     </div>
   </div>
 
-  <!-- HQ Frame Export -->
+  <!-- HQ-Frame-Export -->
   <div class="control-section">
     <div class="section-header">
       <span class="section-label">{{ t('recorder.hqExport') }}</span>
-      <span
-        class="server-status"
-        :class="{ available: serverAvailable, unavailable: serverAvailable === false }"
-        :title="serverAvailable ? t('recorder.serverAvailable') : t('recorder.serverUnavailable')"
-      >
-        {{ serverAvailable ? '●' : '○' }}
-      </span>
+      <span v-bind="statusAttrs" />
     </div>
-    <label class="toggle-row">
-      <input v-model="enableHqExport" type="checkbox" :disabled="!serverAvailable" />
-      <span class="toggle-label">{{ t('recorder.hqAutoCreate') }}</span>
-    </label>
-    <div v-if="enableHqExport && serverAvailable" class="gif-options">
-      <div class="gif-option-row">
-        <span class="gif-option-label">{{ t('recorder.hqFps') }}:</span>
-        <div class="quality-buttons">
-          <button
-            v-for="fps in [24, 30, 60]"
-            :key="fps"
-            class="quality-btn"
-            :class="{ active: hqFps === fps }"
-            @click="hqFps = fps"
-          >
-            {{ fps }}
-          </button>
-        </div>
+    <UiSwitch
+      v-model="enableHqExport"
+      :label="t('recorder.hqAutoCreate')"
+      :disabled="!serverAvailable"
+    />
+    <div v-if="enableHqExport && serverAvailable" class="export-options">
+      <div class="export-option-row">
+        <span class="export-option-label">{{ t('recorder.hqFps') }}</span>
+        <UiSegmentedControl
+          v-model="hqFpsModel"
+          :options="HQ_FPS_OPTIONS"
+          :label="t('recorder.hqFps')"
+          size="sm"
+        />
       </div>
       <p class="extra-info">{{ t('recorder.hqInfo') }}</p>
     </div>
@@ -174,8 +121,14 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
+/**
+ * Aufnahme-Einstellungen (Qualität, Bildrate, Upload, Server-Exporte).
+ * Zustand kommt per inject('recorderSettings') aus useRecorderSettings.
+ */
+import { computed, inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
+import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
+import UiSwitch from '../ui/UiSwitch.vue'
 
 const { t } = useI18n()
 
@@ -200,179 +153,122 @@ const {
 } = inject('recorderSettings')
 
 const UPLOAD_MODES = ['auto', 'server', 'direct']
+const toOptions = (values) => values.map((v) => ({ value: String(v), label: String(v) }))
+const GIF_FPS_OPTIONS = toOptions([10, 15, 20])
+const GIF_WIDTH_OPTIONS = toOptions([320, 480, 640])
+const HQ_FPS_OPTIONS = toOptions([24, 30, 60])
+
+/**
+ * UiSegmentedControl arbeitet mit Strings; die Einstellungen sind Zahlen.
+ * @param {import('vue').Ref<number>} source
+ * @param {(value: number) => void} [write] - eigener Setter (z. B. mit Store-Aufruf)
+ */
+function numberModel(source, write = (v) => (source.value = v)) {
+  return computed({
+    get: () => String(source.value),
+    set: (v) => write(Number(v)),
+  })
+}
+
+const qualityModel = numberModel(selectedQuality, selectQuality)
+const fpsModel = numberModel(recordingFps, selectFrameRate)
+const gifFpsModel = numberModel(gifFps)
+const gifWidthModel = numberModel(gifWidth)
+const hqFpsModel = numberModel(hqFps)
+
+const uploadModel = computed({
+  get: () => uploadMode.value,
+  set: (v) => selectUploadMode(v),
+})
+
+const qualityOptions = qualityPresets.map((p) => ({ value: String(p.value), label: p.label }))
+const fpsOptions = frameRatePresets.map((p) => ({
+  value: String(p.value),
+  label: `${p.label} fps`,
+}))
+const uploadOptions = computed(() =>
+  UPLOAD_MODES.map((m) => ({ value: m, label: t(`recorder.uploadModes.${m}`) })),
+)
+const conversionOptions = computed(() =>
+  conversionPresets.value.map((p) => ({ value: p.value, label: p.label })),
+)
+/** Beschreibung der gewählten MP4-Stufe (vorher nur als Tooltip). */
+const conversionDesc = computed(
+  () => conversionPresets.value.find((p) => p.value === conversionQuality.value)?.desc ?? '',
+)
+
+/** Server-Status als Punkt; Name für Screenreader und Tooltip. */
+const statusAttrs = computed(() => {
+  const label = serverAvailable.value
+    ? t('recorder.serverAvailable')
+    : t('recorder.serverUnavailable')
+  return {
+    class: [
+      'server-status',
+      { available: serverAvailable.value, unavailable: serverAvailable.value === false },
+    ],
+    role: 'img',
+    'aria-label': label,
+    title: label,
+  }
+})
 </script>
 
 <style scoped src="./recorder-section.css"></style>
 
 <style scoped>
+/* Optionen füllen die Breite gleichmäßig; Qualität in zwei Reihen à vier */
+.control-section :deep(.ui-segmented__option) {
+  flex: 1 1 0;
+}
+
+.quality-grid :deep(.ui-segmented__option) {
+  flex: 1 1 22%;
+}
+
 .server-status {
-  font-size: var(--ds-text-xs);
-  transition: color var(--ds-duration-slow) var(--ds-ease);
+  width: 8px;
+  height: 8px;
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-text-3);
+  transition: background-color var(--ds-duration-slow) var(--ds-ease);
 }
 
 .server-status.available {
-  color: var(--ds-success);
+  background-color: var(--ds-success);
 }
 
-.server-status.unavailable {
-  color: var(--text-muted);
-}
-
-/* Quality / Upload buttons */
-
-.quality-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-}
-
-.quality-btn,
-.upload-btn {
-  background-color: var(--secondary-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  padding: 6px 8px;
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  font-weight: var(--ds-weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.quality-btn:hover,
-.upload-btn:hover {
-  background-color: var(--btn-hover);
-}
-
-.quality-btn.active,
-.upload-btn.active {
-  background-color: var(--ds-link);
-  color: #fff;
-  border-color: var(--ds-link);
-  font-weight: var(--ds-weight-semibold);
-}
-
-.quality-btn.active:hover,
-.upload-btn.active:hover {
-  background-color: var(--ds-link);
-}
-
-.quality-btn:disabled,
-.upload-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.upload-buttons {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-}
-
-.fps-buttons {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 4px;
-}
-
-.conversion-quality {
-  grid-template-columns: repeat(5, 1fr);
-}
-
-/* Toggle */
-
-.toggle-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 4px 0;
-}
-
-.toggle-row input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--ds-link);
-  cursor: pointer;
-}
-
-.toggle-row input[type='checkbox']:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.toggle-label {
-  font-size: var(--ds-text-xs);
-  color: var(--text-primary);
-}
-
-/* GIF / HQ options */
-
-.gif-options {
+.export-options {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 6px;
-  padding: 6px 8px;
-  background: var(--secondary-bg);
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2);
+  background: var(--ds-surface-2);
   border-radius: var(--ds-radius-sm);
-  border: 1px solid var(--border-color);
 }
 
-.gif-option-row {
+.export-option-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ds-space-2);
 }
 
-.gif-option-label {
+.export-option-row > :last-child {
+  flex: 1;
+}
+
+.export-option-label {
   font-size: var(--ds-text-xs);
-  color: var(--text-muted);
+  color: var(--ds-text-2);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  min-width: 38px;
+  min-width: 48px;
 }
 
 .extra-info {
   font-size: var(--ds-text-xs);
-  color: var(--ds-text-3);
-  margin: 4px 0 0 0;
-  text-align: center;
-}
-
-/* Light Theme */
-
-[data-theme='light'] .quality-btn,
-[data-theme='light'] .upload-btn {
-  background-color: var(--ds-surface-2);
-  border-color: var(--ds-border-strong);
-}
-
-[data-theme='light'] .quality-btn:hover,
-[data-theme='light'] .upload-btn:hover {
-  background-color: var(--ds-surface-2);
-  border-color: var(--ds-border-strong);
-}
-
-[data-theme='light'] .quality-btn.active,
-[data-theme='light'] .upload-btn.active {
-  background-color: var(--accent-primary);
-  color: var(--accent-text);
-  border-color: var(--accent-primary);
-}
-
-[data-theme='light'] .quality-btn.active:hover,
-[data-theme='light'] .upload-btn.active:hover {
-  background-color: var(--accent-primary);
-}
-
-[data-theme='light'] .toggle-row input[type='checkbox'] {
-  accent-color: var(--accent-primary);
-}
-
-[data-theme='light'] .extra-info {
   color: var(--ds-text-2);
+  margin: 0;
+  text-align: center;
 }
 </style>

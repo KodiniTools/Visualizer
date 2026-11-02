@@ -270,3 +270,11 @@ describe('i18n – Ebenen-Steuerung ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/[⬆⬇↑↓]/u)
   })
 })
+
+describe('i18n – Recorder-Einstellungen ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte und Status-Glyphen', () => {
+    const src = read('components/recorder/RecorderSettingsPanel.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/[●○]|\{\{ mode \}\}/u)
+  })
+})

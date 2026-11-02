@@ -201,3 +201,11 @@ describe('i18n – Platzierung (Video und Bild) ohne fest verdrahtete Texte', ()
     }
   })
 })
+
+describe('i18n – Bildvorschau ohne fest verdrahtete Texte', () => {
+  it('Vorlage enthält keine festen Texte und keine Fallback-Strings', () => {
+    const src = read('components/canvas-bar/ImagePreviewModal.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/\)\s*\|\|\s*'/)
+  })
+})

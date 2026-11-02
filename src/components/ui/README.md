@@ -76,6 +76,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Video-Upload (Video-Panel)      | Upload-Fläche als `<button>` (Drop bleibt), „Alle löschen“ `UiButton` danger, Kachel-Löschen `UiIconButton` round, Aktionen `UiButton` primary/secondary; Kacheln `role=button` + `aria-pressed` |
 | Video-Platzierung (Video-Panel) | Effekt `UiSelect` sm inline, Dauer/Größe `SliderControl`, Wiederholen/Stumm `UiSwitch`, Platzieren `UiButton` primary block                                                                      |
 | Bild-Platzierung (Foto-Panel)   | wie Video-Platzierung, dazu X/Y als `SliderControl`, Zeichnen `UiButton` secondary; Effektliste aus `lib/placementAnimations.js`, Texte `placement.*`                                            |
+| Bildvorschau (Canvas-Leiste)    | `UiDialog` lg (Titel, Escape), Bildinformationen als `dl`, Ersetzen/Bestätigen `UiButton`; schließt nicht, solange die Ersatz-Galerie offen ist                                                  |
 
 ## Regeln
 

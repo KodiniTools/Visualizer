@@ -145,8 +145,10 @@ export function useImageFilterControls(props, emit) {
     emitFilterChange('flipV', flipVRef.value)
   }
 
-  function onRenderBehindVisualizerChange(event) {
-    renderBehindVisualizerRef.value = event.target.checked
+  /** @param {boolean|Event} value - Switch-Wert (Boolean) oder Checkbox-Event */
+  function onRenderBehindVisualizerChange(value) {
+    renderBehindVisualizerRef.value =
+      typeof value === 'boolean' ? value : Boolean(value?.target?.checked)
     emitFilterChange('renderBehindVisualizer', renderBehindVisualizerRef.value)
   }
 

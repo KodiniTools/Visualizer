@@ -1,112 +1,60 @@
 <template>
   <details class="collapsible-section">
     <summary class="section-header">
-      <span class="section-icon">📰</span>
+      <span class="section-icon" aria-hidden="true">📰</span>
       <span>{{ t('ticker.title') }}</span>
-      <span v-if="ticker.enabled" class="status-badge active">{{ t('ticker.on') }}</span>
+      <span v-if="ticker.enabled" class="status-badge">{{ t('ticker.on') }}</span>
     </summary>
     <div class="section-content">
-      <!-- Aktivieren -->
-      <div class="control-group">
-        <button
-          type="button"
-          :class="['btn-small', 'full-width', { active: ticker.enabled }]"
-          @click="ticker.enabled = !ticker.enabled"
-        >
-          {{ ticker.enabled ? '✓ ' + t('ticker.on') : t('ticker.off') }}
-        </button>
-      </div>
+      <UiSwitch v-model="ticker.enabled" :label="t('ticker.on')" />
 
       <template v-if="ticker.enabled">
         <!-- ══════════ Text & Schrift ══════════ -->
         <details class="sub-section" open>
           <summary class="sub-header">
             <span class="sub-title">{{ t('ticker.sectionText') }}</span>
-            <button
-              type="button"
+            <UiIconButton
+              :label="t('ticker.reset')"
+              size="sm"
               class="reset-btn"
-              :title="t('ticker.reset')"
               @click.stop.prevent="ticker.resetSection('text')"
             >
-              ↺
-            </button>
+              <ResetIcon />
+            </UiIconButton>
           </summary>
           <div class="sub-content">
-            <!-- Text -->
-            <div class="control-group">
-              <label>{{ t('ticker.text') }}:</label>
-              <input
-                v-model="ticker.text"
-                type="text"
-                class="text-input"
-                :placeholder="t('ticker.text')"
-              />
-            </div>
-
-            <!-- Schriftart (gleiche Quelle wie normaler Text: System + Custom Fonts) -->
-            <div class="control-group">
-              <label>{{ t('ticker.fontFamily') }}:</label>
-              <select v-model="ticker.fontFamily" class="select-input">
-                <option v-if="missingFont" :value="missingFont">{{ missingFont }}</option>
-                <option
-                  v-for="font in systemFonts"
-                  :key="font"
-                  :value="font"
-                  :style="{ fontFamily: font }"
-                >
-                  {{ font }}
-                </option>
-                <optgroup v-if="customFonts.length > 0" label="── Custom Fonts ──">
-                  <option
-                    v-for="font in customFonts"
-                    :key="font"
-                    :value="font"
-                    :style="{ fontFamily: font }"
-                  >
-                    {{ font }}
-                  </option>
-                </optgroup>
-              </select>
-            </div>
-
-            <!-- Fett -->
-            <div class="control-group">
-              <label class="checkbox-label">
-                <input v-model="ticker.bold" type="checkbox" />
-                {{ t('ticker.bold') }}
-              </label>
-            </div>
-
-            <!-- Buchstabenabstand -->
-            <div class="control-group">
-              <label>{{ t('ticker.letterSpacing') }}: {{ ticker.letterSpacing }}px</label>
-              <SliderField
-                v-model="ticker.letterSpacing"
-                :min="-5"
-                :max="40"
-                :step="1"
-                :default-value="0"
-                class="slider"
-              />
-            </div>
-
-            <!-- Buchstabengröße -->
-            <div class="control-group">
-              <label>{{ t('ticker.fontSize') }}: {{ ticker.fontSize }}px</label>
-              <SliderField
-                v-model="ticker.fontSize"
-                :min="12"
-                :max="200"
-                :step="1"
-                :default-value="48"
-                class="slider"
-              />
-            </div>
-
-            <!-- Textfarbe -->
-            <div class="control-group">
-              <label>{{ t('ticker.color') }}:</label>
-              <ColorField v-model="ticker.color" class="color-input" />
+            <UiTextField
+              v-model="ticker.text"
+              :label="t('ticker.text')"
+              :placeholder="t('ticker.text')"
+            />
+            <!-- Gleiche Quelle wie normaler Text: System + eigene Schriften -->
+            <UiSelect
+              v-model="ticker.fontFamily"
+              :label="t('ticker.fontFamily')"
+              :options="fontOptions"
+              size="sm"
+            />
+            <UiSwitch v-model="ticker.bold" :label="t('ticker.bold')" />
+            <SliderControl
+              v-model="ticker.letterSpacing"
+              :label="t('ticker.letterSpacing')"
+              :min="-5"
+              :max="40"
+              :default-value="0"
+              :value-text="`${ticker.letterSpacing}px`"
+            />
+            <SliderControl
+              v-model="ticker.fontSize"
+              :label="t('ticker.fontSize')"
+              :min="12"
+              :max="200"
+              :default-value="48"
+              :value-text="`${ticker.fontSize}px`"
+            />
+            <div class="color-row">
+              <span class="color-row__label">{{ t('ticker.color') }}</span>
+              <ColorField v-model="ticker.color" :label="t('ticker.color')" />
             </div>
           </div>
         </details>
@@ -115,64 +63,46 @@
         <details class="sub-section">
           <summary class="sub-header">
             <span class="sub-title">{{ t('ticker.sectionOutline') }}</span>
-            <button
-              type="button"
+            <UiIconButton
+              :label="t('ticker.reset')"
+              size="sm"
               class="reset-btn"
-              :title="t('ticker.reset')"
               @click.stop.prevent="ticker.resetSection('outline')"
             >
-              ↺
-            </button>
+              <ResetIcon />
+            </UiIconButton>
           </summary>
           <div class="sub-content">
-            <!-- Umrandung -->
-            <div class="control-group">
-              <label class="checkbox-label">
-                <input v-model="ticker.strokeEnabled" type="checkbox" />
-                {{ t('ticker.stroke') }}
-              </label>
-            </div>
+            <UiSwitch v-model="ticker.strokeEnabled" :label="t('ticker.stroke')" />
             <template v-if="ticker.strokeEnabled">
-              <div class="control-group">
-                <label>{{ t('ticker.strokeColor') }}:</label>
-                <ColorField v-model="ticker.strokeColor" class="color-input" />
+              <div class="color-row">
+                <span class="color-row__label">{{ t('ticker.strokeColor') }}</span>
+                <ColorField v-model="ticker.strokeColor" :label="t('ticker.strokeColor')" />
               </div>
-              <div class="control-group">
-                <label>{{ t('ticker.strokeWidth') }}: {{ ticker.strokeWidth }}px</label>
-                <SliderField
-                  v-model="ticker.strokeWidth"
-                  :min="1"
-                  :max="20"
-                  :step="1"
-                  :default-value="2"
-                  class="slider"
-                />
-              </div>
+              <SliderControl
+                v-model="ticker.strokeWidth"
+                :label="t('ticker.strokeWidth')"
+                :min="1"
+                :max="20"
+                :default-value="2"
+                :value-text="`${ticker.strokeWidth}px`"
+              />
             </template>
 
-            <!-- Schatten -->
-            <div class="control-group">
-              <label class="checkbox-label">
-                <input v-model="ticker.shadowEnabled" type="checkbox" />
-                {{ t('ticker.shadow') }}
-              </label>
-            </div>
+            <UiSwitch v-model="ticker.shadowEnabled" :label="t('ticker.shadow')" />
             <template v-if="ticker.shadowEnabled">
-              <div class="control-group">
-                <label>{{ t('ticker.shadowColor') }}:</label>
-                <ColorField v-model="ticker.shadowColor" class="color-input" />
+              <div class="color-row">
+                <span class="color-row__label">{{ t('ticker.shadowColor') }}</span>
+                <ColorField v-model="ticker.shadowColor" :label="t('ticker.shadowColor')" />
               </div>
-              <div class="control-group">
-                <label>{{ t('ticker.shadowBlur') }}: {{ ticker.shadowBlur }}px</label>
-                <SliderField
-                  v-model="ticker.shadowBlur"
-                  :min="0"
-                  :max="40"
-                  :step="1"
-                  :default-value="6"
-                  class="slider"
-                />
-              </div>
+              <SliderControl
+                v-model="ticker.shadowBlur"
+                :label="t('ticker.shadowBlur')"
+                :min="0"
+                :max="40"
+                :default-value="6"
+                :value-text="`${ticker.shadowBlur}px`"
+              />
             </template>
           </div>
         </details>
@@ -181,34 +111,28 @@
         <details class="sub-section">
           <summary class="sub-header">
             <span class="sub-title">{{ t('ticker.sectionBackground') }}</span>
-            <button
-              type="button"
+            <UiIconButton
+              :label="t('ticker.reset')"
+              size="sm"
               class="reset-btn"
-              :title="t('ticker.reset')"
               @click.stop.prevent="ticker.resetSection('background')"
             >
-              ↺
-            </button>
+              <ResetIcon />
+            </UiIconButton>
           </summary>
           <div class="sub-content">
-            <!-- Hintergrundfarbe -->
-            <div class="control-group">
-              <label>{{ t('ticker.bgColor') }}:</label>
-              <ColorField v-model="ticker.bgColor" class="color-input" />
+            <div class="color-row">
+              <span class="color-row__label">{{ t('ticker.bgColor') }}</span>
+              <ColorField v-model="ticker.bgColor" :label="t('ticker.bgColor')" />
             </div>
-
-            <!-- Hintergrund-Transparenz -->
-            <div class="control-group">
-              <label>{{ t('ticker.bgOpacity') }}: {{ ticker.bgOpacity }}%</label>
-              <SliderField
-                v-model="ticker.bgOpacity"
-                :min="0"
-                :max="100"
-                :step="1"
-                :default-value="70"
-                class="slider"
-              />
-            </div>
+            <SliderControl
+              v-model="ticker.bgOpacity"
+              :label="t('ticker.bgOpacity')"
+              :min="0"
+              :max="100"
+              :default-value="70"
+              :value-text="`${ticker.bgOpacity}%`"
+            />
           </div>
         </details>
 
@@ -216,64 +140,54 @@
         <details class="sub-section">
           <summary class="sub-header">
             <span class="sub-title">{{ t('ticker.sectionMotion') }}</span>
-            <button
-              type="button"
+            <UiIconButton
+              :label="t('ticker.reset')"
+              size="sm"
               class="reset-btn"
-              :title="t('ticker.reset')"
               @click.stop.prevent="ticker.resetSection('motion')"
             >
-              ↺
-            </button>
+              <ResetIcon />
+            </UiIconButton>
           </summary>
           <div class="sub-content">
             <!-- Position quer zur Laufrichtung (vertikal bzw. horizontal verschieben) -->
-            <div class="control-group">
-              <div class="label-row">
-                <label>{{ positionLabel }}: {{ ticker.positionY }}%</label>
-                <button
-                  type="button"
-                  class="btn-mini"
-                  :class="{ active: ticker.positionY === 50 }"
+            <div class="position-group">
+              <SliderControl
+                v-model="ticker.positionY"
+                :label="positionLabel"
+                :min="0"
+                :max="100"
+                :default-value="100"
+                :value-text="`${ticker.positionY}%`"
+              />
+              <div class="position-row">
+                <p class="hint-text">{{ positionHint }}</p>
+                <UiButton
+                  :variant="ticker.positionY === 50 ? 'primary' : 'secondary'"
+                  size="sm"
                   :title="t('ticker.centerHint')"
+                  :aria-pressed="ticker.positionY === 50"
                   @click="ticker.positionY = 50"
                 >
                   {{ t('ticker.center') }}
-                </button>
+                </UiButton>
               </div>
-              <SliderField
-                v-model="ticker.positionY"
-                :min="0"
-                :max="100"
-                :step="1"
-                :default-value="100"
-                class="slider"
-              />
-              <div class="hint-text">{{ positionHint }}</div>
             </div>
-
-            <!-- Laufrichtung -->
-            <div class="control-group">
-              <label>{{ t('ticker.direction') }}:</label>
-              <select v-model="ticker.direction" class="select-input">
-                <option value="left">{{ t('ticker.left') }}</option>
-                <option value="right">{{ t('ticker.right') }}</option>
-                <option value="up">{{ t('ticker.up') }}</option>
-                <option value="down">{{ t('ticker.down') }}</option>
-              </select>
-            </div>
-
-            <!-- Laufgeschwindigkeit -->
-            <div class="control-group">
-              <label>{{ t('ticker.speed') }}: {{ ticker.speed }} px/s</label>
-              <SliderField
-                v-model="ticker.speed"
-                :min="10"
-                :max="600"
-                :step="10"
-                :default-value="120"
-                class="slider"
-              />
-            </div>
+            <UiSelect
+              v-model="ticker.direction"
+              :label="t('ticker.direction')"
+              :options="directionOptions"
+              size="sm"
+            />
+            <SliderControl
+              v-model="ticker.speed"
+              :label="t('ticker.speed')"
+              :min="10"
+              :max="600"
+              :step="10"
+              :default-value="120"
+              :value-text="`${ticker.speed} px/s`"
+            />
           </div>
         </details>
 
@@ -281,14 +195,14 @@
         <details class="sub-section">
           <summary class="sub-header">
             <span class="sub-title">{{ t('ticker.sectionAudio') }}</span>
-            <button
-              type="button"
+            <UiIconButton
+              :label="t('ticker.reset')"
+              size="sm"
               class="reset-btn"
-              :title="t('ticker.reset')"
               @click.stop.prevent="ticker.resetSection('audio')"
             >
-              ↺
-            </button>
+              <ResetIcon />
+            </UiIconButton>
           </summary>
           <div class="sub-content">
             <!-- Identische Einstellungen wie Bild-Audio-Reaktiv (+ Lauftext-Effekte) -->
@@ -301,10 +215,15 @@
 </template>
 
 <script setup>
-import SliderField from './ui/SliderField.vue'
+import { computed, h, inject } from 'vue'
 import TickerAudioReactive from './ticker/TickerAudioReactive.vue'
 import ColorField from './ui/ColorField.vue'
-import { computed, inject } from 'vue'
+import SliderControl from './ui/SliderControl.vue'
+import UiButton from './ui/UiButton.vue'
+import UiIconButton from './ui/UiIconButton.vue'
+import UiSelect from './ui/UiSelect.vue'
+import UiSwitch from './ui/UiSwitch.vue'
+import UiTextField from './ui/UiTextField.vue'
 import { useI18n } from '../lib/i18n.js'
 import { useTickerStore } from '../stores/tickerStore.js'
 
@@ -352,16 +271,47 @@ const missingFont = computed(() => {
   if (!f) return null
   return systemFonts.value.includes(f) || customFonts.value.includes(f) ? null : f
 })
+
+/** Optionen mit Vorschau in der jeweiligen Schrift */
+const fontOption = (font) => ({ value: font, label: font, style: { fontFamily: font } })
+
+const fontOptions = computed(() => [
+  ...(missingFont.value ? [{ value: missingFont.value, label: missingFont.value }] : []),
+  ...systemFonts.value.map(fontOption),
+  ...(customFonts.value.length > 0
+    ? [{ label: t('ticker.customFonts'), options: customFonts.value.map(fontOption) }]
+    : []),
+])
+
+const directionOptions = computed(() =>
+  ['left', 'right', 'up', 'down'].map((value) => ({ value, label: t(`ticker.${value}`) })),
+)
+
+/** Kreispfeil „zurücksetzen“ (wie SliderField) */
+const ResetIcon = () =>
+  h(
+    'svg',
+    {
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 2,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      'aria-hidden': 'true',
+    },
+    [h('path', { d: 'M3 12a9 9 0 1 0 3-6.7L3 8' }), h('path', { d: 'M3 3v5h5' })],
+  )
 </script>
 
 <style scoped>
 .collapsible-section {
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-md);
-  margin-bottom: 10px;
-  overflow: hidden;
   flex-shrink: 0;
+  margin-bottom: var(--ds-space-2);
+  overflow: hidden;
+  background: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
 }
 
 .collapsible-section summary {
@@ -375,338 +325,129 @@ const missingFont = computed(() => {
 .section-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-3);
   cursor: pointer;
+  user-select: none;
   font-size: var(--ds-text-xs);
   font-weight: var(--ds-weight-semibold);
-  color: var(--ds-text);
+  letter-spacing: 0.025em;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  user-select: none;
+  color: var(--ds-text);
 }
 
-.section-header::before {
+.section-header::before,
+.sub-header::before {
   content: '▶';
   font-size: var(--ds-text-xs);
-  color: var(--ds-link);
+  color: var(--ds-accent);
   transition: transform var(--ds-duration) var(--ds-ease);
-  margin-right: 4px;
 }
 
-.collapsible-section[open] .section-header::before {
+.collapsible-section[open] > .section-header::before,
+.sub-section[open] > .sub-header::before {
   transform: rotate(90deg);
 }
 
 .section-icon {
-  font-size: var(--ds-text-md);
   flex-shrink: 0;
+  font-size: var(--ds-text-md);
 }
 
 .status-badge {
   margin-left: auto;
-  padding: 2px 8px;
+  padding: 0 var(--ds-space-2);
   font-size: var(--ds-text-xs);
   font-weight: var(--ds-weight-semibold);
-  border-radius: var(--ds-radius-md);
+  color: var(--ds-on-success);
   background: var(--ds-success);
-  color: var(--ds-success);
-  border: 1px solid var(--ds-border-strong);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  border-radius: var(--ds-radius-full);
 }
 
 .section-content {
-  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-3);
 }
 
 /* ══════════ Klappbare Unter-Sektionen ══════════ */
 .sub-section {
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  margin-bottom: 8px;
   overflow: hidden;
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-sm);
 }
-.sub-section:last-child {
-  margin-bottom: 0;
-}
+
 .sub-section > summary {
   list-style: none;
 }
+
 .sub-section > summary::-webkit-details-marker {
   display: none;
 }
+
 .sub-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-1) var(--ds-space-1) var(--ds-space-1) var(--ds-space-3);
   cursor: pointer;
   user-select: none;
   font-size: var(--ds-text-xs);
   font-weight: var(--ds-weight-semibold);
+  letter-spacing: 0.025em;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: var(--text-primary);
-  background-color: var(--secondary-bg);
+  color: var(--ds-text);
+  background: var(--ds-surface-2);
 }
-.sub-header::before {
-  content: '▶';
-  font-size: var(--ds-text-xs);
-  color: var(--accent-ink);
-  transition: transform var(--ds-duration) var(--ds-ease);
-}
-.sub-section[open] > .sub-header::before {
-  transform: rotate(90deg);
-}
+
 .sub-title {
   flex: 1;
 }
-.reset-btn {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  font-size: var(--ds-text-xs);
-  line-height: 1;
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  background-color: var(--card-bg);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
+
+.reset-btn svg {
+  width: 14px;
+  height: 14px;
 }
-.reset-btn:hover {
-  background-color: var(--btn-hover);
-  border-color: var(--accent-primary);
-  color: var(--accent-tertiary);
-}
-[data-theme='light'] .reset-btn {
-  border-color: var(--border-color);
-}
-[data-theme='light'] .reset-btn:hover {
-  color: var(--accent-ink);
-}
+
 .sub-content {
-  padding: 10px;
-}
-.sub-content .control-group:last-child {
-  margin-bottom: 0;
-}
-
-/* Zwei Slider nebeneinander (Beat-Stärke + Audio-Pegel) */
-.slider-row {
   display: flex;
-  gap: 10px;
-}
-.slider-col {
-  flex: 1;
-  min-width: 0;
-}
-.slider-col label {
-  display: block;
-  margin-bottom: 4px;
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  font-weight: var(--ds-weight-medium);
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3);
 }
 
-[data-theme='light'] .sub-section {
-  border-color: var(--border-color);
-}
-[data-theme='light'] .sub-header {
-  background-color: var(--ds-surface-2);
-}
-
-.control-group {
-  margin-bottom: 10px;
-}
-
-.control-group label {
-  display: block;
-  margin-bottom: 4px;
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  font-weight: var(--ds-weight-medium);
-}
-
-.hint-text {
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-  margin-top: 3px;
-  line-height: 1.4;
-}
-
-.label-row {
+.color-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--ds-space-2);
 }
 
-.label-row label {
-  margin-bottom: 0;
-}
-
-.btn-mini {
-  flex-shrink: 0;
-  padding: 2px 8px;
-  background-color: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-muted);
-  cursor: pointer;
+.color-row__label {
   font-size: var(--ds-text-xs);
   font-weight: var(--ds-weight-semibold);
+  letter-spacing: 0.025em;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
-  transition: all var(--ds-duration) var(--ds-ease);
+  color: var(--ds-text-2);
 }
 
-.btn-mini:hover {
-  background-color: var(--btn-hover);
-  border-color: var(--accent-primary);
-  color: var(--text-primary);
+.position-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
 }
 
-.btn-mini.active {
-  background: var(--ds-accent-soft);
-  border-color: var(--accent-primary);
-  color: var(--accent-tertiary);
-}
-
-[data-theme='light'] .btn-mini.active {
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  color: var(--accent-ink);
-}
-
-.text-input,
-.select-input {
-  width: 100%;
-  padding: 6px 8px;
-  background-color: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  font-size: var(--ds-text-xs);
-  font-family: inherit;
-}
-
-.text-input:focus,
-.select-input:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-}
-
-.color-input {
-  width: 100%;
-  height: 30px;
-  padding: 2px;
-  background-color: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-}
-
-.slider {
-  width: 100%;
-  height: 3px;
-  background: var(--text-muted);
-  border-radius: var(--ds-radius-sm);
-  outline: none;
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 12px;
-  height: 12px;
-  background: var(--accent-tertiary);
-  border-radius: var(--ds-radius-full);
-  cursor: pointer;
-  border: 2px solid var(--ds-surface-1);
-}
-
-.slider::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  background: var(--accent-tertiary);
-  border-radius: var(--ds-radius-full);
-  cursor: pointer;
-  border: 2px solid var(--ds-surface-1);
-}
-
-.btn-small {
-  padding: 6px 8px;
-  background-color: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  cursor: pointer;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.btn-small:hover {
-  background-color: var(--btn-hover);
-  border-color: var(--accent-primary);
-}
-
-.btn-small.active {
-  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-tertiary);
-  font-weight: var(--ds-weight-semibold);
-}
-
-.full-width {
-  width: 100%;
-}
-
-.checkbox-label {
-  display: flex !important;
+.position-row {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  text-transform: none;
+  justify-content: space-between;
+  gap: var(--ds-space-2);
+}
+
+.hint-text {
+  margin: 0;
   font-size: var(--ds-text-xs);
-  color: var(--text-primary);
-}
-
-.checkbox-label input[type='checkbox'] {
-  width: 13px;
-  height: 13px;
-  cursor: pointer;
-  accent-color: var(--accent-primary);
-}
-
-[data-theme='light'] .section-header {
-  color: var(--text-primary);
-}
-
-[data-theme='light'] .text-input,
-[data-theme='light'] .select-input,
-[data-theme='light'] .color-input {
-  background-color: var(--card-bg);
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-[data-theme='light'] .btn-small.active {
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  color: var(--accent-ink);
+  color: var(--ds-text-3);
 }
 </style>

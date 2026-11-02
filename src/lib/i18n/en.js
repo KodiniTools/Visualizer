@@ -1390,6 +1390,7 @@ export default {
     center: 'Center',
     centerHint: 'Center the text on the canvas (50%)',
     fontFamily: 'Font',
+    customFonts: 'Custom fonts',
     fontSize: 'Font Size',
     bold: 'Bold',
     letterSpacing: 'Letter Spacing',

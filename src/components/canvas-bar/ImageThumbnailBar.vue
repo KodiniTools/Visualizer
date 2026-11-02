@@ -1,7 +1,13 @@
 <template>
   <div class="canvas-images-bar">
-    <span class="canvas-images-label">{{ t('app.imagesOnCanvas') }}:</span>
-    <div class="canvas-images-scroll" ref="scrollRef" @scroll.passive="onScroll">
+    <span :id="labelId" class="canvas-images-label">{{ t('app.imagesOnCanvas') }}</span>
+    <div
+      ref="scrollRef"
+      class="canvas-images-scroll"
+      role="group"
+      :aria-labelledby="labelId"
+      @scroll.passive="onScroll"
+    >
       <div class="canvas-images-inner" :style="{ width: totalWidth + 'px' }">
         <div class="canvas-images-window" :style="{ transform: `translateX(${offsetLeft}px)` }">
           <div
@@ -14,41 +20,56 @@
               'drag-over': dragOverIndex === globalIndex && draggedImageIndex !== globalIndex,
             }"
             draggable="true"
-            @click="selectCanvasImage(imgData)"
-            @dblclick="openImagePreview(imgData, globalIndex)"
+            :title="`${t('common.layer')} ${globalIndex + 1} – ${t('app.dragToReorder')}`"
             @dragstart="handleDragStart($event, globalIndex)"
             @dragend="handleDragEnd"
             @dragover.prevent="handleDragOver($event, globalIndex)"
             @dragleave="handleDragLeave"
             @drop.prevent="handleDrop($event, globalIndex)"
-            :title="`${t('common.layer')} ${globalIndex + 1} - ${t('app.dragToReorder')}`"
           >
-            <img :src="imgData.imageObject.src" alt="Canvas Bild" draggable="false" />
-            <span class="canvas-thumb-layer">{{ globalIndex + 1 }}</span>
             <button
+              type="button"
+              class="canvas-thumb-select"
+              :aria-label="`${t('common.layer')} ${globalIndex + 1}`"
+              :aria-pressed="selectedCanvasImageId === imgData.id"
+              :aria-description="t('app.dblClickPreview')"
+              @click="selectCanvasImage(imgData)"
+              @dblclick="openImagePreview(imgData, globalIndex)"
+            >
+              <img :src="imgData.imageObject.src" alt="" draggable="false" />
+              <span class="canvas-thumb-layer" aria-hidden="true">{{ globalIndex + 1 }}</span>
+            </button>
+            <UiIconButton
+              :label="t('app.deleteImage')"
+              size="sm"
+              round
               class="canvas-thumb-delete"
               @click.stop="deleteCanvasImage(imgData.id)"
-              :title="t('app.deleteImage')"
             >
-              ×
-            </button>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M18 6 6 18M6 6l12 12" stroke-linecap="round" />
+              </svg>
+            </UiIconButton>
           </div>
         </div>
       </div>
     </div>
-    <button
+    <UiButton
+      variant="danger"
+      size="sm"
       class="canvas-images-clear-all"
-      @click="deleteAllCanvasImages"
       :title="t('app.confirmDeleteAll')"
+      @click="deleteAllCanvasImages"
     >
-      <span class="clear-all-icon">🗑</span>
-      <span class="clear-all-text">{{ t('app.deleteAllImages') }}</span>
-    </button>
+      {{ t('app.deleteAllImages') }}
+    </UiButton>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, useId } from 'vue'
+import UiButton from '../ui/UiButton.vue'
+import UiIconButton from '../ui/UiIconButton.vue'
 
 const props = defineProps({
   canvasImages: { type: Array, required: true },
@@ -71,6 +92,7 @@ const props = defineProps({
 const ITEM_SLOT = 52
 const BUFFER = 4
 
+const labelId = `canvas-images-label-${useId()}`
 const scrollRef = ref(null)
 const scrollLeft = ref(0)
 const containerWidth = ref(600) // avoid empty render on first paint
@@ -125,45 +147,30 @@ onUnmounted(() => {
 .canvas-images-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: var(--card-bg);
-  border-radius: var(--ds-radius-sm);
-  padding: 6px 10px;
-  margin-bottom: 6px;
-  border: 1px solid var(--border-color);
-  border-left: 2px solid var(--accent-primary);
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-2);
+  padding: var(--ds-space-1) var(--ds-space-3);
+  background: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
 }
 
 .canvas-images-label {
+  flex-shrink: 0;
   font-size: var(--ds-text-xs);
   font-weight: var(--ds-weight-semibold);
-  color: var(--accent-ink);
+  letter-spacing: 0.025em;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
   white-space: nowrap;
-  flex-shrink: 0;
+  color: var(--ds-text-2);
 }
 
 .canvas-images-scroll {
+  flex-grow: 1;
   overflow-x: auto;
   overflow-y: hidden;
-  flex-grow: 1;
-  padding: 4px 0;
-}
-
-.canvas-images-scroll::-webkit-scrollbar {
-  height: 6px;
-}
-.canvas-images-scroll::-webkit-scrollbar-track {
-  background: var(--secondary-bg);
-  border-radius: var(--ds-radius-sm);
-}
-.canvas-images-scroll::-webkit-scrollbar-thumb {
-  background: var(--text-muted);
-  border-radius: var(--ds-radius-sm);
-}
-.canvas-images-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-primary);
+  /* Platz für die vergrößerte Auswahl und den Löschen-Knopf an der Ecke */
+  padding: var(--ds-space-2) var(--ds-space-1);
 }
 
 /* Inner div carries the full virtual width to enable scrolling */
@@ -174,207 +181,131 @@ onUnmounted(() => {
 
 /* Only visible items, translated to their correct scroll position */
 .canvas-images-window {
-  display: flex;
-  gap: 8px;
   position: absolute;
   top: 0;
   left: 0;
+  display: flex;
+  gap: 8px; /* ITEM_SLOT im Skript: 44px + 8px */
   height: 44px;
   will-change: transform;
 }
 
 .canvas-thumb {
   position: relative;
+  flex-shrink: 0;
   width: 44px;
   height: 44px;
-  border-radius: var(--ds-radius-sm);
-  overflow: hidden;
-  cursor: pointer;
-  border: 2px solid var(--border-color);
-  transition: all var(--ds-duration) var(--ds-ease);
-  background-color: var(--secondary-bg);
-  flex-shrink: 0;
+  cursor: grab;
+  transition: transform var(--ds-duration) var(--ds-ease);
 }
 
-.canvas-thumb:hover {
-  border-color: var(--accent-primary);
+.canvas-thumb:active {
+  cursor: grabbing;
+}
+
+.canvas-thumb-select {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  background: var(--ds-surface-2);
+  border: 2px solid var(--ds-border);
+  border-radius: var(--ds-radius-sm);
+  cursor: inherit;
+  transition: border-color var(--ds-duration) var(--ds-ease);
+}
+
+.canvas-thumb-select:hover,
+.canvas-thumb.selected .canvas-thumb-select {
+  border-color: var(--ds-accent);
+}
+
+.canvas-thumb-select:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 
 .canvas-thumb.selected {
-  border-color: var(--accent-primary);
-  transform: scale(1.1);
   z-index: 1;
-}
-
-.canvas-thumb.selected::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: var(--ds-radius-sm);
-  background: linear-gradient(to bottom, var(--ds-accent-soft) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-.canvas-thumb[draggable='true'] {
-  cursor: grab;
-}
-.canvas-thumb[draggable='true']:active {
-  cursor: grabbing;
+  transform: scale(1.1);
 }
 
 .canvas-thumb.dragging {
   opacity: 0.5;
   transform: scale(0.95);
-  border-color: var(--accent-primary);
 }
 
 .canvas-thumb.drag-over {
-  border-color: var(--ds-success);
   transform: scale(1.1);
 }
 
-.canvas-thumb.drag-over::before {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border: 2px dashed var(--ds-success);
-  border-radius: var(--ds-radius-sm);
-  pointer-events: none;
-  animation: dragPulse 0.8s ease-in-out infinite;
+.canvas-thumb.drag-over .canvas-thumb-select {
+  border-color: var(--ds-success);
+  border-style: dashed;
 }
 
-@keyframes dragPulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.canvas-thumb img {
+.canvas-thumb-select img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
 .canvas-thumb-layer {
   position: absolute;
   bottom: 2px;
   left: 2px;
-  background: var(--ds-accent);
-  color: var(--ds-text);
+  min-width: 12px;
+  padding: 0 var(--ds-space-1);
   font-size: var(--ds-text-xs);
   font-weight: var(--ds-weight-bold);
-  padding: 1px 4px;
-  border-radius: var(--ds-radius-sm);
-  min-width: 12px;
+  line-height: 1.4;
   text-align: center;
+  color: var(--ds-on-accent);
+  background: var(--ds-accent);
+  border-radius: var(--ds-radius-sm);
 }
 
+/* Löschen: klein an der Ecke, bei Hover oder Tastaturfokus sichtbar */
 .canvas-thumb-delete {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -6px;
+  right: -6px;
+  z-index: 2;
   width: 18px;
   height: 18px;
-  border-radius: var(--ds-radius-full);
+  color: #fff;
   background: var(--ds-danger);
-  border: 2px solid var(--card-bg);
-  color: white;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-bold);
-  line-height: 1;
-  cursor: pointer;
   opacity: 0;
-  transform: scale(0.8);
-  transition: all var(--ds-duration) var(--ds-ease);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  z-index: 10;
+  transition: opacity var(--ds-duration) var(--ds-ease);
 }
 
-.canvas-thumb:hover .canvas-thumb-delete {
+.canvas-thumb:hover .canvas-thumb-delete,
+.canvas-thumb:has(:focus-visible) .canvas-thumb-delete {
   opacity: 1;
 }
 
-.canvas-thumb-delete:hover {
+.canvas-thumb-delete:hover,
+.canvas-thumb-delete:focus-visible {
+  color: #fff;
   background: var(--ds-danger);
 }
 
+.canvas-thumb-delete svg {
+  width: 10px;
+  height: 10px;
+}
+
 .canvas-images-clear-all {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background: color-mix(in srgb, var(--ds-danger) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-danger) 40%, transparent);
-  border-radius: var(--ds-radius-sm);
-  color: var(--ds-danger);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
   flex-shrink: 0;
-  white-space: nowrap;
 }
 
-.canvas-images-clear-all:hover {
-  background: color-mix(in srgb, var(--ds-danger) 25%, transparent);
-  border-color: color-mix(in srgb, var(--ds-danger) 60%, transparent);
-  color: var(--ds-danger);
-}
-
-.clear-all-icon {
-  font-size: var(--ds-text-xs);
-}
-
-/* Light theme */
-[data-theme='light'] .canvas-images-bar {
-  border-color: var(--border-color);
-  border-left-color: var(--accent-primary);
-}
-[data-theme='light'] .canvas-thumb {
-  border-color: var(--border-color);
-}
-[data-theme='light'] .canvas-thumb-layer {
-  background: color-mix(in srgb, var(--accent-primary) 90%, transparent);
-  color: var(--accent-text);
-}
-[data-theme='light'] .canvas-thumb-delete {
-  border-color: var(--card-bg);
-}
-[data-theme='light'] .canvas-images-scroll::-webkit-scrollbar-thumb {
-  background: var(--accent-primary);
-}
-
-/* Responsive */
 @media (max-width: 480px) {
   .canvas-images-bar {
-    padding: 4px 6px;
-    gap: 6px;
-  }
-  .canvas-images-label {
-    font-size: var(--ds-text-xs);
-  }
-  .canvas-thumb {
-    width: 36px;
-    height: 36px;
-  }
-  .canvas-images-inner {
-    height: 36px;
-  }
-  .canvas-images-window {
-    height: 36px;
-  }
-  .clear-all-text {
-    display: none;
+    gap: var(--ds-space-2);
+    padding: var(--ds-space-1) var(--ds-space-2);
   }
 }
 </style>

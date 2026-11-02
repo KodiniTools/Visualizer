@@ -233,3 +233,11 @@ describe('i18n – Beat-Drop ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/<option/)
   })
 })
+
+describe('i18n – Lauftext-Panel ohne fest verdrahtete Texte', () => {
+  it('Vorlage enthält keine festen Texte und keine nativen Optionen', () => {
+    const src = read('components/TickerPanel.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/<option|Custom Fonts/)
+  })
+})

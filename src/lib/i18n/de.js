@@ -1392,6 +1392,7 @@ export default {
     center: 'Zentrieren',
     centerHint: 'Text mittig auf dem Canvas ausrichten (50 %)',
     fontFamily: 'Schriftart',
+    customFonts: 'Eigene Schriften',
     fontSize: 'Buchstabengröße',
     bold: 'Fett',
     letterSpacing: 'Buchstabenabstand',

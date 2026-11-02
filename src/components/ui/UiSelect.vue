@@ -24,11 +24,12 @@
               :key="option.value"
               :value="option.value"
               :disabled="option.disabled"
+              :style="option.style"
             >
               {{ option.label }}
             </option>
           </optgroup>
-          <option v-else :value="entry.value" :disabled="entry.disabled">
+          <option v-else :value="entry.value" :disabled="entry.disabled" :style="entry.style">
             {{ entry.label }}
           </option>
         </template>
@@ -62,7 +63,7 @@ defineOptions({ inheritAttrs: false })
 
 const props = defineProps({
   /**
-   * Array<{ value: string|number, label: string, disabled?: boolean }
+   * Array<{ value: string|number, label: string, disabled?: boolean, style?: object }
    *     | { label: string, options: Array<{ value, label, disabled? }> }>
    */
   options: { type: Array, required: true },

@@ -1,16 +1,22 @@
 // Inhalte der Schnellstart-Anleitung (QuickStartGuide.vue), je Sprache.
-// Reine Daten: Reiter, Workflow-Schritte, Funktionen, Tastenkürzel, Tipps.
+// Reine Daten: Beschriftungen, Reiter, Workflow-Schritte, Funktionen, Tastenkürzel, Tipps.
 // Beide Sprachen müssen dieselbe Struktur haben (siehe QuickStartGuide.spec.js).
 
-export const QUICK_START_TABS = [
-  { id: 'workflow', icon: '▶', labelDe: 'Workflow', labelEn: 'Workflow' },
-  { id: 'features', icon: '✦', labelDe: 'Funktionen', labelEn: 'Features' },
-  { id: 'shortcuts', icon: '⌨', labelDe: 'Tasten', labelEn: 'Keys' },
-  { id: 'tips', icon: '💡', labelDe: 'Tipps', labelEn: 'Tips' },
-]
+export const QUICK_START_TABS = ['workflow', 'features', 'shortcuts', 'tips']
 
 export const QUICK_START_CONTENT = {
   de: {
+    labels: {
+      title: 'Schnellstart-Anleitung',
+      open: 'Schnellstart-Hilfe',
+      close: 'Schließen',
+      language: 'Sprache der Anleitung',
+      tabs: 'Bereiche der Anleitung',
+      workflow: 'Workflow',
+      features: 'Funktionen',
+      shortcuts: 'Tasten',
+      tips: 'Tipps',
+    },
     workflow: [
       {
         title: 'Audio hochladen',
@@ -196,6 +202,17 @@ export const QUICK_START_CONTENT = {
   },
 
   en: {
+    labels: {
+      title: 'Quick-Start Guide',
+      open: 'Quick-Start Guide',
+      close: 'Close',
+      language: 'Guide language',
+      tabs: 'Guide sections',
+      workflow: 'Workflow',
+      features: 'Features',
+      shortcuts: 'Keys',
+      tips: 'Tips',
+    },
     workflow: [
       {
         title: 'Upload audio',

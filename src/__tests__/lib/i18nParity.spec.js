@@ -333,3 +333,11 @@ describe('i18n – Stock-Galerie ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/locale === 'de'/)
   })
 })
+
+describe('i18n – Slideshow-Bildfläche ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte und Herkunfts-Glyphen', () => {
+    const src = read('components/foto-panel/slideshow/SlideshowImageFill.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/[🗂⬆]/u)
+  })
+})

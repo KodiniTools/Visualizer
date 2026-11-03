@@ -35,6 +35,12 @@ function mountPanel(props = {}) {
 }
 
 /** Schaltet „Endlos wiederholen“ (Switch) auf den gewünschten Zustand. */
+/** Schalter (UiSwitch) unter einem Anker-Selektor ein- oder ausschalten. */
+async function setSwitch(w, selector, on) {
+  const sw = w.find(`${selector} [role="switch"]`)
+  if ((sw.attributes('aria-checked') === 'true') !== on) await sw.trigger('click')
+}
+
 async function setLoop(w, on) {
   const sw = w.find('.loop-section [role="switch"]')
   if ((sw.attributes('aria-checked') === 'true') !== on) await sw.trigger('click')
@@ -455,7 +461,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
     const w = mountPanel({ hasWorkspace: false })
     await w.find('.bg-mode-canvas').setValue(true)
-    await w.find('.base-image-toggle').setValue(true)
+    await setSwitch(w, '.base-image-toggle', true)
     await w.find('.base-image-choose').trigger('click')
     const options = w.findAll('.base-image-option')
     expect(options).toHaveLength(1)
@@ -476,7 +482,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     )
 
     await w.find('.base-image-fit').setValue('contain')
-    await w.find('.base-image-audio-toggle').setValue(true)
+    await setSwitch(w, '.base-image-audio-toggle', true)
     await w.find('.base-image-audio-zoom').setValue('90')
     expect(w.emitted('base-image-change').at(-1)[1]).toMatchObject({
       fit: 'contain',
@@ -1043,8 +1049,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.workspace-gradient-audio-toggle').setValue(true)
     await w.find('.workspace-gradient-audio-source').setValue('bassOnset')
     // Flächenbild (ohne Bild) – Quelle trotzdem einstellbar
-    await w.find('.workspace-image-toggle').setValue(true)
-    await w.find('.workspace-image-audio-toggle').setValue(true)
+    await setSwitch(w, '.workspace-image-toggle', true)
+    await setSwitch(w, '.workspace-image-audio-toggle', true)
     await w.find('.workspace-image-audio-source').setValue('dynamic')
     // Canvas-Felder sind im Workspace-Modus ausgeblendet
     expect(w.find('.base-fill-audio-source').exists()).toBe(false)
@@ -1098,8 +1104,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it('canvas mode: area image audio source (incl. onset) – start, live, preset, memory', async () => {
     const w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-canvas').setValue(true)
-    await w.find('.base-image-toggle').setValue(true)
-    await w.find('.base-image-audio-toggle').setValue(true)
+    await setSwitch(w, '.base-image-toggle', true)
+    await setSwitch(w, '.base-image-audio-toggle', true)
     const source = w.find('.base-image-audio-source')
     expect(source.findAll('option').map((o) => o.element.value)).toEqual([
       'bass',
@@ -1158,8 +1164,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it('workspace mode: area image audio source (incl. onset) – start, live, preset, memory', async () => {
     const w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-workspace').setValue(true)
-    await w.find('.workspace-image-toggle').setValue(true)
-    await w.find('.workspace-image-audio-toggle').setValue(true)
+    await setSwitch(w, '.workspace-image-toggle', true)
+    await setSwitch(w, '.workspace-image-audio-toggle', true)
     const source = w.find('.workspace-image-audio-source')
     expect(source.findAll('option')).toHaveLength(9)
     expect(source.findAll('optgroup option').map((o) => o.element.value)).toEqual([
@@ -1477,8 +1483,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       await w.find(`.${prefix}-gradient-toggle`).setValue(true)
       await w.find(`.${prefix}-gradient-audio-toggle`).setValue(true)
       await w.find(`.${prefix}-gradient-audio-source`).setValue('allOnset')
-      await w.find(`.${prefix}-image-toggle`).setValue(true)
-      await w.find(`.${prefix}-image-audio-toggle`).setValue(true)
+      await setSwitch(w, `.${prefix}-image-toggle`, true)
+      await setSwitch(w, `.${prefix}-image-audio-toggle`, true)
       await w.find(`.${prefix}-image-audio-source`).setValue('midOnset')
 
       expect(w.find(`.${prefix}-gradient-audio-source`).element.value).toBe('allOnset')
@@ -1530,8 +1536,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
         await w.find(`.${p}-fill-audio-toggle`).setValue(true)
         await w.find(`.${p}-gradient-toggle`).setValue(true)
         await w.find(`.${p}-gradient-audio-toggle`).setValue(true)
-        await w.find(`.${p}-image-toggle`).setValue(true)
-        await w.find(`.${p}-image-audio-toggle`).setValue(true)
+        await setSwitch(w, `.${p}-image-toggle`, true)
+        await setSwitch(w, `.${p}-image-audio-toggle`, true)
         await w.find(`.${p}-image-choose`).trigger('click')
       }
       onlyAllowed(w)

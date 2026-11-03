@@ -1,5 +1,5 @@
 // src/utils/backgroundPresets.js
-import { BUILT_IN_PRESETS } from '../stores/presetStore.js'
+import { BUILT_IN_PRESETS } from '../data/builtInPresets.js'
 
 // Gespeicherte Canvas-/Hintergrund-Presets (aus dem Canvas-Panel, PresetsSection)
 const USER_CANVAS_PRESETS_KEY = 'visualizer-canvas-presets'

@@ -1,16 +1,13 @@
 <template>
   <!-- Eigenes Bild als Fläche unter der Slideshow -->
   <div class="image-fill" :class="`${prefix}-image-fill`">
-    <label class="checkbox-label">
-      <input
-        :checked="fill.enabled"
-        :class="`${prefix}-image-toggle`"
-        type="checkbox"
-        :disabled="disabled"
-        @change="emit('update', { enabled: $event.target.checked })"
-      />
-      <span>{{ t('slideshow.imageFill') }}</span>
-    </label>
+    <UiSwitch
+      :model-value="fill.enabled"
+      :class="`${prefix}-image-toggle`"
+      :label="t('slideshow.imageFill')"
+      :disabled="disabled"
+      @update:model-value="(v) => emit('update', { enabled: v })"
+    />
 
     <div v-if="fill.enabled" class="image-fill-options">
       <div class="image-fill-current">
@@ -25,29 +22,33 @@
           loading ? t('slideshow.imageFillLoading') : t('slideshow.imageFillNone')
         }}</span>
         <span v-if="thumb" class="image-fill-name">{{ name }}</span>
-        <button
-          type="button"
-          class="btn-image-fill"
+        <UiButton
+          size="sm"
           :class="`${prefix}-image-choose`"
           :disabled="disabled"
-          :aria-expanded="choosing"
+          :aria-expanded="choosing ? 'true' : 'false'"
           @click="choosing = !choosing"
         >
           {{ t('slideshow.imageFillChoose') }}
-        </button>
-        <button
+        </UiButton>
+        <UiButton
           v-if="thumb || hasRef"
-          type="button"
-          class="btn-image-fill secondary"
+          variant="ghost"
+          size="sm"
           :class="`${prefix}-image-clear`"
           :disabled="disabled"
           @click="emit('clear')"
         >
           {{ t('slideshow.imageFillRemove') }}
-        </button>
+        </UiButton>
       </div>
 
-      <div v-if="choosing" class="image-fill-picker" role="listbox">
+      <div
+        v-if="choosing"
+        class="image-fill-picker"
+        role="group"
+        :aria-label="t('slideshow.imageFillChoose')"
+      >
         <p v-if="candidates.length === 0" class="hint">{{ t('slideshow.imageFillNoImages') }}</p>
         <button
           v-for="c in candidates"
@@ -60,34 +61,55 @@
           @click="pick(c)"
         >
           <img :src="c.thumb" alt="" loading="lazy" />
-          <span class="option-source">{{ c.source === 'stock' ? '🗂' : '⬆' }}</span>
+          <!-- Herkunft: Stock-Galerie (Raster) oder eigener Upload (Pfeil) -->
+          <span class="option-source" aria-hidden="true">
+            <svg
+              v-if="c.source === 'stock'"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <rect x="4" y="4" width="7" height="7" />
+              <rect x="13" y="4" width="7" height="7" />
+              <rect x="4" y="13" width="7" height="7" />
+              <rect x="13" y="13" width="7" height="7" />
+            </svg>
+            <svg
+              v-else
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 19V5M5 12l7-7 7 7" />
+            </svg>
+          </span>
         </button>
       </div>
 
-      <label class="image-fill-field">
-        <span>{{ t('slideshow.imageFillFit') }}</span>
-        <select
-          :value="fill.fit"
-          :class="`${prefix}-image-fit`"
-          :disabled="disabled"
-          @change="emit('update', { fit: $event.target.value })"
-        >
-          <option value="cover">{{ t('slideshow.imageFillCover') }}</option>
-          <option value="contain">{{ t('slideshow.imageFillContain') }}</option>
-        </select>
-      </label>
+      <UiSelect
+        :model-value="fill.fit"
+        :options="fitOptions"
+        :label="t('slideshow.imageFillFit')"
+        :class="`${prefix}-image-fit`"
+        :disabled="disabled"
+        size="sm"
+        inline
+        @update:model-value="(v) => emit('update', { fit: v })"
+      />
 
       <!-- Audio-Reaktiv für das Bild -->
-      <label class="checkbox-label audio-toggle">
-        <input
-          :checked="fill.audio.enabled"
-          :class="`${prefix}-image-audio-toggle`"
-          type="checkbox"
-          :disabled="disabled"
-          @change="updateAudio({ enabled: $event.target.checked })"
-        />
-        <span>{{ t('slideshow.imageFillAudio') }}</span>
-      </label>
+      <UiSwitch
+        :model-value="fill.audio.enabled"
+        class="audio-toggle"
+        :class="`${prefix}-image-audio-toggle`"
+        :label="t('slideshow.imageFillAudio')"
+        :disabled="disabled"
+        @update:model-value="(v) => updateAudio({ enabled: v })"
+      />
       <template v-if="fill.audio.enabled">
         <label class="image-fill-field">
           <span>{{ t('slideshow.gradientAudioSource') }}</span>
@@ -129,6 +151,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 import SliderControl from '../../ui/SliderControl.vue'
+import { UiButton, UiSelect, UiSwitch } from '../../ui/index.js'
 import { SLIDESHOW_IMAGE_FILL_DEFAULT } from '../../../lib/slideshowImageFill.js'
 
 const props = defineProps({
@@ -151,6 +174,11 @@ const audioEffects = [
   { id: 'zoom', label: 'slideshow.imageFillZoom' },
 ]
 const choosing = ref(false)
+
+const fitOptions = computed(() => [
+  { value: 'cover', label: t('slideshow.imageFillCover') },
+  { value: 'contain', label: t('slideshow.imageFillContain') },
+])
 
 const hasRef = computed(() => Boolean(props.fill.stock || props.fill.upload))
 const name = computed(() => props.fill.stock?.name || props.fill.upload?.name || '')
@@ -204,26 +232,6 @@ function updateAudio(partial) {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.btn-image-fill {
-  flex-shrink: 0;
-  padding: 3px 8px;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  border: none;
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  color: #fff;
-  background: var(--ds-link);
-}
-.btn-image-fill.secondary {
-  background: var(--secondary-bg);
-  color: inherit;
-  border: 1px solid var(--border-color);
-}
-.btn-image-fill:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 .image-fill-picker {
   flex-basis: 100%;
   display: grid;
@@ -251,15 +259,27 @@ function updateAudio(partial) {
   object-fit: cover;
   display: block;
 }
-.image-fill-option:hover,
+.image-fill-option:hover {
+  border-color: var(--ds-accent);
+}
 .image-fill-option:focus-visible {
-  border-color: var(--ds-link);
+  outline: none;
+  border-color: var(--ds-accent);
+  box-shadow: var(--ds-focus-ring);
 }
 .option-source {
   position: absolute;
-  right: 1px;
-  bottom: 0;
-  font-size: var(--ds-text-xs);
+  right: 2px;
+  bottom: 2px;
+  display: flex;
+  padding: 2px;
+  border-radius: var(--ds-radius-sm);
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+}
+.option-source svg {
+  width: 10px;
+  height: 10px;
 }
 .image-fill-field {
   display: inline-flex;
@@ -268,9 +288,7 @@ function updateAudio(partial) {
   color: var(--text-muted);
   font-size: var(--ds-text-xs);
 }
-.image-fill-slider {
-  flex-basis: 100%;
-}
+/* Audio-Quelle (SlideshowAudioSourceSelect ist ein natives select) */
 .image-fill-field select {
   padding: 3px 6px;
   font-size: var(--ds-text-xs);
@@ -279,14 +297,15 @@ function updateAudio(partial) {
   border: 1px solid var(--border-color);
   border-radius: var(--ds-radius-sm);
 }
-.audio-toggle {
-  flex-basis: 100%;
-}
-[data-theme='light'] .image-fill-field select,
-[data-theme='light'] .btn-image-fill.secondary {
-  background: var(--secondary-bg);
+[data-theme='light'] .image-fill-field select {
   color: var(--text-primary);
   border-color: var(--ds-border);
+}
+.image-fill-slider {
+  flex-basis: 100%;
+}
+.audio-toggle {
+  flex-basis: 100%;
 }
 [data-theme='light'] .image-fill-picker {
   background-color: var(--ds-surface-3);

@@ -92,6 +92,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Zurücksetzen (Canvas-Panel)     | `UiButton` sm (Hintergründe), danger block (Canvas löschen); Bestätigung als `UiDialog` md mit Beschreibung, Footer Abbrechen + danger                                                                                                               |
 | Bildauswahl (Portrait-Presets)  | `UiSelect` sm mit Gruppen (geladen, Leinwand, Galerie) und verstecktem Label, `UiButton` sm primary (Laden) + secondary (Entfernen)                                                                                                                  |
 | Stock-Galerie (Galerie-Panel)   | Kategorien `UiSegmentedControl` sm wrap, `UiButton` (Auswahl, Aktionen primary), Kacheln wie Bild-Upload (`role=button`, Checkbox per Tastatur), Fehler `UiCallout` danger                                                                           |
+| Slideshow: Bild als Fläche      | `UiSwitch` (Bild, Audio-reaktiv), `UiButton` sm (Wählen) + ghost (Entfernen), Darstellung `UiSelect` sm inline; Auswahl als `role=group` mit SVG-Herkunft                                                                                            |
 
 ## Regeln
 

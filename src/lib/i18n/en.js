@@ -926,6 +926,10 @@ export default {
     dragOrClick: 'Click or drag files here',
     supported: 'Supported',
     filesReady: '{count} file(s) ready',
+    dragHint: 'Drag files or a folder here',
+    pasteHint: 'or Ctrl+V to paste',
+    files: 'Files',
+    folder: 'Folder',
   },
 
   // ========== PLAYER PANEL ==========

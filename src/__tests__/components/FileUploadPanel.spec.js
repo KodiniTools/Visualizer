@@ -7,7 +7,9 @@ import { createPinia, setActivePinia } from 'pinia'
 import FileUploadPanel from '../../components/FileUploadPanel.vue'
 import { usePlayerStore } from '../../stores/playerStore.js'
 import { useToastStore } from '../../stores/toastStore.js'
+import { useI18n } from '../../lib/i18n.js'
 import de from '../../lib/i18n/de.js'
+import en from '../../lib/i18n/en.js'
 
 let wrapper
 let player
@@ -150,5 +152,23 @@ describe('FileUploadPanel – Anzeige', () => {
     await flushPromises()
     expect(wrapper.find('.tracks-info').text()).toContain('2')
     expect(wrapper.find('.upload-area').text()).toContain('2')
+  })
+})
+
+describe('FileUploadPanel – Sprache und Ui-Bausteine', () => {
+  it('Texte aus i18n, Knöpfe als UiButton', async () => {
+    const { setLocale } = useI18n()
+    const buttons = () => wrapper.findAll('.upload-area button')
+    expect(buttons().map((b) => b.text())).toEqual([de.fileUpload.files, de.fileUpload.folder])
+    expect(buttons().every((b) => b.classes('ui-button'))).toBe(true)
+    expect(wrapper.text()).toContain(de.fileUpload.dragHint)
+    await setLocale('en')
+    try {
+      await flushPromises()
+      expect(buttons().map((b) => b.text())).toEqual([en.fileUpload.files, en.fileUpload.folder])
+      expect(wrapper.text()).toContain(en.fileUpload.pasteHint)
+    } finally {
+      await setLocale('de')
+    }
   })
 })

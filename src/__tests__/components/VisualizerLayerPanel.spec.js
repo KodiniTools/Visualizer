@@ -15,6 +15,8 @@ beforeEach(() => {
   viz = useVisualizerStore()
   presets = useLayerPresetStore()
   viz.setMultiLayerMode(true)
+  // jsdom kennt scrollIntoView nicht; ein Klick in die Layer-Karte wählt sie aus und scrollt
+  Element.prototype.scrollIntoView ??= () => {}
   wrapper = mount(VisualizerLayerPanel, {
     global: { stubs: { VisualizerImagePicker: true } },
   })
@@ -35,11 +37,10 @@ describe('VisualizerLayerPanel – Effekte pro Layer', () => {
   })
 
   it('schaltet einen Effekt nur für diesen Layer um', async () => {
-    const layerId = viz.visualizerLayers[0].id
     const globalBloom = viz.bloomEnabled
 
-    const toggle = wrapper.find('.layer-effects .fx-toggle input[type="checkbox"]')
-    await toggle.setValue(!viz.layerEffects(viz.visualizerLayers[0]).bloomEnabled)
+    const toggle = wrapper.find('.layer-effects .fx-toggle [role="switch"]')
+    await toggle.trigger('click')
 
     expect(viz.layerEffects(viz.visualizerLayers[0]).bloomEnabled).toBe(true)
     expect(viz.bloomEnabled).toBe(globalBloom)

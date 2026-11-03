@@ -94,6 +94,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Stock-Galerie (Galerie-Panel)   | Kategorien `UiSegmentedControl` sm wrap, `UiButton` (Auswahl, Aktionen primary), Kacheln wie Bild-Upload (`role=button`, Checkbox per Tastatur), Fehler `UiCallout` danger                                                                           |
 | Slideshow: Bild als Fläche      | `UiSwitch` (Bild, Audio-reaktiv), `UiButton` sm (Wählen) + ghost (Entfernen), Darstellung `UiSelect` sm inline; Auswahl als `role=group` mit SVG-Herkunft                                                                                            |
 | Recorder-Steuerung              | `UiButton` sm mit `#icon`: Vorbereiten/Start/Fortsetzen primary, Pause secondary, Stop danger, Zurücksetzen ghost                                                                                                                                    |
+| Visualizer-Effekte              | `UiSwitch` je Effekt (`.fx-toggle` am Wurzel-span), Beat-Punch-Quelle `UiSegmentedControl` sm; Texte unter `visualizer.postFx`                                                                                                                       |
 
 ## Regeln
 

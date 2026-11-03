@@ -123,7 +123,7 @@ onMounted(() => {
 function apply(preset) {
   presetStore.applyPreset(preset, canvasManager)
   activePresetId.value = preset.id
-  toastStore.show?.(t('presets.applied', { name: preset.name }), 'success')
+  toastStore.success(t('presets.applied').replace('{name}', preset.name))
 }
 
 function saveCurrent() {
@@ -131,7 +131,7 @@ function saveCurrent() {
   if (!name) return
   presetStore.saveCurrentAsPreset(name, canvasManager)
   newPresetName.value = ''
-  toastStore.show?.(t('presets.saved'), 'success')
+  toastStore.success(t('presets.saved'))
 }
 
 function deletePreset(id) {

@@ -19,48 +19,43 @@
       </div>
 
       <div class="upload-text">
-        <span class="upload-main" v-if="!playerStore.hasTracks">
+        <span v-if="!playerStore.hasTracks" class="upload-main">
           {{ t('fileUpload.selectFiles') }}
         </span>
-        <span class="upload-main" v-else>
-          {{ playerStore.playlist.length }} Track{{ playerStore.playlist.length !== 1 ? 's' : '' }}
+        <span v-else class="upload-main">
+          {{ t('fileUpload.tracksLoaded').replace('{count}', playerStore.playlist.length) }}
         </span>
-        <span class="upload-sub">
-          {{
-            locale === 'de' ? 'Dateien oder Ordner hierher ziehen' : 'Drag files or a folder here'
-          }}
-        </span>
-        <span class="upload-sub">
-          {{ locale === 'de' ? 'oder Ctrl+V zum Einfügen' : 'or Ctrl+V to paste' }}
-        </span>
+        <span class="upload-sub">{{ t('fileUpload.dragHint') }}</span>
+        <span class="upload-sub">{{ t('fileUpload.pasteHint') }}</span>
       </div>
 
       <div class="supported-formats">
         <span class="format-label">{{ t('fileUpload.supported') }}:</span>
-        <span class="format-item">MP3</span>
-        <span class="format-item">WAV</span>
-        <span class="format-item">OGG</span>
-        <span class="format-item">M4A</span>
+        <span v-for="format in FORMATS" :key="format" class="format-item">{{ format }}</span>
       </div>
 
       <!-- Upload-Buttons innerhalb der Drop-Zone -->
       <div class="upload-buttons">
-        <button class="upload-btn" @click.stop="fileInput.click()">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
-            <path
-              d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
-            />
-          </svg>
-          {{ locale === 'de' ? 'Dateien' : 'Files' }}
-        </button>
-        <button class="upload-btn" @click.stop="folderInput.click()">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
-            <path
-              d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
-            />
-          </svg>
-          {{ locale === 'de' ? 'Ordner' : 'Folder' }}
-        </button>
+        <UiButton variant="secondary" size="sm" @click.stop="fileInput.click()">
+          <template #icon>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+              />
+            </svg>
+          </template>
+          {{ t('fileUpload.files') }}
+        </UiButton>
+        <UiButton variant="secondary" size="sm" @click.stop="folderInput.click()">
+          <template #icon>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+              />
+            </svg>
+          </template>
+          {{ t('fileUpload.folder') }}
+        </UiButton>
       </div>
     </div>
 
@@ -92,18 +87,9 @@
             d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
           />
         </svg>
-        <span class="info-text"
-          >{{ playerStore.playlist.length }}
-          {{
-            locale === 'de'
-              ? playerStore.playlist.length !== 1
-                ? 'Dateien'
-                : 'Datei'
-              : playerStore.playlist.length !== 1
-                ? 'files'
-                : 'file'
-          }}</span
-        >
+        <span class="info-text">{{
+          t('fileUpload.filesReady').replace('{count}', playerStore.playlist.length)
+        }}</span>
       </div>
     </div>
   </div>
@@ -114,8 +100,12 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { usePlayerStore } from '../stores/playerStore.js'
 import { useToastStore } from '../stores/toastStore.js'
+import UiButton from './ui/UiButton.vue'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
+
+/** In der Drop-Zone angezeigte Formate (Kennzeichnungen, nicht übersetzt). */
+const FORMATS = ['MP3', 'WAV', 'OGG', 'M4A']
 
 const playerStore = usePlayerStore()
 const toastStore = useToastStore()
@@ -375,26 +365,6 @@ h3::before {
   margin-top: 4px;
 }
 
-.upload-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  border-radius: var(--ds-radius-sm);
-  border: 1px solid var(--accent-primary);
-  background-color: var(--ds-accent-soft);
-  color: var(--accent-ink);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.upload-btn:hover {
-  background-color: var(--accent-primary);
-  color: var(--accent-text);
-}
-
 /* Tracks Info */
 .tracks-info {
   background-color: color-mix(in srgb, var(--ds-success) 10%, transparent);
@@ -476,11 +446,6 @@ h3::before {
 }
 
 [data-theme='light'] .format-item {
-  background-color: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-}
-
-[data-theme='light'] .upload-btn {
-  border-color: var(--accent-primary);
   background-color: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 

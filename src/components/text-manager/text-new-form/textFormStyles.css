@@ -29,9 +29,7 @@ h4 {
 
 /* ===== INPUTS ===== */
 .text-input,
-.select-input,
-.color-text-input,
-.text-area {
+.color-text-input {
   width: 100%;
   padding: 5px 8px;
   background-color: var(--secondary-bg);
@@ -44,24 +42,8 @@ h4 {
   transition: all var(--ds-duration) var(--ds-ease);
 }
 
-.font-select {
-  max-height: 400px;
-}
-
-.font-select option {
-  padding: 6px;
-}
-
-.text-area {
-  min-height: 50px;
-  line-height: 1.5;
-  font-family: var(--ds-font-mono);
-}
-
 .text-input:focus,
-.select-input:focus,
-.color-text-input:focus,
-.text-area:focus {
+.color-text-input:focus {
   outline: none;
   border-color: var(--accent-primary);
   background-color: var(--btn-hover);
@@ -173,12 +155,13 @@ h4 {
 
 .button-row {
   display: flex;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-top: 6px;
 }
 
 .button-row button {
-  flex: 1;
+  flex: 1 1 auto;
 }
 
 .btn-small {
@@ -206,47 +189,6 @@ h4 {
   border-color: var(--accent-primary);
   color: var(--accent-tertiary);
   font-weight: var(--ds-weight-semibold);
-}
-
-.btn-primary,
-.btn-secondary {
-  padding: 6px 10px;
-  border: none;
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  transition: all var(--ds-duration) var(--ds-ease);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.btn-primary {
-  background: var(--ds-accent-soft);
-  color: var(--accent-tertiary);
-  border: 1px solid var(--ds-border);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
-}
-
-.btn-primary:disabled {
-  background-color: var(--secondary-bg);
-  color: var(--text-muted);
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.btn-secondary {
-  background-color: var(--secondary-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-  background-color: var(--btn-hover);
-  border-color: var(--accent-primary);
 }
 
 .full-width {
@@ -365,25 +307,6 @@ h4 {
   border: 1px solid var(--ds-border-strong);
 }
 
-.effect-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  font-size: var(--ds-text-xs);
-  color: var(--text-primary);
-  user-select: none;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.effect-checkbox input[type='checkbox'] {
-  width: 12px;
-  height: 12px;
-  cursor: pointer;
-  accent-color: var(--accent-primary);
-}
-
 /* ===== SETTINGS ACTIONS ===== */
 .settings-actions {
   display: flex;
@@ -391,41 +314,6 @@ h4 {
   margin-top: 14px;
   padding-top: 12px;
   border-top: 1px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
-}
-
-.btn-save {
-  flex: 1;
-  padding: 8px 12px;
-  font-size: var(--ds-text-xs);
-  background: var(--ds-surface-3);
-  border: 1px solid var(--ds-border-strong);
-  border-radius: var(--ds-radius-sm);
-  color: var(--ds-success);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.btn-save:hover {
-  background: var(--ds-surface-3);
-  border-color: var(--ds-border-strong);
-  color: var(--ds-success);
-}
-
-.btn-reset-small {
-  padding: 8px 12px;
-  font-size: var(--ds-text-xs);
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.btn-reset-small:hover {
-  background: var(--btn-hover);
-  border-color: var(--ds-border-strong);
-  color: var(--ds-text);
 }
 
 /* ===== AUTO-FIT SETTINGS ===== */
@@ -441,37 +329,6 @@ h4 {
   margin-bottom: 4px;
   font-size: var(--ds-text-xs);
   color: var(--text-muted);
-}
-
-/* ✨ Position & Bereich Styles */
-.btn-selection {
-  background: var(--ds-surface-3);
-  border: 2px dashed var(--ds-link);
-  color: var(--ds-link);
-  padding: 10px 16px;
-  border-radius: var(--ds-radius-md);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  font-weight: var(--ds-weight-medium);
-}
-
-.btn-selection:hover:not(:disabled) {
-  background: var(--ds-surface-3);
-  border-color: var(--ds-link);
-  color: var(--ds-link);
-}
-
-.btn-selection.active {
-  background: var(--ds-success);
-  border-color: var(--ds-success);
-  border-style: solid;
-  color: var(--ds-success);
-  animation: pulse-border 1.5s ease-in-out infinite;
-}
-
-.btn-selection:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
 }
 
 @keyframes pulse-border {
@@ -512,18 +369,6 @@ h4 {
   font-size: var(--ds-text-md);
   font-weight: var(--ds-weight-semibold);
   color: var(--ds-link);
-}
-
-.btn-clear {
-  background: transparent;
-  border: 1px solid var(--ds-danger);
-  color: var(--ds-danger);
-  font-size: var(--ds-text-xs);
-  padding: 4px 8px;
-}
-
-.btn-clear:hover {
-  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
 }
 
 .number-input {
@@ -580,69 +425,14 @@ h4 {
   margin-top: 8px;
 }
 
-.btn-pos {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  color: var(--text-muted);
-  padding: 8px;
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  font-size: var(--ds-text-lg);
-  transition: all var(--ds-duration) var(--ds-ease);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-pos:hover {
-  background: var(--card-bg);
-  border-color: var(--ds-link);
-  color: var(--ds-link);
-}
-
-.btn-pos.active {
-  background: var(--ds-surface-3);
-  border-color: var(--ds-link);
-  color: var(--ds-link);
-}
-
 /* ═══ Light Theme Overrides ═══ */
 
 [data-theme='light'] .btn-small.active {
   background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
-[data-theme='light'] .btn-primary {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-}
-
-[data-theme='light'] .btn-primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
-}
-
 [data-theme='light'] .settings-actions {
   border-top: 1px solid var(--border-color);
-}
-
-[data-theme='light'] .btn-save {
-  background: color-mix(in srgb, var(--ds-success) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-success) 35%, transparent);
-}
-
-[data-theme='light'] .btn-save:hover {
-  background: color-mix(in srgb, var(--ds-success) 15%, transparent);
-  border-color: color-mix(in srgb, var(--ds-success) 50%, transparent);
-}
-
-[data-theme='light'] .btn-reset-small {
-  background: var(--ds-surface-3);
-  color: var(--text-muted);
-}
-
-[data-theme='light'] .btn-reset-small:hover {
-  background: var(--ds-surface-3);
-  border-color: var(--border-color);
-  color: var(--text-primary);
 }
 
 [data-theme='light'] .auto-fit-settings {
@@ -692,23 +482,6 @@ h4 {
   color: var(--ds-success);
 }
 
-[data-theme='light'] .btn-selection {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-  border: 2px dashed var(--accent-primary);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .btn-selection:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--text-primary);
-}
-
-[data-theme='light'] .btn-selection.active {
-  background: color-mix(in srgb, var(--ds-success) 10%, transparent);
-  animation: pulse-border-light 1.5s ease-in-out infinite;
-}
-
 @keyframes pulse-border-light {
   0%,
   100% {
@@ -742,33 +515,11 @@ h4 {
   border-color: var(--accent-primary);
 }
 
-[data-theme='light'] .btn-pos:hover {
-  background: var(--secondary-bg);
-  border-color: var(--accent-primary);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .btn-pos.active {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-ink);
-}
-
 /* Responsive */
 @media (max-width: 768px) {
-  .text-area {
-    min-height: 44px;
-    font-size: var(--ds-text-sm);
-  }
-
   .color-input {
     width: 40px;
     height: 36px;
-  }
-
-  .btn-pos {
-    min-height: 36px;
-    min-width: 36px;
   }
 }
 
@@ -776,15 +527,5 @@ h4 {
   .color-input {
     width: 44px;
     height: 40px;
-  }
-
-  .btn-pos {
-    min-height: 40px;
-    min-width: 40px;
-  }
-
-  .text-area {
-    min-height: 50px;
-    font-size: var(--ds-text-sm);
   }
 }

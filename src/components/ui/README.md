@@ -96,6 +96,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Recorder-Steuerung              | `UiButton` sm mit `#icon`: Vorbereiten/Start/Fortsetzen primary, Pause secondary, Stop danger, Zurücksetzen ghost                                                                                                                                    |
 | Visualizer-Effekte              | `UiSwitch` je Effekt (`.fx-toggle` am Wurzel-span), Beat-Punch-Quelle `UiSegmentedControl` sm; Texte unter `visualizer.postFx`                                                                                                                       |
 | Text-Editor (Inhalt, Position)  | `UiTextArea` (stellt `textarea` bereit), Schrift `UiSelect` sm mit Gruppen, B/I `UiIconButton` pressed, Ausrichtung `UiSegmentedControl`, Aktionen `UiButton`                                                                                        |
+| Neuer Text (Formular)           | `UiTextArea`, Schrift `UiSelect` (`newTextFontOptions`), Auto-Fit `UiSwitch`, B/I, Ausrichtung und Raster wie im Editor, Aktionen `UiButton`                                                                                                         |
 
 ## Regeln
 

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import TextNewForm from '../../components/text-manager/TextNewForm.vue'
 
@@ -69,7 +69,7 @@ async function mountForm() {
     },
   })
   // In den "Neuer Text"-Modus wechseln
-  await wrapper.find('.btn-primary.full-width').trigger('click')
+  await wrapper.find('.btn-start-text').trigger('click')
   return wrapper
 }
 
@@ -116,7 +116,7 @@ describe('TextNewForm – Text ohne Effekt hinzufügen', () => {
     expect(w.emitted('created')[0][0].animation).toBeUndefined()
 
     // Erneut: über den Effekt-Button → Typewriter-Animation gesetzt
-    await w.find('.btn-primary.full-width').trigger('click')
+    await w.find('.btn-start-text').trigger('click')
     await w.find('textarea').setValue('Mit Effekt!')
     await w.find('.tw-enable').trigger('click')
     await w.find('.tw-add').trigger('click')
@@ -125,5 +125,28 @@ describe('TextNewForm – Text ohne Effekt hinzufügen', () => {
     expect(created).toHaveLength(2)
     expect(created[1][0].animation?.typewriter?.enabled).toBe(true)
     expect(created[1][0].animation?.type).toBe('typewriter')
+  })
+})
+
+describe('TextNewForm – Öffnen', () => {
+  it('fokussiert das Textfeld beim Öffnen', async () => {
+    wrapper = mount(TextNewForm, {
+      attachTo: document.body,
+      global: {
+        provide: { canvasManager, fontManager: ref(null) },
+        stubs: {
+          TextStyleSection: TextStyleSectionStub,
+          TypewriterSection: TypewriterSectionStub,
+          FadeSection: EmptySectionStub,
+          ScaleSection: EmptySectionStub,
+          SlideSection: EmptySectionStub,
+          PositionSection: EmptySectionStub,
+        },
+      },
+    })
+    await wrapper.find('.btn-start-text').trigger('click')
+    await nextTick()
+    await nextTick()
+    expect(document.activeElement).toBe(wrapper.find('textarea').element)
   })
 })

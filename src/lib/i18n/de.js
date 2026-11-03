@@ -1681,6 +1681,8 @@ export default {
     right: 'Rechts',
     saveAsDefault: 'Als Standard speichern',
     resetToDefault: 'Zurücksetzen',
+    saveAsDefaultTitle: 'Aktuelle Einstellungen als Standard speichern',
+    resetToDefaultTitle: 'Auf Werkseinstellungen zurücksetzen',
     // Typewriter effect
     typewriterEffect: 'Schreibmaschinen-Effekt',
     activated: 'Aktiviert',
@@ -1751,8 +1753,8 @@ export default {
       colorHex: 'Farbwert (Hex)',
       quickSelect: 'Schnellauswahl',
       selectionBadge: 'Auswahl',
-      drawingRect: '✓ Zeichnen Sie ein Rechteck auf dem Canvas...',
-      markArea: '🖱️ Bereich auf Canvas markieren',
+      drawingRect: 'Zeichnen Sie ein Rechteck auf dem Canvas...',
+      markArea: 'Bereich auf Canvas markieren',
       markAreaHint:
         'Ziehen Sie ein Rechteck auf dem Canvas, um die Position des Textes festzulegen',
       selectedArea: 'Ausgewählter Bereich',

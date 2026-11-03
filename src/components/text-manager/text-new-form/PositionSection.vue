@@ -11,14 +11,15 @@
     <div class="section-content">
       <!-- Rechteck auf Canvas zeichnen -->
       <div class="control-group">
-        <button
-          :class="['btn-selection', 'full-width', { active: isSelecting }]"
+        <UiButton
+          variant="secondary"
+          size="sm"
+          block
           :disabled="isSelecting"
           @click="$emit('start-selection')"
         >
-          <span v-if="isSelecting">{{ t('textManager.layout.drawingRect') }}</span>
-          <span v-else>{{ t('textManager.layout.markArea') }}</span>
-        </button>
+          {{ isSelecting ? t('textManager.layout.drawingRect') : t('textManager.layout.markArea') }}
+        </UiButton>
         <div class="hint-text">
           {{ t('textManager.layout.markAreaHint') }}
         </div>
@@ -33,9 +34,9 @@
             {{ Math.round(selectionBounds.height) }} px</span
           >
         </div>
-        <button class="btn-small btn-clear" @click="$emit('clear-selection')">
+        <UiButton variant="ghost" size="sm" @click="$emit('clear-selection')">
           {{ t('textManager.layout.clearSelection') }}
-        </button>
+        </UiButton>
       </div>
 
       <!-- Manuelle Position X -->
@@ -53,6 +54,7 @@
           v-model.number="position.xPixel"
           type="number"
           class="number-input"
+          :aria-label="t('textManager.layout.pixelX')"
           :placeholder="'0 - ' + canvasWidth"
           @input="$emit('update-pixel', 'x')"
         />
@@ -74,6 +76,7 @@
           v-model.number="position.yPixel"
           type="number"
           class="number-input"
+          :aria-label="t('textManager.layout.pixelY')"
           :placeholder="'0 - ' + canvasHeight"
           @input="$emit('update-pixel', 'y')"
         />
@@ -84,69 +87,16 @@
       <div class="control-group">
         <label>{{ t('textManager.layout.quickSelect') }}:</label>
         <div class="position-grid">
-          <button
+          <UiIconButton
+            v-for="pos in QUICK_POSITIONS"
+            :key="pos.id"
+            variant="secondary"
             class="btn-pos"
-            :title="t('textManager.quickPos.topLeft')"
-            @click="$emit('quick-position', 'top-left')"
+            :label="t(`textManager.quickPos.${pos.key}`)"
+            @click="$emit('quick-position', pos.id)"
           >
-            ↖
-          </button>
-          <button
-            class="btn-pos"
-            :title="t('textManager.quickPos.topCenter')"
-            @click="$emit('quick-position', 'top-center')"
-          >
-            ↑
-          </button>
-          <button
-            class="btn-pos"
-            :title="t('textManager.quickPos.topRight')"
-            @click="$emit('quick-position', 'top-right')"
-          >
-            ↗
-          </button>
-          <button
-            class="btn-pos"
-            :title="t('textManager.quickPos.middleLeft')"
-            @click="$emit('quick-position', 'middle-left')"
-          >
-            ←
-          </button>
-          <button
-            class="btn-pos active"
-            :title="t('textManager.quickPos.center')"
-            @click="$emit('quick-position', 'center')"
-          >
-            ⊙
-          </button>
-          <button
-            class="btn-pos"
-            :title="t('textManager.quickPos.middleRight')"
-            @click="$emit('quick-position', 'middle-right')"
-          >
-            →
-          </button>
-          <button
-            class="btn-pos"
-            :title="t('textManager.quickPos.bottomLeft')"
-            @click="$emit('quick-position', 'bottom-left')"
-          >
-            ↙
-          </button>
-          <button
-            class="btn-pos"
-            :title="t('textManager.quickPos.bottomCenter')"
-            @click="$emit('quick-position', 'bottom-center')"
-          >
-            ↓
-          </button>
-          <button
-            class="btn-pos"
-            :title="t('textManager.quickPos.bottomRight')"
-            @click="$emit('quick-position', 'bottom-right')"
-          >
-            ↘
-          </button>
+            <span aria-hidden="true">{{ pos.glyph }}</span>
+          </UiIconButton>
         </div>
       </div>
     </div>
@@ -156,6 +106,7 @@
 <script setup>
 import { useI18n } from '../../../lib/i18n.js'
 import SliderField from '../../ui/SliderField.vue'
+import { UiButton, UiIconButton } from '../../ui/index.js'
 
 const { t } = useI18n()
 defineModel('position', {
@@ -183,6 +134,25 @@ defineProps({
 })
 
 defineEmits(['start-selection', 'clear-selection', 'update-pixel', 'quick-position'])
+
+// 3 × 3-Raster: Position, i18n-Schlüssel (quickPos.*) und Richtungspfeil
+const QUICK_POSITIONS = [
+  { id: 'top-left', key: 'topLeft', glyph: '↖' },
+  { id: 'top-center', key: 'topCenter', glyph: '↑' },
+  { id: 'top-right', key: 'topRight', glyph: '↗' },
+  { id: 'middle-left', key: 'middleLeft', glyph: '←' },
+  { id: 'center', key: 'center', glyph: '⊙' },
+  { id: 'middle-right', key: 'middleRight', glyph: '→' },
+  { id: 'bottom-left', key: 'bottomLeft', glyph: '↙' },
+  { id: 'bottom-center', key: 'bottomCenter', glyph: '↓' },
+  { id: 'bottom-right', key: 'bottomRight', glyph: '↘' },
+]
 </script>
 
 <style scoped src="./textFormStyles.css"></style>
+<style scoped>
+.btn-pos {
+  width: 100%;
+  font-size: var(--ds-text-lg);
+}
+</style>

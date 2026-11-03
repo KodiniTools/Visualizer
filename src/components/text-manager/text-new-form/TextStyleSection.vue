@@ -8,10 +8,12 @@
     <div class="section-content">
       <!-- Schriftart -->
       <div class="control-group">
-        <label>{{ t('textManager.font') }}:</label>
-        <select ref="fontSelect" v-model="settings.fontFamily" class="select-input font-select">
-          <!-- Wird dynamisch befüllt -->
-        </select>
+        <UiSelect
+          v-model="settings.fontFamily"
+          :options="newTextFontOptions"
+          :label="t('textManager.font')"
+          size="sm"
+        />
       </div>
 
       <!-- Schriftgröße -->
@@ -29,10 +31,7 @@
 
       <!-- Auto-Fit -->
       <div class="control-group">
-        <label class="effect-checkbox">
-          <input v-model="settings.autoFit" type="checkbox" />
-          📐 {{ t('textManager.autoFit') }}
-        </label>
+        <UiSwitch v-model="settings.autoFit" :label="t('textManager.autoFit')" />
         <div v-if="settings.autoFit" class="auto-fit-settings">
           <label>{{ t('textManager.autoFitPadding') }}: {{ settings.autoFitPadding }}%</label>
           <SliderField
@@ -49,12 +48,17 @@
       <div class="control-group">
         <label>{{ t('textManager.textColor') }}:</label>
         <div class="color-picker-group">
-          <ColorField v-model="settings.color" class="color-input" />
+          <ColorField
+            v-model="settings.color"
+            class="color-input"
+            :label="t('textManager.textColor')"
+          />
           <input
             v-model="settings.color"
             type="text"
             class="color-text-input"
             placeholder="#ff0000"
+            :aria-label="t('textManager.layout.colorHex')"
           />
         </div>
       </div>
@@ -75,68 +79,56 @@
       <div class="control-group">
         <label>{{ t('textManager.style') }}:</label>
         <div class="button-group">
-          <button
-            :class="['btn-small', { active: settings.fontWeight === 'bold' }]"
+          <UiIconButton
+            variant="secondary"
+            size="sm"
+            :label="t('textManager.bold')"
+            :pressed="settings.fontWeight === 'bold'"
             @click="settings.fontWeight = settings.fontWeight === 'bold' ? 'normal' : 'bold'"
           >
-            <strong>B</strong>
-          </button>
-          <button
-            :class="['btn-small', { active: settings.fontStyle === 'italic' }]"
+            <strong aria-hidden="true">B</strong>
+          </UiIconButton>
+          <UiIconButton
+            variant="secondary"
+            size="sm"
+            :label="t('textManager.italic')"
+            :pressed="settings.fontStyle === 'italic'"
             @click="settings.fontStyle = settings.fontStyle === 'italic' ? 'normal' : 'italic'"
           >
-            <em>I</em>
-          </button>
+            <em aria-hidden="true">I</em>
+          </UiIconButton>
         </div>
       </div>
 
       <!-- Ausrichtung -->
       <div class="control-group">
-        <label>{{ t('textManager.alignment') }}:</label>
-        <div class="button-group">
-          <button
-            :class="['btn-small', { active: settings.textAlign === 'left' }]"
-            @click="settings.textAlign = 'left'"
-          >
-            {{ t('textManager.left') }}
-          </button>
-          <button
-            :class="['btn-small', { active: settings.textAlign === 'center' }]"
-            @click="settings.textAlign = 'center'"
-          >
-            {{ t('textManager.center') }}
-          </button>
-          <button
-            :class="['btn-small', { active: settings.textAlign === 'right' }]"
-            @click="settings.textAlign = 'right'"
-          >
-            {{ t('textManager.right') }}
-          </button>
-        </div>
+        <label aria-hidden="true">{{ t('textManager.alignment') }}:</label>
+        <UiSegmentedControl
+          v-model="settings.textAlign"
+          :options="alignOptions"
+          :label="t('textManager.alignment')"
+          size="sm"
+        />
       </div>
 
       <!-- Einstellungen speichern/laden -->
       <div class="settings-actions">
-        <button
-          class="btn-save"
-          :title="
-            locale === 'de'
-              ? 'Aktuelle Einstellungen als Standard speichern'
-              : 'Save current settings as default'
-          "
+        <UiButton
+          size="sm"
+          class="btn-save-settings"
+          :title="t('textManager.saveAsDefaultTitle')"
           @click="$emit('save')"
         >
-          💾 {{ t('textManager.saveAsDefault') }}
-        </button>
-        <button
-          class="btn-reset-small"
-          :title="
-            locale === 'de' ? 'Auf Werkseinstellungen zurücksetzen' : 'Reset to factory settings'
-          "
+          {{ t('textManager.saveAsDefault') }}
+        </UiButton>
+        <UiButton
+          variant="ghost"
+          size="sm"
+          :title="t('textManager.resetToDefaultTitle')"
           @click="$emit('reset')"
         >
-          🔄 {{ t('textManager.resetToDefault') }}
-        </button>
+          {{ t('textManager.resetToDefault') }}
+        </UiButton>
       </div>
     </div>
   </details>
@@ -145,9 +137,10 @@
 <script setup>
 import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
-import { ref, inject, computed } from 'vue'
+import { inject, computed } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 import { useTextFonts } from '../../../composables/useTextFonts.js'
+import { UiButton, UiIconButton, UiSegmentedControl, UiSelect, UiSwitch } from '../../ui/index.js'
 
 const settings = defineModel('settings', {
   type: Object,
@@ -156,25 +149,41 @@ const settings = defineModel('settings', {
 
 defineEmits(['save', 'reset'])
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const canvasManager = inject('canvasManager')
 const fontManager = inject('fontManager')
 
-const fontSelect = ref(null)
-
-// settings als ref-artige Quelle für das Font-Composable bereitstellen
-const styleRef = computed(() => settings.value)
-
-const { populateNewTextFontDropdown } = useTextFonts(
+const { newTextFontOptions, populateNewTextFontDropdown } = useTextFonts(
   canvasManager,
   fontManager,
   { value: null }, // fontSelectRef - hier nicht verwendet
-  fontSelect,
+  { value: null }, // newTextFontSelectRef - Schriftwahl kommt als newTextFontOptions
   { value: null }, // selectedText - hier nicht verwendet
-  styleRef,
+  { value: null }, // newTextStyle - hier nicht verwendet
 )
 
+const alignOptions = computed(() =>
+  ['left', 'center', 'right'].map((value) => ({ value, label: t(`textManager.${value}`) })),
+)
+
+// Auffrischen der Schriftliste (z. B. nach geladenen Fonts) für TextNewForm
 defineExpose({ populateNewTextFontDropdown })
 </script>
 
 <style scoped src="./textFormStyles.css"></style>
+<style scoped>
+/* Ui-Labels wie die übrigen Feld-Labels des Formulars (textFormStyles.css) */
+.control-group :deep(.ui-select__label) {
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: var(--ds-weight-medium);
+}
+.button-group :deep(.ui-icon-button) {
+  font-size: var(--ds-text-sm);
+}
+.btn-save-settings {
+  flex: 1;
+}
+</style>

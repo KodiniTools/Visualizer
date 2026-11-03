@@ -90,6 +90,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Bild-Upload (Foto-Panel)        | wie Video-Upload: Fläche als `<button>`, Auswahl-Knöpfe `UiButton` sm, „Alle löschen“ danger, Kacheln `role=button` + Checkbox per Tastatur, Löschen `UiIconButton` round                                                                            |
 | Bild-Vorschau (Foto/Galerie)    | `UiDialog` lg mit Bildname als Titel (Escape, Hintergrund, Schließen), Footer `UiButton` secondary + primary                                                                                                                                         |
 | Zurücksetzen (Canvas-Panel)     | `UiButton` sm (Hintergründe), danger block (Canvas löschen); Bestätigung als `UiDialog` md mit Beschreibung, Footer Abbrechen + danger                                                                                                               |
+| Bildauswahl (Portrait-Presets)  | `UiSelect` sm mit Gruppen (geladen, Leinwand, Galerie) und verstecktem Label, `UiButton` sm primary (Laden) + secondary (Entfernen)                                                                                                                  |
 
 ## Regeln
 

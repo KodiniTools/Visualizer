@@ -318,3 +318,9 @@ describe('i18n – Zurücksetzen-Bereich ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/\)\s*\|\|\s*'/)
   })
 })
+
+describe('i18n – Visualizer-Bildauswahl ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte', () => {
+    expect(hardcodedTemplateText(read('components/VisualizerImagePicker.vue'))).toEqual([])
+  })
+})

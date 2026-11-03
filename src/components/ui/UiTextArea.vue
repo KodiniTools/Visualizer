@@ -3,6 +3,7 @@
     <label :for="inputId" class="ui-textarea__label">{{ label }}</label>
     <textarea
       :id="inputId"
+      ref="field"
       v-model="model"
       class="ui-textarea__input"
       :rows="rows"
@@ -16,7 +17,7 @@
 </template>
 
 <script setup>
-import { computed, useId } from 'vue'
+import { computed, useId, useTemplateRef } from 'vue'
 
 /**
  * Mehrzeiliges Textfeld mit sichtbarem Label (Anatomie wie UiTextField).
@@ -38,6 +39,10 @@ const model = defineModel({ type: String, default: '' })
 const generatedId = useId()
 const inputId = computed(() => props.id ?? `ui-textarea-${generatedId}`)
 const hintId = computed(() => `${inputId.value}-hint`)
+
+// Für Fokus und Cursor-Position von außen (z. B. Text-Editor nach Tastendruck)
+const field = useTemplateRef('field')
+defineExpose({ textarea: field })
 </script>
 
 <style scoped>

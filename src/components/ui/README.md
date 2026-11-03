@@ -95,6 +95,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Slideshow: Bild als Fläche      | `UiSwitch` (Bild, Audio-reaktiv), `UiButton` sm (Wählen) + ghost (Entfernen), Darstellung `UiSelect` sm inline; Auswahl als `role=group` mit SVG-Herkunft                                                                                            |
 | Recorder-Steuerung              | `UiButton` sm mit `#icon`: Vorbereiten/Start/Fortsetzen primary, Pause secondary, Stop danger, Zurücksetzen ghost                                                                                                                                    |
 | Visualizer-Effekte              | `UiSwitch` je Effekt (`.fx-toggle` am Wurzel-span), Beat-Punch-Quelle `UiSegmentedControl` sm; Texte unter `visualizer.postFx`                                                                                                                       |
+| Text-Editor (Inhalt, Position)  | `UiTextArea` (stellt `textarea` bereit), Schrift `UiSelect` sm mit Gruppen, B/I `UiIconButton` pressed, Ausrichtung `UiSegmentedControl`, Aktionen `UiButton`                                                                                        |
 
 ## Regeln
 

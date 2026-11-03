@@ -6,18 +6,17 @@
     </summary>
     <div class="section-content">
       <!-- Text-Inhalt -->
-      <div class="control-group">
-        <label>{{ t('textManager.layout.textLabel') }}:</label>
-        <textarea
-          :ref="tec.editTextInput"
+      <div class="control-group text-content">
+        <UiTextArea
+          :ref="bindEditInput"
           v-model="selectedText.content"
+          :label="t('textManager.layout.textLabel')"
+          :placeholder="t('textManager.layout.multilinePlaceholder')"
+          :hint="t('textManager.layout.multilineHint')"
+          :rows="5"
           @input="updateText"
           @paste="handleEditPaste"
-          class="text-area"
-          :placeholder="t('textManager.layout.multilinePlaceholder')"
-          rows="5"
-        ></textarea>
-        <div class="hint-text">{{ t('textManager.layout.multilineHint') }}</div>
+        />
         <div v-if="selectedText.content.includes('\n')" class="success-hint">
           {{
             t('textManager.layout.lineCount').replace(
@@ -30,15 +29,13 @@
 
       <!-- Schriftart -->
       <div class="control-group">
-        <label>{{ t('textManager.font') }}:</label>
-        <select
-          :ref="tec.fontSelect"
+        <UiSelect
           v-model="selectedText.fontFamily"
+          :options="fontOptions"
+          :label="t('textManager.font')"
+          size="sm"
           @change="updateText"
-          class="select-input font-select"
-        >
-          <!-- Wird dynamisch befüllt -->
-        </select>
+        />
       </div>
 
       <!-- Schriftgröße -->
@@ -46,11 +43,11 @@
         <label>{{ t('textManager.fontSize') }}: {{ selectedText.fontSize }}px</label>
         <SliderField
           v-model="selectedText.fontSize"
-          @update:model-value="updateText"
           :min="12"
           :max="200"
           :default-value="48"
           class="slider"
+          @update:model-value="updateText"
         />
       </div>
 
@@ -59,11 +56,11 @@
         <label>{{ t('textManager.opacity') }}: {{ selectedText.opacity }}%</label>
         <SliderField
           v-model="selectedText.opacity"
-          @update:model-value="updateText"
           :min="0"
           :max="100"
           :default-value="100"
           class="slider"
+          @update:model-value="updateText"
         />
       </div>
 
@@ -74,14 +71,16 @@
           <ColorField
             v-model="selectedText.color"
             class="color-input"
+            :label="t('textManager.textColor')"
             @update:model-value="updateText"
           />
           <input
-            type="text"
             v-model="selectedText.color"
-            @input="updateText"
+            type="text"
             class="color-text-input"
             placeholder="#ffffff"
+            :aria-label="t('textManager.layout.colorHex')"
+            @input="updateText"
           />
         </div>
       </div>
@@ -90,44 +89,37 @@
       <div class="control-group">
         <label>{{ t('textManager.style') }}:</label>
         <div class="button-group">
-          <button
+          <UiIconButton
+            variant="secondary"
+            size="sm"
+            :label="t('textManager.bold')"
+            :pressed="selectedText.fontWeight === 'bold'"
             @click="toggleFontWeight"
-            :class="['btn-small', { active: selectedText.fontWeight === 'bold' }]"
           >
-            <strong>B</strong>
-          </button>
-          <button
+            <strong aria-hidden="true">B</strong>
+          </UiIconButton>
+          <UiIconButton
+            variant="secondary"
+            size="sm"
+            :label="t('textManager.italic')"
+            :pressed="selectedText.fontStyle === 'italic'"
             @click="toggleFontStyle"
-            :class="['btn-small', { active: selectedText.fontStyle === 'italic' }]"
           >
-            <em>I</em>
-          </button>
+            <em aria-hidden="true">I</em>
+          </UiIconButton>
         </div>
       </div>
 
       <!-- Ausrichtung -->
       <div class="control-group">
-        <label>{{ t('textManager.alignment') }}:</label>
-        <div class="button-group">
-          <button
-            @click="setTextAlign('left')"
-            :class="['btn-small', { active: selectedText.textAlign === 'left' }]"
-          >
-            {{ t('textManager.left') }}
-          </button>
-          <button
-            @click="setTextAlign('center')"
-            :class="['btn-small', { active: selectedText.textAlign === 'center' }]"
-          >
-            {{ t('textManager.center') }}
-          </button>
-          <button
-            @click="setTextAlign('right')"
-            :class="['btn-small', { active: selectedText.textAlign === 'right' }]"
-          >
-            {{ t('textManager.right') }}
-          </button>
-        </div>
+        <label aria-hidden="true">{{ t('textManager.alignment') }}:</label>
+        <UiSegmentedControl
+          :model-value="selectedText.textAlign"
+          :options="alignOptions"
+          :label="t('textManager.alignment')"
+          size="sm"
+          @update:model-value="setTextAlign"
+        />
       </div>
     </div>
   </details>
@@ -136,8 +128,9 @@
 <script setup>
 import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
+import { UiIconButton, UiSegmentedControl, UiSelect, UiTextArea } from '../../ui/index.js'
 
 const { t } = useI18n()
 const tec = inject('textEditControls')
@@ -148,27 +141,25 @@ const {
   toggleFontWeight,
   toggleFontStyle,
   setTextAlign,
+  fontOptions,
 } = tec
+
+// Fokus/Cursor setzt useTextEditorWithChar direkt am <textarea>
+function bindEditInput(component) {
+  tec.editTextInput.value = component?.textarea ?? null
+}
+
+const alignOptions = computed(() =>
+  ['left', 'center', 'right'].map((value) => ({ value, label: t(`textManager.${value}`) })),
+)
 </script>
 
 <style scoped src="./text-edit-shared.css"></style>
 <style scoped>
-.font-select {
-  max-height: 400px;
-}
-.font-select option {
-  padding: 6px;
-}
-.text-area {
+.text-content :deep(.ui-textarea__input) {
   min-height: 50px;
   line-height: 1.5;
   font-family: var(--ds-font-mono);
-}
-.hint-text {
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-  margin-top: 3px;
-  line-height: 1.4;
 }
 .success-hint {
   font-size: var(--ds-text-xs);
@@ -179,17 +170,16 @@ const {
   align-items: center;
   gap: 4px;
 }
-
-@media (max-width: 768px) {
-  .text-area {
-    min-height: 44px;
-    font-size: var(--ds-text-sm);
-  }
+/* Ui-Labels wie die übrigen Feld-Labels des Abschnitts (text-edit-shared.css) */
+.control-group :deep(.ui-textarea__label),
+.control-group :deep(.ui-select__label) {
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: var(--ds-weight-medium);
 }
-@media (max-width: 480px) {
-  .text-area {
-    min-height: 50px;
-    font-size: var(--ds-text-sm);
-  }
+.button-group :deep(.ui-icon-button) {
+  font-size: var(--ds-text-sm);
 }
 </style>

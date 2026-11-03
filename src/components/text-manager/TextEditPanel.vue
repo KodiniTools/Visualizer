@@ -14,28 +14,45 @@
 
     <!-- Einstellungen als Standard für neue Texte speichern -->
     <div class="default-settings-row">
-      <button
-        type="button"
-        class="btn-save-default full-width"
-        :title="t('textManager.saveAsDefault')"
-        @click="saveAsDefault"
-      >
-        ⭐ {{ t('textManager.saveAsDefault') }}
-      </button>
-      <button
-        type="button"
+      <UiButton size="sm" block class="btn-save-default" @click="saveAsDefault">
+        <template #icon>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          >
+            <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z" />
+          </svg>
+        </template>
+        {{ t('textManager.saveAsDefault') }}
+      </UiButton>
+      <UiIconButton
+        variant="secondary"
+        size="sm"
         class="btn-reset-default"
-        :title="t('textManager.resetDefault')"
+        :label="t('textManager.resetDefault')"
         @click="resetDefault"
       >
-        ↺
-      </button>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 12a9 9 0 1 0 3-6.7" />
+          <path d="M3 4v5h5" />
+        </svg>
+      </UiIconButton>
     </div>
 
-    <!-- Löschen Button -->
-    <button @click="deleteSelectedText" class="btn-danger full-width" style="margin-top: 16px">
+    <UiButton variant="danger" size="sm" block class="btn-delete-text" @click="deleteSelectedText">
       {{ t('textManager.deleteText') }}
-    </button>
+    </UiButton>
   </div>
 </template>
 
@@ -50,6 +67,7 @@ import {
   clearTextDefaults,
 } from '../../lib/textDefaults.js'
 import TextAnimationsPanel from './TextAnimationsPanel.vue'
+import { UiButton, UiIconButton } from '../ui/index.js'
 import TextContentSection from './text-edit/TextContentSection.vue'
 import TextPositionSection from './text-edit/TextPositionSection.vue'
 import TextSpacingStrokeSection from './text-edit/TextSpacingStrokeSection.vue'
@@ -79,16 +97,15 @@ const canvasManager = inject('canvasManager')
 const fontManager = inject('fontManager')
 
 const editTextInput = ref(null)
-const fontSelect = ref(null)
 
 // Reaktive Referenz auf den aktuell markierten Text, damit Font-Aktionen
 // sich ausschließlich auf diesen Text beziehen.
 const selectedTextRef = toRef(props, 'selectedText')
 
-const { populateFontDropdown } = useTextFonts(
+const { fontOptions, populateFontDropdown } = useTextFonts(
   canvasManager,
   fontManager,
-  fontSelect,
+  { value: null }, // fontSelectRef – Schriftwahl kommt als fontOptions
   { value: null }, // newTextFontSelectRef - not used in edit mode
   selectedTextRef,
   { value: null }, // newTextStyle - not used in edit mode
@@ -241,7 +258,7 @@ provide('textEditControls', {
   canvasWidth: toRef(props, 'canvasWidth'),
   canvasHeight: toRef(props, 'canvasHeight'),
   editTextInput,
-  fontSelect,
+  fontOptions,
   updateText,
   handleEditPaste,
   toggleFontWeight,
@@ -261,27 +278,6 @@ defineExpose({ editTextInput, populateFontDropdown })
   margin-bottom: 8px;
 }
 
-.btn-danger {
-  padding: 6px 10px;
-  border: none;
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  transition: all var(--ds-duration) var(--ds-ease);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  background: color-mix(in srgb, var(--ds-danger) 20%, transparent);
-  color: var(--ds-danger);
-  border: 1px solid color-mix(in srgb, var(--ds-danger) 30%, transparent);
-}
-.btn-danger:hover {
-  background: color-mix(in srgb, var(--ds-danger) 30%, transparent);
-}
-.full-width {
-  width: 100%;
-}
-
 .default-settings-row {
   display: flex;
   gap: 6px;
@@ -290,54 +286,9 @@ defineExpose({ editTextInput, populateFontDropdown })
 
 .btn-save-default {
   flex: 1;
-  padding: 6px 10px;
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  transition: all var(--ds-duration) var(--ds-ease);
-  background: var(--ds-accent-soft);
-  color: var(--accent-tertiary);
-  border: 1px solid var(--accent-primary);
 }
 
-.btn-save-default:hover {
-  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
-}
-
-.btn-reset-default {
-  flex-shrink: 0;
-  width: 34px;
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  font-size: var(--ds-text-sm);
-  transition: all var(--ds-duration) var(--ds-ease);
-  background: var(--secondary-bg);
-  color: var(--text-muted);
-  border: 1px solid var(--border-color);
-}
-
-.btn-reset-default:hover {
-  background: var(--btn-hover);
-  color: var(--text-primary);
-}
-
-[data-theme='light'] .btn-save-default {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  color: var(--accent-ink);
-  border-color: var(--accent-primary);
-}
-
-[data-theme='light'] .btn-save-default:hover {
-  background: color-mix(in srgb, var(--accent-primary) 16%, transparent);
-}
-
-[data-theme='light'] .btn-danger {
-  background: color-mix(in srgb, var(--ds-danger) 8%, transparent);
-}
-[data-theme='light'] .btn-danger:hover {
-  background: color-mix(in srgb, var(--ds-danger) 12%, transparent);
+.btn-delete-text {
+  margin-top: 16px;
 }
 </style>

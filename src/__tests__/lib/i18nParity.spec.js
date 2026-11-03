@@ -402,3 +402,11 @@ describe('i18n – Ebenen-Panel ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/\|\| '[^']+'\s*\}\}/)
   })
 })
+
+describe('i18n – Player-Leiste ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte', () => {
+    expect(
+      hardcodedTemplateText(read('components/sticky-player-bar/PlayerBarControls.vue')),
+    ).toEqual([])
+  })
+})

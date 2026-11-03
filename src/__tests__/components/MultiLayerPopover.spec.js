@@ -44,7 +44,7 @@ describe('MultiLayerPopover', () => {
     const store = useVisualizerStore()
     expect(store.multiLayerMode).toBe(false)
 
-    await wrapper.find('.toggle-btn').trigger('click')
+    await wrapper.find('.multi-layer-switch [role="switch"]').trigger('click')
     expect(store.multiLayerMode).toBe(true)
     expect(store.visualizerLayers).toHaveLength(1)
 

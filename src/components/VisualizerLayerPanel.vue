@@ -2,40 +2,33 @@
   <div class="layer-panel">
     <!-- Multi-Layer Toggle -->
     <div class="layer-header">
-      <div class="header-left">
-        <span class="header-title">{{ t('visualizer.multiLayer') || 'Multi-Layer' }}</span>
-      </div>
-      <button
-        class="toggle-btn"
-        :class="{ active: store.multiLayerMode }"
-        @click="toggleMultiLayerMode"
-      >
-        {{ store.multiLayerMode ? t('common.on') : t('common.off') }}
-      </button>
+      <UiSwitch
+        class="multi-layer-switch"
+        :model-value="store.multiLayerMode"
+        :label="t('visualizer.multiLayer')"
+        @update:model-value="store.setMultiLayerMode"
+      />
     </div>
 
     <!-- Layer Controls (nur wenn Multi-Layer aktiv) -->
     <div v-if="store.multiLayerMode" class="layer-content">
       <!-- Add Layer Section -->
       <div class="add-layer-section">
-        <select v-model="newLayerVisualizerId" class="add-layer-select">
-          <optgroup
-            v-for="(visualizers, category) in store.categorizedVisualizers"
-            :key="category"
-            :label="getCategoryName(category)"
-          >
-            <option v-for="viz in visualizers" :key="viz.id" :value="viz.id">
-              {{ viz.name }}
-            </option>
-          </optgroup>
-        </select>
-        <button class="add-layer-btn" @click="addNewLayer">
-          {{ t('visualizer.addLayer') || 'Hinzufügen' }}
-        </button>
+        <UiSelect
+          v-model="newLayerVisualizerId"
+          class="add-layer-select"
+          :options="visualizerOptions"
+          :label="t('visualizer.visualizerType')"
+          label-hidden
+          size="sm"
+        />
+        <UiButton variant="primary" size="sm" class="add-layer-btn" @click="addNewLayer">
+          {{ t('visualizer.addLayer') }}
+        </UiButton>
       </div>
 
       <!-- Layer Liste (unterster Layer unten) -->
-      <div class="layer-list" ref="layerListRef">
+      <div ref="layerListRef" class="layer-list">
         <div
           v-for="(layer, index) in reversedLayers"
           :key="layer.id"
@@ -49,49 +42,77 @@
         >
           <!-- Layer Header -->
           <div class="layer-item-header">
-            <button
-              class="visibility-btn"
-              @click.stop="store.toggleLayerVisibility(layer.id)"
-              :title="layer.visible ? t('visualizer.hideLayer') : t('visualizer.showLayer')"
-            >
-              {{ layer.visible ? t('common.on') : t('common.off') }}
-            </button>
+            <!-- Klick auf den Schalter wählt die Ebene nicht aus -->
+            <span class="visibility-toggle" @click.stop>
+              <UiSwitch
+                :model-value="layer.visible"
+                :label="t('visualizer.layerVisible')"
+                label-hidden
+                @update:model-value="store.toggleLayerVisibility(layer.id)"
+              />
+            </span>
 
             <span class="layer-color" :style="{ backgroundColor: layer.color }"></span>
 
             <span class="layer-name">{{ getVisualizerName(layer.visualizerId) }}</span>
 
             <div class="layer-actions">
-              <button
-                class="action-btn"
-                @click.stop="store.moveLayerUp(layer.id)"
+              <UiIconButton
+                size="sm"
+                :label="t('common.moveUp')"
                 :disabled="index === 0"
-                :title="t('common.moveUp')"
+                @click.stop="store.moveLayerUp(layer.id)"
               >
-                <span class="caret-up" aria-hidden="true"></span>
-              </button>
-              <button
-                class="action-btn"
-                @click.stop="store.moveLayerDown(layer.id)"
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M6 15l6-6 6 6" />
+                </svg>
+              </UiIconButton>
+              <UiIconButton
+                size="sm"
+                :label="t('common.moveDown')"
                 :disabled="index === reversedLayers.length - 1"
-                :title="t('common.moveDown')"
+                @click.stop="store.moveLayerDown(layer.id)"
               >
-                <span class="caret-down" aria-hidden="true"></span>
-              </button>
-              <button
-                class="action-btn duplicate-btn"
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </UiIconButton>
+              <UiIconButton
+                size="sm"
+                :label="t('common.duplicate')"
                 @click.stop="store.duplicateLayer(layer.id)"
-                :title="t('common.duplicate')"
               >
-                {{ t('common.duplicate') }}
-              </button>
-              <button
-                class="action-btn delete-btn"
-                @click.stop="store.removeLayer(layer.id)"
-                :title="t('common.delete')"
-              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="8" y="8" width="12" height="12" rx="2" />
+                  <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+                </svg>
+              </UiIconButton>
+              <UiButton variant="danger" size="sm" @click.stop="store.removeLayer(layer.id)">
                 {{ t('common.delete') }}
-              </button>
+              </UiButton>
             </div>
           </div>
 
@@ -99,22 +120,13 @@
           <div v-if="store.activeLayerId === layer.id" class="layer-details">
             <!-- Visualizer Auswahl -->
             <div class="detail-row">
-              <span class="detail-label">{{ t('visualizer.visualizerType') }}</span>
-              <select
-                class="detail-select"
-                :value="layer.visualizerId"
-                @change="updateProperty(layer.id, 'visualizerId', $event.target.value)"
-              >
-                <optgroup
-                  v-for="(visualizers, category) in store.categorizedVisualizers"
-                  :key="category"
-                  :label="getCategoryName(category)"
-                >
-                  <option v-for="viz in visualizers" :key="viz.id" :value="viz.id">
-                    {{ viz.name }}
-                  </option>
-                </optgroup>
-              </select>
+              <UiSelect
+                :model-value="layer.visualizerId"
+                :options="visualizerOptions"
+                :label="t('visualizer.visualizerType')"
+                size="sm"
+                @update:model-value="updateProperty(layer.id, 'visualizerId', $event)"
+              />
             </div>
 
             <!-- Farbe -->
@@ -175,35 +187,24 @@
 
             <!-- Blend Mode -->
             <div class="detail-row">
-              <span class="detail-label">{{ t('visualizer.blendMode') || 'Mischmodus' }}</span>
-              <select
-                class="detail-select"
-                :value="layer.blendMode"
-                @change="updateProperty(layer.id, 'blendMode', $event.target.value)"
-              >
-                <option v-for="mode in blendModes" :key="mode.id" :value="mode.id">
-                  {{ getBlendModeName(mode) }}
-                </option>
-              </select>
+              <UiSelect
+                :model-value="layer.blendMode"
+                :options="blendModeOptions"
+                :label="t('visualizer.blendMode')"
+                size="sm"
+                @update:model-value="updateProperty(layer.id, 'blendMode', $event)"
+              />
             </div>
 
             <!-- Reaktionsquelle -->
             <div class="detail-row">
-              <span class="detail-label">{{ t('visualizer.reactSource.label') }}</span>
-              <select
-                class="detail-select"
-                :value="layer.reactSource || 'spectrum'"
-                @change="updateProperty(layer.id, 'reactSource', $event.target.value)"
-              >
-                <option v-for="src in levelSources" :key="src" :value="src">
-                  {{ t(`visualizer.reactSource.${src}`) }}
-                </option>
-                <optgroup :label="t('visualizer.reactSource.onsetGroup')">
-                  <option v-for="src in onsetSources" :key="src" :value="src">
-                    {{ t(`visualizer.reactSource.${src}`) }}
-                  </option>
-                </optgroup>
-              </select>
+              <UiSelect
+                :model-value="layer.reactSource || 'spectrum'"
+                :options="reactSourceOptions"
+                :label="t('visualizer.reactSource.label')"
+                size="sm"
+                @update:model-value="updateProperty(layer.id, 'reactSource', $event)"
+              />
             </div>
             <div v-if="(layer.reactSource || 'spectrum') !== 'spectrum'" class="detail-row">
               <span class="detail-label"
@@ -276,7 +277,7 @@
             <!-- Skalierung -->
             <div class="detail-row">
               <span class="detail-label"
-                >{{ t('foto.size') || 'Größe' }}: {{ Math.round(layer.scale * 100) }}%</span
+                >{{ t('foto.size') }}: {{ Math.round(layer.scale * 100) }}%</span
               >
               <SliderField
                 class="detail-slider scale-slider"
@@ -296,13 +297,15 @@
                 <span v-if="activeEffectCount(layer) > 0" class="layer-effects-count">{{
                   activeEffectCount(layer)
                 }}</span>
-                <button
-                  class="action-btn layer-effects-reset"
+                <UiButton
+                  variant="ghost"
+                  size="sm"
+                  class="layer-effects-reset"
                   :title="t('visualizer.resetLayerEffects')"
                   @click.stop.prevent="store.resetLayerEffects(layer.id)"
                 >
                   {{ t('visualizer.reset') }}
-                </button>
+                </UiButton>
                 <span class="caret-down" aria-hidden="true"></span>
               </summary>
               <div class="layer-effects-body">
@@ -318,7 +321,7 @@
 
       <!-- Info wenn keine Layer -->
       <div v-if="store.visualizerLayers.length === 0" class="no-layers">
-        {{ t('visualizer.noLayers') || 'Keine Layer vorhanden' }}
+        {{ t('visualizer.noLayers') }}
       </div>
 
       <!-- Layer-Presets: aktuelle Layer als eigenes Preset speichern -->
@@ -332,18 +335,20 @@
             v-model="presetName"
             type="text"
             class="preset-name-input"
+            :aria-label="t('visualizer.presetNamePlaceholder')"
             :placeholder="t('visualizer.presetNamePlaceholder')"
             maxlength="40"
             @keyup.enter="saveLayerPreset"
           />
-          <button
-            class="add-layer-btn save-preset-btn"
+          <UiButton
+            size="sm"
+            class="save-preset-btn"
             :disabled="store.visualizerLayers.length === 0"
             :title="t('visualizer.savePresetHint')"
             @click="saveLayerPreset"
           >
             {{ t('visualizer.savePreset') }}
-          </button>
+          </UiButton>
         </div>
         <ul v-if="layerPresetStore.layerPresets.length > 0" class="preset-list">
           <li
@@ -360,13 +365,15 @@
               <span class="preset-name">{{ preset.name }}</span>
               <span class="preset-layer-count">{{ preset.layers.length }}</span>
             </button>
-            <button
-              class="action-btn delete-btn preset-delete-btn"
+            <UiButton
+              variant="danger"
+              size="sm"
+              class="preset-delete-btn"
               :title="t('visualizer.deletePreset')"
               @click.stop="deleteLayerPreset(preset)"
             >
               {{ t('common.delete') }}
-            </button>
+            </UiButton>
           </li>
         </ul>
         <div v-else class="no-layers no-presets">{{ t('visualizer.noLayerPresets') }}</div>
@@ -383,7 +390,7 @@ import VisualizerLedTextSection from './visualizer-panel/VisualizerLedTextSectio
 import { isLedTextVisualizer } from '../lib/visualizers/gl/ledTextSettings.js'
 import VisualizerEffectsPanel from './VisualizerEffectsPanel.vue'
 import ColorField from './ui/ColorField.vue'
-import UiSegmentedControl from './ui/UiSegmentedControl.vue'
+import { UiButton, UiIconButton, UiSegmentedControl, UiSelect, UiSwitch } from './ui/index.js'
 import { visualizerShapeOptions } from '../lib/visualizers/core/visualizerShape.js'
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../lib/i18n.js'
@@ -422,11 +429,28 @@ function deleteLayerPreset(preset) {
   }
 }
 
-// Blend modes
-const blendModes = BLEND_MODES
 const shapeOptions = computed(() => visualizerShapeOptions(t))
 const levelSources = REACT_SOURCES.filter((s) => !s.endsWith('Onset'))
 const onsetSources = REACT_SOURCES.filter((s) => s.endsWith('Onset'))
+
+// Optionen für die UiSelects: Visualizer nach Kategorie gruppiert, Mischmodi,
+// Reaktionsquellen (Pegel direkt, Onsets als Gruppe)
+const visualizerOptions = computed(() =>
+  Object.entries(store.categorizedVisualizers).map(([category, visualizers]) => ({
+    label: getCategoryName(category),
+    options: visualizers.map((v) => ({ value: v.id, label: v.name })),
+  })),
+)
+const blendModeOptions = computed(() =>
+  BLEND_MODES.map((mode) => ({ value: mode.id, label: getBlendModeName(mode) })),
+)
+const reactSourceOptions = computed(() => [
+  ...levelSources.map((src) => ({ value: src, label: t(`visualizer.reactSource.${src}`) })),
+  {
+    label: t('visualizer.reactSource.onsetGroup'),
+    options: onsetSources.map((src) => ({ value: src, label: t(`visualizer.reactSource.${src}`) })),
+  },
+])
 
 // Auswahl für neuen Layer (Standard: aktuell ausgewählter Visualizer)
 const newLayerVisualizerId = ref(store.selectedVisualizer || 'bars')
@@ -505,10 +529,6 @@ function getVisualizerName(visualizerId) {
 
 function getBlendModeName(mode) {
   return locale.value === 'en' ? mode.name_en : mode.name_de
-}
-
-function toggleMultiLayerMode() {
-  store.setMultiLayerMode(!store.multiLayerMode)
 }
 
 function addNewLayer() {
@@ -645,13 +665,6 @@ function updateProperty(layerId, property, value) {
 .preset-name-input::placeholder {
   color: var(--text-muted);
 }
-.save-preset-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.save-preset-btn:disabled:hover {
-  background-color: var(--accent-primary);
-}
 .preset-list {
   list-style: none;
   margin: 0;
@@ -743,43 +756,6 @@ function updateProperty(layerId, property, value) {
   margin-bottom: 10px;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.header-title {
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.toggle-btn {
-  background-color: var(--secondary-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  padding: 4px 10px;
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  font-weight: var(--ds-weight-medium);
-}
-
-.toggle-btn:hover {
-  background-color: var(--btn-hover);
-  border-color: var(--accent-primary);
-}
-
-.toggle-btn.active {
-  background-color: var(--accent-primary);
-  color: var(--accent-text);
-  border-color: var(--accent-primary);
-}
-
 .layer-content {
   display: flex;
   flex-direction: column;
@@ -788,56 +764,14 @@ function updateProperty(layerId, property, value) {
 
 .add-layer-section {
   display: flex;
+  align-items: center;
   gap: 6px;
   margin-bottom: 8px;
 }
 
-.add-layer-select {
+.add-layer-section > :first-child {
   flex: 1;
-  background-color: var(--secondary-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  padding: 6px 8px;
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
   min-width: 0;
-}
-
-.add-layer-select:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-}
-
-.add-layer-select optgroup {
-  font-weight: var(--ds-weight-semibold);
-  color: var(--text-muted);
-}
-
-.add-layer-select option {
-  background-color: var(--card-bg);
-  color: var(--text-primary);
-}
-
-.add-layer-btn {
-  background-color: var(--accent-primary);
-  color: var(--accent-text);
-  border: none;
-  border-radius: var(--ds-radius-sm);
-  padding: 6px 12px;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  white-space: nowrap;
-}
-
-.add-layer-btn:hover {
-  background-color: var(--accent-tertiary);
 }
 
 .layer-list {
@@ -885,26 +819,6 @@ function updateProperty(layerId, property, value) {
   gap: 6px;
 }
 
-.visibility-btn {
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  color: var(--text-muted);
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.2px;
-  padding: 2px 5px;
-  transition: all var(--ds-duration) var(--ds-ease);
-  flex-shrink: 0;
-}
-
-.visibility-btn:hover {
-  border-color: var(--accent-primary);
-  color: var(--text-primary);
-}
-
 .layer-color {
   width: 14px;
   height: 14px;
@@ -927,56 +841,15 @@ function updateProperty(layerId, property, value) {
   gap: 2px;
 }
 
-.action-btn {
-  background-color: var(--card-bg);
-  color: var(--text-muted);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.2px;
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Rein per CSS gezeichnete Pfeile (kein Glyph/Emoji) */
-.caret-up,
 .caret-down {
   width: 5px;
   height: 5px;
   border-right: 1.5px solid currentColor;
   border-bottom: 1.5px solid currentColor;
 }
-.caret-up {
-  transform: rotate(-135deg);
-  margin-top: 2px;
-}
 .caret-down {
   transform: rotate(45deg);
   margin-bottom: 2px;
-}
-
-.action-btn:hover:not(:disabled) {
-  background-color: var(--accent-primary);
-  color: var(--accent-text);
-  border-color: var(--accent-primary);
-}
-
-.action-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.delete-btn:hover:not(:disabled) {
-  background-color: var(--ds-danger);
-  border-color: var(--ds-danger);
 }
 
 .layer-details {
@@ -1007,21 +880,6 @@ function updateProperty(layerId, property, value) {
 .detail-shape :deep(.ui-segmented__option) {
   flex: 1 1 0;
   min-width: 0;
-}
-
-.detail-select {
-  background-color: var(--secondary-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  padding: 4px 6px;
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-}
-
-.detail-select:focus {
-  outline: none;
-  border-color: var(--accent-primary);
 }
 
 .detail-color {
@@ -1130,18 +988,6 @@ function updateProperty(layerId, property, value) {
   border-color: var(--border-color);
 }
 
-[data-theme='light'] .toggle-btn {
-  border-color: var(--border-color);
-}
-
-[data-theme='light'] .add-layer-select {
-  border-color: var(--border-color);
-}
-
-[data-theme='light'] .add-layer-btn:hover {
-  background-color: var(--accent-primary);
-}
-
 [data-theme='light'] .layer-item {
   border-color: var(--border-color);
 }
@@ -1150,16 +996,8 @@ function updateProperty(layerId, property, value) {
   border-color: var(--ds-border);
 }
 
-[data-theme='light'] .action-btn {
-  border-color: var(--border-color);
-}
-
 [data-theme='light'] .layer-details {
   border-top-color: var(--border-color);
-}
-
-[data-theme='light'] .detail-select {
-  border-color: var(--border-color);
 }
 
 [data-theme='light'] .detail-color {

@@ -1219,6 +1219,7 @@ export default {
     layerPresetSaved: 'Layer-Preset gespeichert',
     layerPresetNoLayers: 'Keine Layer vorhanden – zuerst Layer hinzufügen',
     hideLayer: 'Layer ausblenden',
+    layerVisible: 'Ebene sichtbar',
     showLayer: 'Layer einblenden',
     blendMode: 'Mischmodus',
     layerEffects: 'Effekte dieses Layers',

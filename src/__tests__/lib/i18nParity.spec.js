@@ -386,3 +386,11 @@ describe('i18n – Formular für neue Texte ohne fest verdrahtete Texte', () => 
     expect(read('composables/useTextFonts.js')).not.toMatch(/Custom Fonts|createElement/)
   })
 })
+
+describe('i18n – Text-Audio-Reaktiv ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte und ohne Emoji an Knöpfen', () => {
+    const src = read('components/text-manager/TextAudioReactivePanel.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/[⚡🌊🎭🔥🔄]/u)
+  })
+})

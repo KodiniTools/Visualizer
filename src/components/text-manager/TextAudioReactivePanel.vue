@@ -44,61 +44,29 @@
         <div class="control-group">
           <label>{{ t('textManager.reactionPresets') }}:</label>
           <div class="preset-buttons">
-            <button
+            <UiButton
               v-for="preset in REACTION_PRESETS"
               :key="preset.id"
-              class="btn-preset"
+              size="sm"
               :title="t(preset.titleKey)"
               @click="applyAudioPreset(preset.id)"
             >
-              {{ preset.icon }} {{ t(preset.labelKey) }}
-            </button>
+              {{ t(preset.labelKey) }}
+            </UiButton>
           </div>
         </div>
 
-        <div class="control-group">
-          <label>
-            {{ t('textManager.threshold') }}: {{ selectedText.audioReactive.threshold || 0 }}%
-          </label>
-          <input
-            type="range"
-            :value="selectedText.audioReactive.threshold || 0"
-            min="0"
-            max="50"
+        <div v-for="field in REACTION_FIELDS" :key="field.key" class="control-group">
+          <label>{{ t(field.label) }}: {{ reactionValue(field) }}%</label>
+          <SliderField
+            :model-value="reactionValue(field)"
+            :min="field.min"
+            :max="field.max"
+            :default-value="field.fallback"
             class="slider"
-            @input="setAudioProperty('threshold', parseInt($event.target.value))"
+            @update:model-value="(v) => setAudioProperty(field.key, v)"
           />
-          <div class="hint-text">{{ t('textManager.thresholdHint') }}</div>
-        </div>
-
-        <div class="control-group">
-          <label>
-            {{ t('textManager.attack') }}: {{ selectedText.audioReactive.attack ?? 90 }}%
-          </label>
-          <input
-            type="range"
-            :value="selectedText.audioReactive.attack ?? 90"
-            min="10"
-            max="100"
-            class="slider"
-            @input="setAudioProperty('attack', parseInt($event.target.value))"
-          />
-          <div class="hint-text">{{ t('textManager.attackHint') }}</div>
-        </div>
-
-        <div class="control-group">
-          <label>
-            {{ t('textManager.release') }}: {{ selectedText.audioReactive.release ?? 50 }}%
-          </label>
-          <input
-            type="range"
-            :value="selectedText.audioReactive.release ?? 50"
-            min="10"
-            max="100"
-            class="slider"
-            @input="setAudioProperty('release', parseInt($event.target.value))"
-          />
-          <div class="hint-text">{{ t('textManager.releaseHint') }}</div>
+          <div class="hint-text">{{ t(field.hint) }}</div>
         </div>
 
         <!-- Blinken: Minimum + Ease-Kurve (nur wenn der Effekt aktiv ist) -->
@@ -108,34 +76,31 @@
               {{ t('textManager.blink') }} – {{ t('textManager.minimum') }}:
               {{ selectedText.audioReactive.effects.opacity.minimum || 0 }}%
             </label>
-            <input
-              type="range"
-              :value="selectedText.audioReactive.effects.opacity.minimum || 0"
-              min="0"
-              max="90"
+            <SliderField
+              :model-value="selectedText.audioReactive.effects.opacity.minimum || 0"
+              :min="0"
+              :max="90"
+              :default-value="0"
               class="slider"
-              @input="setOpacityOption('minimum', parseInt($event.target.value))"
+              @update:model-value="(v) => setOpacityOption('minimum', v)"
             />
           </div>
           <div class="control-group">
-            <label class="effect-checkbox-small">
-              <input
-                type="checkbox"
-                :checked="selectedText.audioReactive.effects.opacity.ease"
-                @change="setOpacityOption('ease', $event.target.checked)"
-              />
-              {{ t('textManager.easeCurve') }}
-            </label>
+            <UiSwitch
+              :model-value="Boolean(selectedText.audioReactive.effects.opacity.ease)"
+              :label="t('textManager.easeCurve')"
+              @update:model-value="(v) => setOpacityOption('ease', v)"
+            />
           </div>
         </template>
 
         <div class="button-group">
-          <button class="btn-reset" @click="resetAudioSettings">
-            🔄 {{ t('textManager.reset') }}
-          </button>
-          <button class="btn-reset" @click="resetAllAudioEffects">
-            🔄 {{ t('textManager.resetAllEffects') }}
-          </button>
+          <UiButton variant="ghost" size="sm" @click="resetAudioSettings">
+            {{ t('textManager.reset') }}
+          </UiButton>
+          <UiButton variant="ghost" size="sm" @click="resetAllAudioEffects">
+            {{ t('textManager.resetAllEffects') }}
+          </UiButton>
         </div>
       </details>
 
@@ -151,9 +116,14 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, toRef, wat
 import { useI18n } from '../../lib/i18n.js'
 import { useToastStore } from '../../stores/toastStore.js'
 import { useAudioReactiveText } from '../../composables/useAudioReactiveText.js'
-import { TEXT_SHARED_EFFECT_NAMES } from '../../lib/audio/audioReactiveConfig.js'
+import {
+  TEXT_REACTION_DEFAULTS,
+  TEXT_SHARED_EFFECT_NAMES,
+} from '../../lib/audio/audioReactiveConfig.js'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
 import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+import SliderField from '../ui/SliderField.vue'
+import { UiButton, UiSwitch } from '../ui/index.js'
 
 const props = defineProps({
   selectedText: {
@@ -208,31 +178,38 @@ const extraCategories = computed(() => [
 ])
 
 const REACTION_PRESETS = [
-  {
-    id: 'punchy',
-    icon: '⚡',
-    labelKey: 'textManager.presetPunchy',
-    titleKey: 'textManager.presetPunchyTitle',
-  },
-  {
-    id: 'smooth',
-    icon: '🌊',
-    labelKey: 'textManager.presetSmooth',
-    titleKey: 'textManager.presetSmoothTitle',
-  },
-  {
-    id: 'subtle',
-    icon: '🎭',
-    labelKey: 'textManager.presetSubtle',
-    titleKey: 'textManager.presetSubtleTitle',
-  },
+  { id: 'punchy', labelKey: 'textManager.presetPunchy', titleKey: 'textManager.presetPunchyTitle' },
+  { id: 'smooth', labelKey: 'textManager.presetSmooth', titleKey: 'textManager.presetSmoothTitle' },
+  { id: 'subtle', labelKey: 'textManager.presetSubtle', titleKey: 'textManager.presetSubtleTitle' },
   {
     id: 'extreme',
-    icon: '🔥',
     labelKey: 'textManager.presetExtreme',
     titleKey: 'textManager.presetExtremeTitle',
   },
 ]
+
+// Schwellenwert/Attack/Release: Bereich, Standard (Reset-Knopf) und Hinweis
+const REACTION_FIELDS = [
+  {
+    key: 'threshold',
+    min: 0,
+    max: 50,
+    label: 'textManager.threshold',
+    hint: 'textManager.thresholdHint',
+  },
+  { key: 'attack', min: 10, max: 100, label: 'textManager.attack', hint: 'textManager.attackHint' },
+  {
+    key: 'release',
+    min: 10,
+    max: 100,
+    label: 'textManager.release',
+    hint: 'textManager.releaseHint',
+  },
+].map((field) => ({ ...field, fallback: TEXT_REACTION_DEFAULTS[field.key] }))
+
+function reactionValue(field) {
+  return props.selectedText.audioReactive?.[field.key] ?? field.fallback
+}
 
 function setOpacityOption(key, value) {
   const cfg = ensureConfig()
@@ -371,43 +348,10 @@ onBeforeUnmount(stopLevelIndicator)
   gap: 4px;
   margin-top: 4px;
 }
-.btn-preset {
-  padding: 5px 6px;
-  font-size: var(--ds-text-xs);
-  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.btn-preset:hover {
-  background: color-mix(in srgb, var(--ds-link) 30%, transparent);
-}
-.effect-checkbox-small {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-}
 .button-group {
   display: flex;
   gap: 6px;
   margin-top: 10px;
-}
-.btn-reset {
-  flex: 1;
-  padding: 5px 6px;
-  font-size: var(--ds-text-xs);
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  cursor: pointer;
-}
-.btn-reset:hover {
-  border-color: var(--accent-primary);
 }
 .hint-text {
   font-size: var(--ds-text-xs);

@@ -17,9 +17,9 @@ export function useTextFonts(
   canvasManager,
   fontManager,
   _fontSelectRef, // ungenutzt: Bearbeiten-Modus nutzt fontOptions
-  newTextFontSelectRef,
+  _newTextFontSelectRef, // ungenutzt: Formular nutzt newTextFontOptions
   selectedText,
-  newTextStyle,
+  _newTextStyle, // ungenutzt (frühere DOM-Befüllung)
 ) {
   const { t } = useI18n()
 
@@ -59,49 +59,28 @@ export function useTextFonts(
       : []
   }
 
-  // ✨ Befülle das Font-Dropdown im Eingabemodus mit System + Custom Fonts
+  // Schriftwahl im Formular für neue Texte: Systemschriften, dann eigene.
+  // populateNewTextFontDropdown() frischt nach geladenen Fonts auf.
   function populateNewTextFontDropdown() {
-    if (!newTextFontSelectRef.value) {
-      return
-    }
-
-    // Leere das Dropdown
-    newTextFontSelectRef.value.innerHTML = ''
-
-    const systemFonts = SYSTEM_FONTS
-    const customFonts = loadedCustomFonts()
-
-    // 1️⃣ System Fonts
-    systemFonts.forEach((fontName) => {
-      const option = document.createElement('option')
-      option.value = fontName
-      option.textContent = fontName
-      option.style.fontFamily = fontName
-      newTextFontSelectRef.value.appendChild(option)
-    })
-
-    // 2️⃣ Custom Fonts (mit Separator, falls vorhanden)
-    if (customFonts.length > 0) {
-      const separator = document.createElement('option')
-      separator.disabled = true
-      separator.textContent = '── Custom Fonts ──'
-      newTextFontSelectRef.value.appendChild(separator)
-
-      customFonts.forEach((fontName) => {
-        const option = document.createElement('option')
-        option.value = fontName
-        option.textContent = fontName
-        option.style.fontFamily = fontName
-        newTextFontSelectRef.value.appendChild(option)
-      })
-    }
-
-    // Setze den Wert auf die aktuelle Auswahl
-    newTextFontSelectRef.value.value = newTextStyle.value.fontFamily
+    fontRevision.value++
   }
+
+  const newTextFontOptions = computed(() => {
+    void fontRevision.value
+    const toOption = (name) => ({ value: name, label: name, style: { fontFamily: name } })
+    const groups = [
+      { label: t('textManager.fontGroups.system'), options: SYSTEM_FONTS.map(toOption) },
+    ]
+    const custom = loadedCustomFonts()
+    if (custom.length > 0) {
+      groups.push({ label: t('textManager.fontGroups.custom'), options: custom.map(toOption) })
+    }
+    return groups
+  })
 
   return {
     fontOptions,
+    newTextFontOptions,
     populateFontDropdown,
     populateNewTextFontDropdown,
   }

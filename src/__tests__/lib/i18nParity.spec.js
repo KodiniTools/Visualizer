@@ -370,3 +370,19 @@ describe('i18n – Text-Editor ohne fest verdrahtete Texte', () => {
     expect(read('composables/useTextFonts.js')).not.toMatch(/\(aktuell\)/)
   })
 })
+
+describe('i18n – Formular für neue Texte ohne fest verdrahtete Texte', () => {
+  it('Vorlagen ohne feste Texte, Sprachweichen und Emoji', () => {
+    for (const file of [
+      'components/text-manager/TextNewForm.vue',
+      'components/text-manager/text-new-form/TextStyleSection.vue',
+      'components/text-manager/text-new-form/PositionSection.vue',
+    ]) {
+      const src = read(file)
+      expect(hardcodedTemplateText(src), file).toEqual([])
+      expect(src, file).not.toMatch(/locale === 'de'/)
+      expect(src.split('<script')[0], file).not.toMatch(/[💾🔄📐🖱]/u)
+    }
+    expect(read('composables/useTextFonts.js')).not.toMatch(/Custom Fonts|createElement/)
+  })
+})

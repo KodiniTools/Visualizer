@@ -3,21 +3,18 @@
   <div v-if="isAddingNewText" class="panel-section">
     <h4>{{ t('textManager.createNewText') }}</h4>
 
-    <div class="control-group">
-      <label>{{ t('textManager.enterText') }}:</label>
-      <textarea
-        ref="newTextInput"
+    <div class="control-group new-text-content">
+      <UiTextArea
+        :ref="bindNewTextInput"
         v-model="newTextContent"
-        class="text-area"
+        :label="t('textManager.enterText')"
         :placeholder="t('textManager.textPlaceholder')"
-        rows="8"
+        :hint="t('textManager.browserTextTip')"
+        :rows="8"
         @keydown.esc="cancelNewText"
         @paste="handlePasteForNewText"
-      ></textarea>
+      />
       <div class="hint-text">
-        {{ t('textManager.browserTextTip') }}
-      </div>
-      <div class="hint-text" style="margin-top: 4px">
         {{ t('textManager.notepadTip') }}
       </div>
       <div v-if="newTextContent.includes('\n')" class="success-hint">
@@ -34,14 +31,14 @@
 
     <!-- Einfach hinzufügen: Text ohne Animation/Effekt zum Canvas -->
     <div class="control-group add-plain-group">
-      <button
-        class="btn-primary full-width"
+      <UiButton
+        block
         :disabled="!newTextContent.trim()"
         :title="t('textManager.addToCanvasPlainTitle')"
         @click="createNewText(NO_ANIMATION)"
       >
         {{ t('textManager.addToCanvasPlain') }}
-      </button>
+      </UiButton>
     </div>
 
     <TypewriterSection
@@ -85,39 +82,46 @@
     </div>
 
     <div class="button-row">
-      <button
-        class="btn-primary"
+      <UiButton
+        variant="primary"
         :disabled="!newTextContent.trim()"
         @click="createNewText(NO_ANIMATION)"
       >
         {{ t('textManager.addToCanvasPlain') }}
-      </button>
-      <button
+      </UiButton>
+      <UiButton
         v-if="newTextContent && !newTextContent.includes('\n') && newTextContent.length > 60"
-        class="btn-secondary"
         :title="t('textManager.autoWrapTitle')"
         @click="autoWrapText"
       >
         {{ t('textManager.autoWrap') }}
-      </button>
-      <button class="btn-secondary" @click="cancelNewText">
+      </UiButton>
+      <UiButton variant="ghost" @click="cancelNewText">
         {{ t('textManager.cancel') }}
-      </button>
+      </UiButton>
     </div>
   </div>
 
   <!-- Normal: Button zum Hinzufügen -->
-  <div v-else class="panel-section">
-    <button class="btn-primary full-width" @click="startAddingText">
+  <div v-else class="panel-section start-actions">
+    <UiButton variant="primary" block class="btn-start-text" @click="startAddingText">
       {{ t('textManager.addNewText') }}
-    </button>
-    <button
-      class="btn-selection full-width"
-      style="margin-top: 8px"
-      @click="startAddingTextWithSelection"
-    >
-      🖱️ {{ t('textManager.addWithArea') }}
-    </button>
+    </UiButton>
+    <UiButton block @click="startAddingTextWithSelection">
+      <template #icon>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-dasharray="3 3"
+          aria-hidden="true"
+        >
+          <rect x="4" y="4" width="16" height="16" rx="1" />
+        </svg>
+      </template>
+      {{ t('textManager.addWithArea') }}
+    </UiButton>
   </div>
 </template>
 
@@ -133,6 +137,7 @@ import FadeSection from './text-new-form/FadeSection.vue'
 import ScaleSection from './text-new-form/ScaleSection.vue'
 import SlideSection from './text-new-form/SlideSection.vue'
 import PositionSection from './text-new-form/PositionSection.vue'
+import { UiButton, UiTextArea } from '../ui/index.js'
 
 const { t } = useI18n()
 const toastStore = useToastStore()
@@ -143,6 +148,10 @@ const emit = defineEmits(['created', 'cancel'])
 const isAddingNewText = ref(false)
 const newTextContent = ref('')
 const newTextInput = ref(null)
+// Fokus beim Öffnen: das <textarea> aus UiTextArea
+function bindNewTextInput(component) {
+  newTextInput.value = component?.textarea ?? null
+}
 const styleSectionRef = ref(null)
 
 const {
@@ -396,3 +405,21 @@ function autoWrapText() {
 </script>
 
 <style scoped src="./text-new-form/textFormStyles.css"></style>
+<style scoped>
+.new-text-content :deep(.ui-textarea__label) {
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: var(--ds-weight-medium);
+}
+.new-text-content :deep(.ui-textarea__input) {
+  line-height: 1.5;
+  font-family: var(--ds-font-mono);
+}
+.start-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+</style>

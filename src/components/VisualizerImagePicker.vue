@@ -1,31 +1,21 @@
 <template>
   <div class="image-picker">
-    <select class="image-select" :value="modelValue || ''" @change="onSelect($event.target.value)">
-      <option value="">{{ t('visualizer.image.auto') }}</option>
-      <optgroup v-if="uploads.length" :label="t('visualizer.image.uploads')">
-        <option v-for="img in uploads" :key="img.id" :value="img.id">{{ img.name }}</option>
-      </optgroup>
-      <optgroup v-if="canvasImages.length" :label="t('visualizer.image.fromCanvas')">
-        <option v-for="img in canvasImages" :key="img.id" :value="img.id">{{ img.name }}</option>
-      </optgroup>
-      <optgroup v-if="galleryImages.length" :label="t('visualizer.image.fromGallery')">
-        <option v-for="img in galleryImages" :key="img.id" :value="img.id">{{ img.name }}</option>
-      </optgroup>
-    </select>
+    <UiSelect
+      v-model="selected"
+      :options="options"
+      :label="t('visualizer.image.label')"
+      label-hidden
+      size="sm"
+    />
     <div class="image-actions">
-      <button type="button" class="image-btn" @click="fileInput?.click()">
+      <UiButton variant="primary" size="sm" @click="fileInput?.click()">
         {{ t('visualizer.image.upload') }}
-      </button>
-      <button
-        v-if="modelValue"
-        type="button"
-        class="image-btn image-btn-secondary"
-        @click="onSelect('')"
-      >
+      </UiButton>
+      <UiButton v-if="modelValue" size="sm" @click="onSelect('')">
         {{ t('visualizer.image.remove') }}
-      </button>
-      <input ref="fileInput" type="file" accept="image/*" class="image-file" @change="onFile" />
+      </UiButton>
     </div>
+    <input ref="fileInput" type="file" accept="image/*" class="image-file" @change="onFile" />
     <span class="image-hint">{{ t('visualizer.image.hint') }}</span>
   </div>
 </template>
@@ -40,8 +30,9 @@ import {
   registerGalleryImage,
 } from '../lib/visualizers/imageRegistry.js'
 import { useImageGallery } from '../composables/useImageGallery.js'
+import { UiButton, UiSelect } from './ui/index.js'
 
-defineProps({ modelValue: { type: String, default: null } })
+const props = defineProps({ modelValue: { type: String, default: null } })
 const emit = defineEmits(['update:modelValue'])
 const { t } = useI18n()
 const fileInput = ref(null)
@@ -74,6 +65,25 @@ const galleryImages = computed(() =>
     .filter(Boolean),
 )
 
+/** Optionen für UiSelect: „Automatisch“ plus je Quelle eine Gruppe (nur wenn befüllt). */
+const options = computed(() => {
+  const group = (label, list) =>
+    list.length
+      ? [{ label, options: list.map(({ id, name }) => ({ value: id, label: name })) }]
+      : []
+  return [
+    { value: '', label: t('visualizer.image.auto') },
+    ...group(t('visualizer.image.uploads'), uploads.value),
+    ...group(t('visualizer.image.fromCanvas'), canvasImages.value),
+    ...group(t('visualizer.image.fromGallery'), galleryImages.value),
+  ]
+})
+
+const selected = computed({
+  get: () => props.modelValue || '',
+  set: (id) => onSelect(id),
+})
+
 function onSelect(id) {
   emit('update:modelValue', id || null)
 }
@@ -98,38 +108,12 @@ async function onFile(event) {
   flex-direction: column;
   gap: 6px;
 }
-.image-select {
-  width: 100%;
-  background-color: var(--secondary-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  padding: 4px 6px;
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-}
-.image-select:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-}
 .image-actions {
   display: flex;
   gap: 6px;
 }
-.image-btn {
-  flex: 1;
-  background-color: var(--accent-primary);
-  color: var(--accent-text);
-  border: 1px solid var(--accent-primary);
-  border-radius: var(--ds-radius-sm);
-  padding: 4px 6px;
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-}
-.image-btn-secondary {
-  background-color: transparent;
-  color: var(--text-primary);
-  border-color: var(--border-color);
+.image-actions > * {
+  flex: 1 1 0;
 }
 .image-file {
   display: none;

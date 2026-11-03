@@ -122,4 +122,9 @@ defineProps({
   border-color: var(--ds-accent);
   color: var(--ds-accent);
 }
+
+/* Gedrückt auf Primärfläche: Symbol bleibt lesbar */
+.ui-icon-button--primary.ui-icon-button--pressed {
+  color: var(--ds-on-accent);
+}
 </style>

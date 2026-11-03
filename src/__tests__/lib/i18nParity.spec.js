@@ -394,3 +394,11 @@ describe('i18n – Text-Audio-Reaktiv ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/[⚡🌊🎭🔥🔄]/u)
   })
 })
+
+describe('i18n – Ebenen-Panel ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte und ohne deutsche Rückfallwerte', () => {
+    const src = read('components/VisualizerLayerPanel.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/\|\| '[^']+'\s*\}\}/)
+  })
+})

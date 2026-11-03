@@ -98,6 +98,7 @@ weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.
 | Text-Editor (Inhalt, Position)   | `UiTextArea` (stellt `textarea` bereit), Schrift `UiSelect` sm mit Gruppen, B/I `UiIconButton` pressed, Ausrichtung `UiSegmentedControl`, Aktionen `UiButton`                                                                                        |
 | Neuer Text (Formular)            | `UiTextArea`, Schrift `UiSelect` (`newTextFontOptions`), Auto-Fit `UiSwitch`, B/I, Ausrichtung und Raster wie im Editor, Aktionen `UiButton`                                                                                                         |
 | Text-Audio-Reaktiv (Text-Extras) | Reaktions-Presets `UiButton` sm, Schwelle/Attack/Release/Minimum `SliderField` mit Standardwert, Ease `UiSwitch`, Zurücksetzen ghost                                                                                                                 |
+| Visualizer-Ebenen (Multi-Layer)  | Multi-Layer und Sichtbarkeit `UiSwitch`, Visualizer/Mischmodus/Quelle `UiSelect` sm, Reihenfolge/Duplizieren `UiIconButton`, Löschen danger                                                                                                          |
 
 ## Regeln
 

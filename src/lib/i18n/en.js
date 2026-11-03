@@ -1217,6 +1217,7 @@ export default {
     layerPresetSaved: 'Layer preset saved',
     layerPresetNoLayers: 'No layers available – add a layer first',
     hideLayer: 'Hide layer',
+    layerVisible: 'Layer visible',
     showLayer: 'Show layer',
     blendMode: 'Blend Mode',
     layerEffects: 'Effects for this layer',

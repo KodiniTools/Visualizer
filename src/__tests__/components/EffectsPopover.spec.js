@@ -48,8 +48,8 @@ describe('EffectsPopover', () => {
     const store = useVisualizerStore()
     const before = store.bloomEnabled
 
-    const bloom = wrapper.findAll('.fx-toggle input[type="checkbox"]')[0]
-    await bloom.setValue(!before)
+    const bloom = wrapper.findAll('.fx-toggle [role="switch"]')[0]
+    await bloom.trigger('click')
     expect(store.bloomEnabled).toBe(!before)
   })
 })

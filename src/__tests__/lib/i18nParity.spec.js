@@ -349,3 +349,11 @@ describe('i18n – Recorder-Steuerknöpfe ohne fest verdrahtete Texte', () => {
     ).toEqual([])
   })
 })
+
+describe('i18n – Visualizer-Effekte ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte und ohne lokale Sprachtabelle', () => {
+    const src = read('components/VisualizerEffectsPanel.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/LABELS|locale\.value === 'en'/)
+  })
+})

@@ -1,37 +1,37 @@
 <template>
   <div class="fx-section">
     <div v-if="!layerId" class="fx-header">
-      <span class="section-label">{{ L.title }}</span>
+      <span class="section-label">{{ t('visualizer.postFx.title') }}</span>
     </div>
 
     <!-- Bloom / Glow -->
     <div class="fx-row">
-      <label class="fx-toggle">
-        <input
-          type="checkbox"
-          :checked="fx.bloomEnabled"
-          @change="set('bloomEnabled', $event.target.checked)"
-        />
-        <span>{{ L.bloom }}</span>
-      </label>
+      <UiSwitch
+        :model-value="fx.bloomEnabled"
+        class="fx-toggle"
+        :label="t('visualizer.postFx.bloom')"
+        @update:model-value="set('bloomEnabled', $event)"
+      />
     </div>
 
     <div v-if="fx.bloomEnabled" class="fx-sub">
       <div class="fx-control">
-        <span class="control-label">{{ L.strength }}: {{ fx.bloomStrength.toFixed(2) }}</span>
+        <span class="control-label"
+          >{{ t('visualizer.postFx.strength') }}: {{ fx.bloomStrength.toFixed(2) }}</span
+        >
         <SliderField
           :min="0"
           :max="2"
           :step="0.05"
           :default-value="0.55"
           :model-value="fx.bloomStrength"
-          @update:model-value="set('bloomStrength', $event)"
           class="slider fx-slider"
+          @update:model-value="set('bloomStrength', $event)"
         />
       </div>
       <div class="fx-control">
         <span class="control-label"
-          >{{ L.threshold }}: {{ Math.round(fx.bloomThreshold * 100) }}%</span
+          >{{ t('visualizer.postFx.threshold') }}: {{ Math.round(fx.bloomThreshold * 100) }}%</span
         >
         <SliderField
           :min="0"
@@ -39,40 +39,40 @@
           :step="0.01"
           :default-value="0.35"
           :model-value="fx.bloomThreshold"
-          @update:model-value="set('bloomThreshold', $event)"
           class="slider fx-slider"
+          @update:model-value="set('bloomThreshold', $event)"
         />
       </div>
       <div class="fx-control">
-        <span class="control-label">{{ L.radius }}: {{ fx.bloomRadius }}px</span>
+        <span class="control-label"
+          >{{ t('visualizer.postFx.radius') }}: {{ fx.bloomRadius }}px</span
+        >
         <SliderField
           :min="1"
           :max="32"
           :step="1"
           :default-value="8"
           :model-value="fx.bloomRadius"
-          @update:model-value="set('bloomRadius', $event)"
           class="slider fx-slider"
+          @update:model-value="set('bloomRadius', $event)"
         />
       </div>
     </div>
 
     <!-- Trails / Afterimages -->
     <div class="fx-row">
-      <label class="fx-toggle">
-        <input
-          type="checkbox"
-          :checked="fx.trailsEnabled"
-          @change="set('trailsEnabled', $event.target.checked)"
-        />
-        <span>{{ L.trails }}</span>
-      </label>
+      <UiSwitch
+        :model-value="fx.trailsEnabled"
+        class="fx-toggle"
+        :label="t('visualizer.postFx.trails')"
+        @update:model-value="set('trailsEnabled', $event)"
+      />
     </div>
 
     <div v-if="fx.trailsEnabled" class="fx-sub">
       <div class="fx-control">
         <span class="control-label"
-          >{{ L.trailLength }}: {{ Math.round(fx.trailsDecay * 100) }}%</span
+          >{{ t('visualizer.postFx.trailLength') }}: {{ Math.round(fx.trailsDecay * 100) }}%</span
         >
         <SliderField
           :min="0"
@@ -80,111 +80,111 @@
           :step="0.01"
           :default-value="0.85"
           :model-value="fx.trailsDecay"
-          @update:model-value="set('trailsDecay', $event)"
           class="slider fx-slider"
+          @update:model-value="set('trailsDecay', $event)"
         />
       </div>
     </div>
 
     <!-- Beat-Punch (global onset zoom) -->
     <div class="fx-row">
-      <label class="fx-toggle">
-        <input
-          type="checkbox"
-          :checked="fx.beatPunchEnabled"
-          @change="set('beatPunchEnabled', $event.target.checked)"
-        />
-        <span>{{ L.beatPunch }}</span>
-      </label>
-      <span class="fx-hint">{{ L.beatPunchHint }}</span>
+      <UiSwitch
+        :model-value="fx.beatPunchEnabled"
+        class="fx-toggle"
+        :label="t('visualizer.postFx.beatPunch')"
+        @update:model-value="set('beatPunchEnabled', $event)"
+      />
+      <span class="fx-hint">{{ t('visualizer.postFx.beatPunchHint') }}</span>
     </div>
 
     <div v-if="fx.beatPunchEnabled" class="fx-sub">
       <div class="fx-control">
-        <span class="control-label">{{ L.punchSource }}</span>
-        <select
-          :value="fx.beatPunchSource"
-          @change="set('beatPunchSource', $event.target.value)"
-          class="fx-select"
-        >
-          <option value="bass">{{ L.bass }}</option>
-          <option value="mid">{{ L.mid }}</option>
-          <option value="treble">{{ L.treble }}</option>
-          <option value="all">{{ L.all }}</option>
-        </select>
+        <span class="control-label" aria-hidden="true">{{
+          t('visualizer.postFx.punchSource')
+        }}</span>
+        <UiSegmentedControl
+          :model-value="fx.beatPunchSource"
+          :options="sourceOptions"
+          :label="t('visualizer.postFx.punchSource')"
+          size="sm"
+          @update:model-value="set('beatPunchSource', $event)"
+        />
       </div>
       <div class="fx-control">
-        <span class="control-label">{{ L.strength }}: {{ fx.beatPunchStrength }}%</span>
+        <span class="control-label"
+          >{{ t('visualizer.postFx.strength') }}: {{ fx.beatPunchStrength }}%</span
+        >
         <SliderField
           :min="0"
           :max="100"
           :step="5"
           :default-value="50"
           :model-value="fx.beatPunchStrength"
-          @update:model-value="set('beatPunchStrength', $event)"
           class="slider fx-slider"
+          @update:model-value="set('beatPunchStrength', $event)"
         />
       </div>
       <div class="fx-control">
-        <span class="control-label">{{ L.variation }}: {{ store.beatPunchVariation }}%</span>
+        <span class="control-label"
+          >{{ t('visualizer.postFx.variation') }}: {{ store.beatPunchVariation }}%</span
+        >
         <SliderField
           :min="0"
           :max="100"
           :step="5"
           :default-value="0"
           :model-value="store.beatPunchVariation"
-          @update:model-value="store.setBeatPunchVariation($event)"
           class="slider fx-slider"
+          @update:model-value="store.setBeatPunchVariation($event)"
         />
-        <span class="fx-hint">{{ L.variationHint }}</span>
+        <span class="fx-hint">{{ t('visualizer.postFx.variationHint') }}</span>
       </div>
     </div>
 
     <!-- Onset flourishes (beat-triggered effects in flagship visualizers) -->
     <div class="fx-row">
-      <label class="fx-toggle">
-        <input
-          type="checkbox"
-          :checked="fx.onsetFlourishEnabled"
-          @change="set('onsetFlourishEnabled', $event.target.checked)"
-        />
-        <span>{{ L.onsetFx }}</span>
-      </label>
-      <span class="fx-hint">{{ L.onsetFxHint }}</span>
+      <UiSwitch
+        :model-value="fx.onsetFlourishEnabled"
+        class="fx-toggle"
+        :label="t('visualizer.postFx.onsetFx')"
+        @update:model-value="set('onsetFlourishEnabled', $event)"
+      />
+      <span class="fx-hint">{{ t('visualizer.postFx.onsetFxHint') }}</span>
     </div>
 
     <div v-if="fx.onsetFlourishEnabled" class="fx-sub">
       <div class="fx-control">
-        <span class="control-label">{{ L.strength }}: {{ fx.onsetFlourishStrength }}%</span>
+        <span class="control-label"
+          >{{ t('visualizer.postFx.strength') }}: {{ fx.onsetFlourishStrength }}%</span
+        >
         <SliderField
           :min="0"
           :max="100"
           :step="5"
           :default-value="70"
           :model-value="fx.onsetFlourishStrength"
-          @update:model-value="set('onsetFlourishStrength', $event)"
           class="slider fx-slider"
+          @update:model-value="set('onsetFlourishStrength', $event)"
         />
       </div>
     </div>
 
     <!-- Adaptive quality -->
     <div v-if="!layerId" class="fx-row">
-      <label class="fx-toggle">
-        <input
-          type="checkbox"
-          :checked="store.adaptiveQuality"
-          @change="store.setAdaptiveQuality($event.target.checked)"
-        />
-        <span>{{ L.adaptive }}</span>
-      </label>
-      <span class="fx-hint">{{ L.adaptiveHint }}</span>
+      <UiSwitch
+        :model-value="store.adaptiveQuality"
+        class="fx-toggle"
+        :label="t('visualizer.postFx.adaptive')"
+        @update:model-value="store.setAdaptiveQuality($event)"
+      />
+      <span class="fx-hint">{{ t('visualizer.postFx.adaptiveHint') }}</span>
     </div>
   </div>
 </template>
 
 <script setup>
 import SliderField from './ui/SliderField.vue'
+import { UiSegmentedControl, UiSwitch } from './ui/index.js'
 import { computed } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { useVisualizerStore } from '../stores/visualizerStore.js'
@@ -202,7 +202,7 @@ const props = defineProps({
 })
 
 const store = useVisualizerStore()
-const { locale } = useI18n()
+const { t } = useI18n()
 
 const layer = computed(() =>
   props.layerId ? store.visualizerLayers.find((l) => l.id === props.layerId) || null : null,
@@ -248,58 +248,13 @@ function set(key, value) {
   store[SETTERS[key]]?.(value)
 }
 
-const LABELS = {
-  de: {
-    title: 'Effekte (Post-Processing)',
-    badgeHint: 'GPU-beschleunigt mit automatischem Fallback',
-    bloom: 'Bloom / Glühen',
-    strength: 'Stärke',
-    threshold: 'Schwelle',
-    radius: 'Radius',
-    trails: 'Bewegungsspuren',
-    trailLength: 'Länge',
-    beatPunch: 'Beat-Punch',
-    beatPunchHint: 'Onset-Zoom der ganzen Ebene – reagiert auf Beats, nicht auf Dauerlautstärke',
-    punchSource: 'Quelle',
-    variation: 'Variation',
-    variationHint:
-      '0 = ganze Ebene gleich; höher = Bereiche der Ebene reagieren mit eigener Stärke und leichtem Versatz auf jeden Beat',
-    bass: 'Bass',
-    mid: 'Mitten',
-    treble: 'Höhen',
-    all: 'Alle',
-    onsetFx: 'Onset-Flourishes',
-    onsetFxHint: 'Beat-getriggerte Effekte (Partikel-Burst, Blüten-Pop, Grid-Punch, Orb-Pop)',
-    adaptive: 'Adaptive Qualität',
-    adaptiveHint: 'hält die Bildrate stabil',
-  },
-  en: {
-    title: 'Effects (Post-Processing)',
-    badgeHint: 'GPU-accelerated with automatic fallback',
-    bloom: 'Bloom / Glow',
-    strength: 'Strength',
-    threshold: 'Threshold',
-    radius: 'Radius',
-    trails: 'Motion trails',
-    trailLength: 'Length',
-    beatPunch: 'Beat punch',
-    beatPunchHint: 'Onset zoom of the whole layer – reacts to beats, not sustained loudness',
-    punchSource: 'Source',
-    variation: 'Variation',
-    variationHint:
-      '0 = whole layer moves as one; higher = regions of the layer react to each beat with their own strength and slight offset',
-    bass: 'Bass',
-    mid: 'Mid',
-    treble: 'Treble',
-    all: 'All',
-    onsetFx: 'Onset flourishes',
-    onsetFxHint: 'Beat-triggered effects (particle burst, bloom pop, grid punch, orb pop)',
-    adaptive: 'Adaptive quality',
-    adaptiveHint: 'keeps the frame rate stable',
-  },
-}
-
-const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
+// Quelle des Beat-Punch als Segmented Control
+const sourceOptions = computed(() =>
+  ['bass', 'mid', 'treble', 'all'].map((value) => ({
+    value,
+    label: t(`visualizer.postFx.${value}`),
+  })),
+)
 </script>
 
 <style scoped>
@@ -327,28 +282,8 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
   letter-spacing: 0.3px;
 }
 
-.fx-badge {
-  font-size: var(--ds-text-xs);
-  cursor: help;
-}
-
 .fx-row {
   margin-bottom: 6px;
-}
-
-.fx-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  font-size: var(--ds-text-xs);
-  color: var(--text-primary);
-  font-weight: var(--ds-weight-medium);
-}
-
-.fx-toggle input {
-  accent-color: var(--accent-primary);
-  cursor: pointer;
 }
 
 .fx-hint {
@@ -356,12 +291,12 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
   font-size: var(--ds-text-xs);
   color: var(--text-muted);
   margin-top: 2px;
-  margin-left: 22px;
+  margin-left: 40px;
   font-style: italic;
 }
 
 .fx-sub {
-  padding: 4px 0 8px 22px;
+  padding: 4px 0 8px 40px;
 }
 
 .fx-control {
@@ -378,17 +313,6 @@ const L = computed(() => LABELS[locale.value === 'en' ? 'en' : 'de'])
   color: var(--text-muted);
   margin-bottom: 3px;
   font-weight: var(--ds-weight-medium);
-}
-
-.fx-select {
-  width: 100%;
-  padding: 4px 6px;
-  font-size: var(--ds-text-xs);
-  color: var(--text-primary);
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  cursor: pointer;
 }
 
 .slider {

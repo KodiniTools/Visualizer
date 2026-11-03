@@ -357,3 +357,16 @@ describe('i18n – Visualizer-Effekte ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/LABELS|locale\.value === 'en'/)
   })
 })
+
+describe('i18n – Text-Editor ohne fest verdrahtete Texte', () => {
+  it('Vorlagen ohne feste Texte, Schriftwahl ohne deutsche Einschübe', () => {
+    for (const file of [
+      'components/text-manager/TextEditPanel.vue',
+      'components/text-manager/text-edit/TextContentSection.vue',
+      'components/text-manager/text-edit/TextPositionSection.vue',
+    ]) {
+      expect(hardcodedTemplateText(read(file)), file).toEqual([])
+    }
+    expect(read('composables/useTextFonts.js')).not.toMatch(/\(aktuell\)/)
+  })
+})

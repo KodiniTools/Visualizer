@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import TextDirectoryPanel from '../../components/text-manager/TextDirectoryPanel.vue'
+import { useI18n } from '../../lib/i18n.js'
+import de from '../../lib/i18n/de.js'
+import en from '../../lib/i18n/en.js'
 
 const items = [
   { id: 1, number: 1, content: 'Auf dem Canvas', animated: false, offCanvas: false },
@@ -50,5 +53,77 @@ describe('TextDirectoryPanel – vom Canvas entfernte Texte', () => {
   it('zeigt den Neu-Start-Button nicht für entfernte Texte', () => {
     const w = mountPanel({ activeId: 2 })
     expect(w.find('.play-btn').exists()).toBe(false)
+  })
+})
+
+// Charakterisierung der Bedienelemente: Reihenwiedergabe, globale
+// Anzeigedauer, Neu-Start. Zugriff über Titel, Beschriftungen und Rollen,
+// damit die Tests den Wechsel auf die Ui-Bausteine überstehen.
+const T = de.textManager
+const byTitle = (w, title) => w.findAll('button').find((b) => b.attributes('title') === title)
+
+/** Schalter „Globale Anzeigedauer“: Checkbox im Label oder Switch mit Label. */
+function globalToggle(w) {
+  const label = w.findAll('label').find((l) => l.text().trim() === T.globalDuration)
+  const cb = label?.find('input[type="checkbox"]')
+  if (cb?.exists()) return cb
+  return w.find(`#${label.attributes('for')}`)
+}
+
+describe('TextDirectoryPanel – Bedienelemente', () => {
+  it('Alle abspielen und Stoppen', async () => {
+    const w = mountPanel()
+    await byTitle(w, T.playAllTexts).trigger('click')
+    expect(w.emitted('play-all')).toHaveLength(1)
+    await w.setProps({ sequencePlaying: true })
+    expect(byTitle(w, T.playAllTexts)).toBeFalsy()
+    await byTitle(w, T.stopPlayback).trigger('click')
+    expect(w.emitted('stop-all')).toHaveLength(1)
+  })
+
+  it('Globale Anzeigedauer schaltet den Regler', async () => {
+    const w = mountPanel({
+      'onUpdate:globalDurationEnabled': (v) => w.setProps({ globalDurationEnabled: v }),
+    })
+    expect(w.text()).not.toContain(T.globalDurationHint)
+    const toggle = globalToggle(w)
+    if (toggle.attributes('type') === 'checkbox') await toggle.setValue(true)
+    else await toggle.trigger('click')
+    expect(w.emitted('update:globalDurationEnabled')).toEqual([[true]])
+    expect(w.text()).toContain(T.globalDurationHint)
+    expect(w.find('input[type="range"]').exists()).toBe(true)
+  })
+
+  it('Neu-Start nur für den aktiven, animierten Text', async () => {
+    const list = [{ id: 3, number: 1, content: 'Hallo', animated: true, offCanvas: false }]
+    const w = mountPanel({ items: list, activeId: 3 })
+    await byTitle(w, T.restartAnimation).trigger('click')
+    expect(w.emitted('restart')).toEqual([[3]])
+    await w.setProps({ activeId: null })
+    expect(byTitle(w, T.restartAnimation)).toBeFalsy()
+  })
+
+  it('Texte folgen der Sprache', async () => {
+    const { setLocale } = useI18n()
+    await setLocale('en')
+    try {
+      const w = mountPanel()
+      expect(w.text()).toContain(en.textManager.textDirectory)
+      expect(byTitle(w, en.textManager.playAllTexts)).toBeTruthy()
+    } finally {
+      await setLocale('de')
+    }
+  })
+})
+
+describe('TextDirectoryPanel – Ui-Bausteine', () => {
+  it('Switch, Ui-Icon-Buttons und keine Emoji', () => {
+    const w = mountPanel({ items: [items[0], { ...items[1], offCanvas: false }], activeId: 2 })
+    expect(globalToggle(w).attributes('role')).toBe('switch')
+    for (const title of [T.playAllTexts, T.restartAnimation]) {
+      expect(byTitle(w, title).classes(), title).toContain('ui-icon-button')
+    }
+    expect(w.text()).not.toMatch(/[📋🎬↩🗑▶⏹]/u)
+    expect(w.find('button.text-item.active').attributes('aria-pressed')).toBe('true')
   })
 })

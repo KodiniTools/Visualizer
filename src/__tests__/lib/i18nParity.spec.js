@@ -410,3 +410,11 @@ describe('i18n – Player-Leiste ohne fest verdrahtete Texte', () => {
     ).toEqual([])
   })
 })
+
+describe('i18n – Text-Verzeichnis ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte und ohne Emoji', () => {
+    const src = read('components/text-manager/TextDirectoryPanel.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src.split('<script')[0]).not.toMatch(/[📋🎬↩🗑⏹]|title="Animation"/u)
+  })
+})

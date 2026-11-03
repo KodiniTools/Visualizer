@@ -324,3 +324,12 @@ describe('i18n – Visualizer-Bildauswahl ohne fest verdrahtete Texte', () => {
     expect(hardcodedTemplateText(read('components/VisualizerImagePicker.vue'))).toEqual([])
   })
 })
+
+describe('i18n – Stock-Galerie ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte, Glyphen und Sprachweichen', () => {
+    const src = read('components/foto-panel/StockGallerySection.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src).not.toMatch(/✓/u)
+    expect(src).not.toMatch(/locale === 'de'/)
+  })
+})

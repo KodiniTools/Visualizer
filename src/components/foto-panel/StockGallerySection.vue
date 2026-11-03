@@ -1,152 +1,156 @@
 <template>
   <div class="stock-gallery-section">
-    <h4>{{ t('foto.gallery') }}</h4>
+    <h4 class="section-title">{{ t('foto.gallery') }}</h4>
 
-    <!-- Kategorie-Tabs -->
-    <div class="category-tabs">
-      <button
-        v-for="category in stockCategories"
-        :key="category.id"
-        class="category-tab"
-        :class="{ active: selectedStockCategory === category.id }"
-        @click="$emit('select-category', category.id)"
-      >
-        <span class="category-icon">{{ category.icon }}</span>
-        <span class="category-name">{{ getStockCategoryName(category) }}</span>
-        <span v-if="category.count" class="category-count">{{ category.count }}</span>
-      </button>
-    </div>
+    <!-- Kategorien -->
+    <UiSegmentedControl
+      v-if="stockCategories.length"
+      :model-value="selectedStockCategory"
+      :options="categoryOptions"
+      :label="t('foto.gallery')"
+      size="sm"
+      wrap
+      @update:model-value="$emit('select-category', $event)"
+    />
 
-    <!-- Stock-Bilder Grid -->
-    <div class="gallery-scroll">
-      <!-- Auswahl-Steuerung -->
-      <div v-if="filteredStockImages.length > 0" class="selection-controls">
-        <button
-          @click="$emit('select-all')"
-          class="btn-select-all"
+    <!-- Stock-Bilder -->
+    <template v-if="filteredStockImages.length > 0">
+      <div class="selection-controls">
+        <UiButton
+          size="sm"
           :disabled="selectedStockCount === filteredStockImages.length"
+          @click="$emit('select-all')"
         >
           {{ t('foto.selectAll') }}
-        </button>
-        <button
-          @click="$emit('deselect-all')"
-          class="btn-deselect-all"
-          :disabled="selectedStockCount === 0"
-        >
+        </UiButton>
+        <UiButton size="sm" :disabled="selectedStockCount === 0" @click="$emit('deselect-all')">
           {{ t('foto.deselectAll') }}
-        </button>
+        </UiButton>
         <span v-if="selectedStockCount > 0" class="selection-count"
           >{{ selectedStockCount }} {{ t('foto.selected') }}</span
         >
       </div>
-      <p class="multiselect-hint">{{ t('foto.multiselectHint') }}</p>
-      <p class="drag-hint">{{ t('foto.dragToCanvasHint') }}</p>
-      <div class="gallery-grid">
-        <div
-          v-for="img in filteredStockImages"
-          :key="img.id"
-          class="thumbnail-item"
-          :class="{ selected: selectedStockImages.has(img.id) }"
-          draggable="true"
-          @click="$emit('select-image', img, $event)"
-          @dblclick="$emit('open-preview', img)"
-          @dragstart="$emit('image-dragstart', { img, event: $event })"
-          @dragend="$emit('image-dragend')"
-        >
-          <!-- Checkbox für Mehrfachauswahl: schaltet additiv um (wie Strg+Klick) -->
+      <p class="hint">{{ t('foto.multiselectHint') }}</p>
+      <p class="hint">{{ t('foto.dragToCanvasHint') }}</p>
+
+      <div class="gallery-scroll">
+        <div class="gallery-grid">
           <div
-            class="selection-checkbox"
-            :class="{ checked: selectedStockImages.has(img.id) }"
-            role="checkbox"
-            :aria-checked="selectedStockImages.has(img.id)"
+            v-for="img in filteredStockImages"
+            :key="img.id"
+            class="thumbnail-item"
+            :class="{ selected: selectedStockImages.has(img.id) }"
+            role="button"
+            tabindex="0"
+            :aria-pressed="selectedStockImages.has(img.id)"
             :aria-label="img.name"
-            @click.stop="$emit('select-image', img, { ctrlKey: true })"
-            @dblclick.stop
+            draggable="true"
+            @click="$emit('select-image', img, $event)"
+            @keydown.enter.prevent="$emit('select-image', img, $event)"
+            @keydown.space.prevent="$emit('select-image', img, $event)"
+            @dblclick="$emit('open-preview', img)"
+            @dragstart="$emit('image-dragstart', { img, event: $event })"
+            @dragend="$emit('image-dragend')"
           >
-            <span v-if="selectedStockImages.has(img.id)">✓</span>
-          </div>
-          <img :src="img.thumbnail" :alt="img.name" loading="lazy" draggable="false" />
-          <div class="thumbnail-info">
-            <span class="thumbnail-name">{{ img.name }}</span>
+            <!-- Checkbox für Mehrfachauswahl: schaltet additiv um (wie Strg+Klick) -->
+            <span
+              class="selection-checkbox"
+              :class="{ checked: selectedStockImages.has(img.id) }"
+              role="checkbox"
+              tabindex="0"
+              :aria-checked="selectedStockImages.has(img.id)"
+              :aria-label="img.name"
+              @click.stop="toggleSelection(img)"
+              @keydown.space.stop.prevent="toggleSelection(img)"
+              @keydown.enter.stop.prevent="toggleSelection(img)"
+              @dblclick.stop
+            >
+              <svg
+                v-if="selectedStockImages.has(img.id)"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+            <img :src="img.thumbnail" alt="" loading="lazy" draggable="false" />
+            <span class="thumbnail-info">
+              <span class="thumbnail-name">{{ img.name }}</span>
+            </span>
           </div>
         </div>
       </div>
-    </div>
+    </template>
 
-    <!-- Stock-Bild Action-Buttons -->
-    <div v-if="selectedStockCount > 0" class="action-buttons stock-actions">
-      <button @click="$emit('add-to-canvas')" class="btn-primary">
-        {{
-          selectedStockCount > 1
-            ? locale === 'de'
-              ? `${selectedStockCount} Bilder auf Canvas`
-              : `${selectedStockCount} images on Canvas`
-            : t('foto.placeOnCanvas')
-        }}
-      </button>
-      <button
-        v-if="selectedStockCount === 1"
-        @click="$emit('set-as-background')"
-        class="btn-secondary"
-      >
-        {{ t('foto.asBackground') }}
-      </button>
-      <button
-        v-if="selectedStockCount === 1"
-        @click="$emit('set-as-workspace-background')"
-        class="btn-workspace"
-      >
-        {{ t('foto.asWorkspaceBackground') }}
-      </button>
+    <!-- Aktionen (nur mit Auswahl) -->
+    <div v-if="selectedStockCount > 0" class="action-buttons">
+      <UiButton variant="primary" size="sm" block @click="$emit('add-to-canvas')">
+        {{ placeLabel }}
+      </UiButton>
+      <template v-if="selectedStockCount === 1">
+        <UiButton size="sm" block @click="$emit('set-as-background')">
+          {{ t('foto.asBackground') }}
+        </UiButton>
+        <UiButton size="sm" block @click="$emit('set-as-workspace-background')">
+          {{ t('foto.asWorkspaceBackground') }}
+        </UiButton>
+      </template>
     </div>
 
     <!-- Platzierung mit Animation für Stock-Bilder -->
     <PlacementSettings
       v-if="selectedStockCount === 1"
-      :selectedAnimation="selectedAnimation"
-      :animationDuration="animationDuration"
-      :imageScale="imageScale"
-      :imageOffsetX="imageOffsetX"
-      :imageOffsetY="imageOffsetY"
-      :isInRangeSelectionMode="isInRangeSelectionMode"
+      :selected-animation="selectedAnimation"
+      :animation-duration="animationDuration"
+      :image-scale="imageScale"
+      :image-offset-x="imageOffsetX"
+      :image-offset-y="imageOffsetY"
+      :is-in-range-selection-mode="isInRangeSelectionMode"
       @update:settings="$emit('update:placement-settings', $event)"
       @start-draw="$emit('start-range-selection')"
       @place-directly="$emit('add-directly')"
     />
 
     <!-- Ladeanzeige -->
-    <div v-if="stockImagesLoading || categoryLoading" class="loading-state">
-      <p>{{ stockImagesLoading ? t('foto.loadingGallery') : t('foto.loadingCategory') }}</p>
-    </div>
+    <p v-if="stockImagesLoading || categoryLoading" class="state-text">
+      {{ stockImagesLoading ? t('foto.loadingGallery') : t('foto.loadingCategory') }}
+    </p>
 
-    <!-- Fehleranzeige wenn keine Bilder -->
+    <!-- Fehleranzeige wenn keine Kategorien -->
     <div v-if="!stockImagesLoading && stockCategories.length === 0" class="error-state">
-      <p>{{ t('foto.galleryLoadError') }}</p>
-      <button @click="$emit('retry-load')" class="btn-retry">{{ t('foto.retryLoad') }}</button>
+      <UiCallout type="danger">{{ t('foto.galleryLoadError') }}</UiCallout>
+      <UiButton size="sm" @click="$emit('retry-load')">{{ t('foto.retryLoad') }}</UiButton>
     </div>
 
     <!-- Keine Bilder in Kategorie -->
-    <div
+    <p
       v-if="
         !stockImagesLoading &&
         !categoryLoading &&
         stockCategories.length > 0 &&
         filteredStockImages.length === 0
       "
-      class="empty-state"
+      class="state-text"
     >
-      <p>{{ t('foto.noImagesInCategory') }}</p>
-    </div>
+      {{ t('foto.noImagesInCategory') }}
+    </p>
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
+import { UiButton, UiCallout, UiSegmentedControl } from '../ui/index.js'
 import PlacementSettings from './PlacementSettings.vue'
 
 const { t, locale } = useI18n()
 
-defineProps({
+const props = defineProps({
   stockCategories: {
     type: Array,
     default: () => [],
@@ -201,7 +205,7 @@ defineProps({
   },
 })
 
-defineEmits([
+const emit = defineEmits([
   'select-category',
   'select-image',
   'open-preview',
@@ -218,6 +222,28 @@ defineEmits([
   'image-dragend',
 ])
 
+/** Kategorien als Segmente: Symbol, Name und (falls bekannt) Anzahl. */
+const categoryOptions = computed(() =>
+  props.stockCategories.map((category) => ({
+    value: category.id,
+    // Anzahl nur zeigen, wenn bekannt und größer 0 (wie bisher)
+    label: [category.icon, getStockCategoryName(category), category.count || '']
+      .filter(Boolean)
+      .join(' '),
+  })),
+)
+
+const placeLabel = computed(() =>
+  props.selectedStockCount > 1
+    ? t('foto.imagesOnCanvas').replace('{count}', String(props.selectedStockCount))
+    : t('foto.placeOnCanvas'),
+)
+
+/** Checkbox: schaltet additiv um (wie Strg+Klick). */
+function toggleSelection(img) {
+  emit('select-image', img, { ctrlKey: true })
+}
+
 // Function to get translated stock category name
 function getStockCategoryName(category) {
   const translationKey = `foto.stockCategories.${category.id}`
@@ -229,147 +255,112 @@ function getStockCategoryName(category) {
 }
 </script>
 
-<style scoped src="./image-grid-shared.css"></style>
-
 <style scoped>
 .stock-gallery-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  background-color: var(--card-bg);
-  border-radius: var(--ds-radius-sm);
-  padding: 10px;
-  border: 1px solid var(--border-color);
-}
-
-.stock-gallery-section h4 {
-  margin: 0 0 6px 0;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.stock-gallery-section h4::before {
-  content: '';
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpath d='M21 15l-5-5L5 21'/%3E%3C/svg%3E");
-  background-size: contain;
-}
-
-/* Kategorie-Tabs */
-.category-tabs {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.category-tab {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 8px;
-  border-radius: var(--ds-radius-sm);
-  border: 1px solid var(--border-color);
-  background-color: var(--secondary-bg);
-  color: var(--text-primary);
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.category-tab:hover {
-  border-color: var(--accent-primary);
-  background-color: var(--btn-hover);
-}
-
-.category-tab.active {
-  background: color-mix(in srgb, var(--ds-accent) 30%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-tertiary);
-  font-weight: var(--ds-weight-semibold);
-}
-
-.category-icon {
-  font-size: var(--ds-text-xs);
-}
-
-.category-name {
-  font-size: var(--ds-text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.category-count {
-  font-size: var(--ds-text-xs);
-  background-color: rgba(255, 255, 255, 0.15);
-  color: var(--text-secondary);
-  padding: 2px 6px;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4);
+  background: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border);
   border-radius: var(--ds-radius-md);
-  font-weight: var(--ds-weight-semibold);
-  min-width: 20px;
-  text-align: center;
 }
 
-.category-tab.active .category-count {
-  background-color: rgba(0, 0, 0, 0.2);
+.section-title {
+  margin: 0;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  color: var(--ds-text-2);
+}
+
+.selection-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.selection-count {
+  margin-left: auto;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-text);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--ds-text-xs);
   color: var(--ds-text-3);
 }
 
-/* Stock-Galerie Scroll-Container */
 .gallery-scroll {
-  max-height: 200px;
+  max-height: 220px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 4px;
+  /* Platz für Rahmen und Fokusring der Kacheln */
+  padding: 3px;
 }
 
-.gallery-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-
-/* Stock-Galerie Grid */
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: var(--ds-space-2);
 }
 
-.thumbnail-info {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
-  padding: 6px 6px 4px 6px;
-}
-
-.thumbnail-name {
-  font-size: var(--ds-text-xs);
-  color: white;
-  font-weight: var(--ds-weight-medium);
-  white-space: nowrap;
+.thumbnail-item {
+  position: relative;
+  aspect-ratio: 1;
   overflow: hidden;
-  text-overflow: ellipsis;
+  border: 2px solid transparent;
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-2);
+  cursor: grab;
+  transition: border-color var(--ds-duration) var(--ds-ease);
+}
+
+.thumbnail-item:active {
+  cursor: grabbing;
+}
+
+.thumbnail-item:hover {
+  border-color: var(--ds-border-strong);
+}
+
+.thumbnail-item.selected {
+  border-color: var(--ds-accent);
+}
+
+.thumbnail-item:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.thumbnail-item img {
   display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* Auswahl-Steuerung */
-.selection-controls {
+.selection-checkbox {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 1;
   display: flex;
-  gap: 8px;
   align-items: center;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid white;
+  border-radius: var(--ds-radius-sm);
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--ds-on-accent);
+  cursor: pointer;
 }
 
-/* Selection Checkbox */
 /* Größere Klickfläche für die Checkbox, ohne das Aussehen zu ändern */
 .selection-checkbox::before {
   content: '';
@@ -377,98 +368,58 @@ function getStockCategoryName(category) {
   inset: -8px;
 }
 
-/* Stock Action-Buttons */
-.stock-actions {
-  margin-top: 8px;
+.selection-checkbox svg {
+  width: 12px;
+  height: 12px;
+}
+
+.selection-checkbox.checked {
+  background: var(--ds-accent);
+  border-color: var(--ds-accent);
+}
+
+.selection-checkbox:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.thumbnail-info {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 6px 6px 4px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+}
+
+.thumbnail-name {
+  display: block;
+  overflow: hidden;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
+  color: white;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .action-buttons {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--ds-space-1);
 }
 
-/* Ladeanzeige */
-.loading-state {
-  text-align: center;
-  padding: 20px;
-  color: var(--text-muted);
-}
-
-.loading-state p {
+.state-text {
   margin: 0;
-  font-size: var(--ds-text-sm);
-}
-
-/* Fehleranzeige */
-.error-state {
+  padding: var(--ds-space-4);
   text-align: center;
-  padding: 20px;
-  color: var(--ds-danger);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.error-state p {
-  margin: 0;
   font-size: var(--ds-text-sm);
-}
-
-.btn-retry {
-  padding: 8px 16px;
-  border-radius: var(--ds-radius-sm);
-  border: 1px solid var(--image-section-accent);
-  background-color: var(--secondary-bg);
-  color: var(--image-section-accent);
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.btn-retry:hover {
-  background-color: var(--image-section-accent);
   color: var(--ds-text-3);
 }
 
-/* ═══ Light Theme Overrides ═══ */
-[data-theme='light'] .stock-gallery-section {
-  border-color: var(--border-color);
-}
-
-[data-theme='light'] .category-tab {
-  background-color: var(--card-bg);
-  border-color: var(--border-color);
-}
-
-[data-theme='light'] .category-tab:hover {
-  background-color: var(--secondary-bg);
-}
-
-[data-theme='light'] .category-tab.active {
-  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .category-count {
-  background-color: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  color: var(--text-muted);
-}
-
-[data-theme='light'] .category-tab.active .category-count {
-  background-color: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .btn-retry {
-  background-color: var(--card-bg);
-  border-color: var(--accent-primary);
-  color: var(--accent-ink);
-}
-
-[data-theme='light'] .btn-retry:hover {
-  background-color: var(--accent-primary);
-  color: var(--accent-text);
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ds-space-2);
 }
 </style>

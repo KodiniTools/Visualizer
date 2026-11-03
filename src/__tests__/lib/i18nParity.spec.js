@@ -341,3 +341,11 @@ describe('i18n – Slideshow-Bildfläche ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/[🗂⬆]/u)
   })
 })
+
+describe('i18n – Recorder-Steuerknöpfe ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte', () => {
+    expect(
+      hardcodedTemplateText(read('components/recorder/RecorderTransportControls.vue')),
+    ).toEqual([])
+  })
+})

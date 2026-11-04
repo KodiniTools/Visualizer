@@ -209,9 +209,14 @@
         class="marker-item"
         :class="{ triggered: marker.triggered, editing: editingMarkerId === marker.id }"
       >
-        <span class="marker-time" @click="seekToMarker(marker.time)">{{
-          formatTimePrecise(marker.time)
-        }}</span>
+        <button
+          type="button"
+          class="marker-time"
+          :aria-label="t('player.jumpToMarker').replace('{time}', formatTimePrecise(marker.time))"
+          @click="seekToMarker(marker.time)"
+        >
+          {{ formatTimePrecise(marker.time) }}
+        </button>
         <span
           class="marker-label"
           :title="t('player.editMarker')"
@@ -667,6 +672,11 @@ const shapeSelectOptions = computed(() => [
   border-left: 2px solid var(--accent-primary);
 }
 .marker-time {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: inherit;
+  text-align: left;
   font-weight: var(--ds-weight-semibold);
   font-family: var(--ds-font-mono);
   color: var(--accent-ink);
@@ -675,6 +685,11 @@ const shapeSelectOptions = computed(() => [
 }
 .marker-time:hover {
   text-decoration: underline;
+}
+.marker-time:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+  border-radius: var(--ds-radius-sm);
 }
 .marker-label {
   flex: 1;

@@ -934,6 +934,8 @@ export default {
 
   // ========== PLAYER PANEL ==========
   player: {
+    seekPosition: 'Playback position',
+    jumpToMarker: 'Jump to {time}',
     title: 'Player',
     // Audio Source
     audioSource: 'Audio Source',

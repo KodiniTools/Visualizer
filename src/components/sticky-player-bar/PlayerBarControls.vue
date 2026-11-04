@@ -47,7 +47,18 @@
     <!-- Progress bar with beat markers -->
     <div class="spb-progress">
       <span class="time-display">{{ formatTime(playerStore.currentTime) }}</span>
-      <div class="progress-bar-container" @click="seekToPosition">
+      <div
+        class="progress-bar-container"
+        role="slider"
+        tabindex="0"
+        :aria-label="t('player.seekPosition')"
+        aria-valuemin="0"
+        :aria-valuemax="Math.round(playerStore.duration || 0)"
+        :aria-valuenow="Math.round(playerStore.currentTime || 0)"
+        :aria-valuetext="`${formatTime(playerStore.currentTime)} / ${formatTime(playerStore.duration)}`"
+        @click="seekToPosition"
+        @keydown="onSeekKeydown"
+      >
         <div class="progress-bar-background">
           <div
             class="progress-bar-fill"
@@ -259,6 +270,29 @@ const seekToPosition = (event) => {
   const newTime = percentage * playerStore.duration
   playerStore.seekTo(newTime)
 }
+
+/** Schrittweite der Pfeiltasten auf dem Fortschrittsbalken (Sekunden) */
+const SEEK_STEP = 5
+
+/** Tastatur auf dem Fortschrittsbalken: Pfeile ±5 s, Pos1/Ende springen an Anfang/Ende. */
+const onSeekKeydown = (event) => {
+  const duration = playerStore.duration
+  if (!playerStore.audioRef || !duration) return
+  const now = playerStore.currentTime
+  const targets = {
+    ArrowLeft: now - SEEK_STEP,
+    ArrowDown: now - SEEK_STEP,
+    ArrowRight: now + SEEK_STEP,
+    ArrowUp: now + SEEK_STEP,
+    Home: 0,
+    End: duration,
+  }
+  if (!(event.key in targets)) return
+  // Nicht an die globalen Kürzel weiterreichen (← → wechseln dort den Titel)
+  event.preventDefault()
+  event.stopPropagation()
+  playerStore.seekTo(Math.min(duration, Math.max(0, targets[event.key])))
+}
 </script>
 
 <style scoped>
@@ -373,6 +407,11 @@ const seekToPosition = (event) => {
   border: 2px solid var(--ds-surface-1);
   border-radius: var(--ds-radius-full);
   transition: left 0.1s linear;
+}
+.progress-bar-container:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+  border-radius: var(--ds-radius-sm);
 }
 .progress-bar-container:hover .progress-bar-fill,
 .progress-bar-container:hover .progress-bar-handle {

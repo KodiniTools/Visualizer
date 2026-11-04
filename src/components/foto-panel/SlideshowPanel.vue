@@ -37,10 +37,12 @@
 
     <!-- Render Behind Visualizer Option (auch während laufender Slideshow) -->
     <div class="layer-section">
-      <label class="checkbox-label">
-        <input v-model="renderBehindVisualizer" type="checkbox" @change="onRenderLayerChange" />
-        <span>{{ t('slideshow.renderBehind') }}</span>
-      </label>
+      <UiSwitch
+        v-model="renderBehindVisualizer"
+        class="render-behind-toggle"
+        :label="t('slideshow.renderBehind')"
+        @update:model-value="onRenderLayerChange"
+      />
       <!-- Slideshow als Hintergrund: Aus / Canvas / Workspace -->
       <div class="background-mode" role="radiogroup" :aria-label="t('slideshow.backgroundMode')">
         <span class="background-mode-label">{{ t('slideshow.backgroundMode') }}</span>
@@ -77,13 +79,13 @@
         </label>
       </div>
       <!-- Farbe der Fläche unter der Slideshow (ersetzt das Hintergrundbild) -->
-      <label v-if="backgroundMode === 'canvas'" class="base-color-label">
-        <span>{{ t('slideshow.baseColor') }}</span>
-        <input
+      <div v-if="backgroundMode === 'canvas'" class="base-color-label">
+        <span aria-hidden="true">{{ t('slideshow.baseColor') }}</span>
+        <ColorField
           v-model="backgroundColor"
           class="slideshow-base-color"
-          type="color"
-          @input="emit('background-color-change', backgroundColor)"
+          :label="t('slideshow.baseColor')"
+          @update:model-value="(v) => emit('background-color-change', v)"
         />
         <button
           v-if="
@@ -99,16 +101,16 @@
         >
           ↺
         </button>
-      </label>
+      </div>
       <!-- Eigene Farbe der Workspace-Fläche -->
-      <label v-if="backgroundMode === 'workspace'" class="base-color-label">
-        <span>{{ t('slideshow.workspaceColor') }}</span>
-        <input
+      <div v-if="backgroundMode === 'workspace'" class="base-color-label">
+        <span aria-hidden="true">{{ t('slideshow.workspaceColor') }}</span>
+        <ColorField
           v-model="workspaceColor"
           class="slideshow-workspace-color"
-          type="color"
+          :label="t('slideshow.workspaceColor')"
           :disabled="!hasWorkspace"
-          @input="emit('workspace-color-change', workspaceColor)"
+          @update:model-value="(v) => emit('workspace-color-change', v)"
         />
         <button
           v-if="
@@ -124,7 +126,7 @@
         >
           ↺
         </button>
-      </label>
+      </div>
       <SlideshowFillAudio
         v-if="backgroundMode === 'canvas'"
         v-model="backgroundFillAudio"
@@ -161,16 +163,13 @@
         @select="(candidate) => imageFills.select(imageFillTarget, candidate)"
         @clear="imageFills.clear(imageFillTarget)"
       />
-      <label class="checkbox-label" :class="{ disabled: fitsWorkspace }">
-        <input
-          v-model="moveWholeSlideshow"
-          class="move-whole-checkbox"
-          type="checkbox"
-          :disabled="fitsWorkspace"
-          @change="emit('move-mode-change', moveWholeSlideshow)"
-        />
-        <span>{{ t('slideshow.moveWhole') }}</span>
-      </label>
+      <UiSwitch
+        v-model="moveWholeSlideshow"
+        class="move-whole-checkbox"
+        :label="t('slideshow.moveWhole')"
+        :disabled="fitsWorkspace"
+        @update:model-value="(v) => emit('move-mode-change', v)"
+      />
       <p
         v-if="backgroundMode === 'workspace' && !hasWorkspace"
         class="hint warning fit-workspace-hint"
@@ -289,6 +288,8 @@ import SlideshowControls from './slideshow/SlideshowControls.vue'
 import SlideshowPresets from './slideshow/SlideshowPresets.vue'
 import SlideshowImageEditor from './slideshow/SlideshowImageEditor.vue'
 import SlideshowStatusBadge from './slideshow/SlideshowStatusBadge.vue'
+import ColorField from '../ui/ColorField.vue'
+import UiSwitch from '../ui/UiSwitch.vue'
 import { slideshowImageKey } from './slideshow/slideshowImageKey.js'
 import { loadPersistedImage } from '../../lib/slideshowImagePersistence.js'
 import {
@@ -751,16 +752,6 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
   font-size: var(--ds-text-xs);
   color: var(--ds-text);
 }
-.slideshow-base-color,
-.slideshow-workspace-color {
-  width: 36px;
-  height: 22px;
-  padding: 0;
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  background: none;
-  cursor: pointer;
-}
 .btn-reset-base-color,
 .btn-reset-workspace-color {
   border: none;
@@ -772,10 +763,6 @@ watch([transformX, transformY, transformWidth, transformHeight], () => {
 }
 [data-theme='light'] .base-color-label {
   color: var(--text-primary);
-}
-.checkbox-label.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 [data-theme='light'] .layer-section {
   border-top-color: var(--ds-border);

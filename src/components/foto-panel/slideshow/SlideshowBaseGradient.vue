@@ -54,15 +54,13 @@
         @update:model-value="(v) => updateAudio({ enabled: v })"
       />
       <template v-if="gradient.audio.enabled">
-        <label class="base-gradient-field">
-          <span>{{ t('slideshow.gradientAudioSource') }}</span>
-          <SlideshowAudioSourceSelect
-            :model-value="gradient.audio.source"
-            :class="`${prefix}-gradient-audio-source`"
-            :disabled="disabled"
-            @update:model-value="(v) => updateAudio({ source: v })"
-          />
-        </label>
+        <SlideshowAudioSourceSelect
+          :label="t('slideshow.gradientAudioSource')"
+          :model-value="gradient.audio.source"
+          :class="`${prefix}-gradient-audio-source`"
+          :disabled="disabled"
+          @update:model-value="(v) => updateAudio({ source: v })"
+        />
         <div class="base-gradient-slider">
           <SliderControl
             :input-class="`${prefix}-gradient-audio-pulse`"
@@ -159,20 +157,8 @@ function updateAudio(partial) {
   color: var(--text-muted);
   font-size: var(--ds-text-xs);
 }
-.base-gradient-field select {
-  padding: 3px 6px;
-  font-size: var(--ds-text-xs);
-  background: var(--secondary-bg);
-  color: var(--ds-text);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-}
 .audio-toggle,
 .base-gradient-slider {
   flex-basis: 100%;
-}
-[data-theme='light'] .base-gradient-field select {
-  color: var(--text-primary);
-  border-color: var(--ds-border);
 }
 </style>

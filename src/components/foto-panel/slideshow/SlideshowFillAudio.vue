@@ -1,26 +1,21 @@
 <template>
   <!-- Audio-Reaktive Flächenfarbe (einfarbig und Farbverlauf) -->
   <div class="fill-audio" :class="`${prefix}-fill-audio`">
-    <label class="checkbox-label">
-      <input
-        :checked="audio.enabled"
-        :class="`${prefix}-fill-audio-toggle`"
-        type="checkbox"
-        :disabled="disabled"
-        @change="update({ enabled: $event.target.checked })"
-      />
-      <span>{{ t('slideshow.fillAudio') }}</span>
-    </label>
+    <UiSwitch
+      :model-value="audio.enabled"
+      :class="`${prefix}-fill-audio-toggle`"
+      :label="t('slideshow.fillAudio')"
+      :disabled="disabled"
+      @update:model-value="(v) => update({ enabled: v })"
+    />
     <div v-if="audio.enabled" class="fill-audio-options">
-      <label class="fill-audio-field">
-        <span>{{ t('slideshow.gradientAudioSource') }}</span>
-        <SlideshowAudioSourceSelect
-          :model-value="audio.source"
-          :class="`${prefix}-fill-audio-source`"
-          :disabled="disabled"
-          @update:model-value="(v) => update({ source: v })"
-        />
-      </label>
+      <SlideshowAudioSourceSelect
+        :label="t('slideshow.gradientAudioSource')"
+        :model-value="audio.source"
+        :class="`${prefix}-fill-audio-source`"
+        :disabled="disabled"
+        @update:model-value="(v) => update({ source: v })"
+      />
       <div class="fill-audio-slider">
         <SliderControl
           :input-class="`${prefix}-fill-audio-brightness`"
@@ -62,6 +57,7 @@ import {
   SLIDESHOW_FILL_AUDIO_DEFAULT,
 } from '../../../lib/slideshowFillAudio.js'
 import SliderControl from '../../ui/SliderControl.vue'
+import UiSwitch from '../../ui/UiSwitch.vue'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 
 const audio = defineModel({ type: Object, required: true })
@@ -92,26 +88,7 @@ function update(partial) {
   gap: 6px 12px;
   padding-left: 20px;
 }
-.fill-audio-field {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-muted);
-  font-size: var(--ds-text-xs);
-}
 .fill-audio-slider {
   flex-basis: 100%;
-}
-.fill-audio-field select {
-  padding: 3px 6px;
-  font-size: var(--ds-text-xs);
-  background: var(--secondary-bg);
-  color: var(--ds-text);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-}
-[data-theme='light'] .fill-audio-field select {
-  color: var(--text-primary);
-  border-color: var(--ds-border);
 }
 </style>

@@ -126,7 +126,7 @@ describe('„Seitenverhältnis beibehalten“', () => {
         size: { width: 0.4, height: 0.2, defaultWidth: 0.4, defaultHeight: 0.2 },
       },
     })
-    expect(w.find('.editor-keep-aspect').element.checked).toBe(false)
+    expect(w.find('.editor-keep-aspect [role="switch"]').attributes('aria-checked')).toBe('false')
     w.unmount()
   })
 

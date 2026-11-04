@@ -223,14 +223,14 @@ describe('SlideshowImageEditor – Größenregler', () => {
     const width = w.find('input.editor-size-width')
     expect(Number(width.element.value)).toBeCloseTo(80)
     expect(Number(w.find('input.editor-size-height').element.value)).toBeCloseTo(40)
-    const lock = w.find('.editor-keep-aspect')
-    expect(lock.element.checked).toBe(true)
+    const lock = w.find('.editor-keep-aspect [role="switch"]')
+    expect(lock.attributes('aria-checked')).toBe('true')
 
     width.element.value = '50'
     await width.trigger('input')
     expect(w.emitted('update:size').at(-1)[0]).toEqual({ width: 0.5, keepAspect: true })
 
-    await lock.setValue(false)
+    await lock.trigger('click')
     const nums = w.findAll('.image-editor-size input[type="number"]')
     nums[1].element.value = '300' // über Maximum
     await nums[1].trigger('input')

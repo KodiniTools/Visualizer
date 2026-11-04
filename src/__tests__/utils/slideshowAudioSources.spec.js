@@ -100,7 +100,9 @@ describe('Slideshow-Fläche – Audio-Quellen wie beim Bild', () => {
   })
 
   it('Auswahl zeigt Bänder und Onset-Gruppe wie das Bild-Panel', async () => {
-    const w = mount(SlideshowAudioSourceSelect, { props: { modelValue: 'midOnset' } })
+    const w = mount(SlideshowAudioSourceSelect, {
+      props: { modelValue: 'midOnset', label: 'Quelle' },
+    })
     const values = w.findAll('option').map((o) => o.element.value)
     expect(values).toEqual(['bass', 'mid', 'treble', 'volume', 'dynamic', ...ONSETS])
     expect(w.findAll('optgroup optgroup').length).toBe(0)
@@ -110,5 +112,26 @@ describe('Slideshow-Fläche – Audio-Quellen wie beim Bild', () => {
     expect(w.find('select').element.value).toBe('midOnset')
     await w.find('select').setValue('trebleOnset')
     expect(w.emitted('update:modelValue').at(-1)).toEqual(['trebleOnset'])
+  })
+
+  it('Ui-Baustein: Beschriftung, Klasse am select, „Wie Einstellung“ = null', async () => {
+    const w = mount(SlideshowAudioSourceSelect, {
+      props: { modelValue: null, label: 'Quelle', inheritLabel: 'Wie Einstellung' },
+      attrs: { class: 'order-audio-source is-own' },
+      attachTo: document.body,
+    })
+    const select = w.find('select')
+    expect(w.find('.ui-select').exists()).toBe(true)
+    expect(select.classes()).toEqual(expect.arrayContaining(['order-audio-source', 'is-own']))
+    expect(document.querySelector(`label[for="${select.element.id}"]`).textContent.trim()).toBe(
+      'Quelle',
+    )
+    expect(select.element.value).toBe('')
+    expect(w.findAll('option')[0].text()).toBe('Wie Einstellung')
+    await select.setValue('bass')
+    expect(w.emitted('update:modelValue').at(-1)).toEqual(['bass'])
+    await select.setValue('')
+    expect(w.emitted('update:modelValue').at(-1)).toEqual([null])
+    w.unmount()
   })
 })

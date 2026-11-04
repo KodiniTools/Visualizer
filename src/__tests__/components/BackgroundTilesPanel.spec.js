@@ -284,7 +284,7 @@ describe('Kachel-Panel – Galerie', () => {
     expect(document.body.textContent).toContain('Wald')
     expect(button(T.gallerySelect).disabled).toBe(true)
 
-    document.body.querySelector('img[alt="Wald"]').click()
+    document.body.querySelector('button[aria-label="Wald"]').click()
     await flushPromises()
     expect(button(T.gallerySelect).disabled).toBe(false)
 

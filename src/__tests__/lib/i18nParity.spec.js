@@ -459,3 +459,11 @@ describe('i18n – Audio-Reaktiv (Foto & Co.) ohne fest verdrahtete Texte', () =
     }
   })
 })
+
+describe('i18n – Hintergrund-Gradient ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte', () => {
+    expect(
+      hardcodedTemplateText(read('components/canvas-control/background/BackgroundGradient.vue')),
+    ).toEqual([])
+  })
+})

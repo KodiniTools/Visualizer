@@ -18,21 +18,32 @@
 
     <!-- Bilder-Grid -->
     <div class="gallery-images-container">
-      <div v-if="galleryLoading" class="gallery-loading">
-        <span class="loading-spinner"></span>
+      <div
+        v-if="galleryLoading"
+        class="gallery-loading"
+        role="status"
+        :aria-label="t('common.loading')"
+      >
+        <span class="loading-spinner" aria-hidden="true"></span>
       </div>
+      <p v-else-if="galleryImages.length === 0" class="gallery-empty">
+        {{ t('common.noResults') }}
+      </p>
       <div v-else class="gallery-images-grid">
-        <div
+        <button
           v-for="image in galleryImages"
           :key="image.id"
+          type="button"
           class="gallery-image-item"
           :class="{ selected: selectedGalleryImage?.id === image.id }"
+          :aria-pressed="selectedGalleryImage?.id === image.id"
+          :aria-label="localizedName(image) || image.file"
           @click="selectGalleryImage(image)"
           @dblclick="confirmGallerySelection"
         >
-          <img :src="image.thumbnail || image.file" :alt="image.name" loading="lazy" />
-          <span class="gallery-image-name">{{ localizedName(image) }}</span>
-        </div>
+          <img :src="image.thumbnail || image.file" alt="" loading="lazy" />
+          <span class="gallery-image-name" aria-hidden="true">{{ localizedName(image) }}</span>
+        </button>
       </div>
     </div>
 
@@ -125,9 +136,18 @@ const categoryOptions = computed(() =>
   gap: 12px;
 }
 
+.gallery-empty {
+  margin: 0;
+  padding: var(--ds-space-6) 0;
+  text-align: center;
+  color: var(--ds-text-3);
+  font-size: var(--ds-text-sm);
+}
+
 .gallery-image-item {
   position: relative;
   aspect-ratio: 1;
+  padding: 0;
   border-radius: var(--ds-radius-md);
   overflow: hidden;
   cursor: pointer;
@@ -142,6 +162,11 @@ const categoryOptions = computed(() =>
 
 .gallery-image-item.selected {
   border-color: var(--ds-accent);
+}
+
+.gallery-image-item:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 
 .gallery-image-item img {

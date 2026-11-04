@@ -43,6 +43,36 @@ describe('Mikrofon – gemerktes Gerät fehlt', () => {
     getUserMedia.mockRejectedValue(Object.assign(new Error('denied'), { name: 'NotAllowedError' }))
     expect(await store.startMicrophone('alt')).toBeNull()
     expect(getUserMedia).toHaveBeenCalledTimes(1)
-    expect(store.errorMessage).toBe('denied')
+    expect(store.errorKey).toBe('microphonePermissionDenied')
+  })
+
+  it('Fehler als i18n-Schlüssel: verweigert, nicht gefunden, unbekannt (mit Browser-Meldung)', async () => {
+    const store = useAudioSourceStore()
+    getUserMedia.mockRejectedValueOnce(
+      Object.assign(new Error('nope'), { name: 'NotAllowedError' }),
+    )
+    expect(await store.requestMicrophonePermission()).toBe(false)
+    expect(store.microphonePermission).toBe('denied')
+    expect([store.errorKey, store.errorMessage]).toEqual(['microphonePermissionDenied', ''])
+
+    getUserMedia.mockRejectedValueOnce(Object.assign(new Error('none'), { name: 'NotFoundError' }))
+    await store.requestMicrophonePermission()
+    expect(store.microphonePermission).toBe('error')
+    expect([store.errorKey, store.errorMessage]).toEqual(['microphoneNotFound', ''])
+
+    getUserMedia.mockRejectedValueOnce(
+      Object.assign(new Error('Busy'), { name: 'NotReadableError' }),
+    )
+    await store.requestMicrophonePermission()
+    expect([store.errorKey, store.errorMessage]).toEqual(['microphoneUnknownError', 'Busy'])
+
+    getUserMedia.mockRejectedValueOnce(
+      Object.assign(new Error('Busy'), { name: 'NotReadableError' }),
+    )
+    expect(await store.startMicrophone()).toBeNull()
+    expect([store.errorKey, store.errorMessage]).toEqual(['microphoneStartFailed', 'Busy'])
+
+    store.reset()
+    expect([store.errorKey, store.errorMessage]).toEqual(['', ''])
   })
 })

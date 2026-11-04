@@ -146,7 +146,7 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
       return true
     } catch (error) {
       console.error('[AudioEngine] Fehler beim Setup des Mikrofons:', error)
-      audioSourceStore.errorMessage = error.message
+      audioSourceStore.setError('microphoneStartFailed', error?.message)
       return false
     }
   }

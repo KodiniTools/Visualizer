@@ -1,10 +1,11 @@
 /**
  * Form des Visualizers ("Visualizer-Steuerung" → Form).
  *
- * Ein Visualizer wird immer in voller Canvas-Größe gerendert. Die Form legt
- * fest, welcher Ausschnitt davon gezeigt wird: das größte mittige Rechteck im
- * gewählten Seitenverhältnis, beim Kreis zusätzlich rund maskiert. 'free'
- * zeigt wie bisher die ganze Fläche.
+ * Die Form legt das größte mittige Rechteck im gewählten Seitenverhältnis
+ * fest, beim Kreis zusätzlich rund maskiert. Der Visualizer wird direkt in
+ * dieser Größe gerendert (siehe `shapeRenderSize`) und legt sich damit selbst
+ * neu aus – er wird an das Format angepasst statt beschnitten. 'free' zeigt
+ * wie bisher die ganze Canvas-Fläche.
  *
  * @module visualizers/core/visualizerShape
  */
@@ -58,6 +59,25 @@ export function shapeCropRect(srcW, srcH, shape) {
     w = srcH * ratio
   }
   return { x: (srcW - w) / 2, y: (srcH - h) / 2, w, h }
+}
+
+/**
+ * Render-Größe des Visualizers für eine Form: die ganzzahlige Größe des
+ * Form-Rechtecks auf der Canvas. Bei 'free' (oder ungültigen Maßen) die
+ * Canvas-Größe selbst.
+ *
+ * @param {number} width - Canvas-Breite
+ * @param {number} height - Canvas-Höhe
+ * @param {string} shape
+ * @returns {{width: number, height: number}}
+ */
+export function shapeRenderSize(width, height, shape) {
+  const rect = shapeCropRect(width, height, shape)
+  if (!rect) return { width, height }
+  return {
+    width: Math.max(1, Math.round(rect.w)),
+    height: Math.max(1, Math.round(rect.h)),
+  }
 }
 
 /**

@@ -1,7 +1,8 @@
 /**
  * Weiche Kanten für verkleinerte oder verschobene Visualizer.
  *
- * Ein Visualizer wird immer in voller Canvas-Größe gerendert; "Position &
+ * Ein Visualizer wird in voller Canvas-Größe gerendert (mit Form in der
+ * Größe des Form-Rechtecks, siehe visualizerShape.js); "Position &
  * Größe" skaliert danach nur das fertige Bitmap. Bei 100 % fällt dessen Rand
  * mit der Canvas-Kante zusammen und ist unsichtbar. Sobald der Nutzer
  * verkleinert oder verschiebt, wird der Rand als hartes Rechteck sichtbar –
@@ -147,27 +148,34 @@ function applyRectMask(ctx, w, h, strength) {
 }
 
 /**
- * Zeichnet nur den Ausschnitt der gewählten Form (siehe visualizerShape.js):
- * das mittige Rechteck im Seitenverhältnis, beim Kreis zusätzlich rund
- * geclippt. Die Form ist selbst der Rand, daher keine Randabblendung.
+ * Zeichnet einen Visualizer in der gewählten Form (siehe visualizerShape.js).
+ *
+ * Ziel ist das mittige Form-Rechteck der (per "Position & Größe"
+ * skalierten) Zielfläche, beim Kreis zusätzlich rund geclippt. Die Quelle
+ * wird normalerweise schon im Seitenverhältnis der Form gerendert
+ * (`shapeRenderSize`) und dann vollständig gezeichnet – der Visualizer ist
+ * an das Format angepasst, nicht beschnitten. Hat die Quelle ein anderes
+ * Seitenverhältnis (z. B. ein Worker-Frame von vor dem Formwechsel), wird
+ * wie früher ihr mittiger Ausschnitt gezeigt statt verzerrt.
+ * Die Form ist selbst der Rand, daher keine Randabblendung.
  *
  * @returns {boolean} false bei 'free' (nichts gezeichnet)
  */
 function drawShaped(targetCtx, source, srcW, srcH, destW, destH, view) {
-  const crop = shapeCropRect(srcW, srcH, view.shape)
-  if (!crop) return false
-
   const centered = view.scale === 1.0 && view.posX === 0.5 && view.posY === 0.5
-  // Volles Zielrechteck wie im ungeformten Fall, dann den Ausschnitt darin
-  const full = centered
-    ? { x: 0, y: 0, w: destW, h: destH }
-    : scaledDestRect(srcW, srcH, destW, destH, view)
-  const kx = full.w / srcW
-  const ky = full.h / srcH
-  const x = full.x + crop.x * kx
-  const y = full.y + crop.y * ky
-  const w = crop.w * kx
-  const h = crop.h * ky
+  const fw = centered ? destW : destW * view.scale
+  const fh = centered ? destH : destH * view.scale
+  const fx = centered ? 0 : destW * view.posX - fw / 2
+  const fy = centered ? 0 : destH * view.posY - fh / 2
+
+  const dest = shapeCropRect(fw, fh, view.shape)
+  if (!dest) return false
+  const x = fx + dest.x
+  const y = fy + dest.y
+  const { w, h } = dest
+
+  // Quelle: im Format gerendert → ganzes Bitmap (Ausschnitt ≈ volle Fläche)
+  const crop = shapeCropRect(srcW, srcH, view.shape) || { x: 0, y: 0, w: srcW, h: srcH }
 
   targetCtx.save()
   if (view.shape === 'circle') {
@@ -183,7 +191,7 @@ function drawShaped(targetCtx, source, srcW, srcH, destW, destH, view) {
 /**
  * Zeichnet ein Visualizer-Bitmap gemäß "Position & Größe" auf den Ziel-Context
  * und blendet dabei den Rand weich aus, wenn er sichtbar würde. Mit `shape`
- * (≠ 'free') wird nur der Ausschnitt der Form gezeichnet.
+ * (≠ 'free') wird die Quelle in das Form-Rechteck gezeichnet.
  *
  * @param {CanvasRenderingContext2D} targetCtx
  * @param {CanvasImageSource} source - Bitmap oder Canvas in Render-Größe

@@ -7,6 +7,7 @@ import { gateAudioData } from './reactGate.js'
 import { createLayerPunch } from './beatPunch.js'
 import { ensurePostProcessor, applyPostFx } from './postFx.js'
 import { normalizeLedConfig } from '../../lib/visualizers/gl/ledTextSettings.js'
+import { shapeRenderSize } from '../../lib/visualizers/core/visualizerShape.js'
 
 /**
  * Multi-Layer-Modus: jeder sichtbare Layer wird in ein eigenes Cache-Canvas
@@ -70,7 +71,9 @@ export function createMultiLayerRenderer({
   }
 
   /** Einen Layer in sein Cache-Canvas zeichnen (inkl. Post-FX + Beat-Punch). */
-  function renderLayer(layer, visualizer, analyser, audioData, bufferLength, width, height) {
+  function renderLayer(layer, visualizer, analyser, audioData, bufferLength, canvasW, canvasH) {
+    // Mit Form im Format der Form rendern (angepasst statt beschnitten)
+    const { width, height } = shapeRenderSize(canvasW, canvasH, layer.shape)
     const cache = layerCacheFor(layer, width, height)
     switchVisualizer(cache, layer, visualizer, width, height)
 
@@ -144,13 +147,21 @@ export function createMultiLayerRenderer({
       ctx.globalCompositeOperation = layer.blendMode || 'source-over'
       // Layer über drawScaledVisualizer (inkl. Randabblendung); der eigene
       // Beat-Punch des Layers wirkt als zusätzlicher Zoom.
-      drawScaledVisualizer(ctx, cache.canvas, width, height, width, height, {
-        scale: layer.scale * (cache.punchScale || 1),
-        posX: layer.x,
-        posY: layer.y,
-        edgeFade: Visualizers[layer.visualizerId]?.edgeFade,
-        shape: layer.shape,
-      })
+      drawScaledVisualizer(
+        ctx,
+        cache.canvas,
+        cache.canvas.width,
+        cache.canvas.height,
+        width,
+        height,
+        {
+          scale: layer.scale * (cache.punchScale || 1),
+          posX: layer.x,
+          posY: layer.y,
+          edgeFade: Visualizers[layer.visualizerId]?.edgeFade,
+          shape: layer.shape,
+        },
+      )
       ctx.restore()
     }
   }

@@ -1,15 +1,11 @@
 <template>
   <div class="fx-effect">
-    <div class="fx-effect-header">
-      <label class="fx-check">
-        <input
-          type="checkbox"
-          :checked="modelValue"
-          @change="$emit('update:modelValue', $event.target.checked)"
-        />
-        <span>{{ title }}</span>
-      </label>
-    </div>
+    <UiSwitch
+      :model-value="modelValue"
+      class="fx-effect-toggle"
+      :label="title"
+      @update:model-value="$emit('update:modelValue', $event)"
+    />
     <div v-if="modelValue" class="fx-effect-body">
       <slot />
     </div>
@@ -17,34 +13,26 @@
 </template>
 
 <script setup>
-defineProps({ title: String, modelValue: Boolean })
+import UiSwitch from '../ui/UiSwitch.vue'
+
+defineProps({
+  title: { type: String, required: true },
+  modelValue: { type: Boolean, default: false },
+})
 defineEmits(['update:modelValue'])
 </script>
 
 <style scoped>
 .fx-effect {
-  border-left: 2px solid color-mix(in srgb, var(--ds-link) 20%, transparent);
-  margin: 4px 0;
-  padding-left: 6px;
+  margin: var(--ds-space-1) 0;
 }
-.fx-effect-header {
-  margin-bottom: 2px;
-}
-.fx-check {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-  font-size: var(--ds-text-sm);
-  color: var(--ds-text-2);
-}
-.fx-check input {
-  accent-color: var(--ds-link);
-}
+/* Einstellungen eines aktiven Effekts: eingerückt unter seinem Schalter */
 .fx-effect-body {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 2px 0 4px 4px;
+  gap: var(--ds-space-1);
+  margin: var(--ds-space-1) 0 var(--ds-space-2) 6px;
+  padding-left: var(--ds-space-3);
+  border-left: 2px solid var(--ds-border-strong);
 }
 </style>

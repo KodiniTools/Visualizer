@@ -1,21 +1,22 @@
 <template>
   <div class="fx-range-row">
-    <label>{{ label }}: {{ modelValue }}{{ unit }}</label>
-    <input
-      type="range"
+    <span class="fx-range-label">{{ label }}: {{ modelValue }}{{ unit }}</span>
+    <SliderField
+      :model-value="modelValue"
       :min="min"
       :max="max"
-      :value="modelValue"
-      @input="$emit('update:modelValue', Number($event.target.value))"
-      class="fx-slider"
+      :aria-label="label"
+      @update:model-value="$emit('update:modelValue', Number($event))"
     />
   </div>
 </template>
 
 <script setup>
+import SliderField from '../ui/SliderField.vue'
+
 defineProps({
-  label: String,
-  modelValue: Number,
+  label: { type: String, required: true },
+  modelValue: { type: Number, default: 0 },
   min: { type: Number, default: 0 },
   max: { type: Number, default: 100 },
   unit: { type: String, default: '' },
@@ -23,17 +24,16 @@ defineProps({
 defineEmits(['update:modelValue'])
 </script>
 
+<style scoped src="../ui/slider-control.css"></style>
 <style scoped>
 .fx-range-row {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
+}
+.fx-range-label {
   font-size: var(--ds-text-xs);
   color: var(--ds-text-2);
-}
-.fx-slider {
-  width: 100%;
-  accent-color: var(--ds-link);
-  height: 14px;
+  font-variant-numeric: tabular-nums;
 }
 </style>

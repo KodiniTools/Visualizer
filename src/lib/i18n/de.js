@@ -2540,4 +2540,32 @@ export default {
       delete_video: 'Video gelöscht',
     },
   },
+
+  // ========== AUDIO-REAKTIVE EFFEKTE (Canvas-Steuerung) ==========
+  audioFx: {
+    title: 'Audio-Reaktive Effekte',
+    active: 'Effekte aktiv',
+    rhythmGroup: 'Rhythmus & Kamera',
+    source: 'Quelle',
+    min: 'Min',
+    max: 'Max',
+    range: 'Bereich',
+    strength: 'Stärke',
+    intensity: 'Intensität',
+    color: 'Farbe',
+    effects: {
+      brightness: 'Helligkeit',
+      saturation: 'Sättigung',
+      contrast: 'Kontrast',
+      hue: 'Farbton-Rotation',
+      pulse: 'Pulsierung',
+      glow: 'Glow',
+      tint: 'Farb-Tint',
+      vignette: 'Vignette',
+      zoomPunch: 'Zoom-Punch (Beat)',
+      vignettePulse: 'Vignette-Puls (Beat)',
+      bpmPulse: 'BPM-Puls',
+      freqSplit: 'Frequenz-Split',
+    },
+  },
 }

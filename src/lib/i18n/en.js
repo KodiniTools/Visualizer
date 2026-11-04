@@ -2531,4 +2531,32 @@ export default {
       delete_video: 'Video deleted',
     },
   },
+
+  // ========== AUDIO-REACTIVE EFFECTS (canvas control) ==========
+  audioFx: {
+    title: 'Audio-Reactive Effects',
+    active: 'Effects active',
+    rhythmGroup: 'Rhythm & Camera',
+    source: 'Source',
+    min: 'Min',
+    max: 'Max',
+    range: 'Range',
+    strength: 'Strength',
+    intensity: 'Intensity',
+    color: 'Color',
+    effects: {
+      brightness: 'Brightness',
+      saturation: 'Saturation',
+      contrast: 'Contrast',
+      hue: 'Hue Rotation',
+      pulse: 'Pulse',
+      glow: 'Glow',
+      tint: 'Color Tint',
+      vignette: 'Vignette',
+      zoomPunch: 'Zoom Punch (Beat)',
+      vignettePulse: 'Vignette Pulse (Beat)',
+      bpmPulse: 'BPM Pulse',
+      freqSplit: 'Frequency Split',
+    },
+  },
 }

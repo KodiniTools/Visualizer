@@ -68,6 +68,7 @@ const store = useVisualizerStore()
 </script>
 
 <style scoped src="./visualizerPanelShared.css"></style>
+<style scoped src="../ui/slider-control.css"></style>
 <style scoped>
 /* Position & Größe Styles */
 .position-section {
@@ -129,75 +130,7 @@ const store = useVisualizerStore()
 }
 
 /* Position Slider */
-.position-slider {
-  background: var(--ds-surface-3);
-}
-
-.position-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: var(--ds-radius-full);
-  background: var(--ds-warning);
-  cursor: pointer;
-  border: 2px solid var(--ds-surface-1);
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.position-slider::-webkit-slider-thumb:hover {
-  background: var(--ds-warning);
-}
-
-.position-slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: var(--ds-radius-full);
-  background: var(--ds-warning);
-  cursor: pointer;
-  border: 2px solid var(--ds-surface-1);
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.position-slider::-moz-range-thumb:hover {
-  background: var(--ds-warning);
-}
-
 /* Scale Slider */
-.scale-slider {
-  background: var(--ds-surface-3);
-}
-
-.scale-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: var(--ds-radius-full);
-  background: var(--ds-success);
-  cursor: pointer;
-  border: 2px solid var(--ds-surface-1);
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.scale-slider::-webkit-slider-thumb:hover {
-  background: var(--ds-success);
-}
-
-.scale-slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: var(--ds-radius-full);
-  background: var(--ds-success);
-  cursor: pointer;
-  border: 2px solid var(--ds-surface-1);
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.scale-slider::-moz-range-thumb:hover {
-  background: var(--ds-success);
-}
-
 /* ═══ Light Theme Overrides ═══ */
 
 [data-theme='light'] .position-section {

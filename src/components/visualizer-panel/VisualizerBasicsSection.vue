@@ -94,6 +94,7 @@ const shapeOptions = computed(() => visualizerShapeOptions(t))
 </script>
 
 <style scoped src="./visualizerPanelShared.css"></style>
+<style scoped src="../ui/slider-control.css"></style>
 <style scoped>
 /* Kompakte Zeile: Label links, Steuerung rechts */
 .inline-row {
@@ -198,76 +199,6 @@ const shapeOptions = computed(() => visualizerShapeOptions(t))
   border-radius: var(--ds-radius-sm);
 }
 
-/* Intensität-Slider */
-.intensity-slider {
-  background: var(--secondary-bg);
-}
-
-.intensity-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: var(--ds-radius-full);
-  background: var(--accent-tertiary);
-  cursor: pointer;
-  border: 2px solid var(--ds-surface-1);
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.intensity-slider::-webkit-slider-thumb:hover {
-  background: var(--accent-primary);
-}
-
-.intensity-slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: var(--ds-radius-full);
-  background: var(--accent-tertiary);
-  cursor: pointer;
-  border: 2px solid var(--ds-surface-1);
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.intensity-slider::-moz-range-thumb:hover {
-  background: var(--accent-primary);
-}
-
-/* Farbtransparenz-Slider */
-.color-slider {
-  background: color-mix(in srgb, var(--ds-link) 0%, transparent);
-}
-
-.color-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: var(--ds-radius-full);
-  background: var(--ds-success);
-  cursor: pointer;
-  border: 2px solid var(--ds-surface-1);
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.color-slider::-webkit-slider-thumb:hover {
-  background: var(--ds-success);
-}
-
-.color-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: var(--ds-radius-full);
-  background: var(--ds-success);
-  cursor: pointer;
-  border: 2px solid var(--ds-surface-1);
-  transition: all var(--ds-duration) var(--ds-ease);
-}
-
-.color-slider::-moz-range-thumb:hover {
-  background: var(--ds-success);
-}
-
 /* Form-Auswahl über die ganze Breite, Optionen gleich breit */
 .shape-control {
   display: flex;
@@ -293,14 +224,6 @@ const shapeOptions = computed(() => visualizerShapeOptions(t))
 
 [data-theme='light'] .color-swatch {
   border-color: var(--border-color);
-}
-
-[data-theme='light'] .intensity-slider::-webkit-slider-thumb {
-  background: var(--accent-primary);
-}
-
-[data-theme='light'] .intensity-slider::-moz-range-thumb {
-  background: var(--accent-primary);
 }
 
 /* ═══ Responsive ═══ */

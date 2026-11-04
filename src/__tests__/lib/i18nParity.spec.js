@@ -467,3 +467,11 @@ describe('i18n – Hintergrund-Gradient ohne fest verdrahtete Texte', () => {
     ).toEqual([])
   })
 })
+
+describe('i18n – Audio-Quellen-Popover ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte', () => {
+    expect(
+      hardcodedTemplateText(read('components/sticky-player-bar/AudioSourcePopover.vue')),
+    ).toEqual([])
+  })
+})

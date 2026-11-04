@@ -16,7 +16,9 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
   // Is microphone currently active/listening
   const isMicrophoneActive = ref(false)
 
-  // Error message if something goes wrong
+  // Fehler als i18n-Schlüssel unter `player.*` (Text wählt die Oberfläche je Sprache)
+  const errorKey = ref('')
+  // Technische Fehlermeldung des Browsers (unübersetzt, optional)
   const errorMessage = ref('')
 
   // Available audio input devices
@@ -38,7 +40,7 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
    */
   async function requestMicrophonePermission() {
     try {
-      errorMessage.value = ''
+      clearError()
       microphonePermission.value = 'prompt'
 
       // Request permission by getting a stream
@@ -64,16 +66,9 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
     } catch (error) {
       console.error('[AudioSourceStore] Microphone permission error:', error)
 
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        microphonePermission.value = 'denied'
-        errorMessage.value = 'Mikrofon-Zugriff wurde verweigert'
-      } else if (error.name === 'NotFoundError') {
-        microphonePermission.value = 'error'
-        errorMessage.value = 'Kein Mikrofon gefunden'
-      } else {
-        microphonePermission.value = 'error'
-        errorMessage.value = error.message || 'Unbekannter Fehler'
-      }
+      const key = microphoneErrorKey(error)
+      microphonePermission.value = key === 'microphonePermissionDenied' ? 'denied' : 'error'
+      setError(key ?? 'microphoneUnknownError', key ? '' : error?.message)
 
       return false
     }
@@ -89,7 +84,8 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
         .filter((device) => device.kind === 'audioinput')
         .map((device) => ({
           deviceId: device.deviceId,
-          label: device.label || `Mikrofon ${audioInputDevices.value.length + 1}`,
+          // Ohne Freigabe liefern Browser leere Labels → Oberfläche nummeriert
+          label: device.label || '',
         }))
 
       console.log('[AudioSourceStore] Found audio devices:', audioInputDevices.value.length)
@@ -103,7 +99,7 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
    */
   async function startMicrophone(deviceId = null) {
     try {
-      errorMessage.value = ''
+      clearError()
 
       // Stop any existing stream
       if (microphoneStream.value) {
@@ -146,7 +142,8 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
       return stream
     } catch (error) {
       console.error('[AudioSourceStore] Error starting microphone:', error)
-      errorMessage.value = error.message || 'Mikrofon konnte nicht gestartet werden'
+      const key = microphoneErrorKey(error)
+      setError(key ?? 'microphoneStartFailed', key ? '' : error?.message)
       isMicrophoneActive.value = false
       return null
     }
@@ -210,7 +207,17 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
   function reset() {
     stopMicrophone()
     sourceType.value = 'player'
-    errorMessage.value = ''
+    clearError()
+  }
+
+  /** Fehler setzen: i18n-Schlüssel plus optionale technische Meldung. */
+  function setError(key, detail = '') {
+    errorKey.value = key
+    errorMessage.value = detail || ''
+  }
+
+  function clearError() {
+    setError('', '')
   }
 
   return {
@@ -219,6 +226,7 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
     microphoneStream,
     microphonePermission,
     isMicrophoneActive,
+    errorKey,
     errorMessage,
     audioInputDevices,
     selectedDeviceId,
@@ -236,5 +244,21 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
     setSourceType,
     toggleSource,
     reset,
+    setError,
+    clearError,
   }
 })
+
+/**
+ * Bekannte getUserMedia-Fehler → i18n-Schlüssel (unter `player.*`);
+ * null = unbekannt (dann zählt die technische Meldung).
+ * @param {unknown} error @returns {string|null}
+ */
+export function microphoneErrorKey(error) {
+  const name = error?.name
+  if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+    return 'microphonePermissionDenied'
+  }
+  if (name === 'NotFoundError' || name === 'DevicesNotFoundError') return 'microphoneNotFound'
+  return null
+}

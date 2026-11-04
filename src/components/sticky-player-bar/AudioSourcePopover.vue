@@ -51,8 +51,8 @@
         <span class="mic-indicator"></span>
         <span>{{ t('player.microphoneListening') }}</span>
       </div>
-      <div v-else-if="audioSourceStore.errorMessage" class="mic-error">
-        {{ audioSourceStore.errorMessage }}
+      <div v-else-if="micError" class="mic-error" role="alert">
+        {{ micError }}
       </div>
     </div>
 
@@ -84,8 +84,19 @@ const initOffset = cascadeOffset('audio')
 const { selectedDevice, selectSource, changeDevice } = audioSource
 
 const deviceOptions = computed(() =>
-  audioSourceStore.audioInputDevices.map((d) => ({ value: d.deviceId, label: d.label })),
+  audioSourceStore.audioInputDevices.map((d, i) => ({
+    value: d.deviceId,
+    label: d.label || t('player.microphoneN').replace('{n}', String(i + 1)),
+  })),
 )
+
+// Fehlertext in der aktuellen Sprache; technische Browser-Meldung als Zusatz
+const micError = computed(() => {
+  const { errorKey, errorMessage } = audioSourceStore
+  if (!errorKey) return errorMessage
+  const text = t(`player.${errorKey}`)
+  return errorMessage ? `${text}: ${errorMessage}` : text
+})
 </script>
 
 <style scoped src="./popover-chrome.css"></style>

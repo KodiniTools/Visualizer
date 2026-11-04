@@ -947,6 +947,9 @@ export default {
     selectDevice: 'Select device',
     microphonePermissionDenied: 'Microphone access denied',
     microphoneNotFound: 'No microphone found',
+    microphoneStartFailed: 'Could not start the microphone',
+    microphoneUnknownError: 'Unknown microphone error',
+    microphoneN: 'Microphone {n}',
     // Player controls
     prev: 'Previous',
     play: 'Play',

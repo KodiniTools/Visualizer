@@ -126,6 +126,32 @@ describe('AudioSourcePopover – Ui-Bausteine und Sprache', () => {
     )
   })
 
+  it('Mikrofon-Fehler und Geräte ohne Namen folgen der Sprache', async () => {
+    store.sourceType = 'microphone'
+    store.errorKey = 'microphoneNotFound'
+    store.audioInputDevices = [
+      { deviceId: 'a', label: '' },
+      { deviceId: 'b', label: '' },
+    ]
+    await mountPopover()
+    expect(root().querySelector('.mic-error').textContent.trim()).toBe(P.microphoneNotFound)
+    const labels = () => [...root().querySelectorAll('option')].map((o) => o.textContent.trim())
+    expect(labels()).toEqual(['Mikrofon 1', 'Mikrofon 2'])
+
+    await setLocale('en')
+    await nextTick()
+    expect(root().querySelector('.mic-error').textContent.trim()).toBe(en.player.microphoneNotFound)
+    expect(labels()).toEqual(['Microphone 1', 'Microphone 2'])
+
+    // Unbekannter Fehler: übersetzter Text plus Meldung des Browsers
+    store.errorKey = 'microphoneStartFailed'
+    store.errorMessage = 'Device busy'
+    await nextTick()
+    expect(root().querySelector('.mic-error').textContent.trim()).toBe(
+      `${en.player.microphoneStartFailed}: Device busy`,
+    )
+  })
+
   it('Texte folgen der Sprache', async () => {
     await setLocale('en')
     await mountPopover()

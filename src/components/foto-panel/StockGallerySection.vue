@@ -145,6 +145,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
+import { localizedName } from '../../lib/localizedName.js'
 import { UiButton, UiCallout, UiSegmentedControl } from '../ui/index.js'
 import PlacementSettings from './PlacementSettings.vue'
 
@@ -251,7 +252,7 @@ function getStockCategoryName(category) {
   if (translated !== translationKey) {
     return translated
   }
-  return locale.value === 'en' && category.name_en ? category.name_en : category.name
+  return localizedName(category, locale.value)
 }
 </script>
 

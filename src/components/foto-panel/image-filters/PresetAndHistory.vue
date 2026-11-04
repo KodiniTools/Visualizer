@@ -41,6 +41,7 @@
 /** Filter-Preset des aktiven Bildes sowie Rückgängig/Wiederholen/Zurücksetzen. */
 import { computed, inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
+import { localizedName } from '../../../lib/localizedName.js'
 import UiButton from '../../ui/UiButton.vue'
 import UiSelect from '../../ui/UiSelect.vue'
 
@@ -63,7 +64,7 @@ const presetOptions = computed(() => [
   { value: '', label: t('foto.noFilter') },
   ...presets.value.map((p) => ({
     value: p.id,
-    label: locale.value === 'de' ? p.name_de || p.name : p.name_en || p.name,
+    label: localizedName(p, locale.value),
   })),
 ])
 

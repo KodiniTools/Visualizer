@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { Visualizers } from '../../lib/visualizers/index.js'
 import { LEGACY_VISUALIZER_IDS } from '../../lib/visualizers/aliases.js'
 import { localeRef } from '../../lib/i18n.js'
+import { localizedName } from '../../lib/localizedName.js'
 
 // ✅ Blend-Modi für Visualizer-Compositing
 export const BLEND_MODES = [
@@ -181,11 +182,7 @@ export const VISUALIZER_CATEGORIES = {
 export function useVisualizerCatalog() {
   // ✅ Helper function to get locale-aware visualizer name
   function getVisualizerName(visualizer, id) {
-    const locale = localeRef.value // Access .value for reactivity
-    if (locale === 'en') {
-      return visualizer.name_en || visualizer.name_de || id
-    }
-    return visualizer.name_de || visualizer.name_en || id
+    return localizedName(visualizer, localeRef.value, id)
   }
 
   // ✅ Kategorisierte Visualizer (locale-aware)

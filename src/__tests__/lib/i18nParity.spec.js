@@ -447,3 +447,15 @@ describe('i18n – Audio-Reaktive Effekte ohne fest verdrahtete Texte', () => {
     }
   })
 })
+
+describe('i18n – Audio-Reaktiv (Foto & Co.) ohne fest verdrahtete Texte', () => {
+  it('Vorlagen ohne feste Texte', () => {
+    for (const file of [
+      'components/foto-panel/AudioReactivePanel.vue',
+      'components/foto-panel/audio-reactive/AudioReactiveMaster.vue',
+      'components/foto-panel/audio-reactive/AudioReactiveEffectCategory.vue',
+    ]) {
+      expect(hardcodedTemplateText(read(file)), file).toEqual([])
+    }
+  })
+})

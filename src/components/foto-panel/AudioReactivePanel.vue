@@ -1,5 +1,5 @@
 <template>
-  <div ref="rootEl" class="audio-reactive-section">
+  <div class="audio-reactive-section">
     <AudioReactiveMaster />
     <AudioReactivePresets v-if="isEnabled" />
     <AudioReactiveEffects v-if="isEnabled" />
@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import { ref, computed, toRef, provide, nextTick } from 'vue'
+import { ref, reactive, computed, toRef, provide } from 'vue'
 import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects.js'
 import {
   AUDIO_REACTIVE_PRESETS,
@@ -53,8 +53,6 @@ const props = defineProps({
   },
 })
 
-const rootEl = ref(null)
-
 const emit = defineEmits([
   'audio-reactive-toggle',
   'source-change',
@@ -72,21 +70,45 @@ const emit = defineEmits([
   'apply-settings',
 ])
 
-// Refs
-const audioReactiveEnabledRef = ref(null)
+// Einziger DOM-Zugriff: der Pegelbalken, den die Verwender pro Frame setzen.
 const audioLevelBarRef = ref(null)
-const audioReactiveSourceRef = ref(null)
-const audioReactiveSmoothingRef = ref(null)
-const audioReactiveSmoothingValueRef = ref(null)
-const audioReactiveEasingRef = ref(null)
-const audioReactiveBeatBoostRef = ref(null)
-const audioReactiveBeatBoostValueRef = ref(null)
-const audioReactivePhaseRef = ref(null)
-const audioReactivePhaseValueRef = ref(null)
-const audioReactiveGainRef = ref(null)
-const audioReactiveGainValueRef = ref(null)
 
 const isEnabled = ref(false)
+
+const MASTER_DEFAULTS = {
+  source: 'bass',
+  smoothing: 50,
+  gain: 1,
+  easing: 'linear',
+  beatBoost: 1,
+  phase: 0,
+}
+/** Event je Master-Einstellung (Verwender hängen an diesen Namen). */
+const MASTER_EVENTS = {
+  source: 'source-change',
+  smoothing: 'smoothing-change',
+  gain: 'gain-change',
+  easing: 'easing-change',
+  beatBoost: 'beat-boost-change',
+  phase: 'phase-change',
+}
+const master = reactive({ ...MASTER_DEFAULTS })
+
+/** Zustand je Effekt-ID; fehlt ein Eintrag, gilt der Kategorie-Standard. */
+const effectStates = reactive({})
+function effectState(id, defaultIntensity = 80) {
+  return effectStates[id] ?? { enabled: false, intensity: defaultIntensity, source: '' }
+}
+function patchEffect(id, defaultIntensity, patch) {
+  effectStates[id] = { ...effectState(id, defaultIntensity), ...patch }
+}
+
+/**
+ * Die Verwender lesen `event.target.value` bzw. `event.target.checked`
+ * (früher echte DOM-Events). Dieses Format bleibt erhalten; Werte als String
+ * wie vom nativen Input.
+ */
+const asEvent = (target) => ({ target })
 
 function isAllowed(id) {
   return props.allowedEffects === null || props.allowedEffects.includes(id)
@@ -160,50 +182,27 @@ const rhythmEffects = computed(() =>
 )
 
 // Handlers
-function onAudioReactiveToggle(event) {
-  isEnabled.value = event.target.checked
-  emit('audio-reactive-toggle', event)
+function setEnabled(enabled) {
+  isEnabled.value = enabled
+  emit('audio-reactive-toggle', asEvent({ checked: enabled }))
 }
 
-function onAudioReactiveSourceChange(event) {
-  emit('source-change', event)
+function setMaster(prop, value) {
+  master[prop] = value
+  emit(MASTER_EVENTS[prop], asEvent({ value: String(value) }))
 }
 
-function onAudioReactiveSmoothingChange(event) {
-  const value = parseInt(event.target.value)
-  if (audioReactiveSmoothingValueRef.value) {
-    audioReactiveSmoothingValueRef.value.textContent = value + '%'
-  }
-  emit('smoothing-change', event)
+function effectToggle(id, enabled, defaultIntensity) {
+  patchEffect(id, defaultIntensity, { enabled })
+  emit('effect-toggle', id, enabled)
 }
-
-function onAudioReactiveEasingChange(event) {
-  emit('easing-change', event)
+function effectSourceChange(id, source, defaultIntensity) {
+  patchEffect(id, defaultIntensity, { source })
+  emit('effect-source-change', id, source)
 }
-
-function onAudioReactiveBeatBoostChange(event) {
-  const value = parseFloat(event.target.value)
-  const displayValue = value <= 1.0 ? t('foto.beatBoostOff') : `${Math.round((value - 1) * 100)}%`
-  if (audioReactiveBeatBoostValueRef.value) {
-    audioReactiveBeatBoostValueRef.value.textContent = displayValue
-  }
-  emit('beat-boost-change', event)
-}
-
-function onAudioReactivePhaseChange(event) {
-  const value = parseInt(event.target.value)
-  if (audioReactivePhaseValueRef.value) {
-    audioReactivePhaseValueRef.value.textContent = value + '°'
-  }
-  emit('phase-change', event)
-}
-
-function onAudioReactiveGainChange(event) {
-  const value = parseFloat(event.target.value)
-  if (audioReactiveGainValueRef.value) {
-    audioReactiveGainValueRef.value.textContent = Math.round(value * 100) + '%'
-  }
-  emit('gain-change', event)
+function effectIntensityChange(id, intensity, defaultIntensity) {
+  patchEffect(id, defaultIntensity, { intensity })
+  emit('effect-intensity-change', id, String(intensity))
 }
 
 /**
@@ -214,11 +213,9 @@ function onAudioReactiveGainChange(event) {
  */
 function loadSettings(imageData) {
   if (!imageData) {
-    // Reset to defaults
     isEnabled.value = false
-    if (audioReactiveEnabledRef.value) {
-      audioReactiveEnabledRef.value.checked = false
-    }
+    Object.assign(master, MASTER_DEFAULTS)
+    for (const id of Object.keys(effectStates)) delete effectStates[id]
     return
   }
 
@@ -227,93 +224,31 @@ function loadSettings(imageData) {
     imageData.audioReactive ||
     (imageData.effects ? imageData : {})
 
-  // Master-Einstellungen
-  const enabled = audioReactive.enabled || false
-  isEnabled.value = enabled
-  if (audioReactiveEnabledRef.value) {
-    audioReactiveEnabledRef.value.checked = enabled
-  }
+  isEnabled.value = audioReactive.enabled || false
+  Object.assign(master, {
+    source: audioReactive.source || 'bass',
+    smoothing: audioReactive.smoothing ?? 50,
+    gain: audioReactive.gain ?? 1,
+    easing: audioReactive.easing || 'linear',
+    beatBoost: audioReactive.beatBoost ?? 1,
+    phase: audioReactive.phase ?? 0,
+  })
 
-  // Die Master-Controls hängen an v-if="isEnabled" und existieren nach dem
-  // Einschalten erst im nächsten Tick – deshalb erst dann in den DOM schreiben.
-  const applyMasterControls = () => {
-    if (audioReactiveSourceRef.value) {
-      audioReactiveSourceRef.value.value = audioReactive.source || 'bass'
-    }
-
-    if (audioReactiveSmoothingRef.value) {
-      const smoothing = audioReactive.smoothing ?? 50
-      audioReactiveSmoothingRef.value.value = smoothing
-      if (audioReactiveSmoothingValueRef.value) {
-        audioReactiveSmoothingValueRef.value.textContent = smoothing + '%'
-      }
-    }
-
-    if (audioReactiveEasingRef.value) {
-      audioReactiveEasingRef.value.value = audioReactive.easing || 'linear'
-    }
-
-    if (audioReactiveBeatBoostRef.value) {
-      const beatBoost = audioReactive.beatBoost ?? 1.0
-      audioReactiveBeatBoostRef.value.value = beatBoost
-      if (audioReactiveBeatBoostValueRef.value) {
-        const displayValue =
-          beatBoost <= 1.0 ? t('foto.beatBoostOff') : `${Math.round((beatBoost - 1) * 100)}%`
-        audioReactiveBeatBoostValueRef.value.textContent = displayValue
-      }
-    }
-
-    if (audioReactivePhaseRef.value) {
-      const phase = audioReactive.phase ?? 0
-      audioReactivePhaseRef.value.value = phase
-      if (audioReactivePhaseValueRef.value) {
-        audioReactivePhaseValueRef.value.textContent = phase + '°'
-      }
-    }
-
-    if (audioReactiveGainRef.value) {
-      const gain = audioReactive.gain ?? 1.0
-      audioReactiveGainRef.value.value = gain
-      if (audioReactiveGainValueRef.value) {
-        audioReactiveGainValueRef.value.textContent = Math.round(gain * 100) + '%'
-      }
-    }
-  }
-
-  // Effekte laden (alle Effekt-Checkboxen und Slider) – inkl. Rhythmus-Effekte
-  // und zusätzlicher Kategorien (z. B. Gradient-Effekte des Hintergrunds)
+  // Alle Effekte setzen – inkl. Rhythmus-Effekte und zusätzlicher Kategorien
+  // (z. B. Gradient-Effekte des Hintergrunds)
   const effects = audioReactive.effects || {}
   const allEffectIds = [
     ...EFFECT_NAMES,
     ...props.extraCategories.flatMap((cat) => (cat.effects || []).map((e) => e.id)),
   ]
-
-  // DOM-Elemente für Effekte suchen und aktualisieren (über data-effect-id)
-  nextTick(() => {
-    applyMasterControls()
-    allEffectIds.forEach((effectId) => {
-      const effectData = effects[effectId]
-      const enabled = effectData?.enabled || false
-      const intensity = effectData?.intensity ?? 80
-      const source = effectData?.source || ''
-
-      // Finde die Effekt-Elemente im DOM über data-effect-id – nur innerhalb dieses
-      // Panels, da mehrere Panels (Bild + Hintergrund) gleichzeitig gemountet sein können
-      const scope = rootEl.value || document
-      const effectItem = scope.querySelector(`.effect-item[data-effect-id="${effectId}"]`)
-      if (effectItem) {
-        const checkbox = effectItem.querySelector('.effect-checkbox')
-        const slider = effectItem.querySelector('.effect-slider')
-        const valueSpan = effectItem.querySelector('.effect-value')
-        const sourceSelect = effectItem.querySelector('.effect-source-select')
-
-        if (checkbox) checkbox.checked = enabled
-        if (slider) slider.value = intensity
-        if (valueSpan) valueSpan.textContent = intensity + '%'
-        if (sourceSelect) sourceSelect.value = source
-      }
-    })
-  })
+  for (const id of allEffectIds) {
+    const fx = effects[id]
+    effectStates[id] = {
+      enabled: fx?.enabled || false,
+      intensity: fx?.intensity ?? 80,
+      source: fx?.source || '',
+    }
+  }
 
   console.log('🔊 Audio-Reaktiv Einstellungen geladen:', audioReactive)
 }
@@ -324,18 +259,8 @@ provide('audioReactiveControls', {
   hasSavedSettings: toRef(props, 'hasSavedSettings'),
   activeAudioPreset: toRef(props, 'activeAudioPreset'),
   isEnabled,
-  audioReactiveEnabledRef,
+  master,
   audioLevelBarRef,
-  audioReactiveSourceRef,
-  audioReactiveSmoothingRef,
-  audioReactiveSmoothingValueRef,
-  audioReactiveEasingRef,
-  audioReactiveBeatBoostRef,
-  audioReactiveBeatBoostValueRef,
-  audioReactivePhaseRef,
-  audioReactivePhaseValueRef,
-  audioReactiveGainRef,
-  audioReactiveGainValueRef,
   presetList,
   colorEffects,
   transformEffects,
@@ -343,35 +268,22 @@ provide('audioReactiveControls', {
   specialEffects,
   rhythmEffects,
   extraCategories: toRef(props, 'extraCategories'),
-  onAudioReactiveToggle,
-  onAudioReactiveSourceChange,
-  onAudioReactiveSmoothingChange,
-  onAudioReactiveEasingChange,
-  onAudioReactiveBeatBoostChange,
-  onAudioReactivePhaseChange,
-  onAudioReactiveGainChange,
+  setEnabled,
+  setMaster,
+  effectState,
   togglePreset: (id) => emit('toggle-preset', id),
   clearPreset: () => emit('clear-preset'),
-  effectToggle: (id, checked) => emit('effect-toggle', id, checked),
-  effectSourceChange: (id, value) => emit('effect-source-change', id, value),
-  effectIntensityChange: (id, value) => emit('effect-intensity-change', id, value),
+  effectToggle,
+  effectSourceChange,
+  effectIntensityChange,
   saveSettings: () => emit('save-settings'),
   applySettings: () => emit('apply-settings'),
 })
 
-// Expose refs and methods (unchanged public API; loadSettings is consumed by
-// ImageAudioReactivePanel).
+// Öffentliche API: loadSettings (alle Verwender), audioLevelBarRef
+// (Pegelanzeige), isEnabled.
 defineExpose({
-  audioReactiveEnabledRef,
   audioLevelBarRef,
-  audioReactiveSourceRef,
-  audioReactiveSmoothingRef,
-  audioReactiveSmoothingValueRef,
-  audioReactiveEasingRef,
-  audioReactiveBeatBoostRef,
-  audioReactiveBeatBoostValueRef,
-  audioReactivePhaseRef,
-  audioReactivePhaseValueRef,
   isEnabled,
   loadSettings,
 })

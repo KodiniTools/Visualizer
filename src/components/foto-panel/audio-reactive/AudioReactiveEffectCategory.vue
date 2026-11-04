@@ -2,46 +2,41 @@
   <div class="effect-category">
     <span class="category-title">{{ title }}</span>
     <div v-for="effect in effects" :key="effect.id" class="effect-item" :data-effect-id="effect.id">
-      <label class="effect-checkbox-label">
-        <input
-          type="checkbox"
-          class="effect-checkbox"
-          @change="effectToggle(effect.id, $event.target.checked)"
-        />
-        <span class="effect-name">{{ effect.name }}</span>
-      </label>
-      <select
-        class="effect-source-select"
-        @change="effectSourceChange(effect.id, $event.target.value)"
-      >
-        <option value="">{{ t('foto.global') }}</option>
-        <option value="bass">{{ t('foto.bass') }}</option>
-        <option value="mid">{{ t('foto.mid') }}</option>
-        <option value="treble">{{ t('foto.treble') }}</option>
-        <option value="volume">{{ t('foto.volume') }}</option>
-        <optgroup :label="t('foto.onsetGroup')">
-          <option value="bassOnset">{{ t('foto.bassOnset') }}</option>
-          <option value="midOnset">{{ t('foto.midOnset') }}</option>
-          <option value="trebleOnset">{{ t('foto.trebleOnset') }}</option>
-          <option value="allOnset">{{ t('foto.allOnset') }}</option>
-        </optgroup>
-      </select>
-      <input
-        type="range"
-        class="effect-slider"
-        min="0"
-        max="100"
-        :value="defaultIntensity"
-        @input="effectIntensityChange(effect.id, $event.target.value)"
+      <UiSwitch
+        :model-value="effectState(effect.id, defaultIntensity).enabled"
+        :label="effect.name"
+        @update:model-value="(v) => effectToggle(effect.id, v, defaultIntensity)"
       />
-      <span class="effect-value">{{ defaultIntensity }}%</span>
+      <div v-if="effectState(effect.id, defaultIntensity).enabled" class="effect-body">
+        <UiSelect
+          :model-value="effectState(effect.id, defaultIntensity).source"
+          size="sm"
+          inline
+          :label="t('foto.effectSource')"
+          :options="sourceOptions"
+          @update:model-value="(v) => effectSourceChange(effect.id, v, defaultIntensity)"
+        />
+        <SliderControl
+          :label="t('foto.effectIntensity')"
+          :model-value="effectState(effect.id, defaultIntensity).intensity"
+          :min="0"
+          :max="100"
+          :default-value="defaultIntensity"
+          :value-text="`${effectState(effect.id, defaultIntensity).intensity}%`"
+          @update:model-value="(v) => effectIntensityChange(effect.id, v, defaultIntensity)"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
+import UiSwitch from '../../ui/UiSwitch.vue'
+import UiSelect from '../../ui/UiSelect.vue'
+import SliderControl from '../../ui/SliderControl.vue'
+import { audioSourceOptions } from './audioReactiveOptions.js'
 
 defineProps({
   title: { type: String, default: '' },
@@ -51,7 +46,9 @@ defineProps({
 
 const { t } = useI18n()
 const arc = inject('audioReactiveControls')
-const { effectToggle, effectSourceChange, effectIntensityChange } = arc
+const { effectState, effectToggle, effectSourceChange, effectIntensityChange } = arc
+
+const sourceOptions = computed(() => audioSourceOptions(t, { withGlobal: true }))
 </script>
 
 <style scoped>
@@ -69,144 +66,22 @@ const { effectToggle, effectSourceChange, effectIntensityChange } = arc
   margin-bottom: 6px;
 }
 .effect-item {
-  display: grid;
-  grid-template-columns: 1fr 50px 45px 28px;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 8px;
-  background: rgba(0, 0, 0, 0.15);
-  border: 1px solid color-mix(in srgb, var(--ds-link) 10%, transparent);
-  border-radius: var(--ds-radius-sm);
-  transition: all var(--ds-duration) var(--ds-ease);
-  margin-bottom: 4px;
+  padding: 4px 0;
 }
-.effect-item:hover {
-  background: color-mix(in srgb, var(--ds-link) 8%, transparent);
-  border-color: color-mix(in srgb, var(--ds-link) 20%, transparent);
-}
-.effect-checkbox-label {
+/* Einstellungen eines aktiven Effekts: eingerückt unter seinem Schalter */
+.effect-body {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+  margin: var(--ds-space-1) 0 var(--ds-space-1) 6px;
+  padding-left: var(--ds-space-3);
+  border-left: 2px solid var(--ds-border-strong);
 }
-.effect-checkbox {
-  width: 12px;
-  height: 12px;
-  accent-color: var(--ds-link);
-  cursor: pointer;
-}
-.effect-name {
-  font-size: var(--ds-text-xs);
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-.effect-source-select {
-  width: 100%;
-  padding: 2px 4px;
-  font-size: var(--ds-text-xs);
-  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ds-link) 30%, transparent);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  text-align: center;
-}
-.effect-source-select:hover {
-  background: color-mix(in srgb, var(--ds-link) 25%, transparent);
-  border-color: color-mix(in srgb, var(--ds-link) 50%, transparent);
-}
-.effect-source-select:focus-visible {
-  outline: none;
-  border-color: var(--ds-link);
-}
-.effect-source-select option {
-  background: var(--card-bg);
-  color: var(--text-primary);
-}
-.effect-slider {
-  width: 100%;
-  height: 3px;
-  border-radius: var(--ds-radius-sm);
-  background: color-mix(in srgb, var(--ds-link) 20%, transparent);
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-}
-.effect-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 8px;
-  height: 8px;
-  border-radius: var(--ds-radius-full);
-  background: var(--ds-link);
-  cursor: pointer;
-  border: none;
-}
-.effect-slider::-moz-range-thumb {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--ds-radius-full);
-  background: var(--ds-link);
-  cursor: pointer;
-  border: none;
-}
-.effect-value {
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-  text-align: right;
-  font-family: var(--ds-font-mono);
+.effect-body :deep(.control-group) {
+  margin-bottom: 0;
 }
 
-[data-theme='light'] .effect-item {
+[data-theme='light'] .effect-category {
   background: var(--ds-surface-2);
-  border-color: var(--border-color);
-}
-[data-theme='light'] .effect-item:hover {
-  background: var(--btn-hover);
-  border-color: var(--accent-secondary);
-}
-[data-theme='light'] .effect-source-select {
-  background: var(--ds-surface-2);
-  border-color: var(--border-color);
-}
-[data-theme='light'] .effect-source-select:hover {
-  background: var(--btn-hover);
-  border-color: var(--accent-secondary);
-}
-[data-theme='light'] .effect-slider {
-  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-}
-[data-theme='light'] .effect-slider::-webkit-slider-thumb {
-  background: var(--accent-primary);
-}
-[data-theme='light'] .effect-slider::-moz-range-thumb {
-  background: var(--accent-primary);
-}
-
-@media (max-width: 768px) {
-  .effect-item {
-    grid-template-columns: 1fr 50px 50px 28px;
-    padding: 6px 8px;
-  }
-  .effect-source-select {
-    font-size: var(--ds-text-xs);
-    padding: 4px 6px;
-    min-height: 32px;
-  }
-  .effect-slider::-webkit-slider-thumb {
-    width: 16px;
-    height: 16px;
-  }
-  .effect-slider::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-  }
-}
-@media (max-width: 480px) {
-  .effect-item {
-    grid-template-columns: 1fr 45px 40px 28px;
-  }
 }
 </style>

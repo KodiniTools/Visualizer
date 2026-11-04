@@ -1,45 +1,33 @@
 <template>
-  <div class="fx-row">
-    <label>Quelle</label>
-    <select
-      :value="modelValue"
-      @change="$emit('update:modelValue', $event.target.value)"
-      class="fx-select"
-    >
-      <option value="bass">Bass</option>
-      <option value="mid">Mitten</option>
-      <option value="treble">Höhen</option>
-      <option value="volume">Lautstärke</option>
-      <optgroup label="Onset (Beat, auto-normalisiert)">
-        <option value="bassOnset">Bass-Onset</option>
-        <option value="midOnset">Mitten-Onset</option>
-        <option value="trebleOnset">Höhen-Onset</option>
-        <option value="allOnset">Alle-Onset</option>
-      </optgroup>
-    </select>
-  </div>
+  <UiSelect
+    :model-value="modelValue"
+    size="sm"
+    inline
+    :label="t('audioFx.source')"
+    :options="options"
+    @update:model-value="$emit('update:modelValue', $event)"
+  />
 </template>
 
 <script setup>
-defineProps({ modelValue: String })
-defineEmits(['update:modelValue'])
-</script>
+import { computed } from 'vue'
+import { useI18n } from '../../lib/i18n.js'
+import { AUDIO_FX_ONSET_SOURCES, AUDIO_FX_SOURCES } from '../../data/audioFxEffects.js'
+import UiSelect from '../ui/UiSelect.vue'
 
-<style scoped>
-.fx-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--ds-text-sm);
-  color: var(--ds-text-2);
-}
-.fx-select {
-  flex: 1;
-  background: var(--ds-surface-2);
-  color: var(--ds-text-2);
-  border: 1px solid var(--ds-border-strong);
-  border-radius: var(--ds-radius-sm);
-  padding: 2px 4px;
-  font-size: var(--ds-text-xs);
-}
-</style>
+defineProps({ modelValue: { type: String, required: true } })
+defineEmits(['update:modelValue'])
+
+const { t } = useI18n()
+
+const options = computed(() => [
+  ...AUDIO_FX_SOURCES.map((value) => ({ value, label: t(`beatDrop.sources.${value}`) })),
+  {
+    label: t('beatDrop.sources.onsetGroup'),
+    options: AUDIO_FX_ONSET_SOURCES.map((value) => ({
+      value,
+      label: t(`beatDrop.sources.${value}`),
+    })),
+  },
+])
+</script>

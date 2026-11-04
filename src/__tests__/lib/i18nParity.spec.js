@@ -434,3 +434,16 @@ describe('i18n – Schnellstart-Anleitung ohne fest verdrahtete Texte', () => {
     expect(src.split('<script')[0]).not.toMatch(/lang === 'de' \?/)
   })
 })
+
+describe('i18n – Audio-Reaktive Effekte ohne fest verdrahtete Texte', () => {
+  it('Vorlagen ohne feste Texte', () => {
+    for (const file of [
+      'components/AudioFxPanel.vue',
+      'components/audio-fx/FxEffect.vue',
+      'components/audio-fx/FxSource.vue',
+      'components/audio-fx/FxRange.vue',
+    ]) {
+      expect(hardcodedTemplateText(read(file)), file).toEqual([])
+    }
+  })
+})

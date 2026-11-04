@@ -39,6 +39,9 @@ import { glInterference as glInterferenceSpec } from './presets/glInterference.j
 import { glTruchet as glTruchetSpec } from './presets/glTruchet.js'
 import { glMetaballs as glMetaballsSpec } from './presets/glMetaballs.js'
 import { glFlowerOfLife as glFlowerOfLifeSpec } from './presets/glFlowerOfLife.js'
+import { glTreeRings as glTreeRingsSpec } from './presets/glTreeRings.js'
+import { glFerrofluid as glFerrofluidSpec } from './presets/glFerrofluid.js'
+import { glPendulumWave as glPendulumWaveSpec } from './presets/glPendulumWave.js'
 import { glLedWall as glLedWallSpec } from './presets/glLedWall.js'
 import { glLedMatrix as glLedMatrixSpec } from './presets/glLedMatrix.js'
 import { glVuMeter as glVuMeterSpec } from './presets/glVuMeter.js'
@@ -175,6 +178,9 @@ export const glPresetSpecs = {
   glTruchet: glTruchetSpec,
   glMetaballs: glMetaballsSpec,
   glFlowerOfLife: glFlowerOfLifeSpec,
+  glTreeRings: glTreeRingsSpec,
+  glFerrofluid: glFerrofluidSpec,
+  glPendulumWave: glPendulumWaveSpec,
   glLedWall: glLedWallSpec,
   glLedMatrix: glLedMatrixSpec,
   glVuMeter: glVuMeterSpec,

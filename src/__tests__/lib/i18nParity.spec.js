@@ -475,3 +475,15 @@ describe('i18n – Audio-Quellen-Popover ohne fest verdrahtete Texte', () => {
     ).toEqual([])
   })
 })
+
+describe('i18n – Visualizer LED-Text und Reaktion ohne fest verdrahtete Texte', () => {
+  it('Vorlagen ohne feste Texte', () => {
+    for (const file of [
+      'components/visualizer-panel/VisualizerLedTextSection.vue',
+      'components/visualizer-panel/VisualizerReactSourceSection.vue',
+      'components/visualizer-panel/VisualizerReactShapeControls.vue',
+    ]) {
+      expect(hardcodedTemplateText(read(file)), file).toEqual([])
+    }
+  })
+})

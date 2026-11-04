@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import de from '../../lib/i18n/de.js'
 import VisualizerLedTextSection from '../../components/visualizer-panel/VisualizerLedTextSection.vue'
 import VisualizerControlsPanel from '../../components/VisualizerControlsPanel.vue'
 import { useVisualizerStore } from '../../stores/visualizerStore.js'
@@ -53,5 +54,57 @@ describe('VisualizerLedTextSection', () => {
     expect(section.exists()).toBe(true)
     await section.find('textarea').setValue('Grüße')
     expect(store.ledText).toBe('Grüße')
+  })
+
+  it('Uhrzeit: Zeitzone und Sekunden melden Änderungen', async () => {
+    wrapper = mount(VisualizerLedTextSection, {
+      props: {
+        visualizerId: 'glLedNumber',
+        config: { ledNumberMode: 'clock', ledNumberSeconds: true },
+      },
+      attachTo: document.body,
+    })
+    const select = wrapper.find('select')
+    const options = select.findAll('option')
+    expect(options[0].element.value).toBe('')
+    expect(options[0].text()).toBe(de.visualizer.led.timeZoneLocal)
+    expect(options.map((o) => o.text())).toContain('Europe/Zurich')
+    await select.setValue('Europe/Berlin')
+    expect(wrapper.emitted('update').at(-1)).toEqual(['ledNumberTimeZone', 'Europe/Berlin'])
+
+    expect(wrapper.text()).toContain(de.visualizer.led.showSeconds)
+    const seconds = [
+      ...wrapper.element.querySelectorAll('input[type="checkbox"], [role="switch"]'),
+    ][0]
+    const on = (el) =>
+      el.type === 'checkbox' ? el.checked : el.getAttribute('aria-checked') === 'true'
+    expect(on(seconds)).toBe(true)
+    if (seconds.type === 'checkbox') {
+      seconds.checked = false
+      seconds.dispatchEvent(new Event('change'))
+    } else seconds.click()
+    expect(wrapper.emitted('update').at(-1)).toEqual(['ledNumberSeconds', false])
+    wrapper.unmount()
+    wrapper = null
+    document.body.innerHTML = ''
+  })
+
+  it('Ui-Bausteine: Sekunden als UiSwitch, Zeitzone mit Label', async () => {
+    wrapper = mount(VisualizerLedTextSection, {
+      props: { visualizerId: 'glLedNumber', config: { ledNumberMode: 'clock' } },
+      attachTo: document.body,
+    })
+    expect(wrapper.find('input[type="checkbox"]').exists()).toBe(false)
+    const sw = wrapper.find('[role="switch"]')
+    expect(document.querySelector(`label[for="${sw.element.id}"]`).textContent.trim()).toBe(
+      de.visualizer.led.showSeconds,
+    )
+    const select = wrapper.find('select').element
+    expect(document.querySelector(`label[for="${select.id}"]`).textContent.trim()).toBe(
+      de.visualizer.led.timeZone,
+    )
+    wrapper.unmount()
+    wrapper = null
+    document.body.innerHTML = ''
   })
 })

@@ -5,6 +5,7 @@ import {
   VISUALIZER_SHAPES,
   normalizeVisualizerShape,
   shapeCropRect,
+  shapeRenderSize,
   visualizerShapeOptions,
 } from '../../lib/visualizers/core/visualizerShape.js'
 import {
@@ -45,6 +46,25 @@ describe('shapeCropRect', () => {
 
   it('ist bei leerer Fläche null', () => {
     expect(shapeCropRect(0, 450, '1:1')).toBeNull()
+  })
+})
+
+describe('shapeRenderSize', () => {
+  it('liefert bei "free" die Canvas-Größe', () => {
+    expect(shapeRenderSize(1920, 1080, 'free')).toEqual({ width: 1920, height: 1080 })
+  })
+
+  it('liefert die ganzzahlige Größe des Form-Rechtecks', () => {
+    expect(shapeRenderSize(1920, 1080, '1:1')).toEqual({ width: 1080, height: 1080 })
+    expect(shapeRenderSize(1920, 1080, 'circle')).toEqual({ width: 1080, height: 1080 })
+    expect(shapeRenderSize(1920, 1080, '2:3')).toEqual({ width: 720, height: 1080 })
+    expect(shapeRenderSize(1920, 1080, '16:9')).toEqual({ width: 1920, height: 1080 })
+    // Hochformat: Breite begrenzt, Höhe gerundet (253.125 → 253)
+    expect(shapeRenderSize(450, 800, '16:9')).toEqual({ width: 450, height: 253 })
+  })
+
+  it('bleibt bei leerer Fläche bei der Canvas-Größe', () => {
+    expect(shapeRenderSize(0, 450, '1:1')).toEqual({ width: 0, height: 450 })
   })
 })
 
@@ -111,6 +131,31 @@ describe('drawScaledVisualizer mit Form', () => {
     expect(drawCall(ctx)).toEqual(['drawImage', SOURCE, 175, 0, 450, 450, 87.5, 112.5, 225, 225])
     // Kontext wird wiederhergestellt
     expect(ctx.calls.at(-1)[0]).toBe('restore')
+  })
+
+  it('zeichnet eine im Format gerenderte Quelle vollständig – angepasst statt beschnitten', () => {
+    const square = { width: 450, height: 450 }
+    const ctx = recordingCtx()
+    drawScaledVisualizer(ctx, square, 450, 450, 800, 450, {
+      scale: 1,
+      posX: 0.5,
+      posY: 0.5,
+      shape: '1:1',
+    })
+    expect(drawCall(ctx)).toEqual(['drawImage', square, 0, 0, 450, 450, 175, 0, 450, 450])
+  })
+
+  it('setzt eine Hochformat-Quelle (2:3) mittig und folgt Position & Größe', () => {
+    const portrait = { width: 300, height: 450 }
+    const ctx = recordingCtx()
+    drawScaledVisualizer(ctx, portrait, 300, 450, 800, 450, {
+      scale: 0.5,
+      posX: 0.75,
+      posY: 0.5,
+      shape: '2:3',
+    })
+    // Skaliertes Ziel: 400×225 ab x=400, y=112.5 → 2:3-Rechteck 150×225 ab x=525
+    expect(drawCall(ctx)).toEqual(['drawImage', portrait, 0, 0, 300, 450, 525, 112.5, 150, 225])
   })
 
   it('skaliert den Ausschnitt mit, wenn Ziel- und Render-Größe abweichen', () => {

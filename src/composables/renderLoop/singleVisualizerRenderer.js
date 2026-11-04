@@ -8,6 +8,7 @@ import { getHistoryRecorder } from '../../lib/history/historyRecorder.js'
 import { ensureSizedCanvas } from './canvasCache.js'
 import { gateAudioData } from './reactGate.js'
 import { applyPostFx } from './postFx.js'
+import { shapeRenderSize } from '../../lib/visualizers/core/visualizerShape.js'
 
 /**
  * Einzel-Visualizer: rendert bevorzugt in einem OffscreenCanvas-Worker (das
@@ -162,7 +163,17 @@ export function createSingleVisualizerRenderer({
     if (!workerBitmap) return null
     const bitmap = workerBitmap
     return (targetCtx, w, h) => {
-      drawScaledVisualizer(targetCtx, bitmap, width, height, w, h, scaledDrawOptions(visualizer))
+      // Bitmap-Maße statt Render-Größe: direkt nach einem Form- oder
+      // Größenwechsel kann noch ein Frame in der alten Größe anliegen.
+      drawScaledVisualizer(
+        targetCtx,
+        bitmap,
+        bitmap.width || width,
+        bitmap.height || height,
+        w,
+        h,
+        scaledDrawOptions(visualizer),
+      )
     }
   }
 
@@ -231,7 +242,13 @@ export function createSingleVisualizerRenderer({
     const visualizerId = visualizerStore.selectedVisualizer
     const visualizer = Visualizers[visualizerId]
     if (!visualizer) return null
-    const { width, height } = canvas
+    // Mit Form (1:1, 16:9, 2:3, Kreis) direkt im Format der Form rendern,
+    // damit sich der Visualizer daran anpasst statt beschnitten zu werden.
+    const { width, height } = shapeRenderSize(
+      canvas.width,
+      canvas.height,
+      visualizerStore.visualizerShape,
+    )
 
     initWorkerOnce(width, height)
     handleChange(visualizerId, visualizer, width, height)

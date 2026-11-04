@@ -512,3 +512,14 @@ describe('i18n – Slideshow-Bausteine ohne fest verdrahtete Texte', () => {
     }
   })
 })
+
+describe('i18n – Raster und Recorder-Mikrofon ohne fest verdrahtete Texte', () => {
+  it('Vorlagen ohne feste Texte', () => {
+    for (const file of [
+      'components/ControlsPanel.vue',
+      'components/recorder/RecorderMicSource.vue',
+    ]) {
+      expect(hardcodedTemplateText(read(file)), file).toEqual([])
+    }
+  })
+})

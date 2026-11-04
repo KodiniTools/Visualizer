@@ -43,15 +43,12 @@
             @update:model-value="gridStore.setOpacity($event / 100)"
           />
         </div>
-        <label class="grid-snap-toggle">
-          <input
-            type="checkbox"
-            class="grid-snap-checkbox"
-            :checked="gridStore.snapToGrid"
-            @change="gridStore.setSnapToGrid($event.target.checked)"
-          />
-          <span>{{ t('controls.snapToGrid') }}</span>
-        </label>
+        <UiSwitch
+          class="grid-snap-toggle"
+          :model-value="gridStore.snapToGrid"
+          :label="t('controls.snapToGrid')"
+          @update:model-value="gridStore.setSnapToGrid"
+        />
       </div>
     </div>
 
@@ -83,6 +80,7 @@
 <script setup>
 import ColorField from './ui/ColorField.vue'
 import SliderField from './ui/SliderField.vue'
+import UiSwitch from './ui/UiSwitch.vue'
 import { useI18n } from '../lib/i18n.js'
 import { useGridStore } from '../stores/gridStore.js'
 import { useWorkspaceStore } from '../stores/workspaceStore.js'
@@ -200,19 +198,7 @@ h4 {
   font-weight: var(--ds-weight-medium);
 }
 .grid-snap-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   font-size: var(--ds-text-xs);
-  color: var(--text-primary);
-  cursor: pointer;
-}
-.grid-snap-toggle input[type='checkbox'] {
-  width: 14px;
-  height: 14px;
-  margin: 0;
-  accent-color: var(--accent-primary);
-  cursor: pointer;
 }
 
 .grid-color-input {

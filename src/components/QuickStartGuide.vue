@@ -1,19 +1,13 @@
 <template>
   <!-- Floating Help Button -->
   <div class="help-button-container">
-    <button
-      @click="toggleGuide"
+    <UiIconButton
       class="help-button"
-      :class="{ active: isVisible }"
-      :title="
-        isVisible
-          ? lang === 'de'
-            ? 'Schließen'
-            : 'Close'
-          : lang === 'de'
-            ? 'Schnellstart-Hilfe'
-            : 'Quick-Start Guide'
-      "
+      variant="primary"
+      round
+      :label="isVisible ? labels.close : labels.open"
+      :pressed="isVisible"
+      @click="toggleGuide"
     >
       <svg v-if="!isVisible" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10" />
@@ -24,7 +18,7 @@
         <line x1="18" y1="6" x2="6" y2="18" />
         <line x1="6" y1="6" x2="18" y2="18" />
       </svg>
-    </button>
+    </UiIconButton>
   </div>
 
   <!-- Quick Start Panel -->
@@ -32,35 +26,32 @@
     <transition name="slide-panel">
       <div v-if="isVisible" class="quick-start-panel">
         <div class="panel-header">
-          <h3>{{ lang === 'de' ? 'Schnellstart-Anleitung' : 'Quick-Start Guide' }}</h3>
+          <h3>{{ labels.title }}</h3>
           <div class="header-actions">
-            <div class="lang-toggle">
-              <button :class="{ active: lang === 'de' }" @click="lang = 'de'">DE</button>
-              <button :class="{ active: lang === 'en' }" @click="lang = 'en'">EN</button>
-            </div>
-            <button @click="toggleGuide" class="close-btn">
+            <UiSegmentedControl
+              v-model="lang"
+              class="lang-toggle"
+              size="sm"
+              :label="labels.language"
+              :options="LANG_OPTIONS"
+            />
+            <UiIconButton class="close-btn" size="sm" :label="labels.close" @click="toggleGuide">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
-            </button>
+            </UiIconButton>
           </div>
         </div>
 
         <div class="panel-content">
           <!-- Tab Navigation -->
-          <div class="tab-nav">
-            <button
-              v-for="tab in tabs"
-              :key="tab.id"
-              class="tab-btn"
-              :class="{ active: activeTab === tab.id }"
-              @click="activeTab = tab.id"
-            >
-              <span class="tab-icon">{{ tab.icon }}</span>
-              <span class="tab-label">{{ lang === 'de' ? tab.labelDe : tab.labelEn }}</span>
-            </button>
-          </div>
+          <UiSegmentedControl
+            v-model="activeTab"
+            class="tab-nav"
+            :label="labels.tabs"
+            :options="tabOptions"
+          />
 
           <!-- Tab: Workflow -->
           <div v-if="activeTab === 'workflow'" class="tab-content">
@@ -101,9 +92,7 @@
               <div class="shortcut-group-title">{{ group.title }}</div>
               <div class="shortcuts-grid">
                 <div class="shortcut-item" v-for="(sc, sidx) in group.items" :key="sidx">
-                  <div class="shortcut-keys">
-                    <kbd v-for="(k, kidx) in sc.keys" :key="kidx">{{ k }}</kbd>
-                  </div>
+                  <UiKbd class="shortcut-keys" :keys="sc.keys" />
                   <span class="shortcut-desc">{{ sc.desc }}</span>
                 </div>
               </div>
@@ -129,9 +118,15 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { localeRef } from '../lib/i18n.js'
 import { QUICK_START_TABS, QUICK_START_CONTENT } from '../data/quickStartGuide.js'
+import { UiIconButton, UiKbd, UiSegmentedControl } from './ui/index.js'
+
+const LANG_OPTIONS = [
+  { value: 'de', label: 'DE' },
+  { value: 'en', label: 'EN' },
+]
 
 const isVisible = ref(false)
 // Startet in der App-Sprache und folgt ihr; DE/EN im Panel schaltet nur die Anleitung um.
@@ -141,8 +136,12 @@ watch(localeRef, (v) => {
 })
 const activeTab = ref('workflow')
 
-const tabs = QUICK_START_TABS
 const content = QUICK_START_CONTENT
+// Beschriftungen folgen der Sprache der Anleitung, nicht nur der App
+const labels = computed(() => content[lang.value].labels)
+const tabOptions = computed(() =>
+  QUICK_START_TABS.map((id) => ({ value: id, label: labels.value[id] })),
+)
 
 function toggleGuide() {
   isVisible.value = !isVisible.value
@@ -190,29 +189,11 @@ defineExpose({ show, hide, toggleGuide })
 .help-button {
   width: 52px;
   height: 52px;
-  border-radius: var(--ds-radius-full);
-  border: none;
-  background: var(--ds-link);
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--ds-duration-slow) var(--ds-ease);
-  animation: pulse-shadow 2s infinite;
 }
 
-.help-button.active {
-  background: var(--ds-danger);
-  animation: none;
-}
-
-.help-button svg {
+.help-button-container .help-button svg {
   width: 24px;
   height: 24px;
-}
-
-@keyframes pulse-shadow {
 }
 
 /* Quick Start Panel */
@@ -256,100 +237,14 @@ defineExpose({ show, hide, toggleGuide })
   gap: 8px;
 }
 
-/* Language Toggle */
-.lang-toggle {
-  display: flex;
-  background: rgba(255, 255, 255, 0.07);
-  border-radius: var(--ds-radius-sm);
-  padding: 2px;
-  gap: 2px;
-}
-
-.lang-toggle button {
-  padding: 3px 8px;
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-bold);
-  border: none;
-  border-radius: var(--ds-radius-sm);
-  background: transparent;
-  color: var(--ds-text-3);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  letter-spacing: 0.5px;
-}
-
-.lang-toggle button.active {
-  background: var(--ds-link);
-  color: var(--ds-on-accent);
-}
-
-.close-btn {
-  width: 26px;
-  height: 26px;
-  border: none;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--ds-text-2);
-  border-radius: var(--ds-radius-full);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--ds-duration) var(--ds-ease);
-  flex-shrink: 0;
-}
-
-.close-btn:hover {
-  background: color-mix(in srgb, var(--ds-danger) 25%, transparent);
-  color: var(--ds-danger);
-}
-
-.close-btn svg {
-  width: 13px;
-  height: 13px;
-}
-
 /* Tab Navigation */
 .tab-nav {
   display: flex;
-  gap: 4px;
-  padding: 10px 14px 0;
+  margin: 10px 14px 0;
 }
 
-.tab-btn {
+.tab-nav :deep(.ui-segmented__option) {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 7px 4px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid transparent;
-  border-radius: var(--ds-radius-md);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  color: var(--ds-text-3);
-}
-
-.tab-btn:hover {
-  background: color-mix(in srgb, var(--ds-link) 10%, transparent);
-  color: var(--ds-text-2);
-}
-
-.tab-btn.active {
-  background: color-mix(in srgb, var(--ds-link) 15%, transparent);
-  border-color: color-mix(in srgb, var(--ds-link) 40%, transparent);
-  color: var(--ds-link);
-}
-
-.tab-icon {
-  font-size: var(--ds-text-sm);
-}
-
-.tab-label {
-  font-size: var(--ds-text-xs);
-  font-weight: var(--ds-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
 }
 
 /* Scrollable content area */
@@ -499,27 +394,6 @@ defineExpose({ show, hide, toggleGuide })
   border-radius: var(--ds-radius-sm);
 }
 
-.shortcut-keys {
-  display: flex;
-  gap: 3px;
-  flex-wrap: wrap;
-}
-
-.shortcut-keys kbd {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 18px;
-  padding: 0 5px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-sm);
-  font-size: var(--ds-text-xs);
-  font-family: inherit;
-  color: var(--ds-text);
-}
-
 .shortcut-desc {
   font-size: var(--ds-text-xs);
   color: var(--ds-text-3);
@@ -616,10 +490,6 @@ defineExpose({ show, hide, toggleGuide })
 }
 
 /* ═══ Light Theme ═══ */
-[data-theme='light'] .help-button {
-  background: var(--accent-primary);
-}
-
 [data-theme='light'] .quick-start-panel {
   background: var(--card-bg);
   border-color: var(--ds-border);
@@ -633,44 +503,6 @@ defineExpose({ show, hide, toggleGuide })
 
 [data-theme='light'] .panel-header h3 {
   color: var(--text-primary);
-}
-
-[data-theme='light'] .lang-toggle {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-}
-
-[data-theme='light'] .lang-toggle button {
-  color: var(--text-muted);
-}
-
-[data-theme='light'] .lang-toggle button.active {
-  background: var(--accent-primary);
-  color: var(--accent-text);
-}
-
-[data-theme='light'] .close-btn {
-  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
-  color: var(--text-muted);
-}
-
-[data-theme='light'] .close-btn:hover {
-  background: color-mix(in srgb, var(--ds-danger) 12%, transparent);
-}
-
-[data-theme='light'] .tab-btn {
-  background: color-mix(in srgb, var(--accent-primary) 4%, transparent);
-  color: var(--text-muted);
-}
-
-[data-theme='light'] .tab-btn:hover {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  color: var(--text-primary);
-}
-
-[data-theme='light'] .tab-btn.active {
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-ink);
 }
 
 [data-theme='light'] .workflow-step {
@@ -711,12 +543,6 @@ defineExpose({ show, hide, toggleGuide })
 
 [data-theme='light'] .shortcut-group-title {
   color: var(--accent-ink);
-}
-
-[data-theme='light'] .shortcut-keys kbd {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--border-color);
-  color: var(--text-primary);
 }
 
 [data-theme='light'] .shortcut-desc {

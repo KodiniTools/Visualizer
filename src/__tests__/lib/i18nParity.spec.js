@@ -426,3 +426,11 @@ describe('i18n – Audio-Upload ohne fest verdrahtete Texte', () => {
     expect(src).not.toMatch(/locale === 'de'/)
   })
 })
+
+describe('i18n – Schnellstart-Anleitung ohne fest verdrahtete Texte', () => {
+  it('Vorlage ohne feste Texte und ohne locale-Weichen', () => {
+    const src = read('components/QuickStartGuide.vue')
+    expect(hardcodedTemplateText(src)).toEqual([])
+    expect(src.split('<script')[0]).not.toMatch(/lang === 'de' \?/)
+  })
+})

@@ -27,7 +27,7 @@ const panel = () => document.querySelector('.quick-start-panel')
 const helpButton = () => wrapper.find('.help-button')
 const press = (key, init = {}, target = document.body) =>
   target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...init }))
-const tabButtons = () => [...panel().querySelectorAll('.tab-btn')]
+const tabButtons = () => [...panel().querySelectorAll('.tab-nav [role="radio"]')]
 
 describe('QuickStartGuide – Öffnen und Schließen', () => {
   it('Hilfe-Knopf öffnet und schließt, Titel wechselt', async () => {
@@ -84,7 +84,7 @@ describe('QuickStartGuide – Reiter und Sprache', () => {
     )
     tabButtons()[2].click()
     await nextTick()
-    expect(tabButtons()[2].classList).toContain('active')
+    expect(tabButtons()[2].getAttribute('aria-checked')).toBe('true')
     expect(panel().querySelectorAll('.shortcut-group')).toHaveLength(
       QUICK_START_CONTENT.de.shortcuts.length,
     )
@@ -98,7 +98,7 @@ describe('QuickStartGuide – Reiter und Sprache', () => {
     await nextTick()
     expect(panel().textContent).toContain('Schnellstart-Anleitung')
     const en = [...panel().querySelectorAll('.lang-toggle button')].find(
-      (b) => b.textContent === 'EN',
+      (b) => b.textContent.trim() === 'EN',
     )
     en.click()
     await nextTick()
@@ -113,6 +113,48 @@ describe('QuickStartGuide – Reiter und Sprache', () => {
     wrapper.vm.show()
     await nextTick()
     expect(tabButtons()[1].textContent).toContain('Features')
+  })
+})
+
+describe('QuickStartGuide – Ui-Bausteine', () => {
+  it('Hilfe-Knopf ist ein Umschalter, Schließen hat ein Label', async () => {
+    expect(helpButton().classes()).toContain('ui-icon-button')
+    expect(helpButton().attributes('aria-pressed')).toBe('false')
+    expect(helpButton().attributes('aria-label')).toBe('Schnellstart-Hilfe')
+    await helpButton().trigger('click')
+    expect(helpButton().attributes('aria-pressed')).toBe('true')
+    const close = panel().querySelector('.close-btn')
+    expect(close.classList).toContain('ui-icon-button')
+    expect(close.getAttribute('aria-label')).toBe('Schließen')
+  })
+
+  it('Reiter und Sprache sind Radiogruppen, Tasten als UiKbd', async () => {
+    wrapper.vm.show()
+    await nextTick()
+    const groups = [...panel().querySelectorAll('[role="radiogroup"]')]
+    expect(groups.map((g) => g.getAttribute('aria-label'))).toEqual([
+      'Sprache der Anleitung',
+      'Bereiche der Anleitung',
+    ])
+    expect(tabButtons().map((b) => b.textContent.trim())).toEqual([
+      'Workflow',
+      'Funktionen',
+      'Tasten',
+      'Tipps',
+    ])
+    tabButtons()[2].click()
+    await nextTick()
+    const keys = QUICK_START_CONTENT.de.shortcuts.flatMap((g) => g.items.flatMap((i) => i.keys))
+    expect(panel().querySelectorAll('kbd.ui-kbd')).toHaveLength(keys.length)
+  })
+
+  it('Beschriftungen in DE und EN vollständig', () => {
+    const keys = (l) => Object.keys(QUICK_START_CONTENT[l].labels).sort()
+    expect(keys('en')).toEqual(keys('de'))
+    for (const id of QUICK_START_TABS) {
+      expect(QUICK_START_CONTENT.de.labels[id]).toBeTruthy()
+      expect(QUICK_START_CONTENT.en.labels[id]).toBeTruthy()
+    }
   })
 })
 

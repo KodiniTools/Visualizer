@@ -101,3 +101,17 @@ describe('Einheitliche Regler', () => {
     )
   })
 })
+
+describe('Visualizer-Steuerung: Regler im Systemlook', () => {
+  // Regression: „Farbtransparenz“ hatte eine transparente Spur (unsichtbar),
+  // Intensität/Position/Größe eigene Daumen statt der Referenz-Optik.
+  it.each([
+    'visualizer-panel/VisualizerBasicsSection.vue',
+    'visualizer-panel/VisualizerTransformSection.vue',
+    'visualizer-panel/VisualizerReactSourceSection.vue',
+  ])('%s bindet slider-control.css ein und hat keine eigenen Slider-Stile', (f) => {
+    const src = read(f)
+    expect(src).toMatch(/<style scoped src="\.\.\/ui\/slider-control\.css">/)
+    expect(styles(src)).not.toMatch(/slider-thumb|range-thumb|-slider \{/)
+  })
+})

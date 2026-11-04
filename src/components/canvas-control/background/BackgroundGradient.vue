@@ -2,59 +2,65 @@
   <div class="gradient-section">
     <h5>{{ t('canvasControl.gradient') }}</h5>
 
-    <div class="control-group">
-      <label class="checkbox-label">
-        <input type="checkbox" v-model="gradientEnabled" @change="updateGradientSettings" />
-        <span>{{ t('canvasControl.enableGradient') }}</span>
-      </label>
-    </div>
+    <UiSwitch
+      v-model="gradientEnabled"
+      :label="t('canvasControl.enableGradient')"
+      @update:model-value="updateGradientSettings"
+    />
 
     <div v-if="gradientEnabled" class="gradient-controls">
       <div class="control-group">
-        <label>{{ t('canvasControl.secondColor') }}:</label>
+        <label>{{ t('canvasControl.secondColor') }}</label>
         <div class="color-picker-group">
           <ColorField
             v-model="gradientColor2"
-            class="color-input"
+            :label="t('canvasControl.secondColor')"
             @update:model-value="updateGradientSettings"
           />
           <span class="color-hex">{{ gradientColor2 }}</span>
         </div>
       </div>
 
-      <div class="control-group">
-        <label>{{ t('canvasControl.type') }}:</label>
-        <select v-model="gradientType" @change="updateGradientSettings" class="gradient-select">
-          <option value="radial">{{ t('canvasControl.radial') }}</option>
-          <option value="linear">{{ t('canvasControl.linear') }}</option>
-        </select>
-      </div>
+      <UiSelect
+        v-model="gradientType"
+        size="sm"
+        inline
+        :label="t('canvasControl.type')"
+        :options="typeOptions"
+        @update:model-value="updateGradientSettings"
+      />
 
-      <div v-if="gradientType === 'linear'" class="control-group">
-        <label>{{ t('canvasControl.angle') }}: {{ gradientAngle }}°</label>
-        <SliderField
-          v-model="gradientAngle"
-          :min="0"
-          :max="360"
-          :step="5"
-          :default-value="45"
-          class="angle-slider"
-          @update:model-value="updateGradientSettings"
-        />
-      </div>
+      <SliderControl
+        v-if="gradientType === 'linear'"
+        v-model="gradientAngle"
+        :label="t('canvasControl.angle')"
+        :min="0"
+        :max="360"
+        :step="5"
+        :default-value="45"
+        :value-text="`${gradientAngle}°`"
+        @update:model-value="updateGradientSettings"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import ColorField from '../../ui/ColorField.vue'
-import SliderField from '../../ui/SliderField.vue'
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
+import ColorField from '../../ui/ColorField.vue'
+import SliderControl from '../../ui/SliderControl.vue'
+import UiSelect from '../../ui/UiSelect.vue'
+import UiSwitch from '../../ui/UiSwitch.vue'
 
 const { t } = useI18n()
 const bg = inject('bgSettings')
 const { gradientEnabled, gradientColor2, gradientType, gradientAngle, updateGradientSettings } = bg
+
+const typeOptions = computed(() => [
+  { value: 'radial', label: t('canvasControl.radial') },
+  { value: 'linear', label: t('canvasControl.linear') },
+])
 </script>
 
 <style scoped src="./background-shared.css"></style>
@@ -81,40 +87,8 @@ const { gradientEnabled, gradientColor2, gradientType, gradientAngle, updateGrad
   gap: 6px;
   margin-top: 8px;
 }
-.gradient-select {
-  width: 100%;
-  padding: 5px 8px;
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  color: var(--text-primary);
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-}
-.gradient-select:hover {
-  border-color: var(--accent-primary);
-}
-.gradient-select:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-}
-.angle-slider {
-  width: 100%;
-  height: 3px;
-  background: var(--text-muted);
-  border-radius: var(--ds-radius-sm);
-  -webkit-appearance: none;
-  appearance: none;
-  cursor: pointer;
-}
-.angle-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  background: var(--accent-tertiary);
-  border: 2px solid var(--ds-surface-1);
-  border-radius: var(--ds-radius-full);
-  cursor: pointer;
+.gradient-controls :deep(.control-group.slider) {
+  margin-bottom: 0;
 }
 .color-hex {
   font-size: var(--ds-text-xs);
@@ -127,19 +101,5 @@ const { gradientEnabled, gradientColor2, gradientType, gradientAngle, updateGrad
 }
 [data-theme='light'] .gradient-section {
   border-left-color: var(--accent-primary);
-}
-[data-theme='light'] .angle-slider {
-  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-}
-[data-theme='light'] .angle-slider::-webkit-slider-thumb {
-  background: var(--accent-primary);
-  border-color: var(--accent-primary);
-}
-
-@media (max-width: 768px) {
-  .gradient-select {
-    min-height: 36px;
-    font-size: var(--ds-text-xs);
-  }
 }
 </style>

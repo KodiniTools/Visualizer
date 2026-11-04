@@ -40,7 +40,7 @@ describe('PositionSizeControls', () => {
     expect(val(w, 'width')).toBeCloseTo(40)
     expect(val(w, 'height')).toBeCloseTo(20)
     expect(w.findAll('input[type="number"]')).toHaveLength(4)
-    expect(w.find('.image-keep-aspect').element.checked).toBe(true)
+    expect(w.find('.image-keep-aspect [role="switch"]').attributes('aria-checked')).toBe('true')
   })
 
   it('Position: verschiebt das Bild, Größe bleibt, zeichnet neu', async () => {
@@ -68,7 +68,7 @@ describe('PositionSizeControls', () => {
     expect(image.relX + image.relWidth / 2).toBeCloseTo(0.3) // Mittelpunkt bleibt
     expect(val(w, 'height')).toBeCloseTo(10)
 
-    await w.find('.image-keep-aspect').setValue(false)
+    await w.find('.image-keep-aspect [role="switch"]').trigger('click')
     const h = range(w, 'height')
     h.element.value = '50'
     await h.trigger('input')

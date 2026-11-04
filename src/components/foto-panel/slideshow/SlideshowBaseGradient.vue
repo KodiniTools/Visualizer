@@ -1,39 +1,34 @@
 <template>
   <!-- Farbverlauf der Fläche unter der Slideshow (Farbe 1 = Flächenfarbe) -->
   <div class="base-gradient" :class="`${prefix}-gradient`">
-    <label class="checkbox-label">
-      <input
-        :checked="gradient.enabled"
-        :class="`${prefix}-gradient-toggle`"
-        type="checkbox"
-        :disabled="disabled"
-        @change="update({ enabled: $event.target.checked })"
-      />
-      <span>{{ t('slideshow.gradient') }}</span>
-    </label>
+    <UiSwitch
+      :model-value="gradient.enabled"
+      :class="`${prefix}-gradient-toggle`"
+      :label="t('slideshow.gradient')"
+      :disabled="disabled"
+      @update:model-value="(v) => update({ enabled: v })"
+    />
     <div v-if="gradient.enabled" class="base-gradient-options">
-      <label class="base-gradient-field">
-        <span>{{ t('slideshow.gradientColor2') }}</span>
-        <input
-          :value="gradient.color2"
+      <div class="base-gradient-field">
+        <span aria-hidden="true">{{ t('slideshow.gradientColor2') }}</span>
+        <ColorField
+          :model-value="gradient.color2"
           :class="`${prefix}-gradient-color2`"
-          type="color"
+          :label="t('slideshow.gradientColor2')"
           :disabled="disabled"
-          @input="update({ color2: $event.target.value })"
+          @update:model-value="(v) => update({ color2: v })"
         />
-      </label>
-      <label class="base-gradient-field">
-        <span>{{ t('slideshow.gradientType') }}</span>
-        <select
-          :value="gradient.type"
-          :class="`${prefix}-gradient-type`"
-          :disabled="disabled"
-          @change="update({ type: $event.target.value })"
-        >
-          <option value="linear">{{ t('slideshow.gradientLinear') }}</option>
-          <option value="radial">{{ t('slideshow.gradientRadial') }}</option>
-        </select>
-      </label>
+      </div>
+      <UiSelect
+        :model-value="gradient.type"
+        :class="`${prefix}-gradient-type`"
+        size="sm"
+        inline
+        :label="t('slideshow.gradientType')"
+        :options="typeOptions"
+        :disabled="disabled"
+        @update:model-value="(v) => update({ type: v })"
+      />
       <SliderControl
         v-if="gradient.type === 'linear'"
         class="base-gradient-slider"
@@ -50,16 +45,14 @@
       />
 
       <!-- Audio-Reaktiv: Puls + Rotation/Kreisen im Takt -->
-      <label class="checkbox-label audio-toggle">
-        <input
-          :checked="gradient.audio.enabled"
-          :class="`${prefix}-gradient-audio-toggle`"
-          type="checkbox"
-          :disabled="disabled"
-          @change="updateAudio({ enabled: $event.target.checked })"
-        />
-        <span>{{ t('slideshow.gradientAudio') }}</span>
-      </label>
+      <UiSwitch
+        :model-value="gradient.audio.enabled"
+        class="audio-toggle"
+        :class="`${prefix}-gradient-audio-toggle`"
+        :label="t('slideshow.gradientAudio')"
+        :disabled="disabled"
+        @update:model-value="(v) => updateAudio({ enabled: v })"
+      />
       <template v-if="gradient.audio.enabled">
         <label class="base-gradient-field">
           <span>{{ t('slideshow.gradientAudioSource') }}</span>
@@ -110,12 +103,16 @@
  * Einstellungen für den Farbverlauf einer Slideshow-Fläche (Canvas oder
  * Workspace). Rein darstellend: v-model liefert den bereinigten Verlauf.
  */
+import { computed } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 import {
   normalizeSlideshowGradient,
   SLIDESHOW_GRADIENT_DEFAULT,
 } from '../../../lib/slideshowBaseColor.js'
+import ColorField from '../../ui/ColorField.vue'
 import SliderControl from '../../ui/SliderControl.vue'
+import UiSelect from '../../ui/UiSelect.vue'
+import UiSwitch from '../../ui/UiSwitch.vue'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 
 const gradient = defineModel({ type: Object, required: true })
@@ -125,6 +122,11 @@ defineProps({
   disabled: { type: Boolean, default: false },
 })
 const { t } = useI18n()
+
+const typeOptions = computed(() => [
+  { value: 'linear', label: t('slideshow.gradientLinear') },
+  { value: 'radial', label: t('slideshow.gradientRadial') },
+])
 
 function update(partial) {
   gradient.value = normalizeSlideshowGradient({ ...gradient.value, ...partial }, gradient.value)
@@ -156,15 +158,6 @@ function updateAudio(partial) {
   gap: 6px;
   color: var(--text-muted);
   font-size: var(--ds-text-xs);
-}
-.base-gradient-field input[type='color'] {
-  width: 36px;
-  height: 22px;
-  padding: 0;
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  background: none;
-  cursor: pointer;
 }
 .base-gradient-field select {
   padding: 3px 6px;

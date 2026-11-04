@@ -2,6 +2,7 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import ColorField from '../../components/ui/ColorField.vue'
 import SlideshowPanel from '../../components/foto-panel/SlideshowPanel.vue'
 import * as persistence from '../../lib/slideshowImagePersistence.js'
 
@@ -326,7 +327,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     let w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-canvas').setValue(true)
     expect(w.find('.base-gradient-color2').exists()).toBe(false)
-    await w.find('.base-gradient-toggle').setValue(true)
+    await w.find('.base-gradient-toggle [role="switch"]').trigger('click')
     expect(w.emitted('base-gradient-change').at(-1)).toEqual([
       'canvas',
       {
@@ -337,7 +338,10 @@ describe('SlideshowPanel (aufgeteilt)', () => {
         audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
       },
     ])
-    await w.find('.base-gradient-color2').setValue('#ff8800')
+    w.findAllComponents(ColorField)
+      .find((c) => c.classes().includes('base-gradient-color2'))
+      .vm.$emit('update:modelValue', '#ff8800')
+    await flushPromises()
     await w.find('.base-gradient-angle').setValue('45')
     await w.find('.base-gradient-type').setValue('radial')
     expect(w.find('.base-gradient-angle').exists()).toBe(false) // nur linear
@@ -355,8 +359,10 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
     // Workspace hat einen eigenen Verlauf
     await w.find('.bg-mode-workspace').setValue(true)
-    expect(w.find('.workspace-gradient-toggle').element.checked).toBe(false)
-    await w.find('.workspace-gradient-toggle').setValue(true)
+    expect(w.find('.workspace-gradient-toggle [role="switch"]').attributes('aria-checked')).toBe(
+      'false',
+    )
+    await w.find('.workspace-gradient-toggle [role="switch"]').trigger('click')
     expect(w.emitted('base-gradient-change').at(-1)[0]).toBe('workspace')
 
     await w.find('.btn-start').trigger('click')
@@ -375,9 +381,9 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     // Neu öffnen: gemerkt; Zurücksetzen → Schwarz ohne Verlauf; Preset stellt her
     w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-canvas').setValue(true)
-    expect(w.find('.base-gradient-toggle').element.checked).toBe(true)
+    expect(w.find('.base-gradient-toggle [role="switch"]').attributes('aria-checked')).toBe('true')
     await w.find('.btn-reset-base-color').trigger('click')
-    expect(w.find('.base-gradient-toggle').element.checked).toBe(false)
+    expect(w.find('.base-gradient-toggle [role="switch"]').attributes('aria-checked')).toBe('false')
     expect(localStorage.getItem('visualizer-slideshow-base-gradient')).toBeNull()
     expect(w.find('.btn-reset-base-color').exists()).toBe(false)
     await w.find('.btn-load-preset').trigger('click')
@@ -392,9 +398,9 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it('gradient audio-reactive: toggle, source, strengths reach the slideshow', async () => {
     const w = mountPanel({ hasWorkspace: false })
     await w.find('.bg-mode-canvas').setValue(true)
-    await w.find('.base-gradient-toggle').setValue(true)
+    await w.find('.base-gradient-toggle [role="switch"]').trigger('click')
     expect(w.find('.base-gradient-audio-source').exists()).toBe(false)
-    await w.find('.base-gradient-audio-toggle').setValue(true)
+    await w.find('.base-gradient-audio-toggle [role="switch"]').trigger('click')
     // Quelle wie beim Bild-Audio-Reaktiv, inkl. Onset
     expect(w.findAll('.base-gradient-audio-source option')).toHaveLength(9)
     await w.find('.base-gradient-audio-source').setValue('trebleOnset')
@@ -1045,8 +1051,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(fillSource.findAll('option')).toHaveLength(9)
     await fillSource.setValue('allOnset')
     // Farbverlauf der Workspace-Fläche
-    await w.find('.workspace-gradient-toggle').setValue(true)
-    await w.find('.workspace-gradient-audio-toggle').setValue(true)
+    await w.find('.workspace-gradient-toggle [role="switch"]').trigger('click')
+    await w.find('.workspace-gradient-audio-toggle [role="switch"]').trigger('click')
     await w.find('.workspace-gradient-audio-source').setValue('bassOnset')
     // Flächenbild (ohne Bild) – Quelle trotzdem einstellbar
     await setSwitch(w, '.workspace-image-toggle', true)
@@ -1220,9 +1226,9 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it('canvas mode: gradient audio source (incl. onset) – live, preset, memory, workspace untouched', async () => {
     const w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-canvas').setValue(true)
-    await w.find('.base-gradient-toggle').setValue(true)
+    await w.find('.base-gradient-toggle [role="switch"]').trigger('click')
     await w.find('.base-gradient-type').setValue('radial')
-    await w.find('.base-gradient-audio-toggle').setValue(true)
+    await w.find('.base-gradient-audio-toggle [role="switch"]').trigger('click')
     const source = w.find('.base-gradient-audio-source')
     expect(source.findAll('option')).toHaveLength(9)
     expect(source.find('optgroup').attributes('label')).toBe('Onset (Beat, auto-normalisiert)')
@@ -1270,9 +1276,9 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it('workspace mode: gradient audio source (incl. onset) – live, preset, memory, canvas untouched', async () => {
     const w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-workspace').setValue(true)
-    await w.find('.workspace-gradient-toggle').setValue(true)
+    await w.find('.workspace-gradient-toggle [role="switch"]').trigger('click')
     await w.find('.workspace-gradient-type').setValue('linear')
-    await w.find('.workspace-gradient-audio-toggle').setValue(true)
+    await w.find('.workspace-gradient-audio-toggle [role="switch"]').trigger('click')
     const source = w.find('.workspace-gradient-audio-source')
     expect(source.findAll('option')).toHaveLength(9)
     expect(source.findAll('optgroup option').map((o) => o.element.value)).toEqual([
@@ -1445,8 +1451,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     async (mode, prefix, fillKey, gradientKey) => {
       const w = mountPanel({ hasWorkspace: true })
       await w.find(`.bg-mode-${mode}`).setValue(true)
-      await w.find(`.${prefix}-gradient-toggle`).setValue(true)
-      await w.find(`.${prefix}-gradient-audio-toggle`).setValue(true)
+      await w.find(`.${prefix}-gradient-toggle [role="switch"]`).trigger('click')
+      await w.find(`.${prefix}-gradient-audio-toggle [role="switch"]`).trigger('click')
       await w.find(`.${prefix}-gradient-audio-source`).setValue('trebleOnset')
       await w.find(`.${prefix}-fill-audio-toggle`).setValue(true)
       await w.find(`.${prefix}-fill-audio-source`).setValue('bassOnset')
@@ -1464,7 +1470,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       })
 
       // Verlauf aus → „Farbe audio-reaktiv“ bleibt erhalten
-      await w.find(`.${prefix}-gradient-toggle`).setValue(false)
+      await w.find(`.${prefix}-gradient-toggle [role="switch"]`).trigger('click')
       await w.find('.btn-start').trigger('click')
       const again = w.emitted('start').at(-1)[0]
       expect(again[gradientKey].enabled).toBe(false)
@@ -1480,8 +1486,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     async (mode, prefix, _g, gradientKey, imageKey, storeName) => {
       const w = mountPanel({ hasWorkspace: true })
       await w.find(`.bg-mode-${mode}`).setValue(true)
-      await w.find(`.${prefix}-gradient-toggle`).setValue(true)
-      await w.find(`.${prefix}-gradient-audio-toggle`).setValue(true)
+      await w.find(`.${prefix}-gradient-toggle [role="switch"]`).trigger('click')
+      await w.find(`.${prefix}-gradient-audio-toggle [role="switch"]`).trigger('click')
       await w.find(`.${prefix}-gradient-audio-source`).setValue('allOnset')
       await setSwitch(w, `.${prefix}-image-toggle`, true)
       await setSwitch(w, `.${prefix}-image-audio-toggle`, true)
@@ -1534,8 +1540,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       if (mode !== 'none') {
         const p = mode === 'workspace' ? 'workspace' : 'base'
         await w.find(`.${p}-fill-audio-toggle`).setValue(true)
-        await w.find(`.${p}-gradient-toggle`).setValue(true)
-        await w.find(`.${p}-gradient-audio-toggle`).setValue(true)
+        await w.find(`.${p}-gradient-toggle [role="switch"]`).trigger('click')
+        await w.find(`.${p}-gradient-audio-toggle [role="switch"]`).trigger('click')
         await setSwitch(w, `.${p}-image-toggle`, true)
         await setSwitch(w, `.${p}-image-audio-toggle`, true)
         await w.find(`.${p}-image-choose`).trigger('click')

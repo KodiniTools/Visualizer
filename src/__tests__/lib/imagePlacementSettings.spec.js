@@ -106,13 +106,13 @@ describe('„Seitenverhältnis beibehalten“', () => {
   it('Standard an; ausgeschaltet bleibt es bei neuen Bildern und nach Neustart aus', async () => {
     expect(loadKeepAspect()).toBe(true)
     let w = mount(PositionSizeControls, { props: { image: image() } })
-    expect(w.find('.image-keep-aspect').element.checked).toBe(true)
-    await w.find('.image-keep-aspect').setValue(false)
+    expect(w.find('.image-keep-aspect [role="switch"]').attributes('aria-checked')).toBe('true')
+    await w.find('.image-keep-aspect [role="switch"]').trigger('click')
     await nextTick()
     expect(localStorage.getItem(KEEP_ASPECT_KEY)).toBe('false')
     w.unmount()
     w = mount(PositionSizeControls, { props: { image: { ...image(), id: 2 } } })
-    expect(w.find('.image-keep-aspect').element.checked).toBe(false)
+    expect(w.find('.image-keep-aspect [role="switch"]').attributes('aria-checked')).toBe('false')
     w.unmount()
   })
 

@@ -67,7 +67,14 @@ describe('gl presets', () => {
     // Per Kanten-Messung ermittelt (Alpha an Ober-/Unterkante bei 16:9 > 0,
     // links/rechts 0): diese Presets zeichnen eine Figur, die vollständig
     // sichtbar sein soll. Neue Figur-Presets bitte hier ergänzen.
-    const figures = ['glMandala', 'glFractal', 'glCymatics', 'glStargate']
+    const figures = [
+      'glMandala',
+      'glFractal',
+      'glCymatics',
+      'glStargate',
+      'glTreeRings',
+      'glFerrofluid',
+    ]
     for (const id of figures) {
       const frag = glPresetSpecs[id].frag
       // Entweder die Koordinaten werden eingepasst (centeredFit) oder die

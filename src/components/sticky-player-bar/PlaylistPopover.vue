@@ -45,7 +45,9 @@
         @drop.prevent="handleDrop($event, index)"
       >
         <span class="drag-handle" :title="t('player.dragToReorder')">⠿</span>
-        <span class="track-name" @click="playTrackAt(index)">{{ track.name }}</span>
+        <button type="button" class="track-name" @click="playTrackAt(index)">
+          {{ track.name }}
+        </button>
         <button
           class="btn-delete"
           :title="t('player.removeTrack')"
@@ -125,10 +127,24 @@ const {
 }
 .track-name {
   flex: 1;
+  min-width: 0;
+  /* Etwas Luft für den Fokusring, ohne die Zeile zu verschieben */
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
+}
+.track-name:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+  border-radius: var(--ds-radius-sm);
 }
 .btn-delete {
   background-color: transparent;

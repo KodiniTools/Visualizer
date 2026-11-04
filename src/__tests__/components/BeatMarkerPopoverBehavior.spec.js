@@ -257,7 +257,7 @@ describe('Beat-Marker-Popover – Liste', () => {
     expect(text).toContain('Intro')
     expect(text).toContain(`🚫 ${P.visualizer}`)
     expect(text).toContain('🎨 Blau')
-    ;[...body().querySelectorAll('span')].find((s) => s.textContent === '1:05.50').click()
+    ;[...body().querySelectorAll('button')].find((b) => b.textContent.trim() === '1:05.50').click()
     expect(seek).toHaveBeenCalledWith(65.5)
 
     const editButtons = [...body().querySelectorAll('button')].filter(

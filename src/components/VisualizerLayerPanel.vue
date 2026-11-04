@@ -394,6 +394,7 @@ import { UiButton, UiIconButton, UiSegmentedControl, UiSelect, UiSwitch } from '
 import { visualizerShapeOptions } from '../lib/visualizers/core/visualizerShape.js'
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../lib/i18n.js'
+import { localizedName } from '../lib/localizedName.js'
 import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../stores/visualizerStore.js'
 import { useLayerPresetStore } from '../stores/layerPresetStore.js'
 import { useToastStore } from '../stores/toastStore.js'
@@ -520,15 +521,11 @@ function getCategoryName(category) {
 }
 
 function getVisualizerName(visualizerId) {
-  const viz = Visualizers[visualizerId]
-  if (!viz) return visualizerId
-  return locale.value === 'en'
-    ? viz.name_en || viz.name_de || visualizerId
-    : viz.name_de || viz.name_en || visualizerId
+  return localizedName(Visualizers[visualizerId], locale.value, visualizerId)
 }
 
 function getBlendModeName(mode) {
-  return locale.value === 'en' ? mode.name_en : mode.name_de
+  return localizedName(mode, locale.value)
 }
 
 function addNewLayer() {

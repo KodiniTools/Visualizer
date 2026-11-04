@@ -60,6 +60,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
+import { localizedName as nameFor } from '../../lib/localizedName.js'
 import UiButton from '../ui/UiButton.vue'
 import UiDialog from '../ui/UiDialog.vue'
 import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
@@ -81,7 +82,7 @@ const props = defineProps({
 const { locale } = useI18n()
 
 /** Name aus der Galerie in der aktuellen Sprache (`name` = DE, `name_en` = EN) */
-const localizedName = (entry) => (locale.value === 'de' ? entry.name : entry.name_en || entry.name)
+const localizedName = (entry) => nameFor(entry, locale.value)
 
 const categoryOptions = computed(() =>
   props.replaceGalleryCategories.map((category) => ({

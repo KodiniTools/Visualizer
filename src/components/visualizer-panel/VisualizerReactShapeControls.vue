@@ -43,15 +43,15 @@
 
     <!-- Übergang (Easing) -->
     <div class="react-shape__row">
-      <span class="react-shape__label">{{ t('visualizer.reactSource.easing') }}</span>
-      <select
+      <UiSelect
         class="react-shape__select"
-        :value="shape.reactEasing"
-        :aria-label="t('visualizer.reactSource.easing')"
-        @change="emit('update', 'reactEasing', $event.target.value)"
-      >
-        <option v-for="e in REACT_EASINGS" :key="e" :value="e">{{ EASING_LABELS[e] }}</option>
-      </select>
+        size="sm"
+        inline
+        :label="t('visualizer.reactSource.easing')"
+        :options="easingOptions"
+        :model-value="shape.reactEasing"
+        @update:model-value="emit('update', 'reactEasing', $event)"
+      />
     </div>
 
     <!-- Beat-Verstärkung -->
@@ -93,6 +93,7 @@
 <script setup>
 import { computed } from 'vue'
 import SliderField from '../ui/SliderField.vue'
+import UiSelect from '../ui/UiSelect.vue'
 import { useI18n } from '../../lib/i18n.js'
 import {
   REACT_EASINGS,
@@ -113,17 +114,10 @@ const emit = defineEmits(['update'])
 
 const { t } = useI18n()
 
-// Anzeige-Namen wie im Bild-Panel (dort ebenfalls nicht übersetzt).
-const EASING_LABELS = {
-  linear: 'Linear',
-  easeIn: 'Ease In',
-  easeOut: 'Ease Out',
-  easeInOut: 'Ease In/Out',
-  bounce: 'Bounce',
-  elastic: 'Elastic',
-  punch: 'Punch',
-}
-
+// Kurven-Namen wie im Audio-Reaktiv-Panel (foto.easings)
+const easingOptions = computed(() =>
+  REACT_EASINGS.map((value) => ({ value, label: t(`foto.easings.${value}`) })),
+)
 // Fehlende Felder (ältere Layer/Presets) → Standardwerte für die Anzeige.
 const shape = computed(() => normalizeReactShape(props.settings))
 
@@ -197,29 +191,5 @@ const beatBoostLabel = computed(() =>
   background: var(--accent-tertiary);
   cursor: pointer;
   border: 2px solid var(--ds-surface-1);
-}
-
-.react-shape__select {
-  width: 100%;
-  background-color: var(--secondary-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  padding: 4px 6px;
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-}
-
-.react-shape--compact .react-shape__select {
-  font-size: var(--ds-text-xs);
-}
-
-.react-shape__select:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-}
-
-[data-theme='light'] .react-shape__select {
-  border-color: var(--border-color);
 }
 </style>

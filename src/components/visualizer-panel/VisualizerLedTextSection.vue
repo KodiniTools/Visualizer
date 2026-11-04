@@ -64,27 +64,20 @@
           />
         </template>
         <template v-else>
-          <span class="led-text__label">{{ t('visualizer.led.timeZone') }}</span>
-          <select
-            class="led-text__input"
-            :value="cfg.ledNumberTimeZone"
-            :aria-label="t('visualizer.led.timeZone')"
-            @change="emit('update', 'ledNumberTimeZone', $event.target.value)"
-          >
-            <option v-for="tz in LED_TIME_ZONES" :key="tz" :value="tz">
-              {{ tz ? tz.replace('_', ' ') : t('visualizer.led.timeZoneLocal') }}
-            </option>
-          </select>
+          <UiSelect
+            size="sm"
+            :label="t('visualizer.led.timeZone')"
+            :options="timeZoneOptions"
+            :model-value="cfg.ledNumberTimeZone"
+            @update:model-value="emit('update', 'ledNumberTimeZone', $event)"
+          />
         </template>
 
-        <label class="led-text__check">
-          <input
-            type="checkbox"
-            :checked="cfg.ledNumberSeconds"
-            @change="emit('update', 'ledNumberSeconds', $event.target.checked)"
-          />
-          {{ t('visualizer.led.showSeconds') }}
-        </label>
+        <UiSwitch
+          :label="t('visualizer.led.showSeconds')"
+          :model-value="cfg.ledNumberSeconds"
+          @update:model-value="emit('update', 'ledNumberSeconds', $event)"
+        />
         <span class="led-text__hint">
           {{ t('visualizer.led.now') }}: <strong class="led-text__preview">{{ preview }}</strong>
           ·
@@ -102,6 +95,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
+import UiSelect from '../ui/UiSelect.vue'
+import UiSwitch from '../ui/UiSwitch.vue'
 import {
   LED_NUMBER_ID,
   LED_NUMBER_MODES,
@@ -136,6 +131,13 @@ onMounted(() => {
   }, 1000)
 })
 onUnmounted(() => clearInterval(timer))
+const timeZoneOptions = computed(() =>
+  LED_TIME_ZONES.map((tz) => ({
+    value: tz,
+    label: tz ? tz.replace('_', ' ') : t('visualizer.led.timeZoneLocal'),
+  })),
+)
+
 const preview = computed(() => ledDisplayText(LED_NUMBER_ID, cfg.value, now.value))
 
 // ISO (UTC) <-> datetime-local (Ortszeit dieses Browsers)
@@ -224,15 +226,6 @@ function setTarget(local) {
   font-weight: var(--ds-weight-semibold);
 }
 
-.led-text__check {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
 .led-text__hint {
   font-size: var(--ds-text-xs);
   color: var(--text-muted);
@@ -246,8 +239,7 @@ function setTarget(local) {
 }
 
 [data-theme='light'] .led-text__label,
-[data-theme='light'] .led-text__hint,
-[data-theme='light'] .led-text__check {
+[data-theme='light'] .led-text__hint {
   color: var(--text-muted);
 }
 

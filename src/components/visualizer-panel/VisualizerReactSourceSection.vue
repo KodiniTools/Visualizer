@@ -1,21 +1,14 @@
 <template>
   <!-- Reaktionsquelle -->
   <div class="control-section">
-    <span class="section-label">{{ t('visualizer.reactSource.label') }}</span>
-    <select
+    <UiSelect
       class="react-select"
-      :value="store.reactSource"
-      @change="store.setReactSource($event.target.value)"
-    >
-      <option v-for="src in levelSources" :key="src" :value="src">
-        {{ t(`visualizer.reactSource.${src}`) }}
-      </option>
-      <optgroup :label="t('visualizer.reactSource.onsetGroup')">
-        <option v-for="src in onsetSources" :key="src" :value="src">
-          {{ t(`visualizer.reactSource.${src}`) }}
-        </option>
-      </optgroup>
-    </select>
+      size="sm"
+      :label="t('visualizer.reactSource.label')"
+      :options="sourceOptions"
+      :model-value="store.reactSource"
+      @update:model-value="store.setReactSource($event)"
+    />
     <template v-if="store.reactSource !== 'spectrum'">
       <span class="section-label">
         {{ t('visualizer.reactSource.strength') }}: {{ store.reactStrength }}%
@@ -36,7 +29,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import SliderField from '../ui/SliderField.vue'
+import UiSelect from '../ui/UiSelect.vue'
 import VisualizerReactShapeControls from './VisualizerReactShapeControls.vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useVisualizerStore, REACT_SOURCES } from '../../stores/visualizerStore.js'
@@ -45,6 +40,16 @@ const { t } = useI18n()
 const store = useVisualizerStore()
 const levelSources = REACT_SOURCES.filter((s) => !s.endsWith('Onset'))
 const onsetSources = REACT_SOURCES.filter((s) => s.endsWith('Onset'))
+const sourceOptions = computed(() => [
+  ...levelSources.map((value) => ({ value, label: t(`visualizer.reactSource.${value}`) })),
+  {
+    label: t('visualizer.reactSource.onsetGroup'),
+    options: onsetSources.map((value) => ({
+      value,
+      label: t(`visualizer.reactSource.${value}`),
+    })),
+  },
+])
 
 const SHAPE_SETTERS = {
   reactSmoothing: store.setReactSmoothing,
@@ -60,22 +65,10 @@ function onShapeUpdate(field, value) {
 </script>
 
 <style scoped src="./visualizerPanelShared.css"></style>
+<style scoped src="../ui/slider-control.css"></style>
 <style scoped>
-.react-select {
-  width: 100%;
-  background-color: var(--secondary-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  padding: 4px 6px;
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
+.control-section > :deep(.ui-select) {
   margin-bottom: 8px;
-}
-
-.react-select:focus {
-  outline: none;
-  border-color: var(--accent-primary);
 }
 
 .react-hint {

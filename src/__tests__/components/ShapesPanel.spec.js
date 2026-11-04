@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import ShapesPanel from '../../components/shapes/ShapesPanel.vue'
 import SliderControl from '../../components/ui/SliderControl.vue'
 import UiSelect from '../../components/ui/UiSelect.vue'
+import UiSwitch from '../../components/ui/UiSwitch.vue'
 import { useShapeStore } from '../../stores/shapeStore.js'
 import { useHistoryStore } from '../../stores/historyStore.js'
 import { getHistoryRecorder, resetHistoryRecorder } from '../../lib/history/historyRecorder.js'
@@ -108,8 +109,10 @@ describe('ShapesPanel', () => {
     store.addShape('rect', 1920, 1080)
     const { width, height } = store.selectedShape
     const w = mountPanel()
-    const lock = w.findAll('[role="switch"]').at(-1)
-    await lock.trigger('click')
+    const lock = w
+      .findAllComponents(UiSwitch)
+      .find((c) => c.props('label') === de.shapes.edit.lockRatio)
+    await lock.find('[role="switch"]').trigger('click')
     slider(w, de.shapes.edit.width).vm.$emit('update:modelValue', width * 2)
     expect(store.selectedShape.height).toBe(Math.round(height * 2))
     w.unmount()
@@ -156,9 +159,8 @@ describe('ShapesPanel', () => {
     // Bild-only-Effekte werden bei Formen nicht angeboten
     expect(w.find('.effect-item[data-effect-id="border"]').exists()).toBe(false)
 
-    const toggle = section.find('input[type="checkbox"]')
-    toggle.element.checked = true
-    await toggle.trigger('change')
+    // Hauptschalter des Audio-Reaktiv-Panels (UiSwitch, erster Schalter)
+    await section.find('[role="switch"]').trigger('click')
     expect(store.shapes[0].audioReactive.enabled).toBe(true)
     expect(store.shapes[0].id).toBe(shape.id)
     await w.vm.$nextTick()

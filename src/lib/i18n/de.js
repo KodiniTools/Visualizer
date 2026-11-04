@@ -1131,6 +1131,8 @@ export default {
     hqError: 'HQ Export fehlgeschlagen',
     downloadHq: 'HQ MP4 Download',
     addMicrophone: 'Mikrofon zuschalten',
+    sourcePlayer: '🎵 Player',
+    sourcePlayerMic: '🎵 Player + 🎤 Mikrofon',
     activatingMicrophone: 'Aktiviere Mikrofon...',
     micOnlyHint: '💡 Nur Mic? Player pausieren oder stumm schalten',
     conversionPreviewDesc: 'Schnell, niedrige Qualität',

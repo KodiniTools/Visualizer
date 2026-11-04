@@ -3,26 +3,31 @@
     <div class="section-header">
       <span class="section-label">{{ t('recorder.audioSource') }}</span>
       <span class="source-indicator active">
-        🎵 Player {{ microphoneEnabled ? '+ 🎤 Mic' : '' }}
+        {{ t(microphoneEnabled ? 'recorder.sourcePlayerMic' : 'recorder.sourcePlayer') }}
       </span>
     </div>
-    <label class="mic-toggle-row">
-      <input
+    <div class="mic-toggle-row">
+      <svg
+        class="icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        aria-hidden="true"
+      >
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+        <line x1="12" y1="19" x2="12" y2="23" />
+        <line x1="8" y1="23" x2="16" y2="23" />
+      </svg>
+      <UiSwitch
         v-model="microphoneEnabled"
-        type="checkbox"
+        class="mic-toggle"
+        :label="t('recorder.addMicrophone')"
         :disabled="isSwitchingSource"
-        @change="toggleMicrophone"
+        @update:model-value="toggleMicrophone"
       />
-      <span class="toggle-label">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-          <line x1="12" y1="19" x2="12" y2="23" />
-          <line x1="8" y1="23" x2="16" y2="23" />
-        </svg>
-        {{ t('recorder.addMicrophone') }}
-      </span>
-    </label>
+    </div>
     <p v-if="isSwitchingSource" class="source-hint">{{ t('recorder.activatingMicrophone') }}</p>
     <p v-else-if="microphoneEnabled" class="source-hint info">{{ t('recorder.micOnlyHint') }}</p>
   </div>
@@ -32,6 +37,7 @@
 // Mikrofon zur laufenden Aufnahme zuschalten. Das Panel zeigt diesen Abschnitt
 // nur während der Aufnahme; der Zustand beginnt daher bei jeder Aufnahme bei „aus“.
 import { useI18n } from '../../lib/i18n.js'
+import UiSwitch from '../ui/UiSwitch.vue'
 import { useMicrophoneToggle } from '../../composables/useMicrophoneToggle.js'
 
 const { t } = useI18n()
@@ -60,36 +66,14 @@ const { microphoneEnabled, isSwitchingSource, toggleMicrophone } = useMicrophone
   display: flex;
   align-items: center;
   gap: 10px;
-  cursor: pointer;
   padding: 8px 10px;
   background: var(--secondary-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--ds-radius-sm);
-  transition: all var(--ds-duration) var(--ds-ease);
 }
 
-.mic-toggle-row:hover {
-  background: var(--btn-hover);
-  border-color: color-mix(in srgb, var(--ds-link) 30%, transparent);
-}
-
-.mic-toggle-row input[type='checkbox'] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--ds-link);
-  cursor: pointer;
-}
-
-.toggle-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--ds-text-xs);
-  color: var(--text-primary);
-  font-weight: var(--ds-weight-medium);
-}
-
-.toggle-label .icon {
+.mic-toggle-row .icon {
+  flex-shrink: 0;
   width: 16px;
   height: 16px;
   color: var(--ds-link);
@@ -123,14 +107,6 @@ const { microphoneEnabled, isSwitchingSource, toggleMicrophone } = useMicrophone
 [data-theme='light'] .mic-toggle-row {
   background: rgba(0, 0, 0, 0.03);
   border-color: var(--ds-border);
-}
-
-[data-theme='light'] .mic-toggle-row:hover {
-  background: rgba(0, 0, 0, 0.06);
-}
-
-[data-theme='light'] .mic-toggle-row input[type='checkbox'] {
-  accent-color: var(--accent-primary);
 }
 
 [data-theme='light'] .source-hint.info {

@@ -4,9 +4,10 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 /**
- * Regressionstest: Jedes Auswahlfeld in der Bildzeile der Slideshow-Liste
- * hat einen Stil (dunkles UND helles Theme) – sonst erscheint es mit der
- * Standard-Darstellung des Browsers (so geschehen beim Feld „Quelle“).
+ * Regressionstest: Die Auswahlfelder der Bildzeile sind Ui-Bausteine
+ * (UiSelect bzw. SlideshowAudioSourceSelect) – sie bringen Stil für helles
+ * und dunkles Theme selbst mit. Früher erschien ein natives Feld („Quelle“)
+ * in der Standard-Darstellung des Browsers.
  */
 const sfc = readFileSync(
   fileURLToPath(
@@ -17,43 +18,32 @@ const sfc = readFileSync(
 const template = sfc.slice(sfc.indexOf('<template>'), sfc.indexOf('<script'))
 const styles = sfc.slice(sfc.indexOf('<style scoped>'))
 
-// Klassen aller <select> bzw. <SlideshowAudioSourceSelect> im Template
-const selectClasses = [
-  ...template.matchAll(/<(?:select|SlideshowAudioSourceSelect)\b[^>]*?\sclass="([^"]+)"/g),
-].map((m) => m[1].split(/\s+/)[0])
+// Auswahlfelder (Ui-Bausteine) im Template: Klasse + Tag
+const fields = [...template.matchAll(/<(UiSelect|SlideshowAudioSourceSelect)\b([\s\S]*?)\/>/g)].map(
+  (m) => ({ tag: m[1], attrs: m[2], cls: m[2].match(/\sclass="([^"]+)"/)?.[1] }),
+)
 
-/** Regeln (Selektor → Deklarationen), deren Selektor die Klasse enthält */
-function rulesFor(cls, { light }) {
-  const rules = []
-  for (const m of styles.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
-    const selectors = m[1].split(',').map((s) => s.trim())
-    const hit = selectors.some(
-      (s) =>
-        new RegExp(`\\.${cls}(?![\\w-])`).test(s) &&
-        s.includes("[data-theme='light']") === light &&
-        !s.includes(':disabled'),
-    )
-    if (hit) rules.push(m[2])
-  }
-  return rules.join('\n')
-}
+describe('SlideshowOrderList – Auswahlfelder', () => {
+  it('kein natives <select> mehr in der Bildzeile', () => {
+    expect(template).not.toMatch(/<select\b/)
+  })
 
-describe('SlideshowOrderList – Stile der Auswahlfelder', () => {
   it('findet die Auswahlfelder der Bildzeile (Übergang, Audio, Quelle)', () => {
-    expect(selectClasses).toEqual(['order-transition', 'order-audio', 'order-audio-source'])
+    expect(fields.map((f) => f.cls)).toEqual([
+      'order-transition',
+      'order-audio',
+      'order-audio-source',
+    ])
   })
 
-  it.each(selectClasses)('%s: Stil im dunklen Theme (Hintergrund, Rahmen, Schrift)', (cls) => {
-    const css = rulesFor(cls, { light: false })
-    for (const prop of ['background', 'border', 'color', 'font-size', 'padding']) {
-      expect(css, `${cls} ohne ${prop}`).toMatch(new RegExp(`(^|[\\s;])${prop}\\s*:`))
-    }
-  })
+  it.each(['order-transition', 'order-audio', 'order-audio-source'])(
+    '%s: hat eine Beschriftung (label)',
+    (cls) => {
+      expect(fields.find((f) => f.cls === cls).attrs).toMatch(/\s:label="/)
+    },
+  )
 
-  it.each(selectClasses)('%s: Stil im hellen Theme', (cls) => {
-    const css = rulesFor(cls, { light: true })
-    for (const prop of ['background', 'color', 'border-color']) {
-      expect(css, `${cls} ohne ${prop} (hell)`).toMatch(new RegExp(`(^|[\\s;])${prop}\\s*:`))
-    }
+  it('eigener Wert (is-own) wird auch am nativen select im UiSelect hervorgehoben', () => {
+    expect(styles).toMatch(/:deep\(\.ui-select__native\.is-own\)[^{]*\{[^}]*border-color\s*:/)
   })
 })

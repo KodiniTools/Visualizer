@@ -111,15 +111,13 @@
         @update:model-value="(v) => updateAudio({ enabled: v })"
       />
       <template v-if="fill.audio.enabled">
-        <label class="image-fill-field">
-          <span>{{ t('slideshow.gradientAudioSource') }}</span>
-          <SlideshowAudioSourceSelect
-            :model-value="fill.audio.source"
-            :class="`${prefix}-image-audio-source`"
-            :disabled="disabled"
-            @update:model-value="(v) => updateAudio({ source: v })"
-          />
-        </label>
+        <SlideshowAudioSourceSelect
+          :label="t('slideshow.gradientAudioSource')"
+          :model-value="fill.audio.source"
+          :class="`${prefix}-image-audio-source`"
+          :disabled="disabled"
+          @update:model-value="(v) => updateAudio({ source: v })"
+        />
         <div class="image-fill-slider">
           <SliderControl
             v-for="fx in audioEffects"
@@ -280,26 +278,6 @@ function updateAudio(partial) {
 .option-source svg {
   width: 10px;
   height: 10px;
-}
-.image-fill-field {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-muted);
-  font-size: var(--ds-text-xs);
-}
-/* Audio-Quelle (SlideshowAudioSourceSelect ist ein natives select) */
-.image-fill-field select {
-  padding: 3px 6px;
-  font-size: var(--ds-text-xs);
-  background: var(--secondary-bg);
-  color: var(--ds-text);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-}
-[data-theme='light'] .image-fill-field select {
-  color: var(--text-primary);
-  border-color: var(--ds-border);
 }
 .image-fill-slider {
   flex-basis: 100%;

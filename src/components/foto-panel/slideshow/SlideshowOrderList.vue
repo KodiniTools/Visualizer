@@ -21,32 +21,26 @@
           class="order-thumb"
         />
         <span class="order-name">
-          <span v-if="img.source === 'stock'" class="order-stock-badge">Stock</span>
+          <span v-if="img.source === 'stock'" class="order-stock-badge">{{
+            t('slideshow.stockBadge')
+          }}</span>
           {{ img.name || `Bild ${index + 1}` }}
         </span>
         <span class="drag-handle">&#x2630;</span>
         <!-- Einstellungen dieses Bildes (volle Breite unter der Kopfzeile) -->
         <div class="order-body">
           <!-- Übergang dieses Bildes -->
-          <label class="order-field">
-            <span class="order-field-label">{{ t('slideshow.fieldTransition') }}</span>
-            <select
-              class="order-transition"
-              :class="{ 'is-own': transitionFor(img) !== 'default' }"
-              :value="transitionFor(img)"
-              @change="onTransitionChange(img, $event)"
-              @mousedown.stop
-            >
-              <option value="default">
-                {{ t('slideshow.transitionDefault') }} ({{
-                  t(`slideshow.transitions.${defaultTransition}`)
-                }})
-              </option>
-              <option v-for="tr in transitionOptions" :key="tr.id" :value="tr.id">
-                {{ tr.icon }} {{ t(`slideshow.transitions.${tr.id}`) }}
-              </option>
-            </select>
-          </label>
+          <UiSelect
+            class="order-transition"
+            :class="{ 'is-own': transitionFor(img) !== 'default' }"
+            :model-value="transitionFor(img)"
+            :options="transitionSelectOptions"
+            :label="t('slideshow.fieldTransition')"
+            size="sm"
+            inline
+            @update:model-value="(v) => onTransitionChange(img, v)"
+            @mousedown.stop
+          />
           <!-- Zeiten dieses Bildes: Einblenden · Anzeige · Ausblenden (leer = Standard) -->
           <div class="order-times">
             <label class="order-time">
@@ -104,38 +98,28 @@
             <span class="order-duration-unit">s</span>
           </div>
           <!-- Audio-Reaktion dieses Bildes -->
-          <label class="order-field">
-            <span class="order-field-label">{{ t('slideshow.fieldAudio') }}</span>
-            <select
-              class="order-audio"
-              :class="{ 'is-own': audioModeFor(img) !== 'default' }"
-              :value="audioModeFor(img)"
-              @change="onAudioModeChange(img, $event)"
-              @mousedown.stop
-            >
-              <option value="default">{{ t('slideshow.audioModeDefault') }}</option>
-              <option value="off">{{ t('slideshow.audioModeOff') }}</option>
-              <option value="saved" :disabled="!hasSavedSettings">
-                {{ t('slideshow.audioModeSaved') }}
-              </option>
-              <option v-for="p in presetOptions" :key="p.id" :value="p.id">
-                {{ p.icon }} {{ p.name }}
-              </option>
-            </select>
-          </label>
+          <UiSelect
+            class="order-audio"
+            :class="{ 'is-own': audioModeFor(img) !== 'default' }"
+            :model-value="audioModeFor(img)"
+            :options="audioSelectOptions"
+            :label="t('slideshow.fieldAudio')"
+            size="sm"
+            inline
+            @update:model-value="(v) => onAudioModeChange(img, v)"
+            @mousedown.stop
+          />
           <!-- Eigene Audio-Quelle dieses Bildes (wie beim Bild-Audio-Reaktiv, inkl. Onset) -->
-          <label class="order-field">
-            <span class="order-field-label">{{ t('slideshow.fieldAudioSource') }}</span>
-            <SlideshowAudioSourceSelect
-              class="order-audio-source"
-              :class="{ 'is-own': audioSourceFor(img) !== null }"
-              :model-value="audioSourceFor(img)"
-              :inherit-label="t('slideshow.audioSourceInherit')"
-              :disabled="audioModeFor(img) === 'off'"
-              @update:model-value="(v) => onAudioSourceChange(img, v)"
-              @mousedown.stop
-            />
-          </label>
+          <SlideshowAudioSourceSelect
+            class="order-audio-source"
+            :class="{ 'is-own': audioSourceFor(img) !== null }"
+            :model-value="audioSourceFor(img)"
+            :label="t('slideshow.fieldAudioSource')"
+            :inherit-label="t('slideshow.audioSourceInherit')"
+            :disabled="audioModeFor(img) === 'off'"
+            @update:model-value="(v) => onAudioSourceChange(img, v)"
+            @mousedown.stop
+          />
         </div>
       </div>
     </div>
@@ -152,19 +136,20 @@
  * - Audio-Reaktiv-Modus (v-model:audio-modes, { [key]: mode }); fehlt = 'default'
  * - eigene Audio-Quelle (v-model:audio-sources, { [key]: source }); fehlt = wie Einstellung
  */
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
 import {
   SLIDESHOW_AUDIO_DEFAULT,
-  SLIDESHOW_AUDIO_PRESET_OPTIONS,
   isValidSlideshowAudioMode,
   isValidSlideshowAudioSource,
 } from '../../../lib/slideshowAudio.js'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 import { slideshowImageKey } from './slideshowImageKey.js'
-import { SLIDESHOW_TRANSITIONS, isValidTransition } from '../../../lib/slideshowTransitions.js'
+import { isValidTransition } from '../../../lib/slideshowTransitions.js'
+import UiSelect from '../../ui/UiSelect.vue'
+import { audioModeOptions, transitionOptions } from './slideshowSelectOptions.js'
 
-defineProps({
+const props = defineProps({
   defaultDuration: { type: Number, default: 3000 },
   // Standardwerte (Einstellungen für alle Bilder) – als Platzhalter/Hinweis
   defaultFadeIn: { type: Number, default: 1000 },
@@ -183,8 +168,8 @@ const transitions = defineModel('transitions', { type: Object, default: () => ({
 // Eigene Ein-/Ausblenddauer pro Bild ({ [key]: ms }); fehlt = Standard
 const fadeIns = defineModel('fadeIns', { type: Object, default: () => ({}) })
 const fadeOuts = defineModel('fadeOuts', { type: Object, default: () => ({}) })
-const transitionOptions = SLIDESHOW_TRANSITIONS
-const presetOptions = SLIDESHOW_AUDIO_PRESET_OPTIONS
+const transitionSelectOptions = computed(() => transitionOptions(t, props.defaultTransition))
+const audioSelectOptions = computed(() => audioModeOptions(t, props.hasSavedSettings))
 const emit = defineEmits(['order-changed'])
 const { t } = useI18n()
 
@@ -255,20 +240,18 @@ function transitionFor(img) {
   return transitions.value[slideshowImageKey(img)] ?? 'default'
 }
 
-function onTransitionChange(img, event) {
+function onTransitionChange(img, value) {
   const key = slideshowImageKey(img)
   if (key === undefined) return
-  const value = event.target.value
   const next = { ...transitions.value }
   if (isValidTransition(value)) next[key] = value
   else delete next[key]
   transitions.value = next
 }
 
-function onAudioModeChange(img, event) {
+function onAudioModeChange(img, mode) {
   const key = slideshowImageKey(img)
   if (key === undefined) return
-  const mode = event.target.value
   const next = { ...audioModes.value }
   if (isValidSlideshowAudioMode(mode) && mode !== SLIDESHOW_AUDIO_DEFAULT) {
     next[key] = mode
@@ -356,11 +339,6 @@ function onDragEnd() {
   gap: 4px;
   padding-top: 2px;
 }
-.order-field {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 .order-field-label {
   flex-shrink: 0;
   width: 58px;
@@ -394,8 +372,9 @@ function onDragEnd() {
   border: 1px solid var(--border-color);
   border-radius: var(--ds-radius-sm);
 }
-/* Eigener Wert (≠ Standard) hervorheben */
-.order-item .is-own {
+/* Eigener Wert (≠ Standard) hervorheben – auch am nativen select im UiSelect */
+.order-item .is-own,
+.order-item :deep(.ui-select__native.is-own) {
   border-color: var(--image-section-accent);
 }
 [data-theme='light'] .order-fadein,
@@ -409,22 +388,24 @@ function onDragEnd() {
   align-items: center;
   gap: 6px;
 }
-.order-transition,
-.order-audio,
-.order-audio-source {
+/* Auswahlfelder (UiSelect): Beschriftung als schmale Spalte links */
+.order-body :deep(.ui-select--inline) {
+  gap: 6px;
+}
+.order-body :deep(.ui-select__label) {
+  flex-shrink: 0;
+  width: 58px;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-regular);
+  color: var(--text-muted);
+  white-space: normal;
+}
+.order-body :deep(.ui-select__control) {
   flex: 1;
   min-width: 0;
-  padding: 3px 4px;
-  font-size: var(--ds-text-xs);
-  background: var(--secondary-bg);
-  color: var(--ds-text);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
 }
-/* Quelle gesperrt (Audio „Aus“) */
-.order-audio-source:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.order-body :deep(.ui-select__native) {
+  font-size: var(--ds-text-xs);
 }
 .order-stock-badge {
   display: inline-block;

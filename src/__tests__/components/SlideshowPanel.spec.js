@@ -42,6 +42,27 @@ async function setSwitch(w, selector, on) {
   if ((sw.attributes('aria-checked') === 'true') !== on) await sw.trigger('click')
 }
 
+/** Farbe eines ColorField (Anker-Klasse am Wurzelelement) setzen bzw. lesen. */
+async function setColor(w, cls, hex) {
+  w.findAllComponents(ColorField)
+    .find((c) => c.classes().includes(cls))
+    .vm.$emit('update:modelValue', hex)
+  await flushPromises()
+}
+function colorOf(w, cls) {
+  return w
+    .findAllComponents(ColorField)
+    .find((c) => c.classes().includes(cls))
+    .props('modelValue')
+}
+/** Zustand eines Schalters (UiSwitch) unter einem Anker-Selektor. */
+function switchOn(w, selector) {
+  return w.find(`${selector} [role="switch"]`).attributes('aria-checked') === 'true'
+}
+function switchDisabled(w, selector) {
+  return w.find(`${selector} [role="switch"]`).element.disabled
+}
+
 async function setLoop(w, on) {
   const sw = w.find('.loop-section [role="switch"]')
   if ((sw.attributes('aria-checked') === 'true') !== on) await sw.trigger('click')
@@ -243,11 +264,10 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const w = mountPanel({ hasWorkspace: false })
     expect(w.find('.slideshow-base-color').exists()).toBe(false)
     await w.find('.bg-mode-canvas').setValue(true)
-    const input = w.find('.slideshow-base-color')
-    expect(input.element.value).toBe('#000000')
+    expect(colorOf(w, 'slideshow-base-color')).toBe('#000000')
     expect(w.find('.btn-reset-base-color').exists()).toBe(false)
 
-    await input.setValue('#336699')
+    await setColor(w, 'slideshow-base-color', '#336699')
     expect(w.emitted('background-color-change').at(-1)).toEqual(['#336699'])
     await w.find('.btn-start').trigger('click')
     expect(w.emitted('start')[0][0].backgroundColor).toBe('#336699')
@@ -260,24 +280,24 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
     await w.find('.btn-reset-base-color').trigger('click')
     expect(w.emitted('background-color-change').at(-1)).toEqual(['#000000'])
-    expect(w.find('.slideshow-base-color').element.value).toBe('#000000')
+    expect(colorOf(w, 'slideshow-base-color')).toBe('#000000')
 
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.find('.slideshow-base-color').element.value).toBe('#336699')
+    expect(colorOf(w, 'slideshow-base-color')).toBe('#336699')
     expect(w.emitted('background-color-change').at(-1)).toEqual(['#336699'])
   })
 
   it('base color is remembered without a preset (after remount)', async () => {
     let w = mountPanel({ hasWorkspace: false })
     await w.find('.bg-mode-canvas').setValue(true)
-    await w.find('.slideshow-base-color').setValue('#aa5500')
+    await setColor(w, 'slideshow-base-color', '#aa5500')
     expect(localStorage.getItem('visualizer-slideshow-base-color')).toBe('#aa5500')
     w.unmount()
 
     w = mountPanel({ hasWorkspace: false })
     await w.find('.bg-mode-canvas').setValue(true)
-    expect(w.find('.slideshow-base-color').element.value).toBe('#aa5500')
+    expect(colorOf(w, 'slideshow-base-color')).toBe('#aa5500')
     await w.find('.btn-start').trigger('click')
     expect(w.emitted('start')[0][0].backgroundColor).toBe('#aa5500')
 
@@ -290,10 +310,9 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     let w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-workspace').setValue(true)
     expect(w.find('.slideshow-base-color').exists()).toBe(false)
-    const input = w.find('.slideshow-workspace-color')
-    expect(input.element.value).toBe('#000000')
+    expect(colorOf(w, 'slideshow-workspace-color')).toBe('#000000')
 
-    await input.setValue('#224466')
+    await setColor(w, 'slideshow-workspace-color', '#224466')
     expect(w.emitted('workspace-color-change').at(-1)).toEqual(['#224466'])
     expect(localStorage.getItem('visualizer-slideshow-workspace-color')).toBe('#224466')
     // Canvas-Farbe bleibt unberührt
@@ -314,13 +333,13 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     // Neu öffnen: gemerkt; Zurücksetzen entfernt den Eintrag, Preset stellt her
     w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-workspace').setValue(true)
-    expect(w.find('.slideshow-workspace-color').element.value).toBe('#224466')
+    expect(colorOf(w, 'slideshow-workspace-color')).toBe('#224466')
     await w.find('.btn-reset-workspace-color').trigger('click')
     expect(w.emitted('workspace-color-change').at(-1)).toEqual(['#000000'])
     expect(localStorage.getItem('visualizer-slideshow-workspace-color')).toBeNull()
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.find('.slideshow-workspace-color').element.value).toBe('#224466')
+    expect(colorOf(w, 'slideshow-workspace-color')).toBe('#224466')
   })
 
   it('gradient per area: live, persisted, preset, reset', async () => {
@@ -420,7 +439,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     let w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-workspace').setValue(true)
     expect(w.find('.workspace-fill-audio-source').exists()).toBe(false)
-    await w.find('.workspace-fill-audio-toggle').setValue(true)
+    await setSwitch(w, '.workspace-fill-audio-toggle', true)
     await w.find('.workspace-fill-audio-source').setValue('volume')
     await w.find('.workspace-fill-audio-hue').setValue('60')
     const fx = { enabled: true, source: 'volume', brightness: 80, hue: 60 }
@@ -444,13 +463,13 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
     w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-workspace').setValue(true)
-    expect(w.find('.workspace-fill-audio-toggle').element.checked).toBe(true)
+    expect(switchOn(w, '.workspace-fill-audio-toggle')).toBe(true)
     await w.find('.btn-reset-workspace-color').trigger('click')
-    expect(w.find('.workspace-fill-audio-toggle').element.checked).toBe(false)
+    expect(switchOn(w, '.workspace-fill-audio-toggle')).toBe(false)
     expect(localStorage.getItem('visualizer-slideshow-workspace-fill-audio')).toBeNull()
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.find('.workspace-fill-audio-toggle').element.checked).toBe(true)
+    expect(switchOn(w, '.workspace-fill-audio-toggle')).toBe(true)
     expect(w.emitted('base-fill-audio-change').at(-1)).toEqual(['workspace', fx])
   })
 
@@ -588,12 +607,12 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Zwei', 'Eins'])
   })
 
-  it('move-whole checkbox emits mode change; external transform updates sliders', async () => {
+  it('move-whole switch emits mode change; external transform updates sliders', async () => {
     const w = mountPanel()
     // weder Hinweistext noch Tooltip
     expect(w.find('.move-whole-hint').exists()).toBe(false)
-    expect(w.find('.move-whole-checkbox').element.closest('label').title).toBe('')
-    await w.find('.move-whole-checkbox').setValue(true)
+    expect(w.find('.move-whole-checkbox').attributes('title')).toBeUndefined()
+    await setSwitch(w, '.move-whole-checkbox', true)
     expect(w.emitted('move-mode-change').at(-1)).toEqual([true])
     await w.setProps({
       externalTransform: { relX: 0.25, relY: 0.3, relWidth: 0.8, relHeight: 0.8 },
@@ -604,16 +623,16 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
   it('saves the mouse move mode in presets and restores it on load', async () => {
     const w = mountPanel()
-    await w.find('.move-whole-checkbox').setValue(true)
+    await setSwitch(w, '.move-whole-checkbox', true)
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
     expect(stored[0].settings.moveWholeSlideshow).toBe(true)
 
-    await w.find('.move-whole-checkbox').setValue(false)
+    await setSwitch(w, '.move-whole-checkbox', false)
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.find('.move-whole-checkbox').element.checked).toBe(true)
+    expect(switchOn(w, '.move-whole-checkbox')).toBe(true)
     expect(w.emitted('move-mode-change').at(-1)).toEqual([true])
     await w.find('.btn-start').trigger('click')
     expect(w.emitted('start')[0][0].moveWholeSlideshow).toBe(true)
@@ -1046,7 +1065,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-workspace').setValue(true)
     // Farbe der Workspace-Fläche
-    await w.find('.workspace-fill-audio-toggle').setValue(true)
+    await setSwitch(w, '.workspace-fill-audio-toggle', true)
     const fillSource = w.find('.workspace-fill-audio-source')
     expect(fillSource.findAll('option')).toHaveLength(9)
     await fillSource.setValue('allOnset')
@@ -1333,7 +1352,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it('canvas mode: fill color audio source (incl. onset) – live, preset, memory, workspace untouched', async () => {
     const w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-canvas').setValue(true)
-    await w.find('.base-fill-audio-toggle').setValue(true)
+    await setSwitch(w, '.base-fill-audio-toggle', true)
     const source = w.find('.base-fill-audio-source')
     expect(source.findAll('option').map((o) => o.element.value)).toEqual([
       'bass',
@@ -1384,14 +1403,14 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
     // Zurücksetzen (↺) schaltet es ab und vergisst die Quelle
     await w.find('.btn-reset-base-color').trigger('click')
-    expect(w.find('.base-fill-audio-toggle').element.checked).toBe(false)
+    expect(switchOn(w, '.base-fill-audio-toggle')).toBe(false)
     expect(localStorage.getItem('visualizer-slideshow-base-fill-audio')).toBeNull()
   })
 
   it('workspace mode: fill color audio source (incl. onset) – live, preset, memory, canvas untouched', async () => {
     const w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-workspace').setValue(true)
-    await w.find('.workspace-fill-audio-toggle').setValue(true)
+    await setSwitch(w, '.workspace-fill-audio-toggle', true)
     const source = w.find('.workspace-fill-audio-source')
     expect(source.findAll('option')).toHaveLength(9)
     expect(source.findAll('optgroup option').map((o) => o.element.value)).toEqual([
@@ -1436,11 +1455,11 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
     // ↺ setzt die Workspace-Fläche zurück (inkl. Audio), Canvas bleibt unberührt
     await w.find('.btn-reset-workspace-color').trigger('click')
-    expect(w.find('.workspace-fill-audio-toggle').element.checked).toBe(false)
+    expect(switchOn(w, '.workspace-fill-audio-toggle')).toBe(false)
     expect(localStorage.getItem('visualizer-slideshow-workspace-fill-audio')).toBeNull()
 
     await w.setProps({ hasWorkspace: false })
-    expect(w.find('.workspace-fill-audio-toggle').element.disabled).toBe(true)
+    expect(switchDisabled(w, '.workspace-fill-audio-toggle')).toBe(true)
   })
 
   it.each([
@@ -1454,7 +1473,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       await w.find(`.${prefix}-gradient-toggle [role="switch"]`).trigger('click')
       await w.find(`.${prefix}-gradient-audio-toggle [role="switch"]`).trigger('click')
       await w.find(`.${prefix}-gradient-audio-source`).setValue('trebleOnset')
-      await w.find(`.${prefix}-fill-audio-toggle`).setValue(true)
+      await setSwitch(w, `.${prefix}-fill-audio-toggle`, true)
       await w.find(`.${prefix}-fill-audio-source`).setValue('bassOnset')
 
       // beide Bereiche sichtbar, Quellen unabhängig
@@ -1539,7 +1558,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       await w.find(`.bg-mode-${mode}`).setValue(true)
       if (mode !== 'none') {
         const p = mode === 'workspace' ? 'workspace' : 'base'
-        await w.find(`.${p}-fill-audio-toggle`).setValue(true)
+        await setSwitch(w, `.${p}-fill-audio-toggle`, true)
         await w.find(`.${p}-gradient-toggle [role="switch"]`).trigger('click')
         await w.find(`.${p}-gradient-audio-toggle [role="switch"]`).trigger('click')
         await setSwitch(w, `.${p}-image-toggle`, true)
@@ -1668,7 +1687,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const w = mountPanel({ isActive: true, isPaused: true })
     await w.find('.btn-resume').trigger('click')
     await w.find('.btn-stop').trigger('click')
-    await w.find('.layer-section input[type="checkbox"]').setValue(true)
+    await setSwitch(w, '.layer-section .render-behind-toggle', true)
     expect(w.emitted('resume')).toHaveLength(1)
     expect(w.emitted('stop')).toHaveLength(1)
     expect(w.emitted('render-layer-change')).toEqual([[true]])

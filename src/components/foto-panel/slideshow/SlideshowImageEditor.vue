@@ -52,30 +52,22 @@
           :value-text="`${sizePercent(size[dim])}%`"
           @update:model-value="(v) => onSize(dim, v)"
         />
-        <label class="checkbox-label">
-          <input v-model="keepAspect" class="editor-keep-aspect" type="checkbox" />
-          <span>{{ t('slideshow.keepAspect') }}</span>
-        </label>
+        <UiSwitch
+          v-model="keepAspect"
+          class="editor-keep-aspect"
+          :label="t('slideshow.keepAspect')"
+        />
       </div>
     </div>
 
-    <label class="image-editor-field">
-      <span>{{ t('slideshow.transition') }}</span>
-      <select
-        class="editor-transition"
-        :value="transition ?? 'default'"
-        @change="onTransition($event.target.value)"
-      >
-        <option value="default">
-          {{ t('slideshow.transitionDefault') }} ({{
-            t(`slideshow.transitions.${defaultTransition}`)
-          }})
-        </option>
-        <option v-for="tr in transitions" :key="tr.id" :value="tr.id">
-          {{ tr.icon }} {{ t(`slideshow.transitions.${tr.id}`) }}
-        </option>
-      </select>
-    </label>
+    <UiSelect
+      class="editor-transition"
+      :model-value="transition ?? 'default'"
+      :options="transitionSelectOptions"
+      :label="t('slideshow.transition')"
+      size="sm"
+      @update:model-value="onTransition"
+    />
 
     <div class="image-editor-times">
       <label class="image-editor-field">
@@ -128,31 +120,25 @@
       </label>
     </div>
 
-    <label class="image-editor-field">
-      <span>{{ t('slideshow.perImageAudioHint') }}</span>
-      <select class="editor-audio" :value="audioMode" @change="onAudio($event.target.value)">
-        <option value="default">{{ t('slideshow.audioModeDefault') }}</option>
-        <option value="off">{{ t('slideshow.audioModeOff') }}</option>
-        <option value="saved" :disabled="!hasSavedSettings">
-          {{ t('slideshow.audioModeSaved') }}
-        </option>
-        <option v-for="p in presetOptions" :key="p.id" :value="p.id">
-          {{ p.icon }} {{ p.name }}
-        </option>
-      </select>
-    </label>
+    <UiSelect
+      class="editor-audio"
+      :model-value="audioMode"
+      :options="audioSelectOptions"
+      :label="t('slideshow.perImageAudioHint')"
+      size="sm"
+      @update:model-value="onAudio"
+    />
 
     <!-- Eigene Audio-Quelle des Bildes (wie beim Bild-Audio-Reaktiv, inkl. Onset) -->
-    <label class="image-editor-field">
-      <span>{{ t('slideshow.perImageAudioSource') }}</span>
-      <SlideshowAudioSourceSelect
-        class="editor-audio-source"
-        :model-value="audioSource"
-        :inherit-label="t('slideshow.audioSourceInherit')"
-        :disabled="audioMode === 'off'"
-        @update:model-value="(v) => emit('update:audioSource', v)"
-      />
-    </label>
+    <SlideshowAudioSourceSelect
+      :label="t('slideshow.perImageAudioSource')"
+      :inline="false"
+      class="editor-audio-source"
+      :model-value="audioSource"
+      :inherit-label="t('slideshow.audioSourceInherit')"
+      :disabled="audioMode === 'off'"
+      @update:model-value="(v) => emit('update:audioSource', v)"
+    />
   </div>
 </template>
 
@@ -166,13 +152,13 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { loadKeepAspect, saveKeepAspect } from '../../../lib/imagePlacementSettings.js'
 import { useI18n } from '../../../lib/i18n.js'
-import { SLIDESHOW_TRANSITIONS, isValidTransition } from '../../../lib/slideshowTransitions.js'
-import {
-  SLIDESHOW_AUDIO_PRESET_OPTIONS,
-  isValidSlideshowAudioMode,
-} from '../../../lib/slideshowAudio.js'
+import { isValidTransition } from '../../../lib/slideshowTransitions.js'
+import { isValidSlideshowAudioMode } from '../../../lib/slideshowAudio.js'
+import { audioModeOptions, transitionOptions } from './slideshowSelectOptions.js'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 import SliderControl from '../../ui/SliderControl.vue'
+import UiSelect from '../../ui/UiSelect.vue'
+import UiSwitch from '../../ui/UiSwitch.vue'
 
 const props = defineProps({
   image: { type: Object, required: true },
@@ -208,8 +194,8 @@ const emit = defineEmits([
 ])
 const { t } = useI18n()
 
-const transitions = SLIDESHOW_TRANSITIONS
-const presetOptions = SLIDESHOW_AUDIO_PRESET_OPTIONS
+const transitionSelectOptions = computed(() => transitionOptions(t, props.defaultTransition))
+const audioSelectOptions = computed(() => audioModeOptions(t, props.hasSavedSettings))
 const rootRef = ref(null)
 
 const title = computed(
@@ -331,7 +317,6 @@ onMounted(() => {
   font-size: var(--ds-text-xs);
   color: var(--text-muted);
 }
-.image-editor-field select,
 .image-editor-field input {
   padding: 4px 6px;
   font-size: var(--ds-text-xs);
@@ -366,7 +351,6 @@ onMounted(() => {
 [data-theme='light'] .image-editor-name {
   color: var(--text-primary);
 }
-[data-theme='light'] .image-editor-field select,
 [data-theme='light'] .image-editor-field input {
   color: var(--text-primary);
   border-color: var(--ds-border);

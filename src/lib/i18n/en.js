@@ -2192,6 +2192,7 @@ export default {
     imageSettings: 'Image settings',
     closeImageSettings: 'Close image settings',
     fieldAudioSource: 'Source',
+    stockBadge: 'Stock',
     perImageAudioSource: 'Audio source of this image',
     imagePositionX: 'Position X (center)',
     imagePositionY: 'Position Y (center)',

@@ -498,3 +498,17 @@ describe('i18n – Position & Größe und Slideshow-Farbverlauf ohne fest verdra
     }
   })
 })
+
+describe('i18n – Slideshow-Bausteine ohne fest verdrahtete Texte', () => {
+  it('Vorlagen ohne feste Texte', () => {
+    for (const file of [
+      'components/foto-panel/slideshow/SlideshowAudioSourceSelect.vue',
+      'components/foto-panel/slideshow/SlideshowFillAudio.vue',
+      'components/foto-panel/slideshow/SlideshowImageEditor.vue',
+      'components/foto-panel/slideshow/SlideshowImageFill.vue',
+      'components/foto-panel/slideshow/SlideshowOrderList.vue',
+    ]) {
+      expect(hardcodedTemplateText(read(file)), file).toEqual([])
+    }
+  })
+})

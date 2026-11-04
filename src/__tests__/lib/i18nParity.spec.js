@@ -487,3 +487,14 @@ describe('i18n – Visualizer LED-Text und Reaktion ohne fest verdrahtete Texte'
     }
   })
 })
+
+describe('i18n – Position & Größe und Slideshow-Farbverlauf ohne fest verdrahtete Texte', () => {
+  it('Vorlagen ohne feste Texte', () => {
+    for (const file of [
+      'components/foto-panel/image-filters/PositionSizeControls.vue',
+      'components/foto-panel/slideshow/SlideshowBaseGradient.vue',
+    ]) {
+      expect(hardcodedTemplateText(read(file)), file).toEqual([])
+    }
+  })
+})

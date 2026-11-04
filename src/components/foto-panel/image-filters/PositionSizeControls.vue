@@ -20,10 +20,7 @@
           :value-text="`${percent(values[axis])}%`"
           @update:model-value="(v) => onChange(axis, v)"
         />
-        <label class="toggle-label">
-          <input v-model="keepAspect" class="image-keep-aspect" type="checkbox" />
-          <span class="toggle-text">{{ t('foto.keepAspect') }}</span>
-        </label>
+        <UiSwitch v-model="keepAspect" class="image-keep-aspect" :label="t('foto.keepAspect')" />
       </div>
     </div>
   </div>
@@ -42,6 +39,7 @@ import { reactive, ref, toRaw, watch, onMounted, onBeforeUnmount } from 'vue'
 import { loadKeepAspect, saveKeepAspect } from '../../../lib/imagePlacementSettings.js'
 import { useI18n } from '../../../lib/i18n.js'
 import SliderControl from '../../ui/SliderControl.vue'
+import UiSwitch from '../../ui/UiSwitch.vue'
 import {
   getBoundsCenter,
   positionBounds,
@@ -144,19 +142,3 @@ defineExpose({ sync })
 
 <style scoped src="../../ui/slider-control.css"></style>
 <style scoped src="./image-filters-shared.css"></style>
-<style scoped>
-.toggle-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: var(--ds-text-xs);
-  color: var(--text-primary);
-}
-.toggle-label input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--accent-primary);
-  cursor: pointer;
-}
-</style>

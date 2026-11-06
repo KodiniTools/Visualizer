@@ -42,6 +42,9 @@ import { glFlowerOfLife as glFlowerOfLifeSpec } from './presets/glFlowerOfLife.j
 import { glTreeRings as glTreeRingsSpec } from './presets/glTreeRings.js'
 import { glFerrofluid as glFerrofluidSpec } from './presets/glFerrofluid.js'
 import { glPendulumWave as glPendulumWaveSpec } from './presets/glPendulumWave.js'
+import { glPendulumSnake as glPendulumSnakeSpec } from './presets/glPendulumSnake.js'
+import { glPendulumCircle as glPendulumCircleSpec } from './presets/glPendulumCircle.js'
+import { glPendulumField as glPendulumFieldSpec } from './presets/glPendulumField.js'
 import { glLedWall as glLedWallSpec } from './presets/glLedWall.js'
 import { glLedMatrix as glLedMatrixSpec } from './presets/glLedMatrix.js'
 import { glVuMeter as glVuMeterSpec } from './presets/glVuMeter.js'
@@ -181,6 +184,9 @@ export const glPresetSpecs = {
   glTreeRings: glTreeRingsSpec,
   glFerrofluid: glFerrofluidSpec,
   glPendulumWave: glPendulumWaveSpec,
+  glPendulumSnake: glPendulumSnakeSpec,
+  glPendulumCircle: glPendulumCircleSpec,
+  glPendulumField: glPendulumFieldSpec,
   glLedWall: glLedWallSpec,
   glLedMatrix: glLedMatrixSpec,
   glVuMeter: glVuMeterSpec,

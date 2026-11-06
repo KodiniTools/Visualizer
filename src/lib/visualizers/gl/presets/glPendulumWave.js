@@ -26,7 +26,10 @@ export const PENDULUM_BASE_SWINGS = 24
  * so float precision never degrades), the kick envelope and the quiet timer
  * used for re-synchronisation.
  *
- * @param {{quietLevel?: number, quietTime?: number, resyncOnset?: number, kickDecay?: number}} [opts]
+ * The other pendulum presets (Pendelschlange, Pendelkreis, Pendelfeld) reuse
+ * this clock with their own pendulum count, cycle and base swings.
+ *
+ * @param {{quietLevel?: number, quietTime?: number, resyncOnset?: number, kickDecay?: number, pendulums?: number, cycle?: number, baseSwings?: number}} [opts]
  * @returns {(ctx: {onset?: object, dt?: number, bands?: ArrayLike<number>}) => {uPhaseT: number, uKick: number, uCycle: number, uBaseSwings: number, uPendulums: number}}
  */
 export function createPendulumClock(opts = {}) {
@@ -34,6 +37,9 @@ export function createPendulumClock(opts = {}) {
   const quietTime = opts.quietTime ?? 1.5
   const resyncOnset = opts.resyncOnset ?? 0.5
   const kickDecay = opts.kickDecay ?? 4
+  const pendulums = opts.pendulums ?? 28
+  const cycle = opts.cycle > 0 ? opts.cycle : PENDULUM_CYCLE
+  const baseSwings = opts.baseSwings ?? PENDULUM_BASE_SWINGS
 
   let phase = 0
   let kick = 0
@@ -50,7 +56,7 @@ export function createPendulumClock(opts = {}) {
       phase = 0
       quiet = 0
     } else {
-      phase = (phase + step) % PENDULUM_CYCLE
+      phase = (phase + step) % cycle
       quiet = vol < quietLevel ? quiet + step : 0
     }
 
@@ -59,9 +65,9 @@ export function createPendulumClock(opts = {}) {
     return {
       uPhaseT: phase,
       uKick: kick,
-      uCycle: PENDULUM_CYCLE,
-      uBaseSwings: PENDULUM_BASE_SWINGS,
-      uPendulums: 28,
+      uCycle: cycle,
+      uBaseSwings: baseSwings,
+      uPendulums: pendulums,
     }
   }
 }

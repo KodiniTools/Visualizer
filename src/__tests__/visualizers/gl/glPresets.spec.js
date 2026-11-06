@@ -74,6 +74,7 @@ describe('gl presets', () => {
       'glStargate',
       'glTreeRings',
       'glFerrofluid',
+      'glPendulumCircle',
     ]
     for (const id of figures) {
       const frag = glPresetSpecs[id].frag

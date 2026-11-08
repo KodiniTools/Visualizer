@@ -3,10 +3,10 @@ import { defineComponent, ref, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useBeatMarkers } from '../../composables/useBeatMarkers.js'
-import { usePlayerStore } from '../../stores/playerStore.js'
-import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
+import { usePlayerStore } from '../../stores/playerStore'
+import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
-import { useShapeStore } from '../../stores/shapeStore.js'
+import { useShapeStore } from '../../stores/shapeStore'
 
 const Host = defineComponent({
   setup() {

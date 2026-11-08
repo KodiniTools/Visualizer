@@ -1,6 +1,6 @@
 import { ref, watch } from 'vue'
 import { slideshowImageKey, slideshowStableKey } from './slideshowImageKey.js'
-import { useSlideshowImageSettingsStore } from '../../../stores/slideshowImageSettingsStore.js'
+import { useSlideshowImageSettingsStore } from '../../../stores/slideshowImageSettingsStore'
 import { SLIDESHOW_AUDIO_DEFAULT } from '../../../lib/slideshowAudio.js'
 
 /**

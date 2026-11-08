@@ -57,7 +57,7 @@
 // bleiben als Anker für Tests und das Panel.
 import { computed } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
-import { useRecorderStore } from '../../stores/recorderStore.js'
+import { useRecorderStore } from '../../stores/recorderStore'
 import { UiButton } from '../ui/index.js'
 
 defineProps({

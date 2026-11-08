@@ -15,9 +15,38 @@ import { useAuthStore } from './auth'
 
 const STORAGE_KEY = 'visualizerLandingContent'
 
+export interface LandingCard {
+  title: string
+  description: string
+}
+export interface LandingFaqItem {
+  question: string
+  answer: string
+}
+/** Bearbeitbare Texte der Landing-Page (Overrides bzw. angezeigte Werte). */
+export interface LandingContent {
+  hero: { title: string; titleHighlight: string; subtitle: string; cta: string; learnMore: string }
+  features: { title: string; subtitle: string; cards: LandingCard[] }
+  video: { title: string; subtitle: string }
+  faq: { title: string; subtitle: string; items: LandingFaqItem[] }
+  cta: { title: string; subtitle: string; button: string }
+}
+/** Standardtexte aus i18n; Struktur wie LandingContent, Felder evtl. unvollständig. */
+export type LandingDefaults = { [K in keyof LandingContent]: Partial<LandingContent[K]> }
+
+/** Gespeicherter Stand vom Server (/landing-content) */
+export interface LandingServerState {
+  content?: unknown
+  updatedAt?: string | number | null
+}
+
+/** Beliebige (ältere) gespeicherte Overrides; wird in normalizeInto bereinigt. */
+type RawSection = Record<string, unknown> | undefined
+type RawContent = Partial<Record<keyof LandingContent, RawSection>>
+
 // Baut ein leeres Overrides-Skelett anhand der aktuellen Standard-Struktur.
 // So passt sich die Anzahl der Karten/FAQ-Einträge automatisch an die i18n an.
-function emptyContent(defaults) {
+function emptyContent(defaults: LandingDefaults | null | undefined): LandingContent {
   const cards = Array.isArray(defaults?.features?.cards) ? defaults.features.cards : []
   const items = Array.isArray(defaults?.faq?.items) ? defaults.faq.items : []
   return {
@@ -39,9 +68,10 @@ function emptyContent(defaults) {
 
 // Übernimmt vorhandene Overrides in ein frisches Skelett (robust gegen
 // fehlende/zusätzliche Felder aus älteren gespeicherten Ständen).
-function normalizeInto(target, raw) {
-  if (!raw || typeof raw !== 'object') return target
-  const str = (v) => (typeof v === 'string' ? v : '')
+function normalizeInto(target: LandingContent, input: unknown): LandingContent {
+  if (!input || typeof input !== 'object') return target
+  const raw = input as RawContent
+  const str = (v: unknown): string => (typeof v === 'string' ? v : '')
 
   if (raw.hero) {
     target.hero.title = str(raw.hero.title)
@@ -54,8 +84,9 @@ function normalizeInto(target, raw) {
     target.features.title = str(raw.features.title)
     target.features.subtitle = str(raw.features.subtitle)
     if (Array.isArray(raw.features.cards)) {
+      const srcCards = raw.features.cards as RawSection[]
       target.features.cards.forEach((card, i) => {
-        const src = raw.features.cards[i]
+        const src = srcCards[i]
         if (src) {
           card.title = str(src.title)
           card.description = str(src.description)
@@ -71,8 +102,9 @@ function normalizeInto(target, raw) {
     target.faq.title = str(raw.faq.title)
     target.faq.subtitle = str(raw.faq.subtitle)
     if (Array.isArray(raw.faq.items)) {
+      const srcItems = raw.faq.items as RawSection[]
       target.faq.items.forEach((item, i) => {
-        const src = raw.faq.items[i]
+        const src = srcItems[i]
         if (src) {
           item.question = str(src.question)
           item.answer = str(src.answer)
@@ -89,15 +121,15 @@ function normalizeInto(target, raw) {
 }
 
 // Override verwenden, wenn es ein nicht-leerer String ist, sonst Standard.
-const pick = (override, fallback) =>
+const pick = (override: string | undefined, fallback: string | undefined) =>
   typeof override === 'string' && override.trim() !== '' ? override : fallback
 
 export const useLandingContentStore = defineStore('landingContent', () => {
   const { t, locale } = useI18n()
 
   // Standardwerte (aktuelle Sprache) – Grundlage für Platzhalter & Fallback.
-  const defaults = computed(() => {
-    const _ = locale.value // Reaktivität an Sprachwechsel koppeln
+  const defaults = computed<LandingDefaults>(() => {
+    void locale.value // Reaktivität an Sprachwechsel koppeln
     return {
       hero: t('hero') || {},
       features: t('features') || {},
@@ -110,10 +142,10 @@ export const useLandingContentStore = defineStore('landingContent', () => {
   // Bearbeitbare Overrides (reaktiv). Start = leeres Skelett.
   const content = reactive(emptyContent(defaults.value))
 
-  const updatedAt = ref(null)
+  const updatedAt = ref<string | number | null>(null)
 
   // Ersetzt den Inhalt an Ort und Stelle (behält Reaktivität der Referenz).
-  const applyContent = (raw) => {
+  const applyContent = (raw: unknown) => {
     const fresh = normalizeInto(emptyContent(defaults.value), raw)
     Object.assign(content, fresh)
   }
@@ -198,7 +230,7 @@ export const useLandingContentStore = defineStore('landingContent', () => {
   }
 
   // Entprellter Server-Sync, damit schnelles Tippen den Server nicht flutet.
-  let serverSyncTimer = null
+  let serverSyncTimer: ReturnType<typeof setTimeout> | null = null
   const scheduleServerSync = () => {
     const authStore = useAuthStore()
     if (!authStore.token) return
@@ -218,7 +250,7 @@ export const useLandingContentStore = defineStore('landingContent', () => {
     save()
   }
 
-  const applyServerState = (data) => {
+  const applyServerState = (data: LandingServerState | null | undefined) => {
     if (!data) return
     applyContent(data.content)
     updatedAt.value = data.updatedAt ?? null
@@ -235,7 +267,7 @@ export const useLandingContentStore = defineStore('landingContent', () => {
         applyServerState(data)
         return data
       }
-    } catch (e) {
+    } catch {
       // Kein Backend → localStorage bleibt maßgeblich
     }
     return null
@@ -249,7 +281,7 @@ export const useLandingContentStore = defineStore('landingContent', () => {
         const data = await response.json()
         return data.updatedAt ?? null
       }
-    } catch (e) {
+    } catch {
       // still ignorieren
     }
     return null

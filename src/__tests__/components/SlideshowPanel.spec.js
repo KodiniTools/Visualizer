@@ -786,7 +786,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       return { key: 'c'.repeat(64), name: 'Eins' }
     })
     const w = mountPanel()
-    const { useSlideshowPresetStore } = await import('../../stores/slideshowPresetStore.js')
+    const { useSlideshowPresetStore } = await import('../../stores/slideshowPresetStore')
     const store = useSlideshowPresetStore()
     const cleanup = vi.spyOn(store, 'cleanupImages').mockResolvedValue(2)
     await w.find('.btn-save-preset').trigger('click')
@@ -801,7 +801,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it('„Jetzt aufräumen“ entfernt ungenutzte Bilder und meldet den freigegebenen Platz', async () => {
     const w = mountPanel()
     const { useSlideshowPresetStore, MANUAL_CLEANUP_GRACE_MS } = await import(
-      '../../stores/slideshowPresetStore.js'
+      '../../stores/slideshowPresetStore'
     )
     const { useToastStore } = await import('../../stores/toastStore')
     const store = useSlideshowPresetStore()

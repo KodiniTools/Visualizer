@@ -231,7 +231,7 @@ describe('KeyboardShortcuts – Aktionen', () => {
 
   it('Player-Aktionen rufen nur Funktionen, die der echte Player-Store hat', async () => {
     const { setActivePinia, createPinia } = await import('pinia')
-    const { usePlayerStore } = await import('../../stores/playerStore.js')
+    const { usePlayerStore } = await import('../../stores/playerStore')
     setActivePinia(createPinia())
     const playerStore = usePlayerStore()
     const ks = new KeyboardShortcuts({ playerStore, gridStore: {} }, { canvasManager: null })

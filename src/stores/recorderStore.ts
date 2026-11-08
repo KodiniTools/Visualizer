@@ -1,4 +1,4 @@
-// recorderStore.js
+// recorderStore.ts
 /**
  * Pinia Store für Recorder-Verwaltung
  * Arbeitet mit der optimierten recorder.js zusammen
@@ -11,9 +11,34 @@ import { defineStore } from 'pinia'
 import { Recorder } from '../lib/recorder.js'
 import { getAudioEngine } from '../lib/audioEngineBridge.js'
 
+export type UploadMode = 'auto' | 'direct' | 'server'
+export type RecorderStatusType = 'idle' | 'recording' | 'paused' | 'processing' | 'ready'
+
+export interface LastRecording {
+  blob: Blob
+  timestamp: number
+  size: number
+}
+
+export interface RecordingResults {
+  visible: boolean
+  downloadUrl: string | null
+  fileName: string | null
+  mimeType: string | null
+  fileSize: number
+  resolution: string | null
+}
+
+export interface PrepareRecordingOptions {
+  /** Video-Bitrate (bit/s) */
+  quality?: number
+  /** Aufnahme-Bildrate (fps) */
+  frameRate?: number
+}
+
 export const useRecorderStore = defineStore('recorder', {
   state: () => ({
-    recorder: null,
+    recorder: null as Recorder | null,
 
     // Recorder Status
     isPrepared: false,
@@ -23,18 +48,18 @@ export const useRecorderStore = defineStore('recorder', {
     // Audio wird über Gain gesteuert (siehe App.vue)
 
     // Upload Konfiguration
-    uploadMode: 'auto', // 'auto' | 'direct' | 'server'
+    uploadMode: 'auto' as UploadMode,
     maxUploadSize: 50 * 1024 * 1024, // 50MB
 
     // UI Status
     recordingQuality: 8_000_000, // 8 Mbps default
     recordingFrameRate: 30, // Capture fps: 30 (default) | 60 (modern hardware)
     statusMessage: '',
-    statusType: 'idle', // 'idle' | 'recording' | 'paused' | 'processing' | 'ready'
+    statusType: 'idle' as RecorderStatusType,
 
     // Aufnahme-Ergebnisse
-    lastRecording: null,
-    recordingResults: {
+    lastRecording: null as LastRecording | null,
+    recordingResults: <RecordingResults>{
       visible: false,
       downloadUrl: null,
       fileName: null,
@@ -71,7 +96,11 @@ export const useRecorderStore = defineStore('recorder', {
      * Initialisiert den Recorder mit Canvas und Audio-Stream
      * Player ist nur externe Audioquelle, keine Steuerung
      */
-    setRecorderRefs(canvas, audioElement, audioStream) {
+    setRecorderRefs(
+      canvas: HTMLCanvasElement,
+      audioElement: HTMLAudioElement | null,
+      audioStream: MediaStream | null,
+    ) {
       if (this.recorder) {
         console.warn('[RecorderStore] Recorder bereits initialisiert')
         return true
@@ -143,7 +172,7 @@ export const useRecorderStore = defineStore('recorder', {
     /**
      * Canvas aktualisieren (z.B. bei Resize)
      */
-    updateCanvas(newCanvas) {
+    updateCanvas(newCanvas: HTMLCanvasElement) {
       if (!this.recorder) {
         console.error('[RecorderStore] Recorder nicht initialisiert')
         return false
@@ -160,7 +189,7 @@ export const useRecorderStore = defineStore('recorder', {
      * Bereitet Aufnahme vor
      * ✅ STABILITY FIX: Führt IMMER einen vollständigen Reset durch
      */
-    async prepareRecording(options = {}) {
+    async prepareRecording(options: PrepareRecordingOptions = {}) {
       if (!this.recorder) {
         throw new Error('Recorder nicht initialisiert')
       }
@@ -368,7 +397,7 @@ export const useRecorderStore = defineStore('recorder', {
     /**
      * Upload-Modus konfigurieren
      */
-    setUploadMode(mode) {
+    setUploadMode(mode: UploadMode) {
       if (!this.recorder) return
 
       this.uploadMode = mode
@@ -396,7 +425,7 @@ export const useRecorderStore = defineStore('recorder', {
     /**
      * Aufnahme-Qualität setzen
      */
-    setRecordingQuality(bitsPerSecond) {
+    setRecordingQuality(bitsPerSecond: number) {
       this.recordingQuality = bitsPerSecond
       console.log(
         '[RecorderStore] Qualität gesetzt:',
@@ -408,7 +437,7 @@ export const useRecorderStore = defineStore('recorder', {
     /**
      * Aufnahme-Bildrate setzen (30 fps Standard, 60 fps für moderne Hardware)
      */
-    setRecordingFrameRate(fps) {
+    setRecordingFrameRate(fps: unknown) {
       const rate = Number(fps) === 60 ? 60 : 30
       this.recordingFrameRate = rate
       // Auf den bereits initialisierten Recorder anwenden (wirkt ab prepare/start)
@@ -421,7 +450,7 @@ export const useRecorderStore = defineStore('recorder', {
     /**
      * Aufnahme-Ergebnisse anzeigen
      */
-    showRecordingResults(results) {
+    showRecordingResults(results: Omit<RecordingResults, 'visible'>) {
       this.recordingResults = {
         visible: true,
         ...results,

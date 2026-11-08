@@ -295,7 +295,7 @@ import { loadPersistedImage } from '../../lib/slideshowImagePersistence.js'
 import {
   useSlideshowPresetStore,
   SLIDESHOW_DEFAULT_SETTINGS,
-} from '../../stores/slideshowPresetStore.js'
+} from '../../stores/slideshowPresetStore'
 import { useToastStore } from '../../stores/toastStore'
 
 const { t, locale } = useI18n()

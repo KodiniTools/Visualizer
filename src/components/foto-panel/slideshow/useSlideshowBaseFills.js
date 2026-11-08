@@ -15,7 +15,7 @@ import {
   normalizeSlideshowFillAudio,
   storeSlideshowFillAudio,
 } from '../../../lib/slideshowFillAudio.js'
-import { SLIDESHOW_DEFAULT_SETTINGS as D } from '../../../stores/slideshowPresetStore.js'
+import { SLIDESHOW_DEFAULT_SETTINGS as D } from '../../../stores/slideshowPresetStore'
 
 export function isDefaultFillAudio(a) {
   return isSameSlideshowFillAudio(a, SLIDESHOW_FILL_AUDIO_DEFAULT)

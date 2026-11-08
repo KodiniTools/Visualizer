@@ -4,7 +4,7 @@ import {
   cleanupFile,
   cancelConversion as apiCancelConversion,
 } from '../lib/videoApi.js'
-import { useRecorderStore } from '../stores/recorderStore.js'
+import { useRecorderStore } from '../stores/recorderStore'
 
 export function useServerConversion() {
   const recorderStore = useRecorderStore()

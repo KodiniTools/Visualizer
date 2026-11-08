@@ -171,7 +171,7 @@
 <script setup>
 import { onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../lib/i18n.js'
-import { useRecorderStore } from '../stores/recorderStore.js'
+import { useRecorderStore } from '../stores/recorderStore'
 import HelpTooltip from './HelpTooltip.vue'
 import RecorderStatusIndicator from './recorder/RecorderStatusIndicator.vue'
 import RecorderTransportControls from './recorder/RecorderTransportControls.vue'

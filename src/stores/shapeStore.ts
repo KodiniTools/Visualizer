@@ -9,6 +9,41 @@ import {
 } from '../lib/shapes/shapes.js'
 import { ensureShapeAudioReactive, supportsShapeAudio } from '../lib/shapes/shapeAudio.js'
 
+/** Eine Form auf dem Canvas (Felder je nach Typ, siehe lib/shapes/shapes.js). */
+export interface Shape {
+  id: string
+  type: string
+  x: number
+  y: number
+  width: number
+  height: number
+  number?: number
+  audioReactive?: object | null
+  [key: string]: unknown
+}
+
+export type DrawTool = 'pen' | 'highlighter'
+
+export interface DrawStyle {
+  color: string
+  /** null = automatisch */
+  width: number | null
+  opacity: number
+}
+
+export interface CanvasSize {
+  width: number
+  height: number
+}
+
+export interface ShapeSnapshot {
+  shapes: Shape[]
+  canvasSize: CanvasSize
+}
+
+const isDrawTool = (tool: unknown): tool is DrawTool =>
+  (DRAW_TOOLS as readonly unknown[]).includes(tool)
+
 /**
  * Formen & Symbole (Galerie aus dem Bildkonverter): Overlay-Ebene über Bildern
  * und Videos, unter den Texten. Formen liegen in Canvas-Pixeln; ändert sich die
@@ -24,20 +59,20 @@ import { ensureShapeAudioReactive, supportsShapeAudio } from '../lib/shapes/shap
  * Marker-Zeitpunkt aus. Reiner Laufzeit-Zustand, nicht Teil des Verlaufs.
  */
 export const useShapeStore = defineStore('shapes', () => {
-  const shapes = ref([])
-  const selectedShapeId = ref(null)
+  const shapes = ref<Shape[]>([])
+  const selectedShapeId = ref<string | null>(null)
   /** Canvas-Größe, auf die sich die Koordinaten der Formen beziehen */
-  const canvasSize = ref({ width: 0, height: 0 })
+  const canvasSize = ref<CanvasSize>({ width: 0, height: 0 })
 
   // Zeichenmodus: null | 'pen' | 'highlighter' und Stil je Werkzeug (width null = automatisch)
-  const drawTool = ref(null)
-  const drawSettings = ref({
+  const drawTool = ref<DrawTool | null>(null)
+  const drawSettings = ref<Record<DrawTool, DrawStyle>>({
     pen: { color: '#e53935', width: null, opacity: 100 },
     highlighter: { color: '#ffeb3b', width: null, opacity: 60 },
   })
 
   /** Von Beat-Markern bis zu ihrem Zeitpunkt ausgeblendete Formen (Laufzeit) */
-  const markerHiddenIds = ref(new Set())
+  const markerHiddenIds = ref(new Set<string>())
 
   const selectedShape = computed(
     () => shapes.value.find((s) => s.id === selectedShapeId.value) || null,
@@ -45,9 +80,9 @@ export const useShapeStore = defineStore('shapes', () => {
 
   /**
    * Bezugsgröße setzen; bei einer Änderung werden vorhandene Formen
-   * proportional mitskaliert. @returns {boolean} true, wenn skaliert wurde
+   * proportional mitskaliert. @returns true, wenn skaliert wurde
    */
-  function syncCanvasSize(width, height) {
+  function syncCanvasSize(width: unknown, height: unknown): boolean {
     const w = Number(width) || 0
     const h = Number(height) || 0
     if (w <= 0 || h <= 0) return false
@@ -63,27 +98,27 @@ export const useShapeStore = defineStore('shapes', () => {
 
   /**
    * Fügt eine Form aus der Galerie hinzu und wählt sie aus.
-   * @returns {object|null} die neue Form (null bei unbekanntem Galerie-Eintrag)
+   * @returns die neue Form (null bei unbekanntem Galerie-Eintrag)
    */
-  function addShape(galleryId, canvasWidth, canvasHeight) {
-    const shape = createShape(galleryId, canvasWidth, canvasHeight)
+  function addShape(galleryId: string, canvasWidth: number, canvasHeight: number): Shape | null {
+    const shape = createShape(galleryId, canvasWidth, canvasHeight) as Shape | null
     if (!shape) return null
     syncCanvasSize(canvasWidth, canvasHeight)
     // Marker zählen automatisch weiter
     if (shape.type === 'marker') shape.number = nextMarkerNumber(shapes.value)
     shapes.value.push(shape)
     selectShape(shape.id)
-    return shapes.value[shapes.value.length - 1]
+    return shapes.value[shapes.value.length - 1] ?? null
   }
 
-  function updateShape(shapeId, updates) {
+  function updateShape(shapeId: string, updates: Partial<Shape>): boolean {
     const shape = shapes.value.find((s) => s.id === shapeId)
     if (!shape) return false
     Object.assign(shape, updates)
     return true
   }
 
-  function deleteShape(shapeId) {
+  function deleteShape(shapeId: string): boolean {
     const index = shapes.value.findIndex((s) => s.id === shapeId)
     if (index === -1) return false
     shapes.value.splice(index, 1)
@@ -92,10 +127,11 @@ export const useShapeStore = defineStore('shapes', () => {
   }
 
   /** Kopie leicht versetzt darüberlegen und auswählen */
-  function duplicateShape(shapeId) {
+  function duplicateShape(shapeId: string): Shape | null {
     const source = shapes.value.find((s) => s.id === shapeId)
     if (!source) return null
-    const copy = createShape(source.type, 1, 1)
+    // Typ stammt von einer bestehenden Form → createShape liefert eine Form
+    const copy = createShape(source.type, 1, 1) as Shape
     const offset = Math.max(10, Math.round(Math.min(source.width, source.height) * 0.1))
     Object.assign(copy, JSON.parse(JSON.stringify(source)), {
       id: copy.id,
@@ -106,22 +142,22 @@ export const useShapeStore = defineStore('shapes', () => {
     const index = shapes.value.findIndex((s) => s.id === shapeId)
     shapes.value.splice(index + 1, 0, copy)
     selectShape(copy.id)
-    return shapes.value[index + 1]
+    return shapes.value[index + 1] ?? null
   }
 
   /** Reihenfolge ändern: 'up' = eine Ebene nach vorn, 'down' = nach hinten */
-  function moveShapeOrder(shapeId, direction) {
+  function moveShapeOrder(shapeId: string, direction: 'up' | 'down' | string): boolean {
     const index = shapes.value.findIndex((s) => s.id === shapeId)
     if (index === -1) return false
     const target = direction === 'up' ? index + 1 : index - 1
     if (target < 0 || target >= shapes.value.length) return false
-    const [shape] = shapes.value.splice(index, 1)
+    const [shape] = shapes.value.splice(index, 1) as [Shape]
     shapes.value.splice(target, 0, shape)
     return true
   }
 
   /** Auswahl setzen (null hebt sie auf); unbekannte ids werden ignoriert */
-  function selectShape(shapeId) {
+  function selectShape(shapeId: string | null) {
     if (shapeId !== null && !shapes.value.some((s) => s.id === shapeId)) return
     selectedShapeId.value = shapeId
   }
@@ -134,35 +170,42 @@ export const useShapeStore = defineStore('shapes', () => {
   }
 
   /** Zeichenwerkzeug ein-/ausschalten; beim Einschalten wird die Auswahl aufgehoben */
-  function setDrawTool(tool) {
-    drawTool.value = DRAW_TOOLS.includes(tool) ? tool : null
+  function setDrawTool(tool: unknown) {
+    drawTool.value = isDrawTool(tool) ? tool : null
     if (drawTool.value) selectShape(null)
   }
 
-  function updateDrawSettings(tool, patch) {
-    if (!DRAW_TOOLS.includes(tool)) return
+  function updateDrawSettings(tool: unknown, patch: Partial<DrawStyle>) {
+    if (!isDrawTool(tool)) return
     drawSettings.value[tool] = { ...drawSettings.value[tool], ...patch }
   }
 
   /**
    * Fügt einen gezeichneten Strich als Form hinzu (ohne ihn auszuwählen, damit
    * direkt weitergezeichnet werden kann).
-   * @param {{x:number,y:number}[]} canvasPoints
    */
-  function addFreehandShape(canvasPoints, tool = drawTool.value) {
-    const settings = drawSettings.value[tool] ?? drawSettings.value.pen
-    const shape = createFreehandShape(canvasPoints, { tool, ...settings })
+  function addFreehandShape(
+    canvasPoints: { x: number; y: number }[],
+    tool: DrawTool | string | null = drawTool.value,
+  ): Shape | null {
+    const settings =
+      (isDrawTool(tool) ? drawSettings.value[tool] : undefined) ?? drawSettings.value.pen
+    const shape = createFreehandShape(canvasPoints, {
+      tool: tool ?? undefined,
+      ...settings,
+      width: settings.width ?? undefined,
+    }) as Shape | null
     if (!shape) return null
     shapes.value.push(shape)
-    return shapes.value[shapes.value.length - 1]
+    return shapes.value[shapes.value.length - 1] ?? null
   }
 
   /**
    * Audio-Reaktiv-Konfiguration einer Form anlegen bzw. vervollständigen.
-   * @returns {object|null} die Konfiguration (null bei unbekannter Form oder
+   * @returns die Konfiguration (null bei unbekannter Form oder
    *   Effekt-Bereichen, die kein Audio-Reaktiv unterstützen)
    */
-  function ensureAudioReactive(shapeId) {
+  function ensureAudioReactive(shapeId: string): object | null {
     const shape = shapes.value.find((s) => s.id === shapeId)
     if (!shape || !supportsShapeAudio(shape)) return null
     if (!shape.audioReactive) shape.audioReactive = ensureShapeAudioReactive(null)
@@ -170,12 +213,12 @@ export const useShapeStore = defineStore('shapes', () => {
     return shape.audioReactive
   }
 
-  function isMarkerHidden(shapeId) {
+  function isMarkerHidden(shapeId: string): boolean {
     return markerHiddenIds.value.has(shapeId)
   }
 
   /** Beat-Marker: Formen aus-/einblenden (true = ausblenden) */
-  function setMarkerHidden(shapeId, hidden) {
+  function setMarkerHidden(shapeId: string, hidden: boolean) {
     const next = new Set(markerHiddenIds.value)
     if (hidden) next.add(shapeId)
     else next.delete(shapeId)
@@ -187,7 +230,7 @@ export const useShapeStore = defineStore('shapes', () => {
   }
 
   /** Snapshot für den Verlauf (JSON-fähig) */
-  function captureSnapshot() {
+  function captureSnapshot(): ShapeSnapshot {
     return {
       shapes: JSON.parse(JSON.stringify(shapes.value)),
       canvasSize: { ...canvasSize.value },
@@ -195,7 +238,7 @@ export const useShapeStore = defineStore('shapes', () => {
   }
 
   /** Snapshot wiederherstellen; eine nicht mehr vorhandene Auswahl wird aufgehoben */
-  function applySnapshot(snapshot) {
+  function applySnapshot(snapshot: Partial<ShapeSnapshot> | null | undefined) {
     const list = Array.isArray(snapshot?.shapes) ? snapshot.shapes : []
     shapes.value = JSON.parse(JSON.stringify(list))
     const size = snapshot?.canvasSize

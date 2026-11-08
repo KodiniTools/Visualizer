@@ -3,7 +3,7 @@
 // RecorderSettingsPanel bereit (Schlüssel und Form unverändert).
 import { ref, computed, provide } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
-import { useRecorderStore } from '../../stores/recorderStore.js'
+import { useRecorderStore } from '../../stores/recorderStore'
 import { checkServerHealth } from '../../lib/videoApi.js'
 
 export const RECORDER_QUALITY_PRESETS = [

@@ -17,7 +17,7 @@
 // und Laufzeit während der Aufnahme.
 import { computed } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
-import { useRecorderStore } from '../../stores/recorderStore.js'
+import { useRecorderStore } from '../../stores/recorderStore'
 
 defineProps({
   displayTime: { type: String, default: '00:00' },

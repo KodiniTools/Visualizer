@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { useI18n } from '../lib/i18n.js'
-import { usePlayerStore } from '../stores/playerStore.js'
+import { usePlayerStore } from '../stores/playerStore'
 
 /**
  * Playlist interactions for the sticky player bar: playing a selected track,

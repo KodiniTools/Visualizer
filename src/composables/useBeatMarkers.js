@@ -1,7 +1,7 @@
 import { ref, watch, onMounted, onUnmounted, inject, toRaw } from 'vue'
 import { useI18n } from '../lib/i18n.js'
-import { usePlayerStore } from '../stores/playerStore.js'
-import { useBeatMarkerStore } from '../stores/beatMarkerStore.js'
+import { usePlayerStore } from '../stores/playerStore'
+import { useBeatMarkerStore } from '../stores/beatMarkerStore'
 import { useVisualizerStore } from '../stores/visualizerStore'
 import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore'
 import { useMarkerTransitionStore } from '../stores/markerTransitionStore'
@@ -10,7 +10,7 @@ import { formatTimePrecise, parseTimeInput, roundToHundredths } from '../utils/f
 import { resolveBackgroundPreset } from '../utils/backgroundPresets.js'
 import { useHistoryStore } from '../stores/historyStore'
 import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
-import { useShapeStore } from '../stores/shapeStore.js'
+import { useShapeStore } from '../stores/shapeStore'
 import { SHAPE_CATEGORIES, SHAPE_GALLERY } from '../lib/shapes/shapes.js'
 import { useImageGallery } from './useImageGallery.js'
 import {

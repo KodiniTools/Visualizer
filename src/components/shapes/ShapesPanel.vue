@@ -471,7 +471,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { CUSTOM_FONTS } from '../../lib/fonts.js'
-import { useShapeStore } from '../../stores/shapeStore.js'
+import { useShapeStore } from '../../stores/shapeStore'
 import { useHistoryStore } from '../../stores/historyStore'
 import { getHistoryRecorder } from '../../lib/history/historyRecorder.js'
 import { SHAPES_FOCUS_TEXT_EVENT } from '../../lib/shapes/shapeInteraction.js'

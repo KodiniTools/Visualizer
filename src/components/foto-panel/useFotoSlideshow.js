@@ -5,7 +5,7 @@ import { SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest.js'
 import { useSlideshowPopover } from '../../composables/useSlideshowPopover.js'
 import { slideshowStableKey } from './slideshow/slideshowImageKey.js'
 import { useSlideshowImageAdjustmentsStore } from '../../stores/slideshowImageAdjustmentsStore'
-import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore.js'
+import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
 import {
   diffAdjustments,

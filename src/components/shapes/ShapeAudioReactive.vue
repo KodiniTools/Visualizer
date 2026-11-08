@@ -26,7 +26,7 @@
  */
 import { ref } from 'vue'
 import { SHAPE_EFFECT_NAMES } from '../../lib/shapes/shapeAudio.js'
-import { useShapeStore } from '../../stores/shapeStore.js'
+import { useShapeStore } from '../../stores/shapeStore'
 import { useAudioReactiveTarget } from '../../composables/audioReactive/useAudioReactiveTarget.js'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
 

@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue'
-import { useRecorderStore } from '../stores/recorderStore.js'
+import { useRecorderStore } from '../stores/recorderStore'
 import { getAudioEngine } from '../lib/audioEngineBridge.js'
 
 export function useMicrophoneToggle() {

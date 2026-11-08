@@ -3,8 +3,8 @@ import { defineComponent, ref } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useBeatMarkers } from '../../composables/useBeatMarkers.js'
-import { usePlayerStore } from '../../stores/playerStore.js'
-import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
+import { usePlayerStore } from '../../stores/playerStore'
+import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 
 // useBeatMarkers braucht einen Komponentenkontext (inject, onMounted).
 // Der Wrapper stellt die Composable-API über wrapper.vm bereit.

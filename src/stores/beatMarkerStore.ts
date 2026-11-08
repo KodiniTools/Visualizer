@@ -1,6 +1,27 @@
-// src/stores/beatMarkerStore.js
+// src/stores/beatMarkerStore.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+
+/** Aktion eines Markers ('visualizer', 'color', 'effect', 'combined' …) plus Zusatzfelder. */
+export interface BeatMarkerAction {
+  type: string
+  visualizer: string | null
+  color: string | null
+  opacity: number | null
+  textId?: number | string | null
+  textLabel?: string | null
+  [key: string]: unknown
+}
+
+export interface BeatMarker {
+  id: number
+  /** Zeitpunkt in Sekunden (2 Dezimalstellen) */
+  time: number
+  action: BeatMarkerAction
+  label: string
+  triggered: boolean
+  [key: string]: unknown
+}
 
 /**
  * Beat-Drop Marker Store
@@ -8,13 +29,13 @@ import { ref, computed } from 'vue'
  */
 export const useBeatMarkerStore = defineStore('beatMarker', () => {
   // Alle Marker für den aktuellen Track
-  const markers = ref([])
+  const markers = ref<BeatMarker[]>([])
 
   // ID-Counter für eindeutige Marker-IDs
   const nextId = ref(1)
 
   // Letzter ausgelöster Marker (verhindert Mehrfachauslösung)
-  const lastTriggeredMarkerId = ref(null)
+  const lastTriggeredMarkerId = ref<number | null>(null)
 
   // Toleranz in Sekunden für Marker-Erkennung
   const triggerTolerance = ref(0.15)
@@ -32,12 +53,12 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
 
   /**
    * Fügt einen neuen Marker hinzu
-   * @param {number} time - Zeitpunkt in Sekunden
-   * @param {object} action - Aktion die ausgeführt werden soll
-   * @param {string} label - Optionale Beschreibung
+   * @param time - Zeitpunkt in Sekunden
+   * @param action - Aktion die ausgeführt werden soll
+   * @param label - Optionale Beschreibung
    */
-  function addMarker(time, action = {}, label = '') {
-    const marker = {
+  function addMarker(time: number, action: Partial<BeatMarkerAction> = {}, label = ''): BeatMarker {
+    const marker: BeatMarker = {
       id: nextId.value++,
       time: Math.round(time * 100) / 100, // Auf 2 Dezimalstellen runden
       action: {
@@ -58,9 +79,9 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
 
   /**
    * Entfernt einen Marker
-   * @param {number} id - Marker-ID
+   * @param id - Marker-ID
    */
-  function removeMarker(id) {
+  function removeMarker(id: number) {
     const index = markers.value.findIndex((m) => m.id === id)
     if (index !== -1) {
       const removed = markers.value.splice(index, 1)[0]
@@ -70,10 +91,13 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
 
   /**
    * Aktualisiert einen Marker
-   * @param {number} id - Marker-ID
-   * @param {object} updates - Zu aktualisierende Felder
+   * @param id - Marker-ID
+   * @param updates - Zu aktualisierende Felder
    */
-  function updateMarker(id, updates) {
+  function updateMarker(
+    id: number,
+    updates: Partial<Omit<BeatMarker, 'action'>> & { action?: Partial<BeatMarkerAction> },
+  ) {
     const marker = markers.value.find((m) => m.id === id)
     if (marker) {
       Object.assign(marker, updates)
@@ -87,10 +111,9 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
   /**
    * Entfernt die Text-Zuweisung aller Marker, die den Text verwenden (z.B.
    * nachdem er endgültig aus dem Text-Verzeichnis gelöscht wurde).
-   * @param {number|string} textId
-   * @returns {number} Anzahl der zurückgesetzten Marker
+   * @returns Anzahl der zurückgesetzten Marker
    */
-  function clearTextReference(textId) {
+  function clearTextReference(textId: number | string | null | undefined): number {
     if (textId === undefined || textId === null || textId === '') return 0
     let count = 0
     for (const marker of markers.value) {
@@ -104,10 +127,10 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
 
   /**
    * Prüft ob ein Marker ausgelöst werden soll
-   * @param {number} currentTime - Aktuelle Wiedergabezeit
-   * @returns {object|null} - Ausgelöster Marker oder null
+   * @param currentTime - Aktuelle Wiedergabezeit
+   * @returns Ausgelöster Marker oder null
    */
-  function checkTrigger(currentTime) {
+  function checkTrigger(currentTime: number): BeatMarker | null {
     if (!markersEnabled.value) return null
 
     for (const marker of markers.value) {
@@ -133,11 +156,11 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
    * Zeit im Intervall (prevTime, currentTime] liegt – also zwischen zwei
    * Frames überschritten wurde. Unabhängig von der Toleranz, damit ein Marker
    * exakt beim Überschreiten seiner Zeit feuert (Hundertstel-genau).
-   * @param {number} prevTime - Position beim vorherigen Frame
-   * @param {number} currentTime - Position beim aktuellen Frame
-   * @returns {object[]} Ausgelöste Marker, nach Zeit sortiert (ggf. leer)
+   * @param prevTime - Position beim vorherigen Frame
+   * @param currentTime - Position beim aktuellen Frame
+   * @returns Ausgelöste Marker, nach Zeit sortiert (ggf. leer)
    */
-  function checkCrossing(prevTime, currentTime) {
+  function checkCrossing(prevTime: number, currentTime: number): BeatMarker[] {
     if (!markersEnabled.value || !(currentTime > prevTime)) return []
 
     const crossed = sortedMarkers.value.filter(
@@ -178,10 +201,10 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
 
   /**
    * Findet den nächsten Marker ab einer bestimmten Zeit
-   * @param {number} currentTime - Aktuelle Zeit
-   * @returns {object|null} - Nächster Marker oder null
+   * @param currentTime - Aktuelle Zeit
+   * @returns Nächster Marker oder null
    */
-  function getNextMarker(currentTime) {
+  function getNextMarker(currentTime: number): BeatMarker | null {
     return sortedMarkers.value.find((m) => m.time > currentTime) || null
   }
 
@@ -197,9 +220,9 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
 
   /**
    * Importiert Marker aus JSON
-   * @param {string} json - JSON-String mit Markern
+   * @param json - JSON-String mit Markern
    */
-  function importMarkers(json) {
+  function importMarkers(json: string) {
     try {
       const data = JSON.parse(json)
       markers.value = data.markers || []
@@ -213,9 +236,8 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
   /**
    * Stellt eine Marker-Liste wieder her (Undo/Redo). `nextId` wird nie
    * gesenkt, damit neue Marker keine IDs bereits vergebener Marker erhalten.
-   * @param {Array} list
    */
-  function restoreMarkers(list) {
+  function restoreMarkers(list: BeatMarker[] | null | undefined) {
     markers.value = Array.isArray(list) ? list : []
     const maxId = markers.value.reduce((max, m) => (m.id > max ? m.id : max), 0)
     nextId.value = Math.max(nextId.value, maxId + 1)

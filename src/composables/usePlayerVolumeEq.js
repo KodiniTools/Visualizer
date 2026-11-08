@@ -1,5 +1,5 @@
 import { ref, onMounted, watch } from 'vue'
-import { usePlayerStore } from '../stores/playerStore.js'
+import { usePlayerStore } from '../stores/playerStore'
 import { getAudioEngine } from '../lib/audioEngineBridge.js'
 
 /**

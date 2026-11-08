@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
+import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 
 let store
 

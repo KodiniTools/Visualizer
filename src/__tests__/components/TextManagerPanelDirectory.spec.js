@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import TextManagerPanel from '../../components/TextManagerPanel.vue'
 import { TextManager } from '../../lib/textManager.js'
-import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
+import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 
 // Canvas-Manager-Attrappe mit echtem TextManager; unbekannte Methoden → vi.fn().
 function canvasManagerStub(tm) {

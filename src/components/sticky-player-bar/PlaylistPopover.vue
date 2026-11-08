@@ -67,7 +67,7 @@
 <script setup>
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
-import { usePlayerStore } from '../../stores/playerStore.js'
+import { usePlayerStore } from '../../stores/playerStore'
 import { vPopoverDrag } from '../../directives/popoverDrag.js'
 
 const { t } = useI18n()

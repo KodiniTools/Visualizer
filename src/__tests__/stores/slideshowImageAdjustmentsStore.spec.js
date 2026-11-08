@@ -6,7 +6,7 @@ import {
   restorePersistedAdjustments,
   restorePersistedBounds,
 } from '../../lib/slideshowAdjustmentsPersistence.js'
-import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore.js'
+import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 
 const KEY = 'visualizer-slideshow-image-adjustments'

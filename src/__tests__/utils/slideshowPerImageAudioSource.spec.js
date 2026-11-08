@@ -5,8 +5,8 @@ import {
   isValidSlideshowAudioSource,
   resolveSlideshowAudioReactive,
 } from '../../lib/slideshowAudio.js'
-import { normalizeSlideshowPreset } from '../../stores/slideshowPresetStore.js'
-import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore.js'
+import { normalizeSlideshowPreset } from '../../stores/slideshowPresetStore'
+import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 
 afterEach(() => {

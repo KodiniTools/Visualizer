@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { useShapeStore } from '../../stores/shapeStore.js'
+import { useShapeStore } from '../../stores/shapeStore'
 import {
   createShapeInteraction,
   getCanvasDisplayScale,

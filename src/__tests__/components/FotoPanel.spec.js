@@ -66,7 +66,7 @@ import { useImageAudioReactive } from '../../composables/useImageAudioReactive.j
 import { useSlideshowPopover } from '../../composables/useSlideshowPopover.js'
 import { useToastStore } from '../../stores/toastStore'
 import { useSlideshowImageAdjustmentsStore } from '../../stores/slideshowImageAdjustmentsStore'
-import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore.js'
+import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore'
 import { SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest.js'
 import { getFotoPanel } from '../../lib/fotoPanelBridge.js'
 import { getSlideshowManager, setSlideshowManager } from '../../lib/slideshowManagerBridge.js'

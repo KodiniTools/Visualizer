@@ -1,6 +1,6 @@
 import { computed } from 'vue'
 import { useI18n } from '../lib/i18n.js'
-import { usePlayerStore } from '../stores/playerStore.js'
+import { usePlayerStore } from '../stores/playerStore'
 
 export const PLAY_MODES = ['none', 'sequence', 'repeat-one', 'repeat-all', 'shuffle']
 

@@ -8,7 +8,7 @@ import { defineComponent, ref, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useBeatMarkers } from '../../composables/useBeatMarkers.js'
-import { usePlayerStore } from '../../stores/playerStore.js'
+import { usePlayerStore } from '../../stores/playerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
 import { KeyboardShortcuts } from '../../lib/keyboardShortcuts.js'
 

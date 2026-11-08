@@ -1,7 +1,7 @@
 // Aktionen der Recorder-Steuerknöpfe. Jede Aktion sperrt über `isProcessing`,
 // damit Doppelklicks während laufender Store-Aufrufe ignoriert werden.
 import { ref } from 'vue'
-import { useRecorderStore } from '../../stores/recorderStore.js'
+import { useRecorderStore } from '../../stores/recorderStore'
 
 /**
  * @param {object} deps

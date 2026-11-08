@@ -6,7 +6,7 @@ import {
   isValidSlideshowAudioSource,
   SLIDESHOW_AUDIO_DEFAULT,
 } from '../lib/slideshowAudio.js'
-import { normalizeImageBounds } from './slideshowPresetStore.js'
+import { normalizeImageBounds, type ImageBounds } from './slideshowPresetStore'
 
 const STORAGE_KEY = 'visualizer-slideshow-image-transitions'
 // Obergrenze, damit der Speicher nicht unbegrenzt wächst (älteste zuerst raus)
@@ -18,26 +18,42 @@ const FADE_MAX = 5000
 const DISPLAY_MIN = 500
 const DISPLAY_MAX = 60000
 
-function normalizeMs(value, min, max) {
+/** Gemerkte Einstellungen eines Slideshow-Bildes (fehlende Felder = Standard). */
+export interface SlideshowImageSettings {
+  transition?: string
+  fadeIn?: number
+  fadeOut?: number
+  displayDuration?: number
+  audioMode?: string
+  audioSource?: string
+  bounds?: ImageBounds
+}
+
+/** Eingabe für set/update: null bzw. leere Werte entfernen ein Feld. */
+export type SlideshowImageSettingsInput = {
+  [K in keyof SlideshowImageSettings]?: SlideshowImageSettings[K] | null | unknown
+}
+
+function normalizeMs(value: unknown, min: number, max: number): number | null {
   if (value === null || value === undefined) return null
   const n = Number(value)
   return Number.isFinite(n) && n > 0 ? Math.round(Math.min(max, Math.max(min, n))) : null
 }
 
-function normalizeFade(value) {
+function normalizeFade(value: unknown): number | null {
   return normalizeMs(value, FADE_MIN, FADE_MAX)
 }
 
 /**
  * Bereinigt einen gespeicherten Eintrag. Ältere Einträge waren nur die
  * Übergangs-ID (String) und werden übernommen.
- * @returns {{ transition?:string, fadeIn?:number, fadeOut?:number, displayDuration?:number, audioMode?:string }|null}
  */
-function normalizeEntry(raw) {
-  const src = typeof raw === 'string' ? { transition: raw } : raw
-  if (!src || typeof src !== 'object' || Array.isArray(src)) return null
-  const entry = {}
-  if (isValidTransition(src.transition)) entry.transition = src.transition
+function normalizeEntry(raw: unknown): SlideshowImageSettings | null {
+  const value = typeof raw === 'string' ? { transition: raw } : raw
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const src = value as Record<string, unknown>
+  const entry: SlideshowImageSettings = {}
+  if (isValidTransition(src.transition as string)) entry.transition = src.transition as string
   const fadeIn = normalizeFade(src.fadeIn)
   const fadeOut = normalizeFade(src.fadeOut)
   if (fadeIn !== null) entry.fadeIn = fadeIn
@@ -46,10 +62,10 @@ function normalizeEntry(raw) {
   if (displayDuration !== null) entry.displayDuration = displayDuration
   // „Standard“ wird nicht gespeichert
   if (isValidSlideshowAudioMode(src.audioMode) && src.audioMode !== SLIDESHOW_AUDIO_DEFAULT) {
-    entry.audioMode = src.audioMode
+    entry.audioMode = src.audioMode as string
   }
   // Eigene Audio-Quelle (inkl. Onset/Dynamisch); fehlt = wie Einstellung
-  if (isValidSlideshowAudioSource(src.audioSource)) entry.audioSource = src.audioSource
+  if (isValidSlideshowAudioSource(src.audioSource)) entry.audioSource = src.audioSource as string
   // Eigene Größe/Position (relativ zum Canvas)
   const bounds = normalizeImageBounds(src.bounds)
   if (bounds) entry.bounds = bounds
@@ -65,7 +81,7 @@ function normalizeEntry(raw) {
 export const useSlideshowImageSettingsStore = defineStore('slideshowImageSettings', () => {
   // { [stableKey]: { transition?, fadeIn?, fadeOut?, displayDuration?, audioMode? } }
   // – Einfügereihenfolge = Alter
-  const entries = ref({})
+  const entries = ref<Record<string, SlideshowImageSettings>>({})
   let loaded = false
 
   function load() {
@@ -73,7 +89,7 @@ export const useSlideshowImageSettingsStore = defineStore('slideshowImageSetting
     loaded = true
     try {
       const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
-      const clean = {}
+      const clean: Record<string, SlideshowImageSettings> = {}
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
         for (const [key, value] of Object.entries(parsed)) {
           const entry = key && key.length <= 300 ? normalizeEntry(value) : null
@@ -95,8 +111,8 @@ export const useSlideshowImageSettingsStore = defineStore('slideshowImageSetting
     }
   }
 
-  /** @param {string|null} key @returns {{ transition?:string, fadeIn?:number, fadeOut?:number }|null} */
-  function getImageSettings(key) {
+  /** Kopie der Einstellungen oder null */
+  function getImageSettings(key: string | null | undefined): SlideshowImageSettings | null {
     load()
     const entry = key ? entries.value[key] : null
     return entry ? { ...entry } : null
@@ -105,10 +121,11 @@ export const useSlideshowImageSettingsStore = defineStore('slideshowImageSetting
   /**
    * Setzt die Einstellungen eines Bildes vollständig; leere Werte werden
    * nicht gespeichert (= Standard). Ohne Werte wird der Eintrag entfernt.
-   * @param {string|null} key
-   * @param {{ transition?:string|null, fadeIn?:number|null, fadeOut?:number|null, displayDuration?:number|null, audioMode?:string|null }} settings
    */
-  function setImageSettings(key, settings) {
+  function setImageSettings(
+    key: string | null | undefined,
+    settings: SlideshowImageSettingsInput | null | undefined,
+  ) {
     load()
     if (!key) return
     const entry = normalizeEntry(settings || {})
@@ -126,24 +143,25 @@ export const useSlideshowImageSettingsStore = defineStore('slideshowImageSetting
   /**
    * Ändert nur die angegebenen Felder eines Bildes (null entfernt ein Feld),
    * die übrigen bleiben erhalten.
-   * @param {string|null} key
-   * @param {object} partial
    */
-  function updateImageSettings(key, partial) {
+  function updateImageSettings(
+    key: string | null | undefined,
+    partial: SlideshowImageSettingsInput,
+  ) {
     if (!key) return
     setImageSettings(key, { ...(getImageSettings(key) || {}), ...partial })
   }
 
   /** Entfernt ein Feld (z. B. 'bounds') bei allen Bildern. */
-  function clearField(field) {
+  function clearField(field: string) {
     load()
     let changed = false
-    const next = {}
+    const next: Record<string, SlideshowImageSettings> = {}
     for (const [key, entry] of Object.entries(entries.value)) {
       if (field in entry) {
         changed = true
         const rest = { ...entry }
-        delete rest[field]
+        delete rest[field as keyof SlideshowImageSettings]
         if (Object.keys(rest).length > 0) next[key] = rest
       } else {
         next[key] = entry
@@ -155,10 +173,10 @@ export const useSlideshowImageSettingsStore = defineStore('slideshowImageSetting
   }
 
   // Kurzformen für den Übergang allein
-  function getTransition(key) {
+  function getTransition(key: string | null | undefined): string | null {
     return getImageSettings(key)?.transition ?? null
   }
-  function setTransition(key, transition) {
+  function setTransition(key: string | null | undefined, transition: string | null) {
     updateImageSettings(key, { transition })
   }
 

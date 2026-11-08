@@ -7,7 +7,7 @@ import { nextTick, ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import VolumeEqPopover from '../../components/sticky-player-bar/VolumeEqPopover.vue'
 import { usePlayerPopover } from '../../composables/usePlayerPopover.js'
-import { usePlayerStore } from '../../stores/playerStore.js'
+import { usePlayerStore } from '../../stores/playerStore'
 import de from '../../lib/i18n/de.js'
 
 const P = de.player

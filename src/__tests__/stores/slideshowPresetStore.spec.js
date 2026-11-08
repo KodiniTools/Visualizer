@@ -7,7 +7,7 @@ import {
   normalizeStockRef,
   normalizeUploadRef,
   collectUploadKeys,
-} from '../../stores/slideshowPresetStore.js'
+} from '../../stores/slideshowPresetStore'
 
 const KEY = 'visualizer-slideshow-presets'
 

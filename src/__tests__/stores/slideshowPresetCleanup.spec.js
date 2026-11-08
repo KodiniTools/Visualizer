@@ -11,7 +11,7 @@ const { pruneImages, getImageStorageStats, getStorageEstimate } = await import(
   '../../utils/presetImageRepository.js'
 )
 const { useSlideshowPresetStore, IMAGE_CLEANUP_GRACE_MS, _resetAutoCleanup } = await import(
-  '../../stores/slideshowPresetStore.js'
+  '../../stores/slideshowPresetStore'
 )
 
 const KEY = 'visualizer-slideshow-presets'

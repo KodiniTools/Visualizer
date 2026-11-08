@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { EFFECT_NAMES } from '../lib/audio/AudioReactiveEffects.js'
 import {
   applyAudioReactivePreset,
@@ -9,8 +9,74 @@ import {
 
 const STORAGE_KEY = 'visualizer-background-tiles'
 
+/** Audio-Reaktiv-Konfiguration einer Kachel (wie bei Canvas-Bildern) */
+export type TileAudioReactive = ReturnType<typeof createAudioReactiveConfig>
+
+export interface TileVideoSettings {
+  muted: boolean
+  loop: boolean
+  playbackRate: number
+}
+
+export interface TileImageSettings {
+  brightness: number
+  contrast: number
+  saturation: number
+  opacity: number
+  blur: number
+  hueRotate: number
+  grayscale: number
+  sepia: number
+  scale: number
+  offsetX: number
+  offsetY: number
+}
+
+export interface BackgroundTile {
+  id: string
+  backgroundColor: string
+  backgroundOpacity: number
+  /** Bild-Objekt (nicht persistiert) */
+  image: HTMLImageElement | null
+  /** Bild-URL für Persistenz */
+  imageSrc: string | null
+  /** Video-Objekt (nicht persistiert) */
+  video: HTMLVideoElement | null
+  /** Video-URL für Persistenz */
+  videoSrc: string | null
+  videoSettings: TileVideoSettings
+  imageSettings: TileImageSettings
+  audioReactive: TileAudioReactive
+}
+
+/** Persistierter Stand einer Kachel (ohne Bild-/Video-Objekte) */
+type SavedTile = Partial<Omit<BackgroundTile, 'audioReactive'>> & {
+  audioReactive?: Partial<TileAudioReactive> | null
+}
+
+interface SavedTileSettings {
+  tilesEnabled?: boolean
+  tileCount?: number
+  tileGap?: number
+  tiles?: SavedTile[]
+}
+
+const defaultImageSettings = (): TileImageSettings => ({
+  brightness: 100,
+  contrast: 100,
+  saturation: 100,
+  opacity: 100,
+  blur: 0,
+  hueRotate: 0,
+  grayscale: 0,
+  sepia: 0,
+  scale: 1.0,
+  offsetX: 0,
+  offsetY: 0,
+})
+
 // Standard-Kachel-Konfiguration
-function createDefaultTile(index) {
+function createDefaultTile(index: number): BackgroundTile {
   return {
     id: `tile-${index}`,
     backgroundColor: '#1a1a2e',
@@ -25,19 +91,7 @@ function createDefaultTile(index) {
       loop: true, // Standard: Endlosschleife
       playbackRate: 1.0, // Abspielgeschwindigkeit
     },
-    imageSettings: {
-      brightness: 100,
-      contrast: 100,
-      saturation: 100,
-      opacity: 100,
-      blur: 0,
-      hueRotate: 0,
-      grayscale: 0,
-      sepia: 0,
-      scale: 1.0,
-      offsetX: 0,
-      offsetY: 0,
-    },
+    imageSettings: defaultImageSettings(),
     // Audio-Reaktiv pro Kachel – identische Struktur wie bei Canvas-Bildern
     // (Master inkl. Easing/Beat-Boost/Phase/Gain, alle Effekte mit eigener Quelle)
     audioReactive: createAudioReactiveConfig(EFFECT_NAMES),
@@ -46,7 +100,7 @@ function createDefaultTile(index) {
 
 // Einstellungen aus localStorage laden
 // Hinweis: tileGap wird bei jeder Aktivierung auf 5px zurückgesetzt (Grundeinstellung)
-function loadSettings() {
+function loadSettings(): SavedTileSettings | null {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
@@ -59,7 +113,7 @@ function loadSettings() {
 }
 
 // Einstellungen in localStorage speichern
-function saveSettings(settings) {
+function saveSettings(settings: SavedTileSettings) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
   } catch (e) {
@@ -80,10 +134,10 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   const tileCount = ref(savedSettings?.tileCount || 6)
 
   // Kachel-Daten Array
-  const tiles = ref([])
+  const tiles = ref<BackgroundTile[]>([])
 
   // Aktuell ausgewählte Kachel für Bearbeitung
-  const selectedTileIndex = ref(null)
+  const selectedTileIndex = ref<number | null>(null)
 
   // Lücke zwischen Kacheln (in Pixel) - IMMER 5px als Standard beim App-Start
   const tileGap = ref(5)
@@ -108,23 +162,27 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
 
   // Ausgewählte Kachel
   const selectedTile = computed(() => {
-    if (selectedTileIndex.value !== null && tiles.value[selectedTileIndex.value]) {
-      return tiles.value[selectedTileIndex.value]
+    if (selectedTileIndex.value !== null) {
+      return tiles.value[selectedTileIndex.value] ?? null
     }
     return null
   })
 
+  /** Kachel an Position index oder undefined */
+  const tileAt = (index: number): BackgroundTile | undefined => tiles.value[index]
+
   // ===== Aktionen =====
 
   // Kacheln initialisieren/aktualisieren basierend auf Anzahl
-  function initializeTiles(count = tileCount.value) {
+  function initializeTiles(count: number = tileCount.value) {
     const currentTiles = [...tiles.value]
-    const newTiles = []
+    const newTiles: BackgroundTile[] = []
 
     for (let i = 0; i < count; i++) {
-      if (currentTiles[i]) {
+      const existing = currentTiles[i]
+      if (existing) {
         // Bestehende Kachel behalten
-        newTiles.push(currentTiles[i])
+        newTiles.push(existing)
       } else {
         // Neue Kachel erstellen
         newTiles.push(createDefaultTile(i))
@@ -140,7 +198,7 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   }
 
   // Kachel-Modus aktivieren/deaktivieren
-  function setTilesEnabled(enabled) {
+  function setTilesEnabled(enabled: boolean) {
     tilesEnabled.value = enabled
     if (enabled) {
       // ✅ Kacheln aktiviert: Immer mit 5px Abstand starten (Grundeinstellung)
@@ -153,7 +211,7 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   }
 
   // Kachelanzahl ändern
-  function setTileCount(count) {
+  function setTileCount(count: number) {
     const validCounts = [3, 6, 9, 12]
     if (!validCounts.includes(count)) {
       console.warn('Ungültige Kachelanzahl:', count)
@@ -165,7 +223,7 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   }
 
   // Kachel auswählen
-  function selectTile(index) {
+  function selectTile(index: number) {
     if (index >= 0 && index < tiles.value.length) {
       selectedTileIndex.value = index
     } else {
@@ -174,69 +232,70 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   }
 
   // Kachel-Hintergrundfarbe setzen
-  function setTileBackgroundColor(index, color) {
-    if (tiles.value[index]) {
-      tiles.value[index].backgroundColor = color
+  function setTileBackgroundColor(index: number, color: string) {
+    const tile = tileAt(index)
+    if (tile) {
+      tile.backgroundColor = color
       persistSettings()
     }
   }
 
   // Kachel-Hintergrund-Deckkraft setzen
-  function setTileBackgroundOpacity(index, opacity) {
-    if (tiles.value[index]) {
-      tiles.value[index].backgroundOpacity = Math.max(0, Math.min(1, opacity))
+  function setTileBackgroundOpacity(index: number, opacity: number) {
+    const tile = tileAt(index)
+    if (tile) {
+      tile.backgroundOpacity = Math.max(0, Math.min(1, opacity))
       persistSettings()
     }
   }
 
   // Bild zu Kachel hinzufügen
-  function setTileImage(index, imageObject, imageSrc = null) {
-    if (tiles.value[index]) {
-      tiles.value[index].image = imageObject
-      tiles.value[index].imageSrc = imageSrc
+  function setTileImage(
+    index: number,
+    imageObject: HTMLImageElement | null,
+    imageSrc: string | null = null,
+  ) {
+    const tile = tileAt(index)
+    if (tile) {
+      tile.image = imageObject
+      tile.imageSrc = imageSrc
       // Bild-Einstellungen zurücksetzen
-      tiles.value[index].imageSettings = {
-        brightness: 100,
-        contrast: 100,
-        saturation: 100,
-        opacity: 100,
-        blur: 0,
-        hueRotate: 0,
-        grayscale: 0,
-        sepia: 0,
-        scale: 1.0,
-        offsetX: 0,
-        offsetY: 0,
-      }
+      tile.imageSettings = defaultImageSettings()
       persistSettings()
     }
   }
 
   // Bild von Kachel entfernen
-  function removeTileImage(index) {
-    if (tiles.value[index]) {
-      tiles.value[index].image = null
-      tiles.value[index].imageSrc = null
+  function removeTileImage(index: number) {
+    const tile = tileAt(index)
+    if (tile) {
+      tile.image = null
+      tile.imageSrc = null
       persistSettings()
     }
   }
 
   // ✨ NEU: Video zu Kachel hinzufügen
-  function setTileVideo(index, videoElement, videoSrc = null) {
-    if (tiles.value[index]) {
+  function setTileVideo(
+    index: number,
+    videoElement: HTMLVideoElement | null,
+    videoSrc: string | null = null,
+  ) {
+    const tile = tileAt(index)
+    if (tile) {
       // Vorheriges Video stoppen falls vorhanden
-      if (tiles.value[index].video) {
-        tiles.value[index].video.pause()
-        tiles.value[index].video.src = ''
+      if (tile.video) {
+        tile.video.pause()
+        tile.video.src = ''
       }
       // Vorheriges Bild entfernen (Video ersetzt Bild)
-      tiles.value[index].image = null
-      tiles.value[index].imageSrc = null
+      tile.image = null
+      tile.imageSrc = null
 
-      tiles.value[index].video = videoElement
-      tiles.value[index].videoSrc = videoSrc
+      tile.video = videoElement
+      tile.videoSrc = videoSrc
       // Video-Einstellungen zurücksetzen
-      tiles.value[index].videoSettings = {
+      tile.videoSettings = {
         muted: true,
         loop: true,
         playbackRate: 1.0,
@@ -252,99 +311,118 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   }
 
   // ✨ NEU: Video von Kachel entfernen
-  function removeTileVideo(index) {
-    if (tiles.value[index]) {
-      if (tiles.value[index].video) {
-        tiles.value[index].video.pause()
-        tiles.value[index].video.src = ''
+  function removeTileVideo(index: number) {
+    const tile = tileAt(index)
+    if (tile) {
+      if (tile.video) {
+        tile.video.pause()
+        tile.video.src = ''
       }
-      tiles.value[index].video = null
-      tiles.value[index].videoSrc = null
+      tile.video = null
+      tile.videoSrc = null
       persistSettings()
     }
   }
 
   // ✨ NEU: Video-Einstellung für Kachel ändern
-  function updateTileVideoSetting(index, setting, value) {
-    if (tiles.value[index]) {
-      if (!tiles.value[index].videoSettings) {
-        tiles.value[index].videoSettings = { muted: true, loop: true, playbackRate: 1.0 }
+  function updateTileVideoSetting<K extends keyof TileVideoSettings>(
+    index: number,
+    setting: K,
+    value: TileVideoSettings[K],
+  ) {
+    const tile = tileAt(index)
+    if (tile) {
+      if (!tile.videoSettings) {
+        tile.videoSettings = { muted: true, loop: true, playbackRate: 1.0 }
       }
-      tiles.value[index].videoSettings[setting] = value
+      tile.videoSettings[setting] = value
 
       // Einstellung auf Video anwenden
-      const video = tiles.value[index].video
+      const video = tile.video
       if (video) {
-        if (setting === 'muted') video.muted = value
-        if (setting === 'loop') video.loop = value
-        if (setting === 'playbackRate') video.playbackRate = value
+        if (setting === 'muted') video.muted = value as boolean
+        if (setting === 'loop') video.loop = value as boolean
+        if (setting === 'playbackRate') video.playbackRate = value as number
       }
       persistSettings()
     }
   }
 
   // Bild-Einstellung für Kachel ändern
-  function updateTileImageSetting(index, setting, value) {
-    if (tiles.value[index] && tiles.value[index].imageSettings) {
-      tiles.value[index].imageSettings[setting] = value
+  function updateTileImageSetting<K extends keyof TileImageSettings>(
+    index: number,
+    setting: K,
+    value: TileImageSettings[K],
+  ) {
+    const tile = tileAt(index)
+    if (tile && tile.imageSettings) {
+      tile.imageSettings[setting] = value
       persistSettings()
     }
   }
 
   // ✨ NEU: Audio-Reaktiv für Kachel aktivieren/deaktivieren
-  function setTileAudioReactiveEnabled(index, enabled) {
-    if (tiles.value[index]) {
-      if (!tiles.value[index].audioReactive) {
-        tiles.value[index].audioReactive = createDefaultTile(index).audioReactive
+  function setTileAudioReactiveEnabled(index: number, enabled: boolean) {
+    const tile = tileAt(index)
+    if (tile) {
+      if (!tile.audioReactive) {
+        tile.audioReactive = createDefaultTile(index).audioReactive
       }
-      tiles.value[index].audioReactive.enabled = enabled
+      tile.audioReactive.enabled = enabled
       persistSettings()
     }
   }
 
   // ✨ NEU: Audio-Quelle für Kachel setzen
-  function setTileAudioSource(index, source) {
-    if (tiles.value[index]?.audioReactive) {
-      tiles.value[index].audioReactive.source = source
+  function setTileAudioSource(index: number, source: string) {
+    const ar = tileAt(index)?.audioReactive
+    if (ar) {
+      ar.source = source
       persistSettings()
     }
   }
 
   // ✨ NEU: Audio-Glättung für Kachel setzen
-  function setTileAudioSmoothing(index, smoothing) {
-    if (tiles.value[index]?.audioReactive) {
-      tiles.value[index].audioReactive.smoothing = Math.max(0, Math.min(100, smoothing))
+  function setTileAudioSmoothing(index: number, smoothing: number) {
+    const ar = tileAt(index)?.audioReactive
+    if (ar) {
+      ar.smoothing = Math.max(0, Math.min(100, smoothing))
       persistSettings()
     }
   }
 
   // ✨ NEU: Audio-Effekt für Kachel aktivieren/deaktivieren
-  function setTileAudioEffect(index, effectName, enabled) {
-    if (tiles.value[index]?.audioReactive?.effects?.[effectName]) {
-      tiles.value[index].audioReactive.effects[effectName].enabled = enabled
+  function setTileAudioEffect(index: number, effectName: string, enabled: boolean) {
+    const fx = tileAt(index)?.audioReactive?.effects?.[effectName]
+    if (fx) {
+      fx.enabled = enabled
       persistSettings()
     }
   }
 
   /** Master-Eigenschaft (easing, beatBoost, phase, gain, source, smoothing) setzen */
-  function setTileAudioProperty(index, property, value) {
-    const ar = tiles.value[index]?.audioReactive
+  function setTileAudioProperty(index: number, property: string, value: unknown) {
+    const ar = tileAt(index)?.audioReactive
     if (!ar || property === 'effects' || !(property in ar)) return
-    ar[property] = value
+    ;(ar as Record<string, unknown>)[property] = value
     persistSettings()
   }
 
   /** Individuelle Audio-Quelle eines Effekts setzen (null/'' = globale Quelle) */
-  function setTileAudioEffectSource(index, effectName, source) {
-    const fx = tiles.value[index]?.audioReactive?.effects?.[effectName]
+  function setTileAudioEffectSource(
+    index: number,
+    effectName: string,
+    source: string | null | undefined,
+  ) {
+    const fx = tileAt(index)?.audioReactive?.effects?.[effectName]
     if (!fx) return
     fx.source = source ? source : null
     persistSettings()
   }
 
   /** Preset auf eine Kachel anwenden (alle anderen Effekte aus) */
-  function applyTileAudioPreset(index, presetName) {
-    const ar = tiles.value[index]?.audioReactive
+  function applyTileAudioPreset(index: number, presetName: string): boolean {
+    const ar = tileAt(index)?.audioReactive
     if (!ar) return false
     const ok = applyAudioReactivePreset(ar, presetName)
     if (ok) persistSettings()
@@ -352,28 +430,30 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   }
 
   /** (Teil-)Konfiguration in-place übernehmen; fehlende Effekte werden deaktiviert */
-  function assignTileAudioReactive(index, config) {
-    const ar = tiles.value[index]?.audioReactive
+  function assignTileAudioReactive(index: number, config: object | null | undefined) {
+    const ar = tileAt(index)?.audioReactive
     if (!ar) return
     assignAudioReactiveConfig(ar, config)
     persistSettings()
   }
 
   // ✨ NEU: Audio-Effekt-Intensität für Kachel setzen
-  function setTileAudioEffectIntensity(index, effectName, intensity) {
-    if (tiles.value[index]?.audioReactive?.effects?.[effectName]) {
-      tiles.value[index].audioReactive.effects[effectName].intensity = Math.max(
-        0,
-        Math.min(100, intensity),
-      )
+  function setTileAudioEffectIntensity(index: number, effectName: string, intensity: number) {
+    const fx = tileAt(index)?.audioReactive?.effects?.[effectName]
+    if (fx) {
+      fx.intensity = Math.max(0, Math.min(100, intensity))
       persistSettings()
     }
   }
 
   // ✨ NEU: Alle Audio-Reaktiv-Einstellungen für Kachel auf einmal setzen
-  function setTileAudioReactive(index, settings) {
-    if (tiles.value[index]) {
-      tiles.value[index].audioReactive = mergeAudioReactive(settings)
+  function setTileAudioReactive(
+    index: number,
+    settings: Partial<TileAudioReactive> | null | undefined,
+  ) {
+    const tile = tileAt(index)
+    if (tile) {
+      tile.audioReactive = mergeAudioReactive(settings)
       persistSettings()
     }
   }
@@ -382,20 +462,23 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
    * Gespeicherte (evtl. alte, unvollständige) Audio-Einstellungen mit der
    * vollständigen Default-Struktur zusammenführen.
    */
-  function mergeAudioReactive(settings) {
+  function mergeAudioReactive(
+    settings: Partial<TileAudioReactive> | null | undefined,
+  ): TileAudioReactive {
     const base = createAudioReactiveConfig(EFFECT_NAMES)
     if (!settings) return base
     const effects = { ...base.effects }
     for (const [name, fx] of Object.entries(settings.effects || {})) {
-      if (effects[name] && fx) {
-        effects[name] = { ...effects[name], ...fx, source: fx.source ?? null }
+      const current = effects[name]
+      if (current && fx) {
+        effects[name] = { ...current, ...fx, source: fx.source ?? null }
       }
     }
     return { ...base, ...settings, effects }
   }
 
   // Lücke zwischen Kacheln setzen
-  function setTileGap(gap) {
+  function setTileGap(gap: number) {
     tileGap.value = Math.max(0, Math.min(50, gap))
     persistSettings()
   }
@@ -409,8 +492,8 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   }
 
   // Einzelne Kachel zurücksetzen
-  function resetTile(index) {
-    if (tiles.value[index]) {
+  function resetTile(index: number) {
+    if (tileAt(index)) {
       tiles.value[index] = createDefaultTile(index)
       persistSettings()
     }
@@ -418,7 +501,7 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
 
   // Einstellungen persistieren (ohne Bilder - nur Metadaten)
   function persistSettings() {
-    const settingsToSave = {
+    const settingsToSave: SavedTileSettings = {
       tilesEnabled: tilesEnabled.value,
       tileCount: tileCount.value,
       tileGap: tileGap.value,
@@ -441,19 +524,23 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
     if (!savedSettings?.tiles) return
 
     for (let i = 0; i < savedSettings.tiles.length; i++) {
-      const savedTile = savedSettings.tiles[i]
-      if (savedTile.imageSrc && tiles.value[i]) {
+      const savedTile = savedSettings.tiles[i] as SavedTile
+      const imageSrc = savedTile.imageSrc
+      if (imageSrc && tiles.value[i]) {
         try {
           const img = new Image()
           img.crossOrigin = 'anonymous'
           await new Promise((resolve, reject) => {
             img.onload = resolve
             img.onerror = reject
-            img.src = savedTile.imageSrc
+            img.src = imageSrc
           })
-          tiles.value[i].image = img
-          tiles.value[i].imageSrc = savedTile.imageSrc
-          tiles.value[i].imageSettings = { ...savedTile.imageSettings }
+          // Kachel nach dem await neu lesen (Liste kann sich geändert haben)
+          const tile = tiles.value[i]
+          if (!tile) continue
+          tile.image = img
+          tile.imageSrc = imageSrc
+          tile.imageSettings = { ...savedTile.imageSettings } as TileImageSettings
         } catch (e) {
           console.warn(`Konnte Bild für Kachel ${i} nicht laden:`, e)
         }
@@ -462,12 +549,12 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   }
 
   // CSS-Filter-String für Kachel-Bild generieren
-  function getTileImageFilter(index) {
+  function getTileImageFilter(index: number): string {
     const tile = tiles.value[index]
     if (!tile || !tile.imageSettings) return ''
 
     const s = tile.imageSettings
-    const filters = []
+    const filters: string[] = []
 
     if (s.brightness !== 100) filters.push(`brightness(${s.brightness}%)`)
     if (s.contrast !== 100) filters.push(`contrast(${s.contrast}%)`)
@@ -489,7 +576,7 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
       // Alte Speicherstände kennen nur wenige Effekte → mit voller Struktur mergen
       audioReactive: mergeAudioReactive(savedTile.audioReactive),
       image: null, // Bilder müssen separat geladen werden
-    }))
+    })) as BackgroundTile[]
     // Bilder asynchron laden
     restoreImages()
   } else if (tilesEnabled.value) {

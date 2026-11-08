@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { usePlayerStore } from '../../stores/playerStore.js'
+import { usePlayerStore } from '../../stores/playerStore'
 
 let store
 

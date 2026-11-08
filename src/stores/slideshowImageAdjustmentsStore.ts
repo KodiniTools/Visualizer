@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { normalizeImageAdjustments } from './slideshowPresetStore.js'
+import { normalizeImageAdjustments } from './slideshowPresetStore'
 import { isValidSlideshowAudioMode, SLIDESHOW_AUDIO_DEFAULT } from '../lib/slideshowAudio.js'
 
 const STORAGE_KEY = 'visualizer-slideshow-image-adjustments'

@@ -1,19 +1,39 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+export interface PlaylistTrack {
+  name: string
+  /** Object-URL der Audiodatei */
+  url: string
+}
+
+export type PlayMode = 'none' | 'sequence' | 'repeat-one' | 'repeat-all' | 'shuffle'
+
+/** Eintrag aus IndexedDB (geteilte Dateien); blob kann auch Rohdaten sein. */
+export interface BlobTrackRecord {
+  name: string
+  blob: Blob | BlobPart
+  mimeType?: string
+}
+
+export type FrameListener = (time: number) => void
+
+/** play() wurde durch pause() unterbrochen – erwartbar, kein Fehler */
+const isAbortError = (error: unknown) => (error as { name?: string } | null)?.name === 'AbortError'
+
 export const usePlayerStore = defineStore('player', () => {
   // === STATE (Die Daten des Players) ===
-  const playlist = ref([])
+  const playlist = ref<PlaylistTrack[]>([])
   const currentTrackIndex = ref(0)
   const isPlaying = ref(false)
-  const audioRef = ref(null)
+  const audioRef = ref<HTMLAudioElement | null>(null)
 
   // Progress-Tracking direkt im Store
   const currentTime = ref(0)
   const duration = ref(0)
 
   // Playlist-Modus: 'none' | 'sequence' | 'repeat-one' | 'repeat-all' | 'shuffle'
-  const playMode = ref('none')
+  const playMode = ref<PlayMode>('none')
 
   // Stumm: nur die Lautsprecher-Ausgabe (useAudioEngine) – Visualizer-Analyse
   // und Aufnahme laufen weiter, die eingestellte Lautstärke bleibt erhalten
@@ -22,7 +42,7 @@ export const usePlayerStore = defineStore('player', () => {
   // === GETTERS (Abgeleitete Daten, wie computed) ===
   const hasTracks = computed(() => playlist.value.length > 0)
   const currentTrack = computed(() =>
-    hasTracks.value ? playlist.value[currentTrackIndex.value] : null,
+    hasTracks.value ? (playlist.value[currentTrackIndex.value] ?? null) : null,
   )
 
   // Progress-Percentage berechnen
@@ -37,7 +57,7 @@ export const usePlayerStore = defineStore('player', () => {
    * Diese Funktion wird einmal von App.vue aufgerufen, um dem Store das Audio-Element zu geben.
    * Sie richtet auch ALLE Event Listener ein.
    */
-  function setAudioRef(element) {
+  function setAudioRef(element: HTMLAudioElement | null) {
     // Falls bereits ein audioRef existiert, cleanup alte Listener
     if (audioRef.value) {
       removeAllListeners(audioRef.value)
@@ -62,7 +82,7 @@ export const usePlayerStore = defineStore('player', () => {
   /**
    * Fügt alle benötigten Event Listener zum Audio-Element hinzu
    */
-  function addAllListeners(audio) {
+  function addAllListeners(audio: HTMLAudioElement) {
     audio.addEventListener('play', handlePlay)
     audio.addEventListener('pause', handlePause)
     audio.addEventListener('ended', handleEnded)
@@ -74,7 +94,7 @@ export const usePlayerStore = defineStore('player', () => {
   /**
    * Entfernt alle Event Listener vom Audio-Element
    */
-  function removeAllListeners(audio) {
+  function removeAllListeners(audio: HTMLAudioElement) {
     audio.removeEventListener('play', handlePlay)
     audio.removeEventListener('pause', handlePause)
     audio.removeEventListener('ended', handleEnded)
@@ -119,7 +139,7 @@ export const usePlayerStore = defineStore('player', () => {
     } else if (playMode.value === 'shuffle') {
       // Zufälliger Track (nicht der aktuelle)
       if (playlist.value.length > 1) {
-        let next
+        let next: number
         do {
           next = Math.floor(Math.random() * playlist.value.length)
         } while (next === currentTrackIndex.value)
@@ -129,7 +149,7 @@ export const usePlayerStore = defineStore('player', () => {
     // playMode === 'none': kein Autoplay
   }
 
-  function _playNext(index) {
+  function _playNext(index: number) {
     loadTrack(index)
     if (!audioRef.value) return
 
@@ -137,8 +157,8 @@ export const usePlayerStore = defineStore('player', () => {
     audio.addEventListener(
       'canplay',
       () => {
-        audio.play().catch((err) => {
-          if (err.name !== 'AbortError') console.error('[PlayerStore] Autoplay error:', err)
+        audio.play().catch((err: unknown) => {
+          if (!isAbortError(err)) console.error('[PlayerStore] Autoplay error:', err)
           isPlaying.value = false
         })
       },
@@ -168,8 +188,8 @@ export const usePlayerStore = defineStore('player', () => {
 
   // === PLAYER ACTIONS ===
 
-  function addTracks(files) {
-    if (!files || files.length === 0) return
+  function addTracks(files: ArrayLike<File> | Iterable<File> | null | undefined) {
+    if (!files || (files as ArrayLike<File>).length === 0) return
     const wasEmpty = !hasTracks.value
     const newTracks = Array.from(files).map((file) => ({
       name: file.name,
@@ -184,10 +204,9 @@ export const usePlayerStore = defineStore('player', () => {
 
   /**
    * Adds tracks from Blob objects (e.g. from IndexedDB shared files).
-   * @param {{ name: string, blob: Blob }[]} blobRecords
-   * @returns {number} Number of tracks successfully added
+   * @returns Number of tracks successfully added
    */
-  function addTracksFromBlobs(blobRecords) {
+  function addTracksFromBlobs(blobRecords: BlobTrackRecord[] | null | undefined): number {
     if (!blobRecords || blobRecords.length === 0) return 0
     const wasEmpty = !hasTracks.value
     let added = 0
@@ -218,28 +237,29 @@ export const usePlayerStore = defineStore('player', () => {
     return added
   }
 
-  function loadTrack(index) {
-    if (!audioRef.value || index < 0 || index >= playlist.value.length) {
+  function loadTrack(index: number) {
+    const track = playlist.value[index]
+    if (!audioRef.value || index < 0 || !track) {
       console.warn('[PlayerStore] Cannot load track:', index)
       return
     }
 
     currentTrackIndex.value = index
-    audioRef.value.src = playlist.value[index].url
+    audioRef.value.src = track.url
     audioRef.value.load()
 
     // Reset progress
     currentTime.value = 0
     duration.value = 0
 
-    console.log('[PlayerStore] Track loaded (no autoplay):', playlist.value[index].name)
+    console.log('[PlayerStore] Track loaded (no autoplay):', track.name)
   }
 
-  function playTrack(index) {
+  function playTrack(index: number) {
     loadTrack(index)
     if (audioRef.value) {
-      audioRef.value.play().catch((error) => {
-        if (error.name === 'AbortError') return // play() interrupted by pause() - expected
+      audioRef.value.play().catch((error: unknown) => {
+        if (isAbortError(error)) return // play() interrupted by pause() - expected
         console.error('[PlayerStore] Playback error:', error)
         isPlaying.value = false
       })
@@ -255,15 +275,15 @@ export const usePlayerStore = defineStore('player', () => {
     if (isPlaying.value) {
       audioRef.value.pause()
     } else {
-      audioRef.value.play().catch((error) => {
-        if (error.name === 'AbortError') return // play() interrupted by pause() - expected
+      audioRef.value.play().catch((error: unknown) => {
+        if (isAbortError(error)) return // play() interrupted by pause() - expected
         console.error('[PlayerStore] Playback error:', error)
         isPlaying.value = false
       })
     }
   }
 
-  function setMuted(muted) {
+  function setMuted(muted: unknown) {
     isMuted.value = !!muted
   }
 
@@ -289,8 +309,8 @@ export const usePlayerStore = defineStore('player', () => {
 
     // Nur abspielen wenn vorher auch abgespielt wurde
     if (wasPlaying && audioRef.value) {
-      audioRef.value.play().catch((error) => {
-        if (error.name === 'AbortError') return
+      audioRef.value.play().catch((error: unknown) => {
+        if (isAbortError(error)) return
         console.error('[PlayerStore] Playback error:', error)
         isPlaying.value = false
       })
@@ -305,15 +325,15 @@ export const usePlayerStore = defineStore('player', () => {
 
     // Nur abspielen wenn vorher auch abgespielt wurde
     if (wasPlaying && audioRef.value) {
-      audioRef.value.play().catch((error) => {
-        if (error.name === 'AbortError') return
+      audioRef.value.play().catch((error: unknown) => {
+        if (isAbortError(error)) return
         console.error('[PlayerStore] Playback error:', error)
         isPlaying.value = false
       })
     }
   }
 
-  function seekTo(time) {
+  function seekTo(time: number) {
     if (!audioRef.value) return
     audioRef.value.currentTime = time
     currentTime.value = time
@@ -324,7 +344,7 @@ export const usePlayerStore = defineStore('player', () => {
   // Fortschrittsanzeige nicht 60x/s neu rendert. Für zeitkritische Logik
   // (Beat-Drop-Marker) meldet die Render-Schleife jeden Frame mit der
   // präzisen Position des Audio-Elements an registrierte Listener.
-  const frameListeners = new Set()
+  const frameListeners = new Set<FrameListener>()
 
   /** Präzise Wiedergabeposition direkt vom Audio-Element (Sekunden). */
   function getPreciseTime() {
@@ -335,10 +355,9 @@ export const usePlayerStore = defineStore('player', () => {
   /**
    * Registriert einen Listener, der pro Render-Frame während der Wiedergabe
    * mit der präzisen Position aufgerufen wird.
-   * @param {(time: number) => void} listener
-   * @returns {() => void} Funktion zum Abmelden
+   * @returns Funktion zum Abmelden
    */
-  function onFrame(listener) {
+  function onFrame(listener: FrameListener): () => boolean {
     frameListeners.add(listener)
     return () => frameListeners.delete(listener)
   }
@@ -368,17 +387,17 @@ export const usePlayerStore = defineStore('player', () => {
 
   /**
    * Ordnet einen Track in der Playlist per Drag & Drop neu an
-   * @param {number} fromIndex - Ursprüngliche Position
-   * @param {number} toIndex - Neue Position
+   * @param fromIndex - Ursprüngliche Position
+   * @param toIndex - Neue Position
    */
-  function reorderPlaylist(fromIndex, toIndex) {
+  function reorderPlaylist(fromIndex: number, toIndex: number): boolean {
     // Validierung
     if (fromIndex < 0 || fromIndex >= playlist.value.length) return false
     if (toIndex < 0 || toIndex >= playlist.value.length) return false
     if (fromIndex === toIndex) return false
 
     // Track entfernen und an neuer Position einfügen
-    const [movedTrack] = playlist.value.splice(fromIndex, 1)
+    const [movedTrack] = playlist.value.splice(fromIndex, 1) as [PlaylistTrack]
     playlist.value.splice(toIndex, 0, movedTrack)
 
     // CurrentTrackIndex anpassen, damit der aktive Track weiterhin aktiv bleibt

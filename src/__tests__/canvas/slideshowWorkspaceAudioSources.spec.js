@@ -6,7 +6,7 @@
  * - eigene Quelle pro Slideshow-Bild beim Start im Workspace-Modus
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
+import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer'
 import { SlideshowManager } from '../../lib/slideshowManager'
 import { MultiImageManager } from '../../lib/multiImageManager'
 import { FotoManager } from '../../lib/fotoManager'

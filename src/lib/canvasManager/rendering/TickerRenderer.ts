@@ -1,13 +1,32 @@
-import { calculateEffectValue, getMotionOffset } from '../../audio/AudioReactiveEffects'
+import {
+  calculateEffectValue,
+  getMotionOffset,
+  type EffectValues,
+} from '../../audio/AudioReactiveEffects'
 import {
   buildFilterString,
   combinedScale,
   computeAudioReactiveValues,
   strongestGlow,
+  type EngineAudioSettings,
 } from '../../audio/audioReactiveEngine'
+import type { AudioLevelData } from '../../audio/AudioLevelCalculator'
+import type { TickerSettings } from '../../../stores/tickerStore'
+
+/** Effektwerte inkl. der Lauftext-eigenen Effekte */
+interface TickerEffectValues extends EffectValues {
+  speedFactor?: number
+  opacity?: number
+}
+
+/** Lauftext-Zustand (tickerStore.$state) */
+export type TickerRenderSettings = Partial<TickerSettings> & {
+  enabled?: boolean
+  audioFx?: EngineAudioSettings | null
+}
 
 // Lauftext-eigene Effekte; alles andere kommt aus der gemeinsamen Bild-Engine.
-function calculateTickerEffect(name, level) {
+function calculateTickerEffect(name: string, level: number): TickerEffectValues {
   switch (name) {
     case 'tempo':
       // Laufgeschwindigkeit pulsiert mit dem Pegel (bis 4×)
@@ -30,12 +49,21 @@ function calculateTickerEffect(name, level) {
  * Screenshot), sodass diese praktisch synchron bleiben.
  */
 export class TickerRenderer {
+  offset: number
+  lastTime: number | null
+
   constructor() {
     this.offset = 0
     this.lastTime = null
   }
 
-  render(ctx, width, height, audioData, settings) {
+  render(
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    audioData: AudioLevelData | null | undefined,
+    settings: TickerRenderSettings | null | undefined,
+  ): void {
     const now = performance.now()
 
     const text = (settings?.text || '').trim()
@@ -58,7 +86,7 @@ export class TickerRenderer {
     // (settings.audioFx) plus die Lauftext-Effekte Tempo und Deckkraft.
     const audioFx = settings.audioReactive ? settings.audioFx : null
     const reactive = computeAudioReactiveValues(audioFx, audioFx, audioData, calculateTickerEffect)
-    const fx = reactive ? reactive.effects : {}
+    const fx: Record<string, TickerEffectValues> = reactive ? reactive.effects : {}
 
     // Tempo-Effekt: Geschwindigkeit pulsiert mit dem Pegel
     const currentSpeed = baseSpeed * (fx.tempo?.speedFactor ?? 1)
@@ -137,7 +165,7 @@ export class TickerRenderer {
     // Umrandung (Kontur) vorbereiten
     const doStroke = settings.strokeEnabled && (settings.strokeWidth || 0) > 0
     if (doStroke) {
-      ctx.lineWidth = settings.strokeWidth
+      ctx.lineWidth = settings.strokeWidth as number
       ctx.strokeStyle = settings.strokeColor || '#000000'
       ctx.lineJoin = 'round'
       ctx.miterLimit = 2
@@ -157,7 +185,7 @@ export class TickerRenderer {
     }
     const skew = fx.skew || null
     const motion = reactive
-      ? getMotionOffset(Object.assign({}, ...Object.values(fx)))
+      ? getMotionOffset(Object.assign({}, ...Object.values(fx)) as EffectValues)
       : { x: 0, y: 0 }
     const hasTransform =
       scaleFactor !== 1 ||
@@ -172,7 +200,7 @@ export class TickerRenderer {
     // Deckkraft: Lauftext-Effekt "Blitzen" × Strobe
     const textAlpha =
       (fx.opacity?.opacity ?? 1) *
-      (fx.strobe?.strobeOpacity !== undefined ? fx.strobe.strobeOpacity : 1)
+      (fx.strobe?.strobeOpacity !== undefined ? (fx.strobe.strobeOpacity as number) : 1)
     // Leuchten: stärkstes aus Glow/Beat-Puls/BPM-Puls/Frequenz-Split
     const glow = reactive ? strongestGlow(fx) : null
 
@@ -180,7 +208,7 @@ export class TickerRenderer {
     // aktiven Audio-Animationen. Der Schatten wird vom äußersten sichtbaren Rand
     // geworfen (Umrandung, sonst Füllung); die Füllung darüber wirft keinen
     // zweiten Schatten.
-    const paint = (x, y) => {
+    const paint = (x: number, y: number) => {
       ctx.save()
       if (hasTransform) {
         const cx = x + textWidth / 2
@@ -198,13 +226,15 @@ export class TickerRenderer {
       if (textAlpha !== 1) ctx.globalAlpha = Math.max(0, Math.min(1, textAlpha))
 
       if (glow) {
-        ctx.shadowColor = glow.glowColor
-        ctx.shadowBlur = (doShadow ? settings.shadowBlur : 0) + glow.glowBlur
+        // Glow-Effekte liefern Farbe und Stärke immer
+        ctx.shadowColor = glow.glowColor as string
+        ctx.shadowBlur =
+          (doShadow ? (settings.shadowBlur as number) : 0) + (glow.glowBlur as number)
         ctx.shadowOffsetX = 0
         ctx.shadowOffsetY = 0
       } else if (doShadow) {
         ctx.shadowColor = settings.shadowColor || '#000000'
-        ctx.shadowBlur = settings.shadowBlur
+        ctx.shadowBlur = settings.shadowBlur as number
         ctx.shadowOffsetX = 0
         ctx.shadowOffsetY = 0
       }

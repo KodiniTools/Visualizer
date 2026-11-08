@@ -5,7 +5,7 @@
  * - Verlauf (Puls) und Bild (Zoom/Aufhellen) reagieren je auf ihre Quelle
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
+import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer'
 import { SlideshowManager } from '../../lib/slideshowManager'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
 import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'

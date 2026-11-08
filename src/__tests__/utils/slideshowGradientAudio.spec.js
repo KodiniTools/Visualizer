@@ -3,7 +3,7 @@ import {
   computeSlideshowGradientAudio,
   normalizeSlideshowGradientAudio,
 } from '../../lib/slideshowGradientAudio'
-import { createSlideshowBaseFill } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
+import { createSlideshowBaseFill } from '../../lib/canvasManager/rendering/BackgroundRenderer'
 
 const loud = { bass: 255, mid: 0, treble: 0, volume: 0 }
 const silent = { bass: 0, mid: 0, treble: 0, volume: 0 }

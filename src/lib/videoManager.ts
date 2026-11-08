@@ -5,7 +5,7 @@
  * Videos werden als HTMLVideoElement gehalten und Frame-by-Frame auf Canvas gezeichnet
  */
 import { EFFECT_NAMES } from './audio/AudioReactiveEffects'
-import { computeAudioReactiveValues } from './audio/audioReactiveEngine'
+import { computeAudioReactiveValues, type AudioReactiveValues } from './audio/audioReactiveEngine'
 import {
   createAudioReactiveConfig,
   ensureAudioReactiveConfig,
@@ -16,7 +16,7 @@ import {
   applyAudioReactiveTransform,
   drawAudioReactiveOverlays,
   drawMediaWithAudioReactive,
-} from './canvasManager/rendering/audioReactiveDraw.js'
+} from './canvasManager/rendering/audioReactiveDraw'
 import {
   findResizeHandleAt,
   getDeleteButtonBounds,
@@ -105,7 +105,7 @@ export interface VideoManagerCallbacks {
   audioElement?: HTMLMediaElement | null
 }
 
-type VideoAudioReactive = ReturnType<typeof computeAudioReactiveValues>
+type VideoAudioReactive = AudioReactiveValues | null
 
 export class VideoManager {
   canvas: HTMLCanvasElement

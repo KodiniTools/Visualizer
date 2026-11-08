@@ -10,7 +10,7 @@
  * - Delete-Button Berechnung
  * - Text/Image Selection Bounds
  */
-import { isBackgroundReplacedBySlideshow } from '../rendering/BackgroundRenderer.js'
+import { isBackgroundReplacedBySlideshow } from '../rendering/BackgroundRenderer'
 import { getResizeHandles, isPointInRect } from '../../canvasObjects/geometry'
 
 export class SelectionManager {

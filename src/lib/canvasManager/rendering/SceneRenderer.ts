@@ -1,4 +1,36 @@
 // SceneRenderer.js - Haupt-Szenen-Rendering
+import type { Rect } from '../../canvasObjects/geometry'
+import type { TextManager } from '../../textManager'
+
+type Ctx = CanvasRenderingContext2D
+
+/** Benötigter Ausschnitt des CanvasManagers */
+export interface SceneRendererManager {
+  ctx: Ctx
+  gridManager?: { drawGrid(ctx: Ctx): void } | null
+  uiRenderer: {
+    drawInteractiveElements(ctx: Ctx): void
+    drawTextSelectionRect(ctx: Ctx): void
+    drawImageSelectionRect(ctx: Ctx): void
+  }
+  backgroundRenderer: { drawBackground(ctx: Ctx): void }
+  textManager?: SceneTextManager | null
+  showWorkspaceOutline?: boolean
+  workspacePreset?: { name: string; width: number; height: number } | null
+  getWorkspaceBounds(): Rect | null | undefined
+  activeObject?: unknown
+}
+
+/** TextManager-Ausschnitt; draw() wird hier wie bisher nur mit ctx aufgerufen */
+type SceneTextManager = Pick<
+  TextManager,
+  | 'textObjects'
+  | '_getFadeOpacity'
+  | '_getDisplayOpacity'
+  | '_getScaleValue'
+  | '_getSlideOffset'
+  | 'getObjectBounds'
+> & { draw(ctx: Ctx, canvasWidth?: number, canvasHeight?: number): void }
 
 /**
  * SceneRenderer - Verantwortlich für das Zeichnen der kompletten Szene
@@ -9,14 +41,16 @@
  * - Grid-Rendering Koordination
  */
 export class SceneRenderer {
-  constructor(canvasManager) {
+  manager: SceneRendererManager
+
+  constructor(canvasManager: SceneRendererManager) {
     this.manager = canvasManager
   }
 
   /**
    * Haupt-Draw-Methode - Zeichnet alles
    */
-  draw(targetCtx) {
+  draw(targetCtx: Ctx): void {
     this.drawScene(targetCtx)
 
     if (this.manager.gridManager) {
@@ -38,7 +72,7 @@ export class SceneRenderer {
   /**
    * Zeichnet die Hauptszene (Hintergrund + Text)
    */
-  drawScene(ctx) {
+  drawScene(ctx: Ctx): void {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
     // 1. Hintergrund zeichnen (delegiert an BackgroundRenderer)
@@ -60,7 +94,7 @@ export class SceneRenderer {
   /**
    * Zeichnet die Workspace-Outline
    */
-  drawWorkspaceOutline(ctx) {
+  drawWorkspaceOutline(ctx: Ctx): void {
     if (!this.manager.showWorkspaceOutline || !this.manager.workspacePreset) return
 
     const bounds = this.manager.getWorkspaceBounds()
@@ -94,7 +128,7 @@ export class SceneRenderer {
    * Zeichnet Markierungen für ausgeblendete Texte
    * Diese bleiben sichtbar, damit der Benutzer sie wieder anklicken kann
    */
-  drawFadedTextMarkers(ctx) {
+  drawFadedTextMarkers(ctx: Ctx): void {
     if (!this.manager.textManager || !this.manager.textManager.textObjects) return
 
     const tm = this.manager.textManager
@@ -125,7 +159,7 @@ export class SceneRenderer {
       const scaleValue = anim.scale?.enabled ? tm._getScaleValue(textObj).scale : 1
 
       let hidden = effectiveOpacity < 0.1 || scaleValue < 0.05
-      let bounds = null
+      let bounds: Rect | null = null
 
       // Slide: Text vollständig außerhalb des Canvas geschoben = nicht sichtbar
       if (!hidden && anim.slide?.enabled) {

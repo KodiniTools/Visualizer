@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { AudioFxRenderer } from '../../lib/canvasManager/rendering/AudioFxRenderer.js'
+import { AudioFxRenderer } from '../../lib/canvasManager/rendering/AudioFxRenderer'
 
 /**
  * Tests for the four beat/BPM/frequency-driven global Audio-FX effects:

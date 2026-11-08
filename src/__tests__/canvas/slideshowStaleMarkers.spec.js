@@ -6,7 +6,7 @@
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { reactive } from 'vue'
-import { CanvasManager } from '../../lib/canvasManager.js'
+import { CanvasManager } from '../../lib/canvasManager'
 import { MultiImageManager } from '../../lib/multiImageManager'
 import { FotoManager } from '../../lib/fotoManager'
 import { SlideshowManager } from '../../lib/slideshowManager'

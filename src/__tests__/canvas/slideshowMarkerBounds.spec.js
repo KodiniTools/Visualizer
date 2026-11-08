@@ -4,7 +4,7 @@
  * (pausierten) Übergang wie „Nach oben schieben“, Zoom oder Kippen.
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { CanvasManager } from '../../lib/canvasManager.js'
+import { CanvasManager } from '../../lib/canvasManager'
 import { MultiImageManager } from '../../lib/multiImageManager'
 import { FotoManager } from '../../lib/fotoManager'
 import { SlideshowManager } from '../../lib/slideshowManager'

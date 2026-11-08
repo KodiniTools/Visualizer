@@ -10,11 +10,30 @@
  * Jedes Ziel friert seinen eigenen Frame ein, damit Skalierung/Workspace-Format
  * exakt passen. Wird pro Frame NACH allen anderen Render-Schritten aufgerufen.
  */
+
+/** Benötigter Ausschnitt des markerTransitionStore */
+export interface MarkerTransitionStoreLike {
+  isCapturing(): boolean
+  isFading(): boolean
+  fadeProgress(): number | null
+  end(): void
+}
+
+interface FrozenFrame {
+  canvas: HTMLCanvasElement
+  ctx: CanvasRenderingContext2D
+}
+
 export class MarkerTransitionRenderer {
+  store: MarkerTransitionStoreLike | null | undefined
+  frames: Map<string, FrozenFrame>
+  captured: Set<string>
+  _lastPhase: string
+
   /**
    * @param {object} store - markerTransitionStore-Instanz
    */
-  constructor(store) {
+  constructor(store: MarkerTransitionStoreLike | null | undefined) {
     this.store = store
     // Pro Ziel-Key ('live' | 'rec') eine eingefrorene Frame-Canvas
     this.frames = new Map()
@@ -25,13 +44,13 @@ export class MarkerTransitionRenderer {
     this._lastPhase = 'idle'
   }
 
-  _reset() {
+  _reset(): void {
     this._lastPhase = 'idle'
     this.captured.clear()
     // Frame-Canvases behalten (Wiederverwendung), nur Inhalt gilt als veraltet
   }
 
-  _captureFrame(key, sourceCanvas) {
+  _captureFrame(key: string, sourceCanvas: HTMLCanvasElement): void {
     let frame = this.frames.get(key)
     if (
       !frame ||
@@ -41,7 +60,7 @@ export class MarkerTransitionRenderer {
       const canvas = document.createElement('canvas')
       canvas.width = sourceCanvas.width
       canvas.height = sourceCanvas.height
-      frame = { canvas, ctx: canvas.getContext('2d') }
+      frame = { canvas, ctx: canvas.getContext('2d') as CanvasRenderingContext2D }
       this.frames.set(key, frame)
     }
     frame.ctx.clearRect(0, 0, frame.canvas.width, frame.canvas.height)
@@ -54,7 +73,7 @@ export class MarkerTransitionRenderer {
    * @param {number} height
    * @param {string} [key='live'] - Render-Ziel ('live' | 'rec')
    */
-  render(ctx, width, height, key = 'live') {
+  render(ctx: CanvasRenderingContext2D, width: number, height: number, key = 'live'): void {
     if (!this.store) return
 
     const capturing = this.store.isCapturing()

@@ -1,6 +1,22 @@
 // RecordingRenderer.js - Recording-spezifisches Rendering
 
-import { CanvasPool } from './CanvasPool.js'
+import { CanvasPool } from './CanvasPool'
+import type { Rect } from '../../canvasObjects/geometry'
+
+type Ctx = CanvasRenderingContext2D
+
+/** Benötigter Ausschnitt des CanvasManagers */
+export interface RecordingRendererManager {
+  canvas: HTMLCanvasElement
+  workspacePreset?: { width: number; height: number } | null
+  isRecording: boolean
+  multiImageManager?: {
+    prepareForRecording?(ctx: Ctx | null): void
+    cleanupAfterRecording?(): void
+  } | null
+  sceneRenderer: { drawScene(ctx: Ctx): void }
+  getWorkspaceBounds(): Rect | null | undefined
+}
 
 /**
  * RecordingRenderer - Verantwortlich für Recording-Rendering
@@ -11,7 +27,10 @@ import { CanvasPool } from './CanvasPool.js'
  * - cleanupAfterRecording
  */
 export class RecordingRenderer {
-  constructor(canvasManager) {
+  manager: RecordingRendererManager
+  canvasPool: CanvasPool
+
+  constructor(canvasManager: RecordingRendererManager) {
     this.manager = canvasManager
     this.canvasPool = new CanvasPool()
   }
@@ -19,7 +38,7 @@ export class RecordingRenderer {
   /**
    * Bereitet das Recording vor
    */
-  prepareForRecording(targetCanvas) {
+  prepareForRecording(targetCanvas: HTMLCanvasElement): boolean {
     if (!this.manager.workspacePreset) return false
 
     // Set canvas size
@@ -43,7 +62,7 @@ export class RecordingRenderer {
    *
    * Memory: 4.8GB → 50MB (99% Reduktion)
    */
-  drawForRecording(ctx, visualizerCallback = null) {
+  drawForRecording(ctx: Ctx, visualizerCallback: ((ctx: Ctx) => void) | null = null): void {
     // Recording-Modus aktivieren (keine UI-Elemente wie Auswahlrahmen zeichnen)
     this.manager.isRecording = true
 
@@ -65,8 +84,9 @@ export class RecordingRenderer {
     // CRITICAL: Initialize canvas pool (reuse canvases)
     this.canvasPool.init(this.manager.canvas.width, this.manager.canvas.height)
 
-    const tempCanvas = this.canvasPool.getTempCanvas()
-    const tempCtx = this.canvasPool.getTempCtx()
+    // nach init() vorhanden
+    const tempCanvas = this.canvasPool.getTempCanvas() as HTMLCanvasElement
+    const tempCtx = this.canvasPool.getTempCtx() as Ctx
 
     // Clear temp canvas
     tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height)
@@ -77,8 +97,8 @@ export class RecordingRenderer {
     // Visualizer (if present)
     if (visualizerCallback) {
       // CRITICAL: Reuse viz canvas from pool
-      const vizCanvas = this.canvasPool.getVizCanvas()
-      const vizCtx = this.canvasPool.getVizCtx()
+      const vizCanvas = this.canvasPool.getVizCanvas() as HTMLCanvasElement
+      const vizCtx = this.canvasPool.getVizCtx() as Ctx
 
       // Resize viz canvas only if needed
       this.canvasPool.resizeVizCanvas(workspaceBounds.width, workspaceBounds.height)
@@ -127,7 +147,7 @@ export class RecordingRenderer {
    * Cleanup nach Recording
    * Gibt Image-Context Referenzen frei
    */
-  cleanupAfterRecording() {
+  cleanupAfterRecording(): void {
     console.log('[RecordingRenderer] 🧹 Cleanup after recording...')
 
     // Cleanup MultiImageManager

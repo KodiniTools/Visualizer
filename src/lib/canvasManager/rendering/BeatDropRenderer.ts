@@ -1,4 +1,26 @@
 import { BeatDetector } from '../../audio/BeatDetector'
+import type { AudioLevelData } from '../../audio/AudioLevelCalculator'
+
+type Ctx = CanvasRenderingContext2D
+
+/** Beat-Drop-Einstellungen (beatDropStore.$state) */
+export interface BeatDropSettings {
+  enabled: boolean
+  source: string
+  flashEnabled: boolean
+  flashColor: string
+  flashIntensity: number
+  flashDecay: number
+  colorBurstEnabled: boolean
+  colorBurstColor: string
+  colorBurstIntensity: number
+  strobeEnabled: boolean
+  strobeRate: number
+  strobeIntensity: number
+  vignettePulseEnabled: boolean
+  vignettePulseColor: string
+  vignettePulseIntensity: number
+}
 
 /**
  * BeatDropRenderer — Global beat-drop overlay effects on top of the full canvas.
@@ -10,6 +32,13 @@ import { BeatDetector } from '../../audio/BeatDetector'
  * Smoothed values are used only as a fallback when raw values are unavailable.
  */
 export class BeatDropRenderer {
+  beatDetector: BeatDetector
+  flashOpacity: number
+  colorBurstOpacity: number
+  vignettePulse: number
+  strobeVisible: boolean
+  strobeLastToggle: number
+
   constructor() {
     // Lower thresholds so beats fire reliably with real audio
     this.beatDetector = new BeatDetector({ beatThreshold: 0.2, beatRiseThreshold: 0.05 })
@@ -29,7 +58,13 @@ export class BeatDropRenderer {
    * @param {object} audioData — getAudioAnalysisData()
    * @param {object} settings — from beatDropStore.$state
    */
-  render(ctx, width, height, audioData, settings) {
+  render(
+    ctx: Ctx,
+    width: number,
+    height: number,
+    audioData: AudioLevelData | null | undefined,
+    settings: BeatDropSettings | null | undefined,
+  ): void {
     if (!settings?.enabled) return
 
     const now = performance.now()
@@ -84,7 +119,7 @@ export class BeatDropRenderer {
   }
 
   // Use non-smoothed (raw) values so the beat detector sees real transients
-  _getRawLevel(audioData, source) {
+  _getRawLevel(audioData: AudioLevelData | null | undefined, source: string): number {
     if (!audioData) return 0
     switch (source) {
       case 'bass':
@@ -118,7 +153,7 @@ export class BeatDropRenderer {
     }
   }
 
-  _drawFlash(ctx, width, height, color, opacity) {
+  _drawFlash(ctx: Ctx, width: number, height: number, color: string, opacity: number): void {
     ctx.save()
     ctx.globalAlpha = opacity
     ctx.globalCompositeOperation = 'screen'
@@ -127,7 +162,7 @@ export class BeatDropRenderer {
     ctx.restore()
   }
 
-  _drawColorBurst(ctx, width, height, color, opacity) {
+  _drawColorBurst(ctx: Ctx, width: number, height: number, color: string, opacity: number): void {
     ctx.save()
     ctx.globalAlpha = opacity
     ctx.globalCompositeOperation = 'screen'
@@ -146,7 +181,13 @@ export class BeatDropRenderer {
     ctx.restore()
   }
 
-  _drawStrobe(ctx, width, height, settings, now) {
+  _drawStrobe(
+    ctx: Ctx,
+    width: number,
+    height: number,
+    settings: BeatDropSettings,
+    now: number,
+  ): void {
     const intervalMs = 1000 / Math.max(1, settings.strobeRate)
     if (now - this.strobeLastToggle >= intervalMs) {
       this.strobeVisible = !this.strobeVisible
@@ -162,7 +203,13 @@ export class BeatDropRenderer {
     }
   }
 
-  _drawVignettePulse(ctx, width, height, color, opacity) {
+  _drawVignettePulse(
+    ctx: Ctx,
+    width: number,
+    height: number,
+    color: string,
+    opacity: number,
+  ): void {
     ctx.save()
     ctx.globalAlpha = opacity
     ctx.globalCompositeOperation = 'screen'
@@ -182,7 +229,7 @@ export class BeatDropRenderer {
     ctx.restore()
   }
 
-  reset() {
+  reset(): void {
     this.flashOpacity = 0
     this.colorBurstOpacity = 0
     this.vignettePulse = 0

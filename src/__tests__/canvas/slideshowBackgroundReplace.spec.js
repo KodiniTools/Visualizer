@@ -3,7 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
   BackgroundRenderer,
   createSlideshowBaseFill,
-} from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
+} from '../../lib/canvasManager/rendering/BackgroundRenderer'
 import { SelectionManager } from '../../lib/canvasManager/interaction/SelectionManager.js'
 import { MultiImageManager } from '../../lib/multiImageManager'
 import { FotoManager } from '../../lib/fotoManager'

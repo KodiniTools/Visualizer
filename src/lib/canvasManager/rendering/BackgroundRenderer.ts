@@ -15,13 +15,70 @@ import {
   applyAudioReactiveTransform,
   drawAudioReactiveOverlays,
   drawMediaWithAudioReactive,
-} from './audioReactiveDraw.js'
+} from './audioReactiveDraw'
 import { SLIDESHOW_BASE_COLOR_DEFAULT } from '../../slideshowBaseColor'
 import { computeSlideshowGradientAudio } from '../../slideshowGradientAudio'
 import { applySlideshowFillAudio, computeSlideshowFillAudio } from '../../slideshowFillAudio'
 import { computeSlideshowImageFillAudio, drawSlideshowImageFill } from '../../slideshowImageFill'
 import { getSlideshowManager } from '../../slideshowManagerBridge'
 import { getAudioAnalysisData } from '../../audio/audioAnalysisData'
+import type { EffectValues } from '../../audio/AudioReactiveEffects'
+import type { AudioReactiveValues, EngineAudioSettings } from '../../audio/audioReactiveEngine'
+import type { Rect } from '../../canvasObjects/geometry'
+import type { FotoImageObject, FotoManager } from '../../fotoManager'
+import type { SlideshowGradient } from '../../slideshowBaseColor'
+import type { SlideshowGradientAudioDeform } from '../../slideshowGradientAudio'
+import type { BackgroundTile, TileImageSettings } from '../../../stores/backgroundTilesStore'
+
+type Ctx = CanvasRenderingContext2D
+
+/** Effektwerte inkl. der Gradient-Effekte des Farb-Hintergrunds */
+export interface BackgroundEffectValues extends EffectValues {
+  gradientRadius?: number
+  gradientAngle?: number
+}
+
+export type BackgroundAudioReactive = AudioReactiveValues<BackgroundEffectValues> | null
+
+/** Bild-Hintergrund (Objekt mit imageObject oder direkt das Bild) */
+export type BackgroundImageObject = FotoImageObject & { imageObject?: CanvasImageSource }
+
+export type VideoBackgroundObject = FotoImageObject & { videoElement: HTMLVideoElement }
+
+export interface GradientSettings {
+  enabled?: boolean
+  type?: string
+  angle?: number
+  color2: string
+}
+
+/** Benötigter Ausschnitt des backgroundTilesStore */
+export interface BackgroundTilesStoreLike {
+  tilesEnabled: boolean
+  tiles: BackgroundTile[]
+  gridLayout: { rows: number; cols: number }
+  tileGap: number
+  selectedTileIndex: number | null
+  getTileImageFilter(index: number): string
+}
+
+/** Benötigter Ausschnitt des CanvasManagers */
+export interface BackgroundRendererManager {
+  canvas: HTMLCanvasElement
+  background?: string | BackgroundImageObject | null
+  backgroundColorSettings?: EngineAudioSettings | null
+  gradientSettings?: GradientSettings | null
+  videoBackground?: VideoBackgroundObject | null
+  workspaceBackground?: (FotoImageObject & { imageObject: CanvasImageSource }) | null
+  workspaceVideoBackground?: VideoBackgroundObject | null
+  workspacePreset?: object | null
+  fotoManager?: FotoManager | null
+  backgroundTilesStore?: BackgroundTilesStoreLike | null
+  isRecording?: boolean
+  getWorkspaceBounds(): Rect | null | undefined
+  _getAudioReactiveValues(settings: EngineAudioSettings | null | undefined): BackgroundAudioReactive
+  _applyAudioReactiveFilters(ctx: Ctx, audioReactive: BackgroundAudioReactive): void
+}
 
 /**
  * Ersetzt die laufende Slideshow gerade den Canvas- bzw. Workspace-Hintergrund?
@@ -29,7 +86,7 @@ import { getAudioAnalysisData } from '../../audio/audioAnalysisData'
  * @param {'canvas'|'workspace'} target
  * @returns {boolean}
  */
-export function isBackgroundReplacedBySlideshow(target) {
+export function isBackgroundReplacedBySlideshow(target: string): boolean {
   const slideshow = getSlideshowManager()
   return Boolean(slideshow?.replacesBackground?.(target))
 }
@@ -38,7 +95,7 @@ export function isBackgroundReplacedBySlideshow(target) {
  * Farbe der Fläche unter der Slideshow (siehe slideshowBaseColor.js).
  * @param {'canvas'|'workspace'} target
  */
-function getSlideshowBaseColor(target) {
+function getSlideshowBaseColor(target: string): string {
   const slideshow = getSlideshowManager()
   const color =
     typeof slideshow?.getBaseColor === 'function'
@@ -51,7 +108,7 @@ function getSlideshowBaseColor(target) {
  * Farbverlauf der Fläche oder null (aus).
  * @param {'canvas'|'workspace'} target
  */
-function getSlideshowBaseGradient(target) {
+function getSlideshowBaseGradient(target: string): SlideshowGradient | null {
   const slideshow = getSlideshowManager()
   const gradient = slideshow?.getBaseGradient?.(target)
   return gradient?.enabled ? gradient : null
@@ -61,7 +118,7 @@ function getSlideshowBaseGradient(target) {
  * Audio-Reaktive Farbeinstellung der Fläche oder null (aus).
  * @param {'canvas'|'workspace'} target
  */
-function getSlideshowFillAudio(target) {
+function getSlideshowFillAudio(target: string) {
   const slideshow = getSlideshowManager()
   const audio = slideshow?.getBaseFillAudio?.(target)
   return audio?.enabled ? audio : null
@@ -76,18 +133,25 @@ function getSlideshowFillAudio(target) {
  * lässt den radialen Mittelpunkt kreisen.
  * @returns {string|CanvasGradient}
  */
-export function createSlideshowBaseFill(ctx, area, color, gradient, audio = null) {
+export function createSlideshowBaseFill(
+  ctx: Ctx,
+  area: Rect,
+  color: string,
+  gradient: SlideshowGradient | null | undefined,
+  audio: SlideshowGradientAudioDeform | null = null,
+): string | CanvasGradient {
   if (!gradient?.enabled || typeof ctx.createLinearGradient !== 'function') return color
   const half = Math.hypot(area.width, area.height) / 2
   const extent = Math.max(0.05, audio?.extent ?? 1)
   let cx = area.x + area.width / 2
   let cy = area.y + area.height / 2
-  let fill
+  let fill: CanvasGradient
   if (gradient.type === 'radial') {
     const shift = (audio?.centerShift ?? 0) * half
     if (shift) {
-      cx += Math.cos(audio.shiftAngle || 0) * shift
-      cy += Math.sin(audio.shiftAngle || 0) * shift
+      // shift ≠ 0 nur mit audio
+      cx += Math.cos(audio?.shiftAngle || 0) * shift
+      cy += Math.sin(audio?.shiftAngle || 0) * shift
     }
     fill = ctx.createRadialGradient(cx, cy, 0, cx, cy, half * extent)
   } else {
@@ -103,24 +167,38 @@ export function createSlideshowBaseFill(ctx, area, color, gradient, audio = null
 }
 
 export class BackgroundRenderer {
-  constructor(canvasManager) {
+  manager: BackgroundRendererManager
+
+  constructor(canvasManager: BackgroundRendererManager) {
     this.manager = canvasManager
   }
 
   /** Geometrische Effekte um (cx, cy) – siehe audioReactiveDraw.js */
-  _applyAudioReactiveTransform(ctx, audioReactive, cx, cy) {
+  _applyAudioReactiveTransform(
+    ctx: Ctx,
+    audioReactive: BackgroundAudioReactive,
+    cx: number,
+    cy: number,
+  ): boolean {
     return applyAudioReactiveTransform(ctx, audioReactive, cx, cy)
   }
 
   /** Overlay-Effekte (Kontur, Vignette) – siehe audioReactiveDraw.js */
-  _drawAudioReactiveOverlays(ctx, audioReactive, x, y, w, h) {
+  _drawAudioReactiveOverlays(
+    ctx: Ctx,
+    audioReactive: BackgroundAudioReactive,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+  ): void {
     drawAudioReactiveOverlays(ctx, audioReactive, x, y, w, h)
   }
 
   /**
    * Zeichnet den kompletten Hintergrund (Farbe, Bild, Video, Tiles)
    */
-  drawBackground(ctx) {
+  drawBackground(ctx: Ctx): void {
     // Läuft die Slideshow als Canvas-/Workspace-Hintergrund, ERSETZT sie das
     // jeweilige Hintergrundbild/-video (statt es nur zu verdecken)
     const slideshowReplacesCanvas = this._slideshowReplacesBackground('canvas')
@@ -179,7 +257,7 @@ export class BackgroundRenderer {
    * @param {'canvas'|'workspace'} target
    * @returns {boolean}
    */
-  _slideshowReplacesBackground(target) {
+  _slideshowReplacesBackground(target: string): boolean {
     return isBackgroundReplacedBySlideshow(target)
   }
 
@@ -191,7 +269,7 @@ export class BackgroundRenderer {
    * @param {{x:number,y:number,width:number,height:number}|null} [rect] - Standard: ganzer Canvas
    * @param {'canvas'|'workspace'} [target] - bestimmt die Farbe
    */
-  _drawSlideshowBase(ctx, rect, target = 'canvas') {
+  _drawSlideshowBase(ctx: Ctx, rect?: Rect | null, target = 'canvas'): void {
     const area =
       rect === undefined ? { x: 0, y: 0, width: ctx.canvas.width, height: ctx.canvas.height } : rect
     if (!area) return
@@ -228,7 +306,7 @@ export class BackgroundRenderer {
   /**
    * Zeichnet einen Farbhintergrund mit optionalem Gradient
    */
-  _drawColorBackground(ctx) {
+  _drawColorBackground(ctx: Ctx): void {
     ctx.save()
     const canvasW = ctx.canvas.width
     const canvasH = ctx.canvas.height
@@ -255,7 +333,7 @@ export class BackgroundRenderer {
       const h = ctx.canvas.height
       const centerX = w / 2
       const centerY = h / 2
-      let gradient
+      let gradient: CanvasGradient
 
       // Audio-reaktive Gradient-Werte holen
       let gradientRadius = 1.0
@@ -263,10 +341,10 @@ export class BackgroundRenderer {
 
       if (bgColorAudioReactive && bgColorAudioReactive.hasEffects) {
         if (bgColorAudioReactive.effects.gradientPulse) {
-          gradientRadius = bgColorAudioReactive.effects.gradientPulse.gradientRadius
+          gradientRadius = bgColorAudioReactive.effects.gradientPulse.gradientRadius as number
         }
         if (bgColorAudioReactive.effects.gradientRotation) {
-          gradientAngle += bgColorAudioReactive.effects.gradientRotation.gradientAngle
+          gradientAngle += bgColorAudioReactive.effects.gradientRotation.gradientAngle as number
         }
       }
 
@@ -288,11 +366,12 @@ export class BackgroundRenderer {
         )
       }
 
-      gradient.addColorStop(0, this.manager.background)
+      // nur bei Farb-Hintergrund (string) aufgerufen
+      gradient.addColorStop(0, this.manager.background as string)
       gradient.addColorStop(1, this.manager.gradientSettings.color2)
       ctx.fillStyle = gradient
     } else {
-      ctx.fillStyle = this.manager.background
+      ctx.fillStyle = this.manager.background as string
     }
 
     if (transformed) {
@@ -311,23 +390,25 @@ export class BackgroundRenderer {
   /**
    * Zeichnet einen Bild-Hintergrund
    */
-  _drawImageBackground(ctx) {
+  _drawImageBackground(ctx: Ctx): void {
+    // nur bei Bild-Hintergrund (Objekt) aufgerufen
+    const background = this.manager.background as BackgroundImageObject
     ctx.save()
 
     // Statische Filter vom FotoManager
-    if (this.manager.fotoManager && this.manager.background.type === 'background') {
-      this.manager.fotoManager.applyFilters(ctx, this.manager.background)
+    if (this.manager.fotoManager && background.type === 'background') {
+      this.manager.fotoManager.applyFilters(ctx, background)
     }
 
     // Audio-Reaktive Effekte für Hintergrundbild
     const bgAudioReactive = this.manager._getAudioReactiveValues(
-      this.manager.background.fotoSettings?.audioReactive,
+      background.fotoSettings?.audioReactive,
     )
     if (bgAudioReactive && bgAudioReactive.hasEffects) {
       this.manager._applyAudioReactiveFilters(ctx, bgAudioReactive)
     }
 
-    const img = this.manager.background.imageObject || this.manager.background
+    const img = (background.imageObject || background) as CanvasImageSource
 
     // Scale-Effekt für Hintergrundbild
     let drawX = 0,
@@ -335,7 +416,7 @@ export class BackgroundRenderer {
       drawW = ctx.canvas.width,
       drawH = ctx.canvas.height
     if (bgAudioReactive && bgAudioReactive.effects.scale) {
-      const scale = bgAudioReactive.effects.scale.scale
+      const scale = bgAudioReactive.effects.scale.scale as number
       const centerX = ctx.canvas.width / 2
       const centerY = ctx.canvas.height / 2
       drawW = ctx.canvas.width * scale
@@ -345,8 +426,8 @@ export class BackgroundRenderer {
     }
 
     // FLIP anwenden (Horizontal und/oder Vertikal spiegeln)
-    const bgFlipH = this.manager.background.fotoSettings?.flipH || false
-    const bgFlipV = this.manager.background.fotoSettings?.flipV || false
+    const bgFlipH = background.fotoSettings?.flipH || false
+    const bgFlipV = background.fotoSettings?.flipV || false
     if (bgFlipH || bgFlipV) {
       const centerX = drawX + drawW / 2
       const centerY = drawY + drawH / 2
@@ -357,7 +438,7 @@ export class BackgroundRenderer {
 
     ctx.drawImage(img, drawX, drawY, drawW, drawH)
 
-    if (this.manager.fotoManager && this.manager.background.type === 'background') {
+    if (this.manager.fotoManager && background.type === 'background') {
       this.manager.fotoManager.resetFilters(ctx)
     }
 
@@ -367,20 +448,22 @@ export class BackgroundRenderer {
   /**
    * Zeichnet einen Video-Hintergrund
    */
-  _drawVideoBackground(ctx) {
-    const video = this.manager.videoBackground.videoElement
+  _drawVideoBackground(ctx: Ctx): void {
+    // nur mit Video-Hintergrund aufgerufen
+    const videoBackground = this.manager.videoBackground as VideoBackgroundObject
+    const video = videoBackground.videoElement
     if (video.readyState < 2) return // HAVE_CURRENT_DATA
 
     ctx.save()
 
     // Filter anwenden
     if (this.manager.fotoManager) {
-      this.manager.fotoManager.applyFilters(ctx, this.manager.videoBackground)
+      this.manager.fotoManager.applyFilters(ctx, videoBackground)
     }
 
     // Audio-Reaktive Effekte
     const vbgAudioReactive = this.manager._getAudioReactiveValues(
-      this.manager.videoBackground.fotoSettings?.audioReactive,
+      videoBackground.fotoSettings?.audioReactive,
     )
     if (vbgAudioReactive && vbgAudioReactive.hasEffects) {
       this.manager._applyAudioReactiveFilters(ctx, vbgAudioReactive)
@@ -438,7 +521,11 @@ export class BackgroundRenderer {
   /**
    * Zeichnet den Workspace-Bild-Hintergrund
    */
-  _drawWorkspaceImageBackground(ctx) {
+  _drawWorkspaceImageBackground(ctx: Ctx): void {
+    // nur mit Workspace-Bild aufgerufen
+    const workspaceBackground = this.manager.workspaceBackground as FotoImageObject & {
+      imageObject: CanvasImageSource
+    }
     const workspaceBounds = this.manager.getWorkspaceBounds()
     if (!workspaceBounds) return
 
@@ -446,23 +533,23 @@ export class BackgroundRenderer {
 
     // Statische Filter
     if (this.manager.fotoManager) {
-      this.manager.fotoManager.applyFilters(ctx, this.manager.workspaceBackground)
+      this.manager.fotoManager.applyFilters(ctx, workspaceBackground)
     }
 
     // Audio-Reaktive Effekte
     const wsAudioReactive = this.manager._getAudioReactiveValues(
-      this.manager.workspaceBackground.fotoSettings?.audioReactive,
+      workspaceBackground.fotoSettings?.audioReactive,
     )
     if (wsAudioReactive && wsAudioReactive.hasEffects) {
       this.manager._applyAudioReactiveFilters(ctx, wsAudioReactive)
     }
 
-    const img = this.manager.workspaceBackground.imageObject
+    const img = workspaceBackground.imageObject
 
     // Scale-Effekt für Workspace-Hintergrund
-    let drawBounds = { ...workspaceBounds }
+    const drawBounds = { ...workspaceBounds }
     if (wsAudioReactive && wsAudioReactive.effects.scale) {
-      const scale = wsAudioReactive.effects.scale.scale
+      const scale = wsAudioReactive.effects.scale.scale as number
       const centerX = workspaceBounds.x + workspaceBounds.width / 2
       const centerY = workspaceBounds.y + workspaceBounds.height / 2
       drawBounds.width = workspaceBounds.width * scale
@@ -472,8 +559,8 @@ export class BackgroundRenderer {
     }
 
     // FLIP anwenden (Horizontal und/oder Vertikal spiegeln)
-    const wsFlipH = this.manager.workspaceBackground.fotoSettings?.flipH || false
-    const wsFlipV = this.manager.workspaceBackground.fotoSettings?.flipV || false
+    const wsFlipH = workspaceBackground.fotoSettings?.flipH || false
+    const wsFlipV = workspaceBackground.fotoSettings?.flipV || false
     if (wsFlipH || wsFlipV) {
       const centerX = drawBounds.x + drawBounds.width / 2
       const centerY = drawBounds.y + drawBounds.height / 2
@@ -494,8 +581,10 @@ export class BackgroundRenderer {
   /**
    * Zeichnet den Workspace-Video-Hintergrund
    */
-  _drawWorkspaceVideoBackground(ctx) {
-    const video = this.manager.workspaceVideoBackground.videoElement
+  _drawWorkspaceVideoBackground(ctx: Ctx): void {
+    // nur mit Workspace-Video aufgerufen
+    const wsVideoBackground = this.manager.workspaceVideoBackground as VideoBackgroundObject
+    const video = wsVideoBackground.videoElement
     const workspaceBounds = this.manager.getWorkspaceBounds()
 
     if (video.readyState < 2 || !workspaceBounds) return
@@ -504,12 +593,12 @@ export class BackgroundRenderer {
 
     // Filter anwenden
     if (this.manager.fotoManager) {
-      this.manager.fotoManager.applyFilters(ctx, this.manager.workspaceVideoBackground)
+      this.manager.fotoManager.applyFilters(ctx, wsVideoBackground)
     }
 
     // Audio-Reaktive Effekte
     const wsvbgAudioReactive = this.manager._getAudioReactiveValues(
-      this.manager.workspaceVideoBackground.fotoSettings?.audioReactive,
+      wsVideoBackground.fotoSettings?.audioReactive,
     )
     if (wsvbgAudioReactive && wsvbgAudioReactive.hasEffects) {
       this.manager._applyAudioReactiveFilters(ctx, wsvbgAudioReactive)
@@ -571,7 +660,7 @@ export class BackgroundRenderer {
    * Zeichnet Kachel-Hintergrund
    * Wird aufgerufen wenn tilesEnabled im Store aktiviert ist
    */
-  drawBackgroundTiles(ctx) {
+  drawBackgroundTiles(ctx: Ctx): boolean {
     if (!this.manager.backgroundTilesStore) return false
 
     const store = this.manager.backgroundTilesStore
@@ -594,7 +683,7 @@ export class BackgroundRenderer {
       for (let col = 0; col < cols; col++) {
         if (tileIndex >= store.tiles.length) break
 
-        const tile = store.tiles[tileIndex]
+        const tile = store.tiles[tileIndex] as BackgroundTile // tileIndex < tiles.length
         const x = col * (tileWidth + gap)
         const y = row * (tileHeight + gap)
 
@@ -630,8 +719,13 @@ export class BackgroundRenderer {
         const mediaElement = tile.video || tile.image
         const isVideo = !!tile.video
 
-        if (mediaElement && (isVideo ? mediaElement.readyState >= 2 : mediaElement.complete)) {
-          const settings = tile.imageSettings || {}
+        if (
+          mediaElement &&
+          (isVideo
+            ? (mediaElement as HTMLVideoElement).readyState >= 2
+            : (mediaElement as HTMLImageElement).complete)
+        ) {
+          const settings: Partial<TileImageSettings> = tile.imageSettings || {}
 
           // Statische Filter anwenden
           const filterString = store.getTileImageFilter(tileIndex)
@@ -661,12 +755,16 @@ export class BackgroundRenderer {
           const offsetY = settings.offsetY || 0
 
           // Media-Aspektratio beibehalten (Cover-Modus)
-          const mediaWidth = isVideo ? mediaElement.videoWidth : mediaElement.width
-          const mediaHeight = isVideo ? mediaElement.videoHeight : mediaElement.height
+          const mediaWidth = isVideo
+            ? (mediaElement as HTMLVideoElement).videoWidth
+            : (mediaElement as HTMLImageElement).width
+          const mediaHeight = isVideo
+            ? (mediaElement as HTMLVideoElement).videoHeight
+            : (mediaElement as HTMLImageElement).height
           const mediaAspect = mediaWidth / mediaHeight
           const tileAspect = tileWidth / tileHeight
 
-          let drawWidth, drawHeight, drawX, drawY
+          let drawWidth: number, drawHeight: number
 
           if (mediaAspect > tileAspect) {
             // Media ist breiter - Höhe anpassen
@@ -679,8 +777,8 @@ export class BackgroundRenderer {
           }
 
           // Zentrieren mit Offset
-          drawX = x + (tileWidth - drawWidth) / 2 + offsetX
-          drawY = y + (tileHeight - drawHeight) / 2 + offsetY
+          const drawX = x + (tileWidth - drawWidth) / 2 + offsetX
+          const drawY = y + (tileHeight - drawHeight) / 2 + offsetY
 
           drawMediaWithAudioReactive(
             ctx,
@@ -742,7 +840,7 @@ export class BackgroundRenderer {
    * Prüft ob ein Punkt innerhalb einer Kachel liegt
    * Gibt den Kachel-Index zurück oder -1
    */
-  getTileAtPosition(x, y) {
+  getTileAtPosition(x: number, y: number): number {
     if (!this.manager.backgroundTilesStore) return -1
 
     const store = this.manager.backgroundTilesStore

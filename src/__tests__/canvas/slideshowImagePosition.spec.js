@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { SlideshowManager } from '../../lib/slideshowManager.js'
+import { SlideshowManager } from '../../lib/slideshowManager'
 import SlideshowImageEditor from '../../components/foto-panel/slideshow/SlideshowImageEditor.vue'
 
 function createManager(callbacks = {}) {

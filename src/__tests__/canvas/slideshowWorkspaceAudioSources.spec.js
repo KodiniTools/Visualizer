@@ -7,8 +7,8 @@
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
-import { SlideshowManager } from '../../lib/slideshowManager.js'
-import { MultiImageManager } from '../../lib/multiImageManager.js'
+import { SlideshowManager } from '../../lib/slideshowManager'
+import { MultiImageManager } from '../../lib/multiImageManager'
 import { FotoManager } from '../../lib/fotoManager'
 import { resolveSlideshowAudioReactive } from '../../lib/slideshowAudio'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'

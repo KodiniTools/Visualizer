@@ -6,7 +6,11 @@
  */
 import { EFFECT_NAMES } from './audio/AudioReactiveEffects'
 import { computeAudioReactiveValues } from './audio/audioReactiveEngine'
-import { createAudioReactiveConfig, ensureAudioReactiveConfig } from './audio/audioReactiveConfig'
+import {
+  createAudioReactiveConfig,
+  ensureAudioReactiveConfig,
+  type AudioReactiveConfig,
+} from './audio/audioReactiveConfig'
 import {
   applyAudioReactiveFilters,
   applyAudioReactiveTransform,
@@ -18,13 +22,105 @@ import {
   getDeleteButtonBounds,
   getResizeHandles,
   isPointInRect,
+  type Rect,
 } from './canvasObjects/geometry'
-import { getEntranceTransform } from './canvasObjects/entranceAnimation'
+import {
+  getEntranceTransform,
+  type EntranceAnimationState,
+  type EntranceTransform,
+} from './canvasObjects/entranceAnimation'
 import { moveToBack, moveToFront } from './canvasObjects/zOrder'
 import { getAudioAnalysisData } from './audio/audioAnalysisData'
+import type { FotoImageObject, FotoManager, FotoSettings } from './fotoManager'
+
+/** Einfache Filter (Fallback ohne FotoManager) */
+export interface VideoBasicSettings {
+  brightness: number
+  contrast: number
+  saturation: number
+  opacity: number
+  blur: number
+  preset: string | null
+  [key: string]: unknown
+}
+
+export interface VideoAnimation extends EntranceAnimationState {
+  type: string
+  active: boolean
+  startTime: number
+  duration: number
+  progress: number
+}
+
+/** Video-Objekt auf dem Canvas */
+export interface VideoObject extends FotoImageObject {
+  id: number | string
+  type: string
+  videoElement: HTMLVideoElement
+  relX: number
+  relY: number
+  relWidth: number
+  relHeight: number
+  duration: number
+  loop: boolean
+  muted: boolean
+  playbackRate: number
+  startTime: number
+  endTime: number
+  isPlaying: boolean
+  imageObject: unknown
+  settings?: VideoBasicSettings
+  animation: VideoAnimation
+}
+
+export interface VideoAddOptions {
+  relX?: number
+  relY?: number
+  relWidth?: number
+  relHeight?: number
+  loop?: boolean
+  muted?: boolean
+  playbackRate?: number
+  startTime?: number
+  endTime?: number
+  /** Name der Einblend-Animation */
+  animation?: string
+  animationDuration?: number
+  /** Dauer der Einblend-Animation (addVideoWithBounds) */
+  duration?: number
+}
+
+export interface VideoBounds {
+  relX: number
+  relY: number
+  relWidth: number
+  relHeight: number
+}
+
+export interface VideoManagerCallbacks {
+  redrawCallback?: () => void
+  onVideoSelected?: (video: VideoObject | null) => void
+  onVideoChanged?: () => void
+  fotoManager?: FotoManager | null
+  audioElement?: HTMLMediaElement | null
+}
+
+type VideoAudioReactive = ReturnType<typeof computeAudioReactiveValues>
 
 export class VideoManager {
-  constructor(canvas, callbacks = {}) {
+  canvas: HTMLCanvasElement
+  videos: VideoObject[]
+  selectedVideo: VideoObject | null
+  redrawCallback: () => void
+  onVideoSelected: (video: VideoObject | null) => void
+  onVideoChanged: () => void
+  fotoManager: FotoManager | null
+  audioElement: HTMLMediaElement | null
+  syncWithAudio: boolean
+  isPlaying: boolean
+  globalPlaybackRate: number
+
+  constructor(canvas: HTMLCanvasElement, callbacks: VideoManagerCallbacks = {}) {
     this.canvas = canvas
     this.videos = []
     this.selectedVideo = null
@@ -53,7 +149,7 @@ export class VideoManager {
    * Wird aufgerufen, wenn das DOM-Canvas sich vom gespeicherten Canvas unterscheidet
    * (z.B. nach einem direkten Page-Refresh)
    */
-  updateCanvas(newCanvas) {
+  updateCanvas(newCanvas: HTMLCanvasElement | null | undefined): boolean {
     if (newCanvas && newCanvas !== this.canvas) {
       console.log('[VideoManager] Canvas-Referenz aktualisiert')
       this.canvas = newCanvas
@@ -65,14 +161,14 @@ export class VideoManager {
   /**
    * Setzt das Audio-Element für Synchronisation
    */
-  setAudioElement(audioElement) {
+  setAudioElement(audioElement: HTMLMediaElement | null): void {
     this.audioElement = audioElement
   }
 
   /**
    * Aktiviert/Deaktiviert Audio-Synchronisation
    */
-  setSyncWithAudio(sync) {
+  setSyncWithAudio(sync: boolean): void {
     this.syncWithAudio = sync
     if (sync && this.audioElement) {
       this.syncAllVideosToAudio()
@@ -82,7 +178,7 @@ export class VideoManager {
   /**
    * Synchronisiert alle Videos mit dem Audio
    */
-  syncAllVideosToAudio() {
+  syncAllVideosToAudio(): void {
     if (!this.audioElement) return
 
     const audioTime = this.audioElement.currentTime
@@ -103,7 +199,9 @@ export class VideoManager {
   /**
    * Initialisiert Filter-Einstellungen für ein Video (kompatibel mit FotoManager)
    */
-  initializeVideoSettings(videoData) {
+  initializeVideoSettings<T extends FotoImageObject & { settings?: VideoBasicSettings }>(
+    videoData: T,
+  ): T {
     if (!videoData.fotoSettings) {
       videoData.fotoSettings = {
         brightness: 100,
@@ -128,13 +226,12 @@ export class VideoManager {
         // Identische Struktur wie bei Canvas-Bildern (Master inkl. Easing/Beat-
         // Boost/Phase/Gain, alle Effekte mit eigener Quelle)
         audioReactive: createAudioReactiveConfig(EFFECT_NAMES),
-      }
+      } as FotoSettings
     }
 
     // Alte/unvollständige Audio-Konfigurationen (z. B. aus Presets) vervollständigen
-    videoData.fotoSettings.audioReactive = ensureAudioReactiveConfig(
-      videoData.fotoSettings.audioReactive,
-    )
+    const fotoSettings = videoData.fotoSettings as FotoSettings
+    fotoSettings.audioReactive = ensureAudioReactiveConfig(fotoSettings.audioReactive)
 
     if (!videoData.settings) {
       videoData.settings = {
@@ -155,7 +252,10 @@ export class VideoManager {
    * @param {HTMLVideoElement} videoElement - Das Video-Element
    * @param {Object} options - Optionale Einstellungen (bounds, loop, muted, etc.)
    */
-  addVideo(videoElement, options = {}) {
+  addVideo(
+    videoElement: HTMLVideoElement | null | undefined,
+    options: VideoAddOptions = {},
+  ): VideoObject | null | Promise<VideoObject> {
     if (!videoElement) {
       console.error('❌ Kein Video zum Hinzufügen übergeben')
       return null
@@ -164,7 +264,7 @@ export class VideoManager {
     // Sicherstellen, dass Video-Metadaten geladen sind
     if (videoElement.readyState < 1) {
       console.warn('⚠️ Video-Metadaten noch nicht geladen, warte...')
-      return new Promise((resolve) => {
+      return new Promise<VideoObject>((resolve) => {
         videoElement.addEventListener(
           'loadedmetadata',
           () => {
@@ -181,7 +281,7 @@ export class VideoManager {
   /**
    * Erstellt das Video-Objekt und fügt es zur Liste hinzu
    */
-  _createVideoObject(videoElement, options = {}) {
+  _createVideoObject(videoElement: HTMLVideoElement, options: VideoAddOptions = {}): VideoObject {
     const videoWidth = videoElement.videoWidth || 640
     const videoHeight = videoElement.videoHeight || 360
 
@@ -196,7 +296,7 @@ export class VideoManager {
     const relX = options.relX !== undefined ? options.relX : (1 - initialRelWidth) / 2
     const relY = options.relY !== undefined ? options.relY : (1 - initialRelHeight) / 2
 
-    const newVideo = {
+    const newVideo: VideoObject = {
       id: Date.now() + Math.random(),
       type: 'video',
       videoElement: videoElement,
@@ -226,7 +326,8 @@ export class VideoManager {
       // Animation (wie bei Bildern)
       animation: {
         type: options.animation || 'none',
-        active: options.animation && options.animation !== 'none',
+        // falsy-Wert (undefined/'') bleibt wie bisher erhalten
+        active: (options.animation && options.animation !== 'none') as boolean,
         startTime: Date.now(),
         duration: options.animationDuration || 500,
         progress: 0,
@@ -270,7 +371,12 @@ export class VideoManager {
   /**
    * Fügt ein Video mit benutzerdefinierten Bounds hinzu
    */
-  addVideoWithBounds(videoElement, bounds, animation = 'none', options = {}) {
+  addVideoWithBounds(
+    videoElement: HTMLVideoElement | null | undefined,
+    bounds: VideoBounds,
+    animation = 'none',
+    options: VideoAddOptions = {},
+  ): VideoObject | null | Promise<VideoObject> {
     const fullOptions = {
       ...options,
       relX: bounds.relX,
@@ -287,7 +393,7 @@ export class VideoManager {
   /**
    * Startet die Eintritts-Animation für ein Video
    */
-  _startAnimation(videoData) {
+  _startAnimation(videoData: VideoObject): void {
     if (!videoData.animation || !videoData.animation.active) return
 
     const animate = () => {
@@ -314,7 +420,7 @@ export class VideoManager {
   /**
    * Transform der Einblend-Animation (siehe canvasObjects/entranceAnimation.js)
    */
-  getAnimationTransform(videoData) {
+  getAnimationTransform(videoData: VideoObject): EntranceTransform {
     return getEntranceTransform(videoData.animation, this.canvas)
   }
 
@@ -327,11 +433,11 @@ export class VideoManager {
    *   wiederhergestellt werden kann (Undo). Wird für die Undo-fähige Löschung
    *   verwendet.
    */
-  removeVideo(videoId, { destroyElement = true } = {}) {
+  removeVideo(videoId: VideoObject['id'], { destroyElement = true } = {}): boolean {
     const index = this.videos.findIndex((v) => v.id === videoId)
     if (index === -1) return false
 
-    const video = this.videos[index]
+    const video = this.videos[index] as VideoObject // index !== -1
 
     // Video-Element stoppen (und optional vollständig aufräumen)
     if (video.videoElement) {
@@ -365,7 +471,7 @@ export class VideoManager {
    * @param {number} [index] - Ursprünglicher Index in der Ebenen-Reihenfolge
    * @returns {boolean} true wenn erfolgreich
    */
-  restoreVideo(videoData, index) {
+  restoreVideo(videoData: VideoObject | null | undefined, index?: number): boolean {
     if (!videoData) return false
     // Doppelte Wiederherstellung verhindern
     if (this.videos.some((v) => v.id === videoData.id)) return false
@@ -392,7 +498,7 @@ export class VideoManager {
   /**
    * Setzt das aktuell ausgewählte Video
    */
-  setSelectedVideo(video) {
+  setSelectedVideo(video: VideoObject | null): void {
     if (this.selectedVideo && video && this.selectedVideo.id === video.id) {
       return
     }
@@ -405,14 +511,14 @@ export class VideoManager {
   /**
    * Gibt das ausgewählte Video zurück
    */
-  getSelectedVideo() {
+  getSelectedVideo(): VideoObject | null {
     return this.selectedVideo
   }
 
   /**
    * Gibt alle Videos zurück
    */
-  getAllVideos() {
+  getAllVideos(): VideoObject[] {
     return this.videos
   }
 
@@ -420,7 +526,7 @@ export class VideoManager {
    * Startet die Wiedergabe eines Videos
    * ✅ VERBESSERT: Besseres Error-Handling und sofortige State-Updates
    */
-  playVideo(videoId) {
+  playVideo(videoId: VideoObject['id']): boolean {
     const video = this.videos.find((v) => v.id === videoId)
     if (!video || !video.videoElement) {
       console.warn('❌ Video nicht gefunden oder kein videoElement:', videoId)
@@ -460,7 +566,7 @@ export class VideoManager {
    * Pausiert ein Video
    * ✅ VERBESSERT: Callback für UI-Update
    */
-  pauseVideo(videoId) {
+  pauseVideo(videoId: VideoObject['id']): boolean {
     const video = this.videos.find((v) => v.id === videoId)
     if (!video || !video.videoElement) return false
 
@@ -476,7 +582,7 @@ export class VideoManager {
    * Startet alle Videos
    * ✅ VERBESSERT: Callback für UI-Update
    */
-  playAll() {
+  playAll(): void {
     this.videos.forEach((video) => {
       if (video.videoElement) {
         video.isPlaying = true
@@ -494,7 +600,7 @@ export class VideoManager {
    * Pausiert alle Videos
    * ✅ VERBESSERT: Callback für UI-Update
    */
-  pauseAll() {
+  pauseAll(): void {
     this.videos.forEach((video) => {
       if (video.videoElement) {
         video.videoElement.pause()
@@ -508,7 +614,7 @@ export class VideoManager {
   /**
    * Setzt alle Videos auf eine bestimmte Zeit
    */
-  seekAll(time) {
+  seekAll(time: number): void {
     this.videos.forEach((video) => {
       if (video.videoElement) {
         const duration = video.videoElement.duration
@@ -523,7 +629,10 @@ export class VideoManager {
    * Berechnet die Bounds eines Videos
    * ✅ KRITISCHER FIX: Akzeptiert optionalen Canvas-Parameter für korrekte Dimensionen
    */
-  getVideoBounds(videoData, canvasOverride = null) {
+  getVideoBounds(
+    videoData: VideoObject | null | undefined,
+    canvasOverride: HTMLCanvasElement | null = null,
+  ): Rect | null {
     if (!videoData || videoData.type !== 'video') return null
 
     // ✅ FIX: Verwende übergebenen Canvas wenn vorhanden, sonst this.canvas
@@ -543,7 +652,7 @@ export class VideoManager {
   /**
    * Zeichnet alle Videos auf den Canvas
    */
-  drawVideos(ctx) {
+  drawVideos(ctx: CanvasRenderingContext2D | null | undefined): void {
     if (!ctx || this.videos.length === 0) return
 
     // Audio-Synchronisation wenn aktiviert
@@ -559,7 +668,7 @@ export class VideoManager {
   /**
    * Zeichnet ein einzelnes Video
    */
-  _drawSingleVideo(ctx, videoData) {
+  _drawSingleVideo(ctx: CanvasRenderingContext2D, videoData: VideoObject): void {
     if (!videoData.videoElement) return
 
     const video = videoData.videoElement
@@ -618,7 +727,7 @@ export class VideoManager {
     }
 
     // Draw-Bounds für Position (inkl. Animation)
-    let drawBounds = { ...bounds }
+    const drawBounds = { ...bounds }
 
     // Animation: Translate
     if (animTransform.translateX !== 0 || animTransform.translateY !== 0) {
@@ -679,7 +788,7 @@ export class VideoManager {
   /**
    * Wendet einfache Filter an (Fallback ohne FotoManager)
    */
-  _applyBasicFilters(ctx, videoData) {
+  _applyBasicFilters(ctx: CanvasRenderingContext2D, videoData: VideoObject): void {
     if (!videoData.settings) return
 
     const s = videoData.settings
@@ -696,21 +805,26 @@ export class VideoManager {
   /**
    * Berechnet Audio-Reaktive Werte – gemeinsame Engine mit Bildern/Hintergrund
    */
-  _getAudioReactiveValues(audioSettings) {
+  _getAudioReactiveValues(
+    audioSettings: AudioReactiveConfig | null | undefined,
+  ): VideoAudioReactive {
     return computeAudioReactiveValues(audioSettings, audioSettings, getAudioAnalysisData())
   }
 
   /**
    * Wendet Audio-Reaktive Filter/Glow/Strobe an – gemeinsamer Helfer
    */
-  _applyAudioReactiveFilters(ctx, audioReactive) {
+  _applyAudioReactiveFilters(
+    ctx: CanvasRenderingContext2D,
+    audioReactive: VideoAudioReactive,
+  ): void {
     applyAudioReactiveFilters(ctx, audioReactive)
   }
 
   /**
    * Zeichnet interaktive Elemente (Rahmen, Handles) für ausgewähltes Video
    */
-  drawInteractiveElements(ctx) {
+  drawInteractiveElements(ctx: CanvasRenderingContext2D): void {
     if (!this.selectedVideo || this.selectedVideo.type !== 'video') return
 
     const bounds = this.getVideoBounds(this.selectedVideo)
@@ -741,7 +855,7 @@ export class VideoManager {
     ctx.lineWidth = 1
 
     for (const key in handles) {
-      const handle = handles[key]
+      const handle = handles[key] as Rect
       ctx.fillRect(handle.x, handle.y, handle.width, handle.height)
       ctx.strokeRect(handle.x, handle.y, handle.width, handle.height)
     }
@@ -777,23 +891,23 @@ export class VideoManager {
     ctx.restore()
   }
 
-  getResizeHandles(bounds) {
+  getResizeHandles(bounds: Rect): Record<string, Rect> {
     return getResizeHandles(bounds)
   }
 
   /**
    * Berechnet die Position des Löschbuttons
    */
-  getDeleteButtonBounds(objectBounds) {
+  getDeleteButtonBounds(objectBounds: Rect): Rect {
     return getDeleteButtonBounds(objectBounds)
   }
 
   /**
    * Findet Video an Position
    */
-  findVideoAt(x, y) {
+  findVideoAt(x: number, y: number): VideoObject | null {
     for (let i = this.videos.length - 1; i >= 0; i--) {
-      const video = this.videos[i]
+      const video = this.videos[i] as VideoObject
       const bounds = this.getVideoBounds(video)
 
       if (bounds && this.isPointInRect(x, y, bounds)) {
@@ -806,14 +920,14 @@ export class VideoManager {
   /**
    * Prüft ob ein Punkt in einem Rechteck liegt
    */
-  isPointInRect(x, y, rect) {
+  isPointInRect(x: number, y: number, rect: Rect): boolean {
     return isPointInRect(x, y, rect)
   }
 
   /**
    * Findet ein Handle an einer bestimmten Position
    */
-  findHandleAt(x, y) {
+  findHandleAt(x: number, y: number) {
     if (!this.selectedVideo || this.selectedVideo.type !== 'video') return null
 
     const bounds = this.getVideoBounds(this.selectedVideo)
@@ -823,7 +937,7 @@ export class VideoManager {
   /**
    * Prüft ob Punkt auf Löschbutton liegt
    */
-  isPointOnDeleteButton(x, y) {
+  isPointOnDeleteButton(x: number, y: number): boolean {
     if (!this.selectedVideo || this.selectedVideo.type !== 'video') return false
 
     const bounds = this.getVideoBounds(this.selectedVideo)
@@ -836,7 +950,7 @@ export class VideoManager {
   /**
    * Aktualisiert Video-Filter
    */
-  updateVideoFilter(videoId, filterProperty, value) {
+  updateVideoFilter(videoId: VideoObject['id'], filterProperty: string, value: unknown): boolean {
     const video = this.videos.find((v) => v.id === videoId)
     if (!video || !video.settings) return false
 
@@ -849,7 +963,7 @@ export class VideoManager {
   /**
    * Vorbereitung für Recording
    */
-  prepareForRecording(ctx) {
+  prepareForRecording(ctx: CanvasRenderingContext2D | null | undefined): void {
     if (!ctx) return
 
     console.log('[VideoManager] 🧹 Preparing for recording...')
@@ -867,7 +981,7 @@ export class VideoManager {
   /**
    * Cleanup nach Recording
    */
-  cleanupAfterRecording() {
+  cleanupAfterRecording(): void {
     console.log('[VideoManager] 🧹 Cleanup after recording...')
     console.log(`[VideoManager] ✅ Cleanup complete`)
   }
@@ -875,19 +989,19 @@ export class VideoManager {
   /**
    * Z-Index Steuerung
    */
-  getVideoIndex(video) {
+  getVideoIndex(video: VideoObject | null | undefined): number {
     if (!video) return -1
     return this.videos.findIndex((v) => v.id === video.id)
   }
 
-  getVideoCount() {
+  getVideoCount(): number {
     return this.videos.length
   }
   /**
    * Bringt ein Video ganz nach vorne
    * @returns {boolean} true wenn erfolgreich
    */
-  bringToFront(video) {
+  bringToFront(video?: VideoObject | null): boolean {
     if (!video) video = this.selectedVideo
     if (!video) return false
 
@@ -901,7 +1015,7 @@ export class VideoManager {
    * Bringt ein Video ganz nach hinten
    * @returns {boolean} true wenn erfolgreich
    */
-  sendToBack(video) {
+  sendToBack(video?: VideoObject | null): boolean {
     if (!video) video = this.selectedVideo
     if (!video) return false
 
@@ -915,7 +1029,7 @@ export class VideoManager {
   /**
    * Räumt alle Videos auf
    */
-  clear() {
+  clear(): void {
     this.videos.forEach((video) => {
       if (video.videoElement) {
         video.videoElement.pause()

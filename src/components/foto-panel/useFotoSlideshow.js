@@ -1,5 +1,5 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { SlideshowManager } from '../../lib/slideshowManager.js'
+import { SlideshowManager } from '../../lib/slideshowManager'
 import { resolveSlideshowAudioReactive } from '../../lib/slideshowAudio'
 import { SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest'
 import { useSlideshowPopover } from '../../composables/useSlideshowPopover.js'

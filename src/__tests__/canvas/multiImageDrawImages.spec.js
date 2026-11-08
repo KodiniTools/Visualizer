@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { MultiImageManager } from '../../lib/multiImageManager.js'
+import { MultiImageManager } from '../../lib/multiImageManager'
 
 /**
  * Charakterisierungstest für MultiImageManager.drawImages():

@@ -5,8 +5,8 @@ import {
   isValidTransition,
   resolveTransition,
 } from '../../lib/slideshowTransitions'
-import { SlideshowManager } from '../../lib/slideshowManager.js'
-import { MultiImageManager } from '../../lib/multiImageManager.js'
+import { SlideshowManager } from '../../lib/slideshowManager'
+import { MultiImageManager } from '../../lib/multiImageManager'
 
 describe('slideshowTransitions', () => {
   it('Liste, Gültigkeit und Auflösung', () => {

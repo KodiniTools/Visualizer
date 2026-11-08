@@ -25,7 +25,8 @@ export interface FotoSettings {
   borderWidth: number
   borderColor: string
   borderOpacity: number
-  renderBehindVisualizer: boolean
+  /** fehlt bei Videos (VideoManager.initializeVideoSettings) */
+  renderBehindVisualizer?: boolean
   audioReactive: AudioReactiveConfig
   /** Name des angewendeten Presets ('' = keins) */
   preset?: string

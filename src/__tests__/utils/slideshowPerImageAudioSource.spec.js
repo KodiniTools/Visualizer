@@ -7,7 +7,7 @@ import {
 } from '../../lib/slideshowAudio'
 import { normalizeSlideshowPreset } from '../../stores/slideshowPresetStore'
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore'
-import { SlideshowManager } from '../../lib/slideshowManager.js'
+import { SlideshowManager } from '../../lib/slideshowManager'
 
 afterEach(() => {
   vi.restoreAllMocks()

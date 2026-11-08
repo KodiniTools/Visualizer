@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { TextManager } from '../../lib/textManager'
-import { MultiImageManager } from '../../lib/multiImageManager.js'
-import { VideoManager } from '../../lib/videoManager.js'
+import { MultiImageManager } from '../../lib/multiImageManager'
+import { VideoManager } from '../../lib/videoManager'
 
 /**
  * Tests für die undo-fähige Löschung von Canvas-Objekten.

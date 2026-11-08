@@ -78,20 +78,16 @@ export function useRecorderActions({
       }
     })
 
+  // Timer nur anhalten/fortsetzen, wenn der Store die Aktion bestätigt –
+  // sonst laufen Anzeige und Aufnahme auseinander.
   const handlePause = () =>
-    guardedSync(() => {
-      // Hinweis: pauseRecording() ist async – das Promise ist immer truthy, der
-      // Timer pausiert also unabhängig vom Ergebnis (Verhalten unverändert
-      // aus der JS-Version übernommen).
-      void recorderStore.pauseRecording()
-      timer.pauseTimer()
+    guarded(async () => {
+      if (await recorderStore.pauseRecording()) timer.pauseTimer()
     })
 
   const handleResume = () =>
-    guardedSync(() => {
-      // siehe handlePause: Ergebnis wird (wie bisher) nicht abgewartet
-      void recorderStore.resumeRecording()
-      timer.resumeTimer()
+    guarded(async () => {
+      if (await recorderStore.resumeRecording()) timer.resumeTimer()
     })
 
   const handleStop = () =>

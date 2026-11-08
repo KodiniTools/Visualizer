@@ -55,6 +55,7 @@ function fakeVideo(label = `v${++videoSeq}`, init = {}) {
       state.paused = true
     },
     load: () => L(`${label}.load`),
+    getAttribute: (name) => (name === 'src' ? (state.src ?? null) : null),
   }
   return new Proxy(state, {
     get(t, p) {
@@ -285,6 +286,35 @@ describe('useVideoPanel – Platzieren', () => {
     created.at(-1).onloadeddata()
     created.at(-1).onerror()
     expect(log).toMatchSnapshot()
+  })
+
+  it("Entfernen (src = '') meldet keinen Ladefehler, echter Fehler schon", async () => {
+    const { cm } = mountPanel()
+    await uploadVideo('a.mp4')
+    cm.workspacePreset = { width: 1080, height: 1920 }
+    for (const [place, key, remove] of [
+      ['setVideoAsBackground', 'videoBackground', 'removeVideoBackground'],
+      ['setVideoAsWorkspaceBackground', 'workspaceVideoBackground', 'removeWsVideoBackground'],
+    ]) {
+      vp[place]()
+      const el = created.at(-1)
+      el.onloadeddata()
+      cm[key] = { videoElement: el } // Fake-cm.set…Background protokolliert nur
+      console.error.mockClear()
+      vp[remove]()
+      expect(el.src).toBe('')
+      el.onerror()
+      expect(console.error).not.toHaveBeenCalled()
+    }
+    vp.addVideoToCanvas()
+    const canvasEl = created.at(-1)
+    canvasEl.src = ''
+    canvasEl.onerror()
+    expect(console.error).not.toHaveBeenCalled()
+
+    vp.setVideoAsBackground()
+    created.at(-1).onerror() // src gesetzt → echter Ladefehler
+    expect(console.error).toHaveBeenCalledWith('❌ Fehler beim Laden des Video-Hintergrunds')
   })
 
   it('ohne Video-Manager', async () => {

@@ -7,6 +7,7 @@
  */
 
 import { getAudioEngine } from '../audioEngineBridge'
+import { isReleasedMedia } from '../mediaElements'
 
 const cloneJson = <T>(obj: T): T => JSON.parse(JSON.stringify(obj))
 
@@ -296,6 +297,7 @@ export function applyVideoBackground(
     )
   }
   video.onerror = () => {
+    if (isReleasedMedia(video)) return
     console.error('❌ Video-Hintergrund konnte nicht geladen werden:', videoData.src)
   }
   video.src = videoData.src

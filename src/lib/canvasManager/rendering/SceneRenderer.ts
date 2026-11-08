@@ -21,7 +21,7 @@ export interface SceneRendererManager {
   activeObject?: unknown
 }
 
-/** TextManager-Ausschnitt; draw() wird hier wie bisher nur mit ctx aufgerufen */
+/** TextManager-Ausschnitt (Markierungen ausgeblendeter Texte) */
 type SceneTextManager = Pick<
   TextManager,
   | 'textObjects'
@@ -30,7 +30,7 @@ type SceneTextManager = Pick<
   | '_getScaleValue'
   | '_getSlideOffset'
   | 'getObjectBounds'
-> & { draw(ctx: Ctx, canvasWidth?: number, canvasHeight?: number): void }
+>
 
 /**
  * SceneRenderer - Verantwortlich für das Zeichnen der kompletten Szene
@@ -85,10 +85,10 @@ export class SceneRenderer {
     // 3.5 VIDEOS werden in App.vue renderScene() gezeichnet (nach Bildern, vor Text)
     // damit sie korrekt über Bildern aber unter Text erscheinen
 
-    // 4. TEXTE rendern (verhindert Geist-Bug beim Drag)
-    if (this.manager.textManager && this.manager.textManager.draw) {
-      this.manager.textManager.draw(ctx)
-    }
+    // 4. TEXTE zeichnet die Render-Schleife (renderLoop/sceneRenderer) zuletzt
+    // über allen Ebenen mit Canvas-Maßen. Hier früher draw(ctx) ohne Maße:
+    // Positionen wurden NaN, es erschien nichts, die Audio-Hüllkurve der Texte
+    // lief aber pro Frame doppelt.
   }
 
   /**

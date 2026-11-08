@@ -210,12 +210,11 @@ function setup(opts = {}) {
   const main = makeCanvas('main', 400, 200)
   const rec = makeCanvas('rec', 200, 100)
   const workspace = opts.workspace
-    ? { bounds: { x: 100, y: 50, width: 200, height: 100 }, preset: 'ig' }
+    ? { bounds: { x: 100, y: 50, width: 200, height: 100 }, preset: { width: 300, height: 150 } }
     : null
   const canvasManager = {
     canvas: main,
     workspacePreset: workspace?.preset ?? null,
-    socialMediaPresets: { ig: { width: 300, height: 150 } },
     set isRecording(v) {
       L('cm.isRecording=', v)
     },
@@ -528,6 +527,8 @@ describe('useRenderLoop – Charakterisierung', () => {
     expect(window.takeCanvasScreenshot).toBeUndefined()
     const blob = await getCanvasScreenshot()('image/jpeg', 0.8)
     expect(blob).toEqual({ tag: 'blob' })
+    // Zielgröße = Workspace-Preset (300×150), nicht die Canvas-Größe (400×200)
+    expect(log).toContain('c4.clearRect 0 0 300 150')
     expect(log).toMatchSnapshot()
     loop.cleanup()
     expect(getCanvasScreenshot()).toBeNull()

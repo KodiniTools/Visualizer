@@ -39,7 +39,7 @@
 <script setup>
 import { provide } from 'vue'
 import { useI18n } from '../lib/i18n'
-import { useBackgroundTiles } from '../composables/useBackgroundTiles.js'
+import { useBackgroundTiles } from '../composables/useBackgroundTiles'
 import { useTilePresets } from '../composables/useTilePresets'
 import { useTileGallery } from '../composables/useTileGallery'
 import UiSwitch from './ui/UiSwitch.vue'

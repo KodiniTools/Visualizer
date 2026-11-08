@@ -129,7 +129,7 @@
 import { ref, inject, nextTick, watch } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { useToastStore } from '../../stores/toastStore'
-import { useNewTextSettings } from '../../composables/useNewTextSettings.js'
+import { useNewTextSettings } from '../../composables/useNewTextSettings'
 import { buildAnimationConfig } from './text-new-form/buildAnimation.js'
 import TextStyleSection from './text-new-form/TextStyleSection.vue'
 import TypewriterSection from './text-new-form/TypewriterSection.vue'

@@ -8,16 +8,22 @@ import {
   assignAudioReactiveConfig,
   cloneAudioReactiveConfig,
   ensureTextAudioReactive,
+  type TextAudioReactiveConfig,
 } from '../lib/audio/audioReactiveConfig'
+import type { useToastStore } from '../stores/toastStore'
+import type { TextObject } from '../lib/textManager/types'
+import type { CanvasManagerRef, SelectedTextRef } from './types'
+
+type ToastStore = ReturnType<typeof useToastStore>
 
 const AUDIO_EFFECTS_PRESET_KEY = 'visualizer_audio_effects_preset'
 
 // Aktives Effekt-Preset und Backup der Nutzer-Effekte pro Text-ID (modulweit,
 // damit ein Wechsel des markierten Textes den Zustand nicht verliert).
-const activePresetsByText = reactive({})
-const userEffectsBackups = new Map()
+const activePresetsByText = reactive<Record<TextObject['id'], string | null>>({})
+const userEffectsBackups = new Map<TextObject['id'], TextAudioReactiveConfig>()
 
-function loadSavedPreset() {
+function loadSavedPreset(): TextAudioReactiveConfig | null {
   try {
     const raw =
       typeof localStorage !== 'undefined' && localStorage.getItem(AUDIO_EFFECTS_PRESET_KEY)
@@ -33,11 +39,13 @@ const savedPreset = ref(loadSavedPreset())
  * bei Bildern (Master inkl. Easing/Beat-Boost/Phase/Gain, Effekte mit eigener
  * Quelle) plus Text-Extras: Threshold/Attack/Release und Blinken (minimum/ease).
  *
- * @param {import('vue').Ref} selectedText - markiertes Text-Objekt
- * @param {import('vue').Ref} canvasManager
- * @param {object} toastStore
+ * @param selectedText - markiertes Text-Objekt
  */
-export function useAudioReactiveText(selectedText, canvasManager, toastStore) {
+export function useAudioReactiveText(
+  selectedText: SelectedTextRef,
+  canvasManager: CanvasManagerRef,
+  toastStore?: ToastStore | null,
+) {
   const hasAudioEffectsPreset = computed(() => savedPreset.value !== null)
   // Zähler für externe Änderungen (Preset/Laden/Reset), damit das Panel neu einliest
   const revision = ref(0)
@@ -70,7 +78,7 @@ export function useAudioReactiveText(selectedText, canvasManager, toastStore) {
     setAudioEnabled(!cfg.enabled)
   }
 
-  function setAudioEnabled(enabled) {
+  function setAudioEnabled(enabled: unknown) {
     const cfg = ar()
     if (!cfg) return
     cfg.enabled = Boolean(enabled)
@@ -80,32 +88,32 @@ export function useAudioReactiveText(selectedText, canvasManager, toastStore) {
     updateText()
   }
 
-  /** @param {'source'|'smoothing'|'easing'|'beatBoost'|'phase'|'gain'|'threshold'|'attack'|'release'} property */
-  function setAudioProperty(property, value) {
+  /** @param property - 'source'|'smoothing'|'easing'|'beatBoost'|'phase'|'gain'|'threshold'|'attack'|'release' */
+  function setAudioProperty(property: string, value: unknown) {
     const cfg = ar()
     if (!cfg || property === 'effects' || !(property in cfg)) return
-    cfg[property] = value
+    ;(cfg as unknown as Record<string, unknown>)[property] = value
     updateText()
   }
 
   // ── Effekte ───────────────────────────────────────────────────────────────
-  function setEffectEnabled(effectName, enabled) {
+  function setEffectEnabled(effectName: string, enabled: unknown) {
     const fx = ar()?.effects?.[effectName]
     if (!fx) return
     fx.enabled = Boolean(enabled)
     updateText()
   }
 
-  function setEffectIntensity(effectName, intensity) {
+  function setEffectIntensity(effectName: string, intensity: string | number) {
     const fx = ar()?.effects?.[effectName]
     if (!fx) return
-    const n = parseInt(intensity)
+    const n = parseInt(String(intensity))
     if (!Number.isFinite(n)) return
     fx.intensity = Math.max(0, Math.min(100, n))
     updateText()
   }
 
-  function setEffectSource(effectName, source) {
+  function setEffectSource(effectName: string, source: string | null | undefined) {
     const fx = ar()?.effects?.[effectName]
     if (!fx) return
     fx.source = source ? source : null
@@ -113,7 +121,7 @@ export function useAudioReactiveText(selectedText, canvasManager, toastStore) {
   }
 
   // ── Effekt-Presets (gemeinsam mit Bildern/Hintergrund/Kacheln) ────────────
-  function toggleEffectPreset(presetName) {
+  function toggleEffectPreset(presetName: string) {
     const cfg = ar()
     const id = selectedText.value?.id
     if (!cfg || id === undefined) return
@@ -142,7 +150,7 @@ export function useAudioReactiveText(selectedText, canvasManager, toastStore) {
   }
 
   // ── Text-spezifische Reaktions-Presets (Threshold/Attack/Release …) ───────
-  function applyAudioPreset(presetName) {
+  function applyAudioPreset(presetName: string) {
     const cfg = ar()
     const preset = TEXT_REACTION_PRESETS[presetName]
     if (!cfg || !preset) return
@@ -213,7 +221,7 @@ export function useAudioReactiveText(selectedText, canvasManager, toastStore) {
     }
     // Gemeinsame Felder + Effekte übernehmen, danach Text-Extras
     assignAudioReactiveConfig(cfg, { ...preset, enabled: true })
-    for (const key of ['threshold', 'attack', 'release']) {
+    for (const key of ['threshold', 'attack', 'release'] as const) {
       if (preset[key] !== undefined) cfg[key] = preset[key]
     }
     if (preset.effects?.opacity && cfg.effects.opacity) {

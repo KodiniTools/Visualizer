@@ -1,29 +1,49 @@
-import { watch } from 'vue'
-import { registerAudioEngine } from '../lib/audioEngineBridge'
+import { watch, type Ref } from 'vue'
+import { registerAudioEngine, type AudioEngineApi } from '../lib/audioEngineBridge'
+import type { useAudioSourceStore } from '../stores/audioSourceStore'
+import type { usePlayerStore } from '../stores/playerStore'
 
 const SILENT_GAIN = 0.0001
 const ACTIVE_GAIN = 1
 
-export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
-  let audioContext = null
-  let analyser = null
-  let sourceNode = null
-  let outputGain = null
-  let recordingDest = null
-  let recordingGain = null
-  let bassFilter = null
-  let trebleFilter = null
-  let micRecordingGain = null
-  let micRecordingSourceNode = null
-  let micRecordingStream = null
-  let recordingMixer = null
+/** Ältere Safari-Versionen kennen nur webkitAudioContext */
+type AudioContextCtor = typeof AudioContext
+const AudioContextClassOf = (): AudioContextCtor =>
+  window.AudioContext ||
+  (window as unknown as { webkitAudioContext: AudioContextCtor }).webkitAudioContext
 
-  let microphoneSourceNode = null
-  let microphoneAudioContext = null
-  let microphoneAnalyser = null
+/** Abhängigkeiten von useAudioEngine */
+export interface AudioEngineDeps {
+  audioRef: Ref<HTMLAudioElement | null | undefined>
+  audioSourceStore: ReturnType<typeof useAudioSourceStore>
+  playerStore?: ReturnType<typeof usePlayerStore> | null
+}
 
-  const videoSourceNodes = new Map()
-  let videoRecordingGain = null
+interface VideoAudioNodes {
+  sourceNode: MediaElementAudioSourceNode
+  gainNode: GainNode
+}
+
+export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: AudioEngineDeps) {
+  let audioContext: AudioContext | null = null
+  let analyser: AnalyserNode | null = null
+  let sourceNode: MediaElementAudioSourceNode | null = null
+  let outputGain: GainNode | null = null
+  let recordingDest: MediaStreamAudioDestinationNode | null = null
+  let recordingGain: GainNode | null = null
+  let bassFilter: BiquadFilterNode | null = null
+  let trebleFilter: BiquadFilterNode | null = null
+  let micRecordingGain: GainNode | null = null
+  let micRecordingSourceNode: MediaStreamAudioSourceNode | null = null
+  let micRecordingStream: MediaStream | null = null
+  let recordingMixer: GainNode | null = null
+
+  let microphoneSourceNode: MediaStreamAudioSourceNode | null = null
+  let microphoneAudioContext: AudioContext | null = null
+  let microphoneAnalyser: AnalyserNode | null = null
+
+  const videoSourceNodes = new Map<HTMLMediaElement, VideoAudioNodes>()
+  let videoRecordingGain: GainNode | null = null
 
   function getAnalyser() {
     return analyser
@@ -41,7 +61,7 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
   function setupAudioContext() {
     if (audioContext || !audioRef.value) return
 
-    audioContext = new (window.AudioContext || window.webkitAudioContext)()
+    audioContext = new (AudioContextClassOf())()
     analyser = audioContext.createAnalyser()
     analyser.fftSize = 2048
     sourceNode = audioContext.createMediaElementSource(audioRef.value)
@@ -87,11 +107,11 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
   }
   if (playerStore) watch(() => playerStore.isMuted, applyOutputMute)
 
-  function setBassGain(gain) {
+  function setBassGain(gain: number) {
     if (bassFilter) bassFilter.gain.value = gain
   }
 
-  function setTrebleGain(gain) {
+  function setTrebleGain(gain: number) {
     if (trebleFilter) trebleFilter.gain.value = gain
   }
 
@@ -117,36 +137,38 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
         } catch {}
       }
 
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext
+      const AudioContextClass = AudioContextClassOf()
+      let micContext: AudioContext
       try {
-        microphoneAudioContext = new AudioContextClass({ sampleRate: 48000 })
+        micContext = new AudioContextClass({ sampleRate: 48000 })
       } catch {
-        microphoneAudioContext = new AudioContextClass()
+        micContext = new AudioContextClass()
+      }
+      microphoneAudioContext = micContext
+
+      if (micContext.state === 'suspended') {
+        await micContext.resume()
       }
 
-      if (microphoneAudioContext.state === 'suspended') {
-        await microphoneAudioContext.resume()
-      }
-
-      microphoneAnalyser = microphoneAudioContext.createAnalyser()
+      microphoneAnalyser = micContext.createAnalyser()
       microphoneAnalyser.fftSize = 2048
       microphoneAnalyser.smoothingTimeConstant = 0.8
 
-      microphoneSourceNode = microphoneAudioContext.createMediaStreamSource(stream)
-      const micGain = microphoneAudioContext.createGain()
+      microphoneSourceNode = micContext.createMediaStreamSource(stream)
+      const micGain = micContext.createGain()
       micGain.gain.value = 1.0
       microphoneSourceNode.connect(micGain)
       micGain.connect(microphoneAnalyser)
 
-      const silentGain = microphoneAudioContext.createGain()
+      const silentGain = micContext.createGain()
       silentGain.gain.value = 0
       micGain.connect(silentGain)
-      silentGain.connect(microphoneAudioContext.destination)
+      silentGain.connect(micContext.destination)
 
       return true
     } catch (error) {
       console.error('[AudioEngine] Fehler beim Setup des Mikrofons:', error)
-      audioSourceStore.setError('microphoneStartFailed', error?.message)
+      audioSourceStore.setError('microphoneStartFailed', (error as Error | undefined)?.message)
       return false
     }
   }
@@ -160,7 +182,7 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     }
     if (microphoneAudioContext) {
       try {
-        microphoneAudioContext.close()
+        void microphoneAudioContext.close()
       } catch {}
       microphoneAudioContext = null
       microphoneAnalyser = null
@@ -168,7 +190,7 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     audioSourceStore.stopMicrophone()
   }
 
-  async function switchAudioSource(sourceType) {
+  async function switchAudioSource(sourceType: 'player' | 'microphone'): Promise<boolean> {
     if (sourceType === 'microphone') {
       const success = await setupMicrophoneSource()
       if (success) audioSourceStore.setSourceType('microphone')
@@ -201,7 +223,7 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
       }
 
       const deviceId = audioSourceStore.selectedDeviceId
-      const constraints = {
+      const constraints: MediaStreamConstraints = {
         audio: {
           deviceId: deviceId && deviceId !== 'default' ? { exact: deviceId } : undefined,
           echoCancellation: true,
@@ -210,12 +232,16 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
         },
       }
 
-      micRecordingStream = await navigator.mediaDevices.getUserMedia(constraints)
-      const audioTracks = micRecordingStream.getAudioTracks()
-      if (!audioTracks.length || audioTracks[0].readyState !== 'live') return false
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      micRecordingStream = stream
+      const audioTracks = stream.getAudioTracks()
+      if (!audioTracks.length || (audioTracks[0] as MediaStreamTrack).readyState !== 'live') {
+        return false
+      }
 
-      micRecordingSourceNode = audioContext.createMediaStreamSource(micRecordingStream)
-      micRecordingSourceNode.connect(micRecordingGain)
+      // audioContext/micRecordingGain sind oben geprüft (await dazwischen)
+      micRecordingSourceNode = (audioContext as AudioContext).createMediaStreamSource(stream)
+      micRecordingSourceNode.connect(micRecordingGain as GainNode)
       return true
     } catch (error) {
       console.error('[AudioEngine] Fehler beim Verbinden des Mikrofons:', error)
@@ -236,7 +262,7 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     }
   }
 
-  async function toggleRecordingMicrophone(enable) {
+  async function toggleRecordingMicrophone(enable: boolean): Promise<boolean> {
     if (!recordingGain || !micRecordingGain) return false
 
     if (enable) {
@@ -248,8 +274,8 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
         const connected = await connectMicToRecordingChain()
         if (!connected) return false
       }
-      recordingGain.gain.value = ACTIVE_GAIN
-      micRecordingGain.gain.value = ACTIVE_GAIN
+      ;(recordingGain as GainNode).gain.value = ACTIVE_GAIN
+      ;(micRecordingGain as GainNode).gain.value = ACTIVE_GAIN
     } else {
       recordingGain.gain.value = ACTIVE_GAIN
       micRecordingGain.gain.value = SILENT_GAIN
@@ -260,36 +286,38 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     return true
   }
 
-  function connectVideoToRecording(videoElement, volume = 1) {
+  function connectVideoToRecording(videoElement: HTMLMediaElement, volume = 1): boolean {
     if (videoSourceNodes.has(videoElement)) return true
 
     if (!audioContext) {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      audioContext = new (AudioContextClassOf())()
     }
+    const ctx = audioContext
 
-    if (audioContext.state === 'suspended') {
-      audioContext.resume().catch(() => {})
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {})
     }
 
     if (!recordingMixer) {
-      recordingMixer = audioContext.createGain()
+      recordingMixer = ctx.createGain()
       recordingMixer.gain.value = 1
-      if (!recordingDest) recordingDest = audioContext.createMediaStreamDestination()
+      if (!recordingDest) recordingDest = ctx.createMediaStreamDestination()
       recordingMixer.connect(recordingDest)
     }
+    const mixer = recordingMixer
 
     try {
       if (!videoRecordingGain) {
-        videoRecordingGain = audioContext.createGain()
+        videoRecordingGain = ctx.createGain()
         videoRecordingGain.gain.value = ACTIVE_GAIN
-        videoRecordingGain.connect(recordingMixer)
+        videoRecordingGain.connect(mixer)
       }
 
-      const videoSource = audioContext.createMediaElementSource(videoElement)
-      const gainNode = audioContext.createGain()
+      const videoSource = ctx.createMediaElementSource(videoElement)
+      const gainNode = ctx.createGain()
       gainNode.gain.value = volume
       videoSource.connect(gainNode)
-      gainNode.connect(audioContext.destination)
+      gainNode.connect(ctx.destination)
       gainNode.connect(videoRecordingGain)
       videoSourceNodes.set(videoElement, { sourceNode: videoSource, gainNode })
       return true
@@ -299,7 +327,7 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     }
   }
 
-  function disconnectVideoFromRecording(videoElement) {
+  function disconnectVideoFromRecording(videoElement: HTMLMediaElement) {
     const nodes = videoSourceNodes.get(videoElement)
     if (!nodes) return
     try {
@@ -308,27 +336,32 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     } catch {}
   }
 
-  function setVideoVolume(videoElement, volume) {
+  function setVideoVolume(videoElement: HTMLMediaElement, volume: number) {
     const nodes = videoSourceNodes.get(videoElement)
     if (nodes?.gainNode) nodes.gainNode.gain.value = volume
   }
 
   /**
    * Liefert den Audio-Stream für den Recorder.
-   * @param {{ withMic?: boolean }} [options] withMic=false verbindet das Mikrofon
+   * @param options withMic=false verbindet das Mikrofon
    *   nicht (kein getUserMedia) – für die Initialisierung beim Seitenaufruf. Jede
    *   Aufnahme holt vor dem Start ohnehin einen frischen Stream mit Mikrofon.
    */
-  async function createCombinedAudioStream({ withMic = true } = {}) {
+  async function createCombinedAudioStream({
+    withMic = true,
+  }: { withMic?: boolean } = {}): Promise<MediaStream | null> {
     if (!recordingDest) return null
+    const dest = recordingDest
 
-    if (audioContext.state === 'suspended') {
-      audioContext.resume().catch(() => {})
+    // Wie in der JS-Version: recordingDest existiert nur mit audioContext und
+    // (nach setupAudioContext) den Gain-Knoten.
+    if ((audioContext as AudioContext).state === 'suspended') {
+      ;(audioContext as AudioContext).resume().catch(() => {})
     }
 
     if (!withMic) {
-      recordingGain.gain.value = ACTIVE_GAIN
-      return recordingDest.stream
+      ;(recordingGain as GainNode).gain.value = ACTIVE_GAIN
+      return dest.stream
     }
 
     const micConnected = await connectMicToRecordingChain()
@@ -336,17 +369,16 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
       console.warn('[AudioEngine] Mic-Pfad nicht verbunden - Live-Umschaltung nicht möglich')
     }
 
-    recordingGain.gain.value = ACTIVE_GAIN
-    micRecordingGain.gain.value = ACTIVE_GAIN
+    ;(recordingGain as GainNode).gain.value = ACTIVE_GAIN
+    ;(micRecordingGain as GainNode).gain.value = ACTIVE_GAIN
     await new Promise((r) => setTimeout(r, 300))
+    ;(recordingGain as GainNode).gain.value = ACTIVE_GAIN
+    ;(micRecordingGain as GainNode).gain.value = SILENT_GAIN
 
-    recordingGain.gain.value = ACTIVE_GAIN
-    micRecordingGain.gain.value = SILENT_GAIN
-
-    return recordingDest.stream
+    return dest.stream
   }
 
-  let unregisterEngine = null
+  let unregisterEngine: (() => void) | null = null
 
   function cleanup() {
     unregisterEngine?.()
@@ -355,15 +387,14 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
     disconnectMicrophoneSource()
     if (audioContext) {
       try {
-        audioContext.close()
+        void audioContext.close()
       } catch {}
     }
   }
 
   /** Meldet die Engine bei lib/audioEngineBridge.js an (Zugriff über getAudioEngine()). */
   function registerEngine() {
-    /** @type {import('../lib/audioEngineBridge').AudioEngineApi} */
-    const api = {
+    const api: AudioEngineApi = {
       switchAudioSource,
       toggleRecordingMicrophone,
       connectVideoToRecording,

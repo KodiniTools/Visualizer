@@ -2,7 +2,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ImageUploadSection from '../../components/foto-panel/ImageUploadSection.vue'
-import { useImageGallery } from '../../composables/useImageGallery.js'
+import { useImageGallery } from '../../composables/useImageGallery'
 
 const gallery = [
   { id: '1', name: 'eins.webp', dimensions: '10×10', img: { src: 'data:,1' } },

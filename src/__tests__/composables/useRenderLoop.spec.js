@@ -155,7 +155,7 @@ vi.mock('../../lib/visualizers/imageRegistry', () => ({
 }))
 
 import { getCanvasScreenshot } from '../../lib/canvasScreenshotBridge'
-import { useRenderLoop } from '../../composables/useRenderLoop.js'
+import { useRenderLoop } from '../../composables/useRenderLoop'
 import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 // ─── Test-Umgebung ──────────────────────────────────────────────────────────

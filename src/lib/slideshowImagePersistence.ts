@@ -8,7 +8,7 @@ import {
   loadImage,
   type LoadedImage,
 } from '../utils/presetImageRepository'
-import { useImageGallery } from '../composables/useImageGallery.js'
+import { useImageGallery } from '../composables/useImageGallery'
 
 /**
  * Speichert ein hochgeladenes Slideshow-Bild dauerhaft.

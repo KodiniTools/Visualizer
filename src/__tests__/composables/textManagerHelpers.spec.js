@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { textSlotMs, DEFAULT_SLOT_MS } from '../../composables/textManager/useTextSequence.js'
-import { ensureTextObjectDefaults } from '../../composables/textManager/textObjectDefaults.js'
-import { sortTextsById, textObjectsOf } from '../../composables/textManager/textOrder.js'
+import { textSlotMs, DEFAULT_SLOT_MS } from '../../composables/textManager/useTextSequence'
+import { ensureTextObjectDefaults } from '../../composables/textManager/textObjectDefaults'
+import { sortTextsById, textObjectsOf } from '../../composables/textManager/textOrder'
 
 describe('textSlotMs', () => {
   it('ohne Animation gilt der Standardwert', () => {

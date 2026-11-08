@@ -6,7 +6,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick, ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import VolumeEqPopover from '../../components/sticky-player-bar/VolumeEqPopover.vue'
-import { usePlayerPopover } from '../../composables/usePlayerPopover.js'
+import { usePlayerPopover } from '../../composables/usePlayerPopover'
 import { usePlayerStore } from '../../stores/playerStore'
 import de from '../../lib/i18n/de'
 

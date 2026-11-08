@@ -186,7 +186,7 @@
 import { computed, h, inject } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { useHistoryStore } from '../../stores/historyStore'
-import { useSlideshowPopover } from '../../composables/useSlideshowPopover.js'
+import { useSlideshowPopover } from '../../composables/useSlideshowPopover'
 import { historyStepLabel } from '../../lib/history/historyLabels'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'

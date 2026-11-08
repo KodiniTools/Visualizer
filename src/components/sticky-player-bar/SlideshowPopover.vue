@@ -34,7 +34,7 @@ import SlideshowStatusBadge from '../foto-panel/slideshow/SlideshowStatusBadge.v
 import {
   SLIDESHOW_POPOVER_TARGET_ID,
   useSlideshowPopover,
-} from '../../composables/useSlideshowPopover.js'
+} from '../../composables/useSlideshowPopover'
 
 const { t } = useI18n()
 

@@ -63,7 +63,7 @@ import ImageFiltersPanel from '../../components/foto-panel/ImageFiltersPanel.vue
 import SlideshowPanel from '../../components/foto-panel/SlideshowPanel.vue'
 import { useImageGallery } from '../../composables/useImageGallery.js'
 import { useImageAudioReactive } from '../../composables/useImageAudioReactive.js'
-import { useSlideshowPopover } from '../../composables/useSlideshowPopover.js'
+import { useSlideshowPopover } from '../../composables/useSlideshowPopover'
 import { useToastStore } from '../../stores/toastStore'
 import { useSlideshowImageAdjustmentsStore } from '../../stores/slideshowImageAdjustmentsStore'
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore'

@@ -3,7 +3,7 @@ import { defineComponent, ref, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import VideoPopover from '../../components/sticky-player-bar/VideoPopover.vue'
-import { useVideoPanel } from '../../composables/useVideoPanel.js'
+import { useVideoPanel } from '../../composables/useVideoPanel'
 
 // Attrappen für Canvas- und Video-Manager; unbekannte Zugriffe liefern eine
 // leere Mock-Funktion, Vue-interne Flags bleiben unangetastet.

@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 import BackgroundReplaceModal from '../../components/canvas-control/background/BackgroundReplaceModal.vue'
-import { useBgReplace } from '../../composables/bg/useBgReplace.js'
+import { useBgReplace } from '../../composables/bg/useBgReplace'
 import de from '../../lib/i18n/de'
 
 const C = de.canvasControl

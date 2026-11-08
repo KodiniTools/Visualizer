@@ -10,7 +10,7 @@ import PlaylistPopover from '../../components/sticky-player-bar/PlaylistPopover.
 import BeatMarkerPopover from '../../components/sticky-player-bar/BeatMarkerPopover.vue'
 import PlayerBarControls from '../../components/sticky-player-bar/PlayerBarControls.vue'
 import { useBeatMarkers } from '../../composables/useBeatMarkers.js'
-import { usePlayerPopover } from '../../composables/usePlayerPopover.js'
+import { usePlayerPopover } from '../../composables/usePlayerPopover'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import de from '../../lib/i18n/de'

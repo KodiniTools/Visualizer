@@ -139,7 +139,7 @@ import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
 import { inject, computed } from 'vue'
 import { useI18n } from '../../../lib/i18n'
-import { useTextFonts } from '../../../composables/useTextFonts.js'
+import { useTextFonts } from '../../../composables/useTextFonts'
 import { UiButton, UiIconButton, UiSegmentedControl, UiSelect, UiSwitch } from '../../ui/index.js'
 
 const settings = defineModel('settings', {

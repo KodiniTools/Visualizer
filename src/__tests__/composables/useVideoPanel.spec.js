@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { defineComponent, h, ref, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { useVideoPanel } from '../../composables/useVideoPanel.js'
+import { useVideoPanel } from '../../composables/useVideoPanel'
 import { registerAudioEngine } from '../../lib/audioEngineBridge'
 
 /**

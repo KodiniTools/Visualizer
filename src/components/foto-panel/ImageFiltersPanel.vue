@@ -40,7 +40,7 @@
 <script setup>
 import { toRefs, provide, computed } from 'vue'
 import { useI18n } from '../../lib/i18n'
-import { useImageFilterControls } from '../../composables/useImageFilterControls.js'
+import { useImageFilterControls } from '../../composables/useImageFilterControls'
 import LayerControls from './image-filters/LayerControls.vue'
 import PresetAndHistory from './image-filters/PresetAndHistory.vue'
 import BasicFilters from './image-filters/BasicFilters.vue'

@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest'
-import { usePlayerPopover, isOutsidePopoverClick } from '../../composables/usePlayerPopover.js'
+import { usePlayerPopover, isOutsidePopoverClick } from '../../composables/usePlayerPopover'
 
 describe('usePlayerPopover – Klickverhalten der Sticky Bar', () => {
   it('Einfachklick aktiviert die Funktion und öffnet das Fenster mittig', () => {

@@ -40,7 +40,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useLandingContentStore } from '../../stores/landingContent'
 import AdminField from './AdminField.vue'

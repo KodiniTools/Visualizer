@@ -21,20 +21,23 @@
   </label>
 </template>
 
-<script setup>
-defineProps({
-  label: { type: String, default: '' },
-  modelValue: { type: String, default: '' },
-  placeholder: { type: String, default: '' },
-  hint: { type: String, default: '' },
-  multiline: { type: Boolean, default: false },
-  rows: { type: Number, default: 3 },
-})
+<script setup lang="ts">
+withDefaults(
+  defineProps<{
+    label?: string
+    modelValue?: string
+    placeholder?: string
+    hint?: string
+    multiline?: boolean
+    rows?: number
+  }>(),
+  { label: '', modelValue: '', placeholder: '', hint: '', multiline: false, rows: 3 },
+)
 
-const emit = defineEmits(['update:modelValue', 'edit'])
+const emit = defineEmits<{ 'update:modelValue': [value: string]; edit: [] }>()
 
-function onInput(event) {
-  emit('update:modelValue', event.target.value)
+function onInput(event: Event) {
+  emit('update:modelValue', (event.target as HTMLInputElement | HTMLTextAreaElement).value)
   emit('edit')
 }
 </script>

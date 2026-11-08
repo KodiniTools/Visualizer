@@ -7,7 +7,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, computed, toRef, provide } from 'vue'
 import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects'
 import {
@@ -19,63 +19,69 @@ import AudioReactiveMaster from './audio-reactive/AudioReactiveMaster.vue'
 import AudioReactivePresets from './audio-reactive/AudioReactivePresets.vue'
 import AudioReactiveEffects from './audio-reactive/AudioReactiveEffects.vue'
 import AudioReactiveActions from './audio-reactive/AudioReactiveActions.vue'
+import type {
+  AudioReactiveControls,
+  AudioReactiveEffectItem,
+  AudioReactiveEffectState,
+  AudioReactiveExtraCategory,
+  AudioReactiveMasterState,
+} from './audio-reactive/audioReactiveControls'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  hasActiveImage: {
-    type: Boolean,
-    default: false,
+const props = withDefaults(
+  defineProps<{
+    hasActiveImage?: boolean
+    hasSavedSettings?: boolean
+    activeAudioPreset?: string | null
+    /** Zusätzliche Effekt-Kategorien (z. B. Gradient-Effekte des Hintergrunds) */
+    extraCategories?: AudioReactiveExtraCategory[]
+    /**
+     * Nur diese Effekt-IDs anzeigen (null = alle). Kategorien ohne sichtbare
+     * Effekte und Presets, deren Effekte alle ausgeblendet sind, entfallen.
+     */
+    allowedEffects?: readonly string[] | null
+  }>(),
+  {
+    hasActiveImage: false,
+    hasSavedSettings: false,
+    activeAudioPreset: null,
+    extraCategories: () => [],
+    allowedEffects: null,
   },
-  hasSavedSettings: {
-    type: Boolean,
-    default: false,
-  },
-  activeAudioPreset: {
-    type: String,
-    default: null,
-  },
-  /**
-   * Zusätzliche Effekt-Kategorien (z. B. Gradient-Effekte des Hintergrunds):
-   * [{ title, effects: [{ id, name }], defaultIntensity }]
-   */
-  extraCategories: {
-    type: Array,
-    default: () => [],
-  },
-  /**
-   * Nur diese Effekt-IDs anzeigen (null = alle). Kategorien ohne sichtbare
-   * Effekte und Presets, deren Effekte alle ausgeblendet sind, entfallen.
-   */
-  allowedEffects: {
-    type: Array,
-    default: null,
-  },
-})
+)
 
-const emit = defineEmits([
-  'audio-reactive-toggle',
-  'source-change',
-  'smoothing-change',
-  'easing-change',
-  'beat-boost-change',
-  'phase-change',
-  'gain-change',
-  'toggle-preset',
-  'clear-preset',
-  'effect-toggle',
-  'effect-intensity-change',
-  'effect-source-change',
-  'save-settings',
-  'apply-settings',
-])
+/** Pseudo-Events im Format nativer Input-Events (siehe asEvent) */
+export interface AudioReactiveToggleEvent {
+  target: { checked: boolean }
+}
+export interface AudioReactiveValueEvent {
+  target: { value: string }
+}
+
+const emit = defineEmits<{
+  'audio-reactive-toggle': [event: AudioReactiveToggleEvent]
+  'source-change': [event: AudioReactiveValueEvent]
+  'smoothing-change': [event: AudioReactiveValueEvent]
+  'easing-change': [event: AudioReactiveValueEvent]
+  'beat-boost-change': [event: AudioReactiveValueEvent]
+  'phase-change': [event: AudioReactiveValueEvent]
+  'gain-change': [event: AudioReactiveValueEvent]
+  'toggle-preset': [presetId: string]
+  'clear-preset': []
+  'effect-toggle': [effectId: string, enabled: boolean]
+  'effect-intensity-change': [effectId: string, intensity: string]
+  'effect-source-change': [effectId: string, source: string]
+  'save-settings': []
+  'apply-settings': []
+}>()
 
 // Einziger DOM-Zugriff: der Pegelbalken, den die Verwender pro Frame setzen.
-const audioLevelBarRef = ref(null)
+const audioLevelBarRef = ref<HTMLElement | null>(null)
 
 const isEnabled = ref(false)
 
-const MASTER_DEFAULTS = {
+const MASTER_DEFAULTS: AudioReactiveMasterState = {
   source: 'bass',
   smoothing: 50,
   gain: 1,
@@ -91,15 +97,20 @@ const MASTER_EVENTS = {
   easing: 'easing-change',
   beatBoost: 'beat-boost-change',
   phase: 'phase-change',
-}
-const master = reactive({ ...MASTER_DEFAULTS })
+} as const
+type MasterEventName = (typeof MASTER_EVENTS)[keyof typeof MASTER_EVENTS]
+const master = reactive<AudioReactiveMasterState>({ ...MASTER_DEFAULTS })
 
 /** Zustand je Effekt-ID; fehlt ein Eintrag, gilt der Kategorie-Standard. */
-const effectStates = reactive({})
-function effectState(id, defaultIntensity = 80) {
+const effectStates = reactive<Record<string, AudioReactiveEffectState>>({})
+function effectState(id: string, defaultIntensity = 80): AudioReactiveEffectState {
   return effectStates[id] ?? { enabled: false, intensity: defaultIntensity, source: '' }
 }
-function patchEffect(id, defaultIntensity, patch) {
+function patchEffect(
+  id: string,
+  defaultIntensity: number,
+  patch: Partial<AudioReactiveEffectState>,
+) {
   effectStates[id] = { ...effectState(id, defaultIntensity), ...patch }
 }
 
@@ -108,12 +119,12 @@ function patchEffect(id, defaultIntensity, patch) {
  * (früher echte DOM-Events). Dieses Format bleibt erhalten; Werte als String
  * wie vom nativen Input.
  */
-const asEvent = (target) => ({ target })
+const asEvent = <T,>(target: T) => ({ target })
 
-function isAllowed(id) {
+function isAllowed(id: string) {
   return props.allowedEffects === null || props.allowedEffects.includes(id)
 }
-const filterAllowed = (list) => list.filter((e) => isAllowed(e.id))
+const filterAllowed = (list: AudioReactiveEffectItem[]) => list.filter((e) => isAllowed(e.id))
 
 // Preset-Liste (gemeinsam mit Hintergrund-/Kachel-Panel); Presets, deren
 // Effekte hier alle ausgeblendet sind, werden nicht angeboten.
@@ -182,27 +193,45 @@ const rhythmEffects = computed(() =>
 )
 
 // Handlers
-function setEnabled(enabled) {
+function setEnabled(enabled: boolean) {
   isEnabled.value = enabled
   emit('audio-reactive-toggle', asEvent({ checked: enabled }))
 }
 
-function setMaster(prop, value) {
+function setMaster<K extends keyof AudioReactiveMasterState>(
+  prop: K,
+  value: AudioReactiveMasterState[K],
+) {
   master[prop] = value
-  emit(MASTER_EVENTS[prop], asEvent({ value: String(value) }))
+  // Alle Master-Events tragen dasselbe Payload; die Union der Namen kennt die Overload-Signatur nicht
+  const emitMaster = emit as (name: MasterEventName, event: AudioReactiveValueEvent) => void
+  emitMaster(MASTER_EVENTS[prop], asEvent({ value: String(value) }))
 }
 
-function effectToggle(id, enabled, defaultIntensity) {
+function effectToggle(id: string, enabled: boolean, defaultIntensity: number) {
   patchEffect(id, defaultIntensity, { enabled })
   emit('effect-toggle', id, enabled)
 }
-function effectSourceChange(id, source, defaultIntensity) {
+function effectSourceChange(id: string, source: string, defaultIntensity: number) {
   patchEffect(id, defaultIntensity, { source })
   emit('effect-source-change', id, source)
 }
-function effectIntensityChange(id, intensity, defaultIntensity) {
+function effectIntensityChange(id: string, intensity: number, defaultIntensity: number) {
   patchEffect(id, defaultIntensity, { intensity })
   emit('effect-intensity-change', id, String(intensity))
+}
+
+/** Gelesene Teile einer Audio-Reaktiv-Konfiguration (alle optional) */
+type LoadedAudioReactive = Partial<Omit<AudioReactiveMasterState, 'source' | 'easing'>> & {
+  enabled?: boolean
+  source?: string
+  easing?: string
+  effects?: Record<string, Partial<{ enabled: boolean; intensity: number; source: string | null }>>
+}
+/** Bild, Objekt mit `audioReactive` oder direkt eine Konfiguration */
+type AudioReactiveSettingsSource = LoadedAudioReactive & {
+  fotoSettings?: { audioReactive?: LoadedAudioReactive | null } | null
+  audioReactive?: LoadedAudioReactive | null
 }
 
 /**
@@ -211,7 +240,7 @@ function effectIntensityChange(id, intensity, defaultIntensity) {
  * Akzeptiert ein Bild (`{ fotoSettings: { audioReactive } }`), ein Objekt mit
  * `audioReactive` oder direkt eine Konfiguration (`{ enabled, effects, … }`).
  */
-function loadSettings(imageData) {
+function loadSettings(imageData: AudioReactiveSettingsSource | null | undefined) {
   if (!imageData) {
     isEnabled.value = false
     Object.assign(master, MASTER_DEFAULTS)
@@ -222,7 +251,7 @@ function loadSettings(imageData) {
   const audioReactive =
     imageData.fotoSettings?.audioReactive ||
     imageData.audioReactive ||
-    (imageData.effects ? imageData : {})
+    (imageData.effects ? (imageData as LoadedAudioReactive) : ({} as LoadedAudioReactive))
 
   isEnabled.value = audioReactive.enabled || false
   Object.assign(master, {
@@ -254,7 +283,7 @@ function loadSettings(imageData) {
 }
 
 // The sub-sections consume state, refs and handlers through provide/inject.
-provide('audioReactiveControls', {
+const controls: AudioReactiveControls = {
   hasActiveImage: toRef(props, 'hasActiveImage'),
   hasSavedSettings: toRef(props, 'hasSavedSettings'),
   activeAudioPreset: toRef(props, 'activeAudioPreset'),
@@ -278,7 +307,8 @@ provide('audioReactiveControls', {
   effectIntensityChange,
   saveSettings: () => emit('save-settings'),
   applySettings: () => emit('apply-settings'),
-})
+}
+provide('audioReactiveControls', controls)
 
 // Öffentliche API: loadSettings (alle Verwender), audioLevelBarRef
 // (Pegelanzeige), isEnabled.

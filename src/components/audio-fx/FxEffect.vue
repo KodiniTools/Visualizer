@@ -12,14 +12,11 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import UiSwitch from '../ui/UiSwitch.vue'
 
-defineProps({
-  title: { type: String, required: true },
-  modelValue: { type: Boolean, default: false },
-})
-defineEmits(['update:modelValue'])
+withDefaults(defineProps<{ title: string; modelValue?: boolean }>(), { modelValue: false })
+defineEmits<{ 'update:modelValue': [value: boolean] }>()
 </script>
 
 <style scoped>

@@ -30,6 +30,8 @@ interface BackgroundFromGalleryOptions {
  * Die Teilbereiche liegen in `videoPanel/`; die zurückgegebene API ist stabil
  * (per provide/inject von den Video-Panel-Komponenten genutzt).
  */
+export type VideoPanelApi = ReturnType<typeof useVideoPanel>
+
 export function useVideoPanel() {
   const { locale } = useI18n()
 

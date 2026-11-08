@@ -177,3 +177,6 @@ export function useTileGallery(
     confirmGallerySelection,
   }
 }
+
+/** Per provide('tileGallery') an die Kachel-Unterkomponenten gereicht */
+export type TileGalleryApi = ReturnType<typeof useTileGallery>

@@ -66,34 +66,42 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, useId } from 'vue'
 import UiButton from '../ui/UiButton.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
+import type { CanvasImage } from '../../lib/multiImageManager'
+import type { CanvasImagesApi } from '../../composables/useCanvasImages'
+import type { TranslateFn } from '../../composables/types'
 
-const props = defineProps({
-  canvasImages: { type: Array, required: true },
-  selectedCanvasImageId: { type: String, default: null },
-  draggedImageIndex: { type: Number, default: null },
-  dragOverIndex: { type: Number, default: null },
-  t: { type: Function, required: true },
-  selectCanvasImage: { type: Function, required: true },
-  openImagePreview: { type: Function, required: true },
-  deleteCanvasImage: { type: Function, required: true },
-  deleteAllCanvasImages: { type: Function, required: true },
-  handleDragStart: { type: Function, required: true },
-  handleDragEnd: { type: Function, required: true },
-  handleDragOver: { type: Function, required: true },
-  handleDragLeave: { type: Function, required: true },
-  handleDrop: { type: Function, required: true },
-})
+type Api = CanvasImagesApi
+
+const props = withDefaults(
+  defineProps<{
+    canvasImages: CanvasImage[]
+    selectedCanvasImageId?: CanvasImage['id'] | null
+    draggedImageIndex?: number | null
+    dragOverIndex?: number | null
+    t: TranslateFn
+    selectCanvasImage: Api['selectCanvasImage']
+    openImagePreview: Api['openImagePreview']
+    deleteCanvasImage: Api['deleteCanvasImage']
+    deleteAllCanvasImages: Api['deleteAllCanvasImages']
+    handleDragStart: Api['handleDragStart']
+    handleDragEnd: Api['handleDragEnd']
+    handleDragOver: Api['handleDragOver']
+    handleDragLeave: Api['handleDragLeave']
+    handleDrop: Api['handleDrop']
+  }>(),
+  { selectedCanvasImageId: null, draggedImageIndex: null, dragOverIndex: null },
+)
 
 // Virtual scrolling: 44px thumb + 8px gap = 52px per slot
 const ITEM_SLOT = 52
 const BUFFER = 4
 
 const labelId = `canvas-images-label-${useId()}`
-const scrollRef = ref(null)
+const scrollRef = ref<HTMLElement | null>(null)
 const scrollLeft = ref(0)
 const containerWidth = ref(600) // avoid empty render on first paint
 
@@ -123,17 +131,17 @@ const visibleItems = computed(() => {
 // translateX so visible items land at their correct virtual positions
 const offsetLeft = computed(() => visibleRange.value.start * ITEM_SLOT)
 
-function onScroll(e) {
-  scrollLeft.value = e.target.scrollLeft
+function onScroll(e: Event) {
+  scrollLeft.value = (e.target as HTMLElement).scrollLeft
 }
 
-let resizeObserver = null
+let resizeObserver: ResizeObserver | null = null
 
 onMounted(() => {
   if (!scrollRef.value) return
   containerWidth.value = scrollRef.value.clientWidth
   resizeObserver = new ResizeObserver(([entry]) => {
-    containerWidth.value = entry.contentRect.width
+    containerWidth.value = (entry as ResizeObserverEntry).contentRect.width
   })
   resizeObserver.observe(scrollRef.value)
 })

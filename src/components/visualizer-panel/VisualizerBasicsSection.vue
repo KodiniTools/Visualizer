@@ -78,7 +78,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SliderField from '../ui/SliderField.vue'
 import ColorField from '../ui/ColorField.vue'
 import UiSegmentedControl from '../ui/UiSegmentedControl.vue'

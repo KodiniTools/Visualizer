@@ -90,7 +90,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import SliderField from '../ui/SliderField.vue'
 import UiSelect from '../ui/UiSelect.vue'
@@ -102,15 +102,19 @@ import {
   REACT_BEAT_BOOST_MAX,
   normalizeReactShape,
 } from '../../lib/visualizers/core/reactSource'
+import type { ReactShape } from '../../lib/visualizers/core/reactSource'
 
-const props = defineProps({
-  /** Objekt mit reactSmoothing/reactGain/reactEasing/reactBeatBoost/reactPhase (Store oder Layer). */
-  settings: { type: Object, required: true },
-  /** Kompakte Darstellung (Layer-Popover). */
-  compact: { type: Boolean, default: false },
-})
+const props = withDefaults(
+  defineProps<{
+    /** Objekt mit reactSmoothing/reactGain/reactEasing/reactBeatBoost/reactPhase (Store oder Layer). */
+    settings: object
+    /** Kompakte Darstellung (Layer-Popover). */
+    compact?: boolean
+  }>(),
+  { compact: false },
+)
 
-const emit = defineEmits(['update'])
+const emit = defineEmits<{ update: [field: keyof ReactShape, value: unknown] }>()
 
 const { t } = useI18n()
 
@@ -119,7 +123,7 @@ const easingOptions = computed(() =>
   REACT_EASINGS.map((value) => ({ value, label: t(`foto.easings.${value}`) })),
 )
 // Fehlende Felder (ältere Layer/Presets) → Standardwerte für die Anzeige.
-const shape = computed(() => normalizeReactShape(props.settings))
+const shape = computed(() => normalizeReactShape(props.settings as Record<string, unknown>))
 
 const beatBoostLabel = computed(() =>
   shape.value.reactBeatBoost <= 1

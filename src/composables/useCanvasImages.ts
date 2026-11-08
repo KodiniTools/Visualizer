@@ -11,6 +11,8 @@ export interface CanvasImagesDeps {
   t: TranslateFn
 }
 
+export type CanvasImagesApi = ReturnType<typeof useCanvasImages>
+
 export function useCanvasImages({
   multiImageManagerInstance,
   canvasManagerInstance,

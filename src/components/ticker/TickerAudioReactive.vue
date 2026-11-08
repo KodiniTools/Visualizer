@@ -18,7 +18,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { useTickerStore } from '../../stores/tickerStore'
@@ -61,7 +61,7 @@ const { activePreset, hasSavedSettings, panelListeners } = useAudioReactiveTarge
     c.enabled = ticker.audioReactive
   },
   onSettingsApplied(c, saved) {
-    ticker.audioReactive = Boolean(saved.enabled)
+    ticker.audioReactive = Boolean((saved as { enabled?: unknown }).enabled)
     c.enabled = ticker.audioReactive
   },
 })

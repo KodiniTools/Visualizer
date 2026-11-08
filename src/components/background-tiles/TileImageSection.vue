@@ -2,10 +2,7 @@
   <div class="image-section">
     <label>{{ t('backgroundTiles.tileImage') }}</label>
 
-    <div
-      v-if="!tilesStore.selectedTile.image && !tilesStore.selectedTile.video"
-      class="image-upload-area"
-    >
+    <div v-if="!tile.image && !tile.video" class="image-upload-area">
       <input
         ref="fileInput"
         type="file"
@@ -21,7 +18,7 @@
         @change="handleVideoUpload"
       />
       <div class="source-buttons">
-        <UiButton size="sm" @click="fileInput.click()">
+        <UiButton size="sm" @click="fileInput?.click()">
           <template #icon>
             <svg
               viewBox="0 0 24 24"
@@ -55,7 +52,7 @@
           </template>
           {{ t('backgroundTiles.fromGallery') }}
         </UiButton>
-        <UiButton size="sm" @click="videoInput.click()">
+        <UiButton size="sm" @click="videoInput?.click()">
           <template #icon>
             <svg
               viewBox="0 0 24 24"
@@ -76,21 +73,21 @@
     </div>
 
     <!-- Video-Vorschau und Steuerung -->
-    <div v-else-if="tilesStore.selectedTile.video" class="video-controls">
+    <div v-else-if="tile.video" class="video-controls">
       <div class="video-preview">
-        <video :src="tilesStore.selectedTile.videoSrc" muted loop autoplay playsinline></video>
+        <video :src="tile.videoSrc ?? undefined" muted loop autoplay playsinline></video>
         <span class="video-badge">🎬 {{ t('backgroundTiles.videoPlaying') }}</span>
       </div>
 
       <!-- Video-Einstellungen -->
       <div class="video-settings">
         <UiSwitch
-          :model-value="tilesStore.selectedTile.videoSettings?.muted !== false"
+          :model-value="tile.videoSettings?.muted !== false"
           :label="t('backgroundTiles.videoMuted')"
           @update:model-value="updateVideoSetting('muted', $event)"
         />
         <UiSwitch
-          :model-value="tilesStore.selectedTile.videoSettings?.loop !== false"
+          :model-value="tile.videoSettings?.loop !== false"
           :label="t('backgroundTiles.videoLoop')"
           @update:model-value="updateVideoSetting('loop', $event)"
         />
@@ -114,7 +111,7 @@
             style="display: none"
             @change="handleVideoUpload"
           />
-          <UiButton size="sm" @click="replaceImageFromVideoInput.click()">
+          <UiButton size="sm" @click="replaceImageFromVideoInput?.click()">
             <template #icon>
               <svg
                 viewBox="0 0 24 24"
@@ -148,7 +145,7 @@
             </template>
             {{ t('backgroundTiles.fromGallery') }}
           </UiButton>
-          <UiButton size="sm" @click="replaceVideoFromVideoInput.click()">
+          <UiButton size="sm" @click="replaceVideoFromVideoInput?.click()">
             <template #icon>
               <svg
                 viewBox="0 0 24 24"
@@ -175,7 +172,7 @@
     <!-- Bild-Vorschau und Filter -->
     <div v-else class="image-controls">
       <div class="image-preview">
-        <img :src="tilesStore.selectedTile.imageSrc" :alt="t('backgroundTiles.tileImage')" />
+        <img :src="tile.imageSrc ?? undefined" :alt="t('backgroundTiles.tileImage')" />
       </div>
 
       <!-- Ersetzen-Buttons -->
@@ -196,7 +193,7 @@
             style="display: none"
             @change="handleVideoUpload"
           />
-          <UiButton size="sm" @click="replaceImageInput.click()">
+          <UiButton size="sm" @click="replaceImageInput?.click()">
             <template #icon>
               <svg
                 viewBox="0 0 24 24"
@@ -230,7 +227,7 @@
             </template>
             {{ t('backgroundTiles.fromGallery') }}
           </UiButton>
-          <UiButton size="sm" @click="replaceVideoInput.click()">
+          <UiButton size="sm" @click="replaceVideoInput?.click()">
             <template #icon>
               <svg
                 viewBox="0 0 24 24"
@@ -255,12 +252,12 @@
           v-for="filter in IMAGE_FILTERS"
           :key="filter.key"
           :label="t(`backgroundTiles.${filter.key}`)"
-          :model-value="tilesStore.selectedTile.imageSettings[filter.key]"
+          :model-value="tile.imageSettings[filter.key]"
           :min="filter.min"
           :max="filter.max"
           :step="filter.step"
           :default-value="filter.default"
-          :value-text="filter.format(tilesStore.selectedTile.imageSettings[filter.key])"
+          :value-text="filter.format(tile.imageSettings[filter.key])"
           @update:model-value="updateImageSetting(filter.key, $event)"
         />
       </div>
@@ -272,18 +269,28 @@
   </div>
 </template>
 
-<script setup>
-import { ref, inject } from 'vue'
+<script setup lang="ts">
+import { computed, ref, inject } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import SliderControl from '../ui/SliderControl.vue'
 import UiButton from '../ui/UiButton.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
+import type { BackgroundTilesApi } from '../../composables/useBackgroundTiles'
+import type { TileGalleryApi } from '../../composables/useTileGallery'
+import type { BackgroundTile, TileImageSettings } from '../../stores/backgroundTilesStore'
 
-const percent = (v) => `${v}%`
-const px = (v) => `${v}px`
+const percent = (v: number) => `${v}%`
+const px = (v: number) => `${v}px`
 
 /** Bild-Filter der Kachel: Schlüssel in imageSettings, Bereich, Standard, Anzeige */
-const IMAGE_FILTERS = [
+const IMAGE_FILTERS: Array<{
+  key: keyof TileImageSettings
+  min: number
+  max: number
+  step: number
+  default: number
+  format: (v: number) => string
+}> = [
   { key: 'brightness', min: 0, max: 200, step: 5, default: 100, format: percent },
   { key: 'contrast', min: 0, max: 200, step: 5, default: 100, format: percent },
   { key: 'saturation', min: 0, max: 200, step: 5, default: 100, format: percent },
@@ -313,15 +320,18 @@ const {
   updateVideoSetting,
   removeImage,
   removeVideo,
-} = inject('tileControls')
-const { openGalleryModal } = inject('tileGallery')
+} = inject('tileControls') as BackgroundTilesApi
+const { openGalleryModal } = inject('tileGallery') as TileGalleryApi
 
-const fileInput = ref(null)
-const videoInput = ref(null)
-const replaceImageInput = ref(null)
-const replaceVideoInput = ref(null)
-const replaceImageFromVideoInput = ref(null)
-const replaceVideoFromVideoInput = ref(null)
+// Teil des SelectedTileEditor → nur bei ausgewählter Kachel gerendert
+const tile = computed(() => tilesStore.selectedTile as BackgroundTile)
+
+const fileInput = ref<HTMLInputElement | null>(null)
+const videoInput = ref<HTMLInputElement | null>(null)
+const replaceImageInput = ref<HTMLInputElement | null>(null)
+const replaceVideoInput = ref<HTMLInputElement | null>(null)
+const replaceImageFromVideoInput = ref<HTMLInputElement | null>(null)
+const replaceVideoFromVideoInput = ref<HTMLInputElement | null>(null)
 </script>
 
 <style scoped>

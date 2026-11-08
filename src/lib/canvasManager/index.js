@@ -1,13 +1,13 @@
 // canvasManager/index.js - Haupt-Export
 
 // Rendering-Module
-export { BackgroundRenderer, SceneRenderer, UIRenderer } from './rendering/index.js'
+export { BackgroundRenderer, SceneRenderer, UIRenderer } from './rendering/index'
 
 // Interaction-Module
 export { MouseHandler, SelectionManager, DragDropHandler } from './interaction/index.js'
 
 // Recording-Module
-export { CanvasPool, RecordingRenderer } from './recording/index.js'
+export { CanvasPool, RecordingRenderer } from './recording/index'
 
 // Methoden-Gruppen des CanvasManagers
 export * from './methods/index.js'

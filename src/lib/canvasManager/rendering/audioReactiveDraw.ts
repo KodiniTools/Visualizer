@@ -5,15 +5,24 @@
  *
  * @module canvasManager/rendering/audioReactiveDraw
  */
-import { getMotionOffset } from '../../audio/AudioReactiveEffects'
+import { getMotionOffset, type EffectValues } from '../../audio/AudioReactiveEffects'
 import { combinedScale, strongestGlow } from '../../audio/audioReactiveEngine'
+
+/** Ergebnis der Audio-Engine (null = keine Effekte) */
+export type AudioReactiveDrawInput =
+  | { hasEffects?: boolean; effects: Record<string, EffectValues> }
+  | null
+  | undefined
 
 /**
  * Wendet alle Filter-Effekte (Farbfilter, Strobe, Farb-Strobe, Frequenz-Split-
  * Farbton) sowie das stärkste Leuchten als Schatten auf den Kontext an.
  * Bestehende `ctx.filter`-Werte bleiben erhalten (werden ergänzt).
  */
-export function applyAudioReactiveFilters(ctx, audioReactive) {
+export function applyAudioReactiveFilters(
+  ctx: CanvasRenderingContext2D,
+  audioReactive: AudioReactiveDrawInput,
+): void {
   if (!audioReactive || !audioReactive.hasEffects) return
 
   let currentFilter = ctx.filter || 'none'
@@ -40,8 +49,9 @@ export function applyAudioReactiveFilters(ctx, audioReactive) {
 
   const glow = strongestGlow(effects)
   if (glow) {
-    ctx.shadowColor = glow.glowColor
-    ctx.shadowBlur = glow.glowBlur
+    // Glow-Effekte liefern Farbe und Stärke immer
+    ctx.shadowColor = glow.glowColor as string
+    ctx.shadowBlur = glow.glowBlur as number
     ctx.shadowOffsetX = 0
     ctx.shadowOffsetY = 0
   }
@@ -63,7 +73,12 @@ export function applyAudioReactiveFilters(ctx, audioReactive) {
  * dieselbe Semantik wie bei Canvas-Bildern.
  * @returns {boolean} true, wenn transformiert wurde
  */
-export function applyAudioReactiveTransform(ctx, audioReactive, cx, cy) {
+export function applyAudioReactiveTransform(
+  ctx: CanvasRenderingContext2D,
+  audioReactive: AudioReactiveDrawInput,
+  cx: number,
+  cy: number,
+): boolean {
   if (!audioReactive || !audioReactive.hasEffects) return false
   const fx = audioReactive.effects
 
@@ -76,7 +91,7 @@ export function applyAudioReactiveTransform(ctx, audioReactive, cx, cy) {
   }
   const skew = fx.skew
   const persp = fx.perspective
-  const motion = getMotionOffset(Object.assign({}, ...Object.values(fx)))
+  const motion = getMotionOffset(Object.assign({}, ...Object.values(fx)) as EffectValues)
 
   const hasTransform =
     scale !== 1 ||
@@ -112,20 +127,27 @@ export function applyAudioReactiveTransform(ctx, audioReactive, cx, cy) {
  * Zeichnet die Overlay-Effekte (audio-reaktive Kontur, Vignette-Puls) über
  * einer rechteckigen Fläche.
  */
-export function drawAudioReactiveOverlays(ctx, audioReactive, x, y, w, h) {
+export function drawAudioReactiveOverlays(
+  ctx: CanvasRenderingContext2D,
+  audioReactive: AudioReactiveDrawInput,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+): void {
   if (!audioReactive || !audioReactive.hasEffects) return
   const fx = audioReactive.effects
 
-  if (fx.border && fx.border.borderWidth > 0.5) {
-    const bw = fx.border.borderWidth
+  if (fx.border && (fx.border.borderWidth ?? 0) > 0.5) {
+    const bw = fx.border.borderWidth as number
     ctx.save()
     ctx.filter = 'none'
     ctx.globalAlpha = Math.min(1, fx.border.borderOpacity ?? 1)
     ctx.lineWidth = bw
     ctx.strokeStyle = '#ffffff'
-    if (fx.border.borderGlow > 0) {
+    if ((fx.border.borderGlow ?? 0) > 0) {
       ctx.shadowColor = 'rgba(139, 92, 246, 0.9)'
-      ctx.shadowBlur = fx.border.borderGlow
+      ctx.shadowBlur = fx.border.borderGlow as number
     }
     ctx.strokeRect(x + bw / 2, y + bw / 2, w - bw, h - bw)
     ctx.restore()
@@ -162,10 +184,18 @@ export function drawAudioReactiveOverlays(ctx, audioReactive, x, y, w, h) {
  * Zeichnet ein Medium (Bild/Video) mit oder ohne chromatische Aberration.
  * Ohne aktiven Chromatik-Effekt ein normales drawImage.
  */
-export function drawMediaWithAudioReactive(ctx, audioReactive, media, dx, dy, dw, dh) {
+export function drawMediaWithAudioReactive(
+  ctx: CanvasRenderingContext2D,
+  audioReactive: AudioReactiveDrawInput,
+  media: CanvasImageSource,
+  dx: number,
+  dy: number,
+  dw: number,
+  dh: number,
+): void {
   const chromatic = audioReactive?.effects?.chromatic
-  if (chromatic && chromatic.chromaticOffset > 0.5) {
-    drawMediaChromatic(ctx, media, dx, dy, dw, dh, chromatic.chromaticOffset)
+  if (chromatic && (chromatic.chromaticOffset ?? 0) > 0.5) {
+    drawMediaChromatic(ctx, media, dx, dy, dw, dh, chromatic.chromaticOffset as number)
   } else {
     ctx.drawImage(media, dx, dy, dw, dh)
   }
@@ -175,7 +205,15 @@ export function drawMediaWithAudioReactive(ctx, audioReactive, media, dx, dy, dw
  * Chromatische Aberration: Medium in drei verschobenen, eingefärbten Kanälen
  * (Screen-Blend) plus Original – wie bei Canvas-Bildern.
  */
-export function drawMediaChromatic(ctx, media, dx, dy, dw, dh, offset) {
+export function drawMediaChromatic(
+  ctx: CanvasRenderingContext2D,
+  media: CanvasImageSource,
+  dx: number,
+  dy: number,
+  dw: number,
+  dh: number,
+  offset: number,
+): void {
   const baseFilter = ctx.filter && ctx.filter !== 'none' ? ctx.filter : ''
   const baseAlpha = ctx.globalAlpha
   try {

@@ -1,4 +1,40 @@
 // UIRenderer.js - UI-Elemente Rendering (Auswahlrahmen, Handles, etc.)
+import type { Rect } from '../../canvasObjects/geometry'
+
+type Ctx = CanvasRenderingContext2D
+
+/** Aufzieh-Rechteck in Canvas-Pixeln */
+export interface DragSelectionRect {
+  startX: number
+  startY: number
+  endX: number
+  endY: number
+}
+
+/** Objekt auf dem Canvas (nur type wird hier gelesen) */
+export interface UICanvasObject {
+  type?: string
+}
+
+/** Benötigter Ausschnitt des CanvasManagers */
+export interface UIRendererManager {
+  canvas: HTMLCanvasElement
+  isEditingText?: boolean
+  selectionManager: {
+    pruneRemovedObjects?(): void
+    getResizeHandles(bounds: Rect): Record<string, Rect>
+    getDeleteButtonBounds(bounds: Rect): Rect
+  }
+  selectedObjects?: UICanvasObject[] | null
+  activeObject?: UICanvasObject | null
+  hoveredObject?: UICanvasObject | null
+  getObjectBounds(obj: UICanvasObject): Rect | null | undefined
+  getWorkspaceBounds(): Rect | null | undefined
+  textSelectionRect?: DragSelectionRect | null
+  imageSelectionRect?: DragSelectionRect | null
+  pendingImageAnimation?: string | null
+  textPositionPreview?: { relX: number; relY: number } | null
+}
 
 /**
  * UIRenderer - Verantwortlich für das Zeichnen aller UI-Elemente
@@ -12,14 +48,16 @@
  * - Text-Positions-Vorschau
  */
 export class UIRenderer {
-  constructor(canvasManager) {
+  manager: UIRendererManager
+
+  constructor(canvasManager: UIRendererManager) {
     this.manager = canvasManager
   }
 
   /**
    * Zeichnet alle interaktiven UI-Elemente
    */
-  drawInteractiveElements(ctx) {
+  drawInteractiveElements(ctx: Ctx): void {
     if (this.manager.isEditingText) return
     // Keine Markierungen für inzwischen entfernte Bilder (z. B. Slideshow-Wechsel)
     this.manager.selectionManager?.pruneRemovedObjects?.()
@@ -81,7 +119,7 @@ export class UIRenderer {
   /**
    * Zeichnet Auswahl-Markierung für globalen Hintergrund
    */
-  _drawBackgroundSelection(ctx) {
+  _drawBackgroundSelection(ctx: Ctx): void {
     ctx.save()
     ctx.strokeStyle = 'rgba(110, 168, 254, 0.9)'
     ctx.lineWidth = 4
@@ -102,7 +140,7 @@ export class UIRenderer {
   /**
    * Zeichnet Auswahl-Markierung für Workspace-Hintergrund
    */
-  _drawWorkspaceBackgroundSelection(ctx) {
+  _drawWorkspaceBackgroundSelection(ctx: Ctx): void {
     const workspaceBounds = this.manager.getWorkspaceBounds()
     if (!workspaceBounds) return
 
@@ -133,11 +171,11 @@ export class UIRenderer {
   /**
    * Zeichnet Resize-Handles um ein Objekt
    */
-  drawResizeHandles(ctx, bounds) {
+  drawResizeHandles(ctx: Ctx, bounds: Rect): void {
     const handles = this.manager.selectionManager.getResizeHandles(bounds)
     ctx.fillStyle = '#6ea8fe'
     for (const key in handles) {
-      const h = handles[key]
+      const h = handles[key] as Rect
       ctx.fillRect(h.x, h.y, h.width, h.height)
     }
   }
@@ -145,7 +183,7 @@ export class UIRenderer {
   /**
    * Zeichnet den Delete-Button
    */
-  drawDeleteButton(ctx, objectBounds) {
+  drawDeleteButton(ctx: Ctx, objectBounds: Rect): void {
     const deleteBtn = this.manager.selectionManager.getDeleteButtonBounds(objectBounds)
 
     ctx.save()
@@ -178,7 +216,7 @@ export class UIRenderer {
   /**
    * Zeichnet das Text-Auswahl-Rechteck während und nach der Auswahl
    */
-  drawTextSelectionRect(ctx) {
+  drawTextSelectionRect(ctx: Ctx): void {
     if (!this.manager.textSelectionRect) return
 
     const rect = this.manager.textSelectionRect
@@ -242,7 +280,7 @@ export class UIRenderer {
   /**
    * Zeichnet das Bild-Auswahl-Rechteck
    */
-  drawImageSelectionRect(ctx) {
+  drawImageSelectionRect(ctx: Ctx): void {
     if (!this.manager.imageSelectionRect) return
 
     const rect = this.manager.imageSelectionRect
@@ -317,7 +355,7 @@ export class UIRenderer {
   /**
    * Zeichnet die Text-Positions-Vorschau als Fadenkreuz
    */
-  drawTextPositionPreview(ctx) {
+  drawTextPositionPreview(ctx: Ctx): void {
     if (!this.manager.textPositionPreview) return
 
     const x = this.manager.textPositionPreview.relX * this.manager.canvas.width
@@ -379,8 +417,8 @@ export class UIRenderer {
   /**
    * Hilfsfunktion: Gibt einen lesbaren Namen für die Animation zurück
    */
-  _getAnimationLabel(animation) {
-    const labels = {
+  _getAnimationLabel(animation: string): string {
+    const labels: Record<string, string> = {
       none: '',
       fade: '✨ Einblenden',
       slideLeft: '← Gleiten Links',

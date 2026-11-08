@@ -25,13 +25,13 @@
 // - recording/CanvasPool.js - Canvas-Pooling
 // - recording/RecordingRenderer.js - Recording-Rendering
 
-import { BackgroundRenderer, SceneRenderer, UIRenderer } from './canvasManager/rendering/index.js'
+import { BackgroundRenderer, SceneRenderer, UIRenderer } from './canvasManager/rendering/index'
 import {
   MouseHandler,
   SelectionManager,
   DragDropHandler,
 } from './canvasManager/interaction/index.js'
-import { RecordingRenderer } from './canvasManager/recording/index.js'
+import { RecordingRenderer } from './canvasManager/recording/index'
 import {
   applyMethods,
   SelectionMethods,

@@ -6,7 +6,60 @@
  * into a single filter string to avoid multiple full-canvas read-backs.
  * Pulse (scale), Glow, Tint, and Vignette are drawn as additional passes.
  */
+import type { AudioLevelData } from '../../audio/AudioLevelCalculator'
+
+type Ctx = CanvasRenderingContext2D
+
+/** Globale Audio-FX-Einstellungen (audioFxStore.$state) */
+export interface AudioFxSettings {
+  enabled: boolean
+  brightnessEnabled: boolean
+  brightnessSource: string
+  brightnessMin: number
+  brightnessMax: number
+  hueEnabled: boolean
+  hueSource: string
+  hueRange: number
+  saturationEnabled: boolean
+  saturationSource: string
+  saturationMin: number
+  saturationMax: number
+  contrastEnabled: boolean
+  contrastSource: string
+  contrastMin: number
+  contrastMax: number
+  pulseEnabled: boolean
+  pulseSource: string
+  pulseStrength: number
+  glowEnabled: boolean
+  glowSource: string
+  glowColor: string
+  glowIntensity: number
+  tintEnabled: boolean
+  tintSource: string
+  tintColor: string
+  tintIntensity: number
+  vignetteEnabled: boolean
+  vignetteSource: string
+  vignetteIntensity: number
+  zoomPunchEnabled: boolean
+  zoomPunchStrength: number
+  vignettePulseEnabled: boolean
+  vignettePulseIntensity: number
+  bpmPulseEnabled: boolean
+  bpmPulseStrength: number
+  freqSplitEnabled: boolean
+  freqSplitStrength: number
+}
+
+type AudioData = AudioLevelData | null | undefined
+
 export class AudioFxRenderer {
+  _beatEnv: number
+  _beatLastT: number | null
+  _bpmPhase: number
+  _bpmLastT: number | null
+
   constructor() {
     // Shared beat envelope (0–1): snaps up on each detected beat, decays fast.
     // Drives Zoom-Punch and Vignette-Puls so both pulse on the exact same beat.
@@ -24,10 +77,16 @@ export class AudioFxRenderer {
    * @param {object} audioData  — getAudioAnalysisData()
    * @param {object} settings   — audioFxStore.$state
    */
-  render(ctx, width, height, audioData, settings) {
+  render(
+    ctx: Ctx,
+    width: number,
+    height: number,
+    audioData: AudioData,
+    settings: AudioFxSettings | null | undefined,
+  ): void {
     if (!settings?.enabled) return
 
-    const get = (source) => this._level(audioData, source)
+    const get = (source: string) => this._level(audioData, source)
     const time = typeof performance !== 'undefined' ? performance.now() : Date.now()
 
     // Advance the rhythm envelopes exactly once per frame so several beat-based
@@ -36,7 +95,7 @@ export class AudioFxRenderer {
     const bpmEnv = this._updateBpmPulse(audioData, time)
 
     // ── CSS-filter pass (single composite filter) ────────────────────────
-    const filters = []
+    const filters: string[] = []
 
     if (settings.brightnessEnabled) {
       const v =
@@ -209,7 +268,7 @@ export class AudioFxRenderer {
    * @param {number} height
    * @param {number} scale
    */
-  _scaleFromCentre(ctx, width, height, scale) {
+  _scaleFromCentre(ctx: Ctx, width: number, height: number, scale: number): void {
     ctx.save()
     ctx.globalCompositeOperation = 'copy'
     ctx.translate(width / 2, height / 2)
@@ -222,12 +281,12 @@ export class AudioFxRenderer {
    * Advances and returns the shared beat envelope (0–1). Snaps up to the beat
    * intensity on each detected beat, then decays exponentially (~150 ms).
    */
-  _updateBeatEnv(audioData, time) {
+  _updateBeatEnv(audioData: AudioData, time: number): number {
     const dt = this._beatLastT == null ? 0 : Math.max(0, time - this._beatLastT)
     this._beatLastT = time
     if (dt > 0) this._beatEnv *= Math.exp(-dt / 150)
     if (audioData?.isBeat) {
-      const s = audioData.beatIntensity > 0 ? audioData.beatIntensity : 1
+      const s = (audioData.beatIntensity ?? 0) > 0 ? (audioData.beatIntensity as number) : 1
       this._beatEnv = Math.max(this._beatEnv, s)
     }
     return Math.max(0, Math.min(1, this._beatEnv))
@@ -238,10 +297,10 @@ export class AudioFxRenderer {
    * right on each beat of the grid. The phase runs off the detected BPM so it
    * keeps pulsing during quiet passages, and re-syncs to 0 on every real beat.
    */
-  _updateBpmPulse(audioData, time) {
+  _updateBpmPulse(audioData: AudioData, time: number): number {
     const dt = this._bpmLastT == null ? 0 : Math.max(0, time - this._bpmLastT)
     this._bpmLastT = time
-    const bpm = audioData?.bpm > 0 ? audioData.bpm : 120
+    const bpm = (audioData?.bpm ?? 0) > 0 ? (audioData?.bpm as number) : 120
     const beatMs = 60000 / Math.max(30, Math.min(300, bpm))
     this._bpmPhase += dt / beatMs
     // Re-sync to the downbeat whenever a real beat is detected.
@@ -252,7 +311,7 @@ export class AudioFxRenderer {
     return raised * raised
   }
 
-  _level(audioData, source) {
+  _level(audioData: AudioData, source: string): number {
     if (!audioData) return 0
     switch (source) {
       case 'bass':

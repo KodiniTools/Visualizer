@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest'
-import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
+import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer'
 
 function fakeCtx() {
   const calls = []

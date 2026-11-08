@@ -14,7 +14,19 @@
  *
  * Memory-Reduktion: ~4.8GB → ~50MB (99%)
  */
+interface CanvasPoolState {
+  tempCanvas: HTMLCanvasElement | null
+  tempCtx: CanvasRenderingContext2D | null
+  vizCanvas: HTMLCanvasElement | null
+  vizCtx: CanvasRenderingContext2D | null
+  initialized: boolean
+  currentWidth: number
+  currentHeight: number
+}
+
 export class CanvasPool {
+  _pool: CanvasPoolState
+
   constructor() {
     this._pool = {
       tempCanvas: null,
@@ -31,10 +43,11 @@ export class CanvasPool {
    * Initialisiert Canvas-Pool
    * QUALITÄTSVERBESSERUNG: Hohe Bildqualität für Recording
    */
-  init(width, height) {
+  init(width: number, height: number): void {
     if (!this._pool.tempCanvas) {
-      this._pool.tempCanvas = document.createElement('canvas')
-      this._pool.tempCtx = this._pool.tempCanvas.getContext('2d', {
+      const tempCanvas = document.createElement('canvas')
+      this._pool.tempCanvas = tempCanvas
+      this._pool.tempCtx = tempCanvas.getContext('2d', {
         alpha: true,
         willReadFrequently: false,
         desynchronized: true, // Bessere Performance für Animation
@@ -47,8 +60,9 @@ export class CanvasPool {
     }
 
     if (!this._pool.vizCanvas) {
-      this._pool.vizCanvas = document.createElement('canvas')
-      this._pool.vizCtx = this._pool.vizCanvas.getContext('2d', {
+      const vizCanvas = document.createElement('canvas')
+      this._pool.vizCanvas = vizCanvas
+      this._pool.vizCtx = vizCanvas.getContext('2d', {
         alpha: true,
         willReadFrequently: false,
         desynchronized: true,
@@ -62,8 +76,10 @@ export class CanvasPool {
 
     // Resize nur wenn nötig
     if (this._pool.currentWidth !== width || this._pool.currentHeight !== height) {
-      this._pool.tempCanvas.width = width
-      this._pool.tempCanvas.height = height
+      // oben angelegt
+      const tempCanvas = this._pool.tempCanvas as HTMLCanvasElement
+      tempCanvas.width = width
+      tempCanvas.height = height
       this._pool.currentWidth = width
       this._pool.currentHeight = height
 
@@ -80,35 +96,35 @@ export class CanvasPool {
   /**
    * Gibt das Temp-Canvas zurück
    */
-  getTempCanvas() {
+  getTempCanvas(): HTMLCanvasElement | null {
     return this._pool.tempCanvas
   }
 
   /**
    * Gibt den Temp-Context zurück
    */
-  getTempCtx() {
+  getTempCtx(): CanvasRenderingContext2D | null {
     return this._pool.tempCtx
   }
 
   /**
    * Gibt das Viz-Canvas zurück
    */
-  getVizCanvas() {
+  getVizCanvas(): HTMLCanvasElement | null {
     return this._pool.vizCanvas
   }
 
   /**
    * Gibt den Viz-Context zurück
    */
-  getVizCtx() {
+  getVizCtx(): CanvasRenderingContext2D | null {
     return this._pool.vizCtx
   }
 
   /**
    * Resize das Viz-Canvas
    */
-  resizeVizCanvas(width, height) {
+  resizeVizCanvas(width: number, height: number): void {
     if (this._pool.vizCanvas) {
       if (this._pool.vizCanvas.width !== width || this._pool.vizCanvas.height !== height) {
         this._pool.vizCanvas.width = width
@@ -126,14 +142,14 @@ export class CanvasPool {
   /**
    * Prüft ob der Pool initialisiert ist
    */
-  isInitialized() {
+  isInitialized(): boolean {
     return this._pool.initialized
   }
 
   /**
    * Bereinigt Canvas-Pool
    */
-  cleanup() {
+  cleanup(): void {
     if (this._pool.tempCanvas) {
       this._pool.tempCanvas.width = 0
       this._pool.tempCanvas.height = 0

@@ -1,6 +1,6 @@
 // canvasManager/methods/backgroundSettingsMethods.js
 import { computeAudioReactiveValues } from '../../audio/audioReactiveEngine'
-import { applyAudioReactiveFilters } from '../rendering/audioReactiveDraw.js'
+import { applyAudioReactiveFilters } from '../rendering/audioReactiveDraw'
 import { calculateEffectValue } from '../../audio/AudioReactiveEffects'
 import { getAudioAnalysisData } from '../../audio/audioAnalysisData'
 

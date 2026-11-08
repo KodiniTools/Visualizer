@@ -186,7 +186,7 @@ import { usePlayerStore } from '../../stores/playerStore.js'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
 import { useAudioSourceStore } from '../../stores/audioSourceStore.js'
 import { useRecorderStore } from '../../stores/recorderStore.js'
-import { formatTime, formatTimePrecise } from '../../utils/formatTime.js'
+import { formatTime, formatTimePrecise } from '../../utils/formatTime'
 import UiIconButton from '../ui/UiIconButton.vue'
 import { PLAYER_ICONS as ICONS, PLAY_MODE_ICONS, iconPaths } from './playerBarIcons.js'
 

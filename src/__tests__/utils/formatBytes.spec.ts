@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatBytes } from '../../utils/formatBytes.js'
+import { formatBytes } from '../../utils/formatBytes'
 
 describe('formatBytes', () => {
   it('formatiert passend zur Sprache', () => {

@@ -1,10 +1,8 @@
 /**
  * Formatiert eine Bytezahl lesbar (B, KB, MB, GB), passend zur Sprache.
- * @param {number} bytes
- * @param {string} [locale='de']
- * @returns {string}
+ * Nicht-numerische oder nicht-positive Werte ergeben "0 B".
  */
-export function formatBytes(bytes, locale = 'de') {
+export function formatBytes(bytes: number, locale = 'de'): string {
   const value = Number(bytes)
   if (!Number.isFinite(value) || value <= 0) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB', 'TB']

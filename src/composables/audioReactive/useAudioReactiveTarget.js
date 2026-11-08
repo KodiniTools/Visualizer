@@ -104,7 +104,7 @@ export function useAudioReactiveTarget(o) {
   const userBackups = createKeyedStore()
   const presetTick = ref(0)
   const activePreset = computed(() => {
-    presetTick.value
+    void presetTick.value
     return activePresets.get(o.targetKey()) ?? null
   })
   function setActivePreset(name) {

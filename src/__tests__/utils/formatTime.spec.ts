@@ -4,7 +4,7 @@ import {
   formatTimePrecise,
   parseTimeInput,
   roundToHundredths,
-} from '../../utils/formatTime.js'
+} from '../../utils/formatTime'
 
 describe('formatTime (unverändert, ganze Sekunden)', () => {
   it('formatiert M:SS', () => {

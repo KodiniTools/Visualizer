@@ -100,7 +100,7 @@
  */
 import { ref, computed } from 'vue'
 import { useI18n } from '../../../lib/i18n.js'
-import { formatBytes } from '../../../utils/formatBytes.js'
+import { formatBytes } from '../../../utils/formatBytes'
 
 const props = defineProps({
   presets: { type: Array, default: () => [] },

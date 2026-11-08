@@ -30,7 +30,7 @@ export function useCanvasVideos(canvasManager, videoManager, tick) {
   })
 
   const selectedVideoCurrentTime = computed(() => {
-    tick.value
+    void tick.value
     return selectedCanvasVideo.value?.videoElement?.currentTime || 0
   })
 
@@ -39,7 +39,7 @@ export function useCanvasVideos(canvasManager, videoManager, tick) {
   )
 
   const selectedVideoVolume = computed(() => {
-    tick.value
+    void tick.value
     const el = selectedCanvasVideo.value?.videoElement
     return el ? displayVolume(el) : 1
   })

@@ -33,10 +33,12 @@ export const useCanvasStore = defineStore('canvas', () => {
     target[parts[parts.length - 1]] = value
     // sofort neu zeichnen (mehrere Fallbacks)
     const tm = textManagerInstance.value
-    tm?.requestRender?.() ||
+    void (
+      tm?.requestRender?.() ||
       tm?.redrawCallback?.() ||
       tm?.canvas?.requestRenderAll?.() ||
       tm?.canvas?.renderAll?.()
+    )
   }
 
   return {

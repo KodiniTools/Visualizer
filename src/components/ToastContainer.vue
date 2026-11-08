@@ -85,9 +85,9 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
-import { useToastStore } from '../stores/toastStore'
+import { useToastStore, type Toast } from '../stores/toastStore'
 import { useI18n } from '../lib/i18n'
 import UiButton from './ui/UiButton.vue'
 import UiIconButton from './ui/UiIconButton.vue'
@@ -99,11 +99,11 @@ const { t } = useI18n()
 const displayToasts = computed(() => [...toastStore.activeToasts].reverse().slice(0, 5))
 const toastCount = computed(() => toastStore.activeToasts.length)
 
-function removeToast(id) {
+function removeToast(id: Toast['id']) {
   toastStore.removeToast(id)
 }
 
-function handleAction(toast) {
+function handleAction(toast: Toast) {
   try {
     toast.action?.handler?.()
   } finally {

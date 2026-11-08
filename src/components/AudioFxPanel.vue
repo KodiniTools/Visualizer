@@ -14,21 +14,25 @@
           <FxEffect
             v-for="fx in group.effects"
             :key="fx.key"
-            v-model="store[`${fx.key}Enabled`]"
+            v-model="fxFields[`${fx.key}Enabled`]"
             :title="t(`audioFx.effects.${fx.key}`)"
           >
-            <FxSource v-if="fx.source" v-model="store[`${fx.key}Source`]" />
+            <FxSource
+              v-if="fx.source"
+              :model-value="fxFields[`${fx.key}Source`] as string"
+              @update:model-value="fxFields[`${fx.key}Source`] = $event"
+            />
             <div v-if="fx.color" class="fx-row">
               <span>{{ t('audioFx.color') }}</span>
               <ColorField
-                v-model="store[`${fx.key}Color`]"
+                v-model="fxFields[`${fx.key}Color`]"
                 :label="`${t('audioFx.color')} – ${t(`audioFx.effects.${fx.key}`)}`"
               />
             </div>
             <FxRange
               v-for="r in fx.ranges"
               :key="r.prop"
-              v-model="store[r.prop]"
+              v-model="fxNumbers[r.prop]"
               :label="t(`audioFx.${r.label}`)"
               :min="r.min"
               :max="r.max"
@@ -41,7 +45,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { useAudioFxStore } from '../stores/audioFxStore'
@@ -54,6 +58,12 @@ import FxRange from './audio-fx/FxRange.vue'
 
 const { t } = useI18n()
 const store = useAudioFxStore()
+// Dynamischer Zugriff auf die Store-Felder aus AUDIO_FX_GROUPS (Schlüssel-Muster siehe dort)
+type AudioFxFields = Record<`${string}Enabled`, boolean> &
+  Record<`${string}Source`, string> &
+  Record<`${string}Color`, string>
+const fxFields = store as unknown as AudioFxFields
+const fxNumbers = store as unknown as Record<string, number>
 const open = ref(false)
 </script>
 

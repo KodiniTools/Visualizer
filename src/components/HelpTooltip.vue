@@ -51,50 +51,37 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 
-const props = defineProps({
-  title: {
-    type: String,
-    default: '',
+const props = withDefaults(
+  defineProps<{
+    title?: string
+    text?: string
+    icon?: string
+    shortcut?: string
+    tip?: string
+    position?: 'top' | 'bottom' | 'left' | 'right'
+    large?: boolean
+    delay?: number
+  }>(),
+  {
+    title: '',
+    text: '',
+    icon: '',
+    shortcut: '',
+    tip: '',
+    position: 'top',
+    large: false,
+    delay: 300,
   },
-  text: {
-    type: String,
-    default: '',
-  },
-  icon: {
-    type: String,
-    default: '',
-  },
-  shortcut: {
-    type: String,
-    default: '',
-  },
-  tip: {
-    type: String,
-    default: '',
-  },
-  position: {
-    type: String,
-    default: 'top',
-    validator: (value) => ['top', 'bottom', 'left', 'right'].includes(value),
-  },
-  large: {
-    type: Boolean,
-    default: false,
-  },
-  delay: {
-    type: Number,
-    default: 300,
-  },
-})
+)
 
 const isVisible = ref(false)
-const tooltipRef = ref(null)
-const triggerRect = ref(null)
-let showTimeout = null
-let hideTimeout = null
+const tooltipRef = ref<HTMLElement | null>(null)
+const triggerRect = ref<DOMRect | null>(null)
+let showTimeout: ReturnType<typeof setTimeout> | undefined
+let hideTimeout: ReturnType<typeof setTimeout> | undefined
 
 const shortcutKeys = computed(() => {
   if (!props.shortcut) return []
@@ -137,11 +124,11 @@ const tooltipStyle = computed(() => {
   }
 })
 
-function showTooltip(event) {
+function showTooltip(event: Event) {
   clearTimeout(hideTimeout)
 
   showTimeout = setTimeout(() => {
-    const trigger = event.currentTarget
+    const trigger = event.currentTarget as HTMLElement
     triggerRect.value = trigger.getBoundingClientRect()
     isVisible.value = true
   }, props.delay)

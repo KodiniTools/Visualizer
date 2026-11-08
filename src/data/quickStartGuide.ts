@@ -2,7 +2,7 @@
 // Reine Daten: Beschriftungen, Reiter, Workflow-Schritte, Funktionen, Tastenkürzel, Tipps.
 // Beide Sprachen müssen dieselbe Struktur haben (siehe QuickStartGuide.spec.js).
 
-export const QUICK_START_TABS = ['workflow', 'features', 'shortcuts', 'tips']
+export const QUICK_START_TABS = ['workflow', 'features', 'shortcuts', 'tips'] as const
 
 export const QUICK_START_CONTENT = {
   de: {

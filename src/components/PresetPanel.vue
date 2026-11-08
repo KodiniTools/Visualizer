@@ -81,9 +81,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, inject, onMounted } from 'vue'
-import { usePresetStore } from '../stores/presetStore'
+import type { CanvasManagerRef } from '../composables/types'
+import { usePresetStore, type VisualizerPreset } from '../stores/presetStore'
 import { BUILT_IN_PRESETS } from '../data/builtInPresets'
 import { useToastStore } from '../stores/toastStore'
 import { useI18n } from '../lib/i18n'
@@ -92,35 +93,33 @@ const { t } = useI18n()
 
 // When embedded (e.g. inside the sticky-player-bar popover) the panel drops its
 // own collapse header and card chrome, since the popover already supplies them.
-defineProps({
-  embedded: { type: Boolean, default: false },
-})
+withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false })
 
-const canvasManager = inject('canvasManager')
+const canvasManager = inject('canvasManager') as CanvasManagerRef
 const presetStore = usePresetStore()
 const toastStore = useToastStore()
 
 const collapsed = ref(false)
 const newPresetName = ref('')
-const builtInPresets = BUILT_IN_PRESETS
+const builtInPresets = BUILT_IN_PRESETS as VisualizerPreset[]
 
 /**
  * Untertitel der Preset-Kachel: bei Multi-Layer-Vorlagen die Anzahl der
  * Ebenen, sonst der Visualizer-Name.
  */
-function presetSubtitle(preset) {
+function presetSubtitle(preset: VisualizerPreset): string {
   const v = preset.visualizer
   const count = v?.mode === 'multi' ? (v.layers?.length ?? 0) : 0
   if (count > 0) return `${count} ${t('presets.layers')}`
   return v?.selectedVisualizer || ''
 }
-const activePresetId = ref(null)
+const activePresetId = ref<string | null>(null)
 
 onMounted(() => {
   presetStore.loadUserPresets()
 })
 
-function apply(preset) {
+function apply(preset: VisualizerPreset) {
   presetStore.applyPreset(preset, canvasManager)
   activePresetId.value = preset.id
   toastStore.success(t('presets.applied').replace('{name}', preset.name))
@@ -134,7 +133,7 @@ function saveCurrent() {
   toastStore.success(t('presets.saved'))
 }
 
-function deletePreset(id) {
+function deletePreset(id: string) {
   presetStore.deleteUserPreset(id)
 }
 </script>

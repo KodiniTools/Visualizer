@@ -9,22 +9,28 @@
   </UiCallout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import UiCallout from './ui/UiCallout.vue'
+import type { StatusBanner as StatusBannerData } from '../composables/useStatusBanner'
 
 /**
  * Transienter Statushinweis (useStatusBanner) als UiCallout des Design-Systems:
  * Fläche ds-surface-2, Status nur im Icon. `error` wird zu `danger`.
  */
-const props = defineProps({
-  // { type: 'success'|'error'|'warning'|'info', message: string } | null
-  banner: { type: Object, default: null },
-})
+type CalloutType = 'info' | 'success' | 'warning' | 'danger'
 
-const calloutType = computed(() => {
+const props = withDefaults(
+  defineProps<{
+    // { type: 'success'|'error'|'warning'|'info', message: string } | null
+    banner?: StatusBannerData | null
+  }>(),
+  { banner: null },
+)
+
+const calloutType = computed((): CalloutType => {
   const type = props.banner?.type
   if (type === 'error') return 'danger'
-  return ['success', 'warning', 'info'].includes(type) ? type : 'info'
+  return type === 'success' || type === 'warning' || type === 'info' ? type : 'info'
 })
 </script>

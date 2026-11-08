@@ -50,6 +50,12 @@ const settingsOf = (img: FotoImageObject) => img.fotoSettings as FotoSettings
  * @param fotoManagerRef - injected fotoManager ref;
  *   required for the mutating handlers, optional for state-only consumers.
  */
+/**
+ * Natives Input-Event oder Pseudo-Event aus AudioReactivePanel
+ * (`{ target: { checked } }` bzw. `{ target: { value } }`).
+ */
+type InputLikeEvent = { target: unknown }
+
 export function useImageAudioReactive(fotoManagerRef?: Ref<FotoManager | null | undefined>) {
   function updateAudioReactiveSetting(property: string, value: unknown) {
     if (!currentActiveImage.value) return
@@ -61,27 +67,27 @@ export function useImageAudioReactive(fotoManagerRef?: Ref<FotoManager | null | 
     ] = value
   }
 
-  function onAudioReactiveToggle(event: Event) {
+  function onAudioReactiveToggle(event: InputLikeEvent) {
     const enabled = (event.target as HTMLInputElement).checked
     updateAudioReactiveSetting('enabled', enabled)
     if (!enabled) activeAudioPreset.value = null
   }
-  function onAudioReactiveSourceChange(event: Event) {
+  function onAudioReactiveSourceChange(event: InputLikeEvent) {
     updateAudioReactiveSetting('source', (event.target as HTMLInputElement).value)
   }
-  function onAudioReactiveSmoothingChange(event: Event) {
+  function onAudioReactiveSmoothingChange(event: InputLikeEvent) {
     updateAudioReactiveSetting('smoothing', parseInt((event.target as HTMLInputElement).value))
   }
-  function onAudioReactiveEasingChange(event: Event) {
+  function onAudioReactiveEasingChange(event: InputLikeEvent) {
     updateAudioReactiveSetting('easing', (event.target as HTMLInputElement).value)
   }
-  function onAudioReactiveBeatBoostChange(event: Event) {
+  function onAudioReactiveBeatBoostChange(event: InputLikeEvent) {
     updateAudioReactiveSetting('beatBoost', parseFloat((event.target as HTMLInputElement).value))
   }
-  function onAudioReactivePhaseChange(event: Event) {
+  function onAudioReactivePhaseChange(event: InputLikeEvent) {
     updateAudioReactiveSetting('phase', parseInt((event.target as HTMLInputElement).value))
   }
-  function onAudioReactiveGainChange(event: Event) {
+  function onAudioReactiveGainChange(event: InputLikeEvent) {
     updateAudioReactiveSetting('gain', parseFloat((event.target as HTMLInputElement).value))
   }
 

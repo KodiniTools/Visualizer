@@ -40,8 +40,11 @@
   </div>
 </template>
 
-<script setup>
-import { ref, inject } from 'vue'
+<script setup lang="ts">
+import { ref, inject, type Ref } from 'vue'
+import type { CanvasManagerRef } from '../composables/types'
+import type { FontManager } from '../lib/fontManager'
+import type { TextObject } from '../lib/textManager/types'
 import { useI18n } from '../lib/i18n'
 import TextNewForm from './text-manager/TextNewForm.vue'
 import TextEditPanel from './text-manager/TextEditPanel.vue'
@@ -57,12 +60,12 @@ import { useCanvasSize } from '../composables/textManager/useCanvasSize'
 import { useTextEditorWithChar } from '../composables/textManager/useTextEditorWithChar'
 
 const { t } = useI18n()
-const canvasManager = inject('canvasManager')
-const fontManager = inject('fontManager')
+const canvasManager = inject('canvasManager') as CanvasManagerRef
+const fontManager = inject('fontManager') as Ref<FontManager | null> | undefined
 
-const selectedText = ref(null)
-const multiSelectedTexts = ref([])
-const editPanelRef = ref(null)
+const selectedText = ref<TextObject | null>(null)
+const multiSelectedTexts = ref<TextObject[]>([])
+const editPanelRef = ref<InstanceType<typeof TextEditPanel> | null>(null)
 
 const historyRecorder = getHistoryRecorder(useHistoryStore())
 const beatMarkerStore = useBeatMarkerStore()
@@ -103,7 +106,7 @@ useTextSelectionSync({
 
 const { canvasWidth, canvasHeight } = useCanvasSize(canvasManager)
 
-function onTextCreated(newTextObj) {
+function onTextCreated(newTextObj: TextObject | null | undefined) {
   if (newTextObj) {
     selectedText.value = newTextObj
   }

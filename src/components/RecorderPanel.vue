@@ -168,7 +168,7 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { useRecorderStore } from '../stores/recorderStore'

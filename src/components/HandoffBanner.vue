@@ -1,7 +1,7 @@
 <template>
   <div v-if="payload" class="handoff-banner">
     <div class="handoff-banner__preview">
-      <img :src="payload.images[0].dataUrl" alt="" />
+      <img :src="(payload.images[0] as HandoffImage).dataUrl" alt="" />
     </div>
     <div class="handoff-banner__body">
       <strong>{{ t('handoff.title').replace('{source}', payload.source) }}</strong>
@@ -18,12 +18,14 @@
   </div>
 </template>
 
-<script setup>
-defineProps({
-  payload: { type: Object, default: null },
-  t: { type: Function, required: true },
+<script setup lang="ts">
+import type { HandoffImage, HandoffPayload } from '../lib/core/handoff'
+import type { TranslateFn } from '../composables/types'
+
+withDefaults(defineProps<{ payload?: HandoffPayload | null; t: TranslateFn }>(), {
+  payload: null,
 })
-defineEmits(['accept', 'reject'])
+defineEmits<{ accept: []; reject: [] }>()
 </script>
 
 <style scoped>

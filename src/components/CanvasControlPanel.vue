@@ -18,7 +18,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, provide, inject } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { useBgSettings } from '../composables/useBgSettings'

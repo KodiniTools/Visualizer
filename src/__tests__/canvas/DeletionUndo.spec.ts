@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { TextManager } from '../../lib/textManager'
 import { MultiImageManager } from '../../lib/multiImageManager'
 import { VideoManager } from '../../lib/videoManager'
+import { stub } from '../helpers/canvasStubs'
 
 /**
  * Tests für die undo-fähige Löschung von Canvas-Objekten.
@@ -11,7 +12,7 @@ import { VideoManager } from '../../lib/videoManager'
  */
 
 describe('Deletion Undo – TextManager', () => {
-  let tm
+  let tm: TextManager
 
   beforeEach(() => {
     tm = new TextManager(/* textStore */ {})
@@ -84,25 +85,25 @@ describe('Deletion Undo – TextManager', () => {
 })
 
 describe('Deletion Undo – MultiImageManager', () => {
-  let mgr
-  let onImageChanged
+  let mgr: MultiImageManager
+  let onImageChanged: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
     onImageChanged = vi.fn()
-    mgr = new MultiImageManager(null, {
+    mgr = new MultiImageManager(stub(null), {
       redrawCallback: () => {},
       onImageChanged,
     })
   })
 
   it('stellt ein entferntes Bild an derselben Ebenen-Position wieder her', () => {
-    mgr.images = [{ id: 'img1' }, { id: 'img2' }, { id: 'img3' }]
+    mgr.images = stub([{ id: 'img1' }, { id: 'img2' }, { id: 'img3' }])
     const removed = mgr.images[1]
 
     expect(mgr.removeImage('img2')).toBe(true)
     expect(mgr.images.map((i) => i.id)).toEqual(['img1', 'img3'])
 
-    expect(mgr.restoreImage(removed, 1)).toBe(true)
+    expect(mgr.restoreImage(removed!, 1)).toBe(true)
     expect(mgr.images.map((i) => i.id)).toEqual(['img1', 'img2', 'img3'])
     expect(onImageChanged).toHaveBeenCalled()
   })
@@ -110,17 +111,17 @@ describe('Deletion Undo – MultiImageManager', () => {
   it('verhindert doppelte Wiederherstellung', () => {
     const removed = { id: 'img1' }
     mgr.images = []
-    expect(mgr.restoreImage(removed, 0)).toBe(true)
-    expect(mgr.restoreImage(removed, 0)).toBe(false)
+    expect(mgr.restoreImage(stub(removed), 0)).toBe(true)
+    expect(mgr.restoreImage(stub(removed), 0)).toBe(false)
     expect(mgr.images.length).toBe(1)
   })
 })
 
 describe('Deletion Undo – VideoManager', () => {
-  let mgr
-  let onVideoChanged
+  let mgr: VideoManager
+  let onVideoChanged: ReturnType<typeof vi.fn>
 
-  function fakeVideo(id) {
+  function fakeVideo(id: string) {
     return {
       id,
       videoElement: {
@@ -132,7 +133,7 @@ describe('Deletion Undo – VideoManager', () => {
         get src() {
           return this._src
         },
-        set src(v) {
+        set src(v: string) {
           this._src = v
         },
       },
@@ -141,7 +142,7 @@ describe('Deletion Undo – VideoManager', () => {
 
   beforeEach(() => {
     onVideoChanged = vi.fn()
-    mgr = new VideoManager(null, {
+    mgr = new VideoManager(stub(null), {
       redrawCallback: () => {},
       onVideoChanged,
     })
@@ -149,7 +150,7 @@ describe('Deletion Undo – VideoManager', () => {
 
   it('erhält das Video-Element bei destroyElement:false, sodass Undo möglich ist', () => {
     const v = fakeVideo('vid1')
-    mgr.videos = [v]
+    mgr.videos = [stub(v)]
 
     mgr.removeVideo('vid1', { destroyElement: false })
     expect(v.videoElement.pause).toHaveBeenCalled()
@@ -157,14 +158,14 @@ describe('Deletion Undo – VideoManager', () => {
     expect(v.videoElement.src).toBe('blob:x')
     expect(v.videoElement.load).not.toHaveBeenCalled()
 
-    expect(mgr.restoreVideo(v, 0)).toBe(true)
+    expect(mgr.restoreVideo(stub(v), 0)).toBe(true)
     expect(mgr.videos.map((x) => x.id)).toEqual(['vid1'])
     expect(onVideoChanged).toHaveBeenCalled()
   })
 
   it('zerstört das Video-Element bei Standard-Löschung (destroyElement:true)', () => {
     const v = fakeVideo('vid1')
-    mgr.videos = [v]
+    mgr.videos = [stub(v)]
 
     mgr.removeVideo('vid1')
     expect(v.videoElement.pause).toHaveBeenCalled()
@@ -177,7 +178,7 @@ describe('Deletion Undo – VideoManager', () => {
     mgr.videos = []
     mgr.isPlaying = true
 
-    mgr.restoreVideo(v, 0)
+    mgr.restoreVideo(stub(v), 0)
     expect(v.videoElement.play).toHaveBeenCalled()
   })
 })

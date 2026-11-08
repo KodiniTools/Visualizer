@@ -2,23 +2,32 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { SlideshowManager } from '../../lib/slideshowManager'
 import SlideshowImageEditor from '../../components/foto-panel/slideshow/SlideshowImageEditor.vue'
+import { fakeImage, stub } from '../helpers/canvasStubs'
+import type { SlideshowSourceImage } from '../../lib/slideshowSources'
+
+type PositionEvent = { x: number; y: number }
+type SizeEvent = { width?: number; height?: number; keepAspect: boolean }
 
 function createManager(callbacks = {}) {
   let nextId = 1
   const multiImageManager = {
     canvas: { width: 1000, height: 1000 },
-    addImageWithBounds: vi.fn((imageObject, bounds) => ({ id: nextId++, imageObject, ...bounds })),
+    addImageWithBounds: vi.fn((imageObject: unknown, bounds: object) => ({
+      id: nextId++,
+      imageObject,
+      ...bounds,
+    })),
     removeImage: vi.fn(),
   }
   const fotoManager = {
-    initializeImageSettings: (img) => {
+    initializeImageSettings: (img: { fotoSettings?: object }) => {
       img.fotoSettings ??= { audioReactive: null }
     },
   }
   vi.spyOn(console, 'log').mockImplementation(() => {})
   vi.stubGlobal('requestAnimationFrame', () => 1)
   vi.stubGlobal('cancelAnimationFrame', () => {})
-  return new SlideshowManager(multiImageManager, fotoManager, callbacks)
+  return new SlideshowManager(stub(multiImageManager), stub(fotoManager), callbacks)
 }
 
 afterEach(() => {
@@ -27,8 +36,8 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-const imgA = { width: 200, height: 100 } // 2:1
-const imgB = { width: 100, height: 100 }
+const imgA = fakeImage({ width: 200, height: 100 }) // 2:1
+const imgB = fakeImage({ width: 100, height: 100 })
 const imgs = () => [{ imageObject: imgA }, { imageObject: imgB }]
 
 describe('SlideshowManager – Bild per Mittelpunkt positionieren', () => {
@@ -37,12 +46,12 @@ describe('SlideshowManager – Bild per Mittelpunkt positionieren', () => {
     m.start(imgs())
     const b = m.getEffectiveImageBounds(imgA)
     // 2:1 im Standardbereich (0.1/0.1, 0.8×0.8) → 0.8×0.4, vertikal zentriert
-    expect(b.relWidth).toBeCloseTo(0.8)
-    expect(b.relHeight).toBeCloseTo(0.4)
-    expect(b.relY + b.relHeight / 2).toBeCloseTo(0.5)
+    expect(b!.relWidth).toBeCloseTo(0.8)
+    expect(b!.relHeight).toBeCloseTo(0.4)
+    expect(b!.relY + b!.relHeight / 2).toBeCloseTo(0.5)
     expect(m.getImageBounds(imgA)).toBeNull() // nur gelesen, nichts gemerkt
     expect(m.getEffectiveImageBounds(null)).toBeNull()
-    expect(m.getEffectiveImageBounds({ width: 0, height: 0 })).toBeNull()
+    expect(m.getEffectiveImageBounds(fakeImage({ width: 0, height: 0 }))).toBeNull()
     m.stop()
   })
 
@@ -52,23 +61,23 @@ describe('SlideshowManager – Bild per Mittelpunkt positionieren', () => {
     m.start(imgs())
     const a = m.activeImages[0]
     const res = m.setImagePosition(imgA, { centerX: 0.3, centerY: 0.7 })
-    expect(res.relWidth).toBeCloseTo(0.8)
-    expect(res.relHeight).toBeCloseTo(0.4)
-    expect(a.relX + a.relWidth / 2).toBeCloseTo(0.3)
-    expect(a.relY + a.relHeight / 2).toBeCloseTo(0.7)
+    expect(res!.relWidth).toBeCloseTo(0.8)
+    expect(res!.relHeight).toBeCloseTo(0.4)
+    expect(a!.relX + a!.relWidth / 2).toBeCloseTo(0.3)
+    expect(a!.relY + a!.relHeight / 2).toBeCloseTo(0.7)
     expect(m.getImageBounds(imgA)).toEqual(res)
     expect(onImageBoundsChange).toHaveBeenCalledTimes(1)
-    expect(onImageBoundsChange.mock.calls[0][0].bounds).toEqual(res)
+    expect(onImageBoundsChange.mock.calls[0]![0].bounds).toEqual(res)
 
     // nur eine Achse: die andere bleibt
     m.setImagePosition(imgA, { centerX: 0.6 })
-    expect(a.relX + a.relWidth / 2).toBeCloseTo(0.6)
-    expect(a.relY + a.relHeight / 2).toBeCloseTo(0.7)
+    expect(a!.relX + a!.relWidth / 2).toBeCloseTo(0.6)
+    expect(a!.relY + a!.relHeight / 2).toBeCloseTo(0.7)
 
     // Werte außerhalb 0–1 werden begrenzt
     m.setImagePosition(imgA, { centerX: 5, centerY: -2 })
-    expect(a.relX + a.relWidth / 2).toBeCloseTo(1)
-    expect(a.relY + a.relHeight / 2).toBeCloseTo(0)
+    expect(a!.relX + a!.relWidth / 2).toBeCloseTo(1)
+    expect(a!.relY + a!.relHeight / 2).toBeCloseTo(0)
 
     // anderes Bild unverändert
     expect(m.getImageBounds(imgB)).toBeNull()
@@ -102,7 +111,7 @@ describe('SlideshowManager – Bild per Mittelpunkt positionieren', () => {
 })
 
 describe('SlideshowImageEditor – Positionsregler', () => {
-  const base = { image: { name: 'a.png' }, index: 0, total: 2 }
+  const base = { image: stub<SlideshowSourceImage>({ name: 'a.png' }), index: 0, total: 2 }
 
   it('ohne Position keine Regler', () => {
     const w = mount(SlideshowImageEditor, { props: { ...base, position: null } })
@@ -111,31 +120,31 @@ describe('SlideshowImageEditor – Positionsregler', () => {
 
   it('zeigt Mittelpunkt in % (Slider + Spinner) und meldet Änderungen relativ', async () => {
     const w = mount(SlideshowImageEditor, { props: { ...base, position: { x: 0.25, y: 0.625 } } })
-    const x = w.find('input.editor-position-x')
-    const y = w.find('input.editor-position-y')
+    const x = w.find<HTMLInputElement>('input.editor-position-x')
+    const y = w.find<HTMLInputElement>('input.editor-position-y')
     expect(x.attributes('type')).toBe('range')
     expect(Number(x.element.value)).toBeCloseTo(25)
     expect(Number(y.element.value)).toBeCloseTo(62.5)
-    const nums = w.findAll('.image-editor-position input[type="number"]')
+    const nums = w.findAll<HTMLInputElement>('.image-editor-position input[type="number"]')
     expect(nums).toHaveLength(2)
-    expect(Number(nums[1].element.value)).toBeCloseTo(62.5)
+    expect(Number(nums[1]!.element.value)).toBeCloseTo(62.5)
 
     x.element.value = '40'
     await x.trigger('input')
-    expect(w.emitted('update:position').at(-1)[0]).toEqual({ x: 0.4, y: 0.625 })
+    expect(w.emitted<[PositionEvent]>('update:position')!.at(-1)![0]).toEqual({ x: 0.4, y: 0.625 })
 
-    nums[1].element.value = '80'
-    await nums[1].trigger('input')
-    expect(w.emitted('update:position').at(-1)[0].y).toBeCloseTo(0.8)
-    expect(w.emitted('update:position').at(-1)[0].x).toBeCloseTo(0.25)
+    nums[1]!.element.value = '80'
+    await nums[1]!.trigger('input')
+    expect(w.emitted<[PositionEvent]>('update:position')!.at(-1)![0].y).toBeCloseTo(0.8)
+    expect(w.emitted<[PositionEvent]>('update:position')!.at(-1)![0].x).toBeCloseTo(0.25)
   })
 
   it('↺ setzt auf die Mitte (50 %)', async () => {
     const w = mount(SlideshowImageEditor, { props: { ...base, position: { x: 0.1, y: 0.9 } } })
     const resets = w.findAll('.image-editor-position .slider-field__reset')
     expect(resets).toHaveLength(2)
-    await resets[0].trigger('click')
-    expect(w.emitted('update:position').at(-1)[0]).toEqual({ x: 0.5, y: 0.9 })
+    await resets[0]!.trigger('click')
+    expect(w.emitted<[PositionEvent]>('update:position')!.at(-1)![0]).toEqual({ x: 0.5, y: 0.9 })
   })
 })
 
@@ -145,20 +154,20 @@ describe('SlideshowManager – Bildgröße (B×H)', () => {
     const m = createManager({ onImageBoundsChange })
     m.start(imgs())
     const a = m.activeImages[0]
-    const cx = a.relX + a.relWidth / 2
-    const cy = a.relY + a.relHeight / 2
+    const cx = a!.relX + a!.relWidth / 2
+    const cy = a!.relY + a!.relHeight / 2
     const res = m.setImageSize(imgA, { width: 0.4 }) // 0.8×0.4 → 0.4×0.2
-    expect(res.relWidth).toBeCloseTo(0.4)
-    expect(res.relHeight).toBeCloseTo(0.2)
-    expect(a.relX + a.relWidth / 2).toBeCloseTo(cx)
-    expect(a.relY + a.relHeight / 2).toBeCloseTo(cy)
+    expect(res!.relWidth).toBeCloseTo(0.4)
+    expect(res!.relHeight).toBeCloseTo(0.2)
+    expect(a!.relX + a!.relWidth / 2).toBeCloseTo(cx)
+    expect(a!.relY + a!.relHeight / 2).toBeCloseTo(cy)
     expect(m.getImageBounds(imgA)).toEqual(res)
     expect(onImageBoundsChange).toHaveBeenCalledTimes(1)
 
     // Höhe mit Seitenverhältnis: Breite folgt
     m.setImageSize(imgA, { height: 0.5 })
-    expect(a.relWidth).toBeCloseTo(1)
-    expect(a.relHeight).toBeCloseTo(0.5)
+    expect(a!.relWidth).toBeCloseTo(1)
+    expect(a!.relHeight).toBeCloseTo(0.5)
     m.stop()
   })
 
@@ -167,12 +176,12 @@ describe('SlideshowManager – Bildgröße (B×H)', () => {
     m.start(imgs())
     const a = m.activeImages[0]
     m.setImageSize(imgA, { width: 0.3, keepAspect: false })
-    expect(a.relWidth).toBeCloseTo(0.3)
-    expect(a.relHeight).toBeCloseTo(0.4)
+    expect(a!.relWidth).toBeCloseTo(0.3)
+    expect(a!.relHeight).toBeCloseTo(0.4)
     m.setImageSize(imgA, { height: 9, keepAspect: false })
-    expect(a.relHeight).toBeCloseTo(2)
+    expect(a!.relHeight).toBeCloseTo(2)
     m.setImageSize(imgA, { width: 0, keepAspect: false })
-    expect(a.relWidth).toBeCloseTo(0.01)
+    expect(a!.relWidth).toBeCloseTo(0.01)
     m.stop()
   })
 
@@ -180,9 +189,9 @@ describe('SlideshowManager – Bildgröße (B×H)', () => {
     const m = createManager()
     m.start(imgs())
     m.setImageSize(imgA, { width: 0.2 })
-    expect(m.getEffectiveImageBounds(imgA).relWidth).toBeCloseTo(0.2)
-    expect(m.getFittedImageBounds(imgA).relWidth).toBeCloseTo(0.8)
-    expect(m.getFittedImageBounds(imgA).relHeight).toBeCloseTo(0.4)
+    expect(m.getEffectiveImageBounds(imgA)!.relWidth).toBeCloseTo(0.2)
+    expect(m.getFittedImageBounds(imgA)!.relWidth).toBeCloseTo(0.8)
+    expect(m.getFittedImageBounds(imgA)!.relHeight).toBeCloseTo(0.4)
     m.stop()
   })
 
@@ -210,7 +219,7 @@ describe('SlideshowManager – Bildgröße (B×H)', () => {
 })
 
 describe('SlideshowImageEditor – Größenregler', () => {
-  const base = { image: { name: 'a.png' }, index: 0, total: 2 }
+  const base = { image: stub<SlideshowSourceImage>({ name: 'a.png' }), index: 0, total: 2 }
   const size = { width: 0.8, height: 0.4, defaultWidth: 0.8, defaultHeight: 0.4 }
 
   it('ohne Größe keine Regler', () => {
@@ -220,21 +229,26 @@ describe('SlideshowImageEditor – Größenregler', () => {
 
   it('zeigt B×H in % und meldet Änderungen mit Seitenverhältnis-Option', async () => {
     const w = mount(SlideshowImageEditor, { props: { ...base, size } })
-    const width = w.find('input.editor-size-width')
+    const width = w.find<HTMLInputElement>('input.editor-size-width')
     expect(Number(width.element.value)).toBeCloseTo(80)
-    expect(Number(w.find('input.editor-size-height').element.value)).toBeCloseTo(40)
+    expect(Number(w.find<HTMLInputElement>('input.editor-size-height').element.value)).toBeCloseTo(
+      40,
+    )
     const lock = w.find('.editor-keep-aspect [role="switch"]')
     expect(lock.attributes('aria-checked')).toBe('true')
 
     width.element.value = '50'
     await width.trigger('input')
-    expect(w.emitted('update:size').at(-1)[0]).toEqual({ width: 0.5, keepAspect: true })
+    expect(w.emitted<[SizeEvent]>('update:size')!.at(-1)![0]).toEqual({
+      width: 0.5,
+      keepAspect: true,
+    })
 
     await lock.trigger('click')
-    const nums = w.findAll('.image-editor-size input[type="number"]')
-    nums[1].element.value = '300' // über Maximum
-    await nums[1].trigger('input')
-    const last = w.emitted('update:size').at(-1)[0]
+    const nums = w.findAll<HTMLInputElement>('.image-editor-size input[type="number"]')
+    nums[1]!.element.value = '300' // über Maximum
+    await nums[1]!.trigger('input')
+    const last = w.emitted<[SizeEvent]>('update:size')!.at(-1)![0]
     expect(last.keepAspect).toBe(false)
     expect(last.height).toBeCloseTo(2)
   })
@@ -245,7 +259,10 @@ describe('SlideshowImageEditor – Größenregler', () => {
     })
     const resets = w.findAll('.image-editor-size .slider-field__reset')
     expect(resets).toHaveLength(2)
-    await resets[0].trigger('click')
-    expect(w.emitted('update:size').at(-1)[0]).toEqual({ width: 0.8, keepAspect: true })
+    await resets[0]!.trigger('click')
+    expect(w.emitted<[SizeEvent]>('update:size')!.at(-1)![0]).toEqual({
+      width: 0.8,
+      keepAspect: true,
+    })
   })
 })

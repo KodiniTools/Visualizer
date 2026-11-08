@@ -9,7 +9,8 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer'
 import { SlideshowManager } from '../../lib/slideshowManager'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { setAudioAnalysisData } from '../helpers/audioStubs'
+import { stub, type Call } from '../helpers/canvasStubs'
 
 const SILENT = {
   bass: 0,
@@ -32,7 +33,7 @@ const HIT = {
   trebleOnset: { onsetTreble: 1 },
   allOnset: { onsetAll: 1 },
 }
-const ALL_BUT = (source) =>
+const ALL_BUT = (source: string) =>
   Object.assign(
     {},
     ...Object.entries(HIT)
@@ -54,11 +55,11 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-function canvasShow(gradient) {
+function canvasShow(gradient: object) {
   vi.spyOn(console, 'log').mockImplementation(() => {})
-  const m = new SlideshowManager({ canvas: { width: 200, height: 100 } }, null)
+  const m = new SlideshowManager(stub({ canvas: { width: 200, height: 100 } }), stub(null))
   m.isActive = true
-  m.activeImages = [{}]
+  m.activeImages = [stub()]
   m.setBackgroundMode('canvas')
   m.setBackgroundColor('#112233')
   m.setBaseGradient('canvas', { enabled: true, color2: '#ddeeff', ...gradient })
@@ -67,24 +68,28 @@ function canvasShow(gradient) {
 }
 
 /** Zeichnet den Hintergrund; liefert die Füllungen (Verlauf mit Parametern + Stops). */
+/** Aufgezeichneter Verlauf: Art, Argumente von create*Gradient, Farbstopps */
+type RecordedGradient = { kind: string; a: number[]; stops: [number, string][] }
+type FillCall = [name: string, fill: RecordedGradient, ...rect: number[]]
+
 function renderCanvas() {
-  const calls = []
+  const calls: Call[] = []
   const manager = {
     background: '#ffffff',
     videoBackground: null,
     workspacePreset: null,
     backgroundTilesStore: null,
   }
-  const r = new BackgroundRenderer(manager)
-  r._drawColorBackground = () => calls.push(['canvas-color'])
-  r.drawBackgroundTiles = () => {}
+  const r = new BackgroundRenderer(stub(manager))
+  r._drawColorBackground = stub(() => calls.push(['canvas-color']))
+  r.drawBackgroundTiles = stub(() => {})
   const gradient =
-    (kind) =>
-    (...a) => ({
+    (kind: string) =>
+    (...a: unknown[]) => ({
       kind,
       a,
-      stops: [],
-      addColorStop(o, c) {
+      stops: [] as [number, string][],
+      addColorStop(o: number, c: string) {
         this.stops.push([o, c])
       },
     })
@@ -93,22 +98,28 @@ function renderCanvas() {
     save() {},
     restore() {},
     fillStyle: '',
-    fillRect: (...a) => calls.push(['fill', ctx.fillStyle, ...a]),
+    fillRect: (...a: unknown[]) => calls.push(['fill', ctx.fillStyle, ...a]),
     createLinearGradient: gradient('linear'),
     createRadialGradient: gradient('radial'),
   }
-  r.drawBackground(ctx)
+  r.drawBackground(stub(ctx))
   return calls
 }
-const fillOf = (calls) => calls.find((c) => c[0] === 'fill')[1]
-const audio = (source, over = {}) => ({ enabled: true, source, pulse: 100, rotation: 100, ...over })
+const fillOf = (calls: Call[]) => calls.find((c) => c[0] === 'fill')![1] as RecordedGradient
+const audio = (source: string, over = {}) => ({
+  enabled: true,
+  source,
+  pulse: 100,
+  rotation: 100,
+  ...over,
+})
 
 describe('Canvas-Modus – Farbverlauf', () => {
   it('ohne Audio: radialer Verlauf über den ganzen Canvas, Farbhintergrund ersetzt', () => {
     canvasShow({ type: 'radial' })
     const calls = renderCanvas()
     expect(calls).toHaveLength(1) // kein Canvas-Farbhintergrund
-    const [, fill, ...rect] = calls[0]
+    const [, fill, ...rect] = calls[0] as FillCall
     expect(rect).toEqual([0, 0, 200, 100])
     expect(fill.kind).toBe('radial')
     expect(fill.a).toEqual([100, 50, 0, 100, 50, HALF])
@@ -122,7 +133,7 @@ describe('Canvas-Modus – Farbverlauf', () => {
     canvasShow({ type: 'linear', angle: 0 })
     const fill = fillOf(renderCanvas())
     expect(fill.kind).toBe('linear')
-    expect(fill.a.map((v) => +v.toFixed(3))).toEqual([
+    expect(fill.a.map((v: number) => +v.toFixed(3))).toEqual([
       +(100 - HALF).toFixed(3),
       50,
       +(100 + HALF).toFixed(3),
@@ -152,7 +163,7 @@ describe('Canvas-Modus – Farbverlauf', () => {
     'Puls reagiert im Canvas auf %s (Radius zieht sich zusammen)',
     (source) => {
       canvasShow({ type: 'radial', audio: audio(source, { rotation: 0 }) })
-      setAudioAnalysisData({ ...SILENT, ...HIT[source] })
+      setAudioAnalysisData({ ...SILENT, ...HIT[source as keyof typeof HIT] })
       const fill = fillOf(renderCanvas())
       expect(fill.a.slice(0, 2)).toEqual([100, 50]) // ohne Kreisen: Mitte bleibt
       expect(fill.a[5]).toBeLessThan(HALF)
@@ -163,15 +174,15 @@ describe('Canvas-Modus – Farbverlauf', () => {
   it.each(Object.keys(HIT))('Rotation (linear) reagiert im Canvas auf %s', (source) => {
     vi.useFakeTimers({ now: HALF_SWING_TIME })
     canvasShow({ type: 'linear', angle: 0, audio: audio(source, { pulse: 0 }) })
-    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
+    setAudioAnalysisData({ ...SILENT, ...HIT[source as keyof typeof HIT] })
     const [x0, y0, x1, y1] = fillOf(renderCanvas()).a
     // Winkel dreht sich (0° < Winkel ≤ 90°), Verlauf weiterhin durch die Mitte
-    const deg = (Math.atan2(y1 - y0, x1 - x0) * 180) / Math.PI
+    const deg = (Math.atan2(y1! - y0!, x1! - x0!) * 180) / Math.PI
     expect(deg).toBeGreaterThan(0.5)
     expect(deg).toBeLessThanOrEqual(90 + 1e-9)
-    expect((x0 + x1) / 2).toBeCloseTo(100)
-    expect((y0 + y1) / 2).toBeCloseTo(50)
-    expect(Math.hypot(x1 - x0, y1 - y0)).toBeCloseTo(2 * HALF) // ohne Puls: volle Länge
+    expect((x0! + x1!) / 2).toBeCloseTo(100)
+    expect((y0! + y1!) / 2).toBeCloseTo(50)
+    expect(Math.hypot(x1! - x0!, y1! - y0!)).toBeCloseTo(2 * HALF) // ohne Puls: volle Länge
   })
 
   it('volle Rotation bei vollem Pegel = 180° (Richtung umgekehrt)', () => {
@@ -179,7 +190,7 @@ describe('Canvas-Modus – Farbverlauf', () => {
     canvasShow({ type: 'linear', angle: 0, audio: audio('bassOnset', { pulse: 0 }) })
     setAudioAnalysisData({ ...SILENT, onsetBass: 1 })
     const [x0, , x1] = fillOf(renderCanvas()).a
-    expect(x0).toBeGreaterThan(x1) // Farbe 1 jetzt rechts
+    expect(x0).toBeGreaterThan(x1!) // Farbe 1 jetzt rechts
   })
 
   it('Kreisen (radial): Mittelpunkt wandert, Radius bleibt ohne Puls', () => {
@@ -187,8 +198,8 @@ describe('Canvas-Modus – Farbverlauf', () => {
     canvasShow({ type: 'radial', audio: audio('allOnset', { pulse: 0 }) })
     setAudioAnalysisData({ ...SILENT, onsetAll: 1 })
     const [cx, cy, , , , radius] = fillOf(renderCanvas()).a
-    expect(Math.hypot(cx - 100, cy - 50)).toBeGreaterThan(0)
-    expect(Math.hypot(cx - 100, cy - 50)).toBeLessThanOrEqual(HALF * 0.25 + 1e-9)
+    expect(Math.hypot(cx! - 100, cy! - 50)).toBeGreaterThan(0)
+    expect(Math.hypot(cx! - 100, cy! - 50)).toBeLessThanOrEqual(HALF * 0.25 + 1e-9)
     expect(radius).toBe(HALF)
   })
 
@@ -197,8 +208,8 @@ describe('Canvas-Modus – Farbverlauf', () => {
     m.setBaseFillAudio('canvas', { enabled: true, source: 'allOnset', brightness: 100 })
     setAudioAnalysisData({ ...SILENT, onsetAll: 1 })
     const stops = fillOf(renderCanvas()).stops
-    expect(stops[0][1]).toMatch(/^hsl\(/)
-    expect(stops[1][1]).toMatch(/^hsl\(/)
+    expect(stops[0]![1]).toMatch(/^hsl\(/)
+    expect(stops[1]![1]).toMatch(/^hsl\(/)
   })
 
   it('Workspace-Verlauf und dessen Quelle wirken im Canvas-Modus nicht', () => {

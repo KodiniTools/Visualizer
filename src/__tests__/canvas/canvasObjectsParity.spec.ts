@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import { MultiImageManager } from '../../lib/multiImageManager'
 import { VideoManager } from '../../lib/videoManager'
+import { stub } from '../helpers/canvasStubs'
 
 /**
  * Charakterisierung der Canvas-Objekt-Logik, die Bild- und Video-Manager
@@ -15,29 +16,51 @@ beforeAll(() => {
   vi.spyOn(console, 'log').mockImplementation(() => {})
 })
 
-const MANAGERS = [
+/** Gemeinsame Schnittstelle von Bild- und Video-Manager, die hier geprüft wird */
+type ParityManager = {
+  getResizeHandles(bounds: typeof BOUNDS): unknown
+  getDeleteButtonBounds(bounds: typeof BOUNDS): unknown
+  isPointInRect(x: number, y: number, bounds: typeof BOUNDS): boolean
+  findHandleAt(x: number, y: number): string | null
+  isPointOnDeleteButton(x: number, y: number): boolean
+  getAnimationTransform(obj: object): Record<string, number>
+  bringToFront(obj: object | null): boolean
+  sendToBack(obj: object | null): boolean
+  redrawCallback: unknown
+}
+type ParityCase = {
+  name: string
+  create(): ParityManager
+  select(mgr: ParityManager): void
+  list(mgr: ParityManager): unknown[]
+  setList(mgr: ParityManager, items: object[]): void
+}
+const asImages = (mgr: ParityManager) => mgr as unknown as MultiImageManager
+const asVideos = (mgr: ParityManager) => mgr as unknown as VideoManager
+
+const MANAGERS: ParityCase[] = [
   {
     name: 'MultiImageManager',
-    create: () => new MultiImageManager(CANVAS),
+    create: () => stub(new MultiImageManager(stub(CANVAS))),
     select(mgr) {
-      mgr.selectedImage = { id: 's', type: 'image' }
-      mgr.getImageBounds = () => ({ ...BOUNDS })
+      asImages(mgr).selectedImage = stub({ id: 's', type: 'image' })
+      asImages(mgr).getImageBounds = () => ({ ...BOUNDS })
     },
-    list: (mgr) => mgr.images,
+    list: (mgr) => asImages(mgr).images,
     setList(mgr, items) {
-      mgr.images = items
+      asImages(mgr).images = stub(items)
     },
   },
   {
     name: 'VideoManager',
-    create: () => new VideoManager(CANVAS),
+    create: () => stub(new VideoManager(stub(CANVAS))),
     select(mgr) {
-      mgr.selectedVideo = { id: 's', type: 'video' }
-      mgr.getVideoBounds = () => ({ ...BOUNDS })
+      asVideos(mgr).selectedVideo = stub({ id: 's', type: 'video' })
+      asVideos(mgr).getVideoBounds = () => ({ ...BOUNDS })
     },
-    list: (mgr) => mgr.videos,
+    list: (mgr) => asVideos(mgr).videos,
     setList(mgr, items) {
-      mgr.videos = items
+      asVideos(mgr).videos = stub(items)
     },
   },
 ]

@@ -6,11 +6,12 @@
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { reactive } from 'vue'
-import { CanvasManager } from '../../lib/canvasManager'
+import { CanvasManager, type CanvasObject } from '../../lib/canvasManager'
 import { MultiImageManager } from '../../lib/multiImageManager'
 import { FotoManager } from '../../lib/fotoManager'
 import { SlideshowManager } from '../../lib/slideshowManager'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
+import { fakeImage, stub } from '../helpers/canvasStubs'
 
 afterEach(() => {
   setSlideshowManager(null)
@@ -20,14 +21,14 @@ afterEach(() => {
 })
 
 function markerCtx() {
-  const strokes = []
+  const strokes: unknown[] = []
   const noop = () => {}
   const ctx = {
     canvas: { width: 1000, height: 1000 },
     save: noop,
     restore: noop,
     setLineDash: noop,
-    strokeRect: (...a) => strokes.push(a),
+    strokeRect: (...a: unknown[]) => strokes.push(a),
     fillRect: noop,
     beginPath: noop,
     arc: noop,
@@ -36,14 +37,19 @@ function markerCtx() {
     moveTo: noop,
     lineTo: noop,
   }
-  return { ctx, strokes }
+  return { ctx: stub<CanvasRenderingContext2D>(ctx), strokes }
 }
 
 function setup() {
   vi.spyOn(console, 'log').mockImplementation(() => {})
   vi.stubGlobal('requestAnimationFrame', () => 1)
   vi.stubGlobal('cancelAnimationFrame', () => {})
-  const canvas = { width: 1000, height: 1000, getContext: () => ({}), style: {} }
+  const canvas = stub<HTMLCanvasElement>({
+    width: 1000,
+    height: 1000,
+    getContext: () => ({}),
+    style: {},
+  })
   const fotoManager = new FotoManager(() => {})
   const onImageSelected = vi.fn()
   const mim = new MultiImageManager(canvas, { onImageSelected, fotoManager })
@@ -63,15 +69,15 @@ describe('Slideshow – keine verwaisten Markierungen', () => {
   it('addImageWithBounds: select:false wählt nicht aus, Standard weiterhin schon', () => {
     const { mim } = setup()
     const bounds = { relX: 0, relY: 0, relWidth: 0.5, relHeight: 0.5 }
-    const a = mim.addImageWithBounds({ width: 10, height: 10 }, bounds)
+    const a = mim.addImageWithBounds(fakeImage({ width: 10, height: 10 }), bounds)
     expect(mim.getSelectedImage()).toBe(a)
-    mim.addImageWithBounds({ width: 10, height: 10 }, bounds, 'none', { select: false })
+    mim.addImageWithBounds(fakeImage({ width: 10, height: 10 }), bounds, 'none', { select: false })
     expect(mim.getSelectedImage()).toBe(a)
   })
 
   it('eingeblendete Slideshow-Bilder werden nicht ausgewählt', () => {
     const { mim, slideshow, onImageSelected } = setup()
-    const img = { width: 10, height: 10 }
+    const img = fakeImage({ width: 10, height: 10 })
     slideshow.start([{ imageObject: img }, { imageObject: img }])
     expect(slideshow.activeImages).toHaveLength(1)
     expect(mim.getSelectedImage()).toBeNull()
@@ -82,15 +88,15 @@ describe('Slideshow – keine verwaisten Markierungen', () => {
   it('Szenario vom Foto: angeklicktes Bild wird ausgeblendet → keine Markierung übrig', () => {
     vi.useFakeTimers()
     const { cm, mim, slideshow } = setup()
-    const img = { width: 10, height: 10 }
+    const img = fakeImage({ width: 10, height: 10 })
     slideshow.start([{ imageObject: img }, { imageObject: img }, { imageObject: img }], {
       fadeInDuration: 100,
       displayDuration: 100,
       fadeOutDuration: 100,
     })
     const first = slideshow.activeImages[0]
-    cm.setActiveObject(first) // Benutzer klickt Bild 1 an
-    cm.hoveredObject = first
+    cm.setActiveObject(first!) // Benutzer klickt Bild 1 an
+    cm.hoveredObject = first!
     expect(mim.getSelectedImage()).toBe(first)
 
     // Bild 1 blendet aus, Bild 2 kommt – darf die Auswahl nicht übernehmen
@@ -119,17 +125,17 @@ describe('Slideshow – keine verwaisten Markierungen', () => {
   it('pruneRemovedObjects: aktiv, Hover und Mehrfachauswahl; Vergleich per ID; Texte bleiben', () => {
     const { cm, mim } = setup()
     const bounds = { relX: 0, relY: 0, relWidth: 0.2, relHeight: 0.2 }
-    const kept = mim.addImageWithBounds({ width: 10, height: 10 }, bounds)
-    const gone = mim.addImageWithBounds({ width: 10, height: 10 }, bounds)
-    mim.removeImage(gone.id)
-    const text = { type: 'text', id: 't1' }
+    const kept = mim.addImageWithBounds(fakeImage({ width: 10, height: 10 }), bounds)
+    const gone = mim.addImageWithBounds(fakeImage({ width: 10, height: 10 }), bounds)
+    mim.removeImage(gone!.id)
+    const text = stub<CanvasObject>({ type: 'text', id: 't1' })
 
     // reaktiver Proxy desselben Bildes zählt als vorhanden
-    cm.activeObject = reactive(kept)
+    cm.activeObject = reactive(kept!)
     cm.hoveredObject = gone
-    cm.selectedObjects = [text, gone, kept]
+    cm.selectedObjects = [text, gone!, kept!]
     expect(cm.selectionManager.pruneRemovedObjects()).toBe(true)
-    expect(cm.activeObject.id).toBe(kept.id)
+    expect(cm.activeObject!.id).toBe(kept!.id)
     expect(cm.hoveredObject).toBeNull()
     expect(cm.selectedObjects).toEqual([text, kept])
     expect(cm.selectionManager.pruneRemovedObjects()).toBe(false)
@@ -144,10 +150,12 @@ describe('Slideshow – keine verwaisten Markierungen', () => {
 
   it('vorhandenes, angeklicktes Bild behält seine Markierung', () => {
     const { cm, mim } = setup()
-    const a = mim.addImageWithBounds(
-      { width: 10, height: 10 },
-      { relX: 0.1, relY: 0.1, relWidth: 0.2, relHeight: 0.2 },
-    )
+    const a = mim.addImageWithBounds(fakeImage({ width: 10, height: 10 }), {
+      relX: 0.1,
+      relY: 0.1,
+      relWidth: 0.2,
+      relHeight: 0.2,
+    })
     cm.setActiveObject(a)
     const { ctx, strokes } = markerCtx()
     cm.drawInteractiveElements(ctx)

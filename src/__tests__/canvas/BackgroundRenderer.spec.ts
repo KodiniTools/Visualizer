@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer'
+import { stub } from '../helpers/canvasStubs'
 
 function fakeCtx() {
-  const calls = []
+  const calls: unknown[] = []
   const ctx = {
     canvas: { width: 200, height: 100 },
     filter: 'none',
@@ -11,7 +12,7 @@ function fakeCtx() {
     fillStyle: '',
     save: () => calls.push('save'),
     restore: () => calls.push('restore'),
-    fillRect: (...a) => calls.push(['fillRect', ...a]),
+    fillRect: (...a: unknown[]) => calls.push(['fillRect', ...a]),
     translate: () => {},
     rotate: () => {},
     scale: () => {},
@@ -25,14 +26,14 @@ function fakeCtx() {
     drawImage: () => {},
     calls,
   }
-  return ctx
+  return stub<CanvasRenderingContext2D & { calls: unknown[] }>(ctx)
 }
 
 describe('BackgroundRenderer', () => {
   it('exposes the public drawing API', () => {
-    const r = new BackgroundRenderer({})
+    const r = new BackgroundRenderer(stub({}))
     for (const m of ['drawBackground', 'drawBackgroundTiles', 'getTileAtPosition']) {
-      expect(typeof r[m]).toBe('function')
+      expect(typeof r[m as keyof BackgroundRenderer]).toBe('function')
     }
   })
 
@@ -45,7 +46,7 @@ describe('BackgroundRenderer', () => {
       _getAudioReactiveValues: () => null,
       _applyAudioReactiveFilters: () => {},
     }
-    const r = new BackgroundRenderer(manager)
+    const r = new BackgroundRenderer(stub(manager))
     const ctx = fakeCtx()
     r.drawBackground(ctx)
     const fill = ctx.calls.find((c) => Array.isArray(c) && c[0] === 'fillRect')
@@ -62,7 +63,7 @@ describe('BackgroundRenderer', () => {
       _getAudioReactiveValues: () => ({ hasEffects: true, effects: { scale: { scale: 1.3 } } }),
       _applyAudioReactiveFilters: () => {},
     }
-    const r = new BackgroundRenderer(manager)
+    const r = new BackgroundRenderer(stub(manager))
     const ctx = fakeCtx()
     r.drawBackground(ctx)
     const fill = ctx.calls.find((c) => Array.isArray(c) && c[0] === 'fillRect')

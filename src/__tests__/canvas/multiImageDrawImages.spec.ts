@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { MultiImageManager } from '../../lib/multiImageManager'
+import { MultiImageManager, type CanvasImage } from '../../lib/multiImageManager'
+import { fakeImage, stub, type StubTarget } from '../helpers/canvasStubs'
+
+/** Objekt mit optionaler Markierung für das Protokoll */
+const tagOf = (o: object) => (o as { tag?: string }).tag
 
 /**
  * Charakterisierungstest für MultiImageManager.drawImages():
@@ -8,13 +12,13 @@ import { MultiImageManager } from '../../lib/multiImageManager'
  * Render-Pipeline das Zeichenergebnis nicht verändern.
  */
 
-function round(v) {
+function round(v: unknown) {
   return typeof v === 'number' ? Math.round(v * 1e6) / 1e6 : v
 }
 
 function makeRecordingCtx() {
-  const log = []
-  const state = {
+  const log: unknown[] = []
+  const state: StubTarget = {
     canvas: { width: 1000, height: 1000 },
     globalAlpha: 1,
     filter: 'none',
@@ -25,18 +29,18 @@ function makeRecordingCtx() {
     shadowOffsetY: 0,
     fillStyle: '#000',
   }
-  const ctx = new Proxy(state, {
+  const ctx = new Proxy<StubTarget>(state, {
     get(target, prop) {
       if (prop in target) return target[prop]
       if (typeof prop !== 'string') return undefined
-      return (...args) => {
+      return (...args: unknown[]) => {
         log.push(
-          `${prop}(${args.map((a) => (a && typeof a === 'object' ? `[${a.tag || 'obj'}]` : round(a))).join(', ')})`,
+          `${prop}(${args.map((a) => (a && typeof a === 'object' ? `[${tagOf(a) || 'obj'}]` : round(a))).join(', ')})`,
         )
         if (prop === 'createRadialGradient') {
           return {
             tag: 'gradient',
-            addColorStop: (o, c) => log.push(`gradient.addColorStop(${o}, ${c})`),
+            addColorStop: (o: unknown, c: unknown) => log.push(`gradient.addColorStop(${o}, ${c})`),
           }
         }
         return undefined
@@ -45,18 +49,18 @@ function makeRecordingCtx() {
     set(target, prop, value) {
       target[prop] = value
       log.push(
-        `${String(prop)} = ${value && typeof value === 'object' ? `[${value.tag || 'obj'}]` : round(value)}`,
+        `${String(prop)} = ${value && typeof value === 'object' ? `[${tagOf(value) || 'obj'}]` : round(value)}`,
       )
       return true
     },
   })
-  return { ctx, log }
+  return { ctx: stub<CanvasRenderingContext2D>(ctx), log }
 }
 
-const IMAGE = { tag: 'img', width: 100, height: 100 }
+const IMAGE = fakeImage({ tag: 'img', width: 100, height: 100 })
 
 function baseImage(extra = {}) {
-  return {
+  return stub<CanvasImage>({
     id: 1,
     type: 'image',
     imageObject: IMAGE,
@@ -65,25 +69,39 @@ function baseImage(extra = {}) {
     relWidth: 0.3,
     relHeight: 0.4,
     ...extra,
-  }
+  })
 }
 
 const NO_ANIM = { translateX: 0, translateY: 0, scale: 1, rotation: 0, opacity: 1 }
 
-function run({ images, audio = null, anim = NO_ANIM, fotoManager = null, options } = {}) {
+type RunOptions = {
+  images?: CanvasImage[]
+  audio?: object | null
+  anim?: typeof NO_ANIM
+  fotoManager?: object | null
+  options?: object
+}
+
+function run({
+  images,
+  audio = null,
+  anim = NO_ANIM,
+  fotoManager = null,
+  options,
+}: RunOptions = {}) {
   vi.spyOn(console, 'log').mockImplementation(() => {})
   const mgr = new MultiImageManager(
-    { width: 1000, height: 1000 },
-    fotoManager ? { fotoManager } : {},
+    stub({ width: 1000, height: 1000 }),
+    stub(fotoManager ? { fotoManager } : {}),
   )
-  mgr.images.push(...images)
-  vi.spyOn(mgr, 'getAudioReactiveValues').mockImplementation(() => audio)
+  mgr.images.push(...images!)
+  vi.spyOn(mgr, 'getAudioReactiveValues').mockImplementation(() => stub(audio))
   vi.spyOn(mgr, 'getAnimationTransform').mockImplementation(() => ({ ...anim }))
   const { ctx, log } = makeRecordingCtx()
   vi.spyOn(mgr, '_drawImageOutline').mockImplementation((c, img, b, ...rest) => {
     log.push(`_drawImageOutline(${JSON.stringify(b)}, ${rest.map(round).join(', ')})`)
   })
-  mgr.drawImages(ctx, options)
+  mgr.drawImages(ctx, options as Parameters<typeof mgr.drawImages>[1])
   return log
 }
 
@@ -130,7 +148,7 @@ afterEach(() => {
 describe('MultiImageManager.drawImages – Charakterisierung', () => {
   it('ohne Bilder / ohne ctx passiert nichts', () => {
     expect(run({ images: [] })).toEqual([])
-    const mgr = new MultiImageManager({ width: 1000, height: 1000 })
+    const mgr = new MultiImageManager(stub({ width: 1000, height: 1000 }))
     mgr.images.push(baseImage())
     expect(() => mgr.drawImages(null)).not.toThrow()
   })
@@ -159,7 +177,7 @@ describe('MultiImageManager.drawImages – Charakterisierung', () => {
 
   it('FotoManager-Filter haben Vorrang vor Legacy-Filtern', () => {
     const fotoManager = {
-      applyFilters: (ctx) => {
+      applyFilters: (ctx: CanvasRenderingContext2D) => {
         ctx.filter = 'brightness(150%)'
         ctx.globalAlpha = 0.7
       },
@@ -200,7 +218,9 @@ describe('MultiImageManager.drawImages – Charakterisierung', () => {
 
   it('alle audio-reaktiven Filter-Effekte + stärkster Glow', () => {
     const audio = { hasEffects: true, effects: ALL_FILTER_EFFECTS }
-    const fotoManager = { applyFilters: (ctx) => (ctx.filter = 'contrast(105%)') }
+    const fotoManager = {
+      applyFilters: (ctx: CanvasRenderingContext2D) => (ctx.filter = 'contrast(105%)'),
+    }
     expect(run({ images: [baseImage({ fotoSettings: {} })], audio, fotoManager })).toMatchSnapshot()
   })
 
@@ -263,14 +283,14 @@ describe('MultiImageManager.drawImages – Charakterisierung', () => {
 
   it('Bild ohne gültige Bounds wird übersprungen, drawImage-Fehler werden abgefangen', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const bad = { ...baseImage({ id: 9 }), type: 'video' }
+    const bad = stub<CanvasImage>({ ...baseImage({ id: 9 }), type: 'video' })
     const log = run({ images: [bad] })
     expect(log).toEqual([])
 
-    const mgr = new MultiImageManager({ width: 1000, height: 1000 })
+    const mgr = new MultiImageManager(stub({ width: 1000, height: 1000 }))
     mgr.images.push(baseImage())
     const { ctx } = makeRecordingCtx()
-    const throwing = new Proxy(ctx, {
+    const throwing = new Proxy<StubTarget>(stub(ctx), {
       get(t, p) {
         if (p === 'drawImage') {
           return () => {
@@ -280,7 +300,7 @@ describe('MultiImageManager.drawImages – Charakterisierung', () => {
         return t[p]
       },
     })
-    expect(() => mgr.drawImages(throwing)).not.toThrow()
+    expect(() => mgr.drawImages(stub(throwing))).not.toThrow()
     expect(console.warn).toHaveBeenCalledWith(
       '[MultiImageManager] Image render error:',
       expect.any(Error),

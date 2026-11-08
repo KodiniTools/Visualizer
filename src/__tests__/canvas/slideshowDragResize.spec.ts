@@ -1,30 +1,34 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { DragDropHandler } from '../../lib/canvasManager/interaction/DragDropHandler'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
+import type { CanvasImage } from '../../lib/multiImageManager'
+import { fakeImage, stub } from '../helpers/canvasStubs'
 
 function setup({ fitted = false, moveWhole = false } = {}) {
-  const committed = []
-  const movedWhole = []
-  setSlideshowManager({
-    isFittedToWorkspace: () => fitted,
-    commitImageBounds: (obj) => committed.push({ ...obj }),
-    moveWholeSlideshow: moveWhole,
-    moveSlideshow: (dx, dy) => movedWhole.push([dx, dy]),
-  })
-  const manager = {
+  const committed: { relX: number }[] = []
+  const movedWhole: number[][] = []
+  setSlideshowManager(
+    stub({
+      isFittedToWorkspace: () => fitted,
+      commitImageBounds: (obj: { relX: number }) => committed.push({ ...obj }),
+      moveWholeSlideshow: moveWhole,
+      moveSlideshow: (dx: number, dy: number) => movedWhole.push([dx, dy]),
+    }),
+  )
+  const manager = stub<ConstructorParameters<typeof DragDropHandler>[0]>({
     canvas: { width: 1000, height: 1000 },
     currentAction: 'resize-br',
     selectionManager: { HANDLE_SIZE: 10 },
-  }
-  const obj = {
+  })
+  const obj = stub<CanvasImage>({
     type: 'image',
     isSlideshowImage: true,
-    imageObject: { width: 200, height: 100 },
+    imageObject: fakeImage({ width: 200, height: 100 }),
     relX: 0.1,
     relY: 0.1,
     relWidth: 0.4,
     relHeight: 0.2,
-  }
+  })
   return { handler: new DragDropHandler(manager), manager, obj, committed, movedWhole }
 }
 
@@ -57,7 +61,7 @@ describe('DragDropHandler – Slideshow-Bilder', () => {
     handler.moveObject(obj, 50, 100)
     expect(obj.relX).toBeCloseTo(0.15)
     expect(obj.relY).toBeCloseTo(0.2)
-    expect(committed.at(-1).relX).toBeCloseTo(0.15)
+    expect(committed.at(-1)!.relX).toBeCloseTo(0.15)
   })
 
   it('im Workspace-Modus gesperrt', () => {

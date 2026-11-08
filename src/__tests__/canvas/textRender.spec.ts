@@ -11,7 +11,11 @@ import { buildFilterString } from '../../lib/textManager/render/filters'
 import { drawTextLines, drawTypewriterCursor } from '../../lib/textManager/render/textLines'
 import { drawText } from '../../lib/textManager/render/drawText'
 import { createTextObject } from '../../lib/textManager/createTextObject'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { setAudioAnalysisData } from '../helpers/audioStubs'
+import { stub, type Call, type RecordingCtx, type StubTarget } from '../helpers/canvasStubs'
+
+type AudioValues = NonNullable<Parameters<typeof computeTextTransform>[1]>
+type CursorResult = Parameters<typeof drawTypewriterCursor>[2]['typewriterResult']
 
 /**
  * Tests für die Render-Module (docs/REFACTORING-textManager.md, Schritt 5).
@@ -20,27 +24,27 @@ import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 const T0 = 1_700_000_000_000
 
 /** Audio-Ergebnis in der Form, die getAudioReactiveValues liefert. */
-function audio(effects) {
-  return { hasEffects: true, effects }
+function audio(effects: object) {
+  return stub<AudioValues>({ hasEffects: true, effects })
 }
 
 /** Canvas-Context-Stub, der alle Aufrufe und Zuweisungen protokolliert. */
 function recordingCtx() {
-  const calls = []
-  return new Proxy(
+  const calls: Call[] = []
+  return new Proxy<StubTarget>(
     {
       canvas: { width: 800, height: 600 },
       textAlign: 'center',
       fillStyle: '#000',
       globalCompositeOperation: 'source-over',
-      measureText: (t) => ({ width: String(t).length * 10 }),
+      measureText: (t: unknown) => ({ width: String(t).length * 10 }),
       calls,
     },
     {
       get: (target, prop) => {
         if (prop in target) return target[prop]
         if (typeof prop === 'symbol') return undefined
-        return (...args) => calls.push([prop, ...args])
+        return (...args: unknown[]) => calls.push([prop, ...args])
       },
       set: (target, prop, value) => {
         calls.push(['set:' + String(prop), value])
@@ -48,11 +52,11 @@ function recordingCtx() {
         return true
       },
     },
-  )
+  ) as unknown as RecordingCtx
 }
 
 describe('computeTextTransform', () => {
-  const canvas = [800, 600]
+  const canvas = [800, 600] as const
 
   it('nimmt ohne Audio und Animation die statischen Werte', () => {
     const t = createTextObject('A', { relX: 0.25, relY: 0.5, opacity: 80, rotation: 10 })
@@ -159,7 +163,7 @@ describe('computeTextTransform', () => {
 
   it('bezieht die Slide-Animation in die Position ein', () => {
     const t = createTextObject('A')
-    Object.assign(t.animation.slide, {
+    Object.assign(t.animation.slide!, {
       enabled: true,
       from: 'left',
       distance: 100,
@@ -177,7 +181,7 @@ describe('computeTextTransform', () => {
     // anderen Animationen. Liefe Slide zuerst, wuerde der erste Frame bereits
     // eine Anzeigedauer sehen und anders ausblenden.
     const t = createTextObject('A')
-    Object.assign(t.animation.slide, {
+    Object.assign(t.animation.slide!, {
       enabled: true,
       direction: 'in',
       duration: 100,
@@ -190,7 +194,7 @@ describe('computeTextTransform', () => {
 })
 
 describe('applyTextTransform', () => {
-  const neutral = {
+  const neutral = stub<Parameters<typeof applyTextTransform>[1]>({
     pixelX: 400,
     pixelY: 300,
     scale: 1,
@@ -200,7 +204,7 @@ describe('applyTextTransform', () => {
     stretchX: 1,
     stretchY: 1,
     flipScaleX: 1,
-  }
+  })
 
   it('lässt den Context unberührt, wenn nichts zu transformieren ist', () => {
     const ctx = recordingCtx()
@@ -233,14 +237,14 @@ describe('applyTextTransform', () => {
 
     expect(ctx.calls).toContainEqual(['scale', -1, 1])
     const transform = ctx.calls.find((c) => c[0] === 'transform')
-    expect(transform[3]).toBeCloseTo(1, 10) // tan(45°)
+    expect(transform![3]).toBeCloseTo(1, 10) // tan(45°)
   })
 })
 
 describe('buildFilterString', () => {
   it('ist ohne Effekte und ohne Strobe leer', () => {
     expect(buildFilterString(null, 100)).toBe('')
-    expect(buildFilterString({ hasEffects: false }, 100)).toBe('')
+    expect(buildFilterString(stub({ hasEffects: false }), 100)).toBe('')
   })
 
   it('setzt Strobe-Helligkeit auch ohne andere Effekte', () => {
@@ -380,17 +384,17 @@ describe('drawTypewriterCursor', () => {
     const t = createTextObject('A')
     const basis = { ...layout, now: T0 }
 
-    drawTypewriterCursor(ctx, t, { ...basis, typewriterResult: { showCursor: false } })
+    drawTypewriterCursor(ctx, t, { ...basis, typewriterResult: stub({ showCursor: false }) })
     drawTypewriterCursor(ctx, t, {
       ...basis,
-      typewriterResult: { showCursor: true, isComplete: true },
+      typewriterResult: stub({ showCursor: true, isComplete: true }),
     })
     expect(ctx.calls).toEqual([])
   })
 
   it('blinkt im 500ms-Takt', () => {
     const t = createTextObject('A')
-    const res = { showCursor: true, isComplete: false, cursorChar: '|' }
+    const res = stub<CursorResult>({ showCursor: true, isComplete: false, cursorChar: '|' })
 
     const sichtbar = recordingCtx()
     drawTypewriterCursor(sichtbar, t, { ...layout, typewriterResult: res, now: 1000 })
@@ -402,15 +406,15 @@ describe('drawTypewriterCursor', () => {
   })
 
   it('positioniert den Cursor je nach Ausrichtung', () => {
-    const res = { showCursor: true, isComplete: false, cursorChar: '_' }
-    const x = (textAlign) => {
+    const res = stub<CursorResult>({ showCursor: true, isComplete: false, cursorChar: '_' })
+    const x = (textAlign: CanvasTextAlign) => {
       const ctx = recordingCtx()
       drawTypewriterCursor(ctx, createTextObject('A', { textAlign }), {
         ...layout,
         typewriterResult: res,
         now: 1000,
       })
-      return ctx.calls[0][2]
+      return ctx.calls[0]![2]
     }
 
     expect(x('left')).toBe(430) // 400 + Breite 30
@@ -431,7 +435,7 @@ describe('drawText', () => {
 
   it('zeichnet nichts für leeren Inhalt', () => {
     const ctx = recordingCtx()
-    drawText(ctx, createTextObject('A', { content: '' }) && { content: '' }, 800, 600)
+    drawText(ctx, stub(createTextObject('A', stub({ content: '' })) && { content: '' }), 800, 600)
     expect(ctx.calls).toEqual([])
   })
 
@@ -439,7 +443,7 @@ describe('drawText', () => {
     setAudioAnalysisData({ bass: 255, mid: 200, treble: 100, volume: 255 })
     const t = createTextObject('Hallo\nWelt')
     for (const name of ['hue', 'strobe', 'shake', 'glow']) {
-      t.audioReactive.effects[name].enabled = true
+      t.audioReactive.effects[name]!.enabled = true
     }
 
     const ctx = recordingCtx()
@@ -468,7 +472,7 @@ describe('drawText', () => {
     setAudioAnalysisData({ bass: 255, mid: 255, treble: 255, volume: 255 })
 
     const t = createTextObject('Blitz')
-    Object.assign(t.audioReactive.effects.strobe, { enabled: true, intensity: 100 })
+    Object.assign(t.audioReactive.effects.strobe!, { enabled: true, intensity: 100 })
     Object.assign(t.audioReactive, { threshold: 0, smoothing: 0 })
 
     const ctx = recordingCtx()
@@ -483,7 +487,7 @@ describe('drawText', () => {
     setAudioAnalysisData({ bass: 255, mid: 255, treble: 255, volume: 255 })
 
     const t = createTextObject('Blitz')
-    Object.assign(t.audioReactive.effects.strobe, { enabled: true, intensity: 100 })
+    Object.assign(t.audioReactive.effects.strobe!, { enabled: true, intensity: 100 })
     Object.assign(t.audioReactive, { threshold: 0, smoothing: 0 })
 
     const ctx = recordingCtx()
@@ -513,7 +517,7 @@ describe('drawText', () => {
 
 describe('Transform-Phasen einzeln', () => {
   // Die drei Teile sind voneinander unabhängig und einzeln prüfbar.
-  const canvas = [800, 600]
+  const canvas = [800, 600] as const
 
   it('computeOpacity liefert Deckkraft und Strobe-Helligkeit', () => {
     const t = createTextObject('A', { opacity: 40 })

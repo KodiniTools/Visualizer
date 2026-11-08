@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest'
-import { CanvasManager } from '../../lib/canvasManager'
+import { CanvasManager, type CanvasObject } from '../../lib/canvasManager'
 import { applyMethods } from '../../lib/canvasManager/methods/index'
+import { stub } from '../helpers/canvasStubs'
 
 // Öffentliche + interne Methoden, die Module/Komponenten am CanvasManager nutzen.
 // Stand vor der Aufteilung in canvasManager/methods/ – darf nicht verloren gehen.
@@ -119,23 +120,29 @@ describe('CanvasManager – Aufteilung in Methoden-Module', () => {
   })
 
   it('Methoden laufen mit der Instanz als this (Beispiel Workspace/Auswahl)', () => {
-    const canvas = { width: 1000, height: 500, getContext: () => ({}) }
-    const redraws = []
+    const canvas = stub<HTMLCanvasElement>({ width: 1000, height: 500, getContext: () => ({}) })
+    const redraws: unknown[] = []
     const cm = new CanvasManager(canvas, { redrawCallback: () => redraws.push(1) })
     cm.setWorkspacePreset('instagram-post')
     expect(cm.getWorkspaceBounds()).toEqual({ x: 275, y: 25, width: 450, height: 450 })
     expect(redraws.length).toBe(1)
-    const seen = []
+    const seen: unknown[] = []
     cm.onSelectionChanged((obj) => seen.push(obj))
-    cm._notifySelectionListeners('x')
+    cm._notifySelectionListeners('x' as unknown as CanvasObject)
     expect(seen).toEqual(['x'])
     expect(cm.HANDLE_SIZE).toBe(cm.selectionManager.HANDLE_SIZE)
     expect(cm.isCanvasEmpty()).toBe(true)
   })
 
   it('applyMethods überträgt Getter und verhindert doppelte Namen', () => {
-    class Target {}
+    // Felder nur für den Typprüfer – applyMethods ergänzt sie zur Laufzeit
+    class Target {
+      declare v: number
+      declare foo: () => number
+      declare readonly bar: number
+    }
     class A {
+      declare v: number
       foo() {
         return this.v
       }

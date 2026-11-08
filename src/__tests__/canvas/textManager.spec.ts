@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { TextManager } from '../../lib/textManager'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import type { TextAnimation, TextObject } from '../../lib/textManager/types'
+import { stub } from '../helpers/canvasStubs'
+import { setAudioAnalysisData } from '../helpers/audioStubs'
 
 /**
  * Characterization-Tests für den TextManager.
@@ -32,18 +34,23 @@ function makeCanvas(width = 800, height = 600) {
     shadowOffsetY: 0,
     save: vi.fn(),
     restore: vi.fn(),
-    measureText: (text) => ({ width: String(text).length * 10 }),
+    measureText: (text: unknown) => ({ width: String(text).length * 10 }),
   }
-  return { width, height, getContext: () => ctx, _ctx: ctx }
+  return stub<HTMLCanvasElement & { _ctx: CanvasRenderingContext2D }>({
+    width,
+    height,
+    getContext: () => ctx,
+    _ctx: ctx,
+  })
 }
 
 /** Setzt die Systemzeit auf T0 + ms (Animationen lesen Date.now()). */
-function at(ms) {
+function at(ms: number) {
   vi.setSystemTime(T0 + ms)
 }
 
 describe('TextManager', () => {
-  let tm
+  let tm: TextManager
 
   beforeEach(() => {
     vi.useFakeTimers()
@@ -89,7 +96,7 @@ describe('TextManager', () => {
 
     it('verwendet "Neuer Text" als Fallback für leeren Inhalt', () => {
       expect(tm.add('').content).toBe('Neuer Text')
-      expect(tm.add().content).toBe('Neuer Text')
+      expect(tm.add(undefined as unknown as string).content).toBe('Neuer Text')
     })
 
     it('aktiviert Audio-Reaktivität standardmäßig, Animationen dagegen nicht', () => {
@@ -98,7 +105,9 @@ describe('TextManager', () => {
       expect(t.audioReactive.source).toBe('bass')
       expect(t.animation.type).toBe('none')
       for (const name of ['typewriter', 'fade', 'scale', 'slide']) {
-        expect(t.animation[name].enabled).toBe(false)
+        expect((t.animation[name as keyof TextAnimation] as { enabled: boolean }).enabled).toBe(
+          false,
+        )
       }
       expect(t.animation._state).toEqual({ startTime: null, isPlaying: false, currentIndex: 0 })
     })
@@ -134,8 +143,8 @@ describe('TextManager', () => {
       const t = tm.add('AB', { ...base, letterSpacing: 5 })
       const bounds = tm.getObjectBounds(t, makeCanvas())
       // maxWidth = 20 + 5 * (2-1) = 25
-      expect(bounds.width).toBe(25 + 6)
-      expect(bounds.x).toBe(400 - 12.5 - 3)
+      expect(bounds!.width).toBe(25 + 6)
+      expect(bounds!.x).toBe(400 - 12.5 - 3)
     })
 
     it('nimmt bei mehrzeiligem Text die breiteste Zeile', () => {
@@ -168,7 +177,7 @@ describe('TextManager', () => {
 
     it('gibt für Nicht-Text-Objekte null zurück', () => {
       expect(tm.getObjectBounds(null, makeCanvas())).toBeNull()
-      expect(tm.getObjectBounds({ type: 'image' }, makeCanvas())).toBeNull()
+      expect(tm.getObjectBounds(stub({ type: 'image' }), makeCanvas())).toBeNull()
     })
 
     it('stellt den Canvas-Context nach der Messung wieder her', () => {
@@ -261,7 +270,7 @@ describe('TextManager', () => {
         hasEffects: true,
         effects: { letterSpacing: { letterSpacing: 8 }, strokeWidth: { strokeWidth: 6 } },
       }
-      tm.applyTextStyleWithAudio(ctx, t, audio, false)
+      tm.applyTextStyleWithAudio(ctx, t, stub(audio), false)
 
       expect(ctx.letterSpacing).toBe('10px')
       expect(ctx.lineWidth).toBe(6) // max(statisch 2, audio 6)
@@ -275,7 +284,7 @@ describe('TextManager', () => {
         hasEffects: true,
         effects: { glow: { glowBlur: 30, glowColor: 'rgba(1,2,3,0.5)' } },
       }
-      tm.applyTextStyleWithAudio(ctx, t, audio, true)
+      tm.applyTextStyleWithAudio(ctx, t, stub(audio), true)
 
       expect(ctx.shadowColor).toBe('rgba(1,2,3,0.5)')
       expect(ctx.shadowBlur).toBe(30)
@@ -289,7 +298,7 @@ describe('TextManager', () => {
         beatPulse: { glowBlur: 40 },
         bpmPulse: { glowBlur: 20 },
       }
-      expect(tm._strongestGlow(effects).glowBlur).toBe(40)
+      expect(tm._strongestGlow(effects)!.glowBlur).toBe(40)
       expect(tm._strongestGlow({ glow: { glowBlur: 0 } })).toBeNull()
       expect(tm._strongestGlow({})).toBeNull()
     })
@@ -300,7 +309,7 @@ describe('TextManager', () => {
   describe('_getTypewriterText()', () => {
     function typed(overrides = {}) {
       const t = tm.add('ABC')
-      Object.assign(t.animation.typewriter, { enabled: true, speed: 100, ...overrides })
+      Object.assign(t.animation.typewriter!, { enabled: true, speed: 100, ...overrides })
       return t
     }
 
@@ -326,7 +335,7 @@ describe('TextManager', () => {
       at(300)
       const done = tm._getTypewriterText(t)
       expect(done).toMatchObject({ text: 'ABC', isComplete: true })
-      expect(t.animation._state.isPlaying).toBe(false)
+      expect(t.animation._state!.isPlaying).toBe(false)
     })
 
     it('zeigt während der Start-Verzögerung nichts an', () => {
@@ -385,7 +394,7 @@ describe('TextManager', () => {
   describe('_getFadeOpacity()', () => {
     function faded(overrides = {}) {
       const t = tm.add('A')
-      Object.assign(t.animation.fade, {
+      Object.assign(t.animation.fade!, {
         enabled: true,
         duration: 1000,
         easing: 'linear',
@@ -474,7 +483,7 @@ describe('TextManager', () => {
       at(800)
       tm.restartFade(t)
 
-      expect(t.animation._state.fadeStartTime).toBeNull()
+      expect(t.animation._state!.fadeStartTime).toBeNull()
       expect(tm._getFadeOpacity(t).opacity).toBe(0)
     })
 
@@ -482,7 +491,7 @@ describe('TextManager', () => {
       const t = faded({ direction: 'in' })
       delete t.animation._state
       expect(() => tm._getFadeOpacity(t)).not.toThrow()
-      expect(t.animation._state.fadeStartTime).toBe(T0)
+      expect(t.animation._state!.fadeStartTime).toBe(T0)
     })
   })
 
@@ -491,7 +500,7 @@ describe('TextManager', () => {
   describe('_getScaleValue()', () => {
     function scaled(overrides = {}) {
       const t = tm.add('A')
-      Object.assign(t.animation.scale, {
+      Object.assign(t.animation.scale!, {
         enabled: true,
         duration: 1000,
         easing: 'linear',
@@ -552,7 +561,7 @@ describe('TextManager', () => {
       const t = scaled({ direction: 'in' })
       tm._getScaleValue(t)
       tm.restartScale(t)
-      expect(t.animation._state.scaleStartTime).toBeNull()
+      expect(t.animation._state!.scaleStartTime).toBeNull()
     })
   })
 
@@ -561,7 +570,7 @@ describe('TextManager', () => {
   describe('_getSlideOffset()', () => {
     function slid(overrides = {}) {
       const t = tm.add('A')
-      Object.assign(t.animation.slide, {
+      Object.assign(t.animation.slide!, {
         enabled: true,
         duration: 1000,
         easing: 'linear',
@@ -655,7 +664,7 @@ describe('TextManager', () => {
       const t = slid({ direction: 'in' })
       tm._getSlideOffset(t, 800, 600)
       tm.restartSlide(t)
-      expect(t.animation._state.slideStartTime).toBeNull()
+      expect(t.animation._state!.slideStartTime).toBeNull()
     })
   })
 
@@ -668,13 +677,13 @@ describe('TextManager', () => {
 
     it('ignoriert permanente und geloopte Animationen', () => {
       const permanent = tm.add('A')
-      Object.assign(permanent.animation.fade, { enabled: true, permanent: true })
+      Object.assign(permanent.animation.fade!, { enabled: true, permanent: true })
       tm._getFadeOpacity(permanent)
       at(99_000)
       expect(tm._getDisplayOpacity(permanent)).toBe(1)
 
       const loop = tm.add('A')
-      Object.assign(loop.animation.fade, { enabled: true, permanent: false, loop: true })
+      Object.assign(loop.animation.fade!, { enabled: true, permanent: false, loop: true })
       tm._getFadeOpacity(loop)
       at(99_000)
       expect(tm._getDisplayOpacity(loop)).toBe(1)
@@ -682,7 +691,7 @@ describe('TextManager', () => {
 
     it('blendet den Typewriter nach Tippdauer + Anzeigedauer in 500ms aus', () => {
       const t = tm.add('AB')
-      Object.assign(t.animation.typewriter, {
+      Object.assign(t.animation.typewriter!, {
         enabled: true,
         speed: 100,
         permanent: false,
@@ -701,14 +710,14 @@ describe('TextManager', () => {
 
     it('nimmt bei mehreren Animationen das späteste Zyklus-Ende', () => {
       const t = tm.add('A')
-      Object.assign(t.animation.fade, {
+      Object.assign(t.animation.fade!, {
         enabled: true,
         permanent: false,
         duration: 500,
         displayDuration: 500,
         direction: 'in',
       })
-      Object.assign(t.animation.slide, {
+      Object.assign(t.animation.slide!, {
         enabled: true,
         permanent: false,
         duration: 1000,
@@ -757,8 +766,8 @@ describe('TextManager', () => {
       expect(tm._calculateTextEffectValue('shake', 0.2)).toEqual({ shakeX: 0, shakeY: 0 })
 
       const shake = tm._calculateTextEffectValue('shake', 1)
-      expect(Math.abs(shake.shakeX)).toBeLessThanOrEqual(15)
-      expect(Math.abs(shake.shakeY)).toBeLessThanOrEqual(15)
+      expect(Math.abs(shake.shakeX!)).toBeLessThanOrEqual(15)
+      expect(Math.abs(shake.shakeY!)).toBeLessThanOrEqual(15)
     })
 
     it('liefert für unbekannte Namen die gemeinsame Bild-Engine', () => {
@@ -790,13 +799,13 @@ describe('TextManager', () => {
     it('berechnet Werte für aktivierte Effekte', () => {
       setAudioAnalysisData({ bass: 255, mid: 0, treble: 0, volume: 255 })
       const t = tm.add('A')
-      Object.assign(t.audioReactive.effects.hue, { enabled: true, intensity: 100 })
+      Object.assign(t.audioReactive.effects.hue!, { enabled: true, intensity: 100 })
 
       const result = tm.getAudioReactiveValues(t.audioReactive)
-      expect(result.hasEffects).toBe(true)
-      expect(result.effects.hue.hueRotate).toBeGreaterThan(0)
-      expect(result.effects.hue.hueRotate).toBeLessThanOrEqual(720)
-      expect(result.effects.scale).toBeUndefined()
+      expect(result!.hasEffects).toBe(true)
+      expect(result!.effects.hue!.hueRotate).toBeGreaterThan(0)
+      expect(result!.effects.hue!.hueRotate).toBeLessThanOrEqual(720)
+      expect(result!.effects.scale).toBeUndefined()
     })
   })
 
@@ -809,7 +818,7 @@ describe('TextManager', () => {
       tm.moveToTop(a)
       expect(tm.textObjects).toEqual([b, a])
 
-      tm.moveToTop({ id: 'unbekannt' })
+      tm.moveToTop(stub<TextObject>({ id: 'unbekannt' }))
       expect(tm.textObjects).toEqual([b, a])
     })
 

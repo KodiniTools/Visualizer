@@ -4,8 +4,20 @@
  * ✨ NEU: Verwendet modularisierte Audio-Verarbeitung
  */
 
-import { FrequencyAnalyzer } from '../lib/audio/FrequencyAnalyzer'
-import { BeatDetector } from '../lib/audio/BeatDetector'
+import { FrequencyAnalyzer, type FrequencyAnalyzerConfig } from '../lib/audio/FrequencyAnalyzer'
+import { BeatDetector, type BeatDetectorConfig } from '../lib/audio/BeatDetector'
+import type { WorkerScope } from './workerScope'
+
+/** Nachrichten vom Haupt-Thread (lib/workerManager) */
+interface AudioWorkerMessage {
+  type: string
+  audioData?: ArrayLike<number> | null
+  bufferLength?: number
+  frequencyConfig?: Partial<FrequencyAnalyzerConfig>
+  beatConfig?: Partial<BeatDetectorConfig>
+}
+
+const scope = self as unknown as WorkerScope<AudioWorkerMessage>
 
 // Instanzen der modularen Klassen
 const frequencyAnalyzer = new FrequencyAnalyzer()
@@ -13,11 +25,14 @@ const beatDetector = new BeatDetector()
 
 /**
  * Analysiert FFT-Daten und berechnet Frequenzbänder
- * @param {Uint8Array} audioDataArray - FFT-Daten vom Analyser
- * @param {number} bufferLength - Länge des Buffers
- * @returns {object} Berechnete Audio-Werte
+ * @param audioDataArray - FFT-Daten vom Analyser
+ * @param bufferLength - Länge des Buffers
+ * @returns Berechnete Audio-Werte
  */
-function analyzeAudioData(audioDataArray, bufferLength) {
+function analyzeAudioData(
+  audioDataArray: ArrayLike<number> | null | undefined,
+  bufferLength: number,
+) {
   // Frequenzanalyse durchführen
   const frequencyData = frequencyAnalyzer.analyze(audioDataArray, bufferLength)
   if (!frequencyData) {
@@ -35,22 +50,23 @@ function analyzeAudioData(audioDataArray, bufferLength) {
 }
 
 // Message Handler
-self.onmessage = function (e) {
+scope.onmessage = function (e) {
   const { type, audioData, bufferLength } = e.data
 
   switch (type) {
-    case 'analyze':
-      const result = analyzeAudioData(audioData, bufferLength)
+    case 'analyze': {
+      const result = analyzeAudioData(audioData, bufferLength as number)
       if (result) {
-        self.postMessage({ type: 'audioData', data: result })
+        scope.postMessage({ type: 'audioData', data: result })
       }
       break
+    }
 
     case 'reset':
       // Reset both analyzers
       frequencyAnalyzer.reset()
       beatDetector.reset()
-      self.postMessage({ type: 'reset', success: true })
+      scope.postMessage({ type: 'reset', success: true })
       break
 
     case 'updateConfig':
@@ -61,12 +77,12 @@ self.onmessage = function (e) {
       if (e.data.beatConfig) {
         beatDetector.updateConfig(e.data.beatConfig)
       }
-      self.postMessage({ type: 'configUpdated', success: true })
+      scope.postMessage({ type: 'configUpdated', success: true })
       break
 
     case 'getStats':
       // Statistiken abrufen
-      self.postMessage({
+      scope.postMessage({
         type: 'stats',
         data: {
           frequency: frequencyAnalyzer.getSmoothedValues(),
@@ -81,4 +97,4 @@ self.onmessage = function (e) {
 }
 
 // Worker ist bereit
-self.postMessage({ type: 'ready' })
+scope.postMessage({ type: 'ready' })

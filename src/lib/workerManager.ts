@@ -10,9 +10,9 @@
 // checks on module workers, missing module-worker support, and any wrong
 // Content-Type / SPA-fallback served for a separate worker file). No separate
 // worker file needs to be fetched at all.
-import AudioAnalysisWorker from '../workers/audioAnalysisWorker.js?worker&inline'
-import VisualizerWorker from '../workers/visualizerWorker.js?worker&inline'
-import ImageFilterWorker from '../workers/imageFilterWorker.js?worker&inline'
+import AudioAnalysisWorker from '../workers/audioAnalysisWorker?worker&inline'
+import VisualizerWorker from '../workers/visualizerWorker?worker&inline'
+import ImageFilterWorker from '../workers/imageFilterWorker?worker&inline'
 
 interface PendingFilterJob {
   resolve: (imageData: ImageData) => void

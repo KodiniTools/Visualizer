@@ -75,7 +75,7 @@ Visualizer/
 │   ├── uploads/               # Temporaere Uploads (auto-generiert)
 │   └── files/                 # Verarbeitete Dateien (auto-generiert)
 ├── src/                       # Frontend Source Code
-│   ├── main.js                # Vue App Entry Point
+│   ├── main.ts                # Vue App Entry Point
 │   ├── App.vue                # Root Component
 │   ├── VisualizerApp.vue      # Haupt-Visualizer-Komponente
 │   ├── components/            # Vue Komponenten

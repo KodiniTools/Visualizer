@@ -87,14 +87,23 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 // Explicit name so <keep-alive include="['VisualizerApp']"> in App.vue matches
 // this component and preserves its state across route changes.
 export default { name: 'VisualizerApp' }
 </script>
 
-<script setup>
-import { ref, onMounted, onUnmounted, onActivated, onDeactivated, provide, watch } from 'vue'
+<script setup lang="ts">
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  onActivated,
+  onDeactivated,
+  provide,
+  watch,
+  type Ref,
+} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from './lib/i18n'
 import { usePlayerStore } from './stores/playerStore'
@@ -160,7 +169,16 @@ import {
 import { setupKeyboardShortcuts } from './composables/visualizerApp/keyboardShortcutsSetup'
 import { bindHqCaptureEvents } from './composables/visualizerApp/hqCaptureEvents'
 
+import type { CanvasManager } from './lib/canvasManager'
+import type { FotoManager } from './lib/fotoManager'
+import type { GridManager } from './lib/gridManager'
+import type { MultiImageManager } from './lib/multiImageManager'
+import type { VideoManager } from './lib/videoManager'
+import type { KeyboardShortcuts } from './lib/keyboardShortcuts'
+
 import './styles/visualizer-app.css'
+
+type ShortcutsDeps = Parameters<typeof setupKeyboardShortcuts>[0]
 
 const { t } = useI18n()
 const playerStore = usePlayerStore()
@@ -185,19 +203,24 @@ const router = useRouter()
 
 const { start: startCapture, stop: stopCapture } = useFrameCapture()
 
-const audioRef = ref(null)
-const canvasRef = ref(null)
+const audioRef = ref<HTMLAudioElement | null>(null)
+const canvasRef = ref<HTMLCanvasElement | null>(null)
 const mobilePanel = ref('canvas')
-const quickStartGuideRef = ref(null)
+const quickStartGuideRef = ref<InstanceType<typeof QuickStartGuide> | null>(null)
 
 // ── Manager instances ─────────────────────────────────────────────────────────
-const canvasManagerInstance = ref(null)
-const fotoManagerInstance = ref(null)
-const gridManagerInstance = ref(null)
-const multiImageManagerInstance = ref(null)
-const videoManagerInstance = ref(null)
-const fontManagerInstance = ref(null)
-const keyboardShortcutsInstance = ref(null)
+// Klasseninstanzen: wie bisher als ref() (tiefe Reaktivität unverändert)
+const canvasManagerInstance = ref<CanvasManager | null>(null) as Ref<CanvasManager | null>
+const fotoManagerInstance = ref<FotoManager | null>(null) as Ref<FotoManager | null>
+const gridManagerInstance = ref<GridManager | null>(null) as Ref<GridManager | null>
+const multiImageManagerInstance = ref<MultiImageManager | null>(
+  null,
+) as Ref<MultiImageManager | null>
+const videoManagerInstance = ref<VideoManager | null>(null) as Ref<VideoManager | null>
+const fontManagerInstance = ref<FontManager | null>(null) as Ref<FontManager | null>
+const keyboardShortcutsInstance = ref<KeyboardShortcuts | null>(
+  null,
+) as Ref<KeyboardShortcuts | null>
 
 provide('fontManager', fontManagerInstance)
 provide('canvasManager', canvasManagerInstance)
@@ -207,13 +230,13 @@ provide('videoManager', videoManagerInstance)
 
 // ── Shared recording infrastructure (used by render loop + recorder setup) ──────
 let recordingCanvas = document.createElement('canvas')
-let recordingCanvasStream = null
+let recordingCanvasStream: MediaStream | null = null
 const getRecordingCanvas = () => recordingCanvas
-const setRecordingCanvas = (c) => {
+const setRecordingCanvas = (c: HTMLCanvasElement) => {
   recordingCanvas = c
 }
 const getRecordingCanvasStream = () => recordingCanvasStream
-const setRecordingCanvasStream = (s) => {
+const setRecordingCanvasStream = (s: MediaStream | null) => {
   recordingCanvasStream = s
 }
 
@@ -414,7 +437,7 @@ onMounted(async () => {
   audioEngine.registerEngine()
 
   // Recording redraw listener
-  renderLoop.setupRecordingRedrawListener(gridManagerInstance)
+  renderLoop.setupRecordingRedrawListener()
   renderLoop.registerScreenshot(canvasManagerInstance)
 
   // HQ Frame Capture
@@ -435,8 +458,12 @@ onMounted(async () => {
   // Keyboard shortcuts (warten ggf. auf Canvas- und MultiImageManager)
   setupKeyboardShortcuts({
     instanceRef: keyboardShortcutsInstance,
-    canvasManagerInstance,
-    multiImageManagerInstance,
+    // Die Shortcut-Typen beschreiben nur den genutzten Ausschnitt; addImage()
+    // bekommt dort ein Bild-Objekt statt eines <img> (siehe keyboardShortcuts.ts)
+    canvasManagerInstance:
+      canvasManagerInstance as unknown as ShortcutsDeps['canvasManagerInstance'],
+    multiImageManagerInstance:
+      multiImageManagerInstance as unknown as ShortcutsDeps['multiImageManagerInstance'],
     stores: { playerStore, recorderStore, gridStore, historyStore },
   })
 

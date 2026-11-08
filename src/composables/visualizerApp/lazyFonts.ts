@@ -8,9 +8,9 @@
 export const FONT_LOAD_EVENTS = ['pointerdown', 'keydown', 'touchstart']
 export const FONT_LOAD_FALLBACK_MS = 5000
 
-export function startLazyFontLoading(
-  fontManager: { initialize: (fonts: object[]) => Promise<{ loaded: number }> },
-  fonts: object[],
+export function startLazyFontLoading<F extends object>(
+  fontManager: { initialize: (fonts: F[]) => Promise<{ loaded: number }> },
+  fonts: F[],
   { events = FONT_LOAD_EVENTS, fallbackMs = FONT_LOAD_FALLBACK_MS } = {},
 ): void {
   let fontLoadTimer: ReturnType<typeof setTimeout> | null = null

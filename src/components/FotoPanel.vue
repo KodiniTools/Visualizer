@@ -93,13 +93,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Foto-Panel: eigene Bilder (Galerie, Platzierung, Vorschau), Filter/Ebenen
  * des aktiven Canvas-Bildes und die Verdrahtung des Slideshow-Panels.
  * Die Logik liegt in den Composables unter `foto-panel/`.
  */
-import { ref, watch, onMounted, onBeforeUnmount, inject } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, inject, type Ref } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { useToastStore } from '../stores/toastStore'
 
@@ -115,20 +115,27 @@ import { useImageGallery } from '../composables/useImageGallery'
 import { useImageAudioReactive } from '../composables/useImageAudioReactive'
 import { useGalleryCanvasDrop } from '../composables/useGalleryCanvasDrop'
 import { useFotoSlideshow } from './foto-panel/useFotoSlideshow'
-import { useImagePlacement } from './foto-panel/useImagePlacement.js'
-import { useActiveImageEditing } from './foto-panel/useActiveImageEditing.js'
+import { useImagePlacement } from './foto-panel/useImagePlacement'
+import { useActiveImageEditing } from './foto-panel/useActiveImageEditing'
 import { registerFotoPanel } from '../lib/fotoPanelBridge'
+import type { CanvasManagerRef } from '../composables/types'
+import type { FotoImageObject, FotoManager, FotoPresetInfo } from '../lib/fotoManager'
+import type { MultiImageManager } from '../lib/multiImageManager'
+import type { GalleryDragPayload } from './foto-panel/useImagePlacement'
+import type { ImageBoundsApi } from './foto-panel/image-filters/imageFilterContext'
 
 const { t } = useI18n()
 const toastStore = useToastStore()
 
 // Injected Refs von App.vue
-const fotoManagerRef = inject('fotoManager')
-const multiImageManagerRef = inject('multiImageManager')
-const canvasManagerRef = inject('canvasManager')
+const fotoManagerRef = inject('fotoManager') as Ref<FotoManager | null | undefined> | undefined
+const multiImageManagerRef = inject('multiImageManager') as
+  | Ref<MultiImageManager | null | undefined>
+  | undefined
+const canvasManagerRef = inject('canvasManager') as CanvasManagerRef | undefined
 
 // Panel-Refs
-const imageFiltersPanelRef = ref(null)
+const imageFiltersPanelRef = ref<InstanceType<typeof ImageFiltersPanel> | null>(null)
 
 // Aktuell aktives Bild (für Filter-UI) – geteilter Zustand mit dem
 // Audio-Reaktiv-Panel in der Player-Leiste; savedAudioReactiveSettings/
@@ -137,7 +144,7 @@ const { currentActiveImage, savedAudioReactiveSettings, hasSavedAudioSettings } 
   useImageAudioReactive()
 
 // Filter-Presets des FotoManagers
-const presets = ref([])
+const presets = ref<FotoPresetInfo[]>([])
 
 // ═══════════════════════════════════════════════════════════════════
 // GALERIE & PLATZIERUNG
@@ -184,7 +191,7 @@ const {
   startDrag: startGalleryDrag,
   endDrag: endGalleryDrag,
   teardown: teardownGalleryDrop,
-} = useGalleryCanvasDrop({
+} = useGalleryCanvasDrop<GalleryDragPayload>({
   canvasManagerRef,
   multiImageManagerRef,
   placement: {
@@ -202,7 +209,7 @@ const {
   onError: () => toastStore.error(t('toast.imageLoadError')),
 })
 
-function onGalleryImageDragStart(payload) {
+function onGalleryImageDragStart(payload: GalleryDragPayload) {
   startGalleryDrag(payload, payload?.event)
 }
 
@@ -230,9 +237,10 @@ const {
 } = useActiveImageEditing({ multiImageManagerRef, fotoManagerRef, currentActiveImage })
 
 // Position & Größe normaler Canvas-Bilder (ImageFiltersPanel → PositionSizeControls)
-const imageBoundsApi = {
+const imageBoundsApi: ImageBoundsApi = {
   getCanvas: () => multiImageManagerRef?.value?.canvas ?? null,
-  redraw: () => canvasManagerRef?.value?.redraw?.(),
+  // CanvasManager hat (noch) kein redraw(); der Render-Loop zeichnet ohnehin neu
+  redraw: () => (canvasManagerRef?.value as { redraw?: () => void } | null | undefined)?.redraw?.(),
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -281,7 +289,7 @@ const {
 
 // Teleport-Ziel: Slideshow-Fenster der Sticky-Bar (im selben Durchlauf
 // gemountet und dauerhaft vorhanden)
-const slideshowTeleportTarget = ref(null)
+const slideshowTeleportTarget = ref<HTMLElement | null>(null)
 onMounted(() => {
   slideshowTeleportTarget.value = document.getElementById(SLIDESHOW_POPOVER_TARGET_ID)
 })
@@ -290,8 +298,10 @@ onMounted(() => {
 // INITIALISIERUNG
 // ═══════════════════════════════════════════════════════════════════
 
-function loadActiveImageSettings(imgData) {
-  imageFiltersPanelRef.value?.loadImageSettings(imgData?.fotoSettings || {})
+function loadActiveImageSettings(imgData: object | null | undefined) {
+  imageFiltersPanelRef.value?.loadImageSettings(
+    (imgData as FotoImageObject | null | undefined)?.fotoSettings || {},
+  )
 }
 
 onMounted(() => {

@@ -1,8 +1,26 @@
-import { computed } from 'vue'
+import { computed, type Ref } from 'vue'
+import type { FotoImageObject, FotoManager, FotoSettings } from '../../lib/fotoManager'
+import type { CanvasImage, MultiImageManager } from '../../lib/multiImageManager'
+
+/** Abhängigkeiten von useActiveImageEditing */
+export interface ActiveImageEditingDeps {
+  multiImageManagerRef: Ref<MultiImageManager | null | undefined> | undefined
+  fotoManagerRef: Ref<FotoManager | null | undefined> | undefined
+  currentActiveImage: Ref<FotoImageObject | null>
+}
+
+/** Änderung eines einzelnen Filterwerts (ImageFiltersPanel → filter-change) */
+export interface FilterChange {
+  property: string
+  value: unknown
+}
+
+/** Ebenen-Methoden des MultiImageManagers für das aktive Bild */
+type LayerMethod = 'bringToFront' | 'sendToBack' | 'moveUp' | 'moveDown'
 
 // Standardwerte beim Zurücksetzen der Filter. Audio-Reaktiv-Einstellungen und
 // Ebenen-Optionen (renderBehindVisualizer) gehören nicht dazu.
-const DEFAULT_FILTER_SETTINGS = Object.freeze({
+const DEFAULT_FILTER_SETTINGS: Readonly<Partial<FotoSettings>> = Object.freeze({
   brightness: 100,
   contrast: 100,
   saturation: 100,
@@ -32,14 +50,15 @@ export function useActiveImageEditing({
   multiImageManagerRef,
   fotoManagerRef,
   currentActiveImage,
-}) {
+}: ActiveImageEditingDeps) {
   /** Ebenen-Index/-Anzahl des aktiven Bildes (null ohne Bild/Manager). */
   const layer = computed(() => {
     if (!currentActiveImage.value) return null
     const multiImageManager = multiImageManagerRef?.value
     if (!multiImageManager) return null
     return {
-      index: multiImageManager.getImageIndex(currentActiveImage.value),
+      // Aktives Bild kann auch Hintergrund/Video sein (dann Index -1)
+      index: multiImageManager.getImageIndex(currentActiveImage.value as CanvasImage),
       count: multiImageManager.getImageCount(),
     }
   })
@@ -61,11 +80,11 @@ export function useActiveImageEditing({
   })
 
   /** Ruft eine Ebenen-Methode des MultiImageManagers für das aktive Bild auf. */
-  function layerAction(method) {
+  function layerAction(method: LayerMethod) {
     return () => {
       const multiImageManager = multiImageManagerRef?.value
       if (!multiImageManager || !currentActiveImage.value) return
-      multiImageManager[method](currentActiveImage.value)
+      multiImageManager[method](currentActiveImage.value as CanvasImage)
     }
   }
 
@@ -74,7 +93,7 @@ export function useActiveImageEditing({
   const onMoveUp = layerAction('moveUp')
   const onMoveDown = layerAction('moveDown')
 
-  function onPresetChange(presetId) {
+  function onPresetChange(presetId: string) {
     if (!currentActiveImage.value) return
     const fotoManager = fotoManagerRef?.value
     if (!fotoManager) return
@@ -83,20 +102,21 @@ export function useActiveImageEditing({
     console.log('🎨 Preset angewendet:', presetId || 'normal')
   }
 
-  function onFilterChange({ property, value }) {
+  function onFilterChange({ property, value }: FilterChange) {
     if (!currentActiveImage.value) return
 
     if (!currentActiveImage.value.fotoSettings) {
-      currentActiveImage.value.fotoSettings = {}
+      // Wird von applyFilters/initializeImageSettings ergänzt
+      currentActiveImage.value.fotoSettings = {} as FotoSettings
     }
 
     currentActiveImage.value.fotoSettings[property] = value
-    console.log(`✏️ Filter aktualisiert: ${property} = ${value}`)
+    console.log(`✏️ Filter aktualisiert: ${property} = ${String(value)}`)
   }
 
   function resetFilters() {
     if (!currentActiveImage.value) return
-    Object.assign(currentActiveImage.value.fotoSettings, DEFAULT_FILTER_SETTINGS)
+    Object.assign(currentActiveImage.value.fotoSettings as FotoSettings, DEFAULT_FILTER_SETTINGS)
     console.log('🔄 Filter zurückgesetzt')
   }
 

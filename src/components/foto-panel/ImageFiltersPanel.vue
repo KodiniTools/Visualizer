@@ -6,16 +6,16 @@
     <!-- Position & Größe (nur normale Canvas-Bilder, nicht Hintergrund/Slideshow) -->
     <PositionSizeControls
       v-if="isPlaceableImage"
-      :key="currentActiveImage.id"
-      :image="currentActiveImage"
+      :key="editableImage.id"
+      :image="editableImage"
       :api="boundsApi"
     />
 
     <!-- Animationen wie bei Texten (Canvas-Bilder und Bild-Hintergründe) -->
     <ImageAnimationControls
       v-if="isAnimatableImage"
-      :key="`anim-${currentActiveImage.id}`"
-      :image="currentActiveImage"
+      :key="`anim-${editableImage.id}`"
+      :image="editableImage"
     />
 
     <!-- Preset + Undo/Redo/Reset -->
@@ -44,10 +44,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { toRefs, provide, computed } from 'vue'
 import { useI18n } from '../../lib/i18n'
-import { useImageFilterControls } from '../../composables/useImageFilterControls'
+import {
+  useImageFilterControls,
+  type ImageFilterEmit,
+} from '../../composables/useImageFilterControls'
+import type { FotoImageObject, FotoPresetInfo } from '../../lib/fotoManager'
+import type { CanvasImage } from '../../lib/multiImageManager'
+import type { FilterChange } from './useActiveImageEditing'
+import type { ImageBoundsApi, ImageFilterContext } from './image-filters/imageFilterContext'
 import LayerControls from './image-filters/LayerControls.vue'
 import PresetAndHistory from './image-filters/PresetAndHistory.vue'
 import BasicFilters from './image-filters/BasicFilters.vue'
@@ -60,45 +67,49 @@ import ImageAnimationControls from './image-animation/ImageAnimationControls.vue
 
 const { locale } = useI18n()
 
-const props = defineProps({
-  currentActiveImage: {
-    type: Object,
-    default: null,
+const props = withDefaults(
+  defineProps<{
+    currentActiveImage?: FotoImageObject | null
+    presets?: FotoPresetInfo[]
+    canMoveUp?: boolean
+    canMoveDown?: boolean
+    currentLayerInfo?: string
+    /** Für Position & Größe: { getCanvas(), redraw() } */
+    boundsApi?: ImageBoundsApi | null
+  }>(),
+  {
+    currentActiveImage: null,
+    presets: () => [],
+    canMoveUp: false,
+    canMoveDown: false,
+    currentLayerInfo: '',
+    boundsApi: null,
   },
-  presets: {
-    type: Array,
-    default: () => [],
-  },
-  canMoveUp: {
-    type: Boolean,
-    default: false,
-  },
-  canMoveDown: {
-    type: Boolean,
-    default: false,
-  },
-  currentLayerInfo: {
-    type: String,
-    default: '',
-  },
-  // Für Position & Größe: { getCanvas(), redraw() }
-  boundsApi: {
-    type: Object,
-    default: null,
-  },
-})
+)
 
-const emit = defineEmits([
-  'bring-to-front',
-  'move-up',
-  'move-down',
-  'send-to-back',
-  'preset-change',
-  'filter-change',
-  'reset-filters',
-])
+const emit = defineEmits<{
+  'bring-to-front': []
+  'move-up': []
+  'move-down': []
+  'send-to-back': []
+  'preset-change': [presetId: string]
+  'filter-change': [change: FilterChange]
+  'reset-filters': []
+}>()
 
-const controls = useImageFilterControls(props, emit)
+const controls = useImageFilterControls(props, emit as ImageFilterEmit)
+
+/** Aktives Bild mit den Feldern, die Position/Größe und Animationen bearbeiten */
+type EditableImage = FotoImageObject &
+  Partial<
+    Pick<
+      CanvasImage,
+      'id' | 'relX' | 'relY' | 'relWidth' | 'relHeight' | 'imageObject' | 'timedAnimation'
+    >
+  >
+
+// Nur in den v-if-Zweigen (isPlaceableImage/isAnimatableImage) genutzt – dort ist ein Bild aktiv
+const editableImage = computed(() => props.currentActiveImage as EditableImage)
 
 // Frei platzierbares Canvas-Bild (Hintergründe und Slideshow-Bilder haben eigene Regler)
 const isPlaceableImage = computed(() => {
@@ -108,7 +119,7 @@ const isPlaceableImage = computed(() => {
 
 // Bilder mit Animationen wie bei Texten: Canvas-Bilder und Bild-Hintergründe
 // (Canvas/Workspace), nicht Slideshow-Bilder
-const ANIMATABLE_TYPES = ['image', 'background', 'workspace-background']
+const ANIMATABLE_TYPES: readonly unknown[] = ['image', 'background', 'workspace-background']
 const isAnimatableImage = computed(() => {
   const img = props.currentActiveImage
   return !!img && ANIMATABLE_TYPES.includes(img.type) && !img.isSlideshowImage
@@ -119,7 +130,7 @@ const isAnimatableImage = computed(() => {
 // current locale, and thin wrappers for the layer-ordering emits.
 const { currentActiveImage, presets, canMoveUp, canMoveDown, currentLayerInfo } = toRefs(props)
 
-const ifc = {
+const ifc: ImageFilterContext = {
   ...controls,
   currentActiveImage,
   presets,

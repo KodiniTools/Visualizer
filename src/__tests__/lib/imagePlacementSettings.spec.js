@@ -16,7 +16,7 @@ import {
   IMAGE_ANIMATION_KEY,
   loadImageAnimation,
 } from '../../lib/imagePlacementSettings'
-import { useImagePlacement } from '../../components/foto-panel/useImagePlacement.js'
+import { useImagePlacement } from '../../components/foto-panel/useImagePlacement'
 import PositionSizeControls from '../../components/foto-panel/image-filters/PositionSizeControls.vue'
 import SlideshowImageEditor from '../../components/foto-panel/slideshow/SlideshowImageEditor.vue'
 

@@ -3,6 +3,9 @@
 // Titel und Optionen – nicht über CSS-Klassen –, damit die Tests den Wechsel
 // von nativen Controls auf die Ui-Bausteine unverändert überstehen.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineComponent, h, provide, ref } from 'vue'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -13,6 +16,7 @@ import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
 import de from '../../lib/i18n/de'
+import { useImageGallery } from '../../composables/useImageGallery'
 
 const P = de.player
 let wrapper
@@ -312,5 +316,37 @@ describe('Beat-Marker-Popover – Ui-Bausteine', () => {
       expect(body().querySelector(`label[for="${select.id}"]`)).toBeTruthy()
     }
     expect(body().querySelectorAll('input[type="checkbox"]')).toHaveLength(0)
+  })
+})
+
+describe('Beat-Marker-Popover – Animation des Hintergrund-Bildes und Layout', () => {
+  it('Animations-Bereich erscheint erst mit gewähltem Hintergrund-Bild', async () => {
+    const gallery = useImageGallery().imageGallery
+    gallery.value = [{ id: 7, name: 'bild.jpg', img: { src: 'data:,x' } }]
+    try {
+      mountPopover()
+      api.addMarkerAtCurrentTime()
+      await flushPromises()
+      expect(body().textContent).not.toContain(P.markerImageAnimation)
+      api.newMarkerBgImageId.value = 7
+      await flushPromises()
+      expect(body().textContent).toContain(P.markerImageAnimation)
+      // ohne „Neu starten“ (Bild ist noch nicht auf dem Canvas)
+      expect(body().textContent).not.toContain(de.textManager.restart)
+    } finally {
+      gallery.value = []
+    }
+  })
+
+  it('Inhalt wird nicht gestaucht (Crossfade-Regler nicht unter dem Formular)', () => {
+    // jsdom berechnet kein Layout – daher die Regel im Komponenten-Stil prüfen
+    const src = readFileSync(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../components/sticky-player-bar/BeatMarkerPopover.vue',
+      ),
+      'utf8',
+    )
+    expect(src).toMatch(/\.spb-popover-markers > \* \{\s*flex-shrink: 0;/)
   })
 })

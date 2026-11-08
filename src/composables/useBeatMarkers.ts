@@ -17,6 +17,13 @@ import { getHistoryRecorder } from '../lib/history/historyRecorder'
 import { useShapeStore, type Shape } from '../stores/shapeStore'
 import { SHAPE_CATEGORIES, SHAPE_GALLERY } from '../lib/shapes/shapes'
 import { useImageGallery } from './useImageGallery'
+import { loadImageAnimation } from '../lib/imagePlacementSettings'
+import {
+  cloneImageAnimation,
+  createImageAnimation,
+  hasImageAnimation,
+  type ImageTimedAnimation,
+} from '../lib/canvasObjects/imageAnimation'
 import {
   captureBackgroundImageDefaults,
   captureBaseBackground,
@@ -51,6 +58,8 @@ export interface MarkerBackgroundImageRef {
   galleryId?: unknown
   name?: string
   defaults?: BackgroundImageDefaults | null
+  /** Animation (Fade/Scale/Slide wie bei Texten) beim Einblenden des Bildes */
+  timedAnimation?: ImageTimedAnimation | null
 }
 
 /** Felder der Marker-Aktion, die dieses Composable liest und schreibt */
@@ -138,6 +147,9 @@ export function useBeatMarkers(
   // true = Video in Schleife, false = einmal abspielen; danach kehrt der
   // Hintergrund von vor dem Video zurück.
   const newMarkerVideoLoop = ref(true)
+  // Animation des Hintergrund-Bildes; neue Marker übernehmen die im Foto-Panel
+  // eingestellte „Animation beim Hinzufügen“
+  const newMarkerBgImageAnimation = ref<ImageTimedAnimation>(createImageAnimation())
   const newMarkerLabel = ref('')
 
   // ══════════════════ Text-Steuerung über Marker ══════════════════
@@ -560,7 +572,9 @@ export function useBeatMarkers(
     // Basis-Videos nur abhängen (kommen beim Zurücksetzen wieder), Marker-Videos freigeben.
     releaseVideoBackgrounds(canvasManager.value, bgImageBase)
     const defaults = previous || resolveBackgroundImageDefaults(null, ref.defaults)
-    const target = setBackgroundImageWithDefaults(canvasManager.value, toRaw(entry.img), defaults)
+    const target = setBackgroundImageWithDefaults(canvasManager.value, toRaw(entry.img), defaults, {
+      timedAnimation: ref.timedAnimation ?? null,
+    })
     console.log('🖼️ Hintergrund-Bild via Beat-Marker:', ref.name, `(${target})`)
   }
 
@@ -724,6 +738,7 @@ export function useBeatMarkers(
     newMarkerBgImageId.value = ''
     newMarkerVideoId.value = ''
     newMarkerVideoLoop.value = true
+    newMarkerBgImageAnimation.value = loadImageAnimation()
     showMarkerPanel.value = true
     openMarkersPopover()
   }
@@ -753,6 +768,9 @@ export function useBeatMarkers(
           | undefined) ?? '')
       : ''
     newMarkerVideoLoop.value = isMarkerVideoLoop(marker.action?.video)
+    newMarkerBgImageAnimation.value = cloneImageAnimation(
+      marker.action?.backgroundImage?.timedAnimation,
+    )
     newMarkerVideoId.value = marker.action?.video
       ? ((findGalleryVideo(videoGallery.value, marker.action.video)?.id as
           | number
@@ -808,6 +826,9 @@ export function useBeatMarkers(
           galleryId: entry.id,
           name: entry.name,
           defaults: captureBackgroundImageDefaults(canvasManager.value),
+          ...(hasImageAnimation(newMarkerBgImageAnimation.value)
+            ? { timedAnimation: cloneImageAnimation(newMarkerBgImageAnimation.value) }
+            : {}),
         }
       }
     }
@@ -1074,6 +1095,7 @@ export function useBeatMarkers(
     newMarkerBgImageId,
     newMarkerVideoId,
     newMarkerVideoLoop,
+    newMarkerBgImageAnimation,
     newMarkerLabel,
     getMarkerTexts,
     getMarkerShapes,

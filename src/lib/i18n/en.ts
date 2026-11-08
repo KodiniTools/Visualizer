@@ -977,6 +977,9 @@ export default {
     backgroundImage: 'Background image',
     noBackgroundImage: '-- No image --',
     emptyImageGallery: 'Gallery is empty – upload images under “My Images”',
+    markerImageAnimation: 'Image animation',
+    markerImageAnimationHint:
+      'New markers take over the “Animation when adding” from the photo panel. Applies to background and workspace background.',
     backgroundImageHint:
       'An image from your gallery becomes the background. It takes audio-reactive settings and format (workspace or normal) from the previous background image.',
     markerVideo: 'Video',

@@ -8,6 +8,8 @@ import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
 import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore'
 import { useImageGallery } from '../../composables/useImageGallery'
+import { saveImageAnimation } from '../../lib/imagePlacementSettings'
+import { createImageAnimation } from '../../lib/canvasObjects/imageAnimation'
 
 const AR = { enabled: true, source: 'mid', effects: { hue: { enabled: true, intensity: 70 } } }
 
@@ -230,5 +232,62 @@ describe('Beat-Marker mit Hintergrund-Bild aus der Galerie', () => {
     playerStore.currentTime = 0
     await nextTick()
     expect(cm.background).toBeNull()
+  })
+})
+
+describe('Beat-Marker: Animation des Hintergrund-Bildes', () => {
+  function slideAnimation() {
+    const a = createImageAnimation()
+    a.slide.enabled = true
+    a.slide.from = 'right'
+    return a
+  }
+
+  it('neuer Marker übernimmt die „Animation beim Hinzufügen“ und speichert sie', () => {
+    saveImageAnimation(slideAnimation())
+    vm.addMarkerAtCurrentTime()
+    expect(vm.newMarkerBgImageAnimation.slide).toMatchObject({ enabled: true, from: 'right' })
+    vm.newMarkerBgImageId = 11
+    vm.confirmAddMarker()
+    const saved = markerStore.markers.at(-1).action.backgroundImage
+    expect(saved.timedAnimation.slide).toMatchObject({ enabled: true, from: 'right' })
+
+    // Bearbeiten lädt die Animation des Markers, nicht die aktuelle Vorgabe
+    saveImageAnimation(createImageAnimation())
+    vm.startEditMarker(markerStore.markers.at(-1))
+    expect(vm.newMarkerBgImageAnimation.slide.enabled).toBe(true)
+  })
+
+  it('ohne aktiven Effekt bleibt der Marker wie bisher (kein timedAnimation)', () => {
+    vm.addMarkerAtCurrentTime()
+    vm.newMarkerBgImageId = 22
+    vm.confirmAddMarker()
+    expect(markerStore.markers.at(-1).action.backgroundImage).not.toHaveProperty('timedAnimation')
+  })
+
+  it('beim Auslösen bekommt Hintergrund bzw. Workspace-Hintergrund die Animation', () => {
+    const timedAnimation = slideAnimation()
+    markerStore.addMarker(5, {
+      backgroundImage: { galleryId: 11, name: 'wald.jpg', defaults: null, timedAnimation },
+    })
+    frame(4.99)
+    frame(5.01)
+    expect(cm.setBackground).toHaveBeenLastCalledWith(imgA, { timedAnimation })
+  })
+
+  it('Workspace-Ziel: Workspace-Hintergrund bekommt die Animation', () => {
+    const timedAnimation = slideAnimation()
+    cm.workspacePreset = { id: 'ws' }
+    markerStore.addMarker(5, {
+      backgroundImage: {
+        galleryId: 22,
+        name: 'stadt.jpg',
+        defaults: { target: 'workspace', audioReactive: null },
+        timedAnimation,
+      },
+    })
+    frame(4.99)
+    frame(5.01)
+    expect(cm.setWorkspaceBackground).toHaveBeenLastCalledWith(imgB, { timedAnimation })
   })
 })

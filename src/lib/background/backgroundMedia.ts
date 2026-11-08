@@ -8,6 +8,7 @@
 
 import { getAudioEngine } from '../audioEngineBridge'
 import { isReleasedMedia } from '../mediaElements'
+import type { SetBackgroundOptions } from '../canvasManager/methods/backgroundMethods'
 
 const cloneJson = <T>(obj: T): T => JSON.parse(JSON.stringify(obj))
 
@@ -36,9 +37,9 @@ export interface BackgroundCanvasManager {
   workspaceVideoBackground?: VideoBackgroundEntry | null
   workspacePreset?: unknown
   activeObject?: unknown
-  setBackground(img: HTMLImageElement): void
+  setBackground(img: HTMLImageElement, options?: SetBackgroundOptions): void
   /** true, wenn ein Workspace aktiv ist und das Bild gesetzt wurde */
-  setWorkspaceBackground(img: HTMLImageElement): boolean | void
+  setWorkspaceBackground(img: HTMLImageElement, options?: SetBackgroundOptions): boolean | void
   setVideoBackground(video: HTMLVideoElement): void
   setWorkspaceVideoBackground(video: HTMLVideoElement): void
   redrawCallback?: (() => void) | null

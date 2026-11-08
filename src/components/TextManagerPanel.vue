@@ -50,11 +50,11 @@ import TextDirectoryPanel from './text-manager/TextDirectoryPanel.vue'
 import { useHistoryStore } from '../stores/historyStore'
 import { useBeatMarkerStore } from '../stores/beatMarkerStore'
 import { getHistoryRecorder } from '../lib/history/historyRecorder'
-import { useTextDirectory } from '../composables/textManager/useTextDirectory.js'
-import { useTextSequence } from '../composables/textManager/useTextSequence.js'
-import { useTextSelectionSync } from '../composables/textManager/useTextSelectionSync.js'
-import { useCanvasSize } from '../composables/textManager/useCanvasSize.js'
-import { useTextEditorWithChar } from '../composables/textManager/useTextEditorWithChar.js'
+import { useTextDirectory } from '../composables/textManager/useTextDirectory'
+import { useTextSequence } from '../composables/textManager/useTextSequence'
+import { useTextSelectionSync } from '../composables/textManager/useTextSelectionSync'
+import { useCanvasSize } from '../composables/textManager/useCanvasSize'
+import { useTextEditorWithChar } from '../composables/textManager/useTextEditorWithChar'
 
 const { t } = useI18n()
 const canvasManager = inject('canvasManager')

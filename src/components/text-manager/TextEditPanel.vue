@@ -59,7 +59,7 @@
 <script setup>
 import { ref, toRef, inject, provide, nextTick, watch } from 'vue'
 import { useI18n } from '../../lib/i18n'
-import { useTextFonts } from '../../composables/useTextFonts.js'
+import { useTextFonts } from '../../composables/useTextFonts'
 import { useToastStore } from '../../stores/toastStore'
 import {
   serializeTextToDefaults,

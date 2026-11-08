@@ -367,7 +367,7 @@ describe('i18n – Text-Editor ohne fest verdrahtete Texte', () => {
     ]) {
       expect(hardcodedTemplateText(read(file)), file).toEqual([])
     }
-    expect(read('composables/useTextFonts.js')).not.toMatch(/\(aktuell\)/)
+    expect(read('composables/useTextFonts.ts')).not.toMatch(/\(aktuell\)/)
   })
 })
 
@@ -383,7 +383,7 @@ describe('i18n – Formular für neue Texte ohne fest verdrahtete Texte', () => 
       expect(src, file).not.toMatch(/locale === 'de'/)
       expect(src.split('<script')[0], file).not.toMatch(/[💾🔄📐🖱]/u)
     }
-    expect(read('composables/useTextFonts.js')).not.toMatch(/Custom Fonts|createElement/)
+    expect(read('composables/useTextFonts.ts')).not.toMatch(/Custom Fonts|createElement/)
   })
 })
 

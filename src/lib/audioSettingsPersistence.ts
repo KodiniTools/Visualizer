@@ -12,7 +12,7 @@
  */
 import type { StoreGeneric } from 'pinia'
 import { setupStorePersistence, type PersistenceHandle } from './storePersistence'
-import { PLAY_MODES } from '../composables/usePlayMode.js'
+import { PLAY_MODES } from '../composables/usePlayMode'
 
 export const AUDIO_STORAGE_KEYS = Object.freeze({
   player: 'visualizer-player-settings',

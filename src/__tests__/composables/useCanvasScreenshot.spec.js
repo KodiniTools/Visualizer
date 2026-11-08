@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   formatScreenshotSize,
   screenshotFileName,
-} from '../../composables/screenshot/useCanvasScreenshot.js'
+} from '../../composables/screenshot/useCanvasScreenshot'
 
 describe('useCanvasScreenshot – Hilfsfunktionen', () => {
   it('formatScreenshotSize: B, KB (1 Stelle), MB (2 Stellen)', () => {

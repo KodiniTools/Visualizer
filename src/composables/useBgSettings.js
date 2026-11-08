@@ -17,9 +17,9 @@ import { useI18n } from '../lib/i18n'
 import { useHistoryStore } from '../stores/historyStore'
 import { getHistoryRecorder } from '../lib/history/historyRecorder'
 import { createBackgroundSegment } from '../lib/history/segments/backgroundSegment'
-import { useBgAudioReactive } from './bg/useBgAudioReactive.js'
-import { useBgReplace } from './bg/useBgReplace.js'
-import { useBgPresets } from './bg/useBgPresets.js'
+import { useBgAudioReactive } from './bg/useBgAudioReactive'
+import { useBgReplace } from './bg/useBgReplace'
+import { useBgPresets } from './bg/useBgPresets'
 
 /**
  * Hintergrund-Steuerung des Canvas (Fassade).

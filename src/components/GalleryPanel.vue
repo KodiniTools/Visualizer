@@ -49,7 +49,7 @@ import { useToastStore } from '../stores/toastStore'
 import ImagePreviewOverlay from './foto-panel/ImagePreviewOverlay.vue'
 import StockGallerySection from './foto-panel/StockGallerySection.vue'
 import { useStockGallery } from '../composables/useStockGallery.js'
-import { useGalleryCanvasDrop } from '../composables/useGalleryCanvasDrop.js'
+import { useGalleryCanvasDrop } from '../composables/useGalleryCanvasDrop'
 
 const { t } = useI18n()
 const toastStore = useToastStore()

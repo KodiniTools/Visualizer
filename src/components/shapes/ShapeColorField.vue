@@ -28,7 +28,7 @@
  */
 import ColorField from '../ui/ColorField.vue'
 import UiColorSwatches from '../ui/UiColorSwatches.vue'
-import { useRecentColors } from '../../composables/useRecentColors.js'
+import { useRecentColors } from '../../composables/useRecentColors'
 
 defineProps({
   modelValue: { type: String, default: '#000000' },

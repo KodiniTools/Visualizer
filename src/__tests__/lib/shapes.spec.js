@@ -46,7 +46,7 @@ import {
   clearRecentColors,
   reloadRecentColors,
   useRecentColors,
-} from '../../composables/useRecentColors.js'
+} from '../../composables/useRecentColors'
 const close = (a, b, eps = 1e-6) => expect(Math.abs(a - b)).toBeLessThan(eps)
 
 describe('Katalog', () => {

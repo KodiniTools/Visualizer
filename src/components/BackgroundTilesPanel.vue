@@ -40,8 +40,8 @@
 import { provide } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { useBackgroundTiles } from '../composables/useBackgroundTiles.js'
-import { useTilePresets } from '../composables/useTilePresets.js'
-import { useTileGallery } from '../composables/useTileGallery.js'
+import { useTilePresets } from '../composables/useTilePresets'
+import { useTileGallery } from '../composables/useTileGallery'
 import UiSwitch from './ui/UiSwitch.vue'
 import UiButton from './ui/UiButton.vue'
 

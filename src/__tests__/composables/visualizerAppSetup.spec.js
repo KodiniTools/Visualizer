@@ -14,15 +14,15 @@ vi.mock('../../lib/keyboardShortcuts', () => ({
   },
 }))
 
-import { startLazyFontLoading } from '../../composables/visualizerApp/lazyFonts.js'
-import { bindAudioElementEvents } from '../../composables/visualizerApp/audioElementEvents.js'
+import { startLazyFontLoading } from '../../composables/visualizerApp/lazyFonts'
+import { bindAudioElementEvents } from '../../composables/visualizerApp/audioElementEvents'
 import {
   watchGridSettings,
   watchWorkspacePreset,
   watchRecordingCanvasSize,
-} from '../../composables/visualizerApp/canvasSync.js'
-import { setupKeyboardShortcuts } from '../../composables/visualizerApp/keyboardShortcutsSetup.js'
-import { bindHqCaptureEvents } from '../../composables/visualizerApp/hqCaptureEvents.js'
+} from '../../composables/visualizerApp/canvasSync'
+import { setupKeyboardShortcuts } from '../../composables/visualizerApp/keyboardShortcutsSetup'
+import { bindHqCaptureEvents } from '../../composables/visualizerApp/hqCaptureEvents'
 
 beforeEach(() => {
   ksInstances.length = 0

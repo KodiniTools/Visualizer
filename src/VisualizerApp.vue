@@ -119,17 +119,17 @@ import { MarkerTransitionRenderer } from './lib/canvasManager/rendering/MarkerTr
 import { useFrameCapture } from './composables/useFrameCapture.js'
 import { useCanvasImages } from './composables/useCanvasImages.js'
 import { useGlobalAudioData } from './composables/useGlobalAudioData.js'
-import { useVisualizerLoop } from './composables/useVisualizerLoop.js'
+import { useVisualizerLoop } from './composables/useVisualizerLoop'
 import { useAudioEngine } from './composables/useAudioEngine.js'
 import { useRenderLoop } from './composables/useRenderLoop.js'
 import { useImageGallery } from './composables/useImageGallery.js'
-import { useCanvasSetup } from './composables/useCanvasSetup.js'
-import { useRecorderSetup } from './composables/useRecorderSetup.js'
-import { useStatusBanner } from './composables/useStatusBanner.js'
-import { useSharedFiles } from './composables/useSharedFiles.js'
-import { useHandoff } from './composables/useHandoff.js'
-import { useHistorySetup } from './composables/useHistorySetup.js'
-import { useShapeLayer } from './composables/useShapeLayer.js'
+import { useCanvasSetup } from './composables/useCanvasSetup'
+import { useRecorderSetup } from './composables/useRecorderSetup'
+import { useStatusBanner } from './composables/useStatusBanner'
+import { useSharedFiles } from './composables/useSharedFiles'
+import { useHandoff } from './composables/useHandoff'
+import { useHistorySetup } from './composables/useHistorySetup'
+import { useShapeLayer } from './composables/useShapeLayer'
 import { useShapeStore } from './stores/shapeStore'
 import { setupVisualizerPersistence } from './lib/visualizerPersistence'
 import { setupAudioSettingsPersistence } from './lib/audioSettingsPersistence'
@@ -150,15 +150,15 @@ import ReplaceGalleryModal from './components/canvas-bar/ReplaceGalleryModal.vue
 
 import { CUSTOM_FONTS } from './lib/fonts'
 import { FontManager } from './lib/fontManager'
-import { startLazyFontLoading } from './composables/visualizerApp/lazyFonts.js'
-import { bindAudioElementEvents } from './composables/visualizerApp/audioElementEvents.js'
+import { startLazyFontLoading } from './composables/visualizerApp/lazyFonts'
+import { bindAudioElementEvents } from './composables/visualizerApp/audioElementEvents'
 import {
   watchGridSettings,
   watchWorkspacePreset,
   watchRecordingCanvasSize,
-} from './composables/visualizerApp/canvasSync.js'
-import { setupKeyboardShortcuts } from './composables/visualizerApp/keyboardShortcutsSetup.js'
-import { bindHqCaptureEvents } from './composables/visualizerApp/hqCaptureEvents.js'
+} from './composables/visualizerApp/canvasSync'
+import { setupKeyboardShortcuts } from './composables/visualizerApp/keyboardShortcutsSetup'
+import { bindHqCaptureEvents } from './composables/visualizerApp/hqCaptureEvents'
 
 import './styles/visualizer-app.css'
 

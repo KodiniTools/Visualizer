@@ -125,7 +125,7 @@ import HelpTooltip from './HelpTooltip.vue'
 import SliderField from './ui/SliderField.vue'
 import ScreenshotFullscreenModal from './screenshot/ScreenshotFullscreenModal.vue'
 import { useI18n } from '../lib/i18n'
-import { useCanvasScreenshot } from '../composables/screenshot/useCanvasScreenshot.js'
+import { useCanvasScreenshot } from '../composables/screenshot/useCanvasScreenshot'
 
 const { t } = useI18n()
 const {

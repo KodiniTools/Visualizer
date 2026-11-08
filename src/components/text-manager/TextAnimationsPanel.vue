@@ -39,7 +39,7 @@
  */
 import { computed, inject, toRef, watch } from 'vue'
 import { useI18n } from '../../lib/i18n'
-import { useTextAnimations } from '../../composables/useTextAnimations.js'
+import { useTextAnimations } from '../../composables/useTextAnimations'
 import AnimationEditSection from './text-animations/AnimationEditSection.vue'
 import TypewriterControls from './text-animations/TypewriterControls.vue'
 import FadeControls from './text-animations/FadeControls.vue'

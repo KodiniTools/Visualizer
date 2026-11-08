@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useSaveDialog } from '../../composables/useSaveDialog.js'
+import { useSaveDialog } from '../../composables/useSaveDialog'
 
 const request = { url: 'blob:clip', suggestedName: 'visualizer_1.mp4', extension: 'mp4' }
 

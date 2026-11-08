@@ -11,11 +11,11 @@ import { nextTick, defineComponent, h, Teleport } from 'vue'
 import PlayerBarControls from '../../components/sticky-player-bar/PlayerBarControls.vue'
 import SlideshowPopover from '../../components/sticky-player-bar/SlideshowPopover.vue'
 import SlideshowPanel from '../../components/foto-panel/SlideshowPanel.vue'
-import { usePlayerPopover } from '../../composables/usePlayerPopover.js'
+import { usePlayerPopover } from '../../composables/usePlayerPopover'
 import {
   SLIDESHOW_POPOVER_TARGET_ID,
   useSlideshowPopover,
-} from '../../composables/useSlideshowPopover.js'
+} from '../../composables/useSlideshowPopover'
 
 let wrappers = []
 let pinia

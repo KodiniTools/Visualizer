@@ -47,6 +47,7 @@ import {
   type MarkerVideoRef,
 } from '../lib/background/markerBackgroundVideo'
 import type { TextObject } from '../lib/textManager/types'
+import type { CanvasImage, MultiImageManager } from '../lib/multiImageManager'
 import type { CanvasManagerRef } from './types'
 
 // Marker-Hintergründe laden Bilder/Videos per Callback nach → Baseline nach
@@ -73,6 +74,9 @@ export type MarkerAction = BeatMarkerAction & {
   backgroundLabel?: string | null
   shapeId?: string | null
   shapeLabel?: string | null
+  /** Platziertes Canvas-Bild, das zum Marker-Zeitpunkt erscheint */
+  imageId?: CanvasImage['id'] | null
+  imageLabel?: string | null
   backgroundImage?: MarkerBackgroundImageRef | null
   video?: MarkerVideoRef | null
 }
@@ -113,6 +117,8 @@ export function useBeatMarkers(
   // Text-Steuerung der Marker benötigt: Texte werden zum Marker-Zeitpunkt
   // eingeblendet. Kann null sein, solange der Canvas noch nicht bereit ist.
   const canvasManager = inject('canvasManager', ref(null)) as CanvasManagerRef
+  // Platzierte Bilder (Foto-Panel) – für die Bild-Aktion der Marker
+  const multiImageManager = inject('multiImageManager', ref(null)) as Ref<MultiImageManager | null>
 
   const showMarkerPanel = ref(false)
   const editingMarkerId = ref<number | null>(null)
@@ -136,6 +142,10 @@ export function useBeatMarkers(
   // Ausgewählte Form pro Marker (Form-ID aus „Formen & Symbole“; '' = keine).
   // Die Form erscheint zum Marker-Zeitpunkt auf dem Canvas.
   const newMarkerShapeId = ref<string | null>('')
+  // Platziertes Bild pro Marker (Canvas-Bild-ID oder `gallery:<id>` für ein
+  // neu zu platzierendes Galerie-Bild; '' = keins). Das Bild erscheint mit
+  // seinen Einstellungen und Animationen zum Marker-Zeitpunkt.
+  const newMarkerImageId = ref<CanvasImage['id'] | ''>('')
   // Hintergrund-Bild pro Marker (Galerie-Bild-ID; '' = kein Wechsel). Übernimmt
   // beim Auslösen Audio-Reaktiv und Format (Workspace/Normal) vom vorherigen
   // Hintergrund-Bild.
@@ -438,6 +448,123 @@ export function useBeatMarkers(
     }
   }
 
+  // ══════════════════ Platzierte Bilder über Marker ══════════════════
+  // Wie bei Formen: Zugewiesene Canvas-Bilder werden beim Start der Wiedergabe
+  // ausgeblendet und erscheinen zum Marker-Zeitpunkt mit ihren Einstellungen;
+  // ihre Animationen (Fade/Scale/Slide, Einblend-Effekt) starten dabei neu.
+  // Das Ausblenden ist Laufzeit-Zustand im MultiImageManager (markerHiddenIds).
+
+  const IMAGE_GALLERY_PREFIX = 'gallery:'
+
+  /** Frei platzierte Bilder (ohne Slideshow-Bilder) mit ihrer Ebenen-Nummer */
+  const placedImages = () =>
+    (multiImageManager.value?.images ?? [])
+      .map((img, i) => ({ img, layer: i + 1 }))
+      .filter(({ img }) => img.type === 'image' && !img.isSlideshowImage)
+
+  /** Name des Galerie-Bildes, aus dem ein Canvas-Bild stammt ('' = unbekannt) */
+  const placedImageName = (img: CanvasImage) =>
+    imageGallery.value.find((g) => g.img === img.imageObject)?.name ?? ''
+
+  /**
+   * Platzierte Bilder für das Marker-Dropdown (Ebene wie in „Bilder auf
+   * Canvas“, Name aus der Galerie, ob Animationen eingestellt sind).
+   */
+  const getMarkerCanvasImages = () =>
+    placedImages().map(({ img, layer }) => ({
+      id: img.id,
+      layer,
+      name: placedImageName(img),
+      animated: hasImageAnimation(img.timedAnimation),
+    }))
+
+  /** Eigene Galerie-Bilder, die der Marker beim Speichern neu platziert */
+  const getMarkerImageGallery = () =>
+    imageGallery.value.map((g, i) => ({
+      value: `${IMAGE_GALLERY_PREFIX}${g.id}`,
+      number: i + 1,
+      name: g.name,
+    }))
+
+  /**
+   * Löst die Dropdown-Auswahl zu einer Canvas-Bild-ID auf. Ein Galerie-Eintrag
+   * wird jetzt platziert – mit der „Animation beim Hinzufügen“ aus dem
+   * Foto-Panel – und lässt sich danach wie jedes Bild bearbeiten.
+   */
+  const resolveMarkerImageSelection = (
+    value: CanvasImage['id'] | '' | null | undefined,
+  ): CanvasImage['id'] | null => {
+    if (value === '' || value === null || value === undefined) return null
+    if (typeof value === 'string' && value.startsWith(IMAGE_GALLERY_PREFIX)) {
+      const mim = multiImageManager.value
+      const galleryId = value.slice(IMAGE_GALLERY_PREFIX.length)
+      const entry = imageGallery.value.find((g) => String(g.id) === galleryId)
+      if (!mim || !entry?.img) return null
+      const placed = mim.addImage(entry.img, { timedAnimation: loadImageAnimation() })
+      mim.setSelectedImage(null)
+      return placed?.id ?? null
+    }
+    return placedImages().some(({ img }) => img.id === value) ? value : null
+  }
+
+  /** Anzeigename eines Canvas-Bildes in der Marker-Liste */
+  const markerImageLabel = (id: CanvasImage['id']) => {
+    const entry = placedImages().find(({ img }) => img.id === id)
+    if (!entry) return null
+    const name = placedImageName(entry.img)
+    return `${t('common.layer')} ${entry.layer}${name ? ` — ${name}` : ''}`
+  }
+
+  /** IDs aller Canvas-Bilder, die aktuell irgendeinem Marker zugewiesen sind. */
+  const referencedImageIds = () => {
+    const ids = new Set<CanvasImage['id']>()
+    for (const m of beatMarkerStore.markers) {
+      const iid = (m.action as MarkerAction | undefined)?.imageId
+      if (iid !== undefined && iid !== null && iid !== '') ids.add(iid)
+    }
+    return ids
+  }
+
+  /** Wiedergabe-Start: zugewiesene Bilder bis zu ihrem Marker ausblenden. */
+  const activateImageMarkers = () => {
+    const mim = multiImageManager.value
+    if (!mim) return
+    for (const id of referencedImageIds()) mim.setMarkerHidden(id, true)
+    mim.redrawCallback?.()
+  }
+
+  /** Alle von Markern ausgeblendeten Bilder wieder einblenden. */
+  const restoreImageMarkers = () => multiImageManager.value?.clearMarkerHidden()
+
+  /** Bilder einblenden, die keinem Marker mehr zugewiesen sind. */
+  const reconcileImageMarkers = () => {
+    const mim = multiImageManager.value
+    if (!mim) return
+    const ids = referencedImageIds()
+    for (const id of mim.markerHiddenIds) {
+      if (!ids.has(id)) mim.setMarkerHidden(id, false)
+    }
+  }
+
+  /**
+   * Bild-Aktion eines ausgelösten Markers: Das zugewiesene Bild erscheint und
+   * spielt seine Animationen von vorn ab, alle anderen von Markern
+   * gesteuerten Bilder werden ausgeblendet. Ein Marker ohne Bild blendet alle
+   * Marker-Bilder aus (wie bei Formen); Bilder ohne Marker bleiben unberührt.
+   */
+  const applyImageAction = (action: MarkerAction) => {
+    const mim = multiImageManager.value
+    if (!mim) return
+    const raw = action?.imageId
+    const iid =
+      raw !== undefined && raw !== null && raw !== '' && mim.images.some((i) => i.id === raw)
+        ? raw
+        : null
+    for (const id of referencedImageIds()) mim.setMarkerHidden(id, id !== iid)
+    if (iid !== null) mim.restartImageAnimations(iid)
+    else mim.redrawCallback?.()
+  }
+
   // ══════════════════ Hintergrund-Bild aus der Galerie ══════════════════
 
   /** Bilder der eigenen Bildgalerie für das Marker-Dropdown */
@@ -669,6 +796,7 @@ export function useBeatMarkers(
     applyBackgroundImageAction(action, previousBgImage, presetApplied)
     applyTextAction(action)
     applyShapeAction(action)
+    applyImageAction(action)
   }
 
   /**
@@ -735,6 +863,7 @@ export function useBeatMarkers(
     newMarkerBackgroundKey.value = ''
     newMarkerTextId.value = ''
     newMarkerShapeId.value = ''
+    newMarkerImageId.value = ''
     newMarkerBgImageId.value = ''
     newMarkerVideoId.value = ''
     newMarkerVideoLoop.value = true
@@ -762,6 +891,14 @@ export function useBeatMarkers(
     newMarkerBackgroundKey.value = marker.action?.backgroundKey || ''
     newMarkerTextId.value = marker.action?.textId ?? ''
     newMarkerShapeId.value = marker.action?.shapeId ?? ''
+    // Gelöschtes Bild: Auswahl leeren statt eine unbekannte ID anzuzeigen
+    const imageId = marker.action?.imageId
+    newMarkerImageId.value =
+      imageId !== undefined &&
+      imageId !== null &&
+      placedImages().some(({ img }) => img.id === imageId)
+        ? imageId
+        : ''
     newMarkerBgImageId.value = marker.action?.backgroundImage
       ? ((findGalleryImage(imageGallery.value, marker.action.backgroundImage)?.id as
           | number
@@ -814,6 +951,11 @@ export function useBeatMarkers(
       const sh = getMarkerShapes().find((s) => s.id === shapeId)
       if (sh) shapeLabel = sh.extra ? `${sh.name} ${sh.extra}` : sh.name
     }
+
+    // Platziertes Bild (oder jetzt platziertes Galerie-Bild) – erscheint zum
+    // Marker-Zeitpunkt mit seinen Einstellungen und Animationen.
+    const imageId = resolveMarkerImageSelection(newMarkerImageId.value)
+    const imageLabel = imageId !== null ? markerImageLabel(imageId) : null
 
     // Hintergrund-Bild aus der Galerie: nur Verweis (id + Name) speichern, kein
     // Bildinhalt. Vorgaben des aktuellen Hintergrund-Bildes als Ersatz merken,
@@ -876,6 +1018,8 @@ export function useBeatMarkers(
       textLabel: textLabel,
       shapeId: shapeId,
       shapeLabel: shapeLabel,
+      imageId: imageId,
+      imageLabel: imageLabel,
       backgroundImage: backgroundImage,
       video: video,
     }
@@ -893,6 +1037,7 @@ export function useBeatMarkers(
     newMarkerBackgroundKey.value = ''
     newMarkerTextId.value = ''
     newMarkerShapeId.value = ''
+    newMarkerImageId.value = ''
     newMarkerBgImageId.value = ''
     newMarkerVideoId.value = ''
     newMarkerVideoLoop.value = true
@@ -902,6 +1047,14 @@ export function useBeatMarkers(
     // die Form erst zum Marker-Zeitpunkt (wie beim Start ab 0:00).
     if (shapeId && playerStore.isPlaying && pendingMarkerTime.value > playerStore.currentTime) {
       shapeStore.setMarkerHidden(shapeId, true)
+    }
+    reconcileImageMarkers()
+    if (
+      imageId !== null &&
+      playerStore.isPlaying &&
+      pendingMarkerTime.value > playerStore.currentTime
+    ) {
+      multiImageManager.value?.setMarkerHidden(imageId, true)
     }
   }
 
@@ -920,6 +1073,7 @@ export function useBeatMarkers(
     // Text bzw. Form des gelöschten Markers ggf. wieder einblenden.
     reconcileTextMarkers()
     reconcileShapeMarkers()
+    reconcileImageMarkers()
   }
 
   const clearAllMarkers = () => {
@@ -927,6 +1081,7 @@ export function useBeatMarkers(
       beatMarkerStore.clearAllMarkers()
       restoreTextMarkers()
       restoreShapeMarkers()
+      restoreImageMarkers()
       restoreBackgroundImageMarkers()
     }
   }
@@ -1007,6 +1162,7 @@ export function useBeatMarkers(
         if (newTime < 0.5) {
           restoreTextMarkers()
           restoreShapeMarkers()
+          restoreImageMarkers()
           restoreBackgroundImageMarkers()
         }
       }
@@ -1026,6 +1182,7 @@ export function useBeatMarkers(
         // Marker-Zeitpunkt erscheinen.
         activateTextMarkers()
         activateShapeMarkers()
+        activateImageMarkers()
         const triggered = beatMarkerStore.checkTrigger(playerStore.currentTime)
         if (triggered && triggered.action) {
           // Start-Marker (0:00): sofort anwenden, ohne Übergang (nichts zum Ausblenden)
@@ -1042,6 +1199,7 @@ export function useBeatMarkers(
       if (!enabled) {
         restoreTextMarkers()
         restoreShapeMarkers()
+        restoreImageMarkers()
         restoreBackgroundImageMarkers()
       }
     },
@@ -1077,6 +1235,7 @@ export function useBeatMarkers(
     // Von Markern ausgeblendete Texte und Formen beim Verlassen wiederherstellen.
     restoreTextMarkers()
     restoreShapeMarkers()
+    restoreImageMarkers()
     restoreBackgroundImageMarkers()
   })
 
@@ -1092,6 +1251,7 @@ export function useBeatMarkers(
     newMarkerBackgroundKey,
     newMarkerTextId,
     newMarkerShapeId,
+    newMarkerImageId,
     newMarkerBgImageId,
     newMarkerVideoId,
     newMarkerVideoLoop,
@@ -1100,6 +1260,8 @@ export function useBeatMarkers(
     getMarkerTexts,
     getMarkerShapes,
     getMarkerShapeGallery,
+    getMarkerCanvasImages,
+    getMarkerImageGallery,
     getMarkerGalleryImages,
     getMarkerGalleryVideos,
     updateMarkerTimeFromInput,

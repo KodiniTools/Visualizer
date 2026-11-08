@@ -36,6 +36,7 @@ import {
   cloneImageAnimation,
   getImageAnimationTransform,
   hasImageAnimation,
+  restartImageAnimation,
   type ImageTimedAnimation,
 } from './canvasObjects/imageAnimation'
 import { moveToBack, moveToFront } from './canvasObjects/zOrder'
@@ -149,11 +150,17 @@ export class MultiImageManager {
   onImageSelected: (image: CanvasImage | null) => void
   onImageChanged: () => void
   fotoManager: FotoManager | null
+  /**
+   * Von Beat-Markern ausgeblendete Bilder (bis zu ihrem Marker). Reiner
+   * Laufzeit-Zustand: nicht im Verlauf, nicht in Presets.
+   */
+  markerHiddenIds: Set<CanvasImage['id']>
 
   constructor(canvas: HTMLCanvasElement, callbacks: MultiImageManagerCallbacks = {}) {
     this.canvas = canvas
     this.images = []
     this.selectedImage = null
+    this.markerHiddenIds = new Set()
 
     // Callbacks
     this.redrawCallback = callbacks.redrawCallback || (() => {})
@@ -646,13 +653,13 @@ export class MultiImageManager {
 
     // ✨ Filter Bilder basierend auf Layer-Einstellung
     const { behindVisualizer = null } = options
-    const imagesToDraw =
-      behindVisualizer === null
-        ? this.images
-        : this.images.filter(
-            (imgData) =>
-              (imgData.fotoSettings?.renderBehindVisualizer || false) === behindVisualizer,
-          )
+    const hidden = this.markerHiddenIds
+    const imagesToDraw = this.images.filter(
+      (imgData) =>
+        !hidden.has(imgData.id) &&
+        (behindVisualizer === null ||
+          (imgData.fotoSettings?.renderBehindVisualizer || false) === behindVisualizer),
+    )
 
     imagesToDraw.forEach((imgData) => this._drawImage(ctx, imgData, renderCanvas))
   }
@@ -749,6 +756,7 @@ export class MultiImageManager {
    */
   drawInteractiveElements(ctx: CanvasRenderingContext2D): void {
     if (!this.selectedImage || this.selectedImage.type !== 'image') return
+    if (this.markerHiddenIds.has(this.selectedImage.id)) return
 
     // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden
     let bounds: Rect | null
@@ -892,6 +900,7 @@ export class MultiImageManager {
     // Von hinten nach vorne (oberste Ebene zuerst)
     for (let i = this.images.length - 1; i >= 0; i--) {
       const img = this.images[i] as CanvasImage
+      if (this.markerHiddenIds.has(img.id)) continue // unsichtbar → nicht anklickbar
       const bounds = this.getImageBounds(img)
 
       if (bounds && this.isPointInRect(x, y, bounds)) {
@@ -1020,11 +1029,53 @@ export class MultiImageManager {
     console.log(`[MultiImageManager] ✅ Cleanup complete`)
   }
 
+  // ═══════════════════════════════════════════════════════════════════
+  // ✨ BEAT-MARKER: Bilder erst zum Marker-Zeitpunkt einblenden
+  // ═══════════════════════════════════════════════════════════════════
+
+  /** Blendet ein Bild für Beat-Marker aus bzw. wieder ein. */
+  setMarkerHidden(imageId: CanvasImage['id'], hidden: boolean): void {
+    if (hidden) this.markerHiddenIds.add(imageId)
+    else this.markerHiddenIds.delete(imageId)
+  }
+
+  /** true, wenn ein Beat-Marker das Bild gerade ausblendet */
+  isMarkerHidden(imageId: CanvasImage['id']): boolean {
+    return this.markerHiddenIds.has(imageId)
+  }
+
+  /** Alle von Beat-Markern ausgeblendeten Bilder wieder einblenden. */
+  clearMarkerHidden(): void {
+    if (this.markerHiddenIds.size === 0) return
+    this.markerHiddenIds.clear()
+    this.redrawCallback()
+  }
+
+  /**
+   * Spielt die Animationen eines Bildes von vorn ab: Animationen wie bei
+   * Texten (Fade/Scale/Slide) und den Einblend-Effekt der Platzierung.
+   */
+  restartImageAnimations(imageId: CanvasImage['id']): boolean {
+    const image = this.images.find((img) => img.id === imageId)
+    if (!image) return false
+    restartImageAnimation(image)
+    const entrance = image.animation
+    if (entrance && entrance.type && entrance.type !== 'none') {
+      entrance.active = true
+      entrance.startTime = Date.now()
+      entrance.progress = 0
+      this._startAnimation(image)
+    }
+    this.redrawCallback()
+    return true
+  }
+
   /**
    * Räumt alle Bilder auf
    */
   clear(): void {
     this.images = []
+    this.markerHiddenIds.clear()
     this.selectedImage = null
     this.onImageSelected(null)
     this.redrawCallback()

@@ -56,7 +56,7 @@ export interface ShortcutManagers {
     addText(text: unknown, options: Loose): unknown
     setActiveObject(obj: null): unknown
   }
-  multiImageManager?: { addImage(image: Loose): unknown } | null
+  multiImageManager?: { duplicateImage(image: Loose, offset?: number): unknown } | null
 }
 
 export class KeyboardShortcuts implements ShortcutHandlers {
@@ -201,12 +201,7 @@ export class KeyboardShortcuts implements ShortcutHandlers {
       console.log('📋 [Shortcut] Text duplicated')
     } else if (obj.type === 'image') {
       // Dupliziere Bild
-      this.multiImageManager?.addImage({
-        ...obj,
-        id: Date.now() + '_dup',
-        relX: obj.relX + 0.05,
-        relY: obj.relY + 0.05,
-      })
+      this.multiImageManager?.duplicateImage(obj, 0.05)
       console.log('📋 [Shortcut] Image duplicated')
     }
   }
@@ -215,8 +210,10 @@ export class KeyboardShortcuts implements ShortcutHandlers {
     const obj = this.canvasManager?.activeObject
     if (!obj) return
 
-    // Tiefe Kopie des Objekts
+    // Tiefe Kopie des Objekts; das Bild-Element übersteht JSON nicht und wird
+    // deshalb als Referenz übernommen
     this.copiedObject = JSON.parse(JSON.stringify(obj))
+    if (obj.type === 'image' && this.copiedObject) this.copiedObject.imageObject = obj.imageObject
     console.log('📋 [Shortcut] Object copied:', obj.type)
   }
 
@@ -231,12 +228,7 @@ export class KeyboardShortcuts implements ShortcutHandlers {
       })
       console.log('📄 [Shortcut] Text pasted')
     } else if (this.copiedObject.type === 'image') {
-      this.multiImageManager?.addImage({
-        ...this.copiedObject,
-        id: Date.now() + '_paste',
-        relX: this.copiedObject.relX + 0.05,
-        relY: this.copiedObject.relY + 0.05,
-      })
+      this.multiImageManager?.duplicateImage(this.copiedObject, 0.05)
       console.log('📄 [Shortcut] Image pasted')
     }
   }

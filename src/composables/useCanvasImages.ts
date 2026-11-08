@@ -1,27 +1,40 @@
-import { ref, computed } from 'vue'
+import { ref, computed, type Ref } from 'vue'
 import { requestSlideshowImageEdit } from '../lib/slideshowEditRequest'
 import { getFotoPanel } from '../lib/fotoPanelBridge'
+import type { CanvasImage, MultiImageManager } from '../lib/multiImageManager'
+import type { StockCategory, StockImage } from './useStockGallery'
+import type { CanvasManagerRef, TranslateFn } from './types'
 
-export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstance, t }) {
-  const selectedCanvasImageId = ref(null)
+export interface CanvasImagesDeps {
+  multiImageManagerInstance: Ref<MultiImageManager | null | undefined>
+  canvasManagerInstance: CanvasManagerRef
+  t: TranslateFn
+}
+
+export function useCanvasImages({
+  multiImageManagerInstance,
+  canvasManagerInstance,
+  t,
+}: CanvasImagesDeps) {
+  const selectedCanvasImageId = ref<CanvasImage['id'] | null>(null)
   const showImagePreview = ref(false)
-  const previewImageData = ref(null)
+  const previewImageData = ref<CanvasImage | null>(null)
   const previewImageIndex = ref(0)
-  const replaceCanvasImageInput = ref(null)
+  const replaceCanvasImageInput = ref<HTMLInputElement | null>(null)
 
   const showReplaceGallery = ref(false)
-  const replaceGalleryCategories = ref([])
-  const replaceGalleryImages = ref([])
-  const selectedReplaceCategory = ref(null)
-  const selectedReplaceImage = ref(null)
+  const replaceGalleryCategories = ref<StockCategory[]>([])
+  const replaceGalleryImages = ref<StockImage[]>([])
+  const selectedReplaceCategory = ref<string | null>(null)
+  const selectedReplaceImage = ref<StockImage | null>(null)
   const replaceGalleryLoading = ref(false)
-  const replaceGalleryCategoryCache = ref(new Map())
+  const replaceGalleryCategoryCache = ref(new Map<string, StockImage[]>())
 
-  const pendingReplaceImage = ref(null)
-  const pendingReplaceImageSrc = ref(null)
+  const pendingReplaceImage = ref<HTMLImageElement | null>(null)
+  const pendingReplaceImageSrc = ref<string | null>(null)
 
-  const draggedImageIndex = ref(null)
-  const dragOverIndex = ref(null)
+  const draggedImageIndex = ref<number | null>(null)
+  const dragOverIndex = ref<number | null>(null)
 
   const canvasImages = computed(() => {
     const manager = multiImageManagerInstance.value
@@ -29,7 +42,7 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
     return manager.getAllImages() || []
   })
 
-  function selectCanvasImage(imgData) {
+  function selectCanvasImage(imgData: CanvasImage | null | undefined) {
     const manager = multiImageManagerInstance.value
     const canvasManager = canvasManagerInstance.value
     if (!manager || !imgData) return
@@ -48,7 +61,7 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
     requestSlideshowImageEdit(imgData)
   }
 
-  function deleteCanvasImage(imageId) {
+  function deleteCanvasImage(imageId: CanvasImage['id']) {
     const manager = multiImageManagerInstance.value
     if (!manager) return
     manager.removeImage(imageId)
@@ -64,7 +77,7 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
     selectedCanvasImageId.value = null
   }
 
-  function openImagePreview(imgData, index) {
+  function openImagePreview(imgData: CanvasImage, index: number) {
     previewImageData.value = imgData
     previewImageIndex.value = index
     showImagePreview.value = true
@@ -78,21 +91,23 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
     pendingReplaceImageSrc.value = null
   }
 
-  function handleReplaceCanvasImage(event) {
-    const file = event.target.files?.[0]
+  function handleReplaceCanvasImage(event: Event) {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
     if (!file || !previewImageData.value) return
 
     const reader = new FileReader()
     reader.onload = (e) => {
+      const result = (e.target as FileReader).result as string
       const img = new Image()
       img.onload = () => {
         pendingReplaceImage.value = img
-        pendingReplaceImageSrc.value = e.target.result
+        pendingReplaceImageSrc.value = result
       }
-      img.src = e.target.result
+      img.src = result
     }
     reader.readAsDataURL(file)
-    event.target.value = ''
+    input.value = ''
   }
 
   function confirmPendingReplace() {
@@ -129,7 +144,7 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
     replaceGalleryLoading.value = true
     try {
       const paths = ['gallery/gallery.json', './gallery/gallery.json']
-      let response = null
+      let response: Response | null = null
 
       for (const path of paths) {
         try {
@@ -146,7 +161,9 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
       if (data._version === '2.0' && data.categories) {
         replaceGalleryCategories.value = data.categories
         if (replaceGalleryCategories.value.length > 0) {
-          await selectReplaceGalleryCategory(replaceGalleryCategories.value[0].id)
+          await selectReplaceGalleryCategory(
+            (replaceGalleryCategories.value[0] as StockCategory).id,
+          )
         }
       }
     } catch (error) {
@@ -156,13 +173,13 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
     }
   }
 
-  async function selectReplaceGalleryCategory(categoryId) {
+  async function selectReplaceGalleryCategory(categoryId: string) {
     if (selectedReplaceCategory.value === categoryId) return
     selectedReplaceCategory.value = categoryId
     selectedReplaceImage.value = null
 
     if (replaceGalleryCategoryCache.value.has(categoryId)) {
-      replaceGalleryImages.value = replaceGalleryCategoryCache.value.get(categoryId)
+      replaceGalleryImages.value = replaceGalleryCategoryCache.value.get(categoryId) as StockImage[]
       return
     }
 
@@ -189,7 +206,7 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
     }
   }
 
-  function selectReplaceGalleryImage(image) {
+  function selectReplaceGalleryImage(image: StockImage) {
     selectedReplaceImage.value = image
   }
 
@@ -217,11 +234,12 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
     }
   }
 
-  function handleDragStart(event, index) {
+  function handleDragStart(event: DragEvent, index: number) {
     draggedImageIndex.value = index
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('text/plain', index.toString())
-    setTimeout(() => event.target.classList.add('dragging'), 0)
+    const dataTransfer = event.dataTransfer as DataTransfer
+    dataTransfer.effectAllowed = 'move'
+    dataTransfer.setData('text/plain', index.toString())
+    setTimeout(() => (event.target as HTMLElement).classList.add('dragging'), 0)
   }
 
   function handleDragEnd() {
@@ -229,15 +247,15 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
     dragOverIndex.value = null
   }
 
-  function handleDragOver(event, index) {
+  function handleDragOver(event: DragEvent, index: number) {
     if (draggedImageIndex.value === null || draggedImageIndex.value === index) return
     dragOverIndex.value = index
-    event.dataTransfer.dropEffect = 'move'
+    ;(event.dataTransfer as DataTransfer).dropEffect = 'move'
   }
 
   function handleDragLeave() {}
 
-  function handleDrop(event, toIndex) {
+  function handleDrop(_event: DragEvent, toIndex: number) {
     const fromIndex = draggedImageIndex.value
     if (fromIndex === null || fromIndex === toIndex) {
       handleDragEnd()

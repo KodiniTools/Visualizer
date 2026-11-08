@@ -7,18 +7,28 @@ import {
 import { onsetForSource, advancePunch, punchScale } from '../../lib/visualizers/core/onsetReactive'
 import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
+/** Beat-Punch-Einstellungen (Visualizer-Store oder Layer) */
+export interface BeatPunchSettings {
+  beatPunchEnabled: boolean
+  beatPunchSource: string
+  beatPunchStrength: number
+  beatPunchVariation?: number
+}
+
+/** Zeichen-Callback eines Visualizers */
+export type PunchDrawFn = (ctx: CanvasRenderingContext2D, width: number, height: number) => void
+
 /**
  * Beat-Punch: onset-gesteuerter Zoom der gesamten Visualizer-Ebene. Die
  * Hüllkurve läuft einmal pro Frame (update); drawWithPunch wendet den Zoom an
  * jeder Stelle an, an der der Visualizer eingesetzt wird.
- * @param {object} visualizerStore
  */
-export function createBeatPunch(visualizerStore) {
+export function createBeatPunch(visualizerStore: BeatPunchSettings) {
   let env = 0
   let scale = 1
   // Variation: Zoom je Spalte (null = einheitlich, einfacher Zoom)
   const variationState = createPunchVariationState()
-  let bandScales = null
+  let bandScales: number[] | null = null
 
   /** Hüllkurve fortschreiben. Aus (oder ohne Audio) → sauber 1.0. */
   function update() {
@@ -33,7 +43,7 @@ export function createBeatPunch(visualizerStore) {
     scale = punchScale(env, visualizerStore.beatPunchStrength)
 
     const variation = visualizerStore.beatPunchVariation
-    if (variation > 0) {
+    if (variation !== undefined && variation > 0) {
       const scales = updatePunchVariation(
         variationState,
         onset,
@@ -50,10 +60,15 @@ export function createBeatPunch(visualizerStore) {
    * Ruft den Zeichen-Callback des Visualizers mit dem aktuellen Zoom um die
    * Canvas-Mitte auf. Ohne Zoom (~1.0) unverändert.
    */
-  function drawWithPunch(cb, ctx, width, height) {
+  function drawWithPunch(
+    cb: PunchDrawFn | null | undefined,
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+  ) {
     if (!cb) return
     if (bandScales) {
-      drawPunchedBands(ctx, cb, width, height, bandScales)
+      drawPunchedBands(ctx, cb as Parameters<typeof drawPunchedBands>[1], width, height, bandScales)
       return
     }
     const s = scale
@@ -74,13 +89,12 @@ export function createBeatPunch(visualizerStore) {
 
 /**
  * Beat-Punch eines einzelnen Layers (eigene Hüllkurve je Layer-ID).
- * @returns {{ update(layerId, fx): number, prune(keepIds: Set) }}
  */
 export function createLayerPunch() {
-  const envs = new Map()
+  const envs = new Map<unknown, number>()
   return {
     /** Hüllkurve fortschreiben und Zoomfaktor liefern (1 = aus). */
-    update(layerId, fx) {
+    update(layerId: unknown, fx: BeatPunchSettings): number {
       if (!fx.beatPunchEnabled) {
         envs.delete(layerId)
         return 1
@@ -90,7 +104,7 @@ export function createLayerPunch() {
       envs.set(layerId, env)
       return punchScale(env, fx.beatPunchStrength)
     },
-    prune(keepIds) {
+    prune(keepIds: Set<unknown>): void {
       for (const id of envs.keys()) {
         if (!keepIds.has(id)) envs.delete(id)
       }

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { toRaw } from 'vue'
-import { useImageGallery } from '../../composables/useImageGallery.js'
+import { useImageGallery } from '../../composables/useImageGallery'
 
 vi.mock('../../utils/presetImageRepository', () => ({
   blobFromImage: vi.fn(),

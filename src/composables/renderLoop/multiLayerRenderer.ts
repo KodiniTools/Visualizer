@@ -2,12 +2,25 @@ import { drawScaledVisualizer } from '../../lib/visualizers/core/edgeFade'
 import { Visualizers } from '../../lib/visualizers/index'
 import { visualizerState } from '../../lib/visualizers/core/state'
 import { getVisualizerImageSource } from '../../lib/visualizers/imageRegistry'
-import { ensureSizedCanvas } from './canvasCache.js'
-import { gateAudioData } from './reactGate.js'
-import { createLayerPunch } from './beatPunch.js'
-import { ensurePostProcessor, applyPostFx } from './postFx.js'
+import { ensureSizedCanvas } from './canvasCache'
+import { gateAudioData } from './reactGate'
+import { createLayerPunch } from './beatPunch'
+import { ensurePostProcessor, applyPostFx } from './postFx'
 import { normalizeLedConfig } from '../../lib/visualizers/gl/ledTextSettings'
 import { shapeRenderSize } from '../../lib/visualizers/core/visualizerShape'
+import type { VisualizerDefinition } from '../../lib/visualizers/core/types'
+import type { VisualizerLayer } from '../../stores/visualizer/useVisualizerLayers'
+import type { SizedCanvas } from './canvasCache'
+import type { ReactGateState } from './reactGate'
+import type { RenderPostProcessor } from './postFx'
+import type { VisualizerDrawCallback, VisualizerRendererDeps } from './types'
+
+/** Cache eines Layers */
+interface LayerCache extends SizedCanvas {
+  lastVisualizerId: string | null
+  react: ReactGateState
+  punchScale?: number
+}
 
 /**
  * Multi-Layer-Modus: jeder sichtbare Layer wird in ein eigenes Cache-Canvas
@@ -15,12 +28,7 @@ import { shapeRenderSize } from '../../lib/visualizers/core/visualizerShape'
  * anschließend mit Blend-Modus, Skalierung und Position zu einem Composite
  * gemischt.
  *
- * @param {object} deps
- * @param {object} deps.visualizerStore
- * @param {(analyser: AnalyserNode, len: number) => Uint8Array} deps.getTimeDomainData
- * @param {(preferredId: string|null) => string|null} deps.effectiveImageId
- * @param {() => number} deps.currentQuality
- * @param {(w: number, h: number) => object|null} deps.ensureMainPostProcessor - Post-FX des Composites
+ * `ensureMainPostProcessor` liefert hier das Post-FX des Composites.
  */
 export function createMultiLayerRenderer({
   visualizerStore,
@@ -28,20 +36,20 @@ export function createMultiLayerRenderer({
   effectiveImageId,
   currentQuality,
   ensureMainPostProcessor,
-}) {
+}: VisualizerRendererDeps) {
   // Cache je Layer-ID: { canvas, ctx, lastVisualizerId, react, punchScale }
-  const layerCaches = new Map()
+  const layerCaches = new Map<string, LayerCache>()
   // Post-Processing pro Layer: Trails brauchen je Layer einen eigenen Vorframe-Puffer
-  const layerPostProcessors = new Map()
+  const layerPostProcessors = new Map<string, RenderPostProcessor | null>()
   const layerPunch = createLayerPunch()
-  let composite = null
+  let composite: SizedCanvas | null = null
 
   /**
    * Cache des Layers; neu nur beim ersten Zeichnen oder bei geänderter Größe.
    * Bleibt über Frames erhalten → visualizer.init() nur bei Wechsel, die
    * Reaktions-Hüllkurve läuft stetig weiter.
    */
-  function layerCacheFor(layer, width, height) {
+  function layerCacheFor(layer: VisualizerLayer, width: number, height: number): LayerCache {
     let cache = layerCaches.get(layer.id)
     if (!cache || cache.canvas.width !== width || cache.canvas.height !== height) {
       cache = { ...ensureSizedCanvas(null, width, height), lastVisualizerId: null, react: {} }
@@ -50,18 +58,25 @@ export function createMultiLayerRenderer({
     return cache
   }
 
-  function ensureLayerPostProcessor(layerId, width, height) {
+  function ensureLayerPostProcessor(layerId: string, width: number, height: number) {
     const proc = ensurePostProcessor(layerPostProcessors.get(layerId), width, height)
     layerPostProcessors.set(layerId, proc)
     return proc
   }
 
   /** Visualizer des Layers wechseln: alten aufräumen, neuen initialisieren. */
-  function switchVisualizer(cache, layer, visualizer, width, height) {
+  function switchVisualizer(
+    cache: LayerCache,
+    layer: VisualizerLayer,
+    visualizer: VisualizerDefinition,
+    width: number,
+    height: number,
+  ) {
     if (cache.lastVisualizerId === layer.visualizerId) return
-    if (cache.lastVisualizerId && Visualizers[cache.lastVisualizerId]) {
+    const previous = cache.lastVisualizerId ? Visualizers[cache.lastVisualizerId] : undefined
+    if (previous) {
       try {
-        Visualizers[cache.lastVisualizerId].cleanup?.()
+        previous.cleanup?.()
       } catch {
         // Aufräumen ist best effort
       }
@@ -71,7 +86,15 @@ export function createMultiLayerRenderer({
   }
 
   /** Einen Layer in sein Cache-Canvas zeichnen (inkl. Post-FX + Beat-Punch). */
-  function renderLayer(layer, visualizer, analyser, audioData, bufferLength, canvasW, canvasH) {
+  function renderLayer(
+    layer: VisualizerLayer,
+    visualizer: VisualizerDefinition,
+    analyser: AnalyserNode,
+    audioData: Uint8Array,
+    bufferLength: number,
+    canvasW: number,
+    canvasH: number,
+  ) {
     // Mit Form im Format der Form rendern (angepasst statt beschnitten)
     const { width, height } = shapeRenderSize(canvasW, canvasH, layer.shape)
     const cache = layerCacheFor(layer, width, height)
@@ -136,15 +159,15 @@ export function createMultiLayerRenderer({
   }
 
   /** Alle Layer-Caches mit Blend-Modus, Skalierung und Position mischen. */
-  function compositeLayers(width, height) {
-    const ctx = composite.ctx
+  function compositeLayers(width: number, height: number) {
+    const ctx = (composite as SizedCanvas).ctx
     ctx.clearRect(0, 0, width, height)
     for (const layer of visualizerStore.visibleLayers) {
       const cache = layerCaches.get(layer.id)
       if (!cache) continue
 
       ctx.save()
-      ctx.globalCompositeOperation = layer.blendMode || 'source-over'
+      ctx.globalCompositeOperation = (layer.blendMode || 'source-over') as GlobalCompositeOperation
       // Layer über drawScaledVisualizer (inkl. Randabblendung); der eigene
       // Beat-Punch des Layers wirkt als zusätzlicher Zoom.
       drawScaledVisualizer(
@@ -186,11 +209,14 @@ export function createMultiLayerRenderer({
 
   /**
    * Rendert alle sichtbaren Layer und liefert den Zeichen-Callback für die Szene.
-   * @param {HTMLCanvasElement} canvas - Haupt-Canvas (bestimmt die Größe)
-   * @param {AnalyserNode} analyser
-   * @param {Uint8Array} audioData - Frequenzdaten dieses Frames
+   * @param canvas - Haupt-Canvas (bestimmt die Größe)
+   * @param audioData - Frequenzdaten dieses Frames
    */
-  function render(canvas, analyser, audioData) {
+  function render(
+    canvas: HTMLCanvasElement,
+    analyser: AnalyserNode,
+    audioData: Uint8Array,
+  ): VisualizerDrawCallback {
     const { width, height } = canvas
     const bufferLength = analyser.frequencyBinCount
     composite = ensureSizedCanvas(composite, width, height)
@@ -212,7 +238,7 @@ export function createMultiLayerRenderer({
     )
 
     const compositeCanvas = composite.canvas
-    const callback = (targetCtx, w, h) => {
+    const callback: VisualizerDrawCallback = (targetCtx, w, h) => {
       if (w === width && h === height) {
         targetCtx.drawImage(compositeCanvas, 0, 0)
       } else {

@@ -278,8 +278,8 @@ import {
   persistImageWithCleanup,
 } from './slideshow/useSlideshowPanelPresets.js'
 import { isSameSlideshowImageFill } from '../../lib/slideshowImageFill'
-import { useImageGallery } from '../../composables/useImageGallery.js'
-import { useStockGallery } from '../../composables/useStockGallery.js'
+import { useImageGallery } from '../../composables/useImageGallery'
+import { useStockGallery } from '../../composables/useStockGallery'
 import { useI18n } from '../../lib/i18n'
 import SlideshowOrderList from './slideshow/SlideshowOrderList.vue'
 import SlideshowTimingSettings from './slideshow/SlideshowTimingSettings.vue'

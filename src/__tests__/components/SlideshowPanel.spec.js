@@ -474,7 +474,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   })
 
   it('own area image: pick from upload gallery, persisted, audio, sent with start', async () => {
-    const { useImageGallery } = await import('../../composables/useImageGallery.js')
+    const { useImageGallery } = await import('../../composables/useImageGallery')
     const gallery = useImageGallery()
     gallery.clearAllImages()
     const img = { src: 'data:,galerie' }

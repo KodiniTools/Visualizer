@@ -48,7 +48,7 @@ import { useI18n } from '../lib/i18n'
 import { useToastStore } from '../stores/toastStore'
 import ImagePreviewOverlay from './foto-panel/ImagePreviewOverlay.vue'
 import StockGallerySection from './foto-panel/StockGallerySection.vue'
-import { useStockGallery } from '../composables/useStockGallery.js'
+import { useStockGallery } from '../composables/useStockGallery'
 import { useGalleryCanvasDrop } from '../composables/useGalleryCanvasDrop'
 
 const { t } = useI18n()

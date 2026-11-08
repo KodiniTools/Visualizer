@@ -2,15 +2,55 @@ import { FrameMonitor } from '../lib/postfx/index'
 import { visualizerState } from '../lib/visualizers/core/state'
 import { REFERENCE_FRAME_MS } from '../lib/visualizers/core/helpers'
 import { resolveEffectiveImageId } from '../lib/visualizers/imageRegistry'
-import { useImageGallery } from './useImageGallery.js'
-import { ensureSizedCanvas } from './renderLoop/canvasCache.js'
-import { ensurePostProcessor } from './renderLoop/postFx.js'
-import { createBeatPunch } from './renderLoop/beatPunch.js'
-import { createMultiLayerRenderer } from './renderLoop/multiLayerRenderer.js'
-import { createSingleVisualizerRenderer } from './renderLoop/singleVisualizerRenderer.js'
-import { createSceneRenderer } from './renderLoop/sceneRenderer.js'
+import { useImageGallery } from './useImageGallery'
+import { ensureSizedCanvas } from './renderLoop/canvasCache'
+import { ensurePostProcessor } from './renderLoop/postFx'
+import { createBeatPunch } from './renderLoop/beatPunch'
+import { createMultiLayerRenderer } from './renderLoop/multiLayerRenderer'
+import { createSingleVisualizerRenderer } from './renderLoop/singleVisualizerRenderer'
+import { createSceneRenderer } from './renderLoop/sceneRenderer'
 import { registerCanvasScreenshot } from '../lib/canvasScreenshotBridge'
 import { getAudioAnalysisData } from '../lib/audio/audioAnalysisData'
+import type { Ref } from 'vue'
+import type { GridManager } from '../lib/gridManager'
+import type { MarkerTransitionRenderer } from '../lib/canvasManager/rendering/MarkerTransitionRenderer'
+import type { SizedCanvas } from './renderLoop/canvasCache'
+import type { RenderPostProcessor } from './renderLoop/postFx'
+import type { SceneRendererDeps, SceneEffects } from './renderLoop/sceneRenderer'
+import type { RenderVisualizerStore, VisualizerDrawCallback } from './renderLoop/types'
+import type { useShapeLayer } from './useShapeLayer'
+import type { useRecorderStore } from '../stores/recorderStore'
+import type { usePlayerStore } from '../stores/playerStore'
+import type { useAudioSourceStore } from '../stores/audioSourceStore'
+import type { CanvasManagerRef } from './types'
+
+/** Abhängigkeiten von useRenderLoop */
+export interface RenderLoopDeps
+  extends Pick<
+      SceneRendererDeps,
+      'canvasRef' | 'multiImageManagerInstance' | 'videoManagerInstance' | 'getTextManager'
+    >,
+    SceneEffects {
+  canvasManagerInstance: CanvasManagerRef
+  gridManagerInstance?: Ref<GridManager | null | undefined> | null
+  shapeLayer?: ReturnType<typeof useShapeLayer> | null
+  getRecordingCanvas: () => HTMLCanvasElement | null | undefined
+  visualizerStore: RenderVisualizerStore
+  recorderStore: ReturnType<typeof useRecorderStore>
+  playerStore: ReturnType<typeof usePlayerStore>
+  audioSourceStore: ReturnType<typeof useAudioSourceStore>
+  markerTransitionRenderer?: MarkerTransitionRenderer | null
+  getAnalyser: () => AnalyserNode | null | undefined
+  getMicrophoneAnalyser: () => AnalyserNode | null | undefined
+  getMicrophoneAudioContext: () => AudioContext | null | undefined
+  updateGlobalAudioData: (data: Uint8Array | null, bufferLength: number) => void
+}
+
+/** Ergebnis der Audio-Analyse eines Frames */
+interface FrameAudio {
+  analyser: AnalyserNode | null | undefined
+  audioRunning: boolean
+}
 
 /**
  * Render-Schleife des Canvas: pro Frame Audio analysieren, Visualizer rendern
@@ -43,13 +83,13 @@ export function useRenderLoop({
   getMicrophoneAnalyser,
   getMicrophoneAudioContext,
   updateGlobalAudioData,
-}) {
-  let animationFrameId = null
-  let drawTimeoutId = null
-  let lastDrawTimestamp = null
+}: RenderLoopDeps) {
+  let animationFrameId: number | null = null
+  let drawTimeoutId: ReturnType<typeof setTimeout> | null = null
+  let lastDrawTimestamp: number | null = null
 
-  let audioDataArray = null // Frequenzdaten, einmal pro Frame gelesen
-  let timeDomainArray = null // Zeitdaten, bei Bedarf einmal pro Frame gelesen
+  let audioDataArray: Uint8Array | null = null // Frequenzdaten, einmal pro Frame gelesen
+  let timeDomainArray: Uint8Array | null = null // Zeitdaten, bei Bedarf einmal pro Frame gelesen
   let timeDomainFresh = false // wird in jedem draw() zurückgesetzt
 
   // Snapshot des fertig zusammengesetzten Live-Frames (nur Inhalt: Hintergrund,
@@ -59,14 +99,14 @@ export function useRenderLoop({
   // komplette Render-Pipeline ein zweites Mal auszuführen; siehe
   // setupRecordingRedrawListener() und renderRecordingScene() (Fallback für den
   // ersten Tick, bevor ein Live-Frame erfasst wurde).
-  let liveSnapshot = null
+  let liveSnapshot: SizedCanvas | null = null
   let liveSnapshotReady = false
 
   const imageGallery = useImageGallery()
 
   // Bild für ein Portrait-Preset: das gewählte, sonst ein Canvas-Bild, sonst die
   // Galerie-Auswahl (siehe resolveEffectiveImageId).
-  function effectiveImageId(preferredId) {
+  function effectiveImageId(preferredId: string | null | undefined) {
     return resolveEffectiveImageId(preferredId, {
       canvasImages: multiImageManagerInstance.value?.getAllImages?.() || [],
       selectedGalleryImage: imageGallery.selectedImage.value,
@@ -93,10 +133,10 @@ export function useRenderLoop({
 
   // Post-Processing (Bloom / Trails) – Main-Thread-Prozessor für den Fallback-
   // Pfad und den Multi-Layer-Modus. Der Worker hat einen eigenen Prozessor.
-  let mainPostProcessor = null
+  let mainPostProcessor: RenderPostProcessor | null = null
   const frameMonitor = new FrameMonitor()
 
-  function ensureMainPostProcessor(w, h) {
+  function ensureMainPostProcessor(w: number, h: number) {
     mainPostProcessor = ensurePostProcessor(mainPostProcessor, w, h)
     return mainPostProcessor
   }
@@ -105,18 +145,18 @@ export function useRenderLoop({
     return visualizerStore.adaptiveQuality ? frameMonitor.qualityLevel : 1
   }
 
-  function getTimeDomainData(analyser, bufferLength) {
+  function getTimeDomainData(analyser: AnalyserNode, bufferLength: number): Uint8Array {
     if (!timeDomainArray || timeDomainArray.length !== bufferLength) {
       timeDomainArray = new Uint8Array(bufferLength)
     }
     if (!timeDomainFresh) {
-      analyser.getByteTimeDomainData(timeDomainArray)
+      analyser.getByteTimeDomainData(timeDomainArray as Uint8Array<ArrayBuffer>)
       timeDomainFresh = true
     }
     return timeDomainArray
   }
 
-  function ensureAudioBuffer(bufferLength) {
+  function ensureAudioBuffer(bufferLength: number): Uint8Array {
     if (!audioDataArray || audioDataArray.length !== bufferLength) {
       audioDataArray = new Uint8Array(bufferLength)
     }
@@ -156,32 +196,35 @@ export function useRenderLoop({
   const { renderScene, renderRecordingScene, renderEffects } = scene
 
   // Hot-Loop-Caches (kein DOM-Query + getContext pro Frame)
-  let cachedDomCanvas = null
-  let cachedCanvasEl = null
-  let cachedCtx = null
+  let cachedDomCanvas: HTMLCanvasElement | null = null
+  let cachedCanvasEl: HTMLCanvasElement | null = null
+  let cachedCtx: CanvasRenderingContext2D | null = null
 
-  function resolveCanvas() {
+  function resolveCanvas(): HTMLCanvasElement | null | undefined {
     if (!cachedDomCanvas || !cachedDomCanvas.isConnected) {
-      cachedDomCanvas = document.querySelector('.canvas-wrapper canvas')
+      cachedDomCanvas = document.querySelector<HTMLCanvasElement>('.canvas-wrapper canvas')
     }
     return cachedDomCanvas || canvasRef.value
   }
 
-  function getContext2D(canvas) {
+  function getContext2D(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
     if (cachedCanvasEl !== canvas) {
       cachedCanvasEl = canvas
       cachedCtx = canvas.getContext('2d', { desynchronized: true }) || canvas.getContext('2d')
     }
-    return cachedCtx
+    return cachedCtx as CanvasRenderingContext2D
   }
 
   /** Zeichen-Callback aus dem zuletzt gerenderten Frame (Aufnahme/Screenshot). */
-  function buildVisualizerCallback(canvas) {
+  // `_canvas` bleibt für bestehende Aufrufer in der Signatur
+  function buildVisualizerCallback(
+    _canvas?: HTMLCanvasElement | null,
+  ): VisualizerDrawCallback | null {
     if (!visualizerStore.showVisualizer) return null
 
     const composite = multiLayer.compositeCanvas
     if (visualizerStore.multiLayerMode && composite) {
-      return (vizCtx, vizWidth, vizHeight) => {
+      return (vizCtx: CanvasRenderingContext2D, vizWidth: number, vizHeight: number) => {
         if (vizWidth === composite.width && vizHeight === composite.height) {
           vizCtx.drawImage(composite, 0, 0)
         } else {
@@ -207,7 +250,7 @@ export function useRenderLoop({
   // von der tatsächlichen Frame-Rate gleich schnell konvergieren – sonst
   // liefe der Visualizer z. B. beim Echtzeit-Encoding der Aufnahme sichtbar
   // in Zeitlupe.
-  function updateFrameDelta(now) {
+  function updateFrameDelta(now: number) {
     const dtMs = lastDrawTimestamp !== null ? now - lastDrawTimestamp : REFERENCE_FRAME_MS
     lastDrawTimestamp = now
     // Absurde Lücken (Tab im Hintergrund, Debugger, erster Frame nach langem
@@ -217,14 +260,14 @@ export function useRenderLoop({
   }
 
   /** Aktiven Analyser bestimmen und (falls Audio läuft) Frequenzdaten lesen. */
-  function analyzeAudio() {
+  function analyzeAudio(): FrameAudio {
     const isMicActive = audioSourceStore.isMicrophoneActive
     const analyser = isMicActive ? getMicrophoneAnalyser() : getAnalyser()
     const audioRunning = playerStore.isPlaying || recorderStore.isRecording || isMicActive
 
     if (isMicActive) {
       const micCtx = getMicrophoneAudioContext()
-      if (micCtx?.state === 'suspended') micCtx.resume()
+      if (micCtx?.state === 'suspended') void micCtx.resume()
     }
 
     if (analyser && audioRunning) {
@@ -245,19 +288,22 @@ export function useRenderLoop({
   }
 
   /** Visualizer dieses Frames rendern; liefert den Zeichen-Callback oder null. */
-  function renderVisualizer(canvas, { analyser, audioRunning }) {
+  function renderVisualizer(
+    canvas: HTMLCanvasElement,
+    { analyser, audioRunning }: FrameAudio,
+  ): VisualizerDrawCallback | null {
     if (!analyser || !visualizerStore.showVisualizer || !audioRunning) return null
     if (visualizerStore.multiLayerMode && visualizerStore.visibleLayers.length > 0) {
       return multiLayer.render(canvas, analyser, ensureAudioBuffer(analyser.frequencyBinCount))
     }
-    return single.render(canvas, analyser, audioDataArray)
+    return single.render(canvas, analyser, audioDataArray as Uint8Array)
   }
 
   /**
    * Nur-Inhalt-Snapshot für den Aufnahme-Redraw – VOR den Editor-Elementen
    * (Auswahl-Handles, Raster, Workspace-Rahmen), damit diese nie im Video landen.
    */
-  function captureLiveSnapshot(canvas) {
+  function captureLiveSnapshot(canvas: HTMLCanvasElement) {
     if (recorderStore.isRecording) {
       liveSnapshot = ensureSizedCanvas(liveSnapshot, canvas.width, canvas.height)
       liveSnapshot.ctx.drawImage(canvas, 0, 0)
@@ -268,7 +314,7 @@ export function useRenderLoop({
   }
 
   /** Editor-Elemente über dem Inhalt (nicht in Aufnahme/Screenshot). */
-  function drawEditorOverlay(ctx) {
+  function drawEditorOverlay(ctx: CanvasRenderingContext2D) {
     const cm = canvasManagerInstance.value
     if (cm) {
       cm.drawFadedTextMarkers(ctx)
@@ -333,13 +379,16 @@ export function useRenderLoop({
   // ─── Aufnahme ───────────────────────────────────────────────────────────
 
   /** Live-Snapshot (ggf. Workspace-Ausschnitt) auf das Aufnahme-Canvas skalieren. */
-  function drawSnapshotToRecording(recordingCtx, recordingCanvas) {
+  function drawSnapshotToRecording(
+    recordingCtx: CanvasRenderingContext2D,
+    recordingCanvas: HTMLCanvasElement,
+  ) {
     const workspaceBounds = canvasManagerInstance.value?.getWorkspaceBounds()
     const hasWorkspace = workspaceBounds && canvasManagerInstance.value?.workspacePreset
-    const source = liveSnapshot.canvas
+    const source = (liveSnapshot as SizedCanvas).canvas
 
     recordingCtx.clearRect(0, 0, recordingCanvas.width, recordingCanvas.height)
-    if (hasWorkspace) {
+    if (hasWorkspace && workspaceBounds) {
       recordingCtx.drawImage(
         source,
         workspaceBounds.x,
@@ -385,10 +434,10 @@ export function useRenderLoop({
 
   // ─── Screenshot ─────────────────────────────────────────────────────────
 
-  let unregisterScreenshot = null
+  let unregisterScreenshot: (() => void) | null = null
 
   /** Meldet die Screenshot-Funktion bei lib/canvasScreenshotBridge.js an. */
-  function registerScreenshot(canvasManagerInst) {
+  function registerScreenshot(canvasManagerInst: CanvasManagerRef) {
     const takeCanvasScreenshot = async function (mimeType = 'image/png', quality = 0.9) {
       const canvas = canvasRef.value
       if (!canvas) return null
@@ -397,8 +446,12 @@ export function useRenderLoop({
       let targetWidth = canvas.width
       let targetHeight = canvas.height
       if (canvasManagerInst.value?.workspacePreset) {
+        // Nebenbefund: workspacePreset ist das Preset-Objekt, kein Schlüssel – der
+        // Nachschlag liefert daher nie ein Preset (Verhalten aus der JS-Version).
         const preset =
-          canvasManagerInst.value.socialMediaPresets?.[canvasManagerInst.value.workspacePreset]
+          canvasManagerInst.value.socialMediaPresets?.[
+            canvasManagerInst.value.workspacePreset as unknown as string
+          ]
         if (preset) {
           targetWidth = preset.width
           targetHeight = preset.height
@@ -412,7 +465,7 @@ export function useRenderLoop({
       renderRecordingScene(ctx, targetWidth, targetHeight, buildVisualizerCallback(canvas))
       renderEffects(ctx, targetWidth, targetHeight)
 
-      return new Promise((resolve, reject) => {
+      return new Promise<Blob>((resolve, reject) => {
         screenshotCanvas.toBlob(
           (blob) => (blob ? resolve(blob) : reject(new Error('Failed to create screenshot blob'))),
           mimeType,

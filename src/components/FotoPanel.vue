@@ -110,8 +110,8 @@ import SlideshowPanel from './foto-panel/SlideshowPanel.vue'
 
 // Composables
 import { SLIDESHOW_POPOVER_TARGET_ID } from '../composables/useSlideshowPopover'
-import { useImageGallery } from '../composables/useImageGallery.js'
-import { useImageAudioReactive } from '../composables/useImageAudioReactive.js'
+import { useImageGallery } from '../composables/useImageGallery'
+import { useImageAudioReactive } from '../composables/useImageAudioReactive'
 import { useGalleryCanvasDrop } from '../composables/useGalleryCanvasDrop'
 import { useFotoSlideshow } from './foto-panel/useFotoSlideshow.js'
 import { useImagePlacement } from './foto-panel/useImagePlacement.js'

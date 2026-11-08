@@ -10,7 +10,7 @@ vi.mock('../../lib/workerManager', () => ({
   },
 }))
 
-import { useGlobalAudioData } from '../../composables/useGlobalAudioData.js'
+import { useGlobalAudioData } from '../../composables/useGlobalAudioData'
 import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 /**

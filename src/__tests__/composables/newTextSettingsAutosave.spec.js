@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { defineComponent, ref, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
-import { useNewTextSettings } from '../../composables/useNewTextSettings.js'
+import { useNewTextSettings } from '../../composables/useNewTextSettings'
 import {
   loadTextDefaults,
   saveTextDefaults,

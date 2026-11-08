@@ -5,23 +5,26 @@ import { visualizerState } from '../../lib/visualizers/core/state'
 import { getVisualizerImageSource } from '../../lib/visualizers/imageRegistry'
 import { useHistoryStore } from '../../stores/historyStore'
 import { getHistoryRecorder } from '../../lib/history/historyRecorder'
-import { ensureSizedCanvas } from './canvasCache.js'
-import { gateAudioData } from './reactGate.js'
-import { applyPostFx } from './postFx.js'
+import { ensureSizedCanvas } from './canvasCache'
+import { gateAudioData } from './reactGate'
+import { applyPostFx } from './postFx'
 import { shapeRenderSize } from '../../lib/visualizers/core/visualizerShape'
+import type { VisualizerDefinition } from '../../lib/visualizers/core/types'
+import type { SizedCanvas } from './canvasCache'
+import type { ReactGateState } from './reactGate'
+import type { RenderPostProcessor } from './postFx'
+import type { VisualizerDrawCallback, VisualizerRendererDeps } from './types'
+
+/** Abhängigkeiten des Einzel-Renderers */
+export interface SingleVisualizerRendererDeps extends VisualizerRendererDeps {
+  /** vorhandener Prozessor (ohne Anlegen) */
+  getMainPostProcessor: () => RenderPostProcessor | null | undefined
+}
 
 /**
  * Einzel-Visualizer: rendert bevorzugt in einem OffscreenCanvas-Worker (das
  * zuletzt gelieferte ImageBitmap wird eingesetzt), sonst auf dem Main-Thread
  * in ein Cache-Canvas (inkl. Post-FX und automatischem Fallback bei Fehlern).
- *
- * @param {object} deps
- * @param {object} deps.visualizerStore
- * @param {(analyser: AnalyserNode, len: number) => Uint8Array} deps.getTimeDomainData
- * @param {(preferredId: string|null) => string|null} deps.effectiveImageId
- * @param {() => number} deps.currentQuality
- * @param {(w: number, h: number) => object|null} deps.ensureMainPostProcessor
- * @param {() => object|null} deps.getMainPostProcessor - vorhandener Prozessor (ohne Anlegen)
  */
 export function createSingleVisualizerRenderer({
   visualizerStore,
@@ -30,33 +33,33 @@ export function createSingleVisualizerRenderer({
   currentQuality,
   ensureMainPostProcessor,
   getMainPostProcessor,
-}) {
-  let lastVisualizerId = null
+}: SingleVisualizerRendererDeps) {
+  let lastVisualizerId: string | null = null
   let lastWidth = 0
   let lastHeight = 0
 
   // OffscreenCanvas-Worker
   let workerInitialized = false
   let workerActive = false
-  let workerBitmap = null // letztes ImageBitmap aus dem Worker
+  let workerBitmap: ImageBitmap | null = null // letztes ImageBitmap aus dem Worker
   // Portrait-Presets im Worker: der Worker hält eine eigene ImageBitmap-Kopie,
   // die bei jedem Wechsel des gewählten Bildes gesendet wird.
-  let workerImageKey = undefined
+  let workerImageKey: string | null | undefined = undefined
   let workerImageSeq = 0
 
   // Main-Thread-Fallback
-  let cache = null
+  let cache: SizedCanvas | null = null
 
   // Reaktionsquelle: Hüllkurve + Scratch-Puffer (Main-Thread, damit Worker-
   // und Fallback-Pfad identische Daten sehen)
-  const react = { env: 0, buf: null }
+  const react: ReactGateState = { env: 0, buf: null }
 
   /** LED-Text/-Zahlen: Konfiguration des Frames (sonst null). */
-  function ledTextConfig(visualizer) {
+  function ledTextConfig(visualizer: VisualizerDefinition | null | undefined) {
     return visualizer?.ledText ? { key: 'single', ...visualizerStore.ledConfig } : null
   }
 
-  function scaledDrawOptions(visualizer) {
+  function scaledDrawOptions(visualizer: VisualizerDefinition | null | undefined) {
     return {
       scale: visualizerStore.visualizerScale,
       posX: visualizerStore.visualizerX,
@@ -66,7 +69,7 @@ export function createSingleVisualizerRenderer({
     }
   }
 
-  function syncWorkerImage(imageId) {
+  function syncWorkerImage(imageId: string | null) {
     const key = imageId || null
     if (key === workerImageKey) return
     workerImageKey = key
@@ -84,13 +87,13 @@ export function createSingleVisualizerRenderer({
         }
         workerManager.setVisualizerImage(bitmap)
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.warn('[RenderLoop] Portrait-Bild konnte nicht an den Worker übergeben werden:', err)
       })
   }
 
   /** Worker einmalig beim ersten Zeichnen starten. */
-  function initWorkerOnce(width, height) {
+  function initWorkerOnce(width: number, height: number) {
     if (workerInitialized) return
     workerInitialized = true
     workerManager.initVisualizerWorker(width, height).then((ok) => {
@@ -109,15 +112,21 @@ export function createSingleVisualizerRenderer({
   }
 
   /** Visualizer- oder Größenwechsel: alten Zustand aufräumen, neu initialisieren. */
-  function handleChange(visualizerId, visualizer, width, height) {
+  function handleChange(
+    visualizerId: string,
+    visualizer: VisualizerDefinition,
+    width: number,
+    height: number,
+  ) {
     const visualizerChanged = visualizerId !== lastVisualizerId
     const canvasResized = width !== lastWidth || height !== lastHeight
     if (!visualizerChanged && !canvasResized) return
 
     workerManager.cleanupVisualizerState()
-    if (!workerActive && lastVisualizerId && Visualizers[lastVisualizerId]) {
+    const previous = lastVisualizerId ? Visualizers[lastVisualizerId] : undefined
+    if (!workerActive && previous) {
       try {
-        Visualizers[lastVisualizerId].cleanup?.()
+        previous.cleanup?.()
       } catch {
         // Aufräumen ist best effort
       }
@@ -139,7 +148,14 @@ export function createSingleVisualizerRenderer({
   }
 
   /** Off-thread: Audiodaten an den Worker, das vorige Bitmap einsetzen. */
-  function renderInWorker(visualizerId, visualizer, audioData, bufferLength, width, height) {
+  function renderInWorker(
+    visualizerId: string,
+    visualizer: VisualizerDefinition,
+    audioData: Uint8Array,
+    bufferLength: number,
+    width: number,
+    height: number,
+  ): VisualizerDrawCallback | null {
     if (visualizer.needsImage) syncWorkerImage(effectiveImageId(visualizerStore.visualizerImageId))
     workerManager.renderVisualizerFrame({
       visualizerId,
@@ -178,7 +194,14 @@ export function createSingleVisualizerRenderer({
   }
 
   /** Main-Thread: in das Cache-Canvas zeichnen (Fehler → letzter funktionierender Visualizer). */
-  function renderOnMainThread(visualizerId, visualizer, audioData, bufferLength, width, height) {
+  function renderOnMainThread(
+    visualizerId: string,
+    visualizer: VisualizerDefinition,
+    audioData: Uint8Array,
+    bufferLength: number,
+    width: number,
+    height: number,
+  ): VisualizerDrawCallback {
     cache = ensureSizedCanvas(cache, width, height)
     const ctx = cache.ctx
 
@@ -234,11 +257,13 @@ export function createSingleVisualizerRenderer({
 
   /**
    * Rendert den gewählten Visualizer und liefert den Zeichen-Callback (oder null).
-   * @param {HTMLCanvasElement} canvas
-   * @param {AnalyserNode} analyser
-   * @param {Uint8Array} audioData - Frequenzdaten dieses Frames
+   * @param audioData - Frequenzdaten dieses Frames
    */
-  function render(canvas, analyser, audioData) {
+  function render(
+    canvas: HTMLCanvasElement,
+    analyser: AnalyserNode,
+    audioData: Uint8Array,
+  ): VisualizerDrawCallback | null {
     const visualizerId = visualizerStore.selectedVisualizer
     const visualizer = Visualizers[visualizerId]
     if (!visualizer) return null
@@ -269,7 +294,7 @@ export function createSingleVisualizerRenderer({
    * Callback aus dem zuletzt gerenderten Frame (für Aufnahme/Screenshot):
    * Worker-Bitmap, sonst Cache-Canvas, sonst null.
    */
-  function lastFrameCallback() {
+  function lastFrameCallback(): VisualizerDrawCallback | null {
     // Randabblendung des aktuell gewählten Visualizers (beim Zeichnen gelesen)
     const currentOptions = () => scaledDrawOptions(Visualizers[visualizerStore.selectedVisualizer])
     // Off-thread: das letzte Frame liegt im Worker-Bitmap, nicht im Cache –

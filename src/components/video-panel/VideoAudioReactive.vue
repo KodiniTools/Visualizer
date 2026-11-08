@@ -28,7 +28,7 @@
 import { ref } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { ensureAudioReactiveConfig } from '../../lib/audio/audioReactiveConfig'
-import { useAudioReactiveTarget } from '../../composables/audioReactive/useAudioReactiveTarget.js'
+import { useAudioReactiveTarget } from '../../composables/audioReactive/useAudioReactiveTarget'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
 
 const props = defineProps({

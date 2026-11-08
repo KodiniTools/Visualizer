@@ -3,7 +3,7 @@ import { defineComponent, ref, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import CanvasControlPopover from '../../components/sticky-player-bar/CanvasControlPopover.vue'
-import { useBgSettings } from '../../composables/useBgSettings.js'
+import { useBgSettings } from '../../composables/useBgSettings'
 import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore'
 
 // Canvas-Manager-Attrappe. Das Hintergrund-Composable ruft viele Methoden auf;

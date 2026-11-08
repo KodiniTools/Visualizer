@@ -1,20 +1,51 @@
-import { ensureSizedCanvas } from './canvasCache.js'
+import type { Ref } from 'vue'
+import { ensureSizedCanvas, type SizedCanvas } from './canvasCache'
 import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import type { MultiImageManager } from '../../lib/multiImageManager'
+import type { VideoManager } from '../../lib/videoManager'
+import type { TextManager } from '../../lib/textManager'
+import type { Rect } from '../../lib/canvasObjects/geometry'
+import type { AudioFxRenderer } from '../../lib/canvasManager/rendering/AudioFxRenderer'
+import type { BeatDropRenderer } from '../../lib/canvasManager/rendering/BeatDropRenderer'
+import type { TickerRenderer } from '../../lib/canvasManager/rendering/TickerRenderer'
+import type { useAudioFxStore } from '../../stores/audioFxStore'
+import type { useBeatDropStore } from '../../stores/beatDropStore'
+import type { useTickerStore } from '../../stores/tickerStore'
+import type { PunchDrawFn } from './beatPunch'
+import type { CanvasManagerRef } from '../types'
+
+/** Effekt-Ebenen über der Szene */
+export interface SceneEffects {
+  audioFxRenderer: AudioFxRenderer
+  audioFxStore: ReturnType<typeof useAudioFxStore>
+  beatDropRenderer: BeatDropRenderer
+  beatDropStore: ReturnType<typeof useBeatDropStore>
+  tickerRenderer?: TickerRenderer | null
+  tickerStore?: ReturnType<typeof useTickerStore> | null
+}
+
+/** Abhängigkeiten von createSceneRenderer */
+export interface SceneRendererDeps {
+  canvasRef: Ref<HTMLCanvasElement | null | undefined>
+  canvasManagerInstance: CanvasManagerRef
+  multiImageManagerInstance: Ref<MultiImageManager | null | undefined>
+  videoManagerInstance: Ref<VideoManager | null | undefined>
+  getTextManager: () => TextManager | null | undefined
+  /** Formen-Ebene (unter den Texten) */
+  drawShapes?: ((ctx: CanvasRenderingContext2D) => void) | null
+  drawWithPunch: (
+    cb: PunchDrawFn | null | undefined,
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+  ) => void
+  effects: SceneEffects
+}
 
 /**
  * Szenenaufbau für Live-Bild, Aufnahme und Screenshot:
  * Hintergrund → Bilder hinter dem Visualizer → Visualizer → Bilder davor →
  * Videos → Formen & Symbole → Texte, danach die Effekt-Ebenen (Audio-FX, Beat-Drop, Lauftext).
- *
- * @param {object} deps
- * @param {import('vue').Ref<HTMLCanvasElement|null>} deps.canvasRef
- * @param {import('vue').Ref} deps.canvasManagerInstance
- * @param {import('vue').Ref} deps.multiImageManagerInstance
- * @param {import('vue').Ref} deps.videoManagerInstance
- * @param {() => object|null} deps.getTextManager
- * @param {(ctx: CanvasRenderingContext2D) => void} [deps.drawShapes] - Formen-Ebene (unter den Texten)
- * @param {(cb: Function|null, ctx: CanvasRenderingContext2D, w: number, h: number) => void} deps.drawWithPunch
- * @param {object} deps.effects - { audioFxRenderer, audioFxStore, beatDropRenderer, beatDropStore, tickerRenderer, tickerStore }
  */
 export function createSceneRenderer({
   canvasRef,
@@ -25,16 +56,22 @@ export function createSceneRenderer({
   drawShapes = null,
   drawWithPunch,
   effects,
-}) {
-  let recordingTemp = null
-  let recordingViz = null
+}: SceneRendererDeps) {
+  let recordingTemp: SizedCanvas | null = null
+  let recordingViz: SizedCanvas | null = null
 
   /**
    * Szene in Ebenen zeichnen; `drawVisualizer` setzt den Visualizer zwischen
    * die Bild-Ebenen. `recording` markiert den CanvasManager als aufnehmend
    * (blendet Editor-Hilfen im Hintergrund aus).
    */
-  function drawLayers(ctx, width, height, drawVisualizer, { recording = false } = {}) {
+  function drawLayers(
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    drawVisualizer: () => void,
+    { recording = false } = {},
+  ) {
     const cm = canvasManagerInstance.value
     if (cm) {
       if (recording) cm.isRecording = true
@@ -56,7 +93,12 @@ export function createSceneRenderer({
   }
 
   /** Live-Szene auf das Haupt-Canvas. */
-  function renderScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
+  function renderScene(
+    ctx: CanvasRenderingContext2D,
+    canvasWidth: number,
+    canvasHeight: number,
+    drawVisualizerCallback: PunchDrawFn | null | undefined,
+  ) {
     drawLayers(ctx, canvasWidth, canvasHeight, () =>
       drawWithPunch(drawVisualizerCallback, ctx, canvasWidth, canvasHeight),
     )
@@ -67,11 +109,16 @@ export function createSceneRenderer({
    * auf ein Hilfs-Canvas gezeichnet (Visualizer auf den Workspace beschnitten)
    * und der Workspace-Ausschnitt auf das Ziel skaliert.
    */
-  function renderRecordingScene(ctx, canvasWidth, canvasHeight, drawVisualizerCallback) {
+  function renderRecordingScene(
+    ctx: CanvasRenderingContext2D,
+    canvasWidth: number,
+    canvasHeight: number,
+    drawVisualizerCallback: PunchDrawFn | null | undefined,
+  ) {
     const workspaceBounds = canvasManagerInstance.value?.getWorkspaceBounds()
     const hasWorkspace = workspaceBounds && canvasManagerInstance.value?.workspacePreset
 
-    if (!hasWorkspace) {
+    if (!hasWorkspace || !workspaceBounds) {
       drawLayers(
         ctx,
         canvasWidth,
@@ -112,7 +159,11 @@ export function createSceneRenderer({
   }
 
   /** Visualizer in Workspace-Größe rendern und auf den Workspace beschnitten einsetzen. */
-  function drawWorkspaceVisualizer(ctx, bounds, drawVisualizerCallback) {
+  function drawWorkspaceVisualizer(
+    ctx: CanvasRenderingContext2D,
+    bounds: Rect,
+    drawVisualizerCallback: PunchDrawFn | null | undefined,
+  ) {
     if (!drawVisualizerCallback) return
     ctx.save()
     ctx.beginPath()
@@ -128,7 +179,7 @@ export function createSceneRenderer({
   }
 
   /** Effekt-Ebenen über der Szene: Audio-FX, Beat-Drop, Lauftext. */
-  function renderEffects(ctx, width, height) {
+  function renderEffects(ctx: CanvasRenderingContext2D, width: number, height: number) {
     const {
       audioFxRenderer,
       audioFxStore,

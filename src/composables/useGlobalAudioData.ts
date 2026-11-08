@@ -1,7 +1,27 @@
 import { workerManager } from '../lib/workerManager'
 import { BeatDetector } from '../lib/audio/BeatDetector'
 import { OnsetDetector } from '../lib/audio/OnsetDetector'
-import { getAudioAnalysisData, setAudioAnalysisData } from '../lib/audio/audioAnalysisData'
+import {
+  getAudioAnalysisData,
+  setAudioAnalysisData,
+  type AudioAnalysisData,
+} from '../lib/audio/audioAnalysisData'
+
+/** Band-Energien eines Frames (Worker-Ergebnis bzw. Fallback-Berechnung) */
+export interface RawAudioData {
+  bass: number
+  mid: number
+  treble: number
+  volume: number
+  smoothBass?: number
+  smoothMid?: number
+  smoothTreble?: number
+  smoothVolume?: number
+  isBeat?: boolean
+  beatIntensity?: number
+  bpm?: number
+  beatConfidence?: number
+}
 
 setAudioAnalysisData({
   bass: 0,
@@ -40,8 +60,9 @@ const onsetDetector = new OnsetDetector()
 export function useGlobalAudioData() {
   let useAudioWorker = false
 
-  function applyAudioData(data) {
-    const d = getAudioAnalysisData()
+  function applyAudioData(data: RawAudioData) {
+    // Beim Laden des Moduls gesetzt (siehe oben)
+    const d = getAudioAnalysisData() as AudioAnalysisData
     d.bass = data.bass
     d.mid = data.mid
     d.treble = data.treble
@@ -58,9 +79,9 @@ export function useGlobalAudioData() {
 
     if (data.smoothBass !== undefined) {
       d.smoothBass = data.smoothBass
-      d.smoothMid = data.smoothMid
-      d.smoothTreble = data.smoothTreble
-      d.smoothVolume = data.smoothVolume
+      d.smoothMid = data.smoothMid as number
+      d.smoothTreble = data.smoothTreble as number
+      d.smoothVolume = data.smoothVolume as number
     } else {
       const s = 0.4
       const ts = 0.5
@@ -79,7 +100,7 @@ export function useGlobalAudioData() {
     }
   }
 
-  function updateGlobalAudioDataFallback(audioDataArray, bufferLength) {
+  function updateGlobalAudioDataFallback(audioDataArray: ArrayLike<number>, bufferLength: number) {
     const usableLength = Math.floor(bufferLength * 0.5)
     const bassEnd = Math.floor(usableLength * 0.15)
     const midEnd = Math.floor(usableLength * 0.35)
@@ -94,7 +115,7 @@ export function useGlobalAudioData() {
       treblePeak = 0
 
     for (let i = 0; i < usableLength; i++) {
-      const value = audioDataArray[i]
+      const value = audioDataArray[i] as number
       totalSum += value
       if (i < bassEnd) {
         bassSum += value
@@ -121,7 +142,10 @@ export function useGlobalAudioData() {
     applyAudioData({ bass, mid, treble, volume, ...beat })
   }
 
-  function updateGlobalAudioData(audioDataArray, bufferLength) {
+  function updateGlobalAudioData(
+    audioDataArray: ArrayLike<number> | null | undefined,
+    bufferLength: number,
+  ) {
     if (!audioDataArray || bufferLength === 0) return
     if (useAudioWorker) {
       workerManager.analyzeAudio(audioDataArray, bufferLength)
@@ -135,7 +159,7 @@ export function useGlobalAudioData() {
       const workerStatus = await workerManager.initAll()
       useAudioWorker = workerStatus.audio
       if (useAudioWorker) {
-        workerManager.onAudioData(applyAudioData)
+        workerManager.onAudioData(applyAudioData as (data: unknown) => void)
         console.log('[AudioData] Audio Worker aktiviert')
       } else {
         console.log('[AudioData] Audio Worker nicht verfügbar - Fallback aktiv')

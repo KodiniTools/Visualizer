@@ -1,4 +1,4 @@
-import { ref, computed, watch, onMounted, onUnmounted, nextTick, inject } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick, inject, type Ref } from 'vue'
 import { serializeBackgroundAudio } from '../lib/audio/audioReactiveConfig'
 import { hexToRGBA, rgbToHex, parseRGBA } from '../lib/background/bgColor'
 import {
@@ -10,7 +10,7 @@ import {
   removeVideoBackground,
 } from '../lib/background/backgroundMedia'
 import { captureCanvasElements, restoreCanvasElements } from '../lib/background/canvasElements'
-import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore'
+import { useBackgroundBridgeStore, type BackgroundSnapshot } from '../stores/backgroundBridgeStore'
 import { useToastStore } from '../stores/toastStore'
 import { useTickerStore } from '../stores/tickerStore'
 import { useI18n } from '../lib/i18n'
@@ -20,6 +20,38 @@ import { createBackgroundSegment } from '../lib/history/segments/backgroundSegme
 import { useBgAudioReactive } from './bg/useBgAudioReactive'
 import { useBgReplace } from './bg/useBgReplace'
 import { useBgPresets } from './bg/useBgPresets'
+import type { CanvasManager } from '../lib/canvasManager'
+import type { ImageBackgroundData, VideoBackgroundData } from '../lib/background/backgroundMedia'
+import type { CanvasElementsSnapshot } from '../lib/background/canvasElements'
+import type { BackgroundAudioSnapshot } from '../lib/audio/audioReactiveConfig'
+import type { CanvasManagerRef } from './types'
+
+/** Hintergrund-Zustand eines Canvas-Presets oder Beat-Marker-Snapshots */
+export type BackgroundSceneState = BackgroundAudioSnapshot & {
+  backgroundImage?: ImageBackgroundData | null
+  backgroundVideo?: VideoBackgroundData | null
+  /** Vordergrund-Elemente (nur Canvas-Presets) */
+  elements?: CanvasElementsSnapshot | null
+  backgroundColor?: string
+  backgroundOpacity?: number
+  gradientEnabled?: boolean
+  gradientColor2?: string
+  gradientType?: string
+  gradientAngle?: number
+}
+
+/** Hintergrund aus einem 'preset:apply'-Event (Visualizer-Presets) */
+interface PresetApplyBackground {
+  color?: string
+  opacity?: number
+  gradientEnabled?: boolean
+  gradientColor2?: string
+}
+
+/** Schmale Duck-Typing-Sicht der Element-Helfer (lib/background/canvasElements) */
+type ElementsCanvasManagerGetter = () => Parameters<typeof captureCanvasElements>[0]
+/** Schmale Duck-Typing-Sicht des History-Segments (lib/history/segments/backgroundSegment) */
+type SegmentCanvasManagerGetter = Parameters<typeof createBackgroundSegment>[0]['getCanvasManager']
 
 /**
  * Hintergrund-Steuerung des Canvas (Fassade).
@@ -30,8 +62,12 @@ import { useBgPresets } from './bg/useBgPresets'
  * Komponenten nutzen sie über `provide('bgSettings', useBgSettings())`.
  */
 export function useBgSettings() {
-  const canvasManager = inject('canvasManager')
+  // Wird von der App bereitgestellt (provide)
+  const canvasManager = inject('canvasManager') as CanvasManagerRef
   const getCm = () => canvasManager.value
+  const getElementsCm = getCm as unknown as ElementsCanvasManagerGetter
+  /** CanvasManager nach requireCanvasManager() bzw. einer Prüfung auf canvasManager.value */
+  const requiredCm = () => canvasManager.value as CanvasManager
   const backgroundBridge = useBackgroundBridgeStore()
   const toastStore = useToastStore()
   const tickerStore = useTickerStore()
@@ -119,10 +155,10 @@ export function useBgSettings() {
       backgroundVideo: captureVideoBackground(getCm()),
       // Alle Canvas-Elemente (Bilder, Videos, Texte, Lauftext) inkl. Position,
       // Einstellungen und Audio-Reaktiv im Moment des Speicherns erfassen.
-      elements: captureCanvasElements(getCm(), tickerStore),
+      elements: captureCanvasElements(getElementsCm(), tickerStore),
       ...captureColorState(),
     }),
-    applyPreset: applyPresetState,
+    applyPreset: (preset) => applyPresetState(preset as BackgroundSceneState),
     toastStore,
     t,
   })
@@ -238,10 +274,10 @@ export function useBgSettings() {
    * Setzt den Hintergrund (Video > Bild > Farbe/Gradient) und ersetzt ggf. die
    * Vordergrund-Elemente. Farb-/Gradient-Refs müssen vorher gesetzt sein.
    * Wirft, wenn der CanvasManager fehlt (Aufrufer fangen ab).
-   * @param {object} state - Preset oder Snapshot
-   * @param {{ autoplay?: boolean }} options - Video von vorne starten (Beat-Marker)
+   * @param state - Preset oder Snapshot
+   * @param options.autoplay - Video von vorne starten (Beat-Marker)
    */
-  function applyScene(state, { autoplay = false } = {}) {
+  function applyScene(state: BackgroundSceneState, { autoplay = false } = {}) {
     if (state.backgroundVideo?.src) {
       // Video-Hintergrund inkl. Bild-Audio-Reaktiv
       applyVideoBackground(getCm, state.backgroundVideo, { autoplay })
@@ -256,8 +292,9 @@ export function useBgSettings() {
       // laufende Video-Hintergründe entfernen, damit die Farbe sichtbar wird
       // (setBackground ersetzt nur das Haupt-Bild).
       clearCanvasVideoBackgrounds(getCm())
-      if (canvasManager.value.workspaceBackground) {
-        canvasManager.value.workspaceBackground = null
+      // Wie bisher: ohne CanvasManager wirft dieser Zugriff (Aufrufer fangen ab)
+      if (requiredCm().workspaceBackground) {
+        requiredCm().workspaceBackground = null
       }
       updateFromColorPicker()
     }
@@ -268,14 +305,15 @@ export function useBgSettings() {
     // Presets einsetzen. Alte (reine Hintergrund-)Presets haben keine
     // `elements` und lassen den Vordergrund unangetastet (abwärtskompatibel).
     if (state.elements) {
-      restoreCanvasElements(getCm, state.elements, tickerStore)
+      restoreCanvasElements(getElementsCm, state.elements, tickerStore)
     }
   }
 
   /** Canvas-Preset anwenden (Standardwerte über `||`, wie seit jeher gespeichert). */
-  function applyPresetState(preset) {
-    backgroundColor.value = preset.backgroundColor
-    backgroundOpacity.value = preset.backgroundOpacity
+  function applyPresetState(preset: BackgroundSceneState) {
+    // Presets speichern beide Werte immer (siehe captureColorState)
+    backgroundColor.value = preset.backgroundColor as string
+    backgroundOpacity.value = preset.backgroundOpacity as number
 
     gradientEnabled.value = preset.gradientEnabled || false
     gradientColor2.value = preset.gradientColor2 || '#0066ff'
@@ -289,9 +327,8 @@ export function useBgSettings() {
   /**
    * Erfasst den kompletten aktuellen Hintergrund (Bild/Video, Farbe, Deckkraft,
    * Gradient und alle Audio-Reaktiven Effekte) als serialisierbaren Snapshot.
-   * @returns {object}
    */
-  function buildBackgroundSnapshot() {
+  function buildBackgroundSnapshot(): BackgroundSceneState {
     return {
       backgroundImage: captureImageBackground(getCm()),
       backgroundVideo: captureVideoBackground(getCm()),
@@ -302,9 +339,8 @@ export function useBgSettings() {
   /**
    * Wendet einen zuvor erfassten Hintergrund-Snapshot an (Beat-Marker) und
    * aktualisiert Canvas + UI. Ein Video-Hintergrund startet von vorne.
-   * @param {object} snapshot
    */
-  function applyBackgroundSnapshot(snapshot) {
+  function applyBackgroundSnapshot(snapshot: BackgroundSceneState | null | undefined) {
     if (!snapshot || !canvasManager.value) return
 
     try {
@@ -335,19 +371,19 @@ export function useBgSettings() {
   }
 
   function resetColor() {
-    canvasManager.value.setBackground('#ffffff')
+    requiredCm().setBackground('#ffffff')
     backgroundColor.value = '#ffffff'
     backgroundOpacity.value = 1.0
   }
 
   function resetMainVideo() {
-    if (removeVideoBackground(canvasManager.value, 'videoBackground')) {
+    if (removeVideoBackground(requiredCm(), 'videoBackground')) {
       console.log('🗑️ Video-Hintergrund entfernt')
     }
   }
 
   function resetWorkspaceVideo() {
-    if (removeVideoBackground(canvasManager.value, 'workspaceVideoBackground')) {
+    if (removeVideoBackground(requiredCm(), 'workspaceVideoBackground')) {
       console.log('🗑️ Workspace-Video-Hintergrund entfernt')
     }
   }
@@ -361,7 +397,7 @@ export function useBgSettings() {
     bgFlipV.value = false
     resetMainVideo()
 
-    canvasManager.value.redrawCallback()
+    requiredCm().redrawCallback()
     updateColorDisplay()
     console.log('✅ Normaler Hintergrund zurückgesetzt')
   }
@@ -370,12 +406,12 @@ export function useBgSettings() {
     if (!requireCanvasManager()) return
 
     console.log('🔄 Setze Workspace-Hintergrund zurück')
-    canvasManager.value.workspaceBackground = null
+    requiredCm().workspaceBackground = null
     wsBgFlipH.value = false
     wsBgFlipV.value = false
     resetWorkspaceVideo()
 
-    canvasManager.value.redrawCallback()
+    requiredCm().redrawCallback()
     console.log('✅ Workspace-Hintergrund zurückgesetzt')
   }
 
@@ -384,7 +420,7 @@ export function useBgSettings() {
 
     console.log('🔄 Setze alle Hintergründe zurück')
     resetColor()
-    canvasManager.value.workspaceBackground = null
+    requiredCm().workspaceBackground = null
     bgFlipH.value = false
     bgFlipV.value = false
     wsBgFlipH.value = false
@@ -392,7 +428,7 @@ export function useBgSettings() {
     resetMainVideo()
     resetWorkspaceVideo()
 
-    canvasManager.value.redrawCallback()
+    requiredCm().redrawCallback()
     updateColorDisplay()
     console.log('✅ Alle Hintergründe zurückgesetzt')
   }
@@ -401,7 +437,7 @@ export function useBgSettings() {
     if (!requireCanvasManager()) return
 
     console.log('🗑️ Setze Canvas komplett zurück')
-    canvasManager.value.reset()
+    requiredCm().reset()
     backgroundColor.value = '#ffffff'
     backgroundOpacity.value = 1.0
     updateColorDisplay()
@@ -419,8 +455,9 @@ export function useBgSettings() {
     return true
   }
 
-  function handlePresetApply(event) {
-    const bg = event.detail?.background
+  function handlePresetApply(event: Event) {
+    const bg = (event as CustomEvent<{ background?: PresetApplyBackground } | null>).detail
+      ?.background
     if (!bg || !canvasManager.value) return
     backgroundColor.value = bg.color || '#ffffff'
     backgroundOpacity.value = bg.opacity ?? 1.0
@@ -437,8 +474,11 @@ export function useBgSettings() {
   })
 
   /** Flip-Refs aus den fotoSettings eines (Workspace-)Hintergrunds übernehmen. */
-  function syncFlip(bg, flipH, flipV) {
-    const fs = bg && typeof bg === 'object' ? bg.fotoSettings : null
+  function syncFlip(bg: unknown, flipH: Ref<boolean>, flipV: Ref<boolean>) {
+    const fs =
+      bg && typeof bg === 'object'
+        ? (bg as { fotoSettings?: { flipH?: boolean; flipV?: boolean } | null }).fotoSettings
+        : null
     flipH.value = fs?.flipH || false
     flipV.value = fs?.flipV || false
   }
@@ -471,13 +511,13 @@ export function useBgSettings() {
   // ===== LIFECYCLE =====
 
   // ↩️ Globaler Undo/Redo: Hintergrund als History-Segment
-  let unregisterHistorySegment = null
+  let unregisterHistorySegment: (() => void) | null = null
 
   onMounted(() => {
     unregisterHistorySegment = getHistoryRecorder(useHistoryStore()).registerSegment(
       'background',
       createBackgroundSegment({
-        getCanvasManager: getCm,
+        getCanvasManager: getCm as unknown as SegmentCanvasManagerGetter,
         refs: {
           backgroundColor,
           backgroundOpacity,
@@ -498,7 +538,10 @@ export function useBgSettings() {
     presets.loadPresets()
     window.addEventListener('preset:apply', handlePresetApply)
     // Bridge registrieren, damit z.B. Beat-Marker den Hintergrund erfassen/anwenden können
-    backgroundBridge.register(buildBackgroundSnapshot, applyBackgroundSnapshot)
+    backgroundBridge.register(
+      () => buildBackgroundSnapshot() as BackgroundSnapshot,
+      (snapshot) => applyBackgroundSnapshot(snapshot as BackgroundSceneState),
+    )
     if (!initializeCanvasSettings()) {
       console.log('⏳ CanvasControlPanel mounted - warte auf CanvasManager...')
     }

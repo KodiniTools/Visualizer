@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { useStockGallery } from '../../composables/useStockGallery.js'
+import { useStockGallery } from '../../composables/useStockGallery'
 
 describe('useStockGallery – geteilter State', () => {
   beforeEach(() => vi.spyOn(console, 'log').mockImplementation(() => {}))

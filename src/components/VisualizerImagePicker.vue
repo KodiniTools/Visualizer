@@ -29,7 +29,7 @@ import {
   registerCanvasImage,
   registerGalleryImage,
 } from '../lib/visualizers/imageRegistry'
-import { useImageGallery } from '../composables/useImageGallery.js'
+import { useImageGallery } from '../composables/useImageGallery'
 import { UiButton, UiSelect } from './ui/index.js'
 
 const props = defineProps({ modelValue: { type: String, default: null } })

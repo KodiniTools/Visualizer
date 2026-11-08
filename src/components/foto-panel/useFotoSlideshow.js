@@ -17,7 +17,7 @@ import {
   ensureSlideshowImagesLoaded,
   resolveSlideshowImageObject,
 } from '../../lib/slideshowSources'
-import { useStockGallery } from '../../composables/useStockGallery.js'
+import { useStockGallery } from '../../composables/useStockGallery'
 import {
   createSlideshowAdjustmentsApi,
   createBoundsPersistQueue,

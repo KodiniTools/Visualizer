@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import VisualizerLayerPanel from '../../components/VisualizerLayerPanel.vue'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
-import { useLayerPresetStore } from '../../stores/layerPresetStore.js'
+import { useVisualizerStore } from '../../stores/visualizerStore'
+import { useLayerPresetStore } from '../../stores/layerPresetStore'
 
 let wrapper
 let viz

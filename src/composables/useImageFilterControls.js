@@ -1,6 +1,6 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { normalizeHex } from '../lib/color.js'
-import { useHistoryStore } from '../stores/historyStore.js'
+import { useHistoryStore } from '../stores/historyStore'
 
 /** Werkseinstellungen aller numerischen Filter (Reset-Werte der SliderFields). */
 export const IMAGE_FILTER_DEFAULTS = Object.freeze({

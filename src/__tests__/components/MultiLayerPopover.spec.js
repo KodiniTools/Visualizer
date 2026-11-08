@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import MultiLayerPopover from '../../components/sticky-player-bar/MultiLayerPopover.vue'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
+import { useVisualizerStore } from '../../stores/visualizerStore'
 
 let wrapper
 let closePopover

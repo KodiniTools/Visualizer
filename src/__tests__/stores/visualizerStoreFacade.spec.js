@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import * as storeModule from '../../stores/visualizerStore.js'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
+import * as storeModule from '../../stores/visualizerStore'
+import { useVisualizerStore } from '../../stores/visualizerStore'
 
 // Schnittstelle des visualizerStore (Fassade): Schlüssel, Standardzustand und
 // Verhalten, das andere Specs nicht abdecken. Muss vor und nach der Aufteilung

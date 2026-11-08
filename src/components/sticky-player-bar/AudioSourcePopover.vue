@@ -70,7 +70,7 @@
 <script setup>
 import { computed, inject } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
-import { useAudioSourceStore } from '../../stores/audioSourceStore.js'
+import { useAudioSourceStore } from '../../stores/audioSourceStore'
 import { vPopoverDrag } from '../../directives/popoverDrag.js'
 import UiSelect from '../ui/UiSelect.vue'
 

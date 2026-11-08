@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
+import { useVisualizerStore } from '../../stores/visualizerStore'
 
 let viz
 let id

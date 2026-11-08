@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { BUILT_IN_PRESETS, usePresetStore } from '../../stores/presetStore.js'
-import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../../stores/visualizerStore.js'
+import { BUILT_IN_PRESETS, usePresetStore } from '../../stores/presetStore'
+import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../../stores/visualizerStore'
 import { Visualizers } from '../../lib/visualizers/index.js'
 
 const multiPresets = BUILT_IN_PRESETS.filter((p) => p.visualizer.mode === 'multi')

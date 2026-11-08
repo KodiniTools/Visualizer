@@ -1,6 +1,6 @@
 // Single-Modus des Visualizers: Auswahl, Farbe, Position/Größe, Form,
 // Reaktionsquelle, Bild, LED-Text und Fallback auf den letzten funktionierenden.
-import { ref, computed } from 'vue'
+import { ref, computed, type Ref } from 'vue'
 import { Visualizers } from '../../lib/visualizers/index.js'
 import { resolveVisualizerId } from '../../lib/visualizers/aliases.js'
 import {
@@ -25,13 +25,16 @@ import {
   normalizeVisualizerShape,
 } from '../../lib/visualizers/core/visualizerShape.js'
 
-/**
- * @param {object} deps
- * @param {import('vue').Ref<boolean>} deps.multiLayerMode wird beim Auswählen
- *   eines einzelnen Visualizers verlassen
- */
-export function useSingleVisualizer({ multiLayerMode }) {
-  const selectedVisualizer = ref('bars')
+export interface SingleVisualizerDeps {
+  /** wird beim Auswählen eines einzelnen Visualizers verlassen */
+  multiLayerMode: Ref<boolean>
+}
+
+/** LED-Konfiguration als Objekt (Schlüssel aus LED_CONFIG_KEYS). */
+export type LedConfig = Record<string, unknown>
+
+export function useSingleVisualizer({ multiLayerMode }: SingleVisualizerDeps) {
+  const selectedVisualizer = ref<string>('bars')
 
   // NEU: Zustand für die Farbe und die Sichtbarkeit des Visualizers
   const visualizerColor = ref('#6ea8fe') // Standardfarbe
@@ -46,23 +49,23 @@ export function useSingleVisualizer({ multiLayerMode }) {
 
   // Form: sichtbarer Ausschnitt ('free' = ganze Fläche, sonst Seitenverhältnis
   // bzw. Kreis) – siehe lib/visualizers/core/visualizerShape.js
-  const visualizerShape = ref(DEFAULT_VISUALIZER_SHAPE)
+  const visualizerShape = ref<string>(DEFAULT_VISUALIZER_SHAPE)
 
   // Reaktionsquelle: womit der Visualizer angesteuert wird ('spectrum' = wie
   // bisher, sonst Bandpegel oder auto-normalisierter Onset) und wie stark.
-  const reactSource = ref(DEFAULT_REACT_SOURCE)
+  const reactSource = ref<string>(DEFAULT_REACT_SOURCE)
   const reactStrength = ref(DEFAULT_REACT_STRENGTH)
   // Formung der Reaktion – dieselben Regler wie "Audio-Reaktiv" beim Bild:
   // Glättung (0–100), Audio-Pegel (Gain 0–200 %), Übergang (Easing),
   // Beat-Verstärkung (1.0 = aus … 3.0) und Phase (0–360°).
-  const reactSmoothing = ref(DEFAULT_REACT_SHAPE.reactSmoothing)
-  const reactGain = ref(DEFAULT_REACT_SHAPE.reactGain)
-  const reactEasing = ref(DEFAULT_REACT_SHAPE.reactEasing)
-  const reactBeatBoost = ref(DEFAULT_REACT_SHAPE.reactBeatBoost)
-  const reactPhase = ref(DEFAULT_REACT_SHAPE.reactPhase)
+  const reactSmoothing = ref<number>(DEFAULT_REACT_SHAPE.reactSmoothing)
+  const reactGain = ref<number>(DEFAULT_REACT_SHAPE.reactGain)
+  const reactEasing = ref<string>(DEFAULT_REACT_SHAPE.reactEasing)
+  const reactBeatBoost = ref<number>(DEFAULT_REACT_SHAPE.reactBeatBoost)
+  const reactPhase = ref<number>(DEFAULT_REACT_SHAPE.reactPhase)
 
   // Bild für Portrait-Presets (ID in der imageRegistry, null = keines)
-  const visualizerImageId = ref(null)
+  const visualizerImageId = ref<string | null>(null)
 
   // LED-Text / LED-Zahlen (glLedText, glLedNumber): Text, Modus (fester
   // Text, Uhrzeit, Countdown), Sekunden, Zeitzone und Countdown-Ziel.
@@ -72,7 +75,7 @@ export function useSingleVisualizer({ multiLayerMode }) {
   const ledNumberSeconds = ref(DEFAULT_LED_CONFIG.ledNumberSeconds)
   const ledNumberTimeZone = ref(DEFAULT_LED_CONFIG.ledNumberTimeZone)
   const ledCountdownTarget = ref(DEFAULT_LED_CONFIG.ledCountdownTarget)
-  const ledRefs = {
+  const ledRefs: Record<string, Ref<unknown>> = {
     ledText,
     ledNumberText,
     ledNumberMode,
@@ -82,27 +85,28 @@ export function useSingleVisualizer({ multiLayerMode }) {
   }
 
   /** LED-Konfiguration des Single-Modus als Objekt. */
-  const ledConfig = computed(() =>
-    Object.fromEntries(LED_CONFIG_KEYS.map((k) => [k, ledRefs[k].value])),
+  const ledConfig = computed<LedConfig>(() =>
+    Object.fromEntries(LED_CONFIG_KEYS.map((k: string) => [k, ledRefs[k]?.value])),
   )
 
   /** Ein Feld der LED-Konfiguration setzen (validiert). */
-  function setLedConfig(key, value) {
-    if (!ledRefs[key]) return false
-    ledRefs[key].value = normalizeLedField(key, value)
+  function setLedConfig(key: string, value: unknown): boolean {
+    const target = ledRefs[key]
+    if (!target) return false
+    target.value = normalizeLedField(key, value)
     return true
   }
 
   /** Mehrere/alle Felder setzen; fehlende → Standardwerte (ältere Presets). */
-  function applyLedConfig(src) {
-    const cfg = normalizeLedConfig(src)
-    for (const key of LED_CONFIG_KEYS) ledRefs[key].value = cfg[key]
+  function applyLedConfig(src: object | null | undefined) {
+    const cfg = normalizeLedConfig(src ?? undefined) as LedConfig
+    for (const key of LED_CONFIG_KEYS as string[]) (ledRefs[key] as Ref<unknown>).value = cfg[key]
   }
 
   // ✅ Letzter funktionierender Visualizer für Fallback
-  const lastWorkingVisualizer = ref('bars')
+  const lastWorkingVisualizer = ref<string>('bars')
 
-  function selectVisualizer(id) {
+  function selectVisualizer(id: string) {
     const resolved = resolveVisualizerId(id)
     if (resolved) {
       selectedVisualizer.value = resolved
@@ -122,8 +126,8 @@ export function useSingleVisualizer({ multiLayerMode }) {
   }
 
   // ✅ Wird aufgerufen wenn ein Visualizer erfolgreich gezeichnet wurde
-  function markVisualizerWorking(id) {
-    if (Visualizers[id]) {
+  function markVisualizerWorking(id: string) {
+    if ((Visualizers as Record<string, unknown>)[id]) {
       lastWorkingVisualizer.value = id
     }
   }
@@ -142,62 +146,62 @@ export function useSingleVisualizer({ multiLayerMode }) {
   }
 
   // NEU: Funktion zum Ändern der Farbe
-  function setColor(newColor) {
+  function setColor(newColor: string) {
     visualizerColor.value = newColor
   }
 
   // NEU: Funktion zum Ändern der Deckkraft
-  function setOpacity(newOpacity) {
+  function setOpacity(newOpacity: number) {
     visualizerOpacity.value = newOpacity
   }
 
   // NEU: Funktion zum Ändern der Farbtransparenz
-  function setColorOpacity(newOpacity) {
+  function setColorOpacity(newOpacity: number) {
     colorOpacity.value = newOpacity
   }
 
   // ✨ NEU: Funktionen für Position und Größe
-  function setVisualizerX(newX) {
+  function setVisualizerX(newX: number) {
     visualizerX.value = Math.max(0, Math.min(1, newX))
   }
 
-  function setVisualizerY(newY) {
+  function setVisualizerY(newY: number) {
     visualizerY.value = Math.max(0, Math.min(1, newY))
   }
 
-  function setVisualizerScale(newScale) {
+  function setVisualizerScale(newScale: number) {
     visualizerScale.value = Math.max(0.1, Math.min(2.0, newScale))
   }
 
-  function setVisualizerShape(shape) {
+  function setVisualizerShape(shape: unknown) {
     visualizerShape.value = normalizeVisualizerShape(shape)
   }
 
-  function setReactSource(source) {
+  function setReactSource(source: string) {
     if (isReactSource(source)) reactSource.value = source
   }
 
-  function setReactStrength(v) {
+  function setReactStrength(v: unknown) {
     reactStrength.value = Math.max(0, Math.min(100, Math.round(Number(v) || 0)))
   }
 
-  function setReactSmoothing(v) {
+  function setReactSmoothing(v: unknown) {
     reactSmoothing.value = normalizeReactSmoothing(v)
   }
 
-  function setReactGain(v) {
+  function setReactGain(v: unknown) {
     reactGain.value = normalizeReactGain(v)
   }
 
-  function setReactEasing(v) {
+  function setReactEasing(v: unknown) {
     reactEasing.value = normalizeReactEasing(v)
   }
 
-  function setReactBeatBoost(v) {
+  function setReactBeatBoost(v: unknown) {
     reactBeatBoost.value = normalizeReactBeatBoost(v)
   }
 
-  function setReactPhase(v) {
+  function setReactPhase(v: unknown) {
     reactPhase.value = normalizeReactPhase(v)
   }
 
@@ -210,7 +214,7 @@ export function useSingleVisualizer({ multiLayerMode }) {
     reactPhase.value = DEFAULT_REACT_SHAPE.reactPhase
   }
 
-  function setVisualizerImageId(id) {
+  function setVisualizerImageId(id: unknown) {
     visualizerImageId.value = typeof id === 'string' && id ? id : null
   }
 

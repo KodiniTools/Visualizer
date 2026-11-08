@@ -1,20 +1,75 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { useVisualizerStore } from './visualizerStore.js'
+import { useVisualizerStore } from './visualizerStore'
 import { resolveVisualizerId } from '../lib/visualizers/aliases.js'
 import { DEFAULT_REACT_SHAPE } from '../lib/visualizers/core/reactSource.js'
 import { normalizeLedConfig } from '../lib/visualizers/gl/ledTextSettings.js'
 import { normalizeVisualizerShape } from '../lib/visualizers/core/visualizerShape.js'
 import { BUILT_IN_PRESETS } from '../data/builtInPresets.js'
+import type { VisualizerLayer } from './visualizer/useVisualizerLayers'
 
 // Re-Export, damit bestehende Importe aus dem Store weiter funktionieren.
 export { BUILT_IN_PRESETS }
 
 const USER_PRESETS_KEY = 'visualizer-user-presets'
 
+/** Ein Layer im Multi-Layer-Preset (Felder wie createLayer() im Visualizer-Store). */
+export interface PresetLayer {
+  id: string
+  visualizerId: string
+  shape?: string
+  [key: string]: unknown
+}
+
+/** Gespeicherter Visualizer-Zustand eines Presets; LED-Felder liegen flach daneben. */
+export interface PresetVisualizerSettings {
+  mode?: 'single' | 'multi' | string
+  selectedVisualizer?: string
+  color?: string
+  opacity?: number
+  colorOpacity?: number
+  x?: number
+  y?: number
+  scale?: number
+  shape?: string
+  showVisualizer?: boolean
+  reactSource?: string
+  reactStrength?: number
+  reactSmoothing?: number
+  reactGain?: number
+  reactEasing?: string
+  reactBeatBoost?: number
+  reactPhase?: number
+  imageId?: string | null
+  multiLayerMode?: boolean
+  layers?: PresetLayer[]
+  [key: string]: unknown
+}
+
+export interface PresetBackground {
+  color: string
+  opacity: number
+  gradientEnabled: boolean
+  gradientColor2: string
+  [key: string]: unknown
+}
+
+export interface VisualizerPreset {
+  id: string
+  name: string
+  builtIn: boolean
+  emoji?: string
+  visualizer: PresetVisualizerSettings
+  background: PresetBackground
+  [key: string]: unknown
+}
+
+/** Ref-artiger Zugriff auf den CanvasManager; gelesen wird nur `background`. */
+export type CanvasManagerRef = { value?: { background?: unknown } | null } | null | undefined
+
 export const usePresetStore = defineStore('presets', () => {
-  const userPresets = ref([])
-  const activePresetId = ref(null)
+  const userPresets = ref<VisualizerPreset[]>([])
+  const activePresetId = ref<string | null>(null)
 
   function loadUserPresets() {
     try {
@@ -35,10 +90,13 @@ export const usePresetStore = defineStore('presets', () => {
     }
   }
 
-  function saveCurrentAsPreset(name, canvasManager) {
+  function saveCurrentAsPreset(
+    name: string | null | undefined,
+    canvasManager: CanvasManagerRef,
+  ): VisualizerPreset {
     const vizStore = useVisualizerStore()
 
-    const preset = {
+    const preset: VisualizerPreset = {
       id: `user-${Date.now()}`,
       name: name || `Preset ${userPresets.value.length + 1}`,
       builtIn: false,
@@ -62,9 +120,11 @@ export const usePresetStore = defineStore('presets', () => {
         reactBeatBoost: vizStore.reactBeatBoost,
         reactPhase: vizStore.reactPhase,
         imageId: vizStore.visualizerImageId,
-        ...vizStore.ledConfig,
+        ...(vizStore.ledConfig as Record<string, unknown>),
         multiLayerMode: vizStore.multiLayerMode,
-        layers: vizStore.multiLayerMode ? vizStore.visualizerLayers.map((l) => ({ ...l })) : [],
+        layers: vizStore.multiLayerMode
+          ? vizStore.visualizerLayers.map((l: PresetLayer) => ({ ...l }))
+          : [],
       },
       background: captureBackground(canvasManager),
     }
@@ -74,7 +134,7 @@ export const usePresetStore = defineStore('presets', () => {
     return preset
   }
 
-  function captureBackground(canvasManager) {
+  function captureBackground(canvasManager: CanvasManagerRef): PresetBackground {
     if (!canvasManager?.value) {
       return { color: '#ffffff', opacity: 1.0, gradientEnabled: false, gradientColor2: '#0066ff' }
     }
@@ -84,9 +144,9 @@ export const usePresetStore = defineStore('presets', () => {
       // Parse rgba(r, g, b, a)
       const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/)
       if (match) {
-        const r = parseInt(match[1])
-        const g = parseInt(match[2])
-        const b = parseInt(match[3])
+        const r = parseInt(match[1] as string)
+        const g = parseInt(match[2] as string)
+        const b = parseInt(match[3] as string)
         const a = match[4] !== undefined ? parseFloat(match[4]) : 1.0
         const hex = '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')
         return { color: hex, opacity: a, gradientEnabled: false, gradientColor2: '#0066ff' }
@@ -95,7 +155,8 @@ export const usePresetStore = defineStore('presets', () => {
     return { color: '#ffffff', opacity: 1.0, gradientEnabled: false, gradientColor2: '#0066ff' }
   }
 
-  function applyPreset(preset, canvasManager) {
+  // canvasManager bleibt für bestehende Aufrufer in der Signatur (Hintergrund läuft per Event)
+  function applyPreset(preset: VisualizerPreset, _canvasManager?: CanvasManagerRef) {
     const vizStore = useVisualizerStore()
     const v = preset.visualizer
 
@@ -103,7 +164,7 @@ export const usePresetStore = defineStore('presets', () => {
     if (v.mode === 'multi' && v.layers?.length) {
       vizStore.multiLayerMode = true
       // Stored ids may point at retired classic visualizers → map to GPU preset.
-      vizStore.visualizerLayers = v.layers.map((l) => ({
+      vizStore.visualizerLayers = v.layers.map((l: PresetLayer) => ({
         // Ältere Presets kennen die Formungs-Regler nicht → Standardwerte
         ...DEFAULT_REACT_SHAPE,
         ...l,
@@ -112,8 +173,10 @@ export const usePresetStore = defineStore('presets', () => {
         // Form: fehlt in älteren Presets → 'free'
         shape: normalizeVisualizerShape(l.shape),
         visualizerId: resolveVisualizerId(l.visualizerId) || vizStore.lastWorkingVisualizer,
-      }))
-      if (v.layers.length > 0) vizStore.activeLayerId = v.layers[0].id
+        // Fehlende Felder älterer Presets ergänzt der Renderer bzw. layerEffects()
+      })) as VisualizerLayer[]
+      const firstLayer = v.layers[0]
+      if (firstLayer) vizStore.activeLayerId = firstLayer.id
       // Ohne das bliebe ein zuvor ausgeblendeter Visualizer unsichtbar und das
       // Preset schiene wirkungslos.
       vizStore.showVisualizer = v.showVisualizer ?? true
@@ -121,8 +184,8 @@ export const usePresetStore = defineStore('presets', () => {
       vizStore.multiLayerMode = false
       vizStore.visualizerLayers = []
       vizStore.selectedVisualizer =
-        resolveVisualizerId(v.selectedVisualizer) || vizStore.lastWorkingVisualizer
-      vizStore.visualizerColor = v.color
+        resolveVisualizerId(v.selectedVisualizer as string) || vizStore.lastWorkingVisualizer
+      vizStore.visualizerColor = v.color as string
       vizStore.visualizerOpacity = v.opacity ?? 1.0
       vizStore.colorOpacity = v.colorOpacity ?? 1.0
       vizStore.visualizerX = v.x ?? 0.5
@@ -150,7 +213,7 @@ export const usePresetStore = defineStore('presets', () => {
     activePresetId.value = preset.id
   }
 
-  function deleteUserPreset(id) {
+  function deleteUserPreset(id: string) {
     userPresets.value = userPresets.value.filter((p) => p.id !== id)
     saveUserPresetsToStorage()
     if (activePresetId.value === id) activePresetId.value = null

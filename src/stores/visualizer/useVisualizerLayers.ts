@@ -1,6 +1,6 @@
 // Multi-Visualizer-Layer: Layer-Liste, aktiver Layer, Validierung, Effekte
 // pro Layer und Abgleich mit dem Single-Modus.
-import { ref, computed } from 'vue'
+import { ref, computed, type Ref } from 'vue'
 import { resolveVisualizerId } from '../../lib/visualizers/aliases.js'
 import {
   DEFAULT_REACT_SOURCE,
@@ -18,17 +18,69 @@ import {
   DEFAULT_VISUALIZER_SHAPE,
   normalizeVisualizerShape,
 } from '../../lib/visualizers/core/visualizerShape.js'
-import { BLEND_MODES } from './catalog.js'
+import { BLEND_MODES } from './catalog'
+import type { useSingleVisualizer } from './useSingleVisualizer'
 
-/**
- * @param {object} deps
- * @param {ReturnType<typeof import('./useSingleVisualizer.js').useSingleVisualizer>} deps.single
- *   Single-Modus (Quelle/Ziel beim Abgleich mit dem aktiven Layer)
- * @param {import('vue').Ref<boolean>} deps.multiLayerMode
- * @param {import('vue').Ref<boolean>} deps.adaptiveQuality globale Einstellung,
- *   gilt auch für die Post-Processing-Konfiguration einzelner Layer
- */
-export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality }) {
+/** Effekte pro Layer (zusätzlich zum globalen Post-Processing). */
+export interface LayerEffects {
+  bloomEnabled: boolean
+  bloomStrength: number
+  bloomThreshold: number
+  bloomRadius: number
+  trailsEnabled: boolean
+  trailsDecay: number
+  beatPunchEnabled: boolean
+  beatPunchSource: 'bass' | 'mid' | 'treble' | 'all' | string
+  beatPunchStrength: number
+  onsetFlourishEnabled: boolean
+  onsetFlourishStrength: number
+  [key: string]: unknown
+}
+
+/** Ein Visualizer-Layer; LED-Felder (ledText …) liegen flach im Objekt. */
+export interface VisualizerLayer {
+  id: string
+  visualizerId: string
+  visible: boolean
+  color: string
+  opacity: number
+  colorOpacity: number
+  x: number
+  y: number
+  scale: number
+  shape: string
+  blendMode: string
+  reactSource: string
+  reactStrength: number
+  reactSmoothing: number
+  reactGain: number
+  reactEasing: string
+  reactBeatBoost: number
+  reactPhase: number
+  imageId: string | null
+  /** fehlt bei Layern aus älteren Presets/Projekten, siehe layerEffects() */
+  effects?: LayerEffects
+  [key: string]: unknown
+}
+
+export type LayerOverrides = Partial<Omit<VisualizerLayer, 'effects'>> & {
+  effects?: Partial<LayerEffects> | null
+  [key: string]: unknown
+}
+
+export interface VisualizerLayersDeps {
+  /** Single-Modus (Quelle/Ziel beim Abgleich mit dem aktiven Layer) */
+  single: ReturnType<typeof useSingleVisualizer>
+  multiLayerMode: Ref<boolean>
+  /** globale Einstellung, gilt auch für die Post-Processing-Konfiguration einzelner Layer */
+  adaptiveQuality: Ref<boolean>
+}
+
+export function useVisualizerLayers({
+  single,
+  multiLayerMode,
+  adaptiveQuality,
+}: VisualizerLayersDeps) {
   const {
     selectedVisualizer,
     visualizerColor,
@@ -66,7 +118,7 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
    * dessen Visualizer. Standardmäßig ist alles aus, damit bestehende Projekte
    * unverändert aussehen.
    */
-  function createLayerEffects(overrides = {}) {
+  function createLayerEffects(overrides: Partial<LayerEffects> | null = {}): LayerEffects {
     return {
       bloomEnabled: false,
       bloomStrength: 0.55,
@@ -87,12 +139,12 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
    * Effekte eines Layers inkl. Standardwerten. Layer aus älteren Presets oder
    * gespeicherten Projekten haben das Feld noch nicht.
    */
-  function layerEffects(layer) {
+  function layerEffects(layer: { effects?: Partial<LayerEffects> | null } | null | undefined) {
     return layer?.effects ? createLayerEffects(layer.effects) : createLayerEffects()
   }
 
   /** Post-Processing-Konfiguration eines Layers (Form wie postFxConfig). */
-  function layerPostFxConfig(layer) {
+  function layerPostFxConfig(layer: { effects?: Partial<LayerEffects> | null } | null | undefined) {
     const fx = layerEffects(layer)
     return {
       bloom: {
@@ -107,7 +159,10 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
   }
 
   // Erstellt einen neuen Layer mit Standardwerten
-  function createLayer(visualizerId, overrides = {}) {
+  function createLayer(
+    visualizerId: string | null | undefined,
+    overrides: LayerOverrides = {},
+  ): VisualizerLayer {
     return {
       id: generateLayerId(),
       visualizerId: visualizerId || 'bars',
@@ -131,10 +186,10 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
   }
 
   // Array von Visualizer-Layern (unterster Layer zuerst)
-  const visualizerLayers = ref([])
+  const visualizerLayers = ref<VisualizerLayer[]>([])
 
   // Aktiver/ausgewählter Layer für Bearbeitung
-  const activeLayerId = ref(null)
+  const activeLayerId = ref<string | null>(null)
 
   // Computed: Aktiver Layer
   const activeLayer = computed(() => {
@@ -155,7 +210,7 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
   // ═══════════════════════════════════════════════════════════════════════════
 
   // Multi-Layer-Modus aktivieren/deaktivieren
-  function setMultiLayerMode(enabled) {
+  function setMultiLayerMode(enabled: boolean) {
     multiLayerMode.value = enabled
 
     if (enabled && visualizerLayers.value.length === 0) {
@@ -184,7 +239,7 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
   }
 
   // Layer hinzufügen
-  function addLayer(visualizerId = 'bars', options = {}) {
+  function addLayer(visualizerId = 'bars', options: LayerOverrides = {}) {
     const newLayer = createLayer(visualizerId, options)
     visualizerLayers.value.push(newLayer)
     activeLayerId.value = newLayer.id
@@ -198,7 +253,7 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
   }
 
   // Layer entfernen
-  function removeLayer(layerId) {
+  function removeLayer(layerId: string) {
     const index = visualizerLayers.value.findIndex((l) => l.id === layerId)
     if (index === -1) return false
 
@@ -207,8 +262,10 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
     // Wenn aktiver Layer entfernt wurde, nächsten auswählen
     if (activeLayerId.value === layerId) {
       if (visualizerLayers.value.length > 0) {
-        activeLayerId.value =
-          visualizerLayers.value[Math.min(index, visualizerLayers.value.length - 1)].id
+        const next = visualizerLayers.value[
+          Math.min(index, visualizerLayers.value.length - 1)
+        ] as VisualizerLayer
+        activeLayerId.value = next.id
       } else {
         activeLayerId.value = null
         multiLayerMode.value = false
@@ -219,7 +276,7 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
   }
 
   // Layer duplizieren
-  function duplicateLayer(layerId) {
+  function duplicateLayer(layerId: string) {
     const layer = visualizerLayers.value.find((l) => l.id === layerId)
     if (!layer) return null
 
@@ -236,38 +293,40 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
   }
 
   // Layer nach oben verschieben (höhere Z-Ordnung)
-  function moveLayerUp(layerId) {
+  function moveLayerUp(layerId: string) {
     const index = visualizerLayers.value.findIndex((l) => l.id === layerId)
     if (index === -1 || index >= visualizerLayers.value.length - 1) return false
 
-    const temp = visualizerLayers.value[index]
-    visualizerLayers.value[index] = visualizerLayers.value[index + 1]
-    visualizerLayers.value[index + 1] = temp
+    const layers = visualizerLayers.value
+    const temp = layers[index] as VisualizerLayer
+    layers[index] = layers[index + 1] as VisualizerLayer
+    layers[index + 1] = temp
 
     return true
   }
 
   // Layer nach unten verschieben (niedrigere Z-Ordnung)
-  function moveLayerDown(layerId) {
+  function moveLayerDown(layerId: string) {
     const index = visualizerLayers.value.findIndex((l) => l.id === layerId)
     if (index <= 0) return false
 
-    const temp = visualizerLayers.value[index]
-    visualizerLayers.value[index] = visualizerLayers.value[index - 1]
-    visualizerLayers.value[index - 1] = temp
+    const layers = visualizerLayers.value
+    const temp = layers[index] as VisualizerLayer
+    layers[index] = layers[index - 1] as VisualizerLayer
+    layers[index - 1] = temp
 
     return true
   }
 
   // Layer auswählen
-  function selectLayer(layerId) {
+  function selectLayer(layerId: string) {
     if (visualizerLayers.value.find((l) => l.id === layerId)) {
       activeLayerId.value = layerId
     }
   }
 
   // Layer-Eigenschaft aktualisieren
-  function updateLayerProperty(layerId, property, value) {
+  function updateLayerProperty(layerId: string, property: string, value: unknown): boolean {
     const layer = visualizerLayers.value.find((l) => l.id === layerId)
     if (!layer) return false
 
@@ -275,17 +334,17 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
     switch (property) {
       case 'opacity':
       case 'colorOpacity':
-        value = Math.max(0, Math.min(1, value))
+        value = Math.max(0, Math.min(1, value as number))
         break
       case 'x':
       case 'y':
-        value = Math.max(0, Math.min(1, value))
+        value = Math.max(0, Math.min(1, value as number))
         break
       case 'scale':
-        value = Math.max(0.1, Math.min(3.0, value))
+        value = Math.max(0.1, Math.min(3.0, value as number))
         break
       case 'visualizerId': {
-        const resolved = resolveVisualizerId(value)
+        const resolved = resolveVisualizerId(value as string)
         if (!resolved) return false
         value = resolved
         break
@@ -294,10 +353,10 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
         value = normalizeVisualizerShape(value)
         break
       case 'blendMode':
-        if (!BLEND_MODES.find((m) => m.id === value)) return false
+        if (!BLEND_MODES.find((m: { id: string }) => m.id === value)) return false
         break
       case 'reactSource':
-        if (!isReactSource(value)) return false
+        if (!isReactSource(value as string)) return false
         break
       case 'reactStrength':
         value = Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
@@ -338,13 +397,14 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
    * Setzt einen einzelnen Effekt-Wert eines Layers (validiert und begrenzt).
    * @returns {boolean} true, wenn der Wert übernommen wurde
    */
-  function updateLayerEffect(layerId, property, value) {
+  function updateLayerEffect(layerId: string, property: string, value: unknown): boolean {
     const layer = visualizerLayers.value.find((l) => l.id === layerId)
     if (!layer) return false
     if (!layer.effects) layer.effects = createLayerEffects()
     if (!(property in layer.effects)) return false
 
-    const clamp = (v, min, max) => Math.max(min, Math.min(max, Number(v) || 0))
+    const clamp = (v: unknown, min: number, max: number) =>
+      Math.max(min, Math.min(max, Number(v) || 0))
     switch (property) {
       case 'bloomEnabled':
       case 'trailsEnabled':
@@ -365,7 +425,7 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
         value = clamp(value, 0, 0.97)
         break
       case 'beatPunchSource':
-        if (!['bass', 'mid', 'treble', 'all'].includes(value)) return false
+        if (!['bass', 'mid', 'treble', 'all'].includes(value as string)) return false
         break
       case 'beatPunchStrength':
       case 'onsetFlourishStrength':
@@ -378,7 +438,7 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
   }
 
   /** Setzt alle Effekte eines Layers auf die Standardwerte zurück. */
-  function resetLayerEffects(layerId) {
+  function resetLayerEffects(layerId: string) {
     const layer = visualizerLayers.value.find((l) => l.id === layerId)
     if (!layer) return false
     layer.effects = createLayerEffects()
@@ -386,7 +446,7 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
   }
 
   // Mehrere Layer-Eigenschaften auf einmal aktualisieren
-  function updateLayer(layerId, updates) {
+  function updateLayer(layerId: string, updates: Record<string, unknown>) {
     const layer = visualizerLayers.value.find((l) => l.id === layerId)
     if (!layer) return false
 
@@ -398,7 +458,7 @@ export function useVisualizerLayers({ single, multiLayerMode, adaptiveQuality })
   }
 
   // Layer-Sichtbarkeit umschalten
-  function toggleLayerVisibility(layerId) {
+  function toggleLayerVisibility(layerId: string) {
     const layer = visualizerLayers.value.find((l) => l.id === layerId)
     if (layer) {
       layer.visible = !layer.visible

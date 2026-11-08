@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { usePlayerStore } from '../../stores/playerStore.js'
-import { useAudioSourceStore } from '../../stores/audioSourceStore.js'
+import { useAudioSourceStore } from '../../stores/audioSourceStore'
 import { useAudioFxStore } from '../../stores/audioFxStore'
 import { useBeatDropStore } from '../../stores/beatDropStore'
 import {

@@ -83,7 +83,7 @@
 
 <script setup>
 import { ref, inject, onMounted } from 'vue'
-import { usePresetStore } from '../stores/presetStore.js'
+import { usePresetStore } from '../stores/presetStore'
 import { BUILT_IN_PRESETS } from '../data/builtInPresets.js'
 import { useToastStore } from '../stores/toastStore'
 import { useI18n } from '../lib/i18n.js'

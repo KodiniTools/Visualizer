@@ -3,13 +3,28 @@ import { defineStore } from 'pinia'
 // Undo/Redo werden seriell ausgeführt: Schnelles Mehrfach-Drücken von Strg+Z
 // darf nicht zweimal dasselbe (asynchrone) Command rückgängig machen, weil
 // currentIndex erst nach dem await angepasst wird.
-let operationQueue = Promise.resolve()
+let operationQueue: Promise<unknown> = Promise.resolve()
 
-function enqueue(task) {
+function enqueue<T>(task: () => T | Promise<T>): Promise<T> {
   const run = operationQueue.then(task, task)
   // Fehler dürfen die Queue nicht dauerhaft blockieren.
   operationQueue = run.catch(() => {})
   return run
+}
+
+/** Ein Undo/Redo-Command; execute/undo dürfen asynchron sein. */
+export interface HistoryCommand {
+  name?: string
+  execute: () => unknown
+  undo: () => unknown
+  [key: string]: unknown
+}
+
+interface HistoryState {
+  history: HistoryCommand[]
+  currentIndex: number
+  maxHistorySize: number
+  isUndoRedoInProgress: boolean
 }
 
 /**
@@ -21,7 +36,7 @@ function enqueue(task) {
  * - History-Stack ermöglicht Navigation durch Änderungen
  */
 export const useHistoryStore = defineStore('history', {
-  state: () => ({
+  state: (): HistoryState => ({
     // Command History - Array aller ausgeführten Commands
     history: [],
 
@@ -64,9 +79,9 @@ export const useHistoryStore = defineStore('history', {
     /**
      * 📝 Fügt ein neues Command zur History hinzu
      *
-     * @param {Object} command - Command-Objekt mit execute() und undo() Methoden
+     * @param command - Command-Objekt mit execute() und undo() Methoden
      */
-    addCommand(command) {
+    addCommand(command: HistoryCommand) {
       // Während Undo/Redo keine Commands aufzeichnen
       if (this.isUndoRedoInProgress) {
         return
@@ -98,11 +113,11 @@ export const useHistoryStore = defineStore('history', {
     /**
      * ↩️ Macht die letzte Aktion rückgängig
      */
-    undo() {
+    undo(): Promise<void> {
       return enqueue(() => this._undoNow())
     },
 
-    async _undoNow() {
+    async _undoNow(): Promise<void> {
       if (!this.canUndo) {
         console.warn('⚠️ Undo nicht möglich - am Anfang der History')
         return
@@ -111,7 +126,7 @@ export const useHistoryStore = defineStore('history', {
       this.isUndoRedoInProgress = true
 
       try {
-        const command = this.history[this.currentIndex]
+        const command = this.history[this.currentIndex] as HistoryCommand
         console.log('↩️ Undo:', command.name || 'Unnamed')
 
         // Command rückgängig machen
@@ -128,11 +143,11 @@ export const useHistoryStore = defineStore('history', {
     /**
      * ↪️ Wiederholt die letzte rückgängig gemachte Aktion
      */
-    redo() {
+    redo(): Promise<void> {
       return enqueue(() => this._redoNow())
     },
 
-    async _redoNow() {
+    async _redoNow(): Promise<void> {
       if (!this.canRedo) {
         console.warn('⚠️ Redo nicht möglich - am Ende der History')
         return
@@ -142,7 +157,7 @@ export const useHistoryStore = defineStore('history', {
 
       try {
         this.currentIndex++
-        const command = this.history[this.currentIndex]
+        const command = this.history[this.currentIndex] as HistoryCommand
         console.log('↪️ Redo:', command.name || 'Unnamed')
 
         // Command erneut ausführen

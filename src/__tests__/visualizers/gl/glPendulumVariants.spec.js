@@ -9,7 +9,7 @@ import { glPendulumSnake } from '../../../lib/visualizers/gl/presets/glPendulumS
 import { glPendulumCircle } from '../../../lib/visualizers/gl/presets/glPendulumCircle.js'
 import { glPendulumField } from '../../../lib/visualizers/gl/presets/glPendulumField.js'
 import { glPresetSpecs } from '../../../lib/visualizers/gl/index.js'
-import { VISUALIZER_CATEGORIES } from '../../../stores/visualizer/catalog.js'
+import { VISUALIZER_CATEGORIES } from '../../../stores/visualizer/catalog'
 
 const CTX = { bands: [0.5, 0.5, 0.5, 0.5], onset: {}, time: 0, dt: 0.016, intensity: 1 }
 const VARIANTS = [glPendulumSnake, glPendulumCircle, glPendulumField]

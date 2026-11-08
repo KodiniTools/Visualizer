@@ -9,7 +9,7 @@ import { useAudioSourceControls } from '../../composables/useAudioSourceControls
 import { useMicrophoneToggle } from '../../composables/useMicrophoneToggle.js'
 import { usePlayerVolumeEq } from '../../composables/usePlayerVolumeEq.js'
 import { useCanvasVideos } from '../../composables/videoPanel/useCanvasVideos.js'
-import { useAudioSourceStore } from '../../stores/audioSourceStore.js'
+import { useAudioSourceStore } from '../../stores/audioSourceStore'
 
 const ENGINE_KEYS = [
   'connectVideoToRecording',

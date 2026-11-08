@@ -12,7 +12,7 @@ import {
   drawScaledVisualizer,
   setEdgeFadeCanvasFactory,
 } from '../../lib/visualizers/core/edgeFade.js'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
+import { useVisualizerStore } from '../../stores/visualizerStore'
 import { sanitizeVisualizerSettings } from '../../lib/visualizerPersistence.js'
 
 /** Context-Stub, der alle Aufrufe protokolliert (jsdom hat keinen 2D-Context). */

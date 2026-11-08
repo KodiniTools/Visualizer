@@ -18,7 +18,7 @@ export function useVisualizerPostFx() {
   // wirkt daher für alle Visualizer gleich und friert bei „Wall of Sound" nicht
   // ein. Standardmäßig aus → kein Verhaltenswechsel, bis der Nutzer es aktiviert.
   const beatPunchEnabled = ref(false)
-  const beatPunchSource = ref('all') // 'bass' | 'mid' | 'treble' | 'all'
+  const beatPunchSource = ref<string>('all') // 'bass' | 'mid' | 'treble' | 'all'
   const beatPunchStrength = ref(50) // 0–100 → bis zu +12% Zoom bei 100%
   // Variation: 0 = ganze Ebene gleich; höher = Spalten der Ebene reagieren mit
   // eigener Stärke und leichtem Versatz auf jeden Beat (core/beatPunchVariation.js)
@@ -44,43 +44,43 @@ export function useVisualizerPostFx() {
     adaptiveQuality: adaptiveQuality.value,
   }))
 
-  function setBloomEnabled(v) {
+  function setBloomEnabled(v: unknown) {
     bloomEnabled.value = !!v
   }
-  function setBloomStrength(v) {
+  function setBloomStrength(v: number) {
     bloomStrength.value = Math.max(0, Math.min(2, v))
   }
-  function setBloomThreshold(v) {
+  function setBloomThreshold(v: number) {
     bloomThreshold.value = Math.max(0, Math.min(1, v))
   }
-  function setBloomRadius(v) {
+  function setBloomRadius(v: number) {
     bloomRadius.value = Math.max(1, Math.min(32, v))
   }
-  function setTrailsEnabled(v) {
+  function setTrailsEnabled(v: unknown) {
     trailsEnabled.value = !!v
   }
-  function setTrailsDecay(v) {
+  function setTrailsDecay(v: number) {
     trailsDecay.value = Math.max(0, Math.min(0.97, v))
   }
-  function setAdaptiveQuality(v) {
+  function setAdaptiveQuality(v: unknown) {
     adaptiveQuality.value = !!v
   }
-  function setBeatPunchEnabled(v) {
+  function setBeatPunchEnabled(v: unknown) {
     beatPunchEnabled.value = !!v
   }
-  function setBeatPunchSource(v) {
+  function setBeatPunchSource(v: string) {
     if (['bass', 'mid', 'treble', 'all'].includes(v)) beatPunchSource.value = v
   }
-  function setBeatPunchStrength(v) {
+  function setBeatPunchStrength(v: number) {
     beatPunchStrength.value = Math.max(0, Math.min(100, Math.round(v)))
   }
-  function setBeatPunchVariation(v) {
+  function setBeatPunchVariation(v: number) {
     beatPunchVariation.value = Math.max(0, Math.min(100, Math.round(v)))
   }
-  function setOnsetFlourishEnabled(v) {
+  function setOnsetFlourishEnabled(v: unknown) {
     onsetFlourishEnabled.value = !!v
   }
-  function setOnsetFlourishStrength(v) {
+  function setOnsetFlourishStrength(v: number) {
     onsetFlourishStrength.value = Math.max(0, Math.min(100, Math.round(v)))
   }
 

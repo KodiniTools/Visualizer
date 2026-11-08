@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { useAudioSourceStore } from '../../stores/audioSourceStore.js'
+import { useAudioSourceStore } from '../../stores/audioSourceStore'
 
 const stream = { getTracks: () => [] }
 let getUserMedia

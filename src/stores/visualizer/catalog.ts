@@ -6,7 +6,13 @@ import { localeRef } from '../../lib/i18n.js'
 import { localizedName } from '../../lib/localizedName.js'
 
 // ✅ Blend-Modi für Visualizer-Compositing
-export const BLEND_MODES = [
+export interface BlendMode {
+  id: GlobalCompositeOperation
+  name_de: string
+  name_en: string
+}
+
+export const BLEND_MODES: BlendMode[] = [
   { id: 'source-over', name_de: 'Normal', name_en: 'Normal' },
   { id: 'multiply', name_de: 'Multiplizieren', name_en: 'Multiply' },
   { id: 'screen', name_de: 'Negativ multiplizieren', name_en: 'Screen' },
@@ -26,7 +32,7 @@ export const BLEND_MODES = [
 ]
 
 // ✅ Visualizer-Kategorien für bessere UX
-export const VISUALIZER_CATEGORIES = {
+export const VISUALIZER_CATEGORIES: Record<string, string[]> = {
   'GPU-Presets': [
     'glBars',
     'glBarsMirrored',
@@ -184,24 +190,28 @@ export const VISUALIZER_CATEGORIES = {
   Klassisch: [...LEGACY_VISUALIZER_IDS],
 }
 
+type NamedVisualizer = Parameters<typeof localizedName>[0]
+
+const visualizerMap = Visualizers as Record<string, NamedVisualizer>
+
 /** Listen der verfügbaren Visualizer (flach und nach Kategorie), locale-abhängig. */
 export function useVisualizerCatalog() {
   // ✅ Helper function to get locale-aware visualizer name
-  function getVisualizerName(visualizer, id) {
+  function getVisualizerName(visualizer: NamedVisualizer, id: string): string {
     return localizedName(visualizer, localeRef.value, id)
   }
 
   // ✅ Kategorisierte Visualizer (locale-aware)
   const categorizedVisualizers = computed(() => {
     // Access localeRef.value to ensure reactive dependency tracking
-    const _locale = localeRef.value
-    const result = {}
+    void localeRef.value
+    const result: Record<string, { id: string; name: string }[]> = {}
     for (const [category, ids] of Object.entries(VISUALIZER_CATEGORIES)) {
       result[category] = ids
-        .filter((id) => Visualizers[id]) // Nur existierende
+        .filter((id) => visualizerMap[id]) // Nur existierende
         .map((id) => ({
           id,
-          name: getVisualizerName(Visualizers[id], id),
+          name: getVisualizerName(visualizerMap[id], id),
         }))
     }
     return result
@@ -210,10 +220,10 @@ export function useVisualizerCatalog() {
   // ✅ Flache Liste (für Kompatibilität) - locale-aware
   const availableVisualizers = computed(() => {
     // Access localeRef.value to ensure reactive dependency tracking
-    const _locale = localeRef.value
+    void localeRef.value
     return Object.keys(Visualizers).map((key) => ({
       id: key,
-      name: getVisualizerName(Visualizers[key], key),
+      name: getVisualizerName(visualizerMap[key], key),
     }))
   })
 

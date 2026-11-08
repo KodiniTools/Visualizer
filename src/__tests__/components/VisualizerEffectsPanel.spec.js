@@ -7,7 +7,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import VisualizerEffectsPanel from '../../components/VisualizerEffectsPanel.vue'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
+import { useVisualizerStore } from '../../stores/visualizerStore'
 import { useI18n } from '../../lib/i18n.js'
 
 let wrapper

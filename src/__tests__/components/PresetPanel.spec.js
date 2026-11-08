@@ -7,7 +7,7 @@ import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import PresetPanel from '../../components/PresetPanel.vue'
 import { BUILT_IN_PRESETS } from '../../data/builtInPresets.js'
-import { usePresetStore } from '../../stores/presetStore.js'
+import { usePresetStore } from '../../stores/presetStore'
 import { useToastStore } from '../../stores/toastStore'
 import de from '../../lib/i18n/de.js'
 

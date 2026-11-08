@@ -166,6 +166,15 @@
       <p v-if="newMarkerBgImageId !== ''" class="form-hint marker-form-hint">
         {{ t('player.backgroundImageHint') }}
       </p>
+      <ImageAnimationPanel
+        v-if="newMarkerBgImageId !== ''"
+        class="marker-bg-animation"
+        :title="t('player.markerImageAnimation')"
+        :hint="t('player.markerImageAnimationHint')"
+        :animation="newMarkerBgImageAnimation"
+        :restartable="false"
+        :reset-key="editingMarkerId ?? 'new'"
+      />
 
       <UiSelect
         :model-value="newMarkerVideoId as SelectValue"
@@ -262,7 +271,8 @@
           v-if="marker.action.backgroundImage"
           class="marker-action marker-action-bgimage"
           :title="t('player.backgroundImageHint')"
-          >🖼️ {{ marker.action.backgroundImage.name }}</span
+          >🖼️ {{ marker.action.backgroundImage.name
+          }}{{ hasImageAnimation(marker.action.backgroundImage.timedAnimation) ? ' ✨' : '' }}</span
         >
         <span
           v-if="marker.action.video"
@@ -332,6 +342,8 @@ import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
 import UiSelect from '../ui/UiSelect.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 import UiTextField from '../ui/UiTextField.vue'
+import ImageAnimationPanel from '../foto-panel/image-animation/ImageAnimationPanel.vue'
+import { hasImageAnimation } from '../../lib/canvasObjects/imageAnimation'
 import { inject, computed, onUnmounted, useId } from 'vue'
 import type { PlayerBarContext } from './playerBarContext'
 import type { UiSelectGroup, UiSelectOption } from '../ui/UiSelect.vue'
@@ -374,6 +386,7 @@ const {
   newMarkerBgImageId,
   newMarkerVideoId,
   newMarkerVideoLoop,
+  newMarkerBgImageAnimation,
   newMarkerLabel,
   getMarkerTexts,
   getMarkerShapes,
@@ -566,6 +579,14 @@ const shapeSelectOptions = computed(() => [
 
 <style scoped src="./popover-chrome.css"></style>
 <style scoped>
+/* Inhalt nicht stauchen: das Fenster scrollt, sonst überlappen Zeilen
+   (z. B. der Crossfade-Regler unter dem Marker-Formular) */
+.spb-popover-markers > * {
+  flex-shrink: 0;
+}
+.marker-bg-animation {
+  margin-top: calc(-1 * var(--ds-space-1));
+}
 .marker-controls :deep(.ui-icon-button svg) {
   width: var(--ds-icon-sm);
   height: var(--ds-icon-sm);

@@ -978,6 +978,9 @@ export default {
     backgroundImage: 'Hintergrund-Bild',
     noBackgroundImage: '-- Kein Bild --',
     emptyImageGallery: 'Galerie ist leer – Bilder unter „Eigene Bilder“ hochladen',
+    markerImageAnimation: 'Animation des Bildes',
+    markerImageAnimationHint:
+      'Neue Marker übernehmen die „Animation beim Hinzufügen“ aus dem Foto-Panel. Gilt für Hintergrund und Workspace-Hintergrund.',
     backgroundImageHint:
       'Bild aus deiner Galerie wird Hintergrund. Audio-Reaktiv und Format (Workspace oder Normal) übernimmt es vom vorherigen Hintergrund-Bild.',
     markerVideo: 'Video',

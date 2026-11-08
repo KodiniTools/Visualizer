@@ -17,6 +17,8 @@ import {
   type VideoBackgroundEntry,
 } from './backgroundMedia'
 
+import type { ImageTimedAnimation } from '../canvasObjects/imageAnimation'
+
 const cloneJson = <T>(obj: T): T => JSON.parse(JSON.stringify(obj))
 
 type MaybeCm = BackgroundCanvasManager | null | undefined
@@ -93,22 +95,25 @@ export function resolveBackgroundImageDefaults(
  * @param {object|null} cm - CanvasManager
  * @param {HTMLImageElement} img
  * @param {{ target: string, audioReactive: object|null }} defaults
+ * @param options.timedAnimation Animation (Fade/Scale/Slide) beim Einblenden
  * @returns {'workspace'|'background'|null} tatsächlich verwendetes Ziel
  */
 export function setBackgroundImageWithDefaults(
   cm: MaybeCm,
   img: HTMLImageElement | null | undefined,
   defaults: Partial<BackgroundImageDefaults> | null | undefined,
+  options: { timedAnimation?: ImageTimedAnimation | null } = {},
 ): BackgroundTarget | null {
   if (!cm || !img) return null
   clearCanvasVideoBackgrounds(cm)
 
   const useWorkspace = defaults?.target === 'workspace' && !!cm.workspacePreset
   let target: BackgroundTarget
-  if (useWorkspace && cm.setWorkspaceBackground(img)) {
+  const setOptions = { timedAnimation: options.timedAnimation ?? null }
+  if (useWorkspace && cm.setWorkspaceBackground(img, setOptions)) {
     target = 'workspace'
   } else {
-    cm.setBackground(img)
+    cm.setBackground(img, setOptions)
     target = 'background'
   }
 

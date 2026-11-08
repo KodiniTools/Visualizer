@@ -29,11 +29,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
 import { tileEffectNames } from '../../lib/audio/audioReactiveConfig'
-import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { getAudioAnalysisData, type AudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import type { BackgroundTilesApi } from '../../composables/useBackgroundTiles'
+import type { AudioReactivePanelApi } from '../../composables/audioReactive/useAudioReactiveTarget'
 
 const {
   tilesStore,
@@ -51,9 +53,9 @@ const {
   clearTileAudioPreset,
   saveTileAudioSettings,
   applyTileAudioSettings,
-} = inject('tileControls')
+} = inject('tileControls') as BackgroundTilesApi
 
-const panelRef = ref(null)
+const panelRef = ref<AudioReactivePanelApi | null>(null)
 
 const tileHasMedia = computed(() => {
   const tile = tilesStore.selectedTile
@@ -75,9 +77,9 @@ watch([() => tilesStore.selectedTileIndex, tileAudioRevision, allowedEffects], a
 })
 
 // ── Audio-Pegel-Anzeige für die Quelle der gewählten Kachel ──
-let levelAnimationId = null
+let levelAnimationId: number | null = null
 
-function levelFor(audioData, source) {
+function levelFor(audioData: AudioAnalysisData, source: string | undefined) {
   switch (source) {
     case 'mid':
       return audioData.smoothMid ?? 0

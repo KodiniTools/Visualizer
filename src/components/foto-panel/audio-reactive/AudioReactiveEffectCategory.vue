@@ -14,7 +14,7 @@
           inline
           :label="t('foto.effectSource')"
           :options="sourceOptions"
-          @update:model-value="(v) => effectSourceChange(effect.id, v, defaultIntensity)"
+          @update:model-value="(v) => effectSourceChange(effect.id, v as string, defaultIntensity)"
         />
         <SliderControl
           :label="t('foto.effectIntensity')"
@@ -30,22 +30,26 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, inject } from 'vue'
 import { useI18n } from '../../../lib/i18n'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import UiSelect from '../../ui/UiSelect.vue'
 import SliderControl from '../../ui/SliderControl.vue'
-import { audioSourceOptions } from './audioReactiveOptions.js'
+import { audioSourceOptions } from './audioReactiveOptions'
+import type { AudioReactiveControls, AudioReactiveEffectItem } from './audioReactiveControls'
 
-defineProps({
-  title: { type: String, default: '' },
-  effects: { type: Array, default: () => [] },
-  defaultIntensity: { type: Number, default: 80 },
-})
+withDefaults(
+  defineProps<{
+    title?: string
+    effects?: AudioReactiveEffectItem[]
+    defaultIntensity?: number
+  }>(),
+  { title: '', effects: () => [], defaultIntensity: 80 },
+)
 
 const { t } = useI18n()
-const arc = inject('audioReactiveControls')
+const arc = inject('audioReactiveControls') as AudioReactiveControls
 const { effectState, effectToggle, effectSourceChange, effectIntensityChange } = arc
 
 const sourceOptions = computed(() => audioSourceOptions(t, { withGlobal: true }))

@@ -137,7 +137,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SliderField from '../ui/SliderField.vue'
 import SliderControl from '../ui/SliderControl.vue'
 import UiButton from '../ui/UiButton.vue'
@@ -145,6 +145,7 @@ import UiIconButton from '../ui/UiIconButton.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 import VideoAudioReactive from './VideoAudioReactive.vue'
 import { computed, inject } from 'vue'
+import type { VideoPanelApi } from '../../composables/useVideoPanel'
 import { useI18n } from '../../lib/i18n'
 
 const { t } = useI18n()
@@ -168,7 +169,7 @@ const {
   seekBackward,
   seekForward,
   updateVideoVolume,
-} = inject('videoPanel')
+} = inject('videoPanel') as VideoPanelApi
 
 // Ziel des Audio-Reaktiv-Panels: ausgewähltes Video, sonst das erste Canvas-Video
 const audioTargetVideo = computed(() => selectedCanvasVideo.value || canvasVideos.value[0] || null)

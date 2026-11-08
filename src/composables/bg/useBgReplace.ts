@@ -6,12 +6,19 @@ import type { CanvasManagerRef } from '../types'
 export interface BgGalleryCategory {
   id: string
   jsonFile?: string
+  name?: string
+  name_en?: string
+  icon?: string
   [key: string]: unknown
 }
 
 /** Bild einer Galerie-Kategorie */
 export interface BgGalleryImage {
   file: string
+  id?: string
+  name?: string
+  name_en?: string
+  thumbnail?: string
   [key: string]: unknown
 }
 

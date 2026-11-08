@@ -42,8 +42,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, inject } from 'vue'
+import type { VideoPanelApi } from '../../composables/useVideoPanel'
 import { useI18n } from '../../lib/i18n'
 import SliderControl from '../ui/SliderControl.vue'
 import UiButton from '../ui/UiButton.vue'
@@ -61,7 +62,7 @@ const {
   videoLoop,
   videoMuted,
   addVideoDirectly,
-} = inject('videoPanel')
+} = inject('videoPanel') as VideoPanelApi
 
 const animationOptions = computed(() => placementAnimationOptions(t))
 </script>

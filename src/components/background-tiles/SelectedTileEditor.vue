@@ -1,7 +1,7 @@
 <template>
   <div class="selected-tile-editor">
     <div class="editor-header">
-      <h6>{{ t('backgroundTiles.editTile').replace('{n}', tilesStore.selectedTileIndex + 1) }}</h6>
+      <h6>{{ t('backgroundTiles.editTile').replace('{n}', String(tileNumber)) }}</h6>
       <UiIconButton size="sm" :label="t('common.close')" @click="deselectTile">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
           <line x1="18" y1="6" x2="6" y2="18" />
@@ -15,23 +15,23 @@
       <label>{{ t('backgroundTiles.backgroundColor') }}</label>
       <div class="color-picker-group">
         <ColorField
-          :model-value="tilesStore.selectedTile.backgroundColor"
+          :model-value="tile.backgroundColor"
           class="color-input"
           @update:model-value="setTileColor($event)"
         />
-        <span class="color-hex">{{ tilesStore.selectedTile.backgroundColor }}</span>
+        <span class="color-hex">{{ tile.backgroundColor }}</span>
       </div>
     </div>
 
     <!-- Hintergrund Deckkraft -->
     <SliderControl
       :label="t('backgroundTiles.opacity')"
-      :model-value="tilesStore.selectedTile.backgroundOpacity"
+      :model-value="tile.backgroundOpacity"
       :min="0"
       :max="1"
       :step="0.05"
       :default-value="1"
-      :value-text="`${Math.round(tilesStore.selectedTile.backgroundOpacity * 100)}%`"
+      :value-text="`${Math.round(tile.backgroundOpacity * 100)}%`"
       @update:model-value="setTileOpacity($event)"
     />
 
@@ -48,18 +48,26 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import ColorField from '../ui/ColorField.vue'
 import SliderControl from '../ui/SliderControl.vue'
 import UiButton from '../ui/UiButton.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import TileImageSection from './TileImageSection.vue'
 import TileAudioSection from './TileAudioSection.vue'
+import type { BackgroundTilesApi } from '../../composables/useBackgroundTiles'
+import type { BackgroundTile } from '../../stores/backgroundTilesStore'
 
 const { t } = useI18n()
-const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = inject('tileControls')
+const { tilesStore, deselectTile, setTileColor, setTileOpacity, resetTile } = inject(
+  'tileControls',
+) as BackgroundTilesApi
+
+// Nur gerendert, solange eine Kachel ausgewählt ist (v-if im BackgroundTilesPanel)
+const tile = computed(() => tilesStore.selectedTile as BackgroundTile)
+const tileNumber = computed(() => (tilesStore.selectedTileIndex as number) + 1)
 </script>
 
 <style scoped>

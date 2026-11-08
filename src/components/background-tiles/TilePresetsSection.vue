@@ -52,14 +52,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import UiButton from '../ui/UiButton.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
+import type { TilePresetsApi } from '../../composables/useTilePresets'
 
 const { t } = useI18n()
-const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject('tilePresets')
+const { tilePresets, saveTilePreset, loadTilePreset, deleteTilePreset } = inject(
+  'tilePresets',
+) as TilePresetsApi
 </script>
 
 <style scoped>

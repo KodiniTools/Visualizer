@@ -5,18 +5,18 @@
     inline
     :label="t('audioFx.source')"
     :options="options"
-    @update:model-value="$emit('update:modelValue', $event)"
+    @update:model-value="$emit('update:modelValue', $event as string)"
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { AUDIO_FX_ONSET_SOURCES, AUDIO_FX_SOURCES } from '../../data/audioFxEffects'
 import UiSelect from '../ui/UiSelect.vue'
 
-defineProps({ modelValue: { type: String, required: true } })
-defineEmits(['update:modelValue'])
+defineProps<{ modelValue: string }>()
+defineEmits<{ 'update:modelValue': [value: string] }>()
 
 const { t } = useI18n()
 

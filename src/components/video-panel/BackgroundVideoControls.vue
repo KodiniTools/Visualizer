@@ -42,9 +42,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import BackgroundVideoItem from './BackgroundVideoItem.vue'
 import { inject } from 'vue'
+import type { VideoPanelApi } from '../../composables/useVideoPanel'
 import { useI18n } from '../../lib/i18n'
 
 const { t } = useI18n()
@@ -74,7 +75,7 @@ const {
   removeVideoBackground,
   removeWsVideoBackground,
   formatTime,
-} = inject('videoPanel')
+} = inject('videoPanel') as VideoPanelApi
 </script>
 
 <style scoped>

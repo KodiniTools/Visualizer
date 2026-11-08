@@ -382,3 +382,6 @@ export function useBackgroundTiles() {
     applyTileAudioSettings,
   }
 }
+
+/** Per provide('tileControls') an die Kachel-Unterkomponenten gereicht */
+export type BackgroundTilesApi = ReturnType<typeof useBackgroundTiles>

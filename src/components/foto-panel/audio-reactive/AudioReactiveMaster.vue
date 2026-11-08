@@ -23,7 +23,7 @@
         inline
         :label="t('foto.audioSource')"
         :options="sourceOptions"
-        @update:model-value="(v) => setMaster('source', v)"
+        @update:model-value="(v) => setMaster('source', v as string)"
       />
       <SliderControl
         :label="t('foto.smoothing')"
@@ -50,7 +50,7 @@
         inline
         :label="t('foto.easing')"
         :options="easingSelectOptions"
-        @update:model-value="(v) => setMaster('easing', v)"
+        @update:model-value="(v) => setMaster('easing', v as string)"
       />
       <SliderControl
         :label="t('foto.beatBoost')"
@@ -75,16 +75,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, inject } from 'vue'
 import { useI18n } from '../../../lib/i18n'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import UiSelect from '../../ui/UiSelect.vue'
 import SliderControl from '../../ui/SliderControl.vue'
-import { audioSourceOptions, easingOptions } from './audioReactiveOptions.js'
+import { audioSourceOptions, easingOptions } from './audioReactiveOptions'
+import type { AudioReactiveControls } from './audioReactiveControls'
 
 const { t } = useI18n()
-const arc = inject('audioReactiveControls')
+const arc = inject('audioReactiveControls') as AudioReactiveControls
 const { isEnabled, master, setEnabled, setMaster } = arc
 
 const sourceOptions = computed(() => audioSourceOptions(t))

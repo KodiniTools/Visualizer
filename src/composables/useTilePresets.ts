@@ -143,3 +143,6 @@ export function useTilePresets(tilesStore: ReturnType<typeof useBackgroundTilesS
     deleteTilePreset,
   }
 }
+
+/** Per provide('tilePresets') an die Kachel-Unterkomponenten gereicht */
+export type TilePresetsApi = ReturnType<typeof useTilePresets>

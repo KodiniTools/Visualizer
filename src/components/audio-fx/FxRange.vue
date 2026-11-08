@@ -11,17 +11,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SliderField from '../ui/SliderField.vue'
 
-defineProps({
-  label: { type: String, required: true },
-  modelValue: { type: Number, default: 0 },
-  min: { type: Number, default: 0 },
-  max: { type: Number, default: 100 },
-  unit: { type: String, default: '' },
-})
-defineEmits(['update:modelValue'])
+withDefaults(
+  defineProps<{ label: string; modelValue?: number; min?: number; max?: number; unit?: string }>(),
+  { modelValue: 0, min: 0, max: 100, unit: '' },
+)
+defineEmits<{ 'update:modelValue': [value: number] }>()
 </script>
 
 <style scoped src="../ui/slider-control.css"></style>

@@ -1,0 +1,110 @@
+// @vitest-environment node
+import 'fake-indexeddb/auto'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import {
+  saveImageBlob,
+  loadImage,
+  pruneImages,
+  blobFromImage,
+  isQuotaError,
+  getImageStorageStats,
+  _clearImageCache,
+} from '../../utils/presetImageRepository'
+import { fakeImage } from '../helpers/canvasStubs'
+
+class FakeImage {
+  _src = ''
+  onload: (() => void) | null = null
+  set src(v: string) {
+    this._src = v
+    setTimeout(() => this.onload?.(), 0)
+  }
+  get src() {
+    return this._src
+  }
+}
+class FakeFileReader {
+  result: string | null = null
+  onload: (() => void) | null = null
+  readAsDataURL(blob: Blob) {
+    blob.arrayBuffer().then((buf: ArrayBuffer) => {
+      this.result = `data:${blob.type};base64,${btoa(String.fromCharCode(...new Uint8Array(buf)))}`
+      this.onload?.()
+    })
+  }
+}
+
+beforeEach(() => {
+  vi.stubGlobal('Image', FakeImage)
+  vi.stubGlobal('FileReader', FakeFileReader)
+  _clearImageCache()
+})
+afterEach(() => vi.unstubAllGlobals())
+
+const blobA = () => new Blob([new Uint8Array([1, 2, 3, 4])], { type: 'image/png' })
+const blobB = () => new Blob([new Uint8Array([9, 9, 9])], { type: 'image/jpeg' })
+
+describe('presetImageRepository (IndexedDB)', () => {
+  it('speichert per Inhalts-Hash – gleiches Bild nur einmal', async () => {
+    const k1 = await saveImageBlob(blobA(), 'a.png')
+    const k2 = await saveImageBlob(blobA(), 'kopie.png')
+    const k3 = await saveImageBlob(blobB(), 'b.jpg')
+    expect(k1).toMatch(/^[0-9a-f]{64}$/)
+    expect(k1).toBe(k2)
+    expect(k3).not.toBe(k1)
+  })
+
+  it('lädt gespeicherte Bilder – pro Sitzung dasselbe Objekt', async () => {
+    const key = await saveImageBlob(blobA(), 'a.png')
+    const [x, y] = await Promise.all([loadImage(key), loadImage(key)])
+    expect(x!.imageObject).toBe(y!.imageObject)
+    expect(x!.imageObject.src).toMatch(/^data:image\/png;base64,/)
+    expect(await loadImage('0'.repeat(64))).toBeNull()
+  })
+
+  it('pruneImages entfernt nicht mehr verwendete Bilder', async () => {
+    const keep = await saveImageBlob(blobA(), 'a.png')
+    const drop = await saveImageBlob(blobB(), 'b.jpg')
+    const removed = await pruneImages([keep])
+    expect(removed).toBeGreaterThanOrEqual(1)
+    _clearImageCache()
+    expect(await loadImage(drop)).toBeNull()
+    expect(await loadImage(keep)).not.toBeNull()
+  })
+
+  it('blobFromImage liest data:-URLs', async () => {
+    const blob = await blobFromImage(fakeImage({ src: 'data:image/png;base64,AQID' }))
+    expect(blob.size).toBe(3)
+    await expect(blobFromImage(fakeImage())).rejects.toThrow()
+  })
+})
+
+describe('presetImageRepository – automatisches Aufräumen', () => {
+  it('Schutzfrist: frisch gespeicherte, ungenutzte Bilder bleiben erhalten', async () => {
+    const fresh = await saveImageBlob(new Blob([new Uint8Array([7, 7, 7, 1])]), 'neu.png')
+    expect(await pruneImages([], { minAgeMs: 60_000 })).toBe(0)
+    _clearImageCache()
+    expect(await loadImage(fresh)).not.toBeNull()
+    // ohne Schutzfrist wird es entfernt
+    expect(await pruneImages([])).toBeGreaterThanOrEqual(1)
+    _clearImageCache()
+    expect(await loadImage(fresh)).toBeNull()
+  })
+
+  it('isQuotaError erkennt vollen Speicher', () => {
+    expect(isQuotaError({ name: 'QuotaExceededError' })).toBe(true)
+    expect(isQuotaError(new Error('Quota exceeded for origin'))).toBe(true)
+    expect(isQuotaError(new Error('anderer Fehler'))).toBe(false)
+  })
+})
+
+describe('presetImageRepository – Speicherbelegung', () => {
+  it('zählt Bilder und summiert ihre Größe', async () => {
+    await pruneImages([])
+    expect(await getImageStorageStats()).toEqual({ count: 0, bytes: 0 })
+    await saveImageBlob(new Blob([new Uint8Array(10)]), 'a.png')
+    await saveImageBlob(new Blob([new Uint8Array(25).fill(1)]), 'b.png')
+    await saveImageBlob(new Blob([new Uint8Array(10)]), 'a-kopie.png') // gleicher Inhalt
+    expect(await getImageStorageStats()).toEqual({ count: 2, bytes: 35 })
+  })
+})

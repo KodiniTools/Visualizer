@@ -1,7 +1,7 @@
 // Speichern fertiger Recorder-Exporte über den Speichern-Dialog
 // (Speicherort + Dateiname, Fallback: eigener Dialog + Download).
 import { useI18n } from '../../lib/i18n.js'
-import { useToastStore } from '../../stores/toastStore.js'
+import { useToastStore } from '../../stores/toastStore'
 import { timestampedFilename } from '../../lib/saveFile.js'
 
 /**

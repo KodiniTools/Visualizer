@@ -1,13 +1,49 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+export type ToastType = 'success' | 'error' | 'warning' | 'info'
+
+export interface ToastAction {
+  label: string
+  handler: () => void
+}
+
+export interface ToastOptions {
+  /** Die anzuzeigende Nachricht (oder i18n key) */
+  message?: string
+  /** Toast-Typ (Standard: 'info') */
+  type?: ToastType
+  /** Anzeigedauer in ms (Standard: 3000); 0 = bleibt bis zum Schließen */
+  duration?: number
+  /** Optionaler Titel */
+  title?: string | null
+  /** Kann vom Benutzer geschlossen werden (Standard: true) */
+  dismissible?: boolean
+  /** Optionaler Aktions-Button */
+  action?: ToastAction | null
+}
+
+export interface Toast {
+  id: number
+  message: string
+  type: ToastType
+  title: string | null
+  duration: number
+  dismissible: boolean
+  action: ToastAction | null
+  createdAt: number
+}
+
+/** Zusatzoptionen der Kurzformen success/error/warning/info */
+export type ToastShortcutOptions = Omit<ToastOptions, 'message' | 'type'>
+
 /**
  * Toast-Benachrichtigungen Store
  * Verwaltet alle Toast-Nachrichten in der Anwendung
  */
 export const useToastStore = defineStore('toast', () => {
   // === STATE ===
-  const toasts = ref([])
+  const toasts = ref<Toast[]>([])
   let toastIdCounter = 0
 
   // Standard-Anzeigedauer in Millisekunden
@@ -21,19 +57,12 @@ export const useToastStore = defineStore('toast', () => {
 
   /**
    * Fügt einen neuen Toast hinzu
-   * @param {Object} options - Toast-Optionen
-   * @param {string} options.message - Die anzuzeigende Nachricht (oder i18n key)
-   * @param {string} options.type - Toast-Typ: 'success', 'error', 'warning', 'info'
-   * @param {number} options.duration - Anzeigedauer in ms (Standard: 3000)
-   * @param {string} options.title - Optionaler Titel
-   * @param {boolean} options.dismissible - Kann vom Benutzer geschlossen werden (Standard: true)
-   * @param {Object} options.action - Optionaler Aktions-Button { label, handler }
-   * @returns {number} Die ID des erstellten Toasts
+   * @returns Die ID des erstellten Toasts
    */
-  function addToast(options) {
+  function addToast(options: ToastOptions): number {
     const id = ++toastIdCounter
 
-    const toast = {
+    const toast: Toast = {
       id,
       message: options.message || '',
       type: options.type || 'info',
@@ -56,59 +85,38 @@ export const useToastStore = defineStore('toast', () => {
     return id
   }
 
-  /**
-   * Entfernt einen Toast nach ID
-   * @param {number} id - Die Toast-ID
-   */
-  function removeToast(id) {
+  /** Entfernt einen Toast nach ID */
+  function removeToast(id: number) {
     const index = toasts.value.findIndex((t) => t.id === id)
     if (index !== -1) {
       toasts.value.splice(index, 1)
     }
   }
 
-  /**
-   * Entfernt alle Toasts
-   */
+  /** Entfernt alle Toasts */
   function clearAll() {
     toasts.value = []
   }
 
   // === CONVENIENCE METHODS ===
 
-  /**
-   * Zeigt einen Erfolgs-Toast
-   * @param {string} message - Die Nachricht
-   * @param {Object} options - Zusätzliche Optionen
-   */
-  function success(message, options = {}) {
+  /** Zeigt einen Erfolgs-Toast */
+  function success(message: string, options: ToastShortcutOptions = {}) {
     return addToast({ ...options, message, type: 'success' })
   }
 
-  /**
-   * Zeigt einen Fehler-Toast
-   * @param {string} message - Die Nachricht
-   * @param {Object} options - Zusätzliche Optionen
-   */
-  function error(message, options = {}) {
+  /** Zeigt einen Fehler-Toast */
+  function error(message: string, options: ToastShortcutOptions = {}) {
     return addToast({ ...options, message, type: 'error' })
   }
 
-  /**
-   * Zeigt einen Warnungs-Toast
-   * @param {string} message - Die Nachricht
-   * @param {Object} options - Zusätzliche Optionen
-   */
-  function warning(message, options = {}) {
+  /** Zeigt einen Warnungs-Toast */
+  function warning(message: string, options: ToastShortcutOptions = {}) {
     return addToast({ ...options, message, type: 'warning' })
   }
 
-  /**
-   * Zeigt einen Info-Toast
-   * @param {string} message - Die Nachricht
-   * @param {Object} options - Zusätzliche Optionen
-   */
-  function info(message, options = {}) {
+  /** Zeigt einen Info-Toast */
+  function info(message: string, options: ToastShortcutOptions = {}) {
     return addToast({ ...options, message, type: 'info' })
   }
 

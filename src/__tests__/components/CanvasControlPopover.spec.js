@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import CanvasControlPopover from '../../components/sticky-player-bar/CanvasControlPopover.vue'
 import { useBgSettings } from '../../composables/useBgSettings.js'
-import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore.js'
+import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore'
 
 // Canvas-Manager-Attrappe. Das Hintergrund-Composable ruft viele Methoden auf;
 // unbekannte Zugriffe liefern daher automatisch eine leere Mock-Funktion.

@@ -10,7 +10,7 @@ import {
   loadGridSettings,
   GRID_STORAGE_KEY,
   GRID_DEFAULTS,
-} from '../../stores/gridStore.js'
+} from '../../stores/gridStore'
 
 // Neustart der App simulieren: neue Pinia-Instanz, Store liest localStorage
 function restart() {

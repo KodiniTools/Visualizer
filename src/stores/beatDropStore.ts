@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+export type BeatDropSource = 'bass' | 'mid' | 'treble' | 'volume' | 'dynamic'
+
 export const useBeatDropStore = defineStore('beatDrop', () => {
   const enabled = ref(false)
-  const source = ref('bass') // bass | mid | treble | volume | dynamic
+  const source = ref<BeatDropSource>('bass')
 
   // Flash
   const flashEnabled = ref(true)

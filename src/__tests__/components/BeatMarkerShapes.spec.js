@@ -5,7 +5,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useBeatMarkers } from '../../composables/useBeatMarkers.js'
 import { usePlayerStore } from '../../stores/playerStore.js'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
-import { useMarkerTransitionStore } from '../../stores/markerTransitionStore.js'
+import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
 import { useShapeStore } from '../../stores/shapeStore.js'
 
 const Host = defineComponent({

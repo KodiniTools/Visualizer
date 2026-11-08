@@ -6,7 +6,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import ToastContainer from '../../components/ToastContainer.vue'
-import { useToastStore } from '../../stores/toastStore.js'
+import { useToastStore } from '../../stores/toastStore'
 import de from '../../lib/i18n/de.js'
 
 let wrapper

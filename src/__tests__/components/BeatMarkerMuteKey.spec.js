@@ -9,7 +9,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useBeatMarkers } from '../../composables/useBeatMarkers.js'
 import { usePlayerStore } from '../../stores/playerStore.js'
-import { useMarkerTransitionStore } from '../../stores/markerTransitionStore.js'
+import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
 import { KeyboardShortcuts } from '../../lib/keyboardShortcuts.js'
 
 const openMarkers = vi.fn()

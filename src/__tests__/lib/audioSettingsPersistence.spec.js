@@ -7,8 +7,8 @@ import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { usePlayerStore } from '../../stores/playerStore.js'
 import { useAudioSourceStore } from '../../stores/audioSourceStore.js'
-import { useAudioFxStore } from '../../stores/audioFxStore.js'
-import { useBeatDropStore } from '../../stores/beatDropStore.js'
+import { useAudioFxStore } from '../../stores/audioFxStore'
+import { useBeatDropStore } from '../../stores/beatDropStore'
 import {
   setupAudioSettingsPersistence,
   AUDIO_STORAGE_KEYS,

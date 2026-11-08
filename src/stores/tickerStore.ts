@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { ref, watch, type Ref } from 'vue'
 import {
   assignAudioReactiveConfig,
   createTickerAudioReactiveConfig,
@@ -18,7 +18,44 @@ import {
 const STORAGE_KEY = 'visualizer_ticker_settings'
 
 // Standardwerte aller Einstellungen (Basis für Persistenz-Fallback und Reset).
-const DEFAULTS = {
+export type TickerDirection = 'left' | 'right' | 'up' | 'down'
+export type TickerReactMode = 'tempo' | 'scale' | 'glow' | 'shake' | 'opacity'
+
+export interface TickerSettings {
+  text: string
+  fontSize: number
+  fontFamily: string
+  bold: boolean
+  letterSpacing: number
+  color: string
+  strokeEnabled: boolean
+  strokeColor: string
+  strokeWidth: number
+  shadowEnabled: boolean
+  shadowColor: string
+  shadowBlur: number
+  bgColor: string
+  bgOpacity: number
+  speed: number
+  direction: TickerDirection
+  positionY: number
+  audioReactive: boolean
+  reactMode: TickerReactMode
+  beatIntensity: number
+  audioLevel: number
+}
+
+type TickerSettingKey = keyof TickerSettings
+type TickerFields = { [K in TickerSettingKey]: Ref<TickerSettings[K]> }
+
+/** Gespeicherter Stand: aktuelle Felder plus Altlasten (position) und audioFx. */
+type SavedTickerSettings = Partial<TickerSettings> & {
+  position?: string
+  audioFx?: object
+  [key: string]: unknown
+}
+
+const DEFAULTS: TickerSettings = {
   text: 'Willkommen beim KodiniTools Visualizer  •  ',
   fontSize: 48, // px
   fontFamily: 'Arial',
@@ -46,7 +83,9 @@ const DEFAULTS = {
 
 // Zuordnung der Einstellungen zu den klappbaren Panel-Sektionen (für die
 // sektionsweisen Reset-Buttons).
-const SECTION_KEYS = {
+export type TickerSection = 'text' | 'outline' | 'background' | 'motion' | 'audio'
+
+const SECTION_KEYS: Record<TickerSection, TickerSettingKey[]> = {
   text: ['text', 'fontFamily', 'bold', 'letterSpacing', 'fontSize', 'color'],
   outline: [
     'strokeEnabled',
@@ -61,7 +100,7 @@ const SECTION_KEYS = {
   audio: ['audioReactive', 'reactMode', 'beatIntensity', 'audioLevel'],
 }
 
-function loadSaved() {
+function loadSaved(): SavedTickerSettings | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     return raw ? JSON.parse(raw) : null
@@ -82,10 +121,13 @@ export const useTickerStore = defineStore('ticker', () => {
 
   // Alle persistierten Einstellungen als Ref, initialisiert aus dem Gespeicherten
   // (Fallback = Standardwert).
-  const fields = {}
-  for (const key of Object.keys(DEFAULTS)) {
-    fields[key] = ref(saved[key] ?? DEFAULTS[key])
+  const fields = {} as TickerFields
+  const initField = <K extends TickerSettingKey>(key: K) => {
+    const value = (saved[key] as TickerSettings[K] | undefined) ?? DEFAULTS[key]
+    const target = fields as Record<K, Ref<TickerSettings[K]>>
+    target[key] = ref(value) as Ref<TickerSettings[K]>
   }
+  for (const key of Object.keys(DEFAULTS) as TickerSettingKey[]) initField(key)
   // Migration vom alten 'position'-Feld (top/bottom) auf positionY.
   if (saved.positionY == null && saved.position === 'top') {
     fields.positionY.value = 0
@@ -99,7 +141,7 @@ export const useTickerStore = defineStore('ticker', () => {
       ? mergeAudioFx(saved.audioFx)
       : migrateLegacyTickerAudio({ ...saved, audioReactive: fields.audioReactive.value }),
   )
-  function mergeAudioFx(savedFx) {
+  function mergeAudioFx(savedFx: object) {
     const base = createTickerAudioReactiveConfig()
     assignAudioReactiveConfig(base, savedFx)
     return base
@@ -111,10 +153,13 @@ export const useTickerStore = defineStore('ticker', () => {
   })
 
   // Setzt alle Einstellungen einer Sektion auf ihre Standardwerte zurück.
-  function resetSection(name) {
-    const keys = SECTION_KEYS[name]
+  function resetSection(name: TickerSection | string) {
+    const keys = SECTION_KEYS[name as TickerSection] as TickerSettingKey[] | undefined
     if (!keys) return
-    for (const key of keys) fields[key].value = DEFAULTS[key]
+    const resetField = <K extends TickerSettingKey>(key: K) => {
+      fields[key].value = DEFAULTS[key]
+    }
+    for (const key of keys) resetField(key)
     if (name === 'audio') {
       // In-place zurücksetzen, damit Renderer/Panel dieselbe Objektidentität behalten
       assignAudioReactiveConfig(audioFx.value, createTickerAudioReactiveConfig())
@@ -127,7 +172,7 @@ export const useTickerStore = defineStore('ticker', () => {
     [enabled, audioFx, ...Object.values(fields)],
     () => {
       try {
-        const data = { enabled: enabled.value, audioFx: audioFx.value }
+        const data: Record<string, unknown> = { enabled: enabled.value, audioFx: audioFx.value }
         for (const [key, r] of Object.entries(fields)) data[key] = r.value
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
       } catch {

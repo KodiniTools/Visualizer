@@ -128,7 +128,7 @@
 <script setup>
 import { ref, inject, nextTick, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
-import { useToastStore } from '../../stores/toastStore.js'
+import { useToastStore } from '../../stores/toastStore'
 import { useNewTextSettings } from '../../composables/useNewTextSettings.js'
 import { buildAnimationConfig } from './text-new-form/buildAnimation.js'
 import TextStyleSection from './text-new-form/TextStyleSection.vue'

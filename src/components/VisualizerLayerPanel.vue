@@ -397,7 +397,7 @@ import { useI18n } from '../lib/i18n.js'
 import { localizedName } from '../lib/localizedName.js'
 import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../stores/visualizerStore.js'
 import { useLayerPresetStore } from '../stores/layerPresetStore.js'
-import { useToastStore } from '../stores/toastStore.js'
+import { useToastStore } from '../stores/toastStore'
 import { Visualizers } from '../lib/visualizers/index.js'
 
 const { t, locale } = useI18n()

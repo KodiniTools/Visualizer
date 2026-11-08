@@ -1,6 +1,11 @@
-// src/stores/backgroundBridgeStore.js
+// src/stores/backgroundBridgeStore.ts
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+
+/** Serialisierbarer Hintergrund-Snapshot aus useBgSettings. */
+export type BackgroundSnapshot = Record<string, unknown>
+export type BackgroundCaptureFn = () => BackgroundSnapshot | null
+export type BackgroundApplyFn = (snapshot: BackgroundSnapshot) => void
 
 /**
  * Background-Bridge Store
@@ -16,24 +21,27 @@ import { ref } from 'vue'
  * diesen Store, ohne die Composable-Instanz direkt zu benötigen.
  */
 export const useBackgroundBridgeStore = defineStore('backgroundBridge', () => {
-  const captureFn = ref(null)
-  const applyFn = ref(null)
+  const captureFn = ref<BackgroundCaptureFn | null>(null)
+  const applyFn = ref<BackgroundApplyFn | null>(null)
 
   /**
    * Registriert die Capture-/Apply-Funktionen aus useBgSettings.
-   * @param {(() => object) | null} capture - liefert einen Hintergrund-Snapshot
-   * @param {((snapshot: object) => void) | null} apply - wendet einen Snapshot an
+   * @param capture - liefert einen Hintergrund-Snapshot
+   * @param apply - wendet einen Snapshot an
    */
-  function register(capture, apply) {
+  function register(
+    capture: BackgroundCaptureFn | null | undefined,
+    apply: BackgroundApplyFn | null | undefined,
+  ) {
     captureFn.value = capture || null
     applyFn.value = apply || null
   }
 
   /**
    * Erfasst den aktuellen Hintergrund als serialisierbaren Snapshot.
-   * @returns {object|null} Snapshot oder null, wenn nicht verfügbar
+   * @returns Snapshot oder null, wenn nicht verfügbar
    */
-  function captureSnapshot() {
+  function captureSnapshot(): BackgroundSnapshot | null {
     if (!captureFn.value) {
       console.warn('⚠️ [BackgroundBridge] Kein Capture-Handler registriert')
       return null
@@ -48,9 +56,8 @@ export const useBackgroundBridgeStore = defineStore('backgroundBridge', () => {
 
   /**
    * Wendet einen zuvor erfassten Hintergrund-Snapshot an.
-   * @param {object} snapshot
    */
-  function applySnapshot(snapshot) {
+  function applySnapshot(snapshot: BackgroundSnapshot | null | undefined) {
     if (!snapshot) return
     if (!applyFn.value) {
       console.warn('⚠️ [BackgroundBridge] Kein Apply-Handler registriert')
@@ -66,7 +73,7 @@ export const useBackgroundBridgeStore = defineStore('backgroundBridge', () => {
   /**
    * Ob die Bridge bereit ist (Handler registriert).
    */
-  function isReady() {
+  function isReady(): boolean {
     return !!captureFn.value
   }
 

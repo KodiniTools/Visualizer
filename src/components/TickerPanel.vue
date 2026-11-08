@@ -225,7 +225,7 @@ import UiSelect from './ui/UiSelect.vue'
 import UiSwitch from './ui/UiSwitch.vue'
 import UiTextField from './ui/UiTextField.vue'
 import { useI18n } from '../lib/i18n.js'
-import { useTickerStore } from '../stores/tickerStore.js'
+import { useTickerStore } from '../stores/tickerStore'
 
 const { t } = useI18n()
 const ticker = useTickerStore()

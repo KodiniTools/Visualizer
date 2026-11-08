@@ -3,8 +3,8 @@ import { defineComponent, ref, nextTick, h } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useBgSettings } from '../../composables/useBgSettings.js'
-import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore.js'
-import { useTickerStore } from '../../stores/tickerStore.js'
+import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore'
+import { useTickerStore } from '../../stores/tickerStore'
 import { AUDIO_REACTIVE_PRESETS } from '../../lib/audio/audioReactiveConfig.js'
 
 /**

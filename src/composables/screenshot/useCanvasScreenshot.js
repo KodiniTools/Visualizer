@@ -2,7 +2,7 @@
 // Format/Qualität, Aufnahme, Vorschau-Metadaten und Freigabe der Blob-URL.
 import { ref, computed, onBeforeUnmount } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
-import { useToastStore } from '../../stores/toastStore.js'
+import { useToastStore } from '../../stores/toastStore'
 import { getCanvasScreenshot } from '../../lib/canvasScreenshotBridge.js'
 
 export const SCREENSHOT_FORMATS = [

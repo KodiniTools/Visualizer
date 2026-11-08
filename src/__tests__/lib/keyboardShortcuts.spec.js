@@ -363,7 +363,7 @@ describe('KeyboardShortcuts – Aktionen', () => {
 
   it('Taste G schaltet das Raster des echten Grid-Stores um', async () => {
     const { setActivePinia, createPinia } = await import('pinia')
-    const { useGridStore } = await import('../../stores/gridStore.js')
+    const { useGridStore } = await import('../../stores/gridStore')
     setActivePinia(createPinia())
     const gridStore = useGridStore()
     const before = gridStore.isVisible

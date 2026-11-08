@@ -7,7 +7,7 @@ import ShapeAudioReactive from '../../components/shapes/ShapeAudioReactive.vue'
 import TickerAudioReactive from '../../components/ticker/TickerAudioReactive.vue'
 import VideoAudioReactive from '../../components/video-panel/VideoAudioReactive.vue'
 import { useShapeStore } from '../../stores/shapeStore.js'
-import { useTickerStore } from '../../stores/tickerStore.js'
+import { useTickerStore } from '../../stores/tickerStore'
 import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 import { historyApplyRevision } from '../../lib/history/historyRecorder.js'
 

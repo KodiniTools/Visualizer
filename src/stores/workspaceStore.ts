@@ -1,9 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+export interface SocialMediaPreset {
+  name: string
+}
+
 // Diese Presets sind direkt aus deinem canvasManager.js übernommen.
 // Sie hier zu haben, entkoppelt die UI von der Canvas-Logik.
-const socialMediaPresets = {
+const socialMediaPresets: Record<string, SocialMediaPreset> = {
   tiktok: { name: 'TikTok (9:16)' },
   'instagram-story': { name: 'Instagram Story (9:16)' },
   'instagram-post': { name: 'Instagram Post (1:1)' },
@@ -18,11 +22,11 @@ const socialMediaPresets = {
 export const useWorkspaceStore = defineStore('workspace', () => {
   // Zustand (State)
   const presets = ref(socialMediaPresets)
-  const selectedPresetKey = ref(null) // 'null' bedeutet "kein Preset ausgewählt"
+  const selectedPresetKey = ref<string | null>(null) // 'null' bedeutet "kein Preset ausgewählt"
 
   // Aktionen (Actions)
   // Diese Funktion wird nicht direkt aufgerufen, sondern durch v-model im Dropdown.
-  function setPreset(key) {
+  function setPreset(key: string | null) {
     selectedPresetKey.value = key
   }
 

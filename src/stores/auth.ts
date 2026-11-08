@@ -11,7 +11,7 @@ import { ref, computed } from 'vue'
 
 // Basis-URL der API. In Entwicklung wird direkt gegen die Produktion getestet,
 // in Produktion läuft alles über den relativen NGINX-Pfad /visualizer/api.
-const getApiBase = () => {
+const getApiBase = (): string => {
   const isDevelopment =
     typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
@@ -28,11 +28,22 @@ const MOCK_CREDENTIALS = {
   password: 'Onomatopeja_1357',
 }
 
+export interface AuthUser {
+  username: string
+  role: string
+  [key: string]: unknown
+}
+
+export interface LoginResult {
+  success: boolean
+  error?: string
+}
+
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('visualizer_auth_token') || null)
+  const token = ref<string | null>(localStorage.getItem('visualizer_auth_token') || null)
 
   // User-Objekt sicher aus localStorage parsen
-  let parsedUser = null
+  let parsedUser: AuthUser | null = null
   try {
     const userStr = localStorage.getItem('visualizer_auth_user')
     if (userStr && userStr !== 'undefined' && userStr !== 'null') {
@@ -42,7 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
     console.warn('[Auth] User aus localStorage nicht lesbar:', e)
     localStorage.removeItem('visualizer_auth_user')
   }
-  const user = ref(parsedUser)
+  const user = ref<AuthUser | null>(parsedUser)
 
   const isAuthenticated = computed(() => !!token.value)
   const isAdmin = computed(() => isAuthenticated.value)
@@ -62,7 +73,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Login: erst echtes Backend, dann Mock-Fallback.
   // Gibt { success, error } zurück (wirft nicht).
-  const login = async (password) => {
+  const login = async (password: string): Promise<LoginResult> => {
     try {
       const response = await fetch(`${getApiBase()}/login`, {
         method: 'POST',
@@ -79,7 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = data.user || { username: 'Kodini', role: 'admin' }
       persist()
       return { success: true }
-    } catch (error) {
+    } catch {
       // Fallback: Mock-Login, wenn das Backend nicht verfügbar ist
       console.warn('[Auth] Backend nicht verfügbar – verwende Mock-Login')
 
@@ -93,7 +104,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     // Best effort: Session auch serverseitig entfernen
     try {
       if (token.value && !token.value.startsWith('mock-token-')) {
@@ -102,7 +113,7 @@ export const useAuthStore = defineStore('auth', () => {
           headers: getAuthHeaders(),
         })
       }
-    } catch (e) {
+    } catch {
       // ignorieren – lokaler Logout reicht
     }
     token.value = null
@@ -110,7 +121,7 @@ export const useAuthStore = defineStore('auth', () => {
     persist()
   }
 
-  const getAuthHeaders = () => ({
+  const getAuthHeaders = (): Record<string, string> => ({
     'Content-Type': 'application/json',
     Authorization: token.value ? `Bearer ${token.value}` : '',
   })

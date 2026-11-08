@@ -43,6 +43,8 @@ export interface HistoryImageObject extends FotoSettingsTarget {
   relHeight?: number
   settings?: Loose | null
   animation?: { active?: boolean } | null
+  /** Animationen wie bei Texten (canvasObjects/imageAnimation) */
+  timedAnimation?: Loose | null
   isSlideshowImage?: boolean
 }
 
@@ -94,6 +96,7 @@ interface ImageSnapshot {
   relHeight?: number
   settings: Loose | null
   fotoSettings: Loose | null
+  timedAnimation: Loose | null
 }
 
 interface VideoSnapshot {
@@ -286,6 +289,7 @@ function captureImage(img: HistoryImageObject): ImageSnapshot {
     relHeight: img.relHeight,
     settings: clone(img.settings ?? null),
     fotoSettings: cleanFotoSettings(img.fotoSettings),
+    timedAnimation: clone(img.timedAnimation ?? null),
   }
 }
 
@@ -341,6 +345,10 @@ export function createImagesSegment(
           else obj.settings = clone(snap.settings)
         }
         applyFotoSettings(obj, snap.fotoSettings)
+        // Laufzeit-Zustand (Startzeiten) hängt am Objekt und bleibt erhalten
+        if (!snap.timedAnimation) delete obj.timedAnimation
+        else if (obj.timedAnimation) assignDeep(obj.timedAnimation, snap.timedAnimation)
+        else obj.timedAnimation = clone(snap.timedAnimation)
         // Eintritts-Animation eines wiederhergestellten Bildes nicht erneut abspielen
         if (obj.animation?.active) obj.animation.active = false
         pool.set(obj.id, obj)

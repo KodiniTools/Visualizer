@@ -24,6 +24,7 @@ interface PlacedObject {
 
 interface CanvasImage extends PlacedObject {
   imageObject?: HTMLImageElement | null
+  timedAnimation?: Loose | null
 }
 
 interface CanvasVideo extends PlacedObject {
@@ -44,6 +45,8 @@ export interface CapturedImage {
   rotation: number
   settings: Loose | null
   fotoSettings: Loose | null
+  /** nur Bilder: Animationen wie bei Texten (canvasObjects/imageAnimation) */
+  timedAnimation?: Loose | null
 }
 
 export interface CapturedVideo extends CapturedImage {
@@ -111,6 +114,7 @@ function captureCanvasImages(cm: MaybeCm): CapturedImage[] {
       rotation: img.rotation || 0,
       settings: deepClone(img.settings),
       fotoSettings: deepClone(img.fotoSettings),
+      ...(img.timedAnimation ? { timedAnimation: deepClone(img.timedAnimation) } : {}),
     }))
     .filter((i) => i.src)
 }
@@ -218,6 +222,7 @@ function restoreCanvasImages(cm: MaybeCm, list: unknown) {
         rotation: data.rotation || 0,
         settings: deepClone(data.settings) || { ...DEFAULT_IMAGE_SETTINGS },
       }
+      if (data.timedAnimation) imageData.timedAnimation = deepClone(data.timedAnimation)
       if (data.fotoSettings) {
         imageData.fotoSettings = deepClone(data.fotoSettings)
       } else if (mgr.fotoManager) {

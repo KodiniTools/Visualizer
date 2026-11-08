@@ -1,8 +1,11 @@
+import { cloneImageAnimation, type ImageTimedAnimation } from './canvasObjects/imageAnimation'
+
 /**
  * Bild-Einstellungen dauerhaft speichern (localStorage):
  * - Platzierung neuer Bilder: Einblend-Animation, Dauer, Größe, Versatz
  *   (eigene Bilder und Stock-Galerie getrennt – zwei eigene Bereiche)
  * - „Seitenverhältnis beibehalten“ der Positions-/Größenregler
+ * - Animationen wie bei Texten für neu hinzugefügte eigene Bilder
  * Beim Laden wird jeder Wert geprüft; ungültig/beschädigt → Standard.
  */
 export const PLACEMENT_KEYS = Object.freeze({
@@ -10,6 +13,7 @@ export const PLACEMENT_KEYS = Object.freeze({
   stock: 'visualizer-stock-placement',
 })
 export const KEEP_ASPECT_KEY = 'visualizer-image-keep-aspect'
+export const IMAGE_ANIMATION_KEY = 'visualizer-image-animation'
 
 export const PLACEMENT_ANIMATIONS = Object.freeze([
   'none',
@@ -107,4 +111,13 @@ export function loadKeepAspect(): boolean {
 
 export function saveKeepAspect(value: unknown): boolean {
   return write(KEEP_ASPECT_KEY, !!value)
+}
+
+/** Animationen für neue eigene Bilder (fehlende/ungültige Daten → alle aus). */
+export function loadImageAnimation(): ImageTimedAnimation {
+  return cloneImageAnimation(read(IMAGE_ANIMATION_KEY))
+}
+
+export function saveImageAnimation(value: unknown): boolean {
+  return write(IMAGE_ANIMATION_KEY, cloneImageAnimation(value))
 }

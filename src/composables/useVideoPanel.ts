@@ -13,6 +13,7 @@ import { useCanvasVideos, type VideoManagerRef } from './videoPanel/useCanvasVid
 import { useBackgroundVideo } from './videoPanel/useBackgroundVideo'
 import type { CanvasManager } from '../lib/canvasManager'
 import type { CanvasManagerRef } from './types'
+import { isReleasedMedia } from '../lib/mediaElements'
 
 /** Optionen für setBackgroundFromGallery */
 interface BackgroundFromGalleryOptions {
@@ -105,6 +106,7 @@ export function useVideoPanel() {
     }
 
     canvasVideo.onerror = () => {
+      if (isReleasedMedia(canvasVideo)) return
       console.error('❌ Fehler beim Laden des Videos für Canvas')
     }
 
@@ -148,6 +150,7 @@ export function useVideoPanel() {
     }
 
     video.onerror = () => {
+      if (isReleasedMedia(video)) return
       console.error(`❌ Fehler beim Laden des ${errorLabel}`)
     }
 

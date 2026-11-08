@@ -203,7 +203,7 @@ function addImagesFromData(images: GalleryImageData[] | null | undefined): Promi
 // Bild aus Galerie auswählen (mit Mehrfachauswahl-Unterstützung)
 function selectImage(
   index: number,
-  event: Pick<MouseEvent, 'shiftKey' | 'ctrlKey' | 'metaKey'> | null = null,
+  event: Partial<Pick<MouseEvent, 'shiftKey' | 'ctrlKey' | 'metaKey'>> | null = null,
 ) {
   const shiftKey = event?.shiftKey || false
   const ctrlKey = event?.ctrlKey || event?.metaKey || false

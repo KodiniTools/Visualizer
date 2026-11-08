@@ -1,10 +1,52 @@
-import { ref, watch } from 'vue'
+import { ref, watch, type Ref } from 'vue'
+import type { GalleryImage, useImageGallery } from '../../composables/useImageGallery'
+import type { CanvasManagerRef, TranslateFn } from '../../composables/types'
+import type { MultiImageManager } from '../../lib/multiImageManager'
+import type { ImageSelectionAreaBounds } from '../../lib/canvasManager/interaction/SelectionManager'
+import type { useToastStore } from '../../stores/toastStore'
 import {
   loadImageAnimation,
   loadPlacementSettings,
   saveImageAnimation,
   savePlacementSettings,
+  type PlacementSettings,
 } from '../../lib/imagePlacementSettings'
+
+type ImageGallery = ReturnType<typeof useImageGallery>
+
+/** Abhängigkeiten von useImagePlacement */
+export interface ImagePlacementDeps {
+  multiImageManagerRef: Ref<MultiImageManager | null | undefined> | undefined
+  canvasManagerRef: CanvasManagerRef | undefined
+  gallery: Pick<
+    ImageGallery,
+    | 'imageGallery'
+    | 'selectedImages'
+    | 'selectedImageCount'
+    | 'deselectAllImages'
+    | 'handleImageUpload'
+    | 'clearAllImages'
+  >
+  toastStore: Pick<ReturnType<typeof useToastStore>, 'success' | 'error' | 'warning'>
+  t: TranslateFn
+}
+
+/** Datei-Auswahl (change-Event) oder per Strg+V eingefügte Bilder */
+export type UploadEvent = Event | { target: { files: File[] } }
+
+/** Nutzlast beim Ziehen eines Galerie-Bildes auf den Canvas */
+export interface GalleryDragPayload {
+  imgData: GalleryImage
+  event: DragEvent
+}
+
+/** Vorschau eines eigenen Galerie-Bildes (ImagePreviewOverlay) */
+export interface UploadedPreview {
+  src: string
+  name: string
+  type: 'uploaded'
+  data: GalleryImage
+}
 
 /**
  * Eigene Galerie-Bilder auf den Canvas bringen: direkt, per Bereichsauswahl
@@ -24,7 +66,7 @@ export function useImagePlacement({
   gallery,
   toastStore,
   t,
-}) {
+}: ImagePlacementDeps) {
   const { imageGallery, selectedImages, selectedImageCount, deselectAllImages } = gallery
 
   // Platzierungs-Einstellungen (dauerhaft gespeichert)
@@ -51,24 +93,25 @@ export function useImagePlacement({
 
   // Bereichsauswahl-Modus
   const isInRangeSelectionMode = ref(false)
-  const pendingRangeSelectionImage = ref(null)
+  const pendingRangeSelectionImage = ref<HTMLImageElement | null>(null)
 
   // Bild-Vorschau
-  const previewImage = ref(null)
+  const previewImage = ref<UploadedPreview | null>(null)
 
   /** Genau ein ausgewähltes Galerie-Bild (sonst null). */
-  function singleSelection() {
+  function singleSelection(): GalleryImage | null {
     if (selectedImageCount.value !== 1) return null
     return selectedImages.value[0] || null
   }
 
   // ─── Galerie ────────────────────────────────────────────────────────────
 
-  function handleImageUpload(event) {
+  function handleImageUpload(event: UploadEvent) {
     gallery.handleImageUpload(
-      event,
+      // handleImageUpload liest nur target.files (FileList oder Array)
+      event as Event,
       () => toastStore.success(t('toast.imageLoadSuccess')),
-      (name) => toastStore.error(`${t('toast.imageLoadError')}: ${name}`),
+      (name: string) => toastStore.error(`${t('toast.imageLoadError')}: ${name}`),
     )
   }
 
@@ -90,7 +133,9 @@ export function useImagePlacement({
     })
 
     console.log(`✅ ${imagesToAdd.length} Bild(er) auf Canvas platziert`)
-    toastStore.success(t('toast.imagesAddedToCanvas').replace('{count}', imagesToAdd.length))
+    toastStore.success(
+      t('toast.imagesAddedToCanvas').replace('{count}', String(imagesToAdd.length)),
+    )
     deselectAllImages()
   }
 
@@ -118,7 +163,7 @@ export function useImagePlacement({
     }
   }
 
-  function updatePlacementSettings(settings) {
+  function updatePlacementSettings(settings: PlacementSettings) {
     selectedAnimation.value = settings.selectedAnimation
     animationDuration.value = settings.animationDuration
     imageScale.value = settings.imageScale
@@ -141,7 +186,7 @@ export function useImagePlacement({
     console.log('📐 Bereichsauswahl-Modus gestartet für hochgeladenes Bild:', imgData.name)
   }
 
-  function handleRangeSelectionComplete(bounds) {
+  function handleRangeSelectionComplete(bounds: ImageSelectionAreaBounds | null | undefined) {
     if (!bounds || !pendingRangeSelectionImage.value) {
       isInRangeSelectionMode.value = false
       pendingRangeSelectionImage.value = null
@@ -213,7 +258,7 @@ export function useImagePlacement({
 
   // ─── Vorschau ───────────────────────────────────────────────────────────
 
-  function openUploadedPreview(imgData) {
+  function openUploadedPreview(imgData: GalleryImage) {
     previewImage.value = {
       src: imgData.img.src,
       name: imgData.name,

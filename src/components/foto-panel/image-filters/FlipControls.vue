@@ -24,12 +24,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n'
+import type { ImageFilterContext } from './imageFilterContext'
 
 const { t } = useI18n()
-const ifc = inject('imageFilterControls')
+const ifc = inject('imageFilterControls') as ImageFilterContext
 const { flipHRef, flipVRef, onSliderStart, onFlipHorizontal, onFlipVertical } = ifc
 </script>
 

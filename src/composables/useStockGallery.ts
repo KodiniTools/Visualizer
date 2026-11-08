@@ -24,7 +24,7 @@ export interface StockImage {
 }
 
 /** Zusatztasten für die Mehrfachauswahl */
-export type SelectModifiers = Pick<MouseEvent, 'shiftKey' | 'ctrlKey' | 'metaKey'>
+export type SelectModifiers = Partial<Pick<MouseEvent, 'shiftKey' | 'ctrlKey' | 'metaKey'>>
 
 // Fallback-Kategorien falls JSON nicht lädt
 const FALLBACK_CATEGORIES: StockCategory[] = [

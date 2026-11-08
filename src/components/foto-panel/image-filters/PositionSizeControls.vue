@@ -26,7 +26,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Position- und Größenregler für ein normales Canvas-Bild (Slider + Spinner).
  * - Position = Mittelpunkt in % der Canvas (0–100, ↺ = Mitte)
@@ -47,18 +47,33 @@ import {
   getDefaultImageSize,
   isValidBounds,
 } from '../../../lib/imageBoundsControls'
+import type { ImageBoundsApi } from './imageFilterContext'
 
-const props = defineProps({
-  // Ausgewähltes Canvas-Bild ({ relX, relY, relWidth, relHeight, imageObject })
-  image: { type: Object, required: true },
-  // { getCanvas(): HTMLCanvasElement|null, redraw(): void } – optional
-  api: { type: Object, default: null },
-})
+/** Bild mit relativen Bounds (Canvas-Bild) */
+interface PositionSizeImage {
+  relX?: number
+  relY?: number
+  relWidth?: number
+  relHeight?: number
+  imageObject?: HTMLImageElement | null
+}
+
+type Axis = 'x' | 'y' | 'width' | 'height'
+
+const props = withDefaults(
+  defineProps<{
+    /** Ausgewähltes Canvas-Bild ({ relX, relY, relWidth, relHeight, imageObject }) */
+    image: PositionSizeImage
+    /** { getCanvas(): HTMLCanvasElement|null, redraw(): void } – optional */
+    api?: ImageBoundsApi | null
+  }>(),
+  { api: null },
+)
 
 const { t } = useI18n()
 
-const AXES = ['x', 'y', 'width', 'height']
-const LABELS = {
+const AXES: readonly Axis[] = ['x', 'y', 'width', 'height']
+const LABELS: Record<Axis, string> = {
   x: 'foto.positionX',
   y: 'foto.positionY',
   width: 'foto.imageWidth',
@@ -69,7 +84,7 @@ const LABELS = {
 const keepAspect = ref(loadKeepAspect()) // dauerhaft gespeichert
 watch(keepAspect, saveKeepAspect)
 // Angezeigte Werte (relativ 0–1)
-const values = reactive({ x: 0.5, y: 0.5, width: 1 / 3, height: 1 / 3 })
+const values = reactive<Record<Axis, number>>({ x: 0.5, y: 0.5, width: 1 / 3, height: 1 / 3 })
 
 function rawImage() {
   return toRaw(props.image)
@@ -87,7 +102,7 @@ function readBounds() {
 function sync() {
   const b = readBounds()
   if (!b) return
-  const c = getBoundsCenter(b)
+  const c = getBoundsCenter(b) as { x: number; y: number } // b ist gültig
   if (values.x !== c.x) values.x = c.x
   if (values.y !== c.y) values.y = c.y
   if (values.width !== b.relWidth) values.width = b.relWidth
@@ -95,19 +110,19 @@ function sync() {
 }
 
 /** Relativ (0–1) → Prozent mit einer Nachkommastelle. */
-function percent(value) {
+function percent(value: number) {
   return Number.isFinite(value) ? Math.round(value * 1000) / 10 : 0
 }
 
-function defaultPercent(axis) {
+function defaultPercent(axis: Axis) {
   if (axis === 'x' || axis === 'y') return 50
   const size = getDefaultImageSize(rawImage()?.imageObject, props.api?.getCanvas?.())
   return size ? percent(size[axis]) : undefined
 }
 
 /** Regler-Wert (Prozent) → Bounds des Bildes setzen. */
-function onChange(axis, value) {
-  const p = parseFloat(value)
+function onChange(axis: Axis, value: unknown) {
+  const p = parseFloat(value as string)
   const base = readBounds()
   if (!Number.isFinite(p) || !base) return
   const rel = p / 100
@@ -124,7 +139,7 @@ function onChange(axis, value) {
 watch(() => props.image, sync, { immediate: true })
 
 // Maus-Verschieben/-Skalieren und Undo ändern das Bild außerhalb von Vue
-let frame = null
+let frame: number | null = null
 function loop() {
   sync()
   frame = requestAnimationFrame(loop)

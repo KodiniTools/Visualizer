@@ -142,86 +142,69 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { localizedName } from '../../lib/localizedName'
 import { UiButton, UiCallout, UiSegmentedControl } from '../ui'
 import PlacementSettings from './PlacementSettings.vue'
+import type { SelectModifiers, StockCategory, StockImage } from '../../composables/useStockGallery'
+import type { PlacementSettings as PlacementSettingsValue } from '../../lib/imagePlacementSettings'
+
+/** Kategorie mit (optional bekannter) Bildanzahl */
+type StockCategoryWithCount = StockCategory & { count?: number }
 
 const { t, locale } = useI18n()
 
-const props = defineProps({
-  stockCategories: {
-    type: Array,
-    default: () => [],
+const props = withDefaults(
+  defineProps<{
+    stockCategories?: StockCategoryWithCount[]
+    filteredStockImages?: StockImage[]
+    selectedStockCategory?: string
+    selectedStockImages?: Set<string>
+    selectedStockCount?: number
+    stockImagesLoading?: boolean
+    categoryLoading?: boolean
+    selectedAnimation?: string
+    animationDuration?: number
+    imageScale?: number
+    imageOffsetX?: number
+    imageOffsetY?: number
+    isInRangeSelectionMode?: boolean
+  }>(),
+  {
+    stockCategories: () => [],
+    filteredStockImages: () => [],
+    selectedStockCategory: 'backgrounds',
+    selectedStockImages: () => new Set(),
+    selectedStockCount: 0,
+    stockImagesLoading: false,
+    categoryLoading: false,
+    selectedAnimation: 'none',
+    animationDuration: 1000,
+    imageScale: 1,
+    imageOffsetX: 0,
+    imageOffsetY: 0,
+    isInRangeSelectionMode: false,
   },
-  filteredStockImages: {
-    type: Array,
-    default: () => [],
-  },
-  selectedStockCategory: {
-    type: String,
-    default: 'backgrounds',
-  },
-  selectedStockImages: {
-    type: Set,
-    default: () => new Set(),
-  },
-  selectedStockCount: {
-    type: Number,
-    default: 0,
-  },
-  stockImagesLoading: {
-    type: Boolean,
-    default: false,
-  },
-  categoryLoading: {
-    type: Boolean,
-    default: false,
-  },
-  selectedAnimation: {
-    type: String,
-    default: 'none',
-  },
-  animationDuration: {
-    type: Number,
-    default: 1000,
-  },
-  imageScale: {
-    type: Number,
-    default: 1,
-  },
-  imageOffsetX: {
-    type: Number,
-    default: 0,
-  },
-  imageOffsetY: {
-    type: Number,
-    default: 0,
-  },
-  isInRangeSelectionMode: {
-    type: Boolean,
-    default: false,
-  },
-})
+)
 
-const emit = defineEmits([
-  'select-category',
-  'select-image',
-  'open-preview',
-  'select-all',
-  'deselect-all',
-  'add-to-canvas',
-  'set-as-background',
-  'set-as-workspace-background',
-  'start-range-selection',
-  'add-directly',
-  'retry-load',
-  'update:placement-settings',
-  'image-dragstart',
-  'image-dragend',
-])
+const emit = defineEmits<{
+  'select-category': [categoryId: string]
+  'select-image': [img: StockImage, event: SelectModifiers]
+  'open-preview': [img: StockImage]
+  'select-all': []
+  'deselect-all': []
+  'add-to-canvas': []
+  'set-as-background': []
+  'set-as-workspace-background': []
+  'start-range-selection': []
+  'add-directly': []
+  'retry-load': []
+  'update:placement-settings': [settings: PlacementSettingsValue]
+  'image-dragstart': [payload: { img: StockImage; event: DragEvent }]
+  'image-dragend': []
+}>()
 
 /** Kategorien als Segmente: Symbol, Name und (falls bekannt) Anzahl. */
 const categoryOptions = computed(() =>
@@ -241,12 +224,12 @@ const placeLabel = computed(() =>
 )
 
 /** Checkbox: schaltet additiv um (wie Strg+Klick). */
-function toggleSelection(img) {
+function toggleSelection(img: StockImage) {
   emit('select-image', img, { ctrlKey: true })
 }
 
 // Function to get translated stock category name
-function getStockCategoryName(category) {
+function getStockCategoryName(category: StockCategory) {
   const translationKey = `foto.stockCategories.${category.id}`
   const translated = t(translationKey)
   if (translated !== translationKey) {

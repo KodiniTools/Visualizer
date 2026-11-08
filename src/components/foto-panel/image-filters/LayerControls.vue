@@ -47,15 +47,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Ebenen-Reihenfolge des aktiven Bildes und „Hinter Visualizer rendern“. */
 import { inject } from 'vue'
 import { useI18n } from '../../../lib/i18n'
+import type { ImageFilterContext } from './imageFilterContext'
 import UiButton from '../../ui/UiButton.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
 
 const { t } = useI18n()
-const ifc = inject('imageFilterControls')
+const ifc = inject('imageFilterControls') as ImageFilterContext
 const {
   currentLayerInfo,
   canMoveUp,

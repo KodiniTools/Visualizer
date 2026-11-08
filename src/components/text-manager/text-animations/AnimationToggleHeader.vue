@@ -24,18 +24,21 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Kopfzeile einer Animations-Sektion im Edit-Panel: Aktivieren/Deaktivieren + Neustart. */
 import UiButton from '../../ui/UiButton.vue'
 import { useI18n } from '../../../lib/i18n'
 
-defineProps({
-  label: { type: String, required: true },
-  enabled: { type: Boolean, default: false },
-  /** false blendet „Neu starten“ aus (z. B. Vorgaben für neue Bilder) */
-  restartable: { type: Boolean, default: true },
-})
-const emit = defineEmits(['toggle', 'restart'])
+withDefaults(
+  defineProps<{
+    label: string
+    enabled?: boolean
+    /** false blendet „Neu starten“ aus (z. B. Vorgaben für neue Bilder) */
+    restartable?: boolean
+  }>(),
+  { enabled: false, restartable: true },
+)
+const emit = defineEmits<{ toggle: []; restart: [] }>()
 const { t } = useI18n()
 </script>
 

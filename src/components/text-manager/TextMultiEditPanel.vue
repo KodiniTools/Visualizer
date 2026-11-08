@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="multi-header">
       <span class="multi-count">{{
-        t('textManager.multi.selectedCount').replace('{count}', texts.length)
+        t('textManager.multi.selectedCount').replace('{count}', String(texts.length))
       }}</span>
       <div class="multi-header-actions">
         <UiButton size="sm" :title="t('textManager.multi.selectAllTitle')" @click="selectAll">
@@ -130,13 +130,13 @@
     <!-- Alle löschen -->
     <div class="section">
       <UiButton size="sm" variant="danger" block @click="deleteAll">
-        {{ t('textManager.multi.deleteAll').replace('{count}', texts.length) }}
+        {{ t('textManager.multi.deleteAll').replace('{count}', String(texts.length)) }}
       </UiButton>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, inject, ref } from 'vue'
 import SliderField from '../ui/SliderField.vue'
 import ColorField from '../ui/ColorField.vue'
@@ -144,16 +144,17 @@ import UiButton from '../ui/UiButton.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
 import UiSelect from '../ui/UiSelect.vue'
 import { useI18n } from '../../lib/i18n'
+import type { CanvasManagerRef } from '../../composables/types'
+import type { TextObject } from '../../lib/textManager/types'
 
-const props = defineProps({
-  texts: { type: Array, required: true },
-  activeText: { type: Object, default: null },
+const props = withDefaults(defineProps<{ texts: TextObject[]; activeText?: TextObject | null }>(), {
+  activeText: null,
 })
 
-const emit = defineEmits(['clear'])
+const emit = defineEmits<{ clear: [] }>()
 
 const { t } = useI18n()
-const canvasManager = inject('canvasManager')
+const canvasManager = inject('canvasManager') as CanvasManagerRef
 
 const bulkColor = ref('#ffffff')
 const bulkFontSize = ref(48)
@@ -188,7 +189,7 @@ const ICON_ATTRS = {
   'stroke-linecap': 'round',
   'stroke-linejoin': 'round',
   'aria-hidden': 'true',
-}
+} as const
 
 const NUDGES = [
   { key: 'nudgeUp', dx: 0, dy: -0.01, path: 'm18 15-6-6-6 6' },
@@ -197,8 +198,11 @@ const NUDGES = [
   { key: 'nudgeDown', dx: 0, dy: 0.01, path: 'm6 9 6 6 6-6' },
 ]
 
-const rect = (x, y, width, height) => ({ tag: 'rect', attrs: { x, y, width, height, rx: 2 } })
-const path = (d) => ({ tag: 'path', attrs: { d } })
+const rect = (x: number, y: number, width: number, height: number) => ({
+  tag: 'rect',
+  attrs: { x, y, width, height, rx: 2 },
+})
+const path = (d: string) => ({ tag: 'path', attrs: { d } })
 
 const ALIGNS = [
   {
@@ -254,7 +258,7 @@ function applyFont() {
   redraw()
 }
 
-function nudge(dx, dy) {
+function nudge(dx: number, dy: number) {
   for (const text of props.texts) {
     text.relX += dx
     text.relY += dy
@@ -262,7 +266,7 @@ function nudge(dx, dy) {
   redraw()
 }
 
-function alignAll(direction) {
+function alignAll(direction: string) {
   if (props.texts.length === 0) return
   if (direction === 'left') {
     const minX = Math.min(...props.texts.map((text) => text.relX))

@@ -9,7 +9,7 @@
         class="play-all-btn"
         :class="{ playing: sequencePlaying }"
         :label="sequencePlaying ? t('textManager.stopPlayback') : t('textManager.playAllTexts')"
-        @click.stop.prevent="$emit(sequencePlaying ? 'stop-all' : 'play-all')"
+        @click.stop.prevent="sequencePlaying ? emit('stop-all') : emit('play-all')"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path :d="sequencePlaying ? ICON_STOP : ICON_PLAY" />
@@ -56,7 +56,7 @@
             class="text-item"
             :class="{ active: item.id === activeId }"
             :aria-pressed="item.id === activeId ? 'true' : 'false'"
-            @click="$emit('select', item.id)"
+            @click="emit('select', item.id)"
           >
             <span class="text-item-name">{{ t('textManager.textItem') }} {{ item.number }}</span>
             <span class="text-item-preview">{{
@@ -80,7 +80,7 @@
             variant="secondary"
             class="row-action"
             :label="t('textManager.restartAnimation')"
-            @click="$emit('restart', item.id)"
+            @click="emit('restart', item.id)"
           >
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path :d="ICON_PLAY" />
@@ -93,7 +93,7 @@
             class="row-action"
             data-test="return-to-canvas"
             :label="t('textManager.returnToCanvas')"
-            @click="$emit('return-to-canvas', item.id)"
+            @click="emit('return-to-canvas', item.id)"
           >
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path :d="ICON_RETURN" />
@@ -105,7 +105,7 @@
             class="row-action row-action--danger"
             data-test="delete-from-directory"
             :label="t('textManager.deleteFromDirectory')"
-            @click="$emit('delete', item.id)"
+            @click="emit('delete', item.id)"
           >
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path :d="ICON_DELETE" />
@@ -117,35 +117,35 @@
   </details>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SliderField from '../ui/SliderField.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 import { useI18n } from '../../lib/i18n'
+import type { TextListEntry } from '../../composables/textManager/useTextDirectory'
 
-defineProps({
-  items: {
-    type: Array,
-    default: () => [],
-  },
-  activeId: {
-    type: [Number, String],
-    default: null,
-  },
-  sequencePlaying: {
-    type: Boolean,
-    default: false,
-  },
-})
+withDefaults(
+  defineProps<{
+    items?: TextListEntry[]
+    activeId?: TextListEntry['id'] | null
+    sequencePlaying?: boolean
+  }>(),
+  { items: () => [], activeId: null, sequencePlaying: false },
+)
 
-defineEmits(['select', 'restart', 'play-all', 'stop-all', 'return-to-canvas', 'delete'])
+type TextId = TextListEntry['id']
+const emit = defineEmits<{
+  select: [id: TextId]
+  restart: [id: TextId]
+  'play-all': []
+  'stop-all': []
+  'return-to-canvas': [id: TextId]
+  delete: [id: TextId]
+}>()
 
 // Zwei-Wege-Bindung für die globale Anzeigedauer (vom TextManagerPanel gesteuert)
-const globalDurationEnabled = defineModel('globalDurationEnabled', {
-  type: Boolean,
-  default: false,
-})
-const globalDuration = defineModel('globalDuration', { type: Number, default: 5000 })
+const globalDurationEnabled = defineModel<boolean>('globalDurationEnabled', { default: false })
+const globalDuration = defineModel<number>('globalDuration', { default: 5000 })
 
 const { t } = useI18n()
 

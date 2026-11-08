@@ -11,25 +11,18 @@
   </AnimationNewSection>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Scale-Effekt im Neu-Text-Formular; die Einstellungen teilt es mit dem Edit-Panel. */
 import AnimationNewSection from './AnimationNewSection.vue'
 import ScaleControls from '../text-animations/ScaleControls.vue'
+import type { ScaleAnimation } from '../../../lib/textManager/types'
 import { useI18n } from '../../../lib/i18n'
 
-const settings = defineModel('settings', {
-  type: Object,
-  required: true,
-})
+const settings = defineModel<ScaleAnimation>('settings', { required: true })
 
-defineProps({
-  canAdd: {
-    type: Boolean,
-    default: true,
-  },
-})
+withDefaults(defineProps<{ canAdd?: boolean }>(), { canAdd: true })
 
-const emit = defineEmits(['add'])
+const emit = defineEmits<{ add: [] }>()
 
 const { t } = useI18n()
 </script>

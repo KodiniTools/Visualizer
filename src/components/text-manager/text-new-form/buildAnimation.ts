@@ -1,15 +1,31 @@
+import type {
+  ScaleAnimation,
+  SlideAnimation,
+  TextAnimation,
+  TimedTextAnimation,
+  TypewriterAnimation,
+} from '../../../lib/textManager/types'
+
+/** Einstellungen der einzelnen Effekte im Neu-Formular */
+export interface AnimationSettings {
+  typewriter: TypewriterAnimation
+  fade: TimedTextAnimation
+  scale: ScaleAnimation
+  slide: SlideAnimation
+}
+
 /**
  * Baut die Animations-Konfiguration für ein neues Text-Objekt aus den
  * einzelnen Effekt-Einstellungen zusammen.
  *
- * @param {object} settings
- * @param {object} settings.typewriter - Typewriter-Einstellungen
- * @param {object} settings.fade - Fade-Einstellungen
- * @param {object} settings.scale - Scale-Einstellungen
- * @param {object} settings.slide - Slide-Einstellungen
- * @returns {object|null} Animations-Objekt oder null, wenn kein Effekt aktiv ist
+ * @returns Animations-Objekt oder null, wenn kein Effekt aktiv ist
  */
-export function buildAnimationConfig({ typewriter, fade, scale, slide }) {
+export function buildAnimationConfig({
+  typewriter,
+  fade,
+  scale,
+  slide,
+}: AnimationSettings): TextAnimation | null {
   const hasTypewriter = typewriter.enabled
   const hasFade = fade.enabled
   const hasScale = scale.enabled
@@ -19,7 +35,7 @@ export function buildAnimationConfig({ typewriter, fade, scale, slide }) {
     return null
   }
 
-  const types = []
+  const types: string[] = []
   if (hasTypewriter) types.push('typewriter')
   if (hasFade) types.push('fade')
   if (hasScale) types.push('scale')

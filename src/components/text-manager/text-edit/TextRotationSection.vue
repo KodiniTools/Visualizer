@@ -23,14 +23,15 @@
   </details>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useI18n } from '../../../lib/i18n'
 import SliderField from '../../ui/SliderField.vue'
 import { inject } from 'vue'
+import type { TextEditControls } from './textEditControls'
 
 const { t } = useI18n()
 
-const tec = inject('textEditControls')
+const tec = inject('textEditControls') as TextEditControls
 const { selectedText, updateText } = tec
 </script>
 

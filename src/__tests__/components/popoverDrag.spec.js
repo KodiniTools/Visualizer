@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { defineComponent } from 'vue'
 import { mount } from '@vue/test-utils'
 import { vPopoverDrag } from '../../directives/popoverDrag'
@@ -118,5 +118,57 @@ describe('v-popover-drag – Größe per Rand ziehen', () => {
     expect(document.body.style.userSelect).toBe('')
     expect(document.querySelectorAll('.spb-resize-handle')).toHaveLength(0)
     wrapper = null
+  })
+})
+
+describe('v-popover-drag – mittig öffnen (center)', () => {
+  const CenteredPopover = defineComponent({
+    directives: { popoverDrag: vPopoverDrag },
+    props: { offset: { type: Object, default: () => ({ center: true }) } },
+    template: `
+      <div v-popover-drag="offset" class="spb-popover spb-popover-centered">
+        <div class="spb-popover-header"><span>Kopf</span></div>
+      </div>`,
+  })
+
+  // Box 300×200, unverschoben unten rechts bei (600|500); translate wird addiert.
+  function mockRect() {
+    return vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function () {
+      if (!this.classList.contains('spb-popover-centered')) return new DOMRect(0, 0, 0, 0)
+      const m = /translate\((-?[\d.]+)px, (-?[\d.]+)px\)/.exec(this.style.transform)
+      const tx = m ? Number(m[1]) : 0
+      const ty = m ? Number(m[2]) : 0
+      return new DOMRect(600 + tx, 500 + ty, 300, 200)
+    })
+  }
+
+  afterEach(() => vi.restoreAllMocks())
+
+  it('platziert das Fenster in der Bildschirmmitte', () => {
+    mockRect()
+    const w = mount(CenteredPopover, { attachTo: document.body })
+    const left = (window.innerWidth - 300) / 2
+    const top = (window.innerHeight - 200) / 2
+    expect(w.element.style.transform).toBe(`translate(${left - 600}px, ${top - 500}px)`)
+    w.unmount()
+  })
+
+  it('addiert den Kaskaden-Versatz', () => {
+    mockRect()
+    const w = mount(CenteredPopover, {
+      attachTo: document.body,
+      props: { offset: { x: -34, y: -34, center: true } },
+    })
+    const left = (window.innerWidth - 300) / 2 - 34
+    const top = (window.innerHeight - 200) / 2 - 34
+    expect(w.element.style.transform).toBe(`translate(${left - 600}px, ${top - 500}px)`)
+    w.unmount()
+  })
+
+  it('ohne center bleibt die bisherige Verankerung', () => {
+    mockRect()
+    const w = mount(CenteredPopover, { attachTo: document.body, props: { offset: null } })
+    expect(w.element.style.transform).toBe('')
+    w.unmount()
   })
 })

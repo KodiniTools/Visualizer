@@ -21,6 +21,7 @@
           v-if="playerBar"
           type="button"
           class="controls-link"
+          data-popover-trigger
           :class="{ active: playerBar.popover.isOpen('visualizerControls') }"
           @click="playerBar.popover.togglePopover('visualizerControls')"
         >

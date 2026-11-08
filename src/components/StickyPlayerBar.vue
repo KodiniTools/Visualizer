@@ -36,7 +36,7 @@
 
 <script setup>
 import { ref, provide, onMounted, onUnmounted } from 'vue'
-import { usePlayerPopover } from '../composables/usePlayerPopover.js'
+import { usePlayerPopover, isOutsidePopoverClick } from '../composables/usePlayerPopover.js'
 import { usePlayerVolumeEq } from '../composables/usePlayerVolumeEq.js'
 import { usePlayMode } from '../composables/usePlayMode.js'
 import { useAudioSourceControls } from '../composables/useAudioSourceControls.js'
@@ -101,12 +101,20 @@ const openTextManager = () => popover.openPopover('textManager')
 const openSlideshow = () => popover.openPopover('slideshow')
 // Klick auf eine Form im Canvas öffnet die Formen-Galerie zum Bearbeiten.
 const openShapes = () => popover.openPopover('shapes')
+// Klick daneben: blendet alle offenen Fenster aus, die Funktionen bleiben in
+// der Leiste aktiv (erneuter Klick dort öffnet sie wieder).
+const onDocumentPointerDown = (event) => {
+  if (!popover.openPopovers.value.length) return
+  if (isOutsidePopoverClick(event.target, barRef.value)) popover.hideAllPopovers()
+}
 onMounted(() => {
+  document.addEventListener('pointerdown', onDocumentPointerDown, true)
   window.addEventListener(SHAPES_OPEN_EVENT, openShapes)
   window.addEventListener('openTextEditorWithChar', openTextManager)
   window.addEventListener(SLIDESHOW_EDIT_EVENT, openSlideshow)
 })
 onUnmounted(() => {
+  document.removeEventListener('pointerdown', onDocumentPointerDown, true)
   window.removeEventListener(SHAPES_OPEN_EVENT, openShapes)
   window.removeEventListener('openTextEditorWithChar', openTextManager)
   window.removeEventListener(SLIDESHOW_EDIT_EVENT, openSlideshow)

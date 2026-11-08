@@ -65,7 +65,11 @@ describe('Sticky-Bar – Slideshow-Button', () => {
     await btn.trigger('click')
     expect(popover.isOpen('slideshow')).toBe(true)
     expect(btn.classes()).toContain('active')
+    // Klick daneben blendet aus, die Funktion bleibt aktiv
+    popover.hideAllPopovers()
     await btn.trigger('click')
+    expect(popover.isOpen('slideshow')).toBe(true)
+    await btn.trigger('dblclick')
     expect(popover.isOpen('slideshow')).toBe(false)
     expect(btn.classes()).not.toContain('active')
   })

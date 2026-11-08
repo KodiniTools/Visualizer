@@ -1,4 +1,6 @@
 // canvasManager/methods/workspaceMethods.js
+import type { CanvasManager } from '../../canvasManager'
+import type { Rect } from '../../canvasObjects/geometry'
 /**
  * Workspace-Presets (Social-Media-Formate), Umriss und Workspace-Bereich.
  *
@@ -10,9 +12,10 @@ export class WorkspaceMethods {
   // WORKSPACE PRESETS
   // ═══════════════════════════════════════════════════════════════════
 
-  setWorkspacePreset(presetKey) {
-    if (this.socialMediaPresets[presetKey]) {
-      this.workspacePreset = this.socialMediaPresets[presetKey]
+  setWorkspacePreset(this: CanvasManager, presetKey: string): void {
+    const preset = this.socialMediaPresets[presetKey]
+    if (preset) {
+      this.workspacePreset = preset
       this.showWorkspaceOutline = true
     } else {
       this.workspacePreset = null
@@ -22,13 +25,13 @@ export class WorkspaceMethods {
     this.redrawCallback()
   }
 
-  toggleWorkspaceOutline() {
+  toggleWorkspaceOutline(this: CanvasManager): boolean {
     this.showWorkspaceOutline = !this.showWorkspaceOutline
     this.redrawCallback()
     return this.showWorkspaceOutline
   }
 
-  getWorkspaceBounds() {
+  getWorkspaceBounds(this: CanvasManager): Rect | null {
     if (!this.workspacePreset) return null
 
     const canvasAspectRatio = this.canvas.width / this.canvas.height

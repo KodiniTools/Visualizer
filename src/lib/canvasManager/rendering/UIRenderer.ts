@@ -28,7 +28,7 @@ export interface UIRendererManager {
   selectedObjects?: UICanvasObject[] | null
   activeObject?: UICanvasObject | null
   hoveredObject?: UICanvasObject | null
-  getObjectBounds(obj: UICanvasObject): Rect | null | undefined
+  getObjectBounds(obj: UICanvasObject | null | undefined): Rect | null | undefined
   getWorkspaceBounds(): Rect | null | undefined
   textSelectionRect?: DragSelectionRect | null
   imageSelectionRect?: DragSelectionRect | null

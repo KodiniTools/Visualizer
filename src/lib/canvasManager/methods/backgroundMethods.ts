@@ -1,4 +1,6 @@
 // canvasManager/methods/backgroundMethods.js
+import type { CanvasManager, ImageBackgroundObject } from '../../canvasManager'
+import type { FotoSettings } from '../../fotoManager'
 /**
  * Bild-Hintergrund von Canvas und Workspace: setzen, ersetzen, spiegeln.
  *
@@ -10,7 +12,10 @@ export class BackgroundMethods {
   // BACKGROUND MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════
 
-  setBackground(backgroundObject) {
+  setBackground(
+    this: CanvasManager,
+    backgroundObject: string | HTMLImageElement | null | undefined,
+  ): void {
     if (typeof backgroundObject === 'string') {
       this.background = backgroundObject
     } else if (backgroundObject && typeof backgroundObject === 'object') {
@@ -32,7 +37,7 @@ export class BackgroundMethods {
     this.updateUICallback()
   }
 
-  setWorkspaceBackground(imageObject) {
+  setWorkspaceBackground(this: CanvasManager, imageObject: HTMLImageElement): boolean {
     if (!this.workspacePreset) {
       return false
     }
@@ -53,7 +58,7 @@ export class BackgroundMethods {
     return true
   }
 
-  updateBackgroundFlip(flipH, flipV) {
+  updateBackgroundFlip(this: CanvasManager, flipH: boolean, flipV: boolean): boolean {
     if (!this.background || typeof this.background !== 'object') {
       console.warn('⚠️ Kein Bild-Hintergrund vorhanden')
       return false
@@ -65,14 +70,16 @@ export class BackgroundMethods {
       }
     }
 
-    this.background.fotoSettings.flipH = flipH
-    this.background.fotoSettings.flipV = flipV
+    // von initializeImageSettings() gesetzt
+    const settings = this.background.fotoSettings as FotoSettings
+    settings.flipH = flipH
+    settings.flipV = flipV
 
     this.redrawCallback()
     return true
   }
 
-  updateWorkspaceBackgroundFlip(flipH, flipV) {
+  updateWorkspaceBackgroundFlip(this: CanvasManager, flipH: boolean, flipV: boolean): boolean {
     if (!this.workspaceBackground) {
       console.warn('⚠️ Kein Workspace-Hintergrund vorhanden')
       return false
@@ -84,14 +91,19 @@ export class BackgroundMethods {
       }
     }
 
-    this.workspaceBackground.fotoSettings.flipH = flipH
-    this.workspaceBackground.fotoSettings.flipV = flipV
+    // von initializeImageSettings() gesetzt
+    const settings = this.workspaceBackground.fotoSettings as FotoSettings
+    settings.flipH = flipH
+    settings.flipV = flipV
 
     this.redrawCallback()
     return true
   }
 
-  replaceBackground(newImageObject) {
+  replaceBackground(
+    this: CanvasManager,
+    newImageObject: HTMLImageElement | null | undefined,
+  ): ImageBackgroundObject | null {
     if (!newImageObject) {
       console.error('❌ Kein neues Bild zum Ersetzen übergeben')
       return null
@@ -103,7 +115,7 @@ export class BackgroundMethods {
     }
 
     const oldSettings = this.background.fotoSettings ? { ...this.background.fotoSettings } : null
-    const oldAudioReactive = oldSettings?.audioReactive
+    const oldAudioReactive: FotoSettings['audioReactive'] | null = oldSettings?.audioReactive
       ? JSON.parse(JSON.stringify(oldSettings.audioReactive))
       : null
     const oldFlipH = oldSettings?.flipH || false
@@ -140,7 +152,10 @@ export class BackgroundMethods {
     return this.background
   }
 
-  replaceWorkspaceBackground(newImageObject) {
+  replaceWorkspaceBackground(
+    this: CanvasManager,
+    newImageObject: HTMLImageElement | null | undefined,
+  ): ImageBackgroundObject | null {
     if (!newImageObject) {
       console.error('❌ Kein neues Bild zum Ersetzen übergeben')
       return null
@@ -154,7 +169,7 @@ export class BackgroundMethods {
     const oldSettings = this.workspaceBackground.fotoSettings
       ? { ...this.workspaceBackground.fotoSettings }
       : null
-    const oldAudioReactive = oldSettings?.audioReactive
+    const oldAudioReactive: FotoSettings['audioReactive'] | null = oldSettings?.audioReactive
       ? JSON.parse(JSON.stringify(oldSettings.audioReactive))
       : null
     const oldFlipH = oldSettings?.flipH || false

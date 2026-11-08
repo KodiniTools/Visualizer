@@ -1,4 +1,5 @@
 // canvasManager/methods/videoBackgroundMethods.js
+import type { CanvasManager } from '../../canvasManager'
 /**
  * Video-Hintergrund von Canvas und Workspace.
  *
@@ -10,7 +11,7 @@ export class VideoBackgroundMethods {
   // VIDEO BACKGROUND MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════
 
-  setVideoBackground(videoElement) {
+  setVideoBackground(this: CanvasManager, videoElement: HTMLVideoElement | null | undefined): void {
     if (!videoElement) {
       this.videoBackground = null
       this.redrawCallback()
@@ -45,7 +46,10 @@ export class VideoBackgroundMethods {
     console.log('✅ Video als Hintergrund gesetzt')
   }
 
-  setWorkspaceVideoBackground(videoElement) {
+  setWorkspaceVideoBackground(
+    this: CanvasManager,
+    videoElement: HTMLVideoElement | null | undefined,
+  ): boolean {
     if (!this.workspacePreset) {
       console.warn('Kein Workspace-Preset ausgewählt')
       return false
@@ -83,11 +87,11 @@ export class VideoBackgroundMethods {
     return true
   }
 
-  getVideoBackground() {
+  getVideoBackground(this: CanvasManager) {
     return this.videoBackground
   }
 
-  getWorkspaceVideoBackground() {
+  getWorkspaceVideoBackground(this: CanvasManager) {
     return this.workspaceVideoBackground
   }
 }

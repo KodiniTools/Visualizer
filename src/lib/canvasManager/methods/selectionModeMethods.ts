@@ -1,4 +1,7 @@
 // canvasManager/methods/selectionModeMethods.js
+import type { CanvasManager } from '../../canvasManager'
+
+type Ctx = CanvasRenderingContext2D
 /**
  * Rechteck-Auswahlmodi für Text und Bild sowie die Text-Positionsvorschau.
  *
@@ -10,7 +13,10 @@ export class SelectionModeMethods {
   // TEXT SELECTION MODE
   // ═══════════════════════════════════════════════════════════════════
 
-  startTextSelectionMode(callback) {
+  startTextSelectionMode(
+    this: CanvasManager,
+    callback: CanvasManager['onTextSelectionComplete'],
+  ): void {
     this.textSelectionMode = true
     this.textSelectionRect = null
     this.onTextSelectionComplete = callback
@@ -22,7 +28,7 @@ export class SelectionModeMethods {
     console.log('[CanvasManager] ✨ Text-Auswahl-Modus aktiviert')
   }
 
-  cancelTextSelectionMode() {
+  cancelTextSelectionMode(this: CanvasManager): void {
     this.textSelectionMode = false
     this.textSelectionRect = null
     this.onTextSelectionComplete = null
@@ -32,15 +38,15 @@ export class SelectionModeMethods {
     console.log('[CanvasManager] ✨ Text-Auswahl-Modus beendet')
   }
 
-  drawTextSelectionRect(ctx) {
+  drawTextSelectionRect(this: CanvasManager, ctx: Ctx): void {
     this.uiRenderer.drawTextSelectionRect(ctx)
   }
 
-  getTextSelectionBounds() {
+  getTextSelectionBounds(this: CanvasManager) {
     return this.selectionManager.getTextSelectionBounds()
   }
 
-  setTextPositionPreview(relX, relY) {
+  setTextPositionPreview(this: CanvasManager, relX: number | null, relY: number | null): void {
     if (relX === null || relY === null) {
       this.textPositionPreview = null
     } else {
@@ -48,11 +54,11 @@ export class SelectionModeMethods {
     }
   }
 
-  clearTextPositionPreview() {
+  clearTextPositionPreview(this: CanvasManager): void {
     this.textPositionPreview = null
   }
 
-  drawTextPositionPreview(ctx) {
+  drawTextPositionPreview(this: CanvasManager, ctx: Ctx): void {
     this.uiRenderer.drawTextPositionPreview(ctx)
   }
 
@@ -60,7 +66,11 @@ export class SelectionModeMethods {
   // IMAGE SELECTION MODE
   // ═══════════════════════════════════════════════════════════════════
 
-  startImageSelectionMode(callback, animation = 'none') {
+  startImageSelectionMode(
+    this: CanvasManager,
+    callback: CanvasManager['onImageSelectionComplete'],
+    animation = 'none',
+  ): void {
     this.imageSelectionMode = true
     this.imageSelectionRect = null
     this.onImageSelectionComplete = callback
@@ -73,7 +83,7 @@ export class SelectionModeMethods {
     console.log('[CanvasManager] ✨ Bild-Bereichsauswahl-Modus aktiviert mit Animation:', animation)
   }
 
-  cancelImageSelectionMode() {
+  cancelImageSelectionMode(this: CanvasManager): void {
     this.imageSelectionMode = false
     this.imageSelectionRect = null
     this.onImageSelectionComplete = null
@@ -84,20 +94,20 @@ export class SelectionModeMethods {
     console.log('[CanvasManager] ✨ Bild-Bereichsauswahl-Modus beendet')
   }
 
-  drawImageSelectionRect(ctx) {
+  drawImageSelectionRect(this: CanvasManager, ctx: Ctx): void {
     this.uiRenderer.drawImageSelectionRect(ctx)
   }
 
-  getImageSelectionBounds() {
+  getImageSelectionBounds(this: CanvasManager) {
     return this.selectionManager.getImageSelectionBounds()
   }
 
-  setImageAnimation(animation) {
+  setImageAnimation(this: CanvasManager, animation: string | null): void {
     this.pendingImageAnimation = animation
     console.log('[CanvasManager] Animation gesetzt:', animation)
   }
 
-  getImageAnimation() {
+  getImageAnimation(this: CanvasManager): string {
     return this.pendingImageAnimation || 'none'
   }
 }

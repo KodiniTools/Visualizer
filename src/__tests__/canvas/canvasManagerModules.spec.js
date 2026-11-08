@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest'
 import { CanvasManager } from '../../lib/canvasManager'
-import { applyMethods } from '../../lib/canvasManager/methods/index.js'
+import { applyMethods } from '../../lib/canvasManager/methods/index'
 
 // Öffentliche + interne Methoden, die Module/Komponenten am CanvasManager nutzen.
 // Stand vor der Aufteilung in canvasManager/methods/ – darf nicht verloren gehen.

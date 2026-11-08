@@ -1,4 +1,7 @@
 // canvasManager/methods/interactionDelegates.js
+import type { CanvasManager } from '../../canvasManager'
+import type { DragDropHandler } from '../interaction/DragDropHandler'
+import type { MouseHandler } from '../interaction/MouseHandler'
 /**
  * Drag & Drop und Maus-Events – delegiert an DragDropHandler und
  * MouseHandler.
@@ -11,15 +14,30 @@ export class InteractionDelegates {
   // DRAG & DROP (delegiert an DragDropHandler)
   // ═══════════════════════════════════════════════════════════════════
 
-  moveObject(obj, dx, dy) {
+  moveObject(
+    this: CanvasManager,
+    obj: Parameters<DragDropHandler['moveObject']>[0],
+    dx: number,
+    dy: number,
+  ): void {
     this.dragDropHandler.moveObject(obj, dx, dy)
   }
 
-  resizeText(obj, dx, dy) {
+  resizeText(
+    this: CanvasManager,
+    obj: Parameters<DragDropHandler['resizeText']>[0],
+    dx: number,
+    dy: number,
+  ): void {
     this.dragDropHandler.resizeText(obj, dx, dy)
   }
 
-  resizeImage(obj, dx, dy) {
+  resizeImage(
+    this: CanvasManager,
+    obj: Parameters<DragDropHandler['resizeImage']>[0],
+    dx: number,
+    dy: number,
+  ): void {
     this.dragDropHandler.resizeImage(obj, dx, dy)
   }
 
@@ -27,51 +45,51 @@ export class InteractionDelegates {
   // MOUSE (delegiert an MouseHandler)
   // ═══════════════════════════════════════════════════════════════════
 
-  getMousePos(e) {
+  getMousePos(this: CanvasManager, e: Parameters<MouseHandler['getMousePos']>[0]) {
     return this.mouseHandler.getMousePos(e)
   }
 
-  onMouseDown(e) {
+  onMouseDown(this: CanvasManager, e: MouseEvent): void {
     this.mouseHandler.onMouseDown(e)
   }
 
-  onMouseMove(e) {
+  onMouseMove(this: CanvasManager, e: MouseEvent): void {
     this.mouseHandler.onMouseMove(e)
   }
 
-  onMouseUp(e) {
+  onMouseUp(this: CanvasManager, e?: MouseEvent): void {
     this.mouseHandler.onMouseUp(e)
   }
 
-  onDoubleClick(e) {
+  onDoubleClick(this: CanvasManager, e: MouseEvent): void {
     this.mouseHandler.onDoubleClick(e)
   }
 
-  onMouseLeave(e) {
+  onMouseLeave(this: CanvasManager, e?: MouseEvent): void {
     this.mouseHandler.onMouseLeave(e)
   }
 
-  onWindowMouseUp(e) {
+  onWindowMouseUp(this: CanvasManager, e?: MouseEvent): void {
     this.mouseHandler.onWindowMouseUp(e)
   }
 
-  onWindowMouseMove(e) {
+  onWindowMouseMove(this: CanvasManager, e: MouseEvent): void {
     this.mouseHandler.onWindowMouseMove(e)
   }
 
-  _startDragListeners() {
+  _startDragListeners(this: CanvasManager): void {
     this.mouseHandler._startDragListeners()
   }
 
-  _stopDragListeners() {
+  _stopDragListeners(this: CanvasManager): void {
     this.mouseHandler._stopDragListeners()
   }
 
-  _endDrag() {
+  _endDrag(this: CanvasManager): void {
     this.mouseHandler._endDrag()
   }
 
-  _updateResizeCursor(handleKey) {
+  _updateResizeCursor(this: CanvasManager, handleKey: string): void {
     this.mouseHandler._updateResizeCursor(handleKey)
   }
 }

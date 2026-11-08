@@ -4,7 +4,7 @@ import {
   BackgroundRenderer,
   createSlideshowBaseFill,
 } from '../../lib/canvasManager/rendering/BackgroundRenderer'
-import { SelectionManager } from '../../lib/canvasManager/interaction/SelectionManager.js'
+import { SelectionManager } from '../../lib/canvasManager/interaction/SelectionManager'
 import { MultiImageManager } from '../../lib/multiImageManager'
 import { FotoManager } from '../../lib/fotoManager'
 import { SlideshowManager } from '../../lib/slideshowManager'

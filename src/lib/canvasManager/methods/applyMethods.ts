@@ -10,7 +10,13 @@
  * @param {Function} Target - Ziel-Klasse (z. B. CanvasManager)
  * @param {...Function} sources - Methoden-Klassen
  */
-export function applyMethods(Target, ...sources) {
+/** Klasse, deren Prototyp übertragen wird */
+interface MethodClass {
+  name: string
+  prototype: object
+}
+
+export function applyMethods(Target: MethodClass, ...sources: MethodClass[]): void {
   for (const Source of sources) {
     const descriptors = Object.getOwnPropertyDescriptors(Source.prototype)
     for (const [name, descriptor] of Object.entries(descriptors)) {

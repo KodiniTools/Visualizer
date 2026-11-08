@@ -983,8 +983,12 @@ export default {
     markerVideo: 'Video',
     noMarkerVideo: '-- Kein Video --',
     emptyVideoGallery: 'Keine Videos hochgeladen – Videos unter „Video“ hochladen',
+    markerVideoLoop: 'In Schleife abspielen',
+    markerVideoOnce: '(1×)',
+    markerVideoLoopHint:
+      'Ohne Schleife läuft das Video einmal; danach kehrt der Hintergrund von vor dem Video zurück.',
     markerVideoHint:
-      'Hochgeladenes Video wird zum Marker-Zeitpunkt Hintergrund und startet von vorne (stumm, in Schleife). Audio-Reaktiv und Format übernimmt es vom vorherigen Hintergrund. Hat der Marker auch ein Hintergrund-Bild, gewinnt das Video.',
+      'Hochgeladenes Video wird zum Marker-Zeitpunkt Hintergrund und startet von vorne (stumm). Audio-Reaktiv und Format übernimmt es vom vorherigen Hintergrund. Hat der Marker auch ein Hintergrund-Bild, gewinnt das Video.',
     text: 'Text',
     noText: '-- Kein Text --',
     textAppears: 'Text erscheint zum Marker-Zeitpunkt auf dem Canvas',

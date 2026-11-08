@@ -173,9 +173,15 @@
         :title="t('player.markerVideoHint')"
         size="sm"
       />
-      <p v-if="newMarkerVideoId !== ''" class="form-hint marker-form-hint">
-        {{ t('player.markerVideoHint') }}
-      </p>
+      <template v-if="newMarkerVideoId !== ''">
+        <span class="form-switch" :title="t('player.markerVideoLoopHint')">
+          <UiSwitch v-model="newMarkerVideoLoop" :label="t('player.markerVideoLoop')" />
+        </span>
+        <p class="form-hint marker-form-hint">
+          {{ t('player.markerVideoHint') }}
+          {{ newMarkerVideoLoop ? '' : t('player.markerVideoLoopHint') }}
+        </p>
+      </template>
 
       <UiSelect
         v-model="newMarkerTextId"
@@ -259,7 +265,8 @@
           v-if="marker.action.video"
           class="marker-action marker-action-video"
           :title="t('player.markerVideoHint')"
-          >🎬 {{ marker.action.video.name }}</span
+          >🎬 {{ marker.action.video.name
+          }}{{ marker.action.video.loop === false ? ` ${t('player.markerVideoOnce')}` : '' }}</span
         >
         <span
           v-if="
@@ -358,6 +365,7 @@ const {
   newMarkerShapeId,
   newMarkerBgImageId,
   newMarkerVideoId,
+  newMarkerVideoLoop,
   newMarkerLabel,
   getMarkerTexts,
   getMarkerShapes,

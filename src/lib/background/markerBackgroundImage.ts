@@ -194,14 +194,21 @@ export function releaseVideoBackgrounds(
 
 /**
  * Gibt die Videos einer nicht mehr benötigten Basis frei, sofern sie nicht
- * gerade auf dem Canvas liegen (z. B. wenn ein Hintergrund-Preset die Basis
+ * gerade auf dem Canvas liegen oder zu `keep` gehören (z. B. wenn ein Hintergrund-Preset die Basis
  * ersetzt).
  */
-export function discardBaseBackground(cm: MaybeCm, base: BaseBackground | null | undefined): void {
+export function discardBaseBackground(
+  cm: MaybeCm,
+  base: BaseBackground | null | undefined,
+  keep: BaseBackground | null | undefined = null,
+): void {
   if (!base) return
   for (const key of VIDEO_KEYS) {
     const entry = base[key]
     if (!entry || (cm && (cm.videoBackground === entry || cm.workspaceVideoBackground === entry)))
+      continue
+    // Videos, die noch zu einer anderen gemerkten Basis gehören, behalten
+    if (keep && (keep.videoBackground === entry || keep.workspaceVideoBackground === entry))
       continue
     const el = entry.videoElement
     if (!el) continue

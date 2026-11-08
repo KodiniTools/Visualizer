@@ -34,6 +34,7 @@ import {
   findGalleryVideo,
   loadMarkerVideo,
   resolveBackgroundMediaDefaults,
+  isMarkerVideoLoop,
   setBackgroundVideoWithDefaults,
   type GalleryVideoEntry,
   type MarkerVideoRef,
@@ -134,6 +135,9 @@ export function useBeatMarkers(
   // Video pro Marker (Video-Galerie-ID; '' = kein Video). Wird zum
   // Marker-Zeitpunkt Hintergrund und startet von vorne.
   const newMarkerVideoId = ref<number | string | null>('')
+  // true = Video in Schleife, false = einmal abspielen; danach kehrt der
+  // Hintergrund von vor dem Video zurück.
+  const newMarkerVideoLoop = ref(true)
   const newMarkerLabel = ref('')
 
   // ══════════════════ Text-Steuerung über Marker ══════════════════
@@ -440,6 +444,16 @@ export function useBeatMarkers(
   // Zählt Marker-Hintergrundwechsel: ein Marker-Video, das erst nach einem
   // späteren Wechsel fertig lädt, wird verworfen.
   let mediaToken = 0
+  // Hintergrund direkt vor einem einmal abgespielten Marker-Video; wird nach
+  // dessen Ende wiederhergestellt. Reiner Laufzeit-Zustand.
+  let onceVideoBefore: BaseBackground | null = null
+
+  /** Vorher-Zustand eines einmaligen Videos verwerfen (geparkte Videos freigeben). */
+  const dropOnceVideoBefore = () => {
+    if (!onceVideoBefore) return
+    discardBaseBackground(canvasManager.value, onceVideoBefore, bgImageBase)
+    onceVideoBefore = null
+  }
 
   const setMediaBase = (base: BaseBackground | null) => {
     if (bgImageBase && bgImageBase !== base) discardBaseBackground(canvasManager.value, bgImageBase)
@@ -465,10 +479,29 @@ export function useBeatMarkers(
         video.src = ''
         return
       }
+      const loop = isMarkerVideoLoop(ref)
       historyRecorder.absorb(() => {
-        releaseVideoBackgrounds(canvasManager.value, bgImageBase)
-        const target = setBackgroundVideoWithDefaults(canvasManager.value, video, defaults)
-        console.log('🎬 Video via Beat-Marker:', ref.name, `(${target})`)
+        const cm = canvasManager.value
+        if (loop) {
+          releaseVideoBackgrounds(cm, bgImageBase)
+        } else {
+          // Einmal abspielen: aktuellen Hintergrund merken und alle Videos nur
+          // parken, damit er nach dem Video-Ende unverändert zurückkommt.
+          const before = captureBaseBackground(cm)
+          releaseVideoBackgrounds(cm, before)
+          onceVideoBefore = before
+          video.onended = () => {
+            if (token !== mediaToken || onceVideoBefore !== before) return
+            historyRecorder.absorb(() => {
+              mediaToken++
+              restoreBaseBackground(canvasManager.value, before)
+              onceVideoBefore = null
+              console.log('🎬 Marker-Video beendet – Hintergrund von vorher zurück:', ref.name)
+            })
+          }
+        }
+        const target = setBackgroundVideoWithDefaults(cm, video, defaults, { loop })
+        console.log('🎬 Video via Beat-Marker:', ref.name, `(${target})`, loop ? '🔁' : '1×')
       })
     })
   }
@@ -490,6 +523,7 @@ export function useBeatMarkers(
     if (!ref && !videoRef) {
       mediaToken++
       if (presetApplied) {
+        dropOnceVideoBefore()
         // Das Preset dieses Markers bestimmt den Hintergrund.
         setMediaBase(null)
       } else if (bgImageBase) {
@@ -497,6 +531,7 @@ export function useBeatMarkers(
         bgImageBase = null
         console.log('🖼️ Hintergrund-Bild/Video via Beat-Marker zurückgesetzt')
       }
+      dropOnceVideoBefore()
       return
     }
     if (videoRef) {
@@ -507,6 +542,7 @@ export function useBeatMarkers(
       }
       mediaToken++
       if (presetApplied || !bgImageBase) setMediaBase(captureBaseBackground(canvasManager.value))
+      dropOnceVideoBefore()
       applyVideoAction(video, videoRef, previous)
       return
     }
@@ -520,6 +556,7 @@ export function useBeatMarkers(
     // Mit Preset gilt der Preset-Hintergrund als neue Basis, sonst bleibt die
     // Basis vom ersten Bild-Marker dieses Durchlaufs erhalten.
     if (presetApplied || !bgImageBase) setMediaBase(captureBaseBackground(canvasManager.value))
+    dropOnceVideoBefore()
     // Basis-Videos nur abhängen (kommen beim Zurücksetzen wieder), Marker-Videos freigeben.
     releaseVideoBackgrounds(canvasManager.value, bgImageBase)
     const defaults = previous || resolveBackgroundImageDefaults(null, ref.defaults)
@@ -533,6 +570,7 @@ export function useBeatMarkers(
       mediaToken++
       if (bgImageBase) restoreBaseBackground(canvasManager.value, bgImageBase)
       bgImageBase = null
+      dropOnceVideoBefore()
     })
 
   /**
@@ -685,6 +723,7 @@ export function useBeatMarkers(
     newMarkerShapeId.value = ''
     newMarkerBgImageId.value = ''
     newMarkerVideoId.value = ''
+    newMarkerVideoLoop.value = true
     showMarkerPanel.value = true
     openMarkersPopover()
   }
@@ -713,6 +752,7 @@ export function useBeatMarkers(
           | number
           | undefined) ?? '')
       : ''
+    newMarkerVideoLoop.value = isMarkerVideoLoop(marker.action?.video)
     newMarkerVideoId.value = marker.action?.video
       ? ((findGalleryVideo(videoGallery.value, marker.action.video)?.id as
           | number
@@ -782,6 +822,7 @@ export function useBeatMarkers(
           galleryId: entry.id,
           name: entry.name,
           defaults: captureBackgroundMediaDefaults(canvasManager.value),
+          loop: newMarkerVideoLoop.value,
         }
       }
     }
@@ -833,6 +874,7 @@ export function useBeatMarkers(
     newMarkerShapeId.value = ''
     newMarkerBgImageId.value = ''
     newMarkerVideoId.value = ''
+    newMarkerVideoLoop.value = true
     // Texte und Formen, die keinem Marker mehr zugewiesen sind, wieder einblenden.
     reconcileTextMarkers()
     reconcileShapeMarkers() // Läuft die Wiedergabe schon und liegt der Marker noch vor uns, erscheint
@@ -1031,6 +1073,7 @@ export function useBeatMarkers(
     newMarkerShapeId,
     newMarkerBgImageId,
     newMarkerVideoId,
+    newMarkerVideoLoop,
     newMarkerLabel,
     getMarkerTexts,
     getMarkerShapes,

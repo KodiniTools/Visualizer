@@ -167,6 +167,7 @@ describe('Beat-Marker mit Video – Formular', () => {
       galleryId: 202,
       name: 'drop',
       defaults: { target: 'background', audioReactive: AR },
+      loop: true,
     })
     expect(JSON.stringify(action)).not.toContain('blob:')
     expect(api.newMarkerVideoId.value).toBe('')
@@ -367,9 +368,152 @@ describe('Beat-Marker-Popover – Video-Auswahl', () => {
   })
 
   it('hat Texte in Deutsch und Englisch', () => {
-    for (const key of ['markerVideo', 'noMarkerVideo', 'emptyVideoGallery', 'markerVideoHint']) {
+    for (const key of [
+      'markerVideo',
+      'noMarkerVideo',
+      'emptyVideoGallery',
+      'markerVideoHint',
+      'markerVideoLoop',
+      'markerVideoOnce',
+      'markerVideoLoopHint',
+    ]) {
       expect(de.player[key]).toBeTruthy()
       expect(en.player[key]).toBeTruthy()
     }
+  })
+})
+
+describe('Beat-Marker mit Video – einmal oder in Schleife', () => {
+  it('speichert die Wahl und lädt sie beim Bearbeiten; neue Marker starten mit Schleife', async () => {
+    await mountHost()
+    api.addMarkerAtCurrentTime()
+    expect(api.newMarkerVideoLoop.value).toBe(true)
+    api.newMarkerVideoId.value = 101
+    api.newMarkerVideoLoop.value = false
+    api.confirmAddMarker()
+    const marker = markerStore.markers.at(-1)
+    expect(marker.action.video.loop).toBe(false)
+    expect(api.newMarkerVideoLoop.value).toBe(true)
+
+    api.startEditMarker(marker)
+    expect(api.newMarkerVideoLoop.value).toBe(false)
+    // Alte Marker ohne Feld laufen in Schleife
+    api.startEditMarker({ id: 99, time: 1, label: '', action: { video: { galleryId: 101 } } })
+    expect(api.newMarkerVideoLoop.value).toBe(true)
+  })
+
+  it('Schleife bleibt Standard für Marker ohne loop-Feld', async () => {
+    await mountHost()
+    markerStore.addMarker(5, { video: { galleryId: 101, name: 'intro' } })
+    const el = crossAndLoad(5)
+    expect(el.loop).toBe(true)
+    expect(cm.videoBackground.loop).toBe(true)
+  })
+
+  it('einmal: nach dem Video-Ende kommt der Hintergrund von vor dem Video zurück', async () => {
+    await mountHost()
+    const before = { imageObject: { src: 'vorher.png' }, fotoSettings: { audioReactive: AR } }
+    cm.background = before
+    markerStore.addMarker(5, { backgroundImage: { galleryId: 11, name: 'wald.jpg' } })
+    markerStore.addMarker(8, { video: { galleryId: 101, name: 'intro', loop: false } })
+    frame(4.99)
+    frame(5.01)
+    const markerImage = cm.background
+    expect(markerImage.imageObject).toBe(imgA)
+
+    const el = crossAndLoad(8)
+    expect(el.loop).toBe(false)
+    expect(cm.videoBackground.videoElement).toBe(el)
+    expect(cm.background).toBe('#ffffff')
+
+    el.onended()
+    // Zustand direkt vor dem Video (Bild des vorherigen Markers), nicht die Basis
+    expect(cm.background).toBe(markerImage)
+    expect(cm.videoBackground).toBeNull()
+    expect(el.src).toBe('')
+  })
+
+  it('einmal nach einem Schleifen-Video: das vorherige Video läuft danach weiter', async () => {
+    await mountHost()
+    markerStore.addMarker(5, { video: { galleryId: 101, name: 'intro' } })
+    markerStore.addMarker(8, { video: { galleryId: 202, name: 'drop', loop: false } })
+    const loopVideo = crossAndLoad(5)
+    const loopEntry = cm.videoBackground
+    const once = crossAndLoad(8)
+    expect(loopVideo.pause).toHaveBeenCalled()
+    expect(loopVideo.src).toBe('blob:intro')
+    expect(cm.videoBackground.videoElement).toBe(once)
+
+    loopVideo.play.mockClear()
+    once.onended()
+    expect(cm.videoBackground).toBe(loopEntry)
+    await flushPromises()
+    expect(loopVideo.play).toHaveBeenCalled()
+  })
+
+  it('ein späterer Marker vor dem Video-Ende hat Vorrang; geparkte Marker-Videos werden freigegeben', async () => {
+    await mountHost()
+    cm.background = '#111111'
+    markerStore.addMarker(5, { video: { galleryId: 101, name: 'intro' } })
+    markerStore.addMarker(8, { video: { galleryId: 202, name: 'drop', loop: false } })
+    markerStore.addMarker(10, { backgroundImage: { galleryId: 11, name: 'wald.jpg' } })
+    const loopVideo = crossAndLoad(5)
+    const once = crossAndLoad(8)
+    frame(9.99)
+    frame(10.01)
+    expect(cm.background.imageObject).toBe(imgA)
+    expect(loopVideo.src).toBe('')
+    expect(once.src).toBe('')
+
+    once.onended()
+    expect(cm.background.imageObject).toBe(imgA)
+  })
+
+  it('Basis-Video des Nutzers bleibt erhalten, wenn ein Marker das einmalige Video ablöst', async () => {
+    await mountHost()
+    const userVideo = fakeVideoEl()
+    userVideo.src = 'blob:user'
+    const userEntry = { videoElement: userVideo, fotoSettings: {} }
+    cm.videoBackground = userEntry
+    markerStore.addMarker(5, { video: { galleryId: 202, name: 'drop', loop: false } })
+    markerStore.addMarker(7, { visualizer: null })
+    crossAndLoad(5)
+    frame(6.99)
+    frame(7.01)
+    expect(cm.videoBackground).toBe(userEntry)
+    expect(userVideo.src).toBe('blob:user')
+  })
+})
+
+describe('Beat-Marker-Popover – Schleife', () => {
+  function mountPopover() {
+    wrapper = mount(PopoverHost, {
+      attachTo: document.body,
+      global: { provide: { canvasManager: ref(cm) } },
+    })
+  }
+
+  it('zeigt den Schalter nur mit gewähltem Video und den Hinweis bei einmaligem Abspielen', async () => {
+    mountPopover()
+    api.addMarkerAtCurrentTime()
+    await flushPromises()
+    const hasSwitch = () => document.body.textContent.includes(de.player.markerVideoLoop)
+    expect(hasSwitch()).toBe(false)
+    api.newMarkerVideoId.value = 101
+    await flushPromises()
+    expect(hasSwitch()).toBe(true)
+    expect(document.body.textContent).not.toContain(de.player.markerVideoLoopHint)
+    api.newMarkerVideoLoop.value = false
+    await flushPromises()
+    expect(document.body.textContent).toContain(de.player.markerVideoLoopHint)
+  })
+
+  it('kennzeichnet einmalige Videos in der Marker-Liste', async () => {
+    markerStore.addMarker(5, { video: { galleryId: 202, name: 'drop', loop: false } })
+    markerStore.addMarker(9, { video: { galleryId: 101, name: 'intro' } })
+    mountPopover()
+    await flushPromises()
+    expect(document.body.textContent).toContain('🎬 drop (1×)')
+    expect(document.body.textContent).not.toContain('🎬 intro (1×)')
   })
 })

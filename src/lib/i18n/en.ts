@@ -982,8 +982,12 @@ export default {
     markerVideo: 'Video',
     noMarkerVideo: '-- No video --',
     emptyVideoGallery: 'No videos uploaded – upload videos under “Video”',
+    markerVideoLoop: 'Play in a loop',
+    markerVideoOnce: '(1×)',
+    markerVideoLoopHint:
+      'Without loop the video plays once; afterwards the background from before the video returns.',
     markerVideoHint:
-      'An uploaded video becomes the background at the marker time and starts from the beginning (muted, looping). It takes audio-reactive settings and format from the previous background. If the marker also has a background image, the video wins.',
+      'An uploaded video becomes the background at the marker time and starts from the beginning (muted). It takes audio-reactive settings and format from the previous background. If the marker also has a background image, the video wins.',
     text: 'Text',
     noText: '-- No text --',
     textAppears: 'Text appears on the canvas at the marker time',

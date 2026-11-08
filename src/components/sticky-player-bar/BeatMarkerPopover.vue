@@ -312,7 +312,7 @@ import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
 import { useVisualizerStore } from '../../stores/visualizerStore.js'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore.js'
 import { useLayerPresetStore, toLayerPresetRef } from '../../stores/layerPresetStore.js'
-import { formatTimePrecise } from '../../utils/formatTime.js'
+import { formatTimePrecise } from '../../utils/formatTime'
 import { getBackgroundPresetOptions } from '../../utils/backgroundPresets.js'
 import { vPopoverDrag } from '../../directives/popoverDrag.js'
 

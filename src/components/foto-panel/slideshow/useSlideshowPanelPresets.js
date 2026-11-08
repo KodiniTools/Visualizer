@@ -4,7 +4,7 @@ import { restorePresetImages } from '../../../lib/slideshowSources.js'
 import { persistUploadImage, restoreUploadImage } from '../../../lib/slideshowImagePersistence.js'
 import { isQuotaError } from '../../../utils/presetImageRepository.js'
 import { MANUAL_CLEANUP_GRACE_MS } from '../../../stores/slideshowPresetStore.js'
-import { formatBytes } from '../../../utils/formatBytes.js'
+import { formatBytes } from '../../../utils/formatBytes'
 import { SLIDESHOW_AUDIO_DEFAULT } from '../../../lib/slideshowAudio.js'
 
 /**

@@ -31,14 +31,25 @@
 
 ### Development Tools
 
-| Tool           | Version | Beschreibung          |
-| -------------- | ------- | --------------------- |
-| ESLint         | ^9.33.0 | Code Linting          |
-| OxLint         | ~1.11.0 | Schnelles Linting     |
-| Prettier       | 3.6.2   | Code Formatting       |
-| Vitest         | ^3.2.4  | Unit Testing          |
-| Playwright     | ^1.55.1 | E2E Testing           |
-| Vue Test Utils | ^2.4.6  | Vue Component Testing |
+| Tool           | Version | Beschreibung                         |
+| -------------- | ------- | ------------------------------------ |
+| ESLint         | ^9.33.0 | Code Linting                         |
+| OxLint         | ~1.11.0 | Schnelles Linting                    |
+| Prettier       | 3.6.2   | Code Formatting                      |
+| Vitest         | ^3.2.4  | Unit Testing                         |
+| Playwright     | ^1.55.1 | E2E Testing                          |
+| Vue Test Utils | ^2.4.6  | Vue Component Testing                |
+| TypeScript     | ~5.8.3  | Typen (Migration läuft, siehe unten) |
+| vue-tsc        | ^2.2.12 | Typecheck (`npm run typecheck`)      |
+
+### TypeScript-Migration
+
+Die App wird schrittweise nach dem Muster des Modernen Musikplayers auf TypeScript umgestellt. JS und TS laufen nebeneinander (`allowJs`, `checkJs: false`):
+
+- Konfiguration: `tsconfig.json` (Referenzen), `tsconfig.app.json` (App, `strict`, `noUncheckedIndexedAccess`), `tsconfig.node.json` (`vite.config.ts`, `eslint.config.ts`).
+- ESLint nutzt `@vue/eslint-config-typescript`; SFCs dürfen `<script setup>` oder `<script setup lang="ts">` haben.
+- Migrierte Module werden ohne Endung importiert (`'../utils/formatTime'`), damit JS- und TS-Importeure dieselbe Zeile nutzen.
+- Specs dürfen `.spec.ts` sein; `npm run typecheck` muss grün sein.
 
 ---
 

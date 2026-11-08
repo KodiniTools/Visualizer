@@ -29,20 +29,20 @@ export function useBackgroundVideo(canvasManager, key, tick, label) {
   }
 
   const isPlaying = computed(() => {
-    tick.value
+    void tick.value
     const el = element()
     return el ? !el.paused : false
   })
 
   const time = computed(() => {
-    tick.value
+    void tick.value
     return element()?.currentTime || 0
   })
 
   const duration = computed(() => element()?.duration || 0)
 
   const volume = computed(() => {
-    tick.value
+    void tick.value
     const el = element()
     return el ? displayVolume(el) : 1
   })

@@ -1,9 +1,9 @@
 // Time formatting/parsing helpers shared across the sticky player bar modules.
 
 /** Rundet auf 2 Dezimalstellen (Hundertstelsekunden) und vermeidet Float-Rauschen. */
-export const roundToHundredths = (seconds) => Math.round(seconds * 100) / 100
+export const roundToHundredths = (seconds: number): number => Math.round(seconds * 100) / 100
 
-export const formatTime = (seconds) => {
+export const formatTime = (seconds: number): string => {
   if (isNaN(seconds) || seconds === 0) return '0:00'
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
@@ -14,7 +14,7 @@ export const formatTime = (seconds) => {
  * Formatiert Sekunden als "M:SS.hh" (Hundertstelsekunden), z.B. 18.5 → "0:18.50".
  * Wird für Beat-Drop-Marker verwendet, deren Zeit auf 1/100 s genau ist.
  */
-export const formatTimePrecise = (seconds) => {
+export const formatTimePrecise = (seconds: number): string => {
   if (isNaN(seconds) || seconds < 0) return '0:00.00'
   const total = roundToHundredths(seconds)
   const mins = Math.floor(total / 60)
@@ -27,7 +27,7 @@ export const formatTimePrecise = (seconds) => {
  * Akzeptiert: "90", "18.5", "18,5", "1:30", "1:30.25", "1:30,25", "1:02:03.5".
  * Ungültige Eingaben ergeben 0.
  */
-export const parseTimeInput = (timeStr) => {
+export const parseTimeInput = (timeStr: string | number | null | undefined): number => {
   if (!timeStr) return 0
   const cleaned = String(timeStr).trim().replace(',', '.')
   if (!cleaned) return 0

@@ -384,7 +384,7 @@ function autoWrapText() {
   const text = newTextContent.value.trim()
   const words = text.split(/\s+/)
 
-  let lines = []
+  const lines = []
   let currentLine = ''
 
   words.forEach((word) => {

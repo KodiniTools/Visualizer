@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
@@ -24,14 +25,7 @@ export default defineConfig({
   // e2e/ dürfen nicht von Vitest eingesammelt werden.
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.spec.js'],
-  },
-
-  server: {
-    mime: {
-      // Setzt den korrekten MIME-Typ für .woff2 Dateien
-      '.woff2': 'font/woff2',
-    },
+    include: ['src/**/*.spec.{js,ts}'],
   },
 
   build: {

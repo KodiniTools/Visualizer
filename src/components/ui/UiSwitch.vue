@@ -17,7 +17,7 @@
   </span>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, useId } from 'vue'
 
 /**
@@ -25,14 +25,17 @@ import { computed, useId } from 'vue'
  * Bildkonverter. „An“ zeigt die Primärfarbe. `label` ist Pflicht: sichtbar
  * rechts daneben oder mit `labelHidden` nur als aria-label/title.
  */
-const props = defineProps({
-  label: { type: String, required: true },
-  id: { type: String, default: undefined },
-  labelHidden: { type: Boolean, default: false },
-  disabled: { type: Boolean, default: false },
-})
+const props = withDefaults(
+  defineProps<{
+    label: string
+    id?: string
+    labelHidden?: boolean
+    disabled?: boolean
+  }>(),
+  { id: undefined, labelHidden: false, disabled: false },
+)
 
-const model = defineModel({ type: Boolean, default: false })
+const model = defineModel<boolean>({ default: false })
 
 const generatedId = useId()
 const switchId = computed(() => props.id ?? `ui-switch-${generatedId}`)

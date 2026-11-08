@@ -1,5 +1,6 @@
 import { onUnmounted, watch } from 'vue'
 import { drawShapeWithAudio, getShapeAudioFx } from '../lib/shapes/shapeAudio'
+import { drawShapeAnimated, getShapeAnimationFx } from '../lib/shapes/shapeAnimation'
 import {
   createShapeInteraction,
   drawShapeSelection,
@@ -37,7 +38,7 @@ export function useShapeLayer({ canvasRef, canvasManagerInstance, shapeStore, hi
     }
   }
 
-  /** Alle Formen in die Szene zeichnen (Live, Aufnahme, Screenshot), inkl. Audio-Reaktiv. */
+  /** Alle Formen in die Szene zeichnen (Live, Aufnahme, Screenshot), inkl. Audio-Reaktiv und Animation. */
   function drawShapes(ctx) {
     const canvas = ctx?.canvas
     if (!canvas || shapeStore.shapes.length === 0) return
@@ -45,10 +46,16 @@ export function useShapeLayer({ canvasRef, canvasManagerInstance, shapeStore, hi
     const live = canvasRef.value
     if (live?.width && live?.height) shapeStore.syncCanvasSize(live.width, live.height)
     const audioData = getAudioAnalysisData()
+    const now = performance.now()
     for (const shape of shapeStore.shapes) {
       // Beat-Marker: zugewiesene Formen erscheinen erst zum Marker-Zeitpunkt
       if (shapeStore.isMarkerHidden(shape.id)) continue
-      drawShapeWithAudio(ctx, shape, getShapeAudioFx(shape.audioReactive, audioData))
+      // Animation (Pulsieren, Ein-/Ausblenden …) innerhalb von Audio-Reaktiv
+      const anim = shape.animation
+        ? getShapeAnimationFx(shape.animation, shapeStore.getAnimationElapsed(shape.id, now), shape)
+        : null
+      const draw = anim ? (c, s) => drawShapeAnimated(c, s, anim) : undefined
+      drawShapeWithAudio(ctx, shape, getShapeAudioFx(shape.audioReactive, audioData), draw)
     }
   }
 

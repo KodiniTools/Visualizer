@@ -161,3 +161,32 @@ describe('shapeStore – Audio-Reaktiv und Beat-Marker', () => {
     expect(store.isMarkerHidden(star.id)).toBe(false)
   })
 })
+
+describe('shapeStore – Animations-Uhr', () => {
+  beforeEach(() => setActivePinia(createPinia()))
+
+  it('misst ab dem ersten Aufruf und startet beim Einblenden durch Marker neu', () => {
+    const store = useShapeStore()
+    const shape = store.addShape('rect', 1000, 500)
+    expect(store.getAnimationElapsed(shape.id, 100)).toBe(0)
+    expect(store.getAnimationElapsed(shape.id, 600)).toBe(500)
+    store.setMarkerHidden(shape.id, true)
+    expect(store.getAnimationElapsed(shape.id, 700)).toBe(600)
+    store.setMarkerHidden(shape.id, false)
+    expect(store.getAnimationElapsed(shape.id, 900)).toBe(0)
+    store.restartAnimations()
+    expect(store.getAnimationElapsed(shape.id, 2000)).toBe(0)
+  })
+
+  it('animation ist Teil des Snapshots und wird dupliziert', () => {
+    const store = useShapeStore()
+    const shape = store.addShape('rect', 1000, 500)
+    store.updateShape(shape.id, {
+      animation: { type: 'pulse', duration: 1, intensity: 40, delay: 0 },
+    })
+    expect(store.captureSnapshot().shapes[0].animation.type).toBe('pulse')
+    const copy = store.duplicateShape(shape.id)
+    expect(copy.animation).toEqual(shape.animation)
+    expect(copy.animation).not.toBe(shape.animation)
+  })
+})

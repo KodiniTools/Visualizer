@@ -214,6 +214,23 @@
         {{ t('player.newShapeHint') }}
       </p>
 
+      <UiSelect
+        :model-value="newMarkerImageId as SelectValue"
+        :label="t('player.placedImage')"
+        :options="placedImageSelectOptions"
+        :title="t('player.placedImageAppears')"
+        size="sm"
+        class="marker-placed-image"
+        @update:model-value="newMarkerImageId = $event"
+      />
+      <p v-if="newMarkerImageId !== ''" class="form-hint marker-form-hint">
+        {{
+          String(newMarkerImageId).startsWith('gallery:')
+            ? t('player.newPlacedImageHint')
+            : t('player.placedImageAppears')
+        }}
+      </p>
+
       <UiTextField
         v-model="newMarkerLabel"
         :label="t('player.label')"
@@ -301,6 +318,16 @@
           :title="t('player.shapeAppears')"
           >◆ {{ marker.action.shapeLabel || t('player.shape') }}</span
         >
+        <span
+          v-if="
+            marker.action.imageId !== undefined &&
+            marker.action.imageId !== null &&
+            marker.action.imageId !== ''
+          "
+          class="marker-action marker-action-image"
+          :title="t('player.placedImageAppears')"
+          >📷 {{ marker.action.imageLabel || t('player.placedImage') }}</span
+        >
         <div class="marker-buttons">
           <UiIconButton
             :label="t('player.editMarker')"
@@ -383,6 +410,7 @@ const {
   newMarkerBackgroundKey,
   newMarkerTextId,
   newMarkerShapeId,
+  newMarkerImageId,
   newMarkerBgImageId,
   newMarkerVideoId,
   newMarkerVideoLoop,
@@ -391,6 +419,8 @@ const {
   getMarkerTexts,
   getMarkerShapes,
   getMarkerShapeGallery,
+  getMarkerCanvasImages,
+  getMarkerImageGallery,
   getMarkerGalleryImages,
   getMarkerGalleryVideos,
   updateMarkerTimeFromInput,
@@ -484,6 +514,13 @@ const galleryImageOptions = computed(() => {
   return getMarkerGalleryImages()
 })
 
+// Platzierte Canvas-Bilder; beim Öffnen des Formulars neu geladen, damit
+// gerade platzierte Bilder sofort erscheinen
+const placedImageOptions = computed(() => {
+  void showMarkerPanel.value
+  return getMarkerCanvasImages()
+})
+
 // Hochgeladene Videos aus dem Video-Panel (reaktiv auf die Video-Liste)
 const galleryVideoOptions = computed(() => {
   void showMarkerPanel.value
@@ -559,6 +596,27 @@ const textSelectOptions = computed(() => [
       (txt.content ? ` — ${txt.content}` : '') +
       (txt.offCanvas ? ` ${t('player.textOffCanvas')}` : ''),
   })),
+])
+
+const placedImageSelectOptions = computed(() => [
+  { value: '', label: t('player.noPlacedImage') },
+  ...group(
+    t('player.placedImages'),
+    placedImageOptions.value.map((img) => ({
+      value: img.id,
+      label:
+        `${t('common.layer')} ${img.layer}` +
+        (img.name ? ` — ${img.name}` : '') +
+        (img.animated ? ' ✨' : ''),
+    })),
+  ),
+  ...group(
+    t('player.placeFromGallery'),
+    getMarkerImageGallery().map((img) => ({
+      value: img.value,
+      label: `${img.number}. ${img.name}`,
+    })),
+  ),
 ])
 
 const shapeSelectOptions = computed(() => [
@@ -797,6 +855,10 @@ const shapeSelectOptions = computed(() => [
   background-color: color-mix(in srgb, var(--ds-success) 12%, transparent);
 }
 .marker-action-text {
+  color: var(--ds-link);
+  background-color: color-mix(in srgb, var(--ds-link) 14%, transparent);
+}
+.marker-action-image {
   color: var(--ds-link);
   background-color: color-mix(in srgb, var(--ds-link) 14%, transparent);
 }

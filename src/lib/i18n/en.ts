@@ -1001,6 +1001,14 @@ export default {
     insertedShapes: 'Inserted shapes',
     newShapeHint:
       'The shape is placed in the center of the canvas when you add the marker (editable under “Shapes & Symbols”) and appears at the marker time.',
+    placedImage: 'Canvas image',
+    noPlacedImage: '-- No image --',
+    placedImageAppears:
+      'Placed image appears at the marker time with its settings; its animations restart',
+    placedImages: 'Placed images',
+    placeFromGallery: 'Place from gallery',
+    newPlacedImageHint:
+      'The image is placed in the center of the canvas with the “Animation when adding” when you add the marker (editable in the photo panel) and appears at the marker time.',
     transition: 'Crossfade',
     transitionHint: 'Smooth crossfade when switching markers during playback',
     label: 'Label',

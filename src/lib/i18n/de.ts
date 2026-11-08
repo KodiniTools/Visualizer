@@ -1002,6 +1002,14 @@ export default {
     insertedShapes: 'Eingefügte Formen',
     newShapeHint:
       'Die Form wird beim Hinzufügen mittig auf dem Canvas angelegt (unter „Formen & Symbole“ bearbeitbar) und erscheint zum Marker-Zeitpunkt.',
+    placedImage: 'Bild auf Canvas',
+    noPlacedImage: '-- Kein Bild --',
+    placedImageAppears:
+      'Platziertes Bild erscheint zum Marker-Zeitpunkt mit seinen Einstellungen; seine Animationen starten dabei von vorn',
+    placedImages: 'Platzierte Bilder',
+    placeFromGallery: 'Aus der Galerie platzieren',
+    newPlacedImageHint:
+      'Das Bild wird beim Hinzufügen mittig mit der „Animation beim Hinzufügen“ auf den Canvas gelegt (im Foto-Panel bearbeitbar) und erscheint zum Marker-Zeitpunkt.',
     transition: 'Crossfade',
     transitionHint: 'Weiche Überblendung (Crossfade) beim Marker-Wechsel während der Wiedergabe',
     label: 'Label',

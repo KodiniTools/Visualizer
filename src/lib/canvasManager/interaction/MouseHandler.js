@@ -1,5 +1,5 @@
 // MouseHandler.js - Maus-Event-Handling
-import { requestSlideshowImageEdit } from '../../slideshowEditRequest.js'
+import { requestSlideshowImageEdit } from '../../slideshowEditRequest'
 
 /**
  * MouseHandler - Verantwortlich für alle Maus-Events

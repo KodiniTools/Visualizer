@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { requestSlideshowImageEdit, SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest.js'
-import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { requestSlideshowImageEdit, SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
 
 afterEach(() => {
   setSlideshowManager(null)

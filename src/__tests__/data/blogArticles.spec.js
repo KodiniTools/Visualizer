@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { blogArticles, getBlogArticlesNewestFirst } from '../../data/blogArticles.js'
+import { blogArticles, getBlogArticlesNewestFirst } from '../../data/blogArticles'
 
 const LOCALES = ['de', 'en']
 const LOCALIZED_FIELDS = ['tag', 'url', 'image', 'title', 'description']

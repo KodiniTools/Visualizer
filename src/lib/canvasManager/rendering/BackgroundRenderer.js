@@ -16,11 +16,11 @@ import {
   drawAudioReactiveOverlays,
   drawMediaWithAudioReactive,
 } from './audioReactiveDraw.js'
-import { SLIDESHOW_BASE_COLOR_DEFAULT } from '../../slideshowBaseColor.js'
-import { computeSlideshowGradientAudio } from '../../slideshowGradientAudio.js'
-import { applySlideshowFillAudio, computeSlideshowFillAudio } from '../../slideshowFillAudio.js'
+import { SLIDESHOW_BASE_COLOR_DEFAULT } from '../../slideshowBaseColor'
+import { computeSlideshowGradientAudio } from '../../slideshowGradientAudio'
+import { applySlideshowFillAudio, computeSlideshowFillAudio } from '../../slideshowFillAudio'
 import { computeSlideshowImageFillAudio, drawSlideshowImageFill } from '../../slideshowImageFill.js'
-import { getSlideshowManager } from '../../slideshowManagerBridge.js'
+import { getSlideshowManager } from '../../slideshowManagerBridge'
 import { getAudioAnalysisData } from '../../audio/audioAnalysisData.js'
 
 /**

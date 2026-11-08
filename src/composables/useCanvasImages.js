@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
-import { requestSlideshowImageEdit } from '../lib/slideshowEditRequest.js'
-import { getFotoPanel } from '../lib/fotoPanelBridge.js'
+import { requestSlideshowImageEdit } from '../lib/slideshowEditRequest'
+import { getFotoPanel } from '../lib/fotoPanelBridge'
 
 export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstance, t }) {
   const selectedCanvasImageId = ref(null)

@@ -9,7 +9,7 @@ import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import AudioFxPanel from '../../components/AudioFxPanel.vue'
 import { useAudioFxStore } from '../../stores/audioFxStore'
-import { setLocale } from '../../lib/i18n.js'
+import { setLocale } from '../../lib/i18n'
 import de from '../../lib/i18n/de.js'
 import en from '../../lib/i18n/en.js'
 

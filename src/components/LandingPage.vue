@@ -223,14 +223,14 @@
 <script setup>
 import { ref, computed, h, onMounted, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useI18n } from '../lib/i18n.js'
-import { useTheme } from '../lib/theme.js'
+import { useI18n } from '../lib/i18n'
+import { useTheme } from '../lib/theme'
 import { useAuthStore } from '../stores/auth'
 import { useLandingContentStore } from '../stores/landingContent'
 import AdminPanel from './admin/AdminPanel.vue'
 import LoginModal from './admin/LoginModal.vue'
 import { UiIconButton } from './ui'
-import { getBlogArticlesNewestFirst } from '../data/blogArticles.js'
+import { getBlogArticlesNewestFirst } from '../data/blogArticles'
 
 const { t, locale } = useI18n()
 const { isDark } = useTheme()

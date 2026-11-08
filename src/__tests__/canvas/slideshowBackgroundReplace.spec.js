@@ -8,7 +8,7 @@ import { SelectionManager } from '../../lib/canvasManager/interaction/SelectionM
 import { MultiImageManager } from '../../lib/multiImageManager.js'
 import { FotoManager } from '../../lib/fotoManager.js'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
-import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
 import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 afterEach(() => {

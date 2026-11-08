@@ -126,7 +126,7 @@
  * Zustand kommt per inject('recorderSettings') aus useRecorderSettings.
  */
 import { computed, inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 

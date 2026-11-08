@@ -100,7 +100,7 @@
 
 <script setup>
 import { ref, computed, nextTick } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 import { useLayerPresetStore } from '../../stores/layerPresetStore'
 

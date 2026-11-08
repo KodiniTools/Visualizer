@@ -144,8 +144,8 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { localizedName } from '../../lib/localizedName.js'
+import { useI18n } from '../../lib/i18n'
+import { localizedName } from '../../lib/localizedName'
 import { UiButton, UiCallout, UiSegmentedControl } from '../ui/index.js'
 import PlacementSettings from './PlacementSettings.vue'
 

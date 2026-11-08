@@ -99,7 +99,7 @@
  * Die Logik liegt in den Composables unter `foto-panel/`.
  */
 import { ref, watch, onMounted, onBeforeUnmount, inject } from 'vue'
-import { useI18n } from '../lib/i18n.js'
+import { useI18n } from '../lib/i18n'
 import { useToastStore } from '../stores/toastStore'
 
 // Sub-Komponenten
@@ -116,7 +116,7 @@ import { useGalleryCanvasDrop } from '../composables/useGalleryCanvasDrop.js'
 import { useFotoSlideshow } from './foto-panel/useFotoSlideshow.js'
 import { useImagePlacement } from './foto-panel/useImagePlacement.js'
 import { useActiveImageEditing } from './foto-panel/useActiveImageEditing.js'
-import { registerFotoPanel } from '../lib/fotoPanelBridge.js'
+import { registerFotoPanel } from '../lib/fotoPanelBridge'
 
 const { t } = useI18n()
 const toastStore = useToastStore()

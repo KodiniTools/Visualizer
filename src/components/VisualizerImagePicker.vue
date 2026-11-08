@@ -22,7 +22,7 @@
 
 <script setup>
 import { computed, inject, ref } from 'vue'
-import { useI18n } from '../lib/i18n.js'
+import { useI18n } from '../lib/i18n'
 import {
   visualizerImages,
   registerImageFile,

@@ -1,7 +1,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
-import { resolveSlideshowAudioReactive } from '../../lib/slideshowAudio.js'
-import { SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest.js'
+import { resolveSlideshowAudioReactive } from '../../lib/slideshowAudio'
+import { SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest'
 import { useSlideshowPopover } from '../../composables/useSlideshowPopover.js'
 import { slideshowStableKey } from './slideshow/slideshowImageKey.js'
 import { useSlideshowImageAdjustmentsStore } from '../../stores/slideshowImageAdjustmentsStore'
@@ -11,7 +11,7 @@ import {
   diffAdjustments,
   restorePersistedAdjustments as restorePersistedAdjustmentsInto,
   restorePersistedBounds as restorePersistedBoundsInto,
-} from '../../lib/slideshowAdjustmentsPersistence.js'
+} from '../../lib/slideshowAdjustmentsPersistence'
 import {
   buildSlideshowSourceImages,
   ensureSlideshowImagesLoaded,
@@ -22,7 +22,7 @@ import {
   createSlideshowAdjustmentsApi,
   createBoundsPersistQueue,
 } from './slideshowAdjustmentsApi.js'
-import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
 
 /**
  * Slideshow-Verdrahtung des FotoPanels: SlideshowManager erzeugen, Start/

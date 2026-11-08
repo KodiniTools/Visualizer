@@ -40,8 +40,8 @@
 <script setup>
 /** Filter-Preset des aktiven Bildes sowie Rückgängig/Wiederholen/Zurücksetzen. */
 import { computed, inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
-import { localizedName } from '../../../lib/localizedName.js'
+import { useI18n } from '../../../lib/i18n'
+import { localizedName } from '../../../lib/localizedName'
 import UiButton from '../../ui/UiButton.vue'
 import UiSelect from '../../ui/UiSelect.vue'
 

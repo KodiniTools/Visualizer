@@ -56,7 +56,7 @@
 
 <script setup>
 import { inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import SliderControl from '../ui/SliderControl.vue'
 import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
 

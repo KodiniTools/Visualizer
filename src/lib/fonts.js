@@ -1,6 +1,6 @@
 // fonts.js - Zentrale Font-Konfiguration mit robustem Loading
 
-import { FONT_BASE_URL, fontUrl } from './fontUrl.js'
+import { FONT_BASE_URL, fontUrl } from './fontUrl'
 
 export const CUSTOM_FONTS = [
   // Alpino Familie

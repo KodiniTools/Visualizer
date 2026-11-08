@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { normalizeImageAdjustments } from './slideshowPresetStore'
-import { isValidSlideshowAudioMode, SLIDESHOW_AUDIO_DEFAULT } from '../lib/slideshowAudio.js'
+import { isValidSlideshowAudioMode, SLIDESHOW_AUDIO_DEFAULT } from '../lib/slideshowAudio'
 
 const STORAGE_KEY = 'visualizer-slideshow-image-adjustments'
 // Anpassungen sind größer als die übrigen Einstellungen pro Bild → eigene,

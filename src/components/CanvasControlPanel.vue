@@ -20,7 +20,7 @@
 
 <script setup>
 import { ref, provide, inject } from 'vue'
-import { useI18n } from '../lib/i18n.js'
+import { useI18n } from '../lib/i18n'
 import { useBgSettings } from '../composables/useBgSettings.js'
 import BackgroundColorSection from './canvas-control/BackgroundColorSection.vue'
 import PresetsSection from './canvas-control/PresetsSection.vue'

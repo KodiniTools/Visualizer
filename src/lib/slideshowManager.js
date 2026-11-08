@@ -9,11 +9,11 @@ import {
   SLIDESHOW_BASE_COLOR_DEFAULT,
   normalizeSlideshowBaseColor,
   normalizeSlideshowGradient,
-} from './slideshowBaseColor.js'
-import { normalizeSlideshowFillAudio } from './slideshowFillAudio.js'
+} from './slideshowBaseColor'
+import { normalizeSlideshowFillAudio } from './slideshowFillAudio'
 import { normalizeSlideshowImageFill } from './slideshowImageFill.js'
-import { applySlideshowAudioSource } from './slideshowAudio.js'
-import { positionBounds, resizeBounds } from './imageBoundsControls.js'
+import { applySlideshowAudioSource } from './slideshowAudio'
+import { positionBounds, resizeBounds } from './imageBoundsControls'
 
 /**
  * SlideshowManager - Orchestriert die Bild-Slideshow auf dem Canvas

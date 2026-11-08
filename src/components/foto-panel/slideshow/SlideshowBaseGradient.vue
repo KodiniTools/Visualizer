@@ -102,11 +102,11 @@
  * Workspace). Rein darstellend: v-model liefert den bereinigten Verlauf.
  */
 import { computed } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 import {
   normalizeSlideshowGradient,
   SLIDESHOW_GRADIENT_DEFAULT,
-} from '../../../lib/slideshowBaseColor.js'
+} from '../../../lib/slideshowBaseColor'
 import ColorField from '../../ui/ColorField.vue'
 import SliderControl from '../../ui/SliderControl.vue'
 import UiSelect from '../../ui/UiSelect.vue'

@@ -50,7 +50,7 @@
 <script setup>
 /** Ebenen-Reihenfolge des aktiven Bildes und „Hinter Visualizer rendern“. */
 import { inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 import UiButton from '../../ui/UiButton.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
 

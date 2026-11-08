@@ -36,8 +36,8 @@
  * der Maus oder per Undo werden pro Frame abgeglichen.
  */
 import { reactive, ref, toRaw, watch, onMounted, onBeforeUnmount } from 'vue'
-import { loadKeepAspect, saveKeepAspect } from '../../../lib/imagePlacementSettings.js'
-import { useI18n } from '../../../lib/i18n.js'
+import { loadKeepAspect, saveKeepAspect } from '../../../lib/imagePlacementSettings'
+import { useI18n } from '../../../lib/i18n'
 import SliderControl from '../../ui/SliderControl.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import {
@@ -46,7 +46,7 @@ import {
   resizeBounds,
   getDefaultImageSize,
   isValidBounds,
-} from '../../../lib/imageBoundsControls.js'
+} from '../../../lib/imageBoundsControls'
 
 const props = defineProps({
   // Ausgewähltes Canvas-Bild ({ relX, relY, relWidth, relHeight, imageObject })

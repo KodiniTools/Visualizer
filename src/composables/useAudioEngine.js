@@ -1,5 +1,5 @@
 import { watch } from 'vue'
-import { registerAudioEngine } from '../lib/audioEngineBridge.js'
+import { registerAudioEngine } from '../lib/audioEngineBridge'
 
 const SILENT_GAIN = 0.0001
 const ACTIVE_GAIN = 1
@@ -362,7 +362,7 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }) {
 
   /** Meldet die Engine bei lib/audioEngineBridge.js an (Zugriff über getAudioEngine()). */
   function registerEngine() {
-    /** @type {import('../lib/audioEngineBridge.js').AudioEngineApi} */
+    /** @type {import('../lib/audioEngineBridge').AudioEngineApi} */
     const api = {
       switchAudioSource,
       toggleRecordingMicrophone,

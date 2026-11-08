@@ -18,11 +18,11 @@
  * Optionen und Texte wie im Bild-Audio-Reaktiv-Panel (AudioReactiveMaster).
  */
 import { computed } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 import {
   SLIDESHOW_AUDIO_SOURCE_BANDS,
   SLIDESHOW_AUDIO_SOURCE_ONSETS,
-} from '../../../lib/slideshowGradientAudio.js'
+} from '../../../lib/slideshowGradientAudio'
 import UiSelect from '../../ui/UiSelect.vue'
 
 const props = defineProps({

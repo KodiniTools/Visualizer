@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { reactive, computed, ref } from 'vue'
-import { useI18n } from '../lib/i18n.js'
+import { useI18n } from '../lib/i18n'
 import { useAuthStore } from './auth'
 
 // ==========================================================================

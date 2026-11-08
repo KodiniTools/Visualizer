@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { toRaw } from 'vue'
 import { useImageGallery } from '../../composables/useImageGallery.js'
 
-vi.mock('../../utils/presetImageRepository.js', () => ({
+vi.mock('../../utils/presetImageRepository', () => ({
   blobFromImage: vi.fn(),
   saveImageBlob: vi.fn(),
   loadImage: vi.fn(),
 }))
 
-const { loadImage } = await import('../../utils/presetImageRepository.js')
-const { restoreUploadImage } = await import('../../lib/slideshowImagePersistence.js')
+const { loadImage } = await import('../../utils/presetImageRepository')
+const { restoreUploadImage } = await import('../../lib/slideshowImagePersistence')
 
 const img = (w = 100, h = 50, src = 'data:image/png;base64,AAAA') => ({ width: w, height: h, src })
 

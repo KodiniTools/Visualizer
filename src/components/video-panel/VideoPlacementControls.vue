@@ -44,12 +44,12 @@
 
 <script setup>
 import { computed, inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import SliderControl from '../ui/SliderControl.vue'
 import UiButton from '../ui/UiButton.vue'
 import UiSelect from '../ui/UiSelect.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
-import { placementAnimationOptions } from '../../lib/placementAnimations.js'
+import { placementAnimationOptions } from '../../lib/placementAnimations'
 
 const { t } = useI18n()
 

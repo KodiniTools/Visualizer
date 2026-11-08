@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  resolveSlideshowAudioReactive,
-  isValidSlideshowAudioMode,
-} from '../../lib/slideshowAudio.js'
+import { resolveSlideshowAudioReactive, isValidSlideshowAudioMode } from '../../lib/slideshowAudio'
 
 const saved = { enabled: true, source: 'mid', effects: { glow: { enabled: true, intensity: 42 } } }
 

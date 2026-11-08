@@ -4,7 +4,7 @@ import {
   SLIDESHOW_AUDIO_DEFAULT,
   isValidSlideshowAudioMode,
   isValidSlideshowAudioSource,
-} from '../lib/slideshowAudio.js'
+} from '../lib/slideshowAudio'
 import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig.js'
 import { SLIDESHOW_TRANSITION_DEFAULT, isValidTransition } from '../lib/slideshowTransitions.js'
 import {
@@ -12,8 +12,8 @@ import {
   SLIDESHOW_GRADIENT_DEFAULT,
   normalizeSlideshowBaseColor,
   normalizeSlideshowGradient,
-} from '../lib/slideshowBaseColor.js'
-import { normalizeStockRef, normalizeUploadRef } from '../lib/slideshowImageRefs.js'
+} from '../lib/slideshowBaseColor'
+import { normalizeStockRef, normalizeUploadRef } from '../lib/slideshowImageRefs'
 import {
   SLIDESHOW_IMAGE_FILL_DEFAULT,
   collectStoredImageFillKeys,
@@ -22,12 +22,12 @@ import {
 import {
   SLIDESHOW_FILL_AUDIO_DEFAULT,
   normalizeSlideshowFillAudio,
-} from '../lib/slideshowFillAudio.js'
+} from '../lib/slideshowFillAudio'
 import {
   pruneImages,
   getImageStorageStats,
   getStorageEstimate,
-} from '../utils/presetImageRepository.js'
+} from '../utils/presetImageRepository'
 
 const STORAGE_KEY = 'visualizer-slideshow-presets'
 // Frisch gespeicherte Bilder beim Aufräumen schonen (laufendes Speichern,

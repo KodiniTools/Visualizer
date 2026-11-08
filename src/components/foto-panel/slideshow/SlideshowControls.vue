@@ -41,7 +41,7 @@
 <script setup>
 /** Start/Pause/Fortsetzen/Stopp und Fortschrittsanzeige der Slideshow. */
 import { computed } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 import UiButton from '../../ui/UiButton.vue'
 
 const PHASES = ['fadeIn', 'display', 'fadeOut']

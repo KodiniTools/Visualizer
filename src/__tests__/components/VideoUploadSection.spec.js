@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 import VideoUploadSection from '../../components/video-panel/VideoUploadSection.vue'
-import { setLocale } from '../../lib/i18n.js'
+import { setLocale } from '../../lib/i18n'
 import de from '../../lib/i18n/de.js'
 
 let wrapper

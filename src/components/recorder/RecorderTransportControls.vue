@@ -56,7 +56,7 @@
 // die Aktionen selbst führt das RecorderPanel aus. Die Klassen btn-<aktion>
 // bleiben als Anker für Tests und das Panel.
 import { computed } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { useRecorderStore } from '../../stores/recorderStore'
 import { UiButton } from '../ui/index.js'
 

@@ -119,8 +119,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { localeRef } from '../lib/i18n.js'
-import { QUICK_START_TABS, QUICK_START_CONTENT } from '../data/quickStartGuide.js'
+import { localeRef } from '../lib/i18n'
+import { QUICK_START_TABS, QUICK_START_CONTENT } from '../data/quickStartGuide'
 import { UiIconButton, UiKbd, UiSegmentedControl } from './ui/index.js'
 
 const LANG_OPTIONS = [

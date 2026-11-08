@@ -99,7 +99,7 @@
  * werden an das SlideshowPanel emittiert, das den Store bedient.
  */
 import { ref, computed } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 import { formatBytes } from '../../../utils/formatBytes'
 
 const props = defineProps({

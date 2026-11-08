@@ -5,7 +5,7 @@ import {
   uploadAudio,
   assembleFrameExport,
   cancelFrameExport,
-} from '../lib/frameExportApi.js'
+} from '../lib/frameExportApi'
 import { waitForJob, getFileUrl, cleanupFile } from '../lib/videoApi.js'
 import { useFrameCapture } from './useFrameCapture.js'
 

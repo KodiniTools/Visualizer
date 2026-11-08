@@ -9,11 +9,11 @@ import SlideshowImageEditor from '../../components/foto-panel/slideshow/Slidesho
 import SlideshowOrderList from '../../components/foto-panel/slideshow/SlideshowOrderList.vue'
 import SlideshowPanel from '../../components/foto-panel/SlideshowPanel.vue'
 import ColorField from '../../components/ui/ColorField.vue'
-import { setLocale } from '../../lib/i18n.js'
+import { setLocale } from '../../lib/i18n'
 import de from '../../lib/i18n/de.js'
 import en from '../../lib/i18n/en.js'
 
-vi.mock('../../lib/slideshowImagePersistence.js', () => ({
+vi.mock('../../lib/slideshowImagePersistence', () => ({
   persistUploadImage: vi.fn(async () => null),
   restoreUploadImage: vi.fn(async () => null),
   loadPersistedImage: vi.fn(async () => null),

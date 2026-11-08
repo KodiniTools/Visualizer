@@ -154,7 +154,7 @@ vi.mock('../../lib/visualizers/imageRegistry.js', () => ({
   resolveEffectiveImageId: (id) => id ?? 'auto-img',
 }))
 
-import { getCanvasScreenshot } from '../../lib/canvasScreenshotBridge.js'
+import { getCanvasScreenshot } from '../../lib/canvasScreenshotBridge'
 import { useRenderLoop } from '../../composables/useRenderLoop.js'
 import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 

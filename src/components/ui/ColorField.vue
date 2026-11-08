@@ -114,7 +114,7 @@
  * (`title`, `aria-label`, …) auf dem Button.
  */
 import { computed, nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import {
   FALLBACK_HEX,
   HSL_RANGES,

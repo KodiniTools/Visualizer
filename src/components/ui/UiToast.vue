@@ -79,7 +79,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import UiButton from './UiButton.vue'
 import UiIconButton from './UiIconButton.vue'
 

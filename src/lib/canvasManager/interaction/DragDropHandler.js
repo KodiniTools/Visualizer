@@ -1,6 +1,6 @@
 // DragDropHandler.js - Drag & Drop und Resize-Operationen
 
-import { getSlideshowManager } from '../../slideshowManagerBridge.js'
+import { getSlideshowManager } from '../../slideshowManagerBridge'
 
 /**
  * DragDropHandler - Verantwortlich für Drag & Drop und Resize-Operationen

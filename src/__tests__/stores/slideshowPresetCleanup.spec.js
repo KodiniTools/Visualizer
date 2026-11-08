@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 
-vi.mock('../../utils/presetImageRepository.js', () => ({
+vi.mock('../../utils/presetImageRepository', () => ({
   pruneImages: vi.fn(async () => 0),
   getImageStorageStats: vi.fn(async () => ({ count: 0, bytes: 0 })),
   getStorageEstimate: vi.fn(async () => null),
 }))
 
 const { pruneImages, getImageStorageStats, getStorageEstimate } = await import(
-  '../../utils/presetImageRepository.js'
+  '../../utils/presetImageRepository'
 )
 const { useSlideshowPresetStore, IMAGE_CLEANUP_GRACE_MS, _resetAutoCleanup } = await import(
   '../../stores/slideshowPresetStore'

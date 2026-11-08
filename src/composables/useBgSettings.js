@@ -13,7 +13,7 @@ import { captureCanvasElements, restoreCanvasElements } from '../lib/background/
 import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore'
 import { useToastStore } from '../stores/toastStore'
 import { useTickerStore } from '../stores/tickerStore'
-import { useI18n } from '../lib/i18n.js'
+import { useI18n } from '../lib/i18n'
 import { useHistoryStore } from '../stores/historyStore'
 import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
 import { createBackgroundSegment } from '../lib/history/segments/backgroundSegment.js'

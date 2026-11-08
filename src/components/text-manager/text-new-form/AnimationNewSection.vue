@@ -41,7 +41,7 @@
  * An/Aus-Schalter, Einstellungen (Slot) und „Mit … hinzufügen“.
  */
 import UiButton from '../../ui/UiButton.vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 
 defineProps({
   icon: { type: String, required: true },

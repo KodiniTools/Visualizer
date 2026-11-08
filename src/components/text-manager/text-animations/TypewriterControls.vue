@@ -60,7 +60,7 @@ import UiSelect from '../../ui/UiSelect.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import AnimationLoopControls from './AnimationLoopControls.vue'
 import AnimationDisplayControls from './AnimationDisplayControls.vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 import { useEffectField } from './useEffectField.js'
 
 const effect = defineModel('effect', { type: Object, required: true })

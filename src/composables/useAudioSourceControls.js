@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { useAudioSourceStore } from '../stores/audioSourceStore'
-import { getAudioEngine } from '../lib/audioEngineBridge.js'
+import { getAudioEngine } from '../lib/audioEngineBridge'
 
 /**
  * Player vs. microphone audio-source switching and input-device selection for

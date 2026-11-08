@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue'
-import { loadPlacementSettings, savePlacementSettings } from '../../lib/imagePlacementSettings.js'
+import { loadPlacementSettings, savePlacementSettings } from '../../lib/imagePlacementSettings'
 
 /**
  * Eigene Galerie-Bilder auf den Canvas bringen: direkt, per Bereichsauswahl

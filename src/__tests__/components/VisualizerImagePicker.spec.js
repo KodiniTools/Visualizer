@@ -11,7 +11,7 @@ import {
   registerVisualizerImage,
 } from '../../lib/visualizers/imageRegistry.js'
 import { useImageGallery } from '../../composables/useImageGallery.js'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de.js'
 import en from '../../lib/i18n/en.js'
 

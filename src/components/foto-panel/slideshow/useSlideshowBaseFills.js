@@ -7,14 +7,14 @@ import {
   normalizeSlideshowGradient,
   storeSlideshowBaseColor,
   storeSlideshowGradient,
-} from '../../../lib/slideshowBaseColor.js'
+} from '../../../lib/slideshowBaseColor'
 import {
   SLIDESHOW_FILL_AUDIO_DEFAULT,
   isSameSlideshowFillAudio,
   loadStoredSlideshowFillAudio,
   normalizeSlideshowFillAudio,
   storeSlideshowFillAudio,
-} from '../../../lib/slideshowFillAudio.js'
+} from '../../../lib/slideshowFillAudio'
 import { SLIDESHOW_DEFAULT_SETTINGS as D } from '../../../stores/slideshowPresetStore'
 
 export function isDefaultFillAudio(a) {

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import de from '../../lib/i18n/de.js'
 import en from '../../lib/i18n/en.js'
-import { PLACEMENT_ANIMATIONS } from '../../lib/placementAnimations.js'
+import { PLACEMENT_ANIMATIONS } from '../../lib/placementAnimations'
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const read = (rel) => readFileSync(join(SRC, rel), 'utf8')

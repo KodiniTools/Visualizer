@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
-import { applyRouteHead } from '../../router/seoHead.js'
+import { applyRouteHead } from '../../router/seoHead'
 
 const BASE = 'https://kodinitools.com/visualizer'
 const landing = { title: 'Start', canonical: `${BASE}/`, robots: 'index, follow', faq: true }

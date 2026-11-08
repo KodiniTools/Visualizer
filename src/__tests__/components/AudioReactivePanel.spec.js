@@ -10,7 +10,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import AudioReactivePanel from '../../components/foto-panel/AudioReactivePanel.vue'
 import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects.js'
-import { setLocale } from '../../lib/i18n.js'
+import { setLocale } from '../../lib/i18n'
 import de from '../../lib/i18n/de.js'
 import en from '../../lib/i18n/en.js'
 

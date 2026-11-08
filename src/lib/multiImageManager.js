@@ -28,7 +28,7 @@ import {
 } from './canvasObjects/geometry.js'
 import { getEntranceTransform } from './canvasObjects/entranceAnimation.js'
 import { moveToBack, moveToFront } from './canvasObjects/zOrder.js'
-import { getSlideshowManager } from './slideshowManagerBridge.js'
+import { getSlideshowManager } from './slideshowManagerBridge'
 import { getAudioAnalysisData } from './audio/audioAnalysisData.js'
 
 export class MultiImageManager {

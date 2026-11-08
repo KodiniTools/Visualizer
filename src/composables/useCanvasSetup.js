@@ -5,7 +5,7 @@ import { GridManager } from '../lib/gridManager.js'
 import { MultiImageManager } from '../lib/multiImageManager.js'
 import { VideoManager } from '../lib/videoManager.js'
 import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
-import { getFotoPanel } from '../lib/fotoPanelBridge.js'
+import { getFotoPanel } from '../lib/fotoPanelBridge'
 
 /**
  * Canvas pixel dimensions per social-media workspace preset.

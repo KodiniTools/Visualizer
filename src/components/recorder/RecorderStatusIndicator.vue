@@ -16,7 +16,7 @@
 // Statuszeile des Recorders: Zustand (processing > paused > recording > ready > idle)
 // und Laufzeit während der Aufnahme.
 import { computed } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { useRecorderStore } from '../../stores/recorderStore'
 
 defineProps({

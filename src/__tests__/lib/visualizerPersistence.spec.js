@@ -6,10 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useVisualizerStore } from '../../stores/visualizerStore'
-import {
-  setupVisualizerPersistence,
-  VISUALIZER_STORAGE_KEY,
-} from '../../lib/visualizerPersistence.js'
+import { setupVisualizerPersistence, VISUALIZER_STORAGE_KEY } from '../../lib/visualizerPersistence'
 
 let persistence
 // Neustart simulieren: neue Pinia, Store mit Standardwerten, dann laden

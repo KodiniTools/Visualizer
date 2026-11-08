@@ -54,7 +54,7 @@ import SliderControl from '../ui/SliderControl.vue'
 import UiButton from '../ui/UiButton.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
 import { inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import TileImageSection from './TileImageSection.vue'
 import TileAudioSection from './TileAudioSection.vue'
 

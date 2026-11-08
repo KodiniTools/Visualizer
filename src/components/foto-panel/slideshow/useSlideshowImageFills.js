@@ -10,7 +10,7 @@ import {
   normalizeSlideshowImageFill,
   storeSlideshowImageFill,
 } from '../../../lib/slideshowImageFill.js'
-import { normalizeStockRef } from '../../../lib/slideshowImageRefs.js'
+import { normalizeStockRef } from '../../../lib/slideshowImageRefs'
 
 export const IMAGE_FILL_TARGETS = Object.freeze(['canvas', 'workspace'])
 

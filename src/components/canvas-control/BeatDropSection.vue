@@ -50,7 +50,7 @@ import ColorField from '../ui/ColorField.vue'
 import SliderControl from '../ui/SliderControl.vue'
 import UiSelect from '../ui/UiSelect.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { useBeatDropStore } from '../../stores/beatDropStore'
 
 const { t } = useI18n()

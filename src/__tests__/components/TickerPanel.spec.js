@@ -11,7 +11,7 @@ import { dirname, join } from 'node:path'
 import { createPinia, setActivePinia } from 'pinia'
 import TickerPanel from '../../components/TickerPanel.vue'
 import { useTickerStore } from '../../stores/tickerStore'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de.js'
 import en from '../../lib/i18n/en.js'
 

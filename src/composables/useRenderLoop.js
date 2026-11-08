@@ -9,7 +9,7 @@ import { createBeatPunch } from './renderLoop/beatPunch.js'
 import { createMultiLayerRenderer } from './renderLoop/multiLayerRenderer.js'
 import { createSingleVisualizerRenderer } from './renderLoop/singleVisualizerRenderer.js'
 import { createSceneRenderer } from './renderLoop/sceneRenderer.js'
-import { registerCanvasScreenshot } from '../lib/canvasScreenshotBridge.js'
+import { registerCanvasScreenshot } from '../lib/canvasScreenshotBridge'
 import { getAudioAnalysisData } from '../lib/audio/audioAnalysisData.js'
 
 /**

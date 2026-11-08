@@ -1,5 +1,5 @@
 import { ref, inject, onMounted, onUnmounted, watch, computed } from 'vue'
-import { useI18n } from '../lib/i18n.js'
+import { useI18n } from '../lib/i18n'
 import {
   formatTime,
   createVideoElement,

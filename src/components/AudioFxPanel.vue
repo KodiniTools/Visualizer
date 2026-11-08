@@ -43,9 +43,9 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useI18n } from '../lib/i18n.js'
+import { useI18n } from '../lib/i18n'
 import { useAudioFxStore } from '../stores/audioFxStore'
-import { AUDIO_FX_GROUPS } from '../data/audioFxEffects.js'
+import { AUDIO_FX_GROUPS } from '../data/audioFxEffects'
 import ColorField from './ui/ColorField.vue'
 import UiSwitch from './ui/UiSwitch.vue'
 import FxEffect from './audio-fx/FxEffect.vue'

@@ -127,7 +127,7 @@
 
 <script setup>
 import { ref, inject, nextTick, watch } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { useToastStore } from '../../stores/toastStore'
 import { useNewTextSettings } from '../../composables/useNewTextSettings.js'
 import { buildAnimationConfig } from './text-new-form/buildAnimation.js'

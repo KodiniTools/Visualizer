@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
-import { applyLocaleHead, localeUrls, resolveInitialLocale } from '../../lib/localeSeo.js'
+import { applyLocaleHead, localeUrls, resolveInitialLocale } from '../../lib/localeSeo'
 
 const BASE = 'https://kodinitools.com/visualizer/'
 

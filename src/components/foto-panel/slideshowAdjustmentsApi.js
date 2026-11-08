@@ -1,5 +1,5 @@
 import { slideshowStableKey } from './slideshow/slideshowImageKey.js'
-import { diffAdjustments } from '../../lib/slideshowAdjustmentsPersistence.js'
+import { diffAdjustments } from '../../lib/slideshowAdjustmentsPersistence'
 
 /**
  * Zugriff des Slideshow-Panels auf gemerkte Bild-Anpassungen, -Größen und

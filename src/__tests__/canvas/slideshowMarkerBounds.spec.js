@@ -13,7 +13,7 @@ import {
   computeTransitionState,
   SLIDESHOW_TRANSITIONS,
 } from '../../lib/slideshowTransitions.js'
-import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
 
 afterEach(() => {
   setSlideshowManager(null)

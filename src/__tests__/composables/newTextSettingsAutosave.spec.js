@@ -17,7 +17,7 @@ import {
   loadTextSequenceSettings,
   saveTextSequenceSettings,
   TEXT_SEQUENCE_KEY,
-} from '../../lib/textSequenceSettings.js'
+} from '../../lib/textSequenceSettings'
 
 let wrapper
 let form

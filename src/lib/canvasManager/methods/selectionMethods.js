@@ -7,7 +7,7 @@
  * auf CanvasManager.prototype übertragen).
  */
 
-import { getSlideshowManager } from '../../slideshowManagerBridge.js'
+import { getSlideshowManager } from '../../slideshowManagerBridge'
 
 export class SelectionMethods {
   /**

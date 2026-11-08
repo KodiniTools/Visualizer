@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { defineComponent } from 'vue'
 import { mount } from '@vue/test-utils'
-import { vPopoverDrag } from '../../directives/popoverDrag.js'
+import { vPopoverDrag } from '../../directives/popoverDrag'
 
 // Popover-Attrappe mit Header, wie sie die Sticky-Player-Bar rendert.
 const Popover = defineComponent({

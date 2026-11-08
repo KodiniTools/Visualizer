@@ -9,7 +9,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import PresetAndHistory from '../../components/foto-panel/image-filters/PresetAndHistory.vue'
 import { useImageFilterControls } from '../../composables/useImageFilterControls.js'
 import { useHistoryStore } from '../../stores/historyStore'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de.js'
 import en from '../../lib/i18n/en.js'
 

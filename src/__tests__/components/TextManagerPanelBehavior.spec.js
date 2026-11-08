@@ -7,7 +7,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import TextManagerPanel from '../../components/TextManagerPanel.vue'
 import TextDirectoryPanel from '../../components/text-manager/TextDirectoryPanel.vue'
 import { TextManager } from '../../lib/textManager.js'
-import { TEXT_SEQUENCE_KEY } from '../../lib/textSequenceSettings.js'
+import { TEXT_SEQUENCE_KEY } from '../../lib/textSequenceSettings'
 import { historyApplyRevision } from '../../lib/history/historyRecorder.js'
 
 // Verhalten des TextManagerPanels (Auswahl, Reihenwiedergabe, Tastatur-Text,

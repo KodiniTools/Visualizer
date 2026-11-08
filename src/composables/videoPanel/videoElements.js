@@ -4,7 +4,7 @@
  * (Audio-Engine über lib/audioEngineBridge.js).
  */
 
-import { getAudioEngine } from '../../lib/audioEngineBridge.js'
+import { getAudioEngine } from '../../lib/audioEngineBridge'
 
 /** Sekunden → 'm:ss' ('0:00' für 0, NaN, Infinity). */
 export function formatTime(seconds) {

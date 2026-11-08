@@ -71,7 +71,7 @@ import SliderControl from '../../ui/SliderControl.vue'
 import UiCallout from '../../ui/UiCallout.vue'
 import UiSelect from '../../ui/UiSelect.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 import { SLIDESHOW_TRANSITIONS } from '../../../lib/slideshowTransitions.js'
 
 defineProps({

@@ -280,7 +280,7 @@ import {
 import { isSameSlideshowImageFill } from '../../lib/slideshowImageFill.js'
 import { useImageGallery } from '../../composables/useImageGallery.js'
 import { useStockGallery } from '../../composables/useStockGallery.js'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import SlideshowOrderList from './slideshow/SlideshowOrderList.vue'
 import SlideshowTimingSettings from './slideshow/SlideshowTimingSettings.vue'
 import SlideshowTransformSettings from './slideshow/SlideshowTransformSettings.vue'
@@ -291,7 +291,7 @@ import SlideshowStatusBadge from './slideshow/SlideshowStatusBadge.vue'
 import ColorField from '../ui/ColorField.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 import { slideshowImageKey } from './slideshow/slideshowImageKey.js'
-import { loadPersistedImage } from '../../lib/slideshowImagePersistence.js'
+import { loadPersistedImage } from '../../lib/slideshowImagePersistence'
 import {
   useSlideshowPresetStore,
   SLIDESHOW_DEFAULT_SETTINGS,

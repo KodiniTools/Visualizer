@@ -60,7 +60,7 @@
 
 <script setup>
 import SliderField from '../ui/SliderField.vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 
 const { t } = useI18n()

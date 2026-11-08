@@ -72,8 +72,8 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { placementAnimationOptions } from '../../lib/placementAnimations.js'
+import { useI18n } from '../../lib/i18n'
+import { placementAnimationOptions } from '../../lib/placementAnimations'
 import SliderControl from '../ui/SliderControl.vue'
 import UiButton from '../ui/UiButton.vue'
 import UiSelect from '../ui/UiSelect.vue'

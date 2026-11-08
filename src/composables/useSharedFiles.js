@@ -1,4 +1,4 @@
-import { getSharedFiles, clearSharedFiles } from '../utils/sharedFileRepository.js'
+import { getSharedFiles, clearSharedFiles } from '../utils/sharedFileRepository'
 
 /**
  * useSharedFiles - imports tracks handed over from the Audiokonverter tool.

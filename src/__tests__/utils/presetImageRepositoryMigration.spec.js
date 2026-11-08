@@ -1,7 +1,7 @@
 // @vitest-environment node
 import 'fake-indexeddb/auto'
 import { describe, it, expect } from 'vitest'
-import { pruneImages } from '../../utils/presetImageRepository.js'
+import { pruneImages } from '../../utils/presetImageRepository'
 
 function openV1() {
   return new Promise((resolve, reject) => {

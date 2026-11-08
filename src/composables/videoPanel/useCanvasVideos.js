@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { getAudioEngine } from '../../lib/audioEngineBridge.js'
+import { getAudioEngine } from '../../lib/audioEngineBridge'
 import {
   seekTo,
   seekBackwardBy,

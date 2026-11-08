@@ -12,8 +12,8 @@ import { useBeatDropStore } from '../../stores/beatDropStore'
 import {
   setupAudioSettingsPersistence,
   AUDIO_STORAGE_KEYS,
-} from '../../lib/audioSettingsPersistence.js'
-import { setupStorePersistence } from '../../lib/storePersistence.js'
+} from '../../lib/audioSettingsPersistence'
+import { setupStorePersistence } from '../../lib/storePersistence'
 
 let persistence
 function restart() {

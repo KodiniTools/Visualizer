@@ -43,8 +43,8 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, inject, watch } from 'vue'
-import { loadPlacementSettings, savePlacementSettings } from '../lib/imagePlacementSettings.js'
-import { useI18n } from '../lib/i18n.js'
+import { loadPlacementSettings, savePlacementSettings } from '../lib/imagePlacementSettings'
+import { useI18n } from '../lib/i18n'
 import { useToastStore } from '../stores/toastStore'
 import ImagePreviewOverlay from './foto-panel/ImagePreviewOverlay.vue'
 import StockGallerySection from './foto-panel/StockGallerySection.vue'

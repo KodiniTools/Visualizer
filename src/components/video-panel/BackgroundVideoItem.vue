@@ -87,7 +87,7 @@
 </template>
 
 <script setup>
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import SliderControl from '../ui/SliderControl.vue'
 import SliderField from '../ui/SliderField.vue'
 import UiIconButton from '../ui/UiIconButton.vue'

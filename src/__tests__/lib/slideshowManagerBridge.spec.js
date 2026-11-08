@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from 'vitest'
-import { getSlideshowManager, setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { getSlideshowManager, setSlideshowManager } from '../../lib/slideshowManagerBridge'
 
 afterEach(() => setSlideshowManager(null))
 

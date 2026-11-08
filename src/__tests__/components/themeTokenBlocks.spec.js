@@ -126,7 +126,7 @@ describe('App.vue: Aliase der Visualizer-Namen auf --ds-*', () => {
   })
 
   it('tokens-v2.css ist vor App.vue eingebunden', () => {
-    const main = readFileSync(join(SRC, 'main.js'), 'utf8')
+    const main = readFileSync(join(SRC, 'main.ts'), 'utf8')
     expect(main.indexOf('./design-system/tokens-v2.css')).toBeGreaterThan(-1)
     expect(main.indexOf('./design-system/tokens-v2.css')).toBeLessThan(main.indexOf('./App.vue'))
   })

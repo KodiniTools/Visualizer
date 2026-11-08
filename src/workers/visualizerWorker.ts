@@ -6,14 +6,41 @@
 
 import { Visualizers } from '../lib/visualizers/index'
 import { visualizerState } from '../lib/visualizers/core/state'
-import { createPostProcessor, shouldRunPostFx } from '../lib/postfx/index'
+import { createPostProcessor, shouldRunPostFx, type PostFxConfig } from '../lib/postfx/index'
+import type { OnsetData, OnsetFxConfig } from '../lib/visualizers/core/state'
+import type { WorkerScope } from './workerScope'
 
-let offscreenCanvas = null
-let ctx = null
+/** Render-Auftrag (lib/workerManager.renderVisualizerFrame) */
+interface RenderJob {
+  visualizerId: string
+  audioData: Uint8Array
+  bufferLength: number
+  color: string
+  opacity?: number
+  colorOpacity?: number
+  postFx?: PostFxConfig | null
+  quality?: number
+  onsetFx?: OnsetFxConfig | null
+  onsetData?: OnsetData | null
+  dtMs?: number
+  ledText?: unknown
+}
+
+/** Nachrichten vom Haupt-Thread */
+type VisualizerWorkerMessage =
+  | { type: 'init' | 'resize'; width: number; height: number }
+  | ({ type: 'render' } & RenderJob)
+  | { type: 'image'; bitmap?: ImageBitmap | null }
+  | { type: 'cleanup' }
+
+const scope = self as unknown as WorkerScope<VisualizerWorkerMessage>
+
+let offscreenCanvas: OffscreenCanvas | null = null
+let ctx: OffscreenCanvasRenderingContext2D | null = null
 let width = 0
 let height = 0
-let lastVisualizerId = null
-let postProcessor = null
+let lastVisualizerId: string | null = null
+let postProcessor: ReturnType<typeof createPostProcessor> | null = null
 
 function ensurePostProcessor() {
   if (!postProcessor) {
@@ -28,14 +55,14 @@ function ensurePostProcessor() {
   return postProcessor
 }
 
-function initWorker(w, h) {
+function initWorker(w: number, h: number) {
   width = w
   height = h
   offscreenCanvas = new OffscreenCanvas(width, height)
   ctx = offscreenCanvas.getContext('2d')
 }
 
-function resizeCanvas(w, h) {
+function resizeCanvas(w: number, h: number) {
   width = w
   height = h
   if (offscreenCanvas) {
@@ -62,7 +89,7 @@ function renderFrame({
   onsetData,
   dtMs,
   ledText,
-}) {
+}: RenderJob) {
   if (!ctx || !offscreenCanvas) return
 
   const visualizer = Visualizers[visualizerId]
@@ -83,7 +110,7 @@ function renderFrame({
   if (lastVisualizerId !== visualizerId) {
     if (lastVisualizerId && Visualizers[lastVisualizerId]) {
       try {
-        Visualizers[lastVisualizerId].cleanup?.()
+        Visualizers[lastVisualizerId]?.cleanup?.()
       } catch {}
     }
     visualizer.init?.(width, height)
@@ -110,51 +137,52 @@ function renderFrame({
     const proc = ensurePostProcessor()
     if (proc) {
       try {
-        proc.apply(offscreenCanvas, postFx, quality ?? 1)
+        proc.apply(offscreenCanvas, postFx as PostFxConfig, quality ?? 1) // shouldRunPostFx: nicht null
       } catch {}
     }
   }
 
   const bitmap = offscreenCanvas.transferToImageBitmap()
-  self.postMessage({ type: 'frame', bitmap }, [bitmap])
+  scope.postMessage({ type: 'frame', bitmap }, [bitmap])
 }
 
-self.onmessage = function (e) {
-  const { type } = e.data
+scope.onmessage = function (e) {
+  const msg = e.data
 
-  switch (type) {
+  switch (msg.type) {
     case 'init':
-      initWorker(e.data.width, e.data.height)
-      self.postMessage({ type: 'ready' })
+      initWorker(msg.width, msg.height)
+      scope.postMessage({ type: 'ready' })
       break
 
     case 'resize':
-      resizeCanvas(e.data.width, e.data.height)
+      resizeCanvas(msg.width, msg.height)
       break
 
     case 'render':
-      renderFrame(e.data)
+      renderFrame(msg)
       break
 
     case 'image':
       // Portrait presets: ImageBitmap transferred from the main thread (or null).
+      // Im Worker ist _imageSource immer ein ImageBitmap (oder null)
       if (
         visualizerState._imageSource &&
-        typeof visualizerState._imageSource.close === 'function'
+        typeof (visualizerState._imageSource as ImageBitmap).close === 'function'
       ) {
         try {
-          visualizerState._imageSource.close()
+          ;(visualizerState._imageSource as ImageBitmap).close()
         } catch {
           /* bewusst ignoriert */
         }
       }
-      visualizerState._imageSource = e.data.bitmap || null
+      visualizerState._imageSource = msg.bitmap || null
       break
 
     case 'cleanup':
       if (lastVisualizerId && Visualizers[lastVisualizerId]) {
         try {
-          Visualizers[lastVisualizerId].cleanup?.()
+          Visualizers[lastVisualizerId]?.cleanup?.()
         } catch {}
       }
       lastVisualizerId = null
@@ -162,4 +190,4 @@ self.onmessage = function (e) {
   }
 }
 
-self.postMessage({ type: 'workerLoaded' })
+scope.postMessage({ type: 'workerLoaded' })

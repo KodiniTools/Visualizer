@@ -3,13 +3,36 @@
  * Verarbeitet Bildfilter (Brightness, Contrast, Saturation, etc.) im Hintergrund
  */
 
+import type { WorkerScope } from './workerScope'
+
+/** Filter-Einstellungen (Prozent bzw. Grad, 0/fehlend = Standard) */
+interface PixelFilters {
+  brightness?: number
+  contrast?: number
+  saturation?: number
+  hueRotate?: number
+  invert?: number
+  sepia?: number
+}
+
+/** Nachrichten vom Haupt-Thread (lib/workerManager.applyImageFilters) */
+interface ImageFilterMessage {
+  type: string
+  imageData: ImageData
+  filters?: PixelFilters | null
+  blur?: number
+  jobId: string
+}
+
+const scope = self as unknown as WorkerScope<ImageFilterMessage>
+
 /**
  * Wendet Filter auf ImageData an
- * @param {ImageData} imageData - Die zu verarbeitenden Bilddaten
- * @param {object} filters - Filter-Einstellungen
- * @returns {ImageData} Verarbeitete Bilddaten
+ * @param imageData - Die zu verarbeitenden Bilddaten
+ * @param filters - Filter-Einstellungen
+ * @returns Verarbeitete Bilddaten
  */
-function applyFilters(imageData, filters) {
+function applyFilters(imageData: ImageData, filters: PixelFilters) {
   const data = imageData.data
   const length = data.length
 
@@ -24,9 +47,10 @@ function applyFilters(imageData, filters) {
   const contrastFactor = (259 * (contrast * 255 + 255)) / (255 * (259 - contrast * 255))
 
   for (let i = 0; i < length; i += 4) {
-    let r = data[i]
-    let g = data[i + 1]
-    let b = data[i + 2]
+    // i < length - 3: Indizes liegen im Array
+    let r = data[i] as number
+    let g = data[i + 1] as number
+    let b = data[i + 2] as number
     // Alpha bleibt unverändert: data[i + 3]
 
     // 1. Brightness
@@ -100,11 +124,11 @@ function applyFilters(imageData, filters) {
 
 /**
  * Wendet Blur auf ImageData an (Box Blur)
- * @param {ImageData} imageData - Die zu verarbeitenden Bilddaten
- * @param {number} radius - Blur-Radius
- * @returns {ImageData} Verarbeitete Bilddaten
+ * @param imageData - Die zu verarbeitenden Bilddaten
+ * @param radius - Blur-Radius
+ * @returns Verarbeitete Bilddaten
  */
-function applyBlur(imageData, radius) {
+function applyBlur(imageData: ImageData, radius: number) {
   if (radius <= 0) return imageData
 
   const width = imageData.width
@@ -128,10 +152,11 @@ function applyBlur(imageData, radius) {
           const py = Math.min(height - 1, Math.max(0, y + ky))
           const idx = (py * width + px) * 4
 
-          r += data[idx]
-          g += data[idx + 1]
-          b += data[idx + 2]
-          a += data[idx + 3]
+          // px/py sind auf das Bild begrenzt
+          r += data[idx] as number
+          g += data[idx + 1] as number
+          b += data[idx + 2] as number
+          a += data[idx + 3] as number
         }
       }
 
@@ -148,7 +173,7 @@ function applyBlur(imageData, radius) {
 }
 
 // Message Handler
-self.onmessage = function (e) {
+scope.onmessage = function (e) {
   const { type, imageData, filters, blur, jobId } = e.data
 
   switch (type) {
@@ -166,7 +191,7 @@ self.onmessage = function (e) {
           result = applyBlur(result, Math.floor(blur))
         }
 
-        self.postMessage(
+        scope.postMessage(
           {
             type: 'filterResult',
             imageData: result,
@@ -175,9 +200,9 @@ self.onmessage = function (e) {
           [result.data.buffer],
         ) // Transfer für Performance
       } catch (error) {
-        self.postMessage({
+        scope.postMessage({
           type: 'error',
-          error: error.message,
+          error: (error as Error).message,
           jobId,
         })
       }
@@ -189,4 +214,4 @@ self.onmessage = function (e) {
 }
 
 // Worker ist bereit
-self.postMessage({ type: 'ready' })
+scope.postMessage({ type: 'ready' })

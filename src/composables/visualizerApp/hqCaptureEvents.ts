@@ -5,14 +5,12 @@
  * 'hq:captureRemaining'.
  */
 
+import type { FrameBatchCallback } from '../useFrameCapture'
+
 /** Abhängigkeiten von bindHqCaptureEvents */
 export interface HqCaptureDeps {
   getRecordingCanvas: () => HTMLCanvasElement | null | undefined
-  startCapture: (
-    canvas: HTMLCanvasElement,
-    fps: number,
-    onBatch: (...args: never[]) => unknown,
-  ) => void
+  startCapture: (canvas: HTMLCanvasElement, fps: number, onBatch: FrameBatchCallback) => void
   stopCapture: () => Promise<unknown>
 }
 
@@ -22,9 +20,7 @@ export function bindHqCaptureEvents({
   stopCapture,
 }: HqCaptureDeps): void {
   window.addEventListener('hq:startCapture', (e) => {
-    const { fps, onBatch } = (
-      e as CustomEvent<{ fps: number; onBatch: (...args: never[]) => unknown }>
-    ).detail
+    const { fps, onBatch } = (e as CustomEvent<{ fps: number; onBatch: FrameBatchCallback }>).detail
     const canvas = getRecordingCanvas()
     if (!canvas) return
     startCapture(canvas, fps, onBatch)

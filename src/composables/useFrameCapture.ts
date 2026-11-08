@@ -14,7 +14,7 @@
 import { ref } from 'vue'
 // Inline (base64) classic worker from a blob URL — avoids module-worker load
 // failures under the /visualizer/ subpath deployment. See workerManager.js.
-import FrameCaptureWorker from '../workers/frameCaptureWorker.js?worker&inline'
+import FrameCaptureWorker from '../workers/frameCaptureWorker?worker&inline'
 
 /** Ergebnis von stop(): JPEG-Frames ab startIndex */
 export interface FrameCaptureResult {

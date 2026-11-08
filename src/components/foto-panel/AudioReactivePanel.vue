@@ -9,11 +9,11 @@
 
 <script setup>
 import { ref, reactive, computed, toRef, provide } from 'vue'
-import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects.js'
+import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects'
 import {
   AUDIO_REACTIVE_PRESETS,
   AUDIO_REACTIVE_PRESET_LIST,
-} from '../../lib/audio/audioReactiveConfig.js'
+} from '../../lib/audio/audioReactiveConfig'
 import { useI18n } from '../../lib/i18n'
 import AudioReactiveMaster from './audio-reactive/AudioReactiveMaster.vue'
 import AudioReactivePresets from './audio-reactive/AudioReactivePresets.vue'

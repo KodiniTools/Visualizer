@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { postFxActive } from '../../lib/postfx/index.js'
+import { postFxActive } from '../../lib/postfx/index'
 
 describe('postFxActive', () => {
   it('is false for empty / missing config', () => {

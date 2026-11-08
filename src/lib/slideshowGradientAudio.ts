@@ -8,7 +8,7 @@
  * Ohne Audio (Pegel 0) sieht der Verlauf genau wie eingestellt aus.
  * Pegel/Glättung kommen aus der gemeinsamen Audio-Engine.
  */
-import { computeAudioReactiveValues } from './audio/audioReactiveEngine.js'
+import { computeAudioReactiveValues } from './audio/audioReactiveEngine'
 
 /** Audio-Quellen wie beim Bild-Audio-Reaktiv (inkl. Onset, siehe AudioLevelCalculator). */
 // 'dynamic' = Auto-Blend aus Bass/Mitten/Höhen (AudioLevelCalculator.calculateDynamicLevel)
@@ -115,15 +115,10 @@ export function computeSlideshowGradientAudio(
     OWNERS[target === 'workspace' ? 'workspace' : 'canvas'],
     { enabled: true, source: audio.source, effects },
     audioData,
-    // audioReactiveEngine.js ist noch JS; die Parameter-Inferenz für
-    // `calculate` ist dort fehlerhaft → Callback-Typ explizit angleichen
-    ((_name: string, level: number) => ({ level })) as unknown as Parameters<
-      typeof computeAudioReactiveValues
-    >[3],
+    (_name, level) => ({ level }),
   )
   if (!values) return { ...NEUTRAL }
-  // calculate liefert { level } je Effekt (siehe oben)
-  const levels = values.effects as Record<string, { level?: number } | undefined>
+  const levels: Record<string, { level: number } | undefined> = values.effects
   const pulse = levels.pulse?.level ?? 0
   const rotation = levels.rotation?.level ?? 0
   const wave = Math.sin(now * 0.002)

@@ -8,8 +8,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import RecorderTransportControls from '../../components/recorder/RecorderTransportControls.vue'
 import { useRecorderStore } from '../../stores/recorderStore'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const R = de.recorder
 let wrapper

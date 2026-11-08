@@ -8,9 +8,9 @@
  *
  * @module textManager/audio/textEffectValues
  */
-import { computeAudioReactiveValues } from '../../audio/audioReactiveEngine.js'
-import { calculateBeatPulse, calculateEffectValue } from '../../audio/index.js'
-import { getAudioAnalysisData } from '../../audio/audioAnalysisData.js'
+import { computeAudioReactiveValues } from '../../audio/audioReactiveEngine'
+import { calculateBeatPulse, calculateEffectValue } from '../../audio/index'
+import { getAudioAnalysisData } from '../../audio/audioAnalysisData'
 
 /**
  * Text-spezifische Optionen für die Hüllkurve des Level-Resolvers.

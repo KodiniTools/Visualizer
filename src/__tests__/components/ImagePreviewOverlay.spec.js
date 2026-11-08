@@ -6,8 +6,8 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ImagePreviewOverlay from '../../components/foto-panel/ImagePreviewOverlay.vue'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const F = de.foto
 const image = { src: 'data:,x', name: 'urlaub.jpg' }

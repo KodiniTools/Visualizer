@@ -4,12 +4,9 @@
  *
  * Videos werden als HTMLVideoElement gehalten und Frame-by-Frame auf Canvas gezeichnet
  */
-import { EFFECT_NAMES } from './audio/AudioReactiveEffects.js'
-import { computeAudioReactiveValues } from './audio/audioReactiveEngine.js'
-import {
-  createAudioReactiveConfig,
-  ensureAudioReactiveConfig,
-} from './audio/audioReactiveConfig.js'
+import { EFFECT_NAMES } from './audio/AudioReactiveEffects'
+import { computeAudioReactiveValues } from './audio/audioReactiveEngine'
+import { createAudioReactiveConfig, ensureAudioReactiveConfig } from './audio/audioReactiveConfig'
 import {
   applyAudioReactiveFilters,
   applyAudioReactiveTransform,
@@ -21,10 +18,10 @@ import {
   getDeleteButtonBounds,
   getResizeHandles,
   isPointInRect,
-} from './canvasObjects/geometry.js'
-import { getEntranceTransform } from './canvasObjects/entranceAnimation.js'
-import { moveToBack, moveToFront } from './canvasObjects/zOrder.js'
-import { getAudioAnalysisData } from './audio/audioAnalysisData.js'
+} from './canvasObjects/geometry'
+import { getEntranceTransform } from './canvasObjects/entranceAnimation'
+import { moveToBack, moveToFront } from './canvasObjects/zOrder'
+import { getAudioAnalysisData } from './audio/audioAnalysisData'
 
 export class VideoManager {
   constructor(canvas, callbacks = {}) {

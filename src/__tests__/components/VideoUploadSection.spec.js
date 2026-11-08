@@ -7,7 +7,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 import VideoUploadSection from '../../components/video-panel/VideoUploadSection.vue'
 import { setLocale } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
+import de from '../../lib/i18n/de'
 
 let wrapper
 let vp

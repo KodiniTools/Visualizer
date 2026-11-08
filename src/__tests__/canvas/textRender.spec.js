@@ -11,7 +11,7 @@ import { buildFilterString } from '../../lib/textManager/render/filters.js'
 import { drawTextLines, drawTypewriterCursor } from '../../lib/textManager/render/textLines.js'
 import { drawText } from '../../lib/textManager/render/drawText.js'
 import { createTextObject } from '../../lib/textManager/createTextObject.js'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 /**
  * Tests für die Render-Module (docs/REFACTORING-textManager.md, Schritt 5).

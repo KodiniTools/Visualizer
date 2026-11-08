@@ -15,7 +15,7 @@ import {
   normalizeSlideshowImageFill,
 } from '../../lib/slideshowImageFill.js'
 import SlideshowAudioSourceSelect from '../../components/foto-panel/slideshow/SlideshowAudioSourceSelect.vue'
-import { sourceNames } from '../../lib/audio/AudioLevelCalculator.js'
+import { sourceNames } from '../../lib/audio/AudioLevelCalculator'
 
 const ONSETS = ['bassOnset', 'midOnset', 'trebleOnset', 'allOnset']
 // Nur ein Onset aktiv, alle Bänder still

@@ -6,7 +6,7 @@
  *
  * @module textManager/createTextObject
  */
-import { createTextAudioReactiveConfig } from '../audio/audioReactiveConfig.js'
+import { createTextAudioReactiveConfig } from '../audio/audioReactiveConfig'
 
 /**
  * Erzeugt ein vollständig initialisiertes Text-Objekt.

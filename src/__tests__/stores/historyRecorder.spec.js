@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { reactive } from 'vue'
 import { useHistoryStore } from '../../stores/historyStore'
-import { createHistoryRecorder } from '../../lib/history/historyRecorder.js'
+import { createHistoryRecorder } from '../../lib/history/historyRecorder'
 
 function makeSegment(initial) {
   const state = reactive({ ...initial })

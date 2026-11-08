@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects.js'
+import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects'
 import {
   BACKGROUND_EFFECT_NAMES,
   TILE_COLOR_ONLY_EFFECT_NAMES,
@@ -18,7 +18,7 @@ import {
   assignAudioReactiveConfig,
   serializeBackgroundAudio,
   applyBackgroundAudioSnapshot,
-} from '../../lib/audio/audioReactiveConfig.js'
+} from '../../lib/audio/audioReactiveConfig'
 
 describe('audioReactiveConfig – Struktur', () => {
   it('creates a config with every image effect disabled and default intensities', () => {

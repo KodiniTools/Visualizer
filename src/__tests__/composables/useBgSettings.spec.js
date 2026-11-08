@@ -5,7 +5,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useBgSettings } from '../../composables/useBgSettings.js'
 import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore'
 import { useTickerStore } from '../../stores/tickerStore'
-import { AUDIO_REACTIVE_PRESETS } from '../../lib/audio/audioReactiveConfig.js'
+import { AUDIO_REACTIVE_PRESETS } from '../../lib/audio/audioReactiveConfig'
 
 /**
  * Verhaltenstests für useBgSettings: sichern die öffentliche API und die

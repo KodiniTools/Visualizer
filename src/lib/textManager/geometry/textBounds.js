@@ -8,7 +8,7 @@
  * @module textManager/geometry/textBounds
  */
 import { applyTextStyleForMeasurement } from '../style/textStyle.js'
-import { isPointInRect } from '../../canvasObjects/geometry.js'
+import { isPointInRect } from '../../canvasObjects/geometry'
 
 /**
  * Findet das oberste Text-Objekt an einer bestimmten Position

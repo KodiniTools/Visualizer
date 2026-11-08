@@ -7,12 +7,9 @@
  * Bild-Effekte, die eine Bildfläche voraussetzen (Rahmen, Chromatik,
  * Vignette), entfallen bei Formen.
  */
-import { EFFECT_NAMES, calculateEffectValue } from '../audio/AudioReactiveEffects.js'
-import { computeAudioReactiveValues } from '../audio/audioReactiveEngine.js'
-import {
-  createAudioReactiveConfig,
-  ensureAudioReactiveConfig,
-} from '../audio/audioReactiveConfig.js'
+import { EFFECT_NAMES, calculateEffectValue } from '../audio/AudioReactiveEffects'
+import { computeAudioReactiveValues } from '../audio/audioReactiveEngine'
+import { createAudioReactiveConfig, ensureAudioReactiveConfig } from '../audio/audioReactiveConfig'
 import {
   applyAudioFilters,
   applyAudioGeometry,

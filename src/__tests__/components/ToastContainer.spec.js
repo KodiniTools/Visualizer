@@ -7,7 +7,7 @@ import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import ToastContainer from '../../components/ToastContainer.vue'
 import { useToastStore } from '../../stores/toastStore'
-import de from '../../lib/i18n/de.js'
+import de from '../../lib/i18n/de'
 
 let wrapper
 let toasts

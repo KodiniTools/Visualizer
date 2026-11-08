@@ -3,7 +3,7 @@
  *
  * @module textManager/render/transform/position
  */
-import { getMotionOffset } from '../../../audio/index.js'
+import { getMotionOffset } from '../../../audio/index'
 import { getSlideOffset } from '../../animation/slide.js'
 import { activeEffects } from '../effects.js'
 

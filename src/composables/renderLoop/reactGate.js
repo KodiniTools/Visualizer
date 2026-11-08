@@ -1,6 +1,6 @@
 import { visualizerState } from '../../lib/visualizers/core/state.js'
 import { stepReactGate, applyReactFactor } from '../../lib/visualizers/core/reactSource.js'
-import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 /**
  * Reaktionsquelle: gatet die Audiodaten mit der Hüllkurve aus `settings`

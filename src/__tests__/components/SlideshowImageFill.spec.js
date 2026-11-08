@@ -8,8 +8,8 @@ import { nextTick } from 'vue'
 import SlideshowImageFill from '../../components/foto-panel/slideshow/SlideshowImageFill.vue'
 import { SLIDESHOW_IMAGE_FILL_DEFAULT } from '../../lib/slideshowImageFill.js'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const S = de.slideshow
 const candidates = [

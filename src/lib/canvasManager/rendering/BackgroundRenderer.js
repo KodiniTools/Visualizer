@@ -21,7 +21,7 @@ import { computeSlideshowGradientAudio } from '../../slideshowGradientAudio'
 import { applySlideshowFillAudio, computeSlideshowFillAudio } from '../../slideshowFillAudio'
 import { computeSlideshowImageFillAudio, drawSlideshowImageFill } from '../../slideshowImageFill.js'
 import { getSlideshowManager } from '../../slideshowManagerBridge'
-import { getAudioAnalysisData } from '../../audio/audioAnalysisData.js'
+import { getAudioAnalysisData } from '../../audio/audioAnalysisData'
 
 /**
  * Ersetzt die laufende Slideshow gerade den Canvas- bzw. Workspace-Hintergrund?

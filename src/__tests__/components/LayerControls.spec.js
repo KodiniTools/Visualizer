@@ -9,8 +9,8 @@ import LayerControls from '../../components/foto-panel/image-filters/LayerContro
 import { createPinia, setActivePinia } from 'pinia'
 import { useImageFilterControls } from '../../composables/useImageFilterControls.js'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const F = de.foto
 let wrapper

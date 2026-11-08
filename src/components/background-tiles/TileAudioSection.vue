@@ -32,8 +32,8 @@
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
-import { tileEffectNames } from '../../lib/audio/audioReactiveConfig.js'
-import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+import { tileEffectNames } from '../../lib/audio/audioReactiveConfig'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 const {
   tilesStore,

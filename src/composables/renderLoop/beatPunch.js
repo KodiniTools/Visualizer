@@ -9,7 +9,7 @@ import {
   advancePunch,
   punchScale,
 } from '../../lib/visualizers/core/onsetReactive.js'
-import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 /**
  * Beat-Punch: onset-gesteuerter Zoom der gesamten Visualizer-Ebene. Die

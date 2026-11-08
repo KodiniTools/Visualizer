@@ -10,7 +10,7 @@
  * Typ, nur Visualizer-Typen, die es (ggf. über Alias) noch gibt – beschädigte
  * Daten fallen auf den Standard zurück.
  */
-import { createVisualizerSegment } from './history/segments/storeSegments.js'
+import { createVisualizerSegment } from './history/segments/storeSegments'
 import {
   clone,
   isPlainObject,
@@ -111,10 +111,11 @@ export function setupVisualizerPersistence(
   opts: { storage?: Storage | null; registry?: VisualizerRegistry } = {},
 ): PersistenceHandle {
   const storage = opts.storage ?? (typeof localStorage !== 'undefined' ? localStorage : null)
-  // storeSegments.js ist noch JS (Rückgabe als {} inferiert): Form des Segments
-  const segment = createVisualizerSegment(visualizerStore) as unknown as {
-    capture(): PlainObject
-    apply(snapshot: PlainObject): Promise<void>
+  const store = createVisualizerSegment(visualizerStore)
+  // capture() eines Store-Segments liefert immer ein Objekt
+  const segment = {
+    capture: () => store.capture() as PlainObject,
+    apply: (snapshot: PlainObject) => store.apply(snapshot),
   }
 
   // ── Laden ──

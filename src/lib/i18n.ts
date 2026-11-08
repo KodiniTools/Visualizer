@@ -1,5 +1,5 @@
 import { ref, computed, reactive } from 'vue'
-import de from './i18n/de.js'
+import de from './i18n/de'
 import { isLocale, resolveInitialLocale, type Locale } from './localeSeo'
 
 /** Übersetzungsbaum einer Sprache (Struktur wie i18n/de.js) */
@@ -10,7 +10,7 @@ const translations = reactive<Partial<Record<Locale, Messages>>>({ de })
 
 async function loadLocale(locale: Locale) {
   if (translations[locale]) return
-  const mod = await import(`./i18n/${locale}.js`)
+  const mod = await import(`./i18n/${locale}.ts`)
   translations[locale] = mod.default
 }
 

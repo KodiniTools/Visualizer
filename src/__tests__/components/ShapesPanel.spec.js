@@ -7,10 +7,10 @@ import UiSelect from '../../components/ui/UiSelect.vue'
 import UiSwitch from '../../components/ui/UiSwitch.vue'
 import { useShapeStore } from '../../stores/shapeStore'
 import { useHistoryStore } from '../../stores/historyStore'
-import { getHistoryRecorder, resetHistoryRecorder } from '../../lib/history/historyRecorder.js'
-import { createShapesSegment } from '../../lib/history/segments/shapesSegment.js'
+import { getHistoryRecorder, resetHistoryRecorder } from '../../lib/history/historyRecorder'
+import { createShapesSegment } from '../../lib/history/segments/shapesSegment'
 import { EMOJI_SET, SHAPE_CATEGORIES, SHAPE_GALLERY } from '../../lib/shapes/shapes.js'
-import de from '../../lib/i18n/de.js'
+import de from '../../lib/i18n/de'
 
 describe('ShapesPanel', () => {
   let store

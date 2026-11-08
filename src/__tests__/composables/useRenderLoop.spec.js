@@ -122,7 +122,7 @@ vi.mock('../../lib/workerManager.js', () => ({
 }))
 
 let procSeq = 0
-vi.mock('../../lib/postfx/index.js', () => ({
+vi.mock('../../lib/postfx/index', () => ({
   createPostProcessor: (w, h) => {
     const id = `proc${++procSeq}`
     L('postfx.create', id, w, h)
@@ -156,7 +156,7 @@ vi.mock('../../lib/visualizers/imageRegistry.js', () => ({
 
 import { getCanvasScreenshot } from '../../lib/canvasScreenshotBridge'
 import { useRenderLoop } from '../../composables/useRenderLoop.js'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 // ─── Test-Umgebung ──────────────────────────────────────────────────────────
 

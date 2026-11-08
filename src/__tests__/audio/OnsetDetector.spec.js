@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { OnsetDetector, DEFAULT_CONFIG } from '../../lib/audio/OnsetDetector.js'
+import { OnsetDetector, DEFAULT_CONFIG } from '../../lib/audio/OnsetDetector'
 
 /** Runs `frames` of a constant band value and returns the last onset object. */
 function run(detector, band, value, frames) {

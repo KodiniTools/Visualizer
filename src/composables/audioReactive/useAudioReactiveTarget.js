@@ -1,11 +1,11 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
-import { historyApplyRevision } from '../../lib/history/historyRecorder.js'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { historyApplyRevision } from '../../lib/history/historyRecorder'
 import {
   applyAudioReactivePreset,
   assignAudioReactiveConfig,
   cloneAudioReactiveConfig,
-} from '../../lib/audio/audioReactiveConfig.js'
+} from '../../lib/audio/audioReactiveConfig'
 
 /** Geglätteter Pegel (0–255) der gewählten Quelle; unbekannt → Bass. */
 export function levelForSource(audioData, source) {

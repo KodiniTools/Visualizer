@@ -5,7 +5,7 @@ import {
   isValidSlideshowAudioMode,
   isValidSlideshowAudioSource,
 } from '../lib/slideshowAudio'
-import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig.js'
+import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig'
 import { SLIDESHOW_TRANSITION_DEFAULT, isValidTransition } from '../lib/slideshowTransitions.js'
 import {
   SLIDESHOW_BASE_COLOR_DEFAULT,

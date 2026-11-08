@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { checkHandoff, consumeHandoff, dismissHandoff } from '../lib/core/handoff.js'
+import { checkHandoff, consumeHandoff, dismissHandoff } from '../lib/core/handoff'
 
 /**
  * useHandoff - incoming image handoff from another Kodini tool (e.g. the image

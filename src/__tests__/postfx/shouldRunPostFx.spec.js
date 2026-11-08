@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { shouldRunPostFx, MIN_QUALITY_FOR_POSTFX } from '../../lib/postfx/index.js'
+import { shouldRunPostFx, MIN_QUALITY_FOR_POSTFX } from '../../lib/postfx/index'
 
 const bloomConfig = { bloom: { enabled: true, strength: 0.5 } }
 

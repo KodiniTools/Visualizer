@@ -8,8 +8,8 @@ import TickerAudioReactive from '../../components/ticker/TickerAudioReactive.vue
 import VideoAudioReactive from '../../components/video-panel/VideoAudioReactive.vue'
 import { useShapeStore } from '../../stores/shapeStore'
 import { useTickerStore } from '../../stores/tickerStore'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
-import { historyApplyRevision } from '../../lib/history/historyRecorder.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { historyApplyRevision } from '../../lib/history/historyRecorder'
 
 // Verhalten der drei Audio-Reaktiv-Ziele (Form, Lauftext, Video) gegenüber dem
 // gemeinsamen AudioReactivePanel. Gilt vor und nach dem Zusammenführen.

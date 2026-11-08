@@ -12,7 +12,7 @@ import { MultiImageManager } from '../../lib/multiImageManager.js'
 import { FotoManager } from '../../lib/fotoManager.js'
 import { resolveSlideshowAudioReactive } from '../../lib/slideshowAudio'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 const WS = { x: 20, y: 10, width: 40, height: 80 }
 const SILENT = {

@@ -9,7 +9,7 @@ import PresetPanel from '../../components/PresetPanel.vue'
 import { BUILT_IN_PRESETS } from '../../data/builtInPresets'
 import { usePresetStore } from '../../stores/presetStore'
 import { useToastStore } from '../../stores/toastStore'
-import de from '../../lib/i18n/de.js'
+import de from '../../lib/i18n/de'
 
 const P = de.presets
 let wrapper

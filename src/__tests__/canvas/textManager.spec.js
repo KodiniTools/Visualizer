@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { TextManager } from '../../lib/textManager.js'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 /**
  * Characterization-Tests für den TextManager.

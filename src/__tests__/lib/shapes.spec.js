@@ -5,8 +5,8 @@
  * Die Logik-Tests sind aus dem Bildkonverter übernommen.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 import {
   SHAPE_CATEGORIES,
   SHAPE_GALLERY,

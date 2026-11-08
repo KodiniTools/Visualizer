@@ -1,10 +1,10 @@
-import { calculateEffectValue, getMotionOffset } from '../../audio/AudioReactiveEffects.js'
+import { calculateEffectValue, getMotionOffset } from '../../audio/AudioReactiveEffects'
 import {
   buildFilterString,
   combinedScale,
   computeAudioReactiveValues,
   strongestGlow,
-} from '../../audio/audioReactiveEngine.js'
+} from '../../audio/audioReactiveEngine'
 
 // Lauftext-eigene Effekte; alles andere kommt aus der gemeinsamen Bild-Engine.
 function calculateTickerEffect(name, level) {

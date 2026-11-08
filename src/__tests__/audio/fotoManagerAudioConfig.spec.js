@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects.js'
+import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects'
 import { FotoManager } from '../../lib/fotoManager.js'
 
 describe('FotoManager – Audio-Reaktiv-Konfiguration', () => {

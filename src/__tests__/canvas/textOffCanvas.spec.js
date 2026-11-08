@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { TextManager } from '../../lib/textManager.js'
 import { DeletionMethods } from '../../lib/canvasManager/methods/deletionMethods.js'
-import { createTextsSegment } from '../../lib/history/segments/canvasSegments.js'
+import { createTextsSegment } from '../../lib/history/segments/canvasSegments'
 
 /**
  * Vom Canvas gelöschte Texte bleiben mit allen Einstellungen im

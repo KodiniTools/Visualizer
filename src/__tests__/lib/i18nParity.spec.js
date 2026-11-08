@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 import { PLACEMENT_ANIMATIONS } from '../../lib/placementAnimations'
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '../..')
@@ -71,7 +71,7 @@ describe('i18n – DE/EN-Parität', () => {
     expect(empty).toEqual([])
   })
 
-  it.each(['lib/i18n/de.js', 'lib/i18n/en.js'])('%s enthält keine doppelten Schlüssel', (f) => {
+  it.each(['lib/i18n/de.ts', 'lib/i18n/en.ts'])('%s enthält keine doppelten Schlüssel', (f) => {
     expect(duplicateKeys(read(f))).toEqual([])
   })
 

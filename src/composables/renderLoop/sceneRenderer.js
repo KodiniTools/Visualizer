@@ -1,5 +1,5 @@
 import { ensureSizedCanvas } from './canvasCache.js'
-import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 /**
  * Szenenaufbau für Live-Bild, Aufnahme und Screenshot:

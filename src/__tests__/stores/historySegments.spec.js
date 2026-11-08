@@ -7,20 +7,20 @@ import { useTickerStore } from '../../stores/tickerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import { useBackgroundTilesStore } from '../../stores/backgroundTilesStore'
 import { useGridStore } from '../../stores/gridStore'
-import { createHistoryRecorder } from '../../lib/history/historyRecorder.js'
+import { createHistoryRecorder } from '../../lib/history/historyRecorder'
 import {
   createBackgroundTilesSegment,
   createBeatMarkerSegment,
   createGridSegment,
   createTickerSegment,
   createVisualizerSegment,
-} from '../../lib/history/segments/storeSegments.js'
+} from '../../lib/history/segments/storeSegments'
 import {
   createImagesSegment,
   createTextsSegment,
   createVideosSegment,
-} from '../../lib/history/segments/canvasSegments.js'
-import { createBackgroundSegment } from '../../lib/history/segments/backgroundSegment.js'
+} from '../../lib/history/segments/canvasSegments'
+import { createBackgroundSegment } from '../../lib/history/segments/backgroundSegment'
 import { createTextObject } from '../../lib/textManager/createTextObject.js'
 
 /** Fake-Bild-Element (jsdom lädt keine Bilder) */

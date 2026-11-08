@@ -9,7 +9,7 @@ import { ref } from 'vue'
 import BackgroundTilesPanel from '../../components/BackgroundTilesPanel.vue'
 import SliderField from '../../components/ui/SliderField.vue'
 import { useBackgroundTilesStore } from '../../stores/backgroundTilesStore'
-import de from '../../lib/i18n/de.js'
+import de from '../../lib/i18n/de'
 
 const T = de.backgroundTiles
 let wrapper

@@ -1,4 +1,4 @@
-import { ensureTextAudioReactive } from '../../lib/audio/audioReactiveConfig.js'
+import { ensureTextAudioReactive } from '../../lib/audio/audioReactiveConfig'
 
 /**
  * Ergänzt fehlende Eigenschaften älterer Text-Objekte (in place), bevor der

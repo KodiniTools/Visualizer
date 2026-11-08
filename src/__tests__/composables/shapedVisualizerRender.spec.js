@@ -25,7 +25,7 @@ vi.mock('../../lib/workerManager.js', () => ({
 }))
 vi.mock('../../lib/visualizers/imageRegistry.js', () => ({ getVisualizerImageSource: () => null }))
 vi.mock('../../stores/historyStore', () => ({ useHistoryStore: () => ({}) }))
-vi.mock('../../lib/history/historyRecorder.js', () => ({
+vi.mock('../../lib/history/historyRecorder', () => ({
   getHistoryRecorder: () => ({ absorb: (fn) => fn() }),
 }))
 vi.mock('../../composables/renderLoop/canvasCache.js', () => ({

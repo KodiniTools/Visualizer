@@ -14,7 +14,7 @@
  *   zoom       – Bild pulsiert (bis +25 % Größe)
  * Ohne Musik bleibt das Bild wie eingestellt.
  */
-import { computeAudioReactiveValues } from './audio/audioReactiveEngine.js'
+import { computeAudioReactiveValues } from './audio/audioReactiveEngine'
 import { SLIDESHOW_GRADIENT_AUDIO_SOURCES } from './slideshowGradientAudio'
 import { normalizeStockRef, normalizeUploadRef } from './slideshowImageRefs'
 

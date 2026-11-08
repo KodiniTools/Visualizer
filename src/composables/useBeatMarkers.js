@@ -9,7 +9,7 @@ import { useLayerPresetStore, parseLayerPresetRef } from '../stores/layerPresetS
 import { formatTimePrecise, parseTimeInput, roundToHundredths } from '../utils/formatTime'
 import { resolveBackgroundPreset } from '../utils/backgroundPresets'
 import { useHistoryStore } from '../stores/historyStore'
-import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
+import { getHistoryRecorder } from '../lib/history/historyRecorder'
 import { useShapeStore } from '../stores/shapeStore'
 import { SHAPE_CATEGORIES, SHAPE_GALLERY } from '../lib/shapes/shapes.js'
 import { useImageGallery } from './useImageGallery.js'
@@ -20,7 +20,7 @@ import {
   resolveBackgroundImageDefaults,
   restoreBaseBackground,
   setBackgroundImageWithDefaults,
-} from '../lib/background/markerBackgroundImage.js'
+} from '../lib/background/markerBackgroundImage'
 
 // Marker-Hintergründe laden Bilder/Videos per Callback nach → Baseline nach
 // dieser Zeit erneut übernehmen, damit sie nicht im nächsten Nutzer-Schritt landen.

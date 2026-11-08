@@ -1,11 +1,48 @@
-import { ref } from 'vue'
-import { slideshowImageKey } from './slideshowImageKey.js'
+import { ref, type ComputedRef, type Ref } from 'vue'
+import { slideshowImageKey } from './slideshowImageKey'
 import { restorePresetImages } from '../../../lib/slideshowSources'
 import { persistUploadImage, restoreUploadImage } from '../../../lib/slideshowImagePersistence'
 import { isQuotaError } from '../../../utils/presetImageRepository'
 import { MANUAL_CLEANUP_GRACE_MS } from '../../../stores/slideshowPresetStore'
 import { formatBytes } from '../../../utils/formatBytes'
 import { SLIDESHOW_AUDIO_DEFAULT } from '../../../lib/slideshowAudio'
+import type { SlideshowSourceImage } from '../../../lib/slideshowSources'
+import type { RelBounds } from '../../../lib/slideshowTransitions'
+import type {
+  useSlideshowPresetStore,
+  SlideshowPreset,
+  SlideshowSessionImage,
+} from '../../../stores/slideshowPresetStore'
+import type { useToastStore } from '../../../stores/toastStore'
+import type { TranslateFn } from '../../../composables/types'
+import type { SlideshowPanelEmit, SlideshowPanelProps } from './slideshowPanelTypes'
+import type { useSlideshowPerImageSettings } from './useSlideshowPerImageSettings'
+
+type PresetStore = ReturnType<typeof useSlideshowPresetStore>
+
+/** Bild mit Preset-Slot an derselben Position (Slot kann fehlen) */
+interface SlideshowSlotPairWithPreset {
+  img: SlideshowSourceImage | null | undefined
+  slot?: SlideshowPreset['slots'][number] | null
+}
+
+/** Abhängigkeiten von useSlideshowPanelPresets */
+export interface SlideshowPanelPresetsDeps<S> {
+  props: SlideshowPanelProps
+  emit: SlideshowPanelEmit
+  presetStore: PresetStore
+  toastStore: ReturnType<typeof useToastStore>
+  t: TranslateFn
+  locale: Ref<string> | ComputedRef<string>
+  orderedImages: Ref<SlideshowSourceImage[]>
+  perImage: ReturnType<typeof useSlideshowPerImageSettings>
+  /** globale Panel-Einstellungen für das Preset */
+  captureSettings: () => S
+  /** globale Einstellungen übernehmen */
+  applySettings: (settings: SlideshowPreset['settings']) => void
+  /** Start-/Live-Update-Konfiguration */
+  buildPayload: () => object
+}
 
 /**
  * Speichert ein hochgeladenes Bild dauerhaft; ist der Speicher voll, werden
@@ -13,7 +50,10 @@ import { SLIDESHOW_AUDIO_DEFAULT } from '../../../lib/slideshowAudio'
  * @param {object} presetStore - useSlideshowPresetStore()
  * @param {object} img
  */
-export async function persistImageWithCleanup(presetStore, img) {
+export async function persistImageWithCleanup(
+  presetStore: PresetStore,
+  img: Parameters<typeof persistUploadImage>[0],
+) {
   try {
     return await persistUploadImage(img)
   } catch (e) {
@@ -25,7 +65,7 @@ export async function persistImageWithCleanup(presetStore, img) {
 }
 
 /** Dauerhaft speicherbarer Verweis auf ein Stock-Bild (sonst null). */
-function stockRefOf(img) {
+function stockRefOf(img: SlideshowSourceImage | null | undefined) {
   if (img?.source !== 'stock' || !img.stockImage) return null
   const { id, name, file, thumbnail } = img.stockImage
   return { id, name, file, thumbnail }
@@ -44,12 +84,12 @@ function stockRefOf(img) {
  * @param {Function} deps.t
  * @param {import('vue').Ref<string>} deps.locale
  * @param {import('vue').Ref<object[]>} deps.orderedImages
- * @param {ReturnType<typeof import('./useSlideshowPerImageSettings.js').useSlideshowPerImageSettings>} deps.perImage
+ * @param {ReturnType<typeof import('./useSlideshowPerImageSettings').useSlideshowPerImageSettings>} deps.perImage
  * @param {() => object} deps.captureSettings - globale Panel-Einstellungen für das Preset
  * @param {(settings: object) => void} deps.applySettings - globale Einstellungen übernehmen
  * @param {() => object} deps.buildPayload - Start-/Live-Update-Konfiguration
  */
-export function useSlideshowPanelPresets({
+export function useSlideshowPanelPresets<S>({
   props,
   emit,
   presetStore,
@@ -61,7 +101,7 @@ export function useSlideshowPanelPresets({
   captureSettings,
   applySettings,
   buildPayload,
-}) {
+}: SlideshowPanelPresetsDeps<S>) {
   // „Jetzt aufräumen“: nicht mehr verwendete Preset-Bilder sofort entfernen
   const cleaningImages = ref(false)
 
@@ -85,7 +125,7 @@ export function useSlideshowPanelPresets({
     }
   }
 
-  async function savePreset(name) {
+  async function savePreset(name: string) {
     // Zustand sofort festhalten – während des Speicherns der Bilder kann sich
     // die Liste ändern
     const images = [...orderedImages.value]
@@ -95,14 +135,15 @@ export function useSlideshowPanelPresets({
       slots: images.map((img) => ({
         ...perImage.slotFor(img),
         adjustments: props.adjustmentsApi?.get(img) ?? null,
-        bounds: props.adjustmentsApi?.getBounds?.(img) ?? null,
+        bounds: (props.adjustmentsApi?.getBounds?.(img) ?? null) as RelBounds | object | null,
         // Stock-Bilder dauerhaft als Verweis (Galerie-Pfad) speichern
         stock: stockRefOf(img),
+        upload: null as Awaited<ReturnType<typeof persistImageWithCleanup>> | null,
       })),
     }
 
     // Hochgeladene Bilder dauerhaft in IndexedDB ablegen (Verweis im Preset)
-    const failed = []
+    const failed: (string | undefined)[] = []
     const uploadRefs = await Promise.all(
       images.map(async (img) => {
         if (img.source === 'stock') return null
@@ -120,7 +161,11 @@ export function useSlideshowPanelPresets({
     })
 
     // Bilder zusätzlich für diese Sitzung merken (exakte Objekte)
-    const saved = presetStore.savePreset(name, snapshot, images)
+    const saved = presetStore.savePreset(
+      name,
+      snapshot,
+      images as unknown as SlideshowSessionImage[],
+    )
     if (!saved) toastStore.error(t('slideshow.presetSaveError'))
     else if (failed.length > 0) {
       toastStore.warning(t('slideshow.presetImagesNotPersisted') + ': ' + failed.join(', '))
@@ -134,26 +179,34 @@ export function useSlideshowPanelPresets({
    * 3. aktuelle Auswahl.
    * @returns {Promise<{ img: object, slot?: object }[]>}
    */
-  async function resolvePresetPairs(preset) {
+  async function resolvePresetPairs(
+    preset: SlideshowPreset,
+  ): Promise<SlideshowSlotPairWithPreset[]> {
     const sessionList = presetStore.getSessionImages(preset.id)
     if (sessionList && sessionList.length > 0) {
-      return sessionList.map((img, i) => ({ img, slot: preset.slots[i] }))
+      return sessionList.map((img, i) => ({
+        img: img as unknown as SlideshowSourceImage,
+        slot: preset.slots[i],
+      }))
     }
     const restored = await restorePresetImages(
       preset.slots,
       props.images.length > 0 ? props.images : orderedImages.value,
       { loadUpload: restoreUploadImage },
     )
-    if (restored?.missing.length > 0) {
+    if (restored && restored.missing.length > 0) {
       toastStore.warning(t('slideshow.presetImagesMissing') + ': ' + restored.missing.join(', '))
     }
-    return restored?.pairs ?? orderedImages.value.map((img, i) => ({ img, slot: preset.slots[i] }))
+    return (
+      (restored?.pairs as SlideshowSlotPairWithPreset[] | undefined) ??
+      orderedImages.value.map((img, i) => ({ img, slot: preset.slots[i] }))
+    )
   }
 
-  async function loadPreset(preset) {
+  async function loadPreset(preset: SlideshowPreset) {
     const previousKeys = orderedImages.value.map(slideshowImageKey).join('|')
     const pairs = await resolvePresetPairs(preset)
-    orderedImages.value = pairs.map((p) => p.img)
+    orderedImages.value = pairs.map((p) => p.img) as SlideshowSourceImage[]
     const imagesChanged = orderedImages.value.map(slideshowImageKey).join('|') !== previousKeys
 
     applySettings(preset.settings)
@@ -161,12 +214,12 @@ export function useSlideshowPanelPresets({
     // Bild-Anpassungen pro Position übernehmen (ohne Slot/Anpassung → verwerfen)
     pairs.forEach(({ img, slot }) => {
       props.adjustmentsApi?.set(
-        img,
+        img as SlideshowSourceImage,
         slot?.adjustments ?? null,
         slot?.audioMode ?? SLIDESHOW_AUDIO_DEFAULT,
       )
       // Eigene Position/Größe des Bildes (ohne → gemeinsamer Bereich)
-      props.adjustmentsApi?.setBounds?.(img, slot?.bounds ?? null)
+      props.adjustmentsApi?.setBounds?.(img as SlideshowSourceImage, slot?.bounds ?? null)
     })
     // Einstellungen pro Position auf die aktuelle Reihenfolge übertragen
     perImage.applySlots(pairs)

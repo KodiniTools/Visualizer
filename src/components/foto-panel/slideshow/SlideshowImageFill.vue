@@ -98,7 +98,7 @@
         :disabled="disabled"
         size="sm"
         inline
-        @update:model-value="(v) => emit('update', { fit: v })"
+        @update:model-value="(v) => emit('update', { fit: v as SlideshowImageFit })"
       />
 
       <!-- Audio-Reaktiv für das Bild -->
@@ -116,7 +116,7 @@
           :model-value="fill.audio.source"
           :class="`${prefix}-image-audio-source`"
           :disabled="disabled"
-          @update:model-value="(v) => updateAudio({ source: v })"
+          @update:model-value="(v) => updateAudio({ source: v as string })"
         />
         <div class="image-fill-slider">
           <SliderControl
@@ -139,7 +139,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Eigenes Bild als Slideshow-Fläche (Canvas oder Workspace): Auswahl aus
  * Upload-/Stock-Galerie, Füllen/Einpassen und Audio-Reaktiv.
@@ -150,23 +150,36 @@ import { useI18n } from '../../../lib/i18n'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 import SliderControl from '../../ui/SliderControl.vue'
 import { UiButton, UiSelect, UiSwitch } from '../../ui'
-import { SLIDESHOW_IMAGE_FILL_DEFAULT } from '../../../lib/slideshowImageFill'
+import {
+  SLIDESHOW_IMAGE_FILL_DEFAULT,
+  type SlideshowImageFill,
+  type SlideshowImageFillAudio,
+  type SlideshowImageFit,
+} from '../../../lib/slideshowImageFill'
+import type { ImageFillCandidate, ImageFillCandidateItem } from './useSlideshowImageFills'
 
-const props = defineProps({
-  fill: { type: Object, required: true },
-  // Vorschau des gewählten Bildes ('' = keines geladen)
-  thumb: { type: String, default: '' },
-  loading: { type: Boolean, default: false },
-  // Wählbare Bilder: { id, name, thumb, source, raw }
-  candidates: { type: Array, default: () => [] },
-  // CSS-Klassen-Präfix ('base' | 'workspace') – unterscheidet die Felder
-  prefix: { type: String, default: 'base' },
-  disabled: { type: Boolean, default: false },
-})
-const emit = defineEmits(['update', 'select', 'clear'])
+const props = withDefaults(
+  defineProps<{
+    fill: SlideshowImageFill
+    // Vorschau des gewählten Bildes ('' = keines geladen)
+    thumb?: string
+    loading?: boolean
+    // Wählbare Bilder: { id, name, thumb, source, raw }
+    candidates?: ImageFillCandidateItem[]
+    // CSS-Klassen-Präfix ('base' | 'workspace') – unterscheidet die Felder
+    prefix?: string
+    disabled?: boolean
+  }>(),
+  { thumb: '', loading: false, candidates: () => [], prefix: 'base', disabled: false },
+)
+const emit = defineEmits<{
+  update: [partial: Partial<SlideshowImageFill>]
+  select: [candidate: ImageFillCandidate]
+  clear: []
+}>()
 const { t } = useI18n()
 
-const audioEffects = [
+const audioEffects: { id: 'brightness' | 'hue' | 'zoom'; label: string }[] = [
   { id: 'brightness', label: 'slideshow.fillAudioBrightness' },
   { id: 'hue', label: 'slideshow.fillAudioHue' },
   { id: 'zoom', label: 'slideshow.imageFillZoom' },
@@ -181,12 +194,12 @@ const fitOptions = computed(() => [
 const hasRef = computed(() => Boolean(props.fill.stock || props.fill.upload))
 const name = computed(() => props.fill.stock?.name || props.fill.upload?.name || '')
 
-function pick(candidate) {
+function pick(candidate: ImageFillCandidateItem) {
   choosing.value = false
   emit('select', candidate.raw)
 }
 
-function updateAudio(partial) {
+function updateAudio(partial: Partial<SlideshowImageFillAudio>) {
   emit('update', { audio: { ...props.fill.audio, ...partial } })
 }
 </script>

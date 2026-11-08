@@ -1,9 +1,13 @@
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { SlideshowManager } from '../../lib/slideshowManager'
+import { ref, computed, watch, onMounted, onBeforeUnmount, shallowRef, type Ref } from 'vue'
+import {
+  SlideshowManager,
+  type SlideshowImageConfig,
+  type SlideshowStartOptions,
+} from '../../lib/slideshowManager'
 import { resolveSlideshowAudioReactive } from '../../lib/slideshowAudio'
 import { SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest'
 import { useSlideshowPopover } from '../../composables/useSlideshowPopover'
-import { slideshowStableKey } from './slideshow/slideshowImageKey.js'
+import { slideshowStableKey } from './slideshow/slideshowImageKey'
 import { useSlideshowImageAdjustmentsStore } from '../../stores/slideshowImageAdjustmentsStore'
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
@@ -11,18 +15,50 @@ import {
   diffAdjustments,
   restorePersistedAdjustments as restorePersistedAdjustmentsInto,
   restorePersistedBounds as restorePersistedBoundsInto,
+  type AdjustmentsManager,
 } from '../../lib/slideshowAdjustmentsPersistence'
 import {
   buildSlideshowSourceImages,
   ensureSlideshowImagesLoaded,
   resolveSlideshowImageObject,
+  type SlideshowSourceImage,
+  type SlideshowUpload,
 } from '../../lib/slideshowSources'
-import { useStockGallery } from '../../composables/useStockGallery'
-import {
-  createSlideshowAdjustmentsApi,
-  createBoundsPersistQueue,
-} from './slideshowAdjustmentsApi.js'
+import { useStockGallery, type StockImage } from '../../composables/useStockGallery'
+import { createSlideshowAdjustmentsApi, createBoundsPersistQueue } from './slideshowAdjustmentsApi'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
+import type { FotoManager } from '../../lib/fotoManager'
+import type { MultiImageManager } from '../../lib/multiImageManager'
+import type { RelBounds } from '../../lib/slideshowTransitions'
+import type { CanvasManagerRef, TranslateFn } from '../../composables/types'
+import type { useToastStore } from '../../stores/toastStore'
+import type {
+  SlideshowEditRequest,
+  SlideshowRunConfig,
+  SlideshowRunImage,
+} from './slideshow/slideshowPanelTypes'
+
+/** Abhängigkeiten von useFotoSlideshow */
+export interface FotoSlideshowDeps {
+  fotoManagerRef: Ref<FotoManager | null | undefined> | undefined
+  multiImageManagerRef: Ref<MultiImageManager | null | undefined> | undefined
+  canvasManagerRef: CanvasManagerRef | undefined
+  /** ausgewählte Galerie-Bilder */
+  selectedImages: Ref<(SlideshowUpload | null | undefined)[]>
+  deselectAllImages: () => void
+  savedAudioReactiveSettings: Ref<object | null>
+  toastStore: ReturnType<typeof useToastStore>
+  t: TranslateFn
+}
+
+/** Setter des SlideshowManagers, die das Slideshow-Panel direkt aufruft */
+type ManagerSetter =
+  | 'setBackgroundMode'
+  | 'setBackgroundColor'
+  | 'setWorkspaceColor'
+  | 'setBaseGradient'
+  | 'setBaseFillAudio'
+  | 'setBaseImage'
 
 /**
  * Slideshow-Verdrahtung des FotoPanels: SlideshowManager erzeugen, Start/
@@ -48,8 +84,8 @@ export function useFotoSlideshow({
   savedAudioReactiveSettings,
   toastStore,
   t,
-}) {
-  const slideshowManagerRef = ref(null)
+}: FotoSlideshowDeps) {
+  const slideshowManagerRef = shallowRef<SlideshowManager | null>(null)
   const slideshowIsActive = ref(false)
   const slideshowIsPaused = ref(false)
   const slideshowCurrentIndex = ref(0)
@@ -63,7 +99,7 @@ export function useFotoSlideshow({
     deselectAllStockImages,
   } = useStockGallery()
   // Per Maus verschobener gemeinsamer Bereich (für die Regler im Slideshow-Panel)
-  const slideshowExternalTransform = ref(null)
+  const slideshowExternalTransform = ref<RelBounds | null>(null)
   // Zähler für geänderte Bild-Bounds (Maus/Positionsregler) → Anzeige im Bild-Editor
   const slideshowBoundsRevision = ref(0)
   // Dauerhaft gemerkte Bild-Anpassungen pro Slideshow-Bild
@@ -77,11 +113,11 @@ export function useFotoSlideshow({
   const slideshowPopover = useSlideshowPopover()
 
   // Klick auf ein Slideshow-Bild in der Leiste (pausiert) → dessen Einstellungen öffnen
-  const slideshowEditRequest = ref(null)
-  function onSlideshowEditImage(event) {
-    const index = event?.detail?.index
+  const slideshowEditRequest = ref<SlideshowEditRequest | null>(null)
+  function onSlideshowEditImage(event: Event) {
+    const index = (event as CustomEvent<{ index?: unknown } | null>)?.detail?.index
     if (!Number.isInteger(index)) return
-    slideshowEditRequest.value = { index, nonce: Date.now() }
+    slideshowEditRequest.value = { index: index as number, nonce: Date.now() }
   }
 
   // Workspace-Format gewählt? (Voraussetzung für „An Workspace anpassen“)
@@ -101,12 +137,13 @@ export function useFotoSlideshow({
   // Badge am Slideshow-Button (ausgewählte Bilder, während des Laufs alle Bilder)
   // und Status in der Kopfzeile des Slideshow-Fensters
   watch(
-    () => [
-      slideshowIsActive.value,
-      slideshowIsPaused.value,
-      slideshowTotalImages.value,
-      slideshowImages.value.length,
-    ],
+    () =>
+      [
+        slideshowIsActive.value,
+        slideshowIsPaused.value,
+        slideshowTotalImages.value,
+        slideshowImages.value.length,
+      ] as const,
     ([active, paused, total, selected]) => {
       slideshowPopover.active = active
       slideshowPopover.paused = active && paused
@@ -138,8 +175,10 @@ export function useFotoSlideshow({
 
     slideshowManagerRef.value = new SlideshowManager(multiImageManager, fotoManager, {
       redrawCallback: () => {
-        if (canvasManager && canvasManager.redraw) {
-          canvasManager.redraw()
+        // CanvasManager hat (noch) kein redraw(); der Render-Loop zeichnet ohnehin neu
+        const cm = canvasManager as { redraw?: () => void } | null | undefined
+        if (cm && cm.redraw) {
+          cm.redraw()
         }
       },
       onSlideshowComplete: () => {
@@ -165,7 +204,7 @@ export function useFotoSlideshow({
             fotoManager?.defaultSettings,
             imageConfig?.audioReactiveSettings ?? null,
           ),
-          audioMode,
+          audioMode as string | undefined,
         )
       },
       // Lazy, damit ein späteres Workspace-Format berücksichtigt wird
@@ -182,24 +221,27 @@ export function useFotoSlideshow({
     console.log('[Slideshow] SlideshowManager initialisiert')
   }
 
-  function getSlideshowManager() {
+  function getSlideshowManager(): SlideshowManager | null {
     if (!slideshowManagerRef.value) initSlideshowManager()
     return slideshowManagerRef.value
   }
 
-  function slideshowImageObject(img) {
-    return resolveSlideshowImageObject(img, getLoadedStockImage)
+  function slideshowImageObject(img: Partial<SlideshowSourceImage> | null | undefined) {
+    return resolveSlideshowImageObject(img as SlideshowSourceImage, getLoadedStockImage)
   }
 
   // Führt fn mit dem Image-Objekt aus – noch nicht geladene Stock-Bilder werden
   // zuerst geladen (gleiches Objekt wie beim Start, siehe loadStockImageObject)
-  function withSlideshowImageObject(img, fn) {
+  function withSlideshowImageObject(
+    img: Partial<SlideshowSourceImage> | null | undefined,
+    fn: (obj: HTMLImageElement) => void,
+  ) {
     const obj = slideshowImageObject(img)
     if (obj) return fn(obj)
     if (img?.stockImage) {
-      loadStockImageObject(img.stockImage)
+      loadStockImageObject(img.stockImage as StockImage)
         .then(fn)
-        .catch((e) => console.warn('[Slideshow] Stock-Bild nicht geladen:', e))
+        .catch((e: unknown) => console.warn('[Slideshow] Stock-Bild nicht geladen:', e))
     }
   }
 
@@ -210,12 +252,13 @@ export function useFotoSlideshow({
     withImageObject: withSlideshowImageObject,
     adjustmentsStore,
     imageSettingsStore,
-    getDefaultSettings: () => fotoManagerRef?.value?.defaultSettings,
+    getDefaultSettings: () =>
+      fotoManagerRef?.value?.defaultSettings as Record<string, unknown> | undefined,
   })
 
   // ─── Start / Live-Update / Steuerung ────────────────────────────────────
 
-  async function startSlideshow(config) {
+  async function startSlideshow(config: SlideshowRunConfig) {
     if (!slideshowManagerRef.value) {
       initSlideshowManager()
     }
@@ -228,7 +271,7 @@ export function useFotoSlideshow({
     // Stock-Bilder ggf. nachladen; nicht ladbare Bilder auslassen
     const { images: loaded, failed } = await ensureSlideshowImagesLoaded(
       config.images,
-      loadStockImageObject,
+      (stock) => loadStockImageObject(stock as StockImage),
       getLoadedStockImage,
     )
     if (failed.length > 0) {
@@ -240,7 +283,10 @@ export function useFotoSlideshow({
     restorePersistedAdjustments(loaded)
     restorePersistedBounds(loaded)
 
-    const { images, options } = buildSlideshowRun({ ...config, images: loaded })
+    const { images, options } = buildSlideshowRun({
+      ...config,
+      images: loaded as SlideshowRunImage[],
+    })
     const success = slideshowManagerRef.value.start(images, options)
 
     if (success) {
@@ -260,7 +306,10 @@ export function useFotoSlideshow({
    * Baut Bilder + Optionen für den SlideshowManager aus der Panel-Konfiguration
    * (für start() und applyLiveUpdate()).
    */
-  function buildSlideshowRun(config) {
+  function buildSlideshowRun(config: SlideshowRunConfig): {
+    images: SlideshowImageConfig[]
+    options: SlideshowStartOptions
+  } {
     const images = config.images.map((img) => ({
       imageObject: resolveSlideshowImageObject(img, getLoadedStockImage),
       name: img.name,
@@ -314,7 +363,7 @@ export function useFotoSlideshow({
   }
 
   // Preset während laufender Slideshow geladen → in die laufende Slideshow übernehmen
-  function onSlideshowLiveUpdate(config) {
+  function onSlideshowLiveUpdate(config: SlideshowRunConfig) {
     const manager = slideshowManagerRef.value
     if (!manager?.isActive) return
     const { images, options } = buildSlideshowRun(config)
@@ -342,12 +391,12 @@ export function useFotoSlideshow({
     }
   }
 
-  function onSlideshowOrderChanged(orderedImages) {
+  function onSlideshowOrderChanged(orderedImages: unknown[]) {
     console.log('[Slideshow] Reihenfolge geändert:', orderedImages.length, 'Bilder')
   }
 
   // Maus: ganze Slideshow oder einzelnes Bild verschieben
-  function onSlideshowMoveModeChange(value) {
+  function onSlideshowMoveModeChange(value: boolean) {
     getSlideshowManager()?.setMoveWholeSlideshow(value)
   }
 
@@ -360,26 +409,33 @@ export function useFotoSlideshow({
   }
 
   // Dauerhaft gemerkte Größe/Position für Bilder ohne eigene Bounds in dieser Sitzung
-  function restorePersistedBounds(images) {
-    restorePersistedBoundsInto(slideshowManagerRef.value, images, {
+  function restorePersistedBounds(images: SlideshowSourceImage[]) {
+    restorePersistedBoundsInto(slideshowManagerRef.value as AdjustmentsManager | null, images, {
       resolveImageObject: slideshowImageObject,
       getBounds: (key) => imageSettingsStore.getImageSettings(key)?.bounds ?? null,
     })
   }
 
   // Dauerhaft gemerkte Anpassungen in den Sitzungsspeicher der Slideshow übernehmen
-  function restorePersistedAdjustments(images) {
-    restorePersistedAdjustmentsInto(slideshowManagerRef.value, images, {
-      resolveImageObject: slideshowImageObject,
-      getAdjustments: (key) => adjustmentsStore.getAdjustments(key),
-    })
+  function restorePersistedAdjustments(images: SlideshowSourceImage[]) {
+    restorePersistedAdjustmentsInto(
+      slideshowManagerRef.value as AdjustmentsManager | null,
+      images,
+      {
+        resolveImageObject: slideshowImageObject,
+        getAdjustments: (key) => adjustmentsStore.getAdjustments(key),
+      },
+    )
   }
 
   // Einstellungen des Slideshow-Panels (wirken auch während laufender Slideshow)
   const managerCall =
-    (method) =>
-    (...args) =>
-      slideshowManagerRef.value?.[method](...args)
+    <M extends ManagerSetter>(method: M) =>
+    (...args: Parameters<SlideshowManager[M]>) =>
+      (slideshowManagerRef.value?.[method] as ((...a: unknown[]) => void) | undefined)?.call(
+        slideshowManagerRef.value,
+        ...args,
+      )
   // „An Workspace anpassen“ / Hintergrund-Modus
   const onSlideshowBackgroundModeChange = managerCall('setBackgroundMode')
   // Farbe der Fläche unter der Slideshow bzw. der Workspace-Fläche
@@ -391,7 +447,7 @@ export function useFotoSlideshow({
   const onSlideshowBaseFillAudioChange = managerCall('setBaseFillAudio')
   const onSlideshowBaseImageChange = managerCall('setBaseImage')
 
-  function onSlideshowRenderLayerChange(renderBehindVisualizer) {
+  function onSlideshowRenderLayerChange(renderBehindVisualizer: boolean) {
     if (slideshowManagerRef.value) {
       slideshowManagerRef.value.setRenderBehindVisualizer(renderBehindVisualizer)
       console.log(
@@ -401,7 +457,7 @@ export function useFotoSlideshow({
     }
   }
 
-  function onSlideshowTransformChange(transform) {
+  function onSlideshowTransformChange(transform: RelBounds) {
     if (slideshowManagerRef.value) {
       slideshowManagerRef.value.setTransform(transform)
       console.log('[Slideshow] Transform geändert:', transform)

@@ -17,7 +17,7 @@ import { useImageGallery } from '../composables/useImageGallery'
  */
 export async function persistUploadImage(
   entry:
-    | { name?: string; imageObject?: HTMLImageElement; img?: HTMLImageElement }
+    | { name?: string; imageObject?: HTMLImageElement | null; img?: HTMLImageElement | null }
     | null
     | undefined,
 ): Promise<{ key: string; name: string }> {

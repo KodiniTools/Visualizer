@@ -14,7 +14,7 @@
         :model-value="audio.source"
         :class="`${prefix}-fill-audio-source`"
         :disabled="disabled"
-        @update:model-value="(v) => update({ source: v })"
+        @update:model-value="(v) => update({ source: v as string })"
       />
       <div class="fill-audio-slider">
         <SliderControl
@@ -46,7 +46,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Audio-Reaktiv für die Farbe einer Slideshow-Fläche (Canvas oder Workspace).
  * Rein darstellend: v-model liefert die bereinigte Einstellung.
@@ -59,16 +59,20 @@ import {
 import SliderControl from '../../ui/SliderControl.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
+import type { SlideshowFillAudio } from '../../../lib/slideshowFillAudio'
 
-const audio = defineModel({ type: Object, required: true })
-defineProps({
-  // CSS-Klassen-Präfix ('base' | 'workspace') – unterscheidet die Felder
-  prefix: { type: String, default: 'base' },
-  disabled: { type: Boolean, default: false },
-})
+const audio = defineModel<SlideshowFillAudio>({ required: true })
+withDefaults(
+  defineProps<{
+    // CSS-Klassen-Präfix ('base' | 'workspace') – unterscheidet die Felder
+    prefix?: string
+    disabled?: boolean
+  }>(),
+  { prefix: 'base', disabled: false },
+)
 const { t } = useI18n()
 
-function update(partial) {
+function update(partial: Partial<SlideshowFillAudio>) {
   audio.value = normalizeSlideshowFillAudio({ ...audio.value, ...partial }, audio.value)
 }
 </script>

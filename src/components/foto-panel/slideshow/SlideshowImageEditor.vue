@@ -81,7 +81,9 @@
             step="0.1"
             :value="Number.isFinite(fadeIn) ? fadeIn / 1000 : ''"
             :placeholder="(defaultFadeIn / 1000).toFixed(1)"
-            @input="emit('update:fadeIn', toMs($event.target.value, 100, 5000))"
+            @input="
+              emit('update:fadeIn', toMs(($event.target as HTMLInputElement).value, 100, 5000))
+            "
           />
           <span>s</span>
         </span>
@@ -97,7 +99,9 @@
             step="0.5"
             :value="Number.isFinite(duration) ? duration / 1000 : ''"
             :placeholder="(defaultDuration / 1000).toFixed(1)"
-            @input="emit('update:duration', toMs($event.target.value, 500, 60000))"
+            @input="
+              emit('update:duration', toMs(($event.target as HTMLInputElement).value, 500, 60000))
+            "
           />
           <span>s</span>
         </span>
@@ -113,7 +117,9 @@
             step="0.1"
             :value="Number.isFinite(fadeOut) ? fadeOut / 1000 : ''"
             :placeholder="(defaultFadeOut / 1000).toFixed(1)"
-            @input="emit('update:fadeOut', toMs($event.target.value, 100, 5000))"
+            @input="
+              emit('update:fadeOut', toMs(($event.target as HTMLInputElement).value, 100, 5000))
+            "
           />
           <span>s</span>
         </span>
@@ -142,7 +148,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Einstellungskarte für ein Slideshow-Bild. Öffnet sich bei pausierter
  * Slideshow per Klick auf das Bild in der Leiste „Bilder auf Canvas“.
@@ -154,49 +160,73 @@ import { loadKeepAspect, saveKeepAspect } from '../../../lib/imagePlacementSetti
 import { useI18n } from '../../../lib/i18n'
 import { isValidTransition } from '../../../lib/slideshowTransitions'
 import { isValidSlideshowAudioMode } from '../../../lib/slideshowAudio'
-import { audioModeOptions, transitionOptions } from './slideshowSelectOptions.js'
+import { audioModeOptions, transitionOptions } from './slideshowSelectOptions'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 import SliderControl from '../../ui/SliderControl.vue'
 import UiSelect from '../../ui/UiSelect.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
+import type { SlideshowSourceImage } from '../../../lib/slideshowSources'
+import type {
+  SlideshowImagePosition,
+  SlideshowImageSize,
+  SlideshowImageSizeInput,
+} from '../slideshowAdjustmentsApi'
 
-const props = defineProps({
-  image: { type: Object, required: true },
-  index: { type: Number, required: true },
-  total: { type: Number, default: 0 },
-  transition: { type: String, default: null },
-  duration: { type: Number, default: undefined },
-  fadeIn: { type: Number, default: undefined },
-  fadeOut: { type: Number, default: undefined },
-  defaultDuration: { type: Number, default: 3000 },
-  defaultFadeIn: { type: Number, default: 1000 },
-  defaultFadeOut: { type: Number, default: 1000 },
-  defaultTransition: { type: String, default: 'fade' },
-  audioMode: { type: String, default: 'default' },
-  // Eigene Audio-Quelle (null = wie Einstellung/Preset)
-  audioSource: { type: String, default: null },
-  hasSavedSettings: { type: Boolean, default: false },
-  // Mittelpunkt des Bildes { x, y } relativ 0–1; null = nicht positionierbar
-  position: { type: Object, default: null },
-  // Größe { width, height, defaultWidth, defaultHeight } relativ 0–1; null = nicht skalierbar
-  size: { type: Object, default: null },
-})
-const emit = defineEmits([
-  'update:transition',
-  'update:duration',
-  'update:fadeIn',
-  'update:fadeOut',
-  'update:audioMode',
-  'update:audioSource',
-  'update:position',
-  'update:size',
-  'close',
-])
+const props = withDefaults(
+  defineProps<{
+    image: SlideshowSourceImage
+    index: number
+    total?: number
+    transition?: string | null
+    duration?: number
+    fadeIn?: number
+    fadeOut?: number
+    defaultDuration?: number
+    defaultFadeIn?: number
+    defaultFadeOut?: number
+    defaultTransition?: string
+    audioMode?: string
+    // Eigene Audio-Quelle (null = wie Einstellung/Preset)
+    audioSource?: string | null
+    hasSavedSettings?: boolean
+    // Mittelpunkt des Bildes { x, y } relativ 0–1; null = nicht positionierbar
+    position?: { x: number; y: number } | null
+    // Größe { width, height, defaultWidth, defaultHeight } relativ 0–1; null = nicht skalierbar
+    size?: SlideshowImageSize | null
+  }>(),
+  {
+    total: 0,
+    transition: null,
+    duration: undefined,
+    fadeIn: undefined,
+    fadeOut: undefined,
+    defaultDuration: 3000,
+    defaultFadeIn: 1000,
+    defaultFadeOut: 1000,
+    defaultTransition: 'fade',
+    audioMode: 'default',
+    audioSource: null,
+    hasSavedSettings: false,
+    position: null,
+    size: null,
+  },
+)
+const emit = defineEmits<{
+  'update:transition': [value: string | null]
+  'update:duration': [value: number | undefined]
+  'update:fadeIn': [value: number | undefined]
+  'update:fadeOut': [value: number | undefined]
+  'update:audioMode': [value: string]
+  'update:audioSource': [value: string | null]
+  'update:position': [value: SlideshowImagePosition]
+  'update:size': [value: SlideshowImageSizeInput]
+  close: []
+}>()
 const { t } = useI18n()
 
 const transitionSelectOptions = computed(() => transitionOptions(t, props.defaultTransition))
 const audioSelectOptions = computed(() => audioModeOptions(t, props.hasSavedSettings))
-const rootRef = ref(null)
+const rootRef = ref<HTMLElement | null>(null)
 
 const title = computed(
   () => `${t('slideshow.image')} ${props.index + 1}/${props.total} · ${props.image.name || ''}`,
@@ -205,53 +235,55 @@ const thumbSrc = computed(
   () => props.image.thumbnail || props.image.img?.src || props.image.imageObject?.src || '',
 )
 
-function onTransition(value) {
-  emit('update:transition', isValidTransition(value) ? value : null)
+function onTransition(value: unknown) {
+  emit('update:transition', isValidTransition(value) ? (value as string) : null)
 }
 
 /** Sekunden-Eingabe → ms (begrenzt); leer/ungültig = undefined (Standard). */
-function toMs(value, minMs, maxMs) {
+function toMs(value: string, minMs: number, maxMs: number): number | undefined {
   const seconds = parseFloat(value)
   return Number.isFinite(seconds) && seconds > 0
     ? Math.round(Math.min(maxMs, Math.max(minMs, seconds * 1000)))
     : undefined
 }
 
-const POSITION_AXES = ['x', 'y']
+const POSITION_AXES = ['x', 'y'] as const
 
 /** Relativ (0–1) → Prozent mit einer Nachkommastelle. */
-function percent(value) {
-  return Number.isFinite(value) ? Math.round(value * 1000) / 10 : 50
+function percent(value: number | undefined): number {
+  return Number.isFinite(value) ? Math.round((value as number) * 1000) / 10 : 50
 }
 
 /** Prozent-Eingabe (begrenzt auf 0–100) → relative Position; ungültig = ignoriert. */
-function onPosition(axis, value) {
-  const p = parseFloat(value)
+function onPosition(axis: 'x' | 'y', value: string | number) {
+  const p = parseFloat(value as string)
   if (!Number.isFinite(p)) return
   const rel = Math.min(100, Math.max(0, p)) / 100
   emit('update:position', { ...props.position, [axis]: rel })
 }
 
-const SIZE_DIMS = ['width', 'height']
+const SIZE_DIMS = ['width', 'height'] as const
 // Seitenverhältnis beibehalten (Standard) – sonst wird das Bild verzerrt
 const keepAspect = ref(loadKeepAspect()) // dauerhaft gespeichert
 watch(keepAspect, saveKeepAspect)
 
 /** Relative Größe → Prozent mit einer Nachkommastelle; ungültig = 100. */
-function sizePercent(value) {
-  return Number.isFinite(value) && value > 0 ? Math.round(value * 1000) / 10 : 100
+function sizePercent(value: number | undefined): number {
+  return Number.isFinite(value) && (value as number) > 0
+    ? Math.round((value as number) * 1000) / 10
+    : 100
 }
 
 /** Prozent-Eingabe (begrenzt auf 1–200) → relative Größe; ungültig = ignoriert. */
-function onSize(dim, value) {
-  const p = parseFloat(value)
+function onSize(dim: 'width' | 'height', value: string | number) {
+  const p = parseFloat(value as string)
   if (!Number.isFinite(p)) return
   const rel = Math.min(200, Math.max(1, p)) / 100
   emit('update:size', { [dim]: rel, keepAspect: keepAspect.value })
 }
 
-function onAudio(value) {
-  emit('update:audioMode', isValidSlideshowAudioMode(value) ? value : 'default')
+function onAudio(value: unknown) {
+  emit('update:audioMode', isValidSlideshowAudioMode(value) ? (value as string) : 'default')
 }
 
 onMounted(() => {

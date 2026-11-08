@@ -38,7 +38,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Start/Pause/Fortsetzen/Stopp und Fortschrittsanzeige der Slideshow. */
 import { computed } from 'vue'
 import { useI18n } from '../../../lib/i18n'
@@ -46,16 +46,26 @@ import UiButton from '../../ui/UiButton.vue'
 
 const PHASES = ['fadeIn', 'display', 'fadeOut']
 
-const props = defineProps({
-  isActive: { type: Boolean, default: false },
-  // Start erst ab 2 Bildern möglich
-  canStart: { type: Boolean, default: true },
-  isPaused: { type: Boolean, default: false },
-  currentImageIndex: { type: Number, default: 0 },
-  totalImages: { type: Number, default: 0 },
-  currentPhase: { type: String, default: 'fadeIn' },
-})
-const emit = defineEmits(['start', 'pause', 'resume', 'stop'])
+const props = withDefaults(
+  defineProps<{
+    isActive?: boolean
+    // Start erst ab 2 Bildern möglich
+    canStart?: boolean
+    isPaused?: boolean
+    currentImageIndex?: number
+    totalImages?: number
+    currentPhase?: string
+  }>(),
+  {
+    isActive: false,
+    canStart: true,
+    isPaused: false,
+    currentImageIndex: 0,
+    totalImages: 0,
+    currentPhase: 'fadeIn',
+  },
+)
+const emit = defineEmits<{ start: []; pause: []; resume: []; stop: [] }>()
 const { t } = useI18n()
 
 /** Übersetzte Phase; unbekannte Phasen bleiben leer. */

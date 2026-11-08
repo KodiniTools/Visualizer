@@ -126,7 +126,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Bildreihenfolge der Slideshow (Drag & Drop). Die Liste wird per v-model
  * gehalten; nach einem Drop wird `order-changed` mit der neuen Reihenfolge emittiert.
@@ -144,47 +144,61 @@ import {
   isValidSlideshowAudioSource,
 } from '../../../lib/slideshowAudio'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
-import { slideshowImageKey } from './slideshowImageKey.js'
+import { slideshowImageKey } from './slideshowImageKey'
 import { isValidTransition } from '../../../lib/slideshowTransitions'
 import UiSelect from '../../ui/UiSelect.vue'
-import { audioModeOptions, transitionOptions } from './slideshowSelectOptions.js'
+import { audioModeOptions, transitionOptions } from './slideshowSelectOptions'
+import type { SlideshowSourceImage } from '../../../lib/slideshowSources'
+import type { PerImageMap } from './useSlideshowPerImageSettings'
 
-const props = defineProps({
-  defaultDuration: { type: Number, default: 3000 },
-  // Standardwerte (Einstellungen für alle Bilder) – als Platzhalter/Hinweis
-  defaultFadeIn: { type: Number, default: 1000 },
-  defaultFadeOut: { type: Number, default: 1000 },
-  defaultTransition: { type: String, default: 'fade' },
-  hasSavedSettings: { type: Boolean, default: false },
-})
+type TimeModelName = 'durations' | 'fadeIns' | 'fadeOuts'
 
-const orderedImages = defineModel({ type: Array, default: () => [] })
-const durations = defineModel('durations', { type: Object, default: () => ({}) })
-const audioModes = defineModel('audioModes', { type: Object, default: () => ({}) })
+const props = withDefaults(
+  defineProps<{
+    defaultDuration?: number
+    // Standardwerte (Einstellungen für alle Bilder) – als Platzhalter/Hinweis
+    defaultFadeIn?: number
+    defaultFadeOut?: number
+    defaultTransition?: string
+    hasSavedSettings?: boolean
+  }>(),
+  {
+    defaultDuration: 3000,
+    defaultFadeIn: 1000,
+    defaultFadeOut: 1000,
+    defaultTransition: 'fade',
+    hasSavedSettings: false,
+  },
+)
+
+const orderedImages = defineModel<SlideshowSourceImage[]>({ default: () => [] })
+const durations = defineModel<PerImageMap<number>>('durations', { default: () => ({}) })
+const audioModes = defineModel<PerImageMap<string>>('audioModes', { default: () => ({}) })
 // Eigene Audio-Quelle pro Bild ({ [key]: source }); fehlt = wie Einstellung
-const audioSources = defineModel('audioSources', { type: Object, default: () => ({}) })
+const audioSources = defineModel<PerImageMap<string>>('audioSources', { default: () => ({}) })
 // Eigene Übergangsanimation pro Bild ({ [key]: transitionId }); fehlt = globaler Übergang
-const transitions = defineModel('transitions', { type: Object, default: () => ({}) })
+const transitions = defineModel<PerImageMap<string>>('transitions', { default: () => ({}) })
 // Eigene Ein-/Ausblenddauer pro Bild ({ [key]: ms }); fehlt = Standard
-const fadeIns = defineModel('fadeIns', { type: Object, default: () => ({}) })
-const fadeOuts = defineModel('fadeOuts', { type: Object, default: () => ({}) })
+const fadeIns = defineModel<PerImageMap<number>>('fadeIns', { default: () => ({}) })
+const fadeOuts = defineModel<PerImageMap<number>>('fadeOuts', { default: () => ({}) })
 const transitionSelectOptions = computed(() => transitionOptions(t, props.defaultTransition))
 const audioSelectOptions = computed(() => audioModeOptions(t, props.hasSavedSettings))
-const emit = defineEmits(['order-changed'])
+const emit = defineEmits<{ 'order-changed': [images: SlideshowSourceImage[]] }>()
 const { t } = useI18n()
 
-const dragIndex = ref(null)
+const dragIndex = ref<number | null>(null)
 
-function onDragStart(index, event) {
+function onDragStart(index: number, event: DragEvent) {
   dragIndex.value = index
-  event.dataTransfer.effectAllowed = 'move'
-  event.dataTransfer.setData('text/plain', index.toString())
+  const dt = event.dataTransfer as DataTransfer
+  dt.effectAllowed = 'move'
+  dt.setData('text/plain', index.toString())
 }
 
-function onDragOver(index) {
+function onDragOver(index: number) {
   if (dragIndex.value === null || dragIndex.value === index) return
   const list = [...orderedImages.value]
-  const item = list[dragIndex.value]
+  const item = list[dragIndex.value] as SlideshowSourceImage
   list.splice(dragIndex.value, 1)
   list.splice(index, 0, item)
   orderedImages.value = list
@@ -199,18 +213,24 @@ function onDrop() {
 const timeModels = { durations, fadeIns, fadeOuts }
 
 /** Eigener Wert (ms) eines Bildes als Sekunden-Text, leer = Standard. */
-function secondsFor(name, img) {
-  const ms = timeModels[name].value[slideshowImageKey(img)]
-  return Number.isFinite(ms) ? ms / 1000 : ''
+function secondsFor(name: TimeModelName, img: SlideshowSourceImage): number | '' {
+  const ms = timeModels[name].value[slideshowImageKey(img) as string | number]
+  return Number.isFinite(ms) ? (ms as number) / 1000 : ''
 }
 
 /** Übernimmt eine Sekunden-Eingabe als ms (begrenzt); leer/ungültig = Standard. */
-function onMsInput(name, img, event, minMs, maxMs) {
+function onMsInput(
+  name: TimeModelName,
+  img: SlideshowSourceImage,
+  event: Event,
+  minMs: number,
+  maxMs: number,
+) {
   const model = timeModels[name]
   const key = slideshowImageKey(img)
   if (key === undefined) return
   const next = { ...model.value }
-  const seconds = parseFloat(event.target.value)
+  const seconds = parseFloat((event.target as HTMLInputElement).value)
   if (Number.isFinite(seconds) && seconds > 0) {
     next[key] = Math.round(Math.min(maxMs, Math.max(minMs, seconds * 1000)))
   } else {
@@ -219,15 +239,15 @@ function onMsInput(name, img, event, minMs, maxMs) {
   model.value = next
 }
 
-function audioModeFor(img) {
-  return audioModes.value[slideshowImageKey(img)] ?? SLIDESHOW_AUDIO_DEFAULT
+function audioModeFor(img: SlideshowSourceImage): string {
+  return audioModes.value[slideshowImageKey(img) as string | number] ?? SLIDESHOW_AUDIO_DEFAULT
 }
 
-function audioSourceFor(img) {
-  return audioSources.value[slideshowImageKey(img)] ?? null
+function audioSourceFor(img: SlideshowSourceImage): string | null {
+  return audioSources.value[slideshowImageKey(img) as string | number] ?? null
 }
 
-function onAudioSourceChange(img, source) {
+function onAudioSourceChange(img: SlideshowSourceImage, source: unknown) {
   const key = slideshowImageKey(img)
   if (key === undefined) return
   const next = { ...audioSources.value }
@@ -236,25 +256,25 @@ function onAudioSourceChange(img, source) {
   audioSources.value = next
 }
 
-function transitionFor(img) {
-  return transitions.value[slideshowImageKey(img)] ?? 'default'
+function transitionFor(img: SlideshowSourceImage): string {
+  return transitions.value[slideshowImageKey(img) as string | number] ?? 'default'
 }
 
-function onTransitionChange(img, value) {
+function onTransitionChange(img: SlideshowSourceImage, value: unknown) {
   const key = slideshowImageKey(img)
   if (key === undefined) return
   const next = { ...transitions.value }
-  if (isValidTransition(value)) next[key] = value
+  if (isValidTransition(value)) next[key] = value as string
   else delete next[key]
   transitions.value = next
 }
 
-function onAudioModeChange(img, mode) {
+function onAudioModeChange(img: SlideshowSourceImage, mode: unknown) {
   const key = slideshowImageKey(img)
   if (key === undefined) return
   const next = { ...audioModes.value }
   if (isValidSlideshowAudioMode(mode) && mode !== SLIDESHOW_AUDIO_DEFAULT) {
-    next[key] = mode
+    next[key] = mode as string
   } else {
     delete next[key]
   }

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore'
-import { slideshowStableKey } from '../../components/foto-panel/slideshow/slideshowImageKey.js'
+import { slideshowStableKey } from '../../components/foto-panel/slideshow/slideshowImageKey'
 
 const KEY = 'visualizer-slideshow-image-transitions'
 

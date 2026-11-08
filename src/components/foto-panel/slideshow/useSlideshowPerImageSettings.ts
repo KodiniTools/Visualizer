@@ -1,7 +1,37 @@
-import { ref, watch } from 'vue'
-import { slideshowImageKey, slideshowStableKey } from './slideshowImageKey.js'
+import { ref, watch, type Ref } from 'vue'
+import { slideshowImageKey, slideshowStableKey } from './slideshowImageKey'
 import { useSlideshowImageSettingsStore } from '../../../stores/slideshowImageSettingsStore'
 import { SLIDESHOW_AUDIO_DEFAULT } from '../../../lib/slideshowAudio'
+import type { SlideshowSourceImage } from '../../../lib/slideshowSources'
+import type { SlideshowImageSettings } from '../../../stores/slideshowImageSettingsStore'
+
+/** Werte pro Bild, Schlüssel: slideshowImageKey */
+export type PerImageMap<T> = Record<string | number, T>
+
+/** Im Bild-Editor einstellbare Felder */
+export type SlideshowImageEditorField =
+  | 'transition'
+  | 'duration'
+  | 'fadeIn'
+  | 'fadeOut'
+  | 'audioMode'
+  | 'audioSource'
+
+/** Werte eines Bildes in einem Preset-Slot */
+export interface SlideshowSlotValues {
+  displayDuration?: number | null
+  audioMode?: string
+  audioSource?: string | null
+  transition?: string | null
+  fadeIn?: number | null
+  fadeOut?: number | null
+}
+
+/** Bild-Eintrag mit zugehörigem Preset-Slot (Slot kann fehlen) */
+export interface SlideshowSlotPair {
+  img: SlideshowSourceImage | null | undefined
+  slot?: SlideshowSlotValues | null
+}
 
 /**
  * Optionale Einstellungen pro Slideshow-Bild (Schlüssel: slideshowImageKey).
@@ -13,21 +43,21 @@ import { SLIDESHOW_AUDIO_DEFAULT } from '../../../lib/slideshowAudio'
  * gemerkte Werte übernimmt, läuft sofort.
  * @param {import('vue').Ref<object[]>} orderedImages
  */
-export function useSlideshowPerImageSettings(orderedImages) {
+export function useSlideshowPerImageSettings(orderedImages: Ref<SlideshowSourceImage[]>) {
   // Anzeigedauer ({ [key]: ms }); fehlt = displayDuration
-  const imageDurations = ref({})
+  const imageDurations = ref<PerImageMap<number>>({})
   // Audio-Reaktiv-Modus ({ [key]: mode }); fehlt = 'default'
-  const imageAudioModes = ref({})
+  const imageAudioModes = ref<PerImageMap<string>>({})
   // Übergangsanimation ({ [key]: transitionId }); fehlt = globaler Übergang
-  const imageTransitions = ref({})
+  const imageTransitions = ref<PerImageMap<string>>({})
   // Ein-/Ausblenddauer ({ [key]: ms }); fehlt = Standard (Timing)
-  const imageFadeIns = ref({})
-  const imageFadeOuts = ref({})
+  const imageFadeIns = ref<PerImageMap<number>>({})
+  const imageFadeOuts = ref<PerImageMap<number>>({})
   // Eigene Audio-Quelle (key → Quelle; fehlt = wie Einstellung)
-  const imageAudioSources = ref({})
+  const imageAudioSources = ref<PerImageMap<string>>({})
 
   // Feldname im Editor → Map
-  const EDITOR_FIELDS = {
+  const EDITOR_FIELDS: Record<SlideshowImageEditorField, Ref<PerImageMap<unknown>>> = {
     transition: imageTransitions,
     duration: imageDurations,
     fadeIn: imageFadeIns,
@@ -40,7 +70,7 @@ export function useSlideshowPerImageSettings(orderedImages) {
 
   // Dauerhaft gemerkte Einstellungen pro Bild übernehmen (Übergang, Ein-/Ausblend-
   // dauer, Anzeigedauer, Audio-Modus) – nur für Bilder ohne eigenen Wert
-  const PERSISTED_MAPS = [
+  const PERSISTED_MAPS: [keyof SlideshowImageSettings, Ref<PerImageMap<unknown>>][] = [
     ['transition', imageTransitions],
     ['fadeIn', imageFadeIns],
     ['fadeOut', imageFadeOuts],
@@ -51,7 +81,7 @@ export function useSlideshowPerImageSettings(orderedImages) {
   watch(
     orderedImages,
     (list) => {
-      const next = {}
+      const next: Partial<Record<keyof SlideshowImageSettings, PerImageMap<unknown>>> = {}
       for (const img of list) {
         const key = slideshowImageKey(img)
         if (key === undefined) continue
@@ -81,7 +111,7 @@ export function useSlideshowPerImageSettings(orderedImages) {
     ],
     ([tr, fin, fout, dur, audio, audioSrc]) => {
       for (const img of orderedImages.value) {
-        const key = slideshowImageKey(img)
+        const key = slideshowImageKey(img) as string | number
         // nur diese Felder ändern – eigene Größe/Position bleibt erhalten
         imageSettingsStore.updateImageSettings(slideshowStableKey(img), {
           transition: tr[key] ?? null,
@@ -99,9 +129,13 @@ export function useSlideshowPerImageSettings(orderedImages) {
    * Setzt einen Wert für ein Bild (null/undefined entfernt ihn).
    * @param {'transition'|'duration'|'fadeIn'|'fadeOut'|'audioMode'|'audioSource'} field
    */
-  function setForImage(img, field, value) {
+  function setForImage(
+    img: SlideshowSourceImage,
+    field: SlideshowImageEditorField,
+    value: unknown,
+  ) {
     const mapRef = EDITOR_FIELDS[field]
-    const key = slideshowImageKey(img)
+    const key = slideshowImageKey(img) as string | number
     const next = { ...mapRef.value }
     if (value === null || value === undefined) delete next[key]
     else next[key] = value
@@ -109,8 +143,8 @@ export function useSlideshowPerImageSettings(orderedImages) {
   }
 
   /** Bild-Eintrag für die Start-/Live-Update-Konfiguration. */
-  function payloadFor(img) {
-    const key = slideshowImageKey(img)
+  function payloadFor(img: SlideshowSourceImage) {
+    const key = slideshowImageKey(img) as string | number
     const own = imageDurations.value[key]
     return {
       ...img,
@@ -124,8 +158,8 @@ export function useSlideshowPerImageSettings(orderedImages) {
   }
 
   /** Werte eines Bildes für einen Preset-Slot. */
-  function slotFor(img) {
-    const key = slideshowImageKey(img)
+  function slotFor(img: SlideshowSourceImage) {
+    const key = slideshowImageKey(img) as string | number
     return {
       displayDuration: imageDurations.value[key] ?? null,
       audioMode: imageAudioModes.value[key] ?? SLIDESHOW_AUDIO_DEFAULT,
@@ -141,21 +175,21 @@ export function useSlideshowPerImageSettings(orderedImages) {
    * die Standardwerte (alle Maps werden ersetzt).
    * @param {{ img: object, slot?: object }[]} pairs
    */
-  function applySlots(pairs) {
-    const durations = {}
-    const modes = {}
-    const ownTransitions = {}
-    const ownFadeIns = {}
-    const ownFadeOuts = {}
-    const ownSources = {}
+  function applySlots(pairs: SlideshowSlotPair[]) {
+    const durations: PerImageMap<number> = {}
+    const modes: PerImageMap<string> = {}
+    const ownTransitions: PerImageMap<string> = {}
+    const ownFadeIns: PerImageMap<number> = {}
+    const ownFadeOuts: PerImageMap<number> = {}
+    const ownSources: PerImageMap<string> = {}
     pairs.forEach(({ img, slot }) => {
       const key = slideshowImageKey(img)
       if (!slot || key === undefined) return
-      if (Number.isFinite(slot.displayDuration)) durations[key] = slot.displayDuration
-      if (slot.audioMode !== SLIDESHOW_AUDIO_DEFAULT) modes[key] = slot.audioMode
+      if (Number.isFinite(slot.displayDuration)) durations[key] = slot.displayDuration as number
+      if (slot.audioMode !== SLIDESHOW_AUDIO_DEFAULT) modes[key] = slot.audioMode as string
       if (slot.transition) ownTransitions[key] = slot.transition
-      if (Number.isFinite(slot.fadeIn)) ownFadeIns[key] = slot.fadeIn
-      if (Number.isFinite(slot.fadeOut)) ownFadeOuts[key] = slot.fadeOut
+      if (Number.isFinite(slot.fadeIn)) ownFadeIns[key] = slot.fadeIn as number
+      if (Number.isFinite(slot.fadeOut)) ownFadeOuts[key] = slot.fadeOut as number
       if (slot.audioSource) ownSources[key] = slot.audioSource
     })
     imageDurations.value = durations

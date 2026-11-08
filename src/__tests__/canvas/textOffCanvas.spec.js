@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { TextManager } from '../../lib/textManager'
-import { DeletionMethods } from '../../lib/canvasManager/methods/deletionMethods.js'
+import { DeletionMethods } from '../../lib/canvasManager/methods/deletionMethods'
 import { createTextsSegment } from '../../lib/history/segments/canvasSegments'
 
 /**

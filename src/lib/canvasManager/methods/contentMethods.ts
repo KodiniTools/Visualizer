@@ -1,4 +1,12 @@
 // canvasManager/methods/contentMethods.js
+import type {
+  CanvasManager,
+  CanvasObject,
+  CanvasTextObject,
+  ImageBackgroundObject,
+} from '../../canvasManager'
+import type { TextManager } from '../../textManager'
+import type { CanvasImage } from '../../multiImageManager'
 /**
  * Inhalte: Texte und Bilder hinzufügen sowie Eigenschaften des aktiven
  * Objekts ändern.
@@ -11,7 +19,7 @@ export class ContentMethods {
   // TEXT MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════
 
-  setEditing(isEditing) {
+  setEditing(this: CanvasManager, isEditing: boolean): void {
     this.isEditingText = isEditing
     if (!isEditing && this.activeObject) {
       const currentActive = this.activeObject
@@ -23,11 +31,15 @@ export class ContentMethods {
     this.redrawCallback()
   }
 
-  addText(text, options = {}) {
+  addText(
+    this: CanvasManager,
+    text: string,
+    options: Parameters<TextManager['add']>[1] = {},
+  ): CanvasTextObject | null {
     if (!this.textManager) {
       return null
     }
-    const newTextObject = this.textManager.add(text, options)
+    const newTextObject: CanvasTextObject = this.textManager.add(text, options)
 
     if (newTextObject && (!newTextObject.relWidth || !newTextObject.relHeight)) {
       this.calculateTextBounds(newTextObject)
@@ -38,10 +50,11 @@ export class ContentMethods {
     return newTextObject
   }
 
-  calculateTextBounds(textObj) {
+  calculateTextBounds(this: CanvasManager, textObj: CanvasObject | null | undefined): void {
     if (!textObj || textObj.type !== 'text') return
 
-    const ctx = this.canvas.getContext('2d')
+    // 2D-Kontext eines HTMLCanvasElement ist immer verfügbar
+    const ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D
     ctx.save()
 
     let actualFontSize = textObj.fontSize
@@ -50,7 +63,8 @@ export class ContentMethods {
     }
 
     ctx.font = `${textObj.fontWeight || 400} ${actualFontSize}px ${textObj.fontFamily || 'Arial'}`
-    const metrics = ctx.measureText(textObj.text)
+    // Altfeld `text` (Inhalt steht in `content`) – Verhalten unverändert übernommen
+    const metrics = ctx.measureText(textObj.text as string)
     ctx.restore()
 
     const width = metrics.width
@@ -64,7 +78,7 @@ export class ContentMethods {
   // IMAGE MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════
 
-  getActiveImage() {
+  getActiveImage(this: CanvasManager): CanvasImage | ImageBackgroundObject | null {
     if (this.activeObject) {
       if (this.activeObject.type === 'image') {
         return this.activeObject
@@ -79,7 +93,7 @@ export class ContentMethods {
     return null
   }
 
-  addImage(imageObject) {
+  addImage(this: CanvasManager, imageObject: HTMLImageElement | null | undefined): void {
     if (!this.multiImageManager) {
       return
     }
@@ -96,17 +110,19 @@ export class ContentMethods {
   // OBJECT PROPERTY UPDATES
   // ═══════════════════════════════════════════════════════════════════
 
-  updateActiveObjectProperty(property, value) {
+  updateActiveObjectProperty(this: CanvasManager, property: string, value: unknown): void {
     if (!this.activeObject) return
 
     if (this.activeObject.type === 'text') {
+      // Dynamischer Eigenschaftspfad aus dem Panel ('prop' oder 'prop.sub')
+      const target = this.activeObject as unknown as Record<string, unknown>
       if (property.includes('.')) {
-        const [mainProp, subProp] = property.split('.')
-        if (this.activeObject[mainProp]) {
-          this.activeObject[mainProp][subProp] = value
+        const [mainProp, subProp] = property.split('.') as [string, string]
+        if (target[mainProp]) {
+          ;(target[mainProp] as Record<string, unknown>)[subProp] = value
         }
       } else {
-        this.activeObject[property] = value
+        target[property] = value
       }
 
       const boundsAffectingProps = ['text', 'fontSize', 'fontFamily', 'fontWeight']
@@ -118,7 +134,7 @@ export class ContentMethods {
     this.redrawCallback()
   }
 
-  updateActiveFotoProperty(property, value) {
+  updateActiveFotoProperty(this: CanvasManager, property: string, value: unknown): void {
     if (!this.activeObject || this.activeObject.type !== 'image') return
 
     if (this.fotoManager) {

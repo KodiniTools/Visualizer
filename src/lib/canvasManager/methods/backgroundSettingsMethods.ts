@@ -3,6 +3,13 @@ import { computeAudioReactiveValues } from '../../audio/audioReactiveEngine'
 import { applyAudioReactiveFilters } from '../rendering/audioReactiveDraw'
 import { calculateEffectValue } from '../../audio/AudioReactiveEffects'
 import { getAudioAnalysisData } from '../../audio/audioAnalysisData'
+import type { CanvasManager } from '../../canvasManager'
+import type { EngineAudioSettings } from '../../audio/audioReactiveEngine'
+import type {
+  BackgroundAudioReactive,
+  BackgroundEffectValues,
+  GradientSettings,
+} from '../rendering/BackgroundRenderer'
 
 /**
  * Einstellungen des Farb-Hintergrunds (Audio-Reaktiv, Farbverlauf, Kacheln)
@@ -16,23 +23,23 @@ export class BackgroundSettingsMethods {
   // AUDIO REACTIVE & GRADIENT SETTINGS
   // ═══════════════════════════════════════════════════════════════════
 
-  setBackgroundColorAudioReactive(settings) {
+  setBackgroundColorAudioReactive(this: CanvasManager, settings: EngineAudioSettings | null): void {
     this.backgroundColorSettings = settings
   }
 
-  getBackgroundColorAudioReactive() {
+  getBackgroundColorAudioReactive(this: CanvasManager): EngineAudioSettings | null {
     return this.backgroundColorSettings
   }
 
-  setGradientSettings(settings) {
+  setGradientSettings(this: CanvasManager, settings: Partial<GradientSettings>): void {
     this.gradientSettings = { ...this.gradientSettings, ...settings }
   }
 
-  getGradientSettings() {
+  getGradientSettings(this: CanvasManager) {
     return this.gradientSettings
   }
 
-  setBackgroundTilesStore(store) {
+  setBackgroundTilesStore(this: CanvasManager, store: CanvasManager['backgroundTilesStore']): void {
     this.backgroundTilesStore = store
   }
 
@@ -43,7 +50,10 @@ export class BackgroundSettingsMethods {
   /**
    * Berechnet Audio-Reaktive Werte für Hintergründe
    */
-  _getAudioReactiveValues(audioSettings) {
+  _getAudioReactiveValues(
+    this: CanvasManager,
+    audioSettings: EngineAudioSettings | null | undefined,
+  ): BackgroundAudioReactive {
     // Gemeinsame Engine (Bilder, Hintergrund, Kacheln, Lauftext); nur die
     // Effektberechnung ist hier wegen der Gradient-Effekte überschrieben.
     return computeAudioReactiveValues(
@@ -61,7 +71,11 @@ export class BackgroundSettingsMethods {
    * damit Hintergrund und Kacheln alle Bild-Effekte (inkl. Bewegung/Rhythmus)
    * verstehen. Nur die beiden Gradient-Effekte sind hintergrundspezifisch.
    */
-  _calculateEffectValue(effectName, normalizedLevel) {
+  _calculateEffectValue(
+    this: CanvasManager,
+    effectName: string,
+    normalizedLevel: number,
+  ): BackgroundEffectValues {
     switch (effectName) {
       case 'gradientPulse':
         return { gradientRadius: 0.3 + normalizedLevel * 0.7 }
@@ -77,7 +91,11 @@ export class BackgroundSettingsMethods {
   /**
    * Wendet Audio-Reaktive Effekte auf Canvas-Filter an
    */
-  _applyAudioReactiveFilters(ctx, audioReactive) {
+  _applyAudioReactiveFilters(
+    this: CanvasManager,
+    ctx: CanvasRenderingContext2D,
+    audioReactive: BackgroundAudioReactive,
+  ): void {
     applyAudioReactiveFilters(ctx, audioReactive)
   }
 }

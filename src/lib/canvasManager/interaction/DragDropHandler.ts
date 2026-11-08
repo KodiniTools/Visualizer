@@ -1,6 +1,28 @@
 // DragDropHandler.js - Drag & Drop und Resize-Operationen
 
 import { getSlideshowManager } from '../../slideshowManagerBridge'
+import type { CanvasManager, CanvasObject, CanvasTextObject } from '../../canvasManager'
+import type { CanvasImage } from '../../multiImageManager'
+import type { VideoObject } from '../../videoManager'
+import type { GridManager } from '../../gridManager'
+
+/** Verschiebbare Objekte (Hintergründe werden nicht verschoben) */
+export type MovableObject = CanvasTextObject | CanvasImage | VideoObject
+
+/** Text mit von calculateTextBounds() gesetzter Größe */
+export type SizedTextObject = CanvasTextObject & { relWidth: number; relHeight: number }
+
+export interface MoveOptions {
+  shiftKey?: boolean
+}
+
+/** Ungerastete Position während des Ziehens (x/y = zuletzt gesetzte Position) */
+interface SnapState {
+  rawX: number
+  rawY: number
+  x?: number
+  y?: number
+}
 
 /**
  * DragDropHandler - Verantwortlich für Drag & Drop und Resize-Operationen
@@ -11,7 +33,10 @@ import { getSlideshowManager } from '../../slideshowManagerBridge'
  * - Bilder/Videos skalieren
  */
 export class DragDropHandler {
-  constructor(canvasManager) {
+  manager: CanvasManager
+  _snapState: WeakMap<MovableObject, SnapState>
+
+  constructor(canvasManager: CanvasManager) {
     this.manager = canvasManager
     // Ungerastete Position pro Objekt während des Ziehens (Einrasten am Raster)
     this._snapState = new WeakMap()
@@ -22,16 +47,18 @@ export class DragDropHandler {
    * @param {{ shiftKey?: boolean }} [options] - Shift kehrt bei Slideshow-Bildern
    *   den Modus um (einzelnes Bild ↔ ganze Slideshow)
    */
-  moveObject(obj, dx, dy, options = {}) {
-    if (obj.type === 'background' || obj.type === 'workspace-background') {
+  moveObject(target: CanvasObject, dx: number, dy: number, options: MoveOptions = {}): void {
+    if (target.type === 'background' || target.type === 'workspace-background') {
       return
     }
+    // Video-Hintergründe sind nicht per Klick auswählbar und landen nicht hier
+    const obj = target as MovableObject
 
     const relDx = dx / this.manager.canvas.width
     const relDy = dy / this.manager.canvas.height
 
     // Slideshow-Bilder: jedes Bild hat eigene Position (im Workspace-Modus fest)
-    const slideshow = obj.isSlideshowImage ? getSlideshowManager() : null
+    const slideshow = obj.type === 'image' && obj.isSlideshowImage ? getSlideshowManager() : null
     if (slideshow?.isFittedToWorkspace()) return
     if (slideshow && Boolean(options.shiftKey) !== Boolean(slideshow.moveWholeSlideshow)) {
       slideshow.moveSlideshow(relDx, relDy)
@@ -76,7 +103,7 @@ export class DragDropHandler {
       // Text wird nicht begrenzt - kann frei positioniert werden
     }
 
-    slideshow?.commitImageBounds(obj)
+    slideshow?.commitImageBounds(obj as CanvasImage) // slideshow nur bei Bildern gesetzt
 
     // When multiple texts are selected, move them all together (um dieselbe
     // tatsächliche Verschiebung – auch wenn das gezogene Objekt eingerastet ist)
@@ -97,7 +124,7 @@ export class DragDropHandler {
    * oberer/unterer Kante oder Mitte, Texte mit ihrem Ankerpunkt. Die Toleranz
    * gilt in Bildschirm-Pixeln (unabhängig von der Canvas-Skalierung).
    */
-  _snapToGrid(obj, grid) {
+  _snapToGrid(obj: MovableObject, grid: GridManager): void {
     const canvas = this.manager.canvas
     const w = canvas.width
     const h = canvas.height
@@ -117,7 +144,7 @@ export class DragDropHandler {
   /**
    * Skaliert ein Text-Objekt
    */
-  resizeText(obj, dx, dy) {
+  resizeText(obj: SizedTextObject, dx: number, dy: number): void {
     const currentPixelWidth = obj.relWidth * this.manager.canvas.width
     const currentPixelHeight = obj.relHeight * this.manager.canvas.height
 
@@ -130,13 +157,14 @@ export class DragDropHandler {
     let newPixelWidth = currentPixelWidth
     let newPixelHeight = currentPixelHeight
 
-    const currentAction = this.manager.currentAction
+    // nur während eines Resize-Vorgangs aufgerufen
+    const currentAction = this.manager.currentAction as string
 
     switch (currentAction) {
       case 'resize-tl':
       case 'resize-tr':
       case 'resize-bl':
-      case 'resize-br':
+      case 'resize-br': {
         const absDx = Math.abs(dx)
         const absDy = Math.abs(dy)
 
@@ -151,20 +179,23 @@ export class DragDropHandler {
           newPixelWidth = newPixelHeight * (currentPixelWidth / currentPixelHeight)
         }
         break
+      }
 
       case 'resize-t':
-      case 'resize-b':
+      case 'resize-b': {
         const heightPixelChange = currentAction === 'resize-t' ? -dy : dy
         newPixelHeight = currentPixelHeight + heightPixelChange
         newPixelWidth = newPixelHeight * (currentPixelWidth / currentPixelHeight)
         break
+      }
 
       case 'resize-l':
-      case 'resize-r':
+      case 'resize-r': {
         const widthPixelChange = currentAction === 'resize-l' ? -dx : dx
         newPixelWidth = currentPixelWidth + widthPixelChange
         newPixelHeight = newPixelWidth * (currentPixelHeight / currentPixelWidth)
         break
+      }
     }
 
     const scaleFactor = newPixelWidth / currentPixelWidth
@@ -211,10 +242,10 @@ export class DragDropHandler {
   /**
    * Skaliert ein Bild oder Video
    */
-  resizeImage(obj, dx, dy) {
+  resizeImage(obj: CanvasImage | VideoObject, dx: number, dy: number): void {
     // Slideshow-Bilder: wie normale Bilder skalieren (Griff folgt der Maus),
     // Ergebnis als eigene Größe des Bildes merken. Im Workspace-Modus fest.
-    const slideshow = obj.isSlideshowImage ? getSlideshowManager() : null
+    const slideshow = obj.type === 'image' && obj.isSlideshowImage ? getSlideshowManager() : null
     if (slideshow?.isFittedToWorkspace()) return
 
     // Unterstützung für Videos und Bilder
@@ -222,7 +253,8 @@ export class DragDropHandler {
     if (obj.type === 'video' && obj.videoElement) {
       imgAspectRatio = obj.videoElement.videoWidth / obj.videoElement.videoHeight
     } else if (obj.imageObject) {
-      imgAspectRatio = obj.imageObject.width / obj.imageObject.height
+      const image = obj.imageObject as { width: number; height: number }
+      imgAspectRatio = image.width / image.height
     } else {
       imgAspectRatio = 16 / 9 // Fallback
     }
@@ -238,13 +270,14 @@ export class DragDropHandler {
     let newPixelWidth = currentPixelWidth
     let newPixelHeight = currentPixelHeight
 
-    const currentAction = this.manager.currentAction
+    // nur während eines Resize-Vorgangs aufgerufen
+    const currentAction = this.manager.currentAction as string
 
     switch (currentAction) {
       case 'resize-tl':
       case 'resize-tr':
       case 'resize-bl':
-      case 'resize-br':
+      case 'resize-br': {
         const absDx = Math.abs(dx)
         const absDy = Math.abs(dy)
 
@@ -259,20 +292,23 @@ export class DragDropHandler {
           newPixelWidth = newPixelHeight * imgAspectRatio
         }
         break
+      }
 
       case 'resize-t':
-      case 'resize-b':
+      case 'resize-b': {
         const heightPixelChange = currentAction === 'resize-t' ? -dy : dy
         newPixelHeight = currentPixelHeight + heightPixelChange
         newPixelWidth = newPixelHeight * imgAspectRatio
         break
+      }
 
       case 'resize-l':
-      case 'resize-r':
+      case 'resize-r': {
         const widthPixelChange = currentAction === 'resize-l' ? -dx : dx
         newPixelWidth = currentPixelWidth + widthPixelChange
         newPixelHeight = newPixelWidth / imgAspectRatio
         break
+      }
     }
 
     const newRelWidth = newPixelWidth / this.manager.canvas.width
@@ -305,6 +341,6 @@ export class DragDropHandler {
       obj.relHeight = oldRelHeight
     }
 
-    slideshow?.commitImageBounds(obj)
+    slideshow?.commitImageBounds(obj as CanvasImage) // slideshow nur bei Bildern gesetzt
   }
 }

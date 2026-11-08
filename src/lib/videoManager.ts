@@ -55,7 +55,7 @@ export interface VideoAnimation extends EntranceAnimationState {
 /** Video-Objekt auf dem Canvas */
 export interface VideoObject extends FotoImageObject {
   id: number | string
-  type: string
+  type: 'video'
   videoElement: HTMLVideoElement
   relX: number
   relY: number

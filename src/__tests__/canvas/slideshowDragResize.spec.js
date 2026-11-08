@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest'
-import { DragDropHandler } from '../../lib/canvasManager/interaction/DragDropHandler.js'
+import { DragDropHandler } from '../../lib/canvasManager/interaction/DragDropHandler'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
 
 function setup({ fitted = false, moveWhole = false } = {}) {

@@ -1,4 +1,17 @@
 // canvasManager/methods/deletionMethods.js
+import type { CanvasManager } from '../../canvasManager'
+import type { TextObject } from '../../textManager/types'
+
+/** Löschen/Wiederherstellen an der ursprünglichen Ebenen-Position */
+interface DeletionHelpers {
+  remove(): number
+  restore(index: number): void
+}
+
+interface RemovedText {
+  object: TextObject
+  index: number
+}
 /**
  * Löschen von Objekten (aktives Objekt, mehrere Texte, Bild nach Quelle)
  * mit Undo-Unterstützung.
@@ -7,7 +20,7 @@
  * auf CanvasManager.prototype übertragen).
  */
 export class DeletionMethods {
-  deleteActiveObject() {
+  deleteActiveObject(this: CanvasManager): void {
     if (!this.activeObject) return
 
     const obj = this.activeObject
@@ -16,7 +29,7 @@ export class DeletionMethods {
     // Baut Löschen/Wiederherstellen-Helfer für undo-fähige Objekt-Typen.
     // remove() gibt den Index vor dem Entfernen zurück, restore() fügt an
     // dieser Ebenen-Position wieder ein.
-    let helpers = null
+    let helpers: DeletionHelpers | null = null
 
     if (type === 'image' && this.multiImageManager) {
       const mgr = this.multiImageManager
@@ -100,16 +113,15 @@ export class DeletionMethods {
   // Wird z.B. vom "Alle löschen"-Button im Mehrfach-Bearbeiten-Panel genutzt.
   // Registriert EINEN gemeinsamen History-Command, sodass ein einziges
   // Undo (Strg+Z bzw. Toast-Button) alle Texte gemeinsam wiederherstellt.
-  deleteTexts(textsToDelete) {
+  deleteTexts(this: CanvasManager, textsToDelete: TextObject[]): void {
     if (!this.textManager || !Array.isArray(textsToDelete) || textsToDelete.length === 0) {
       return
     }
+    const textManager = this.textManager
 
     // Nur tatsächlich vorhandene Text-Objekte auf dem Canvas berücksichtigen
     const targets = textsToDelete.filter((obj) =>
-      this.textManager.textObjects.some(
-        (existing) => existing.id === obj.id && !existing.offCanvas,
-      ),
+      textManager.textObjects.some((existing) => existing.id === obj.id && !existing.offCanvas),
     )
     if (targets.length === 0) return
 
@@ -119,23 +131,23 @@ export class DeletionMethods {
     const removeAll = () => {
       const removed = targets.map((obj) => ({
         object: obj,
-        index: this.textManager.textObjects.findIndex((t) => t.id === obj.id),
+        index: textManager.textObjects.findIndex((t) => t.id === obj.id),
       }))
       removed
         .slice()
         .sort((a, b) => b.index - a.index)
-        .forEach(({ object }) => this.textManager.removeFromCanvas(object))
+        .forEach(({ object }) => textManager.removeFromCanvas(object))
       return removed.sort((a, b) => a.index - b.index)
     }
 
     // Fügt alle Texte an ihren ursprünglichen Ebenen-Positionen wieder ein.
     // Aufsteigend einfügen, damit jeder Index beim Einsetzen stimmt.
-    const restoreAll = (removed) => {
+    const restoreAll = (removed: RemovedText[]) => {
       removed
         .slice()
         .sort((a, b) => a.index - b.index)
         .forEach(({ object, index }) => {
-          if (!this.textManager.returnToCanvas(object)) this.textManager.restore(object, index)
+          if (!textManager.returnToCanvas(object)) textManager.restore(object, index)
         })
     }
 
@@ -164,10 +176,17 @@ export class DeletionMethods {
     })
   }
 
-  removeImageBySource(imageObjectToRemove) {
+  removeImageBySource(
+    this: CanvasManager,
+    imageObjectToRemove: HTMLImageElement | null | undefined,
+  ): void {
     if (!imageObjectToRemove) return
 
-    if (this.background && this.background.imageObject === imageObjectToRemove) {
+    if (
+      this.background &&
+      typeof this.background === 'object' &&
+      this.background.imageObject === imageObjectToRemove
+    ) {
       this.background = null
     }
 
@@ -176,10 +195,11 @@ export class DeletionMethods {
     }
 
     if (this.multiImageManager) {
-      const images = this.multiImageManager.getAllImages()
+      const mgr = this.multiImageManager
+      const images = mgr.getAllImages()
       const imagesToRemove = images.filter((imgData) => imgData.imageObject === imageObjectToRemove)
       imagesToRemove.forEach((img) => {
-        this.multiImageManager.removeImage(img.id)
+        mgr.removeImage(img.id)
       })
     }
 

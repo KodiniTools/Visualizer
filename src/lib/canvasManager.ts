@@ -26,11 +26,7 @@
 // - recording/RecordingRenderer.js - Recording-Rendering
 
 import { BackgroundRenderer, SceneRenderer, UIRenderer } from './canvasManager/rendering/index'
-import {
-  MouseHandler,
-  SelectionManager,
-  DragDropHandler,
-} from './canvasManager/interaction/index.js'
+import { MouseHandler, SelectionManager, DragDropHandler } from './canvasManager/interaction/index'
 import { RecordingRenderer } from './canvasManager/recording/index'
 import {
   applyMethods,
@@ -45,7 +41,100 @@ import {
   RenderingDelegates,
   InteractionDelegates,
   SelectionModeMethods,
-} from './canvasManager/methods/index.js'
+} from './canvasManager/methods/index'
+import type { TextObject } from './textManager/types'
+import type { TextManager } from './textManager'
+import type { GridManager } from './gridManager'
+import type { FotoManager, FotoImageObject } from './fotoManager'
+import type { CanvasImage, MultiImageManager } from './multiImageManager'
+import type { VideoObject, VideoManager } from './videoManager'
+import type { EngineAudioSettings } from './audio/audioReactiveEngine'
+import type {
+  BackgroundTilesStoreLike,
+  GradientSettings,
+} from './canvasManager/rendering/BackgroundRenderer'
+import type { Rect } from './canvasObjects/geometry'
+import type { DragSelectionRect } from './canvasManager/rendering/UIRenderer'
+import type {
+  SelectionAreaBounds,
+  ImageSelectionAreaBounds,
+} from './canvasManager/interaction/SelectionManager'
+
+/**
+ * Text-Objekt auf dem Canvas. relWidth/relHeight setzt calculateTextBounds();
+ * `text` ist ein Altfeld (Text-Objekte führen ihren Inhalt in `content`).
+ */
+export type CanvasTextObject = TextObject & { relWidth?: number; relHeight?: number; text?: string }
+
+/** Bild-Hintergrund von Canvas bzw. Workspace */
+export interface ImageBackgroundObject extends FotoImageObject {
+  id: string
+  type: 'background' | 'workspace-background'
+  imageObject: HTMLImageElement
+}
+
+/** Video-Hintergrund von Canvas bzw. Workspace */
+export interface VideoBackgroundObject extends FotoImageObject {
+  id: string
+  type: 'video-background' | 'workspace-video-background'
+  videoElement: HTMLVideoElement
+  loop: boolean
+  muted: boolean
+}
+
+/** Alles, was auf dem Canvas ausgewählt werden kann */
+export type CanvasObject =
+  | CanvasTextObject
+  | CanvasImage
+  | VideoObject
+  | ImageBackgroundObject
+  | VideoBackgroundObject
+
+/** Auswahl-Listener: (aktives Objekt, ggf. Mehrfachauswahl) */
+export type SelectionListener = (obj: CanvasObject | null, selected?: CanvasObject[]) => void
+
+/** Undo-/Redo-Hooks nach dem Löschen (siehe deleteActiveObject/deleteTexts) */
+export interface ObjectDeletedInfo {
+  type: string
+  object?: CanvasObject
+  count?: number
+  undo(): void
+  redo(): void
+}
+
+export interface WorkspacePreset {
+  width: number
+  height: number
+  name: string
+}
+
+export interface CanvasManagerDependencies {
+  redrawCallback?: () => void
+  redraw?: () => void
+  onObjectSelected?: (obj: CanvasObject | null) => void
+  onStateChange?: () => void
+  onTextDoubleClick?: (obj: CanvasTextObject) => void
+  onObjectDeleted?: (info: ObjectDeletedInfo) => void
+  textManager?: TextManager | null
+  gridManager?: GridManager | null
+  fotoManager?: FotoManager | null
+  multiImageManager?: MultiImageManager | null
+  videoManager?: VideoManager | null
+}
+
+/** Methoden-Gruppen, die applyMethods() auf den Prototyp überträgt */
+export interface CanvasManager
+  extends SelectionMethods,
+    WorkspaceMethods,
+    ContentMethods,
+    BackgroundMethods,
+    VideoBackgroundMethods,
+    BackgroundSettingsMethods,
+    StateMethods,
+    DeletionMethods,
+    RenderingDelegates,
+    InteractionDelegates,
+    SelectionModeMethods {}
 
 /**
  * CanvasManager - Orchestrator für alle Canvas-Operationen
@@ -54,14 +143,70 @@ import {
  * die öffentliche API für die Anwendung bereit.
  */
 export class CanvasManager {
-  constructor(canvas, dependencies) {
-    this.canvas = canvas
-    this.ctx = canvas.getContext('2d')
+  canvas: HTMLCanvasElement
+  ctx: CanvasRenderingContext2D
+  // Pflicht-Callbacks: werden ungeprüft aufgerufen
+  redrawCallback: () => void
+  onSelectionChange: (obj: CanvasObject | null) => void
+  updateUICallback: () => void
+  onTextEditStart?: (obj: CanvasTextObject) => void
+  onObjectDeleted?: (info: ObjectDeletedInfo) => void
+  textManager?: TextManager | null
+  gridManager?: GridManager | null
+  fotoManager?: FotoManager | null
+  multiImageManager?: MultiImageManager | null
+  videoManager?: VideoManager | null
 
-    // Dependencies
-    this.redrawCallback = dependencies.redrawCallback || dependencies.redraw
-    this.onSelectionChange = dependencies.onObjectSelected
-    this.updateUICallback = dependencies.onStateChange
+  background: string | ImageBackgroundObject | null
+  workspaceBackground: ImageBackgroundObject | null
+  videoBackground: VideoBackgroundObject | null
+  workspaceVideoBackground: VideoBackgroundObject | null
+  backgroundColorSettings: EngineAudioSettings | null
+  backgroundTilesStore: (BackgroundTilesStoreLike & { selectTile(index: number): void }) | null
+  gradientSettings: GradientSettings & { type: string; angle: number }
+
+  activeObject: CanvasObject | null
+  hoveredObject: CanvasObject | null
+  currentAction: string | null
+  dragStartPos: { x: number; y: number }
+  isEditingText: boolean
+  isRecording: boolean
+  selectedObjects: CanvasObject[]
+
+  textSelectionMode: boolean
+  textSelectionRect: DragSelectionRect | null
+  onTextSelectionComplete: ((bounds: SelectionAreaBounds) => void) | null
+  textPositionPreview: { relX: number; relY: number } | null
+
+  imageSelectionMode: boolean
+  imageSelectionRect: DragSelectionRect | null
+  onImageSelectionComplete: ((bounds: ImageSelectionAreaBounds) => void) | null
+  pendingImageAnimation: string | null
+
+  _cachedBounds: Rect | null
+  _selectionListeners: SelectionListener[]
+
+  socialMediaPresets: Record<string, WorkspacePreset>
+  workspacePreset: WorkspacePreset | null
+  showWorkspaceOutline: boolean
+
+  backgroundRenderer: BackgroundRenderer
+  sceneRenderer: SceneRenderer
+  uiRenderer: UIRenderer
+  mouseHandler: MouseHandler
+  selectionManager: SelectionManager
+  dragDropHandler: DragDropHandler
+  recordingRenderer: RecordingRenderer
+
+  constructor(canvas: HTMLCanvasElement, dependencies: CanvasManagerDependencies) {
+    this.canvas = canvas
+    // 2D-Kontext eines HTMLCanvasElement ist immer verfügbar
+    this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+
+    // Dependencies (Pflicht-Callbacks laut Aufrufer, siehe useCanvasSetup)
+    this.redrawCallback = (dependencies.redrawCallback || dependencies.redraw) as () => void
+    this.onSelectionChange = dependencies.onObjectSelected as (obj: CanvasObject | null) => void
+    this.updateUICallback = dependencies.onStateChange as () => void
     this.onTextEditStart = dependencies.onTextDoubleClick
     // Wird nach dem Löschen eines Canvas-Objekts (Text/Bild/Video) aufgerufen
     // und stellt undo()/redo()-Hooks für die History + Undo-Toast bereit
@@ -154,11 +299,11 @@ export class CanvasManager {
   /**
    * Aktualisiert die Canvas-Referenz
    */
-  updateCanvas(newCanvas) {
+  updateCanvas(newCanvas: HTMLCanvasElement | null | undefined): boolean {
     if (newCanvas && newCanvas !== this.canvas) {
       console.log('[CanvasManager] Canvas-Referenz aktualisiert')
       this.canvas = newCanvas
-      this.ctx = newCanvas.getContext('2d')
+      this.ctx = newCanvas.getContext('2d') as CanvasRenderingContext2D
 
       if (this.multiImageManager && typeof this.multiImageManager.updateCanvas === 'function') {
         this.multiImageManager.updateCanvas(newCanvas)
@@ -178,7 +323,7 @@ export class CanvasManager {
   /**
    * Initialisiert Event-Handler
    */
-  setupInteractionHandlers() {
+  setupInteractionHandlers(): void {
     this.mouseHandler.setupInteractionHandlers()
   }
 
@@ -190,7 +335,7 @@ export class CanvasManager {
    * @param {MouseEvent|DragEvent} e - Event mit clientX/clientY
    * @returns {{relX: number, relY: number}}
    */
-  getRelativePositionFromEvent(e) {
+  getRelativePositionFromEvent(e: MouseEvent): { relX: number; relY: number } {
     const { x, y } = this.mouseHandler.getMousePos(e)
     return {
       relX: x / this.canvas.width,

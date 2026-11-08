@@ -1,4 +1,5 @@
 // canvasManager/methods/stateMethods.js
+import type { CanvasManager } from '../../canvasManager'
 /**
  * Zustand: Zurücksetzen, Aufräumen, Zustands-Abfragen.
  *
@@ -10,7 +11,7 @@ export class StateMethods {
   // STATE MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════
 
-  reset() {
+  reset(this: CanvasManager): void {
     if (this.multiImageManager) {
       this.multiImageManager.clear()
     }
@@ -52,7 +53,7 @@ export class StateMethods {
     this.updateUICallback()
   }
 
-  destroy() {
+  destroy(this: CanvasManager): void {
     this.mouseHandler.destroy()
 
     this.activeObject = null
@@ -65,7 +66,7 @@ export class StateMethods {
     console.log('[CanvasManager] ✅ Destroyed and cleaned up')
   }
 
-  getCanvasState() {
+  getCanvasState(this: CanvasManager) {
     const images = this.multiImageManager ? this.multiImageManager.getAllImages() : []
     const videos = this.videoManager ? this.videoManager.getAllVideos() : []
     return {
@@ -78,7 +79,7 @@ export class StateMethods {
     }
   }
 
-  isCanvasEmpty() {
+  isCanvasEmpty(this: CanvasManager): boolean {
     const isBgEmpty = !this.background || this.background === '#ffffff'
     const isWorkspaceBgEmpty = !this.workspaceBackground
     const isVideoBgEmpty = !this.videoBackground

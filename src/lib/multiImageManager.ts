@@ -74,7 +74,7 @@ export interface ImageSlideshowState {
 /** Bild-Objekt auf dem Canvas */
 export interface CanvasImage extends FotoImageObject {
   id: number | string
-  type: string
+  type: 'image'
   imageObject: HTMLImageElement
   relX: number
   relY: number

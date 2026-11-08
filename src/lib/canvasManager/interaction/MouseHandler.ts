@@ -1,5 +1,13 @@
 // MouseHandler.js - Maus-Event-Handling
 import { requestSlideshowImageEdit } from '../../slideshowEditRequest'
+import type { CanvasManager } from '../../canvasManager'
+import type { ResizeHandleKey } from './SelectionManager'
+import type { SizedTextObject } from './DragDropHandler'
+import type { CanvasImage } from '../../multiImageManager'
+import type { VideoObject } from '../../videoManager'
+
+type WindowMouseListener = (e: MouseEvent) => void
+type SlideshowEditTarget = Parameters<typeof requestSlideshowImageEdit>[0]
 
 /**
  * MouseHandler - Verantwortlich für alle Maus-Events
@@ -11,7 +19,11 @@ import { requestSlideshowImageEdit } from '../../slideshowEditRequest'
  * - Cursor-Updates
  */
 export class MouseHandler {
-  constructor(canvasManager) {
+  manager: CanvasManager
+  _boundWindowMouseUp: WindowMouseListener | null
+  _boundWindowMouseMove: WindowMouseListener | null
+
+  constructor(canvasManager: CanvasManager) {
     this.manager = canvasManager
 
     // Bound handlers for cleanup
@@ -22,7 +34,7 @@ export class MouseHandler {
   /**
    * Initialisiert alle Event-Listener
    */
-  setupInteractionHandlers() {
+  setupInteractionHandlers(): void {
     this.manager.canvas.addEventListener('mousedown', (e) => this.onMouseDown(e))
     this.manager.canvas.addEventListener('mousemove', (e) => this.onMouseMove(e))
     this.manager.canvas.addEventListener('mouseup', (e) => this.onMouseUp(e))
@@ -39,7 +51,7 @@ export class MouseHandler {
   /**
    * Mouse Down Event
    */
-  onMouseDown(e) {
+  onMouseDown(e: MouseEvent): void {
     if (this.manager.isEditingText) return
     const { x, y } = this.getMousePos(e)
 
@@ -111,7 +123,7 @@ export class MouseHandler {
           this._startDragListeners()
           this.manager.canvas.style.cursor = 'grabbing'
           // Pausierte Slideshow: Einstellungen des (bereits ausgewählten) Bildes öffnen
-          requestSlideshowImageEdit(this.manager.activeObject)
+          requestSlideshowImageEdit(this.manager.activeObject as SlideshowEditTarget)
           return
         }
       }
@@ -131,7 +143,7 @@ export class MouseHandler {
       }
       this.manager.setActiveObject(clickedObject)
       // Pausierte Slideshow: Einstellungen des angeklickten Bildes öffnen
-      requestSlideshowImageEdit(clickedObject)
+      requestSlideshowImageEdit(clickedObject as SlideshowEditTarget)
       this.manager.currentAction = 'move'
       this.manager.dragStartPos = { x, y }
       // Reliability: Add window listeners for drag outside canvas
@@ -161,7 +173,7 @@ export class MouseHandler {
   /**
    * Mouse Move Event
    */
-  onMouseMove(e) {
+  onMouseMove(e: MouseEvent): void {
     if (this.manager.isEditingText) return
     const { x, y } = this.getMousePos(e)
 
@@ -195,10 +207,19 @@ export class MouseHandler {
           shiftKey: e.shiftKey,
         })
       } else if (this.manager.currentAction.startsWith('resize-')) {
+        // Resize-Griffe gibt es nur bei Objekten mit Bounds (Text/Bild/Video)
         if (this.manager.activeObject.type === 'text') {
-          this.manager.dragDropHandler.resizeText(this.manager.activeObject, dx, dy)
+          this.manager.dragDropHandler.resizeText(
+            this.manager.activeObject as SizedTextObject,
+            dx,
+            dy,
+          )
         } else {
-          this.manager.dragDropHandler.resizeImage(this.manager.activeObject, dx, dy)
+          this.manager.dragDropHandler.resizeImage(
+            this.manager.activeObject as CanvasImage | VideoObject,
+            dx,
+            dy,
+          )
         }
       }
 
@@ -243,7 +264,7 @@ export class MouseHandler {
   /**
    * Mouse Up Event
    */
-  onMouseUp(e) {
+  onMouseUp(_e?: MouseEvent): void {
     // Text-Rechteck-Auswahl-Modus: Beende Auswahl und rufe Callback auf
     if (this.manager.currentAction === 'text-selection') {
       const bounds = this.manager.selectionManager.getTextSelectionBounds()
@@ -287,7 +308,7 @@ export class MouseHandler {
   /**
    * Mouse Leave Event - Handle mouse leaving canvas during drag
    */
-  onMouseLeave(e) {
+  onMouseLeave(_e?: MouseEvent): void {
     // Don't cancel action - window listeners will handle it
     // Just update visual feedback if not dragging
     if (!this.manager.currentAction) {
@@ -300,7 +321,7 @@ export class MouseHandler {
   /**
    * Window-level mouseup ensures drag ends even outside canvas
    */
-  onWindowMouseUp(e) {
+  onWindowMouseUp(_e?: MouseEvent): void {
     // Text-Rechteck-Auswahl-Modus: Beende Auswahl und rufe Callback auf
     if (this.manager.currentAction === 'text-selection') {
       const bounds = this.manager.selectionManager.getTextSelectionBounds()
@@ -340,7 +361,7 @@ export class MouseHandler {
   /**
    * Window-level mousemove allows drag to continue outside canvas
    */
-  onWindowMouseMove(e) {
+  onWindowMouseMove(e: MouseEvent): void {
     // Text-Rechteck-Auswahl: Auch außerhalb des Canvas aktualisieren
     if (this.manager.currentAction === 'text-selection' && this.manager.textSelectionRect) {
       const { x, y } = this.getMousePos(e)
@@ -373,10 +394,19 @@ export class MouseHandler {
         shiftKey: e.shiftKey,
       })
     } else if (this.manager.currentAction.startsWith('resize-')) {
+      // Resize-Griffe gibt es nur bei Objekten mit Bounds (Text/Bild/Video)
       if (this.manager.activeObject.type === 'text') {
-        this.manager.dragDropHandler.resizeText(this.manager.activeObject, dx, dy)
+        this.manager.dragDropHandler.resizeText(
+          this.manager.activeObject as SizedTextObject,
+          dx,
+          dy,
+        )
       } else {
-        this.manager.dragDropHandler.resizeImage(this.manager.activeObject, dx, dy)
+        this.manager.dragDropHandler.resizeImage(
+          this.manager.activeObject as CanvasImage | VideoObject,
+          dx,
+          dy,
+        )
       }
     }
 
@@ -387,7 +417,7 @@ export class MouseHandler {
   /**
    * Double Click Event
    */
-  onDoubleClick(e) {
+  onDoubleClick(e: MouseEvent): void {
     if (this.manager.isEditingText) return
     const { x, y } = this.getMousePos(e)
     const clickedObj = this.manager.selectionManager.getObjectAtPos(x, y)
@@ -402,7 +432,7 @@ export class MouseHandler {
   /**
    * Berechnet die Mausposition relativ zum Canvas
    */
-  getMousePos(e) {
+  getMousePos(e: { clientX: number; clientY: number }): { x: number; y: number } {
     const rect = this.manager.canvas.getBoundingClientRect()
 
     const canvasAspect = this.manager.canvas.width / this.manager.canvas.height
@@ -431,24 +461,25 @@ export class MouseHandler {
   /**
    * Start listening to window-level events during drag
    */
-  _startDragListeners() {
-    window.addEventListener('mouseup', this._boundWindowMouseUp)
-    window.addEventListener('mousemove', this._boundWindowMouseMove)
+  _startDragListeners(): void {
+    // Vor setupInteractionHandlers() null – null-Listener ignoriert der Browser
+    window.addEventListener('mouseup', this._boundWindowMouseUp as WindowMouseListener)
+    window.addEventListener('mousemove', this._boundWindowMouseMove as WindowMouseListener)
   }
 
   /**
    * Stop listening to window-level events
    */
-  _stopDragListeners() {
-    window.removeEventListener('mouseup', this._boundWindowMouseUp)
-    window.removeEventListener('mousemove', this._boundWindowMouseMove)
+  _stopDragListeners(): void {
+    window.removeEventListener('mouseup', this._boundWindowMouseUp as WindowMouseListener)
+    window.removeEventListener('mousemove', this._boundWindowMouseMove as WindowMouseListener)
     this.manager._cachedBounds = null
   }
 
   /**
    * Central method to end drag operations cleanly
    */
-  _endDrag() {
+  _endDrag(): void {
     if (this.manager.currentAction) {
       this._stopDragListeners()
     }
@@ -459,8 +490,8 @@ export class MouseHandler {
   /**
    * Update cursor to indicate resize direction
    */
-  _updateResizeCursor(handleKey) {
-    const cursorMap = {
+  _updateResizeCursor(handleKey: string): void {
+    const cursorMap: Record<string, string> = {
       'resize-tl': 'nwse-resize',
       'resize-br': 'nwse-resize',
       'resize-tr': 'nesw-resize',
@@ -476,7 +507,7 @@ export class MouseHandler {
   /**
    * Cleanup method for component unmount
    */
-  destroy() {
+  destroy(): void {
     this._stopDragListeners()
   }
 }

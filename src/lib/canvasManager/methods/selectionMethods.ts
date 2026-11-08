@@ -8,22 +8,24 @@
  */
 
 import { getSlideshowManager } from '../../slideshowManagerBridge'
+import type { CanvasManager, CanvasObject, SelectionListener } from '../../canvasManager'
+import type { Rect } from '../../canvasObjects/geometry'
 
 export class SelectionMethods {
   /**
    * Selection Listener registrieren
    */
-  onSelectionChanged(callback) {
+  onSelectionChanged(this: CanvasManager, callback: SelectionListener): void {
     this._selectionListeners.push(callback)
   }
 
-  _notifySelectionListeners(obj) {
+  _notifySelectionListeners(this: CanvasManager, obj: CanvasObject | null): void {
     this._selectionListeners.forEach((listener) => listener(obj))
   }
 
   // ───────── Multi-selection helpers ─────────
 
-  toggleMultiSelect(obj) {
+  toggleMultiSelect(this: CanvasManager, obj: CanvasObject | null | undefined): void {
     if (!obj || obj.type !== 'text') return
 
     // On first shift+click ensure activeObject is part of the set
@@ -36,7 +38,7 @@ export class SelectionMethods {
       this.selectedObjects.splice(idx, 1)
       // If we removed the activeObject, promote the next one
       if (obj === this.activeObject && this.selectedObjects.length > 0) {
-        this.activeObject = this.selectedObjects[this.selectedObjects.length - 1]
+        this.activeObject = this.selectedObjects[this.selectedObjects.length - 1] as CanvasObject
       } else if (obj === this.activeObject) {
         this.activeObject = null
       }
@@ -51,19 +53,19 @@ export class SelectionMethods {
     this.redrawCallback()
   }
 
-  clearMultiSelection() {
+  clearMultiSelection(this: CanvasManager): void {
     this.selectedObjects = []
   }
 
-  isInMultiSelection(obj) {
+  isInMultiSelection(this: CanvasManager, obj: CanvasObject): boolean {
     return this.selectedObjects.includes(obj)
   }
 
-  selectAllTexts() {
+  selectAllTexts(this: CanvasManager): void {
     if (!this.textManager) return
     const texts = this.textManager.textObjects.filter((t) => !t.offCanvas)
     if (!texts || texts.length === 0) return
-    this.activeObject = texts[texts.length - 1]
+    this.activeObject = texts[texts.length - 1] as CanvasObject // texts ist nicht leer
     this.selectedObjects = [...texts]
     this._selectionListeners.forEach((listener) =>
       listener(this.activeObject, this.selectedObjects),
@@ -75,19 +77,19 @@ export class SelectionMethods {
   // SELECTION (delegiert an SelectionManager)
   // ═══════════════════════════════════════════════════════════════════
 
-  setActiveObject(obj) {
+  setActiveObject(this: CanvasManager, obj: CanvasObject | null): void {
     this.selectionManager.setActiveObject(obj)
   }
 
-  getObjectAtPos(x, y) {
+  getObjectAtPos(this: CanvasManager, x: number, y: number): CanvasObject | null {
     return this.selectionManager.getObjectAtPos(x, y)
   }
 
-  getTextAtPos(x, y) {
+  getTextAtPos(this: CanvasManager, x: number, y: number): CanvasObject | null {
     return this.selectionManager.getTextAtPos(x, y)
   }
 
-  getObjectBounds(obj) {
+  getObjectBounds(this: CanvasManager, obj: CanvasObject | null | undefined): Rect | null {
     if (!obj) return null
 
     if (obj.type === 'text') {
@@ -131,19 +133,19 @@ export class SelectionMethods {
     return null
   }
 
-  isPointInRect(x, y, rect) {
+  isPointInRect(this: CanvasManager, x: number, y: number, rect: Rect): boolean {
     return this.selectionManager.isPointInRect(x, y, rect)
   }
 
-  getResizeHandles(bounds) {
+  getResizeHandles(this: CanvasManager, bounds: Rect) {
     return this.selectionManager.getResizeHandles(bounds)
   }
 
-  getHandleAtPos(bounds, x, y) {
+  getHandleAtPos(this: CanvasManager, bounds: Rect, x: number, y: number) {
     return this.selectionManager.getHandleAtPos(bounds, x, y)
   }
 
-  getDeleteButtonBounds(objectBounds) {
+  getDeleteButtonBounds(this: CanvasManager, objectBounds: Rect): Rect {
     return this.selectionManager.getDeleteButtonBounds(objectBounds)
   }
 }

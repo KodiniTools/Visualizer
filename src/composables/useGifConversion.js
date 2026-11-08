@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { convertGifAndWait, cleanupFile } from '../lib/videoApi.js'
+import { convertGifAndWait, cleanupFile } from '../lib/videoApi'
 
 export function useGifConversion() {
   const enableGifExport = ref(false)

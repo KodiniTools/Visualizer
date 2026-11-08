@@ -1,4 +1,4 @@
-import { workerManager } from '../lib/workerManager.js'
+import { workerManager } from '../lib/workerManager'
 import { BeatDetector } from '../lib/audio/BeatDetector'
 import { OnsetDetector } from '../lib/audio/OnsetDetector'
 import { getAudioAnalysisData, setAudioAnalysisData } from '../lib/audio/audioAnalysisData'

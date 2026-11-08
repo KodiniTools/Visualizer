@@ -28,7 +28,7 @@ import {
   applyAudioGeometry,
   applyBaseTransforms,
   transformAround,
-} from '../multiImage/drawSteps.js'
+} from '../multiImage/drawSteps'
 import { SHAPE_KIND, drawShape, getShapeKind, type Shape } from './shapes'
 
 /** Effektwerte je aktivem Effekt */

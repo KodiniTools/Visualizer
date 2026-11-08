@@ -19,7 +19,7 @@ import {
   drawChromatic,
   drawPlain,
   drawVignette,
-} from './multiImage/drawSteps.js'
+} from './multiImage/drawSteps'
 import {
   findResizeHandleAt,
   getDeleteButtonBounds,

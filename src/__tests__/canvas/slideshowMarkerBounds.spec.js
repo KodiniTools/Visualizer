@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { CanvasManager } from '../../lib/canvasManager.js'
 import { MultiImageManager } from '../../lib/multiImageManager.js'
-import { FotoManager } from '../../lib/fotoManager.js'
+import { FotoManager } from '../../lib/fotoManager'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 import {
   applyTransitionToBounds,

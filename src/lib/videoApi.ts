@@ -10,6 +10,63 @@
 // API Base URL (relativ für NGINX Proxy)
 const API_BASE = '/visualizer/api'
 
+/** Status eines Konvertierungs-Jobs (Server-Antwort) */
+export interface JobStatus {
+  status: string
+  progress?: number
+  error?: string
+  outputFile?: string
+  thumbnail?: string
+  info?: unknown
+  [extra: string]: unknown
+}
+
+export interface ServerHealth {
+  available: boolean
+  status?: 'ok' | 'degraded'
+  ffmpeg?: { available?: boolean; [extra: string]: unknown }
+  error?: string
+}
+
+export interface UploadResult {
+  success: true
+  jobId: string
+  status?: string
+}
+
+export interface WaitForJobOptions {
+  pollInterval?: number
+  timeout?: number
+  onProgress?: (progress: number) => void
+}
+
+export interface ConvertAndWaitOptions {
+  quality?: string
+  onProgress?: (progress: number) => void
+  onStatusChange?: (status: string) => void
+  onJobId?: (jobId: string) => void
+}
+
+export interface ConvertGifOptions {
+  fps?: number
+  width?: number
+  colors?: number
+}
+
+export interface ConversionResult {
+  success: true
+  downloadUrl: string
+  fileUrl: string
+  filename: string | undefined
+  thumbnail?: string | null
+  info: unknown
+}
+
+/** Fehlermeldung aus einem unbekannten Fehlerwert */
+function messageOf(error: unknown): string | undefined {
+  return (error as { message?: string } | null | undefined)?.message
+}
+
 /**
  * Prüft ob der Backend-Server verfügbar ist
  *
@@ -21,7 +78,7 @@ const API_BASE = '/visualizer/api'
  * "nicht verfügbar" erscheinen, obwohl er läuft (Recorder-Checkboxen für
  * MP4/GIF/HQ-Export bleiben dann fälschlich deaktiviert).
  */
-export async function checkServerHealth() {
+export async function checkServerHealth(): Promise<ServerHealth> {
   try {
     const response = await fetch(`${API_BASE}/info`, {
       method: 'GET',
@@ -38,14 +95,14 @@ export async function checkServerHealth() {
     }
     return { available: false, error: 'Server not responding' }
   } catch (error) {
-    return { available: false, error: error.message }
+    return { available: false, error: messageOf(error) }
   }
 }
 
 /**
  * Holt Server-Informationen (FFmpeg Status, Presets etc.)
  */
-export async function getServerInfo() {
+export async function getServerInfo(): Promise<unknown> {
   try {
     const response = await fetch(`${API_BASE}/info`, {
       method: 'GET',
@@ -71,7 +128,10 @@ export async function getServerInfo() {
  * @param {function} options.onProgress - Progress Callback (0-100)
  * @returns {Promise<{jobId: string, status: string}>}
  */
-export async function convertVideo(videoBlob, options = {}) {
+export async function convertVideo(
+  videoBlob: Blob,
+  options: { quality?: string } = {},
+): Promise<UploadResult> {
   const quality = options.quality || 'high'
 
   const formData = new FormData()
@@ -112,7 +172,7 @@ export async function convertVideo(videoBlob, options = {}) {
  * @param {string} jobId - Die Job-ID
  * @returns {Promise<Object>} Job-Status Objekt
  */
-export async function getJobStatus(jobId) {
+export async function getJobStatus(jobId: string): Promise<JobStatus> {
   try {
     const response = await fetch(`${API_BASE}/status/${jobId}`, {
       method: 'GET',
@@ -143,14 +203,17 @@ export async function getJobStatus(jobId) {
  * @param {number} options.timeout - Timeout in ms (default: 1800000 = 30 min)
  * @returns {Promise<Object>} Finales Job-Ergebnis
  */
-export async function waitForJob(jobId, options = {}) {
+export async function waitForJob(
+  jobId: string,
+  options: WaitForJobOptions = {},
+): Promise<JobStatus> {
   const pollInterval = options.pollInterval || 1000
   const timeout = options.timeout || 1800000 // 30 Minuten (für große Videos 100+ MB)
   const onProgress = options.onProgress || (() => {})
 
   const startTime = Date.now()
 
-  return new Promise((resolve, reject) => {
+  return new Promise<JobStatus>((resolve, reject) => {
     const poll = async () => {
       // Timeout Check
       if (Date.now() - startTime > timeout) {
@@ -197,7 +260,7 @@ export async function waitForJob(jobId, options = {}) {
         }
       } catch (error) {
         // Bei Netzwerkfehlern weiter versuchen
-        console.warn('[VideoAPI] Polling error, retrying:', error.message)
+        console.warn('[VideoAPI] Polling error, retrying:', messageOf(error))
         setTimeout(poll, pollInterval * 2)
       }
     }
@@ -214,7 +277,7 @@ export async function waitForJob(jobId, options = {}) {
  * @param {boolean} cleanup - Ob die Datei nach Download gelöscht werden soll
  * @returns {string} Die vollständige Download-URL
  */
-export function getDownloadUrl(filename, cleanup = false) {
+export function getDownloadUrl(filename: string | undefined, cleanup = false): string {
   const url = `${API_BASE}/download/${filename}`
   return cleanup ? `${url}?cleanup=true` : url
 }
@@ -225,7 +288,7 @@ export function getDownloadUrl(filename, cleanup = false) {
  * @param {string} filename - Der Dateiname
  * @returns {Promise<Object>} Ergebnis
  */
-export async function cleanupFile(filename) {
+export async function cleanupFile(filename: string): Promise<unknown> {
   try {
     const response = await fetch(`${API_BASE}/cleanup/${filename}`, {
       method: 'POST',
@@ -233,7 +296,7 @@ export async function cleanupFile(filename) {
     return await response.json()
   } catch (error) {
     console.warn('[VideoAPI] Cleanup error:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: messageOf(error) }
   }
 }
 
@@ -243,7 +306,7 @@ export async function cleanupFile(filename) {
  * @param {string} filename - Der Dateiname
  * @returns {string} Die vollständige File-URL
  */
-export function getFileUrl(filename) {
+export function getFileUrl(filename: string | undefined): string {
   return `/visualizer/files/${filename}`
 }
 
@@ -254,7 +317,7 @@ export function getFileUrl(filename) {
  * @param {string} jobId - Die Job-ID
  * @returns {Promise<Object>} Ergebnis
  */
-export async function cancelConversion(jobId) {
+export async function cancelConversion(jobId: string): Promise<unknown> {
   try {
     const response = await fetch(`${API_BASE}/convert/${jobId}/cancel`, {
       method: 'POST',
@@ -262,7 +325,7 @@ export async function cancelConversion(jobId) {
     return await response.json()
   } catch (error) {
     console.warn('[VideoAPI] Cancel error:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: messageOf(error) }
   }
 }
 
@@ -276,7 +339,10 @@ export async function cancelConversion(jobId) {
  * @param {function} options.onStatusChange - Status Change Callback
  * @returns {Promise<Object>} Ergebnis mit downloadUrl
  */
-export async function convertAndWait(videoBlob, options = {}) {
+export async function convertAndWait(
+  videoBlob: Blob,
+  options: ConvertAndWaitOptions = {},
+): Promise<ConversionResult> {
   const onProgress = options.onProgress || (() => {})
   const onStatusChange = options.onStatusChange || (() => {})
 
@@ -333,7 +399,10 @@ export async function convertAndWait(videoBlob, options = {}) {
  * @param {number} options.colors - Farben 2–256 (default 256)
  * @returns {Promise<{jobId, status}>}
  */
-export async function convertGif(videoBlob, options = {}) {
+export async function convertGif(
+  videoBlob: Blob,
+  options: ConvertGifOptions = {},
+): Promise<UploadResult> {
   const formData = new FormData()
   formData.append('video', videoBlob, 'recording.webm')
   formData.append('fps', String(options.fps || 15))
@@ -376,7 +445,10 @@ export async function convertGif(videoBlob, options = {}) {
  * @param {function} options.onStatusChange - Callback ('uploading'|'converting'|'completed')
  * @returns {Promise<{success, downloadUrl, fileUrl, filename, info}>}
  */
-export async function convertGifAndWait(videoBlob, options = {}) {
+export async function convertGifAndWait(
+  videoBlob: Blob,
+  options: ConvertGifOptions & Omit<ConvertAndWaitOptions, 'quality' | 'onJobId'> = {},
+): Promise<ConversionResult> {
   const onProgress = options.onProgress || (() => {})
   const onStatusChange = options.onStatusChange || (() => {})
 

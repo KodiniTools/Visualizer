@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects'
-import { FotoManager } from '../../lib/fotoManager.js'
+import { FotoManager } from '../../lib/fotoManager'
 
 describe('FotoManager – Audio-Reaktiv-Konfiguration', () => {
   it('gives new images the full shared config, each its own copy', () => {

@@ -6,7 +6,7 @@ import {
   assembleFrameExport,
   cancelFrameExport,
 } from '../lib/frameExportApi'
-import { waitForJob, getFileUrl, cleanupFile } from '../lib/videoApi.js'
+import { waitForJob, getFileUrl, cleanupFile } from '../lib/videoApi'
 import { useFrameCapture } from './useFrameCapture.js'
 
 export function useHqExport() {

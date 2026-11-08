@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from 'vitest'
 
-vi.mock('../../lib/workerManager.js', () => ({
+vi.mock('../../lib/workerManager', () => ({
   workerManager: {
     initAll: vi.fn(),
     analyzeAudio: vi.fn(),

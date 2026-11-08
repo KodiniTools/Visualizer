@@ -26,8 +26,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue'
+import type { PlayerBarContext } from './playerBarContext'
 import { useI18n } from '../../lib/i18n'
 import { vPopoverDrag } from '../../directives/popoverDrag'
 import SlideshowStatusBadge from '../foto-panel/slideshow/SlideshowStatusBadge.vue'
@@ -38,7 +39,7 @@ import {
 
 const { t } = useI18n()
 
-const { popover } = inject('playerBar')
+const { popover } = inject('playerBar') as PlayerBarContext
 const { closePopover, cascadeOffset } = popover
 const close = () => closePopover('slideshow')
 const initOffset = cascadeOffset('slideshow')

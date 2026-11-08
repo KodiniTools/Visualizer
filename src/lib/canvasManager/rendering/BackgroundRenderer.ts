@@ -25,6 +25,11 @@ import { getAudioAnalysisData } from '../../audio/audioAnalysisData'
 import type { EffectValues } from '../../audio/AudioReactiveEffects'
 import type { AudioReactiveValues, EngineAudioSettings } from '../../audio/audioReactiveEngine'
 import type { Rect } from '../../canvasObjects/geometry'
+import {
+  getImageAnimationTransform,
+  hasImageAnimation,
+  type ImageAnimationTarget,
+} from '../../canvasObjects/imageAnimation'
 import type { FotoImageObject, FotoManager } from '../../fotoManager'
 import type { SlideshowGradient } from '../../slideshowBaseColor'
 import type { SlideshowGradientAudioDeform } from '../../slideshowGradientAudio'
@@ -41,6 +46,31 @@ export interface BackgroundEffectValues extends EffectValues {
 export type BackgroundAudioReactive = AudioReactiveValues<BackgroundEffectValues> | null
 
 /** Bild-Hintergrund (Objekt mit imageObject oder direkt das Bild) */
+/**
+ * Animation eines Bild-Hintergrunds (wie bei Texten/Bildern, siehe
+ * canvasObjects/imageAnimation): multipliziert die Deckkraft in den Kontext
+ * (nach den Filtern, die globalAlpha setzen) und liefert die verschobenen/
+ * skalierten Zeichen-Bounds. Ohne aktive Animation unverändert.
+ */
+export function applyBackgroundAnimation(
+  ctx: Ctx,
+  target: ImageAnimationTarget,
+  bounds: Rect,
+  now = Date.now(),
+): Rect {
+  if (!hasImageAnimation(target.timedAnimation)) return bounds
+  const anim = getImageAnimationTransform(target, ctx.canvas, now)
+  ctx.globalAlpha *= Math.max(0, Math.min(1, anim.opacity))
+  const width = bounds.width * anim.scale
+  const height = bounds.height * anim.scale
+  return {
+    x: bounds.x + (bounds.width - width) / 2 + anim.translateX,
+    y: bounds.y + (bounds.height - height) / 2 + anim.translateY,
+    width,
+    height,
+  }
+}
+
 export type BackgroundImageObject = FotoImageObject & { imageObject?: CanvasImageSource }
 
 export type VideoBackgroundObject = FotoImageObject & { videoElement: HTMLVideoElement }
@@ -393,6 +423,11 @@ export class BackgroundRenderer {
   _drawImageBackground(ctx: Ctx): void {
     // nur bei Bild-Hintergrund (Objekt) aufgerufen
     const background = this.manager.background as BackgroundImageObject
+    // Animiertes Hintergrundbild: freie Fläche weiß (wie ohne Hintergrund)
+    if (hasImageAnimation((background as ImageAnimationTarget).timedAnimation)) {
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    }
     ctx.save()
 
     // Statische Filter vom FotoManager
@@ -424,6 +459,19 @@ export class BackgroundRenderer {
       drawX = centerX - drawW / 2
       drawY = centerY - drawH / 2
     }
+
+    // Animation (Fade/Scale/Slide wie bei Bildern)
+    ;({
+      x: drawX,
+      y: drawY,
+      width: drawW,
+      height: drawH,
+    } = applyBackgroundAnimation(ctx, background as ImageAnimationTarget, {
+      x: drawX,
+      y: drawY,
+      width: drawW,
+      height: drawH,
+    }))
 
     // FLIP anwenden (Horizontal und/oder Vertikal spiegeln)
     const bgFlipH = background.fotoSettings?.flipH || false
@@ -547,7 +595,7 @@ export class BackgroundRenderer {
     const img = workspaceBackground.imageObject
 
     // Scale-Effekt für Workspace-Hintergrund
-    const drawBounds = { ...workspaceBounds }
+    let drawBounds = { ...workspaceBounds }
     if (wsAudioReactive && wsAudioReactive.effects.scale) {
       const scale = wsAudioReactive.effects.scale.scale as number
       const centerX = workspaceBounds.x + workspaceBounds.width / 2
@@ -556,6 +604,15 @@ export class BackgroundRenderer {
       drawBounds.height = workspaceBounds.height * scale
       drawBounds.x = centerX - drawBounds.width / 2
       drawBounds.y = centerY - drawBounds.height / 2
+    }
+
+    // Animation (Fade/Scale/Slide wie bei Bildern), auf den Workspace begrenzt
+    const wsTarget = workspaceBackground as ImageAnimationTarget
+    if (hasImageAnimation(wsTarget.timedAnimation)) {
+      ctx.beginPath()
+      ctx.rect(workspaceBounds.x, workspaceBounds.y, workspaceBounds.width, workspaceBounds.height)
+      ctx.clip()
+      drawBounds = applyBackgroundAnimation(ctx, wsTarget, drawBounds)
     }
 
     // FLIP anwenden (Horizontal und/oder Vertikal spiegeln)

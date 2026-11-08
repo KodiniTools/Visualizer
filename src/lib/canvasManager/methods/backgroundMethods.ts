@@ -1,6 +1,17 @@
 // canvasManager/methods/backgroundMethods.js
 import type { CanvasManager, ImageBackgroundObject } from '../../canvasManager'
 import type { FotoSettings } from '../../fotoManager'
+import {
+  cloneImageAnimation,
+  hasImageAnimation,
+  type ImageTimedAnimation,
+} from '../../canvasObjects/imageAnimation'
+
+/** Optionen beim Setzen eines Bild-Hintergrunds */
+export interface SetBackgroundOptions {
+  /** Animationen wie bei Texten; wird kopiert (siehe canvasObjects/imageAnimation) */
+  timedAnimation?: ImageTimedAnimation | null
+}
 /**
  * Bild-Hintergrund von Canvas und Workspace: setzen, ersetzen, spiegeln.
  *
@@ -15,6 +26,7 @@ export class BackgroundMethods {
   setBackground(
     this: CanvasManager,
     backgroundObject: string | HTMLImageElement | null | undefined,
+    options: SetBackgroundOptions = {},
   ): void {
     if (typeof backgroundObject === 'string') {
       this.background = backgroundObject
@@ -23,6 +35,9 @@ export class BackgroundMethods {
         id: Date.now() + '_bg',
         type: 'background',
         imageObject: backgroundObject,
+      }
+      if (hasImageAnimation(options.timedAnimation)) {
+        this.background.timedAnimation = cloneImageAnimation(options.timedAnimation)
       }
 
       if (this.fotoManager) {
@@ -37,7 +52,11 @@ export class BackgroundMethods {
     this.updateUICallback()
   }
 
-  setWorkspaceBackground(this: CanvasManager, imageObject: HTMLImageElement): boolean {
+  setWorkspaceBackground(
+    this: CanvasManager,
+    imageObject: HTMLImageElement,
+    options: SetBackgroundOptions = {},
+  ): boolean {
     if (!this.workspacePreset) {
       return false
     }
@@ -46,6 +65,9 @@ export class BackgroundMethods {
       id: Date.now() + '_wsbg',
       type: 'workspace-background',
       imageObject: imageObject,
+    }
+    if (hasImageAnimation(options.timedAnimation)) {
+      this.workspaceBackground.timedAnimation = cloneImageAnimation(options.timedAnimation)
     }
 
     if (this.fotoManager) {

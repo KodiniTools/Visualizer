@@ -132,4 +132,18 @@ describe('ImageFiltersPanel – Position & Größe', () => {
     wrapper.unmount()
     expect(mountPanel(null).find('.position-size-controls').exists()).toBe(false)
   })
+
+  it('Animation: für Canvas-Bilder und Bild-Hintergründe, nicht für Slideshow-Bilder', () => {
+    const has = (img) => {
+      const found = mountPanel(img).find('.image-animation-controls').exists()
+      wrapper.unmount()
+      return found
+    }
+    expect(has(makeImage())).toBe(true)
+    expect(has({ ...makeImage(), type: 'background' })).toBe(true)
+    expect(has({ ...makeImage(), type: 'workspace-background' })).toBe(true)
+    expect(has({ ...makeImage(), isSlideshowImage: true })).toBe(false)
+    expect(has(null)).toBe(false)
+    wrapper = null
+  })
 })

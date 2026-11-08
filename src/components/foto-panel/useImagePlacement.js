@@ -99,7 +99,7 @@ export function useImagePlacement({
     if (!imgToSet) return
     const canvasManager = canvasManagerRef?.value
     if (!canvasManager) return
-    canvasManager.setBackground(imgToSet.img)
+    canvasManager.setBackground(imgToSet.img, animationOption())
     console.log('✅ Bild als Hintergrund gesetzt:', imgToSet.name)
     deselectAllImages()
   }
@@ -109,7 +109,7 @@ export function useImagePlacement({
     if (!imgToSet) return
     const canvasManager = canvasManagerRef?.value
     if (!canvasManager) return
-    const success = canvasManager.setWorkspaceBackground(imgToSet.img)
+    const success = canvasManager.setWorkspaceBackground(imgToSet.img, animationOption())
     if (success) {
       console.log('✅ Bild als Workspace-Hintergrund gesetzt:', imgToSet.name)
       deselectAllImages()
@@ -240,7 +240,7 @@ export function useImagePlacement({
     const canvasManager = canvasManagerRef?.value
     if (!canvasManager) return
 
-    canvasManager.setBackground(previewImage.value.data.img)
+    canvasManager.setBackground(previewImage.value.data.img, animationOption())
     closePreview()
   }
 

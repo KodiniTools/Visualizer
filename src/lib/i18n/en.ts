@@ -1989,7 +1989,7 @@ export default {
       'Same as for texts: fade in, slide in or scale. Starts as soon as the image appears.',
     newImageAnimation: 'Animation when adding',
     newImageAnimationHint:
-      'Applies to images you add to the canvas from now on (button, place, draw, drag & drop).',
+      'Applies to images you add from now on: to the canvas (button, place, draw, drag & drop), as background or as workspace background.',
     rotation: 'Rotation',
     opacity: 'Opacity',
     filters: 'Filters',

@@ -54,6 +54,7 @@ import type {
   GradientSettings,
 } from './canvasManager/rendering/BackgroundRenderer'
 import type { Rect } from './canvasObjects/geometry'
+import type { ImageTimedAnimation } from './canvasObjects/imageAnimation'
 import type { DragSelectionRect } from './canvasManager/rendering/UIRenderer'
 import type {
   SelectionAreaBounds,
@@ -71,6 +72,8 @@ export interface ImageBackgroundObject extends FotoImageObject {
   id: string
   type: 'background' | 'workspace-background'
   imageObject: HTMLImageElement
+  /** Animationen wie bei Texten (canvasObjects/imageAnimation) */
+  timedAnimation?: ImageTimedAnimation | null
 }
 
 /** Video-Hintergrund von Canvas bzw. Workspace */

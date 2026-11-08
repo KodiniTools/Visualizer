@@ -52,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 
 const props = withDefaults(
   defineProps<{
@@ -126,9 +126,12 @@ const tooltipStyle = computed(() => {
 
 function showTooltip(event: Event) {
   clearTimeout(hideTimeout)
+  // currentTarget sofort lesen: Nach dem Dispatch ist es null, im Timeout
+  // würde getBoundingClientRect() sonst werfen.
+  const trigger = event.currentTarget as HTMLElement | null
+  if (!trigger) return
 
   showTimeout = setTimeout(() => {
-    const trigger = event.currentTarget as HTMLElement
     triggerRect.value = trigger.getBoundingClientRect()
     isVisible.value = true
   }, props.delay)

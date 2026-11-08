@@ -7,11 +7,8 @@ import {
   shapeCropRect,
   shapeRenderSize,
   visualizerShapeOptions,
-} from '../../lib/visualizers/core/visualizerShape.js'
-import {
-  drawScaledVisualizer,
-  setEdgeFadeCanvasFactory,
-} from '../../lib/visualizers/core/edgeFade.js'
+} from '../../lib/visualizers/core/visualizerShape'
+import { drawScaledVisualizer, setEdgeFadeCanvasFactory } from '../../lib/visualizers/core/edgeFade'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 import { sanitizeVisualizerSettings } from '../../lib/visualizerPersistence'
 

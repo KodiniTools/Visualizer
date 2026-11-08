@@ -3,7 +3,7 @@
  * @module visualizers/tech/electricWeb
  */
 
-import { visualizerState, hexToHsl, averageRange } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange } from '../core/index'
 
 export const electricWeb = {
   name_de: 'Elektrisches Netz',

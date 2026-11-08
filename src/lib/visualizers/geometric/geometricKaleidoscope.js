@@ -3,7 +3,7 @@
  * @module visualizers/geometric/geometricKaleidoscope
  */
 
-import { hexToHsl, averageRange, calculateDynamicGain, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, averageRange, calculateDynamicGain, withSafeCanvasState } from '../core/index'
 
 export const geometricKaleidoscope = {
   name_de: 'Geometrisches Kaleidoskop',

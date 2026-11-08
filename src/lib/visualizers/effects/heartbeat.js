@@ -3,7 +3,7 @@
  * @module visualizers/effects/heartbeat
  */
 
-import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const heartbeat = {
   name_de: 'Herzschlag',

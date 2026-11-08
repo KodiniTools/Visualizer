@@ -4,7 +4,7 @@
  * @module visualizers/spectrum/classicWaveform
  */
 
-import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const classicWaveform = {
   name_de: 'Klassische Wellenform',

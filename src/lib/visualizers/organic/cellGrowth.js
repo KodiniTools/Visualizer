@@ -3,7 +3,7 @@
  * @module visualizers/organic/cellGrowth
  */
 
-import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const cellGrowth = {
   name_de: 'Zellwachstum',

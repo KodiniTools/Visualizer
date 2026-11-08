@@ -28,7 +28,7 @@ import {
   registerImageFile,
   registerCanvasImage,
   registerGalleryImage,
-} from '../lib/visualizers/imageRegistry.js'
+} from '../lib/visualizers/imageRegistry'
 import { useImageGallery } from '../composables/useImageGallery.js'
 import { UiButton, UiSelect } from './ui/index.js'
 

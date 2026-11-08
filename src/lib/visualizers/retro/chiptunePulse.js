@@ -3,7 +3,7 @@
  * @module visualizers/retro/chiptunePulse
  */
 
-import { visualizerState, hexToHsl, applySmoothValue, energyRamp } from '../core/index.js'
+import { visualizerState, hexToHsl, applySmoothValue, energyRamp } from '../core/index'
 
 export const chiptunePulse = {
   name_de: 'Chiptune-Puls (Futuristisch)',

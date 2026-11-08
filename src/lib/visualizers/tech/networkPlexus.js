@@ -3,7 +3,7 @@
  * @module visualizers/tech/networkPlexus
  */
 
-import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const networkPlexus = {
   name_de: 'Netzwerk-Plexus',

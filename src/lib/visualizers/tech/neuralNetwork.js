@@ -10,7 +10,7 @@ import {
   calculateDynamicGain,
   withSafeCanvasState,
   CONSTANTS,
-} from '../core/index.js'
+} from '../core/index'
 
 export const neuralNetwork = {
   name_de: 'Neuronen-Netz',

@@ -3,7 +3,7 @@
  * @module visualizers/organic/frequencyBlossoms
  */
 
-import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const frequencyBlossoms = {
   name_de: 'Frequenz-Blüten (Dynamischer Beat)',

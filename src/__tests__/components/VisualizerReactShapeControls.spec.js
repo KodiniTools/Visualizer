@@ -3,7 +3,7 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import VisualizerReactShapeControls from '../../components/visualizer-panel/VisualizerReactShapeControls.vue'
-import { REACT_EASINGS } from '../../lib/visualizers/core/reactSource.js'
+import { REACT_EASINGS } from '../../lib/visualizers/core/reactSource'
 import { setLocale } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'

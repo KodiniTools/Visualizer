@@ -3,7 +3,7 @@
  * @module visualizers/organic/fractalTree
  */
 
-import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const fractalTree = {
   name_de: 'Fraktaler Baum',

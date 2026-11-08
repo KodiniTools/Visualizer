@@ -3,7 +3,7 @@
  * @module visualizers/geometric/rainbowCube
  */
 
-import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const rainbowCube = {
   name_de: 'Regenbogen-Würfel',

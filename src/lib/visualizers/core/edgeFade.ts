@@ -21,10 +21,25 @@
  * @module visualizers/core/edgeFade
  */
 
-import { shapeCropRect } from './visualizerShape.js'
+import { shapeCropRect } from './visualizerShape'
 
 /** Zulässige Werte für `visualizer.edgeFade`. */
-export const EDGE_FADE = Object.freeze({ NONE: 'none', RADIAL: 'radial', RECT: 'rect' })
+export const EDGE_FADE = Object.freeze({ NONE: 'none', RADIAL: 'radial', RECT: 'rect' } as const)
+
+export type EdgeFade = (typeof EDGE_FADE)[keyof typeof EDGE_FADE]
+
+type Ctx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
+
+/** „Position & Größe“ des Visualizers (+ optionale Form/Randabblendung) */
+export interface VisualizerView {
+  scale: number
+  posX: number
+  posY: number
+  edgeFade?: string
+  shape?: string
+}
+
+type CanvasFactory = (w: number, h: number) => HTMLCanvasElement
 
 /** Unter dieser Größe ist die Ausblendung voll wirksam. */
 const FULL_STRENGTH_SCALE = 0.85
@@ -35,7 +50,7 @@ const RECT_FEATHER = 0.12
 /** Innerer Radius der Ellipse (1 = Bitmap-Kante), ab dem ausgeblendet wird. */
 const RADIAL_INNER = 0.65
 
-const clamp01 = (v) => Math.max(0, Math.min(1, v))
+const clamp01 = (v: number): number => Math.max(0, Math.min(1, v))
 
 /**
  * Wie stark der Rand ausgeblendet wird (0 = gar nicht, 1 = voll).
@@ -45,7 +60,7 @@ const clamp01 = (v) => Math.max(0, Math.min(1, v))
  * @param {number} posY - Position 0–1 (0.5 = Mitte)
  * @returns {number} 0–1
  */
-export function edgeFadeStrength(scale, posX, posY) {
+export function edgeFadeStrength(scale: number, posX: number, posY: number): number {
   const byScale = scale >= 1 ? 0 : clamp01((1 - scale) / (1 - FULL_STRENGTH_SCALE))
   const offset = Math.max(Math.abs(posX - 0.5), Math.abs(posY - 0.5))
   const byOffset = clamp01(offset / FULL_STRENGTH_OFFSET)
@@ -63,7 +78,13 @@ export function edgeFadeStrength(scale, posX, posY) {
  * @param {{scale: number, posX: number, posY: number}} view
  * @returns {{x: number, y: number, w: number, h: number}}
  */
-export function scaledDestRect(srcW, srcH, destW, destH, { scale, posX, posY }) {
+export function scaledDestRect(
+  srcW: number,
+  srcH: number,
+  destW: number,
+  destH: number,
+  { scale, posX, posY }: VisualizerView,
+): { x: number; y: number; w: number; h: number } {
   const w = srcW * scale
   const h = srcH * scale
   return { x: destW * posX - w / 2, y: destH * posY - h / 2, w, h }
@@ -71,7 +92,7 @@ export function scaledDestRect(srcW, srcH, destW, destH, { scale, posX, posY }) 
 
 // ── Masken-Canvas (wiederverwendet, je Größe eine Instanz) ────────────────
 
-let createCanvas = (w, h) => {
+let createCanvas: CanvasFactory = (w, h) => {
   const c = document.createElement('canvas')
   c.width = w
   c.height = h
@@ -79,16 +100,16 @@ let createCanvas = (w, h) => {
 }
 
 /** Nur für Tests: Canvas-Fabrik ersetzen (jsdom hat keinen 2D-Context). */
-export function setEdgeFadeCanvasFactory(fn) {
+export function setEdgeFadeCanvasFactory(fn: CanvasFactory | null | undefined): void {
   createCanvas = fn || createCanvas
   maskCanvas = null
   maskCtx = null
 }
 
-let maskCanvas = null
-let maskCtx = null
+let maskCanvas: HTMLCanvasElement | null = null
+let maskCtx: CanvasRenderingContext2D | null = null
 
-function ensureMaskCanvas(w, h) {
+function ensureMaskCanvas(w: number, h: number): CanvasRenderingContext2D | null {
   if (!maskCanvas || maskCanvas.width !== w || maskCanvas.height !== h) {
     maskCanvas = createCanvas(w, h)
     maskCtx = maskCanvas.getContext('2d')
@@ -103,7 +124,7 @@ function ensureMaskCanvas(w, h) {
  * @param {number} h
  * @param {number} strength
  */
-function applyRadialMask(ctx, w, h, strength) {
+function applyRadialMask(ctx: Ctx, w: number, h: number, strength: number): void {
   const inner = 1 - (1 - RADIAL_INNER) * strength
   ctx.save()
   ctx.globalCompositeOperation = 'destination-in'
@@ -126,7 +147,7 @@ function applyRadialMask(ctx, w, h, strength) {
  * @param {number} h
  * @param {number} strength
  */
-function applyRectMask(ctx, w, h, strength) {
+function applyRectMask(ctx: Ctx, w: number, h: number, strength: number): void {
   const feather = RECT_FEATHER * Math.min(w, h) * strength
   if (feather <= 0) return
   ctx.save()
@@ -134,7 +155,7 @@ function applyRectMask(ctx, w, h, strength) {
   for (const [x1, y1] of [
     [w, 0],
     [0, h],
-  ]) {
+  ] as const) {
     const len = x1 || y1
     const g = ctx.createLinearGradient(0, 0, x1, y1)
     g.addColorStop(0, 'rgba(0,0,0,0)')
@@ -161,21 +182,29 @@ function applyRectMask(ctx, w, h, strength) {
  *
  * @returns {boolean} false bei 'free' (nichts gezeichnet)
  */
-function drawShaped(targetCtx, source, srcW, srcH, destW, destH, view) {
+function drawShaped(
+  targetCtx: Ctx,
+  source: CanvasImageSource,
+  srcW: number,
+  srcH: number,
+  destW: number,
+  destH: number,
+  view: VisualizerView,
+): boolean {
   const centered = view.scale === 1.0 && view.posX === 0.5 && view.posY === 0.5
   const fw = centered ? destW : destW * view.scale
   const fh = centered ? destH : destH * view.scale
   const fx = centered ? 0 : destW * view.posX - fw / 2
   const fy = centered ? 0 : destH * view.posY - fh / 2
 
-  const dest = shapeCropRect(fw, fh, view.shape)
+  const dest = shapeCropRect(fw, fh, view.shape as string) // nur mit shape aufgerufen
   if (!dest) return false
   const x = fx + dest.x
   const y = fy + dest.y
   const { w, h } = dest
 
   // Quelle: im Format gerendert → ganzes Bitmap (Ausschnitt ≈ volle Fläche)
-  const crop = shapeCropRect(srcW, srcH, view.shape) || { x: 0, y: 0, w: srcW, h: srcH }
+  const crop = shapeCropRect(srcW, srcH, view.shape as string) || { x: 0, y: 0, w: srcW, h: srcH }
 
   targetCtx.save()
   if (view.shape === 'circle') {
@@ -201,7 +230,15 @@ function drawShaped(targetCtx, source, srcW, srcH, destW, destH, view) {
  * @param {number} destH - Ziel-Höhe (Canvas)
  * @param {{scale: number, posX: number, posY: number, edgeFade?: string, shape?: string}} view
  */
-export function drawScaledVisualizer(targetCtx, source, srcW, srcH, destW, destH, view) {
+export function drawScaledVisualizer(
+  targetCtx: Ctx,
+  source: CanvasImageSource,
+  srcW: number,
+  srcH: number,
+  destW: number,
+  destH: number,
+  view: VisualizerView,
+): void {
   if (view.shape && drawShaped(targetCtx, source, srcW, srcH, destW, destH, view)) return
 
   const { scale, posX, posY, edgeFade = EDGE_FADE.NONE } = view
@@ -216,7 +253,7 @@ export function drawScaledVisualizer(targetCtx, source, srcW, srcH, destW, destH
   const rect = scaledDestRect(srcW, srcH, destW, destH, view)
   const strength = edgeFade === EDGE_FADE.NONE ? 0 : edgeFadeStrength(scale, posX, posY)
 
-  let img = source
+  let img: CanvasImageSource = source
   if (strength > 0) {
     const ctx = ensureMaskCanvas(srcW, srcH)
     if (ctx) {
@@ -224,7 +261,7 @@ export function drawScaledVisualizer(targetCtx, source, srcW, srcH, destW, destH
       ctx.drawImage(source, 0, 0, srcW, srcH)
       if (edgeFade === EDGE_FADE.RADIAL) applyRadialMask(ctx, srcW, srcH, strength)
       else applyRectMask(ctx, srcW, srcH, strength)
-      img = maskCanvas
+      img = maskCanvas as HTMLCanvasElement // von ensureMaskCanvas gesetzt
     }
   }
 

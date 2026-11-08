@@ -1,8 +1,8 @@
 // Single-Modus des Visualizers: Auswahl, Farbe, Position/Größe, Form,
 // Reaktionsquelle, Bild, LED-Text und Fallback auf den letzten funktionierenden.
 import { ref, computed, type Ref } from 'vue'
-import { Visualizers } from '../../lib/visualizers/index.js'
-import { resolveVisualizerId } from '../../lib/visualizers/aliases.js'
+import { Visualizers } from '../../lib/visualizers/index'
+import { resolveVisualizerId } from '../../lib/visualizers/aliases'
 import {
   DEFAULT_REACT_SOURCE,
   DEFAULT_REACT_STRENGTH,
@@ -13,7 +13,7 @@ import {
   normalizeReactEasing,
   normalizeReactBeatBoost,
   normalizeReactPhase,
-} from '../../lib/visualizers/core/reactSource.js'
+} from '../../lib/visualizers/core/reactSource'
 import {
   LED_CONFIG_KEYS,
   DEFAULT_LED_CONFIG,
@@ -23,7 +23,7 @@ import {
 import {
   DEFAULT_VISUALIZER_SHAPE,
   normalizeVisualizerShape,
-} from '../../lib/visualizers/core/visualizerShape.js'
+} from '../../lib/visualizers/core/visualizerShape'
 
 export interface SingleVisualizerDeps {
   /** wird beim Auswählen eines einzelnen Visualizers verlassen */

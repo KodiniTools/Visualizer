@@ -1,5 +1,5 @@
-import { visualizerState } from '../../lib/visualizers/core/state.js'
-import { stepReactGate, applyReactFactor } from '../../lib/visualizers/core/reactSource.js'
+import { visualizerState } from '../../lib/visualizers/core/state'
+import { stepReactGate, applyReactFactor } from '../../lib/visualizers/core/reactSource'
 import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 /**

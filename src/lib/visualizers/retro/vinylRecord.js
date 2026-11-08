@@ -4,7 +4,7 @@
  * @module visualizers/retro/vinylRecord
  */
 
-import { hexToHsl, averageRange, visualizerState, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, averageRange, visualizerState, withSafeCanvasState } from '../core/index'
 
 export const vinylRecord = {
   name_de: 'Vinyl / Schallplatte',

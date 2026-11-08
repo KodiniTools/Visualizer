@@ -14,9 +14,9 @@
  * @module visualizers/gl/GLVisualizerEngine
  */
 
-import { visualizerState } from '../core/state.js'
-import { hexToHsl } from '../core/colorUtils.js'
-import { REFERENCE_FRAME_MS } from '../core/helpers.js'
+import { visualizerState } from '../core/state'
+import { hexToHsl } from '../core/colorUtils'
+import { REFERENCE_FRAME_MS } from '../core/helpers'
 import {
   AUDIO_TEX_WIDTH,
   AUDIO_TEX_ROWS,

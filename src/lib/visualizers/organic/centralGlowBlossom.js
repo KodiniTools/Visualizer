@@ -3,7 +3,7 @@
  * @module visualizers/organic/centralGlowBlossom
  */
 
-import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const centralGlowBlossom = {
   name_de: 'Zentrale Leuchtblüte (Vibrierend)',

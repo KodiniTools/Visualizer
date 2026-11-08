@@ -25,7 +25,6 @@ import { weatherStorm } from './weatherStorm.js'
 
 /**
  * Collection of all effects visualizers for backwards compatibility
- * @type {Object}
  */
 export const effectsVisualizers = {
   pulsingOrbs,

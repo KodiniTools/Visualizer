@@ -85,7 +85,7 @@ import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
 import { computed } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { useVisualizerStore } from '../../stores/visualizerStore'
-import { visualizerShapeOptions } from '../../lib/visualizers/core/visualizerShape.js'
+import { visualizerShapeOptions } from '../../lib/visualizers/core/visualizerShape'
 
 const { t } = useI18n()
 const store = useVisualizerStore()

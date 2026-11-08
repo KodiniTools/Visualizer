@@ -12,7 +12,7 @@
  *
  * @module visualizers/core/beatPunchVariation
  */
-import { advancePunch, punchScale } from './onsetReactive.js'
+import { advancePunch, punchScale } from './onsetReactive'
 
 /** Anzahl der Spalten, in die die Ebene beim Variieren geteilt wird. */
 export const PUNCH_BANDS = 4
@@ -21,7 +21,22 @@ export const MAX_DELAY_FRAMES = 4
 /** Onset-Anstieg, ab dem ein neuer Beat erkannt und neu gewürfelt wird. */
 const ONSET_RISE = 0.1
 
-const clamp01 = (v) => Math.max(0, Math.min(1, v))
+const clamp01 = (v: number): number => Math.max(0, Math.min(1, v))
+
+type Ctx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
+type CanvasFactory = (w: number, h: number) => HTMLCanvasElement
+
+/** Zustand der Variation (siehe createPunchVariationState) */
+export interface PunchVariationState {
+  bands: number
+  random: () => number
+  env: Float64Array
+  factor: Float64Array
+  delay: Uint8Array
+  /** jüngster Onset zuletzt */
+  history: Float64Array
+  prevOnset: number
+}
 
 /**
  * Zustand für die Variation: je Spalte Hüllkurve, Faktor und Versatz.
@@ -29,7 +44,10 @@ const clamp01 = (v) => Math.max(0, Math.min(1, v))
  * @param {number} [bands]
  * @param {() => number} [random] - Zufallsquelle (für Tests ersetzbar)
  */
-export function createPunchVariationState(bands = PUNCH_BANDS, random = Math.random) {
+export function createPunchVariationState(
+  bands = PUNCH_BANDS,
+  random: () => number = Math.random,
+): PunchVariationState {
   return {
     bands,
     random,
@@ -53,7 +71,12 @@ export function createPunchVariationState(bands = PUNCH_BANDS, random = Math.ran
  * @param {number} variation - Variation 0–100
  * @returns {number[]} Zoomfaktor je Spalte (≥ 0.9)
  */
-export function updatePunchVariation(state, onset, strength, variation) {
+export function updatePunchVariation(
+  state: PunchVariationState,
+  onset: number,
+  strength: number,
+  variation: number | null | undefined,
+): number[] {
   const v = clamp01((variation ?? 0) / 100)
   const o = clamp01(onset)
 
@@ -71,12 +94,14 @@ export function updatePunchVariation(state, onset, strength, variation) {
   }
   state.prevOnset = o
 
-  const scales = []
+  const scales: number[] = []
   for (let k = 0; k < state.bands; k++) {
-    const delayed = v > 0 ? h[h.length - 1 - state.delay[k]] : o
-    state.env[k] = advancePunch(state.env[k], delayed)
-    const extra = punchScale(state.env[k], strength) - 1
-    scales.push(Math.max(0.9, 1 + extra * (v > 0 ? state.factor[k] : 1)))
+    // k < bands: alle Spalten-Arrays haben die Länge bands, delay ≤ MAX_DELAY_FRAMES
+    const delayed = v > 0 ? (h[h.length - 1 - (state.delay[k] as number)] as number) : o
+    const env = advancePunch(state.env[k] as number, delayed)
+    state.env[k] = env
+    const extra = punchScale(env, strength) - 1
+    scales.push(Math.max(0.9, 1 + extra * (v > 0 ? (state.factor[k] as number) : 1)))
   }
   return scales
 }
@@ -86,10 +111,10 @@ export function updatePunchVariation(state, onset, strength, variation) {
  * einfache Zoom der ganzen Ebene.
  * @param {number[]} scales
  */
-export function punchScalesUniform(scales) {
+export function punchScalesUniform(scales: number[] | null | undefined): boolean {
   if (!scales || scales.length < 2) return true
-  let min = scales[0]
-  let max = scales[0]
+  let min = scales[0] as number // length ≥ 2
+  let max = min
   for (const s of scales) {
     if (s < min) min = s
     if (s > max) max = s
@@ -107,7 +132,7 @@ export function punchScalesUniform(scales) {
  * @param {number} bands
  * @param {number} [feather] - Überblendbreite in Spaltenbreiten (0–1)
  */
-export function bandWeight(x, k, bands, feather = 0.5) {
+export function bandWeight(x: number, k: number, bands: number, feather = 0.5): number {
   const w = 1 / bands
   const f = Math.max(1e-6, feather * w)
   const left = k * w
@@ -119,7 +144,7 @@ export function bandWeight(x, k, bands, feather = 0.5) {
 
 // ── Zeichnen ────────────────────────────────────────────────────────────────
 
-let createCanvas = (w, h) => {
+let createCanvas: CanvasFactory = (w, h) => {
   const c = document.createElement('canvas')
   c.width = w
   c.height = h
@@ -127,17 +152,17 @@ let createCanvas = (w, h) => {
 }
 
 /** Nur für Tests: Canvas-Fabrik ersetzen. */
-export function setPunchCanvasFactory(fn) {
+export function setPunchCanvasFactory(fn: CanvasFactory | null | undefined): void {
   createCanvas = fn || createCanvas
   layer = null
   band = null
 }
 
-let layer = null
-let band = null
+let layer: HTMLCanvasElement | null = null
+let band: HTMLCanvasElement | null = null
 
-function ensureCanvases(w, h) {
-  if (!layer || layer.width !== w || layer.height !== h) {
+function ensureCanvases(w: number, h: number) {
+  if (!layer || !band || layer.width !== w || layer.height !== h) {
     layer = createCanvas(w, h)
     band = createCanvas(w, h)
   }
@@ -154,7 +179,14 @@ function ensureCanvases(w, h) {
  * @param {number[]} scales - Zoom je Spalte (aus updatePunchVariation)
  * @param {number} [feather] - Überblendbreite in Spaltenbreiten
  */
-export function drawPunchedBands(ctx, draw, width, height, scales, feather = 0.5) {
+export function drawPunchedBands(
+  ctx: Ctx,
+  draw: (ctx: Ctx, w: number, h: number) => void,
+  width: number,
+  height: number,
+  scales: number[],
+  feather = 0.5,
+): void {
   const bands = scales.length
   const { layer: acc, layerCtx, band: tmp, bandCtx } = ensureCanvases(width, height)
   if (!layerCtx || !bandCtx) {
@@ -174,7 +206,7 @@ export function drawPunchedBands(ctx, draw, width, height, scales, feather = 0.5
   const f = Math.max(1, feather * w)
 
   for (let k = 0; k < bands; k++) {
-    const s = scales[k]
+    const s = scales[k] as number // k < bands
     const cx = (k + 0.5) * w
     const cy = height / 2
 
@@ -191,7 +223,7 @@ export function drawPunchedBands(ctx, draw, width, height, scales, feather = 0.5
     const g = bandCtx.createLinearGradient(0, 0, width, 0)
     const left = k * w
     const right = (k + 1) * w
-    const stop = (x, a) => g.addColorStop(clamp01(x / width), `rgba(0,0,0,${a})`)
+    const stop = (x: number, a: number) => g.addColorStop(clamp01(x / width), `rgba(0,0,0,${a})`)
     if (k === 0) stop(0, 1)
     else {
       stop(0, 0)

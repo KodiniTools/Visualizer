@@ -15,14 +15,14 @@
  */
 
 /** Maps a punch source key to its onset field on getAudioAnalysisData(). */
-const ONSET_FIELD = {
+const ONSET_FIELD: Record<string, string> = {
   bass: 'onsetBass',
   mid: 'onsetMid',
   treble: 'onsetTreble',
   all: 'onsetAll',
 }
 
-const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
+const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v)
 
 /**
  * Reads the current onset (0–1) for a band from an audio-analysis snapshot.
@@ -30,10 +30,13 @@ const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
  * @param {string} source - 'bass' | 'mid' | 'treble' | 'all' (default 'all')
  * @returns {number} onset level 0–1 (0 when data or field is missing)
  */
-export function onsetForSource(audioData, source = 'all') {
+export function onsetForSource(
+  audioData: object | null | undefined,
+  source: string = 'all',
+): number {
   if (!audioData) return 0
-  const field = ONSET_FIELD[source] || ONSET_FIELD.all
-  return clamp01(audioData[field] ?? 0)
+  const field = (ONSET_FIELD[source] || ONSET_FIELD.all) as string
+  return clamp01((audioData as Record<string, number | undefined>)[field] ?? 0)
 }
 
 /**
@@ -45,7 +48,7 @@ export function onsetForSource(audioData, source = 'all') {
  * @param {number} [decay=0.85] - per-frame decay factor (0–1); higher = longer tail
  * @returns {number} new envelope value 0–1
  */
-export function advancePunch(prevEnv, onset, decay = 0.85) {
+export function advancePunch(prevEnv: number, onset: number, decay = 0.85): number {
   const prev = Number.isFinite(prevEnv) ? prevEnv : 0
   const o = clamp01(onset)
   const decayed = prev * clamp01(decay)
@@ -59,7 +62,11 @@ export function advancePunch(prevEnv, onset, decay = 0.85) {
  * @param {number} [maxScale=0.12] - extra scale at full env & full strength (0.12 = +12%)
  * @returns {number} scale multiplier ≥ 1 (1.0 = no punch)
  */
-export function punchScale(env, strength, maxScale = 0.12) {
+export function punchScale(
+  env: number,
+  strength: number | null | undefined,
+  maxScale = 0.12,
+): number {
   const e = clamp01(env)
   const s = Math.max(0, Math.min(100, strength ?? 0)) / 100
   return 1 + e * maxScale * s

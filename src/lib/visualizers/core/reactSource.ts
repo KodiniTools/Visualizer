@@ -27,8 +27,9 @@
  * @module visualizers/core/reactSource
  */
 
-import { REFERENCE_FRAME_MS } from './helpers.js'
+import { REFERENCE_FRAME_MS } from './helpers'
 import { applyBeatBoost, applyPhaseOffset } from '../../audio/AudioLevelCalculator'
+import type { AudioLevelData } from '../../audio/AudioLevelCalculator'
 import { applyEasing } from '../../audio/EasingFunctions'
 
 export const REACT_SOURCES = Object.freeze([
@@ -41,7 +42,9 @@ export const REACT_SOURCES = Object.freeze([
   'midOnset',
   'trebleOnset',
   'allOnset',
-])
+] as const)
+
+export type ReactSource = (typeof REACT_SOURCES)[number]
 
 /** Übergänge (Easing) – dieselbe Auswahl wie im Bild-Panel "Audio-Reaktiv". */
 export const REACT_EASINGS = Object.freeze([
@@ -52,15 +55,17 @@ export const REACT_EASINGS = Object.freeze([
   'bounce',
   'elastic',
   'punch',
-])
+] as const)
 
-export const DEFAULT_REACT_SOURCE = 'spectrum'
+export type ReactEasing = (typeof REACT_EASINGS)[number]
+
+export const DEFAULT_REACT_SOURCE: ReactSource = 'spectrum'
 export const DEFAULT_REACT_STRENGTH = 70
 /** Glättung 0–100; 50 = bisheriges Verhalten. */
 export const DEFAULT_REACT_SMOOTHING = 50
 /** Audio-Pegel (Gain) in Prozent, 0–200. */
 export const DEFAULT_REACT_GAIN = 100
-export const DEFAULT_REACT_EASING = 'linear'
+export const DEFAULT_REACT_EASING: ReactEasing = 'linear'
 /** Beat-Verstärkung als Faktor 1.0 (aus) – 3.0. */
 export const DEFAULT_REACT_BEAT_BOOST = 1
 /** Phase in Grad 0–360 (0 = aus). */
@@ -69,8 +74,24 @@ export const DEFAULT_REACT_PHASE = 0
 export const REACT_GAIN_MAX = 200
 export const REACT_BEAT_BOOST_MAX = 3
 
+/** Formungs-Parameter der Reaktionsquelle (normalisiert) */
+export interface ReactShape {
+  reactSmoothing: number
+  reactGain: number
+  reactEasing: ReactEasing
+  reactBeatBoost: number
+  reactPhase: number
+}
+
+/** Einstellungs-Quelle (Store, Layer, Preset) mit react*-Feldern */
+export interface ReactSettings extends Partial<Omit<ReactShape, 'reactEasing'>> {
+  reactSource?: string
+  reactStrength?: number
+  reactEasing?: string
+}
+
 /** Standardwerte aller Formungs-Parameter (für Layer, Presets, Store). */
-export const DEFAULT_REACT_SHAPE = Object.freeze({
+export const DEFAULT_REACT_SHAPE: Readonly<ReactShape> = Object.freeze({
   reactSmoothing: DEFAULT_REACT_SMOOTHING,
   reactGain: DEFAULT_REACT_GAIN,
   reactEasing: DEFAULT_REACT_EASING,
@@ -78,60 +99,65 @@ export const DEFAULT_REACT_SHAPE = Object.freeze({
   reactPhase: DEFAULT_REACT_PHASE,
 })
 
-const ONSET_FIELD = {
+const ONSET_FIELD: Record<string, string> = {
   bassOnset: 'onsetBass',
   midOnset: 'onsetMid',
   trebleOnset: 'onsetTreble',
   allOnset: 'onsetAll',
 }
-const LEVEL_FIELD = { bass: 'bass', mid: 'mid', treble: 'treble', volume: 'volume' }
+const LEVEL_FIELD: Record<string, string> = {
+  bass: 'bass',
+  mid: 'mid',
+  treble: 'treble',
+  volume: 'volume',
+}
 
-const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
-const clampNum = (v, min, max, fallback) => {
+const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v)
+const clampNum = (v: unknown, min: number, max: number, fallback: number): number => {
   const n = Number(v)
   if (!Number.isFinite(n)) return fallback
   return n < min ? min : n > max ? max : n
 }
 
 /** @param {string} source */
-export function isReactSource(source) {
-  return REACT_SOURCES.includes(source)
+export function isReactSource(source: unknown): source is ReactSource {
+  return (REACT_SOURCES as readonly unknown[]).includes(source)
 }
 
 /** @param {string} source */
-export function isOnsetSource(source) {
+export function isOnsetSource(source: string): boolean {
   return Object.prototype.hasOwnProperty.call(ONSET_FIELD, source)
 }
 
 /** @param {string} easing */
-export function isReactEasing(easing) {
-  return REACT_EASINGS.includes(easing)
+export function isReactEasing(easing: unknown): easing is ReactEasing {
+  return (REACT_EASINGS as readonly unknown[]).includes(easing)
 }
 
 // ── Normalisierung der Formungs-Parameter ───────────────────────────────────
 
 /** @param {*} v → 0–100 (ganzzahlig) */
-export function normalizeReactSmoothing(v) {
+export function normalizeReactSmoothing(v: unknown): number {
   return Math.round(clampNum(v, 0, 100, DEFAULT_REACT_SMOOTHING))
 }
 
 /** @param {*} v → 0–200 % (ganzzahlig) */
-export function normalizeReactGain(v) {
+export function normalizeReactGain(v: unknown): number {
   return Math.round(clampNum(v, 0, REACT_GAIN_MAX, DEFAULT_REACT_GAIN))
 }
 
 /** @param {*} v → 1.0–3.0 (eine Nachkommastelle) */
-export function normalizeReactBeatBoost(v) {
+export function normalizeReactBeatBoost(v: unknown): number {
   return Math.round(clampNum(v, 1, REACT_BEAT_BOOST_MAX, DEFAULT_REACT_BEAT_BOOST) * 10) / 10
 }
 
 /** @param {*} v → 0–360° (ganzzahlig) */
-export function normalizeReactPhase(v) {
+export function normalizeReactPhase(v: unknown): number {
   return Math.round(clampNum(v, 0, 360, DEFAULT_REACT_PHASE))
 }
 
 /** @param {*} v → gültiges Easing, sonst Standard */
-export function normalizeReactEasing(v) {
+export function normalizeReactEasing(v: unknown): ReactEasing {
   return isReactEasing(v) ? v : DEFAULT_REACT_EASING
 }
 
@@ -141,7 +167,9 @@ export function normalizeReactEasing(v) {
  * @param {object|null|undefined} settings
  * @returns {{reactSmoothing:number, reactGain:number, reactEasing:string, reactBeatBoost:number, reactPhase:number}}
  */
-export function normalizeReactShape(settings) {
+export function normalizeReactShape(
+  settings: Record<string, unknown> | null | undefined,
+): ReactShape {
   const s = settings || {}
   return {
     reactSmoothing: normalizeReactSmoothing(s.reactSmoothing),
@@ -162,14 +190,17 @@ export function normalizeReactShape(settings) {
  * @param {object|null|undefined} audioData
  * @returns {number}
  */
-export function reactDrive(source, audioData) {
+export function reactDrive(
+  source: string | null | undefined,
+  audioData: object | null | undefined,
+): number {
   if (source === 'spectrum' || !source) return 1
   if (!audioData) return 0
   const onsetField = ONSET_FIELD[source]
   const field = onsetField || LEVEL_FIELD[source]
   if (!field) return 1
-  const v = audioData[field]
-  if (!Number.isFinite(v)) return 0
+  const v = (audioData as Record<string, unknown>)[field]
+  if (typeof v !== 'number' || !Number.isFinite(v)) return 0
   // Onsets are 0–1 by definition; band levels may arrive on a 0–255 scale.
   if (onsetField) return clamp01(v)
   return clamp01(v > 1 ? v / 255 : v)
@@ -185,7 +216,12 @@ export function reactDrive(source, audioData) {
  * @param {number} [time=Date.now()] - ms, für die Phase
  * @returns {number} 0–1
  */
-export function shapeReactDrive(drive, audioData, shape, time = Date.now()) {
+export function shapeReactDrive(
+  drive: number,
+  audioData: AudioLevelData | null | undefined,
+  shape: ReactSettings | null | undefined,
+  time = Date.now(),
+): number {
   let v = clamp01(drive)
   const boost = shape?.reactBeatBoost ?? DEFAULT_REACT_BEAT_BOOST
   const phase = shape?.reactPhase ?? DEFAULT_REACT_PHASE
@@ -203,7 +239,7 @@ export function shapeReactDrive(drive, audioData, shape, time = Date.now()) {
  * @param {number} base - Anteil bei 50
  * @returns {number} 0–1
  */
-export function smoothingCoefficient(smoothing, base) {
+export function smoothingCoefficient(smoothing: unknown, base: number): number {
   const s = clampNum(smoothing, 0, 100, DEFAULT_REACT_SMOOTHING) / 100
   const c = base * Math.pow(8, 1 - 2 * s)
   return c > 1 ? 1 : c
@@ -228,12 +264,12 @@ const LEVEL_FOLLOW_BASE = 0.35
  * @returns {number} envelope 0–1
  */
 export function advanceReactEnvelope(
-  prev,
-  drive,
-  source,
+  prev: number,
+  drive: number,
+  source: string,
   dtMs = REFERENCE_FRAME_MS,
-  smoothing = DEFAULT_REACT_SMOOTHING,
-) {
+  smoothing: unknown = DEFAULT_REACT_SMOOTHING,
+): number {
   const p = Number.isFinite(prev) ? clamp01(prev) : 0
   const d = clamp01(drive)
   const k = dtMs > 0 && dtMs < 250 ? dtMs / REFERENCE_FRAME_MS : 1
@@ -253,7 +289,7 @@ export function advanceReactEnvelope(
  * @param {{reactEasing?:string, reactGain?:number}} [shape]
  * @returns {number} 0–1
  */
-export function shapeReactLevel(env, shape) {
+export function shapeReactLevel(env: number, shape: ReactSettings | null | undefined): number {
   const easing = shape?.reactEasing ?? DEFAULT_REACT_EASING
   const gain = shape?.reactGain ?? DEFAULT_REACT_GAIN
   let v = clamp01(env)
@@ -269,8 +305,12 @@ export function shapeReactLevel(env, shape) {
  * @param {number} strength - 0–100
  * @returns {number} factor 0–1
  */
-export function reactFactor(env, strength) {
-  const s = Math.max(0, Math.min(100, Number.isFinite(strength) ? strength : 0)) / 100
+export function reactFactor(env: number, strength: number | null | undefined): number {
+  const s =
+    Math.max(
+      0,
+      Math.min(100, typeof strength === 'number' && Number.isFinite(strength) ? strength : 0),
+    ) / 100
   return 1 - s + s * clamp01(env)
 }
 
@@ -284,7 +324,13 @@ export function reactFactor(env, strength) {
  * @param {number} [time=Date.now()]
  * @returns {{env:number, factor:number}} neue Hüllkurve (zu speichern) und Gate-Faktor
  */
-export function stepReactGate(prevEnv, settings, audioData, dtMs = REFERENCE_FRAME_MS, time) {
+export function stepReactGate(
+  prevEnv: number,
+  settings: ReactSettings | null | undefined,
+  audioData: AudioLevelData | null | undefined,
+  dtMs = REFERENCE_FRAME_MS,
+  time?: number,
+): { env: number; factor: number } {
   const source = settings?.reactSource || DEFAULT_REACT_SOURCE
   const drive = shapeReactDrive(reactDrive(source, audioData), audioData, settings, time)
   const env = advanceReactEnvelope(prevEnv, drive, source, dtMs, settings?.reactSmoothing)
@@ -303,7 +349,12 @@ export function stepReactGate(prevEnv, settings, audioData, dtMs = REFERENCE_FRA
  * @param {boolean} [timeDomain=false]
  * @returns {Uint8Array}
  */
-export function applyReactFactor(src, factor, out, timeDomain = false) {
+export function applyReactFactor(
+  src: Uint8Array,
+  factor: number,
+  out: Uint8Array | null,
+  timeDomain = false,
+): Uint8Array {
   if (!src) return src
   if (!(factor < 0.999)) return src
   const f = clamp01(factor)
@@ -311,9 +362,9 @@ export function applyReactFactor(src, factor, out, timeDomain = false) {
   let dst = out
   if (!dst || dst.length !== len) dst = new Uint8Array(len)
   if (timeDomain) {
-    for (let i = 0; i < len; i++) dst[i] = 128 + (src[i] - 128) * f
+    for (let i = 0; i < len; i++) dst[i] = 128 + ((src[i] as number) - 128) * f // i < len
   } else {
-    for (let i = 0; i < len; i++) dst[i] = src[i] * f
+    for (let i = 0; i < len; i++) dst[i] = (src[i] as number) * f // i < len
   }
   return dst
 }

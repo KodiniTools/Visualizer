@@ -391,14 +391,14 @@ import { isLedTextVisualizer } from '../lib/visualizers/gl/ledTextSettings.js'
 import VisualizerEffectsPanel from './VisualizerEffectsPanel.vue'
 import ColorField from './ui/ColorField.vue'
 import { UiButton, UiIconButton, UiSegmentedControl, UiSelect, UiSwitch } from './ui/index.js'
-import { visualizerShapeOptions } from '../lib/visualizers/core/visualizerShape.js'
+import { visualizerShapeOptions } from '../lib/visualizers/core/visualizerShape'
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { localizedName } from '../lib/localizedName'
 import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../stores/visualizerStore'
 import { useLayerPresetStore } from '../stores/layerPresetStore'
 import { useToastStore } from '../stores/toastStore'
-import { Visualizers } from '../lib/visualizers/index.js'
+import { Visualizers } from '../lib/visualizers/index'
 
 const { t, locale } = useI18n()
 const store = useVisualizerStore()

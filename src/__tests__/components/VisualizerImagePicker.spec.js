@@ -6,10 +6,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { nextTick, ref } from 'vue'
 import VisualizerImagePicker from '../../components/VisualizerImagePicker.vue'
-import {
-  clearVisualizerImages,
-  registerVisualizerImage,
-} from '../../lib/visualizers/imageRegistry.js'
+import { clearVisualizerImages, registerVisualizerImage } from '../../lib/visualizers/imageRegistry'
 import { useImageGallery } from '../../composables/useImageGallery.js'
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'

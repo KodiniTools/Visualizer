@@ -1,7 +1,7 @@
 // Visualizer-Katalog: Blend-Modi, Kategorien und locale-abhängige Namen.
 import { computed } from 'vue'
-import { Visualizers } from '../../lib/visualizers/index.js'
-import { LEGACY_VISUALIZER_IDS } from '../../lib/visualizers/aliases.js'
+import { Visualizers } from '../../lib/visualizers/index'
+import { LEGACY_VISUALIZER_IDS } from '../../lib/visualizers/aliases'
 import { localeRef } from '../../lib/i18n'
 import { localizedName } from '../../lib/localizedName'
 

@@ -3,7 +3,7 @@
  * @module visualizers/retro/synthWave
  */
 
-import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const synthWave = {
   name_de: 'Synth-Wave',

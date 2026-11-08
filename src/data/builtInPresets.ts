@@ -1,6 +1,6 @@
 // Eingebaute Visualizer-Presets (Single- und Multi-Layer).
 // Reine Daten; Laden, Speichern und Anwenden liegen in stores/presetStore.js.
-import { DEFAULT_REACT_SHAPE } from '../lib/visualizers/core/reactSource.js'
+import { DEFAULT_REACT_SHAPE } from '../lib/visualizers/core/reactSource'
 
 /**
  * Baut einen Layer für ein Multi-Layer-Preset. Ergänzt die Standardwerte, die

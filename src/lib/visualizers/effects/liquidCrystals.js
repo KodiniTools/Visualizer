@@ -10,7 +10,7 @@ import {
   averageRange,
   withSafeCanvasState,
   energyRamp,
-} from '../core/index.js'
+} from '../core/index'
 
 export const liquidCrystals = {
   name_de: 'Fluessigkristalle',

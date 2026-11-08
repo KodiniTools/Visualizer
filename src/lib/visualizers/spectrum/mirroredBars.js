@@ -13,7 +13,7 @@ import {
   getFrequencyBasedSmoothing,
   applySmoothValue,
   drawRoundedBar,
-} from '../core/index.js'
+} from '../core/index'
 
 export const mirroredBars = {
   name_de: 'Gespiegelte Balken (Multi-Band-Boost)',

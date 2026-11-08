@@ -3,7 +3,7 @@
  * @module visualizers/particle/pixelFireworks
  */
 
-import { visualizerState, hexToHsl } from '../core/index.js'
+import { visualizerState, hexToHsl } from '../core/index'
 
 export const pixelFireworks = {
   name_de: 'Retro-Sternenfeld (Warp)',

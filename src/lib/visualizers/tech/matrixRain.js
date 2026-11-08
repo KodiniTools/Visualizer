@@ -3,7 +3,7 @@
  * @module visualizers/tech/matrixRain
  */
 
-import { visualizerState, hexToHsl, averageRange } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange } from '../core/index'
 
 export const matrixRain = {
   name_de: 'Matrix-Regen',

@@ -3,7 +3,7 @@
  * @module visualizers/particle/rippleEffect
  */
 
-import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const rippleEffect = {
   name_de: 'Wellen-Effekt (High-Freq-Bursts)',

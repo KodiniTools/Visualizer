@@ -12,11 +12,50 @@
 
 import { ref } from 'vue'
 
-/** @typedef {{id: string, name: string, source: ImageBitmap|HTMLImageElement, url?: string, kind: 'upload'|'canvas'|'gallery'}} VisualizerImage */
+export type VisualizerImageKind = 'upload' | 'canvas' | 'gallery'
 
-const images = new Map()
+export interface VisualizerImage {
+  id: string
+  name: string
+  source: ImageBitmap | HTMLImageElement
+  url?: string
+  kind: VisualizerImageKind
+}
+
+/** Eintrag der Picker-Liste */
+export type VisualizerImageInfo = Pick<VisualizerImage, 'id' | 'name' | 'kind'>
+
+export interface VisualizerImageEntry {
+  name?: string
+  source: ImageBitmap | HTMLImageElement
+  url?: string
+  kind?: VisualizerImageKind
+  id?: string
+}
+
+/** Bild auf dem Canvas (Ausschnitt) */
+export interface CanvasImageLike {
+  id: string | number
+  imageObject: HTMLImageElement
+  name?: string
+}
+
+/** Bild der Galerie „Eigene Bilder“ (Ausschnitt) */
+export interface GalleryImageLike {
+  id: string | number
+  img: HTMLImageElement
+  name?: string
+}
+
+export interface EffectiveImageSources {
+  canvasImages?: CanvasImageLike[]
+  selectedGalleryImage?: GalleryImageLike | null
+  galleryImages?: GalleryImageLike[]
+}
+
+const images = new Map<string, VisualizerImage>()
 /** Reactive list of registered images (for pickers). */
-export const visualizerImages = ref([])
+export const visualizerImages = ref<VisualizerImageInfo[]>([])
 let counter = 1
 
 function publish() {
@@ -27,7 +66,7 @@ function publish() {
  * @param {{name: string, source: ImageBitmap|HTMLImageElement, url?: string, kind?: 'upload'|'canvas', id?: string}} entry
  * @returns {string} the image id
  */
-export function registerVisualizerImage(entry) {
+export function registerVisualizerImage(entry: VisualizerImageEntry): string {
   if (!entry || !entry.source) throw new Error('registerVisualizerImage: source fehlt')
   const id = entry.id || `img_${Date.now()}_${counter++}`
   images.set(id, {
@@ -42,18 +81,20 @@ export function registerVisualizerImage(entry) {
 }
 
 /** @param {string|null|undefined} id */
-export function getVisualizerImage(id) {
+export function getVisualizerImage(id: string | null | undefined): VisualizerImage | null {
   if (!id) return null
   return images.get(id) || null
 }
 
 /** @param {string|null|undefined} id */
-export function getVisualizerImageSource(id) {
+export function getVisualizerImageSource(
+  id: string | null | undefined,
+): ImageBitmap | HTMLImageElement | null {
   return getVisualizerImage(id)?.source || null
 }
 
 /** @param {string} id */
-export function removeVisualizerImage(id) {
+export function removeVisualizerImage(id: string): boolean {
   const entry = images.get(id)
   if (!entry) return false
   images.delete(id)
@@ -64,9 +105,10 @@ export function removeVisualizerImage(id) {
       /* bewusst ignoriert */
     }
   }
-  if (entry.kind === 'upload' && entry.source && typeof entry.source.close === 'function') {
+  const source = entry.source as { close?: () => void } // ImageBitmap hat close()
+  if (entry.kind === 'upload' && source && typeof source.close === 'function') {
     try {
-      entry.source.close()
+      source.close()
     } catch {
       /* bewusst ignoriert */
     }
@@ -86,7 +128,9 @@ export function clearVisualizerImages() {
  * @param {{id: string|number, imageObject: HTMLImageElement, name?: string}} canvasImage
  * @returns {string|null}
  */
-export function registerCanvasImage(canvasImage) {
+export function registerCanvasImage(
+  canvasImage: CanvasImageLike | null | undefined,
+): string | null {
   if (!canvasImage || !canvasImage.imageObject) return null
   const id = `canvas:${canvasImage.id}`
   const existing = images.get(id)
@@ -105,7 +149,9 @@ export function registerCanvasImage(canvasImage) {
  * @param {{id: string|number, img: HTMLImageElement, name?: string}} galleryImage
  * @returns {string|null}
  */
-export function registerGalleryImage(galleryImage) {
+export function registerGalleryImage(
+  galleryImage: GalleryImageLike | null | undefined,
+): string | null {
   if (!galleryImage || !galleryImage.img) return null
   const id = `gallery:${galleryImage.id}`
   const existing = images.get(id)
@@ -128,7 +174,10 @@ export function registerGalleryImage(galleryImage) {
  * @param {{canvasImages?: Array, selectedGalleryImage?: object|null, galleryImages?: Array}} [sources]
  * @returns {string|null}
  */
-export function resolveEffectiveImageId(preferredId, sources = {}) {
+export function resolveEffectiveImageId(
+  preferredId: string | null | undefined,
+  sources: EffectiveImageSources = {},
+): string | null {
   if (preferredId && images.has(preferredId)) return preferredId
   const canvas = sources.canvasImages || []
   for (const c of canvas) {
@@ -151,10 +200,15 @@ export function resolveEffectiveImageId(preferredId, sources = {}) {
  * @param {File|Blob} file
  * @returns {Promise<string>}
  */
-export async function registerImageFile(file) {
+export async function registerImageFile(file: File | Blob): Promise<string> {
   if (!file) throw new Error('registerImageFile: keine Datei')
   const bitmap = await createImageBitmap(file)
   const url =
     typeof URL !== 'undefined' && URL.createObjectURL ? URL.createObjectURL(file) : undefined
-  return registerVisualizerImage({ name: file.name || 'Bild', source: bitmap, url, kind: 'upload' })
+  return registerVisualizerImage({
+    name: (file as Partial<File>).name || 'Bild',
+    source: bitmap,
+    url,
+    kind: 'upload',
+  })
 }

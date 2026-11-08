@@ -9,7 +9,7 @@ import {
   calculateDynamicGain,
   withSafeCanvasState,
   onsetFlourish,
-} from '../core/index.js'
+} from '../core/index'
 
 export const pulsingOrbs = {
   name_de: 'Pulsierende Kugeln',

@@ -10,7 +10,7 @@ import {
   calculateDynamicGain,
   applySmoothValue,
   withSafeCanvasState,
-} from '../core/index.js'
+} from '../core/index'
 
 export const circles = {
   name_de: 'Kreise (Dynamisch)',

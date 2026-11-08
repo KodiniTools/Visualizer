@@ -3,7 +3,7 @@
  * @module visualizers/organic/bloomingMandala
  */
 
-import { hexToHsl, averageRange, withSafeCanvasState, onsetFlourish } from '../core/index.js'
+import { hexToHsl, averageRange, withSafeCanvasState, onsetFlourish } from '../core/index'
 
 export const bloomingMandala = {
   name_de: 'Blühendes Mandala',

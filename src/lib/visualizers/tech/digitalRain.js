@@ -3,7 +3,7 @@
  * @module visualizers/tech/digitalRain
  */
 
-import { visualizerState, hexToHsl, averageRange } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange } from '../core/index'
 
 export const digitalRain = {
   name_de: 'Digitaler Regen',

@@ -10,7 +10,7 @@ import {
   withSafeCanvasState,
   getCachedRadialGradient,
   CONSTANTS,
-} from '../core/index.js'
+} from '../core/index'
 
 export const radialBars = {
   name_de: 'Radiale Balken',

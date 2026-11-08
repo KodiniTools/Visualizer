@@ -9,7 +9,7 @@ import {
   averageRange,
   calculateDynamicGain,
   withSafeCanvasState,
-} from '../core/index.js'
+} from '../core/index'
 
 export const vibratingCubes = {
   name_de: '3D Frequenz-Raster (Boost)',

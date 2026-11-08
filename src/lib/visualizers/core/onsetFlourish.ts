@@ -20,9 +20,9 @@
  * @module visualizers/core/onsetFlourish
  */
 
-import { visualizerState } from './state.js'
+import { visualizerState } from './state'
 
-const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
+const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v)
 
 /**
  * Current flourish amount for a band: the onset (0–1) scaled by user strength,
@@ -30,12 +30,12 @@ const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
  * @param {string} source - 'bass' | 'mid' | 'treble' | 'all' (default 'all')
  * @returns {number} flourish amount 0–1
  */
-export function onsetFlourish(source = 'all') {
+export function onsetFlourish(source: string = 'all'): number {
   const cfg = visualizerState._onsetFx
   if (!cfg || !cfg.enabled) return 0
   const data = visualizerState._onsetData
   if (!data) return 0
-  const raw = data[source] ?? data.all ?? 0
+  const raw = (data as unknown as Record<string, number | undefined>)[source] ?? data.all ?? 0
   const strength = Math.max(0, Math.min(100, cfg.strength ?? 100)) / 100
   return clamp01(raw) * strength
 }

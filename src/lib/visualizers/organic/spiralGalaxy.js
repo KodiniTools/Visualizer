@@ -3,7 +3,7 @@
  * @module visualizers/organic/spiralGalaxy
  */
 
-import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const spiralGalaxy = {
   name_de: 'Spiralgalaxie (Sternenspuren)',

@@ -1,7 +1,7 @@
 // Multi-Visualizer-Layer: Layer-Liste, aktiver Layer, Validierung, Effekte
 // pro Layer und Abgleich mit dem Single-Modus.
 import { ref, computed, type Ref } from 'vue'
-import { resolveVisualizerId } from '../../lib/visualizers/aliases.js'
+import { resolveVisualizerId } from '../../lib/visualizers/aliases'
 import {
   DEFAULT_REACT_SOURCE,
   DEFAULT_REACT_STRENGTH,
@@ -12,12 +12,12 @@ import {
   normalizeReactEasing,
   normalizeReactBeatBoost,
   normalizeReactPhase,
-} from '../../lib/visualizers/core/reactSource.js'
+} from '../../lib/visualizers/core/reactSource'
 import { DEFAULT_LED_CONFIG, normalizeLedField } from '../../lib/visualizers/gl/ledTextSettings.js'
 import {
   DEFAULT_VISUALIZER_SHAPE,
   normalizeVisualizerShape,
-} from '../../lib/visualizers/core/visualizerShape.js'
+} from '../../lib/visualizers/core/visualizerShape'
 import { BLEND_MODES } from './catalog'
 import type { useSingleVisualizer } from './useSingleVisualizer'
 

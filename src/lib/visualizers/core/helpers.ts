@@ -3,8 +3,8 @@
  * @module visualizers/core/helpers
  */
 
-import { CONSTANTS } from './constants.js'
-import { visualizerState } from './state.js'
+import { CONSTANTS } from './constants'
+import { visualizerState } from './state'
 
 // Smoothing/decay factors throughout the visualizer library were tuned by
 // feel while the render loop ran at ~60fps. They're applied PER CALL, not
@@ -18,7 +18,43 @@ import { visualizerState } from './state.js'
 // here keeps convergence speed tied to real time regardless of frame rate.
 export const REFERENCE_FRAME_MS = 1000 / 60
 
-function frameRateIndependentFactor(perFrameFactor) {
+type Ctx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
+
+/** Frequenzdaten (Analyser-Bytes) oder beliebige Zahlenfolge */
+export type AudioDataArray = ArrayLike<number>
+
+/** Farbstopp: [offset 0–1, CSS-Farbe] */
+export type ColorStop = [number, string]
+
+export interface DynamicGainSettings {
+  bassGain?: number
+  lowMidGain?: number
+  highMidGain?: number
+  highGain?: number
+  ultraHighGain?: number
+  bassThreshold?: number
+  lowMidThreshold?: number
+  highMidThreshold?: number
+  highThreshold?: number
+}
+
+export interface ArcSpec {
+  x: number
+  y: number
+  radius: number
+  startAngle?: number
+  endAngle?: number
+  fillStyle?: string
+}
+
+export interface RoundedBarOptions {
+  glow?: boolean
+  glowColor?: string | null
+  glowBlur?: number
+  glowIntensity?: number
+}
+
+function frameRateIndependentFactor(perFrameFactor: number): number {
   const dtMs = visualizerState._dtMs
   if (!dtMs || dtMs <= 0) return perFrameFactor
   const remainder = Math.max(0, 1 - perFrameFactor)
@@ -31,7 +67,7 @@ function frameRateIndependentFactor(perFrameFactor) {
  * @param {number} base - Exponential base (default 4)
  * @returns {number} Mapped value (0 to 1)
  */
-export function expo01(u, base = 4) {
+export function expo01(u: number, base = 4): number {
   return (Math.pow(base, Math.min(1, Math.max(0, u))) - 1) / (base - 1)
 }
 
@@ -42,7 +78,7 @@ export function expo01(u, base = 4) {
  * @param {number} dataSize - Size of frequency data array
  * @returns {[number, number]} Start and end indices for the frequency range
  */
-export function rangeForBar(i, totalBars, dataSize) {
+export function rangeForBar(i: number, totalBars: number, dataSize: number): [number, number] {
   const t0 = i / totalBars
   const t1 = (i + 1) / totalBars
   const maxIdx = Math.max(1, dataSize) - 1
@@ -58,7 +94,7 @@ export function rangeForBar(i, totalBars, dataSize) {
  * @param {number} end - End index
  * @returns {number} Average value
  */
-export function averageRange(arr, start, end) {
+export function averageRange(arr: AudioDataArray, start: number, end: number): number {
   let sum = 0
   const s = Math.max(0, start) | 0
   const e = Math.max(s + 1, end) | 0
@@ -75,7 +111,11 @@ export function averageRange(arr, start, end) {
  * @param {Object} settings - Optional gain settings override
  * @returns {number} Dynamic gain multiplier
  */
-export function calculateDynamicGain(barIndex, totalBars, settings = {}) {
+export function calculateDynamicGain(
+  barIndex: number,
+  totalBars: number,
+  settings: DynamicGainSettings = {},
+): number {
   const {
     bassGain = CONSTANTS.BASS_GAIN,
     lowMidGain = CONSTANTS.LOW_MID_GAIN,
@@ -121,10 +161,10 @@ export function calculateDynamicGain(barIndex, totalBars, settings = {}) {
  * @returns {number} Adjusted smoothing factor
  */
 export function getFrequencyBasedSmoothing(
-  barIndex,
-  totalBars,
-  baseSmoothingFactor = CONSTANTS.SMOOTHING_BASE,
-) {
+  barIndex: number,
+  totalBars: number,
+  baseSmoothingFactor: number = CONSTANTS.SMOOTHING_BASE,
+): number {
   const normalizedPosition = barIndex / totalBars
   if (normalizedPosition > 0.7) return baseSmoothingFactor * CONSTANTS.SMOOTHING_HIGH_MULTIPLIER
   if (normalizedPosition > 0.3) return baseSmoothingFactor * CONSTANTS.SMOOTHING_MID_MULTIPLIER
@@ -138,7 +178,7 @@ export function getFrequencyBasedSmoothing(
  * @param {number} factor - Smoothing factor (0-1)
  * @returns {number} New smoothed value
  */
-export function applySmoothValue(current, target, factor) {
+export function applySmoothValue(current: number, target: number, factor: number): number {
   return current + (target - current) * frameRateIndependentFactor(factor)
 }
 
@@ -152,7 +192,7 @@ export function applySmoothValue(current, target, factor) {
  * @param {number} [floor=0] - Value decay approaches/clamps to
  * @returns {number} New decayed value (never below floor)
  */
-export function applyDecay(current, decayFactor, floor = 0) {
+export function applyDecay(current: number, decayFactor: number, floor = 0): number {
   const dtMs = visualizerState._dtMs
   const scaledDecayFactor =
     dtMs && dtMs > 0 ? Math.pow(decayFactor, dtMs / REFERENCE_FRAME_MS) : decayFactor
@@ -164,7 +204,7 @@ export function applyDecay(current, decayFactor, floor = 0) {
  * @param {CanvasRenderingContext2D} ctx - Canvas context
  * @param {Function} drawFunction - Function to execute with safe state
  */
-export function withSafeCanvasState(ctx, drawFunction) {
+export function withSafeCanvasState(ctx: Ctx, drawFunction: () => void): void {
   ctx.save()
   try {
     drawFunction()
@@ -183,10 +223,12 @@ export function withSafeCanvasState(ctx, drawFunction) {
  * @param {CanvasRenderingContext2D} ctx - Canvas context
  * @param {Object} styles - Style properties to set
  */
-export function batchStyleChanges(ctx, styles) {
+export function batchStyleChanges(ctx: Ctx, styles: Record<string, unknown>): void {
+  // Beliebige Kontext-Eigenschaften per Name setzen
+  const target = ctx as unknown as Record<string, unknown>
   for (const [key, value] of Object.entries(styles)) {
-    if (value !== undefined && ctx[key] !== value) {
-      ctx[key] = value
+    if (value !== undefined && target[key] !== value) {
+      target[key] = value
     }
   }
 }
@@ -199,7 +241,12 @@ export function batchStyleChanges(ctx, styles) {
  * @param {number} centerY - Center Y coordinate
  * @param {Function} callback - Function(index, angle, cos, sin) for each segment
  */
-export function forEachRotatedSegment(count, centerX, centerY, callback) {
+export function forEachRotatedSegment(
+  count: number,
+  centerX: number,
+  centerY: number,
+  callback: (index: number, angle: number, cos: number, sin: number) => void,
+): void {
   const angleStep = (Math.PI * 2) / count
   for (let i = 0; i < count; i++) {
     const angle = i * angleStep
@@ -213,7 +260,7 @@ export function forEachRotatedSegment(count, centerX, centerY, callback) {
  * Pre-calculated gradient cache for reuse across frames
  * Reduces gradient creation overhead in animation loops
  */
-const gradientCache = new Map()
+const gradientCache = new Map<string, CanvasGradient>()
 
 /**
  * Creates or retrieves a cached radial gradient
@@ -226,7 +273,15 @@ const gradientCache = new Map()
  * @param {Array} colorStops - Array of [offset, color] pairs
  * @returns {CanvasGradient} Cached or new gradient
  */
-export function getCachedRadialGradient(ctx, key, x, y, r1, r2, colorStops) {
+export function getCachedRadialGradient(
+  ctx: Ctx,
+  key: string,
+  x: number,
+  y: number,
+  r1: number,
+  r2: number,
+  colorStops: ColorStop[],
+): CanvasGradient {
   const cacheKey = `${key}_${r1.toFixed(0)}_${r2.toFixed(0)}`
 
   // Check if we have a valid cached gradient
@@ -237,12 +292,12 @@ export function getCachedRadialGradient(ctx, key, x, y, r1, r2, colorStops) {
 
     // Limit cache size
     if (gradientCache.size > 100) {
-      const firstKey = gradientCache.keys().next().value
+      const firstKey = gradientCache.keys().next().value as string // size > 0
       gradientCache.delete(firstKey)
     }
   }
 
-  return gradientCache.get(cacheKey)
+  return gradientCache.get(cacheKey) as CanvasGradient // oben gesetzt
 }
 
 /**
@@ -260,7 +315,13 @@ export function clearGradientCache() {
  * @param {number} blur - Shadow blur amount
  * @param {Function} drawFn - Drawing function to execute
  */
-export function withConditionalShadow(ctx, condition, color, blur, drawFn) {
+export function withConditionalShadow(
+  ctx: Ctx,
+  condition: boolean,
+  color: string,
+  blur: number,
+  drawFn: () => void,
+): void {
   if (condition) {
     ctx.shadowColor = color
     ctx.shadowBlur = blur
@@ -276,16 +337,18 @@ export function withConditionalShadow(ctx, condition, color, blur, drawFn) {
  * @param {CanvasRenderingContext2D} ctx - Canvas context
  * @param {Array} arcs - Array of {x, y, radius, startAngle, endAngle, fillStyle}
  */
-export function batchArcs(ctx, arcs) {
+export function batchArcs(ctx: Ctx, arcs: ArcSpec[]): void {
   // Group arcs by fillStyle for efficient rendering
-  const groups = new Map()
+  const groups = new Map<string, ArcSpec[]>()
 
   for (const arc of arcs) {
     const key = arc.fillStyle || 'default'
-    if (!groups.has(key)) {
-      groups.set(key, [])
+    let group = groups.get(key)
+    if (!group) {
+      group = []
+      groups.set(key, group)
     }
-    groups.get(key).push(arc)
+    group.push(arc)
   }
 
   for (const [fillStyle, group] of groups) {
@@ -310,7 +373,13 @@ export function batchArcs(ctx, arcs) {
  * @param {number} centerY - Center Y coordinate
  * @returns {Object} Transformed {x, y} coordinates
  */
-export function rotatePoint(x, y, angle, centerX = 0, centerY = 0) {
+export function rotatePoint(
+  x: number,
+  y: number,
+  angle: number,
+  centerX = 0,
+  centerY = 0,
+): { x: number; y: number } {
   const cos = Math.cos(angle)
   const sin = Math.sin(angle)
   return {
@@ -329,14 +398,17 @@ export function rotatePoint(x, y, angle, centerX = 0, centerY = 0) {
  * @param {number} b - End value
  * @param {number} t - Progress (0-1)
  */
-export function lerp(a, b, t) {
+export function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t
 }
 
 /**
  * Easing functions for natural animation curves
  */
-export const easing = {
+export const easing: Record<
+  'outCubic' | 'inOutQuad' | 'elasticOut' | 'smoothStep',
+  (t: number) => number
+> = {
   /** Decelerates — great for peaks/beats settling down */
   outCubic: (t) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3),
   /** Accelerates then decelerates — good for balanced animations */
@@ -369,7 +441,12 @@ export const easing = {
  * @param {number} threshold - Minimum energy to qualify (default 0.55)
  * @param {number} riseFactor - How much bigger current must be vs previous (default 1.2)
  */
-export function detectBeat(current, previous, threshold = 0.55, riseFactor = 1.2) {
+export function detectBeat(
+  current: number,
+  previous: number,
+  threshold = 0.55,
+  riseFactor = 1.2,
+): boolean {
   return current > threshold && current > previous * riseFactor
 }
 
@@ -381,7 +458,7 @@ export function detectBeat(current, previous, threshold = 0.55, riseFactor = 1.2
  * @param {number} fullAt - Energy level where effect is at full strength (e.g. 0.5)
  * @returns {number} Alpha value 0–1
  */
-export function energyRamp(energy, onAt, fullAt) {
+export function energyRamp(energy: number, onAt: number, fullAt: number): number {
   if (energy <= onAt) return 0
   if (energy >= fullAt) return 1
   return easing.smoothStep((energy - onAt) / (fullAt - onAt))
@@ -391,7 +468,7 @@ export function energyRamp(energy, onAt, fullAt) {
 // 🎨 LINEAR GRADIENT CACHE
 // ═══════════════════════════════════════════════════════════════════════════
 
-const linearGradientCache = new Map()
+const linearGradientCache = new Map<string, CanvasGradient>()
 
 /**
  * Creates or retrieves a cached linear gradient by key.
@@ -405,16 +482,24 @@ const linearGradientCache = new Map()
  * @param {number} y1 - End Y
  * @param {Array} colorStops - [[offset, color], ...]
  */
-export function getCachedLinearGradient(ctx, key, x0, y0, x1, y1, colorStops) {
+export function getCachedLinearGradient(
+  ctx: Ctx,
+  key: string,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  colorStops: ColorStop[],
+): CanvasGradient {
   if (!linearGradientCache.has(key)) {
     const g = ctx.createLinearGradient(x0, y0, x1, y1)
     colorStops.forEach(([offset, color]) => g.addColorStop(offset, color))
     linearGradientCache.set(key, g)
     if (linearGradientCache.size > 200) {
-      linearGradientCache.delete(linearGradientCache.keys().next().value)
+      linearGradientCache.delete(linearGradientCache.keys().next().value as string) // size > 0
     }
   }
-  return linearGradientCache.get(key)
+  return linearGradientCache.get(key) as CanvasGradient // oben gesetzt
 }
 
 /**
@@ -435,7 +520,15 @@ export function clearAllGradientCaches() {
  * @param {number} radius - Corner radius
  * @param {Object} options - Optional settings for glow effect
  */
-export function drawRoundedBar(ctx, x, y, width, height, radius, options = {}) {
+export function drawRoundedBar(
+  ctx: Ctx,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  options: RoundedBarOptions = {},
+): void {
   const { glow = false, glowColor = null, glowBlur = 15, glowIntensity = 0.6 } = options
 
   // Ensure radius doesn't exceed half of width or height

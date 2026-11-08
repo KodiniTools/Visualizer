@@ -3,7 +3,7 @@
  * @module visualizers/effects/orbitingLight
  */
 
-import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const orbitingLight = {
   name_de: 'Kreisendes Licht',

@@ -3,7 +3,7 @@
  * @module visualizers/particle/audioFire
  */
 
-import { visualizerState, hexToHsl, averageRange } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange } from '../core/index'
 
 /**
  * Fire particle class for realistic flame behavior

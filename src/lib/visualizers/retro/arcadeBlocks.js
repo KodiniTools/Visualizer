@@ -3,7 +3,7 @@
  * @module visualizers/retro/arcadeBlocks
  */
 
-import { visualizerState, hexToHsl } from '../core/index.js'
+import { visualizerState, hexToHsl } from '../core/index'
 
 export const arcadeBlocks = {
   name_de: 'Arcade-Blöcke (Tetris)',

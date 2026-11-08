@@ -18,8 +18,8 @@ import {
   makeLedColonPreset,
   rowToBits,
 } from '../../../lib/visualizers/gl/presets/glLedDigits.js'
-import { Visualizers, glVisualizers } from '../../../lib/visualizers/index.js'
-import { visualizerState } from '../../../lib/visualizers/core/state.js'
+import { Visualizers, glVisualizers } from '../../../lib/visualizers/index'
+import { visualizerState } from '../../../lib/visualizers/core/state'
 
 describe('gl/ledTextSettings – Text', () => {
   it('begrenzt die Eingabe auf 4 Zeilen à 24 Zeichen ohne Steuerzeichen', () => {

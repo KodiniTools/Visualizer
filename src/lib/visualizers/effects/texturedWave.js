@@ -3,7 +3,7 @@
  * @module visualizers/effects/texturedWave
  */
 
-import { hexToHsl, averageRange } from '../core/index.js'
+import { hexToHsl, averageRange } from '../core/index'
 
 export const texturedWave = {
   name_de: 'Textur-Welle (Aktiviert)',

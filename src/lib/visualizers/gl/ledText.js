@@ -22,7 +22,7 @@ import {
   makeLedLetterPreset,
   makeLedColonPreset,
 } from './presets/glLedDigits.js'
-import { visualizerState } from '../core/state.js'
+import { visualizerState } from '../core/state'
 import { LED_TEXT_ID, LED_NUMBER_ID, parseLedText, ledDisplayText } from './ledTextSettings.js'
 
 /** Glyphen-Preset für ein Zeichen (A–Z, 0–9, ':'), sonst null. */

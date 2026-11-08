@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { onsetFlourish } from '../../lib/visualizers/core/onsetFlourish.js'
-import { visualizerState } from '../../lib/visualizers/core/state.js'
+import { onsetFlourish } from '../../lib/visualizers/core/onsetFlourish'
+import { visualizerState } from '../../lib/visualizers/core/state'
 
 describe('onsetFlourish', () => {
   beforeEach(() => {

@@ -9,7 +9,7 @@ import {
   withSafeCanvasState,
   energyRamp,
   onsetFlourish,
-} from '../core/index.js'
+} from '../core/index'
 
 export const neonGrid = {
   name_de: 'Neon-Gitter',

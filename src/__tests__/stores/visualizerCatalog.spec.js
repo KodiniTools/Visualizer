@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 import { BUILT_IN_PRESETS, usePresetStore } from '../../stores/presetStore'
-import { Visualizers, glVisualizers } from '../../lib/visualizers/index.js'
+import { Visualizers, glVisualizers } from '../../lib/visualizers/index'
 
 describe('visualizer catalogue (migration stage 1)', () => {
   beforeEach(() => {

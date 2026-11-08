@@ -3,7 +3,7 @@
  * @module visualizers/spectrum/vibratingStrings
  */
 
-import { visualizerState, hexToHsl, averageRange, CONSTANTS } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, CONSTANTS } from '../core/index'
 
 export const vibratingStrings = {
   name_de: 'Vibrierende Saiten',

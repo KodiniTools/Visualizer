@@ -13,7 +13,7 @@ const api = vi.hoisted(() => ({
   convertGifAndWait: vi.fn(() => new Promise(() => {})),
 }))
 
-vi.mock('../../lib/videoApi.js', async (importOriginal) => ({
+vi.mock('../../lib/videoApi', async (importOriginal) => ({
   ...(await importOriginal()),
   checkServerHealth: api.checkServerHealth,
   convertAndWait: api.convertAndWait,

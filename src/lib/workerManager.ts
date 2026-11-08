@@ -14,7 +14,51 @@ import AudioAnalysisWorker from '../workers/audioAnalysisWorker.js?worker&inline
 import VisualizerWorker from '../workers/visualizerWorker.js?worker&inline'
 import ImageFilterWorker from '../workers/imageFilterWorker.js?worker&inline'
 
+interface PendingFilterJob {
+  resolve: (imageData: ImageData) => void
+  reject: (error: Error) => void
+}
+
+/** Render-Auftrag für den Visualizer-Worker (Werte werden 1:1 gepostet) */
+export interface VisualizerRenderJob {
+  visualizerId: string
+  audioData: ArrayLike<number>
+  bufferLength: number
+  color?: unknown
+  opacity?: unknown
+  colorOpacity?: unknown
+  postFx?: unknown
+  quality?: unknown
+  onsetFx?: unknown
+  onsetData?: unknown
+  dtMs?: unknown
+  ledText?: unknown
+}
+
+export interface WorkerInitResult {
+  audio: boolean
+  imageFilter: boolean
+}
+
+export interface WorkerStatus extends WorkerInitResult {
+  visualizer: boolean
+  supportsWorkers: boolean
+  supportsOffscreenCanvas: boolean
+}
+
 export class WorkerManager {
+  audioWorker: Worker | null
+  visualizerWorker: Worker | null
+  imageFilterWorker: Worker | null
+  audioWorkerReady: boolean
+  visualizerWorkerReady: boolean
+  imageFilterWorkerReady: boolean
+  audioCallback: ((data: unknown) => void) | null
+  visualizerFrameCallback: ((bitmap: ImageBitmap) => void) | null
+  pendingFilterJobs: Map<string, PendingFilterJob>
+  supportsOffscreenCanvas: boolean
+  supportsWorkers: boolean
+
   constructor() {
     this.audioWorker = null
     this.visualizerWorker = null
@@ -41,17 +85,18 @@ export class WorkerManager {
   /**
    * Initialisiert den Audio-Analyse Worker
    */
-  async initAudioWorker() {
+  async initAudioWorker(): Promise<boolean> {
     if (!this.supportsWorkers) {
       console.warn('[WorkerManager] Workers nicht unterstützt')
       return false
     }
 
     try {
-      this.audioWorker = new AudioAnalysisWorker()
+      const audioWorker = new AudioAnalysisWorker()
+      this.audioWorker = audioWorker
 
-      return new Promise((resolve) => {
-        this.audioWorker.onmessage = (e) => {
+      return new Promise<boolean>((resolve) => {
+        audioWorker.onmessage = (e) => {
           const { type, data } = e.data
 
           switch (type) {
@@ -69,7 +114,7 @@ export class WorkerManager {
           }
         }
 
-        this.audioWorker.onerror = (error) => {
+        audioWorker.onerror = (error) => {
           console.error('[WorkerManager] Audio Worker Fehler:', error)
           this.audioWorkerReady = false
           resolve(false)
@@ -93,23 +138,24 @@ export class WorkerManager {
    * Initialisiert den Visualizer Worker mit eigener OffscreenCanvas-Instanz.
    * Kein DOM-Canvas-Transfer nötig — der Worker erstellt sein eigenes OffscreenCanvas.
    */
-  async initVisualizerWorker(width, height) {
+  async initVisualizerWorker(width: number, height: number): Promise<boolean> {
     if (!this.supportsWorkers || !this.supportsOffscreenCanvas) {
       console.warn('[WorkerManager] OffscreenCanvas nicht unterstützt')
       return false
     }
 
     try {
-      this.visualizerWorker = new VisualizerWorker()
+      const visualizerWorker = new VisualizerWorker()
+      this.visualizerWorker = visualizerWorker
 
-      return new Promise((resolve) => {
-        this.visualizerWorker.onmessage = (e) => {
+      return new Promise<boolean>((resolve) => {
+        visualizerWorker.onmessage = (e) => {
           const { type } = e.data
 
           switch (type) {
             case 'workerLoaded':
               // Worker-Skript geladen — OffscreenCanvas im Worker initialisieren
-              this.visualizerWorker.postMessage({ type: 'init', width, height })
+              visualizerWorker.postMessage({ type: 'init', width, height })
               break
 
             case 'ready':
@@ -126,7 +172,7 @@ export class WorkerManager {
           }
         }
 
-        this.visualizerWorker.onerror = (error) => {
+        visualizerWorker.onerror = (error) => {
           console.error('[WorkerManager] Visualizer Worker Fehler:', error)
           this.visualizerWorkerReady = false
           resolve(false)
@@ -148,24 +194,25 @@ export class WorkerManager {
   /**
    * Setzt Callback für fertig gerenderte Visualizer-Frames (ImageBitmap)
    */
-  onVisualizerFrame(callback) {
+  onVisualizerFrame(callback: ((bitmap: ImageBitmap) => void) | null): void {
     this.visualizerFrameCallback = callback
   }
 
   /**
    * Initialisiert den Image Filter Worker
    */
-  async initImageFilterWorker() {
+  async initImageFilterWorker(): Promise<boolean> {
     if (!this.supportsWorkers) {
       console.warn('[WorkerManager] Workers nicht unterstützt')
       return false
     }
 
     try {
-      this.imageFilterWorker = new ImageFilterWorker()
+      const imageFilterWorker = new ImageFilterWorker()
+      this.imageFilterWorker = imageFilterWorker
 
-      return new Promise((resolve) => {
-        this.imageFilterWorker.onmessage = (e) => {
+      return new Promise<boolean>((resolve) => {
+        imageFilterWorker.onmessage = (e) => {
           const { type, imageData, jobId, error } = e.data
 
           switch (type) {
@@ -175,25 +222,27 @@ export class WorkerManager {
               resolve(true)
               break
 
-            case 'filterResult':
+            case 'filterResult': {
               const pendingJob = this.pendingFilterJobs.get(jobId)
               if (pendingJob) {
                 pendingJob.resolve(imageData)
                 this.pendingFilterJobs.delete(jobId)
               }
               break
+            }
 
-            case 'error':
+            case 'error': {
               const errorJob = this.pendingFilterJobs.get(jobId)
               if (errorJob) {
                 errorJob.reject(new Error(error))
                 this.pendingFilterJobs.delete(jobId)
               }
               break
+            }
           }
         }
 
-        this.imageFilterWorker.onerror = (error) => {
+        imageFilterWorker.onerror = (error) => {
           console.error('[WorkerManager] Image Filter Worker Fehler:', error)
           this.imageFilterWorkerReady = false
           resolve(false)
@@ -217,7 +266,7 @@ export class WorkerManager {
    * Der Visualizer-Worker wird separat via initVisualizerWorker(width, height) gestartet,
    * sobald die Canvas-Größe bekannt ist.
    */
-  async initAll() {
+  async initAll(): Promise<WorkerInitResult> {
     const results = await Promise.all([this.initAudioWorker(), this.initImageFilterWorker()])
 
     console.log('[WorkerManager] Initialisierung abgeschlossen:', {
@@ -234,7 +283,7 @@ export class WorkerManager {
   /**
    * Sendet Audio-Daten zur Analyse
    */
-  analyzeAudio(audioDataArray, bufferLength) {
+  analyzeAudio(audioDataArray: ArrayLike<number>, bufferLength: number): boolean {
     if (!this.audioWorkerReady || !this.audioWorker) {
       return false
     }
@@ -257,14 +306,14 @@ export class WorkerManager {
   /**
    * Setzt Callback für Audio-Analyse Ergebnisse
    */
-  onAudioData(callback) {
+  onAudioData(callback: ((data: unknown) => void) | null): void {
     this.audioCallback = callback
   }
 
   /**
    * Wendet Filter auf ein Bild an (async)
    */
-  async applyImageFilters(imageData, filters, blur = 0) {
+  async applyImageFilters(imageData: ImageData, filters: unknown, blur = 0): Promise<ImageData> {
     if (!this.imageFilterWorkerReady || !this.imageFilterWorker) {
       // Fallback: Filter im Main Thread (nicht implementiert hier)
       throw new Error('Image Filter Worker nicht verfügbar')
@@ -272,7 +321,9 @@ export class WorkerManager {
 
     const jobId = Date.now() + '_' + Math.random().toString(36).substr(2, 9)
 
-    return new Promise((resolve, reject) => {
+    // oben geprüft; im Promise-Callback nicht mehr verengt
+    const worker = this.imageFilterWorker
+    return new Promise<ImageData>((resolve, reject) => {
       this.pendingFilterJobs.set(jobId, { resolve, reject })
 
       // Kopie für Transfer
@@ -282,7 +333,7 @@ export class WorkerManager {
         imageData.height,
       )
 
-      this.imageFilterWorker.postMessage(
+      worker.postMessage(
         {
           type: 'applyFilters',
           imageData: copy,
@@ -320,7 +371,7 @@ export class WorkerManager {
     onsetData,
     dtMs,
     ledText = null,
-  }) {
+  }: VisualizerRenderJob): boolean {
     if (!this.visualizerWorkerReady || !this.visualizerWorker) return false
 
     const copy = new Uint8Array(audioData)
@@ -349,7 +400,7 @@ export class WorkerManager {
    * Übergibt dem Visualizer Worker das Bild für Portrait-Presets (ImageBitmap,
    * wird transferiert) oder null zum Entfernen.
    */
-  setVisualizerImage(bitmap) {
+  setVisualizerImage(bitmap: ImageBitmap | null | undefined): boolean {
     if (!this.visualizerWorkerReady || !this.visualizerWorker) return false
     const transfer =
       bitmap && typeof ImageBitmap !== 'undefined' && bitmap instanceof ImageBitmap ? [bitmap] : []
@@ -360,7 +411,7 @@ export class WorkerManager {
   /**
    * Informiert den Visualizer Worker über eine Canvas-Größenänderung
    */
-  resizeVisualizerCanvas(width, height) {
+  resizeVisualizerCanvas(width: number, height: number): void {
     if (this.visualizerWorkerReady && this.visualizerWorker) {
       this.visualizerWorker.postMessage({ type: 'resize', width, height })
     }
@@ -369,7 +420,7 @@ export class WorkerManager {
   /**
    * Bereinigt den aktuellen Visualizer-State im Worker (z.B. beim Wechsel)
    */
-  cleanupVisualizerState() {
+  cleanupVisualizerState(): void {
     if (this.visualizerWorkerReady && this.visualizerWorker) {
       this.visualizerWorker.postMessage({ type: 'cleanup' })
     }
@@ -378,7 +429,7 @@ export class WorkerManager {
   /**
    * Beendet alle Worker
    */
-  terminate() {
+  terminate(): void {
     if (this.audioWorker) {
       this.audioWorker.terminate()
       this.audioWorker = null
@@ -404,7 +455,7 @@ export class WorkerManager {
   /**
    * Status-Check
    */
-  getStatus() {
+  getStatus(): WorkerStatus {
     return {
       audio: this.audioWorkerReady,
       visualizer: this.visualizerWorkerReady,

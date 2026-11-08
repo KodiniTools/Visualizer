@@ -3,7 +3,7 @@ import {
   convertAndWait,
   cleanupFile,
   cancelConversion as apiCancelConversion,
-} from '../lib/videoApi.js'
+} from '../lib/videoApi'
 import { useRecorderStore } from '../stores/recorderStore'
 
 export function useServerConversion() {

@@ -4,7 +4,7 @@
 import { ref, computed, provide } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { useRecorderStore } from '../../stores/recorderStore'
-import { checkServerHealth } from '../../lib/videoApi.js'
+import { checkServerHealth } from '../../lib/videoApi'
 
 export const RECORDER_QUALITY_PRESETS = [
   { value: 2_000_000, label: 'Low' },

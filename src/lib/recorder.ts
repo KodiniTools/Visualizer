@@ -15,8 +15,45 @@
  * ✅ Canvas Stream wird mit Timeout bereinigt
  * ✅ Vollständiger reset() vor/nach jeder Aufnahme (Mehrfach-Aufnahme sicher)
  */
+
+/** Canvas-Capture-Track (requestFrame nur bei CanvasCaptureMediaStreamTrack) */
+type FrameTrack = MediaStreamTrack & { requestFrame?: () => void }
+
+export interface RecorderCallbacks {
+  onStateChange?: (() => void) | null
+  onForceRedraw?: (() => void) | null
+}
+
+export interface RecorderPrepareOptions {
+  captureFrameRate?: number | null
+  videoBitsPerSecond?: number | null
+}
+
 class Recorder {
-  constructor(recordingCanvas, audioElement, audioStream, uiElements, callbacks) {
+  recordingCanvas: HTMLCanvasElement | null
+  audioElement: HTMLMediaElement | null | undefined
+  audioStream: MediaStream | null
+  onStateChange: (() => void) | null | undefined
+  onForceRedraw: (() => void) | null | undefined
+  mediaRecorder: MediaRecorder | null
+  recordedChunks: Blob[]
+  recordingMimeType: string
+  isPrepared: boolean
+  isActive: boolean
+  isPaused: boolean
+  currentCanvasStream: MediaStream | null
+  frameRequesterTimeout: ReturnType<typeof setTimeout> | null
+  frameRequesterRunning: boolean
+  captureFrameRate: number
+  _activeEventListeners: Map<unknown, unknown>
+
+  constructor(
+    recordingCanvas: HTMLCanvasElement | null,
+    audioElement: HTMLMediaElement | null | undefined,
+    audioStream: MediaStream | null,
+    uiElements: unknown,
+    callbacks: RecorderCallbacks,
+  ) {
     this.recordingCanvas = recordingCanvas
     this.audioElement = audioElement
     this.audioStream = audioStream
@@ -52,14 +89,14 @@ class Recorder {
     }
   }
 
-  updateCanvas(newCanvas) {
+  updateCanvas(newCanvas: HTMLCanvasElement | null | undefined): boolean {
     if (!newCanvas || this.isActive) return false
     this.recordingCanvas = newCanvas
     this.isPrepared = false
     return true
   }
 
-  updateAudioStream(newStream) {
+  updateAudioStream(newStream: MediaStream | null | undefined): boolean {
     if (!newStream) return false
     this.audioStream = newStream
     return true
@@ -71,14 +108,14 @@ class Recorder {
    * motion at the cost of a heavier encode + redraw load. Ignored while a
    * recording is active — the rate is applied on the next prepare()/start().
    */
-  setCaptureFrameRate(fps) {
+  setCaptureFrameRate(fps: unknown): boolean {
     if (this.isActive) return false
     const rate = Number(fps) === 60 ? 60 : 30
     this.captureFrameRate = rate
     return true
   }
 
-  async prepare(options) {
+  async prepare(options?: RecorderPrepareOptions | null): Promise<boolean> {
     if (
       !this.recordingCanvas ||
       this.recordingCanvas.width === 0 ||
@@ -91,7 +128,7 @@ class Recorder {
     if (this.currentCanvasStream || this.mediaRecorder) {
       this.reset()
       // ✅ FIX: Erhöhe Timeout für vollständige Bereinigung (3. Aufnahme Fix)
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      await new Promise<void>((resolve) => setTimeout(resolve, 500))
     }
 
     // ✅ MEMORY FIX: Aggressive cleanup
@@ -124,17 +161,14 @@ class Recorder {
     }
   }
 
-  _validateCanvasContent() {
+  _validateCanvasContent(): boolean {
     try {
-      const ctx = this.recordingCanvas.getContext('2d')
+      // nur nach der Canvas-Prüfung in prepare() aufgerufen
+      const canvas = this.recordingCanvas as HTMLCanvasElement
+      const ctx = canvas.getContext('2d')
       if (!ctx) return false
 
-      const imageData = ctx.getImageData(
-        this.recordingCanvas.width / 2,
-        this.recordingCanvas.height / 2,
-        1,
-        1,
-      )
+      const imageData = ctx.getImageData(canvas.width / 2, canvas.height / 2, 1, 1)
 
       const data = imageData.data
       const hasContent = data[0] !== 0 || data[1] !== 0 || data[2] !== 0 || data[3] !== 0
@@ -181,7 +215,7 @@ class Recorder {
     if (this.recordedChunks && this.recordedChunks.length > 0) {
       // Explicitly null out each chunk
       for (let i = 0; i < this.recordedChunks.length; i++) {
-        this.recordedChunks[i] = null
+        ;(this.recordedChunks as (Blob | null)[])[i] = null
       }
       // Clear array
       this.recordedChunks.length = 0
@@ -257,16 +291,17 @@ class Recorder {
    */
   _aggressiveCleanup() {
     // Force garbage collection hint (only available in some dev builds).
-    if (typeof window !== 'undefined' && window.gc) {
+    const w = typeof window !== 'undefined' ? (window as Window & { gc?: () => void }) : null
+    if (w && w.gc) {
       try {
-        window.gc()
+        w.gc()
       } catch (e) {
         // GC not available in production
       }
     }
   }
 
-  async start() {
+  async start(): Promise<boolean> {
     if (!this.isPrepared || this.isActive) {
       return false
     }
@@ -338,7 +373,7 @@ class Recorder {
         return
       }
 
-      const videoTrack = this.currentCanvasStream?.getVideoTracks()[0]
+      const videoTrack = this.currentCanvasStream?.getVideoTracks()[0] as FrameTrack | undefined
 
       if (!videoTrack) {
         errorCount++
@@ -404,7 +439,7 @@ class Recorder {
     this._scheduleNextFrame(frameLoop)
   }
 
-  _scheduleNextFrame(frameLoop) {
+  _scheduleNextFrame(frameLoop: () => void): void {
     if (!this.frameRequesterRunning) {
       return
     }
@@ -424,7 +459,7 @@ class Recorder {
   }
 
   async _warmupCanvasStream() {
-    const videoTrack = this.currentCanvasStream?.getVideoTracks()[0]
+    const videoTrack = this.currentCanvasStream?.getVideoTracks()[0] as FrameTrack | undefined
     if (!videoTrack) {
       return false
     }
@@ -439,7 +474,7 @@ class Recorder {
       // Phase 1: Initiale Canvas-Aktualisierungen (5 statt 3)
       for (let i = 0; i < 5; i++) {
         this.onForceRedraw()
-        await new Promise((resolve) => setTimeout(resolve, 33)) // ~30 FPS Warmup
+        await new Promise<void>((resolve) => setTimeout(resolve, 33)) // ~30 FPS Warmup
       }
     } else {
       console.error('[RECORDER] CRITICAL: No rendering method available!')
@@ -450,12 +485,12 @@ class Recorder {
     if (typeof videoTrack.requestFrame === 'function') {
       for (let i = 0; i < 5; i++) {
         videoTrack.requestFrame()
-        await new Promise((resolve) => setTimeout(resolve, 16)) // ~60 FPS
+        await new Promise<void>((resolve) => setTimeout(resolve, 16)) // ~60 FPS
       }
     }
 
     // Phase 3: Finale Stabilisierung - längere Pause für Encoder-Buffer
-    await new Promise((resolve) => setTimeout(resolve, 200))
+    await new Promise<void>((resolve) => setTimeout(resolve, 200))
 
     console.log('[RECORDER] ✅ Warmup-Phase abgeschlossen (5 Frames @ 60 FPS)')
     return true
@@ -487,8 +522,8 @@ class Recorder {
     this.updateState()
   }
 
-  async stop() {
-    return new Promise((resolve, reject) => {
+  async stop(): Promise<Blob | null> {
+    return new Promise<Blob | null>((resolve, reject) => {
       if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') {
         try {
           if (this.recordedChunks && this.recordedChunks.length > 0) {
@@ -513,7 +548,9 @@ class Recorder {
         this.mediaRecorder.requestData()
       }
 
-      this.mediaRecorder.onstop = () => {
+      // im Promise-Callback nicht mehr verengt; oben auf null geprüft
+      const mediaRecorder = this.mediaRecorder
+      mediaRecorder.onstop = () => {
         // Short delay to ensure all data is received
         setTimeout(() => {
           try {
@@ -547,7 +584,7 @@ class Recorder {
         // Stop frame requester BEFORE stopping MediaRecorder
         this._stopFrameRequester()
 
-        this.mediaRecorder.stop()
+        mediaRecorder.stop()
         this.isActive = false
       } catch (error) {
         console.error('[RECORDER] Stop error:', error)
@@ -556,7 +593,7 @@ class Recorder {
     })
   }
 
-  async _setupMediaRecorder(videoBitsPerSecond) {
+  async _setupMediaRecorder(videoBitsPerSecond: number): Promise<boolean> {
     if (
       !this.recordingCanvas ||
       this.recordingCanvas.width === 0 ||
@@ -570,7 +607,7 @@ class Recorder {
       if (this.currentCanvasStream) {
         console.warn('[RECORDER] ⚠️ Old canvas stream still exists! Cleaning up...')
         this._cleanupCanvasStream()
-        await new Promise((resolve) => setTimeout(resolve, 200))
+        await new Promise<void>((resolve) => setTimeout(resolve, 200))
       }
 
       // Fixed capture rate: the browser samples the canvas at this FPS on its
@@ -581,9 +618,9 @@ class Recorder {
       this.currentCanvasStream = this.recordingCanvas.captureStream(this.captureFrameRate)
       console.log('[RECORDER] ✅ New canvas stream created')
 
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await new Promise<void>((resolve) => setTimeout(resolve, 100))
 
-      const videoTrack = this.currentCanvasStream.getVideoTracks()[0]
+      const videoTrack = this.currentCanvasStream.getVideoTracks()[0] as FrameTrack | undefined
 
       if (!videoTrack) {
         console.error('[RECORDER] ❌ No video track in canvas stream!')
@@ -601,17 +638,19 @@ class Recorder {
       return false
     }
 
-    const videoTracks = this.currentCanvasStream.getVideoTracks()
+    // im try-Block oben gesetzt (sonst bereits return false)
+    const videoTracks = (this.currentCanvasStream as MediaStream).getVideoTracks()
     if (videoTracks.length === 0) {
       return false
     }
 
-    const audioTracks = this.audioStream.getAudioTracks()
+    // Verhalten wie bisher: ohne Audio-Stream wirft prepare() hier
+    const audioTracks = (this.audioStream as MediaStream).getAudioTracks()
     if (audioTracks.length === 0) {
       return false
     }
 
-    audioTracks.forEach((track, i) => {
+    audioTracks.forEach((track) => {
       track.enabled = true
     })
 
@@ -637,13 +676,14 @@ class Recorder {
       return false
     }
 
-    this.recordingMimeType = this.mediaRecorder.mimeType || 'video/webm'
+    const mediaRecorder = this.mediaRecorder
+    this.recordingMimeType = mediaRecorder.mimeType || 'video/webm'
 
     // ✅ CRITICAL: Clear chunks before setting up new handler
     this._clearChunks()
 
     // ✅ CRITICAL: ondataavailable handler must not hold references
-    this.mediaRecorder.ondataavailable = (e) => {
+    mediaRecorder.ondataavailable = (e) => {
       if (e.data && e.data.size > 0) {
         this.recordedChunks.push(e.data)
         const totalSize = this.recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0)
@@ -653,22 +693,22 @@ class Recorder {
       }
     }
 
-    this.mediaRecorder.onstart = () => {
+    mediaRecorder.onstart = () => {
       this.updateState()
     }
 
-    this.mediaRecorder.onpause = () => {
+    mediaRecorder.onpause = () => {
       console.log('[RECORDER] Paused')
     }
 
-    this.mediaRecorder.onresume = () => {
+    mediaRecorder.onresume = () => {
       console.log('[RECORDER] Resumed')
     }
 
     // ✅ FIX: Less aggressive error handler - log but don't auto-stop
     // MediaRecorder errors are often transient and recoverable
     // Auto-stopping causes immediate failure on 3rd recording
-    this.mediaRecorder.onerror = (e) => {
+    mediaRecorder.onerror = (e) => {
       console.error('[RECORDER] MediaRecorder error (non-fatal):', e)
       console.warn('[RECORDER] Continuing despite error - monitor for data chunks')
       // Don't auto-stop - let natural stop() handle cleanup
@@ -678,7 +718,11 @@ class Recorder {
     return true
   }
 
-  _tryInitializeMediaRecorder(stream, videoBitsPerSecond, mimeTypes) {
+  _tryInitializeMediaRecorder(
+    stream: MediaStream,
+    videoBitsPerSecond: number,
+    mimeTypes: string[],
+  ): MediaRecorder | null {
     for (const type of mimeTypes) {
       if (MediaRecorder.isTypeSupported(type)) {
         try {
@@ -697,7 +741,7 @@ class Recorder {
     }
   }
 
-  updateState() {
+  updateState(): void {
     if (this.onStateChange) this.onStateChange()
   }
 

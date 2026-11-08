@@ -1,6 +1,6 @@
 import { TextManager } from '../lib/textManager'
 import { CanvasManager } from '../lib/canvasManager.js'
-import { FotoManager } from '../lib/fotoManager.js'
+import { FotoManager } from '../lib/fotoManager'
 import { GridManager } from '../lib/gridManager'
 import { MultiImageManager } from '../lib/multiImageManager.js'
 import { VideoManager } from '../lib/videoManager.js'

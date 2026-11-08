@@ -105,7 +105,7 @@ vi.mock('../../lib/visualizers/index.js', async () => {
 })
 
 const workerState = { available: false, frameCb: null }
-vi.mock('../../lib/workerManager.js', () => ({
+vi.mock('../../lib/workerManager', () => ({
   workerManager: {
     initVisualizerWorker: (w, h) => {
       L('worker.init', w, h)

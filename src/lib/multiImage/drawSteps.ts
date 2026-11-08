@@ -8,6 +8,29 @@
  *
  * Bounds-Objekte haben die Form { x, y, width, height } (Pixel).
  */
+import type { EffectValues } from '../audio/AudioReactiveEffects'
+import type { EntranceTransform } from '../canvasObjects/entranceAnimation'
+import type { Rect } from '../canvasObjects/geometry'
+import type { RelBounds, TransitionState } from '../slideshowTransitions'
+
+/** Effektwerte je aktivem Audio-Effekt */
+export type AudioFx = Record<string, EffectValues>
+
+/** Foto-Einstellungen, die die Render-Schritte lesen */
+export interface DrawFotoSettings {
+  rotation?: number
+  flipH?: boolean
+  flipV?: boolean
+  borderWidth?: number
+  borderColor?: string
+  borderOpacity?: number
+}
+
+/** Eintritts-Animation ohne Deckkraft */
+export type EntryTransform = Pick<
+  EntranceTransform,
+  'translateX' | 'translateY' | 'scale' | 'rotation'
+>
 
 /**
  * Führt `fn` mit einer Transformation um den Punkt (cx, cy) aus.
@@ -16,18 +39,23 @@
  * @param {number} cy
  * @param {() => void} fn
  */
-export function transformAround(ctx, cx, cy, fn) {
+export function transformAround(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  fn: () => void,
+): void {
   ctx.translate(cx, cy)
   fn()
   ctx.translate(-cx, -cy)
 }
 
-function centerOf(b) {
+function centerOf(b: Rect): [number, number] {
   return [b.x + b.width / 2, b.y + b.height / 2]
 }
 
 /** Skaliert Bounds um ihr Zentrum (neues Objekt). */
-export function scaleBoundsFromCenter(b, factor) {
+export function scaleBoundsFromCenter(b: Rect, factor: number): Rect {
   const [cx, cy] = centerOf(b)
   const width = b.width * factor
   const height = b.height * factor
@@ -38,7 +66,11 @@ export function scaleBoundsFromCenter(b, factor) {
  * Rechnet den Slideshow-Übergang in die Eintritts-Animation ein.
  * Translate-Werte des Übergangs sind relativ zur Bildgröße.
  */
-export function mergeTransitionTransform(animTransform, transition, bounds) {
+export function mergeTransitionTransform<T extends EntryTransform>(
+  animTransform: T,
+  transition: Partial<TransitionState> | null | undefined,
+  bounds: Rect,
+): T {
   if (!transition) return animTransform
   return {
     ...animTransform,
@@ -50,7 +82,11 @@ export function mergeTransitionTransform(animTransform, transition, bounds) {
 }
 
 /** Slideshow „An Workspace anpassen“: auf den Workspace-Bereich beschneiden. */
-export function clipToWorkspace(ctx, clip, canvas) {
+export function clipToWorkspace(
+  ctx: CanvasRenderingContext2D,
+  clip: RelBounds | null | undefined,
+  canvas: { width: number; height: number },
+): void {
   if (!clip) return
   ctx.beginPath()
   ctx.rect(
@@ -63,7 +99,11 @@ export function clipToWorkspace(ctx, clip, canvas) {
 }
 
 /** Slideshow-Übergang „Wischen“: nur den aufgedeckten Teil des Bildes zeigen. */
-export function clipToWipe(ctx, wipe, bounds) {
+export function clipToWipe(
+  ctx: CanvasRenderingContext2D,
+  wipe: TransitionState['wipe'] | undefined,
+  bounds: Rect,
+): void {
   if (!wipe) return
   const start = Math.max(0, Math.min(1, wipe.start))
   const end = Math.max(start, Math.min(1, wipe.end))
@@ -77,7 +117,7 @@ export function clipToWipe(ctx, wipe, bounds) {
  * @param {Record<string, any>} fx
  * @returns {string} z.B. " hue-rotate(30deg) blur(2px)" (führendes Leerzeichen je Fragment)
  */
-export function buildAudioFilterString(fx) {
+export function buildAudioFilterString(fx: AudioFx): string {
   let filter = ''
   if (fx.hue) filter += ` hue-rotate(${fx.hue.hueRotate}deg)`
   // Frequenz-Split: Höhen verschieben den Farbton
@@ -105,24 +145,25 @@ export function buildAudioFilterString(fx) {
  * (mehrere Rhythmus-Effekte liefern Glow). Bei Gleichstand gewinnt der frühere.
  * @returns {{ glowBlur: number, glowColor: string } | null}
  */
-export function pickStrongestGlow(fx) {
+export function pickStrongestGlow(fx: AudioFx): EffectValues | null {
   const candidates = [fx.glow, fx.beatPulse, fx.bpmPulse, fx.freqSplit].filter(
-    (e) => e && e.glowBlur > 0,
+    (e): e is EffectValues => !!e && (e.glowBlur ?? 0) > 0,
   )
   if (candidates.length === 0) return null
-  return candidates.reduce((a, b) => (b.glowBlur > a.glowBlur ? b : a))
+  return candidates.reduce((a, b) => ((b.glowBlur ?? 0) > (a.glowBlur ?? 0) ? b : a))
 }
 
 /** Hängt audio-reaktive Filter an ctx.filter an und setzt den Glow-Schatten. */
-export function applyAudioFilters(ctx, fx) {
+export function applyAudioFilters(ctx: CanvasRenderingContext2D, fx: AudioFx): void {
   let currentFilter = ctx.filter || 'none'
   if (currentFilter === 'none') currentFilter = ''
   currentFilter += buildAudioFilterString(fx)
 
   const glow = pickStrongestGlow(fx)
   if (glow) {
-    ctx.shadowColor = glow.glowColor
-    ctx.shadowBlur = glow.glowBlur
+    // Glow-Effekte liefern Farbe und Stärke immer (glowBlur > 0 geprüft)
+    ctx.shadowColor = glow.glowColor as string
+    ctx.shadowBlur = glow.glowBlur as number
     ctx.shadowOffsetX = 0
     ctx.shadowOffsetY = 0
   }
@@ -133,8 +174,11 @@ export function applyAudioFilters(ctx, fx) {
 }
 
 /** Slideshow-Übergang „Weichzeichnen“: Blur an die übrigen Filter anhängen. */
-export function applyTransitionBlur(ctx, blur) {
-  if (!(blur > 0)) return
+export function applyTransitionBlur(
+  ctx: CanvasRenderingContext2D,
+  blur: number | null | undefined,
+): void {
+  if (!((blur ?? 0) > 0) || blur == null) return
   const base = ctx.filter && ctx.filter !== 'none' ? `${ctx.filter} ` : ''
   ctx.filter = `${base}blur(${blur.toFixed(2)}px)`
 }
@@ -143,16 +187,30 @@ export function applyTransitionBlur(ctx, blur) {
  * Transformationen um das Bild-Zentrum (Original-Bounds), in dieser Reihenfolge:
  * Kippen (Übergang) → Rotation (statisch + audio) → Flip → Beat-Flip.
  */
-export function applyBaseTransforms(ctx, bounds, { transition, fotoSettings, fx }) {
+export function applyBaseTransforms(
+  ctx: CanvasRenderingContext2D,
+  bounds: Rect,
+  {
+    transition,
+    fotoSettings,
+    fx,
+  }: {
+    transition: Partial<TransitionState> | null | undefined
+    fotoSettings: DrawFotoSettings | null | undefined
+    fx: AudioFx | null | undefined
+  },
+): void {
   const [cx, cy] = centerOf(bounds)
 
   // Slideshow-Übergang „Kippen“: horizontale Skalierung
-  if (transition && transition.scaleX !== undefined && transition.scaleX !== 1) {
-    transformAround(ctx, cx, cy, () => ctx.scale(Math.max(0.001, transition.scaleX), 1))
+  const scaleX = transition?.scaleX
+  if (transition && scaleX !== undefined && scaleX !== 1) {
+    transformAround(ctx, cx, cy, () => ctx.scale(Math.max(0.001, scaleX), 1))
   }
 
   let totalRotation = fotoSettings?.rotation || 0
-  if (fx?.rotation) totalRotation += fx.rotation.rotation
+  // der Rotation-Effekt liefert den Wert immer
+  if (fx?.rotation) totalRotation += fx.rotation.rotation as number
   if (totalRotation !== 0) {
     transformAround(ctx, cx, cy, () => ctx.rotate((totalRotation * Math.PI) / 180))
   }
@@ -177,7 +235,11 @@ export function applyBaseTransforms(ctx, bounds, { transition, fotoSettings, fx 
  * um deren (neues) Zentrum.
  * @returns {{x:number,y:number,width:number,height:number}} neue Bounds
  */
-export function applyEntryAnimation(ctx, bounds, anim) {
+export function applyEntryAnimation(
+  ctx: CanvasRenderingContext2D,
+  bounds: Rect,
+  anim: EntryTransform,
+): Rect {
   let b = { ...bounds }
   if (anim.translateX !== 0 || anim.translateY !== 0) {
     b.x += anim.translateX
@@ -195,7 +257,7 @@ export function applyEntryAnimation(ctx, bounds, anim) {
  * Audio-reaktive Positions-Offsets: [Effekt, x-Property, y-Property].
  * Reihenfolge = Additions-Reihenfolge (relevant für Float-Rundung).
  */
-const MOTION_OFFSETS = [
+const MOTION_OFFSETS: readonly [string, keyof EffectValues | null, keyof EffectValues | null][] = [
   ['shake', 'shakeX', 'shakeY'],
   ['impulseShake', 'shakeX', 'shakeY'],
   ['bounce', null, 'bounceY'],
@@ -208,13 +270,14 @@ const MOTION_OFFSETS = [
 ]
 
 /** Addiert alle audio-reaktiven Bewegungs-Offsets (neues Objekt). */
-export function applyMotionOffsets(bounds, fx) {
+export function applyMotionOffsets(bounds: Rect, fx: AudioFx): Rect {
   const b = { ...bounds }
   for (const [name, xKey, yKey] of MOTION_OFFSETS) {
     const e = fx[name]
     if (!e) continue
-    if (xKey) b.x += e[xKey] || 0
-    if (yKey) b.y += e[yKey] || 0
+    // Bewegungs-Schlüssel sind numerische Effektwerte
+    if (xKey) b.x += (e[xKey] as number | undefined) || 0
+    if (yKey) b.y += (e[yKey] as number | undefined) || 0
   }
   return b
 }
@@ -223,7 +286,7 @@ export function applyMotionOffsets(bounds, fx) {
  * Skew und simulierte Perspektive um das Zentrum der Zeichen-Bounds.
  * Canvas 2D hat keine echte 3D-Perspektive → asymmetrische Skalierung + Scherung.
  */
-export function applyDistortion(ctx, bounds, fx) {
+export function applyDistortion(ctx: CanvasRenderingContext2D, bounds: Rect, fx: AudioFx): void {
   const [cx, cy] = centerOf(bounds)
 
   if (fx.skew) {
@@ -250,7 +313,7 @@ export function applyDistortion(ctx, bounds, fx) {
  * Multiplikativer Skalierungsfaktor aller scale-liefernden Effekte:
  * Scale, Beat-Puls, Zoom-Punch, BPM-Puls, Frequenz-Split.
  */
-export function audioScaleFactor(fx) {
+export function audioScaleFactor(fx: AudioFx): number {
   let factor = 1.0
   if (fx.scale) factor *= fx.scale.scale || 1.0
   if (fx.beatPulse) factor *= fx.beatPulse.scale || 1.0
@@ -265,7 +328,7 @@ export function audioScaleFactor(fx) {
  * Skew/Perspektive → Strobe-Deckkraft → Pulsieren (Skalierung um das Zentrum).
  * @returns {{x:number,y:number,width:number,height:number}} neue Zeichen-Bounds
  */
-export function applyAudioGeometry(ctx, bounds, fx) {
+export function applyAudioGeometry(ctx: CanvasRenderingContext2D, bounds: Rect, fx: AudioFx): Rect {
   let b = applyMotionOffsets(bounds, fx)
   applyDistortion(ctx, b, fx)
 
@@ -283,7 +346,10 @@ export function applyAudioGeometry(ctx, bounds, fx) {
  * Kontur-Parameter: statische Werte, von audio-reaktiver Kontur erweitert.
  * @returns {{ width: number, color: string, opacity: number, glow: number }}
  */
-export function resolveBorder(fotoSettings, fx) {
+export function resolveBorder(
+  fotoSettings: DrawFotoSettings | null | undefined,
+  fx: AudioFx | null | undefined,
+): { width: number; color: string; opacity: number; glow: number } {
   const border = {
     width: fotoSettings?.borderWidth || 0,
     color: fotoSettings?.borderColor || '#ffffff',
@@ -291,14 +357,15 @@ export function resolveBorder(fotoSettings, fx) {
     glow: 0,
   }
   if (fx?.border) {
-    border.width = Math.max(border.width, fx.border.borderWidth)
-    border.opacity = Math.max(border.opacity, fx.border.borderOpacity)
-    border.glow = fx.border.borderGlow
+    // der Border-Effekt liefert alle Werte immer
+    border.width = Math.max(border.width, fx.border.borderWidth as number)
+    border.opacity = Math.max(border.opacity, fx.border.borderOpacity as number)
+    border.glow = fx.border.borderGlow as number
   }
   return border
 }
 
-const CHROMATIC_CHANNELS = [
+const CHROMATIC_CHANNELS: readonly [number, number][] = [
   // [x-Verschiebung in Vielfachen des Offsets, Farbton-Drehung]
   [1, -50], // Rot (rechts)
   [0, 50], // Grün (mittig)
@@ -309,7 +376,12 @@ const CHROMATIC_CHANNELS = [
  * Chromatische Aberration: RGB-Kanäle mit Versatz, danach Original für Farbtreue.
  * Fehler werden geloggt, nicht geworfen.
  */
-export function drawChromatic(ctx, image, b, offset) {
+export function drawChromatic(
+  ctx: CanvasRenderingContext2D,
+  image: CanvasImageSource,
+  b: Rect,
+  offset: number,
+): void {
   try {
     const currentFilter = ctx.filter
     const currentAlpha = ctx.globalAlpha
@@ -334,7 +406,7 @@ export function drawChromatic(ctx, image, b, offset) {
 }
 
 /** Zeichnet das Bild ohne Effekte; Fehler werden geloggt, nicht geworfen. */
-export function drawPlain(ctx, image, b) {
+export function drawPlain(ctx: CanvasRenderingContext2D, image: CanvasImageSource, b: Rect): void {
   try {
     ctx.drawImage(image, b.x, b.y, b.width, b.height)
   } catch (e) {
@@ -343,8 +415,12 @@ export function drawPlain(ctx, image, b) {
 }
 
 /** Vignette-Puls: Ränder im Takt abdunkeln (nach dem Bild gezeichnet). */
-export function drawVignette(ctx, b, strength) {
-  if (!(strength > 0.01)) return
+export function drawVignette(
+  ctx: CanvasRenderingContext2D,
+  b: Rect,
+  strength: number | null | undefined,
+): void {
+  if (!((strength ?? 0) > 0.01) || strength == null) return
   const [cx, cy] = centerOf(b)
   const grad = ctx.createRadialGradient(
     cx,

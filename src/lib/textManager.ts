@@ -33,9 +33,18 @@ import {
   getAudioReactiveValues,
 } from './textManager/audio/textEffectValues'
 import { drawText } from './textManager/render/drawText'
+import type { TextObjectOptions } from './textManager/createTextObject'
+import type { TextObject } from './textManager/types'
+
+/** Effekt-Konfiguration wie von calculateTextEffectValue erwartet */
+type TextEffectConfig = Parameters<typeof calculateTextEffectValue>[2]
 
 export class TextManager {
-  constructor(textStore) {
+  textStore: unknown
+  textObjects: TextObject[]
+  markerRevealedIds: Set<TextObject['id']>
+
+  constructor(textStore?: unknown) {
     this.textStore = textStore
     this.textObjects = []
     // Laufzeit-Zustand (nicht im Verlauf): IDs vom Canvas entfernter Texte,
@@ -47,7 +56,7 @@ export class TextManager {
    * true, wenn der Text auf dem Canvas liegt (nicht nur im Text-Verzeichnis).
    * @param {object} textObj
    */
-  isOnCanvas(textObj) {
+  isOnCanvas(textObj: TextObject | null | undefined): boolean {
     return !!textObj && !textObj.offCanvas
   }
 
@@ -56,12 +65,12 @@ export class TextManager {
    * entfernt) gerade von einem Beat-Marker eingeblendet.
    * @param {object} textObj
    */
-  isDrawable(textObj) {
+  isDrawable(textObj: TextObject | null | undefined): boolean {
     return this.isOnCanvas(textObj) || (!!textObj && this.markerRevealedIds.has(textObj.id))
   }
 
   /** Alle Texte, die auf dem Canvas liegen (Ebenen-Reihenfolge). */
-  getCanvasTexts() {
+  getCanvasTexts(): TextObject[] {
     return this.textObjects.filter((t) => this.isOnCanvas(t))
   }
 
@@ -71,7 +80,7 @@ export class TextManager {
    * erst delete().
    * @returns {boolean} true, wenn der Text vorher auf dem Canvas lag
    */
-  removeFromCanvas(textObject) {
+  removeFromCanvas(textObject: Pick<TextObject, 'id'> | null | undefined): boolean {
     const obj = this.textObjects.find((t) => t.id === textObject?.id)
     if (!obj || obj.offCanvas) return false
     obj.offCanvas = true
@@ -82,7 +91,7 @@ export class TextManager {
    * Holt einen vom Canvas entfernten Text aus dem Verzeichnis zurück.
    * @returns {boolean} true, wenn der Text vorher nicht auf dem Canvas lag
    */
-  returnToCanvas(textObject) {
+  returnToCanvas(textObject: Pick<TextObject, 'id'> | null | undefined): boolean {
     const obj = this.textObjects.find((t) => t.id === textObject?.id)
     if (!obj || !obj.offCanvas) return false
     obj.offCanvas = false
@@ -93,7 +102,7 @@ export class TextManager {
   /**
    * Fügt ein neues Text-Objekt hinzu
    */
-  add(text, options = {}) {
+  add(text: string, options: TextObjectOptions = {}): TextObject {
     const newText = createTextObject(text, options)
     this.textObjects.push(newText)
     return newText
@@ -102,7 +111,7 @@ export class TextManager {
   /**
    * Löscht ein Text-Objekt endgültig (auch aus dem Text-Verzeichnis)
    */
-  delete(textObject) {
+  delete(textObject: Pick<TextObject, 'id'>): boolean {
     const index = this.textObjects.findIndex((t) => t.id === textObject.id)
     if (index !== -1) {
       this.textObjects.splice(index, 1)
@@ -119,7 +128,7 @@ export class TextManager {
    * @param {number} [index] - Ursprünglicher Index in der Ebenen-Reihenfolge
    * @returns {boolean} true wenn erfolgreich
    */
-  restore(textObject, index) {
+  restore(textObject: TextObject | null | undefined, index?: number): boolean {
     if (!textObject) return false
     // Doppelte Wiederherstellung verhindern
     if (this.textObjects.some((t) => t.id === textObject.id)) return false
@@ -135,7 +144,7 @@ export class TextManager {
   /**
    * Findet ein Text-Objekt an einer bestimmten Position
    */
-  findObjectAt(x, y, targetCanvas) {
+  findObjectAt(x: number, y: number, targetCanvas: Parameters<typeof findObjectAt>[3]) {
     return findObjectAt(this.textObjects, x, y, targetCanvas)
   }
 
@@ -143,28 +152,31 @@ export class TextManager {
    * ✅ FIXED: Berechnet die PRÄZISEN Bounds (Begrenzungsrahmen) eines Text-Objekts
    * Berücksichtigt: Schatten, Stroke, letterSpacing, mehrzeilige Texte
    */
-  getObjectBounds(textObj, targetCanvas) {
+  getObjectBounds(
+    textObj: Parameters<typeof getObjectBounds>[0],
+    targetCanvas: Parameters<typeof getObjectBounds>[1],
+  ) {
     return getObjectBounds(textObj, targetCanvas)
   }
 
   /**
    * Prüft ob ein Punkt in einem Rechteck liegt
    */
-  isPointInRect(x, y, rect) {
+  isPointInRect(x: number, y: number, rect: Parameters<typeof isPointInRect>[2]) {
     return isPointInRect(x, y, rect)
   }
 
   /**
    * ✅ Wendet Text-Stil für MESSUNG an (OHNE Schatten)
    */
-  applyTextStyleForMeasurement(ctx, textObj) {
+  applyTextStyleForMeasurement(ctx: CanvasRenderingContext2D, textObj: TextObject): void {
     applyTextStyleForMeasurement(ctx, textObj)
   }
 
   /**
    * Wendet Text-Stil auf den Context an (für Zeichnen)
    */
-  applyTextStyle(ctx, textObj) {
+  applyTextStyle(ctx: CanvasRenderingContext2D, textObj: TextObject): void {
     applyTextStyle(ctx, textObj)
   }
 
@@ -172,7 +184,7 @@ export class TextManager {
    * 🔧 Setzt ALLE Schatten-Eigenschaften explizit zurück
    * Verhindert "Schatten-Lecks" auf nachfolgende Canvas-Elemente
    */
-  resetShadow(ctx) {
+  resetShadow(ctx: CanvasRenderingContext2D): void {
     resetShadow(ctx)
   }
 
@@ -180,14 +192,14 @@ export class TextManager {
    * ✨ NEU: Berechnet den sichtbaren Text für Typewriter-Animation
    * Gibt den anzuzeigenden Text und Cursor-Info zurück
    */
-  _getTypewriterText(textObj) {
+  _getTypewriterText(textObj: TextObject) {
     return getTypewriterText(textObj)
   }
 
   /**
    * ✨ NEU: Startet die Typewriter-Animation neu
    */
-  restartTypewriter(textObj) {
+  restartTypewriter(textObj: TextObject | null | undefined): void {
     restartTypewriter(textObj)
   }
 
@@ -195,14 +207,14 @@ export class TextManager {
    * ✨ NEU: Berechnet die Opacity für Fade-Animation
    * Gibt einen Wert zwischen 0 und 1 zurück
    */
-  _getFadeOpacity(textObj) {
+  _getFadeOpacity(textObj: Parameters<typeof getFadeOpacity>[0]) {
     return getFadeOpacity(textObj)
   }
 
   /**
    * ✨ NEU: Startet die Fade-Animation neu
    */
-  restartFade(textObj) {
+  restartFade(textObj: TextObject | null | undefined): void {
     restartFade(textObj)
   }
 
@@ -210,14 +222,14 @@ export class TextManager {
    * ✨ NEU: Berechnet den Scale-Wert für Scale-Animation
    * Gibt einen Wert zurück (z.B. 0.5, 1.0, 2.0)
    */
-  _getScaleValue(textObj) {
+  _getScaleValue(textObj: Parameters<typeof getScaleValue>[0]) {
     return getScaleValue(textObj)
   }
 
   /**
    * ✨ NEU: Startet die Scale-Animation neu
    */
-  restartScale(textObj) {
+  restartScale(textObj: TextObject | null | undefined): void {
     restartScale(textObj)
   }
 
@@ -225,14 +237,18 @@ export class TextManager {
    * ✨ NEU: Berechnet den Slide-Offset für Slide-Animation
    * Gibt X und Y Offset in Pixeln zurück
    */
-  _getSlideOffset(textObj, canvasWidth, canvasHeight) {
+  _getSlideOffset(
+    textObj: Parameters<typeof getSlideOffset>[0],
+    canvasWidth: number,
+    canvasHeight: number,
+  ) {
     return getSlideOffset(textObj, canvasWidth, canvasHeight)
   }
 
   /**
    * ✨ NEU: Startet die Slide-Animation neu
    */
-  restartSlide(textObj) {
+  restartSlide(textObj: TextObject | null | undefined): void {
     restartSlide(textObj)
   }
 
@@ -252,7 +268,7 @@ export class TextManager {
    *
    * @returns {number} Multiplikator zwischen 0 (versteckt) und 1 (voll sichtbar)
    */
-  _getDisplayOpacity(textObj) {
+  _getDisplayOpacity(textObj: TextObject): number {
     return getDisplayOpacity(textObj)
   }
 
@@ -260,28 +276,38 @@ export class TextManager {
    * Zeichnet einen einzelnen Text (mit Unterstützung für mehrzeilige Texte)
    * ✨ ERWEITERT: Unterstützt jetzt Audio-Reaktive Effekte und Typewriter-Animation
    */
-  drawText(ctx, textObj, canvasWidth, canvasHeight) {
+  drawText(
+    ctx: CanvasRenderingContext2D,
+    textObj: Parameters<typeof drawText>[1],
+    canvasWidth: number,
+    canvasHeight: number,
+  ): void {
     drawText(ctx, textObj, canvasWidth, canvasHeight)
   }
 
   /**
    * Stärkstes Leuchten aus allen glow-liefernden Effekten (oder null).
    */
-  _strongestGlow(effects) {
+  _strongestGlow(effects: Parameters<typeof strongestGlow>[0]) {
     return strongestGlow(effects)
   }
 
   /**
    * ✨ NEU: Wendet Text-Stil mit Audio-Reaktiven Überschreibungen an
    */
-  applyTextStyleWithAudio(ctx, textObj, audioReactive, useAudioGlow) {
+  applyTextStyleWithAudio(
+    ctx: CanvasRenderingContext2D,
+    textObj: Parameters<typeof applyTextStyleWithAudio>[1],
+    audioReactive: Parameters<typeof applyTextStyleWithAudio>[2],
+    useAudioGlow: Parameters<typeof applyTextStyleWithAudio>[3],
+  ): void {
     applyTextStyleWithAudio(ctx, textObj, audioReactive, useAudioGlow)
   }
 
   /**
    * Zeichnet alle Text-Objekte
    */
-  drawAll(ctx) {
+  drawAll(ctx: CanvasRenderingContext2D): void {
     this.textObjects.forEach((textObj) => {
       if (!this.isDrawable(textObj)) return
       this.drawText(ctx, textObj, ctx.canvas.width, ctx.canvas.height)
@@ -292,7 +318,7 @@ export class TextManager {
    * Alternative draw-Methode (für Kompatibilität mit älterem Code)
    * ✅ CRITICAL FIX: Error Handling hinzugefügt um Recording nicht zu brechen
    */
-  draw(ctx, canvasWidth, canvasHeight) {
+  draw(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number): void {
     this.textObjects.forEach((textObj) => {
       if (!this.isDrawable(textObj)) return
       try {
@@ -312,36 +338,36 @@ export class TextManager {
   /**
    * Aktualisiert eine Eigenschaft eines Text-Objekts
    */
-  updateProperty(textObj, property, value) {
+  updateProperty(textObj: TextObject | null | undefined, property: string, value: unknown): void {
     if (!textObj) return
 
     // Schatten-Eigenschaften
     if (property.startsWith('shadow.')) {
-      const shadowProp = property.split('.')[1]
-      textObj.shadow[shadowProp] = value
+      const shadowProp = property.split('.')[1] as string
+      ;(textObj.shadow as unknown as Record<string, unknown>)[shadowProp] = value
     }
     // Kontur-Eigenschaften
     else if (property.startsWith('stroke.')) {
-      const strokeProp = property.split('.')[1]
-      textObj.stroke[strokeProp] = value
+      const strokeProp = property.split('.')[1] as string
+      ;(textObj.stroke as unknown as Record<string, unknown>)[strokeProp] = value
     }
     // Normale Eigenschaften
     else {
-      textObj[property] = value
+      ;(textObj as unknown as Record<string, unknown>)[property] = value
     }
   }
 
   /**
    * Gibt alle Text-Objekte zurück
    */
-  getAllTexts() {
+  getAllTexts(): TextObject[] {
     return this.textObjects
   }
 
   /**
    * Räumt alle Texte auf
    */
-  clear() {
+  clear(): void {
     this.textObjects = []
     this.markerRevealedIds.clear()
   }
@@ -354,7 +380,7 @@ export class TextManager {
    * ✨ Berechnet Audio-Reaktive Effekt-Werte basierend auf den aktuellen Audio-Daten
    * Unterstützt MEHRERE Effekte gleichzeitig
    */
-  getAudioReactiveValues(audioSettings) {
+  getAudioReactiveValues(audioSettings: Parameters<typeof getAudioReactiveValues>[0]) {
     return getAudioReactiveValues(audioSettings)
   }
 
@@ -364,7 +390,11 @@ export class TextManager {
    * @param {number} normalizedLevel - Audio-Level normalisiert (0-1)
    * @param {object} effectConfig - Konfiguration des Effekts (enthält minimum, ease, etc.)
    */
-  _calculateTextEffectValue(effectName, normalizedLevel, effectConfig = {}) {
+  _calculateTextEffectValue(
+    effectName: string,
+    normalizedLevel: number,
+    effectConfig: TextEffectConfig = {},
+  ) {
     return calculateTextEffectValue(effectName, normalizedLevel, effectConfig)
   }
 
@@ -372,7 +402,7 @@ export class TextManager {
    * ✨ NEU: Verschiebt ein Text-Objekt an die oberste Ebene (z-index)
    * Damit ist der Text immer anklickbar und sichtbar
    */
-  moveToTop(textObj) {
+  moveToTop(textObj: TextObject | null | undefined): void {
     if (!textObj) return
 
     const index = this.textObjects.findIndex((t) => t.id === textObj.id)

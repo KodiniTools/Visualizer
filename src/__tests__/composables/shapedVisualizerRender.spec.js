@@ -16,7 +16,7 @@ vi.mock('../../lib/visualizers/index.js', () => ({
     },
   },
 }))
-vi.mock('../../lib/workerManager.js', () => ({
+vi.mock('../../lib/workerManager', () => ({
   workerManager: {
     initVisualizerWorker: () => Promise.resolve(false),
     cleanupVisualizerState: () => {},

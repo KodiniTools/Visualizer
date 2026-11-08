@@ -1,6 +1,6 @@
 import { drawScaledVisualizer } from '../../lib/visualizers/core/edgeFade.js'
 import { Visualizers } from '../../lib/visualizers/index.js'
-import { workerManager } from '../../lib/workerManager.js'
+import { workerManager } from '../../lib/workerManager'
 import { visualizerState } from '../../lib/visualizers/core/state.js'
 import { getVisualizerImageSource } from '../../lib/visualizers/imageRegistry.js'
 import { useHistoryStore } from '../../stores/historyStore'

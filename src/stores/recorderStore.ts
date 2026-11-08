@@ -8,7 +8,7 @@
  * ✅ CRASH FIX: Toggle-Funktionen komplett entfernt (verursachten Abstürze bei 3+ Aufnahmen)
  */
 import { defineStore } from 'pinia'
-import { Recorder } from '../lib/recorder.js'
+import { Recorder } from '../lib/recorder'
 import { getAudioEngine } from '../lib/audioEngineBridge'
 
 export type UploadMode = 'auto' | 'direct' | 'server'

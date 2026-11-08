@@ -36,14 +36,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import ColorField from '../../ui/ColorField.vue'
 import SliderField from '../../ui/SliderField.vue'
 import { inject } from 'vue'
+import type { BgSettingsApi } from '../../../composables/useBgSettings'
 import { useI18n } from '../../../lib/i18n'
 
 const { t } = useI18n()
-const bg = inject('bgSettings')
+const bg = inject('bgSettings') as BgSettingsApi
 const {
   backgroundColor,
   backgroundOpacity,

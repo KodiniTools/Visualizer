@@ -5,7 +5,7 @@ import { ref, computed, provide } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { useRecorderStore } from '../../stores/recorderStore'
 import { checkServerHealth } from '../../lib/videoApi'
-import type { Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 import type { UploadMode } from '../../stores/recorderStore'
 
 export const RECORDER_QUALITY_PRESETS = [
@@ -24,6 +24,27 @@ export const RECORDER_FRAME_RATE_PRESETS = [
   { value: 30, label: '30' },
   { value: 60, label: '60' },
 ]
+
+/** Per provide('recorderSettings') geteilter Zustand (RecorderSettingsPanel) */
+export interface RecorderSettingsApi {
+  selectedQuality: Ref<number>
+  qualityPresets: typeof RECORDER_QUALITY_PRESETS
+  selectQuality: (value: number) => void
+  recordingFps: Ref<number>
+  frameRatePresets: typeof RECORDER_FRAME_RATE_PRESETS
+  selectFrameRate: (value: number) => void
+  uploadMode: Ref<string>
+  selectUploadMode: (mode: UploadMode) => void
+  serverAvailable: Ref<boolean | null>
+  enableServerConversion: Ref<boolean>
+  conversionQuality: Ref<string>
+  conversionPresets: ComputedRef<{ value: string; label: string; desc: string }[]>
+  enableGifExport: Ref<boolean>
+  gifFps: Ref<number>
+  gifWidth: Ref<number>
+  enableHqExport: Ref<boolean>
+  hqFps: Ref<number>
+}
 
 /**
  * @param exportOptions GIF-/HQ-Refs aus useGifConversion/useHqExport,
@@ -84,7 +105,7 @@ export function useRecorderSettings({
     }
   }
 
-  provide('recorderSettings', {
+  const settings: RecorderSettingsApi = {
     selectedQuality,
     qualityPresets: RECORDER_QUALITY_PRESETS,
     selectQuality,
@@ -102,7 +123,8 @@ export function useRecorderSettings({
     gifWidth,
     enableHqExport,
     hqFps,
-  })
+  }
+  provide('recorderSettings', settings)
 
   return {
     selectedQuality,

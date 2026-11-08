@@ -36,11 +36,11 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useI18n } from '../../lib/i18n'
 
 const { t } = useI18n()
-defineEmits(['close'])
+defineEmits<{ close: [] }>()
 </script>
 
 <style>

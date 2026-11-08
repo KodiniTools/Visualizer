@@ -24,7 +24,7 @@
 const props = withDefaults(
   defineProps<{
     /** Hex-Farben `#rrggbb` */
-    colors?: string[]
+    colors?: readonly string[]
     /** Zugänglicher Name der Gruppe; jedes Feld heißt „label: #farbe“ */
     label: string
     /** Aktuelle Farbe (wird markiert) */

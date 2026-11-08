@@ -61,6 +61,8 @@ type SegmentCanvasManagerGetter = Parameters<typeof createBackgroundSegment>[0][
  * und Canvas-Presets (bg/useBgPresets). Die zurückgegebene API ist stabil –
  * Komponenten nutzen sie über `provide('bgSettings', useBgSettings())`.
  */
+export type BgSettingsApi = ReturnType<typeof useBgSettings>
+
 export function useBgSettings() {
   // Wird von der App bereitgestellt (provide)
   const canvasManager = inject('canvasManager') as CanvasManagerRef

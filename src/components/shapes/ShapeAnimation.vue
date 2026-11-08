@@ -7,7 +7,7 @@
       label-hidden
       :options="typeOptions"
       data-animation-type
-      @update:model-value="setType"
+      @update:model-value="(v) => setType(v as ShapeAnimationType)"
     />
     <template v-if="config">
       <SliderControl
@@ -56,7 +56,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Animation der ausgewählten Form (Formen & Symbole): Pulsieren,
  * Ein-/Ausblenden, Blinken, Drehen, Pendeln, Hüpfen, Schweben, Wackeln sowie
@@ -79,29 +79,42 @@ import {
   isOneShotAnimation,
   normalizeShapeAnimation,
 } from '../../lib/shapes/shapeAnimation'
+import type { ShapeAnimation, ShapeAnimationType } from '../../lib/shapes/shapeAnimation'
+import type { Shape } from '../../stores/shapeStore'
 import UiButton from '../ui/UiButton.vue'
 import UiSelect from '../ui/UiSelect.vue'
 import SliderControl from '../ui/SliderControl.vue'
 
-const props = defineProps({
-  /** Ausgewählte Form aus dem shapeStore */
-  shape: { type: Object, default: null },
-})
-const emit = defineEmits(['commit'])
+const props = withDefaults(
+  defineProps<{
+    /** Ausgewählte Form aus dem shapeStore */
+    shape?: Shape | null
+  }>(),
+  { shape: null },
+)
+const emit = defineEmits<{ commit: [] }>()
 
 const { t } = useI18n()
 const store = useShapeStore()
 const LIMITS = SHAPE_ANIMATION_LIMITS
+
+interface AnimationDefaults {
+  duration: number
+  intensity: number
+}
 
 const config = computed(() => normalizeShapeAnimation(props.shape?.animation))
 const type = computed(() => config.value?.type ?? 'none')
 const isOneShot = computed(() => isOneShotAnimation(type.value))
 const hasIntensity = computed(() => !SHAPE_ANIMATION_NO_INTENSITY.includes(type.value))
 const defaults = computed(
-  () => SHAPE_ANIMATION_DEFAULTS[type.value] ?? { duration: 1, intensity: 100 },
+  () =>
+    (SHAPE_ANIMATION_DEFAULTS as Partial<Record<ShapeAnimationType, AnimationDefaults>>)[
+      type.value
+    ] ?? { duration: 1, intensity: 100 },
 )
 
-const label = (value) => t(`shapes.animation.types.${value}`)
+const label = (value: ShapeAnimationType) => t(`shapes.animation.types.${value}`)
 
 /** Auswahl gruppiert: Schleifen und einmalige Animationen */
 const typeOptions = computed(() => {
@@ -125,7 +138,7 @@ function restart() {
   if (props.shape) store.restartAnimation(props.shape.id)
 }
 
-function setType(value) {
+function setType(value: ShapeAnimationType) {
   if (!props.shape || value === type.value) return
   store.updateShape(props.shape.id, { animation: createShapeAnimation(value) })
   restart()
@@ -133,7 +146,7 @@ function setType(value) {
 }
 
 /** Ändert einen Parameter (ohne Verlaufsschritt; der folgt bei `change`) */
-function patch(update) {
+function patch(update: Partial<ShapeAnimation>) {
   if (!props.shape || !config.value) return
   store.updateShape(props.shape.id, {
     animation: normalizeShapeAnimation({ ...config.value, ...update }),

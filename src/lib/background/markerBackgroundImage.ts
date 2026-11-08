@@ -11,8 +11,10 @@
 import {
   captureImageBackground,
   clearCanvasVideoBackgrounds,
+  removeVideoBackground,
   type BackgroundCanvasManager,
   type ImageBackgroundEntry,
+  type VideoBackgroundEntry,
 } from './backgroundMedia'
 
 const cloneJson = <T>(obj: T): T => JSON.parse(JSON.stringify(obj))
@@ -28,7 +30,15 @@ export interface BackgroundImageDefaults {
 export interface BaseBackground {
   background: BackgroundCanvasManager['background']
   workspaceBackground: ImageBackgroundEntry | null
+  /** Video-Hintergründe von vorher (werden nur pausiert, nicht freigegeben) */
+  videoBackground?: VideoBackgroundEntry | null
+  workspaceVideoBackground?: VideoBackgroundEntry | null
+  /** Liefen die Videos beim Erfassen? (wird beim Wiederherstellen fortgesetzt) */
+  videoPlaying?: Partial<Record<VideoKey, boolean>>
 }
+
+type VideoKey = 'videoBackground' | 'workspaceVideoBackground'
+const VIDEO_KEYS: readonly VideoKey[] = ['videoBackground', 'workspaceVideoBackground']
 
 export interface GalleryImageEntry {
   id: unknown
@@ -131,16 +141,76 @@ export function findGalleryImage(
 }
 
 /**
- * Merkt sich den Hintergrund, der vor dem ersten Hintergrund-Bild-Marker zu
- * sehen war (Bild-Objekte bzw. Farb-String unverändert, inkl. Foto-Settings).
+ * Merkt sich den Hintergrund, der vor dem ersten Hintergrund-Bild- bzw.
+ * Video-Marker zu sehen war (Bild-/Video-Objekte bzw. Farb-String unverändert,
+ * inkl. Foto-Settings und Wiedergabe-Zustand der Videos).
  * @param {object|null} cm - CanvasManager
  * @returns {{ background: any, workspaceBackground: any } | null}
  */
 export function captureBaseBackground(cm: MaybeCm): BaseBackground | null {
   if (!cm) return null
+  const videoPlaying: Partial<Record<VideoKey, boolean>> = {}
+  for (const key of VIDEO_KEYS) {
+    const el = cm[key]?.videoElement
+    if (el) videoPlaying[key] = !el.paused
+  }
   return {
     background: cm.background ?? null,
     workspaceBackground: cm.workspaceBackground ?? null,
+    videoBackground: cm.videoBackground ?? null,
+    workspaceVideoBackground: cm.workspaceVideoBackground ?? null,
+    videoPlaying,
+  }
+}
+
+/**
+ * Räumt die Video-Hintergründe vor einem neuen Marker-Hintergrund ab: Videos
+ * aus der gemerkten Basis werden nur pausiert und abgehängt (sie kommen beim
+ * Wiederherstellen zurück), alle anderen (z. B. Marker-Videos) werden gestoppt
+ * und freigegeben.
+ * @param {object|null} cm - CanvasManager
+ * @param {object|null} base - captureBaseBackground-Ergebnis
+ */
+export function releaseVideoBackgrounds(
+  cm: MaybeCm,
+  base: BaseBackground | null | undefined,
+): void {
+  if (!cm) return
+  for (const key of VIDEO_KEYS) {
+    const entry = cm[key]
+    if (!entry) continue
+    if (base && entry === base[key]) {
+      try {
+        entry.videoElement?.pause()
+      } catch {
+        /* ignore */
+      }
+      cm[key] = null
+    } else {
+      removeVideoBackground(cm, key, { safe: true })
+    }
+  }
+}
+
+/**
+ * Gibt die Videos einer nicht mehr benötigten Basis frei, sofern sie nicht
+ * gerade auf dem Canvas liegen (z. B. wenn ein Hintergrund-Preset die Basis
+ * ersetzt).
+ */
+export function discardBaseBackground(cm: MaybeCm, base: BaseBackground | null | undefined): void {
+  if (!base) return
+  for (const key of VIDEO_KEYS) {
+    const entry = base[key]
+    if (!entry || (cm && (cm.videoBackground === entry || cm.workspaceVideoBackground === entry)))
+      continue
+    const el = entry.videoElement
+    if (!el) continue
+    try {
+      el.pause()
+    } catch {
+      /* ignore */
+    }
+    el.src = ''
   }
 }
 
@@ -155,6 +225,17 @@ export function restoreBaseBackground(
   base: BaseBackground | null | undefined,
 ): boolean {
   if (!cm || !base) return false
+  // Marker-Videos stoppen und freigeben, Basis-Videos wieder einhängen
+  for (const key of VIDEO_KEYS) {
+    const baseEntry = base[key] ?? null
+    if (cm[key] && cm[key] !== baseEntry) removeVideoBackground(cm, key, { safe: true })
+    cm[key] = baseEntry
+    if (baseEntry?.videoElement && base.videoPlaying?.[key]) {
+      Promise.resolve()
+        .then(() => baseEntry.videoElement?.play())
+        .catch(() => {})
+    }
+  }
   cm.background = base.background
   cm.workspaceBackground = base.workspaceBackground
   cm.activeObject = null

@@ -980,6 +980,11 @@ export default {
     emptyImageGallery: 'Galerie ist leer – Bilder unter „Eigene Bilder“ hochladen',
     backgroundImageHint:
       'Bild aus deiner Galerie wird Hintergrund. Audio-Reaktiv und Format (Workspace oder Normal) übernimmt es vom vorherigen Hintergrund-Bild.',
+    markerVideo: 'Video',
+    noMarkerVideo: '-- Kein Video --',
+    emptyVideoGallery: 'Keine Videos hochgeladen – Videos unter „Video“ hochladen',
+    markerVideoHint:
+      'Hochgeladenes Video wird zum Marker-Zeitpunkt Hintergrund und startet von vorne (stumm, in Schleife). Audio-Reaktiv und Format übernimmt es vom vorherigen Hintergrund. Hat der Marker auch ein Hintergrund-Bild, gewinnt das Video.',
     text: 'Text',
     noText: '-- Kein Text --',
     textAppears: 'Text erscheint zum Marker-Zeitpunkt auf dem Canvas',

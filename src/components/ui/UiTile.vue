@@ -11,22 +11,24 @@
   </button>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Quadratische Auswahl-Kachel für Galerien (Formen, Sticker, Emojis).
  * `label` ist Pflicht (aria-label und title). `pressed` macht die Kachel zum
  * Umschalter mit aria-pressed, `active` markiert sie nur optisch (z. B. die
  * aktuelle Auswahl einer Liste).
  */
-defineProps({
-  label: { type: String, required: true },
-  /** 'sm' | 'md' */
-  size: { type: String, default: 'md', validator: (v) => ['sm', 'md'].includes(v) },
-  /** undefined = kein Umschalter (kein aria-pressed) */
-  pressed: { type: Boolean, default: undefined },
-  active: { type: Boolean, default: false },
-  disabled: { type: Boolean, default: false },
-})
+withDefaults(
+  defineProps<{
+    label: string
+    size?: 'sm' | 'md'
+    /** undefined = kein Umschalter (kein aria-pressed) */
+    pressed?: boolean
+    active?: boolean
+    disabled?: boolean
+  }>(),
+  { size: 'md', pressed: undefined, active: false, disabled: false },
+)
 </script>
 
 <style scoped>

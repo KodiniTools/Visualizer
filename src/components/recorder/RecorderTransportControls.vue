@@ -58,7 +58,7 @@
 import { computed } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { useRecorderStore } from '../../stores/recorderStore'
-import { UiButton } from '../ui/index.js'
+import { UiButton } from '../ui'
 
 defineProps({
   disabled: { type: Boolean, default: false },

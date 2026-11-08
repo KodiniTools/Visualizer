@@ -137,7 +137,7 @@ import FadeSection from './text-new-form/FadeSection.vue'
 import ScaleSection from './text-new-form/ScaleSection.vue'
 import SlideSection from './text-new-form/SlideSection.vue'
 import PositionSection from './text-new-form/PositionSection.vue'
-import { UiButton, UiTextArea } from '../ui/index.js'
+import { UiButton, UiTextArea } from '../ui'
 
 const { t } = useI18n()
 const toastStore = useToastStore()

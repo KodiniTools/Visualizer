@@ -15,24 +15,28 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Reihe kleiner Farbfelder (z. B. „Zuletzt verwendet“). Ein Klick meldet die
  * Farbe über `pick`; die zum `modelValue` passende Farbe ist markiert.
  * Ohne Farben wird nichts gerendert.
  */
-const props = defineProps({
-  /** Array<string> – Hex-Farben `#rrggbb` */
-  colors: { type: Array, default: () => [] },
-  /** Zugänglicher Name der Gruppe; jedes Feld heißt „label: #farbe“ */
-  label: { type: String, required: true },
-  /** Aktuelle Farbe (wird markiert) */
-  modelValue: { type: String, default: '' },
-})
+const props = withDefaults(
+  defineProps<{
+    /** Hex-Farben `#rrggbb` */
+    colors?: string[]
+    /** Zugänglicher Name der Gruppe; jedes Feld heißt „label: #farbe“ */
+    label: string
+    /** Aktuelle Farbe (wird markiert) */
+    modelValue?: string
+  }>(),
+  { colors: () => [], modelValue: '' },
+)
 
-const emit = defineEmits(['pick'])
+const emit = defineEmits<{ pick: [color: string] }>()
 
-const isActive = (color) => String(props.modelValue || '').toLowerCase() === color.toLowerCase()
+const isActive = (color: string) =>
+  String(props.modelValue || '').toLowerCase() === color.toLowerCase()
 </script>
 
 <style scoped>

@@ -16,7 +16,7 @@
   </component>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
@@ -26,27 +26,27 @@ import { RouterLink } from 'vue-router'
  * Mit `to` rendert er als RouterLink, mit `href` als gewöhnlicher Link,
  * jeweils im selben Look (target, rel usw. als Attribute).
  */
-const props = defineProps({
-  /** 'primary' | 'secondary' | 'ghost' | 'danger' */
-  variant: {
-    type: String,
-    default: 'secondary',
-    validator: (v) => ['primary', 'secondary', 'ghost', 'danger'].includes(v),
+const props = withDefaults(
+  defineProps<{
+    variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
+    size?: 'sm' | 'md' | 'lg'
+    type?: 'button' | 'submit' | 'reset'
+    disabled?: boolean
+    block?: boolean
+    href?: string
+    /** RouteLocationRaw */
+    to?: string | object
+  }>(),
+  {
+    variant: 'secondary',
+    size: 'md',
+    type: 'button',
+    disabled: false,
+    block: false,
+    href: undefined,
+    to: undefined,
   },
-  /** 'sm' | 'md' | 'lg' */
-  size: { type: String, default: 'md', validator: (v) => ['sm', 'md', 'lg'].includes(v) },
-  /** 'button' | 'submit' | 'reset' */
-  type: {
-    type: String,
-    default: 'button',
-    validator: (v) => ['button', 'submit', 'reset'].includes(v),
-  },
-  disabled: { type: Boolean, default: false },
-  block: { type: Boolean, default: false },
-  href: { type: String, default: undefined },
-  /** RouteLocationRaw */
-  to: { type: [String, Object], default: undefined },
-})
+)
 
 const tag = computed(() => (props.to ? RouterLink : props.href ? 'a' : 'button'))
 

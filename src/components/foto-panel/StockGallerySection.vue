@@ -146,7 +146,7 @@
 import { computed } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { localizedName } from '../../lib/localizedName'
-import { UiButton, UiCallout, UiSegmentedControl } from '../ui/index.js'
+import { UiButton, UiCallout, UiSegmentedControl } from '../ui'
 import PlacementSettings from './PlacementSettings.vue'
 
 const { t, locale } = useI18n()

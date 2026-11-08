@@ -77,7 +77,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import UiButton from './UiButton.vue'
@@ -90,25 +90,23 @@ import UiIconButton from './UiIconButton.vue'
  * Schließen-Button bleibt der Weg für Tastatur und Screenreader.
  * Visualizer: zusätzlich Typ `warning`; `dismissLabel` fällt auf i18n `common.close` zurück.
  */
-const props = defineProps({
-  message: { type: String, required: true },
-  /** 'success' | 'error' | 'warning' | 'info' */
-  type: {
-    type: String,
-    default: 'info',
-    validator: (v) => ['success', 'error', 'warning', 'info'].includes(v),
-  },
-  actionLabel: { type: String, default: undefined },
-  dismissLabel: { type: String, default: undefined },
-  dismissOnClick: { type: Boolean, default: false },
-})
+const props = withDefaults(
+  defineProps<{
+    message: string
+    type?: 'success' | 'error' | 'warning' | 'info'
+    actionLabel?: string
+    dismissLabel?: string
+    dismissOnClick?: boolean
+  }>(),
+  { type: 'info', actionLabel: undefined, dismissLabel: undefined, dismissOnClick: false },
+)
 
-const emit = defineEmits(['action', 'dismiss'])
+const emit = defineEmits<{ action: []; dismiss: [] }>()
 
 const { t } = useI18n()
 const dismissLabel = computed(() => props.dismissLabel ?? t('common.close'))
 
-function onRootClick(event) {
+function onRootClick(event: MouseEvent) {
   if (!props.dismissOnClick) return
   if (event.target instanceof Element && event.target.closest('button')) return
   emit('dismiss')

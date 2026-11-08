@@ -4,7 +4,7 @@
       type="range"
       class="slider-field__range"
       :class="$attrs.class"
-      :style="$attrs.style"
+      :style="$attrs.style as StyleValue"
       :aria-labelledby="autoLabelledby || undefined"
       v-bind="rangeAttrs($attrs)"
       :min="min"
@@ -60,7 +60,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * SliderField – Ersatz für einen nackten `<input type="range">`.
  *
@@ -81,23 +81,40 @@
  * Damit deren *scoped* CSS auch den Range-Input trifft, erhält er zusätzlich die
  * Scope-Attribute des Elternkontexts (siehe `useParentScopeAttrs`).
  */
-import { computed, getCurrentInstance, onMounted, ref, useAttrs, useId, watch } from 'vue'
+import {
+  computed,
+  getCurrentInstance,
+  onMounted,
+  ref,
+  useAttrs,
+  useId,
+  watch,
+  type StyleValue,
+} from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { clamp } from '../../lib/color'
 
 defineOptions({ inheritAttrs: false })
 
-const props = defineProps({
-  modelValue: { type: [Number, String], default: 0 },
-  min: { type: [Number, String], default: 0 },
-  max: { type: [Number, String], default: 100 },
-  step: { type: [Number, String], default: 1 },
-  /** Wert für den Reset-Button. Ohne Angabe gibt es keinen Reset-Button. */
-  defaultValue: { type: [Number, String], default: undefined },
-  disabled: { type: Boolean, default: false },
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue?: number | string
+    min?: number | string
+    max?: number | string
+    step?: number | string
+    /** Wert für den Reset-Button. Ohne Angabe gibt es keinen Reset-Button. */
+    defaultValue?: number | string
+    disabled?: boolean
+  }>(),
+  { modelValue: 0, min: 0, max: 100, step: 1, defaultValue: undefined, disabled: false },
+)
 
-const emit = defineEmits(['update:modelValue', 'start', 'change', 'reset'])
+const emit = defineEmits<{
+  'update:modelValue': [value: number]
+  start: [value: number]
+  change: [value: number]
+  reset: [value: number]
+}>()
 
 const { t } = useI18n()
 
@@ -110,10 +127,11 @@ const { t } = useI18n()
  * element gibt, hier eingesammelt und zusätzlich an den Range-Input gebunden.
  */
 function useParentScopeAttrs() {
-  const attrs = {}
+  const attrs: Record<string, string> = {}
   let inst = getCurrentInstance()
   while (inst) {
-    const vnode = inst.vnode
+    // slotScopeIds ist intern (nicht in den öffentlichen VNode-Typen)
+    const vnode = inst.vnode as typeof inst.vnode & { slotScopeIds?: string[] | null }
     if (vnode.scopeId) attrs[vnode.scopeId] = ''
     if (vnode.slotScopeIds) for (const id of vnode.slotScopeIds) attrs[id] = ''
     const parent = inst.parent
@@ -126,7 +144,7 @@ function useParentScopeAttrs() {
 const parentScopeAttrs = useParentScopeAttrs()
 
 /** Alle Attribute außer class/style (die werden separat gebunden) + Scope-Attribute. */
-function rangeAttrs(attrs) {
+function rangeAttrs(attrs: Record<string, unknown>) {
   const rest = Object.fromEntries(
     Object.entries(attrs).filter(([key]) => key !== 'class' && key !== 'style'),
   )
@@ -143,15 +161,15 @@ function rangeAttrs(attrs) {
  * aria-labelledby verknüpft. Der Name folgt so auch einem Sprachwechsel.
  */
 const attrs = useAttrs()
-const rootEl = ref(null)
-const autoLabelledby = ref(null)
+const rootEl = ref<HTMLElement | null>(null)
+const autoLabelledby = ref<string | null>(null)
 const generatedLabelId = `slider-label-${useId()}`
 
-function findPrecedingLabel(root) {
+function findPrecedingLabel(root: Element | null | undefined): HTMLElement | null {
   const prev = root?.previousElementSibling
   if (!prev) return null
-  if (prev.tagName === 'LABEL') return prev
-  return prev.querySelector('.label-text, label')
+  if (prev.tagName === 'LABEL') return prev as HTMLElement
+  return prev.querySelector<HTMLElement>('.label-text, label')
 }
 
 onMounted(() => {
@@ -169,13 +187,13 @@ const decimals = computed(() => {
   return i === -1 ? 0 : s.length - i - 1
 })
 
-function roundTo(value) {
+function roundTo(value: number) {
   const f = 10 ** decimals.value
   return Math.round(value * f) / f
 }
 
-function toNumber(value, fallback) {
-  const n = typeof value === 'number' ? value : parseFloat(value)
+function toNumber(value: unknown, fallback: number) {
+  const n = typeof value === 'number' ? value : parseFloat(value as string)
   return Number.isFinite(n) ? n : fallback
 }
 
@@ -191,7 +209,7 @@ const resetTitle = computed(() =>
   hasDefault.value ? `${t('sliderField.reset')} (${formatValue(defaultNum.value)})` : '',
 )
 
-function formatValue(n) {
+function formatValue(n: number) {
   return roundTo(n).toFixed(decimals.value)
 }
 
@@ -200,8 +218,8 @@ function formatValue(n) {
 // Feld zurückschreiben, während der Nutzer noch tippt bzw. den Spinner klickt –
 // der Wert springt dann hin und her. Stattdessen wird der DOM-Wert imperativ
 // synchronisiert, und nur dann, wenn die Änderung nicht aus dem Feld selbst kam.
-const numEl = ref(null)
-let lastNumberEmit = null // zuletzt vom Zahlenfeld emittierter Wert
+const numEl = ref<HTMLInputElement | null>(null)
+let lastNumberEmit: number | null = null // zuletzt vom Zahlenfeld emittierter Wert
 
 function syncNumberField(force = false) {
   const el = numEl.value
@@ -219,16 +237,16 @@ watch(numericValue, () => syncNumberField())
 
 // ── Interaktion (start/change für Undo-Gruppierung) ────────────────────────
 let interacting = false
-let valueBeforeInteraction = null
+let valueBeforeInteraction: number | null = null
 // Zuletzt emittierter Wert – unabhängig davon, ob der Elternteil den Prop
 // schon zurückgespielt hat (z. B. bei :model-value ohne sofortiges Update).
-let lastEmitted = null
+let lastEmitted: number | null = null
 
 function beginInteraction() {
   if (interacting) return
   interacting = true
   valueBeforeInteraction = numericValue.value
-  emit('start', valueBeforeInteraction)
+  emit('start', valueBeforeInteraction as number)
 }
 
 function commitInteraction() {
@@ -240,20 +258,20 @@ function commitInteraction() {
   lastEmitted = null
 }
 
-function applyValue(raw) {
+function applyValue(raw: number) {
   const value = roundTo(clamp(raw, minNum.value, maxNum.value))
   if (value === numericValue.value && typeof props.modelValue === 'number') return
   lastEmitted = value
   emit('update:modelValue', value)
 }
 
-function onRangeInput(event) {
+function onRangeInput(event: Event) {
   beginInteraction()
-  applyValue(parseFloat(event.target.value))
+  applyValue(parseFloat((event.target as HTMLInputElement).value))
 }
 
-function onNumberInput(event) {
-  const raw = event.target.value
+function onNumberInput(event: Event) {
+  const raw = (event.target as HTMLInputElement).value
   if (raw === '' || raw === '-' || raw === '.' || raw === '-.') return // Nutzer tippt noch
   const n = Number(raw)
   if (!Number.isFinite(n)) return

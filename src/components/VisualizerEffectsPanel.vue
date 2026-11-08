@@ -184,7 +184,7 @@
 
 <script setup>
 import SliderField from './ui/SliderField.vue'
-import { UiSegmentedControl, UiSwitch } from './ui/index.js'
+import { UiSegmentedControl, UiSwitch } from './ui'
 import { computed } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { useVisualizerStore } from '../stores/visualizerStore'

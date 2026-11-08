@@ -19,7 +19,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * SliderControl – eine Regler-Zeile in der Standard-Optik der App:
  * Label (klein, versal) · SliderField (Regler + Zahlen-Spinner + ↺) · Einheit.
@@ -31,19 +31,35 @@
  */
 import SliderField from './SliderField.vue'
 
-defineProps({
-  label: { type: String, required: true },
-  modelValue: { type: [Number, String], default: 0 },
-  min: { type: [Number, String], default: 0 },
-  max: { type: [Number, String], default: 100 },
-  step: { type: [Number, String], default: 1 },
-  defaultValue: { type: [Number, String], default: undefined },
-  disabled: { type: Boolean, default: false },
-  // Anzeige rechts (Wert mit Einheit, z. B. "1.0s", "80 %")
-  valueText: { type: String, default: '' },
-  inputClass: { type: [String, Array, Object], default: '' },
-})
-const emit = defineEmits(['update:modelValue', 'start', 'change'])
+withDefaults(
+  defineProps<{
+    label: string
+    modelValue?: number | string
+    min?: number | string
+    max?: number | string
+    step?: number | string
+    defaultValue?: number | string
+    disabled?: boolean
+    // Anzeige rechts (Wert mit Einheit, z. B. "1.0s", "80 %")
+    valueText?: string
+    inputClass?: string | unknown[] | Record<string, unknown>
+  }>(),
+  {
+    modelValue: 0,
+    min: 0,
+    max: 100,
+    step: 1,
+    defaultValue: undefined,
+    disabled: false,
+    valueText: '',
+    inputClass: '',
+  },
+)
+const emit = defineEmits<{
+  'update:modelValue': [value: number]
+  start: [value: number]
+  change: [value: number]
+}>()
 </script>
 
 <style scoped src="./slider-control.css"></style>

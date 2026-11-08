@@ -20,7 +20,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, useId } from 'vue'
 
 /**
@@ -29,23 +29,29 @@ import { computed, useId } from 'vue'
  */
 defineOptions({ inheritAttrs: false })
 
-const props = defineProps({
-  label: { type: String, required: true },
-  id: { type: String, default: undefined },
-  /** 'text' | 'search' | 'email' | 'url' | 'password' */
-  type: {
-    type: String,
-    default: 'text',
-    validator: (v) => ['text', 'search', 'email', 'url', 'password'].includes(v),
+const props = withDefaults(
+  defineProps<{
+    label: string
+    id?: string
+    type?: 'text' | 'search' | 'email' | 'url' | 'password'
+    placeholder?: string
+    hint?: string
+    error?: string
+    disabled?: boolean
+    required?: boolean
+  }>(),
+  {
+    id: undefined,
+    type: 'text',
+    placeholder: undefined,
+    hint: undefined,
+    error: undefined,
+    disabled: false,
+    required: false,
   },
-  placeholder: { type: String, default: undefined },
-  hint: { type: String, default: undefined },
-  error: { type: String, default: undefined },
-  disabled: { type: Boolean, default: false },
-  required: { type: Boolean, default: false },
-})
+)
 
-const model = defineModel({ type: String, default: '' })
+const model = defineModel<string>({ default: '' })
 
 const generatedId = useId()
 const inputId = computed(() => props.id ?? `ui-field-${generatedId}`)

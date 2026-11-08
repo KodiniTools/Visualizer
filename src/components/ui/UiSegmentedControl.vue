@@ -24,28 +24,35 @@
   </div>
 </template>
 
-<script setup>
-import { computed, ref } from 'vue'
+<script setup lang="ts">
+import { computed, ref, type ComponentPublicInstance } from 'vue'
 
 /**
  * Segmented Control nach dem Radiogroup-Muster: eine Option ist gewählt,
  * Pfeiltasten wechseln und wählen, Tab springt als Ganzes hinein und hinaus.
  */
-const props = defineProps({
-  /** Array<{ value: string, label: string, disabled?: boolean }> */
-  options: { type: Array, required: true },
-  label: { type: String, required: true },
-  /** 'sm' | 'md' */
-  size: { type: String, default: 'md', validator: (v) => ['sm', 'md'].includes(v) },
-  /** Volle Breite; Optionen brechen bei Platzmangel in weitere Zeilen um (z. B. 3 + 3 + 1) */
-  wrap: { type: Boolean, default: false },
-})
+export interface UiSegmentedOption {
+  value: string
+  label: string
+  disabled?: boolean
+}
 
-const model = defineModel({ type: String, required: true })
+const props = withDefaults(
+  defineProps<{
+    options: UiSegmentedOption[]
+    label: string
+    size?: 'sm' | 'md'
+    /** Volle Breite; Optionen brechen bei Platzmangel in weitere Zeilen um (z. B. 3 + 3 + 1) */
+    wrap?: boolean
+  }>(),
+  { size: 'md', wrap: false },
+)
 
-const buttons = ref([])
+const model = defineModel<string>({ required: true })
 
-function setButtonRef(el, index) {
+const buttons = ref<HTMLButtonElement[]>([])
+
+function setButtonRef(el: Element | ComponentPublicInstance | null, index: number) {
   if (el instanceof HTMLButtonElement) buttons.value[index] = el
 }
 
@@ -54,14 +61,14 @@ const activeIndex = computed(() => {
   return index === -1 ? 0 : index
 })
 
-function select(index) {
+function select(index: number) {
   const option = props.options[index]
   if (!option || option.disabled) return
   model.value = option.value
   buttons.value[index]?.focus()
 }
 
-function step(from, direction) {
+function step(from: number, direction: number) {
   const count = props.options.length
   let index = from
   for (let i = 0; i < count; i++) {
@@ -83,8 +90,8 @@ function lastEnabled() {
   return 0
 }
 
-function onKeydown(event, index) {
-  const targets = {
+function onKeydown(event: KeyboardEvent, index: number) {
+  const targets: Record<string, () => number> = {
     ArrowRight: () => step(index, 1),
     ArrowDown: () => step(index, 1),
     ArrowLeft: () => step(index, -1),

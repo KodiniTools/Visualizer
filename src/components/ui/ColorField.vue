@@ -3,7 +3,7 @@
     ref="rootEl"
     class="color-field"
     :class="[$attrs.class, { 'color-field--open': open, 'color-field--disabled': disabled }]"
-    :style="$attrs.style"
+    :style="$attrs.style as StyleValue"
   >
     <button
       ref="triggerEl"
@@ -13,7 +13,7 @@
       :disabled="disabled"
       :aria-expanded="open ? 'true' : 'false'"
       aria-haspopup="dialog"
-      :title="$attrs.title ?? currentHex"
+      :title="($attrs.title as string | undefined) ?? currentHex"
       :style="{ backgroundColor: currentHex }"
       @click="toggle"
     >
@@ -91,7 +91,7 @@
   </span>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * ColorField – Ersatz für `<input type="color">`.
  *
@@ -113,7 +113,7 @@
  * bestehende Größen-Klassen der Eltern weiter greifen), alle anderen Attribute
  * (`title`, `aria-label`, …) auf dem Button.
  */
-import { computed, nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, useId, watch, type StyleValue } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import {
   FALLBACK_HEX,
@@ -123,37 +123,57 @@ import {
   hslTrackGradients,
   normalizeHex,
   setHslChannel,
+  type Hsl,
+  type HslChannel,
 } from '../../lib/color'
 
 defineOptions({ inheritAttrs: false })
 
-const props = defineProps({
-  modelValue: { type: String, default: FALLBACK_HEX },
-  disabled: { type: Boolean, default: false },
-  /** Zugänglicher Name des Feldes; Default: i18n `colorField.pickColor`. */
-  label: { type: String, default: '' },
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string
+    disabled?: boolean
+    /** Zugänglicher Name des Feldes; Default: i18n `colorField.pickColor`. */
+    label?: string
+  }>(),
+  { modelValue: FALLBACK_HEX, disabled: false, label: '' },
+)
 
-const emit = defineEmits(['update:modelValue', 'start', 'change', 'open', 'close'])
+const emit = defineEmits<{
+  'update:modelValue': [hex: string]
+  start: [hex: string]
+  change: [hex: string]
+  open: []
+  close: []
+}>()
 
 const { t } = useI18n()
 const uid = useId()
 
-const channels = [
+const channels: Array<{
+  key: HslChannel
+  short: string
+  labelKey: string
+  min: number
+  max: number
+  step: number
+  unit: string
+}> = [
   { key: 'h', short: 'H', labelKey: 'colorField.hue', ...HSL_RANGES.h },
   { key: 's', short: 'S', labelKey: 'colorField.saturation', ...HSL_RANGES.s },
   { key: 'l', short: 'L', labelKey: 'colorField.lightness', ...HSL_RANGES.l },
 ]
 
 // ── Zustand ────────────────────────────────────────────────────────────────
-const rootEl = ref(null)
-const triggerEl = ref(null)
-const panelEl = ref(null)
+const rootEl = ref<HTMLElement | null>(null)
+const triggerEl = ref<HTMLButtonElement | null>(null)
+const panelEl = ref<HTMLElement | null>(null)
 
 const open = ref(false)
-const panelStyle = ref({})
+const panelStyle = ref<Record<string, string>>({})
 
-const hsl = ref(hexToHsl(props.modelValue) ?? hexToHsl(FALLBACK_HEX))
+// FALLBACK_HEX ist gültig → hexToHsl liefert immer einen Wert
+const hsl = ref<Hsl>((hexToHsl(props.modelValue) ?? hexToHsl(FALLBACK_HEX)) as Hsl)
 const currentHex = computed(() => hslToHex(hsl.value.h, hsl.value.s, hsl.value.l))
 const trackGradients = computed(() => hslTrackGradients(hsl.value))
 
@@ -169,7 +189,7 @@ watch(
   (value) => {
     const normalized = normalizeHex(value) ?? FALLBACK_HEX
     if (normalized !== currentHex.value) {
-      hsl.value = hexToHsl(normalized)
+      hsl.value = hexToHsl(normalized) as Hsl
     }
     if (!hexFocused.value) {
       hexDraft.value = normalized
@@ -180,7 +200,7 @@ watch(
 
 // ── Interaktion (start/change für Undo-Gruppierung) ────────────────────────
 let interacting = false
-let hexBeforeInteraction = null
+let hexBeforeInteraction: string | null = null
 
 function beginInteraction() {
   if (interacting) return
@@ -197,7 +217,7 @@ function commitInteraction() {
   hexBeforeInteraction = null
 }
 
-function applyHsl(next) {
+function applyHsl(next: Hsl) {
   hsl.value = next
   const hex = currentHex.value
   if (!hexFocused.value) {
@@ -207,13 +227,13 @@ function applyHsl(next) {
   emit('update:modelValue', hex)
 }
 
-function onRangeInput(channel, event) {
+function onRangeInput(channel: HslChannel, event: Event) {
   beginInteraction()
-  applyHsl(setHslChannel(hsl.value, channel, event.target.value))
+  applyHsl(setHslChannel(hsl.value, channel, (event.target as HTMLInputElement).value))
 }
 
-function onNumberInput(channel, event) {
-  const raw = event.target.value
+function onNumberInput(channel: HslChannel, event: Event) {
+  const raw = (event.target as HTMLInputElement).value
   if (raw === '' || raw === '-') return // Nutzer tippt noch
   const n = Number(raw)
   if (!Number.isFinite(n)) return
@@ -221,20 +241,20 @@ function onNumberInput(channel, event) {
   applyHsl(setHslChannel(hsl.value, channel, n))
 }
 
-function onNumberBlur(channel, event) {
+function onNumberBlur(channel: HslChannel, event: FocusEvent) {
   // Leeres/ungültiges Feld auf den aktuellen Wert zurücksetzen.
-  event.target.value = String(Math.round(hsl.value[channel]))
+  ;(event.target as HTMLInputElement).value = String(Math.round(hsl.value[channel]))
   commitInteraction()
 }
 
-function onHexInput(event) {
-  hexDraft.value = event.target.value
+function onHexInput(event: Event) {
+  hexDraft.value = (event.target as HTMLInputElement).value
   const normalized = normalizeHex(hexDraft.value)
   hexInvalid.value = normalized === null
   if (!normalized) return
   beginInteraction()
   if (normalized !== currentHex.value) {
-    hsl.value = hexToHsl(normalized)
+    hsl.value = hexToHsl(normalized) as Hsl
     emit('update:modelValue', normalized)
   }
 }
@@ -273,13 +293,13 @@ function updatePosition() {
   panelStyle.value = { top: `${Math.round(top)}px`, left: `${Math.round(left)}px` }
 }
 
-function onDocumentPointerDown(event) {
-  const target = event.target
+function onDocumentPointerDown(event: PointerEvent) {
+  const target = event.target as Node | null
   if (rootEl.value?.contains(target) || panelEl.value?.contains(target)) return
   close(false)
 }
 
-function onDocumentKeydown(event) {
+function onDocumentKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') close(true)
 }
 
@@ -320,7 +340,7 @@ function close(restoreFocus = false) {
   if (restoreFocus) triggerEl.value?.focus()
 }
 
-function toggle(event) {
+function toggle(event?: MouseEvent) {
   if (open.value) close(false)
   else openPanel(event?.detail === 0)
 }
@@ -330,7 +350,7 @@ onBeforeUnmount(() => {
 })
 
 /** Alle Attribute außer class/style gehen an den Button. */
-function buttonAttrs(attrs) {
+function buttonAttrs(attrs: Record<string, unknown>) {
   return Object.fromEntries(
     Object.entries(attrs).filter(([key]) => key !== 'class' && key !== 'style'),
   )

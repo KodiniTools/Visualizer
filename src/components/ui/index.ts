@@ -1,7 +1,7 @@
 /**
  * UI-Bausteine des gemeinsamen KodiniTools-Designs (Design-System v2), übernommen aus
- * KodiniTools/Collage-Maker, src/components/ui, Stand 9dc4eca (dort TypeScript, hier
- * <script setup> in JavaScript; Templates und Styles unverändert).
+ * KodiniTools/Collage-Maker, src/components/ui, Stand 9dc4eca. Hier wie dort in TypeScript;
+ * Templates und Styles unverändert.
  * Alle Komponenten nutzen ausschließlich --ds-* Tokens aus src/design-system/tokens-v2.css.
  */
 export { default as UiButton } from './UiButton.vue'

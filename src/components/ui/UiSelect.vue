@@ -50,8 +50,8 @@
   </div>
 </template>
 
-<script setup>
-import { computed, useId } from 'vue'
+<script setup lang="ts">
+import { computed, useId, type StyleValue } from 'vue'
 
 /**
  * Natives <select> im Look des Systems. Das Label ist Pflicht; `labelHidden`
@@ -61,25 +61,36 @@ import { computed, useId } from 'vue'
  */
 defineOptions({ inheritAttrs: false })
 
-const props = defineProps({
-  /**
-   * Array<{ value: string|number, label: string, disabled?: boolean, style?: object }
-   *     | { label: string, options: Array<{ value, label, disabled? }> }>
-   */
-  options: { type: Array, required: true },
-  label: { type: String, required: true },
-  id: { type: String, default: undefined },
-  /** 'sm' | 'md' */
-  size: { type: String, default: 'md', validator: (v) => ['sm', 'md'].includes(v) },
-  inline: { type: Boolean, default: false },
-  labelHidden: { type: Boolean, default: false },
-  disabled: { type: Boolean, default: false },
-})
+export interface UiSelectOption {
+  value: string | number
+  label: string
+  disabled?: boolean
+  style?: StyleValue
+}
+export interface UiSelectGroup {
+  label: string
+  options: UiSelectOption[]
+}
+export type UiSelectEntry = UiSelectOption | UiSelectGroup
 
-const model = defineModel({ type: [String, Number], required: true })
+const props = withDefaults(
+  defineProps<{
+    options: UiSelectEntry[]
+    label: string
+    id?: string
+    size?: 'sm' | 'md'
+    inline?: boolean
+    labelHidden?: boolean
+    disabled?: boolean
+  }>(),
+  { id: undefined, size: 'md', inline: false, labelHidden: false, disabled: false },
+)
+
+const model = defineModel<string | number>({ required: true })
 
 /** Gruppe = Eintrag mit eigener Optionsliste (wird zu <optgroup>) */
-const isGroup = (entry) => Array.isArray(entry?.options)
+const isGroup = (entry: UiSelectEntry): entry is UiSelectGroup =>
+  Array.isArray((entry as UiSelectGroup | undefined)?.options)
 
 const generatedId = useId()
 const selectId = computed(() => props.id ?? `ui-select-${generatedId}`)

@@ -10,10 +10,13 @@
  * - Einstellungen: `image.timedAnimation` (serialisierbar, Verlauf/Presets)
  * - Laufzeit-Zustand (Startzeiten): WeakMap je Bild-Objekt, damit er weder
  *   im Verlauf noch in Presets landet und Undo eine laufende Animation nicht
- *   neu startet.
+ *   neu startet. Schlüssel ist immer das rohe Objekt (`toRaw`): Die Manager
+ *   liegen in Vue-Refs, der Render-Loop sieht also reaktive Proxys, das Panel
+ *   je nach Weg Proxy oder Rohobjekt – beide müssen denselben Zustand treffen.
  *
  * @module canvasObjects/imageAnimation
  */
+import { toRaw } from 'vue'
 import { resolveTimeline } from '../textManager/animation/timeline'
 import { getDisplayOpacity } from '../textManager/animation/displayOpacity'
 import { defaultTextSettings } from '../textDefaults'
@@ -70,10 +73,11 @@ const NEUTRAL: Readonly<ImageAnimationTransform> = Object.freeze({
 const runtime = new WeakMap<object, TextAnimation>()
 
 function holderOf(target: object): TextAnimation {
-  let holder = runtime.get(target)
+  const key = toRaw(target)
+  let holder = runtime.get(key)
   if (!holder) {
     holder = { _state: { startTime: null, isPlaying: false, currentIndex: 0 } }
-    runtime.set(target, holder)
+    runtime.set(key, holder)
   }
   return holder
 }

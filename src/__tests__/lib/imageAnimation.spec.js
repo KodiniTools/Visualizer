@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { reactive, ref, toRaw } from 'vue'
 import {
   cloneImageAnimation,
   createImageAnimation,
@@ -81,6 +82,25 @@ describe('canvasObjects/imageAnimation', () => {
     restartImageAnimation(img, 'fade')
     expect(getImageAnimationTransform(img, CANVAS, T + 6000).opacity).toBe(0)
     restartImageAnimation(null) // kein Fehler
+  })
+
+  it('Neustart greift, wenn Render-Loop (Proxy) und Panel (Rohobjekt) verschieden zugreifen', () => {
+    // Manager liegen in Vue-Refs → der Render-Loop zeichnet reaktive Proxys
+    const manager = ref({ images: [imageWith('fade', { duration: 1000 })] })
+    const drawn = manager.value.images[0]
+    const raw = toRaw(drawn)
+    expect(drawn).not.toBe(raw)
+
+    getImageAnimationTransform(drawn, CANVAS, T + 0)
+    expect(getImageAnimationTransform(drawn, CANVAS, T + 5000).opacity).toBe(1)
+    restartImageAnimation(raw, 'fade')
+    expect(getImageAnimationTransform(drawn, CANVAS, T + 6000).opacity).toBe(0)
+
+    // und umgekehrt
+    getImageAnimationTransform(raw, CANVAS, T + 7000)
+    expect(getImageAnimationTransform(raw, CANVAS, T + 9000).opacity).toBe(1)
+    restartImageAnimation(reactive(raw), 'fade')
+    expect(getImageAnimationTransform(raw, CANVAS, T + 9500).opacity).toBe(0)
   })
 
   it('cloneImageAnimation ergänzt Standardwerte und kopiert tief', () => {

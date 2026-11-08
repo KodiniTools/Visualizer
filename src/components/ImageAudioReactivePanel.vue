@@ -21,15 +21,16 @@
   />
 </template>
 
-<script setup>
-import { ref, inject, watch, onMounted, nextTick } from 'vue'
+<script setup lang="ts">
+import { ref, inject, watch, onMounted, nextTick, type Ref } from 'vue'
 import AudioReactivePanel from './foto-panel/AudioReactivePanel.vue'
 import { useImageAudioReactive } from '../composables/useImageAudioReactive'
 import { historyApplyRevision } from '../lib/history/historyRecorder'
+import type { FotoManager } from '../lib/fotoManager'
 
-const fotoManagerRef = inject('fotoManager')
+const fotoManagerRef = inject('fotoManager') as Ref<FotoManager | null | undefined> | undefined
 
-const audioReactivePanelRef = ref(null)
+const audioReactivePanelRef = ref<InstanceType<typeof AudioReactivePanel> | null>(null)
 
 const {
   currentActiveImage,

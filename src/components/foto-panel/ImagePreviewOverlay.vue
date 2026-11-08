@@ -18,7 +18,7 @@
   </UiDialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Großansicht eines Galerie-Bildes mit Platzieren / Als Hintergrund (Foto-Panel, Galerie). */
 import { useI18n } from '../../lib/i18n'
 import UiButton from '../ui/UiButton.vue'
@@ -26,14 +26,15 @@ import UiDialog from '../ui/UiDialog.vue'
 
 const { t } = useI18n()
 
-defineProps({
-  previewImage: {
-    type: Object,
-    default: null,
-  },
-})
+/** Mindestangaben für die Vorschau; Aufrufer hängen eigene Felder an (Typ, Quelle). */
+export interface ImagePreview {
+  src: string
+  name: string
+}
 
-defineEmits(['close', 'add-to-canvas', 'set-as-background'])
+withDefaults(defineProps<{ previewImage?: ImagePreview | null }>(), { previewImage: null })
+
+defineEmits<{ close: []; 'add-to-canvas': []; 'set-as-background': [] }>()
 </script>
 
 <style scoped>

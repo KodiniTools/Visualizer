@@ -77,7 +77,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import ColorField from './ui/ColorField.vue'
 import SliderField from './ui/SliderField.vue'
 import UiSwitch from './ui/UiSwitch.vue'
@@ -90,8 +90,8 @@ const gridStore = useGridStore()
 const workspaceStore = useWorkspaceStore()
 
 // Funktion für Kurzbezeichnungen der Presets
-function getPresetShortName(name) {
-  const mapping = {
+function getPresetShortName(name: string): string {
+  const mapping: Record<string, string> = {
     'TikTok (9:16)': 'TikTok',
     'Instagram Story (9:16)': 'IG Story',
     'Instagram Post (1:1)': 'IG Post',

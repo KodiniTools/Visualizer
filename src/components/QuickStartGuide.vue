@@ -56,7 +56,7 @@
           <!-- Tab: Workflow -->
           <div v-if="activeTab === 'workflow'" class="tab-content">
             <div class="workflow-steps">
-              <div class="workflow-step" v-for="(step, idx) in content[lang].workflow" :key="idx">
+              <div class="workflow-step" v-for="(step, idx) in langContent.workflow" :key="idx">
                 <div class="step-number">{{ idx + 1 }}</div>
                 <div class="step-info">
                   <span class="step-title">{{ step.title }}</span>
@@ -70,7 +70,7 @@
           <!-- Tab: Features -->
           <div v-if="activeTab === 'features'" class="tab-content">
             <div class="feature-list">
-              <div class="feature-item" v-for="(f, idx) in content[lang].features" :key="idx">
+              <div class="feature-item" v-for="(f, idx) in langContent.features" :key="idx">
                 <div class="feature-header">
                   <span class="feature-icon">{{ f.icon }}</span>
                   <span class="feature-title">{{ f.title }}</span>
@@ -84,11 +84,7 @@
 
           <!-- Tab: Shortcuts -->
           <div v-if="activeTab === 'shortcuts'" class="tab-content">
-            <div
-              class="shortcut-group"
-              v-for="(group, gidx) in content[lang].shortcuts"
-              :key="gidx"
-            >
+            <div class="shortcut-group" v-for="(group, gidx) in langContent.shortcuts" :key="gidx">
               <div class="shortcut-group-title">{{ group.title }}</div>
               <div class="shortcuts-grid">
                 <div class="shortcut-item" v-for="(sc, sidx) in group.items" :key="sidx">
@@ -102,7 +98,7 @@
           <!-- Tab: Tips -->
           <div v-if="activeTab === 'tips'" class="tab-content">
             <div class="tips-list">
-              <div class="tip-item" v-for="(tip, idx) in content[lang].tips" :key="idx">
+              <div class="tip-item" v-for="(tip, idx) in langContent.tips" :key="idx">
                 <span class="tip-icon">{{ tip.icon }}</span>
                 <div class="tip-body">
                   <span class="tip-title" v-if="tip.title">{{ tip.title }}</span>
@@ -117,7 +113,7 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { localeRef } from '../lib/i18n'
 import { QUICK_START_TABS, QUICK_START_CONTENT } from '../data/quickStartGuide'
@@ -136,9 +132,10 @@ watch(localeRef, (v) => {
 })
 const activeTab = ref('workflow')
 
-const content = QUICK_START_CONTENT
+// Inhalte der gewählten Anleitungssprache (UiSegmentedControl liefert nur 'de' oder 'en')
+const langContent = computed(() => QUICK_START_CONTENT[lang.value === 'en' ? 'en' : 'de'])
 // Beschriftungen folgen der Sprache der Anleitung, nicht nur der App
-const labels = computed(() => content[lang.value].labels)
+const labels = computed(() => langContent.value.labels)
 const tabOptions = computed(() =>
   QUICK_START_TABS.map((id) => ({ value: id, label: labels.value[id] })),
 )
@@ -147,9 +144,9 @@ function toggleGuide() {
   isVisible.value = !isVisible.value
 }
 
-function handleKeydown(e) {
+function handleKeydown(e: KeyboardEvent) {
   if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
-    if (!e.target.matches('input, textarea, select')) {
+    if (!(e.target as Element).matches('input, textarea, select')) {
       e.preventDefault()
       toggleGuide()
     }

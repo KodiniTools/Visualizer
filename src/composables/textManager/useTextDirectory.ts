@@ -17,7 +17,7 @@ export interface TextListEntry {
 export interface TextDirectoryDeps {
   canvasManager: CanvasManagerRef
   historyRecorder: Pick<HistoryRecorder, 'checkpoint'>
-  beatMarkerStore: { clearTextReference: (id: unknown) => void }
+  beatMarkerStore: { clearTextReference: (id: TextObject['id']) => unknown }
   selectedText: SelectedTextRef
   multiSelectedTexts: Ref<TextObject[]>
 }

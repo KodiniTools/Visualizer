@@ -34,7 +34,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, provide, onMounted, onUnmounted } from 'vue'
 import { usePlayerPopover, isOutsidePopoverClick } from '../composables/usePlayerPopover'
 import { usePlayerVolumeEq } from '../composables/usePlayerVolumeEq'
@@ -67,8 +67,9 @@ import PlayerBarControls from './sticky-player-bar/PlayerBarControls.vue'
 import SlideshowPopover from './sticky-player-bar/SlideshowPopover.vue'
 import { SLIDESHOW_EDIT_EVENT } from '../lib/slideshowEditRequest'
 import { SHAPES_OPEN_EVENT } from '../lib/shapes/shapeInteraction'
+import type { PlayerBarContext } from './sticky-player-bar/playerBarContext'
 
-const barRef = ref(null)
+const barRef = ref<HTMLElement | null>(null)
 
 // The bar owns all shared state via composables (so watchers and DOM listeners
 // register exactly once) and hands it to the child popovers/controls through a
@@ -95,7 +96,14 @@ provide('bgSettings', useBgSettings())
 // Platzierungs-Einstellungen sollen das Schließen des Popovers überleben.
 provide('videoPanel', videoPanel)
 
-provide('playerBar', { popover, volumeEq, playMode, audioSource, markers, playlist })
+provide('playerBar', {
+  popover,
+  volumeEq,
+  playMode,
+  audioSource,
+  markers,
+  playlist,
+} satisfies PlayerBarContext)
 
 // Tippen auf dem Canvas legt sofort einen Text an (TextManagerPanel reagiert
 // auf dieses Ereignis). Da der Text-Manager jetzt im Popover sitzt, wird es
@@ -108,7 +116,7 @@ const openSlideshow = () => popover.openPopover('slideshow')
 const openShapes = () => popover.openPopover('shapes')
 // Klick daneben: blendet alle offenen Fenster aus, die Funktionen bleiben in
 // der Leiste aktiv (erneuter Klick dort öffnet sie wieder).
-const onDocumentPointerDown = (event) => {
+const onDocumentPointerDown = (event: PointerEvent) => {
   if (!popover.openPopovers.value.length) return
   if (isOutsidePopoverClick(event.target, barRef.value)) popover.hideAllPopovers()
 }

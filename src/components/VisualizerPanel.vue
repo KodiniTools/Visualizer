@@ -57,19 +57,20 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, inject } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { useVisualizerStore } from '../stores/visualizerStore'
 import HelpTooltip from './HelpTooltip.vue'
 import VisualizerTypeList from './visualizer-panel/VisualizerTypeList.vue'
+import type { PlayerBarContext } from './sticky-player-bar/playerBarContext'
 
 const { t } = useI18n()
 const store = useVisualizerStore()
 const searchQuery = ref('')
 // Player-Leiste (Popover-Verwaltung); null, wenn das Panel außerhalb der
 // Leiste gemountet wird – dann entfällt nur der Schnellzugriff-Button.
-const playerBar = inject('playerBar', null)
+const playerBar = inject<PlayerBarContext | null>('playerBar', null)
 </script>
 
 <style scoped src="./visualizer-panel/visualizerPanelShared.css"></style>

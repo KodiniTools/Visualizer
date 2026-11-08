@@ -41,22 +41,39 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, onBeforeUnmount, inject, watch } from 'vue'
-import { loadPlacementSettings, savePlacementSettings } from '../lib/imagePlacementSettings'
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount, inject, watch, type Ref } from 'vue'
+import {
+  loadPlacementSettings,
+  savePlacementSettings,
+  type PlacementSettings,
+} from '../lib/imagePlacementSettings'
 import { useI18n } from '../lib/i18n'
 import { useToastStore } from '../stores/toastStore'
 import ImagePreviewOverlay from './foto-panel/ImagePreviewOverlay.vue'
 import StockGallerySection from './foto-panel/StockGallerySection.vue'
-import { useStockGallery } from '../composables/useStockGallery'
+import { useStockGallery, type StockImage } from '../composables/useStockGallery'
 import { useGalleryCanvasDrop } from '../composables/useGalleryCanvasDrop'
+import type { CanvasManagerRef } from '../composables/types'
+import type { MultiImageManager } from '../lib/multiImageManager'
+import type { ImageSelectionAreaBounds } from '../lib/canvasManager/interaction/SelectionManager'
+
+/** Vorschau eines Stock-Bildes (ImagePreviewOverlay) */
+interface StockPreview {
+  src: string
+  name: string
+  type: 'stock'
+  data: StockImage
+}
 
 const { t } = useI18n()
 const toastStore = useToastStore()
 
 // Injected Refs von App.vue
-const multiImageManagerRef = inject('multiImageManager')
-const canvasManagerRef = inject('canvasManager')
+const multiImageManagerRef = inject('multiImageManager') as
+  | Ref<MultiImageManager | null | undefined>
+  | undefined
+const canvasManagerRef = inject('canvasManager') as CanvasManagerRef | undefined
 
 // Platzierungs-Einstellungen
 // Platzierungs-Einstellungen (dauerhaft gespeichert)
@@ -78,10 +95,10 @@ watch([selectedAnimation, animationDuration, imageScale, imageOffsetX, imageOffs
 
 // Bereichsauswahl-Modus
 const isInRangeSelectionMode = ref(false)
-const pendingRangeSelectionImage = ref(null)
+const pendingRangeSelectionImage = ref<HTMLImageElement | null>(null)
 
 // Bild-Vorschau
-const previewImage = ref(null)
+const previewImage = ref<StockPreview | null>(null)
 
 // Stock-Galerie Composable
 const {
@@ -117,7 +134,9 @@ async function addStockImageToCanvas() {
       multiImageManager.addImage(img)
     }
     console.log(`✅ ${imagesToAdd.length} Stock-Bild(er) auf Canvas platziert`)
-    toastStore.success(t('toast.imagesAddedToCanvas').replace('{count}', imagesToAdd.length))
+    toastStore.success(
+      t('toast.imagesAddedToCanvas').replace('{count}', String(imagesToAdd.length)),
+    )
     deselectAllStockImages()
   } catch (error) {
     console.error('❌ Fehler beim Laden der Stock-Bilder:', error)
@@ -169,7 +188,7 @@ async function setStockAsWorkspaceBackground() {
 // BEREICHSAUSWAHL MIT ANIMATION
 // ═══════════════════════════════════════════════════════════════════
 
-function updatePlacementSettings(settings) {
+function updatePlacementSettings(settings: PlacementSettings) {
   selectedAnimation.value = settings.selectedAnimation
   animationDuration.value = settings.animationDuration
   imageScale.value = settings.imageScale
@@ -200,7 +219,7 @@ async function startStockImageRangeSelection() {
   }
 }
 
-function handleRangeSelectionComplete(bounds) {
+function handleRangeSelectionComplete(bounds: ImageSelectionAreaBounds | null | undefined) {
   if (!bounds || !pendingRangeSelectionImage.value) {
     isInRangeSelectionMode.value = false
     pendingRangeSelectionImage.value = null
@@ -281,7 +300,7 @@ const {
   startDrag: startGalleryDrag,
   endDrag: endGalleryDrag,
   teardown: teardownGalleryDrop,
-} = useGalleryCanvasDrop({
+} = useGalleryCanvasDrop<StockImage>({
   canvasManagerRef,
   multiImageManagerRef,
   placement: { selectedAnimation, animationDuration, imageScale },
@@ -294,7 +313,7 @@ const {
   onError: () => toastStore.error(t('toast.imageLoadError')),
 })
 
-function handleGalleryImageDragStart({ img, event }) {
+function handleGalleryImageDragStart({ img, event }: { img: StockImage; event: DragEvent }) {
   startGalleryDrag(img, event)
 }
 
@@ -308,7 +327,7 @@ onBeforeUnmount(() => teardownGalleryDrop())
 // BILD-VORSCHAU
 // ═══════════════════════════════════════════════════════════════════
 
-async function openStockPreview(img) {
+async function openStockPreview(img: StockImage) {
   try {
     const loadedImg = await loadStockImageObject(img)
     previewImage.value = {

@@ -3,7 +3,30 @@
 // Name unter i18n `audioFx.effects.${key}`), ob er eine Audio-Quelle und eine
 // Farbe hat, und seine Regler (Store-Feld, Beschriftung `audioFx.${label}`, Bereich).
 
-const range = (prop: string, label: string, max: number, unit = '') => ({
+export interface AudioFxRange {
+  /** Store-Feld (Zahl) */
+  prop: string
+  /** i18n-Schlüssel unter `audioFx.` */
+  label: string
+  min: number
+  max: number
+  unit: string
+}
+
+export interface AudioFxEffect {
+  key: string
+  source?: boolean
+  color?: boolean
+  ranges: AudioFxRange[]
+}
+
+export interface AudioFxGroup {
+  id: string
+  label: string | null
+  effects: AudioFxEffect[]
+}
+
+const range = (prop: string, label: string, max: number, unit = ''): AudioFxRange => ({
   prop,
   label,
   min: 0,
@@ -11,7 +34,7 @@ const range = (prop: string, label: string, max: number, unit = '') => ({
   unit,
 })
 
-export const AUDIO_FX_GROUPS = [
+export const AUDIO_FX_GROUPS: AudioFxGroup[] = [
   {
     id: 'audio',
     label: null,

@@ -803,7 +803,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const { useSlideshowPresetStore, MANUAL_CLEANUP_GRACE_MS } = await import(
       '../../stores/slideshowPresetStore.js'
     )
-    const { useToastStore } = await import('../../stores/toastStore.js')
+    const { useToastStore } = await import('../../stores/toastStore')
     const store = useSlideshowPresetStore()
     const toasts = useToastStore()
     const success = vi.spyOn(toasts, 'success')

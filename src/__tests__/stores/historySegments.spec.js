@@ -3,10 +3,10 @@ import { createPinia, setActivePinia } from 'pinia'
 import { reactive, ref } from 'vue'
 import { useHistoryStore } from '../../stores/historyStore.js'
 import { useVisualizerStore } from '../../stores/visualizerStore.js'
-import { useTickerStore } from '../../stores/tickerStore.js'
+import { useTickerStore } from '../../stores/tickerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
 import { useBackgroundTilesStore } from '../../stores/backgroundTilesStore.js'
-import { useGridStore } from '../../stores/gridStore.js'
+import { useGridStore } from '../../stores/gridStore'
 import { createHistoryRecorder } from '../../lib/history/historyRecorder.js'
 import {
   createBackgroundTilesSegment,

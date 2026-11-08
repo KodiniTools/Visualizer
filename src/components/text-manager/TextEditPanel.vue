@@ -60,7 +60,7 @@
 import { ref, toRef, inject, provide, nextTick, watch } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
 import { useTextFonts } from '../../composables/useTextFonts.js'
-import { useToastStore } from '../../stores/toastStore.js'
+import { useToastStore } from '../../stores/toastStore'
 import {
   serializeTextToDefaults,
   saveTextDefaults,

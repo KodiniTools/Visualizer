@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { ref, computed, h } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
-import { useToastStore } from '../../stores/toastStore.js'
+import { useToastStore } from '../../stores/toastStore'
 import de from '../../lib/i18n/de.js'
 
 const stock = vi.hoisted(() => ({}))

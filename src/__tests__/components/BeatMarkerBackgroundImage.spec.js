@@ -5,8 +5,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useBeatMarkers } from '../../composables/useBeatMarkers.js'
 import { usePlayerStore } from '../../stores/playerStore.js'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
-import { useMarkerTransitionStore } from '../../stores/markerTransitionStore.js'
-import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore.js'
+import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
+import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore'
 import { useImageGallery } from '../../composables/useImageGallery.js'
 
 const AR = { enabled: true, source: 'mid', effects: { hue: { enabled: true, intensity: 70 } } }

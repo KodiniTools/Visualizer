@@ -1,4 +1,4 @@
-// src/stores/markerTransitionStore.js
+// src/stores/markerTransitionStore.ts
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 
@@ -24,7 +24,7 @@ export const useMarkerTransitionStore = defineStore('markerTransition', () => {
 
   // Laufzeit-Status (nicht reaktiv – nur von Composable/Renderer genutzt)
   let active = false
-  let startTime = null
+  let startTime: number | null = null
   let durationMs = 0
 
   // Dauer des Capture-Fensters vor dem Fade (ms). Gibt Live- und Aufnahme-Ziel
@@ -62,7 +62,7 @@ export const useMarkerTransitionStore = defineStore('markerTransition', () => {
 
   // ── Übergang steuern ──────────────────────────────────────────────────
 
-  function clampedDuration() {
+  function clampedDuration(): number {
     return Math.max(1, Math.min(5, Number(duration.value) || 1))
   }
 
@@ -77,27 +77,26 @@ export const useMarkerTransitionStore = defineStore('markerTransition', () => {
   /**
    * Startet den eigentlichen Ausblend-Verlauf (nach Anwenden der Änderung).
    */
-  function startFade(now = performance.now()) {
+  function startFade(now: number = performance.now()) {
     startTime = now
     durationMs = clampedDuration() * 1000
   }
 
   /** Capture-Phase aktiv (Frame einfrieren, alte Szene noch sichtbar). */
-  function isCapturing() {
+  function isCapturing(): boolean {
     return active && startTime === null
   }
 
   /** Fade-Phase aktiv (alten Frame ausblenden). */
-  function isFading() {
+  function isFading(): boolean {
     return active && startTime !== null
   }
 
   /**
    * Fortschritt der Fade-Phase 0..1, oder null wenn nicht im Fade.
-   * @param {number} now
    */
-  function fadeProgress(now = performance.now()) {
-    if (!isFading()) return null
+  function fadeProgress(now: number = performance.now()): number | null {
+    if (!active || startTime === null) return null
     if (durationMs <= 0) return 1
     return (now - startTime) / durationMs
   }

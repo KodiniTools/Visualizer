@@ -11,7 +11,7 @@ import SliderField from '../../components/ui/SliderField.vue'
 import { useBeatMarkers } from '../../composables/useBeatMarkers.js'
 import { usePlayerStore } from '../../stores/playerStore.js'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
-import { useMarkerTransitionStore } from '../../stores/markerTransitionStore.js'
+import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
 import de from '../../lib/i18n/de.js'
 
 const P = de.player

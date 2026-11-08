@@ -4,7 +4,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import ScreenshotPanel from '../../components/ScreenshotPanel.vue'
 import { registerCanvasScreenshot } from '../../lib/canvasScreenshotBridge.js'
-import { useToastStore } from '../../stores/toastStore.js'
+import { useToastStore } from '../../stores/toastStore'
 
 /** Image-Stub: lädt sofort und meldet feste Maße. */
 class FakeImage {

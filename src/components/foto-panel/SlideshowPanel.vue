@@ -296,7 +296,7 @@ import {
   useSlideshowPresetStore,
   SLIDESHOW_DEFAULT_SETTINGS,
 } from '../../stores/slideshowPresetStore.js'
-import { useToastStore } from '../../stores/toastStore.js'
+import { useToastStore } from '../../stores/toastStore'
 
 const { t, locale } = useI18n()
 const presetStore = useSlideshowPresetStore()

@@ -10,9 +10,9 @@ import {
   removeVideoBackground,
 } from '../lib/background/backgroundMedia.js'
 import { captureCanvasElements, restoreCanvasElements } from '../lib/background/canvasElements.js'
-import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore.js'
-import { useToastStore } from '../stores/toastStore.js'
-import { useTickerStore } from '../stores/tickerStore.js'
+import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore'
+import { useToastStore } from '../stores/toastStore'
+import { useTickerStore } from '../stores/tickerStore'
 import { useI18n } from '../lib/i18n.js'
 import { useHistoryStore } from '../stores/historyStore.js'
 import { getHistoryRecorder } from '../lib/history/historyRecorder.js'

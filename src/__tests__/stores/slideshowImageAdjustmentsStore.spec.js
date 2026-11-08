@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useSlideshowImageAdjustmentsStore } from '../../stores/slideshowImageAdjustmentsStore.js'
+import { useSlideshowImageAdjustmentsStore } from '../../stores/slideshowImageAdjustmentsStore'
 import {
   diffAdjustments,
   restorePersistedAdjustments,

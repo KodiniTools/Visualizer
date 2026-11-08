@@ -8,13 +8,24 @@ const STORAGE_KEY = 'visualizer-slideshow-image-adjustments'
 // kleinere Obergrenze (älteste zuerst raus)
 const MAX_ENTRIES = 200
 
-function normalizeEntry(raw) {
+/** Gemerkte Anpassung eines Bildes samt zugehörigem Audio-Modus des Panels. */
+export interface ImageAdjustmentEntry {
+  adjustments: object
+  audioMode: string
+}
+
+function normalizeEntry(raw: unknown): ImageAdjustmentEntry | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
-  const adjustments = normalizeImageAdjustments(raw.adjustments)
+  const { adjustments: rawAdjustments, audioMode: rawAudioMode } = raw as {
+    adjustments?: unknown
+    audioMode?: unknown
+  }
+  const adjustments = normalizeImageAdjustments(rawAdjustments)
   if (!adjustments) return null
-  const audioMode = isValidSlideshowAudioMode(raw.audioMode)
-    ? raw.audioMode
-    : SLIDESHOW_AUDIO_DEFAULT
+  const audioMode =
+    typeof rawAudioMode === 'string' && isValidSlideshowAudioMode(rawAudioMode)
+      ? rawAudioMode
+      : SLIDESHOW_AUDIO_DEFAULT
   return { adjustments, audioMode }
 }
 
@@ -27,7 +38,7 @@ function normalizeEntry(raw) {
  */
 export const useSlideshowImageAdjustmentsStore = defineStore('slideshowImageAdjustments', () => {
   // { [stableKey]: { adjustments, audioMode } } – Einfügereihenfolge = Alter
-  const entries = ref({})
+  const entries = ref<Record<string, ImageAdjustmentEntry>>({})
   let loaded = false
 
   function load() {
@@ -35,7 +46,7 @@ export const useSlideshowImageAdjustmentsStore = defineStore('slideshowImageAdju
     loaded = true
     try {
       const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
-      const clean = {}
+      const clean: Record<string, ImageAdjustmentEntry> = {}
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
         for (const [key, value] of Object.entries(parsed)) {
           const entry = key && key.length <= 300 ? normalizeEntry(value) : null
@@ -57,8 +68,8 @@ export const useSlideshowImageAdjustmentsStore = defineStore('slideshowImageAdju
     }
   }
 
-  /** @returns {{ adjustments: object, audioMode: string }|null} (Kopie) */
-  function getAdjustments(key) {
+  /** Liefert eine Kopie des Eintrags oder null. */
+  function getAdjustments(key: string | null | undefined): ImageAdjustmentEntry | null {
     load()
     const entry = key ? entries.value[key] : null
     return entry ? JSON.parse(JSON.stringify(entry)) : null
@@ -67,11 +78,13 @@ export const useSlideshowImageAdjustmentsStore = defineStore('slideshowImageAdju
   /**
    * Merkt die Anpassungen eines Bildes (nur bei Änderung wird gespeichert);
    * null entfernt den Eintrag.
-   * @param {string|null} key
-   * @param {object|null} adjustments - fotoSettings-Kopie
-   * @param {string} [audioMode]
+   * @param adjustments - fotoSettings-Kopie
    */
-  function setAdjustments(key, adjustments, audioMode) {
+  function setAdjustments(
+    key: string | null | undefined,
+    adjustments: object | null | undefined,
+    audioMode?: string,
+  ) {
     load()
     if (!key) return
     const entry = adjustments ? normalizeEntry({ adjustments, audioMode }) : null

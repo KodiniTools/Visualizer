@@ -61,10 +61,10 @@ import type {
 } from './canvasManager/interaction/SelectionManager'
 
 /**
- * Text-Objekt auf dem Canvas. relWidth/relHeight setzt calculateTextBounds();
- * `text` ist ein Altfeld (Text-Objekte führen ihren Inhalt in `content`).
+ * Text-Objekt auf dem Canvas. relWidth/relHeight setzt calculateTextBounds()
+ * aus dem Inhalt (`content`).
  */
-export type CanvasTextObject = TextObject & { relWidth?: number; relHeight?: number; text?: string }
+export type CanvasTextObject = TextObject & { relWidth?: number; relHeight?: number }
 
 /** Bild-Hintergrund von Canvas bzw. Workspace */
 export interface ImageBackgroundObject extends FotoImageObject {

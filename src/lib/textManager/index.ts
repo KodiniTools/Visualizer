@@ -7,7 +7,12 @@
  * @module textManager
  */
 export { createTextObject } from './createTextObject'
-export { findObjectAt, getObjectBounds, isPointInRect } from './geometry/textBounds'
+export {
+  findObjectAt,
+  getObjectBounds,
+  isPointInRect,
+  measureTextBlock,
+} from './geometry/textBounds'
 export {
   applyTextStyle,
   applyTextStyleForMeasurement,

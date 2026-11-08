@@ -94,6 +94,11 @@ export class MouseHandler {
 
         const handleKey = this.manager.selectionManager.getHandleAtPos(bounds, x, y)
         if (handleKey) {
+          // Texte vor dem Skalieren neu vermessen: Inhalt/Stil können sich seit
+          // dem Anlegen geändert haben, geladene Texte haben noch keine Größe.
+          if (this.manager.activeObject.type === 'text') {
+            this.manager.calculateTextBounds(this.manager.activeObject)
+          }
           this.manager.currentAction = handleKey
           this.manager.dragStartPos = { x, y }
           // Reliability: Cache bounds and add window listeners for drag outside canvas

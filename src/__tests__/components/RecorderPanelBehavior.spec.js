@@ -182,6 +182,38 @@ describe('RecorderPanel – Status und Steuerknöpfe', () => {
     expect(wrapper.find('.recording-timer').classes()).not.toContain('paused')
   })
 
+  it('Fehlgeschlagene Pause/Fortsetzen lassen den Timer unverändert', async () => {
+    vi.useFakeTimers()
+    setState({ isPrepared: true, statusType: 'ready' })
+    mountPanel()
+    await wrapper.find('.btn-start').trigger('click')
+    await flushPromises()
+    // Pause schlägt fehl (Store meldet false, Zustand bleibt „recording“)
+    store.pauseRecording.mockImplementationOnce(async () => false)
+    await wrapper.find('.btn-pause').trigger('click')
+    await flushPromises()
+    vi.advanceTimersByTime(2100)
+    await flushPromises()
+    expect(wrapper.find('.recording-timer').text()).toBe('00:02')
+    expect(wrapper.find('.recording-timer').classes()).not.toContain('paused')
+
+    // Pause klappt → Timer steht
+    await wrapper.find('.btn-pause').trigger('click')
+    await flushPromises()
+    vi.advanceTimersByTime(3000)
+    await flushPromises()
+    expect(wrapper.find('.recording-timer').text()).toBe('00:02')
+
+    // Fortsetzen schlägt fehl → Timer bleibt angehalten
+    store.resumeRecording.mockImplementationOnce(async () => false)
+    await wrapper.find('.btn-resume').trigger('click')
+    await flushPromises()
+    vi.advanceTimersByTime(3000)
+    await flushPromises()
+    expect(wrapper.find('.recording-timer').text()).toBe('00:02')
+    expect(wrapper.find('.recording-timer').classes()).toContain('paused')
+  })
+
   it('Status „processing“ hat Vorrang vor allen anderen Zuständen', async () => {
     setState({ isRecording: true, statusType: 'processing' })
     mountPanel()

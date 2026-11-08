@@ -19,7 +19,7 @@ import {
 import { SLIDESHOW_BASE_COLOR_DEFAULT } from '../../slideshowBaseColor'
 import { computeSlideshowGradientAudio } from '../../slideshowGradientAudio'
 import { applySlideshowFillAudio, computeSlideshowFillAudio } from '../../slideshowFillAudio'
-import { computeSlideshowImageFillAudio, drawSlideshowImageFill } from '../../slideshowImageFill.js'
+import { computeSlideshowImageFillAudio, drawSlideshowImageFill } from '../../slideshowImageFill'
 import { getSlideshowManager } from '../../slideshowManagerBridge'
 import { getAudioAnalysisData } from '../../audio/audioAnalysisData'
 

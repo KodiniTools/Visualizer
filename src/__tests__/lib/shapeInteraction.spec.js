@@ -7,7 +7,7 @@ import {
   getCanvasPointer,
   SHAPES_OPEN_EVENT,
   SHAPES_FOCUS_TEXT_EVENT,
-} from '../../lib/shapes/shapeInteraction.js'
+} from '../../lib/shapes/shapeInteraction'
 
 // Canvas 1000 × 500, angezeigt in 500 × 250 → 2 Canvas-Pixel pro Bildschirm-Pixel
 function setup({ textAt = null, activeObject = null } = {}) {

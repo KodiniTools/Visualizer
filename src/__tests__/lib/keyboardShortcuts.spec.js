@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { KeyboardShortcuts } from '../../lib/keyboardShortcuts.js'
+import { KeyboardShortcuts } from '../../lib/keyboardShortcuts'
 
 /**
  * Verhaltenstest für KeyboardShortcuts.

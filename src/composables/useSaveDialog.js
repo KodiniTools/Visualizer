@@ -6,7 +6,7 @@ import {
   stripExtension,
   supportsSavePicker,
   triggerDownload,
-} from '../lib/saveFile.js'
+} from '../lib/saveFile'
 
 /**
  * Speichern-Ablauf für Exporte.

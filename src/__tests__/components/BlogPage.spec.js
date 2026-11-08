@@ -9,7 +9,7 @@ import { nextTick } from 'vue'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 import { setLocale } from '../../lib/i18n'
-import { SLIDESHOW_TRANSITIONS } from '../../lib/slideshowTransitions.js'
+import { SLIDESHOW_TRANSITIONS } from '../../lib/slideshowTransitions'
 import BlogPage from '../../components/BlogPage.vue'
 
 const shape = (o) => JSON.stringify(o, (k, v) => (typeof v === 'string' ? '' : v))

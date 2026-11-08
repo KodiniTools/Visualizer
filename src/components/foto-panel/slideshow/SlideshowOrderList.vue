@@ -145,7 +145,7 @@ import {
 } from '../../../lib/slideshowAudio'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 import { slideshowImageKey } from './slideshowImageKey.js'
-import { isValidTransition } from '../../../lib/slideshowTransitions.js'
+import { isValidTransition } from '../../../lib/slideshowTransitions'
 import UiSelect from '../../ui/UiSelect.vue'
 import { audioModeOptions, transitionOptions } from './slideshowSelectOptions.js'
 

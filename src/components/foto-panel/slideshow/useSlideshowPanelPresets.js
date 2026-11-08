@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { slideshowImageKey } from './slideshowImageKey.js'
-import { restorePresetImages } from '../../../lib/slideshowSources.js'
+import { restorePresetImages } from '../../../lib/slideshowSources'
 import { persistUploadImage, restoreUploadImage } from '../../../lib/slideshowImagePersistence'
 import { isQuotaError } from '../../../utils/presetImageRepository'
 import { MANUAL_CLEANUP_GRACE_MS } from '../../../stores/slideshowPresetStore'

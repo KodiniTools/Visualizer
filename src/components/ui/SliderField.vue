@@ -83,7 +83,7 @@
  */
 import { computed, getCurrentInstance, onMounted, ref, useAttrs, useId, watch } from 'vue'
 import { useI18n } from '../../lib/i18n'
-import { clamp } from '../../lib/color.js'
+import { clamp } from '../../lib/color'
 
 defineOptions({ inheritAttrs: false })
 

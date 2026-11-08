@@ -14,25 +14,25 @@
  * - textManager/render/*               - drawText: Transformation, Filter,
  *                                        Zeilen- und Cursor-Rendering
  */
-import { createTextObject } from './textManager/createTextObject.js'
-import { findObjectAt, getObjectBounds, isPointInRect } from './textManager/geometry/textBounds.js'
+import { createTextObject } from './textManager/createTextObject'
+import { findObjectAt, getObjectBounds, isPointInRect } from './textManager/geometry/textBounds'
 import {
   applyTextStyle,
   applyTextStyleForMeasurement,
   applyTextStyleWithAudio,
   resetShadow,
   strongestGlow,
-} from './textManager/style/textStyle.js'
-import { getTypewriterText, restartTypewriter } from './textManager/animation/typewriter.js'
-import { getDisplayOpacity } from './textManager/animation/displayOpacity.js'
-import { getFadeOpacity, restartFade } from './textManager/animation/fade.js'
-import { getScaleValue, restartScale } from './textManager/animation/scale.js'
-import { getSlideOffset, restartSlide } from './textManager/animation/slide.js'
+} from './textManager/style/textStyle'
+import { getTypewriterText, restartTypewriter } from './textManager/animation/typewriter'
+import { getDisplayOpacity } from './textManager/animation/displayOpacity'
+import { getFadeOpacity, restartFade } from './textManager/animation/fade'
+import { getScaleValue, restartScale } from './textManager/animation/scale'
+import { getSlideOffset, restartSlide } from './textManager/animation/slide'
 import {
   calculateTextEffectValue,
   getAudioReactiveValues,
-} from './textManager/audio/textEffectValues.js'
-import { drawText } from './textManager/render/drawText.js'
+} from './textManager/audio/textEffectValues'
+import { drawText } from './textManager/render/drawText'
 
 export class TextManager {
   constructor(textStore) {

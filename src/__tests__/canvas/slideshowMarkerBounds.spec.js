@@ -12,7 +12,7 @@ import {
   applyTransitionToBounds,
   computeTransitionState,
   SLIDESHOW_TRANSITIONS,
-} from '../../lib/slideshowTransitions.js'
+} from '../../lib/slideshowTransitions'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
 
 afterEach(() => {

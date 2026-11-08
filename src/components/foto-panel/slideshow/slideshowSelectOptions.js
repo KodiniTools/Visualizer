@@ -3,7 +3,7 @@
  * Gemeinsam genutzt von Bild-Einstellungskarte und Reihenfolge-Liste.
  */
 import { SLIDESHOW_AUDIO_PRESET_OPTIONS } from '../../../lib/slideshowAudio'
-import { SLIDESHOW_TRANSITIONS } from '../../../lib/slideshowTransitions.js'
+import { SLIDESHOW_TRANSITIONS } from '../../../lib/slideshowTransitions'
 
 /** Übergang: „Standard (…)“ plus alle Übergänge mit Symbol. */
 export function transitionOptions(t, defaultTransition) {

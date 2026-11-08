@@ -13,7 +13,7 @@ import {
 import {
   computeSlideshowImageFillAudio,
   normalizeSlideshowImageFill,
-} from '../../lib/slideshowImageFill.js'
+} from '../../lib/slideshowImageFill'
 import SlideshowAudioSourceSelect from '../../components/foto-panel/slideshow/SlideshowAudioSourceSelect.vue'
 import { sourceNames } from '../../lib/audio/AudioLevelCalculator'
 

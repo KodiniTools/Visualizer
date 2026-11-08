@@ -4,7 +4,7 @@ import {
   computeTransitionState,
   isValidTransition,
   resolveTransition,
-} from '../../lib/slideshowTransitions.js'
+} from '../../lib/slideshowTransitions'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 import { MultiImageManager } from '../../lib/multiImageManager.js'
 

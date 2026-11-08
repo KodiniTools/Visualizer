@@ -91,7 +91,7 @@
  * optional den Farben einer konkreten Form.
  */
 import { computed } from 'vue'
-import { getGalleryPreview, SHAPE_KIND, SHAPE_PATHS } from '../../lib/shapes/shapes.js'
+import { getGalleryPreview, SHAPE_KIND, SHAPE_PATHS } from '../../lib/shapes/shapes'
 
 const props = defineProps({
   /** Galerie-Eintrag ({ type, aspect, preset }) */

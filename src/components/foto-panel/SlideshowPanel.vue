@@ -277,7 +277,7 @@ import {
   useSlideshowPanelPresets,
   persistImageWithCleanup,
 } from './slideshow/useSlideshowPanelPresets.js'
-import { isSameSlideshowImageFill } from '../../lib/slideshowImageFill.js'
+import { isSameSlideshowImageFill } from '../../lib/slideshowImageFill'
 import { useImageGallery } from '../../composables/useImageGallery.js'
 import { useStockGallery } from '../../composables/useStockGallery.js'
 import { useI18n } from '../../lib/i18n'

@@ -9,7 +9,7 @@ import {
   loadStoredSlideshowImageFill,
   normalizeSlideshowImageFill,
   storeSlideshowImageFill,
-} from '../../lib/slideshowImageFill.js'
+} from '../../lib/slideshowImageFill'
 
 const stock = {
   id: 'bg-1',

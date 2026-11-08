@@ -123,7 +123,7 @@ import {
   hslTrackGradients,
   normalizeHex,
   setHslChannel,
-} from '../../lib/color.js'
+} from '../../lib/color'
 
 defineOptions({ inheritAttrs: false })
 

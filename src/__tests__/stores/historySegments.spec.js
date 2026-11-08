@@ -21,7 +21,7 @@ import {
   createVideosSegment,
 } from '../../lib/history/segments/canvasSegments'
 import { createBackgroundSegment } from '../../lib/history/segments/backgroundSegment'
-import { createTextObject } from '../../lib/textManager/createTextObject.js'
+import { createTextObject } from '../../lib/textManager/createTextObject'
 
 /** Fake-Bild-Element (jsdom lädt keine Bilder) */
 function fakeImage(src) {

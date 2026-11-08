@@ -6,7 +6,7 @@ import {
   clearTextDefaults,
   hasTextDefaults,
   TEXT_DEFAULTS_EVENT,
-} from '../lib/textDefaults.js'
+} from '../lib/textDefaults'
 
 const FORM_SOURCE = 'new-text-form'
 const AUTOSAVE_DELAY_MS = 400

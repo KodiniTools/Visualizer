@@ -66,7 +66,7 @@ import RecorderPopover from './sticky-player-bar/RecorderPopover.vue'
 import PlayerBarControls from './sticky-player-bar/PlayerBarControls.vue'
 import SlideshowPopover from './sticky-player-bar/SlideshowPopover.vue'
 import { SLIDESHOW_EDIT_EVENT } from '../lib/slideshowEditRequest'
-import { SHAPES_OPEN_EVENT } from '../lib/shapes/shapeInteraction.js'
+import { SHAPES_OPEN_EVENT } from '../lib/shapes/shapeInteraction'
 
 const barRef = ref(null)
 

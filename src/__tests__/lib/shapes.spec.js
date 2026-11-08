@@ -38,7 +38,7 @@ import {
   wrapShapeText,
   EMOJI_SET,
   getFillStyle,
-} from '../../lib/shapes/shapes.js'
+} from '../../lib/shapes/shapes'
 import {
   RECENT_COLORS_KEY,
   RECENT_COLORS_MAX,

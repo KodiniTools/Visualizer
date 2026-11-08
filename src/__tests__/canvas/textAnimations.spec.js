@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { applyEasing } from '../../lib/textManager/animation/easing.js'
-import { ensureAnimationState } from '../../lib/textManager/animation/state.js'
-import { resolveTimeline } from '../../lib/textManager/animation/timeline.js'
-import { getFadeOpacity, restartFade } from '../../lib/textManager/animation/fade.js'
-import { getScaleValue, restartScale } from '../../lib/textManager/animation/scale.js'
-import { getSlideOffset, restartSlide } from '../../lib/textManager/animation/slide.js'
-import { getTypewriterText, restartTypewriter } from '../../lib/textManager/animation/typewriter.js'
+import { applyEasing } from '../../lib/textManager/animation/easing'
+import { ensureAnimationState } from '../../lib/textManager/animation/state'
+import { resolveTimeline } from '../../lib/textManager/animation/timeline'
+import { getFadeOpacity, restartFade } from '../../lib/textManager/animation/fade'
+import { getScaleValue, restartScale } from '../../lib/textManager/animation/scale'
+import { getSlideOffset, restartSlide } from '../../lib/textManager/animation/slide'
+import { getTypewriterText, restartTypewriter } from '../../lib/textManager/animation/typewriter'
 import { easeIn as audioEaseIn, easeOut as audioEaseOut } from '../../lib/audio/EasingFunctions'
 
 /**

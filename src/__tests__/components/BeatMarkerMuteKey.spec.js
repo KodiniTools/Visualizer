@@ -10,7 +10,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useBeatMarkers } from '../../composables/useBeatMarkers.js'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
-import { KeyboardShortcuts } from '../../lib/keyboardShortcuts.js'
+import { KeyboardShortcuts } from '../../lib/keyboardShortcuts'
 
 const openMarkers = vi.fn()
 const Host = defineComponent({

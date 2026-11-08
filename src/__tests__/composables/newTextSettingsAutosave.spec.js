@@ -12,7 +12,7 @@ import {
   saveTextDefaults,
   clearTextDefaults,
   SETTINGS_KEY,
-} from '../../lib/textDefaults.js'
+} from '../../lib/textDefaults'
 import {
   loadTextSequenceSettings,
   saveTextSequenceSettings,

@@ -3,7 +3,7 @@ import { describe, it, expect, afterEach } from 'vitest'
 import {
   calculateTextEffectValue,
   getAudioReactiveValues,
-} from '../../lib/textManager/audio/textEffectValues.js'
+} from '../../lib/textManager/audio/textEffectValues'
 import { createTextAudioReactiveConfig } from '../../lib/audio/audioReactiveConfig'
 import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 

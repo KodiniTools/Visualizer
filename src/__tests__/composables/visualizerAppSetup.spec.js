@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { reactive, ref, nextTick, toRaw } from 'vue'
 
 const ksInstances = []
-vi.mock('../../lib/keyboardShortcuts.js', () => ({
+vi.mock('../../lib/keyboardShortcuts', () => ({
   KeyboardShortcuts: class {
     constructor(stores, managers) {
       this.stores = stores

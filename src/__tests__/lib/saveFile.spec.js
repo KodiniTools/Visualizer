@@ -7,7 +7,7 @@ import {
   supportsSavePicker,
   timestampedFilename,
   triggerDownload,
-} from '../../lib/saveFile.js'
+} from '../../lib/saveFile'
 
 function domError(name) {
   const error = new Error(name)

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { isValidTransition } from '../lib/slideshowTransitions.js'
+import { isValidTransition } from '../lib/slideshowTransitions'
 import {
   isValidSlideshowAudioMode,
   isValidSlideshowAudioSource,

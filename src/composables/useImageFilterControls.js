@@ -1,5 +1,5 @@
 import { ref, reactive, computed, watch } from 'vue'
-import { normalizeHex } from '../lib/color.js'
+import { normalizeHex } from '../lib/color'
 import { useHistoryStore } from '../stores/historyStore'
 
 /** Werkseinstellungen aller numerischen Filter (Reset-Werte der SliderFields). */

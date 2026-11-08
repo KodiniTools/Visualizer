@@ -6,7 +6,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import TextManagerPanel from '../../components/TextManagerPanel.vue'
 import TextDirectoryPanel from '../../components/text-manager/TextDirectoryPanel.vue'
-import { TextManager } from '../../lib/textManager.js'
+import { TextManager } from '../../lib/textManager'
 import { TEXT_SEQUENCE_KEY } from '../../lib/textSequenceSettings'
 import { historyApplyRevision } from '../../lib/history/historyRecorder'
 

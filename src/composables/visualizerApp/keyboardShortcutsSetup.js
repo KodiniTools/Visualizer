@@ -1,5 +1,5 @@
 import { watch } from 'vue'
-import { KeyboardShortcuts } from '../../lib/keyboardShortcuts.js'
+import { KeyboardShortcuts } from '../../lib/keyboardShortcuts'
 
 /**
  * Tastenkürzel einrichten, sobald CanvasManager und MultiImageManager bereit

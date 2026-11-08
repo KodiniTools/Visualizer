@@ -17,6 +17,7 @@
  */
 import { ref, type Ref } from 'vue'
 import type { MultiImageManager } from '../lib/multiImageManager'
+import type { ImageTimedAnimation } from '../lib/canvasObjects/imageAnimation'
 import type { CanvasManagerRef } from './types'
 
 /** Refs mit den Platzierungs-Einstellungen */
@@ -24,6 +25,8 @@ export interface GalleryDropPlacement {
   selectedAnimation?: Ref<string>
   animationDuration?: Ref<number>
   imageScale?: Ref<number>
+  /** Animationen wie bei Texten für neue Bilder (optional) */
+  timedAnimation?: Ref<ImageTimedAnimation | null | undefined>
 }
 
 /** Optionen für useGalleryCanvasDrop; P ist die gezogene Nutzlast */
@@ -137,6 +140,7 @@ export function useGalleryCanvasDrop<P>({
         placement.selectedAnimation?.value || 'none',
         {
           duration: placement.animationDuration?.value || 1000,
+          timedAnimation: placement.timedAnimation?.value ?? null,
         },
       )
 

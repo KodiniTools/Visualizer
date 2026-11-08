@@ -11,6 +11,9 @@
       :api="boundsApi"
     />
 
+    <!-- Animationen wie bei Texten (nur normale Canvas-Bilder) -->
+    <ImageAnimationControls v-if="isPlaceableImage" :image="currentActiveImage" />
+
     <!-- Preset + Undo/Redo/Reset -->
     <PresetAndHistory />
 
@@ -49,6 +52,7 @@ import RotationControls from './image-filters/RotationControls.vue'
 import FlipControls from './image-filters/FlipControls.vue'
 import BorderControls from './image-filters/BorderControls.vue'
 import PositionSizeControls from './image-filters/PositionSizeControls.vue'
+import ImageAnimationControls from './image-animation/ImageAnimationControls.vue'
 
 const { locale } = useI18n()
 

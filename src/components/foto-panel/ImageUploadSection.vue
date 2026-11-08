@@ -162,6 +162,16 @@
       @place-directly="$emit('add-directly')"
     />
 
+    <!-- Animationen wie bei Texten für neu hinzugefügte Bilder -->
+    <ImageAnimationPanel
+      v-if="selectedImageCount > 0 && newImageAnimation"
+      class="new-image-animation"
+      :title="t('foto.newImageAnimation')"
+      :hint="t('foto.newImageAnimationHint')"
+      :animation="newImageAnimation"
+      :restartable="false"
+    />
+
     <p v-if="imageGallery.length === 0" class="empty-state">{{ t('foto.noImagesUploaded') }}</p>
   </div>
 </template>
@@ -170,6 +180,7 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import PlacementSettings from './PlacementSettings.vue'
+import ImageAnimationPanel from './image-animation/ImageAnimationPanel.vue'
 import UiButton from '../ui/UiButton.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
 
@@ -211,6 +222,11 @@ const props = defineProps({
   isInRangeSelectionMode: {
     type: Boolean,
     default: false,
+  },
+  // Animationen für neue Bilder ({ fade, scale, slide }); wird direkt bearbeitet
+  newImageAnimation: {
+    type: Object,
+    default: null,
   },
 })
 

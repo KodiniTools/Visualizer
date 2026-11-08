@@ -1,5 +1,10 @@
 import { ref, watch } from 'vue'
-import { loadPlacementSettings, savePlacementSettings } from '../../lib/imagePlacementSettings'
+import {
+  loadImageAnimation,
+  loadPlacementSettings,
+  saveImageAnimation,
+  savePlacementSettings,
+} from '../../lib/imagePlacementSettings'
 
 /**
  * Eigene Galerie-Bilder auf den Canvas bringen: direkt, per Bereichsauswahl
@@ -39,6 +44,11 @@ export function useImagePlacement({
     }),
   )
 
+  // Animationen wie bei Texten für neu hinzugefügte Bilder (dauerhaft gespeichert)
+  const newImageAnimation = ref(loadImageAnimation())
+  watch(newImageAnimation, (v) => saveImageAnimation(v), { deep: true })
+  const animationOption = () => ({ timedAnimation: newImageAnimation.value })
+
   // Bereichsauswahl-Modus
   const isInRangeSelectionMode = ref(false)
   const pendingRangeSelectionImage = ref(null)
@@ -76,7 +86,7 @@ export function useImagePlacement({
     if (!multiImageManager) return
 
     imagesToAdd.forEach((imgData) => {
-      multiImageManager.addImage(imgData.img)
+      multiImageManager.addImage(imgData.img, animationOption())
     })
 
     console.log(`✅ ${imagesToAdd.length} Bild(er) auf Canvas platziert`)
@@ -163,7 +173,7 @@ export function useImagePlacement({
       pendingRangeSelectionImage.value,
       scaledBounds,
       bounds.animation || selectedAnimation.value,
-      { duration: animationDuration.value },
+      { duration: animationDuration.value, ...animationOption() },
     )
 
     deselectAllImages()
@@ -195,6 +205,7 @@ export function useImagePlacement({
 
     multiImageManager.addImageWithBounds(imgData.img, bounds, selectedAnimation.value, {
       duration: animationDuration.value,
+      ...animationOption(),
     })
     console.log('✅ Bild platziert')
     deselectAllImages()
@@ -220,7 +231,7 @@ export function useImagePlacement({
     const multiImageManager = multiImageManagerRef?.value
     if (!multiImageManager) return
 
-    multiImageManager.addImage(previewImage.value.data.img)
+    multiImageManager.addImage(previewImage.value.data.img, animationOption())
     closePreview()
   }
 
@@ -235,6 +246,7 @@ export function useImagePlacement({
 
   return {
     selectedAnimation,
+    newImageAnimation,
     animationDuration,
     imageScale,
     imageOffsetX,

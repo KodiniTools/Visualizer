@@ -13,6 +13,8 @@ import {
   PLACEMENT_KEYS,
   PLACEMENT_DEFAULTS,
   KEEP_ASPECT_KEY,
+  IMAGE_ANIMATION_KEY,
+  loadImageAnimation,
 } from '../../lib/imagePlacementSettings'
 import { useImagePlacement } from '../../components/foto-panel/useImagePlacement.js'
 import PositionSizeControls from '../../components/foto-panel/image-filters/PositionSizeControls.vue'
@@ -63,6 +65,30 @@ describe('Platzierungs-Einstellungen', () => {
     expect(p.animationDuration.value).toBe(2500)
     expect(p.imageScale.value).toBe(3)
     expect(p.imageOffsetY.value).toBe(25)
+  })
+
+  it('Animationen für neue Bilder werden gespeichert und beim nächsten Start geladen', async () => {
+    let p = placement()
+    expect(p.newImageAnimation.value.fade.enabled).toBe(false)
+    p.newImageAnimation.value.slide.enabled = true
+    p.newImageAnimation.value.slide.from = 'right'
+    await nextTick()
+    expect(JSON.parse(localStorage.getItem(IMAGE_ANIMATION_KEY)).slide).toMatchObject({
+      enabled: true,
+      from: 'right',
+    })
+    p = placement()
+    expect(p.newImageAnimation.value.slide).toMatchObject({ enabled: true, from: 'right' })
+  })
+
+  it('beschädigte Animations-Daten → alle Effekte aus', () => {
+    localStorage.setItem(IMAGE_ANIMATION_KEY, '{kaputt')
+    const anim = loadImageAnimation()
+    expect([anim.fade.enabled, anim.scale.enabled, anim.slide.enabled]).toEqual([
+      false,
+      false,
+      false,
+    ])
   })
 
   it('eigene Bilder und Stock-Galerie sind getrennt', () => {

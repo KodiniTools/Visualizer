@@ -297,6 +297,40 @@ describe('History-Segmente', () => {
     expect(mgr.images[0].imageObject.src).toBe('data:a')
   })
 
+  it('Bilder: Animationen (wie bei Texten) sind Teil des Verlaufs', async () => {
+    const cm = makeCanvasManager()
+    const mgr = cm.multiImageManager
+    recorder.registerSegment(
+      'images',
+      createImagesSegment(() => cm),
+    )
+    mgr.images.push({
+      id: 1,
+      type: 'image',
+      imageObject: fakeImage('data:a'),
+      relX: 0.1,
+      relY: 0.1,
+      relWidth: 0.3,
+      relHeight: 0.3,
+      settings: {},
+      fotoSettings: {},
+    })
+    recorder.rebase()
+
+    const img = mgr.images[0]
+    img.timedAnimation = { fade: { enabled: true, duration: 1000 } }
+    recorder.checkpoint()
+    img.timedAnimation.fade.duration = 3000
+    recorder.checkpoint()
+
+    await store.undo()
+    expect(img.timedAnimation.fade.duration).toBe(1000)
+    await store.undo()
+    expect(img.timedAnimation).toBeUndefined()
+    await store.redo()
+    expect(img.timedAnimation).toEqual({ fade: { enabled: true, duration: 1000 } })
+  })
+
   it('Videos: entfernte Videos werden nur pausiert, zerstörte aus der Quelle neu erzeugt', async () => {
     const cm = makeCanvasManager()
     const mgr = cm.videoManager

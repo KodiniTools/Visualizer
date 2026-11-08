@@ -19,6 +19,7 @@
       :imageOffsetX="imageOffsetX"
       :imageOffsetY="imageOffsetY"
       :isInRangeSelectionMode="isInRangeSelectionMode"
+      :new-image-animation="newImageAnimation"
       @upload="handleImageUpload"
       @select-image="selectImage"
       @open-preview="openUploadedPreview"
@@ -156,6 +157,7 @@ const {
 
 const {
   selectedAnimation,
+  newImageAnimation,
   animationDuration,
   imageScale,
   imageOffsetX,
@@ -185,7 +187,12 @@ const {
 } = useGalleryCanvasDrop({
   canvasManagerRef,
   multiImageManagerRef,
-  placement: { selectedAnimation, animationDuration, imageScale },
+  placement: {
+    selectedAnimation,
+    animationDuration,
+    imageScale,
+    timedAnimation: newImageAnimation,
+  },
   // Eigene Bilder sind bereits als <img> geladen – direkt zurückgeben.
   resolveImage: (payload) => payload?.imgData?.img || null,
   onPlaced: (payload) => {

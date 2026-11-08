@@ -32,6 +32,12 @@ import {
   type EntranceAnimationState,
   type EntranceTransform,
 } from './canvasObjects/entranceAnimation'
+import {
+  cloneImageAnimation,
+  getImageAnimationTransform,
+  hasImageAnimation,
+  type ImageTimedAnimation,
+} from './canvasObjects/imageAnimation'
 import { moveToBack, moveToFront } from './canvasObjects/zOrder'
 import { getSlideshowManager } from './slideshowManagerBridge'
 import { getAudioAnalysisData } from './audio/audioAnalysisData'
@@ -84,6 +90,8 @@ export interface CanvasImage extends FotoImageObject {
   relHeight: number
   settings?: ImageBasicSettings
   animation?: ImageAnimation
+  /** Animationen wie bei Texten (Fade/Scale/Slide), siehe canvasObjects/imageAnimation */
+  timedAnimation?: ImageTimedAnimation | null
   isSlideshowImage?: boolean
   slideshow?: ImageSlideshowState
 }
@@ -103,6 +111,14 @@ export interface AddImageWithBoundsOptions {
   slideshow?: ImageSlideshowState
   /** false: nicht automatisch auswählen */
   select?: boolean
+  /** Animationen wie bei Texten; wird kopiert (siehe canvasObjects/imageAnimation) */
+  timedAnimation?: ImageTimedAnimation | null
+}
+
+/** Optionen für addImage() */
+export interface AddImageOptions {
+  /** Animationen wie bei Texten; wird kopiert (siehe canvasObjects/imageAnimation) */
+  timedAnimation?: ImageTimedAnimation | null
 }
 
 export interface DrawImagesOptions {
@@ -201,7 +217,10 @@ export class MultiImageManager {
   /**
    * Fügt ein neues Bild zum Canvas hinzu
    */
-  addImage(imageObject: HTMLImageElement | null | undefined): CanvasImage | null {
+  addImage(
+    imageObject: HTMLImageElement | null | undefined,
+    options: AddImageOptions = {},
+  ): CanvasImage | null {
     if (!imageObject) {
       console.error('❌ Kein Bild zum Hinzufügen übergeben')
       return null
@@ -233,6 +252,10 @@ export class MultiImageManager {
         blur: 0,
         preset: null,
       },
+    }
+
+    if (hasImageAnimation(options.timedAnimation)) {
+      newImage.timedAnimation = cloneImageAnimation(options.timedAnimation)
     }
 
     // ✨ Initialisiere fotoSettings (für FotoManager Filter + Schatten)
@@ -323,6 +346,9 @@ export class MultiImageManager {
     // Slideshow-Zustand (Deckkraft/Übergang) vor dem ersten Zeichnen setzen,
     // damit das Bild nicht einen Frame lang voll sichtbar erscheint
     if (options.slideshow) newImage.slideshow = options.slideshow
+    if (hasImageAnimation(options.timedAnimation)) {
+      newImage.timedAnimation = cloneImageAnimation(options.timedAnimation)
+    }
 
     // Initialisiere fotoSettings
     if (this.fotoManager) {
@@ -395,7 +421,17 @@ export class MultiImageManager {
    * Transform der Einblend-Animation (siehe canvasObjects/entranceAnimation.js)
    */
   getAnimationTransform(imageData: CanvasImage): EntranceTransform {
-    return getEntranceTransform(imageData.animation, this.canvas)
+    const entrance = getEntranceTransform(imageData.animation, this.canvas)
+    if (!imageData.timedAnimation) return entrance
+    // Animationen wie bei Texten (canvasObjects/imageAnimation) einrechnen
+    const timed = getImageAnimationTransform(imageData, this.canvas)
+    return {
+      ...entrance,
+      opacity: entrance.opacity * timed.opacity,
+      translateX: entrance.translateX + timed.translateX,
+      translateY: entrance.translateY + timed.translateY,
+      scale: entrance.scale * timed.scale,
+    }
   }
 
   /**

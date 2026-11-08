@@ -113,6 +113,18 @@ describe('markerBackgroundVideo – Setzen', () => {
     expect(cm.redrawCallback).toHaveBeenCalled()
   })
 
+  it('loop: false spielt das Video nur einmal ab', () => {
+    const cm = fakeCm()
+    const v = fakeVideo()
+    setBackgroundVideoWithDefaults(cm, v, null, { loop: false })
+    expect(v.loop).toBe(false)
+    expect(cm.videoBackground.loop).toBe(false)
+    const v2 = fakeVideo()
+    v2.loop = false
+    setBackgroundVideoWithDefaults(cm, v2, null)
+    expect(v2.loop).toBe(true)
+  })
+
   it('Workspace-Ziel nur mit aktivem Workspace', () => {
     const ws = fakeCm({ workspace: true })
     expect(setBackgroundVideoWithDefaults(ws, fakeVideo(), { target: 'workspace' })).toBe(
@@ -189,5 +201,10 @@ describe('Basis-Hintergrund mit Videos', () => {
     expect(onCanvas.src).toBe('blob:a')
     expect(parked.src).toBe('')
     expect(() => discardBaseBackground(cm, null)).not.toThrow()
+
+    const kept = fakeVideo('blob:keep')
+    const keepEntry = { videoElement: kept }
+    discardBaseBackground(fakeCm(), { videoBackground: keepEntry }, { videoBackground: keepEntry })
+    expect(kept.src).toBe('blob:keep')
   })
 })

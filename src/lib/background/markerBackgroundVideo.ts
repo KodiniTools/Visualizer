@@ -31,7 +31,13 @@ export interface MarkerVideoRef {
   galleryId?: unknown
   name?: string
   defaults?: BackgroundImageDefaults | null
+  /** false = nur einmal abspielen; fehlt das Feld, läuft das Video in Schleife */
+  loop?: boolean
 }
+
+/** Läuft das Marker-Video in Schleife? (Standard: ja, auch für alte Marker) */
+export const isMarkerVideoLoop = (ref: MarkerVideoRef | null | undefined): boolean =>
+  ref?.loop !== false
 
 /**
  * Vorgaben (Ziel + Audio-Reaktiv) des sichtbaren Hintergrunds: zuerst ein
@@ -100,7 +106,11 @@ export function loadMarkerVideo(
   video.loop = true
   video.playsInline = true
   video.onloadeddata = () => onReady(video)
-  video.onerror = () => console.error('❌ Marker-Video konnte nicht geladen werden:', src)
+  video.onerror = () => {
+    // Beim Freigeben (src = '') feuert ebenfalls ein Fehler – kein Ladefehler.
+    if (video.src !== src) return
+    console.error('❌ Marker-Video konnte nicht geladen werden:', src)
+  }
   video.src = src
   video.load()
   return video
@@ -108,7 +118,7 @@ export function loadMarkerVideo(
 
 /**
  * Setzt ein geladenes Video als Hintergrund mit den übernommenen Vorgaben und
- * startet es von vorne. Workspace-Ziel ohne aktiven Workspace fällt auf den
+ * startet es von vorne (`loop: false` = nur einmal abspielen). Workspace-Ziel ohne aktiven Workspace fällt auf den
  * normalen Hintergrund zurück. Vorhandene Video-Hintergründe muss der Aufrufer
  * vorher abräumen (releaseVideoBackgrounds).
  * @returns tatsächlich verwendetes Ziel (null ohne CanvasManager/Video)
@@ -117,6 +127,7 @@ export function setBackgroundVideoWithDefaults(
   cm: MaybeCm,
   video: HTMLVideoElement | null | undefined,
   defaults: Partial<BackgroundImageDefaults> | null | undefined,
+  { loop = true }: { loop?: boolean } = {},
 ): BackgroundTarget | null {
   if (!cm || !video) return null
 
@@ -129,7 +140,10 @@ export function setBackgroundVideoWithDefaults(
     target = 'background'
   }
 
+  // set(Workspace)VideoBackground schaltet immer auf Schleife → danach setzen
+  video.loop = loop
   const entry = target === 'workspace' ? cm.workspaceVideoBackground : cm.videoBackground
+  if (entry) (entry as { loop?: boolean }).loop = loop
   if (entry && defaults?.audioReactive) {
     if (!entry.fotoSettings) entry.fotoSettings = {}
     entry.fotoSettings.audioReactive = cloneJson(defaults.audioReactive)

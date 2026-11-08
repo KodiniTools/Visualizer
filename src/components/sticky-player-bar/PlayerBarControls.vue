@@ -182,8 +182,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, h, inject } from 'vue'
+import type { FunctionalComponent } from 'vue'
+import type { PlayerBarContext } from './playerBarContext'
 import { useI18n } from '../../lib/i18n'
 import { useHistoryStore } from '../../stores/historyStore'
 import { useSlideshowPopover } from '../../composables/useSlideshowPopover'
@@ -194,10 +196,11 @@ import { useAudioSourceStore } from '../../stores/audioSourceStore'
 import { useRecorderStore } from '../../stores/recorderStore'
 import { formatTime, formatTimePrecise } from '../../utils/formatTime'
 import UiIconButton from '../ui/UiIconButton.vue'
-import { PLAYER_ICONS as ICONS, PLAY_MODE_ICONS, iconPaths } from './playerBarIcons.js'
+import { PLAYER_ICONS as ICONS, PLAY_MODE_ICONS, iconPaths } from './playerBarIcons'
+import type { IconDef } from './playerBarIcons'
 
 /** Symbol aus einem oder mehreren SVG-Pfaden (24×24, currentColor). */
-const PlayerIcon = (props) =>
+const PlayerIcon: FunctionalComponent<{ icon: IconDef }> = (props) =>
   h(
     'svg',
     { viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': 'true' },
@@ -225,7 +228,7 @@ const redoTitle = computed(() => {
   return historyStore.canRedo && cmd ? `${base}: ${historyStepLabel(cmd, t)}` : base
 })
 
-const { popover, playMode, markers } = inject('playerBar')
+const { popover, playMode, markers } = inject('playerBar') as PlayerBarContext
 const { isActive, onBarClick, onBarDblClick } = popover
 const { cyclePlayMode, playModeLabel } = playMode
 const { getMarkerPosition, seekToMarker } = markers
@@ -234,8 +237,8 @@ const { getMarkerPosition, seekToMarker } = markers
  * Funktions-Umschalter: aktiv = Primärfläche mit aria-pressed – auch wenn das
  * Fenster per Klick daneben ausgeblendet ist (siehe usePlayerPopover).
  */
-const toggleProps = (id) => ({
-  variant: isActive(id) ? 'primary' : 'secondary',
+const toggleProps = (id: string) => ({
+  variant: (isActive(id) ? 'primary' : 'secondary') as 'primary' | 'secondary',
   pressed: isActive(id),
 })
 
@@ -252,8 +255,14 @@ const transport = computed(() => [
   { id: 'next', label: t('player.next'), icon: ICONS.next, action: () => playerStore.nextTrack() },
 ])
 
+interface PopoverButton {
+  id: keyof typeof ICONS
+  label: string
+  badge?: number
+}
+
 /** Popover-Knöpfe zwischen Lautstärke und Aufnahme, in Anzeigereihenfolge. */
-const popoverButtons = computed(() => [
+const popoverButtons = computed((): PopoverButton[] => [
   { id: 'playlist', label: 'player.openPlaylist', badge: playerStore.playlist.length },
   { id: 'gallery', label: 'player.openGallery' },
   { id: 'presets', label: 'player.openPresets' },
@@ -271,9 +280,9 @@ const popoverButtons = computed(() => [
   { id: 'screenshot', label: 'player.openScreenshot' },
 ])
 
-const seekToPosition = (event) => {
+const seekToPosition = (event: MouseEvent) => {
   if (!playerStore.audioRef || playerStore.duration === 0) return
-  const rect = event.currentTarget.getBoundingClientRect()
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
   const clickX = event.clientX - rect.left
   const percentage = clickX / rect.width
   const newTime = percentage * playerStore.duration
@@ -284,11 +293,11 @@ const seekToPosition = (event) => {
 const SEEK_STEP = 5
 
 /** Tastatur auf dem Fortschrittsbalken: Pfeile ±5 s, Pos1/Ende springen an Anfang/Ende. */
-const onSeekKeydown = (event) => {
+const onSeekKeydown = (event: KeyboardEvent) => {
   const duration = playerStore.duration
   if (!playerStore.audioRef || !duration) return
   const now = playerStore.currentTime
-  const targets = {
+  const targets: Record<string, number> = {
     ArrowLeft: now - SEEK_STEP,
     ArrowDown: now - SEEK_STEP,
     ArrowRight: now + SEEK_STEP,
@@ -300,7 +309,7 @@ const onSeekKeydown = (event) => {
   // Nicht an die globalen Kürzel weiterreichen (← → wechseln dort den Titel)
   event.preventDefault()
   event.stopPropagation()
-  playerStore.seekTo(Math.min(duration, Math.max(0, targets[event.key])))
+  playerStore.seekTo(Math.min(duration, Math.max(0, targets[event.key] as number)))
 }
 </script>
 

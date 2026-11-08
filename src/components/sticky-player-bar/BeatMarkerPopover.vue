@@ -156,22 +156,24 @@
       />
 
       <UiSelect
-        v-model="newMarkerBgImageId"
+        :model-value="newMarkerBgImageId as SelectValue"
         :label="t('player.backgroundImage')"
         :options="bgImageOptions"
         :title="t('player.backgroundImageHint')"
         size="sm"
+        @update:model-value="newMarkerBgImageId = $event"
       />
       <p v-if="newMarkerBgImageId !== ''" class="form-hint marker-form-hint">
         {{ t('player.backgroundImageHint') }}
       </p>
 
       <UiSelect
-        v-model="newMarkerVideoId"
+        :model-value="newMarkerVideoId as SelectValue"
         :label="t('player.markerVideo')"
         :options="videoSelectOptions"
         :title="t('player.markerVideoHint')"
         size="sm"
+        @update:model-value="newMarkerVideoId = $event"
       />
       <template v-if="newMarkerVideoId !== ''">
         <span class="form-switch" :title="t('player.markerVideoLoopHint')">
@@ -192,11 +194,12 @@
       />
 
       <UiSelect
-        v-model="newMarkerShapeId"
+        :model-value="newMarkerShapeId as string"
         :label="t('player.shape')"
         :options="shapeSelectOptions"
         :title="t('player.shapeAppears')"
         size="sm"
+        @update:model-value="newMarkerShapeId = $event as string"
       />
       <p v-if="String(newMarkerShapeId).startsWith('gallery:')" class="form-hint marker-form-hint">
         {{ t('player.newShapeHint') }}
@@ -221,7 +224,7 @@
     <!-- Marker-Liste -->
     <ul v-if="beatMarkerStore.markerCount > 0" class="marker-list">
       <li
-        v-for="marker in beatMarkerStore.sortedMarkers"
+        v-for="marker in sortedMarkers"
         :key="marker.id"
         class="marker-item"
         :class="{ triggered: marker.triggered, editing: editingMarkerId === marker.id }"
@@ -320,7 +323,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import ColorField from '../ui/ColorField.vue'
 import SliderField from '../ui/SliderField.vue'
 import UiButton from '../ui/UiButton.vue'
@@ -330,6 +333,11 @@ import UiSelect from '../ui/UiSelect.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 import UiTextField from '../ui/UiTextField.vue'
 import { inject, computed, onUnmounted, useId } from 'vue'
+import type { PlayerBarContext } from './playerBarContext'
+import type { UiSelectGroup, UiSelectOption } from '../ui/UiSelect.vue'
+import type { MarkerAction } from '../../composables/useBeatMarkers'
+import type { BeatMarker } from '../../stores/beatMarkerStore'
+import type { BackgroundPresetOption } from '../../utils/backgroundPresets'
 import { useI18n } from '../../lib/i18n'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
@@ -347,7 +355,7 @@ const visualizerStore = useVisualizerStore()
 const markerTransition = useMarkerTransitionStore()
 const layerPresetStore = useLayerPresetStore()
 
-const { popover, markers } = inject('playerBar')
+const { popover, markers } = inject('playerBar') as PlayerBarContext
 const { closePopover, cascadeOffset } = popover
 const close = () => closePopover('markers')
 const initOffset = cascadeOffset('markers')
@@ -384,13 +392,21 @@ const {
   getVisualizerName,
 } = markers
 
+/** Wert eines UiSelect */
+type SelectValue = string | number
+
+/** Marker mit den Aktionsfeldern aus useBeatMarkers (Bild, Video, Form, …) */
+const sortedMarkers = computed(
+  () => beatMarkerStore.sortedMarkers as (BeatMarker & { action: MarkerAction })[],
+)
+
 const timeInputId = `marker-time-${useId()}`
 const timeHintId = `${timeInputId}-hint`
 
 // Marker an/aus über den Store (Schalter in der Kopfzeile)
 const markersEnabled = computed({
   get: () => beatMarkerStore.markersEnabled,
-  set: (enabled) => {
+  set: (enabled: boolean) => {
     if (enabled !== beatMarkerStore.markersEnabled) beatMarkerStore.toggleEnabled()
   },
 })
@@ -400,7 +416,7 @@ const markersEnabled = computed({
 const stepOptions = ['0.01', '0.1', '1'].map((value) => ({ value, label: `${value}s` }))
 const timeStepModel = computed({
   get: () => String(markerTimeStep.value),
-  set: (value) => {
+  set: (value: string) => {
     markerTimeStep.value = Number(value)
   },
 })
@@ -408,8 +424,8 @@ const timeStepModel = computed({
 // Halten der +/−-Buttons wiederholt den Schritt (kurze Verzögerung, dann zügig)
 const STEP_REPEAT_DELAY_MS = 400
 const STEP_REPEAT_INTERVAL_MS = 60
-let stepRepeatTimeout = null
-let stepRepeatInterval = null
+let stepRepeatTimeout: ReturnType<typeof setTimeout> | null = null
+let stepRepeatInterval: ReturnType<typeof setInterval> | null = null
 
 function stopStepRepeat() {
   if (stepRepeatTimeout !== null) {
@@ -422,7 +438,7 @@ function stopStepRepeat() {
   }
 }
 
-function startStepRepeat(direction) {
+function startStepRepeat(direction: number) {
   stopStepRepeat()
   stepMarkerTime(direction)
   stepRepeatTimeout = setTimeout(() => {
@@ -471,7 +487,8 @@ const backgroundPresetOptions = computed(() => {
 // ── Optionen für die Auswahlfelder (Gruppen werden zu <optgroup>) ──
 
 /** Gruppe nur anzeigen, wenn sie Einträge hat */
-const group = (label, options) => (options.length ? [{ label, options }] : [])
+const group = (label: string, options: UiSelectOption[]): UiSelectGroup[] =>
+  options.length ? [{ label, options }] : []
 
 const visualizerOptions = computed(() => [
   { value: '', label: t('player.noChange') },
@@ -491,7 +508,7 @@ const visualizerOptions = computed(() => [
 ])
 
 const backgroundOptions = computed(() => {
-  const toOption = (bg) => ({ value: bg.key, label: bg.label })
+  const toOption = (bg: BackgroundPresetOption) => ({ value: bg.key, label: bg.label })
   const { user, builtin } = backgroundPresetOptions.value
   return [
     { value: '', label: t('player.noChange') },
@@ -515,7 +532,7 @@ const videoSelectOptions = computed(() => [
   ...(galleryVideoOptions.value.length === 0
     ? [{ value: '__empty-videos', label: t('player.emptyVideoGallery'), disabled: true }]
     : galleryVideoOptions.value.map((video) => ({
-        value: video.id,
+        value: video.id as string | number,
         label: `${video.number}. ${video.name}`,
       }))),
 ])

@@ -16,15 +16,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue'
+import type { PlayerBarContext } from './playerBarContext'
 import { useI18n } from '../../lib/i18n'
 import VideoPanel from '../VideoPanel.vue'
 import { vPopoverDrag } from '../../directives/popoverDrag'
 
 const { t } = useI18n()
 
-const { popover } = inject('playerBar')
+const { popover } = inject('playerBar') as PlayerBarContext
 const { closePopover, cascadeOffset } = popover
 const close = () => closePopover('video')
 const initOffset = cascadeOffset('video')

@@ -64,8 +64,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue'
+import type { PlayerBarContext } from './playerBarContext'
 import { useI18n } from '../../lib/i18n'
 import { usePlayerStore } from '../../stores/playerStore'
 import { vPopoverDrag } from '../../directives/popoverDrag'
@@ -73,7 +74,7 @@ import { vPopoverDrag } from '../../directives/popoverDrag'
 const { t } = useI18n()
 const playerStore = usePlayerStore()
 
-const { popover, playlist } = inject('playerBar')
+const { popover, playlist } = inject('playerBar') as PlayerBarContext
 const { closePopover, cascadeOffset } = popover
 const close = () => closePopover('playlist')
 const initOffset = cascadeOffset('playlist')

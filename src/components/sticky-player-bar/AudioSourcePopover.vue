@@ -67,8 +67,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, inject } from 'vue'
+import type { PlayerBarContext } from './playerBarContext'
 import { useI18n } from '../../lib/i18n'
 import { useAudioSourceStore } from '../../stores/audioSourceStore'
 import { vPopoverDrag } from '../../directives/popoverDrag'
@@ -77,7 +78,7 @@ import UiSelect from '../ui/UiSelect.vue'
 const { t } = useI18n()
 const audioSourceStore = useAudioSourceStore()
 
-const { popover, audioSource } = inject('playerBar')
+const { popover, audioSource } = inject('playerBar') as PlayerBarContext
 const { closePopover, cascadeOffset } = popover
 const close = () => closePopover('audio')
 const initOffset = cascadeOffset('audio')

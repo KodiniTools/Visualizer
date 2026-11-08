@@ -47,6 +47,8 @@ type SlotObject = BackgroundImageSlotObject | BackgroundVideoSlotObject
 export interface BackgroundCanvasManager {
   /** Farbe als String, Bild als Objekt, oder null */
   background?: string | BackgroundImageSlotObject | null
+  /** Zuletzt gesetzte Hintergrundfarbe (Grundfläche unter animierten Bildern) */
+  backgroundColor?: string
   workspaceBackground?: BackgroundImageSlotObject | null
   videoBackground?: BackgroundVideoSlotObject | null
   workspaceVideoBackground?: BackgroundVideoSlotObject | null
@@ -252,6 +254,7 @@ export function createBackgroundSegment({
           cm[slot] = await restoreImageSlot(snap, current, slot)
         } else if (slot === 'background') {
           cm.background = snap ?? null
+          if (typeof snap === 'string') cm.backgroundColor = snap
         } else {
           cm[slot] = null
         }

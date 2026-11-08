@@ -161,6 +161,12 @@ export class CanvasManager {
   videoManager?: VideoManager | null
 
   background: string | ImageBackgroundObject | null
+  /**
+   * Zuletzt eingestellte Hintergrundfarbe. Bleibt erhalten, wenn ein Bild
+   * Hintergrund wird, und füllt die Fläche, die ein animiertes Hintergrundbild
+   * (Einblenden, Hereingleiten …) frei lässt.
+   */
+  backgroundColor: string
   workspaceBackground: ImageBackgroundObject | null
   videoBackground: VideoBackgroundObject | null
   workspaceVideoBackground: VideoBackgroundObject | null
@@ -222,6 +228,7 @@ export class CanvasManager {
 
     // State
     this.background = '#ffffff'
+    this.backgroundColor = '#ffffff'
     this.workspaceBackground = null
     this.videoBackground = null
     this.workspaceVideoBackground = null

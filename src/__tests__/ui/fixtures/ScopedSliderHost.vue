@@ -12,12 +12,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import SliderField from '../../../components/ui/SliderField.vue'
 
 const value = ref(80)
-const seen = ref([])
+const seen = ref<number[]>([])
 function onUpdate() {
   seen.value.push(value.value)
 }

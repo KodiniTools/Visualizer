@@ -16,7 +16,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Audio-Reaktiv für die ausgewählte Form (Formen & Symbole). Arbeitet auf
  * `shape.audioReactive` im shapeStore – gleiche Struktur, Presets und Effekte
@@ -29,25 +29,32 @@ import { SHAPE_EFFECT_NAMES } from '../../lib/shapes/shapeAudio'
 import { useShapeStore } from '../../stores/shapeStore'
 import { useAudioReactiveTarget } from '../../composables/audioReactive/useAudioReactiveTarget'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
+import type { Shape } from '../../stores/shapeStore'
+import type { AudioReactiveConfig } from '../../lib/audio/audioReactiveConfig'
+import type { AudioReactivePanelApi } from '../../composables/audioReactive/useAudioReactiveTarget'
 
-const props = defineProps({
-  /** Ausgewählte Form aus dem shapeStore */
-  shape: { type: Object, default: null },
-})
+const props = withDefaults(
+  defineProps<{
+    /** Ausgewählte Form aus dem shapeStore */
+    shape?: Shape | null
+  }>(),
+  { shape: null },
+)
 
 const store = useShapeStore()
-const panelRef = ref(null)
+const panelRef = ref<AudioReactivePanelApi | null>(null)
 const allowedEffects = [...SHAPE_EFFECT_NAMES]
 
 /** Konfiguration der Form (wird bei Bedarf angelegt) */
-const cfg = () => (props.shape ? store.ensureAudioReactive(props.shape.id) : null)
+const cfg = () =>
+  (props.shape ? store.ensureAudioReactive(props.shape.id) : null) as AudioReactiveConfig | null
 
 const { activePreset, hasSavedSettings, panelListeners } = useAudioReactiveTarget({
   panelRef,
   storageKey: 'visualizer_shapeAudioReactivePreset',
   saveWarning: '⚠️ Formen-Audio-Einstellungen konnten nicht gespeichert werden:',
   getConfig: cfg,
-  peekConfig: () => props.shape?.audioReactive ?? null,
+  peekConfig: () => (props.shape?.audioReactive ?? null) as AudioReactiveConfig | null,
   targetKey: () => props.shape?.id ?? null,
   setEnabled(enabled) {
     const c = cfg()

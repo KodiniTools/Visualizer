@@ -31,18 +31,17 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useI18n } from '../../lib/i18n'
 
 const { t } = useI18n()
 
-defineProps({
-  isConverting: Boolean,
-  status: { type: String, default: '' },
-  progress: { type: Number, default: 0 },
+withDefaults(defineProps<{ isConverting?: boolean; status?: string; progress?: number }>(), {
+  status: '',
+  progress: 0,
 })
 
-defineEmits(['cancel'])
+defineEmits<{ cancel: [] }>()
 </script>
 
 <style>

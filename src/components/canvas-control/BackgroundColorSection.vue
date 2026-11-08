@@ -17,7 +17,7 @@
   <BackgroundReplaceModal />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useI18n } from '../../lib/i18n'
 import BackgroundTilesPanel from '../BackgroundTilesPanel.vue'
 import BackgroundBaseColor from './background/BackgroundBaseColor.vue'

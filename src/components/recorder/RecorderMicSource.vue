@@ -33,7 +33,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // Mikrofon zur laufenden Aufnahme zuschalten. Das Panel zeigt diesen Abschnitt
 // nur während der Aufnahme; der Zustand beginnt daher bei jeder Aufnahme bei „aus“.
 import { useI18n } from '../../lib/i18n'

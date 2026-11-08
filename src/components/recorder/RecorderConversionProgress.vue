@@ -52,23 +52,26 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import RecorderDownloadActions from './RecorderDownloadActions.vue'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  variant: { type: String, required: true }, // 'mp4' | 'gif' | 'hq'
-  status: { type: String, required: true },
-  progress: { type: Number, default: 0 },
-  downloadUrl: { type: String, default: null },
-  errorMessage: { type: String, default: null },
-  hasRetry: { type: Boolean, default: false },
-})
+const props = withDefaults(
+  defineProps<{
+    variant: 'mp4' | 'gif' | 'hq'
+    status: string
+    progress?: number
+    downloadUrl?: string | null
+    errorMessage?: string | null
+    hasRetry?: boolean
+  }>(),
+  { progress: 0, downloadUrl: null, errorMessage: null, hasRetry: false },
+)
 
-defineEmits(['download', 'dismiss', 'dismissError', 'retry'])
+defineEmits<{ download: []; dismiss: []; dismissError: []; retry: [] }>()
 
 const downloadLabel = computed(
   () =>

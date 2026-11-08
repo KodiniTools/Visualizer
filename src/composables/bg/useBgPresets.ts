@@ -6,6 +6,7 @@ const PRESETS_STORAGE_KEY = 'visualizer-canvas-presets'
 export interface CanvasPreset {
   id: number
   name: string
+  backgroundColor?: string
   [key: string]: unknown
 }
 

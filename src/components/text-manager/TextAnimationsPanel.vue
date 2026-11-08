@@ -28,7 +28,7 @@
   </details>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Text-Animationen des markierten Textes (Typewriter, Fade, Scale, Slide).
  *
@@ -38,6 +38,9 @@
  * jeder Änderung (`change`) den Canvas neu.
  */
 import { computed, inject, toRef, watch } from 'vue'
+import type { Component } from 'vue'
+import type { CanvasManagerRef } from '../../composables/types'
+import type { TextObject } from '../../lib/textManager/types'
 import { useI18n } from '../../lib/i18n'
 import { useTextAnimations } from '../../composables/useTextAnimations'
 import AnimationEditSection from './text-animations/AnimationEditSection.vue'
@@ -46,19 +49,17 @@ import FadeControls from './text-animations/FadeControls.vue'
 import ScaleControls from './text-animations/ScaleControls.vue'
 import SlideControls from './text-animations/SlideControls.vue'
 
-const props = defineProps({
-  selectedText: {
-    type: Object,
-    required: true,
-  },
-})
+const props = defineProps<{ selectedText: TextObject }>()
+
+type AnimationKey = 'typewriter' | 'fade' | 'scale' | 'slide'
+const ANIMATION_KEYS: AnimationKey[] = ['typewriter', 'fade', 'scale', 'slide']
 
 // ✨ Backfill: Ältere Text-Objekte kennen die neuen Felder (permanent / displayDuration)
 // noch nicht. Standard = permanent anzeigen, damit sich das Verhalten nicht ändert.
-function ensureDisplayDefaults(text) {
+function ensureDisplayDefaults(text: TextObject | null | undefined) {
   const anim = text?.animation
   if (!anim) return
-  for (const key of ['typewriter', 'fade', 'scale', 'slide']) {
+  for (const key of ANIMATION_KEYS) {
     const eff = anim[key]
     if (!eff) continue
     if (eff.permanent === undefined) eff.permanent = true
@@ -68,7 +69,7 @@ function ensureDisplayDefaults(text) {
 
 watch(() => props.selectedText, ensureDisplayDefaults, { immediate: true })
 
-const canvasManager = inject('canvasManager')
+const canvasManager = inject('canvasManager') as CanvasManagerRef
 
 // Reaktive Referenz auf den aktuell markierten Text, damit alle Aktionen
 // (Toggles, "Neu Starten") sich ausschließlich auf diesen Text beziehen.
@@ -84,7 +85,13 @@ function updateText() {
 
 const { t } = useI18n()
 
-const SECTIONS = [
+const SECTIONS: {
+  key: AnimationKey
+  label: string
+  controls: Component
+  toggle: () => void
+  restart: () => void
+}[] = [
   {
     key: 'typewriter',
     label: 'textManager.typewriterEffect',
@@ -115,7 +122,7 @@ const SECTIONS = [
   },
 ]
 
-const BADGES = [
+const BADGES: [AnimationKey, string][] = [
   ['typewriter', 'Typewriter'],
   ['fade', 'Fade'],
   ['scale', 'Scale'],

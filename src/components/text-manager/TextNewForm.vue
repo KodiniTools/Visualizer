@@ -18,7 +18,9 @@
         {{ t('textManager.notepadTip') }}
       </div>
       <div v-if="newTextContent.includes('\n')" class="success-hint">
-        {{ t('textManager.linesDetected').replace('{n}', newTextContent.split('\n').length) }}
+        {{
+          t('textManager.linesDetected').replace('{n}', String(newTextContent.split('\n').length))
+        }}
       </div>
     </div>
 
@@ -125,12 +127,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, inject, nextTick, watch } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { useToastStore } from '../../stores/toastStore'
 import { useNewTextSettings } from '../../composables/useNewTextSettings'
-import { buildAnimationConfig } from './text-new-form/buildAnimation.js'
+import { buildAnimationConfig } from './text-new-form/buildAnimation'
+import type { AnimationSettings } from './text-new-form/buildAnimation'
+import type { CanvasManagerRef } from '../../composables/types'
+import type { TextObject } from '../../lib/textManager/types'
 import TextStyleSection from './text-new-form/TextStyleSection.vue'
 import TypewriterSection from './text-new-form/TypewriterSection.vue'
 import FadeSection from './text-new-form/FadeSection.vue'
@@ -141,18 +146,19 @@ import { UiButton, UiTextArea } from '../ui'
 
 const { t } = useI18n()
 const toastStore = useToastStore()
-const canvasManager = inject('canvasManager')
+const canvasManager = inject('canvasManager') as CanvasManagerRef
 
-const emit = defineEmits(['created', 'cancel'])
+const emit = defineEmits<{ created: [text: TextObject]; cancel: [] }>()
 
 const isAddingNewText = ref(false)
 const newTextContent = ref('')
-const newTextInput = ref(null)
+const newTextInput = ref<HTMLTextAreaElement | null>(null)
 // Fokus beim Öffnen: das <textarea> aus UiTextArea
-function bindNewTextInput(component) {
-  newTextInput.value = component?.textarea ?? null
+function bindNewTextInput(component: unknown) {
+  newTextInput.value =
+    (component as { textarea?: HTMLTextAreaElement | null } | null)?.textarea ?? null
 }
-const styleSectionRef = ref(null)
+const styleSectionRef = ref<InstanceType<typeof TextStyleSection> | null>(null)
 
 const {
   newTextStyle,
@@ -216,8 +222,8 @@ watch(isAddingNewText, (newValue) => {
 watch(
   () => [newTextPosition.value.x, newTextPosition.value.y],
   ([newX, newY]) => {
-    newTextPosition.value.xPixel = Math.round(newX * canvasWidth.value)
-    newTextPosition.value.yPixel = Math.round(newY * canvasHeight.value)
+    newTextPosition.value.xPixel = Math.round((newX as number) * canvasWidth.value)
+    newTextPosition.value.yPixel = Math.round((newY as number) * canvasHeight.value)
   },
 )
 
@@ -260,22 +266,25 @@ function startAddingTextWithSelection() {
 // Kennung für "Text ohne Effekt hinzufügen" (keine Animation anwenden)
 const NO_ANIMATION = 'none'
 
+type AnimationKey = keyof AnimationSettings
+const ANIMATION_KEYS: AnimationKey[] = ['typewriter', 'fade', 'scale', 'slide']
+
 // Baut eine Animations-Konfiguration mit NUR der angegebenen Animation.
-function buildSoloAnimation(animationKey) {
+function buildSoloAnimation(animationKey: AnimationKey) {
   const settingsByKey = {
     typewriter: newTextTypewriter,
     fade: newTextFade,
     scale: newTextScale,
     slide: newTextSlide,
   }
-  const payload = {}
-  for (const key of ['typewriter', 'fade', 'scale', 'slide']) {
+  const payload = {} as AnimationSettings
+  for (const key of ANIMATION_KEYS) {
     payload[key] = { ...settingsByKey[key].value, enabled: key === animationKey }
   }
   return buildAnimationConfig(payload)
 }
 
-function createNewText(animationKey = null) {
+function createNewText(animationKey: AnimationKey | typeof NO_ANIMATION | null = null) {
   if (!canvasManager.value || !newTextContent.value.trim()) {
     return
   }

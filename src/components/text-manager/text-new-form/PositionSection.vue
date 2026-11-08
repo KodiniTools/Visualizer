@@ -103,37 +103,35 @@
   </details>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useI18n } from '../../../lib/i18n'
+import type { useNewTextSettings } from '../../../composables/useNewTextSettings'
+import type { SelectionAreaBounds } from '../../../lib/canvasManager/interaction/SelectionManager'
 import SliderField from '../../ui/SliderField.vue'
 import { UiButton, UiIconButton } from '../../ui'
 
 const { t } = useI18n()
-defineModel('position', {
-  type: Object,
-  required: true,
-})
+/** Position im Neu-Formular (relativ 0–1 und in Pixeln) */
+type NewTextPosition = ReturnType<typeof useNewTextSettings>['newTextPosition']['value']
 
-defineProps({
-  selectionBounds: {
-    type: Object,
-    default: null,
-  },
-  isSelecting: {
-    type: Boolean,
-    default: false,
-  },
-  canvasWidth: {
-    type: Number,
-    default: 1920,
-  },
-  canvasHeight: {
-    type: Number,
-    default: 1080,
-  },
-})
+defineModel<NewTextPosition>('position', { required: true })
 
-defineEmits(['start-selection', 'clear-selection', 'update-pixel', 'quick-position'])
+withDefaults(
+  defineProps<{
+    selectionBounds?: SelectionAreaBounds | null
+    isSelecting?: boolean
+    canvasWidth?: number
+    canvasHeight?: number
+  }>(),
+  { selectionBounds: null, isSelecting: false, canvasWidth: 1920, canvasHeight: 1080 },
+)
+
+defineEmits<{
+  'start-selection': []
+  'clear-selection': []
+  'update-pixel': [axis: 'x' | 'y']
+  'quick-position': [position: string]
+}>()
 
 // 3 × 3-Raster: Position, i18n-Schlüssel (quickPos.*) und Richtungspfeil
 const QUICK_POSITIONS = [

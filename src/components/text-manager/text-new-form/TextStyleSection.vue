@@ -134,24 +134,25 @@
   </details>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
 import { inject, computed } from 'vue'
 import { useI18n } from '../../../lib/i18n'
+import type { TextDefaults } from '../../../lib/textDefaults'
+import type { CanvasManagerRef } from '../../../composables/types'
+import type { Ref } from 'vue'
+import type { FontManager } from '../../../lib/fontManager'
 import { useTextFonts } from '../../../composables/useTextFonts'
 import { UiButton, UiIconButton, UiSegmentedControl, UiSelect, UiSwitch } from '../../ui'
 
-const settings = defineModel('settings', {
-  type: Object,
-  required: true,
-})
+const settings = defineModel<TextDefaults['style']>('settings', { required: true })
 
-defineEmits(['save', 'reset'])
+defineEmits<{ save: []; reset: [] }>()
 
 const { t } = useI18n()
-const canvasManager = inject('canvasManager')
-const fontManager = inject('fontManager')
+const canvasManager = inject('canvasManager') as CanvasManagerRef
+const fontManager = inject('fontManager') as Ref<FontManager | null>
 
 const { newTextFontOptions, populateNewTextFontDropdown } = useTextFonts(
   canvasManager,

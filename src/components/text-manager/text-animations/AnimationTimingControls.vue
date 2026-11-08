@@ -31,7 +31,7 @@
   <!-- Easing -->
   <div class="control-group">
     <UiSelect
-      :model-value="effect.easing"
+      :model-value="effect.easing as string"
       :options="easingOptions"
       :label="t('textManager.animation')"
       size="sm"
@@ -40,19 +40,18 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Dauer, Start-Verzögerung und Easing einer Animation (Fade/Scale/Slide). */
 import { computed } from 'vue'
 import SliderField from '../../ui/SliderField.vue'
 import UiSelect from '../../ui/UiSelect.vue'
 import { useI18n } from '../../../lib/i18n'
-import { useEffectField } from './useEffectField.js'
+import { useEffectField } from './useEffectField'
+import type { TimedTextAnimation } from '../../../lib/textManager/types'
 
-defineProps({
-  durationHint: { type: String, default: '' },
-})
-const effect = defineModel('effect', { type: Object, required: true })
-const emit = defineEmits(['change'])
+withDefaults(defineProps<{ durationHint?: string }>(), { durationHint: '' })
+const effect = defineModel<TimedTextAnimation>('effect', { required: true })
+const emit = defineEmits<{ change: [] }>()
 const set = useEffectField(effect, emit)
 const { t } = useI18n()
 

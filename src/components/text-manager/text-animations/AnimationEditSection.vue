@@ -12,19 +12,23 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Eine Animation im Edit-Panel: Kopfzeile (An/Aus, Neustart) und, wenn aktiv,
  * die Einstellungen aus dem Slot (FadeControls, ScaleControls, …).
  */
 import AnimationToggleHeader from './AnimationToggleHeader.vue'
+import type { TimedTextAnimation } from '../../../lib/textManager/types'
 
-defineProps({
-  label: { type: String, required: true },
-  /** Effekt-Objekt des markierten Textes (z. B. text.animation.fade); fehlt bei sehr alten Texten */
-  effect: { type: Object, default: null },
-})
-const emit = defineEmits(['toggle', 'restart'])
+withDefaults(
+  defineProps<{
+    label: string
+    /** Effekt-Objekt des markierten Textes (z. B. text.animation.fade); fehlt bei sehr alten Texten */
+    effect?: TimedTextAnimation | null
+  }>(),
+  { effect: null },
+)
+const emit = defineEmits<{ toggle: []; restart: [] }>()
 </script>
 
 <style scoped src="./text-animations-shared.css"></style>

@@ -23,18 +23,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Wiederholung (Loop) + Pause zwischen den Wiederholungen. */
 import SliderField from '../../ui/SliderField.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import { useI18n } from '../../../lib/i18n'
-import { useEffectField } from './useEffectField.js'
+import { useEffectField } from './useEffectField'
+import type { TimedTextAnimation } from '../../../lib/textManager/types'
 
-defineProps({
-  maxDelay: { type: Number, default: 20000 },
-})
-const effect = defineModel('effect', { type: Object, required: true })
-const emit = defineEmits(['change'])
+withDefaults(defineProps<{ maxDelay?: number }>(), { maxDelay: 20000 })
+const effect = defineModel<TimedTextAnimation>('effect', { required: true })
+const emit = defineEmits<{ change: [] }>()
 const set = useEffectField(effect, emit)
 const { t } = useI18n()
 </script>

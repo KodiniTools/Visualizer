@@ -56,7 +56,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, toRef, inject, provide, nextTick, watch } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { useTextFonts } from '../../composables/useTextFonts'
@@ -73,30 +73,25 @@ import TextPositionSection from './text-edit/TextPositionSection.vue'
 import TextSpacingStrokeSection from './text-edit/TextSpacingStrokeSection.vue'
 import TextShadowSection from './text-edit/TextShadowSection.vue'
 import TextRotationSection from './text-edit/TextRotationSection.vue'
+import type { Ref } from 'vue'
+import type { CanvasManagerRef } from '../../composables/types'
+import type { FontManager } from '../../lib/fontManager'
+import type { TextObject } from '../../lib/textManager/types'
+import type { TextEditControls } from './text-edit/textEditControls'
 
-const props = defineProps({
-  selectedText: {
-    type: Object,
-    required: true,
-  },
-  canvasWidth: {
-    type: Number,
-    default: 1920,
-  },
-  canvasHeight: {
-    type: Number,
-    default: 1080,
-  },
-})
+const props = withDefaults(
+  defineProps<{ selectedText: TextObject; canvasWidth?: number; canvasHeight?: number }>(),
+  { canvasWidth: 1920, canvasHeight: 1080 },
+)
 
-const emit = defineEmits(['delete'])
+const emit = defineEmits<{ delete: [] }>()
 
 const { t } = useI18n()
 const toastStore = useToastStore()
-const canvasManager = inject('canvasManager')
-const fontManager = inject('fontManager')
+const canvasManager = inject('canvasManager') as CanvasManagerRef
+const fontManager = inject('fontManager') as Ref<FontManager | null> | undefined
 
-const editTextInput = ref(null)
+const editTextInput = ref<HTMLTextAreaElement | null>(null)
 
 // Reaktive Referenz auf den aktuell markierten Text, damit Font-Aktionen
 // sich ausschließlich auf diesen Text beziehen.
@@ -148,7 +143,7 @@ function updateText() {
   }
 }
 
-function normalizeLineBreaks(text) {
+function normalizeLineBreaks(text: string) {
   if (!text) return text
   return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 }
@@ -177,7 +172,7 @@ function toggleFontStyle() {
   }
 }
 
-function setTextAlign(align) {
+function setTextAlign(align: CanvasTextAlign) {
   if (props.selectedText) {
     props.selectedText.textAlign = align
     updateText()
@@ -213,10 +208,10 @@ function deleteSelectedText() {
   }
 }
 
-function handleUpdateSelectedTextPixelPosition(axis, event) {
+function handleUpdateSelectedTextPixelPosition(axis: 'x' | 'y', event: Event) {
   if (!props.selectedText) return
 
-  const value = parseFloat(event.target.value)
+  const value = parseFloat((event.target as HTMLInputElement).value)
   if (isNaN(value)) return
 
   if (axis === 'x') {
@@ -227,10 +222,10 @@ function handleUpdateSelectedTextPixelPosition(axis, event) {
   updateText()
 }
 
-function handleSetSelectedTextQuickPosition(position) {
+function handleSetSelectedTextQuickPosition(position: string) {
   if (!props.selectedText) return
 
-  const positions = {
+  const positions: Record<string, { x: number; y: number }> = {
     'top-left': { x: 0.1, y: 0.1 },
     'top-center': { x: 0.5, y: 0.1 },
     'top-right': { x: 0.9, y: 0.1 },
@@ -253,7 +248,7 @@ function handleSetSelectedTextQuickPosition(position) {
 // The collapsible sub-sections consume everything through provide/inject: the
 // (reactive) current text + canvas size, the DOM refs they bind via :ref, and
 // the shared handlers.
-provide('textEditControls', {
+const controls: TextEditControls = {
   selectedText: toRef(props, 'selectedText'),
   canvasWidth: toRef(props, 'canvasWidth'),
   canvasHeight: toRef(props, 'canvasHeight'),
@@ -267,7 +262,8 @@ provide('textEditControls', {
   toggleStroke,
   handleUpdateSelectedTextPixelPosition,
   handleSetSelectedTextQuickPosition,
-})
+}
+provide('textEditControls', controls)
 
 // Expose focusEditor + font population for parent (TextManagerPanel)
 defineExpose({ editTextInput, populateFontDropdown })

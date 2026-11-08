@@ -30,6 +30,7 @@ export class BackgroundMethods {
   ): void {
     if (typeof backgroundObject === 'string') {
       this.background = backgroundObject
+      this.backgroundColor = backgroundObject
     } else if (backgroundObject && typeof backgroundObject === 'object') {
       this.background = {
         id: Date.now() + '_bg',

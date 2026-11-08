@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { BackgroundMethods } from '../../lib/canvasManager/methods/backgroundMethods'
-import { applyBackgroundAnimation } from '../../lib/canvasManager/rendering/BackgroundRenderer'
+import {
+  applyBackgroundAnimation,
+  BackgroundRenderer,
+} from '../../lib/canvasManager/rendering/BackgroundRenderer'
 import { createImageAnimation } from '../../lib/canvasObjects/imageAnimation'
 
 /** Basis-Zeitpunkt (0 gilt in der Text-Zeitleiste als „nicht gestartet“) */
@@ -67,5 +70,58 @@ describe('Bild-Hintergründe mit Animation', () => {
     const bounds = { x: 1, y: 2, width: 3, height: 4 }
     expect(applyBackgroundAnimation(ctx, {}, bounds, T)).toBe(bounds)
     expect(ctx.globalAlpha).toBe(1)
+  })
+
+  it('setBackground merkt sich die Farbe, auch wenn danach ein Bild Hintergrund wird', () => {
+    const cm = fakeManager()
+    BackgroundMethods.prototype.setBackground.call(cm, 'rgba(5, 0, 26, 1)')
+    BackgroundMethods.prototype.setBackground.call(cm, IMG, { timedAnimation: slideFromLeft() })
+    expect(cm.backgroundColor).toBe('rgba(5, 0, 26, 1)')
+  })
+
+  describe('Grundfläche unter animiertem Hintergrundbild', () => {
+    function render(manager) {
+      const fills = []
+      const ctx = {
+        canvas: { width: 100, height: 50 },
+        globalAlpha: 1,
+        fillStyle: '',
+        filter: 'none',
+        save() {},
+        restore() {},
+        translate() {},
+        scale() {},
+        drawImage() {},
+        fillRect: (...a) => fills.push([ctx.fillStyle, ...a]),
+      }
+      const r = new BackgroundRenderer({
+        _getAudioReactiveValues: () => null,
+        _applyAudioReactiveFilters() {},
+        gradientSettings: { enabled: false },
+        ...manager,
+      })
+      r._drawAudioReactiveOverlays = () => {}
+      r._drawImageBackground(ctx)
+      return fills
+    }
+
+    it('füllt mit der eingestellten Hintergrundfarbe statt Weiß', () => {
+      const fills = render({
+        background: { type: 'background', imageObject: {}, timedAnimation: slideFromLeft() },
+        backgroundColor: 'rgba(5, 0, 26, 1)',
+      })
+      expect(fills[0]).toEqual(['rgba(5, 0, 26, 1)', 0, 0, 100, 50])
+    })
+
+    it('ohne gemerkte Farbe weiß; ohne Animation keine Grundfläche', () => {
+      expect(
+        render({
+          background: { type: 'background', imageObject: {}, timedAnimation: slideFromLeft() },
+        })[0][0],
+      ).toBe('#ffffff')
+      expect(
+        render({ background: { type: 'background', imageObject: {} }, backgroundColor: '#000000' }),
+      ).toEqual([])
+    })
   })
 })

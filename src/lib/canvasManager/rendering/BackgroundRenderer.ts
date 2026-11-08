@@ -96,6 +96,8 @@ export interface BackgroundTilesStoreLike {
 export interface BackgroundRendererManager {
   canvas: HTMLCanvasElement
   background?: string | BackgroundImageObject | null
+  /** Zuletzt eingestellte Hintergrundfarbe (Grundfläche unter animierten Bildern) */
+  backgroundColor?: string
   backgroundColorSettings?: EngineAudioSettings | null
   gradientSettings?: GradientSettings | null
   videoBackground?: VideoBackgroundObject | null
@@ -336,7 +338,7 @@ export class BackgroundRenderer {
   /**
    * Zeichnet einen Farbhintergrund mit optionalem Gradient
    */
-  _drawColorBackground(ctx: Ctx): void {
+  _drawColorBackground(ctx: Ctx, color = this.manager.background as string): void {
     ctx.save()
     const canvasW = ctx.canvas.width
     const canvasH = ctx.canvas.height
@@ -397,11 +399,11 @@ export class BackgroundRenderer {
       }
 
       // nur bei Farb-Hintergrund (string) aufgerufen
-      gradient.addColorStop(0, this.manager.background as string)
+      gradient.addColorStop(0, color)
       gradient.addColorStop(1, this.manager.gradientSettings.color2)
       ctx.fillStyle = gradient
     } else {
-      ctx.fillStyle = this.manager.background as string
+      ctx.fillStyle = color
     }
 
     if (transformed) {
@@ -423,10 +425,10 @@ export class BackgroundRenderer {
   _drawImageBackground(ctx: Ctx): void {
     // nur bei Bild-Hintergrund (Objekt) aufgerufen
     const background = this.manager.background as BackgroundImageObject
-    // Animiertes Hintergrundbild: freie Fläche weiß (wie ohne Hintergrund)
+    // Animiertes Hintergrundbild: freie Fläche in der eingestellten
+    // Hintergrundfarbe (inkl. Verlauf), wie ohne Bild
     if (hasImageAnimation((background as ImageAnimationTarget).timedAnimation)) {
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+      this._drawColorBackground(ctx, this.manager.backgroundColor || '#ffffff')
     }
     ctx.save()
 

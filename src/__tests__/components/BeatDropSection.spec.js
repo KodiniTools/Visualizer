@@ -9,8 +9,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import BeatDropSection from '../../components/canvas-control/BeatDropSection.vue'
 import { useBeatDropStore } from '../../stores/beatDropStore'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const B = de.beatDrop
 let wrapper

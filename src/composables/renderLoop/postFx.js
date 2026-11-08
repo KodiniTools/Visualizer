@@ -1,4 +1,4 @@
-import { createPostProcessor, shouldRunPostFx } from '../../lib/postfx/index.js'
+import { createPostProcessor, shouldRunPostFx } from '../../lib/postfx/index'
 
 /**
  * Post-Processing (Bloom / Trails): Prozessor mit passender Größe anlegen bzw.

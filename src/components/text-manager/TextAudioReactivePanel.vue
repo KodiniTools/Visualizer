@@ -119,9 +119,9 @@ import { useAudioReactiveText } from '../../composables/useAudioReactiveText.js'
 import {
   TEXT_REACTION_DEFAULTS,
   TEXT_SHARED_EFFECT_NAMES,
-} from '../../lib/audio/audioReactiveConfig.js'
+} from '../../lib/audio/audioReactiveConfig'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
-import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 import SliderField from '../ui/SliderField.vue'
 import { UiButton, UiSwitch } from '../ui/index.js'
 

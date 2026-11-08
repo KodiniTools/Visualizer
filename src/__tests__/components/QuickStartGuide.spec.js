@@ -7,7 +7,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import QuickStartGuide from '../../components/QuickStartGuide.vue'
 import { QUICK_START_CONTENT, QUICK_START_TABS } from '../../data/quickStartGuide'
-import { SHORTCUT_RULES, shortcutContext } from '../../lib/keyboard/shortcutRules.js'
+import { SHORTCUT_RULES, shortcutContext } from '../../lib/keyboard/shortcutRules'
 import { setLocale } from '../../lib/i18n'
 
 let wrapper

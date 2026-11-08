@@ -4,8 +4,8 @@
  * ✨ Verwendet modularisierte Audio-Verarbeitung
  */
 
-import { calculateEffectValue } from './audio/index.js'
-import { makeLevelResolver } from './audio/ReactiveLevel.js'
+import { calculateEffectValue } from './audio/index'
+import { makeLevelResolver } from './audio/ReactiveLevel'
 import {
   mergeTransitionTransform,
   clipToWorkspace,
@@ -25,11 +25,11 @@ import {
   getDeleteButtonBounds,
   getResizeHandles,
   isPointInRect,
-} from './canvasObjects/geometry.js'
-import { getEntranceTransform } from './canvasObjects/entranceAnimation.js'
-import { moveToBack, moveToFront } from './canvasObjects/zOrder.js'
+} from './canvasObjects/geometry'
+import { getEntranceTransform } from './canvasObjects/entranceAnimation'
+import { moveToBack, moveToFront } from './canvasObjects/zOrder'
 import { getSlideshowManager } from './slideshowManagerBridge'
-import { getAudioAnalysisData } from './audio/audioAnalysisData.js'
+import { getAudioAnalysisData } from './audio/audioAnalysisData'
 
 export class MultiImageManager {
   constructor(canvas, callbacks = {}) {

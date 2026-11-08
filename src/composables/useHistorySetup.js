@@ -1,5 +1,5 @@
 import { onMounted, onUnmounted, watch } from 'vue'
-import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
+import { getHistoryRecorder } from '../lib/history/historyRecorder'
 import {
   createAudioFxSegment,
   createBackgroundTilesSegment,
@@ -10,13 +10,13 @@ import {
   createTickerSegment,
   createVisualizerSegment,
   createWorkspaceSegment,
-} from '../lib/history/segments/storeSegments.js'
+} from '../lib/history/segments/storeSegments'
 import {
   createImagesSegment,
   createTextsSegment,
   createVideosSegment,
-} from '../lib/history/segments/canvasSegments.js'
-import { createShapesSegment } from '../lib/history/segments/shapesSegment.js'
+} from '../lib/history/segments/canvasSegments'
+import { createShapesSegment } from '../lib/history/segments/shapesSegment'
 
 /**
  * ↩️ Richtet den globalen Undo/Redo-Verlauf über alle Panels ein.

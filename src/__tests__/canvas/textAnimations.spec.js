@@ -6,7 +6,7 @@ import { getFadeOpacity, restartFade } from '../../lib/textManager/animation/fad
 import { getScaleValue, restartScale } from '../../lib/textManager/animation/scale.js'
 import { getSlideOffset, restartSlide } from '../../lib/textManager/animation/slide.js'
 import { getTypewriterText, restartTypewriter } from '../../lib/textManager/animation/typewriter.js'
-import { easeIn as audioEaseIn, easeOut as audioEaseOut } from '../../lib/audio/EasingFunctions.js'
+import { easeIn as audioEaseIn, easeOut as audioEaseOut } from '../../lib/audio/EasingFunctions'
 
 /**
  * Tests für die gemeinsamen Animations-Bausteine

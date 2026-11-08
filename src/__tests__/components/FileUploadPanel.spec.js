@@ -8,8 +8,8 @@ import FileUploadPanel from '../../components/FileUploadPanel.vue'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useToastStore } from '../../stores/toastStore'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 let wrapper
 let player

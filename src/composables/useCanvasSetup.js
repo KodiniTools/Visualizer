@@ -4,7 +4,7 @@ import { FotoManager } from '../lib/fotoManager.js'
 import { GridManager } from '../lib/gridManager.js'
 import { MultiImageManager } from '../lib/multiImageManager.js'
 import { VideoManager } from '../lib/videoManager.js'
-import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
+import { getHistoryRecorder } from '../lib/history/historyRecorder'
 import { getFotoPanel } from '../lib/fotoPanelBridge'
 
 /**

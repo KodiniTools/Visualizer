@@ -4,13 +4,13 @@ import {
   combinedScale,
   strongestGlow,
   buildFilterString,
-} from '../../lib/audio/audioReactiveEngine.js'
+} from '../../lib/audio/audioReactiveEngine'
 import {
   createTickerAudioReactiveConfig,
   migrateLegacyTickerAudio,
   TICKER_EFFECT_NAMES,
   TICKER_SHARED_EFFECT_NAMES,
-} from '../../lib/audio/audioReactiveConfig.js'
+} from '../../lib/audio/audioReactiveConfig'
 
 const loudAudio = {
   bass: 230,

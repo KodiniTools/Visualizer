@@ -9,8 +9,8 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import ReplaceGalleryModal from '../../components/canvas-bar/ReplaceGalleryModal.vue'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const A = de.app
 let wrapper

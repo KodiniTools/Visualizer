@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import de from '../../lib/i18n/de.js'
+import de from '../../lib/i18n/de'
 import VisualizerLedTextSection from '../../components/visualizer-panel/VisualizerLedTextSection.vue'
 import VisualizerControlsPanel from '../../components/VisualizerControlsPanel.vue'
 import { useVisualizerStore } from '../../stores/visualizerStore'

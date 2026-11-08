@@ -6,7 +6,7 @@ import {
   assignAudioReactiveConfig,
   cloneAudioReactiveConfig,
   createAudioReactiveConfig,
-} from '../../lib/audio/audioReactiveConfig.js'
+} from '../../lib/audio/audioReactiveConfig'
 
 const BG_AUDIO_STORAGE_KEY = 'visualizer_bgAudioReactivePreset'
 

@@ -1,8 +1,8 @@
 // canvasManager/methods/backgroundSettingsMethods.js
-import { computeAudioReactiveValues } from '../../audio/audioReactiveEngine.js'
+import { computeAudioReactiveValues } from '../../audio/audioReactiveEngine'
 import { applyAudioReactiveFilters } from '../rendering/audioReactiveDraw.js'
-import { calculateEffectValue } from '../../audio/AudioReactiveEffects.js'
-import { getAudioAnalysisData } from '../../audio/audioAnalysisData.js'
+import { calculateEffectValue } from '../../audio/AudioReactiveEffects'
+import { getAudioAnalysisData } from '../../audio/audioAnalysisData'
 
 /**
  * Einstellungen des Farb-Hintergrunds (Audio-Reaktiv, Farbverlauf, Kacheln)

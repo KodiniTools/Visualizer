@@ -4,8 +4,8 @@ import {
   calculateTextEffectValue,
   getAudioReactiveValues,
 } from '../../lib/textManager/audio/textEffectValues.js'
-import { createTextAudioReactiveConfig } from '../../lib/audio/audioReactiveConfig.js'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+import { createTextAudioReactiveConfig } from '../../lib/audio/audioReactiveConfig'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 /**
  * Tests für den Text-Audio-Pfad (docs/REFACTORING-textManager.md, Schritte 6–7).

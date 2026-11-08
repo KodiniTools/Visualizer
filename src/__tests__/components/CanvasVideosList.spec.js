@@ -7,7 +7,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 import CanvasVideosList from '../../components/video-panel/CanvasVideosList.vue'
 import SliderField from '../../components/ui/SliderField.vue'
-import de from '../../lib/i18n/de.js'
+import de from '../../lib/i18n/de'
 
 const V = de.videoPanel
 let wrapper

@@ -28,8 +28,8 @@
  */
 
 import { REFERENCE_FRAME_MS } from './helpers.js'
-import { applyBeatBoost, applyPhaseOffset } from '../../audio/AudioLevelCalculator.js'
-import { applyEasing } from '../../audio/EasingFunctions.js'
+import { applyBeatBoost, applyPhaseOffset } from '../../audio/AudioLevelCalculator'
+import { applyEasing } from '../../audio/EasingFunctions'
 
 export const REACT_SOURCES = Object.freeze([
   'spectrum',

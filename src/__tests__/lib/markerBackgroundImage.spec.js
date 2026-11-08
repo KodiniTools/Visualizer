@@ -4,7 +4,7 @@ import {
   findGalleryImage,
   resolveBackgroundImageDefaults,
   setBackgroundImageWithDefaults,
-} from '../../lib/background/markerBackgroundImage.js'
+} from '../../lib/background/markerBackgroundImage'
 
 const AR = { enabled: true, source: 'bass', effects: { scale: { enabled: true, intensity: 60 } } }
 

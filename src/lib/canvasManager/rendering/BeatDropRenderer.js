@@ -1,4 +1,4 @@
-import { BeatDetector } from '../../audio/BeatDetector.js'
+import { BeatDetector } from '../../audio/BeatDetector'
 
 /**
  * BeatDropRenderer — Global beat-drop overlay effects on top of the full canvas.

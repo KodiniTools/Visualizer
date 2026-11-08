@@ -13,7 +13,7 @@ import { useBeatMarkers } from '../../composables/useBeatMarkers.js'
 import { usePlayerPopover } from '../../composables/usePlayerPopover.js'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
-import de from '../../lib/i18n/de.js'
+import de from '../../lib/i18n/de'
 
 const P = de.player
 const popoverStub = { closePopover: vi.fn(), cascadeOffset: () => ({ x: 0, y: 0 }) }

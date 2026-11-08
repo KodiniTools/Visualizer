@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 import {
   applyAudioReactivePreset,
   assignAudioReactiveConfig,
-} from '../lib/audio/audioReactiveConfig.js'
+} from '../lib/audio/audioReactiveConfig'
 
 /**
  * Shared (singleton) state + logic for the per-image audio-reactive controls.

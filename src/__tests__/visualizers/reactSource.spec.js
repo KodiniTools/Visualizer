@@ -20,7 +20,7 @@ import {
   normalizeReactPhase,
   normalizeReactEasing,
 } from '../../lib/visualizers/core/reactSource.js'
-import { easingNames } from '../../lib/audio/EasingFunctions.js'
+import { easingNames } from '../../lib/audio/EasingFunctions'
 
 describe('reactSource', () => {
   it('knows its sources', () => {

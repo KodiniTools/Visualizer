@@ -7,7 +7,7 @@
  * Ohne Musik (Pegel 0) bleibt die Farbe wie eingestellt.
  * Pegel/Glättung kommen aus der gemeinsamen Audio-Engine.
  */
-import { computeAudioReactiveValues } from './audio/audioReactiveEngine.js'
+import { computeAudioReactiveValues } from './audio/audioReactiveEngine'
 import {
   SLIDESHOW_GRADIENT_AUDIO_SOURCES,
   type SlideshowSurfaceTarget,
@@ -95,15 +95,10 @@ export function computeSlideshowFillAudio(
     OWNERS[target === 'workspace' ? 'workspace' : 'canvas'],
     { enabled: true, source: audio.source, effects },
     audioData,
-    // audioReactiveEngine.js ist noch JS; die Parameter-Inferenz für
-    // `calculate` ist dort fehlerhaft → Callback-Typ explizit angleichen
-    ((_name: string, level: number) => ({ level })) as unknown as Parameters<
-      typeof computeAudioReactiveValues
-    >[3],
+    (_name, level) => ({ level }),
   )
   if (!values) return { ...NEUTRAL }
-  // calculate liefert { level } je Effekt (siehe oben)
-  const levels = values.effects as Record<string, { level?: number } | undefined>
+  const levels: Record<string, { level: number } | undefined> = values.effects
   return {
     lighten: 0.5 * (levels.brightness?.level ?? 0),
     hueShift: 180 * (levels.hue?.level ?? 0),

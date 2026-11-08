@@ -8,7 +8,7 @@ import TextManagerPanel from '../../components/TextManagerPanel.vue'
 import TextDirectoryPanel from '../../components/text-manager/TextDirectoryPanel.vue'
 import { TextManager } from '../../lib/textManager.js'
 import { TEXT_SEQUENCE_KEY } from '../../lib/textSequenceSettings'
-import { historyApplyRevision } from '../../lib/history/historyRecorder.js'
+import { historyApplyRevision } from '../../lib/history/historyRecorder'
 
 // Verhalten des TextManagerPanels (Auswahl, Reihenwiedergabe, Tastatur-Text,
 // Canvas-Maße) – gilt unverändert vor und nach der Aufteilung in Composables.

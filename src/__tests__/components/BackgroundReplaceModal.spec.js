@@ -7,7 +7,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 import BackgroundReplaceModal from '../../components/canvas-control/background/BackgroundReplaceModal.vue'
 import { useBgReplace } from '../../composables/bg/useBgReplace.js'
-import de from '../../lib/i18n/de.js'
+import de from '../../lib/i18n/de'
 
 const C = de.canvasControl
 const A = de.app

@@ -3,7 +3,8 @@ import {
   AUDIO_REACTIVE_PRESET_LIST,
   applyAudioReactivePreset,
   createAudioReactiveConfig,
-} from './audio/audioReactiveConfig.js'
+  type AudioReactiveConfig,
+} from './audio/audioReactiveConfig'
 import { SLIDESHOW_GRADIENT_AUDIO_SOURCES } from './slideshowGradientAudio'
 
 /**
@@ -18,10 +19,7 @@ export const SLIDESHOW_AUDIO_OFF = 'off'
 export const SLIDESHOW_AUDIO_SAVED = 'saved'
 
 /** Audio-Reaktiv-Konfiguration (Struktur siehe audio/audioReactiveConfig.js) */
-export type SlideshowAudioReactive = Record<string, unknown> & {
-  source?: string
-  effects?: Record<string, unknown>
-}
+export type SlideshowAudioReactive = Partial<AudioReactiveConfig>
 
 export interface SlideshowAudioContext {
   applyGlobal: boolean

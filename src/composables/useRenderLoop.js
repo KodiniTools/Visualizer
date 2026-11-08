@@ -1,4 +1,4 @@
-import { FrameMonitor } from '../lib/postfx/index.js'
+import { FrameMonitor } from '../lib/postfx/index'
 import { visualizerState } from '../lib/visualizers/core/state.js'
 import { REFERENCE_FRAME_MS } from '../lib/visualizers/core/helpers.js'
 import { resolveEffectiveImageId } from '../lib/visualizers/imageRegistry.js'
@@ -10,7 +10,7 @@ import { createMultiLayerRenderer } from './renderLoop/multiLayerRenderer.js'
 import { createSingleVisualizerRenderer } from './renderLoop/singleVisualizerRenderer.js'
 import { createSceneRenderer } from './renderLoop/sceneRenderer.js'
 import { registerCanvasScreenshot } from '../lib/canvasScreenshotBridge'
-import { getAudioAnalysisData } from '../lib/audio/audioAnalysisData.js'
+import { getAudioAnalysisData } from '../lib/audio/audioAnalysisData'
 
 /**
  * Render-Schleife des Canvas: pro Frame Audio analysieren, Visualizer rendern

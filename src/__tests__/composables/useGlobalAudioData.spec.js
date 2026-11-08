@@ -11,7 +11,7 @@ vi.mock('../../lib/workerManager.js', () => ({
 }))
 
 import { useGlobalAudioData } from '../../composables/useGlobalAudioData.js'
-import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 /**
  * Verhaltenstest: Der globale Audio-Datensatz (Pegel, Glättung, Beat, Onsets)

@@ -6,8 +6,8 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ImageUploadSection from '../../components/foto-panel/ImageUploadSection.vue'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const F = de.foto
 const gallery = [

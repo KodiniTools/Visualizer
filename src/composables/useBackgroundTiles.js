@@ -1,6 +1,6 @@
 import { computed, inject, reactive, ref, watch } from 'vue'
 import { useBackgroundTilesStore } from '../stores/backgroundTilesStore'
-import { historyApplyRevision } from '../lib/history/historyRecorder.js'
+import { historyApplyRevision } from '../lib/history/historyRecorder'
 
 /**
  * Kapselt den Zugriff auf den Background-Tiles-Store sowie alle

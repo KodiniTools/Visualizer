@@ -7,8 +7,8 @@ import {
   getFilterString,
   resetBeatPulseEnvelope,
   AudioReactiveEffects,
-} from '../../lib/audio/AudioReactiveEffects.js'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+} from '../../lib/audio/AudioReactiveEffects'
+import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 describe('AudioReactiveEffects', () => {
   describe('EFFECT_NAMES', () => {

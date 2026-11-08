@@ -5,8 +5,8 @@
  *
  * @module canvasManager/rendering/audioReactiveDraw
  */
-import { getMotionOffset } from '../../audio/AudioReactiveEffects.js'
-import { combinedScale, strongestGlow } from '../../audio/audioReactiveEngine.js'
+import { getMotionOffset } from '../../audio/AudioReactiveEffects'
+import { combinedScale, strongestGlow } from '../../audio/audioReactiveEngine'
 
 /**
  * Wendet alle Filter-Effekte (Farbfilter, Strobe, Farb-Strobe, Frequenz-Split-

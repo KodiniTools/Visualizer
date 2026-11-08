@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { BeatDetector, DEFAULT_CONFIG } from '../../lib/audio/BeatDetector.js'
+import { BeatDetector, DEFAULT_CONFIG } from '../../lib/audio/BeatDetector'
 
 describe('BeatDetector', () => {
   let detector

@@ -11,8 +11,8 @@ import {
   RECORDER_FRAME_RATE_PRESETS,
 } from '../../composables/recorder/useRecorderSettings.js'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const R = de.recorder
 let wrapper

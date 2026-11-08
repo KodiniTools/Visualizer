@@ -7,8 +7,8 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, h, nextTick, ref } from 'vue'
 import BackgroundVideoControls from '../../components/video-panel/BackgroundVideoControls.vue'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const V = de.videoPanel
 let wrapper

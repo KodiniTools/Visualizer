@@ -5,7 +5,7 @@ import {
   computeReactiveLevel,
   makeLevelResolver,
   resetReactiveLevel,
-} from '../../lib/audio/ReactiveLevel.js'
+} from '../../lib/audio/ReactiveLevel'
 
 describe('smoothingToEnvelope', () => {
   it('is instant (both coefs 1) at smoothing 0', () => {

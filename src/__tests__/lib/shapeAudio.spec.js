@@ -8,7 +8,7 @@ import {
   getShapeAudioFx,
   supportsShapeAudio,
 } from '../../lib/shapes/shapeAudio.js'
-import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects.js'
+import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects'
 import { createShape } from '../../lib/shapes/shapes.js'
 
 function fakeCtx() {

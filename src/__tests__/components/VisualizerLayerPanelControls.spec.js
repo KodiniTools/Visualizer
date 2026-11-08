@@ -10,8 +10,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import VisualizerLayerPanel from '../../components/VisualizerLayerPanel.vue'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const V = de.visualizer
 const C = de.common

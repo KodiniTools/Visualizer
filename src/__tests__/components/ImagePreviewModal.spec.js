@@ -6,8 +6,8 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ImagePreviewModal from '../../components/canvas-bar/ImagePreviewModal.vue'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const A = de.app
 let wrapper

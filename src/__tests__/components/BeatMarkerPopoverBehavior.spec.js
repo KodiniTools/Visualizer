@@ -12,7 +12,7 @@ import { useBeatMarkers } from '../../composables/useBeatMarkers.js'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
-import de from '../../lib/i18n/de.js'
+import de from '../../lib/i18n/de'
 
 const P = de.player
 let wrapper

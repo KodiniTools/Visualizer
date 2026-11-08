@@ -12,8 +12,8 @@
  * - Smart context detection (ignores shortcuts when typing in inputs)
  */
 
-import { SHORTCUT_LIST, findShortcutRule, shortcutContext } from './keyboard/shortcutRules.js'
-import { moveObject, resizeImageObject } from './keyboard/objectTransforms.js'
+import { SHORTCUT_LIST, findShortcutRule, shortcutContext } from './keyboard/shortcutRules'
+import { moveObject, resizeImageObject } from './keyboard/objectTransforms'
 
 export class KeyboardShortcuts {
   constructor(stores, managers) {

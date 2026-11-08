@@ -1,7 +1,7 @@
 import { workerManager } from '../lib/workerManager.js'
-import { BeatDetector } from '../lib/audio/BeatDetector.js'
-import { OnsetDetector } from '../lib/audio/OnsetDetector.js'
-import { getAudioAnalysisData, setAudioAnalysisData } from '../lib/audio/audioAnalysisData.js'
+import { BeatDetector } from '../lib/audio/BeatDetector'
+import { OnsetDetector } from '../lib/audio/OnsetDetector'
+import { getAudioAnalysisData, setAudioAnalysisData } from '../lib/audio/audioAnalysisData'
 
 setAudioAnalysisData({
   bass: 0,

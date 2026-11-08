@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { FrameMonitor, QUALITY_STEPS } from '../../lib/postfx/FrameMonitor.js'
+import { FrameMonitor, QUALITY_STEPS } from '../../lib/postfx/FrameMonitor'
 
 /** Feed n frames of the given duration. */
 function feed(monitor, ms, n) {

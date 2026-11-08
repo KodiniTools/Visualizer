@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { FrequencyAnalyzer, DEFAULT_CONFIG } from '../../lib/audio/FrequencyAnalyzer.js'
+import { FrequencyAnalyzer, DEFAULT_CONFIG } from '../../lib/audio/FrequencyAnalyzer'
 
 describe('FrequencyAnalyzer', () => {
   let analyzer

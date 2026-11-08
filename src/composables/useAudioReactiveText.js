@@ -1,5 +1,5 @@
 import { computed, reactive, ref, watch } from 'vue'
-import { historyApplyRevision } from '../lib/history/historyRecorder.js'
+import { historyApplyRevision } from '../lib/history/historyRecorder'
 import {
   AUDIO_REACTIVE_PRESETS,
   TEXT_REACTION_DEFAULTS,
@@ -8,7 +8,7 @@ import {
   assignAudioReactiveConfig,
   cloneAudioReactiveConfig,
   ensureTextAudioReactive,
-} from '../lib/audio/audioReactiveConfig.js'
+} from '../lib/audio/audioReactiveConfig'
 
 const AUDIO_EFFECTS_PRESET_KEY = 'visualizer_audio_effects_preset'
 

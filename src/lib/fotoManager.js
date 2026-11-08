@@ -1,7 +1,4 @@
-import {
-  createAudioReactiveConfig,
-  ensureAudioReactiveConfig,
-} from './audio/audioReactiveConfig.js'
+import { createAudioReactiveConfig, ensureAudioReactiveConfig } from './audio/audioReactiveConfig'
 // fotoManager.js
 
 /**

@@ -10,7 +10,7 @@ import {
   applyEasing,
   easingMap,
   easingNames,
-} from '../../lib/audio/EasingFunctions.js'
+} from '../../lib/audio/EasingFunctions'
 
 describe('EasingFunctions', () => {
   describe('linear', () => {

@@ -4,8 +4,8 @@
  * ✨ NEU: Verwendet modularisierte Audio-Verarbeitung
  */
 
-import { FrequencyAnalyzer } from '../lib/audio/FrequencyAnalyzer.js'
-import { BeatDetector } from '../lib/audio/BeatDetector.js'
+import { FrequencyAnalyzer } from '../lib/audio/FrequencyAnalyzer'
+import { BeatDetector } from '../lib/audio/BeatDetector'
 
 // Instanzen der modularen Klassen
 const frequencyAnalyzer = new FrequencyAnalyzer()

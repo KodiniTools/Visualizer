@@ -1,5 +1,5 @@
 import { nextTick, onMounted, onUnmounted, watch } from 'vue'
-import { historyApplyRevision } from '../../lib/history/historyRecorder.js'
+import { historyApplyRevision } from '../../lib/history/historyRecorder'
 import { ensureTextObjectDefaults } from './textObjectDefaults.js'
 
 /**

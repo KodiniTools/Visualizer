@@ -4,7 +4,7 @@ import {
   assignAudioReactiveConfig,
   createTickerAudioReactiveConfig,
   migrateLegacyTickerAudio,
-} from '../lib/audio/audioReactiveConfig.js'
+} from '../lib/audio/audioReactiveConfig'
 
 /**
  * tickerStore — Lauftext (Ticker): ein horizontal scrollendes Textband.

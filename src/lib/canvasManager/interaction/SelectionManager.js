@@ -11,7 +11,7 @@
  * - Text/Image Selection Bounds
  */
 import { isBackgroundReplacedBySlideshow } from '../rendering/BackgroundRenderer.js'
-import { getResizeHandles, isPointInRect } from '../../canvasObjects/geometry.js'
+import { getResizeHandles, isPointInRect } from '../../canvasObjects/geometry'
 
 export class SelectionManager {
   constructor(canvasManager) {

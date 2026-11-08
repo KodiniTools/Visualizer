@@ -8,7 +8,7 @@ import { ref } from 'vue'
 import VideoPlacementControls from '../../components/video-panel/VideoPlacementControls.vue'
 import SliderField from '../../components/ui/SliderField.vue'
 import { setLocale } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
+import de from '../../lib/i18n/de'
 
 let wrapper
 let vp

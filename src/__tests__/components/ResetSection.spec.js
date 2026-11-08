@@ -8,8 +8,8 @@ import { mount } from '@vue/test-utils'
 import { nextTick, ref } from 'vue'
 import ResetSection from '../../components/canvas-control/ResetSection.vue'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const C = de.canvasControl
 let wrapper

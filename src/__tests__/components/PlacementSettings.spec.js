@@ -7,7 +7,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import PlacementSettings from '../../components/foto-panel/PlacementSettings.vue'
 import SliderField from '../../components/ui/SliderField.vue'
 import { setLocale } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
+import de from '../../lib/i18n/de'
 
 let wrapper
 

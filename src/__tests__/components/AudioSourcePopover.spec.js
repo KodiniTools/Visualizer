@@ -9,8 +9,8 @@ import AudioSourcePopover from '../../components/sticky-player-bar/AudioSourcePo
 import { usePlayerPopover } from '../../composables/usePlayerPopover.js'
 import { useAudioSourceStore } from '../../stores/audioSourceStore'
 import { setLocale } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const P = de.player
 let wrapper

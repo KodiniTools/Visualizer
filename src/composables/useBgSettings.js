@@ -1,6 +1,6 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick, inject } from 'vue'
-import { serializeBackgroundAudio } from '../lib/audio/audioReactiveConfig.js'
-import { hexToRGBA, rgbToHex, parseRGBA } from '../lib/background/bgColor.js'
+import { serializeBackgroundAudio } from '../lib/audio/audioReactiveConfig'
+import { hexToRGBA, rgbToHex, parseRGBA } from '../lib/background/bgColor'
 import {
   captureImageBackground,
   applyImageBackground,
@@ -8,15 +8,15 @@ import {
   applyVideoBackground,
   clearCanvasVideoBackgrounds,
   removeVideoBackground,
-} from '../lib/background/backgroundMedia.js'
-import { captureCanvasElements, restoreCanvasElements } from '../lib/background/canvasElements.js'
+} from '../lib/background/backgroundMedia'
+import { captureCanvasElements, restoreCanvasElements } from '../lib/background/canvasElements'
 import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore'
 import { useToastStore } from '../stores/toastStore'
 import { useTickerStore } from '../stores/tickerStore'
 import { useI18n } from '../lib/i18n'
 import { useHistoryStore } from '../stores/historyStore'
-import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
-import { createBackgroundSegment } from '../lib/history/segments/backgroundSegment.js'
+import { getHistoryRecorder } from '../lib/history/historyRecorder'
+import { createBackgroundSegment } from '../lib/history/segments/backgroundSegment'
 import { useBgAudioReactive } from './bg/useBgAudioReactive.js'
 import { useBgReplace } from './bg/useBgReplace.js'
 import { useBgPresets } from './bg/useBgPresets.js'

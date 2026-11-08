@@ -9,8 +9,8 @@ import { nextTick, reactive, ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import TextEditPanel from '../../components/text-manager/TextEditPanel.vue'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const T = de.textManager
 let wrapper

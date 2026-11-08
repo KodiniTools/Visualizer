@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import TextDirectoryPanel from '../../components/text-manager/TextDirectoryPanel.vue'
 import { useI18n } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const items = [
   { id: 1, number: 1, content: 'Auf dem Canvas', animated: false, offCanvas: false },

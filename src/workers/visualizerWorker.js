@@ -6,7 +6,7 @@
 
 import { Visualizers } from '../lib/visualizers/index.js'
 import { visualizerState } from '../lib/visualizers/core/state.js'
-import { createPostProcessor, shouldRunPostFx } from '../lib/postfx/index.js'
+import { createPostProcessor, shouldRunPostFx } from '../lib/postfx/index'
 
 let offscreenCanvas = null
 let ctx = null

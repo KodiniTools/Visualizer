@@ -34,7 +34,7 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from '../../../lib/i18n'
 import AudioReactivePanel from '../../foto-panel/AudioReactivePanel.vue'
-import { getAudioAnalysisData } from '../../../lib/audio/audioAnalysisData.js'
+import { getAudioAnalysisData } from '../../../lib/audio/audioAnalysisData'
 
 const { t } = useI18n()
 const bg = inject('bgSettings')

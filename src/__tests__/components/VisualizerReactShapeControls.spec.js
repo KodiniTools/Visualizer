@@ -5,8 +5,8 @@ import { mount } from '@vue/test-utils'
 import VisualizerReactShapeControls from '../../components/visualizer-panel/VisualizerReactShapeControls.vue'
 import { REACT_EASINGS } from '../../lib/visualizers/core/reactSource.js'
 import { setLocale } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 let wrapper
 

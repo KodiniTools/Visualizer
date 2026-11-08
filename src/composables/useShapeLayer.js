@@ -5,8 +5,8 @@ import {
   drawShapeSelection,
   getCanvasDisplayScale,
 } from '../lib/shapes/shapeInteraction.js'
-import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
-import { getAudioAnalysisData } from '../lib/audio/audioAnalysisData.js'
+import { getHistoryRecorder } from '../lib/history/historyRecorder'
+import { getAudioAnalysisData } from '../lib/audio/audioAnalysisData'
 
 /** Akzentfarbe des aktuellen Themes für den Auswahlrahmen */
 function accentColor() {

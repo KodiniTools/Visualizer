@@ -7,8 +7,8 @@ import { mount } from '@vue/test-utils'
 import { nextTick, ref } from 'vue'
 import BackgroundGradient from '../../components/canvas-control/background/BackgroundGradient.vue'
 import { setLocale } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const c = de.canvasControl
 let wrapper

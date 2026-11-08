@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { EFFECT_NAMES } from '../lib/audio/AudioReactiveEffects.js'
+import { EFFECT_NAMES } from '../lib/audio/AudioReactiveEffects'
 import {
   applyAudioReactivePreset,
   assignAudioReactiveConfig,
   createAudioReactiveConfig,
-} from '../lib/audio/audioReactiveConfig.js'
+} from '../lib/audio/audioReactiveConfig'
 
 const STORAGE_KEY = 'visualizer-background-tiles'
 
@@ -404,7 +404,7 @@ export const useBackgroundTilesStore = defineStore('backgroundTiles', () => {
   function setTileAudioProperty(index: number, property: string, value: unknown) {
     const ar = tileAt(index)?.audioReactive
     if (!ar || property === 'effects' || !(property in ar)) return
-    ;(ar as Record<string, unknown>)[property] = value
+    ;(ar as unknown as Record<string, unknown>)[property] = value
     persistSettings()
   }
 

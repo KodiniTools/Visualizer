@@ -7,8 +7,8 @@ import { mount } from '@vue/test-utils'
 import { nextTick, ref } from 'vue'
 import TileGalleryModal from '../../components/background-tiles/TileGalleryModal.vue'
 import { setLocale } from '../../lib/i18n'
-import de from '../../lib/i18n/de.js'
-import en from '../../lib/i18n/en.js'
+import de from '../../lib/i18n/de'
+import en from '../../lib/i18n/en'
 
 const B = de.backgroundTiles
 let wrapper

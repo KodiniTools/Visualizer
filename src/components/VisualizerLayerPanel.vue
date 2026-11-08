@@ -390,7 +390,7 @@ import VisualizerLedTextSection from './visualizer-panel/VisualizerLedTextSectio
 import { isLedTextVisualizer } from '../lib/visualizers/gl/ledTextSettings'
 import VisualizerEffectsPanel from './VisualizerEffectsPanel.vue'
 import ColorField from './ui/ColorField.vue'
-import { UiButton, UiIconButton, UiSegmentedControl, UiSelect, UiSwitch } from './ui/index.js'
+import { UiButton, UiIconButton, UiSegmentedControl, UiSelect, UiSwitch } from './ui'
 import { visualizerShapeOptions } from '../lib/visualizers/core/visualizerShape'
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../lib/i18n'

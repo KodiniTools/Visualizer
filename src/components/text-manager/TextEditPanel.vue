@@ -67,7 +67,7 @@ import {
   clearTextDefaults,
 } from '../../lib/textDefaults'
 import TextAnimationsPanel from './TextAnimationsPanel.vue'
-import { UiButton, UiIconButton } from '../ui/index.js'
+import { UiButton, UiIconButton } from '../ui'
 import TextContentSection from './text-edit/TextContentSection.vue'
 import TextPositionSection from './text-edit/TextPositionSection.vue'
 import TextSpacingStrokeSection from './text-edit/TextSpacingStrokeSection.vue'

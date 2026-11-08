@@ -4,11 +4,9 @@
   </span>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Tastenkombination, z. B. :keys="['Strg', 'S']". */
-defineProps({
-  keys: { type: Array, required: true },
-})
+defineProps<{ keys: string[] }>()
 </script>
 
 <style scoped>

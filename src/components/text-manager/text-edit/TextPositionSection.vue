@@ -81,7 +81,7 @@
 import { useI18n } from '../../../lib/i18n'
 import SliderField from '../../ui/SliderField.vue'
 import { inject } from 'vue'
-import { UiIconButton } from '../../ui/index.js'
+import { UiIconButton } from '../../ui'
 
 const { t } = useI18n()
 

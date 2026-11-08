@@ -16,7 +16,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, useId, useTemplateRef } from 'vue'
 
 /**
@@ -25,23 +25,26 @@ import { computed, useId, useTemplateRef } from 'vue'
  */
 defineOptions({ inheritAttrs: false })
 
-const props = defineProps({
-  label: { type: String, required: true },
-  id: { type: String, default: undefined },
-  rows: { type: Number, default: 2 },
-  placeholder: { type: String, default: undefined },
-  hint: { type: String, default: undefined },
-  disabled: { type: Boolean, default: false },
-})
+const props = withDefaults(
+  defineProps<{
+    label: string
+    id?: string
+    rows?: number
+    placeholder?: string
+    hint?: string
+    disabled?: boolean
+  }>(),
+  { id: undefined, rows: 2, placeholder: undefined, hint: undefined, disabled: false },
+)
 
-const model = defineModel({ type: String, default: '' })
+const model = defineModel<string>({ default: '' })
 
 const generatedId = useId()
 const inputId = computed(() => props.id ?? `ui-textarea-${generatedId}`)
 const hintId = computed(() => `${inputId.value}-hint`)
 
 // Für Fokus und Cursor-Position von außen (z. B. Text-Editor nach Tastendruck)
-const field = useTemplateRef('field')
+const field = useTemplateRef<HTMLTextAreaElement>('field')
 defineExpose({ textarea: field })
 </script>
 

@@ -61,7 +61,7 @@
 <script setup>
 import { ref, inject } from 'vue'
 import { useI18n } from '../../lib/i18n'
-import { UiButton, UiDialog } from '../ui/index.js'
+import { UiButton, UiDialog } from '../ui'
 
 const { t } = useI18n()
 const bg = inject('bgSettings')

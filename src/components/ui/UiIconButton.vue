@@ -16,32 +16,31 @@
   </button>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Quadratischer Button nur mit Icon. `label` ist Pflicht und wird zu aria-label
  * und title. `pressed` macht ihn zum Umschalter mit aria-pressed.
  */
-defineProps({
-  label: { type: String, required: true },
-  /** 'ghost' | 'secondary' | 'primary' */
-  variant: {
-    type: String,
-    default: 'ghost',
-    validator: (v) => ['ghost', 'secondary', 'primary'].includes(v),
+withDefaults(
+  defineProps<{
+    label: string
+    variant?: 'ghost' | 'secondary' | 'primary'
+    size?: 'sm' | 'md'
+    round?: boolean
+    /** undefined = kein Umschalter (kein aria-pressed) */
+    pressed?: boolean
+    disabled?: boolean
+    type?: 'button' | 'submit' | 'reset'
+  }>(),
+  {
+    variant: 'ghost',
+    size: 'md',
+    round: false,
+    pressed: undefined,
+    disabled: false,
+    type: 'button',
   },
-  /** 'sm' | 'md' */
-  size: { type: String, default: 'md', validator: (v) => ['sm', 'md'].includes(v) },
-  round: { type: Boolean, default: false },
-  /** undefined = kein Umschalter (kein aria-pressed) */
-  pressed: { type: Boolean, default: undefined },
-  disabled: { type: Boolean, default: false },
-  /** 'button' | 'submit' | 'reset' */
-  type: {
-    type: String,
-    default: 'button',
-    validator: (v) => ['button', 'submit', 'reset'].includes(v),
-  },
-})
+)
 </script>
 
 <style scoped>

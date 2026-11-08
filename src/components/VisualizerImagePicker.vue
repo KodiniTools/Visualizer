@@ -30,7 +30,7 @@ import {
   registerGalleryImage,
 } from '../lib/visualizers/imageRegistry'
 import { useImageGallery } from '../composables/useImageGallery'
-import { UiButton, UiSelect } from './ui/index.js'
+import { UiButton, UiSelect } from './ui'
 
 const props = defineProps({ modelValue: { type: String, default: null } })
 const emit = defineEmits(['update:modelValue'])

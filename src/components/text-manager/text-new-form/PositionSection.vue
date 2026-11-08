@@ -106,7 +106,7 @@
 <script setup>
 import { useI18n } from '../../../lib/i18n'
 import SliderField from '../../ui/SliderField.vue'
-import { UiButton, UiIconButton } from '../../ui/index.js'
+import { UiButton, UiIconButton } from '../../ui'
 
 const { t } = useI18n()
 defineModel('position', {

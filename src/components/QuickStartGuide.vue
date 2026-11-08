@@ -121,7 +121,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { localeRef } from '../lib/i18n'
 import { QUICK_START_TABS, QUICK_START_CONTENT } from '../data/quickStartGuide'
-import { UiIconButton, UiKbd, UiSegmentedControl } from './ui/index.js'
+import { UiIconButton, UiKbd, UiSegmentedControl } from './ui'
 
 const LANG_OPTIONS = [
   { value: 'de', label: 'DE' },

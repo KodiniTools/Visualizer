@@ -15,19 +15,21 @@
   </section>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, useId } from 'vue'
 
 /**
  * Flache Fläche mit optionaler Kopfzeile (Titel, Zähler, Aktionen rechts).
  */
-const props = defineProps({
-  title: { type: String, default: undefined },
-  /** 2 | 3 */
-  headingLevel: { type: Number, default: 2, validator: (v) => v === 2 || v === 3 },
-  count: { type: Number, default: undefined },
-  padded: { type: Boolean, default: true },
-})
+const props = withDefaults(
+  defineProps<{
+    title?: string
+    headingLevel?: 2 | 3
+    count?: number
+    padded?: boolean
+  }>(),
+  { title: undefined, headingLevel: 2, count: undefined, padded: true },
+)
 
 const titleId = `ui-panel-${useId()}`
 const headingTag = computed(() => `h${props.headingLevel}`)

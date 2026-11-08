@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { Visualizers } from '../../lib/visualizers/index.js'
 import { LEGACY_VISUALIZER_IDS } from '../../lib/visualizers/aliases.js'
-import { localeRef } from '../../lib/i18n.js'
-import { localizedName } from '../../lib/localizedName.js'
+import { localeRef } from '../../lib/i18n'
+import { localizedName } from '../../lib/localizedName'
 
 // ✅ Blend-Modi für Visualizer-Compositing
 export interface BlendMode {

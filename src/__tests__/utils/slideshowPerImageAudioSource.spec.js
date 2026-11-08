@@ -4,7 +4,7 @@ import {
   applySlideshowAudioSource,
   isValidSlideshowAudioSource,
   resolveSlideshowAudioReactive,
-} from '../../lib/slideshowAudio.js'
+} from '../../lib/slideshowAudio'
 import { normalizeSlideshowPreset } from '../../stores/slideshowPresetStore'
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore'
 import { SlideshowManager } from '../../lib/slideshowManager.js'

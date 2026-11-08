@@ -10,8 +10,8 @@ import { BackgroundRenderer } from '../../lib/canvasManager/rendering/Background
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 import { MultiImageManager } from '../../lib/multiImageManager.js'
 import { FotoManager } from '../../lib/fotoManager.js'
-import { resolveSlideshowAudioReactive } from '../../lib/slideshowAudio.js'
-import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { resolveSlideshowAudioReactive } from '../../lib/slideshowAudio'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
 import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
 
 const WS = { x: 20, y: 10, width: 40, height: 80 }

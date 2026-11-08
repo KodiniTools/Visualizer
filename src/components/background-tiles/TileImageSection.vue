@@ -274,7 +274,7 @@
 
 <script setup>
 import { ref, inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import SliderControl from '../ui/SliderControl.vue'
 import UiButton from '../ui/UiButton.vue'
 import UiSwitch from '../ui/UiSwitch.vue'

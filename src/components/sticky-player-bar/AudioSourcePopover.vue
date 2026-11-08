@@ -69,9 +69,9 @@
 
 <script setup>
 import { computed, inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { useAudioSourceStore } from '../../stores/audioSourceStore'
-import { vPopoverDrag } from '../../directives/popoverDrag.js'
+import { vPopoverDrag } from '../../directives/popoverDrag'
 import UiSelect from '../ui/UiSelect.vue'
 
 const { t } = useI18n()

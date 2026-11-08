@@ -82,7 +82,7 @@
  * Scope-Attribute des Elternkontexts (siehe `useParentScopeAttrs`).
  */
 import { computed, getCurrentInstance, onMounted, ref, useAttrs, useId, watch } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { clamp } from '../../lib/color.js'
 
 defineOptions({ inheritAttrs: false })

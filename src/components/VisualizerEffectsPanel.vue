@@ -186,7 +186,7 @@
 import SliderField from './ui/SliderField.vue'
 import { UiSegmentedControl, UiSwitch } from './ui/index.js'
 import { computed } from 'vue'
-import { useI18n } from '../lib/i18n.js'
+import { useI18n } from '../lib/i18n'
 import { useVisualizerStore } from '../stores/visualizerStore'
 
 const props = defineProps({

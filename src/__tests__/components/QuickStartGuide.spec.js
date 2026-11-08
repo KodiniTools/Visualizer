@@ -6,9 +6,9 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import QuickStartGuide from '../../components/QuickStartGuide.vue'
-import { QUICK_START_CONTENT, QUICK_START_TABS } from '../../data/quickStartGuide.js'
+import { QUICK_START_CONTENT, QUICK_START_TABS } from '../../data/quickStartGuide'
 import { SHORTCUT_RULES, shortcutContext } from '../../lib/keyboard/shortcutRules.js'
-import { setLocale } from '../../lib/i18n.js'
+import { setLocale } from '../../lib/i18n'
 
 let wrapper
 

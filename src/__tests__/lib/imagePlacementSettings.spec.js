@@ -13,7 +13,7 @@ import {
   PLACEMENT_KEYS,
   PLACEMENT_DEFAULTS,
   KEEP_ASPECT_KEY,
-} from '../../lib/imagePlacementSettings.js'
+} from '../../lib/imagePlacementSettings'
 import { useImagePlacement } from '../../components/foto-panel/useImagePlacement.js'
 import PositionSizeControls from '../../components/foto-panel/image-filters/PositionSizeControls.vue'
 import SlideshowImageEditor from '../../components/foto-panel/slideshow/SlideshowImageEditor.vue'

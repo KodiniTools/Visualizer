@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import { useI18n } from '../lib/i18n.js'
+import { useI18n } from '../lib/i18n'
 
 const SYSTEM_FONTS = [
   'Arial',

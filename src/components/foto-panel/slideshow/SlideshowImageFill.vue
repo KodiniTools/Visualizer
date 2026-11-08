@@ -146,7 +146,7 @@
  * Rein darstellend: Änderungen werden emittiert.
  */
 import { computed, ref } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 import SliderControl from '../../ui/SliderControl.vue'
 import { UiButton, UiSelect, UiSwitch } from '../../ui/index.js'

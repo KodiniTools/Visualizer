@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import BackgroundTilesPanel from '../BackgroundTilesPanel.vue'
 import BackgroundBaseColor from './background/BackgroundBaseColor.vue'
 import BackgroundGradient from './background/BackgroundGradient.vue'

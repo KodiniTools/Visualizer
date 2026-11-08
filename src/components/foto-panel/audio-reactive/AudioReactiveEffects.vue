@@ -46,7 +46,7 @@
 
 <script setup>
 import { inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 import AudioReactiveEffectCategory from './AudioReactiveEffectCategory.vue'
 
 const { t } = useI18n()

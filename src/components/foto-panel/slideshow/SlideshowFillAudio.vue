@@ -51,11 +51,11 @@
  * Audio-Reaktiv für die Farbe einer Slideshow-Fläche (Canvas oder Workspace).
  * Rein darstellend: v-model liefert die bereinigte Einstellung.
  */
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 import {
   normalizeSlideshowFillAudio,
   SLIDESHOW_FILL_AUDIO_DEFAULT,
-} from '../../../lib/slideshowFillAudio.js'
+} from '../../../lib/slideshowFillAudio'
 import SliderControl from '../../ui/SliderControl.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'

@@ -15,7 +15,7 @@
 /** Slide-Effekt im Neu-Text-Formular; die Einstellungen teilt es mit dem Edit-Panel. */
 import AnimationNewSection from './AnimationNewSection.vue'
 import SlideControls from '../text-animations/SlideControls.vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 
 const settings = defineModel('settings', {
   type: Object,

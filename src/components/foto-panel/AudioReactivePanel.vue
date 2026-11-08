@@ -14,7 +14,7 @@ import {
   AUDIO_REACTIVE_PRESETS,
   AUDIO_REACTIVE_PRESET_LIST,
 } from '../../lib/audio/audioReactiveConfig.js'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import AudioReactiveMaster from './audio-reactive/AudioReactiveMaster.vue'
 import AudioReactivePresets from './audio-reactive/AudioReactivePresets.vue'
 import AudioReactiveEffects from './audio-reactive/AudioReactiveEffects.vue'

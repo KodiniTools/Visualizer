@@ -178,7 +178,7 @@
 
 <script setup>
 import { computed, h, inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { useHistoryStore } from '../../stores/historyStore'
 import { useSlideshowPopover } from '../../composables/useSlideshowPopover.js'
 import { historyStepLabel } from '../../lib/history/historyLabels.js'

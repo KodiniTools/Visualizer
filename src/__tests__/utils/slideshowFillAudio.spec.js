@@ -7,7 +7,7 @@ import {
   loadStoredSlideshowFillAudio,
   normalizeSlideshowFillAudio,
   storeSlideshowFillAudio,
-} from '../../lib/slideshowFillAudio.js'
+} from '../../lib/slideshowFillAudio'
 
 const loud = { bass: 255, mid: 0, treble: 0, volume: 0 }
 const silent = { bass: 0, mid: 0, treble: 0, volume: 0 }

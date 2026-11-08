@@ -27,7 +27,7 @@
 <script setup>
 /** Kopfzeile einer Animations-Sektion im Edit-Panel: Aktivieren/Deaktivieren + Neustart. */
 import UiButton from '../../ui/UiButton.vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 
 defineProps({
   label: { type: String, required: true },

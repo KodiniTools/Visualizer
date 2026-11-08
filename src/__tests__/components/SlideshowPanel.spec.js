@@ -4,10 +4,10 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import ColorField from '../../components/ui/ColorField.vue'
 import SlideshowPanel from '../../components/foto-panel/SlideshowPanel.vue'
-import * as persistence from '../../lib/slideshowImagePersistence.js'
+import * as persistence from '../../lib/slideshowImagePersistence'
 
 // Dauerhafte Bildablage (IndexedDB) im Panel-Test ersetzen
-vi.mock('../../lib/slideshowImagePersistence.js', () => ({
+vi.mock('../../lib/slideshowImagePersistence', () => ({
   persistUploadImage: vi.fn(async () => null),
   restoreUploadImage: vi.fn(async () => null),
   loadPersistedImage: vi.fn(async () => null),

@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { ref, toRaw } from 'vue'
 import { useCanvasSetup } from '../../composables/useCanvasSetup.js'
 import { useCanvasImages } from '../../composables/useCanvasImages.js'
-import { registerFotoPanel } from '../../lib/fotoPanelBridge.js'
+import { registerFotoPanel } from '../../lib/fotoPanelBridge'
 
 /**
  * Verhaltenstest: Canvas-Auswahl → Foto-Panel (aktives Bild + Filter laden).

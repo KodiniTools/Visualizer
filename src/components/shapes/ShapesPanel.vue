@@ -469,7 +469,7 @@
  * neu. Ein Verlaufsschritt pro abgeschlossener Änderung (commit).
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { CUSTOM_FONTS } from '../../lib/fonts.js'
 import { useShapeStore } from '../../stores/shapeStore'
 import { useHistoryStore } from '../../stores/historyStore'

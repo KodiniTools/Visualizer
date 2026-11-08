@@ -143,7 +143,7 @@ import ColorField from '../ui/ColorField.vue'
 import UiButton from '../ui/UiButton.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
 import UiSelect from '../ui/UiSelect.vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 
 const props = defineProps({
   texts: { type: Array, required: true },

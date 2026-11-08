@@ -20,7 +20,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { useTickerStore } from '../../stores/tickerStore'
 import { TICKER_SHARED_EFFECT_NAMES } from '../../lib/audio/audioReactiveConfig.js'
 import { useAudioReactiveTarget } from '../../composables/audioReactive/useAudioReactiveTarget.js'

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { ref } from 'vue'
 import { useCanvasImages } from '../../composables/useCanvasImages.js'
-import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
 
 afterEach(() => {
   setSlideshowManager(null)

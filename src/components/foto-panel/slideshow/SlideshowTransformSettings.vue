@@ -55,7 +55,7 @@
 <script setup>
 /** Position und Größe der Slideshow (in Prozent des Canvas) mit Reset. */
 import SliderControl from '../../ui/SliderControl.vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 
 const TRANSFORM_DEFAULTS = Object.freeze({ x: 10, y: 10, width: 80, height: 80 })
 

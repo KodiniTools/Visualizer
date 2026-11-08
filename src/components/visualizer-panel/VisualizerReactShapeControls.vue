@@ -94,7 +94,7 @@
 import { computed } from 'vue'
 import SliderField from '../ui/SliderField.vue'
 import UiSelect from '../ui/UiSelect.vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import {
   REACT_EASINGS,
   DEFAULT_REACT_SHAPE,

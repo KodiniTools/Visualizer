@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import {
   computeSlideshowGradientAudio,
   normalizeSlideshowGradientAudio,
-} from '../../lib/slideshowGradientAudio.js'
+} from '../../lib/slideshowGradientAudio'
 import { createSlideshowBaseFill } from '../../lib/canvasManager/rendering/BackgroundRenderer.js'
 
 const loud = { bass: 255, mid: 0, treble: 0, volume: 0 }

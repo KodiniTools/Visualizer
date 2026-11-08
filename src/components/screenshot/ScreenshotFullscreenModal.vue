@@ -46,7 +46,7 @@
 // Vollbild-Vorschau eines Screenshots. Escape schließt; der Listener lebt
 // genau so lange wie die Komponente (Eltern blenden sie per v-if ein).
 import { onMounted, onBeforeUnmount } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 
 defineProps({
   url: { type: String, required: true },

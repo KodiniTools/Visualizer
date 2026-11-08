@@ -224,7 +224,7 @@ import UiIconButton from './ui/UiIconButton.vue'
 import UiSelect from './ui/UiSelect.vue'
 import UiSwitch from './ui/UiSwitch.vue'
 import UiTextField from './ui/UiTextField.vue'
-import { useI18n } from '../lib/i18n.js'
+import { useI18n } from '../lib/i18n'
 import { useTickerStore } from '../stores/tickerStore'
 
 const { t } = useI18n()

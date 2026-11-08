@@ -67,9 +67,9 @@ import { useSlideshowPopover } from '../../composables/useSlideshowPopover.js'
 import { useToastStore } from '../../stores/toastStore'
 import { useSlideshowImageAdjustmentsStore } from '../../stores/slideshowImageAdjustmentsStore'
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore'
-import { SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest.js'
-import { getFotoPanel } from '../../lib/fotoPanelBridge.js'
-import { getSlideshowManager, setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest'
+import { getFotoPanel } from '../../lib/fotoPanelBridge'
+import { getSlideshowManager, setSlideshowManager } from '../../lib/slideshowManagerBridge'
 
 function img(name, w = 100, h = 50) {
   return { src: `data:,${name}`, naturalWidth: w, naturalHeight: h, tag: name }

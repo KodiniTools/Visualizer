@@ -235,8 +235,8 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useI18n } from '../lib/i18n.js'
-import { useTheme } from '../lib/theme.js'
+import { useI18n } from '../lib/i18n'
+import { useTheme } from '../lib/theme'
 
 const { t, locale } = useI18n()
 const { isDark } = useTheme()

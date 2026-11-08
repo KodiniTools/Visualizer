@@ -113,7 +113,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, toRef, watch } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { useToastStore } from '../../stores/toastStore'
 import { useAudioReactiveText } from '../../composables/useAudioReactiveText.js'
 import {

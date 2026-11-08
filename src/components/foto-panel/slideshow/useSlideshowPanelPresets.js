@@ -1,11 +1,11 @@
 import { ref } from 'vue'
 import { slideshowImageKey } from './slideshowImageKey.js'
 import { restorePresetImages } from '../../../lib/slideshowSources.js'
-import { persistUploadImage, restoreUploadImage } from '../../../lib/slideshowImagePersistence.js'
-import { isQuotaError } from '../../../utils/presetImageRepository.js'
+import { persistUploadImage, restoreUploadImage } from '../../../lib/slideshowImagePersistence'
+import { isQuotaError } from '../../../utils/presetImageRepository'
 import { MANUAL_CLEANUP_GRACE_MS } from '../../../stores/slideshowPresetStore'
 import { formatBytes } from '../../../utils/formatBytes'
-import { SLIDESHOW_AUDIO_DEFAULT } from '../../../lib/slideshowAudio.js'
+import { SLIDESHOW_AUDIO_DEFAULT } from '../../../lib/slideshowAudio'
 
 /**
  * Speichert ein hochgeladenes Bild dauerhaft; ist der Speicher voll, werden

@@ -9,7 +9,7 @@
  */
 import { defineStore } from 'pinia'
 import { Recorder } from '../lib/recorder.js'
-import { getAudioEngine } from '../lib/audioEngineBridge.js'
+import { getAudioEngine } from '../lib/audioEngineBridge'
 
 export type UploadMode = 'auto' | 'direct' | 'server'
 export type RecorderStatusType = 'idle' | 'recording' | 'paused' | 'processing' | 'ready'

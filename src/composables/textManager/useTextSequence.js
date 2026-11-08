@@ -1,8 +1,5 @@
 import { ref, watch, onUnmounted } from 'vue'
-import {
-  loadTextSequenceSettings,
-  saveTextSequenceSettings,
-} from '../../lib/textSequenceSettings.js'
+import { loadTextSequenceSettings, saveTextSequenceSettings } from '../../lib/textSequenceSettings'
 import { sortTextsById, textObjectsOf, resetAnimationState } from './textOrder.js'
 
 /** Anzeigedauer für Texte ohne Animation. */

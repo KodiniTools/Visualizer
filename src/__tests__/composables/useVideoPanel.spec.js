@@ -4,7 +4,7 @@ import { defineComponent, h, ref, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useVideoPanel } from '../../composables/useVideoPanel.js'
-import { registerAudioEngine } from '../../lib/audioEngineBridge.js'
+import { registerAudioEngine } from '../../lib/audioEngineBridge'
 
 /**
  * Verhaltenstest für useVideoPanel: protokolliert alle Zugriffe auf

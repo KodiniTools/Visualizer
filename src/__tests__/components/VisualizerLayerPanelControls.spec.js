@@ -9,7 +9,7 @@ import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import VisualizerLayerPanel from '../../components/VisualizerLayerPanel.vue'
 import { useVisualizerStore } from '../../stores/visualizerStore'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de.js'
 import en from '../../lib/i18n/en.js'
 

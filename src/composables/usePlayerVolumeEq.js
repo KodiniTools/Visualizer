@@ -1,6 +1,6 @@
 import { ref, onMounted, watch } from 'vue'
 import { usePlayerStore } from '../stores/playerStore'
-import { getAudioEngine } from '../lib/audioEngineBridge.js'
+import { getAudioEngine } from '../lib/audioEngineBridge'
 
 /**
  * Volume + bass/treble EQ state for the sticky player bar. Persists values to

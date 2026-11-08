@@ -129,7 +129,7 @@
 import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
 import { computed, inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 import { UiIconButton, UiSegmentedControl, UiSelect, UiTextArea } from '../../ui/index.js'
 
 const { t } = useI18n()

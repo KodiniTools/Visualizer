@@ -5,7 +5,7 @@ import {
   diffAdjustments,
   restorePersistedAdjustments,
   restorePersistedBounds,
-} from '../../lib/slideshowAdjustmentsPersistence.js'
+} from '../../lib/slideshowAdjustmentsPersistence'
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore'
 import { SlideshowManager } from '../../lib/slideshowManager.js'
 

@@ -26,7 +26,7 @@
  * `video.fotoSettings.audioReactive` (Struktur wie bei Canvas-Bildern).
  */
 import { ref } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { ensureAudioReactiveConfig } from '../../lib/audio/audioReactiveConfig.js'
 import { useAudioReactiveTarget } from '../../composables/audioReactive/useAudioReactiveTarget.js'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'

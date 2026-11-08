@@ -5,7 +5,7 @@ import { resolveVisualizerId } from '../lib/visualizers/aliases.js'
 import { DEFAULT_REACT_SHAPE } from '../lib/visualizers/core/reactSource.js'
 import { normalizeLedConfig } from '../lib/visualizers/gl/ledTextSettings.js'
 import { normalizeVisualizerShape } from '../lib/visualizers/core/visualizerShape.js'
-import { BUILT_IN_PRESETS } from '../data/builtInPresets.js'
+import { BUILT_IN_PRESETS } from '../data/builtInPresets'
 import type { VisualizerLayer } from './visualizer/useVisualizerLayers'
 
 // Re-Export, damit bestehende Importe aus dem Store weiter funktionieren.

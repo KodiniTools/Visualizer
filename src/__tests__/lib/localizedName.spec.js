@@ -1,6 +1,6 @@
 // Gemeinsamer Helfer für Namen je Sprache (Galerien, Kataloge, Presets).
 import { describe, it, expect } from 'vitest'
-import { localizedName } from '../../lib/localizedName.js'
+import { localizedName } from '../../lib/localizedName'
 
 describe('localizedName', () => {
   it('Galerie-Schreibweise: name = DE, name_en = EN', () => {

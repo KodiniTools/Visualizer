@@ -5,7 +5,7 @@ import {
   isValidSlideshowAudioMode,
   isValidSlideshowAudioSource,
   SLIDESHOW_AUDIO_DEFAULT,
-} from '../lib/slideshowAudio.js'
+} from '../lib/slideshowAudio'
 import { normalizeImageBounds, type ImageBounds } from './slideshowPresetStore'
 
 const STORAGE_KEY = 'visualizer-slideshow-image-transitions'

@@ -15,8 +15,8 @@
  * Ohne Musik bleibt das Bild wie eingestellt.
  */
 import { computeAudioReactiveValues } from './audio/audioReactiveEngine.js'
-import { SLIDESHOW_GRADIENT_AUDIO_SOURCES } from './slideshowGradientAudio.js'
-import { normalizeStockRef, normalizeUploadRef } from './slideshowImageRefs.js'
+import { SLIDESHOW_GRADIENT_AUDIO_SOURCES } from './slideshowGradientAudio'
+import { normalizeStockRef, normalizeUploadRef } from './slideshowImageRefs'
 
 export const SLIDESHOW_IMAGE_FITS = Object.freeze(['cover', 'contain'])
 

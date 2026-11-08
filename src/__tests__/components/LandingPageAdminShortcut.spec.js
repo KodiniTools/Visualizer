@@ -3,7 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import LandingPage from '../../components/LandingPage.vue'
-import { setLocale } from '../../lib/i18n.js'
+import { setLocale } from '../../lib/i18n'
 
 // Admin-Zugang der Landing-Page: kein sichtbarer Button, nur Ctrl+Alt+Shift+V.
 const stubs = { AdminPanel: true, LoginModal: true }

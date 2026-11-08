@@ -28,8 +28,8 @@
 
 <script setup>
 import { inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { vPopoverDrag } from '../../directives/popoverDrag.js'
+import { useI18n } from '../../lib/i18n'
+import { vPopoverDrag } from '../../directives/popoverDrag'
 import SlideshowStatusBadge from '../foto-panel/slideshow/SlideshowStatusBadge.vue'
 import {
   SLIDESHOW_POPOVER_TARGET_ID,

@@ -2,7 +2,7 @@
  * Optionen der Slideshow-Auswahlfelder (Übergang, Audio-Modus) für UiSelect.
  * Gemeinsam genutzt von Bild-Einstellungskarte und Reihenfolge-Liste.
  */
-import { SLIDESHOW_AUDIO_PRESET_OPTIONS } from '../../../lib/slideshowAudio.js'
+import { SLIDESHOW_AUDIO_PRESET_OPTIONS } from '../../../lib/slideshowAudio'
 import { SLIDESHOW_TRANSITIONS } from '../../../lib/slideshowTransitions.js'
 
 /** Übergang: „Standard (…)“ plus alle Übergänge mit Symbol. */

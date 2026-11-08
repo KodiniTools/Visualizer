@@ -1,9 +1,9 @@
 // Screenshot der Canvas über die Render-Schleife (lib/canvasScreenshotBridge.js):
 // Format/Qualität, Aufnahme, Vorschau-Metadaten und Freigabe der Blob-URL.
 import { ref, computed, onBeforeUnmount } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { useToastStore } from '../../stores/toastStore'
-import { getCanvasScreenshot } from '../../lib/canvasScreenshotBridge.js'
+import { getCanvasScreenshot } from '../../lib/canvasScreenshotBridge'
 
 export const SCREENSHOT_FORMATS = [
   { value: 'png', label: 'PNG' },

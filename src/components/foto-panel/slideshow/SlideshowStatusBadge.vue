@@ -9,7 +9,7 @@
 
 <script setup>
 /** Status-Anzeige der Slideshow (Panel-Kopf bzw. Kopfzeile des Sticky-Bar-Fensters). */
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 
 defineProps({
   isActive: { type: Boolean, default: false },

@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { DragDropHandler } from '../../lib/canvasManager/interaction/DragDropHandler.js'
-import { setSlideshowManager } from '../../lib/slideshowManagerBridge.js'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
 
 function setup({ fitted = false, moveWhole = false } = {}) {
   const committed = []

@@ -3,8 +3,8 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import LandingPage from '../../components/LandingPage.vue'
-import { blogArticles } from '../../data/blogArticles.js'
-import { setLocale } from '../../lib/i18n.js'
+import { blogArticles } from '../../data/blogArticles'
+import { setLocale } from '../../lib/i18n'
 
 // Getestet wird nur der Blog-Abschnitt der Landing-Page. Admin-Komponenten
 // werden gestubbt, Server-Aufrufe des Landing-Content-Stores schlagen fehl

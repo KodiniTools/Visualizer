@@ -306,15 +306,15 @@ import UiSelect from '../ui/UiSelect.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 import UiTextField from '../ui/UiTextField.vue'
 import { inject, computed, onUnmounted, useId } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
 import { useLayerPresetStore, toLayerPresetRef } from '../../stores/layerPresetStore'
 import { formatTimePrecise } from '../../utils/formatTime'
-import { getBackgroundPresetOptions } from '../../utils/backgroundPresets.js'
-import { vPopoverDrag } from '../../directives/popoverDrag.js'
+import { getBackgroundPresetOptions } from '../../utils/backgroundPresets'
+import { vPopoverDrag } from '../../directives/popoverDrag'
 
 const { t } = useI18n()
 const playerStore = usePlayerStore()

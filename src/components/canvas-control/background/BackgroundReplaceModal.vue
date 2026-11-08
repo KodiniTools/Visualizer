@@ -100,8 +100,8 @@
 
 <script setup>
 import { computed, ref, inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
-import { localizedName as nameFor } from '../../../lib/localizedName.js'
+import { useI18n } from '../../../lib/i18n'
+import { localizedName as nameFor } from '../../../lib/localizedName'
 import UiButton from '../../ui/UiButton.vue'
 import UiDialog from '../../ui/UiDialog.vue'
 import UiSegmentedControl from '../../ui/UiSegmentedControl.vue'

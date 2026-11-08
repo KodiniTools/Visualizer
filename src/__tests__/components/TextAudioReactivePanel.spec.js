@@ -9,7 +9,7 @@ import { nextTick, reactive, ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import TextAudioReactivePanel from '../../components/text-manager/TextAudioReactivePanel.vue'
 import { createTextAudioReactiveConfig } from '../../lib/audio/audioReactiveConfig.js'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de.js'
 import en from '../../lib/i18n/en.js'
 

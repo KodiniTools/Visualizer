@@ -58,7 +58,7 @@
 
 <script setup>
 import { ref, inject } from 'vue'
-import { useI18n } from '../lib/i18n.js'
+import { useI18n } from '../lib/i18n'
 import { useVisualizerStore } from '../stores/visualizerStore'
 import HelpTooltip from './HelpTooltip.vue'
 import VisualizerTypeList from './visualizer-panel/VisualizerTypeList.vue'

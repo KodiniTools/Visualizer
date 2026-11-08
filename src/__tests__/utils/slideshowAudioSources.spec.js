@@ -5,11 +5,11 @@ import {
   SLIDESHOW_GRADIENT_AUDIO_SOURCES,
   computeSlideshowGradientAudio,
   normalizeSlideshowGradientAudio,
-} from '../../lib/slideshowGradientAudio.js'
+} from '../../lib/slideshowGradientAudio'
 import {
   computeSlideshowFillAudio,
   normalizeSlideshowFillAudio,
-} from '../../lib/slideshowFillAudio.js'
+} from '../../lib/slideshowFillAudio'
 import {
   computeSlideshowImageFillAudio,
   normalizeSlideshowImageFill,

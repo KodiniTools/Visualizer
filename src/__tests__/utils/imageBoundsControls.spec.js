@@ -7,7 +7,7 @@ import {
   getDefaultImageSize,
   IMAGE_SIZE_MIN,
   IMAGE_SIZE_MAX,
-} from '../../lib/imageBoundsControls.js'
+} from '../../lib/imageBoundsControls'
 
 const B = { relX: 0.1, relY: 0.2, relWidth: 0.4, relHeight: 0.2 } // Mitte 0.3/0.3
 

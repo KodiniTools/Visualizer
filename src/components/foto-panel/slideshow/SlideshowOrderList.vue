@@ -137,12 +137,12 @@
  * - eigene Audio-Quelle (v-model:audio-sources, { [key]: source }); fehlt = wie Einstellung
  */
 import { computed, ref } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 import {
   SLIDESHOW_AUDIO_DEFAULT,
   isValidSlideshowAudioMode,
   isValidSlideshowAudioSource,
-} from '../../../lib/slideshowAudio.js'
+} from '../../../lib/slideshowAudio'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 import { slideshowImageKey } from './slideshowImageKey.js'
 import { isValidTransition } from '../../../lib/slideshowTransitions.js'

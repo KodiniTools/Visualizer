@@ -6,7 +6,7 @@
  * Lade-Callbacks erneut abgefragt, weil sich der Manager bis dahin ändern kann.
  */
 
-import { getAudioEngine } from '../audioEngineBridge.js'
+import { getAudioEngine } from '../audioEngineBridge'
 
 const cloneJson = (obj) => JSON.parse(JSON.stringify(obj))
 

@@ -23,7 +23,7 @@ vi.mock('../../lib/videoApi.js', async (importOriginal) => ({
 
 import RecorderPanel from '../../components/RecorderPanel.vue'
 import { useRecorderStore } from '../../stores/recorderStore'
-import { registerAudioEngine } from '../../lib/audioEngineBridge.js'
+import { registerAudioEngine } from '../../lib/audioEngineBridge'
 import de from '../../lib/i18n/de.js'
 
 let store

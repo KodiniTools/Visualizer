@@ -77,7 +77,7 @@
 
 <script setup>
 import { computed, inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import UiSelect from '../../ui/UiSelect.vue'
 import SliderControl from '../../ui/SliderControl.vue'

@@ -2,7 +2,7 @@
 // Server-Konvertierung. Stellt sie per provide('recorderSettings') dem
 // RecorderSettingsPanel bereit (Schlüssel und Form unverändert).
 import { ref, computed, provide } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import { useRecorderStore } from '../../stores/recorderStore'
 import { checkServerHealth } from '../../lib/videoApi.js'
 

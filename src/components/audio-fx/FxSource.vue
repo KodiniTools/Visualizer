@@ -11,8 +11,8 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { AUDIO_FX_ONSET_SOURCES, AUDIO_FX_SOURCES } from '../../data/audioFxEffects.js'
+import { useI18n } from '../../lib/i18n'
+import { AUDIO_FX_ONSET_SOURCES, AUDIO_FX_SOURCES } from '../../data/audioFxEffects'
 import UiSelect from '../ui/UiSelect.vue'
 
 defineProps({ modelValue: { type: String, required: true } })

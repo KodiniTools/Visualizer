@@ -42,7 +42,7 @@
 
 <script setup>
 import { ref, inject } from 'vue'
-import { useI18n } from '../lib/i18n.js'
+import { useI18n } from '../lib/i18n'
 import TextNewForm from './text-manager/TextNewForm.vue'
 import TextEditPanel from './text-manager/TextEditPanel.vue'
 import TextMultiEditPanel from './text-manager/TextMultiEditPanel.vue'

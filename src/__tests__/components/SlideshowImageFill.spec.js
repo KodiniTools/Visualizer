@@ -7,7 +7,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import SlideshowImageFill from '../../components/foto-panel/slideshow/SlideshowImageFill.vue'
 import { SLIDESHOW_IMAGE_FILL_DEFAULT } from '../../lib/slideshowImageFill.js'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de.js'
 import en from '../../lib/i18n/en.js'
 

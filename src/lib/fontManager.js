@@ -1,6 +1,6 @@
 // fontManager.js - Mit dynamischem Base-Path Support für Vite
 
-import { FONT_BASE_URL, fontUrl } from './fontUrl.js'
+import { FONT_BASE_URL, fontUrl } from './fontUrl'
 
 export class FontManager {
   constructor() {

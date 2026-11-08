@@ -10,7 +10,7 @@ import {
   RECORDER_QUALITY_PRESETS,
   RECORDER_FRAME_RATE_PRESETS,
 } from '../../composables/recorder/useRecorderSettings.js'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de.js'
 import en from '../../lib/i18n/en.js'
 

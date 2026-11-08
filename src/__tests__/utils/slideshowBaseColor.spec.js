@@ -9,7 +9,7 @@ import {
   isSameSlideshowGradient,
   loadStoredSlideshowGradient,
   storeSlideshowGradient,
-} from '../../lib/slideshowBaseColor.js'
+} from '../../lib/slideshowBaseColor'
 
 const KEY = 'visualizer-slideshow-base-color'
 

@@ -8,7 +8,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import SlideshowTimingSettings from '../../components/foto-panel/slideshow/SlideshowTimingSettings.vue'
 import { SLIDESHOW_TRANSITIONS } from '../../lib/slideshowTransitions.js'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de.js'
 import en from '../../lib/i18n/en.js'
 

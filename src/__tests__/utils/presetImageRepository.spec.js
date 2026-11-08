@@ -9,7 +9,7 @@ import {
   isQuotaError,
   getImageStorageStats,
   _clearImageCache,
-} from '../../utils/presetImageRepository.js'
+} from '../../utils/presetImageRepository'
 
 class FakeImage {
   set src(v) {

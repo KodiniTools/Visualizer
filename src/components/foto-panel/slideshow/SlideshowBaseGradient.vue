@@ -27,7 +27,7 @@
         :label="t('slideshow.gradientType')"
         :options="typeOptions"
         :disabled="disabled"
-        @update:model-value="(v) => update({ type: v })"
+        @update:model-value="(v) => update({ type: v as SlideshowGradientType })"
       />
       <SliderControl
         v-if="gradient.type === 'linear'"
@@ -59,7 +59,7 @@
           :model-value="gradient.audio.source"
           :class="`${prefix}-gradient-audio-source`"
           :disabled="disabled"
-          @update:model-value="(v) => updateAudio({ source: v })"
+          @update:model-value="(v) => updateAudio({ source: v as string })"
         />
         <div class="base-gradient-slider">
           <SliderControl
@@ -96,7 +96,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Einstellungen für den Farbverlauf einer Slideshow-Fläche (Canvas oder
  * Workspace). Rein darstellend: v-model liefert den bereinigten Verlauf.
@@ -112,13 +112,17 @@ import SliderControl from '../../ui/SliderControl.vue'
 import UiSelect from '../../ui/UiSelect.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
+import type { SlideshowGradient, SlideshowGradientType } from '../../../lib/slideshowBaseColor'
 
-const gradient = defineModel({ type: Object, required: true })
-defineProps({
-  // CSS-Klassen-Präfix ('base' | 'workspace') – unterscheidet die Felder
-  prefix: { type: String, default: 'base' },
-  disabled: { type: Boolean, default: false },
-})
+const gradient = defineModel<SlideshowGradient>({ required: true })
+withDefaults(
+  defineProps<{
+    // CSS-Klassen-Präfix ('base' | 'workspace') – unterscheidet die Felder
+    prefix?: string
+    disabled?: boolean
+  }>(),
+  { prefix: 'base', disabled: false },
+)
 const { t } = useI18n()
 
 const typeOptions = computed(() => [
@@ -126,11 +130,11 @@ const typeOptions = computed(() => [
   { value: 'radial', label: t('slideshow.gradientRadial') },
 ])
 
-function update(partial) {
+function update(partial: Partial<SlideshowGradient>) {
   gradient.value = normalizeSlideshowGradient({ ...gradient.value, ...partial }, gradient.value)
 }
 
-function updateAudio(partial) {
+function updateAudio(partial: Partial<SlideshowGradient['audio']>) {
   update({ audio: { ...gradient.value.audio, ...partial } })
 }
 </script>

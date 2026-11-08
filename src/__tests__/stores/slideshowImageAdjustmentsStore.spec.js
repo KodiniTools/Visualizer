@@ -135,7 +135,7 @@ describe('Ablauf: Filter ändern → stoppen → neue Sitzung → Start', () => 
 
   it('Filter sind in der neuen Sitzung wieder da', async () => {
     const { slideshowStableKey } = await import(
-      '../../components/foto-panel/slideshow/slideshowImageKey.js'
+      '../../components/foto-panel/slideshow/slideshowImageKey'
     )
     const store = useSlideshowImageAdjustmentsStore()
     const persist = ({ imageConfig, imageObject, adjustments, audioMode }) =>
@@ -174,7 +174,7 @@ describe('Ablauf: Filter ändern → stoppen → neue Sitzung → Start', () => 
 describe('Ablauf: Größe/Position ändern → neue Sitzung → Start', () => {
   it('eigene Größe und Verschieben der ganzen Slideshow werden gemeldet und wiederhergestellt', async () => {
     const { slideshowStableKey } = await import(
-      '../../components/foto-panel/slideshow/slideshowImageKey.js'
+      '../../components/foto-panel/slideshow/slideshowImageKey'
     )
     const settings = useSlideshowImageSettingsStore()
     const onBounds = ({ imageConfig, imageObject, bounds }) =>

@@ -8,11 +8,11 @@
     size="sm"
     :inline="inline"
     :disabled="disabled"
-    @update:model-value="(v) => emit('update:modelValue', v || null)"
+    @update:model-value="(v) => emit('update:modelValue', (v as string) || null)"
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Auswahl der Audio-Quelle für die Slideshow-Fläche (Farbe, Farbverlauf, Bild).
  * Optionen und Texte wie im Bild-Audio-Reaktiv-Panel (AudioReactiveMaster).
@@ -23,27 +23,30 @@ import {
   SLIDESHOW_AUDIO_SOURCE_BANDS,
   SLIDESHOW_AUDIO_SOURCE_ONSETS,
 } from '../../../lib/slideshowGradientAudio'
-import UiSelect from '../../ui/UiSelect.vue'
+import UiSelect, { type UiSelectEntry } from '../../ui/UiSelect.vue'
 
-const props = defineProps({
-  modelValue: { type: String, default: 'bass' },
-  // Beschriftung des Feldes (Pflicht für die Barrierefreiheit)
-  label: { type: String, required: true },
-  // Beschriftung links neben dem Feld statt darüber
-  inline: { type: Boolean, default: true },
-  // Beschriftung für „keine eigene Quelle“ (z. B. „Wie Einstellung“); leer = aus
-  inheritLabel: { type: String, default: '' },
-  disabled: { type: Boolean, default: false },
-})
-const emit = defineEmits(['update:modelValue'])
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string | null
+    // Beschriftung des Feldes (Pflicht für die Barrierefreiheit)
+    label: string
+    // Beschriftung links neben dem Feld statt darüber
+    inline?: boolean
+    // Beschriftung für „keine eigene Quelle“ (z. B. „Wie Einstellung“); leer = aus
+    inheritLabel?: string
+    disabled?: boolean
+  }>(),
+  { modelValue: 'bass', inline: true, inheritLabel: '', disabled: false },
+)
+const emit = defineEmits<{ 'update:modelValue': [value: string | null] }>()
 const { t } = useI18n()
 
 // „Dynamisch (Auto-Blend)“ – Text wie beim Hintergrund-Audio-Reaktiv
-function labelOf(src) {
+function labelOf(src: string): string {
   return src === 'dynamic' ? t('canvasControl.dynamic') : t(`foto.${src}`)
 }
 
-const options = computed(() => [
+const options = computed((): UiSelectEntry[] => [
   // optional: keine eigene Quelle (Wert '' → null)
   ...(props.inheritLabel ? [{ value: '', label: props.inheritLabel }] : []),
   ...SLIDESHOW_AUDIO_SOURCE_BANDS.map((src) => ({ value: src, label: labelOf(src) })),

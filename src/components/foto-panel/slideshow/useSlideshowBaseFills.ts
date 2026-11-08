@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue'
+import { ref, watch, type Ref } from 'vue'
 import {
   SLIDESHOW_GRADIENT_DEFAULT,
   isSameSlideshowGradient,
@@ -16,13 +16,26 @@ import {
   storeSlideshowFillAudio,
 } from '../../../lib/slideshowFillAudio'
 import { SLIDESHOW_DEFAULT_SETTINGS as D } from '../../../stores/slideshowPresetStore'
+import type { SlideshowGradient } from '../../../lib/slideshowBaseColor'
+import type { SlideshowFillAudio } from '../../../lib/slideshowFillAudio'
+import type { SlideshowPanelEmit, SlideshowPanelEvent } from './slideshowPanelTypes'
 
-export function isDefaultFillAudio(a) {
+export function isDefaultFillAudio(a: unknown): boolean {
   return isSameSlideshowFillAudio(a, SLIDESHOW_FILL_AUDIO_DEFAULT)
 }
 
-export function isDefaultGradient(g) {
+export function isDefaultGradient(g: unknown): boolean {
   return isSameSlideshowGradient(g, SLIDESHOW_GRADIENT_DEFAULT)
+}
+
+/** Flächen-Werte eines Presets (Teil von captureSettings) */
+export interface BaseFillSettings {
+  backgroundColor: string
+  workspaceColor: string
+  backgroundGradient?: unknown
+  workspaceGradient?: unknown
+  backgroundFillAudio?: unknown
+  workspaceFillAudio?: unknown
 }
 
 /**
@@ -31,7 +44,7 @@ export function isDefaultGradient(g) {
  * Verlauf/Audio gehen bei jeder Änderung sofort an die Slideshow.
  * @param {(event: string, ...args: any[]) => void} emit - Emits des Slideshow-Panels
  */
-export function useSlideshowBaseFills(emit) {
+export function useSlideshowBaseFills(emit: SlideshowPanelEmit) {
   // Farbe der Fläche unter der Slideshow (anstelle des ersetzten Hintergrundbildes)
   const backgroundColor = ref(loadStoredSlideshowBaseColor())
   watch(backgroundColor, (color) => storeSlideshowBaseColor(color))
@@ -63,7 +76,13 @@ export function useSlideshowBaseFills(emit) {
 
   // Farbe → Standard; Verlauf/Audio nur zurücksetzen, wenn abweichend
   // (die Watcher übernehmen Speichern + Weitergabe)
-  function resetFill(colorRef, gradientRef, audioRef, defaultColor, event) {
+  function resetFill(
+    colorRef: Ref<string>,
+    gradientRef: Ref<SlideshowGradient>,
+    audioRef: Ref<SlideshowFillAudio>,
+    defaultColor: string,
+    event: SlideshowPanelEvent,
+  ) {
     colorRef.value = defaultColor
     if (!isDefaultGradient(gradientRef.value)) {
       gradientRef.value = normalizeSlideshowGradient(null)
@@ -107,7 +126,7 @@ export function useSlideshowBaseFills(emit) {
   }
 
   /** Werte aus einem Preset übernehmen – nur geänderte Werte setzen/melden. */
-  function applySettings(s) {
+  function applySettings(s: BaseFillSettings) {
     if (backgroundColor.value !== s.backgroundColor) {
       backgroundColor.value = s.backgroundColor
       emit('background-color-change', backgroundColor.value)

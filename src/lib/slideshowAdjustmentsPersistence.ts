@@ -1,4 +1,4 @@
-import { slideshowStableKey } from '../components/foto-panel/slideshow/slideshowImageKey.js'
+import { slideshowStableKey } from '../components/foto-panel/slideshow/slideshowImageKey'
 
 type Loose = Record<string, unknown>
 

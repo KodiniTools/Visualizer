@@ -3,18 +3,59 @@
  * Einstellung (dauerhaft gemerkt), geladenes Bild-Objekt, Auswahl aus
  * Upload-/Stock-Galerie und Weitergabe an die Slideshow.
  */
-import { computed, reactive, ref, shallowRef, watch } from 'vue'
+import { computed, reactive, ref, shallowRef, watch, type Ref, type ShallowRef } from 'vue'
 import {
   hasSlideshowImageRef,
   loadStoredSlideshowImageFill,
   normalizeSlideshowImageFill,
   storeSlideshowImageFill,
+  type SlideshowImageFill,
 } from '../../../lib/slideshowImageFill'
-import { normalizeStockRef } from '../../../lib/slideshowImageRefs'
+import { normalizeStockRef, type UploadImageRef } from '../../../lib/slideshowImageRefs'
 
-export const IMAGE_FILL_TARGETS = Object.freeze(['canvas', 'workspace'])
+/** Fläche unter der Slideshow */
+export type ImageFillTarget = 'canvas' | 'workspace'
 
-function refKey(fill) {
+export const IMAGE_FILL_TARGETS: readonly ImageFillTarget[] = Object.freeze(['canvas', 'workspace'])
+
+/** Auswahl aus Upload-/Stock-Galerie */
+export interface ImageFillCandidate {
+  source: 'upload' | 'stock' | string
+  name?: string
+  img?: HTMLImageElement | null
+  imageObject?: HTMLImageElement | null
+  stockImage?: unknown
+}
+
+/** Wählbares Bild im Flächenbild-Picker */
+export interface ImageFillCandidateItem {
+  id: string
+  name?: string
+  thumb: string
+  source: string
+  raw: ImageFillCandidate
+}
+
+/** Abhängigkeiten von useSlideshowImageFills */
+export interface SlideshowImageFillsDeps {
+  onChange: (
+    target: ImageFillTarget,
+    fill: SlideshowImageFill,
+    image: HTMLImageElement | null,
+  ) => void
+  loadUpload: (key: string) => Promise<{ imageObject: HTMLImageElement; name: string } | null>
+  persistUpload: (entry: {
+    name?: string
+    imageObject: HTMLImageElement
+  }) => Promise<UploadImageRef | null | undefined>
+  loadStock: (stock: NonNullable<SlideshowImageFill['stock']>) => Promise<HTMLImageElement>
+  /** Bild nicht (mehr) ladbar */
+  onMissing?: (name: string) => void
+  /** Auswahl fehlgeschlagen */
+  onError?: (error: unknown) => void
+}
+
+function refKey(fill: SlideshowImageFill | null | undefined): string {
   if (fill?.stock) return `stock:${fill.stock.id}`
   if (fill?.upload) return `upload:${fill.upload.key}`
   return ''
@@ -29,29 +70,32 @@ function refKey(fill) {
  * @param {(name:string) => void} [deps.onMissing] - Bild nicht (mehr) ladbar
  * @param {(error:unknown) => void} [deps.onError] - Auswahl fehlgeschlagen
  */
-export function useSlideshowImageFills(deps) {
-  const fills = {
+export function useSlideshowImageFills(deps: SlideshowImageFillsDeps) {
+  const fills: Record<ImageFillTarget, Ref<SlideshowImageFill>> = {
     canvas: ref(loadStoredSlideshowImageFill('canvas')),
     workspace: ref(loadStoredSlideshowImageFill('workspace')),
   }
-  const images = { canvas: shallowRef(null), workspace: shallowRef(null) }
+  const images: Record<ImageFillTarget, ShallowRef<HTMLImageElement | null>> = {
+    canvas: shallowRef(null),
+    workspace: shallowRef(null),
+  }
   // Zu welchem Verweis das geladene Bild gehört (vermeidet unnötiges Neuladen)
-  const loadedFor = { canvas: '', workspace: '' }
-  const tokens = { canvas: 0, workspace: 0 }
+  const loadedFor: Record<ImageFillTarget, string> = { canvas: '', workspace: '' }
+  const tokens: Record<ImageFillTarget, number> = { canvas: 0, workspace: 0 }
   const loading = reactive({ canvas: false, workspace: false })
 
-  function emitChange(target) {
+  function emitChange(target: ImageFillTarget) {
     deps.onChange(target, { ...fills[target].value }, images[target].value)
   }
 
-  async function resolve(fill) {
+  async function resolve(fill: SlideshowImageFill): Promise<HTMLImageElement | null> {
     if (fill.stock) return deps.loadStock(fill.stock)
     if (fill.upload) return (await deps.loadUpload(fill.upload.key))?.imageObject ?? null
     return null
   }
 
   /** Lädt das Bild zum aktuellen Verweis (nur wenn eingeschaltet). */
-  async function load(target) {
+  async function load(target: ImageFillTarget) {
     const fill = fills[target].value
     const key = refKey(fill)
     if (!fill.enabled || !key) {
@@ -64,7 +108,7 @@ export function useSlideshowImageFills(deps) {
     }
     const token = ++tokens[target]
     loading[target] = true
-    let image = null
+    let image: HTMLImageElement | null = null
     try {
       image = await resolve(fill)
     } catch (e) {
@@ -86,7 +130,7 @@ export function useSlideshowImageFills(deps) {
   }
 
   /** Teilweise ändern (enabled, fit, audio …). */
-  function update(target, partial) {
+  function update(target: ImageFillTarget, partial: Partial<SlideshowImageFill>) {
     fills[target].value = normalizeSlideshowImageFill(
       { ...fills[target].value, ...partial },
       fills[target].value,
@@ -99,7 +143,7 @@ export function useSlideshowImageFills(deps) {
    * @param {'canvas'|'workspace'} target
    * @param {{ source:'upload'|'stock', name?:string, img?:HTMLImageElement, stockImage?:object }} candidate
    */
-  async function select(target, candidate) {
+  async function select(target: ImageFillTarget, candidate: ImageFillCandidate | null | undefined) {
     try {
       if (candidate?.source === 'stock') {
         const stock = normalizeStockRef(candidate.stockImage)
@@ -109,7 +153,7 @@ export function useSlideshowImageFills(deps) {
       }
       const image = candidate?.img || candidate?.imageObject
       if (!image) throw new Error('Kein Bild')
-      const saved = await deps.persistUpload({ name: candidate.name, imageObject: image })
+      const saved = await deps.persistUpload({ name: candidate?.name, imageObject: image })
       if (!saved?.key) throw new Error('Bild konnte nicht gespeichert werden')
       // Bild direkt übernehmen (kein Neuladen aus IndexedDB nötig)
       images[target].value = image
@@ -122,7 +166,7 @@ export function useSlideshowImageFills(deps) {
   }
 
   /** Bild entfernen (Einstellungen wie Anpassen/Audio bleiben). */
-  function clear(target) {
+  function clear(target: ImageFillTarget) {
     tokens[target]++
     images[target].value = null
     loadedFor[target] = ''
@@ -131,12 +175,12 @@ export function useSlideshowImageFills(deps) {
   }
 
   /** Einstellung aus einem Preset übernehmen (lädt das Bild nach). */
-  function apply(target, fill) {
+  function apply(target: ImageFillTarget, fill: unknown) {
     fills[target].value = normalizeSlideshowImageFill(fill)
   }
 
   /** Vorschau des gewählten Bildes (Stock-Thumbnail oder geladenes Bild). */
-  function thumbOf(target) {
+  function thumbOf(target: ImageFillTarget): string {
     const fill = fills[target].value
     return fill.stock?.thumbnail || images[target].value?.src || ''
   }

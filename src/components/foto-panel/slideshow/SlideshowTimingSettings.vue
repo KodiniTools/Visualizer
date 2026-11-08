@@ -64,7 +64,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Timing (Ein-/Ausblenden, Anzeigedauer), Audio-Reaktiv-Übernahme und Loop. */
 import { computed } from 'vue'
 import SliderControl from '../../ui/SliderControl.vue'
@@ -74,17 +74,15 @@ import UiSwitch from '../../ui/UiSwitch.vue'
 import { useI18n } from '../../../lib/i18n'
 import { SLIDESHOW_TRANSITIONS } from '../../../lib/slideshowTransitions'
 
-defineProps({
-  hasSavedSettings: { type: Boolean, default: false },
-})
+withDefaults(defineProps<{ hasSavedSettings?: boolean }>(), { hasSavedSettings: false })
 
-const fadeInDuration = defineModel('fadeInDuration', { type: Number, default: 1000 })
-const displayDuration = defineModel('displayDuration', { type: Number, default: 3000 })
-const fadeOutDuration = defineModel('fadeOutDuration', { type: Number, default: 1000 })
-const applyAudioReactive = defineModel('applyAudioReactive', { type: Boolean, default: true })
-const loopSlideshow = defineModel('loopSlideshow', { type: Boolean, default: false })
+const fadeInDuration = defineModel<number>('fadeInDuration', { default: 1000 })
+const displayDuration = defineModel<number>('displayDuration', { default: 3000 })
+const fadeOutDuration = defineModel<number>('fadeOutDuration', { default: 1000 })
+const applyAudioReactive = defineModel<boolean>('applyAudioReactive', { default: true })
+const loopSlideshow = defineModel<boolean>('loopSlideshow', { default: false })
 // Übergangsanimation für alle Bilder (pro Bild überschreibbar in der Reihenfolge-Liste)
-const transition = defineModel('transition', { type: String, default: 'fade' })
+const transition = defineModel<string>('transition', { default: 'fade' })
 const { t } = useI18n()
 
 /** Symbol + übersetzter Name, wie in Reihenfolge-Liste und Bild-Editor. */

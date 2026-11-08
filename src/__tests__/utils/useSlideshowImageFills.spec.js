@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
-import { useSlideshowImageFills } from '../../components/foto-panel/slideshow/useSlideshowImageFills.js'
+import { useSlideshowImageFills } from '../../components/foto-panel/slideshow/useSlideshowImageFills'
 
 const stock = {
   id: 'bg-1',

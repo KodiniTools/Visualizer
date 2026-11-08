@@ -1,10 +1,14 @@
+import type { SlideshowSourceImage } from '../../../lib/slideshowSources'
+
 /**
  * Schlüssel eines Slideshow-Bildes für die Einstellungen pro Bild
  * (Anzeigedauer, Audio-Reaktiv-Modus). Bevorzugt die ID, sonst den Namen.
  * @param {{ id?: string|number, name?: string }} img
  * @returns {string|number|undefined}
  */
-export function slideshowImageKey(img) {
+export function slideshowImageKey(
+  img: { id?: string | number; name?: string } | null | undefined,
+): string | number | undefined {
   return img?.id ?? img?.name
 }
 
@@ -16,7 +20,9 @@ export function slideshowImageKey(img) {
  * @param {object} img - Slideshow-Eintrag
  * @returns {string|null}
  */
-export function slideshowStableKey(img) {
+export function slideshowStableKey(
+  img: Partial<SlideshowSourceImage> | null | undefined,
+): string | null {
   if (!img) return null
   const stockId =
     img.stockImage?.id ??

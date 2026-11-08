@@ -4,9 +4,11 @@
  */
 import { SLIDESHOW_AUDIO_PRESET_OPTIONS } from '../../../lib/slideshowAudio'
 import { SLIDESHOW_TRANSITIONS } from '../../../lib/slideshowTransitions'
+import type { TranslateFn } from '../../../composables/types'
+import type { UiSelectOption } from '../../ui/UiSelect.vue'
 
 /** Übergang: „Standard (…)“ plus alle Übergänge mit Symbol. */
-export function transitionOptions(t, defaultTransition) {
+export function transitionOptions(t: TranslateFn, defaultTransition: string): UiSelectOption[] {
   return [
     {
       value: 'default',
@@ -20,7 +22,7 @@ export function transitionOptions(t, defaultTransition) {
 }
 
 /** Audio-Modus: Standard, Aus, Gespeichert (nur mit Einstellungen) und Presets. */
-export function audioModeOptions(t, hasSavedSettings) {
+export function audioModeOptions(t: TranslateFn, hasSavedSettings: boolean): UiSelectOption[] {
   return [
     { value: 'default', label: t('slideshow.audioModeDefault') },
     { value: 'off', label: t('slideshow.audioModeOff') },

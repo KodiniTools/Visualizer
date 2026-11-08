@@ -1,4 +1,22 @@
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, type Ref } from 'vue'
+import type { SlideshowSourceImage } from '../../../lib/slideshowSources'
+import type {
+  SlideshowAdjustmentsApi,
+  SlideshowImagePosition,
+  SlideshowImageSizeInput,
+} from '../slideshowAdjustmentsApi'
+import type { SlideshowPanelProps } from './slideshowPanelTypes'
+import type { SlideshowImageEditorField } from './useSlideshowPerImageSettings'
+
+/** Abhängigkeiten von useSlideshowImageEditor */
+export interface SlideshowImageEditorDeps {
+  props: SlideshowPanelProps
+  orderedImages: Ref<SlideshowSourceImage[]>
+  backgroundMode: Ref<string>
+  setForImage: (img: SlideshowSourceImage, field: SlideshowImageEditorField, value: unknown) => void
+  /** Änderung sofort übernehmen */
+  onLiveChange: () => void
+}
 
 /**
  * Einstellungen eines einzelnen Bildes bei pausierter Slideshow (Klick auf
@@ -18,11 +36,11 @@ export function useSlideshowImageEditor({
   backgroundMode,
   setForImage,
   onLiveChange,
-}) {
-  const editorIndex = ref(null)
+}: SlideshowImageEditorDeps) {
+  const editorIndex = ref<number | null>(null)
   const editorImage = computed(() =>
     props.isActive && props.isPaused && Number.isInteger(editorIndex.value)
-      ? (orderedImages.value[editorIndex.value] ?? null)
+      ? (orderedImages.value[editorIndex.value as number] ?? null)
       : null,
   )
 
@@ -43,14 +61,17 @@ export function useSlideshowImageEditor({
   )
 
   /** Liest einen Wert des bearbeiteten Bildes über die adjustments-api. */
-  function fromApi(method) {
-    return computed(() => {
+  function fromApi<M extends 'getPosition' | 'getSize'>(method: M) {
+    return computed((): ReturnType<SlideshowAdjustmentsApi[M]> | null => {
       // Abhängigkeiten: Bounds per Maus/Regler, Slideshow-Bereich, Hintergrund-Modus
       void props.boundsRevision
       void props.externalTransform
       void backgroundMode.value
       const img = editorImage.value
-      return img ? (props.adjustmentsApi?.[method]?.(img) ?? null) : null
+      return img
+        ? ((props.adjustmentsApi?.[method]?.(img) as ReturnType<SlideshowAdjustmentsApi[M]>) ??
+            null)
+        : null
     })
   }
 
@@ -60,13 +81,13 @@ export function useSlideshowImageEditor({
   const editorSize = fromApi('getSize')
 
   /** Größenregler im Bild-Editor → Bild auf der Canvas skalieren. */
-  function updateEditedImageSize(size) {
+  function updateEditedImageSize(size: SlideshowImageSizeInput | null | undefined) {
     const img = editorImage.value
     if (img && size) props.adjustmentsApi?.setSize?.(img, size)
   }
 
   /** Positionsregler im Bild-Editor → Bild auf der Canvas verschieben. */
-  function updateEditedImagePosition(position) {
+  function updateEditedImagePosition(position: SlideshowImagePosition | null | undefined) {
     const img = editorImage.value
     if (img && position) props.adjustmentsApi?.setPosition?.(img, position)
   }
@@ -75,7 +96,7 @@ export function useSlideshowImageEditor({
    * Setzt einen Wert pro Bild für das bearbeitete Bild und übernimmt ihn live.
    * @param {'transition'|'duration'|'fadeIn'|'fadeOut'|'audioMode'|'audioSource'} field
    */
-  function updateEditedImage(field, value) {
+  function updateEditedImage(field: SlideshowImageEditorField, value: unknown) {
     const img = editorImage.value
     if (!img) return
     setForImage(img, field, value)

@@ -31,7 +31,7 @@ import { particleVisualizers } from './particle/index'
 import { techVisualizers } from './tech/index'
 import { retroVisualizers } from './retro/index'
 import { effectsVisualizers } from './effects/index'
-import { glVisualizers } from './gl/index.js'
+import { glVisualizers } from './gl/index'
 import type { VisualizerRegistry } from './core/types'
 
 export type {

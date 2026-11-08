@@ -3,8 +3,8 @@ import {
   createGlVisualizer,
   getSharedEngine,
   resetSharedEngine,
-} from '../../../lib/visualizers/gl/createGlVisualizer.js'
-import { hexToRgb01 } from '../../../lib/visualizers/gl/GLVisualizerEngine.js'
+} from '../../../lib/visualizers/gl/createGlVisualizer'
+import { hexToRgb01 } from '../../../lib/visualizers/gl/GLVisualizerEngine'
 
 // Node test environment: no OffscreenCanvas, no document → WebGL2 unavailable.
 // This is exactly the situation the adapter must survive via the fallback.

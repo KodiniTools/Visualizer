@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useVisualizerStore } from './visualizerStore'
 import { resolveVisualizerId } from '../lib/visualizers/aliases'
 import { DEFAULT_REACT_SHAPE } from '../lib/visualizers/core/reactSource'
-import { normalizeLedConfig } from '../lib/visualizers/gl/ledTextSettings.js'
+import { normalizeLedConfig } from '../lib/visualizers/gl/ledTextSettings'
 import { normalizeVisualizerShape } from '../lib/visualizers/core/visualizerShape'
 import { BUILT_IN_PRESETS } from '../data/builtInPresets'
 import type { VisualizerLayer } from './visualizer/useVisualizerLayers'
@@ -174,7 +174,7 @@ export const usePresetStore = defineStore('presets', () => {
         shape: normalizeVisualizerShape(l.shape),
         visualizerId: resolveVisualizerId(l.visualizerId) || vizStore.lastWorkingVisualizer,
         // Fehlende Felder älterer Presets ergänzt der Renderer bzw. layerEffects()
-      })) as VisualizerLayer[]
+      })) as unknown as VisualizerLayer[]
       const firstLayer = v.layers[0]
       if (firstLayer) vizStore.activeLayerId = firstLayer.id
       // Ohne das bliebe ein zuvor ausgeblendeter Visualizer unsichtbar und das

@@ -6,7 +6,7 @@ import { ensureSizedCanvas } from './canvasCache.js'
 import { gateAudioData } from './reactGate.js'
 import { createLayerPunch } from './beatPunch.js'
 import { ensurePostProcessor, applyPostFx } from './postFx.js'
-import { normalizeLedConfig } from '../../lib/visualizers/gl/ledTextSettings.js'
+import { normalizeLedConfig } from '../../lib/visualizers/gl/ledTextSettings'
 import { shapeRenderSize } from '../../lib/visualizers/core/visualizerShape'
 
 /**

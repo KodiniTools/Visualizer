@@ -8,8 +8,8 @@ import {
   glLedFrameVu,
   glLedFramePulse,
   glLedFrameRainbow,
-} from '../../../lib/visualizers/gl/presets/glLedFrames.js'
-import { glPresetSpecs } from '../../../lib/visualizers/gl/index.js'
+} from '../../../lib/visualizers/gl/presets/glLedFrames'
+import { glPresetSpecs } from '../../../lib/visualizers/gl/index'
 
 const PRESETS = [
   glLedFrameChase,

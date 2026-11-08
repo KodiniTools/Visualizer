@@ -7,8 +7,8 @@ import {
   glLaserSmileLaugh,
   glLaserSmileCool,
   glLaserSmileSurprised,
-} from '../../../lib/visualizers/gl/presets/glLaserSmiles.js'
-import { glPresetSpecs } from '../../../lib/visualizers/gl/index.js'
+} from '../../../lib/visualizers/gl/presets/glLaserSmiles'
+import { glPresetSpecs } from '../../../lib/visualizers/gl/index'
 
 const PRESETS = [
   glLaserSmileHappy,

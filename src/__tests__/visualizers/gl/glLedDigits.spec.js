@@ -7,8 +7,8 @@ import {
   makeLedDigitPreset,
   makeLedLetterPreset,
   rowToBits,
-} from '../../../lib/visualizers/gl/presets/glLedDigits.js'
-import { glPresetSpecs } from '../../../lib/visualizers/gl/index.js'
+} from '../../../lib/visualizers/gl/presets/glLedDigits'
+import { glPresetSpecs } from '../../../lib/visualizers/gl/index'
 
 const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 const LETTERS = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ']

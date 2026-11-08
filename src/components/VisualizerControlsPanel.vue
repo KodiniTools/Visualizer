@@ -47,7 +47,7 @@ import VisualizerBasicsSection from './visualizer-panel/VisualizerBasicsSection.
 import VisualizerReactSourceSection from './visualizer-panel/VisualizerReactSourceSection.vue'
 import VisualizerTransformSection from './visualizer-panel/VisualizerTransformSection.vue'
 import VisualizerLedTextSection from './visualizer-panel/VisualizerLedTextSection.vue'
-import { isLedTextVisualizer } from '../lib/visualizers/gl/ledTextSettings.js'
+import { isLedTextVisualizer } from '../lib/visualizers/gl/ledTextSettings'
 
 const { t } = useI18n()
 const store = useVisualizerStore()

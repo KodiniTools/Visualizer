@@ -4,7 +4,7 @@ import { ref } from 'vue'
 import { useVisualizerStore } from './visualizerStore'
 import { resolveVisualizerId } from '../lib/visualizers/aliases'
 import { normalizeReactShape } from '../lib/visualizers/core/reactSource'
-import { normalizeLedConfig } from '../lib/visualizers/gl/ledTextSettings.js'
+import { normalizeLedConfig } from '../lib/visualizers/gl/ledTextSettings'
 import type { VisualizerLayer } from './visualizer/useVisualizerLayers'
 
 const LAYER_PRESETS_KEY = 'visualizer-layer-presets'
@@ -156,7 +156,7 @@ export const useLayerPresetStore = defineStore('layerPresets', () => {
     }))
 
     // Effekte fehlen im Snapshot; layerEffects() liefert dafür Standardwerte
-    vizStore.visualizerLayers = layers as VisualizerLayer[]
+    vizStore.visualizerLayers = layers as unknown as VisualizerLayer[]
     vizStore.activeLayerId = (layers[0] as (typeof layers)[number]).id
     vizStore.multiLayerMode = true
     vizStore.showVisualizer = true

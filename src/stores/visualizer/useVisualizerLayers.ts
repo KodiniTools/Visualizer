@@ -13,7 +13,7 @@ import {
   normalizeReactBeatBoost,
   normalizeReactPhase,
 } from '../../lib/visualizers/core/reactSource'
-import { DEFAULT_LED_CONFIG, normalizeLedField } from '../../lib/visualizers/gl/ledTextSettings.js'
+import { DEFAULT_LED_CONFIG, normalizeLedField } from '../../lib/visualizers/gl/ledTextSettings'
 import {
   DEFAULT_VISUALIZER_SHAPE,
   normalizeVisualizerShape,

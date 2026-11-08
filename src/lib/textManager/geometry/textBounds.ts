@@ -40,6 +40,43 @@ export function findObjectAt(
 }
 
 /**
+ * Misst den reinen Textblock eines Text-Objekts (ohne Padding, Stroke und
+ * Schatten): Breite der breitesten Zeile inkl. letterSpacing, Höhe aus
+ * Zeilenzahl × Zeilenabstand. Grundlage für relWidth/relHeight, mit denen
+ * das Skalieren über die Griffe rechnet (Schriftgröße skaliert proportional).
+ *
+ * @param ctx - 2D-Kontext; Zustand wird gesichert und wiederhergestellt
+ * @param textObj - Text-Objekt (Inhalt steht in `content`)
+ * @param fontSizePx - Schriftgröße in Pixeln
+ */
+export function measureTextBlock(
+  ctx: CanvasRenderingContext2D,
+  textObj: Pick<
+    TextObject,
+    'content' | 'fontStyle' | 'fontWeight' | 'fontFamily' | 'letterSpacing' | 'lineHeightMultiplier'
+  >,
+  fontSizePx: number,
+): { width: number; height: number } {
+  const lines = String(textObj.content ?? '').split('\n')
+  const letterSpacing = textObj.letterSpacing || 0
+
+  ctx.save()
+  ctx.font = `${textObj.fontStyle || 'normal'} ${textObj.fontWeight || 400} ${fontSizePx}px ${textObj.fontFamily || 'Arial'}`
+  // letterSpacing wird unten pro Zeichenabstand addiert, nicht vom Kontext
+  ctx.letterSpacing = '0px'
+
+  let maxWidth = 0
+  for (const line of lines) {
+    const width = ctx.measureText(line).width + letterSpacing * Math.max(0, line.length - 1)
+    if (width > maxWidth) maxWidth = width
+  }
+  ctx.restore()
+
+  const lineHeight = fontSizePx * ((textObj.lineHeightMultiplier || 120) / 100)
+  return { width: Math.max(0, maxWidth), height: lineHeight * lines.length }
+}
+
+/**
  * ✅ Berechnet die PRÄZISEN Bounds (Begrenzungsrahmen) eines Text-Objekts
  * Berücksichtigt: Schatten, Stroke, letterSpacing, mehrzeilige Texte
  * @param {object} textObj

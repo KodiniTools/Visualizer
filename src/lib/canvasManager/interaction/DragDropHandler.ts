@@ -147,6 +147,8 @@ export class DragDropHandler {
   resizeText(obj: SizedTextObject, dx: number, dy: number): void {
     const currentPixelWidth = obj.relWidth * this.manager.canvas.width
     const currentPixelHeight = obj.relHeight * this.manager.canvas.height
+    // Leerer Text (Breite 0) oder ungemessen: kein Seitenverhältnis, nichts skalieren
+    if (!(currentPixelWidth > 0) || !(currentPixelHeight > 0)) return
 
     const oldRelX = obj.relX
     const oldRelY = obj.relY

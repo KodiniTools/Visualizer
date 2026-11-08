@@ -6,6 +6,7 @@ import type {
   ImageBackgroundObject,
 } from '../../canvasManager'
 import type { TextManager } from '../../textManager'
+import { measureTextBlock } from '../../textManager/geometry/textBounds'
 import type { CanvasImage } from '../../multiImageManager'
 /**
  * Inhalte: Texte und Bilder hinzufügen sowie Eigenschaften des aktiven
@@ -55,20 +56,15 @@ export class ContentMethods {
 
     // 2D-Kontext eines HTMLCanvasElement ist immer verfügbar
     const ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D
-    ctx.save()
 
+    // Werte ≤ 1 gelten als relativ zur Canvas-Höhe
     let actualFontSize = textObj.fontSize
     if (actualFontSize <= 1) {
       actualFontSize = actualFontSize * this.canvas.height
     }
 
-    ctx.font = `${textObj.fontWeight || 400} ${actualFontSize}px ${textObj.fontFamily || 'Arial'}`
-    // Altfeld `text` (Inhalt steht in `content`) – Verhalten unverändert übernommen
-    const metrics = ctx.measureText(textObj.text as string)
-    ctx.restore()
-
-    const width = metrics.width
-    const height = actualFontSize * 1.2
+    // Gemessen wird der Inhalt (`content`), mehrzeilig und mit letterSpacing
+    const { width, height } = measureTextBlock(ctx, textObj, actualFontSize)
 
     textObj.relWidth = width / this.canvas.width
     textObj.relHeight = height / this.canvas.height
@@ -125,7 +121,15 @@ export class ContentMethods {
         target[property] = value
       }
 
-      const boundsAffectingProps = ['text', 'fontSize', 'fontFamily', 'fontWeight']
+      const boundsAffectingProps = [
+        'content',
+        'fontSize',
+        'fontFamily',
+        'fontWeight',
+        'fontStyle',
+        'letterSpacing',
+        'lineHeightMultiplier',
+      ]
       if (boundsAffectingProps.includes(property) || property.includes('.')) {
         this.calculateTextBounds(this.activeObject)
       }

@@ -1,4 +1,4 @@
-import { ref, watch, onMounted, onUnmounted, inject, toRaw } from 'vue'
+import { ref, watch, onMounted, onUnmounted, inject, toRaw, type Ref } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { usePlayerStore } from '../stores/playerStore'
 import { useBeatMarkerStore, type BeatMarkerAction } from '../stores/beatMarkerStore'
@@ -20,13 +20,24 @@ import { useImageGallery } from './useImageGallery'
 import {
   captureBackgroundImageDefaults,
   captureBaseBackground,
+  discardBaseBackground,
   findGalleryImage,
+  releaseVideoBackgrounds,
   resolveBackgroundImageDefaults,
   restoreBaseBackground,
   setBackgroundImageWithDefaults,
   type BackgroundImageDefaults,
   type BaseBackground,
 } from '../lib/background/markerBackgroundImage'
+import {
+  captureBackgroundMediaDefaults,
+  findGalleryVideo,
+  loadMarkerVideo,
+  resolveBackgroundMediaDefaults,
+  setBackgroundVideoWithDefaults,
+  type GalleryVideoEntry,
+  type MarkerVideoRef,
+} from '../lib/background/markerBackgroundVideo'
 import type { TextObject } from '../lib/textManager/types'
 import type { CanvasManagerRef } from './types'
 
@@ -53,6 +64,13 @@ export type MarkerAction = BeatMarkerAction & {
   shapeId?: string | null
   shapeLabel?: string | null
   backgroundImage?: MarkerBackgroundImageRef | null
+  video?: MarkerVideoRef | null
+}
+
+/** Optionen für useBeatMarkers */
+export interface UseBeatMarkersOptions {
+  /** Hochgeladene Videos (Video-Panel), wählbar als Marker-Video */
+  videoGallery?: Ref<GalleryVideoEntry[]>
 }
 
 /**
@@ -62,8 +80,12 @@ export type MarkerAction = BeatMarkerAction & {
  *
  * @param openMarkersPopover - opens the markers popover, so adding
  *   a marker (incl. via the "M" shortcut) reveals the form.
+ * @param options.videoGallery - hochgeladene Videos (Video-Panel), wählbar als Marker-Video.
  */
-export function useBeatMarkers(openMarkersPopover: () => void) {
+export function useBeatMarkers(
+  openMarkersPopover: () => void,
+  { videoGallery = ref<GalleryVideoEntry[]>([]) }: UseBeatMarkersOptions = {},
+) {
   const { t } = useI18n()
   const playerStore = usePlayerStore()
   const beatMarkerStore = useBeatMarkerStore()
@@ -109,6 +131,9 @@ export function useBeatMarkers(openMarkersPopover: () => void) {
   // Hintergrund-Bild.
   // (Select liefert die numerische Galerie-ID)
   const newMarkerBgImageId = ref<number | string | null>('')
+  // Video pro Marker (Video-Galerie-ID; '' = kein Video). Wird zum
+  // Marker-Zeitpunkt Hintergrund und startet von vorne.
+  const newMarkerVideoId = ref<number | string | null>('')
   const newMarkerLabel = ref('')
 
   // ══════════════════ Text-Steuerung über Marker ══════════════════
@@ -403,43 +428,100 @@ export function useBeatMarkers(openMarkersPopover: () => void) {
   const getMarkerGalleryImages = () =>
     imageGallery.value.map((g, i) => ({ id: g.id, number: i + 1, name: g.name }))
 
+  /** Hochgeladene Videos (Video-Panel) für das Marker-Dropdown */
+  const getMarkerGalleryVideos = () =>
+    videoGallery.value.map((v, i) => ({ id: v.id, number: i + 1, name: v.name }))
+
+  // Hintergrund vor dem ersten Hintergrund-Bild- bzw. Video-Marker eines
+  // Durchlaufs. Ein späterer Marker ohne Bild, Video und Hintergrund-Preset
+  // stellt ihn wieder her, statt das Marker-Bild/-Video stehen zu lassen.
+  // Reiner Laufzeit-Zustand, nicht im Verlauf.
+  let bgImageBase: BaseBackground | null = null
+  // Zählt Marker-Hintergrundwechsel: ein Marker-Video, das erst nach einem
+  // späteren Wechsel fertig lädt, wird verworfen.
+  let mediaToken = 0
+
+  const setMediaBase = (base: BaseBackground | null) => {
+    if (bgImageBase && bgImageBase !== base) discardBaseBackground(canvasManager.value, bgImageBase)
+    bgImageBase = base
+  }
+
   /**
-   * Setzt das Galerie-Bild eines Markers als Hintergrund. Format und
-   * Audio-Reaktiv stammen vom vorherigen (beim Auslösen sichtbaren)
-   * Hintergrund-Bild, ersatzweise aus den beim Speichern gemerkten Vorgaben.
+   * Setzt das Galerie-Video eines Markers als Hintergrund (lädt asynchron).
+   * @param entry - Galerie-Video
+   * @param ref - action.video
    * @param previous - vor allen Marker-Änderungen erfasste Vorgaben
    */
-  // Hintergrund vor dem ersten Hintergrund-Bild-Marker eines Durchlaufs. Ein
-  // späterer Marker ohne Hintergrund-Bild (und ohne Hintergrund-Preset) stellt
-  // ihn wieder her, statt das Marker-Bild stehen zu lassen. Reiner
-  // Laufzeit-Zustand, nicht im Verlauf.
-  let bgImageBase: BaseBackground | null = null
+  const applyVideoAction = (
+    entry: GalleryVideoEntry,
+    ref: MarkerVideoRef,
+    previous: BackgroundImageDefaults | null,
+  ) => {
+    const token = mediaToken
+    const defaults = previous || resolveBackgroundMediaDefaults(null, ref.defaults)
+    loadMarkerVideo(entry.src, (video) => {
+      if (token !== mediaToken) {
+        // Inzwischen hat ein anderer Marker den Hintergrund gewechselt.
+        video.src = ''
+        return
+      }
+      historyRecorder.absorb(() => {
+        releaseVideoBackgrounds(canvasManager.value, bgImageBase)
+        const target = setBackgroundVideoWithDefaults(canvasManager.value, video, defaults)
+        console.log('🎬 Video via Beat-Marker:', ref.name, `(${target})`)
+      })
+    })
+  }
 
+  /**
+   * Setzt Galerie-Bild bzw. Video eines Markers als Hintergrund. Format und
+   * Audio-Reaktiv stammen vom vorherigen (beim Auslösen sichtbaren)
+   * Hintergrund, ersatzweise aus den beim Speichern gemerkten Vorgaben.
+   * Hat ein Marker beides, gewinnt das Video.
+   * @param previous - vor allen Marker-Änderungen erfasste Vorgaben
+   */
   const applyBackgroundImageAction = (
     action: MarkerAction,
     previous: BackgroundImageDefaults | null,
     presetApplied = false,
   ) => {
-    const ref = action?.backgroundImage
-    if (!ref) {
+    const videoRef = action?.video || null
+    const ref = videoRef ? null : action?.backgroundImage
+    if (!ref && !videoRef) {
+      mediaToken++
       if (presetApplied) {
         // Das Preset dieses Markers bestimmt den Hintergrund.
-        bgImageBase = null
+        setMediaBase(null)
       } else if (bgImageBase) {
         restoreBaseBackground(canvasManager.value, bgImageBase)
         bgImageBase = null
-        console.log('🖼️ Hintergrund-Bild via Beat-Marker zurückgesetzt')
+        console.log('🖼️ Hintergrund-Bild/Video via Beat-Marker zurückgesetzt')
       }
       return
     }
+    if (videoRef) {
+      const video = findGalleryVideo(videoGallery.value, videoRef)
+      if (!video?.src) {
+        console.warn('⚠️ Video des Markers nicht mehr hochgeladen:', videoRef.name)
+        return
+      }
+      mediaToken++
+      if (presetApplied || !bgImageBase) setMediaBase(captureBaseBackground(canvasManager.value))
+      applyVideoAction(video, videoRef, previous)
+      return
+    }
+    if (!ref) return
     const entry = findGalleryImage(imageGallery.value, ref)
     if (!entry?.img) {
       console.warn('⚠️ Hintergrund-Bild des Markers nicht mehr in der Galerie:', ref.name)
       return
     }
+    mediaToken++
     // Mit Preset gilt der Preset-Hintergrund als neue Basis, sonst bleibt die
     // Basis vom ersten Bild-Marker dieses Durchlaufs erhalten.
-    if (presetApplied || !bgImageBase) bgImageBase = captureBaseBackground(canvasManager.value)
+    if (presetApplied || !bgImageBase) setMediaBase(captureBaseBackground(canvasManager.value))
+    // Basis-Videos nur abhängen (kommen beim Zurücksetzen wieder), Marker-Videos freigeben.
+    releaseVideoBackgrounds(canvasManager.value, bgImageBase)
     const defaults = previous || resolveBackgroundImageDefaults(null, ref.defaults)
     const target = setBackgroundImageWithDefaults(canvasManager.value, toRaw(entry.img), defaults)
     console.log('🖼️ Hintergrund-Bild via Beat-Marker:', ref.name, `(${target})`)
@@ -448,6 +530,7 @@ export function useBeatMarkers(openMarkersPopover: () => void) {
   /** Wiedergabe-Ende/Neustart: Hintergrund von vor den Bild-Markern zurück. */
   const restoreBackgroundImageMarkers = () =>
     historyRecorder.absorb(() => {
+      mediaToken++
       if (bgImageBase) restoreBaseBackground(canvasManager.value, bgImageBase)
       bgImageBase = null
     })
@@ -464,10 +547,10 @@ export function useBeatMarkers(openMarkersPopover: () => void) {
       const resolved = resolveBackgroundPreset(action.backgroundKey)
       if (resolved?.snapshot) snapshot = resolved.snapshot as unknown as BackgroundSnapshot
     }
-    // Mit Hintergrund-Bild aus der Galerie liefert das Preset nur Farbe,
+    // Mit Hintergrund-Bild bzw. Video liefert das Preset nur Farbe,
     // Gradient, Audio-Reaktiv und Elemente – sein (asynchron geladenes) Bild
     // bzw. Video würde das Galerie-Bild sonst wieder überdecken.
-    if (snapshot && action.backgroundImage) {
+    if (snapshot && (action.backgroundImage || action.video)) {
       snapshot = { ...snapshot, backgroundImage: null, backgroundVideo: null }
     }
     if (snapshot) {
@@ -490,9 +573,11 @@ export function useBeatMarkers(openMarkersPopover: () => void) {
     if (!action) return
     // Vorgaben des vorherigen Hintergrund-Bildes erfassen, bevor ein
     // Hintergrund-Preset dieses Markers den Hintergrund ändert.
-    const previousBgImage = action.backgroundImage
-      ? resolveBackgroundImageDefaults(canvasManager.value, action.backgroundImage.defaults)
-      : null
+    const previousBgImage = action.video
+      ? resolveBackgroundMediaDefaults(canvasManager.value, action.video.defaults)
+      : action.backgroundImage
+        ? resolveBackgroundImageDefaults(canvasManager.value, action.backgroundImage.defaults)
+        : null
 
     // Jeder Marker erzwingt den Visualizer-Zustand explizit.
     // Rückwärtskompatibel zum alten Feld `hideVisualizer`.
@@ -599,6 +684,7 @@ export function useBeatMarkers(openMarkersPopover: () => void) {
     newMarkerTextId.value = ''
     newMarkerShapeId.value = ''
     newMarkerBgImageId.value = ''
+    newMarkerVideoId.value = ''
     showMarkerPanel.value = true
     openMarkersPopover()
   }
@@ -625,6 +711,12 @@ export function useBeatMarkers(openMarkersPopover: () => void) {
     newMarkerBgImageId.value = marker.action?.backgroundImage
       ? ((findGalleryImage(imageGallery.value, marker.action.backgroundImage)?.id as
           | number
+          | undefined) ?? '')
+      : ''
+    newMarkerVideoId.value = marker.action?.video
+      ? ((findGalleryVideo(videoGallery.value, marker.action.video)?.id as
+          | number
+          | string
           | undefined) ?? '')
       : ''
     showMarkerPanel.value = true
@@ -680,6 +772,20 @@ export function useBeatMarkers(openMarkersPopover: () => void) {
       }
     }
 
+    // Video aus dem Video-Panel: nur Verweis (id + Name) plus Vorgaben des
+    // aktuellen Hintergrunds (Bild oder Video) speichern.
+    let video = null
+    if (newMarkerVideoId.value !== '' && newMarkerVideoId.value !== null) {
+      const entry = videoGallery.value.find((v) => v.id === newMarkerVideoId.value)
+      if (entry) {
+        video = {
+          galleryId: entry.id,
+          name: entry.name,
+          defaults: captureBackgroundMediaDefaults(canvasManager.value),
+        }
+      }
+    }
+
     // Eigenes Layer-Preset: Snapshot mitspeichern, damit der Marker auch nach
     // dem Löschen des Presets noch funktioniert (analog zum Hintergrund).
     let layerPreset = null
@@ -709,6 +815,7 @@ export function useBeatMarkers(openMarkersPopover: () => void) {
       shapeId: shapeId,
       shapeLabel: shapeLabel,
       backgroundImage: backgroundImage,
+      video: video,
     }
     if (editingMarkerId.value !== null) {
       beatMarkerStore.updateMarker(editingMarkerId.value, {
@@ -725,6 +832,7 @@ export function useBeatMarkers(openMarkersPopover: () => void) {
     newMarkerTextId.value = ''
     newMarkerShapeId.value = ''
     newMarkerBgImageId.value = ''
+    newMarkerVideoId.value = ''
     // Texte und Formen, die keinem Marker mehr zugewiesen sind, wieder einblenden.
     reconcileTextMarkers()
     reconcileShapeMarkers() // Läuft die Wiedergabe schon und liegt der Marker noch vor uns, erscheint
@@ -922,11 +1030,13 @@ export function useBeatMarkers(openMarkersPopover: () => void) {
     newMarkerTextId,
     newMarkerShapeId,
     newMarkerBgImageId,
+    newMarkerVideoId,
     newMarkerLabel,
     getMarkerTexts,
     getMarkerShapes,
     getMarkerShapeGallery,
     getMarkerGalleryImages,
+    getMarkerGalleryVideos,
     updateMarkerTimeFromInput,
     stepMarkerTime,
     getMarkerPosition,

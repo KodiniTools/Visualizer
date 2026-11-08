@@ -167,6 +167,17 @@
       </p>
 
       <UiSelect
+        v-model="newMarkerVideoId"
+        :label="t('player.markerVideo')"
+        :options="videoSelectOptions"
+        :title="t('player.markerVideoHint')"
+        size="sm"
+      />
+      <p v-if="newMarkerVideoId !== ''" class="form-hint marker-form-hint">
+        {{ t('player.markerVideoHint') }}
+      </p>
+
+      <UiSelect
         v-model="newMarkerTextId"
         :label="t('player.text')"
         :options="textSelectOptions"
@@ -243,6 +254,12 @@
           class="marker-action marker-action-bgimage"
           :title="t('player.backgroundImageHint')"
           >🖼️ {{ marker.action.backgroundImage.name }}</span
+        >
+        <span
+          v-if="marker.action.video"
+          class="marker-action marker-action-video"
+          :title="t('player.markerVideoHint')"
+          >🎬 {{ marker.action.video.name }}</span
         >
         <span
           v-if="
@@ -340,11 +357,13 @@ const {
   newMarkerTextId,
   newMarkerShapeId,
   newMarkerBgImageId,
+  newMarkerVideoId,
   newMarkerLabel,
   getMarkerTexts,
   getMarkerShapes,
   getMarkerShapeGallery,
   getMarkerGalleryImages,
+  getMarkerGalleryVideos,
   updateMarkerTimeFromInput,
   stepMarkerTime,
   addMarkerAtCurrentTime,
@@ -428,6 +447,12 @@ const galleryImageOptions = computed(() => {
   return getMarkerGalleryImages()
 })
 
+// Hochgeladene Videos aus dem Video-Panel (reaktiv auf die Video-Liste)
+const galleryVideoOptions = computed(() => {
+  void showMarkerPanel.value
+  return getMarkerGalleryVideos()
+})
+
 // Hintergrund-Auswahl (Vorlagen + gespeicherte Presets). Wird beim Öffnen des
 // Formulars neu geladen, damit frisch gespeicherte Presets sofort erscheinen.
 const backgroundPresetOptions = computed(() => {
@@ -474,6 +499,16 @@ const bgImageOptions = computed(() => [
     : galleryImageOptions.value.map((img) => ({
         value: img.id,
         label: `${img.number}. ${img.name}`,
+      }))),
+])
+
+const videoSelectOptions = computed(() => [
+  { value: '', label: t('player.noMarkerVideo') },
+  ...(galleryVideoOptions.value.length === 0
+    ? [{ value: '__empty-videos', label: t('player.emptyVideoGallery'), disabled: true }]
+    : galleryVideoOptions.value.map((video) => ({
+        value: video.id,
+        label: `${video.number}. ${video.name}`,
       }))),
 ])
 
@@ -710,7 +745,8 @@ const shapeSelectOptions = computed(() => [
   border-radius: var(--ds-radius-sm);
 }
 .marker-action-bg,
-.marker-action-bgimage {
+.marker-action-bgimage,
+.marker-action-video {
   color: var(--ds-success);
   background-color: color-mix(in srgb, var(--ds-success) 12%, transparent);
 }

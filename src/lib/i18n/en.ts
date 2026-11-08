@@ -979,6 +979,11 @@ export default {
     emptyImageGallery: 'Gallery is empty – upload images under “My Images”',
     backgroundImageHint:
       'An image from your gallery becomes the background. It takes audio-reactive settings and format (workspace or normal) from the previous background image.',
+    markerVideo: 'Video',
+    noMarkerVideo: '-- No video --',
+    emptyVideoGallery: 'No videos uploaded – upload videos under “Video”',
+    markerVideoHint:
+      'An uploaded video becomes the background at the marker time and starts from the beginning (muted, looping). It takes audio-reactive settings and format from the previous background. If the marker also has a background image, the video wins.',
     text: 'Text',
     noText: '-- No text --',
     textAppears: 'Text appears on the canvas at the marker time',

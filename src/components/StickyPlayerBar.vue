@@ -77,7 +77,12 @@ const popover = usePlayerPopover()
 const volumeEq = usePlayerVolumeEq()
 const playMode = usePlayMode()
 const audioSource = useAudioSourceControls()
-const markers = useBeatMarkers(() => popover.openPopover('markers'))
+// Video-Zustand vor den Markern anlegen: Marker können hochgeladene Videos
+// als Hintergrund aktivieren.
+const videoPanel = useVideoPanel()
+const markers = useBeatMarkers(() => popover.openPopover('markers'), {
+  videoGallery: videoPanel.videoGallery,
+})
 const playlist = usePlaylistManager()
 
 // Hintergrund-/Canvas-Zustand hier erzeugen, nicht im Panel: die Leiste ist
@@ -88,7 +93,7 @@ provide('bgSettings', useBgSettings())
 
 // Ebenso der Video-Zustand: die hochgeladene Video-Liste und die
 // Platzierungs-Einstellungen sollen das Schließen des Popovers überleben.
-provide('videoPanel', useVideoPanel())
+provide('videoPanel', videoPanel)
 
 provide('playerBar', { popover, volumeEq, playMode, audioSource, markers, playlist })
 

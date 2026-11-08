@@ -28,6 +28,8 @@ export interface BackgroundImageSlotObject extends FotoSettingsTarget {
   id?: ObjectId | null
   type?: string
   imageObject: HTMLImageElement | null
+  /** Animationen wie bei Texten (canvasObjects/imageAnimation) */
+  timedAnimation?: Loose | null
 }
 
 /** Video-Hintergrund (Canvas- oder Workspace-Video) */
@@ -85,6 +87,8 @@ interface SlotSnapshot {
   loop: boolean | undefined
   muted: boolean | undefined
   fotoSettings: Loose | null
+  /** nur Bild-Hintergründe mit Animation (canvasObjects/imageAnimation) */
+  timedAnimation?: Loose | null
 }
 
 export interface BackgroundSnapshot {
@@ -136,6 +140,9 @@ export function createBackgroundSegment({
       loop: video.loop,
       muted: video.muted,
       fotoSettings: cleanFotoSettings(obj.fotoSettings),
+      ...(kind === 'image' && image.timedAnimation
+        ? { timedAnimation: clone(image.timedAnimation) }
+        : {}),
     }
   }
 
@@ -161,6 +168,10 @@ export function createBackgroundSegment({
     }
     if (!obj.imageObject) return null
     applyFotoSettings(obj, snap.fotoSettings)
+    // Laufzeit-Zustand (Startzeiten) hängt am Objekt und bleibt erhalten
+    if (!snap.timedAnimation) delete obj.timedAnimation
+    else if (obj.timedAnimation) assignDeep(obj.timedAnimation, snap.timedAnimation)
+    else obj.timedAnimation = clone(snap.timedAnimation)
     pool.set(snap.key, obj)
     return obj
   }

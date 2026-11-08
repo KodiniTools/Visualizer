@@ -416,4 +416,44 @@ describe('History-Segmente', () => {
     expect(bgAudioReactive.effects.pulse.enabled).toBe(false)
     expect(afterApply).toHaveBeenCalled()
   })
+
+  it('Hintergrund: Animation des Hintergrundbildes ist Teil des Verlaufs', async () => {
+    const cm = makeCanvasManager()
+    const refs = {
+      backgroundColor: ref('#ffffff'),
+      backgroundOpacity: ref(1),
+      gradientEnabled: ref(false),
+      gradientColor2: ref('#0066ff'),
+      gradientType: ref('radial'),
+      gradientAngle: ref(45),
+    }
+    recorder.registerSegment(
+      'background',
+      createBackgroundSegment({
+        getCanvasManager: () => cm,
+        refs,
+        bgAudioReactive: reactive({ enabled: false, effects: {} }),
+        afterApply: vi.fn(),
+      }),
+    )
+    const bgObj = {
+      id: '2_bg',
+      type: 'background',
+      imageObject: fakeImage('data:bg'),
+      fotoSettings: {},
+    }
+    cm.background = bgObj
+    recorder.checkpoint()
+    bgObj.timedAnimation = { fade: { enabled: true, duration: 800 } }
+    recorder.checkpoint()
+    bgObj.timedAnimation.fade.duration = 2000
+    recorder.checkpoint()
+
+    await store.undo()
+    expect(cm.background.timedAnimation.fade.duration).toBe(800)
+    await store.undo()
+    expect(cm.background.timedAnimation).toBeUndefined()
+    await store.redo()
+    expect(cm.background.timedAnimation).toEqual({ fade: { enabled: true, duration: 800 } })
+  })
 })

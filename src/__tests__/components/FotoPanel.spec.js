@@ -219,7 +219,10 @@ describe('FotoPanel – Galerie & Platzierung', () => {
 
     selectGallery({ id: 1, name: 'a.png', img: a })
     upload().vm.$emit('set-as-background')
-    expect(m.canvasManager.setBackground).toHaveBeenCalledWith(a)
+    expect(m.canvasManager.setBackground).toHaveBeenCalledWith(
+      a,
+      expect.objectContaining({ timedAnimation: expect.any(Object) }),
+    )
 
     selectGallery({ id: 1, name: 'a.png', img: a })
     m.canvasManager.setWorkspaceBackground.mockReturnValueOnce(false)
@@ -227,7 +230,10 @@ describe('FotoPanel – Galerie & Platzierung', () => {
     expect(toast.warning).toHaveBeenCalled()
     expect(useImageGallery().selectedImageCount.value).toBe(1)
     upload().vm.$emit('set-as-workspace-background')
-    expect(m.canvasManager.setWorkspaceBackground).toHaveBeenLastCalledWith(a)
+    expect(m.canvasManager.setWorkspaceBackground).toHaveBeenLastCalledWith(
+      a,
+      expect.objectContaining({ timedAnimation: expect.any(Object) }),
+    )
     expect(useImageGallery().selectedImageCount.value).toBe(0)
   })
 
@@ -330,7 +336,10 @@ describe('FotoPanel – Galerie & Platzierung', () => {
 
     upload().vm.$emit('open-preview', data)
     preview().vm.$emit('set-as-background')
-    expect(m.canvasManager.setBackground).toHaveBeenCalledWith(a)
+    expect(m.canvasManager.setBackground).toHaveBeenCalledWith(
+      a,
+      expect.objectContaining({ timedAnimation: expect.any(Object) }),
+    )
 
     upload().vm.$emit('open-preview', data)
     preview().vm.$emit('close')

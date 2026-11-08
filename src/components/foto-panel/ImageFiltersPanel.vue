@@ -11,8 +11,12 @@
       :api="boundsApi"
     />
 
-    <!-- Animationen wie bei Texten (nur normale Canvas-Bilder) -->
-    <ImageAnimationControls v-if="isPlaceableImage" :image="currentActiveImage" />
+    <!-- Animationen wie bei Texten (Canvas-Bilder und Bild-Hintergründe) -->
+    <ImageAnimationControls
+      v-if="isAnimatableImage"
+      :key="`anim-${currentActiveImage.id}`"
+      :image="currentActiveImage"
+    />
 
     <!-- Preset + Undo/Redo/Reset -->
     <PresetAndHistory />
@@ -100,6 +104,14 @@ const controls = useImageFilterControls(props, emit)
 const isPlaceableImage = computed(() => {
   const img = props.currentActiveImage
   return !!img && img.type === 'image' && !img.isSlideshowImage
+})
+
+// Bilder mit Animationen wie bei Texten: Canvas-Bilder und Bild-Hintergründe
+// (Canvas/Workspace), nicht Slideshow-Bilder
+const ANIMATABLE_TYPES = ['image', 'background', 'workspace-background']
+const isAnimatableImage = computed(() => {
+  const img = props.currentActiveImage
+  return !!img && ANIMATABLE_TYPES.includes(img.type) && !img.isSlideshowImage
 })
 
 // The sub-sections consume everything through provide/inject: the DOM/reactive

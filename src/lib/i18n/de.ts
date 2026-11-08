@@ -1995,7 +1995,7 @@ export default {
       'Wie bei Texten: Einblenden, Hereingleiten oder Skalieren. Startet, sobald das Bild erscheint.',
     newImageAnimation: 'Animation beim Hinzufügen',
     newImageAnimationHint:
-      'Gilt für Bilder, die du ab jetzt auf den Canvas bringst (Button, Platzieren, Zeichnen, Drag & Drop).',
+      'Gilt für Bilder, die du ab jetzt hinzufügst: auf den Canvas (Button, Platzieren, Zeichnen, Drag & Drop), als Hintergrund oder als Workspace-Hintergrund.',
     rotation: 'Rotation',
     opacity: 'Deckkraft',
     filters: 'Filter',

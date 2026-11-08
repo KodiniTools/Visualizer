@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { SlideshowManager } from '../../lib/slideshowManager.js'
+import { SlideshowManager } from '../../lib/slideshowManager'
 
 function createManager(callbacks = {}, canvas = { width: 1000, height: 1000 }) {
   let nextId = 1

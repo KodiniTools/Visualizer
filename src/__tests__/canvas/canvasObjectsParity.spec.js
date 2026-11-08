@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest'
-import { MultiImageManager } from '../../lib/multiImageManager.js'
-import { VideoManager } from '../../lib/videoManager.js'
+import { MultiImageManager } from '../../lib/multiImageManager'
+import { VideoManager } from '../../lib/videoManager'
 
 /**
  * Charakterisierung der Canvas-Objekt-Logik, die Bild- und Video-Manager

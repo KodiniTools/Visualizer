@@ -7,7 +7,7 @@
  * MultiImageManager lesen ihn über getSlideshowManager() und bekommen null,
  * solange keine Slideshow aktiv ist.
  */
-import type { SlideshowManager } from './slideshowManager.js'
+import type { SlideshowManager } from './slideshowManager'
 
 let current: SlideshowManager | null = null
 

@@ -25,14 +25,114 @@ import {
   getDeleteButtonBounds,
   getResizeHandles,
   isPointInRect,
+  type Rect,
 } from './canvasObjects/geometry'
-import { getEntranceTransform } from './canvasObjects/entranceAnimation'
+import {
+  getEntranceTransform,
+  type EntranceAnimationState,
+  type EntranceTransform,
+} from './canvasObjects/entranceAnimation'
 import { moveToBack, moveToFront } from './canvasObjects/zOrder'
 import { getSlideshowManager } from './slideshowManagerBridge'
 import { getAudioAnalysisData } from './audio/audioAnalysisData'
+import type { EngineAudioSettings } from './audio/audioReactiveEngine'
+import type { AudioFx } from './multiImage/drawSteps'
+import type { FotoImageObject, FotoManager } from './fotoManager'
+import type { RelBounds, TransitionState } from './slideshowTransitions'
+
+/** nur in einigen Dev-Builds vorhanden (GC-Hinweis) */
+declare const gc: (() => void) | undefined
+
+/** Einfache Filter (Fallback ohne FotoManager) */
+export interface ImageBasicSettings {
+  brightness: number
+  contrast: number
+  saturation: number
+  opacity: number
+  blur: number
+  preset: string | null
+  [key: string]: unknown
+}
+
+export interface ImageAnimation extends EntranceAnimationState {
+  type: string
+  active: boolean
+  startTime: number
+  duration: number
+  progress: number
+}
+
+/** Slideshow-Zustand eines Bildes (vom SlideshowManager gesetzt) */
+export interface ImageSlideshowState {
+  active?: boolean
+  opacity?: number
+  transitionState?: Partial<TransitionState> | null
+  clipRect?: RelBounds | null
+  [key: string]: unknown
+}
+
+/** Bild-Objekt auf dem Canvas */
+export interface CanvasImage extends FotoImageObject {
+  id: number | string
+  type: string
+  imageObject: HTMLImageElement
+  relX: number
+  relY: number
+  relWidth: number
+  relHeight: number
+  settings?: ImageBasicSettings
+  animation?: ImageAnimation
+  isSlideshowImage?: boolean
+  slideshow?: ImageSlideshowState
+}
+
+export interface ImageTargetBounds {
+  relX: number
+  relY: number
+  relWidth: number
+  relHeight: number
+}
+
+export interface AddImageWithBoundsOptions {
+  /** Animationsdauer in ms */
+  duration?: number
+  scale?: number
+  isSlideshowImage?: boolean
+  slideshow?: ImageSlideshowState
+  /** false: nicht automatisch auswählen */
+  select?: boolean
+}
+
+export interface DrawImagesOptions {
+  /** null = alle, true = nur hinter dem Visualizer, false = nur davor */
+  behindVisualizer?: boolean | null
+}
+
+export interface MultiImageManagerCallbacks {
+  redrawCallback?: () => void
+  onImageSelected?: (image: CanvasImage | null) => void
+  onImageChanged?: () => void
+  fotoManager?: FotoManager | null
+}
+
+/** Audio-Einstellungen inkl. alter Einzel-Effekt-Struktur */
+type ImageAudioSettings = EngineAudioSettings & { effect?: string; intensity?: number }
+
+export interface ImageAudioReactiveValues {
+  hasEffects: boolean
+  effects: AudioFx
+}
 
 export class MultiImageManager {
-  constructor(canvas, callbacks = {}) {
+  canvas: HTMLCanvasElement
+  images: CanvasImage[]
+  selectedImage: CanvasImage | null
+  redrawCallback: () => void
+  onImageSelected: (image: CanvasImage | null) => void
+  onImageChanged: () => void
+  fotoManager: FotoManager | null
+
+  constructor(canvas: HTMLCanvasElement, callbacks: MultiImageManagerCallbacks = {}) {
     this.canvas = canvas
     this.images = []
     this.selectedImage = null
@@ -53,7 +153,7 @@ export class MultiImageManager {
    * Wird aufgerufen, wenn das DOM-Canvas sich vom gespeicherten Canvas unterscheidet
    * (z.B. nach einem direkten Page-Refresh)
    */
-  updateCanvas(newCanvas) {
+  updateCanvas(newCanvas: HTMLCanvasElement | null | undefined): boolean {
     if (newCanvas && newCanvas !== this.canvas) {
       console.log('[MultiImageManager] Canvas-Referenz aktualisiert')
       this.canvas = newCanvas
@@ -65,7 +165,7 @@ export class MultiImageManager {
   /**
    * Initialisiert Filter-Einstellungen für ein Bild (für FotoManager-Kompatibilität)
    */
-  initializeImageSettings(imageData) {
+  initializeImageSettings<T extends { settings?: ImageBasicSettings }>(imageData: T): T {
     if (!imageData.settings) {
       imageData.settings = {
         brightness: 100,
@@ -83,7 +183,11 @@ export class MultiImageManager {
    * Aktualisiert eine einzelne Einstellung für ein Bild (für FotoManager-Kompatibilität)
    * WICHTIG: Ruft KEINEN redrawCallback auf, um Endlosschleifen zu vermeiden
    */
-  updateSetting(imageData, property, value) {
+  updateSetting(
+    imageData: { settings?: ImageBasicSettings } | null | undefined,
+    property: string,
+    value: unknown,
+  ): boolean {
     if (!imageData || !imageData.settings) return false
 
     imageData.settings[property] = value
@@ -95,7 +199,7 @@ export class MultiImageManager {
   /**
    * Fügt ein neues Bild zum Canvas hinzu
    */
-  addImage(imageObject) {
+  addImage(imageObject: HTMLImageElement | null | undefined): CanvasImage | null {
     if (!imageObject) {
       console.error('❌ Kein Bild zum Hinzufügen übergeben')
       return null
@@ -110,7 +214,7 @@ export class MultiImageManager {
     const initialRelHeight = (initialRelWidth * imgAspectRatio) / canvasAspectRatio
 
     // Erstelle Bild-Objekt mit FotoManager-kompatibler Filter-Struktur
-    const newImage = {
+    const newImage: CanvasImage = {
       id: Date.now() + Math.random(), // Eindeutige ID
       type: 'image',
       imageObject: img,
@@ -152,7 +256,12 @@ export class MultiImageManager {
    * @param {string} animation - Die Eintritts-Animation ('none', 'fade', 'slideLeft', 'slideRight', 'slideUp', 'slideDown', 'zoom', 'bounce', 'spin', 'elastic')
    * @param {Object} options - Optionen { duration: Animationsdauer in ms, scale: Skalierungsfaktor, isSlideshowImage: boolean }
    */
-  addImageWithBounds(imageObject, bounds, animation = 'none', options = {}) {
+  addImageWithBounds(
+    imageObject: HTMLImageElement | null | undefined,
+    bounds: ImageTargetBounds,
+    animation = 'none',
+    options: AddImageWithBoundsOptions = {},
+  ): CanvasImage | null {
     if (!imageObject) {
       console.error('❌ Kein Bild zum Hinzufügen übergeben')
       return null
@@ -181,7 +290,7 @@ export class MultiImageManager {
     const finalRelY = bounds.relY + (bounds.relHeight - finalRelHeight) / 2
 
     // Erstelle Bild-Objekt
-    const newImage = {
+    const newImage: CanvasImage = {
       id: Date.now() + Math.random(),
       type: 'image',
       imageObject: imageObject,
@@ -249,7 +358,7 @@ export class MultiImageManager {
   /**
    * ✨ NEU: Startet die Eintritts-Animation für ein Bild
    */
-  _startAnimation(imageData) {
+  _startAnimation(imageData: CanvasImage): void {
     if (!imageData.animation || !imageData.animation.active) return
 
     console.log('🎬 Animation gestartet:', {
@@ -283,14 +392,14 @@ export class MultiImageManager {
   /**
    * Transform der Einblend-Animation (siehe canvasObjects/entranceAnimation.js)
    */
-  getAnimationTransform(imageData) {
+  getAnimationTransform(imageData: CanvasImage): EntranceTransform {
     return getEntranceTransform(imageData.animation, this.canvas)
   }
 
   /**
    * Entfernt ein Bild vom Canvas
    */
-  removeImage(imageId) {
+  removeImage(imageId: CanvasImage['id']): boolean {
     const index = this.images.findIndex((img) => img.id === imageId)
     if (index === -1) return false
 
@@ -316,7 +425,7 @@ export class MultiImageManager {
    * @param {number} [index] - Ursprünglicher Index in der Ebenen-Reihenfolge
    * @returns {boolean} true wenn erfolgreich
    */
-  restoreImage(imageData, index) {
+  restoreImage(imageData: CanvasImage | null | undefined, index?: number): boolean {
     if (!imageData) return false
     // Doppelte Wiederherstellung verhindern
     if (this.images.some((img) => img.id === imageData.id)) return false
@@ -338,7 +447,7 @@ export class MultiImageManager {
   /**
    * Setzt das aktuell ausgewählte Bild
    */
-  setSelectedImage(image) {
+  setSelectedImage(image: CanvasImage | null): void {
     if (this.selectedImage && image && this.selectedImage.id === image.id) {
       return // Bereits ausgewählt
     }
@@ -355,14 +464,14 @@ export class MultiImageManager {
   /**
    * Gibt das aktuell ausgewählte Bild zurück
    */
-  getSelectedImage() {
+  getSelectedImage(): CanvasImage | null {
     return this.selectedImage
   }
 
   /**
    * Gibt alle Bilder zurück
    */
-  getAllImages() {
+  getAllImages(): CanvasImage[] {
     return this.images
   }
 
@@ -380,7 +489,9 @@ export class MultiImageManager {
    * ✅ NEU: Individuelle Audio-Quelle pro Effekt
    * ✅ Verwendet modulares Audio-System
    */
-  getAudioReactiveValues(audioSettings) {
+  getAudioReactiveValues(
+    audioSettings: ImageAudioSettings | null | undefined,
+  ): ImageAudioReactiveValues | null {
     if (!audioSettings || !audioSettings.enabled) {
       return null
     }
@@ -408,7 +519,7 @@ export class MultiImageManager {
     })
 
     // Ergebnis-Objekt für alle aktivierten Effekte
-    const result = {
+    const result: ImageAudioReactiveValues = {
       hasEffects: false,
       effects: {},
     }
@@ -454,7 +565,7 @@ export class MultiImageManager {
    * ✨ Berechnet den Wert für einen einzelnen Effekt
    * ✅ Verwendet jetzt das modulare AudioReactiveEffects-Modul
    */
-  _calculateEffectValue(effectName, normalizedLevel) {
+  _calculateEffectValue(effectName: string, normalizedLevel: number) {
     return calculateEffectValue(effectName, normalizedLevel)
   }
 
@@ -462,10 +573,12 @@ export class MultiImageManager {
    * Deckkraft-Faktor aus Eintritts-Animation und Slideshow-Übergang (0–1).
    * Ein aktives Slideshow-Bild ohne gültige Deckkraft gilt als unsichtbar.
    */
-  _getLayerAlpha(imgData, animTransform) {
-    let alpha = Number.isFinite(animTransform?.opacity)
-      ? Math.max(0, Math.min(1, animTransform.opacity))
-      : 1
+  _getLayerAlpha(
+    imgData: CanvasImage,
+    animTransform: { opacity?: number } | null | undefined,
+  ): number {
+    const opacity = animTransform?.opacity
+    let alpha = Number.isFinite(opacity) ? Math.max(0, Math.min(1, opacity as number)) : 1
     if (imgData.slideshow?.active) {
       const o = Number(imgData.slideshow.opacity)
       alpha *= Number.isFinite(o) ? Math.max(0, Math.min(1, o)) : 0
@@ -483,7 +596,10 @@ export class MultiImageManager {
    * @param {Object} options - Optionen
    * @param {boolean|null} options.behindVisualizer - null=alle, true=nur hinter Visualizer, false=nur vor Visualizer
    */
-  drawImages(ctx, options = {}) {
+  drawImages(
+    ctx: CanvasRenderingContext2D | null | undefined,
+    options: DrawImagesOptions = {},
+  ): void {
     if (!ctx || this.images.length === 0) return
 
     // ✅ KRITISCHER FIX: Verwende ctx.canvas für Bounds-Berechnung
@@ -508,7 +624,11 @@ export class MultiImageManager {
    * audio-reaktiven Effekten. Die Einzelschritte liegen in multiImage/drawSteps.js;
    * ihre Reihenfolge ist Teil des Verhaltens.
    */
-  _drawImage(ctx, imgData, renderCanvas) {
+  _drawImage(
+    ctx: CanvasRenderingContext2D,
+    imgData: CanvasImage,
+    renderCanvas: HTMLCanvasElement,
+  ): void {
     // ✨ forceImageBounds=true damit die tatsächlichen Bild-Koordinaten verwendet werden
     const bounds = this.getImageBounds(imgData, renderCanvas, true)
     if (!bounds) return
@@ -560,8 +680,8 @@ export class MultiImageManager {
     const border = resolveBorder(fotoSettings, fx)
     const chromaticOffset = fx?.chromatic?.chromaticOffset
 
-    if (chromaticOffset > 0.5 && border.width === 0) {
-      drawChromatic(ctx, imgData.imageObject, drawBounds, chromaticOffset)
+    if ((chromaticOffset ?? 0) > 0.5 && border.width === 0) {
+      drawChromatic(ctx, imgData.imageObject, drawBounds, chromaticOffset as number)
     } else if (border.width > 0) {
       // _drawImageOutline zeichnet Kontur UND Bild (Filter auf das Originalbild)
       this._drawImageOutline(
@@ -589,11 +709,11 @@ export class MultiImageManager {
   /**
    * Zeichnet interaktive Elemente (Rahmen, Handles, Löschbutton)
    */
-  drawInteractiveElements(ctx) {
+  drawInteractiveElements(ctx: CanvasRenderingContext2D): void {
     if (!this.selectedImage || this.selectedImage.type !== 'image') return
 
     // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden
-    let bounds
+    let bounds: Rect | null
     const sm = this.selectedImage.isSlideshowImage ? getSlideshowManager() : null
     if (sm) {
       // sichtbarer Bereich inkl. Übergang (Markierung liegt auf dem Bild)
@@ -627,7 +747,7 @@ export class MultiImageManager {
     ctx.lineWidth = 1
 
     for (const key in handles) {
-      const handle = handles[key]
+      const handle = handles[key] as Rect
       ctx.fillRect(handle.x, handle.y, handle.width, handle.height)
       ctx.strokeRect(handle.x, handle.y, handle.width, handle.height)
     }
@@ -674,7 +794,11 @@ export class MultiImageManager {
    * @param {HTMLCanvasElement} canvasOverride - Optionaler Canvas für Dimensionen (z.B. ctx.canvas)
    * @param {boolean} forceImageBounds - Wenn true, werden immer die Bild-Bounds verwendet (für Rendering)
    */
-  getImageBounds(imgData, canvasOverride = null, forceImageBounds = false) {
+  getImageBounds(
+    imgData: CanvasImage | null | undefined,
+    canvasOverride: HTMLCanvasElement | null = null,
+    forceImageBounds = false,
+  ): Rect | null {
     if (!imgData || imgData.type !== 'image') return null
 
     // ✅ FIX: Verwende übergebenen Canvas wenn vorhanden, sonst this.canvas
@@ -712,24 +836,24 @@ export class MultiImageManager {
     }
   }
 
-  getResizeHandles(bounds) {
+  getResizeHandles(bounds: Rect): Record<string, Rect> {
     return getResizeHandles(bounds)
   }
 
   /**
    * Berechnet die Position des Löschbuttons
    */
-  getDeleteButtonBounds(objectBounds) {
+  getDeleteButtonBounds(objectBounds: Rect): Rect {
     return getDeleteButtonBounds(objectBounds)
   }
 
   /**
    * Findet ein Bild an einer bestimmten Position
    */
-  findImageAt(x, y) {
+  findImageAt(x: number, y: number): CanvasImage | null {
     // Von hinten nach vorne (oberste Ebene zuerst)
     for (let i = this.images.length - 1; i >= 0; i--) {
-      const img = this.images[i]
+      const img = this.images[i] as CanvasImage
       const bounds = this.getImageBounds(img)
 
       if (bounds && this.isPointInRect(x, y, bounds)) {
@@ -743,14 +867,14 @@ export class MultiImageManager {
   /**
    * Prüft ob ein Punkt in einem Rechteck liegt
    */
-  isPointInRect(x, y, rect) {
+  isPointInRect(x: number, y: number, rect: Rect): boolean {
     return isPointInRect(x, y, rect)
   }
 
   /**
    * Findet ein Handle an einer bestimmten Position
    */
-  findHandleAt(x, y) {
+  findHandleAt(x: number, y: number) {
     if (!this.selectedImage || this.selectedImage.type !== 'image') return null
 
     const bounds = this.getImageBounds(this.selectedImage)
@@ -760,7 +884,7 @@ export class MultiImageManager {
   /**
    * Prüft ob ein Punkt auf dem Löschbutton liegt
    */
-  isPointOnDeleteButton(x, y) {
+  isPointOnDeleteButton(x: number, y: number): boolean {
     if (!this.selectedImage || this.selectedImage.type !== 'image') return false
 
     const bounds = this.getImageBounds(this.selectedImage)
@@ -773,7 +897,7 @@ export class MultiImageManager {
   /**
    * Wendet Filter auf den Kontext an
    */
-  applyFilters(ctx, imgData) {
+  applyFilters(ctx: CanvasRenderingContext2D, imgData: CanvasImage): void {
     if (!imgData.settings) return
 
     const s = imgData.settings
@@ -790,7 +914,7 @@ export class MultiImageManager {
   /**
    * Aktualisiert die Filter-Einstellungen eines Bildes
    */
-  updateImageFilter(imageId, filterProperty, value) {
+  updateImageFilter(imageId: CanvasImage['id'], filterProperty: string, value: unknown): boolean {
     const image = this.images.find((img) => img.id === imageId)
     if (!image || !image.settings) return false
 
@@ -808,7 +932,7 @@ export class MultiImageManager {
    *
    * Lösung: Force Canvas-Context reset vor jeder Aufnahme
    */
-  prepareForRecording(ctx) {
+  prepareForRecording(ctx: CanvasRenderingContext2D | null | undefined): void {
     if (!ctx) return
 
     console.log('[MultiImageManager] 🧹 Preparing for recording...')
@@ -840,7 +964,7 @@ export class MultiImageManager {
   /**
    * ✅ Cleanup nach Recording
    */
-  cleanupAfterRecording() {
+  cleanupAfterRecording(): void {
     console.log('[MultiImageManager] 🧹 Cleanup after recording...')
 
     // Keine Images löschen - nur GC-Hint
@@ -861,7 +985,7 @@ export class MultiImageManager {
   /**
    * Räumt alle Bilder auf
    */
-  clear() {
+  clear(): void {
     this.images = []
     this.selectedImage = null
     this.onImageSelected(null)
@@ -877,7 +1001,7 @@ export class MultiImageManager {
    * Gibt den Index eines Bildes im Array zurück
    * @returns {number} Index oder -1 wenn nicht gefunden
    */
-  getImageIndex(image) {
+  getImageIndex(image: CanvasImage | null | undefined): number {
     if (!image) return -1
     return this.images.findIndex((img) => img.id === image.id)
   }
@@ -885,7 +1009,7 @@ export class MultiImageManager {
   /**
    * Gibt die Anzahl der Bilder zurück
    */
-  getImageCount() {
+  getImageCount(): number {
     return this.images.length
   }
 
@@ -893,7 +1017,7 @@ export class MultiImageManager {
    * Bringt ein Bild ganz nach vorne
    * @returns {boolean} true wenn erfolgreich
    */
-  bringToFront(image) {
+  bringToFront(image?: CanvasImage | null): boolean {
     if (!image) image = this.selectedImage
     if (!image) return false
 
@@ -908,7 +1032,7 @@ export class MultiImageManager {
    * Bringt ein Bild ganz nach hinten
    * @returns {boolean} true wenn erfolgreich
    */
-  sendToBack(image) {
+  sendToBack(image?: CanvasImage | null): boolean {
     if (!image) image = this.selectedImage
     if (!image) return false
 
@@ -924,7 +1048,7 @@ export class MultiImageManager {
    * @param {Object} image - Das Bild-Objekt
    * @returns {boolean} true wenn erfolgreich
    */
-  moveUp(image) {
+  moveUp(image?: CanvasImage | null): boolean {
     if (!image) image = this.selectedImage
     if (!image) return false
 
@@ -936,7 +1060,10 @@ export class MultiImageManager {
       return false
 
       // Tausche mit dem nächsten Bild
-    ;[this.images[index], this.images[index + 1]] = [this.images[index + 1], this.images[index]]
+    ;[this.images[index], this.images[index + 1]] = [
+      this.images[index + 1] as CanvasImage,
+      this.images[index] as CanvasImage,
+    ]
 
     console.log('↑ Bild eine Ebene nach oben:', image.id)
     this.redrawCallback()
@@ -949,7 +1076,7 @@ export class MultiImageManager {
    * @param {Object} image - Das Bild-Objekt
    * @returns {boolean} true wenn erfolgreich
    */
-  moveDown(image) {
+  moveDown(image?: CanvasImage | null): boolean {
     if (!image) image = this.selectedImage
     if (!image) return false
 
@@ -961,7 +1088,10 @@ export class MultiImageManager {
       return false
 
       // Tausche mit dem vorherigen Bild
-    ;[this.images[index], this.images[index - 1]] = [this.images[index - 1], this.images[index]]
+    ;[this.images[index], this.images[index - 1]] = [
+      this.images[index - 1] as CanvasImage,
+      this.images[index] as CanvasImage,
+    ]
 
     console.log('↓ Bild eine Ebene nach unten:', image.id)
     this.redrawCallback()
@@ -975,14 +1105,15 @@ export class MultiImageManager {
    * @param {number} toIndex - Zielindex für das Bild
    * @returns {boolean} true wenn erfolgreich
    */
-  reorderImage(fromIndex, toIndex) {
+  reorderImage(fromIndex: number, toIndex: number): boolean {
     // Validierung
     if (fromIndex < 0 || fromIndex >= this.images.length) return false
     if (toIndex < 0 || toIndex >= this.images.length) return false
     if (fromIndex === toIndex) return false
 
     // Entferne das Bild von der ursprünglichen Position
-    const [movedImage] = this.images.splice(fromIndex, 1)
+    // fromIndex oben geprüft
+    const movedImage = this.images.splice(fromIndex, 1)[0] as CanvasImage
 
     // Füge es an der neuen Position ein
     this.images.splice(toIndex, 0, movedImage)
@@ -1004,7 +1135,10 @@ export class MultiImageManager {
    * @param {HTMLImageElement} newImageObject - Das neue Bild
    * @returns {Object|null} Das aktualisierte Bildobjekt oder null bei Fehler
    */
-  replaceImage(imageId, newImageObject) {
+  replaceImage(
+    imageId: CanvasImage['id'],
+    newImageObject: HTMLImageElement | null | undefined,
+  ): CanvasImage | null {
     if (!newImageObject) {
       console.error('❌ Kein neues Bild zum Ersetzen übergeben')
       return null
@@ -1045,15 +1179,15 @@ export class MultiImageManager {
    * @param {number} borderGlow - Audio-reaktives Leuchten um die Kontur (0-50px)
    */
   _drawImageOutline(
-    ctx,
-    imgData,
-    bounds,
-    borderWidth,
-    borderColor,
+    ctx: CanvasRenderingContext2D,
+    imgData: CanvasImage,
+    bounds: Rect,
+    borderWidth: number,
+    borderColor: string,
     borderOpacity = 1,
     borderGlow = 0,
     layerAlpha = 1,
-  ) {
+  ): void {
     const imageObject = imgData.imageObject
     if (!imageObject || borderWidth <= 0) return
 
@@ -1061,7 +1195,7 @@ export class MultiImageManager {
     const tempCanvas = document.createElement('canvas')
     tempCanvas.width = Math.ceil(bounds.width + borderWidth * 2)
     tempCanvas.height = Math.ceil(bounds.height + borderWidth * 2)
-    const tempCtx = tempCanvas.getContext('2d')
+    const tempCtx = tempCanvas.getContext('2d') as CanvasRenderingContext2D
 
     // Zeichne das Bild auf das temporäre Canvas (zentriert mit Platz für Kontur)
     tempCtx.drawImage(imageObject, borderWidth, borderWidth, bounds.width, bounds.height)
@@ -1072,7 +1206,7 @@ export class MultiImageManager {
     tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height)
 
     // 8 Richtungen für gleichmäßige Kontur (N, NE, E, SE, S, SW, W, NW)
-    const directions = [
+    const directions: [number, number][] = [
       [0, -1], // N
       [1, -1], // NE
       [1, 0], // E

@@ -6,7 +6,7 @@
  * - Modus „Workspace“ ohne Format: wie „Aus“
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { SlideshowManager } from '../../lib/slideshowManager.js'
+import { SlideshowManager } from '../../lib/slideshowManager'
 
 // TikTok-ähnlich: Canvas 1080×1920, Workspace mit 5 % Rand
 const CANVAS = { width: 1080, height: 1920 }

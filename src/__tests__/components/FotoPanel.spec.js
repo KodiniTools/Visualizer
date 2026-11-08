@@ -12,7 +12,7 @@ import { ref, nextTick, toRaw } from 'vue'
 
 // Slideshow-Manager-Attrappe: merkt sich Konstruktor-Callbacks und Aufrufe
 const managers = []
-vi.mock('../../lib/slideshowManager.js', () => {
+vi.mock('../../lib/slideshowManager', () => {
   class FakeSlideshowManager {
     constructor(multiImageManager, fotoManager, callbacks) {
       this.args = { multiImageManager, fotoManager }

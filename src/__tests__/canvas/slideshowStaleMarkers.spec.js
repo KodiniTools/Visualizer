@@ -7,9 +7,9 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { reactive } from 'vue'
 import { CanvasManager } from '../../lib/canvasManager.js'
-import { MultiImageManager } from '../../lib/multiImageManager.js'
+import { MultiImageManager } from '../../lib/multiImageManager'
 import { FotoManager } from '../../lib/fotoManager'
-import { SlideshowManager } from '../../lib/slideshowManager.js'
+import { SlideshowManager } from '../../lib/slideshowManager'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
 
 afterEach(() => {

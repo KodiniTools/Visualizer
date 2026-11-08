@@ -4,16 +4,139 @@ import {
   computeTransitionState,
   isValidTransition,
   resolveTransition,
+  type RelBounds,
+  type TransitionState,
 } from './slideshowTransitions'
 import {
   SLIDESHOW_BASE_COLOR_DEFAULT,
   normalizeSlideshowBaseColor,
   normalizeSlideshowGradient,
+  type SlideshowGradient,
 } from './slideshowBaseColor'
-import { normalizeSlideshowFillAudio } from './slideshowFillAudio'
-import { normalizeSlideshowImageFill } from './slideshowImageFill'
-import { applySlideshowAudioSource } from './slideshowAudio'
+import { normalizeSlideshowFillAudio, type SlideshowFillAudio } from './slideshowFillAudio'
+import { normalizeSlideshowImageFill, type SlideshowImageFill } from './slideshowImageFill'
+import { applySlideshowAudioSource, type SlideshowAudioReactive } from './slideshowAudio'
 import { positionBounds, resizeBounds } from './imageBoundsControls'
+import type { Rect } from './canvasObjects/geometry'
+import type { FotoManager, FotoSettings } from './fotoManager'
+import type { CanvasImage, ImageSlideshowState, MultiImageManager } from './multiImageManager'
+
+type SlideshowArea = 'canvas' | 'workspace'
+
+/** Eintrag der Slideshow-Bildliste (kann auch direkt das Bild sein) */
+export interface SlideshowImageConfig {
+  imageObject?: HTMLImageElement | null
+  img?: HTMLImageElement | null
+  name?: string
+  audioReactiveSettings?: unknown
+  displayDuration?: unknown
+  fadeInDuration?: unknown
+  fadeOutDuration?: unknown
+  audioMode?: unknown
+  audioSource?: unknown
+  transition?: unknown
+  [key: string]: unknown
+}
+
+export interface SlideshowConfig {
+  images: SlideshowImageConfig[]
+  fadeInDuration: number
+  displayDuration: number
+  fadeOutDuration: number
+  loop: boolean
+  autoApplyAudioReactive: boolean
+  defaultAudioReactiveSettings: unknown
+  renderBehindVisualizer: boolean
+  transition: string
+  /** 'none' | 'canvas' | 'workspace' */
+  backgroundMode: string
+  backgroundColor: string
+  workspaceColor: string
+  backgroundGradient: SlideshowGradient
+  workspaceGradient: SlideshowGradient
+  backgroundFillAudio: SlideshowFillAudio
+  workspaceFillAudio: SlideshowFillAudio
+  backgroundImageFill: SlideshowImageFill
+  workspaceImageFill: SlideshowImageFill
+}
+
+/** Optionen für start() und applyLiveUpdate() */
+export interface SlideshowStartOptions {
+  fadeInDuration?: number
+  displayDuration?: number
+  fadeOutDuration?: number
+  loop?: boolean
+  autoApplyAudioReactive?: boolean
+  audioReactiveSettings?: unknown
+  renderBehindVisualizer?: boolean
+  backgroundMode?: unknown
+  /** ältere Aufrufer: true = 'workspace' */
+  fitToWorkspace?: unknown
+  backgroundColor?: unknown
+  workspaceColor?: unknown
+  backgroundGradient?: unknown
+  workspaceGradient?: unknown
+  backgroundFillAudio?: unknown
+  workspaceFillAudio?: unknown
+  backgroundImageFill?: unknown
+  workspaceImageFill?: unknown
+  backgroundImageObject?: HTMLImageElement | null
+  workspaceImageObject?: HTMLImageElement | null
+  transition?: unknown
+  moveWholeSlideshow?: unknown
+  transform?: Partial<RelBounds>
+  /** Live-Bearbeitung: Änderungen am angezeigten Bild nicht verlieren */
+  preserveLive?: boolean
+}
+
+/** Slideshow-Zustand eines eingeblendeten Bildes */
+export interface SlideshowState extends ImageSlideshowState {
+  active: boolean
+  imageIndex: number
+  addedAt: number
+  fadeInDuration: number
+  fadeOutDuration: number
+  displayDuration: number
+  /** 'fadeIn' | 'display' | 'fadeOut' | 'done' */
+  phase: string
+  opacity: number
+  transition: string
+  transitionState: TransitionState | null
+  clipRect: RelBounds | null
+}
+
+/** Von der Slideshow eingeblendetes Canvas-Bild */
+export type SlideshowCanvasImage = CanvasImage & { slideshow?: SlideshowState }
+
+interface ImageMemoryEntry {
+  fotoSettings: Record<string, unknown>
+  panelAr: string | undefined
+  audioMode: unknown
+}
+
+export interface SlideshowAdjustmentsChange {
+  imageConfig: SlideshowImageConfig | undefined
+  imageObject: HTMLImageElement
+  adjustments: Record<string, unknown>
+  audioMode: unknown
+}
+
+export interface SlideshowBoundsChange {
+  imageConfig: SlideshowImageConfig | undefined
+  imageObject: HTMLImageElement
+  bounds: RelBounds | null
+}
+
+export interface SlideshowManagerCallbacks {
+  redrawCallback?: () => void
+  onSlideshowComplete?: () => void
+  onImageTransition?: (index: number, total: number, phase: string) => void
+  /** Workspace-Bounds in Canvas-Pixeln oder null */
+  getWorkspaceBounds?: () => Rect | null | undefined
+  onTransformChange?: (transform: RelBounds) => void
+  onImageAdjustmentsChange?: (change: SlideshowAdjustmentsChange) => void
+  onImageBoundsChange?: (change: SlideshowBoundsChange) => void
+}
 
 /**
  * SlideshowManager - Orchestriert die Bild-Slideshow auf dem Canvas
@@ -26,7 +149,37 @@ import { positionBounds, resizeBounds } from './imageBoundsControls'
  * - Alle Animationen laufen über den Canvas-Context (Recorder-kompatibel)
  */
 export class SlideshowManager {
-  constructor(multiImageManager, fotoManager, callbacks = {}) {
+  multiImageManager: MultiImageManager
+  fotoManager: FotoManager
+  redrawCallback: () => void
+  onSlideshowComplete: () => void
+  onImageTransition: (index: number, total: number, phase: string) => void
+  getWorkspaceBounds: () => Rect | null | undefined
+  onTransformChange: (transform: RelBounds) => void
+  onImageAdjustmentsChange: (change: SlideshowAdjustmentsChange) => void
+  onImageBoundsChange: (change: SlideshowBoundsChange) => void
+  _lastWorkspaceKey: string | null
+  isActive: boolean
+  isPaused: boolean
+  currentIndex: number
+  startTime: number | null
+  pauseTime: number | null
+  animationFrameId: number | null
+  config: SlideshowConfig
+  _baseImages: Record<SlideshowArea, HTMLImageElement | null>
+  transform: RelBounds
+  activeImages: SlideshowCanvasImage[]
+  _imageMemory: WeakMap<object, ImageMemoryEntry>
+  _boundsMemory: WeakMap<object, RelBounds>
+  moveWholeSlideshow: boolean
+  _panelAr: string[]
+  _lastLiveSync: number
+
+  constructor(
+    multiImageManager: MultiImageManager,
+    fotoManager: FotoManager,
+    callbacks: SlideshowManagerCallbacks = {},
+  ) {
     this.multiImageManager = multiImageManager
     this.fotoManager = fotoManager
 
@@ -122,11 +275,13 @@ export class SlideshowManager {
    * Setzt die Slideshow-Konfiguration
    * @param {Object} config - Konfiguration
    */
-  configure(config) {
+  configure(config: Partial<SlideshowConfig>): void {
     // ✨ FIX: Nur definierte Werte überschreiben, undefined-Werte ignorieren
-    for (const key of Object.keys(config)) {
-      if (config[key] !== undefined) {
-        this.config[key] = config[key]
+    const src = config as Record<string, unknown>
+    const target = this.config as unknown as Record<string, unknown>
+    for (const key of Object.keys(src)) {
+      if (src[key] !== undefined) {
+        target[key] = src[key]
       }
     }
     console.log(
@@ -139,7 +294,7 @@ export class SlideshowManager {
    * ✨ NEU: Setzt die Transform-Einstellungen (Position und Größe)
    * @param {Object} transform - { relX, relY, relWidth, relHeight }
    */
-  setTransform(transform) {
+  setTransform(transform: Partial<RelBounds>): void {
     this.transform = {
       ...this.transform,
       ...transform,
@@ -153,7 +308,7 @@ export class SlideshowManager {
   /**
    * ✨ NEU: Gibt die aktuellen Transform-Einstellungen zurück
    */
-  getTransform() {
+  getTransform(): RelBounds {
     return this._getWorkspaceTransform() ?? { ...this.transform }
   }
 
@@ -163,13 +318,13 @@ export class SlideshowManager {
    * sonst null (freie Position/Größe).
    * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
    */
-  _getWorkspaceTransform() {
+  _getWorkspaceTransform(): RelBounds | null {
     const mode = this.config.backgroundMode
     if (mode !== 'canvas' && mode !== 'workspace') return null
     const canvas = this.multiImageManager.canvas
     if (!canvas || !canvas.width || !canvas.height) return null
     if (mode === 'canvas') return { relX: 0, relY: 0, relWidth: 1, relHeight: 1 }
-    let b = null
+    let b: Rect | null | undefined = null
     try {
       b = this.getWorkspaceBounds()
     } catch (e) {
@@ -185,12 +340,12 @@ export class SlideshowManager {
   }
 
   /** true, wenn die Slideshow gerade als Hintergrund (Canvas/Workspace) läuft. */
-  isFittedToWorkspace() {
+  isFittedToWorkspace(): boolean {
     return this._getWorkspaceTransform() !== null
   }
 
   /** Alias mit sprechenderem Namen. */
-  isBackground() {
+  isBackground(): boolean {
     return this.isFittedToWorkspace()
   }
 
@@ -201,7 +356,7 @@ export class SlideshowManager {
    * @param {'canvas'|'workspace'} target
    * @returns {boolean}
    */
-  replacesBackground(target) {
+  replacesBackground(target: string): boolean {
     return (
       this.isActive &&
       this.activeImages.length > 0 &&
@@ -215,12 +370,12 @@ export class SlideshowManager {
    * Ungültige Werte behalten die bisherige Farbe.
    * @param {string} color - #rrggbb
    */
-  setBackgroundColor(color) {
+  setBackgroundColor(color: unknown): void {
     this.config.backgroundColor = normalizeSlideshowBaseColor(color, this.config.backgroundColor)
   }
 
   /** @returns {string} #rrggbb */
-  getBackgroundColor() {
+  getBackgroundColor(): string {
     return this.config.backgroundColor
   }
 
@@ -229,12 +384,12 @@ export class SlideshowManager {
    * Ungültige Werte behalten die bisherige Farbe.
    * @param {string} color - #rrggbb
    */
-  setWorkspaceColor(color) {
+  setWorkspaceColor(color: unknown): void {
     this.config.workspaceColor = normalizeSlideshowBaseColor(color, this.config.workspaceColor)
   }
 
   /** @returns {string} #rrggbb */
-  getWorkspaceColor() {
+  getWorkspaceColor(): string {
     return this.config.workspaceColor
   }
 
@@ -243,7 +398,7 @@ export class SlideshowManager {
    * @param {'canvas'|'workspace'} target
    * @returns {string}
    */
-  getBaseColor(target) {
+  getBaseColor(target: string): string {
     return target === 'workspace' ? this.getWorkspaceColor() : this.getBackgroundColor()
   }
 
@@ -253,7 +408,7 @@ export class SlideshowManager {
    * @param {'canvas'|'workspace'} target
    * @param {object} gradient - { enabled, color2, type, angle }
    */
-  setBaseGradient(target, gradient) {
+  setBaseGradient(target: string, gradient: unknown): void {
     const key = target === 'workspace' ? 'workspaceGradient' : 'backgroundGradient'
     this.config[key] = normalizeSlideshowGradient(gradient, this.config[key])
   }
@@ -264,7 +419,7 @@ export class SlideshowManager {
    * @param {'canvas'|'workspace'} target
    * @param {object} audio - { enabled, source, brightness, hue }
    */
-  setBaseFillAudio(target, audio) {
+  setBaseFillAudio(target: string, audio: unknown): void {
     const key = target === 'workspace' ? 'workspaceFillAudio' : 'backgroundFillAudio'
     this.config[key] = normalizeSlideshowFillAudio(audio, this.config[key])
   }
@@ -275,8 +430,8 @@ export class SlideshowManager {
    * @param {object|null|undefined} fill - Einstellung; undefined = unverändert
    * @param {HTMLImageElement|null|undefined} [imageObject] - undefined = unverändert, null = entfernen
    */
-  setBaseImage(target, fill, imageObject) {
-    const area = target === 'workspace' ? 'workspace' : 'canvas'
+  setBaseImage(target: string, fill: unknown, imageObject?: HTMLImageElement | null): void {
+    const area: SlideshowArea = target === 'workspace' ? 'workspace' : 'canvas'
     const key = area === 'workspace' ? 'workspaceImageFill' : 'backgroundImageFill'
     if (fill !== undefined) this.config[key] = normalizeSlideshowImageFill(fill, this.config[key])
     if (imageObject !== undefined) this._baseImages[area] = imageObject || null
@@ -287,8 +442,8 @@ export class SlideshowManager {
    * @param {'canvas'|'workspace'} target
    * @returns {{ fill: object, image: HTMLImageElement }|null}
    */
-  getBaseImage(target) {
-    const area = target === 'workspace' ? 'workspace' : 'canvas'
+  getBaseImage(target: string): { fill: SlideshowImageFill; image: HTMLImageElement } | null {
+    const area: SlideshowArea = target === 'workspace' ? 'workspace' : 'canvas'
     const fill =
       area === 'workspace' ? this.config.workspaceImageFill : this.config.backgroundImageFill
     const image = this._baseImages?.[area]
@@ -297,7 +452,7 @@ export class SlideshowManager {
   }
 
   /** @param {'canvas'|'workspace'} target @returns {object} (Kopie) */
-  getBaseFillAudio(target) {
+  getBaseFillAudio(target: string): SlideshowFillAudio {
     return {
       ...(target === 'workspace'
         ? this.config.workspaceFillAudio
@@ -309,7 +464,7 @@ export class SlideshowManager {
    * @param {'canvas'|'workspace'} target
    * @returns {{ enabled:boolean, color2:string, type:string, angle:number }} (Kopie)
    */
-  getBaseGradient(target) {
+  getBaseGradient(target: string): SlideshowGradient {
     const g =
       target === 'workspace' ? this.config.workspaceGradient : this.config.backgroundGradient
     return { ...g, audio: { ...g.audio } }
@@ -319,8 +474,9 @@ export class SlideshowManager {
    * Slideshow als Hintergrund einsetzen (auch während laufender Slideshow).
    * @param {'none'|'canvas'|'workspace'} mode
    */
-  setBackgroundMode(mode) {
-    this.config.backgroundMode = ['canvas', 'workspace'].includes(mode) ? mode : 'none'
+  setBackgroundMode(mode: unknown): void {
+    this.config.backgroundMode =
+      typeof mode === 'string' && ['canvas', 'workspace'].includes(mode) ? mode : 'none'
     this._lastWorkspaceKey = null
     this._updateActiveImagesTransform()
     this._arrangeBackgroundLayer()
@@ -330,7 +486,7 @@ export class SlideshowManager {
    * Als Hintergrund: Slideshow-Bilder unter alle übrigen Canvas-Bilder legen
    * (ihre Reihenfolge untereinander bleibt erhalten).
    */
-  _arrangeBackgroundLayer(imageData = null) {
+  _arrangeBackgroundLayer(imageData: CanvasImage | null = null): void {
     if (!this.isBackground()) return
     const list = this.multiImageManager.images
     if (!Array.isArray(list)) return
@@ -352,7 +508,10 @@ export class SlideshowManager {
    * - Workspace: Bild füllt den Workspace (Cover) und wird auf ihn beschnitten.
    * @returns {{bounds:{relX:number,relY:number,relWidth:number,relHeight:number}, clipRect:Object|null}}
    */
-  _computeImageLayout(imageObject, { ignoreOwn = false } = {}) {
+  _computeImageLayout(
+    imageObject: HTMLImageElement,
+    { ignoreOwn = false } = {},
+  ): { bounds: RelBounds; clipRect: RelBounds | null } {
     const canvas = this.multiImageManager.canvas
     const imgAspectRatio = imageObject.height / imageObject.width
     const canvasAspectRatio = canvas.height / canvas.width
@@ -366,7 +525,7 @@ export class SlideshowManager {
     // Contain: am „engeren“ Maß ausrichten; Cover (Workspace): am „weiteren“
     const fitHeight = ws ? imgAspectRatio < areaAspect : imgAspectRatio > areaAspect
 
-    let relWidth, relHeight
+    let relWidth: number, relHeight: number
     if (fitHeight) {
       relHeight = area.relHeight
       relWidth = (relHeight * canvasAspectRatio) / imgAspectRatio
@@ -393,7 +552,7 @@ export class SlideshowManager {
    * @param {object} imageData
    * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}}
    */
-  getSelectionBounds(imageData) {
+  getSelectionBounds(imageData: RelBounds | null | undefined): RelBounds {
     const ws = this._getWorkspaceTransform()
     if (ws) return ws
     if (!imageData) return { ...this.transform }
@@ -409,7 +568,9 @@ export class SlideshowManager {
    * Verschieben/Skalieren rechnet weiter mit getSelectionBounds().
    * @param {object} imageData
    */
-  getDisplayBounds(imageData) {
+  getDisplayBounds(
+    imageData: (RelBounds & { slideshow?: ImageSlideshowState }) | null | undefined,
+  ): RelBounds {
     const bounds = this.getSelectionBounds(imageData)
     if (this._getWorkspaceTransform()) return bounds
     const ss = imageData?.slideshow
@@ -421,7 +582,7 @@ export class SlideshowManager {
    * eigene Bounds (nach Verschieben/Skalieren mit der Maus).
    * @param {object} imageData
    */
-  commitImageBounds(imageData) {
+  commitImageBounds(imageData: CanvasImage | null | undefined): void {
     if (!imageData?.imageObject || this.isFittedToWorkspace()) return
     const { relX, relY, relWidth, relHeight } = imageData
     if (![relX, relY, relWidth, relHeight].every(Number.isFinite)) return
@@ -431,7 +592,7 @@ export class SlideshowManager {
   }
 
   /** Meldet geänderte eigene Bounds eines Bildes (dauerhafte Speicherung). */
-  _notifyBounds(imageObject, bounds) {
+  _notifyBounds(imageObject: HTMLImageElement, bounds: RelBounds | null): void {
     const imageConfig = this.config.images.find(
       (cfg) => (cfg?.imageObject || cfg?.img) === imageObject,
     )
@@ -443,7 +604,7 @@ export class SlideshowManager {
   }
 
   /** Eigene Bounds eines Bildes (Kopie) oder null. */
-  getImageBounds(imageObject) {
+  getImageBounds(imageObject: HTMLImageElement | null | undefined): RelBounds | null {
     const b = imageObject ? this._boundsMemory.get(imageObject) : null
     return b ? { ...b } : null
   }
@@ -454,7 +615,10 @@ export class SlideshowManager {
    * @param {object} imageObject
    * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
    */
-  getEffectiveImageBounds(imageObject, { ignoreOwn = false } = {}) {
+  getEffectiveImageBounds(
+    imageObject: HTMLImageElement | null | undefined,
+    { ignoreOwn = false } = {},
+  ): RelBounds | null {
     if (!imageObject || typeof imageObject !== 'object') return null
     if (!(imageObject.width > 0) || !(imageObject.height > 0)) return null
     if (!this.multiImageManager?.canvas?.width) return null
@@ -466,7 +630,7 @@ export class SlideshowManager {
    * Größe/Position (Standardwert der Größenregler).
    * @param {object} imageObject
    */
-  getFittedImageBounds(imageObject) {
+  getFittedImageBounds(imageObject: HTMLImageElement | null | undefined): RelBounds | null {
     return this.getEffectiveImageBounds(imageObject, { ignoreOwn: true })
   }
 
@@ -479,7 +643,14 @@ export class SlideshowManager {
    * @param {{width?:number, height?:number, keepAspect?:boolean}} size - fehlender Wert = unverändert
    * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
    */
-  setImageSize(imageObject, { width, height, keepAspect = true } = {}) {
+  setImageSize(
+    imageObject: HTMLImageElement,
+    {
+      width,
+      height,
+      keepAspect = true,
+    }: { width?: number; height?: number; keepAspect?: boolean } = {},
+  ): RelBounds | null {
     if (this.isFittedToWorkspace()) return null
     const base = this.getEffectiveImageBounds(imageObject)
     const bounds = resizeBounds(base, { width, height, keepAspect })
@@ -487,7 +658,7 @@ export class SlideshowManager {
   }
 
   /** Merkt Bounds als eigene Größe/Position, meldet sie und zeigt sie sofort. */
-  _applyOwnBounds(imageObject, bounds) {
+  _applyOwnBounds(imageObject: HTMLImageElement, bounds: RelBounds): RelBounds {
     this._boundsMemory.set(imageObject, bounds)
     this._notifyBounds(imageObject, bounds)
     this._updateActiveImagesTransform()
@@ -502,7 +673,10 @@ export class SlideshowManager {
    * @param {{centerX?:number, centerY?:number}} position - fehlender Wert = unverändert
    * @returns {{relX:number, relY:number, relWidth:number, relHeight:number}|null}
    */
-  setImagePosition(imageObject, { centerX, centerY } = {}) {
+  setImagePosition(
+    imageObject: HTMLImageElement,
+    { centerX, centerY }: { centerX?: number; centerY?: number } = {},
+  ): RelBounds | null {
     if (this.isFittedToWorkspace()) return null
     const bounds = positionBounds(this.getEffectiveImageBounds(imageObject), { centerX, centerY })
     return bounds ? this._applyOwnBounds(imageObject, bounds) : null
@@ -514,12 +688,18 @@ export class SlideshowManager {
    * @param {object} imageObject
    * @param {{relX:number, relY:number, relWidth:number, relHeight:number}|null} bounds
    */
-  setImageBounds(imageObject, bounds) {
+  setImageBounds(
+    imageObject: HTMLImageElement | null | undefined,
+    bounds: Partial<RelBounds> | null | undefined,
+  ): void {
     if (!imageObject || typeof imageObject !== 'object') return
     const valid =
-      bounds && ['relX', 'relY', 'relWidth', 'relHeight'].every((k) => Number.isFinite(bounds[k]))
+      bounds &&
+      ['relX', 'relY', 'relWidth', 'relHeight'].every((k) =>
+        Number.isFinite((bounds as Record<string, unknown>)[k]),
+      )
     if (valid) {
-      const { relX, relY, relWidth, relHeight } = bounds
+      const { relX, relY, relWidth, relHeight } = bounds as RelBounds
       this._boundsMemory.set(imageObject, { relX, relY, relWidth, relHeight })
     } else {
       this._boundsMemory.delete(imageObject)
@@ -531,12 +711,12 @@ export class SlideshowManager {
    * Aktiviert/deaktiviert „An Workspace anpassen“ (auch während laufender Slideshow).
    * @param {boolean} value
    */
-  setFitToWorkspace(value) {
+  setFitToWorkspace(value: boolean): void {
     this.setBackgroundMode(value ? 'workspace' : 'none')
   }
 
   /** Passt aktive Bilder an, wenn sich das Workspace-Format geändert hat. */
-  _syncWorkspace() {
+  _syncWorkspace(): void {
     if (this.config.backgroundMode !== 'workspace') return
     const ws = this._getWorkspaceTransform()
     const key = ws ? `${ws.relX}|${ws.relY}|${ws.relWidth}|${ws.relHeight}` : 'none'
@@ -549,7 +729,7 @@ export class SlideshowManager {
   /**
    * ✨ NEU: Aktualisiert die Position/Größe aller aktiven Slideshow-Bilder
    */
-  _updateActiveImagesTransform() {
+  _updateActiveImagesTransform(): void {
     if (!this.isActive || this.activeImages.length === 0) return
 
     for (const imageData of this.activeImages) {
@@ -567,7 +747,10 @@ export class SlideshowManager {
    * @param {Array} images - Array von Bild-Objekten { imageObject, name?, audioReactiveSettings? }
    * @param {Object} options - Optionen { fadeInDuration, displayDuration, fadeOutDuration, loop, audioReactiveSettings }
    */
-  start(images, options = {}) {
+  start(
+    images: SlideshowImageConfig[] | null | undefined,
+    options: SlideshowStartOptions = {},
+  ): boolean {
     if (!images || images.length === 0) {
       console.warn('[SlideshowManager] Keine Bilder zum Starten')
       return false
@@ -668,7 +851,7 @@ export class SlideshowManager {
   /**
    * Pausiert die Slideshow
    */
-  pause() {
+  pause(): void {
     if (!this.isActive || this.isPaused) return
 
     this.isPaused = true
@@ -680,7 +863,7 @@ export class SlideshowManager {
   /**
    * Setzt die Slideshow fort
    */
-  resume() {
+  resume(): void {
     if (!this.isActive || !this.isPaused) return
 
     this.isPaused = false
@@ -702,7 +885,7 @@ export class SlideshowManager {
   /**
    * Stoppt die Slideshow und entfernt alle Slideshow-Bilder
    */
-  stop() {
+  stop(): void {
     this.isActive = false
     this.isPaused = false
 
@@ -721,7 +904,7 @@ export class SlideshowManager {
   /**
    * Entfernt alle von der Slideshow hinzugefügten Bilder
    */
-  _cleanupAllImages() {
+  _cleanupAllImages(): void {
     for (const imageData of this.activeImages) {
       if (imageData && imageData.id) {
         // Änderungen auch beim Stoppen behalten
@@ -735,7 +918,7 @@ export class SlideshowManager {
   /**
    * Fügt das nächste Bild zur Canvas hinzu
    */
-  _addNextImage() {
+  _addNextImage(): SlideshowCanvasImage | null {
     if (this.currentIndex >= this.config.images.length) {
       if (this.config.loop) {
         this.currentIndex = 0
@@ -746,8 +929,12 @@ export class SlideshowManager {
       }
     }
 
-    const imageConfig = this.config.images[this.currentIndex]
-    const imageObject = imageConfig.imageObject || imageConfig.img || imageConfig
+    // currentIndex liegt hier innerhalb der Liste
+    const imageConfig = this.config.images[this.currentIndex] as SlideshowImageConfig
+    // Eintrag kann auch direkt das Bild sein
+    const imageObject = (imageConfig.imageObject ||
+      imageConfig.img ||
+      imageConfig) as HTMLImageElement
 
     if (!imageObject) {
       console.error('[SlideshowManager] Ungültiges Bild an Index:', this.currentIndex)
@@ -763,7 +950,7 @@ export class SlideshowManager {
 
     // Slideshow-spezifische Eigenschaften – vor dem Hinzufügen erstellt, damit
     // schon der erste Zeichen-Frame das Bild im Startzustand des Übergangs zeigt
-    const slideshow = {
+    const slideshow: SlideshowState = {
       active: true,
       imageIndex: this.currentIndex,
       addedAt: Date.now(),
@@ -813,8 +1000,9 @@ export class SlideshowManager {
     // Falls addImageWithBounds die Optionen nicht übernimmt (z. B. ältere Mocks)
     newImage.isSlideshowImage = true
     newImage.slideshow = slideshow
+    const ssImage = newImage as SlideshowCanvasImage
 
-    this._applyImageState(newImage, imageConfig, this.currentIndex)
+    this._applyImageState(ssImage, imageConfig, this.currentIndex)
 
     console.log(
       `[SlideshowManager] Bild ${this.currentIndex + 1} renderBehindVisualizer:`,
@@ -822,9 +1010,9 @@ export class SlideshowManager {
     )
 
     // Zur aktiven Liste hinzufügen
-    this.activeImages.push(newImage)
+    this.activeImages.push(ssImage)
     // Als Hintergrund unter die übrigen Canvas-Bilder legen
-    this._arrangeBackgroundLayer(newImage)
+    this._arrangeBackgroundLayer(ssImage)
 
     console.log(
       `[SlideshowManager] Bild ${this.currentIndex + 1}/${this.config.images.length} hinzugefügt`,
@@ -832,14 +1020,18 @@ export class SlideshowManager {
     this.onImageTransition(this.currentIndex, this.config.images.length, 'fadeIn')
 
     this.currentIndex++
-    return newImage
+    return ssImage
   }
 
   /**
    * Setzt Audio-Reaktiv (Panel-Vorgabe), gemerkte Anpassungen und Render-Layer
    * auf ein Slideshow-Bild – beim Einblenden und beim Live-Laden eines Presets.
    */
-  _applyImageState(imageData, imageConfig, index) {
+  _applyImageState(
+    imageData: SlideshowCanvasImage,
+    imageConfig: SlideshowImageConfig,
+    index: number,
+  ): void {
     // Audio-Reaktive Einstellungen anwenden
     if (this.config.autoApplyAudioReactive) {
       this._applyAudioReactiveSettings(imageData, imageConfig)
@@ -853,7 +1045,8 @@ export class SlideshowManager {
     if (!imageData.fotoSettings) {
       this.fotoManager.initializeImageSettings(imageData)
     }
-    imageData.fotoSettings.renderBehindVisualizer = this.config.renderBehindVisualizer
+    ;(imageData.fotoSettings as FotoSettings).renderBehindVisualizer =
+      this.config.renderBehindVisualizer
   }
 
   /**
@@ -864,7 +1057,7 @@ export class SlideshowManager {
    * @param {Object} options - wie bei start()
    * @returns {boolean}
    */
-  applyLiveUpdate(images, options = {}) {
+  applyLiveUpdate(images: SlideshowImageConfig[], options: SlideshowStartOptions = {}): boolean {
     if (!this.isActive || !Array.isArray(images)) return false
     // Live-Bearbeitung: Änderungen der letzten Momente am angezeigten Bild nicht verlieren
     if (options.preserveLive) this._syncLiveMemory(true)
@@ -874,7 +1067,7 @@ export class SlideshowManager {
     }
 
     // Bildobjekte der laufenden Slideshow beibehalten, nur Vorgaben übernehmen
-    const merged = this.config.images.map((cfg, i) => ({
+    const merged: SlideshowImageConfig[] = this.config.images.map((cfg, i) => ({
       ...cfg,
       displayDuration: images[i]?.displayDuration,
       audioMode: images[i]?.audioMode,
@@ -927,28 +1120,32 @@ export class SlideshowManager {
 
     // Angezeigte Bilder sofort neu aufbauen (Filter/Audio/Größe aus dem Preset)
     for (const imageData of this.activeImages) {
-      const index = imageData.slideshow?.imageIndex
-      if (!Number.isInteger(index)) continue
+      const ssIndex = imageData.slideshow?.imageIndex
+      if (!Number.isInteger(ssIndex)) continue
+      const index = ssIndex as number
+      // wie bisher: index stammt aus der Slideshow und liegt in der Liste
+      const cfg = merged[index] as SlideshowImageConfig
       const renderBehind = this.config.renderBehindVisualizer
       imageData.fotoSettings = undefined
       this.fotoManager.initializeImageSettings(imageData)
-      this._applyImageState(imageData, merged[index], index)
-      imageData.fotoSettings.renderBehindVisualizer = renderBehind
+      this._applyImageState(imageData, cfg, index)
+      // von initializeImageSettings/_applyImageState neu gesetzt
+      ;(imageData.fotoSettings as unknown as FotoSettings).renderBehindVisualizer = renderBehind
       if (imageData.slideshow) {
-        imageData.slideshow.transition = resolveTransition(merged[index], this.config.transition)
+        imageData.slideshow.transition = resolveTransition(cfg, this.config.transition)
         // Live-Bearbeitung: neue Anzeigedauer gilt auch für das angezeigte Bild
         if (options.preserveLive) {
           const ss = imageData.slideshow
           ss.displayDuration = SlideshowManager.resolveDisplayDuration(
-            merged[index],
+            cfg,
             this.config.displayDuration,
           )
           ss.fadeInDuration = SlideshowManager.resolvePhaseDuration(
-            merged[index].fadeInDuration,
+            cfg.fadeInDuration,
             this.config.fadeInDuration,
           )
           ss.fadeOutDuration = SlideshowManager.resolvePhaseDuration(
-            merged[index].fadeOutDuration,
+            cfg.fadeOutDuration,
             this.config.fadeOutDuration,
           )
         }
@@ -967,7 +1164,7 @@ export class SlideshowManager {
    * Bild wieder mit diesen Einstellungen.
    * Nicht übernommen: Render-Layer (steuert die Slideshow) und interne Caches.
    */
-  _rememberImageSettings(imageData) {
+  _rememberImageSettings(imageData: SlideshowCanvasImage): void {
     const index = imageData.slideshow?.imageIndex
     const imageObject = imageData.imageObject
     const settings = imageData.fotoSettings
@@ -975,20 +1172,21 @@ export class SlideshowManager {
       return
     }
 
-    const copy = JSON.parse(JSON.stringify(settings))
+    const copy: Record<string, unknown> = JSON.parse(JSON.stringify(settings))
     delete copy.renderBehindVisualizer
     for (const key of Object.keys(copy)) {
       if (key.startsWith('_')) delete copy[key]
     }
-    const audioMode = this.config.images[index]?.audioMode
+    const i = index as number
+    const audioMode = this.config.images[i]?.audioMode
     this._imageMemory.set(imageObject, {
       fotoSettings: copy,
-      panelAr: this._panelAr[index],
+      panelAr: this._panelAr[i],
       audioMode,
     })
     try {
       this.onImageAdjustmentsChange({
-        imageConfig: this.config.images[index],
+        imageConfig: this.config.images[i],
         imageObject,
         adjustments: copy,
         audioMode,
@@ -1003,10 +1201,10 @@ export class SlideshowManager {
    * Bildes im Slideshow-Panel seitdem geändert, gilt die neue Panel-Vorgabe
    * (die übrigen gemerkten Einstellungen bleiben).
    */
-  _restoreImageSettings(imageData, index) {
+  _restoreImageSettings(imageData: SlideshowCanvasImage, index: number): void {
     const memory = this._imageMemory.get(imageData.imageObject)
     if (!memory) return
-    const copy = JSON.parse(JSON.stringify(memory.fotoSettings))
+    const copy: Record<string, unknown> = JSON.parse(JSON.stringify(memory.fotoSettings))
     // Aus einem Preset geladene Anpassungen (panelAr unbekannt) werden über den
     // Audio-Modus des Panels verglichen, sonst über die aufgelöste Audio-Vorgabe.
     const panelChanged =
@@ -1015,9 +1213,12 @@ export class SlideshowManager {
         : memory.panelAr !== this._panelAr[index]
     if (panelChanged) delete copy.audioReactive
     // Eigene Audio-Quelle des Bildes gilt auch für gemerkte Einstellungen
-    applySlideshowAudioSource(copy.audioReactive, this.config.images[index]?.audioSource)
+    applySlideshowAudioSource(
+      copy.audioReactive as SlideshowAudioReactive | undefined,
+      this.config.images[index]?.audioSource,
+    )
     this.fotoManager.initializeImageSettings(imageData)
-    Object.assign(imageData.fotoSettings, copy)
+    Object.assign(imageData.fotoSettings as FotoSettings, copy)
     // Alte/unvollständige Audio-Konfiguration vervollständigen
     this.fotoManager.initializeImageSettings(imageData)
   }
@@ -1027,7 +1228,7 @@ export class SlideshowManager {
    * damit Änderungen am laufenden Bild sofort gemerkt sind (gedrosselt).
    * @param {boolean} [force=false] - ohne Drosselung
    */
-  _syncLiveMemory(force = false) {
+  _syncLiveMemory(force = false): void {
     const now = Date.now()
     if (!force && now - this._lastLiveSync < 250) return
     this._lastLiveSync = now
@@ -1042,7 +1243,9 @@ export class SlideshowManager {
    * @param {object} imageObject
    * @returns {object|null}
    */
-  getImageAdjustments(imageObject) {
+  getImageAdjustments(
+    imageObject: HTMLImageElement | null | undefined,
+  ): Record<string, unknown> | null {
     if (this.isActive) this._syncLiveMemory(true)
     const memory = imageObject ? this._imageMemory.get(imageObject) : null
     return memory ? JSON.parse(JSON.stringify(memory.fotoSettings)) : null
@@ -1054,7 +1257,11 @@ export class SlideshowManager {
    * @param {object|null} fotoSettings
    * @param {string} [audioMode] - Audio-Modus des Panels, zu dem die Audio-Einstellung gehört
    */
-  setImageAdjustments(imageObject, fotoSettings, audioMode) {
+  setImageAdjustments(
+    imageObject: HTMLImageElement | null | undefined,
+    fotoSettings: unknown,
+    audioMode?: unknown,
+  ): void {
     if (!imageObject || typeof imageObject !== 'object') return
     if (!fotoSettings || typeof fotoSettings !== 'object') {
       this._imageMemory.delete(imageObject)
@@ -1068,7 +1275,7 @@ export class SlideshowManager {
   }
 
   /** Verwirft alle gemerkten Bild-Anpassungen (z. B. per „Zurücksetzen“ im Panel). */
-  clearImageMemory() {
+  clearImageMemory(): void {
     this._imageMemory = new WeakMap()
     this._boundsMemory = new WeakMap()
     this._updateActiveImagesTransform()
@@ -1077,12 +1284,15 @@ export class SlideshowManager {
   /**
    * Wendet Audio-Reaktive Einstellungen auf ein Bild an
    */
-  _applyAudioReactiveSettings(imageData, imageConfig) {
+  _applyAudioReactiveSettings(
+    imageData: SlideshowCanvasImage,
+    imageConfig: SlideshowImageConfig,
+  ): void {
     // Prüfe ob das Bild bereits Audio-Reaktive Einstellungen hat
     const hasExistingSettings = imageConfig.audioReactiveSettings
     const defaultSettings = this.config.defaultAudioReactiveSettings
 
-    let settingsToApply = null
+    let settingsToApply: unknown = null
 
     if (hasExistingSettings) {
       settingsToApply = imageConfig.audioReactiveSettings
@@ -1095,10 +1305,12 @@ export class SlideshowManager {
       this.fotoManager.initializeImageSettings(imageData)
 
       // Kopiere Audio-Reaktive Einstellungen
-      imageData.fotoSettings.audioReactive = JSON.parse(JSON.stringify(settingsToApply))
+      ;(imageData.fotoSettings as FotoSettings).audioReactive = JSON.parse(
+        JSON.stringify(settingsToApply),
+      )
 
       console.log(
-        `[SlideshowManager] Audio-Reaktive Einstellungen auf Bild ${imageData.slideshow.imageIndex + 1} angewendet`,
+        `[SlideshowManager] Audio-Reaktive Einstellungen auf Bild ${(imageData.slideshow as SlideshowState).imageIndex + 1} angewendet`,
       )
     }
   }
@@ -1106,7 +1318,7 @@ export class SlideshowManager {
   /**
    * Hauptanimations-Loop
    */
-  _startAnimationLoop() {
+  _startAnimationLoop(): void {
     const animate = () => {
       if (!this.isActive) return
 
@@ -1126,9 +1338,9 @@ export class SlideshowManager {
   /**
    * Aktualisiert den Slideshow-Status aller aktiven Bilder
    */
-  _updateSlideshowState() {
+  _updateSlideshowState(): void {
     const now = Date.now()
-    const imagesToRemove = []
+    const imagesToRemove: SlideshowCanvasImage[] = []
     let needsNextImage = false
 
     for (const imageData of this.activeImages) {
@@ -1201,7 +1413,7 @@ export class SlideshowManager {
    * @param {'in'|'display'|'out'} phase
    * @param {number} progress - 0–1
    */
-  _applyTransition(ss, phase, progress) {
+  _applyTransition(ss: SlideshowState, phase: string, progress: number): void {
     const state = computeTransitionState(ss.transition, phase, progress)
     ss.transitionState = state
     ss.opacity = state.opacity
@@ -1210,7 +1422,7 @@ export class SlideshowManager {
   /**
    * Wird aufgerufen wenn die Slideshow komplett durchgelaufen ist
    */
-  _onComplete() {
+  _onComplete(): void {
     // Warte bis letztes Bild ausgeblendet ist
     const checkComplete = () => {
       if (this.activeImages.length === 0) {
@@ -1240,45 +1452,51 @@ export class SlideshowManager {
    * Hintergrund-Modus aus Optionen; `fitToWorkspace` (ältere Aufrufer) wird
    * als 'workspace' verstanden.
    */
-  static resolveBackgroundMode(options, fallback = 'none') {
+  static resolveBackgroundMode(
+    options: { backgroundMode?: unknown; fitToWorkspace?: unknown } | null | undefined,
+    fallback = 'none',
+  ): string {
     const mode = options?.backgroundMode
-    if (['none', 'canvas', 'workspace'].includes(mode)) return mode
+    if (typeof mode === 'string' && ['none', 'canvas', 'workspace'].includes(mode)) return mode
     if (options?.fitToWorkspace === true) return 'workspace'
     if (options?.fitToWorkspace === false) return 'none'
     return fallback
   }
 
-  static resolvePhaseDuration(own, fallback) {
-    return Number.isFinite(own) && own > 0 ? own : fallback
+  static resolvePhaseDuration(own: unknown, fallback: number): number {
+    return Number.isFinite(own) && (own as number) > 0 ? (own as number) : fallback
   }
 
-  static resolveDisplayDuration(imageConfig, fallback) {
+  static resolveDisplayDuration(
+    imageConfig: { displayDuration?: unknown } | null | undefined,
+    fallback: number,
+  ): number {
     const own = imageConfig?.displayDuration
-    return Number.isFinite(own) && own > 0 ? own : fallback
+    return Number.isFinite(own) && (own as number) > 0 ? (own as number) : fallback
   }
 
   /**
    * Berechnet die aktuelle Opacity für ein Slideshow-Bild
    * Wird von MultiImageManager.drawImages() verwendet
    */
-  static getSlideshowOpacity(imageData) {
+  static getSlideshowOpacity(imageData: { slideshow?: ImageSlideshowState }): number {
     if (!imageData.slideshow || !imageData.slideshow.active) {
       return 1 // Kein Slideshow-Bild, normale Opacity
     }
-    return Math.max(0, Math.min(1, imageData.slideshow.opacity))
+    return Math.max(0, Math.min(1, imageData.slideshow.opacity as number))
   }
 
   /**
    * Prüft ob ein Bild ein aktives Slideshow-Bild ist
    */
-  static isSlideshowImage(imageData) {
+  static isSlideshowImage(imageData: { slideshow?: ImageSlideshowState }) {
     return imageData.slideshow && imageData.slideshow.active
   }
 
   /**
    * ✨ NEU: Setzt die Layer-Einstellung (vor/hinter Visualizer) auch während laufender Slideshow
    */
-  setRenderBehindVisualizer(value) {
+  setRenderBehindVisualizer(value: boolean): void {
     console.log('[SlideshowManager] setRenderBehindVisualizer aufgerufen mit:', value)
     this.config.renderBehindVisualizer = value
 
@@ -1288,7 +1506,7 @@ export class SlideshowManager {
       if (!imageData.fotoSettings) {
         this.fotoManager.initializeImageSettings(imageData)
       }
-      imageData.fotoSettings.renderBehindVisualizer = value
+      ;(imageData.fotoSettings as FotoSettings).renderBehindVisualizer = value
       console.log(
         '[SlideshowManager] Bild',
         imageData.id,
@@ -1310,11 +1528,11 @@ export class SlideshowManager {
    * ✨ NEU: Gibt das aktive Slideshow-Bild zurück (für Maus-Interaktion)
    * Gibt das Bild mit der höchsten Opacity zurück
    */
-  getActiveImage() {
+  getActiveImage(): SlideshowCanvasImage | null {
     if (!this.isActive || this.activeImages.length === 0) return null
 
     // Finde das Bild mit der höchsten Opacity (das sichtbarste)
-    let bestImage = null
+    let bestImage: SlideshowCanvasImage | null = null
     let highestOpacity = -1
 
     for (const imageData of this.activeImages) {
@@ -1336,7 +1554,7 @@ export class SlideshowManager {
    * @param {number} relY - Relative Y-Position (0-1)
    * @returns {boolean}
    */
-  isPointInTransformArea(relX, relY) {
+  isPointInTransformArea(relX: number, relY: number): boolean {
     const t = this.getTransform()
     return (
       relX >= t.relX &&
@@ -1351,7 +1569,7 @@ export class SlideshowManager {
    * @param {number} deltaRelX - Relative X-Verschiebung
    * @param {number} deltaRelY - Relative Y-Verschiebung
    */
-  moveSlideshow(deltaRelX, deltaRelY) {
+  moveSlideshow(deltaRelX: number, deltaRelY: number): void {
     // An den Workspace gebunden → nicht frei verschiebbar
     if (this.isFittedToWorkspace()) return
     const oldX = this.transform.relX
@@ -1368,7 +1586,7 @@ export class SlideshowManager {
     for (const cfg of this.config.images) {
       const imageObject = cfg?.imageObject || cfg?.img
       const own = imageObject ? this._boundsMemory.get(imageObject) : null
-      if (own) {
+      if (own && imageObject) {
         const moved = { ...own, relX: own.relX + appliedX, relY: own.relY + appliedY }
         this._boundsMemory.set(imageObject, moved)
         this._notifyBounds(imageObject, moved)
@@ -1383,7 +1601,7 @@ export class SlideshowManager {
    * Maus-Verschieben: ganze Slideshow (true) oder einzelnes Bild (false).
    * @param {boolean} value
    */
-  setMoveWholeSlideshow(value) {
+  setMoveWholeSlideshow(value: unknown): void {
     this.moveWholeSlideshow = !!value
   }
 
@@ -1391,7 +1609,7 @@ export class SlideshowManager {
    * ✨ NEU: Skaliert die Slideshow
    * @param {number} scaleMultiplier - Skalierungsfaktor (1 = keine Änderung)
    */
-  scaleSlideshow(scaleMultiplier) {
+  scaleSlideshow(scaleMultiplier: number): void {
     if (this.isFittedToWorkspace()) return
     const currentWidth = this.transform.relWidth
     const currentHeight = this.transform.relHeight
